@@ -189,6 +189,7 @@ def racecard_from_public_html(html,*,url,race_id,captured_at,
             "style_displayed":recent.get("style") if
                    type(recent.get("style")) is str else None,
             "standing_count":_number(recent.get("standing")),
+            "home_count":_number(recent.get("home")),
             "back_count":_number(recent.get("back")),
             "gear_ratio":_number(recent.get("gearRatio")),
             "first_rate":_number(recent.get("firstRate"),hi=100),
@@ -205,23 +206,31 @@ def racecard_from_public_html(html,*,url,race_id,captured_at,
             verified[f"rider/{n}/race_score"]=row["race_point"]
         if type(recent.get("standing")) is int and recent["standing"]>=0:
             verified[f"rider/{n}/start_S_count"]=recent["standing"]
+        # WINTICKET publishes H/Home as the final-home lead count.
+        # Only admit the actual observed integer; a blank or malformed
+        # home count stays unavailable, never zero-filled.
+        if type(recent.get("home")) is int and recent["home"]>=0:
+            verified[f"rider/{n}/home_H_count"]=recent["home"]
         if type(recent.get("back")) is int and recent["back"]>=0:
             verified[f"rider/{n}/back_B_count"]=recent["back"]
         if row["comment"]:
             verified[f"rider/{n}/athlete_comments_and_intent"]=row["comment"]
-        # WINTICKET SSR publicly displays firstRate, secondRate and thirdRate
-        # as percentages. These are *separate* finish categories from the
-        # same source record. Do not fabricate the missing denominator, infer
-        # those rates from B counts, or accept a self-contradictory >100% sum.
-        # The private owner ingestion/rights gate is still required.
+        # WINTICKET publicly labels the three source fields as cumulative
+        # 1st-place, top-2 and top-3 finish percentages. Source definition:
+        # https://www.winticket.jp/support/beginner (着順・勝率 section).
+        # Derive EXACT second/third-place shares by adjacent differences.
+        # Never SUM cumulative rates or invent a missing denominator.
+        # Disordered, missing or invalid rates must remain unavailable.
+        # Provider usage rights and source timing remain separate gates.
         rates=(row["first_rate"],row["second_rate"],row["third_rate"])
-        if all(type(v) in (int,float) and math.isfinite(v) and
-               0 <= v <= 100 for v in rates) and sum(rates)<=100+1e-7:
+        if (all(type(v) in (int,float) and math.isfinite(v)
+                and 0 <= v <= 100 for v in rates)
+                and rates[0] <= rates[1] <= rates[2]):
             rate_values={
                 "win_rate":rates[0]/100,
-                "second_place_rate":rates[1]/100,
-                "third_place_rate":rates[2]/100,
-                "top_three_rate":sum(rates)/100,
+                "second_place_rate":(rates[1]-rates[0])/100,
+                "third_place_rate":(rates[2]-rates[1])/100,
+                "top_three_rate":rates[2]/100,
             }
             for key,value in rate_values.items():
                 verified[f"rider/{n}/{key}"]=value
@@ -266,7 +275,7 @@ def racecard_from_public_html(html,*,url,race_id,captured_at,
         "registry_verified_count":len(verified),
         "registry_unavailable_count":len(missing),
         "full_347_or_437_verified":len(missing)==0,
-        "rate_transform":"SOURCE_REPORTED_PERCENT_TO_RATIO_V1_NO_DENOMINATOR_INFERENCE",
+        "rate_transform":"WINTICKET_CUMULATIVE_TOP1_TOP2_TOP3_TO_EXCLUSIVE_V2",
         "rate_denominator_and_reporting_period_independently_verified":False,
         "source_field_rights_independently_verified":False,
         "official_organizer_cutoff_certified":False,
