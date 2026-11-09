@@ -52,6 +52,9 @@ def structure(html,source_url):
     schedules=Counter()
     matches=Counter()
     races=0
+    raw_races=[]
+    raw_schedules=[]
+    raw_venues=[]
     for q in root.get("tanStackQuery",{}).get("queries",[]):
         if type(q) is not dict:continue
         state=q.get("state")
@@ -62,6 +65,9 @@ def structure(html,source_url):
             if type(v) is list and (k in ("races","schedules","venues",
                                          "stadiums","events","racecards")):
                 datasets[k]+=len(v)
+                if k=="races":raw_races.extend(v)
+                if k=="schedules":raw_schedules.extend(v)
+                if k=="venues":raw_venues.extend(v)
                 if v and type(v[0]) is dict:
                     first_collection_keys[k]=sorted(v[0])
                 if k=="schedules":
@@ -88,8 +94,50 @@ def structure(html,source_url):
                     matches["schedule_id_has_venue_prefix_or_suffix"]+=1
                 if rid[4:] in val:
                     matches["schedule_id_contains_event_date"]+=1
+    # Only count relationships among WINTICKET's published, individual
+    # SSR schedule and venue identities. No private source values logged.
+    from datetime import datetime,timedelta
+    verified_schedules={}
+    for record in raw_schedules:
+        if type(record) is not dict:continue
+        sid,cup,day,when=(record.get("id"),record.get("cupId"),
+                          record.get("day"),record.get("date"))
+        if not (type(sid) is str and type(cup) is str and
+                type(day) is int and type(when) is str and
+                len(sid)==len(cup)==10 and len(when)==8 and
+                sid.isdigit() and cup.isdigit() and when.isdigit()
+                and 1<=day<=3):continue
+        try:
+            first=datetime.strptime(cup[:8],"%Y%m%d").date()
+            actual=datetime.strptime(when,"%Y%m%d").date()
+        except ValueError:continue
+        if first+timedelta(days=day-1)!=actual:continue
+        if cup[-2:]!=sid[-2:] or sid[:8]!=when:continue
+        verified_schedules[sid]=record
+    venue_ids=set()
+    for v in raw_venues:
+        if type(v) is not dict:continue
+        name=v.get("slug")
+        no=v.get("id")
+        if type(no) is int and 1<=no<=99 and type(name) is str and re.fullmatch(
+            "[a-z][a-z0-9-]{2,30}",name):
+            venue_ids.add(no)
+    schedule_linked_race_count=0
+    schedule_and_venue_linked_count=0
+    for row in raw_races:
+        if type(row) is not dict:continue
+        sid=row.get("scheduleId")
+        if type(sid) is not str or sid not in verified_schedules:continue
+        schedule_linked_race_count+=1
+        if type(row.get("id")) is str and len(row["id"])==12 and (
+            int(sid[-2:]) in venue_ids):
+            schedule_and_venue_linked_count+=1
     return {
         "schema":"RACE_AI_WINTICKET_PUBLIC_DAY_INDEX_STRUCTURE_ONLY_V1",
+        "published_cup_date_day_schedule_validated_count":len(verified_schedules),
+        "venue_id_and_slug_validated_count":len(venue_ids),
+        "race_schedule_join_count":schedule_linked_race_count,
+        "race_schedule_venue_join_count":schedule_and_venue_linked_count,
         "public_keirin_href_count":sum(shapes.values()),
         "path_template_counts":dict(shapes.most_common(18)),
         "ssr_named_collection_counts":dict(datasets),
