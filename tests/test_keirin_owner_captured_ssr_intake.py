@@ -76,6 +76,40 @@ class CapturedSSRBridgeTests(unittest.TestCase):
         self.assertEqual(second["private_partial_racecards_staged"],0)
         self.assertEqual(odds[0].read_bytes(),original)
 
+    def test_future_real_rider_capture_is_preserved_before_odds_open(self):
+        # A genuine pre-race racecard often exists before the odds market.
+        # The owner must not lose the captured rider facts merely because
+        # 210 actual odds have not yet appeared.
+        first_capture=self.capture(urls=(CARD,))
+        self.assertEqual(first_capture["captures_created"],1)
+        before=stage_private_captured_winticket(self.root)
+        self.assertEqual(before["captured_html_seen"],1)
+        self.assertEqual(before["source_races_seen"],1)
+        self.assertEqual(before["private_partial_racecards_staged"],1)
+        self.assertEqual(before["full_odds_races_staged"],0)
+        self.assertEqual(before["incomplete_races"],1)
+        self.assertEqual(before["forecasts_created"],0)
+        partial=list((self.root/"winticket_racecard_partial").glob("*.json"))
+        self.assertEqual(len(partial),1)
+        original=partial[0].read_bytes()
+        packet=json.loads(original)
+        self.assertEqual(packet["registry_checked_count"],347)
+        self.assertEqual(len(packet["riders"]),7)
+        self.assertGreater(packet["registry_unavailable_count"],200)
+        self.assertFalse(packet["full_347_or_437_verified"])
+        self.assertFalse(packet["independent_pre_cutoff_receipt_verified"])
+
+        # Later source-captured complete odds are processed separately.
+        self.capture(urls=(ODDS,))
+        after=stage_private_captured_winticket(self.root)
+        self.assertEqual(after["source_races_seen"],1)
+        self.assertEqual(after["private_partial_racecards_staged"],0)
+        self.assertEqual(after["full_odds_races_staged"],1)
+        self.assertEqual(after["incomplete_races"],0)
+        self.assertEqual(partial[0].read_bytes(),original)
+        self.assertEqual(len(list((self.root/"odds").glob("*.json"))),1)
+        self.assertEqual(after["forecasts_created"],0)
+
     def test_missing_racecard_never_stages_odds_or_forecasts(self):
         self.capture(urls=(ODDS,))
         res=stage_private_captured_winticket(self.root)
