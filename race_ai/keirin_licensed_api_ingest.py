@@ -24,6 +24,7 @@ from .keirin_non_rakuten_sources import is_rakuten_url
 
 EXPORT_SCHEMA = "RACE_AI_KEIRIN_LICENSED_PROVIDER_EXPORT_V1"
 EXPORT_SCHEMA_V2 = "RACE_AI_KEIRIN_LICENSED_PROVIDER_EXPORT_V2"
+EXPORT_SCHEMA_V3 = "RACE_AI_KEIRIN_LICENSED_PROVIDER_EXPORT_V3"
 MAX_BODY = 32_000_000
 MAX_DELIVERIES = 5000
 
@@ -115,7 +116,10 @@ def fetch_licensed_export_once(inbox, grants, *, endpoint, rights_ref,
             set(value) == {"schema", "bundle_id", "deliveries"}) or
            (value.get("schema") == EXPORT_SCHEMA_V2 and
             set(value) == {"schema", "bundle_id", "deliveries",
-                           "odds_snapshots"})) and
+                           "odds_snapshots"}) or
+           (value.get("schema") == EXPORT_SCHEMA_V3 and
+            set(value) == {"schema", "bundle_id", "deliveries",
+                           "odds_snapshots", "result_observations"})) and
           value["bundle_id"] == grants.bundle_id and
           type(value["deliveries"]) is list and
           len(value["deliveries"]) <= MAX_DELIVERIES,
@@ -128,15 +132,33 @@ def fetch_licensed_export_once(inbox, grants, *, endpoint, rights_ref,
               type(packet.get("race")) is dict and
               packet["race"].get("permission_ref") == grants.bundle_id,
               "UNTRUSTED_RACE_PACKET")
-    # V2 odds share the SAME already-authorized provider response. Validate
-    # every market row before any raw/source file is promoted.
-    if value["schema"] == EXPORT_SCHEMA_V2:
+    # V3 adds result revisions to the SAME already-authorized GET.
+    # Validate ALL result purposes, clocks and settlement shapes before
+    # staging ANY raw/odds/source file. The result still is not independently
+    # authenticated as official; its true provider rights remain external.
+    result_stage=None
+    if value["schema"] == EXPORT_SCHEMA_V3:
+        from .keirin_licensed_result_stage import (
+            validate_result,stage_licensed_result_export
+        )
+        results=value["result_observations"]
+        _need(type(results) is list and len(results)<=2000,
+              "LICENSED_RESULT_BATCH_BOUNDS_INVALID")
+        for result in results:
+            validate_result(result,grants,checked_at=grants.now.isoformat())
+    # V2/V3 odds share this same response. Validate them before any
+    # forecast source packet or result is written.
+    if value["schema"] in (EXPORT_SCHEMA_V2,EXPORT_SCHEMA_V3):
         from .keirin_licensed_odds_export import stage_licensed_odds_export
         odds_report = stage_licensed_odds_export(
             root, value["odds_snapshots"], value["deliveries"],
             checked_at=grants.now.isoformat(), grant_check=grants.allowed)
     else:
         odds_report = None
+    if value["schema"] == EXPORT_SCHEMA_V3:
+        result_stage=stage_licensed_result_export(
+            root,value["result_observations"],
+            checked_at=grants.now.isoformat(),grants=grants)
     for packet in value["deliveries"]:
         digest = sha256(canonical(packet)).hexdigest()
         made = _write_private_once(raw / (digest + ".json"), packet)
@@ -147,6 +169,7 @@ def fetch_licensed_export_once(inbox, grants, *, endpoint, rights_ref,
     return {
         "schema": "RACE_AI_KEIRIN_AUTHORIZED_FETCH_ONCE_V1",
         "licensed_full_odds_staged": odds_report,
+        "licensed_result_rows_staged": result_stage,
         "http_requests": 1 if transport is None else 0,
         "provider_packets_created": created,
         "provider_packets_already_present": existing,
@@ -214,6 +237,10 @@ def fetch_authorized_exports(inbox, grants, *, sources, token=None,
         "licensed_full_odds_staged":[
             x["licensed_full_odds_staged"] for x in reports
             if x["licensed_full_odds_staged"] is not None
+        ],
+        "licensed_result_rows_staged":[
+            x["licensed_result_rows_staged"] for x in reports
+            if x["licensed_result_rows_staged"] is not None
         ],
         "internal_api_discovery":False,
         "provider_rate_limits_bypassed":False,
