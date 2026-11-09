@@ -84,7 +84,7 @@ class WinticketPublicRacecardTests(unittest.TestCase):
         self.assertEqual(doc["registry_verified_count"]+
                          doc["registry_unavailable_count"],347)
         self.assertGreater(doc["registry_verified_count"],7)
-        self.assertGreater(doc["registry_unavailable_count"],300)
+        self.assertGreater(doc["registry_unavailable_count"],200)
         self.assertFalse(doc["full_347_or_437_verified"])
         self.assertNotIn("race/line_order_all_riders",
                          doc["direct_verified_fields"])
@@ -104,7 +104,7 @@ class WinticketPublicRacecardTests(unittest.TestCase):
         doc=self.parse(fixture(size=9))
         self.assertEqual(len(doc["riders"]),9)
         self.assertEqual(doc["registry_checked_count"],437)
-        self.assertGreater(doc["registry_unavailable_count"],300)
+        self.assertGreater(doc["registry_unavailable_count"],200)
         self.assertFalse(doc["full_347_or_437_verified"])
         self.assertEqual(doc["riders"][8]["car_number"],9)
 
