@@ -30,3 +30,13 @@ The owner explicitly instructed after the Cloudflare shutdown: 「GitHubで出�
 - A runner filesystem is temporary. Restore verified previous state before executing the existing model, and preserve the original prediction and revision history. Missing/expired state is a stop condition, not permission to reset the DB.
 - GitHub artifacts expire. The three-day synthetic proof is not a permanent production backup. Indefinite encrypted retention and real-data feeder integration remain separate acceptance gates.
 - No new private repository, unrelated project vault, changed repository visibility, paid runner or storage plan is authorized by the test implementation.
+
+## Canonical KEIRIN development repository (owner decision 2026-11-10)
+
+- The sole active KEIRIN prediction development repository is `haji84/RACE-AI`. Treat KEIRIN as one sport-specific module within the existing four-sport system. Keep prediction, source evidence, video learning, persistent state, results, and PDCA integrated here.
+- `haji84/KEIRIN-AI` is legacy historical reference only. Do not start parallel development or duplicate schedules there. Its Draft PR #1 has old v0.4 docs; the promised v0.6 source was not observed in that repository's main. Preserve the repo, history, and open PR without forced merge, archiving, deletion, or rewriting.
+- Reuse existing RACE-AI Issues #67/#68, existing Draft PRs #101/#102/#103, main workflows, source contracts, models, scorer, and SHA-bound source/archive paths. Create no second independent KEIRIN model authority or PDCA engine. Preserve existing work in progress before making changes.
+- Do not automatically assume an old KEIRIN-AI design is fully migrated or compliant. If an actual missing historical asset is found, document its provenance and compare it against current RACE-AI contracts before a separately reviewed change.
+- GORIQ (haji84/AI-) may orchestrate software development but is not another KEIRIN forecast repository. A GitHub Issue/comment does not prove GORIQ authenticated intake, a started WorkRun, or unattended execution.
+- This is a reversible documentation / development-routing decision, not authorization to change secrets, permissions, vendor access, costs, repository visibility, branch protection, encryption, production deployment, or wagers. Existing Human Gates and required checks remain unchanged.
+- Detailed inventory and real-race acceptance: `docs/KEIRIN_REPO_CONSOLIDATION_20261110.md`.
