@@ -214,12 +214,28 @@ class CloudPr71GitHistoryTests(unittest.TestCase):
             self.assertEqual(repeated["state"],
                              "CLOUD_PR71_RESTORED_NO_CHANGED_MODEL_OR_RESULT")
             self.assertEqual(repeated["result_rows_appended"],0)
+            # A later provider revision is a NEW result generation, never a
+            # replacement for the previously frozen prediction or result.
+            row["provider_revision_ref"]="fictional-revision-2"
+            row["source_published_at"]="2030-01-15T10:20:00+09:00"
+            row["observed_at"]="2030-01-15T10:20:00+09:00"
+            row["winning_triples"]=[[4,5,6]]
+            row["payouts_100yen"]=[{"triple":[4,5,6],"yen":22000}]
+            corrected=cloud.cycle(self.repo,self.source)
+            self.assertEqual(corrected["state"],
+                             "CLOUD_PR71_ENCRYPTED_GIT_HISTORY_READBACK_VERIFIED")
+            self.assertEqual(corrected["generation"],3)
+            self.assertEqual(corrected["result_rows_appended"],1)
+            self.assertNotEqual(corrected["cipher_sha256"],
+                                result["cipher_sha256"])
+            self.assertEqual(cloud.cycle(self.repo,self.source)["state"],
+                             "CLOUD_PR71_RESTORED_NO_CHANGED_MODEL_OR_RESULT")
         reread=self.root/"independent-real-code.sqlite3"
         head,verified=cloud.restore(self.repo,self.source,reread)
-        self.assertEqual(head["generation"],2)
+        self.assertEqual(head["generation"],3)
         self.assertEqual(head["previous_cipher_sha256"],
-                         first["cipher_sha256"])
-        self.assertEqual(verified["revisions"],1)
+                         result["cipher_sha256"])
+        self.assertEqual(verified["revisions"],2)
         with PrivateKeirinStore(reread) as store:
             ledger=FourModelRankLedger(store)
             self.assertEqual(ledger.read_suite(RID)["suite"]["suite_sha256"],
@@ -228,10 +244,15 @@ class CloudPr71GitHistoryTests(unittest.TestCase):
             self.assertEqual(set(audited),set(ALL_MODELS))
             self.assertTrue(all(
                 record["result_status"]=="SETTLED_RESEARCH" and
-                record["result_revision"]==1 and
+                record["result_revision"]==2 and
                 record["official_result_independently_authenticated"] is False
                 for record in audited.values()))
             self.assertEqual(ledger.replay_all()["latest_model_race_audits"],4)
+            self.assertEqual(store.db.execute(
+                "SELECT COUNT(*) FROM result_revisions").fetchone()[0],2)
+            self.assertEqual(store.db.execute(
+                "SELECT COUNT(*) FROM keirin_pr71_four_model_rank_audits"
+            ).fetchone()[0],8)
 
     def test_missing_original_refuses_production_archive(self):
         with PrivateKeirinStore(self.db):
