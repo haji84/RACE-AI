@@ -108,6 +108,17 @@ def stage_existing_pdca_without_source(repo,*,now=None,intraday_transport=None,b
                        status='HOLD_UNSUPPORTED_SAVED_VIEW_RESEARCH_INPUT',
                        counted_races=None,actual_three_way_120_results_scored=0,
                        new_provider_requests=0,originals_modified=False)
+    # Existing AES-restored original P1 forecasts are ONLY scored if A and B
+    # were independently persisted before the SAME cutoff. Never reconstruct
+    # B from post-race inputs or turn missing B into a MISS.
+    from race_ai.boat_six_way_saved_ab_score import score_ab_views
+    try:
+        saved_ab_study=score_ab_views(list(bridge.views.values()),authenticated=True)
+    except (ValueError,TypeError,KeyError,AttributeError):
+        saved_ab_study=dict(schema='RACE_AI_BOAT_SIXWAY_SAVED_AB_SCORE_V1',
+                            status='HOLD_SOURCE_OR_A_B_SAVED_VIEW_REJECTED',
+                            compared_ab_races=0,source_provider_requests=0,
+                            originals_modified=False,production_model_promoted=False)
     audit=H.latest(state.control)
     # Existing signed catalogue binding is unchanged: this mode doesn't
     # alter the daily catalogue, fetch a source or publish any page.
@@ -123,6 +134,7 @@ def stage_existing_pdca_without_source(repo,*,now=None,intraday_transport=None,b
         outstanding_unscored=audit['unscored'],source_requests=0,source_provider_requests=0,
         offline_model_receipt_replay=replay_report,
         six_way_research_readiness=readiness,
+        six_way_saved_ab_study=saved_ab_study,
         forecast_rewrites=0,actual_purchases=False,independent_readback_verified=False)
 
 def replay_retained_results(repo,*,now=None,intraday_transport=None,bridge=None):

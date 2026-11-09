@@ -9,6 +9,7 @@
  */
 const overlay=require("./boat_six_way_probability_overlay.cjs");
 const SCHEMA="RACE_AI_BOAT_SIXWAY_MATCHED_ABLATION_V1";
+const AB_SCHEMA="RACE_AI_BOAT_SIXWAY_MATCHED_AB_V1";
 const GRADE_SCHEMA="RACE_AI_BOAT_GRADE_TRANSITION_RESEARCH_V1";
 const NAMES=["first_former_A_current_B","second_former_A_current_B",
  "third_former_A_current_B","first_next_A_pending","first_next_A_confirmed",
@@ -100,7 +101,7 @@ function grades(record,prepared){
     y.futurePending,x.gap,y.gap,x.former*x.gap,x.former*y.former];
  });
 }
-function detail(row){
+function detail(row,gradeRequired=true){
  need(row&&row.input&&typeof row.result_ticket==="string"&&
   TICKETS.includes(row.result_ticket)&&
   /^[a-f0-9]{64}$/.test(row.result_source_sha256),"MATCHED_RESULT_RECEIPT_HOLD");
@@ -111,7 +112,7 @@ function detail(row){
  const originalSaved=time(row.original_saved_at);
  need(p.asof<=originalSaved&&originalSaved<p.cutoff,
   "MATCHED_ORIGINAL_NOT_SAVED_BEFORE_CUTOFF");
- const g=grades(row.input,p);
+ const g=gradeRequired?grades(row.input,p):null;
  const idx=TICKETS.indexOf(row.result_ticket);
  const payout=row.payout_per_100_yen;
  need(payout===null||Number.isInteger(payout)&&payout>=0&&payout<100000000,
@@ -159,12 +160,13 @@ function metrics(cases,tacticalWeight,gradeWeight){
   highHits:0,roiStake:0,roiBack:0,completePayouts:true},
   {name:"B_SIX_COURSE_TACTICS",logs:0,brier:0,hits:0,highEvents:0,
    highHits:0,roiStake:0,roiBack:0,completePayouts:true},
-  {name:"C_TACTICS_PLUS_GRADE",logs:0,brier:0,hits:0,highEvents:0,
-   highHits:0,roiStake:0,roiBack:0,completePayouts:true}];
+  ...(gradeWeight===null?[]:[{name:"C_TACTICS_PLUS_GRADE",logs:0,brier:0,hits:0,highEvents:0,
+   highHits:0,roiStake:0,roiBack:0,completePayouts:true}])];
  for(const row of cases){
   const original=row.p.prior,tactical=all120(row.p,tacticalWeight);
-  const combined=apply(tactical,row.g,gradeWeight),vals=[original,tactical,combined];
-  for(let j=0;j<3;j++){
+  const vals=gradeWeight===null?[original,tactical]:
+   [original,tactical,apply(tactical,row.g,gradeWeight)];
+  for(let j=0;j<vals.length;j++){
    const grp=groups[j],pr=vals[j],ix=row.index;
    grp.logs-=Math.log(pr[ix]);
    grp.brier+=pr.reduce((sum,p,i)=>sum+(p-(i===ix?1:0))**2,0);
@@ -191,12 +193,12 @@ function metrics(cases,tacticalWeight,gradeWeight){
   officially_authenticated_result:false
  }));
 }
-function compare(records,options={}){
+function compare(records,options={},includeGrade=true){
  need(Array.isArray(records)&&records.length>=50&&records.length<=2500,
   "MATCHED_RECORDS_INSUFFICIENT");
  const seen=new Set(),cases=[];
  for(const row of records){
-  const d=detail(row);
+  const d=detail(row,includeGrade);
   need(!seen.has(d.p.race),"MATCHED_DUPLICATE_RACE");
   seen.add(d.p.race);cases.push(d);
  }
@@ -223,19 +225,23 @@ function compare(records,options={}){
  need(JSON.stringify(tactical.holdout_ids)===JSON.stringify(test.map(r=>r.p.race)),
   "MATCHED_TACTICAL_HOLDOUT_NOT_SAME");
  const degree=tactical.frozen.coefficients;
- const grade=fitGrade(train,degree,options);
- return {schema:SCHEMA,
+ const grade=includeGrade?fitGrade(train,degree,options):null;
+ return {schema:includeGrade?SCHEMA:AB_SCHEMA,
   status:"RESEARCH_COMPARISON_REQUIRES_AUTHENTICATED_REAL_PROOF",
   frozen_training_through:new Date(freeze).toISOString(),
   train_races:train.length,holdout_races:test.length,
   holdout_race_count:test.length,
   ablations:metrics(test,degree,grade),
   coefficients_trained_locally:true,
-  grade_feature_names:[...NAMES],
-  grade_source_current_full_coverage_claim:true,
+  grade_feature_names:includeGrade?[...NAMES]:[],
+  grade_source_current_full_coverage_claim:includeGrade,
+  grade_inputs_required:includeGrade,
   model_family_added:false,source_get_count:0,
   old_predictions_overwritten:false,model_promoted:false,
   private_actual_purchases:null,all_claims_require_independent_readback:true,
   prospective_future_comparison_complete:false};
 }
-module.exports={SCHEMA,GRADE_SCHEMA,NAMES,detail,compare};
+function compareAB(records,options={}){
+ return compare(records,options,false);
+}
+module.exports={SCHEMA,AB_SCHEMA,GRADE_SCHEMA,NAMES,detail,compare,compareAB};

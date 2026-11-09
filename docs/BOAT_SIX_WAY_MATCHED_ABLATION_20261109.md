@@ -59,3 +59,14 @@ Current status:
   old UNKNOWN/4xx/429 caps, change the current native issuer/capsule boundary,
   or rewrite prior P0/P1.
 - No production model promotion, main merge, workflow/task/cron creation or bets.
+
+## A/B is not blocked by missing next-grade evidence
+
+`compareAB(records, options)` uses just the original frozen P1 A and six-way
+B feature inputs. It refuses to fabricate zero missing tactics, tilt, event
+qualifying or original receipt, and does not require **any** current/next
+grade data. Its frozen chronological sample is exactly the same as the
+A/B/C implementation; when grade data is later authenticated, use `compare`
+for all three variants. `compareAB` returns only A and B, never a synthetic
+C score. This allows honest A/B research to progress without 2027-1 fan
+grade archives. Synthetic tests alone are not a real improvement result.

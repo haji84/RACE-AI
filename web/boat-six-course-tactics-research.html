@@ -138,11 +138,15 @@ if(quali&&quali.schema==="RACE_AI_BOAT_EVENT_QUALIFYING_CONTEXT_V1"){
 
 const comparison=data.matched_ablation;
 if(comparison){
- if(comparison.schema!=="RACE_AI_BOAT_SIXWAY_MATCHED_ABLATION_V1"||
-    !Array.isArray(comparison.ablations)||comparison.ablations.length!==3)
-   throw Error("A/B/Cの比較データが不正");
- const study=section("A/B/C同一レース比較（研究用）");
- text(study,"A:保存済み従来予想　B:6艇戦法・進入・チルト・予選　C:B＋級別履歴。結果原本・出典の独立照合がない限り精度改善は未認定。");
+ const complete=comparison.schema==="RACE_AI_BOAT_SIXWAY_MATCHED_ABLATION_V1";
+ const ab=comparison.schema==="RACE_AI_BOAT_SIXWAY_MATCHED_AB_V1";
+ if((!complete&&!ab)||!Array.isArray(comparison.ablations)||
+     comparison.ablations.length!==(complete?3:2))
+   throw Error("A/B比較のモデル・レース数が不正");
+ const study=section("A/B同一レース比較（研究用）");
+ text(study,"A:保存済み従来予想　B:6艇戦法・進入・チルト・予選"+
+   (complete?"　C:B＋級別履歴":"。級別資料が未取得でもA/Bは独立比較。Cは保留")+
+   "。結果原本・出典の独立照合がない限り精度改善は未認定。");
  const t=el("table"),body=el("tbody");t.append(body);
  const header=el("tr");
  for(const h of ["方式","検証レース数","Top8的中率","Log Loss","Brier120","万舟捕捉","仮想収支/円","仮想回収率"])
@@ -153,7 +157,7 @@ if(comparison){
  for(const r of comparison.ablations){
   if(r.independent_races!==n||!Number.isFinite(r.mean_log_loss)||
     !Number.isFinite(r.mean_brier120)||!Number.isFinite(r.hit_at8_rate))
-    throw Error("A/B/Cの分母・確率誤差が不整合");
+    throw Error("A/Bの分母・確率誤差が不整合");
   const row=el("tr");
   const money=r.hypothetical_net_yen;
   for(const val of [r.variant,r.independent_races,rate(r.hit_at8_rate),

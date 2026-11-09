@@ -38,6 +38,10 @@ class StageTests(unittest.TestCase):
                              'RACE_AI_BOAT_SIX_WAY_REAL_READINESS_V1')
             self.assertEqual(result['six_way_research_readiness']['new_provider_requests'],0)
             self.assertEqual(result['six_way_research_readiness']['actual_three_way_120_results_scored'],0)
+            self.assertEqual(result['six_way_saved_ab_study']['schema'],
+                             'RACE_AI_BOAT_SIXWAY_SAVED_AB_SCORE_V1')
+            self.assertEqual(result['six_way_saved_ab_study']['compared_ab_races'],0)
+            self.assertEqual(result['six_way_saved_ab_study']['source_provider_requests'],0)
             from scripts.verify_all_history_pdca_readback import verify_snapshot
             restored=load_intraday(fixture.repo,key=key,transport=FixtureGit(fixture.repo,ref=TRANSFER_REF),now=now+timedelta(minutes=3))
             newBridge=SavedResultBridge(fixture.repo,now=now+timedelta(minutes=3),transport=fixture.git,bootstrap=fixture.boot)

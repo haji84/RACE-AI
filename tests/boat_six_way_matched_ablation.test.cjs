@@ -49,6 +49,27 @@ function one(i) {
   payout_per_100_yen:i%3===0?15000:1100,refund_boats:[]};
 }
 const cases=Array.from({length:75},(_,i)=>one(i));
+const noGrades=cases.map(row=>{
+ const cloned=JSON.parse(JSON.stringify(row));
+ delete cloned.input.grade_transition;
+ return cloned;
+});
+const unmodifiedB=JSON.stringify(noGrades);
+const onlyAB=A.compareAB(noGrades,{epochs:8,learningRate:.3});
+assert.equal(onlyAB.schema,A.AB_SCHEMA);
+assert.equal(onlyAB.train_races,60);
+assert.equal(onlyAB.holdout_races,15);
+assert.deepEqual(onlyAB.ablations.map(g=>g.variant),
+ ["A_FROZEN_BASELINE","B_SIX_COURSE_TACTICS"]);
+assert.equal(onlyAB.grade_inputs_required,false);
+assert.equal(onlyAB.grade_source_current_full_coverage_claim,false);
+assert.equal(JSON.stringify(noGrades),unmodifiedB);
+const missingGrade=JSON.parse(JSON.stringify(noGrades[0]));
+assert.throws(()=>A.detail(missingGrade),/MATCHED_GRADE_ASOF_IDENTITY_HOLD/);
+assert.equal(A.detail(missingGrade,false).g,null);
+const noTactics=noGrades.map(r=>JSON.parse(JSON.stringify(r)));
+delete noTactics[0].input.context.six_course_features;
+assert.throws(()=>A.compareAB(noTactics,{epochs:1}),/SIXWAY_REQUIRED_FIELD_MISSING/);
 const unmodified=JSON.stringify(cases);
 const out=A.compare(cases,{epochs:8,learningRate:.3});
 assert.equal(JSON.stringify(cases),unmodified);
