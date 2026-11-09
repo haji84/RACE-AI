@@ -43,10 +43,21 @@ async def run(args):
         path=args.private_retention_receipts
         if path.is_file():
             state=json.loads(path.read_text(encoding="utf-8"))
+    temporary_races=set()
+    if args.temporary_artifact_receipts is not None:
+        receipt=json.loads(args.temporary_artifact_receipts.read_text(encoding="utf-8"))
+        if (receipt.get("schema")!="RACE_AI_KEIRIN_GH_TEMP_CIPHERTEXT_RECEIPTS_V1"
+           or receipt.get("date_jst")!=today or
+           receipt.get("github_action_artifacts_only_not_durable_private_storage") is not True):
+            raise ValueError("INVALID_TODAY_TEMPORARY_ARTIFACT_RECEIPTS")
+        temporary_races=set(receipt["temporary_capture_race_ids"])
+        if len(temporary_races)!=len(receipt["temporary_capture_race_ids"]):
+            raise ValueError("DUPLICATE_TEMPORARY_RACE_RECEIPT")
     if args.previous_day_manifest is not None:
         from race_ai.keirin_daily_night_backfill import select_night_backfill
         recovery=select_night_backfill(
-            manifest,now=now,progress=state,max_races=args.max_races)
+            manifest,now=now,progress=state,max_races=args.max_races,
+            temporary_captured_race_ids=temporary_races)
         batch={
             "selected":recovery["attempt_candidates"],
             "races_visible_on_result_index":sum(
@@ -55,7 +66,8 @@ async def run(args):
             "not_selected_due_to_wave_cap":recovery["capped_unprocessed_count"],
         }
     else:
-        batch=select(manifest,progress=state,max_races=args.max_races)
+        batch=select(manifest,progress=state,max_races=args.max_races,
+                     temporary_captured_race_ids=temporary_races)
     result={
         "schema":REPORT_SCHEMA,"date_jst":today,
         "as_of_jst":now.isoformat(),
@@ -65,6 +77,9 @@ async def run(args):
         "result_page_links":batch["races_visible_on_result_index"],
         "previously_retained_with_verified_readback":
             batch["durably_archived_with_attested_readback"],
+        "previously_captured_only_in_unexpired_github_artifacts":
+            len(temporary_races),
+        "temporary_github_artifact_not_private_durable_storage":True,
         "candidates_remaining_for_another_wave":
             batch["not_selected_due_to_wave_cap"],
         "available_candidates_this_wave":len(batch["selected"]),
@@ -204,6 +219,8 @@ def main():
     ap.add_argument("--report",required=True,type=Path)
     ap.add_argument("--manifest",required=True,type=Path)
     ap.add_argument("--private-retention-receipts",type=Path)
+    ap.add_argument("--temporary-artifact-receipts",type=Path,
+                    help="Reconstructed from unexpired Actions artifacts, NOT durable Library")
     ap.add_argument("--previous-day-manifest",type=Path,
                     help="Only in JST 00:00-07:59 recovery; use a precommitted prior-day manifest")
     ap.add_argument("--sealed-research-dir",type=Path,
