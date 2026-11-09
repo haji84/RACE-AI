@@ -335,7 +335,7 @@ def _licensed_inputs(inbox,source_root):
             path,now=datetime.now(timezone.utc).isoformat())
         fetched=fetch_authorized_exports(
             inbox,grants,sources=[(e[needed[0]],e[needed[1]])],
-            token=e.get("RACE_AI_KEIRIN_FEED_TOKEN"))
+            token=e.get("RACE_AI_KEIRIN_FEED_TOKEN") or None)
         staged=stage_permissioned_deliveries(
             inbox,grants,now=datetime.now(timezone.utc).isoformat())
         return grants,staged,"LICENSED_SOURCE_AUDITED"
