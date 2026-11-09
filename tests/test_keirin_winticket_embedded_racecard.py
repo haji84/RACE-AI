@@ -196,6 +196,42 @@ class WinticketPublicRacecardTests(unittest.TestCase):
         doc=self.parse(fixture(mutation=reported_zero))
         self.assertEqual(doc["direct_verified_fields"]["rider/1/home_H_count"],0)
 
+    def test_exact_wind_units_and_source_observed_athlete_age_term(self):
+        def real_source_shape(data):
+            data["races"][0]["windSpeed"]="2.5 m/s"
+            for rider in data["players"]:
+                rider["age"]=35
+                rider["term"]=112
+        report=self.parse(fixture(mutation=real_source_shape))
+        observed=report["direct_verified_fields"]
+        self.assertAlmostEqual(observed["race/wind_speed"],2.5)
+        for number in range(1,8):
+            self.assertEqual(observed[f"rider/{number}/age_term_experience"],{
+                "age_years":35,"training_term_number":112})
+        self.assertEqual(report["registry_verified_count"],83)
+        self.assertEqual(report["registry_unavailable_count"],264)
+        self.assertFalse(report["source_field_rights_independently_verified"])
+        self.assertFalse(report["official_organizer_cutoff_certified"])
+        self.assertFalse(report["forecasts_created"])
+
+    def test_wind_without_explicit_mps_or_unknown_age_term_stays_unavailable(self):
+        for wind in ("2.5","2.5 km/h","静穏","-1m/s","41 m/s",
+                     None,2.5,True,{}, "NaN m/s"):
+            def source(data):
+                data["races"][0]["windSpeed"]=wind
+                data["players"][0]["age"]=-1
+                data["players"][0]["term"]="112"
+            record=self.parse(fixture(mutation=source))
+            with self.subTest(wind=repr(wind)):
+                self.assertNotIn("race/wind_speed",
+                                 record["direct_verified_fields"])
+                self.assertNotIn("rider/1/age_term_experience",
+                                 record["direct_verified_fields"])
+        def exact_zero(data):
+            data["races"][0]["windSpeed"]="0 m/s"
+        verified=self.parse(fixture(mutation=exact_zero))
+        self.assertEqual(verified["direct_verified_fields"]["race/wind_speed"],0.0)
+
     def test_missing_or_inconsistent_rates_cannot_fabricate_top_three(self):
         for value in (None, "74", 101, -1):
             def alter(data):
