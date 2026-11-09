@@ -24,6 +24,19 @@ PROGRESS_SCHEMA="RACE_AI_KEIRIN_GH_TEMP_CIPHERTEXT_RECEIPTS_V1"
 VIDEO_SHA=re.compile(r"^[a-f0-9]{64}$")
 RID=re.compile(r"^\d{12}$")
 
+# One-time migration source. Its unexpired JSON artifact is a public
+# race catalog only, NEVER an encrypted-clip receipt.
+TRUSTED_PRIOR_DAY = {
+    ("haji84/RACE-AI", "2026-11-09"): {
+        "artifact_id": 13662681646,
+        "artifact_name": "keirin-daily-wave-evidence-42584059802",
+        "run_id": 42584059802,
+        "head_sha": "fd850df075912492a3116e71d8f89f78a52dd8da",
+        "head_branch": "feat/keirin-matsuyama-1r-replay-pilot-20261108",
+        "workflow_path": ".github/workflows/keirin-daily-all-races-video.yml",
+    }
+}
+
 class ArchiveEvidenceError(ValueError):pass
 
 def ensure(c,msg):
@@ -87,7 +100,46 @@ def valid_metadata(zipbytes,day,*,expected_run):
                         "cohort":row.get("cohort")})
     return records,manifest
 
-def collect(repo,day,*,mode,output_dir,items=None,reader=None):
+def _trusted_prior_day_manifest(repo, day, items, *, reader=None, run_reader=None):
+    """Admit only the reviewed historical public catalog, never clip counts."""
+    source = TRUSTED_PRIOR_DAY.get((repo, day))
+    if source is None:
+        return None
+    found = [
+        a for a in items
+        if a.get("name") == source["artifact_name"]
+        and a.get("id") == source["artifact_id"]
+        and not a.get("expired")
+    ]
+    if not found:
+        return None
+    ensure(len(found) == 1, "UNTRUSTED_PRIOR_DAY_DUPLICATE_ARTIFACT")
+    artifact = found[0]
+    run_id = source["run_id"]
+    run_bytes = (
+        run_reader(run_id) if run_reader is not None
+        else gh_api(f"/repos/{repo}/actions/runs/{run_id}")
+    )
+    run = (json.loads(run_bytes)
+           if isinstance(run_bytes, (str, bytes)) else run_bytes)
+    ensure(
+        isinstance(run, dict)
+        and run.get("id") == run_id
+        and run.get("head_sha") == source["head_sha"]
+        and run.get("head_branch") == source["head_branch"]
+        and run.get("event") == "pull_request"
+        and run.get("conclusion") == "success"
+        and run.get("path") == source["workflow_path"]
+        and (run.get("repository") or {}).get("full_name") == repo,
+        "UNTRUSTED_PRIOR_DAY_RUN",
+    )
+    zipped = (reader(artifact) if reader is not None
+              else gh_api(f"/repos/{repo}/actions/artifacts/{artifact['id']}/zip"))
+    _, manifest = valid_metadata(zipped, day, expected_run=run_id)
+    return manifest
+
+
+def collect(repo,day,*,mode,output_dir,items=None,reader=None,run_reader=None):
     date.fromisoformat(day)
     ensure(bool(re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+",repo)),
            "INVALID_GITHUB_REPO")
@@ -112,11 +164,13 @@ def collect(repo,day,*,mode,output_dir,items=None,reader=None):
     manifests=[]
     selected_zips={}
     for run,art in sorted(metadata):
-        if run not in sealed:continue
         zipdata=(reader(art) if reader is not None else
                  gh_api(f"/repos/{repo}/actions/artifacts/{art['id']}/zip"))
         rows,m=valid_metadata(zipdata,day,expected_run=run)
+        # An observed catalog survives a zero-video run; it is not clip proof.
         manifests.append((run,m))
+        if run not in sealed:
+            continue
         for row in rows:
             rid=row["race_id"]
             if rid in source_rows:continue
@@ -136,9 +190,15 @@ def collect(repo,day,*,mode,output_dir,items=None,reader=None):
     (output_dir/"temporary-artifact-receipts.json").write_text(
         json.dumps(target,ensure_ascii=False,indent=2))
     if manifests:
-        # The latest index is taken from a previous completed workflow,
-        # not guessed from yesterday's changed WINTICKET current-day page.
+        # Keep the latest genuinely observed daily catalog even if it
+        # captured zero clips. Do not turn metadata into recording evidence.
         most_recent=max(manifests,key=lambda x:x[0])[1]
+    else:
+        # One-time migration when the first main schedule starts after
+        # midnight and its own prior-day metadata does not exist.
+        most_recent=_trusted_prior_day_manifest(
+            repo,day,all_items,reader=reader,run_reader=run_reader)
+    if most_recent is not None:
         (output_dir/"day-source-manifest.json").write_text(
            json.dumps(most_recent,ensure_ascii=False,indent=2))
     if mode=="archive":
