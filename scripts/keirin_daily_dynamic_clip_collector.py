@@ -31,13 +31,31 @@ REPORT_SCHEMA="RACE_AI_KEIRIN_DAILY_RECORDINGS_ENCRYPTED_WAVE_V1"
 async def run(args):
     now=datetime.now(JST)
     today=now.date().isoformat()
-    manifest=await discover(today)
+    if args.previous_day_manifest is not None:
+        # Recovery is restricted to the genuine previous Japanese date,
+        # within the midnight time window, never a user-chosen future date.
+        manifest=json.loads(args.previous_day_manifest.read_text(encoding="utf-8"))
+        today=manifest.get("date_jst")
+    else:
+        manifest=await discover(today)
     state=None
     if args.private_retention_receipts:
         path=args.private_retention_receipts
         if path.is_file():
             state=json.loads(path.read_text(encoding="utf-8"))
-    batch=select(manifest,progress=state,max_races=args.max_races)
+    if args.previous_day_manifest is not None:
+        from race_ai.keirin_daily_night_backfill import select_night_backfill
+        recovery=select_night_backfill(
+            manifest,now=now,progress=state,max_races=args.max_races)
+        batch={
+            "selected":recovery["attempt_candidates"],
+            "races_visible_on_result_index":sum(
+                x["listed_on_raceresult_index"] for x in manifest["races"]),
+            "durably_archived_with_attested_readback":recovery["private_readback_confirmed"],
+            "not_selected_due_to_wave_cap":recovery["capped_unprocessed_count"],
+        }
+    else:
+        batch=select(manifest,progress=state,max_races=args.max_races)
     result={
         "schema":REPORT_SCHEMA,"date_jst":today,
         "as_of_jst":now.isoformat(),
@@ -133,6 +151,8 @@ def main():
     ap.add_argument("--report",required=True,type=Path)
     ap.add_argument("--manifest",required=True,type=Path)
     ap.add_argument("--private-retention-receipts",type=Path)
+    ap.add_argument("--previous-day-manifest",type=Path,
+                    help="Only in JST 00:00-07:59 recovery; use a precommitted prior-day manifest")
     ap.add_argument("--max-races",type=int,default=24)
     ap.add_argument("--plan-only",action="store_true")
     args=ap.parse_args()
