@@ -29,6 +29,7 @@ class WinticketFutureSsrTest(unittest.TestCase):
                          "LIVE_TRIFECTA_PRICE_UNIVERSE_VERIFIED")
         self.assertTrue(receipt["actual_210_or_504_verified"])
         self.assertEqual(receipt["actual_full_trifecta_rows"],210)
+        self.assertTrue(receipt["observed_before_winticket_closeAt"])
         self.assertEqual(receipt["preflight_checked_items"],347)
         self.assertEqual(receipt["model_required_total_A"],93)
         self.assertEqual(receipt["model_required_observed_A"],14)
@@ -56,6 +57,29 @@ class WinticketFutureSsrTest(unittest.TestCase):
                          "RACECARD_PENDING_OR_CUTOFF_PASSED")
         self.assertFalse(report["actual_210_or_504_verified"])
         self.assertFalse(report["two_version_prediction_saved"])
+
+    def test_second_get_crosses_cutoff_without_false_pre_cutoff_claim(self):
+        # The racecard can be early and valid while the odds HTTP GET finishes
+        # after WINTICKET's closeAt. Never use the card's early clock for odds.
+        seen=[]
+        clock_values=iter((
+            NOW,datetime.fromisoformat("2026-11-09T09:27:00+09:00")))
+        def fetch(url):
+            seen.append(url)
+            return card_page() if url==CARD else odds_page()
+        result=public_future_race_probe(
+            race_id=RACE,racecard_url=CARD,odds_url=ODDS,
+            fetch=fetch,clock=lambda:next(clock_values))
+        self.assertEqual(seen,[CARD,ODDS])
+        self.assertEqual(result["status"],
+                         "ODDS_CAPTURE_AFTER_PUBLISHED_CUTOFF")
+        self.assertFalse(result["observed_before_winticket_closeAt"])
+        self.assertFalse(result["actual_210_or_504_verified"])
+        self.assertEqual(result["actual_full_trifecta_rows"],0)
+        self.assertEqual(result["odds_rejection"],
+                         "ODDS_CAPTURE_AFTER_PUBLISHED_CUTOFF")
+        self.assertFalse(result["two_version_prediction_saved"])
+        self.assertNotIn("fictional-rider",str(result))
 
     def test_venue_day_mismatch_refused_before_any_network_call(self):
         seen=[]
