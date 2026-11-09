@@ -1,0 +1,110 @@
+{
+  "schema": "research-autorace-result-pdca/1",
+  "race_id": "20261109_isesaki_12",
+  "event_date": "2026-11-09",
+  "venue": "伊勢崎",
+  "race": 12,
+  "observed_at_jst": "2026-11-10T02:55:30+09:00",
+  "evidence": {
+    "source_kind": "official_public_result_page",
+    "result_url": "https://autorace.jp/race_info/RaceResult/isesaki/2026-11-09_12",
+    "prediction_repo": "haji84/RACE-AI",
+    "prediction_commit": "8f80b7033206980dcbb63f42dc833216b84df752",
+    "prediction_path": "audit/autorace/2026-11-09/isesaki_12R_B_posttrial_research_v1_203534JST.json",
+    "prediction_file_sha256": "68610866da58d925dc5970e273de2d7d3f03539e1c746bc5d6fc7e80d15dc33a",
+    "prediction_created_at_jst": "2026-11-09T20:35:34+09:00",
+    "scheduled_cutoff_at_jst": "2026-11-09T20:38:00+09:00",
+    "start_at_jst": "2026-11-09T20:40:00+09:00"
+  },
+  "confirmed_result": {
+    "status": "completed",
+    "ordered_top3": [
+      8,
+      7,
+      5
+    ],
+    "trifecta": "8-7-5",
+    "trifecta_payout_jpy_per_100": 4700,
+    "popularity_rank": 16,
+    "track": "斑走路",
+    "official_weather": "曇",
+    "finishing_order": [
+      8,
+      7,
+      5,
+      6,
+      2,
+      1,
+      3,
+      4
+    ],
+    "starting_times": {
+      "5": 0.07,
+      "6": 0.17,
+      "7": 0.12,
+      "8": 0.1
+    },
+    "trial_seconds": {
+      "5": 3.38,
+      "6": 3.36,
+      "7": 3.37,
+      "8": 3.37
+    }
+  },
+  "phase_B_forecast": {
+    "version": "B_v1",
+    "frozen_before_cutoff": true,
+    "basic_8": [
+      "7-8-6",
+      "8-7-6",
+      "8-7-5",
+      "7-8-5",
+      "7-6-8",
+      "8-6-7",
+      "6-7-8",
+      "8-5-7"
+    ],
+    "additional_4": [
+      "7-5-8",
+      "5-7-8",
+      "6-8-7",
+      "7-8-4"
+    ],
+    "hit_ticket": "8-7-5",
+    "hit_basic_8": true,
+    "hit_extended_12": true,
+    "hypothetical_stake_per_ticket_jpy": 100,
+    "basic_8_outcome": {
+      "bets": 8,
+      "invested_jpy": 800,
+      "payout_jpy": 4700,
+      "profit_jpy": 3900,
+      "roi_pct": 587.5
+    },
+    "extended_12_outcome": {
+      "bets": 12,
+      "invested_jpy": 1200,
+      "payout_jpy": 4700,
+      "profit_jpy": 3500,
+      "roi_pct": 391.6666666666667
+    },
+    "purchase_actual": "unknown",
+    "calibrated_probability": false,
+    "trained_model": false
+  },
+  "phase_A_forecast": {
+    "sha256_listed_in_B": "b5bd5cb47168bbcbe8d6ec3481a2755ddce1efcca4123f37b6d9ee2cb3b9895c",
+    "ticket_original_available_to_this_run": false,
+    "verdict_8": "HOLD_unverifiable",
+    "verdict_12": "HOLD_unverifiable",
+    "reason": "original A ticket lists not available; no post-result reconstruction"
+  },
+  "pdca": {
+    "observed": "8 and 7 finished first and second; 5 with ST 0.07 finished third; trial-fastest 6 finished fourth (ST 0.17)",
+    "candidate_hypothesis": "in mixed track conditions trial-best time should not automatically outrank wet-track experience and race-start behavior",
+    "inference_limit": "single race, uncalibrated manual heuristic; no model accuracy improvement established",
+    "forecast_update_after_result": false,
+    "previous_prediction_immutable": true,
+    "previous_forecast_weather_note": "B forecast observed 小雨 at 20:35; result page official weather 曇. Original B weather retained without rewrite."
+  }
+}
