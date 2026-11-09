@@ -141,5 +141,54 @@ class WinticketPublicRacecardTests(unittest.TestCase):
         self.assertFalse(doc["full_347_or_437_verified"])
 
 
+
+    def test_source_percentages_and_start_time_are_evidence_not_invented_scores(self):
+        doc=self.parse()
+        values=doc["direct_verified_fields"]
+        for car in range(1,8):
+            with self.subTest(car=car):
+                self.assertAlmostEqual(values[f"rider/{car}/win_rate"],.22)
+                self.assertAlmostEqual(values[f"rider/{car}/second_place_rate"],.12)
+                self.assertAlmostEqual(values[f"rider/{car}/third_place_rate"],.18)
+                self.assertAlmostEqual(values[f"rider/{car}/top_three_rate"],.52)
+        self.assertEqual(values["race/start_time"],START)
+        self.assertEqual(doc["rate_transform"],
+                         "SOURCE_REPORTED_PERCENT_TO_RATIO_V1_NO_DENOMINATOR_INFERENCE")
+        self.assertFalse(doc["rate_denominator_and_reporting_period_independently_verified"])
+        self.assertFalse(doc["source_field_rights_independently_verified"])
+        self.assertFalse(doc["full_347_or_437_verified"])
+        self.assertEqual(doc["registry_checked_count"],347)
+        self.assertEqual(doc["registry_verified_count"]+
+                         doc["registry_unavailable_count"],347)
+
+    def test_missing_or_inconsistent_rates_cannot_fabricate_top_three(self):
+        for value in (None, "74", float("nan"), 101, -1):
+            def alter(data):
+                data["records"][0]["firstRate"]=value
+            result=self.parse(fixture(mutation=alter))
+            for field in ("win_rate","second_place_rate","third_place_rate",
+                          "top_three_rate"):
+                self.assertNotIn("rider/1/"+field,
+                                 result["direct_verified_fields"])
+            self.assertFalse(result["full_347_or_437_verified"])
+
+        def conflict(data):
+            data["records"][0].update(firstRate=74.0,secondRate=37.0,
+                                      thirdRate=11.0)
+        result=self.parse(fixture(mutation=conflict))
+        self.assertNotIn("rider/1/top_three_rate",
+                         result["direct_verified_fields"])
+        self.assertNotIn("rider/1/win_rate",
+                         result["direct_verified_fields"])
+
+    def test_no_start_time_does_not_infer_unverified_schedule(self):
+        def remove(data):
+            data["races"][0].pop("startAt")
+        result=self.parse(fixture(mutation=remove))
+        self.assertNotIn("race/start_time",
+                         result["direct_verified_fields"])
+        self.assertIsNone(result["source_scheduled_start_at_utc"])
+
+
 if __name__=="__main__":
     unittest.main()
