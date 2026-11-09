@@ -1,0 +1,11 @@
+AUTORACE POST-CUTOFF TRIAL OBSERVATION RECEIPT
+race_id=20261109_isesaki_10R
+observed_at_jst=2026-11-09T19:51:30+09:00
+source=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/4/10
+file=autorace_20261109_isesaki_10R_postcutoff_trial_observation_1951JST.json
+sha256=493886aa170e1728d0e86d37e636fa8ad091b2755d7d589751ce293c25675e0f
+cutoff_jst=2026-11-09T19:22:00+09:00
+forecast_action=NO_NEW_FORECAST_PAST_CUTOFF
+result_and_payout=UNVERIFIED
+prediction_originals=UNMODIFIED
+note=Receipt of an independent local JSON file only; the JSON itself is not uploaded to GitHub.
