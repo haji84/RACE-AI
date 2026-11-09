@@ -72,4 +72,36 @@ assert.throws(()=>batch.scoreBatch({
  ...make(model),races:[{race_id:race,status:"P1_CONTEXT_READY_UNVERIFIED",
  record:{...record,baseline:{...record.baseline,race_id:"20261109-04-02"}}}]
 },{now:"2026-11-09T10:30:00+09:00"}),/RACE_DATA_MISMATCH/);
+// All-day 11x12 source-free contract: do NOT mistake synthetic coverage
+// or one evaluated fixture for 132 verified real-model forecasts.
+const badRecord = structuredClone(record);
+badRecord.context.race_id = "20261109-04-02";
+badRecord.baseline.race_id = badRecord.context.race_id;
+badRecord.baseline.full_120[0].score = 2; // intentionally invalid
+const nationwideRows = [];
+for (let venue=1; venue<=11; venue++) {
+  for (let rno=1; rno<=12; rno++) {
+    const rid = "20261109-" + String(venue).padStart(2, "0") +
+      "-" + String(rno).padStart(2, "0");
+    nationwideRows.push(rid === race ?
+      {race_id:rid,status:"P1_CONTEXT_READY_UNVERIFIED",record} :
+      rid === badRecord.context.race_id ?
+      {race_id:rid,status:"P1_CONTEXT_READY_UNVERIFIED",record:badRecord} :
+      {race_id:rid,status:"HOLD_MISSING_ACTUAL_SOURCE_FACTS",
+        missing:["real six-boat history, P1 evidence or cutoff receipt"],record:null});
+  }
+}
+const national = batch.scoreBatch({
+  schema:batch.SCHEMA,mode:"prospective",frozen_44_model:model,
+  races:nationwideRows
+},{now:"2026-11-09T10:30:00+09:00"});
+assert.strictEqual(national.count,132);
+assert.strictEqual(national.evaluated,1);
+assert.strictEqual(national.status_counts.EXPERIMENTAL_PRE_CUTOFF_UNATTESTED,1);
+assert.strictEqual(national.status_counts.HOLD_TACTICAL_INPUT_OR_MODEL_INVALID,1);
+assert.strictEqual(national.status_counts.HOLD_MISSING_SOURCE_FACTS,130);
+assert.strictEqual(Object.values(national.status_counts).reduce((a,b)=>a+b,0),132);
+assert.strictEqual(national.rows.find(x=>x.race_id==="20261109-04-02").full_120,null);
+assert.strictEqual(national.safe_to_promote_to_main,false);
+assert.strictEqual(national.prediction_originals_frozen_externally,false);
 console.log("BOAT_44_PRIVATE_SYNTHETIC_CONTRACT_PASS");
