@@ -14,7 +14,7 @@ from pathlib import Path
 import re
 
 from .keirin_result_delivery import canonical
-from .keirin_permissioned_owner import _write_private_once
+from .keirin_permissioned_owner import _write_private_once, LicenseDeliveryError
 from .keirin_winticket_prior_events import (
     PriorSourceError, observed_prior_candidates, _utc,
 )
@@ -168,7 +168,10 @@ def stage_owner_private_prior_research(root, packet):
     need(folder.is_dir() and not folder.is_symlink(),
          "PRIOR_PRIVATE_FOLDER_INVALID")
     target = folder / (digest + ".json")
-    existed = not _write_private_once(target, packet)
+    try:
+        existed = not _write_private_once(target, packet)
+    except LicenseDeliveryError as exc:
+        raise PriorSourceError("PRIVATE_PRIOR_CREATE_ONCE_CONFLICT") from exc
     readback = read_private_research_packet(target, expected_sha256=digest)
     need(readback == packet, "PRIVATE_PRIOR_READBACK_NOT_EQUAL")
     candidate_count = sum(
