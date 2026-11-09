@@ -275,6 +275,81 @@ def racecard_from_public_html(html,*,url,race_id,captured_at,
     }
 
 
+
+
+def safe_public_racecard_key_inventory(packet, html):
+    """Report ONLY SSR field names already used for this exact race.
+
+    Source values, rider IDs, names, scores, odds and raw HTML never leave
+    owner memory. Collection keys indicate *potential* data availability,
+    not fact completeness, publication time, use rights or model scores.
+    """
+    require(type(packet) is dict and packet.get("schema")==SCHEMA
+            and type(html) is bytes and
+            sha256(html).hexdigest()==packet.get("html_sha256"),
+            "SOURCE_KEY_INVENTORY_ORIGINAL_BYTES_REQUIRED")
+    state=read_preloaded_json(html)
+    cache=state.get("tanStackQuery",{})
+    q=cache.get("queries") if type(cache) is dict else None
+    require(type(q) is list and len(q)<=250,
+            "SOURCE_KEY_INVENTORY_QUERIES_REQUIRED")
+    # Exact source athlete IDs from the already vetted private racecard;
+    # the identifier values are never returned or printed.
+    accepted={r.get("source_player_id") for r in packet["riders"]}
+    entrant_count=len(packet["riders"])
+    require(len(accepted)==entrant_count,"RIDER_ID_SET_INCONSISTENT")
+    fields={k:set() for k in ("entries","players","records","races")}
+    source_counts={k:0 for k in fields}
+    for entry in q:
+        if type(entry) is not dict or type(entry.get("state")) is not dict:
+            continue
+        data=entry["state"].get("data")
+        if type(data) is not dict:continue
+        for coll in ("entries","players","records"):
+            rows=data.get(coll)
+            if type(rows) is not list or len(rows)!=entrant_count or not all(
+                type(x) is dict for x in rows
+            ):
+                continue
+            key={"entries":"playerId","players":"id",
+                 "records":"playerId"}[coll]
+            ids={str(r.get(key)) for r in rows}
+            if ids!=accepted:
+                continue
+            if coll=="entries" and not all(
+                r.get("number") in range(1,entrant_count+1)
+                for r in rows
+            ):
+                continue
+            source_counts[coll]+=1
+            for row in rows:fields[coll].update(
+                k for k in row if type(k) is str and 1<=len(k)<=80
+                and not k.startswith("_"))
+        rr=data.get("races")
+        if type(rr) is list:
+            for row in rr:
+                if (type(row) is dict and
+                        row.get("id") == (
+                            packet["race_id"][-2:] +
+                            packet["race_id"][8:10] +
+                            packet["race_id"][:8])):
+                    source_counts["races"]+=1
+                    fields["races"].update(
+                        k for k in row if type(k) is str and
+                        1<=len(k)<=80 and not k.startswith("_"))
+    require(all(source_counts[k]>=1 for k in fields),
+            "SOURCE_COLLECTIONS_NOT_JOINED_TO_EXACT_RACE")
+    return {
+        "schema":"RACE_AI_KEIRIN_WINTICKET_SOURCE_FIELD_NAMES_ONLY_V1",
+        "race_id":packet["race_id"],
+        "source_original_html_sha256":packet["html_sha256"],
+        "collection_field_names":{k:sorted(v)[:120] for k,v in fields.items()},
+        "field_names_not_observation_values":True,
+        "count_as_verified_347_factors":False,
+        "new_source_rights_granted":False,
+        "public_rider_values_or_names_logged":False,
+    }
+
 def safe_public_racecard_counts(packet):
     """Only public-safe structural counts + SHA for CI or monitoring logs."""
     require(type(packet) is dict and packet.get("schema")==SCHEMA,
