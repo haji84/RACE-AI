@@ -91,20 +91,23 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           content = Path('proposed-workflow/.github/workflows/boat-racer-daily.yml').read_text()
-          assert content.count('Reconcile verified completed BOAT source handoff') == 1
-          assert 'needs: source_mirror' in content
-          assert '!cancelled()' in content
-          assert 'actions: read' in content
-          assert 'contents: write' in content
-          assert 'from scripts.boat_source_control_mirror import main' in content
-          assert "['latest-closed', '--repo-root', '.', '--output', output]" in content
-          assert content.count("race_ai.__path__.append(str(package))") == 2
-          assert 'github.event.workflow_run.conclusion == \'success\'' in content
-          assert "github.event.schedule == '20 21 * * *'" in content
-          assert 'continue-on-error: true' not in content
-          assert "'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics'" in content
+          mirror = content.split('  source_mirror:\n', 1)[1].split('  daily:\n', 1)[0]
+          daily = content.split('  daily:\n', 1)[1]
+          header = content.split('jobs:\n', 1)[0]
+          assert mirror.count('Reconcile verified completed BOAT source handoff') == 1
+          assert 'needs: source_mirror' in daily
+          assert '!cancelled()' in daily
+          assert 'actions: read' in mirror
+          assert 'contents: write' in mirror
+          assert 'from scripts.boat_source_control_mirror import main' in mirror
+          assert "['latest-closed', '--repo-root', '.', '--output', output]" in mirror
+          assert mirror.count('race_ai.__path__.append(str(package))') == 1
+          assert "github.event.workflow_run.conclusion == 'success'" in mirror
+          assert "github.event.schedule == '20 21 * * *'" in mirror
+          assert 'continue-on-error: true' not in mirror
+          assert "'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics'" in header
           pin = "ref: $" + "{{ github.event_name == 'push' && github.sha || '914941a6244364480370ac392441ad4bb5781f83' }}"
-          assert pin in content
+          assert pin in daily
           PY
   source_mirror:
     name: Reconcile authenticated completed BOAT source (no provider GET)
