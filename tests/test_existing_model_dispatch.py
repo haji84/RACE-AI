@@ -59,6 +59,22 @@ class ExistingDispatchTests(unittest.TestCase):
             self.assertEqual(report["source_requests"],0)
             self.assertFalse(report["external_receipts_created"])
 
+    def test_unexpected_native_runtime_exception_is_explicit_and_never_becomes_missing_input(self):
+        source=ab_fixture();at="2030-11-03T13:18:00+09:00";rid=source["race_id"]
+        raw=inputs(rid,"P1",boat_ab={"scope":"SYNTHETIC_ONLY","source":source,"generated_at":at})
+        with patch.object(M,"build_pair",side_effect=RuntimeError("SECRET_PRIVATE_MODEL_INPUT")):
+            report=M.dispatch(schedule(rid,source["cutoff_at"]),raw,now=at)
+        for mid in AB:
+            target=slot(report,mid)
+            self.assertEqual(target["status"],"EXECUTION_FAILED")
+            self.assertEqual(target["reason"],"NATIVE_EXECUTION_EXCEPTION")
+            self.assertIsNone(target["prediction"])
+            self.assertIsNone(target["output_sha256"])
+        self.assertEqual(report["status_counts"]["EXECUTION_FAILED"],len(AB))
+        self.assertNotIn("SECRET_PRIVATE_MODEL_INPUT",json.dumps(report))
+        self.assertEqual(report["source_requests"],0)
+        self.assertFalse(report["external_receipts_created"])
+
     def test_boat_group_calls_original_algorithm_once_and_retains_both_exact_predictions(self):
         source=ab_fixture(); at="2030-11-03T13:18:00+09:00"; rid=source["race_id"]
         raw=inputs(rid,"P1",boat_ab={"scope":"SYNTHETIC_ONLY","source":source,"generated_at":at})

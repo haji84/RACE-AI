@@ -446,6 +446,12 @@ def dispatch(schedule, native_inputs, *, now, allow_source=None, originals=()):
             except (ValueError, KeyError, TypeError, OverflowError) as exc:
                 state = "SOURCE_NOT_AUTHORIZED" if isinstance(exc, SourceNotAuthorized) else "INPUT_MISSING" if isinstance(exc, InputMissing) else "UNCONNECTED_NATIVE_RUNTIME" if isinstance(exc, NativeRuntimeUnavailable) else "INPUT_REJECTED"
                 for s in pending: s.update(status=state, reason=type(exc).__name__)
+            except Exception:
+                # An unexpected model/runtime fault is not missing source data.
+                # Fail closed per family and never expose private exception text.
+                # SystemExit/KeyboardInterrupt remain fatal and are not swallowed.
+                for s in pending:
+                    s.update(status="EXECUTION_FAILED", reason="NATIVE_EXECUTION_EXCEPTION")
         slots.extend(per_model.values())
     report = dict(schema="RACE_AI_EXISTING_MODEL_DISPATCH_V1", as_of=clock.isoformat(), slots=slots,
                 native_invocations=invocations, status_counts=dict(Counter(s["status"] for s in slots)),
