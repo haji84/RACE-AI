@@ -14,6 +14,9 @@ on:
       - 'scripts/keirin_cloud_pr71_state.py'
       - 'tests/test_keirin_cloud_pr71_state.py'
       - 'tests/test_keirin_cloud_workflow_guard.py'
+      - 'scripts/keirin_day_four_model_audit.py'
+      - 'tests/test_keirin_day_four_model_audit.py'
+      - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
   pull_request:
     paths:
@@ -21,6 +24,9 @@ on:
       - 'scripts/keirin_cloud_pr71_state.py'
       - 'tests/test_keirin_cloud_pr71_state.py'
       - 'tests/test_keirin_cloud_workflow_guard.py'
+      - 'scripts/keirin_day_four_model_audit.py'
+      - 'tests/test_keirin_day_four_model_audit.py'
+      - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
 
 permissions:
@@ -57,7 +63,8 @@ jobs:
           python -m unittest -v tests.test_keirin_pr71_four_model_rank tests.test_keirin_allowed_delivery tests.test_keirin_permissioned_owner
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_pr71_state.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_workflow_guard.py' -v
-          python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py"
+          python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_day_four_model_audit.py' -v
+          python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py"
       - name: Do not claim synthetic results as live
         run: echo 'Only synthetic model + AES Git-state tests. No actual real-race prediction verified.' >> "$GITHUB_STEP_SUMMARY"
 
@@ -202,4 +209,35 @@ jobs:
           if r["state"]!="PR71_SEPARATE_GITHUB_RUNNER_AES_GCM_READBACK_OK":
               raise SystemExit("INDEPENDENT_CLOUD_READBACK_NOT_VERIFIED")
           print(json.dumps({"state":r["state"],"generation":r["generation"]}))
+          PY
+      - name: Reconcile all 78 races and four original PR71 models after independent encrypted-state readback
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PYTHONPATH="$GITHUB_WORKSPACE/pr71-source:$GITHUB_WORKSPACE/pr71-source/tests:$GITHUB_WORKSPACE:$GITHUB_WORKSPACE/tests"
+          cd "$GITHUB_WORKSPACE/pr71-source"
+          python "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py" \
+            --cohort "$GITHUB_WORKSPACE/docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json" \
+            --encrypted-cloud-state \
+            --repo "$GITHUB_WORKSPACE" \
+            --source-root "$GITHUB_WORKSPACE/pr71-source" > "$RUNNER_TEMP/pr71-78r-audit.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          d=json.loads((Path(os.environ["RUNNER_TEMP"])/"pr71-78r-audit.json").read_text())
+          assert d["expected_model_race_pairs"]==312
+          assert d["frozen_model_race_pairs"]+d["model_race_pairs_missing"]==312
+          # This public log never contains individual riders or model picks.
+          safe={k:d[k] for k in
+                ("scheduled_races","expected_model_race_pairs","frozen_four_model_races",
+                 "missing_four_model_original_races","settled_research_races",
+                 "formally_authenticated_model_race_scores")}
+          print(json.dumps(safe,sort_keys=True))
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as out:
+              out.write("## November 10: 78 races x 4 PR71 models\n")
+              out.write(f"Target: {d['scheduled_races']} / 312 model-race slots\n")
+              out.write(f"Verified frozen originals: {d['frozen_four_model_races']}\n")
+              out.write(f"Originals missing, NOT counted as losses: {d['missing_four_model_original_races']}\n")
+              out.write(f"Research revisions scored: {d['settled_research_races']}\n")
+              out.write("Formal results remain separately gated.\n")
           PY
