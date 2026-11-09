@@ -74,6 +74,14 @@ function test(){
  const absentTilt=JSON.parse(JSON.stringify(data));
  absentTilt.context.entry_tilt_cross_features["5"].tilt_deg=null;
  throws(()=>overlay.predict(absentTilt),"TILT_UNKNOWN");
+ const earlyA=JSON.parse(JSON.stringify(data));
+ earlyA.baseline.as_of="2026-06-01T09:58:00+09:00";
+ const earlyB=overlay.predict(earlyA);
+ assert(Math.abs(earlyB.sum_probability-1)<1e-12,
+  "earlier persisted P1 A is a valid original for a newer exhibition B");
+ const lateA=JSON.parse(JSON.stringify(data));
+ lateA.baseline.as_of="2026-06-01T10:09:00+09:00";
+ throws(()=>overlay.predict(lateA),"BASELINE_ID_CLOCK_MISMATCH");
  const future=JSON.parse(JSON.stringify(data));
  future.cutoff_at="2026-05-01T11:00:00+09:00";
  throws(()=>overlay.predict(future),"PRE_CUTOFF_REQUIRED");

@@ -439,7 +439,7 @@ def _verify_native_input_capsules(payload, *, replay_outputs):
 
 
 def forecast_round(contexts, runtime_files, *, now, baseline_document=None, baseline_receipt=None, issued_models=None,
-                   runtime_pointer=None, prospective_grid=None):
+                   runtime_pointer=None, prospective_grid=None, research_ab_inputs=None):
     """Run each ready P1 family once; reuse baseline originals and issued slots."""
     clock = _clock(now)
     _need(type(contexts) is list and len(contexts) <= 288, "BOUNDED_CONTEXTS_REQUIRED")
@@ -499,6 +499,25 @@ def forecast_round(contexts, runtime_files, *, now, baseline_document=None, base
             summary=dict(contexts=len(contexts), generated_forecasts=sum(s["status"] == "GENERATED_UNATTESTED" for r in reports for s in r["slots"]),
                          reused_baseline_forecasts=sum(s["status"] == "ORIGINAL_REUSED" for r in reports for s in r["slots"])),
             source_requests=0, originals_overwritten=False)
+        if research_ab_inputs is not None:
+            from .boat_post_exhibition_ab_handoff import prepare_round
+            payload["post_exhibition_research_ab"] = prepare_round(
+                current, originals,
+                baseline["receipt"] if baseline is not None else None,
+                research_ab_inputs, generated_at=clock.isoformat())
+            payload["summary"]["research_ab_candidates"] = payload["post_exhibition_research_ab"]["candidate_pairs"]
+            payload["summary"]["research_ab_holds"] = payload["post_exhibition_research_ab"]["held_races"]
+            from .boat_post_exhibition_ab_coverage import count_schedule
+            schedule = (baseline_document or {}).get("schedule")
+            if type(schedule) is not list or not schedule:
+                schedule = list(schedules.values())
+                payload["post_exhibition_ab_schedule_scope"] = "P1_CURRENT_CONTEXT_SUBSET"
+            else:
+                payload["post_exhibition_ab_schedule_scope"] = "FROZEN_OFFICIAL_P0_SCHEDULE"
+            payload["post_exhibition_ab_schedule"] = deepcopy(schedule)
+            payload["post_exhibition_ab_coverage"] = count_schedule(
+                schedule, payload["post_exhibition_research_ab"],
+                now=clock.isoformat())
         payload = _json_copy(payload)
         _verify_native_input_capsules(payload, replay_outputs=False)
         return payload
@@ -554,7 +573,28 @@ def project_round(payload, receipt):
                     p["missing_reasons"].append("SAVED_AFTER_CUTOFF")
             records.append(row)
     days = {row["event_date_jst"] for row in records}
+    research_proof = None
+    coverage_proof = None
+    if "post_exhibition_research_ab" in payload:
+        from .boat_post_exhibition_ab_handoff import verify_round_readback
+        from .boat_post_exhibition_ab_coverage import count_schedule
+        research_proof = verify_round_readback(
+            payload["post_exhibition_research_ab"],
+            dict(server_created_at=current_receipt["created_at"],
+                 independently_authenticated=current_receipt["independently_verified"],
+                 artifact_id=current_receipt["artifact_id"]))
+        coverage_proof = count_schedule(
+            payload["post_exhibition_ab_schedule"],
+            payload["post_exhibition_research_ab"],
+            now=current_receipt["created_at"],
+            artifact_saved_at=current_receipt["created_at"])
+        _need(coverage_proof["b_physically_saved_before_cutoff"] ==
+              research_proof["b_saved_before_cutoff"],
+              "RESEARCH_AB_RECEIPT_COVERAGE_DISAGREES")
+        coverage_proof["schedule_scope"] = payload["post_exhibition_ab_schedule_scope"]
     return dict(schema="RACE_AI_PRIVATE_CYCLE_VIEW_V1", dataset_status="REAL_REPORTED", records=records,
+                post_exhibition_ab_readback=research_proof,
+                post_exhibition_ab_coverage=coverage_proof,
                 event_date_jst=next(iter(days)) if len(days) == 1 else None, as_of=payload["as_of"],
                 input_sha256=digest([report["input_sha256"] for report in payload["dispatch_reports"]]),
                 dispatch_status_counts=dict(Counter(slot["status"] for report in payload["dispatch_reports"] for slot in report["slots"])),

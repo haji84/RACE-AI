@@ -239,6 +239,52 @@ class AllModelCliTests(unittest.TestCase):
             with self.subTest(invalid=invalid), self.assertRaises(ValueError):
                 cli._inventory({"records": [dict(race_id=invalid)]}, {"P0": {}, "P1": {}})
 
+    def test_prepared_research_input_is_sealed_with_original_p1_and_independent_readback(self):
+        cli.prepare_runtime(round_no=1)
+        ctx=source_context()
+        engine.retain_current_input(ctx["program"],ctx["beforeinfo"],ctx["as_of"],
+                                    self.temp/"boat-all-model-inputs/cycle-1")
+        folder=self.temp/"boat-sixway-owner-prepared"
+        folder.mkdir(mode=0o700)
+        path=folder/"cycle-1.json"
+        packet=dict(schema="RACE_AI_OWNER_PREPARED_POST_EXHIBITION_AB_V1",
+                    run_id="42",source_code_commit=HEAD,round_no=1,
+                    research_ab_inputs={})
+        path.write_text(wire(packet))
+        path.chmod(0o600)
+        code, text=self.run_cli(["generate","--round","1"])
+        self.assertEqual(code,0,text)
+        cipher=(self.temp/"boat-all-model-forecasts/cycle-1/forecasts.enc").read_bytes()
+        payload=store.open_forecasts(cipher,key=KEY)
+        self.assertEqual(payload["post_exhibition_research_ab"]["candidate_pairs"],0)
+        self.assertEqual(payload["post_exhibition_research_ab"]["held_races"],1)
+        self.assertEqual(payload["post_exhibition_research_ab"]["source_provider_requests"],0)
+        self.assertFalse(payload["originals_overwritten"])
+        mapping,_=self.artifact("forecasts.enc",cipher)
+        with patch.object(cli,"gh",side_effect=lambda p:mapping[p]),patch.object(
+                cli,"utc_now",return_value=datetime.fromisoformat("2030-04-01T18:00:30+09:00")):
+            code,text=self.run_cli(["readback","--round","1","--artifact","101"])
+        self.assertEqual(code,0,text)
+        report=json.loads(text)
+        self.assertEqual(report["research_ab_readback"]["held_races"],1)
+        self.assertEqual(report["research_ab_readback"]["b_saved_before_cutoff"],0)
+        self.assertTrue(report["independently_verified"])
+
+    def test_foreign_owner_prepared_ab_packet_is_not_used(self):
+        cli.prepare_runtime(round_no=1)
+        ctx=source_context()
+        engine.retain_current_input(ctx["program"],ctx["beforeinfo"],ctx["as_of"],
+                                    self.temp/"boat-all-model-inputs/cycle-1")
+        folder=self.temp/"boat-sixway-owner-prepared";folder.mkdir(mode=0o700)
+        path=folder/"cycle-1.json"
+        packet=dict(schema="RACE_AI_OWNER_PREPARED_POST_EXHIBITION_AB_V1",
+                    run_id="42",source_code_commit="b"*40,round_no=1,
+                    research_ab_inputs={})
+        path.write_text(wire(packet));path.chmod(0o600)
+        code,text=self.run_cli(["generate","--round","1"])
+        self.assertNotEqual(code,0)
+        self.assertFalse((self.temp/"boat-all-model-forecasts/cycle-1/forecasts.enc").exists())
+
     def test_generate_and_independent_readback_keep_cipher_only_and_real_native_predictions(self):
         cli.prepare_runtime(round_no=1)
         ctx = source_context(); engine.retain_current_input(ctx["program"], ctx["beforeinfo"], ctx["as_of"], self.temp/"boat-all-model-inputs/cycle-1")

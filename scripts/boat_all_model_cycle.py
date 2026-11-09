@@ -318,6 +318,24 @@ def _sealed(operation, round_no, inputs, baseline_artifact, build):
                 **payload["summary"])
 
 
+def _approved_sixway_research(env, round_no):
+    """Only an already-attested private exact-run input, never a provider GET."""
+    path = env["temp"]/ "boat-sixway-owner-prepared" / f"cycle-{round_no}.json"
+    if not path.exists():
+        return None
+    packet = _json(_read(path, 4*1024*1024, private=True), 4*1024*1024)
+    need(type(packet) is dict and set(packet) == {
+        "schema", "run_id", "source_code_commit", "round_no",
+        "research_ab_inputs"} and
+        packet["schema"] == "RACE_AI_OWNER_PREPARED_POST_EXHIBITION_AB_V1" and
+        str(packet["run_id"]) == env["run_id"] and
+        packet["source_code_commit"] == env["head"] and
+        packet["round_no"] == round_no and
+        type(packet["research_ab_inputs"]) is dict,
+        "SIX_WAY_OWNER_PREPARED_EXACT_RUN_INVALID")
+    return packet["research_ab_inputs"]
+
+
 def generate(round_no, baseline_artifact=None):
     _round(round_no); marker = restore_ready(); env = _environment()
     need(marker["round_no"] == round_no, "PREPARED_ROUND_MISMATCH")
@@ -333,6 +351,9 @@ def generate(round_no, baseline_artifact=None):
     if not contexts: return dict(ready=False, contexts=0, generated_forecasts=0)
     issued = _json(_read(marker["issued_models_path"], 1024*1024, private=True), 1024*1024)
     options = {}
+    research = _approved_sixway_research(env, round_no)
+    if research is not None:
+        options["research_ab_inputs"] = research
     if 'prospective_grid' in marker:
         from race_ai.boat_venue_future_grid import open_capability
         options['prospective_grid'] = open_capability(marker['prospective_grid'], key=_owner(),
@@ -345,8 +366,12 @@ def generate(round_no, baseline_artifact=None):
             document = _json(raw, store.MAX_PLAIN); receipt = _receipt(meta, document)
         return engine.forecast_round(contexts, marker["runtime_files"], now=utc_now(), baseline_document=document,
                                      baseline_receipt=receipt, issued_models=issued, runtime_pointer=_pointer()[0], **options)
-    inputs = contexts if not options else dict(contexts=contexts,
-        prospective_grid_sha256=digest(marker['prospective_grid']))
+    inputs = contexts if not options else dict(
+        contexts=contexts,
+        **(dict(prospective_grid_sha256=digest(marker["prospective_grid"]))
+           if "prospective_grid" in options else {}),
+        **(dict(owner_prepared_sixway_sha256=digest(research))
+           if research is not None else {}))
     return _sealed("generate", round_no, inputs, baseline_artifact, build)
 
 
@@ -442,6 +467,8 @@ def readback(round_no, ident):
                view_sha256=sha256(encoded).hexdigest(), round_no=round_no, run_id=env["run_id"])
     save(env["temp"]/"boat-all-model-readback.json", _wire(ref), replace=True)
     return dict(ready=True, contexts=payload["summary"]["contexts"], generated_forecasts=payload["summary"]["generated_forecasts"],
+                research_ab_readback=view.get("post_exhibition_ab_readback"),
+                research_ab_coverage=view.get("post_exhibition_ab_coverage"),
                 artifact_id=ident, independently_verified=True)
 
 

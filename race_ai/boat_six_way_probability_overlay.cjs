@@ -31,7 +31,7 @@ function prepare(record){
  check(record?.stage==="P1"&&record?.context?.schema===INPUT,"SIXWAY_P1_CONTEXT_REQUIRED");
  const x=record.context,b=record.baseline;
  check(/^\d{8}-(0[1-9]|1\d|2[0-4])-(0[1-9]|1[0-2])$/.test(x.race_id),"SIXWAY_RACE_ID_INVALID");
- check(b&&b.race_id===x.race_id&&b.as_of===x.as_of,"SIXWAY_BASELINE_ID_CLOCK_MISMATCH");
+ check(b&&b.race_id===x.race_id&&date(b.as_of)<=date(x.as_of),"SIXWAY_BASELINE_ID_CLOCK_MISMATCH");
  const asof=date(x.as_of),cutoff=date(record.cutoff_at);
  check(asof<cutoff,"SIXWAY_PRE_CUTOFF_REQUIRED");
  const eventDay=x.race_id.slice(0,8);

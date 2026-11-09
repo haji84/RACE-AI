@@ -111,6 +111,26 @@ class AllModelCycleTests(unittest.TestCase):
     def predictions(self, view):
         return [p for row in view["records"] for p in ([row["prediction"]] if row["prediction"] else []) + row["comparison_predictions"]]
 
+    def test_existing_encrypted_p1_round_keeps_missing_B_in_hold(self):
+        payload = self.run_round(research_ab_inputs={})
+        self.assertEqual(payload["post_exhibition_research_ab"]["candidate_pairs"], 0)
+        self.assertEqual(payload["post_exhibition_research_ab"]["held_races"], 1)
+        self.assertEqual(payload["post_exhibition_research_ab"]["source_provider_requests"], 0)
+        self.assertEqual(payload["summary"]["research_ab_candidates"], 0)
+        self.assertEqual(payload["summary"]["research_ab_holds"], 1)
+        self.assertFalse(payload["originals_overwritten"])
+        saved = receipt(payload, saved="2030-04-01T18:00:20+09:00")
+        view = cycle.project_round(payload, saved)
+        study = view["post_exhibition_ab_readback"]
+        self.assertEqual(study["b_saved_before_cutoff"], 0)
+        self.assertEqual(study["held_races"], 1)
+        self.assertEqual(study["source_provider_requests"], 0)
+        coverage = view["post_exhibition_ab_coverage"]
+        self.assertEqual(coverage["scheduled_races"], 1)
+        self.assertEqual(coverage["b_physically_saved_before_cutoff"], 0)
+        self.assertEqual(coverage["schedule_scope"], "P1_CURRENT_CONTEXT_SUBSET")
+        self.assertIsNone(self.run_round().get("post_exhibition_research_ab"))
+
     def test_current_input_is_private_immutable_and_all_bindings_are_checked(self):
         ctx = source_context()
         path = cycle.retain_current_input(**ctx, folder=self.root / "inputs")
