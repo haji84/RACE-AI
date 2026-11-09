@@ -1,0 +1,101 @@
+{
+  "schema": "RACE_AI_KEIRIN_THREE_GATE_REAL_EVIDENCE_AUDIT_V1",
+  "assessed_at_jst": "2026-11-09T17:03:34+09:00",
+  "target_day_jst": "2026-11-09",
+  "github_main_schedule": {
+    "schema_file": ".github/workflows/keirin-github-autonomous.yml",
+    "main_workflow_present": true,
+    "main_prs_merged": [
+      109,
+      110
+    ],
+    "main_push_smoke_success_run_ids": [
+      42578751217,
+      42579418669
+    ],
+    "observed_sched_runs_for_this_workflow": 0,
+    "actual_schedule_on_main_verified": false,
+    "schedule_status": "NOT_YET_OBSERVED",
+    "observation_method": "GitHub REST /repos/haji84/RACE-AI/actions/runs?event=schedule&per_page=100 (37 total scheduled runs returned; none for KEIRIN GitHub-only daily capture and conservative research)."
+  },
+  "private_cipher_storage": {
+    "namespace": "/RACE-AI/KeirinVideo/2026-11-09/",
+    "independent_byte_readback_confirmed_unique_races": 24,
+    "prior_20261109_aomori_1R_2R_3R_count": 3,
+    "run_42567978429": {
+      "race_count": 15,
+      "archive": "20261109_Run42567978429_15R_AESGCM.zip",
+      "github_download_sha256": "af8383960b95479ab133f9b7b116b2e399f0c9c04c104ab21508a71fbc6c38c2",
+      "library_independent_readback_sha256": "af8383960b95479ab133f9b7b116b2e399f0c9c04c104ab21508a71fbc6c38c2",
+      "ciphertext_race_manifest_sha256_errors": 0,
+      "sha256_equal": true
+    },
+    "run_42574079395": {
+      "race_count": 14,
+      "archive": "20261109_Run42574079395_14R_AESGCM.zip",
+      "github_download_sha256": "d607dfbda497f7eab6b8a51f944c17bf43a6293ab457e35fb0d7a5ef90286260",
+      "library_independent_readback_sha256": "d607dfbda497f7eab6b8a51f944c17bf43a6293ab457e35fb0d7a5ef90286260",
+      "ciphertext_race_manifest_sha256_errors": 0,
+      "sha256_equal": true
+    },
+    "races_in_the_two_archives": 21,
+    "duplicate_races_between_two_archives": 8,
+    "github_only_s3_put_head_get_independent_readback_verified": false,
+    "github_durable_storage_status": "NOT_MEASURED",
+    "note": "Library copy and SHA verification are not an unattended GitHub S3 PUT/HEAD/GET experiment."
+  },
+  "research_ab_today": {
+    "prespecified_research_sha_receipt_commit": "bad6ebfb39809b3e06e723f46fb294e3f239e5f1",
+    "receipt_commit_created_at_utc": "2026-11-09T00:01:09Z",
+    "research_only_not_existing_PR71": true,
+    "no_fitted_video_coefficients": true,
+    "actual_pr71_A_vs_learned_B_pairs_with_proven_before_cutoff_provenance": 0,
+    "clinical_model_production_promotion_allowed": false,
+    "kochi3r": {
+      "race_id": "202611097403",
+      "actual_top3": [
+        3,
+        4,
+        5
+      ],
+      "payout_per_100_jpy": 37030,
+      "result_sources": [
+        "https://www.keibure.com/74/20261109/",
+        "https://www.yen-joy.net/kaisai/day?d=21231015"
+      ],
+      "research_A": {
+        "sha256": "b8b1f5df373984a6298bab050aec12051fc0417108358124430540ed327c3064",
+        "rank_3_4_5": 92,
+        "hit_at8": false,
+        "log_loss": 5.34600344266637,
+        "brier": 0.9958554364378216,
+        "not_official_PR71": true
+      },
+      "video_bonus_B": {
+        "sha256": "4c9ab7655db4efe47ae352d17ba5d413fc0cbfb39f27ee23811047376f3bf3f4",
+        "rank_3_4_5": 84,
+        "hit_at8": false,
+        "log_loss": 5.299410146706674,
+        "brier": 0.9953998666253646,
+        "video_coefficients_fitted": false
+      },
+      "top8_improvement": false,
+      "provisional_logloss_reduction": 0.046593295959696,
+      "provisional_brier_reduction": 0.000455569812457,
+      "provisional_roi_from_eight_100yen_tickets_A_pct": 0,
+      "provisional_roi_from_eight_100yen_tickets_B_pct": 0,
+      "actual_purchases_confirmed": false,
+      "scope": "ONE_RESEARCH_RESULT_ONLY_NO_PR71_OR_LEARNED_VIDEO_B"
+    },
+    "matsudo2r": {
+      "race_id": "202611093102",
+      "research_A_sha": "e91be080f132137cd0a6b9e258220eed62e3f933d91cf5c47eaabf5ca7dc5b00",
+      "research_B_sha": "65064ba37d032c11752640e847179795253e79f98b2fe3df40b26d7b2cf8fe15",
+      "verified_official_result_available_in_used_sources": false,
+      "outcome_metrics": null,
+      "status": "HOLD_NO_TRUSTED_ACTUAL_ORDER_IN_QUERIED_SOURCES"
+    }
+  },
+  "overall_status": "PARTIAL_VALIDATION_NOT_COMPLETE",
+  "pass_rule": "SCHEDULE_DONE only with a real GitHub workflow event=schedule run; DURABLE_DONE only with autonomous external encrypted PUT/HEAD/GET matching bytes; UPLIFT_DONE only with true immutable pre-cutoff existing PR71 A and learned-video B plus independent confirmed multiple future outcomes."
+}
