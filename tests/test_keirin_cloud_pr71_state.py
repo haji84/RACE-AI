@@ -107,6 +107,50 @@ class CloudPr71GitHistoryTests(unittest.TestCase):
         self.assertNotIn("fictional-rider",state)
         self.assertNotIn("result_revisions",state)
 
+    def test_all_four_variable_selections_trigger_new_aes_generation(self):
+        # Fully fictional odds and riders, no real provider and no public
+        # plaintext. A sidecar-only update must be durably encrypted.
+        from race_ai.keirin_variable_selection import ODDS_SCHEMA
+        from scripts.keirin_cloud_pr71_variable import FourModelVariableLedger
+        original = self.frozen()
+        first = cloud.commit(self.repo,self.source,self.db,None)
+        replay = self.root/"variable-restored.sqlite3"
+        prior,verified = cloud.restore(self.repo,self.source,replay)
+        self.assertEqual(verified["frozen"],1)
+        now = datetime.fromisoformat("2030-01-15T09:21:00+09:00")
+        with PrivateKeirinStore(replay,clock=lambda:now) as store:
+            frozen=FourModelRankLedger(store).read_suite(RID)
+            self.assertEqual(frozen["suite"]["suite_sha256"],original)
+            candidate=frozen["suite"]["models"][ALL_MODELS[0]]["candidates"]
+            odds={
+                "schema":ODDS_SCHEMA,"race_id":RID,
+                "captured_at":now.isoformat(),
+                "source_ref":"synthetic://fictional-odds",
+                "source_rights_ref":"SYNTHETIC_ONLY",
+                "prices":[{"triple":r["combination"],"decimal_odds":1000.0}
+                          for r in candidate]
+            }
+            sidecars=FourModelVariableLedger(store)
+            self.assertEqual(sidecars.freeze_four_once(RID,odds),4)
+            self.assertEqual(len(sidecars.inventory()),4)
+            self.assertEqual(FourModelRankLedger(store).read_suite(RID)[
+                "suite"]["suite_sha256"],original)
+        second=cloud.commit(self.repo,self.source,replay,prior)
+        self.assertEqual(second["generation"],2)
+        self.assertNotEqual(second["cipher_sha256"],first["cipher_sha256"])
+        fresh=self.root/"variable-independent-runner.sqlite3"
+        new_head,new_inventory=cloud.restore(self.repo,self.source,fresh)
+        self.assertEqual(new_head["generation"],2)
+        self.assertEqual(new_head["previous_cipher_sha256"],
+                         first["cipher_sha256"])
+        self.assertEqual(new_inventory["frozen"],1)
+        self.assertEqual(new_inventory["revisions"],0)
+        with PrivateKeirinStore(fresh) as store:
+            self.assertEqual(len(FourModelVariableLedger(store).inventory()),4)
+            self.assertEqual(FourModelRankLedger(store).read_suite(RID)[
+                "suite"]["suite_sha256"],original)
+        self.assertEqual(cloud._pr71_inventory(fresh),new_inventory)
+
     def test_second_generation_retains_unchanged_4_model_original(self):
         original=self.frozen()
         first=cloud.commit(self.repo,self.source,self.db,None)

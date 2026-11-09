@@ -1,0 +1,580 @@
+{
+  "schema": "RACE_AI_KEIRIN_20261110_78R_SOURCE_ONLY_COHORT_V1",
+  "event_day_jst": "2026-11-10",
+  "scheduled_venues": 8,
+  "scheduled_races": 78,
+  "expected_model_race_pairs": 312,
+  "model_ids": [
+    "multisport-factor-interaction-v1",
+    "multisport-scenario-ensemble-v1",
+    "multisport-conditional-duel-v1",
+    "multisport-race-trajectory-v1"
+  ],
+  "venue_counts": {
+    "青森": 7,
+    "大宮": 7,
+    "武雄": 12,
+    "富山": 11,
+    "松戸": 12,
+    "宇都宮": 11,
+    "松山": 9,
+    "奈良": 9
+  },
+  "official_venue_codes_source": "https://www.keirin-mobile.jp/Android/docomo/Content/m00/index.php",
+  "race_counts_source": "https://www.winticket.jp/keirin/results",
+  "source_reference_78r_audit_sha256": "54635663f955146c6b409e1b020375de9e7559425ec63d632d750e8f4afc7aea",
+  "source_schedule_unverified_changes": true,
+  "source_race_ids_generated_by_date_venue_code_race_no": true,
+  "models_ran": false,
+  "winning_results_included": false,
+  "model_predictions_included": false,
+  "model_originals_impossible_to_reconstruct_from_reference_picks": true,
+  "races": [
+    {
+      "race_id": "202611101201",
+      "venue": "青森",
+      "race_no": 1,
+      "venue_code": "12",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611101202",
+      "venue": "青森",
+      "race_no": 2,
+      "venue_code": "12",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611101203",
+      "venue": "青森",
+      "race_no": 3,
+      "venue_code": "12",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611101204",
+      "venue": "青森",
+      "race_no": 4,
+      "venue_code": "12",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611101205",
+      "venue": "青森",
+      "race_no": 5,
+      "venue_code": "12",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611101206",
+      "venue": "青森",
+      "race_no": 6,
+      "venue_code": "12",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611101207",
+      "venue": "青森",
+      "race_no": 7,
+      "venue_code": "12",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102501",
+      "venue": "大宮",
+      "race_no": 1,
+      "venue_code": "25",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102502",
+      "venue": "大宮",
+      "race_no": 2,
+      "venue_code": "25",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102503",
+      "venue": "大宮",
+      "race_no": 3,
+      "venue_code": "25",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102504",
+      "venue": "大宮",
+      "race_no": 4,
+      "venue_code": "25",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102505",
+      "venue": "大宮",
+      "race_no": 5,
+      "venue_code": "25",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102506",
+      "venue": "大宮",
+      "race_no": 6,
+      "venue_code": "25",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102507",
+      "venue": "大宮",
+      "race_no": 7,
+      "venue_code": "25",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611108401",
+      "venue": "武雄",
+      "race_no": 1,
+      "venue_code": "84",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611108402",
+      "venue": "武雄",
+      "race_no": 2,
+      "venue_code": "84",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611108403",
+      "venue": "武雄",
+      "race_no": 3,
+      "venue_code": "84",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611108404",
+      "venue": "武雄",
+      "race_no": 4,
+      "venue_code": "84",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611108405",
+      "venue": "武雄",
+      "race_no": 5,
+      "venue_code": "84",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611108406",
+      "venue": "武雄",
+      "race_no": 6,
+      "venue_code": "84",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611108407",
+      "venue": "武雄",
+      "race_no": 7,
+      "venue_code": "84",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611108408",
+      "venue": "武雄",
+      "race_no": 8,
+      "venue_code": "84",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611108409",
+      "venue": "武雄",
+      "race_no": 9,
+      "venue_code": "84",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611108410",
+      "venue": "武雄",
+      "race_no": 10,
+      "venue_code": "84",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611108411",
+      "venue": "武雄",
+      "race_no": 11,
+      "venue_code": "84",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611108412",
+      "venue": "武雄",
+      "race_no": 12,
+      "venue_code": "84",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611104601",
+      "venue": "富山",
+      "race_no": 1,
+      "venue_code": "46",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611104602",
+      "venue": "富山",
+      "race_no": 2,
+      "venue_code": "46",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611104603",
+      "venue": "富山",
+      "race_no": 3,
+      "venue_code": "46",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611104604",
+      "venue": "富山",
+      "race_no": 4,
+      "venue_code": "46",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611104605",
+      "venue": "富山",
+      "race_no": 5,
+      "venue_code": "46",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611104606",
+      "venue": "富山",
+      "race_no": 6,
+      "venue_code": "46",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611104607",
+      "venue": "富山",
+      "race_no": 7,
+      "venue_code": "46",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611104608",
+      "venue": "富山",
+      "race_no": 8,
+      "venue_code": "46",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611104609",
+      "venue": "富山",
+      "race_no": 9,
+      "venue_code": "46",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611104610",
+      "venue": "富山",
+      "race_no": 10,
+      "venue_code": "46",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611104611",
+      "venue": "富山",
+      "race_no": 11,
+      "venue_code": "46",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611103101",
+      "venue": "松戸",
+      "race_no": 1,
+      "venue_code": "31",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611103102",
+      "venue": "松戸",
+      "race_no": 2,
+      "venue_code": "31",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611103103",
+      "venue": "松戸",
+      "race_no": 3,
+      "venue_code": "31",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611103104",
+      "venue": "松戸",
+      "race_no": 4,
+      "venue_code": "31",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611103105",
+      "venue": "松戸",
+      "race_no": 5,
+      "venue_code": "31",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611103106",
+      "venue": "松戸",
+      "race_no": 6,
+      "venue_code": "31",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611103107",
+      "venue": "松戸",
+      "race_no": 7,
+      "venue_code": "31",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611103108",
+      "venue": "松戸",
+      "race_no": 8,
+      "venue_code": "31",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611103109",
+      "venue": "松戸",
+      "race_no": 9,
+      "venue_code": "31",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611103110",
+      "venue": "松戸",
+      "race_no": 10,
+      "venue_code": "31",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611103111",
+      "venue": "松戸",
+      "race_no": 11,
+      "venue_code": "31",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611103112",
+      "venue": "松戸",
+      "race_no": 12,
+      "venue_code": "31",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102401",
+      "venue": "宇都宮",
+      "race_no": 1,
+      "venue_code": "24",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102402",
+      "venue": "宇都宮",
+      "race_no": 2,
+      "venue_code": "24",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102403",
+      "venue": "宇都宮",
+      "race_no": 3,
+      "venue_code": "24",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102404",
+      "venue": "宇都宮",
+      "race_no": 4,
+      "venue_code": "24",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102405",
+      "venue": "宇都宮",
+      "race_no": 5,
+      "venue_code": "24",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102406",
+      "venue": "宇都宮",
+      "race_no": 6,
+      "venue_code": "24",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102407",
+      "venue": "宇都宮",
+      "race_no": 7,
+      "venue_code": "24",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102408",
+      "venue": "宇都宮",
+      "race_no": 8,
+      "venue_code": "24",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102409",
+      "venue": "宇都宮",
+      "race_no": 9,
+      "venue_code": "24",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102410",
+      "venue": "宇都宮",
+      "race_no": 10,
+      "venue_code": "24",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611102411",
+      "venue": "宇都宮",
+      "race_no": 11,
+      "venue_code": "24",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611107501",
+      "venue": "松山",
+      "race_no": 1,
+      "venue_code": "75",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611107502",
+      "venue": "松山",
+      "race_no": 2,
+      "venue_code": "75",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611107503",
+      "venue": "松山",
+      "race_no": 3,
+      "venue_code": "75",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611107504",
+      "venue": "松山",
+      "race_no": 4,
+      "venue_code": "75",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611107505",
+      "venue": "松山",
+      "race_no": 5,
+      "venue_code": "75",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611107506",
+      "venue": "松山",
+      "race_no": 6,
+      "venue_code": "75",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611107507",
+      "venue": "松山",
+      "race_no": 7,
+      "venue_code": "75",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611107508",
+      "venue": "松山",
+      "race_no": 8,
+      "venue_code": "75",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611107509",
+      "venue": "松山",
+      "race_no": 9,
+      "venue_code": "75",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611105301",
+      "venue": "奈良",
+      "race_no": 1,
+      "venue_code": "53",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611105302",
+      "venue": "奈良",
+      "race_no": 2,
+      "venue_code": "53",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611105303",
+      "venue": "奈良",
+      "race_no": 3,
+      "venue_code": "53",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611105304",
+      "venue": "奈良",
+      "race_no": 4,
+      "venue_code": "53",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611105305",
+      "venue": "奈良",
+      "race_no": 5,
+      "venue_code": "53",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611105306",
+      "venue": "奈良",
+      "race_no": 6,
+      "venue_code": "53",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611105307",
+      "venue": "奈良",
+      "race_no": 7,
+      "venue_code": "53",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611105308",
+      "venue": "奈良",
+      "race_no": 8,
+      "venue_code": "53",
+      "prediction_expected_models": 4
+    },
+    {
+      "race_id": "202611105309",
+      "venue": "奈良",
+      "race_no": 9,
+      "venue_code": "53",
+      "prediction_expected_models": 4
+    }
+  ]
+}
