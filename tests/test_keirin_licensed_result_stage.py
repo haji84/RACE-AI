@@ -189,6 +189,41 @@ class LicensedProviderResultStageTests(unittest.TestCase):
                 self.root,store,grants,checked_at=SAMPLE_TIME)[
                 "results_already_present"],2)
 
+    def test_each_revision_keeps_its_own_source_sha_after_batch_sort(self):
+        from hashlib import sha256
+        grants=self.grant()
+        # Stage in reverse time order. File hashes are not revision clocks.
+        self.intake(grants,[result(
+            rev="rev-2",at="2030-01-15T10:20:00+09:00",
+            winner=[4,5,6],pay=32000)])
+        self.intake(grants,[result()])
+        expected={}
+        for source_file in (self.root/"licensed_result_rows").glob("*.json"):
+            raw=source_file.read_bytes()
+            row=json.loads(raw)
+            digest=sha256(raw).hexdigest()
+            self.assertEqual(source_file.stem,digest)
+            expected[row["provider_revision_ref"]]=digest
+        self.assertEqual(len(set(expected.values())),2)
+        with self.frozen_store()[0] as store:
+            report=apply_existing_frozen_results(
+                self.root,store,grants,checked_at=SAMPLE_TIME)
+            self.assertEqual(report["results_appended"],2)
+            saved=store.db.execute(
+                "SELECT source_sha256,payload FROM result_revisions "
+                "WHERE race_id=? ORDER BY revision",(RID,)).fetchall()
+            self.assertEqual(len(saved),2)
+            for record in saved:
+                event=json.loads(record["payload"])
+                expected_sha=expected[event["provider_revision_ref"]]
+                self.assertEqual(record["source_sha256"],expected_sha)
+                self.assertEqual(event["source_sha256"],expected_sha)
+            replay=apply_existing_frozen_results(
+                self.root,store,grants,checked_at=SAMPLE_TIME)
+            self.assertEqual(replay["results_appended"],0)
+            self.assertEqual(replay["results_already_present"],2)
+            self.assertEqual(replay["results_held"],0)
+
 
 if __name__=="__main__":
     unittest.main()
