@@ -55,6 +55,9 @@ jobs:
           export PYTHONPATH="$GITHUB_WORKSPACE/pr71-source:$GITHUB_WORKSPACE/pr71-source/tests:$GITHUB_WORKSPACE:$GITHUB_WORKSPACE/tests"
           cd "$GITHUB_WORKSPACE/pr71-source"
           python -m unittest -v tests.test_keirin_pr71_four_model_rank tests.test_keirin_allowed_delivery tests.test_keirin_permissioned_owner
+          # The exact pinned source must also execute its own V3 grant,
+          # immutable provider revision and no-retroactive-model regressions.
+          python -m unittest -v tests.test_keirin_licensed_result_stage tests.test_keirin_license_api_ingest
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_pr71_state.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_workflow_guard.py' -v
           python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py"
