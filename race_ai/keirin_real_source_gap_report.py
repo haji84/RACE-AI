@@ -74,7 +74,25 @@ def inspect_source_gaps(partial):
             int(f"rider/{no}/{mapping[f][0]}" in keys)
             for no in car_numbers for f in MODEL_REQUIRED
         )+sum(int("race/"+ENV_MAP[f][0] in keys) for f in ENV_REQUIRED)
+        # Group missing model input slots by the required source field name.
+        # This is a PRIVATE/COUNT-ONLY acquisition plan: no athlete IDs,
+        # source measurements, guessed values or invented rights grants.
+        deficit={}
+        for no in car_numbers:
+            for feature in MODEL_REQUIRED:
+                field=mapping[feature][0]
+                if f"rider/{no}/{field}" not in keys:
+                    deficit[field]=deficit.get(field,0)+1
+        for feature in ENV_REQUIRED:
+            field="race/"+ENV_MAP[feature][0]
+            if field not in keys:
+                deficit[field]=deficit.get(field,0)+1
+        ranked_deficit=dict(sorted(
+            deficit.items(),key=lambda entry:(-entry[1],entry[0])))
+        if sum(ranked_deficit.values()) != slots-supplied:
+            raise RealSourceGapError("MODEL_SOURCE_GAP_ACCOUNTING_MISMATCH")
         return {
+            "missing_model_input_slots_by_source_field":ranked_deficit,
             "required_model_input_slots":slots,
             "source_observed_required_slots":supplied,
             "source_unobserved_required_slots":slots-supplied,
