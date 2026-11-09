@@ -157,8 +157,21 @@ def collect(repo,day,*,mode,output_dir,items=None,reader=None):
                     for rid,names in byrace.items():
                         if "manifest.json" not in names or "capture-0.webm.aesgcm" not in names:
                             continue
-                        for n in ("manifest.json","capture-0.webm.aesgcm"):
-                            dst.writestr(f"{rid}/{n}",z.read(f"{rid}/{n}"))
+                        cm=json.loads(z.read(f"{rid}/manifest.json"))
+                        ensure(cm.get("schema")=="RACE_AI_REPLAY_CIPHER_MANIFEST_V1"
+                               and cm.get("race_id")==rid and
+                               type(cm.get("files")) is list and
+                               len(cm["files"])==1,
+                               "CIPHERTEXT_MANIFEST_NOT_VERIFIED")
+                        item=cm["files"][0]
+                        ciphertext=z.read(f"{rid}/capture-0.webm.aesgcm")
+                        ensure(item.get("file")=="capture-0.webm.aesgcm"
+                               and sha256(ciphertext).hexdigest()==item.get("ciphertext_sha256")
+                               and item.get("plaintext_sha256")==
+                                   source_rows[rid]["source_sha256"],
+                               "CIPHERTEXT_INTEGRITY_NOT_VERIFIED")
+                        dst.writestr(f"{rid}/manifest.json",z.read(f"{rid}/manifest.json"))
+                        dst.writestr(f"{rid}/capture-0.webm.aesgcm",ciphertext)
                         chosen.add(rid)
         ensure(chosen==set(source_rows),
                "NO_MATCHING_ENCRYPTED_ASSET_FOR_CAPTURE")
