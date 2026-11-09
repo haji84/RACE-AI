@@ -39,7 +39,8 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: boat-racer-daily-statistics
+  # PR-only offline CI must never queue the real intraday result collector.
+  group: ${{ github.event_name == 'pull_request' && 'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics' }}
   cancel-in-progress: false
 jobs:
   mirror_contract:
@@ -73,7 +74,7 @@ jobs:
           assert 'github.event.workflow_run.conclusion == \'success\'' in content
           assert "github.event.schedule == '20 21 * * *'" in content
           assert 'continue-on-error: true' not in content
-          assert 'group: boat-racer-daily-statistics' in content
+          assert "'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics'" in content
           pin = "ref: $" + "{{ github.event_name == 'push' && github.sha || '914941a6244364480370ac392441ad4bb5781f83' }}"
           assert pin in content
           PY
