@@ -68,6 +68,25 @@ class SavedABTests(unittest.TestCase):
         self.assertEqual(out["provider_gets"], 0)
         self.assertNotIn(v["records"][0]["race_id"], json.dumps(out))
 
+    def test_multiwinner_high_payout_capture_only_if_selected_ticket_is_high(self):
+        from tests.test_boat_sp_settlement import document
+        v = fixture(settled=False)
+        d = document()
+        d["maindata"]["teiinfolist"][1]["chk"] = "1"
+        d["maindata"]["teiinfolist"][2]["chk"] = "3"
+        d["maindata"]["infolist3t"] = [
+            {"winno":"1-2-3","dividend":"1250円"},
+            {"winno":"2-1-3","dividend":"15000円"},
+        ]
+        v = HistoricalModelPdcaAudit().capture(v, doc=d)
+        out = score_ab_view(v, authenticated=True)
+        self.assertEqual(out["compared_ab_races"],1)
+        self.assertEqual(out["high_payout_events"],1)
+        self.assertEqual(out["by_variant"]["A_FROZEN_BASELINE"]["high_payout_captured"],0)
+        self.assertEqual(out["by_variant"]["B_SIX_COURSE_TACTICS"]["high_payout_captured"],1)
+        self.assertEqual(out["by_variant"]["A_FROZEN_BASELINE"]["probability_scored_races"],0)
+        self.assertEqual(out["by_variant"]["B_SIX_COURSE_TACTICS"]["probability_scored_races"],0)
+
     def test_no_b_or_unsettled_result_holds_without_money(self):
         v = saved_view()
         v["records"][0]["prediction"]["stage"] = "P1"

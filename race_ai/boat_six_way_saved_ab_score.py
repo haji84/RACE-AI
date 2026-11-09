@@ -159,7 +159,9 @@ def score_ab_view(view, *, authenticated):
             g = summary[key]
             g["eligible"] += 1
             g["hit"] += int(score["status"] in ("HIT", "HIT_PLUS_REFUND"))
-            g["high_payout_captured"] += int(high and any(t in winners for t in tickets))
+            g["high_payout_captured"] += int(
+                any(winners.get(t, 0) >= 10000 for t in tickets)
+            )
             g["invested_yen"] += score["gross_yen"]
             g["received_yen"] += score["received_yen"]
             g["refunded_yen"] += score["refund_yen"]
