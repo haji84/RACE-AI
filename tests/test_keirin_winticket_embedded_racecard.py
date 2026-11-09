@@ -11,7 +11,8 @@ import json
 import unittest
 
 from race_ai.keirin_winticket_embedded_racecard import (
-    racecard_from_public_html,safe_public_racecard_counts,EmbeddedRacecardError
+    racecard_from_public_html,safe_public_racecard_counts,
+    safe_public_racecard_key_inventory,EmbeddedRacecardError
 )
 
 
@@ -197,6 +198,34 @@ class WinticketPublicRacecardTests(unittest.TestCase):
         self.assertNotIn("race/start_time",
                          result["direct_verified_fields"])
         self.assertIsNone(result["source_scheduled_start_at_utc"])
+
+
+
+    def test_public_safe_field_keys_help_find_missing_source_inputs_only(self):
+        html=fixture()
+        packet=self.parse(html)
+        record=safe_public_racecard_key_inventory(packet,html)
+        self.assertEqual(record["race_id"],RACE)
+        self.assertEqual(set(record["collection_field_names"]),
+                         {"races","players","records","entries"})
+        self.assertIn("racePoint",record["collection_field_names"]["records"])
+        self.assertIn("firstRate",record["collection_field_names"]["records"])
+        self.assertIn("playerId",record["collection_field_names"]["entries"])
+        self.assertIn("startAt",record["collection_field_names"]["races"])
+        self.assertFalse(record["count_as_verified_347_factors"])
+        self.assertFalse(record["new_source_rights_granted"])
+        self.assertFalse(record["public_rider_values_or_names_logged"])
+        self.assertNotIn("fictional-rider",str(record))
+        self.assertNotIn("100.5",str(record))
+
+    def test_field_keys_require_original_sha_no_hidden_values(self):
+        packet=self.parse()
+        with self.assertRaises(EmbeddedRacecardError):
+            safe_public_racecard_key_inventory(
+                packet,b"<html>untrusted altered</html>")
+        packet["html_sha256"]="0"*64
+        with self.assertRaises(EmbeddedRacecardError):
+            safe_public_racecard_key_inventory(packet,fixture())
 
 
 if __name__=="__main__":
