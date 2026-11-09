@@ -254,6 +254,37 @@ class CloudPr71GitHistoryTests(unittest.TestCase):
                 "SELECT COUNT(*) FROM keirin_pr71_four_model_rank_audits"
             ).fetchone()[0],8)
 
+    def test_restored_four_model_archive_survives_missing_new_licensed_feed(self):
+        # Real unattended schedules may find no licensed source. A missing
+        # feed must NOT reset the PR71 original or create a fake generation.
+        original=self.frozen()
+        saved=cloud.commit(self.repo,self.source,self.db,None)
+        event={
+            "GITHUB_ACTIONS":"true","GITHUB_REPOSITORY":cloud.REPO,
+            "GITHUB_REPOSITORY_ID":cloud.REPOSITORY_ID,
+            "GITHUB_REF":"refs/heads/main",
+            "GITHUB_EVENT_NAME":"schedule",
+        }
+        with patch.dict(os.environ,event),patch.object(
+                cloud,"_licensed_inputs",
+                return_value=(None,None,"SOURCE_FEED_NOT_CONFIGURED")):
+            report=cloud.cycle(self.repo,self.source)
+        self.assertEqual(report["state"],
+                         "CLOUD_PR71_RESTORED_NO_CHANGED_MODEL_OR_RESULT")
+        self.assertEqual(report["new_forecasts"],0)
+        self.assertEqual(report["source_state"],"SOURCE_FEED_NOT_CONFIGURED")
+        target=self.root/"recovered-without-new-feed.sqlite3"
+        head,verified=cloud.restore(self.repo,self.source,target)
+        self.assertEqual(head["generation"],1)
+        self.assertEqual(head["cipher_sha256"],saved["cipher_sha256"])
+        self.assertEqual(verified["frozen"],1)
+        with PrivateKeirinStore(target) as store:
+            self.assertEqual(FourModelRankLedger(store).read_suite(RID)[
+                "suite"]["suite_sha256"],original)
+        listing=sh("git","--git-dir",str(self.remote),"ls-tree","-r",
+                   "--name-only",cloud.STATE_BRANCH)
+        self.assertNotIn("g000002-",listing)
+
     def test_missing_original_refuses_production_archive(self):
         with PrivateKeirinStore(self.db):
             pass
