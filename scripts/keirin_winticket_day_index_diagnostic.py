@@ -47,6 +47,8 @@ def structure(html,source_url):
         shapes[signature]+=1
     root=read_preloaded_json(html)
     datasets=Counter()
+    first_collection_keys={}
+    schedule_values_structure=Counter()
     schedules=Counter()
     matches=Counter()
     races=0
@@ -60,6 +62,17 @@ def structure(html,source_url):
             if type(v) is list and (k in ("races","schedules","venues",
                                          "stadiums","events","racecards")):
                 datasets[k]+=len(v)
+                if v and type(v[0]) is dict:
+                    first_collection_keys[k]=sorted(v[0])
+                if k=="schedules":
+                    for item in v:
+                        if type(item) is not dict:continue
+                        for field,val in item.items():
+                            if type(val) in (str,int):
+                                raw=str(val)
+                                if raw.isdigit() and 8<=len(raw)<=14:
+                                    schedule_values_structure[
+                                        field+":numeric"+str(len(raw))]+=1
         rows=data.get("races")
         if type(rows) is not list:continue
         for row in rows:
@@ -80,6 +93,9 @@ def structure(html,source_url):
         "public_keirin_href_count":sum(shapes.values()),
         "path_template_counts":dict(shapes.most_common(18)),
         "ssr_named_collection_counts":dict(datasets),
+        "ssr_first_collection_item_key_names":first_collection_keys,
+        "ssr_schedule_numeric_field_formats":
+            dict(schedule_values_structure),
         "ssr_race_count":races,
         "ssr_schedule_id_format_histogram":dict(schedules),
         "ssr_schedule_date_venue_format_matches":dict(matches),
