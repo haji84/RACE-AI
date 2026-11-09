@@ -96,6 +96,18 @@ async def run(args):
     key=load_pem_public_key(args.owner_public_key.read_bytes())
     if not isinstance(key,rsa.RSAPublicKey) or key.key_size!=3072:
         raise ValueError("OWNER_RESEARCH_ENCRYPTION_KEY_INVALID")
+    private_feature_docs=[]
+    def ephemeral_research_hook(video_path,source,technical):
+        if args.sealed_research_dir is None:
+            return
+        from race_ai.keirin_daily_video_research import read_private_video
+        doc=read_private_video(
+            video_path,race_id=source["race_id"],cohort=source["cohort"])
+        if (doc["browser_video_sha256"]!=technical.get("sha256")
+            or doc["cohort"]!=source["cohort"]):
+            raise ValueError("PRIVATE_FEATURE_PROVENANCE_MISMATCH")
+        private_feature_docs.append(doc)
+
     async with async_playwright() as pw:
         browser=await pw.chromium.launch(
             headless=True,channel="chrome",args=[
@@ -104,7 +116,9 @@ async def run(args):
             for source in batch["selected"]:
                 try:
                     entry=await capture_one(
-                        browser,source,args.encrypted_dir,args.owner_public_key)
+                        browser,source,args.encrypted_dir,args.owner_public_key,
+                        on_verified_plaintext=ephemeral_research_hook
+                            if args.sealed_research_dir else None)
                 except Exception as exc:
                     entry=admission_manifest(source)
                     entry["technical_status"]="CAPTURE_ERROR"
@@ -127,6 +141,9 @@ async def run(args):
                     "full_lap_claim":False,
                     "independently_reviewed_tactics":False,
                     "permitted_training_label":False,
+                    "ephemeral_visual_features_extracted":
+                        entry.get("private_feature_extraction_status")
+                        =="SUCCEEDED_EPHEMERAL",
                 })
                 result["status"]="PARTIAL_BATCH_PROGRESS"
                 args.report.write_text(json.dumps(
@@ -139,6 +156,42 @@ async def run(args):
                 await asyncio.sleep(1)
         finally:
             await browser.close()
+    # Every verified browser frame is converted into an owner-only RSA/AES
+    # ciphertext envelope before this ephemeral runner exits. No raw feature
+    # matrices or frames are ever uploaded to a public Actions artifact.
+    if args.sealed_research_dir is not None and private_feature_docs:
+        from race_ai.keirin_daily_video_research import (
+            fit_private_representation,make_review_queue)
+        from race_ai.keirin_private_sealed_payload import seal_json
+        studies={
+            "schema":"RACE_AI_KEIRIN_CI_DAILY_PRIVATE_RESEARCH_BATCH_V1",
+            "date_jst":today,
+            "source_races":[{"race_id":x["race_id"],
+                "source_sha256":x["browser_video_sha256"],
+                "cohort":x["cohort"],
+                "frames":len(x["frames"])} for x in private_feature_docs],
+            "feature_documents":private_feature_docs,
+            "review_candidates":make_review_queue(private_feature_docs),
+            "scene_model":fit_private_representation(
+               private_feature_docs,min_train_races=2,min_holdout_races=1),
+            "actual_rider_tactical_labels_verified":0,
+            "official_prediction_model_changed":False,
+        }
+        sealed=seal_json(studies,args.owner_public_key.read_bytes(),
+            aad="RACE_AI_PRIVATE_KEIRIN:"+today+":SCENE_RESEARCH_V1")
+        args.sealed_research_dir.mkdir(parents=True,exist_ok=True)
+        envelope=args.sealed_research_dir/("keirin_"+today+"_sealed_research.json")
+        envelope.write_text(json.dumps(sealed,ensure_ascii=False))
+        result["encrypted_private_research_documents"]=1
+        result["scene_feature_races"]=len(private_feature_docs)
+        result["scene_feature_frame_count"]=sum(
+            len(x["frames"]) for x in private_feature_docs)
+        result["private_research_ciphertext_sha256"]=sealed["ciphertext_sha256"]
+        result["scene_model_status"]=studies["scene_model"]["status"]
+    else:
+        result["encrypted_private_research_documents"]=0
+        result["scene_feature_races"]=0
+        result["scene_feature_frame_count"]=0
     result["status"]="WAVE_RECORDED_OR_FAILED_PER_RACE"
     result["ended_jst"]=datetime.now(JST).isoformat()
     args.report.write_text(json.dumps(result,ensure_ascii=False,indent=2))
@@ -153,6 +206,8 @@ def main():
     ap.add_argument("--private-retention-receipts",type=Path)
     ap.add_argument("--previous-day-manifest",type=Path,
                     help="Only in JST 00:00-07:59 recovery; use a precommitted prior-day manifest")
+    ap.add_argument("--sealed-research-dir",type=Path,
+                    help="Public RSA-encrypted frame/model research, never plaintext upload")
     ap.add_argument("--max-races",type=int,default=24)
     ap.add_argument("--plan-only",action="store_true")
     args=ap.parse_args()
@@ -162,6 +217,8 @@ def main():
         "discovered":outcome["discovered_race_count"],
         "attempted":outcome["attempted"],
         "encrypted":outcome["encrypted"],
+        "sealed_research_documents":outcome.get("encrypted_private_research_documents",0),
+        "scene_feature_frames":outcome.get("scene_feature_frame_count",0),
         "train_labels_independently_confirmed":0,
         "official_forecast_weights_updated":False,
     },ensure_ascii=False))
