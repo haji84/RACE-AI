@@ -22,6 +22,7 @@ from race_ai.keirin_winticket_embedded_racecard import (
     racecard_from_public_html,EmbeddedRacecardError,
     safe_public_racecard_counts
 )
+from race_ai.keirin_real_source_gap_report import inspect_source_gaps
 
 SCHEMA="RACE_AI_KEIRIN_FUTURE_LIVE_PUBLIC_SSR_PROBE_V1"
 
@@ -69,6 +70,7 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
     except EmbeddedOddsError as e:
         reason=str(e)
     counts=safe_public_racecard_counts(card)
+    gaps=inspect_source_gaps(card)
     result={
         "schema":SCHEMA,"race_id":race_id,
         "status":("LIVE_TRIFECTA_PRICE_UNIVERSE_VERIFIED"
@@ -80,6 +82,18 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
         "preflight_checked_items":counts["registry_checked_count"],
         "preflight_source_verified_items":counts["registry_verified_count"],
         "preflight_unavailable_items":counts["registry_unavailable_count"],
+        "model_required_total_A":
+            gaps["model_A_source_coverage"]["required_model_input_slots"],
+        "model_required_observed_A":
+            gaps["model_A_source_coverage"]["source_observed_required_slots"],
+        "model_required_missing_A":
+            gaps["model_A_source_coverage"]["source_unobserved_required_slots"],
+        "model_required_observed_B":
+            gaps["model_B_source_coverage"]["source_observed_required_slots"],
+        "model_required_missing_B":
+            gaps["model_B_source_coverage"]["source_unobserved_required_slots"],
+        "preflight_core_required_missing":
+            gaps["source_unobserved_critical_slots"],
         "actual_210_or_504_verified":prices is not None,
         "actual_full_trifecta_rows":(
             prices["receipt"]["combination_count"] if prices else 0),
