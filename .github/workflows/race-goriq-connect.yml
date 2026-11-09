@@ -1,0 +1,111 @@
+name: GORIQ AI-09 review of RACE PR69
+
+# Owner-requested one-shot connection. No push/cron/CI-completion trigger.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened]
+    paths: [.github/workflows/race-goriq-connect.yml]
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+  checks: read
+
+concurrency:
+  group: race-goriq-advisory-pr69
+  cancel-in-progress: false
+
+jobs:
+  ai09:
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event.repository.private == false &&
+      github.actor == 'haji84' &&
+      github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' &&
+      github.event.pull_request.head.ref == 'codex/goriq-review-reuse'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    env:
+      TRUSTED_REVIEWER_SHA: f8e4a0904cfc4058cdecc399b00b015913e4dc12
+    steps:
+      - name: Checkout independently reviewed adapter source, never target PR69
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: f8e4a0904cfc4058cdecc399b00b015913e4dc12
+          persist-credentials: false
+      - name: Verify hosted runtime, pinned modules and complete current review plan
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$RUNNER_OS" = Linux
+          test "$RUNNER_ARCH" = X64
+          test "$(git rev-parse HEAD)" = "$TRUSTED_REVIEWER_SHA"
+          node --version
+          node -e 'if(Number(process.versions.node.split(".")[0])<22)throw Error("NODE_22_REQUIRED")'
+          node --test tests/goriq_plan.test.mjs tests/goriq_reuse.test.mjs
+          node scripts/race-goriq-review.mjs --preflight examples/ai09-pr69-request.json
+      - name: Reuse SHA256-pinned GORIQ Ollama binary
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --max-time 300 \
+            https://github.com/ollama/ollama/releases/download/v0.34.0/ollama-linux-amd64.tar.zst \
+            -o "$RUNNER_TEMP/ollama.tar.zst"
+          echo "cf95886728959aa09910bb34de5cca1cc5a8f68003b5597197d3f2c2d57c0804  $RUNNER_TEMP/ollama.tar.zst" | sha256sum -c -
+          sudo tar --zstd -xf "$RUNNER_TEMP/ollama.tar.zst" -C /usr
+          ollama --version
+      - name: Start one loopback model and record its actual digest
+        env:
+          OLLAMA_HOST: 127.0.0.1:11434
+          OLLAMA_NUM_PARALLEL: '1'
+          OLLAMA_MAX_LOADED_MODELS: '1'
+          OLLAMA_KEEP_ALIVE: 5m
+        run: |
+          set -euo pipefail
+          ollama serve >"$RUNNER_TEMP/ollama.log" 2>&1 &
+          echo "RACE_OLLAMA_PID=$!" >> "$GITHUB_ENV"
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          timeout 480s ollama pull qwen2.5-coder:3b
+          node --input-type=module <<'NODE'
+          const r=await fetch('http://127.0.0.1:11434/api/tags',{redirect:'error',signal:AbortSignal.timeout(5000)});
+          if(!r.ok)throw Error('MODEL_METADATA_UNAVAILABLE');
+          const m=(await r.json()).models?.find(m=>m.name==='qwen2.5-coder:3b');
+          if(!/^(sha256:)?[a-f0-9]{64}$/.test(m?.digest??''))throw Error('MODEL_DIGEST_UNAVAILABLE');
+          console.log('AI09_MODEL='+JSON.stringify({name:m.name,digest:m.digest,size:m.size,provider:'loopback-only'}));
+          NODE
+      - name: Review all 29 slices through the pinned GORIQ engine
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node scripts/race-goriq-review.mjs --review examples/ai09-pr69-request.json | tee "$RUNNER_TEMP/ai09-review.json"
+      - name: Show validated advisory status and retain Human Gates
+        if: always()
+        run: |
+          node --input-type=module <<'NODE'
+          import {existsSync,readFileSync,appendFileSync} from 'node:fs';
+          import {loadPinnedCore} from './scripts/race-goriq-review.mjs';
+          const file=process.env.RUNNER_TEMP+'/ai09-review.json';
+          if(existsSync(file)){
+            const core=await loadPinnedCore(),r=JSON.parse(readFileSync(file,'utf8'));
+            const q=JSON.parse(readFileSync('examples/ai09-pr69-request.json','utf8'));
+            if(!core.validateReviewReceipt(r,{...q,trustedSha:core.upstreamSha}) ||
+              r.reviewPlanSha256!==q.reviewPlanSha256)throw Error('ADVISORY_RECEIPT_INVALID');
+            appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+              'AI-09 advisory: '+r.reviewerResult.status+'\n\nPR69 head: '+r.headSha+
+              '\n\nReviewed slices: '+r.reviewedChunks+'/'+r.chunkCount+
+              '\n\nAI_ASSERTED. GitHub approval: false. Merge authorized: false.\n');
+          }
+          NODE
+      - name: Stop isolated local model
+        if: always()
+        run: |
+          if [[ "${RACE_OLLAMA_PID:-}" =~ ^[0-9]+$ ]]; then kill "$RACE_OLLAMA_PID" 2>/dev/null || true; fi
