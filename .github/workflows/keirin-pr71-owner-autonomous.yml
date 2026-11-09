@@ -218,7 +218,6 @@ jobs:
               raise SystemExit("INDEPENDENT_CLOUD_READBACK_NOT_VERIFIED")
           print(json.dumps({"state":r["state"],"generation":r["generation"]}))
           PY
-   PY
       - name: Reconcile all 78 races and four original PR71 models after independent encrypted-state readback
         shell: bash
         run: |
