@@ -103,7 +103,10 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
         "ex_attack_denominator_kind":"recorded_actions_not_unique_races",
         "ssr_collection_field_names_only":sources["collection_field_names"],
         "ssr_collection_field_types_only":sources["collection_field_types_only"],
-        "ssr_selected_nested_field_names_only":sources["selected_nested_field_names_only"],
+        "ssr_selected_nested_field_names_only":{
+            **sources["selected_nested_field_names_only"],
+            **card["ex_nested_source_key_names_only"],
+        },
         "model_required_total_A":
             gaps["model_A_source_coverage"]["required_model_input_slots"],
         "model_required_observed_A":
