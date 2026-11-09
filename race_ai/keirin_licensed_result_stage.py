@@ -173,6 +173,10 @@ def apply_existing_frozen_results(inbox,store,grants,*,checked_at):
     need(len(files)<=MAX_RESULTS,"RESULT_IMPORT_BATCH_TOO_LARGE")
     ledger=FourModelRankLedger(store)
     appended=already=held=0
+    # Distinct provider corrections must be replayed by actual observation
+    # time, not arbitrary SHA filename order. Verify every candidate's SHA
+    # and rights before mutating any record for that candidate.
+    candidates=[]
     for path in files:
         try:
             need(path.is_file() and not path.is_symlink() and
@@ -184,6 +188,12 @@ def apply_existing_frozen_results(inbox,store,grants,*,checked_at):
                  "RESULT_ROW_FILE_SHA_MISMATCH")
             row=json.loads(raw.decode("utf-8"))
             validate_result(row,grants,checked_at=checked_at)
+            candidates.append((utc(row["observed_at"]),path.stem,row))
+        except (OSError,ValueError,KeyError,TypeError,OwnerStoreError,
+                UnicodeError):
+            held+=1
+    for _,digest,row in sorted(candidates,key=lambda entry:(entry[0],entry[1])):
+        try:
             rid=row["race_id"]
             frozen=ledger.read_suite(rid)
             need(frozen is not None,"NO_FROZEN_FOUR_MODEL_SOURCE")
