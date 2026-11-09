@@ -24,8 +24,13 @@ def repair_saved_receipt_mismatches(repo,*,state,now,bridge=None):
     cases=C._validate(state.control['result_due_case_reasons'])['cases']
     pointers=state.control.get('settlement_captures') or {}
     need(type(pointers) is dict,'MODEL_REPLAY_POINTER_MAP_INVALID')
+    # Both states already have an immutable retained capture. Re-run only the
+    # existing strict parser and formal-eligibility gates, never trust a rejected
+    # result just because its source bytes match their original SHA.
+    # Reference-only labels remain excluded: they have no admissible proof.
+    replayable={'MODEL_RESULT_EVIDENCE_MISMATCH','RESULT_SOURCE_REJECTED'}
     candidates=[rid for rid,entry in sorted(cases.items()) if
-        entry['reason']=='MODEL_RESULT_EVIDENCE_MISMATCH' and rid in pointers][:MAX_RACES]
+        entry['reason'] in replayable and rid in pointers][:MAX_RACES]
     report=dict(schema='RACE_AI_OFFLINE_MODEL_RECEIPT_REPAIR_V1',
         replay_candidates=len(candidates),source_bytes_authenticated=0,
         formal_result_repairs=0,formal_preview_holds=0,unavailable_saved_day=0,
@@ -59,6 +64,14 @@ def repair_saved_receipt_mismatches(repo,*,state,now,bridge=None):
             matches=[r for r in current['records'] if r.get('race_id')==rid and r.get('sport')=='boat']
             if len(matches)!=1:
                 add_hold('MODEL_REPLAY_RACE_IDENTITY_INVALID');continue
+            # A stale rejection index must never erase a prior explicit
+            # reference-only / non-formal decision during offline replay.
+            prior_result=matches[0].get('result') or {}
+            prior_ref=prior_result.get('cutoff_reconciliation') or {}
+            if (prior_result.get('cutoff_reference') is not None or
+                prior_result.get('formal_eligible') is False or
+                (isinstance(prior_ref,dict) and prior_ref.get('formal_eligible') is False)):
+                add_hold('MODEL_REPLAY_REFERENCE_ONLY_BARRIER');continue
             try:
                 if P._result_context(matches[0])[0] in ('FINAL','VOID'):
                     # Never re-publish an already proved formal result.

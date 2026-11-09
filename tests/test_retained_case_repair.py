@@ -12,7 +12,7 @@ from tests.intraday_fixture import packet
 
 
 class StrictRetainedCaseRepairTests(unittest.TestCase):
-    def setup(self,*,reference_only=False,corrupt_pointer=False):
+    def setup(self,*,reference_only=False,corrupt_pointer=False,source_rejected=False):
         fixture=BridgeTests('test_confirmed_result_reaches_saved_forecast_without_intake_and_quiet_replay_is_identical')
         fixture.setUp();self.addCleanup(fixture.doCleanups)
         raw,receipt=packet(document(),captured=NOW.isoformat())
@@ -22,6 +22,12 @@ class StrictRetainedCaseRepairTests(unittest.TestCase):
         if reference_only:
             row['result']['cutoff_reference']=dict(formal_eligible=False,
                 original_cutoff_at=row['cutoff_at'])
+        elif source_rejected:
+            # Original view contains a rejected observation and no formal
+            # result. The authenticated byte packet is kept independently.
+            row['result']=None
+            row['result_observations']=[]
+            row['result_observation_rejections']=[dict(reason='RESULT_WINNER_INVALID')]
         else:row['result']['source_sha256']='f'*64
         fixture.seed(old)
         state=IntradayState()
@@ -30,7 +36,7 @@ class StrictRetainedCaseRepairTests(unittest.TestCase):
         state.control['settlement_captures']={row['race_id']:pointer}
         due=D.ledger(state.control,now=NOW.isoformat())
         D.update(due,[row],now=NOW.isoformat())
-        if not reference_only:
+        if not reference_only and not source_rejected:
             D.hold_model_ids(due,[row],[row['race_id']],now=NOW.isoformat())
         outcome=C.record(state.control,due,[row])
         self.assertEqual(outcome['outstanding'],1)
@@ -84,6 +90,54 @@ class StrictRetainedCaseRepairTests(unittest.TestCase):
         self.assertEqual(out['formal_result_repairs'],0)
         self.assertEqual(out['formal_hold_reason_counts']['MODEL_REPLAY_PARSER_MATERIAL_CONFLICT'],1)
         self.assertEqual(fixture.git.head(),before)
+
+    def test_retained_source_rejected_is_replayed_only_through_formal_gates(self):
+        fixture,state,row,receipt,due=self.setup(source_rejected=True)
+        self.assertEqual(state.control['result_due_case_reasons']['cases'][row['race_id']]['reason'],
+                         'RESULT_SOURCE_REJECTED')
+        original=F.forecast_inventory(fixture.view)
+        before=deepcopy(state.control)
+        out=repair_saved_receipt_mismatches(fixture.repo,state=state,
+                      now=NOW+timedelta(minutes=1),bridge=fixture.bridge())
+        self.assertEqual(out['source_provider_requests'],0)
+        self.assertEqual(out['replay_candidates'],1)
+        self.assertEqual(out['source_bytes_authenticated'],1)
+        self.assertEqual(out['formal_result_repairs'],1)
+        self.assertEqual(state.control,before)
+        _,_,_,view=F.current_view(fixture.git,fixture.boot)
+        self.assertEqual(view['records'][0]['result']['source_sha256'],receipt['source_sha256'])
+        self.assertEqual(F.forecast_inventory(view),original)
+        D.update(due,view['records'],now=(NOW+timedelta(minutes=1)).isoformat())
+        self.assertEqual(D.pending_count(due),0)
+
+    def test_rejected_source_cannot_override_prior_reference_only_decision(self):
+        fixture,state,row,receipt,due=self.setup(source_rejected=True)
+        altered=F.current_view(fixture.git,fixture.boot)[3]
+        altered['records'][0]['result']={
+            'status':'missing',
+            'cutoff_reference':dict(formal_eligible=False,original_cutoff_at=row['cutoff_at'])
+        }
+        fixture.seed(altered)
+        old_head=fixture.git.head()
+        report=repair_saved_receipt_mismatches(fixture.repo,state=state,
+                   now=NOW+timedelta(minutes=1),bridge=fixture.bridge())
+        self.assertEqual(report['replay_candidates'],1)
+        self.assertEqual(report['source_bytes_authenticated'],0)
+        self.assertEqual(report['formal_result_repairs'],0)
+        self.assertEqual(report['formal_hold_reason_counts']['MODEL_REPLAY_REFERENCE_ONLY_BARRIER'],1)
+        self.assertEqual(fixture.git.head(),old_head)
+        self.assertEqual(D.pending_count(due),1)
+
+    def test_rejected_source_with_corrupt_retained_bytes_remains_unresolved(self):
+        fixture,state,row,receipt,due=self.setup(source_rejected=True,corrupt_pointer=True)
+        old_head=fixture.git.head()
+        result=repair_saved_receipt_mismatches(fixture.repo,state=state,
+                   now=NOW+timedelta(minutes=1),bridge=fixture.bridge())
+        self.assertEqual(result['replay_candidates'],1)
+        self.assertEqual(result['formal_result_repairs'],0)
+        self.assertEqual(result['formal_preview_holds'],1)
+        self.assertEqual(fixture.git.head(),old_head)
+        self.assertEqual(D.pending_count(due),1)
 
     def test_reference_only_result_is_never_reclassified_to_formal_hit(self):
         fixture,state,row,receipt,due=self.setup(reference_only=True)
