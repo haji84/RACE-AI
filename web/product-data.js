@@ -370,7 +370,7 @@
           new Set(row.scheduled_stages).size !== row.scheduled_stages.length || row.scheduled_stages.some(stage=>!stages.slice(0,2).includes(stage) && !(row.sport === "autorace" && nativeAutoraceStages.includes(stage))))) fail("対象台帳の予想時点が不正です。");
       if (row.dispatch_slots != null) {
         if (!dispatchRow || !Array.isArray(row.dispatch_slots) || row.dispatch_slots.length > 4096) fail("モデル別状態の形式が不正です。");
-        const statuses=["NOT_APPLICABLE","INPUT_MISSING","TRAINED_ARTIFACT_MISSING","DEADLINE_PASSED","RULE_FILTERED","UNCONNECTED_NATIVE_RUNTIME","SOURCE_NOT_AUTHORIZED","INPUT_REJECTED","GENERATED_UNATTESTED","ORIGINAL_REUSED"];
+        const statuses=["NOT_APPLICABLE","INPUT_MISSING","TRAINED_ARTIFACT_MISSING","DEADLINE_PASSED","RULE_FILTERED","UNCONNECTED_NATIVE_RUNTIME","SOURCE_NOT_AUTHORIZED","INPUT_REJECTED","EXECUTION_FAILED","GENERATED_UNATTESTED","ORIGINAL_REUSED"];
         const slots = new Set();
         for (const slot of row.dispatch_slots) {
           if (!slot || typeof slot !== "object" || Array.isArray(slot) || !text(slot.model_id) || slot.model_id.length > 128 ||

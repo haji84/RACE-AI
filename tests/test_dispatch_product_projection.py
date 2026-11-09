@@ -1,4 +1,5 @@
 """Private display of exact existing native outputs; all inputs are fictional."""
+from collections import Counter
 from copy import deepcopy
 from datetime import datetime
 import hashlib
@@ -322,6 +323,20 @@ class DispatchProductProjectionTests(unittest.TestCase):
         context["bundle_sha256"] = digest({k: v for k, v in context.items() if k != "bundle_sha256"})
         with self.assertRaises(ValueError):
             self.project(report)
+
+    def test_native_runtime_failure_is_visible_without_fabricated_forecast(self):
+        report=shared_report("boat")
+        slot=next(s for s in report["slots"] if s["status"]=="GENERATED_UNATTESTED")
+        slot.update(status="EXECUTION_FAILED",reason="NATIVE_EXECUTION_EXCEPTION",
+                    prediction=None,prediction_sha256=None,output_sha256=None,model_version=None,
+                    dispatch_generated_at=None)
+        report["status_counts"]=dict(Counter(s["status"] for s in report["slots"]))
+        view=self.project(report)
+        coverage=next(s for s in view["records"][0]["dispatch_slots"] if s["model_id"]==slot["model_id"])
+        self.assertEqual(coverage["status"],"EXECUTION_FAILED")
+        self.assertEqual(coverage["projection_status"],"NO_PREDICTION")
+        self.assertEqual(coverage["projection_reason"],"NATIVE_EXECUTION_EXCEPTION")
+        self.assertIsNone(coverage["output_sha256"])
 
     def test_report_counts_and_explicit_model_version_pins_are_validated(self):
         report = shared_report("boat")

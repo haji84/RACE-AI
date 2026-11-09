@@ -63,7 +63,7 @@
 1. 同じ最新HEADの必要な全CI成功とCODE変更の安全確認。対象テストの合格を全CI合格にしない。
 2. 既存source-owner境界の正式解除・同時writerなしの確認。`docs/RACE_AI_LATEST_STATUS.md`のCODE専用許可をprovider取得の解除へ読み替えない。
 3. 本番mainの既存自動起動と、上の全モデル・各研究版の必要入力供給。既存の取得担当・writer・原本・権限を増やさず接続する。
-4. 実開催台帳×適用モデル×対応段階×正規の版に対し、予想なしの理由を全件記録。INPUT_MISSING、TRAINED_ARTIFACT_MISSING、UNCONNECTED_NATIVE_RUNTIME、INPUT_REJECTED、期限超過は区別する。現dispatcherに汎用のEXECUTION_FAILED状態がない点は未解決の診断差分として残す。
+4. 実開催台帳×適用モデル×対応段階×正規の版に対し、予想なしの理由を全件記録。INPUT_MISSING、TRAINED_ARTIFACT_MISSING、UNCONNECTED_NATIVE_RUNTIME、INPUT_REJECTED、期限超過は区別する。汎用のEXECUTION_FAILEDをdispatcher／表示／入力検証に追加し、入力不備や学習物不足と混同せず私有例外本文を露出させない。合成テスト通過のみで実レースの障害分類完了とはしない。
 5. 実データ→各native出力→事前暗号保存→独立読戻し→モデル別表示→公式結果→既存PDCA。投資・払戻・返還・収支・回収率・累計損益を同一race/stageで比較する。実購入不明なら仮想購入と明記。
 
 本監査で新しい予想、モデル係数、公式取得、所有者鍵の取り出し、本番デプロイ、原本の上書き、投票は行っていない。1ケースの成功を全日・全モデル完了へ換算しない。
