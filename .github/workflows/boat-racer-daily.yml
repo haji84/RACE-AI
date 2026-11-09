@@ -1,5 +1,8 @@
 name: BOAT per-race results and athlete statistics
 on:
+  pull_request:
+    branches: [main]
+    paths: [.github/workflows/boat-racer-daily.yml]
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022, main]
     paths: [docs/evidence/racer-daily-refresh-trigger.txt, docs/evidence/racer-intraday-refresh-trigger.txt, docs/evidence/owner-pdca-main-trigger.txt]
@@ -36,11 +39,130 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: boat-racer-daily-statistics
+  # PR-only offline CI must never queue the real intraday result collector.
+  group: ${{ github.event_name == 'pull_request' && 'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics' }}
   cancel-in-progress: false
 jobs:
-  daily:
+  mirror_contract:
+    name: BOAT mirror source-free PR regression
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 914941a6244364480370ac392441ad4bb5781f83
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - name: Install pinned offline-only test dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Verify HMAC envelopes, immutable mirror CAS and denied-source state
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import unittest
+          import race_ai
+          for root in ('pr64-reference', 'pr72-reference'):
+              package = Path(root, 'race_ai').resolve()
+              assert package.is_dir(), 'PINNED_PARSER_NOT_INSTALLED'
+              race_ai.__path__.append(str(package))
+          suite = unittest.defaultTestLoader.loadTestsFromNames(['tests.test_boat_source_control_mirror'])
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(not result.wasSuccessful())
+          PY
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: proposed-workflow
+          persist-credentials: false
+      - name: Verify wiring without running any provider request
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          content = Path('proposed-workflow/.github/workflows/boat-racer-daily.yml').read_text()
+          mirror = content.split('  source_mirror:\n', 1)[1].split('  daily:\n', 1)[0]
+          daily = content.split('  daily:\n', 1)[1]
+          header = content.split('jobs:\n', 1)[0]
+          assert mirror.count('Reconcile verified completed BOAT source handoff') == 1
+          assert 'needs: source_mirror' in daily
+          assert '!cancelled()' in daily
+          assert 'actions: read' in mirror
+          assert 'contents: write' in mirror
+          assert 'from scripts.boat_source_control_mirror import main' in mirror
+          assert "['latest-closed', '--repo-root', '.', '--output', output]" in mirror
+          assert mirror.count('race_ai.__path__.append(str(package))') == 1
+          assert "github.event.workflow_run.conclusion == 'success'" in mirror
+          assert "github.event.schedule == '20 21 * * *'" in mirror
+          assert 'continue-on-error: true' not in mirror
+          assert "'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics'" in header
+          pin = "ref: $" + "{{ github.event_name == 'push' && github.sha || '914941a6244364480370ac392441ad4bb5781f83' }}"
+          assert pin in daily
+          PY
+  source_mirror:
+    name: Reconcile authenticated completed BOAT source (no provider GET)
     if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      ((github.event_name == 'workflow_run' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022' &&
+        github.event.workflow_run.conclusion == 'success') ||
+       (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 914941a6244364480370ac392441ad4bb5781f83
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - name: Install pinned mirror readback dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Reconcile verified completed BOAT source handoff (GitHub-only; no provider GET)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import race_ai
+          for root in ('pr64-reference', 'pr72-reference'):
+              package = Path(root, 'race_ai').resolve()
+              if not package.is_dir():
+                  raise SystemExit('SOURCE_MIRROR_PINNED_DEPENDENCY_MISSING')
+              race_ai.__path__.append(str(package))
+          from scripts.boat_source_control_mirror import main
+          output = str(Path(os.environ['RUNNER_TEMP']) / 'boat-last-closed-control.json')
+          raise SystemExit(main(['latest-closed', '--repo-root', '.', '--output', output]))
+          PY
+  daily:
+    needs: source_mirror
+    if: >-
+      !cancelled() &&
       github.repository == 'haji84/RACE-AI' && github.event_name != 'pull_request' &&
       (github.event_name != 'workflow_run' ||
        (github.event.workflow_run.event == 'push' &&
