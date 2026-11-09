@@ -1,0 +1,27 @@
+name: BOAT retained official replay strict regression
+on:
+  pull_request:
+    branches: [feat/four-sport-forecast-audit-view-20261022]
+    paths:
+      - 'race_ai/retained_case_repair.py'
+      - 'tests/test_retained_case_repair.py'
+      - '.github/workflows/boat-retained-source-replay-strict.yml'
+permissions:
+  contents: read
+concurrency:
+  group: retained-replay-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: false
+jobs:
+  strict_replay:
+    name: Source-free original replay tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Install pinned offline runtime dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Run original settlement replay tests without credentials or network
+        run: python -m unittest tests.test_retained_case_repair -v
