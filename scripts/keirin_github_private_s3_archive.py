@@ -11,6 +11,7 @@ It never uploads raw video, extracted image pixels or owner private keys.
 from __future__ import annotations
 import argparse
 from hashlib import sha256
+import base64
 import json
 import os
 from pathlib import Path
@@ -50,9 +51,27 @@ def package_cipher_only(dirs,zip_path):
                 if not file.is_file() or file.is_symlink():continue
                 if not (file.name.endswith(".aesgcm") or
                         file.name=="manifest.json" or
-                        file.name.endswith(".json.aesgcm") or
                         file.name.endswith(".aesgcm.json")):
                     raise DurableArchiveError("RAW_FILE_CANNOT_ENTER_PRIVATE_CIPHER_ARCHIVE")
+                # JSON with .aesgcm.json is an ENCRYPTED envelope, not
+                # merely a renamed plaintext feature matrix. Validate it.
+                if file.name.endswith(".aesgcm.json"):
+                    from race_ai.keirin_private_sealed_payload import SCHEMA
+                    try:
+                        envelope=json.loads(file.read_text(encoding="utf-8"))
+                        payload=base64.b64decode(
+                            envelope["ciphertext_b64"],validate=True)
+                        valid=(envelope.get("schema")==SCHEMA and
+                            envelope.get("plaintext_embedded") is False and
+                            envelope.get("source_is_private") is True and
+                            sha256(payload).hexdigest()==
+                                envelope.get("ciphertext_sha256") and
+                            str(envelope.get("context","")).startswith(
+                                "RACE_AI_PRIVATE_KEIRIN:"))
+                    except (ValueError,TypeError,KeyError):
+                        valid=False
+                    if not valid:
+                        raise DurableArchiveError("INVALID_ENCRYPTED_RESEARCH_ENVELOPE")
                 rel=file.relative_to(p)
                 # Prevent accidental file collisions between distinct waves.
                 name=f"{p.name}/{rel.as_posix()}"
