@@ -88,6 +88,8 @@ jobs:
   # Label "keirin-owner-private" must be registered on the trusted machine.
   private-owner-PR71:
     if: >-
+      github.event.repository.private == true &&
+      github.ref == 'refs/heads/main' &&
       (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
       vars.RACE_AI_KEIRIN_OWNER_RUNTIME_ENABLED == 'true'
     runs-on: [self-hosted, Windows, X64, keirin-owner-private]
