@@ -151,6 +151,11 @@ def score_ab_view(view, *, authenticated):
         except (ValueError, TypeError, KeyError):
             reasons["HOLD_ORIGINAL_BULK_SETTLEMENT_REJECTED"] += 1
             continue
+        # A completely refunded ticket set is not a losing race. Exclude
+        # the entire matched pair so both variants retain the same denominator.
+        if sa["status"] == "FULL_REFUND" or sb["status"] == "FULL_REFUND":
+            reasons["HOLD_FULL_REFUND_NOT_A_MISS"] += 1
+            continue
         high = any(payout >= 10000 for payout in winners.values())
         for key, score, tickets, distribution in (
             ("A_FROZEN_BASELINE", sa, ta, pa),

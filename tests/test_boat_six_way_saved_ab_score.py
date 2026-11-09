@@ -87,6 +87,19 @@ class SavedABTests(unittest.TestCase):
         self.assertEqual(out["by_variant"]["A_FROZEN_BASELINE"]["probability_scored_races"],0)
         self.assertEqual(out["by_variant"]["B_SIX_COURSE_TACTICS"]["probability_scored_races"],0)
 
+    def test_full_refund_does_not_enter_either_miss_denominator(self):
+        from unittest.mock import patch
+        view = fixture()
+        fake_a = {"status":"FULL_REFUND"}
+        fake_b = {"status":"MISS"}
+        with patch("race_ai.boat_six_way_saved_ab_score._score_using_existing_bulk_engine",
+                   side_effect=[fake_a, fake_b]):
+            out = score_ab_view(view, authenticated=True)
+        self.assertEqual(out["compared_ab_races"],0)
+        self.assertEqual(out["hold_reasons"],{"HOLD_FULL_REFUND_NOT_A_MISS":1})
+        self.assertEqual(out["by_variant"]["A_FROZEN_BASELINE"]["hit_count"],0)
+        self.assertEqual(out["by_variant"]["B_SIX_COURSE_TACTICS"]["invested_yen"],0)
+
     def test_no_b_or_unsettled_result_holds_without_money(self):
         v = saved_view()
         v["records"][0]["prediction"]["stage"] = "P1"
