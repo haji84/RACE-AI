@@ -235,6 +235,9 @@ def reference_scoreboard(original, published, *, original_bytes=None,
         }
         if category=="SETTLED_THIRD_PARTY_RESEARCH_ONLY":
             payments=result["payments"]
+            require(utc(result["observed_at"]) >=
+                    utc(row["scheduled_start_at_jst"]),
+                    "RESULT_SNAPSHOT_ISSUED_BEFORE_RACE_START")
             tickets=[ticket(t) for t in row["new_research_reference_tickets"]]
             # Reuse PR71's SAME standardized staking/settlement arithmetic,
             # but no Top8/Top12/model inference is invented.
