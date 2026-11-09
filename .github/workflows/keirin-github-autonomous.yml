@@ -48,6 +48,15 @@ jobs:
           persist-credentials: false
       - name: Verify same-worker schedule fallback and fail-closed archive
         run: python -m unittest discover -s tests -p 'test_keirin_github_schedule_fallback.py' -v
+      - uses: actions/checkout@v4
+        with:
+          ref: 42dbfd4ca37c50e6a447c6431ea041e8dba0bc1a
+          path: immutable-research
+          persist-credentials: false
+      - name: Test previous-day manifest provenance without contacting providers
+        run: |
+          cd immutable-research
+          PYTHONPATH=. python ../tests/test_keirin_verified_prior_day_bootstrap.py
 
   unit:
     name: unit
