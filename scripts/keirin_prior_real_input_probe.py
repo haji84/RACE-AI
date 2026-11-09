@@ -20,6 +20,52 @@ from race_ai.keirin_winticket_prior_events import (
 )
 
 
+def select_references(reference, documents):
+    """Prioritize observed matching categories and balance home/away samples.
+
+    Missing category is kept at lower priority, never assigned a guessed one.
+    Final eligibility still requires full independently retrieved result data.
+    """
+    from race_ai.keirin_winticket_prior_events import canonical_id
+    categories={}
+    target_category=reference['target']['race_category']
+    for doc in documents:
+        for record in doc.get('records',[]) if type(doc.get('records')) is list else []:
+            if type(record) is not dict or record.get('playerId') not in reference['rider_ids']:
+                continue
+            for name in ('latestCupResults','latestVenueResults'):
+                for cup in record.get(name,[]) if type(record.get(name)) is list else []:
+                    if type(cup) is not dict or type(cup.get('raceResults')) is not list:
+                        continue
+                    for row in cup['raceResults']:
+                        if type(row) is not dict or type(row.get('raceType3')) is not str:
+                            continue
+                        try:rid=canonical_id(row.get('raceId'))
+                        except (ValueError,TypeError):continue
+                        categories.setdefault(rid,set()).add(row['raceType3'])
+    eligible=[r for r in reference['references'] if
+              not categories.get(r['race_id']) or
+              categories[r['race_id']]=={target_category}]
+    by_rider={}
+    for rider in reference['rider_ids']:
+        rows=[r for r in eligible if rider in r['rider_ids']]
+        rows.sort(key=lambda r:(bool(categories.get(r['race_id'])),r['race_id']),reverse=True)
+        same=[r for r in rows if r['race_id'][8:10]==reference['target']['venue']]
+        other=[r for r in rows if r['race_id'][8:10]!=reference['target']['venue']]
+        balanced=[]
+        for i in range(max(len(same),len(other))):
+            if i<len(same):balanced.append(same[i])
+            if i<len(other):balanced.append(other[i])
+        by_rider[rider]=balanced
+    chosen=[];seen=set()
+    for n in range(max((len(v) for v in by_rider.values()),default=0)):
+        for rider in reference['rider_ids']:
+            rows=by_rider[rider]
+            if n<len(rows) and rows[n]['race_id'] not in seen:
+                seen.add(rows[n]['race_id']);chosen.append(rows[n])
+    return chosen,len(reference['references'])-len(eligible)
+
+
 def probe(*, race_id, racecard_url, max_pages=32, fetch=None, clock=None):
     if type(max_pages) is not int or not 1<=max_pages<=100:
         raise ValueError('PRIOR_PAGE_BUDGET_INVALID')
@@ -31,24 +77,14 @@ def probe(*, race_id, racecard_url, max_pages=32, fetch=None, clock=None):
     validated=racecard_from_public_html(body,url=racecard_url,
                                        race_id=race_id,captured_at=captured)
     requests+=1; index=fetch('https://www.winticket.jp/keirin/odds/'+race_id[:8])
-    reference=history_references(documents_from_html(body),
+    documents=documents_from_html(body)
+    reference=history_references(documents,
         target_race_id=race_id,target_url=racecard_url,captured_at=captured,
         venue_documents=documents_from_html(index))
     if set(reference['rider_ids']) != {
         str(r['source_player_id']) for r in validated['riders']}:
         raise ValueError('PRIOR_TARGET_ROSTER_MISMATCH')
-    # A finite one-shot verification visits each athlete before a second pass.
-    # Shared prior races are fetched once; this is not a nationwide quota.
-    by_rider={r:[v for v in reference['references'] if r in v['rider_ids']]
-              for r in reference['rider_ids']}
-    chosen=[]; seen=set()
-    for round_index in range(max((len(v) for v in by_rider.values()),default=0)):
-        for rider in reference['rider_ids']:
-            rows=by_rider[rider]
-            if round_index>=len(rows): continue
-            row=rows[round_index]
-            if row['race_id'] in seen: continue
-            seen.add(row['race_id']); chosen.append(row)
+    chosen,category_excluded=select_references(reference,documents)
     events=[]; failures=Counter(); stopped=False; attempted=0
     for ref in chosen[:max_pages]:
         attempted+=1
@@ -84,6 +120,8 @@ def probe(*, race_id, racecard_url, max_pages=32, fetch=None, clock=None):
         'unfetched_prior_references':max(0,len(chosen)-attempted),
         'request_count':requests,'host_denial_stopped':stopped,
         'source_failures':dict(failures),'formula_version':derived['formula_version'],
+        'prior_category_mismatches_excluded':category_excluded,
+        'eligible_prior_references':len(chosen),
         'model_coefficients_changed':False,'actual_four_model_forecast_saved':False,
         'status':'REAL_PRIOR_SOURCE_CHECKED_NOT_FULL_MODEL_ADMISSION'}
 
