@@ -66,6 +66,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify current protected main and original PR71 producer active
+        id: main-preflight
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -74,6 +75,7 @@ jobs:
           remote_sha="$(gh api repos/haji84/RACE-AI/branches/main --jq '.commit.sha')"
           if [[ "$remote_sha" != "$GITHUB_SHA" ]]; then
             echo 'HOLD_MAIN_MOVED_NO_PRODUCER_DISPATCH' >> "$GITHUB_STEP_SUMMARY"
+            echo 'eligible=false' >> "$GITHUB_OUTPUT"
             exit 0
           fi
           state="$(gh api repos/haji84/RACE-AI/actions/workflows/keirin-pr71-owner-autonomous.yml --jq '.state')"
@@ -81,9 +83,11 @@ jobs:
             echo 'HOLD_PR71_WORKFLOW_NOT_ACTIVE' >> "$GITHUB_STEP_SUMMARY"
             exit 2
           fi
+          echo 'eligible=true' >> "$GITHUB_OUTPUT"
           echo 'Current protected main and active original producer confirmed.'
 
       - name: Check existing real PR71 schedule and dispatch runs before backup
+        if: steps.main-preflight.outputs.eligible == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -107,6 +111,7 @@ jobs:
           PY
 
       - name: Dispatch pre-existing production workflow only when absent
+        if: steps.main-preflight.outputs.eligible == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
