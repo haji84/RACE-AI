@@ -10,7 +10,7 @@ from datetime import datetime,timedelta
 from .keirin_daily_public_catalog import JST,assess_daily_manifest
 from .keirin_daily_clip_batch import select,VENUE_JA,readback_ids,BatchError
 
-def select_night_backfill(previous_manifest,*,now,progress=None,max_races=24):
+def select_night_backfill(previous_manifest,*,now,progress=None,max_races=24,temporary_captured_race_ids=None):
     if now.utcoffset() is None:
         raise BatchError("TIMEZONE_REQUIRED")
     local=now.astimezone(JST)
@@ -21,8 +21,13 @@ def select_night_backfill(previous_manifest,*,now,progress=None,max_races=24):
     if type(max_races) is not int or not 1<=max_races<=30:
         raise BatchError("UNBOUNDED_BACKFILL_ATTEMPTS")
     retained=readback_ids(progress,day_jst=prior)
+    temporary=temporary_captured_race_ids or set()
+    if type(temporary) is not set or any(
+       not str(x).startswith(prior.replace("-","")) for x in temporary):
+        raise BatchError("BAD_PREVIOUS_DAY_TEMP_INDEX")
     candidates=[r for r in previous_manifest["races"]
-                if r["race_id"] not in retained]
+                if r["race_id"] not in retained and
+                r["race_id"] not in temporary]
     candidates.sort(key=lambda r:(r["venue_code"],r["race_no"]))
     selected=[]
     for x in candidates[:max_races]:
@@ -42,6 +47,7 @@ def select_night_backfill(previous_manifest,*,now,progress=None,max_races=24):
       "historical_manifest_sha256":previous_manifest["manifest_sha256"],
       "total_prior_day_races":len(previous_manifest["races"]),
       "private_readback_confirmed":len(retained),
+      "temporary_artifact_races_not_durable":len(temporary),
       "unresolved_races":len(candidates),
       "attempt_candidates":selected,
       "capped_unprocessed_count":len(candidates)-len(selected),
