@@ -15,6 +15,7 @@ from datetime import datetime,timezone,timedelta
 from hashlib import sha256
 import json
 import math
+import re
 from urllib.parse import urlsplit
 
 from .keirin_winticket_embedded_odds import (
@@ -323,8 +324,8 @@ def safe_public_racecard_key_inventory(packet, html):
                 continue
             source_counts[coll]+=1
             for row in rows:fields[coll].update(
-                k for k in row if type(k) is str and 1<=len(k)<=80
-                and not k.startswith("_"))
+                k for k in row if type(k) is str and
+                re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,79}",k))
         rr=data.get("races")
         if type(rr) is list:
             for row in rr:
@@ -336,7 +337,7 @@ def safe_public_racecard_key_inventory(packet, html):
                     source_counts["races"]+=1
                     fields["races"].update(
                         k for k in row if type(k) is str and
-                        1<=len(k)<=80 and not k.startswith("_"))
+                        re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,79}",k))
     require(all(source_counts[k]>=1 for k in fields),
             "SOURCE_COLLECTIONS_NOT_JOINED_TO_EXACT_RACE")
     return {
