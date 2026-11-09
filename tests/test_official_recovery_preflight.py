@@ -146,19 +146,39 @@ class RecoveryPreflightTests(unittest.TestCase):
 
 
 class RecoveryPreflightWorkflowTests(unittest.TestCase):
-    def test_only_two_heavy_steps_can_skip_and_first_attempt_and_untrusted_paths_keep_full_checks(self):
+    def test_only_video_step_can_reuse_prior_checks_and_python_shards_remain_mandatory(self):
         text=Path('.github/workflows/forecast-audit-ui.yml').read_text()
         blocks=re.split(r'^      - ',text,flags=re.M)
         skips=[block for block in blocks if "if: steps.official_recovery_preflight.outputs.reuse_prior_verification != 'true'" in block]
-        self.assertEqual(len(skips),2)
-        self.assertEqual({block.splitlines()[0].removeprefix('name: ') for block in skips},set(FULL_STEPS))
+        # Legacy receipt fixtures still require both old step witnesses. The
+        # current layout always executes Python in mandatory unprivileged jobs;
+        # only the video step can reuse a separately verified first attempt.
+        self.assertEqual(len(skips),1)
+        self.assertEqual({block.splitlines()[0].removeprefix('name: ') for block in skips},{FULL_STEPS[1]})
+        from tests.test_official_future_source_workflow import jobs, steps
+        workflow_jobs=jobs(text)
+        shard=workflow_jobs['viewer_python_full']
+        viewer=workflow_jobs['viewer_contract']
+        self.assertRegex(shard,r"(?m)^    if: github.event_name == 'pull_request'$")
+        self.assertRegex(viewer,r'(?m)^    needs: viewer_python_full$')
+        self.assertIn('shard: [0, 1, 2, 3]',shard)
+        self.assertIn('fail-fast: false',shard)
+        self.assertIn('permissions:\n      contents: read',shard)
+        self.assertIn('ref: ${{ github.event.pull_request.head.sha || github.sha }}',shard)
+        for forbidden in ('reuse_prior_verification','continue-on-error','secrets.',
+                          'RACE_AI_STATE_KEY','contents: write'):
+            self.assertNotIn(forbidden,shard)
+        executions=[step for step in steps(shard) if 'run: python -m scripts.ci_unittest_shard ' in step]
+        self.assertEqual(len(executions),1)
+        self.assertIn("--index '${{ matrix.shard }}' --count 4",executions[0])
+        self.assertNotRegex(executions[0],r'(?m)^        if:')
         preflight=next(block for block in blocks if 'id: official_recovery_preflight' in block)
         self.assertIn("github.run_attempt == '2'",preflight)
         for part in ("github.repository == 'haji84/RACE-AI'","github.event.pull_request.number == 71",
                 'github.event.pull_request.head.repo.full_name == github.repository','--preflight'):
             self.assertIn(part,preflight)
         self.assertLess(text.index('Install pinned private history cache crypto'),text.index('id: official_recovery_preflight'))
-        self.assertLess(text.index('id: official_recovery_preflight'),text.index(FULL_STEPS[0]))
+        self.assertLess(text.index('id: official_recovery_preflight'),text.index(FULL_STEPS[1]))
         for name in ('Verify owner-requested seller retirement and legacy readback',
                 'Validate history formats, official reconciliation and unchanged model contracts offline',
                 'Integrated product UI contracts','Install isolated pinned browser test tooling',
