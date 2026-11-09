@@ -18,7 +18,7 @@ import math
 from urllib.parse import urlsplit
 
 from .keirin_winticket_embedded_odds import (
-    read_preloaded_json,checked_race_and_url
+    read_preloaded_json,checked_race_and_url,EmbeddedOddsError
 )
 from .keirin_preflight import expected_keys
 from .keirin_result_delivery import canonical,utc
@@ -76,7 +76,10 @@ def racecard_from_public_html(html,*,url,race_id,captured_at,
     require(type(url) is str and "/racecard/" in url,
             "WINTICKET_RACECARD_URL_REQUIRED")
     odds_url=url.replace("/racecard/","/odds/",1)
-    expected_id=checked_race_and_url(url=odds_url,race_id=race_id)
+    try:
+        expected_id=checked_race_and_url(url=odds_url,race_id=race_id)
+    except EmbeddedOddsError:
+        raise EmbeddedRacecardError("UNTRUSTED_WINTICKET_RACECARD_ORIGIN") from None
     require(type(html) is bytes,"HTML_BYTES_REQUIRED")
     now=utc(captured_at)
     state=read_preloaded_json(html)
