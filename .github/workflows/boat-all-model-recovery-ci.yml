@@ -1,0 +1,59 @@
+name: BOAT all-model recovery offline verification
+on:
+  push:
+    branches: [fix/boat-all-model-recovery-20261110]
+permissions:
+  contents: read
+concurrency:
+  group: boat-all-model-recovery-offline-20261110
+  cancel-in-progress: false
+jobs:
+  offline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22'
+      - name: Install existing offline test dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Snapshot public code and model catalogue without owner data
+        run: |
+          mkdir -p "$RUNNER_TEMP/boat-recovery-public-code"
+          git archive HEAD > "$RUNNER_TEMP/boat-recovery-public-code/pr71.tar"
+          git -C pr64-reference archive HEAD > "$RUNNER_TEMP/boat-recovery-public-code/pr64.tar"
+          git -C pr72-reference archive HEAD > "$RUNNER_TEMP/boat-recovery-public-code/pr72.tar"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from race_ai.existing_model_coverage import catalog, active_catalog, RETIRED_MODEL_IDS
+          from race_ai.existing_model_dispatch import GROUPS
+          value = dict(schema='RACE_AI_BOAT_RECOVERY_CODE_INVENTORY_V1', code_sha=os.environ['GITHUB_SHA'], catalogue=catalog(), active_boat=[s for s in active_catalog() if 'boat' in s['applicable_sports']], retired=sorted(RETIRED_MODEL_IDS), dispatch_groups=[dict(group=g, model_ids=list(ids)) for g, ids in GROUPS], real_forecasts_executed=False, official_source_get_count=0, owner_data_accessed=False)
+          text=json.dumps(value,ensure_ascii=False,indent=2)
+          Path(os.environ['RUNNER_TEMP'],'boat-recovery-public-code','inventory.json').write_text(text+'\n',encoding='utf-8')
+          print(text)
+          PY
+      - name: Retain exact public source for offline reproduction
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-recovery-public-code-${{ github.sha }}
+          path: ${{ runner.temp }}/boat-recovery-public-code/
+          retention-days: 3
+          if-no-files-found: error
+      - name: Reproduce existing post-exhibition handshake tests unchanged
+        run: python -m unittest tests.test_boat_post_exhibition_ab_handoff -v
