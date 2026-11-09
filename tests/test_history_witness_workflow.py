@@ -25,7 +25,21 @@ class HistoryWitnessWorkflowTests(unittest.TestCase):
         self.assertTrue(any('requirements-history.txt' in s for s in self.steps[:position]))
         self.assertTrue(any('path: pr64-reference' in s for s in self.steps[:position]))
         self.assertTrue(any('path: pr72-reference' in s for s in self.steps[:position]))
-        self.assertLess(position,next(i for i,s in enumerate(self.steps) if "python -m unittest discover -s tests -v -f" in s))
+        # The full-suite was moved into four unprivileged shards. Its removal
+        # from this viewer job must not silently waive the owner witness gate.
+        shard=self.jobs['viewer_python_full']
+        self.assertIn('needs: viewer_python_full',self.viewer)
+        self.assertIn('permissions:\n      contents: read',shard)
+        self.assertIn('shard: [0, 1, 2, 3]',shard)
+        self.assertIn('python -m scripts.ci_unittest_shard --index',shard)
+        self.assertNotIn('secrets.',shard)
+        self.assertNotIn('RACE_AI_STATE_KEY',shard)
+        self.assertNotIn('contents: write',shard)
+        # Manual witness still runs before any viewer-local heavy discovery.
+        local_heavy=[i for i,s in enumerate(self.steps)
+                     if "python -m unittest discover -s tests -p 'test_teiai*.py' -v" in s]
+        self.assertTrue(local_heavy)
+        self.assertLess(position,min(local_heavy))
     def test_manual_prefix_and_fixed_file_only_invoke_one_cli_and_preserve_failure(self):
         self.assertIsNotNone(self.step)
         with tempfile.TemporaryDirectory() as temporary:
