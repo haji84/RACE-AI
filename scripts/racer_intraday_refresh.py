@@ -97,6 +97,7 @@ def stage_existing_pdca_without_source(repo,*,now=None,intraday_transport=None,b
         replay_report=repair_saved_receipt_mismatches(repo,state=state,now=current)
     bridge=bridge or SavedResultBridge(repo,now=current)
     bridge.prepare(state)
+    all_period_stage=bridge.stage_all_history(state)
     # Source-free, count-only readiness of the already-decrypted saved views.
     # This cannot score a new six-way forecast or authenticate a later
     # tactical/grade feature merely from a supplied metadata flag.
@@ -133,6 +134,7 @@ def stage_existing_pdca_without_source(repo,*,now=None,intraday_transport=None,b
         formally_scored_forecasts=sum(g['eligible'] for g in audit['model_groups']),
         outstanding_unscored=audit['unscored'],source_requests=0,source_provider_requests=0,
         offline_model_receipt_replay=replay_report,
+        all_period_stage=all_period_stage,
         six_way_research_readiness=readiness,
         six_way_saved_ab_study=saved_ab_study,
         forecast_rewrites=0,actual_purchases=False,independent_readback_verified=False)

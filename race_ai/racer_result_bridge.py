@@ -20,7 +20,7 @@ class SavedResultBridge:
             path=Path(repo)/'audit/state/boat-saved-view-input.json';need(path.stat().st_size<=8192,'RESULT_FEED_INPUT_BOUND');config=json.loads(path.read_bytes())
             need(set(config)=={'schema','bootstrap','bootstrap_sha256','catchup_artifact_id','catchup_sha256'} and config['schema']=='RACE_AI_SAVED_VIEW_INPUT_V1','RESULT_FEED_INPUT_INVALID')
             raw=base64.b64decode(config['bootstrap'],validate=True);need(sha(raw)==config['bootstrap_sha256'],'RESULT_FEED_BOOTSTRAP_HASH');bootstrap=F.open_bootstrap(raw)
-        self.bootstrap=bootstrap;_,_,_,view=F.current_view(self.git,self.bootstrap);context=getattr(self.git,'_saved_history_context',None);today=self.now.astimezone(JST).date().isoformat()
+        self.bootstrap=bootstrap;self.feed_parent,_,_,view=F.current_view(self.git,self.bootstrap);context=getattr(self.git,'_saved_history_context',None);today=self.now.astimezone(JST).date().isoformat()
         if context:
             reader=F._history_reader(self.git);load=lambda loc:H.decrypt_catalog(reader(loc),self.bootstrap['key'],view_id=self.bootstrap['view_id']);dates=[]
             for index in H._indexes(context['index'],load):
@@ -31,6 +31,55 @@ class SavedResultBridge:
         self.rows=[r for v in self.views.values() for r in v['records'] if r['event_date_jst'] in self.days and r.get('sport')=='boat']
         self.recent_days=tuple(self.days);self.recent_rows=list(self.rows);self.backfill_day=None;self.ledger_summary=None;self._prepared=False
         need(len(self.rows)<=576,'RESULT_FEED_RACE_BOUND')
+
+    def stage_all_history(self,state):
+        """Source-free, day-at-a-time replay of every authenticated saved date.
+
+        The intraday collector keeps its small working set. This explicit PDCA
+        stage has no date/age horizon and never purges an old score or original.
+        Per-day/packet capacity and provenance checks remain fail-closed.
+        """
+        need(self._prepared,'ALL_PERIOD_PREPARE_REQUIRED')
+        need(self.git.head()==self.feed_parent,'ALL_PERIOD_FEED_CHANGED')
+        from . import retained_model_pdca_audit as P, model_pdca_history as MH
+        from . import result_due_case_audit as RC
+        # Do not commit a partial control update if a later archive is corrupt.
+        control=deepcopy(state.control)
+        due=D.ledger(control,now=self.now.isoformat())
+        indexed=set(self.available_days)
+        visited=set(self.days)
+        appended=held=0
+        for day in sorted(indexed-visited):
+            historical=F.current_view(self.git,self.bootstrap,day=day)[3] if self.history else self.views[None]
+            rows=[r for r in historical['records'] if r.get('sport')=='boat' and r.get('event_date_jst')==day]
+            need(bool(rows) and len(rows)<=288,'ALL_PERIOD_SAVED_DAY_BOUND')
+            view=dict(historical,records=rows)
+            D.update(due,rows,now=self.now.isoformat())
+            try:
+                summary=P.score_view(view,authenticated=True,include_private_due=True)
+            except (ValueError,KeyError,TypeError):
+                protected=[r['race_id'] for r in rows if r.get('prediction') is not None or r.get('comparison_predictions')]
+                D.hold_model_ids(due,rows,protected,now=self.now.isoformat())
+                held+=1
+            else:
+                due_ids=summary.pop('_private_due_race_ids')
+                D.hold_model_ids(due,rows,due_ids,now=self.now.isoformat())
+                if MH.record(control,day=day,view=view,summary=summary)['changed']:
+                    appended+=1
+            D.record_scanned(due,day)
+            RC.record(control,due,rows)
+            visited.add(day)
+        need(self.git.head()==self.feed_parent,'ALL_PERIOD_FEED_CHANGED')
+        audit=MH.latest(control)
+        archived=set(MH._unwrap(control)['days'])
+        state.control.clear();state.control.update(control)
+        return dict(schema='RACE_AI_ALL_PERIOD_SOURCE_FREE_STAGE_V1',
+            max_age_days=None,automatic_age_purge=False,indexed_saved_days=len(indexed),
+            visited_saved_days=len(visited&indexed),archived_saved_days=len(archived&indexed),
+            missing_pdca_days=len(indexed-archived),orphan_pdca_days=len(archived-indexed),
+            additional_revisions=appended,additional_held_days=held,
+            all_dates_retained=True,source_provider_requests=0,forecast_rewrites=0,
+            independent_readback_verified=False)
 
     def targets(self):
         output=[]
