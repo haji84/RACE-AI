@@ -93,12 +93,22 @@ class GithubArtifactResearchReceiptsTests(unittest.TestCase):
                 self.assertEqual(len(z.namelist()),2)
                 manifest=json.loads(z.read("202611091201/manifest.json"))
                 self.assertEqual(manifest["files"][0]["plaintext_sha256"],source)
-    def test_mismatching_caption_is_never_silent(self):
+    def test_mismatching_cipher_sha_is_never_silent(self):
         arts,data,_=fixtures()
-        bad=bytearray(data[101]);bad[-1]^=1
-        data[101]=bytes(bad)
+        # Editing an unrelated ZIP central-directory byte is not guaranteed
+        # to corrupt any member. Alter the actual ciphertext member instead.
+        # The archive remains structurally valid, so the proof must fail on
+        # the cryptographic source SHA rather than incidental ZIP errors.
+        with ZipFile(io.BytesIO(data[101])) as z:
+            original_manifest=z.read("202611091201/manifest.json")
+        data[101]=zip_bytes({
+            "202611091201/manifest.json":original_manifest,
+            "202611091201/capture-0.webm.aesgcm":
+                b"ALTERED_CIPHERTEXT_NOT_THE_ATTESTED_SOURCE",
+        })
         with TemporaryDirectory() as t:
-            with self.assertRaises(Exception):
+            with self.assertRaisesRegex(
+                   ArchiveEvidenceError,"CIPHERTEXT_INTEGRITY_NOT_VERIFIED"):
                 collect("haji84/RACE-AI","2026-11-09",
                     mode="archive",output_dir=Path(t),items=arts,
                     reader=lambda a:data[a["id"]])
