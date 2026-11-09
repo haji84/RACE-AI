@@ -71,7 +71,15 @@ def network_page_once(url):
             require(0<len(body)<=MAX_HTML_BYTES,
                     "PUBLIC_PAGE_TOO_LARGE_OR_EMPTY")
             return body
-    except (OSError,error.URLError,error.HTTPError) as exc:
+    except error.HTTPError as exc:
+        if exc.code in (403,429):
+            raise PublicPageFetchError(
+                "PUBLIC_PAGE_BLOCKED_OR_RATE_LIMITED_NO_RETRY") from None
+        if exc.code in (404,410):
+            raise PublicPageFetchError(
+                "PUBLIC_PAGE_NOT_PUBLISHED_OR_GONE") from None
+        raise PublicPageFetchError("PUBLIC_PAGE_HTTP_NOT_OK") from None
+    except (OSError,error.URLError) as exc:
         raise PublicPageFetchError("PUBLIC_PAGE_NETWORK_UNAVAILABLE") from exc
 
 
