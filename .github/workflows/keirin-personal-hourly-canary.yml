@@ -26,6 +26,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: keirin-personal-hourly-canary
@@ -68,3 +69,31 @@ jobs:
             python -m race_ai.keirin_personal_monitor \
               --manifest config/keirin_personal_20261103_manifest.json
           fi
+
+  # Secondary GitHub-native schedule entrance. The called workflow shares
+  # its concurrency group with its primary schedule: never launch two
+  # nationwide capture waves in parallel. This does not alter the personal
+  # one-page canary job above or publish any raw media.
+  fallback_scheduling_gate:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      should_capture: ${{ steps.gate.outputs.should_capture }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Permit backup only when primary schedule is missing
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m scripts.keirin_schedule_fallback_gate
+
+  fallback_nationwide_capture:
+    needs: fallback_scheduling_gate
+    if: github.event_name == 'schedule' && needs.fallback_scheduling_gate.outputs.should_capture == 'true'
+    uses: ./.github/workflows/keirin-github-autonomous.yml
+    with:
+      mode: capture
+    secrets: inherit
