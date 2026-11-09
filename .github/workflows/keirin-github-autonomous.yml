@@ -44,7 +44,7 @@ jobs:
       - name: Checkout locked, source-only research commit
         uses: actions/checkout@v4
         with:
-          ref: 07cdc3478c565ea36a5cbdf5189a6ec47607da23
+          ref: 42dbfd4ca37c50e6a447c6431ea041e8dba0bc1a
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -79,7 +79,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 07cdc3478c565ea36a5cbdf5189a6ec47607da23
+          ref: 42dbfd4ca37c50e6a447c6431ea041e8dba0bc1a
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -240,7 +240,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 07cdc3478c565ea36a5cbdf5189a6ec47607da23
+          ref: 42dbfd4ca37c50e6a447c6431ea041e8dba0bc1a
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
