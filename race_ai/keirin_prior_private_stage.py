@@ -16,7 +16,7 @@ import re
 from .keirin_result_delivery import canonical
 from .keirin_permissioned_owner import _write_private_once, LicenseDeliveryError
 from .keirin_winticket_prior_events import (
-    PriorSourceError, observed_prior_candidates, _utc,
+    PriorSourceError, observed_prior_candidates, _utc, _page_identity, site_id,
 )
 
 SCHEMA = "RACE_AI_KEIRIN_PRIVATE_HISTORICAL_CANDIDATES_V1"
@@ -43,8 +43,10 @@ def private_research_packet(reference, events, derived, *, racecard_sha256,
     refs = reference.get("references")
     need(type(target) is dict and type(riders) is list and
          len(riders) in (7, 9) and len(set(riders)) == len(riders) and
+         all(type(r) is str and 0 < len(r) <= 100 for r in riders) and
          type(refs) is list and len(refs) <= 2000 and
          len(events) <= 100, "PRIOR_PRIVATE_TARGET_OR_ROSTER_INVALID")
+    site_id(target["race_id"])
     need(_utc(target["as_of"]) <= _utc(as_of) < _utc(target["cutoff"]),
          "PRIOR_PRIVATE_AFTER_TARGET_CUTOFF")
     lookup = {}
@@ -54,9 +56,12 @@ def private_research_packet(reference, events, derived, *, racecard_sha256,
              type(record["race_id"]) is str and
              type(record["url"]) is str and
              type(record["rider_ids"]) is list and
+             bool(record["rider_ids"]) and
+             len(set(record["rider_ids"])) == len(record["rider_ids"]) and
              set(record["rider_ids"]) <= set(riders),
              "PRIOR_REFERENCE_NOT_SOURCE_JOINED")
         rid = record["race_id"]
+        _page_identity(record["url"], rid, "raceresult")
         need(rid not in lookup, "DUPLICATED_PAST_REFERENCE")
         lookup[rid] = record["url"]
     for event in events:
