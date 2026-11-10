@@ -104,6 +104,17 @@ jobs:
           d=json.loads((Path(os.environ['RUNNER_TEMP'])/'pr71-fallback-decision.json').read_text())
           assert d['real_forecast_claimed'] is False
           assert d['schedule_success_claimed'] is False
+          audit=d['source_free_schedule_audit']
+          assert audit['actual_start_or_forecast_proven'] is False
+          assert audit['scheduler_root_cause_proven'] is False
+          assert audit['lookback_minutes']==35
+          print(json.dumps({'state':d['decision'],
+               'nominal_expected_ticks':audit['nominal_five_minute_ticks'],
+               'observed_schedule_runs':audit['schedule_runs_observed'],
+               'observed_manual_dispatches':audit['manual_dispatch_runs_observed'],
+               'nominal_unobserved_ticks':audit['nominal_ticks_without_observed_event'],
+               'history_complete':audit['history_page_complete'],
+               'real_race_evidence_proven':False},sort_keys=True))
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
               out.write('PR71 watchdog: '+d['decision']+'\\n')
               out.write('Recent main producer runs: '+str(d['recent_main_producer_runs'])+'\\n')
