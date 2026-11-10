@@ -160,12 +160,17 @@ function verify(plan,view,registration){
 }
 
 function settleFrozenPlan(plan,view,registration){
+ let checkpoint='PRE_INPUT';
  const base={schema:SCHEMA,status:'HOLD',day:null,plan_sha256:null,scenarios:[],actual_purchases:false,alternative_scenarios:true,
   hypothetical_budget_returns:true,independent_pre_cutoff_receipt_verified:false,accuracy_improvement_proven:false,promotion_allowed:false};
  try{
-  plan=input(plan);view=input(view);registration=input(registration);
+  checkpoint='PLAN_INPUT';plan=input(plan);
+  checkpoint='SAVED_VIEW_INPUT';view=input(view);
+  checkpoint='REGISTRATION_INPUT';registration=input(registration);
   base.day=day(registration.day)?registration.day:null;base.plan_sha256=hash(registration.plan_sha256)?registration.plan_sha256:null;
+  checkpoint='REGISTERED_VERIFY';
   const verified=verify(plan,view,registration),scenarios=[];
+  checkpoint='SETTLEMENT_CALCULATION';
   for(const scenario of plan.plans){
    const out={id:scenario.id,model_group_index:scenario.model_group_index,budget:scenario.daily_budget,race_budget:scenario.race_budget,
     status:'SETTLED',bought:scenario.bought,spent:scenario.planned_stake_yen,settledStake:0,pendingStake:0,settledCount:0,
@@ -188,7 +193,22 @@ function settleFrozenPlan(plan,view,registration){
    out.status=out.review?'REVIEW':out.pendingStake?'PENDING':'SETTLED';scenarios.push(out);
   }
   return {...base,status:scenarios.some(s=>s.review)?'REVIEW':scenarios.some(s=>s.pendingStake)?'PENDING':'SETTLED',scenarios};
- }catch(error){return {...base,reason:error instanceof Hold?error.message:'FROZEN_INPUT_REVIEW_REQUIRED'};}
+ }catch(error){
+  if(error instanceof Hold)return {...base,reason:error.message};
+  // Fixed vocabulary only. A native exception message/stack may contain an
+  // owner path or data, so never print it or return it in the report.
+  const kind=['TypeError','RangeError','SyntaxError','ReferenceError','Error'].includes(error?.name)?error.name:'Other';
+  const match=String(error?.stack||'').match(/\\/(web\\/(?:product-data|saved-performance|forecast-audit-model)\\.js|scripts\\/boat_frozen_plan_settlement\\.cjs):(\\d+):(\\d+)/);
+  const allowed={
+   'web/product-data.js':'PRODUCT_DATA',
+   'web/saved-performance.js':'SAVED_PERFORMANCE',
+   'web/forecast-audit-model.js':'FORECAST_AUDIT',
+   'scripts/boat_frozen_plan_settlement.cjs':'FROZEN_SETTLEMENT'
+  };
+  return {...base,reason:'FROZEN_INPUT_REVIEW_REQUIRED',diagnostic_stage:checkpoint,
+   diagnostic_class:kind,diagnostic_module:match&&allowed[match[1]]||'UNRESOLVED',
+   diagnostic_line:match?Number(match[2]):0};
+ }
 }
 function readInput(name){const stat=fs.lstatSync(name);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>MAX_BYTES)throw Error('INPUT');return JSON.parse(fs.readFileSync(name,'utf8'));}
 if(require.main===module){
