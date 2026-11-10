@@ -86,6 +86,28 @@ class SafeSourceGapPlanTests(unittest.TestCase):
         self.assertFalse(result["full_pr71_model_input_verified"])
         self.assertTrue(result["missing_derived_values_are_not_zero"])
 
+    def test_nine_rider_117_slots_need_99_distinct_source_instances(self):
+        required = tuple(feature_inventory("keirin")["common_required"]) + tuple(
+            feature_inventory("keirin")["sport_required"])
+        env_required = tuple(feature_inventory("keirin")["environment_required"])
+        rider = Counter(RIDER_MAP[f][0] for f in required)
+        env = Counter("race/" + ENV_MAP[f][0] for f in env_required)
+        gaps = {**{key: count * 9 for key, count in rider.items()}, **env}
+        report = summarize_source_gaps(observation(
+            gaps, riders=9, slots=117, missing=117, observed=0))
+        self.assertEqual(report["distinct_required_origin_instances"], 99)
+        self.assertEqual(report["distinct_missing_origin_instances"], 99)
+        self.assertEqual(report["missing_model_feature_slots"], 117)
+        self.assertFalse(report["license_rights_verified"])
+
+    def test_one_missing_nine_rider_source_counts_two_model_slots(self):
+        report = summarize_source_gaps(observation(
+            {"last_lap_acceleration": 2},
+            riders=9, slots=117, missing=2, observed=115))
+        self.assertEqual(report["distinct_missing_origin_instances"], 1)
+        self.assertEqual(report["missing_model_feature_slots"], 2)
+        self.assertEqual(report["distinct_observed_origin_instances"], 98)
+
     def test_complete_structural_inputs_do_not_grant_license_or_prediction(self):
         report = summarize_source_gaps(observation({}, missing=0, observed=93))
         self.assertTrue(report["full_pr71_model_input_verified"])
@@ -104,6 +126,10 @@ class SafeSourceGapPlanTests(unittest.TestCase):
             summarize_source_gaps(bad)
         bad = observation()
         bad["required_source_gap_groups_A"]["unknown_rider_data"] = 1
+        with self.assertRaises(SourceGapPlanError):
+            summarize_source_gaps(bad)
+        bad = observation()
+        bad["required_source_gap_groups_A"]["race/unknown_source_field"] = 1
         with self.assertRaises(SourceGapPlanError):
             summarize_source_gaps(bad)
 
