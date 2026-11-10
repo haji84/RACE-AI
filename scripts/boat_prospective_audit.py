@@ -230,7 +230,7 @@ def main(argv=None):
         return 2 if settlement['status'] == 'HOLD' else 0
     except Exception as exc:
         reason = str(exc) if type(exc) in (ValueError, RuntimeError) and re.fullmatch(
-            r'(?:PROSPECTIVE_AUDIT|GITHUB|FEED|ALL_MODEL_CLI|MODEL_RUNTIME|HISTORY|VAULT|STATE)_[A-Z0-9_]{1,100}', str(exc)) else 'PROSPECTIVE_AUDIT_REJECTED'
+            r'(?:PROSPECTIVE_AUDIT|REGISTERED_POLICY|GITHUB|FEED|ALL_MODEL_CLI|MODEL_RUNTIME|HISTORY|VAULT|STATE)_[A-Z0-9_]{1,100}', str(exc)) else 'PROSPECTIVE_AUDIT_REJECTED'
         print(wire(dict(schema=SCHEMA, status='PROSPECTIVE_AUDIT_REJECTED', reason=reason, source_requests=0)))
         return 2
 
