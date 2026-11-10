@@ -67,6 +67,8 @@ jobs:
       - name: Require SHA-matched frozen policy; reject later rule substitution
         run: |
           python -m unittest tests.test_boat_registered_policy -v
+          node --check scripts/boat_frozen_plan_settlement.cjs
+          node tests/boat_frozen_input_diagnostic.cjs
           python - <<'PY_POLICY'
           from datetime import datetime, timezone
           from pathlib import Path
