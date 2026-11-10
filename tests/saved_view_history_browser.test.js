@@ -163,7 +163,12 @@ save('dec-omitted',H.encrypt_history_router(bad_dec,key,view_id=vid,source_sha=p
   await live.goto('http://127.0.0.1:'+server.address().port+'/#'+fragment);
   await live.waitForFunction(expected=>document.querySelector('#saved-view-sync')?.dataset.generation===expected,scenario==='midnight'?'2':'1');
   assert.equal(await live.locator('#selected-date').inputValue(),'2026-11-06','older saved forecasts remain visible while waiting for newer races');
-  if(scenario==='late-publication')assert.ok(await live.locator('#page-races [data-open-race]').count()>0,'an older saved day remains explicitly selectable, never mislabeled as today');
+  if(scenario==='late-publication'){
+    assert.ok(await live.locator('#page-races [data-open-race]').count()>0,'an older saved day remains explicitly selectable, never mislabeled as today');
+    await live.clock.fastForward(31000);
+    assert.equal(await live.locator('#selected-date').inputValue(),'2026-11-06','old day survives 30-second refresh without new saved forecasts');
+    assert.ok(await live.locator('#page-races [data-open-race]').count()>0,'race cards survive clock refresh');
+  }
   if(scenario==='midnight')await live.clock.setSystemTime(new Date('2026-11-07T00:00:00Z'));
   active='nov';await live.clock.fastForward(61000);
   await live.waitForFunction(()=>document.querySelector('#selected-date').value==='2026-11-07');

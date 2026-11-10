@@ -275,7 +275,7 @@
     if(h.view_id!==m[1]||h.forecast_sha256!==previous.forecastSha||h.generation<previous.generation)fail();
     if(h.generation===previous.generation){
       if(latest.cipher_sha256!==previous.cipherSha||h.schema===APPEND_FEED&&h.forecast_inventory_sha256!==before.digest||h.schema===HISTORY&&h.history_index_sha256!==before.digest)fail();
-      if(before.history&&options.preferredDay!==options.day&&Object.hasOwn(before.history.days,options.preferredDay))return readDay(fragment,previous,options.preferredDay);
+      if(before.history&&options.preferredDay!==options.day&&before.history.days[options.preferredDay]?.forecasts>0)return readDay(fragment,previous,options.preferredDay);
       return null;
     }
     if(h.generation===previous.generation+1&&h.previous_cipher_sha256!==previous.cipherSha)fail();
@@ -284,9 +284,17 @@
     if(h.schema===HISTORY) {
       // A saved link can outlive the latest saved race day. Do not request a
        // future date that has no encrypted day descriptor; retain older history.
-       const latestDay=Object.keys(result.view.days).sort().at(-1);
-       const requestedDay=options.preferredDay??options.day??latestDay;
-       const day=requestedDay>latestDay?latestDay:requestedDay;
+      const latestDay=Object.keys(result.view.days).sort().at(-1);
+      const requestedDay=options.preferredDay??options.day??latestDay;
+      let day=requestedDay>latestDay?latestDay:requestedDay;
+      if(options.preferredDay!==undefined){
+        // A results-only history day must not replace the last real saved
+        // forecast. Continue to show the last eligible day until predictions
+        // are actually published, without relabeling old picks as today's.
+        const withForecast=Object.values(result.view.days).filter(entry=>entry.forecasts>0&&entry.day<=requestedDay).map(entry=>entry.day).sort();
+        if(withForecast.length)day=withForecast.at(-1);
+        else if(options.day&&options.day<=requestedDay)day=options.day;
+      }
       // Retain at most the selected date while comparing other dates in turn.
       // A transition must not rebuild the whole historical view in memory.
       let selectedMarker=null,selectedValue=null;

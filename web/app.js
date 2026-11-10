@@ -1628,7 +1628,7 @@
         const savedDays=[...new Set(parsed.records.filter(row=>storedPredictions(row).some(activeModel)).map(row=>row.event_date_jst))].sort();
         state.day=savedDays.includes(today)?today:(savedDays.filter(day=>day<=today).at(-1)??savedDays[0]??today);
       }
-      state.raceView = state.day < today ? "results" : "upcoming";state.sport = parsed.records[0].sport;
+      state.raceView = state.day < today || !U.raceLists(parsed.records.filter(row=>row.event_date_jst===state.day)).upcoming.length ? "results" : "upcoming";state.sport = parsed.records[0].sport;
       state.allDates = false;state.period = "day";
       const currentRows=parsed.records.filter(row=>row.event_date_jst===state.day);
       const showingSavedFallback=state.followsToday&&state.day!==today;
@@ -1670,7 +1670,7 @@
       }
       dataset=parsed;state.day=day;state.predictionKeys=keys;
       generation.message="保存済み予想・レース情報 " + parsed.records.filter(row=>row.event_date_jst===day).length + "レース · " + day;
-      if(!sameDay)state.raceView=day<A.jstToday()?"results":"upcoming";
+      if(!sameDay)state.raceView=day<A.jstToday()||!U.raceLists(parsed.records).upcoming.length?"results":"upcoming";
       if(choice){state.selectedId=choice.selectedId;state.resultGroupKey=choice.resultGroupKey;state.venue=choice.venue;}
       previous={forecastSha,generation:result.header.generation,cipherSha:result.cipherSha};
       if(result.history) {
@@ -1806,7 +1806,18 @@
     state.simulationBudget=value;persistPreferences();$("simulation-message").textContent="1日予算 "+yen(value)+" で再計算しました。";renderResults();
   });
   // A local clock change updates the display day, without fetching race sources.
-  function checkDay() { if (automaticMode()) return;const today = A.jstToday(); if (state.followsToday && state.day !== today) { state.day = today; state.raceView = "upcoming"; refreshSelects(); renderAll(); } }
+  function checkDay() {
+    if (automaticMode() || !state.followsToday) return;
+    const today = A.jstToday();
+    if (state.day === today) return;
+    // A verified historical forecast remains visible until today's saved
+    // predictions really exist. A clock tick must never empty the race list.
+    const todayRecords = races().filter(row => row.event_date_jst === today);
+    if (!todayRecords.some(row => predictions(row).length)) return;
+    state.day = today;
+    state.raceView = U.raceLists(todayRecords).upcoming.length ? "upcoming" : "results";
+    refreshSelects(); renderAll();
+  }
   setInterval(checkDay, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) checkDay(); });
   window.addEventListener("pagehide",()=>{if(generation.timer!==null)clearTimeout(generation.timer);generation.timer=null;});
