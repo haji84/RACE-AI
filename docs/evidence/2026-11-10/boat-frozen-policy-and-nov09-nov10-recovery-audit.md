@@ -136,3 +136,39 @@ confirmed once a succeeding private runner emits its bounded diagnostic.
   zero direct files; no deleted original was surfaced by that check.
 - Absence remains scoped to the accessible Library/Drive inventories and
   verified GitHub data. Offline browser/device caches were not accessible.
+
+## Confirmed root cause (2026-11-11 JST follow-up)
+
+Actual owner-private, count-only independent run:
+https://github.com/haji84/RACE-AI/actions/runs/42844293659
+
+- November 7 private history had 132 saved races, 130 final results.
+- Exactly **one** final result contained a cutoff reconciliation proof.
+- Its registered first-guard validation failed for exactly two reasons:
+  **SP per-model basis** (`RAW_OFFICIAL_SP_RESULT_PER_SAVED_MODEL_CUTOFF`)
+  and **offset above 60 seconds**. There were zero other first-guard failures.
+- The exception stack localizes the rejection to the registered
+  `web/product-data.js:277`, called from `cutoffReconciliation` via
+  `web/product-data.js:274`.
+- The registered version at commit
+  `fe5064e63c2e1c3f5ce32397305f873e89c63cc2`
+  permits only `RAW_OFFICIAL_RESULT_PER_ORIGINAL_CUTOFF` and at most
+  60 seconds. Newer parsing supports explicit official SP header evidence
+  and a per-model source deadline. It is a **reference result** with
+  `formal_eligible=false`, not permission to rewrite November 7
+  historical cutoffs.
+- This identifies the specific source compatibility failure causing the
+  old frozen-plan parser to reject the full input. Keep November 7
+  registered plan unchanged and HOLD its formal settlement rather than
+  retrospectively changing old policy or converting an unsupported
+  official-reference result into a formal grade.
+- The same run separately failed new all-model upload readback. This is
+  an independent error and must not be treated as the cause of the
+  November 7 policy mismatch. The artifact was uploaded successfully,
+  then the strict GitHub artifact API read path raised a sanitized
+  RuntimeError during immediate readback; the exact HTTP status was
+  not disclosed by that job. No false independent readback success.
+
+This evidence proves the policy mismatch cause; it does not establish
+a completed three-sport autonomous pipeline or recover new November 9/10
+forecast originals.
