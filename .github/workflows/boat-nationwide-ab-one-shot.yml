@@ -126,6 +126,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_saved_view_feed --hydrate-originals --history-when-compatible --recover-model-config
+      - name: Check saved models and result comparisons on November 8-10 without provider GET
+        if: always() && steps.saved_model_publication.outcome == 'success'
+        timeout-minutes: 6
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: |
+          python -m unittest tests.test_boat_saved_three_day_acceptance -v
+          python -m scripts.boat_saved_three_day_acceptance --days 2026-11-08 2026-11-09 2026-11-10
       - name: Install the existing pinned browser checker
         if: always() && steps.saved_model_publication.outcome == 'success'
         id: browser_tooling
