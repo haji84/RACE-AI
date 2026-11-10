@@ -47,6 +47,20 @@ SCHEMA="RACE_AI_KEIRIN_PR71_GITHUB_CLOUD_STATE_V1"
 PROOF="RACE_AI_KEIRIN_PR71_CLOUD_CIPHER_PROOF_V1"
 SHA=re.compile(r"^[0-9a-f]{64}$")
 FULL_SHA=re.compile(r"^[0-9a-f]{40}$")
+LICENSED_SOURCE_REQUIRED_KEYS=(
+    "RACE_AI_KEIRIN_FEED_ENDPOINT",
+    "RACE_AI_KEIRIN_FEED_RIGHTS_REF",
+    "RACE_AI_KEIRIN_LICENSE_MANIFEST_B64",
+    "RACE_AI_KEIRIN_LICENSE_DOCUMENT_B64",
+)
+
+
+def missing_source_configuration(environ=None):
+    """Only public variable NAMES, never token, URL, contract or key values."""
+    values=os.environ if environ is None else environ
+    return [name for name in LICENSED_SOURCE_REQUIRED_KEYS
+            if not values.get(name)]
+
 
 
 def need(ok,reason):
@@ -322,10 +336,8 @@ def _licensed_inputs(inbox,source_root):
     No vendor URL or contract is manufactured by this adapter.
     """
     e=os.environ
-    needed=("RACE_AI_KEIRIN_FEED_ENDPOINT","RACE_AI_KEIRIN_FEED_RIGHTS_REF",
-            "RACE_AI_KEIRIN_LICENSE_MANIFEST_B64",
-            "RACE_AI_KEIRIN_LICENSE_DOCUMENT_B64")
-    if any(not e.get(k) for k in needed):
+    needed=LICENSED_SOURCE_REQUIRED_KEYS
+    if missing_source_configuration(e):
         return None,None,"SOURCE_FEED_NOT_CONFIGURED"
     from race_ai.keirin_permissioned_owner import (
         load_operator_grants,stage_permissioned_deliveries
@@ -378,12 +390,14 @@ def cycle(repo,source_root):
         if prior is None and grants is None:
             return {"state":"HOLD_NO_LICENSED_FUTURE_SOURCE_AND_NO_PRODUCTION_ORIGINAL",
                     "new_forecasts":0,"source_state":status,
+                    "missing_source_config_keys":missing_source_configuration(),
                     "private_key_used_without_writing_public_data":True}
         # A genesis is permitted ONLY when a real license-admitted full PR71
         # packet is present. No artificial new empty "production archive".
         if prior is None and (stage or {}).get("new_pre_race_inputs",0)==0:
             return {"state":"HOLD_NO_COMPLETE_PRE_CUTOFF_INPUT",
-                    "new_forecasts":0,"source_state":status}
+                    "new_forecasts":0,"source_state":status,
+                    "missing_source_config_keys":missing_source_configuration()}
         from race_ai.keirin_pr71_four_model_rank import stage_existing_owner_pre_races
         # Results share the already authorized source feed, but are not model
         # features. Only an ORIGINAL four-model suite frozen before the cutoff
@@ -410,6 +424,7 @@ def cycle(repo,source_root):
             return {"state":"CLOUD_PR71_RESTORED_NO_CHANGED_MODEL_OR_RESULT",
                     "originals_preserved":True,"new_forecasts":0,
                     "source_state":status,
+                    "missing_source_config_keys":missing_source_configuration(),
                     "four_model_variable_saved":variable["four_model_variable_saved"],
                     "four_model_variable_held":variable["four_model_variable_held"],
                     "result_rows_appended":results["results_appended"],
@@ -423,6 +438,7 @@ def cycle(repo,source_root):
         return {**out,"source_state":status,
                 "new_forecast_stage_nonzero":bool(
                     frozen.get("private_four_model_predictions_saved",0)),
+                "missing_source_config_keys":missing_source_configuration(),
                 "existing_pdca_invoked":True,
                 "four_model_variable_saved":variable["four_model_variable_saved"],
                 "four_model_variable_held":variable["four_model_variable_held"],
