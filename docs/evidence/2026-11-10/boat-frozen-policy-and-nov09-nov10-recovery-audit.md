@@ -90,3 +90,37 @@ labeled separately and never backdated.
 This audit is bounded to the listed connected GitHub state and checked
 execution histories. It does not assert the nonexistence of an unknown private
 backup outside those stores or call result-only capture a new pre-cutoff forecast.
+
+## Additional non-GitHub storage checks (2026-11-10 JST)
+
+- Connected Google Drive: a dedicated RACE-AI original-archive folder was
+  found. Its two direct files are previous BOAT D+1 audit receipts for the
+  November 3 and 4 periods; neither is an authenticated November 9 or 10
+  pre-cutoff forecast original. Date/name search across accessible Drive
+  returned no corresponding BOAT 9/10 archived original.
+- ChatGPT Library + conversation-file semantic search: relevant RACE-AI files
+  were historical Excel/CSV analysis or a KEIRIN research report. A distinct
+  November 9/10 BOAT frozen original with timestamp/SHA/readback evidence was
+  not found.
+- Checked November 9/10 main-branch BOAT result/statistics workflow artifacts:
+  no standalone original forecast ZIP appeared in the sampled run artifact
+  inventories. These are result/statistics executions and cannot stand in
+  for immutable pre-outcome model predictions.
+
+Scope qualification: these are accessible folders/search results and selected
+GitHub Actions inventories, not an exhaustive assertion about offline personal
+backups or all deleted/expired Actions artifacts.
+
+## Native-error cause isolation
+
+After restoring the registered SHA-matched evaluation modules, the frozen
+settlement still returned `FROZEN_INPUT_REVIEW_REQUIRED`, an umbrella
+error for a *native JavaScript exception*, not a policy-hash mismatch.
+To identify the exact checkpoint without exposing user data, the existing
+settlement now permits a strictly bounded read-only diagnostic: checkpoint,
+exception class, allowed code-module enum, and source line number. No
+exception text, stack, race inputs, ticket arrays, credentials, or hashes of
+secret material are published. Synthetic native error tests must pass before
+running the owner-data audit. The frozen original, model choice, and
+registered settlement rule remain unchanged. The actual cause is only
+confirmed once a succeeding private runner emits its bounded diagnostic.
