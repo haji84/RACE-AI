@@ -275,7 +275,14 @@ jobs:
           r=json.loads((Path(os.environ["RUNNER_TEMP"])/"pr71-readback.json").read_text())
           if r["state"]!="PR71_SEPARATE_GITHUB_RUNNER_AES_GCM_READBACK_OK":
               raise SystemExit("INDEPENDENT_CLOUD_READBACK_NOT_VERIFIED")
-          print(json.dumps({"state":r["state"],"generation":r["generation"]}))
+          live=r.get("live_15min") or {}
+          if live.get("schema")!="RACE_AI_LIVE_15MIN_PROOF_COUNTS_V1":
+              raise SystemExit("LIVE_WINDOW_PROOF_COUNTER_MISSING")
+          public={"state":r["state"],"generation":r["generation"],
+                  "15min_proven_races":live["proven_races"],
+                  "15min_model_result_pairs_proven":live["model_result_pairs_proven"],
+                  "15min_holds_by_reason":live["holds"]}
+          print(json.dumps(public,sort_keys=True))
           PY
       - name: Reconcile all 78 races and four original PR71 models after independent encrypted-state readback
         shell: bash
