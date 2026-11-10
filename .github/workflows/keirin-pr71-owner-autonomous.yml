@@ -17,6 +17,9 @@ on:
       - 'scripts/keirin_day_four_model_audit.py'
       - 'scripts/keirin_cloud_pr71_variable.py'
       - 'scripts/keirin_source_gap_plan.py'
+      - 'scripts/keirin_cloud_owner_inputs.py'
+      - 'tests/test_keirin_cloud_owner_inputs.py'
+      - 'tests/test_keirin_cloud_owner_source_cycle.py'
       - 'tests/test_keirin_source_gap_plan.py'
       - 'tests/test_keirin_licensed_source_readiness.py'
       - 'tests/test_keirin_day_four_model_audit.py'
@@ -32,6 +35,9 @@ on:
       - 'scripts/keirin_day_four_model_audit.py'
       - 'scripts/keirin_cloud_pr71_variable.py'
       - 'scripts/keirin_source_gap_plan.py'
+      - 'scripts/keirin_cloud_owner_inputs.py'
+      - 'tests/test_keirin_cloud_owner_inputs.py'
+      - 'tests/test_keirin_cloud_owner_source_cycle.py'
       - 'tests/test_keirin_source_gap_plan.py'
       - 'tests/test_keirin_licensed_source_readiness.py'
       - 'tests/test_keirin_day_four_model_audit.py'
@@ -57,7 +63,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 97464792c2af28b39f9ffbe668019fb1482d5a8c
+          ref: 9bb7e016e5200b5d25cbcc66b3ac6062b0c1aaa9
           path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -71,18 +77,32 @@ jobs:
           export PYTHONPATH="$GITHUB_WORKSPACE/pr71-source:$GITHUB_WORKSPACE/pr71-source/tests:$GITHUB_WORKSPACE:$GITHUB_WORKSPACE/tests"
           cd "$GITHUB_WORKSPACE/pr71-source"
           python -m unittest -v tests.test_keirin_pr71_four_model_rank tests.test_keirin_allowed_delivery tests.test_keirin_permissioned_owner
-          # The exact pinned source must also execute its own V3 grant,
-          # immutable provider revision and no-retroactive-model regressions.
           python -m unittest -v tests.test_keirin_licensed_result_stage tests.test_keirin_license_api_ingest
+          python -m unittest -v tests.test_keirin_winticket_prior_events tests.test_keirin_prior_selection tests.test_keirin_prior_private_stage tests.test_keirin_winticket_ex_connection tests.test_keirin_weather_input_connection tests.test_keirin_github_owner_future_intake
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_pr71_state.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_workflow_guard.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_day_four_model_audit.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_pr71_variable.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_source_gap_plan.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_licensed_source_readiness.py' -v
-          python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_variable.py" "$GITHUB_WORKSPACE/scripts/keirin_source_gap_plan.py"
+          python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_owner_inputs.py' -v
+          python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_owner_source_cycle.py' -v
+          python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_variable.py" "$GITHUB_WORKSPACE/scripts/keirin_source_gap_plan.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_owner_inputs.py"
       - name: Do not claim synthetic results as live
-        run: echo 'Only synthetic model + AES Git-state tests. No actual real-race prediction verified.' >> "$GITHUB_STEP_SUMMARY"
+        run: echo 'Synthetic model and AES tests are not actual real-race prediction evidence.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Main-only owner-approved real source connection without production secrets
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$GITHUB_WORKSPACE/pr71-source:$GITHUB_WORKSPACE/pr71-source/tests:$GITHUB_WORKSPACE"
+          private_dir="$(mktemp -d "$RUNNER_TEMP/owner-source-connection.XXXXXX")"
+          trap 'rm -rf "$private_dir"' EXIT
+          cd "$GITHUB_WORKSPACE/pr71-source"
+          python "$GITHUB_WORKSPACE/scripts/keirin_cloud_owner_inputs.py" \
+            --inbox "$private_dir" --owner-automatic-fetch-confirmed --budget-seconds 120
+          echo 'Source acquisition and private partial-input replay only; not model completion or durable storage.' >> "$GITHUB_STEP_SUMMARY"
 
   public-preflight:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -91,10 +111,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 97464792c2af28b39f9ffbe668019fb1482d5a8c
+          ref: 9bb7e016e5200b5d25cbcc66b3ac6062b0c1aaa9
           persist-credentials: false
-      # Source-only count reconciliation comes from the reviewed main HEAD.
-      # The pinned PR71 core and its source license boundaries stay unchanged.
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
@@ -119,14 +137,11 @@ jobs:
                  "critical_preflight_source_slots_missing","real_full_odds_verified",
                  "actual_model_prediction_saved")
           safe={k:d.get(k) for k in names}
-          # The new immutable reviewed source identifies WHICH model input
-          # families are missing, without disclosing individual rider data.
           missing=d.get("required_source_gap_groups_A")
           total=d.get("required_source_slots_A_missing")
           if (type(missing) is dict and type(total) is int and
               all(type(k) is str and type(v) is int and 0<v<=100
-                  for k,v in missing.items()) and
-              sum(missing.values())==total):
+                  for k,v in missing.items()) and sum(missing.values())==total):
               safe["missing_source_group_counts_A"]=missing
           print(json.dumps(safe,ensure_ascii=False,sort_keys=True))
           with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
@@ -139,30 +154,27 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          export PYTHONPATH="$GITHUB_WORKSPACE:$GITHUB_WORKSPACE/tests:$GITHUB_WORKSPACE/preflight-audit"
           python "$GITHUB_WORKSPACE/preflight-audit/scripts/keirin_source_gap_plan.py" \
             --probe "$RUNNER_TEMP/source.json" > "$RUNNER_TEMP/keirin-source-origin-plan.json"
           python - <<'PY'
           import json,os
           from pathlib import Path
           r=json.loads((Path(os.environ["RUNNER_TEMP"])/"keirin-source-origin-plan.json").read_text())
-          safe_keys=("state","required_model_feature_slots",
-                     "missing_model_feature_slots",
-                     "distinct_required_origin_instances",
-                     "distinct_missing_origin_instances",
-                     "missing_source_field_families",
-                     "deficits_by_source_kind",
+          safe_keys=("state","required_model_feature_slots","missing_model_feature_slots",
+                     "distinct_required_origin_instances","distinct_missing_origin_instances",
+                     "missing_source_field_families","deficits_by_source_kind",
                      "license_rights_verified","formal_model_predictions_verified")
           safe={k:r.get(k) for k in safe_keys}
           print(json.dumps(safe,ensure_ascii=False,sort_keys=True))
           with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as out:
               out.write("## Model input slots vs independent source measurements\n")
               out.write(f"Model slots missing: {safe.get('missing_model_feature_slots')}\n")
-              out.write(f"Distinct required source instances missing: {safe.get('distinct_missing_origin_instances')}\n")
+              out.write(f"Distinct source instances missing: {safe.get('distinct_missing_origin_instances')}\n")
               out.write("No unobserved values filled or rights inferred.\n")
           PY
 
-  # Production secrets are used only from trusted main GitHub-hosted jobs.
-  # Secrets never reach pull_request jobs. This is a GitHub-hosted machine.
+  # Production secrets remain restricted to trusted main runtime.
   github-hosted-pr71-cycle:
     if: >-
       github.ref == 'refs/heads/main' &&
@@ -180,13 +192,14 @@ jobs:
       RACE_AI_KEIRIN_LICENSE_MANIFEST_B64: ${{ secrets.RACE_AI_KEIRIN_LICENSE_MANIFEST_B64 }}
       RACE_AI_KEIRIN_LICENSE_DOCUMENT_B64: ${{ secrets.RACE_AI_KEIRIN_LICENSE_DOCUMENT_B64 }}
       RACE_AI_KEIRIN_FEED_TOKEN: ${{ secrets.RACE_AI_KEIRIN_FEED_TOKEN }}
+      RACE_AI_OWNER_AUTO_SOURCE_PROFILE: owner-approved-winticket-keirinjp-20261109
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
       - uses: actions/checkout@v4
         with:
-          ref: 97464792c2af28b39f9ffbe668019fb1482d5a8c
+          ref: 9bb7e016e5200b5d25cbcc66b3ac6062b0c1aaa9
           path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -212,11 +225,11 @@ jobs:
           yes=r["state"]=="CLOUD_PR71_ENCRYPTED_GIT_HISTORY_READBACK_VERIFIED"
           with open(os.environ["GITHUB_OUTPUT"],"a") as f:
               f.write("committed="+("true" if yes else "false")+"\n")
-          safe={k:r.get(k) for k in ("state","generation","source_state","new_forecast_stage_nonzero","existing_pdca_invoked","result_rows_appended","result_rows_held","four_model_variable_saved","four_model_variable_held","missing_source_config_keys","official_result_independently_authenticated")}
+          safe={k:r.get(k) for k in ("state","generation","source_state","new_forecast_stage_nonzero","existing_pdca_invoked","result_rows_appended","result_rows_held","four_model_variable_saved","four_model_variable_held","missing_source_config_keys","owner_source_acquisition","official_result_independently_authenticated")}
           print(json.dumps(safe,ensure_ascii=False,sort_keys=True))
           with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
               f.write("GitHub-hosted PR71 state: "+str(r["state"])+"\n")
-              f.write("4-model originals only when complete permitted pre-race source is available.\n")
+              f.write("Partial owner-source values do not authorize model promotion.\n")
               f.write("No source values, prediction tickets or private SQLite released.\n")
           PY
 
@@ -237,7 +250,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 97464792c2af28b39f9ffbe668019fb1482d5a8c
+          ref: 9bb7e016e5200b5d25cbcc66b3ac6062b0c1aaa9
           path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -266,8 +279,7 @@ jobs:
           cd "$GITHUB_WORKSPACE/pr71-source"
           python "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py" \
             --cohort "$GITHUB_WORKSPACE/docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json" \
-            --encrypted-cloud-state \
-            --repo "$GITHUB_WORKSPACE" \
+            --encrypted-cloud-state --repo "$GITHUB_WORKSPACE" \
             --source-root "$GITHUB_WORKSPACE/pr71-source" > "$RUNNER_TEMP/pr71-78r-audit.json"
           python - <<'PY'
           import json,os
@@ -275,17 +287,11 @@ jobs:
           d=json.loads((Path(os.environ["RUNNER_TEMP"])/"pr71-78r-audit.json").read_text())
           assert d["expected_model_race_pairs"]==312
           assert d["frozen_model_race_pairs"]+d["model_race_pairs_missing"]==312
-          # This public log never contains individual riders or model picks.
-          safe={k:d[k] for k in
-                ("scheduled_races","expected_model_race_pairs","frozen_four_model_races",
-                 "missing_four_model_original_races","settled_research_races",
-                 "formally_authenticated_model_race_scores")}
+          safe={k:d[k] for k in ("scheduled_races","expected_model_race_pairs","frozen_four_model_races","missing_four_model_original_races","settled_research_races","formally_authenticated_model_race_scores")}
           print(json.dumps(safe,sort_keys=True))
           with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as out:
               out.write("## November 10: 78 races x 4 PR71 models\n")
-              out.write(f"Target: {d['scheduled_races']} / 312 model-race slots\n")
               out.write(f"Verified frozen originals: {d['frozen_four_model_races']}\n")
               out.write(f"Originals missing, NOT counted as losses: {d['missing_four_model_original_races']}\n")
-              out.write(f"Research revisions scored: {d['settled_research_races']}\n")
               out.write("Formal results remain separately gated.\n")
           PY
