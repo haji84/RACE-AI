@@ -26,6 +26,7 @@ from scripts import boat_all_model_cycle as CLI
 from scripts.boat_registered_policy import staged_registered_policy
 from scripts import boat_private_original_vault as VCLI
 from race_ai import saved_view_feed as F
+from race_ai.boat_frozen_cutoff_contract_audit import summarize as cutoff_diagnostics
 from race_ai.boat_history_store import wire
 from race_ai.saved_pages import _read
 
@@ -206,6 +207,8 @@ def main(argv=None):
               and _SHA.fullmatch(registration['plan_sha256']), 'REGISTRATION_INVALID')
         _need(plan_raw == wire(plan).encode() and hashlib.sha256(plan_raw).hexdigest() == registration['plan_sha256'], 'PLAN_HASH_MISMATCH')
         generation, view = _owner_view(day)
+        # Explain registered first-guard rejects without exposing row values.
+        print(wire(cutoff_diagnostics(view, expected_day=day)))
         view_raw = wire(view).encode()
         _need(0 < len(view_raw) <= MAX_VIEW, 'OWNER_VIEW_BOUND_INVALID')
         view_file = VCLI._private_path(output.with_name(output.stem+'.saved-view-'+uuid.uuid4().hex+'.json'), repo, exists=False)
