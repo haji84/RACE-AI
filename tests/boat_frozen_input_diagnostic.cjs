@@ -11,6 +11,8 @@ assert.equal(fail.diagnostic_stage,'PLAN_INPUT');
 assert.equal(fail.diagnostic_class,'TypeError');
 assert.equal(fail.diagnostic_module,'FROZEN_SETTLEMENT');
 assert.ok(Number.isInteger(fail.diagnostic_line)&&fail.diagnostic_line>0);
+assert.equal(fail.diagnostic_caller_module,'FROZEN_SETTLEMENT');
+assert.ok(Number.isInteger(fail.diagnostic_caller_line)&&fail.diagnostic_caller_line>0);
 assert.equal(fail.scenarios.length,0);
 assert.equal(fail.actual_purchases,false);
 assert.equal(fail.promotion_allowed,false);
