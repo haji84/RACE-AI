@@ -18,7 +18,9 @@ class CloudGuardTests(unittest.TestCase):
         self.assertNotIn("OWNER_RUNTIME_ENABLED",y)
         self.assertNotIn("github.event.repository.private == true",y)
         self.assertIn("schedule:",y)
-        self.assertIn("11,41 * * * *",y)
+        self.assertIn("3,33 * * * *",y)
+        self.assertIn("8,13,18,23,28,38,43,48,53,58 * * * *",y)
+        self.assertIn("needs: config_readiness",y)
         self.assertIn("cancel-in-progress: false",y)
 
     def test_secret_write_job_never_runs_on_pr(self):
