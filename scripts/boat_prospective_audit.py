@@ -23,6 +23,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts import boat_all_model_cycle as CLI
+from scripts.boat_registered_policy import staged_registered_policy
 from scripts import boat_private_original_vault as VCLI
 from race_ai import saved_view_feed as F
 from race_ai.boat_history_store import wire
@@ -110,12 +111,14 @@ def _safe_aggregate(value, field=None, depth=0):
     _need(ok, 'NODE_AGGREGATE_INVALID')
 
 
-def _run_node(script, arguments):
+def _run_node(script, arguments, *, module_root=None):
     _need(script in ('boat_frozen_plan_settlement.cjs', 'saved_performance_report.cjs'), 'NODE_SCRIPT_INVALID')
     child_environment = {'PATH': os.environ.get('PATH', ''), 'LANG': 'C.UTF-8', 'TZ': 'UTC'}
     process = None
     try:
-        process = subprocess.Popen(['node', str(ROOT/'scripts'/script), *arguments], cwd=ROOT,
+        runtime_root = Path(module_root).resolve() if module_root is not None else ROOT
+        _need(module_root is None or script == 'boat_frozen_plan_settlement.cjs', 'REGISTERED_POLICY_SCRIPT_SCOPE_INVALID')
+        process = subprocess.Popen(['node', str(runtime_root/'scripts'/script), *arguments], cwd=runtime_root,
             env=child_environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         buffers = {'stdout': bytearray(), 'stderr': bytearray()}
         deadline = time.monotonic()+NODE_TIMEOUT_SECONDS
@@ -200,8 +203,13 @@ def main(argv=None):
         _need(0 < len(view_raw) <= MAX_VIEW, 'OWNER_VIEW_BOUND_INVALID')
         view_file = VCLI._private_path(output.with_name(output.stem+'.saved-view-'+uuid.uuid4().hex+'.json'), repo, exists=False)
         VCLI._write(view_file, view_raw)
-        code, settlement = _run_node('boat_frozen_plan_settlement.cjs',
-            ['--plan', str(plan_file), '--view', str(view_file), '--registration', str(registration_file)])
+        # Settle the immutable November 7 plan with the registered code, not
+        # with later UI/official cutoff-reference enhancements.
+        with staged_registered_policy(registration, repository=ROOT,
+                                      temporary=os.environ['RUNNER_TEMP']) as registered_root:
+            code, settlement = _run_node('boat_frozen_plan_settlement.cjs',
+                ['--plan', str(plan_file), '--view', str(view_file), '--registration', str(registration_file)],
+                module_root=registered_root)
         _need(settlement.get('schema') == 'RACE_AI_FROZEN_BUDGET_PLAN_SETTLEMENT_V1'
               and settlement.get('status') in ('HOLD', 'PENDING', 'REVIEW', 'SETTLED')
               and settlement.get('day') == day and settlement.get('plan_sha256') == registration['plan_sha256']
