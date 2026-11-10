@@ -230,6 +230,14 @@ jobs:
       - name: Pinned existing integration adapters
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - name: Pinned 2026-11-07 settlement policy (existing native cycles)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: fe5064e63c2e1c3f5ce32397305f873e89c63cc2
+          path: registered-policy-reference
+      - name: Verify immutable policy isolation before the existing cycle
+        run: python -m unittest tests.test_boat_registered_policy -v
       - name: Install existing owner-encryption dependencies for private research
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
       - name: Test originals, pending results, tampering and unchanged models
