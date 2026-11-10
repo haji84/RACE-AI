@@ -24,6 +24,8 @@ on:
       - 'tests/test_keirin_licensed_source_readiness.py'
       - 'tests/test_keirin_day_four_model_audit.py'
       - 'tests/test_keirin_cloud_pr71_variable.py'
+      - 'race_ai/live_15min_proof.py'
+      - 'tests/test_live_15min_proof.py'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
   pull_request:
@@ -42,6 +44,8 @@ on:
       - 'tests/test_keirin_licensed_source_readiness.py'
       - 'tests/test_keirin_day_four_model_audit.py'
       - 'tests/test_keirin_cloud_pr71_variable.py'
+      - 'race_ai/live_15min_proof.py'
+      - 'tests/test_live_15min_proof.py'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
 
@@ -78,6 +82,8 @@ jobs:
           cd "$GITHUB_WORKSPACE/pr71-source"
           python -m unittest -v tests.test_keirin_pr71_four_model_rank tests.test_keirin_allowed_delivery tests.test_keirin_permissioned_owner
           python -m unittest -v tests.test_keirin_licensed_result_stage tests.test_keirin_license_api_ingest
+          cd "$GITHUB_WORKSPACE"
+          PYTHONPATH="$GITHUB_WORKSPACE" python -m unittest -v tests.test_live_15min_proof
           python -m unittest -v tests.test_keirin_winticket_prior_events tests.test_keirin_prior_selection tests.test_keirin_prior_private_stage tests.test_keirin_winticket_ex_connection tests.test_keirin_weather_input_connection tests.test_keirin_github_owner_future_intake
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_pr71_state.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_workflow_guard.py' -v
