@@ -198,16 +198,19 @@ function settleFrozenPlan(plan,view,registration){
   // Fixed vocabulary only. A native exception message/stack may contain an
   // owner path or data, so never print it or return it in the report.
   const kind=['TypeError','RangeError','SyntaxError','ReferenceError','Error'].includes(error?.name)?error.name:'Other';
-  const match=String(error?.stack||'').match(/(product-data|saved-performance|forecast-audit-model|boat_frozen_plan_settlement)\.(?:js|cjs):([0-9]+):([0-9]+)/);
   const allowed={
    'product-data':'PRODUCT_DATA',
    'saved-performance':'SAVED_PERFORMANCE',
    'forecast-audit-model':'FORECAST_AUDIT',
    'boat_frozen_plan_settlement':'FROZEN_SETTLEMENT'
   };
+  const positions=[...String(error?.stack||'').matchAll(/(product-data|saved-performance|forecast-audit-model|boat_frozen_plan_settlement)\.(?:js|cjs):([0-9]+):([0-9]+)/g)]
+   .slice(0,3).map(m=>({module:allowed[m[1]]||'UNRESOLVED',line:Math.min(Number(m[2])||0,99999)}));
   return {...base,reason:'FROZEN_INPUT_REVIEW_REQUIRED',diagnostic_stage:checkpoint,
-   diagnostic_class:kind,diagnostic_module:match&&allowed[match[1]]||'UNRESOLVED',
-   diagnostic_line:match?Number(match[2]):0};
+   diagnostic_class:kind,diagnostic_module:positions[0]?.module||'UNRESOLVED',
+   diagnostic_line:positions[0]?.line||0,diagnostic_caller_module:positions[1]?.module||'UNRESOLVED',
+   diagnostic_caller_line:positions[1]?.line||0,diagnostic_origin_module:positions[2]?.module||'UNRESOLVED',
+   diagnostic_origin_line:positions[2]?.line||0};
  }
 }
 function readInput(name){const stat=fs.lstatSync(name);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>MAX_BYTES)throw Error('INPUT');return JSON.parse(fs.readFileSync(name,'utf8'));}
