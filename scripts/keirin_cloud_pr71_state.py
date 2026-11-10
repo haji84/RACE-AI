@@ -467,6 +467,47 @@ def cycle(repo,source_root):
                 "formal_accuracy_calculated":False}
 
 
+
+def audit_prospective_window_from_independent_archive(db, repo_root):
+    """Count real existing originals after the independent AES/SQLite restore.
+
+    The pinned PR71 source snapshot does not contain an independently verified
+    scheduled start time. Never infer it from sales cutoff or from the race ID.
+    Until a separately verified official start receipt is connected, every
+    original remains HOLD regardless of older before-cutoff freeze success.
+    No race ID, picks, provider bytes or private model records are printed.
+    """
+    import importlib.util
+
+    policy = Path(repo_root).resolve() / "race_ai/live_15min_proof.py"
+    need(policy.is_file() and not policy.is_symlink() and
+         policy.stat().st_size <= 32_000,
+         "LIVE_15MIN_PROOF_POLICY_UNAVAILABLE")
+    spec = importlib.util.spec_from_file_location(
+        "race_ai_live_15min_proof_contract", policy)
+    need(spec is not None and spec.loader is not None,
+         "LIVE_15MIN_PROOF_POLICY_INVALID")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    from race_ai.keirin_pr71_four_model_rank import FourModelRankLedger
+    verified = []
+    with PrivateKeirinStore(db) as store:
+        ledger = FourModelRankLedger(store)
+        rows = store.db.execute(
+            "SELECT race_id FROM keirin_pr71_four_model_suites ORDER BY race_id"
+        ).fetchall()
+        need(len(rows) <= 2000, "LIVE_PROOF_ARCHIVE_BOUNDS")
+        for row in rows:
+            saved = ledger.read_suite(row["race_id"])
+            # read_suite independently checks source/model hashes and all
+            # original PR71 model identities. There is no start authority in
+            # the existing pre-race packet: intentionally do not fabricate it.
+            verdict = module.audit_frozen_race(
+                saved, expected_models=ALL_MODELS,
+                independent_model_readback=True, start_evidence=None)
+            verified.append(verdict)
+    return module.summarize(verified)
+
 def main(argv=None):
     import argparse
     p=argparse.ArgumentParser(description=__doc__)
@@ -488,6 +529,8 @@ def main(argv=None):
                 report={"state":"PR71_SEPARATE_GITHUB_RUNNER_AES_GCM_READBACK_OK",
                         "generation":head["generation"],
                         "four_models_and_private_sqlite_verified":True,
+                        "live_15min":audit_prospective_window_from_independent_archive(
+                            Path(tmp)/"readback.sqlite3", args.repo),
                         "plaintext_public":False}
         print(json.dumps(report,sort_keys=True))
         return 0
