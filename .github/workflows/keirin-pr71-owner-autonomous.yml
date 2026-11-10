@@ -191,7 +191,9 @@ jobs:
   # Five-minute ticks have no provider access without required configuration.
   # Presence is not source-use authority: pinned owner admission still decides.
   config_readiness:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    # Trusted main push performs only the no-network readiness check.
+    # The actual predictor is still restricted to schedule/dispatch.
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     permissions:
@@ -199,6 +201,9 @@ jobs:
     outputs:
       eligible: ${{ steps.guard.outputs.eligible }}
     env:
+      # Existing owner-approved personal public-page collection is independent
+      # of optional provider-licensed JSON exports; not itself a vendor grant.
+      RACE_AI_OWNER_AUTO_SOURCE_PROFILE: owner-approved-winticket-keirinjp-20261109
       RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
       RACE_AI_KEIRIN_FEED_ENDPOINT: ${{ secrets.RACE_AI_KEIRIN_FEED_ENDPOINT }}
       RACE_AI_KEIRIN_FEED_RIGHTS_REF: ${{ secrets.RACE_AI_KEIRIN_FEED_RIGHTS_REF }}
