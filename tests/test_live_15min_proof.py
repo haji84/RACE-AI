@@ -91,7 +91,12 @@ class ArchivedProofTest(unittest.TestCase):
         output = audit_frozen_race(
             saved, start_evidence=start, result=result,
             expected_models=ROSTER, independent_model_readback=verified,
-            independently_authenticated_result=official)
+            independently_authenticated_result=official,
+            verify_start_receipt=lambda e, digest: (
+                e.get("authority") == "INDEPENDENTLY_VERIFIED_SOURCE"
+                and e.get("source_sha256") == digest),
+            verify_result_receipt=lambda row: (
+                row.get("source_sha256") == RESULT_SHA))
         self.assertEqual(output["status"], expected)
         return output
 
@@ -111,6 +116,18 @@ class ArchivedProofTest(unittest.TestCase):
     def test_schedule_source_sha_mismatch(self):
         self.check(lambda saved,start,result: start.update(
             source_sha256="f"*64),"HOLD_SCHEDULE_OR_SOURCE_SHA_MISMATCH")
+
+    def test_self_declared_receipts_are_not_authority(self):
+        saved, start, result = fixture()
+        forged = audit_frozen_race(saved, start_evidence=start, result=result,
+                   expected_models=ROSTER, independent_model_readback=True,
+                   independently_authenticated_result=True)
+        self.assertEqual(forged["status"], "HOLD_SCHEDULE_AUTHORITY_UNVERIFIED")
+        start_ok = audit_frozen_race(saved, start_evidence=start, result=result,
+                   expected_models=ROSTER, independent_model_readback=True,
+                   independently_authenticated_result=True,
+                   verify_start_receipt=lambda receipt, digest: True)
+        self.assertEqual(start_ok["status"], "HOLD_OFFICIAL_RESULT_AUTHENTICATION_MISSING")
 
     def test_no_real_start_evidence(self):
         saved, _, result = fixture()
