@@ -199,6 +199,9 @@ jobs:
     outputs:
       eligible: ${{ steps.guard.outputs.eligible }}
     env:
+      # Existing owner-approved personal public-page collection is independent
+      # of optional provider-licensed JSON exports; not itself a vendor grant.
+      RACE_AI_OWNER_AUTO_SOURCE_PROFILE: owner-approved-winticket-keirinjp-20261109
       RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
       RACE_AI_KEIRIN_FEED_ENDPOINT: ${{ secrets.RACE_AI_KEIRIN_FEED_ENDPOINT }}
       RACE_AI_KEIRIN_FEED_RIGHTS_REF: ${{ secrets.RACE_AI_KEIRIN_FEED_RIGHTS_REF }}
