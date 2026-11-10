@@ -83,7 +83,8 @@ def select_window(schedule, at):
 
 def audit_frozen_race(saved, *, start_evidence=None, result=None,
                       expected_models=(), independent_model_readback=False,
-                      independently_authenticated_result=False):
+                      independently_authenticated_result=False,
+                      verify_start_receipt=None, verify_result_receipt=None):
     """Check one *already frozen* race; never create or rewrite predictions.
 
     saved: existing source/SHA-validated immutable ledger.read_suite() record.
@@ -124,7 +125,10 @@ def audit_frozen_race(saved, *, start_evidence=None, result=None,
                 "models": len(models)}
     # A timestamp-only packet cannot prove authorization. The trusted runner
     # must supply an independently checked receipt, never a guessed flag.
-    if start_evidence.get("authority") != "INDEPENDENTLY_VERIFIED_SOURCE":
+    if (start_evidence.get("authority") != "INDEPENDENTLY_VERIFIED_SOURCE"
+            or not callable(verify_start_receipt)
+            or verify_start_receipt(start_evidence,
+                                    saved["source_sha256"]) is not True):
         return {"status": "HOLD_SCHEDULE_AUTHORITY_UNVERIFIED",
                 "models": len(models)}
     try:
@@ -146,7 +150,9 @@ def audit_frozen_race(saved, *, start_evidence=None, result=None,
                 "models": len(models)}
     if result is None or result.get("status") not in ("FINAL", "CANCELLED"):
         return {"status": "HOLD_RESULT_PENDING", "models": len(models)}
-    if not independently_authenticated_result:
+    if (not independently_authenticated_result
+            or not callable(verify_result_receipt)
+            or verify_result_receipt(result) is not True):
         return {"status": "HOLD_OFFICIAL_RESULT_AUTHENTICATION_MISSING",
                 "models": len(models)}
     if result.get("race_id") != source.get("race_id") or not _sha(
