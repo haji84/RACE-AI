@@ -16,6 +16,24 @@ TRUSTED_EVENTS = frozenset(("schedule", "workflow_dispatch"))
 # Keep the pre-existing half-hour watchdog trigger unchanged.
 RECENT_WINDOW = timedelta(minutes=12)
 MAX_FUTURE_SKEW = timedelta(minutes=3)
+# Metadata audit only, not an SLA or proof that a race/forecast ran.
+SCHEDULE_AUDIT_MINUTES = 35
+SCHEDULE_GRACE_MINUTES = 3
+PRODUCER_CRON_MINUTES = frozenset(range(3, 60, 5))
+
+
+def nominal_schedule_tick_count(now):
+    """Count UTC 5-minute slots old enough to rule out only brief dispatch lag."""
+    begin = now - timedelta(minutes=SCHEDULE_AUDIT_MINUTES)
+    end = now - timedelta(minutes=SCHEDULE_GRACE_MINUTES)
+    minute = begin.replace(second=0, microsecond=0)
+    if minute < begin:
+        minute += timedelta(minutes=1)
+    ticks = 0
+    while minute <= end:
+        ticks += minute.minute in PRODUCER_CRON_MINUTES
+        minute += timedelta(minutes=1)
+    return ticks
 
 
 class WatchdogError(ValueError):
@@ -50,6 +68,10 @@ def inspect_workflow_runs(payload, *, now):
     fresh = 0
     active = 0
     considered = 0
+    observed_schedule = 0
+    observed_dispatch = 0
+    observation_start = now - timedelta(minutes=SCHEDULE_AUDIT_MINUTES)
+    observation_end = now - timedelta(minutes=SCHEDULE_GRACE_MINUTES)
     for run in runs:
         if not isinstance(run, dict):
             raise WatchdogError("WORKFLOW_RUN_INVALID")
@@ -66,6 +88,11 @@ def inspect_workflow_runs(payload, *, now):
             raise WatchdogError("RUN_TIMESTAMP_IN_FUTURE")
         considered += 1
         age = now - stamp
+        if observation_start <= stamp <= observation_end:
+            if event == "schedule":
+                observed_schedule += 1
+            else:
+                observed_dispatch += 1
         if status in ACTIVE:
             active += 1
         if age <= RECENT_WINDOW:
@@ -76,8 +103,25 @@ def inspect_workflow_runs(payload, *, now):
         state = "SKIP_RECENT_TRUSTED_PRODUCER"
     else:
         state = "DISPATCH_MISSING_TRUSTED_PRODUCER"
+    # GitHub's two 30-item API result pages are not exhaustive if the
+    # combined total exceeds returned rows. Do not present false tick gaps.
+    history_complete = total == len(runs)
+    nominal_ticks = nominal_schedule_tick_count(now)
+    observed_gap = (max(0, nominal_ticks - observed_schedule)
+                    if history_complete else None)
     return {
         "schema": "RACE_AI_KEIRIN_PR71_RECURRING_WATCHDOG_V1",
+        "source_free_schedule_audit": {
+            "lookback_minutes": SCHEDULE_AUDIT_MINUTES,
+            "grace_minutes": SCHEDULE_GRACE_MINUTES,
+            "nominal_five_minute_ticks": nominal_ticks,
+            "schedule_runs_observed": observed_schedule,
+            "manual_dispatch_runs_observed": observed_dispatch,
+            "nominal_ticks_without_observed_event": observed_gap,
+            "history_page_complete": history_complete,
+            "actual_start_or_forecast_proven": False,
+            "scheduler_root_cause_proven": False,
+        },
         "decision": state,
         "trusted_main_producer_runs_examined": considered,
         "recent_main_producer_runs": fresh,
