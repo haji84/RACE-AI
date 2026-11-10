@@ -198,7 +198,7 @@ function settleFrozenPlan(plan,view,registration){
   // Fixed vocabulary only. A native exception message/stack may contain an
   // owner path or data, so never print it or return it in the report.
   const kind=['TypeError','RangeError','SyntaxError','ReferenceError','Error'].includes(error?.name)?error.name:'Other';
-  const match=String(error?.stack||'').match(/(product-data|saved-performance|forecast-audit-model|boat_frozen_plan_settlement)\\.(?:js|cjs):([0-9]+):([0-9]+)/);
+  const match=String(error?.stack||'').match(/(product-data|saved-performance|forecast-audit-model|boat_frozen_plan_settlement)\.(?:js|cjs):([0-9]+):([0-9]+)/);
   const allowed={
    'product-data':'PRODUCT_DATA',
    'saved-performance':'SAVED_PERFORMANCE',
