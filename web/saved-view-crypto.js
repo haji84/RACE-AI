@@ -148,7 +148,10 @@
     if(!fields(h,names)||!hex(h.view_id)||!hex(h.forecast_sha256))fail();
   }
   async function fetched(url,limit=LIMIT) {
-    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+    // Initial encrypted views and dated history chunks can exceed 12 MB.
+    // Keep the small latest-manifest poll responsive without timing out a slow mobile download.
+    const timeout=limit>=CHUNK_WIRE?60000:15000;
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
     try {
       const response=await fetch(url,{credentials:"omit",cache:"no-store",redirect:"error",referrerPolicy:"no-referrer",signal:controller.signal});
       if(!response.ok || response.url!==url.href)fail();return await bounded(response,limit);
@@ -279,7 +282,11 @@
     const result=await decode(await fetched(new URL(BASE+"views/"+latest.cipher_sha256+".json"),h.schema===HISTORY?INDEX_WIRE:LIMIT),latest.cipher_sha256,fragment,true);
     if(canonical(result.header)!==canonical(h))fail();
     if(h.schema===HISTORY) {
-      const day=Object.hasOwn(result.view.days,options.preferredDay)?options.preferredDay:options.day||Object.keys(result.view.days).sort().at(-1);
+      // A saved link can outlive the latest saved race day. Do not request a
+       // future date that has no encrypted day descriptor; retain older history.
+       const latestDay=Object.keys(result.view.days).sort().at(-1);
+       const requestedDay=options.preferredDay??options.day??latestDay;
+       const day=requestedDay>latestDay?latestDay:requestedDay;
       // Retain at most the selected date while comparing other dates in turn.
       // A transition must not rebuild the whole historical view in memory.
       let selectedMarker=null,selectedValue=null;
