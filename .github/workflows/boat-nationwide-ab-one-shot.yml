@@ -155,6 +155,22 @@ jobs:
           checked_day="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["day"])' "$RUNNER_TEMP/boat-prospective-audit-display.json")"
           python -m scripts.boat_saved_site_context --day "$checked_day" --output "$RUNNER_TEMP/boat-saved-site-context.json"
           env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" | tee "$RUNNER_TEMP/boat-live-site-check-counts.json"
+      - name: Verify November 8 saved model tickets and result tabs in the actual owner page
+        if: always() && steps.saved_model_publication.outcome == 'success' && steps.browser_tooling.outcome == 'success'
+        id: november8_site_check
+        continue-on-error: true
+        timeout-minutes: 4
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          NODE_PATH: ${{ runner.temp }}/boat-live-ui-tools/node_modules
+        run: |
+          set -o pipefail
+          if [[ -f "$RUNNER_TEMP/boat-saved-site-context.json" ]]; then
+            mv "$RUNNER_TEMP/boat-saved-site-context.json" "$RUNNER_TEMP/boat-saved-site-context-original.json"
+          fi
+          python -m scripts.boat_saved_site_context --day 2026-11-08 --output "$RUNNER_TEMP/boat-saved-site-context.json"
+          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" | tee "$RUNNER_TEMP/boat-live-site-nov8-check-counts.json"
       - name: Retain aggregate evaluation counts without private plans or source rows
         if: always() && steps.prospective_audit.outcome != 'skipped'
         continue-on-error: true
