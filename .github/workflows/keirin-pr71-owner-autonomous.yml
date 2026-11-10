@@ -191,7 +191,9 @@ jobs:
   # Five-minute ticks have no provider access without required configuration.
   # Presence is not source-use authority: pinned owner admission still decides.
   config_readiness:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    # Trusted main push performs only the no-network readiness check.
+    # The actual predictor is still restricted to schedule/dispatch.
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     permissions:
