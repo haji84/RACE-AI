@@ -39,6 +39,14 @@ build_site(p,r/'updated-public',r/'updated-private',expected_source_sha256=pin,v
  assert.equal(await page.locator('#selected-date').inputValue(),'2026-11-06','cold open falls back to the last actual saved forecast day');
  assert.equal(await page.locator('#page-races .race-card').count(),1,'saved past forecasts remain visible on their own historical date');
  assert.match(await page.locator('#file-message').innerText(),/今日の新規予想は未保存/);
+ // A saved owner link must not lose its actual historical race day when the
+ // ordinary clock-refresh timer fires 30 seconds after the initial decrypt.
+ await page.clock.fastForward(31000);
+ assert.equal(await page.locator('#selected-date').inputValue(),'2026-11-06','30-second timer must not replace a saved day with an empty current day');
+ assert.equal(await page.locator('#page-races .race-card').count(),1,'race list and frozen forecast must survive the timer');
+ await page.locator('[data-page="results"]').filter({visible:true}).first().click();
+ assert.match(await page.locator('#result-coverage').innerText(),/対象 1レース/,'result comparison must retain the saved race after the timer');
+ await page.locator('[data-page="races"]').filter({visible:true}).first().click();
  const openPastDay=async()=>{
   await page.locator('#selected-date').fill('2026-11-06');
   await page.locator('#selected-date').dispatchEvent('change');
