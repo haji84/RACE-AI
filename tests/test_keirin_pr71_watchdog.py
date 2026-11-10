@@ -38,9 +38,15 @@ class WatchdogDecisionTests(unittest.TestCase):
 
     def test_recent_main_primary_schedule_skips_backup(self):
         self.assertEqual(
-            result(run(minutes_ago=15))["decision"],
+            result(run(minutes_ago=10))["decision"],
             "SKIP_RECENT_TRUSTED_PRODUCER"
         )
+
+    def test_missed_5min_windows_dispatch_even_before_old_26min_threshold(self):
+        self.assertEqual(result(run(minutes_ago=13))["decision"],
+                         "DISPATCH_MISSING_TRUSTED_PRODUCER")
+        self.assertEqual(result(run(minutes_ago=26))["decision"],
+                         "DISPATCH_MISSING_TRUSTED_PRODUCER")
 
     def test_recent_main_workflow_dispatch_also_skips_backup(self):
         self.assertEqual(
@@ -133,7 +139,9 @@ class WatchdogAccessBoundaryTests(unittest.TestCase):
         self.assertIn("gh api", self.workflow)
 
     def test_existing_main_producer_safety_unchanged(self):
-        self.assertIn("11,41 * * * *", self.producer)
+        self.assertIn("3,33 * * * *", self.producer)
+        self.assertIn("8,13,18,23,28,38,43,48,53,58 * * * *", self.producer)
+        self.assertIn("needs: config_readiness", self.producer)
         self.assertIn("github.ref == 'refs/heads/main'", self.producer)
         self.assertIn("github.event_name == 'schedule'", self.producer)
         self.assertIn("github.event_name == 'workflow_dispatch'", self.producer)
