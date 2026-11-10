@@ -1687,11 +1687,19 @@
       if (version !== importVersion) return;
       if (!parsed.records.length) throw new Error("saved originals empty");
       generation.savedState = "READY";
-      if(state.followsToday)state.day=A.jstToday();
-      state.raceView = state.day < A.jstToday() ? "results" : "upcoming";state.sport = parsed.records[0].sport;
+      const today=A.jstToday();
+      if(state.followsToday) {
+        // A historical saved snapshot must remain usable after its race day.
+        // Keep following today's new originals; never relabel old picks as today's.
+        const savedDays=[...new Set(parsed.records.filter(row=>storedPredictions(row).some(activeModel)).map(row=>row.event_date_jst))].sort();
+        state.day=savedDays.includes(today)?today:(savedDays.filter(day=>day<=today).at(-1)??savedDays[0]??today);
+      }
+      state.raceView = state.day < today ? "results" : "upcoming";state.sport = parsed.records[0].sport;
       state.allDates = false;state.period = "day";
       const currentRows=parsed.records.filter(row=>row.event_date_jst===state.day);
-      generation.message = currentRows.length ? "保存済み予想・レース情報 " + currentRows.length + "レース · " + state.day : "保存済み予想を確認中 · " + state.day;
+      const showingSavedFallback=state.followsToday&&state.day!==today;
+      generation.message = (currentRows.length ? "保存済み予想・レース情報 " + currentRows.length + "レース · " + state.day : "保存済み予想を確認中 · " + state.day) +
+        (showingSavedFallback ? " · 今日の新規予想は未保存です。" + (state.day<today?"最後の保存日":"次の保存日") + "の予想を表示しています。" : "");
       adoptDataset(parsed);showPage("races",true);
       $("file-message").textContent = generation.message;
       if (encrypted) startSavedFeed(encrypted.content,version);
