@@ -84,7 +84,7 @@ def summarize_source_gaps(probe):
         seen.add(source)
         if source.startswith("race/"):
             factor = race.get(source)
-            field_type = kind(source)
+            field_type = kind(source) if factor else None
             is_rider = False
         else:
             factor = rider.get(source)
