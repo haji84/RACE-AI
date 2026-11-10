@@ -124,3 +124,15 @@ secret material are published. Synthetic native error tests must pass before
 running the owner-data audit. The frozen original, model choice, and
 registered settlement rule remain unchanged. The actual cause is only
 confirmed once a succeeding private runner emits its bounded diagnostic.
+
+### Completed Library-folder and Drive-trash scope
+
+- The persistent Library's two RACE-AI project folders were also enumerated,
+  not just searched by text. One contains BOAT files tied to November 3–5
+  (and older seller-shadow records); the other contains KEIRIN and AUTORACE
+  research/audit files. Neither had a November 9 or 10 BOAT prediction-original
+  artifact.
+- The dedicated Google Drive archive folder's trashed-items query returned
+  zero direct files; no deleted original was surfaced by that check.
+- Absence remains scoped to the accessible Library/Drive inventories and
+  verified GitHub data. Offline browser/device caches were not accessible.
