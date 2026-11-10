@@ -26,11 +26,13 @@ MARGIN = timedelta(seconds=390)
 
 
 def need(ok, reason):
+    """Reject an unmet boundary without including private source values."""
     if not ok:
         raise ValueError(reason)
 
 
 def instant(value):
+    """Normalize an explicit timezone-aware source or runtime clock to UTC."""
     if isinstance(value, str):
         value = datetime.fromisoformat(value.replace('Z', '+00:00'))
     need(isinstance(value, datetime) and value.utcoffset() is not None,
@@ -41,6 +43,7 @@ def instant(value):
 class SourceSession:
     """Stop real requests after provider denial or the current job's budget."""
     def __init__(self, fetch, *, monotonic, budget_seconds):
+        """Bind a shared provider transport to one monotonic acquisition budget."""
         self.fetch, self.monotonic = fetch, monotonic
         self.deadline = monotonic() + budget_seconds
         self.host_denied = False
@@ -48,11 +51,13 @@ class SourceSession:
         self.requests = 0
 
     def available(self):
+        """Return false once the work budget or provider-denial circuit has closed."""
         if self.monotonic() >= self.deadline:
             self.budget_exhausted = True
         return not (self.host_denied or self.budget_exhausted)
 
     def __call__(self, url):
+        """Fetch only an approved host and latch access denials for this cycle."""
         need(self.available(), 'OWNER_SOURCE_SESSION_STOPPED')
         u = urlsplit(url)
         need(u.scheme == 'https' and not u.username and not u.password and
@@ -70,6 +75,7 @@ class SourceSession:
 
 
 def _private_root(inbox):
+    """Require a temporary source inbox outside the public repository checkout."""
     p = Path(inbox).expanduser()
     need(p.is_absolute() and p.is_dir() and not p.is_symlink(),
          'PRIVATE_EXISTING_INBOX_REQUIRED')
@@ -82,6 +88,7 @@ def _private_root(inbox):
 
 
 def _card(path, day):
+    """Validate a privately stored card by byte digest, race identity and cutoff."""
     need(path.is_file() and not path.is_symlink() and 0 < path.stat().st_size <= 2_000_000,
          'PRIVATE_PARTIAL_CARD_UNSAFE')
     raw = path.read_bytes()
@@ -109,6 +116,7 @@ def _card(path, day):
 
 
 def _safe_result(report, rid, n):
+    """Export validated coverage counts, never source values or model admission."""
     need(type(report) is dict and report.get('race_id') == rid and
          report.get('actual_four_model_forecast_saved') is False and
          report.get('full_model_input_admitted') is False,
@@ -224,6 +232,7 @@ def collect_owner_inputs(inbox, *, owner_auto_confirmed, capture=None, probe=Non
 
 
 def main(argv=None):
+    """Run explicit owner-source acquisition and emit a sanitized status document."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--inbox', required=True)
     parser.add_argument('--owner-automatic-fetch-confirmed', action='store_true')
