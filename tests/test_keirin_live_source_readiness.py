@@ -88,6 +88,11 @@ class PilotReadinessTest(TestCase):
         self.assertIn("if missing_source_configuration(e):",cloud)
         self.assertIn("'provider_machine_rights_independently_verified':False",owner)
         self.assertIn("'actual_four_model_forecast_saved':False",owner)
+        # Main push runs only the secret-presence check, never the model cycle.
+        guard=flow.split("\\n  config_readiness:\\n",1)[1].split("\\n  # Production secrets",1)[0]
+        prod=flow.split("\\n  github-hosted-pr71-cycle:\\n",1)[1].split("\\n  independent-cloud-readback:\\n",1)[0]
+        self.assertIn("github.event_name == 'push'",guard)
+        self.assertNotIn("github.event_name == 'push'",prod)
         self.assertIn("independent-cloud-readback:",flow)
         self.assertIn("cron: '3,33 * * * *'",flow)
         self.assertIn("cron: '8,13,18,23,28,38,43,48,53,58 * * * *'",flow)
