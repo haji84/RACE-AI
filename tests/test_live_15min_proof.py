@@ -151,7 +151,10 @@ class ArchivedProofTest(unittest.TestCase):
     def test_no_result_is_not_a_loss(self):
         saved, start, _ = fixture()
         report=audit_frozen_race(saved, start_evidence=start, expected_models=ROSTER,
-            independent_model_readback=True)
+            independent_model_readback=True,
+            verify_start_receipt=lambda receipt, digest: (
+                receipt.get("source_sha256") == digest
+                and receipt.get("authority") == "INDEPENDENTLY_VERIFIED_SOURCE"))
         self.assertEqual(report["status"],"HOLD_RESULT_PENDING")
 
     def test_unauthenticated_official_result_cannot_win(self):
