@@ -36,6 +36,34 @@ class WatchdogDecisionTests(unittest.TestCase):
         self.assertEqual(report["active_main_producer_runs"], 0)
         self.assertFalse(report["real_forecast_claimed"])
 
+    def test_unobserved_five_minute_ticks_are_not_successes(self):
+        record = result()
+        audit = record["source_free_schedule_audit"]
+        self.assertEqual(audit["lookback_minutes"], 35)
+        self.assertEqual(audit["grace_minutes"], 3)
+        self.assertEqual(audit["nominal_five_minute_ticks"], 6)
+        self.assertEqual(audit["schedule_runs_observed"], 0)
+        self.assertEqual(audit["nominal_ticks_without_observed_event"], 6)
+        self.assertTrue(audit["history_page_complete"])
+        self.assertFalse(audit["scheduler_root_cause_proven"])
+        self.assertFalse(audit["actual_start_or_forecast_proven"])
+
+    def test_scheduled_and_manually_triggered_runs_not_conflated(self):
+        record = result(
+            run(minutes_ago=10, event="schedule", run_id=1),
+            run(minutes_ago=20, event="workflow_dispatch", run_id=2),
+        )
+        audit = record["source_free_schedule_audit"]
+        self.assertEqual(audit["schedule_runs_observed"], 1)
+        self.assertEqual(audit["manual_dispatch_runs_observed"], 1)
+        self.assertEqual(audit["nominal_ticks_without_observed_event"], 5)
+
+    def test_incomplete_github_history_never_claims_missing_ticks(self):
+        record = result(run(minutes_ago=10), total=55)
+        audit = record["source_free_schedule_audit"]
+        self.assertFalse(audit["history_page_complete"])
+        self.assertIsNone(audit["nominal_ticks_without_observed_event"])
+
     def test_recent_main_primary_schedule_skips_backup(self):
         self.assertEqual(
             result(run(minutes_ago=10))["decision"],
