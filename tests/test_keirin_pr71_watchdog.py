@@ -64,6 +64,40 @@ class WatchdogDecisionTests(unittest.TestCase):
         self.assertFalse(audit["history_page_complete"])
         self.assertIsNone(audit["nominal_ticks_without_observed_event"])
 
+    def test_exhaustively_scoped_event_totals_allow_recent_gap_audit(self):
+        report = inspect_workflow_runs({
+            "total_count": 55, "schedule_total_count": 55,
+            "dispatch_total_count": 0,
+            "workflow_runs": [
+                run(minutes_ago=minutes, run_id=i+1)
+                for i, minutes in enumerate([5, 10, 15, 20, 25, 30]
+                                            + list(range(36, 60)))
+            ],
+        }, now=FIXED)
+        audit = report["source_free_schedule_audit"]
+        self.assertTrue(audit["history_page_complete"])
+        self.assertEqual(audit["schedule_runs_observed"], 6)
+        self.assertEqual(audit["nominal_ticks_without_observed_event"], 0)
+
+    def test_truncated_event_page_does_not_invent_schedule_gaps(self):
+        report = inspect_workflow_runs({
+            "total_count": 70, "schedule_total_count": 70,
+            "dispatch_total_count": 0,
+            "workflow_runs": [
+                run(minutes_ago=minutes, run_id=i+1)
+                for i, minutes in enumerate(range(5, 35))
+            ],
+        }, now=FIXED)
+        self.assertFalse(report["source_free_schedule_audit"]["history_page_complete"])
+        self.assertIsNone(report["source_free_schedule_audit"]["nominal_ticks_without_observed_event"])
+
+    def test_inconsistent_event_totals_fail_closed(self):
+        with self.assertRaises(WatchdogError):
+            inspect_workflow_runs({
+                "total_count": 4, "schedule_total_count": 3,
+                "dispatch_total_count": 0, "workflow_runs": []
+            }, now=FIXED)
+
     def test_recent_main_primary_schedule_skips_backup(self):
         self.assertEqual(
             result(run(minutes_ago=10))["decision"],

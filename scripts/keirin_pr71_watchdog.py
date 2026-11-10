@@ -105,7 +105,35 @@ def inspect_workflow_runs(payload, *, now):
         state = "DISPATCH_MISSING_TRUSTED_PRODUCER"
     # GitHub's two 30-item API result pages are not exhaustive if the
     # combined total exceeds returned rows. Do not present false tick gaps.
-    history_complete = total == len(runs)
+    # The workflow queries two separate 30-item GitHub API pages. An older
+    # page can be omitted safely only when its returned oldest item is older
+    # than our observation start, or the event page is exhaustively returned.
+    # A total_count larger than 30 does not alone invalidate recent coverage.
+    schedule_total = payload.get("schedule_total_count")
+    dispatch_total = payload.get("dispatch_total_count")
+    if schedule_total is None and dispatch_total is None:
+        # Legacy callers: only complete when no pagination occurred.
+        history_complete = total == len(runs)
+    else:
+        if (type(schedule_total) is not int or type(dispatch_total) is not int
+                or schedule_total < 0 or dispatch_total < 0
+                or schedule_total + dispatch_total != total):
+            raise WatchdogError("EVENT_PAGE_TOTALS_INVALID")
+
+        def event_window_covered(event, event_total):
+            stamps = [utc(row["created_at"]) for row in runs
+                      if row.get("event") == event
+                      and row.get("head_branch") == "main"]
+            if len(stamps) == event_total:
+                return True
+            # Missing item(s) on the first page: only trust the observation
+            # window if 30 items were returned and the oldest covers its start.
+            return (len(stamps) == 30 and
+                    min(stamps) <= observation_start)
+
+        history_complete = (
+            event_window_covered("schedule", schedule_total) and
+            event_window_covered("workflow_dispatch", dispatch_total))
     nominal_ticks = nominal_schedule_tick_count(now)
     observed_gap = (max(0, nominal_ticks - observed_schedule)
                     if history_complete else None)
