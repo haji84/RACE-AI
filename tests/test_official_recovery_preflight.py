@@ -150,15 +150,23 @@ class RecoveryPreflightWorkflowTests(unittest.TestCase):
         text=Path('.github/workflows/forecast-audit-ui.yml').read_text()
         blocks=re.split(r'^      - ',text,flags=re.M)
         skips=[block for block in blocks if "if: steps.official_recovery_preflight.outputs.reuse_prior_verification != 'true'" in block]
-        self.assertEqual(len(skips),2)
-        self.assertEqual({block.splitlines()[0].removeprefix('name: ') for block in skips},set(FULL_STEPS))
+        # Python discovery is unskippable in the independent keyless shards;
+        # only the isolated video environment may use the verified same-head reuse.
+        self.assertEqual(len(skips),1)
+        self.assertEqual({block.splitlines()[0].removeprefix('name: ') for block in skips},{FULL_STEPS[1]})
+        sharded = text.split('  viewer_python_full:', 1)[1].split('  viewer_contract:', 1)[0]
+        self.assertIn('shard: [0, 1, 2, 3]', sharded)
+        self.assertIn('python -m scripts.ci_unittest_shard', sharded)
+        self.assertNotIn('reuse_prior_verification', sharded)
+        self.assertNotIn('secrets.', sharded)
+        self.assertNotIn('contents: write', sharded)
         preflight=next(block for block in blocks if 'id: official_recovery_preflight' in block)
         self.assertIn("github.run_attempt == '2'",preflight)
         for part in ("github.repository == 'haji84/RACE-AI'","github.event.pull_request.number == 71",
                 'github.event.pull_request.head.repo.full_name == github.repository','--preflight'):
             self.assertIn(part,preflight)
         self.assertLess(text.index('Install pinned private history cache crypto'),text.index('id: official_recovery_preflight'))
-        self.assertLess(text.index('id: official_recovery_preflight'),text.index(FULL_STEPS[0]))
+        self.assertLess(text.index('id: official_recovery_preflight'),text.index(FULL_STEPS[1]))
         for name in ('Verify owner-requested seller retirement and legacy readback',
                 'Validate history formats, official reconciliation and unchanged model contracts offline',
                 'Integrated product UI contracts','Install isolated pinned browser test tooling',
