@@ -1806,7 +1806,7 @@
     state.simulationBudget=value;persistPreferences();$("simulation-message").textContent="1日予算 "+yen(value)+" で再計算しました。";renderResults();
   });
   // A local clock change updates the display day, without fetching race sources.
-  function checkDay() { if (automaticMode()) return;const today = A.jstToday(); if (state.followsToday && state.day !== today) { state.day = today; state.raceView = "upcoming"; refreshSelects(); renderAll(); } }
+  function checkDay() { if (automaticMode() || savedViewConfigured) return;const today = A.jstToday(); if (state.followsToday && state.day !== today) { state.day = today; state.raceView = "upcoming"; refreshSelects(); renderAll(); } }
   setInterval(checkDay, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) checkDay(); });
   window.addEventListener("pagehide",()=>{if(generation.timer!==null)clearTimeout(generation.timer);generation.timer=null;});
