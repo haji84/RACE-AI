@@ -329,16 +329,27 @@ def commit(repo,source_root,db,prior):
 
 
 def _licensed_inputs(inbox,source_root):
-    """Optional provider-controlled real feed; absent means HOLD, not fake races.
+    """Prefer the configured independently reviewed provider export.
 
-    The GitHub Secrets must carry the *real* owner-reviewed licence manifest
-    (with actual documented use rights) and its SHA-pinned private document.
-    No vendor URL or contract is manufactured by this adapter.
+    An explicit owner-source profile also permits the existing private
+    acquisition path to run when the export is unconfigured. That path
+    produces partial research input only, not a provider licence or a
+    falsely admitted full-model packet.
     """
     e=os.environ
     needed=LICENSED_SOURCE_REQUIRED_KEYS
     if missing_source_configuration(e):
-        return None,None,"SOURCE_FEED_NOT_CONFIGURED"
+        from scripts.keirin_cloud_owner_inputs import PROFILE,collect_owner_inputs
+        if e.get("RACE_AI_OWNER_AUTO_SOURCE_PROFILE") != PROFILE:
+            return None,None,"SOURCE_FEED_NOT_CONFIGURED"
+        require_main_event()
+        report=collect_owner_inputs(inbox,owner_auto_confirmed=True)
+        need(report.get("new_pre_race_inputs")==0 and
+             report.get("actual_four_model_forecast_saved") is False and
+             report.get("provider_machine_rights_independently_verified") is False,
+             "OWNER_SOURCE_CANNOT_SELF_APPROVE_FULL_PR71_INPUT")
+        return None,{"new_pre_race_inputs":0,"owner_source_acquisition":report},\
+            "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED"
     from race_ai.keirin_permissioned_owner import (
         load_operator_grants,stage_permissioned_deliveries
     )
@@ -387,9 +398,13 @@ def cycle(repo,source_root):
         inbox.mkdir(mode=0o700)
         prior,old=restore(repo,source_root,db)
         grants,stage,status=_licensed_inputs(inbox,source_root)
+        owner_source=(stage or {}).get("owner_source_acquisition")
         if prior is None and grants is None:
-            return {"state":"HOLD_NO_LICENSED_FUTURE_SOURCE_AND_NO_PRODUCTION_ORIGINAL",
+            state=("HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT" if owner_source is not None
+                   else "HOLD_NO_LICENSED_FUTURE_SOURCE_AND_NO_PRODUCTION_ORIGINAL")
+            return {"state":state,
                     "new_forecasts":0,"source_state":status,
+                    "owner_source_acquisition":owner_source,
                     "missing_source_config_keys":missing_source_configuration(),
                     "private_key_used_without_writing_public_data":True}
         # A genesis is permitted ONLY when a real license-admitted full PR71
@@ -423,7 +438,7 @@ def cycle(repo,source_root):
         if before is not None and after==before:
             return {"state":"CLOUD_PR71_RESTORED_NO_CHANGED_MODEL_OR_RESULT",
                     "originals_preserved":True,"new_forecasts":0,
-                    "source_state":status,
+                    "source_state":status,"owner_source_acquisition":owner_source,
                     "missing_source_config_keys":missing_source_configuration(),
                     "four_model_variable_saved":variable["four_model_variable_saved"],
                     "four_model_variable_held":variable["four_model_variable_held"],
