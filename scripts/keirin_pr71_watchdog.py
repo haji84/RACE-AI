@@ -12,7 +12,9 @@ import sys
 
 ACTIVE = frozenset(("requested", "queued", "pending", "waiting", "in_progress"))
 TRUSTED_EVENTS = frozenset(("schedule", "workflow_dispatch"))
-RECENT_WINDOW = timedelta(minutes=26)
+# New primary is every five minutes; do not hide a stalled producer for 26 min.
+# Keep the pre-existing half-hour watchdog trigger unchanged.
+RECENT_WINDOW = timedelta(minutes=12)
 MAX_FUTURE_SKEW = timedelta(minutes=3)
 
 
