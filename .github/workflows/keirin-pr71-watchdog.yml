@@ -95,7 +95,7 @@ jobs:
           set -euo pipefail
           gh api 'repos/haji84/RACE-AI/actions/workflows/keirin-pr71-owner-autonomous.yml/runs?event=schedule&branch=main&per_page=30' > "$RUNNER_TEMP/primary-schedule.json"
           gh api 'repos/haji84/RACE-AI/actions/workflows/keirin-pr71-owner-autonomous.yml/runs?event=workflow_dispatch&branch=main&per_page=30' > "$RUNNER_TEMP/primary-dispatch.json"
-          jq -s '{total_count: (.[0].total_count + .[1].total_count), workflow_runs: (.[0].workflow_runs + .[1].workflow_runs)}' \
+          jq -s '{total_count: (.[0].total_count + .[1].total_count), schedule_total_count: .[0].total_count, dispatch_total_count: .[1].total_count, workflow_runs: (.[0].workflow_runs + .[1].workflow_runs)}' \
             "$RUNNER_TEMP/primary-schedule.json" "$RUNNER_TEMP/primary-dispatch.json" > "$RUNNER_TEMP/pr71-main-runs.json"
           python scripts/keirin_pr71_watchdog.py --runs-json "$RUNNER_TEMP/pr71-main-runs.json" > "$RUNNER_TEMP/pr71-fallback-decision.json"
           python - <<'PY'
