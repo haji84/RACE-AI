@@ -38,6 +38,7 @@ NODE_TIMEOUT_SECONDS = 60
 _SHA = re.compile(r'[a-f0-9]{64}\Z')
 _SAFE_KEYS = frozenset('''schema status day plan_sha256 scenarios actual_purchases alternative_scenarios
 hypothetical_budget_returns independent_pre_cutoff_receipt_verified accuracy_improvement_proven promotion_allowed reason
+diagnostic_stage diagnostic_class diagnostic_module diagnostic_line
 id model_group_index budget race_budget bought spent settledStake pendingStake settledCount payout refund net roi
 hits misses void pending review partialRefund hitDenominator hitRate coverage races forecasts result_states final
 unsupported missing days groups model_id scope sport stage variant saved_version_ref source_code_commit issued
@@ -58,6 +59,9 @@ _ENUMS = {
     'axis': {'HISTORY_INPUT_ADDITION', 'LEARNED_WEIGHT_VERSION'},
     'method': {'EXACT_TWO_SIDED_DISCORDANCE_BINOMIAL_AND_WILSON_95'},
     'evidence_scope': {'DESCRIPTIVE_SAVED_ORIGINAL_COMPARISON'},
+    'diagnostic_stage': {'PRE_INPUT', 'PLAN_INPUT', 'SAVED_VIEW_INPUT', 'REGISTRATION_INPUT', 'REGISTERED_VERIFY', 'SETTLEMENT_CALCULATION'},
+    'diagnostic_class': {'TypeError', 'RangeError', 'SyntaxError', 'ReferenceError', 'Error', 'Other'},
+    'diagnostic_module': {'PRODUCT_DATA', 'SAVED_PERFORMANCE', 'FORECAST_AUDIT', 'FROZEN_SETTLEMENT', 'UNRESOLVED'},
     'conclusion': {'DESCRIPTIVE_COMPARISON_ONLY_PROSPECTIVE_IMPROVEMENT_NOT_DEMONSTRATED'},
 }
 
