@@ -16,6 +16,9 @@ on:
       - 'tests/test_keirin_cloud_workflow_guard.py'
       - 'scripts/keirin_day_four_model_audit.py'
       - 'scripts/keirin_cloud_pr71_variable.py'
+      - 'scripts/keirin_source_gap_plan.py'
+      - 'tests/test_keirin_source_gap_plan.py'
+      - 'tests/test_keirin_licensed_source_readiness.py'
       - 'tests/test_keirin_day_four_model_audit.py'
       - 'tests/test_keirin_cloud_pr71_variable.py'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
@@ -28,6 +31,9 @@ on:
       - 'tests/test_keirin_cloud_workflow_guard.py'
       - 'scripts/keirin_day_four_model_audit.py'
       - 'scripts/keirin_cloud_pr71_variable.py'
+      - 'scripts/keirin_source_gap_plan.py'
+      - 'tests/test_keirin_source_gap_plan.py'
+      - 'tests/test_keirin_licensed_source_readiness.py'
       - 'tests/test_keirin_day_four_model_audit.py'
       - 'tests/test_keirin_cloud_pr71_variable.py'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
@@ -72,7 +78,9 @@ jobs:
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_workflow_guard.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_day_four_model_audit.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_pr71_variable.py' -v
-          python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_variable.py"
+          python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_source_gap_plan.py' -v
+          python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_licensed_source_readiness.py' -v
+          python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_variable.py" "$GITHUB_WORKSPACE/scripts/keirin_source_gap_plan.py"
       - name: Do not claim synthetic results as live
         run: echo 'Only synthetic model + AES Git-state tests. No actual real-race prediction verified.' >> "$GITHUB_STEP_SUMMARY"
 
@@ -84,6 +92,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: 97464792c2af28b39f9ffbe668019fb1482d5a8c
+          persist-credentials: false
+      # Source-only count reconciliation comes from the reviewed main HEAD.
+      # The pinned PR71 core and its source license boundaries stay unchanged.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: preflight-audit
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -119,6 +134,31 @@ jobs:
               f.write(f"Status: {safe.get('status')}\n")
               f.write(f"Missing model inputs: {safe.get('required_source_slots_A_missing')}\n")
               f.write("Source probe cannot produce PR71 predictions or legal permissions.\n")
+          PY
+      - name: Classify missing source origin instances without new GETs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$GITHUB_WORKSPACE/preflight-audit/scripts/keirin_source_gap_plan.py" \
+            --probe "$RUNNER_TEMP/source.json" > "$RUNNER_TEMP/keirin-source-origin-plan.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=json.loads((Path(os.environ["RUNNER_TEMP"])/"keirin-source-origin-plan.json").read_text())
+          safe_keys=("state","required_model_feature_slots",
+                     "missing_model_feature_slots",
+                     "distinct_required_origin_instances",
+                     "distinct_missing_origin_instances",
+                     "missing_source_field_families",
+                     "deficits_by_source_kind",
+                     "license_rights_verified","formal_model_predictions_verified")
+          safe={k:r.get(k) for k in safe_keys}
+          print(json.dumps(safe,ensure_ascii=False,sort_keys=True))
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as out:
+              out.write("## Model input slots vs independent source measurements\n")
+              out.write(f"Model slots missing: {safe.get('missing_model_feature_slots')}\n")
+              out.write(f"Distinct required source instances missing: {safe.get('distinct_missing_origin_instances')}\n")
+              out.write("No unobserved values filled or rights inferred.\n")
           PY
 
   # Production secrets are used only from trusted main GitHub-hosted jobs.
@@ -172,7 +212,7 @@ jobs:
           yes=r["state"]=="CLOUD_PR71_ENCRYPTED_GIT_HISTORY_READBACK_VERIFIED"
           with open(os.environ["GITHUB_OUTPUT"],"a") as f:
               f.write("committed="+("true" if yes else "false")+"\n")
-          safe={k:r.get(k) for k in ("state","generation","source_state","new_forecast_stage_nonzero","existing_pdca_invoked","result_rows_appended","result_rows_held","four_model_variable_saved","four_model_variable_held","official_result_independently_authenticated")}
+          safe={k:r.get(k) for k in ("state","generation","source_state","new_forecast_stage_nonzero","existing_pdca_invoked","result_rows_appended","result_rows_held","four_model_variable_saved","four_model_variable_held","missing_source_config_keys","official_result_independently_authenticated")}
           print(json.dumps(safe,ensure_ascii=False,sort_keys=True))
           with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
               f.write("GitHub-hosted PR71 state: "+str(r["state"])+"\n")
