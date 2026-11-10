@@ -25,7 +25,17 @@ class HistoryWitnessWorkflowTests(unittest.TestCase):
         self.assertTrue(any('requirements-history.txt' in s for s in self.steps[:position]))
         self.assertTrue(any('path: pr64-reference' in s for s in self.steps[:position]))
         self.assertTrue(any('path: pr72-reference' in s for s in self.steps[:position]))
-        self.assertLess(position,next(i for i,s in enumerate(self.steps) if "python -m unittest discover -s tests -v -f" in s))
+        # The complete Python suite moved to a separate read-only sharded job.
+        # It cannot borrow owner secrets or bypass the first-attempt gate.
+        sharded = self.jobs.get('viewer_python_full')
+        self.assertIsNotNone(sharded)
+        self.assertIn('shard: [0, 1, 2, 3]', sharded)
+        self.assertIn('python -m scripts.ci_unittest_shard', sharded)
+        self.assertIn('ref: ${{ github.sha }}', sharded)
+        self.assertNotIn('secrets.', sharded)
+        self.assertNotIn('RACE_AI_STATE_KEY', sharded)
+        self.assertNotIn('contents: write', sharded)
+        self.assertLess(position, next(i for i,s in enumerate(self.steps) if 'id: official_recovery_preflight' in s))
     def test_manual_prefix_and_fixed_file_only_invoke_one_cli_and_preserve_failure(self):
         self.assertIsNotNone(self.step)
         with tempfile.TemporaryDirectory() as temporary:
