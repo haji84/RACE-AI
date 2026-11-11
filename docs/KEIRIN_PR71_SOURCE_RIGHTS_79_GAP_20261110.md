@@ -35,7 +35,7 @@ Use existing `keirin_field_acquisition.kind()` to distinguish *published source 
 
 ## Required operator-held feed contract (already implemented)
 
-The existing `race_ai.keirin_licensed_api_ingest` accepts a **provider-authorized HTTPS JSON export**, not arbitrary scraped HTML. Before the main runner can begin:
+The existing `race_ai.keirin_licensed_api_ingest` accepts a **provider-authorized HTTPS JSON export**, not arbitrary scraped HTML. The following credentials and proofs are required **only for the optional licensed-export path that admits complete data into the four-model production forecaster**, not for the already owner-approved personal public-page *research candidate acquisition* path. For the licensed-export path to begin:
 
 1. Identify a *real* data rights holder and a permissible delivery method, with permission for `automated_fetch`, `schedule`, `pre_race`, `analysis`, `model_inference`, `private_retention` and, if results are included, `result_collection` and `result_analysis`. Check that those rights cover historical/statistical transformations used by each required source family. Do not infer data rights from public accessibility or personal subscription.
 2. Store a provider rights document privately and build its SHA-256-bound `RACE_AI_KEIRIN_OPERATOR_LICENSE_MANIFEST_V1` bundle with exact URL prefix, scope, validity period and rights reference.
@@ -49,6 +49,23 @@ The existing `race_ai.keirin_licensed_api_ingest` accepts a **provider-authorize
 
 4. The supplied V1/V2/V3 export must use the existing delivery schema and include each source observation's actual value, `source_url`, `rights_ref`, `published_at`, `captured_at`, and `sample_n`. The code validates every item, the cutoff, roster, full model feature coverage and the actual license bundle. Any missing/late/inconsistent field remains HOLD.
 5. The same existing PR71 cycle performs the four independent predictions, immutable SHA-bound AES snapshot and separate-runner readback. Only previously frozen models may receive licensed result revisions. Formal result authenticity must be independently established; provider headers and API credentials alone do not certify it.
+
+## Distinct existing owner-approved non-API path (reconciled November 11)
+
+`scripts/keirin_cloud_owner_inputs.py` has the explicit
+`owner-approved-winticket-keirinjp-20261109` profile. With no optional
+licensed-feed Secrets, `scripts/keirin_cloud_pr71_state.py::_licensed_inputs`
+uses that already-approved owner-private public-page path to collect bounded
+candidate observations. See PR #134 for correction of the later erroneous
+API-mandatory schedule gate.
+
+The 2026-11-11 main smoke `42927694949` confirms this mode with all four
+optional provider-feed Secrets absent, 84 discovered races and 13 partial
+cards; **no complete four-model forecast was saved**. The source collector
+explicitly sets `provider_machine_rights_independently_verified=False` and
+`new_pre_race_inputs=0`. Personal owner approval does not independently
+attest a third-party site permission, and a partial card must not be marked
+as a formal pre-cutoff model forecast.
 
 ## No fabricated shortcut
 
