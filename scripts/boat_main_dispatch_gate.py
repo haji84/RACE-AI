@@ -418,12 +418,36 @@ def main(argv=None):
     p.add_argument("--owner-doc", type=Path, required=True)
     p.add_argument("--history", type=Path, required=True)
     p.add_argument("--retry-proof", type=Path)
+    p.add_argument("--owner-release-root", type=Path)
     p.add_argument("--github-output", type=Path)
     args = p.parse_args(argv)
+    now = datetime.now(timezone.utc)
+    history = _load(args.history)
+    proof = None
+    if args.owner_release_root is not None:
+        # No same-day owner run means no successor proof I/O is needed.
+        today = now.astimezone(ZoneInfo("Asia/Tokyo")).date().isoformat()
+        valid = [row for row in history.get("workflow_runs", [])
+                 if type(row) is dict and row.get("event") == "workflow_dispatch"
+                 and row.get("head_branch") == RELEASE_REF
+                 and row.get("name") == WORKFLOW
+                 and row.get("status") == "completed"
+                 and row.get("conclusion") == "success"
+                 and _stamp(row["created_at"]).astimezone(
+                     ZoneInfo("Asia/Tokyo")).date().isoformat() == today]
+        if valid:
+            last = sorted(valid, key=lambda item: (_stamp(item["created_at"]),
+                                                    item["id"]), reverse=True)[0]
+            try:
+                proof = _authenticated_resume(last, args.owner_release_root)
+            except Exception:
+                # Never expose source contents, filenames, keys or API errors.
+                proof = None
     result = decide(
-        now=datetime.now(timezone.utc), release=_load(args.release),
-        owner_doc=_load(args.owner_doc), history=_load(args.history),
-        retry_proof=_load(args.retry_proof) if args.retry_proof else None)
+        now=now, release=_load(args.release),
+        owner_doc=_load(args.owner_doc), history=history,
+        retry_proof=_load(args.retry_proof) if args.retry_proof else None,
+        resume_proof=proof)
     if args.github_output:
         if args.github_output.is_symlink() or not args.github_output.is_file():
             raise SystemExit("BOAT_DISPATCH_OUTPUT_INVALID")
