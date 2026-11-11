@@ -18,7 +18,7 @@ SCHEMA = "RACE_AI_BOAT_MAIN_OWNER_DISPATCH_GATE_V1"
 REPO = "haji84/RACE-AI"
 WORKFLOW = "BOAT nationwide cutoff-ordered A/B research (no Vercel)"
 RELEASE_REF = "production/boat-p0-p1-20261111"
-RELEASE_SHA = "fb3b89d49db815c9e88daa09c1303c7a6dd87d83"
+RELEASE_SHA = "4feb81c7c9ae8aa4743430ec9fbf8c6b62a1ff23"
 RELEASE_TOKEN = "RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1"
 MAX_JSON_BYTES = 1024 * 1024  # owner status text is about 287 KiB before base64
 
