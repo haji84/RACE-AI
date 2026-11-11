@@ -4,12 +4,12 @@ on:
     branches: [main]
     paths: [.github/workflows/boat-racer-daily.yml]
   push:
-    branches: [feat/four-sport-forecast-audit-view-20261022, main]
+    branches: [main]
     paths: [docs/evidence/racer-daily-refresh-trigger.txt, docs/evidence/racer-intraday-refresh-trigger.txt, docs/evidence/owner-pdca-main-trigger.txt]
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
     types: [completed]
-    branches: [feat/four-sport-forecast-audit-view-20261022]
+    branches: [production/boat-p0-p1-20261111]
   schedule:
     # Identical existing UTC minute coverage, separated only so the BOAT
     # owner launcher can select JST 07:02-08:57 without daily extra jobs.
@@ -123,9 +123,10 @@ jobs:
     if: >-
       github.repository == 'haji84/RACE-AI' &&
       ((github.event_name == 'workflow_run' &&
-        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
-        github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022' &&
+        github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
+        github.event.workflow_run.head_sha == '11b905a7bf011baffdc0e8bcc5b568355d6e41b1' &&
         github.event.workflow_run.conclusion == 'success') ||
        (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
        (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
@@ -176,12 +177,13 @@ jobs:
       !cancelled() &&
       github.repository == 'haji84/RACE-AI' && github.event_name != 'pull_request' &&
       (github.event_name != 'workflow_run' ||
-       (github.event.workflow_run.event == 'push' &&
+       (github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
-        github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022' &&
-        github.event.workflow_run.conclusion == 'success')) &&
+        github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
+        github.event.workflow_run.head_sha == '11b905a7bf011baffdc0e8bcc5b568355d6e41b1' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        needs.source_mirror.result == 'success')) &&
       (github.event_name != 'push' ||
-       github.ref == 'refs/heads/feat/four-sport-forecast-audit-view-20261022' ||
        (github.ref == 'refs/heads/main' &&
         startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca')))
     runs-on: ubuntu-24.04
