@@ -68,6 +68,25 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
                   "created_at":"2026-11-10T05:00:00Z"}
         self.assertTrue(self.decide(runs=[existing])["dispatch_allowed"])
 
+    def test_existing_boat_result_polling_times_are_unchanged(self):
+        from pathlib import Path
+        source=(Path(__file__).resolve().parents[1]/
+                ".github/workflows/boat-racer-daily.yml").read_text()
+        self.assertIn("cron: '2-59/5 0-14 * * *'", source)
+        self.assertIn("cron: '2-59/5 22-23 * * *'", source)
+        self.assertIn("cron: '20 21 * * *'", source)
+        self.assertNotIn("cron: '2-59/5 0-14,22-23 * * *'", source)
+        # 15 hours + 2 hours. Identical minute values in each hour:
+        minute_set=set(range(2,60,5))
+        self.assertEqual(len(minute_set),12)
+        self.assertEqual(len(minute_set)*(15+2),204)
+        launcher=source.split("  owner_p0_p1_dispatch:\\n",1)[1]
+        self.assertIn("github.event.schedule == '2-59/5 22-23 * * *'", launcher)
+        self.assertNotIn("github.event.schedule == '2-59/5 0-14 * * *'", launcher)
+        self.assertIn("group: boat-main-launcher-source-free", launcher)
+        self.assertIn("actions: write", launcher)
+        self.assertNotIn("racer_intraday_refresh",launcher)
+
     def test_unreturned_pagination_is_not_no_forecast(self):
         output=decide(now=NOW, release=release(),
             owner_doc=source_doc(RELEASE_TOKEN), history=history(total=101))
