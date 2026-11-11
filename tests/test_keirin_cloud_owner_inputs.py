@@ -127,6 +127,51 @@ class SourceSessionTests(unittest.TestCase):
             session('https://www.winticket.jp/keirin/odds/20300115')
         self.assertEqual(session.requests,0)
         self.assertTrue(session.budget_exhausted)
+    def test_prior_result_shared_between_future_races_without_second_get(self):
+        url = 'https://www.winticket.jp/keirin/aomori/raceresult/2029123112/1/1'
+        calls = []
+        source = lambda path: calls.append(path) or b'actual observed old result bytes'
+        session = SourceSession(source, monotonic=lambda: 0, budget_seconds=240)
+        self.assertEqual(session(url), b'actual observed old result bytes')
+        self.assertEqual(session(url), b'actual observed old result bytes')
+        self.assertEqual(session.requests, 1)
+        self.assertEqual(session.historical_page_cache_hits, 1)
+        self.assertEqual(calls, [url])
+        self.assertGreater(session.historical_page_cache_bytes, 0)
+
+    def test_current_racecard_and_live_odds_never_cached(self):
+        calls = []
+        session = SourceSession(lambda url: calls.append(url) or b'live changing page',
+                                monotonic=lambda: 0, budget_seconds=240)
+        current = 'https://www.winticket.jp/keirin/aomori/racecard/2030011512/1/1'
+        odds = 'https://www.winticket.jp/keirin/odds/20300115'
+        for url in (current, odds):
+            self.assertEqual(session(url), b'live changing page')
+            self.assertEqual(session(url), b'live changing page')
+        self.assertEqual(len(calls), 4)
+        self.assertEqual(session.historical_page_cache_hits, 0)
+
+    def test_history_cache_rejects_oversized_pages(self):
+        from scripts.keirin_cloud_owner_inputs import PAST_CACHE_ENTRY_MAX_BYTES
+        url = 'https://www.winticket.jp/keirin/aomori/raceresult/2029123112/1/1'
+        calls = []
+        session = SourceSession(
+            lambda path: calls.append(path) or (b'A'*(PAST_CACHE_ENTRY_MAX_BYTES+1)),
+            monotonic=lambda:0, budget_seconds=240)
+        session(url)
+        session(url)
+        self.assertEqual(len(calls),2)
+        self.assertEqual(session.historical_page_cache_bytes,0)
+
+    def test_cached_page_integrity_checked_on_reuse(self):
+        url='https://www.winticket.jp/keirin/aomori/raceresult/2029123112/1/1'
+        session=SourceSession(lambda _:b'old result',monotonic=lambda:0,budget_seconds=240)
+        session(url)
+        session._historical_cache[url]=(b'tampered',sha256(b'old result').hexdigest())
+        with self.assertRaisesRegex(ValueError,"CACHED_HISTORICAL_RESULT_CHANGED"):
+            session(url)
+        self.assertEqual(session.requests,1)
+
     def test_unapproved_host_is_never_requested(self):
         session=SourceSession(lambda url:self.fail('bad host'),
             monotonic=lambda:0,budget_seconds=240)
