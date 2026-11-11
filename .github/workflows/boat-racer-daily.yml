@@ -56,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 08a166d982e8e7d16aa347be41f79f67be2ccdf3
+          ref: a60b8493ee67f8cf1006d3c240ffd121a5f359ce
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -83,7 +83,12 @@ jobs:
           suite = unittest.defaultTestLoader.loadTestsFromNames(['tests.test_boat_source_control_mirror',
                   'tests.test_boat_all_period_no_age_cutoff',
                   'tests.test_source_free_model_pdca_stage',
-                  'tests.test_verify_all_history_pdca_readback'])
+                  'tests.test_verify_all_history_pdca_readback',
+                  'tests.test_first_p0_bootstrap',
+                  'tests.test_boat_first_p0_readback',
+                  'tests.test_boat_first_p0_reconcile',
+                  'tests.test_boat_saved_result_recovery',
+                  'tests.test_boat_private_original_vault_cli'])
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(not result.wasSuccessful())
           PY
@@ -94,7 +99,7 @@ jobs:
           persist-credentials: false
       - name: Test canonical owner dispatch gate with no source requests
         working-directory: proposed-workflow
-        run: python -m unittest tests.test_boat_main_dispatch_gate -v
+        run: python -m unittest tests.test_boat_main_dispatch_gate tests.test_boat_first_p0_recovery_gate -v
       - name: Read-only confirmation of approved owner release and canonical SHA
         working-directory: proposed-workflow
         env:
@@ -139,7 +144,7 @@ jobs:
           daily = content.split('  daily:\n', 1)[1]
           header = content.split('jobs:\n', 1)[0]
           assert mirror.count('Reconcile verified completed BOAT source handoff') == 1
-          assert 'needs: source_mirror' in daily
+          assert 'needs: [source_mirror, original_reconcile]' in daily
           assert '!cancelled()' in daily
           assert 'actions: read' in mirror
           assert 'contents: write' in mirror
@@ -149,7 +154,7 @@ jobs:
           assert "github.event.workflow_run.conclusion == 'success'" in mirror
           assert "github.event.workflow_run.event == 'workflow_dispatch'" in mirror
           assert "github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111'" in mirror
-          assert "github.event.workflow_run.head_sha == 'e24f09f150e2318dd16a96bdc6db1d8c1317b9ae'" in mirror
+          assert "github.event.workflow_run.head_sha == 'a60b8493ee67f8cf1006d3c240ffd121a5f359ce'" in mirror
           assert "needs.source_mirror.result == 'success'" in daily
           assert "github.event.schedule == '20 21 * * *'" in mirror
           assert 'continue-on-error: true' not in mirror
@@ -157,16 +162,181 @@ jobs:
           pin = "ref: $" + "{{ github.event_name == 'push' && github.sha || '914941a6244364480370ac392441ad4bb5781f83' }}"
           assert pin in daily
           PY
-  source_mirror:
-    name: Reconcile authenticated completed BOAT source (no provider GET)
+  original_retention:
+    name: Retain exact first P0 and companions without source acquisition
     if: >-
       github.repository == 'haji84/RACE-AI' &&
       ((github.event_name == 'workflow_run' &&
         github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == 'e24f09f150e2318dd16a96bdc6db1d8c1317b9ae' &&
-        github.event.workflow_run.conclusion == 'success') ||
+        github.event.workflow_run.head_sha == 'a60b8493ee67f8cf1006d3c240ffd121a5f359ce') ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca') &&
+        contains(github.event.head_commit.message, 'recover-first-p0-42995325741')))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    outputs:
+      vault_commit: ${{ steps.retained.outputs.vault_commit }}
+      receipt_commit: ${{ steps.select.outputs.receipt_commit }}
+      day: ${{ steps.select.outputs.day }}
+      p0: ${{ steps.select.outputs.p0 }}
+      continuity: ${{ steps.select.outputs.continuity }}
+      control: ${{ steps.select.outputs.control }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false}
+      - name: Select authenticated original artifacts without another source attempt
+        id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORIGINAL_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '42995325741' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$ORIGINAL_RUN_ID" =~ ^[1-9][0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$ORIGINAL_RUN_ID" > "$RUNNER_TEMP/original-run.json"
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/runs/$ORIGINAL_RUN_ID/artifacts?per_page=100" > "$RUNNER_TEMP/original-artifact-pages.json"
+          if [[ "$ORIGINAL_RUN_ID" == '42995325741' ]]; then
+            receipt_commit='20fc291429003fd0351baef4b0c1918b76b4e066'
+          else
+            receipt_commit="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feat/four-sport-forecast-audit-view-20261022" --jq '.object.sha')"
+          fi
+          [[ "$receipt_commit" =~ ^[a-f0-9]{40}$ ]]
+          echo "receipt_commit=$receipt_commit" >> "$GITHUB_OUTPUT"
+          python - <<'PY_SELECT'
+          import json, os
+          from pathlib import Path
+          from scripts.boat_main_dispatch_gate import recovery_selection
+          root=Path(os.environ['RUNNER_TEMP'])
+          run=json.loads((root/'original-run.json').read_text())
+          pages=json.loads((root/'original-artifact-pages.json').read_text())
+          assert type(pages) is list and 1 <= len(pages) <= 11
+          assert all(p['total_count']==pages[0]['total_count'] for p in pages)
+          artifacts={'total_count':pages[0]['total_count'],
+                     'artifacts':[a for p in pages for a in p['artifacts']]}
+          selected=recovery_selection(run=run,artifacts=artifacts)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              for name,value in dict(day=selected['day_jst'],p0=selected['p0_artifact'],
+                                     continuity=selected['companion_artifacts'][0],
+                                     control=selected['companion_artifacts'][1]).items():
+                  out.write(f'{name}={value}\n')
+          print(json.dumps(selected,sort_keys=True))
+          PY_SELECT
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: a60b8493ee67f8cf1006d3c240ffd121a5f359ce, path: owner-runtime}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: owner-runtime/pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: owner-runtime/pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r owner-runtime/requirements-history.txt
+      - name: Append exact encrypted originals to the existing permanent vault
+        id: retained
+        working-directory: owner-runtime
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          P0_ID: ${{ steps.select.outputs.p0 }}
+          CONTINUITY_ID: ${{ steps.select.outputs.continuity }}
+          CONTROL_ID: ${{ steps.select.outputs.control }}
+        run: |
+          python -m scripts.boat_private_original_vault capture --artifact "$P0_ID" --artifact "$CONTINUITY_ID" --artifact "$CONTROL_ID" --expected-parent current --repo-root . --output "$RUNNER_TEMP/first-p0-vault.json"
+          python - <<'PY_VAULT'
+          import json,os,re
+          from pathlib import Path
+          report=json.loads((Path(os.environ['RUNNER_TEMP'])/'first-p0-vault.json').read_text())
+          assert report['retained_originals']==3 and report['independent_git_readback_verified'] is True
+          expected={int(os.environ[key]) for key in ('P0_ID','CONTINUITY_ID','CONTROL_ID')}
+          assert {r['artifact_id'] for r in report['locators']}==expected
+          commit=report['source_commit']; assert re.fullmatch('[a-f0-9]{40}',commit)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out: out.write(f'vault_commit={commit}\n')
+          PY_VAULT
+  original_readback:
+    name: Read first P0 on a separate runner at the exact vault commit
+    needs: original_retention
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: read
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+      VAULT_COMMIT: ${{ needs.original_retention.outputs.vault_commit }}
+      RECEIPT_COMMIT: ${{ needs.original_retention.outputs.receipt_commit }}
+      ORIGINAL_DAY: ${{ needs.original_retention.outputs.day }}
+      P0_ID: ${{ needs.original_retention.outputs.p0 }}
+      CONTINUITY_ID: ${{ needs.original_retention.outputs.continuity }}
+      CONTROL_ID: ${{ needs.original_retention.outputs.control }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: a60b8493ee67f8cf1006d3c240ffd121a5f359ce}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Verify original hashes, receipts, forecast clocks and companions
+        run: python -m scripts.boat_first_p0_readback --repo-root . --vault-commit "$VAULT_COMMIT" --receipt-commit "$RECEIPT_COMMIT" --day "$ORIGINAL_DAY" --p0-artifact "$P0_ID" --companion-artifact "$CONTINUITY_ID" --companion-artifact "$CONTROL_ID" --output "$RUNNER_TEMP/first-p0-independent-readback.json"
+      - name: Retain only count and hash evidence from the separate reader
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-first-p0-independent-readback-${{ github.run_id }}
+          path: ${{ runner.temp }}/first-p0-independent-readback.json
+          if-no-files-found: error
+          retention-days: 90
+  original_reconcile:
+    name: Reconcile authenticated first P0 with retained official results
+    needs: [original_retention, original_readback]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+      RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+      VAULT_COMMIT: ${{ needs.original_retention.outputs.vault_commit }}
+      RECEIPT_COMMIT: ${{ needs.original_retention.outputs.receipt_commit }}
+      ORIGINAL_DAY: ${{ needs.original_retention.outputs.day }}
+      P0_ID: ${{ needs.original_retention.outputs.p0 }}
+      CONTINUITY_ID: ${{ needs.original_retention.outputs.continuity }}
+      CONTROL_ID: ${{ needs.original_retention.outputs.control }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: a60b8493ee67f8cf1006d3c240ffd121a5f359ce}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Use the original projector, official parser and scorer without source GET
+        run: python -m scripts.boat_first_p0_reconcile --repo-root . --vault-commit "$VAULT_COMMIT" --receipt-commit "$RECEIPT_COMMIT" --day "$ORIGINAL_DAY" --p0-artifact "$P0_ID" --companion-artifact "$CONTINUITY_ID" --companion-artifact "$CONTROL_ID" --output "$RUNNER_TEMP/first-p0-reconciliation.json"
+      - name: Retain count-only existing-scorer evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-first-p0-official-reconciliation-${{ github.run_id }}
+          path: ${{ runner.temp }}/first-p0-reconciliation.json
+          if-no-files-found: error
+          retention-days: 90
+  source_mirror:
+    needs: [original_retention, original_readback, original_reconcile]
+    name: Reconcile authenticated completed BOAT source (no provider GET)
+    if: >-
+      !cancelled() && github.repository == 'haji84/RACE-AI' &&
+      !(github.event_name == 'push' && contains(github.event.head_commit.message, 'recover-first-p0-42995325741')) &&
+      ((github.event_name == 'workflow_run' &&
+        github.event.workflow_run.event == 'workflow_dispatch' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
+        github.event.workflow_run.head_sha == 'a60b8493ee67f8cf1006d3c240ffd121a5f359ce' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        needs.original_readback.result == 'success' &&
+        needs.original_reconcile.result == 'success') ||
        (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
        (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
         startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca')))
@@ -178,7 +348,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 914941a6244364480370ac392441ad4bb5781f83
+          ref: a60b8493ee67f8cf1006d3c240ffd121a5f359ce
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -211,15 +381,17 @@ jobs:
           raise SystemExit(main(['latest-closed', '--repo-root', '.', '--output', output]))
           PY
   daily:
-    needs: source_mirror
+    needs: [source_mirror, original_reconcile]
     if: >-
       !cancelled() &&
+      (!(github.event_name == 'push' && contains(github.event.head_commit.message, 'recover-first-p0-42995325741')) ||
+       needs.original_reconcile.result == 'success') &&
       github.repository == 'haji84/RACE-AI' && github.event_name != 'pull_request' &&
       (github.event_name != 'workflow_run' ||
        (github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == 'e24f09f150e2318dd16a96bdc6db1d8c1317b9ae' &&
+        github.event.workflow_run.head_sha == 'a60b8493ee67f8cf1006d3c240ffd121a5f359ce' &&
         github.event.workflow_run.conclusion == 'success' &&
         needs.source_mirror.result == 'success')) &&
       (github.event_name != 'push' ||
@@ -305,7 +477,7 @@ jobs:
            startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca'))
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 08a166d982e8e7d16aa347be41f79f67be2ccdf3
+          ref: a60b8493ee67f8cf1006d3c240ffd121a5f359ce
           path: pdca-verified
           persist-credentials: false
       - name: Checkout original BOAT parser for existing full-period scorer
