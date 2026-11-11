@@ -130,6 +130,27 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
                       history=history(*rows))
         self.assertEqual(result["status"],"HOLD_INCOMPLETE_RUN_HISTORY")
 
+    def test_one_shot_owner_push_reuses_existing_main_workflow(self):
+        from pathlib import Path
+        root=Path(__file__).resolve().parents[1]
+        workflow=(root/".github/workflows/boat-racer-daily.yml").read_text()
+        self.assertIn("docs/evidence/owner-pdca-main-trigger.txt", workflow)
+        launcher=workflow.split("  owner_p0_p1_dispatch:\n",1)[1]
+        self.assertIn("github.event_name == 'push'", launcher)
+        self.assertIn("boat-owner-release: single-real-session-20261111", launcher)
+        self.assertIn("github.ref == 'refs/heads/main'", launcher)
+        self.assertIn("steps.owner_gate.outputs.ready == 'true'", launcher)
+        self.assertIn("--ref production/boat-p0-p1-20261111", launcher)
+        self.assertIn("production_scope=existing-owner-p0-p1", launcher)
+        self.assertIn("group: boat-main-launcher-source-free", launcher)
+        self.assertIn("cancel-in-progress: false", launcher)
+        self.assertIn("actions: write", launcher)
+        self.assertNotIn("racer_intraday_refresh", launcher)
+        self.assertNotIn("scripts.boat_pdca_github", launcher)
+        # Existing collector and main result scorer remain separate jobs.
+        self.assertEqual(workflow.splitlines().count("  daily:"),1)
+        self.assertEqual(workflow.splitlines().count("  source_mirror:"),1)
+
     def test_unreturned_pagination_is_not_no_forecast(self):
         output=decide(now=NOW, release=release(),
             owner_doc=source_doc(RELEASE_TOKEN), history=history(total=101))
