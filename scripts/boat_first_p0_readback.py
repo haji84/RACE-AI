@@ -20,7 +20,7 @@ if str(ROOT) not in sys.path:
 from race_ai import boat_private_original_archive as native
 from race_ai import boat_private_original_vault as V
 from race_ai.boat_source_control import read_summary
-from race_ai.frozen_day_cycle import read_p0
+from race_ai.frozen_day_cycle import read_p0, read_p1
 from scripts import boat_private_original_vault as vaultCLI
 from scripts import first_p0_bootstrap as boot
 
@@ -35,7 +35,7 @@ def _need(ok, reason):
 
 
 def verify(repo, *, vault_commit, receipt_commit, day, p0_artifact,
-           companion_artifacts, transport=None, receipt_get=None):
+           companion_artifacts, transport=None, receipt_get=None, verify_retained_p1=False):
     """Return (count report, native document, native rows, original metadata).
 
     ``transport`` and ``receipt_get(path, *, ref)`` replace only external Git and
@@ -45,6 +45,7 @@ def verify(repo, *, vault_commit, receipt_commit, day, p0_artifact,
     try:
         repo = vaultCLI._environment(repo)
         stage = 'INPUT'
+        _need(type(verify_retained_p1) is bool, 'P1_FLAG_INVALID')
         _need(all(type(value) is str and re.fullmatch(r'[a-f0-9]{40}', value)
                   for value in (vault_commit, receipt_commit)), 'COMMIT_INVALID')
         _need(type(day) is str and date.fromisoformat(day).isoformat() == day, 'DAY_INVALID')
@@ -127,11 +128,78 @@ def verify(repo, *, vault_commit, receipt_commit, day, p0_artifact,
             companion_artifact_ids=sorted(companion_artifacts),
             independent_readback_verified=True, new_forecasts_created=0,
             provider_requests=0, plaintext_published=False, scoring_performed=False)
+        if verify_retained_p1:
+            stage = 'P1'
+            report['p1_readback'] = _retained_p1_report(repo, vault_commit=vault_commit, day=day,
+                source_run=source_run, source_sha=source_sha, verification_run=verification_run,
+                transport=git)
         return report, document, rows, metadata
     except _Rejected:
         raise
     except Exception:
         raise _Rejected('FIRST_P0_READBACK_' + stage + '_REJECTED') from None
+
+
+def _retained_p1_report(repo, *, vault_commit, day, source_run, source_sha,
+                        verification_run, transport):
+    """Read this producer's existing encrypted P1s, never infer or fetch sources."""
+    from race_ai.first_receipt_continuity import first_receipt_rows
+    locators = V.list_originals(day[:7], repo, source_commit=vault_commit,
+                               run_id=source_run, transport=transport)
+    proofs = []; all_rows = []; empty = 0
+    fields = ('race_id', 'stage', 'model_id', 'as_of', 'cutoff_at', 'server_saved_at',
+              'artifact_id', 'original_json_sha256', 'model_sha256')
+    selected = [locator for locator in locators if locator['kind'] == 'P1']
+    for locator in sorted(selected, key=lambda item: item['artifact_id']):
+        _need(locator['source_commit'] == vault_commit, 'P1_LOCATOR_COMMIT_INVALID')
+        value = V.restore_original(locator, repo, transport=transport)
+        metadata = value['metadata']; run = metadata['workflow_run']
+        _need(metadata['id'] == locator['artifact_id'] and run['id'] == source_run
+              and run['head_sha'] == source_sha and source_run != verification_run
+              and value['provenance']['source_commit'] == vault_commit
+              and value['provenance']['independent_git_readback_verified'] is True,
+              'P1_SOURCE_IDENTITY_INVALID')
+        document, rows = read_p1(value['raw_zip'], metadata)
+        _need(document.get('event_day') == day
+              and V._time(metadata['created_at']).astimezone(V.JST).date().isoformat() == day,
+              'P1_DAY_INVALID')
+        for row in rows:
+            _need(row['stage'] == 'P1' and type(row['race_id']) is str
+                  and re.fullmatch(day.replace('-', '') + r'-\d{2}-\d{2}', row['race_id'])
+                  and 1 <= int(row['race_id'][9:11]) <= 24
+                  and 1 <= int(row['race_id'][12:14]) <= 12,
+                  'P1_RACE_DAY_INVALID')
+        with native._checked_zip(value['raw_zip'], max_zip_bytes=V.MAX_ORIGINAL) as archive:
+            _need(archive.namelist() == [native.CIPHER_MEMBER], 'P1_ENCRYPTED_ORIGINAL_REQUIRED')
+            cipher = archive.read(native.CIPHER_MEMBER)
+        header, _, _, _ = native._split(cipher)
+        bindings = [{field: row[field] for field in fields} for row in rows]
+        proofs.append(dict(artifact_id=metadata['id'], server_created_at=metadata['created_at'],
+            zip_sha256=hashlib.sha256(value['raw_zip']).hexdigest(),
+            cipher_sha256=hashlib.sha256(cipher).hexdigest(),
+            inner_zip_sha256=header['plain_zip_sha256'],
+            metadata_sha256=hashlib.sha256(value['metadata_raw']).hexdigest(),
+            json_sha256=rows[0]['original_json_sha256'] if rows else None,
+            model_forecast_count=len(rows),
+            forecast_binding_sha256=hashlib.sha256(V._wire(bindings)).hexdigest()))
+        empty += not rows
+        all_rows.extend(rows)
+    rows, excluded = first_receipt_rows(all_rows)
+    proven = len(rows) > 0
+    status = ('P1_INDEPENDENT_READBACK_VERIFIED' if proven else
+              'P1_EMPTY_ORIGINALS_ONLY' if proofs else 'P1_NOT_RETAINED')
+    bindings = [{field: row[field] for field in fields} for row in rows]
+    return dict(status=status, coverage_scope='SAME_RUN_RETAINED_BASELINE_P1_ONLY',
+        day_jst=day, source_run_id=source_run, source_sha=source_sha,
+        verification_run_id=verification_run, vault_commit=vault_commit,
+        artifacts_verified=len(proofs), empty_artifacts=empty, artifacts=proofs,
+        race_count=len({row['race_id'] for row in rows}), model_forecast_count=len(rows),
+        distinct_model_count=len({row['model_id'] for row in rows}),
+        excluded_repeat_forecasts=len(excluded),
+        forecast_binding_sha256=hashlib.sha256(V._wire(bindings)).hexdigest(),
+        before_cutoff_model_forecast_count=len(rows), generation_storage_proven=proven,
+        independent_readback_verified=proven, new_forecasts_created=0,
+        provider_requests=0, plaintext_published=False, scoring_performed=False)
 
 
 def main(argv=None, *, transport=None, receipt_get=None):
@@ -142,12 +210,15 @@ def main(argv=None, *, transport=None, receipt_get=None):
     parser.add_argument('--day', required=True)
     parser.add_argument('--p0-artifact', type=int, required=True)
     parser.add_argument('--companion-artifact', type=int, action='append', required=True)
+    parser.add_argument('--verify-retained-p1', action='store_true',
+                        help='Also authenticate same-run retained baseline P1 without any source requests')
     parser.add_argument('--output', required=True)
     args = parser.parse_args(argv)
     try:
         report, _, _, _ = verify(args.repo_root, vault_commit=args.vault_commit,
             receipt_commit=args.receipt_commit, day=args.day, p0_artifact=args.p0_artifact,
-            companion_artifacts=args.companion_artifact, transport=transport, receipt_get=receipt_get)
+            companion_artifacts=args.companion_artifact, transport=transport, receipt_get=receipt_get,
+            verify_retained_p1=args.verify_retained_p1)
         output = vaultCLI._private_path(args.output, Path(args.repo_root).resolve(), exists=False)
         vaultCLI._write(output, V._wire(report) + b'\n')
         print(V._wire(report).decode('utf-8'))
