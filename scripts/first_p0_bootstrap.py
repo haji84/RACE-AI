@@ -193,10 +193,18 @@ def bootstrap_control(day,run_id,*,inherited=None):
              'BOOTSTRAP_SOURCE_CONTROL_IDENTITY')
         return value
     inherited=inherited or {}
+    from race_ai.repeated_cycle import SOURCE_LIMIT
+    total=inherited.get('lifetime_requests',0)
+    day_base=(inherited.get('day_start_lifetime_requests')
+              if inherited.get('day_jst')==day else total)
+    need(type(total) is int and type(day_base) is int and 0<=day_base<=total,
+         'BOOTSTRAP_DAY_SOURCE_BUDGET_UNVERIFIED')
+    need(SOURCE_LIMIT is None or total-day_base<=SOURCE_LIMIT,
+         'BOOTSTRAP_DAY_SOURCE_BUDGET_EXCEEDED')
     value=dict(schema='RACE_AI_BOOTSTRAP_SOURCE_CONTROL_V1',day_jst=day,run_id=run_id,
         requests_used=0,completed_round=0,source_wait=inherited.get('source_wait'),
-        lifetime_requests_base=inherited.get('lifetime_requests',0),
-        lifetime_requests=inherited.get('lifetime_requests',0),
+        lifetime_requests_base=total,
+        lifetime_requests=total,day_start_lifetime_requests=day_base,
         lifetime_completed_rounds=inherited.get('lifetime_completed_rounds',0),
         previous_halted_reason=inherited.get('previous_halted_reason'),halted_reason=None,
         inherited_source_receipt=inherited.get('receipt'))
@@ -206,6 +214,15 @@ def bootstrap_control(day,run_id,*,inherited=None):
 
 def preflight(day, run_id):
     inherited=previous_source_control(gh,day,current_run=run_id)
+    # Even a manually-dispatched production worker must not restart the
+    # official-source allowance after an unresolved same-day owner attempt.
+    # PR-only offline CI is filtered by day_runs/owner_run_origin.
+    earlier=[run for run in day_runs(gh,day,current_run=run_id)
+             if ts(run['created_at']).astimezone(JST).date().isoformat()==day]
+    if earlier:
+        need(inherited is not None and inherited.get('day_jst')==day and
+             type(inherited.get('day_start_lifetime_requests')) is int,
+             'SAME_DAY_OWNER_SOURCE_CONTROL_REQUIRED')
     bootstrap_control(day,run_id,inherited=inherited)
     prior = previous_first_receipt(day, run_id)
     path = index_path(day)
@@ -257,8 +274,14 @@ def capture(day, run_id, *, now=None, clock=None, handoff_at=None):
         return observed
     class BootstrapGuard:
         def charge(self,kind):
+            from race_ai.repeated_cycle import SOURCE_LIMIT
             need(kind=='forecast','BOOTSTRAP_SOURCE_KIND_REJECTED')
             actual_day_clock()
+            base=control.get('day_start_lifetime_requests')
+            need(type(base) is int and 0<=base<=control['lifetime_requests'],
+                 'BOOTSTRAP_DAY_SOURCE_BUDGET_UNVERIFIED')
+            need(SOURCE_LIMIT is None or control['lifetime_requests']-base<SOURCE_LIMIT,
+                 'BOOTSTRAP_DAY_SOURCE_BUDGET_EXCEEDED')
             control['requests_used']+=1
             control['lifetime_requests']=control['lifetime_requests_base']+control['requests_used']
             _save_control(control)  # Immediately before the actual GET.

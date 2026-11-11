@@ -95,6 +95,21 @@ class SafeSourceControlTests(unittest.TestCase):
         self.assertEqual((output.stat().st_mode & 0o777, (output/"source-control.json").stat().st_mode & 0o777), (0o700, 0o600))
         self.assertNotIn(base64.b64encode(KEY).decode(), stdout.getvalue())
 
+    def test_optional_day_budget_baseline_is_bound_to_existing_encrypted_checkpoint(self):
+        _, raw, meta, summary, public, public_meta = self.fixture(
+            day_start_lifetime_requests=5)
+        self.assertEqual(summary['control']['day_start_lifetime_requests'],5)
+        client=self.client(raw,meta,public,public_meta)
+        with patch.dict(os.environ,{},clear=True):
+            control=client.final_control(dict(id=7,head_sha=HEAD))
+        self.assertEqual(control['day_start_lifetime_requests'],5)
+        self.assertEqual(control['lifetime_requests'],7)
+        self.assertEqual(control['previous_session_requests'],3)
+        for bad in (-1,8):
+            with self.subTest(invalid_base=bad):
+                with self.assertRaises(ValueError):
+                    self.fixture(day_start_lifetime_requests=bad)
+
     def test_host_reads_actual_summary_and_cipher_receipts_without_accessing_key(self):
         _, raw, meta, _, public, public_meta = self.fixture()
         client = self.client(raw, meta, public, public_meta)

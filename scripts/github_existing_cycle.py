@@ -1071,6 +1071,10 @@ def repeat_start(day):
              'SOURCE_CONTROL_CHANGED_DURING_BOOTSTRAP')
         control['source_wait']=bootstrap.get('source_wait')
         control['previous_halted_reason']=bootstrap.get('previous_halted_reason')
+        # Preserve the day-scoped cap across workers as well as the
+        # immutable all-time counter read from the prior encrypted checkpoint.
+        control['day_start_lifetime_requests']=bootstrap['day_start_lifetime_requests']
+        control['day_jst']=day
     if datetime.now(timezone.utc).astimezone(JST).date().isoformat()!=day:
         from scripts.first_p0_bootstrap import bootstrap_control,_save_control
         bootstrap=bootstrap or bootstrap_control(day,int(os.environ['GITHUB_RUN_ID']),inherited=control)
@@ -1113,7 +1117,7 @@ def repeat_prepare(day,round_no):
                 output.write('active=false\nreason=EXPLICIT_RESEARCH_COMPLETE\n')
             return dict(active=False,wait_seconds=0,reason='EXPLICIT_RESEARCH_COMPLETE')
         forward.request(round_no)
-    from race_ai.repeated_cycle import prepare
+    from race_ai.repeated_cycle import prepare,load,write_state
     path=ROOT/'cycle_recovery_output/repeat-session.json'
     continuity_path=ROOT/'cycle_recovery_output/continuity.json'
     continuity=load_state(continuity_path,day) if continuity_path.exists() else {}
@@ -1122,7 +1126,15 @@ def repeat_prepare(day,round_no):
     def decide():
         now=datetime.now(timezone.utc)
         if handoff is not None and now>=handoff:
-            return dict(active=False,wait_seconds=0,reason='WORKER_HANDOFF')
+            # The final encrypted CONTINUITY artifact must distinguish a
+            # normal worker handoff from an uncommitted round or source HOLD.
+            state=load(path)
+            need(state['day_jst']==day,'WORKER_HANDOFF_DAY_MISMATCH')
+            need(state['prepared_round'] is None,'WORKER_HANDOFF_UNCOMMITTED_ROUND')
+            if state['halted_reason'] is None:
+                state['halted_reason']='WORKER_HANDOFF'
+                write_state(path,state)
+            return dict(active=False,wait_seconds=0,reason=state['halted_reason'])
         return prepare(path,round_no,now=now,next_action_at=next_action)
     decision=decide()
     while decision['wait_seconds']:
