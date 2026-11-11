@@ -214,6 +214,15 @@ def bootstrap_control(day,run_id,*,inherited=None):
 
 def preflight(day, run_id):
     inherited=previous_source_control(gh,day,current_run=run_id)
+    # Even a manually-dispatched production worker must not restart the
+    # official-source allowance after an unresolved same-day owner attempt.
+    # PR-only offline CI is filtered by day_runs/owner_run_origin.
+    earlier=[run for run in day_runs(gh,day,current_run=run_id)
+             if ts(run['created_at']).astimezone(JST).date().isoformat()==day]
+    if earlier:
+        need(inherited is not None and inherited.get('day_jst')==day and
+             type(inherited.get('day_start_lifetime_requests')) is int,
+             'SAME_DAY_OWNER_SOURCE_CONTROL_REQUIRED')
     bootstrap_control(day,run_id,inherited=inherited)
     prior = previous_first_receipt(day, run_id)
     path = index_path(day)
