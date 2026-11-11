@@ -1,0 +1,78 @@
+{
+  "beforeinfo": {
+    "forecast_inputs_used": false,
+    "parsed": 4,
+    "published_races": 49,
+    "rejected": 0,
+    "requests": 4
+  },
+  "catalogue_at": "2026-11-11T13:41:52.580842+00:00",
+  "checked_at": "2026-11-11T13:41:52.580842+00:00",
+  "daily": null,
+  "forecast_inputs_changed": false,
+  "implementation_commit": "914941a6244364480370ac392441ad4bb5781f83",
+  "new_observations": 1,
+  "period": {
+    "days": 90,
+    "end": "2026-11-10",
+    "start": "2026-08-13"
+  },
+  "private_sources_published": false,
+  "public": {
+    "changed_paths": [
+      "data/racer-daily.json",
+      "data/racer-live-status.json"
+    ],
+    "pages_commit": "0e385ef5d0ebf4d630513b39345d673644b8db0f",
+    "parent_commit": "cc963d4f797680d9967d2d7e828cf17f0d1cc1d2",
+    "path": "data/racer-daily.json",
+    "presentation_and_ciphertext_unchanged": true,
+    "public_sha256": "44510de4542230e67a4bd41d2e6eb411c2a82d48370c81f3f050b521cdc869c8",
+    "public_url": "https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/data/racer-daily.json",
+    "raw_sources_published": false,
+    "status": "DAILY_PUBLIC_PUBLISHED",
+    "status_path": "data/racer-live-status.json",
+    "status_sha256": "bc88649ece7fdfb235e95f14e84313857a8c41e4edc1e410862abd6353b0997b",
+    "status_url": "https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/data/racer-live-status.json",
+    "unchanged_cipher_count": 7
+  },
+  "public_profiles": 1669,
+  "result_rejection_reason_counts": {
+    "RESULT_AMBIGUOUS_FORECAST_CUTOFF": 1,
+    "RESULT_CUTOFF_MISMATCH": 1
+  },
+  "result_sync": {
+    "changed_races": 7,
+    "checked_at": "2026-11-11T13:41:52.580842+00:00",
+    "confirmed": 137,
+    "held": 2,
+    "pending": 7,
+    "races": 146,
+    "schema": "RACE_AI_RESULT_SYNC_V1",
+    "state": "READY"
+  },
+  "retained": {
+    "cipher_path": "state/boat-racer-intraday/v1/g000062/35c1644eae57795d177392e7ea3bccec4b9ff40e6bb115f27b68fd80ab107659.enc",
+    "cipher_sha256": "35c1644eae57795d177392e7ea3bccec4b9ff40e6bb115f27b68fd80ab107659",
+    "generation": 62,
+    "new_capture_count": 12,
+    "packet_bytes": 520192,
+    "plaintext_published": false,
+    "source_commit": "ac3e1fdc655c8fb88e7dd96cd29f5f4cfe12cfc9",
+    "status": "INTRADAY_ENCRYPTED_DELTA_RETAINED"
+  },
+  "schema": "RACE_AI_RACER_INTRADAY_RUN_V1",
+  "source_requests": 12,
+  "status": "INTRADAY_REFRESHED",
+  "today": {
+    "confirmed_races": 144,
+    "day": "2026-11-11",
+    "expected_races": 144,
+    "last_checked_at": "2026-11-11T13:41:52.580842+00:00",
+    "latest_result_at": "2026-11-11T13:41:39.528846+00:00",
+    "pending_races": 0,
+    "revision_conflicts": 1,
+    "schedule_complete": true,
+    "source_state": "READY"
+  }
+}

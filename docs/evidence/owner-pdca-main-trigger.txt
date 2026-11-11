@@ -44,7 +44,18 @@ and reconcile only previously captured official result bytes with the existing
 native scorer. This marker authorizes zero new predictions or provider GETs.
 Production code for future already-authorized schedules is pinned separately
 to a60b8493ee67f8cf1006d3c240ffd121a5f359ce; current-day source-dispatch exclusion stays intact.
+
+2026-11-11: recover-first-p0-42995325741 after authenticated result collection.
+The existing retention and independent reader passed in run 43030625791 at
+vault commit 2448b33de6ecf7388f8fd8577860622b67b9b9a2. Keep those exact originals.
+Existing collector run 43015122597 attempts 2 and 3 retained official result
+generation 63 at e95d01b35f96cafff9d0313db80e2eb7ab647cac, with 12 requests each.
+Reconcile the same native P0 against these results, then verify its explicit P0
+groups and a model/ticket sample through the existing private Pages checker.
+Do not regenerate forecasts, relabel P0 as P1, or treat the broader result-feed
+counts as this original's acceptance count. Retain the first HOLD report.
 No original timestamp, frozen prediction, receipt, or historical day is replaced.
 Publish only ciphertext and count/hash evidence. Partial source coverage and
 missing official results remain explicit. A successful job is not proof of a
 P1 forecast or a complete nationwide model/day cycle.
+Final P0 display verifier and existing future launcher code: a6458be1f49924911f1352a5f2b9f6bb46d66115.
