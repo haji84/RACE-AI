@@ -148,8 +148,8 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertNotIn("racer_intraday_refresh", launcher)
         self.assertNotIn("scripts.boat_pdca_github", launcher)
         # Existing collector and main result scorer remain separate jobs.
-        self.assertEqual(workflow.count("  daily:"),1)
-        self.assertEqual(workflow.count("  source_mirror:"),1)
+        self.assertEqual(workflow.splitlines().count("  daily:"),1)
+        self.assertEqual(workflow.splitlines().count("  source_mirror:"),1)
 
     def test_unreturned_pagination_is_not_no_forecast(self):
         output=decide(now=NOW, release=release(),
