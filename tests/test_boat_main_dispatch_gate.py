@@ -106,6 +106,17 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
                                   created_at='2026-11-11T00:04:01Z'))
         return run,control
 
+    def test_delayed_previous_evening_schedule_cannot_claim_new_jst_day(self):
+        early=datetime.fromisoformat('2026-11-12T00:02:00+09:00')
+        result=decide(now=early,release=release(),owner_doc=source_doc(RELEASE_TOKEN),
+                      history=history())
+        self.assertFalse(result['dispatch_allowed'])
+        self.assertEqual(result['status'],'HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW')
+        first=datetime.fromisoformat('2026-11-12T06:20:00+09:00')
+        result=decide(now=first,release=release(),owner_doc=source_doc(RELEASE_TOKEN),
+                      history=history())
+        self.assertTrue(result['dispatch_allowed'])
+
     def test_authenticated_same_day_handoff_admits_exactly_one_safe_successor(self):
         run,control=self._safe_same_day_successor()
         first=decide(now=NOW,release=release(),owner_doc=source_doc(RELEASE_TOKEN),
