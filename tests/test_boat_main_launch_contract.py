@@ -31,6 +31,7 @@ class CanonicalBoatLaunchContract(unittest.TestCase):
         self.assertIn("actions: write", launch)
         self.assertIn("contents: read", launch)
         self.assertIn("HOLD_BOAT_OWNER_FIXED_SOURCE_BOUNDARY", launch)
+        self.assertIn("exit 78", launch)
         self.assertIn("RACE_AI_BOAT_OWNER_SOURCE_RELEASE_APPROVED", launch)
         self.assertIn("SKIP_EXISTING_SAME_DAY_OWNER_DISPATCH", launch)
         self.assertIn("workflow run boat-nationwide-ab-one-shot.yml", launch)
