@@ -84,7 +84,9 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertEqual(len(minute_set)*(15+2),204)
         launcher=source.split("  owner_p0_p1_dispatch:\n",1)[1]
         self.assertIn("github.event.schedule == '2-59/5 22-23 * * *'", launcher)
-        self.assertNotIn("github.event.schedule == '2-59/5 0-14 * * *'", launcher)
+        self.assertIn("github.event.schedule == '2-59/5 0-14 * * *'", launcher)
+        self.assertIn("--owner-release-root boat-owner-release", launcher)
+        self.assertIn("RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}", launcher)
         self.assertIn("group: boat-main-launcher-source-free", launcher)
         self.assertIn("actions: write", launcher)
         self.assertNotIn("racer_intraday_refresh",launcher)
@@ -225,6 +227,82 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
             owner_doc=source_doc(RELEASE_TOKEN), history=history(total=101))
         self.assertEqual(output["status"], "HOLD_INCOMPLETE_RUN_HISTORY")
         self.assertFalse(output["dispatch_allowed"])
+
+
+class AuthenticatedSameDayContinuationTests(unittest.TestCase):
+    """No earlier source session is retried without AES-authenticated evidence."""
+
+    @staticmethod
+    def owner(ident, *, created="2026-11-11T00:02:00Z", conclusion="success",
+              status="completed", sha=RELEASE_SHA):
+        return dict(id=ident, name=WORKFLOW, head_branch=RELEASE_REF,
+                    head_sha=sha, event="workflow_dispatch", created_at=created,
+                    status=status, conclusion=conclusion)
+
+    @staticmethod
+    def proof(ident, *, day="2026-11-11", reason="BOUNDED_SESSION_END",
+              total=90, base=0):
+        return dict(status="AUTHENTICATED_EXISTING_OWNER_FINAL_CONTROL",
+                    source_run_id=ident, source_sha=RELEASE_SHA,
+                    day_jst=day, previous_stop_reason=reason, source_wait=None,
+                    prepared_round=None, lifetime_requests=total,
+                    day_start_lifetime_requests=base,
+                    continuity_artifact_id=177, source_control_artifact_id=178)
+
+    def judge(self, *runs, proof=None):
+        from scripts.boat_main_dispatch_gate import decide
+        return decide(now=NOW, release=release(), owner_doc=source_doc(RELEASE_TOKEN),
+                      history=history(*runs), resume_proof=proof)
+
+    def test_valid_immutable_checkpoint_allows_one_more_existing_owner_worker(self):
+        current=self.owner(101)
+        result=self.judge(current,proof=self.proof(101))
+        self.assertTrue(result["dispatch_allowed"])
+        self.assertEqual(result["status"],"READY_AUTHENTICATED_SAME_DAY_CONTINUATION")
+        self.assertFalse(result["future_real_forecast_proven"])
+        self.assertEqual(result["official_source_requests"],0)
+
+    def test_multiple_completed_successors_use_only_latest_authentic_checkpoint(self):
+        earlier=self.owner(101,created="2026-11-11T00:02:00Z")
+        latest=self.owner(102,created="2026-11-11T00:30:00Z")
+        self.assertTrue(self.judge(latest,earlier,proof=self.proof(102))["dispatch_allowed"])
+        self.assertFalse(self.judge(latest,earlier,proof=self.proof(101))["dispatch_allowed"])
+
+    def test_missing_or_inconsistent_proof_or_source_halt_never_restarts(self):
+        from copy import deepcopy
+        target=self.owner(101)
+        for changed in (
+            {"status": "NOT_ATTESTED"}, {"source_run_id": 102},
+            {"source_sha": "a"*40}, {"day_jst": "2026-11-10"},
+            {"previous_stop_reason": "DAY_HANDOFF"},
+            {"previous_stop_reason": "SOURCE_VERIFICATION_REQUIRED"},
+            {"previous_stop_reason": "SESSION_SOURCE_BUDGET_EXHAUSTED"},
+            {"source_wait": {"state": "RATE_LIMIT_WAIT"}},
+            {"prepared_round": 1}, {"lifetime_requests": 239},
+            {"day_start_lifetime_requests": None}, {"day_start_lifetime_requests": -1},
+            {"lifetime_requests": 100, "day_start_lifetime_requests": 101},
+            {"continuity_artifact_id": 178},
+        ):
+            with self.subTest(changed=changed):
+                evidence=deepcopy(self.proof(101));evidence.update(changed)
+                self.assertFalse(self.judge(target,proof=evidence)["dispatch_allowed"])
+        self.assertFalse(self.judge(target,proof=None)["dispatch_allowed"])
+
+    def test_p1_budget_cannot_renew_by_restarting(self):
+        target=self.owner(101)
+        self.assertTrue(self.judge(target,proof=self.proof(101,total=195))["dispatch_allowed"])
+        self.assertFalse(self.judge(target,proof=self.proof(101,total=196))["dispatch_allowed"])
+        self.assertTrue(self.judge(target,proof=self.proof(101,total=300,base=110))["dispatch_allowed"])
+
+    def test_active_duplicate_and_failed_worker_are_never_successors(self):
+        target=self.owner(101)
+        active=self.owner(102,created="2026-11-11T00:04:00Z",status="in_progress",
+                          conclusion=None)
+        self.assertEqual(self.judge(active,target,proof=self.proof(101))["status"],
+                         "HOLD_ACTIVE_OWNER_WORKFLOW")
+        failed=self.owner(102,created="2026-11-11T00:04:00Z",conclusion="failure")
+        self.assertFalse(self.judge(failed,target,proof=self.proof(102))["dispatch_allowed"])
+
 
 
 if __name__ == "__main__":
