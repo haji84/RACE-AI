@@ -33,3 +33,18 @@ All prior forecasts (none from run 42993305843), AES, source limits, no
 invented NO_FORECAST and result-authority protections remain unchanged.
 Never call this attempt completed until real immutable original readback and
 official existing-scorer settlement prove it.
+
+2026-11-11 exact original recovery: recover-first-p0-42995325741.
+Preserve the already-issued first P0 artifact 13842474540 and its original
+source SHA e24f09f150e2318dd16a96bdc6db1d8c1317b9ae. Retain continuity
+13842779131 and source control 13842973909 in the existing private-original
+vault. Use receipt commit 20fc291429003fd0351baef4b0c1918b76b4e066.
+The existing main BOAT workflow must retain, read back on a separate runner,
+and reconcile only previously captured official result bytes with the existing
+native scorer. This marker authorizes zero new predictions or provider GETs.
+Production code for future already-authorized schedules is pinned separately
+to a60b8493ee67f8cf1006d3c240ffd121a5f359ce; current-day source-dispatch exclusion stays intact.
+No original timestamp, frozen prediction, receipt, or historical day is replaced.
+Publish only ciphertext and count/hash evidence. Partial source coverage and
+missing official results remain explicit. A successful job is not proof of a
+P1 forecast or a complete nationwide model/day cycle.

@@ -18,7 +18,7 @@ SCHEMA = "RACE_AI_BOAT_MAIN_OWNER_DISPATCH_GATE_V1"
 REPO = "haji84/RACE-AI"
 WORKFLOW = "BOAT nationwide cutoff-ordered A/B research (no Vercel)"
 RELEASE_REF = "production/boat-p0-p1-20261111"
-RELEASE_SHA = "e24f09f150e2318dd16a96bdc6db1d8c1317b9ae"
+RELEASE_SHA = "a60b8493ee67f8cf1006d3c240ffd121a5f359ce"
 FIRST_FAILED_ID = 42993305843
 FIRST_FAILED_SHA = "5f5bd960e3377a87541f9d6b348d3c045ea51cf0"
 RELEASE_TOKEN = "RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1"
@@ -41,6 +41,54 @@ def _stamp(value: str) -> datetime:
     if dt.utcoffset() is None:
         raise ValueError("BOAT_DISPATCH_TIMESTAMP_AWARE_REQUIRED")
     return dt.astimezone(timezone.utc)
+
+
+def recovery_selection(*, run: dict, artifacts: dict) -> dict:
+    """Select saved bytes only; this never authorizes another source attempt."""
+    def require(ok):
+        if not ok:
+            raise ValueError('BOAT_ORIGINAL_RECOVERY_EVIDENCE_REJECTED')
+    require(type(run) is dict and type(run.get('id')) is int and run['id'] > 0)
+    original_incident = (run['id'] == 42995325741 and
+                         run.get('head_sha') == 'e24f09f150e2318dd16a96bdc6db1d8c1317b9ae')
+    require((original_incident or run.get('head_sha') == RELEASE_SHA) and
+            run.get('head_branch') == RELEASE_REF and
+            run.get('event') == 'workflow_dispatch' and
+            type(run.get('workflow_id')) is int and run['workflow_id'] == 405276784 and
+            run.get('status') == 'completed' and
+            run.get('conclusion') in ('success', 'failure', 'cancelled', 'timed_out'))
+    for key in ('repository', 'head_repository'):
+        repo = run.get(key)
+        require(type(repo) is dict and type(repo.get('id')) is int and
+                repo['id'] == 1416489937 and repo.get('full_name') == REPO)
+    require(type(artifacts) is dict and type(artifacts.get('artifacts')) is list and
+            type(artifacts.get('total_count')) is int)
+    items = artifacts['artifacts']
+    require(0 < len(items) <= 1024 and artifacts['total_count'] == len(items))
+    require(all(type(item) is dict and type(item.get('id')) is int and item['id'] > 0
+                for item in items))
+    require(len({item['id'] for item in items}) == len(items))
+    selected = []
+    for prefix in ('boat-p0-existing', 'race-cycle-continuity', 'race-source-control'):
+        found = [item for item in items if item.get('name') == f"{prefix}-{run['id']}"]
+        require(len(found) == 1)
+        item = found[0]
+        provenance = item.get('workflow_run')
+        require(type(provenance) is dict and provenance.get('id') == run['id'] and
+                provenance.get('head_sha') == run['head_sha'] and
+                all(type(provenance.get(k)) is int and provenance[k] == 1416489937
+                    for k in ('repository_id', 'head_repository_id')))
+        require(item.get('expired') is False and type(item.get('size_in_bytes')) is int and
+                0 < item['size_in_bytes'] <= 160*1024*1024 and
+                type(item.get('digest')) is str and
+                re.fullmatch(r'sha256:[a-f0-9]{64}', item['digest']) is not None)
+        _stamp(item.get('created_at'))
+        selected.append(item)
+    return dict(source_run_id=run['id'], source_sha=run['head_sha'],
+                day_jst=_stamp(selected[0]['created_at']).astimezone(ZoneInfo('Asia/Tokyo')).date().isoformat(),
+                p0_artifact=selected[0]['id'],
+                companion_artifacts=[item['id'] for item in selected[1:]],
+                source_dispatch_allowed=False)
 
 
 def _verified_failed_before_source(row, evidence):
