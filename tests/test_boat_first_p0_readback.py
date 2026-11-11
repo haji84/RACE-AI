@@ -415,5 +415,126 @@ class RetainedP1ReadbackTests(unittest.TestCase):
         self.assertEqual(self.writer.head(), self.bundle['vault_commit'])
 
 
+class SyntheticNovember11P1EndToEndTests(unittest.TestCase):
+    """Offline 2026-11-11 clock replay. Inputs are fictional, NOT 11/11 source data."""
+
+    def _prediction(self, minutes_before_cutoff, *, ready=True):
+        from datetime import date, datetime, timedelta
+        from scripts import boat_nationwide_ab_pilot as pilot
+        from tests.test_boat_official_program import page
+        from tests.test_boat_observation_context import before_table, starts
+
+        class VirtualClock(datetime):
+            moment = None
+            @classmethod
+            def now(cls, tz=None):
+                return cls.moment.astimezone(tz) if tz else cls.moment.replace(tzinfo=None)
+
+        cutoff = datetime.fromisoformat('2026-11-11T10:59:00+09:00')
+        VirtualClock.moment = cutoff - timedelta(minutes=minutes_before_cutoff)
+        program_at = VirtualClock.moment - timedelta(minutes=2)
+        exhibition_at = VirtualClock.moment - timedelta(minutes=1)
+        program = page(venue='01', race_no=1, row_options={n: dict(name=f'選手 {n}') for n in range(1, 7)})
+        exhibition = page(venue='01', race_no=1,
+                          content=before_table(display='6.82' if ready else '&nbsp;')+
+                                  starts(populated=ready))
+        program = program.replace(b'20300401', b'20261111').replace(b'20:30', b'10:59')
+        exhibition = exhibition.replace(b'20300401', b'20261111').replace(
+            b'/owpc/pc/race/racelist?rno=', b'/owpc/pc/race/beforeinfo?rno=').replace(b'20:30', b'10:59')
+        captures = [(program, program_at, sha256(program).hexdigest()),
+                    (exhibition, exhibition_at, sha256(exhibition).hexdigest()),
+                    pilot.SourceError('SYNTHETIC_ODDS_NOT_AVAILABLE')]
+        with patch.object(pilot, 'get', side_effect=captures), \
+             patch.object(pilot, 'datetime', VirtualClock), \
+             patch.object(pilot, 'collect_pitreport', return_value=None), \
+             patch.object(pilot, 'collect_entry_history', return_value=None), \
+             patch.object(pilot, 'observed_timestamp', return_value=VirtualClock.moment.isoformat()), \
+             patch.object(pilot, 'requests_used', 0), \
+             patch.dict(os.environ, {'RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED': 'true'}):
+            result = pilot.make_pair(date(2026, 11, 11),
+                dict(race_id='20261111-01-01', cutoff_at=cutoff.isoformat()))
+        return cutoff, VirtualClock.moment, result
+
+    def test_true_model_generation_pack_and_separate_process_aes_readback_at_t15_t10(self):
+        """Use the unchanged P1 model path, actual pack(), native parser and independent process."""
+        from datetime import datetime, timedelta
+        from scripts import boat_private_original_archive as packer
+        from race_ai.frozen_day_cycle import read_p1
+        import sys
+
+        for minute in (15, 10):
+            with self.subTest(t_minus_minutes=minute), tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                cutoff, now, (status, pair, shadow, _, observed) = self._prediction(minute)
+                self.assertIsNotNone(pair, status)
+                self.assertIsNotNone(observed, status)
+                self.assertEqual(pair['race_id'], '20261111-01-01')
+                document = dict(schema='RACE_AI_NATIONWIDE_PRE_CUTOFF_AB_V1',
+                    event_day='2026-11-11', paired_forecasts=[pair],
+                    additional_official_feature_shadows=[shadow],
+                    observed_pairwise_p1_bundles=[observed],
+                    research_only=True)
+                original = wire(document)
+                source = root/'national.json'
+                source.write_bytes(original)
+                source_env = dict(RACE_AI_STATE_KEY=base64.b64encode(KEY).decode(),
+                                  GITHUB_RUN_ID='72341', GITHUB_SHA=HEAD, RUNNER_TEMP=str(root))
+                with patch.dict(os.environ, source_env):
+                    packed_report = packer.pack(kind='P1', input_path=str(source),
+                                                output_dir=str(root/'p1-original'))
+                self.assertEqual(packed_report['status'], 'PRIVATE_ORIGINAL_ARCHIVE_PACKED')
+                cipher = (root/'p1-original'/'private-original.enc').read_bytes()
+                self.assertNotIn(original, cipher)
+                outer = packed({'private-original.enc': cipher})
+                artifact = root/'simulated-github-artifact.zip'
+                artifact.write_bytes(outer)
+                receipt = dict(id=7234101, name='boat-national-cutoff-72341', expired=False,
+                    created_at=(now+timedelta(seconds=10)).isoformat(),
+                    digest='sha256:'+sha256(outer).hexdigest(), size_in_bytes=len(outer),
+                    workflow_run=dict(id=72341, repository_id=1416489937,
+                                      head_repository_id=1416489937, head_sha=HEAD))
+                receipt_file = root/'receipt.json'
+                receipt_file.write_text(json.dumps(receipt))
+                checker = ('import json,sys,hashlib;'
+                           'from pathlib import Path;'
+                           'from race_ai.frozen_day_cycle import read_p1;'
+                           'raw=Path(sys.argv[1]).read_bytes();'
+                           'receipt=json.loads(Path(sys.argv[2]).read_text());'
+                           'doc,rows=read_p1(raw,receipt);'
+                           'assert len(rows)==5 and all(r["stage"]=="P1" for r in rows);'
+                           'print(json.dumps({"forecast_count":len(rows),'
+                           '"original_sha256":hashlib.sha256(raw).hexdigest()}))')
+                env = dict(os.environ, **source_env)
+                child = subprocess.run([sys.executable, '-c', checker, str(artifact), str(receipt_file)],
+                                       cwd=str(Path(__file__).resolve().parents[1]), env=env,
+                                       text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                       timeout=20, check=False)
+                self.assertEqual(child.returncode, 0, child.stderr)
+                authenticated = json.loads(child.stdout)
+                self.assertEqual(authenticated['forecast_count'], 5)
+                self.assertEqual(authenticated['original_sha256'], sha256(outer).hexdigest())
+                self.assertGreater((cutoff-now).total_seconds(), 0)
+                self.assertGreater((cutoff-datetime.fromisoformat(receipt['created_at'])).total_seconds(), 0)
+                late = deepcopy(receipt)
+                late['created_at'] = (cutoff+timedelta(seconds=1)).isoformat()
+                with patch.dict(os.environ, source_env):
+                    with self.assertRaises(ValueError):
+                        read_p1(outer, late)
+                corrupt = outer[:-1] + bytes([outer[-1] ^ 1])
+                with patch.dict(os.environ, source_env):
+                    with self.assertRaises(ValueError):
+                        read_p1(corrupt, receipt)
+
+    def test_missing_exhibition_never_becomes_a_fabricated_p1(self):
+        for minute in (15, 10):
+            with self.subTest(t_minus_minutes=minute):
+                cutoff, now, (status, pair, shadow, _, observed) = self._prediction(minute, ready=False)
+                self.assertIsNone(pair)
+                self.assertIsNone(shadow)
+                self.assertIsNone(observed)
+                self.assertIn(status['state'], {'EXHIBITION_NOT_FULLY_PUBLISHED',
+                                               'EXHIBITION_TIME_INCOMPLETE'})
+
+
 if __name__ == '__main__':
     unittest.main()
