@@ -95,6 +95,31 @@ jobs:
       - name: Test canonical owner dispatch gate with no source requests
         working-directory: proposed-workflow
         run: python -m unittest tests.test_boat_main_dispatch_gate -v
+      - name: Read-only check of actual owner-release hold and canonical SHA
+        working-directory: proposed-workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/production/boat-p0-p1-20261111" > "$RUNNER_TEMP/boat-release-ref.json"
+          gh api "repos/$GITHUB_REPOSITORY/contents/docs/RACE_AI_LATEST_STATUS.md?ref=production%2Fboat-p0-p1-20261111" > "$RUNNER_TEMP/boat-release-status.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-nationwide-ab-one-shot.yml/runs?branch=production%2Fboat-p0-p1-20261111&per_page=100" > "$RUNNER_TEMP/boat-release-runs.json"
+          python -m scripts.boat_main_dispatch_gate \
+            --release "$RUNNER_TEMP/boat-release-ref.json" \
+            --owner-doc "$RUNNER_TEMP/boat-release-status.json" \
+            --history "$RUNNER_TEMP/boat-release-runs.json" > "$RUNNER_TEMP/boat-main-real-release-gate.json"
+          python - <<'PY_BOAT_AUDIT'
+          import json,os
+          from pathlib import Path
+          report=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-main-real-release-gate.json').read_text())
+          assert report['dispatch_allowed'] is False, 'SOURCE_BOUNDARY_CHANGED_REVIEW_REQUIRED'
+          assert report['status']=='HOLD_SOURCE_OWNER_FIXED_BOUNDARY_NOT_RELEASED', report['status']
+          assert report['new_model_or_scorer_added'] is False
+          assert report['official_source_requests']==0
+          print(json.dumps({'status':report['status'],'dispatch_allowed':False,
+                            'real_forecast_proven':False,'new_source_requests':0},sort_keys=True))
+          PY_BOAT_AUDIT
       - name: Verify wiring without running any provider request
         run: |
           python - <<'PY'
