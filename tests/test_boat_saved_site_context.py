@@ -38,7 +38,123 @@ def invented_view():
                          row(1,None,day='2030-03-31',status='void')])
 
 
+def native_p0_view():
+    """Use the same native reader/projection as actual first-P0 recovery."""
+    from race_ai.actions_contract import digest
+    from race_ai.boat_saved_view_intake import project_native_state
+    from race_ai.frozen_day_cycle import read_p0
+    from tests.test_frozen_day_cycle import sample
+    _,raw,receipt=sample()
+    receipt['workflow_run'].update(repository_id=1416489937,head_sha='b'*40)
+    document,rows=read_p0(raw,receipt,expected_day='2030-04-01')
+    documents=[dict(artifact_id=receipt['id'],member_name='forecasts.json',
+                    member_sha256=rows[0]['original_json_sha256'],document=document)]
+    state=dict(schema='RACE_AI_PRIVATE_ARTIFACT_READBACK_V1',day_jst='2030-04-01',
+        rows=rows,receipts=[receipt],observations=[],original_documents=documents,
+        complete=False,coverage_scope='EXPLICIT_ARTIFACTS_ONLY',excluded_repeats=[])
+    state['state_sha256']=digest(state)
+    return project_native_state(state,documents=documents)
+
+
+def original_report(view):
+    prediction=view['records'][0]['prediction']
+    return dict(status='FIRST_P0_RECONCILED',original_id=prediction['artifact_id'],
+        json_sha256=prediction['original_json_sha256'],source_sha=prediction['source_code_commit'],
+        day_jst=view['records'][0]['event_date_jst'])
+
+
 class ContextTests(unittest.TestCase):
+    def test_expected_original_filters_native_and_model_switch_probes_without_shifting_indices(self):
+        view=native_p0_view();expected=original_report(view);row=view['records'][0]
+        originals=[row['prediction'],*row['comparison_predictions']]
+        others=deepcopy(originals)
+        for prediction in others:
+            prediction.update(artifact_id=999,original_json_sha256='c'*64,source_code_commit='d'*40)
+        row['prediction']=others[0];row['comparison_predictions']=[*others[1:],*originals]
+        context=C.build_context(BOOTSTRAP,view,12,now=NOW+timedelta(hours=2),stage='P0',expected_original=expected)
+        self.assertEqual(context['native_probe']['index'],2)
+        self.assertEqual(context['native_probe']['artifact_id'],expected['original_id'])
+        self.assertEqual([choice['index'] for choice in context['model_switch_probe']['choices']],[2,3])
+        self.assertEqual(context['native_group_count'],2)
+        self.assertEqual(context['expected_original'],{key:expected[key] for key in
+            ('original_id','json_sha256','source_sha','day_jst')})
+        row['prediction']=others[0];row['comparison_predictions']=others[1:]
+        with self.assertRaisesRegex(ValueError,'SAVED_SITE_EXPECTED_ORIGINAL_MISSING'):
+            C.build_context(BOOTSTRAP,view,12,now=NOW+timedelta(hours=2),stage='P0',expected_original=expected)
+
+    def test_expected_original_report_requires_reconciliation_status_and_exact_typed_identity(self):
+        view=native_p0_view();expected=original_report(view)
+        for field,value in (('status','FIRST_P0_RECONCILIATION_REJECTED'),('original_id',True),
+                            ('json_sha256','bad'),('source_sha','bad'),('day_jst','2030-04-02')):
+            with self.subTest(field=field),self.assertRaisesRegex(ValueError,'SAVED_SITE_EXPECTED_ORIGINAL_INVALID'):
+                C.build_context(BOOTSTRAP,view,12,now=NOW+timedelta(hours=2),stage='P0',
+                    expected_original=dict(expected,**{field:value}))
+        context=C.build_context(BOOTSTRAP,view,12,now=NOW+timedelta(hours=2),stage='P0',
+            expected_original=dict(expected,status='HOLD_OFFICIAL_RESULTS_INCOMPLETE'))
+        self.assertEqual(context['expected_original']['original_id'],expected['original_id'])
+
+    def test_native_recovered_p0_does_not_satisfy_default_p1(self):
+        with self.assertRaisesRegex(ValueError,'SAVED_SITE_NATIVE_P1_REQUIRED'):
+            C.build_context(BOOTSTRAP,native_p0_view(),12,now=NOW+timedelta(hours=2))
+
+    def test_explicit_p0_uses_real_native_receipt_without_inventing_dispatch_flags_or_generation(self):
+        view=native_p0_view();before=deepcopy(view)
+        prediction=view['records'][0]['prediction']
+        self.assertNotIn('native_dispatch_prediction',prediction)
+        self.assertNotIn('eligible_pre_cutoff',prediction)
+        self.assertIsNone(prediction['generated_at'])
+        context=C.build_context(BOOTSTRAP,view,12,now=NOW+timedelta(hours=2),stage='P0')
+        self.assertEqual(view,before)
+        self.assertEqual(context['stage'],'P0')
+        self.assertEqual(context['native_group_count'],2)
+        self.assertEqual(context['native_p0_groups'],2)
+        self.assertNotIn('native_p1_groups',context)
+        probe=context['native_probe']
+        self.assertEqual(probe['stage'],'P0')
+        self.assertEqual(probe['model_id'],prediction['model_id'])
+        self.assertEqual(probe['tickets_sha256'],hashlib.sha256(
+            json.dumps(prediction['ordered_top8'],separators=(',',':')).encode()).hexdigest())
+
+    def test_p0_receipt_stage_and_native_hash_bindings_cannot_be_bypassed(self):
+        for field,value,reason in (
+            ('external_receipt_verified',False,'NATIVE_P0_REQUIRED'),
+            ('eligible_pre_cutoff',False,'NATIVE_P0_REQUIRED'),
+            ('stage','P1','NATIVE_P0_REQUIRED'),
+            ('prediction_sha256','f'*64,'NATIVE_P0_IDENTITY_INVALID'),
+            ('original_json_sha256',None,'NATIVE_P0_IDENTITY_INVALID'),
+            ('source_code_commit',None,'NATIVE_P0_IDENTITY_INVALID'),
+            ('artifact_id',0,'NATIVE_P0_IDENTITY_INVALID'),
+        ):
+            view=native_p0_view()
+            for row in view['records']:
+                for prediction in [row['prediction'],*row['comparison_predictions']]:
+                    prediction[field]=value
+            with self.subTest(field=field),self.assertRaisesRegex(ValueError,'SAVED_SITE_'+reason):
+                C.build_context(BOOTSTRAP,view,12,now=NOW+timedelta(hours=2),stage='P0')
+
+    def test_p0_originals_require_saved_precutoff_times_and_never_fabricate_missing_fields(self):
+        for field in ('as_of','persisted_at','generated_at'):
+            view=native_p0_view();prediction=view['records'][0]['prediction']
+            prediction[field]=prediction['cutoff_at']
+            with self.subTest(field=field),self.assertRaisesRegex(ValueError,'SAVED_SITE_ORIGINAL_CLOCK_INVALID'):
+                C.build_context(BOOTSTRAP,view,12,now=NOW+timedelta(hours=2),stage='P0')
+        view=native_p0_view();prediction=view['records'][0]['prediction']
+        prediction['server_saved_at']='2030-04-01T01:42:59Z'
+        with self.assertRaisesRegex(ValueError,'SAVED_SITE_ORIGINAL_CLOCK_INVALID'):
+            C.build_context(BOOTSTRAP,view,12,now=NOW+timedelta(hours=2),stage='P0')
+        # Optional provider/input metadata stays optional in the native contract.
+        view=native_p0_view()
+        for row in view['records']:
+            for prediction in [row['prediction'],*row['comparison_predictions']]:
+                prediction['source_sha256']=None;prediction['input_sha256']=None
+        self.assertEqual(C.build_context(BOOTSTRAP,view,12,now=NOW+timedelta(hours=2),
+            stage='P0')['native_group_count'],2)
+
+    def test_native_stage_is_explicitly_limited_to_p0_or_p1(self):
+        for stage in ('P2','UNKNOWN',None):
+            with self.subTest(stage=stage),self.assertRaisesRegex(ValueError,'SAVED_SITE_STAGE_INVALID'):
+                C.build_context(BOOTSTRAP,invented_view(),12,now=NOW,stage=stage)
+
     def test_model_switch_probe_binds_distinct_models_to_their_stored_ticket_hashes(self):
         view=invented_view();row=view['records'][0];first=row['comparison_predictions'][0];first['ordered_top8']=[[1,2,3],[1,3,2]];row['cutoff_at']=first['cutoff_at']
         peer=deepcopy(first);peer.update(model_id='invented-peer',ordered_top8=[[2,1,3]]);row['comparison_predictions'].append(peer)
@@ -131,7 +247,7 @@ class ContextTests(unittest.TestCase):
 
 
 class CLITests(unittest.TestCase):
-    def execute(self,*,outside=False,failure=None,history=False,day=None,now=NOW):
+    def execute(self,*,outside=False,failure=None,history=False,day=None,now=NOW,stage=None,expected_report=None):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);state=root/'audit/state';state.mkdir(parents=True)
             raw=b'invented-bootstrap'
@@ -141,17 +257,21 @@ class CLITests(unittest.TestCase):
             target=root/('outside' if outside else '')/'boat-saved-site-context.json'
             git=SimpleNamespace(_saved_history_context=dict(index=dict(days={
                 '2030-03-31':{},'2030-04-01':{}})) if history else None)
-            view=invented_view();current=dict(records=view['records'][:-1])
+            view=native_p0_view() if stage=='P0' else invented_view();current=dict(records=view['records'][:-1])
             old=dict(records=view['records'][-1:])
             values=[('b'*40,'c'*64,12,current),('b'*40,'c'*64,12,old)] if history else [('b'*40,'c'*64,12,view)]
             output=io.StringIO()
+            expected_path=root/'reconcile-counts.json'
+            if expected_report is not None:expected_path.write_text(json.dumps(expected_report))
             with patch.object(C,'ROOT',root),patch.object(C.VCLI,'_environment',return_value=root),\
                  patch.object(C.CLI,'git_auth'),patch.object(C.CLI.F,'open_bootstrap',
                     return_value=BOOTSTRAP,side_effect=failure),\
                  patch.object(C.CLI.F,'FeedRepository',return_value=git),\
                  patch.object(C.CLI.F,'current_view',side_effect=values) as read,\
                  patch.dict(os.environ,RUNNER_TEMP=folder),redirect_stdout(output):
-                code=C.main(['--output',str(target),*(['--day',day] if day is not None else [])],now=now)
+                code=C.main(['--output',str(target),*(['--day',day] if day is not None else []),
+                             *(['--stage',stage] if stage is not None else []),
+                             *(['--expected-original-report',str(expected_path)] if expected_report is not None else [])],now=now)
             context=json.loads(target.read_text()) if target.exists() else None
             mode=stat.S_IMODE(target.stat().st_mode) if target.exists() else None
             return code,output.getvalue(),context,mode,read.call_args_list
@@ -162,6 +282,16 @@ class CLITests(unittest.TestCase):
         self.assertNotIn(context['owner_url'],output);self.assertNotIn('#saved=',output)
         report=json.loads(output);self.assertEqual(report['native_p1_groups'],2)
         self.assertFalse(report['plaintext_published']);self.assertEqual(len(calls),1)
+
+    def test_explicit_p0_cli_counts_are_never_labeled_as_p1(self):
+        expected=original_report(native_p0_view())
+        code,output,context,mode,_=self.execute(stage='P0',now=NOW+timedelta(hours=2),expected_report=expected)
+        self.assertEqual(code,0);self.assertEqual(mode,0o600)
+        report=json.loads(output)
+        self.assertEqual(report['stage'],'P0');self.assertEqual(report['native_group_count'],2)
+        self.assertEqual(report['native_p0_groups'],2);self.assertNotIn('native_p1_groups',report)
+        self.assertEqual(context['stage'],'P0');self.assertNotIn(context['owner_url'],output)
+        self.assertEqual(context['expected_original']['original_id'],expected['original_id'])
 
     def test_history_context_reads_an_existing_prior_day_without_publishing(self):
         code,_,context,_,calls=self.execute(history=True)

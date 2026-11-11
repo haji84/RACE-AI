@@ -18,6 +18,8 @@ on:
       - scripts/first_p0_bootstrap.py
       - scripts/boat_first_p0_readback.py
       - scripts/boat_first_p0_reconcile.py
+      - scripts/boat_saved_site_context.py
+      - scripts/boat_saved_site_check.cjs
       - race_ai/boat_saved_result_recovery.py
       - race_ai/boat_source_control_mirror.py
       - tests/test_first_p0_bootstrap.py
@@ -25,6 +27,8 @@ on:
       - tests/test_boat_first_p0_reconcile.py
       - tests/test_boat_saved_result_recovery.py
       - tests/test_boat_source_control_mirror.py
+      - tests/test_boat_saved_site_context.py
+      - tests/saved_site_check.test.cjs
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
     paths:
@@ -72,10 +76,12 @@ jobs:
                  'tests.test_private_original_archive_readers','tests.test_boat_private_original_vault_cli',
                  'tests.test_boat_first_p0_readback','tests.test_boat_first_p0_reconcile',
                  'tests.test_boat_saved_result_recovery','tests.test_boat_source_control_mirror',
-                 'tests.test_supervisor_durable_readback']
+                 'tests.test_supervisor_durable_readback','tests.test_boat_saved_site_context']
           result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
           raise SystemExit(not result.wasSuccessful())
           PY_RECOVERY_TEST
+      - name: Verify existing Pages checker stage identity and private request boundary
+        run: node --test tests/saved_site_check.test.cjs
   saved_view_publication:
     name: Encrypted saved-model display and retained-input execution (no official source requests)
     if: github.repository == 'haji84/RACE-AI' && github.event_name == 'push' && startsWith(github.event.head_commit.message, 'saved-view:')
