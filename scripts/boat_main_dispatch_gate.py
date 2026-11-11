@@ -18,7 +18,7 @@ SCHEMA = "RACE_AI_BOAT_MAIN_OWNER_DISPATCH_GATE_V1"
 REPO = "haji84/RACE-AI"
 WORKFLOW = "BOAT nationwide cutoff-ordered A/B research (no Vercel)"
 RELEASE_REF = "production/boat-p0-p1-20261111"
-RELEASE_SHA = "0534b5d939275cacf61d161dd69aa6d9dc073c96"
+RELEASE_SHA = "cf7b6f6a926396c6873e78fe1ad1d3d6840088a8"
 FIRST_FAILED_ID = 42993305843
 FIRST_FAILED_SHA = "5f5bd960e3377a87541f9d6b348d3c045ea51cf0"
 RELEASE_TOKEN = "RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1"
@@ -157,7 +157,57 @@ def _verified_failed_before_source(row, evidence):
                for name in must_skip)
 
 
-def decide(*, now: datetime, release: dict, owner_doc: dict, history: dict, retry_proof=None) -> dict:
+def _verified_continuation(today: list, control: dict, now: datetime) -> bool:
+    """Only after source-free authentication of both actual GitHub artifacts.
+
+    The caller obtains control from the existing GitHubCLI.final_control(),
+    validating the SOURCE_CONTROL ZIP against the opaque CONTINUITY AES
+    artifact's ID, SHA256, run and head. The next producer decrypts again.
+    """
+    if type(control) is not dict or not 1<=len(today)<=24:
+        return False
+    ordered=sorted(today,key=lambda r:_stamp(r['created_at']),reverse=True)
+    latest=ordered[0]
+    if any(type(r.get('id')) is not int or r['id']<=0 or
+           r.get('event')!='workflow_dispatch' or r.get('head_branch')!=RELEASE_REF or
+           r.get('head_sha')!=RELEASE_SHA or r.get('status')!='completed' or
+           r.get('conclusion')!='success' for r in ordered):
+        return False
+    if len({r['id'] for r in ordered})!=len(ordered):
+        return False
+    if (control.get('previous_run_id')!=latest['id'] or
+            control.get('day_jst')!=now.astimezone(ZoneInfo('Asia/Tokyo')).date().isoformat() or
+            control.get('prepared_round') is not None or
+            control.get('source_wait') is not None or
+            control.get('previous_halted_reason') is not None or
+            control.get('previous_stop_reason') not in
+            ('BOUNDED_SESSION_END','MAX_ROUNDS_REACHED','WORKER_HANDOFF')):
+        return False
+    total=control.get('lifetime_requests')
+    baseline=control.get('day_start_lifetime_requests')
+    used=control.get('previous_session_requests')
+    rounds=control.get('completed_round')
+    if (any(type(n) is not int for n in (total,baseline,used,rounds)) or
+            min(total,baseline,used,rounds)<0 or baseline>total or used>total or
+            total-baseline>240 or 240-(total-baseline)<45):
+        return False
+    for key in ('receipt','source_control_receipt'):
+        meta=control.get(key)
+        if (type(meta) is not dict or type(meta.get('id')) is not int or
+                meta['id']<=0 or not re.fullmatch(r'sha256:[0-9a-f]{64}',
+                str(meta.get('digest'))) or type(meta.get('created_at')) is not str):
+            return False
+        try:
+            when=_stamp(meta['created_at'])
+            if when<_stamp(latest['created_at']) or when>now:
+                return False
+        except (TypeError,ValueError):
+            return False
+    return True
+
+
+def decide(*, now: datetime, release: dict, owner_doc: dict, history: dict,
+           retry_proof=None, continuation_proof=None) -> dict:
     """Positive proof required. Missing/partial GitHub responses never mean GO."""
     if now.utcoffset() is None:
         raise ValueError("BOAT_DISPATCH_CLOCK_AWARE_REQUIRED")
@@ -233,14 +283,21 @@ def decide(*, now: datetime, release: dict, owner_doc: dict, history: dict, retr
                     elif (len(today) == 1 and
                           _verified_failed_before_source(today[0], retry_proof)):
                         status = "READY_RETRY_AFTER_VERIFIED_PRE_SOURCE_FAILURE"
+                    elif _verified_continuation(today,continuation_proof,now):
+                        status = "READY_VERIFIED_SAME_DAY_CONTINUATION"
                     else:
                         status = "HOLD_ALREADY_DISPATCHED_FOR_JST_DAY"
+    # A delayed 23:57 JST schedule must not consume tomorrow's single-owner
+    # admission just after midnight. The first next-day window is 06:20.
+    if status.startswith("READY_") and now.astimezone(ZoneInfo("Asia/Tokyo")).hour < 6:
+        status = "HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW"
     return {
         "schema": SCHEMA,
         "status": status,
         "dispatch_allowed": status in {
             "READY_EXISTING_OWNER_WORKFLOW_ONLY",
-            "READY_RETRY_AFTER_VERIFIED_PRE_SOURCE_FAILURE"},
+            "READY_RETRY_AFTER_VERIFIED_PRE_SOURCE_FAILURE",
+            "READY_VERIFIED_SAME_DAY_CONTINUATION"},
         "release_sha": RELEASE_SHA,
         "new_model_or_scorer_added": False,
         "official_source_requests": 0,
@@ -255,12 +312,32 @@ def main(argv=None):
     p.add_argument("--owner-doc", type=Path, required=True)
     p.add_argument("--history", type=Path, required=True)
     p.add_argument("--retry-proof", type=Path)
+    p.add_argument("--verify-source-handoff", action="store_true")
     p.add_argument("--github-output", type=Path)
     args = p.parse_args(argv)
+    now=datetime.now(timezone.utc)
+    history=_load(args.history)
+    continuation=None
+    if args.verify_source_handoff and os.environ.get("GITHUB_EVENT_NAME")=="schedule":
+        jst_day=now.astimezone(ZoneInfo("Asia/Tokyo")).date()
+        candidate=[r for r in history.get("workflow_runs",[]) if type(r) is dict and
+            r.get("event")=="workflow_dispatch" and r.get("head_branch")==RELEASE_REF and
+            r.get("name")==WORKFLOW and
+            _stamp(r["created_at"]).astimezone(ZoneInfo("Asia/Tokyo")).date()==jst_day]
+        if candidate:
+            latest=max(candidate,key=lambda r:_stamp(r["created_at"]))
+            if latest.get("status")=="completed" and latest.get("conclusion")=="success":
+                try:
+                    from race_ai.github_continuous_supervisor import GitHubCLI
+                    # Uses GH_TOKEN only for GitHub reads, never decrypts AES.
+                    continuation=GitHubCLI().final_control(latest)
+                except (ValueError,KeyError,TypeError,OSError,TimeoutError):
+                    continuation=None  # Missing proof -> no additional owner.
     result = decide(
-        now=datetime.now(timezone.utc), release=_load(args.release),
-        owner_doc=_load(args.owner_doc), history=_load(args.history),
-        retry_proof=_load(args.retry_proof) if args.retry_proof else None)
+        now=now, release=_load(args.release), owner_doc=_load(args.owner_doc),
+        history=history,
+        retry_proof=_load(args.retry_proof) if args.retry_proof else None,
+        continuation_proof=continuation)
     if args.github_output:
         if args.github_output.is_symlink() or not args.github_output.is_file():
             raise SystemExit("BOAT_DISPATCH_OUTPUT_INVALID")
