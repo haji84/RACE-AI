@@ -81,8 +81,8 @@ jobs:
           marker_path="$RUNNER_TEMP/boat-owner-status.md"
           gh api "repos/$repo/contents/docs/RACE_AI_LATEST_STATUS.md?ref=$release" --jq '.content' | base64 --decode > "$marker_path"
           if ! grep -Fq '<!-- RACE_AI_BOAT_OWNER_SOURCE_RELEASE_APPROVED -->' "$marker_path"; then
-            echo 'HOLD_BOAT_OWNER_FIXED_SOURCE_BOUNDARY'
-            exit 0
+            echo '::error title=BOAT owner fixed boundary::HOLD_BOAT_OWNER_FIXED_SOURCE_BOUNDARY'
+            exit 78
           fi
           # Read only the existing canonical workflow's execution metadata.
           cutoff="$(date -u -d '20 hours ago' '+%Y-%m-%dT%H:%M:%SZ')"
