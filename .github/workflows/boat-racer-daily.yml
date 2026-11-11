@@ -95,7 +95,7 @@ jobs:
       - name: Test canonical owner dispatch gate with no source requests
         working-directory: proposed-workflow
         run: python -m unittest tests.test_boat_main_dispatch_gate -v
-      - name: Read-only check of actual owner-release hold and canonical SHA
+      - name: Read-only confirmation of approved owner release and canonical SHA
         working-directory: proposed-workflow
         env:
           GH_TOKEN: ${{ github.token }}
@@ -113,11 +113,21 @@ jobs:
           import json,os
           from pathlib import Path
           report=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-main-real-release-gate.json').read_text())
-          assert report['dispatch_allowed'] is False, 'SOURCE_BOUNDARY_CHANGED_REVIEW_REQUIRED'
-          assert report['status']=='HOLD_SOURCE_OWNER_FIXED_BOUNDARY_NOT_RELEASED', report['status']
+          # This PR CI makes no dispatch and no official source GET.
+          # Once user-approved fixed boundary is lifted, only an active/same-day
+          # worker or missing API evidence may legitimately keep the gate HOLD.
+          allowed={
+              'READY_EXISTING_OWNER_WORKFLOW_ONLY',
+              'HOLD_ALREADY_DISPATCHED_FOR_JST_DAY',
+              'HOLD_ACTIVE_OWNER_WORKFLOW',
+              'HOLD_INCOMPLETE_RUN_HISTORY'}
+          assert report['status'] in allowed, report['status']
           assert report['new_model_or_scorer_added'] is False
           assert report['official_source_requests']==0
-          print(json.dumps({'status':report['status'],'dispatch_allowed':False,
+          assert report['future_real_forecast_proven'] is False
+          print(json.dumps({'status':report['status'],
+                            'release_scope_verified':True,
+                            'dispatch_requested_from_pr':False,
                             'real_forecast_proven':False,'new_source_requests':0},sort_keys=True))
           PY_BOAT_AUDIT
       - name: Verify wiring without running any provider request
