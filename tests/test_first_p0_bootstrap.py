@@ -176,6 +176,30 @@ class FirstP0RegistryTests(unittest.TestCase):
 
 
 class FirstP0BootstrapTests(unittest.TestCase):
+    def test_first_p0_source_budget_inherits_same_day_baseline(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(boot,'ROOT',Path(tmp)):
+            old=dict(day_jst='2030-04-01',lifetime_requests=339,
+                     day_start_lifetime_requests=100,lifetime_completed_rounds=3)
+            result=boot.bootstrap_control('2030-04-01',116,inherited=old)
+            self.assertEqual(result['day_start_lifetime_requests'],100)
+            self.assertEqual(result['lifetime_requests'],339)
+            self.assertEqual(boot.bootstrap_control('2030-04-01',116),result)
+
+    def test_first_p0_new_day_does_not_reuse_yesterday_budget(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(boot,'ROOT',Path(tmp)):
+            old=dict(day_jst='2030-03-31',lifetime_requests=339,
+                     day_start_lifetime_requests=100,lifetime_completed_rounds=3)
+            result=boot.bootstrap_control('2030-04-01',117,inherited=old)
+            self.assertEqual(result['day_start_lifetime_requests'],339)
+            self.assertEqual(result['lifetime_requests'],339)
+
+    def test_first_p0_unknown_same_day_budget_holds(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(boot,'ROOT',Path(tmp)):
+            old=dict(day_jst='2030-04-01',lifetime_requests=239)
+            with self.assertRaisesRegex(ValueError,'BOOTSTRAP_DAY_SOURCE_BUDGET_UNVERIFIED'):
+                boot.bootstrap_control('2030-04-01',118,inherited=old)
+            self.assertFalse((Path(tmp)/'cycle_recovery_output'/'bootstrap-source-control.json').exists())
+
     def test_direct_cli_import_works_in_actions(self):
         # Unit-test imports run under -m, whereas Actions runs scripts directly.
         import subprocess
