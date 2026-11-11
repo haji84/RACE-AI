@@ -120,7 +120,7 @@ def inspect_source_gaps(partial):
         supplied=sum(
             int(f"rider/{no}/{mapping[f][0]}" in source_keys)
             for no in car_numbers for f in MODEL_REQUIRED
-        )+sum(int("race/"+ENV_MAP[f][0] in source_source_keys) for f in ENV_REQUIRED)
+        )+sum(int("race/"+ENV_MAP[f][0] in source_keys) for f in ENV_REQUIRED)
         # Group missing model input slots by the required source field name.
         # This is a PRIVATE/COUNT-ONLY acquisition plan: no athlete IDs,
         # source measurements, guessed values or invented rights grants.
