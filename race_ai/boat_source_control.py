@@ -75,7 +75,12 @@ def validate_summary(value):
     need(type(value["continuity_cipher_sha256"]) is str and re.fullmatch(r"[a-f0-9]{64}", value["continuity_cipher_sha256"]),
          "CIPHER_HASH_INVALID")
     control = value["control"]
-    need(type(control) is dict and set(control) == CONTROL_FIELDS, "CONTROL_FIELDS_INVALID")
+    accepted=(CONTROL_FIELDS,CONTROL_FIELDS | {"day_start_lifetime_requests"})
+    need(type(control) is dict and set(control) in accepted, "CONTROL_FIELDS_INVALID")
+    if "day_start_lifetime_requests" in control:
+        base=control["day_start_lifetime_requests"]
+        need(_count(base) and base<=control["lifetime_requests"] and
+             control["lifetime_requests"]-base<=240,"DAY_SOURCE_BUDGET_INVALID")
     for field in ("requests_used", "completed_round", "lifetime_requests", "lifetime_completed_rounds"):
         need(_count(control[field]), "COUNT_INVALID")
     need(control["lifetime_requests"] >= control["requests_used"]
@@ -111,12 +116,18 @@ def build_summary(cipher, *, run_id, head_sha, key=None):
         if wait["retry_at"] is not None: wait["retry_at"] = _time(wait["retry_at"]).isoformat()
     reason = state.get("halted_reason") or state.get("previous_halted_reason") or state.get("control_reason")
     if reason not in STOP_REASONS: reason = "SOURCE_REVIEW_REQUIRED"
+    day_base=state.get("day_start_lifetime_requests")
+    if day_base is not None:
+        need(_count(day_base) and day_base<=state["lifetime_requests"] and
+             state["lifetime_requests"]-day_base<=240,"DAY_SOURCE_BUDGET_INVALID")
     value = dict(schema=SCHEMA, repository=REPO, repository_id=REPO_ID, run_id=int(header["run_id"]),
         head_sha=head_sha, day_jst=state["day_jst"], continuity_cipher_sha256=sha256(cipher).hexdigest(),
         control=dict(requests_used=state["requests_used"], completed_round=state["completed_round"],
             prepared_round=state.get("prepared_round"), lifetime_requests=state.get("lifetime_requests", state["requests_used"]),
             lifetime_completed_rounds=state.get("lifetime_completed_rounds", state["completed_round"]),
             source_wait=wait, stop_reason=reason))
+    if day_base is not None:
+        value["control"]["day_start_lifetime_requests"]=day_base
     validate_summary(value)
     return value
 
@@ -173,4 +184,6 @@ def read_summary(raw, meta, continuity_raw, continuity_meta, *, run_id, head_sha
         completed_round=control["completed_round"], prepared_round=control["prepared_round"],
         lifetime_requests=control["lifetime_requests"], lifetime_completed_rounds=control["lifetime_completed_rounds"],
         source_wait=wait, previous_halted_reason=hard_reason, previous_stop_reason=reason,
+        **({"day_start_lifetime_requests":control["day_start_lifetime_requests"]}
+            if "day_start_lifetime_requests" in control else {}),
         receipt=proof(continuity_meta), source_control_receipt=proof(meta))
