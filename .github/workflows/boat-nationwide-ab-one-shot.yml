@@ -1,6 +1,14 @@
 # Retain authenticated empty legacy attempts separately from forecasts.
 name: BOAT nationwide cutoff-ordered A/B research (no Vercel)
 on:
+  # Live model runner is called from the trusted main launcher, not arbitrary
+  # pushes to this research branch. The old saved-view push repair is retained.
+  workflow_dispatch:
+  pull_request:
+    branches: [feat/four-sport-forecast-audit-view-20261022]
+    paths:
+      - .github/workflows/boat-nationwide-ab-one-shot.yml
+      - tests/test_boat_main_entry_contract.py
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
     paths:
@@ -10,12 +18,26 @@ permissions:
   contents: write  # Existing first-P0 index and encrypted display feed only.
   actions: read
 concurrency:
-  group: ${{ startsWith(github.event.head_commit.message, 'saved-view:') && 'boat-saved-view-publication' || 'boat-nationwide-cutoff-20261103' }}
+  group: ${{ github.event_name == 'pull_request' && 'boat-main-entry-offline-pr-check' || (startsWith(github.event.head_commit.message, 'saved-view:') && 'boat-saved-view-publication' || 'boat-nationwide-cutoff-20261103') }}
   cancel-in-progress: false
 jobs:
+  main_entry_contract:
+    name: Main to legacy BOAT P0-P1 source-free contract
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify existing model owner and single production entry
+        run: python -m unittest tests.test_boat_main_entry_contract -v
   saved_view_publication:
     name: Encrypted saved-model display and retained-input execution (no official source requests)
-    if: github.repository == 'haji84/RACE-AI' && startsWith(github.event.head_commit.message, 'saved-view:')
+    if: github.repository == 'haji84/RACE-AI' && github.event_name == 'push' && startsWith(github.event.head_commit.message, 'saved-view:')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -235,7 +257,11 @@ jobs:
         run: python -m scripts.boat_saved_display_evidence
   official_national:
     name: Existing frozen P0, exhibition P1, separate official results and PDCA
-    if: github.repository == 'haji84/RACE-AI' && !startsWith(github.event.head_commit.message, 'saved-view:')
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'push' &&
+        startsWith(github.event.head_commit.message, 'boat-grid-forward:')))
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
