@@ -36,7 +36,7 @@ class CloudGuardTests(unittest.TestCase):
         self.assertNotIn("actions/upload-artifact",cloud)
         self.assertNotIn("git push --force",cloud)
         self.assertIn("source-root",cloud)
-        source_sha="9bb7e016e5200b5d25cbcc66b3ac6062b0c1aaa9"
+        source_sha="9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330"
         self.assertIn(source_sha,cloud)
         self.assertEqual(y.count(source_sha),4)
         self.assertNotIn("97464792c2af28b39f9ffbe668019fb1482d5a8c",y)
