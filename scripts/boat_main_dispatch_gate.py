@@ -20,7 +20,7 @@ WORKFLOW = "BOAT nationwide cutoff-ordered A/B research (no Vercel)"
 RELEASE_REF = "production/boat-p0-p1-20261111"
 RELEASE_SHA = "fb3b89d49db815c9e88daa09c1303c7a6dd87d83"
 RELEASE_TOKEN = "RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1"
-MAX_JSON_BYTES = 256 * 1024
+MAX_JSON_BYTES = 1024 * 1024  # owner status text is about 287 KiB before base64
 
 
 def _load(path: Path) -> dict:
