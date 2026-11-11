@@ -157,7 +157,36 @@ def _verified_failed_before_source(row, evidence):
                for name in must_skip)
 
 
-def decide(*, now: datetime, release: dict, owner_doc: dict, history: dict, retry_proof=None) -> dict:
+
+def _resume_admitted(run: dict, *, proof: dict, now: datetime) -> bool:
+    """Only an AES-authenticated closed worker can resume on the same JST day."""
+    if type(proof) is not dict:
+        return False
+    base = proof.get("day_start_lifetime_requests")
+    total = proof.get("lifetime_requests")
+    return bool(
+        proof.get("status") == "AUTHENTICATED_EXISTING_OWNER_FINAL_CONTROL"
+        and proof.get("source_run_id") == run.get("id")
+        and proof.get("source_sha") == RELEASE_SHA
+        and proof.get("day_jst") == now.astimezone(ZoneInfo("Asia/Tokyo")).date().isoformat()
+        and run.get("head_sha") == RELEASE_SHA
+        and run.get("event") == "workflow_dispatch"
+        and run.get("status") == "completed"
+        and run.get("conclusion") == "success"
+        and proof.get("prepared_round") is None
+        and proof.get("source_wait") is None
+        and proof.get("previous_stop_reason") in (
+            "BOUNDED_SESSION_END", "MAX_ROUNDS_REACHED", "WORKER_HANDOFF")
+        and type(base) is int and type(total) is int
+        and 0 <= base <= total
+        and 0 <= total - base <= 240 - 45
+        and type(proof.get("continuity_artifact_id")) is int
+        and type(proof.get("source_control_artifact_id")) is int
+        and proof["continuity_artifact_id"] != proof["source_control_artifact_id"]
+    )
+
+
+def decide(*, now: datetime, release: dict, owner_doc: dict, history: dict, retry_proof=None, resume_proof=None) -> dict:
     """Positive proof required. Missing/partial GitHub responses never mean GO."""
     if now.utcoffset() is None:
         raise ValueError("BOAT_DISPATCH_CLOCK_AWARE_REQUIRED")
@@ -233,6 +262,14 @@ def decide(*, now: datetime, release: dict, owner_doc: dict, history: dict, retr
                     elif (len(today) == 1 and
                           _verified_failed_before_source(today[0], retry_proof)):
                         status = "READY_RETRY_AFTER_VERIFIED_PRE_SOURCE_FAILURE"
+                    elif (0 < len(today) <= 24 and
+                          all(run.get("status") == "completed" and
+                              run.get("conclusion") == "success" and
+                              run.get("head_sha") == RELEASE_SHA and
+                              run.get("event") == "workflow_dispatch"
+                              for run in today) and
+                          _resume_admitted(today[0], proof=resume_proof, now=now)):
+                        status = "READY_AUTHENTICATED_SAME_DAY_CONTINUATION"
                     else:
                         status = "HOLD_ALREADY_DISPATCHED_FOR_JST_DAY"
     return {
@@ -240,7 +277,8 @@ def decide(*, now: datetime, release: dict, owner_doc: dict, history: dict, retr
         "status": status,
         "dispatch_allowed": status in {
             "READY_EXISTING_OWNER_WORKFLOW_ONLY",
-            "READY_RETRY_AFTER_VERIFIED_PRE_SOURCE_FAILURE"},
+            "READY_RETRY_AFTER_VERIFIED_PRE_SOURCE_FAILURE",
+            "READY_AUTHENTICATED_SAME_DAY_CONTINUATION"},
         "release_sha": RELEASE_SHA,
         "new_model_or_scorer_added": False,
         "official_source_requests": 0,
