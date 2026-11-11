@@ -209,6 +209,77 @@ class PriorInputConnectionTests(unittest.TestCase):
             self.assertFalse(evidence['approved_for_pr71_input'])
         self.assertNotIn('prior_finishing_input_evidence', self.card)
 
+    def test_ten_comparable_observed_history_events_connect_venue_diff_only(self):
+        """The pinned bank-fit formula needs five same and five away outcomes."""
+        from race_ai.keirin_prior_input_connection import (
+            attach_prior_finishing_input, stage_connected_prior_input)
+        from race_ai.keirin_real_source_gap_report import inspect_source_gaps
+        self.events = []
+        self.reference['references'] = []
+        seed = deepcopy(PriorEventContractTests().result())
+        for index in range(10):
+            day = index + 1
+            same = index < 5
+            venue = '12' if same else '25'
+            slug = 'aomori' if same else 'another'
+            rid = f'203001{day:02d}{venue}01'
+            url = (f'https://www.winticket.jp/keirin/{slug}/raceresult/'
+                   f'203001{day:02d}{venue}/1/1')
+            event = deepcopy(seed)
+            event.update(race_id=rid, venue=venue,
+                started_at=f'2030-01-{day:02d}T10:05:00+09:00',
+                result_published_at=f'2030-01-{day:02d}T10:10:00+09:00',
+                result_source_url=url,
+                result_source_sha256=sha256(f'FICTIONAL VERIFIED OLD {index}'.encode()).hexdigest())
+            self.events.append(event)
+            self.reference['references'].append({
+                'race_id':rid,'url':url,'rider_ids':list(self.reference['rider_ids'])})
+        self.derived = observed_prior_candidates(self.reference,self.events,as_of=CAPTURE)
+        out = attach_prior_finishing_input(self.card, self.packet())
+        report = inspect_source_gaps(out)
+        self.assertEqual(len(out['prior_finishing_input_evidence']),7)
+        self.assertEqual(len(out['prior_venue_compatibility_input_evidence']),7)
+        self.assertEqual(report['model_B_source_coverage']['source_unobserved_required_slots'],65)
+        self.assertEqual(report['model_A_source_coverage']['source_unobserved_required_slots'],79)
+        for n in range(1,8):
+            key = f'rider/{n}/venue_and_distance_compatibility'
+            info = out['prior_venue_compatibility_input_evidence'][key]
+            self.assertEqual((info['same_venue_sample_n'],info['other_venue_sample_n']),(5,5))
+            self.assertEqual(info['sample_n'],5)
+            self.assertEqual(info['value'],.5)
+            self.assertFalse(info['approved_for_pr71_input'])
+            self.assertIsNone(info['source_published_at'])
+            self.assertNotIn(f'rider/{n}/bank_positioning_and_traffic',out['direct_verified_fields'])
+            self.assertNotIn(f'rider/{n}/last_lap_acceleration',out['direct_verified_fields'])
+            self.assertNotIn(f'rider/{n}/teammate_pair_history',out['direct_verified_fields'])
+        packet = self.packet()
+        with patch.dict(os.environ, {'GITHUB_WORKSPACE':''}):
+            stage_owner_private_prior_research(self.root,packet)
+            stage = stage_connected_prior_input(self.root,self.card,packet)
+        self.assertEqual(stage['derived_venue_compatibility_slots'],7)
+        self.assertFalse(stage['live_model_invoked'])
+        self.assertFalse(stage['production_aes_archived'])
+        self.assertFalse((self.root/'pre').exists())
+        self.assertNotIn('fiction-',str(stage))
+
+    def test_existing_direct_venue_is_never_overwritten_and_no_shortcut_at_four_samples(self):
+        from race_ai.keirin_prior_input_connection import attach_prior_finishing_input
+        from race_ai.keirin_preflight import expected_keys
+        self.assertEqual(attach_prior_finishing_input(
+            self.card, self.packet())['prior_venue_compatibility_input_evidence'], {})
+        card = deepcopy(self.card)
+        key = 'rider/1/venue_and_distance_compatibility'
+        card['direct_verified_fields'][key] = .91
+        registry = set(expected_keys(list(range(1,8))))
+        keys = set(card['direct_verified_fields'])
+        card.update(verified_registry_keys=sorted(keys),
+                    unavailable_registry_keys=sorted(registry-keys),
+                    registry_verified_count=len(keys),
+                    registry_unavailable_count=len(registry)-len(keys))
+        out = attach_prior_finishing_input(card,self.packet())
+        self.assertEqual(out['direct_verified_fields'][key],.91)
+        self.assertNotIn(key,out['prior_venue_compatibility_input_evidence'])
+
     def test_missing_history_stays_missing_and_original_mismatch_is_rejected(self):
         from race_ai.keirin_prior_input_connection import attach_prior_finishing_input
         from race_ai.keirin_real_source_gap_report import inspect_source_gaps
