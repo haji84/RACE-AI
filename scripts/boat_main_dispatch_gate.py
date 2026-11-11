@@ -158,6 +158,131 @@ def _verified_failed_before_source(row, evidence):
 
 
 
+
+def _github_owner_read(endpoint: str, *, maximum: int) -> bytes:
+    """Pinned GitHub metadata/cipher only. No official racing source requests."""
+    import subprocess
+    allowed = r"actions/(?:runs/[1-9][0-9]{0,19}(?:/artifacts\?per_page=100&page=[1-4])?|artifacts/[1-9][0-9]{0,19}(?:/zip)?)"
+    if not isinstance(endpoint, str) or re.fullmatch(allowed, endpoint) is None:
+        raise ValueError("BOAT_RESUME_GITHUB_ROUTE_INVALID")
+    try:
+        result = subprocess.run(["gh", "api", f"repos/{REPO}/{endpoint}"],
+                                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                check=False, timeout=90)
+    except (OSError, subprocess.SubprocessError):
+        raise ValueError("BOAT_RESUME_GITHUB_READ_UNAVAILABLE") from None
+    if result.returncode != 0 or not 0 < len(result.stdout) <= maximum:
+        raise ValueError("BOAT_RESUME_GITHUB_RECEIPT_UNAVAILABLE")
+    return result.stdout
+
+
+def _authenticated_resume(run: dict, release_root: Path) -> dict:
+    """Authenticate actual encrypted CONTINUITY against exact GitHub receipts.
+
+    The previous worker's real AES ciphertext is decrypted only inside a
+    trusted Actions job with the existing owner key. Return counts, never rows.
+    """
+    import sys
+    root = release_root.resolve(strict=True)
+    if not (root.is_dir()
+            and (root / "race_ai/boat_source_control.py").is_file()
+            and (root / "race_ai/boat_private_original_archive.py").is_file()
+            and os.environ.get("GITHUB_ACTIONS") == "true"
+            and os.environ.get("GITHUB_REPOSITORY") == REPO
+            and os.environ.get("RACE_AI_STATE_KEY")):
+        raise ValueError("BOAT_RESUME_TRUSTED_READER_UNAVAILABLE")
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    from race_ai import boat_source_control as safe
+    from race_ai import boat_private_original_archive as archive
+    ident = run["id"]
+    full = json.loads(_github_owner_read(f"actions/runs/{ident}", maximum=1024*1024))
+    if not (type(ident) is int and ident > 0
+            and full.get("id") == ident
+            and full.get("head_sha") == RELEASE_SHA
+            and full.get("head_branch") == RELEASE_REF
+            and full.get("event") == "workflow_dispatch"
+            and full.get("workflow_id") == 405276784
+            and full.get("run_attempt") == 1
+            and full.get("status") == "completed"
+            and full.get("conclusion") == "success"
+            and run.get("head_sha") == full["head_sha"]
+            and run.get("created_at") == full.get("created_at")
+            and all(type(full.get(role)) is dict
+                    and full[role].get("id") == 1416489937
+                    and full[role].get("full_name") == REPO
+                    for role in ("repository", "head_repository"))):
+        raise ValueError("BOAT_RESUME_RUN_PROVENANCE_INVALID")
+    all_rows = []
+    total = None
+    for page in range(1, 5):
+        result = json.loads(_github_owner_read(
+            f"actions/runs/{ident}/artifacts?per_page=100&page={page}",
+            maximum=3*1024*1024))
+        rows = result.get("artifacts")
+        count = result.get("total_count")
+        if (type(rows) is not list or len(rows) > 100 or
+                type(count) is not int or count > 400 or count < 0 or
+                total is not None and count != total):
+            raise ValueError("BOAT_RESUME_ARTIFACT_PAGINATION_INVALID")
+        total = count
+        all_rows.extend(rows)
+        if len(all_rows) == total:
+            break
+        if len(rows) != 100 or page == 4:
+            raise ValueError("BOAT_RESUME_ARTIFACT_PAGINATION_INCOMPLETE")
+    if any(type(item) is not dict for item in all_rows):
+        raise ValueError("BOAT_RESUME_ARTIFACT_ROW_INVALID")
+    ids = [item.get("id") for item in all_rows]
+    if any(type(item) is not int or item <= 0 for item in ids) or len(set(ids)) != len(ids):
+        raise ValueError("BOAT_RESUME_ARTIFACT_IDS_INVALID")
+    pair = []
+    for prefix in ("race-source-control", "race-cycle-continuity"):
+        found = [item for item in all_rows
+                 if item.get("name") == f"{prefix}-{ident}"]
+        if len(found) != 1:
+            raise ValueError("BOAT_RESUME_CHECKPOINT_PAIR_MISSING")
+        listed = found[0]
+        artifact_id = listed["id"]
+        meta = json.loads(_github_owner_read(
+            f"actions/artifacts/{artifact_id}", maximum=128*1024))
+        if not (meta.get("id") == artifact_id
+                and meta.get("name") == listed["name"]
+                and meta.get("digest") == listed.get("digest")
+                and meta.get("created_at") == listed.get("created_at")):
+            raise ValueError("BOAT_RESUME_ARTIFACT_METADATA_CONFLICT")
+        raw = _github_owner_read(f"actions/artifacts/{artifact_id}/zip",
+                                 maximum=safe.MAX_CONTINUITY_ZIP + 1024*1024)
+        pair.append((raw, meta))
+    (public_raw, public_meta), (sealed_raw, sealed_meta) = pair
+    state = safe.read_summary(public_raw, public_meta, sealed_raw, sealed_meta,
+                              run_id=ident, head_sha=RELEASE_SHA)
+    with archive._checked_zip(sealed_raw, max_zip_bytes=safe.MAX_CONTINUITY_ZIP,
+                              max_expanded=safe.MAX_CONTINUITY_ZIP) as zipped:
+        if zipped.namelist() != [archive.CIPHER_MEMBER]:
+            raise ValueError("BOAT_RESUME_CIPHER_ONLY_REQUIRED")
+        cipher = zipped.read(archive.CIPHER_MEMBER)
+    # The key-bearing reader authenticates AES and the inside session seal.
+    actual = safe.build_summary(cipher, run_id=ident, head_sha=RELEASE_SHA)
+    with archive._checked_zip(public_raw, max_zip_bytes=safe.MAX_SUMMARY_ZIP,
+                              max_expanded=safe.MAX_SUMMARY) as zipped:
+        if zipped.namelist() != [safe.MEMBER]:
+            raise ValueError("BOAT_RESUME_PUBLIC_COMPANION_INVALID")
+        published = safe._json(zipped.read(safe.MEMBER))
+    if actual != published:
+        raise ValueError("BOAT_RESUME_AUTHENTICATED_SUMMARY_CONFLICT")
+    return dict(
+        status="AUTHENTICATED_EXISTING_OWNER_FINAL_CONTROL",
+        source_run_id=ident, source_sha=RELEASE_SHA,
+        day_jst=state["day_jst"], prepared_round=state["prepared_round"],
+        previous_stop_reason=state["previous_stop_reason"],
+        source_wait=state["source_wait"],
+        lifetime_requests=state["lifetime_requests"],
+        day_start_lifetime_requests=state.get("day_start_lifetime_requests"),
+        continuity_artifact_id=sealed_meta["id"],
+        source_control_artifact_id=public_meta["id"])
+
+
 def _resume_admitted(run: dict, *, proof: dict, now: datetime) -> bool:
     """Only an AES-authenticated closed worker can resume on the same JST day."""
     if type(proof) is not dict:
