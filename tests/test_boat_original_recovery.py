@@ -21,7 +21,7 @@ except ModuleNotFoundError:
 
 def closed_run(*, status='completed'):
     return json.dumps(dict(id=2,status=status,conclusion='failure' if status == 'completed' else None,
-        workflow_id=405276784,head_branch='feat/four-sport-forecast-audit-view-20261022',head_sha=HEAD,
+        workflow_id=405276784,head_branch='feat/four-sport-forecast-audit-view-20261022',event='push',head_sha=HEAD,
         created_at='2030-04-01T01:00:00Z',updated_at='2030-04-01T04:00:00Z',run_attempt=1,
         repository=dict(id=1416489937,full_name='haji84/RACE-AI'),
         head_repository=dict(id=1416489937,full_name='haji84/RACE-AI')),indent=3).encode()+b'\n\n'
