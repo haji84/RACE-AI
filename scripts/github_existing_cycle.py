@@ -1071,6 +1071,10 @@ def repeat_start(day):
              'SOURCE_CONTROL_CHANGED_DURING_BOOTSTRAP')
         control['source_wait']=bootstrap.get('source_wait')
         control['previous_halted_reason']=bootstrap.get('previous_halted_reason')
+        # Preserve the day-scoped cap across workers as well as the
+        # immutable all-time counter read from the prior encrypted checkpoint.
+        control['day_start_lifetime_requests']=bootstrap['day_start_lifetime_requests']
+        control['day_jst']=day
     if datetime.now(timezone.utc).astimezone(JST).date().isoformat()!=day:
         from scripts.first_p0_bootstrap import bootstrap_control,_save_control
         bootstrap=bootstrap or bootstrap_control(day,int(os.environ['GITHUB_RUN_ID']),inherited=control)
