@@ -307,3 +307,53 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           GH_TOKEN: ${{ github.token }}
         run: python -m scripts.verify_all_history_pdca_readback --repository-root .
+
+  owner_p0_p1_dispatch:
+    name: Gate-and-dispatch original BOAT owner P0/P1 (no scorer duplication)
+    # Reuse the existing BOAT result schedule. It already covers JST 06:20
+    # and 07:02-08:57, leaving the first future race to the original worker.
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'schedule' &&
+      (github.event.schedule == '20 21 * * *' ||
+       github.event.schedule == '2-59/5 0-14,22-23 * * *')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    concurrency:
+      group: boat-main-launcher-source-free
+      cancel-in-progress: false
+    # This permission increase is isolated to the explicit release launcher.
+    # It is not enabled until this PR and source-owner boundary are reviewed.
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify registered owner release SHA, source-owner gate, existing runs
+        id: owner_gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/production/boat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-release.json"
+          gh api "repos/$GITHUB_REPOSITORY/contents/docs/RACE_AI_LATEST_STATUS.md?ref=production%2Fboat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-policy.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-nationwide-ab-one-shot.yml/runs?branch=production%2Fboat-p0-p1-20261111&per_page=100" > "$RUNNER_TEMP/boat-owner-runs.json"
+          python -m scripts.boat_main_dispatch_gate \
+            --release "$RUNNER_TEMP/boat-owner-release.json" \
+            --owner-doc "$RUNNER_TEMP/boat-owner-policy.json" \
+            --history "$RUNNER_TEMP/boat-owner-runs.json" \
+            --github-output "$GITHUB_OUTPUT"
+      - name: Dispatch only the existing owner P0/P1 workflow
+        if: steps.owner_gate.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh workflow run boat-nationwide-ab-one-shot.yml \
+            --ref production/boat-p0-p1-20261111 \
+            -f production_scope=existing-owner-p0-p1
+          echo 'DISPATCH_REQUESTED_REAL_P0_P1_NOT_YET_PROVEN'
