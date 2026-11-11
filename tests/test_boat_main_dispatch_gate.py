@@ -289,6 +289,41 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
                          "HOLD_ALREADY_DISPATCHED_FOR_JST_DAY")
         self.assertFalse(verdict(None)["dispatch_allowed"])
 
+    def test_cli_main_respects_supplied_argv_not_process_argv(self):
+        # The schedule invokes the CLI, while callers also use main(argv).
+        # A bad global argv must not silently replace the explicit test args.
+        import io
+        import json
+        import sys
+        import tempfile
+        from contextlib import redirect_stdout
+        from pathlib import Path
+        from unittest.mock import patch
+        from scripts.boat_main_dispatch_gate import main
+
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            inputs = {
+                'release': release(),
+                'owner': source_doc(RELEASE_TOKEN),
+                'history': history(),
+            }
+            for name, value in inputs.items():
+                (root / (name + '.json')).write_text(
+                    json.dumps(value), encoding='utf8')
+            args = [
+                '--release', str(root / 'release.json'),
+                '--owner-doc', str(root / 'owner.json'),
+                '--history', str(root / 'history.json'),
+            ]
+            output = io.StringIO()
+            with patch.object(sys, 'argv', ['gate', '--invalid-process-argument']), redirect_stdout(output):
+                self.assertEqual(main(args), 0)
+            result = json.loads(output.getvalue())
+            self.assertEqual(result['release_sha'], RELEASE_SHA)
+            self.assertEqual(result['official_source_requests'], 0)
+            self.assertFalse(result['future_real_forecast_proven'])
+
     def test_unreturned_pagination_is_not_no_forecast(self):
         output=decide(now=NOW, release=release(),
             owner_doc=source_doc(RELEASE_TOKEN), history=history(total=101))
