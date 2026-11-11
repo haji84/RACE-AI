@@ -12,6 +12,7 @@ from .first_receipt_continuity import first_receipt_rows,latest_result_observati
 from .repeated_cycle import matches as artifact_matches
 from .saved_view_run import display_only_run
 from .boat_private_original_archive import open_original_zip
+from .boat_owner_source_identity import owner_run_origin
 BRANCH='feat/four-sport-forecast-audit-view-20261022'
 WORKFLOW=405276784
 JST=timezone(timedelta(hours=9))
@@ -170,9 +171,9 @@ def _previous_runs(get,*,current_run,earliest=None):
             need(run['id'] not in seen,'duplicate run page');seen.add(run['id'])
             at=ts(run['created_at'])
             if earliest is not None and at<earliest:continue
-            if run['id']==current_run or run['head_branch']!=BRANCH:continue
+            if run['id']==current_run:continue
+            if not owner_run_origin(run.get('head_branch'),run.get('event')):continue
             if display_only_run(run):continue
-            if run['event'] not in ('push','workflow_dispatch'):continue
             # Queued successors are not prior executions. An earlier in-flight
             # writer is unresolved and cannot safely be assumed to have no receipt.
             if run['id']>current_run:continue

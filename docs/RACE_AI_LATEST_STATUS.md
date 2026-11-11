@@ -2396,3 +2396,42 @@ control内部の確認値は `stop_reason=DAY_HANDOFF`、`completed_round=0`、`
 
 今回の照合前のPR HEADは `713732af0b2446d44c02182a579c5abc20ca0b76`。コードHEADとworker実行HEADは別。現行対象15系統/30枠、研究実学習19/30・残AUTO6+KEIRIN5=11に新認定なし。AUTO/KEIRIN結果collectorの旧UNKNOWN24/固定epoch上限32、既知probe別計上、4xx/429/真正性HOLDは維持。公式結果の新独立照合、LEARNED_SHADOW未来優位性、収支改善は追加認定しない。実原本・履歴・係数・スケジュール/上限・本番モデル・投票は変更せず、他担当の既存CI/復旧を再起動しない。
 <!-- END_RACEAI_SOURCE_DAY_HANDOFF_20261107T1335Z -->
+
+---
+
+<!-- RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1 -->
+## 2026-11-11｜所有者の明示承認による既存BOAT P0/P1本番経路の固定境界解除
+
+承認原文：「承認する」（2026-11-11、この会話）。直前の承認対象は
+(1) PR #145 の main 統合、既存BOAT結果取得ワークフローの起動専用ジョブへの
+限定的 actions:write 付与、
+(2) 既存BOAT取得担当の固定境界を正式解除し、最初の未来レースで従来の
+P0/P1原本生成・AES保存・独立読戻し・既存公式結果照合を実証すること。
+これは既存ソース所有者の人間承認であり、別ユーザー／別競技の自動承認ではない。
+
+**変更の対象範囲**
+- Public repository haji84/RACE-AI。GitHub Actions主体、PC不要、Vercel不要。
+- 変更前の所有者原本ソース・固定コード版：production/boat-p0-p1-20261111、
+  release base SHA 11b905a7bf011baffdc0e8bcc5b568355d6e41b1。
+- 予想は既存の first_p0_bootstrap + github_existing_cycle、
+  boat_all_model_cycle + existing-model-round のP0/P1のみ。
+- 保存は既存 RACE_AI_STATE_KEY と同じGit AES・元ZIP/保存時刻/原本SHA、
+  独立読戻し必須。旧原本・全レース・各モデルの欠測/HOLDを改変しない。
+- 結果は既存 racer_intraday_refresh、元の結果適格性検証とPDCA採点器のみ。
+  新しい採点器や別名複製モデルを追加しない。
+- 既存の公式取得GET/時間上限、提供元拒否時停止(403/429)、
+  発走・締切の時刻証拠、元データSHA、単一writer／非force pushを維持。
+- 初回リリースは新しい1つの起動経路のみ。結果検証まで完走した証拠が
+  ない間は実績0件、NO_FORECASTと未認証結果は保留する。
+
+**歴史記録の扱い**
+過去のCODE専用HOLD、拒否／不明取得カウンター、固定試行の全証跡は
+変更せず記録として保持する。この解除は本追記より後の将来実行のみ有効。
+実過去原本や起動時刻を過去に遡って書き換えず、過去のHOLDを成功にしない。
+
+**受入は未完了**
+この追記は権限承認と本番起動可否の解除記録であり、
+未来レースでの真正なP0/P1暗号原本の締切前保存、別runnerでのSHA一致、
+画面表示、公式結果取得、元の結果照合器でのモデル別PDCA
+の本番成功を主張するものではない。
+<!-- END_RACE_AI_SOURCE_OWNER_RELEASE_20261111 -->

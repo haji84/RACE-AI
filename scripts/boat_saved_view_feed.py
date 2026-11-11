@@ -15,6 +15,7 @@ sys.path.insert(0,str(ROOT))
 import race_ai
 race_ai.__path__.append(str(ROOT/'pr64-reference/race_ai'))
 from race_ai import saved_view_feed as F
+from race_ai.boat_owner_source_identity import authenticated_live_owner_run
 from race_ai import saved_history_activation as HA
 from race_ai.boat_pdca_state import need,sha
 from race_ai.boat_pdca_recipient import _json
@@ -40,7 +41,7 @@ def observations(ident,*,day,expected_sha=None,allow_other_day=False):
     meta=_json(gh(f'actions/artifacts/{ident}'),32768)
     run=meta.get('workflow_run',{});need(run.get('repository_id')==1416489937 and run.get('head_repository_id')==1416489937,'FEED_ARTIFACT_REPOSITORY')
     info=_json(gh(f'actions/runs/{run["id"]}'),128*1024)
-    need(info.get('workflow_id')==405276784 and info.get('head_branch')=='feat/four-sport-forecast-audit-view-20261022'
+    need(authenticated_live_owner_run(info)
          and info.get('head_sha')==run.get('head_sha'),'FEED_ARTIFACT_WORKFLOW')
     raw=gh(f'actions/artifacts/{ident}/zip')
     if expected_sha is not None:need(sha(raw)==expected_sha,'FEED_CATCHUP_HASH')

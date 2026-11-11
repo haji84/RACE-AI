@@ -54,6 +54,51 @@ class MirrorTests(unittest.TestCase):
                 expected_parent=kwargs.pop('expected_parent',self.f.parent),key=KEY,transport=self.f.writer,
                 readback_transport=self.f.reader,now=kwargs.pop('now',NOW),**kwargs)
 
+    def test_production_dispatch_publishes_its_actual_branch_and_replays_idempotently(self):
+        self.run.update(head_branch='production/boat-p0-p1-20261111',event='workflow_dispatch')
+        self.responses['actions/runs/7']=V._wire(self.run)
+        first=self.publish();raw=self.f.writer.read(first['source_commit'],first['record_path'],32768)
+        verified=mirror.verify_record(raw,run=self.run,key=KEY)
+        self.assertEqual(verified['state']['head_branch'],'production/boat-p0-p1-20261111')
+        self.assertEqual(verified['state']['source_head'],HEAD)
+        self.assertEqual(verified['state']['source_control_receipt']['digest'],self.control_meta['digest'])
+        self.assertTrue(verified['hmac_verified'])
+        public=mirror.verify_record(raw,run=self.run,source_commit=first['source_commit'])
+        self.assertFalse(public['hmac_verified']);self.assertFalse(public['source_authorization_granted'])
+        second=self.publish(expected_parent=first['source_commit'])
+        self.assertEqual(second['source_commit'],first['source_commit'])
+        self.assertEqual(second['source_requests'],0)
+        self.assertNotIn(b'DO_NOT_PUBLISH_NATIVE',raw)
+
+    def test_unauthorized_live_identity_never_reads_artifacts_or_writes(self):
+        approved=dict(self.run,head_branch='production/boat-p0-p1-20261111',event='workflow_dispatch')
+        mutations=[dict(event=event) for event in ('push','pull_request',None)]
+        mutations += [dict(head_branch='main'),dict(workflow_id=1)]
+        for field in ('repository','head_repository'):
+            mutations += [{field:dict(id=1,full_name='haji84/RACE-AI')},
+                          {field:dict(id=1416489937,full_name='someone/RACE-AI')}]
+        mutations += [dict(head_branch=R.BRANCH,event=event) for event in ('pull_request',None)]
+        mutations.append(dict(head_branch=R.BRANCH,event='push',display_title='saved-view: refresh',
+                              head_commit=dict(message='saved-view: refresh')))
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                self.responses['actions/runs/7']=V._wire(dict(approved,**mutation));self.requests.clear()
+                with self.assertRaises(ValueError):self.publish()
+                self.assertEqual(self.requests,['actions/runs/7'])
+                self.assertEqual(self.f.writer.head(),self.f.parent)
+
+    def test_public_record_cannot_be_rebound_to_another_permitted_owner_branch(self):
+        report=self.publish();raw=self.f.writer.read(report['source_commit'],report['record_path'],32768)
+        other=dict(self.run,head_branch='production/boat-p0-p1-20261111',event='workflow_dispatch')
+        with self.assertRaisesRegex(ValueError,'CONTROL_MIRROR_STATE_RUN_CONFLICT'):
+            mirror.verify_record(raw,run=other,source_commit=report['source_commit'])
+
+    def test_archived_latest_without_live_event_requires_owner_hmac(self):
+        report=self.publish();raw=self.f.writer.read(report['source_commit'],mirror.LATEST,32768)
+        latest=json.loads(raw)['state']
+        with self.assertRaisesRegex(ValueError,'CONTROL_MIRROR_ARCHIVED_HMAC_REQUIRED'):
+            mirror._check_latest_record(self.f.writer,report['source_commit'],latest,None)
+
     def test_publication_contains_only_whitelisted_counts_receipts_and_opaque_locators(self):
         report=self.publish();raw=self.f.writer.read(report['source_commit'],report['record_path'],32768)
         self.assertNotIn(b'DO_NOT_PUBLISH_NATIVE',raw);self.assertNotIn(b'private.invalid',raw)
@@ -150,6 +195,68 @@ class MirrorTests(unittest.TestCase):
             self.responses[f'actions/artifacts/{ident}/zip']=raw
         self.responses[f'actions/runs/{run_id}']=V._wire(run)
         self.responses[f'actions/runs/{run_id}/artifacts?per_page=100']=V._wire(dict(total_count=2,artifacts=values))
+
+    def test_production_latest_preserves_exact_legacy_hmac_record_and_newer_pointer(self):
+        first=self.publish();legacy=self.f.writer.read(first['source_commit'],first['record_path'],32768)
+        self.add_run_pair(8)
+        production=dict(run_record(8,created='2030-04-01T02:00:00Z'),
+                        head_branch='production/boat-p0-p1-20261111',event='workflow_dispatch')
+        self.responses['actions/runs/8']=V._wire(production)
+        with patch.dict(os.environ,self.env,clear=True):
+            newer=mirror.publish_control(8,self.f.writer.repo,get=self.get,expected_parent=first['source_commit'],
+                key=KEY,transport=self.f.writer,readback_transport=self.f.reader,now=NOW)
+        self.assertEqual(self.f.writer.read(newer['source_commit'],first['record_path'],32768),legacy)
+        self.assertTrue(mirror.verify_record(legacy,run=self.run,key=KEY)['hmac_verified'])
+        latest=self.f.writer.read(newer['source_commit'],mirror.LATEST,32768)
+        older=self.publish(expected_parent=newer['source_commit'])
+        self.assertFalse(older['latest_advanced'])
+        self.assertEqual(self.f.writer.read(older['source_commit'],mirror.LATEST,32768),latest)
+
+    def test_latest_closed_selects_production_and_skips_only_nonowners_or_missing_pairs(self):
+        self.run.update(head_branch='production/boat-p0-p1-20261111',event='workflow_dispatch')
+        self.responses['actions/runs/7']=V._wire(self.run)
+        missing=dict(run_record(8,created='2030-04-01T02:00:00Z'),
+                     head_branch='production/boat-p0-p1-20261111',event='workflow_dispatch')
+        self.responses['actions/runs/8']=V._wire(missing)
+        self.responses['actions/runs/8/artifacts?per_page=100']=V._wire(dict(total_count=0,artifacts=[]))
+        excluded=[dict(run_record(9),head_branch='production/boat-p0-p1-20261111',event='push'),
+                  dict(run_record(10),head_branch='production/boat-p0-p1-20261111',event='pull_request'),
+                  dict(run_record(11),display_title='saved-view: refresh',
+                       head_commit=dict(message='saved-view: refresh')),
+                  dict(run_record(12),event='pull_request')]
+        listing='actions/workflows/405276784/runs?per_page=16&status=completed'
+        self.responses[listing]=V._wire(dict(workflow_runs=[*excluded,missing,self.run]))
+        with patch.dict(os.environ,self.env,clear=True):
+            report=mirror.publish_latest_closed(self.f.writer.repo,get=self.get,expected_parent=self.f.parent,
+                key=KEY,transport=self.f.writer,readback_transport=self.f.reader,now=NOW)
+        self.assertEqual(report['source_run_id'],7)
+        self.assertEqual(report['scanned_closed_runs'],2)
+        self.assertEqual(report['skipped_missing_pairs'],[8])
+        self.assertEqual(report['source_requests'],0)
+        self.assertTrue(all(f'actions/runs/{row["id"]}' not in self.requests for row in excluded))
+
+    def test_latest_closed_rejects_foreign_production_metadata_before_older_fallback(self):
+        foreign=dict(run_record(8),head_branch='production/boat-p0-p1-20261111',event='workflow_dispatch',
+                     head_repository=dict(id=1,full_name='haji84/RACE-AI'))
+        listing='actions/workflows/405276784/runs?per_page=16&status=completed'
+        self.responses[listing]=V._wire(dict(workflow_runs=[foreign,self.run]))
+        with patch.dict(os.environ,self.env,clear=True),self.assertRaisesRegex(ValueError,
+                'CONTROL_MIRROR_RUN_REPOSITORY_INVALID'):
+            mirror.publish_latest_closed(self.f.writer.repo,get=self.get,expected_parent=self.f.parent,
+                key=KEY,transport=self.f.writer,readback_transport=self.f.reader,now=NOW)
+        self.assertEqual(self.requests,[listing]);self.assertEqual(self.f.writer.head(),self.f.parent)
+
+    def test_latest_closed_production_active_or_rerun_stays_hold(self):
+        listing='actions/workflows/405276784/runs?per_page=16&status=completed'
+        for mutation in (dict(status='in_progress'),dict(run_attempt=2)):
+            with self.subTest(mutation=mutation):
+                candidate=dict(run_record(8),head_branch='production/boat-p0-p1-20261111',
+                               event='workflow_dispatch',**mutation)
+                self.responses[listing]=V._wire(dict(workflow_runs=[candidate,self.run]));self.requests.clear()
+                with patch.dict(os.environ,self.env,clear=True),self.assertRaises(ValueError):
+                    mirror.publish_latest_closed(self.f.writer.repo,get=self.get,expected_parent=self.f.parent,
+                        key=KEY,transport=self.f.writer,readback_transport=self.f.reader,now=NOW)
+                self.assertEqual(self.requests,[listing]);self.assertEqual(self.f.writer.head(),self.f.parent)
 
     def test_backfill_keeps_newer_latest_and_detects_corrupt_existing_latest_record(self):
         first=self.publish();self.add_run_pair(8)

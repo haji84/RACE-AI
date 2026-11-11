@@ -36,18 +36,65 @@ async function revealRace(page,raceId,dayRaces){
   }
   return target;
 }
+function nativeStage(context){
+  const stage=context.stage===undefined?'P1':context.stage;
+  assert.ok(['P0','P1'].includes(stage));return stage;
+}
+function nativeCount(context){
+  const stage=nativeStage(context),count=context.native_group_count??(stage==='P1'?context.native_p1_groups:undefined);
+  assert.ok(Number.isSafeInteger(count)&&count>0);
+  for(const candidate of ['P0','P1']){
+    const value=context['native_'+candidate.toLowerCase()+'_groups'];
+    if(value!==undefined)assert.equal(value,candidate===stage?count:0);
+  }
+  return count;
+}
 function requireNativeGroups(context,values){
+  const stage=nativeStage(context);
   const actual=new Set();
   for(const value of values){
     let parts;try{parts=JSON.parse(value);}catch{continue;}
-    if(Array.isArray(parts)&&parts[1]==='boat'&&parts[2]==='P1')
+    if(Array.isArray(parts)&&parts[1]==='boat'&&parts[2]===stage)
       actual.add(JSON.stringify([parts[3]??null,parts[4]??null,parts[5]??null,parts[6]??null]));
   }
   for(const expected of context.native_groups)assert.ok(actual.has(JSON.stringify(expected)));
 }
+function requireNativeDetail(context,probe,detail){
+  const stage=nativeStage(context);
+  assert.match(detail.label,new RegExp('^'+stage+' '));
+  assert.equal(detail.nativeDispatch,stage==='P1'?'true':'false');
+  if(stage==='P0'){
+    assert.equal(probe.stage,stage);assert.equal(detail.modelId,probe.model_id);
+    assert.equal(require('node:crypto').createHash('sha256').update(JSON.stringify(detail.tickets)).digest('hex'),probe.tickets_sha256);
+  }
+}
+function requireExpectedOriginal(context,probe){
+  const expected=context.expected_original;
+  if(expected===undefined)return;
+  assert.equal(nativeStage(context),'P0');
+  assert.deepEqual(Object.keys(expected).sort(),['day_jst','json_sha256','original_id','source_sha']);
+  assert.equal(expected.day_jst,context.day);
+  assert.ok(Number.isSafeInteger(expected.original_id)&&expected.original_id>0);
+  assert.match(expected.json_sha256,/^[a-f0-9]{64}$/);assert.match(expected.source_sha,/^[a-f0-9]{40}$/);
+  assert.equal(probe.artifact_id,expected.original_id);
+  assert.equal(probe.original_json_sha256,expected.json_sha256);
+  assert.equal(probe.source_code_commit,expected.source_sha);
+}
+function requireNativeAudit(context,probe,audit){
+  assert.equal(nativeStage(context),'P0');assert.equal(audit.stage,'P0');
+  requireExpectedOriginal(context,probe);
+  assert.equal(audit.modelId,probe.model_id);
+  for(const [label,expected] of [['原本artifact ID',String(probe.artifact_id)],
+    ['原本JSON SHA',probe.original_json_sha256],['予想SHA',probe.prediction_sha256],
+    ['モデル / 学習物SHA',probe.model_sha256],['保存コードのコミット',probe.source_code_commit]]){
+    const matches=audit.fields.filter(pair=>pair[0]===label);
+    assert.equal(matches.length,1);assert.equal(matches[0][1],expected);
+  }
+}
 
 function validate(context){
   assert.equal(context.schema,'RACE_AI_PRIVATE_LIVE_SITE_CHECK_CONTEXT_V1');
+  const stage=nativeStage(context),groupCount=nativeCount(context);
   const url=new URL(context.owner_url);
   assert.equal(url.origin,'https://haji84.github.io');
   assert.equal(url.pathname,'/RACE-AI/');assert.equal(url.search,'');
@@ -56,11 +103,10 @@ function validate(context){
   assert.match(context.day,/^\d{4}-\d{2}-\d{2}$/);
   dateEvidence(context,0,0);
   assert.ok(Number.isSafeInteger(context.generation)&&context.generation>0);
-  for(const name of ['minimum_results','native_p1_groups','old_completed'])
+  for(const name of ['minimum_results','old_completed'])
     assert.ok(Number.isSafeInteger(context[name])&&context[name]>=0);
-  assert.ok(context.native_p1_groups>0);
   assert.ok(Number.isSafeInteger(context.day_races)&&context.day_races>=1&&context.day_races<=288);
-  assert.ok(Array.isArray(context.native_groups)&&context.native_groups.length===context.native_p1_groups);
+  assert.ok(Array.isArray(context.native_groups)&&context.native_groups.length===groupCount);
   for(const group of context.native_groups){
     assert.ok(Array.isArray(group)&&group.length===4&&typeof group[0]==='string'&&group[0].length>0);
     assert.ok(group.slice(1).every(value=>value===null||typeof value==='string'));
@@ -70,11 +116,20 @@ function validate(context){
   for(const future of [context.native_probe,context.future_native].filter(Boolean)){assert.match(future.race_id,/^\d{8}-\d{2}-\d{2}$/);
     assert.ok(Number.isSafeInteger(future.index)&&future.index>=0&&future.index<32768);
     assert.ok(Number.isFinite(Date.parse(future.cutoff_at)));
+    if(stage==='P0'||future.stage!==undefined)assert.equal(future.stage,stage);
+    if(stage==='P0'){
+      assert.ok(typeof future.model_id==='string'&&future.model_id.length>0&&future.model_id.length<=256);
+      assert.ok(Number.isSafeInteger(future.artifact_id)&&future.artifact_id>0);
+      for(const field of ['tickets_sha256','original_json_sha256','prediction_sha256','model_sha256'])assert.match(future[field],/^[a-f0-9]{64}$/);
+      assert.equal(future.prediction_sha256,future.model_sha256);assert.match(future.source_code_commit,/^[a-f0-9]{40}$/);
+    }
+    requireExpectedOriginal(context,future);
   }
   return url.hash.split('.')[1];
 }
 
-function dateEvidence(context,results,p1Groups,lifecycleDay){
+function dateEvidence(context,results,nativeGroups,lifecycleDay){
+  const stage=nativeStage(context),prefix=stage.toLowerCase();
   const valid=day=>typeof day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(day)&&
     Number.isFinite(Date.parse(day+'T00:00:00Z'))&&new Date(day+'T00:00:00Z').toISOString().slice(0,10)===day;
   const current=context.current_day??context.day;
@@ -82,15 +137,21 @@ function dateEvidence(context,results,p1Groups,lifecycleDay){
   if(lifecycleDay!==undefined)assert.equal(lifecycleDay,current,'lifecycle date changed during verification');
   const scope=context.day===current?'CURRENT_DAY':'HISTORICAL_DAY';
   if(context.date_scope!==undefined)assert.equal(context.date_scope,scope);
-  assert.ok(Number.isSafeInteger(results)&&results>=0&&Number.isSafeInteger(p1Groups)&&p1Groups>=0);
+  assert.ok(Number.isSafeInteger(results)&&results>=0&&Number.isSafeInteger(nativeGroups)&&nativeGroups>=0);
   return {checked_day:context.day,current_day:current,date_scope:scope,
-    checked_day_results:results,checked_day_p1_groups:p1Groups,
+    stage,checked_day_native_groups:nativeGroups,
+    current_day_native_groups:scope==='CURRENT_DAY'?nativeGroups:null,
+    checked_day_results:results,['checked_day_'+prefix+'_groups']:nativeGroups,
     current_day_results:scope==='CURRENT_DAY'?results:null,
-    current_day_p1_groups:scope==='CURRENT_DAY'?p1Groups:null};
+    ['current_day_'+prefix+'_groups']:scope==='CURRENT_DAY'?nativeGroups:null};
 }
 
 async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDay=false,checkBeforeinfo=false}={}){
   const key=validate(context),{chromium}=require('playwright');
+  const stage=nativeStage(context),groupCount=nativeCount(context);
+  // P0 proof uses the existing compact-result research audit to bind the
+  // exact original receipt, not just another original with matching tickets.
+  assert.ok(stage==='P1'||compactResults);
   if(checkBeforeinfo){assert.ok(context.live_beforeinfo_races>0);assert.match(context.live_beforeinfo_probe?.race_id,/^\d{8}-\d{2}-\d{2}$/);assert.ok(Number.isFinite(Date.parse(context.live_beforeinfo_probe.cutoff_at)));}
   let beforeinfoViews=0,beforeinfoTimes=0;
   let modelSwitchViews=0,modelSwitchOriginals=0;
@@ -101,7 +162,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
     '/opt/google/chrome/chrome','/usr/bin/chromium'].find(path=>fs.existsSync(path));
   assert.ok(executablePath,'installed browser required');
   const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox']});
-  let blocked=0,leaked=false,checked=0,futureVisible=false,nativeVisible=false,currentResults=0,p1Groups=0,rationaleViewsChecked=0,upcomingRowsChecked=0,venueResultsChecked=0,currentDayLifecycleViews=0,currentDayUpcomingRows=0,currentDayUpcomingCount=null,currentDayClosedCount=null,currentDayPendingCount=null;
+  let blocked=0,leaked=false,checked=0,futureVisible=false,nativeVisible=false,currentResults=0,nativeGroups=0,rationaleViewsChecked=0,upcomingRowsChecked=0,venueResultsChecked=0,currentDayLifecycleViews=0,currentDayUpcomingRows=0,currentDayUpcomingCount=null,currentDayClosedCount=null,currentDayPendingCount=null;
   try{
     const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
     page.setDefaultTimeout(45000);
@@ -178,9 +239,12 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
         await page.locator('[data-race-view="'+(Date.now()<Date.parse(probe.cutoff_at)?'upcoming':'results')+'"]').click();
         const target=await revealRace(page,probe.race_id,context.day_races);await target.click();
         const selected=String(probe.index);
-        assert.match(await page.locator('#prediction-select option[value="'+selected+'"]').innerText(),/^P1 /);
+        const label=await page.locator('#prediction-select option[value="'+selected+'"]').innerText();
         await page.locator('#prediction-select').selectOption(selected);
-        assert.equal(await page.locator('#detail-tab-content .forecast-panel').first().getAttribute('data-native-dispatch'),'true');
+        const panel=page.locator('#detail-tab-content .forecast-panel').first();
+        requireNativeDetail(context,probe,{label,nativeDispatch:await panel.getAttribute('data-native-dispatch'),
+          modelId:await panel.getAttribute('data-model-id'),tickets:stage==='P0'?await panel.locator('.saved-ticket .combo')
+            .evaluateAll(nodes=>nodes.map(node=>[...node.querySelectorAll('.lane')].map(n=>Number(n.textContent)))):null});
         nativeVisible=true;
         if(context.future_native&&!futureVisible){
           assert.ok(Date.now()<Date.parse(context.future_native.cutoff_at));futureVisible=true;
@@ -198,6 +262,14 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
         await page.locator('[data-page="research"]').filter({visible:true}).first().click();
         const audit=page.locator('#research-race-audit');assert.equal(await audit.isVisible(),true);assert.equal(await page.locator('#research-race-select').inputValue(),expectedRace);assert.equal(await page.locator('#research-prediction-select').inputValue(),selected);
         assert.equal(await audit.locator('.race-audit-details').evaluate(n=>n.tagName),'SECTION');assert.equal(await audit.locator('.race-audit-details').getAttribute('data-model-id'),modelId);assert.match(await audit.innerText(),/予想SHA/);
+        if(stage==='P0'){
+          const probe=context.future_native||context.native_probe;
+          assert.equal(expectedRace,probe.race_id);assert.equal(selected,String(probe.index));
+          const details=audit.locator('.race-audit-details');
+          requireNativeAudit(context,probe,{stage:await details.getAttribute('data-prediction-stage'),
+            modelId:await details.getAttribute('data-model-id'),fields:await details.locator('.race-audit-body > dl.provenance').first()
+              .evaluate(dl=>[...dl.querySelectorAll('dt')].map(dt=>[dt.textContent,dt.nextElementSibling?.textContent]))});
+        }
         await audit.locator('[data-return-to-race]').click();assert.equal(await page.locator('#prediction-select').inputValue(),selected);
         assert.equal(await page.locator('#race-detail .forecast-rationale').count()?await page.locator('#race-detail .forecast-rationale').innerText():null,rationale);
         if(rationale){await assertRationaleHeading(page);rationaleViewsChecked++;}
@@ -205,8 +277,8 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       }
       assert.match(await page.locator('[data-page="results"]').filter({visible:true}).first().innerText(),/AI予想結果/);
       await page.locator('[data-page="results"]').filter({visible:true}).first().click();
-      p1Groups=await page.locator('#results-model option').evaluateAll(options=>options.filter(o=>o.textContent.startsWith('P1 ')).length);
-      assert.ok(p1Groups>=context.native_p1_groups);
+      nativeGroups=await page.locator('#results-model option').evaluateAll((options,phase)=>options.filter(o=>o.textContent.startsWith(phase+' ')).length,stage);
+      assert.ok(nativeGroups>=groupCount);
       requireNativeGroups(context,await page.locator('#results-model option').evaluateAll(options=>options.map(option=>option.value)));
       const metrics=await page.locator('#saved-result-metrics').innerText();
       currentResults=Number(metrics.match(/取得結果\s*(\d+)レース/)?.[1]);
@@ -284,10 +356,12 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
     return {schema:'RACE_AI_LIVE_SITE_CHECK_COUNTS_V1',status:'LIVE_OWNER_SITE_VERIFIED',
       verified_at:verifiedAt.toISOString(),widths_checked:checked,
       feed_generation:Number(await page.locator('#saved-view-sync').getAttribute('data-generation')),
-      ...dateEvidence({...context,current_day:currentDay,date_scope:undefined},currentResults,p1Groups,checkCurrentDay?context.current_day:undefined),
+      ...dateEvidence({...context,current_day:currentDay,date_scope:undefined},currentResults,nativeGroups,checkCurrentDay?context.current_day:undefined),
       lifecycle_checked_day:checkCurrentDay?context.current_day:null,
       selected_saved_day:context.day,current_day_lifecycle_views_checked:currentDayLifecycleViews,current_day_upcoming_rows_checked:currentDayUpcomingRows,current_day_upcoming_races:currentDayUpcomingCount,current_day_closed_races:currentDayClosedCount,current_day_pending_result_races:currentDayPendingCount,race_lifecycle_tabs_verified:true,upcoming_rows_checked:upcomingRowsChecked,venue_result_views_checked:venueResultsChecked,ai_results_navigation_verified:true,compact_result_ui_verified:compactResults,research_audit_verified:compactResults,available_rationale_preserved:compactResults,rationale_views_checked:rationaleViewsChecked,probe_result_matched:Boolean(compactResults&&probeRaceId),
-      native_p1_groups_required:context.native_p1_groups,native_p1_detail_visible:nativeVisible,
+      native_groups_required:groupCount,native_detail_visible:nativeVisible,
+      ['native_'+stage.toLowerCase()+'_groups_required']:groupCount,['native_'+stage.toLowerCase()+'_detail_visible']:nativeVisible,
+      ...(stage==='P0'?{native_original_audit_verified:true,expected_original_matched:context.expected_original!==undefined}:{}),
       future_native_visible_before_cutoff:futureVisible,previous_day_checked:context.old_day!==null,
       active_model_families:15,removed_seller_hidden:true,
       live_beforeinfo_views_checked:beforeinfoViews,live_beforeinfo_times_checked:beforeinfoTimes,
@@ -303,4 +377,4 @@ if(require.main===module){
     .then(report=>process.stdout.write(JSON.stringify(report)+'\n'))
     .catch(error=>{process.stdout.write(JSON.stringify(browserFailure(error))+'\n');process.exitCode=2;});
 }
-module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,browserFailure,assertRationaleHeading,run};
+module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,requireNativeDetail,requireNativeAudit,browserFailure,assertRationaleHeading,run};
