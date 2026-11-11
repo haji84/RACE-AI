@@ -23,6 +23,7 @@ from .keirin_prior_private_stage import (
 )
 from .keirin_permissioned_owner import _write_private_once
 from .keirin_winticket_prior_events import PriorSourceError
+from .keirin_prior_form_trend import compute_prior_form_trend
 
 
 def need(ok, code):
@@ -51,7 +52,8 @@ def attach_prior_finishing_input(card, packet):
          'PRIOR_INPUT_RIDER_IDENTITY_MISMATCH')
     need(RIDER_MAP_DISTINCT_B['finishing_power'] == ('late_lap_and_agari_time', 'ratio') and
          RIDER_MAP_DISTINCT_B['bank_fit'] == ('venue_and_distance_compatibility', 'ratio') and
-         RIDER_MAP_DISTINCT_B['course_compatibility'] == ('bank_positioning_and_traffic', 'ratio'),
+         RIDER_MAP_DISTINCT_B['course_compatibility'] == ('bank_positioning_and_traffic', 'ratio') and
+         RIDER_MAP_DISTINCT_B['recent_form'] == ('recent_strength_or_form_change', 'ratio'),
          'EXISTING_DISTINCT_B_INPUT_MAPPING_CHANGED')
     out = deepcopy(card)
     evidence = {}
@@ -129,6 +131,46 @@ def attach_prior_finishing_input(card, packet):
             'approved_for_pr71_input': False,
             'independent_source_rights_verified': False,
         }
+    # Historical finish-rank change is not a provider-measured rider strength.
+    # It is a distinct research-B trend candidate from six comparable past
+    # race outcomes, with the exact prior-result packet already SHA-replayed.
+    form = compute_prior_form_trend(
+        packet['source_reference'], packet['prior_events'],
+        as_of=packet['calculated_as_of'])
+    form_evidence = {}
+    for rider in card['riders']:
+        key = f"rider/{rider['car_number']}/recent_strength_or_form_change"
+        if key in out['direct_verified_fields']:
+            continue
+        item = form['riders'][rider['source_player_id']]
+        value = item['candidate_value']
+        if value is None:
+            continue
+        need(type(value) in (int, float) and math.isfinite(value) and
+             0 <= value <= 1 and item['recent_samples'] == 3 and
+             item['baseline_samples'] == 3 and
+             item['sample_count'] == item['minimum_required'] == 6 and
+             item['approved_for_pr71_input'] is False,
+             'PRIOR_FORM_REPLAY_OR_SAMPLE_INVALID')
+        out['direct_verified_fields'][key] = value
+        form_evidence[key] = {
+            'value': value,
+            'sample_n': item['sample_count'],
+            'recent_sample_n': item['recent_samples'],
+            'baseline_sample_n': item['baseline_samples'],
+            'feature_source_profile': DISTINCT_B_ID,
+            'model_feature': 'recent_form',
+            'formula_version': item['formula_version'],
+            'private_prior_packet_sha256': packet_sha,
+            'original_racecard_html_sha256': card['html_sha256'],
+            'calculated_at': packet['calculated_as_of'],
+            'source_published_at': None,
+            'definition': ('change in rank percentile of latest three vs '
+                           'previous three matched past race outcomes; not '
+                           'measured absolute rider strength'),
+            'approved_for_pr71_input': False,
+            'independent_source_rights_verified': False,
+        }
     registry = set(expected_keys([r['car_number'] for r in out['riders']]))
     keys = set(out['direct_verified_fields'])
     need(keys <= registry, 'PRIOR_UNREGISTERED_INPUT_FIELD')
@@ -140,6 +182,7 @@ def attach_prior_finishing_input(card, packet):
         'full_347_or_437_verified': keys == registry,
         'prior_finishing_input_evidence': evidence,
         'prior_venue_compatibility_input_evidence': venue_evidence,
+        'prior_recent_form_input_evidence': form_evidence,
         'derived_input_as_of': packet['calculated_as_of'],
         'derived_input_partial_only': True,
     })
@@ -177,6 +220,7 @@ def stage_connected_prior_input(root, source_card, packet):
         'derived_finishing_slots': len(connected['prior_finishing_input_evidence']),
         'derived_venue_compatibility_slots': len(
             connected['prior_venue_compatibility_input_evidence']),
+        'derived_form_trend_slots': len(connected['prior_recent_form_input_evidence']),
         'public_plaintext_written': False,
         'production_aes_archived': False,
         'live_model_invoked': False,
