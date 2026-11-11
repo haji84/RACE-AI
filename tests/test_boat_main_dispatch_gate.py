@@ -264,7 +264,7 @@ class AuthenticatedSameDayContinuationTests(unittest.TestCase):
 
     def test_multiple_completed_successors_use_only_latest_authentic_checkpoint(self):
         earlier=self.owner(101,created="2026-11-11T00:02:00Z")
-        latest=self.owner(102,created="2026-11-11T00:30:00Z")
+        latest=self.owner(102,created="2026-11-11T00:04:00Z")
         self.assertTrue(self.judge(latest,earlier,proof=self.proof(102))["dispatch_allowed"])
         self.assertFalse(self.judge(latest,earlier,proof=self.proof(101))["dispatch_allowed"])
 
