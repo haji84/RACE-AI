@@ -15,9 +15,9 @@ class CanonicalBoatLaunchContract(unittest.TestCase):
     def test_default_branch_is_registration_only(self):
         self.assertIn("  workflow_dispatch:", REGISTRATION)
         self.assertIn("existing-owner-p0-p1", REGISTRATION)
-        self.assertIn("reject_default_branch_execution:", REGISTRATION)
+        self.assertIn("never_issue_from_main:", REGISTRATION)
         self.assertIn("github.ref == 'refs/heads/main'", REGISTRATION)
-        self.assertIn("exit 1", REGISTRATION)
+        self.assertIn("exit 2", REGISTRATION)
         self.assertNotIn("official_national:", REGISTRATION)
         self.assertNotIn("boat_all_model_cycle", REGISTRATION)
 
