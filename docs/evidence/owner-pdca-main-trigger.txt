@@ -18,3 +18,18 @@ If any release, custody, time, active producer or event check fails, HOLD.
 Never create post-result predictions or turn NO_FORECAST into hits.
 The first real saved prediction plus separate readback and original official
 result reconciliation must be independently evidenced; none is claimed here.
+
+2026-11-11 verified failed pre-source retry: owner P0/P1 run 42993305843 passed source-owner release
+and code SHA but failed three outdated workflow assertions BEFORE official
+data source or any forecast was accessed. GitHub API confirms all first-P0,
+P1 and result steps skipped and only existing-cycle-source-42993305843 was
+stored. Retained old origin SHA 5f5bd960e3377a87541f9d6b348d3c045ea51cf0.
+The original source code tests have been fixed and verified by PR #148 CI
+42993987718. Current reviewed owner release SHA is
+e24f09f150e2318dd16a96bdc6db1d8c1317b9ae.
+PR #149 adds an exact same-day source-free proof gate; this marker requests
+the sole pre-source retry, not permission to regenerate an existing original.
+All prior forecasts (none from run 42993305843), AES, source limits, no
+invented NO_FORECAST and result-authority protections remain unchanged.
+Never call this attempt completed until real immutable original readback and
+official existing-scorer settlement prove it.
