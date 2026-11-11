@@ -1,6 +1,49 @@
 # RACE-AI 詳細引き継ぎ正本（2026年11月11日）
 
-## 最新追記：2026-11-11・run43034336347までの実証
+## 最新追記：2026-11-11・run43038009675の実原本・実Pages・後続読戻し
+
+**同じ元P0原本の保全、別runnerでの独立読戻し、既存公式照合、既存Pagesでの実表示確認まで合格した。14レース・28予想のうち13レース・26予想を採点し、通常完走以外の状態を含む1レース・2予想はHOLDを維持。後続dailyと4日分のAES読戻しも成功したが、別処理の集計をこの元P0採点結果と混ぜず、全履歴完了とは判定しない。**
+
+- 今回も元run `42995325741`、artifact `13842474540`、元ソース `e24f09f150e2318dd16a96bdc6db1d8c1317b9ae` の同じ原本を使用。保全commit `2448b33de6ecf7388f8fd8577860622b67b9b9a2` と元receipt `20fc291429003fd0351baef4b0c1918b76b4e066` を固定し、新予想作成・原本書換え・復旧処理からの公式情報取得は0。
+- [保全job130581941861](https://github.com/haji84/RACE-AI/actions/runs/43038009675/job/130581941861) はrunner `1000042267`、[独立読戻しjob130582152757](https://github.com/haji84/RACE-AI/actions/runs/43038009675/job/130582152757) は別runner `1000042268` でsuccess。既存読取器が14レース・28予想・2モデルの原本結合と締切前保存を再検証した。
+- [照合・実Pages job130582378667](https://github.com/haji84/RACE-AI/actions/runs/43038009675/job/130582378667) の元P0専用集計は、保存済み公式結果14レース、採点13レース・26予想、HIT6、MISS20、`ABNORMAL_FINISH_REVIEW_REQUIRED` 2。採点SHA `e8a142ca13b1b968b2958b4ee49c78ff54037f3d3fbddb49769ec4a954bafedb` と原本文書集合SHAは前回run43034336347から不変。HOLDを不的中へ変換していない。
+- 保存済み暗号化runtimeと既存TERM readerによる表示名補充を実行し、対象日の延べ84出走枠で名前あり84、登録番号と検証済み名簿に結び付いた名前84、欠損0。延べ出走枠数であり、84人の異なる選手という意味ではない。予想辞書・買い目・入力・採点には適用していない。
+- 実Pages検査時の暗号化表示feedはgeneration `115`、commit `439b697b1df95d19c82ab3ae9df6f05eab9ca6fc`。実Pagesは `2026-11-11T14:26:20.661Z` に `LIVE_OWNER_SITE_VERIFIED`。検査日11/11・明示stage P0で、対象artifact・原本JSON SHA・元コードコミットとの一致、原本監査表示、P0詳細、2モデル群、14結果を確認した。
+- 幅320・390・1440の3種類で検証し、モデル切替は3画面・原本検査6件、表示名検査も合格。鍵がrequest/storageへ入った事象は検査範囲で0、公式情報取得0、平文公開false。28枚全カードを個別検査したという証拠ではない。
+- この実画面検査は締切後で、`future_native_visible_before_cutoff=false`。今回、未来レースの画面表示を締切前に観測したとは主張しない。元原本が締切前に保存された証拠14レース・28予想とは別の判定である。
+- 名前接続のproductionは [`ba2d2d698b90548dd67b6ca7ac2dada776b09e32`](https://github.com/haji84/RACE-AI/commit/ba2d2d698b90548dd67b6ca7ac2dada776b09e32)。[PR #154](https://github.com/haji84/RACE-AI/pull/154) でmain [`15047c84de0b44126dc97f85ca5ff0b66bb7eeab`](https://github.com/haji84/RACE-AI/commit/15047c84de0b44126dc97f85ca5ff0b66bb7eeab) に統合し、この固定組で実行した。表示名のassertion、既存モデル、既存採点器、AES形式は変更していない。
+
+### 後続dailyと判定を分ける
+
+[後続daily job130583568151](https://github.com/haji84/RACE-AI/actions/runs/43038009675/job/130583568151)、runner `1000042271` はsuccess。run全体は `2026-11-11T14:27:53Z` にcompleted successとなった。既存 `verify_all_history_pdca_readback` の4日分AES readback coverageはtrueだが、`all_history_completion_proven=false`。全体ledgerの未完了54レース・未採点498予想を今回の14レース・28予想へ転用しない。
+
+判定差の所在は実ログと既存コードで確認済み。元P0の [`frozen_day_cycle.settle`](https://github.com/haji84/RACE-AI/blob/ba2d2d698b90548dd67b6ca7ac2dada776b09e32/race_ai/frozen_day_cycle.py) は照合対象の出走者全員が `FINISHED` であることを要求し、異常状態をHOLDにする。一方、日次の[既存bulk集計](https://github.com/haji84/RACE-AI/blob/ba2d2d698b90548dd67b6ca7ac2dada776b09e32/race_ai/retained_model_pdca_audit.py) は認証済みの確定結果・払戻・返還条件で評価し、この全員通常完走条件を持たない。これらの判定部分は修復前 `997535d388e8dd6609355fde6f94e90307f818a3` から不変で、名前補充によってHOLDが解除されたのではない。
+
+| 今回原本に対する既存処理 | 実測 | 判定の扱い |
+|---|---|---|
+| 元P0のnative評価 | 13レース・26予想採点、HIT6・MISS20・異常HOLD2 | 今回の原本照合結果の正本。HOLD2を維持 |
+| 後続dailyの11/11集計 | 14レース・28予想、eligible28・HIT6・MISS22・unresolved0 | 別規則の参考集計。元P0のHOLD解除や全履歴完了の証拠へ統合しない |
+
+### 次の1工程
+
+既存の翌朝P0/P1起動枠が実際に発火することをrun・呼出先jobで確認し、次の真正な原本について、新規receipt PUTの応答コミットを指定したGETが実環境で一致することを証明する。今回の回復は既存receiptを再利用したため、新規PUT経路は回帰テストで検証済みだが実地証明はまだない。定期設定の存在を翌朝の完走保証とはしない。
+
+今回のP1は元runがその前に停止したため未生成であり、後付けでは作らない。翌朝の既存起動枠の実発火、未来レースでのP0/P1完走、全日・全国・4競技・全現役モデルの完成は、この回復実行では未実証。対象分母は14レース・28予想で、要確認の1レース・2予想も残す。
+
+### 最新の安全な証跡
+
+- [run43038009675](https://github.com/haji84/RACE-AI/actions/runs/43038009675)
+- [独立読戻し](evidence/2026-11-11/first-p0-independent-readback-43038009675.json)
+- [元P0の照合・表示名84/84](evidence/2026-11-11/first-p0-reconciliation-43038009675.json)
+- [実Pages検証](evidence/2026-11-11/first-p0-pages-43038009675.json)
+- [対象原本を固定した検査コンテキスト集計](evidence/2026-11-11/first-p0-site-context-counts-43038009675.json)
+- [後続daily・履歴読戻しの安全な集計](evidence/2026-11-11/first-p0-historical-readback-counts-43038009675.json)
+- [今回の実証全体と限界をまとめた固定証跡](evidence/2026-11-11/first-p0-production-proof-43038009675.json)
+- [修復・保全・失敗履歴を含む詳細](evidence/2026-11-11/first-p0-readback-repair.md)
+
+## 修復途中の実証：run43034336347までの履歴
+
+以下は名前接続修復前の記録。ここでの「進行中」「次工程」は当時の状態であり、最新判定は上記run43038009675の欄を優先する。
 
 **最優先の原本保全と別runner読戻しは合格。元P0に限定した公式照合は13レース・26予想を採点済み、1レース・2予想は通常完走以外の状態を含むため確認待ち。表示を含む最終一巡判定は、下記の実ブラウザ検証が未合格のため保留。**
 
@@ -15,7 +58,7 @@
 - `FIRST_RECEIPT_INDEPENDENT_READBACK_MISMATCH` の実装修正はcommit `a60b8493ee67f8cf1006d3c240ffd121a5f359ce`。Contents PUTが返す作成コミットへ独立GETを固定。元receipt `20fc291429003fd0351baef4b0c1918b76b4e066` は保存内容が一致し、変更していない。当時の失敗GET応答が未保存なので、キャッシュ・GitHub障害とは断定しない。
 - PR152・153をmainへ統合済み。直近実行のmainは `c0ed237f3cce89e70c3b894ec6e339c8a90bc3e8`、その実行で使ったproductionは `a6458be1f49924911f1352a5f2b9f6bb46d66115`。新しい修正を反映する際は必ずHEADを再取得し、全pinを揃える。
 
-### 次の1工程
+### この時点の次工程（履歴）
 
 既存の暗号化runtimeとTERM名簿readerから表示用の名前だけを既存mergerへ接続し、同じ元原本で公式照合・既存Pages検証を再実行する。実画面はartifact ID・JSON SHA・元コードコミットへ対象を固定し、代表原本詳細・モデル群・モデル切替を検証する。28枚全カードを個別検査したとは報告しない。
 

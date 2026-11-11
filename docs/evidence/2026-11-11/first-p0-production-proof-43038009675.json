@@ -1,0 +1,643 @@
+{
+  "evidence_type": "GITHUB_RUN_METADATA_AND_VERIFIED_COUNT_REPORTS",
+  "observed_at_utc": "2026-11-11T14:30:15Z",
+  "repository": "haji84/RACE-AI",
+  "source_run": {
+    "id": 42995325741,
+    "event": "workflow_dispatch",
+    "head_sha": "e24f09f150e2318dd16a96bdc6db1d8c1317b9ae",
+    "conclusion": "failure",
+    "original_artifacts": [
+      {
+        "id": 13842474540,
+        "name": "boat-p0-existing-42995325741",
+        "size_in_bytes": 83849,
+        "digest": "sha256:8e9d92d2bfd9b2f73db881bd07619747c3498a647f6175ef7be56b56c8868d78",
+        "expired": false,
+        "created_at": "2026-11-11T09:29:52Z",
+        "expires_at": "2026-11-18T09:29:52Z"
+      },
+      {
+        "id": 13842779131,
+        "name": "race-cycle-continuity-42995325741",
+        "size_in_bytes": 1050,
+        "digest": "sha256:f214aeef73b42230dbab2de5e031d0bf4f36ec63dbfbb2cd3f963cafc6408e23",
+        "expired": false,
+        "created_at": "2026-11-11T09:30:01Z",
+        "expires_at": "2026-11-18T09:30:01Z"
+      },
+      {
+        "id": 13842973909,
+        "name": "race-source-control-42995325741",
+        "size_in_bytes": 476,
+        "digest": "sha256:1d38a4f357b9126e38ed0fe01433658cfe037ab096fd200510a8e6baad5ebbd3",
+        "expired": false,
+        "created_at": "2026-11-11T09:30:02Z",
+        "expires_at": "2026-11-18T09:30:02Z"
+      }
+    ]
+  },
+  "repair_execution": {
+    "main_sha": "15047c84de0b44126dc97f85ca5ff0b66bb7eeab",
+    "production_sha": "ba2d2d698b90548dd67b6ca7ac2dada776b09e32",
+    "pull_request": 154,
+    "run_id": 43038009675,
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-11T14:23:31Z",
+    "updated_at": "2026-11-11T14:27:53Z",
+    "jobs": [
+      {
+        "id": 130581941861,
+        "name": "Retain exact first P0 and companions without source acquisition",
+        "status": "completed",
+        "conclusion": "success",
+        "runner_id": 1000042267,
+        "started_at": "2026-11-11T14:23:34Z",
+        "completed_at": "2026-11-11T14:23:54Z",
+        "steps": [
+          {
+            "number": 1,
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 2,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 3,
+            "name": "Select authenticated original artifacts without another source attempt",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 4,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 5,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 6,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 7,
+            "name": "Run python -m pip install --disable-pip-version-check -r owner-runtime/requirements-history.txt",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 8,
+            "name": "Append exact encrypted originals to the existing permanent vault",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 13,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 14,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 15,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 16,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 17,
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 130581944608,
+        "name": "BOAT mirror source-free PR regression",
+        "status": "completed",
+        "conclusion": "skipped",
+        "runner_id": null,
+        "started_at": "2026-11-11T14:23:32Z",
+        "completed_at": "2026-11-11T14:23:32Z",
+        "steps": []
+      },
+      {
+        "id": 130581944836,
+        "name": "Gate-and-dispatch original BOAT owner P0/P1 (no scorer duplication)",
+        "status": "completed",
+        "conclusion": "skipped",
+        "runner_id": null,
+        "started_at": "2026-11-11T14:23:32Z",
+        "completed_at": "2026-11-11T14:23:32Z",
+        "steps": []
+      },
+      {
+        "id": 130582152757,
+        "name": "Read first P0 on a separate runner at the exact vault commit",
+        "status": "completed",
+        "conclusion": "success",
+        "runner_id": 1000042268,
+        "started_at": "2026-11-11T14:23:57Z",
+        "completed_at": "2026-11-11T14:24:18Z",
+        "steps": [
+          {
+            "number": 1,
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 2,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 3,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 4,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 5,
+            "name": "Run python -m pip install --disable-pip-version-check -r requirements-history.txt",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 6,
+            "name": "Verify original hashes, receipts, forecast clocks and companions",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 7,
+            "name": "Retain only count and hash evidence from the separate reader",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 12,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 13,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 14,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 15,
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 130582378667,
+        "name": "Reconcile authenticated first P0 with retained official results",
+        "status": "completed",
+        "conclusion": "success",
+        "runner_id": 1000042269,
+        "started_at": "2026-11-11T14:24:21Z",
+        "completed_at": "2026-11-11T14:26:24Z",
+        "steps": [
+          {
+            "number": 1,
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 2,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 3,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 4,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 5,
+            "name": "Run python -m pip install --disable-pip-version-check -r requirements-history.txt",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 6,
+            "name": "Use the original projector, official parser and scorer without source GET",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 7,
+            "name": "Retain count-only existing-scorer evidence",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 8,
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 9,
+            "name": "Install the existing private Pages verifier",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 10,
+            "name": "Verify the original P0 and official results on the existing Pages view",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 17,
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 18,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 19,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 20,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 21,
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 130583568151,
+        "name": "daily",
+        "status": "completed",
+        "conclusion": "success",
+        "runner_id": 1000042271,
+        "started_at": "2026-11-11T14:26:27Z",
+        "completed_at": "2026-11-11T14:27:52Z",
+        "steps": [
+          {
+            "number": 1,
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 2,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 3,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 4,
+            "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 5,
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 6,
+            "name": "Install original BOAT result collector dependencies",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "number": 7,
+            "name": "Reflect confirmed races and retain encrypted incremental source packets",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "number": 8,
+            "name": "Install browser check only for an explicit verification run",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "number": 9,
+            "name": "Verify private result display without publishing owner data",
+            "status": "completed",
+            "conclusion": "skipped"
+          },
+          {
+            "number": 10,
+            "name": "Checkout certified full-period model PDCA code (no source GET)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 11,
+            "name": "Checkout original BOAT parser for existing full-period scorer",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 12,
+            "name": "Checkout original result adapter for existing full-period scorer",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 13,
+            "name": "Set up verified source-free PDCA dependencies",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 14,
+            "name": "Seal authenticated full-period historical Top8 by original scorer",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 15,
+            "name": "Independently decrypt AES Git and verify every indexed historical result",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 24,
+            "name": "Post Checkout original result adapter for existing full-period scorer",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 25,
+            "name": "Post Checkout original BOAT parser for existing full-period scorer",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 26,
+            "name": "Post Checkout certified full-period model PDCA code (no source GET)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 27,
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 28,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 29,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 30,
+            "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 31,
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 130583569270,
+        "name": "Reconcile authenticated completed BOAT source (no provider GET)",
+        "status": "completed",
+        "conclusion": "skipped",
+        "runner_id": null,
+        "started_at": "2026-11-11T14:26:24Z",
+        "completed_at": "2026-11-11T14:26:24Z",
+        "steps": []
+      }
+    ]
+  },
+  "original_preservation": {
+    "vault_commit": "2448b33de6ecf7388f8fd8577860622b67b9b9a2",
+    "receipt_commit": "20fc291429003fd0351baef4b0c1918b76b4e066",
+    "receipt_blob_sha": "147a7ff6ed13ea1f167daf0cc99c2a480322c7eb",
+    "vault_status": "EXACT_ORIGINAL_VAULT_UNCHANGED",
+    "independent_runner_verified": true,
+    "original_saved_at": "2026-11-11T09:29:52Z",
+    "before_cutoff_races": 14,
+    "before_cutoff_forecasts": 28,
+    "distinct_models": 2
+  },
+  "native_original_evaluation": {
+    "retained_official_result_races": 14,
+    "scored_races": 13,
+    "scored_forecasts": 26,
+    "hit": 6,
+    "miss": 20,
+    "abnormal_finish_review_required": 2,
+    "native_evaluation_sha256": "e8a142ca13b1b968b2958b4ee49c78ff54037f3d3fbddb49769ec4a954bafedb",
+    "originals_unchanged": true,
+    "new_forecasts_created": 0,
+    "forecast_rewrites": 0
+  },
+  "display_verification": {
+    "feed_generation": 115,
+    "feed_commit": "439b697b1df95d19c82ab3ae9df6f05eab9ca6fc",
+    "registry_bound_participant_slots": 84,
+    "missing_names": 0,
+    "report": "first-p0-pages-43038009675.json",
+    "status": "LIVE_OWNER_SITE_VERIFIED",
+    "verified_at": "2026-11-11T14:26:20.661Z",
+    "widths": [
+      320,
+      390,
+      1440
+    ],
+    "expected_original_matched": true,
+    "model_switch_views_checked": 3,
+    "model_switch_original_checks": 6,
+    "all_28_cards_individually_checked": false,
+    "future_visible_before_cutoff_observed_in_this_browser_run": false
+  },
+  "historical_readback": {
+    "report": "first-p0-historical-readback-counts-43038009675.json",
+    "full_period_saved_days": 4,
+    "full_period_independently_read_days": 4,
+    "coverage_proven": true,
+    "all_history_completion_proven": false,
+    "separate_existing_bulk_policy_day_eligible": 28,
+    "separate_existing_bulk_policy_day_hit": 6,
+    "separate_existing_bulk_policy_day_miss": 22,
+    "native_holds_not_resolved_by_bulk_counts": true
+  },
+  "safe_artifacts": [
+    {
+      "id": 13864740350,
+      "name": "boat-first-p0-official-reconciliation-43038009675",
+      "size_in_bytes": 1968,
+      "digest": "sha256:5cc9476d7e07255ae9044f27182e33435863c0fb9064ca8277c4d25c3b5eed26",
+      "expired": false,
+      "created_at": "2026-11-11T14:25:08Z",
+      "expires_at": "2027-02-09T14:23:32Z"
+    },
+    {
+      "id": 13863009371,
+      "name": "boat-first-p0-independent-readback-43038009675",
+      "size_in_bytes": 950,
+      "digest": "sha256:6ee7d1404bb6737e644debc8209f9c91381581a44a38fcc67d42882a38284d3c",
+      "expired": false,
+      "created_at": "2026-11-11T14:24:15Z",
+      "expires_at": "2027-02-09T14:23:32Z"
+    }
+  ],
+  "ci": {
+    "production": {
+      "run_id": 43037017377,
+      "head_sha": "ba2d2d698b90548dd67b6ca7ac2dada776b09e32",
+      "conclusion": "success",
+      "python_test_groups": [
+        3,
+        12,
+        159
+      ],
+      "node_tests": 15
+    },
+    "main_pr": {
+      "head_sha": "09e199aaeb72d4ea17e62c8a5f67f473b119ebfa",
+      "python_test_groups": [
+        175,
+        20
+      ],
+      "node_tests": 15,
+      "workflows": [
+        {
+          "id": 43037673740,
+          "name": "BOAT per-race results and athlete statistics",
+          "conclusion": "success"
+        },
+        {
+          "id": 43037674064,
+          "name": "KEIRIN GitHub-only encrypted handoff",
+          "conclusion": "success"
+        },
+        {
+          "id": 43037673837,
+          "name": "KEIRIN GitHub encrypted Git-history archive",
+          "conclusion": "success"
+        },
+        {
+          "id": 43037673696,
+          "name": "KEIRIN hourly personal research canary",
+          "conclusion": "success"
+        },
+        {
+          "id": 43037673808,
+          "name": "KEIRIN owner-private auto spool E2E",
+          "conclusion": "success"
+        },
+        {
+          "id": 43037673742,
+          "name": "KEIRIN persistent private model runtime CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 43037674386,
+          "name": "BOAT nationwide cutoff-ordered A/B research (no Vercel)",
+          "conclusion": "success"
+        },
+        {
+          "id": 43037673686,
+          "name": "KEIRIN dynamic nationwide daily race discovery",
+          "conclusion": "success"
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "The original P0 has 14 races and 28 entries from 2 models, not nationwide or all-sport coverage.",
+    "The native scorer retains 2 abnormal-finish holds. The existing historical bulk scorer uses a different result policy; its 28 eligible entries do not clear those native holds.",
+    "The Pages run occurred after cutoff. It proves the displayed original identity, sampled ticket/model switching and results UI, not a newly observed future-race display.",
+    "The failed source run did not create a P1 original. No replacement or post-race P1 was generated.",
+    "Fresh receipt PUT followed by immutable-commit GET is regression-tested; a new future production creation cycle after the repair has not yet been observed.",
+    "All-history completion and independent model superiority are not proven."
+  ]
+}
