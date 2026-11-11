@@ -167,7 +167,7 @@ def _safe_result(report, rid, n):
         need(type(groups) is dict and len(groups) <= 40 and all(
              type(field) is str and
              re.fullmatch(r'(?:race/)?[a-z][a-z0-9_]*', field) and
-             type(count) is int and 1 <= count <= total
+             type(count) is int and 1 <= count <= (1 if field.startswith('race/') else n)
              for field, count in groups.items()) and
              sum(groups.values()) == result['remaining_model_B_slots'],
              'MODEL_B_MISSING_FAMILY_ACCOUNTING_INVALID')
