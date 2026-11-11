@@ -52,6 +52,23 @@ def inspect_source_gaps(partial):
                     (len(observed)==len(registry))):
         raise RealSourceGapError("SOURCE_347_COUNTS_OR_KEYS_MISMATCH")
     keys=set(observed)
+    # The historical venue differential is a research-B-only source origin.
+    # Legacy A treats venue compatibility as three unrelated source aliases;
+    # counting a B-only prior as an A observation would silently change the
+    # frozen baseline. Preserve the A accounting and the distinct B mapping.
+    b_only_venue_evidence = partial.get('prior_venue_compatibility_input_evidence', {})
+    if type(b_only_venue_evidence) is not dict:
+        raise RealSourceGapError('B_ONLY_VENUE_SOURCE_EVIDENCE_INVALID')
+    for key, info in b_only_venue_evidence.items():
+        if (type(key) is not str or
+                not key.startswith('rider/') or
+                not key.endswith('/venue_and_distance_compatibility') or
+                key not in keys or
+                type(info) is not dict or info.get('value') != observed[key] or
+                info.get('approved_for_pr71_input') is not False or
+                info.get('independent_source_rights_verified') is not False):
+            raise RealSourceGapError('B_ONLY_VENUE_SOURCE_EVIDENCE_INVALID')
+    legacy_a_keys = keys-set(b_only_venue_evidence)
     required_critical={
         *("race/"+key for key in CRITICAL_RACE),
         *(f"rider/{no}/{key}"
@@ -59,7 +76,7 @@ def inspect_source_gaps(partial):
     }
     observed_critical=required_critical & keys
 
-    def count_required(mapping):
+    def count_required(mapping, source_keys):
         # Presence alone is not evidence of a usable numeric model input.
         # Reuse the existing rights-gated adapter's numeric conversion rules
         # for diagnostic validation only. This DOES NOT grant source rights,
@@ -68,7 +85,7 @@ def inspect_source_gaps(partial):
             for feature in MODEL_REQUIRED:
                 field,transform=mapping[feature]
                 key=f"rider/{no}/{field}"
-                if key in observed:
+                if key in source_keys:
                     try:
                         if transform=="count_rate":
                             raise PermittedDeliveryError(
@@ -80,7 +97,7 @@ def inspect_source_gaps(partial):
         for feature in ENV_REQUIRED:
             field,transform=ENV_MAP[feature]
             key="race/"+field
-            if key in observed:
+            if key in source_keys:
                 try:
                     if transform=="count_rate":
                         raise PermittedDeliveryError(
@@ -101,9 +118,9 @@ def inspect_source_gaps(partial):
         # target input slots separately from distinct source fields.
         slots=n*len(MODEL_REQUIRED)+len(ENV_REQUIRED)
         supplied=sum(
-            int(f"rider/{no}/{mapping[f][0]}" in keys)
+            int(f"rider/{no}/{mapping[f][0]}" in source_keys)
             for no in car_numbers for f in MODEL_REQUIRED
-        )+sum(int("race/"+ENV_MAP[f][0] in keys) for f in ENV_REQUIRED)
+        )+sum(int("race/"+ENV_MAP[f][0] in source_source_keys) for f in ENV_REQUIRED)
         # Group missing model input slots by the required source field name.
         # This is a PRIVATE/COUNT-ONLY acquisition plan: no athlete IDs,
         # source measurements, guessed values or invented rights grants.
@@ -111,11 +128,11 @@ def inspect_source_gaps(partial):
         for no in car_numbers:
             for feature in MODEL_REQUIRED:
                 field=mapping[feature][0]
-                if f"rider/{no}/{field}" not in keys:
+                if f"rider/{no}/{field}" not in source_keys:
                     deficit[field]=deficit.get(field,0)+1
         for feature in ENV_REQUIRED:
             field="race/"+ENV_MAP[feature][0]
-            if field not in keys:
+            if field not in source_keys:
                 deficit[field]=deficit.get(field,0)+1
         ranked_deficit=dict(sorted(
             deficit.items(),key=lambda entry:(-entry[1],entry[0])))
@@ -127,15 +144,15 @@ def inspect_source_gaps(partial):
             "source_observed_required_slots":supplied,
             "source_unobserved_required_slots":slots-supplied,
             "unique_required_origin_fields":len(all_required),
-            "unique_required_origin_fields_observed":len(all_required&keys),
-            "unique_required_origin_fields_missing":len(all_required-keys),
+            "unique_required_origin_fields_observed":len(all_required&source_keys),
+            "unique_required_origin_fields_missing":len(all_required-source_keys),
             "all_required_fields_observed":supplied==slots,
             "not_source_use_or_numeric_transform_admitted":True,
             "models_executed":0,
         }
 
-    a=count_required(RIDER_MAP)
-    b=count_required(RIDER_MAP_DISTINCT_B)
+    a=count_required(RIDER_MAP, legacy_a_keys)
+    b=count_required(RIDER_MAP_DISTINCT_B, keys)
     return {
         "schema":SCHEMA,
         "race_id":partial["race_id"],
