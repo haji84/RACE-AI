@@ -1,5 +1,40 @@
 # RACE-AI 詳細引き継ぎ正本（2026年11月11日）
 
+## 最新追記：2026-11-11・run43034336347までの実証
+
+**最優先の原本保全と別runner読戻しは合格。元P0に限定した公式照合は13レース・26予想を採点済み、1レース・2予想は通常完走以外の状態を含むため確認待ち。表示を含む最終一巡判定は、下記の実ブラウザ検証が未合格のため保留。**
+
+- 対象は元run42995325741、artifact13842474540の同じ14レース・28予想・2モデル。予想の再生成・締切時刻の書換えは0。
+- 既存AES vaultへの保全はrun43030625791で成功。固定commit `2448b33de6ecf7388f8fd8577860622b67b9b9a2` にP0・CONTINUITY・SOURCE_CONTROLの3原本を保管。run43034336347でも `EXACT_ORIGINAL_VAULT_UNCHANGED` を確認。
+- 元JSON SHA `9073715a51b145efe77b612d4a9fd4ec2739e8c617ee3840b7751c30769ad1b4` と元暗号文SHA `f4df5195e7376dce82550c8f54354bf49cf2a661bd3956b4e6fe8020c9ff390d` は一致。元保存時刻 `2026-11-11T09:29:52Z` を維持し、14レース・28予想の締切前保存を検証済み。
+- 最終再読戻しの保存job130569119250はrunner1000042247、読戻しjob130569362570は別runner1000042248。両方success。
+- 結果未取得だった初回HOLDを保存した後、既存daily collector run43015122597のattempt2・3だけを実行。各12リクエストの上限を維持し、結果保存generation63／commit `e95d01b35f96cafff9d0313db80e2eb7ab647cac` を取得。
+- run43034336347の既存採点器による今回P0専用結果は、公式結果14レース、採点13レース・26予想、HIT6、MISS20、`ABNORMAL_FINISH_REVIEW_REQUIRED` 2。この2件を不的中へ変換しない。全体feed146レースの件数から換算していない。
+- 同runの暗号画面はgeneration114／commit `073d1682563b2daf8005a7c9f016742b469f84ef`。原本辞書・予想SHAは不変。
+- ブラウザstepは `LIVE_OWNER_SITE_REJECTED`、checker line233。P0投影は登録番号だけを持ち、復旧wrapperが既存の認証済み名簿による表示名補充を未接続だった。表示名の修復を進行中。名前のassertion、予想原本、既存採点器を緩めない。
+- `FIRST_RECEIPT_INDEPENDENT_READBACK_MISMATCH` の実装修正はcommit `a60b8493ee67f8cf1006d3c240ffd121a5f359ce`。Contents PUTが返す作成コミットへ独立GETを固定。元receipt `20fc291429003fd0351baef4b0c1918b76b4e066` は保存内容が一致し、変更していない。当時の失敗GET応答が未保存なので、キャッシュ・GitHub障害とは断定しない。
+- PR152・153をmainへ統合済み。直近実行のmainは `c0ed237f3cce89e70c3b894ec6e339c8a90bc3e8`、その実行で使ったproductionは `a6458be1f49924911f1352a5f2b9f6bb46d66115`。新しい修正を反映する際は必ずHEADを再取得し、全pinを揃える。
+
+### 次の1工程
+
+既存の暗号化runtimeとTERM名簿readerから表示用の名前だけを既存mergerへ接続し、同じ元原本で公式照合・既存Pages検証を再実行する。実画面はartifact ID・JSON SHA・元コードコミットへ対象を固定し、代表原本詳細・モデル群・モデル切替を検証する。28枚全カードを個別検査したとは報告しない。
+
+今回のP1は元runがその前に停止したため未生成であり、後付けで作らない。翌朝の既存JST06:20および07:02–08:57枠は残しているが、未来の発火・P1完走はまだ実証していない。全日・全国・4競技・全現役モデルの完成でもない。今回の原本14レース・28予想を分母とし、要確認の1レース・2予想を除外しない。
+
+### 今回の追加証拠
+
+- [修復・実保全の詳細](evidence/2026-11-11/first-p0-readback-repair.md)
+- [元原本の独立読戻し](evidence/2026-11-11/first-p0-independent-readback-43034336347.json)
+- [今回P0だけの公式照合](evidence/2026-11-11/first-p0-reconciliation-43034336347.json)
+- [最終実行43034336347](https://github.com/haji84/RACE-AI/actions/runs/43034336347)
+- [結果照合・ブラウザ確認job130569667243](https://github.com/haji84/RACE-AI/actions/runs/43034336347/job/130569667243)
+
+---
+
+## 以下は修復開始前の引き継ぎ記録
+
+以下の「本番一巡0件」、旧HEAD、未解決状態は修復前の履歴として保持している。最新判定・次の作業は上記追記を優先し、GitHubの最新状態を再取得する。
+
 > **更新基準：2026-11-11 21:48 JST以降にGitHub実環境を再確認。**
 > この文書は次のChatへの引き継ぎ資料であり、CI成功や「今後の予定」を実レース実証と混同しない。次のChatでは**最初にGitHubの最新main・production HEAD・Actions・保存artifactの現存状況を再取得**すること。
 > 秘密鍵、個別選手の非公開データ、暗号復号鍵、予想の平文はこのPublic文書へ載せない。

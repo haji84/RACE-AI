@@ -67,3 +67,12 @@
 - [attempt 3、job 130561674999](https://github.com/haji84/RACE-AI/actions/runs/43015122597/job/130561674999)：12リクエスト。照合用feedの結果待ちは0レース。結果保存generation 63、commit e95d01b35f96cafff9d0313db80e2eb7ab647cac。[レポート](first-p0-result-collector-43015122597-attempt-3.json)
 
 上記feedの対象146レースには以前の日の原本も含まれる。145確定・1HOLDという全体件数を、今回の14レース・28予想の採点件数へ転用しない。元P0だけを対象とする独立再照合と、既存Pagesの明示P0検証で最終判定する。新しいP1原本や全日・全競技の完了は、この記録では証明していない。
+
+## 追加実測：元P0の採点と表示名接続の修復
+
+[run43034336347](https://github.com/haji84/RACE-AI/actions/runs/43034336347) では、同じ保全コミットの原本に対し、公式結果14レースを使用し、13レース・26予想を採点した。HIT6、MISS20、通常完走以外の状態を含む1レース・2予想は `ABNORMAL_FINISH_REVIEW_REQUIRED` として残した。予想原本とネイティブ採点SHAを別の監査担当も照合した。
+
+- [この実行の独立読戻し報告](first-p0-independent-readback-43034336347.json)
+- [元P0に限定した採点報告](first-p0-reconciliation-43034336347.json)
+
+実ブラウザは名前の未取得表示を拒否した。P0のnative投影が登録番号だけを作り、復旧wrapperが既存の認証済み表示名補充を呼んでいなかった。予想の不一致ではない。ブラウザ条件は変更せず、保存済みruntime・既存TERM reader・既存mergerを接続する修正をproduction ba2d2d698b90548dd67b6ca7ac2dada776b09e32 に追加した。別日データ、元予想辞書、原本SHA、採点結果を変えないことを実AES/Git/TERM検証で確認している。実データの名前カバー率と画面合格は更新後の実行で判定する。
