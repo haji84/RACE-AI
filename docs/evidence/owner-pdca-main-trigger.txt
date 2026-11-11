@@ -59,3 +59,13 @@ Publish only ciphertext and count/hash evidence. Partial source coverage and
 missing official results remain explicit. A successful job is not proof of a
 P1 forecast or a complete nationwide model/day cycle.
 Final P0 display verifier and existing future launcher code: a6458be1f49924911f1352a5f2b9f6bb46d66115.
+
+2026-11-11: recover-first-p0-42995325741 with existing verified display names.
+Run 43034336347 proved 14 official result captures, 13 scored races / 26 forecasts,
+and 2 ABNORMAL_FINISH_REVIEW_REQUIRED holds. Keep those native verdicts.
+The browser correctly rejected names missing from the recovery projection.
+Use the pinned encrypted runtime and existing verified TERM-name merger,
+scoped to this saved day; preserve all forecast dictionaries and earlier days.
+Measure missing names rather than inventing them, then rerun the exact P0
+artifact-bound Pages check. No new forecasts or provider acquisition.
+Current production pin: ba2d2d698b90548dd67b6ca7ac2dada776b09e32.
