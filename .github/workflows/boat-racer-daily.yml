@@ -112,6 +112,10 @@ jobs:
           assert "['latest-closed', '--repo-root', '.', '--output', output]" in mirror
           assert mirror.count('race_ai.__path__.append(str(package))') == 1
           assert "github.event.workflow_run.conclusion == 'success'" in mirror
+          assert "github.event.workflow_run.event == 'workflow_dispatch'" in mirror
+          assert "github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111'" in mirror
+          assert "github.event.workflow_run.head_sha == '11b905a7bf011baffdc0e8bcc5b568355d6e41b1'" in mirror
+          assert "needs.source_mirror.result == 'success'" in daily
           assert "github.event.schedule == '20 21 * * *'" in mirror
           assert 'continue-on-error: true' not in mirror
           assert "'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics'" in header
