@@ -4,7 +4,8 @@ from datetime import datetime, timezone
 import unittest
 
 from scripts.boat_main_dispatch_gate import (
-    decide, RELEASE_REF, RELEASE_SHA, RELEASE_TOKEN, WORKFLOW
+    decide, RELEASE_REF, RELEASE_SHA, RELEASE_TOKEN, WORKFLOW,
+    FIRST_FAILED_ID, FIRST_FAILED_SHA
 )
 
 NOW = datetime(2026, 11, 11, 0, 10, tzinfo=timezone.utc)
@@ -59,6 +60,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
 
     def test_duplicate_same_day_owner_run_never_issued_twice(self):
         existing={"name": WORKFLOW, "head_branch": RELEASE_REF,
+                  "event":"workflow_dispatch",
                   "created_at": "2026-11-11T00:01:00Z", "status": "completed"}
         result=self.decide(runs=[existing])
         self.assertEqual(result["status"], "HOLD_ALREADY_DISPATCHED_FOR_JST_DAY")
@@ -89,6 +91,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
 
     def test_overnight_active_owner_run_blocks_another_writer(self):
         previous={"name": WORKFLOW, "head_branch": RELEASE_REF,
+                  "event":"workflow_dispatch",
                   "created_at": "2026-11-10T23:01:00Z",
                   "status": "in_progress"}
         # Previous in JST? 23:01 UTC is already next JST date.
@@ -150,6 +153,72 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         # Existing collector and main result scorer remain separate jobs.
         self.assertEqual(workflow.splitlines().count("  daily:"),1)
         self.assertEqual(workflow.splitlines().count("  source_mirror:"),1)
+
+    def _previous_pre_source_run_and_proof(self):
+        at="2026-11-11T09:13:07Z"
+        row=dict(id=FIRST_FAILED_ID,name=WORKFLOW,
+                 head_branch=RELEASE_REF,event="workflow_dispatch",
+                 status="completed",conclusion="failure",created_at=at)
+        skipped=(
+            "Check all earlier same-day receipts before first P0",
+            "Authenticate the requested grid before any bootstrap source GET",
+            "Obtain first P0 from verified official B only if truly absent",
+            "Save first P0 separately before reading results",
+            "Execute new-day P0 families from the authenticated first receipt",
+            "Freeze additional new-day P0 as owner ciphertext",
+            "Wait without source requests for the authenticated exhibition window",
+            "Initialize continuous source session and account for initial B GET",
+            "Deadline-ordered five-model round 01",
+        )
+        steps=[{"name":f"Placeholder source-free prep {i}", "conclusion":"success"}
+               for i in range(61)]
+        steps.append({"name":"Test originals, pending results, tampering and unchanged models",
+                      "conclusion":"failure"})
+        steps.extend({"name":name,"conclusion":"skipped"} for name in skipped)
+        proof=dict(run={**row,"head_sha":FIRST_FAILED_SHA},
+            jobs={"total_count":1,"jobs":[{
+                "name":"Existing frozen P0, exhibition P1, separate official results and PDCA",
+                "conclusion":"failure","steps":steps}]},
+            artifacts={"total_count":1,"artifacts":[{
+                "name":"existing-cycle-source-42993305843"}]})
+        return row,proof
+
+    def test_one_attested_pre_source_failure_can_retry_without_any_original(self):
+        row,proof=self._previous_pre_source_run_and_proof()
+        ci=dict(name=WORKFLOW,head_branch=RELEASE_REF,event="pull_request",
+                created_at="2026-11-11T09:17:51Z",status="completed",
+                conclusion="success")
+        value=decide(now=datetime(2026,11,11,9,30,tzinfo=timezone.utc),
+                     release=release(),owner_doc=source_doc(RELEASE_TOKEN),
+                     history=history(ci,row),retry_proof=proof)
+        self.assertEqual(value["status"],"READY_RETRY_AFTER_VERIFIED_PRE_SOURCE_FAILURE")
+        self.assertTrue(value["dispatch_allowed"])
+        self.assertEqual(value["official_source_requests"],0)
+        self.assertFalse(value["future_real_forecast_proven"])
+
+    def test_preplace_failure_proof_cannot_be_faked_or_reused(self):
+        from copy import deepcopy
+        row,proof=self._previous_pre_source_run_and_proof()
+        now=datetime(2026,11,11,9,30,tzinfo=timezone.utc)
+        def verdict(evidence,records=None):
+            return decide(now=now,release=release(),owner_doc=source_doc(RELEASE_TOKEN),
+                          history=history(*(records or [row])),retry_proof=evidence)
+        for corrupt in (
+            lambda p:p["artifacts"]["artifacts"].append({"name":"boat-p0-existing-fake"}),
+            lambda p:p["artifacts"].update(total_count=5),
+            lambda p:p["run"].update(head_sha="0"*40),
+            lambda p:p["run"].update(conclusion="success"),
+            lambda p:p["jobs"]["jobs"][0]["steps"][-1].update(conclusion="success"),
+            lambda p:p["jobs"].update(total_count=10),
+        ):
+            tmp=deepcopy(proof)
+            corrupt(tmp)
+            self.assertFalse(verdict(tmp)["dispatch_allowed"])
+        second={**row,"id":42994444444,"created_at":"2026-11-11T09:25:00Z",
+                "conclusion":"failure"}
+        self.assertEqual(verdict(proof,[second,row])["status"],
+                         "HOLD_ALREADY_DISPATCHED_FOR_JST_DAY")
+        self.assertFalse(verdict(None)["dispatch_allowed"])
 
     def test_unreturned_pagination_is_not_no_forecast(self):
         output=decide(now=NOW, release=release(),
