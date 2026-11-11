@@ -31,12 +31,12 @@ class BoatMainEntryContract(unittest.TestCase):
             "scripts/first_p0_bootstrap.py capture-wait",
             "scripts/first_p0_bootstrap.py finalize",
             "scripts/github_existing_cycle.py restore",
-            "scripts/boat_all_model_cycle bootstrap-current",
-            "scripts/boat_all_model_cycle readback",
-            "scripts/boat_private_original_vault capture",
-            "scripts/boat_saved_view_feed --hydrate-originals",
+            "scripts.boat_all_model_cycle bootstrap-current",
+            "scripts.boat_all_model_cycle readback",
+            "scripts.boat_private_original_vault capture",
+            "scripts.boat_saved_view_feed --hydrate-originals",
             "./.github/actions/existing-model-round",
-            "scripts/boat_source_control pack",
+            "scripts.boat_source_control pack",
         ):
             with self.subTest(entry=entry):
                 self.assertIn(entry, source)
