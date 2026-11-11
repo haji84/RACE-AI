@@ -193,6 +193,22 @@ class FirstP0BootstrapTests(unittest.TestCase):
             self.assertEqual(result['day_start_lifetime_requests'],339)
             self.assertEqual(result['lifetime_requests'],339)
 
+    def test_first_p0_240_day_budget_denies_before_provider_get(self):
+        now=datetime.fromisoformat('2030-04-01T09:00:00+09:00')
+        with tempfile.TemporaryDirectory() as tmp, patch.object(boot,'ROOT',Path(tmp)):
+            old=dict(day_jst='2030-04-01',lifetime_requests=240,
+                     day_start_lifetime_requests=0,lifetime_completed_rounds=3)
+            boot.bootstrap_control('2030-04-01',119,inherited=old)
+            with patch.object(boot,'previous_first_receipt',return_value=None),\
+                 patch('scripts.existing_day_program.collect') as collect:
+                collect.side_effect=lambda **kwargs:kwargs['source_guard'].charge('forecast')
+                with self.assertRaisesRegex(ValueError,'BOOTSTRAP_DAY_SOURCE_BUDGET_EXCEEDED'):
+                    boot.capture('2030-04-01',119,clock=lambda:now)
+                self.assertEqual(collect.call_count,1)
+            state=boot.bootstrap_control('2030-04-01',119)
+            self.assertEqual(state['lifetime_requests'],240)
+            self.assertEqual(state['requests_used'],0)
+
     def test_first_p0_unknown_same_day_budget_holds(self):
         with tempfile.TemporaryDirectory() as tmp, patch.object(boot,'ROOT',Path(tmp)):
             old=dict(day_jst='2030-04-01',lifetime_requests=239)
