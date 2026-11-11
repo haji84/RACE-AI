@@ -74,6 +74,11 @@ def write_state(path, value, key='session_sha256'):
             _need(data['requests_used'] <= SOURCE_LIMIT, 'SESSION_SOURCE_BUDGET_EXCEEDED')
         data['source_limit'] = SOURCE_LIMIT
         data['lifetime_requests'] = data.get('lifetime_requests_base',0)+data['requests_used']
+        day_base=data.get('day_start_lifetime_requests')
+        _need(type(day_base) is int and 0<=day_base<=data['lifetime_requests'],
+              'DAY_SOURCE_BUDGET_BASELINE_UNVERIFIED')
+        _need(SOURCE_LIMIT is None or data['lifetime_requests']-day_base<=SOURCE_LIMIT,
+              'DAY_SOURCE_BUDGET_EXCEEDED')
         data['lifetime_completed_rounds'] = data.get('lifetime_completed_rounds_base',0)+data['completed_round']
         if previous is not None:
             for total,base,used in (('lifetime_requests','lifetime_requests_base','requests_used'),
@@ -141,6 +146,17 @@ def start(path, *, day, run_id, now, source_control=None):
         return old
     control = {} if source_control is None else source_control
     _need(type(control) is dict,'source control mapping')
+    # The 240-request ceiling is not replenished by launching another worker.
+    # A new JST day starts at the previous authenticated lifetime count.
+    # Within the same day, an absent start baseline must fail closed.
+    inherited_total=control.get('lifetime_requests',0)
+    inherited_day=control.get('day_jst')
+    day_base=(control.get('day_start_lifetime_requests') if inherited_day==day
+              else inherited_total)
+    _need(type(day_base) is int and 0<=day_base<=inherited_total,
+          'DAY_SOURCE_BUDGET_BASELINE_UNVERIFIED')
+    _need(SOURCE_LIMIT is None or inherited_total-day_base<=SOURCE_LIMIT,
+          'DAY_SOURCE_BUDGET_EXCEEDED')
     for key in ('lifetime_requests','lifetime_completed_rounds'):
         _need(type(control.get(key,0)) is int and control.get(key,0)>=0,'source lifetime count')
     source_wait=copy.deepcopy(control.get('source_wait'))
@@ -157,6 +173,7 @@ def start(path, *, day, run_id, now, source_control=None):
                  requests_used=0, requests_by_kind={}, halted_reason=None, receipts=[],
                  source_wait=source_wait, source_control=copy.deepcopy(control),
                  lifetime_requests_base=control.get('lifetime_requests',0),
+                 day_start_lifetime_requests=day_base,
                  lifetime_completed_rounds_base=control.get('lifetime_completed_rounds',0),
                  interval_seconds=POLL_SECONDS, max_rounds=MAX_ROUNDS,
                  source_limit=SOURCE_LIMIT, all_day_coverage_proven=False)
@@ -179,8 +196,12 @@ def prepare(path, round_no, *, now, next_action_at=None):
         state['halted_reason']='MAX_ROUNDS_REACHED'
         write_state(path,state)
         return dict(active=False,wait_seconds=0,reason='MAX_ROUNDS_REACHED')
+    day_base=state.get('day_start_lifetime_requests')
+    _need(type(day_base) is int and 0<=day_base<=state['lifetime_requests'],
+          'DAY_SOURCE_BUDGET_BASELINE_UNVERIFIED')
     if (SOURCE_LIMIT is not None and
-            SOURCE_LIMIT-state['requests_used'] < (ROUND_SOURCE_LIMIT or 1)):
+            min(SOURCE_LIMIT-state['requests_used'],
+                SOURCE_LIMIT-(state['lifetime_requests']-day_base)) < (ROUND_SOURCE_LIMIT or 1)):
         state['halted_reason']='SESSION_SOURCE_BUDGET_EXHAUSTED'
         write_state(path,state)
         return dict(active=False,wait_seconds=0,reason='SESSION_SOURCE_BUDGET_EXHAUSTED')
@@ -232,7 +253,11 @@ class SourceGuard:
         _need(handoff is None or now<instant(handoff),'WORKER_HANDOFF')
         _need(not state['halted_reason'], state['halted_reason'] or 'halted')
         _need(state.get('stop_at') is None or now < instant(state['stop_at']), 'BOUNDED_SESSION_END')
-        if SOURCE_LIMIT is not None and state['requests_used']>=SOURCE_LIMIT:
+        day_base=state.get('day_start_lifetime_requests')
+        _need(type(day_base) is int and 0<=day_base<=state['lifetime_requests'],
+              'DAY_SOURCE_BUDGET_BASELINE_UNVERIFIED')
+        if SOURCE_LIMIT is not None and (state['requests_used']>=SOURCE_LIMIT or
+              state['lifetime_requests']-day_base>=SOURCE_LIMIT):
             state['halted_reason']='SESSION_SOURCE_BUDGET_EXHAUSTED'
             write_state(self.path,state)
             raise ValueError('SESSION_SOURCE_BUDGET_EXHAUSTED')
