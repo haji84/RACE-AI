@@ -9,7 +9,7 @@ on:
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
     types: [completed]
-    branches: [feat/four-sport-forecast-audit-view-20261022]
+    branches: [feat/four-sport-forecast-audit-view-20261022, production/boat-p0-p1-20261111]
   schedule:
     - cron: '2-59/5 0-14,22-23 * * *'
     - cron: '20 21 * * *'
@@ -43,6 +43,58 @@ concurrency:
   group: ${{ github.event_name == 'pull_request' && 'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics' }}
   cancel-in-progress: false
 jobs:
+  # Single daily MAIN launcher for the unchanged owner P0/P1/AES worker.
+  # No official GET is performed by this launcher. Its separate short-lived
+  # job alone receives actions:write so no existing result job is widened.
+  canonical_owner_p0_p1_dispatch:
+    name: Dispatch original BOAT P0/P1 worker from main, one owner per day
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'schedule' &&
+      github.event.schedule == '20 21 * * *'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    concurrency:
+      group: boat-canonical-owner-dispatch-main
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Validate canonical immutable owner-release source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo='haji84/RACE-AI'
+          release='production/boat-p0-p1-20261111'
+          sha="$(gh api "repos/$repo/git/ref/heads/$release" --jq '.object.sha')"
+          [[ "$sha" =~ ^[a-f0-9]{40}$ ]] || exit 2
+          # Prior source-owner fixed boundary is still in effect until an
+          # independently reviewed release is explicitly recorded in the
+          # source-owned file. A normal code-merge is not that release.
+          marker_path="$RUNNER_TEMP/boat-owner-status.md"
+          gh api "repos/$repo/contents/docs/RACE_AI_LATEST_STATUS.md?ref=$release" --jq '.content' | base64 --decode > "$marker_path"
+          if ! grep -Fq '<!-- RACE_AI_BOAT_OWNER_SOURCE_RELEASE_APPROVED -->' "$marker_path"; then
+            echo 'HOLD_BOAT_OWNER_FIXED_SOURCE_BOUNDARY'
+            exit 0
+          fi
+          # Read only the existing canonical workflow's execution metadata.
+          cutoff="$(date -u -d '20 hours ago' '+%Y-%m-%dT%H:%M:%SZ')"
+          gh api "repos/$repo/actions/workflows/boat-nationwide-ab-one-shot.yml/runs?branch=$release&per_page=75" > "$RUNNER_TEMP/boat-owner-recent-runs.json"
+          jq -e --arg t "$cutoff" '
+            [.workflow_runs[] |
+              select(.event == "workflow_dispatch" and .created_at >= $t)
+            ] | length == 0
+          ' "$RUNNER_TEMP/boat-owner-recent-runs.json" > /dev/null || {
+            echo 'SKIP_EXISTING_SAME_DAY_OWNER_DISPATCH'
+            exit 0
+          }
+          gh workflow run boat-nationwide-ab-one-shot.yml --repo "$repo" \
+            --ref "$release" -f production_scope=existing-owner-p0-p1
+          echo 'BOAT_OWNER_DISPATCH_REQUESTED_NOT_FORECAST_PROVEN'
   mirror_contract:
     name: BOAT mirror source-free PR regression
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
@@ -117,10 +169,12 @@ jobs:
     if: >-
       github.repository == 'haji84/RACE-AI' &&
       ((github.event_name == 'workflow_run' &&
-        github.event.workflow_run.event == 'push' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
-        github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022' &&
-        github.event.workflow_run.conclusion == 'success') ||
+        github.event.workflow_run.conclusion == 'success' &&
+        ((github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022') ||
+         (github.event.workflow_run.event == 'workflow_dispatch' &&
+          github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111'))) ||
        (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
        (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
         startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca')))
@@ -170,10 +224,12 @@ jobs:
       !cancelled() &&
       github.repository == 'haji84/RACE-AI' && github.event_name != 'pull_request' &&
       (github.event_name != 'workflow_run' ||
-       (github.event.workflow_run.event == 'push' &&
-        github.event.workflow_run.head_repository.full_name == github.repository &&
-        github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022' &&
-        github.event.workflow_run.conclusion == 'success')) &&
+       (github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.conclusion == 'success' &&
+        ((github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022') ||
+         (github.event.workflow_run.event == 'workflow_dispatch' &&
+          github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111')))) &&
       (github.event_name != 'push' ||
        github.ref == 'refs/heads/feat/four-sport-forecast-audit-view-20261022' ||
        (github.ref == 'refs/heads/main' &&
