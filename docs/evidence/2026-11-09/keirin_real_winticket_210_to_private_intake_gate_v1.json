@@ -1,0 +1,80 @@
+{
+  "schema": "RACE_AI_KEIRIN_REAL_SOURCE_TO_PRIVATE_INTAKE_PROGRESS_20261109_V1",
+  "checked_at_jst": "2026-11-09T16:22:22+09:00",
+  "authoritative_repo": "haji84/RACE-AI",
+  "status": "REAL_WINTICKET_ODDS_CONFIRMED_PRIOR; NATIONWIDE_210_504_SOURCE_TO_PRIVATE_CODE_SYNTHETIC_CI_PASSED; LIVE_FORECAST_HOLD",
+  "real_aomori_3r_20261109": {
+    "race_id": "202611091203",
+    "source": "https://www.winticket.jp/keirin/aomori/odds/2026110812/2/3",
+    "first_observed_jst": "2026-11-09T08:55:16.927553+09:00",
+    "first_full_210_hash": "1f35ce3d03717262a13cc9b1a4fc4fef6f7ecb7f358c7793dbf02edb1a6af321",
+    "first_real_observation_source": "https://github.com/haji84/RACE-AI/actions/runs/42537443926",
+    "second_observed_jst": "2026-11-09T09:05:13+09:00",
+    "second_real_observation_source": "https://github.com/haji84/RACE-AI/actions/runs/42538245988",
+    "second_full_210_hash": "c429709525a3d9cdd0f7fc2c9ade940b4a3d2ebb62ca8c3df6edf9586bd475f7",
+    "score_input_complete_347": false,
+    "real_pre_cutoff_forecast_saved": false,
+    "production_aead_stored": false,
+    "source_html_values_preserved_for_independent_replay": false
+  },
+  "source_code": {
+    "odds_parser": "race_ai/keirin_winticket_embedded_odds.py",
+    "odds_parser_supports_riders": [
+      7,
+      9
+    ],
+    "odds_counts": [
+      210,
+      504
+    ],
+    "source_racecard_parser": "race_ai/keirin_winticket_embedded_racecard.py",
+    "audits_all_registry_keys_for_seven_or_nine": [
+      347,
+      437
+    ],
+    "unobserved_features_not_imputed": true,
+    "public_future_observation_cli": "scripts/keirin_future_public_ssr_probe.py",
+    "owner_private_archive_bridge": "race_ai/keirin_owner_captured_ssr_intake.py",
+    "owner_agent": "scripts/keirin_permissioned_owner_agent.py",
+    "new_private_source_feed_connected_in_code": true,
+    "all_actual_input_proven_in_production": false
+  },
+  "ci": {
+    "run_id": 42578895860,
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/42578895860",
+    "first_group_tests_passed": 200,
+    "second_group_tests_passed": 93,
+    "total_passed": 293,
+    "conclusion": "success",
+    "uses_real_production_key": false,
+    "source_and_forecast_code_tests": "synthetic and trust-boundary tests"
+  },
+  "future_source": {
+    "target_race_id": "202611101203",
+    "target": "Aomori 2026-11-10 3R",
+    "target_public_card": "https://www.winticket.jp/keirin/aomori/racecard/2026110812/3/3",
+    "target_public_odds": "https://www.winticket.jp/keirin/aomori/odds/2026110812/3/3",
+    "ci_observation_jst": "2026-11-09T16:22:22+09:00",
+    "status": "PUBLIC_PAGE_NOT_PUBLISHED_OR_GONE",
+    "source_unavailable_without_bypass": true,
+    "real_210_verified": false,
+    "forecast_saved": false
+  },
+  "security": {
+    "public_encrypted_sqlite_owner_consent": true,
+    "trusted_main_source_producer_enabled": false,
+    "production_state_ref": "state/keirin-encrypted-history",
+    "production_state_mode": "synthetic",
+    "new_private_source_raw_published": false,
+    "new_provider_api_endpoint_guessed": false,
+    "new_scraping_bypass": false,
+    "actual_wager_submitted": false,
+    "result_after_cutoff_leakage": false
+  },
+  "blocking_conditions": [
+    "An admitted per-race source packet must pass actual required 347/437 factor gate or distinct partial shadow research requirements.",
+    "Trusted main-runner pipeline must actually produce a pre-cutoff research forecast, encrypt it with the existing production key, commit and independently restore it.",
+    "11/10 future WINTICKET page was not available at the check time; source availability will vary with event and must not be assumed.",
+    "Existing 11/9 Aomori 3R cannot acquire a new pre-cutoff prediction retroactively."
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "schema": "RACE_AI_KEIRIN_ACTUAL_PUBLIC_210_WINTICKET_PRE_CUTOFF_OBSERVATION_V1",
+  "observation_date_jst": "2026-11-09",
+  "subject": {
+    "venue": "青森",
+    "event_day": 2,
+    "race_no": 3,
+    "race_id": "202611091203",
+    "winticket_race_id": "031220261109",
+    "competitors": 7,
+    "sales_cutoff_jst": "2026-11-09T09:26:00+09:00"
+  },
+  "source": "https://www.winticket.jp/keirin/aomori/odds/2026110812/2/3",
+  "source_page_kind": "ordinary_public_html",
+  "real_source_access": "PUBLIC_HTML_RECEIVED_FROM_GITHUB_ACTIONS",
+  "original_html_bytes": 930803,
+  "original_html_sha256": "240bda387ceff4364a5c35ca9b3c178f958aa4655fe03c4a9dafbfee7618b228",
+  "source_odds_updated_at_jst": "2026-11-09T08:52:42+09:00",
+  "captured_at_jst": "2026-11-09T08:55:16.927553+09:00",
+  "price_set_sha256": "1f35ce3d03717262a13cc9b1a4fc4fef6f7ecb7f358c7793dbf02edb1a6af321",
+  "normalized_private_odds_snapshot_sha256": "4326bda3da2365d06ed9d406fb6385705b1d4647dd3a898d361b9229d3b4a68e",
+  "checks": {
+    "full_trifecta_rows": 210,
+    "unique_triple_count": 210,
+    "permutation_universe_complete": true,
+    "valid_numeric_odds_rows": 210,
+    "display_odds_equal_numeric_rows": 210,
+    "absent_true_rows": 0,
+    "odds_delayed": false,
+    "is_aggregated": true,
+    "final_odds": false,
+    "provider_time_before_capture": true,
+    "capture_time_before_cutoff": true,
+    "real_model_feature_input_347_verified": false
+  },
+  "actions": {
+    "run_id": 42537443926,
+    "run_url": "https://github.com/haji84/RACE-AI/actions/runs/42537443926",
+    "unit_test_counts": {
+      "group_a": 183,
+      "group_b": 70,
+      "errors": 0
+    },
+    "implementation": "race_ai/keirin_winticket_embedded_odds.py"
+  },
+  "boundary": {
+    "source_owner_auto_use_attested": true,
+    "third_party_machine_licence_independently_certified": false,
+    "public_plaintext_uploaded": false,
+    "actual_210_price_values_publicly_logged": false,
+    "external_pre_cutoff_timestamp_witness_independently_certified": false,
+    "private_SQLite_original_saved": false,
+    "two_version_production_forecasts_saved": false,
+    "production_aead_git_readback_verified": false,
+    "note": "This is a real pre-cutoff WINTICKET published-price observation, not a frozen official prediction or owner-private restored database."
+  },
+  "next": "Owner-private real odds staging and a genuine 347-field pre-race snapshot, then forecast freeze and AES-GCM protected source/readback before cutoff; do not fill missing rider factors."
+}

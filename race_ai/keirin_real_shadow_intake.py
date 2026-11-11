@@ -15,19 +15,24 @@ from .keirin_real_rider_shadow import (
     save_private_shadow_once,
 )
 from .keirin_result_delivery import canonical, utc
+from .keirin_owner_sqlite import PrivateKeirinStore
+from .keirin_mansha_rank_audit import KeirinManshaRankLedger
 
 
 class ShadowIntakeError(ValueError):
     pass
 
 
-def stage_sourced_shadows(inbox, *, grant_check, now, max_sources=150):
+def stage_sourced_shadows(inbox, *, grant_check, now, max_sources=150,
+                          store=None):
     """Evaluate real pre-race observations as a separate shadow research model.
 
     Read only each source delivered into private raw/. If full PR71 inputs
     exist, its separate pipeline still runs. Never inject fake 'required'
     PR71 features or tamper with an existing frozen forecast.
     """
+    if store is not None and not isinstance(store, PrivateKeirinStore):
+        raise ShadowIntakeError("OWNER_PRIVATE_SQLITE_REQUIRED")
     root=Path(inbox).expanduser()
     if not root.is_absolute() or not root.is_dir() or root.is_symlink():
         raise ShadowIntakeError("PRIVATE_INBOX_REQUIRED")
@@ -89,6 +94,10 @@ def stage_sourced_shadows(inbox, *, grant_check, now, max_sources=150):
             except (SparseRealForecastError,KeyError,TypeError,ValueError):
                 states["real_input_missing_or_after_cutoff"]+=1
                 continue
+            if store is not None:
+                KeirinManshaRankLedger(store).freeze_shadow_once(
+                    forecast,packet)
+                states["private_complete_ranking_frozen"]+=1
             save_private_shadow_once(out,forecast)
             found.add(rid)
             states["private_shadow_research_saved"]+=1

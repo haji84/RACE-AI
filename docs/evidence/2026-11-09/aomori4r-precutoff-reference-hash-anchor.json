@@ -1,0 +1,19 @@
+{
+  "schema": "RACE_AI_20261109_AOMORI4_SHA_ONLY_PRE_CUTOFF_HUMAN_REFERENCE_V1",
+  "race_id": "202611091204",
+  "cutoff_jst": "2026-11-09T09:47:00+09:00",
+  "generated_at_jst": "2026-11-09T09:34:31.343230+09:00",
+  "archived_private_library_path": "/RACE-AI/KeirinAudit/aomori4r_20261109_pre_cutoff_reference.json",
+  "archived_file_sha256": "da9436befefb8814f8034224824499b683183494dda4bff146a122ba3bf8eed2",
+  "archived_inner_sha256": "4f2618dd32ec4ef388f4299f2877b74f1eb5811f056f9cbb8965f4f0b7753cc0",
+  "re_downloaded_same_sha_verified": true,
+  "was_before_betting_cutoff": true,
+  "pick_count": 8,
+  "tickets_deliberately_not_in_public_audit": true,
+  "existing_PR71_four_models_executed": false,
+  "full_210_ranks_frozen": false,
+  "provider_automated_use_rights_verified": false,
+  "official_result_known_at_creation": false,
+  "external_origin_timestamp_witness_other_than_Git_commit": false,
+  "model_proven_improved": false
+}

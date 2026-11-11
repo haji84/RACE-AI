@@ -1,0 +1,21 @@
+{
+  "schema": "RACE_AI_KEIRIN_20261109_AOMORI2_HUMAN_REFERENCE_PRE_CUTOFF_HASH_ANCHOR_V1",
+  "race_id": "202611091202",
+  "event": "2026-11-09 青森2R L級ガールズ予選2",
+  "cutoff_jst": "2026-11-09T09:05:00+09:00",
+  "scheduled_start_jst": "2026-11-09T09:10:00+09:00",
+  "owner_private_library_path": "/RACE-AI/KeirinAudit/aomori2r_20261109_pre_cutoff_reference.json",
+  "private_json_file_sha256": "a082a91679f82f2703453e2c49a464a949b1c81f4689b9378c3cf61c8dec2979",
+  "private_json_core_sha256": "7f688cb7dcd58ca4f3674c4a433612db0db81dbc030308e0f982a5be145de94f",
+  "created_at_jst": "2026-11-09T09:02:34.206926+09:00",
+  "library_created_at_utc": "2026-11-09T00:02:41+00:00",
+  "private_library_independent_readback_sha_verified": true,
+  "method": "manual-public-pre-race-racecard-reference-only",
+  "is_pr71_four_model_prediction": false,
+  "formal_model_probability_calibrated": false,
+  "source_per_purpose_machine_ingestion_authorized": false,
+  "outcomes_observed_before_freeze": false,
+  "pre_cutoff_forecast_original_not_amended_after_result": true,
+  "this_anchor_contains_tickets": false,
+  "conclusion": "Timestamped external Git commit anchors an owner-private research-only human reference; not a 347-factor model or licensed automated system."
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "RACE_AI_KEIRIN_20261109_ALL_83_EXTERNAL_RESEARCH_REFERENCE_SHA_ONLY_V1",
+  "created_at_jst": "2026-11-09T10:36:13.061726+09:00",
+  "scope": "nationwide 8 venues 83 races",
+  "private_library_path": "/RACE-AI/KeirinAudit/keirin_20261109_8venues_83r_external_research_predictions.json",
+  "private_json_file_sha256": "9712049006185d633ecb5220017fe2bcf54348c859839a124bdd8f68db5f1160",
+  "private_readable_markdown_sha256": "075f58b9878e802bb8040f1b48a9b44ecd3ddcca6e0909e79e6dd9fc27d12dbe",
+  "private_library_roundtrip_sha256_verified": true,
+  "venue_race_counts": {
+    "青森": 7,
+    "弥彦": 11,
+    "宇都宮": 11,
+    "松戸": 12,
+    "奈良": 9,
+    "高知": 12,
+    "松山": 9,
+    "武雄": 12
+  },
+  "new_reference_predictions_count": 77,
+  "no_new_prediction_after_race_start_count": 6,
+  "exact_start_based_status_not_cutoff_verified": true,
+  "predictions_created_using": "deterministic untrained research combination of third-party published win-rank and editorial marks, not proprietary PR71 model",
+  "source_types": [
+    "public AI ranking from ALL IN AI site",
+    "editorial marks from KEIRIN通信"
+  ],
+  "sourced_prediction_rights_independently_verified": false,
+  "direct_original_pr71_four_model_races_executed": 0,
+  "odds_and_calibrated_expected_profit_verified": false,
+  "actual_bets_made": false,
+  "no_backdating_prior_user_manual_forecasts": true,
+  "original_forecasts_remain_unmodified": true,
+  "source_original_publication_time_independently_witnessed": false,
+  "payout_or_actual_results_not_model_inputs": true,
+  "do_not_claim_improved_hit_rate": true,
+  "total_reference_stakes_user_not_instructed_to_place": true
+}

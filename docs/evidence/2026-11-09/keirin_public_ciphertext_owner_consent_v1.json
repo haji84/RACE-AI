@@ -1,0 +1,28 @@
+{
+  "schema": "RACE_AI_KEIRIN_OWNER_PUBLIC_CIPHERTEXT_CONSENT_V1",
+  "recorded_on_jst": "2026-11-09",
+  "source": "explicit_owner_instruction_in_chat",
+  "source_independently_notarized": false,
+  "target_repository": "haji84/RACE-AI",
+  "target_branch": "state/keirin-encrypted-history",
+  "allowed_material": "AES-256-GCM-encrypted production forecast SQLite snapshots only",
+  "public_metadata_acknowledged": [
+    "ciphertext existence",
+    "ciphertext size",
+    "Git commit and update timestamps"
+  ],
+  "risks_acknowledged": [
+    "future exposure if production key leaks",
+    "ciphertext copies may persist in public Git history"
+  ],
+  "plaintext_publication_allowed": false,
+  "private_predictions_plaintext_publication_allowed": false,
+  "plaintext_odds_or_rider_data_publication_allowed": false,
+  "encryption_key_publication_allowed": false,
+  "automatic_wagering_authorized": false,
+  "paid_data_contract_authorized": false,
+  "automated_unlicensed_data_collection_authorized": false,
+  "source_license_requirements_unchanged": true,
+  "production_mode_activation": "only after separate rights verification, trusted-main producer, encrypted readback and pre-cutoff checks",
+  "status": "OWNER_CIPHERTEXT_PUBLICATION_APPROVED_PRODUCTION_BLOCKED_PENDING_FEED_AND_TRUSTED_RUNNER"
+}

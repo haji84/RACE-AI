@@ -6,7 +6,7 @@ Example:
 
 Runs the *actual* PR71 model and SQLite result/forecast pipeline when a
 permitted owner-controlled feeder deposits complete pre-race/result JSON.
-No source-data fabrications, odds, auto-wagering or public raw JSON logs.
+No source-data fabrications, automated odds retrieval, auto-wagering or public raw JSON logs.
 The owner is responsible for obtaining and retaining each source legally.
 """
 from __future__ import annotations
@@ -47,6 +47,22 @@ def source_ref_allowed(source_ref, rights_ref, purpose):
         return (parsed.scheme=="https" and parsed.hostname in ALLOWED_HOSTS
                 and parsed.username is None and parsed.password is None
                 and parsed.port is None and bool(parsed.path.startswith("/")))
+    except ValueError:
+        return False
+
+
+def source_odds_ref_allowed(source_ref, rights_ref, purpose):
+    """Explicit owner-supplied non-Rakuten odds, not an extraction grant.
+
+    This is only an input-admission convention for private manual research.
+    It does NOT authenticate a source, authorize scraping, or prove resale rights.
+    """
+    if purpose != "private_odds_research":
+        return False
+    if not source_ref_allowed(source_ref, rights_ref, "analysis"):
+        return False
+    try:
+        return urlsplit(source_ref).hostname not in ("keirin.kdreams.jp",)
     except ValueError:
         return False
 
@@ -112,6 +128,7 @@ def main(argv=None):
             engine=KeirinPrivateSpool(
                 store,model_suite=run_suite,model_verifier=verify_suite,
                 source_observation_gate=source_ref_allowed,
+                source_odds_gate=source_odds_ref_allowed,
                 source_attestor=personal_certificate,
                 witness=None)
             while True:

@@ -1,0 +1,80 @@
+{
+  "schema": "RACE_AI_KEIRIN_HISTORICAL_TWO_RIDER_16_EVENT_SOURCE_GATE_20261109_V1",
+  "observation_type": "RETROSPECTIVE_PUBLIC_RESULT_REVIEW_NO_ORIGINAL_SOURCE_PER_EVENT_WITNESS",
+  "target": "2026-11-08 Matsuyama 2R",
+  "original_pr71_forecast_replayed": false,
+  "source_corpus_private_sha256": "d9f2f412ae3d76059bfa85885d6ba7f493594c1b1723d135b2576327dcaeb993",
+  "source_corpus_private_size_bytes": 39819,
+  "private_file_name": "keirin_prior_results_matsuyama2r_20261109_private.json",
+  "prior_race_records_reviewed": 16,
+  "prior_races_by_subject": {
+    "subject_A": 8,
+    "subject_B": 8
+  },
+  "qualifying_races_restricting_same_class_stage_distance": {
+    "subject_A": 3,
+    "subject_B": 3
+  },
+  "fixed_agari_min3_races_met": {
+    "subject_A": true,
+    "subject_B": true
+  },
+  "fixed_line_min5_races_met": {
+    "subject_A": false,
+    "subject_B": false
+  },
+  "same_venue_and_other_venue_min5_met": {
+    "subject_A": false,
+    "subject_B": false
+  },
+  "measured_two_split_acceleration_races": {
+    "subject_A": 0,
+    "subject_B": 0
+  },
+  "historic_source_first_publication_before_target_verified_per_event": 0,
+  "independently_verified_source_learning_redistribution_or_business_rights": false,
+  "likely_restricted_provider_note": "netkeirin terms Articles 14 and 15 restrict reuse beyond permitted personal scope and commercial activity absent approval. KEIRIN.JP official site policy restricts reproduction/reuse beyond statutory exceptions. Chariloto membership terms do not confer ML/republication rights.",
+  "terms_review": [
+    {
+      "site": "netkeirin",
+      "url": "https://keirin.netkeiba.com/info/kiyaku/?rf=footer",
+      "articles": [
+        "14",
+        "15"
+      ],
+      "independent_api_license_confirmed": false
+    },
+    {
+      "site": "KEIRIN.JP",
+      "url": "https://keirin.jp/pc/dfw/portal/guest/policy/index.html",
+      "independent_api_license_confirmed": false
+    },
+    {
+      "site": "Chariloto",
+      "url": "https://www.chariloto.com/pages/terms/",
+      "independent_api_license_confirmed": false
+    },
+    {
+      "site": "Oddspark",
+      "url": "https://www.oddspark.com/",
+      "independent_api_license_confirmed": false
+    }
+  ],
+  "verified_pre_target_aggregate_publication_candidate": {
+    "provider": "月刊競輪WEB",
+    "available_page": "https://keirin-web.com/data/",
+    "listed_publication_date": "2026-11-02",
+    "report_coverage": "2026年7月〜2026年10月",
+    "document_contents_checked_for_subjects": false,
+    "reproduction_rights_for_model_input_confirmed": false
+  },
+  "model_input_approved_for_any_subject": false,
+  "independent_original_deadline_receipts": 0,
+  "target_results_leaked_into_features": false,
+  "code_contract": "keirin-prior-signals-research-v1-fixed-20261109",
+  "real_pr71_four_model_hit8": null,
+  "real_mansha_capture": null,
+  "payout_yen_actual": null,
+  "conclusion": "Historical candidate collection advanced; no formal model replay until valid, permitted and independently time-stamped complete as-of inputs. Do not use existing returned pages as proof of when they first existed.",
+  "raw_provider_material_in_public_commit": false
+}

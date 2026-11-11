@@ -1,0 +1,40 @@
+{
+  "schema": "RACE_AI_EXISTING_KEIRIN_GITHUB_ARCHIVE_RECOVERY_EVIDENCE_V1",
+  "inspected_at_utc": "2026-11-08T16:58:49Z",
+  "scope": "existing_git_archives_and_actual_synthetic_restoration_only",
+  "repo": "haji84/RACE-AI",
+  "source_ref": "state/keirin-encrypted-history",
+  "source_latest_path": "state/keirin/v1/latest.json",
+  "archived_generation": 1,
+  "archived_mode": "synthetic",
+  "archived_ciphertext_sha256": "c1bddac6a6b18b7a88a5eac1509ec27dcead28f4ecdb1a0b5fc9503dac84885b",
+  "snapshot_sha256": "4ae69dd66423fe3b871d7a13af2242839ed2162f71862fa9365bcbf7210b8371",
+  "forecast_sha256": "93fdb38f441675bac0f120e8f3304b8b57121bcdcda3b7c8995d90b73fa87818",
+  "producer_run_id": "41661810084",
+  "verification_ci_run": "https://github.com/haji84/RACE-AI/actions/runs/42502590748",
+  "verification_commit": "18073a845133197a620b5716d63f7fc0851ade67",
+  "verification": {
+    "checked_out_existing_git_ref": true,
+    "existing_ciphertext_sha256_match": true,
+    "aes_256_gcm_authenticated_decryption_using_public_synthetic_fixture_key": true,
+    "restored_sqlite_integrity_check": "ok",
+    "stored_forecast_sha_match": true,
+    "restored_synthetic_forecast_count": 1,
+    "restored_result_revision_count": 0,
+    "regression_tests_passed": 140,
+    "regression_tests_failed": 0
+  },
+  "limitations": {
+    "real_keirin_prediction_original_found_and_decrypted": false,
+    "key_used_for_real_production": false,
+    "current_production_key_readiness": "unverified",
+    "original_independent_pre_cutoff_receipt_verified": false,
+    "real_210_trifecta_odds_present": false,
+    "real_two_version_forecast_frozen": false,
+    "formal_hit_rate_or_roi_measured": false,
+    "model_71_to_101_103_real_owner_db_connected": false
+  },
+  "other_git_state": "state/boat-pdca-encrypted-history contains separate boat production mode, not a keirin owner DB",
+  "next_gate": "Find legitimate production encrypted keirin snapshot plus independently verified owner production key in an approved trusted runner, or explicitly establish first production state after source/time/secret review; never reinterpret synthetic snapshot as production.",
+  "privacy": "No owner source rows, plaintext SQLite, betting odds or keys committed."
+}

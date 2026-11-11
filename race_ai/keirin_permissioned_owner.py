@@ -22,11 +22,14 @@ MANIFEST = "RACE_AI_KEIRIN_OPERATOR_LICENSE_MANIFEST_V1"
 MAX_GRANTS = 30
 MAX_DOC_BYTES = 1_000_000
 MAX_JSON_BYTES = 2_000_000
-MAX_RAW_FILES = 200
+MAX_RAW_FILES = 10000
 BASE_PURPOSES = frozenset({
     "schedule", "pre_race", "analysis", "model_inference", "private_retention"
 })
-PURPOSES = BASE_PURPOSES | {"automated_fetch"}
+# Result purposes are OPTIONAL and separately listed in the owner's authentic
+# grant. Merely accepting these identifiers does not grant permission.
+PURPOSES = BASE_PURPOSES | {"automated_fetch","result_collection",
+                             "result_analysis"}
 
 
 class LicenseDeliveryError(ValueError):

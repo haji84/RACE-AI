@@ -1,0 +1,66 @@
+{
+  "schema": "RACE_AI_KEIRIN_PAST_REPLAY_AGGREGATE_AUDIT_20261109_V1",
+  "scope": "REFERENCE_ONLY_NOT_FORMAL_REAL_PROSPECTIVE",
+  "original_race_outcomes_used_to_retrain": false,
+  "live_provider_fetch_by_audit": false,
+  "public_raw_rider_or_odds_payload_saved": false,
+  "sources": [
+    "https://keirin.kdreams.jp/harailist/2026/11/03/",
+    "https://keirin.kdreams.jp/harailist/2026/11/08/"
+  ],
+  "nov03": {
+    "count": 76,
+    "earliest_ledger_picks_per_race": 8,
+    "private_original_core_forecast_file_available": false,
+    "fallback_top8_sha256_recomputed_and_matched": "eee5b0aab39bc24d9717161a52197e9c30455dc6031871069988cacf8686c920",
+    "earliest_ledger_created_at_jst": "2026-11-03T09:12:33+09:00",
+    "some_early_cutoffs_may_be_prior_to_ledger_creation": true,
+    "independent_pre_cutoff_receipts_complete": false,
+    "later_derived_result_rows_cross_checked_with_published_payouts": 76,
+    "published_results_rows_mismatched": 0,
+    "hit8": 25,
+    "trifecta_mansha_races": 22,
+    "mansha_top8_captured": 1,
+    "reference_stake_yen": 60800,
+    "reference_payout_yen": 57480,
+    "reference_profit_yen": -3320,
+    "reference_roi": 0.9453947368421053,
+    "top12_evaluable": false,
+    "variable_0_12_evaluable": false
+  },
+  "nov08": {
+    "matsuyama2": {
+      "rank_from_prior_stored_210_candidate_mean": 9,
+      "scenario_ranks": {
+        "balanced": 9,
+        "ability_plus": 7,
+        "line_plus": 15,
+        "lead_2": 7,
+        "lead_1": 10,
+        "lead_6": 9
+      },
+      "winner": "2-3-1",
+      "dividend_per100": 2400,
+      "existing_model": "hand_defined_six_scenarios_not_PR71",
+      "independent_pre_cutoff_witness": false
+    },
+    "matsuyama7": {
+      "rank_from_saved_riders_and_fixed_PR101_shadow_formula": 114,
+      "top8_reproduced_exactly": true,
+      "winner": "3-6-7",
+      "dividend_per100": 28430,
+      "model": "keirin-observed-sparse-shadow-v1",
+      "original_underlying_raw_source_sha_not_independently_recomputed": true,
+      "independent_pre_cutoff_witness": false
+    }
+  },
+  "private_original_inputs_published_to_github": false,
+  "existing_PR71_four_models_historical_full_347_factor_data_available": false,
+  "existing_PR71_four_models_real_historical_backtest_completed": false,
+  "official_organizer_result_revisions_fully_authenticated": false,
+  "formal_hit_rate": null,
+  "formal_roi": null,
+  "actual_purchase_profit_yen": null,
+  "model_improvement_established": false,
+  "conclusion": "Real historical published result reconciliation and research ranking replay successful; full four-model past-race validation still blocked by missing point-in-time measured inputs and certified pre-cutoff originals."
+}

@@ -4,7 +4,8 @@ from hashlib import sha256
 import unittest
 
 from race_ai.keirin_allowed_delivery import (
-    DELIVERY_SCHEMA, ENV_MAP, RIDER_MAP, PermittedDeliveryError,
+    DELIVERY_SCHEMA, ENV_MAP, RIDER_MAP, RIDER_MAP_DISTINCT_B,
+    DISTINCT_B_ID, PermittedDeliveryError,
     assemble_permitted_pre_race,
 )
 from race_ai.keirin_preflight import expected_keys
@@ -318,6 +319,149 @@ class AllowedFeedTests(unittest.TestCase):
         data["race"]["betting"] = {"odds": 42}
         with self.assertRaises(ValueError):
             assemble(data)
+
+
+class SeparateEvidenceProfileTests(unittest.TestCase):
+    """Only fictional pre-cutoff sources; A must stay untouched, B is a candidate."""
+
+    def distinct_packet(self):
+        packet = fixture(full=True)
+        altered = {
+            "rider/1/last_lap_acceleration": 0.91,
+            "rider/1/late_lap_and_agari_time": 0.19,
+            "rider/1/venue_and_distance_compatibility": 0.84,
+            "rider/1/bank_positioning_and_traffic": 0.14,
+        }
+        for row in packet["observations"]:
+            if (row["key"].endswith("/late_lap_and_agari_time")
+                    or row["key"].endswith("/bank_positioning_and_traffic")):
+                row["value"] = 0.60
+            if row["key"] in altered:
+                row["value"] = altered[row["key"]]
+        return packet
+
+    def test_distinct_B_origins_have_no_double_counted_source(self):
+        self.assertEqual(len(RIDER_MAP), 28)
+        self.assertEqual(len(RIDER_MAP_DISTINCT_B), 22)
+        self.assertEqual(len(set(src for src, _ in RIDER_MAP_DISTINCT_B.values())),
+                         len(RIDER_MAP_DISTINCT_B))
+        self.assertEqual(RIDER_MAP_DISTINCT_B["finishing_power"][0],
+                         "late_lap_and_agari_time")
+        self.assertEqual(RIDER_MAP_DISTINCT_B["sprint_acceleration"][0],
+                         "last_lap_acceleration")
+        self.assertEqual(RIDER_MAP_DISTINCT_B["course_compatibility"][0],
+                         "bank_positioning_and_traffic")
+        self.assertEqual(RIDER_MAP_DISTINCT_B["bank_fit"][0],
+                         "venue_and_distance_compatibility")
+        self.assertNotIn("recent_points", RIDER_MAP_DISTINCT_B)
+        self.assertNotIn("last_lap_kick", RIDER_MAP_DISTINCT_B)
+        self.assertNotIn("teammate_synergy", RIDER_MAP_DISTINCT_B)
+
+    def test_same_fictional_pre_race_sources_a_vs_b_all_four_original_models(self):
+        from race_ai.four_sport_model_suite import ALL_MODELS
+        packet = self.distinct_packet()
+        a = assemble_permitted_pre_race(
+            packet, grant_check=granted, checked_at=CHECKED)
+        explicit_a = assemble_permitted_pre_race(
+            packet, grant_check=granted, checked_at=CHECKED,
+            feature_source_profile="legacy_a")
+        self.assertEqual(a, explicit_a)
+        b = assemble_permitted_pre_race(
+            packet, grant_check=granted, checked_at=CHECKED,
+            feature_source_profile=DISTINCT_B_ID)
+        self.assertIsNotNone(a["private_snapshot"])
+        self.assertIsNotNone(b["private_snapshot"])
+        self.assertEqual(a["status"]["feature_source_profile"], "legacy_a")
+        self.assertEqual(b["status"]["feature_source_profile"], DISTINCT_B_ID)
+        self.assertEqual(a["status"]["model_inputs_generated"], 205)
+        self.assertEqual(b["status"]["model_inputs_generated"], 163)
+        self.assertEqual(b["status"]["checked_count"], 347)
+        self.assertFalse(a["status"]["legacy_double_counting_removed_in_B"])
+        self.assertTrue(b["status"]["legacy_double_counting_removed_in_B"])
+        a_features = a["private_snapshot"]["facts"]["pr71_evidenced_snapshot"][
+            "participants"][0]["features"]
+        b_features = b["private_snapshot"]["facts"]["pr71_evidenced_snapshot"][
+            "participants"][0]["features"]
+        self.assertAlmostEqual(a_features["finishing_power"]["value"], .91)
+        self.assertAlmostEqual(a_features["sprint_acceleration"]["value"], .91)
+        self.assertAlmostEqual(b_features["finishing_power"]["value"], .19)
+        self.assertAlmostEqual(b_features["sprint_acceleration"]["value"], .91)
+        self.assertAlmostEqual(a_features["course_compatibility"]["value"], .84)
+        self.assertAlmostEqual(b_features["course_compatibility"]["value"], .14)
+        self.assertAlmostEqual(b_features["bank_fit"]["value"], .84)
+        self.assertEqual(
+            b["consumed_feature_origins"]["rider/1/finishing_power"],
+            "rider/1/late_lap_and_agari_time")
+        self.assertEqual(
+            b["consumed_feature_origins"]["rider/1/course_compatibility"],
+            "rider/1/bank_positioning_and_traffic")
+        self.assertNotIn("last_lap_kick", b_features)
+        a_suite = run_suite(a["private_snapshot"]["facts"]["pr71_evidenced_snapshot"],
+                            allow_source=lambda *_: True)
+        b_suite = run_suite(b["private_snapshot"]["facts"]["pr71_evidenced_snapshot"],
+                            allow_source=lambda *_: True)
+        self.assertTrue(verify_suite(a_suite))
+        self.assertTrue(verify_suite(b_suite))
+        self.assertEqual(set(a_suite["models"]), set(ALL_MODELS))
+        self.assertEqual(set(b_suite["models"]), set(ALL_MODELS))
+        for model_id in ALL_MODELS:
+            a_model = a_suite["models"][model_id]
+            b_model = b_suite["models"][model_id]
+            self.assertEqual(a_model["candidate_count"], 210)
+            self.assertEqual(b_model["candidate_count"], 210)
+            self.assertNotEqual(a_model["prediction_sha256"],
+                                b_model["prediction_sha256"])
+            self.assertEqual(len(b_model["ordered_top8"]), 8)
+            self.assertFalse(b_model["trained"])
+        # No results, bets or observed model improvement can be inferred here.
+
+    def test_missing_distinct_B_sources_fail_closed_not_fabricated(self):
+        packet = self.distinct_packet()
+        packet["observations"] = [
+            row for row in packet["observations"]
+            if row["key"] not in {
+                "rider/1/late_lap_and_agari_time",
+                "rider/2/bank_positioning_and_traffic",
+            }
+        ]
+        a = assemble_permitted_pre_race(
+            packet, grant_check=granted, checked_at=CHECKED)
+        b = assemble_permitted_pre_race(
+            packet, grant_check=granted, checked_at=CHECKED,
+            feature_source_profile=DISTINCT_B_ID)
+        self.assertIsNotNone(a["private_snapshot"])
+        self.assertIsNone(b["private_snapshot"])
+        self.assertIn("rider/1/finishing_power",
+                      b["status"]["missing_model_inputs"])
+        self.assertIn("rider/2/course_compatibility",
+                      b["status"]["missing_model_inputs"])
+        self.assertEqual(b["status"]["state"],
+                         "BLOCKED_MISSING_CRITICAL_OR_MODEL_INPUTS")
+
+    def test_agari_seconds_not_pretended_to_be_normalized_ratio(self):
+        packet = self.distinct_packet()
+        row = next(
+            row for row in packet["observations"]
+            if row["key"] == "rider/1/late_lap_and_agari_time")
+        row["value"] = 12.6   # Actual half-lap *seconds*, not normalized rank
+        with self.assertRaisesRegex(PermittedDeliveryError,
+                                    "NONFINITE_OR_UNDOCUMENTED_NORMALIZATION"):
+            assemble_permitted_pre_race(
+                packet, grant_check=granted, checked_at=CHECKED,
+                feature_source_profile=DISTINCT_B_ID)
+
+    def test_profile_is_not_a_source_rights_grant(self):
+        out = assemble_permitted_pre_race(
+            self.distinct_packet(), grant_check=lambda *_: False,
+            checked_at=CHECKED, feature_source_profile=DISTINCT_B_ID)
+        self.assertIsNone(out["private_snapshot"])
+        self.assertEqual(out["status"]["verified_items"], 0)
+        self.assertFalse(out["status"]["rights_certified_by_this_module"])
+        with self.assertRaisesRegex(PermittedDeliveryError,
+                                    "UNKNOWN_FEATURE_SOURCE_PROFILE"):
+            assemble_permitted_pre_race(
+                self.distinct_packet(), grant_check=granted,
+                checked_at=CHECKED, feature_source_profile="make_up_winner")
 
 
 if __name__ == "__main__":

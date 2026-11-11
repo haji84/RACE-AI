@@ -1,0 +1,70 @@
+{
+  "schema": "RACE_AI_KEIRIN_HISTORICAL_SOURCE_RECONSTRUCTION_TRIAGE_20261109_V1",
+  "source_type": "retrospective_sourced_research_not_pre_event_proof",
+  "owner_private_report_sha256": "4dc41661bf33dc1d7ab569d98e7cfda0993c68647086197991a6bc42f8666828",
+  "racecard_crosscheck": {
+    "matsuyama_2r_20261108": {
+      "seven_riders_checked": 7,
+      "archived_20261108_research_sha256": "8e3628b6d970cc128b140fc55957986a1126959f86e403ccd33520f081725ce7",
+      "research_and_KEIRIN_HEX_4mo_start_differences": 7,
+      "reported_four_finish_category_residual_starts": 34,
+      "platform_publication_timestamp_separately_attested": false,
+      "source_cards": [
+        "https://keirinhex.jp/races/20261108/027520261108/",
+        "https://www.chariloto.com/keirin/athletes/2026-11-08/75/2"
+      ]
+    },
+    "matsuyama_7r_20261108": {
+      "seven_riders_checked": 7,
+      "archived_20261108_research_sha256": "bd8cc4c7b3b05f3d2d0c54380b9df353b0448315a102991178fed5172792f85e",
+      "research_and_KEIRIN_HEX_4mo_start_differences": 0,
+      "reported_four_finish_category_residual_starts": 35,
+      "platform_publication_timestamp_separately_attested": false,
+      "source_cards": [
+        "https://keirinhex.jp/races/20261108/077520261108/",
+        "https://www.chariloto.com/keirin/athletes/2026-11-08/75/7"
+      ]
+    }
+  },
+  "source_semantics_note": "Residual starts may reflect unclassified finish statuses or distinct windows. They are NOT treated as losses and the authoritative denominator remains unverified.",
+  "dated_preevent_entry_list": {
+    "source_url": "https://keirin.ctc.gr.jp/schedule/detail.php?id=7520261108",
+    "displayed_updated_at": "2026-10-11 08:50 JST",
+    "is_final_race_entry": false,
+    "web_text_not_an_immutable_external_receipt": true
+  },
+  "fixed_venue_context": {
+    "source": "https://www.keirin-mobile.jp/Android/App/Content/velodrome/velodrome_info.php?vc=75",
+    "track_length_m": 400,
+    "straight_m": 58.6,
+    "center_cant_deg_approx": 34.03,
+    "resurface_month": "2026-02",
+    "resurface_dated_research_page": "https://gamboo.jp/pages/?tid=tohyama_bank_75&topbanner=",
+    "pr71_individual_bank_fit_measured": false,
+    "pr71_bank_steepness_preagreed_normalization": false
+  },
+  "weather": {
+    "jma_actual_hourly_history_url": "https://ds.data.jma.go.jp/obd/stats/etrn/view/hourly_s1.php?block_no=47887&day=8&month=11&prec_no=73&view=p1&year=2026",
+    "jma_history_is_postrace_verification_label": true,
+    "racecard_result_post_event_weather_label": "松山2R 曇・1.3m/s",
+    "historical_forecast_archive": "https://open-meteo.com/en/docs/single-runs-api",
+    "historic_forecast_real_response_bytes_retrieved": false,
+    "model_initialization_time_neq_public_release_time": true,
+    "jma_weather_normals_or_after_race_obs_cannot_fill_pre_event_environment": true,
+    "sources_commercial_permission_not_auto_granted": true
+  },
+  "video": {
+    "historical_replay_links_exist_in_result_sites": true,
+    "real_replay_frames_retrieved": false,
+    "verified_previous_race_video_before_target_cutoff": false,
+    "derived_athlete_acceleration_from_race_outcome": false,
+    "private_frame_asof_contract_investigated_not_executed": true
+  },
+  "code_test_scope": "synthetic contracts and safe source triage; no real 4-model inference",
+  "full_PR71_4_model_asof_eligible_real_races": 0,
+  "injected_guess_values_count": 0,
+  "model_correction_trained_on_historic_results": false,
+  "formal_accuracy": null,
+  "model_rider_input_dataset_publicly_uploaded": false,
+  "claim_venued_context_equals_rider_bank_fit": false
+}

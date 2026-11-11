@@ -2,17 +2,18 @@
 
 With a real *authorized* data feeder and an owner-controlled persistent disk,
 this program handles every supplied race automatically, without an hourly
-ChatGPT task: pre-race snapshot -> PR71 untrained model -> private SQLite
-create-once freeze -> post-race result revisions -> PDCA -> next snapshot.
+ChatGPT task: pre-race snapshot -> PR71 untrained model -> original eight-pick private freeze
+-> PR103 optional separately supplied pre-cutoff odds -> variable selection
+-> post-race result revisions -> both immutable audits -> next snapshot.
 
 Not a source collector. Source admission, independent third-party timestamp,
 official result attestation, and 24/7 host are external dependencies.
-No provider network, odds input, public raw forecasts, or wagering.
+No provider network, automatic odds retrieval, public raw forecasts, or wagering.
 """
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -22,6 +23,13 @@ from .keirin_result_delivery import canonical, utc
 from .keirin_next_forecast_worker import consume_next_intent
 from .keirin_owner_sqlite import PrivateKeirinStore
 from .keirin_pr71_model_adapter import run_pr71_for_next_race
+from .keirin_variable_selection import (
+    select_research_tickets, ODDS_SCHEMA, VariableSelectionError
+)
+from .keirin_variable_integration import (
+    PrivateVariableLedger, PrivateVariableBridgeError
+)
+from .comprehensive_four_sport_models import digest as model_digest
 
 SOURCE_SCHEMA = "RACE_AI_KEIRIN_PRIVATE_PRE_RACE_V1"
 RESULT_SCHEMA = "RACE_AI_PRIVATE_KEIRIN_RESULT_OBSERVATION_V1"
@@ -69,7 +77,7 @@ class KeirinPrivateSpool:
     def __init__(self, store, *, clock=None,
                  model_suite=None, model_verifier=None,
                  source_attestor=None, source_observation_gate=None,
-                 witness=None):
+                 source_odds_gate=None, witness=None):
         if not isinstance(store, PrivateKeirinStore):
             raise InboxError("PERSISTENT_PRIVATE_OWNER_STORE_REQUIRED")
         self.store = store
@@ -79,7 +87,9 @@ class KeirinPrivateSpool:
         self.model_verifier = model_verifier
         self.source_attestor = source_attestor
         self.source_observation_gate = source_observation_gate
+        self.source_odds_gate = source_odds_gate
         self.witness = witness
+        self.variable_store = PrivateVariableLedger(store)
 
     def _time(self):
         stamp = self.clock()
@@ -191,6 +201,77 @@ class KeirinPrivateSpool:
             return "FORECAST_PRIVATE_DURABLY_SAVED"
         return result.get("state","UNKNOWN_WORKER_STATE")
 
+
+    def _run_odds(self, odds):
+        """After original freeze, generate a separately immutable 0..12-pick record.
+
+        For real evidence, both observation and odds callbacks are required.
+        Neither a URL nor a self-declared label is an official rights grant.
+        """
+        if type(odds) is not dict or odds.get("schema") != ODDS_SCHEMA:
+            return "REJECTED_ODDS_SCHEMA"
+        race_id=odds.get("race_id")
+        if type(race_id) is not str:
+            return "REJECTED_ODDS_RACE"
+        old=self.store.get_persisted_forecast(race_id)
+        if old is None:
+            return "VARIABLE_ORIGINAL_FORECAST_MISSING"
+        prior=self.variable_store.selection(race_id,MODEL)
+        if prior is not None:
+            try:
+                same=(model_digest(odds)==
+                      prior["selection"]["odds_snapshot_sha256"])
+            except (TypeError,ValueError):
+                same=False
+            return ("VARIABLE_ALREADY_PRIVATE_FROZEN" if same
+                    else "VARIABLE_POST_FREEZE_ODDS_CONFLICT")
+        try:
+            now=self._time()
+            cutoff=utc(old["forecast"]["official_cutoff_at"])
+            if now+timedelta(seconds=60)>=cutoff:
+                return "VARIABLE_ODDS_TOO_LATE"
+            snapshot=self.store.read_snapshot({
+                "race_id":race_id,
+                "pre_race_snapshot_sha256":
+                    old["forecast"]["snapshot_sha256"]
+            })
+            if type(snapshot) is not dict:
+                return "VARIABLE_ORIGINAL_SOURCE_MISSING"
+            evidence=snapshot["facts"]["pr71_evidenced_snapshot"]
+            if not callable(self.model_suite) or not callable(self.model_verifier):
+                return "VARIABLE_VERIFIED_MODEL_MISSING"
+            if evidence.get("scope") != "SYNTHETIC_ONLY" and (
+                    not callable(self.source_observation_gate)
+                    or not callable(self.source_odds_gate)):
+                return "VARIABLE_SOURCE_GATES_MISSING"
+            suite=self.model_suite(
+                evidence,allow_source=self.source_observation_gate)
+            if self.model_verifier(suite) is not True or (
+                    suite.get("race_id")!=race_id or
+                    suite.get("input_sha256")!=model_digest(evidence) or
+                    suite.get("sales_cutoff_at")!=
+                       old["forecast"]["official_cutoff_at"] or
+                    suite.get("as_of")!=snapshot["as_of"]):
+                return "VARIABLE_SOURCE_MODEL_MISMATCH"
+            m=suite["models"][MODEL]
+            if (m["ordered_top8"]!=old["forecast"]["top8"] or
+                    m["model_version"]!=old["forecast"]["model_version"] or
+                    m["model_id"]!=old["forecast"]["model_id"]):
+                return "VARIABLE_ORIGINAL_MODEL_MISMATCH"
+            if len(odds.get("prices",[])) != m["candidate_count"]:
+                return "VARIABLE_INCOMPLETE_ODDS"
+            selection=select_research_tickets(
+                suite,MODEL,odds,decision_at=now.isoformat(),
+                source_admission=self.source_odds_gate)
+            outcome=self.variable_store.freeze_once(
+                selection,original_forecast_sha256=old["sha256"],
+                odds_snapshot=odds)
+            return ("VARIABLE_PRIVATE_SELECTION_SAVED" if
+                    outcome=="CREATED_ONCE" else "VARIABLE_ALREADY_PRIVATE_FROZEN")
+        except (ValueError,TypeError,KeyError,AttributeError,IndexError,
+                VariableSelectionError,PrivateVariableBridgeError):
+            return "VARIABLE_ODDS_OR_BINDING_REJECTED"
+
     def _run_result(self, document):
         if not isinstance(document,dict) or (
                 document.get("schema") != RESULT_SCHEMA):
@@ -201,10 +282,15 @@ class KeirinPrivateSpool:
         try:
             insertion=self.store.add_result_observation(result)
             scored=self.store.research_audit(result["race_id"])
-            if insertion.get("state")=="ALREADY_PRESENT":
-                return "RESULT_ALREADY_SEEN_NO_RECOUNT"
         except (ValueError,TypeError,KeyError):
             return "RESULT_REJECTED_OR_NOT_ADMITTED"
+        try:
+            # Separate audit of latest revision, never a rewrite of old results.
+            self.variable_store.audit_latest(result["race_id"],MODEL)
+        except (ValueError,TypeError,KeyError):
+            return "RESULT_SAVED_VARIABLE_AUDIT_NEEDS_RETRY"
+        if insertion.get("state")=="ALREADY_PRESENT":
+            return "RESULT_ALREADY_SEEN_NO_RECOUNT"
         if scored.get("research_hit8") is True:
             return "REFERENCE_HIT8_RESEARCH"
         if scored.get("research_hit8") is False:
@@ -236,6 +322,14 @@ class KeirinPrivateSpool:
             except (InboxError,ValueError,TypeError,KeyError):
                 status="FORECAST_FAILED_CLOSED"
             reports.append(("pre",status))
+        # Same-tick odds are processed only AFTER the original forecast freeze.
+        # Missing odds never block the existing forecast/result pipeline.
+        for path in _files(inbox,"odds"):
+            try:
+                status=self._run_odds(_safe_json(path))
+            except (InboxError,ValueError,TypeError,KeyError):
+                status="VARIABLE_ODDS_FAILED_CLOSED"
+            reports.append(("odds",status))
         counts=dict(sorted(Counter(s for _,s in reports).items()))
         return {"schema":"RACE_AI_KEIRIN_OWNER_PRIVATE_TICK_V1",
                 "processed_files":len(reports),
@@ -246,6 +340,8 @@ class KeirinPrivateSpool:
                     counts.get("REFERENCE_HIT8_RESEARCH",0),
                 "reference_misses_this_tick":
                     counts.get("REFERENCE_MISS_RESEARCH",0),
+                "variable_selections_saved_this_tick":
+                    counts.get("VARIABLE_PRIVATE_SELECTION_SAVED",0),
                 "official_hit_at_8_all":None,
                 "private_witness_verified_by_this_module":False,
                 "provider_network_requests":0,

@@ -231,6 +231,10 @@ def forecast_from_real_observations(packet, *, grant_check, issued_at):
         "used_optional_top_three_all_riders":len(toplist)==len(starters),
         "used_optional_win_rate_all_riders":len(winlist)==len(starters),
         "candidate_count":len(scores),
+        # Full pre-cutoff universe is needed for a separate, honest 0..12
+        # ticket selection study. These values are uncalibrated RELATIVE
+        # scores and MUST NOT be passed off as fitted P(win).
+        "ranked_candidates_untrained_not_probabilities":scores,
         "ordered_top8":[r["triple"] for r in top8],
         "relative_scores_untrained_not_hit_probabilities":
             [round(r["relative_score"],8) for r in top8],

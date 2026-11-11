@@ -1,0 +1,20 @@
+{
+  "schema": "RACE_AI_KEIRIN_20261109_AOMORI5_AI_ASSISTED_REFERENCE_HASH_ANCHOR_V1",
+  "race_id": "202611091205",
+  "event": "Aomori 5R 2026-11-09 A-class semifinal",
+  "cutoff_at_jst": "2026-11-09T10:08:00+09:00",
+  "generated_at_jst": "2026-11-09T09:52:45.998571+09:00",
+  "private_library_path": "/RACE-AI/KeirinAudit/aomori5r_20261109_pre_cutoff_AI_reference.json",
+  "private_file_sha256": "6ef6397c6847b727ce9e16a23ccb6d29d011b4e2fba42846de217fa06680860c",
+  "reference_core_sha256": "19f400fa5ead6a89da2b58fe739aa1b85f25d1ee41d50534b3d49838efc3b5a3",
+  "owner_library_round_trip_sha256_verified": true,
+  "candidate_tickets": 6,
+  "owner_PR71_four_models_executed": false,
+  "cause": "Verified permitted PR71 12x7 rider feature fields plus 9 environment features and 347 factor preflight are not all available",
+  "evidence_category": "Public AI and racecard-assisted human reference forecast only",
+  "source_publication_and_training_use_rights_independently_verified": false,
+  "model_calibrated_probabilities": false,
+  "result_consulted_at_snapshot": false,
+  "eligible_as_owner_4_model_live_test": false,
+  "note": "Reference-only prospective witness of 6 tickets, NOT authentic PR71 model output; never train from post-event data or backdate."
+}
