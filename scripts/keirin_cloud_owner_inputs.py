@@ -8,6 +8,7 @@ the temporary inbox. Existing independently licensed feeds keep precedence.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from collections import OrderedDict
 from hashlib import sha256
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -23,6 +24,11 @@ SCHEMA = 'RACE_AI_KEIRIN_CLOUD_OWNER_SOURCE_CONNECTION_V1'
 SOURCE_PATH = re.compile(r'^/keirin/[a-z][a-z0-9-]{2,30}/racecard/(\d{8})(\d{2})/([1-3])/([1-9]|1[0-2])$')
 JST = ZoneInfo('Asia/Tokyo')
 MARGIN = timedelta(seconds=390)
+# Reuse only past-result pages inside one run; never changing live pages.
+PAST_RESULT_PATH = re.compile(
+    r'^/keirin/[a-z][a-z0-9-]{2,30}/raceresult/[0-9]{10}/[1-3]/(?:[1-9]|1[0-2])$')
+PAST_CACHE_MAX_BYTES = 24 * 1024 * 1024
+PAST_CACHE_ENTRY_MAX_BYTES = 2 * 1024 * 1024
 
 
 def need(ok, reason):
@@ -49,6 +55,9 @@ class SourceSession:
         self.host_denied = False
         self.budget_exhausted = False
         self.requests = 0
+        self.historical_page_cache_hits = 0
+        self.historical_page_cache_bytes = 0
+        self._historical_cache = OrderedDict()
 
     def available(self):
         """Return false once the work budget or provider-denial circuit has closed."""
@@ -64,14 +73,33 @@ class SourceSession:
              u.port in (None, 443) and u.hostname in {
                  'winticket.jp', 'www.winticket.jp', 'keirin.jp', 'www.keirin.jp'},
              'OWNER_APPROVED_SOURCE_HOST_REQUIRED')
+        # Cache only already-completed historical result URLs.
+        eligible = (u.hostname in {'winticket.jp', 'www.winticket.jp'}
+                    and PAST_RESULT_PATH.fullmatch(u.path) is not None
+                    and not u.query and not u.fragment)
+        if eligible and url in self._historical_cache:
+            body, digest = self._historical_cache.pop(url)
+            need(sha256(body).hexdigest() == digest,
+                 'CACHED_HISTORICAL_RESULT_CHANGED')
+            self._historical_cache[url] = (body, digest)
+            self.historical_page_cache_hits += 1
+            return body
         self.requests += 1
         try:
-            return self.fetch(url)
+            body = self.fetch(url)
         except (ValueError, OSError) as exc:
             # Never include an arbitrary provider exception/URL in public logs.
             if any(x in str(exc).upper() for x in ('BLOCKED', 'RATE_LIMIT', '403', '429')):
                 self.host_denied = True
             raise
+        if eligible and type(body) is bytes and 0 < len(body) <= PAST_CACHE_ENTRY_MAX_BYTES:
+            while (self._historical_cache and
+                   self.historical_page_cache_bytes + len(body) > PAST_CACHE_MAX_BYTES):
+                _, (removed, _) = self._historical_cache.popitem(last=False)
+                self.historical_page_cache_bytes -= len(removed)
+            self._historical_cache[url] = (body, sha256(body).hexdigest())
+            self.historical_page_cache_bytes += len(body)
+        return body
 
 
 def _private_root(inbox):
@@ -228,6 +256,8 @@ def collect_owner_inputs(inbox, *, owner_auto_confirmed, capture=None, probe=Non
     out['public_page_requests'] = session.requests
     out['provider_denial_stopped_requests'] = session.host_denied
     out['work_budget_exhausted'] = session.budget_exhausted
+    out['historical_pages_reused_without_new_GET'] = session.historical_page_cache_hits
+    out['historical_page_cache_bytes'] = session.historical_page_cache_bytes
     return out
 
 
