@@ -9,17 +9,21 @@ import base64
 from collections import Counter
 from datetime import date, datetime, timezone
 from hashlib import sha256
+import os
 from pathlib import Path
 import sys
+from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from race_ai import boat_private_original_vault as V
+from race_ai import boat_model_runtime as runtime
 from race_ai import saved_view_feed as F
 from race_ai.actions_contract import digest
 from race_ai.boat_history_store import instant, wire
+from race_ai.boat_name_aliases import _term_names
 from race_ai.boat_pdca_recipient import _json
 from race_ai.boat_saved_view_intake import append_views, project_native_state
 from race_ai.first_receipt_continuity import latest_result_observations
@@ -100,6 +104,49 @@ def _no_live_artifact(_endpoint):
     raise _Rejected('FIRST_P0_RECONCILE_RETAINED_ORIGINAL_REQUIRED')
 
 
+def _retained_names(repo, now, *, transport=None):
+    """Read only the verified TERM registry from the pinned encrypted runtime."""
+    pointer = _json(_read(repo/runtime.INPUT_PATH, 64*1024), 64*1024)
+    with TemporaryDirectory(prefix='boat-first-p0-names-', dir=os.environ['RUNNER_TEMP']) as folder:
+        restored = runtime.restore_runtime(pointer, repo, folder, transport=transport)
+        documents, source = _term_names(restored['files']['racers.sqlite'], now)
+    fields = ('verified', 'source_url', 'source_sha256', 'captured_at')
+    registry = {pid: dict(name=document['name'], **{key: source[key] for key in fields})
+                for pid, document in documents.items()}
+    return dict(registry=registry, races={}), dict(
+        display_name_runtime_commit=restored['source_commit'],
+        display_name_registry_source_sha256=source['source_sha256'] if source else None)
+
+
+def _named_target(view, day, names):
+    """Apply the existing display merger only to the selected day."""
+    target = dict(view, records=[row for row in view['records'] if row['event_date_jst'] == day])
+    enriched = append_views(target, names=names)
+    by_race = {row['race_id']: row for row in enriched['records']}
+    output = dict(view, records=[by_race.get(row['race_id'], row) for row in view['records']])
+    _need(F.forecast_inventory(output) == F.forecast_inventory(view), 'DISPLAY_FORECAST_CHANGED')
+    return output
+
+
+def _name_counts(view, day, names):
+    people = [person for row in view['records'] if row['event_date_jst'] == day
+              for person in row['participants']]
+    present = sum(bool(person.get('name')) for person in people)
+    bound = 0
+    for person in people:
+        registration = person['registration_no']
+        expected = names['registry'].get(registration)
+        source = person.get('name_source') or {}
+        if (expected and person.get('name') == expected['name']
+                and source.get('kind') == 'VERIFIED_RACER_REGISTRY'
+                and source.get('registration_no') == registration
+                and all(source.get(key) == expected[key] for key in
+                        ('verified', 'source_url', 'source_sha256', 'captured_at'))):
+            bound += 1
+    return dict(display_name_participants=len(people), display_name_present=present,
+        display_name_registry_bound=bound, display_name_missing=len(people)-present)
+
+
 def _score_counts(scored):
     """Project the native verdicts to counts/hashes, without forecast bodies."""
     verdicts = scored['per_forecast']
@@ -121,7 +168,7 @@ def _score_counts(scored):
 
 def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
               companion_artifacts, transport=None, receipt_get=None,
-              feed_transport=None, intraday_transport=None, now=None):
+              feed_transport=None, intraday_transport=None, runtime_transport=None, now=None):
     """Verify, replay retained results and append to the existing encrypted feed.
 
     Optional transports replace external Git/Contents I/O only. All private
@@ -153,6 +200,10 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
         history = bool(getattr(git, '_saved_history_context', None))
         merged = append_views(before, [native_view])
 
+        stage = 'DISPLAY_NAMES'
+        names, name_proof = _retained_names(repo, now, transport=runtime_transport)
+        merged = _named_target(merged, day, names)
+
         stage = 'RETAINED_RESULTS'
         loaded = load_intraday(repo, transport=intraday_transport, now=now)
         source_digest = digest([loaded['state'].control, loaded['state'].new_captures])
@@ -181,6 +232,7 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
         _need(digest([loaded['state'].control, loaded['state'].new_captures]) == source_digest,
               'SOURCE_STATE_CHANGED')
         F.ensure_append_only(before, after)
+        name_counts = _name_counts(after, day, names)
 
         stage = 'ORIGINAL_PROTECTION'
         protection = protect_new_forecast_originals(before, after, repo,
@@ -203,7 +255,7 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
             published = F.publish_view(git, bootstrap, publication, parent=parent,
                                        previous=previous, generation=generation)
         source = loaded['previous']
-        return dict(verified, **counts,
+        return dict(verified, **counts, **name_proof, **name_counts,
             status='FIRST_P0_RECONCILED' if counts['held_forecasts'] == 0 else 'HOLD_OFFICIAL_RESULTS_INCOMPLETE',
             coverage_scope='EXPLICIT_ARTIFACTS_ONLY', source_complete=False,
             retained_result_captures=len(captures), retained_result_races=len(captured_races),
@@ -225,7 +277,7 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
 
 
 def main(argv=None, *, transport=None, receipt_get=None, feed_transport=None,
-         intraday_transport=None, now=None):
+         intraday_transport=None, runtime_transport=None, now=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo-root', default=str(ROOT))
     parser.add_argument('--vault-commit', required=True)
@@ -242,7 +294,7 @@ def main(argv=None, *, transport=None, receipt_get=None, feed_transport=None,
             receipt_commit=args.receipt_commit, day=args.day, p0_artifact=args.p0_artifact,
             companion_artifacts=args.companion_artifact, transport=transport,
             receipt_get=receipt_get, feed_transport=feed_transport,
-            intraday_transport=intraday_transport, now=now)
+            intraday_transport=intraday_transport, runtime_transport=runtime_transport, now=now)
         vaultCLI._write(output, V._wire(report) + b'\n')
         print(V._wire(report).decode('utf-8'))
         return 0

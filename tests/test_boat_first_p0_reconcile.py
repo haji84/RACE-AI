@@ -15,14 +15,21 @@ import unittest
 from unittest.mock import patch
 
 from race_ai import boat_private_original_vault as V
+from race_ai import boat_model_runtime as runtime
 from race_ai import saved_view_feed as F
+from race_ai.actions_contract import digest
 from race_ai.boat_pdca_github_handoff import TRANSFER_REF
 from race_ai.boat_pdca_recipient import receiver_document
-from race_ai.boat_saved_view_intake import append_views
+from race_ai.boat_racer_database import RacerDatabase
+from race_ai.boat_racer_term import term_info
+from race_ai.boat_saved_view_intake import append_views, project_native_state
 from race_ai.racer_intraday_handoff import load_intraday, save_intraday
 from tests.intraday_fixture import packet
 from tests.test_boat_first_p0_readback import retain_bundle
 from tests.test_boat_private_original_vault import KEY, NOW, LocalGit, wire
+from tests.test_boat_model_runtime import invented_files
+from tests.test_boat_racer_database import term_archive
+from tests.test_boat_racer_term import record
 from tests.test_boat_sp_settlement import document
 from tests.test_racer_intraday_handoff import FixtureGit
 from tests.test_racer_result_bridge import FixtureFeed, saved_view
@@ -31,6 +38,11 @@ try:
     reconcile = importlib.import_module('scripts.boat_first_p0_reconcile')
 except ModuleNotFoundError:
     reconcile = None
+
+
+class FixtureRuntime(runtime.GitRuntimeRepository):
+    def _check_remote(self):
+        self.fetch_url = self.push_url = self._run(['remote', 'get-url', 'origin']).decode().strip()
 
 
 class FirstP0ReconcileTests(unittest.TestCase):
@@ -67,6 +79,39 @@ class FirstP0ReconcileTests(unittest.TestCase):
         self.loaded = load_intraday(self.repo, initialize=True, key=KEY,
                                     transport=self.intraday, now=NOW)
         self.receipts = []
+        self.runtime = FixtureRuntime(self.repo)
+        self.seed_runtime()
+
+    def seed_runtime(self, registrations=range(4001, 4007), *, mutation=None):
+        raw = term_archive(b'\n'.join(record(str(pid)) for pid in registrations))
+        self.name_source = dict(source_url=term_info('2026-2')['source_url'],
+            source_sha256=sha256(raw).hexdigest(), captured_at=(NOW-timedelta(days=1)).isoformat())
+        database = RacerDatabase(clock=lambda: NOW)
+        try:
+            database.import_term(raw, term='2026-2',
+                **{key: self.name_source[key] for key in ('source_url', 'captured_at')})
+            self.registry_names = {pid: json.loads(body)['name'] for pid, body in
+                                   database.db.execute('SELECT racer_id,document FROM racers')}
+            if mutation == 'document':
+                database.db.execute('DROP TRIGGER immutable_racers_update')
+                pid, body = database.db.execute('SELECT racer_id,document FROM racers LIMIT 1').fetchone()
+                document = json.loads(body); document['name'] = '改変氏名'
+                database.db.execute('UPDATE racers SET document=? WHERE racer_id=?',
+                                    (json.dumps(document), pid))
+            elif mutation in ('raw', 'url'):
+                database.db.execute('DROP TRIGGER immutable_sources_update')
+                if mutation == 'raw':
+                    database.db.execute('UPDATE sources SET raw=?', (b'untrusted changed source',))
+                else:
+                    database.db.execute('UPDATE sources SET url=?', ('https://example.test/untrusted',))
+            files = invented_files(); files['racers.sqlite'] = database.serialize()
+        finally:
+            database.db.close()
+        receiver = receiver_document(key=KEY, run_id='99', source_head='d'*40)
+        encrypted, _ = runtime.seal_runtime(files, receiver, created_at=NOW.isoformat())
+        self.runtime_pointer = runtime.publish_runtime(encrypted, self.repo,
+            expected_parent=self.runtime.head(), transport=self.runtime)
+        (self.repo/runtime.INPUT_PATH).write_bytes(wire(self.runtime_pointer))
 
     def git(self, name, cls, ref):
         repo = self.root/name
@@ -129,7 +174,107 @@ class FirstP0ReconcileTests(unittest.TestCase):
         arguments.update(changes)
         return reconcile.reconcile(self.repo, transport=self.vault,
             receipt_get=self.receipt_get, feed_transport=self.feed,
-            intraday_transport=self.intraday, now=NOW+timedelta(minutes=1), **arguments)
+            intraday_transport=self.intraday, runtime_transport=self.runtime,
+            now=NOW+timedelta(minutes=1), **arguments)
+
+    def test_native_nameless_rows_receive_only_verified_registry_display_names(self):
+        verified, document, rows, metadata = reconcile.readback.verify(self.repo,
+            **{key: self.bundle[key] for key in (
+                'vault_commit', 'receipt_commit', 'day', 'p0_artifact', 'companion_artifacts')},
+            transport=self.vault, receipt_get=self.receipt_get)
+        original_digest = digest([document, rows, metadata])
+        documents = [dict(artifact_id=101, member_name='forecasts.json',
+            member_sha256=verified['json_sha256'], document=document)]
+        state = dict(schema='RACE_AI_PRIVATE_ARTIFACT_READBACK_V1', day_jst=self.bundle['day'],
+            rows=rows, receipts=[metadata], observations=[], original_documents=documents,
+            complete=False, coverage_scope='EXPLICIT_ARTIFACTS_ONLY', excluded_repeats=[])
+        state['state_sha256'] = digest(state)
+        native = project_native_state(state, documents=documents)
+        self.assertTrue(all(not p.get('name') for r in native['records'] for p in r['participants']))
+        old_parent, old_cipher, _, old = F.current_view(self.feed, self.bootstrap, day='2030-03-31')
+        old_bytes = self.feed.read(old_parent, 'views/'+old_cipher+'.json', F.MAX_WIRE)
+        pointer = self.capture(); raw, receipt = self.loaded['state'].capture(pointer)
+        expected_score = reconcile.evaluate(rows, [F.parse_capture(raw, receipt)])
+        self.save_results()
+        report = self.run_reconcile()
+        after = F.current_view(self.feed, self.bootstrap, day=self.bundle['day'])[3]
+        people = after['records'][0]['participants']
+        self.assertEqual([p.get('name') for p in people],
+                         [self.registry_names[p['registration_no']] for p in people])
+        for person in people:
+            self.assertEqual(person['name_source'], dict(self.name_source,
+                kind='VERIFIED_RACER_REGISTRY', registration_no=person['registration_no'], verified=True))
+        self.assertEqual(report['display_name_participants'], 6)
+        self.assertEqual(report['display_name_present'], 6)
+        self.assertEqual(report['display_name_registry_bound'], 6)
+        self.assertEqual(report['display_name_missing'], 0)
+        self.assertEqual(report['display_name_runtime_commit'], self.runtime_pointer['source_commit'])
+        self.assertEqual(report['display_name_registry_source_sha256'], self.name_source['source_sha256'])
+        self.assertEqual(F.forecast_inventory(after), F.forecast_inventory(native))
+        self.assertEqual([r['prediction'] for r in after['records']], [r['prediction'] for r in native['records']])
+        self.assertEqual([r['comparison_predictions'] for r in after['records']],
+                         [r['comparison_predictions'] for r in native['records']])
+        self.assertEqual(report['native_evaluation_sha256'], digest(expected_score))
+        self.assertEqual(report['original_document_set_sha256'], original_digest)
+        self.assertEqual(digest([document, rows, metadata]), original_digest)
+        self.assertEqual(F.current_view(self.feed, self.bootstrap, day='2030-03-31')[3], old)
+        self.assertEqual(self.feed.read(old_parent, 'views/'+old_cipher+'.json', F.MAX_WIRE), old_bytes)
+
+    def test_existing_nameless_native_view_is_enriched_without_rescoring_or_rewriting(self):
+        self.seed_runtime((4999,))
+        self.capture(); self.save_results()
+        initial = self.run_reconcile()
+        parent, cipher, _, before = F.current_view(self.feed, self.bootstrap, day=self.bundle['day'])
+        old_bytes = self.feed.read(parent, 'views/'+cipher+'.json', F.MAX_WIRE)
+        self.assertEqual(initial['display_name_missing'], 6)
+        self.seed_runtime()
+        report = self.run_reconcile()
+        after = F.current_view(self.feed, self.bootstrap, day=self.bundle['day'])[3]
+        self.assertTrue(report['feed_changed'])
+        self.assertEqual(report['display_name_registry_bound'], 6)
+        self.assertEqual(report['display_name_missing'], 0)
+        self.assertEqual(F.forecast_inventory(after), F.forecast_inventory(before))
+        for field in ('native_evaluation_sha256', 'original_document_set_sha256',
+                      'native_verdict_counts', 'model_score_counts'):
+            self.assertEqual(report[field], initial[field])
+        self.assertEqual(self.feed.read(parent, 'views/'+cipher+'.json', F.MAX_WIRE), old_bytes)
+
+    def test_untrusted_term_sources_or_mismatched_documents_reject_before_publication(self):
+        self.capture(); self.save_results()
+        before = self.feed.head()
+        for mutation in ('raw', 'url', 'document'):
+            with self.subTest(mutation=mutation):
+                self.seed_runtime(mutation=mutation)
+                with self.assertRaisesRegex(ValueError, '^FIRST_P0_RECONCILE_DISPLAY_NAMES_REJECTED$'):
+                    self.run_reconcile()
+                self.assertEqual(self.feed.head(), before)
+                self.assertEqual(self.intraday.head(), self.source_saved['source_commit'])
+                self.assertEqual(list(self.root.glob('boat-first-p0-names-*')), [])
+
+    def test_runtime_cipher_mismatch_rejects_without_fallback_or_publication(self):
+        self.save_results(); before = self.feed.head()
+        original_read = self.runtime.read
+        def changed(commit, path, maximum):
+            raw = original_read(commit, path, maximum)
+            return raw[:-1]+bytes([raw[-1]^1]) if path == self.runtime_pointer['cipher_path'] else raw
+        with patch.object(self.runtime, 'read', side_effect=changed), self.assertRaisesRegex(
+                ValueError, '^FIRST_P0_RECONCILE_DISPLAY_NAMES_REJECTED$'):
+            self.run_reconcile()
+        self.assertEqual(self.feed.head(), before)
+
+    def test_missing_registration_stays_missing_without_guessing(self):
+        self.seed_runtime(range(4001, 4006))
+        self.capture(); self.save_results()
+        report = self.run_reconcile()
+        after = F.current_view(self.feed, self.bootstrap, day=self.bundle['day'])[3]
+        self.assertEqual(report['display_name_participants'], 6)
+        self.assertEqual(report['display_name_present'], 5)
+        self.assertEqual(report['display_name_registry_bound'], 5)
+        self.assertEqual(report['display_name_missing'], 1)
+        missing = after['records'][0]['participants'][-1]
+        self.assertIsNone(missing.get('name'))
+        self.assertNotIn('name_source', missing)
+        self.assertEqual(report['scored_forecasts'], 2)
 
     def test_statistics_capture_scores_original_and_appends_new_v5_day(self):
         old_parent, old_cipher, _, old = F.current_view(self.feed, self.bootstrap, day='2030-03-31')
@@ -300,7 +445,8 @@ class FirstP0ReconcileTests(unittest.TestCase):
         with redirect_stdout(stdout):
             status = reconcile.main(args+['--output', str(self.repo/'forbidden.json')],
                 transport=self.vault, receipt_get=self.receipt_get, feed_transport=self.feed,
-                intraday_transport=self.intraday, now=NOW+timedelta(minutes=1))
+                intraday_transport=self.intraday, runtime_transport=self.runtime,
+                now=NOW+timedelta(minutes=1))
         self.assertEqual(status, 2)
         self.assertEqual(self.feed.head(), before)
         self.assertNotIn(str(self.repo), stdout.getvalue())
@@ -309,7 +455,8 @@ class FirstP0ReconcileTests(unittest.TestCase):
         with redirect_stdout(stdout):
             status = reconcile.main(args+['--output', str(output)],
                 transport=self.vault, receipt_get=self.receipt_get, feed_transport=self.feed,
-                intraday_transport=self.intraday, now=NOW+timedelta(minutes=1))
+                intraday_transport=self.intraday, runtime_transport=self.runtime,
+                now=NOW+timedelta(minutes=1))
         self.assertEqual(status, 0)
         self.assertEqual(json.loads(output.read_bytes()), json.loads(stdout.getvalue()))
         self.assertEqual(output.stat().st_mode & 0o777, 0o600)
