@@ -287,6 +287,10 @@ def decide(*, now: datetime, release: dict, owner_doc: dict, history: dict,
                         status = "READY_VERIFIED_SAME_DAY_CONTINUATION"
                     else:
                         status = "HOLD_ALREADY_DISPATCHED_FOR_JST_DAY"
+    # A delayed 23:57 JST schedule must not consume tomorrow's single-owner
+    # admission just after midnight. The first next-day window is 06:20.
+    if status.startswith("READY_") and now.astimezone(ZoneInfo("Asia/Tokyo")).hour < 6:
+        status = "HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW"
     return {
         "schema": SCHEMA,
         "status": status,
