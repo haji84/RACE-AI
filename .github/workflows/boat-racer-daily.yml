@@ -149,7 +149,7 @@ jobs:
           assert "github.event.workflow_run.conclusion == 'success'" in mirror
           assert "github.event.workflow_run.event == 'workflow_dispatch'" in mirror
           assert "github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111'" in mirror
-          assert "github.event.workflow_run.head_sha == '5f5bd960e3377a87541f9d6b348d3c045ea51cf0'" in mirror
+          assert "github.event.workflow_run.head_sha == 'e24f09f150e2318dd16a96bdc6db1d8c1317b9ae'" in mirror
           assert "needs.source_mirror.result == 'success'" in daily
           assert "github.event.schedule == '20 21 * * *'" in mirror
           assert 'continue-on-error: true' not in mirror
@@ -165,7 +165,7 @@ jobs:
         github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == '5f5bd960e3377a87541f9d6b348d3c045ea51cf0' &&
+        github.event.workflow_run.head_sha == 'e24f09f150e2318dd16a96bdc6db1d8c1317b9ae' &&
         github.event.workflow_run.conclusion == 'success') ||
        (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
        (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
@@ -219,7 +219,7 @@ jobs:
        (github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == '5f5bd960e3377a87541f9d6b348d3c045ea51cf0' &&
+        github.event.workflow_run.head_sha == 'e24f09f150e2318dd16a96bdc6db1d8c1317b9ae' &&
         github.event.workflow_run.conclusion == 'success' &&
         needs.source_mirror.result == 'success')) &&
       (github.event_name != 'push' ||
@@ -392,10 +392,35 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/production/boat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-release.json"
           gh api "repos/$GITHUB_REPOSITORY/contents/docs/RACE_AI_LATEST_STATUS.md?ref=production%2Fboat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-policy.json"
           gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-nationwide-ab-one-shot.yml/runs?branch=production%2Fboat-p0-p1-20261111&per_page=100" > "$RUNNER_TEMP/boat-owner-runs.json"
+          retry_args=()
+          # Only the actual pre-source CI failure on 2026-11-11 may be
+          # retried. Independently check GitHub job steps and artifacts.
+          # No general repeat-after-failure bypass and no source GET here.
+          if [[ "$(TZ=Asia/Tokyo date +%F)" == "2026-11-11" ]]; then
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/42993305843" > "$RUNNER_TEMP/boat-earlier-failure.json"
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/42993305843/jobs?per_page=100" > "$RUNNER_TEMP/boat-earlier-jobs.json"
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/42993305843/artifacts?per_page=100" > "$RUNNER_TEMP/boat-earlier-artifacts.json"
+            python - <<'PY_RETRY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])
+          names=('failure','jobs','artifacts')
+          obj={'run':json.loads((root/'boat-earlier-failure.json').read_text()),
+               'jobs':json.loads((root/'boat-earlier-jobs.json').read_text()),
+               'artifacts':json.loads((root/'boat-earlier-artifacts.json').read_text())}
+          (root/'boat-earlier-source-free-proof.json').write_text(
+              json.dumps(obj,separators=(',',':')))
+          print(json.dumps({'status':'VERIFY_EARLIER_PRE_SOURCE_FAILURE_ONLY',
+                            'run_id':42993305843,'provider_requests':0,
+                            'actual_forecast_proven':False},sort_keys=True))
+          PY_RETRY
+            retry_args+=(--retry-proof "$RUNNER_TEMP/boat-earlier-source-free-proof.json")
+          fi
           python -m scripts.boat_main_dispatch_gate \
             --release "$RUNNER_TEMP/boat-owner-release.json" \
             --owner-doc "$RUNNER_TEMP/boat-owner-policy.json" \
             --history "$RUNNER_TEMP/boat-owner-runs.json" \
+            "${retry_args[@]}" \
             --github-output "$GITHUB_OUTPUT"
       - name: Dispatch only the existing owner P0/P1 workflow
         if: steps.owner_gate.outputs.ready == 'true'

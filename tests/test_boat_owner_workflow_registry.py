@@ -16,7 +16,7 @@ class BoatOwnerRegistryTest(unittest.TestCase):
         self.assertIn("  workflow_dispatch:", WORKFLOW)
         self.assertIn("options: [existing-owner-p0-p1]", WORKFLOW)
         self.assertIn("production/boat-p0-p1-20261111", WORKFLOW)
-        self.assertIn("5f5bd960e3377a87541f9d6b348d3c045ea51cf0", WORKFLOW)
+        self.assertIn("e24f09f150e2318dd16a96bdc6db1d8c1317b9ae", WORKFLOW)
 
     def test_default_main_cannot_issue_unaudited_predictions(self):
         self.assertIn("github.ref == 'refs/heads/main'", WORKFLOW)
