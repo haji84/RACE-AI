@@ -69,3 +69,14 @@ scoped to this saved day; preserve all forecast dictionaries and earlier days.
 Measure missing names rather than inventing them, then rerun the exact P0
 artifact-bound Pages check. No new forecasts or provider acquisition.
 Current production pin: ba2d2d698b90548dd67b6ca7ac2dada776b09e32.
+
+2026-11-12 source-free re-verification of the authentic 2026-11-11 first P0.
+Verify the existing source-run 42995325741, first P0 artifact 13842474540,
+continuity artifact 13842779131, source-control artifact 13842973909,
+receipt commit 20fc291429003fd0351baef4b0c1918b76b4e066,
+and unchanged vault commit 2448b33de6ecf7388f8fd8577860622b67b9b9a2.
+Use only the source-free original retention, independent AES readback,
+existing native scorer with retained official 11/11 results, and Pages checker.
+No provider requests, no recreated past forecasts, no invented P1 output.
+Preserve all existing SHA, original cutoff clocks and abnormal-finish HOLDs.
+Report only verified new run/job IDs and exact existing-original coverage.
