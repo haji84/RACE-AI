@@ -300,8 +300,11 @@ jobs:
           if not source.is_file() or source.is_symlink():
               raise SystemExit('HOLD_OWNER_SOURCE_DOCUMENT_MISSING')
           raw = source.read_text(encoding='utf8')
-          if ('ACTIVE_FULL_FIRST_TO_FIXED_ATTEMPT_TWO_BOUNDARY' in raw
-                  or 'RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1' not in raw):
+          last_hold = raw.rfind('ACTIVE_FULL_FIRST_TO_FIXED_ATTEMPT_TWO_BOUNDARY')
+          last_release = raw.rfind('RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1')
+          # Historical HOLD documentation must remain immutable. A newer
+          # explicit source-owner release must follow the last HOLD record.
+          if last_release < 0 or last_release <= last_hold:
               raise SystemExit('HOLD_SOURCE_OWNER_FIXED_BOUNDARY_NOT_RELEASED')
           print('SOURCE_OWNER_BOUNDARY_RELEASED_FOR_VERIFIED_HEAD')
           PY_OWNER_BOUNDARY
