@@ -209,7 +209,7 @@ class PriorInputConnectionTests(unittest.TestCase):
             self.assertFalse(evidence['approved_for_pr71_input'])
         self.assertNotIn('prior_finishing_input_evidence', self.card)
 
-    def test_ten_comparable_observed_history_events_connect_venue_diff_only(self):
+    def test_ten_comparable_observed_history_events_connect_venue_and_form_B_only(self):
         """The pinned bank-fit formula needs five same and five away outcomes."""
         from race_ai.keirin_prior_input_connection import (
             attach_prior_finishing_input, stage_connected_prior_input)
@@ -239,7 +239,8 @@ class PriorInputConnectionTests(unittest.TestCase):
         report = inspect_source_gaps(out)
         self.assertEqual(len(out['prior_finishing_input_evidence']),7)
         self.assertEqual(len(out['prior_venue_compatibility_input_evidence']),7)
-        self.assertEqual(report['model_B_source_coverage']['source_unobserved_required_slots'],65)
+        self.assertEqual(len(out['prior_recent_form_input_evidence']),7)
+        self.assertEqual(report['model_B_source_coverage']['source_unobserved_required_slots'],58)
         self.assertEqual(report['model_A_source_coverage']['source_unobserved_required_slots'],79)
         for n in range(1,8):
             key = f'rider/{n}/venue_and_distance_compatibility'
@@ -252,15 +253,66 @@ class PriorInputConnectionTests(unittest.TestCase):
             self.assertNotIn(f'rider/{n}/bank_positioning_and_traffic',out['direct_verified_fields'])
             self.assertNotIn(f'rider/{n}/last_lap_acceleration',out['direct_verified_fields'])
             self.assertNotIn(f'rider/{n}/teammate_pair_history',out['direct_verified_fields'])
+            form_key = f'rider/{n}/recent_strength_or_form_change'
+            form = out['prior_recent_form_input_evidence'][form_key]
+            self.assertEqual(form['value'], 0.5)
+            self.assertEqual(form['sample_n'], 6)
+            self.assertEqual((form['recent_sample_n'],form['baseline_sample_n']),(3,3))
+            self.assertFalse(form['approved_for_pr71_input'])
+            self.assertIsNone(form['source_published_at'])
         packet = self.packet()
         with patch.dict(os.environ, {'GITHUB_WORKSPACE':''}):
             stage_owner_private_prior_research(self.root,packet)
             stage = stage_connected_prior_input(self.root,self.card,packet)
         self.assertEqual(stage['derived_venue_compatibility_slots'],7)
+        self.assertEqual(stage['derived_form_trend_slots'],7)
         self.assertFalse(stage['live_model_invoked'])
         self.assertFalse(stage['production_aes_archived'])
         self.assertFalse((self.root/'pre').exists())
         self.assertNotIn('fiction-',str(stage))
+
+    def test_form_rank_trend_uses_real_observed_result_position_order(self):
+        """Latest vs previous three matched outcomes only, no target future."""
+        from race_ai.keirin_prior_form_trend import compute_prior_form_trend
+        seed = deepcopy(PriorEventContractTests().result())
+        events = []
+        for index in range(6):
+            day = 4 + index
+            event = deepcopy(seed)
+            event.update(
+                race_id=f'203001{day:02d}1201',
+                started_at=f'2030-01-{day:02d}T10:05:00+09:00',
+                result_published_at=f'2030-01-{day:02d}T10:10:00+09:00',
+                result_source_sha256=sha256(f'FICTIONAL FORM {index}'.encode()).hexdigest())
+            if index < 3:
+                event['starters'][0]['finish_rank'] = 7
+                event['starters'][6]['finish_rank'] = 1
+            events.append(event)
+        derived = compute_prior_form_trend(self.reference,events,as_of=CAPTURE)
+        self.assertEqual(derived['candidate_count'], 7)
+        self.assertAlmostEqual(derived['riders']['fiction-1']['candidate_value'],1)
+        self.assertAlmostEqual(derived['riders']['fiction-7']['candidate_value'],0)
+        self.assertEqual(derived['riders']['fiction-2']['candidate_value'],.5)
+        self.assertFalse(derived['model_training_or_prediction_executed'])
+        self.assertEqual(derived['provider_requests'],0)
+        for entry in derived['riders'].values():
+            self.assertFalse(entry['approved_for_pr71_input'])
+        # A clock after the target result must never turn into a prior input.
+        with self.assertRaises(PriorSourceError):
+            compute_prior_form_trend(self.reference,events,as_of='2030-01-15T10:00:00+09:00')
+        # One later event cannot be used even if a caller supplies it.
+        events[-1]['race_id'] = TARGET
+        with self.assertRaises(PriorSourceError):
+            compute_prior_form_trend(self.reference,events,as_of=CAPTURE)
+
+    def test_four_history_events_cannot_fake_six_sample_form(self):
+        from race_ai.keirin_prior_form_trend import compute_prior_form_trend
+        # Existing three-event synthetic evidence cannot pass the 3+3 rule.
+        result = compute_prior_form_trend(self.reference,self.events,as_of=CAPTURE)
+        self.assertEqual(result['candidate_count'],0)
+        out = self.packet()
+        self.assertFalse(out['permission_to_run_PR71'])
+        self.assertFalse(out['real_forecast_frozen'])
 
     def test_existing_direct_venue_is_never_overwritten_and_no_shortcut_at_four_samples(self):
         from race_ai.keirin_prior_input_connection import attach_prior_finishing_input
