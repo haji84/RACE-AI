@@ -101,6 +101,45 @@ class OwnerInputTests(unittest.TestCase):
         r=self.invoke(probe=invalid)
         self.assertEqual(r['history_races_processed'],0)
         self.assertEqual(r['history_races_held'],1)
+    def test_missing_field_names_are_count_only_and_reconciled(self):
+        fields = ('last_lap_acceleration','start_or_line_reliability',
+                  'position_flexibility_and_solo_behavior','stamina_and_pace_resilience',
+                  'teammate_pair_history','bank_positioning_and_traffic',
+                  'venue_and_distance_compatibility','rest_days_and_fatigue',
+                  'opponent_style_matchup')
+        groups = {f:7 for f in fields}
+        groups.update({'race/line_competition_and_lead_candidates':1,
+                       'race/track_weather_effect_history':1,
+                       'race/bank_cant_and_corner_shape':1,
+                       'race/surface_wetness':1})
+        self.assertEqual(sum(groups.values()), 67)
+        def with_counts(**kw):
+            report=self.probe(**kw)
+            report['remaining_model_B_source_groups']=groups
+            return report
+        result=self.invoke(probe=with_counts)
+        self.assertEqual(result['history_races_processed'],1)
+        self.assertEqual(result['races'][0]['model_B_missing_source_family_slots'],dict(sorted(groups.items())))
+        self.assertEqual(result['model_B_missing_family_slot_totals'],dict(
+            sorted(groups.items(),key=lambda item:(-item[1],item[0]))))
+        self.assertNotIn('must never leave',json.dumps(result))
+        self.assertFalse(result['actual_four_model_forecast_saved'])
+
+    def test_missing_group_count_or_private_rider_field_does_not_leak(self):
+        for invalid_groups in ({'last_lap_acceleration':67},
+                               {'rider/1/actual_identity':67},
+                               {'last_lap_acceleration':7}):
+            def corrupt(**kw):
+                report=self.probe(**kw)
+                report['remaining_model_B_source_groups']=invalid_groups
+                return report
+            self.probed.clear()
+            result=self.invoke(probe=corrupt)
+            self.assertEqual(result['history_races_processed'],0)
+            self.assertEqual(result['history_races_held'],1)
+            self.assertEqual(result['model_B_missing_family_slot_totals'],{})
+            self.assertNotIn('actual_identity',json.dumps(result))
+
     def test_empty_source_does_not_claim_acquisition_or_predictions(self):
         r=self.invoke(capture=lambda *a,**kw:{'source_day_schedule_race_count':0})
         self.assertEqual(r['history_races_processed'],0)
