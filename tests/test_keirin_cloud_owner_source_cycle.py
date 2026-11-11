@@ -73,6 +73,10 @@ class CloudOwnerSourceCycleTests(unittest.TestCase):
         self.assertEqual(report['state'],'HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT')
         self.assertEqual(report['new_forecasts'],0)
         self.assertEqual(report['owner_source_acquisition'],self.safe)
+        self.assertEqual(report['missing_source_config_keys'],[])
+        self.assertEqual(cloud.missing_source_configuration(
+            source_state='OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED'),[])
+        self.assertEqual(len(cloud.missing_source_configuration(self.env)),4)
         commit.assert_not_called()
 
 if __name__=='__main__':
