@@ -89,6 +89,9 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           path: proposed-workflow
           persist-credentials: false
+      - name: Test canonical owner dispatch gate with no source requests
+        working-directory: proposed-workflow
+        run: python -m unittest tests.test_boat_main_dispatch_gate -v
       - name: Verify wiring without running any provider request
         run: |
           python - <<'PY'
