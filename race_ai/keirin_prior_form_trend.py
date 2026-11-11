@@ -48,6 +48,13 @@ def compute_prior_form_trend(reference, events, *, as_of):
     need(current < cutoff and utc(target["as_of"]) <= current,
          "FORM_TARGET_ASOF_INVALID")
     oldest = current - timedelta(days=LOOKBACK_DAYS)
+    refs = reference.get("references")
+    need(type(refs) is list and len(refs) <= 2000 and
+         all(type(r) is dict and type(r.get("race_id")) is str and
+             type(r.get("url")) is str for r in refs),
+         "FORM_REFERENCE_LIST_INVALID")
+    source_links = {r["race_id"]:r["url"] for r in refs}
+    need(len(source_links) == len(refs), "FORM_DUPLICATE_SOURCE_LINK")
     all_by_rider = {name: [] for name in riders}
     seen = set()
     for event in events:
@@ -56,6 +63,12 @@ def compute_prior_form_trend(reference, events, *, as_of):
              event["race_id"][:8] < target["race_id"][:8],
              "FORM_FUTURE_OR_DUPLICATE_EVENT")
         seen.add(event["race_id"])
+        need(event["race_id"] in source_links and
+             event.get("result_source_url") == source_links[event["race_id"]] and
+             type(event.get("result_source_sha256")) is str and
+             len(event["result_source_sha256"]) == 64 and
+             all(c in "0123456789abcdef" for c in event["result_source_sha256"]),
+             "FORM_CAPTURED_RESULT_SOURCE_NOT_BOUND")
         start = utc(event["started_at"])
         capture = utc(event["result_captured_at"])
         need(start < capture <= current and capture < cutoff,
@@ -73,6 +86,11 @@ def compute_prior_form_trend(reference, events, *, as_of):
              len({z.get("rider_id") for z in starters if type(z) is dict}) == len(starters),
              "FORM_HISTORICAL_FIELD_INVALID")
         field_size = len(starters)
+        positions = [row.get("finish_rank") for row in starters]
+        ranked = [p for p in positions if p is not None]
+        need(all(type(v) is int and 1 <= v <= field_size for v in ranked)
+             and len(set(ranked)) == len(ranked),
+             "FORM_DUPLICATE_OR_INVALID_RANK")
         for row in starters:
             name = row["rider_id"]
             if name not in all_by_rider:
