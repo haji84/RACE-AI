@@ -73,24 +73,45 @@ def decide(*, now: datetime, release: dict, owner_doc: dict, history: dict) -> d
             if (type(items) is not list or type(count) is not int or count < 0
                     or len(items) > 100 or count < len(items)):
                 status = "HOLD_INCOMPLETE_RUN_HISTORY"
-            elif count > len(items):
-                # Do not infer absence of a past same-day original from page 1.
-                status = "HOLD_INCOMPLETE_RUN_HISTORY"
             else:
-                current_day = now.astimezone(ZoneInfo("Asia/Tokyo")).date()
-                previous = False
+                jst = ZoneInfo("Asia/Tokyo")
+                current_day = now.astimezone(jst).date()
+                day_start = datetime(
+                    current_day.year, current_day.month, current_day.day,
+                    tzinfo=jst).astimezone(timezone.utc)
+                # Every returned run must be time-valid and ordered newest
+                # first. GitHub REST can omit older pages after 100 runs.
+                rows = []
                 for item in items:
                     if type(item) is not dict:
                         raise ValueError("BOAT_DISPATCH_RUN_METADATA_INVALID")
-                    if item.get("head_branch") != RELEASE_REF:
-                        continue
-                    if item.get("name") != WORKFLOW:
-                        continue
-                    if _stamp(item.get("created_at")).astimezone(
-                            ZoneInfo("Asia/Tokyo")).date() == current_day:
-                        previous = True
-                status = ("HOLD_ALREADY_DISPATCHED_FOR_JST_DAY" if previous else
-                          "READY_EXISTING_OWNER_WORKFLOW_ONLY")
+                    stamp = _stamp(item.get("created_at"))
+                    if stamp > now:
+                        raise ValueError("BOAT_DISPATCH_RUN_FUTURE_TIMESTAMP")
+                    rows.append((stamp, item))
+                ordered = all(rows[i][0] >= rows[i+1][0]
+                              for i in range(len(rows)-1))
+                window_covered = count == len(rows) or (
+                    count > len(rows) and len(rows) == 100 and ordered and
+                    bool(rows) and rows[-1][0] < day_start)
+                if not ordered or not window_covered:
+                    status = "HOLD_INCOMPLETE_RUN_HISTORY"
+                else:
+                    relevant = [(at, run) for at, run in rows
+                                if run.get("head_branch") == RELEASE_REF and
+                                run.get("name") == WORKFLOW]
+                    active = any(
+                        run.get("status") in {
+                            "queued", "in_progress", "waiting",
+                            "pending", "requested"}
+                        for _, run in relevant)
+                    previous = any(at >= day_start for at, _ in relevant)
+                    if active:
+                        status = "HOLD_ACTIVE_OWNER_WORKFLOW"
+                    elif previous:
+                        status = "HOLD_ALREADY_DISPATCHED_FOR_JST_DAY"
+                    else:
+                        status = "READY_EXISTING_OWNER_WORKFLOW_ONLY"
     return {
         "schema": SCHEMA,
         "status": status,
