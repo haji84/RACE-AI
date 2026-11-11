@@ -2,7 +2,10 @@ name: BOAT per-race results and athlete statistics
 on:
   pull_request:
     branches: [main]
-    paths: [.github/workflows/boat-racer-daily.yml]
+    paths:
+      - .github/workflows/boat-racer-daily.yml
+      - .github/workflows/boat-nationwide-ab-one-shot.yml
+      - tests/test_boat_main_launch_contract.py
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022, main]
     paths: [docs/evidence/racer-daily-refresh-trigger.txt, docs/evidence/racer-intraday-refresh-trigger.txt, docs/evidence/owner-pdca-main-trigger.txt]
@@ -141,6 +144,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           path: proposed-workflow
           persist-credentials: false
+      - name: Verify canonical BOAT owner dispatch and original PDCA stay connected
+        run: python -m unittest discover -s proposed-workflow/tests -p 'test_boat_main_launch_contract.py' -v
       - name: Verify wiring without running any provider request
         run: |
           python - <<'PY'
