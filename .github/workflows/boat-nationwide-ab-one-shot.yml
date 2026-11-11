@@ -1,7 +1,7 @@
 # Registration only: the actual owner P0/P1 producer lives on the
 # separately reviewed production/boat-p0-p1-20261111 branch.
 # Initial reviewed owner-release code SHA:
-# 11b905a7bf011baffdc0e8bcc5b568355d6e41b1
+# 5f5bd960e3377a87541f9d6b348d3c045ea51cf0
 # GitHub requires a workflow_dispatch workflow to exist on default branch.
 # Never run source collection, scoring, or access private AES keys from this stub.
 name: BOAT nationwide cutoff-ordered A/B research (no Vercel)
