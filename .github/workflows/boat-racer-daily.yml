@@ -139,7 +139,7 @@ jobs:
           assert "github.event.workflow_run.conclusion == 'success'" in mirror
           assert "github.event.workflow_run.event == 'workflow_dispatch'" in mirror
           assert "github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111'" in mirror
-          assert "github.event.workflow_run.head_sha == '11b905a7bf011baffdc0e8bcc5b568355d6e41b1'" in mirror
+          assert "github.event.workflow_run.head_sha == '5f5bd960e3377a87541f9d6b348d3c045ea51cf0'" in mirror
           assert "needs.source_mirror.result == 'success'" in daily
           assert "github.event.schedule == '20 21 * * *'" in mirror
           assert 'continue-on-error: true' not in mirror
@@ -155,7 +155,7 @@ jobs:
         github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == '11b905a7bf011baffdc0e8bcc5b568355d6e41b1' &&
+        github.event.workflow_run.head_sha == '5f5bd960e3377a87541f9d6b348d3c045ea51cf0' &&
         github.event.workflow_run.conclusion == 'success') ||
        (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
        (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
@@ -209,7 +209,7 @@ jobs:
        (github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == '11b905a7bf011baffdc0e8bcc5b568355d6e41b1' &&
+        github.event.workflow_run.head_sha == '5f5bd960e3377a87541f9d6b348d3c045ea51cf0' &&
         github.event.workflow_run.conclusion == 'success' &&
         needs.source_mirror.result == 'success')) &&
       (github.event_name != 'push' ||
