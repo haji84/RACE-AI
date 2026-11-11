@@ -74,7 +74,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330
+          ref: fe7e5581263b2b31fbd45536ac6a611c2779fa65
           path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -125,7 +125,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330
+          ref: fe7e5581263b2b31fbd45536ac6a611c2779fa65
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
@@ -247,7 +247,7 @@ jobs:
           persist-credentials: true
       - uses: actions/checkout@v4
         with:
-          ref: 9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330
+          ref: fe7e5581263b2b31fbd45536ac6a611c2779fa65
           path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -298,7 +298,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330
+          ref: fe7e5581263b2b31fbd45536ac6a611c2779fa65
           path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
