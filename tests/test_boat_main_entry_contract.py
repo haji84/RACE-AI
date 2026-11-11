@@ -15,6 +15,10 @@ class BoatMainEntryContract(unittest.TestCase):
     def test_dispatch_is_only_normal_production_admission(self):
         source = self.source
         self.assertIn("  workflow_dispatch:", source)
+        self.assertIn("options: [existing-owner-p0-p1]", source)
+        self.assertIn("refs/heads/production/boat-p0-p1-20261111", source)
+        self.assertIn("inputs.production_scope == 'existing-owner-p0-p1'", source)
+        self.assertIn("BOAT_CANONICAL_REF_AND_HEAD_ATTESTED", source)
         self.assertIn("github.event_name == 'workflow_dispatch'", source)
         self.assertIn("startsWith(github.event.head_commit.message, 'boat-grid-forward:')", source)
         self.assertIn("github.event_name == 'push' && startsWith(github.event.head_commit.message, 'saved-view:')", source)
