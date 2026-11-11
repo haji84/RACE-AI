@@ -31,7 +31,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
 
     def test_no_source_owner_release_keeps_existing_fixed_boundary(self):
         for doc in (
-            "ACTIVE_FULL_FIRST_TO_FIXED_ATTEMPT_TWO_BOUNDARY " + RELEASE_TOKEN,
+            RELEASE_TOKEN + " ACTIVE_FULL_FIRST_TO_FIXED_ATTEMPT_TWO_BOUNDARY",
             "CODE_ONLY_NO_SOURCE",
         ):
             value=self.decide(src=doc)
@@ -39,6 +39,12 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
             self.assertEqual(value["status"], "HOLD_SOURCE_OWNER_FIXED_BOUNDARY_NOT_RELEASED")
             self.assertFalse(value["future_real_forecast_proven"])
             self.assertFalse(value["official_results_reconciled"])
+
+    def test_newer_formal_release_does_not_delete_historical_holds(self):
+        result=self.decide(src="ACTIVE_FULL_FIRST_TO_FIXED_ATTEMPT_TWO_BOUNDARY\\n"
+                               + RELEASE_TOKEN)
+        self.assertTrue(result["dispatch_allowed"])
+        self.assertEqual(result["status"], "READY_EXISTING_OWNER_WORKFLOW_ONLY")
 
     def test_release_sha_must_be_exact_not_mutable_branch_alias(self):
         value=self.decide(sha="0"*40)
