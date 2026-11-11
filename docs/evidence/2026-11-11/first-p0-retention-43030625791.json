@@ -1,0 +1,45 @@
+{
+  "independent_git_readback_verified": true,
+  "locators": [
+    {
+      "artifact_id": 13842474540,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/5ae2531c663011fa1070ab88fbb3b02fcea82909dd79a3d80b9b85f77dfdc878.json",
+      "batch_sha256": "5ae2531c663011fa1070ab88fbb3b02fcea82909dd79a3d80b9b85f77dfdc878",
+      "entry_sha256": "8f6bbf6cacaf97c87d897aa3433f46293e0130720931171d461d9433f709528d",
+      "kind": "P0",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "2448b33de6ecf7388f8fd8577860622b67b9b9a2",
+      "status": "READY"
+    },
+    {
+      "artifact_id": 13842779131,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/5ae2531c663011fa1070ab88fbb3b02fcea82909dd79a3d80b9b85f77dfdc878.json",
+      "batch_sha256": "5ae2531c663011fa1070ab88fbb3b02fcea82909dd79a3d80b9b85f77dfdc878",
+      "entry_sha256": "b31ecc1f09369f927597bcce6ae9a361866f34f10bf549e4f61d65c5a8874f34",
+      "kind": "CONTINUITY",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "2448b33de6ecf7388f8fd8577860622b67b9b9a2",
+      "status": "READY"
+    },
+    {
+      "artifact_id": 13842973909,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/5ae2531c663011fa1070ab88fbb3b02fcea82909dd79a3d80b9b85f77dfdc878.json",
+      "batch_sha256": "5ae2531c663011fa1070ab88fbb3b02fcea82909dd79a3d80b9b85f77dfdc878",
+      "entry_sha256": "e91d078b07b04a418ed62d974cb45ae3d9453e9b1b8fcf4ae833faf99754e321",
+      "kind": "SOURCE_CONTROL",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "2448b33de6ecf7388f8fd8577860622b67b9b9a2",
+      "status": "READY"
+    }
+  ],
+  "plaintext_published": false,
+  "retained_originals": 3,
+  "source_commit": "2448b33de6ecf7388f8fd8577860622b67b9b9a2",
+  "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+}
