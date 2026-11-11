@@ -290,6 +290,21 @@ jobs:
           test '${{ inputs.production_scope }}' = 'existing-owner-p0-p1'
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           echo 'BOAT_CANONICAL_REF_AND_HEAD_ATTESTED'
+      - name: Require explicit owner source-boundary release before any provider access
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          python - <<'PY_OWNER_BOUNDARY'
+          from pathlib import Path
+          source = Path('docs/RACE_AI_LATEST_STATUS.md')
+          if not source.is_file() or source.is_symlink():
+              raise SystemExit('HOLD_OWNER_SOURCE_DOCUMENT_MISSING')
+          raw = source.read_text(encoding='utf8')
+          if ('ACTIVE_FULL_FIRST_TO_FIXED_ATTEMPT_TWO_BOUNDARY' in raw
+                  or 'RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1' not in raw):
+              raise SystemExit('HOLD_SOURCE_OWNER_FIXED_BOUNDARY_NOT_RELEASED')
+          print('SOURCE_OWNER_BOUNDARY_RELEASED_FOR_VERIFIED_HEAD')
+          PY_OWNER_BOUNDARY
       - name: Pinned official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
