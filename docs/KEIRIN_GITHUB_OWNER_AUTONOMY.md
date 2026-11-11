@@ -8,13 +8,22 @@ RACE-AIはPublicを維持し、個人PC、Windows/ZBook/MacBook、自前self-hos
 
 ## 自動運転の経路
 
-1. GitHub Actionsが毎時UTC11分と41分に起動（実際の発火遅延・欠落はあり得る）。
+1. GitHub Actionsは現在UTC毎時03・08・13・18・23・28・33・38・43・48・53・58分に起動する設定。発火遅延・欠落はあり得るため、schedule設定だけで本番成功と数えない。実際の暗号保存時刻を別途確認する。
 2. 公開読み取り専用ジョブで、出走者、347項目の確認状況、まだ足りない必須データを確認。公開ログには個人の入力値・予想買い目・オッズの元データを出さない。
 3. GitHub-hosted Ubuntuの本番ジョブが、既存のGitHub保管ブランチ state/keirin-encrypted-history を読み込む。新しい世代専用保存先は state/keirin/pr71-production/v1。旧来の state/keirin/v1（合成テスト専用）とは厳密に区別する。
 4. 既存Node AES-256-GCMの scripts/keirin_github_checkpoint.mjs と、既存SQLite整合性バックアップの scripts/keirin_github_sqlite_snapshot.py を再利用。GitHub Actions Secretsから本番鍵を受け取る。平文・鍵はPublic Git履歴へ出さない。
 5. 提供元の権限を確認した完全な未来レース入力が存在するときに限り、既存の licensed JSON export、stage_permissioned_deliveries、stage_existing_owner_pre_races、FourModelRankLedger を使って4モデルの予想を締切前に生成・保存。欠損値を捏造しない。結果が実際に存在するレースだけ既存PDCAを再計算。
 6. 本番予想または既存結果改訂に変更がある場合のみ、暗号化SQLiteを新しい世代番号でcreate-once保存。前の暗号文SHAに鎖付けし、Gitにforce pushしない。
 7. 別のGitHub-hosted Ubuntuジョブで暗号文を再取得・復号・SHA一致・SQLite完全性と4モデル予想原本を検証。これが通るまで「自動保存完了」とは認めない。
+
+## 2026-11-11 再確認：個人研究用公開ページ取得とAPIは別経路
+
+- 2026-11-09に利用者が個人研究用のWINTICKET・KEIRIN.JP公開ページ自動取得を承認済み。GitHubに記録された正本は `scripts/keirin_cloud_owner_inputs.py` の `PROFILE = 'owner-approved-winticket-keirinjp-20261109'`。
+- `scripts/keirin_cloud_pr71_state.py::_licensed_inputs()` はこの設定がある場合、`RACE_AI_KEIRIN_FEED_*` の別途API/JSON契約情報が**未設定でも**既存の個人用候補取得を呼び出す。これは2026-11-10の `docs/superpowers/plans/2026-11-10-cloud-owner-source-connection.md` と一致する。
+- PR #130の `keirin_live_source_readiness.py` が4件の**API専用設定を全経路の必須条件と誤判定した**。PR #134で修正。個人研究用取得はAES鍵＋正しいオーナープロファイルを条件に判定し、独立したプロバイダー向けJSON提供経路は従来の権利・真偽検証を維持する。
+- PR #134のmain実行 `42927694949` は、API関連4設定未登録で `EXISTING_OWNER_PUBLIC_PAGE_RESEARCH` を確認。既存取得処理は当日の開催84Rを認識し、候補13レースの部分出走表を非公開一時領域へ取得。元ページGET回数は146、完全な4モデル予想保存は0件。これは正式予想成功ではない。
+- 個人研究用候補は完全なモデル入力でも、機械取得に対する提供元の独立許諾でもない。欠測の必須項目をゼロ・平均・推測で補わず、候補を `pre/` 正式キューに混ぜない。サービス側の制限・拒否（403/429等）を回避しない。
+- Public維持、GitHub-hostedのみ、既存4モデル・SHA原本・AES暗号保存・別runner読戻し、後付け予想禁止は変更しない。
 
 ## 利用するGitHub Secrets
 
