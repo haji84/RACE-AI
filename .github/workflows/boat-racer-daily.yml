@@ -56,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ba2d2d698b90548dd67b6ca7ac2dada776b09e32
+          ref: 0534b5d939275cacf61d161dd69aa6d9dc073c96
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -146,6 +146,8 @@ jobs:
           mirror = content.split('  source_mirror:\n', 1)[1].split('  daily:\n', 1)[0]
           daily = content.split('  daily:\n', 1)[1]
           header = content.split('jobs:\n', 1)[0]
+          reader = content.split('  original_readback:\n', 1)[1].split('  original_reconcile:\n', 1)[0]
+          assert '--verify-retained-p1 --output' in reader
           assert mirror.count('Reconcile verified completed BOAT source handoff') == 1
           assert 'needs: [source_mirror, original_reconcile]' in daily
           assert '!cancelled()' in daily
@@ -157,7 +159,7 @@ jobs:
           assert "github.event.workflow_run.conclusion == 'success'" in mirror
           assert "github.event.workflow_run.event == 'workflow_dispatch'" in mirror
           assert "github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111'" in mirror
-          assert "github.event.workflow_run.head_sha == 'ba2d2d698b90548dd67b6ca7ac2dada776b09e32'" in mirror
+          assert "github.event.workflow_run.head_sha == '0534b5d939275cacf61d161dd69aa6d9dc073c96'" in mirror
           assert "needs.source_mirror.result == 'success'" in daily
           assert "github.event.schedule == '20 21 * * *'" in mirror
           assert 'continue-on-error: true' not in mirror
@@ -173,7 +175,7 @@ jobs:
         github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == 'ba2d2d698b90548dd67b6ca7ac2dada776b09e32') ||
+        github.event.workflow_run.head_sha == '0534b5d939275cacf61d161dd69aa6d9dc073c96') ||
        (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
         startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca') &&
         contains(github.event.head_commit.message, 'recover-first-p0-42995325741')))
@@ -230,7 +232,7 @@ jobs:
           print(json.dumps(selected,sort_keys=True))
           PY_SELECT
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {persist-credentials: false, ref: ba2d2d698b90548dd67b6ca7ac2dada776b09e32, path: owner-runtime}
+        with: {persist-credentials: false, ref: 0534b5d939275cacf61d161dd69aa6d9dc073c96, path: owner-runtime}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: owner-runtime/pr64-reference}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -276,14 +278,14 @@ jobs:
       CONTROL_ID: ${{ needs.original_retention.outputs.control }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {persist-credentials: false, ref: ba2d2d698b90548dd67b6ca7ac2dada776b09e32}
+        with: {persist-credentials: false, ref: 0534b5d939275cacf61d161dd69aa6d9dc073c96}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
       - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
       - name: Verify original hashes, receipts, forecast clocks and companions
-        run: python -m scripts.boat_first_p0_readback --repo-root . --vault-commit "$VAULT_COMMIT" --receipt-commit "$RECEIPT_COMMIT" --day "$ORIGINAL_DAY" --p0-artifact "$P0_ID" --companion-artifact "$CONTINUITY_ID" --companion-artifact "$CONTROL_ID" --output "$RUNNER_TEMP/first-p0-independent-readback.json"
+        run: python -m scripts.boat_first_p0_readback --repo-root . --vault-commit "$VAULT_COMMIT" --receipt-commit "$RECEIPT_COMMIT" --day "$ORIGINAL_DAY" --p0-artifact "$P0_ID" --companion-artifact "$CONTINUITY_ID" --companion-artifact "$CONTROL_ID" --verify-retained-p1 --output "$RUNNER_TEMP/first-p0-independent-readback.json"
       - name: Retain only count and hash evidence from the separate reader
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -311,7 +313,7 @@ jobs:
       CONTROL_ID: ${{ needs.original_retention.outputs.control }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {persist-credentials: false, ref: ba2d2d698b90548dd67b6ca7ac2dada776b09e32}
+        with: {persist-credentials: false, ref: 0534b5d939275cacf61d161dd69aa6d9dc073c96}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -350,7 +352,7 @@ jobs:
         github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == 'ba2d2d698b90548dd67b6ca7ac2dada776b09e32' &&
+        github.event.workflow_run.head_sha == '0534b5d939275cacf61d161dd69aa6d9dc073c96' &&
         github.event.workflow_run.conclusion == 'success' &&
         needs.original_readback.result == 'success' &&
         needs.original_reconcile.result == 'success') ||
@@ -365,7 +367,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ba2d2d698b90548dd67b6ca7ac2dada776b09e32
+          ref: 0534b5d939275cacf61d161dd69aa6d9dc073c96
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -408,7 +410,7 @@ jobs:
        (github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == 'ba2d2d698b90548dd67b6ca7ac2dada776b09e32' &&
+        github.event.workflow_run.head_sha == '0534b5d939275cacf61d161dd69aa6d9dc073c96' &&
         github.event.workflow_run.conclusion == 'success' &&
         needs.source_mirror.result == 'success')) &&
       (github.event_name != 'push' ||
@@ -494,7 +496,7 @@ jobs:
            startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca'))
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ba2d2d698b90548dd67b6ca7ac2dada776b09e32
+          ref: 0534b5d939275cacf61d161dd69aa6d9dc073c96
           path: pdca-verified
           persist-credentials: false
       - name: Checkout original BOAT parser for existing full-period scorer

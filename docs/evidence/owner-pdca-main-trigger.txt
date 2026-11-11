@@ -80,3 +80,11 @@ existing native scorer with retained official 11/11 results, and Pages checker.
 No provider requests, no recreated past forecasts, no invented P1 output.
 Preserve all existing SHA, original cutoff clocks and abnormal-finish HOLDs.
 Report only verified new run/job IDs and exact existing-original coverage.
+
+2026-11-12: validate the existing separate reader's retained-P1 scope.
+Read the same untouched 11/11 P0/companions with release
+0534b5d939275cacf61d161dd69aa6d9dc073c96 and --verify-retained-p1.
+This original run has no P1; require honest P1_NOT_RETAINED / zero forecasts,
+not a fabricated positive proof. No source GET, new forecasts or owner dispatch.
+This negative-control replay must not count as new-day P1 acceptance.
+Existing schedules, retry protections, model/scorer logic and AES stay unchanged.
