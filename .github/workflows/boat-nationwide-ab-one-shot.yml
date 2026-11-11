@@ -15,6 +15,16 @@ on:
     paths:
       - .github/workflows/boat-nationwide-ab-one-shot.yml
       - tests/test_boat_main_entry_contract.py
+      - scripts/first_p0_bootstrap.py
+      - scripts/boat_first_p0_readback.py
+      - scripts/boat_first_p0_reconcile.py
+      - race_ai/boat_saved_result_recovery.py
+      - race_ai/boat_source_control_mirror.py
+      - tests/test_first_p0_bootstrap.py
+      - tests/test_boat_first_p0_readback.py
+      - tests/test_boat_first_p0_reconcile.py
+      - tests/test_boat_saved_result_recovery.py
+      - tests/test_boat_source_control_mirror.py
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
     paths:
@@ -31,7 +41,7 @@ jobs:
     name: Main to legacy BOAT P0-P1 source-free contract
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
     runs-on: ubuntu-24.04
-    timeout-minutes: 3
+    timeout-minutes: 8
     permissions:
       contents: read
     steps:
@@ -43,6 +53,29 @@ jobs:
         run: python -m unittest tests.test_boat_main_entry_contract -v
       - name: Recheck all retained existing-cycle workflow invariants
         run: python -m unittest tests.test_cycle_workflow_references -v
+      - name: Pinned parser for native original and official result regressions
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - name: Pinned adapters for native original and official result regressions
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Verify repaired native receipts, provenance and source-free recovery
+        run: |
+          python - <<'PY_RECOVERY_TEST'
+          from pathlib import Path
+          import race_ai,unittest
+          for folder in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(folder,'race_ai').resolve()))
+          names=['tests.test_first_p0_bootstrap','tests.test_first_receipt_continuity',
+                 'tests.test_frozen_day_cycle','tests.test_boat_private_original_archive',
+                 'tests.test_private_original_archive_readers','tests.test_boat_private_original_vault_cli',
+                 'tests.test_boat_first_p0_readback','tests.test_boat_first_p0_reconcile',
+                 'tests.test_boat_saved_result_recovery','tests.test_boat_source_control_mirror',
+                 'tests.test_supervisor_durable_readback']
+          result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
+          raise SystemExit(not result.wasSuccessful())
+          PY_RECOVERY_TEST
   saved_view_publication:
     name: Encrypted saved-model display and retained-input execution (no official source requests)
     if: github.repository == 'haji84/RACE-AI' && github.event_name == 'push' && startsWith(github.event.head_commit.message, 'saved-view:')

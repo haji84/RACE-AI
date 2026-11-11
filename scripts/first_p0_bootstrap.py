@@ -82,8 +82,8 @@ def previous_first_receipt(day, run_id):
     return raw, meta
 
 
-def _remote_file(path):
-    cmd = ['gh', 'api', f'repos/{REPO}/contents/{path}?ref={BRANCH}']
+def _remote_file(path, *, ref=BRANCH):
+    cmd = ['gh', 'api', f'repos/{REPO}/contents/{path}?ref={ref}']
     reply = subprocess.run(cmd, stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE, timeout=50)
     if reply.returncode:
@@ -94,6 +94,24 @@ def _remote_file(path):
     return json.loads(reply.stdout)
 
 
+def _receipt_file_matches(value, path, body, *, with_content=True):
+    """Bind the Contents receipt to this path and the exact Git blob bytes."""
+    blob_sha = hashlib.sha1(f'blob {len(body)}\0'.encode() + body).hexdigest()
+    if not (isinstance(value, dict) and value.get('path') == path and
+            value.get('type') == 'file' and type(value.get('size')) is int and
+            value['size'] == len(body) and value.get('sha') == blob_sha):
+        return False
+    if not with_content:
+        return True
+    if value.get('encoding') != 'base64' or not isinstance(value.get('content'), str):
+        return False
+    try:
+        decoded = base64.b64decode(value['content'].replace('\n', ''), validate=True)
+    except ValueError:
+        return False
+    return decoded == body
+
+
 def register(day, raw, meta):
     """Write-once GitHub index, then check the server-returned bytes."""
     need(datetime.now(timezone.utc).astimezone(JST).date().isoformat() == day,
@@ -101,15 +119,17 @@ def register(day, raw, meta):
     path = index_path(day)
     value = receipt_index(raw, meta, day)
     body = json.dumps(value, ensure_ascii=False, sort_keys=True,
-                      separators=(',', ':')) + '\n'
+                      separators=(',', ':')).encode('utf-8') + b'\n'
     rel = path.relative_to(ROOT).as_posix()
     existing = _remote_file(rel)
     if existing is not None:
-        decoded = base64.b64decode(existing['content'].replace('\n', ''))
-        need(decoded == body.encode('utf-8'), 'FIRST_RECEIPT_EXISTS_WITH_OTHER_ORIGINAL')
+        need(_receipt_file_matches(existing, rel, body),
+             'FIRST_RECEIPT_EXISTS_WITH_OTHER_ORIGINAL')
+        # This independent GET already authenticates an existing immutable blob;
+        # no write occurred, so another moving-branch read adds no evidence.
     else:
         payload = dict(message=f"evidence(boat): register first authenticated P0 for {day}",
-                       content=base64.b64encode(body.encode('utf-8')).decode(),
+                       content=base64.b64encode(body).decode(),
                        branch=BRANCH)
         result = subprocess.run(
             ['gh', 'api', '--method', 'PUT', f'repos/{REPO}/contents/{rel}', '--input', '-'],
@@ -118,16 +138,26 @@ def register(day, raw, meta):
         need(result.returncode == 0,
              'FIRST_RECEIPT_INDEX_CREATE_REJECTED: ' +
              result.stderr.decode(errors='replace')[:180])
-    checked = _remote_file(rel)
-    need(checked is not None and
-         base64.b64decode(checked['content'].replace('\n', '')) == body.encode('utf-8'),
-         'FIRST_RECEIPT_INDEPENDENT_READBACK_MISMATCH')
+        try:
+            created = json.loads(result.stdout)
+            commit = created['commit']['sha']
+            valid = (isinstance(commit, str) and len(commit) == 40 and
+                     all(char in '0123456789abcdef' for char in commit) and
+                     _receipt_file_matches(created['content'], rel, body, with_content=False))
+        except (ValueError, KeyError, TypeError):
+            valid = False
+        need(valid, 'FIRST_RECEIPT_INDEX_CREATE_RECEIPT_INVALID')
+        # Read the creation commit, not the mutable branch just read as absent.
+        # The PUT response itself never substitutes for independent readback.
+        checked = _remote_file(rel, ref=commit)
+        need(_receipt_file_matches(checked, rel, body),
+             'FIRST_RECEIPT_INDEPENDENT_READBACK_MISMATCH')
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists():
-        need(path.read_bytes() == body.encode(), 'LOCAL_FIRST_RECEIPT_CONFLICT')
+        need(path.read_bytes() == body, 'LOCAL_FIRST_RECEIPT_CONFLICT')
     else:
         with path.open('xb') as f:
-            f.write(body.encode())
+            f.write(body)
     original(day)
     return value
 
