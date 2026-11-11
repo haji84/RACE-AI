@@ -258,6 +258,162 @@ class FirstP0ReadbackTests(unittest.TestCase):
         self.assertEqual(json.loads(stdout)['status'], 'FIRST_P0_READBACK_REJECTED')
         self.assertFalse(output.exists())
 
+class RetainedP1ReadbackTests(unittest.TestCase):
+    """Real encrypted local-Git originals; no live race or performance claims."""
+    setUp = FirstP0ReadbackTests.setUp
+    git = FirstP0ReadbackTests.git
+    prepare = FirstP0ReadbackTests.prepare
+    receipt_get = FirstP0ReadbackTests.receipt_get
+    verify = FirstP0ReadbackTests.verify
+
+    def retain_p1(self, *, ident=901, run=7, head=HEAD, empty=False,
+                  event_day='2030-04-01', round_no=1, saved='2030-04-01T01:41:00Z'):
+        from race_ai.boat_ab_shadow import build_pair
+        from race_ai.boat_live_feature_shadow import build_live_feature_shadow
+        from race_ai.repeated_cycle import artifact_name
+        from tests.test_observed_p1_connection import AT, bridge, inputs
+        base, extra, proof = inputs()
+        document = dict(schema='RACE_AI_NATIONWIDE_PRE_CUTOFF_AB_V1', event_day=event_day,
+            paired_forecasts=[] if empty else [build_pair(base, AT)],
+            additional_official_feature_shadows=[] if empty else [build_live_feature_shadow(base, extra, AT)],
+            observed_pairwise_p1_bundles=[] if empty else [bridge.build_bundle(
+                base, extra, AT, **proof, owner_reviewed=True)])
+        body = wire(document)
+        cipher = seal_original_zip(packed({'national.json': body}), run_id=str(run),
+                                   head_sha=head, kind='P1', key=KEY)
+        raw = packed({'private-original.enc': cipher})
+        metadata = dict(id=ident, name=artifact_name('boat-national-cutoff', run, round_no),
+            expired=False, created_at=saved, expires_at='2030-04-08T01:41:00Z',
+            size_in_bytes=len(raw), digest='sha256:'+sha256(raw).hexdigest(),
+            workflow_run=dict(id=run, repository_id=1416489937,
+                              head_repository_id=1416489937, head_sha=head))
+        before = self.bundle['vault_commit']
+        locator = V.retain_original(raw, wire(metadata), self.writer.repo,
+            expected_parent=before, key=KEY, transport=self.writer,
+            readback_transport=self.retention_reader, now=NOW)
+        self.bundle['vault_commit'] = locator['source_commit']
+        return dict(raw=raw, cipher=cipher, body=body, metadata=metadata,
+                    before=before, locator=locator)
+
+    def cli_p1(self, output):
+        args = ['--repo-root', str(self.reader.repo), '--vault-commit', self.bundle['vault_commit'],
+                '--receipt-commit', self.bundle['receipt_commit'], '--day', self.bundle['day'],
+                '--p0-artifact', '101', '--companion-artifact', '801', '--companion-artifact', '802',
+                '--verify-retained-p1', '--output', str(output)]
+        stdout, stderr = io.StringIO(), io.StringIO()
+        from contextlib import redirect_stderr
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            try:
+                code = readback.main(args, transport=self.reader, receipt_get=self.receipt_get)
+            except SystemExit as exc:
+                code = exc.code
+        return code, stdout.getvalue(), stderr.getvalue()
+
+    def test_cli_accepts_p1_scope_and_authenticates_nonempty_original(self):
+        self.prepare(); original = self.retain_p1()
+        before = self.writer.head()
+        code, stdout, stderr = self.cli_p1(self.root/'p1-report.json')
+        self.assertEqual(code, 0, stderr)
+        report = json.loads(stdout)
+        self.assertEqual(report['model_forecast_count'], 2)
+        p1 = report['p1_readback']
+        self.assertEqual(p1['status'], 'P1_INDEPENDENT_READBACK_VERIFIED')
+        self.assertTrue(p1['generation_storage_proven'])
+        self.assertEqual(p1['model_forecast_count'], 5)
+        self.assertEqual(p1['race_count'], 1)
+        self.assertEqual(p1['artifacts_verified'], 1)
+        self.assertEqual(p1['artifacts'][0]['json_sha256'], sha256(original['body']).hexdigest())
+        self.assertEqual(p1['artifacts'][0]['zip_sha256'], sha256(original['raw']).hexdigest())
+        self.assertEqual(p1['artifacts'][0]['cipher_sha256'], sha256(original['cipher']).hexdigest())
+        self.assertEqual(p1['artifacts'][0]['server_created_at'], original['metadata']['created_at'])
+        self.assertEqual(self.writer.head(), before)
+        self.assertEqual([p.name for p in self.reader.repo.iterdir()], ['.git'])
+        for value in ('top8', 'roster', 'ranked', '20300401-01-01', self.env['RACE_AI_STATE_KEY']):
+            self.assertNotIn(value, stdout)
+
+    def test_no_p1_preserves_p0_without_claiming_p1_success(self):
+        self.prepare()
+        report, _, _, _ = self.verify(verify_retained_p1=True)
+        self.assertEqual(report['status'], 'FIRST_P0_INDEPENDENT_READBACK_VERIFIED')
+        self.assertEqual(report['p1_readback']['status'], 'P1_NOT_RETAINED')
+        self.assertFalse(report['p1_readback']['generation_storage_proven'])
+        self.assertEqual(report['p1_readback']['model_forecast_count'], 0)
+
+    def test_empty_p1_ciphertext_does_not_count_as_a_forecast(self):
+        self.prepare(); self.retain_p1(empty=True)
+        report, _, _, _ = self.verify(verify_retained_p1=True)
+        p1 = report['p1_readback']
+        self.assertEqual(p1['status'], 'P1_EMPTY_ORIGINALS_ONLY')
+        self.assertFalse(p1['generation_storage_proven'])
+        self.assertEqual(p1['artifacts_verified'], 1)
+        self.assertEqual(p1['empty_artifacts'], 1)
+        self.assertEqual(p1['model_forecast_count'], 0)
+
+    def test_same_run_wrong_source_head_is_rejected(self):
+        self.prepare(); self.retain_p1(head='b'*40)
+        with self.assertRaisesRegex(ValueError, 'FIRST_P0_READBACK_P1_SOURCE_IDENTITY'):
+            self.verify(verify_retained_p1=True)
+
+    def test_wrong_document_day_is_rejected(self):
+        self.prepare(); self.retain_p1(event_day='2030-04-02')
+        with self.assertRaisesRegex(ValueError, 'FIRST_P0_READBACK_P1_DAY_INVALID'):
+            self.verify(verify_retained_p1=True)
+
+    def test_other_run_p1_cannot_fill_missing_source_run_forecasts(self):
+        self.prepare(); self.retain_p1(run=8)
+        report, _, _, _ = self.verify(verify_retained_p1=True)
+        self.assertEqual(report['p1_readback']['status'], 'P1_NOT_RETAINED')
+        self.assertFalse(report['p1_readback']['generation_storage_proven'])
+
+    def test_duplicate_race_model_rows_count_once_across_retained_rounds(self):
+        self.prepare(); self.retain_p1()
+        self.retain_p1(ident=902, round_no=2)
+        report, _, _, _ = self.verify(verify_retained_p1=True)
+        p1 = report['p1_readback']
+        self.assertTrue(p1['generation_storage_proven'])
+        self.assertEqual(p1['artifacts_verified'], 2)
+        self.assertEqual(p1['model_forecast_count'], 5)
+        self.assertEqual(p1['excluded_repeat_forecasts'], 5)
+
+    def test_p1_cipher_tampering_is_not_hidden_by_successful_p0_readback(self):
+        self.prepare(); original = self.retain_p1()
+        changed_paths = self.writer._run(['diff', '--name-only', original['before'],
+                                         self.bundle['vault_commit']]).decode().splitlines()
+        chunk = next(path for path in changed_paths if '/chunks/' in path)
+        altered = self.writer.commit({chunk: b'changed P1 ciphertext'}, self.bundle['vault_commit'])
+        self.writer.push(altered, self.bundle['vault_commit'])
+        with self.assertRaisesRegex(ValueError, 'FIRST_P0_READBACK_P1_'):
+            self.verify(vault_commit=altered, verify_retained_p1=True)
+
+    def test_reader_does_not_generate_train_or_settle_predictions(self):
+        self.prepare(); self.retain_p1()
+        with patch('race_ai.boat_observed_pairwise_models.predict_pair', side_effect=AssertionError('inference forbidden')), \
+             patch('race_ai.frozen_day_cycle.settle', side_effect=AssertionError('settlement forbidden')), \
+             patch('race_ai.observed_weight_learning.fit_from_verified', side_effect=AssertionError('training forbidden')):
+            report, _, _, _ = self.verify(verify_retained_p1=True)
+        self.assertTrue(report['p1_readback']['generation_storage_proven'])
+        self.assertEqual(report['new_forecasts_created'], 0)
+        self.assertEqual(report['provider_requests'], 0)
+
+    def test_non_artifact_capture_locators_do_not_break_p1_inventory(self):
+        self.prepare(); self.retain_p1()
+        raw = b'explicit synthetic official-page capture fixture'
+        metadata = wire(dict(http_status=200, source_sha256=sha256(raw).hexdigest(),
+            source_url='https://www.boatrace.jp/owpc/pc/race/raceresult?rno=1&jcd=01&hd=20300401',
+            captured_at='2030-04-01T03:00:00Z'))
+        locator = V.retain_capture_bundle([(raw, metadata)], self.writer.repo,
+            run_id=7, head_sha=HEAD, expected_parent=self.bundle['vault_commit'],
+            key=KEY, transport=self.writer, readback_transport=self.retention_reader, now=NOW)
+        report, _, _, _ = self.verify(vault_commit=locator['source_commit'], verify_retained_p1=True)
+        self.assertEqual(report['p1_readback']['model_forecast_count'], 5)
+        self.assertEqual(report['p1_readback']['artifacts_verified'], 1)
+
+    def test_existing_native_reader_rejects_post_cutoff_save(self):
+        self.prepare()
+        with self.assertRaisesRegex(ValueError, 'forecast not independently stored before cutoff'):
+            self.retain_p1(saved='2030-04-01T02:00:00Z')
+        self.assertEqual(self.writer.head(), self.bundle['vault_commit'])
+
 
 if __name__ == '__main__':
     unittest.main()
