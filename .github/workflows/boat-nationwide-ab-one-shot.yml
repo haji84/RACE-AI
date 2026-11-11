@@ -1,24 +1,48 @@
-# Default-branch registration for the existing owner P0/P1 worker.
-# Its execution body and immutable source proof stay on the canonical release
-# ref. This file must exist on main for workflow_dispatch to target that ref.
+# Registration only: the actual owner P0/P1 producer lives on the
+# separately reviewed production/boat-p0-p1-20261111 branch.
+# Initial reviewed owner-release code SHA:
+# fb3b89d49db815c9e88daa09c1303c7a6dd87d83
+# GitHub requires a workflow_dispatch workflow to exist on default branch.
+# Never run source collection, scoring, or access private AES keys from this stub.
 name: BOAT nationwide cutoff-ordered A/B research (no Vercel)
 on:
   workflow_dispatch:
     inputs:
       production_scope:
-        description: 'Existing owner P0/P1 worker only'
         required: true
         type: choice
+        description: 'Use the original owner P0/P1 source and scorer'
         options: [existing-owner-p0-p1]
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-nationwide-ab-one-shot.yml
+      - tests/test_boat_owner_workflow_registry.py
+
 permissions:
   contents: read
 jobs:
-  reject_default_branch_execution:
-    if: github.ref == 'refs/heads/main'
+  source_free_registry_contract:
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify owner-only production workflow registration and no source reads
+        run: python -m unittest tests.test_boat_owner_workflow_registry -v
+
+  never_issue_from_main:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 2
+    permissions:
+      contents: read
     steps:
-      - name: Refuse model execution from the default-branch registration
+      - name: Refuse default-branch forecast issuance
         run: |
-          echo 'BOAT_DEFAULT_BRANCH_REGISTRATION_ONLY_NOT_MODEL_SOURCE'
-          exit 1
+          echo 'HOLD_OWNER_P0_P1_RELEASE_REF_REQUIRED'
+          exit 2
