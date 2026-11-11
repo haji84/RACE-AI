@@ -87,6 +87,49 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertIn("actions: write", launcher)
         self.assertNotIn("racer_intraday_refresh",launcher)
 
+    def test_overnight_active_owner_run_blocks_another_writer(self):
+        previous={"name": WORKFLOW, "head_branch": RELEASE_REF,
+                  "created_at": "2026-11-10T23:01:00Z",
+                  "status": "in_progress"}
+        # Previous in JST? 23:01 UTC is already next JST date.
+        previous["created_at"] = "2026-11-10T14:55:00Z"
+        value=self.decide(runs=[previous])
+        self.assertEqual(value["status"], "HOLD_ACTIVE_OWNER_WORKFLOW")
+        self.assertFalse(value["dispatch_allowed"])
+
+    def test_ordered_hundred_old_runs_cover_current_day_despite_pagination(self):
+        from datetime import timedelta
+        from scripts.boat_main_dispatch_gate import decide
+        last=datetime(2026,11,10,14,0,tzinfo=timezone.utc)
+        rows=[{"name":WORKFLOW,"head_branch":RELEASE_REF,
+               "created_at":(last-timedelta(days=i)).isoformat(),
+               "status":"completed"} for i in range(100)]
+        result=decide(now=NOW,release=release(),owner_doc=source_doc(RELEASE_TOKEN),
+                      history=history(*rows,total=101))
+        self.assertEqual(result["status"],"READY_EXISTING_OWNER_WORKFLOW_ONLY")
+        self.assertTrue(result["dispatch_allowed"])
+
+    def test_pagination_with_recent_unseen_run_stays_hold(self):
+        from datetime import timedelta
+        from scripts.boat_main_dispatch_gate import decide
+        newest=NOW-timedelta(minutes=3)
+        rows=[{"name":WORKFLOW,"head_branch":RELEASE_REF,
+               "created_at":(newest-timedelta(seconds=5*i)).isoformat(),
+               "status":"completed"} for i in range(100)]
+        result=decide(now=NOW,release=release(),owner_doc=source_doc(RELEASE_TOKEN),
+                      history=history(*rows,total=101))
+        self.assertEqual(result["status"],"HOLD_INCOMPLETE_RUN_HISTORY")
+        self.assertFalse(result["dispatch_allowed"])
+
+    def test_out_of_order_run_metadata_never_proves_history_complete(self):
+        from scripts.boat_main_dispatch_gate import decide
+        rows=[{"name":WORKFLOW,"head_branch":RELEASE_REF,
+               "created_at":at,"status":"completed"} for at in (
+                 "2026-11-10T02:00:00Z","2026-11-10T03:00:00Z")]
+        result=decide(now=NOW,release=release(),owner_doc=source_doc(RELEASE_TOKEN),
+                      history=history(*rows))
+        self.assertEqual(result["status"],"HOLD_INCOMPLETE_RUN_HISTORY")
+
     def test_unreturned_pagination_is_not_no_forecast(self):
         output=decide(now=NOW, release=release(),
             owner_doc=source_doc(RELEASE_TOKEN), history=history(total=101))
