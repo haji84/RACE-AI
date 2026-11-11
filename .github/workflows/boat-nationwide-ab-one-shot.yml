@@ -41,6 +41,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Verify existing model owner and single production entry
         run: python -m unittest tests.test_boat_main_entry_contract -v
+      - name: Recheck all retained existing-cycle workflow invariants
+        run: python -m unittest tests.test_cycle_workflow_references -v
   saved_view_publication:
     name: Encrypted saved-model display and retained-input execution (no official source requests)
     if: github.repository == 'haji84/RACE-AI' && github.event_name == 'push' && startsWith(github.event.head_commit.message, 'saved-view:')
