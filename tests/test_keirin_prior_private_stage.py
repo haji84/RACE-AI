@@ -276,19 +276,28 @@ class PriorInputConnectionTests(unittest.TestCase):
         from race_ai.keirin_prior_form_trend import compute_prior_form_trend
         seed = deepcopy(PriorEventContractTests().result())
         events = []
+        reference = deepcopy(self.reference)
+        reference['references'] = []
         for index in range(6):
             day = 4 + index
             event = deepcopy(seed)
+            rid = f'203001{day:02d}1201'
+            url = (f'https://www.winticket.jp/keirin/aomori/raceresult/'
+                   f'203001{day:02d}12/1/1')
             event.update(
-                race_id=f'203001{day:02d}1201',
+                race_id=rid,
+                result_source_url=url,
                 started_at=f'2030-01-{day:02d}T10:05:00+09:00',
                 result_published_at=f'2030-01-{day:02d}T10:10:00+09:00',
                 result_source_sha256=sha256(f'FICTIONAL FORM {index}'.encode()).hexdigest())
+            reference['references'].append({
+                'race_id':rid, 'url':url,
+                'rider_ids':list(reference['rider_ids'])})
             if index < 3:
                 event['starters'][0]['finish_rank'] = 7
                 event['starters'][6]['finish_rank'] = 1
             events.append(event)
-        derived = compute_prior_form_trend(self.reference,events,as_of=CAPTURE)
+        derived = compute_prior_form_trend(reference,events,as_of=CAPTURE)
         self.assertEqual(derived['candidate_count'], 7)
         self.assertAlmostEqual(derived['riders']['fiction-1']['candidate_value'],1)
         self.assertAlmostEqual(derived['riders']['fiction-7']['candidate_value'],0)
@@ -299,11 +308,15 @@ class PriorInputConnectionTests(unittest.TestCase):
             self.assertFalse(entry['approved_for_pr71_input'])
         # A clock after the target result must never turn into a prior input.
         with self.assertRaises(PriorSourceError):
-            compute_prior_form_trend(self.reference,events,as_of='2030-01-15T10:00:00+09:00')
+            compute_prior_form_trend(reference,events,as_of='2030-01-15T10:00:00+09:00')
         # One later event cannot be used even if a caller supplies it.
         events[-1]['race_id'] = TARGET
         with self.assertRaises(PriorSourceError):
-            compute_prior_form_trend(self.reference,events,as_of=CAPTURE)
+            compute_prior_form_trend(reference,events,as_of=CAPTURE)
+        events[-1]['race_id'] = reference['references'][-1]['race_id']
+        events[-1]['result_source_url'] = 'https://example.invalid/tampered'
+        with self.assertRaisesRegex(PriorSourceError,'FORM_CAPTURED_RESULT_SOURCE_NOT_BOUND'):
+            compute_prior_form_trend(reference,events,as_of=CAPTURE)
 
     def test_four_history_events_cannot_fake_six_sample_form(self):
         from race_ai.keirin_prior_form_trend import compute_prior_form_trend
