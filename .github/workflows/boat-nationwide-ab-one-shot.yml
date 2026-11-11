@@ -1,0 +1,24 @@
+# Default-branch registration for the existing owner P0/P1 worker.
+# Its execution body and immutable source proof stay on the canonical release
+# ref. This file must exist on main for workflow_dispatch to target that ref.
+name: BOAT nationwide cutoff-ordered A/B research (no Vercel)
+on:
+  workflow_dispatch:
+    inputs:
+      production_scope:
+        description: 'Existing owner P0/P1 worker only'
+        required: true
+        type: choice
+        options: [existing-owner-p0-p1]
+permissions:
+  contents: read
+jobs:
+  reject_default_branch_execution:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Refuse model execution from the default-branch registration
+        run: |
+          echo 'BOAT_DEFAULT_BRANCH_REGISTRATION_ONLY_NOT_MODEL_SOURCE'
+          exit 1
