@@ -68,7 +68,24 @@ def inspect_source_gaps(partial):
                 info.get('approved_for_pr71_input') is not False or
                 info.get('independent_source_rights_verified') is not False):
             raise RealSourceGapError('B_ONLY_VENUE_SOURCE_EVIDENCE_INVALID')
-    legacy_a_keys = keys-set(b_only_venue_evidence)
+    # A historical six-event finish-rank delta is a B-only research origin.
+    # Do not reuse it as verified legacy-A rider strength or fill absent
+    # acceleration, stamina or tactical behavior.
+    b_only_form_evidence = partial.get('prior_recent_form_input_evidence', {})
+    if type(b_only_form_evidence) is not dict:
+        raise RealSourceGapError('B_ONLY_FORM_SOURCE_EVIDENCE_INVALID')
+    for key, info in b_only_form_evidence.items():
+        if (type(key) is not str or not key.startswith('rider/') or
+                not key.endswith('/recent_strength_or_form_change') or
+                key not in keys or key in b_only_venue_evidence or
+                type(info) is not dict or info.get('value') != observed[key] or
+                info.get('sample_n') != 6 or
+                info.get('recent_sample_n') != 3 or
+                info.get('baseline_sample_n') != 3 or
+                info.get('approved_for_pr71_input') is not False or
+                info.get('independent_source_rights_verified') is not False):
+            raise RealSourceGapError('B_ONLY_FORM_SOURCE_EVIDENCE_INVALID')
+    legacy_a_keys = keys-set(b_only_venue_evidence)-set(b_only_form_evidence)
     required_critical={
         *("race/"+key for key in CRITICAL_RACE),
         *(f"rider/{no}/{key}"
