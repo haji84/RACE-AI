@@ -1,0 +1,47 @@
+{
+  "schema": "research-autorace-results-public-observation/1",
+  "event_date_jst": "2026-11-09",
+  "observed_at_jst": "2026-11-10T04:54:45+09:00",
+  "venue": "川口",
+  "source": {
+    "operator": "チャリロト・公開レース結果",
+    "url": "https://www.chariloto.com/auto/results/002/2026-11-09",
+    "evidence": "Public indexed results for race 9 3連単 and 100-yen payout and race 10 first-three finishers. Other fields unverified in this check."
+  },
+  "previous_state": "2026-11-10T03:43 JST prior report: Kawaguchi 9-12R not verified",
+  "observations": [
+    {
+      "race": 9,
+      "race_id": "autorace:2026-11-09:kawaguchi:9",
+      "confirmed_trifecta": "4-5-8",
+      "confirmed_payout_jpy_per_100": 13970,
+      "A_research_sha256": "f58eddf33766fe8fefd59d8fe8df5542b93982c4aa3262a5409805f7b90b9f7f",
+      "A_8": "HOLD_original_pick_list_unavailable",
+      "A_12": "HOLD_original_pick_list_unavailable",
+      "B_8": "HOLD_no_eligible_pre_cutoff_B_original_verified",
+      "B_12": "HOLD_no_eligible_pre_cutoff_B_original_verified",
+      "virtual_profit_jpy": null,
+      "virtual_return_pct": null
+    },
+    {
+      "race": 10,
+      "race_id": "autorace:2026-11-09:kawaguchi:10",
+      "confirmed_trifecta": "5-8-1",
+      "confirmed_payout_jpy_per_100": null,
+      "A_research_sha256": "d478a3778c7ae85c05b77f4c3ee4818af29198b20b8a9bb604386b156b683e5a",
+      "A_8": "HOLD_original_pick_list_unavailable",
+      "A_12": "HOLD_original_pick_list_unavailable",
+      "B_8": "HOLD_no_eligible_pre_cutoff_B_original_verified",
+      "B_12": "HOLD_no_eligible_pre_cutoff_B_original_verified",
+      "virtual_profit_jpy": null,
+      "virtual_return_pct": null
+    }
+  ],
+  "race_11_12_status": "Unverified in this run; no result or payout asserted",
+  "forecast_originals_modified": false,
+  "additional_predictions_created": false,
+  "same_event_result_append_only": true,
+  "research_limit": "Original A ZIP not accessible to this run; SHA ledger cannot reveal picks. B pre-cutoff original not verified. Keep A/B hit, loss, payout and ROI on HOLD. Race10 payout not independently confirmed.",
+  "forecast_snapshot_source": "audit/autorace/2026-11-09/all-races-A-research-pretrial-0917-sha256.txt",
+  "future_scope_note": "2026-11-10 has 12 Kawaguchi, 8 Isesaki, 8 Iizuka (28). None had started at 04:54 JST; 11/10 verified A/B prediction originals were not accessible or created in this check."
+}

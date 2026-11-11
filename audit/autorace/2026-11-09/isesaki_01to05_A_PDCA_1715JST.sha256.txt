@@ -1,0 +1,7 @@
+2026-11-09 伊勢崎1R-5R A予想の結果照合（追記専用）
+original_prediction_archive: autorace_20261109_all32_pretrial_A_research_snapshot_0917JST.zip
+pdca_file: autorace_20261109_isesaki_01to05_A8_A12_PDCA_append_1715JST.json
+pdca_sha256: 60509deee78a9bc3ba9bb2dc81aac1efa49739ff3da1018706fca0108b753e19
+source: https://www.chariloto.com/auto/results/003/2026-11-09
+scope: Isesaki 1-5R; A8 0/5 -4000 yen 0%; A12 0/5 -6000 yen 0%; virtual stake 100 yen per point
+disclaimer: old A untouched, no B issued, published independent official result comparison pending, no actual bets recorded

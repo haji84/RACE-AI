@@ -1,0 +1,56 @@
+{
+  "event": "RESULT_PDCA_APPEND_ONLY",
+  "date_jst": "2026-11-09",
+  "venue": "kawaguchi",
+  "races_scored": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "newly_scored_since_prior_PDCA": [
+    1,
+    2,
+    3,
+    5,
+    6,
+    7,
+    8
+  ],
+  "already_scored_before": [
+    4
+  ],
+  "source_results": "https://www.chariloto.com/auto/results/002/2026-11-09",
+  "official_4R": "https://autorace.jp/race_info/RaceResult/kawaguchi/2026-11-09_4",
+  "pdca_snapshot_file": "autorace_20261109_kawaguchi_1to8_A_B_result_PDCA_append_1444JST.json",
+  "pdca_snapshot_sha256": "85d8e584dfdddf9b6a442ea1001cad7d455d0c03feba2e09d64c96cb9b8786e3",
+  "A_original_forecast_sha_checked": 32,
+  "A_original_modified": false,
+  "A_v1": {
+    "scored": 8,
+    "hit8": 0,
+    "hit12": 0,
+    "stake8_yen": 6400,
+    "stake12_yen": 9600,
+    "return8_yen": 0,
+    "return12_yen": 0
+  },
+  "B_v1": {
+    "scored": 1,
+    "race": "kawaguchi_6",
+    "hit8": 1,
+    "hit12": 1,
+    "stake8_yen": 800,
+    "stake12_yen": 1200,
+    "return8_yen": 810,
+    "return12_yen": 810
+  },
+  "A_7R_v2_pretrial_eligibility": "not_independently_verified_excluded",
+  "research_only": true,
+  "actual_bets_unverified": true,
+  "prediction_picks_in_public_repo": false
+}

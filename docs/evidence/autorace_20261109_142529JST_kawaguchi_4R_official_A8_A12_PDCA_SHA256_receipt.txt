@@ -1,0 +1,11 @@
+Autorace 2026-11-09 Kawaguchi 4R, official result independent append-only PDCA receipt
+Recorded checked time: 2026-11-09 14:25:29 JST
+Original 32 research A snapshots: verified 32/32 SHA256 from prior manifest, no edits
+Kawaguchi 4R A original SHA256: 88758f084d49af18fb104488525efee728c394dfd43b6f82527632af7ba12be2
+Result PDCA JSON filename: autorace_20261109_kawaguchi_04R_official_result_A8_A12_PDCA_1425JST.json
+Result PDCA JSON SHA256: d68aa40a301bc0515057652d83fc1d3785e05e07273701a2c52016ca7a0dbd21
+Official source: https://autorace.jp/race_info/RaceResult/kawaguchi/2026-11-09_4
+Official indexed result: 8-5-7, 3rentan 3080 JPY per 100 JPY, wet. A 8pt MISS, A 12pt MISS. B unavailable.
+Source caveat: official indexed excerpts provided full results, but direct open of the same URL returned an empty/cancelled generic template; verify directly when possible.
+Hypothetical 100 JPY/line: A8 800 JPY investment 0 JPY pay 0% ROI, A12 1200 JPY 0 JPY pay 0% ROI; actual stakes UNKNOWN.
+The official result and this receipt are append-only; do not rewrite research A/B predictions or treat past outcomes as future picks.
