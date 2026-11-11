@@ -40,9 +40,11 @@ class BoatMainEntryContract(unittest.TestCase):
         self.assertIn("RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}", source)
 
     def test_never_permits_new_result_scorer_or_dummy_model(self):
+        self.assertEqual(self.source.count("  official_national:"), 1)
+        self.assertEqual(self.source.count("  saved_view_publication:"), 1)
+        self.assertEqual(self.source.count("  main_entry_contract:"), 1)
         self.assertNotIn("fake_forecast", self.source)
         self.assertNotIn("synthetic-result-writer", self.source)
-        self.assertIn("gh", "github")
 
 
 if __name__ == "__main__":
