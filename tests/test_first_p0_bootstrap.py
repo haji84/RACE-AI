@@ -176,6 +176,32 @@ class FirstP0RegistryTests(unittest.TestCase):
 
 
 class FirstP0BootstrapTests(unittest.TestCase):
+    def test_same_day_prior_owner_without_final_checkpoint_is_rejected_before_get(self):
+        prior=dict(id=73,event='workflow_dispatch',
+                   created_at='2030-04-01T01:00:00Z')
+        with tempfile.TemporaryDirectory() as tmp,patch.object(boot,'ROOT',Path(tmp)),\
+             patch.object(boot,'day_runs',return_value=[prior]),\
+             patch.object(boot,'previous_source_control',return_value=None),\
+             patch.object(boot,'previous_first_receipt') as receipt:
+            with self.assertRaisesRegex(ValueError,'SAME_DAY_OWNER_SOURCE_CONTROL_REQUIRED'):
+                boot.preflight('2030-04-01',119)
+            receipt.assert_not_called()
+            self.assertFalse((Path(tmp)/'cycle_recovery_output'/'bootstrap-source-control.json').exists())
+
+    def test_same_day_prior_owner_admits_exact_authenticated_day_baseline(self):
+        prior=dict(id=73,event='workflow_dispatch',
+                   created_at='2030-04-01T01:00:00Z')
+        control=dict(day_jst='2030-04-01',lifetime_requests=140,
+                     day_start_lifetime_requests=100,lifetime_completed_rounds=2)
+        with tempfile.TemporaryDirectory() as tmp,patch.object(boot,'ROOT',Path(tmp)),\
+             patch.object(boot,'day_runs',return_value=[prior]),\
+             patch.object(boot,'previous_source_control',return_value=control),\
+             patch.object(boot,'previous_first_receipt',return_value=None):
+            result=boot.preflight('2030-04-01',119)
+            self.assertEqual(result,'NO_SAME_WORKFLOW_FIRST_P0_FOUND_CAPTURE_REQUIRED')
+            checked=boot.bootstrap_control('2030-04-01',119)
+            self.assertEqual(checked['day_start_lifetime_requests'],100)
+
     def test_first_p0_source_budget_inherits_same_day_baseline(self):
         with tempfile.TemporaryDirectory() as tmp, patch.object(boot,'ROOT',Path(tmp)):
             old=dict(day_jst='2030-04-01',lifetime_requests=339,
