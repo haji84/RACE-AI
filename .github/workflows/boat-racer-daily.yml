@@ -128,7 +128,8 @@ jobs:
               'READY_EXISTING_OWNER_WORKFLOW_ONLY',
               'HOLD_ALREADY_DISPATCHED_FOR_JST_DAY',
               'HOLD_ACTIVE_OWNER_WORKFLOW',
-              'HOLD_INCOMPLETE_RUN_HISTORY'}
+              'HOLD_INCOMPLETE_RUN_HISTORY',
+              'HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW'}
           assert report['status'] in allowed, report['status']
           assert report['new_model_or_scorer_added'] is False
           assert report['official_source_requests']==0
