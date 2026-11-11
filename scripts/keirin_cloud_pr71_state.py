@@ -55,8 +55,14 @@ LICENSED_SOURCE_REQUIRED_KEYS=(
 )
 
 
-def missing_source_configuration(environ=None):
-    """Only public variable NAMES, never token, URL, contract or key values."""
+def missing_source_configuration(environ=None, *, source_state=None):
+    """Provider-export settings are optional in the owner public research mode.
+
+    The four keys continue to gate the separately configured provider route.
+    Do not claim provider API keys are required for existing public-page intake.
+    """
+    if source_state == "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED":
+        return []
     values=os.environ if environ is None else environ
     return [name for name in LICENSED_SOURCE_REQUIRED_KEYS
             if not values.get(name)]
@@ -405,14 +411,14 @@ def cycle(repo,source_root):
             return {"state":state,
                     "new_forecasts":0,"source_state":status,
                     "owner_source_acquisition":owner_source,
-                    "missing_source_config_keys":missing_source_configuration(),
+                    "missing_source_config_keys":missing_source_configuration(source_state=status),
                     "private_key_used_without_writing_public_data":True}
         # A genesis is permitted ONLY when a real license-admitted full PR71
         # packet is present. No artificial new empty "production archive".
         if prior is None and (stage or {}).get("new_pre_race_inputs",0)==0:
             return {"state":"HOLD_NO_COMPLETE_PRE_CUTOFF_INPUT",
                     "new_forecasts":0,"source_state":status,
-                    "missing_source_config_keys":missing_source_configuration()}
+                    "missing_source_config_keys":missing_source_configuration(source_state=status)}
         from race_ai.keirin_pr71_four_model_rank import stage_existing_owner_pre_races
         # Results share the already authorized source feed, but are not model
         # features. Only an ORIGINAL four-model suite frozen before the cutoff
@@ -439,7 +445,7 @@ def cycle(repo,source_root):
             return {"state":"CLOUD_PR71_RESTORED_NO_CHANGED_MODEL_OR_RESULT",
                     "originals_preserved":True,"new_forecasts":0,
                     "source_state":status,"owner_source_acquisition":owner_source,
-                    "missing_source_config_keys":missing_source_configuration(),
+                    "missing_source_config_keys":missing_source_configuration(source_state=status),
                     "four_model_variable_saved":variable["four_model_variable_saved"],
                     "four_model_variable_held":variable["four_model_variable_held"],
                     "result_rows_appended":results["results_appended"],
@@ -453,7 +459,7 @@ def cycle(repo,source_root):
         return {**out,"source_state":status,
                 "new_forecast_stage_nonzero":bool(
                     frozen.get("private_four_model_predictions_saved",0)),
-                "missing_source_config_keys":missing_source_configuration(),
+                "missing_source_config_keys":missing_source_configuration(source_state=status),
                 "existing_pdca_invoked":True,
                 "four_model_variable_saved":variable["four_model_variable_saved"],
                 "four_model_variable_held":variable["four_model_variable_held"],
