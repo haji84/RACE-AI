@@ -160,6 +160,18 @@ def _safe_result(report, rid, n):
              'PARTIAL_INPUT_COUNT_INCONSISTENT')
         result[f'observed_or_derived_model_{letter}_slots'] = observed
         result[f'remaining_model_{letter}_slots'] = missing
+    # Field names are from the fixed 347/437 registry, not athlete data.
+    # Record actual missing *source-family* counts without inventing values.
+    groups = report.get('remaining_model_B_source_groups')
+    if groups is not None:
+        need(type(groups) is dict and len(groups) <= 40 and all(
+             type(field) is str and
+             re.fullmatch(r'(?:race/)?[a-z][a-z0-9_]*', field) and
+             type(count) is int and 1 <= count <= total
+             for field, count in groups.items()) and
+             sum(groups.values()) == result['remaining_model_B_slots'],
+             'MODEL_B_MISSING_FAMILY_ACCOUNTING_INVALID')
+        result['model_B_missing_source_family_slots'] = dict(sorted(groups.items()))
     result['private_partial_readback_verified'] = (
         report.get('existing_private_partial_input_staged') is True and
         report.get('private_candidate_replay_verified') is True)
@@ -256,6 +268,14 @@ def collect_owner_inputs(inbox, *, owner_auto_confirmed, capture=None, probe=Non
     out['public_page_requests'] = session.requests
     out['provider_denial_stopped_requests'] = session.host_denied
     out['work_budget_exhausted'] = session.budget_exhausted
+    # Slot-level deficit totals are count-only and never source or rider
+    # values. The same missing family can appear across several races.
+    family_totals = {}
+    for row in out['races']:
+        for field, count in row.get('model_B_missing_source_family_slots', {}).items():
+            family_totals[field] = family_totals.get(field, 0) + count
+    out['model_B_missing_family_slot_totals'] = dict(
+        sorted(family_totals.items(), key=lambda item: (-item[1], item[0])))
     out['historical_pages_reused_without_new_GET'] = session.historical_page_cache_hits
     out['historical_page_cache_bytes'] = session.historical_page_cache_bytes
     return out
