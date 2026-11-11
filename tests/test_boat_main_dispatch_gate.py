@@ -80,7 +80,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         minute_set=set(range(2,60,5))
         self.assertEqual(len(minute_set),12)
         self.assertEqual(len(minute_set)*(15+2),204)
-        launcher=source.split("  owner_p0_p1_dispatch:\\n",1)[1]
+        launcher=source.split("  owner_p0_p1_dispatch:\n",1)[1]
         self.assertIn("github.event.schedule == '2-59/5 22-23 * * *'", launcher)
         self.assertNotIn("github.event.schedule == '2-59/5 0-14 * * *'", launcher)
         self.assertIn("group: boat-main-launcher-source-free", launcher)
