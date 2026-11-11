@@ -6,3 +6,15 @@ Future normal scheduled runs retain the original official result collector and a
 2026-11-09: source-free protected main verification retry; skip historical main root requirements install on the one-shot push. The validated readback checkout installs its own pinned dependencies. No official source GET.
 
 2026-11-10 owner request: retain and read back all authenticated saved dates without a three-day age horizon. Existing encrypted Git originals remain the authority; no automatic age purge. Reconcile the latest completed source control via the existing HMAC/CAS mirror, run source-free whole-period PDCA at exact code 08a166d982e8e7d16aa347be41f79f67be2ccdf3, and independently reopen the saved state. No new racing-provider GET, source-issuer authorization, forecast regeneration, model promotion, or source budget reset is authorized by this replay marker.
+
+2026-11-11 JST approved BOAT first real P0/P1 attempt. The owner expressly
+authorized limited Actions dispatch and the existing source-owner boundary
+release earlier in this conversation. PR #145 and PR #146 are merged in main.
+Use existing owner production/boat-p0-p1-20261111 SHA
+5f5bd960e3377a87541f9d6b348d3c045ea51cf0, original AES vault, official
+source/denial limits, single-writer and immutable pre-cutoff records.
+This marker merely asks the existing main-only source-free gate to run.
+If any release, custody, time, active producer or event check fails, HOLD.
+Never create post-result predictions or turn NO_FORECAST into hits.
+The first real saved prediction plus separate readback and original official
+result reconciliation must be independently evidenced; none is claimed here.
