@@ -582,7 +582,6 @@ jobs:
           set -euo pipefail
           gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/production/boat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-release.json"
           gh api "repos/$GITHUB_REPOSITORY/contents/docs/RACE_AI_LATEST_STATUS.md?ref=production%2Fboat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-policy.json"
-          gh api "repos/$GITHUB_REPOSITORY/contents/docs/RACE_AI_LATEST_STATUS.md?ref=production%2Fboat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-policy.json"
           gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-nationwide-ab-one-shot.yml/runs?branch=production%2Fboat-p0-p1-20261111&per_page=100" > "$RUNNER_TEMP/boat-owner-runs.json"
           retry_args=()
           # Only the actual pre-source CI failure on 2026-11-11 may be
