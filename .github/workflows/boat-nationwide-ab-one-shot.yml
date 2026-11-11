@@ -4,6 +4,12 @@ on:
   # Live model runner is called from the trusted main launcher, not arbitrary
   # pushes to this research branch. The old saved-view push repair is retained.
   workflow_dispatch:
+    inputs:
+      production_scope:
+        required: true
+        type: choice
+        description: 'Use existing P0/P1 source owner and scorer only'
+        options: [existing-owner-p0-p1]
   pull_request:
     branches: [feat/four-sport-forecast-audit-view-20261022]
     paths:
@@ -259,8 +265,11 @@ jobs:
     name: Existing frozen P0, exhibition P1, separate official results and PDCA
     if: >-
       github.repository == 'haji84/RACE-AI' &&
-      (github.event_name == 'workflow_dispatch' ||
+      ((github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/production/boat-p0-p1-20261111' &&
+        inputs.production_scope == 'existing-owner-p0-p1') ||
        (github.event_name == 'push' &&
+        github.ref == 'refs/heads/feat/four-sport-forecast-audit-view-20261022' &&
         startsWith(github.event.head_commit.message, 'boat-grid-forward:')))
     runs-on: ubuntu-24.04
     timeout-minutes: 360
@@ -272,6 +281,15 @@ jobs:
       - name: Exact PR71 code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: '${{ github.sha }}'}
+      - name: Verify exact canonical release ref and source SHA before owner source use
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          test "$GITHUB_REPOSITORY" = 'haji84/RACE-AI'
+          test "$GITHUB_REF" = 'refs/heads/production/boat-p0-p1-20261111'
+          test '${{ inputs.production_scope }}' = 'existing-owner-p0-p1'
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          echo 'BOAT_CANONICAL_REF_AND_HEAD_ATTESTED'
       - name: Pinned official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
