@@ -17,6 +17,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 from . import boat_private_original_vault as V
+from .boat_owner_source_identity import authenticated_live_owner_run, archived_owner_branch
 from .boat_pdca_state import state_key
 
 SCHEMA='RACE_AI_BOAT_CLOSED_RUN_RESPONSES_V1'
@@ -76,7 +77,7 @@ def _validate(run_raw,pages,clock):
     run=V._json(run_raw,1024*1024)
     _need(type(run) is dict,'RUN_RESPONSE_INVALID')
     ident=V._id(run.get('id'));V._hex(run.get('head_sha'),V._HEAD)
-    _need(run.get('workflow_id')==WORKFLOW and run.get('head_branch')==BRANCH
+    _need(authenticated_live_owner_run(run)
           and run.get('status')=='completed' and run.get('conclusion') in
           ('success','failure','neutral','cancelled','skipped','timed_out','action_required','stale','startup_failure'),
           'COMPLETED_WORKFLOW_REQUIRED')
@@ -114,7 +115,7 @@ def _validate(run_raw,pages,clock):
         response_pages.append((endpoint,raw))
     _need(len(rows)==total,'PAGINATION_INCOMPLETE')
     identity=dict(run_id=ident,run_attempt=attempt,head_sha=run['head_sha'],workflow_id=WORKFLOW,
-        head_branch=BRANCH,run_sha256=V._sha(run_raw),pages=descriptors,total_count=total)
+        head_branch=run['head_branch'],run_sha256=V._sha(run_raw),pages=descriptors,total_count=total)
     return dict(run=run,rows=rows,pages=response_pages,identity=identity,
                 state_sha256=V._sha(V._wire(identity)))
 
@@ -135,7 +136,7 @@ def _catalog(raw,key):
           'CATALOG_INVALID')
     identity=state['identity']
     _need(type(identity) is dict and set(identity)=={'run_id','run_attempt','head_sha','workflow_id','head_branch',
-          'run_sha256','pages','total_count'} and identity['workflow_id']==WORKFLOW and identity['head_branch']==BRANCH,
+          'run_sha256','pages','total_count'} and identity['workflow_id']==WORKFLOW and archived_owner_branch(identity['head_branch']),
           'CATALOG_IDENTITY_INVALID')
     V._id(identity['run_id']);V._hex(identity['head_sha'],V._HEAD)
     _attempt(identity['run_attempt']);V._hex(identity['run_sha256'])
