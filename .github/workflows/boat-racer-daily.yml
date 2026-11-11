@@ -4,14 +4,17 @@ on:
     branches: [main]
     paths: [.github/workflows/boat-racer-daily.yml]
   push:
-    branches: [feat/four-sport-forecast-audit-view-20261022, main]
+    branches: [main]
     paths: [docs/evidence/racer-daily-refresh-trigger.txt, docs/evidence/racer-intraday-refresh-trigger.txt, docs/evidence/owner-pdca-main-trigger.txt]
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
     types: [completed]
-    branches: [feat/four-sport-forecast-audit-view-20261022]
+    branches: [production/boat-p0-p1-20261111]
   schedule:
-    - cron: '2-59/5 0-14,22-23 * * *'
+    # Identical existing UTC minute coverage, separated only so the BOAT
+    # owner launcher can select JST 07:02-08:57 without daily extra jobs.
+    - cron: '2-59/5 0-14 * * *'
+    - cron: '2-59/5 22-23 * * *'
     - cron: '20 21 * * *'
   workflow_dispatch:
     inputs:
@@ -89,6 +92,44 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           path: proposed-workflow
           persist-credentials: false
+      - name: Test canonical owner dispatch gate with no source requests
+        working-directory: proposed-workflow
+        run: python -m unittest tests.test_boat_main_dispatch_gate -v
+      - name: Read-only confirmation of approved owner release and canonical SHA
+        working-directory: proposed-workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/production/boat-p0-p1-20261111" > "$RUNNER_TEMP/boat-release-ref.json"
+          gh api "repos/$GITHUB_REPOSITORY/contents/docs/RACE_AI_LATEST_STATUS.md?ref=production%2Fboat-p0-p1-20261111" > "$RUNNER_TEMP/boat-release-status.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-nationwide-ab-one-shot.yml/runs?branch=production%2Fboat-p0-p1-20261111&per_page=100" > "$RUNNER_TEMP/boat-release-runs.json"
+          python -m scripts.boat_main_dispatch_gate \
+            --release "$RUNNER_TEMP/boat-release-ref.json" \
+            --owner-doc "$RUNNER_TEMP/boat-release-status.json" \
+            --history "$RUNNER_TEMP/boat-release-runs.json" > "$RUNNER_TEMP/boat-main-real-release-gate.json"
+          python - <<'PY_BOAT_AUDIT'
+          import json,os
+          from pathlib import Path
+          report=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-main-real-release-gate.json').read_text())
+          # This PR CI makes no dispatch and no official source GET.
+          # Once user-approved fixed boundary is lifted, only an active/same-day
+          # worker or missing API evidence may legitimately keep the gate HOLD.
+          allowed={
+              'READY_EXISTING_OWNER_WORKFLOW_ONLY',
+              'HOLD_ALREADY_DISPATCHED_FOR_JST_DAY',
+              'HOLD_ACTIVE_OWNER_WORKFLOW',
+              'HOLD_INCOMPLETE_RUN_HISTORY'}
+          assert report['status'] in allowed, report['status']
+          assert report['new_model_or_scorer_added'] is False
+          assert report['official_source_requests']==0
+          assert report['future_real_forecast_proven'] is False
+          print(json.dumps({'status':report['status'],
+                            'release_scope_verified':True,
+                            'dispatch_requested_from_pr':False,
+                            'real_forecast_proven':False,'new_source_requests':0},sort_keys=True))
+          PY_BOAT_AUDIT
       - name: Verify wiring without running any provider request
         run: |
           python - <<'PY'
@@ -106,6 +147,10 @@ jobs:
           assert "['latest-closed', '--repo-root', '.', '--output', output]" in mirror
           assert mirror.count('race_ai.__path__.append(str(package))') == 1
           assert "github.event.workflow_run.conclusion == 'success'" in mirror
+          assert "github.event.workflow_run.event == 'workflow_dispatch'" in mirror
+          assert "github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111'" in mirror
+          assert "github.event.workflow_run.head_sha == '5f5bd960e3377a87541f9d6b348d3c045ea51cf0'" in mirror
+          assert "needs.source_mirror.result == 'success'" in daily
           assert "github.event.schedule == '20 21 * * *'" in mirror
           assert 'continue-on-error: true' not in mirror
           assert "'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics'" in header
@@ -117,9 +162,10 @@ jobs:
     if: >-
       github.repository == 'haji84/RACE-AI' &&
       ((github.event_name == 'workflow_run' &&
-        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
-        github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022' &&
+        github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
+        github.event.workflow_run.head_sha == '5f5bd960e3377a87541f9d6b348d3c045ea51cf0' &&
         github.event.workflow_run.conclusion == 'success') ||
        (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
        (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
@@ -170,12 +216,13 @@ jobs:
       !cancelled() &&
       github.repository == 'haji84/RACE-AI' && github.event_name != 'pull_request' &&
       (github.event_name != 'workflow_run' ||
-       (github.event.workflow_run.event == 'push' &&
+       (github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
-        github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022' &&
-        github.event.workflow_run.conclusion == 'success')) &&
+        github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
+        github.event.workflow_run.head_sha == '5f5bd960e3377a87541f9d6b348d3c045ea51cf0' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        needs.source_mirror.result == 'success')) &&
       (github.event_name != 'push' ||
-       github.ref == 'refs/heads/feat/four-sport-forecast-audit-view-20261022' ||
        (github.ref == 'refs/heads/main' &&
         startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca')))
     runs-on: ubuntu-24.04
@@ -307,3 +354,53 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           GH_TOKEN: ${{ github.token }}
         run: python -m scripts.verify_all_history_pdca_readback --repository-root .
+
+  owner_p0_p1_dispatch:
+    name: Gate-and-dispatch original BOAT owner P0/P1 (no scorer duplication)
+    # Reuse the existing BOAT result schedule. It already covers JST 06:20
+    # and 07:02-08:57, leaving the first future race to the original worker.
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'schedule' &&
+      (github.event.schedule == '20 21 * * *' ||
+       github.event.schedule == '2-59/5 22-23 * * *')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    concurrency:
+      group: boat-main-launcher-source-free
+      cancel-in-progress: false
+    # This permission increase is isolated to the explicit release launcher.
+    # It is not enabled until this PR and source-owner boundary are reviewed.
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify registered owner release SHA, source-owner gate, existing runs
+        id: owner_gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/production/boat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-release.json"
+          gh api "repos/$GITHUB_REPOSITORY/contents/docs/RACE_AI_LATEST_STATUS.md?ref=production%2Fboat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-policy.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-nationwide-ab-one-shot.yml/runs?branch=production%2Fboat-p0-p1-20261111&per_page=100" > "$RUNNER_TEMP/boat-owner-runs.json"
+          python -m scripts.boat_main_dispatch_gate \
+            --release "$RUNNER_TEMP/boat-owner-release.json" \
+            --owner-doc "$RUNNER_TEMP/boat-owner-policy.json" \
+            --history "$RUNNER_TEMP/boat-owner-runs.json" \
+            --github-output "$GITHUB_OUTPUT"
+      - name: Dispatch only the existing owner P0/P1 workflow
+        if: steps.owner_gate.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh workflow run boat-nationwide-ab-one-shot.yml \
+            --ref production/boat-p0-p1-20261111 \
+            -f production_scope=existing-owner-p0-p1
+          echo 'DISPATCH_REQUESTED_REAL_P0_P1_NOT_YET_PROVEN'
