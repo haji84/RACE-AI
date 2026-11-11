@@ -159,7 +159,9 @@ class WatchdogAccessBoundaryTests(unittest.TestCase):
 
     def test_expected_schedules_and_trusted_completion_only(self):
         text = self.workflow
-        self.assertIn("25,55 * * * *", text)
+        self.assertIn("1-56/5 * * * *", text)
+        self.assertNotIn("25,55 * * * *", text)
+        self.assertIn("group: keirin-pr71-monitored-watchdog-main", text)
         self.assertIn("workflow_run:", text)
         self.assertIn("KEIRIN hourly personal research canary", text)
         for check in (
@@ -171,6 +173,16 @@ class WatchdogAccessBoundaryTests(unittest.TestCase):
             "github.repository == 'haji84/RACE-AI'",
         ):
             self.assertIn(check, text)
+
+    def test_staggered_watchdog_does_not_change_single_writer_or_permissions(self):
+        text = self.workflow
+        self.assertIn("1-56/5 * * * *", text)
+        self.assertIn("cancel-in-progress: false", text)
+        self.assertIn("group: keirin-pr71-monitored-watchdog-main", text)
+        self.assertIn("HOLD_ACTIVE_TRUSTED_PRODUCER", text)
+        self.assertIn("SKIP_RECENT_TRUSTED_PRODUCER", text)
+        self.assertIn("DISPATCH_MISSING_TRUSTED_PRODUCER", text)
+        self.assertNotIn("secrets.", text)
 
     def test_single_dispatch_never_runs_from_untrusted_pr(self):
         self.assertIn("github.event_name == 'pull_request'", self.public_job)
