@@ -84,10 +84,68 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertEqual(len(minute_set)*(15+2),204)
         launcher=source.split("  owner_p0_p1_dispatch:\n",1)[1]
         self.assertIn("github.event.schedule == '2-59/5 22-23 * * *'", launcher)
-        self.assertNotIn("github.event.schedule == '2-59/5 0-14 * * *'", launcher)
+        self.assertIn("github.event.schedule == '2-59/5 0-14 * * *'", launcher)
         self.assertIn("group: boat-main-launcher-source-free", launcher)
         self.assertIn("actions: write", launcher)
         self.assertNotIn("racer_intraday_refresh",launcher)
+
+    def _safe_same_day_successor(self):
+        run=dict(id=101,name=WORKFLOW,head_branch=RELEASE_REF,
+                 head_sha=RELEASE_SHA,event='workflow_dispatch',
+                 created_at='2026-11-11T00:01:00Z',
+                 status='completed',conclusion='success')
+        control=dict(previous_run_id=101,day_jst='2026-11-11',
+                     prepared_round=None,source_wait=None,
+                     previous_halted_reason=None,
+                     previous_stop_reason='BOUNDED_SESSION_END',
+                     previous_session_requests=30,completed_round=8,
+                     lifetime_requests=130,day_start_lifetime_requests=100,
+                     receipt=dict(id=701,digest='sha256:'+'a'*64,
+                                  created_at='2026-11-11T00:04:00Z'),
+                     source_control_receipt=dict(id=702,digest='sha256:'+'b'*64,
+                                  created_at='2026-11-11T00:04:01Z'))
+        return run,control
+
+    def test_authenticated_same_day_handoff_admits_exactly_one_safe_successor(self):
+        run,control=self._safe_same_day_successor()
+        first=decide(now=NOW,release=release(),owner_doc=source_doc(RELEASE_TOKEN),
+                     history=history(run))
+        self.assertEqual(first['status'],'HOLD_ALREADY_DISPATCHED_FOR_JST_DAY')
+        self.assertFalse(first['dispatch_allowed'])
+        approved=decide(now=NOW,release=release(),owner_doc=source_doc(RELEASE_TOKEN),
+                        history=history(run),continuation_proof=control)
+        self.assertTrue(approved['dispatch_allowed'])
+        self.assertEqual(approved['status'],'READY_VERIFIED_SAME_DAY_CONTINUATION')
+        self.assertEqual(approved['official_source_requests'],0)
+        self.assertFalse(approved['future_real_forecast_proven'])
+
+    def test_handoff_requires_complete_round_and_unexpired_budget(self):
+        from copy import deepcopy
+        run,control=self._safe_same_day_successor()
+        def verdict(c,rows=None):
+            return decide(now=NOW,release=release(),owner_doc=source_doc(RELEASE_TOKEN),
+                          history=history(*(rows if rows is not None else [run])),
+                          continuation_proof=c)
+        for edit in (
+            lambda c:c.update(prepared_round=9),
+            lambda c:c.update(previous_stop_reason='SOURCE_HTTP_403_NO_RETRY'),
+            lambda c:c.update(source_wait=dict(state='SOURCE_REVIEW_WAIT',reason='SOURCE_VERIFICATION_REQUIRED')),
+            lambda c:c.update(previous_halted_reason='SOURCE_VERIFICATION_REQUIRED'),
+            lambda c:c.pop('day_start_lifetime_requests'),
+            lambda c:c.update(day_start_lifetime_requests=0,lifetime_requests=239),
+            lambda c:c.update(day_start_lifetime_requests=100,lifetime_requests=300),
+            lambda c:c.update(previous_run_id=102),
+            lambda c:c['receipt'].update(created_at='2026-11-11T00:11:00Z'),
+            lambda c:c['receipt'].update(digest='sha256:'+'x'*64),
+            lambda c:c['source_control_receipt'].update(id=-1),
+        ):
+            record=deepcopy(control);edit(record)
+            with self.subTest(record=record):
+                self.assertFalse(verdict(record)['dispatch_allowed'])
+        changed=dict(run,head_sha='0'*40)
+        self.assertFalse(verdict(control,[changed])['dispatch_allowed'])
+        self.assertFalse(verdict(control,[run,run])['dispatch_allowed'])
+        self.assertFalse(verdict(control,[dict(run,status='in_progress')])['dispatch_allowed'])
 
     def test_overnight_active_owner_run_blocks_another_writer(self):
         previous={"name": WORKFLOW, "head_branch": RELEASE_REF,
