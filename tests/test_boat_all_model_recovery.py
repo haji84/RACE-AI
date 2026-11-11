@@ -37,7 +37,7 @@ def zipped(cipher,*,member='forecasts.enc'):
 
 
 def api_run(run=42):
-    return dict(id=run,workflow_id=405276784,head_branch='feat/four-sport-forecast-audit-view-20261022',
+    return dict(id=run,workflow_id=405276784,head_branch='feat/four-sport-forecast-audit-view-20261022',event='push',
         head_sha=HEAD,status='in_progress',created_at='2030-04-01T08:50:00Z',updated_at='2030-04-01T09:00:00Z',
         repository=dict(id=1416489937,full_name='haji84/RACE-AI'),
         head_repository=dict(id=1416489937,full_name='haji84/RACE-AI'))
