@@ -46,6 +46,9 @@ jobs:
           from pathlib import Path
           t=Path('.github/workflows/boat-result-gap-recovery.yml').read_text()
           assert '--replay-retained-results' in t
+          assert 'race_ai.__path__.append(str(package))' in t
+          assert '761247bee0209e37b1af6b8885e92cad3e9260a5' in t
+          assert '7a432e5acc4d3495a0e82bd79726929e2f8085fe' in t
           import re
           assert not re.search(r'^\s+--sync-(?:results|beforeinfo)\b',t,re.MULTILINE)
           assert 'gh workflow run boat-result-gap-recovery.yml' in t
@@ -85,6 +88,18 @@ jobs:
           ref: 914941a6244364480370ac392441ad4bb5781f83
           path: source-reader
           persist-credentials: false
+      - name: Install immutable original official parser separately
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - name: Install immutable original result adapter separately
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
       - run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
       - name: Read actual GitHub schedule history only
         env:
@@ -114,9 +129,19 @@ jobs:
           RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
         working-directory: source-reader
         run: |
-          python -m scripts.racer_intraday_refresh \
-            --private-dir "$RUNNER_TEMP/boat-gap-sourcefree" \
-            --replay-retained-results > "$RUNNER_TEMP/boat-gap-replay.json"
+          python - <<'PY_REPLAY' > "$RUNNER_TEMP/boat-gap-replay.json"
+          import os
+          from pathlib import Path
+          import race_ai
+          for folder in ('../pr64-reference', '../pr72-reference'):
+              package=Path(folder, 'race_ai').resolve()
+              assert package.is_dir(), 'PINNED_OFFICIAL_ADAPTER_MISSING'
+              race_ai.__path__.append(str(package))
+          from scripts.racer_intraday_refresh import main
+          raise SystemExit(main(['--private-dir',
+              os.path.join(os.environ['RUNNER_TEMP'],'boat-gap-sourcefree'),
+              '--replay-retained-results']))
+          PY_REPLAY
           python - <<'PY'
           from pathlib import Path
           import json,os
