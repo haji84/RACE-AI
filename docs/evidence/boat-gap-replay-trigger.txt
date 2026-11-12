@@ -132,3 +132,16 @@ and source GET<=36. If genuine new finals are AES-saved and independently
 verified, allow a source-free repo-qualified continuation dispatch. If not,
 report HOLD and do not force a retry. Never modify P0, create synthetic
 official results, or release owner source/race identities.
+
+2026-11-13 08:34 JST | OWNER SOURCE-FREE FINAL TWO RACE DIAGNOSTIC.
+The live Pages display was independently checked at 140/142, but two
+unresolved records cannot be classified by the browser check alone.
+Run ONLY the established AES-authenticated count-only original 142 P0
+audit on the current owner saved-view Git branch, now after production
+run #43327268171. Require exact 142 race inventory, 284 frozen P0
+forecasts, the original model-specific strict scorer, and distinct
+result statuses final/missing/pending/unsupported/void. Report aggregate
+unsupported rejection reasons. No provider GET, no secret or race IDs
+released, no forecast rewrites, no source-budge reservation or new
+job dispatch. Missing/unsupported must remain HOLD and not a miss.
+This marker does not assert 142/142 completion.
