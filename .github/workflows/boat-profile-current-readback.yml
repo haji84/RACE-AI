@@ -66,10 +66,10 @@ jobs:
           assert '--readback-current' in s
           assert "boat-profile-current-readback: 20261112-verified-cipher" in s
           assert '8ebd36accc8a51eb586560c5db16f415ad601b9b' in s
-          assert s.count("from scripts.boat_profile_one_shot_proof import main")==1
-          assert "'--readback-current'" in s
+          assert s.count("from scripts.boat_profile_one_shot_proof import execute")==1
+          assert "execute('.',readback_current=True)" in s
           assert 'gh workflow run' not in s
-          assert '--readback\\x27' not in s
+          assert "'--readback-current'" not in s.split('  current_observed_source:',1)[1]
           PY
 
   current_observed_source:
