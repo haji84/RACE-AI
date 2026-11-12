@@ -406,7 +406,7 @@ jobs:
   daily:
     needs: [source_mirror, original_reconcile]
     if: >-
-      always() && !cancelled() &&
+      !cancelled() &&
       (!(github.event_name == 'push' && contains(github.event.head_commit.message, 'recover-first-p0-42995325741')) ||
        needs.original_reconcile.result == 'success') &&
       github.repository == 'haji84/RACE-AI' && github.event_name != 'pull_request' &&
