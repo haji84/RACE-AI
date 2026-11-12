@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 634a76b4fa1ab7d4de53e1389422e791c0ceae5b
+          ref: 6327bc5675aee2da94ac13397f1f86f39b27d8fd
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -244,7 +244,7 @@ jobs:
           assert "github.event.schedule == '20 21 * * *'" in mirror
           assert 'continue-on-error: true' not in mirror
           assert "'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics'" in header
-          pin = "ref: $" + "{{ github.event_name == 'push' && github.sha || '634a76b4fa1ab7d4de53e1389422e791c0ceae5b' }}"
+          pin = "ref: $" + "{{ github.event_name == 'push' && github.sha || '6327bc5675aee2da94ac13397f1f86f39b27d8fd' }}"
           assert pin in daily
           PY
   original_retention:
@@ -509,7 +509,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ github.event_name == 'push' && github.sha || '634a76b4fa1ab7d4de53e1389422e791c0ceae5b' }}
+          ref: ${{ github.event_name == 'push' && github.sha || '6327bc5675aee2da94ac13397f1f86f39b27d8fd' }}
           persist-credentials: true
       - name: Use pinned collector for official results and stage-aware P0 reader only for view verification
         if: >-
@@ -522,7 +522,7 @@ jobs:
           # "--stage P0". Swap only the read-only site-verifier mode to a
           # separately CI-proven, stage-aware existing release; source
           # collection remains pinned to the exact tested fast-results SHA.
-          ref: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-view') && '0796b52c2804177976e4c2e5ab9b65f32589720b' || '634a76b4fa1ab7d4de53e1389422e791c0ceae5b' }}
+          ref: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-view') && '0796b52c2804177976e4c2e5ab9b65f32589720b' || '6327bc5675aee2da94ac13397f1f86f39b27d8fd' }}
           persist-credentials: true
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
