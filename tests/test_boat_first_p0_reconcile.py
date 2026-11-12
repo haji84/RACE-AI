@@ -441,6 +441,25 @@ class FirstP0ReconcileTests(unittest.TestCase):
             participants=[dict(number=3,registration_no='4999',name=None)])])
         self.assertEqual(reconcile._retained_result_names([(raw,receipt)],foreign,NOW),({},0))
 
+    def test_conflicting_same_day_registration_names_cannot_claim_another_race(self):
+        day=self.bundle['day']
+        rid=day.replace('-','')+'-01-03'
+        target=dict(records=[dict(sport='boat',race_id=rid,
+            participants=[dict(number=2,registration_no='4006',name=None)])])
+        a=document(day=day.replace('-',''),number=1)
+        b=document(day=day.replace('-',''),number=2)
+        b['maindata']['teiinfolist'][-1]['racername']='別の保存名'
+        raw1,receipt1=packet(a,captured=(NOW-timedelta(minutes=1)).isoformat())
+        raw2,receipt2=packet(b,captured=NOW.isoformat())
+        found,unsupported=reconcile._retained_result_names(
+            [(raw1,receipt1),(raw2,receipt2)],target,NOW)
+        self.assertEqual(found,{})
+        self.assertEqual(unsupported,0)
+        # A single authenticated observation can prove a registration,
+        # but conflicting authentic observations must never be guessed away.
+        first,_=reconcile._retained_result_names([(raw1,receipt1)],target,NOW)
+        self.assertEqual(first[rid]['4006']['kind'],'SAME_DAY_OFFICIAL_RESULT')
+
     def test_conflicting_authenticated_result_names_never_override_a_frozen_identity(self):
         day = self.bundle['day']; rid = day.replace('-', '')+'-01-01'
         target = dict(records=[dict(sport='boat', race_id=rid,
