@@ -215,6 +215,8 @@ def _retained_result_names(captures, view, now):
     if not targets:
         return {}, 0
     found = {}
+    observed_registrations = {}
+    conflicting_registrations = set()
     unsupported = 0
     for raw, receipt in captures:
         try:
@@ -227,6 +229,10 @@ def _retained_result_names(captures, view, now):
         rid = parsed['race_id']
         for observed in parsed['rows']:
             pid, lane = observed['racer_id'], observed['lane']
+            prior = observed_registrations.get(pid)
+            if prior is not None and prior['name'] != observed['name']:
+                conflicting_registrations.add(pid)
+            observed_registrations.setdefault(pid, dict(observed, source_race_id=rid))
             if (rid, lane, pid) not in targets:
                 continue
             meta = dict(kind='SAME_RACE_RESULT', name=observed['name'],
@@ -240,6 +246,22 @@ def _retained_result_names(captures, view, now):
             # Never manufacture or silently revise an identity on another
             # observation. The first authenticated matching source is enough.
             known.setdefault(pid, meta)
+    # A rider's registration is stable within one event day. Other races
+    # from that same day may supply independently authenticated display text,
+    # but cannot serve as a same-race proof. Keep their origin race explicit.
+    for rid, lane, pid in sorted(targets):
+        if pid in found.get(rid, {}) or pid in conflicting_registrations:
+            continue
+        observed = observed_registrations.get(pid)
+        if not observed or observed['source_race_id'] == rid or observed['source_race_id'][:8] != rid[:8]:
+            continue
+        meta = dict(kind='SAME_DAY_OFFICIAL_RESULT', name=observed['name'],
+                    number=lane, registration_no=pid, race_id=rid,
+                    source_race_id=observed['source_race_id'],
+                    source_url=observed['source_url'],
+                    source_sha256=observed['source_sha256'],
+                    captured_at=observed['captured_at'])
+        found.setdefault(rid, {})[pid] = meta
     return found, unsupported
 
 
@@ -360,6 +382,9 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
                 merged = _named_target(merged, day, dict(registry={}, races=found))
             name_proof['display_name_result_races'] = len(found)
             name_proof['display_name_result_candidates'] = sum(map(len, found.values()))
+            name_proof['display_name_result_cross_race_candidates'] = sum(
+                item.get('kind') == 'SAME_DAY_OFFICIAL_RESULT'
+                for names_for_race in found.values() for item in names_for_race.values())
             name_proof['display_name_result_unsupported_captures'] = unsupported
         native_results = F.update_view(native_view, [], captures=captures, synced_at=now.isoformat())
         captured_latest, _ = latest_result_observations([
