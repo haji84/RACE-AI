@@ -63,7 +63,12 @@ class ResultQueueTests(unittest.TestCase):
                 if '/race/index?' in url:
                     return day_index(venues=('01',)),now.isoformat()
                 day,venue,number=identity(url)
-                raw,_=packet(result_document(day=day.replace('-',''),venue=venue,number=number,pending=True))
+                doc=result_document(day=day.replace('-',''),venue=venue,number=number,pending=True)
+                # Keep the official deadline aligned with the saved cutoff.
+                # A genuinely postponed race must keep its longer wait.
+                if venue=='19' and number==11:
+                    doc['raceheader']['rlinklist'][number-1]['deadline']='11:08'
+                raw,_=packet(doc)
                 return raw,now.isoformat()
             return fetch
         first=cutoff+timedelta(minutes=1)
