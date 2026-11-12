@@ -1,0 +1,30 @@
+name: BOAT 44 P1 source-free coverage regression
+on:
+  push:
+    branches: [feat/boat-44-tactics-p1-connector-20261109]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: boat-44-p1-sourcefree-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  boat-sourcefree-unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22'
+      - name: Verify retained-history and 132-case missing-data contracts offline
+        run: |
+          python -m unittest discover -s tests -p 'test_boat_44_p1_input_bridge.py' -q
+          python -m unittest discover -s tests -p 'test_boat_44_node_runner_contract.py' -q
+      - name: Explicitly report test scope
+        if: always()
+        run: |
+          echo 'Scope: synthetic, source-free. Not actual 132-race model predictions.'
+          echo 'No result provider GET, no decrypted owner data, no model training, no settlement.'
