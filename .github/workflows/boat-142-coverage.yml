@@ -1,0 +1,130 @@
+name: BOAT 142 race P0 and every-model coverage (AES only)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-142-coverage.yml
+      - scripts/boat_142_coverage.py
+      - tests/test_boat_142_coverage.py
+  push:
+    branches: [main]
+    paths:
+      - docs/evidence/boat-gap-replay-trigger.txt
+  workflow_run:
+    workflows: ['BOAT schedule-gap retained-result recovery (zero provider GET)']
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: boat-142-coverage-sourcefree
+  cancel-in-progress: false
+jobs:
+  sourcefree_unit:
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.event.pull_request.head.sha }}'
+          persist-credentials: false
+      - run: python -m unittest tests.test_boat_142_coverage -v
+      - name: Require this workflow never makes official-result GET
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          code=Path('scripts/boat_142_coverage.py').read_text()
+          workflow=Path('.github/workflows/boat-142-coverage.yml').read_text()
+          assert 'requests.get' not in code and 'httpx' not in code
+          assert 'www.boatrace.jp' not in workflow
+          assert 'P.score_view(view,authenticated=True)' in workflow
+          assert 'reconciled_status(r)' in workflow
+          assert 'official_source_requests' in code
+          print('BOAT_142_SOURCEFREE_ACCOUNTING_CONTRACT_VERIFIED')
+          PY
+  authenticated_all_races:
+    if: >-
+      github.repository == 'haji84/RACE-AI' && (
+        (github.event_name == 'push' &&
+         github.ref == 'refs/heads/main' &&
+         startsWith(github.event.head_commit.message,
+                    'boat-coverage: sourcefree-142-20261113')) ||
+        (github.event_name == 'workflow_run' &&
+         github.event.workflow_run.conclusion == 'success' &&
+         github.event.workflow_run.event != 'pull_request' &&
+         github.event.workflow_run.head_branch == 'main' &&
+         github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.sha }}'
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0796b52c2804177976e4c2e5ab9b65f32589720b
+          path: coverage-source
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: coverage-source/pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: coverage-source/pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r coverage-source/requirements-history.txt
+      - name: Audit exact 142 original P0 races and each model, with zero provider GET
+        working-directory: coverage-source
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY'
+          import importlib.util,json,os,race_ai
+          from datetime import datetime,timezone
+          from pathlib import Path
+          for folder in ('pr64-reference','pr72-reference'):
+              p=Path(folder,'race_ai').resolve()
+              assert p.is_dir(), 'PINNED_PARSER_MISSING'
+              race_ai.__path__.append(str(p))
+          from scripts.boat_private_original_vault import _environment
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai import saved_view_feed as F
+          from race_ai import result_due_ledger as D,retained_model_pdca_audit as P
+          base=_environment(Path('.').resolve())
+          bridge=SavedResultBridge(base,now=datetime.now(timezone.utc))
+          day='2026-11-12'
+          view=F.current_view(bridge.git,bridge.bootstrap,day=day)[3]
+          rows=[r for r in view['records'] if r.get('sport')=='boat' and
+                r.get('event_date_jst')==day]
+          statuses={r['race_id']:D.reconciled_status(r) for r in rows}
+          score=P.score_view(view,authenticated=True)
+          helper=Path('..','scripts','boat_142_coverage.py').resolve()
+          assert helper.is_file()
+          spec=importlib.util.spec_from_file_location('boat_coverage',helper)
+          module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+          result=module.summarize(view,statuses,score,day=day,
+              expected_races=142,expected_p0=284)
+          assert result['official_source_requests']==0
+          assert result['prediction_rewrites']==0 and result['actual_purchases'] is False
+          print(json.dumps(result,sort_keys=True,ensure_ascii=False))
+          destination=Path(os.environ['RUNNER_TEMP'])/'boat-142-coverage-counts.json'
+          fd=os.open(destination,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+          with os.fdopen(fd,'w') as output:
+              json.dump(result,output,sort_keys=True);output.write('\n')
+          PY
+      - name: Retain only aggregate coverage, never private race IDs or source bytes
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-142-result-coverage-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-142-coverage-counts.json
+          retention-days: 90
+          if-no-files-found: error
