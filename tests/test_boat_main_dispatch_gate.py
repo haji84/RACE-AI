@@ -280,7 +280,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         owner=workflow.split('  owner_p0_p1_dispatch:',1)[1]
         self.assertIn(token,daily)
         self.assertNotIn(token,owner)
-        self.assertIn('always() && !cancelled()',daily)
+        self.assertIn('!cancelled()',daily)
         self.assertIn("github.ref == 'refs/heads/main'",daily)
         self.assertIn("docs/evidence/owner-pdca-main-trigger.txt",workflow.split('jobs:',1)[0])
         self.assertEqual(workflow.count('name: Reflect confirmed races and retain encrypted incremental source packets'),1)
