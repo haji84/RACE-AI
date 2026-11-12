@@ -2,7 +2,10 @@ name: BOAT per-race results and athlete statistics
 on:
   pull_request:
     branches: [main]
-    paths: [.github/workflows/boat-racer-daily.yml]
+    paths:
+      - .github/workflows/boat-racer-daily.yml
+      - scripts/boat_main_dispatch_gate.py
+      - tests/test_boat_main_dispatch_gate.py
   push:
     branches: [main]
     paths: [docs/evidence/racer-daily-refresh-trigger.txt, docs/evidence/racer-intraday-refresh-trigger.txt, docs/evidence/owner-pdca-main-trigger.txt]
