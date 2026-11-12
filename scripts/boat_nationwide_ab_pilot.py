@@ -396,7 +396,22 @@ def _research_target(value,now):
         raise ValueError('HOLD_RESEARCH_TARGET_INVALID') from None
 
 
-def make_pair(day,race,*,research_target=None):
+def _optional_source_allowed(reserved_next_gets):
+    """Never spend a later P1 race's required GET on optional priced research."""
+    if type(reserved_next_gets) is not int or reserved_next_gets<0:
+        raise ValueError('OPTIONAL_SOURCE_RESERVATION_INVALID')
+    if SOURCE_GUARD is None:
+        return True  # Existing source-free/model fixture behavior unchanged.
+    remaining=getattr(SOURCE_GUARD,'remaining',None)
+    if not callable(remaining):
+        return False  # Unknown budget evidence never grants optional GET.
+    left=remaining()
+    if type(left) is not int or left<0:
+        raise ValueError('OPTIONAL_SOURCE_REMAINING_INVALID')
+    return left>reserved_next_gets
+
+
+def make_pair(day,race,*,research_target=None,reserved_next_gets=0):
     race_id=race["race_id"];venue=race_id[9:11];n=int(race_id[-2:])
     now=_clock(day)
     target=_research_target(research_target,now)
@@ -560,7 +575,7 @@ def make_pair(day,race,*,research_target=None):
     # relevant cutoff and label the priced research variant separately.
     priced={"race_id":race_id,"state":"OFFICIAL_PRE_CLOSE_PRICES_NOT_VERIFIED"}
     paused=None
-    if _clock(day)+MIN_TO_CUTOFF<cutoff:
+    if _clock(day)+MIN_TO_CUTOFF<cutoff and _optional_source_allowed(reserved_next_gets):
         try:
             price_url=update_endpoint(day,venue,n,"odds3t")
             odds_raw,odds_at,odds_sha=get(price_url,day=day)
@@ -583,6 +598,8 @@ def make_pair(day,race,*,research_target=None):
             else:
                 priced={"race_id":race_id,"state":"OFFICIAL_PRE_CLOSE_PRICES_NOT_VERIFIED",
                         "failure_class":type(ex).__name__}
+    if _clock(day)+MIN_TO_CUTOFF<cutoff and not _optional_source_allowed(reserved_next_gets):
+        priced={"race_id":race_id,"state":"OPTIONAL_ODDS_DEFERRED_FOR_REQUIRED_P1_GETS"}
     if _clock(day)+MIN_TO_CUTOFF>=cutoff:
         return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None,None
     paused=collect_pitreport(context,day,paused=paused)
@@ -765,6 +782,13 @@ def run(*, schedule_snapshot=None,research_target=None):
             source_only=(issued is not None and (rid in previously_frozen or bool(baseline_ids&issued.get(rid,frozenset()))))
             source_race=dict(race,source_capture_only=True) if source_only else race
             options={} if target is None else dict(research_target=target)
+            if SOURCE_GUARD is not None:
+                # Official schedule is already authenticated. Reserve only
+                # the two *required* program/exhibition GETs per other future
+                # un-frozen race. This cannot increase the 240/JST-day cap.
+                outstanding=sum(row['race_id']!=rid and row['race_id'] not in completed
+                                for row in prospective_rows)
+                options['reserved_next_gets']=2*outstanding
             status,pair,extended,priced,observed=make_pair(day,source_race,**options)
             status.update(phase=race.get('phase'),cutoff_at=race['cutoff_at'],
                           target_at=(datetime.fromisoformat(race['cutoff_at'])-timedelta(minutes=10)).isoformat())
