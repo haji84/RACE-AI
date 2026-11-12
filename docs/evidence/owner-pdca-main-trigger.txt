@@ -226,3 +226,23 @@ public raw names/keys. The browser checker line 233 must remain strict.
 Do not count this marker or a green CI as live browser proof. Demand actual
 LIVE_OWNER_SITE_VERIFIED with >=31 genuine official results and 2 native P0
 model groups, or report the exact hold reason with private details withheld.
+
+2026-11-12 JST | AUTHENTICATED RESULT-SOURCE DISPLAY-NAME COLD REPLAY
+Use exactly the saved 2026-11-12 first P0 (run 43131905826, artifact
+13905925953), its already-retained CONTINUITY and SOURCE_CONTROL companions,
+the existing sealed result state, and the existing encrypted Pages feed.
+Source-free reader SHA 924c70204c1365a634ccfc1b9a5aa89f25eb3bc0 passed
+306 Python native regression tests (Actions 43167727122). The main
+original_reconcile reader has an explicit --include-verified-result-names
+switch for this replay only. It may derive display names from already
+retained exact official same-race results, only if result parser authenticates
+original raw bytes, URL, date, complete participant identity and clock and
+the entrant's race ID, lane and registration number all match.
+No fresh official GET; no P0/P1 generation or mutation, no result replacement,
+no budget bypass, no guessed names and no plaintext source or viewer key
+in Public/logs. A conflicting authenticated name must stop the change.
+Original verdicts, prediction SHA and 232 pending/review statuses remain
+authoritative. Browser must independently verify the same stage/model/31-result
+view. Explicitly report both before/after verified name totals; do not label
+the whole 852-name cohort PASS unless all 852 are independently bound.
+Run only existing owner-readback: recover-saved-p0-43131905826 safe gate.
