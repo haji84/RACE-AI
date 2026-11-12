@@ -32,3 +32,10 @@ replays. A green PR CI alone is not this full proof.
 暗号保存、別runnerで同じsource ciphertext / final result digest / inventory SHAを再照合する。
 この手動起動は定期schedule自律発火の証明には数えない。source GET上限、元P0/P1、
 拒否済みsourceの停止規則、継続起動の制限は変更しない。新結果未到着なら全体HOLD。
+
+2026-11-12｜実結果GET回収試験 run43203477484 は安全ゲート通過後に既存source script内でexit1。
+現在の原因はsourceのstdoutが非公開RUNNER_TEMPへ退避されており過去ジョブログからは不明。
+暗号転送branchの最後の更新は2026-11-12T06:45:16Zで、この失敗の後には更新されていない。
+今回の診断は旧暗号のread-only復元、元daily store取得、intraday取得、現在の結果表示sourceと公開候補算出だけを実行。
+公式提供元の通信を0回とし、本人名・鍵・HTMLは出力しない。失敗ならフェーズと正規化した原因文字列だけを報告。
+既存の取得制限と重複防止は維持、GET再試行は実施しない。source failure reportは将来実行時だけ安全要約で公開する。
