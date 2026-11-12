@@ -302,6 +302,42 @@ test("gen125 official result display names require original SP result URL and ex
   assert.throws(()=>M.parse(make({kind:"UNVERIFIED_RESULT"})),/出典|選手名/);
 });
 
+test("same-day saved official result name is proven by source race and exact target registration", () => {
+  const make = (changes={}) => {
+    const raw=privateCycle();
+    raw.records[0].participants[0].name="別レース確認済み架空選手";
+    raw.records[0].participants[0].name_source={
+      kind:"SAME_DAY_OFFICIAL_RESULT", registration_no:"4430",
+      race_id:"20300101-01-01", source_race_id:"20300101-01-02",
+      source_url:"https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=2",
+      source_sha256:RESULT, captured_at:"2030-01-01T10:20:00+09:00",
+      ...changes
+    };
+    return raw;
+  };
+  const original=make(),before=JSON.stringify(original),parsed=M.parse(original);
+  assert.equal(JSON.stringify(original),before);
+  assert.equal(parsed.records[0].participants[0].name_source.source_race_id,"20300101-01-02");
+  assert.equal(parsed.records[0].prediction.prediction_sha256,SHA);
+  assert.equal(M.eligiblePrediction(parsed.records[0],parsed.records[0].prediction),false);
+  for(const change of [
+    {registration_no:"4999"}, {race_id:"20300101-01-03"},
+    {source_race_id:"20300101-01-01"}, {source_race_id:"20300101-01-03"},
+    {source_race_id:"20300102-01-02"}, {source_race_id:"20300101-00-02"},
+    {source_sha256:"invalid"}, {captured_at:"invalid"},
+    {captured_at:"2029-12-31T23:59:59+09:00"},
+    {source_url:"https://example.invalid/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=2"},
+    {source_url:"https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=1"},
+    {source_url:"https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=02&rno=2"},
+    {source_url:"https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300102&jcd=01&rno=2"},
+    {source_url:"https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=2&debug=1"},
+    {source_url:"https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=2&hd=20300101"}
+  ]) {
+    assert.throws(()=>M.parse(make(change)),/出典|選手名|不正/,JSON.stringify(change));
+  }
+  assert.throws(()=>M.parse(make({kind:"NOT_VERIFIED"})),/出典|選手名|不正/);
+});
+
 test("private cycle projection admits exact saved partial metadata without fake time/hash/version", () => {
   const raw=privateCycle(), before=JSON.stringify(raw), parsed=M.parse(raw), r=parsed.records[0], p=r.prediction;
   assert.equal(JSON.stringify(raw),before);

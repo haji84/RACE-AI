@@ -328,6 +328,30 @@
     } catch { return false; }
   }
 
+  function boundSameDayOfficialResultName(source, raceId) {
+    // A previously captured official result from another race on the same
+    // Japanese event day can prove a registration-number display name.
+    // It is never evidence that the target race has an official result.
+    if (source?.kind !== "SAME_DAY_OFFICIAL_RESULT" || source.race_id !== raceId ||
+        !sha(source.source_sha256) || !stamp(source.captured_at)) return false;
+    const target = /^([0-9]{8})-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])$/.exec(raceId);
+    const origin = /^([0-9]{8})-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])$/.exec(source.source_race_id);
+    if (!target || !origin || origin[1] !== target[1] ||
+        source.source_race_id === raceId) return false;
+    try {
+      const url = new URL(source.source_url);
+      if (url.protocol !== "https:" || url.host !== "www.boatrace.jp" ||
+          url.username || url.password || url.hash || url.pathname !== "/owsp/sp/spdata") return false;
+      const query = url.searchParams;
+      return [...query].length === 4 && new Set(query.keys()).size === 4 &&
+        query.get("type") === "raceresult" && query.get("hd") === origin[1] &&
+        query.get("jcd") === origin[2] &&
+        query.get("rno") === String(Number(origin[3])) &&
+        Date.parse(source.captured_at) >= Date.parse(
+          origin[1].slice(0,4) + "-" + origin[1].slice(4,6) + "-" + origin[1].slice(6,8) + "T00:00:00+09:00");
+    } catch { return false; }
+  }
+
   function parsePrivateCycle(value) {
     if (!["REAL_REPORTED","SYNTHETIC_ONLY"].includes(value.dataset_status) || !Array.isArray(value.records) || value.records.length > 10000) fail("私有循環データの種別・レース配列が不正です。");
     if (value.event_date_jst != null && !validDay(value.event_date_jst)) fail("JST開催日が不正です。");
@@ -365,10 +389,11 @@
           numbers.add(person.number);optionalLabel(person.name,"出走者名",500);optionalLabel(person.registration_no,"登録番号",100);
           if(person.name_source!=null){
             const source=person.name_source;
-            if(!source || typeof source!=="object" || Array.isArray(source) || !["SAME_RACE_PROGRAM","SAME_RACE_RESULT","VERIFIED_RACER_REGISTRY"].includes(source.kind) ||
+            if(!source || typeof source!=="object" || Array.isArray(source) || !["SAME_RACE_PROGRAM","SAME_RACE_RESULT","SAME_DAY_OFFICIAL_RESULT","VERIFIED_RACER_REGISTRY"].includes(source.kind) ||
               source.registration_no!==person.registration_no || !text(person.name) ||
               source.kind==="SAME_RACE_PROGRAM" && source.race_id!==row.race_id ||
               source.kind==="SAME_RACE_RESULT" && !boundSameRaceResultName(source,row.race_id) ||
+              source.kind==="SAME_DAY_OFFICIAL_RESULT" && !boundSameDayOfficialResultName(source,row.race_id) ||
               source.kind==="VERIFIED_RACER_REGISTRY" && (source.verified!==true || !sha(source.source_sha256)))fail("選手名と登録・出典の対応が不正です。");
             optionalSha(source.source_sha256,"選手名の出典");validateStamps(source,["captured_at"]);optionalLabel(source.source_url,"選手名の出典URL",2000);
           }
