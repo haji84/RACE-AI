@@ -104,4 +104,5 @@ class FreshGateTests(unittest.TestCase):
         assert "assert digest==os.environ['EXPECTED_RESULT_DIGEST']" in workflow
         assert "assert inventory==os.environ['EXPECTED_INVENTORY_DIGEST']" in workflow
         assert "assert loaded['previous']['head']['cipher_sha256']==os.environ['EXPECTED_SOURCE_CIPHER']" in workflow
-        assert "assert 0<report['source_requests']<=12" in workflow
+        assert "assert 0<report['source_requests']<=int(os.environ['EXPECTED_SOURCE_GET_CAP'])<=36" in workflow
+        assert "source_get_cap" in workflow
