@@ -82,8 +82,8 @@ def previous_first_receipt(day, run_id):
     return raw, meta
 
 
-def _remote_file(path):
-    cmd = ['gh', 'api', f'repos/{REPO}/contents/{path}?ref={BRANCH}']
+def _remote_file(path, *, ref=BRANCH):
+    cmd = ['gh', 'api', f'repos/{REPO}/contents/{path}?ref={ref}']
     reply = subprocess.run(cmd, stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE, timeout=50)
     if reply.returncode:
@@ -94,6 +94,24 @@ def _remote_file(path):
     return json.loads(reply.stdout)
 
 
+def _receipt_file_matches(value, path, body, *, with_content=True):
+    """Bind the Contents receipt to this path and the exact Git blob bytes."""
+    blob_sha = hashlib.sha1(f'blob {len(body)}\0'.encode() + body).hexdigest()
+    if not (isinstance(value, dict) and value.get('path') == path and
+            value.get('type') == 'file' and type(value.get('size')) is int and
+            value['size'] == len(body) and value.get('sha') == blob_sha):
+        return False
+    if not with_content:
+        return True
+    if value.get('encoding') != 'base64' or not isinstance(value.get('content'), str):
+        return False
+    try:
+        decoded = base64.b64decode(value['content'].replace('\n', ''), validate=True)
+    except ValueError:
+        return False
+    return decoded == body
+
+
 def register(day, raw, meta):
     """Write-once GitHub index, then check the server-returned bytes."""
     need(datetime.now(timezone.utc).astimezone(JST).date().isoformat() == day,
@@ -101,15 +119,17 @@ def register(day, raw, meta):
     path = index_path(day)
     value = receipt_index(raw, meta, day)
     body = json.dumps(value, ensure_ascii=False, sort_keys=True,
-                      separators=(',', ':')) + '\n'
+                      separators=(',', ':')).encode('utf-8') + b'\n'
     rel = path.relative_to(ROOT).as_posix()
     existing = _remote_file(rel)
     if existing is not None:
-        decoded = base64.b64decode(existing['content'].replace('\n', ''))
-        need(decoded == body.encode('utf-8'), 'FIRST_RECEIPT_EXISTS_WITH_OTHER_ORIGINAL')
+        need(_receipt_file_matches(existing, rel, body),
+             'FIRST_RECEIPT_EXISTS_WITH_OTHER_ORIGINAL')
+        # This independent GET already authenticates an existing immutable blob;
+        # no write occurred, so another moving-branch read adds no evidence.
     else:
         payload = dict(message=f"evidence(boat): register first authenticated P0 for {day}",
-                       content=base64.b64encode(body.encode('utf-8')).decode(),
+                       content=base64.b64encode(body).decode(),
                        branch=BRANCH)
         result = subprocess.run(
             ['gh', 'api', '--method', 'PUT', f'repos/{REPO}/contents/{rel}', '--input', '-'],
@@ -118,16 +138,26 @@ def register(day, raw, meta):
         need(result.returncode == 0,
              'FIRST_RECEIPT_INDEX_CREATE_REJECTED: ' +
              result.stderr.decode(errors='replace')[:180])
-    checked = _remote_file(rel)
-    need(checked is not None and
-         base64.b64decode(checked['content'].replace('\n', '')) == body.encode('utf-8'),
-         'FIRST_RECEIPT_INDEPENDENT_READBACK_MISMATCH')
+        try:
+            created = json.loads(result.stdout)
+            commit = created['commit']['sha']
+            valid = (isinstance(commit, str) and len(commit) == 40 and
+                     all(char in '0123456789abcdef' for char in commit) and
+                     _receipt_file_matches(created['content'], rel, body, with_content=False))
+        except (ValueError, KeyError, TypeError):
+            valid = False
+        need(valid, 'FIRST_RECEIPT_INDEX_CREATE_RECEIPT_INVALID')
+        # Read the creation commit, not the mutable branch just read as absent.
+        # The PUT response itself never substitutes for independent readback.
+        checked = _remote_file(rel, ref=commit)
+        need(_receipt_file_matches(checked, rel, body),
+             'FIRST_RECEIPT_INDEPENDENT_READBACK_MISMATCH')
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists():
-        need(path.read_bytes() == body.encode(), 'LOCAL_FIRST_RECEIPT_CONFLICT')
+        need(path.read_bytes() == body, 'LOCAL_FIRST_RECEIPT_CONFLICT')
     else:
         with path.open('xb') as f:
-            f.write(body.encode())
+            f.write(body)
     original(day)
     return value
 
@@ -163,10 +193,18 @@ def bootstrap_control(day,run_id,*,inherited=None):
              'BOOTSTRAP_SOURCE_CONTROL_IDENTITY')
         return value
     inherited=inherited or {}
+    from race_ai.repeated_cycle import SOURCE_LIMIT
+    total=inherited.get('lifetime_requests',0)
+    day_base=(inherited.get('day_start_lifetime_requests')
+              if inherited.get('day_jst')==day else total)
+    need(type(total) is int and type(day_base) is int and 0<=day_base<=total,
+         'BOOTSTRAP_DAY_SOURCE_BUDGET_UNVERIFIED')
+    need(SOURCE_LIMIT is None or total-day_base<=SOURCE_LIMIT,
+         'BOOTSTRAP_DAY_SOURCE_BUDGET_EXCEEDED')
     value=dict(schema='RACE_AI_BOOTSTRAP_SOURCE_CONTROL_V1',day_jst=day,run_id=run_id,
         requests_used=0,completed_round=0,source_wait=inherited.get('source_wait'),
-        lifetime_requests_base=inherited.get('lifetime_requests',0),
-        lifetime_requests=inherited.get('lifetime_requests',0),
+        lifetime_requests_base=total,
+        lifetime_requests=total,day_start_lifetime_requests=day_base,
         lifetime_completed_rounds=inherited.get('lifetime_completed_rounds',0),
         previous_halted_reason=inherited.get('previous_halted_reason'),halted_reason=None,
         inherited_source_receipt=inherited.get('receipt'))
@@ -176,6 +214,15 @@ def bootstrap_control(day,run_id,*,inherited=None):
 
 def preflight(day, run_id):
     inherited=previous_source_control(gh,day,current_run=run_id)
+    # Even a manually-dispatched production worker must not restart the
+    # official-source allowance after an unresolved same-day owner attempt.
+    # PR-only offline CI is filtered by day_runs/owner_run_origin.
+    earlier=[run for run in day_runs(gh,day,current_run=run_id)
+             if ts(run['created_at']).astimezone(JST).date().isoformat()==day]
+    if earlier:
+        need(inherited is not None and inherited.get('day_jst')==day and
+             type(inherited.get('day_start_lifetime_requests')) is int,
+             'SAME_DAY_OWNER_SOURCE_CONTROL_REQUIRED')
     bootstrap_control(day,run_id,inherited=inherited)
     prior = previous_first_receipt(day, run_id)
     path = index_path(day)
@@ -227,8 +274,14 @@ def capture(day, run_id, *, now=None, clock=None, handoff_at=None):
         return observed
     class BootstrapGuard:
         def charge(self,kind):
+            from race_ai.repeated_cycle import SOURCE_LIMIT
             need(kind=='forecast','BOOTSTRAP_SOURCE_KIND_REJECTED')
             actual_day_clock()
+            base=control.get('day_start_lifetime_requests')
+            need(type(base) is int and 0<=base<=control['lifetime_requests'],
+                 'BOOTSTRAP_DAY_SOURCE_BUDGET_UNVERIFIED')
+            need(SOURCE_LIMIT is None or control['lifetime_requests']-base<SOURCE_LIMIT,
+                 'BOOTSTRAP_DAY_SOURCE_BUDGET_EXCEEDED')
             control['requests_used']+=1
             control['lifetime_requests']=control['lifetime_requests_base']+control['requests_used']
             _save_control(control)  # Immediately before the actual GET.

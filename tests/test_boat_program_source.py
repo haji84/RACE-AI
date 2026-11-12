@@ -77,7 +77,7 @@ class ProgramSourceTests(unittest.TestCase):
         return program.retain_program_source(DAY,self.document,self.receipt,self.f.writer.repo,
             expected_parent=kwargs.pop('expected_parent',self.f.parent),capture_dir=self.f.root/'boat-program-source',
             key=KEY,transport=self.f.writer,readback_transport=self.f.reader,
-            now=datetime.fromisoformat(AT),**kwargs)
+            now=kwargs.pop('now',datetime.fromisoformat(AT)),**kwargs)
 
     def test_capture_retention_and_new_worker_restore_preserve_exact_program_and_clock(self):
         capture=self.capture();first=self.retain()
@@ -96,6 +96,25 @@ class ProgramSourceTests(unittest.TestCase):
         self.assertEqual(self.retain(expected_parent=first['source_commit'])['source_commit'],first['source_commit'])
         self.assertIsNone(program.load_program_source('2030-01-16',self.document,self.receipt,
             self.f.reader.repo,key=KEY,transport=self.f.reader))
+
+    def test_partial_first_p0_preserves_whole_b_with_private_vault_independent_restore(self):
+        from tests.test_boat_seller_official_source import OfficialSellerCardsTests
+        self.raw, self.document, self.receipt = OfficialSellerCardsTests._cutoff_skipped_partial_p0()
+        self.capture_receipt = dict(source_url=URL,captured_at=CAPTURE,http_status=200,
+                                    source_sha256=sha256(self.raw).hexdigest())
+        capture = self.capture()
+        first = self.retain(now=datetime.fromisoformat(DAY + "T10:02:00+09:00"))
+        self.assertEqual(first["source_requests"],0)
+        self.assertEqual(first["status"],"OFFICIAL_B_PROGRAM_SOURCE_RETAINED")
+        self.assertTrue(Path(capture["capture_dir"]).is_dir())
+        shutil.rmtree(self.f.root/"boat-program-source")
+        with patch('urllib.request.urlopen',side_effect=AssertionError('provider GET forbidden')):
+            restored=program.load_program_source(DAY,self.document,self.receipt,self.f.reader.repo,
+                 key=KEY,transport=self.f.reader,as_of=DAY+"T10:02:00+09:00")
+        self.assertEqual(len(restored["cards"]),8)
+        self.assertEqual(len(restored["document"]["predictions"]),7)
+        self.assertEqual(restored["raw"],self.raw)
+        self.assertEqual(restored["receipt"],self.receipt)
 
     def test_optional_collector_capture_keeps_output_exact_and_uses_one_existing_get(self):
         def collect(flag):

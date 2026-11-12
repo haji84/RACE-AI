@@ -12,6 +12,7 @@ from .first_receipt_continuity import first_receipt_rows,latest_result_observati
 from .repeated_cycle import matches as artifact_matches
 from .saved_view_run import display_only_run
 from .boat_private_original_archive import open_original_zip
+from .boat_owner_source_identity import owner_run_origin
 BRANCH='feat/four-sport-forecast-audit-view-20261022'
 WORKFLOW=405276784
 JST=timezone(timedelta(hours=9))
@@ -119,6 +120,12 @@ def authenticated_source_control(raw, meta, *, expected_run=None, now=None):
     need(prepared is None or type(prepared) is int and prepared==state['completed_round']+1,
          'source session prepared round')
     lifetime_requests=state.get('lifetime_requests',state['requests_used'])
+    # Historical control had no per-day baseline; accept it for recovery,
+    # but never reinterpret it as safe evidence for a fresh same-day worker.
+    day_base=state.get('day_start_lifetime_requests')
+    need(day_base is None or (type(day_base) is int and
+         0<=day_base<=lifetime_requests and lifetime_requests-day_base<=240),
+         'DAY_SOURCE_BUDGET_BASELINE_INVALID')
     lifetime_rounds=state.get('lifetime_completed_rounds',state['completed_round'])
     need(type(lifetime_requests) is int and lifetime_requests>=state['requests_used'] and
          type(lifetime_rounds) is int and lifetime_rounds>=state['completed_round'],
@@ -157,6 +164,7 @@ def authenticated_source_control(raw, meta, *, expected_run=None, now=None):
         previous_session_requests=state['requests_used'],
         completed_round=state['completed_round'],prepared_round=prepared,
         lifetime_requests=lifetime_requests,lifetime_completed_rounds=lifetime_rounds,
+        **({'day_start_lifetime_requests':day_base} if day_base is not None else {}),
         previous_halted_reason=hard_reason,previous_stop_reason=reason,
         receipt={k:copy.deepcopy(meta[k]) for k in ('id','digest','created_at')})
 
@@ -170,9 +178,9 @@ def _previous_runs(get,*,current_run,earliest=None):
             need(run['id'] not in seen,'duplicate run page');seen.add(run['id'])
             at=ts(run['created_at'])
             if earliest is not None and at<earliest:continue
-            if run['id']==current_run or run['head_branch']!=BRANCH:continue
+            if run['id']==current_run:continue
+            if not owner_run_origin(run.get('head_branch'),run.get('event')):continue
             if display_only_run(run):continue
-            if run['event'] not in ('push','workflow_dispatch'):continue
             # Queued successors are not prior executions. An earlier in-flight
             # writer is unresolved and cannot safely be assumed to have no receipt.
             if run['id']>current_run:continue

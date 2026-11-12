@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 from . import boat_all_model_cycle as engine, boat_all_model_store as store
+from .boat_owner_source_identity import authenticated_live_owner_run
 from .actions_contract import digest
 from .boat_history_store import wire
 from .boat_pdca_recipient import _json
@@ -124,7 +125,7 @@ class _MetadataReader:
 def _run(raw,ident,clock):
     value=_json(raw,1024*1024)
     _need(type(value) is dict and type(value.get('id')) is int and value['id']==ident
-          and value.get('workflow_id')==WORKFLOW and value.get('head_branch')==BRANCH
+          and authenticated_live_owner_run(value)
           and type(value.get('head_sha')) is str and _HEAD.fullmatch(value['head_sha']),
           'WORKFLOW_IDENTITY_INVALID')
     _need(all(type(value.get(name)) is dict and type(value[name].get('id')) is int

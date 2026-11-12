@@ -15,7 +15,9 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 from . import boat_private_original_vault as V,boat_original_recovery as R,boat_source_control as safe
+from .boat_owner_source_identity import authenticated_live_owner_run,archived_owner_branch,owner_run_origin
 from .boat_pdca_state import state_key
+from .saved_view_run import display_only_run
 from scripts.boat_private_original_vault import _environment
 
 SCHEMA='RACE_AI_BOAT_SOURCE_CONTROL_MIRROR_V1'
@@ -71,9 +73,10 @@ def _first_attempt(run):
     return 1
 
 
-def _run(run,clock=None):
+def _run_fields(run,clock=None):
+    """Fields shared by live metadata and already HMAC-authenticated records."""
     _need(type(run) is dict,'RUN_INVALID');V._id(run.get('id'));V._hex(run.get('head_sha'),V._HEAD)
-    _need(run.get('workflow_id')==R.WORKFLOW and run.get('head_branch')==R.BRANCH
+    _need(run.get('workflow_id')==R.WORKFLOW
           and run.get('status')=='completed' and run.get('conclusion') in
           ('success','failure','neutral','cancelled','skipped','timed_out','action_required','stale','startup_failure'),
           'COMPLETED_OWNED_RUN_REQUIRED')
@@ -83,6 +86,13 @@ def _run(run,clock=None):
     _first_attempt(run)
     created=V._time(run.get('created_at'));updated=V._time(run.get('updated_at'))
     _need(created<=updated and (clock is None or updated<=clock),'RUN_CLOCK_INVALID')
+    return run
+
+
+def _run(run,clock=None):
+    _run_fields(run,clock)
+    _need(authenticated_live_owner_run(run) and not display_only_run(run),
+          'COMPLETED_OWNED_RUN_REQUIRED')
     return run
 
 
@@ -119,10 +129,13 @@ def _validate_state(state,run):
     _need(type(state) is dict and set(state)==STATE_FIELDS and state['schema']==SCHEMA
           and state['repository']=='haji84/RACE-AI' and type(state['repository_id']) is int
           and state['repository_id']==1416489937 and state['workflow_id']==R.WORKFLOW
-          and state['head_branch']==R.BRANCH and state['authority']==AUTHORITY,'STATE_FIELDS_INVALID')
-    _run(run)
+          and archived_owner_branch(state['head_branch']) and state['authority']==AUTHORITY,'STATE_FIELDS_INVALID')
+    # The archived schema has no event field. Live callers authenticate it in
+    # _run; the internal latest-record reader first verifies the owner HMAC.
+    _run_fields(run)
     _need(type(state['run_attempt']) is int and state['run_attempt']==1,'ATTEMPT_PROVENANCE_UNAVAILABLE')
     expected={'run_id':run['id'],'run_attempt':run.get('run_attempt',1),'source_head':run['head_sha'],
+              'head_branch':run['head_branch'],
               'run_created_at':run['created_at'],'run_updated_at':run['updated_at'],
               'run_status':run['status'],'run_conclusion':run['conclusion']}
     _need(all(state[name]==value for name,value in expected.items()),'STATE_RUN_CONFLICT')
@@ -150,6 +163,7 @@ def verify_record(raw,*,run,key=None,source_commit=None):
     decryption. Actual source-pair validation was done by the Actions publisher.
     """
     if key is None:V._hex(source_commit,V._HEAD)
+    _run(run)
     state=_validate_state(_decode(raw,key),run)
     return dict(state=state,hmac_verified=key is not None,cipher_binding_verified_by_reader=False,
                 source_commit=source_commit,forecast_data=False,source_authorization_granted=False)
@@ -232,6 +246,7 @@ def _validate_latest(state):
 
 
 def _check_latest_record(git,commit,latest,key):
+    _need(key is not None,'ARCHIVED_HMAC_REQUIRED')
     raw=V._read(git,commit,latest['record_path'],MAX_RECORD)
     _need(V._sha(raw)==latest['record_sha256'],'LATEST_RECORD_HASH_INVALID')
     state=_decode(raw,key)
@@ -273,7 +288,7 @@ def publish_control(run_id,repo,*,get,expected_parent,key=None,transport=None,re
         by_id={value['artifact_id']:value for value in retained['locators']}
         locators={role:locator or by_id[pair[role]['metadata']['id']] for role,locator in locators.items()}
     state=dict(schema=SCHEMA,repository='haji84/RACE-AI',repository_id=1416489937,workflow_id=R.WORKFLOW,
-        head_branch=R.BRANCH,run_id=run_id,run_attempt=run.get('run_attempt',1),source_head=run['head_sha'],
+        head_branch=run['head_branch'],run_id=run_id,run_attempt=run.get('run_attempt',1),source_head=run['head_sha'],
         day_jst=summary['day_jst'],run_created_at=run['created_at'],run_updated_at=run['updated_at'],
         run_status=run['status'],run_conclusion=run['conclusion'],summary=summary,
         source_control_receipt=pair['source_control']['receipt'],continuity_receipt=pair['continuity']['receipt'],
@@ -328,9 +343,8 @@ def publish_latest_closed(repo,*,get,expected_parent,key=None,transport=None,rea
         _need(type(run) is dict,'RECENT_RUN_INVALID');ident=V._id(run.get('id'))
         _need(ident not in seen and run.get('status')=='completed' and run.get('workflow_id')==R.WORKFLOW,
               'RECENT_RUN_SCOPE_INVALID');seen.add(ident)
-        if run.get('head_branch')!=R.BRANCH:continue
-        _first_attempt(run)
-        V._time(run.get('created_at'));selected.append(run)
+        if not owner_run_origin(run.get('head_branch'),run.get('event')) or display_only_run(run):continue
+        _run(run);selected.append(run)
     skipped=[];scanned=0
     for run in sorted(selected,key=lambda value:(V._time(value['created_at']),value['id']),reverse=True):
         scanned+=1

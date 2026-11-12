@@ -1,4 +1,5 @@
 # Retain authenticated empty legacy attempts separately from forecasts.
+# Source-free PR regression: sealed handoff and same-JST-day 240 GET cap.
 name: BOAT nationwide cutoff-ordered A/B research (no Vercel)
 on:
   # Live model runner is called from the trusted main launcher, not arbitrary
@@ -15,6 +16,23 @@ on:
     paths:
       - .github/workflows/boat-nationwide-ab-one-shot.yml
       - tests/test_boat_main_entry_contract.py
+      - scripts/first_p0_bootstrap.py
+      - scripts/boat_first_p0_readback.py
+      - scripts/boat_first_p0_reconcile.py
+      - scripts/boat_saved_site_context.py
+      - scripts/boat_saved_site_check.cjs
+      - race_ai/boat_saved_result_recovery.py
+      - race_ai/boat_source_control_mirror.py
+      - tests/test_first_p0_bootstrap.py
+      - tests/test_boat_first_p0_readback.py
+      - tests/test_boat_first_p0_reconcile.py
+      - tests/test_boat_saved_result_recovery.py
+      - tests/test_boat_source_control_mirror.py
+      - tests/test_boat_saved_site_context.py
+      - race_ai/boat_seller_inputs.py
+      - tests/test_boat_seller_official_source.py
+      - tests/test_boat_program_source.py
+      - tests/saved_site_check.test.cjs
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
     paths:
@@ -31,7 +49,7 @@ jobs:
     name: Main to legacy BOAT P0-P1 source-free contract
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
     runs-on: ubuntu-24.04
-    timeout-minutes: 3
+    timeout-minutes: 8
     permissions:
       contents: read
     steps:
@@ -41,6 +59,36 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Verify existing model owner and single production entry
         run: python -m unittest tests.test_boat_main_entry_contract -v
+      - name: Recheck all retained existing-cycle workflow invariants
+        run: python -m unittest tests.test_cycle_workflow_references -v
+      - name: Pinned parser for native original and official result regressions
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - name: Pinned adapters for native original and official result regressions
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Verify repaired native receipts, provenance and source-free recovery
+        run: |
+          python - <<'PY_RECOVERY_TEST'
+          from pathlib import Path
+          import race_ai,unittest
+          for folder in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(folder,'race_ai').resolve()))
+          names=['tests.test_first_p0_bootstrap','tests.test_first_receipt_continuity',
+                 'tests.test_frozen_day_cycle','tests.test_boat_private_original_archive',
+                 'tests.test_private_original_archive_readers','tests.test_boat_private_original_vault_cli',
+                 'tests.test_boat_first_p0_readback','tests.test_boat_first_p0_reconcile',
+                 'tests.test_boat_saved_result_recovery','tests.test_boat_source_control_mirror',
+                 'tests.test_supervisor_durable_readback','tests.test_boat_saved_site_context',
+                 'tests.test_repeated_cycle','tests.test_github_existing_cycle_startup_wait',
+                 'tests.test_boat_source_control','tests.test_continuity_checkpoint',
+                 'tests.test_boat_seller_official_source','tests.test_boat_program_source']
+          result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
+          raise SystemExit(not result.wasSuccessful())
+          PY_RECOVERY_TEST
+      - name: Verify existing Pages checker stage identity and private request boundary
+        run: node --test tests/saved_site_check.test.cjs
   saved_view_publication:
     name: Encrypted saved-model display and retained-input execution (no official source requests)
     if: github.repository == 'haji84/RACE-AI' && github.event_name == 'push' && startsWith(github.event.head_commit.message, 'saved-view:')
@@ -290,6 +338,24 @@ jobs:
           test '${{ inputs.production_scope }}' = 'existing-owner-p0-p1'
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           echo 'BOAT_CANONICAL_REF_AND_HEAD_ATTESTED'
+      - name: Require explicit owner source-boundary release before any provider access
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          python - <<'PY_OWNER_BOUNDARY'
+          from pathlib import Path
+          source = Path('docs/RACE_AI_LATEST_STATUS.md')
+          if not source.is_file() or source.is_symlink():
+              raise SystemExit('HOLD_OWNER_SOURCE_DOCUMENT_MISSING')
+          raw = source.read_text(encoding='utf8')
+          last_hold = raw.rfind('ACTIVE_FULL_FIRST_TO_FIXED_ATTEMPT_TWO_BOUNDARY')
+          last_release = raw.rfind('RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1')
+          # Historical HOLD documentation must remain immutable. A newer
+          # explicit source-owner release must follow the last HOLD record.
+          if last_release < 0 or last_release <= last_hold:
+              raise SystemExit('HOLD_SOURCE_OWNER_FIXED_BOUNDARY_NOT_RELEASED')
+          print('SOURCE_OWNER_BOUNDARY_RELEASED_FOR_VERIFIED_HEAD')
+          PY_OWNER_BOUNDARY
       - name: Pinned official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
@@ -312,7 +378,7 @@ jobs:
           node tests/boat_frozen_input_diagnostic.cjs
       - name: Test originals, pending results, tampering and unchanged models
         run: |
-          python -m unittest tests.test_continuity_checkpoint tests.test_continuity_archive_size tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards tests.test_observed_p1_connection tests.test_external_research_registry tests.test_repeated_cycle tests.test_observed_weight_learning tests.test_first_p0_bootstrap tests.test_boat_private_original_archive tests.test_private_original_archive_readers tests.test_boat_source_control tests.test_github_existing_cycle_startup_wait tests.test_cycle_workflow_references -v
+          python -m unittest tests.test_continuity_checkpoint tests.test_continuity_archive_size tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards tests.test_observed_p1_connection tests.test_external_research_registry tests.test_repeated_cycle tests.test_observed_weight_learning tests.test_first_p0_bootstrap tests.test_boat_private_original_archive tests.test_private_original_archive_readers tests.test_boat_source_control tests.test_github_existing_cycle_startup_wait tests.test_cycle_workflow_references tests.test_boat_seller_official_source tests.test_boat_program_source -v
       - name: Install pinned encrypted display dependencies
         continue-on-error: true
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt

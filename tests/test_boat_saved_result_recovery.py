@@ -31,7 +31,7 @@ def wire(value):
 
 def run_response(ident=42):
     return dict(id=ident, workflow_id=405276784,
-        head_branch='feat/four-sport-forecast-audit-view-20261022', head_sha=HEAD,
+        head_branch='feat/four-sport-forecast-audit-view-20261022', event='push', head_sha=HEAD,
         status='completed', created_at='2030-04-01T00:00:00Z', updated_at='2030-04-01T04:00:00Z',
         repository=dict(id=1416489937, full_name='haji84/RACE-AI'),
         head_repository=dict(id=1416489937, full_name='haji84/RACE-AI'))
@@ -107,6 +107,72 @@ class SavedResultRecoveryTests(unittest.TestCase):
         return R.recover_saved_results(deepcopy(self.view) if view is None else view, get,
             run_ids=kwargs.pop('run_ids', [42]), key=kwargs.pop('key', KEY),
             now=kwargs.pop('now', CLOCK), **kwargs)
+
+    def test_approved_production_dispatch_recovers_results_without_changing_forecasts(self):
+        get = Responses([self.artifact(cipher=True)])
+        info = dict(run_response(), head_branch='production/boat-p0-p1-20261111',
+                    event='workflow_dispatch')
+        get.bodies['actions/runs/42'] = wire(info)
+        before = deepcopy(self.view)
+        result, counts = self.recover(get, view=before)
+        self.assertEqual(counts['appended_observations'], 2)
+        self.assertEqual(counts['archives_verified'], 1)
+        self.assertEqual(counts['source_requests'], 0)
+        self.assertEqual(F.forecast_inventory(result), F.forecast_inventory(before))
+        self.assertEqual(F.originals_sha(result), F.originals_sha(before))
+        self.assertTrue(all(row['result']['status'] == 'final' for row in result['records'][1:]))
+
+    def test_production_dispatch_without_result_archive_preserves_the_exact_view(self):
+        get = Responses()
+        info = dict(run_response(), head_branch='production/boat-p0-p1-20261111',
+                    event='workflow_dispatch')
+        get.bodies['actions/runs/42'] = wire(info)
+        before = deepcopy(self.view); original = wire(before)
+        result, counts = self.recover(get, view=before)
+        self.assertIs(result, before)
+        self.assertEqual(wire(result), original)
+        self.assertEqual(counts['runs_scanned'], 1)
+        self.assertEqual(counts['archives_verified'], 0)
+        self.assertEqual(counts['appended_observations'], 0)
+        self.assertEqual(counts['source_requests'], 0)
+
+    def test_unauthorized_owner_identity_stops_before_artifact_access(self):
+        approved = dict(run_response(), head_branch='production/boat-p0-p1-20261111',
+                        event='workflow_dispatch')
+        mutations = [dict(event=event) for event in ('push', 'pull_request', None)]
+        mutations += [dict(head_branch='main'), dict(workflow_id=1),
+                      dict(workflow_id=float(405276784))]
+        for field in ('repository', 'head_repository'):
+            mutations += [{field: dict(id=1, full_name='haji84/RACE-AI')},
+                          {field: dict(id=1416489937, full_name='someone/RACE-AI')}]
+        mutations += [dict(head_branch='feat/four-sport-forecast-audit-view-20261022', event=event)
+                      for event in ('pull_request', None)]
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                get = Responses([self.artifact()])
+                get.bodies['actions/runs/42'] = wire(dict(approved, **mutation))
+                with self.assertRaisesRegex(ValueError, 'SAVED_RESULT_RECOVERY_WORKFLOW_IDENTITY_INVALID'):
+                    self.recover(get)
+                self.assertEqual(get.calls, ['actions/runs/42'])
+
+    def test_legacy_source_events_remain_readable(self):
+        for event in ('push', 'workflow_dispatch'):
+            with self.subTest(event=event):
+                get = Responses([self.artifact()])
+                get.bodies['actions/runs/42'] = wire(dict(run_response(), event=event))
+                _, counts = self.recover(get)
+                self.assertEqual(counts['appended_observations'], 2)
+
+    def test_production_result_artifact_must_match_the_source_sha(self):
+        raw, meta = self.artifact(); get = Responses([(raw, meta)])
+        info = dict(run_response(), head_branch='production/boat-p0-p1-20261111',
+                    event='workflow_dispatch')
+        get.bodies['actions/runs/42'] = wire(info)
+        meta['workflow_run']['head_sha'] = 'b'*40
+        get.bodies['actions/artifacts/701'] = wire(meta)
+        with self.assertRaisesRegex(ValueError, 'SAVED_RESULT_RECOVERY_ARTIFACT_RUN_HEAD_INVALID'):
+            self.recover(get)
+        self.assertNotIn('actions/artifacts/701/zip', get.calls)
 
     def test_two_saved_results_merge_newer_day_without_models_sources_or_original_changes(self):
         old = deepcopy(self.view); get = Responses([self.artifact()]); stdout = io.StringIO()

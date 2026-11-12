@@ -203,13 +203,27 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('boat_saved_view_feed --hydrate-originals',display)
         self.assertNotIn('first_p0_bootstrap.py',display)
         official=text.split('  official_national:',1)[1]
-        self.assertIn("!startsWith(github.event.head_commit.message, 'saved-view:')",official)
+        # The canonical production workflow_dispatch is independent of the
+        # display-only push path; neither can accidentally create a source
+        # writer from an ordinary saved-view maintenance commit.
+        self.assertIn("github.event_name == 'workflow_dispatch'",official)
+        self.assertIn("github.ref == 'refs/heads/production/boat-p0-p1-20261111'",official)
+        self.assertIn("inputs.production_scope == 'existing-owner-p0-p1'",official)
+        self.assertIn("github.event_name == 'push'",official)
+        self.assertIn("startsWith(github.event.head_commit.message, 'boat-grid-forward:')",official)
+        self.assertNotIn("startsWith(github.event.head_commit.message, 'saved-view:')",official)
         self.assertIn("&& 'boat-saved-view-publication' || 'boat-nationwide-cutoff-20261103'",text)
         self.assertIn('cancel-in-progress: false',text)
 
     def test_explicit_forward_wires_all_callers_and_grid_before_first_source(self):
         text=WORKFLOW.read_text(); action=ROUND.read_text()
-        self.assertNotIn('workflow_dispatch:',text)
+        # Explicitly approved canonical owner entry, not an unrestricted
+        # second provider or a new result-matching engine.
+        self.assertIn("  workflow_dispatch:",text)
+        self.assertIn("options: [existing-owner-p0-p1]",text)
+        self.assertIn("Require explicit owner source-boundary release before any provider access",text)
+        self.assertLess(text.index("Require explicit owner source-boundary release before any provider access"),
+                        text.index('first_p0_bootstrap.py capture-wait'))
         workers=[step for step in re.split(r'^      - name: ',text,flags=re.MULTILINE)
                  if 'uses: ./.github/actions/existing-model-round' in step]
         self.assertEqual(len(workers),24)
@@ -247,9 +261,12 @@ class WorkflowReferencesTest(unittest.TestCase):
     def test_installation_adds_no_new_source_or_history_prefix_exception(self):
         text=WORKFLOW.read_text()
         source=text.split('  official_national:',1)[1].split('    steps:',1)[0]
-        self.assertIn("if: github.repository == 'haji84/RACE-AI' && !startsWith(github.event.head_commit.message, 'saved-view:')",source)
+        self.assertIn("github.repository == 'haji84/RACE-AI'",source)
+        self.assertIn("github.event_name == 'workflow_dispatch'",source)
+        self.assertIn("github.ref == 'refs/heads/production/boat-p0-p1-20261111'",source)
+        self.assertIn("inputs.production_scope == 'existing-owner-p0-p1'",source)
+        self.assertNotIn("startsWith(github.event.head_commit.message, 'saved-view:')",source)
         self.assertNotIn('boat-forward-install:',text)
-        self.assertNotIn('workflow_dispatch:',text)
         self.assertIn('cancel-in-progress: false',text)
 
     def test_existing_cycle_create_only_first_p0_then_reuses_original(self):

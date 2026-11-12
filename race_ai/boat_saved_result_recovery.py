@@ -9,6 +9,7 @@ import re
 
 from . import cycle_recovery as C, saved_view_feed as F
 from .boat_history_store import wire
+from .boat_owner_source_identity import authenticated_live_owner_run
 from .boat_pdca_recipient import _json
 from .boat_pdca_state import state_key
 from .saved_result_sync import _merge
@@ -82,8 +83,8 @@ class _MetadataReader:
 def _run(raw, ident, clock):
     run = _json(raw, 1024*1024)
     _need(type(run) is dict and type(run.get('id')) is int and run['id'] == ident
-          and type(run.get('workflow_id')) is int and run['workflow_id'] == WORKFLOW
-          and run.get('head_branch') == BRANCH and type(run.get('head_sha')) is str
+          and type(run.get('workflow_id')) is int and authenticated_live_owner_run(run)
+          and type(run.get('head_sha')) is str
           and _HEAD.fullmatch(run['head_sha']), 'WORKFLOW_IDENTITY_INVALID')
     _need(all(type(run.get(name)) is dict and type(run[name].get('id')) is int
               and run[name]['id'] == REPO_ID and run[name].get('full_name') == REPO

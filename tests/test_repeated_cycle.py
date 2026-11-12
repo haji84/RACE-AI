@@ -52,6 +52,64 @@ class ProductionSafetyPolicyTests(unittest.TestCase):
             self.assertEqual(before,path.read_bytes())
 
 
+
+
+class DaySourceBudgetPersistenceTests(unittest.TestCase):
+    """Prevent a second JST-day worker from resetting the effective 240 GET cap."""
+
+    def test_same_day_successor_only_uses_remaining_240(self):
+        now=stamp()
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'continuation.json'
+            prior=dict(day_jst='2030-04-01',lifetime_requests=339,
+                       day_start_lifetime_requests=100,lifetime_completed_rounds=4)
+            state=r.start(path,day='2030-04-01',run_id=113,now=now,source_control=prior)
+            self.assertEqual(state['day_start_lifetime_requests'],100)
+            self.assertEqual(state['lifetime_requests'],339)
+            r.SourceGuard(path,clock=lambda:now).charge('forecast')
+            final=r.load(path)
+            self.assertEqual(final['lifetime_requests'],340)
+            self.assertEqual(final['requests_used'],1)
+            with self.assertRaisesRegex(ValueError,'SESSION_SOURCE_BUDGET_EXHAUSTED'):
+                r.SourceGuard(path,clock=lambda:now).charge('result')
+            self.assertEqual(r.load(path)['lifetime_requests'],340)
+
+    def test_missing_same_day_baseline_fails_closed_without_charging(self):
+        now=stamp()
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'unknown.json'
+            with self.assertRaisesRegex(ValueError,'DAY_SOURCE_BUDGET_BASELINE_UNVERIFIED'):
+                r.start(path,day='2030-04-01',run_id=114,now=now,
+                        source_control=dict(day_jst='2030-04-01',lifetime_requests=239))
+            self.assertFalse(path.exists())
+
+    def test_new_jst_day_renews_only_day_budget_not_lifetime_count(self):
+        now=stamp()
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'new-day.json'
+            prior=dict(day_jst='2030-03-31',lifetime_requests=339,
+                       day_start_lifetime_requests=100,lifetime_completed_rounds=20)
+            state=r.start(path,day='2030-04-01',run_id=115,now=now,source_control=prior)
+            self.assertEqual(state['day_start_lifetime_requests'],339)
+            r.SourceGuard(path,clock=lambda:now).charge('forecast')
+            state=r.load(path)
+            self.assertEqual(state['lifetime_requests'],340)
+            self.assertEqual(state['lifetime_requests']-state['day_start_lifetime_requests'],1)
+            self.assertEqual(state['lifetime_completed_rounds'],20)
+
+    def test_cannot_rewind_budget_baseline_or_raise_source_quota(self):
+        now=stamp()
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'tamper.json'
+            prior=dict(day_jst='2030-04-01',lifetime_requests=339,
+                       day_start_lifetime_requests=100)
+            state=r.start(path,day='2030-04-01',run_id=116,now=now,source_control=prior)
+            state['day_start_lifetime_requests']=98
+            with self.assertRaisesRegex(ValueError,'DAY_SOURCE_BUDGET_EXCEEDED'):
+                r.write_state(path,state)
+            self.assertEqual(r.load(path)['day_start_lifetime_requests'],100)
+
+
 class RepeatedControllerTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(r, 'bounded repeated controller not connected')

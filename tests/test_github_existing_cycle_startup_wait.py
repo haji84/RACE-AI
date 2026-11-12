@@ -312,5 +312,64 @@ class StartupWaitTests(unittest.TestCase):
         wait.assert_called_once_with()
 
 
+class WorkerHandoffSealTests(unittest.TestCase):
+    """Handoff is durable only after the preceding round has been committed."""
+
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        self.root=Path(self.temp.name)
+        folder=self.root/'cycle_recovery_output';folder.mkdir()
+        self.path=folder/'repeat-session.json'
+        self.out=self.root/'output.txt';self.out.write_text('')
+        self.now=datetime.fromisoformat('2030-04-01T08:30:00+09:00')
+        self.started=self.now-timedelta(minutes=10)
+        repeated_cycle.start(self.path,day=DAY,run_id=42,now=self.started)
+
+    def invoke(self):
+        env=dict(GITHUB_OUTPUT=str(self.out),
+                 RACE_AI_WORKER_HANDOFF_AT=self.now.isoformat(),
+                 RACE_AI_EVENT_DAY=DAY)
+        class FixedDateTime:
+            @staticmethod
+            def now(tz=None):
+                return self.now.astimezone(tz) if tz else self.now
+        with patch.object(cycle,'ROOT',self.root),patch.object(cycle,'datetime',FixedDateTime),\
+             patch.dict(os.environ,env,clear=True):
+            cycle.repeat_prepare(DAY,1)
+
+    def test_completed_session_seals_exact_worker_handoff_once(self):
+        before=repeated_cycle.load(self.path)
+        self.assertIsNone(before['halted_reason'])
+        self.invoke()
+        self.assertIn('reason=WORKER_HANDOFF', self.out.read_text())
+        after=repeated_cycle.load(self.path)
+        self.assertEqual(after['halted_reason'],'WORKER_HANDOFF')
+        self.assertEqual(after['requests_used'],before['requests_used'])
+        self.assertEqual(after['receipts'],before['receipts'])
+        raw=self.path.read_bytes()
+        self.invoke()
+        self.assertIn('reason=WORKER_HANDOFF', self.out.read_text())
+        self.assertEqual(self.path.read_bytes(),raw)
+
+    def test_uncommitted_round_cannot_be_marked_as_safe_handoff(self):
+        repeated_cycle.prepare(self.path,1,now=self.started)
+        original=self.path.read_bytes()
+        with self.assertRaisesRegex(ValueError,'WORKER_HANDOFF_UNCOMMITTED_ROUND'):
+            self.invoke()
+        self.assertEqual(self.path.read_bytes(),original)
+
+    def test_existing_hard_stop_and_source_wait_are_not_cleared(self):
+        state=repeated_cycle.load(self.path)
+        state['halted_reason']='SOURCE_VERIFICATION_REQUIRED'
+        state['source_wait']=dict(state='SOURCE_REVIEW_WAIT',reason='SOURCE_VERIFICATION_REQUIRED',
+                                  retry_at=None,http_status=None,attempts=1)
+        repeated_cycle.write_state(self.path,state)
+        self.invoke()
+        self.assertIn('reason=SOURCE_VERIFICATION_REQUIRED', self.out.read_text())
+        after=repeated_cycle.load(self.path)
+        self.assertEqual(after['halted_reason'],state['halted_reason'])
+        self.assertEqual(after['source_wait'],state['source_wait'])
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from race_ai import boat_private_original_vault as V
+from race_ai.boat_owner_source_identity import authenticated_live_owner_run
 
 
 def _environment(repo):
@@ -111,11 +112,7 @@ def _parent(git, requested):
 def _live_run(raw, metadata):
     value = V._json(raw, 256*1024); run = metadata['workflow_run']
     V._need(type(value) is dict and value.get('id') == run['id'] and value.get('head_sha') == run['head_sha']
-            and value.get('workflow_id') == 405276784
-            and value.get('head_branch') == 'feat/four-sport-forecast-audit-view-20261022'
-            and all(type(value.get(name)) is dict and value[name].get('id') == 1416489937
-                    and value[name].get('full_name') == 'haji84/RACE-AI'
-                    for name in ('repository','head_repository')), 'LIVE_WORKFLOW_IDENTITY_INVALID')
+            and authenticated_live_owner_run(value), 'LIVE_WORKFLOW_IDENTITY_INVALID')
 
 
 def _capture(ids, repo, parent, git, readback, get, now, *, allow_refresh=False):

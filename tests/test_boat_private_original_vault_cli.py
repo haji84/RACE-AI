@@ -53,7 +53,7 @@ class VaultCliTests(unittest.TestCase):
     def test_capture_fetches_actual_metadata_run_and_zip_then_restore_writes_exact_private_files(self):
         raw, metadata = original()
         info = wire(dict(id=2, head_sha=HEAD, workflow_id=405276784,
-            head_branch='feat/four-sport-forecast-audit-view-20261022',
+            head_branch='feat/four-sport-forecast-audit-view-20261022',event='push',
             repository=dict(id=1416489937, full_name='haji84/RACE-AI'),
             head_repository=dict(id=1416489937, full_name='haji84/RACE-AI')))
         responses = {'actions/artifacts/101':metadata, 'actions/runs/2':info, 'actions/artifacts/101/zip':raw}
@@ -142,7 +142,7 @@ class VaultCliTests(unittest.TestCase):
             transport=self.writer,readback_transport=self.reader,now=NOW)
         responses = {'actions/artifacts/802':metadata(control,802,'race-source-control-7'),
             'actions/artifacts/802/zip':control,'actions/runs/7':wire(dict(id=7,head_sha=HEAD,workflow_id=405276784,
-                head_branch='feat/four-sport-forecast-audit-view-20261022',
+                head_branch='feat/four-sport-forecast-audit-view-20261022',event='push',
                 repository=dict(id=1416489937,full_name='haji84/RACE-AI'),
                 head_repository=dict(id=1416489937,full_name='haji84/RACE-AI')))}
         code, report = self.run_cli(['capture','--artifact','802','--artifact','801','--expected-parent','current'],
