@@ -105,6 +105,27 @@ class OneOfficialProfileProof(unittest.TestCase):
                 m.execute('.',now=NOW,key=key,github=github,get_source=source)
         self.assertEqual(events.count('GET'),1)
 
+    def test_github_contents_get_reads_full_encrypted_profile_even_above_128k(self):
+        # No network: exercise only the GitHub Contents envelope size boundary.
+        import base64, io, os
+        from unittest.mock import patch
+        key=hashlib.sha256(b'fixture-key-for-big-blob').digest()
+        raw=bytes(range(256))*900
+        ciphertext=m._pack(raw,key,m._id(key,'4002'),NOW.isoformat())
+        response=json.dumps({'content':base64.b64encode(ciphertext).decode()}).encode()
+        self.assertGreater(len(response),128*1024)
+        class Fake(io.BytesIO):
+            status=200
+        with patch.dict(os.environ,{'GH_TOKEN':'fake-unit-only-not-a-token'}), \
+             patch('urllib.request.urlopen',side_effect=lambda *a,**k:Fake(response)):
+            restored=m._github(m.PREFIX+m.DAY+'/testonly.enc')
+        self.assertEqual(restored,ciphertext)
+        self.assertEqual(m._unpack(restored,key,m._id(key,'4002'))[0],raw)
+        with patch.dict(os.environ,{'GH_TOKEN':'fake-unit-only-not-a-token'}), \
+             patch('urllib.request.urlopen',side_effect=lambda *a,**k:Fake(b'x'*1_200_001)):
+            with self.assertRaisesRegex(ValueError,'GITHUB_RESPONSE_BOUND'):
+                m._github(m.PREFIX+m.DAY+'/testonly.enc')
+
     def test_source_absent_or_already_named_never_calls_provider(self):
         key=hashlib.sha256(b'fixture-key4').digest()
         with patch.object(m,'_select',return_value=None):
