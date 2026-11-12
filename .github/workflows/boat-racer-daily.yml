@@ -430,6 +430,14 @@ jobs:
         with:
           ref: ${{ github.event_name == 'push' && github.sha || '914941a6244364480370ac392441ad4bb5781f83' }}
           persist-credentials: true
+      - name: Use the already-reviewed result collector for this one source-repair push
+        if: >-
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 914941a6244364480370ac392441ad4bb5781f83
+          persist-credentials: true
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
@@ -443,14 +451,6 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '22'
-      - name: Use the already-reviewed result collector for this one source-repair push
-        if: >-
-          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-          startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: 914941a6244364480370ac392441ad4bb5781f83
-          persist-credentials: true
       - name: Authenticate the saved 11/12 P0 receipt before any result source GET
         if: >-
           github.event_name == 'push' && github.ref == 'refs/heads/main' &&
