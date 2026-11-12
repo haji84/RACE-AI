@@ -233,6 +233,12 @@ jobs:
           fresh=text.split('\n  fresh_result:\n',1)[1]
           assert '--replay-retained-results' in replay and '--sync-results' not in replay
           assert '--sync-results' in fresh and '--sync-beforeinfo' not in fresh
+          assert 'gh auth setup-git' in fresh
+          assert "if: steps.source_gate.outputs.admitted == 'true'" in fresh
+          assert 'AUTHENTICATED_GIT_STATE_WRITE_PATH_CONFIGURED_NO_PROVIDER_GET' in fresh
+          assert fresh.index('gh auth setup-git') < fresh.index('--sync-results')
+          assert "persist-credentials: false" in fresh
+          assert 'git -C source-reader ls-remote --heads' in fresh
           assert '6327bc5675aee2da94ac13397f1f86f39b27d8fd' in fresh
           assert 'needs: observed_gap' in fresh
           assert "github.event.workflow_run.event == 'schedule'" in fresh
@@ -523,6 +529,24 @@ jobs:
           python scripts/boat_result_gap_fresh_gate.py \
             --source "$RUNNER_TEMP/boat-gap-fresh-sealed-health.json" \
             --output "$RUNNER_TEMP/boat-gap-fresh-admission.json"
+      - name: Prepare authenticated Git-only state writes before any provider GET
+        if: steps.source_gate.outputs.admitted == 'true'
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          # Existing source checkout is read-only by design. Configure the
+          # standard GitHub CLI credential helper only after all GET gates pass.
+          gh auth setup-git
+          if git config --get-regexp '^url\\..*\\.(insteadof|pushinsteadof)$' >/dev/null; then
+            echo 'HOLD_GIT_URL_REWRITE'
+            exit 2
+          fi
+          if ! git config --get-regexp '^credential\\..*\\.helper$' >/dev/null; then
+            echo 'HOLD_GIT_AUTH_HELPER_MISSING'
+            exit 2
+          fi
+          git -C source-reader ls-remote --heads origin 'refs/heads/state/boat-pdca-transfer' >/dev/null
+          echo 'AUTHENTICATED_GIT_STATE_WRITE_PATH_CONFIGURED_NO_PROVIDER_GET'
       - name: Consume at most 12 existing official-result GETs once per durable admission
         if: steps.source_gate.outputs.admitted == 'true'
         working-directory: source-reader
