@@ -200,6 +200,34 @@ class SavedModelViewTests(unittest.TestCase):
             with self.subTest(replacement=replacement),self.assertRaises(ValueError):
                 self.merge(base,names=dict(races={rid:{'4201':dict(proof,**replacement)}},registry={}))
 
+    def test_current_official_profile_name_requires_exact_live_provenance(self):
+        base=view();rid=base['records'][0]['race_id']
+        proof=dict(kind='VERIFIED_OFFICIAL_PROFILE',name='新規公式プロフィール名',
+                   number=1,registration_no='4201',
+                   source_url='https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4201',
+                   source_sha256='3'*64,captured_at='2030-04-01T11:20:00+09:00',
+                   verified_current=True)
+        after=self.merge(base,names=dict(races={rid:{'4201':proof}}))
+        p=after['records'][0]['participants'][0]
+        self.assertEqual(p['name'],'新規公式プロフィール名')
+        self.assertEqual(p['name_source']['kind'],'VERIFIED_OFFICIAL_PROFILE')
+        self.assertTrue(p['name_source']['verified_current'])
+        self.assertEqual(after['records'][0]['prediction'],
+                         base['records'][0]['prediction'])
+        self.assertEqual(self.merge(after,names=dict(races={rid:{'4201':proof}})),after)
+        for update in (
+            dict(number=2),dict(registration_no='4444'),
+            dict(source_url='http://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4201'),
+            dict(source_url='https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4202'),
+            dict(source_url='https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4201&other=1'),
+            dict(source_url='https://example.invalid/profile?toban=4201'),
+            dict(source_sha256='invalid'),dict(captured_at=None),
+            dict(verified_current=False),dict(verified_current=None)
+        ):
+            with self.subTest(update=update),self.assertRaises(ValueError):
+                self.merge(base,names=dict(races={
+                    rid:{'4201':dict(proof,**update)}}))
+
     def test_name_metadata_rejects_lane_registration_race_or_registry_provenance_mismatch(self):
         invalid = [
             dict(races={"20300401-01-01":{"4201":dict(name="合成名", number=2)}}),
