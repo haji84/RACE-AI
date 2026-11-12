@@ -271,6 +271,31 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertEqual(workflow.splitlines().count('  original_readback:'),1)
         self.assertEqual(workflow.splitlines().count('  original_reconcile:'),1)
 
+    def test_verified_result_only_push_uses_pinned_collector_not_forecast_owner(self):
+        from pathlib import Path
+        workflow=(Path(__file__).resolve().parents[1] /
+                  '.github/workflows/boat-racer-daily.yml').read_text()
+        token='boat-result-refresh: owner-p0-43131905826-20261112'
+        daily=workflow.split('  daily:',1)[1].split('  owner_p0_p1_dispatch:',1)[0]
+        owner=workflow.split('  owner_p0_p1_dispatch:',1)[1]
+        self.assertIn(token,daily)
+        self.assertNotIn(token,owner)
+        self.assertIn('always() && !cancelled()',daily)
+        self.assertIn("github.ref == 'refs/heads/main'",daily)
+        self.assertIn("docs/evidence/owner-pdca-main-trigger.txt",workflow.split('jobs:',1)[0])
+        self.assertEqual(workflow.count('name: Reflect confirmed races and retain encrypted incremental source packets'),1)
+        self.assertIn("ref: 914941a6244364480370ac392441ad4bb5781f83",daily)
+        self.assertIn('Authenticate the saved 11/12 P0 receipt before any result source GET',daily)
+        self.assertIn('zip_sha256=\'5a3287ac9cb45be6907be6c7d370c04addf3216d6e70184bda20e05502c80c6d\'',daily)
+        self.assertIn('artifact_id=13905925953,race_count=142,model_forecast_count=284',daily)
+        result_only=daily.split("if [[ \"$RESULT_ONLY\" == 'true' ]]; then",1)[1].split('else',1)[0]
+        self.assertIn('python -m scripts.racer_intraday_refresh',result_only)
+        self.assertIn('--verify-public --sync-results',result_only)
+        self.assertNotIn('--sync-beforeinfo',result_only)
+        self.assertNotIn('gh workflow run',daily)
+        self.assertNotIn('first_p0_bootstrap',daily)
+        self.assertEqual(workflow.count('  daily:'),1)
+
     def test_one_attested_pre_source_failure_can_retry_without_any_original(self):
         row,proof=self._previous_pre_source_run_and_proof()
         ci=dict(name=WORKFLOW,head_branch=RELEASE_REF,event="pull_request",
