@@ -16,3 +16,10 @@ Immutable 2026-11-12 BOAT P0 142 races / 284 forecasts, 39 source results,
 68 scored forecasts, 216 HOLD, feed gen128 and forecast source SHA unchanged.
 No BOAT 240 owner or 12 result request budget changes, no source GET, no
 forecast/PDCA changes. The profile-specific one-off reservation cannot reset.
+
+AFTER BASE SHA 3a61a1dae6b1d87ba16112ddcba9e194d6f781d0
+GitHub protected-main merge requires the required unit check on the
+current candidate merge base. This additional nonsecret evidence note
+refreshes PR CI; no source GET, SHA adjustment, new name or budget reset.
+The November 7 historical HTML SHA remains unverified. The audited
+observation was already sealed once; this PR is only AES readback.
