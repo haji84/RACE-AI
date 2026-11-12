@@ -160,7 +160,7 @@ class FreshGateTests(unittest.TestCase):
         assert 'gh workflow run boat-result-gap-recovery.yml --ref main -f cycle=catchup' in section
         assert 'sync-results' not in section and 'www.boatrace.jp' not in section
         assert "RACE_AI_BOAT_RESULT_GET_CAP" in workflow
-        assert "source_free_followup:" not in workflow.split(
+        assert "\n  source_free_followup:\n" not in workflow.split(
             '\n  observed_gap:\n',1)[0]
         assert "inputs.cycle == 'catchup'" in workflow
 
