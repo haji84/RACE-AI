@@ -22,6 +22,21 @@ class FreshGateTests(unittest.TestCase):
         ans=self.decision();self.assertEqual(ans['status'],'FRESH_RESULT_GET_ADMITTED')
         self.assertEqual(ans['authorized_source_gets'],12)
         self.assertTrue(ans['source_owner_240_unchanged'])
+
+    def test_recovery_schedule_uses_same_guards_as_workflow_run_and_never_resets_budget(self):
+        parts=list(fixture())
+        parts[1]['workflow_runs'][0]['event']='schedule'
+        actual=self.decision(parts)
+        self.assertEqual(actual['status'],'FRESH_RESULT_GET_ADMITTED')
+        self.assertEqual(actual['authorized_source_gets'],12)
+        self.assertTrue(actual['source_owner_240_unchanged'])
+        self.assertEqual(self.decision(parts,run_attempt=2)['status'],'HOLD_ATTEMPT_RETRY')
+        parts[0]['workflow_runs'].append(run(52,-4))
+        self.assertEqual(self.decision(parts)['status'],'HOLD_SCHEDULE_RECENT')
+        parts[0]['workflow_runs'].pop()
+        parts[2].append(dict(run_id=98,created_at=stamp(-10),job_name=FRESH))
+        self.assertEqual(self.decision(parts)['status'],'HOLD_ALREADY_ATTEMPTED_IN_WINDOW')
+
     def test_only_within_live_jst_window(self):
         a=self.decision(now=datetime(2030,4,1,15,0,tzinfo=timezone.utc))
         self.assertEqual(a['status'],'HOLD_OUTSIDE_JST_WINDOW')

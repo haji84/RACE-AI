@@ -44,7 +44,7 @@ def inspect(boat_runs,recovery_runs,prior_attempts,source,*,now,current_run_id,r
           and source['due_count']>=0,'SOURCE_STATUS')
     current=[r for r in recoveries if r['id']==current_run_id and
              r.get('head_branch')=='main' and
-             r.get('event') in ('workflow_run','push')]
+             r.get('event') in ('workflow_run','push','schedule')]
     _need(len(current)==1,'CURRENT_ORIGIN')
     _need(type(source.get('last_checked_at')) is str,'SOURCE_CLOCK')
     checked=_time(source['last_checked_at'])
