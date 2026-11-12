@@ -566,7 +566,7 @@ class FirstP0ReconcileTests(unittest.TestCase):
                     source_url=candidate['url'],source_sha256='a'*64)
         with patch('race_ai.racer_profiles.parse_basic_profile',return_value=parsed):
             found=reconcile._verified_current_profile_names(
-                self.repo,view,NOW,proof_module=original)
+                self.repo,view,NOW,day=self.bundle['day'],proof_module=original)
         proof=found[rid]['4006']
         self.assertEqual(proof['kind'],'VERIFIED_CURRENT_OFFICIAL_PROFILE')
         self.assertEqual(proof['source_sha256'],'a'*64)
@@ -589,12 +589,12 @@ class FirstP0ReconcileTests(unittest.TestCase):
             with self.subTest(changes=changes), self.assertRaisesRegex(
                     ValueError,'FIRST_P0_RECONCILE_CURRENT_PROFILE_AUTHENTICATED_SOURCE_REQUIRED'):
                 reconcile._verified_current_profile_names(
-                    self.repo,view,NOW,proof_module=bad)
+                    self.repo,view,NOW,day=self.bundle['day'],proof_module=bad)
         wrong=SimpleNamespace(**vars(original))
         wrong._select=lambda *args:dict(candidate,registration='4999')
         with self.assertRaisesRegex(ValueError,'FIRST_P0_RECONCILE_CURRENT_PROFILE_TARGET_MISMATCH'):
             reconcile._verified_current_profile_names(
-                self.repo,view,NOW,proof_module=wrong)
+                self.repo,view,NOW,day=self.bundle['day'],proof_module=wrong)
         self.assertTrue(before['originals_unchanged'])
         self.assertEqual(before['provider_requests'],0)
 
