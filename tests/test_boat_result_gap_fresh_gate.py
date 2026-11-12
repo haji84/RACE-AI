@@ -35,7 +35,8 @@ class FreshGateTests(unittest.TestCase):
         self.assertEqual(self.decision(parts)['status'],'HOLD_SCHEDULE_RECENT')
         parts[0]['workflow_runs'].pop()
         parts[2].append(dict(run_id=98,created_at=stamp(-10),job_name=FRESH))
-        self.assertEqual(self.decision(parts)['status'],'HOLD_ALREADY_ATTEMPTED_IN_WINDOW')
+        self.assertEqual(self.decision(parts)['status'],'FRESH_RESULT_GET_ADMITTED')
+        self.assertEqual(self.decision(parts)['remaining_60m_gets'],60)
 
     def test_backlog_above_thirty_six_uses_strict_36_not_unlimited(self):
         p=list(fixture());p[3]['due_count']=85
@@ -58,26 +59,87 @@ class FreshGateTests(unittest.TestCase):
     def test_missing_schedule_blocks_even_if_long_gap(self):
         parts=list(fixture());parts[0]['workflow_runs']=[]
         self.assertEqual(self.decision(parts)['status'],'HOLD_NO_TRUSTED_SCHEDULE')
-    def test_recent_encrypted_state_or_active_denial_blocks(self):
+    def test_recent_encrypted_state_does_not_force_pause_but_denial_stops(self):
         parts=list(fixture());parts[3]['last_checked_at']=stamp(-10)
-        self.assertEqual(self.decision(parts)['status'],'HOLD_SOURCE_RECENT')
+        self.assertEqual(self.decision(parts)['status'],'FRESH_RESULT_GET_ADMITTED')
         parts=list(fixture());parts[3]['boatrace_hold_until']=stamp(200)
         self.assertEqual(self.decision(parts)['status'],'HOLD_PROVIDER_DENIAL')
     def test_no_due_result_blocks(self):
         parts=list(fixture());parts[3]['due_count']=0
         self.assertEqual(self.decision(parts)['status'],'HOLD_NO_PENDING_DUE_RESULTS')
-    def test_one_attempt_per_30_minute_window_including_failed_attempt(self):
-        parts=list(fixture());parts[2].append(dict(run_id=98,created_at=stamp(-3),job_name=FRESH))
-        self.assertEqual(self.decision(parts)['status'],'HOLD_ALREADY_ATTEMPTED_IN_WINDOW')
-        parts[2][0]['created_at']=stamp(-40)
+    def test_back_to_back_attempts_allowed_without_30_minute_wait(self):
+        parts=list(fixture())
+        parts[2].append(dict(run_id=98,created_at=stamp(-3),
+                             job_status='completed',job_name=FRESH))
+        result=self.decision(parts)
+        self.assertEqual(result['status'],'FRESH_RESULT_GET_ADMITTED')
+        self.assertEqual(result['authorized_source_gets'],17)
+        self.assertEqual(result['remaining_60m_gets'],60)
+        parts[2][0]['created_at']=stamp(-61)
+        self.assertEqual(self.decision(parts)['remaining_60m_gets'],96)
+
+    def test_rolling_budget_counts_failures_and_stops_before_240(self):
+        parts=list(fixture());parts[3]['due_count']=85
+        for i in range(2):
+            parts[2].append(dict(run_id=91+i,created_at=stamp(-4-i),
+                                 job_status='completed',job_name=FRESH))
+        allowed=self.decision(parts)
+        self.assertEqual(allowed['authorized_source_gets'],24)
+        self.assertEqual(allowed['remaining_60m_gets'],24)
+        parts[2].append(dict(run_id=97,created_at=stamp(-7),
+                             job_status='completed',job_name=FRESH))
+        self.assertEqual(self.decision(parts)['status'],
+                         'HOLD_RECOVERY_ROLLING_BUDGET')
+        self.assertEqual(self.decision(parts)['authorized_source_gets'],0)
+
+    def test_primary_runs_reserve_shared_240_source_budget(self):
+        parts=list(fixture());parts[3]['due_count']=85
+        for i in range(18):
+            parts[0]['workflow_runs'].append(run(
+                60+i,-20-i,'workflow_dispatch',status='completed'))
+        decision=self.decision(parts)
+        self.assertEqual(decision['authorized_source_gets'],24)
+        self.assertEqual(decision['remaining_60m_gets'],24)
+        parts[0]['workflow_runs'].extend([
+            run(90,-40,'workflow_dispatch',status='completed'),
+            run(91,-41,'workflow_dispatch',status='completed')])
+        self.assertEqual(self.decision(parts)['status'],
+                         'HOLD_RECOVERY_ROLLING_BUDGET')
+
+    def test_in_progress_previous_source_job_is_rejected_without_timer(self):
+        parts=list(fixture())
+        parts[2].append(dict(run_id=97,created_at=stamp(-1),
+                             job_status='in_progress',job_name=FRESH))
+        self.assertEqual(self.decision(parts)['status'],
+                         'HOLD_PRIOR_SOURCE_JOB_ACTIVE')
+        parts[2][-1]['job_status']='completed'
         self.assertEqual(self.decision(parts)['status'],'FRESH_RESULT_GET_ADMITTED')
+
+    def test_long_started_job_retains_rolling_budget_after_creation_expired(self):
+        parts=list(fixture())
+        parts[2].append(dict(run_id=90,created_at=stamp(-65),
+                             started_at=stamp(-42),job_status='completed',
+                             job_name=FRESH))
+        self.assertEqual(self.decision(parts)['remaining_60m_gets'],60)
+    def test_failed_preflight_before_provider_step_has_no_rolling_budget_cost(self):
+        parts=list(fixture());parts[3]['due_count']=85
+        for n in (91,92,93):
+            parts[2].append(dict(run_id=n,created_at=stamp(-4),
+                                 provider_step_attempted=False,
+                                 job_status='completed',job_name=FRESH))
+        result=self.decision(parts)
+        self.assertEqual(result['remaining_60m_gets'],96)
+        self.assertEqual(result['authorized_source_gets'],36)
+        parts[2][-1]['provider_step_attempted']=True
+        self.assertEqual(self.decision(parts)['remaining_60m_gets'],60)
+
     def test_queued_collector_blocks_to_preserve_single_writer(self):
         for status in ['queued','pending','in_progress','waiting']:
             parts=list(fixture());parts[0]['workflow_runs'].append(run(53,-80,'workflow_dispatch',status=status))
             self.assertEqual(self.decision(parts)['status'],'HOLD_ORIGINAL_COLLECTOR_ACTIVE')
     def test_recent_manual_result_job_blocks_but_sourcefree_push_does_not(self):
         parts=list(fixture());parts[0]['workflow_runs'].append(run(53,-5,'push',title='boat-result-refresh: test'))
-        self.assertEqual(self.decision(parts)['status'],'HOLD_ORIGINAL_COLLECTOR_RECENT')
+        self.assertEqual(self.decision(parts)['status'],'FRESH_RESULT_GET_ADMITTED')
         parts[0]['workflow_runs'][-1]['display_title']='boat-owner-readback: no GET'
         self.assertEqual(self.decision(parts)['status'],'FRESH_RESULT_GET_ADMITTED')
     def test_no_retry_or_duplicate_origin_or_history_truncation(self):
@@ -86,6 +148,21 @@ class FreshGateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'CURRENT_ORIGIN'):self.decision(parts)
         parts=list(fixture());parts[0]['workflow_runs']=[run(i,-i*0.1) for i in range(1,101)]
         with self.assertRaisesRegex(ValueError,'RUN_HISTORY_TRUNCATED'):self.decision(parts)
+
+    def test_verified_new_result_dispatch_has_no_30_minute_sleep_or_source_get(self):
+        from pathlib import Path
+        workflow=Path('.github/workflows/boat-result-gap-recovery.yml').read_text()
+        assert "options: ['2', 'catchup']" in workflow
+        section=workflow.split('\n  source_free_followup:\n',1)[1]
+        assert 'needs: [fresh_result, fresh_readback]' in section
+        assert "needs.fresh_result.outputs.new_results == 'true'" in section
+        assert "needs.fresh_readback.result == 'success'" in section
+        assert 'gh workflow run boat-result-gap-recovery.yml --ref main -f cycle=catchup' in section
+        assert 'sync-results' not in section and 'www.boatrace.jp' not in section
+        assert "RACE_AI_BOAT_RESULT_GET_CAP" in workflow
+        assert "\n  source_free_followup:\n" not in workflow.split(
+            '\n  observed_gap:\n',1)[0]
+        assert "inputs.cycle == 'catchup'" in workflow
 
     def test_strict_real_readback_python_is_syntax_valid_and_source_free(self):
         import ast
