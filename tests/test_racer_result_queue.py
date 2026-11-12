@@ -97,6 +97,26 @@ class ResultQueueTests(unittest.TestCase):
         def fresh(url):raw,_=fetch(url);return raw,later.isoformat()
         s.advance(base,now=later,fetch=fresh,max_requests=1,result_targets=target)
         self.assertEqual(s.control['settlement_captures'][target[0]['race_id']]['captured_at'],later.isoformat())
+    def test_overdue_saved_results_get_four_slots_without_raising_twelve_get_cap(self):
+        s=self.state();base=self.base();calls,fetch=self.source_results()
+        s.control['day']='2026-11-07'
+        s.control['schedule']='FIXTURE_SCHEDULE'
+        s.control['archive_next']=(NOW+timedelta(days=1)).isoformat()
+        s.control['venues']=[];s.control['meetings']={}
+        for number in range(1,13):
+            rid=f'20261107-19-{number:02d}'
+            s.control['races'][rid]=dict(
+                cutoff_at='2026-11-07T10:00:00+09:00',
+                next_check='2026-11-07T10:05:00+09:00')
+        old=self.targets('20261104',count=8)
+        result=s.advance(base,now=NOW,fetch=fetch,max_requests=12,result_targets=old)
+        self.assertEqual(result['requests'],12)
+        self.assertEqual(len(calls),12)
+        older=[u for u in calls if 'hd=20261104' in u]
+        self.assertEqual(len(older),4,'prior-day backlog must not be starved by fresh statistics')
+        self.assertEqual(len(s.control['settlement_captures']),4)
+        self.assertEqual(len({u for u in calls}),12)
+
     def test_old_result_backlog_cannot_starve_today_venue_discovery(self):
         s=self.state();base=self.base();calls,fetch=self.source_results()
         def venues(url):return (day_index(('01','02','03','04')),NOW.isoformat()) if '/race/index?' in url else fetch(url)
