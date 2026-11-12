@@ -200,6 +200,49 @@ def _saved_program_names(files, view, day, now, registry):
     return races
 
 
+
+def _retained_result_names(captures, view, now):
+    """Bind names ONLY to the exact race/lane/registration of saved official results.
+
+    The existing parsed result includes six names and SHA-bound raw source
+    receipts. An unsupported source does not supply names, and conflicting
+    authentic observations stop the display update. No new provider GET.
+    """
+    from race_ai.racer_intraday_source import parse_result
+    targets = {(row['race_id'], person['number'], person['registration_no'])
+               for row in view['records'] if row.get('sport') == 'boat'
+               for person in row['participants'] if not person.get('name')}
+    if not targets:
+        return {}, 0
+    found = {}
+    unsupported = 0
+    for raw, receipt in captures:
+        try:
+            parsed = parse_result(raw, receipt, now=now)
+        except ValueError:
+            unsupported += 1
+            continue
+        if parsed.get('status') != 'CONFIRMED':
+            continue
+        rid = parsed['race_id']
+        for observed in parsed['rows']:
+            pid, lane = observed['racer_id'], observed['lane']
+            if (rid, lane, pid) not in targets:
+                continue
+            meta = dict(kind='SAME_RACE_RESULT', name=observed['name'],
+                        number=lane, registration_no=pid, race_id=rid,
+                        source_url=observed['source_url'],
+                        source_sha256=observed['source_sha256'],
+                        captured_at=observed['captured_at'])
+            known = found.setdefault(rid, {})
+            _need(pid not in known or known[pid]['name'] == meta['name'],
+                  'RETAINED_RESULT_NAME_CONFLICT')
+            # Never manufacture or silently revise an identity on another
+            # observation. The first authenticated matching source is enough.
+            known.setdefault(pid, meta)
+    return found, unsupported
+
+
 def _retained_names(repo, now, *, view=None, day=None, transport=None):
     """Read a verified TERM registry and optional exact saved B names."""
     pointer = _json(_read(repo/runtime.INPUT_PATH, 64*1024), 64*1024)
@@ -268,7 +311,8 @@ def _score_counts(scored):
 
 def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
               companion_artifacts, transport=None, receipt_get=None,
-              feed_transport=None, intraday_transport=None, runtime_transport=None, now=None):
+              feed_transport=None, intraday_transport=None, runtime_transport=None,
+              now=None, include_verified_result_names=False):
     """Verify, replay retained results and append to the existing encrypted feed.
 
     Optional transports replace external Git/Contents I/O only. All private
@@ -309,6 +353,14 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
         source_digest = digest([loaded['state'].control, loaded['state'].new_captures])
         race_ids = {row['race_id'] for row in rows}
         captures, captured_races, capture_hash = _retained_captures(loaded, race_ids, now)
+        if include_verified_result_names:
+            stage = 'DISPLAY_RETAINED_RESULT_NAMES'
+            found, unsupported = _retained_result_names(captures, merged, now)
+            if found:
+                merged = _named_target(merged, day, dict(registry={}, races=found))
+            name_proof['display_name_result_races'] = len(found)
+            name_proof['display_name_result_candidates'] = sum(map(len, found.values()))
+            name_proof['display_name_result_unsupported_captures'] = unsupported
         native_results = F.update_view(native_view, [], captures=captures, synced_at=now.isoformat())
         captured_latest, _ = latest_result_observations([
             observation for row in native_results['records']
@@ -385,6 +437,8 @@ def main(argv=None, *, transport=None, receipt_get=None, feed_transport=None,
     parser.add_argument('--day', required=True)
     parser.add_argument('--p0-artifact', type=int, required=True)
     parser.add_argument('--companion-artifact', type=int, action='append', required=True)
+    parser.add_argument('--include-verified-result-names', action='store_true',
+                        help='Source-free display-only names from already retained exact official results')
     parser.add_argument('--output', required=True)
     args = parser.parse_args(argv)
     try:
@@ -394,7 +448,8 @@ def main(argv=None, *, transport=None, receipt_get=None, feed_transport=None,
             receipt_commit=args.receipt_commit, day=args.day, p0_artifact=args.p0_artifact,
             companion_artifacts=args.companion_artifact, transport=transport,
             receipt_get=receipt_get, feed_transport=feed_transport,
-            intraday_transport=intraday_transport, runtime_transport=runtime_transport, now=now)
+            intraday_transport=intraday_transport, runtime_transport=runtime_transport,
+            now=now, include_verified_result_names=args.include_verified_result_names)
         vaultCLI._write(output, V._wire(report) + b'\n')
         print(V._wire(report).decode('utf-8'))
         return 0
