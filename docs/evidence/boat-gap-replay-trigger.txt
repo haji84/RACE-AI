@@ -79,3 +79,24 @@ Reject any reason whose total differs from the model HELD count. Keep all
 pending/missing/unsupported as HOLD until authentic formal receipts exist.
 
 2026-11-13 JST | Strict AES-only original 142 BOAT P0 coverage and unsupported-result reason audit after owner-approved bounded 36 GET recovery release. Trigger only the existing source-free BOAT coverage workflow with exact main merge title boat-coverage: sourcefree-142-20261113. Reopen authenticated owner saved history, count original race inventory 142, P0 forecasts 284, official final/pending/missing/unsupported and sanitized distinct rejection reason counts. Reject mutable forecast inventory, false formal settlements, or missing source authorization. Never fetch a racing provider, never log private race IDs, participants, tickets, owner URLs, keys, or HTML, and never claim that this marker itself proves live source settlement. The original source-recovery workflow remains governed by JST 07-23, 30min attempt reservation, source WAIT and 12-36 result backlog cap.
+
+2026-11-13 07:34 JST | OWNER REQUEST: ONE BOUNDED REAL OFFICIAL RESULT CATCH-UP.
+This commit invokes ONLY the pre-existing protected main recovery workflow,
+using its exact allowlisted title prefix
+boat-gap-fresh-proof: single-bounded-intake-20261112
+without adding provider GETs to any PR or test. The 142 original saved P0
+races/284 predictions remain immutable. Last AES owner coverage verified:
+57 formal results, 80 missing results, 5 reference-only HOLD; these are
+baseline facts, not a claim of newly acquired results.
+With the owner's authorized adaptive 12-36 result-only bound, let the
+existing schedule-gap gate independently revalidate JST07-23 window,
+>=15min missing BOAT primary schedule, >=20min stale sealed state,
+30min durable attempt exclusion, due authenticated saved race targets,
+single Git source writer, 403/429 source denial holds, owner 240-bound
+separation and immutable original forecast SHA. If any fails, zero
+provider GET, no automatic restart and retain HOLD.
+If admitted, require official bytes, AES Git retention, independent
+separate-runner ciphertext/final-result SHA, existing model-specific PDCA
+independent readback and real Pages model/result proof. New 142-race
+coverage should be independently measured after this run. Never expose
+raw source, participant identities, private race IDs or view key.
