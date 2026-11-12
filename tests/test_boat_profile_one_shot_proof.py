@@ -89,7 +89,16 @@ class OneOfficialProfileProof(unittest.TestCase):
         with patch.object(m,'_select',return_value=bad):
             with self.assertRaisesRegex(ValueError,'HISTORICAL_HTML_SHA_MISMATCH'):
                 m.execute('.',now=NOW,key=key,github=github,get_source=source)
-            self.assertEqual(events,['RESERVE','GET'])
+            self.assertEqual(events,['RESERVE','GET','SAVE_AES'])
+            # Even a changed observed page is private and recoverable for
+            # future investigation; historical identity is NOT certified.
+            tag=m._id(key,'4002')
+            raw_back,header=m._unpack(writes[m.PREFIX+m.DAY+'/'+tag+'.enc'],key,tag)
+            self.assertEqual(raw_back,raw)
+            self.assertEqual(header['source_bytes_sha256'],hashlib.sha256(raw).hexdigest())
+            with self.assertRaisesRegex(ValueError,'HISTORICAL_HTML_SHA_MISMATCH'):
+                m.execute('.',readback=True,now=NOW,key=key,github=github,
+                          get_source=lambda url:self.fail('readback must never GET'))
             with self.assertRaises(ValueError):
                 m.execute('.',now=NOW,key=key,github=github,get_source=source)
         self.assertEqual(events.count('GET'),1)
