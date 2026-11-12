@@ -403,6 +403,12 @@ class FirstP0ReconcileTests(unittest.TestCase):
         self.assertEqual(after['provider_requests'], 0)
         self.assertEqual(after['forecast_rewrites'], 0)
         self.assertFalse(after['plaintext_published'])
+        # Replaying identical authenticated result names must not publish
+        # another encrypted generation or change a native verdict.
+        again = self.run_reconcile(include_verified_result_names=True)
+        self.assertFalse(again['feed_changed'])
+        self.assertEqual(again['feed_generation'], after['feed_generation'])
+        self.assertEqual(again['native_evaluation_sha256'], after['native_evaluation_sha256'])
 
     def test_retained_result_names_hold_pending_and_foreign_registration(self):
         from race_ai.racer_intraday_source import parse_result
