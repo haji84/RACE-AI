@@ -159,7 +159,9 @@ def _github(path,*,body=None):
     try:
         with urlopen(request,timeout=25) as resp:
             _need(resp.status==(201 if body is not None else 200),'GITHUB_STATE_HTTP_STATUS')
-            document=json.loads(resp.read(128*1024))
+            response=resp.read(1200001)
+            _need(0<len(response)<=1200000,'GITHUB_STATE_RESPONSE_BOUND')
+            document=json.loads(response)
     except HTTPError:
         raise ValueError('BOAT_PROFILE_STATE_EXISTS_OR_UNAVAILABLE') from None
     return base64.b64decode(document['content'],validate=False) if body is None else document
@@ -174,7 +176,7 @@ def _proof(raw,item):
           parsed['source_url']==item['url'],'OFFICIAL_HTML_IDENTITY')
     return True
 
-def execute(repo,*,readback=False,get_source=_official_get,github=_github,
+def execute(repo,*,readback=False,audit_observation=False,get_source=_official_get,github=_github,
             now=None,key=None):
     now=now or datetime.now(timezone.utc)
     key=state_key('production',key)
@@ -183,6 +185,34 @@ def execute(repo,*,readback=False,get_source=_official_get,github=_github,
             new_forecasts_created=0,official_profile_gets=0)
     tag=_id(key,candidate['registration'])
     base=PREFIX+DAY+'/'+tag
+    if audit_observation:
+        # Restore the one already sealed source response; NEVER request a new
+        # official page and NEVER claim it is the November 7 original when
+        # historical SHA differs. The actual athlete name remains private.
+        _need(not readback,'OBSERVATION_MODE_CONFLICT')
+        raw,header=_unpack(github(base+'.enc'),key,tag)
+        _need(type(header.get('observed_at')) is str and
+              datetime.fromisoformat(header['observed_at']).utcoffset() is not None and
+              datetime.fromisoformat(header['observed_at'])<=now,
+              'OBSERVATION_CLOCK_INVALID')
+        matches_history=header['source_bytes_sha256']==candidate['historical_sha256']
+        try:
+            doc=parse_basic_profile(raw,registration=candidate['registration'],
+                                    expected_name=candidate['name'])
+            independently_parsed=(doc['source_url']==candidate['url']
+                                   and doc['source_sha256']==header['source_bytes_sha256'])
+        except (ValueError,UnicodeError,KeyError,TypeError):
+            independently_parsed=False
+        return dict(
+            status=('PROFILE_HISTORICAL_ORIGINAL_CONFIRMED' if matches_history and independently_parsed
+                    else 'PROFILE_NEWER_OR_DIFFERENT_HTML_PARSED' if independently_parsed
+                    else 'PROFILE_OBSERVATION_AES_VERIFIED_PARSE_HOLD'),
+            encrypted_source_retained=True,source_aes_reopened=True,
+            official_source_html_reparsed=independently_parsed,
+            historical_source_sha_matches=matches_history,
+            historical_original_verified=bool(matches_history and independently_parsed),
+            official_profile_gets=0,display_name_auto_published=False,
+            new_forecasts_created=0)
     if readback:
         blob=github(base+'.enc')
         raw,header=_unpack(blob,key,tag)
@@ -212,9 +242,12 @@ def main(argv=None):
     p=argparse.ArgumentParser()
     p.add_argument('--repo-root',default=str(ROOT))
     p.add_argument('--readback',action='store_true')
+    p.add_argument('--audit-observation',action='store_true',
+                   help='Decrypt and reparse saved observation only; never GET official source')
     args=p.parse_args(argv)
     try:
-        result=execute(args.repo_root,readback=args.readback)
+        result=execute(args.repo_root,readback=args.readback,
+                       audit_observation=args.audit_observation)
         print(json.dumps(result,sort_keys=True));return 0
     except Exception as e:
         # Fixed reason codes only; never print private strings or tracebacks.
