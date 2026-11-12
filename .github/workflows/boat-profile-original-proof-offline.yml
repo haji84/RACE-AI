@@ -20,7 +20,7 @@ jobs:
       - name: Checkout exact pinned pre-production one-shot candidate
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 2073c9bea918970097ddbb8335175c93270ae695
+          ref: 6d171cc347b4d23931df23f0722d49cf612375a5
           path: profile-owner
           persist-credentials: false
       - name: Checkout original pinned BOAT parser, never call provider
