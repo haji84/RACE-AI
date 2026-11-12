@@ -176,7 +176,20 @@ class IntradayState:
         old=[rid for rid in result_due if targets[rid]['pending'] and rid not in fresh]
         revisions=[rid for rid in result_due if not targets[rid]['pending']]
         new_stats=[rid for rid in due if rid not in c['results']]
-        for target in fresh+bootstrap+new_stats+old+[rid for rid in due if rid not in new_stats]+revisions:
+        # Keep the original 12-GET hard cap. After urgent newly closed races
+        # and current-day venue discovery, reserve up to four *existing*
+        # requests for authenticated older saved results. Otherwise a busy
+        # new day can starve yesterday's pending P0 results until their
+        # encrypted saved day drops outside the two-day window.
+        today_first=fresh+bootstrap+new_stats
+        remaining=max_requests-requests
+        if old and remaining>=8 and len(fresh)+len(bootstrap)<remaining:
+            before=max(len(fresh)+len(bootstrap),remaining-4)
+            order=(today_first[:before]+old[:4]+today_first[before:]+old[4:]+
+                   [rid for rid in due if rid not in new_stats]+revisions)
+        else:
+            order=today_first+old+[rid for rid in due if rid not in new_stats]+revisions
+        for target in order:
             if requests>=max_requests or waiting('boatrace'):break
             venue=target[9:11];number=int(target[-2:])
             if target in picked:continue
