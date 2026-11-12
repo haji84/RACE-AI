@@ -179,7 +179,10 @@ jobs:
         github.event.workflow_run.head_sha == 'cf7b6f6a926396c6873e78fe1ad1d3d6840088a8') ||
        (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
         startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca') &&
-        contains(github.event.head_commit.message, 'recover-first-p0-42995325741')))
+        contains(github.event.head_commit.message, 'recover-first-p0-42995325741')) ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message,
+                   'boat-owner-readback: recover-saved-p0-43131905826')))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -199,7 +202,7 @@ jobs:
         id: select
         env:
           GH_TOKEN: ${{ github.token }}
-          ORIGINAL_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '42995325741' }}
+          ORIGINAL_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || (startsWith(github.event.head_commit.message, 'boat-owner-readback: recover-saved-p0-43131905826') && '43131905826' || '42995325741') }}
         shell: bash
         run: |
           set -euo pipefail
