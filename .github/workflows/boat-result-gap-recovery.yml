@@ -1157,5 +1157,5 @@ jobs:
           # The new workflow MUST revalidate actual due targets, provider
           # hold, rolling 96 GET/hour, and the single-writer concurrency.
           # A failed or no-new-results run cannot trigger another cycle.
-          gh workflow run boat-result-gap-recovery.yml --ref main -f cycle=catchup
+          gh workflow run boat-result-gap-recovery.yml --repo "$GITHUB_REPOSITORY" --ref main -f cycle=catchup
           echo 'BOAT_NEXT_CATCHUP_QUEUED_WITHOUT_PROVIDER_GET'
