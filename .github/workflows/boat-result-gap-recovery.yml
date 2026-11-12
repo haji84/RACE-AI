@@ -31,6 +31,89 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  source_free_diagnostic:
+    name: Pinned BOAT collector source-free diagnosis
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message,
+                 'boat-gap-diagnostic: pinned-readonly-20261112')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 914941a6244364480370ac392441ad4bb5781f83
+          path: source-reader
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
+      - name: Diagnose exact original source reader without racing-provider GET
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY'
+          from datetime import datetime,timezone
+          from pathlib import Path
+          import sys,json,re,traceback
+          sys.path.insert(0,str(Path('source-reader').resolve()))
+          import race_ai
+          for folder in ('pr64-reference','pr72-reference'):
+              package=Path(folder,'race_ai').resolve()
+              assert package.is_dir()
+              race_ai.__path__.append(str(package))
+          from scripts.boat_private_original_vault import _environment
+          from race_ai.racer_daily_handoff import load_daily
+          from race_ai.racer_intraday_handoff import load_intraday
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai.racer_intraday import build_catalogue
+          from race_ai.racer_daily import sha,wire
+          repo=_environment(Path('source-reader').resolve())
+          now=datetime.now(timezone.utc)
+          stage='init'
+          base=None
+          try:
+              stage='daily_load'
+              loaded=load_daily(repo,now=now)
+              base=loaded['store']
+              stage='source_load'
+              intraday=load_intraday(repo,now=now)
+              stage='results_load'
+              result_bridge=SavedResultBridge(repo,now=now)
+              stage='source_free_projection'
+              roster=json.loads((Path('source-reader')/'web/data/racer-profiles.json').read_text())['people']
+              result=build_catalogue(base,intraday['state'],roster,now=now,
+                                     base_sha=loaded['previous']['cipher_sha256'])
+              assert result['status']=='READY'
+              print(json.dumps(dict(status='BOAT_SOURCE_FREE_DIAGNOSTIC_PASSED',
+                  source_gets=0,result_row_count=len(result_bridge.rows),
+                  public_profiles=len(result['people']),diagnosed_steps=4),sort_keys=True))
+          except Exception as exc:
+              reason=str(exc) if type(exc) is ValueError and
+                  re.fullmatch('[A-Z0-9_]{3,100}',str(exc)) else 'SOURCE_FREE_DIAGNOSTIC_FAILED'
+              print(json.dumps(dict(status='BOAT_SOURCE_FREE_DIAGNOSTIC_HOLD',
+                  source_gets=0,stage=stage,reason=reason,
+                  exception_type=type(exc).__name__ if type(exc).__name__ in
+                      ('ValueError','RuntimeError','KeyError','TypeError','AssertionError') else 'Error'),
+                  sort_keys=True))
+              raise SystemExit(2)
+          finally:
+              if base is not None:base.close()
+          PY
+
   unit:
     name: unit
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
@@ -68,6 +151,8 @@ jobs:
           assert 'FRESH_OFFICIAL_FINAL_INCREASE_VERIFIED' in text
           assert 'exact_result_digest_matched' in text
           assert 'original_inventory_unchanged' in text
+          assert 'BOAT_SOURCE_FREE_DIAGNOSTIC_PASSED' in text
+          assert 'boat-gap-diagnostic: pinned-readonly-20261112' in text
           assert 'cancel-in-progress: false' in text
           print('FRESH_RESULT_GAP_SOURCE_BOUNDARY_UNIT_VERIFIED')
           PY
@@ -339,6 +424,35 @@ jobs:
               os.path.join(os.environ['RUNNER_TEMP'],'boat-gap-fresh'),
               '--sync-results']))
           PY
+
+      - name: Report whitelisted source-error reason without original or key
+        if: failure() && steps.source_gate.outputs.admitted == 'true'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,os,re
+          path=Path(os.environ['RUNNER_TEMP'])/'boat-gap-fresh-result-private.json'
+          try:
+              data=json.loads(path.read_text())
+              assert type(data) is dict
+              reason=data.get('reason')
+              if not isinstance(reason,str) or not re.fullmatch('[A-Z0-9_]{3,100}',reason):
+                  reason='UNKNOWN_UNEXPOSED_ERROR'
+              stage=data.get('status')
+              if stage not in ('HOLD','SOURCE_WAIT','INTRADAY_REFRESHED'):
+                  stage='UNKNOWN'
+              kind=data.get('exception_type')
+              if kind not in ('ValueError','RuntimeError','KeyError','TypeError','AssertionError'):
+                  kind='UNKNOWN'
+              print(json.dumps(dict(status='BOAT_FRESH_SOURCE_FAILED',
+                  reason=reason,source_status=stage,exception_type=kind,
+                  provider_requests_verified=False),sort_keys=True))
+          except Exception:
+              print(json.dumps(dict(status='BOAT_FRESH_SOURCE_FAILED',
+                  reason='NO_SANITIZABLE_PRIVATE_REPORT',
+                  provider_requests_verified=False),sort_keys=True))
+          PY
+
       - name: Require actual new official result and no source-limit bypass
         if: steps.source_gate.outputs.admitted == 'true'
         id: new_result
