@@ -30,6 +30,22 @@ def invented_research_state(root):
 
 
 class GithubHandoffTests(unittest.TestCase):
+    def test_exact_state_fetch_uses_blobless_transport_but_preserves_full_history(self):
+        from race_ai.boat_pdca_github_handoff import GitStateRepository
+        git=object.__new__(GitStateRepository)
+        git.fetch_url='https://github.com/haji84/RACE-AI.git'
+        with patch.object(git,'_run',return_value=b'') as run:
+            git.fetch('a'*40)
+            args=run.call_args.args[0]
+            self.assertEqual(args,[
+                'fetch','--filter=blob:none','--no-tags','--no-write-fetch-head',
+                'https://github.com/haji84/RACE-AI.git',
+                'a'*40+':refs/race-ai/pinned-state/'+'a'*40])
+            self.assertNotIn('--depth',args)
+            with self.assertRaises(ValueError):
+                git.fetch('--upload-pack=malicious')
+        self.assertEqual(run.call_count,1)
+
     def test_pinned_fetches_remain_reachable_for_incremental_following_fetch(self):
         from race_ai.boat_pdca_github_handoff import GitStateRepository
         class LocalFixtureGit(GitStateRepository):

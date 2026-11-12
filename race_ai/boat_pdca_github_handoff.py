@@ -65,7 +65,11 @@ class GitStateRepository:
         # Keep the exact object locally reachable so the next pinned dataset
         # fetch can negotiate its already-restored monthly ancestors. These
         # private local refs are never pushed or used as trusted remote heads.
-        self._run(['fetch','--no-tags','--no-write-fetch-head',self.fetch_url,
+        # GitHub accepts blob filtering. Preserve full commit/tree history for
+        # the signed generation-chain audit, but fetch large AES blobs only
+        # when a verified source pointer actually needs them.
+        # Do not add --depth: history rollback checks require all ancestors.
+        self._run(['fetch','--filter=blob:none','--no-tags','--no-write-fetch-head',self.fetch_url,
                    commit+':refs/race-ai/pinned-state/'+commit])
 
     def read(self,commit,path,limit):
