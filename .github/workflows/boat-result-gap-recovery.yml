@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: bb3533bedb591ee7137f10d3e0ff77564f527ef7
+          ref: ba5747983fd9bc62dac17aa5b71e203e1bc875d8
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -121,16 +121,9 @@ jobs:
           os.environ['GIT_CONFIG_KEY_'+str(count)]='http.https://github.com/haji84/RACE-AI.extraheader'
           os.environ['GIT_CONFIG_VALUE_'+str(count)]='AUTHORIZATION: basic '+base64.b64encode(('x-access-token:'+token).encode()).decode()
           os.environ['GIT_CONFIG_COUNT']=str(count+1)
-          class CandidateDaily(DailyStateRepository):
-              def _run(self,args,*,body=None,env=None):
-                  if args and args[0]=='fetch' and '--filter=blob:none' in args:
-                      # The base transport was independently proven with exactly
-                      # this filtered fetch, without overriding promisor config.
-                      return GitStateRepository._run(self,args,body=body,env=env)
-                  return super()._run(args,body=body,env=env)
+          # Test the exact immutable source SHA used by production, not a local subclass.
           report={}
           for label,cls in (('daily_filtered',DailyStateRepository),
-                            ('candidate_filtered',CandidateDaily),
                             ('base_transport',GitStateRepository)):
               try:
                   git=cls(Path('.'),ref=TRANSFER_REF)
@@ -144,7 +137,7 @@ jobs:
                   report[label]=code if type(exc) is ValueError and re.fullmatch('[A-Z0-9_]{3,100}',code) else 'EXACT_GIT_FETCH_ERROR'
           print(json.dumps(dict(schema='BOAT_SOURCE_FREE_REAL_GIT_DIFF_V1',
               official_provider_gets=0,remote_writes=0,variants=report),sort_keys=True))
-          assert report['candidate_filtered']=='EXACT_GIT_FETCH_OK'
+          assert report['daily_filtered']=='EXACT_GIT_FETCH_OK'
           assert report['base_transport']=='EXACT_GIT_FETCH_OK'
           PY
   source_free_git_probe:
@@ -362,7 +355,7 @@ jobs:
           assert 'AUTHENTICATED_GIT_CREDENTIAL_AVAILABLE_NO_PROVIDER_GET' in fresh
           assert 'HOLD_GIT_CREDENTIAL_UNAVAILABLE' in fresh
           assert "['git','-C','source-reader','credential','fill']" in fresh
-          assert 'bb3533bedb591ee7137f10d3e0ff77564f527ef7' in fresh
+          assert 'ba5747983fd9bc62dac17aa5b71e203e1bc875d8' in fresh
           assert 'needs: observed_gap' in fresh
           assert "github.event.workflow_run.event == 'schedule'" in fresh
           assert "github.event.workflow_run.name == 'KEIRIN hourly personal research canary'" in fresh
@@ -620,7 +613,7 @@ jobs:
       - name: Install unmodified bounded result collector separately
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: bb3533bedb591ee7137f10d3e0ff77564f527ef7
+          ref: ba5747983fd9bc62dac17aa5b71e203e1bc875d8
           path: source-reader
           persist-credentials: false
       - name: Install immutable original official parser
@@ -846,7 +839,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: bb3533bedb591ee7137f10d3e0ff77564f527ef7
+          ref: ba5747983fd9bc62dac17aa5b71e203e1bc875d8
           persist-credentials: false
       - name: Install immutable official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
