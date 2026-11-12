@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 9a8116c35fcf930c68080852429f26fb826a68cd
+          ref: d5ede5fb1f336794e8a0217e9b42d559d8ab0cc4
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -326,14 +326,14 @@ jobs:
       CONTROL_ID: ${{ needs.original_retention.outputs.control }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {persist-credentials: false, ref: 9a8116c35fcf930c68080852429f26fb826a68cd}
+        with: {persist-credentials: false, ref: d5ede5fb1f336794e8a0217e9b42d559d8ab0cc4}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
       - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
       - name: Use the original projector, official parser and scorer without source GET
-        run: python -m scripts.boat_first_p0_reconcile --repo-root . --vault-commit "$VAULT_COMMIT" --receipt-commit "$RECEIPT_COMMIT" --day "$ORIGINAL_DAY" --p0-artifact "$P0_ID" --companion-artifact "$CONTINUITY_ID" --companion-artifact "$CONTROL_ID" --include-verified-result-names --diagnose-profile-index --output "$RUNNER_TEMP/first-p0-reconciliation.json"
+        run: python -m scripts.boat_first_p0_reconcile --repo-root . --vault-commit "$VAULT_COMMIT" --receipt-commit "$RECEIPT_COMMIT" --day "$ORIGINAL_DAY" --p0-artifact "$P0_ID" --companion-artifact "$CONTINUITY_ID" --companion-artifact "$CONTROL_ID" --include-verified-result-names --diagnose-profile-index --include-current-official-profile --output "$RUNNER_TEMP/first-p0-reconciliation.json"
       - name: Retain count-only existing-scorer evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
