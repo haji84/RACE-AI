@@ -3,7 +3,7 @@ from contextlib import nullcontext
 from copy import deepcopy
 from datetime import date,datetime,timezone
 from pathlib import Path
-import argparse,json,re,subprocess,sys
+import argparse,json,os,re,subprocess,sys
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
 from race_ai.racer_daily import wire,sha,clock,need
@@ -27,8 +27,15 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
         result_sync=None;bridge=None;targets=()
         if sync_results:
             from race_ai.racer_result_bridge import SavedResultBridge,status as result_status
-            try:bridge=result_bridge or SavedResultBridge(repo,now=current());targets=bridge.targets()
-            except Exception:bridge=None;result_sync=result_status(now=current(),state='HOLD')
+            try:
+                bridge=result_bridge or SavedResultBridge(repo,now=current())
+                backfill=os.environ.get('RACE_AI_BOAT_BACKFILL_DAY')
+                if backfill:
+                    need(result_bridge is None,'RESULT_BACKFILL_INJECTED_BRIDGE_FORBIDDEN')
+                    bridge.include_backfill_day(backfill)
+                targets=bridge.targets()
+            except Exception:
+                bridge=None;result_sync=result_status(now=current(),state='HOLD')
         loaded=load_intraday(repo,initialize=initialize,transport=intraday_transport,now=current());state=loaded['state'];before={k:v for k,v in state.control.items() if k!='last_checked_at'};before=wire(before)
         if bridge:bridge.prepare(state)
         beforeinfo=dict(requests=0,parsed=0,rejected=0)
