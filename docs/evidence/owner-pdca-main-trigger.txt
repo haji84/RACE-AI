@@ -295,3 +295,30 @@ generation, no new or reset request budget, no post-result backfill of P1,
 and no overwrites. Recheck count-only names, official results, scores,
 HOLDs and original SHA. If 3 remaining names still lack independent
 evidence, keep them null. This marker alone is not an outcome receipt.
+
+2026-11-12 JST | GEN127 SAME-DAY OTHER-RACE REGISTRATION NAME COLD READBACK
+Use only the exact immutable 2026-11-12 first P0 from original owner
+run 43131905826 (artifact 13905925953; 142 races / 284 model forecasts),
+the archived CONTINUITY and SOURCE_CONTROL companions, the existing
+authenticated 39 result observations, and verified encrypted Pages feed.
+At the prior source-free proof run 43172391241, 849 of 852 participant
+display names were source-bound and three remained unknown; two P0 model
+groups, 68 formal scores, and 39 confirmed race results were checked.
+Source-only draft PR #182 code SHA
+1ff2165de381663da705ac480b7e00ee1e733b7a adds a strict source-free
+same-JST-day registration fallback from independently authenticated other-race
+SP results, while refusing foreign day, conflicting names, and mismatched
+registration numbers. Static JS source CI #43175438269 was green and the
+strict site-only PR #190 deployed with Pages workflow #43175915083 success.
+This main change repins only the source-free mirror regression and
+original_reconcile checkout; the source-authoritative owner code SHA,
+original result collector, model, schedule, AES and rate guards remain fixed.
+Existing P0 replay opts into retained-result names without any new source GET.
+Trigger only the preexisting source-free main entry whose commit begins
+boat-owner-readback: recover-saved-p0-43131905826
+Require independently verified original readback, official native evaluation
+without any forecast rewrite, distinct added-name and missing-name counts,
+and LIVE_OWNER_SITE_VERIFIED after the new encrypted feed appears.
+Do not report 852/852 unless explicitly measured. No user keys, private URL,
+registration numbers, raw names, source payloads or tickets in Public logs.
+No additional HTTP source acquisition or timetable-trigger changes.

@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 924c70204c1365a634ccfc1b9a5aa89f25eb3bc0
+          ref: 1ff2165de381663da705ac480b7e00ee1e733b7a
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -326,7 +326,7 @@ jobs:
       CONTROL_ID: ${{ needs.original_retention.outputs.control }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {persist-credentials: false, ref: 924c70204c1365a634ccfc1b9a5aa89f25eb3bc0}
+        with: {persist-credentials: false, ref: 1ff2165de381663da705ac480b7e00ee1e733b7a}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
