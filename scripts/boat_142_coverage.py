@@ -35,12 +35,27 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
     need(type(statuses) is dict and set(statuses) == {r['race_id'] for r in rows},
          'STATUS_INVENTORY_INVALID')
     counts = Counter()
+    unsupported_reasons = Counter()
     model_counts = Counter()
     saved_p0 = all_saved = 0
     for r in rows:
         status = statuses[r['race_id']]
         need(type(status) is str, 'STATUS_INVALID')
         counts[status if status in STATES else 'unsupported'] += 1
+        if status == 'unsupported':
+            # One count per race, not per rejected packet; do not publish
+            # protected race identifiers or raw source/registration values.
+            result = r.get('result') or {}
+            observations = r.get('result_observation_rejections') or []
+            need(type(observations) is list and len(observations) <= 256,
+                 'REJECTION_LIST_INVALID')
+            reasons = [item.get('reason') for item in observations
+                       if type(item) is dict and type(item.get('reason')) is str
+                       and re.fullmatch('[A-Z0-9_]{3,100}',item['reason'])]
+            reason = (reasons[-1] if reasons else
+                      'REFERENCE_ONLY_NOT_FORMAL' if result.get('status') in
+                      ('final', 'void') else 'UNSUPPORTED_UNCLASSIFIED')
+            unsupported_reasons[reason] += 1
         preds = ([r['prediction']] if r.get('prediction') is not None else []) + list(
             r.get('comparison_predictions') or [])
         need(len(preds) <= 128 and all(type(p) is dict for p in preds),
@@ -96,6 +111,8 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
     p0_open = sum(g['pending'] + g['held'] for g in p0_groups)
     need(sum(g['forecasts'] for g in p0_groups) == saved_p0,
          'P0_GROUP_INVENTORY_MISMATCH')
+    need(sum(unsupported_reasons.values()) == counts['unsupported'],
+         'UNSUPPORTED_REASON_COUNT_MISMATCH')
     complete = (len(rows) == expected_races and saved_p0 == expected_p0 and
                 counts['final'] + counts['void'] == len(rows) and
                 p0_open == 0)
@@ -109,6 +126,7 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
                 result_status_counts={k:counts[k] for k in
                     (*STATES, 'unsupported')},
                 unconfirmed_result_races=len(rows)-counts['final']-counts['void'],
+                unsupported_reason_counts=dict(sorted(unsupported_reasons.items())),
                 model_scored_forecasts=scored, model_pending_forecasts=pending,
                 model_held_forecasts=held, model_void_forecasts=void,
                 unresolved_p0_forecasts=p0_open,
