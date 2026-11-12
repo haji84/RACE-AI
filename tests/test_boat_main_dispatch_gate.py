@@ -294,7 +294,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertNotIn('--sync-beforeinfo',result_only)
         self.assertNotIn('gh workflow run',daily)
         self.assertNotIn('first_p0_bootstrap',daily)
-        self.assertEqual(workflow.count('  daily:'),1)
+        self.assertIn('  daily:\n    needs: [source_mirror, original_reconcile]',workflow)
 
     def test_one_attested_pre_source_failure_can_retry_without_any_original(self):
         row,proof=self._previous_pre_source_run_and_proof()
