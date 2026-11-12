@@ -20,3 +20,15 @@ This patch adds independent pinned official adapters to the same
 zero-source reader, without changing source budgets or writing models.
 Its main-push trigger launches a bounded pair of source-free real
 replays. A green PR CI alone is not this full proof.
+
+2026-11-12｜新規公式結果の厳密一回限りの本番回収試験（証拠追加のみ）。
+このmerge commitは既存GitHub BOAT復旧ワークフローに対する単発push起動のみを目的とする。
+実際のBOAT schedule欠落15分以上、元の暗号状態に20分以上新規保存なし、
+公式取得拒否の保留期限内ではない、今処理すべき未確定レースあり、
+同一取得担当の実行中・直近20分の実行なし、復旧試行30分以内の重複なし、
+これら全条件をGitHub実履歴と秘密鍵付き暗号原本で検証できなければsource GET=0でHOLD。
+合格した場合のみ元の固定official result collectorを12回GET以内で1回実行し、
+新たにfinalになった公式結果が1件以上あること、元予想原本のinventory SHA一致、
+暗号保存、別runnerで同じsource ciphertext / final result digest / inventory SHAを再照合する。
+この手動起動は定期schedule自律発火の証明には数えない。source GET上限、元P0/P1、
+拒否済みsourceの停止規則、継続起動の制限は変更しない。新結果未到着なら全体HOLD。
