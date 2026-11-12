@@ -788,7 +788,9 @@ def run(*, schedule_snapshot=None,research_target=None):
                 # Official schedule is already authenticated. Reserve only
                 # the two *required* program/exhibition GETs per other future
                 # un-frozen race. This cannot increase the 240/JST-day cap.
+                generated_now={pair['race_id'] for pair in forecasts}
                 outstanding=sum(row['race_id']!=rid and row['race_id'] not in completed
+                                and row['race_id'] not in generated_now
                                 for row in prospective_rows)
                 options['reserved_next_gets']=2*outstanding
             status,pair,extended,priced,observed=make_pair(day,source_race,**options)
