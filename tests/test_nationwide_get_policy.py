@@ -65,6 +65,43 @@ class NationwideGetPolicyTests(unittest.TestCase):
     def setUp(self):
         FixedClock.current=NOW
 
+    def test_verified_pending_schedule_reserves_gets_for_later_p1_races(self):
+        snapshot=schedule_snapshot(3)
+        chosen=[]
+        class ReadyGuard:
+            def remaining(self):return 5
+        def candidate(day,row,**options):
+            chosen.append((row['race_id'],options['reserved_next_gets']))
+            return dict(race_id=row['race_id'],state='AB_GENERATED_NOT_YET_EXTERNAL_FROZEN'), \
+                   dict(race_id=row['race_id']),None,None,None
+        with tempfile.TemporaryDirectory() as folder, \
+             patch.object(pilot,'OUTPUT',Path(folder)), \
+             patch.object(pilot,'datetime',FixedClock), \
+             patch.object(pilot,'SOURCE_GUARD',ReadyGuard()), \
+             patch.object(pilot,'make_pair',side_effect=candidate), \
+             patch.object(pilot,'load_original_race_ids',return_value=frozenset()), \
+             patch.object(pilot,'MODEL_INPUT_SINK',None), \
+             patch.object(pilot,'ISSUED_MODELS',None), \
+             patch.dict('os.environ',{'RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED':'true',
+                                      'RACE_AI_EVENT_DAY':'2030-04-01'}):
+            result=pilot.run(schedule_snapshot=snapshot)
+        self.assertEqual(len(result['candidate_attempts']),3)
+        self.assertEqual([n for _,n in chosen],[4,2,0])
+        self.assertEqual(result['paired_forecast_count'],3)
+
+    def test_optional_forecast_gets_require_proved_residual_budget(self):
+        class Budget:
+            def __init__(self,left):self.left=left
+            def remaining(self):return self.left
+        for left,reserve,expected in ((240,310,False),(240,4,True),
+                                      (4,4,False),(5,4,True),(0,0,False)):
+            with self.subTest(left=left,reserve=reserve),patch.object(pilot,'SOURCE_GUARD',Budget(left)):
+                self.assertEqual(pilot._optional_source_allowed(reserve),expected)
+        with patch.object(pilot,'SOURCE_GUARD',None):
+            self.assertTrue(pilot._optional_source_allowed(100))
+        with self.assertRaisesRegex(ValueError,'OPTIONAL_SOURCE_RESERVATION_INVALID'):
+            pilot._optional_source_allowed(-1)
+
     def test_sixty_real_get_calls_keep_count_and_response_past_former_cap(self):
         transport = Transport()
         with patch.object(pilot, 'requests_used', 0), \
