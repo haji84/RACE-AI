@@ -217,6 +217,42 @@ def _check_observed_current_html(github, candidate, *, key, tag, base, now):
                 display_name_auto_published=False,
                 source_unmodified=True)
 
+
+def current_profile_display_evidence(repo, *, now=None, key=None, github=_github):
+    """Return identity to trusted display-only projector, never public logs.
+
+    Rechecks the one-time source reservation, AES authentication and current
+    official registration/name against parsed raw HTML. A different old SHA
+    stays different; these bytes are NEW current profile evidence, not a
+    historical model input, and never require another provider HTTP request.
+    """
+    now=now or datetime.now(timezone.utc)
+    key=state_key('production',key)
+    candidate=_select(Path(repo),now)
+    if candidate is None:
+        return None
+    tag=_id(key,candidate['registration'])
+    base=PREFIX+DAY+'/'+tag
+    result=_check_observed_current_html(github,candidate,key=key,
+                                        tag=tag,base=base,now=now)
+    _need(result['authenticated_current_profile']==1
+          and result['official_profile_gets']==0
+          and result['display_name_auto_published'] is False,
+          'CURRENT_PROFILE_NOT_VERIFIED')
+    # Re-open the actual AES contents; never copy the pre-capture profile
+    # name from an unverified public index.
+    raw,hdr=_unpack(github(base+'.enc'),key,tag)
+    parsed=parse_basic_profile(raw,registration=candidate['registration'],
+                               expected_name=candidate['name'])
+    _need(parsed['source_sha256']==hdr['source_bytes_sha256']
+          and parsed['source_url']==candidate['url']
+          and parsed['registration']==candidate['registration'],
+          'CURRENT_PROFILE_PARSED_PROVENANCE_INVALID')
+    return dict(registration_no=parsed['registration'],name=parsed['name'],
+                source_url=parsed['source_url'],
+                source_sha256=parsed['source_sha256'],
+                captured_at=hdr['observed_at'],verified_current=True)
+
 def execute(repo,*,readback=False,readback_current=False,
             get_source=_official_get,github=_github,now=None,key=None):
     now=now or datetime.now(timezone.utc)
