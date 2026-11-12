@@ -102,8 +102,9 @@ jobs:
                   source_gets=0,result_row_count=len(result_bridge.rows),
                   public_profiles=len(result['people']),diagnosed_steps=4),sort_keys=True))
           except Exception as exc:
-              reason=str(exc) if type(exc) is ValueError and
-                  re.fullmatch('[A-Z0-9_]{3,100}',str(exc)) else 'SOURCE_FREE_DIAGNOSTIC_FAILED'
+              reason=(str(exc) if type(exc) is ValueError and
+                      re.fullmatch('[A-Z0-9_]{3,100}',str(exc))
+                      else 'SOURCE_FREE_DIAGNOSTIC_FAILED')
               print(json.dumps(dict(status='BOAT_SOURCE_FREE_DIAGNOSTIC_HOLD',
                   source_gets=0,stage=stage,reason=reason,
                   exception_type=type(exc).__name__ if type(exc).__name__ in
@@ -153,6 +154,10 @@ jobs:
           assert 'original_inventory_unchanged' in text
           assert 'BOAT_SOURCE_FREE_DIAGNOSTIC_PASSED' in text
           assert 'boat-gap-diagnostic: pinned-readonly-20261112' in text
+          import ast,textwrap
+          block=text.split('      - name: Diagnose exact original source reader without racing-provider GET',1)[1].split("python - <<'PY'\\n",1)[1].split('\\n          PY',1)[0]
+          ast.parse(textwrap.dedent(block),filename='read_only_diagnostic')
+          assert '--sync-results' not in text.split('  source_free_diagnostic:',1)[1].split('  unit:',1)[0]
           assert 'cancel-in-progress: false' in text
           print('FRESH_RESULT_GAP_SOURCE_BOUNDARY_UNIT_VERIFIED')
           PY
