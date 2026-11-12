@@ -322,3 +322,31 @@ and LIVE_OWNER_SITE_VERIFIED after the new encrypted feed appears.
 Do not report 852/852 unless explicitly measured. No user keys, private URL,
 registration numbers, raw names, source payloads or tickets in Public logs.
 No additional HTTP source acquisition or timetable-trigger changes.
+
+2026-11-12 JST | GEN128 OFFICIAL PROFILE INDEX MISSING NAME DIAGNOSTIC
+The confirmed 2026-11-12 first P0 owner SHA and 284 original model
+forecasts are unchanged. In AES saved generation 128, 39 official result
+races and 68 formally scored predictions are attested, and exactly ONE
+of 852 participant display names is still unverified.
+A separately published official racer-profile catalogue is attested by
+the existing Pages asset manifest SHA256
+e810da0da13c47ec3f26dc5a1df67c153ee5dc7363e678fa79b61eabd60bb811.
+The verified public source has 1669 athlete records, including 26 exact
+official per-person profile-index entries not in the 2026-2 TERM data.
+It is currently unknown whether the private remaining registration
+matches one of those entries. The manifest indexes page URLs, capture
+clocks and page hashes, but does NOT include the raw official HTML for
+independent re-parsing. Therefore it MUST NOT automatically fill names.
+The reviewed pinned source-free P0 reader SHA
+9a8116c35fcf930c68080852429f26fb826a68cd adds opt-in
+--diagnose-profile-index. Only emit aggregate
+display_name_profile_index_candidates, *_unmatched,
+and *_source_reparsed=false. Never expose registrations, names, encrypted
+source bytes, source keys, model tickets or affected race IDs in logs.
+Never issue extra source GET, re-generate a prediction, overwrite any P0,
+change the original owner worker/collector source budget, or alter score.
+Run only the already-approved source-free exact P0 readback triggered by
+boat-owner-readback: recover-saved-p0-43131905826 after CI passes.
+A positive catalogue candidate is not a verified source. It requires
+authenticated original official HTML bytes to become an allowed name.
+Do not claim completed until all 852 source-verified or explicitly HOLD.
