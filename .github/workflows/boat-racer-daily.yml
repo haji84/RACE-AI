@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 9a8116c35fcf930c68080852429f26fb826a68cd
+          ref: 2073c9bea918970097ddbb8335175c93270ae695
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -92,7 +92,8 @@ jobs:
                   'tests.test_boat_first_p0_reconcile',
                   'tests.test_boat_saved_result_recovery',
                   'tests.test_boat_private_original_vault_cli',
-                  'tests.test_boat_saved_site_context'])
+                  'tests.test_boat_saved_site_context',
+                  'tests.test_boat_profile_one_shot_proof'])
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(not result.wasSuccessful())
           PY
