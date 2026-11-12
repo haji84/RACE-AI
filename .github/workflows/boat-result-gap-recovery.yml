@@ -98,8 +98,13 @@ jobs:
               phase='ls-remote'
               parent=gate.head()
               assert parent and re.fullmatch('[a-f0-9]{40}',parent)
-              phase='fetch'
-              gate.fetch(parent)
+              phase='fetch-filtered'
+              # Fetch the authenticated exact commit and trees without
+              # downloading every historical encrypted blob on the transfer ref.
+              # The original gate implementation is unchanged in this probe.
+              gate._run(['fetch','--filter=blob:none','--no-tags',
+                  '--no-write-fetch-head',gate.fetch_url,
+                  parent+':refs/race-ai/pinned-state/'+parent])
               phase='local-commit'
               candidate=gate.commit({},parent)
               assert re.fullmatch('[a-f0-9]{40}',candidate) and candidate!=parent
@@ -272,6 +277,7 @@ jobs:
           assert 'race_ai.__path__.append(str(package))' in probe
           assert 'code_trace=trace[-3:]' in text
           assert "phase='dry-run'" in text
+          assert "'--filter=blob:none'" in probe
           assert "boat-git-probe: readonly-git-20261112" in text
           assert "'--dry-run'" in text
           assert 'boat-gap-diagnostic: pinned-readonly-20261112' in text
