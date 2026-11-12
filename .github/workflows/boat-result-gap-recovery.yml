@@ -355,6 +355,26 @@ jobs:
           ast.parse(textwrap.dedent(block),filename='read_only_diagnostic')
           assert '--sync-results' not in text.split('  source_free_diagnostic:',1)[1].split('  unit:',1)[0]
           assert 'cancel-in-progress: false' in text
+          assert "  fresh_pdca_stage:\n" in text
+          assert "  fresh_pdca_readback:\n" in text
+          assert "  fresh_site_browser:\n" in text
+          assert "needs: [fresh_result, fresh_readback]" in text
+          assert "needs: [fresh_result, fresh_readback, fresh_pdca_readback]" in text
+          assert "NO_NEW_OFFICIAL_FINAL_DAY" in text
+          assert "EXPECTED_NEW_FINAL_DAY" in text
+          assert "FRESH_OFFICIAL_RESULT_MODEL_MATCH_LIVE_PAGES_VERIFIED" in text
+          for job in ("fresh_pdca_stage", "fresh_pdca_readback", "fresh_site_browser"):
+              body=text.split("\n  "+job+":\n",1)[1].split("\n  fresh_",1)[0]
+              assert "--sync-results" not in body and "--sync-beforeinfo" not in body
+              assert "www.boatrace.jp" not in body
+          # Compile all new embedded Python blocks in PR, without any provider GET.
+          for job,expected in (("fresh_pdca_stage",1),("fresh_pdca_readback",1),
+                               ("fresh_site_browser",3)):
+              part=text.split("\n  "+job+":\n",1)[1].split("\n  fresh_",1)[0]
+              snippets=part.split("          python - <<'PY'\n")[1:]
+              assert len(snippets)==expected
+              for code in snippets:
+                  ast.parse(textwrap.dedent(code.split("\n          PY",1)[0]),filename=job)
           print('FRESH_RESULT_GAP_SOURCE_BOUNDARY_UNIT_VERIFIED')
           PY
   offline_contract:
@@ -522,6 +542,9 @@ jobs:
       result_digest: ${{ steps.new_result.outputs.result_digest }}
       inventory_digest: ${{ steps.new_result.outputs.inventory_digest }}
       scope_days: ${{ steps.new_result.outputs.scope_days }}
+      new_final_day: ${{ steps.new_result.outputs.new_final_day }}
+      new_day_before: ${{ steps.new_result.outputs.new_day_before }}
+      new_day_after: ${{ steps.new_result.outputs.new_day_after }}
     if: >-
       needs.observed_gap.result == 'success' && needs.observed_gap.outputs.gap == 'true' &&
       github.repository == 'haji84/RACE-AI' &&
@@ -597,10 +620,11 @@ jobs:
               for target in bridge.targets())
           wait=(control.get('waits') or {}).get('boatrace') or {}
           final=sum((row.get('result') or {}).get('status')=='final' for row in bridge.rows)
+          before_by_day={day:sum((row.get('result') or {}).get('status')=='final' and row['event_date_jst']==day for row in bridge.rows) for day in bridge.days}
           inventory=F.inventory_sha(dict(schema='RACE_AI_PRIVATE_CYCLE_VIEW_V1',records=bridge.rows))
           print(json.dumps(dict(last_checked_at=control.get('last_checked_at'),
               due_count=due,boatrace_hold_until=wait.get('until'),
-              before_final=final,baseline_races=len(bridge.rows),
+              before_final=final,before_by_day=before_by_day,baseline_races=len(bridge.rows),
               scope_days=sorted(bridge.days),inventory_digest=inventory),sort_keys=True))
           PY
       - name: Revalidate trusted schedules, all prior source attempts and sealed budget
@@ -742,6 +766,11 @@ jobs:
               if (r.get('result') or {}).get('status')=='final')
           digest=hashlib.sha256(json.dumps(finals,sort_keys=True,
               separators=(',',':')).encode()).hexdigest()
+          after_by_day={day:sum((r.get('result') or {}).get('status')=='final' and r['event_date_jst']==day for r in rows) for day in bridge.days}
+          assert set(after_by_day)==set(baseline['before_by_day'])
+          new_days=sorted(day for day in after_by_day if after_by_day[day]>baseline['before_by_day'][day])
+          assert new_days, 'NO_NEW_OFFICIAL_FINAL_DAY'
+          new_day=new_days[-1]
           with open(os.environ['GITHUB_OUTPUT'],'a') as stream:
               stream.write('new_results=true\n')
               stream.write('result_cipher='+report['retained']['cipher_sha256']+'\n')
@@ -750,6 +779,9 @@ jobs:
               stream.write('result_digest='+digest+'\n')
               stream.write('inventory_digest='+inventory+'\n')
               stream.write('scope_days='+','.join(bridge.days)+'\n')
+              stream.write('new_final_day='+new_day+'\n')
+              stream.write('new_day_before='+str(baseline['before_by_day'][new_day])+'\n')
+              stream.write('new_day_after='+str(after_by_day[new_day])+'\n')
           print(json.dumps(dict(status='FRESH_OFFICIAL_FINAL_INCREASE_VERIFIED',
               provider_gets=report['source_requests'],
               changed_races=report['result_sync']['changed_races'],
@@ -795,6 +827,9 @@ jobs:
           EXPECTED_RESULT_DIGEST: '${{ needs.fresh_result.outputs.result_digest }}'
           EXPECTED_INVENTORY_DIGEST: '${{ needs.fresh_result.outputs.inventory_digest }}'
           EXPECTED_SCOPE_DAYS: '${{ needs.fresh_result.outputs.scope_days }}'
+          EXPECTED_NEW_FINAL_DAY: '${{ needs.fresh_result.outputs.new_final_day }}'
+          EXPECTED_NEW_DAY_BEFORE: '${{ needs.fresh_result.outputs.new_day_before }}'
+          EXPECTED_NEW_DAY_AFTER: '${{ needs.fresh_result.outputs.new_day_after }}'
         run: |
           python - <<'PY'
           import json,race_ai,hashlib,os,datetime
@@ -823,8 +858,192 @@ jobs:
           digest=hashlib.sha256(json.dumps(finals,sort_keys=True,
               separators=(',',':')).encode()).hexdigest()
           assert digest==os.environ['EXPECTED_RESULT_DIGEST']
+          day=os.environ['EXPECTED_NEW_FINAL_DAY']
+          assert day in bridge.days
+          day_final=sum((r.get('result') or {}).get('status')=='final' and r['event_date_jst']==day for r in bridge.rows)
+          assert day_final==int(os.environ['EXPECTED_NEW_DAY_AFTER'])>int(os.environ['EXPECTED_NEW_DAY_BEFORE'])
           print(json.dumps(dict(status='FRESH_RESULT_INDEPENDENT_AES_READBACK_VERIFIED',
               provider_gets=0,new_final_count=final-before,
               exact_source_cipher_matched=True,exact_result_digest_matched=True,
-              original_inventory_unchanged=True),sort_keys=True))
+              original_inventory_unchanged=True,new_final_day_verified=True),sort_keys=True))
+          PY
+
+  fresh_pdca_stage:
+    name: BOAT source-free model PDCA stage after new official final
+    needs: [fresh_result, fresh_readback]
+    if: needs.fresh_readback.result == 'success' && needs.fresh_result.outputs.new_results == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0796b52c2804177976e4c2e5ab9b65f32589720b
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Score retained original models with existing source-free scorer
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/boat-fresh-pdca" --stage-existing-pdca > "$RUNNER_TEMP/boat-fresh-pdca.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          doc=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-fresh-pdca.json').read_text())
+          assert doc['status']=='STAGED_NEEDS_INDEPENDENT_READBACK'
+          assert doc['source_requests']==doc['source_provider_requests']==0
+          assert doc['forecast_rewrites']==0 and doc['actual_purchases'] is False
+          assert doc['formally_scored_forecasts']>0
+          print(json.dumps(dict(status='BOAT_EXISTING_MODEL_PDCA_STAGED',source_gets=0,
+               scored_forecasts=doc['formally_scored_forecasts'],originals_changed=False),
+               sort_keys=True))
+          PY
+
+  fresh_pdca_readback:
+    name: BOAT independent encrypted model PDCA readback on separate runner
+    needs: fresh_pdca_stage
+    if: needs.fresh_pdca_stage.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0796b52c2804177976e4c2e5ab9b65f32589720b
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Independently authenticate AES model results and original forecast inventory
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python -m scripts.verify_all_history_pdca_readback --repository-root . > "$RUNNER_TEMP/boat-fresh-pdca-readback.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          doc=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-fresh-pdca-readback.json').read_text())
+          assert doc['status']=='AES_AUTHENTICATED_HISTORICAL_PDCA_READBACK_VERIFIED'
+          assert doc['formally_scored_forecasts']>0
+          assert doc['source_provider_requests']==0 and doc['forecast_rewrites']==0
+          print(json.dumps(dict(status='BOAT_FRESH_MODEL_PDCA_INDEPENDENTLY_VERIFIED',
+               scored_forecasts=doc['formally_scored_forecasts'],
+               verified_days=doc['saved_days_authenticated'],source_gets=0),sort_keys=True))
+          PY
+
+  fresh_site_browser:
+    name: BOAT live Pages original-model result comparison after AES verification
+    needs: [fresh_result, fresh_readback, fresh_pdca_readback]
+    if: needs.fresh_readback.result == 'success' && needs.fresh_pdca_readback.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0796b52c2804177976e4c2e5ab9b65f32589720b
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22'
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - run: npm install --prefix "$RUNNER_TEMP/result-site-tools" --no-package-lock --ignore-scripts playwright@1.62.1
+      - name: Authenticate actual updated saved result and private browser probe
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+          TARGET_DAY: '${{ needs.fresh_result.outputs.new_final_day }}'
+          NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: http.https://github.com/.extraheader
+          GIT_CONFIG_VALUE_0: ''
+        run: |
+          python - <<'PY'
+          import datetime,os,re
+          from pathlib import Path
+          day=os.environ['TARGET_DAY']
+          assert re.fullmatch(r'20[0-9]{2}-[01][0-9]-[0-3][0-9]',day)
+          assert datetime.date.fromisoformat(day).isoformat()==day
+          PY
+          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --day "$TARGET_DAY" --stage P0 > "$RUNNER_TEMP/boat-fresh-site-context-summary.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from scripts.boat_private_original_vault import _environment
+          from scripts.boat_saved_view_feed import git_auth
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from datetime import datetime,timezone
+          base=Path(os.environ['RUNNER_TEMP'])
+          context=json.loads((base/'boat-saved-site-context.json').read_text())
+          assert context['day']==os.environ['TARGET_DAY'] and context['minimum_results']>0
+          assert context['stage']=='P0' and context['native_p0_groups']>0
+          git_auth()
+          bridge=SavedResultBridge(_environment(Path('.').resolve()),now=datetime.now(timezone.utc))
+          choices=[r['race_id'] for r in bridge.rows if r['event_date_jst']==context['day']
+                   and (r.get('result') or {}).get('status')=='final'
+                   and any(p and p.get('stage')=='P0' and p.get('external_receipt_verified') is True
+                           and p.get('eligible_pre_cutoff',True) is True
+                           for p in [r.get('prediction'),*(r.get('comparison_predictions') or [])])]
+          assert choices, 'NO_FINAL_WITH_SAVED_PRE_RACE_MODEL'
+          path=base/'boat-fresh-result-probe-id'
+          fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+          with os.fdopen(fd,'w') as out:out.write(sorted(choices)[0])
+          print(json.dumps(dict(status='BOAT_PRIVATE_FINAL_MODEL_PROBE_READY',
+               source_gets=0,eligible_final_model_races=len(choices)),sort_keys=True))
+          PY
+          PROBE_RACE="$(cat "$RUNNER_TEMP/boat-fresh-result-probe-id")"
+          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "--race-id=$PROBE_RACE" > "$RUNNER_TEMP/boat-fresh-browser.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          base=Path(os.environ['RUNNER_TEMP'])
+          expected=json.loads((base/'boat-saved-site-context.json').read_text())
+          browser=json.loads((base/'boat-fresh-browser.json').read_text())
+          assert browser['status']=='LIVE_OWNER_SITE_VERIFIED'
+          assert browser['feed_generation']>=expected['generation']
+          assert browser['selected_saved_day']==expected['day']
+          assert browser['checked_day_results']>=expected['minimum_results']>0
+          assert browser['probe_result_matched'] is True
+          assert browser['ai_results_navigation_verified'] is True
+          assert browser['hit_miss_rate_roi_and_settled_pending_net_visible'] is True
+          assert browser['key_in_requests_or_storage'] is False
+          assert browser['official_source_requests']==0 and browser['plaintext_published'] is False
+          print(json.dumps(dict(status='FRESH_OFFICIAL_RESULT_MODEL_MATCH_LIVE_PAGES_VERIFIED',
+               verified_date=expected['day'],source_gets=0,
+               browser_generation=browser['feed_generation'],
+               verified_result_count=browser['checked_day_results'],
+               model_comparison_visible=True,plaintext_published=False),sort_keys=True))
           PY
