@@ -604,8 +604,17 @@ def make_pair(day,race,*,research_target=None,reserved_next_gets=0):
         priced={"race_id":race_id,"state":"OPTIONAL_ODDS_DEFERRED_FOR_REQUIRED_P1_GETS"}
     if _clock(day)+MIN_TO_CUTOFF>=cutoff:
         return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None,None
-    paused=collect_pitreport(context,day,paused=paused)
-    paused=collect_entry_history(context,day,paused=paused)
+    # Optional background enrichments must not consume the GET allowance
+    # needed for the remaining P1 forecasts. Pitreport uses at most one GET;
+    # previous-day history may use two. No source quota is ever increased.
+    if _optional_source_allowed(reserved_next_gets):
+        paused=collect_pitreport(context,day,paused=paused)
+    else:
+        context['pitreport_collection_status']='DEFERRED_FOR_REQUIRED_P1_GETS'
+    if _optional_source_allowed(reserved_next_gets+1):
+        paused=collect_entry_history(context,day,paused=paused)
+    else:
+        context['entry_history_collection_status']='DEFERRED_FOR_REQUIRED_P1_GETS'
     if NATIVE_INPUT_SINK is not None:
         try:
             from race_ai.all_existing_model_inputs import build_current_requests
