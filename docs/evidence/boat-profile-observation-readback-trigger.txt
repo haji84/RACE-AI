@@ -1,0 +1,18 @@
+2026-11-12 JST | BOAT SEALED PROFILE OBSERVATION INDEPENDENT RE-READBACK
+The official one-time profile attempt run 43188367056 consumed its HMAC
+reservation, fetched one official profile HTML response and encrypted its
+observed source bytes to the owner-only AEAD vault branch. The observed SHA
+did not match the original 2026-11-07 HTML SHA, therefore historical proof
+HOLD and the last athlete name remains UNVERIFIED.
+This research gate NEVER issues an additional official profile GET.
+It will independently decrypt the existing sealed bytes in a new runner,
+verify AEAD identity and content hash, attempt the existing strictly typed
+official profile HTML parser with the exact privately sourced registration
+and expected name, and report only aggregate classifications.
+A matching CURRENT official observed name is not the original historical
+HTML. Do not silently replace historical proofs or publish a name before
+new-source display admission is separately reviewed and tested.
+Immutable 2026-11-12 BOAT P0 142 races / 284 forecasts, 39 source results,
+68 scored forecasts, 216 HOLD, feed gen128 and forecast source SHA unchanged.
+No BOAT 240 owner or 12 result request budget changes, no source GET, no
+forecast/PDCA changes. The profile-specific one-off reservation cannot reset.
