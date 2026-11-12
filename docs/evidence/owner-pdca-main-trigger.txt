@@ -134,3 +134,16 @@ and cutoff comparisons, encrypted result retention and append-only saved feed.
 Missing official result stays PENDING, no forced settlement, no P1 recreation.
 One result-only trigger does not authorize a forecast worker or repeat source
 GET beyond existing source policies. Never overwrite P0 predictions or keys.
+
+2026-11-12 JST | SOURCE-FREE exact P0 browser verification after real results
+Use already-existing main owner-readback: recover-saved-p0-43131905826
+for 2026-11-12 saved P0, without any fresh official source GET.
+Results official collector run 43142854952 reported 11 new actual confirmed
+race result observations and 25 confirmed in the two-day window,
+with 131 pending; stored encrypted result-view feed advanced to
+generation 119 and later generation 120 with original forecast SHA unchanged.
+Result-only run browser checker erroneously required absent P1; PR170 fixed
+that mode. This source-free exact P0 readback proves saved result display
+in the same owner view, with unchanged model IDs and P0 receipts.
+Do not relabel historical picks or synthesize missing P1; no extra forecasts,
+provider GET, or buy/sell submission. Treat unresolved races as PENDING.
