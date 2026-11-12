@@ -286,6 +286,10 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertEqual(workflow.count('name: Reflect confirmed races and retain encrypted incremental source packets'),1)
         self.assertIn("ref: 914941a6244364480370ac392441ad4bb5781f83",daily)
         self.assertIn('Authenticate the saved 11/12 P0 receipt before any result source GET',daily)
+        self.assertLess(daily.index('Use the already-reviewed result collector'),
+                        daily.index('path: pr64-reference'))
+        self.assertLess(daily.index('path: pr64-reference'),
+                        daily.index('Authenticate the saved 11/12 P0 receipt'))
         self.assertIn('zip_sha256=\'5a3287ac9cb45be6907be6c7d370c04addf3216d6e70184bda20e05502c80c6d\'',daily)
         self.assertIn('artifact_id=13905925953,race_count=142,model_forecast_count=284',daily)
         result_only=daily.split("if [[ \"$RESULT_ONLY\" == 'true' ]]; then",1)[1].split('else',1)[0]
