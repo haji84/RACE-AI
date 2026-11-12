@@ -107,6 +107,18 @@ class FreshGateTests(unittest.TestCase):
                              started_at=stamp(-42),job_status='completed',
                              job_name=FRESH))
         self.assertEqual(self.decision(parts)['remaining_60m_gets'],60)
+    def test_failed_preflight_before_provider_step_has_no_rolling_budget_cost(self):
+        parts=list(fixture());parts[3]['due_count']=85
+        for n in (91,92,93):
+            parts[2].append(dict(run_id=n,created_at=stamp(-4),
+                                 provider_step_attempted=False,
+                                 job_status='completed',job_name=FRESH))
+        result=self.decision(parts)
+        self.assertEqual(result['remaining_60m_gets'],96)
+        self.assertEqual(result['authorized_source_gets'],36)
+        parts[2][-1]['provider_step_attempted']=True
+        self.assertEqual(self.decision(parts)['remaining_60m_gets'],60)
+
     def test_queued_collector_blocks_to_preserve_single_writer(self):
         for status in ['queued','pending','in_progress','waiting']:
             parts=list(fixture());parts[0]['workflow_runs'].append(run(53,-80,'workflow_dispatch',status=status))
