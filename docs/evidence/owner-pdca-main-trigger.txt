@@ -120,3 +120,17 @@ official results, then append to the existing encrypted Pages feed.
 No extra official GET, no new source worker, no retroactive or overwritten P0/P1,
 no key/public prediction leakage, no API or request cap change.
 No real P1 generation or nationwide completeness is claimed.
+
+2026-11-12 JST | Result-only official result reconciliation, existing saved P0
+Trigger exactly one existing GitHub BOAT daily result collector via push subject
+boat-result-refresh: owner-p0-43131905826-20261112.
+Required original: 2026-11-12 first P0 saved by owner run 43131905826,
+artifact 13905925953, 142 real races, 284 two-model P0 forecasts.
+Original encrypted ZIP SHA256: 5a3287ac9cb45be6907be6c7d370c04addf3216d6e70184bda20e05502c80c6d.
+GitHub P0 first receipt blob SHA: d5b9cf8b0f5e896bc0f7fd7bfcde62bc809b2992.
+Existing result collector is pinned and must apply its official-source time
+bounds, at most 12 requests in this run, authenticated race IDs/rosters
+and cutoff comparisons, encrypted result retention and append-only saved feed.
+Missing official result stays PENDING, no forced settlement, no P1 recreation.
+One result-only trigger does not authorize a forecast worker or repeat source
+GET beyond existing source policies. Never overwrite P0 predictions or keys.
