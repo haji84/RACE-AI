@@ -49,6 +49,46 @@ concurrency:
   group: ${{ github.event_name == 'pull_request' && 'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics' }}
   cancel-in-progress: false
 jobs:
+  fast_result_source_unit:
+    name: BOAT exact fast-result source tests (no provider GET)
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 6327bc5675aee2da94ac13397f1f86f39b27d8fd
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Exact immutable source regression, queue fairness, retries, AES result bridge
+        run: python -m unittest tests.test_racer_intraday tests.test_racer_result_queue tests.test_racer_result_bridge tests.test_racer_intraday_refresh -v
+      - name: Verify source fixed 12-GET cap, no forbidden provider or owner changes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source=Path('race_ai/racer_intraday.py').read_text()
+          runtime=Path('scripts/racer_intraday_refresh.py').read_text()
+          assert '1<=max_requests<=12' in source
+          assert 'max_requests=12-beforeinfo' in runtime
+          assert "cutoff+timedelta(minutes=1)<=now" in source
+          assert "interval=2 if targets[target]['pending']" in source
+          assert "result_targets=targets" in runtime
+          assert "waiting('boatrace')" in source
+          assert '--sync-results' in runtime
+          print('FAST_RESULT_PINNED_SOURCE_UNIT_VERIFIED')
+          PY
   unit:
     # Main branch protection expects a real "unit" check. Run genuine tests,
     # not an empty success marker; source/provider jobs remain disabled on PR.
@@ -204,7 +244,7 @@ jobs:
           assert "github.event.schedule == '20 21 * * *'" in mirror
           assert 'continue-on-error: true' not in mirror
           assert "'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics'" in header
-          pin = "ref: $" + "{{ github.event_name == 'push' && github.sha || '914941a6244364480370ac392441ad4bb5781f83' }}"
+          pin = "ref: $" + "{{ github.event_name == 'push' && github.sha || '6327bc5675aee2da94ac13397f1f86f39b27d8fd' }}"
           assert pin in daily
           PY
   original_retention:
@@ -469,7 +509,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ github.event_name == 'push' && github.sha || '914941a6244364480370ac392441ad4bb5781f83' }}
+          ref: ${{ github.event_name == 'push' && github.sha || '6327bc5675aee2da94ac13397f1f86f39b27d8fd' }}
           persist-credentials: true
       - name: Use pinned collector for official results and stage-aware P0 reader only for view verification
         if: >-
@@ -481,8 +521,8 @@ jobs:
           # The immutable older official-result collector cannot accept
           # "--stage P0". Swap only the read-only site-verifier mode to a
           # separately CI-proven, stage-aware existing release; source
-          # collection continues to use the unchanged 914941a pinned SHA.
-          ref: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-view') && '0796b52c2804177976e4c2e5ab9b65f32589720b' || '914941a6244364480370ac392441ad4bb5781f83' }}
+          # collection remains pinned to the exact tested fast-results SHA.
+          ref: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-view') && '0796b52c2804177976e4c2e5ab9b65f32589720b' || '6327bc5675aee2da94ac13397f1f86f39b27d8fd' }}
           persist-credentials: true
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
