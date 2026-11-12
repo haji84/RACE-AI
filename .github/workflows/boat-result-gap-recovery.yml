@@ -18,11 +18,11 @@ on:
       cycle:
         required: true
         type: choice
-        options: ['2']
-        description: 'One bounded follow-up audit; no official provider GET'
+        options: ['2', 'catchup']
+        description: '2=source-free audit; catchup=guarded result recovery with rolling quota'
   # A single authenticated source-failure diagnosis does not alter GET limits.
   # Backup polling only. Original BOAT 5-minute schedule remains the primary
-  # source. This is never a bypass of 12 GET/run or the 30-minute replay gate.
+  # source. No fixed 30min pause; rolling 96 GET/hour and provider WAIT hold.
   # GitHub may delay or skip schedule events: timestamps are not an SLA.
   schedule:
     - cron: '11,26,41,56 0-14,22-23 * * *'
@@ -418,6 +418,10 @@ jobs:
           assert 'RACE_AI_BOAT_RESULT_GET_CAP' in fresh
           assert 'EXPECTED_SOURCE_GET_CAP' in fresh
           assert "source_get_cap" in text
+          assert "options: ['2', 'catchup']" in text
+          assert "inputs.cycle == 'catchup'" in text
+          assert "source_free_followup:" in text
+          assert "RECOVERY_BUDGET_60M" in Path('scripts/boat_result_gap_fresh_gate.py').read_text()
           assert "selected_rows=F.current_view" in text
           for job in ("fresh_pdca_stage", "fresh_pdca_readback", "fresh_site_browser"):
               body=text.split("\n  "+job+":\n",1)[1].split("\n  fresh_",1)[0]
@@ -474,7 +478,8 @@ jobs:
           startsWith(github.event.head_commit.message,
                      'boat-gap-fresh-proof: single-bounded-intake-20261112'))) ||
         (github.event_name == 'workflow_dispatch' &&
-         github.ref == 'refs/heads/main' && inputs.cycle == '2') ||
+         github.ref == 'refs/heads/main' &&
+         (inputs.cycle == '2' || inputs.cycle == 'catchup')) ||
         (github.event_name == 'workflow_run' &&
          github.event.workflow_run.event == 'schedule' &&
          (github.event.workflow_run.conclusion == 'success' ||
@@ -619,7 +624,9 @@ jobs:
        (github.event_name == 'push' &&
         github.ref == 'refs/heads/main' &&
         startsWith(github.event.head_commit.message,
-          'boat-gap-fresh-proof: single-bounded-intake-20261112')))
+          'boat-gap-fresh-proof: single-bounded-intake-20261112')) ||
+       (github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/main' && inputs.cycle == 'catchup'))
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     permissions:
@@ -677,8 +684,12 @@ jobs:
           if older:bridge.include_backfill_day(older)
           with open(os.environ['GITHUB_OUTPUT'],'a') as out:
               out.write('backfill_day='+str(older or '')+'\n')
+          now=datetime.now(timezone.utc)
+          retry=control.get('settlement_next') or {}
+          assert isinstance(retry,dict), 'UNVERIFIED_RESULT_RETRY_CLOCKS'
           due=sum(target['pending'] and target['cutoff_at'] is not None and
-              clock(target['cutoff_at'])+timedelta(minutes=5)<=datetime.now(timezone.utc)
+              clock(target['cutoff_at'])+timedelta(minutes=5)<=now and
+              (target['race_id'] not in retry or clock(retry[target['race_id']])<=now)
               for target in bridge.targets())
           wait=(control.get('waits') or {}).get('boatrace') or {}
           final=sum((row.get('result') or {}).get('status')=='final' for row in bridge.rows)
@@ -1124,3 +1135,27 @@ jobs:
                verified_result_count=browser['checked_day_results'],
                model_comparison_visible=True,plaintext_published=False),sort_keys=True))
           PY
+
+  source_free_followup:
+    name: BOAT source-free dispatch only after independently verified new results
+    needs: [fresh_result, fresh_readback]
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.ref == 'refs/heads/main' &&
+      needs.fresh_result.outputs.new_results == 'true' &&
+      needs.fresh_readback.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Queue another independently gated catch-up, not a source GET
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          # The new workflow MUST revalidate actual due targets, provider
+          # hold, rolling 96 GET/hour, and the single-writer concurrency.
+          # A failed or no-new-results run cannot trigger another cycle.
+          gh workflow run boat-result-gap-recovery.yml --ref main -f cycle=catchup
+          echo 'BOAT_NEXT_CATCHUP_QUEUED_WITHOUT_PROVIDER_GET'
