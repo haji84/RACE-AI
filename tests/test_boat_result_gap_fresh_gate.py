@@ -99,7 +99,14 @@ class FreshGateTests(unittest.TestCase):
         ):
             segment=workflow.split('      - name: '+label+'\n',1)[1]
             source=segment.split("python - <<'PY'\n",1)[1].split('\n          PY',1)[0]
-            ast.parse(textwrap.dedent(source),filename=label)
+            tree=ast.parse(textwrap.dedent(source),filename=label)
+            # Syntax parsing alone does not detect an undefined os variable.
+            # Keep the owner preflight from silently failing before provider GET.
+            if any(isinstance(node,ast.Name) and node.id=='os'
+                   for node in ast.walk(tree)):
+                self.assertTrue(any(isinstance(node,ast.Import) and
+                    any(alias.name=='os' for alias in node.names)
+                    for node in tree.body), 'os used without import: '+label)
         assert "assert after_final>baseline['before_final']" in workflow
         assert "assert digest==os.environ['EXPECTED_RESULT_DIGEST']" in workflow
         assert "assert inventory==os.environ['EXPECTED_INVENTORY_DIGEST']" in workflow
