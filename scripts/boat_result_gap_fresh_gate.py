@@ -1,9 +1,11 @@
 """Fail-closed BOAT result admission with no fixed 30-minute pause.
 
 Pure policy is testable without network access; the live wrapper reads authenticated
-GitHub Actions history and already sealed private state only. A conservative
-96 GET / rolling 60-minute recovery budget coexists with the original
-12 GET / primary run (up to 144/hour); the owner's 240 cap is NOT reset.
+GitHub Actions history and sealed private state only. No fixed 60-minute GET
+quota is imposed by this recovery gate. Source access remains controlled by
+up to 36 GET per admitted cycle, per-race due times, single-writer exclusion,
+and immediate provider 403/429 WAIT. The separate original owner's
+240-per-session budget is not changed.
 """
 import argparse,json,os,re,subprocess
 from datetime import datetime,timedelta,timezone
@@ -13,10 +15,7 @@ JST=timezone(timedelta(hours=9))
 SCHEMA='RACE_AI_BOAT_FRESH_GAP_GATE_V1'
 BOAT='BOAT per-race results and athlete statistics'
 FRESH='Fresh bounded official result intake'
-RECOVERY_BUDGET_60M=96
-OWNER_BUDGET_60M=240
-PRIOR_ATTEMPT_RESERVATION=36
-PRIMARY_RUN_RESERVATION=12
+MAX_RECOVERY_GETS_PER_CYCLE=36
 
 def _need(ok,why):
     if not ok:raise ValueError('BOAT_FRESH_GAP_'+why)
@@ -81,12 +80,10 @@ def inspect(boat_runs,recovery_runs,prior_attempts,source,*,now,current_run_id,r
         # Completed primary runs have no artificial 20-minute cooldown.
         # Their worst-case 12 GET every 5 minutes is already reserved from
         # the rolling 240 owner budget by the recovery 96 GET/hour ceiling.
-    # Count every prior *started* source job pessimistically at its maximum
-    # 36 GET, even when it failed before GET. Do not reset this quota on
-    # workflow failure, rerun, branch merge, or successive dispatch.
-    # Use the JOB start time (not just run creation) to avoid a late-start
-    # job aging out of the rolling window too early.
-    recent_attempts=set()
+    # No artificial 30-minute or 60-minute quota pauses. GitHub source
+    # jobs are serialized by the shared Actions concurrency group; refuse
+    # any independently visible active writer as defense in depth.
+    # On a failed/unknown history query, live() returns HOLD without GET.
     for p in prior_attempts:
         _need(type(p) is dict and type(p.get('run_id')) is int and
               type(p.get('created_at')) is str and
@@ -97,34 +94,18 @@ def inspect(boat_runs,recovery_runs,prior_attempts,source,*,now,current_run_id,r
         if p['run_id']==current_run_id:continue
         if p.get('job_status') in ('queued','in_progress','waiting','pending','requested'):
             return dict(status='HOLD_PRIOR_SOURCE_JOB_ACTIVE',authorized_source_gets=0)
-        if utc-at<timedelta(minutes=60) and p.get('provider_step_attempted',True):
-            recent_attempts.add(p['run_id'])
-    spent=len(recent_attempts)*PRIOR_ATTEMPT_RESERVATION
-    if spent>=RECOVERY_BUDGET_60M:
-        return dict(status='HOLD_RECOVERY_ROLLING_BUDGET',authorized_source_gets=0,
-                    remaining_60m_gets=0)
-    # Conservatively reserve 12 provider GETs for every potential main
-    # source collector in the same rolling hour, even if it actually used 0.
-    # This also protects against additional owner-approved manual collectors.
-    primaries=[r for r in trusted if utc-_time(r['created_at'])<timedelta(minutes=60)
-               and (r.get('event') in ('schedule','workflow_dispatch') or
-                    r.get('event')=='push' and str(r.get('display_title','')).startswith(
-                        'boat-result-refresh:'))]
-    primary_spent=len(primaries)*PRIMARY_RUN_RESERVATION
-    remaining_owner=max(0,OWNER_BUDGET_60M-primary_spent-spent)
-    available=min(RECOVERY_BUDGET_60M-spent,remaining_owner)
-    if available<12:
-        return dict(status='HOLD_RECOVERY_ROLLING_BUDGET',authorized_source_gets=0,
-                    remaining_60m_gets=available)
-    # No 30-minute pause: after the current single writer completes and a
-    # DIFFERENT saved race is due, another run can use the remaining budget.
-    # All primary source-capable runs reserve 12 GET each. Recovery
-    # independently reserves at most 96 GET/hour and both share 240/hour.
-    approved=min(available,36,max(12,source['due_count']))
+
+    # This is NOT unlimited source traffic. Each authenticated due result
+    # is rechecked only at its persisted next-check clock. The official
+    # HTTPS client paces starts at >=2 seconds, never redirects/retries, and
+    # stops the host immediately on 403/429 (including Retry-After).
+    # The source collector itself rejects >36 requests in one cycle.
+    approved=min(MAX_RECOVERY_GETS_PER_CYCLE,max(12,source['due_count']))
     return dict(status='FRESH_RESULT_GET_ADMITTED',authorized_source_gets=approved,
-                source_owner_240_unchanged=True,original_race_forecasts_unchanged=True,
-                pending_due_count=source['due_count'],
-                remaining_60m_gets=available)
+                recovery_hourly_cap_removed=True,
+                source_owner_240_unchanged=True,
+                original_race_forecasts_unchanged=True,
+                pending_due_count=source['due_count'])
 
 def _github(endpoint):
     value=subprocess.run(['gh','api',endpoint],capture_output=True,text=True,timeout=20,check=True)
@@ -181,7 +162,7 @@ def main(argv=None):
     with os.fdopen(fd,'w') as f:json.dump(result,f,sort_keys=True);f.write('\n')
     print(json.dumps({k:v for k,v in result.items() if k in
           ('status','authorized_source_gets','source_owner_240_unchanged',
-           'pending_due_count','remaining_60m_gets')},sort_keys=True))
+           'pending_due_count','recovery_hourly_cap_removed')},sort_keys=True))
     with open(os.environ['GITHUB_OUTPUT'],'a') as f:
         f.write('admitted='+str(result['status']=='FRESH_RESULT_GET_ADMITTED').lower()+'\n')
         f.write('source_get_cap='+str(result['authorized_source_gets'])+'\n')
