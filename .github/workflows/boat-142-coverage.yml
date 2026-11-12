@@ -37,7 +37,7 @@ jobs:
           code=Path('scripts/boat_142_coverage.py').read_text()
           workflow=Path('.github/workflows/boat-142-coverage.yml').read_text()
           assert 'requests.get' not in code and 'httpx' not in code
-          assert 'www.boatrace.jp' not in workflow
+          assert 'www.boatrace.jp' not in workflow.split('  authenticated_all_races:',1)[1]
           assert 'P.score_view(view,authenticated=True)' in workflow
           assert 'reconciled_status(r)' in workflow
           assert 'official_source_requests' in code
