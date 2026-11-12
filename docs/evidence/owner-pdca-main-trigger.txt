@@ -174,3 +174,16 @@ New source worker, replay of official HTTP, second source budget or P1 backfill
 are forbidden. Only the existing daily viewer may execute for this push.
 Trigger SHA is not a forecast or results-source receipt; require browser
 LIVE_OWNER_SITE_VERIFIED report before concluding visible results.
+
+2026-11-12 | Read-only saved P0 settlement Pages proof, stage-aware verifier fix
+Use exact existing encrypted display view ID; 2026-11-12 saved P0 original
+43131905826 / artifact 13905925953, original forecast SHA unchanged.
+Actual already retained 11 new official results; check source-free website
+with stage P0, 2 native model groups and at least 11 confirmed 11/12 races.
+Prior read-only run 43145593014 failed only because its old pinned 914941a
+site context CLI did not support --stage P0. PR178 switched read-only viewer
+to the existing P0-aware pinned production SHA 0796b52 while retaining
+the older official result collector version for true official GET runs.
+This push must call only the already safe read-only site verifier:
+no new provider GET, no source retry, no new P0/P1 and no original rewrites.
+Actual LIVE_OWNER_SITE_VERIFIED browser report is required.
