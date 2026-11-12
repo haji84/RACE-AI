@@ -11,3 +11,12 @@ The detector uses the actual GitHub schedule run history, determines
 last real BOAT schedule event, and records whether it has gone stale.
 A separate future gate must prove safe cumulative source request budgets
 before any unattended source GET-based resumption is permitted.
+
+SECOND PAIRED LIVE PROOF, post-import repair, 2026-11-12 JST.
+The first real attempt 43186305394 authenticated a 127-minute BOAT
+schedule gap and issued zero provider GET but failed Python import
+before replay because immutable race_ai.core was not on the module path.
+This patch adds independent pinned official adapters to the same
+zero-source reader, without changing source budgets or writing models.
+Its main-push trigger launches a bounded pair of source-free real
+replays. A green PR CI alone is not this full proof.
