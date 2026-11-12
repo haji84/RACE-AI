@@ -100,7 +100,9 @@ def inspect(boat_runs,recovery_runs,prior_attempts,source,*,now,current_run_id,r
         if utc-at<timedelta(minutes=60) and p.get('provider_step_attempted',True):
             recent_attempts.add(p['run_id'])
     spent=len(recent_attempts)*PRIOR_ATTEMPT_RESERVATION
-    _need(spent<=RECOVERY_BUDGET_60M,'RECOVERY_BUDGET_EXCEEDED')
+    if spent>=RECOVERY_BUDGET_60M:
+        return dict(status='HOLD_RECOVERY_ROLLING_BUDGET',authorized_source_gets=0,
+                    remaining_60m_gets=0)
     # Conservatively reserve 12 provider GETs for every potential main
     # source collector in the same rolling hour, even if it actually used 0.
     # This also protects against additional owner-approved manual collectors.
