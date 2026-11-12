@@ -202,7 +202,7 @@ jobs:
         id: select
         env:
           GH_TOKEN: ${{ github.token }}
-          ORIGINAL_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || (startsWith(github.event.head_commit.message, 'boat-owner-readback: recover-saved-p0-43131905826') && '43131905826' || '42995325741') }}
+          ORIGINAL_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || (contains(github.event.head_commit.message, 'recover-saved-p0-43131905826') && '43131905826' || '42995325741') }}
         shell: bash
         run: |
           set -euo pipefail
