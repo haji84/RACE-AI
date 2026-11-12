@@ -267,6 +267,41 @@ function privateCycle(extra = {}) {
         confirmed_at:null, observed_at:observation.captured_at, source_sha256:RESULT},
       result_observations:[observation], result_revisions:[], missing_reasons:["INDEPENDENT_RECEIPT_NOT_VERIFIED"]}], ...extra};
 }
+test("gen125 official result display names require original SP result URL and exact race registration", () => {
+  const make = (change={}) => {
+    const raw=privateCycle();
+    raw.records[0].participants[0].name="公式結果保存名";
+    raw.records[0].participants[0].name_source={
+      kind:"SAME_RACE_RESULT", registration_no:"4430", race_id:"20300101-01-01",
+      source_sha256:RESULT, captured_at:"2030-01-01T10:20:00+09:00",
+      source_url:"https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=1",
+      ...change
+    };
+    return raw;
+  };
+  const original=make(),serialized=JSON.stringify(original);
+  const parsed=M.parse(original),row=parsed.records[0];
+  assert.equal(row.participants[0].name,"公式結果保存名");
+  assert.equal(row.participants[0].name_source.kind,"SAME_RACE_RESULT");
+  assert.equal(JSON.stringify(original),serialized);
+  assert.equal(row.prediction.prediction_sha256,SHA);
+  assert.equal(M.eligiblePrediction(row,row.prediction),false);
+  for(const change of [
+    {registration_no:"4999"},{race_id:"20300101-01-02"},
+    {source_sha256:"invalid"},{captured_at:"not-a-date"},
+    {captured_at:"2029-12-31T23:59:59+09:00"},
+    {source_url:"https://example.invalid/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=1"},
+    {source_url:"http://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=1"},
+    {source_url:"https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=2"},
+    {source_url:"https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300102&jcd=01&rno=1"},
+    {source_url:"https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=1&debug=1"},
+    {source_url:"https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=1&hd=20300101"}
+  ]) {
+    assert.throws(()=>M.parse(make(change)),/出典|選手名|不正/,JSON.stringify(change));
+  }
+  assert.throws(()=>M.parse(make({kind:"UNVERIFIED_RESULT"})),/出典|選手名/);
+});
+
 test("private cycle projection admits exact saved partial metadata without fake time/hash/version", () => {
   const raw=privateCycle(), before=JSON.stringify(raw), parsed=M.parse(raw), r=parsed.records[0], p=r.prediction;
   assert.equal(JSON.stringify(raw),before);

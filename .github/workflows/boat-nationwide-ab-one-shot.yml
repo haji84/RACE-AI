@@ -15,6 +15,8 @@ on:
     paths:
       - .github/workflows/boat-nationwide-ab-one-shot.yml
       - tests/test_boat_main_entry_contract.py
+      - web/product-data.js
+      - tests/product_data.test.cjs
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
     paths:
@@ -41,6 +43,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Verify existing model owner and single production entry
         run: python -m unittest tests.test_boat_main_entry_contract -v
+      - name: Verify saved-result name provenance and reject foreign identities (offline only)
+        run: node --test tests/product_data.test.cjs
   saved_view_publication:
     name: Encrypted saved-model display and retained-input execution (no official source requests)
     if: github.repository == 'haji84/RACE-AI' && github.event_name == 'push' && startsWith(github.event.head_commit.message, 'saved-view:')
