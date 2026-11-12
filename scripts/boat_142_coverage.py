@@ -74,10 +74,19 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
              group['pending'] + group['held'] and
              group['eligible'] == group['hits'] + group['misses'],
              'MODEL_ACCOUNTING_INVALID')
+        unresolved = group.get('unresolved_reasons', {})
+        need(type(unresolved) is dict and
+             all(type(reason) is str and re.fullmatch('[A-Z0-9_]{3,100}',reason)
+                 and type(count) is int and count >= 0
+                 for reason,count in unresolved.items()),
+             'MODEL_HOLD_REASON_INVALID')
+        need(sum(unresolved.values()) == group['held'],
+             'MODEL_HOLD_REASON_TOTAL_MISMATCH')
         scored += group['eligible']; held += group['held']
         pending += group['pending']; void += group['void']
-        group_report.append({k: group[k] for k in
-            ('model_id', 'stage', *fields)})
+        entry={k: group[k] for k in ('model_id', 'stage', *fields)}
+        entry['unresolved_reasons']=dict(sorted(unresolved.items()))
+        group_report.append(entry)
     need(sum(g['forecasts'] for g in group_report) == all_saved and
          score['total_forecasts'] == all_saved and
          score['total_scored'] == scored and
