@@ -472,6 +472,7 @@ jobs:
                         zip_sha256='5a3287ac9cb45be6907be6c7d370c04addf3216d6e70184bda20e05502c80c6d',
                         no_regeneration=True)
           assert response.get('path') == 'docs/evidence/2026-11-12/p0-first-receipt.json'
+          assert response.get('sha') == 'd5b9cf8b0f5e896bc0f7fd7bfcde62bc809b2992', 'P0_GIT_BLOB_MISMATCH'
           assert all(document.get(k)==v for k,v in expected.items()), 'VERIFIED_P0_INPUT_MISMATCH'
           print(json.dumps(dict(status='VERIFIED_EXISTING_P0_FOR_RESULT_ONLY',
                                 day_jst=document['day_jst'],run_id=document['run_id'],
@@ -526,7 +527,7 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
           RESULT_PROBE_RACE: ${{ inputs.probe_race_id || '' }}
-          CHECK_CURRENT_DAY: ${{ inputs.check_current_day || 'false' }}
+          CHECK_CURRENT_DAY: "${{ (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')) || inputs.check_current_day || 'false' }}"
           CHECK_BEFOREINFO: ${{ inputs.check_beforeinfo || 'false' }}
           # The context installs its own repository-scoped credential.
           # Clear checkout's host header for this read-only step only.
