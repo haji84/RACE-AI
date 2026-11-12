@@ -25,12 +25,42 @@ class SavedResultBridge:
             reader=F._history_reader(self.git);load=lambda loc:H.decrypt_catalog(reader(loc),self.bootstrap['key'],view_id=self.bootstrap['view_id']);dates=[]
             for index in H._indexes(context['index'],load):
                 dates.extend(day for day in index['days'] if day<=today)
-                if len(dates)>=2:break
-            self.days=sorted(dates,reverse=True)[:2];self.views={d:F.current_view(self.git,self.bootstrap,day=d)[3] for d in self.days};self.history=True
+            self.available_days=sorted(set(dates),reverse=True)
+            self.days=self.available_days[:2]
+            self.views={d:F.current_view(self.git,self.bootstrap,day=d)[3] for d in self.days};self.history=True
         else:
-            self.days=sorted({r['event_date_jst'] for r in view['records'] if r['event_date_jst']<=today},reverse=True)[:2];self.views={None:view};self.history=False
+            self.available_days=sorted({r['event_date_jst'] for r in view['records'] if r['event_date_jst']<=today},reverse=True)
+            self.days=self.available_days[:2];self.views={None:view};self.history=False
         self.rows=[r for v in self.views.values() for r in v['records'] if r['event_date_jst'] in self.days and r.get('sport')=='boat']
         need(len(self.rows)<=576,'RESULT_FEED_RACE_BOUND')
+
+    def choose_older_pending_day(self):
+        """Read AES authenticated history; return one older unsettled day, no source GET.
+
+        The first pass favors recently expired days. Never infer a race result
+        from age, a forecast, or the existence of a source request.
+        """
+        if not self.history:return None
+        for day in self.available_days[2:18]:
+            historical=F.current_view(self.git,self.bootstrap,day=day)[3]
+            if any(row.get('sport')=='boat' and row['event_date_jst']==day and
+                   (row.get('result') or {}).get('status') not in ('final','void')
+                   for row in historical['records']):
+                return day
+        return None
+
+    def include_backfill_day(self,day):
+        """Append the exact preflight-approved AES day; preserve all originals."""
+        if day is None:return
+        need(type(day) is str and day in self.available_days,'RESULT_BACKFILL_DAY_NOT_AUTHENTICATED')
+        if day in self.days:return
+        need(self.history and len(self.days)==2 and day<self.days[-1],'RESULT_BACKFILL_SCOPE_INVALID')
+        view=F.current_view(self.git,self.bootstrap,day=day)[3]
+        self.views[day]=view;self.days.append(day)
+        self.rows.extend(r for r in view['records'] if r.get('sport')=='boat'
+                         and r['event_date_jst']==day)
+        need(len(self.rows)<=576 and len({r['race_id'] for r in self.rows})==len(self.rows),
+             'RESULT_FEED_BACKFILL_RACE_BOUND')
 
     def targets(self):
         output=[]
