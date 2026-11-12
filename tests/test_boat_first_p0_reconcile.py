@@ -561,6 +561,10 @@ class FirstP0ReconcileTests(unittest.TestCase):
         self.assertEqual(src['kind'],'VERIFIED_OFFICIAL_PROFILE')
         self.assertTrue(src['verified_current'])
         self.assertEqual(src['source_sha256'],'5'*64)
+        self.assertEqual(src['source_url'],fact['source_url'])
+        self.assertEqual(src['captured_at'],fact['captured_at'])
+        # Current-day proof is an identity display, not proof of old HTML.
+        self.assertNotEqual(src['kind'],'VERIFIED_RACER_REGISTRY')
         with patch.object(source,'current_profile_display_evidence',
                           side_effect=AssertionError('verified current is already named')):
             repeated=self.run_reconcile(include_current_official_profile=True)
