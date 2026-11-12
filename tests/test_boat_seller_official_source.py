@@ -241,6 +241,68 @@ class OfficialSellerCardsTests(unittest.TestCase):
             reseal(document, receipt)
             with self.subTest(case=case), self.assertRaises(ValueError): self.source(raw, document, receipt)
 
+
+    @staticmethod
+    def _cutoff_skipped_partial_p0():
+        # All eight official B races remain in the daily source and schedule.
+        # The first cutoff is already past; the other seven are genuinely
+        # after the physical P0 save. No forecast is reconstructed for 1R.
+        from race_ai.boat_entry_observations import extract_daily_lzh
+        raw, document, receipt = fixture()
+        source_text = extract_daily_lzh(raw, "B300115.TXT")
+        for no in range(2, 9):
+            source_text = source_text.replace(
+                f"電話投票締切予定 10:{no:02d}".encode("cp932"),
+                f"電話投票締切予定 11:{no:02d}".encode("cp932"))
+        raw = uncompressed_lzh(source_text, "B300115.TXT")
+        document["source_sha256"] = hashlib.sha256(raw).hexdigest()
+        document["extracted_text_sha256"] = hashlib.sha256(source_text).hexdigest()
+        document["completed_at"] = DAY + "T10:01:01+09:00"
+        receipt["created_at"] = DAY + "T10:01:10+09:00"
+        skipped = document["predictions"].pop(0)
+        document["race_count"] = 7
+        document["skipped"] = [dict(race_id=skipped["race_id"], reason="CUTOFF_BUFFER")]
+        for position, row in enumerate(document["schedule"]):
+            if position:
+                row["cutoff_at"] = DAY + f"T11:{position+1:02d}:00+09:00"
+        for prediction in document["predictions"]:
+            prediction["sales_cutoff_at"] = next(
+                row["cutoff_at"] for row in document["schedule"]
+                if row["race_id"] == prediction["race_id"])
+            prediction["source_evidence"][0]["source_sha256"] = document["source_sha256"]
+        reseal(document, receipt)
+        return raw, document, receipt
+
+    def test_realistic_post_start_first_p0_retains_whole_b_without_backfill(self):
+        raw, document, receipt = self._cutoff_skipped_partial_p0()
+        source = self.source(raw, document, receipt, as_of=DAY + "T10:02:00+09:00")
+        self.assertEqual(len(source["expected_race_ids"]), 8)
+        self.assertEqual(len(source["cards"]), 8)
+        self.assertEqual(len(source["document"]["predictions"]), 7)
+        self.assertEqual(source["document"]["skipped"],
+                         [dict(race_id="20300115-17-01", reason="CUTOFF_BUFFER")])
+        self.assertEqual(source["source_requests"], 0)
+        self.assertEqual(source["raw"], raw)
+        self.assertEqual(source["receipt"], receipt)
+
+    def test_cutoff_skip_requires_complete_original_schedule_and_explicit_reason(self):
+        raw, original, saved = self._cutoff_skipped_partial_p0()
+        from copy import deepcopy
+        for case in ("no_skip", "wrong_reason", "foreign_race", "duplicate_skip",
+                     "fake_early_cutoff", "overlapping_saved", "missing_schedule"):
+            document, receipt = deepcopy(original), deepcopy(saved)
+            if case == "no_skip": document["skipped"] = []
+            elif case == "wrong_reason": document["skipped"][0]["reason"] = "ORIGINAL_EXISTS"
+            elif case == "foreign_race": document["skipped"][0]["race_id"] = "20300115-17-09"
+            elif case == "duplicate_skip": document["skipped"].append(deepcopy(document["skipped"][0]))
+            elif case == "fake_early_cutoff": document["completed_at"] = DAY + "T05:00:20+09:00"
+            elif case == "overlapping_saved":
+                document["skipped"][0]["race_id"] = document["predictions"][0]["race_id"]
+            elif case == "missing_schedule": document["schedule"].pop()
+            reseal(document, receipt)
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                self.source(raw, document, receipt, as_of=DAY + "T10:02:00+09:00")
+
     def test_partial_duplicate_or_mismatched_verified_daily_ledger_is_rejected(self):
         for case in ("missing", "extra", "duplicate", "cutoff", "prediction"):
             raw, document, receipt = fixture()

@@ -146,8 +146,14 @@ def official_b_cards_source(raw_b, document, receipt, *, day, as_of):
 
         schedule = document.get("schedule")
         predictions = document.get("predictions")
-        _need(type(schedule) is list and type(predictions) is list and type(document.get("race_count")) is int
-              and len(schedule) == len(predictions) == document["race_count"] == len(values),
+        # The B archive is a complete *schedule*, not a claim that every
+        # listed race was still open when the first P0 was saved. A late
+        # bootstrap legitimately saves only future races. Do not infer or
+        # generate P0s for races which passed the three-minute cutoff buffer.
+        _need(type(schedule) is list and type(predictions) is list
+              and type(document.get("race_count")) is int
+              and len(schedule) == len(values)
+              and 0 < document["race_count"] == len(predictions) <= len(values),
               "OFFICIAL_B_COMPLETE_DAILY_LEDGER_REQUIRED")
         ledger = {}
         for row in schedule:
@@ -155,6 +161,19 @@ def official_b_cards_source(raw_b, document, receipt, *, day, as_of):
             _need(rid not in ledger, "OFFICIAL_B_DUPLICATE_DAILY_RACE")
             ledger[rid] = _time(row["cutoff_at"])
         _need(ledger == {_race_id(r, day): _time(at) for r, at in closing.items()}, "OFFICIAL_B_DAILY_LEDGER_MISMATCH")
+        skipped = document.get("skipped", [])
+        _need(type(skipped) is list and len(skipped) <= len(values),
+              "OFFICIAL_B_SKIPPED_RACES_INVALID")
+        skipped_ids = set()
+        for item in skipped:
+            _need(type(item) is dict and set(item) == {"race_id", "reason"}
+                  and item["reason"] == "CUTOFF_BUFFER",
+                  "OFFICIAL_B_SKIPPED_RACES_INVALID")
+            rid = _race_id(item["race_id"], day)
+            _need(rid in ledger and rid not in skipped_ids
+                  and ledger[rid] <= _time(document["completed_at"]) + timedelta(minutes=3),
+                  "OFFICIAL_B_SKIPPED_CUTOFF_UNVERIFIED")
+            skipped_ids.add(rid)
         seen = set(); source_ids = set(); rights = set(); publications = set()
         for prediction in predictions:
             rid = _race_id(prediction["race_id"], day)
@@ -192,7 +211,8 @@ def official_b_cards_source(raw_b, document, receipt, *, day, as_of):
                 _need(type(value) in (int, float) and math.isfinite(value) and 0 <= value <= 10
                       and value == float(values[rid][f"艇{lane}_全国勝率"])
                       and metric.get("source_id") == evidence["source_id"], "OFFICIAL_B_SAVED_NATIONAL_RATING_MISMATCH")
-        _need(seen == set(values) and len(rights) == 1 and len(source_ids) == 1 and len(publications) == 1,
+        _need(seen.isdisjoint(skipped_ids) and seen | skipped_ids == set(values)
+              and len(rights) == 1 and len(source_ids) == 1 and len(publications) == 1,
               "OFFICIAL_B_COMPLETE_DAILY_BINDING_REQUIRED")
         proof = dict(source_ref=document["source_url"], source_sha256=document["source_sha256"],
             extracted_text_sha256=document["extracted_text_sha256"], source_rights_ref=next(iter(rights)),
