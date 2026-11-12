@@ -84,6 +84,8 @@ class OneOfficialProfileProof(unittest.TestCase):
                 if path in writes:raise ValueError('BOAT_PROFILE_STATE_EXISTS_OR_UNAVAILABLE')
                 writes[path]=body
                 events.append('RESERVE' if path.endswith('.reservation.json') else 'SAVE_AES')
+                return {'committed':True}
+            return writes[path]
         def source(url):
             events.append('GET');return raw
         with patch.object(m,'_select',return_value=bad):
