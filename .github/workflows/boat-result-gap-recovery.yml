@@ -59,6 +59,8 @@ jobs:
           assert "github.event.workflow_run.event == 'schedule'" in fresh
           assert "github.event.workflow_run.name == 'KEIRIN hourly personal research canary'" in fresh
           assert 'github.event.workflow_run.run_attempt == 1' in fresh
+          assert "new_results: ${{ steps.new_result.outputs.new_results }}" in fresh
+          assert "outputs.new_results == 'true'" in text
           assert 'cancel-in-progress: false' in text
           print('FRESH_RESULT_GAP_SOURCE_BOUNDARY_UNIT_VERIFIED')
           PY
@@ -217,6 +219,7 @@ jobs:
     needs: observed_gap
     outputs:
       result_cipher: ${{ steps.new_result.outputs.result_cipher }}
+      new_results: ${{ steps.new_result.outputs.new_results }}
     if: >-
       needs.observed_gap.result == 'success' && needs.observed_gap.outputs.gap == 'true' &&
       github.repository == 'haji84/RACE-AI' && github.event_name == 'workflow_run' &&
@@ -340,7 +343,7 @@ jobs:
   fresh_readback:
     name: Independently reopen fresh results on different runner (zero GET)
     needs: fresh_result
-    if: needs.fresh_result.result == 'success'
+    if: needs.fresh_result.result == 'success' && needs.fresh_result.outputs.new_results == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
