@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ba5747983fd9bc62dac17aa5b71e203e1bc875d8
+          ref: 6fdd38f3da28a36747ffa41591eb8b73d9087988
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -365,7 +365,7 @@ jobs:
           assert 'AUTHENTICATED_GIT_CREDENTIAL_AVAILABLE_NO_PROVIDER_GET' in fresh
           assert 'HOLD_GIT_CREDENTIAL_UNAVAILABLE' in fresh
           assert "['git','-C','source-reader','credential','fill']" in fresh
-          assert 'ba5747983fd9bc62dac17aa5b71e203e1bc875d8' in fresh
+          assert '6fdd38f3da28a36747ffa41591eb8b73d9087988' in fresh
           assert 'needs: observed_gap' in fresh
           assert "github.event.workflow_run.event == 'schedule'" in fresh
           assert "github.event.workflow_run.name == 'KEIRIN hourly personal research canary'" in fresh
@@ -410,6 +410,11 @@ jobs:
           assert "NO_NEW_OFFICIAL_FINAL_DAY" in text
           assert "EXPECTED_NEW_FINAL_DAY" in text
           assert "FRESH_OFFICIAL_RESULT_MODEL_MATCH_LIVE_PAGES_VERIFIED" in text
+          assert "RACE_AI_BOAT_BACKFILL_DAY" in fresh
+          assert "bridge.choose_older_pending_day()" in fresh
+          assert "bridge.include_backfill_day(" in fresh
+          assert "EXPECTED_BACKFILL_DAY" in fresh
+          assert "selected_rows=F.current_view" in text
           for job in ("fresh_pdca_stage", "fresh_pdca_readback", "fresh_site_browser"):
               body=text.split("\n  "+job+":\n",1)[1].split("\n  fresh_",1)[0]
               assert "--sync-results" not in body and "--sync-beforeinfo" not in body
@@ -589,6 +594,7 @@ jobs:
       result_digest: ${{ steps.new_result.outputs.result_digest }}
       inventory_digest: ${{ steps.new_result.outputs.inventory_digest }}
       scope_days: ${{ steps.new_result.outputs.scope_days }}
+      backfill_day: ${{ steps.new_result.outputs.backfill_day }}
       new_final_day: ${{ steps.new_result.outputs.new_final_day }}
       new_day_before: ${{ steps.new_result.outputs.new_day_before }}
       new_day_after: ${{ steps.new_result.outputs.new_day_after }}
@@ -623,7 +629,7 @@ jobs:
       - name: Install unmodified bounded result collector separately
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ba5747983fd9bc62dac17aa5b71e203e1bc875d8
+          ref: 6fdd38f3da28a36747ffa41591eb8b73d9087988
           path: source-reader
           persist-credentials: false
       - name: Install immutable original official parser
@@ -641,6 +647,7 @@ jobs:
       - name: Install existing source reader dependencies
         run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
       - name: Read sealed source freshness and genuinely due result count without provider GET
+        id: source_scope
         working-directory: source-reader
         env:
           GH_TOKEN: '${{ github.token }}'
@@ -662,6 +669,10 @@ jobs:
           repo=_environment(Path('.').resolve())
           control=load_intraday(repo)['state'].control
           bridge=SavedResultBridge(repo,now=datetime.now(timezone.utc))
+          older=bridge.choose_older_pending_day()
+          if older:bridge.include_backfill_day(older)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('backfill_day='+str(older or '')+'\\n')
           due=sum(target['pending'] and target['cutoff_at'] is not None and
               clock(target['cutoff_at'])+timedelta(minutes=5)<=datetime.now(timezone.utc)
               for target in bridge.targets())
@@ -672,7 +683,8 @@ jobs:
           print(json.dumps(dict(last_checked_at=control.get('last_checked_at'),
               due_count=due,boatrace_hold_until=wait.get('until'),
               before_final=final,before_by_day=before_by_day,baseline_races=len(bridge.rows),
-              scope_days=sorted(bridge.days),inventory_digest=inventory),sort_keys=True))
+              scope_days=sorted(bridge.days),backfill_day=older,
+              inventory_digest=inventory),sort_keys=True))
           PY
       - name: Revalidate trusted schedules, all prior source attempts and sealed budget
         id: source_gate
@@ -715,6 +727,7 @@ jobs:
         env:
           GH_TOKEN: '${{ github.token }}'
           RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+          RACE_AI_BOAT_BACKFILL_DAY: '${{ steps.source_scope.outputs.backfill_day }}'
         run: |
           python - <<'PY' > "$RUNNER_TEMP/boat-gap-fresh-result-private.json"
           import os,race_ai
@@ -802,6 +815,7 @@ jobs:
           from race_ai import saved_view_feed as F
           bridge=SavedResultBridge(_environment(Path('source-reader').resolve()),
               now=datetime.datetime.now(datetime.timezone.utc))
+          bridge.include_backfill_day(baseline.get('backfill_day'))
           rows=bridge.rows
           after_final=sum((r.get('result') or {}).get('status')=='final' for r in rows)
           assert sorted(bridge.days)==baseline['scope_days']
@@ -825,7 +839,8 @@ jobs:
               stream.write('after_final='+str(after_final)+'\n')
               stream.write('result_digest='+digest+'\n')
               stream.write('inventory_digest='+inventory+'\n')
-              stream.write('scope_days='+','.join(bridge.days)+'\n')
+              stream.write('scope_days='+','.join(bridge.days)+'\\n')
+              stream.write('backfill_day='+str(baseline.get('backfill_day') or '')+'\\n')
               stream.write('new_final_day='+new_day+'\n')
               stream.write('new_day_before='+str(baseline['before_by_day'][new_day])+'\n')
               stream.write('new_day_after='+str(after_by_day[new_day])+'\n')
@@ -849,7 +864,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ba5747983fd9bc62dac17aa5b71e203e1bc875d8
+          ref: 6fdd38f3da28a36747ffa41591eb8b73d9087988
           persist-credentials: false
       - name: Install immutable official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -874,6 +889,7 @@ jobs:
           EXPECTED_RESULT_DIGEST: '${{ needs.fresh_result.outputs.result_digest }}'
           EXPECTED_INVENTORY_DIGEST: '${{ needs.fresh_result.outputs.inventory_digest }}'
           EXPECTED_SCOPE_DAYS: '${{ needs.fresh_result.outputs.scope_days }}'
+          EXPECTED_BACKFILL_DAY: '${{ needs.fresh_result.outputs.backfill_day }}'
           EXPECTED_NEW_FINAL_DAY: '${{ needs.fresh_result.outputs.new_final_day }}'
           EXPECTED_NEW_DAY_BEFORE: '${{ needs.fresh_result.outputs.new_day_before }}'
           EXPECTED_NEW_DAY_AFTER: '${{ needs.fresh_result.outputs.new_day_after }}'
@@ -893,6 +909,8 @@ jobs:
           loaded=load_intraday(repo)
           assert loaded['previous']['head']['cipher_sha256']==os.environ['EXPECTED_SOURCE_CIPHER']
           bridge=SavedResultBridge(repo,now=datetime.datetime.now(datetime.timezone.utc))
+          if os.environ.get('EXPECTED_BACKFILL_DAY'):
+              bridge.include_backfill_day(os.environ['EXPECTED_BACKFILL_DAY'])
           assert ','.join(bridge.days)==os.environ['EXPECTED_SCOPE_DAYS']
           final=sum((row.get('result') or {}).get('status')=='final' for row in bridge.rows)
           before=int(os.environ['EXPECTED_BEFORE_FINAL'])
@@ -1059,7 +1077,12 @@ jobs:
           assert context['stage']=='P0' and context['native_p0_groups']>0
           git_auth()
           bridge=SavedResultBridge(_environment(Path('.').resolve()),now=datetime.now(timezone.utc))
-          choices=[r['race_id'] for r in bridge.rows if r['event_date_jst']==context['day']
+          if context['day'] in bridge.days:
+              selected_rows=bridge.rows
+          else:
+              from race_ai import saved_view_feed as F
+              selected_rows=F.current_view(bridge.git,bridge.bootstrap,day=context['day'])[3]['records']
+          choices=[r['race_id'] for r in selected_rows if r['event_date_jst']==context['day']
                    and (r.get('result') or {}).get('status')=='final'
                    and any(p and p.get('stage')=='P0' and p.get('external_receipt_verified') is True
                            and p.get('eligible_pre_cutoff',True) is True
