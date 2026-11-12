@@ -251,6 +251,7 @@ jobs:
           assert 'FRESH_OFFICIAL_FINAL_INCREASE_VERIFIED' in text
           assert 'exact_result_digest_matched' in text
           assert 'original_inventory_unchanged' in text
+          assert 'sanitized_source_trace=safe' in text
           assert 'BOAT_SOURCE_FREE_DIAGNOSTIC_PASSED' in text
           assert 'BOAT_GIT_WRITE_DRY_RUN_DIAGNOSTIC' in text
           probe=text.split('  source_free_git_probe:',1)[1].split('  source_free_diagnostic:',1)[0]
@@ -561,8 +562,21 @@ jobs:
               kind=data.get('exception_type')
               if kind not in ('ValueError','RuntimeError','KeyError','TypeError','AssertionError'):
                   kind='UNKNOWN'
+              frames=data.get('code_trace')
+              safe=[]
+              allowed={'boat_pdca_github_handoff.py','racer_intraday_handoff.py',
+                       'racer_daily_handoff.py','racer_intraday_refresh.py',
+                       'racer_result_bridge.py','saved_view_feed.py','saved_pages.py',
+                       'boat_private_original_vault.py'}
+              if isinstance(frames,list) and len(frames)<=8:
+                  for frame in frames:
+                      if isinstance(frame,str) and len(frame)<=150:
+                          m=re.fullmatch(r'([a-zA-Z0-9_]+\.py):([0-9]{1,5}):([a-zA-Z0-9_]{1,65})',frame)
+                          if m and m.group(1) in allowed:
+                              safe.append(m.group(1)+':'+m.group(2)+':'+m.group(3))
               print(json.dumps(dict(status='BOAT_FRESH_SOURCE_FAILED',
                   reason=reason,source_status=stage,exception_type=kind,
+                  sanitized_source_trace=safe,
                   provider_requests_verified=False),sort_keys=True))
           except Exception:
               print(json.dumps(dict(status='BOAT_FRESH_SOURCE_FAILED',
