@@ -49,6 +49,36 @@ concurrency:
   group: ${{ github.event_name == 'pull_request' && 'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics' }}
   cancel-in-progress: false
 jobs:
+  unit:
+    # Main branch protection expects a real "unit" check. Run genuine tests,
+    # not an empty success marker; source/provider jobs remain disabled on PR.
+    name: unit
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.event.pull_request.head.sha }}'
+          persist-credentials: false
+      - name: Run real existing main dispatcher and recovery unit tests
+        run: python -m unittest tests.test_boat_main_dispatch_gate tests.test_boat_first_p0_recovery_gate -v
+      - name: Verify pinned exact DOM proof and absence of provider GET in PR
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('.github/workflows/boat-racer-daily.yml').read_text()
+          original=text.rsplit('\n  original_reconcile:\n',1)[1].split('\n  source_mirror:\n',1)[0]
+          assert 'ref: ea6992702093a1e67c8c4adb19ca01aaab3fbaca' in original
+          assert '--require-current-official-profile' in original
+          assert 'scripts.boat_first_p0_reconcile' in original
+          assert 'node scripts/boat_saved_site_check.cjs' in original
+          assert '--sync-results' not in original
+          assert 'github.event_name == ' + chr(39) + 'pull_request' + chr(39) in text
+          print('EXACT_PROFILE_SOURCE_FREE_UNIT_VERIFIED')
+          PY
   mirror_contract:
     name: BOAT mirror source-free PR regression
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
@@ -326,7 +356,7 @@ jobs:
       CONTROL_ID: ${{ needs.original_retention.outputs.control }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {persist-credentials: false, ref: d5ede5fb1f336794e8a0217e9b42d559d8ab0cc4}
+        with: {persist-credentials: false, ref: ea6992702093a1e67c8c4adb19ca01aaab3fbaca}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -353,7 +383,7 @@ jobs:
           GIT_CONFIG_KEY_0: http.https://github.com/.extraheader
           GIT_CONFIG_VALUE_0: ''
         run: |
-          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --day "$ORIGINAL_DAY" --stage P0 --expected-original-report "$RUNNER_TEMP/first-p0-reconciliation.json"
+          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --day "$ORIGINAL_DAY" --stage P0 --expected-original-report "$RUNNER_TEMP/first-p0-reconciliation.json" --require-current-official-profile
           env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results
   source_mirror:
     needs: [original_retention, original_readback, original_reconcile]
