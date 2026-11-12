@@ -145,7 +145,9 @@ def _saved_program_names(files, view, day, now, registry):
                       'PROGRAM_P0_PACKET_INVALID')
                 document, receipt = packet['document'], packet['receipt']
                 encoded = seller.get('raw_b_base64')
-                _need(type(encoded) is str, 'PROGRAM_SELLER_BYTES_MISSING')
+                if encoded is None or encoded == '':
+                    return {}
+                _need(type(encoded) is str, 'PROGRAM_SELLER_BYTES_INVALID')
                 try:
                     raw = base64.b64decode(encoded, validate=True)
                 except (ValueError, TypeError):
