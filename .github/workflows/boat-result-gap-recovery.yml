@@ -131,6 +131,15 @@ jobs:
                   assert commit and re.fullmatch('[a-f0-9]{40}',commit)
                   git.fetch(commit)
                   assert git.exists(commit,'state/boat-racer-intraday/v1/latest.json')
+                  if label=='daily_filtered':
+                      # Exercise real lazy Git blob retrieval without decrypting
+                      # owner state or disclosing private bytes in public CI.
+                      from hashlib import sha256
+                      for prefix in ('state/boat-racer-intraday/v1/','state/boat-racer-daily/v1/'):
+                          pointer=json.loads(git.read(commit,prefix+'latest.json',16000))
+                          assert pointer.get('cipher_path','').startswith(prefix+'g')
+                          cipher=git.read(commit,pointer['cipher_path'],32*1024*1024)
+                          assert sha256(cipher).hexdigest()==pointer['head']['cipher_sha256']
                   report[label]='EXACT_GIT_FETCH_OK'
               except Exception as exc:
                   code=str(exc)
@@ -139,6 +148,7 @@ jobs:
               official_provider_gets=0,remote_writes=0,variants=report),sort_keys=True))
           assert report['daily_filtered']=='EXACT_GIT_FETCH_OK'
           assert report['base_transport']=='EXACT_GIT_FETCH_OK'
+          print('BOAT_ENCRYPTED_REAL_BLOB_DIGEST_SOURCE_FREE_VERIFIED')
           PY
   source_free_git_probe:
     name: BOAT encrypted-state Git write dry-run (zero provider GET)
