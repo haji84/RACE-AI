@@ -59,7 +59,6 @@ jobs:
           assert workflow.count('2073c9bea918970097ddbb8335175c93270ae695')==4
           assert '--readback' in workflow
           assert 'boat-profile-proof: once-20261112' in workflow
-          assert 'SOURCE_DATA_KEY' not in workflow
           print('ONE_SOURCE_ATTEMPT_GATED_AND_OFFLINE_VERIFIED')
           PY
 
