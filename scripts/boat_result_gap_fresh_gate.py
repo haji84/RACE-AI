@@ -14,7 +14,9 @@ SCHEMA='RACE_AI_BOAT_FRESH_GAP_GATE_V1'
 BOAT='BOAT per-race results and athlete statistics'
 FRESH='Fresh bounded official result intake'
 RECOVERY_BUDGET_60M=96
+OWNER_BUDGET_60M=240
 PRIOR_ATTEMPT_RESERVATION=36
+PRIMARY_RUN_RESERVATION=12
 
 def _need(ok,why):
     if not ok:raise ValueError('BOAT_FRESH_GAP_'+why)
@@ -41,7 +43,7 @@ def inspect(boat_runs,recovery_runs,prior_attempts,source,*,now,current_run_id,r
     _need(type(current_run_id) is int and current_run_id>0,'CURRENT_RUN')
     _need(type(run_attempt) is int and run_attempt>0,'RUN_ATTEMPT')
     boats=_runs(boat_runs,utc,timedelta(minutes=60))
-    recoveries=_runs(recovery_runs,utc,timedelta(minutes=60))
+    recoveries=_runs(recovery_runs,utc,timedelta(minutes=120))
     _need(type(prior_attempts) is list and len(prior_attempts)<=100,'ATTEMPTS_SCHEMA')
     _need(type(source) is dict and type(source.get('due_count')) is int
           and source['due_count']>=0,'SOURCE_STATUS')
@@ -99,14 +101,23 @@ def inspect(boat_runs,recovery_runs,prior_attempts,source,*,now,current_run_id,r
             recent_attempts.add(p['run_id'])
     spent=len(recent_attempts)*PRIOR_ATTEMPT_RESERVATION
     _need(spent<=RECOVERY_BUDGET_60M,'RECOVERY_BUDGET_EXCEEDED')
-    available=RECOVERY_BUDGET_60M-spent
+    # Conservatively reserve 12 provider GETs for every potential main
+    # source collector in the same rolling hour, even if it actually used 0.
+    # This also protects against additional owner-approved manual collectors.
+    primaries=[r for r in trusted if utc-_time(r['created_at'])<timedelta(minutes=60)
+               and (r.get('event') in ('schedule','workflow_dispatch') or
+                    r.get('event')=='push' and str(r.get('display_title','')).startswith(
+                        'boat-result-refresh:'))]
+    primary_spent=len(primaries)*PRIMARY_RUN_RESERVATION
+    remaining_owner=max(0,OWNER_BUDGET_60M-primary_spent-spent)
+    available=min(RECOVERY_BUDGET_60M-spent,remaining_owner)
     if available<12:
         return dict(status='HOLD_RECOVERY_ROLLING_BUDGET',authorized_source_gets=0,
                     remaining_60m_gets=available)
     # No 30-minute pause: after the current single writer completes and a
     # DIFFERENT saved race is due, another run can use the remaining budget.
-    # Normal primary collector: at most 12 GET per 5m = 144/hour.
-    # Recovery: at most 96/hour. Combined conservative bound: 240/hour.
+    # All primary source-capable runs reserve 12 GET each. Recovery
+    # independently reserves at most 96 GET/hour and both share 240/hour.
     approved=min(available,36,max(12,source['due_count']))
     return dict(status='FRESH_RESULT_GET_ADMITTED',authorized_source_gets=approved,
                 source_owner_240_unchanged=True,original_race_forecasts_unchanged=True,
@@ -128,10 +139,10 @@ def live(repo,run_id,attempt,source):
     boats=_github(f'repos/{repo}/actions/workflows/boat-racer-daily.yml/runs?per_page=100')
     recoveries=_github(f'repos/{repo}/actions/workflows/boat-result-gap-recovery.yml/runs?per_page=100')
     now=datetime.now(timezone.utc)
-    _runs(recoveries,now,timedelta(minutes=60))
+    _runs(recoveries,now,timedelta(minutes=120))
     recent=[r for r in recoveries['workflow_runs'] if
             r['id']!=run_id and r.get('head_branch')=='main' and
-            now-_time(r['created_at'])<timedelta(minutes=65)]
+            now-_time(r['created_at'])<timedelta(minutes=120)]
     prior=[]
     for row in recent:
         jobs=_github(f'repos/{repo}/actions/runs/{row["id"]}/jobs?per_page=100')
