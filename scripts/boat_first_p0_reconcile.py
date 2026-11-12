@@ -104,18 +104,85 @@ def _no_live_artifact(_endpoint):
     raise _Rejected('FIRST_P0_RECONCILE_RETAINED_ORIGINAL_REQUIRED')
 
 
-def _retained_names(repo, now, *, transport=None):
-    """Read only the verified TERM registry from the pinned encrypted runtime."""
+def _saved_program_names(files, view, day, now, registry):
+    """Display-only fallback from exact retained official B bytes; zero provider GET.
+
+    Only a verified same-day B archive and an exact race/lane/registration
+    binding may fill a currently blank name. The forecast original is not
+    changed. Unknown or conflicting evidence must never become a name.
+    """
+    metadata_file = files.get('metadata.json')
+    if not metadata_file:
+        return {}
+    metadata = _json(_read(Path(metadata_file), runtime.FILE_LIMITS['metadata.json']),
+                     runtime.FILE_LIMITS['metadata.json'])
+    _need(type(metadata) is dict, 'PROGRAM_METADATA_INVALID')
+    manifest = metadata.get('name_alias_sources')
+    if manifest is None:
+        return {}
+    _need(type(manifest) is dict and
+          set(manifest) == {'schema', 'b_sources'} and
+          manifest['schema'] == 'RACE_AI_BOAT_NAME_ALIAS_SOURCES_V1' and
+          type(manifest['b_sources']) is list and
+          len(manifest['b_sources']) <= 16 and
+          all(type(entry) is dict for entry in manifest['b_sources']),
+          'PROGRAM_MANIFEST_INVALID')
+    sources = [entry for entry in manifest['b_sources'] if entry.get('day') == day]
+    if not sources:
+        return {}
+    missing = set()
+    for row in view['records']:
+        if row.get('sport') != 'boat' or row['event_date_jst'] != day:
+            continue
+        for person in row['participants']:
+            pid = person['registration_no']
+            if not person.get('name') and pid not in registry:
+                missing.add((row['race_id'], person['number'], pid))
+    if not missing:
+        return {}
+    from race_ai.boat_name_aliases import _b_programs
+    races = {}
+    # _b_programs reopens and hashes the stored original B bytes, verifies its
+    # official URL, observation clock and day, then parses the actual program.
+    verified = _b_programs(dict(schema=manifest['schema'], b_sources=sources), now)
+    for source, program in verified:
+        for venue in program['venues']:
+            for race in venue['races']:
+                rid = race['race_id']
+                for boat in race['boats']:
+                    number, pid = boat['lane'], boat['racer_registration_id']
+                    if (rid, number, pid) not in missing:
+                        continue
+                    name = boat.get('name')
+                    _need(type(name) is str and bool(name.strip()),
+                          'PROGRAM_NAME_INVALID')
+                    item = dict(name=name, number=number, registration_no=pid,
+                                source_url=source['source_url'],
+                                source_sha256=source['source_sha256'],
+                                captured_at=source.get('captured_at'))
+                    per_race = races.setdefault(rid, {})
+                    _need(pid not in per_race or per_race[pid] == item,
+                          'PROGRAM_NAME_CONFLICT')
+                    per_race[pid] = item
+    return races
+
+
+def _retained_names(repo, now, *, view=None, day=None, transport=None):
+    """Read a verified TERM registry and optional exact saved B names."""
     pointer = _json(_read(repo/runtime.INPUT_PATH, 64*1024), 64*1024)
     with TemporaryDirectory(prefix='boat-first-p0-names-', dir=os.environ['RUNNER_TEMP']) as folder:
         restored = runtime.restore_runtime(pointer, repo, folder, transport=transport)
         documents, source = _term_names(restored['files']['racers.sqlite'], now)
-    fields = ('verified', 'source_url', 'source_sha256', 'captured_at')
-    registry = {pid: dict(name=document['name'], **{key: source[key] for key in fields})
-                for pid, document in documents.items()}
-    return dict(registry=registry, races={}), dict(
+        fields = ('verified', 'source_url', 'source_sha256', 'captured_at')
+        registry = {pid: dict(name=document['name'], **{key: source[key] for key in fields})
+                    for pid, document in documents.items()}
+        races = (_saved_program_names(restored['files'], view, day, now, registry)
+                 if view is not None and day is not None else {})
+    return dict(registry=registry, races=races), dict(
         display_name_runtime_commit=restored['source_commit'],
-        display_name_registry_source_sha256=source['source_sha256'] if source else None)
+        display_name_registry_source_sha256=source['source_sha256'] if source else None,
+        display_name_program_races=len(races),
+        display_name_program_candidates=sum(map(len, races.values())))
 
 
 def _named_target(view, day, names):
@@ -201,7 +268,7 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
         merged = append_views(before, [native_view])
 
         stage = 'DISPLAY_NAMES'
-        names, name_proof = _retained_names(repo, now, transport=runtime_transport)
+        names, name_proof = _retained_names(repo, now, view=merged, day=day, transport=runtime_transport)
         merged = _named_target(merged, day, names)
 
         stage = 'RETAINED_RESULTS'
