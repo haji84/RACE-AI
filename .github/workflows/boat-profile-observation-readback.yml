@@ -1,0 +1,103 @@
+name: BOAT independent saved official profile observation audit (no GET)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-profile-observation-readback.yml
+      - docs/evidence/boat-profile-observation-readback-trigger.txt
+  push:
+    branches: [main]
+    paths:
+      - docs/evidence/boat-profile-observation-readback-trigger.txt
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && 'boat-profile-observation-pr-ci' || 'boat-profile-observation-single-readback' }}
+  cancel-in-progress: false
+jobs:
+  offline_contract:
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.event.pull_request.head.sha }}'}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 0cb4377a84c9c1dac54a9d1ef924c97cde873cfd
+          path: source-reader
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
+      - name: Offline SHA mismatch and AES immutable readback regression (no provider GET)
+        working-directory: source-reader
+        run: |
+          python - <<'PY_TEST'
+          from pathlib import Path
+          import race_ai
+          import unittest
+          for folder in ('../pr64-reference','../pr72-reference'):
+              source=Path(folder,'race_ai').resolve()
+              assert source.is_dir()
+              race_ai.__path__.append(str(source))
+          suite=unittest.defaultTestLoader.loadTestsFromNames(
+              ['tests.test_boat_profile_one_shot_proof'])
+          result=unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(not result.wasSuccessful())
+          PY_TEST
+      - name: Verify no source GET or extra run request exists in this workflow
+        run: |
+          python - <<'PY_CHECK'
+          from pathlib import Path
+          doc=Path('.github/workflows/boat-profile-observation-readback.yml').read_text()
+          assert '--audit-observation' in doc
+          assert '0cb4377a84c9c1dac54a9d1ef924c97cde873cfd' in doc
+          assert 'gh workflow run' not in doc
+          assert 'official_profile_gets' not in doc
+          assert 'workflow_dispatch:' not in doc
+          assert 'RACE_AI_STATE_KEY' in doc
+          assert 'source-reader' in doc
+          print('ONE_OFF_EXISTING_AES_READBACK_NO_PROVIDER_GET')
+          PY_CHECK
+
+  independent_observation:
+    name: AES-GCM source bytes, official profile identity and historical SHA comparison (zero GET)
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message,
+                 'boat-profile-observation: independently-audit-sealed-html-20261112')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 0cb4377a84c9c1dac54a9d1ef924c97cde873cfd
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Independently reopen already sealed original HTML, re-parse and classify only
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY_AUDIT'
+          from pathlib import Path
+          import race_ai
+          for folder in ('pr64-reference','pr72-reference'):
+              source=Path(folder,'race_ai').resolve()
+              assert source.is_dir(), 'OFFICIAL_PARSER_DEPENDENCY_MISSING'
+              race_ai.__path__.append(str(source))
+          from scripts.boat_profile_one_shot_proof import main
+          raise SystemExit(main(['--repo-root','.','--audit-observation']))
+          PY_AUDIT
