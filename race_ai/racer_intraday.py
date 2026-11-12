@@ -127,8 +127,10 @@ class IntradayState:
             for target in result_targets:
                 rid=target['race_id'];need(type(rid) is str and re.fullmatch(r'[0-9]{8}-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])',rid) and type(target['pending']) is bool,'SETTLEMENT_TARGET_IDENTITY')
                 cutoff=clock(target['cutoff_at']) if target['cutoff_at'] else None
-                if cutoff and cutoff.astimezone(JST).date().strftime('%Y%m%d')==rid[:8] and cutoff+timedelta(minutes=5)<=now:
-                    c['settlement_next'].setdefault(rid,(cutoff+timedelta(minutes=5)).isoformat())
+                if cutoff and cutoff.astimezone(JST).date().strftime('%Y%m%d')==rid[:8] and cutoff+timedelta(minutes=1)<=now:
+                    # A cutoff is NOT a finished race. This is only the first
+                    # chance to inspect official publication; pending remains pending.
+                    c['settlement_next'].setdefault(rid,(cutoff+timedelta(minutes=1)).isoformat())
                     if clock(c['settlement_next'][rid])<=now:targets[rid]=target
         def waiting(key):return key in c['waits'] and clock(c['waits'][key]['until'])>now
         def get(url,host):
@@ -165,7 +167,12 @@ class IntradayState:
         due=[rid for rid,q in sorted(c['races'].items(),key=lambda i:(i[0] in c['results'],i[0][:8]!=day.strftime('%Y%m%d'),i[1]['next_check'],i[0])) if q['cutoff_at'] and clock(q['cutoff_at'])+timedelta(minutes=5)<=now and clock(q['next_check'])<=now and rid not in self.canonical]
         picked=set()
         result_due=sorted(targets,key=lambda rid:(not targets[rid]['pending'],rid[:8]!=day.strftime('%Y%m%d'),c['settlement_next'][rid],rid))
-        fresh=[rid for rid in result_due if targets[rid]['pending'] and rid.startswith(day.strftime('%Y%m%d'))]
+        fresh=sorted((rid for rid in result_due if targets[rid]['pending'] and rid.startswith(day.strftime('%Y%m%d'))),
+            # Give newly closed races a bounded lead over old pending backlog.
+            # Older races retain the same persisted retry queue and still get
+            # capacity once the short recent window has passed.
+            key=lambda rid:(now-clock(targets[rid]['cutoff_at'])>timedelta(minutes=12),
+                            c['settlement_next'][rid],rid))
         old=[rid for rid in result_due if targets[rid]['pending'] and rid not in fresh]
         revisions=[rid for rid in result_due if not targets[rid]['pending']]
         new_stats=[rid for rid in due if rid not in c['results']]
@@ -199,9 +206,9 @@ class IntradayState:
                     supersedes=previous and targets[target].get('after') and clock(previous['captured_at'])<clock(targets[target]['after'])
                     if not previous or previous['settlement_sha256']!=fingerprint or supersedes:
                         p=self.remember('RESULT',raw,r);p.update(settlement_sha256=fingerprint,settlement_status=status);c['settlement_captures'][target]=p
-                    interval=5 if targets[target]['pending'] or status!='AVAILABLE' else 30
+                    interval=2 if targets[target]['pending'] or status!='AVAILABLE' else 30
                     c['settlement_next'][target]=(now+timedelta(minutes=interval)).isoformat()
-                    if status=='PENDING' and q['cutoff_at']:c['settlement_next'][target]=max(clock(c['settlement_next'][target]),clock(q['cutoff_at'])+timedelta(minutes=5)).isoformat()
+                    if status=='PENDING' and q['cutoff_at']:c['settlement_next'][target]=max(clock(c['settlement_next'][target]),clock(q['cutoff_at'])+timedelta(minutes=1)).isoformat()
                 old=c['results'].get(target)
                 if target not in self.canonical and out['status']!='PENDING' and (not old or old['fact_sha256']!=out['fact_sha256']):
                     p=self.remember('RESULT',raw,r);p.update(fact_sha256=out['fact_sha256'],statistics_sha256=out.get('statistics_sha256'));c['results'][target]=p;changed+=1

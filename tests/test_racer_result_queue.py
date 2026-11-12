@@ -34,6 +34,48 @@ class ResultQueueTests(unittest.TestCase):
         self.assertEqual(s.control['settlement_captures'][target[0]['race_id']],first);self.assertEqual(len(s.new_captures),captures)
         _,revised=self.source_results(price='1500');s.advance(base,now=NOW+timedelta(minutes=10),fetch=revised,max_requests=1,result_targets=target)
         self.assertNotEqual(s.control['settlement_captures'][target[0]['race_id']]['settlement_sha256'],first['settlement_sha256'])
+    def test_fast_result_only_first_check_is_one_minute_after_cutoff(self):
+        s=self.state();base=self.base();calls,fetch=self.source_results()
+        cutoff=NOW+timedelta(minutes=10)
+        target=dict(race_id='20261107-19-11',cutoff_at=cutoff.isoformat(),pending=True)
+        first=cutoff+timedelta(seconds=59)
+        s.advance(base,now=first,fetch=fetch,max_requests=2,result_targets=[target])
+        self.assertFalse(any('jcd=19' in url and 'rno=11' in url for url in calls),
+                         'never GET this race before the one-minute first result check')
+        calls.clear()
+        second=cutoff+timedelta(minutes=1)
+        def stamped(url):
+            raw,_=fetch(url)
+            return raw,second.isoformat()
+        s.advance(base,now=second,fetch=stamped,max_requests=2,result_targets=[target])
+        self.assertTrue(any('jcd=19' in url and 'rno=11' in url for url in calls),
+                        'a newly due race must not wait a fixed five minutes')
+
+    def test_pending_official_result_retries_at_two_minutes_with_one_get_per_run(self):
+        s=self.state();base=self.base();calls=[]
+        from tests.intraday_fixture import result_document,packet,day_index
+        from race_ai.racer_intraday_source import identity
+        cutoff=NOW+timedelta(minutes=8)
+        target=dict(race_id='20261107-19-11',cutoff_at=cutoff.isoformat(),pending=True)
+        def pending(now):
+            def fetch(url):
+                calls.append(url)
+                if '/race/index?' in url:
+                    return day_index(venues=('01',)),now.isoformat()
+                day,venue,number=identity(url)
+                raw,_=packet(result_document(day=day.replace('-',''),venue=venue,number=number,pending=True))
+                return raw,now.isoformat()
+            return fetch
+        first=cutoff+timedelta(minutes=1)
+        s.advance(base,now=first,fetch=pending(first),max_requests=2,result_targets=[target])
+        first_count=sum('jcd=19' in u and 'rno=11' in u for u in calls)
+        self.assertEqual(first_count,1)
+        s.advance(base,now=first+timedelta(minutes=1),fetch=pending(first+timedelta(minutes=1)),max_requests=2,result_targets=[target])
+        self.assertEqual(first_count,sum('jcd=19' in u and 'rno=11' in u for u in calls))
+        s.advance(base,now=first+timedelta(minutes=2),fetch=pending(first+timedelta(minutes=2)),max_requests=2,result_targets=[target])
+        self.assertEqual(first_count+1,sum('jcd=19' in u and 'rno=11' in u for u in calls))
+        self.assertLessEqual(len(calls),6,'the existing two GET per run cap must never grow')
+
     def test_previous_saved_day_can_catch_up_after_midnight_without_new_day_index(self):
         s=self.state();base=self.base();calls,fetch=self.source_results();late=NOW+timedelta(hours=13,minutes=5)
         s.advance(base,now=late,fetch=fetch,max_requests=2,result_targets=self.targets())
