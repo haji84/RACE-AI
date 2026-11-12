@@ -13,7 +13,7 @@ on:
         description: 'Use existing P0/P1 source owner and scorer only'
         options: [existing-owner-p0-p1]
   pull_request:
-    branches: [feat/four-sport-forecast-audit-view-20261022]
+    branches: [feat/four-sport-forecast-audit-view-20261022, production/boat-p0-p1-20261111]
     paths:
       - .github/workflows/boat-nationwide-ab-one-shot.yml
       - tests/test_boat_main_entry_contract.py
