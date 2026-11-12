@@ -532,6 +532,72 @@ class FirstP0ReconcileTests(unittest.TestCase):
         self.assertIsNone(doc['name'])
         self.assertFalse(doc.get('name_source'))
 
+    def test_current_official_html_requires_independently_verified_cipher_and_is_display_only(self):
+        from types import SimpleNamespace
+        self.seed_runtime(range(4001, 4006))
+        self.capture(); self.save_results()
+        before=self.run_reconcile()
+        self.assertEqual(before['display_name_missing'], 1)
+        view=F.current_view(self.feed,self.bootstrap,day=self.bundle['day'])[3]
+        rid=view['records'][0]['race_id']
+        candidate=dict(registration='4006', name='架空現在証明',
+                       url='https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4006',
+                       historical_sha256='b'*64)
+        status=dict(status='PROFILE_CURRENT_OFFICIAL_HTML_READBACK_VERIFIED',
+                    authenticated_current_profile=1,
+                    historical_source_sha_matched=False,
+                    official_profile_gets=0,
+                    display_name_auto_published=False,
+                    source_unmodified=True)
+        header=dict(observed_at=NOW.isoformat(), source_bytes_sha256='a'*64)
+        def github(path):
+            self.assertTrue(path.endswith('.enc'), 'private source must only be read')
+            return b'synthetic AES envelope'
+        original=SimpleNamespace(
+            _select=lambda *args:candidate,
+            _id=lambda *args:'a'*64,
+            PREFIX='state/boat-profile-original-proof/v1/',
+            DAY=self.bundle['day'],
+            _github=github,
+            _check_observed_current_html=lambda *args,**kwargs:status,
+            _unpack=lambda *args:(b'synthetic official HTML',header),
+        )
+        parsed=dict(registration='4006',name='架空現在証明',
+                    source_url=candidate['url'],source_sha256='a'*64)
+        with patch('race_ai.racer_profiles.parse_basic_profile',return_value=parsed):
+            found=reconcile._verified_current_profile_names(
+                self.repo,view,NOW,proof_module=original)
+        proof=found[rid]['4006']
+        self.assertEqual(proof['kind'],'VERIFIED_CURRENT_OFFICIAL_PROFILE')
+        self.assertEqual(proof['source_sha256'],'a'*64)
+        self.assertFalse(proof['historical_source_sha_matched'])
+        enriched=reconcile._named_target(view,self.bundle['day'],
+                    dict(registry={},races=found))
+        self.assertEqual(enriched['records'][0]['participants'][-1]['name'],
+                         '架空現在証明')
+        self.assertEqual(enriched['records'][0]['participants'][-1]['name_source']['kind'],
+                         'VERIFIED_CURRENT_OFFICIAL_PROFILE')
+        self.assertEqual(F.forecast_inventory(enriched),F.forecast_inventory(view))
+        self.assertEqual(F.originals_sha(enriched),F.originals_sha(view))
+        self.assertEqual(before['display_name_missing'],1)
+        for changes in (dict(historical_source_sha_matched=True),
+                        dict(official_profile_gets=1),
+                        dict(authenticated_current_profile=0),
+                        dict(source_unmodified=False)):
+            bad=SimpleNamespace(**vars(original))
+            bad._check_observed_current_html=lambda *args,**kwargs:dict(status,**changes)
+            with self.subTest(changes=changes), self.assertRaisesRegex(
+                    ValueError,'FIRST_P0_RECONCILE_CURRENT_PROFILE_AUTHENTICATED_SOURCE_REQUIRED'):
+                reconcile._verified_current_profile_names(
+                    self.repo,view,NOW,proof_module=bad)
+        wrong=SimpleNamespace(**vars(original))
+        wrong._select=lambda *args:dict(candidate,registration='4999')
+        with self.assertRaisesRegex(ValueError,'FIRST_P0_RECONCILE_CURRENT_PROFILE_TARGET_MISMATCH'):
+            reconcile._verified_current_profile_names(
+                self.repo,view,NOW,proof_module=wrong)
+        self.assertTrue(before['originals_unchanged'])
+        self.assertEqual(before['provider_requests'],0)
+
     def test_missing_registration_stays_missing_without_guessing(self):
         self.seed_runtime(range(4001, 4006))
         self.capture(); self.save_results()
