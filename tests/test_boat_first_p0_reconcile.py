@@ -532,6 +532,59 @@ class FirstP0ReconcileTests(unittest.TestCase):
         self.assertIsNone(doc['name'])
         self.assertFalse(doc.get('name_source'))
 
+    def test_source_free_current_profile_fills_only_one_missing_label_without_rescoring(self):
+        from scripts import boat_profile_one_shot_proof as source
+        self.seed_runtime(range(4001,4006))
+        self.capture(); self.save_results()
+        first=self.run_reconcile()
+        self.assertEqual(first['display_name_missing'],1)
+        fact=dict(registration_no='4006',name='新規公式プロフィール名',
+                  source_url='https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4006',
+                  source_sha256='5'*64,captured_at=NOW.isoformat(),
+                  verified_current=True)
+        with patch.object(source,'current_profile_display_evidence',return_value=fact):
+            final=self.run_reconcile(include_current_official_profile=True)
+        self.assertEqual(final['display_name_missing'],0)
+        self.assertEqual(final['display_name_current_profile_candidates'],1)
+        self.assertTrue(final['display_name_current_profile_source_reparsed'])
+        self.assertEqual(final['new_forecasts_created'],0)
+        self.assertEqual(final['forecast_rewrites'],0)
+        self.assertEqual(final['provider_requests'],0)
+        self.assertTrue(final['originals_unchanged'])
+        for key in ('native_evaluation_sha256','model_score_counts',
+                    'native_verdict_counts','original_document_set_sha256'):
+            self.assertEqual(final[key],first[key])
+        doc=F.current_view(self.feed,self.bootstrap,day=self.bundle['day'])[3]
+        self.assertEqual(doc['records'][0]['participants'][-1]['name'],
+                         '新規公式プロフィール名')
+        src=doc['records'][0]['participants'][-1]['name_source']
+        self.assertEqual(src['kind'],'VERIFIED_OFFICIAL_PROFILE')
+        self.assertTrue(src['verified_current'])
+        self.assertEqual(src['source_sha256'],'5'*64)
+        with patch.object(source,'current_profile_display_evidence',
+                          side_effect=AssertionError('verified current is already named')):
+            repeated=self.run_reconcile(include_current_official_profile=True)
+        self.assertFalse(repeated['feed_changed'])
+        self.assertEqual(repeated['feed_generation'],final['feed_generation'])
+        self.assertEqual(repeated['native_evaluation_sha256'],
+                         final['native_evaluation_sha256'])
+
+    def test_current_profile_mismatch_never_turns_into_an_unverified_name(self):
+        from scripts import boat_profile_one_shot_proof as source
+        self.seed_runtime(range(4001,4006))
+        self.capture();self.save_results()
+        first=self.run_reconcile()
+        head=self.feed.head()
+        invalid=dict(registration_no='4999',name='架空の他人',
+                     source_url='https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4999',
+                     source_sha256='b'*64,captured_at=NOW.isoformat(),verified_current=True)
+        with patch.object(source,'current_profile_display_evidence',
+                          return_value=invalid),self.assertRaises(ValueError):
+            self.run_reconcile(include_current_official_profile=True)
+        self.assertEqual(self.feed.head(),head)
+        self.assertEqual(self.run_reconcile()['native_evaluation_sha256'],
+                         first['native_evaluation_sha256'])
+
     def test_missing_registration_stays_missing_without_guessing(self):
         self.seed_runtime(range(4001, 4006))
         self.capture(); self.save_results()
