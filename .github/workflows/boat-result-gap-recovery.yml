@@ -155,7 +155,7 @@ jobs:
           assert 'BOAT_SOURCE_FREE_DIAGNOSTIC_PASSED' in text
           assert 'boat-gap-diagnostic: pinned-readonly-20261112' in text
           import ast,textwrap
-          block=text.split('      - name: Diagnose exact original source reader without racing-provider GET',1)[1].split("python - <<'PY'\\n",1)[1].split('\\n          PY',1)[0]
+          block=text.split('      - name: Diagnose exact original source reader without racing-provider GET',1)[1].split("python - <<'PY'\n",1)[1].split('\n          PY',1)[0]
           ast.parse(textwrap.dedent(block),filename='read_only_diagnostic')
           assert '--sync-results' not in text.split('  source_free_diagnostic:',1)[1].split('  unit:',1)[0]
           assert 'cancel-in-progress: false' in text
