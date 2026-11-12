@@ -126,8 +126,8 @@ class _NoRedirect(HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs):return None
 
 def _official_get(url):
-    _need(type(url) is str and url.startswith('https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=')
-          and re.fullmatch('[0-9]{4}',url.rsplit('=',1)[-1]),
+    _need(type(url) is str and
+          re.fullmatch(r'https://www\.boatrace\.jp/owpc/pc/data/racersearch/profile\?toban=[0-9]{4}',url),
           'PROFILE_DOMAIN_OR_PATH')
     opener=build_opener(_NoRedirect(),HTTPSHandler(context=ssl.create_default_context()))
     try:
@@ -184,7 +184,7 @@ def execute(repo,*,readback=False,get_source=_official_get,github=_github,
     tag=_id(key,candidate['registration'])
     base=PREFIX+DAY+'/'+tag
     if readback:
-        blob=json.loads(github(base+'.enc')) if False else github(base+'.enc')
+        blob=github(base+'.enc')
         raw,header=_unpack(blob,key,tag)
         _proof(raw,candidate)
         return dict(status='PROFILE_ORIGINAL_INDEPENDENT_READBACK_VERIFIED',
@@ -198,8 +198,11 @@ def execute(repo,*,readback=False,get_source=_official_get,github=_github,
                            authorized_by='OWNER_ONE_SHOT',state='RESERVED'))+b'\n'
     github(base+'.reservation.json',body=reservation)
     raw=get_source(candidate['url'])    # One bounded GET ONLY after reservation.
-    _proof(raw,candidate)
+    # Seal the observed bytes even if today's official page has changed
+    # since the historical source SHA. This preserves nonmatching evidence
+    # for later review with no retry or plaintext publication.
     github(base+'.enc',body=_pack(raw,key,tag,now.isoformat()))
+    _proof(raw,candidate)
     return dict(status='PROFILE_ORIGINAL_RAW_HASH_VERIFIED',
          verified_original_bytes=1,official_profile_gets=1,
          encrypted_source_retained=True,new_forecasts_created=0,
