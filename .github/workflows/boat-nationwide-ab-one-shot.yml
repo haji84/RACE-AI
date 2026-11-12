@@ -83,7 +83,7 @@ jobs:
                  'tests.test_supervisor_durable_readback','tests.test_boat_saved_site_context',
                  'tests.test_repeated_cycle','tests.test_github_existing_cycle_startup_wait',
                  'tests.test_boat_source_control','tests.test_continuity_checkpoint',
-                 'tests.test_boat_seller_official_source','tests.test_boat_program_source'
+                 'tests.test_boat_seller_official_source','tests.test_boat_program_source']
           result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
           raise SystemExit(not result.wasSuccessful())
           PY_RECOVERY_TEST
