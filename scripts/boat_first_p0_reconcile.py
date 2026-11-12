@@ -177,7 +177,7 @@ def _saved_program_names(files, view, day, now, registry):
     races = {}
     # _b_programs reopens and hashes the stored original B bytes, verifies its
     # official URL, observation clock and day, then parses the actual program.
-    verified = _b_programs(dict(schema=manifest['schema'], b_sources=sources), now)
+    verified = _b_programs(dict(schema='RACE_AI_BOAT_NAME_ALIAS_SOURCES_V1', b_sources=sources), now)
     for source, program in verified:
         for venue in program['venues']:
             for race in venue['races']:
