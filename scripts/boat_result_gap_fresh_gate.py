@@ -95,7 +95,8 @@ def inspect(boat_runs,recovery_runs,prior_attempts,source,*,now,current_run_id,r
         if p['run_id']==current_run_id:continue
         if p.get('job_status') in ('queued','in_progress','waiting','pending','requested'):
             return dict(status='HOLD_PRIOR_SOURCE_JOB_ACTIVE',authorized_source_gets=0)
-        if utc-at<timedelta(minutes=60):recent_attempts.add(p['run_id'])
+        if utc-at<timedelta(minutes=60) and p.get('provider_step_attempted',True):
+            recent_attempts.add(p['run_id'])
     spent=len(recent_attempts)*PRIOR_ATTEMPT_RESERVATION
     _need(spent<=RECOVERY_BUDGET_60M,'RECOVERY_BUDGET_EXCEEDED')
     available=RECOVERY_BUDGET_60M-spent
@@ -137,9 +138,18 @@ def live(repo,run_id,attempt,source):
         _need(type(jobs.get('jobs')) is list and len(jobs['jobs'])<100,'JOB_HISTORY_TRUNCATED')
         for job in jobs['jobs']:
             if job.get('name')==FRESH and job.get('conclusion')!='skipped':
+                steps=job.get('steps')
+                _need(type(steps) is list and len(steps)<100,'SOURCE_STEPS_UNVERIFIED')
+                sources=[s for s in steps if s.get('name','').startswith(
+                    'Consume at most 36 owner-admitted official-result GETs')]
+                _need(len(sources)==1,'SOURCE_STEP_UNVERIFIED')
+                step=sources[0]
+                performed=step.get('status')=='in_progress' or (
+                    step.get('status')=='completed' and
+                    step.get('conclusion') not in ('skipped',None))
                 prior.append(dict(run_id=row['id'],created_at=row['created_at'],
-                                  started_at=job.get('started_at'),
-                                  job_status=job.get('status'),job_name=FRESH))
+                                  started_at=job.get('started_at'),job_status=job.get('status'),
+                                  provider_step_attempted=performed,job_name=FRESH))
     return inspect(boats,recoveries,prior,source,now=now,current_run_id=run_id,run_attempt=attempt)
 
 def main(argv=None):
