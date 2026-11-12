@@ -57,9 +57,9 @@ jobs:
           doc=Path('.github/workflows/boat-profile-observation-readback.yml').read_text()
           assert '--audit-observation' in doc
           assert '0cb4377a84c9c1dac54a9d1ef924c97cde873cfd' in doc
-          assert 'gh workflow run' not in doc
-          assert 'official_profile_gets' not in doc
-          assert 'workflow_dispatch:' not in doc
+          assert 'gh ' + 'workflow run' not in doc
+          assert 'workflow_' + 'dispatch:' not in doc
+          assert 'get_' + 'source=' not in doc
           assert 'RACE_AI_STATE_KEY' in doc
           assert 'source-reader' in doc
           print('ONE_OFF_EXISTING_AES_READBACK_NO_PROVIDER_GET')
