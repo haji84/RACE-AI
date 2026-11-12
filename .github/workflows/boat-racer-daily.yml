@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 976aa8998fb864a8073293df45d69d63fdf73007
+          ref: 924c70204c1365a634ccfc1b9a5aa89f25eb3bc0
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -326,14 +326,14 @@ jobs:
       CONTROL_ID: ${{ needs.original_retention.outputs.control }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {persist-credentials: false, ref: 976aa8998fb864a8073293df45d69d63fdf73007}
+        with: {persist-credentials: false, ref: 924c70204c1365a634ccfc1b9a5aa89f25eb3bc0}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
       - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
       - name: Use the original projector, official parser and scorer without source GET
-        run: python -m scripts.boat_first_p0_reconcile --repo-root . --vault-commit "$VAULT_COMMIT" --receipt-commit "$RECEIPT_COMMIT" --day "$ORIGINAL_DAY" --p0-artifact "$P0_ID" --companion-artifact "$CONTINUITY_ID" --companion-artifact "$CONTROL_ID" --output "$RUNNER_TEMP/first-p0-reconciliation.json"
+        run: python -m scripts.boat_first_p0_reconcile --repo-root . --vault-commit "$VAULT_COMMIT" --receipt-commit "$RECEIPT_COMMIT" --day "$ORIGINAL_DAY" --p0-artifact "$P0_ID" --companion-artifact "$CONTINUITY_ID" --companion-artifact "$CONTROL_ID" --include-verified-result-names --output "$RUNNER_TEMP/first-p0-reconciliation.json"
       - name: Retain count-only existing-scorer evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
