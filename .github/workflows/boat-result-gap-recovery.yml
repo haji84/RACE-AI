@@ -6,6 +6,8 @@ on:
       - .github/workflows/boat-result-gap-recovery.yml
       - scripts/boat_result_gap_audit.py
       - tests/test_boat_result_gap_audit.py
+      - scripts/boat_result_gap_fresh_gate.py
+      - tests/test_boat_result_gap_fresh_gate.py
   push:
     branches: [main]
     paths:
@@ -18,7 +20,7 @@ on:
         options: ['2']
         description: 'One bounded follow-up audit; no official provider GET'
   workflow_run:
-    workflows: ['KEIRIN PR71 GitHub-only forecast and PDCA']
+    workflows: ['KEIRIN PR71 GitHub-only forecast and PDCA', 'KEIRIN hourly personal research canary']
     types: [completed]
     branches: [main]
 
@@ -29,6 +31,35 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  unit:
+    name: unit
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.event.pull_request.head.sha }}'
+          persist-credentials: false
+      - name: Test actual schedule-gap and bounded fresh-result admission
+        run: python -m unittest tests.test_boat_result_gap_audit tests.test_boat_result_gap_fresh_gate -v
+      - name: Assert only the new guarded source step can use provider GET
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('.github/workflows/boat-result-gap-recovery.yml').read_text()
+          replay=text.split('\n  observed_gap:\n',1)[1].split('\n  fresh_result:\n',1)[0]
+          fresh=text.split('\n  fresh_result:\n',1)[1]
+          assert '--replay-retained-results' in replay and '--sync-results' not in replay
+          assert '--sync-results' in fresh and '--sync-beforeinfo' not in fresh
+          assert '914941a6244364480370ac392441ad4bb5781f83' in fresh
+          assert 'needs: observed_gap' in fresh
+          assert "github.event.workflow_run.event == 'schedule'" in fresh
+          assert 'cancel-in-progress: false' in text
+          print('FRESH_RESULT_GAP_SOURCE_BOUNDARY_UNIT_VERIFIED')
+          PY
   offline_contract:
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
     runs-on: ubuntu-24.04
@@ -72,6 +103,8 @@ jobs:
          github.event.workflow_run.conclusion == 'success' &&
          github.event.workflow_run.head_branch == 'main' &&
          github.event.workflow_run.head_repository.full_name == github.repository))
+    outputs:
+      gap: ${{ steps.audit.outputs.gap }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -174,3 +207,173 @@ jobs:
         run: |
           gh workflow run boat-result-gap-recovery.yml --ref main -f cycle=2
           echo 'BOAT_GAP_SECOND_PROOF_DISPATCHED_NO_PROVIDER_GET'
+
+  fresh_result:
+    name: Fresh bounded official result intake
+    needs: observed_gap
+    if: >-
+      needs.observed_gap.result == 'success' && needs.observed_gap.outputs.gap == 'true' &&
+      github.repository == 'haji84/RACE-AI' && github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'schedule' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.sha }}'
+          persist-credentials: false
+      - name: Install unmodified bounded result collector separately
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 914941a6244364480370ac392441ad4bb5781f83
+          path: source-reader
+          persist-credentials: false
+      - name: Install immutable original official parser
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - name: Install immutable original result adapter
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - name: Install existing source reader dependencies
+        run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
+      - name: Read sealed source freshness and genuinely due result count without provider GET
+        working-directory: source-reader
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY' > "$RUNNER_TEMP/boat-gap-fresh-sealed-health.json"
+          from datetime import datetime,timedelta,timezone
+          from pathlib import Path
+          import json,race_ai
+          for folder in ('../pr64-reference','../pr72-reference'):
+              package=Path(folder,'race_ai').resolve()
+              assert package.is_dir(), 'PINNED_OFFICIAL_ADAPTER_MISSING'
+              race_ai.__path__.append(str(package))
+          from scripts.boat_private_original_vault import _environment
+          from race_ai.racer_intraday_handoff import load_intraday
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai.racer_daily import clock
+          repo=_environment(Path('.').resolve())
+          control=load_intraday(repo)['state'].control
+          due=sum(target['pending'] and target['cutoff_at'] is not None and
+              clock(target['cutoff_at'])+timedelta(minutes=5)<=datetime.now(timezone.utc)
+              for target in SavedResultBridge(repo).targets())
+          wait=(control.get('waits') or {}).get('boatrace') or {}
+          print(json.dumps(dict(last_checked_at=control.get('last_checked_at'),
+              due_count=due,boatrace_hold_until=wait.get('until')),sort_keys=True))
+          PY
+      - name: Revalidate trusted schedules, all prior source attempts and sealed budget
+        id: source_gate
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          python scripts/boat_result_gap_fresh_gate.py \
+            --source "$RUNNER_TEMP/boat-gap-fresh-sealed-health.json" \
+            --output "$RUNNER_TEMP/boat-gap-fresh-admission.json"
+      - name: Consume at most 12 existing official-result GETs once per durable admission
+        if: steps.source_gate.outputs.admitted == 'true'
+        working-directory: source-reader
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY' > "$RUNNER_TEMP/boat-gap-fresh-result-private.json"
+          import os,race_ai
+          from pathlib import Path
+          for folder in ('../pr64-reference','../pr72-reference'):
+              package=Path(folder,'race_ai').resolve()
+              assert package.is_dir(), 'PINNED_OFFICIAL_ADAPTER_MISSING'
+              race_ai.__path__.append(str(package))
+          from scripts.racer_intraday_refresh import main
+          raise SystemExit(main(['--private-dir',
+              os.path.join(os.environ['RUNNER_TEMP'],'boat-gap-fresh'),
+              '--sync-results']))
+          PY
+      - name: Require actual new official result and no source-limit bypass
+        if: steps.source_gate.outputs.admitted == 'true'
+        id: new_result
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          report=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-gap-fresh-result-private.json').read_text())
+          assert report['schema']=='RACE_AI_RACER_INTRADAY_RUN_V1'
+          assert report['status']=='INTRADAY_REFRESHED'
+          assert 0<report['source_requests']<=12
+          assert report['retained']['status']=='INTRADAY_ENCRYPTED_DELTA_RETAINED'
+          assert report['retained']['new_capture_count']>0
+          assert report['result_sync']['changed_races']>0
+          assert report['result_sync']['state']=='READY'
+          assert report['forecast_inputs_changed'] is False
+          assert report['private_sources_published'] is False
+          with open(os.environ['GITHUB_OUTPUT'],'a') as stream:
+              stream.write('new_results=true\n')
+          print(json.dumps(dict(status='FRESH_OFFICIAL_RESULT_INGESTED',
+              provider_gets=report['source_requests'],
+              changed_races=report['result_sync']['changed_races'],
+              encrypted_readback_reported=True,forecast_inputs_changed=False),sort_keys=True))
+          PY
+
+  fresh_readback:
+    name: Independently reopen fresh results on different runner (zero GET)
+    needs: fresh_result
+    if: needs.fresh_result.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 914941a6244364480370ac392441ad4bb5781f83
+          persist-credentials: false
+      - name: Install immutable official parser
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - name: Install immutable result adapter
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Reopen actual saved AES result and verify unchanged prediction inventory
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY'
+          import json,race_ai
+          from pathlib import Path
+          for folder in ('pr64-reference','pr72-reference'):
+              package=Path(folder,'race_ai').resolve()
+              assert package.is_dir(), 'PINNED_OFFICIAL_ADAPTER_MISSING'
+              race_ai.__path__.append(str(package))
+          from scripts.boat_private_original_vault import _environment
+          from scripts.racer_intraday_refresh import replay_retained_results
+          report=replay_retained_results(_environment(Path('.').resolve()))
+          assert report['status']=='RETAINED_RESULTS_REPLAYED'
+          assert report['source_requests']==0
+          assert report['readback_verified'] is True
+          assert report['originals_changed'] is False
+          assert report['forecasting_performed'] is False
+          print(json.dumps(dict(status='FRESH_RESULT_INDEPENDENT_AES_READBACK_VERIFIED',
+              provider_gets=0,originals_changed=False),sort_keys=True))
+          PY
