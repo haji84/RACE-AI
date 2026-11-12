@@ -534,6 +534,7 @@ jobs:
           NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
           RESULT_PROBE_RACE: ${{ inputs.probe_race_id || '' }}
           CHECK_CURRENT_DAY: "${{ (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')) || inputs.check_current_day || 'false' }}"
+          VERIFY_SAVED_P0: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') }}"
           CHECK_BEFOREINFO: ${{ inputs.check_beforeinfo || 'false' }}
           # The context installs its own repository-scoped credential.
           # Clear checkout's host header for this read-only step only.
@@ -542,6 +543,9 @@ jobs:
           GIT_CONFIG_VALUE_0: ''
         run: |
           site_context_args=(--latest-saved-day)
+          # The result-only run has a genuine P0 receipt, but no real P1;
+          # never require non-existent P1 just to verify P0 settlement.
+          if [[ "$VERIFY_SAVED_P0" == 'true' ]]; then site_context_args+=(--stage P0); fi
           if [[ -n "$RESULT_PROBE_RACE" ]]; then
             [[ "$RESULT_PROBE_RACE" =~ ^[0-9]{8}-[0-9]{2}-[0-9]{2}$ ]] || exit 2
             site_context_args=(--day "${RESULT_PROBE_RACE:0:4}-${RESULT_PROBE_RACE:4:2}-${RESULT_PROBE_RACE:6:2}")
