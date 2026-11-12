@@ -54,6 +54,53 @@ class ProductionSafetyPolicyTests(unittest.TestCase):
 
 
 
+
+class OptionalSourceAllowanceTests(unittest.TestCase):
+    def test_readonly_remaining_preserves_same_day_budget_and_prior_holds(self):
+        now=stamp()
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'optional-source.json'
+            state=r.start(path,day='2030-04-01',run_id=118,now=now,
+                source_control=dict(day_jst='2030-04-01',lifetime_requests=280,
+                                    day_start_lifetime_requests=100))
+            guard=r.SourceGuard(path,clock=lambda:now)
+            frozen=path.read_bytes()
+            self.assertEqual(guard.remaining(),60)
+            self.assertEqual(path.read_bytes(),frozen)
+            guard.charge('forecast')
+            self.assertEqual(guard.remaining(),59)
+            self.assertEqual(r.load(path)['lifetime_requests']-r.load(path)['day_start_lifetime_requests'],181)
+            prepared=r.prepare(path,1,now=now)
+            self.assertTrue(prepared['active'])
+            # After round preparation, 45/round, not 59/day, is the limit.
+            self.assertEqual(guard.remaining(),45)
+            state=r.load(path)
+            state['source_wait']=dict(state='SOURCE_REVIEW_WAIT',reason='SOURCE_VERIFICATION_REQUIRED',
+                                      retry_at=None,http_status=None,attempts=1)
+            r.write_state(path,state)
+            frozen=path.read_bytes()
+            self.assertEqual(guard.remaining(),0)
+            self.assertEqual(path.read_bytes(),frozen)
+            with self.assertRaisesRegex(ValueError,'DAY_HANDOFF'):
+                r.SourceGuard(path,clock=lambda:now+timedelta(days=1)).remaining()
+
+    def test_late_worker_or_daily_budget_exhaustion_never_admits_optional_get(self):
+        now=stamp()
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'almost-used.json'
+            r.start(path,day='2030-04-01',run_id=119,now=now,
+                    source_control=dict(day_jst='2030-04-01',lifetime_requests=339,
+                                        day_start_lifetime_requests=100))
+            guard=r.SourceGuard(path,clock=lambda:now)
+            self.assertEqual(guard.remaining(),1)
+            guard.charge('forecast')
+            self.assertEqual(guard.remaining(),0)
+            final=r.load(path)
+            final['worker_handoff_at']=(now+timedelta(seconds=1)).isoformat()
+            r.write_state(path,final)
+            self.assertEqual(r.SourceGuard(path,clock=lambda:now+timedelta(seconds=2)).remaining(),0)
+
+
 class DaySourceBudgetPersistenceTests(unittest.TestCase):
     """Prevent a second JST-day worker from resetting the effective 240 GET cap."""
 

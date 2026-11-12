@@ -244,6 +244,35 @@ class SourceGuard:
     """Count requests without bypassing durable upstream waits or hard latches."""
     def __init__(self,path,clock=lambda:datetime.now(timezone.utc)):
         self.path=Path(path);self.clock=clock
+    def remaining(self):
+        """Read-only unused request allowance, never a new quota or retry grant.
+
+        This is only used to decide whether optional P1 enrichments can be
+        skipped in favor of the remaining required source observations.
+        Authoritative charging is still done by charge() immediately before
+        every real HTTP request.
+        """
+        state=load(self.path)
+        now=self.clock()
+        _need(isinstance(now,datetime) and now.utcoffset() is not None,
+              'SOURCE_BUDGET_CLOCK_INVALID')
+        _need(now.astimezone(JST).date().isoformat()==state['day_jst'],'DAY_HANDOFF')
+        base=state.get('day_start_lifetime_requests')
+        _need(type(base) is int and 0<=base<=state['lifetime_requests'],
+              'DAY_SOURCE_BUDGET_BASELINE_UNVERIFIED')
+        if (state['halted_reason'] or
+            state.get('stop_at') is not None and now>=instant(state['stop_at']) or
+            state.get('worker_handoff_at') is not None and now>=instant(state['worker_handoff_at']) or
+            wait_active(state.get('source_wait'),now)):
+            return 0
+        if SOURCE_LIMIT is None:
+            return 0  # Unbounded policy must never authorize optional GETs.
+        left=min(SOURCE_LIMIT-state['requests_used'],
+                 SOURCE_LIMIT-(state['lifetime_requests']-base))
+        if ROUND_SOURCE_LIMIT is not None and state['prepared_round'] is not None:
+            left=min(left,ROUND_SOURCE_LIMIT-(state['requests_used']-state.get('round_started_requests',0)))
+        return max(0,left)
+
     def charge(self,kind):
         state=load(self.path)
         _need(kind in ('forecast','result'),'source kind')
