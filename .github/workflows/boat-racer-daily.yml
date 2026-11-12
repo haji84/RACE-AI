@@ -70,7 +70,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           text=Path('.github/workflows/boat-racer-daily.yml').read_text()
-          original=text.split('  original_reconcile:',1)[1].split('  source_mirror:',1)[0]
+          original=text.rsplit('\n  original_reconcile:\n',1)[1].split('\n  source_mirror:\n',1)[0]
           assert 'ref: ea6992702093a1e67c8c4adb19ca01aaab3fbaca' in original
           assert '--require-current-official-profile' in original
           assert 'scripts.boat_first_p0_reconcile' in original
