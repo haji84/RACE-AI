@@ -126,6 +126,52 @@ class OneOfficialProfileProof(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'GITHUB_RESPONSE_BOUND'):
                 m._github(m.PREFIX+m.DAY+'/testonly.enc')
 
+    def test_current_independent_readback_accepts_new_SHA_without_historical_claim(self):
+        raw=basic()
+        key=hashlib.sha256(b'fixture-current-verified-source').digest()
+        expected=dict(candidate(raw),historical_sha256='f'*64)
+        tag=m._id(key,'4002')
+        base=m.PREFIX+m.DAY+'/'+tag
+        reservation=m._wire(dict(schema=m.SCHEMA,day=m.DAY,tag=tag,
+            max_official_profile_gets=1,requested_source_kind='OFFICIAL_PROFILE',
+            authorized_by='OWNER_ONE_SHOT',state='RESERVED'))+b'\n'
+        captured=m._pack(raw,key,tag,NOW.isoformat())
+        blobs={base+'.reservation.json':reservation,base+'.enc':captured}
+        calls=[]
+        def github(path,*,body=None):
+            self.assertIsNone(body,'readback must never write a reservation')
+            calls.append(path)
+            return blobs[path]
+        with patch.object(m,'_select',return_value=expected):
+            result=m.execute('.',readback_current=True,key=key,now=NOW,
+                             github=github,get_source=lambda url:self.fail('no GET'))
+            self.assertEqual(result['status'],'PROFILE_CURRENT_OFFICIAL_HTML_READBACK_VERIFIED')
+            self.assertEqual(result['authenticated_current_profile'],1)
+            self.assertFalse(result['historical_source_sha_matched'])
+            self.assertEqual(result['official_profile_gets'],0)
+            self.assertFalse(result['display_name_auto_published'])
+            self.assertEqual(len(calls),2)
+            with self.assertRaisesRegex(ValueError,'HISTORICAL_HTML_SHA_MISMATCH'):
+                m.execute('.',readback=True,key=key,now=NOW,github=github,
+                          get_source=lambda url:self.fail('strict old SHA must not GET'))
+            bad=json.loads(reservation)
+            bad['max_official_profile_gets']=2
+            blobs[base+'.reservation.json']=m._wire(bad)
+            with self.assertRaisesRegex(ValueError,'CAPTURE_RESERVATION_NOT_VALID'):
+                m.execute('.',readback_current=True,key=key,now=NOW,github=github,
+                          get_source=lambda url:self.fail('reservation invalid must not GET'))
+            blobs[base+'.reservation.json']=reservation
+            bad=bytearray(captured);bad[-40]^=1
+            blobs[base+'.enc']=bytes(bad)
+            with self.assertRaises(ValueError):
+                m.execute('.',readback_current=True,key=key,now=NOW,github=github,
+                          get_source=lambda url:self.fail('cipher invalid must not GET'))
+            blobs[base+'.enc']=captured
+            with patch.object(m,'parse_basic_profile',side_effect=ValueError('current profile changed')):
+                with self.assertRaises(ValueError):
+                    m.execute('.',readback_current=True,key=key,now=NOW,
+                              github=github,get_source=lambda url:self.fail('no GET'))
+
     def test_source_absent_or_already_named_never_calls_provider(self):
         key=hashlib.sha256(b'fixture-key4').digest()
         with patch.object(m,'_select',return_value=None):
