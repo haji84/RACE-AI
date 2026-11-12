@@ -56,6 +56,8 @@ def recovery_selection(*, run: dict, artifacts: dict) -> dict:
     # Only physical original recovery is allowed; never dispatch a source job.
     retained_old_p0 = (run['id'] == 43131905826 and
                        run.get('head_sha') == 'cf7b6f6a926396c6873e78fe1ad1d3d6840088a8')
+    if run['id'] == 43131905826:
+        require(retained_old_p0)  # Never reassign this immutable run to a newer release.
     require((original_incident or retained_old_p0 or run.get('head_sha') == RELEASE_SHA) and
             run.get('head_branch') == RELEASE_REF and
             run.get('event') == 'workflow_dispatch' and
