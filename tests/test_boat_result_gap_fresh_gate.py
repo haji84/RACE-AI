@@ -59,3 +59,22 @@ class FreshGateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'CURRENT_ORIGIN'):self.decision(parts)
         parts=list(fixture());parts[0]['workflow_runs']=[run(i,-i*0.1) for i in range(1,101)]
         with self.assertRaisesRegex(ValueError,'RUN_HISTORY_TRUNCATED'):self.decision(parts)
+
+    def test_strict_real_readback_python_is_syntax_valid_and_source_free(self):
+        import ast
+        import textwrap
+        from pathlib import Path
+        workflow=Path('.github/workflows/boat-result-gap-recovery.yml').read_text()
+        for label in (
+            'Read sealed source freshness and genuinely due result count without provider GET',
+            'Require actual new official result and no source-limit bypass',
+            'Reopen actual saved AES result and verify unchanged prediction inventory',
+        ):
+            segment=workflow.split('      - name: '+label+'\n',1)[1]
+            source=segment.split("python - <<'PY'\n",1)[1].split('\n          PY',1)[0]
+            ast.parse(textwrap.dedent(source),filename=label)
+        assert "assert after_final>baseline['before_final']" in workflow
+        assert "assert digest==os.environ['EXPECTED_RESULT_DIGEST']" in workflow
+        assert "assert inventory==os.environ['EXPECTED_INVENTORY_DIGEST']" in workflow
+        assert "assert loaded['previous']['head']['cipher_sha256']==os.environ['EXPECTED_SOURCE_CIPHER']" in workflow
+        assert "assert 0<report['source_requests']<=12" in workflow

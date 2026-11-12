@@ -61,6 +61,9 @@ jobs:
           assert 'github.event.workflow_run.run_attempt == 1' in fresh
           assert "new_results: ${{ steps.new_result.outputs.new_results }}" in fresh
           assert "outputs.new_results == 'true'" in text
+          assert 'FRESH_OFFICIAL_FINAL_INCREASE_VERIFIED' in text
+          assert 'exact_result_digest_matched' in text
+          assert 'original_inventory_unchanged' in text
           assert 'cancel-in-progress: false' in text
           print('FRESH_RESULT_GAP_SOURCE_BOUNDARY_UNIT_VERIFIED')
           PY
@@ -220,6 +223,11 @@ jobs:
     outputs:
       result_cipher: ${{ steps.new_result.outputs.result_cipher }}
       new_results: ${{ steps.new_result.outputs.new_results }}
+      before_final: ${{ steps.new_result.outputs.before_final }}
+      after_final: ${{ steps.new_result.outputs.after_final }}
+      result_digest: ${{ steps.new_result.outputs.result_digest }}
+      inventory_digest: ${{ steps.new_result.outputs.inventory_digest }}
+      scope_days: ${{ steps.new_result.outputs.scope_days }}
     if: >-
       needs.observed_gap.result == 'success' && needs.observed_gap.outputs.gap == 'true' &&
       github.repository == 'haji84/RACE-AI' && github.event_name == 'workflow_run' &&
@@ -278,14 +286,20 @@ jobs:
           from race_ai.racer_intraday_handoff import load_intraday
           from race_ai.racer_result_bridge import SavedResultBridge
           from race_ai.racer_daily import clock
+          from race_ai import saved_view_feed as F
           repo=_environment(Path('.').resolve())
           control=load_intraday(repo)['state'].control
+          bridge=SavedResultBridge(repo,now=datetime.now(timezone.utc))
           due=sum(target['pending'] and target['cutoff_at'] is not None and
               clock(target['cutoff_at'])+timedelta(minutes=5)<=datetime.now(timezone.utc)
-              for target in SavedResultBridge(repo,now=datetime.now(timezone.utc)).targets())
+              for target in bridge.targets())
           wait=(control.get('waits') or {}).get('boatrace') or {}
+          final=sum((row.get('result') or {}).get('status')=='final' for row in bridge.rows)
+          inventory=F.inventory_sha(dict(schema='RACE_AI_PRIVATE_CYCLE_VIEW_V1',records=bridge.rows))
           print(json.dumps(dict(last_checked_at=control.get('last_checked_at'),
-              due_count=due,boatrace_hold_until=wait.get('until')),sort_keys=True))
+              due_count=due,boatrace_hold_until=wait.get('until'),
+              before_final=final,baseline_races=len(bridge.rows),
+              scope_days=sorted(bridge.days),inventory_digest=inventory),sort_keys=True))
           PY
       - name: Revalidate trusted schedules, all prior source attempts and sealed budget
         id: source_gate
@@ -317,9 +331,12 @@ jobs:
       - name: Require actual new official result and no source-limit bypass
         if: steps.source_gate.outputs.admitted == 'true'
         id: new_result
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
         run: |
           python - <<'PY'
-          import json,os
+          import json,os,sys,hashlib,datetime
           from pathlib import Path
           report=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-gap-fresh-result-private.json').read_text())
           assert report['schema']=='RACE_AI_RACER_INTRADAY_RUN_V1'
@@ -331,13 +348,43 @@ jobs:
           assert report['result_sync']['state']=='READY'
           assert report['forecast_inputs_changed'] is False
           assert report['private_sources_published'] is False
+          baseline=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-gap-fresh-sealed-health.json').read_text())
+          sys.path.insert(0,str(Path('source-reader').resolve()))
+          import race_ai
+          for folder in ('pr64-reference','pr72-reference'):
+              package=Path(folder,'race_ai').resolve()
+              assert package.is_dir()
+              race_ai.__path__.append(str(package))
+          from scripts.boat_private_original_vault import _environment
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai import saved_view_feed as F
+          bridge=SavedResultBridge(_environment(Path('source-reader').resolve()),
+              now=datetime.datetime.now(datetime.timezone.utc))
+          rows=bridge.rows
+          after_final=sum((r.get('result') or {}).get('status')=='final' for r in rows)
+          assert sorted(bridge.days)==baseline['scope_days']
+          assert len(rows)==baseline['baseline_races']
+          assert after_final>baseline['before_final']
+          inventory=F.inventory_sha(dict(schema='RACE_AI_PRIVATE_CYCLE_VIEW_V1',records=rows))
+          assert inventory==baseline['inventory_digest']
+          finals=sorted((r['race_id'],r['result']) for r in rows
+              if (r.get('result') or {}).get('status')=='final')
+          digest=hashlib.sha256(json.dumps(finals,sort_keys=True,
+              separators=(',',':')).encode()).hexdigest()
           with open(os.environ['GITHUB_OUTPUT'],'a') as stream:
               stream.write('new_results=true\n')
               stream.write('result_cipher='+report['retained']['cipher_sha256']+'\n')
-          print(json.dumps(dict(status='FRESH_OFFICIAL_RESULT_INGESTED',
+              stream.write('before_final='+str(baseline['before_final'])+'\n')
+              stream.write('after_final='+str(after_final)+'\n')
+              stream.write('result_digest='+digest+'\n')
+              stream.write('inventory_digest='+inventory+'\n')
+              stream.write('scope_days='+','.join(bridge.days)+'\n')
+          print(json.dumps(dict(status='FRESH_OFFICIAL_FINAL_INCREASE_VERIFIED',
               provider_gets=report['source_requests'],
               changed_races=report['result_sync']['changed_races'],
-              encrypted_readback_reported=True,forecast_inputs_changed=False),sort_keys=True))
+              new_final_count=after_final-baseline['before_final'],
+              source_cipher_retained=True,forecast_inputs_changed=False),
+              sort_keys=True))
           PY
 
   fresh_readback:
@@ -372,9 +419,14 @@ jobs:
           GH_TOKEN: '${{ github.token }}'
           RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
           EXPECTED_SOURCE_CIPHER: '${{ needs.fresh_result.outputs.result_cipher }}'
+          EXPECTED_BEFORE_FINAL: '${{ needs.fresh_result.outputs.before_final }}'
+          EXPECTED_AFTER_FINAL: '${{ needs.fresh_result.outputs.after_final }}'
+          EXPECTED_RESULT_DIGEST: '${{ needs.fresh_result.outputs.result_digest }}'
+          EXPECTED_INVENTORY_DIGEST: '${{ needs.fresh_result.outputs.inventory_digest }}'
+          EXPECTED_SCOPE_DAYS: '${{ needs.fresh_result.outputs.scope_days }}'
         run: |
           python - <<'PY'
-          import json,race_ai
+          import json,race_ai,hashlib,os,datetime
           from pathlib import Path
           for folder in ('pr64-reference','pr72-reference'):
               package=Path(folder,'race_ai').resolve()
@@ -383,15 +435,25 @@ jobs:
           from scripts.boat_private_original_vault import _environment
           from race_ai.racer_intraday_handoff import load_intraday
           from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai import saved_view_feed as F
           repo=_environment(Path('.').resolve())
           loaded=load_intraday(repo)
-          expected=__import__('os').environ['EXPECTED_SOURCE_CIPHER']
-          assert loaded['previous']['head']['cipher_sha256']==expected
-          bridge=SavedResultBridge(repo,now=__import__('datetime').datetime.now(__import__('datetime').timezone.utc))
-          assert len(bridge.rows)>0
-          final=sum((row.get('result') or {}).get('status') in ('final','void') for row in bridge.rows)
-          assert final>0
+          assert loaded['previous']['head']['cipher_sha256']==os.environ['EXPECTED_SOURCE_CIPHER']
+          bridge=SavedResultBridge(repo,now=datetime.datetime.now(datetime.timezone.utc))
+          assert ','.join(bridge.days)==os.environ['EXPECTED_SCOPE_DAYS']
+          final=sum((row.get('result') or {}).get('status')=='final' for row in bridge.rows)
+          before=int(os.environ['EXPECTED_BEFORE_FINAL'])
+          assert final==int(os.environ['EXPECTED_AFTER_FINAL']) and final>before
+          inventory=F.inventory_sha(dict(schema='RACE_AI_PRIVATE_CYCLE_VIEW_V1',
+                                         records=bridge.rows))
+          assert inventory==os.environ['EXPECTED_INVENTORY_DIGEST']
+          finals=sorted((r['race_id'],r['result']) for r in bridge.rows
+              if (r.get('result') or {}).get('status')=='final')
+          digest=hashlib.sha256(json.dumps(finals,sort_keys=True,
+              separators=(',',':')).encode()).hexdigest()
+          assert digest==os.environ['EXPECTED_RESULT_DIGEST']
           print(json.dumps(dict(status='FRESH_RESULT_INDEPENDENT_AES_READBACK_VERIFIED',
-              provider_gets=0,authenticated_result_rows=final,
-              exact_source_cipher_matched=True,originals_changed=False),sort_keys=True))
+              provider_gets=0,new_final_count=final-before,
+              exact_source_cipher_matched=True,exact_result_digest_matched=True,
+              original_inventory_unchanged=True),sort_keys=True))
           PY
