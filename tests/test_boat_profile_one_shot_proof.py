@@ -105,6 +105,51 @@ class OneOfficialProfileProof(unittest.TestCase):
                 m.execute('.',now=NOW,key=key,github=github,get_source=source)
         self.assertEqual(events.count('GET'),1)
 
+    def test_independent_retained_different_html_is_parseable_but_not_historical_original(self):
+        raw=basic();key=hashlib.sha256(b'fixture-current-official').digest()
+        item=dict(candidate(raw),historical_sha256='d'*64)
+        tag=m._id(key,item['registration'])
+        enc=m._pack(raw,key,tag,NOW.isoformat())
+        url_reads=[]
+        def private_read(path,*,body=None):
+            self.assertIsNone(body)
+            url_reads.append(path)
+            return enc
+        with patch.object(m,'_select',return_value=item):
+            report=m.execute('.',now=NOW,key=key,audit_observation=True,
+                             github=private_read,
+                             get_source=lambda url:self.fail('no source GET permitted'))
+        self.assertEqual(report['status'],'PROFILE_NEWER_OR_DIFFERENT_HTML_PARSED')
+        self.assertTrue(report['source_aes_reopened'])
+        self.assertTrue(report['official_source_html_reparsed'])
+        self.assertFalse(report['historical_source_sha_matches'])
+        self.assertFalse(report['historical_original_verified'])
+        self.assertEqual(report['official_profile_gets'],0)
+        self.assertEqual(len(url_reads),1)
+        self.assertNotIn('registration',report)
+        self.assertNotIn('name',report)
+
+    def test_independent_observation_rejects_unparseable_or_tampered_source(self):
+        raw=basic()
+        key=hashlib.sha256(b'fixture-bad-official-observation').digest()
+        item=candidate(raw);tag=m._id(key,item['registration'])
+        corrupt=b'<html><body>not an official profile identity</body></html>'
+        enc=m._pack(corrupt,key,tag,NOW.isoformat())
+        with patch.object(m,'_select',return_value=item):
+            report=m.execute('.',now=NOW,key=key,audit_observation=True,
+                             github=lambda path,**kw:enc,
+                             get_source=lambda url:self.fail('no new GET'))
+        self.assertEqual(report['status'],'PROFILE_OBSERVATION_AES_VERIFIED_PARSE_HOLD')
+        self.assertFalse(report['official_source_html_reparsed'])
+        self.assertFalse(report['historical_original_verified'])
+        altered=json.loads(enc)
+        altered['header']['source_bytes_sha256']='f'*64
+        with patch.object(m,'_select',return_value=item):
+            with self.assertRaises(ValueError):
+                m.execute('.',now=NOW,key=key,audit_observation=True,
+                          github=lambda path,**kw:m._wire(altered),
+                          get_source=lambda url:self.fail('no source GET'))
+
     def test_source_absent_or_already_named_never_calls_provider(self):
         key=hashlib.sha256(b'fixture-key4').digest()
         with patch.object(m,'_select',return_value=None):
