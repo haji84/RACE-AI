@@ -37,6 +37,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  filtered_state_source_unit:
+    name: BOAT filtered Git state source and result-model regression (zero GET)
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: bb3533bedb591ee7137f10d3e0ff77564f527ef7
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Run real Git state transport, AES and official result queue regressions
+        run: python -m unittest tests.test_boat_pdca_github_handoff tests.test_racer_intraday_handoff tests.test_racer_daily_handoff tests.test_racer_result_queue tests.test_racer_result_bridge -v
+      - name: Assert source Git filter retains full signed-history audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          c=Path('race_ai/boat_pdca_github_handoff.py').read_text()
+          method=c.split('    def fetch(self,commit):',1)[1].split('    def read(self,',1)[0]
+          assert "'--filter=blob:none'" in method
+          assert "'--no-write-fetch-head'" in method
+          assert "'--depth'" not in method
+          assert "commit+':refs/race-ai/pinned-state/'+commit" in method
+          assert "self._reject_rewrites(env)" in c
+          assert "need(self.head()==parent,'STATE_REF_CONCURRENT_UPDATE')" in c
+          print('BOAT_BLOBLESS_FULL_HISTORY_SOURCE_UNIT_VERIFIED')
+          PY
   source_free_git_probe:
     name: BOAT encrypted-state Git write dry-run (zero provider GET)
     if: >-
@@ -249,7 +288,7 @@ jobs:
           assert fresh.index('gh auth setup-git') < fresh.index('--sync-results')
           assert "persist-credentials: false" in fresh
           assert 'git -C source-reader ls-remote --heads' in fresh
-          assert '6327bc5675aee2da94ac13397f1f86f39b27d8fd' in fresh
+          assert 'bb3533bedb591ee7137f10d3e0ff77564f527ef7' in fresh
           assert 'needs: observed_gap' in fresh
           assert "github.event.workflow_run.event == 'schedule'" in fresh
           assert "github.event.workflow_run.name == 'KEIRIN hourly personal research canary'" in fresh
@@ -484,7 +523,7 @@ jobs:
       - name: Install unmodified bounded result collector separately
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 6327bc5675aee2da94ac13397f1f86f39b27d8fd
+          ref: bb3533bedb591ee7137f10d3e0ff77564f527ef7
           path: source-reader
           persist-credentials: false
       - name: Install immutable original official parser
@@ -692,7 +731,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 6327bc5675aee2da94ac13397f1f86f39b27d8fd
+          ref: bb3533bedb591ee7137f10d3e0ff77564f527ef7
           persist-credentials: false
       - name: Install immutable official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
