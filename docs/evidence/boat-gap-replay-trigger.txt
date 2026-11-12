@@ -58,3 +58,13 @@ The one-time main merge title must start with boat-gap-fresh-proof: single-bound
 2026-11-12 JST | One bounded post-PR228 live delivery acceptance. The authorized one-time main push must use the exact prefix boat-gap-fresh-proof: single-bounded-intake-20261112. New result acquisition is allowed only when the pre-existing verified source-gap, 30-minute attempt reservation, 20-minute state freshness, provider 403/429 hold, original 12-GET cap, immutable original forecast and shared writer gates admit it. Verify genuinely new official final by day, AES source ciphertext and final-result digest on a fresh runner, existing source-free model PDCA staging, independent AES PDCA readback, and the actual private Pages P0 result/hit-miss display. All downstream source GET=0. Never retry on same reservation or treat source-free CI as live success. Evidence is the eventual GitHub Actions job log, not this marker.
 
 2026-11-12 23:37 JST | Owner-authorized single production acceptance after corrected SHA 5219f20b72ac8a95850f70d21b77cdd78627117e. Trigger once only via protected merge title prefix boat-gap-fresh-proof: single-bounded-intake-20261112. This marker conveys no completion claim. Real source GET is strictly conditional on existing true schedule gap, due pending result, cooldown 20min, 30min source attempt reservation, provider 403/429 holds, source owner 240 cap, max 12 GET/job, same single-writer lock. If and only if a newly final official result is encrypted and independently SHA checked, require existing source-free PDCA stage, independent PDCA readback, and live Pages result-model DOM verification. On missing evidence report HOLD; never recreate P0/P1 or bypass any source guard. See actual run logs for acceptance.
+
+2026-11-13 JST | SOURCE-FREE ALL-142 COVERAGE RECEIPT, NO SOURCE REPLAY.
+The approved main merge title starts exactly with boat-coverage: sourcefree-142-20261113.
+Run the separate audited 142-race original P0 coverage workflow using already
+AES-authenticated Git saved history only: compare 142 saved original races,
+284 P0 model originals, formal official result vs pending/missing/unsupported
+and per-model eligible/hit/miss/HOLD counts. Emit count-only evidence, never
+race identifiers, tickets, names, source HTML or decrypt keys. No provider GET,
+no owner 240/session reset, no extra schedule or speculative result filling.
+This marker is not completion proof. Failed/missing original input stays HOLD.
