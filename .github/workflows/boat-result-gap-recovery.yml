@@ -672,7 +672,7 @@ jobs:
           older=bridge.choose_older_pending_day()
           if older:bridge.include_backfill_day(older)
           with open(os.environ['GITHUB_OUTPUT'],'a') as out:
-              out.write('backfill_day='+str(older or '')+'\\n')
+              out.write('backfill_day='+str(older or '')+'\n')
           due=sum(target['pending'] and target['cutoff_at'] is not None and
               clock(target['cutoff_at'])+timedelta(minutes=5)<=datetime.now(timezone.utc)
               for target in bridge.targets())
@@ -839,8 +839,8 @@ jobs:
               stream.write('after_final='+str(after_final)+'\n')
               stream.write('result_digest='+digest+'\n')
               stream.write('inventory_digest='+inventory+'\n')
-              stream.write('scope_days='+','.join(bridge.days)+'\\n')
-              stream.write('backfill_day='+str(baseline.get('backfill_day') or '')+'\\n')
+              stream.write('scope_days='+','.join(bridge.days)+'\n')
+              stream.write('backfill_day='+str(baseline.get('backfill_day') or '')+'\n')
               stream.write('new_final_day='+new_day+'\n')
               stream.write('new_day_before='+str(baseline['before_by_day'][new_day])+'\n')
               stream.write('new_day_after='+str(after_by_day[new_day])+'\n')
