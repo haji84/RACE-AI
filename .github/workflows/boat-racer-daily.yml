@@ -525,6 +525,38 @@ jobs:
           else
             python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results --sync-beforeinfo "${args[@]}"
           fi
+      # Only after the bounded official result source step completes, use
+      # the existing P0-aware reader for browser checks. Keep source acquisition
+      # pinned to the older approved collector; these checkouts do not GET providers.
+      - name: Restore P0-aware read-only site verifier after result collection
+        if: >-
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          startsWith(github.event.head_commit.message,
+                     'boat-result-refresh: owner-p0-43131905826-20261112')
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0796b52c2804177976e4c2e5ab9b65f32589720b
+          persist-credentials: false
+      - name: Restore pinned official parser for post-source site validation
+        if: >-
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          startsWith(github.event.head_commit.message,
+                     'boat-result-refresh: owner-p0-43131905826-20261112')
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - name: Restore pinned result adapter for post-source site validation
+        if: >-
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          startsWith(github.event.head_commit.message,
+                     'boat-result-refresh: owner-p0-43131905826-20261112')
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
       - name: Install browser check only for an explicit verification run
         if: >-
           (github.event_name == 'workflow_dispatch' && inputs.verify_site) ||
