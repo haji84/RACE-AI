@@ -159,7 +159,9 @@ def _github(path,*,body=None):
     try:
         with urlopen(request,timeout=25) as resp:
             _need(resp.status==(201 if body is not None else 200),'GITHUB_STATE_HTTP_STATUS')
-            document=json.loads(resp.read(128*1024))
+            reply=resp.read(1_200_001)
+            _need(0<len(reply)<=1_200_000,'GITHUB_RESPONSE_BOUND')
+            document=json.loads(reply)
     except HTTPError:
         raise ValueError('BOAT_PROFILE_STATE_EXISTS_OR_UNAVAILABLE') from None
     return base64.b64decode(document['content'],validate=False) if body is None else document
