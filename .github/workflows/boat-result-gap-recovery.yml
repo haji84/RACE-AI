@@ -121,8 +121,17 @@ jobs:
           os.environ['GIT_CONFIG_KEY_'+str(count)]='http.https://github.com/haji84/RACE-AI.extraheader'
           os.environ['GIT_CONFIG_VALUE_'+str(count)]='AUTHORIZATION: basic '+base64.b64encode(('x-access-token:'+token).encode()).decode()
           os.environ['GIT_CONFIG_COUNT']=str(count+1)
+          class CandidateDaily(DailyStateRepository):
+              def _run(self,args,*,body=None,env=None):
+                  if args and args[0]=='fetch' and '--filter=blob:none' in args:
+                      # The base transport was independently proven with exactly
+                      # this filtered fetch, without overriding promisor config.
+                      return GitStateRepository._run(self,args,body=body,env=env)
+                  return super()._run(args,body=body,env=env)
           report={}
-          for label,cls in (('daily_filtered',DailyStateRepository),('base_transport',GitStateRepository)):
+          for label,cls in (('daily_filtered',DailyStateRepository),
+                            ('candidate_filtered',CandidateDaily),
+                            ('base_transport',GitStateRepository)):
               try:
                   git=cls(Path('.'),ref=TRANSFER_REF)
                   commit=git.head()
@@ -135,7 +144,8 @@ jobs:
                   report[label]=code if type(exc) is ValueError and re.fullmatch('[A-Z0-9_]{3,100}',code) else 'EXACT_GIT_FETCH_ERROR'
           print(json.dumps(dict(schema='BOAT_SOURCE_FREE_REAL_GIT_DIFF_V1',
               official_provider_gets=0,remote_writes=0,variants=report),sort_keys=True))
-          assert report['daily_filtered']=='EXACT_GIT_FETCH_OK'
+          assert report['candidate_filtered']=='EXACT_GIT_FETCH_OK'
+          assert report['base_transport']=='EXACT_GIT_FETCH_OK'
           PY
   source_free_git_probe:
     name: BOAT encrypted-state Git write dry-run (zero provider GET)
