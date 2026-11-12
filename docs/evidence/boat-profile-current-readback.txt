@@ -1,0 +1,25 @@
+2026-11-12 JST - ONE-SHOT ENCRYPTED CURRENT OFFICIAL PROFILE READBACK
+Background: the immutable 2026-11-12 P0 has 284 original forecasts and
+851 of 852 source-verified display names. One last registration matches
+the pinned original-profile index, but the new 2026-11-12 raw official
+HTML did NOT match the 2026-11-07 stored original SHA. Real attempt
+43188367056 made one create-only reservation and retained one AES blob
+in state/boat-private-originals; the first run rightly returned
+BOAT_PROFILE_HISTORICAL_HTML_SHA_MISMATCH.
+This evidence does NOT claim restoration of the historical original.
+The source-free current HTML verifier SHA
+8ebd36accc8a51eb586560c5db16f415ad601b9b
+must independently read the original reservation and encrypted blob,
+verify AES authentication and the observed raw SHA, then parse the official
+profile's current registration, name and URL. No source HTTP, no repeated
+one-shot reservation, no source cap change, no forecast changes.
+If authentic current official identity is verified, record it as a NEW
+captured-at display-only fact. It must NOT be substituted for the missing
+2026-11-07 source or an original model input. The result is classified
+as verified-current or HOLD, not assumed. The encrypted saved-view name
+remains empty until a separate checked display-only binding is authorized.
+Only main commit with subject beginning
+boat-profile-current-readback: 20261112-verified-cipher
+may run the source-free independent readback once after PR CI.
+No private registrations, names, provider URLs, ciphertext, and keys
+may appear in public logs.
