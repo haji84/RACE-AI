@@ -426,7 +426,8 @@ jobs:
       (github.event_name != 'push' ||
        (github.ref == 'refs/heads/main' &&
         (startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca') ||
-         startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112'))))
+         startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
+         startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112'))))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -436,10 +437,11 @@ jobs:
         with:
           ref: ${{ github.event_name == 'push' && github.sha || '914941a6244364480370ac392441ad4bb5781f83' }}
           persist-credentials: true
-      - name: Use the already-reviewed result collector for this one source-repair push
+      - name: Use the already-reviewed result collector for authenticated P0 result/source viewer
         if: >-
           github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-          startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')
+          (startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
+           startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112'))
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: 914941a6244364480370ac392441ad4bb5781f83
@@ -457,10 +459,11 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '22'
-      - name: Authenticate the saved 11/12 P0 receipt before any result source GET
+      - name: Authenticate the saved 11/12 P0 receipt before results or read-only view
         if: >-
           github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-          startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')
+          (startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
+           startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112'))
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -488,7 +491,8 @@ jobs:
       - name: Install original BOAT result collector dependencies
         if: >-
           github.event_name != 'push' || github.ref != 'refs/heads/main' ||
-          startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')
+          startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
+          startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112')
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
       - name: Reflect confirmed races and retain encrypted incremental source packets
         # Only the exact already-approved result-repair event may run provider
@@ -519,22 +523,25 @@ jobs:
           (github.event_name == 'workflow_dispatch' && inputs.verify_site) ||
           (github.event_name == 'push' &&
            (startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results') ||
-            startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')))
+            startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
+            startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112')))
         run: npm install --prefix "$RUNNER_TEMP/result-site-tools" --no-package-lock --ignore-scripts playwright@1.62.1
       - name: Verify private result display without publishing owner data
         if: >-
           (github.event_name == 'workflow_dispatch' && inputs.verify_site) ||
           (github.event_name == 'push' &&
            (startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results') ||
-            startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')))
+            startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
+            startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112')))
         timeout-minutes: 9
         env:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
           RESULT_PROBE_RACE: ${{ inputs.probe_race_id || '' }}
-          CHECK_CURRENT_DAY: "${{ (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')) || inputs.check_current_day || 'false' }}"
-          VERIFY_SAVED_P0: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') }}"
+          RESULT_VIEW_ONLY: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112') }}"
+          CHECK_CURRENT_DAY: "${{ (github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') || startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112'))) || inputs.check_current_day || 'false' }}"
+          VERIFY_SAVED_P0: "${{ github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') || startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112')) }}"
           CHECK_BEFOREINFO: ${{ inputs.check_beforeinfo || 'false' }}
           # The context installs its own repository-scoped credential.
           # Clear checkout's host header for this read-only step only.
@@ -546,11 +553,30 @@ jobs:
           # The result-only run has a genuine P0 receipt, but no real P1;
           # never require non-existent P1 just to verify P0 settlement.
           if [[ "$VERIFY_SAVED_P0" == 'true' ]]; then site_context_args+=(--stage P0); fi
+          if [[ "$RESULT_VIEW_ONLY" == 'true' ]]; then
+            # Never fall back to a historical saved date when proving live P0 settlement.
+            site_context_args=(--day 2026-11-12 --stage P0)
+          fi
           if [[ -n "$RESULT_PROBE_RACE" ]]; then
             [[ "$RESULT_PROBE_RACE" =~ ^[0-9]{8}-[0-9]{2}-[0-9]{2}$ ]] || exit 2
             site_context_args=(--day "${RESULT_PROBE_RACE:0:4}-${RESULT_PROBE_RACE:4:2}-${RESULT_PROBE_RACE:6:2}")
           fi
           python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" "${site_context_args[@]}"
+          if [[ "$RESULT_VIEW_ONLY" == 'true' ]]; then
+            # Existing encrypted feed only; no provider GET, forecast or source writer.
+            python - <<'PY_P0_SITE_RESULTS'
+          import json,os
+          from pathlib import Path
+          context=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-saved-site-context.json').read_text())
+          assert context['day']==context['current_day']=='2026-11-12','P0_RESULT_VIEW_DAY_MISMATCH'
+          assert context['stage']=='P0' and context['native_p0_groups']==2,'P0_RESULT_VIEW_MODEL_GROUP_MISSING'
+          assert context['minimum_results']>=11,'P0_RESULT_VIEW_NEW_OFFICIAL_RESULTS_MISSING'
+          print(json.dumps(dict(status='P0_RESULT_VIEW_CONTEXT_AUTHENTICATED',day_jst='2026-11-12',
+                                confirmed_results=context['minimum_results'],
+                                p0_model_groups=context['native_p0_groups'],official_source_requests=0,
+                                new_forecasts_created=0,originals_changed=False)))
+          PY_P0_SITE_RESULTS
+          fi
           probe=()
           if [[ -n "$RESULT_PROBE_RACE" ]]; then probe+=("--race-id=$RESULT_PROBE_RACE"); fi
           if [[ "$CHECK_CURRENT_DAY" == 'true' ]]; then probe+=(--check-current-day); fi
