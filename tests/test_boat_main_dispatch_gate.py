@@ -276,7 +276,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         workflow=(Path(__file__).resolve().parents[1] /
                   '.github/workflows/boat-racer-daily.yml').read_text()
         token='boat-result-refresh: owner-p0-43131905826-20261112'
-        daily=workflow.split('  daily:',1)[1].split('  owner_p0_p1_dispatch:',1)[0]
+        daily=workflow.split('\n  daily:\n    needs: [source_mirror, original_reconcile]',1)[1].split('\n  owner_p0_p1_dispatch:',1)[0]
         owner=workflow.split('  owner_p0_p1_dispatch:',1)[1]
         self.assertIn(token,daily)
         self.assertNotIn(token,owner)
