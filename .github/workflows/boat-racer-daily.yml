@@ -326,7 +326,7 @@ jobs:
       CONTROL_ID: ${{ needs.original_retention.outputs.control }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {persist-credentials: false, ref: d5ede5fb1f336794e8a0217e9b42d559d8ab0cc4}
+        with: {persist-credentials: false, ref: ea6992702093a1e67c8c4adb19ca01aaab3fbaca}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -353,7 +353,7 @@ jobs:
           GIT_CONFIG_KEY_0: http.https://github.com/.extraheader
           GIT_CONFIG_VALUE_0: ''
         run: |
-          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --day "$ORIGINAL_DAY" --stage P0 --expected-original-report "$RUNNER_TEMP/first-p0-reconciliation.json"
+          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --day "$ORIGINAL_DAY" --stage P0 --expected-original-report "$RUNNER_TEMP/first-p0-reconciliation.json" --require-current-official-profile
           env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results
   source_mirror:
     needs: [original_retention, original_readback, original_reconcile]
