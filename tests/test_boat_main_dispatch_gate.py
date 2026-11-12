@@ -295,6 +295,10 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         result_only=daily.split("if [[ \"$RESULT_ONLY\" == 'true' ]]; then",1)[1].split('else',1)[0]
         self.assertIn('python -m scripts.racer_intraday_refresh',result_only)
         self.assertIn('--verify-public --sync-results',result_only)
+        # The website checker validates the existing P0 forecast and its
+        # official results even though no genuine P1 has yet been generated.
+        self.assertIn('VERIFY_SAVED_P0:',daily)
+        self.assertIn("if [[ \"$VERIFY_SAVED_P0\" == 'true' ]]; then site_context_args+=(--stage P0); fi",daily)
         self.assertNotIn('--sync-beforeinfo',result_only)
         self.assertNotIn('gh workflow run',daily)
         self.assertNotIn('first_p0_bootstrap',daily)
