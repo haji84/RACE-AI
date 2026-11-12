@@ -51,7 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 914941a6244364480370ac392441ad4bb5781f83
+          ref: 634a76b4fa1ab7d4de53e1389422e791c0ceae5b
           path: source-reader
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -143,7 +143,7 @@ jobs:
           fresh=text.split('\n  fresh_result:\n',1)[1]
           assert '--replay-retained-results' in replay and '--sync-results' not in replay
           assert '--sync-results' in fresh and '--sync-beforeinfo' not in fresh
-          assert '914941a6244364480370ac392441ad4bb5781f83' in fresh
+          assert '634a76b4fa1ab7d4de53e1389422e791c0ceae5b' in fresh
           assert 'needs: observed_gap' in fresh
           assert "github.event.workflow_run.event == 'schedule'" in fresh
           assert "github.event.workflow_run.name == 'KEIRIN hourly personal research canary'" in fresh
@@ -234,7 +234,7 @@ jobs:
       - name: Check out pinned original result reader without changing it
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 914941a6244364480370ac392441ad4bb5781f83
+          ref: 634a76b4fa1ab7d4de53e1389422e791c0ceae5b
           path: source-reader
           persist-credentials: false
       - name: Install immutable original official parser separately
@@ -366,7 +366,7 @@ jobs:
       - name: Install unmodified bounded result collector separately
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 914941a6244364480370ac392441ad4bb5781f83
+          ref: 634a76b4fa1ab7d4de53e1389422e791c0ceae5b
           path: source-reader
           persist-credentials: false
       - name: Install immutable original official parser
@@ -543,7 +543,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 914941a6244364480370ac392441ad4bb5781f83
+          ref: 634a76b4fa1ab7d4de53e1389422e791c0ceae5b
           persist-credentials: false
       - name: Install immutable official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
