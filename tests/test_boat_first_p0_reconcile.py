@@ -472,6 +472,66 @@ class FirstP0ReconcileTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'FIRST_P0_RECONCILE_RETAINED_RESULT_NAME_CONFLICT'):
             reconcile._retained_result_names([(raw1, rec1), (raw2, rec2)], target, NOW)
 
+    def test_pinned_profile_index_reports_only_official_source_candidates_without_inventing_names(self):
+        self.seed_runtime(range(4001, 4006))
+        self.capture(); self.save_results()
+        first = self.run_reconcile()
+        self.assertEqual(first['display_name_missing'], 1)
+        pid = '4006'
+        url = 'https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban='+pid
+        at = (NOW-timedelta(days=1)).isoformat()
+        profile = dict(registration=pid, name='架空公式プロフィール名', term=None,
+            basic=dict(registration=pid, name='架空公式プロフィール名',
+                source_url=url, source_sha256='a'*64, captured_at=at))
+        catalogue = dict(schema='RACE_AI_RACER_PROFILES_V1',
+            source=dict(url=term_info('2026-2')['source_url'],
+                sha256=self.name_source['source_sha256'], captured_at=at,
+                basic_sources=[dict(registration=pid, url=url, sha256='a'*64,
+                                    captured_at=at)]),
+            people=[profile])
+        raw = json.dumps(catalogue, ensure_ascii=False, sort_keys=True).encode()
+        path = self.repo/'web/data/racer-profiles.json'
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+        view = F.current_view(self.feed, self.bootstrap, day=self.bundle['day'])[3]
+        diagnostic = reconcile._profile_index_diagnostic(
+            self.repo, view, now=NOW, registry_sha=self.name_source['source_sha256'],
+            expected_sha=sha256(raw).hexdigest(), expected_size=len(raw))
+        self.assertEqual(diagnostic, dict(display_name_profile_index_candidates=1,
+            display_name_profile_index_unmatched=0,
+            display_name_profile_index_source_reparsed=False))
+        # Zero producer writes, zero new predictions, zero official GET.
+        original = reconcile._profile_index_diagnostic
+        def verified_fixture(repo, doc, *, now, registry_sha):
+            return original(repo,doc,now=now,registry_sha=registry_sha,
+                            expected_sha=sha256(raw).hexdigest(), expected_size=len(raw))
+        with patch.object(reconcile, '_profile_index_diagnostic',
+                          side_effect=verified_fixture):
+            last = self.run_reconcile(diagnose_profile_index=True)
+        self.assertEqual(last['display_name_profile_index_candidates'], 1)
+        self.assertFalse(last['display_name_profile_index_source_reparsed'])
+        self.assertEqual(last['display_name_missing'], 1)
+        self.assertEqual(last['new_forecasts_created'], 0)
+        self.assertEqual(last['forecast_rewrites'], 0)
+        self.assertEqual(last['provider_requests'], 0)
+        self.assertEqual(last['native_evaluation_sha256'],
+                         first['native_evaluation_sha256'])
+        self.assertEqual(last['original_document_set_sha256'],
+                         first['original_document_set_sha256'])
+        path.write_bytes(raw+b' ')
+        with self.assertRaisesRegex(ValueError, 'FIRST_P0_RECONCILE_PROFILE_CATALOGUE_MISSING_OR_BOUND'):
+            original(self.repo,view,now=NOW,registry_sha=self.name_source['source_sha256'],
+                     expected_sha=sha256(raw).hexdigest(),expected_size=len(raw))
+
+    def test_profile_index_is_never_a_substitute_for_a_reparsed_source(self):
+        self.seed_runtime(range(4001,4006))
+        self.capture(); self.save_results()
+        self.run_reconcile()
+        row = F.current_view(self.feed,self.bootstrap,day=self.bundle['day'])[3]
+        doc = row['records'][0]['participants'][-1]
+        self.assertIsNone(doc['name'])
+        self.assertFalse(doc.get('name_source'))
+
     def test_missing_registration_stays_missing_without_guessing(self):
         self.seed_runtime(range(4001, 4006))
         self.capture(); self.save_results()
