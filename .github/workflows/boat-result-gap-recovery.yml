@@ -1,0 +1,151 @@
+name: BOAT schedule-gap retained-result recovery (zero provider GET)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-result-gap-recovery.yml
+      - scripts/boat_result_gap_audit.py
+      - tests/test_boat_result_gap_audit.py
+  push:
+    branches: [main]
+    paths:
+      - docs/evidence/boat-gap-replay-trigger.txt
+  workflow_dispatch:
+    inputs:
+      cycle:
+        required: true
+        type: choice
+        options: ['2']
+        description: 'One bounded follow-up audit; no official provider GET'
+  workflow_run:
+    workflows: ['KEIRIN PR71 GitHub-only forecast and PDCA']
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && 'boat-gap-sourcefree-pr-check' || 'boat-racer-daily-statistics' }}
+  cancel-in-progress: false
+
+jobs:
+  offline_contract:
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.event.pull_request.head.sha }}'}
+      - name: Verify event freshness decisions and zero-source bounds
+        run: python -m unittest tests.test_boat_result_gap_audit -v
+      - name: Confirm replay command cannot become a racing provider acquisition
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          t=Path('.github/workflows/boat-result-gap-recovery.yml').read_text()
+          assert '--replay-retained-results' in t
+          import re
+          assert not re.search(r'^\s+--sync-(?:results|beforeinfo)\b',t,re.MULTILINE)
+          assert 'gh workflow run boat-result-gap-recovery.yml' in t
+          assert "inputs.cycle == '2'" in t
+          assert "github.event.workflow_run.event == 'schedule'" in t
+          assert 'cancel-in-progress: false' in t
+          print('SOURCE_FREE_GAP_RECOVERY_CONTRACT_VERIFIED')
+          PY
+
+  observed_gap:
+    if: >-
+      github.repository == 'haji84/RACE-AI' && (
+        (github.event_name == 'push' &&
+         github.ref == 'refs/heads/main' &&
+         startsWith(github.event.head_commit.message,
+                    'boat-gap-audit: two-sourcefree-passes-20261112')) ||
+        (github.event_name == 'workflow_dispatch' &&
+         github.ref == 'refs/heads/main' && inputs.cycle == '2') ||
+        (github.event_name == 'workflow_run' &&
+         github.event.workflow_run.event == 'schedule' &&
+         github.event.workflow_run.conclusion == 'success' &&
+         github.event.workflow_run.head_branch == 'main' &&
+         github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.sha }}'
+          persist-credentials: false
+      - name: Check out pinned original result reader without changing it
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 914941a6244364480370ac392441ad4bb5781f83
+          path: source-reader
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
+      - name: Read actual GitHub schedule history only
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-racer-daily.yml/runs?event=schedule&per_page=100" \
+            > "$RUNNER_TEMP/boat-schedule-runs.json"
+      - name: Audit source-free recovery eligibility
+        id: audit
+        run: |
+          python scripts/boat_result_gap_audit.py \
+            --runs "$RUNNER_TEMP/boat-schedule-runs.json" \
+            --output "$RUNNER_TEMP/boat-gap-evidence.json"
+          python - <<'PY'
+          from pathlib import Path
+          import json,os
+          p=Path(os.environ['RUNNER_TEMP'])/'boat-gap-evidence.json'
+          data=json.loads(p.read_text())
+          assert data['requested_source_gets']==0 and data['source_budget_extended'] is False
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('gap=' + str(data['status']=='SCHEDULE_GAP_CONFIRMED').lower() + '\n')
+          PY
+      - name: Recover already retained authenticated results only, no source GET
+        if: steps.audit.outputs.gap == 'true'
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        working-directory: source-reader
+        run: |
+          python -m scripts.racer_intraday_refresh \
+            --private-dir "$RUNNER_TEMP/boat-gap-sourcefree" \
+            --replay-retained-results > "$RUNNER_TEMP/boat-gap-replay.json"
+          python - <<'PY'
+          from pathlib import Path
+          import json,os
+          doc=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-gap-replay.json').read_text())
+          assert doc['status']=='RETAINED_RESULTS_REPLAYED'
+          assert doc['source_requests']==0 and doc['originals_changed'] is False
+          assert doc['source_state_saved'] is False
+          assert doc['forecasting_performed'] is False
+          assert doc['readback_verified'] is True
+          print(json.dumps({'status':'RETAINED_GAP_RECOVERY_VERIFIED',
+                'source_requests':0,'changed_races':doc['changed_races'],
+                'originals_changed':False,'readback_verified':True},sort_keys=True))
+          PY
+      - name: Upload count-only audit proof
+        if: always() && steps.audit.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-result-gap-sourcefree-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/boat-gap-evidence.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Request only the second bounded source-free proof and then stop
+        if: >-
+          success() && github.event_name == 'push' &&
+          startsWith(github.event.head_commit.message,
+                     'boat-gap-audit: two-sourcefree-passes-20261112')
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          gh workflow run boat-result-gap-recovery.yml --ref main -f cycle=2
+          echo 'BOAT_GAP_SECOND_PROOF_DISPATCHED_NO_PROVIDER_GET'
