@@ -1,0 +1,13 @@
+2026-11-12 JST BOAT SCHEDULE-GAP SOURCE-FREE PROOF
+This new separate GitHub-only watchdog is a bounded live test, not a
+claim of 5-minute official GET delivery. It must run exactly once on the
+specified main push, then dispatch one and only one follow-up proof via
+workflow_dispatch cycle=2, and stop.
+The already retained official result state may be replayed through the
+existing pinned result reader with 0 official source GET and independent
+readback. No BOAT owner P0/P1 re-generation, quota reset, added source
+collector, historical score rewrite, or result-original replacement.
+The detector uses the actual GitHub schedule run history, determines
+last real BOAT schedule event, and records whether it has gone stale.
+A separate future gate must prove safe cumulative source request budgets
+before any unattended source GET-based resumption is permitted.
