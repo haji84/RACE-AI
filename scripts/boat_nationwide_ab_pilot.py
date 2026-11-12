@@ -575,7 +575,9 @@ def make_pair(day,race,*,research_target=None,reserved_next_gets=0):
     # relevant cutoff and label the priced research variant separately.
     priced={"race_id":race_id,"state":"OFFICIAL_PRE_CLOSE_PRICES_NOT_VERIFIED"}
     paused=None
-    if _clock(day)+MIN_TO_CUTOFF<cutoff and _optional_source_allowed(reserved_next_gets):
+    optional_budget = (_optional_source_allowed(reserved_next_gets)
+                       if _clock(day)+MIN_TO_CUTOFF<cutoff else False)
+    if _clock(day)+MIN_TO_CUTOFF<cutoff and optional_budget:
         try:
             price_url=update_endpoint(day,venue,n,"odds3t")
             odds_raw,odds_at,odds_sha=get(price_url,day=day)
@@ -598,7 +600,7 @@ def make_pair(day,race,*,research_target=None,reserved_next_gets=0):
             else:
                 priced={"race_id":race_id,"state":"OFFICIAL_PRE_CLOSE_PRICES_NOT_VERIFIED",
                         "failure_class":type(ex).__name__}
-    if _clock(day)+MIN_TO_CUTOFF<cutoff and not _optional_source_allowed(reserved_next_gets):
+    if _clock(day)+MIN_TO_CUTOFF<cutoff and not optional_budget:
         priced={"race_id":race_id,"state":"OPTIONAL_ODDS_DEFERRED_FOR_REQUIRED_P1_GETS"}
     if _clock(day)+MIN_TO_CUTOFF>=cutoff:
         return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None,None
