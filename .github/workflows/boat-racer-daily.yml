@@ -406,7 +406,7 @@ jobs:
   daily:
     needs: [source_mirror, original_reconcile]
     if: >-
-      !cancelled() &&
+      always() && !cancelled() &&
       (!(github.event_name == 'push' && contains(github.event.head_commit.message, 'recover-first-p0-42995325741')) ||
        needs.original_reconcile.result == 'success') &&
       github.repository == 'haji84/RACE-AI' && github.event_name != 'pull_request' &&
@@ -419,7 +419,8 @@ jobs:
         needs.source_mirror.result == 'success')) &&
       (github.event_name != 'push' ||
        (github.ref == 'refs/heads/main' &&
-        startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca')))
+        (startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca') ||
+         startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112'))))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -442,30 +443,83 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '22'
+      - name: Use the already-reviewed result collector for this one source-repair push
+        if: >-
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 914941a6244364480370ac392441ad4bb5781f83
+          persist-credentials: true
+      - name: Authenticate the saved 11/12 P0 receipt before any result source GET
+        if: >-
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/contents/docs/evidence/2026-11-12/p0-first-receipt.json?ref=feat%2Ffour-sport-forecast-audit-view-20261022" > "$RUNNER_TEMP/boat-result-p0-receipt.json"
+          python - <<'PY_CHECK_P0'
+          import base64, json, os
+          from pathlib import Path
+          response=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-result-p0-receipt.json').read_text())
+          document=json.loads(base64.b64decode(response['content'],validate=False))
+          expected=dict(schema='RACE_AI_P0_FIRST_RECEIPT_V1',
+                        day_jst='2026-11-12',run_id=43131905826,
+                        artifact_id=13905925953,race_count=142,model_forecast_count=284,
+                        zip_sha256='5a3287ac9cb45be6907be6c7d370c04addf3216d6e70184bda20e05502c80c6d',
+                        no_regeneration=True)
+          assert response.get('path') == 'docs/evidence/2026-11-12/p0-first-receipt.json'
+          assert all(document.get(k)==v for k,v in expected.items()), 'VERIFIED_P0_INPUT_MISMATCH'
+          print(json.dumps(dict(status='VERIFIED_EXISTING_P0_FOR_RESULT_ONLY',
+                                day_jst=document['day_jst'],run_id=document['run_id'],
+                                p0_races=document['race_count'],official_gets=0,
+                                new_forecasts_created=0,originals_changed=False)))
+          PY_CHECK_P0
       - name: Install original BOAT result collector dependencies
-        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+        if: >-
+          github.event_name != 'push' || github.ref != 'refs/heads/main' ||
+          startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
       - name: Reflect confirmed races and retain encrypted incremental source packets
-        # Main's one-time owner PDCA verification does not make any provider GET.
-        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+        # Only the exact already-approved result-repair event may run provider
+        # reads from main; other push modes remain source-free.
+        if: >-
+          github.event_name != 'push' || github.ref != 'refs/heads/main' ||
+          startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           GH_TOKEN: ${{ github.token }}
           INITIALIZE: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: initialize') }}"
           DAILY_RECONCILE: "${{ (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') || (github.event_name == 'workflow_dispatch' && inputs.mode == 'daily') || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-daily-refresh:')) }}"
+          RESULT_ONLY: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') }}"
         shell: bash
         run: |
           args=()
           if [[ "$INITIALIZE" == 'true' ]]; then args+=(--initialize); fi
           if [[ "$DAILY_RECONCILE" == 'true' ]]; then args+=(--daily-reconcile); fi
-          python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results --sync-beforeinfo "${args[@]}"
+          if [[ "$RESULT_ONLY" == 'true' ]]; then
+            # Favor the published result's 12-GET bounded intake over optional
+            # beforeinfo; official-source denials and time gates still hold.
+            python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results "${args[@]}"
+          else
+            python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results --sync-beforeinfo "${args[@]}"
+          fi
       - name: Install browser check only for an explicit verification run
         if: >-
-          (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results'))
+          (github.event_name == 'workflow_dispatch' && inputs.verify_site) ||
+          (github.event_name == 'push' &&
+           (startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results') ||
+            startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')))
         run: npm install --prefix "$RUNNER_TEMP/result-site-tools" --no-package-lock --ignore-scripts playwright@1.62.1
       - name: Verify private result display without publishing owner data
         if: >-
-          (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results'))
+          (github.event_name == 'workflow_dispatch' && inputs.verify_site) ||
+          (github.event_name == 'push' &&
+           (startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results') ||
+            startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')))
         timeout-minutes: 9
         env:
           GH_TOKEN: ${{ github.token }}
