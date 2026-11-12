@@ -364,7 +364,7 @@ jobs:
           assert "EXPECTED_NEW_FINAL_DAY" in text
           assert "FRESH_OFFICIAL_RESULT_MODEL_MATCH_LIVE_PAGES_VERIFIED" in text
           for job in ("fresh_pdca_stage", "fresh_pdca_readback", "fresh_site_browser"):
-              body=text.split("  "+job+":",1)[1].split("\n  fresh_",1)[0]
+              body=text.split("\n  "+job+":\n",1)[1].split("\n  fresh_",1)[0]
               assert "--sync-results" not in body and "--sync-beforeinfo" not in body
               assert "www.boatrace.jp" not in body
           print('FRESH_RESULT_GAP_SOURCE_BOUNDARY_UNIT_VERIFIED')
