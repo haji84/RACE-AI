@@ -273,3 +273,25 @@ zero model/forecast execution, zero new source cap and no source-owner reset.
 Do NOT treat this marker or Pages deployment success as LIVE_OWNER_SITE_VERIFIED.
 Only the new real browser run can establish the display gate. Keep the three
 unverified names as missing until exact authenticated new source proves them.
+
+2026-11-12 JST | SAFE RESCORE AND VERIFIED NAMES FROM NEWLY RETAINED 39 RESULTS
+A genuine existing BOAT schedule run 43170183274 at 15:43 JST added
+8 authenticated 2026-11-12 confirmed results (31 -> 39), publishing
+the existing private encrypted result feed and public count-only status
+through at most 12 official GET in that *normal* run, without prediction
+regeneration. Source-free Pages verification run 43171548663 separately
+proved generation 126, 39 genuine result cards and two native P0 model
+groups through a fixed strict result-name client parser at Pages
+deploy 43171211314. Source-free browser verification used 0 official GET.
+The original P0 remains run 43131905826 / artifact 13905925953,
+142 races/284 immutable forecasts, with 3 of 852 display names still
+unverified at the last exact native reconciliation run 43168455536.
+Perform ONLY the existing owner-readback: recover-saved-p0-43131905826
+pipeline on newly retained official results: original independent readback,
+native model-specific official score, source-verified SAME_RACE_RESULT name
+fill, encrypted Git result append and existing strict live Pages check.
+Only this source-free pipeline is authorized, 0 provider GET, no model
+generation, no new or reset request budget, no post-result backfill of P1,
+and no overwrites. Recheck count-only names, official results, scores,
+HOLDs and original SHA. If 3 remaining names still lack independent
+evidence, keep them null. This marker alone is not an outcome receipt.
