@@ -332,6 +332,26 @@ class FirstP0ReconcileTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'FIRST_P0_RECONCILE_PROGRAM_SELLER_BYTES_INVALID'):
             reconcile._saved_program_names(files, view, day, NOW, {})
 
+    def test_unverified_or_wrong_day_program_source_never_fills_a_name(self):
+        day = self.bundle['day']
+        rid = day.replace('-', '')+'-01-01'
+        view = dict(records=[dict(sport='boat', event_date_jst=day,
+            race_id=rid, participants=[dict(number=6, registration_no='4006', name=None)])])
+        path = self.root/'wrong-day-program-metadata.json'
+        path.write_text(json.dumps(dict(name_alias_sources=dict(
+            schema='RACE_AI_BOAT_NAME_ALIAS_SOURCES_V1',
+            b_sources=[dict(day='2030-03-31', raw_b_base64='not-read')]))))
+        with patch('race_ai.boat_name_aliases._b_programs',
+                   side_effect=AssertionError('wrong-day B must not be parsed')):
+            self.assertEqual(reconcile._saved_program_names(
+                {'metadata.json':str(path)}, view, day, NOW, {}), {})
+        path.write_text(json.dumps(dict(seller_official_source=dict(
+            day=day, raw_b_base64=base64.b64encode(b'B').decode()))))
+        with patch('race_ai.boat_seller_inputs.official_b_cards_source',
+                   side_effect=AssertionError('P0 original is absent')):
+            self.assertEqual(reconcile._saved_program_names(
+                {'metadata.json':str(path)}, view, day, NOW, {}), {})
+
     def test_authenticated_program_name_fill_does_not_change_original_or_scoring(self):
         self.seed_runtime(range(4001, 4006))
         self.capture(); self.save_results()
