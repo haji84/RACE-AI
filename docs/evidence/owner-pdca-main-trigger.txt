@@ -246,3 +246,30 @@ authoritative. Browser must independently verify the same stage/model/31-result
 view. Explicitly report both before/after verified name totals; do not label
 the whole 852-name cohort PASS unless all 852 are independently bound.
 Run only existing owner-readback: recover-saved-p0-43131905826 safe gate.
+
+2026-11-12 JST | STRICT SOURCE-FREE GEN125 PAGES CLIENT VERIFICATION
+The authentic 2026-11-12 P0 original run 43131905826 / artifact 13905925953
+is 142 races, 284 frozen model forecasts, unchanged immutable SHA.
+Authenticated 31 same-day official results and 26 races/52 formally scored
+predictions remain unchanged; original 232 HOLD predictions remain HOLD.
+The source-free result-name reader recovered 6 verifiable names, taking
+843/852 to 849/852, with 3 still unproven. The encrypted existing viewer
+rotated from generation 124 to 125 with unchanged forecast SHA
+4169db99a1d99bbcf96c8fa1bfb076ed2d2fb1f434fc64cf7e43b38e55f5adda.
+Initial gen125 browser run 43168455536 timed out at checker line 192
+because the deployed product-data.js rejected the new SAME_RACE_RESULT
+verified provenance kind. This was a client-side schema mismatch, not a
+forecast/model/scorer or encrypted source fault.
+Source-only code fix PR185 passed independent offline JS contract CI run
+43170544139. Verified static gh-pages fix PR186 changed only product-data.js,
+its index.html cache-bust version and site-build.json integrity hashes, with
+no change to encrypted history or viewer secrets; Pages deployment
+43171211314 completed successfully.
+This commit is only to request the existing trusted SOURCE-FREE
+boat-result-view: saved-p0-43131905826-20261112 route, to validate
+generation >=125 real browser results and unchanged two native P0 model groups.
+The existing result-only ingestion/GET step MUST be SKIPPED. Zero source GET,
+zero model/forecast execution, zero new source cap and no source-owner reset.
+Do NOT treat this marker or Pages deployment success as LIVE_OWNER_SITE_VERIFIED.
+Only the new real browser run can establish the display gate. Keep the three
+unverified names as missing until exact authenticated new source proves them.
