@@ -37,6 +37,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  credential_preflight_unit:
+    name: BOAT ephemeral Git credential helper actual-response test (zero provider GET)
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify gh auth setup-git supplies usable credentials without printing secret
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          gh auth setup-git
+          python - <<'PY'
+          import subprocess
+          request=b'protocol=https\nhost=github.com\n\n'
+          answer=subprocess.run(['git','credential','fill'],input=request,
+              capture_output=True,timeout=15)
+          fields=dict(line.split('=',1) for line in answer.stdout.decode().splitlines()
+                      if '=' in line)
+          assert answer.returncode==0 and fields.get('username') and fields.get('password')
+          print('GIT_ACTUAL_CREDENTIAL_SOURCE_FREE_TEST_PASSED')
+          PY
   filtered_state_source_unit:
     name: BOAT filtered Git state source and result-model regression (zero GET)
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
@@ -288,6 +315,9 @@ jobs:
           assert fresh.index('gh auth setup-git') < fresh.index('--sync-results')
           assert "persist-credentials: false" in fresh
           assert 'git -C source-reader ls-remote --heads' in fresh
+          assert 'AUTHENTICATED_GIT_CREDENTIAL_AVAILABLE_NO_PROVIDER_GET' in fresh
+          assert 'HOLD_GIT_CREDENTIAL_UNAVAILABLE' in fresh
+          assert "['git','-C','source-reader','credential','fill']" in fresh
           assert 'bb3533bedb591ee7137f10d3e0ff77564f527ef7' in fresh
           assert 'needs: observed_gap' in fresh
           assert "github.event.workflow_run.event == 'schedule'" in fresh
@@ -593,10 +623,19 @@ jobs:
             echo 'HOLD_GIT_URL_REWRITE'
             exit 2
           fi
-          if ! git config --get-regexp '^credential\\..*\\.helper$' >/dev/null; then
-            echo 'HOLD_GIT_AUTH_HELPER_MISSING'
-            exit 2
-          fi
+          # A credential-helper *key* may be "credential.helper" or
+          # URL-scoped. Verify its actual answer without logging the token.
+          GIT_TERMINAL_PROMPT=0 python - <<'PY'
+          import subprocess
+          request=b'protocol=https\nhost=github.com\n\n'
+          response=subprocess.run(['git','-C','source-reader','credential','fill'],
+              input=request,capture_output=True,timeout=15)
+          values=dict(line.split('=',1) for line in response.stdout.decode('utf-8').splitlines()
+                      if '=' in line)
+          if response.returncode!=0 or not values.get('username') or not values.get('password'):
+              raise SystemExit('HOLD_GIT_CREDENTIAL_UNAVAILABLE')
+          print('AUTHENTICATED_GIT_CREDENTIAL_AVAILABLE_NO_PROVIDER_GET')
+          PY
           git -C source-reader ls-remote --heads origin 'refs/heads/state/boat-pdca-transfer' >/dev/null
           echo 'AUTHENTICATED_GIT_STATE_WRITE_PATH_CONFIGURED_NO_PROVIDER_GET'
       - name: Consume at most 12 existing official-result GETs once per durable admission
