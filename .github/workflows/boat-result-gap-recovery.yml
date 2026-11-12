@@ -211,6 +211,8 @@ jobs:
   fresh_result:
     name: Fresh bounded official result intake
     needs: observed_gap
+    outputs:
+      result_cipher: ${{ steps.new_result.outputs.result_cipher }}
     if: >-
       needs.observed_gap.result == 'success' && needs.observed_gap.outputs.gap == 'true' &&
       github.repository == 'haji84/RACE-AI' && github.event_name == 'workflow_run' &&
@@ -321,6 +323,7 @@ jobs:
           assert report['private_sources_published'] is False
           with open(os.environ['GITHUB_OUTPUT'],'a') as stream:
               stream.write('new_results=true\n')
+              stream.write('result_cipher='+report['retained']['cipher_sha256']+'\n')
           print(json.dumps(dict(status='FRESH_OFFICIAL_RESULT_INGESTED',
               provider_gets=report['source_requests'],
               changed_races=report['result_sync']['changed_races'],
@@ -358,6 +361,7 @@ jobs:
         env:
           GH_TOKEN: '${{ github.token }}'
           RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+          EXPECTED_SOURCE_CIPHER: '${{ needs.fresh_result.outputs.result_cipher }}'
         run: |
           python - <<'PY'
           import json,race_ai
@@ -367,13 +371,17 @@ jobs:
               assert package.is_dir(), 'PINNED_OFFICIAL_ADAPTER_MISSING'
               race_ai.__path__.append(str(package))
           from scripts.boat_private_original_vault import _environment
-          from scripts.racer_intraday_refresh import replay_retained_results
-          report=replay_retained_results(_environment(Path('.').resolve()))
-          assert report['status']=='RETAINED_RESULTS_REPLAYED'
-          assert report['source_requests']==0
-          assert report['readback_verified'] is True
-          assert report['originals_changed'] is False
-          assert report['forecasting_performed'] is False
+          from race_ai.racer_intraday_handoff import load_intraday
+          from race_ai.racer_result_bridge import SavedResultBridge
+          repo=_environment(Path('.').resolve())
+          loaded=load_intraday(repo)
+          expected=__import__('os').environ['EXPECTED_SOURCE_CIPHER']
+          assert loaded['previous']['head']['cipher_sha256']==expected
+          bridge=SavedResultBridge(repo)
+          assert len(bridge.rows)>0
+          final=sum((row.get('result') or {}).get('status') in ('final','void') for row in bridge.rows)
+          assert final>0
           print(json.dumps(dict(status='FRESH_RESULT_INDEPENDENT_AES_READBACK_VERIFIED',
-              provider_gets=0,originals_changed=False),sort_keys=True))
+              provider_gets=0,authenticated_result_rows=final,
+              exact_source_cipher_matched=True,originals_changed=False),sort_keys=True))
           PY
