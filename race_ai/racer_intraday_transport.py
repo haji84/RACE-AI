@@ -21,12 +21,16 @@ def allowed(url):
     raise ValueError('INTRADAY_HTTP_URL_REJECTED')
 
 class OfficialClient:
-    def __init__(self,*,client=None):
-        self.client=client or httpx.Client(verify=ssl.create_default_context(),follow_redirects=False,trust_env=True,timeout=15,limits=httpx.Limits(max_connections=1,max_keepalive_connections=1));self.next_start=0
+    def __init__(self,*,client=None,interval_seconds=1):
+        # A larger owner-admitted backlog must pace provider requests more
+        # slowly, without multi-connection bursts or automatic HTTP retries.
+        need(type(interval_seconds) is int and 1<=interval_seconds<=3,
+             'INTRADAY_SOURCE_INTERVAL_INVALID')
+        self.client=client or httpx.Client(verify=ssl.create_default_context(),follow_redirects=False,trust_env=True,timeout=15,limits=httpx.Limits(max_connections=1,max_keepalive_connections=1));self.next_start=0;self.interval_seconds=interval_seconds
     def __enter__(self):return self
     def __exit__(self,*args):self.client.close()
     def __call__(self,url):
-        limit=allowed(url);time.sleep(max(0,self.next_start-time.monotonic()));self.next_start=time.monotonic()+1
+        limit=allowed(url);time.sleep(max(0,self.next_start-time.monotonic()));self.next_start=time.monotonic()+self.interval_seconds
         self.client.cookies.clear()
         try:
             with self.client.stream('GET',url,headers={'User-Agent':'RACE-AI-owner-official-result-statistics/1','Accept':'application/json,text/html'}) as response:
