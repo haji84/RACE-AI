@@ -440,14 +440,18 @@ jobs:
         with:
           ref: ${{ github.event_name == 'push' && github.sha || '914941a6244364480370ac392441ad4bb5781f83' }}
           persist-credentials: true
-      - name: Use the already-reviewed result collector for authenticated P0 result/source viewer
+      - name: Use pinned collector for official results and stage-aware P0 reader only for view verification
         if: >-
           github.event_name == 'push' && github.ref == 'refs/heads/main' &&
           (startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
            startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112'))
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 914941a6244364480370ac392441ad4bb5781f83
+          # The immutable older official-result collector cannot accept
+          # "--stage P0". Swap only the read-only site-verifier mode to a
+          # separately CI-proven, stage-aware existing release; source
+          # collection continues to use the unchanged 914941a pinned SHA.
+          ref: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-view') && '0796b52c2804177976e4c2e5ab9b65f32589720b' || '914941a6244364480370ac392441ad4bb5781f83' }}
           persist-credentials: true
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
