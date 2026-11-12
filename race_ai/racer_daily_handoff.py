@@ -18,6 +18,12 @@ class _DailyFilteredFetch:
     checks every requested commit, tree and blob before using it.
     """
     def _run(self,args,*,body=None,env=None):
+        # The base GitStateRepository already supplies the exact blobless
+        # fetch and validated repository identity. Do not add promisor config
+        # or a second filter to that transport negotiation. Verified lazy blob
+        # reads and missing-ok tree writes below retain their existing scope.
+        if args and args[0]=='fetch' and '--filter=blob:none' in args:
+            return super()._run(args,body=body,env=env)
         config=dict(os.environ if env is None else env);count=int(config.get('GIT_CONFIG_COUNT','0'))
         for setting,value in [('remote.origin.promisor','true'),('remote.origin.partialclonefilter','blob:none')]:
             config['GIT_CONFIG_KEY_'+str(count)]=setting;config['GIT_CONFIG_VALUE_'+str(count)]=value;count+=1
