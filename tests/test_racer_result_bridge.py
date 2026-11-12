@@ -113,6 +113,28 @@ class BridgeTests(unittest.TestCase):
         state=IntradayState();self.capture(state,'20261031');self.capture(state,'20261101');r=bridge.publish(state,now=NOW);self.assertEqual(r['confirmed'],2)
         for day in ('2026-10-31','2026-11-01'):
             _,_,_,out=F.current_view(self.git,self.boot,day=day);self.assertEqual(out['records'][0]['result']['status'],'final')
+    def test_authenticated_older_pending_day_survives_newest_two_day_window(self):
+        days=('2026-11-03','2026-11-04','2026-11-05','2026-11-07')
+        value=saved_view(days);self.seed(value)
+        parent,previous,generation,flat=F.current_view(self.git,self.boot)
+        F.publish_view(self.git,self.boot,flat,parent=parent,previous=previous,
+                       generation=generation,history=True)
+        bridge=self.bridge()
+        self.assertEqual(bridge.days,['2026-11-07','2026-11-05'])
+        self.assertEqual(bridge.choose_older_pending_day(),'2026-11-04')
+        immutable=F.forecast_inventory(value)
+        bridge.include_backfill_day('2026-11-04')
+        self.assertEqual(len(bridge.targets()),3)
+        self.assertIn('20261104-01-01',{r['race_id'] for r in bridge.targets()})
+        state=IntradayState();self.capture(state,'20261104')
+        result=bridge.publish(state,now=NOW)
+        self.assertEqual(result['confirmed'],1)
+        _,_,_,older=F.current_view(self.git,self.boot,day='2026-11-04')
+        self.assertEqual(older['records'][0]['result']['status'],'final')
+        self.assertEqual(F.forecast_inventory(value),immutable)
+        with self.assertRaisesRegex(ValueError,'RESULT_BACKFILL_DAY_NOT_AUTHENTICATED'):
+            bridge.include_backfill_day('2026-11-02')
+
     def test_lost_compare_and_swap_leaves_sources_replayable(self):
         from unittest.mock import patch
         bridge=self.bridge();state=IntradayState();self.capture(state);original=self.git.head()
