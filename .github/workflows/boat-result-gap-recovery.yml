@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 6fdd38f3da28a36747ffa41591eb8b73d9087988
+          ref: b123b2438b7d1d7d3e912b673fa30cd24c6c8578
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -89,7 +89,7 @@ jobs:
           persist-credentials: false
       - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
       - name: Run real Git state transport, AES and official result queue regressions
-        run: python -m unittest tests.test_boat_pdca_github_handoff tests.test_racer_intraday_handoff tests.test_racer_daily_handoff tests.test_racer_result_queue tests.test_racer_result_bridge -v
+        run: python -m unittest tests.test_boat_pdca_github_handoff tests.test_racer_intraday_handoff tests.test_racer_daily_handoff tests.test_racer_intraday tests.test_racer_intraday_refresh tests.test_racer_intraday_transport tests.test_racer_result_queue tests.test_racer_result_bridge -v
       - name: Assert source Git filter retains full signed-history audit
         run: |
           python - <<'PY'
@@ -365,7 +365,7 @@ jobs:
           assert 'AUTHENTICATED_GIT_CREDENTIAL_AVAILABLE_NO_PROVIDER_GET' in fresh
           assert 'HOLD_GIT_CREDENTIAL_UNAVAILABLE' in fresh
           assert "['git','-C','source-reader','credential','fill']" in fresh
-          assert '6fdd38f3da28a36747ffa41591eb8b73d9087988' in fresh
+          assert 'b123b2438b7d1d7d3e912b673fa30cd24c6c8578' in fresh
           assert 'needs: observed_gap' in fresh
           assert "github.event.workflow_run.event == 'schedule'" in fresh
           assert "github.event.workflow_run.name == 'KEIRIN hourly personal research canary'" in fresh
@@ -414,6 +414,10 @@ jobs:
           assert "bridge.choose_older_pending_day()" in fresh
           assert "bridge.include_backfill_day(" in fresh
           assert "EXPECTED_BACKFILL_DAY" in fresh
+          assert 'RACE_AI_BOAT_RESULT_CATCHUP_ADMITTED' in fresh
+          assert 'RACE_AI_BOAT_RESULT_GET_CAP' in fresh
+          assert 'EXPECTED_SOURCE_GET_CAP' in fresh
+          assert "source_get_cap" in text
           assert "selected_rows=F.current_view" in text
           for job in ("fresh_pdca_stage", "fresh_pdca_readback", "fresh_site_browser"):
               body=text.split("\n  "+job+":\n",1)[1].split("\n  fresh_",1)[0]
@@ -629,7 +633,7 @@ jobs:
       - name: Install unmodified bounded result collector separately
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 6fdd38f3da28a36747ffa41591eb8b73d9087988
+          ref: b123b2438b7d1d7d3e912b673fa30cd24c6c8578
           path: source-reader
           persist-credentials: false
       - name: Install immutable original official parser
@@ -721,13 +725,15 @@ jobs:
           PY
           git -C source-reader ls-remote --heads origin 'refs/heads/state/boat-pdca-transfer' >/dev/null
           echo 'AUTHENTICATED_GIT_STATE_WRITE_PATH_CONFIGURED_NO_PROVIDER_GET'
-      - name: Consume at most 12 existing official-result GETs once per durable admission
+      - name: Consume at most 36 owner-admitted official-result GETs once per durable admission
         if: steps.source_gate.outputs.admitted == 'true'
         working-directory: source-reader
         env:
           GH_TOKEN: '${{ github.token }}'
           RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
           RACE_AI_BOAT_BACKFILL_DAY: '${{ steps.source_scope.outputs.backfill_day }}'
+          RACE_AI_BOAT_RESULT_CATCHUP_ADMITTED: '${{ steps.source_gate.outputs.admitted }}'
+          RACE_AI_BOAT_RESULT_GET_CAP: '${{ steps.source_gate.outputs.source_get_cap }}'
         run: |
           python - <<'PY' > "$RUNNER_TEMP/boat-gap-fresh-result-private.json"
           import os,race_ai
@@ -789,6 +795,7 @@ jobs:
         env:
           GH_TOKEN: '${{ github.token }}'
           RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+          EXPECTED_SOURCE_GET_CAP: '${{ steps.source_gate.outputs.source_get_cap }}'
         run: |
           python - <<'PY'
           import json,os,sys,hashlib,datetime
@@ -796,7 +803,7 @@ jobs:
           report=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-gap-fresh-result-private.json').read_text())
           assert report['schema']=='RACE_AI_RACER_INTRADAY_RUN_V1'
           assert report['status']=='INTRADAY_REFRESHED'
-          assert 0<report['source_requests']<=12
+          assert 0<report['source_requests']<=int(os.environ['EXPECTED_SOURCE_GET_CAP'])<=36
           assert report['retained']['status']=='INTRADAY_ENCRYPTED_DELTA_RETAINED'
           assert report['retained']['new_capture_count']>0
           assert report['result_sync']['changed_races']>0
@@ -864,7 +871,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 6fdd38f3da28a36747ffa41591eb8b73d9087988
+          ref: b123b2438b7d1d7d3e912b673fa30cd24c6c8578
           persist-credentials: false
       - name: Install immutable official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683

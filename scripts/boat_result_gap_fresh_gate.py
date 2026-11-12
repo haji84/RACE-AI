@@ -83,7 +83,12 @@ def inspect(boat_runs,recovery_runs,prior_attempts,source,*,now,current_run_id,r
         _need(at<=utc+timedelta(minutes=5),'ATTEMPT_FUTURE')
         if p['run_id']!=current_run_id and utc-at<timedelta(minutes=30):
             return dict(status='HOLD_ALREADY_ATTEMPTED_IN_WINDOW',authorized_source_gets=0)
-    return dict(status='FRESH_RESULT_GET_ADMITTED',authorized_source_gets=12,
+    # Owner-approved catch-up: 12 for normal small backlog and a strict 36
+    # per recovery run for the authenticated outstanding results. Never
+    # create extra runs, bypass 30-minute reservations, or reset the original
+    # 240-request forecasting owner. Provider 403/429 denial is a hard STOP.
+    approved=min(36,max(12,source['due_count']))
+    return dict(status='FRESH_RESULT_GET_ADMITTED',authorized_source_gets=approved,
                 source_owner_240_unchanged=True,original_race_forecasts_unchanged=True,
                 pending_due_count=source['due_count'])
 
@@ -133,6 +138,7 @@ def main(argv=None):
           ('status','authorized_source_gets','source_owner_240_unchanged','pending_due_count')},sort_keys=True))
     with open(os.environ['GITHUB_OUTPUT'],'a') as f:
         f.write('admitted='+str(result['status']=='FRESH_RESULT_GET_ADMITTED').lower()+'\n')
+        f.write('source_get_cap='+str(result['authorized_source_gets'])+'\n')
     return 0
 
 if __name__=='__main__':raise SystemExit(main())
