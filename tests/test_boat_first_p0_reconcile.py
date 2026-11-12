@@ -262,6 +262,71 @@ class FirstP0ReconcileTests(unittest.TestCase):
             self.run_reconcile()
         self.assertEqual(self.feed.head(), before)
 
+    def test_saved_B_name_candidates_require_exact_day_race_lane_and_registration(self):
+        day = self.bundle['day']
+        rid = day.replace('-', '') + '-01-01'
+        people = [dict(number=n, registration_no=str(4000+n), name=None)
+                  for n in range(1, 7)]
+        view = dict(records=[dict(sport='boat', event_date_jst=day,
+                                  race_id=rid, participants=people)])
+        manifest = dict(schema='RACE_AI_BOAT_NAME_ALIAS_SOURCES_V1',
+                        b_sources=[dict(day=day, raw_b_base64='authenticated-B-placeholder')])
+        metadata_path = self.root/'program-name-metadata.json'
+        metadata_path.write_text(json.dumps(dict(name_alias_sources=manifest)))
+        source = dict(day=day, source_url='https://www1.mbrace.or.jp/od2/B/203004/b300401.lzh',
+                      source_sha256='a'*64, captured_at=NOW.isoformat())
+        boats = [dict(lane=6, racer_registration_id='4006', name='認証済み短縮名')]
+        program = dict(venues=[dict(races=[dict(race_id=rid, boats=boats)])])
+        known = {str(4000+n):dict(name='TERM登録選手') for n in range(1, 6)}
+        with patch('race_ai.boat_name_aliases._b_programs',
+                   return_value=[(source, program)]) as source_reader:
+            found = reconcile._saved_program_names(
+                {'metadata.json': str(metadata_path)}, view, day, NOW, known)
+        source_reader.assert_called_once()
+        self.assertEqual(found[rid]['4006'], dict(name='認証済み短縮名', number=6,
+            registration_no='4006', source_url=source['source_url'],
+            source_sha256=source['source_sha256'], captured_at=source['captured_at']))
+        self.assertEqual(len(found[rid]), 1)
+        for alternative in (
+            dict(lane=5, racer_registration_id='4006', name='不一致'),
+            dict(lane=6, racer_registration_id='9999', name='不一致'),
+            dict(lane=1, racer_registration_id='4001', name='TERM登録済み'),
+        ):
+            with self.subTest(alternative=alternative), patch(
+                    'race_ai.boat_name_aliases._b_programs',
+                    return_value=[(source, dict(venues=[dict(races=[
+                        dict(race_id=rid, boats=[alternative])])]))]):
+                self.assertEqual(reconcile._saved_program_names(
+                    {'metadata.json': str(metadata_path)}, view, day, NOW, known), {})
+
+    def test_authenticated_program_name_fill_does_not_change_original_or_scoring(self):
+        self.seed_runtime(range(4001, 4006))
+        self.capture(); self.save_results()
+        before = self.run_reconcile()
+        self.assertEqual(before['display_name_missing'], 1)
+        day = self.bundle['day']; rid = day.replace('-', '')+'-01-01'
+        program_name = {rid: {'4006': dict(name='保存済みB短縮名', number=6,
+            registration_no='4006', source_url='https://www1.mbrace.or.jp/od2/B/203004/b300401.lzh',
+            source_sha256='a'*64, captured_at=(NOW-timedelta(days=1)).isoformat())}}
+        with patch('scripts.boat_first_p0_reconcile._saved_program_names',
+                   return_value=program_name):
+            after = self.run_reconcile()
+        current = F.current_view(self.feed, self.bootstrap, day=day)[3]
+        person = next(p for p in current['records'][0]['participants']
+                      if p['registration_no']=='4006')
+        self.assertEqual(person['name'], '保存済みB短縮名')
+        self.assertEqual(person['name_source']['kind'], 'SAME_RACE_PROGRAM')
+        self.assertEqual(person['name_source']['race_id'], rid)
+        self.assertEqual(after['display_name_missing'], 0)
+        self.assertEqual(after['display_name_registry_bound'], 5)
+        self.assertEqual(after['display_name_program_candidates'], 1)
+        self.assertTrue(after['originals_unchanged'])
+        self.assertEqual(after['forecast_rewrites'], 0)
+        self.assertEqual(after['new_forecasts_created'], 0)
+        for field in ('native_evaluation_sha256', 'native_verdict_counts',
+                      'model_score_counts', 'original_document_set_sha256'):
+            self.assertEqual(after[field], before[field])
+    
     def test_missing_registration_stays_missing_without_guessing(self):
         self.seed_runtime(range(4001, 4006))
         self.capture(); self.save_results()
