@@ -19,7 +19,8 @@ def score(*,forecasts=4,eligible=1,pending=2,held=1):
     for model in ('model-A','model-B'):
         groups.append(dict(model_id=model,stage='P0',version=None,variant=None,
                            forecasts=forecasts,eligible=eligible,hits=0,
-                           misses=eligible,void=0,pending=pending,held=held))
+                           misses=eligible,void=0,pending=pending,held=held,
+                           unresolved_reasons=({'HOLD_NO_FORMAL_RESULT':held} if held else {})))
     return dict(schema='RACE_AI_RETAINED_MODEL_PDCA_AUDIT_V1',
                 source='AES_AUTHENTICATED_SAVED_VIEW_ONLY',
                 model_groups=groups,total_forecasts=2*forecasts,
@@ -54,6 +55,23 @@ class CoverageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'MODEL_ACCOUNTING_INVALID'):
             summarize(value,states,report,day='2026-11-12',
                       expected_races=2,expected_p0=4)
+
+    def test_model_hold_reasons_are_exact_count_only_and_fail_closed(self):
+        value=view(4)
+        states={r['race_id']:'unsupported' for r in value['records']}
+        report=score()
+        result=summarize(value,states,report,day='2026-11-12',
+                         expected_races=142,expected_p0=284)
+        self.assertEqual(result['model_groups'][0]['unresolved_reasons'],
+                         {'HOLD_NO_FORMAL_RESULT':1})
+        report['model_groups'][0]['unresolved_reasons']={'HOLD_BAD!!':1}
+        with self.assertRaisesRegex(ValueError,'MODEL_HOLD_REASON_INVALID'):
+            summarize(value,states,report,day='2026-11-12',
+                      expected_races=142,expected_p0=284)
+        report['model_groups'][0]['unresolved_reasons']={'HOLD_NO_FORMAL_RESULT':2}
+        with self.assertRaisesRegex(ValueError,'MODEL_HOLD_REASON_TOTAL_MISMATCH'):
+            summarize(value,states,report,day='2026-11-12',
+                      expected_races=142,expected_p0=284)
 
     def test_missing_race_duplicate_race_and_wrong_score_fail_closed(self):
         value=view(2)
