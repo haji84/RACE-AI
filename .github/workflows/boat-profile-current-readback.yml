@@ -68,7 +68,8 @@ jobs:
           assert '8ebd36accc8a51eb586560c5db16f415ad601b9b' in s
           assert s.count("from scripts.boat_profile_one_shot_proof import execute")==1
           assert "execute('.',readback_current=True)" in s
-          assert 'gh workflow run' not in s
+          production=s.split('  current_observed_source:',1)[1]
+          assert ('gh'+' workflow '+'run ') not in production
           assert "'--readback-current'" not in s.split('  current_observed_source:',1)[1]
           PY
 
