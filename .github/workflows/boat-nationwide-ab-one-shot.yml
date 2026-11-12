@@ -29,6 +29,9 @@ on:
       - tests/test_boat_saved_result_recovery.py
       - tests/test_boat_source_control_mirror.py
       - tests/test_boat_saved_site_context.py
+      - race_ai/boat_seller_inputs.py
+      - tests/test_boat_seller_official_source.py
+      - tests/test_boat_program_source.py
       - tests/saved_site_check.test.cjs
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
@@ -79,7 +82,8 @@ jobs:
                  'tests.test_boat_saved_result_recovery','tests.test_boat_source_control_mirror',
                  'tests.test_supervisor_durable_readback','tests.test_boat_saved_site_context',
                  'tests.test_repeated_cycle','tests.test_github_existing_cycle_startup_wait',
-                 'tests.test_boat_source_control','tests.test_continuity_checkpoint']
+                 'tests.test_boat_source_control','tests.test_continuity_checkpoint',
+                 'tests.test_boat_seller_official_source','tests.test_boat_program_source'
           result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
           raise SystemExit(not result.wasSuccessful())
           PY_RECOVERY_TEST
@@ -374,7 +378,7 @@ jobs:
           node tests/boat_frozen_input_diagnostic.cjs
       - name: Test originals, pending results, tampering and unchanged models
         run: |
-          python -m unittest tests.test_continuity_checkpoint tests.test_continuity_archive_size tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards tests.test_observed_p1_connection tests.test_external_research_registry tests.test_repeated_cycle tests.test_observed_weight_learning tests.test_first_p0_bootstrap tests.test_boat_private_original_archive tests.test_private_original_archive_readers tests.test_boat_source_control tests.test_github_existing_cycle_startup_wait tests.test_cycle_workflow_references -v
+          python -m unittest tests.test_continuity_checkpoint tests.test_continuity_archive_size tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards tests.test_observed_p1_connection tests.test_external_research_registry tests.test_repeated_cycle tests.test_observed_weight_learning tests.test_first_p0_bootstrap tests.test_boat_private_original_archive tests.test_private_original_archive_readers tests.test_boat_source_control tests.test_github_existing_cycle_startup_wait tests.test_cycle_workflow_references tests.test_boat_seller_official_source tests.test_boat_program_source -v
       - name: Install pinned encrypted display dependencies
         continue-on-error: true
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
