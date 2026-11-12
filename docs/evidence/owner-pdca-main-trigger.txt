@@ -203,3 +203,26 @@ No second P0/P1 producer, backdated forecast, increased source budget,
 new scheduler, unverified result, page-key disclosure or override.
 The real GitHub workflow result and refreshed site readback must be
 checked separately; this audit note itself proves zero new results.
+2026-11-12 JST | GEN124 SOURCE-FREE DISPLAY-NAME VERIFICATION ONLY
+Target the genuine saved 2026-11-12 P0 from source run 43131905826,
+artifact 13905925953, 142 races and 284 immutable P0 model forecasts.
+Already retained: 31 exact official race results, 26 formally scored races
+and 52 predictions at generation 124; 852 display slots, 843 verified TERM
+names and 9 missing. Original P0, all prediction SHA values, and the
+independent scorer must remain unchanged.
+Main source-free original_reconcile checkout and PR regression are pinned to
+tested SHA 976aa8998fb864a8073293df45d69d63fdf73007, whose 303/303
+Python regressions plus Node browser boundary tests succeeded in
+Actions run 43159150841. This reader uses existing verified same-day B archive
+bytes from encrypted model runtime only when exact original source receipt,
+hash, race ID, lane and registration can be proved. Otherwise keep name null.
+On main push with subject beginning
+"boat-owner-readback: recover-saved-p0-43131905826" run ONLY the existing
+original-retention, independent-readback, native scorer, AES-feed display
+enrichment and real Pages browser verification; never run result-refresh
+or owner-P0/P1 production. 0 racing-provider GET; no budget reset, P1
+fabrication, prior forecast changes, artificial names, hidden HOLDs, or
+public raw names/keys. The browser checker line 233 must remain strict.
+Do not count this marker or a green CI as live browser proof. Demand actual
+LIVE_OWNER_SITE_VERIFIED with >=31 genuine official results and 2 native P0
+model groups, or report the exact hold reason with private details withheld.
