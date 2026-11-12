@@ -77,3 +77,5 @@ source or original forecast published. Compare existing AES authenticated
 official result states and model scorer's fixed unresolved reason codes.
 Reject any reason whose total differs from the model HELD count. Keep all
 pending/missing/unsupported as HOLD until authentic formal receipts exist.
+
+2026-11-13 JST | Strict AES-only original 142 BOAT P0 coverage and unsupported-result reason audit after owner-approved bounded 36 GET recovery release. Trigger only the existing source-free BOAT coverage workflow with exact main merge title boat-coverage: sourcefree-142-20261113. Reopen authenticated owner saved history, count original race inventory 142, P0 forecasts 284, official final/pending/missing/unsupported and sanitized distinct rejection reason counts. Reject mutable forecast inventory, false formal settlements, or missing source authorization. Never fetch a racing provider, never log private race IDs, participants, tickets, owner URLs, keys, or HTML, and never claim that this marker itself proves live source settlement. The original source-recovery workflow remains governed by JST 07-23, 30min attempt reservation, source WAIT and 12-36 result backlog cap.
