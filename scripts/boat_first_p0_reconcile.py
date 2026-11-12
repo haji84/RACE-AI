@@ -104,18 +104,183 @@ def _no_live_artifact(_endpoint):
     raise _Rejected('FIRST_P0_RECONCILE_RETAINED_ORIGINAL_REQUIRED')
 
 
-def _retained_names(repo, now, *, transport=None):
-    """Read only the verified TERM registry from the pinned encrypted runtime."""
+def _saved_program_names(files, view, day, now, registry):
+    """Display-only fallback from exact retained official B bytes; zero provider GET.
+
+    Only a verified same-day B archive and an exact race/lane/registration
+    binding may fill a currently blank name. The forecast original is not
+    changed. Unknown or conflicting evidence must never become a name.
+    """
+    missing = set()
+    for row in view['records']:
+        if row.get('sport') != 'boat' or row['event_date_jst'] != day:
+            continue
+        for person in row['participants']:
+            pid = person['registration_no']
+            if not person.get('name') and pid not in registry:
+                missing.add((row['race_id'], person['number'], pid))
+    if not missing:
+        return {}
+    metadata_file = files.get('metadata.json')
+    if not metadata_file:
+        return {}
+    metadata = _json(_read(Path(metadata_file), runtime.FILE_LIMITS['metadata.json']),
+                     runtime.FILE_LIMITS['metadata.json'])
+    _need(type(metadata) is dict, 'PROGRAM_METADATA_INVALID')
+    manifest = metadata.get('name_alias_sources')
+    sources = []
+    if manifest is not None:
+        _need(type(manifest) is dict and
+              set(manifest) == {'schema', 'b_sources'} and
+              manifest['schema'] == 'RACE_AI_BOAT_NAME_ALIAS_SOURCES_V1' and
+              type(manifest['b_sources']) is list and
+              len(manifest['b_sources']) <= 16 and
+              all(type(entry) is dict for entry in manifest['b_sources']),
+              'PROGRAM_MANIFEST_INVALID')
+        sources = [entry for entry in manifest['b_sources'] if entry.get('day') == day]
+    if not sources:
+        # Some genuine model runtimes retain the B archive as the historical
+        # seller input instead of the newer alias-source manifest. Recover
+        # only from its original P0 document and independently checked receipt.
+        seller = metadata.get('seller_official_source')
+        if seller is not None:
+            _need(type(seller) is dict, 'PROGRAM_SELLER_METADATA_INVALID')
+            if seller.get('day') == day and files.get('p0-source.json'):
+                from race_ai.boat_seller_inputs import official_b_cards_source
+                import base64
+                packet = _json(_read(Path(files['p0-source.json']),
+                                     runtime.FILE_LIMITS['p0-source.json']),
+                               runtime.FILE_LIMITS['p0-source.json'])
+                _need(type(packet) is dict and set(packet) == {'document', 'receipt'},
+                      'PROGRAM_P0_PACKET_INVALID')
+                document, receipt = packet['document'], packet['receipt']
+                encoded = seller.get('raw_b_base64')
+                if encoded is None or encoded == '':
+                    return {}
+                _need(type(encoded) is str, 'PROGRAM_SELLER_BYTES_INVALID')
+                try:
+                    raw = base64.b64decode(encoded, validate=True)
+                except (ValueError, TypeError):
+                    raise _Rejected('FIRST_P0_RECONCILE_PROGRAM_SELLER_BYTES_INVALID') from None
+                # This existing validator verifies the official B URL,
+                # archive/text SHA, actual physical P0 receipt and full
+                # original roster. No network operation occurs.
+                official_b_cards_source(raw, document, receipt, day=day,
+                                        as_of=now.isoformat())
+                sources = [dict(day=day, raw_b_base64=encoded,
+                    source_url=document['source_url'],
+                    source_sha256=document['source_sha256'],
+                    captured_at=document['captured_at'])]
+    if not sources:
+        return {}
+    from race_ai.boat_name_aliases import _b_programs
+    races = {}
+    # _b_programs reopens and hashes the stored original B bytes, verifies its
+    # official URL, observation clock and day, then parses the actual program.
+    verified = _b_programs(dict(schema='RACE_AI_BOAT_NAME_ALIAS_SOURCES_V1', b_sources=sources), now)
+    for source, program in verified:
+        for venue in program['venues']:
+            for race in venue['races']:
+                rid = race['race_id']
+                for boat in race['boats']:
+                    number, pid = boat['lane'], boat['racer_registration_id']
+                    if (rid, number, pid) not in missing:
+                        continue
+                    name = boat.get('name')
+                    _need(type(name) is str and bool(name.strip()),
+                          'PROGRAM_NAME_INVALID')
+                    item = dict(name=name, number=number, registration_no=pid,
+                                source_url=source['source_url'],
+                                source_sha256=source['source_sha256'],
+                                captured_at=source.get('captured_at'))
+                    per_race = races.setdefault(rid, {})
+                    _need(pid not in per_race or per_race[pid] == item,
+                          'PROGRAM_NAME_CONFLICT')
+                    per_race[pid] = item
+    return races
+
+
+
+def _retained_result_names(captures, view, now):
+    """Bind names ONLY to the exact race/lane/registration of saved official results.
+
+    The existing parsed result includes six names and SHA-bound raw source
+    receipts. An unsupported source does not supply names, and conflicting
+    authentic observations stop the display update. No new provider GET.
+    """
+    from race_ai.racer_intraday_source import parse_result
+    targets = {(row['race_id'], person['number'], person['registration_no'])
+               for row in view['records'] if row.get('sport') == 'boat'
+               for person in row['participants'] if not person.get('name')}
+    if not targets:
+        return {}, 0
+    found = {}
+    observed_registrations = {}
+    conflicting_registrations = set()
+    unsupported = 0
+    for raw, receipt in captures:
+        try:
+            parsed = parse_result(raw, receipt, now=now)
+        except ValueError:
+            unsupported += 1
+            continue
+        if parsed.get('status') != 'CONFIRMED':
+            continue
+        rid = parsed['race_id']
+        for observed in parsed['rows']:
+            pid, lane = observed['racer_id'], observed['lane']
+            prior = observed_registrations.get(pid)
+            if prior is not None and prior['name'] != observed['name']:
+                conflicting_registrations.add(pid)
+            observed_registrations.setdefault(pid, dict(observed, source_race_id=rid))
+            if (rid, lane, pid) not in targets:
+                continue
+            meta = dict(kind='SAME_RACE_RESULT', name=observed['name'],
+                        number=lane, registration_no=pid, race_id=rid,
+                        source_url=observed['source_url'],
+                        source_sha256=observed['source_sha256'],
+                        captured_at=observed['captured_at'])
+            known = found.setdefault(rid, {})
+            _need(pid not in known or known[pid]['name'] == meta['name'],
+                  'RETAINED_RESULT_NAME_CONFLICT')
+            # Never manufacture or silently revise an identity on another
+            # observation. The first authenticated matching source is enough.
+            known.setdefault(pid, meta)
+    # A rider's registration is stable within one event day. Other races
+    # from that same day may supply independently authenticated display text,
+    # but cannot serve as a same-race proof. Keep their origin race explicit.
+    for rid, lane, pid in sorted(targets):
+        if pid in found.get(rid, {}) or pid in conflicting_registrations:
+            continue
+        observed = observed_registrations.get(pid)
+        if not observed or observed['source_race_id'] == rid or observed['source_race_id'][:8] != rid[:8]:
+            continue
+        meta = dict(kind='SAME_DAY_OFFICIAL_RESULT', name=observed['name'],
+                    number=lane, registration_no=pid, race_id=rid,
+                    source_race_id=observed['source_race_id'],
+                    source_url=observed['source_url'],
+                    source_sha256=observed['source_sha256'],
+                    captured_at=observed['captured_at'])
+        found.setdefault(rid, {})[pid] = meta
+    return found, unsupported
+
+
+def _retained_names(repo, now, *, view=None, day=None, transport=None):
+    """Read a verified TERM registry and optional exact saved B names."""
     pointer = _json(_read(repo/runtime.INPUT_PATH, 64*1024), 64*1024)
     with TemporaryDirectory(prefix='boat-first-p0-names-', dir=os.environ['RUNNER_TEMP']) as folder:
         restored = runtime.restore_runtime(pointer, repo, folder, transport=transport)
         documents, source = _term_names(restored['files']['racers.sqlite'], now)
-    fields = ('verified', 'source_url', 'source_sha256', 'captured_at')
-    registry = {pid: dict(name=document['name'], **{key: source[key] for key in fields})
-                for pid, document in documents.items()}
-    return dict(registry=registry, races={}), dict(
+        fields = ('verified', 'source_url', 'source_sha256', 'captured_at')
+        registry = {pid: dict(name=document['name'], **{key: source[key] for key in fields})
+                    for pid, document in documents.items()}
+        races = (_saved_program_names(restored['files'], view, day, now, registry)
+                 if view is not None and day is not None else {})
+    return dict(registry=registry, races=races), dict(
         display_name_runtime_commit=restored['source_commit'],
-        display_name_registry_source_sha256=source['source_sha256'] if source else None)
+        display_name_registry_source_sha256=source['source_sha256'] if source else None,
+        display_name_program_races=len(races),
+        display_name_program_candidates=sum(map(len, races.values())))
 
 
 def _named_target(view, day, names):
@@ -147,6 +312,87 @@ def _name_counts(view, day, names):
         display_name_registry_bound=bound, display_name_missing=len(people)-present)
 
 
+
+def _profile_index_diagnostic(repo, view, *, now, registry_sha,
+                              expected_sha='e810da0da13c47ec3f26dc5a1df67c153ee5dc7363e678fa79b61eabd60bb811',
+                              expected_size=2452782):
+    """Count possible missing labels in a pinned public official-profile index.
+
+    A profile index is NOT independently re-parsed official source HTML. This
+    only reports count-only candidates. It never promotes any index text to
+    an authenticated display name or creates a provider request.
+    """
+    targets = {p['registration_no'] for row in view['records'] if row.get('sport') == 'boat'
+               for p in row.get('participants', []) if not p.get('name')}
+    if not targets:
+        return dict(display_name_profile_index_candidates=0,
+                    display_name_profile_index_unmatched=0,
+                    display_name_profile_index_source_reparsed=False)
+    _need(type(registry_sha) is str and len(registry_sha) == 64,
+          'PROFILE_REGISTRY_SOURCE_REQUIRED')
+    path = Path(repo) / 'web/data/racer-profiles.json'
+    _need(path.is_file() and not path.is_symlink() and path.stat().st_size == expected_size,
+          'PROFILE_CATALOGUE_MISSING_OR_BOUND')
+    raw = _read(path, expected_size)
+    _need(len(raw) == expected_size and sha256(raw).hexdigest() == expected_sha,
+          'PROFILE_CATALOGUE_PIN_INVALID')
+    catalogue = _json(raw, expected_size)
+    source = catalogue.get('source')
+    _need(catalogue.get('schema') == 'RACE_AI_RACER_PROFILES_V1'
+          and type(source) is dict
+          and source.get('sha256') == registry_sha
+          and type(catalogue.get('people')) is list
+          and len(catalogue['people']) <= 2500,
+          'PROFILE_CATALOGUE_SOURCE_INVALID')
+    from race_ai.boat_racer_term import term_info
+    _need(source.get('url') == term_info('2026-2')['source_url']
+          and instant(source['captured_at']) <= now,
+          'PROFILE_CATALOGUE_TERM_CLOCK_INVALID')
+    basics = source.get('basic_sources')
+    _need(type(basics) is list and len(basics) <= 100,
+          'PROFILE_CATALOGUE_BASIC_SOURCES_INVALID')
+    original = {}
+    for row in basics:
+        _need(type(row) is dict and set(row) == {'registration','url','sha256','captured_at'}
+              and type(row['registration']) is str and len(row['registration']) == 4
+              and row['registration'].isdigit() and row['registration'] not in original,
+              'PROFILE_BASIC_SOURCE_IDENTITY_INVALID')
+        number = row['registration']
+        expected_url = 'https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=' + number
+        _need(row['url'] == expected_url
+              and type(row['sha256']) is str and len(row['sha256']) == 64
+              and all(c in '0123456789abcdef' for c in row['sha256'])
+              and instant(row['captured_at']) <= now,
+              'PROFILE_BASIC_SOURCE_PROVENANCE_INVALID')
+        original[number] = row
+    index = {}
+    for row in catalogue['people']:
+        _need(type(row) is dict and type(row.get('registration')) is str
+              and len(row['registration']) == 4
+              and row['registration'].isdigit()
+              and row['registration'] not in index,
+              'PROFILE_CATALOGUE_ENTRY_INVALID')
+        index[row['registration']] = row
+    candidate = 0
+    for number in targets:
+        row = index.get(number)
+        if row is None or row.get('term') is not None:
+            continue
+        basic = row.get('basic')
+        doc = original.get(number)
+        if (type(basic) is dict and doc is not None
+                and basic.get('registration') == number
+                and basic.get('name') == row.get('name')
+                and type(row.get('name')) is str and bool(row['name'].strip())
+                and basic.get('source_url') == doc['url']
+                and basic.get('source_sha256') == doc['sha256']
+                and basic.get('captured_at') == doc['captured_at']):
+            candidate += 1
+    return dict(display_name_profile_index_candidates=candidate,
+                display_name_profile_index_unmatched=len(targets)-candidate,
+                display_name_profile_index_source_reparsed=False)
+
+
 def _score_counts(scored):
     """Project the native verdicts to counts/hashes, without forecast bodies."""
     verdicts = scored['per_forecast']
@@ -168,7 +414,9 @@ def _score_counts(scored):
 
 def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
               companion_artifacts, transport=None, receipt_get=None,
-              feed_transport=None, intraday_transport=None, runtime_transport=None, now=None):
+              feed_transport=None, intraday_transport=None, runtime_transport=None,
+              now=None, include_verified_result_names=False,
+              diagnose_profile_index=False):
     """Verify, replay retained results and append to the existing encrypted feed.
 
     Optional transports replace external Git/Contents I/O only. All private
@@ -201,7 +449,7 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
         merged = append_views(before, [native_view])
 
         stage = 'DISPLAY_NAMES'
-        names, name_proof = _retained_names(repo, now, transport=runtime_transport)
+        names, name_proof = _retained_names(repo, now, view=merged, day=day, transport=runtime_transport)
         merged = _named_target(merged, day, names)
 
         stage = 'RETAINED_RESULTS'
@@ -209,6 +457,17 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
         source_digest = digest([loaded['state'].control, loaded['state'].new_captures])
         race_ids = {row['race_id'] for row in rows}
         captures, captured_races, capture_hash = _retained_captures(loaded, race_ids, now)
+        if include_verified_result_names:
+            stage = 'DISPLAY_RETAINED_RESULT_NAMES'
+            found, unsupported = _retained_result_names(captures, merged, now)
+            if found:
+                merged = _named_target(merged, day, dict(registry={}, races=found))
+            name_proof['display_name_result_races'] = len(found)
+            name_proof['display_name_result_candidates'] = sum(map(len, found.values()))
+            name_proof['display_name_result_cross_race_candidates'] = sum(
+                item.get('kind') == 'SAME_DAY_OFFICIAL_RESULT'
+                for names_for_race in found.values() for item in names_for_race.values())
+            name_proof['display_name_result_unsupported_captures'] = unsupported
         native_results = F.update_view(native_view, [], captures=captures, synced_at=now.isoformat())
         captured_latest, _ = latest_result_observations([
             observation for row in native_results['records']
@@ -233,6 +492,10 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
               'SOURCE_STATE_CHANGED')
         F.ensure_append_only(before, after)
         name_counts = _name_counts(after, day, names)
+        if diagnose_profile_index:
+            stage = 'PROFILE_CATALOGUE_DIAGNOSTIC'
+            name_proof.update(_profile_index_diagnostic(
+                repo, after, now=now, registry_sha=name_proof['display_name_registry_source_sha256']))
 
         stage = 'ORIGINAL_PROTECTION'
         protection = protect_new_forecast_originals(before, after, repo,
@@ -285,6 +548,10 @@ def main(argv=None, *, transport=None, receipt_get=None, feed_transport=None,
     parser.add_argument('--day', required=True)
     parser.add_argument('--p0-artifact', type=int, required=True)
     parser.add_argument('--companion-artifact', type=int, action='append', required=True)
+    parser.add_argument('--diagnose-profile-index', action='store_true',
+                        help='Count-only check of pinned official-profile index; does not fill names')
+    parser.add_argument('--include-verified-result-names', action='store_true',
+                        help='Source-free display-only names from already retained exact official results')
     parser.add_argument('--output', required=True)
     args = parser.parse_args(argv)
     try:
@@ -294,7 +561,9 @@ def main(argv=None, *, transport=None, receipt_get=None, feed_transport=None,
             receipt_commit=args.receipt_commit, day=args.day, p0_artifact=args.p0_artifact,
             companion_artifacts=args.companion_artifact, transport=transport,
             receipt_get=receipt_get, feed_transport=feed_transport,
-            intraday_transport=intraday_transport, runtime_transport=runtime_transport, now=now)
+            intraday_transport=intraday_transport, runtime_transport=runtime_transport,
+            now=now, include_verified_result_names=args.include_verified_result_names,
+            diagnose_profile_index=args.diagnose_profile_index)
         vaultCLI._write(output, V._wire(report) + b'\n')
         print(V._wire(report).decode('utf-8'))
         return 0

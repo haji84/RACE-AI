@@ -156,6 +156,50 @@ class SavedModelViewTests(unittest.TestCase):
         self.assertIsNone(row["participants"][2]["name"])
         self.assertEqual(candidates(row), candidates(base["records"][0]))
 
+    def test_same_race_official_result_name_requires_exact_sha_clock_url_and_roster(self):
+        from race_ai.racer_intraday_source import result_url
+        base = view();rid = base['records'][0]['race_id']
+        uri = result_url('2030-04-01', '01', 1)
+        observed = dict(kind='SAME_RACE_RESULT', name='架空公式結果名', number=1,
+            registration_no='4201', race_id=rid, source_url=uri,
+            source_sha256='1'*64, captured_at='2030-04-01T11:00:00+09:00')
+        names = dict(races={rid:{'4201':observed}}, registry={})
+        after = self.merge(base, names=names)
+        person = after['records'][0]['participants'][0]
+        self.assertEqual(person['name'], '架空公式結果名')
+        self.assertEqual(person['name_source']['kind'], 'SAME_RACE_RESULT')
+        self.assertEqual(person['name_source']['source_sha256'], '1'*64)
+        self.assertEqual(candidates(after['records'][0]), candidates(base['records'][0]))
+        for key, value in (
+            ('registration_no','9999'), ('number',2),
+            ('race_id','20300401-01-02'),
+            ('source_url',result_url('2030-04-01','01',2)),
+            ('source_url','https://example.invalid/foreign'),
+            ('source_sha256','invalid'), ('captured_at',None)):
+            with self.subTest(key=key,value=value), self.assertRaises(ValueError):
+                self.merge(base,names=dict(races={rid:{'4201':dict(observed,**{key:value})}},registry={}))
+
+    def test_official_name_from_another_race_is_explicitly_same_day_only(self):
+        from race_ai.racer_intraday_source import result_url
+        base = view();rid = base['records'][0]['race_id']
+        source = '20300401-01-02'
+        proof = dict(kind='SAME_DAY_OFFICIAL_RESULT', name='別レース公式結果名',
+            number=1, registration_no='4201', race_id=rid, source_race_id=source,
+            source_url=result_url('2030-04-01','01',2), source_sha256='2'*64,
+            captured_at='2030-04-01T11:15:00+09:00')
+        row = self.merge(base,names=dict(races={rid:{'4201':proof}},registry={}))['records'][0]
+        self.assertEqual(row['participants'][0]['name_source']['kind'],'SAME_DAY_OFFICIAL_RESULT')
+        self.assertEqual(row['participants'][0]['name_source']['source_race_id'],source)
+        self.assertEqual(candidates(row),candidates(base['records'][0]))
+        for replacement in (
+            dict(source_race_id='20300401-01-03'),
+            dict(source_url=result_url('2030-04-02','01',2)),
+            dict(source_url=result_url('2030-04-01','02',2)),
+            dict(race_id='20300402-01-01'),
+            dict(registration_no='4999')):
+            with self.subTest(replacement=replacement),self.assertRaises(ValueError):
+                self.merge(base,names=dict(races={rid:{'4201':dict(proof,**replacement)}},registry={}))
+
     def test_name_metadata_rejects_lane_registration_race_or_registry_provenance_mismatch(self):
         invalid = [
             dict(races={"20300401-01-01":{"4201":dict(name="合成名", number=2)}}),
