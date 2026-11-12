@@ -58,6 +58,7 @@ jobs:
           assert 'needs: observed_gap' in fresh
           assert "github.event.workflow_run.event == 'schedule'" in fresh
           assert "github.event.workflow_run.name == 'KEIRIN hourly personal research canary'" in fresh
+          assert 'github.event.workflow_run.run_attempt == 1' in fresh
           assert 'cancel-in-progress: false' in text
           print('FRESH_RESULT_GAP_SOURCE_BOUNDARY_UNIT_VERIFIED')
           PY
@@ -220,6 +221,7 @@ jobs:
       needs.observed_gap.result == 'success' && needs.observed_gap.outputs.gap == 'true' &&
       github.repository == 'haji84/RACE-AI' && github.event_name == 'workflow_run' &&
       github.event.workflow_run.event == 'schedule' &&
+      github.event.workflow_run.run_attempt == 1 &&
       (github.event.workflow_run.conclusion == 'success' ||
          (github.event.workflow_run.name == 'KEIRIN hourly personal research canary' &&
           github.event.workflow_run.conclusion == 'failure')) &&
