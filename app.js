@@ -1746,8 +1746,17 @@
       if(sameDay)for(const [id,value] of drafts){const input=$(id);if(input&&value!==undefined&&(input.tagName!=="SELECT"||[...input.options].some(o=>o.value===value)))input.value=value;}
       const focus=sameDay&&focused&&$(focused);if(focus){focus.focus({preventScroll:true});if(Number.isInteger(selection))try{focus.setSelectionRange(selection,selection);}catch{}}
     }
+    // An open results page needs a shorter *saved-view manifest* check, not
+    // another official racing-provider GET. No polling while tab is hidden.
+    function fastResultsView() {
+      return state.day===A.jstToday() &&
+        (state.page==="results" || state.page==="detail" ||
+          (state.page==="races" && state.raceView==="results"));
+    }
+    let lastSavedPollAt=0;
     function syncedMessage() {
-      status.textContent=(savedHistory.active?"保存履歴は日付を選んで表示できます。":"")+"結果を自動同期中（60秒ごとに確認） · 最終同期 "+stamp(dataset.results_synced_at)+" JST。収集処理の停止中は前回の結果を表示します。";
+      const seconds=fastResultsView()?15:60;
+      status.textContent=(savedHistory.active?"保存履歴は日付を選んで表示できます。":"")+"結果を自動同期中（"+seconds+"秒ごとに確認） · 最終同期 "+stamp(dataset.results_synced_at)+" JST。収集処理の停止中は前回の結果を表示します。";
     }
     async function selectDay(day) {
       if(version!==importVersion||!savedHistory.active)return;
@@ -1767,6 +1776,7 @@
     savedHistory={version,active:false,selectDay,noteDayChange:day=>{followToday=false;rememberChoices();if(busy)queuedDay=day;}};
     async function check() {
       if(busy||version!==importVersion||!dataset||document.hidden)return;
+      lastSavedPollAt=Date.now();
       busy=true;resultCheck.busy=true;syncResultRefreshUI();
       try {
         const result=await window.SavedViewCrypto.readLive(location.hash,previous,{day:state.day,preferredDay:followToday?A.jstToday():undefined});
@@ -1780,7 +1790,11 @@
       finally {busy=false;resultCheck.busy=false;syncResultRefreshUI();drainDay();}
     }
     refreshSavedResults=()=>check();const control=resultRefreshButton();status.before(control);syncResultRefreshUI();
-    check();const timer=setInterval(()=>{if(version!==importVersion){clearInterval(timer);return;}check();},60000);
+    check();const timer=setInterval(()=>{
+      if(version!==importVersion){clearInterval(timer);return;}
+      const interval=fastResultsView()?15000:60000;
+      if(Date.now()-lastSavedPollAt>=interval)check();
+    },15000);
     document.addEventListener("visibilitychange",()=>{if(!document.hidden)check();});
   }
   document.querySelectorAll("[data-page]").forEach(b => b.addEventListener("click", () => showPage(b.dataset.page, true)));
