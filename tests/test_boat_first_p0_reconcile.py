@@ -423,6 +423,24 @@ class FirstP0ReconcileTests(unittest.TestCase):
         self.assertEqual(reconcile._retained_result_names(
             [(waiting, waiting_receipt)], base, NOW), ({}, 0))
 
+    def test_same_day_other_race_can_verify_display_name_by_registration_only(self):
+        day=self.bundle['day']; target_rid=day.replace('-','')+'-01-02'
+        target=dict(records=[dict(sport='boat',race_id=target_rid,
+            participants=[dict(number=3,registration_no='4006',name=None)])])
+        raw,receipt=packet(document(day=day.replace('-',''),number=1),
+                           captured=NOW.isoformat())
+        found,unsupported=reconcile._retained_result_names([(raw,receipt)],target,NOW)
+        self.assertEqual(unsupported,0)
+        actual=found[target_rid]['4006']
+        self.assertEqual(actual['kind'],'SAME_DAY_OFFICIAL_RESULT')
+        self.assertEqual(actual['source_race_id'],day.replace('-','')+'-01-01')
+        self.assertEqual(actual['race_id'],target_rid)
+        self.assertEqual(actual['number'],3)
+        self.assertEqual(actual['registration_no'],'4006')
+        foreign=dict(records=[dict(sport='boat',race_id=target_rid,
+            participants=[dict(number=3,registration_no='4999',name=None)])])
+        self.assertEqual(reconcile._retained_result_names([(raw,receipt)],foreign,NOW),({},0))
+
     def test_conflicting_authenticated_result_names_never_override_a_frozen_identity(self):
         day = self.bundle['day']; rid = day.replace('-', '')+'-01-01'
         target = dict(records=[dict(sport='boat', race_id=rid,
