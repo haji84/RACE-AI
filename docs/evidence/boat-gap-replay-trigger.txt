@@ -100,3 +100,19 @@ separate-runner ciphertext/final-result SHA, existing model-specific PDCA
 independent readback and real Pages model/result proof. New 142-race
 coverage should be independently measured after this run. Never expose
 raw source, participant identities, private race IDs or view key.
+
+2026-11-13 07:58 JST | Owner approved real missing-result catch-up without a fixed 30min wait.
+Trigger one guarded main source run with exact existing allowlisted prefix
+boat-gap-fresh-proof: single-bounded-intake-20261112.
+This is evidence of owner intent, NOT evidence that a source GET succeeded.
+On this new immutable main, the 30m attempt timer and 20m source-state timer
+are removed, replaced by per-race settlement_next, verified source
+step history, max96 rolling recovery GET/hour and conservative shared
+max240 GET/hour accounting for all source-capable primary collector runs.
+No active writer, no duplicate run_attempt, 403/429 provider WAIT intact,
+up to36 GET per owner-admitted cycle, minimum2s serial spacing.
+Only after new real final + separate-runner AES/cipher/result digest and
+unchanged P0 forecast receipt can the workflow source-free dispatch another
+independently gated catch-up. If no new result, quota or provider denied,
+do not auto-retry. No new forecasts, private source, tickets or raw data
+may be published. The 142-race audited completion remains HOLD until real.
