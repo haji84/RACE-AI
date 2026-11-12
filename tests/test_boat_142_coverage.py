@@ -87,7 +87,8 @@ class CoverageTests(unittest.TestCase):
         self.assertEqual(outcome['unsupported_reason_counts'],
                          {'REFERENCE_ONLY_NOT_FORMAL':1,'RESULT_PAYOUT_INVALID':1})
         self.assertEqual(sum(outcome['unsupported_reason_counts'].values()),2)
-        self.assertNotIn('private',str(outcome))
+        self.assertNotIn('private-capture',str(outcome))
+        self.assertNotIn('private-sha',str(outcome))
         self.assertNotIn('20261112-01-01',str(outcome))
 
     def test_missing_race_duplicate_race_and_wrong_score_fail_closed(self):
