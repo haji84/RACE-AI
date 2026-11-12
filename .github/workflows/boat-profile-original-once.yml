@@ -56,7 +56,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           workflow=Path('.github/workflows/boat-profile-original-once.yml').read_text()
-          assert workflow.count('226cdfbb59e2aa6bbf8f53f1eb271e89a09e3567')==3
+          assert workflow.count('226cdfbb59e2aa6bbf8f53f1eb271e89a09e3567')==4
           assert '--readback' in workflow
           assert 'boat-profile-proof: once-20261112' in workflow
           assert 'SOURCE_DATA_KEY' not in workflow
