@@ -147,3 +147,15 @@ that mode. This source-free exact P0 readback proves saved result display
 in the same owner view, with unchanged model IDs and P0 receipts.
 Do not relabel historical picks or synthesize missing P1; no extra forecasts,
 provider GET, or buy/sell submission. Treat unresolved races as PENDING.
+
+2026-11-12 JST | FINAL SOURCE-FREE P0/RESULT PAGES RECONCILIATION
+Previous source-free site proof attempt 43143922070 rejected valid old P0
+solely because active main production SHA pin had advanced after PR166.
+Main PR173 now pins this exact old source run ID+SHA and all three artifact
+IDs+SHA256 for READ-ONLY recovery, without altering owner dispatch gate.
+Existing 11 current-day official results were secured by run 43142854952;
+encrypted saved-view feed generation >=119, prediction forecast SHA unchanged.
+This push uses only owner-readback: recover-saved-p0-43131905826;
+source GET count 0; no forecast rerun; retained P0/CONTINUITY/SOURCE_CONTROL
+identity independently verified and existing P0 Pages checker confirms results.
+No manufactured P1, forced payout, rewrite, or new API limit permission.
