@@ -179,11 +179,11 @@ def _participants(row):
         if person.get("name") is not None: _label(person["name"])
         if person.get("name_source") is not None:
             source = person["name_source"]
-            _need(type(source) is dict and source.get("kind") in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT", "VERIFIED_RACER_REGISTRY"), "name source kind")
+            _need(type(source) is dict and source.get("kind") in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT", "VERIFIED_OFFICIAL_PROFILE", "VERIFIED_RACER_REGISTRY"), "name source kind")
             _need(source.get("registration_no") == _registration(person), "name source registration")
-            if source["kind"] in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT"): _need(source.get("race_id") == row["race_id"], "name source race")
+            if source["kind"] in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT", "VERIFIED_OFFICIAL_PROFILE"): _need(source.get("race_id") == row["race_id"], "name source race")
             _name_metadata(dict(source, name=person.get("name")), _registration(person),
-                           race_id=row["race_id"] if source["kind"] in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT") else None,
+                           race_id=row["race_id"] if source["kind"] in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT", "VERIFIED_OFFICIAL_PROFILE") else None,
                            registry=source["kind"] == "VERIFIED_RACER_REGISTRY")
     return people
 
@@ -219,6 +219,17 @@ def _name_metadata(value, registration, *, race_id=None, registry=False):
                   and item["source_race_id"] == source_rid
                   and race_id[:8] == source_rid[:8],
                   "same-day result registration scope")
+    if item.get("kind") == "VERIFIED_OFFICIAL_PROFILE":
+        _need(race_id is not None and item.get("verified") is True
+              and item.get("historical_source_sha_matched") is False
+              and item.get("evidence_basis") == "INDEPENDENT_AES_OFFICIAL_HTML_SOURCE"
+              and item.get("captured_at") is not None
+              and item.get("source_sha256") is not None
+              and item.get("source_url") ==
+                  "https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=" + registration,
+              "observed official profile provenance")
+        _sha(item["source_sha256"])
+        _clock(item["captured_at"])
     return item
 
 
@@ -338,7 +349,7 @@ def _apply_names(row, named, race_names, registry, aliases=()):
             continue
         if pid in mapping:
             item = _name_metadata(mapping[pid], pid, race_id=row["race_id"]); kind = item.get("kind", "SAME_RACE_PROGRAM")
-            _need(kind in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT"), "same-race name source kind")
+            _need(kind in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT", "VERIFIED_OFFICIAL_PROFILE"), "same-race name source kind")
         elif pid in named:
             person["name"] = named[pid]["name"]
             if named[pid].get("name_source") is not None: person["name_source"] = deepcopy(named[pid]["name_source"])
@@ -351,8 +362,8 @@ def _apply_names(row, named, race_names, registry, aliases=()):
             continue
         person["name"] = item["name"]
         person["name_source"] = dict(kind=kind, registration_no=pid,
-            **({"race_id":row["race_id"], **({"source_race_id":item["source_race_id"]} if kind == "SAME_DAY_OFFICIAL_RESULT" else {})} if kind in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT") else {}),
-            **{k:deepcopy(item[k]) for k in ("verified", "source_sha256", "source_url", "captured_at") if k in item})
+            **({"race_id":row["race_id"], **({"source_race_id":item["source_race_id"]} if kind == "SAME_DAY_OFFICIAL_RESULT" else {})} if kind in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT", "VERIFIED_OFFICIAL_PROFILE") else {}),
+            **{k:deepcopy(item[k]) for k in ("verified", "source_sha256", "source_url", "captured_at", "historical_source_sha_matched", "evidence_basis") if k in item})
 
 
 def _observations(rows, field, *, rejection=False):
