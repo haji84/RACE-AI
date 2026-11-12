@@ -118,16 +118,47 @@ def _saved_program_names(files, view, day, now, registry):
                      runtime.FILE_LIMITS['metadata.json'])
     _need(type(metadata) is dict, 'PROGRAM_METADATA_INVALID')
     manifest = metadata.get('name_alias_sources')
-    if manifest is None:
-        return {}
-    _need(type(manifest) is dict and
-          set(manifest) == {'schema', 'b_sources'} and
-          manifest['schema'] == 'RACE_AI_BOAT_NAME_ALIAS_SOURCES_V1' and
-          type(manifest['b_sources']) is list and
-          len(manifest['b_sources']) <= 16 and
-          all(type(entry) is dict for entry in manifest['b_sources']),
-          'PROGRAM_MANIFEST_INVALID')
-    sources = [entry for entry in manifest['b_sources'] if entry.get('day') == day]
+    sources = []
+    if manifest is not None:
+        _need(type(manifest) is dict and
+              set(manifest) == {'schema', 'b_sources'} and
+              manifest['schema'] == 'RACE_AI_BOAT_NAME_ALIAS_SOURCES_V1' and
+              type(manifest['b_sources']) is list and
+              len(manifest['b_sources']) <= 16 and
+              all(type(entry) is dict for entry in manifest['b_sources']),
+              'PROGRAM_MANIFEST_INVALID')
+        sources = [entry for entry in manifest['b_sources'] if entry.get('day') == day]
+    if not sources:
+        # Some genuine model runtimes retain the B archive as the historical
+        # seller input instead of the newer alias-source manifest. Recover
+        # only from its original P0 document and independently checked receipt.
+        seller = metadata.get('seller_official_source')
+        if seller is not None:
+            _need(type(seller) is dict, 'PROGRAM_SELLER_METADATA_INVALID')
+            if seller.get('day') == day and files.get('p0-source.json'):
+                from race_ai.boat_seller_inputs import official_b_cards_source
+                import base64
+                packet = _json(_read(Path(files['p0-source.json']),
+                                     runtime.FILE_LIMITS['p0-source.json']),
+                               runtime.FILE_LIMITS['p0-source.json'])
+                _need(type(packet) is dict and set(packet) == {'document', 'receipt'},
+                      'PROGRAM_P0_PACKET_INVALID')
+                document, receipt = packet['document'], packet['receipt']
+                encoded = seller.get('raw_b_base64')
+                _need(type(encoded) is str, 'PROGRAM_SELLER_BYTES_MISSING')
+                try:
+                    raw = base64.b64decode(encoded, validate=True)
+                except (ValueError, TypeError):
+                    raise _Rejected('FIRST_P0_RECONCILE_PROGRAM_SELLER_BYTES_INVALID') from None
+                # This existing validator verifies the official B URL,
+                # archive/text SHA, actual physical P0 receipt and full
+                # original roster. No network operation occurs.
+                official_b_cards_source(raw, document, receipt, day=day,
+                                        as_of=now.isoformat())
+                sources = [dict(day=day, raw_b_base64=encoded,
+                    source_url=document['source_url'],
+                    source_sha256=document['source_sha256'],
+                    captured_at=document['captured_at'])]
     if not sources:
         return {}
     missing = set()
