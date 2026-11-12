@@ -157,7 +157,7 @@ class FreshGateTests(unittest.TestCase):
         assert 'needs: [fresh_result, fresh_readback]' in section
         assert "needs.fresh_result.outputs.new_results == 'true'" in section
         assert "needs.fresh_readback.result == 'success'" in section
-        assert 'gh workflow run boat-result-gap-recovery.yml --ref main -f cycle=catchup' in section
+        assert 'gh workflow run boat-result-gap-recovery.yml --repo "$GITHUB_REPOSITORY" --ref main -f cycle=catchup' in section
         assert 'sync-results' not in section and 'www.boatrace.jp' not in section
         assert "RACE_AI_BOAT_RESULT_GET_CAP" in workflow
         assert "\n  source_free_followup:\n" not in workflow.split(
