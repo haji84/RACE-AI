@@ -74,7 +74,7 @@ jobs:
           assert 'ref: ea6992702093a1e67c8c4adb19ca01aaab3fbaca' in original
           assert '--require-current-official-profile' in original
           assert 'scripts.boat_first_p0_reconcile' in original
-          assert 'scripts.boat_saved_site_check.cjs' in original
+          assert 'node scripts/boat_saved_site_check.cjs' in original
           assert '--sync-results' not in original
           assert 'github.event_name == ' + chr(39) + 'pull_request' + chr(39) in text
           print('EXACT_PROFILE_SOURCE_FREE_UNIT_VERIFIED')
