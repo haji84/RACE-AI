@@ -118,7 +118,7 @@ class IntradayState:
         captures=[p['captured_at'] for p in pointers if clock(p['captured_at']).astimezone(JST).date().isoformat()>=day]
         return dict(day=day,last_checked_at=c['last_checked_at'] or now.isoformat(),latest_result_at=max(captures,default=None),expected_races=expected,confirmed_races=len(confirmed),pending_races=None if expected is None else max(0,expected-len(confirmed)),schedule_complete=complete,source_state=state,revision_conflicts=len(c['conflicts']),source_receipts=list(receipts.values()))
     def advance(self,base,*,now,fetch,max_requests=12,result_targets=()):
-        now=clock(now);need(type(max_requests) is int and 1<=max_requests<=12,'INTRADAY_REQUEST_BOUND');c=self.control;day=now.astimezone(JST).date();text=day.isoformat();requests=changed=0
+        now=clock(now);need(type(max_requests) is int and 1<=max_requests<=36,'INTRADAY_REQUEST_BOUND');c=self.control;day=now.astimezone(JST).date();text=day.isoformat();requests=changed=0
         self.extra_rows(base,now=now)
         self.rollover(now)
         targets={}
@@ -176,16 +176,21 @@ class IntradayState:
         old=[rid for rid in result_due if targets[rid]['pending'] and rid not in fresh]
         revisions=[rid for rid in result_due if not targets[rid]['pending']]
         new_stats=[rid for rid in due if rid not in c['results']]
-        # Keep the original 12-GET hard cap. After urgent newly closed races
-        # and current-day venue discovery, reserve up to four *existing*
-        # requests for authenticated older saved results. Otherwise a busy
-        # new day can starve yesterday's pending P0 results until their
-        # encrypted saved day drops outside the two-day window.
+        # Normal runs retain the original 12-GET cap. Only a separately
+        # admitted recovery may request up to 36, retaining the SAME total
+        # source budget, one GET per race, source WAIT and single writer.
+        # After urgent current-day races/venue discovery, allocate half of
+        # the guarded catch-up budget to the oldest authenticated saved races
+        # so a busy new day does not starve yesterday's retained P0 outcomes.
         today_first=fresh+bootstrap+new_stats
         remaining=max_requests-requests
-        if old and remaining>=8 and len(fresh)+len(bootstrap)<remaining:
-            before=max(len(fresh)+len(bootstrap),remaining-4)
-            order=(today_first[:before]+old[:4]+today_first[before:]+old[4:]+
+        protected=len(fresh)+len(bootstrap)
+        old_quota=(4 if max_requests<=12 else max_requests//2)
+        older_count=min(len(old),old_quota,max(0,remaining-protected))
+        if old and older_count and remaining>=8:
+            before=max(protected,remaining-older_count)
+            order=(today_first[:before]+old[:older_count]+
+                   today_first[before:]+old[older_count:]+
                    [rid for rid in due if rid not in new_stats]+revisions)
         else:
             order=today_first+old+[rid for rid in due if rid not in new_stats]+revisions
