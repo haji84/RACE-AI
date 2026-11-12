@@ -46,13 +46,12 @@ jobs:
           from pathlib import Path
           t=Path('.github/workflows/boat-result-gap-recovery.yml').read_text()
           assert '--replay-retained-results' in t
-          assert '--sync-results' not in t
-          assert '--sync-beforeinfo' not in t
+          import re
+          assert not re.search(r'^\s+--sync-(?:results|beforeinfo)\b',t,re.MULTILINE)
           assert 'gh workflow run boat-result-gap-recovery.yml' in t
           assert "inputs.cycle == '2'" in t
           assert "github.event.workflow_run.event == 'schedule'" in t
           assert 'cancel-in-progress: false' in t
-          assert 'boot' not in t.lower() or 'BOOTSTRAP' not in t
           print('SOURCE_FREE_GAP_RECOVERY_CONTRACT_VERIFIED')
           PY
 
