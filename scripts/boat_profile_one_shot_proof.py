@@ -176,8 +176,49 @@ def _proof(raw,item):
           parsed['source_url']==item['url'],'OFFICIAL_HTML_IDENTITY')
     return True
 
-def execute(repo,*,readback=False,get_source=_official_get,github=_github,
-            now=None,key=None):
+
+def _check_observed_current_html(github, candidate, *, key, tag, base, now):
+    """Verify an already captured official HTML as a fresh observation.
+
+    Historical SHA mismatches are never upgraded into a historical source
+    match. This only verifies the 200-response source that the immutable,
+    once-reserved producer actually saved. No HTTP/provider GET here.
+    """
+    reservation=json.loads(github(base+'.reservation.json'))
+    _need(type(reservation) is dict
+          and set(reservation)=={'schema','day','tag','max_official_profile_gets',
+                                'requested_source_kind','authorized_by','state'}
+          and reservation['schema']==SCHEMA
+          and reservation['day']==DAY and reservation['tag']==tag
+          and reservation['max_official_profile_gets']==1
+          and reservation['requested_source_kind']=='OFFICIAL_PROFILE'
+          and reservation['authorized_by']=='OWNER_ONE_SHOT'
+          and reservation['state']=='RESERVED',
+          'CAPTURE_RESERVATION_NOT_VALID')
+    raw,header=_unpack(github(base+'.enc'),key,tag)
+    captured=datetime.fromisoformat(header['observed_at'].replace('Z','+00:00'))
+    _need(captured.utcoffset() is not None and captured<=now
+          and captured.date().isoformat()>=DAY,
+          'CAPTURE_OBSERVATION_CLOCK')
+    parsed=parse_basic_profile(raw,
+        registration=candidate['registration'],expected_name=candidate['name'])
+    _need(parsed['source_sha256']==header['source_bytes_sha256']
+          and parsed['source_url']==candidate['url']
+          and parsed['registration']==candidate['registration']
+          and parsed['name'].replace(' ','')==candidate['name'].replace(' ',''),
+          'FRESH_PROFILE_IDENTITY_INVALID')
+    return dict(status='PROFILE_CURRENT_OFFICIAL_HTML_READBACK_VERIFIED',
+                authenticated_current_profile=1,
+                historical_source_sha_matched=(
+                    header['source_bytes_sha256']==candidate['historical_sha256']),
+                official_profile_gets=0,
+                encrypted_source_retained=True,
+                new_forecasts_created=0,
+                display_name_auto_published=False,
+                source_unmodified=True)
+
+def execute(repo,*,readback=False,readback_current=False,
+            get_source=_official_get,github=_github,now=None,key=None):
     now=now or datetime.now(timezone.utc)
     key=state_key('production',key)
     candidate=_select(Path(repo),now)
@@ -185,6 +226,10 @@ def execute(repo,*,readback=False,get_source=_official_get,github=_github,
             new_forecasts_created=0,official_profile_gets=0)
     tag=_id(key,candidate['registration'])
     base=PREFIX+DAY+'/'+tag
+    _need(not (readback and readback_current), 'READBACK_MODE_CONFLICT')
+    if readback_current:
+        return _check_observed_current_html(github,candidate,key=key,
+                                            tag=tag,base=base,now=now)
     if readback:
         blob=github(base+'.enc')
         raw,header=_unpack(blob,key,tag)
@@ -214,9 +259,12 @@ def main(argv=None):
     p=argparse.ArgumentParser()
     p.add_argument('--repo-root',default=str(ROOT))
     p.add_argument('--readback',action='store_true')
+    p.add_argument('--readback-current',action='store_true',
+                   help='Verify a previously encrypted current official profile; zero source GET')
     args=p.parse_args(argv)
     try:
-        result=execute(args.repo_root,readback=args.readback)
+        result=execute(args.repo_root,readback=args.readback,
+                       readback_current=args.readback_current)
         print(json.dumps(result,sort_keys=True));return 0
     except Exception as e:
         # Fixed reason codes only; never print private strings or tracebacks.
