@@ -92,6 +92,20 @@ class FreshGateTests(unittest.TestCase):
                          'HOLD_RECOVERY_ROLLING_BUDGET')
         self.assertEqual(self.decision(parts)['authorized_source_gets'],0)
 
+    def test_primary_runs_reserve_shared_240_source_budget(self):
+        parts=list(fixture());parts[3]['due_count']=85
+        for i in range(18):
+            parts[0]['workflow_runs'].append(run(
+                60+i,-20-i,'workflow_dispatch',status='completed'))
+        decision=self.decision(parts)
+        self.assertEqual(decision['authorized_source_gets'],24)
+        self.assertEqual(decision['remaining_60m_gets'],24)
+        parts[0]['workflow_runs'].extend([
+            run(90,-40,'workflow_dispatch',status='completed'),
+            run(91,-41,'workflow_dispatch',status='completed')])
+        self.assertEqual(self.decision(parts)['status'],
+                         'HOLD_RECOVERY_ROLLING_BUDGET')
+
     def test_in_progress_previous_source_job_is_rejected_without_timer(self):
         parts=list(fixture())
         parts[2].append(dict(run_id=97,created_at=stamp(-1),
