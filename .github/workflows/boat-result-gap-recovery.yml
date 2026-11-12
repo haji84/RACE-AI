@@ -56,7 +56,7 @@ jobs:
           gh auth setup-git
           python - <<'PY'
           import subprocess
-          request=b'protocol=https\\nhost=github.com\\n\\n'
+          request=b'protocol=https\nhost=github.com\n\n'
           answer=subprocess.run(['git','credential','fill'],input=request,
               capture_output=True,timeout=15)
           fields=dict(line.split('=',1) for line in answer.stdout.decode().splitlines()
@@ -627,7 +627,7 @@ jobs:
           # URL-scoped. Verify its actual answer without logging the token.
           GIT_TERMINAL_PROMPT=0 python - <<'PY'
           import subprocess
-          request=b'protocol=https\\nhost=github.com\\n\\n'
+          request=b'protocol=https\nhost=github.com\n\n'
           response=subprocess.run(['git','-C','source-reader','credential','fill'],
               input=request,capture_output=True,timeout=15)
           values=dict(line.split('=',1) for line in response.stdout.decode('utf-8').splitlines()
