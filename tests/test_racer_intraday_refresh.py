@@ -20,6 +20,23 @@ class LocalPages(_DailyFilteredFetch,PagesRepository):
     def _check_remote(self):self.fetch_url=self.push_url=self._run(['remote','get-url','origin']).decode().strip()
 
 class RefreshTests(unittest.TestCase):
+    def test_unapproved_large_get_budget_is_rejected_before_any_source_or_secret(self):
+        self.assertIsNotNone(refresh)
+        with patch.dict(os.environ,{
+            'RACE_AI_BOAT_RESULT_CATCHUP_ADMITTED':'true',
+            'RACE_AI_BOAT_RESULT_GET_CAP':'36',
+            'GITHUB_ACTIONS':'false','GITHUB_REPOSITORY':'haji84/RACE-AI',
+        }):
+            with self.assertRaisesRegex(ValueError,'INTRADAY_CATCHUP_CONTEXT_INVALID'):
+                refresh(Path('/nonexistent'),Path('/nonexistent'),sync_results=True)
+        with patch.dict(os.environ,{
+            'RACE_AI_BOAT_RESULT_CATCHUP_ADMITTED':'true',
+            'RACE_AI_BOAT_RESULT_GET_CAP':'37',
+            'GITHUB_ACTIONS':'true','GITHUB_REPOSITORY':'haji84/RACE-AI',
+        }):
+            with self.assertRaisesRegex(ValueError,'INTRADAY_CATCHUP_REQUEST_LIMIT_INVALID'):
+                refresh(Path('/nonexistent'),Path('/nonexistent'),sync_results=True)
+
     def test_live_beforeinfo_shares_twelve_request_budget_and_survives_encrypted_restart(self):
         from copy import deepcopy
         from urllib.parse import urlsplit,parse_qs
