@@ -68,3 +68,12 @@ and per-model eligible/hit/miss/HOLD counts. Emit count-only evidence, never
 race identifiers, tickets, names, source HTML or decrypt keys. No provider GET,
 no owner 240/session reset, no extra schedule or speculative result filling.
 This marker is not completion proof. Failed/missing original input stays HOLD.
+
+2026-11-13 JST | Exact count-only HOLD cause classification for the immutable
+142 race, 284 P0 forecast original. Trigger only the pre-approved main
+boat-coverage: sourcefree-142-20261113 prefix. No racing provider GET,
+no change to original source rate 12 GET/run, no reset or retry, no raw
+source or original forecast published. Compare existing AES authenticated
+official result states and model scorer's fixed unresolved reason codes.
+Reject any reason whose total differs from the model HELD count. Keep all
+pending/missing/unsupported as HOLD until authentic formal receipts exist.
