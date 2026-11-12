@@ -1,0 +1,76 @@
+name: BOAT one-shot official profile proof isolated offline CI
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-profile-original-proof-offline.yml
+permissions:
+  contents: read
+concurrency:
+  group: boat-profile-original-proof-pr-only
+  cancel-in-progress: false
+jobs:
+  verify_only:
+    if: github.repository == 'haji84/RACE-AI' && github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact pinned pre-production one-shot candidate
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 2073c9bea918970097ddbb8335175c93270ae695
+          path: profile-owner
+          persist-credentials: false
+      - name: Checkout original pinned BOAT parser, never call provider
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - name: Checkout original pinned result adapter
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - name: Install pinned tested dependencies
+        run: python -m pip install --disable-pip-version-check -r profile-owner/requirements-history.txt
+      - name: Run synthetic one-shot reservation, historical SHA, AES tamper, no-second-GET regressions
+        working-directory: profile-owner
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          env -u GH_TOKEN -u GITHUB_TOKEN -u RACE_AI_STATE_KEY python - <<'PY'
+          import socket, unittest
+          from pathlib import Path
+          import race_ai
+          from unittest.mock import patch
+          for folder in ('../pr64-reference', '../pr72-reference'):
+              package=Path(folder, 'race_ai').resolve()
+              assert package.is_dir(), 'PINNED_PARSER_NOT_AVAILABLE'
+              race_ai.__path__.append(str(package))
+          with patch('urllib.request.urlopen',side_effect=AssertionError('EXTERNAL_GET_FORBIDDEN_IN_PR')), \
+               patch('socket.create_connection',side_effect=AssertionError('EXTERNAL_CONNECTION_FORBIDDEN_IN_PR')):
+              suite=unittest.defaultTestLoader.loadTestsFromNames([
+                  'tests.test_boat_profile_one_shot_proof',
+                  'tests.test_racer_profiles',
+              ])
+              result=unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(0 if result.wasSuccessful() else 1)
+          PY
+      - name: Confirm profile proof is not enabled by the main workflow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          main = Path('profile-owner/scripts/boat_profile_one_shot_proof.py').read_text()
+          assert 'def execute(' in main
+          assert 'github(base+\'.reservation.json\',body=reservation)' in main
+          assert "raw=get_source(candidate['url'])" in main
+          assert main.index("github(base+'.reservation.json',body=reservation)") < main.index("raw=get_source(candidate['url'])")
+          assert 'HISTORICAL_HTML_SHA_MISMATCH' in main
+          assert 'display_name_auto_published=False' in main
+          assert '--replay-retained-results' not in main
+          print('OFFLINE_PROFILE_PROOF_CONTRACT_ONLY_NO_REAL_SOURCE_GET')
+          PY
