@@ -48,7 +48,8 @@ class LiveConnectionTests(unittest.TestCase):
          patch.object(p,'collect_entry_history',return_value=None))
   from contextlib import ExitStack
   with ExitStack() as stack:
-   for adapter in setup:stack.enter_context(adapter)
+   mocks=[stack.enter_context(adapter) for adapter in setup]
+   pit,history=mocks[-2:]
    with patch.object(p,'SOURCE_GUARD',Budget(4)),patch.object(p,'get',side_effect=captured) as get:
     status,pair,extended,priced,observed=p.make_pair(date(2030,4,1),race,reserved_next_gets=4)
     self.assertIsNotNone(pair,status)
@@ -56,12 +57,16 @@ class LiveConnectionTests(unittest.TestCase):
     self.assertEqual(priced['state'],'OPTIONAL_ODDS_DEFERRED_FOR_REQUIRED_P1_GETS')
     self.assertEqual(get.call_count,2)
     self.assertTrue(all('odds3t' not in args[0][0] for args in get.call_args_list))
+    pit.assert_not_called()
+    history.assert_not_called()
    with patch.object(p,'SOURCE_GUARD',Budget(5)),patch.object(p,'get',side_effect=captured) as get:
     status,pair,_,_,observed=p.make_pair(date(2030,4,1),race,reserved_next_gets=4)
     self.assertIsNotNone(pair,status)
     self.assertIsNotNone(observed,status)
     self.assertEqual(get.call_count,3)
     self.assertIn('odds3t',get.call_args_list[-1][0][0])
+    pit.assert_called_once()
+    history.assert_called_once()
 
  def test_unknown_optional_budget_fails_closed(self):
   p=self.pilot()
