@@ -8,6 +8,7 @@ on:
       - tests/test_boat_result_gap_audit.py
       - scripts/boat_result_gap_fresh_gate.py
       - tests/test_boat_result_gap_fresh_gate.py
+      - docs/evidence/boat-gap-replay-trigger.txt
   push:
     branches: [main]
     paths:
