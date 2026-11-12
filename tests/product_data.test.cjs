@@ -338,6 +338,40 @@ test("same-day saved official result name is proven by source race and exact tar
   assert.throws(()=>M.parse(make({kind:"NOT_VERIFIED"})),/出典|選手名|不正/);
 });
 
+test("newly verified current official profile cannot be mistaken for historical original", () => {
+  const source={
+    kind:"VERIFIED_OFFICIAL_PROFILE", registration_no:"4430",
+    source_url:"https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4430",
+    source_sha256:RESULT, captured_at:"2030-01-01T10:20:00+09:00",
+    verified_current:true
+  };
+  const make=(changes={})=>{
+    const data=privateCycle();
+    data.records[0].participants[0].name="架空・当日公式プロフィール名";
+    data.records[0].participants[0].name_source={...source,...changes};
+    return data;
+  };
+  const original=make(),before=JSON.stringify(original),parsed=M.parse(original);
+  assert.equal(JSON.stringify(original),before);
+  const person=parsed.records[0].participants[0];
+  assert.equal(person.name_source.kind,"VERIFIED_OFFICIAL_PROFILE");
+  assert.equal(person.name_source.verified_current,true);
+  assert.equal(parsed.records[0].prediction.prediction_sha256,SHA);
+  assert.equal(M.eligiblePrediction(parsed.records[0],parsed.records[0].prediction),false);
+  for(const bad of [
+    {registration_no:"9999"}, {verified_current:false}, {verified_current:null},
+    {source_sha256:"invalid"},{captured_at:"invalid"},
+    {captured_at:"2029-12-31T23:59:59+09:00"},
+    {source_url:"https://example.invalid/owpc/pc/data/racersearch/profile?toban=4430"},
+    {source_url:"http://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4430"},
+    {source_url:"https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4431"},
+    {source_url:"https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4430&debug=1"},
+    {source_url:"https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4430&toban=4430"}
+  ]) {
+    assert.throws(()=>M.parse(make(bad)),/出典|選手名|不正/,JSON.stringify(bad));
+  }
+});
+
 test("private cycle projection admits exact saved partial metadata without fake time/hash/version", () => {
   const raw=privateCycle(), before=JSON.stringify(raw), parsed=M.parse(raw), r=parsed.records[0], p=r.prediction;
   assert.equal(JSON.stringify(raw),before);
