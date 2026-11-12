@@ -169,3 +169,19 @@ test('a different authenticated same-day original cannot replace the expected re
     assert.throws(()=>C.validate({...context,expected_original:{...context.expected_original,[field]:value}}));
   }
 });
+
+test('last current official profile proof binds exact DOM registration, lane and name',()=>{
+  const p={number:6,registration_no:'4206',name:'合成選手6'};
+  const context={current_official_profile_probe:p};
+  const cards=[{number:1,registration:'4201',name:'合成選手1'},
+               {number:6,registration:'4206',name:'合成選手6'},
+               {number:3,registration:'4203',name:'合成選手3'}];
+  assert.equal(C.requireCurrentProfile(context,cards),true);
+  for(const changes of [
+    [{number:1,registration:'4201',name:'合成選手1'}],
+    cards.map(x=>x.number===6?{...x,number:5}:x),
+    cards.map(x=>x.number===6?{...x,name:'別の名前'}:x),
+    cards.map(x=>x.number===6?{...x,registration:'4999'}:x),
+    [...cards,cards[1]]
+  ])assert.throws(()=>C.requireCurrentProfile(context,changes));
+});
