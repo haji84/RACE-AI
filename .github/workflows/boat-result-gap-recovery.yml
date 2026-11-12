@@ -57,6 +57,16 @@ jobs:
           ref: 6327bc5675aee2da94ac13397f1f86f39b27d8fd
           path: source-reader
           persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
       - run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
       - name: Verify original Git credentials with new local commit, only dry-run remotely
         env:
@@ -67,6 +77,11 @@ jobs:
           import json,os,re,subprocess,sys
           from pathlib import Path
           sys.path.insert(0,str(Path('source-reader').resolve()))
+          import race_ai
+          for sibling in ('pr64-reference','pr72-reference'):
+              package=Path(sibling,'race_ai').resolve()
+              assert package.is_dir()
+              race_ai.__path__.append(str(package))
           phase='import'
           try:
               from scripts.boat_private_original_vault import _environment
@@ -238,6 +253,9 @@ jobs:
           assert 'original_inventory_unchanged' in text
           assert 'BOAT_SOURCE_FREE_DIAGNOSTIC_PASSED' in text
           assert 'BOAT_GIT_WRITE_DRY_RUN_DIAGNOSTIC' in text
+          probe=text.split('  source_free_git_probe:',1)[1].split('  source_free_diagnostic:',1)[0]
+          assert 'pr64-reference' in probe and 'pr72-reference' in probe
+          assert 'race_ai.__path__.append(str(package))' in probe
           assert 'code_trace=trace[-3:]' in text
           assert "phase='dry-run'" in text
           assert "boat-git-probe: readonly-git-20261112" in text
