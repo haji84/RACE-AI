@@ -73,6 +73,11 @@ jobs:
           GH_TOKEN: '${{ github.token }}'
           RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
         run: |
+          gh auth setup-git
+          if git config --get-regexp '^url\\..*\\.(insteadof|pushinsteadof)$' >/dev/null; then
+            echo 'HOLD_GIT_URL_REWRITE'
+            exit 2
+          fi
           python - <<'PY'
           import json,os,re,subprocess,sys
           from pathlib import Path
@@ -261,6 +266,8 @@ jobs:
           assert 'BOAT_SOURCE_FREE_DIAGNOSTIC_PASSED' in text
           assert 'BOAT_GIT_WRITE_DRY_RUN_DIAGNOSTIC' in text
           probe=text.split('  source_free_git_probe:',1)[1].split('  source_free_diagnostic:',1)[0]
+          assert 'gh auth setup-git' in probe
+          assert 'git config --get-regexp' in probe
           assert 'pr64-reference' in probe and 'pr72-reference' in probe
           assert 'race_ai.__path__.append(str(package))' in probe
           assert 'code_trace=trace[-3:]' in text
