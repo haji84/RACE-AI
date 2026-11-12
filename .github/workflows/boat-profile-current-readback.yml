@@ -66,7 +66,7 @@ jobs:
           assert '--readback-current' in s
           assert "boat-profile-current-readback: 20261112-verified-cipher" in s
           assert '8ebd36accc8a51eb586560c5db16f415ad601b9b' in s
-          production=s.rsplit('\\n  current_observed_source:\\n',1)[1]
+          production=s.rsplit('\n  current_observed_source:\n',1)[1]
           assert 'from scripts.boat_profile_one_shot_proof import execute' in production
           assert "result=execute('.',readback_current=True)" in production
           assert ('gh'+' workflow '+'run ') not in production
