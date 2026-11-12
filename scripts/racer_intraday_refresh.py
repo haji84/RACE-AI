@@ -17,6 +17,21 @@ from scripts.racer_daily_refresh import refresh as retain_daily,verify_public
 
 def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,fetch=None,base_transport=None,intraday_transport=None,pages_transport=None,roster=None,verify=False,sync_results=False,result_bridge=None,sync_beforeinfo=False):
     need(not sync_beforeinfo or sync_results,'BEFOREINFO_RESULT_FEED_REQUIRED')
+    # The ordinary BOAT worker keeps its proven 12-GET ceiling. A larger
+    # result-only catch-up is admitted ONLY by the production gap policy,
+    # with the exact cap passed through a protected workflow step output.
+    cap=12
+    admitted=os.environ.get('RACE_AI_BOAT_RESULT_CATCHUP_ADMITTED')
+    requested=os.environ.get('RACE_AI_BOAT_RESULT_GET_CAP')
+    if requested is not None or admitted is not None:
+        need(admitted=='true' and requested is not None and
+             os.environ.get('GITHUB_ACTIONS')=='true' and
+             os.environ.get('GITHUB_REPOSITORY')=='haji84/RACE-AI' and
+             sync_results and not daily_reconcile and not initialize and
+             not sync_beforeinfo,'INTRADAY_CATCHUP_CONTEXT_INVALID')
+        need(requested.isdecimal() and str(int(requested))==requested and
+             12<=int(requested)<=36,'INTRADAY_CATCHUP_REQUEST_LIMIT_INVALID')
+        cap=int(requested)
     current=(lambda:clock(now)) if now is not None else (lambda:datetime.now(timezone.utc));started=current();root=private_root(private_dir)
     daily=None
     if daily_reconcile:
@@ -42,11 +57,14 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
         if daily_reconcile:
             state.rollover(current());state.control['last_checked_at']=current().isoformat();outcome=dict(status='READY' if daily['status']=='DAILY_RETAINED' else 'SOURCE_WAIT',requests=0,new_observations=0)
         else:
-            with (OfficialClient() if fetch is None else nullcontext(fetch)) as source:
+            # Longer pacing for large guarded backlog cycles; 403/429 and
+            # transient provider WAIT continue to stop the entire host.
+            with (OfficialClient(interval_seconds=2 if cap>12 else 1)
+                  if fetch is None else nullcontext(fetch)) as source:
                 if sync_beforeinfo and bridge:
                     from race_ai.racer_beforeinfo import collect_beforeinfo
                     beforeinfo=collect_beforeinfo(state,bridge.rows,now=current(),fetch=source,max_requests=4)
-                outcome=state.advance(base,now=current(),fetch=source,max_requests=12-beforeinfo['requests'],**(dict(result_targets=targets) if bridge else {}))
+                outcome=state.advance(base,now=current(),fetch=source,max_requests=cap-beforeinfo['requests'],**(dict(result_targets=targets) if bridge else {}))
                 outcome['requests']+=beforeinfo['requests']
         finished=current();state.control['last_checked_at']=finished.isoformat()
         roster=roster if roster is not None else json.loads((ROOT/'web/data/racer-profiles.json').read_text())['people']
