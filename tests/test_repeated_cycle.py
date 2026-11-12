@@ -61,17 +61,19 @@ class OptionalSourceAllowanceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'optional-source.json'
             state=r.start(path,day='2030-04-01',run_id=118,now=now,
-                source_control=dict(day_jst='2030-04-01',lifetime_requests=300,
+                source_control=dict(day_jst='2030-04-01',lifetime_requests=280,
                                     day_start_lifetime_requests=100))
             guard=r.SourceGuard(path,clock=lambda:now)
             frozen=path.read_bytes()
-            self.assertEqual(guard.remaining(),40)
+            self.assertEqual(guard.remaining(),60)
             self.assertEqual(path.read_bytes(),frozen)
             guard.charge('forecast')
-            self.assertEqual(guard.remaining(),39)
-            self.assertEqual(r.load(path)['lifetime_requests']-r.load(path)['day_start_lifetime_requests'],201)
-            r.prepare(path,1,now=now)
-            self.assertEqual(guard.remaining(),39)
+            self.assertEqual(guard.remaining(),59)
+            self.assertEqual(r.load(path)['lifetime_requests']-r.load(path)['day_start_lifetime_requests'],181)
+            prepared=r.prepare(path,1,now=now)
+            self.assertTrue(prepared['active'])
+            # After round preparation, 45/round, not 59/day, is the limit.
+            self.assertEqual(guard.remaining(),45)
             state=r.load(path)
             state['source_wait']=dict(state='SOURCE_REVIEW_WAIT',reason='SOURCE_VERIFICATION_REQUIRED',
                                       retry_at=None,http_status=None,attempts=1)
