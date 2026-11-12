@@ -18,9 +18,9 @@ class FreshGateTests(unittest.TestCase):
         return inspect(*(parts or fixture()),now=overrides.get('now',NOW),
                        current_run_id=overrides.get('current_run_id',99),
                        run_attempt=overrides.get('run_attempt',1))
-    def test_admits_once_using_existing_12_get_collector_not_owner_240(self):
+    def test_adaptive_bounded_source_gets_preserve_owner_240(self):
         ans=self.decision();self.assertEqual(ans['status'],'FRESH_RESULT_GET_ADMITTED')
-        self.assertEqual(ans['authorized_source_gets'],12)
+        self.assertEqual(ans['authorized_source_gets'],17)
         self.assertTrue(ans['source_owner_240_unchanged'])
 
     def test_recovery_schedule_uses_same_guards_as_workflow_run_and_never_resets_budget(self):
@@ -28,7 +28,7 @@ class FreshGateTests(unittest.TestCase):
         parts[1]['workflow_runs'][0]['event']='schedule'
         actual=self.decision(parts)
         self.assertEqual(actual['status'],'FRESH_RESULT_GET_ADMITTED')
-        self.assertEqual(actual['authorized_source_gets'],12)
+        self.assertEqual(actual['authorized_source_gets'],17)
         self.assertTrue(actual['source_owner_240_unchanged'])
         self.assertEqual(self.decision(parts,run_attempt=2)['status'],'HOLD_ATTEMPT_RETRY')
         parts[0]['workflow_runs'].append(run(52,-4))
@@ -36,6 +36,18 @@ class FreshGateTests(unittest.TestCase):
         parts[0]['workflow_runs'].pop()
         parts[2].append(dict(run_id=98,created_at=stamp(-10),job_name=FRESH))
         self.assertEqual(self.decision(parts)['status'],'HOLD_ALREADY_ATTEMPTED_IN_WINDOW')
+
+    def test_backlog_above_thirty_six_uses_strict_36_not_unlimited(self):
+        p=list(fixture());p[3]['due_count']=85
+        d=self.decision(p)
+        self.assertEqual(d['authorized_source_gets'],36)
+        self.assertTrue(d['source_owner_240_unchanged'])
+        p[3]['due_count']=3
+        self.assertEqual(self.decision(p)['authorized_source_gets'],12)
+        p[3]['due_count']=24
+        self.assertEqual(self.decision(p)['authorized_source_gets'],24)
+        p[3]['boatrace_hold_until']=stamp(200)
+        self.assertEqual(self.decision(p)['authorized_source_gets'],0)
 
     def test_only_within_live_jst_window(self):
         a=self.decision(now=datetime(2030,4,1,15,0,tzinfo=timezone.utc))
