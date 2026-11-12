@@ -103,3 +103,20 @@ Daily cumulative 240 source GET limit, 45 round limit, first original immutabili
 Do not label this triggering note as any real-race forecast or Pages publication.
 GOAL: actual nationwide race schedule vs authenticated stage/model originals,
 including reasoned missing coverage and real Pages delivery to secret viewer.
+
+2026-11-12 JST | OWNER SOURCE-FREE FAILED-SESSION P0 READBACK / ENCRYPTED SITE REPAIR
+Target exactly existing real production workflow_dispatch 43131905826,
+production head cf7b6f6a926396c6873e78fe1ad1d3d6840088a8,
+with 2026-11-12 first-P0 artifact 13905925953,
+immutable original ZIP SHA256 5a3287ac9cb45be6907be6c7d370c04addf3216d6e70184bda20e05502c80c6d.
+Actual initial saved receipt says 142 P0 races, 284 existing model forecasts.
+That source run ended FAILURE at the offline official B retention step,
+after first P0 was saved; it also retained matching CONTINUITY and
+SOURCE_CONTROL artifacts 13905208588 and 13906460172.
+The existing source-free main original_retention/independent_readback/
+reconcile path will authenticate all three original artifacts at exact source
+head, restore only original ciphertext and Git source-free already-retained
+official results, then append to the existing encrypted Pages feed.
+No extra official GET, no new source worker, no retroactive or overwritten P0/P1,
+no key/public prediction leakage, no API or request cap change.
+No real P1 generation or nationwide completeness is claimed.
