@@ -312,6 +312,87 @@ def _name_counts(view, day, names):
         display_name_registry_bound=bound, display_name_missing=len(people)-present)
 
 
+
+def _profile_index_diagnostic(repo, view, *, now, registry_sha,
+                              expected_sha='e810da0da13c47ec3f26dc5a1df67c153ee5dc7363e678fa79b61eabd60bb811',
+                              expected_size=2452782):
+    """Count possible missing labels in a pinned public official-profile index.
+
+    A profile index is NOT independently re-parsed official source HTML. This
+    only reports count-only candidates. It never promotes any index text to
+    an authenticated display name or creates a provider request.
+    """
+    targets = {p['registration_no'] for row in view['records'] if row.get('sport') == 'boat'
+               for p in row.get('participants', []) if not p.get('name')}
+    if not targets:
+        return dict(display_name_profile_index_candidates=0,
+                    display_name_profile_index_unmatched=0,
+                    display_name_profile_index_source_reparsed=False)
+    _need(type(registry_sha) is str and len(registry_sha) == 64,
+          'PROFILE_REGISTRY_SOURCE_REQUIRED')
+    path = Path(repo) / 'web/data/racer-profiles.json'
+    _need(path.is_file() and not path.is_symlink() and path.stat().st_size == expected_size,
+          'PROFILE_CATALOGUE_MISSING_OR_BOUND')
+    raw = _read(path, expected_size)
+    _need(len(raw) == expected_size and sha256(raw).hexdigest() == expected_sha,
+          'PROFILE_CATALOGUE_PIN_INVALID')
+    catalogue = _json(raw, expected_size)
+    source = catalogue.get('source')
+    _need(catalogue.get('schema') == 'RACE_AI_RACER_PROFILES_V1'
+          and type(source) is dict
+          and source.get('sha256') == registry_sha
+          and type(catalogue.get('people')) is list
+          and len(catalogue['people']) <= 2500,
+          'PROFILE_CATALOGUE_SOURCE_INVALID')
+    from race_ai.boat_racer_term import term_info
+    _need(source.get('url') == term_info('2026-2')['source_url']
+          and instant(source['captured_at']) <= now,
+          'PROFILE_CATALOGUE_TERM_CLOCK_INVALID')
+    basics = source.get('basic_sources')
+    _need(type(basics) is list and len(basics) <= 100,
+          'PROFILE_CATALOGUE_BASIC_SOURCES_INVALID')
+    original = {}
+    for row in basics:
+        _need(type(row) is dict and set(row) == {'registration','url','sha256','captured_at'}
+              and type(row['registration']) is str and len(row['registration']) == 4
+              and row['registration'].isdigit() and row['registration'] not in original,
+              'PROFILE_BASIC_SOURCE_IDENTITY_INVALID')
+        number = row['registration']
+        expected_url = 'https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=' + number
+        _need(row['url'] == expected_url
+              and type(row['sha256']) is str and len(row['sha256']) == 64
+              and all(c in '0123456789abcdef' for c in row['sha256'])
+              and instant(row['captured_at']) <= now,
+              'PROFILE_BASIC_SOURCE_PROVENANCE_INVALID')
+        original[number] = row
+    index = {}
+    for row in catalogue['people']:
+        _need(type(row) is dict and type(row.get('registration')) is str
+              and len(row['registration']) == 4
+              and row['registration'].isdigit()
+              and row['registration'] not in index,
+              'PROFILE_CATALOGUE_ENTRY_INVALID')
+        index[row['registration']] = row
+    candidate = 0
+    for number in targets:
+        row = index.get(number)
+        if row is None or row.get('term') is not None:
+            continue
+        basic = row.get('basic')
+        doc = original.get(number)
+        if (type(basic) is dict and doc is not None
+                and basic.get('registration') == number
+                and basic.get('name') == row.get('name')
+                and type(row.get('name')) is str and bool(row['name'].strip())
+                and basic.get('source_url') == doc['url']
+                and basic.get('source_sha256') == doc['sha256']
+                and basic.get('captured_at') == doc['captured_at']):
+            candidate += 1
+    return dict(display_name_profile_index_candidates=candidate,
+                display_name_profile_index_unmatched=len(targets)-candidate,
+                display_name_profile_index_source_reparsed=False)
+
+
 def _score_counts(scored):
     """Project the native verdicts to counts/hashes, without forecast bodies."""
     verdicts = scored['per_forecast']
@@ -334,7 +415,8 @@ def _score_counts(scored):
 def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
               companion_artifacts, transport=None, receipt_get=None,
               feed_transport=None, intraday_transport=None, runtime_transport=None,
-              now=None, include_verified_result_names=False):
+              now=None, include_verified_result_names=False,
+              diagnose_profile_index=False):
     """Verify, replay retained results and append to the existing encrypted feed.
 
     Optional transports replace external Git/Contents I/O only. All private
@@ -410,6 +492,10 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
               'SOURCE_STATE_CHANGED')
         F.ensure_append_only(before, after)
         name_counts = _name_counts(after, day, names)
+        if diagnose_profile_index:
+            stage = 'PROFILE_CATALOGUE_DIAGNOSTIC'
+            name_proof.update(_profile_index_diagnostic(
+                repo, after, now=now, registry_sha=name_proof['display_name_registry_source_sha256']))
 
         stage = 'ORIGINAL_PROTECTION'
         protection = protect_new_forecast_originals(before, after, repo,
@@ -462,6 +548,8 @@ def main(argv=None, *, transport=None, receipt_get=None, feed_transport=None,
     parser.add_argument('--day', required=True)
     parser.add_argument('--p0-artifact', type=int, required=True)
     parser.add_argument('--companion-artifact', type=int, action='append', required=True)
+    parser.add_argument('--diagnose-profile-index', action='store_true',
+                        help='Count-only check of pinned official-profile index; does not fill names')
     parser.add_argument('--include-verified-result-names', action='store_true',
                         help='Source-free display-only names from already retained exact official results')
     parser.add_argument('--output', required=True)
@@ -474,7 +562,8 @@ def main(argv=None, *, transport=None, receipt_get=None, feed_transport=None,
             companion_artifacts=args.companion_artifact, transport=transport,
             receipt_get=receipt_get, feed_transport=feed_transport,
             intraday_transport=intraday_transport, runtime_transport=runtime_transport,
-            now=now, include_verified_result_names=args.include_verified_result_names)
+            now=now, include_verified_result_names=args.include_verified_result_names,
+            diagnose_profile_index=args.diagnose_profile_index)
         vaultCLI._write(output, V._wire(report) + b'\n')
         print(V._wire(report).decode('utf-8'))
         return 0
