@@ -67,19 +67,27 @@ jobs:
           import json,os,re,subprocess,sys
           from pathlib import Path
           sys.path.insert(0,str(Path('source-reader').resolve()))
+          phase='import'
           try:
               from scripts.boat_private_original_vault import _environment
               from race_ai.boat_pdca_github_handoff import GitStateRepository,TRANSFER_REF
+              phase='environment'
               repo=_environment(Path('source-reader').resolve())
+              phase='remote'
               gate=GitStateRepository(repo,ref=TRANSFER_REF)
+              phase='ls-remote'
               parent=gate.head()
               assert parent and re.fullmatch('[a-f0-9]{40}',parent)
+              phase='fetch'
               gate.fetch(parent)
+              phase='local-commit'
               candidate=gate.commit({},parent)
               assert re.fullmatch('[a-f0-9]{40}',candidate) and candidate!=parent
+              phase='dry-run'
               status=subprocess.run(['git','push','--dry-run',gate.push_url,
                   candidate+':refs/heads/'+gate.ref],cwd=repo,
                   stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=50)
+              phase='verify-remote'
               unchanged=gate.head()==parent
               print(json.dumps(dict(status='BOAT_GIT_WRITE_DRY_RUN_DIAGNOSTIC',
                   dry_run_exit_zero=status.returncode==0,remote_unchanged=unchanged,
@@ -89,8 +97,17 @@ jobs:
               reason=(str(e) if type(e) is ValueError and
                       re.fullmatch('[A-Z0-9_]{3,100}',str(e))
                       else 'BOAT_GIT_DIAGNOSTIC_UNKNOWN')
+              trace=[]
+              tb=e.__traceback__
+              while tb:
+                  frame=tb.tb_frame.f_code
+                  file=Path(frame.co_filename).name
+                  if re.fullmatch('[a-zA-Z0-9_]+\\.py',file):
+                      trace.append(file+':'+str(tb.tb_lineno))
+                  tb=tb.tb_next
               print(json.dumps(dict(status='BOAT_GIT_WRITE_DRY_RUN_HOLD',
-                  reason=reason,official_source_gets=0,
+                  phase=phase,exception_type=type(e).__name__[:32],
+                  code_trace=trace[-3:],reason=reason,official_source_gets=0,
                   remote_state_written=False),sort_keys=True))
               raise SystemExit(2)
           PY
@@ -221,6 +238,8 @@ jobs:
           assert 'original_inventory_unchanged' in text
           assert 'BOAT_SOURCE_FREE_DIAGNOSTIC_PASSED' in text
           assert 'BOAT_GIT_WRITE_DRY_RUN_DIAGNOSTIC' in text
+          assert 'code_trace=trace[-3:]' in text
+          assert "phase='dry-run'" in text
           assert "boat-git-probe: readonly-git-20261112" in text
           assert "'--dry-run'" in text
           assert 'boat-gap-diagnostic: pinned-readonly-20261112' in text
