@@ -51,7 +51,14 @@ def recovery_selection(*, run: dict, artifacts: dict) -> dict:
     require(type(run) is dict and type(run.get('id')) is int and run['id'] > 0)
     original_incident = (run['id'] == 42995325741 and
                          run.get('head_sha') == 'e24f09f150e2318dd16a96bdc6db1d8c1317b9ae')
-    require((original_incident or run.get('head_sha') == RELEASE_SHA) and
+    # This exact earlier production run retained a genuine first P0 before
+    # PR166 advanced production to a newer, separately audited release SHA.
+    # Only physical original recovery is allowed; never dispatch a source job.
+    retained_old_p0 = (run['id'] == 43131905826 and
+                       run.get('head_sha') == 'cf7b6f6a926396c6873e78fe1ad1d3d6840088a8')
+    if run['id'] == 43131905826:
+        require(retained_old_p0)  # Never reassign this immutable run to a newer release.
+    require((original_incident or retained_old_p0 or run.get('head_sha') == RELEASE_SHA) and
             run.get('head_branch') == RELEASE_REF and
             run.get('event') == 'workflow_dispatch' and
             type(run.get('workflow_id')) is int and run['workflow_id'] == 405276784 and
@@ -84,6 +91,17 @@ def recovery_selection(*, run: dict, artifacts: dict) -> dict:
                 re.fullmatch(r'sha256:[a-f0-9]{64}', item['digest']) is not None)
         _stamp(item.get('created_at'))
         selected.append(item)
+    if retained_old_p0:
+        # Pin exact authentic source artifacts, not only a now-mutable
+        # production branch name or a date. The independent AES reader still
+        # checks their actual bytes and inner original/receipt clocks.
+        require([(item['id'], item['digest']) for item in selected] == [
+            (13905925953, 'sha256:5a3287ac9cb45be6907be6c7d370c04addf3216d6e70184bda20e05502c80c6d'),
+            (13905208588, 'sha256:f11be8ff9b65d46c9f03a43ca496fa77c19bd26c01b081ae8253840e737e1644'),
+            (13906460172, 'sha256:b6b17372f57caa642aa9e249df42bfeddd512181371892a5eef988347d4a55f7'),
+        ])
+        require(_stamp(selected[0]['created_at']).astimezone(ZoneInfo('Asia/Tokyo')).date().isoformat()
+                == '2026-11-12')
     return dict(source_run_id=run['id'], source_sha=run['head_sha'],
                 day_jst=_stamp(selected[0]['created_at']).astimezone(ZoneInfo('Asia/Tokyo')).date().isoformat(),
                 p0_artifact=selected[0]['id'],
