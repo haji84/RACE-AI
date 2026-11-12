@@ -380,6 +380,55 @@ class FirstP0ReconcileTests(unittest.TestCase):
                       'model_score_counts', 'original_document_set_sha256'):
             self.assertEqual(after[field], before[field])
     
+    def test_source_free_official_result_names_fill_only_exact_missing_racer(self):
+        # The default path remains unchanged until the explicit display-only flag.
+        self.seed_runtime(range(4001, 4006))
+        self.capture(); self.save_results()
+        before = self.run_reconcile()
+        self.assertEqual(before['display_name_missing'], 1)
+        after = self.run_reconcile(include_verified_result_names=True)
+        self.assertEqual(after['display_name_missing'], 0)
+        self.assertEqual(after['display_name_result_candidates'], 1)
+        self.assertEqual(after['display_name_result_races'], 1)
+        current = F.current_view(self.feed, self.bootstrap, day=self.bundle['day'])[3]
+        person = next(p for p in current['records'][0]['participants']
+                      if p['registration_no'] == '4006')
+        self.assertEqual(person['name_source']['kind'], 'SAME_RACE_RESULT')
+        self.assertEqual(person['name_source']['race_id'], current['records'][0]['race_id'])
+        for field in ('native_evaluation_sha256', 'original_document_set_sha256',
+                      'native_verdict_counts', 'model_score_counts'):
+            self.assertEqual(after[field], before[field])
+        self.assertTrue(after['originals_unchanged'])
+        self.assertEqual(after['new_forecasts_created'], 0)
+        self.assertEqual(after['provider_requests'], 0)
+        self.assertEqual(after['forecast_rewrites'], 0)
+        self.assertFalse(after['plaintext_published'])
+
+    def test_retained_result_names_hold_pending_and_foreign_registration(self):
+        from race_ai.racer_intraday_source import parse_result
+        day = self.bundle['day']; rid = day.replace('-', '')+'-01-01'
+        base = dict(records=[dict(sport='boat', race_id=rid,
+            participants=[dict(number=6, registration_no='4999', name=None)])])
+        raw, receipt = packet(document(day=day.replace('-', '')), captured=NOW.isoformat())
+        self.assertEqual(parse_result(raw, receipt, now=NOW)['status'], 'CONFIRMED')
+        self.assertEqual(reconcile._retained_result_names([(raw, receipt)], base, NOW), ({}, 0))
+        waiting, waiting_receipt = packet(document(day=day.replace('-', ''), pending=True),
+                                          captured=NOW.isoformat())
+        self.assertEqual(reconcile._retained_result_names(
+            [(waiting, waiting_receipt)], base, NOW), ({}, 0))
+
+    def test_conflicting_authenticated_result_names_never_override_a_frozen_identity(self):
+        day = self.bundle['day']; rid = day.replace('-', '')+'-01-01'
+        target = dict(records=[dict(sport='boat', race_id=rid,
+            participants=[dict(number=6, registration_no='4006', name=None)])])
+        body = document(day=day.replace('-', ''))
+        raw1, rec1 = packet(body, captured=(NOW-timedelta(minutes=1)).isoformat())
+        other = deepcopy(body)
+        other['maindata']['teiinfolist'][-1]['racername'] = '別の架空名'
+        raw2, rec2 = packet(other, captured=NOW.isoformat())
+        with self.assertRaisesRegex(ValueError, 'FIRST_P0_RECONCILE_RETAINED_RESULT_NAME_CONFLICT'):
+            reconcile._retained_result_names([(raw1, rec1), (raw2, rec2)], target, NOW)
+
     def test_missing_registration_stays_missing_without_guessing(self):
         self.seed_runtime(range(4001, 4006))
         self.capture(); self.save_results()
