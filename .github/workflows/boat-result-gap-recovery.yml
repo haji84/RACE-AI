@@ -104,6 +104,39 @@ jobs:
           assert "need(self.head()==parent,'STATE_REF_CONCURRENT_UPDATE')" in c
           print('BOAT_BLOBLESS_FULL_HISTORY_SOURCE_UNIT_VERIFIED')
           PY
+      - name: Reproduce exact live Git daily-state fetch without provider GET or secret
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          python - <<'PY'
+          import base64,json,os,re
+          from pathlib import Path
+          from race_ai.boat_pdca_github_handoff import GitStateRepository,TRANSFER_REF
+          from race_ai.racer_daily_handoff import DailyStateRepository
+          token=os.environ['GH_TOKEN']
+          assert re.fullmatch('[A-Za-z0-9_.-]{20,512}',token)
+          count=int(os.environ.get('GIT_CONFIG_COUNT','0'))
+          assert 0<=count<=30
+          os.environ['GIT_CONFIG_KEY_'+str(count)]='http.https://github.com/haji84/RACE-AI.extraheader'
+          os.environ['GIT_CONFIG_VALUE_'+str(count)]='AUTHORIZATION: basic '+base64.b64encode(('x-access-token:'+token).encode()).decode()
+          os.environ['GIT_CONFIG_COUNT']=str(count+1)
+          report={}
+          for label,cls in (('daily_filtered',DailyStateRepository),('base_transport',GitStateRepository)):
+              try:
+                  git=cls(Path('.'),ref=TRANSFER_REF)
+                  commit=git.head()
+                  assert commit and re.fullmatch('[a-f0-9]{40}',commit)
+                  git.fetch(commit)
+                  assert git.exists(commit,'state/boat-racer-intraday/v1/latest.json')
+                  report[label]='EXACT_GIT_FETCH_OK'
+              except Exception as exc:
+                  code=str(exc)
+                  report[label]=code if type(exc) is ValueError and re.fullmatch('[A-Z0-9_]{3,100}',code) else 'EXACT_GIT_FETCH_ERROR'
+          print(json.dumps(dict(schema='BOAT_SOURCE_FREE_REAL_GIT_DIFF_V1',
+              official_provider_gets=0,remote_writes=0,variants=report),sort_keys=True))
+          assert report['daily_filtered']=='EXACT_GIT_FETCH_OK'
+          PY
   source_free_git_probe:
     name: BOAT encrypted-state Git write dry-run (zero provider GET)
     if: >-
