@@ -1,0 +1,130 @@
+name: BOAT one-time official profile original SHA proof
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-profile-original-once.yml
+      - docs/evidence/boat-profile-original-once.txt
+  push:
+    branches: [main]
+    paths:
+      - docs/evidence/boat-profile-original-once.txt
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && 'boat-profile-original-pr-audit' || 'boat-racer-daily-statistics' }}
+  cancel-in-progress: false
+
+jobs:
+  isolated_contract:
+    name: Official HTML historical SHA and no-repeat bound (offline)
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.event.pull_request.head.sha }}'}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 2073c9bea918970097ddbb8335175c93270ae695
+          path: source-reader
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
+      - name: Execute source-free fake-HTML tests
+        working-directory: source-reader
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import race_ai,unittest
+          for d in ('../pr64-reference','../pr72-reference'):
+              package=Path(d,'race_ai').resolve()
+              assert package.is_dir()
+              race_ai.__path__.append(str(package))
+          suite=unittest.defaultTestLoader.loadTestsFromNames(
+              ['tests.test_boat_profile_one_shot_proof'])
+          result=unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(not result.wasSuccessful())
+          PY
+      - name: Require an actual existing-history SHA and no retry switch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          workflow=Path('.github/workflows/boat-profile-original-once.yml').read_text()
+          assert workflow.count('2073c9bea918970097ddbb8335175c93270ae695')==4
+          assert '--readback' in workflow
+          assert 'boat-profile-proof: once-20261112' in workflow
+          print('ONE_SOURCE_ATTEMPT_GATED_AND_OFFLINE_VERIFIED')
+          PY
+
+  original_capture:
+    name: One reserved official HTML source observation, no forecast mutation
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message, 'boat-profile-proof: once-20261112')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 2073c9bea918970097ddbb8335175c93270ae695
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Authenticate P0 and reserve exactly one historical source request before GET
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import race_ai
+          for d in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(d,'race_ai').resolve()))
+          from scripts.boat_profile_one_shot_proof import main
+          raise SystemExit(main(['--repo-root','.']))
+          PY
+
+  independent_readback:
+    name: Fresh runner independently checks encrypted original HTML, no GET
+    needs: original_capture
+    if: needs.original_capture.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 2073c9bea918970097ddbb8335175c93270ae695
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: SHA-bound raw HTML source proof and private AES independent readback
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import race_ai
+          for d in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(d,'race_ai').resolve()))
+          from scripts.boat_profile_one_shot_proof import main
+          raise SystemExit(main(['--repo-root','.','--readback']))
+          PY
