@@ -179,7 +179,7 @@ def _participants(row):
         if person.get("name") is not None: _label(person["name"])
         if person.get("name_source") is not None:
             source = person["name_source"]
-            _need(type(source) is dict and source.get("kind") in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT", "VERIFIED_RACER_REGISTRY"), "name source kind")
+            _need(type(source) is dict and source.get("kind") in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT", "VERIFIED_OFFICIAL_PROFILE", "VERIFIED_RACER_REGISTRY"), "name source kind")
             _need(source.get("registration_no") == _registration(person), "name source registration")
             if source["kind"] in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT"): _need(source.get("race_id") == row["race_id"], "name source race")
             _name_metadata(dict(source, name=person.get("name")), _registration(person),
@@ -204,6 +204,23 @@ def _name_metadata(value, registration, *, race_id=None, registry=False):
         _sha(item["source_sha256"])
     if item.get("captured_at") is not None: _clock(item["captured_at"])
     if item.get("source_url") is not None: _label(item["source_url"], 2000)
+    if item.get("kind") == "VERIFIED_OFFICIAL_PROFILE":
+        from urllib.parse import urlsplit, parse_qs
+        _need(item.get("verified_current") is True
+              and item.get("source_sha256") is not None
+              and item.get("captured_at") is not None
+              and item.get("source_url") is not None
+              and item.get("registration_no") == registration,
+              "official current profile provenance")
+        _sha(item["source_sha256"]); _clock(item["captured_at"])
+        u=urlsplit(item['source_url']); q=parse_qs(u.query,keep_blank_values=True)
+        _need(u.scheme=='https' and u.netloc=='www.boatrace.jp'
+              and u.path=='/owpc/pc/data/racersearch/profile'
+              and not u.username and not u.password and not u.fragment
+              and q == {'toban':[registration]}
+              and item['source_url']==
+                 'https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban='+registration,
+              "official current profile URL binding")
     if item.get("kind") in ("SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT"):
         from .racer_intraday_source import identity as official_result_identity
         kind = item["kind"]
@@ -338,7 +355,7 @@ def _apply_names(row, named, race_names, registry, aliases=()):
             continue
         if pid in mapping:
             item = _name_metadata(mapping[pid], pid, race_id=row["race_id"]); kind = item.get("kind", "SAME_RACE_PROGRAM")
-            _need(kind in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT"), "same-race name source kind")
+            _need(kind in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT", "VERIFIED_OFFICIAL_PROFILE"), "display name source kind")
         elif pid in named:
             person["name"] = named[pid]["name"]
             if named[pid].get("name_source") is not None: person["name_source"] = deepcopy(named[pid]["name_source"])
@@ -352,7 +369,7 @@ def _apply_names(row, named, race_names, registry, aliases=()):
         person["name"] = item["name"]
         person["name_source"] = dict(kind=kind, registration_no=pid,
             **({"race_id":row["race_id"], **({"source_race_id":item["source_race_id"]} if kind == "SAME_DAY_OFFICIAL_RESULT" else {})} if kind in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT") else {}),
-            **{k:deepcopy(item[k]) for k in ("verified", "source_sha256", "source_url", "captured_at") if k in item})
+            **{k:deepcopy(item[k]) for k in ("verified", "verified_current", "source_sha256", "source_url", "captured_at") if k in item})
 
 
 def _observations(rows, field, *, rejection=False):
