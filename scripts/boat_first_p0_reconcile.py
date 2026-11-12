@@ -394,7 +394,7 @@ def _profile_index_diagnostic(repo, view, *, now, registry_sha,
 
 
 
-def _verified_current_profile_names(repo, view, now, *, proof_module=None):
+def _verified_current_profile_names(repo, view, now, *, day='2026-11-12', proof_module=None):
     """Read AES-sealed current official HTML, never infer historical identity.
 
     This is for a *current display label*, not retroactive P0 features, odds,
@@ -402,13 +402,14 @@ def _verified_current_profile_names(repo, view, now, *, proof_module=None):
     """
     targets=[(row['race_id'], p['number'], p['registration_no'])
              for row in view['records'] if row.get('sport') == 'boat'
-             and row['event_date_jst'] == '2026-11-12'
+             and row['event_date_jst'] == day
              for p in row.get('participants', []) if not p.get('name')]
     if not targets:
         return {}
     _need(len(targets) == 1, 'CURRENT_PROFILE_TARGET_NOT_SINGLE')
     if proof_module is None:
         from scripts import boat_profile_one_shot_proof as proof_module
+    _need(day == proof_module.DAY, 'CURRENT_PROFILE_DAY_MISMATCH')
     from race_ai.boat_pdca_state import state_key
     key=state_key('production', None)
     candidate=proof_module._select(repo, now)
@@ -529,7 +530,7 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
             name_proof['display_name_result_unsupported_captures'] = unsupported
         if include_verified_current_profile:
             stage = 'DISPLAY_CURRENT_OFFICIAL_PROFILE'
-            verified_profiles = _verified_current_profile_names(repo, merged, now)
+            verified_profiles = _verified_current_profile_names(repo, merged, now, day=day)
             if verified_profiles:
                 merged = _named_target(merged, day, dict(registry={}, races=verified_profiles))
             name_proof['display_name_current_profile_candidates'] = sum(
