@@ -1,5 +1,6 @@
 # Retain authenticated empty legacy attempts separately from forecasts.
 # Source-free PR regression: sealed handoff and same-JST-day 240 GET cap.
+# This PR-only audit checks pinned profile-catalogue candidates without GET or display-name promotion.
 name: BOAT nationwide cutoff-ordered A/B research (no Vercel)
 on:
   # Live model runner is called from the trusted main launcher, not arbitrary
