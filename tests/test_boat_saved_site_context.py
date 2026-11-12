@@ -64,6 +64,38 @@ def original_report(view):
 
 
 class ContextTests(unittest.TestCase):
+
+    def test_current_official_profile_private_probe_requires_full_source_binding(self):
+        day='2030-04-01'
+        row=dict(race_id='20300401-01-01',cutoff_at='2030-04-01T02:00:00Z',
+                 participants=[dict(number=n,registration_no=str(4200+n),name='合成選手'+str(n),
+                     name_source=dict(kind='VERIFIED_RACER_REGISTRY',registration_no=str(4200+n)))
+                     for n in range(1,7)])
+        p=row['participants'][-1]
+        p['name_source']=dict(kind='VERIFIED_OFFICIAL_PROFILE',registration_no='4206',
+                             verified_current=True,source_sha256='a'*64,
+                             source_url='https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4206',
+                             captured_at='2030-04-01T00:01:00+09:00')
+        before=deepcopy(row)
+        proof=C._current_profile_display_probe([row],day,expected_total=6)
+        self.assertEqual(proof['number'],6)
+        self.assertEqual(proof['registration_no'],'4206')
+        self.assertEqual(proof['name'],p['name'])
+        self.assertEqual(row,before)
+        for bad in (
+            lambda x:x['participants'][-1]['name_source'].update(registration_no='4999'),
+            lambda x:x['participants'][-1].update(name=None),
+            lambda x:x['participants'][-1]['name_source'].update(source_url='https://wrong.invalid/'),
+            lambda x:x['participants'][-1]['name_source'].update(captured_at='2030-03-31T12:00:00+09:00'),
+            lambda x:x['participants'][0]['name_source'].update(kind='VERIFIED_OFFICIAL_PROFILE'),
+        ):
+            altered=deepcopy(row);bad(altered)
+            with self.assertRaisesRegex(ValueError,'SAVED_SITE_PROFILE_'):
+                C._current_profile_display_probe([altered],day,expected_total=6)
+        with self.assertRaisesRegex(ValueError,'SAVED_SITE_PROFILE_PARTICIPANT_COUNT'):
+            C._current_profile_display_probe([row],day,expected_total=852)
+
+
     def test_expected_original_filters_native_and_model_switch_probes_without_shifting_indices(self):
         view=native_p0_view();expected=original_report(view);row=view['records'][0]
         originals=[row['prediction'],*row['comparison_predictions']]

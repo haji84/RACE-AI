@@ -61,7 +61,40 @@ def _original_matches(prediction,expected):
         prediction.get('source_code_commit')==expected['source_sha'])
 
 
-def build_context(bootstrap,view,generation,*,now,require_future=False,event_day=None,stage='P1',expected_original=None):
+
+def _current_profile_display_probe(rows,day,*,expected_total):
+    """Private source-bound proof. Never emit names or registration in logs."""
+    participants=[(row,p) for row in rows for p in row.get('participants',[])]
+    _need(len(participants)==expected_total,'PROFILE_PARTICIPANT_COUNT')
+    allowed={'SAME_RACE_PROGRAM','SAME_RACE_RESULT','SAME_DAY_OFFICIAL_RESULT',
+             'VERIFIED_RACER_REGISTRY','VERIFIED_OFFICIAL_PROFILE'}
+    _need(all(type(p.get('name')) is str and bool(p['name'].strip()) and
+              type(p.get('name_source')) is dict and
+              p['name_source'].get('kind') in allowed and
+              p['name_source'].get('registration_no')==p.get('registration_no')
+              for _,p in participants),'PROFILE_SOURCE_COVERAGE')
+    matched=[(row,p) for row,p in participants
+             if p['name_source']['kind']=='VERIFIED_OFFICIAL_PROFILE']
+    _need(len(matched)==1,'PROFILE_PROOF_UNIQUE')
+    row,p=matched[0];source=p['name_source'];reg=p['registration_no']
+    _need(type(p.get('number')) is int and 1<=p['number']<=6
+          and type(reg) is str and re.fullmatch('[0-9]{4}',reg)
+          and source.get('verified_current') is True
+          and type(source.get('source_sha256')) is str and
+              re.fullmatch('[a-f0-9]{64}',source['source_sha256'])
+          and source.get('source_url')==
+              'https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban='+reg
+          and source.get('captured_at') is not None and
+              _aware(source['captured_at'])>=datetime.fromisoformat(day+'T00:00:00+09:00')
+          and type(row.get('race_id')) is str and
+              re.fullmatch('[0-9]{8}-[0-9]{2}-[0-9]{2}',row['race_id'])
+          and row['race_id'].startswith(day.replace('-',''))
+          and type(row.get('cutoff_at')) is str,'PROFILE_SOURCE_MISMATCH')
+    return dict(race_id=row['race_id'],number=p['number'],registration_no=reg,
+                name=p['name'],source_sha256=source['source_sha256'],
+                cutoff_at=row['cutoff_at'])
+
+def build_context(bootstrap,view,generation,*,now,require_future=False,event_day=None,stage='P1',expected_original=None,require_current_official_profile=False):
     _need(stage in ('P0','P1'),'STAGE_INVALID')
     _need(isinstance(now,datetime) and now.utcoffset() is not None,'CLOCK_INVALID')
     _need(type(generation) is int and generation>0,'GENERATION_INVALID')
@@ -139,6 +172,12 @@ def build_context(bootstrap,view,generation,*,now,require_future=False,event_day
             if now<cutoff and (future is None or cutoff>_aware(future['cutoff_at'])):
                 _need(re.fullmatch(r'[0-9]{8}-[0-9]{2}-[0-9]{2}',row['race_id']),'RACE_ID_INVALID')
                 future=candidate
+    profile_probe=None
+    if require_current_official_profile:
+        _need(stage=='P0' and expected_original is not None
+              and day=='2026-11-12' and expected_original['original_id']==13905925953
+              and len(rows)==142,'PROFILE_ORIGINAL_SCOPE')
+        profile_probe=_current_profile_display_probe(rows,day,expected_total=852)
     _need(bool(native),'EXPECTED_ORIGINAL_MISSING' if expected_original is not None else 'NATIVE_'+stage+'_REQUIRED')
     _need(not require_future or future is not None,'FUTURE_NATIVE_REQUIRED')
     previous=sorted({r['event_date_jst'] for r in view['records']
@@ -158,6 +197,8 @@ def build_context(bootstrap,view,generation,*,now,require_future=False,event_day
         native_groups=[list(group) for group in sorted(native,key=lambda group:json.dumps(group))],native_probe=probe,
         live_beforeinfo_races=len(previews),live_beforeinfo_probe=preview_probe,
         model_switch_probe=model_probe,model_family_counts=dict(sorted(model_counts.items())),
+        **({'current_official_profile_probe':profile_probe,
+            'profile_source_bound_total':852} if profile_probe is not None else {}),
         old_day=old_day,old_completed=completed([r for r in view['records'] if r.get('sport')=='boat'
             and r['event_date_jst']==old_day]),future_native=future)
 
@@ -168,6 +209,8 @@ def main(argv=None,*,now=None):
     parser.add_argument('--require-future',action='store_true')
     parser.add_argument('--stage',choices=('P0','P1'),default='P1')
     parser.add_argument('--expected-original-report',help='Bind P0 probes to an existing safe reconciliation report')
+    parser.add_argument('--require-current-official-profile',action='store_true',
+                        help='Strict private 852/852 name-source and exact browser profile gate; no provider GET')
     dates=parser.add_mutually_exclusive_group()
     dates.add_argument('--day',help='Explicit saved event day; current-day checks never silently fall back')
     dates.add_argument('--latest-saved-day',action='store_true')
@@ -194,7 +237,8 @@ def main(argv=None,*,now=None):
                 _,_,_,old=CLI.F.current_view(git,bootstrap,day=earlier[0])
                 view=dict(view,records=[*view['records'],*old['records']])
         context=build_context(bootstrap,view,generation,now=clock,require_future=args.require_future,
-            event_day=day if args.latest_saved_day else args.day,stage=args.stage,expected_original=expected)
+            event_day=day if args.latest_saved_day else args.day,stage=args.stage,expected_original=expected,
+            require_current_official_profile=args.require_current_official_profile)
         fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
         with os.fdopen(fd,'w',encoding='utf-8') as stream:
             json.dump(context,stream,ensure_ascii=False,sort_keys=True);stream.write('\n')

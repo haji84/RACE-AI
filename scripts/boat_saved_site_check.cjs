@@ -125,7 +125,33 @@ function validate(context){
     }
     requireExpectedOriginal(context,future);
   }
+  if(context.current_official_profile_probe!==undefined){
+    assert.equal(stage,'P0');assert.ok(context.expected_original);
+    assert.equal(context.day,'2026-11-12');
+    assert.equal(context.day_races,142);
+    assert.equal(context.profile_source_bound_total,852);
+    const p=context.current_official_profile_probe;
+    assert.ok(p&&typeof p==='object');
+    assert.match(p.race_id,/^20261112-[0-9]{2}-[0-9]{2}$/);
+    assert.ok(Number.isInteger(p.number)&&p.number>=1&&p.number<=6);
+    assert.match(p.registration_no,/^[0-9]{4}$/);
+    assert.ok(typeof p.name==='string'&&p.name.trim().length>0);
+    assert.match(p.source_sha256,/^[a-f0-9]{64}$/);
+    assert.ok(Number.isFinite(Date.parse(p.cutoff_at)));
+  }
   return url.hash.split('.')[1];
+}
+
+
+function requireCurrentProfile(context,cards){
+  const p=context.current_official_profile_probe;
+  assert.ok(p&&typeof p==='object');
+  assert.ok(Array.isArray(cards)&&cards.length>=3&&cards.length<=6);
+  const matching=cards.filter(c=>c.registration===p.registration_no);
+  assert.equal(matching.length,1);
+  assert.equal(matching[0].number,p.number);
+  assert.equal(matching[0].name,p.name);
+  return true;
 }
 
 function dateEvidence(context,results,nativeGroups,lifecycleDay){
@@ -154,7 +180,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
   assert.ok(stage==='P1'||compactResults);
   if(checkBeforeinfo){assert.ok(context.live_beforeinfo_races>0);assert.match(context.live_beforeinfo_probe?.race_id,/^\d{8}-\d{2}-\d{2}$/);assert.ok(Number.isFinite(Date.parse(context.live_beforeinfo_probe.cutoff_at)));}
   let beforeinfoViews=0,beforeinfoTimes=0;
-  let modelSwitchViews=0,modelSwitchOriginals=0;
+  let modelSwitchViews=0,modelSwitchOriginals=0,profileBrowserViews=0;
   const modelProbe=context.model_switch_probe;
   if(modelProbe){assert.match(modelProbe.race_id,/^\d{8}-\d{2}-\d{2}$/);assert.ok(Number.isFinite(Date.parse(modelProbe.cutoff_at)));assert.equal(modelProbe.choices.length,2);assert.notEqual(modelProbe.choices[0].model_id,modelProbe.choices[1].model_id);for(const p of modelProbe.choices){assert.ok(Number.isSafeInteger(p.index)&&p.index>=0);assert.match(p.tickets_sha256,/^[a-f0-9]{64}$/);}}
   if(probeRaceId){assert.match(probeRaceId,/^\d{8}-\d{2}-\d{2}$/);assert.equal(probeRaceId.slice(0,8),context.day.replaceAll('-',''));}
@@ -231,6 +257,22 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       for(const name of names){
         assert.ok(name.trim().length>0);
         assert.doesNotMatch(name,/(?:名前|出走者)\s*未取得|^\s*(?:選手\s*)?\d+\s*$/);
+      }
+      // Exact private profile identity, never inferred from the first race or a name count.
+      if(context.current_official_profile_probe){
+        const p=context.current_official_profile_probe;
+        await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+        if(await page.locator('#all-venues').isVisible())await page.locator('#all-venues').click();
+        await page.locator('[data-race-view="'+(Date.now()<Date.parse(p.cutoff_at)?'upcoming':'results')+'"]').click();
+        await (await revealRace(page,p.race_id,context.day_races)).click();
+        const cards=await page.locator('#detail-tab-content .racer-grid[data-entrants] .racer-card')
+          .evaluateAll(nodes=>nodes.map(node=>({
+            number:Number(node.querySelector('.racer-avatar .lane')?.textContent),
+            registration:node.querySelector('.racer-identity')?.getAttribute('data-open-participant'),
+            name:node.querySelector('.racer-name')?.textContent?.trim()
+          })));
+        requireCurrentProfile(context,cards);
+        profileBrowserViews++;
       }
       assert.ok(await page.locator('#prediction-select option').count()>=2);
       {
@@ -350,6 +392,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       }
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);checked++;
     }
+    if(context.current_official_profile_probe)assert.equal(profileBrowserViews,checked);
     assert.deepEqual(errors,[]);assert.equal(leaked,false);
     assert.equal((await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).includes(key),false);
     const verifiedAt=new Date(),currentDay=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo'}).format(verifiedAt);
@@ -366,7 +409,10 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       active_model_families:15,removed_seller_hidden:true,
       live_beforeinfo_views_checked:beforeinfoViews,live_beforeinfo_times_checked:beforeinfoTimes,
       model_switch_views_checked:modelSwitchViews,model_switch_originals_checked:modelSwitchOriginals,
-      participant_names:true,editable_daily_budget:true,per_race_1000_simulation:true,
+      participant_names:true,profile_source_bound_total:context.profile_source_bound_total??null,
+      last_profile_exact_browser_verified:context.current_official_profile_probe!==undefined&&profileBrowserViews===checked,
+      last_profile_browser_views_checked:profileBrowserViews,
+      editable_daily_budget:true,per_race_1000_simulation:true,
       hit_miss_rate_roi_and_settled_pending_net_visible:true,
       key_in_requests_or_storage:false,blocked_external_requests:blocked,official_source_requests:0,plaintext_published:false};
   }finally{await browser.close();}
@@ -377,4 +423,4 @@ if(require.main===module){
     .then(report=>process.stdout.write(JSON.stringify(report)+'\n'))
     .catch(error=>{process.stdout.write(JSON.stringify(browserFailure(error))+'\n');process.exitCode=2;});
 }
-module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,requireNativeDetail,requireNativeAudit,browserFailure,assertRationaleHeading,run};
+module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,requireNativeDetail,requireNativeAudit,requireCurrentProfile,browserFailure,assertRationaleHeading,run};
