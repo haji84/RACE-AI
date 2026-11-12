@@ -129,13 +129,19 @@ jobs:
               'HOLD_ALREADY_DISPATCHED_FOR_JST_DAY',
               'HOLD_ACTIVE_OWNER_WORKFLOW',
               'HOLD_INCOMPLETE_RUN_HISTORY',
-              'HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW'}
+              'HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW',
+              # Production advanced after main's pinned release; the existing
+              # owner dispatcher must remain HOLD, but source-free PR tests
+              # can independently validate this result-only repair.
+              'HOLD_RELEASE_SHA_MISMATCH'}
           assert report['status'] in allowed, report['status']
+          if report['status']=='HOLD_RELEASE_SHA_MISMATCH':
+              assert report['dispatch_allowed'] is False
           assert report['new_model_or_scorer_added'] is False
           assert report['official_source_requests']==0
           assert report['future_real_forecast_proven'] is False
           print(json.dumps({'status':report['status'],
-                            'release_scope_verified':True,
+                            'release_scope_verified':report['status']!='HOLD_RELEASE_SHA_MISMATCH',
                             'dispatch_requested_from_pr':False,
                             'real_forecast_proven':False,'new_source_requests':0},sort_keys=True))
           PY_BOAT_AUDIT
