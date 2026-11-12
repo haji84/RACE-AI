@@ -19,6 +19,7 @@ on:
         type: choice
         options: ['2']
         description: 'One bounded follow-up audit; no official provider GET'
+  # A single authenticated source-failure diagnosis does not alter GET limits.
   # Backup polling only. Original BOAT 5-minute schedule remains the primary
   # source. This is never a bypass of 12 GET/run or the 30-minute replay gate.
   # GitHub may delay or skip schedule events: timestamps are not an SLA.

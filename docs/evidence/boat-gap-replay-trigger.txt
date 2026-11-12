@@ -39,3 +39,8 @@ replays. A green PR CI alone is not this full proof.
 今回の診断は旧暗号のread-only復元、元daily store取得、intraday取得、現在の結果表示sourceと公開候補算出だけを実行。
 公式提供元の通信を0回とし、本人名・鍵・HTMLは出力しない。失敗ならフェーズと正規化した原因文字列だけを報告。
 既存の取得制限と重複防止は維持、GET再試行は実施しない。source failure reportは将来実行時だけ安全要約で公開する。
+
+2026-11-12 CHECKPOINT: single guarded fresh-result recovery diagnosis after prior source collector failed with exit 1.
+This change authorizes no new unlimited GET loops. Only existing authenticated gap, pending due results, provider holds, 30-minute source-attempt lock, 12-GET/run quota and single-writer state apply.
+If admitted and source fails, inspect only the whitelisted reason code via existing sanitized failure step. No raw provider response, identity, cipher, key or full private report is logged. Result/P0/PDCA/view source remain unchanged.
+The one-time main merge title must start with boat-gap-fresh-proof: single-bounded-intake-20261112. This push is a controlled diagnosis, not proof of autonomous schedule liveness.
