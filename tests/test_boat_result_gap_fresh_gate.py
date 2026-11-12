@@ -149,6 +149,21 @@ class FreshGateTests(unittest.TestCase):
         parts=list(fixture());parts[0]['workflow_runs']=[run(i,-i*0.1) for i in range(1,101)]
         with self.assertRaisesRegex(ValueError,'RUN_HISTORY_TRUNCATED'):self.decision(parts)
 
+    def test_verified_new_result_dispatch_has_no_30_minute_sleep_or_source_get(self):
+        from pathlib import Path
+        workflow=Path('.github/workflows/boat-result-gap-recovery.yml').read_text()
+        assert "options: ['2', 'catchup']" in workflow
+        section=workflow.split('\n  source_free_followup:\n',1)[1]
+        assert 'needs: [fresh_result, fresh_readback]' in section
+        assert "needs.fresh_result.outputs.new_results == 'true'" in section
+        assert "needs.fresh_readback.result == 'success'" in section
+        assert 'gh workflow run boat-result-gap-recovery.yml --ref main -f cycle=catchup' in section
+        assert 'sync-results' not in section and 'www.boatrace.jp' not in section
+        assert "RACE_AI_BOAT_RESULT_GET_CAP" in workflow
+        assert "source_free_followup:" not in workflow.split(
+            '\n  observed_gap:\n',1)[0]
+        assert "inputs.cycle == 'catchup'" in workflow
+
     def test_strict_real_readback_python_is_syntax_valid_and_source_free(self):
         import ast
         import textwrap
