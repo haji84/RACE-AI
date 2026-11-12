@@ -381,3 +381,11 @@ unchanged prediction/scorer hashes and independent real browser
 LIVE_OWNER_SITE_VERIFIED determine completion. Never publicize name,
 registration number, source HTML, private key, ticket or viewer URL.
 Ongoing BOAT 5-minute source-GET scheduling reliability remains separate.
+
+2026-11-12｜852件目の厳密なブラウザ表示を原本から無取得検証する一巡。
+GitHub PR #208 の固定ソースSHA ea6992702093a1e67c8c4adb19ca01aaab3fbaca は独立CIで Python 320件と Node 16件成功。
+PR #209 のmain接続で既存のfirst-P0読戻しは元の2026-11-12 source run 43131905826を使い、
+142レース・284件の保存済み予想を変更しない。保存表示852件のsource-bound検証と、
+最後の1件について正しいレースDOM/登録番号/枠番/氏名が3画面幅で一致することを確認する。
+結果は last_profile_exact_browser_verified と last_profile_browser_views_checked の件数のみ報告。
+外部公式データGET=0、新規予想=0、元SHA不変。失敗はHOLD、個人識別値はPublicに出さない。

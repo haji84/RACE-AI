@@ -375,6 +375,7 @@ jobs:
         with: {node-version: '22'}
       - name: Install the existing private Pages verifier
         run: npm install --prefix "$RUNNER_TEMP/result-site-tools" --no-package-lock --ignore-scripts playwright@1.62.1
+      # Exact current-only official profile must match one actual DOM card across three widths.
       - name: Verify the original P0 and official results on the existing Pages view
         timeout-minutes: 9
         env:
