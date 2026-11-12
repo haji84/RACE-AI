@@ -116,3 +116,19 @@ unchanged P0 forecast receipt can the workflow source-free dispatch another
 independently gated catch-up. If no new result, quota or provider denied,
 do not auto-retry. No new forecasts, private source, tickets or raw data
 may be published. The 142-race audited completion remains HOLD until real.
+
+2026-11-13 08:08 JST | OWNER-REQUESTED REAL NO-FIXED-WAIT CATCH-UP.
+The preceding protected main run #43325048789 returned 18 genuinely new
+official final results from 36 real source GETs; independent AES ciphertext,
+final digest and original P0 inventory were verified. Its source-free
+continuation dispatch failed solely because gh CLI had no local repo.
+The fix is merged as PR #241. This one guarded run tests that exact fix
+without a 30-minute global pause. Do not restart the prior failed job.
+Use the established strict main title prefix boat-gap-fresh-proof:
+single-bounded-intake-20261112 and independently re-check due original
+race IDs, per-race retry clock, provider denials, existing source writers,
+rolling 96 recovery/240 owner GET budget, 2s serial pacing, scope integrity
+and source GET<=36. If genuine new finals are AES-saved and independently
+verified, allow a source-free repo-qualified continuation dispatch. If not,
+report HOLD and do not force a retry. Never modify P0, create synthetic
+official results, or release owner source/race identities.
