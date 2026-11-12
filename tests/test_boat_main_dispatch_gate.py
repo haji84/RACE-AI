@@ -252,6 +252,25 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
                 "name":"existing-cycle-source-42993305843"}]})
         return row,proof
 
+    def test_failed_producer_saved_p0_recovery_is_source_free_and_one_exact_run(self):
+        from pathlib import Path
+        workflow=(Path(__file__).resolve().parents[1]/'.github/workflows/boat-racer-daily.yml').read_text()
+        retention=workflow.split('  original_retention:',1)[1].split('  original_readback:',1)[0]
+        owner=workflow.split('  owner_p0_p1_dispatch:',1)[1]
+        token='boat-owner-readback: recover-saved-p0-43131905826'
+        self.assertIn(token,retention)
+        self.assertIn("'43131905826'",retention)
+        self.assertIn('github.event_name == \'push\'',retention)
+        self.assertIn('steps.select.outputs.p0',workflow)
+        self.assertIn('--verify-retained-p1',workflow)
+        self.assertNotIn(token,owner)
+        self.assertNotIn('gh workflow run',retention)
+        self.assertIn("github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca'",workflow)
+        self.assertIn('docs/evidence/owner-pdca-main-trigger.txt',workflow.split('jobs:',1)[0])
+        self.assertEqual(workflow.splitlines().count('  original_retention:'),1)
+        self.assertEqual(workflow.splitlines().count('  original_readback:'),1)
+        self.assertEqual(workflow.splitlines().count('  original_reconcile:'),1)
+
     def test_one_attested_pre_source_failure_can_retry_without_any_original(self):
         row,proof=self._previous_pre_source_run_and_proof()
         ci=dict(name=WORKFLOW,head_branch=RELEASE_REF,event="pull_request",
