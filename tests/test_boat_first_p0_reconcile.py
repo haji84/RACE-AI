@@ -299,6 +299,39 @@ class FirstP0ReconcileTests(unittest.TestCase):
                 self.assertEqual(reconcile._saved_program_names(
                     {'metadata.json': str(metadata_path)}, view, day, NOW, known), {})
 
+    def test_legacy_seller_B_requires_original_p0_packet_validation(self):
+        day = self.bundle['day']; rid = day.replace('-', '')+'-01-01'
+        source = dict(day=day, source_url='https://www1.mbrace.or.jp/od2/B/203004/b300401.lzh',
+                      source_sha256='b'*64, captured_at=NOW.isoformat())
+        document = dict(day_jst=day, source_url=source['source_url'],
+                        source_sha256=source['source_sha256'],
+                        captured_at=source['captured_at'])
+        receipt = dict(independently_verified=True)
+        metadata_file = self.root/'seller-name-metadata.json'
+        metadata_file.write_text(json.dumps(dict(seller_official_source=dict(
+            day=day, raw_b_base64=base64.b64encode(b'archived B').decode()))))
+        packet_file = self.root/'seller-original-p0.json'
+        packet_file.write_text(json.dumps(dict(document=document, receipt=receipt)))
+        files = {'metadata.json': str(metadata_file), 'p0-source.json': str(packet_file)}
+        view = dict(records=[dict(sport='boat', event_date_jst=day, race_id=rid,
+            participants=[dict(number=6, registration_no='4006', name=None)])])
+        boats = [dict(lane=6, racer_registration_id='4006', name='原本から取得')]
+        parsed = dict(venues=[dict(races=[dict(race_id=rid, boats=boats)])])
+        with patch('race_ai.boat_seller_inputs.official_b_cards_source') as verifier, patch(
+                'race_ai.boat_name_aliases._b_programs',
+                return_value=[(source, parsed)]):
+            actual = reconcile._saved_program_names(files, view, day, NOW, {})
+        verifier.assert_called_once_with(b'archived B', document, receipt,
+                                         day=day, as_of=NOW.isoformat())
+        self.assertEqual(actual[rid]['4006']['name'], '原本から取得')
+        # Without the original P0 source packet, no name is claimed.
+        self.assertEqual(reconcile._saved_program_names(
+            {'metadata.json': str(metadata_file)}, view, day, NOW, {}), {})
+        metadata_file.write_text(json.dumps(dict(seller_official_source=dict(
+            day=day, raw_b_base64='not valid base64 %'))))
+        with self.assertRaisesRegex(ValueError, 'FIRST_P0_RECONCILE_PROGRAM_SELLER_BYTES_INVALID'):
+            reconcile._saved_program_names(files, view, day, NOW, {})
+
     def test_authenticated_program_name_fill_does_not_change_original_or_scoring(self):
         self.seed_runtime(range(4001, 4006))
         self.capture(); self.save_results()
