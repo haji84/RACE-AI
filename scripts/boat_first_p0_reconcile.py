@@ -393,6 +393,65 @@ def _profile_index_diagnostic(repo, view, *, now, registry_sha,
                 display_name_profile_index_source_reparsed=False)
 
 
+
+def _verified_current_profile_names(repo, view, now, *, proof_module=None):
+    """Read AES-sealed current official HTML, never infer historical identity.
+
+    This is for a *current display label*, not retroactive P0 features, odds,
+    cutoff policy, historical Nov 7 page equivalence, or result scoring.
+    """
+    targets=[(row['race_id'], p['number'], p['registration_no'])
+             for row in view['records'] if row.get('sport') == 'boat'
+             and row['event_date_jst'] == '2026-11-12'
+             for p in row.get('participants', []) if not p.get('name')]
+    if not targets:
+        return {}
+    _need(len(targets) == 1, 'CURRENT_PROFILE_TARGET_NOT_SINGLE')
+    if proof_module is None:
+        from scripts import boat_profile_one_shot_proof as proof_module
+    from race_ai.boat_pdca_state import state_key
+    key=state_key('production', None)
+    candidate=proof_module._select(repo, now)
+    _need(type(candidate) is dict
+          and candidate.get('registration') == targets[0][2],
+          'CURRENT_PROFILE_TARGET_MISMATCH')
+    tag=proof_module._id(key, candidate['registration'])
+    base=proof_module.PREFIX + proof_module.DAY + '/' + tag
+    checked=proof_module._check_observed_current_html(
+        proof_module._github, candidate, key=key, tag=tag, base=base, now=now)
+    _need(checked.get('status') == 'PROFILE_CURRENT_OFFICIAL_HTML_READBACK_VERIFIED'
+          and checked.get('authenticated_current_profile') == 1
+          and checked.get('historical_source_sha_matched') is False
+          and checked.get('official_profile_gets') == 0
+          and checked.get('display_name_auto_published') is False
+          and checked.get('source_unmodified') is True,
+          'CURRENT_PROFILE_AUTHENTICATED_SOURCE_REQUIRED')
+    # The already sealed GitHub ciphertext is opened again only to carry the
+    # present-day observation's exact hash, timestamp and official name.
+    # Re-parse this same raw page independently; never rely on indexed text.
+    raw, header=proof_module._unpack(
+        proof_module._github(base+'.enc'), key, tag)
+    from race_ai.racer_profiles import parse_basic_profile
+    parsed=parse_basic_profile(
+        raw, registration=candidate['registration'],
+        expected_name=candidate['name'])
+    _need(parsed['registration'] == targets[0][2]
+          and parsed['source_url'] == candidate['url']
+          and parsed['source_sha256'] == header['source_bytes_sha256']
+          and parsed['name'] == candidate['name']
+          and instant(header['observed_at']) <= now
+          and instant(header['observed_at']).date().isoformat() >= '2026-11-12'
+          and parsed['source_sha256'] != candidate['historical_sha256'],
+          'CURRENT_PROFILE_RAW_IDENTITY_INVALID')
+    rid, lane, pid=targets[0]
+    return {rid:{pid:dict(
+        kind='VERIFIED_CURRENT_OFFICIAL_PROFILE', name=parsed['name'],
+        number=lane, registration_no=pid, race_id=rid,
+        source_url=parsed['source_url'], source_sha256=parsed['source_sha256'],
+        captured_at=header['observed_at'], verified_current=True,
+        historical_source_sha_matched=False)}}
+
+
 def _score_counts(scored):
     """Project the native verdicts to counts/hashes, without forecast bodies."""
     verdicts = scored['per_forecast']
@@ -416,7 +475,7 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
               companion_artifacts, transport=None, receipt_get=None,
               feed_transport=None, intraday_transport=None, runtime_transport=None,
               now=None, include_verified_result_names=False,
-              diagnose_profile_index=False):
+              diagnose_profile_index=False, include_verified_current_profile=False):
     """Verify, replay retained results and append to the existing encrypted feed.
 
     Optional transports replace external Git/Contents I/O only. All private
@@ -468,6 +527,14 @@ def reconcile(repo, *, vault_commit, receipt_commit, day, p0_artifact,
                 item.get('kind') == 'SAME_DAY_OFFICIAL_RESULT'
                 for names_for_race in found.values() for item in names_for_race.values())
             name_proof['display_name_result_unsupported_captures'] = unsupported
+        if include_verified_current_profile:
+            stage = 'DISPLAY_CURRENT_OFFICIAL_PROFILE'
+            verified_profiles = _verified_current_profile_names(repo, merged, now)
+            if verified_profiles:
+                merged = _named_target(merged, day, dict(registry={}, races=verified_profiles))
+            name_proof['display_name_current_profile_candidates'] = sum(
+                map(len, verified_profiles.values()))
+            name_proof['display_name_current_profile_historical_sha_matched'] = False
         native_results = F.update_view(native_view, [], captures=captures, synced_at=now.isoformat())
         captured_latest, _ = latest_result_observations([
             observation for row in native_results['records']
@@ -550,6 +617,8 @@ def main(argv=None, *, transport=None, receipt_get=None, feed_transport=None,
     parser.add_argument('--companion-artifact', type=int, action='append', required=True)
     parser.add_argument('--diagnose-profile-index', action='store_true',
                         help='Count-only check of pinned official-profile index; does not fill names')
+    parser.add_argument('--include-verified-current-profile', action='store_true',
+                        help='Display-only fresh AES-sealed official profile, not historical original')
     parser.add_argument('--include-verified-result-names', action='store_true',
                         help='Source-free display-only names from already retained exact official results')
     parser.add_argument('--output', required=True)
@@ -563,7 +632,8 @@ def main(argv=None, *, transport=None, receipt_get=None, feed_transport=None,
             receipt_get=receipt_get, feed_transport=feed_transport,
             intraday_transport=intraday_transport, runtime_transport=runtime_transport,
             now=now, include_verified_result_names=args.include_verified_result_names,
-            diagnose_profile_index=args.diagnose_profile_index)
+            diagnose_profile_index=args.diagnose_profile_index,
+            include_verified_current_profile=args.include_verified_current_profile)
         vaultCLI._write(output, V._wire(report) + b'\n')
         print(V._wire(report).decode('utf-8'))
         return 0
