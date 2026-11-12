@@ -332,7 +332,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertIn("docs/evidence/owner-pdca-main-trigger.txt",workflow.split('jobs:',1)[0])
         self.assertEqual(workflow.count('name: Reflect confirmed races and retain encrypted incremental source packets'),1)
         self.assertIn("ref: 914941a6244364480370ac392441ad4bb5781f83",daily)
-        self.assertIn('Authenticate the saved 11/12 P0 receipt before any result source GET',daily)
+        self.assertIn('Authenticate the saved 11/12 P0 receipt before results or read-only view',daily)
         self.assertLess(daily.index('Use the already-reviewed result collector'),
                         daily.index('path: pr64-reference'))
         self.assertLess(daily.index('path: pr64-reference'),
@@ -350,6 +350,29 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertNotIn('gh workflow run',daily)
         self.assertNotIn('first_p0_bootstrap',daily)
         self.assertIn('  daily:\n    needs: [source_mirror, original_reconcile]',workflow)
+
+    def test_verified_p0_result_view_has_no_source_get_or_p1_requirement(self):
+        from pathlib import Path
+        workflow=(Path(__file__).resolve().parents[1] /
+                  '.github/workflows/boat-racer-daily.yml').read_text()
+        viewer='boat-result-view: saved-p0-43131905826-20261112'
+        daily=workflow.split('\n  daily:\n    needs: [source_mirror, original_reconcile]',1)[1].split('\n  owner_p0_p1_dispatch:',1)[0]
+        owner=workflow.split('\n  owner_p0_p1_dispatch:',1)[1]
+        self.assertIn(viewer,daily)
+        self.assertNotIn(viewer,owner)
+        self.assertIn('site_context_args=(--day 2026-11-12 --stage P0)',daily)
+        self.assertIn("context['stage']=='P0'",daily)
+        self.assertIn("context['minimum_results']>=11",daily)
+        self.assertIn('RESULT_VIEW_ONLY:',daily)
+        self.assertIn('VERIFY_SAVED_P0:',daily)
+        self.assertIn('--compact-results',daily)
+        self.assertIn('--check-current-day',daily)
+        source_step=daily.split('      - name: Reflect confirmed races and retain encrypted incremental source packets',1)[1].split('      - name: Install browser check',1)[0]
+        self.assertNotIn(viewer,source_step)
+        self.assertNotIn('gh workflow run',daily)
+        self.assertNotIn('first_p0_bootstrap',daily)
+        self.assertIn('P0_GIT_BLOB_MISMATCH',daily)
+        self.assertIn('originals_changed=False',daily)
 
     def test_one_attested_pre_source_failure_can_retry_without_any_original(self):
         row,proof=self._previous_pre_source_run_and_proof()
