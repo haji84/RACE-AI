@@ -367,6 +367,14 @@ jobs:
               body=text.split("\n  "+job+":\n",1)[1].split("\n  fresh_",1)[0]
               assert "--sync-results" not in body and "--sync-beforeinfo" not in body
               assert "www.boatrace.jp" not in body
+          # Compile all new embedded Python blocks in PR, without any provider GET.
+          for job,expected in (("fresh_pdca_stage",1),("fresh_pdca_readback",1),
+                               ("fresh_site_browser",3)):
+              part=text.split("\n  "+job+":\n",1)[1].split("\n  fresh_",1)[0]
+              snippets=part.split("          python - <<'PY'\n")[1:]
+              assert len(snippets)==expected
+              for code in snippets:
+                  ast.parse(textwrap.dedent(code.split("\n          PY",1)[0]),filename=job)
           print('FRESH_RESULT_GAP_SOURCE_BOUNDARY_UNIT_VERIFIED')
           PY
   offline_contract:
