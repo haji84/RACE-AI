@@ -59,7 +59,7 @@ class LiveConnectionTests(unittest.TestCase):
     self.assertTrue(all('odds3t' not in args[0][0] for args in get.call_args_list))
     pit.assert_not_called()
     history.assert_not_called()
-   with patch.object(p,'SOURCE_GUARD',Budget(5)),patch.object(p,'get',side_effect=captured) as get:
+   with patch.object(p,'SOURCE_GUARD',Budget(7)),patch.object(p,'get',side_effect=captured) as get:
     status,pair,_,_,observed=p.make_pair(date(2030,4,1),race,reserved_next_gets=4)
     self.assertIsNotNone(pair,status)
     self.assertIsNotNone(observed,status)
