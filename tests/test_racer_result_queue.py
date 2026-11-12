@@ -117,6 +117,46 @@ class ResultQueueTests(unittest.TestCase):
         self.assertEqual(len(s.control['settlement_captures']),4)
         self.assertEqual(len({u for u in calls}),12)
 
+    def test_guarded_thirty_six_slot_catchup_preserves_twelve_normal_policy(self):
+        s=self.state();base=self.base();calls,fetch=self.source_results()
+        s.control['day']='2026-11-07'
+        s.control['schedule']='TEST_ONLY_SCHEDULE'
+        s.control['archive_next']=(NOW+timedelta(days=1)).isoformat()
+        s.control['venues']=[];s.control['meetings']={}
+        for number in range(1,13):
+            rid=f'20261107-19-{number:02d}'
+            s.control['races'][rid]=dict(
+                cutoff_at='2026-11-07T10:00:00+09:00',
+                next_check='2026-11-07T10:05:00+09:00')
+        older=[dict(race_id=f'20261104-{venue:02d}-{num:02d}',
+                    cutoff_at='2026-11-04T10:00:00+09:00',pending=True)
+               for venue in (17,18,20) for num in range(1,13)]
+        report=s.advance(base,now=NOW,fetch=fetch,max_requests=36,
+                         result_targets=older)
+        self.assertEqual(report['requests'],36)
+        self.assertEqual(len(calls),36)
+        self.assertEqual(len(set(calls)),36,'never refetch the same URL in one run')
+        old_calls=[url for url in calls if 'hd=20261104' in url]
+        self.assertGreaterEqual(len(old_calls),18,
+            'when admitted for catch-up, at least half the slots serve overdue races')
+        self.assertLessEqual(len(old_calls),36)
+        self.assertEqual(len(s.control['settlement_captures']),len(old_calls))
+        with self.assertRaisesRegex(ValueError,'INTRADAY_REQUEST_BOUND'):
+            s.advance(base,now=NOW,fetch=fetch,max_requests=37)
+
+    def test_rate_limited_36_slot_catchup_stops_on_first_denial(self):
+        from race_ai.source_retry_policy import SourceWait
+        s=self.state();base=self.base();calls=[]
+        def refused(url):
+            calls.append(url)
+            raise SourceWait('SOURCE_RATE_LIMITED',
+                             (NOW+timedelta(hours=2)).isoformat(),state='WAIT')
+        result=s.advance(base,now=NOW,fetch=refused,max_requests=36,
+                         result_targets=self.targets('20261104',count=8))
+        self.assertEqual(len(calls),1)
+        self.assertEqual(result['requests'],1)
+        self.assertEqual(result['status'],'SOURCE_WAIT')
+
     def test_old_result_backlog_cannot_starve_today_venue_discovery(self):
         s=self.state();base=self.base();calls,fetch=self.source_results()
         def venues(url):return (day_index(('01','02','03','04')),NOW.isoformat()) if '/race/index?' in url else fetch(url)
