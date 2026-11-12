@@ -351,6 +351,31 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertNotIn('first_p0_bootstrap',daily)
         self.assertIn('  daily:\n    needs: [source_mirror, original_reconcile]',workflow)
 
+    def test_result_refresh_restores_stage_aware_reader_only_after_provider_step(self):
+        from pathlib import Path
+        workflow=(Path(__file__).resolve().parents[1] /
+                  '.github/workflows/boat-racer-daily.yml').read_text()
+        daily=workflow.split('\n  daily:\n    needs: [source_mirror, original_reconcile]',1)[1].split('\n  owner_p0_p1_dispatch:',1)[0]
+        result='      - name: Reflect confirmed races and retain encrypted incremental source packets'
+        reader='      - name: Restore P0-aware read-only site verifier after result collection'
+        browser='      - name: Verify private result display without publishing owner data'
+        self.assertLess(daily.index(result),daily.index(reader))
+        self.assertLess(daily.index(reader),daily.index(browser))
+        self.assertEqual(daily.count(reader),1)
+        reader_steps=daily.split(reader,1)[1].split('      - name: Install browser check only for an explicit verification run',1)[0]
+        self.assertEqual(reader_steps.count('uses: actions/checkout@'),3)
+        self.assertIn('ref: 0796b52c2804177976e4c2e5ab9b65f32589720b',reader_steps)
+        self.assertIn('ref: 761247bee0209e37b1af6b8885e92cad3e9260a5',reader_steps)
+        self.assertIn('ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe',reader_steps)
+        self.assertIn('path: pr64-reference',reader_steps)
+        self.assertIn('path: pr72-reference',reader_steps)
+        self.assertEqual(reader_steps.count('boat-result-refresh: owner-p0-43131905826-20261112'),3)
+        self.assertNotIn('gh workflow run',reader_steps)
+        self.assertNotIn('racer_intraday_refresh',reader_steps)
+        self.assertIn("'914941a6244364480370ac392441ad4bb5781f83'",daily)
+        self.assertIn('VERIFY_SAVED_P0:',daily)
+        self.assertNotIn(reader,daily.split(result,1)[0])
+
     def test_verified_p0_result_view_has_no_source_get_or_p1_requirement(self):
         from pathlib import Path
         workflow=(Path(__file__).resolve().parents[1] /
