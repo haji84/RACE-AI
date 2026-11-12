@@ -272,7 +272,7 @@ jobs:
           control=load_intraday(repo)['state'].control
           due=sum(target['pending'] and target['cutoff_at'] is not None and
               clock(target['cutoff_at'])+timedelta(minutes=5)<=datetime.now(timezone.utc)
-              for target in SavedResultBridge(repo).targets())
+              for target in SavedResultBridge(repo,now=datetime.now(timezone.utc)).targets())
           wait=(control.get('waits') or {}).get('boatrace') or {}
           print(json.dumps(dict(last_checked_at=control.get('last_checked_at'),
               due_count=due,boatrace_hold_until=wait.get('until')),sort_keys=True))
@@ -377,7 +377,7 @@ jobs:
           loaded=load_intraday(repo)
           expected=__import__('os').environ['EXPECTED_SOURCE_CIPHER']
           assert loaded['previous']['head']['cipher_sha256']==expected
-          bridge=SavedResultBridge(repo)
+          bridge=SavedResultBridge(repo,now=__import__('datetime').datetime.now(__import__('datetime').timezone.utc))
           assert len(bridge.rows)>0
           final=sum((row.get('result') or {}).get('status') in ('final','void') for row in bridge.rows)
           assert final>0
