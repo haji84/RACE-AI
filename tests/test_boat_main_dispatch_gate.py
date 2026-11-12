@@ -252,6 +252,53 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
                 "name":"existing-cycle-source-42993305843"}]})
         return row,proof
 
+    def test_old_11_12_p0_is_readable_only_by_exact_run_sha_and_artifact_digests(self):
+        from copy import deepcopy
+        from scripts.boat_main_dispatch_gate import recovery_selection
+        r=dict(id=43131905826,head_sha='cf7b6f6a926396c6873e78fe1ad1d3d6840088a8',
+               head_branch=RELEASE_REF,event='workflow_dispatch',workflow_id=405276784,
+               status='completed',conclusion='failure',
+               repository=dict(id=1416489937,full_name='haji84/RACE-AI'),
+               head_repository=dict(id=1416489937,full_name='haji84/RACE-AI'))
+        rows=[
+            ('boat-p0-existing',13905925953,
+             '5a3287ac9cb45be6907be6c7d370c04addf3216d6e70184bda20e05502c80c6d','2026-11-12T01:07:04Z'),
+            ('race-cycle-continuity',13905208588,
+             'f11be8ff9b65d46c9f03a43ca496fa77c19bd26c01b081ae8253840e737e1644','2026-11-12T01:08:07Z'),
+            ('race-source-control',13906460172,
+             'b6b17372f57caa642aa9e249df42bfeddd512181371892a5eef988347d4a55f7','2026-11-12T01:08:09Z')]
+        artifacts=[dict(name=f'{name}-{r["id"]}',id=ident,digest='sha256:'+digest,
+                        expired=False,size_in_bytes=100000,created_at=at,
+                        workflow_run=dict(id=r['id'],head_sha=r['head_sha'],
+                                          repository_id=1416489937,
+                                          head_repository_id=1416489937))
+                   for name,ident,digest,at in rows]
+        bundle=dict(total_count=3,artifacts=artifacts)
+        selected=recovery_selection(run=r,artifacts=bundle)
+        self.assertFalse(selected['source_dispatch_allowed'])
+        self.assertEqual(selected['p0_artifact'],13905925953)
+        self.assertEqual(selected['day_jst'],'2026-11-12')
+        self.assertEqual(selected['companion_artifacts'],[13905208588,13906460172])
+        for case in ('run_id','head_sha','artifact_sha','artifact_id','source_day',
+                     'foreign_repository','not_complete','reused_source'):
+            with self.subTest(case=case):
+                changed_run=deepcopy(r);changed=deepcopy(bundle)
+                if case=='run_id':
+                    changed_run['id']=43131905827
+                elif case=='head_sha':
+                    changed_run['head_sha']=RELEASE_SHA
+                    for a in changed['artifacts']:a['workflow_run']['head_sha']=RELEASE_SHA
+                    # The same historical artifact identifiers must never
+                    # become a newly generated current-release provenance.
+                elif case=='artifact_sha':changed['artifacts'][0]['digest']='sha256:'+'f'*64
+                elif case=='artifact_id':changed['artifacts'][0]['id']=13905925954
+                elif case=='source_day':changed['artifacts'][0]['created_at']='2026-11-11T01:07:04Z'
+                elif case=='foreign_repository':changed_run['repository']['id']=7
+                elif case=='not_complete':changed_run['status']='in_progress'
+                elif case=='reused_source':changed_run['event']='push'
+                with self.assertRaises(ValueError):
+                    recovery_selection(run=changed_run,artifacts=changed)
+
     def test_failed_producer_saved_p0_recovery_is_source_free_and_one_exact_run(self):
         from pathlib import Path
         workflow=(Path(__file__).resolve().parents[1]/'.github/workflows/boat-racer-daily.yml').read_text()
