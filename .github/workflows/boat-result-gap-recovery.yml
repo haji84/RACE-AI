@@ -660,7 +660,7 @@ jobs:
           python - <<'PY' > "$RUNNER_TEMP/boat-gap-fresh-sealed-health.json"
           from datetime import datetime,timedelta,timezone
           from pathlib import Path
-          import json,race_ai
+          import json,os,race_ai
           for folder in ('../pr64-reference','../pr72-reference'):
               package=Path(folder,'race_ai').resolve()
               assert package.is_dir(), 'PINNED_OFFICIAL_ADAPTER_MISSING'
