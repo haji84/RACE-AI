@@ -111,6 +111,16 @@ def _saved_program_names(files, view, day, now, registry):
     binding may fill a currently blank name. The forecast original is not
     changed. Unknown or conflicting evidence must never become a name.
     """
+    missing = set()
+    for row in view['records']:
+        if row.get('sport') != 'boat' or row['event_date_jst'] != day:
+            continue
+        for person in row['participants']:
+            pid = person['registration_no']
+            if not person.get('name') and pid not in registry:
+                missing.add((row['race_id'], person['number'], pid))
+    if not missing:
+        return {}
     metadata_file = files.get('metadata.json')
     if not metadata_file:
         return {}
@@ -162,16 +172,6 @@ def _saved_program_names(files, view, day, now, registry):
                     source_sha256=document['source_sha256'],
                     captured_at=document['captured_at'])]
     if not sources:
-        return {}
-    missing = set()
-    for row in view['records']:
-        if row.get('sport') != 'boat' or row['event_date_jst'] != day:
-            continue
-        for person in row['participants']:
-            pid = person['registration_no']
-            if not person.get('name') and pid not in registry:
-                missing.add((row['race_id'], person['number'], pid))
-    if not missing:
         return {}
     from race_ai.boat_name_aliases import _b_programs
     races = {}
