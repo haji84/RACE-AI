@@ -145,3 +145,18 @@ unsupported rejection reasons. No provider GET, no secret or race IDs
 released, no forecast rewrites, no source-budge reservation or new
 job dispatch. Missing/unsupported must remain HOLD and not a miss.
 This marker does not assert 142/142 completion.
+
+2026-11-13 08:47 JST | OWNER REQUESTED FINAL MISSING OFFICIAL RESULTS AFTER HOURLY-CAP REMOVAL
+RACE-AI 2026-11-12 stored 142 P0 original races and 284 model forecasts.
+Latest independent AES-only audit: 130 formal results, 2 genuinely missing,
+10 reference-only nonformal HOLD. This is NOT a completion claim.
+PR #244 removes the previous local 60m96 and 60m240 quotas. Source MUST
+still obey one authorized cycle <=36 GET, per-race persisted retry clock,
+minimum 2 seconds between source requests, 403/429 and Retry-After host
+STOP, original-collector single-writer, source-free admission and original
+P0 inventory protection. Require actual official final bytes + AES save +
+different-runner SHA digest and model PDCA + real Pages presentation before
+credit. If official final is not available, no automatic re-dispatch; do not
+invent results or change original P0. Explicitly source-approved once with
+existing main title prefix boat-gap-fresh-proof: single-bounded-intake-20261112.
+No private race ID or viewing key in this audit marker.
