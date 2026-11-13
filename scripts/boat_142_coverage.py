@@ -13,6 +13,94 @@ SCHEMA = 'RACE_AI_BOAT_DAY_RESULT_COVERAGE_V1'
 STATES = ('final', 'void', 'pending', 'missing', 'unsupported')
 
 
+
+
+# Only published category names, never protected race IDs, exact timestamps,
+# original source URLs, payout bytes or encrypted pointers.
+KNOWN_REFERENCE_BASES = {
+    'RAW_OFFICIAL_CANCELLATION_SELECTED_RACE',
+    'RAW_OFFICIAL_SP_SAME_ROSTER_SAVED_BEFORE_BOTH',
+    'RAW_OFFICIAL_PAGE_SAME_ROSTER_SAVED_BEFORE_BOTH',
+}
+
+def _clock_or_none(value):
+    from datetime import datetime
+    if type(value) is not str or len(value) > 64:
+        return None
+    try:
+        stamp = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        return stamp if stamp.utcoffset() is not None else None
+    except (ValueError, TypeError, OverflowError):
+        return None
+
+def _legacy_reference_proof(row, result):
+    """Classify sealed, already-retained evidence. Never confer formal status."""
+    ref = result.get('cutoff_reference')
+    if type(ref) is not dict:
+        return ('REFERENCE_MALFORMED', 'OFFSET_UNKNOWN',
+                'RECEIPT_UNKNOWN', 'CHRONOLOGY_UNKNOWN')
+    basis = ref.get('basis')
+    kind = basis if type(basis) is str and basis in KNOWN_REFERENCE_BASES \
+        else 'REFERENCE_BASIS_UNKNOWN'
+    offset = ref.get('offset_seconds')
+    if type(offset) in (int, float) and abs(offset) < 86400 * 7:
+        delta = abs(offset)
+        band = ('OFFSET_ZERO' if delta == 0 else
+                'OFFSET_LE_60S' if delta <= 60 else
+                'OFFSET_LE_300S' if delta <= 300 else
+                'OFFSET_GT_300S')
+    else:
+        band = 'OFFSET_UNKNOWN'
+    obs = row.get('result_observations')
+    if type(obs) is not list or not obs:
+        receipt = 'RECEIPT_MISSING'
+        latest = None
+    else:
+        parsed = [(o, _clock_or_none(o.get('captured_at')))
+                  for o in obs if type(o) is dict]
+        if len(parsed) != len(obs) or any(dt is None for _, dt in parsed):
+            receipt = 'RECEIPT_UNVERIFIED'
+            latest = None
+        else:
+            latest = max(parsed, key=lambda entry: entry[1])[0]
+            data = latest.get('data')
+            same = (type(result.get('source_sha256')) is str and
+                    latest.get('source_sha256') == result.get('source_sha256') and
+                    latest.get('captured_at') == result.get('observed_at'))
+            raw_valid = (latest.get('body_identity_verified') is True and
+                         latest.get('status') == 'AVAILABLE' and
+                         type(data) is dict and data.get('confirmed') is True and
+                         (data.get('status') in ('cancelled', 'no_contest') or
+                          (data.get('status') == 'settled' and
+                           data.get('finish_confirmed') is True)))
+            receipt = ('RECEIPT_MATCHED_SETTLEMENT_BODY' if same and raw_valid
+                       else 'RECEIPT_MISMATCH_OR_INCOMPLETE')
+    before = _clock_or_none(ref.get('original_cutoff_at'))
+    after = _clock_or_none(ref.get('result_schedule_cutoff_at'))
+    preds = ([row['prediction']] if row.get('prediction') is not None else []) + \
+        list(row.get('comparison_predictions') or [])
+    if before is None or after is None or not preds:
+        chronology = 'CHRONOLOGY_UNKNOWN'
+    else:
+        earliest, latest_clock = min(before, after), max(before, after)
+        def _saved_early(pred):
+            if type(pred) is not dict:
+                return False
+            saved = _clock_or_none(pred.get('persisted_at'))
+            for field in ('as_of','generated_at','source_captured_at','server_saved_at'):
+                if pred.get(field) is not None:
+                    extra = _clock_or_none(pred[field])
+                    if extra is None or extra >= earliest:
+                        return False
+            return saved is not None and saved < earliest
+        capture_time = _clock_or_none(result.get('observed_at'))
+        if all(_saved_early(pred) for pred in preds) and \
+           capture_time is not None and capture_time >= latest_clock:
+            chronology = 'FORECASTS_BEFORE_BOTH_AND_RESULT_AFTER_BOTH'
+        else:
+            chronology = 'CHRONOLOGY_UNPROVEN'
+    return kind, band, receipt, chronology
+
 def need(ok, code):
     if not ok:
         raise ValueError('BOAT_COVERAGE_' + code)
@@ -37,6 +125,10 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
     counts = Counter()
     unsupported_reasons = Counter()
     reference_only_gates = Counter()
+    legacy_bases = Counter()
+    legacy_offsets = Counter()
+    legacy_receipts = Counter()
+    legacy_chronologies = Counter()
     model_counts = Counter()
     saved_p0 = all_saved = 0
     for r in rows:
@@ -72,6 +164,12 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
                 else:
                     gate = 'REFERENCE_GATE_UNCLASSIFIED'
                 reference_only_gates[gate] += 1
+                if gate == 'LEGACY_CUTOFF_REFERENCE':
+                    basis, offset, receipt, chronology = _legacy_reference_proof(r,result)
+                    legacy_bases[basis] += 1
+                    legacy_offsets[offset] += 1
+                    legacy_receipts[receipt] += 1
+                    legacy_chronologies[chronology] += 1
         preds = ([r['prediction']] if r.get('prediction') is not None else []) + list(
             r.get('comparison_predictions') or [])
         need(len(preds) <= 128 and all(type(p) is dict for p in preds),
@@ -132,6 +230,10 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
     need(sum(reference_only_gates.values()) ==
          unsupported_reasons['REFERENCE_ONLY_NOT_FORMAL'],
          'REFERENCE_GATE_COUNT_MISMATCH')
+    legacy_count = reference_only_gates['LEGACY_CUTOFF_REFERENCE']
+    need(all(sum(bucket.values()) == legacy_count for bucket in (
+        legacy_bases, legacy_offsets, legacy_receipts, legacy_chronologies)),
+         'LEGACY_REFERENCE_PARTITION_MISMATCH')
     complete = (len(rows) == expected_races and saved_p0 == expected_p0 and
                 counts['final'] + counts['void'] == len(rows) and
                 p0_open == 0)
@@ -147,6 +249,10 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
                 unconfirmed_result_races=len(rows)-counts['final']-counts['void'],
                 unsupported_reason_counts=dict(sorted(unsupported_reasons.items())),
                 reference_only_gate_counts=dict(sorted(reference_only_gates.items())),
+                legacy_reference_basis_counts=dict(sorted(legacy_bases.items())),
+                legacy_reference_offset_bands=dict(sorted(legacy_offsets.items())),
+                legacy_reference_receipt_checks=dict(sorted(legacy_receipts.items())),
+                legacy_reference_timing_checks=dict(sorted(legacy_chronologies.items())),
                 model_scored_forecasts=scored, model_pending_forecasts=pending,
                 model_held_forecasts=held, model_void_forecasts=void,
                 unresolved_p0_forecasts=p0_open,
