@@ -116,6 +116,32 @@ class CoverageTests(unittest.TestCase):
         self.assertNotIn('hidden-b',str(out))
         self.assertNotIn('20261112-01-',str(out))
 
+    def test_legacy_reference_basis_and_offset_bins_without_identifiers(self):
+        value=view(4)
+        basis=[
+            'RAW_OFFICIAL_CANCELLATION_SELECTED_RACE',
+            'RAW_OFFICIAL_SP_SAME_ROSTER_SAVED_BEFORE_BOTH',
+            'RAW_OFFICIAL_PAGE_SAME_ROSTER_SAVED_BEFORE_BOTH',
+            'secret-unrecognized-basis',
+        ]
+        offsets=[0,30,120,None]
+        for row,bound,offset in zip(value['records'],basis,offsets):
+            row['result']=dict(status='final',cutoff_reference=dict(
+                formal_eligible=False,basis=bound,offset_seconds=offset,
+                source_url='private-source-url-should-not-leak'))
+        states={r['race_id']:'unsupported' for r in value['records']}
+        report=score(forecasts=4,eligible=0,pending=0,held=4)
+        out=summarize(value,states,report,day='2026-11-12',
+                      expected_races=4,expected_p0=8)
+        self.assertEqual(out['legacy_reference_basis_counts'],{
+            basis[0]:1,basis[1]:1,basis[2]:1,'OTHER_OR_MISSING_BASIS':1})
+        self.assertEqual(out['legacy_reference_offset_counts'],{
+            'OFFSET_ZERO':1,'OFFSET_1_TO_60_SECONDS':1,
+            'OFFSET_OVER_60_SECONDS':1,'OFFSET_MISSING_OR_INVALID':1})
+        self.assertNotIn('private-source-url-should-not-leak',str(out))
+        self.assertNotIn('secret-unrecognized-basis',str(out))
+        self.assertNotIn('20261112-01-',str(out))
+
     def test_missing_race_duplicate_race_and_wrong_score_fail_closed(self):
         value=view(2)
         states={r['race_id']:'final' for r in value['records']}
