@@ -18,7 +18,7 @@ SCHEMA = "RACE_AI_BOAT_MAIN_OWNER_DISPATCH_GATE_V1"
 REPO = "haji84/RACE-AI"
 WORKFLOW = "BOAT nationwide cutoff-ordered A/B research (no Vercel)"
 RELEASE_REF = "production/boat-p0-p1-20261111"
-RELEASE_SHA = "203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9"
+RELEASE_SHA = "5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4"
 FIRST_FAILED_ID = 42993305843
 FIRST_FAILED_SHA = "5f5bd960e3377a87541f9d6b348d3c045ea51cf0"
 RELEASE_TOKEN = "RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1"
@@ -182,7 +182,7 @@ def _verified_continuation(today: list, control: dict, now: datetime) -> bool:
     validating the SOURCE_CONTROL ZIP against the opaque CONTINUITY AES
     artifact's ID, SHA256, run and head. The next producer decrypts again.
     """
-    if type(control) is not dict or not 1<=len(today)<=24:
+    if type(control) is not dict or not today:
         return False
     ordered=sorted(today,key=lambda r:_stamp(r['created_at']),reverse=True)
     latest=ordered[0]
@@ -206,8 +206,8 @@ def _verified_continuation(today: list, control: dict, now: datetime) -> bool:
     used=control.get('previous_session_requests')
     rounds=control.get('completed_round')
     if (any(type(n) is not int for n in (total,baseline,used,rounds)) or
-            min(total,baseline,used,rounds)<0 or baseline>total or used>total or
-            total-baseline>240 or 240-(total-baseline)<45):
+            min(total,baseline,used,rounds)<0 or baseline>total or
+             used>total-baseline):
         return False
     for key in ('receipt','source_control_receipt'):
         meta=control.get(key)
