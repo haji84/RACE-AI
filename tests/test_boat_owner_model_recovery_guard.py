@@ -20,7 +20,7 @@ class OriginalRecoveryGuardTests(unittest.TestCase):
 
     def test_recovery_uses_originals_not_prediction_regeneration_or_provider_get(self):
         s=W.read_text()
-        original=s.split('  recover_original:',1)[1].split('  independent_saved_readback:',1)[0]
+        original=s.split('\n  recover_original:\n',1)[1].split('\n  independent_saved_readback:\n',1)[0]
         self.assertIn("--hydrate-originals --recover-model-run",original)
         self.assertIn('RACE_AI_ORIGINAL_VAULT_ENABLED:',original)
         self.assertIn("SAVED_MODEL_ARCHIVES_REPLAYED",original)
