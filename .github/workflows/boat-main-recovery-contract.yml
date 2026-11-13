@@ -1,0 +1,25 @@
+name: BOAT main failed-owner recovery gate
+on:
+  push:
+    branches: [fix/boat-main-durable-recovery-20261114]
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-main-recovery-contract.yml
+      - .github/workflows/boat-racer-daily.yml
+      - scripts/boat_recovery_dispatch_gate.py
+      - scripts/boat_failed_recovery_contract.py
+      - tests/test_boat_recovery_dispatch_gate.py
+permissions:
+  contents: read
+jobs:
+  gate:
+    name: Durable recovery admission and original main guards
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - run: python -m unittest tests.test_boat_recovery_dispatch_gate tests.test_boat_main_dispatch_gate tests.test_boat_first_p0_recovery_gate -v
