@@ -17,9 +17,9 @@ from scripts.racer_daily_refresh import refresh as retain_daily,verify_public
 
 def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,fetch=None,base_transport=None,intraday_transport=None,pages_transport=None,roster=None,verify=False,sync_results=False,result_bridge=None,sync_beforeinfo=False):
     need(not sync_beforeinfo or sync_results,'BEFOREINFO_RESULT_FEED_REQUIRED')
-    # The ordinary BOAT worker keeps its proven 12-GET ceiling. A larger
-    # result-only catch-up is admitted ONLY by the production gap policy,
-    # with the exact cap passed through a protected workflow step output.
+    # A protected gap recovery supplies its independently verified due count.
+    # Ordinary cycles derive the allowance from authenticated outstanding IDs.
+    # No fixed source GET cap is used to suppress genuinely due races.
     cap=12
     admitted=os.environ.get('RACE_AI_BOAT_RESULT_CATCHUP_ADMITTED')
     requested=os.environ.get('RACE_AI_BOAT_RESULT_GET_CAP')
@@ -30,7 +30,7 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
              sync_results and not daily_reconcile and not initialize and
              not sync_beforeinfo,'INTRADAY_CATCHUP_CONTEXT_INVALID')
         need(requested.isdecimal() and str(int(requested))==requested and
-             12<=int(requested)<=36,'INTRADAY_CATCHUP_REQUEST_LIMIT_INVALID')
+             int(requested)>=1,'INTRADAY_CATCHUP_REQUEST_LIMIT_INVALID')
         cap=int(requested)
     current=(lambda:clock(now)) if now is not None else (lambda:datetime.now(timezone.utc));started=current();root=private_root(private_dir)
     daily=None
@@ -53,6 +53,12 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
                 bridge=None;result_sync=result_status(now=current(),state='HOLD')
         loaded=load_intraday(repo,initialize=initialize,transport=intraday_transport,now=current());state=loaded['state'];before={k:v for k,v in state.control.items() if k!='last_checked_at'};before=wire(before)
         if bridge:bridge.prepare(state)
+        if admitted is None:
+            # A due race is GET-eligible at most once in this invocation.
+            # Overshooting this allowance cannot create new targets because
+            # IntradayState.advance checks persisted next-check clocks.
+            cap=max(cap,len(targets)+len(state.control.get('races',{}))+
+                    len(state.control.get('venues',[]))+2)
         beforeinfo=dict(requests=0,parsed=0,rejected=0)
         if daily_reconcile:
             state.rollover(current());state.control['last_checked_at']=current().isoformat();outcome=dict(status='READY' if daily['status']=='DAILY_RETAINED' else 'SOURCE_WAIT',requests=0,new_observations=0)
