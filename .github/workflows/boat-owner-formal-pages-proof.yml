@@ -8,14 +8,33 @@ on:
     branches: [main]
     paths:
       - .github/workflows/boat-owner-formal-pages-proof.yml
+  workflow_run:
+    workflows: ['BOAT schedule-gap retained-result recovery (zero provider GET)']
+    types: [completed]
+    branches: [main]
+  schedule:
+    # Source-free only: daily fallback if a workflow_run event is delayed.
+    - cron: '37 15 * * *'
+  workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: boat-owner-formal-pages-proof
   cancel-in-progress: false
 jobs:
   static_site:
     name: Verify exact candidate Pages assets, cache and manifest (zero GET)
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      (github.event_name != 'workflow_run' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        (github.event.workflow_run.event == 'schedule' ||
+         github.event.workflow_run.event == 'workflow_run' ||
+         (github.event.workflow_run.event == 'push' &&
+          startsWith(github.event.workflow_run.display_title, 'boat-gap-fresh-proof:')))))
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -108,7 +127,7 @@ jobs:
 
   authenticated_site:
     name: Compare new site module with real AES saved 284 P0 and original scorer (zero GET)
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request' && needs.static_site.result == 'success'
     needs: static_site
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -197,4 +216,56 @@ jobs:
                 for k,v in public['counts'].items()},
               'official_source_gets':0,'original_predictions_changed':False},
               sort_keys=True))
+
+          # Event-driven daily checks use only actual signed encrypted Git
+          # views. Other days are NOT assumed to have 142 races or 2 models.
+          from scripts import boat_auto_site_coverage as Auto
+          for active_day in bridge.days:
+              selected=(derived if active_day=='2026-11-12' else
+                        F.current_view(bridge.git,bridge.bootstrap,day=active_day)[3])
+              native=(score if active_day=='2026-11-12' else
+                      P.score_view(selected,authenticated=True))
+              status={r['race_id']:D.reconciled_status(r) for r in selected['records']
+                  if r.get('sport')=='boat' and r.get('event_date_jst')==active_day}
+              if not status:
+                  continue
+              audit=Auto.summarize(selected,native,status,day=active_day)
+              if audit['status']=='COMPLETE':
+                  site_js=r"""
+          const fs=require('fs');
+          const Product=require('./site/product-data.js');
+          const Perf=require('./site/saved-performance.js');
+          const source=JSON.parse(fs.readFileSync(0,'utf8'));
+          const view=Product.parse(source),counts={};
+          for(const r of view.records){
+            if(r.sport!=='boat')continue;
+            const picks=[r.prediction,...(r.comparison_predictions||[])].filter(Boolean);
+            for(const p of picks){
+              const id=p.model_id+'|'+p.stage,cell=counts[id]||(counts[id]={forecasts:0,hits:0,misses:0,void:0});
+              cell.forecasts++;
+              const comparison=Perf.compare(r,p).status;
+              if(!['HIT','MISS','VOID'].includes(comparison))
+                throw new Error('BROWSER_NATIVE_FORMAL_MISMATCH');
+              cell[comparison=='HIT'?'hits':comparison=='MISS'?'misses':'void']++;
+            }
+          }
+          console.log(JSON.stringify(counts));
+          """
+                  checked=subprocess.run(['node','-e',site_js],
+                      input=json.dumps(selected,ensure_ascii=False),
+                      text=True,capture_output=True,timeout=90)
+                  assert checked.returncode==0, 'LATEST_DAY_BROWSER_SCORER_HOLD'
+                  actual=json.loads(checked.stdout)
+                  expected={}
+                  for group in native['model_groups']:
+                      key=group['model_id']+'|'+group['stage']
+                      cell=expected.setdefault(key,dict(forecasts=0,hits=0,misses=0,void=0))
+                      for field in cell:
+                          cell[field]+=group[field if field!='void' else 'void']
+                  assert actual==expected,'LATEST_DAY_MODEL_PARITY_MISMATCH'
+                  audit['site_parity_verified']=True
+              else:
+                  audit['site_parity_verified']=False
+                  audit['site_parity_state']='HOLD_NOT_CLAIMED_COMPLETE'
+              print(json.dumps(audit,sort_keys=True,ensure_ascii=False))
           PY
