@@ -15,6 +15,7 @@ import json
 import math
 import re
 import unicodedata
+from urllib.parse import urlsplit, parse_qsl
 
 SCHEMA = "RACE_AI_PRIVATE_CYCLE_VIEW_V1"
 MAX_BYTES = 64 * 1024 * 1024
@@ -163,6 +164,48 @@ def _registration(person):
     return values[0]
 
 
+
+def _official_result_name_binding(source, target_race_id, *, other_race=False):
+    """Display identity only, never a pre-cutoff model input.
+
+    A pre-existing official SP result can establish an identical registration
+    name, but only its exact day / venue / race URL with an authenticated SHA.
+    A cross-race label must be from another race on the SAME Japanese day.
+    """
+    pattern = r"([0-9]{8})-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])"
+    target = re.fullmatch(pattern, target_race_id)
+    source_race_id = source.get("source_race_id") if other_race else target_race_id
+    origin = re.fullmatch(pattern, source_race_id or "")
+    _need(target is not None and origin is not None and
+          (not other_race or (origin[1] == target[1] and source_race_id != target_race_id)),
+          "official name race scope")
+    _sha(source.get("source_sha256"))
+    captured = _clock(source.get("captured_at"))
+    day = datetime.strptime(origin[1], "%Y%m%d").replace(tzinfo=_JST)
+    _need(captured >= day, "official name source capture")
+    url = source.get("source_url")
+    _need(type(url) is str and len(url) <= 2000, "official name source URL")
+    parts = urlsplit(url)
+    _need(parts.scheme == "https" and parts.netloc == "www.boatrace.jp" and
+          not parts.username and not parts.password and not parts.fragment and
+          parts.path == "/owsp/sp/spdata", "official name source domain")
+    query = parse_qsl(parts.query, keep_blank_values=True)
+    _need(len(query) == 4 and len({k for k, _ in query}) == 4 and
+          dict(query) == {"type":"raceresult", "hd":origin[1],
+                          "jcd":origin[2], "rno":str(int(origin[3]))},
+          "official name source race URL")
+
+
+def _official_profile_name_binding(source, registration, event_day):
+    """Identity from the current official profile, not historic source evidence."""
+    _need(source.get("verified_current") is True, "current official profile unverified")
+    _sha(source.get("source_sha256"))
+    captured = _clock(source.get("captured_at"))
+    event = datetime.fromisoformat(event_day).replace(tzinfo=_JST)
+    _need(captured >= event, "current official profile clock")
+    url = "https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban="+registration
+    _need(source.get("source_url") == url, "current official profile URL")
+
 def _participants(row):
     people = row.get("participants")
     if people is None: return []
@@ -179,12 +222,26 @@ def _participants(row):
         if person.get("name") is not None: _label(person["name"])
         if person.get("name_source") is not None:
             source = person["name_source"]
-            _need(type(source) is dict and source.get("kind") in ("SAME_RACE_PROGRAM", "VERIFIED_RACER_REGISTRY"), "name source kind")
-            _need(source.get("registration_no") == _registration(person), "name source registration")
-            if source["kind"] == "SAME_RACE_PROGRAM": _need(source.get("race_id") == row["race_id"], "name source race")
-            _name_metadata(dict(source, name=person.get("name")), _registration(person),
-                           race_id=row["race_id"] if source["kind"] == "SAME_RACE_PROGRAM" else None,
-                           registry=source["kind"] == "VERIFIED_RACER_REGISTRY")
+            _need(type(source) is dict and source.get("kind") in (
+                  "SAME_RACE_PROGRAM", "VERIFIED_RACER_REGISTRY",
+                  "SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT",
+                  "VERIFIED_OFFICIAL_PROFILE"), "name source kind")
+            pid = _registration(person)
+            _need(source.get("registration_no") == pid, "name source registration")
+            kind = source["kind"]
+            if kind in ("SAME_RACE_PROGRAM", "SAME_RACE_RESULT",
+                        "SAME_DAY_OFFICIAL_RESULT"):
+                _need(source.get("race_id") == row["race_id"], "name source race")
+            if kind in ("SAME_RACE_RESULT", "SAME_DAY_OFFICIAL_RESULT"):
+                _official_result_name_binding(source,row["race_id"],
+                    other_race=kind=="SAME_DAY_OFFICIAL_RESULT")
+            if kind == "VERIFIED_OFFICIAL_PROFILE":
+                _official_profile_name_binding(source,pid,row["event_date_jst"])
+            _name_metadata(dict(source, name=person.get("name")),pid,
+                race_id=row["race_id"] if kind in (
+                    "SAME_RACE_PROGRAM", "SAME_RACE_RESULT",
+                    "SAME_DAY_OFFICIAL_RESULT") else None,
+                registry=kind=="VERIFIED_RACER_REGISTRY")
     return people
 
 
