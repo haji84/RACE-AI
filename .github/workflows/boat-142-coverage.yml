@@ -6,6 +6,8 @@ on:
       - .github/workflows/boat-142-coverage.yml
       - scripts/boat_142_coverage.py
       - tests/test_boat_142_coverage.py
+      - scripts/boat_142_owner_formal.py
+      - tests/test_boat_142_owner_formal.py
   push:
     branches: [main]
     paths:
@@ -29,7 +31,7 @@ jobs:
         with:
           ref: '${{ github.event.pull_request.head.sha }}'
           persist-credentials: false
-      - run: python -m unittest tests.test_boat_142_coverage -v
+      - run: python -m unittest tests.test_boat_142_coverage tests.test_boat_142_owner_formal -v
       - name: Require this workflow never makes official-result GET
         run: |
           python - <<'PY'
@@ -41,6 +43,14 @@ jobs:
           assert 'P.score_view(view,authenticated=True)' in workflow
           assert 'reconciled_status(r)' in workflow
           assert 'official_source_requests' in code
+          formal=Path('scripts/boat_142_owner_formal.py').read_text()
+          assert "POLICY = 'BOAT_OWNER_APPROVED_SP_CUTOFF_FORMAL_V1'" in formal
+          assert 'result_observation_rejections' in formal
+          assert "row['result'].pop('cutoff_reference')" in formal
+          assert 'F.inventory_sha(working) == before_inventory' in formal
+          assert 'P.score_view(working, authenticated=True)' in formal
+          assert 'source_gets=0' in formal
+          assert 'https://www.boatrace.jp' not in workflow.split('  authenticated_all_races:',1)[1]
           print('BOAT_142_SOURCEFREE_ACCOUNTING_CONTRACT_VERIFIED')
           PY
   authenticated_all_races:
@@ -118,17 +128,42 @@ jobs:
               expected_races=142,expected_p0=284)
           assert result['official_source_requests']==0
           assert result['prediction_rewrites']==0 and result['actual_purchases'] is False
-          print(json.dumps(result,sort_keys=True,ensure_ascii=False))
+          assert result['confirmed_result_races']==132 and result['unconfirmed_result_races']==10
+          assert result['model_scored_forecasts']==264 and result['model_held_forecasts']==20
+          # Owner authorizes the ten raw-SP cutoff references for formal
+          # historical scoring, but never authorizes invented observations or
+          # overwriting the original sealed source/forecast. Only the copied
+          # score view drops the historical nonformal display-only marker.
+          owner_helper=Path('..','scripts','boat_142_owner_formal.py').resolve()
+          assert owner_helper.is_file()
+          owner_spec=importlib.util.spec_from_file_location('boat_owner_formal',owner_helper)
+          owner=importlib.util.module_from_spec(owner_spec)
+          owner_spec.loader.exec_module(owner)
+          scoring_view,approved_score,proof=owner.score_owner_approved(
+              view,F=F,D=D,P=P,day=day,expected_races=142,expected_p0=284)
+          approved_statuses={r['race_id']:D.reconciled_status(r)
+              for r in scoring_view['records']}
+          formal=module.summarize(scoring_view,approved_statuses,approved_score,
+              day=day,expected_races=142,expected_p0=284)
+          assert formal['status']=='BOAT_142_COVERAGE_COMPLETE'
+          assert formal['confirmed_result_races']==142
+          assert formal['model_scored_forecasts']==284
+          assert formal['model_held_forecasts']==formal['model_pending_forecasts']==0
+          assert formal['official_source_requests']==0 and formal['prediction_rewrites']==0
+          report=dict(schema='BOAT_OWNER_APPROVED_FORMAL_142_AUDIT_V1',
+              native_original=result,owner_formal=formal,
+              approval=proof,unmodified_originals=True,provider_gets=0)
+          print(json.dumps(report,sort_keys=True,ensure_ascii=False))
           destination=Path(os.environ['RUNNER_TEMP'])/'boat-142-coverage-counts.json'
           fd=os.open(destination,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
           with os.fdopen(fd,'w') as output:
-              json.dump(result,output,sort_keys=True);output.write('\n')
+              json.dump(report,output,sort_keys=True);output.write('\n')
           PY
       - name: Retain only aggregate coverage, never private race IDs or source bytes
         if: success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: boat-142-result-coverage-${{ github.run_id }}
+          name: boat-142-owner-formal-coverage-${{ github.run_id }}
           path: ${{ runner.temp }}/boat-142-coverage-counts.json
           retention-days: 90
           if-no-files-found: error
