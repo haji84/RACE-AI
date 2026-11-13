@@ -30,6 +30,22 @@ jobs:
         with:
           ref: "${{ github.event.pull_request.head.sha }}"
           persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0da3f00b0f5c5115f956658d306ddcb9833ec7af
+          path: owner-source
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: owner-source/pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: owner-source/pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r owner-source/requirements-history.txt
       - name: Verify bounded owner-only event, immutable source, no duplicate GET or forecast
         run: |
           python -m unittest tests.test_boat_owner_model_recovery_guard -v
@@ -48,6 +64,21 @@ jobs:
           assert 'gh workflow run' not in source
           assert 'www.boatrace.jp' not in source
           print('BOAT_OWNER_ORIGINAL_RECOVERY_NO_PROVIDER_GET_GUARD_VERIFIED')
+          PY
+      - name: Verify existing authenticated original model archive recovery without live source GET
+        working-directory: owner-source
+        run: |
+          python - <<'PY'
+          import race_ai,unittest
+          from pathlib import Path
+          for ref in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(ref,'race_ai').resolve()))
+          names=['tests.test_boat_all_model_recovery',
+                 'tests.test_saved_model_name_alias_intake']
+          suite=unittest.defaultTestLoader.loadTestsFromNames(names)
+          outcome=unittest.TextTestRunner(verbosity=2).run(suite)
+          if not outcome.wasSuccessful():raise SystemExit(1)
+          print('BOAT_ORIGINAL_ARCHIVE_RECOVERY_EXISTING_SOURCE_REGRESSIONS_OK')
           PY
   recover_original:
     if: >-
@@ -92,7 +123,7 @@ jobs:
           GH_TOKEN: '${{ github.token }}'
           RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
           RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
-          RACE_AI_OWNER_RECOVER_RUN: '${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43348227701' }}'
+          RACE_AI_OWNER_RECOVER_RUN: "${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43348227701' }}"
         run: |
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = 'haji84/RACE-AI'
