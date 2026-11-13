@@ -118,7 +118,7 @@ class IntradayState:
         captures=[p['captured_at'] for p in pointers if clock(p['captured_at']).astimezone(JST).date().isoformat()>=day]
         return dict(day=day,last_checked_at=c['last_checked_at'] or now.isoformat(),latest_result_at=max(captures,default=None),expected_races=expected,confirmed_races=len(confirmed),pending_races=None if expected is None else max(0,expected-len(confirmed)),schedule_complete=complete,source_state=state,revision_conflicts=len(c['conflicts']),source_receipts=list(receipts.values()))
     def advance(self,base,*,now,fetch,max_requests=12,result_targets=()):
-        now=clock(now);need(type(max_requests) is int and 1<=max_requests<=36,'INTRADAY_REQUEST_BOUND');c=self.control;day=now.astimezone(JST).date();text=day.isoformat();requests=changed=0
+        now=clock(now);need(type(max_requests) is int and max_requests>=1,'INTRADAY_REQUEST_BOUND');c=self.control;day=now.astimezone(JST).date();text=day.isoformat();requests=changed=0
         self.extra_rows(base,now=now)
         self.rollover(now)
         targets={}
@@ -176,9 +176,9 @@ class IntradayState:
         old=[rid for rid in result_due if targets[rid]['pending'] and rid not in fresh]
         revisions=[rid for rid in result_due if not targets[rid]['pending']]
         new_stats=[rid for rid in due if rid not in c['results']]
-        # Normal runs retain the original 12-GET cap. Only a separately
-        # admitted recovery may request up to 36, retaining the SAME total
-        # source budget, one GET per race, source WAIT and single writer.
+        # Each run's request allowance is derived from its authenticated due
+        # race IDs, rather than an arbitrary 12/36 source GET ceiling. Keep
+        # one GET per race, source WAIT, pacing and serialized state writes.
         # After urgent current-day races/venue discovery, allocate half of
         # the guarded catch-up budget to the oldest authenticated saved races
         # so a busy new day does not starve yesterday's retained P0 outcomes.
