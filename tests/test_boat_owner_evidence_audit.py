@@ -75,6 +75,13 @@ class LedgerTests(unittest.TestCase):
         self.assertFalse(value['successor_dispatch_allowed'])
         self.assertFalse(value['live_recovery_to_new_p1_proven'])
         self.assertEqual(value['official_source_requests'],0)
+    def test_existing_receipt_second_precision_rule_is_preserved(self):
+        self.p1[0]['as_of']=f'{DAY}T11:41:00.400000+09:00'
+        value=self.call()
+        self.assertEqual(value['baseline_p1_races'],1)
+        self.p1[0]['as_of']=f'{DAY}T11:41:01+09:00'
+        with self.assertRaises(ValueError):self.call()
+
     def test_video_absence_is_scoped_not_claimed_as_global_absence(self):
         value=self.call(video_rows=[],video_rejections=0)
         self.assertEqual(value['verified_video_prediction_rows'],0)
