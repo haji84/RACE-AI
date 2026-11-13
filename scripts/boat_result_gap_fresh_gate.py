@@ -77,8 +77,8 @@ def inspect(boat_runs,recovery_runs,prior_attempts,source,*,now,current_run_id,r
         if r.get('status') in ('queued','pending','waiting','requested','in_progress'):
             return dict(status='HOLD_ORIGINAL_COLLECTOR_ACTIVE',authorized_source_gets=0)
         # Completed primary runs have no artificial 20-minute cooldown.
-        # Their worst-case 12 GET every 5 minutes is already reserved from
-        # the rolling 240 owner budget by the recovery 96 GET/hour ceiling.
+        # No hidden per-hour or per-day numeric quota. Normal source refusal,
+        # persisted per-race next-check and the shared writer gate still apply.
     # No artificial 30-minute or 60-minute quota pauses. GitHub source
     # jobs are serialized by the shared Actions concurrency group; refuse
     # any independently visible active writer as defense in depth.
@@ -135,7 +135,7 @@ def live(repo,run_id,attempt,source):
                 steps=job.get('steps')
                 _need(type(steps) is list and len(steps)<100,'SOURCE_STEPS_UNVERIFIED')
                 sources=[s for s in steps if s.get('name','').startswith(
-                    'Consume at most 36 owner-admitted official-result GETs')]
+                    'Consume owner-admitted genuine due official-result GETs')]
                 _need(len(sources)==1,'SOURCE_STEP_UNVERIFIED')
                 step=sources[0]
                 performed=step.get('status')=='in_progress' or (
@@ -161,7 +161,7 @@ def main(argv=None):
     fd=os.open(target,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
     with os.fdopen(fd,'w') as f:json.dump(result,f,sort_keys=True);f.write('\n')
     print(json.dumps({k:v for k,v in result.items() if k in
-          ('status','authorized_source_gets','source_owner_240_unchanged',
+          ('status','authorized_source_gets','source_owner_fixed_get_cap_removed',
            'pending_due_count','recovery_hourly_cap_removed')},sort_keys=True))
     with open(os.environ['GITHUB_OUTPUT'],'a') as f:
         f.write('admitted='+str(result['status']=='FRESH_RESULT_GET_ADMITTED').lower()+'\n')
