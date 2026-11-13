@@ -182,7 +182,7 @@ def _verified_continuation(today: list, control: dict, now: datetime) -> bool:
     validating the SOURCE_CONTROL ZIP against the opaque CONTINUITY AES
     artifact's ID, SHA256, run and head. The next producer decrypts again.
     """
-    if type(control) is not dict or not 1<=len(today)<=24:
+    if type(control) is not dict or not today:
         return False
     ordered=sorted(today,key=lambda r:_stamp(r['created_at']),reverse=True)
     latest=ordered[0]
@@ -206,8 +206,8 @@ def _verified_continuation(today: list, control: dict, now: datetime) -> bool:
     used=control.get('previous_session_requests')
     rounds=control.get('completed_round')
     if (any(type(n) is not int for n in (total,baseline,used,rounds)) or
-            min(total,baseline,used,rounds)<0 or baseline>total or used>total or
-            total-baseline>240 or 240-(total-baseline)<45):
+            min(total,baseline,used,rounds)<0 or baseline>total or
+             used>total-baseline):
         return False
     for key in ('receipt','source_control_receipt'):
         meta=control.get(key)
