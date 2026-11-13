@@ -1,0 +1,51 @@
+name: BOAT pending-round recovery contract
+on:
+  pull_request:
+    branches: [production/boat-p0-p1-20261111]
+    paths:
+      - .github/workflows/boat-pending-recovery-contract.yml
+      - race_ai/boat_pending_round_recovery.py
+      - scripts/boat_failed_recovery_contract.py
+      - scripts/boat_recover_failed_owner.py
+      - scripts/github_existing_cycle.py
+      - tests/test_boat_pending_round_recovery.py
+permissions:
+  contents: read
+jobs:
+  recovery_contract:
+    name: Pending round recovery without source or forecast regeneration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.event.pull_request.head.sha }}'}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Actual encrypted fixtures, independent Git, interrupted control and existing regressions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import race_ai,unittest
+          for folder in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(folder,'race_ai').resolve()))
+          names=['tests.test_boat_pending_round_recovery','tests.test_private_original_archive_readers',
+                 'tests.test_boat_private_original_vault_cli','tests.test_boat_private_original_vault',
+                 'tests.test_cycle_recovery','tests.test_repeated_cycle','tests.test_boat_source_control',
+                 'tests.test_continuity_checkpoint','tests.test_boat_main_entry_contract']
+          suite=unittest.defaultTestLoader.loadTestsFromNames(names)
+          result=unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(not result.wasSuccessful())
+          PY
+      - name: Require production restore hook before any new source session
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source=Path('scripts/github_existing_cycle.py').read_text()
+          restore=source.split('def restore(',1)[1].split('def _venue_research_preload',1)[0]
+          assert 'state=recover_restored_pending(state,gh,ROOT)' in restore
+          assert 'pending_round_recovery_vault_commit' in restore
+          print('PENDING_ROUND_RESTORE_HOOK_VERIFIED')
+          PY

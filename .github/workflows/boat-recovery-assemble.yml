@@ -1,0 +1,52 @@
+name: Assemble reviewed pending-round hook on isolated candidate
+on:
+  push:
+    branches: [fix/boat-durable-p1-recovery-20261114]
+permissions:
+  contents: write
+jobs:
+  assemble:
+    if: startsWith(github.event.head_commit.message, 'assemble(boat): pending recovery candidate')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Apply only the reviewed restore hook to its exact original blob
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+          p=Path('scripts/github_existing_cycle.py')
+          assert subprocess.check_output(['git','hash-object',str(p)]).decode().strip()=='01590df50f9db1acef6d46f430b45d0b1f16a82a'
+          old="    state=recover(gh,day,current_run=int(os.environ['GITHUB_RUN_ID']),out=ROOT/'cycle_recovery_output',\n                  video_receipt_verifier=reader.verify)\n"
+          addition="    # Reconcile the prior uncommitted round from its actual saved originals.\n    # No source session or new forecast is admitted until vault readback succeeds.\n    from scripts.boat_recover_failed_owner import recover_restored_pending\n    state=recover_restored_pending(state,gh,ROOT)\n    if state.get('pending_round_recovery_vault_commit'):\n        from race_ai.repeated_cycle import write_state\n        write_state(ROOT/'cycle_recovery_output/continuity.json',state,key='state_sha256')\n"
+          text=p.read_text();assert text.count(old)==1
+          p.write_text(text.replace(old,old+addition))
+          Path('.github/workflows/boat-recovery-assemble.yml').unlink()
+          PY
+      - name: Test assembled files without any real owner data or official requests
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import race_ai,unittest
+          for folder in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(folder,'race_ai').resolve()))
+          result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames([
+              'tests.test_boat_pending_round_recovery','tests.test_private_original_archive_readers']))
+          raise SystemExit(not result.wasSuccessful())
+          PY
+      - name: Save only tested code on this candidate branch and remove this one-time assembler
+        env:
+          EXPECTED_BRANCH: fix/boat-durable-p1-recovery-20261114
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/$EXPECTED_BRANCH"
+          git diff --check
+          git add -- scripts/github_existing_cycle.py .github/workflows/boat-recovery-assemble.yml
+          git -c user.name='RACE-AI candidate assembly' -c user.email='race-ai-state@users.noreply.github.com' commit -m 'fix(boat): reconcile authenticated pending round before the next owner source session'
+          git push origin "HEAD:refs/heads/$EXPECTED_BRANCH"
