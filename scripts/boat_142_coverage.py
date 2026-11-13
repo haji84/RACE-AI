@@ -37,6 +37,8 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
     counts = Counter()
     unsupported_reasons = Counter()
     reference_only_gates = Counter()
+    reference_only_basis = Counter()
+    reference_only_offset = Counter()
     model_counts = Counter()
     saved_p0 = all_saved = 0
     for r in rows:
@@ -72,6 +74,25 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
                 else:
                     gate = 'REFERENCE_GATE_UNCLASSIFIED'
                 reference_only_gates[gate] += 1
+                if gate == 'LEGACY_CUTOFF_REFERENCE':
+                    evidence = result['cutoff_reference']
+                    need(type(evidence) is dict, 'LEGACY_REFERENCE_METADATA_INVALID')
+                    basis = evidence.get('basis')
+                    reference_only_basis[basis if basis in (
+                        'RAW_OFFICIAL_CANCELLATION_SELECTED_RACE',
+                        'RAW_OFFICIAL_SP_SAME_ROSTER_SAVED_BEFORE_BOTH',
+                        'RAW_OFFICIAL_PAGE_SAME_ROSTER_SAVED_BEFORE_BOTH')
+                        else 'OTHER_OR_MISSING_BASIS'] += 1
+                    offset = evidence.get('offset_seconds')
+                    if type(offset) not in (int, float) or not -86400 <= offset <= 86400:
+                        bucket = 'OFFSET_MISSING_OR_INVALID'
+                    elif offset == 0:
+                        bucket = 'OFFSET_ZERO'
+                    elif abs(offset) <= 60:
+                        bucket = 'OFFSET_1_TO_60_SECONDS'
+                    else:
+                        bucket = 'OFFSET_OVER_60_SECONDS'
+                    reference_only_offset[bucket] += 1
         preds = ([r['prediction']] if r.get('prediction') is not None else []) + list(
             r.get('comparison_predictions') or [])
         need(len(preds) <= 128 and all(type(p) is dict for p in preds),
@@ -132,6 +153,11 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
     need(sum(reference_only_gates.values()) ==
          unsupported_reasons['REFERENCE_ONLY_NOT_FORMAL'],
          'REFERENCE_GATE_COUNT_MISMATCH')
+    need(sum(reference_only_basis.values()) ==
+         reference_only_gates['LEGACY_CUTOFF_REFERENCE'] and
+         sum(reference_only_offset.values()) ==
+         reference_only_gates['LEGACY_CUTOFF_REFERENCE'],
+         'REFERENCE_DETAILS_COUNT_MISMATCH')
     complete = (len(rows) == expected_races and saved_p0 == expected_p0 and
                 counts['final'] + counts['void'] == len(rows) and
                 p0_open == 0)
@@ -147,6 +173,8 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
                 unconfirmed_result_races=len(rows)-counts['final']-counts['void'],
                 unsupported_reason_counts=dict(sorted(unsupported_reasons.items())),
                 reference_only_gate_counts=dict(sorted(reference_only_gates.items())),
+                legacy_reference_basis_counts=dict(sorted(reference_only_basis.items())),
+                legacy_reference_offset_counts=dict(sorted(reference_only_offset.items())),
                 model_scored_forecasts=scored, model_pending_forecasts=pending,
                 model_held_forecasts=held, model_void_forecasts=void,
                 unresolved_p0_forecasts=p0_open,
