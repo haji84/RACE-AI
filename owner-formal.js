@@ -22,6 +22,23 @@
     values.every(t => Array.isArray(t) && t.length === 3 &&
       t.every(n => Number.isInteger(n) && n >= 1 && n <= 6) && new Set(t).size === 3);
   const key = t => t.join("-");
+  function officialSpUrl(value, raceId) {
+    const race = /^([0-9]{8})-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])$/.exec(raceId || "");
+    if (!race || typeof value !== "string" || value.length > 1024) return false;
+    try {
+      const url = new URL(value), q = url.searchParams, keys = [...q.keys()];
+      return url.protocol === "https:" && url.hostname === "www.boatrace.jp" &&
+        !url.username && !url.password && !url.hash &&
+        url.pathname === "/owsp/sp/spdata" && keys.length === 4 &&
+        new Set(keys).size === 4 && q.get("type") === "raceresult" &&
+        q.get("hd") === race[1] && q.get("jcd") === race[2] &&
+        String(Number(q.get("rno"))) === String(Number(race[3])) &&
+        /^(?:[1-9]|1[0-2])$/.test(q.get("rno"));
+    } catch { return false; }
+  }
+  const sameNumbers = (a,b) => Array.isArray(a) && Array.isArray(b) &&
+    a.length === b.length && JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
+
   const preds = r => [r.prediction, ...(Array.isArray(r.comparison_predictions) ? r.comparison_predictions : [])].filter(Boolean);
   const invalid = reason => ({applicable:true, verified:false, reason});
 
@@ -53,8 +70,7 @@
         latest.closed_at !== proof.result_schedule_cutoff_at ||
         latest.body_identity_verified !== true || latest.status !== "AVAILABLE" ||
         latest.schedule_binding !== "SP_EXPLICIT_RACE_HEADER" ||
-        typeof latest.source_url !== "string" ||
-        !latest.source_url.startsWith("https://www.boatrace.jp/owsp/sp/spdata?")) return false;
+        !officialSpUrl(latest.source_url,row.race_id)) return false;
     const data = latest.data;
     if (!data || data.status !== "settled" || data.confirmed !== true ||
         data.finish_confirmed !== true || !tickets(r.winning_combinations) ||
@@ -66,8 +82,17 @@
         new Set(payouts.map(x => key(x.combination))).size !== payouts.length ||
         payouts.some(x => !r.winning_combinations.some(t => key(t) === key(x.combination)))) return false;
     if (payouts.length === 1 && r.payout_yen_per_100 !== payouts[0].payout_per_100_yen) return false;
-    if (!Array.isArray(data.refund_boats) ||
-        data.refund_boats.some(n => !Number.isInteger(n) || n < 1 || n > 6)) return false;
+    if (payouts.length > 1 && (!Array.isArray(r.payouts) || r.payouts.length !== payouts.length ||
+        r.payouts.some(p => !p || !tickets([p.combination]) ||
+          !payouts.some(o => key(o.combination) === key(p.combination) &&
+            o.payout_per_100_yen === p.payout_per_100_yen)))) return false;
+    if (!sameNumbers(r.refund_boats || [],data.refund_boats || []) ||
+        (r.refund_boats || []).some(n => !Number.isInteger(n) || n < 1 || n > 6) ||
+        new Set(r.refund_boats || []).size !== (r.refund_boats || []).length) return false;
+    if (data.refunds != null && r.refunds != null &&
+        JSON.stringify(data.refunds) !== JSON.stringify(r.refunds)) return false;
+    if (r.winning_combinations.some(t => t.some(n => (r.refund_boats || []).includes(n))))
+      return false;
     return true;
   }
 
