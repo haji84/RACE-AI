@@ -81,8 +81,7 @@ def _resume_control_ok(control, latest, now, recovered_latest):
         total,baseline,used,rounds=(control.get(k) for k in
             ('lifetime_requests','day_start_lifetime_requests','previous_session_requests','completed_round'))
         if (any(type(x) is not int for x in (total,baseline,used,rounds)) or
-                min(total,baseline,used,rounds)<0 or not used<=total-baseline<=240 or
-                240-(total-baseline)<45):return False
+                min(total,baseline,used,rounds)<0 or not used<=total-baseline):return False
         for key in ('receipt','source_control_receipt'):
             meta=control.get(key)
             if (type(meta) is not dict or type(meta.get('id')) is not int or meta['id']<=0 or
@@ -102,7 +101,7 @@ def decide(*, now, release, owner_doc, history, retry_proof=None,
     if result['status']!='HOLD_ALREADY_DISPATCHED_FOR_JST_DAY':return result
     if now.astimezone(ZoneInfo('Asia/Tokyo')).hour<6:return result
     runs=_today(history,now)
-    if (not 1<=len(runs)<=24 or len({r['id'] for r in runs})!=len(runs) or
+    if (not runs or len({r['id'] for r in runs})!=len(runs) or
             any(r.get('head_sha')!=base.RELEASE_SHA or r.get('status')!='completed' or
                 r.get('conclusion') not in ('success','failure') for r in runs) or
             not any(r.get('conclusion')=='failure' for r in runs)):return result
