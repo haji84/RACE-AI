@@ -144,12 +144,14 @@ class FreshGateTests(unittest.TestCase):
         )[1].split('      - name:',1)[0]
         self.assertIn("assert after_final>=baseline['before_final']",source)
         self.assertIn("assert inventory==baseline['inventory_digest']",source)
-        self.assertIn("if after_final==baseline['before_final']:",source)
+        self.assertIn("if adjudication=='BOAT_NO_NEW_FORMAL_FINAL_HOLD':",source)
+        self.assertIn("changed_races=report['result_sync']['changed_races']",source)
+        self.assertIn("from scripts.boat_result_fresh_postflight import decision",source)
         self.assertIn("'BOAT_NO_NEW_FORMAL_FINAL_HOLD'",source)
         self.assertIn('raise SystemExit(0)',source)
-        self.assertIn('assert after_final>baseline[',source)
+        self.assertIn("assert adjudication=='FRESH_OFFICIAL_FINAL_INCREASE_VERIFIED'",source)
         self.assertLess(source.index("assert inventory==baseline['inventory_digest']"),
-                        source.index("if after_final==baseline['before_final']:"))
+                        source.index("if adjudication=='BOAT_NO_NEW_FORMAL_FINAL_HOLD':"))
         self.assertLess(source.index('raise SystemExit(0)'),
                         source.index("stream.write('new_results=true"))
         follow=workflow.split('  source_free_followup:',1)[1]
@@ -175,7 +177,7 @@ class FreshGateTests(unittest.TestCase):
                 self.assertTrue(any(isinstance(node,ast.Import) and
                     any(alias.name=='os' for alias in node.names)
                     for node in tree.body), 'os used without import: '+label)
-        assert "assert after_final>baseline['before_final']" in workflow
+        assert "assert adjudication=='FRESH_OFFICIAL_FINAL_INCREASE_VERIFIED'" in workflow
         assert "assert digest==os.environ['EXPECTED_RESULT_DIGEST']" in workflow
         assert "assert inventory==os.environ['EXPECTED_INVENTORY_DIGEST']" in workflow
         assert "assert loaded['previous']['head']['cipher_sha256']==os.environ['EXPECTED_SOURCE_CIPHER']" in workflow
