@@ -116,16 +116,16 @@ class LearningTests(unittest.TestCase):
         self.assertNotIn('learning_snapshot',rows[0])
 
 class ContinuityAndCoverage(unittest.TestCase):
-    def test_bounded_session_covers_next_hour_without_early_cutoff(self):
+    def test_unbounded_session_covers_next_hour_without_early_cutoff(self):
         from race_ai import repeated_cycle as r
         with tempfile.TemporaryDirectory() as temp:
             start = datetime(2030, 4, 1, 3, 57, tzinfo=timezone.utc)
             path = Path(temp)/'s.json'
             s = r.start(path, day='2030-04-01', run_id=99, now=start)
-            self.assertEqual(r.instant(s['stop_at']), start+timedelta(minutes=65))
-            self.assertEqual(s['max_rounds'], 24)
-            self.assertEqual(s['source_limit'], 240)
-            self.assertEqual(r.ROUND_SOURCE_LIMIT, 45)
+            self.assertIsNone(s['stop_at'])
+            self.assertIsNone(s['max_rounds'])
+            self.assertIsNone(s['source_limit'])
+            self.assertIsNone(r.ROUND_SOURCE_LIMIT)
             self.assertEqual(r.POLL_SECONDS, 180)
             self.assertTrue(r.prepare(path, 1, now=start+timedelta(hours=1))['active'])
 
