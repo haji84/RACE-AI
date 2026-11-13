@@ -1193,9 +1193,18 @@ def repeat_complete(day,round_no,p1_id,result_id):
                          forecast_count=report['forecast_count'],scored_forecasts=report['scored_forecasts'],
                          p1_artifact=p1_id,result_artifact=result_id,session_requests=state['requests_used'])))
 
+def repeat_handoff(day):
+    """Finish a physical Actions worker after its last saved round, then checkpoint."""
+    from race_ai.repeated_cycle import finish_worker
+    result = finish_worker(ROOT/'cycle_recovery_output/repeat-session.json',
+                           now=datetime.now(timezone.utc))
+    print(json.dumps(dict(state='WORKER_FINALIZED_SOURCE_FREE', **result),sort_keys=True))
+    return result
+
+
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument('command',choices=['restore','forecast','audit','supplement','wait-for-window','repeat-start','repeat-prepare','repeat-complete',
+    p.add_argument('command',choices=['restore','forecast','audit','supplement','wait-for-window','repeat-start','repeat-prepare','repeat-complete','repeat-handoff',
         'venue-research-forecast','venue-research-readback','venue-research-pdca','venue-research-retain'])
     p.add_argument('--p1-artifact',type=int);p.add_argument('--p0-supplement',type=int)
     p.add_argument('--result-artifact',type=int);p.add_argument('--round',type=int)
@@ -1224,5 +1233,6 @@ def main():
     elif a.command=='repeat-start':repeat_start(day)
     elif a.command=='repeat-prepare':repeat_prepare(day,a.round)
     elif a.command=='repeat-complete':repeat_complete(day,a.round,a.p1_artifact,a.result_artifact)
+    elif a.command=='repeat-handoff':repeat_handoff(day)
     else:audit(day,a.p1_artifact,a.p0_supplement,a.round,**video_options)
 if __name__=='__main__':main()
