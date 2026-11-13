@@ -94,8 +94,9 @@ class UnlimitedEligibleForecastWorkTests(unittest.TestCase):
                 with self.assertRaises(SourceWait):
                     guard.charge('forecast')
                 self.assertEqual(cycle.load(path)['requests_used'],0)
-                self.assertEqual(cycle.finish_worker(path,now=START+timedelta(seconds=1))['reason'],
-                                 'SOURCE_WAIT')
+                with self.assertRaisesRegex(ValueError, 'WORKER_HANDOFF_UNCOMMITTED_ROUND'):
+                    cycle.finish_worker(path,now=START+timedelta(seconds=1))
+                # A pending round stays pending; a 403/429 is never converted to success.
                 self.assertIsNotNone(cycle.load(path)['source_wait'])
 
 
