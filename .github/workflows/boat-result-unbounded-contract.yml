@@ -1,0 +1,41 @@
+name: BOAT due-result queue without fixed GET cap
+on:
+  pull_request:
+    branches: [release/boat-result-uncapped-20261114]
+    paths:
+      - .github/workflows/boat-result-unbounded-contract.yml
+      - race_ai/racer_intraday.py
+      - scripts/racer_intraday_refresh.py
+      - tests/test_racer_uncapped_due_queue.py
+      - tests/test_racer_result_queue.py
+      - tests/test_racer_intraday_refresh.py
+permissions:
+  contents: read
+jobs:
+  sourcefree_due_queue:
+    name: Source-free 60-race due queue, refusal, encrypted result replay
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference, persist-credentials: false}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference, persist-credentials: false}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Actual source-free result queue and AES replay regressions
+        run: |
+          python - <<'PY'
+          import unittest,race_ai
+          from pathlib import Path
+          for folder in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(folder,'race_ai').resolve()))
+          tests=['tests.test_racer_uncapped_due_queue','tests.test_racer_intraday',
+                 'tests.test_racer_result_queue','tests.test_racer_intraday_refresh',
+                 'tests.test_racer_intraday_handoff','tests.test_racer_intraday_transport']
+          result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(tests))
+          raise SystemExit(not result.wasSuccessful())
+          PY
