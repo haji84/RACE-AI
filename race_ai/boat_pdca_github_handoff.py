@@ -44,7 +44,7 @@ class GitStateRepository:
     def _run(self,args,*,body=None,env=None):
         if args and args[0] in ('ls-remote','fetch','push'):self._reject_rewrites(env)
         result=subprocess.run(['git',*args],cwd=self.repo,input=body,stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,timeout=180 if args and args[0]=='fetch' else 60,env=env)
+            stderr=subprocess.PIPE,timeout=180 if args and args[0] in ('fetch','push') else 60,env=env)
         need(result.returncode==0,'STATE_GIT_OPERATION_FAILED');return result.stdout
 
     def _check_remote(self):
@@ -98,8 +98,15 @@ class GitStateRepository:
 
     def push(self,commit,parent):
         need(self.head()==parent,'STATE_REF_CONCURRENT_UPDATE')
-        # A normal fast-forward push also rejects a concurrent divergent writer.
-        self._run(['push',self.push_url,commit+':refs/heads/'+self.ref])
+        # A normal fast-forward push rejects a concurrent divergent writer.
+        # An upload can commit remotely even when the local client times out.
+        # Accept that uncertainty ONLY after checking the exact remote SHA;
+        # callers still authenticate and read back the ciphertext bytes.
+        try:
+            self._run(['push',self.push_url,commit+':refs/heads/'+self.ref])
+        except subprocess.TimeoutExpired:
+            if self.head()!=commit:
+                raise
         need(self.head()==commit,'STATE_REMOTE_COMMIT_NOT_VERIFIED')
 
 
