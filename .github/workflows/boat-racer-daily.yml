@@ -239,7 +239,7 @@ jobs:
           assert "github.event.workflow_run.conclusion == 'success'" in mirror
           assert "github.event.workflow_run.event == 'workflow_dispatch'" in mirror
           assert "github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111'" in mirror
-          assert "github.event.workflow_run.head_sha == '0c158d99366b8e15130f6d0659be67125c39d545'" in mirror
+          assert "github.event.workflow_run.head_sha == '203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9'" in mirror
           assert "needs.source_mirror.result == 'success'" in daily
           assert "github.event.schedule == '20 21 * * *'" in mirror
           assert 'continue-on-error: true' not in mirror
@@ -255,7 +255,7 @@ jobs:
         github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == '0c158d99366b8e15130f6d0659be67125c39d545') ||
+        github.event.workflow_run.head_sha == '203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9') ||
        (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
         startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca') &&
         contains(github.event.head_commit.message, 'recover-first-p0-42995325741')) ||
@@ -315,7 +315,7 @@ jobs:
           print(json.dumps(selected,sort_keys=True))
           PY_SELECT
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {persist-credentials: false, ref: 0c158d99366b8e15130f6d0659be67125c39d545, path: owner-runtime}
+        with: {persist-credentials: false, ref: 203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9, path: owner-runtime}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: owner-runtime/pr64-reference}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -361,7 +361,7 @@ jobs:
       CONTROL_ID: ${{ needs.original_retention.outputs.control }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {persist-credentials: false, ref: 0c158d99366b8e15130f6d0659be67125c39d545}
+        with: {persist-credentials: false, ref: 203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -436,7 +436,7 @@ jobs:
         github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == '0c158d99366b8e15130f6d0659be67125c39d545' &&
+        github.event.workflow_run.head_sha == '203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9' &&
         github.event.workflow_run.conclusion == 'success' &&
         needs.original_readback.result == 'success' &&
         needs.original_reconcile.result == 'success') ||
@@ -451,7 +451,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 0c158d99366b8e15130f6d0659be67125c39d545
+          ref: 203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -494,7 +494,7 @@ jobs:
        (github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == '0c158d99366b8e15130f6d0659be67125c39d545' &&
+        github.event.workflow_run.head_sha == '203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9' &&
         github.event.workflow_run.conclusion == 'success' &&
         needs.source_mirror.result == 'success')) &&
       (github.event_name != 'push' ||
@@ -766,14 +766,14 @@ jobs:
         startsWith(github.event.head_commit.message,
                    'boat-owner-release: single-real-session-20261111')))
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 15
     concurrency:
       group: boat-main-launcher-source-free
       cancel-in-progress: false
     # Already approved by owner on 2026-11-11. Permission is restricted
     # to this exact release-dispatch job; never granted to the result scorer.
     permissions:
-      contents: read
+      contents: write
       actions: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -783,7 +783,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-          ref: 0c158d99366b8e15130f6d0659be67125c39d545
+          ref: 203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9
           path: boat-owner-reader
       - name: Verify registered owner release SHA, source-owner gate, existing runs
         id: owner_gate
@@ -820,15 +820,52 @@ jobs:
           PY_RETRY
             retry_args+=(--retry-proof "$RUNNER_TEMP/boat-earlier-source-free-proof.json")
           fi
-          python -m scripts.boat_main_dispatch_gate \
+          python -m scripts.boat_recovery_dispatch_gate \
             --release "$RUNNER_TEMP/boat-owner-release.json" \
             --owner-doc "$RUNNER_TEMP/boat-owner-policy.json" \
             --history "$RUNNER_TEMP/boat-owner-runs.json" \
             --verify-source-handoff \
             "${retry_args[@]}" \
             --github-output "$GITHUB_OUTPUT"
+      - name: Install original parser only when a failed owner needs recovery
+        if: steps.owner_gate.outputs.recovery_required == 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: boat-owner-reader/pr64-reference}
+      - name: Install original adapter only when a failed owner needs recovery
+        if: steps.owner_gate.outputs.recovery_required == 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: boat-owner-reader/pr72-reference}
+      - name: Install source-free recovery dependencies only when needed
+        if: steps.owner_gate.outputs.recovery_required == 'true'
+        run: python -m pip install --disable-pip-version-check -r boat-owner-reader/requirements-history.txt
+      - name: Recover exact failed owner originals on this fresh runner
+        id: owner_recovery
+        if: steps.owner_gate.outputs.recovery_required == 'true'
+        working-directory: boat-owner-reader
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+        run: >-
+          python -m scripts.boat_recover_failed_owner
+          --history "$RUNNER_TEMP/boat-owner-runs.json"
+          --expected-head 203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9
+          --output "$RUNNER_TEMP/boat-owner-recovery-proof.json"
+      - name: Recheck fresh owner history and recovered originals before successor admission
+        id: recovered_gate
+        if: steps.owner_recovery.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONPATH: ${{ github.workspace }}/boat-owner-reader
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/production/boat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-release.json"
+          gh api "repos/$GITHUB_REPOSITORY/contents/docs/RACE_AI_LATEST_STATUS.md?ref=production%2Fboat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-policy.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-nationwide-ab-one-shot.yml/runs?branch=production%2Fboat-p0-p1-20261111&per_page=100" > "$RUNNER_TEMP/boat-owner-runs.json"
+          python -m scripts.boat_recovery_dispatch_gate --release "$RUNNER_TEMP/boat-owner-release.json" --owner-doc "$RUNNER_TEMP/boat-owner-policy.json" --history "$RUNNER_TEMP/boat-owner-runs.json" --verify-source-handoff --recovery-proof "$RUNNER_TEMP/boat-owner-recovery-proof.json" --github-output "$GITHUB_OUTPUT"
       - name: Dispatch only the existing owner P0/P1 workflow
-        if: steps.owner_gate.outputs.ready == 'true'
+        if: steps.owner_gate.outputs.ready == 'true' || steps.recovered_gate.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
