@@ -142,6 +142,57 @@ class CoverageTests(unittest.TestCase):
         self.assertNotIn('secret-unrecognized-basis',str(out))
         self.assertNotIn('20261112-01-',str(out))
 
+    def test_source_bound_legacy_receipt_does_not_override_formal_hold(self):
+        value = view(1)
+        row = value['records'][0]
+        for prediction in (row['prediction'], *row['comparison_predictions']):
+            prediction['persisted_at'] = '2026-11-12T17:40:00+09:00'
+        row['result'] = dict(
+            status='final',source_sha256='a'*64,
+            observed_at='2026-11-12T18:05:00+09:00',
+            winning_combinations=[[1,2,3]],
+            cutoff_reference=dict(
+                basis='RAW_OFFICIAL_SP_SAME_ROSTER_SAVED_BEFORE_BOTH',
+                original_cutoff_at='2026-11-12T18:00:00+09:00',
+                result_schedule_cutoff_at='2026-11-12T18:01:00+09:00',
+                offset_seconds=60,formal_eligible=False,
+                protected_url='private-source-never-print'))
+        row['result_observations']=[dict(
+            source_sha256='a'*64,captured_at='2026-11-12T18:05:00+09:00',
+            body_identity_verified=True,status='AVAILABLE',
+            data=dict(confirmed=True,status='settled',finish_confirmed=True,
+                      payouts=[dict(bet_type='trifecta',combination=[1,2,3],
+                                    payout_per_100_yen=1200)],
+                      original='private-result-payload'))]
+        states={row['race_id']:'unsupported'}
+        report=score(forecasts=1,eligible=0,pending=0,held=1)
+        out=summarize(value,states,report,day='2026-11-12',
+                      expected_races=1,expected_p0=2)
+        self.assertEqual(out['legacy_reference_receipt_counts'],
+                         {'MATCHED_OFFICIAL_SOURCE_BODY':1})
+        self.assertEqual(out['legacy_reference_timing_counts'],
+                         {'ALL_FORECASTS_BEFORE_BOTH_AND_RESULT_AFTER_BOTH':1})
+        self.assertEqual(out['legacy_reference_market_counts'],
+                         {'SOURCE_WINNER_AND_PAYOUT_PRESENT':1})
+        self.assertEqual(out['model_held_forecasts'],2)
+        self.assertEqual(out['confirmed_result_races'],0)
+        self.assertEqual(out['status'],'BOAT_142_COVERAGE_HOLD')
+        for secret in ('private-source-never-print','private-result-payload',
+                       row['race_id'],'2026-11-12T18:01:00+09:00'):
+            self.assertNotIn(secret,str(out))
+        row['result_observations'][0]['source_sha256']='b'*64
+        out=summarize(value,states,report,day='2026-11-12',
+                      expected_races=1,expected_p0=2)
+        self.assertEqual(out['legacy_reference_receipt_counts'],
+                         {'RECEIPT_MISMATCH_OR_INCOMPLETE':1})
+        self.assertEqual(out['legacy_reference_market_counts'],
+                         {'MARKET_UNVERIFIED':1})
+        row['prediction']['persisted_at']='2026-11-12T18:02:00+09:00'
+        out=summarize(value,states,report,day='2026-11-12',
+                      expected_races=1,expected_p0=2)
+        self.assertEqual(out['legacy_reference_timing_counts'],
+                         {'TIMING_UNVERIFIED':1})
+
     def test_missing_race_duplicate_race_and_wrong_score_fail_closed(self):
         value=view(2)
         states={r['race_id']:'final' for r in value['records']}
