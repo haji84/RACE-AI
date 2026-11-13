@@ -37,7 +37,7 @@ class OriginalRecoveryGuardTests(unittest.TestCase):
         s=W.read_text()
         check=s.split("  independent_saved_readback:",1)[1]
         for marker in ("physical_first_p0_scope=136",
-                       "HOLD_NO_NEW_EVENT_DAY_SAVED",
+                       "HOLD_NO_NEW_EVENT_DAY_INDEXED",
                        "P0_P1_MODEL_COVERAGE_HOLD",
                        "FIRST_P0_SCOPE_BOTH_STAGES_PRESENT_SCHEDULE_SCOPE_UNVERIFIED",
                        "stage_covered_races","original_view_cipher_readback=True"):
