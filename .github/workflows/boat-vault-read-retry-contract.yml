@@ -1,0 +1,43 @@
+name: BOAT immutable read retry contract
+on:
+  pull_request:
+    branches: [main, production/boat-p0-p1-20261111]
+    paths:
+      - .github/workflows/boat-vault-read-retry-contract.yml
+      - scripts/boat_private_original_vault.py
+      - tests/test_boat_private_original_vault*.py
+permissions:
+  contents: read
+concurrency:
+  group: boat-vault-retry-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  retry_contract:
+    name: Exact read retry and immutable recovery
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Synthetic faults and local encrypted Git readback only
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import race_ai, unittest
+          for folder in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(folder,'race_ai').resolve()))
+          names=['tests.test_boat_private_original_vault_retry_policy',
+                 'tests.test_boat_private_original_vault_live_artifact_retry',
+                 'tests.test_boat_private_original_vault_cli',
+                 'tests.test_boat_private_original_vault',
+                 'tests.test_private_original_archive_readers']
+          result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
+          raise SystemExit(not result.wasSuccessful())
+          PY
