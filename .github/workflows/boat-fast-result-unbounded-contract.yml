@@ -16,7 +16,9 @@ jobs:
     name: Fast 1-minute/2-minute results, >12 genuine GET, AES and provider waits
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {ref: ${{ github.event.pull_request.head.sha }}, persist-credentials: false}
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference, persist-credentials: false}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
