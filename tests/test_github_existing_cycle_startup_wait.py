@@ -124,7 +124,7 @@ class StartupWaitTests(unittest.TestCase):
         self.assertIn('window_ready=true\n', self.output.read_text())
         self.assertEqual((repeated_cycle.SOURCE_LIMIT, repeated_cycle.ROUND_SOURCE_LIMIT,
                           repeated_cycle.MAX_ROUNDS, repeated_cycle.MAX_SECONDS, repeated_cycle.POLL_SECONDS),
-                         (240, 45, 24, 3900, 180))
+                         (None, None, None, None, 180))
 
     def test_open_window_returns_immediately_and_jst_day_is_used(self):
         cutoff = datetime.fromisoformat(self.document['schedule'][0]['cutoff_at'])
