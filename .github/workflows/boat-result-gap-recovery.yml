@@ -841,9 +841,18 @@ jobs:
           after_final=sum((r.get('result') or {}).get('status')=='final' for r in rows)
           assert sorted(bridge.days)==baseline['scope_days']
           assert len(rows)==baseline['baseline_races']
-          assert after_final>baseline['before_final']
+          assert after_final>=baseline['before_final']
           inventory=F.inventory_sha(dict(schema='RACE_AI_PRIVATE_CYCLE_VIEW_V1',records=rows))
           assert inventory==baseline['inventory_digest']
+          if after_final==baseline['before_final']:
+              # Source was checked and encrypted, but no formally verified
+              # new final exists. Keep HOLD, no model PDCA or redispatch.
+              print(json.dumps(dict(status='BOAT_NO_NEW_FORMAL_FINAL_HOLD',
+                  provider_gets=report['source_requests'],
+                  source_cipher_retained=True,forecast_inputs_changed=False),
+                  sort_keys=True))
+              raise SystemExit(0)
+          assert after_final>baseline['before_final']
           finals=sorted((r['race_id'],r['result']) for r in rows
               if (r.get('result') or {}).get('status')=='final')
           digest=hashlib.sha256(json.dumps(finals,sort_keys=True,
