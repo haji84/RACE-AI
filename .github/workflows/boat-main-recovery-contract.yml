@@ -1,0 +1,30 @@
+name: BOAT main failed-owner recovery gate
+on:
+  push:
+    branches: [fix/boat-main-durable-recovery-20261114]
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-main-recovery-contract.yml
+      - .github/workflows/boat-racer-daily.yml
+      - scripts/boat_recovery_dispatch_gate.py
+      - scripts/boat_failed_recovery_contract.py
+      - tests/test_boat_recovery*.py
+permissions:
+  contents: read
+jobs:
+  gate:
+    name: Durable recovery admission and original main guards
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - run: python -m unittest tests.test_boat_recovery_control_reader tests.test_boat_recovery_dispatch_gate tests.test_boat_main_dispatch_gate tests.test_boat_first_p0_recovery_gate -v
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9, path: boat-owner-reader}
+      - name: Verify the actual pinned public control reader imports in isolation without owner secrets
+        working-directory: boat-owner-reader
+        run: python -S -c 'from race_ai.github_continuous_supervisor import GitHubCLI; assert callable(GitHubCLI.final_control); print("PINNED_PUBLIC_CONTROL_READER_IMPORT_VERIFIED")'
