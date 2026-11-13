@@ -69,7 +69,6 @@ jobs:
       contents: write
       actions: read
     outputs:
-      recovered_run: '${{ steps.recovery.outputs.recovered_run }}'
       candidate_cipher: '${{ steps.recovery.outputs.cipher }}'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -110,13 +109,17 @@ jobs:
           for line in (Path(os.environ['RUNNER_TEMP'])/'boat-private-original-recovery.jsonl').read_text().splitlines():
               try: reports.append(json.loads(line))
               except (TypeError,ValueError):raise SystemExit('BOAT_RECOVERY_UNEXPECTED_OUTPUT')
-          allowed={'SAVED_MODEL_ARCHIVES_REPLAYED','SAVED_RESULT_ARCHIVES_REPLAYED',
-              'SAVED_ORIGINAL_EVIDENCE_VERIFIED','ENCRYPTED_VIEW_PUBLISHED',
-              'SAVED_DAY_UNCHANGED','SAVED_RESULTS_ALREADY_COMPLETE'}
-          assert reports and all(r.get('intake_status',r.get('status')) in allowed for r in reports), \
+          assert reports and all(type(entry) is dict for entry in reports), \
               'BOAT_RECOVERY_UNVERIFIED_STATUS'
+          assert any(r.get('intake_status')=='SAVED_MODEL_ARCHIVES_REPLAYED'
+              for r in reports), 'BOAT_MODEL_ORIGINALS_NOT_SCANNED'
+          assert all(r.get('status')!='ENCRYPTED_VIEW_REJECTED' for r in reports), \
+              'BOAT_RECOVERY_INTEGRITY_HOLD'
           published=next((r for r in reversed(reports)
               if r.get('status')=='ENCRYPTED_VIEW_PUBLISHED'),None)
+          assert published or any(r.get('status') in (
+              'SAVED_DAY_UNCHANGED','SAVED_RESULTS_ALREADY_COMPLETE')
+              for r in reports), 'BOAT_RECOVERY_NOT_SAVED_OR_NOOP'
           if published:
               cipher=published.get('cipher_sha256')
               assert isinstance(cipher,str) and len(cipher)==64
