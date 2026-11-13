@@ -34,6 +34,15 @@ def stamp(value):
         raise ValueError('OWNER_AUDIT_CLOCK_INVALID') from None
 
 
+def retained_attempts(document):
+    """Read the real producer schema, never treat an unknown field as no attempts."""
+    need(type(document) is dict and document.get('schema')=='RACE_AI_NATIONWIDE_PRE_CUTOFF_AB_V1',
+         'P1_DOCUMENT_SCHEMA_INVALID')
+    rows=document.get('candidate_attempts')
+    need(type(rows) is list and all(type(row) is dict for row in rows),'P1_ATTEMPTS_MISSING')
+    return rows
+
+
 def summarize(schedule,p0_rows,p1_rows,attempts,*,day,now,official_program_verified,
               video_rows=(),video_rejections=0):
     """Aggregate caller-authenticated originals, never fill unobserved eligibility."""
@@ -48,7 +57,7 @@ def summarize(schedule,p0_rows,p1_rows,attempts,*,day,now,official_program_verif
              'SCHEDULE_IDENTITY_INVALID')
         ledger[rid]=cutoff
     def slots(rows,stage):
-        found={};count=0
+        found={};count=0;conflicts=set()
         for row in rows:
             rid=row.get('race_id');mid=row.get('model_id')
             need(rid in ledger and row.get('stage')==stage and type(mid) is str and 0<len(mid)<=256,
@@ -56,11 +65,15 @@ def summarize(schedule,p0_rows,p1_rows,attempts,*,day,now,official_program_verif
             generated,saved=stamp(row['as_of']),stamp(row['server_saved_at'])
             # Preserve the original reader's GitHub whole-second receipt rule.
             ordered=generated<=saved or (saved.microsecond==0 and saved<=generated<saved+timedelta(seconds=1))
-            need(stamp(row['cutoff_at'])==ledger[rid] and generated<ledger[rid] and
-                 saved<ledger[rid] and ordered and saved<=now,'FORECAST_CLOCK_INVALID')
+            cutoff=stamp(row['cutoff_at'])
+            need(cutoff.astimezone(JST).date().isoformat()==day,'FORECAST_SOURCE_DAY_MISMATCH')
+            need(generated<cutoff and saved<cutoff,'FORECAST_ORIGINAL_CUTOFF_INVALID')
+            need(ordered and saved<=now,'FORECAST_CLOCK_INVALID')
+            if cutoff!=ledger[rid]:conflicts.add(rid)
             count+=1;found.setdefault((rid,mid),row)
-        return found,count-len(found)
-    p0,p0_repeats=slots(p0_rows,'P0');p1,p1_repeats=slots(p1_rows,'P1')
+        return found,count-len(found),conflicts
+    p0,p0_repeats,p0_conflicts=slots(p0_rows,'P0')
+    p1,p1_repeats,p1_conflicts=slots(p1_rows,'P1')
     p0_races={k[0] for k in p0};p1_races={k[0] for k in p1}
     last={};ready=set(p1_races)
     for row in attempts:
@@ -69,16 +82,16 @@ def summarize(schedule,p0_rows,p1_rows,attempts,*,day,now,official_program_verif
         state=row.get('state') or row.get('reason')
         if not (type(state) is str and re.fullmatch('[A-Z0-9_]{1,100}',state)):state='UNCLASSIFIED_OBSERVATION'
         last[rid]=state
-        if state=='AB_GENERATED_NOT_YET_EXTERNAL_FROZEN':
+        if state=='AB_GENERATED_NOT_YET_EXTERNAL_FROZEN' and rid not in p1_races:
             need(re.fullmatch('[a-f0-9]{64}',str(row.get('exhibition_sha256'))) is not None and
-                 stamp(row['generated_at'])<ledger[rid] and stamp(row['generated_at'])<=now,
-                 'EXHIBITION_READY_EVIDENCE_INVALID')
-            ready.add(rid)
+                 stamp(row['generated_at'])<=now,'EXHIBITION_READY_EVIDENCE_INVALID')
+            if stamp(row['generated_at'])<ledger[rid]:ready.add(rid)
+            else:last[rid]='GENERATED_AFTER_PROGRAM_CUTOFF_UNRESOLVED'
     missing=set(ledger)-p1_races
     vrows=list(video_rows)
     for row in vrows:
         need(row.get('variant')=='LEARNED_VIDEO_EXPERIMENTAL','VIDEO_VARIANT_INVALID')
-    video,_=slots(vrows,'P1')
+    video,_,video_conflicts=slots(vrows,'P1')
     need(type(video_rejections) is int and video_rejections>=0,'VIDEO_COUNT_INVALID')
     return dict(schema='RACE_AI_OWNER_ORIGINAL_EVIDENCE_AUDIT_V1',day_jst=day,
         audited_at=now.isoformat(),scope='BASELINE_ORIGINALS_IN_SELECTED_OWNER_RUN',
@@ -88,6 +101,9 @@ def summarize(schedule,p0_rows,p1_rows,attempts,*,day,now,official_program_verif
         baseline_p0_races=len(p0_races),baseline_p1_races=len(p1_races),
         baseline_p0_unique_model_slots=len(p0),baseline_p1_unique_model_slots=len(p1),
         baseline_p0_repeated_slots=p0_repeats,baseline_p1_repeated_slots=p1_repeats,
+        p0_schedule_cutoff_conflict_races=len(p0_conflicts),
+        p1_schedule_cutoff_conflict_races=len(p1_conflicts),
+        video_schedule_cutoff_conflict_races=len(video_conflicts),
         scheduled_without_baseline_p1=len(missing),exhibition_ready_proven_races=len(ready),
         p1_missing_after_confirmed_ready=len(ready-p1_races),p1_eligibility_unknown=len(set(ledger)-ready),
         missing_p1_last_observation=dict(sorted(Counter(last.get(r,'NO_RETAINED_OBSERVATION') for r in missing).items())),
@@ -95,7 +111,7 @@ def summarize(schedule,p0_rows,p1_rows,attempts,*,day,now,official_program_verif
         p1_models=dict(sorted(Counter(k[1] for k in p1).items())),
         video_scope='SELECTED_OWNER_P1_ORIGINALS_ONLY',verified_video_prediction_rows=len(video),
         verified_video_prediction_races=len({k[0] for k in video}),rejected_video_rows=video_rejections,
-        all_scheduled_baseline_p1_present=official_program_verified and not missing,
+        all_scheduled_baseline_p1_present=official_program_verified and not missing and not p1_conflicts,
         all_models_complete_proven=False,live_recovery_to_new_p1_proven=False,
         successor_dispatch_allowed=False,official_source_requests=0,new_forecasts=0,originals_changed=False)
 
@@ -167,7 +183,7 @@ def inspect_run(repo,run_id,*,now):
     for item in sorted(listing,key=lambda x:(x['created_at'],x['id'])):
         if not re.fullmatch(r'boat-national-cutoff-'+str(run_id)+r'(?:-cycle-[0-9]{2,})?',item['name']):continue
         raw,meta=read(item,'P1');doc,rows=read_p1(raw,meta)
-        p1.extend(rows);attempts.extend(doc.get('tries',[]));p1_originals[item['name']]=(raw,meta)
+        p1.extend(rows);attempts.extend(retained_attempts(doc));p1_originals[item['name']]=(raw,meta)
         accepted,errors=read_optional_video_shadows(doc,meta,rows,receipt_verifier=reader.verify)
         videos.extend(r for r in accepted if r.get('variant')=='LEARNED_VIDEO_EXPERIMENTAL')
         rejected+=sum(e['rejected_shadows'] for e in errors)
