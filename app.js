@@ -2,7 +2,7 @@
 /* PR #62 page shell, saved originals and server-managed automatic generation. */
 (() => {
   const $ = id => document.getElementById(id);
-  const U = globalThis.RaceUI, M = globalThis.RaceProductData, A = globalThis.RaceAuditModel, C = globalThis.RaceExistingModelCatalog, P = globalThis.RaceSavedPerformance;
+  const U = globalThis.RaceUI, M = globalThis.RaceProductData, A = globalThis.RaceAuditModel, C = globalThis.RaceExistingModelCatalog, P = globalThis.RaceSavedPerformance, O = globalThis.RaceOwnerFormal;
   const sports = {boat: "ボートレース", keirin: "競輪", autorace: "オートレース", horse: "競馬"};
   const icons = {boat: "◒", keirin: "♧", autorace: "♧", horse: "♞"};
   const pageNames = {
@@ -35,6 +35,7 @@
       typeof value === "string" && value.length <= 110 && Object.keys(sports).some(sport => value.startsWith(sport + ":"))))].slice(0, 64)
   };
   let dataset = null, importVersion = 0, savedHistory = null, refreshSavedResults = null, raceBoundaryTimer = null;
+  let ownerEncryptedTrusted = false, ownerAuditCache = null;
   const resultCheck = {busy:false,failed:false};
   const savedViewConfigured = Boolean(document.getElementById("race-ai-private-saved-data") || document.querySelector('meta[name="race-ai-private-saved-view"],meta[name="race-ai-encrypted-saved-view"]'));
   const savedMessages = {
@@ -1140,11 +1141,51 @@
     if (r?.scope === "synthetic") $("confirmation-state").textContent += " 合成テストを実購入として記録することはできません。";
     $("ticket-form").querySelector("button").disabled = !r;
   }
+  function ownerAudit() {
+    if (!ownerEncryptedTrusted || !dataset || !O) return null;
+    if (ownerAuditCache?.source === dataset) return ownerAuditCache.result;
+    const source = dataset.records.filter(r=>r.sport==="boat" && r.event_date_jst===O.DAY);
+    const anchor = document.querySelector('meta[name="race-ai-saved-view-forecast-sha"]')?.content;
+    const result = O.inspect(source,P,anchor);
+    ownerAuditCache = {source:dataset,result};
+    return result;
+  }
+  function ownerFormalRow(r) {
+    const proof=ownerAudit();
+    return proof?.verified===true && r?.sport==="boat" && r.event_date_jst===O.DAY &&
+      r.result?.cutoff_reference?.basis==="RAW_OFFICIAL_SP_SAME_ROSTER_SAVED_BEFORE_BOTH";
+  }
+  function ownerFormalPanel(rows) {
+    const box=$("boat-owner-formal-proof");
+    if(!box)return null;
+    const active=state.sport==="boat" && state.day===O?.DAY && rows.length===142 &&
+      rows.every(r=>r.event_date_jst===O.DAY && r.sport==="boat");
+    box.hidden=!active;
+    if(!active)return null;
+    const proof=ownerAudit();
+    box.replaceChildren(node("h3","","2026年11月12日 · モデル別の正式照合"));
+    if(!proof?.verified) {
+      box.append(node("p","notice","保存した予想・公式結果と独立監査の一致を確認できないため、正式照合の表示は保留しています。"));
+      return null;
+    }
+    box.append(node("p","","全142レース／2モデルの284予想を正式照合済み。従来は参考扱いだった締切差10レースも、元の予想保存時刻と公式SP結果の記録を検証して採用しました。"));
+    box.append(table(["モデル","的中","不的中","照合済み","的中率"],
+      Object.entries(proof.counts).map(([id,c])=>[
+        id==="boat-observed-pairwise-factor-v1"?"Pairwise Factor":"Pairwise Start",
+        String(c.hits),String(c.misses),String(c.forecasts)+" / 142",
+        (100*c.hits/c.forecasts).toFixed(2)+"%"
+      ])));
+    box.append(node("p","muted small","購入実績ではなく保存Top8の事後検証です。元の暗号化原本と予想は変更していません。"));
+    const link=node("a","source-link","独立照合の原本記録を確認");
+    link.href=proof.evidence;link.target="_blank";link.rel="noopener noreferrer";
+    box.append(link);
+    return proof;
+  }
   function outcomeBadge(r,p) {
     const status=P.compare(r,p).status;
     const phase=U.racePhase(r),displayStatus=status==="PENDING"&&phase!=="results"?(phase==="upcoming"?"UPCOMING":"TIME_UNKNOWN"):status;
     const labels={HIT:"的中",MISS:"不的中",PENDING:"結果待ち",UPCOMING:"レース前",TIME_UNKNOWN:"締切未確認",VOID:"中止・返還",REVIEW:"照合不可",NO_FORECAST:"未予想・原本未選択"};
-    const note=(r.result?.cutoff_reference||r.result?.cutoff_reconciliation)&&status!=="VOID"?"（参考照合・締切差あり）":displayStatus==="UPCOMING"?"（締切 "+time(U.raceDeadline(r))+"）":displayStatus==="PENDING"?"（"+resultReason(r)+"）":"";
+    const note=(r.result?.cutoff_reference||r.result?.cutoff_reconciliation)&&status!=="VOID"?(ownerFormalRow(r)?"（正式照合・締切差確認済み）":"（参考照合・締切差あり）"):displayStatus==="UPCOMING"?"（締切 "+time(U.raceDeadline(r))+"）":displayStatus==="PENDING"?"（"+resultReason(r)+"）":"";
     return node("span","saved-outcome outcome-"+displayStatus.toLowerCase(),(r.scope==="synthetic"?"合成・":"")+labels[displayStatus]+note);
   }
   function resultReason(r) {
@@ -1155,7 +1196,7 @@
     }
     if(reference) {
       const clocks="原本締切 "+stamp(reference.original_cutoff_at)+" JST／結果ページ "+stamp(reference.result_schedule_cutoff_at)+" JST（差 "+reference.offset_seconds/60+"分）。";
-      return clocks+(reference.basis==="RAW_OFFICIAL_CANCELLATION_SELECTED_RACE"?"公式の中止表示を照合。中止ページの予定時刻変更を保持しています。":"公式結果と6選手を照合。原本は両方の締切前に保存済み。締切差を残した参考照合です。");
+      return clocks+(reference.basis==="RAW_OFFICIAL_CANCELLATION_SELECTED_RACE"?"公式の中止表示を照合。中止ページの予定時刻変更を保持しています。":"公式結果と6選手を照合。原本は両方の締切前に保存済み。"+(ownerFormalRow(r)?"所有者承認の正式照合に採用済みです。":"締切差を残した参考照合です。"));
     }
     if(result?.status==="unsupported") {
       const reason=r.result_observation_rejections?.find(e=>e.captured_at===result.observed_at)?.reason;
@@ -1186,7 +1227,7 @@
   }
   function savedResultsTable(rows,group) {
     const block=node("div"),mobile=node("div","result-list-mobile");
-    const reason=r=>r.result?.cutoff_reference||r.result?.cutoff_reconciliation?"締切変更を照合済み（参考）":resultReason(r);
+    const reason=r=>r.result?.cutoff_reference||r.result?.cutoff_reconciliation?(ownerFormalRow(r)?"締切変更・公式SP記録を照合済み（正式）":"締切変更を照合済み（参考）"):resultReason(r);
     const desktop=table(["レース","結果","予想の判定","100円払戻","結果取得 JST","照合状態・理由"],rows.map(r=>[button(raceName(r),"text-button",()=>openRace(r.race_id)),resultCombination(r),outcomeBadge(r,group?P.pick(r,group):null),payoutSummary(r.result),stamp(r.result?.observed_at),reason(r)]));desktop.classList.add("result-list-table");
     for(const r of rows){const card=node("article","result-mobile-card");card.append(append(node("div","section-heading"),button(raceName(r),"text-button",()=>openRace(r.race_id)),outcomeBadge(r,group?P.pick(r,group):null)));
       if(r.result?.winning_combinations?.length)r.result.winning_combinations.forEach(t=>card.append(combo(t)));else card.append(node("p","muted small",resultCombination(r)));
@@ -1204,6 +1245,7 @@
     return detail;
   }
   function renderSavedResults(rows) {
+    const approved=ownerFormalPanel(rows);
     const groups=M.modelGroups(rows).filter(activeModel),select=$("results-model");
     if (!groups.some(g=>g.key===state.resultGroupKey)) state.resultGroupKey=groups[0]?.key || "";
     select.replaceChildren(...groups.map(g=>new Option(stageName(g)+" · "+modelName(g)+(g.ambiguous_originals?" · 複数原本 "+g.ambiguous_originals+"レース":""),g.key)));select.value=state.resultGroupKey;select.disabled=!groups.length;
@@ -1221,7 +1263,7 @@
     $("saved-result-metrics").append(metric("中止・返還",c.void+"レース","不的中に含めません"),metric("照合保留",c.review+"レース","情報不一致などを確認中"));
     const latest=rows.map(r=>r.result?.observed_at).filter(v=>v&&Number.isFinite(Date.parse(v))).sort((a,b)=>Date.parse(a)-Date.parse(b)).at(-1);
     const references=rows.filter(r=>(r.result?.cutoff_reference||r.result?.cutoff_reconciliation)&&r.result.status==="final").length,cancelReferences=rows.filter(r=>r.result?.cutoff_reference&&r.result.status==="void").length;
-    $("result-coverage").textContent="対象 "+rows.length+"レース · レース前 "+phase.upcoming.length+" · 結果対象 "+phase.results.length+" · 締切未確認 "+phase.unknown.length+" · 結果取得 "+c.available+" · 中止・返還 "+c.void+" · 未予想・照合不可 "+(c.noForecast+c.review)+" · 最終同期 "+stamp(dataset?.results_synced_at)+" JST · 最終結果取得 "+stamp(latest)+" JST · 締切差の参考照合 "+references+" · 中止ページの時刻変更 "+cancelReferences+"。原本の時刻は変更せず、公式成績には加算しません。";
+    $("result-coverage").textContent="対象 "+rows.length+"レース · レース前 "+phase.upcoming.length+" · 結果対象 "+phase.results.length+" · 締切未確認 "+phase.unknown.length+" · 結果取得 "+c.available+" · 中止・返還 "+c.void+" · 未予想・照合不可 "+(c.noForecast+c.review)+" · 最終同期 "+stamp(dataset?.results_synced_at)+" JST · 最終結果取得 "+stamp(latest)+" JST · 締切差の参考照合 "+references+" · 中止ページの時刻変更 "+cancelReferences+(approved?.verified?"。11月12日分は元の時刻を維持したまま、10レースを正式照合へ採用済み。":"。原本の時刻は変更せず、独立監査で確認されるまでは公式成績への採用を保留します。");
     $("saved-results-table").replaceChildren(resultRows.length?savedResultsTable(resultRows,group):empty("結果を確認するレースはまだありません","締切前のレースは「レース → これからのレース」で確認できます。"));
     if (!groups.length) {
       $("simulation-metrics").replaceChildren(empty("試算する保存予想は未取得です","取得した結果は上の一覧に表示しています。"));
@@ -1400,6 +1442,7 @@
   }
   function renderAll() { renderMeta(); renderHome(); renderRaces(); renderTickets(); renderResults(); renderResearch(); if (state.page === "detail") renderDetail();syncResultRefreshUI(); }
   function adoptDataset(parsed) {
+    ownerEncryptedTrusted=false;ownerAuditCache=null;
     refreshSavedResults=null;resultCheck.busy=false;resultCheck.failed=false;
     generation.ownsDisplay = false;generation.suppressed = true;generation.pausedForDrafts = false;generation.pausedForEditing = false;
     dataset = parsed; state.selectedId = ""; state.predictionKeys = {}; state.modelOriginals = {}; state.candidates = []; state.confirmed.clear(); state.venue = ""; state.visible = 60; $("purchase-ack").checked = false;
@@ -1553,7 +1596,7 @@
     }
     const chosen = new Map(races().map(row=>[row.race_id,prediction(row)]));
     const first = !dataset;
-    dataset = parsed;generation.ownsDisplay = true;generation.suppressed = false;generation.pausedForDrafts = false;generation.pausedForEditing = false;
+    ownerEncryptedTrusted=false;ownerAuditCache=null;dataset = parsed;generation.ownsDisplay = true;generation.suppressed = false;generation.pausedForDrafts = false;generation.pausedForEditing = false;
     state.predictionKeys = {};
     for (const row of parsed.records) {
       const old = chosen.get(row.race_id), list = predictions(row);
@@ -1700,7 +1743,7 @@
       const showingSavedFallback=state.followsToday&&state.day!==today;
       generation.message = (currentRows.length ? "保存済み予想・レース情報 " + currentRows.length + "レース · " + state.day : "保存済み予想を確認中 · " + state.day) +
         (showingSavedFallback ? " · 今日の新規予想は未保存です。" + (state.day<today?"最後の保存日":"次の保存日") + "の予想を表示しています。" : "");
-      adoptDataset(parsed);showPage("races",true);
+      adoptDataset(parsed);ownerEncryptedTrusted=Boolean(encrypted);ownerAuditCache=null;renderAll();showPage("races",true);
       $("file-message").textContent = generation.message;
       if (encrypted) startSavedFeed(encrypted.content,version);
     } catch {
@@ -1734,7 +1777,7 @@
         const index=predictions(row).findIndex(p=>M.savedPredictionIdentity(p)===identity);
         if(index<0)throw new Error("saved original selection unavailable");keys[row.race_id]=index;
       }
-      dataset=parsed;state.day=day;state.predictionKeys=keys;
+      dataset=parsed;ownerEncryptedTrusted=true;ownerAuditCache=null;state.day=day;state.predictionKeys=keys;
       generation.message="保存済み予想・レース情報 " + parsed.records.filter(row=>row.event_date_jst===day).length + "レース · " + day;
       if(!sameDay)state.raceView=day<A.jstToday()||!U.raceLists(parsed.records).upcoming.length?"results":"upcoming";
       if(choice){state.selectedId=choice.selectedId;state.resultGroupKey=choice.resultGroupKey;state.venue=choice.venue;}
@@ -1874,7 +1917,7 @@
   $("forecast-stage").addEventListener("change", () => { generation.message = "";renderGeneration();if (automaticMode()) { loadAutomaticLatest(true);scheduleAutomaticPoll(); } });
   $("forecast-follow-latest").addEventListener("click",()=>loadAutomaticLatest(true,true));
   $("load-synthetic").addEventListener("click", loadSynthetic);
-  $("clear-data").addEventListener("click", () => { ++importVersion;refreshSavedResults=null;resultCheck.busy=false;resultCheck.failed=false;generation.savedState = savedViewConfigured ? "CLEARED" : null;generation.ownsDisplay = false;generation.suppressed = true; dataset = null; state.selectedId = ""; state.predictionKeys = {}; state.modelOriginals = {}; state.modelBySport = {}; state.candidates = []; state.confirmed.clear(); $("purchase-ack").checked = false; refreshSelects(); renderAll(); $("file-message").textContent = "読み込んだ予想と候補をメモリから消去しました。手動購入記録は再読込まで保持します。"; });
+  $("clear-data").addEventListener("click", () => { ++importVersion;ownerEncryptedTrusted=false;ownerAuditCache=null;refreshSavedResults=null;resultCheck.busy=false;resultCheck.failed=false;generation.savedState = savedViewConfigured ? "CLEARED" : null;generation.ownsDisplay = false;generation.suppressed = true; dataset = null; state.selectedId = ""; state.predictionKeys = {}; state.modelOriginals = {}; state.modelBySport = {}; state.candidates = []; state.confirmed.clear(); $("purchase-ack").checked = false; refreshSelects(); renderAll(); $("file-message").textContent = "読み込んだ予想と候補をメモリから消去しました。手動購入記録は再読込まで保持します。"; });
   $("results-model").addEventListener("change",e=>{state.resultGroupKey=e.target.value;renderResults();});
   $("simulation-race-budget").addEventListener("change",e=>{
     const value=Number(e.target.value);if(![800,1000].includes(value))return;
