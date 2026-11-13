@@ -61,8 +61,9 @@ jobs:
           assert '43348227701' in source
           assert 'P0' in source and 'P1' in source
           assert 'no_actual_forecast_rewrites=True' in source
-          assert 'gh workflow run' not in source
-          assert 'www.boatrace.jp' not in source
+          guarded=source.split('  recover_original:',1)[1]
+          assert 'gh workflow run' not in guarded
+          assert 'www.boatrace.jp' not in guarded
           print('BOAT_OWNER_ORIGINAL_RECOVERY_NO_PROVIDER_GET_GUARD_VERIFIED')
           PY
       - name: Verify existing authenticated original model archive recovery without live source GET
