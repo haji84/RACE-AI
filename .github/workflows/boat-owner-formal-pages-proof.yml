@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - .github/workflows/boat-owner-formal-pages-proof.yml
+      - scripts/boat_auto_site_coverage.py
+      - tests/test_boat_auto_site_coverage.py
   push:
     branches: [main]
     paths:
@@ -42,6 +44,27 @@ jobs:
         with:
           ref: fe9c691d453a16087a2a973f857fcdef2a567c5c
           persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          path: audit-code
+          ref: '${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}'
+          persist-credentials: false
+      - name: Run daily source-free model status and automation gate tests
+        working-directory: audit-code
+        run: |
+          python -m unittest tests.test_boat_auto_site_coverage -v
+          python - <<'PY'
+          from pathlib import Path
+          code=Path('.github/workflows/boat-owner-formal-pages-proof.yml').read_text()
+          assert "workflows: ['BOAT schedule-gap retained-result recovery (zero provider GET)']" in code
+          assert "github.event.workflow_run.conclusion == 'success'" in code
+          assert "github.event.workflow_run.head_branch == 'main'" in code
+          assert "Auto.summarize(selected,native,status,day=active_day)" in code
+          assert "if audit['status']=='COMPLETE'" in code
+          assert "LATEST_DAY_MODEL_PARITY_MISMATCH" in code
+          assert "github.event_name != 'pull_request'" in code
+          print('BOAT_AUTO_SOURCEFREE_TRIGGER_AND_NO_FALSE_SITE_PARITY_VERIFIED')
+          PY
       - name: Verify JavaScript syntax
         run: |
           node --check owner-formal.js
@@ -268,4 +291,49 @@ jobs:
                   audit['site_parity_verified']=False
                   audit['site_parity_state']='HOLD_NOT_CLAIMED_COMPLETE'
               print(json.dumps(audit,sort_keys=True,ensure_ascii=False))
+          PY
+
+  live_pages_http:
+    name: Confirm deployed Pages HTTP matches tested assets after AES parity (zero racing GET)
+    if: github.event_name != 'pull_request' && needs.authenticated_site.result == 'success'
+    needs: authenticated_site
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: e3230146001bc1cf6e610a03da38bfa69d4282b8
+          persist-credentials: false
+      - name: Reopen actual public Pages HTML, app, model and decrypt assets via HTTP
+        run: |
+          python - <<'PY'
+          import hashlib,json,urllib.request,urllib.parse
+          from pathlib import Path
+          base='https://haji84.github.io/RACE-AI/'
+          manifest=json.loads(Path('site-build.json').read_bytes())
+          assert manifest['schema']=='RACE_AI_SAVED_PAGES_BUILD_V1'
+          selected=('index.html','app.js','owner-formal.js',
+                    'saved-performance.js','saved-view-crypto.js')
+          html=Path('index.html').read_text()
+          for path in selected:
+              raw=Path(path).read_bytes()
+              digest=hashlib.sha256(raw).hexdigest()
+              assert manifest['files'][path]=={'bytes':len(raw),'sha256':digest}
+              if path.endswith('.js'):
+                  assert './'+path+'?v='+digest[:12] in html
+              request=urllib.request.Request(base+path+'?audit=owner-sourcefree',
+                  headers={'User-Agent':'RACE-AI-AES-pages-auto-proof/1',
+                           'Cache-Control':'no-cache'})
+              with urllib.request.urlopen(request,timeout=25) as response:
+                  assert response.status==200
+                  final=urllib.parse.urlsplit(response.url)
+                  assert final.hostname=='haji84.github.io' and final.path=='/RACE-AI/'+path
+                  body=response.read(len(raw)+1)
+              assert body==raw,'BOAT_DEPLOYED_PAGES_BYTES_CHANGED'
+          assert '<section id="boat-owner-formal-proof"' in html
+          print(json.dumps(dict(status='BOAT_AUTOMATIC_SITE_AES_AND_HTTP_PARITY_VERIFIED',
+              assets=5,official_provider_gets=0,source_state_mutations=0,
+              original_forecast_rewrites=0),sort_keys=True))
           PY
