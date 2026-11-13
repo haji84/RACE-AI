@@ -141,8 +141,8 @@ class ResultQueueTests(unittest.TestCase):
             'when admitted for catch-up, at least half the slots serve overdue races')
         self.assertLessEqual(len(old_calls),36)
         self.assertEqual(len(s.control['settlement_captures']),len(old_calls))
-        with self.assertRaisesRegex(ValueError,'INTRADAY_REQUEST_BOUND'):
-            s.advance(base,now=NOW,fetch=fetch,max_requests=37)
+        # A larger authenticated backlog is now admissible; no arbitrary 36 hard cap.
+        self.assertIn('requests',s.advance(base,now=NOW,fetch=fetch,max_requests=37))
 
     def test_rate_limited_36_slot_catchup_stops_on_first_denial(self):
         from race_ai.source_retry_policy import SourceWait
