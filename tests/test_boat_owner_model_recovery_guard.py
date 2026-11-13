@@ -47,6 +47,19 @@ class OriginalRecoveryGuardTests(unittest.TestCase):
         self.assertNotIn("www.boatrace.jp",check)
 
 
+    def test_unindexed_11_13_requires_explicit_result_and_original_inventory_proof(self):
+        text=W.read_text()
+        self.assertIn("BOAT_V5_INDEX_DATES_SOURCEFREE_DIAGNOSTIC_V1",text)
+        self.assertIn("except ValueError as error:",text)
+        self.assertIn("reason=='HISTORY_DAY_UNAVAILABLE'",text)
+        self.assertIn("BOAT_V5_DAY_AES_INTEGRITY_REJECTED",text)
+        self.assertIn("BOAT_OWNER_UNINDEXED_P0_P1_ARTIFACT_PREVIEW_V1",text)
+        self.assertIn("original_inventory=F.forecast_inventory(original)",text)
+        self.assertIn("P0_EXISTING_CHANGED_BY_PREVIEW",text)
+        self.assertIn("recover_runs=[43348227701]",text)
+        self.assertIn("source_gets=0,published=False",text)
+        self.assertIn("boat-original-index-audit: sourcefree-43348227701",text)
+
     def test_encrypted_v5_history_publication_and_exact_readback_only(self):
         s=W.read_text()
         self.assertIn("ENCRYPTED_HISTORY_VIEW_PUBLISHED",s)
