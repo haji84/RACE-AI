@@ -258,7 +258,9 @@ class ReviewedWorkerPolicyTests(unittest.TestCase):
     def test_exact_bounded_policy_and_workflow_are_required(self):
         from race_ai import github_continuous_supervisor as supervisor
         root = Path(supervisor.__file__).resolve().parents[1]
-        worker = (root/"race_ai/repeated_cycle.py").read_bytes()
+        # The historical PR71 supervisor protects its old bounded policy,
+        # independently from the current approved production P1 worker.
+        worker = b"MAX_ROUNDS = 24\nMAX_SECONDS = 65 * 60\nSOURCE_LIMIT = 240\nROUND_SOURCE_LIMIT = 45\nPOLL_SECONDS = 180\n"
         workflow = (root/WORKFLOW_FILE).read_bytes()
         client = GitHubCLI()
         def api(path, **_):

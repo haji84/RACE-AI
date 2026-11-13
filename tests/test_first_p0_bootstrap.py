@@ -219,9 +219,10 @@ class FirstP0BootstrapTests(unittest.TestCase):
             self.assertEqual(result['day_start_lifetime_requests'],339)
             self.assertEqual(result['lifetime_requests'],339)
 
-    def test_first_p0_240_day_budget_denies_before_provider_get(self):
+    def test_legacy_fixed_budget_remains_testable_only_under_explicit_policy(self):
         now=datetime.fromisoformat('2030-04-01T09:00:00+09:00')
-        with tempfile.TemporaryDirectory() as tmp, patch.object(boot,'ROOT',Path(tmp)):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(boot,'ROOT',Path(tmp)), \
+             patch('race_ai.repeated_cycle.SOURCE_LIMIT',240):
             old=dict(day_jst='2030-04-01',lifetime_requests=240,
                      day_start_lifetime_requests=0,lifetime_completed_rounds=3)
             boot.bootstrap_control('2030-04-01',119,inherited=old)

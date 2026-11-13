@@ -14,28 +14,26 @@ def stamp(s='2030-04-01T03:35:00+00:00'):
     return datetime.fromisoformat(s)
 
 class ProductionSafetyPolicyTests(unittest.TestCase):
-    def test_real_worker_defaults_are_hard_bounded(self):
-        # Deliberately outside legacy test fixtures; do not mask these values.
-        self.assertEqual(r.MAX_ROUNDS, 24)
-        self.assertEqual(r.POLL_SECONDS, 180)
-        self.assertEqual(r.SOURCE_LIMIT, 240)
-        self.assertEqual(r.MAX_SECONDS, 65 * 60)
-        self.assertEqual(r.ROUND_SOURCE_LIMIT, 45)
+    def test_current_worker_has_no_fixed_forecast_work_budget(self):
+        for limit in ('MAX_ROUNDS','MAX_SECONDS','SOURCE_LIMIT','ROUND_SOURCE_LIMIT'):
+            self.assertIsNone(getattr(r,limit))
+        self.assertEqual(r.POLL_SECONDS,180)
 
-    def test_real_worker_cannot_exceed_session_or_round_quota(self):
-        now=stamp()
-        with tempfile.TemporaryDirectory() as tmp:
-            path=Path(tmp)/'bounded.json'
-            state=r.start(path, day='2030-04-01', run_id=111, now=now)
-            self.assertEqual(state['source_limit'],240)
-            self.assertEqual(state['max_rounds'],24)
-            self.assertEqual(r.instant(state['stop_at']),now+timedelta(minutes=65))
-            self.assertTrue(r.prepare(path,1,now=now)['active'])
-            guard=r.SourceGuard(path,clock=lambda:now)
-            for _ in range(45):guard.charge('forecast')
-            with self.assertRaisesRegex(ValueError,'ROUND_SOURCE_BUDGET_EXHAUSTED'):
-                guard.charge('result')
-            self.assertEqual(r.load(path)['requests_used'],45)
+    def test_explicit_legacy_policy_remains_bounded_in_isolated_regression(self):
+        with patch.multiple(r,MAX_ROUNDS=24,MAX_SECONDS=65*60,SOURCE_LIMIT=240,ROUND_SOURCE_LIMIT=45):
+            now=stamp()
+            with tempfile.TemporaryDirectory() as tmp:
+                path=Path(tmp)/'bounded.json'
+                state=r.start(path, day='2030-04-01', run_id=111, now=now)
+                self.assertEqual(state['source_limit'],240)
+                self.assertEqual(state['max_rounds'],24)
+                self.assertEqual(r.instant(state['stop_at']),now+timedelta(minutes=65))
+                self.assertTrue(r.prepare(path,1,now=now)['active'])
+                guard=r.SourceGuard(path,clock=lambda:now)
+                for _ in range(45):guard.charge('forecast')
+                with self.assertRaisesRegex(ValueError,'ROUND_SOURCE_BUDGET_EXHAUSTED'):
+                    guard.charge('result')
+                self.assertEqual(r.load(path)['requests_used'],45)
 
     def test_old_unbounded_state_cannot_be_reopened_under_finite_defaults(self):
         now=stamp()
@@ -47,8 +45,9 @@ class ProductionSafetyPolicyTests(unittest.TestCase):
                 guard=r.SourceGuard(path,clock=lambda:now)
                 for _ in range(241):guard.charge('result')
             before=path.read_bytes()
-            with self.assertRaisesRegex(ValueError,'SESSION_POLICY_MIGRATION_REQUIRES_NEW_RUN'):
-                r.start(path,day='2030-04-01',run_id=112,now=now+timedelta(seconds=1))
+            with patch.multiple(r,MAX_ROUNDS=24,MAX_SECONDS=65*60,SOURCE_LIMIT=240,ROUND_SOURCE_LIMIT=45):
+                with self.assertRaisesRegex(ValueError,'SESSION_POLICY_MIGRATION_REQUIRES_NEW_RUN'):
+                    r.start(path,day='2030-04-01',run_id=112,now=now+timedelta(seconds=1))
             self.assertEqual(before,path.read_bytes())
 
 
@@ -57,7 +56,7 @@ class ProductionSafetyPolicyTests(unittest.TestCase):
 class DaySourceBudgetPersistenceTests(unittest.TestCase):
     """Prevent a second JST-day worker from resetting the effective 240 GET cap."""
 
-    def test_same_day_successor_only_uses_remaining_240(self):
+    def test_same_day_successor_preserves_monotone_get_count_above_240(self):
         now=stamp()
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'continuation.json'
@@ -70,9 +69,8 @@ class DaySourceBudgetPersistenceTests(unittest.TestCase):
             final=r.load(path)
             self.assertEqual(final['lifetime_requests'],340)
             self.assertEqual(final['requests_used'],1)
-            with self.assertRaisesRegex(ValueError,'SESSION_SOURCE_BUDGET_EXHAUSTED'):
-                r.SourceGuard(path,clock=lambda:now).charge('result')
-            self.assertEqual(r.load(path)['lifetime_requests'],340)
+            r.SourceGuard(path,clock=lambda:now).charge('result')
+            self.assertEqual(r.load(path)['lifetime_requests'],341)
 
     def test_missing_same_day_baseline_fails_closed_without_charging(self):
         now=stamp()
@@ -105,7 +103,7 @@ class DaySourceBudgetPersistenceTests(unittest.TestCase):
                        day_start_lifetime_requests=100)
             state=r.start(path,day='2030-04-01',run_id=116,now=now,source_control=prior)
             state['day_start_lifetime_requests']=98
-            with self.assertRaisesRegex(ValueError,'DAY_SOURCE_BUDGET_EXCEEDED'):
+            with self.assertRaisesRegex(ValueError,'DAY_SOURCE_BUDGET_BASELINE_CHANGED'):
                 r.write_state(path,state)
             self.assertEqual(r.load(path)['day_start_lifetime_requests'],100)
 

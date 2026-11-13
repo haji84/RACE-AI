@@ -124,7 +124,7 @@ def authenticated_source_control(raw, meta, *, expected_run=None, now=None):
     # but never reinterpret it as safe evidence for a fresh same-day worker.
     day_base=state.get('day_start_lifetime_requests')
     need(day_base is None or (type(day_base) is int and
-         0<=day_base<=lifetime_requests and lifetime_requests-day_base<=240),
+         0<=day_base<=lifetime_requests),
          'DAY_SOURCE_BUDGET_BASELINE_INVALID')
     lifetime_rounds=state.get('lifetime_completed_rounds',state['completed_round'])
     need(type(lifetime_requests) is int and lifetime_requests>=state['requests_used'] and
