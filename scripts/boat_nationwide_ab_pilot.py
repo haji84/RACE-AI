@@ -70,7 +70,7 @@ REQUEST_CAP=None
 VENUE_CAP=24
 MAX_FORECASTS=None
 MAX_ATTEMPTS=None
-WAIT_SECONDS=0.15
+WAIT_SECONDS=2.0  # Respectfully pace official HTTP calls even without a fixed GET quota.
 MIN_TO_CUTOFF=timedelta(seconds=210)
 requests_used=0
 MAX_HTML=MAX_BYTES
