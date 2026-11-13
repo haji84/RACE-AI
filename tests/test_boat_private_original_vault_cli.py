@@ -181,11 +181,13 @@ class GithubOwnerReadRetryContractTests(unittest.TestCase):
         self.assertEqual(read.call_count, 3)
         self.assertEqual([args.args[0] for args in sleep.call_args_list], [2, 4])
 
-    def test_integrity_or_explicit_http_refusal_does_not_retry(self):
+    def test_unrecognized_or_integrity_errors_do_not_retry(self):
         endpoint = 'actions/runs/43348227701'
+        # Underlying gh API stderr is not classified into HTTP 403/429 by this
+        # wrapper. This checks that only the exact transient error is retried.
         for error in (ValueError('VAULT_LIVE_WORKFLOW_IDENTITY_INVALID'),
-                      RuntimeError('GITHUB_API_READ_HTTP_403_HALT'),
-                      RuntimeError('GITHUB_API_READ_HTTP_429_HALT')):
+                      ValueError('VAULT_GITHUB_READ_TIMEOUT'),
+                      RuntimeError('EXPLICIT_GITHUB_API_REJECTED')):
             with self.subTest(error=str(error)), patch.object(
                     cli, '_gh_once', side_effect=error) as read, patch.object(
                     cli.time, 'sleep') as sleep:
