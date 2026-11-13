@@ -12,9 +12,13 @@ on:
         description: 'Use existing P0/P1 source owner and scorer only'
         options: [existing-owner-p0-p1]
   pull_request:
-    branches: [feat/four-sport-forecast-audit-view-20261022]
+    # Source-free owner CI for exact release repair proposals. PR events never
+    # enter official_national: only workflow_dispatch or the old gated push can.
+    branches: [feat/four-sport-forecast-audit-view-20261022, production/boat-p0-p1-20261111]
     paths:
       - .github/workflows/boat-nationwide-ab-one-shot.yml
+      - scripts/boat_private_original_vault.py
+      - tests/test_boat_private_original_vault_cli.py
       - tests/test_boat_main_entry_contract.py
       - scripts/first_p0_bootstrap.py
       - scripts/boat_first_p0_readback.py
