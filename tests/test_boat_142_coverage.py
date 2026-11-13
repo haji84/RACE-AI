@@ -116,6 +116,67 @@ class CoverageTests(unittest.TestCase):
         self.assertNotIn('hidden-b',str(out))
         self.assertNotIn('20261112-01-',str(out))
 
+    def test_legacy_reference_proof_is_count_only_and_never_upgrades_scoring(self):
+        value = view(1)
+        row = value['records'][0]
+        for p in [row['prediction'], *row['comparison_predictions']]:
+            p['persisted_at'] = '2026-11-12T17:40:00+09:00'
+        row['result'] = dict(status='final', source_sha256='a' * 64,
+            observed_at='2026-11-12T18:05:00+09:00',
+            cutoff_reference=dict(
+                basis='RAW_OFFICIAL_SP_SAME_ROSTER_SAVED_BEFORE_BOTH',
+                offset_seconds=60,
+                original_cutoff_at='2026-11-12T18:00:00+09:00',
+                result_schedule_cutoff_at='2026-11-12T18:01:00+09:00',
+                race_identifier='private-value-never-print',
+                formal_eligible=False))
+        row['result_observations'] = [dict(
+            captured_at='2026-11-12T18:05:00+09:00', source_sha256='a'*64,
+            body_identity_verified=True, status='AVAILABLE',
+            data=dict(confirmed=True, status='settled', finish_confirmed=True,
+                      private_details='private-secret'))]
+        statuses = {row['race_id']: 'unsupported'}
+        report = score(forecasts=1,eligible=0,pending=0,held=1)
+        actual = summarize(value,statuses,report,day='2026-11-12',
+                           expected_races=1,expected_p0=2)
+        self.assertEqual(actual['legacy_reference_basis_counts'],
+            {'RAW_OFFICIAL_SP_SAME_ROSTER_SAVED_BEFORE_BOTH':1})
+        self.assertEqual(actual['legacy_reference_offset_bands'],
+            {'OFFSET_LE_60S':1})
+        self.assertEqual(actual['legacy_reference_receipt_checks'],
+            {'RECEIPT_MATCHED_SETTLEMENT_BODY':1})
+        self.assertEqual(actual['legacy_reference_timing_checks'],
+            {'FORECASTS_BEFORE_BOTH_AND_RESULT_AFTER_BOTH':1})
+        self.assertEqual(actual['confirmed_result_races'],0)
+        self.assertEqual(actual['model_held_forecasts'],2)
+        for secret in ('private-value-never-print','private-secret',row['race_id'],
+                       '2026-11-12T18:00:00+09:00'):
+            self.assertNotIn(secret,str(actual))
+        # An old source receipt with different digest fails classification.
+        row['result_observations'][0]['source_sha256'] = 'b'*64
+        actual = summarize(value,statuses,report,day='2026-11-12',
+                           expected_races=1,expected_p0=2)
+        self.assertEqual(actual['legacy_reference_receipt_checks'],
+                         {'RECEIPT_MISMATCH_OR_INCOMPLETE':1})
+        self.assertEqual(actual['confirmed_result_races'],0)
+
+    def test_unknown_reference_basis_and_bad_times_do_not_leak_originals(self):
+        value=view(1);row=value['records'][0]
+        row['result']=dict(status='final',cutoff_reference=dict(
+            basis='PRIVATE_SOURCE_LINK',offset_seconds=float('nan'),
+            original_cutoff_at='secret time',result_schedule_cutoff_at='unknown'))
+        report=score(forecasts=1,eligible=0,pending=0,held=1)
+        out=summarize(value,{row['race_id']:'unsupported'},report,
+                      day='2026-11-12',expected_races=1,expected_p0=2)
+        self.assertEqual(out['legacy_reference_basis_counts'],
+                         {'REFERENCE_BASIS_UNKNOWN':1})
+        self.assertEqual(out['legacy_reference_offset_bands'],
+                         {'OFFSET_UNKNOWN':1})
+        self.assertEqual(out['legacy_reference_timing_checks'],
+                         {'CHRONOLOGY_UNKNOWN':1})
+        self.assertNotIn('PRIVATE_SOURCE_LINK',str(out))
+        self.assertNotIn('secret time',str(out))
+
     def test_missing_race_duplicate_race_and_wrong_score_fail_closed(self):
         value=view(2)
         states={r['race_id']:'final' for r in value['records']}
