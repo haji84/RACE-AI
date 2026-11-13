@@ -73,8 +73,40 @@ class GithubHandoffTests(unittest.TestCase):
             git._run(['fetch','fixture'])
             self.assertGreater(run.call_args.kwargs['timeout'],60)
             self.assertLessEqual(run.call_args.kwargs['timeout'],180)
+            git._run(['push','fixture','a'*40+':refs/heads/state/boat-pdca-transfer'])
+            self.assertGreater(run.call_args.kwargs['timeout'],60)
+            self.assertLessEqual(run.call_args.kwargs['timeout'],180)
             git._run(['rev-list','--all'])
             self.assertLessEqual(run.call_args.kwargs['timeout'],60)
+
+
+    def test_push_timeout_accepts_only_confirmed_remote_commit(self):
+        from race_ai.boat_pdca_github_handoff import GitStateRepository
+        git=object.__new__(GitStateRepository)
+        git.push_url='https://github.com/haji84/RACE-AI.git'
+        git.ref='state/boat-pdca-transfer'
+        parent='a'*40
+        commit='b'*40
+        timeout=subprocess.TimeoutExpired(['git','push'],180)
+        # Remote accepted the exact commit, but the client lost the final ACK.
+        with patch.object(git,'head',side_effect=[parent,commit,commit]) as head, \\
+             patch.object(git,'_run',side_effect=timeout) as run:
+            git.push(commit,parent)
+            self.assertEqual(head.call_count,3)
+            self.assertEqual(run.call_count,1)
+        # No remote ACK and a different head: fail closed, never call it saved.
+        with patch.object(git,'head',side_effect=[parent,'c'*40]) as head, \\
+             patch.object(git,'_run',side_effect=timeout) as run:
+            with self.assertRaises(subprocess.TimeoutExpired):
+                git.push(commit,parent)
+            self.assertEqual(head.call_count,2)
+            self.assertEqual(run.call_count,1)
+        # Fast-forward protection remains in place before any source push.
+        with patch.object(git,'head',return_value='c'*40), \\
+             patch.object(git,'_run') as run:
+            with self.assertRaisesRegex(ValueError,'STATE_REF_CONCURRENT_UPDATE'):
+                git.push(commit,parent)
+            run.assert_not_called()
 
     def test_cli_missing_key_reports_hold_and_unexpected_errors_do_not_echo_private_data(self):
         import io
