@@ -1,0 +1,186 @@
+name: BOAT owner-formal Pages verifier (source-free)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-owner-formal-pages-proof.yml
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-owner-formal-pages-proof.yml
+permissions:
+  contents: read
+concurrency:
+  group: boat-owner-formal-pages-proof
+  cancel-in-progress: false
+jobs:
+  static_site:
+    name: Verify exact candidate Pages assets, cache and manifest (zero GET)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: f3bce0475fa20f970247115d99b0a2f1aed787b1
+          persist-credentials: false
+      - name: Verify JavaScript syntax
+        run: |
+          node --check owner-formal.js
+          node --check app.js
+          node --check saved-performance.js
+          node --check product-data.js
+      - name: Require exact Pages asset SHA/size and active script versions
+        run: |
+          python - <<'PY'
+          import hashlib,json,re
+          from pathlib import Path
+          obj=json.loads(Path('site-build.json').read_bytes())
+          assert obj['schema']=='RACE_AI_SAVED_PAGES_BUILD_V1'
+          assert obj['forecast_sha256']=='4169db99a1d99bbcf96c8fa1bfb076ed2d2fb1f434fc64cf7e43b38e55f5adda'
+          index=Path('index.html').read_text()
+          for path in ('app.js','index.html','owner-formal.js','saved-performance.js'):
+              raw=Path(path).read_bytes()
+              expected=obj['files'][path]
+              assert expected=={'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()},path
+          for path in ('owner-formal.js','app.js'):
+              sha=obj['files'][path]['sha256']
+              assert index.count('./'+path+'?v='+sha[:12])==1,path
+          assert '<section id="boat-owner-formal-proof"' in index
+          assert 'RaceOwnerFormal' in Path('app.js').read_text()
+          assert 'ownerEncryptedTrusted=true' in Path('app.js').read_text()
+          assert 'ownerFormalRow(r)' in Path('app.js').read_text()
+          assert obj['cipher_path'].startswith('views/')
+          print('BOAT_PAGES_ASSET_SHA256_AND_MODULE_ORDER_VERIFIED')
+          PY
+      - name: Synthetic negative/positive browser summary contract (zero provider GET)
+        run: |
+          node - <<'JS'
+          const O=require('./owner-formal.js');
+          if(O.DAY!=='2026-11-12'||!O.EVIDENCE.endsWith('/43339230921'))process.exit(1);
+          const ids=['boat-observed-pairwise-factor-v1','boat-observed-pairwise-start-v1'];
+          const results=[];
+          const prev='2026-11-12T18:00:00+09:00',post='2026-11-12T18:01:00+09:00';
+          for(let i=0;i<142;i++){
+            const race='20261112-01-'+String(i+1).padStart(2,'0');
+            const predictions=ids.map((model_id,index)=>({stage:'P0',model_id,
+              persisted_at:'2026-11-12T17:45:00+09:00',ordered_top8:[[1,2,3]],
+              fixture_hit:i<(index===0?26:25)}));
+            const r={race_id:race,sport:'boat',event_date_jst:O.DAY,scope:'research',
+              private_cycle_view:true,cutoff_at:prev,prediction:predictions[0],
+              comparison_predictions:[predictions[1]],result:{status:'final',
+              source_sha256:'a'.repeat(64),winning_combinations:[[1,2,3]],
+              payout_yen_per_100:900,observed_at:'2026-11-12T18:05:00+09:00'}};
+            if(i>=132){
+              r.result.cutoff_reference={basis:'RAW_OFFICIAL_SP_SAME_ROSTER_SAVED_BEFORE_BOTH',
+                original_cutoff_at:prev,result_schedule_cutoff_at:post,
+                formal_eligible:false,offset_seconds:60};
+              r.result_observations=[{race_id:race,status:'AVAILABLE',
+                source_sha256:'a'.repeat(64),body_identity_verified:true,
+                captured_at:'2026-11-12T18:05:00+09:00',closed_at:post,
+                schedule_binding:'SP_EXPLICIT_RACE_HEADER',
+                source_url:'https://www.boatrace.jp/owsp/sp/spdata?type=raceresult',
+                data:{status:'settled',confirmed:true,finish_confirmed:true,
+                payouts:[{bet_type:'trifecta',combination:[1,2,3],
+                  payout_per_100_yen:900}],refund_boats:[]}}];
+            }
+            results.push(r);
+          }
+          const P={compare:(r,p)=>({status:p.fixture_hit?'HIT':'MISS'})};
+          const v=O.inspect(results,P,O.ANCHOR);
+          if(!v.verified||v.races!==142||v.predictions!==284||v.approvedReferences!==10)throw Error('GOOD_CASE_REJECTED:'+v.reason);
+          results[133].result_observations[0].source_sha256='b'.repeat(64);
+          const bad=O.inspect(results,P,O.ANCHOR);
+          if(bad.verified||bad.reason!=='SP_CUTOFF_SOURCE_EVIDENCE_MISMATCH')throw Error('CORRUPTED_SHA_ADMITTED');
+          if(O.inspect(results,P,'wrong').verified)throw Error('FORECAST_ANCHOR_BYPASS');
+          console.log('BOAT_SITE_POLICY_SYNTHETIC_POSITIVE_AND_NEGATIVE_OK');
+          JS
+
+  authenticated_site:
+    name: Compare new site module with real AES saved 284 P0 and original scorer (zero GET)
+    if: github.event_name == 'push'
+    needs: static_site
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: f3bce0475fa20f970247115d99b0a2f1aed787b1
+          path: site
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0796b52c2804177976e4c2e5ab9b65f32589720b
+          path: coverage-source
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: coverage-source/pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: coverage-source/pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r coverage-source/requirements-history.txt
+      - name: Use original signed AES saved view and true model scorer to attest browser comparison
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY'
+          import importlib.util,json,os,subprocess,sys
+          from pathlib import Path
+          from datetime import datetime,timezone
+          source=Path('coverage-source').resolve()
+          sys.path.insert(0,str(source))
+          import race_ai
+          for path in ('pr64-reference','pr72-reference'):
+              child=(source/path/'race_ai').resolve()
+              assert child.is_dir()
+              race_ai.__path__.append(str(child))
+          from scripts.boat_private_original_vault import _environment
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai import saved_view_feed as F
+          from race_ai import result_due_ledger as D,retained_model_pdca_audit as P
+          from scripts import boat_142_owner_formal as Owner
+          bridge=SavedResultBridge(_environment(source),now=datetime.now(timezone.utc))
+          view=F.current_view(bridge.git,bridge.bootstrap,day='2026-11-12')[3]
+          derived,score,proof=Owner.score_owner_approved(view,F=F,D=D,P=P)
+          assert proof['model_forecasts_scored']==284
+          js=r"""
+          const fs=require('fs');
+          const Product=require('./site/product-data.js');
+          const Perf=require('./site/saved-performance.js');
+          const Owner=require('./site/owner-formal.js');
+          try{
+            const view=Product.parse(JSON.parse(fs.readFileSync(0,'utf8')));
+            const rows=view.records.filter(r=>r.event_date_jst===Owner.DAY&&r.sport==='boat');
+            const out=Owner.inspect(rows,Perf,Owner.ANCHOR);
+            console.log(JSON.stringify(out.verified?
+              {verified:true,counts:out.counts,races:out.races,predictions:out.predictions,approvedReferences:out.approvedReferences}:
+              {verified:false,reason:out.reason||'MISMATCH'}));
+          }catch(_){console.log(JSON.stringify({verified:false,reason:'BROWSER_PARSE_OR_COMPARE_REJECTED'}));process.exitCode=2;}
+          """
+          r=subprocess.run(['node','-e',js],input=json.dumps(view,ensure_ascii=False),
+                           text=True,capture_output=True,timeout=150)
+          public=json.loads(r.stdout)
+          assert r.returncode==0 and public.get('verified') is True, \
+              'BROWSER_AND_AES_COUNTS_NOT_YET_CONSISTENT'
+          assert public['races']==142 and public['predictions']==284 and \
+              public['approvedReferences']==10
+          groups={g['model_id']:g for g in score['model_groups']}
+          assert set(groups)==set(public['counts'])
+          for name,c in public['counts'].items():
+              g=groups[name]
+              assert (c['hits'],c['misses'],c['forecasts'])==(g['hits'],g['misses'],g['forecasts'])
+          print(json.dumps({'status':'BOAT_LIVE_ENCRYPTED_VIEW_AND_SITE_284_MATCH',
+              'races':142,'forecasts':284,'approved_reference_races':10,
+              'verified_models':{k:{'hits':v['hits'],'misses':v['misses']}
+                for k,v in public['counts'].items()},
+              'official_source_gets':0,'original_predictions_changed':False},
+              sort_keys=True))
+          PY
