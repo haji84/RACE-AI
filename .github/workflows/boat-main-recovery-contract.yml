@@ -1,7 +1,12 @@
 name: BOAT main failed-owner recovery gate
 on:
   push:
-    branches: [fix/boat-main-durable-recovery-20261114]
+    branches: [fix/boat-main-durable-recovery-20261114, main]
+    paths:
+      - .github/workflows/boat-main-recovery-contract.yml
+      - scripts/boat_owner_evidence_audit.py
+      - tests/test_boat_owner_evidence_audit.py
+      - docs/evidence/boat-owner-evidence-audit-20261114.md
   pull_request:
     branches: [main]
     paths:
@@ -10,11 +15,18 @@ on:
       - scripts/boat_recovery_dispatch_gate.py
       - scripts/boat_failed_recovery_contract.py
       - tests/test_boat_recovery*.py
+      - scripts/boat_owner_evidence_audit.py
+      - tests/test_boat_owner_evidence_audit.py
+      - docs/evidence/boat-owner-evidence-audit-20261114.md
+  workflow_run:
+    workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
+    types: [completed]
+    branches: [production/boat-p0-p1-20261111]
 permissions:
   contents: read
 jobs:
   gate:
-    name: Durable recovery admission and original main guards
+    name: unit
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -22,9 +34,52 @@ jobs:
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-      - run: python -m unittest tests.test_boat_recovery_control_reader tests.test_boat_recovery_dispatch_gate tests.test_boat_main_dispatch_gate tests.test_boat_first_p0_recovery_gate -v
+      - run: python -m unittest tests.test_boat_recovery_control_reader tests.test_boat_recovery_dispatch_gate tests.test_boat_main_dispatch_gate tests.test_boat_first_p0_recovery_gate tests.test_boat_owner_evidence_audit -v
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9, path: boat-owner-reader}
       - name: Verify the actual pinned public control reader imports in isolation without owner secrets
         working-directory: boat-owner-reader
         run: python -S -c 'from race_ai.github_continuous_supervisor import GitHubCLI; assert callable(GitHubCLI.final_control); print("PINNED_PUBLIC_CONTROL_READER_IMPORT_VERIFIED")'
+  original_evidence:
+    name: Authenticated original schedule P1 video and pending-round evidence
+    needs: gate
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message, 'boat-evidence-audit: sourcefree-43348227701')) ||
+       (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.event == 'workflow_dispatch' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
+        github.event.workflow_run.head_sha == '203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9' &&
+        (github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure')))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 203ca70a2ea04124b2cb0ceba9dc4bdad7cc8da9, path: boat-owner-reader}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: boat-owner-reader/pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: boat-owner-reader/pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r boat-owner-reader/requirements-history.txt
+      - name: Read exact AES originals and retained official B with zero racing GET
+        working-directory: boat-owner-reader
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+          OWNER_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43348227701' }}
+        run: python "$GITHUB_WORKSPACE/scripts/boat_owner_evidence_audit.py" --repo-root . --run-id "$OWNER_RUN_ID" --output "$RUNNER_TEMP/boat-owner-evidence-audit.json"
+      - name: Retain counts only, never decoded originals or prediction rows
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-owner-evidence-audit-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-owner-evidence-audit.json
+          if-no-files-found: error
+          retention-days: 30
