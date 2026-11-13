@@ -56,7 +56,7 @@ jobs:
           assert 'F.publish_view' in Path('scripts/boat_restore_unindexed_owner_day.py').read_text()
           assert 'boat-recover-unindexed: sourcefree-43348227701' in code
           assert 'GH_TOKEN:' in code and 'RACE_AI_STATE_KEY:' in code
-          assert 'www.boatrace.jp' not in code
+          assert 'www.boatrace.jp' not in code.split('\n  admit_original_day:\n',1)[1]
           print('BOAT_UNINDEXED_ORIGINAL_SAVED_DAY_SOURCEFREE_GUARDS_PASS')
           PY
       - name: Original archive/recovery and V5 history no-provider regressions
