@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: f3bce0475fa20f970247115d99b0a2f1aed787b1
+          ref: fe9c691d453a16087a2a973f857fcdef2a567c5c
           persist-credentials: false
       - name: Verify JavaScript syntax
         run: |
@@ -61,7 +61,9 @@ jobs:
           const results=[];
           const prev='2026-11-12T18:00:00+09:00',post='2026-11-12T18:01:00+09:00';
           for(let i=0;i<142;i++){
-            const race='20261112-01-'+String(i+1).padStart(2,'0');
+            const jcd=String(Math.floor(i/12)+1).padStart(2,'0');
+            const rno=String(i%12+1).padStart(2,'0');
+            const race='20261112-'+jcd+'-'+rno;
             const official=i===141?'2026-11-12T18:03:00+09:00':post;
             const predictions=ids.map((model_id,index)=>({stage:'P0',model_id,
               persisted_at:'2026-11-12T17:45:00+09:00',ordered_top8:[[1,2,3]],
@@ -70,7 +72,7 @@ jobs:
               private_cycle_view:true,cutoff_at:prev,prediction:predictions[0],
               comparison_predictions:[predictions[1]],result:{status:'final',
               source_sha256:'a'.repeat(64),winning_combinations:[[1,2,3]],
-              payout_yen_per_100:900,observed_at:'2026-11-12T18:05:00+09:00'}};
+              payout_yen_per_100:900,refund_boats:[],refunds:[],observed_at:'2026-11-12T18:05:00+09:00'}};
             if(i>=132){
               r.result.cutoff_reference={basis:'RAW_OFFICIAL_SP_SAME_ROSTER_SAVED_BEFORE_BOTH',
                 original_cutoff_at:prev,result_schedule_cutoff_at:official,
@@ -79,10 +81,10 @@ jobs:
                 source_sha256:'a'.repeat(64),body_identity_verified:true,
                 captured_at:'2026-11-12T18:05:00+09:00',closed_at:official,
                 schedule_binding:'SP_EXPLICIT_RACE_HEADER',
-                source_url:'https://www.boatrace.jp/owsp/sp/spdata?type=raceresult',
+                source_url:'https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20261112&jcd='+jcd+'&rno='+Number(rno),
                 data:{status:'settled',confirmed:true,finish_confirmed:true,
                 payouts:[{bet_type:'trifecta',combination:[1,2,3],
-                  payout_per_100_yen:900}],refund_boats:[]}}];
+                  payout_per_100_yen:900}],refund_boats:[],refunds:[]}}];
             }
             results.push(r);
           }
@@ -93,6 +95,14 @@ jobs:
           const bad=O.inspect(results,P,O.ANCHOR);
           if(bad.verified||bad.reason!=='SP_CUTOFF_SOURCE_EVIDENCE_MISMATCH')throw Error('CORRUPTED_SHA_ADMITTED');
           if(O.inspect(results,P,'wrong').verified)throw Error('FORECAST_ANCHOR_BYPASS');
+          results[133].result_observations[0].source_sha256='a'.repeat(64);
+          const savedUrl=results[133].result_observations[0].source_url;
+          results[133].result_observations[0].source_url=savedUrl.replace('jcd=12','jcd=01');
+          if(O.inspect(results,P,O.ANCHOR).verified)throw Error('FOREIGN_RACE_SOURCE_ADMITTED');
+          results[133].result_observations[0].source_url=savedUrl;
+          results[133].result.refund_boats=[1];
+          if(O.inspect(results,P,O.ANCHOR).verified)throw Error('FORGED_REFUND_ADMITTED');
+          results[133].result.refund_boats=[];
           console.log('BOAT_SITE_POLICY_SYNTHETIC_POSITIVE_AND_NEGATIVE_OK');
           JS
 
@@ -108,7 +118,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: f3bce0475fa20f970247115d99b0a2f1aed787b1
+          ref: fe9c691d453a16087a2a973f857fcdef2a567c5c
           path: site
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
