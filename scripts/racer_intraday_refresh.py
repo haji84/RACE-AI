@@ -3,7 +3,7 @@ from contextlib import nullcontext
 from copy import deepcopy
 from datetime import date,datetime,timezone
 from pathlib import Path
-import argparse,json,os,re,subprocess,sys
+import argparse,json,os,re,subprocess,sys,time
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
 from race_ai.racer_daily import wire,sha,clock,need
@@ -65,12 +65,15 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
         else:
             # Longer pacing for large guarded backlog cycles; 403/429 and
             # transient provider WAIT continue to stop the entire host.
+            # Keep enough real Actions time for encrypted Git commit/readback.
+            # This checkpoint is NOT a daily or hourly GET count ceiling.
+            source_deadline=time.monotonic()+540 if fetch is None else None
             with (OfficialClient(interval_seconds=2 if cap>12 else 1)
                   if fetch is None else nullcontext(fetch)) as source:
                 if sync_beforeinfo and bridge:
                     from race_ai.racer_beforeinfo import collect_beforeinfo
                     beforeinfo=collect_beforeinfo(state,bridge.rows,now=current(),fetch=source,max_requests=4)
-                outcome=state.advance(base,now=current(),fetch=source,max_requests=cap-beforeinfo['requests'],**(dict(result_targets=targets) if bridge else {}))
+                outcome=state.advance(base,now=current(),fetch=source,max_requests=cap-beforeinfo['requests'],source_deadline=source_deadline,**(dict(result_targets=targets) if bridge else {}))
                 outcome['requests']+=beforeinfo['requests']
         finished=current();state.control['last_checked_at']=finished.isoformat()
         roster=roster if roster is not None else json.loads((ROOT/'web/data/racer-profiles.json').read_text())['people']
