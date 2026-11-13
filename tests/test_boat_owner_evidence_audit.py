@@ -142,4 +142,19 @@ class PendingLinkTests(unittest.TestCase):
         self.control['source_wait']={'state':'AUTHORIZATION_WAIT'}
         with self.assertRaises(ValueError):self.call()
 
+
+class CurrentReleaseEvidenceWiringTests(unittest.TestCase):
+    def test_owner_video_and_national_p1_evidence_is_bound_to_latest_release(self):
+        from pathlib import Path
+        from scripts.boat_main_dispatch_gate import RELEASE_SHA
+        from scripts import boat_owner_evidence_audit as audit
+        self.assertEqual(audit.OWNER_SHA, RELEASE_SHA)
+        source=(Path(__file__).resolve().parents[1]/
+                '.github/workflows/boat-main-recovery-contract.yml').read_text()
+        self.assertIn("github.event.workflow_run.head_sha == '"+RELEASE_SHA+"'",source)
+        self.assertIn("github.event.workflow_run.conclusion == 'failure'",source)
+        self.assertIn("github.event.workflow_run.conclusion == 'success'",source)
+        self.assertIn("boat-owner-evidence-audit-",source)
+        self.assertIn("name: Authenticated original schedule P1 video and pending-round evidence",source)
+
 if __name__=='__main__':unittest.main()
