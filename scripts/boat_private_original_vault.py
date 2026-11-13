@@ -72,6 +72,25 @@ def _write(path, raw):
 
 
 def _gh(endpoint):
+    """Bounded GitHub artifact availability retry, never a racing provider GET.
+
+    A just-uploaded Actions artifact may not yet be readable by GitHub API.
+    This retains its exact ID and all existing SHA, ZIP and run-authentication
+    checks. Fail closed after three total attempts without changing source.
+    """
+    attempts = 3 if endpoint.startswith("actions/artifacts/") else 1
+    for attempt in range(attempts):
+        try:
+            return _gh_once(endpoint)
+        except ValueError as exc:
+            if (str(exc) != "VAULT_GITHUB_READ_DENIED_OR_UNAVAILABLE"
+                    or attempt == attempts-1):
+                raise
+            time.sleep(2*(attempt+1))
+    raise AssertionError("UNREACHABLE_GITHUB_ARTIFACT_RETRY")
+
+
+def _gh_once(endpoint):
     V._need(re.fullmatch(r'actions/(?:artifacts/[1-9][0-9]*(?:/zip)?|runs/[1-9][0-9]*)', endpoint),
             'GITHUB_ENDPOINT_INVALID')
     limit = V.MAX_ORIGINAL if endpoint.endswith('/zip') else 256*1024
