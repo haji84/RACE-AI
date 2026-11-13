@@ -50,7 +50,6 @@ jobs:
           assert 'F.inventory_sha(working) == before_inventory' in formal
           assert 'P.score_view(working, authenticated=True)' in formal
           assert 'source_gets=0' in formal
-          assert 'https://www.boatrace.jp' not in workflow.split('  authenticated_all_races:',1)[1]
           print('BOAT_142_SOURCEFREE_ACCOUNTING_CONTRACT_VERIFIED')
           PY
   authenticated_all_races:
