@@ -136,6 +136,25 @@ class FreshGateTests(unittest.TestCase):
         assert 'OWNER_BUDGET_60M' not in gate
         assert 'MAX_RECOVERY_GETS_PER_CYCLE=36' in gate
 
+    def test_no_new_formal_final_is_source_free_hold_without_followup(self):
+        from pathlib import Path
+        workflow=Path('.github/workflows/boat-result-gap-recovery.yml').read_text()
+        source=workflow.split(
+            '      - name: Require actual new official result and no source-limit bypass',1
+        )[1].split('      - name:',1)[0]
+        self.assertIn("assert after_final>=baseline['before_final']",source)
+        self.assertIn("assert inventory==baseline['inventory_digest']",source)
+        self.assertIn("if after_final==baseline['before_final']:",source)
+        self.assertIn("'BOAT_NO_NEW_FORMAL_FINAL_HOLD'",source)
+        self.assertIn('raise SystemExit(0)',source)
+        self.assertIn('assert after_final>baseline[',source)
+        self.assertLess(source.index("assert inventory==baseline['inventory_digest']"),
+                        source.index("if after_final==baseline['before_final']:"))
+        self.assertLess(source.index('raise SystemExit(0)'),
+                        source.index("stream.write('new_results=true"))
+        follow=workflow.split('  source_free_followup:',1)[1]
+        self.assertIn("needs.fresh_result.outputs.new_results == 'true'",follow)
+
     def test_strict_real_readback_python_is_syntax_valid_and_source_free(self):
         import ast
         import textwrap
