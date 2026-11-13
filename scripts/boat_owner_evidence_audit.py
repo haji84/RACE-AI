@@ -53,9 +53,11 @@ def summarize(schedule,p0_rows,p1_rows,attempts,*,day,now,official_program_verif
             rid=row.get('race_id');mid=row.get('model_id')
             need(rid in ledger and row.get('stage')==stage and type(mid) is str and 0<len(mid)<=256,
                  'FORECAST_IDENTITY_INVALID')
-            need(stamp(row['cutoff_at'])==ledger[rid] and
-                 stamp(row['as_of'])<=stamp(row['server_saved_at'])<ledger[rid] and
-                 stamp(row['server_saved_at'])<=now,'FORECAST_CLOCK_INVALID')
+            generated,saved=stamp(row['as_of']),stamp(row['server_saved_at'])
+            # Preserve the original reader's GitHub whole-second receipt rule.
+            ordered=generated<=saved or (saved.microsecond==0 and saved<=generated<saved+timedelta(seconds=1))
+            need(stamp(row['cutoff_at'])==ledger[rid] and generated<ledger[rid] and
+                 saved<ledger[rid] and ordered and saved<=now,'FORECAST_CLOCK_INVALID')
             count+=1;found.setdefault((rid,mid),row)
         return found,count-len(found)
     p0,p0_repeats=slots(p0_rows,'P0');p1,p1_repeats=slots(p1_rows,'P1')
