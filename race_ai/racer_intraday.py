@@ -3,7 +3,7 @@ from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime,timedelta,date
 from pathlib import Path
-import base64,json,re,sqlite3
+import base64,json,re,sqlite3,time,math
 import race_ai
 from .racer_daily import clock,wire,sha,need,JST
 from .racer_intraday_source import result_url,parse_result,row_facts
@@ -117,8 +117,8 @@ class IntradayState:
         wait=c['waits'].get('boatrace');state='SOURCE_WAIT' if wait and clock(wait['until'])>now else 'READY'
         captures=[p['captured_at'] for p in pointers if clock(p['captured_at']).astimezone(JST).date().isoformat()>=day]
         return dict(day=day,last_checked_at=c['last_checked_at'] or now.isoformat(),latest_result_at=max(captures,default=None),expected_races=expected,confirmed_races=len(confirmed),pending_races=None if expected is None else max(0,expected-len(confirmed)),schedule_complete=complete,source_state=state,revision_conflicts=len(c['conflicts']),source_receipts=list(receipts.values()))
-    def advance(self,base,*,now,fetch,max_requests=12,result_targets=()):
-        now=clock(now);need(type(max_requests) is int and max_requests>=1,'INTRADAY_REQUEST_BOUND');c=self.control;day=now.astimezone(JST).date();text=day.isoformat();requests=changed=0
+    def advance(self,base,*,now,fetch,max_requests=12,result_targets=(),source_deadline=None):
+        now=clock(now);need(type(max_requests) is int and max_requests>=1,'INTRADAY_REQUEST_BOUND');need(source_deadline is None or type(source_deadline) in (int,float) and math.isfinite(source_deadline),'INTRADAY_SOURCE_DEADLINE_INVALID');c=self.control;day=now.astimezone(JST).date();text=day.isoformat();requests=changed=0
         self.extra_rows(base,now=now)
         self.rollover(now)
         targets={}
@@ -135,7 +135,8 @@ class IntradayState:
         def waiting(key):return key in c['waits'] and clock(c['waits'][key]['until'])>now
         def get(url,host):
             nonlocal requests
-            if requests>=max_requests or waiting(host) or waiting(url):return None
+            if (requests>=max_requests or waiting(host) or waiting(url) or
+                    source_deadline is not None and time.monotonic()>=source_deadline):return None
             requests+=1
             try:
                 raw,at=fetch(url);at=clock(at);need(at<=now+timedelta(minutes=5),'INTRADAY_CAPTURE_CLOCK_INVALID')
@@ -195,7 +196,8 @@ class IntradayState:
         else:
             order=today_first+old+[rid for rid in due if rid not in new_stats]+revisions
         for target in order:
-            if requests>=max_requests or waiting('boatrace'):break
+            if (requests>=max_requests or waiting('boatrace') or
+                    source_deadline is not None and time.monotonic()>=source_deadline):break
             venue=target[9:11];number=int(target[-2:])
             if target in picked:continue
             picked.add(target)
