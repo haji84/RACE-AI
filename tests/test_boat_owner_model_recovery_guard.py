@@ -47,5 +47,16 @@ class OriginalRecoveryGuardTests(unittest.TestCase):
         self.assertNotIn("www.boatrace.jp",check)
 
 
+    def test_encrypted_v5_history_publication_and_exact_readback_only(self):
+        s=W.read_text()
+        self.assertIn("ENCRYPTED_HISTORY_VIEW_PUBLISHED",s)
+        self.assertIn("boat-original-readback: sourcefree-43348227701",s)
+        self.assertIn("always() && (",s)
+        self.assertIn("needs.recover_original.result == 'success'",s)
+        self.assertIn("52e194c99217b5dfdbd5db7d35c203cc762d91ce577a936e93ea53f642a10bee",s)
+        self.assertIn("INDEPENDENT_CIPHER_READBACK_MISMATCH",s)
+        self.assertIn("ORIGINAL_HISTORIC_CIPHER",s)
+
+
 if __name__=="__main__":
     unittest.main()
