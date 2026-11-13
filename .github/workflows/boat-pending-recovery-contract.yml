@@ -8,7 +8,7 @@ on:
       - scripts/boat_failed_recovery_contract.py
       - scripts/boat_recover_failed_owner.py
       - scripts/github_existing_cycle.py
-      - tests/test_boat_pending_round_recovery.py
+      - tests/test_boat_pending_round*.py
 permissions:
   contents: read
 jobs:
@@ -31,10 +31,10 @@ jobs:
           import race_ai,unittest
           for folder in ('pr64-reference','pr72-reference'):
               race_ai.__path__.append(str(Path(folder,'race_ai').resolve()))
-          names=['tests.test_boat_pending_round_recovery','tests.test_private_original_archive_readers',
-                 'tests.test_boat_private_original_vault_cli','tests.test_boat_private_original_vault',
-                 'tests.test_cycle_recovery','tests.test_repeated_cycle','tests.test_boat_source_control',
-                 'tests.test_continuity_checkpoint','tests.test_boat_main_entry_contract']
+          names=['tests.test_boat_pending_round_recovery','tests.test_boat_pending_round_checkpoint',
+                 'tests.test_private_original_archive_readers','tests.test_boat_private_original_vault_cli',
+                 'tests.test_boat_private_original_vault','tests.test_cycle_recovery','tests.test_repeated_cycle',
+                 'tests.test_boat_source_control','tests.test_continuity_checkpoint','tests.test_boat_main_entry_contract']
           suite=unittest.defaultTestLoader.loadTestsFromNames(names)
           result=unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(not result.wasSuccessful())
