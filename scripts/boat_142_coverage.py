@@ -13,6 +13,94 @@ SCHEMA = 'RACE_AI_BOAT_DAY_RESULT_COVERAGE_V1'
 STATES = ('final', 'void', 'pending', 'missing', 'unsupported')
 
 
+
+def _clock_or_none(value):
+    from datetime import datetime
+    if type(value) is not str or len(value) > 64:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        return parsed if parsed.utcoffset() is not None else None
+    except (ValueError, TypeError, OverflowError):
+        return None
+
+
+def _legacy_receipt_and_timing(row, result):
+    """Only classify existing sealed source evidence; never set formal eligibility."""
+    ref = result.get('cutoff_reference')
+    if type(ref) is not dict:
+        return ('RECEIPT_UNKNOWN', 'TIMING_UNKNOWN', 'MARKET_UNKNOWN')
+    observations = row.get('result_observations')
+    if type(observations) is not list or not observations:
+        receipt = 'RECEIPT_MISSING'
+        latest = None
+    else:
+        parsed = [(o, _clock_or_none(o.get('captured_at')))
+                  for o in observations if type(o) is dict]
+        if len(parsed) != len(observations) or any(t is None for _, t in parsed):
+            receipt = 'RECEIPT_UNVERIFIED'
+            latest = None
+        else:
+            latest = max(parsed, key=lambda item: item[1])[0]
+            data = latest.get('data')
+            matched = (type(result.get('source_sha256')) is str and
+                       len(result['source_sha256']) == 64 and
+                       latest.get('source_sha256') == result['source_sha256'] and
+                       latest.get('captured_at') == result.get('observed_at') and
+                       latest.get('body_identity_verified') is True and
+                       latest.get('status') == 'AVAILABLE' and
+                       type(data) is dict and data.get('confirmed') is True)
+            receipt = ('MATCHED_OFFICIAL_SOURCE_BODY' if matched else
+                       'RECEIPT_MISMATCH_OR_INCOMPLETE')
+    data = latest.get('data') if latest is not None else None
+    if receipt != 'MATCHED_OFFICIAL_SOURCE_BODY':
+        market = 'MARKET_UNVERIFIED'
+    elif result.get('status') == 'void':
+        market = ('CANCELLED_OR_NO_CONTEST_SOURCE' if
+                  data.get('status') in ('cancelled','no_contest') else
+                  'MARKET_UNVERIFIED')
+    elif data.get('status') != 'settled' or data.get('finish_confirmed') is not True:
+        market = 'MARKET_UNVERIFIED'
+    else:
+        payouts = [p for p in data.get('payouts', []) if type(p) is dict
+                   and p.get('bet_type') == 'trifecta'] \
+            if type(data.get('payouts')) is list else []
+        winners = result.get('winning_combinations')
+        from_source = {tuple(p.get('combination',[])) for p in payouts
+                       if type(p.get('combination')) is list and
+                       len(p['combination']) == 3 and
+                       type(p.get('payout_per_100_yen')) is int and
+                       p['payout_per_100_yen'] >= 0}
+        from_result = {tuple(c) for c in winners
+                       if type(c) is list and len(c) == 3} \
+            if type(winners) is list else set()
+        market = ('SOURCE_WINNER_AND_PAYOUT_PRESENT' if
+                  len(from_source) == len(payouts) and from_source and
+                  from_source == from_result else 'MARKET_UNVERIFIED')
+    prior = _clock_or_none(ref.get('original_cutoff_at'))
+    source = _clock_or_none(ref.get('result_schedule_cutoff_at'))
+    preds = ([row['prediction']] if row.get('prediction') is not None else []) + \
+        list(row.get('comparison_predictions') or [])
+    if prior is None or source is None or not preds:
+        timing = 'TIMING_UNKNOWN'
+    else:
+        earliest, later = min(prior, source), max(prior, source)
+        def _pred_early(pred):
+            if type(pred) is not dict:
+                return False
+            fields = ('persisted_at','as_of','generated_at','source_captured_at',
+                      'server_saved_at')
+            stamps = [_clock_or_none(pred[k]) for k in fields if pred.get(k) is not None]
+            return (pred.get('persisted_at') is not None and
+                    all(t is not None and t < earliest for t in stamps))
+        observed = _clock_or_none(result.get('observed_at'))
+        timing = ('ALL_FORECASTS_BEFORE_BOTH_AND_RESULT_AFTER_BOTH' if
+                  all(_pred_early(p) for p in preds) and
+                  observed is not None and observed >= later
+                  else 'TIMING_UNVERIFIED')
+    return receipt, timing, market
+
+
 def need(ok, code):
     if not ok:
         raise ValueError('BOAT_COVERAGE_' + code)
@@ -39,6 +127,9 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
     reference_only_gates = Counter()
     reference_only_basis = Counter()
     reference_only_offset = Counter()
+    legacy_receipt_counts = Counter()
+    legacy_timing_counts = Counter()
+    legacy_market_counts = Counter()
     model_counts = Counter()
     saved_p0 = all_saved = 0
     for r in rows:
@@ -93,6 +184,10 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
                     else:
                         bucket = 'OFFSET_OVER_60_SECONDS'
                     reference_only_offset[bucket] += 1
+                    receipt, timing, market = _legacy_receipt_and_timing(r, result)
+                    legacy_receipt_counts[receipt] += 1
+                    legacy_timing_counts[timing] += 1
+                    legacy_market_counts[market] += 1
         preds = ([r['prediction']] if r.get('prediction') is not None else []) + list(
             r.get('comparison_predictions') or [])
         need(len(preds) <= 128 and all(type(p) is dict for p in preds),
@@ -158,6 +253,9 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
          sum(reference_only_offset.values()) ==
          reference_only_gates['LEGACY_CUTOFF_REFERENCE'],
          'REFERENCE_DETAILS_COUNT_MISMATCH')
+    need(all(sum(c.values()) == reference_only_gates['LEGACY_CUTOFF_REFERENCE']
+             for c in (legacy_receipt_counts, legacy_timing_counts, legacy_market_counts)),
+         'LEGACY_PROOF_PARTITION_MISMATCH')
     complete = (len(rows) == expected_races and saved_p0 == expected_p0 and
                 counts['final'] + counts['void'] == len(rows) and
                 p0_open == 0)
@@ -175,6 +273,9 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
                 reference_only_gate_counts=dict(sorted(reference_only_gates.items())),
                 legacy_reference_basis_counts=dict(sorted(reference_only_basis.items())),
                 legacy_reference_offset_counts=dict(sorted(reference_only_offset.items())),
+                legacy_reference_receipt_counts=dict(sorted(legacy_receipt_counts.items())),
+                legacy_reference_timing_counts=dict(sorted(legacy_timing_counts.items())),
+                legacy_reference_market_counts=dict(sorted(legacy_market_counts.items())),
                 model_scored_forecasts=scored, model_pending_forecasts=pending,
                 model_held_forecasts=held, model_void_forecasts=void,
                 unresolved_p0_forecasts=p0_open,
