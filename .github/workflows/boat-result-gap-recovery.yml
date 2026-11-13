@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: b123b2438b7d1d7d3e912b673fa30cd24c6c8578
+          ref: fd6a14c0c01c01b2f1118bfbf886c09a86b0e292
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -365,7 +365,7 @@ jobs:
           assert 'AUTHENTICATED_GIT_CREDENTIAL_AVAILABLE_NO_PROVIDER_GET' in fresh
           assert 'HOLD_GIT_CREDENTIAL_UNAVAILABLE' in fresh
           assert "['git','-C','source-reader','credential','fill']" in fresh
-          assert 'b123b2438b7d1d7d3e912b673fa30cd24c6c8578' in fresh
+          assert 'fd6a14c0c01c01b2f1118bfbf886c09a86b0e292' in fresh
           assert 'needs: observed_gap' in fresh
           assert "github.event.workflow_run.event == 'schedule'" in fresh
           assert "github.event.workflow_run.name == 'KEIRIN hourly personal research canary'" in fresh
@@ -643,7 +643,7 @@ jobs:
       - name: Install unmodified bounded result collector separately
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: b123b2438b7d1d7d3e912b673fa30cd24c6c8578
+          ref: fd6a14c0c01c01b2f1118bfbf886c09a86b0e292
           path: source-reader
           persist-credentials: false
       - name: Install immutable original official parser
@@ -885,7 +885,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: b123b2438b7d1d7d3e912b673fa30cd24c6c8578
+          ref: fd6a14c0c01c01b2f1118bfbf886c09a86b0e292
           persist-credentials: false
       - name: Install immutable official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
