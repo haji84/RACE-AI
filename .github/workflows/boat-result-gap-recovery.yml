@@ -8,6 +8,8 @@ on:
       - tests/test_boat_result_gap_audit.py
       - scripts/boat_result_gap_fresh_gate.py
       - tests/test_boat_result_gap_fresh_gate.py
+      - scripts/boat_result_fresh_postflight.py
+      - tests/test_boat_result_fresh_postflight.py
       - docs/evidence/boat-gap-replay-trigger.txt
   push:
     branches: [main]
@@ -346,7 +348,7 @@ jobs:
           ref: '${{ github.event.pull_request.head.sha }}'
           persist-credentials: false
       - name: Test actual schedule-gap and bounded fresh-result admission
-        run: python -m unittest tests.test_boat_result_gap_audit tests.test_boat_result_gap_fresh_gate -v
+        run: python -m unittest tests.test_boat_result_gap_audit tests.test_boat_result_gap_fresh_gate tests.test_boat_result_fresh_postflight -v
       - name: Assert only the new guarded source step can use provider GET
         run: |
           python - <<'PY'
@@ -820,7 +822,7 @@ jobs:
           assert 0<report['source_requests']<=int(os.environ['EXPECTED_SOURCE_GET_CAP'])<=36
           assert report['retained']['status']=='INTRADAY_ENCRYPTED_DELTA_RETAINED'
           assert report['retained']['new_capture_count']>0
-          assert report['result_sync']['changed_races']>0
+          assert type(report['result_sync']['changed_races']) is int and report['result_sync']['changed_races']>=0
           assert report['result_sync']['state']=='READY'
           assert report['forecast_inputs_changed'] is False
           assert report['private_sources_published'] is False
@@ -844,15 +846,26 @@ jobs:
           assert after_final>=baseline['before_final']
           inventory=F.inventory_sha(dict(schema='RACE_AI_PRIVATE_CYCLE_VIEW_V1',records=rows))
           assert inventory==baseline['inventory_digest']
-          if after_final==baseline['before_final']:
-              # Source was checked and encrypted, but no formally verified
-              # new final exists. Keep HOLD, no model PDCA or redispatch.
+          # Source-free policy: successful bounded GET and retained observations
+          # can still yield ZERO newly changed official final races. Never
+          # report failure or forge a new result/worker dispatch in that case.
+          from scripts.boat_result_fresh_postflight import decision
+          adjudication=decision(before_final=baseline['before_final'],
+              after_final=after_final,
+              changed_races=report['result_sync']['changed_races'],
+              provider_gets=report['source_requests'],
+              get_cap=int(os.environ['EXPECTED_SOURCE_GET_CAP']))
+          if adjudication=='BOAT_NO_NEW_FORMAL_FINAL_HOLD':
+              # Authenticated inventory and dates were checked above.
+              # A completed HOLD never sets new_results=true; downstream
+              # AES/model/site stages remain skipped. Re-entry remains only
+              # through original source-owner scheduling and due clocks.
               print(json.dumps(dict(status='BOAT_NO_NEW_FORMAL_FINAL_HOLD',
                   provider_gets=report['source_requests'],
                   source_cipher_retained=True,forecast_inputs_changed=False),
                   sort_keys=True))
               raise SystemExit(0)
-          assert after_final>baseline['before_final']
+          assert adjudication=='FRESH_OFFICIAL_FINAL_INCREASE_VERIFIED' and after_final>baseline['before_final']
           finals=sorted((r['race_id'],r['result']) for r in rows
               if (r.get('result') or {}).get('status')=='final')
           digest=hashlib.sha256(json.dumps(finals,sort_keys=True,
