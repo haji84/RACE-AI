@@ -13,13 +13,13 @@ from pathlib import Path
 import re
 from .source_retry_policy import SourceWait, plan_http_wait, wait_active
 
-MAX_ROUNDS = 24
-POLL_SECONDS = 180
-# Fixed operational bounds. Do not migrate or reopen stopped prior sessions.
-# Tests may inject None only to verify legacy unbounded snapshot handling.
-SOURCE_LIMIT = 240
-MAX_SECONDS = 65 * 60
-ROUND_SOURCE_LIMIT = 45
+MAX_ROUNDS = None  # Unbounded logical rounds across authenticated worker handoffs.
+POLL_SECONDS = 180  # Source polling cadence, never a GET budget.
+# No arbitrary day, per-round or elapsed session cap. Real worker handoffs,
+# provider waits, source identity, the JST day and original SHA checks remain.
+SOURCE_LIMIT = None
+MAX_SECONDS = None
+ROUND_SOURCE_LIMIT = None
 CACHE_SECONDS = 180
 JST = timezone(timedelta(hours=9))
 _NORMAL_ENDS=frozenset(('BOUNDED_SESSION_END','MAX_ROUNDS_REACHED','DAY_CHANGED','DAY_HANDOFF',
@@ -146,9 +146,9 @@ def start(path, *, day, run_id, now, source_control=None):
         return old
     control = {} if source_control is None else source_control
     _need(type(control) is dict,'source control mapping')
-    # The 240-request ceiling is not replenished by launching another worker.
-    # A new JST day starts at the previous authenticated lifetime count.
-    # Within the same day, an absent start baseline must fail closed.
+    # No fixed ceiling: preserve the authenticated lifetime count across workers.
+    # A new JST day records a fresh baseline without resetting lifetime counts.
+    # Missing same-day baseline remains a hard error.
     inherited_total=control.get('lifetime_requests',0)
     inherited_day=control.get('day_jst')
     day_base=(control.get('day_start_lifetime_requests') if inherited_day==day
@@ -187,7 +187,7 @@ def prepare(path, round_no, *, now, next_action_at=None):
         return dict(active=False,wait_seconds=0,reason='DAY_HANDOFF')
     if reason:
         return dict(active=False, wait_seconds=0, reason=reason)
-    # Mandatory operational limits; previously stopped sessions must not restart.
+    # Preserve real hard stops and historical provenance; no artificial caps.
     if state.get('stop_at') is not None and now >= instant(state['stop_at']):
         state['halted_reason']='BOUNDED_SESSION_END'
         write_state(path,state)
@@ -239,6 +239,34 @@ def complete(path, round_no, *, now, forecast_artifact, result_artifact):
                                   result_artifact=result_artifact,verified_at=now.isoformat()))
     state['completed_round']=round_no;state['prepared_round']=None
     return write_state(path,state)
+
+def finish_worker(path, *, now):
+    """Commit a clean worker handoff without resetting verified source counters.
+
+    The workflow calls this only after its finite batch of physical steps
+    succeeds, just before the always-run encrypted continuity checkpoint.
+    An interrupted round or upstream wait is never converted into success.
+    """
+    state = load(path)
+    _need(now.utcoffset() is not None and
+          now.astimezone(JST).date().isoformat() == state['day_jst'],
+          'WORKER_HANDOFF_DAY_MISMATCH')
+    _need(state['prepared_round'] is None, 'WORKER_HANDOFF_UNCOMMITTED_ROUND')
+    wait = state.get('source_wait')
+    if wait is not None:
+        # Preserve the actual 403/429/temporary-source wait for the next
+        # supervisor; do not make it look like an authorized fresh request.
+        return dict(reason='SOURCE_WAIT', completed_round=state['completed_round'],
+                    lifetime_requests=state['lifetime_requests'])
+    if state['halted_reason'] is None:
+        state['halted_reason'] = 'WORKER_HANDOFF'
+        state = write_state(path, state)
+    _need(state['halted_reason'] in ('WORKER_HANDOFF','DAY_HANDOFF'),
+          'WORKER_HANDOFF_PREVIOUS_STOP_UNVERIFIED')
+    return dict(reason=state['halted_reason'],
+                completed_round=state['completed_round'],
+                lifetime_requests=state['lifetime_requests'])
+
 
 class SourceGuard:
     """Count requests without bypassing durable upstream waits or hard latches."""
