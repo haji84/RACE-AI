@@ -260,7 +260,7 @@ class ReviewedWorkerPolicyTests(unittest.TestCase):
         root = Path(supervisor.__file__).resolve().parents[1]
         # The historical PR71 supervisor protects its old bounded policy,
         # independently from the current approved production P1 worker.
-        worker = b"MAX_ROUNDS = 24\\nMAX_SECONDS = 65 * 60\\nSOURCE_LIMIT = 240\\nROUND_SOURCE_LIMIT = 45\\nPOLL_SECONDS = 180\\n"
+        worker = b"MAX_ROUNDS = 24\nMAX_SECONDS = 65 * 60\nSOURCE_LIMIT = 240\nROUND_SOURCE_LIMIT = 45\nPOLL_SECONDS = 180\n"
         workflow = (root/WORKFLOW_FILE).read_bytes()
         client = GitHubCLI()
         def api(path, **_):
