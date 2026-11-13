@@ -1,5 +1,5 @@
 # Retain authenticated empty legacy attempts separately from forecasts.
-# Source-free PR regression: sealed handoff and same-JST-day 240 GET cap.
+# Source-free PR regression: SHA-bound checkpoint, owner clocks and source refusal invariants.
 name: BOAT nationwide cutoff-ordered A/B research (no Vercel)
 on:
   # Live model runner is called from the trusted main launcher, not arbitrary
@@ -19,6 +19,10 @@ on:
       - .github/workflows/boat-nationwide-ab-one-shot.yml
       - scripts/boat_private_original_vault.py
       - tests/test_boat_private_original_vault_cli.py
+      - tests/test_boat_unbounded_forecast_policy.py
+      - race_ai/repeated_cycle.py
+      - race_ai/cycle_recovery.py
+      - scripts/github_existing_cycle.py
       - tests/test_boat_main_entry_contract.py
       - scripts/first_p0_bootstrap.py
       - scripts/boat_first_p0_readback.py
@@ -85,7 +89,7 @@ jobs:
                  'tests.test_boat_first_p0_readback','tests.test_boat_first_p0_reconcile',
                  'tests.test_boat_saved_result_recovery','tests.test_boat_source_control_mirror',
                  'tests.test_supervisor_durable_readback','tests.test_boat_saved_site_context',
-                 'tests.test_repeated_cycle','tests.test_github_existing_cycle_startup_wait',
+                 'tests.test_repeated_cycle','tests.test_boat_unbounded_forecast_policy','tests.test_github_existing_cycle_startup_wait',
                  'tests.test_boat_source_control','tests.test_continuity_checkpoint',
                  'tests.test_boat_seller_official_source','tests.test_boat_program_source']
           result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
