@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           path: audit-code
-          ref: '${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}'
+          ref: "${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"
           persist-credentials: false
       - name: Run daily source-free model status and automation gate tests
         working-directory: audit-code
