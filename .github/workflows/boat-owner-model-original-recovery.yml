@@ -1,0 +1,272 @@
+name: BOAT owner original model recovery and sealed forecast coverage (zero racing GET)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-owner-model-original-recovery.yml
+      - tests/test_boat_owner_model_recovery_guard.py
+      - docs/evidence/boat-owner-model-recovery-20261113.txt
+  push:
+    branches: [main]
+    paths:
+      - docs/evidence/boat-owner-model-recovery-20261113.txt
+  workflow_run:
+    workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
+    types: [completed]
+    branches: [production/boat-p0-p1-20261111]
+permissions:
+  contents: read
+concurrency:
+  # Share the existing single saved-state writer lane; never parallel-publish.
+  group: boat-racer-daily-statistics
+  cancel-in-progress: false
+jobs:
+  sourcefree_unit:
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: "${{ github.event.pull_request.head.sha }}"
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0da3f00b0f5c5115f956658d306ddcb9833ec7af
+          path: owner-source
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: owner-source/pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: owner-source/pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r owner-source/requirements-history.txt
+      - name: Verify bounded owner-only event, immutable source, no duplicate GET or forecast
+        run: |
+          python -m unittest tests.test_boat_owner_model_recovery_guard -v
+          python - <<'PY'
+          from pathlib import Path
+          source=Path('.github/workflows/boat-owner-model-original-recovery.yml').read_text()
+          assert 'RACE_AI_OWNER_RECOVER_RUN:' in source
+          assert "--hydrate-originals --recover-model-run" in source
+          assert "new_source_requests=0" in source
+          assert 'GH_TOKEN:' in source and 'RACE_AI_STATE_KEY:' in source
+          assert '0da3f00b0f5c5115f956658d306ddcb9833ec7af' in source
+          assert "github.event.workflow_run.event == 'workflow_dispatch'" in source
+          assert '43348227701' in source
+          assert 'P0' in source and 'P1' in source
+          assert 'no_actual_forecast_rewrites=True' in source
+          guarded=source.split('\n  recover_original:\n',1)[1]
+          assert 'gh workflow run' not in guarded
+          assert 'www.boatrace.jp' not in guarded
+          print('BOAT_OWNER_ORIGINAL_RECOVERY_NO_PROVIDER_GET_GUARD_VERIFIED')
+          PY
+      - name: Verify existing authenticated original model archive recovery without live source GET
+        working-directory: owner-source
+        run: |
+          python - <<'PY'
+          import race_ai,unittest
+          from pathlib import Path
+          for ref in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(ref,'race_ai').resolve()))
+          names=['tests.test_boat_all_model_recovery',
+                 'tests.test_saved_model_name_alias_intake']
+          suite=unittest.defaultTestLoader.loadTestsFromNames(names)
+          outcome=unittest.TextTestRunner(verbosity=2).run(suite)
+          if not outcome.wasSuccessful():raise SystemExit(1)
+          print('BOAT_ORIGINAL_ARCHIVE_RECOVERY_EXISTING_SOURCE_REGRESSIONS_OK')
+          PY
+  recover_original:
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      ((github.event_name == 'push' &&
+        github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message,
+                   'boat-original-recovery: sourcefree-43348227701')) ||
+       (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.event == 'workflow_dispatch' &&
+        github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
+        github.event.workflow_run.head_sha == '0da3f00b0f5c5115f956658d306ddcb9833ec7af' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        (github.event.workflow_run.conclusion == 'success' ||
+         github.event.workflow_run.conclusion == 'failure')))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    outputs:
+      candidate_cipher: '${{ steps.recovery.outputs.cipher }}'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0da3f00b0f5c5115f956658d306ddcb9833ec7af
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Reconcile only existing encrypted physical P0/P1 originals for attested owner run
+        id: recovery
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+          RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+          RACE_AI_OWNER_RECOVER_RUN: "${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43348227701' }}"
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'haji84/RACE-AI'
+          [[ "$RACE_AI_OWNER_RECOVER_RUN" =~ ^[1-9][0-9]{7,18}$ ]]
+          # This CLI uses GitHub artifacts and encrypted saved state only.
+          # No official source endpoint, no current forecast inference.
+          python -m scripts.boat_saved_view_feed \
+            --hydrate-originals --recover-model-run "$RACE_AI_OWNER_RECOVER_RUN" \
+            > "$RUNNER_TEMP/boat-private-original-recovery.jsonl"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          reports=[]
+          for line in (Path(os.environ['RUNNER_TEMP'])/'boat-private-original-recovery.jsonl').read_text().splitlines():
+              try: reports.append(json.loads(line))
+              except (TypeError,ValueError):raise SystemExit('BOAT_RECOVERY_UNEXPECTED_OUTPUT')
+          assert reports and all(type(entry) is dict for entry in reports), \
+              'BOAT_RECOVERY_UNVERIFIED_STATUS'
+          assert any(r.get('intake_status')=='SAVED_MODEL_ARCHIVES_REPLAYED'
+              for r in reports), 'BOAT_MODEL_ORIGINALS_NOT_SCANNED'
+          assert all(r.get('status')!='ENCRYPTED_VIEW_REJECTED' for r in reports), \
+              'BOAT_RECOVERY_INTEGRITY_HOLD'
+          published=next((r for r in reversed(reports)
+              if r.get('status')=='ENCRYPTED_VIEW_PUBLISHED'),None)
+          assert published or any(r.get('status') in (
+              'SAVED_DAY_UNCHANGED','SAVED_RESULTS_ALREADY_COMPLETE')
+              for r in reports), 'BOAT_RECOVERY_NOT_SAVED_OR_NOOP'
+          if published:
+              cipher=published.get('cipher_sha256')
+              assert isinstance(cipher,str) and len(cipher)==64
+              with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+                  out.write('cipher='+cipher+'\n')
+          counts=next((r for r in reports
+              if r.get('intake_status')=='SAVED_MODEL_ARCHIVES_REPLAYED'),{})
+          safe=('runs_requested','runs_scanned','matched_model_artifacts','archives_verified',
+                'projected_forecasts','deferred_artifacts','deferred_runs')
+          print(json.dumps(dict(status='BOAT_SOURCEFREE_ORIGINAL_RECOVERY_RECONCILED',
+                **{k:counts.get(k,0) for k in safe},new_source_requests=0,
+                no_actual_forecast_rewrites=True,published_cipher=bool(published)),
+                sort_keys=True))
+          PY
+      - name: Report only fixed fail-closed diagnostic, no private model names or receipts
+        if: failure()
+        run: |
+          python - <<'PY'
+          import json,os,re
+          from pathlib import Path
+          raw=(Path(os.environ['RUNNER_TEMP'])/'boat-private-original-recovery.jsonl')
+          reason='NO_AUTHENTICATED_RECOVERY_REPORT'
+          if raw.is_file():
+              for line in raw.read_text().splitlines():
+                  try:entry=json.loads(line)
+                  except ValueError:continue
+                  if entry.get('status')=='ENCRYPTED_VIEW_REJECTED':
+                      value=entry.get('reason','')
+                      if type(value) is str and re.fullmatch('[A-Z0-9_]{3,90}',value):
+                          reason=value
+          print(json.dumps(dict(status='BOAT_ORIGINAL_RECOVERY_HOLD',
+              reason=reason,source_provider_gets=0),sort_keys=True))
+          PY
+
+  independent_saved_readback:
+    name: Verify newest BOAT original P0/P1 inventory from encrypted Git on separate runner
+    needs: recover_original
+    if: needs.recover_original.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0da3f00b0f5c5115f956658d306ddcb9833ec7af
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Independent count-only sealed view readback, per-stage model coverage
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+          EXPECTED_CIPHER: '${{ needs.recover_original.outputs.candidate_cipher }}'
+        run: |
+          python - <<'PY'
+          import json,re,race_ai
+          from collections import Counter
+          from datetime import datetime,timezone
+          from pathlib import Path
+          for p in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(p,'race_ai').resolve()))
+          from scripts.boat_private_original_vault import _environment
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai import saved_view_feed as F,retained_model_pdca_audit as P
+          root=_environment(Path('.').resolve())
+          bridge=SavedResultBridge(root,now=datetime.now(timezone.utc))
+          target='2026-11-13'
+          try:
+              parent,cipher,generation,view=F.current_view(bridge.git,bridge.bootstrap,day=target)
+          except ValueError:
+              print(json.dumps(dict(status='HOLD_NO_NEW_EVENT_DAY_SAVED',
+                  day=target,source_provider_gets=0,private_sources_published=False)))
+              raise SystemExit(0)
+          expected='${{ needs.recover_original.outputs.candidate_cipher }}'
+          if expected:
+              assert re.fullmatch('[a-f0-9]{64}',expected) and cipher==expected, \
+                  'INDEPENDENT_CIPHER_READBACK_MISMATCH'
+          rows=[r for r in view['records'] if r.get('sport')=='boat'
+                and r.get('event_date_jst')==target]
+          assert len(rows)==len({r['race_id'] for r in rows}) and len(rows)<=288
+          per_stage=Counter();stage_races=dict(P0=set(),P1=set())
+          for row in rows:
+              for p in [row.get('prediction'),*(row.get('comparison_predictions') or [])]:
+                  if not p:continue
+                  if p.get('stage') in stage_races:
+                      per_stage[p['stage']]+=1
+                      stage_races[p['stage']].add(row['race_id'])
+          status='P0_P1_MODEL_COVERAGE_HOLD'
+          # 136 is the physically archived original first-P0 scope of this
+          # specific run, NOT proof of nationwide total on any future date.
+          if len(rows)>=136 and len(stage_races['P0'])>=136 and \
+              len(stage_races['P1'])>=136:
+              status='FIRST_P0_SCOPE_BOTH_STAGES_PRESENT_SCHEDULE_SCOPE_UNVERIFIED'
+          try:
+              score=P.score_view(view,authenticated=True)
+              pending=score.get('unresolved')
+          except (ValueError,TypeError,KeyError):
+              pending=None
+          print(json.dumps(dict(schema='RACE_AI_BOAT_OWNER_RECOVERY_READBACK_COUNTS_V1',
+              status=status,day=target,saved_races=len(rows),
+              physical_first_p0_scope=136,
+              saved_stage_forecasts=dict(sorted(per_stage.items())),
+              stage_covered_races={k:len(v) for k,v in stage_races.items()},
+              authenticated_score_unresolved=pending,
+              original_view_cipher_readback=True,
+              source_provider_gets=0,plaintext_published=False),sort_keys=True))
+          PY
