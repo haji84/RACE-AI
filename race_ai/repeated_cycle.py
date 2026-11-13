@@ -62,6 +62,11 @@ def write_state(path, value, key='session_sha256'):
             _need(data['completed_round']>=previous['completed_round'],'session round count decreased')
             for field in ('lifetime_requests_base','lifetime_completed_rounds_base'):
                 _need(data.get(field,0)>=previous.get(field,0),'session lifetime count decreased')
+            # Once a day is authenticated, removing the numeric quota must
+            # never allow changing the source-count baseline or laundering GETs.
+            _need(data.get('day_start_lifetime_requests') ==
+                  previous.get('day_start_lifetime_requests'),
+                  'DAY_SOURCE_BUDGET_BASELINE_CHANGED')
             migration=data.get('policy_migration',{})
             allowed=(all(limit is None for limit in (MAX_ROUNDS,MAX_SECONDS,SOURCE_LIMIT,ROUND_SOURCE_LIMIT)) and
                      previous['halted_reason'] in _NORMAL_ENDS and
