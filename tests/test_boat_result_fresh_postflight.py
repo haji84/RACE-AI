@@ -27,11 +27,16 @@ class ResultPostflightTests(unittest.TestCase):
             decision(before_final=131, after_final=130, changed_races=5,
                      provider_gets=12, get_cap=12)
 
-    def test_bounded_provider_budget_remains_enforced(self):
-        for gets, cap in [(0,12),(37,37),(14,12),(1,0),(1,37),(-1,12)]:
+    def test_verified_due_scope_limits_gets_without_fixed_36(self):
+        for gets, cap in [(0,12),(14,12),(1,0),(-1,12)]:
             with self.subTest(gets=gets,cap=cap),self.assertRaisesRegex(ValueError,"UNVERIFIED_COUNTS"):
                 decision(before_final=130, after_final=130, changed_races=0,
                          provider_gets=gets, get_cap=cap)
+
+    def test_eighty_five_authentic_due_gets_can_pass_postflight(self):
+        value=decision(before_final=130,after_final=131,changed_races=1,
+                       provider_gets=85,get_cap=85)
+        self.assertEqual(value,'FRESH_OFFICIAL_FINAL_INCREASE_VERIFIED')
 
     def test_boolean_counts_are_not_integers(self):
         with self.assertRaisesRegex(ValueError, "UNVERIFIED_COUNTS"):
