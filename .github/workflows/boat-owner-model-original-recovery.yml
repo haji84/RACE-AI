@@ -268,11 +268,15 @@ jobs:
                   from scripts.boat_saved_view_feed import intake_saved_models
                   original=F.current_view(bridge.git,bridge.bootstrap,
                       day=known[0])[3]
-                  before=F.originals_sha(original),F.inventory_sha(original)
+                  before=F.originals_sha(original)
+                  original_inventory=F.forecast_inventory(original)
                   proposed=intake_saved_models(original,hydrate=False,
                       recover_runs=[43348227701])
-                  after=F.originals_sha(proposed),F.inventory_sha(proposed)
-                  assert before[0]==after[0],'P0_ANCHOR_CHANGED_BY_PREVIEW'
+                  after=F.originals_sha(proposed)
+                  proposed_inventory=F.forecast_inventory(proposed)
+                  assert before==after,'P0_ANCHOR_CHANGED_BY_PREVIEW'
+                  assert all(proposed_inventory.get(k)==v
+                      for k,v in original_inventory.items()),'P0_EXISTING_CHANGED_BY_PREVIEW'
                   candidates=[row for row in proposed['records']
                       if row.get('sport')=='boat' and row.get('event_date_jst')==target]
                   stages=Counter();covered={'P0':set(),'P1':set()}
@@ -286,8 +290,9 @@ jobs:
                       target_day=target,proposed_races=len(candidates),
                       proposed_forecasts=dict(stages),
                       proposed_covered_races={k:len(v) for k,v in covered.items()},
-                      preserved_old_inventory=len(before[1])==len(after[1]) or
-                          len(after[1])>len(before[1]),
+                      preserved_old_inventory=True,
+                      prior_forecasts=len(original_inventory),
+                      proposed_forecasts_all_days=len(proposed_inventory),
                       source_gets=0,published=False),sort_keys=True))
                   print(json.dumps(dict(status='HOLD_NO_NEW_EVENT_DAY_INDEXED',
                       day=target,source_provider_gets=0,private_sources_published=False)))
