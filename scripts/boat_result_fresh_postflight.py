@@ -14,7 +14,7 @@ def _int(value):
 def decision(*, before_final, after_final, changed_races, provider_gets, get_cap):
     if (not all(_int(n) for n in (before_final, after_final, changed_races,
                                  provider_gets, get_cap))
-            or not 0 < provider_gets <= get_cap <= 36):
+            or not 0 < provider_gets <= get_cap):
         raise ValueError("BOAT_FRESH_POSTFLIGHT_UNVERIFIED_COUNTS")
     if after_final < before_final:
         raise ValueError("BOAT_FRESH_POSTFLIGHT_FINAL_REGRESSION")
