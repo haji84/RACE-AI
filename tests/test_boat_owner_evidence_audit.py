@@ -50,14 +50,37 @@ class LedgerTests(unittest.TestCase):
         value=audit.summarize(self.schedule,self.p0,self.p1,[attempt],day=DAY,now=NOW,official_program_verified=True)
         self.assertEqual(value['p1_missing_after_confirmed_ready'],1)
         self.assertEqual(value['p1_eligibility_unknown'],2)
-    def test_foreign_race_duplicate_schedule_and_cutoff_mismatch_rejected(self):
+    def test_foreign_race_and_duplicate_schedule_rejected(self):
         cases=[]
         s,p0,p1=fixtures();s.append(deepcopy(s[0]));cases.append((s,p0,p1))
         s,p0,p1=fixtures();p1[0]['race_id']='20300401-02-01';cases.append((s,p0,p1))
-        s,p0,p1=fixtures();p1[0]['cutoff_at']=f'{DAY}T12:59:00+09:00';cases.append((s,p0,p1))
         for s,p0,p1 in cases:
             with self.subTest(s=s),self.assertRaises(ValueError):
                 audit.summarize(s,p0,p1,[],day=DAY,now=NOW,official_program_verified=True)
+    def test_different_authenticated_source_cutoff_is_reported_not_rewritten(self):
+        before=deepcopy(self.schedule)
+        self.p1[0]['cutoff_at']=f'{DAY}T12:59:00+09:00'
+        result=self.call()
+        self.assertEqual(result['baseline_p1_races'],1)
+        self.assertEqual(result['p1_schedule_cutoff_conflict_races'],1)
+        self.assertFalse(result['all_scheduled_baseline_p1_present'])
+        self.assertEqual(self.schedule,before)
+        self.assertEqual(self.p1[0]['cutoff_at'],f'{DAY}T12:59:00+09:00')
+
+    def test_real_pilot_attempt_field_is_used_and_legacy_guess_is_rejected(self):
+        report={'schema':'RACE_AI_NATIONWIDE_PRE_CUTOFF_AB_V1','candidate_attempts':[
+            {'race_id':self.schedule[1]['race_id'],'state':'EXHIBITION_NOT_FULLY_PUBLISHED'}]}
+        self.assertEqual(audit.retained_attempts(report),report['candidate_attempts'])
+        with self.assertRaises(ValueError):audit.retained_attempts({'tries':[]})
+
+    def test_unsaved_ready_after_program_cutoff_remains_unresolved(self):
+        attempt=dict(race_id=self.schedule[1]['race_id'],state='AB_GENERATED_NOT_YET_EXTERNAL_FROZEN',
+                     exhibition_sha256='b'*64,generated_at=f'{DAY}T13:00:00+09:00')
+        value=audit.summarize(self.schedule,self.p0,self.p1,[attempt],day=DAY,now=NOW,official_program_verified=True)
+        self.assertEqual(value['p1_missing_after_confirmed_ready'],0)
+        self.assertEqual(value['p1_eligibility_unknown'],3)
+        self.assertEqual(value['missing_p1_last_observation']['GENERATED_AFTER_PROGRAM_CUTOFF_UNRESOLVED'],1)
+
     def test_late_saved_or_future_rows_rejected(self):
         for change in (dict(server_saved_at=f'{DAY}T13:00:00+09:00'),dict(as_of='2030-04-03T00:00:00Z')):
             p1=deepcopy(self.p1);p1[0].update(change)
