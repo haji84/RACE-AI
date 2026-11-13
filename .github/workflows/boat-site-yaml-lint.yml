@@ -1,0 +1,32 @@
+name: BOAT automatic workflow YAML and model contract lint
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-owner-formal-pages-proof.yml
+      - .github/workflows/boat-site-yaml-lint.yml
+      - scripts/boat_auto_site_coverage.py
+      - tests/test_boat_auto_site_coverage.py
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.event.pull_request.head.sha }}'
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check PyYAML==6.0.3
+      - name: Parse exact automatic workflow YAML
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          text=Path('.github/workflows/boat-owner-formal-pages-proof.yml').read_text()
+          doc=yaml.safe_load(text)
+          assert isinstance(doc,dict) and 'jobs' in doc and 'static_site' in doc['jobs']
+          print('BOAT_AUTO_WORKFLOW_YAML_PARSE_OK')
+          PY
+      - run: python -m unittest tests.test_boat_auto_site_coverage -v

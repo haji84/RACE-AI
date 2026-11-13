@@ -4,18 +4,36 @@ on:
     branches: [main]
     paths:
       - .github/workflows/boat-owner-formal-pages-proof.yml
+      - scripts/boat_auto_site_coverage.py
+      - tests/test_boat_auto_site_coverage.py
   push:
     branches: [main]
     paths:
       - .github/workflows/boat-owner-formal-pages-proof.yml
+  workflow_run:
+    workflows: ['BOAT schedule-gap retained-result recovery (zero provider GET)']
+    types: [completed]
+    branches: [main]
+  schedule:
+    # Source-free only: daily fallback if a workflow_run event is delayed.
+    - cron: '37 15 * * *'
+  workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: boat-owner-formal-pages-proof
   cancel-in-progress: false
 jobs:
   static_site:
     name: Verify exact candidate Pages assets, cache and manifest (zero GET)
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      (github.event_name != 'workflow_run' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.event != 'pull_request'))
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -23,6 +41,27 @@ jobs:
         with:
           ref: fe9c691d453a16087a2a973f857fcdef2a567c5c
           persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          path: audit-code
+          ref: "${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"
+          persist-credentials: false
+      - name: Run daily source-free model status and automation gate tests
+        working-directory: audit-code
+        run: |
+          python -m unittest tests.test_boat_auto_site_coverage -v
+          python - <<'PY'
+          from pathlib import Path
+          code=Path('.github/workflows/boat-owner-formal-pages-proof.yml').read_text()
+          assert "workflows: ['BOAT schedule-gap retained-result recovery (zero provider GET)']" in code
+          assert "github.event.workflow_run.conclusion == 'success'" in code
+          assert "github.event.workflow_run.head_branch == 'main'" in code
+          assert "Auto.summarize(selected,native,status,day=active_day)" in code
+          assert "if audit['status']=='COMPLETE'" in code
+          assert "LATEST_DAY_MODEL_PARITY_MISMATCH" in code
+          assert "github.event_name != 'pull_request'" in code
+          print('BOAT_AUTO_SOURCEFREE_TRIGGER_AND_NO_FALSE_SITE_PARITY_VERIFIED')
+          PY
       - name: Verify JavaScript syntax
         run: |
           node --check owner-formal.js
@@ -108,7 +147,7 @@ jobs:
 
   authenticated_site:
     name: Compare new site module with real AES saved 284 P0 and original scorer (zero GET)
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request' && needs.static_site.result == 'success'
     needs: static_site
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -197,4 +236,101 @@ jobs:
                 for k,v in public['counts'].items()},
               'official_source_gets':0,'original_predictions_changed':False},
               sort_keys=True))
+
+          # Event-driven daily checks use only actual signed encrypted Git
+          # views. Other days are NOT assumed to have 142 races or 2 models.
+          from scripts import boat_auto_site_coverage as Auto
+          for active_day in bridge.days:
+              selected=(derived if active_day=='2026-11-12' else
+                        F.current_view(bridge.git,bridge.bootstrap,day=active_day)[3])
+              native=(score if active_day=='2026-11-12' else
+                      P.score_view(selected,authenticated=True))
+              status={r['race_id']:D.reconciled_status(r) for r in selected['records']
+                  if r.get('sport')=='boat' and r.get('event_date_jst')==active_day}
+              if not status:
+                  continue
+              audit=Auto.summarize(selected,native,status,day=active_day)
+              if audit['status']=='COMPLETE':
+                  site_js=r"""
+          const fs=require('fs');
+          const Product=require('./site/product-data.js');
+          const Perf=require('./site/saved-performance.js');
+          const source=JSON.parse(fs.readFileSync(0,'utf8'));
+          const view=Product.parse(source),counts={};
+          for(const r of view.records){
+            if(r.sport!=='boat')continue;
+            const picks=[r.prediction,...(r.comparison_predictions||[])].filter(Boolean);
+            for(const p of picks){
+              const id=p.model_id+'|'+p.stage,cell=counts[id]||(counts[id]={forecasts:0,hits:0,misses:0,void:0});
+              cell.forecasts++;
+              const comparison=Perf.compare(r,p).status;
+              if(!['HIT','MISS','VOID'].includes(comparison))
+                throw new Error('BROWSER_NATIVE_FORMAL_MISMATCH');
+              cell[comparison=='HIT'?'hits':comparison=='MISS'?'misses':'void']++;
+            }
+          }
+          console.log(JSON.stringify(counts));
+          """
+                  checked=subprocess.run(['node','-e',site_js],
+                      input=json.dumps(selected,ensure_ascii=False),
+                      text=True,capture_output=True,timeout=90)
+                  assert checked.returncode==0, 'LATEST_DAY_BROWSER_SCORER_HOLD'
+                  actual=json.loads(checked.stdout)
+                  expected={}
+                  for group in native['model_groups']:
+                      key=group['model_id']+'|'+group['stage']
+                      cell=expected.setdefault(key,dict(forecasts=0,hits=0,misses=0,void=0))
+                      for field in cell:
+                          cell[field]+=group[field if field!='void' else 'void']
+                  assert actual==expected,'LATEST_DAY_MODEL_PARITY_MISMATCH'
+                  audit['site_parity_verified']=True
+              else:
+                  audit['site_parity_verified']=False
+                  audit['site_parity_state']='HOLD_NOT_CLAIMED_COMPLETE'
+              print(json.dumps(audit,sort_keys=True,ensure_ascii=False))
+          PY
+
+  live_pages_http:
+    name: Confirm deployed Pages HTTP matches tested assets after AES parity (zero racing GET)
+    if: github.event_name != 'pull_request' && needs.authenticated_site.result == 'success'
+    needs: authenticated_site
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: e3230146001bc1cf6e610a03da38bfa69d4282b8
+          persist-credentials: false
+      - name: Reopen actual public Pages HTML, app, model and decrypt assets via HTTP
+        run: |
+          python - <<'PY'
+          import hashlib,json,urllib.request,urllib.parse
+          from pathlib import Path
+          base='https://haji84.github.io/RACE-AI/'
+          manifest=json.loads(Path('site-build.json').read_bytes())
+          assert manifest['schema']=='RACE_AI_SAVED_PAGES_BUILD_V1'
+          selected=('index.html','app.js','owner-formal.js',
+                    'saved-performance.js','saved-view-crypto.js')
+          html=Path('index.html').read_text()
+          for path in selected:
+              raw=Path(path).read_bytes()
+              digest=hashlib.sha256(raw).hexdigest()
+              assert manifest['files'][path]=={'bytes':len(raw),'sha256':digest}
+              if path.endswith('.js'):
+                  assert './'+path+'?v='+digest[:12] in html
+              request=urllib.request.Request(base+path+'?audit=owner-sourcefree',
+                  headers={'User-Agent':'RACE-AI-AES-pages-auto-proof/1',
+                           'Cache-Control':'no-cache'})
+              with urllib.request.urlopen(request,timeout=25) as response:
+                  assert response.status==200
+                  final=urllib.parse.urlsplit(response.url)
+                  assert final.hostname=='haji84.github.io' and final.path=='/RACE-AI/'+path
+                  body=response.read(len(raw)+1)
+              assert body==raw,'BOAT_DEPLOYED_PAGES_BYTES_CHANGED'
+          assert '<section id="boat-owner-formal-proof"' in html
+          print(json.dumps(dict(status='BOAT_AUTOMATIC_SITE_AES_AND_HTTP_PARITY_VERIFIED',
+              assets=5,official_provider_gets=0,source_state_mutations=0,
+              original_forecast_rewrites=0),sort_keys=True))
           PY
