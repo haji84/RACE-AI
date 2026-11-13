@@ -36,6 +36,7 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
          'STATUS_INVENTORY_INVALID')
     counts = Counter()
     unsupported_reasons = Counter()
+    reference_only_gates = Counter()
     model_counts = Counter()
     saved_p0 = all_saved = 0
     for r in rows:
@@ -56,6 +57,21 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
                       'REFERENCE_ONLY_NOT_FORMAL' if result.get('status') in
                       ('final', 'void') else 'UNSUPPORTED_UNCLASSIFIED')
             unsupported_reasons[reason] += 1
+            if reason == 'REFERENCE_ONLY_NOT_FORMAL':
+                # Count the actual reconciliation gate without exposing
+                # protected race IDs, saved references, source receipts or keys.
+                # Categories are exclusive; overlapping flags use this order.
+                reconciliation = result.get('cutoff_reconciliation')
+                if result.get('cutoff_reference') is not None:
+                    gate = 'LEGACY_CUTOFF_REFERENCE'
+                elif result.get('formal_eligible') is False:
+                    gate = 'EXPLICIT_FORMAL_ELIGIBLE_FALSE'
+                elif (type(reconciliation) is dict and
+                      reconciliation.get('formal_eligible') is False):
+                    gate = 'CUTOFF_RECONCILIATION_FORMAL_FALSE'
+                else:
+                    gate = 'REFERENCE_GATE_UNCLASSIFIED'
+                reference_only_gates[gate] += 1
         preds = ([r['prediction']] if r.get('prediction') is not None else []) + list(
             r.get('comparison_predictions') or [])
         need(len(preds) <= 128 and all(type(p) is dict for p in preds),
@@ -113,6 +129,9 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
          'P0_GROUP_INVENTORY_MISMATCH')
     need(sum(unsupported_reasons.values()) == counts['unsupported'],
          'UNSUPPORTED_REASON_COUNT_MISMATCH')
+    need(sum(reference_only_gates.values()) ==
+         unsupported_reasons['REFERENCE_ONLY_NOT_FORMAL'],
+         'REFERENCE_GATE_COUNT_MISMATCH')
     complete = (len(rows) == expected_races and saved_p0 == expected_p0 and
                 counts['final'] + counts['void'] == len(rows) and
                 p0_open == 0)
@@ -127,6 +146,7 @@ def summarize(view, statuses, score, *, day, expected_races, expected_p0):
                     (*STATES, 'unsupported')},
                 unconfirmed_result_races=len(rows)-counts['final']-counts['void'],
                 unsupported_reason_counts=dict(sorted(unsupported_reasons.items())),
+                reference_only_gate_counts=dict(sorted(reference_only_gates.items())),
                 model_scored_forecasts=scored, model_pending_forecasts=pending,
                 model_held_forecasts=held, model_void_forecasts=void,
                 unresolved_p0_forecasts=p0_open,

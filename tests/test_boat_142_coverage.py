@@ -91,6 +91,31 @@ class CoverageTests(unittest.TestCase):
         self.assertNotIn('private-sha',str(outcome))
         self.assertNotIn('20261112-01-01',str(outcome))
 
+    def test_reference_only_flags_are_counted_once_without_private_refs(self):
+        value=view(4)
+        records=value['records']
+        records[0]['result']=dict(status='final',
+                                  cutoff_reference=dict(private='hidden-a'))
+        records[1]['result']=dict(status='final',formal_eligible=False)
+        records[2]['result']=dict(
+            status='final',cutoff_reconciliation=dict(
+                formal_eligible=False,private='hidden-b'))
+        records[3]['result']=dict(status='unsupported')
+        states={r['race_id']:'unsupported' for r in records}
+        report=score(forecasts=4,eligible=0,pending=0,held=4)
+        out=summarize(value,states,report,day='2026-11-12',
+                      expected_races=4,expected_p0=8)
+        self.assertEqual(out['reference_only_gate_counts'],{
+            'LEGACY_CUTOFF_REFERENCE':1,
+            'EXPLICIT_FORMAL_ELIGIBLE_FALSE':1,
+            'CUTOFF_RECONCILIATION_FORMAL_FALSE':1})
+        self.assertEqual(out['unsupported_reason_counts'],{
+            'REFERENCE_ONLY_NOT_FORMAL':3,'UNSUPPORTED_UNCLASSIFIED':1})
+        self.assertEqual(sum(out['reference_only_gate_counts'].values()),3)
+        self.assertNotIn('hidden-a',str(out))
+        self.assertNotIn('hidden-b',str(out))
+        self.assertNotIn('20261112-01-',str(out))
+
     def test_missing_race_duplicate_race_and_wrong_score_fail_closed(self):
         value=view(2)
         states={r['race_id']:'final' for r in value['records']}
