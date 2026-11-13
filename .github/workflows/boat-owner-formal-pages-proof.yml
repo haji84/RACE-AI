@@ -62,6 +62,7 @@ jobs:
           const prev='2026-11-12T18:00:00+09:00',post='2026-11-12T18:01:00+09:00';
           for(let i=0;i<142;i++){
             const race='20261112-01-'+String(i+1).padStart(2,'0');
+            const official=i===141?'2026-11-12T18:03:00+09:00':post;
             const predictions=ids.map((model_id,index)=>({stage:'P0',model_id,
               persisted_at:'2026-11-12T17:45:00+09:00',ordered_top8:[[1,2,3]],
               fixture_hit:i<(index===0?26:25)}));
@@ -72,11 +73,11 @@ jobs:
               payout_yen_per_100:900,observed_at:'2026-11-12T18:05:00+09:00'}};
             if(i>=132){
               r.result.cutoff_reference={basis:'RAW_OFFICIAL_SP_SAME_ROSTER_SAVED_BEFORE_BOTH',
-                original_cutoff_at:prev,result_schedule_cutoff_at:post,
-                formal_eligible:false,offset_seconds:60};
+                original_cutoff_at:prev,result_schedule_cutoff_at:official,
+                formal_eligible:false,offset_seconds:i===141?180:60};
               r.result_observations=[{race_id:race,status:'AVAILABLE',
                 source_sha256:'a'.repeat(64),body_identity_verified:true,
-                captured_at:'2026-11-12T18:05:00+09:00',closed_at:post,
+                captured_at:'2026-11-12T18:05:00+09:00',closed_at:official,
                 schedule_binding:'SP_EXPLICIT_RACE_HEADER',
                 source_url:'https://www.boatrace.jp/owsp/sp/spdata?type=raceresult',
                 data:{status:'settled',confirmed:true,finish_confirmed:true,
@@ -146,7 +147,10 @@ jobs:
           from race_ai.racer_result_bridge import SavedResultBridge
           from race_ai import saved_view_feed as F
           from race_ai import result_due_ledger as D,retained_model_pdca_audit as P
-          from scripts import boat_142_owner_formal as Owner
+          owner_spec=importlib.util.spec_from_file_location(
+              'boat_142_owner_formal',Path('scripts/boat_142_owner_formal.py').resolve())
+          Owner=importlib.util.module_from_spec(owner_spec)
+          owner_spec.loader.exec_module(Owner)
           bridge=SavedResultBridge(_environment(source),now=datetime.now(timezone.utc))
           view=F.current_view(bridge.git,bridge.bootstrap,day='2026-11-12')[3]
           derived,score,proof=Owner.score_owner_approved(view,F=F,D=D,P=P)
