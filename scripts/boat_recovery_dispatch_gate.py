@@ -10,9 +10,56 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
+import sys
 from zoneinfo import ZoneInfo
 from scripts import boat_main_dispatch_gate as base
 from scripts.boat_failed_recovery_contract import verify_dispatch_proof
+
+
+def read_pinned_control(run, *, reader_root=None):
+    """Use the exact producer package in a fresh process, not main's namespace.
+
+    Only the opaque public checkpoint is read. No AES key or archive-recovery
+    mode enters the child; any unavailable or mismatched reader fails closed.
+    """
+    try:
+        root = Path(reader_root) if reader_root is not None else (
+            Path(__file__).resolve().parents[1]/'boat-owner-reader')
+        if root.is_symlink() or not root.is_dir():
+            raise ValueError('RECOVERY_PINNED_READER_UNAVAILABLE')
+        root = root.resolve()
+        head = subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,
+                                       stderr=subprocess.DEVNULL,timeout=10).decode().strip()
+        if head != base.RELEASE_SHA:
+            raise ValueError('RECOVERY_PINNED_READER_HEAD_CHANGED')
+        request = json.dumps(run,separators=(',',':'),allow_nan=False).encode()
+        if type(run) is not dict or not 0 < len(request) <= base.MAX_JSON_BYTES:
+            raise ValueError('RECOVERY_PINNED_READER_INPUT_INVALID')
+        environment = dict(os.environ)
+        for name in ('RACE_AI_STATE_KEY','RACE_AI_ORIGINAL_VAULT_ENABLED','PYTHONPATH','PYTHONHOME'):
+            environment.pop(name,None)
+        program = (
+            "import json,sys\n"
+            "from race_ai.github_continuous_supervisor import GitHubCLI\n"
+            "raw=sys.stdin.buffer.read(1048577)\n"
+            "assert 0<len(raw)<=1048576\n"
+            "result=GitHubCLI().final_control(json.loads(raw))\n"
+            "assert type(result) is dict\n"
+            "wire=json.dumps(result,sort_keys=True,allow_nan=False).encode()\n"
+            "assert 0<len(wire)<=1048576\n"
+            "sys.stdout.buffer.write(wire)\n")
+        result = subprocess.run([sys.executable,'-S','-c',program],cwd=root,env=environment,
+            input=request,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=120,check=False)
+        if result.returncode != 0 or not 0 < len(result.stdout) <= base.MAX_JSON_BYTES:
+            raise ValueError('RECOVERY_PINNED_CONTROL_UNAVAILABLE')
+        control = json.loads(result.stdout)
+        if type(control) is not dict:
+            raise ValueError('RECOVERY_PINNED_CONTROL_INVALID')
+        return control
+    except (OSError,subprocess.SubprocessError,UnicodeError,ValueError,TypeError):
+        # Child diagnostics may contain URLs; do not echo them into Actions logs.
+        raise ValueError('RECOVERY_PINNED_CONTROL_UNAVAILABLE') from None
 
 
 def _today(history, now):
@@ -89,8 +136,7 @@ def main(argv=None):
             latest=max(candidates,key=lambda r:base._stamp(r['created_at']))
             if latest.get('status')=='completed' and latest.get('conclusion') in ('success','failure'):
                 try:
-                    from race_ai.github_continuous_supervisor import GitHubCLI
-                    control=GitHubCLI().final_control(latest)
+                    control=read_pinned_control(latest)
                 except Exception:
                     control=None
     proof=None
