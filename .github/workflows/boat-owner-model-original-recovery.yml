@@ -11,6 +11,7 @@ on:
     paths:
       - docs/evidence/boat-owner-model-recovery-20261113.txt
       - docs/evidence/boat-owner-model-readback-20261113.txt
+      - docs/evidence/boat-owner-index-audit-20261113.txt
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
     types: [completed]
@@ -197,7 +198,9 @@ jobs:
         (github.event_name == 'push' &&
          github.ref == 'refs/heads/main' &&
          startsWith(github.event.head_commit.message,
-                    'boat-original-readback: sourcefree-43348227701')))
+                    'boat-original-readback: sourcefree-43348227701') ||
+         startsWith(github.event.head_commit.message,
+                    'boat-original-index-audit: sourcefree-43348227701')))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -224,7 +227,7 @@ jobs:
           GH_TOKEN: '${{ github.token }}'
           RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
           EXPECTED_CIPHER: '${{ needs.recover_original.outputs.candidate_cipher }}'
-          ORIGINAL_HISTORIC_CIPHER: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-original-readback: sourcefree-43348227701') && '52e194c99217b5dfdbd5db7d35c203cc762d91ce577a936e93ea53f642a10bee' || '' }}"
+          ORIGINAL_HISTORIC_CIPHER: "${{ github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'boat-original-readback: sourcefree-43348227701') || startsWith(github.event.head_commit.message, 'boat-original-index-audit: sourcefree-43348227701')) && '52e194c99217b5dfdbd5db7d35c203cc762d91ce577a936e93ea53f642a10bee' || '' }}"
           OWNER_RUN_CREATED_AT: '${{ github.event.workflow_run.created_at }}'
         run: |
           python - <<'PY'
@@ -247,12 +250,56 @@ jobs:
               target=(run_created+timedelta(hours=9)).date().isoformat()
           else:
               target='2026-11-13'
+          known=bridge.available_days
+          assert known and all(isinstance(d,str) and len(d)==10 for d in known)
+          print(json.dumps(dict(schema='BOAT_V5_INDEX_DATES_SOURCEFREE_DIAGNOSTIC_V1',
+              indexed_days=len(known),last_indexed_days=known[:5],
+              selected_day=target,selected_in_index=target in known,
+              official_provider_gets=0,original_rewrites=0),sort_keys=True))
           try:
               parent,cipher,generation,view=F.current_view(bridge.git,bridge.bootstrap,day=target)
-          except ValueError:
-              print(json.dumps(dict(status='HOLD_NO_NEW_EVENT_DAY_SAVED',
-                  day=target,source_provider_gets=0,private_sources_published=False)))
-              raise SystemExit(0)
+          except ValueError as error:
+              reason=str(error)
+              if reason=='HISTORY_DAY_UNAVAILABLE':
+                  # Diagnosis is a pure GitHub-artifact/AES preview. It does
+                  # not publish a router, repeat a race forecast or contact the
+                  # race provider. Identify whether sealed P0/P1 from the
+                  # original workflow are eligible but missing from the index.
+                  from scripts.boat_saved_view_feed import intake_saved_models
+                  original=F.current_view(bridge.git,bridge.bootstrap,
+                      day=known[0])[3]
+                  before=F.originals_sha(original)
+                  original_inventory=F.forecast_inventory(original)
+                  proposed=intake_saved_models(original,hydrate=False,
+                      recover_runs=[43348227701])
+                  after=F.originals_sha(proposed)
+                  proposed_inventory=F.forecast_inventory(proposed)
+                  assert before==after,'P0_ANCHOR_CHANGED_BY_PREVIEW'
+                  assert all(proposed_inventory.get(k)==v
+                      for k,v in original_inventory.items()),'P0_EXISTING_CHANGED_BY_PREVIEW'
+                  candidates=[row for row in proposed['records']
+                      if row.get('sport')=='boat' and row.get('event_date_jst')==target]
+                  stages=Counter();covered={'P0':set(),'P1':set()}
+                  for row in candidates:
+                      for p in [row.get('prediction'),*(row.get('comparison_predictions') or [])]:
+                          if type(p) is dict and p.get('stage') in covered:
+                              stages[p['stage']]+=1
+                              covered[p['stage']].add(row['race_id'])
+                  print(json.dumps(dict(
+                      schema='BOAT_OWNER_UNINDEXED_P0_P1_ARTIFACT_PREVIEW_V1',
+                      target_day=target,proposed_races=len(candidates),
+                      proposed_forecasts=dict(stages),
+                      proposed_covered_races={k:len(v) for k,v in covered.items()},
+                      preserved_old_inventory=True,
+                      prior_forecasts=len(original_inventory),
+                      proposed_forecasts_all_days=len(proposed_inventory),
+                      source_gets=0,published=False),sort_keys=True))
+                  print(json.dumps(dict(status='HOLD_NO_NEW_EVENT_DAY_INDEXED',
+                      day=target,source_provider_gets=0,private_sources_published=False)))
+                  raise SystemExit(0)
+              # A failed decryption / original hash / receipt MUST NOT be
+              # confused with a missing date or counted as a successful replay.
+              raise ValueError('BOAT_V5_DAY_AES_INTEGRITY_REJECTED') from None
           expected=(os.environ.get('EXPECTED_CIPHER') or
               os.environ.get('ORIGINAL_HISTORIC_CIPHER') or '')
           if expected:
