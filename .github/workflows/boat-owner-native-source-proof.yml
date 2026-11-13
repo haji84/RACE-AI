@@ -10,6 +10,7 @@ on:
       - .github/workflows/boat-owner-native-source-proof.yml
 permissions:
   contents: read
+  actions: read
 jobs:
   prove_source_free_name_and_vault:
     runs-on: ubuntu-24.04
@@ -66,4 +67,76 @@ jobs:
           assert 'V.retain_originals' in vault
           assert 'source_provider_requests' not in vault
           print('BOAT_OWNER_CANDIDATE_SOURCE_QUOTAS_AND_FORECAST_UNCHANGED')
+          PY
+
+  authenticated_saved_name_readback:
+    if: github.event_name == 'push' && github.repository == 'haji84/RACE-AI'
+    needs: prove_source_free_name_and_vault
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: c00b162dc39c7fbef8169c7e39f07f74e92e6eee
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Prove existing frozen forecast names can be read in candidate without source GET
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY'
+          from collections import Counter
+          from datetime import datetime,timezone
+          from pathlib import Path
+          import race_ai
+          for ref in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(ref,'race_ai').resolve()))
+          from scripts.boat_private_original_vault import _environment
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai import saved_view_feed as F
+          from race_ai.boat_saved_model_view import merge_saved_views
+          repo=_environment(Path('.').resolve())
+          bridge=SavedResultBridge(repo,now=datetime.now(timezone.utc))
+          assert bridge.available_days,'SAVED_DAY_UNAVAILABLE'
+          days=bridge.available_days[:2]
+          for day in days:
+              view=F.current_view(bridge.git,bridge.bootstrap,day=day)[3]
+              before=F.originals_sha(view),F.inventory_sha(view)
+              candidate=merge_saved_views(view)
+              assert (F.originals_sha(candidate),F.inventory_sha(candidate))==before,\
+                  'ORIGINAL_P0_REWRITTEN'
+              sources=Counter(p.get('name_source',{}).get('kind','NONE')
+                  for row in view['records'] for p in row.get('participants',[]))
+              assert all(isinstance(k,str) for k in sources),'SOURCE_KIND_INVALID'
+              print({'schema':'BOAT_OWNER_CANDIDATE_REAL_AES_DISPLAY_NAME_READBACK_V1',
+                'day':day,'races':len(view['records']),
+                'name_source_kinds':dict(sorted(sources.items())),
+                'original_forecasts_unchanged':True,'racing_provider_gets':0})
+          PY
+      - name: Confirm missing-in-run GitHub artifact became API readable (no ZIP or private data)
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          payload="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/14004326635" --jq '{id,name,expired,workflow_run:.workflow_run.id}')"
+          export PROOF_JSON="$payload"
+          python - <<'PY'
+          import json,os
+          obj=json.loads(os.environ['PROOF_JSON'])
+          assert obj['id']==14004326635 and obj['workflow_run']==43348227701
+          assert obj['expired'] is False
+          print('BOAT_OWNER_LIVE_ARTIFACT_NOW_READABLE_SAME_ID_NO_PROVIDER_GET')
           PY
