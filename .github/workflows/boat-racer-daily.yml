@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 6327bc5675aee2da94ac13397f1f86f39b27d8fd
+          ref: b47ac0d0ac8076f632316eacc347b0765bb816c1
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -80,10 +80,12 @@ jobs:
           from pathlib import Path
           source=Path('race_ai/racer_intraday.py').read_text()
           runtime=Path('scripts/racer_intraday_refresh.py').read_text()
-          assert '1<=max_requests<=12' in source
-          assert 'max_requests=12-beforeinfo' in runtime
+          assert 'max_requests>=1' in source and '1<=max_requests<=12' not in source
+          assert 'max_requests=cap-beforeinfo' in runtime
+          assert 'source_deadline=source_deadline' in runtime
           assert "cutoff+timedelta(minutes=1)<=now" in source
           assert "interval=2 if targets[target]['pending']" in source
+          assert 'source_deadline' in source
           assert "result_targets=targets" in runtime
           assert "waiting('boatrace')" in source
           assert '--sync-results' in runtime
@@ -244,7 +246,7 @@ jobs:
           assert "github.event.schedule == '20 21 * * *'" in mirror
           assert 'continue-on-error: true' not in mirror
           assert "'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics'" in header
-          pin = "ref: $" + "{{ github.event_name == 'push' && github.sha || '6327bc5675aee2da94ac13397f1f86f39b27d8fd' }}"
+          pin = "ref: $" + "{{ github.event_name == 'push' && github.sha || 'b47ac0d0ac8076f632316eacc347b0765bb816c1' }}"
           assert pin in daily
           PY
   original_retention:
@@ -509,7 +511,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ github.event_name == 'push' && github.sha || '6327bc5675aee2da94ac13397f1f86f39b27d8fd' }}
+          ref: ${{ github.event_name == 'push' && github.sha || 'b47ac0d0ac8076f632316eacc347b0765bb816c1' }}
           persist-credentials: true
       - name: Use pinned collector for official results and stage-aware P0 reader only for view verification
         if: >-
@@ -522,7 +524,7 @@ jobs:
           # "--stage P0". Swap only the read-only site-verifier mode to a
           # separately CI-proven, stage-aware existing release; source
           # collection remains pinned to the exact tested fast-results SHA.
-          ref: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-view') && '0796b52c2804177976e4c2e5ab9b65f32589720b' || '6327bc5675aee2da94ac13397f1f86f39b27d8fd' }}
+          ref: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-view') && '0796b52c2804177976e4c2e5ab9b65f32589720b' || 'b47ac0d0ac8076f632316eacc347b0765bb816c1' }}
           persist-credentials: true
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
