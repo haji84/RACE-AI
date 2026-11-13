@@ -71,57 +71,112 @@ def _write(path, raw):
         stream.write(raw); stream.flush(); os.fsync(stream.fileno())
 
 
-def _gh(endpoint):
-    """Bounded GitHub artifact availability retry, never a racing provider GET.
+def _github_endpoint_kind(endpoint):
+    V._need(type(endpoint) is str and re.fullmatch(
+        r'actions/(?:artifacts/[1-9][0-9]*(?:/zip)?|runs/[1-9][0-9]*)', endpoint),
+        'GITHUB_ENDPOINT_INVALID')
+    return ('ARTIFACT_ZIP' if endpoint.endswith('/zip') else
+            'RUN_METADATA' if endpoint.startswith('actions/runs/') else 'ARTIFACT_METADATA')
 
-    A just-uploaded Actions artifact OR its immutable parent run metadata may
-    not yet be readable by GitHub API. Only these read-only GitHub endpoints
-    get three total bounded attempts; this never retries official race sources,
-    changes the source budget, falls back to another run, or relaxes the exact
-    artifact SHA, ZIP and run-authentication checks.
+
+def _github_read_diagnostic(kind, attempt, reason, status, *, delay=None):
+    # Never print stderr, response bodies, IDs, URLs, tokens or private data.
+    safe = reason if re.fullmatch(r'VAULT_[A-Z0-9_]{1,100}', reason) else 'VAULT_OPERATION_FAILED'
+    record = dict(status=status, endpoint_kind=kind, attempt=attempt,
+                  max_attempts=3, reason=safe)
+    if delay is not None:
+        record['retry_in_seconds'] = delay
+    print(json.dumps(record, sort_keys=True), file=sys.stderr)
+
+
+def _gh(endpoint):
+    """Retry the same exact GitHub read, never the forecast or provider source.
+
+    Only explicit HTTP 5xx, local read timeout and recognized transient
+    transport failures retry. Authentication, rate limits, ambiguous failures
+    and integrity/size errors stay closed. After recovery the existing capture
+    verifies the original digest/identity/time before the next round can run.
     """
-    attempts = 3 if endpoint.startswith(("actions/artifacts/", "actions/runs/")) else 1
-    for attempt in range(attempts):
+    kind = _github_endpoint_kind(endpoint)
+    for attempt in range(1, 4):
         try:
-            return _gh_once(endpoint)
+            raw = _gh_once(endpoint)
         except ValueError as exc:
-            if (str(exc) != "VAULT_GITHUB_READ_DENIED_OR_UNAVAILABLE"
-                    or attempt == attempts-1):
+            reason = str(exc)
+            retryable = (re.fullmatch(r'VAULT_GITHUB_HTTP_5[0-9]{2}', reason) is not None
+                         or reason in ('VAULT_GITHUB_READ_TIMEOUT', 'VAULT_GITHUB_TRANSPORT_TRANSIENT'))
+            if not retryable or attempt == 3:
+                _github_read_diagnostic(kind, attempt, reason, 'GITHUB_READ_FAILED')
                 raise
-            time.sleep(2*(attempt+1))
-    raise AssertionError("UNREACHABLE_GITHUB_ARTIFACT_RETRY")
+            delay = 2 * attempt
+            _github_read_diagnostic(kind, attempt, reason, 'GITHUB_READ_RETRY', delay=delay)
+            time.sleep(delay)
+        else:
+            if attempt > 1:
+                _github_read_diagnostic(kind, attempt, 'VAULT_GITHUB_READ_OK', 'GITHUB_READ_RECOVERED')
+            return raw
+    raise AssertionError('UNREACHABLE_GITHUB_ARTIFACT_RETRY')
+
+
+def _github_failure_reason(diagnostic):
+    """Classify bounded CLI stderr without disclosing it or guessing HTTP status."""
+    text = diagnostic.decode('utf-8', errors='replace')
+    statuses = set(re.findall(r'(?i)\bHTTP(?:/\d(?:\.\d)?)?[\s:]+([1-5][0-9]{2})\b', text))
+    if len(statuses) == 1:
+        return 'VAULT_GITHUB_HTTP_' + next(iter(statuses))
+    if not statuses and re.search(
+            r'(?i)connection reset by peer|connection timed out|TLS handshake timeout|'
+            r'i/o timeout|temporary failure in name resolution|unexpected EOF', text):
+        return 'VAULT_GITHUB_TRANSPORT_TRANSIENT'
+    return 'VAULT_GITHUB_READ_DENIED_OR_UNAVAILABLE'
 
 
 def _gh_once(endpoint):
-    V._need(re.fullmatch(r'actions/(?:artifacts/[1-9][0-9]*(?:/zip)?|runs/[1-9][0-9]*)', endpoint),
-            'GITHUB_ENDPOINT_INVALID')
+    _github_endpoint_kind(endpoint)
     limit = V.MAX_ORIGINAL if endpoint.endswith('/zip') else 256*1024
     process = None
     try:
         process = subprocess.Popen(['gh','api','repos/haji84/RACE-AI/'+endpoint],
-                                   stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-        deadline = time.monotonic()+90; result = bytearray()
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        deadline = time.monotonic()+90
+        result, diagnostic = bytearray(), bytearray()
+        # Drain both bounded pipes concurrently: a full stderr pipe must not
+        # deadlock stdout or force retention of private response text in logs.
         with selectors.DefaultSelector() as selected:
-            selected.register(process.stdout, selectors.EVENT_READ)
-            complete = False
-            while not complete:
+            selected.register(process.stdout, selectors.EVENT_READ, 'body')
+            selected.register(process.stderr, selectors.EVENT_READ, 'diagnostic')
+            while selected.get_map():
                 remaining = deadline-time.monotonic()
                 V._need(remaining > 0, 'GITHUB_READ_TIMEOUT')
                 for item, _ in selected.select(min(remaining,1)):
                     block = os.read(item.fd,65536)
                     if not block:
-                        complete = True; break
-                    result.extend(block); V._need(len(result) <= limit, 'GITHUB_READ_BOUND_INVALID')
-        V._need(process.wait(timeout=max(.01,deadline-time.monotonic())) == 0, 'GITHUB_READ_DENIED_OR_UNAVAILABLE')
+                        selected.unregister(item.fileobj)
+                        continue
+                    if item.data == 'body':
+                        result.extend(block)
+                        V._need(len(result) <= limit, 'GITHUB_READ_BOUND_INVALID')
+                    else:
+                        diagnostic.extend(block)
+                        V._need(len(diagnostic) <= 16384, 'GITHUB_DIAGNOSTIC_BOUND_INVALID')
+        code = process.wait(timeout=max(.01,deadline-time.monotonic()))
+        if code != 0:
+            raise ValueError(_github_failure_reason(diagnostic))
         V._need(result, 'GITHUB_RESPONSE_EMPTY')
         return bytes(result)
+    except subprocess.TimeoutExpired:
+        raise ValueError('VAULT_GITHUB_READ_TIMEOUT') from None
     except (OSError, subprocess.SubprocessError):
         raise ValueError('VAULT_GITHUB_READ_UNAVAILABLE') from None
     finally:
         if process is not None:
-            if process.poll() is None: process.kill()
+            if process.poll() is None:
+                process.kill()
             process.wait()
-            if process.stdout: process.stdout.close()
+            if process.stdout:
+                process.stdout.close()
+            if process.stderr:
+                process.stderr.close()
 
 
 def _parent(git, requested):
@@ -319,7 +374,7 @@ def main(argv=None, *, transport=None, readback_transport=None, github_get=None,
                 report = dict(status='EXACT_SOURCE_CAPTURES_RESTORED', captures=len(restored['captures']),
                               provenance=restored['provenance'], plaintext_published=False)
             folder.mkdir(mode=0o700)
-            for name,body in bodies.items(): _write(folder/name,body)
+            for name,body in bodies.items(): _write(path=folder/name, raw=body)
         if output: _write(output,V._wire(report)+b'\n')
         print(V._wire(report).decode('utf-8'))
         return 0
