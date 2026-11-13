@@ -22,7 +22,7 @@ class FreshGateTests(unittest.TestCase):
         ans=self.decision();self.assertEqual(ans['status'],'FRESH_RESULT_GET_ADMITTED')
         self.assertEqual(ans['authorized_source_gets'],17)
         self.assertTrue(ans['recovery_hourly_cap_removed'])
-        self.assertTrue(ans['source_owner_240_unchanged'])
+        self.assertTrue(ans['source_owner_fixed_get_cap_removed'])
 
     def test_recovery_schedule_respects_guard_not_hourly_timer(self):
         parts=list(fixture())
@@ -36,11 +36,11 @@ class FreshGateTests(unittest.TestCase):
                              job_status='completed',job_name=FRESH))
         self.assertEqual(self.decision(parts)['authorized_source_gets'],17)
 
-    def test_backlog_above_thirty_six_uses_strict_36_not_unlimited(self):
+    def test_backlog_above_thirty_six_tracks_authentic_due_count(self):
         p=list(fixture());p[3]['due_count']=85
         d=self.decision(p)
-        self.assertEqual(d['authorized_source_gets'],36)
-        self.assertTrue(d['source_owner_240_unchanged'])
+        self.assertEqual(d['authorized_source_gets'],85)
+        self.assertTrue(d['source_owner_fixed_get_cap_removed'])
         p[3]['due_count']=3
         self.assertEqual(self.decision(p)['authorized_source_gets'],12)
         p[3]['due_count']=24
@@ -73,7 +73,7 @@ class FreshGateTests(unittest.TestCase):
                                  provider_step_attempted=True))
         result=self.decision(parts)
         self.assertEqual(result['status'],'FRESH_RESULT_GET_ADMITTED')
-        self.assertEqual(result['authorized_source_gets'],36)
+        self.assertEqual(result['authorized_source_gets'],85)
         self.assertTrue(result['recovery_hourly_cap_removed'])
 
     def test_completed_primary_runs_do_not_create_hidden_hourly_limit(self):
@@ -82,7 +82,7 @@ class FreshGateTests(unittest.TestCase):
             parts[0]['workflow_runs'].append(
                 run(60+idx,-idx-20,'workflow_dispatch',status='completed'))
         result=self.decision(parts)
-        self.assertEqual(result['authorized_source_gets'],36)
+        self.assertEqual(result['authorized_source_gets'],85)
 
     def test_active_prior_source_job_blocks_without_timer(self):
         parts=list(fixture())
@@ -99,7 +99,7 @@ class FreshGateTests(unittest.TestCase):
             parts[2].append(dict(run_id=number,created_at=stamp(-4),
                                  provider_step_attempted=False,
                                  job_status='completed',job_name=FRESH))
-        self.assertEqual(self.decision(parts)['authorized_source_gets'],36)
+        self.assertEqual(self.decision(parts)['authorized_source_gets'],85)
 
     def test_queued_collector_blocks_to_preserve_single_writer(self):
         for status in ['queued','pending','in_progress','waiting']:
@@ -134,7 +134,7 @@ class FreshGateTests(unittest.TestCase):
         gate=Path('scripts/boat_result_gap_fresh_gate.py').read_text()
         assert 'RECOVERY_BUDGET_60M' not in gate
         assert 'OWNER_BUDGET_60M' not in gate
-        assert 'MAX_RECOVERY_GETS_PER_CYCLE=36' in gate
+        assert 'MAX_RECOVERY_GETS_PER_CYCLE=36' not in gate
 
     def test_no_new_formal_final_is_source_free_hold_without_followup(self):
         from pathlib import Path
@@ -181,5 +181,5 @@ class FreshGateTests(unittest.TestCase):
         assert "assert digest==os.environ['EXPECTED_RESULT_DIGEST']" in workflow
         assert "assert inventory==os.environ['EXPECTED_INVENTORY_DIGEST']" in workflow
         assert "assert loaded['previous']['head']['cipher_sha256']==os.environ['EXPECTED_SOURCE_CIPHER']" in workflow
-        assert "assert 0<report['source_requests']<=int(os.environ['EXPECTED_SOURCE_GET_CAP'])<=36" in workflow
+        assert "assert 0<report['source_requests']<=int(os.environ['EXPECTED_SOURCE_GET_CAP'])" in workflow
         assert "source_get_cap" in workflow

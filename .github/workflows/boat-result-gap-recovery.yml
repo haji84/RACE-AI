@@ -24,7 +24,7 @@ on:
         description: '2=source-free audit; catchup=guarded result recovery without hourly cap'
   # A single authenticated source-failure diagnosis does not alter GET limits.
   # Backup polling only. Original BOAT 5-minute schedule remains the primary
-  # source. No fixed 30min/60min quotas; respect due races, 36 GET/run and provider WAIT.
+  # source. No fixed per-run GET quota; respect genuine due races and provider WAIT.
   # GitHub may delay or skip schedule events: timestamps are not an SLA.
   schedule:
     - cron: '11,26,41,56 0-14,22-23 * * *'
@@ -77,7 +77,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: fd6a14c0c01c01b2f1118bfbf886c09a86b0e292
+          ref: bfcb3bf60d78e9be7d7a6c1a1ee34e1651eedd85
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -367,7 +367,7 @@ jobs:
           assert 'AUTHENTICATED_GIT_CREDENTIAL_AVAILABLE_NO_PROVIDER_GET' in fresh
           assert 'HOLD_GIT_CREDENTIAL_UNAVAILABLE' in fresh
           assert "['git','-C','source-reader','credential','fill']" in fresh
-          assert 'fd6a14c0c01c01b2f1118bfbf886c09a86b0e292' in fresh
+          assert 'bfcb3bf60d78e9be7d7a6c1a1ee34e1651eedd85' in fresh
           assert 'needs: observed_gap' in fresh
           assert "github.event.workflow_run.event == 'schedule'" in fresh
           assert "github.event.workflow_run.name == 'KEIRIN hourly personal research canary'" in fresh
@@ -426,7 +426,7 @@ jobs:
           policy=Path('scripts/boat_result_gap_fresh_gate.py').read_text()
           assert 'RECOVERY_BUDGET_60M' not in policy
           assert 'OWNER_BUDGET_60M' not in policy
-          assert 'MAX_RECOVERY_GETS_PER_CYCLE=36' in policy
+          assert 'MAX_RECOVERY_GETS_PER_CYCLE=36' not in policy
           assert "selected_rows=F.current_view" in text
           for job in ("fresh_pdca_stage", "fresh_pdca_readback", "fresh_site_browser"):
               body=text.split("\n  "+job+":\n",1)[1].split("\n  fresh_",1)[0]
@@ -645,7 +645,7 @@ jobs:
       - name: Install unmodified bounded result collector separately
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: fd6a14c0c01c01b2f1118bfbf886c09a86b0e292
+          ref: bfcb3bf60d78e9be7d7a6c1a1ee34e1651eedd85
           path: source-reader
           persist-credentials: false
       - name: Install immutable original official parser
@@ -741,7 +741,7 @@ jobs:
           PY
           git -C source-reader ls-remote --heads origin 'refs/heads/state/boat-pdca-transfer' >/dev/null
           echo 'AUTHENTICATED_GIT_STATE_WRITE_PATH_CONFIGURED_NO_PROVIDER_GET'
-      - name: Consume at most 36 owner-admitted official-result GETs once per durable admission
+      - name: Consume owner-admitted genuine due official-result GETs, checkpoint before timeout
         if: steps.source_gate.outputs.admitted == 'true'
         working-directory: source-reader
         env:
@@ -819,7 +819,7 @@ jobs:
           report=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-gap-fresh-result-private.json').read_text())
           assert report['schema']=='RACE_AI_RACER_INTRADAY_RUN_V1'
           assert report['status']=='INTRADAY_REFRESHED'
-          assert 0<report['source_requests']<=int(os.environ['EXPECTED_SOURCE_GET_CAP'])<=36
+          assert 0<report['source_requests']<=int(os.environ['EXPECTED_SOURCE_GET_CAP'])
           assert report['retained']['status']=='INTRADAY_ENCRYPTED_DELTA_RETAINED'
           assert report['retained']['new_capture_count']>0
           assert type(report['result_sync']['changed_races']) is int and report['result_sync']['changed_races']>=0
@@ -907,7 +907,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: fd6a14c0c01c01b2f1118bfbf886c09a86b0e292
+          ref: bfcb3bf60d78e9be7d7a6c1a1ee34e1651eedd85
           persist-credentials: false
       - name: Install immutable official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
