@@ -130,6 +130,13 @@ def restore(day,*,video_context_artifacts=(),video_reader=None):
     reader,error=_video_sources({},video_context_artifacts,video_reader)
     state=recover(gh,day,current_run=int(os.environ['GITHUB_RUN_ID']),out=ROOT/'cycle_recovery_output',
                   video_receipt_verifier=reader.verify)
+    # Reconcile the prior uncommitted round from its actual saved originals.
+    # No source session or new forecast is admitted until vault readback succeeds.
+    from scripts.boat_recover_failed_owner import recover_restored_pending
+    state=recover_restored_pending(state,gh,ROOT)
+    if state.get('pending_round_recovery_vault_commit'):
+        from race_ai.repeated_cycle import write_state
+        write_state(ROOT/'cycle_recovery_output/continuity.json',state,key='state_sha256')
     if reader.artifact_ids or error:
         from race_ai.repeated_cycle import write_state
         if reader.artifact_ids:
