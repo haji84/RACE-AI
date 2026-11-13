@@ -31,7 +31,7 @@ class RefreshTests(unittest.TestCase):
                 refresh(Path('/nonexistent'),Path('/nonexistent'),sync_results=True)
         with patch.dict(os.environ,{
             'RACE_AI_BOAT_RESULT_CATCHUP_ADMITTED':'true',
-            'RACE_AI_BOAT_RESULT_GET_CAP':'37',
+            'RACE_AI_BOAT_RESULT_GET_CAP':'not-a-number',
             'GITHUB_ACTIONS':'true','GITHUB_REPOSITORY':'haji84/RACE-AI',
         }):
             with self.assertRaisesRegex(ValueError,'INTRADAY_CATCHUP_REQUEST_LIMIT_INVALID'):
