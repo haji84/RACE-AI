@@ -80,7 +80,7 @@ def validate_summary(value):
     if "day_start_lifetime_requests" in control:
         base=control["day_start_lifetime_requests"]
         need(_count(base) and base<=control["lifetime_requests"] and
-             control["lifetime_requests"]-base<=240,"DAY_SOURCE_BUDGET_INVALID")
+             control["lifetime_requests"]-base>=control["requests_used"],"DAY_SOURCE_BUDGET_INVALID")
     for field in ("requests_used", "completed_round", "lifetime_requests", "lifetime_completed_rounds"):
         need(_count(control[field]), "COUNT_INVALID")
     need(control["lifetime_requests"] >= control["requests_used"]
@@ -119,7 +119,7 @@ def build_summary(cipher, *, run_id, head_sha, key=None):
     day_base=state.get("day_start_lifetime_requests")
     if day_base is not None:
         need(_count(day_base) and day_base<=state["lifetime_requests"] and
-             state["lifetime_requests"]-day_base<=240,"DAY_SOURCE_BUDGET_INVALID")
+             state["lifetime_requests"]-day_base>=state["requests_used"],"DAY_SOURCE_BUDGET_INVALID")
     value = dict(schema=SCHEMA, repository=REPO, repository_id=REPO_ID, run_id=int(header["run_id"]),
         head_sha=head_sha, day_jst=state["day_jst"], continuity_cipher_sha256=sha256(cipher).hexdigest(),
         control=dict(requests_used=state["requests_used"], completed_round=state["completed_round"],
