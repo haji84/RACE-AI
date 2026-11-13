@@ -261,6 +261,34 @@ jobs:
           except ValueError as error:
               reason=str(error)
               if reason=='HISTORY_DAY_UNAVAILABLE':
+                  # Diagnosis is a pure GitHub-artifact/AES preview. It does
+                  # not publish a router, repeat a race forecast or contact the
+                  # race provider. Identify whether sealed P0/P1 from the
+                  # original workflow are eligible but missing from the index.
+                  from scripts.boat_saved_view_feed import intake_saved_models
+                  original=F.current_view(bridge.git,bridge.bootstrap,
+                      day=known[0])[3]
+                  before=F.originals_sha(original),F.inventory_sha(original)
+                  proposed=intake_saved_models(original,hydrate=False,
+                      recover_runs=[43348227701])
+                  after=F.originals_sha(proposed),F.inventory_sha(proposed)
+                  assert before[0]==after[0],'P0_ANCHOR_CHANGED_BY_PREVIEW'
+                  candidates=[row for row in proposed['records']
+                      if row.get('sport')=='boat' and row.get('event_date_jst')==target]
+                  stages=Counter();covered={'P0':set(),'P1':set()}
+                  for row in candidates:
+                      for p in [row.get('prediction'),*(row.get('comparison_predictions') or [])]:
+                          if type(p) is dict and p.get('stage') in covered:
+                              stages[p['stage']]+=1
+                              covered[p['stage']].add(row['race_id'])
+                  print(json.dumps(dict(
+                      schema='BOAT_OWNER_UNINDEXED_P0_P1_ARTIFACT_PREVIEW_V1',
+                      target_day=target,proposed_races=len(candidates),
+                      proposed_forecasts=dict(stages),
+                      proposed_covered_races={k:len(v) for k,v in covered.items()},
+                      preserved_old_inventory=len(before[1])==len(after[1]) or
+                          len(after[1])>len(before[1]),
+                      source_gets=0,published=False),sort_keys=True))
                   print(json.dumps(dict(status='HOLD_NO_NEW_EVENT_DAY_INDEXED',
                       day=target,source_provider_gets=0,private_sources_published=False)))
                   raise SystemExit(0)
