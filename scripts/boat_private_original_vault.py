@@ -74,11 +74,13 @@ def _write(path, raw):
 def _gh(endpoint):
     """Bounded GitHub artifact availability retry, never a racing provider GET.
 
-    A just-uploaded Actions artifact may not yet be readable by GitHub API.
-    This retains its exact ID and all existing SHA, ZIP and run-authentication
-    checks. Fail closed after three total attempts without changing source.
+    A just-uploaded Actions artifact OR its immutable parent run metadata may
+    not yet be readable by GitHub API. Only these read-only GitHub endpoints
+    get three total bounded attempts; this never retries official race sources,
+    changes the source budget, falls back to another run, or relaxes the exact
+    artifact SHA, ZIP and run-authentication checks.
     """
-    attempts = 3 if endpoint.startswith("actions/artifacts/") else 1
+    attempts = 3 if endpoint.startswith(("actions/artifacts/", "actions/runs/")) else 1
     for attempt in range(attempts):
         try:
             return _gh_once(endpoint)
