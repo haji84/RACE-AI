@@ -1,0 +1,113 @@
+name: BOAT approved Pages strict-tree compatibility (no provider GET)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-page-tree-compat-proof.yml
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-page-tree-compat-proof.yml
+permissions:
+  contents: read
+jobs:
+  verify_real_gh_pages_tree:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 6327bc5675aee2da94ac13397f1f86f39b27d8fd
+          path: original-source
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: f30c3bb523fd9b954d666fef99346e5affee0e79
+          path: candidate-pages
+          fetch-depth: 7
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: original-source/pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: original-source/pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r original-source/requirements-history.txt
+      - name: Check candidate JS and protected manifest SHA and exact encrypted metadata
+        run: |
+          node --check candidate-pages/app.js
+          python - <<'PY'
+          import hashlib,json,subprocess
+          from pathlib import Path
+          root=Path('candidate-pages')
+          index=(root/'index.html').read_text()
+          m=json.loads((root/'site-build.json').read_bytes())
+          old=json.loads(subprocess.check_output(['git','-C',str(root),'show',
+              'e3230146001bc1cf6e610a03da38bfa69d4282b8:site-build.json']))
+          assert m['schema']=='RACE_AI_SAVED_PAGES_BUILD_V1'
+          for field in ('forecast_sha256','cipher_path','cipher_sha256','view_id',
+                        'source_content_sha256','races','predictions'):
+              assert m[field]==old[field], 'BOAT_ORIGINAL_OR_VIEW_ID_MODIFIED'
+          assert 'owner-formal.js' not in m['files'] and not (root/'owner-formal.js').exists()
+          assert '<section id="boat-owner-formal-proof"' in index
+          assert './owner-formal.js' not in index
+          for path,record in m['files'].items():
+              if path.startswith('assets/'):continue
+              raw=(root/path).read_bytes()
+              assert record=={'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)},path
+          app=(root/'app.js').read_bytes()
+          owner=subprocess.check_output(['git','-C',str(root),'show',
+            'e3230146001bc1cf6e610a03da38bfa69d4282b8:owner-formal.js'])
+          previous=subprocess.check_output(['git','-C',str(root),'show',
+            'e3230146001bc1cf6e610a03da38bfa69d4282b8:app.js'])
+          assert app==owner+b'\n'+previous,'BOAT_FORMAL_JS_OR_EXISTING_APP_CHANGED'
+          assert index.count('./app.js?v='+hashlib.sha256(app).hexdigest()[:12])==1
+          assert m['files']['app.js']=={'bytes':len(app),'sha256':hashlib.sha256(app).hexdigest()}
+          changed=subprocess.check_output(['git','-C',str(root),'diff','--name-only',
+            'e3230146001bc1cf6e610a03da38bfa69d4282b8','HEAD']).decode().splitlines()
+          assert set(changed)=={'app.js','index.html','owner-formal.js','site-build.json'},'UNEXPECTED_PAGES_CHANGE'
+          print('BOAT_PAGES_PRECISE_INLINE_MIGRATION_AND_CIPHERTEXT_UNCHANGED')
+          PY
+      - name: Verify exact old 2026-11-13 daily publisher tree rejects before and accepts after
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess,sys
+          sys.path.insert(0,str(Path('original-source').resolve()))
+          import race_ai
+          for location in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str((Path('original-source')/location/'race_ai').resolve()))
+          from race_ai.saved_pages import _tree
+          class Git:
+              def _run(self,cmd):
+                  return subprocess.check_output(['git','-C','candidate-pages',*cmd])
+          old='e3230146001bc1cf6e610a03da38bfa69d4282b8'
+          new='f30c3bb523fd9b954d666fef99346e5affee0e79'
+          try:_tree(Git(),old)
+          except ValueError as exc:
+              assert str(exc)=='PAGES_EXISTING_TREE_REJECTED'
+          else:raise AssertionError('PREVIOUS_SITE_ERROR_NOT_REPRODUCED')
+          paths=_tree(Git(),new)
+          assert 'owner-formal.js' not in paths
+          assert 'site-build.json' in paths and 'app.js' in paths
+          assert 'data/racer-daily.json' in paths and 'data/racer-live-status.json' in paths
+          print('BOAT_EXISTING_PAGES_TREE_REJECTED_BEFORE_ACCEPTED_AFTER')
+          PY
+      - name: Source-free existing daily and private original regressions
+        working-directory: original-source
+        run: |
+          python - <<'PY'
+          import unittest,race_ai
+          from pathlib import Path
+          for folder in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str((Path(folder)/'race_ai').resolve()))
+          tests=unittest.defaultTestLoader.loadTestsFromNames([
+              'tests.test_saved_pages','tests.test_racer_daily_handoff',
+              'tests.test_racer_intraday_refresh'])
+          result=unittest.TextTestRunner(verbosity=2).run(tests)
+          raise SystemExit(not result.wasSuccessful())
+          PY
