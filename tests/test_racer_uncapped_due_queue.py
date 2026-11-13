@@ -44,6 +44,22 @@ class DynamicDueQueueTests(unittest.TestCase):
         self.assertEqual(repeat['requests'],0)
         self.assertEqual(calls,[])
 
+    def test_physical_job_deadline_keeps_due_races_for_next_run(self):
+        from unittest.mock import patch
+        from race_ai import racer_intraday
+        s=self._ready();base=self.base();calls,fetch=self.source_results()
+        with patch.object(racer_intraday.time,'monotonic',return_value=200.):
+            stopped=s.advance(base,now=NOW,fetch=fetch,max_requests=60,
+                              source_deadline=199.,result_targets=self._targets())
+        self.assertEqual(stopped['requests'],0)
+        self.assertEqual(calls,[])
+        self.assertEqual(len(s.control['settlement_captures']),0)
+        with patch.object(racer_intraday.time,'monotonic',return_value=200.):
+            continued=s.advance(base,now=NOW,fetch=fetch,max_requests=60,
+                                source_deadline=201.,result_targets=self._targets())
+        self.assertEqual(continued['requests'],60)
+        self.assertEqual(len(set(calls)),60)
+
     def test_first_429_stops_even_when_due_count_is_60(self):
         s=self._ready();base=self.base();calls=[]
         def denied(url):
