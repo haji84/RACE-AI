@@ -6,7 +6,8 @@ permissions:
   contents: write
 jobs:
   assemble:
-    if: startsWith(github.event.head_commit.message, 'assemble(boat): pending recovery candidate')
+    if: >-
+      startsWith(github.event.head_commit.message, 'assemble(boat): pending recovery candidate')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
