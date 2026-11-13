@@ -1,0 +1,67 @@
+name: BOAT owner-formal live Pages HTTP proof (source-free)
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-owner-formal-live-pages-proof.yml
+  workflow_run:
+    workflows: ['pages build and deployment']
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: boat-owner-formal-live-pages-http-proof
+  cancel-in-progress: false
+jobs:
+  verify_live_http:
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      (github.event_name != 'workflow_run' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'gh-pages' &&
+        github.event.workflow_run.head_sha == 'e3230146001bc1cf6e610a03da38bfa69d4282b8'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: e3230146001bc1cf6e610a03da38bfa69d4282b8
+          persist-credentials: false
+      - name: Match GitHub Pages HTTP response bytes to deployed SHA and manifest
+        run: |
+          python - <<'PY'
+          import hashlib,json,urllib.request,urllib.parse
+          from pathlib import Path
+          base='https://haji84.github.io/RACE-AI/'
+          manifest=json.loads(Path('site-build.json').read_bytes())
+          assert manifest['schema']=='RACE_AI_SAVED_PAGES_BUILD_V1'
+          assert manifest['forecast_sha256']=='4169db99a1d99bbcf96c8fa1bfb076ed2d2fb1f434fc64cf7e43b38e55f5adda'
+          selected=('index.html','app.js','owner-formal.js','saved-performance.js','saved-view-crypto.js')
+          index=Path('index.html').read_text()
+          for path in selected:
+              local=Path(path).read_bytes()
+              digest=hashlib.sha256(local).hexdigest()
+              assert manifest['files'][path]=={'bytes':len(local),'sha256':digest},'SAVED_PAGES_MANIFEST_MISMATCH'
+              if path.endswith('.js'):
+                  assert './'+path+'?v='+digest[:12] in index,'INDEX_SCRIPT_VERSION_MISMATCH'
+              url=base+path+'?verify=e3230146001bc1cf6e610a03da38bfa69d4282b8'
+              request=urllib.request.Request(url,headers={
+                  'User-Agent':'RACE-AI-owner-pages-public-proof/1',
+                  'Cache-Control':'no-cache'})
+              with urllib.request.urlopen(request,timeout=24) as response:
+                  assert response.status==200,'LIVE_PAGES_HTTP_UNAVAILABLE'
+                  final=urllib.parse.urlsplit(response.url)
+                  assert final.hostname=='haji84.github.io' and final.path=='/RACE-AI/'+path, 'LIVE_PAGES_HOST_OR_PATH_CHANGED'
+                  body=response.read(len(local)+1)
+              assert body==local and hashlib.sha256(body).hexdigest()==digest,'LIVE_PAGES_BYTES_DIFFER'
+          assert '<section id="boat-owner-formal-proof"' in index
+          assert 'owner-formal.js?v=e5a1d9e4d612' in index
+          assert 'app.js?v=db44144da964' in index
+          print(json.dumps({
+              'status':'BOAT_HARDENED_LIVE_PAGES_HTTP_MATCH',
+              'paths_checked':list(selected),
+              'page_sha':'e3230146001bc1cf6e610a03da38bfa69d4282b8',
+              'original_encrypted_forecasts_unchanged':True,
+              'official_racing_provider_gets':0},sort_keys=True))
+          PY
