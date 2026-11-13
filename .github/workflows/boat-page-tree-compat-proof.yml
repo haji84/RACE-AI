@@ -26,6 +26,16 @@ jobs:
           path: candidate-pages
           fetch-depth: 7
           persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: original-source/pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: original-source/pr72-reference
+          persist-credentials: false
       - run: python -m pip install --disable-pip-version-check -r original-source/requirements-history.txt
       - name: Check candidate JS and protected manifest SHA and exact encrypted metadata
         run: |
@@ -68,6 +78,9 @@ jobs:
           from pathlib import Path
           import subprocess,sys
           sys.path.insert(0,str(Path('original-source').resolve()))
+          import race_ai
+          for location in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str((Path('original-source')/location/'race_ai').resolve()))
           from race_ai.saved_pages import _tree
           class Git:
               def _run(self,cmd):
@@ -87,4 +100,14 @@ jobs:
       - name: Source-free existing daily and private original regressions
         working-directory: original-source
         run: |
-          python -m unittest tests.test_saved_pages tests.test_racer_daily_handoff tests.test_racer_intraday_refresh -v
+          python - <<'PY'
+          import unittest,race_ai
+          from pathlib import Path
+          for folder in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str((Path(folder)/'race_ai').resolve()))
+          tests=unittest.defaultTestLoader.loadTestsFromNames([
+              'tests.test_saved_pages','tests.test_racer_daily_handoff',
+              'tests.test_racer_intraday_refresh'])
+          result=unittest.TextTestRunner(verbosity=2).run(tests)
+          raise SystemExit(not result.wasSuccessful())
+          PY
