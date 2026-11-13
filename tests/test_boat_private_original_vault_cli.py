@@ -151,5 +151,59 @@ class VaultCliTests(unittest.TestCase):
         self.assertEqual(report['retained_originals'],2)
 
 
+
+class GithubOwnerReadRetryContractTests(unittest.TestCase):
+    """Only exact GitHub archive and owner-run reads get bounded transient retry."""
+
+    def test_parent_owner_run_metadata_is_retried_then_exact_bytes_returned(self):
+        endpoint = 'actions/runs/43348227701'
+        calls = []
+        expected = b'{"id":43348227701}'
+
+        def flaky(path):
+            calls.append(path)
+            if len(calls) < 3:
+                raise ValueError('VAULT_GITHUB_READ_DENIED_OR_UNAVAILABLE')
+            return expected
+
+        with patch.object(cli, '_gh_once', side_effect=flaky), patch.object(cli.time, 'sleep') as sleep:
+            self.assertEqual(cli._gh(endpoint), expected)
+        self.assertEqual(calls, [endpoint] * 3)
+        self.assertEqual([args.args[0] for args in sleep.call_args_list], [2, 4])
+
+    def test_parent_owner_run_metadata_exhausts_then_fails_closed(self):
+        endpoint = 'actions/runs/43348227701'
+        with patch.object(cli, '_gh_once', side_effect=ValueError(
+                'VAULT_GITHUB_READ_DENIED_OR_UNAVAILABLE')) as read, patch.object(
+                cli.time, 'sleep') as sleep:
+            with self.assertRaisesRegex(ValueError, 'VAULT_GITHUB_READ_DENIED_OR_UNAVAILABLE'):
+                cli._gh(endpoint)
+        self.assertEqual(read.call_count, 3)
+        self.assertEqual([args.args[0] for args in sleep.call_args_list], [2, 4])
+
+    def test_integrity_or_explicit_http_refusal_does_not_retry(self):
+        endpoint = 'actions/runs/43348227701'
+        for error in (ValueError('VAULT_LIVE_WORKFLOW_IDENTITY_INVALID'),
+                      RuntimeError('GITHUB_API_READ_HTTP_403_HALT'),
+                      RuntimeError('GITHUB_API_READ_HTTP_429_HALT')):
+            with self.subTest(error=str(error)), patch.object(
+                    cli, '_gh_once', side_effect=error) as read, patch.object(
+                    cli.time, 'sleep') as sleep:
+                with self.assertRaises(type(error)):
+                    cli._gh(endpoint)
+                self.assertEqual(read.call_count, 1)
+                sleep.assert_not_called()
+
+    def test_existing_artifact_retry_remains_bounded(self):
+        endpoint = 'actions/artifacts/14004326635'
+        with patch.object(cli, '_gh_once', side_effect=ValueError(
+                'VAULT_GITHUB_READ_DENIED_OR_UNAVAILABLE')) as read, patch.object(
+                cli.time, 'sleep') as sleep:
+            with self.assertRaises(ValueError):
+                cli._gh(endpoint)
+        self.assertEqual(read.call_count, 3)
+        self.assertEqual([args.args[0] for args in sleep.call_args_list], [2, 4])
+
+
 if __name__ == '__main__':
     unittest.main()
