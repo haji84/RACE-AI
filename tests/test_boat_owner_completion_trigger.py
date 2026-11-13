@@ -130,6 +130,24 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
         self.assertEqual(result["status"],"READY_VERIFIED_SAME_DAY_CONTINUATION")
         self.assertEqual(result["official_source_requests"],0)
 
+    def test_failed_real_owner_event_requests_aes_repair_not_blind_relaunch(self):
+        failed=dict(self.run,conclusion="failure")
+        recorded=dict(total_count=1,workflow_runs=[failed])
+        self.assertTrue(self.trusted(event(failed),hist=recorded))
+        decision=launcher.decide(
+            now=NOW,release=dict(ref="refs/heads/"+base.RELEASE_REF,
+                                 object=dict(sha=base.RELEASE_SHA)),
+            owner_doc=dict(encoding="base64",content=base64.b64encode(
+                base.RELEASE_TOKEN.encode()).decode()),
+            history=recorded,continuation_proof=None)
+        self.assertFalse(decision["dispatch_allowed"])
+        self.assertTrue(decision["recovery_required"])
+
+    def test_duplicate_api_ids_and_untrusted_main_ref_hold(self):
+        duplicate=dict(total_count=2,workflow_runs=[dict(self.run),dict(self.run)])
+        self.assertFalse(self.trusted(hist=duplicate))
+        self.assertFalse(self.trusted(env=dict(self.env,GITHUB_REF="refs/heads/other")))
+
     def test_trigger_does_not_admit_successor_without_physical_control(self):
         self.assertTrue(self.trusted())
         # This is the same gate used by the CLI after the trusted event.
