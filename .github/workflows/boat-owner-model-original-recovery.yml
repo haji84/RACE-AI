@@ -10,6 +10,7 @@ on:
     branches: [main]
     paths:
       - docs/evidence/boat-owner-model-recovery-20261113.txt
+      - docs/evidence/boat-owner-model-readback-20261113.txt
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
     types: [completed]
@@ -148,7 +149,8 @@ jobs:
           assert all(r.get('status')!='ENCRYPTED_VIEW_REJECTED' for r in reports), \
               'BOAT_RECOVERY_INTEGRITY_HOLD'
           published=next((r for r in reversed(reports)
-              if r.get('status')=='ENCRYPTED_VIEW_PUBLISHED'),None)
+              if r.get('status') in ('ENCRYPTED_VIEW_PUBLISHED',
+                                    'ENCRYPTED_HISTORY_VIEW_PUBLISHED')),None)
           assert published or any(r.get('status') in (
               'SAVED_DAY_UNCHANGED','SAVED_RESULTS_ALREADY_COMPLETE')
               for r in reports), 'BOAT_RECOVERY_NOT_SAVED_OR_NOOP'
@@ -189,7 +191,13 @@ jobs:
   independent_saved_readback:
     name: Verify newest BOAT original P0/P1 inventory from encrypted Git on separate runner
     needs: recover_original
-    if: needs.recover_original.result == 'success'
+    if: >-
+      always() && (
+        needs.recover_original.result == 'success' ||
+        (github.event_name == 'push' &&
+         github.ref == 'refs/heads/main' &&
+         startsWith(github.event.head_commit.message,
+                    'boat-original-readback: sourcefree-43348227701')))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -216,6 +224,8 @@ jobs:
           GH_TOKEN: '${{ github.token }}'
           RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
           EXPECTED_CIPHER: '${{ needs.recover_original.outputs.candidate_cipher }}'
+          ORIGINAL_HISTORIC_CIPHER: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-original-readback: sourcefree-43348227701') && '52e194c99217b5dfdbd5db7d35c203cc762d91ce577a936e93ea53f642a10bee' || '' }}"
+          OWNER_RUN_CREATED_AT: '${{ github.event.workflow_run.created_at }}'
         run: |
           python - <<'PY'
           import json,re,race_ai
@@ -229,14 +239,22 @@ jobs:
           from race_ai import saved_view_feed as F,retained_model_pdca_audit as P
           root=_environment(Path('.').resolve())
           bridge=SavedResultBridge(root,now=datetime.now(timezone.utc))
-          target='2026-11-13'
+          import os
+          from datetime import timedelta
+          event_at=os.environ.get('OWNER_RUN_CREATED_AT') or ''
+          if event_at:
+              run_created=datetime.fromisoformat(event_at.replace('Z','+00:00'))
+              target=(run_created+timedelta(hours=9)).date().isoformat()
+          else:
+              target='2026-11-13'
           try:
               parent,cipher,generation,view=F.current_view(bridge.git,bridge.bootstrap,day=target)
           except ValueError:
               print(json.dumps(dict(status='HOLD_NO_NEW_EVENT_DAY_SAVED',
                   day=target,source_provider_gets=0,private_sources_published=False)))
               raise SystemExit(0)
-          expected='${{ needs.recover_original.outputs.candidate_cipher }}'
+          expected=(os.environ.get('EXPECTED_CIPHER') or
+              os.environ.get('ORIGINAL_HISTORIC_CIPHER') or '')
           if expected:
               assert re.fullmatch('[a-f0-9]{64}',expected) and cipher==expected, \
                   'INDEPENDENT_CIPHER_READBACK_MISMATCH'
