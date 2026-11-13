@@ -697,6 +697,12 @@ jobs:
           round: '24'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
           prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Commit clean worker handoff after all physical rounds
+        # This is NOT a fixed daily round cap. The next authorized worker
+        # inherits the same AES original receipts and monotone source counters.
+        # A failed/skipped source step cannot be made successful here.
+        if: success() && steps.repeat_start.outputs.session_ready == 'true'
+        run: python scripts/github_existing_cycle.py repeat-handoff
       - name: Require explicit research READY or retain an honest HOLD
         if: always() && startsWith(github.event.head_commit.message, 'boat-grid-forward:')
         run: python -m scripts.boat_prospective_forward finalize
