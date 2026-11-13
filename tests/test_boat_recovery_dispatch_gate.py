@@ -83,13 +83,22 @@ class RecoveryGateTests(unittest.TestCase):
         proof=deepcopy(self.proof);proof['latest_control']['lifetime_requests']=0
         self.assertFalse(gate.decide(**self.args,recovery_proof=proof)['dispatch_allowed'])
 
-    def test_source_hold_and_no_remaining_request_budget_do_not_resume(self):
+    def test_source_hold_and_counter_contradiction_do_not_resume(self):
         for change in (dict(source_wait={'state':'AUTHORIZATION_WAIT'}),
-                       dict(previous_session_requests=220,lifetime_requests=220)):
+                       dict(previous_session_requests=221,lifetime_requests=220)):
             args,proof=evidence()
             original=proof['repairs'][0]['original_control'];fixed=proof['repairs'][0]['control']
             original.update(change);fixed.update(change);args['continuation_proof']=original
             self.assertFalse(gate.decide(**args,recovery_proof=proof)['dispatch_allowed'])
+
+    def test_verified_recovery_can_continue_after_310_authentic_gets(self):
+        args, proof=evidence()
+        for control in (args['continuation_proof'], proof['repairs'][0]['original_control'],
+                        proof['repairs'][0]['control'],proof['latest_control']):
+            control.update(previous_session_requests=310,lifetime_requests=310)
+        out=gate.decide(**args,recovery_proof=proof)
+        self.assertTrue(out['dispatch_allowed'])
+        self.assertEqual(out['status'],'READY_VERIFIED_RECOVERED_OWNER_CONTINUATION')
 
     def test_existing_new_day_and_successful_continuation_remain_available(self):
         args=deepcopy(self.args);args['history']=dict(total_count=0,workflow_runs=[])
