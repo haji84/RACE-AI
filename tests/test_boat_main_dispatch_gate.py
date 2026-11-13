@@ -130,7 +130,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertEqual(approved['official_source_requests'],0)
         self.assertFalse(approved['future_real_forecast_proven'])
 
-    def test_handoff_requires_complete_round_and_unexpired_budget(self):
+    def test_handoff_requires_complete_round_and_authentic_counters(self):
         from copy import deepcopy
         run,control=self._safe_same_day_successor()
         def verdict(c,rows=None):
@@ -143,8 +143,8 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
             lambda c:c.update(source_wait=dict(state='SOURCE_REVIEW_WAIT',reason='SOURCE_VERIFICATION_REQUIRED')),
             lambda c:c.update(previous_halted_reason='SOURCE_VERIFICATION_REQUIRED'),
             lambda c:c.pop('day_start_lifetime_requests'),
-            lambda c:c.update(day_start_lifetime_requests=0,lifetime_requests=239),
-            lambda c:c.update(day_start_lifetime_requests=100,lifetime_requests=300),
+            lambda c:c.update(day_start_lifetime_requests=-1),
+            lambda c:c.update(day_start_lifetime_requests=131,lifetime_requests=130),
             lambda c:c.update(previous_run_id=102),
             lambda c:c['receipt'].update(created_at='2026-11-11T00:11:00Z'),
             lambda c:c['receipt'].update(digest='sha256:'+'x'*64),
@@ -157,6 +157,17 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertFalse(verdict(control,[changed])['dispatch_allowed'])
         self.assertFalse(verdict(control,[run,run])['dispatch_allowed'])
         self.assertFalse(verdict(control,[dict(run,status='in_progress')])['dispatch_allowed'])
+
+    def test_authenticated_400_get_successor_is_not_rejected_by_240_quota(self):
+        run,control=self._safe_same_day_successor()
+        control.update(previous_stop_reason='WORKER_HANDOFF',
+                       lifetime_requests=500,day_start_lifetime_requests=100,
+                       previous_session_requests=400)
+        out=decide(now=NOW,release=release(),owner_doc=source_doc(RELEASE_TOKEN),
+                   history=history(run),continuation_proof=control)
+        self.assertEqual(out['status'],'READY_VERIFIED_SAME_DAY_CONTINUATION')
+        self.assertTrue(out['dispatch_allowed'])
+        self.assertEqual(out['official_source_requests'],0)
 
     def test_overnight_active_owner_run_blocks_another_writer(self):
         previous={"name": WORKFLOW, "head_branch": RELEASE_REF,
