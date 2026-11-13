@@ -24,13 +24,13 @@ jobs:
       (github.event_name != 'workflow_run' ||
        (github.event.workflow_run.conclusion == 'success' &&
         github.event.workflow_run.head_branch == 'gh-pages' &&
-        github.event.workflow_run.head_sha == 'e3230146001bc1cf6e610a03da38bfa69d4282b8'))
+        github.event.workflow_run.head_repository.full_name == github.repository))
     runs-on: ubuntu-24.04
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: e3230146001bc1cf6e610a03da38bfa69d4282b8
+          ref: f60308ef7443ca13b5ca23c4896e15ffc67b0427
           persist-credentials: false
       - name: Match GitHub Pages HTTP response bytes to deployed SHA and manifest
         run: |
@@ -41,7 +41,7 @@ jobs:
           manifest=json.loads(Path('site-build.json').read_bytes())
           assert manifest['schema']=='RACE_AI_SAVED_PAGES_BUILD_V1'
           assert manifest['forecast_sha256']=='4169db99a1d99bbcf96c8fa1bfb076ed2d2fb1f434fc64cf7e43b38e55f5adda'
-          selected=('index.html','app.js','owner-formal.js','saved-performance.js','saved-view-crypto.js')
+          selected=('index.html','app.js','saved-performance.js','saved-view-crypto.js')
           index=Path('index.html').read_text()
           for path in selected:
               local=Path(path).read_bytes()
@@ -49,7 +49,7 @@ jobs:
               assert manifest['files'][path]=={'bytes':len(local),'sha256':digest},'SAVED_PAGES_MANIFEST_MISMATCH'
               if path.endswith('.js'):
                   assert './'+path+'?v='+digest[:12] in index,'INDEX_SCRIPT_VERSION_MISMATCH'
-              url=base+path+'?verify=e3230146001bc1cf6e610a03da38bfa69d4282b8'
+              url=base+path+'?verify=f60308ef7443ca13b5ca23c4896e15ffc67b0427'
               request=urllib.request.Request(url,headers={
                   'User-Agent':'RACE-AI-owner-pages-public-proof/1',
                   'Cache-Control':'no-cache'})
@@ -60,12 +60,13 @@ jobs:
                   body=response.read(len(local)+1)
               assert body==local and hashlib.sha256(body).hexdigest()==digest,'LIVE_PAGES_BYTES_DIFFER'
           assert '<section id="boat-owner-formal-proof"' in index
-          assert 'owner-formal.js?v=e5a1d9e4d612' in index
-          assert 'app.js?v=db44144da964' in index
+          assert 'owner-formal.js' not in index and 'owner-formal.js' not in manifest['files']
+          assert b'RaceOwnerFormal' in Path('app.js').read_bytes()
+          assert 'app.js?v=b7968390d2a9' in index
           print(json.dumps({
               'status':'BOAT_HARDENED_LIVE_PAGES_HTTP_MATCH',
               'paths_checked':list(selected),
-              'page_sha':'e3230146001bc1cf6e610a03da38bfa69d4282b8',
+              'page_sha':'f60308ef7443ca13b5ca23c4896e15ffc67b0427',
               'original_encrypted_forecasts_unchanged':True,
               'official_racing_provider_gets':0},sort_keys=True))
           PY

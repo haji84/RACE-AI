@@ -39,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: fe9c691d453a16087a2a973f857fcdef2a567c5c
+          ref: f60308ef7443ca13b5ca23c4896e15ffc67b0427
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -64,7 +64,6 @@ jobs:
           PY
       - name: Verify JavaScript syntax
         run: |
-          node --check owner-formal.js
           node --check app.js
           node --check saved-performance.js
           node --check product-data.js
@@ -77,11 +76,11 @@ jobs:
           assert obj['schema']=='RACE_AI_SAVED_PAGES_BUILD_V1'
           assert obj['forecast_sha256']=='4169db99a1d99bbcf96c8fa1bfb076ed2d2fb1f434fc64cf7e43b38e55f5adda'
           index=Path('index.html').read_text()
-          for path in ('app.js','index.html','owner-formal.js','saved-performance.js'):
+          for path in ('app.js','index.html','saved-performance.js'):
               raw=Path(path).read_bytes()
               expected=obj['files'][path]
               assert expected=={'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()},path
-          for path in ('owner-formal.js','app.js'):
+          for path in ('app.js',):
               sha=obj['files'][path]['sha256']
               assert index.count('./'+path+'?v='+sha[:12])==1,path
           assert '<section id="boat-owner-formal-proof"' in index
@@ -94,7 +93,13 @@ jobs:
       - name: Synthetic negative/positive browser summary contract (zero provider GET)
         run: |
           node - <<'JS'
-          const O=require('./owner-formal.js');
+          const fs=require('fs'),vm=require('vm');
+          const script=fs.readFileSync('./app.js','utf8');
+          const boundary='\n"use strict";\n/* PR #62 page shell';
+          if(!script.includes(boundary))throw new Error('INLINE_OWNER_BOUNDARY_MISSING');
+          const holder={exports:{}};
+          vm.runInNewContext(script.split(boundary)[0],{module:holder,URL});
+          const O=holder.exports;
           if(O.DAY!=='2026-11-12'||!O.EVIDENCE.endsWith('/43339230921'))process.exit(1);
           const ids=['boat-observed-pairwise-factor-v1','boat-observed-pairwise-start-v1'];
           const results=[];
@@ -157,7 +162,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: fe9c691d453a16087a2a973f857fcdef2a567c5c
+          ref: f60308ef7443ca13b5ca23c4896e15ffc67b0427
           path: site
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -208,7 +213,13 @@ jobs:
           const fs=require('fs');
           const Product=require('./site/product-data.js');
           const Perf=require('./site/saved-performance.js');
-          const Owner=require('./site/owner-formal.js');
+          const vm=require('vm');
+          const full=fs.readFileSync('./site/app.js','utf8');
+          const boundary='\n"use strict";\n/* PR #62 page shell';
+          if(!full.includes(boundary))throw new Error('INLINE_OWNER_BOUNDARY_MISSING');
+          const holder={exports:{}};
+          vm.runInNewContext(full.split(boundary)[0],{module:holder,URL});
+          const Owner=holder.exports;
           try{
             const view=Product.parse(JSON.parse(fs.readFileSync(0,'utf8')));
             const rows=view.records.filter(r=>r.event_date_jst===Owner.DAY&&r.sport==='boat');
@@ -301,7 +312,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: e3230146001bc1cf6e610a03da38bfa69d4282b8
+          ref: f60308ef7443ca13b5ca23c4896e15ffc67b0427
           persist-credentials: false
       - name: Reopen actual public Pages HTML, app, model and decrypt assets via HTTP
         run: |
@@ -311,8 +322,7 @@ jobs:
           base='https://haji84.github.io/RACE-AI/'
           manifest=json.loads(Path('site-build.json').read_bytes())
           assert manifest['schema']=='RACE_AI_SAVED_PAGES_BUILD_V1'
-          selected=('index.html','app.js','owner-formal.js',
-                    'saved-performance.js','saved-view-crypto.js')
+          selected=('index.html','app.js','saved-performance.js','saved-view-crypto.js')
           html=Path('index.html').read_text()
           for path in selected:
               raw=Path(path).read_bytes()
@@ -331,6 +341,6 @@ jobs:
               assert body==raw,'BOAT_DEPLOYED_PAGES_BYTES_CHANGED'
           assert '<section id="boat-owner-formal-proof"' in html
           print(json.dumps(dict(status='BOAT_AUTOMATIC_SITE_AES_AND_HTTP_PARITY_VERIFIED',
-              assets=5,official_provider_gets=0,source_state_mutations=0,
+              assets=4,official_provider_gets=0,source_state_mutations=0,
               original_forecast_rewrites=0),sort_keys=True))
           PY
