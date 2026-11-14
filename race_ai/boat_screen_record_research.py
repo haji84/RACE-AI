@@ -3,8 +3,10 @@
 A research-only, ordinary browser-display recorder inspired by the existing
 KEIRIN Playwright capture. No media stream extraction, DRM/login bypass,
 bulk crawler, secret fallback, scheduler, forecast generation or result input.
-The site owner still must authorize source use under applicable rules; a mock
-fixture receipt is NOT actual permission. The output is never a production P1.
+Private use and non-enjoyment analysis may be permitted under applicable law
+without a separate written license. A caller must explicitly acknowledge that
+limited personal-research scope; a mock receipt is NOT legal verification.
+The output is never a production P1 or a public video.
 """
 import base64
 from datetime import datetime, timedelta, timezone
@@ -39,8 +41,8 @@ def _utc(value):
     return value.astimezone(timezone.utc)
 
 
-def preflight(source,grant,*,now,verify_grant=None):
-    """Independent grant is required BEFORE navigating to a source page."""
+def preflight(source,grant,*,now,verify_grant=None,personal_use_acknowledged=False):
+    """Require a verified grant OR explicit owner-attested private research."""
     try:
         if not isinstance(now,datetime) or now.utcoffset() is None:
             return _hold("HOLD_SCREEN_CLOCK_INVALID")
@@ -67,6 +69,17 @@ def preflight(source,grant,*,now,verify_grant=None):
                 (play!='展示リプレイ' and
                  re.fullmatch(r'button(?:#[a-zA-Z][a-zA-Z0-9_-]*)?',play) is None)):
             return _hold("HOLD_SCREEN_SOURCE_INVALID")
+        # Distinguish an operator-acknowledged limited personal use from a
+        # legally verified grant. Never pretend a checkbox verifies rights.
+        # Page identity, cutoff, no login/DRM bypass and ciphertext remain
+        # unchanged. Mixing attestation and a grant is deliberately refused.
+        if personal_use_acknowledged is True:
+            if grant is not None:
+                return _hold("HOLD_SCREEN_RIGHTS_SCOPE_CONFLICT")
+            return dict(_hold("READY_OWNER_ATTESTED_PRIVATE_SCREEN_RESEARCH_ONLY"),
+                        rights_basis="OPERATOR_ATTESTED_PRIVATE_RESEARCH",
+                        rights_independently_verified=False,
+                        source_page_sha256=sha256(raw.encode()).hexdigest())
         if (type(grant) is not dict or set(grant)!={"schema","race_id","page_url",
             "rights_evidence_sha256","grant_type","permitted_uses","valid_from",
             "valid_until","private_only"} or
@@ -192,15 +205,17 @@ async def _visible_state(page):
 
 async def record_screen(browser,source,grant,*,verify_grant,now,aes_key,
                         fixture_loader=None,timeout_seconds=30,
-                        verify_page_identity=None):
+                        verify_page_identity=None,personal_use_acknowledged=False):
     """Record one ordinary visible HTML5 replay, then encrypt the screen WebM.
 
     In fixture mode the supplied loader sets LOCAL HTML only, and the output
     is labelled synthetic. A live run requires current clock plus independent
     rights proof and ordinary exact-page navigation; it is never a P1 proof.
     """
-    status=preflight(source,grant,now=now,verify_grant=verify_grant)
-    if status["status"]!="READY_PRIVATE_SCREEN_RESEARCH_ONLY":
+    status=preflight(source,grant,now=now,verify_grant=verify_grant,
+                     personal_use_acknowledged=personal_use_acknowledged)
+    if status["status"] not in ("READY_PRIVATE_SCREEN_RESEARCH_ONLY",
+                                "READY_OWNER_ATTESTED_PRIVATE_SCREEN_RESEARCH_ONLY"):
         return status
     if type(aes_key) is not bytes or len(aes_key)!=32:
         return _hold("HOLD_SCREEN_ENCRYPTION_KEY_REQUIRED")
@@ -311,6 +326,8 @@ async def record_screen(browser,source,grant,*,verify_grant,now,aes_key,
                 player_ended=ended,screen_recording_technically_verified=True,
                 production_video_forecast_proven=False,
                 public_video_approved=False,model_eligible=False,
+                rights_basis=status.get("rights_basis","INDEPENDENT_WRITTEN_GRANT"),
+                rights_independently_verified=status.get("rights_independently_verified",False),
                 source_fetch_performed=fixture_loader is None,
                 envelope=envelope)
         except (OSError,ValueError,TypeError,OverflowError,subprocess.SubprocessError,UnicodeError):
