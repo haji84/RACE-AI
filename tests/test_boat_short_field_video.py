@@ -139,7 +139,7 @@ class ReducedFieldVideoTests(unittest.TestCase):
     def test_physical_geometry_features_follow_short_roster(self):
         from tests.test_boat_video_physical_context import (
             physical_fixture,seal_evidence as seal_physical_evidence)
-        from tests.test_boat_video_calibration import seal as seal_calibration,calibrate_tracks
+        from tests.test_boat_video_calibration import seal as seal_calibration
         from race_ai.boat_video_evaluation import _media
         from race_ai.boat_video_physical_context import (
             prepare_physical_video_context,validate_physical_video_context)
