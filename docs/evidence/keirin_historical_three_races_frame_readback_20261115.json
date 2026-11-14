@@ -1,0 +1,67 @@
+{
+  "schema": "RACE_AI_KEIRIN_HISTORICAL_SOURCE_BOUND_FRAME_READBACK_V1",
+  "examined_at_jst": "2026-11-15",
+  "kind": "REAL_PRIVATE_HISTORICAL_VIDEO_REPLAY_NOT_FORMAL_RIDER_CLASSIFICATION",
+  "repository": "haji84/RACE-AI",
+  "existing_development_pr": 291,
+  "source": "OWNER_PRIVATE_LIBRARY_SAVED_AES_GCM_RECORDINGS_AND_PREVIOUSLY_SAVED_FRAME_FEATURES",
+  "source_feature_document_sha256": "2387def01a044025b5c72963e3fd93f92087966569cf4aba403db63379646337",
+  "method": {
+    "decryption": "RSA_OAEP_SHA256_KEY_UNWRAP_AND_AES_256_GCM_AUTHENTICATED_DECRYPTION",
+    "ciphertext_and_plaintext_hashes_checked": true,
+    "decoded_media": "WEBM_VP8",
+    "frame": "OpenCV VideoCapture with CAP_PROP_POS_MSEC at the saved observed second",
+    "source_frame_sha256": "SHA256 BGR bytes cropped x:299/1000..701/1000, y:303/1000..709/1000 using integer multiplication per previously used feature extractor",
+    "private_material_uploaded_to_public_repo": false,
+    "recorded_ground_truth_rider_labels_available": false
+  },
+  "races": [
+    {
+      "race_id": "202611091201",
+      "recording_sha256": "19fd939ada0ab2914f80ae99c29b9792ba7712affb2feb5ce6c28d5a87a676f1",
+      "duration_seconds": 107.44,
+      "matched_saved_frame_hashes": 54,
+      "expected_saved_frame_hashes": 54,
+      "mismatches": 0,
+      "failed_decodes": 0
+    },
+    {
+      "race_id": "202611091202",
+      "recording_sha256": "90b586e0edf46909c67da0d27d8646354b1533cced1b718fe987481757bdbd9e",
+      "duration_seconds": 98.6,
+      "matched_saved_frame_hashes": 49,
+      "expected_saved_frame_hashes": 49,
+      "mismatches": 0,
+      "failed_decodes": 0
+    },
+    {
+      "race_id": "202611091203",
+      "recording_sha256": "81f47547240428c631ef31b7bcaec42ee76f3a7f631b3005bfc768c83b3f32af",
+      "duration_seconds": 99.88,
+      "matched_saved_frame_hashes": 50,
+      "expected_saved_frame_hashes": 50,
+      "mismatches": 0,
+      "failed_decodes": 0
+    }
+  ],
+  "summary": {
+    "verified_real_recording_count": 3,
+    "decoded_saved_frames": 153,
+    "exact_frame_hash_matches": 153,
+    "unmatched_saved_frame_hashes": 0,
+    "video_to_saved_features_proven": true,
+    "individual_rider_identity_accuracy": null,
+    "rider_number_predictions_measured": 0,
+    "phase_position_accuracy": null,
+    "fully_verified_four_lap_coverage": false,
+    "formal_before_cutoff_PR71_predictions_used": 0
+  },
+  "limits": [
+    "Frame hash equality is evidence of exact replay of saved crop pixels, NOT evidence of car number or rider tracking recognition accuracy",
+    "Original video is a short replay with on-screen graphics, not a verified full four-lap timeline",
+    "Past chat forecasts are not retroactively frozen; never enter formal training/performance",
+    "Independently labeled rider IDs and video rights are not established by the frame hashes",
+    "Raw video, decrypted frames and owner private key must stay owner-private and off public repository"
+  ],
+  "status": "HISTORICAL_VIDEO_FRAME_INTEGRITY_VERIFIED_RIDER_IDENTIFICATION_NOT_YET_GRADED"
+}
