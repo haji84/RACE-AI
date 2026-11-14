@@ -160,6 +160,8 @@ class ReducedFieldVideoTests(unittest.TestCase):
                 manifest=seal_calibration(manifest)
                 evidence['report_sha256']=report['report_sha256']
                 evidence['roster']=deepcopy(report['roster'])
+                for comparison in evidence['comparisons'].values():
+                    comparison['calibration_evidence_sha256']=manifest['calibration_sha256']
                 evidence=seal_physical_evidence(evidence)
                 args['roster']=deepcopy(report['roster'])
                 result=prepare_physical_video_context(report,evidence,manifest,**args)
