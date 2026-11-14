@@ -186,6 +186,59 @@ class ReducedFieldVideoTests(unittest.TestCase):
                 self.assertEqual(support[-len(FEATURE_IDS):],[0]*len(FEATURE_IDS))
                 self.assertTrue(all(v[-4:]==[0.,0.,0.,0.] for v in values.values()))
 
+    def test_actual_experimental_video_models_generate_3_4_5_active_roster_predictions(self):
+        from tests.test_boat_video_connection import VideoConnectionTests,controlled_connection
+        from race_ai.boat_video_connection import connect_report
+        from race_ai.boat_observed_pairwise_models import predict_pair,MODEL_IDS
+        VideoConnectionTests.setUpClass()
+        for active in ACTIVE_CASES:
+            with self.subTest(active=active):
+                report,evidence,inputs,old_verifier,instant=controlled_connection(VideoConnectionTests.training)
+                active_set=set(active)
+                report['roster']=[r for r in report['roster'] if r['lane'] in active_set]
+                report['tracking']['tracks']=[r for r in report['tracking']['tracks'] if r['lane'] in active_set]
+                params=report['analysis_parameters']
+                params['phase_windows']={n:w for n,w in params['phase_windows'].items() if int(n) in active_set}
+                report['measurements']=measure_tracks(report['tracking']['tracks'],
+                    coordinate_space='REFERENCE_IMAGE_PX',
+                    phase_windows=params.get('phase_windows'),start_gate=params.get('start_gate'),
+                    max_gap_seconds=params.get('max_gap_seconds',.3))
+                report=reseal(report)
+                evidence['roster']=deepcopy(report['roster'])
+                evidence['identities']=[v for v in evidence['identities'] if v['lane'] in active_set]
+                evidence['report_sha256']=report['report_sha256']
+                for comparison in evidence['comparisons'].values():
+                    comparison['uncertainty_by_lane']={
+                        str(n):value for n,value in comparison['uncertainty_by_lane'].items()
+                        if int(n) in active_set}
+                evidence=seal_evidence(evidence)
+                snapshot=inputs['snapshot']
+                snapshot['participants']=[p for p in snapshot['participants'] if p['lane'] in active_set]
+                inputs['baseline_suite']=predict_pair(snapshot,allow_source=lambda *_:True)
+                context=prepare_video_context(report,evidence,race_id=report['race_id'],
+                    cutoff_at=report['cutoff_at'],roster=report['roster'],
+                    as_of=inputs['video_context']['as_of'])
+                self.assertTrue(context['eligible_for_research'])
+                inputs['video_context']=context
+                receipt=inputs['video_receipt']
+                proof=dict(context_sha256=context['context_sha256'],id=receipt['id'],
+                           digest=receipt['digest'],created_at=receipt['created_at'])
+                def verifier(value,context_sha256,as_of):
+                    return deepcopy(proof) if value==receipt and context_sha256==context['context_sha256'] else None
+                result=connect_report(report,identity_evidence=evidence,
+                    model_inputs=inputs,receipt_verifier=verifier,clock=lambda:instant)
+                self.assertEqual(result['status'],'CONNECTED_EXPERIMENTAL')
+                self.assertEqual(len(result['shadows']),len(MODEL_IDS))
+                from math import perm,isclose,fsum
+                for shadow in result['shadows']:
+                    self.assertFalse(shadow['production_eligible'])
+                    self.assertEqual(shadow['candidate_count'],perm(len(active),3))
+                    self.assertEqual(len(shadow['candidates']),perm(len(active),3))
+                    self.assertEqual(len(shadow['ordered_top8']),min(8,perm(len(active),3)))
+                    self.assertTrue(isclose(fsum(c['score'] for c in shadow['candidates']),1.0,
+                                            abs_tol=1e-8))
+                    self.assertTrue(all(set(x['combination'])<=active_set for x in shadow['candidates']))
+
     def test_original_ab_probability_supports_active_3_4_5_without_phantom_permutations(self):
         for active in ACTIVE_CASES:
             with self.subTest(active=active):
