@@ -104,7 +104,8 @@ def result(order=None, *, published_at=None):
 
 
 def compare(observations=None, *, frozen_doc=None, permission=None,
-            verified_frame=True, original=False, official=None, result_ok=False):
+            verified_frame=True, original=False, official=None,
+            result_ok=False, prospective=False):
     observations = all_stages() if observations is None else observations
     permission = admitted(observations) if permission is None else permission
     return score_six_phases(
@@ -114,6 +115,7 @@ def compare(observations=None, *, frozen_doc=None, permission=None,
         rights_verifier=lambda admission, purpose: True,
         official_result=official,
         official_result_verifier=lambda o: result_ok,
+        prospective_window_verifier=lambda o: prospective,
     )
 
 
@@ -254,6 +256,32 @@ class PostRaceStageScoreTests(unittest.TestCase):
         with self.assertRaisesRegex(PhaseError, "OFFICIAL_RESULT_SOURCE_REQUIRED"):
             compare(obs, official=bad_result, result_ok=True)
 
+    def test_admission_review_time_and_frame_time_are_enforced(self):
+        obs = [stage("GOAL", 161)]
+        early = admitted(obs, reviewed_at=(CUT - timedelta(seconds=1)).isoformat())
+        with self.assertRaisesRegex(PhaseError, "POST_RACE_VIDEO_REVIEW_REQUIRED"):
+            compare(obs, permission=early)
+        changed = admitted(obs)
+        changed["reviewed_scene_frames"][0]["time_s"] = 15
+        changed["admission_sha256"] = digest({
+            k: v for k, v in changed.items() if k != "admission_sha256"})
+        with self.assertRaisesRegex(PhaseError, "PHASE_FRAME_TIME_NOT_ATTESTED"):
+            compare(obs, permission=changed)
+
+    def test_replayed_frame_cannot_be_claimed_as_live_phase(self):
+        obs = [stage("GOAL", 161)]
+        a = admitted(obs)
+        a["reviewed_scene_frames"][0]["label"] = "REPLAY"
+        a["admission_sha256"] = digest({
+            k: v for k, v in a.items() if k != "admission_sha256"})
+        with self.assertRaisesRegex(PhaseError, "REPLAY_FRAME_CANNOT_PROVE_LIVE_PHASE"):
+            compare(obs, permission=a)
+
+    def test_reordered_stage_names_are_rejected_even_if_timestamps_increase(self):
+        obs = [stage("GOAL", 39), stage("BELL", 161)]
+        with self.assertRaisesRegex(PhaseError, "STAGES_NOT_IN_PHASE_ORDER"):
+            compare(obs)
+
     def test_result_never_goes_into_pre_race_phase_inference(self):
         obs = [stage("GOAL", 161)]
         with self.assertRaisesRegex(PhaseError, "POST_CUTOFF_OFFICIAL_RESULT_REQUIRED"):
@@ -284,8 +312,13 @@ class PostRaceStageScoreTests(unittest.TestCase):
         # A simulated attestor handshake is still synthetic CI evidence.
         obs = [stage("GOAL", 161)]
         admitted_real = admitted(obs, synthetic=False)
+        without_schedule = compare(
+            obs, permission=admitted_real, original=True,
+            official=result(), result_ok=True)
+        self.assertEqual(without_schedule["status"], "RESEARCH_SCORE_ONLY_NOT_FORMAL")
+        self.assertFalse(without_schedule["independent_prospective_window_attested"])
         r = compare(obs, permission=admitted_real, original=True,
-                    official=result(), result_ok=True)
+                    prospective=True, official=result(), result_ok=True)
         self.assertEqual(r["status"], "FORMAL_INPUT_ATTESTED_RESEARCH_SCORE")
         self.assertTrue(r["formal_evaluation_inputs_attested"])
         self.assertTrue(r["learning_candidate_only"])
