@@ -28,3 +28,16 @@ source-freeローカル回帰：`python -m unittest tests.test_boat_video_connec
 5. 本番候補が揃った時点で、作成元のSHA・ソースアクセス・権限・原本不変性・全CIを本人が承認した上で初めてリリースを検討する。
 
 本PRは作業の基準を作る研究PRであり、実データの自動取得や本番導入を無断で行うものではない。
+
+
+## ローカル実動画デコード経路の追加確認（合成映像）
+
+公式映像・所有者の実撮影素材は使わず、FFmpegで3秒間・320×240・12fpsの単純な色付き矩形を含む合成MP4を生成した。既存`scripts/boat_video_analyze.py`の**実FFmpeg/実OpenCV経路**で解析し、`save_evaluation`による非公開0600レポートを`read_evaluations`で再読込した。
+
+- 合成MP4 SHA256：`cb40c7b950c014d4d63ed0536aed5c785e1929a99afc9689bdf83e1db745705f`
+- 生成レポート SHA256：`4f998ef16c78737c5e2e4be36e42f98c18ef416f6820f1d073dee468e80fa03b`
+- 実ファイル読込・映像デコード・封印レポート：成功
+- 六艇候補の表示：6、実際に数値測定できたphase：0
+- `dataset_status=SYNTHETIC_ONLY`、`validation_status=UNVALIDATED`、`model_eligible=False`
+
+**このテストは展示映像の艇番識別・実測性能・予想生成を証明しない。** 初回、作業ディレクトリのsetgid許可ビットが0600/0700制約を満たさず拒否された。所有者専用の正しい0700へ修正すると成功した。本番保護のため、この権限検査は弱めていない。合成メディアも非公開の試験領域から本番・Public Gitへコピーしていない。
