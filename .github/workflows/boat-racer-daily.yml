@@ -6,6 +6,7 @@ on:
       - .github/workflows/boat-racer-daily.yml
       - scripts/boat_main_dispatch_gate.py
       - tests/test_boat_main_dispatch_gate.py
+      - tests/test_boat_early_start_gate.py
   push:
     branches: [main]
     paths: [docs/evidence/racer-daily-refresh-trigger.txt, docs/evidence/racer-intraday-refresh-trigger.txt, docs/evidence/owner-pdca-main-trigger.txt]
@@ -104,7 +105,7 @@ jobs:
           ref: '${{ github.event.pull_request.head.sha }}'
           persist-credentials: false
       - name: Run real existing main dispatcher and recovery unit tests
-        run: python -m unittest tests.test_boat_main_dispatch_gate tests.test_boat_owner_completion_trigger tests.test_boat_first_p0_recovery_gate -v
+        run: python -m unittest tests.test_boat_main_dispatch_gate tests.test_boat_early_start_gate tests.test_boat_owner_completion_trigger tests.test_boat_first_p0_recovery_gate -v
       - name: Verify pinned exact DOM proof and absence of provider GET in PR
         run: |
           python - <<'PY'
