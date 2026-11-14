@@ -32,9 +32,10 @@ def evaluate_encrypted_screen(envelope, job, *, aes_key, clock,
         if (type(fixture) is not bool or
                 checked['race_id']!=envelope.get('race_id') or
                 source['media_sha256']!=envelope.get('media_sha256') or
-                source['captured_at']!=envelope.get('captured_at') or
-                (fixture and (source['kind'],source['identity_status'])!=
-                   ('SYNTHETIC_TEST','SYNTHETIC')) or
+                source['captured_at']!=envelope.get('captured_at')):
+            return _hold('HOLD_SCREEN_JOB_OR_ORIGINAL_INVALID')
+        if ((fixture and (source['kind'],source['identity_status'])!=
+                  ('SYNTHETIC_TEST','SYNTHETIC')) or
                 not fixture and source['kind'] not in ('OWNER_LOCAL','OFFICIAL_BROWSER_CAPTURE')):
             return _hold('HOLD_SCREEN_DATASET_SCOPE_MISMATCH')
         if not fixture:
