@@ -47,6 +47,20 @@ class GitHubScheduleFallbackContract(unittest.TestCase):
         self.assertIn("cancel-in-progress: false", self.main)
         self.assertIn("temporary-artifact-receipts.json", self.main)
 
+    def test_zero_clips_avoid_false_s3_failure_but_never_claim_archive(self):
+        archive = self.main.split(
+            '      - name: Owner-private S3 upload must fail visibly if configured and readback fails',1
+        )[1].split('      - name: Report actual capture, source unknowns and durability separately',1)[0]
+        self.assertIn('CAPTURE_REPORT_REQUIRED_BEFORE_ARCHIVE',archive)
+        self.assertIn('INVALID_ENCRYPTED_VIDEO_COUNT',archive)
+        self.assertIn('HOLD_NO_ENCRYPTED_VIDEO_TO_ARCHIVE',archive)
+        zero = archive.index('if [ "$verified_clips" = "0" ]; then')
+        storage = archive.index('if [ -z "$ARCHIVE_BUCKET" ]; then')
+        self.assertLess(zero,storage)
+        self.assertIn('exit 0',archive[zero:storage])
+        self.assertIn('exit 1',archive[storage:])
+        self.assertNotIn('DURABLE_CIPHERTEXT_READBACK_VERIFIED',archive[zero:storage])
+
     def test_no_private_storage_must_not_look_like_success(self):
         self.assertRegex(
             self.main,
