@@ -98,6 +98,7 @@ async def capture_one(browser, source, root, public_key, *, on_verified_plaintex
             # Never probe the player or create a new capture after 403/429.
             if entry["http_status"] in (403, 429):
                 entry["technical_status"]="SOURCE_ACCESS_DENIED_NO_RETRY"
+                entry["failure_before_integrity_check"]="SOURCE_ACCESS_DENIED_NO_RETRY"
             elif entry["http_status"]!=200:
                 entry["technical_status"]="SOURCE_HTTP_NOT_OK"
             else:
