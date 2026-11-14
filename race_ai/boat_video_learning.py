@@ -94,7 +94,7 @@ def video_vectors(snapshot, video_context=None):
         values = {lane: Fraction(str(cell['value'])) for lane, cell in cells.items()}
         errors = {lane: Fraction(str(cell['uncertainty'])) for lane, cell in cells.items()}
         span = max(values.values())-min(values.values()) if values else Fraction(0)
-        for lane in range(1, 7):
+        for lane in sorted(vectors):
             contrast = Fraction(0)
             if span and lane in values:
                 for other in values:
@@ -103,7 +103,7 @@ def video_vectors(snapshot, video_context=None):
                     delta = values[lane]-values[other]
                     if abs(delta) > errors[lane]+errors[other]:
                         contrast += delta/span
-            vectors[lane].append(float(contrast/6))
+            vectors[lane].append(float(contrast/len(vectors)))
     return vectors
 
 
@@ -156,7 +156,7 @@ def _split(records):
 
 
 def _supports(records):
-    return [sum(any(row['vectors'][lane][column] != 0 for lane in range(1, 7)) for row in records)
+    return [sum(any(v[column] != 0 for v in row['vectors'].values()) for row in records)
             for column in range(len(FEATURES))]
 
 
@@ -403,7 +403,7 @@ def make_video_shadows(snapshot, baseline_suite, context, video_context, *, rece
             training_receipt=deepcopy(receipt), video_context=deepcopy(admitted), video_receipt_proof=proof,
             video_receipt=deepcopy(video_context['receipt']), video_context_sha256=admitted['context_sha256'],
             baseline_model_sha256=baseline_suite['models'][mid]['prediction_sha256'],
-            candidates=ranked, ordered_top8=[row['combination'] for row in ranked[:8]], candidate_count=120,
+            candidates=ranked, ordered_top8=[row['combination'] for row in ranked[:8]], candidate_count=len(ranked),
             calibrated=False, auto_promoted=False, actual_purchases=False, production_eligible=False,
             raw_report_validation_status='UNVALIDATED', independent_human_heldout_verified=False,
             performance_claim='NOT_A_PROSPECTIVE_ACCURACY_RESULT')
