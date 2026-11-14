@@ -262,6 +262,34 @@ class ScreenRecorderRealBrowserTests(unittest.TestCase):
             self.assertFalse(context["prediction_eligible"])
             self.assertFalse(context["eligible_for_research"])
 
+    def test_acknowledged_personal_research_records_local_fixture_without_grant(self):
+        from playwright.async_api import async_playwright
+        from race_ai.boat_screen_record_research import record_screen,unseal_screen
+        async def run():
+            async with async_playwright() as pw:
+                browser=await pw.chromium.launch(headless=True,
+                    args=["--no-sandbox","--autoplay-policy=no-user-gesture-required"])
+                try:
+                    async def local_page(page):
+                        await page.set_content('<html><body><video controls autoplay muted playsinline '+
+                            'width="320" height="240" src="data:video/webm;base64,'+
+                            self.payload+'"></video></body></html>')
+                    return await record_screen(browser,source(),None,
+                        verify_grant=None,personal_use_acknowledged=True,
+                        now=NOW,aes_key=b'k'*32,
+                        fixture_loader=local_page,timeout_seconds=12)
+                finally:
+                    await browser.close()
+        out=asyncio.run(run())
+        self.assertEqual(out["status"],"SCREEN_REPLAY_CAPTURE_ENCRYPTED_UNVALIDATED")
+        self.assertEqual(out["rights_basis"],"OPERATOR_ATTESTED_PRIVATE_RESEARCH")
+        self.assertFalse(out["rights_independently_verified"])
+        self.assertEqual(out["source_class"],"SYNTHETIC_OFFLINE_BROWSER_FIXTURE")
+        raw=unseal_screen(out["envelope"],aes_key=b'k'*32)
+        self.assertEqual(hashlib.sha256(raw).hexdigest(),out["media_sha256"])
+        self.assertFalse(out["production_video_forecast_proven"])
+        self.assertFalse(out["public_video_approved"])
+
     def test_player_not_ended_is_not_retained_as_complete_exhibition(self):
         from playwright.async_api import async_playwright
         from race_ai.boat_screen_record_research import record_screen
