@@ -181,8 +181,9 @@ class ReducedFieldVideoTests(unittest.TestCase):
                 self.assertEqual(set(values),set(active))
                 self.assertEqual({len(v) for v in values.values()},
                                  {len(baseline_features)+len(FEATURE_IDS)})
-                self.assertEqual(_supports([{'vectors':values}]),[0]*len(FEATURE_IDS)+[0]*len(baseline_features)
-                                 if False else _supports([{'vectors':values}]))
+                support=_supports([{'vectors':values}])
+                self.assertEqual(len(support),len(baseline_features)+len(FEATURE_IDS))
+                self.assertEqual(support[-len(FEATURE_IDS):],[0]*len(FEATURE_IDS))
                 self.assertTrue(all(v[-4:]==[0.,0.,0.,0.] for v in values.values()))
 
     def test_original_ab_probability_supports_active_3_4_5_without_phantom_permutations(self):
