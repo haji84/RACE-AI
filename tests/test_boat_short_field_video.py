@@ -126,12 +126,18 @@ class ReducedFieldVideoTests(unittest.TestCase):
                            for n in active])
                 output=build_pair(data,'2030-04-01T11:47:00+09:00')
                 self.assertIsNotNone(output)
-                # Every returned model is constrained by exactly the active
-                # physical lanes, even with a middle-lane withdrawal.
-                encoded=str(output)
-                self.assertTrue(encoded)
-                # Strict permutation membership is checked by native model's
-                # own input/normalization contract in its accompanying tests.
+                from math import perm,isclose,fsum
+                for model in output['models']:
+                    self.assertEqual(len(model['full_120']),perm(len(active),3))
+                    self.assertEqual(len(model['top8']),min(8,perm(len(active),3)))
+                    self.assertTrue(isclose(fsum(r['score'] for r in model['full_120']),1.0,
+                                            abs_tol=1e-8))
+                    for row in model['full_120']:
+                        indices=[int(x) for x in row['ticket'].split('-')]
+                        self.assertEqual(len(indices),3)
+                        self.assertEqual(len(set(indices)),3)
+                        self.assertTrue(set(indices)<=set(active))
+                self.assertEqual(output['actual_result_at_forecast_time'],None)
 
 
 if __name__=='__main__':unittest.main()
