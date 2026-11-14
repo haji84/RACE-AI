@@ -198,14 +198,15 @@ async def _visible_state(page):
     return None
 
 
-async def record_screen(browser,source,grant,*,verify_grant,now,aes_key,
+async def record_screen(browser,source,grant=None,*,verify_grant=None,now,aes_key,
                         fixture_loader=None,timeout_seconds=30,
                         verify_page_identity=None):
     """Record one ordinary visible HTML5 replay, then encrypt the screen WebM.
 
     In fixture mode the supplied loader sets LOCAL HTML only, and the output
-    is labelled synthetic. A live run requires current clock plus independent
-    rights proof and ordinary exact-page navigation; it is never a P1 proof.
+    is labelled synthetic. A live run requires a real current clock and verified
+    DOM race identity. An optional external grant needs its own verifier;
+    routine private research does not need repeat permission checks.
     """
     status=preflight(source,grant,now=now,verify_grant=verify_grant)
     if status["status"]!="READY_PRIVATE_SCREEN_RESEARCH_ONLY":
