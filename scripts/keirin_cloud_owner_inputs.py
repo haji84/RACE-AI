@@ -211,7 +211,8 @@ def collect_owner_inputs(inbox, *, owner_auto_confirmed, capture=None, probe=Non
         'schema':SCHEMA, 'date_jst':day,
         'state':'OWNER_ATTESTED_SOURCE_ACQUISITION_ONLY',
         'source_day_schedule_race_count':None,
-        'source_capture_held':False, 'invalid_partial_records':0,
+        'source_capture_held':False,
+        'source_capture_hold_code':'NONE', 'invalid_partial_records':0,
         'expired_or_too_close':0, 'history_races_processed':0,
         'history_races_held':0, 'history_races_deferred':0, 'races':[],
         'new_pre_race_inputs':0, 'actual_four_model_forecast_saved':False,
@@ -228,8 +229,20 @@ def collect_owner_inputs(inbox, *, owner_auto_confirmed, capture=None, probe=Non
             value = got.get(key)
             if type(value) is int and 0 <= value <= 10000:
                 out[key] = value
-    except (ValueError, OSError, KeyError, TypeError):
+    except (ValueError, OSError, KeyError, TypeError) as exc:
         out['source_capture_held'] = True
+        # Public counters only. Never print a provider response, URL, rider,
+        # failed source content or arbitrary exception in a public workflow.
+        if session.host_denied:
+            out['source_capture_hold_code'] = 'PROVIDER_ACCESS_DENIED_NO_RETRY'
+        elif session.budget_exhausted:
+            out['source_capture_hold_code'] = 'SOURCE_WORK_BUDGET_EXHAUSTED'
+        elif str(exc) == 'PUBLIC_PAGE_NOT_PUBLISHED_OR_GONE':
+            out['source_capture_hold_code'] = 'SOURCE_NOT_PUBLISHED'
+        elif str(exc) == 'PUBLIC_PAGE_NETWORK_UNAVAILABLE':
+            out['source_capture_hold_code'] = 'SOURCE_NETWORK_UNAVAILABLE'
+        else:
+            out['source_capture_hold_code'] = 'SOURCE_CAPTURE_UNAVAILABLE_OR_INVALID'
     folder = root/'winticket_racecard_partial'
     need(not folder.is_symlink(), 'PRIVATE_PARTIAL_FOLDER_SYMLINK')
     latest = {}
@@ -279,6 +292,10 @@ def collect_owner_inputs(inbox, *, owner_auto_confirmed, capture=None, probe=Non
     out['public_page_requests'] = session.requests
     out['provider_denial_stopped_requests'] = session.host_denied
     out['work_budget_exhausted'] = session.budget_exhausted
+    out['source_session_stop_code'] = (
+        'PROVIDER_ACCESS_DENIED_NO_RETRY' if session.host_denied
+        else 'SOURCE_WORK_BUDGET_EXHAUSTED' if session.budget_exhausted
+        else 'NONE')
     # Slot-level deficit totals are count-only and never source or rider
     # values. The same missing family can appear across several races.
     family_totals = {}
