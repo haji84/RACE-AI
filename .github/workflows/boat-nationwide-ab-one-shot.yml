@@ -19,6 +19,8 @@ on:
       - .github/workflows/boat-nationwide-ab-one-shot.yml
       - scripts/boat_private_original_vault.py
       - tests/test_boat_private_original_vault_cli.py
+      - race_ai/boat_national_video_research_gate.py
+      - tests/test_boat_national_video_research_gate.py
       - tests/test_boat_unbounded_forecast_policy.py
       - race_ai/repeated_cycle.py
       - race_ai/cycle_recovery.py
@@ -95,6 +97,8 @@ jobs:
           result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
           raise SystemExit(not result.wasSuccessful())
           PY_RECOVERY_TEST
+      - name: Nationwide P1 gap audit and existing video-model experimental chain (no provider GET)
+        run: python -m unittest tests.test_boat_national_video_research_gate -v
       - name: Verify existing Pages checker stage identity and private request boundary
         run: node --test tests/saved_site_check.test.cjs
   saved_view_publication:
