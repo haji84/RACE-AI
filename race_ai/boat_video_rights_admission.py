@@ -8,7 +8,7 @@ publication. It is not a substitute for legal review.
 """
 from datetime import datetime, timedelta
 from .actions_contract import digest
-from .boat_national_video_research_gate import instant, _RACE, _SHA
+from .boat_national_video_research_gate import instant, _RACE, _SHA, JST
 
 SCHEMA = 'RACE_AI_BOAT_PRIVATE_VIDEO_RIGHTS_V1'
 USES = frozenset(('PRIVATE_COPY','AUTOMATED_FRAME_ANALYSIS','RESEARCH_FORECAST_DERIVATION'))
@@ -35,6 +35,9 @@ def review(candidate,grant,*,now,verify_grant=None):
                 _SHA.fullmatch(candidate['media_sha256']) is None):
             return _hold('HOLD_VIDEO_SOURCE_INPUT_INVALID',candidate)
         captured,cutoff=instant(candidate['captured_at']),instant(candidate['cutoff_at'])
+        if (cutoff.astimezone(JST).strftime('%Y%m%d')!=rid[:8] or
+                captured.astimezone(JST).strftime('%Y%m%d')!=rid[:8]):
+            return _hold('HOLD_VIDEO_SOURCE_DAY_MISMATCH',candidate)
         if captured>=cutoff or captured<cutoff-timedelta(days=2):
             return _hold('HOLD_PRE_CUTOFF_VIDEO_SOURCE_REQUIRED',candidate)
         if now>=cutoff:
