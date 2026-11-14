@@ -1,0 +1,35 @@
+# PR-only screen recorder contract. NO permission to call the official provider.
+# No live owner job, keys, recording artifacts, website navigation or publication.
+name: BOAT private screen recording offline regression
+on:
+  pull_request:
+    branches: [production/boat-p0-p1-20261111]
+    paths:
+      - .github/workflows/boat-screen-recording-offline.yml
+      - race_ai/boat_screen_record_research.py
+      - tests/test_boat_screen_record_research.py
+permissions:
+  contents: read
+jobs:
+  offline_browser:
+    name: Real Chromium local fixture / encrypted display-only clip
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Install research-only browser and crypto without source credentials
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.56.0 cryptography==46.0.3
+          python -m playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -qq -y ffmpeg
+      - name: Exercise actual Chromium screen recorder on local HTML5 fixture only
+        env:
+          RACE_AI_RESEARCH_FIXTURE_ONLY: 'true'
+        run: |
+          python -m unittest tests.test_boat_screen_record_research -v
+          python -m unittest tests.test_boat_video_rights_admission tests.test_boat_20261113_retained_counts -v
