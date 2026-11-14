@@ -43,12 +43,19 @@ def verify_grant(value,request):
                 verified_at=NOW.isoformat())
 
 class ScreenAdmissionTests(unittest.TestCase):
-    def test_no_grant_or_no_independent_reader_cannot_open_browser(self):
-        from race_ai.boat_screen_record_research import preflight
-        self.assertEqual(preflight(source(),None,now=NOW,verify_grant=None)["status"],
-                         "HOLD_SCREEN_RIGHTS_UNAVAILABLE")
-        self.assertEqual(preflight(source(),grant(),now=NOW,verify_grant=None)["status"],
-                         "HOLD_SCREEN_RIGHTS_UNAVAILABLE")
+    def test_private_screen_research_starts_without_grant_or_extra_confirmation(self):
+        import inspect
+        from race_ai.boat_screen_record_research import preflight,record_screen
+        self.assertNotIn('personal_use_acknowledged',inspect.signature(preflight).parameters)
+        self.assertNotIn('personal_use_acknowledged',inspect.signature(record_screen).parameters)
+        out=preflight(source(),now=NOW)
+        self.assertEqual(out['status'],'READY_PRIVATE_SCREEN_RESEARCH_ONLY')
+        self.assertEqual(out['rights_basis'],'PRIVATE_RESEARCH')
+        self.assertFalse(out['rights_independently_verified'])
+        self.assertFalse(out['production_video_forecast_proven'])
+        self.assertFalse(out['public_video_approved'])
+        self.assertEqual(preflight(source(),grant(),now=NOW)['status'],
+                         'HOLD_SCREEN_RIGHTS_UNAVAILABLE')
 
     def test_exact_race_url_cutoff_and_grant_scope_are_required(self):
         from race_ai.boat_screen_record_research import preflight
@@ -70,35 +77,22 @@ class ScreenAdmissionTests(unittest.TestCase):
                                               verify_grant=verify_grant)["status"],
                                     "READY_PRIVATE_SCREEN_RESEARCH_ONLY")
 
-    def test_personal_screen_research_has_separate_opt_in_not_written_license(self):
-        from race_ai.boat_screen_record_research import preflight
-        denied=preflight(source(),None,now=NOW)
-        self.assertEqual(denied['status'],'HOLD_SCREEN_RIGHTS_UNAVAILABLE')
-        ready=preflight(source(),None,now=NOW,personal_use_acknowledged=True)
-        self.assertEqual(ready['status'],'READY_OWNER_ATTESTED_PRIVATE_SCREEN_RESEARCH_ONLY')
-        self.assertEqual(ready['rights_basis'],'OPERATOR_ATTESTED_PRIVATE_RESEARCH')
-        self.assertFalse(ready['rights_independently_verified'])
-        self.assertFalse(ready['production_video_forecast_proven'])
-        self.assertFalse(ready['public_video_approved'])
-
-    def test_personal_scope_cannot_overrule_source_or_deadline_guards(self):
+    def test_private_scope_does_not_override_source_or_deadline_guards(self):
         from race_ai.boat_screen_record_research import preflight
         for denied in (source(page_url='https://bad.example.com'),
                        source(page_url='http://race.boatcast.jp/replay?jo=03'),
                        source(cutoff_at='2030-04-02T12:00:00+09:00'),
                        source(mode='DRM_BYPASS')):
-            result=preflight(denied,None,now=NOW,personal_use_acknowledged=True)
-            self.assertNotEqual(result['status'],'READY_OWNER_ATTESTED_PRIVATE_SCREEN_RESEARCH_ONLY')
-        late=preflight(source(),None,
-                       now=datetime.fromisoformat(CUT),personal_use_acknowledged=True)
+            result=preflight(denied,now=NOW)
+            self.assertNotEqual(result['status'],'READY_PRIVATE_SCREEN_RESEARCH_ONLY')
+        late=preflight(source(),now=datetime.fromisoformat(CUT))
         self.assertEqual(late['status'],'HOLD_SCREEN_CUTOFF_NOT_SAFE')
 
-    def test_personal_screen_capture_still_requires_live_dom_race_identity(self):
+    def test_default_private_screen_capture_still_requires_live_dom_race_identity(self):
         from race_ai.boat_screen_record_research import record_screen
         fake=AsyncMock()
-        out=asyncio.run(record_screen(fake,source(),None,
-            verify_grant=None,personal_use_acknowledged=True,now=NOW,
-            aes_key=b'k'*32,fixture_loader=None,timeout_seconds=12))
+        out=asyncio.run(record_screen(fake,source(),now=NOW,aes_key=b'k'*32,
+                    fixture_loader=None,timeout_seconds=12))
         self.assertEqual(out['status'],'HOLD_SCREEN_PAGE_IDENTITY_VERIFIER_REQUIRED')
         fake.new_context.assert_not_called()
 
@@ -127,38 +121,13 @@ class ScreenAdmissionTests(unittest.TestCase):
         self.assertFalse(result["public_video_approved"])
         self.assertEqual((s,g),before)
 
-    def test_no_grant_stops_before_playwright_opens_a_page(self):
+    def test_invalid_screen_source_stops_before_browser_opens(self):
         from race_ai.boat_screen_record_research import record_screen
         fake=AsyncMock()
-        out=asyncio.run(record_screen(fake,source(),None,verify_grant=None,now=NOW,
-                                     aes_key=b"k"*32))
+        out=asyncio.run(record_screen(fake,source(page_url='https://bad.example'),now=NOW,
+                                     aes_key=b'k'*32,timeout_seconds=12))
         fake.new_context.assert_not_called()
-        self.assertEqual(out["status"],"HOLD_SCREEN_RIGHTS_UNAVAILABLE")
-
-class ScreenRecorderRealBrowserTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        from shutil import which
-        if which("ffmpeg") is None or which("ffprobe") is None:
-            raise unittest.SkipTest("ffmpeg must be installed for the real browser fixture")
-        from playwright.async_api import async_playwright
-        cls.fixture=tempfile.TemporaryDirectory()
-        cls.media=Path(cls.fixture.name)/"synthetic-replay.webm"
-        subprocess.run(["ffmpeg","-v","error","-f","lavfi","-i",
-                        "testsrc=size=320x240:rate=12","-t","2.0",
-                        "-c:v","libvpx","-b:v","400k","-an","-y",str(cls.media)],
-                       check=True,timeout=25)
-        cls.payload=base64.b64encode(cls.media.read_bytes()).decode("ascii")
-        cls.live_media=Path(cls.fixture.name)/"synthetic-live.webm"
-        subprocess.run(["ffmpeg","-v","error","-f","lavfi","-i",
-                        "testsrc=size=320x240:rate=12","-t","10.0",
-                        "-c:v","libvpx","-b:v","250k","-an","-y",str(cls.live_media)],
-                       check=True,timeout=35)
-        cls.live_payload=base64.b64encode(cls.live_media.read_bytes()).decode("ascii")
-
-    @classmethod
-    def tearDownClass(cls):
-        if hasattr(cls,"fixture"):cls.fixture.cleanup()
+        self.assertEqual(out['status'],'HOLD_SCREEN_SOURCE_INVALID')
 
     def test_browser_visible_html5_playback_is_encrypted_then_sha_reopened(self):
         from playwright.async_api import async_playwright
@@ -262,7 +231,7 @@ class ScreenRecorderRealBrowserTests(unittest.TestCase):
             self.assertFalse(context["prediction_eligible"])
             self.assertFalse(context["eligible_for_research"])
 
-    def test_acknowledged_personal_research_records_local_fixture_without_grant(self):
+    def test_default_private_research_records_local_fixture_without_grant(self):
         from playwright.async_api import async_playwright
         from race_ai.boat_screen_record_research import record_screen,unseal_screen
         async def run():
@@ -274,15 +243,14 @@ class ScreenRecorderRealBrowserTests(unittest.TestCase):
                         await page.set_content('<html><body><video controls autoplay muted playsinline '+
                             'width="320" height="240" src="data:video/webm;base64,'+
                             self.payload+'"></video></body></html>')
-                    return await record_screen(browser,source(),None,
-                        verify_grant=None,personal_use_acknowledged=True,
+                    return await record_screen(browser,source(),
                         now=NOW,aes_key=b'k'*32,
                         fixture_loader=local_page,timeout_seconds=12)
                 finally:
                     await browser.close()
         out=asyncio.run(run())
         self.assertEqual(out["status"],"SCREEN_REPLAY_CAPTURE_ENCRYPTED_UNVALIDATED")
-        self.assertEqual(out["rights_basis"],"OPERATOR_ATTESTED_PRIVATE_RESEARCH")
+        self.assertEqual(out["rights_basis"],"PRIVATE_RESEARCH")
         self.assertFalse(out["rights_independently_verified"])
         self.assertEqual(out["source_class"],"SYNTHETIC_OFFLINE_BROWSER_FIXTURE")
         raw=unseal_screen(out["envelope"],aes_key=b'k'*32)
