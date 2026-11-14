@@ -148,7 +148,7 @@ class ScreenAdmissionTests(unittest.TestCase):
                 finally:
                     await browser.close()
         outcome=asyncio.run(record())
-        self.assertEqual(outcome["status"],"SCREEN_REPLAY_CAPTURE_ENCRYPTED_UNVALIDATED")
+        self.assertEqual(outcome["status"],"SCREEN_REPLAY_CAPTURE_ENCRYPTED_UNVALIDATED",outcome.get("failure_class"))
         self.assertEqual(outcome["source_class"],"SYNTHETIC_OFFLINE_BROWSER_FIXTURE")
         self.assertIsNotNone(outcome["envelope"])
         self.assertEqual(outcome["media_sha256"],
@@ -179,7 +179,7 @@ class ScreenAdmissionTests(unittest.TestCase):
                 finally:
                     await browser.close()
         outcome=asyncio.run(record())
-        self.assertEqual(outcome["status"],"SCREEN_LIVE_WINDOW_ENCRYPTED_UNVALIDATED")
+        self.assertEqual(outcome["status"],"SCREEN_LIVE_WINDOW_ENCRYPTED_UNVALIDATED",outcome.get("failure_class"))
         self.assertEqual(outcome["source_class"],"SYNTHETIC_OFFLINE_BROWSER_FIXTURE")
         self.assertFalse(outcome["player_ended"])
         self.assertGreater(outcome["screen_duration_seconds"],3)
@@ -208,7 +208,7 @@ class ScreenAdmissionTests(unittest.TestCase):
                 finally:
                     await browser.close()
         outcome=asyncio.run(record())
-        self.assertEqual(outcome["status"],"SCREEN_REPLAY_CAPTURE_ENCRYPTED_UNVALIDATED")
+        self.assertEqual(outcome["status"],"SCREEN_REPLAY_CAPTURE_ENCRYPTED_UNVALIDATED",outcome.get("failure_class"))
         with tempfile.TemporaryDirectory() as temp:
             folder=Path(temp);folder.chmod(0o700)
             path=folder/"screen.webm"
@@ -249,7 +249,7 @@ class ScreenAdmissionTests(unittest.TestCase):
                 finally:
                     await browser.close()
         out=asyncio.run(run())
-        self.assertEqual(out["status"],"SCREEN_REPLAY_CAPTURE_ENCRYPTED_UNVALIDATED")
+        self.assertEqual(out["status"],"SCREEN_REPLAY_CAPTURE_ENCRYPTED_UNVALIDATED",out.get("failure_class"))
         self.assertEqual(out["rights_basis"],"PRIVATE_RESEARCH")
         self.assertFalse(out["rights_independently_verified"])
         self.assertEqual(out["source_class"],"SYNTHETIC_OFFLINE_BROWSER_FIXTURE")
