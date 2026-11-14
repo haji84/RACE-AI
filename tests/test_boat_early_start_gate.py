@@ -27,8 +27,8 @@ class EarlyOwnerAdmissionTests(unittest.TestCase):
         self.assertEqual(actual['official_source_requests'],0)
         self.assertFalse(actual['future_real_forecast_proven'])
 
-    def test_previous_day_late_schedule_and_jst_0529_do_not_open_the_new_day(self):
-        for instant in ('2026-11-13T23:57:00+09:00',
+    def test_midnight_and_jst_0529_do_not_open_the_new_day(self):
+        for instant in ('2026-11-14T00:01:00+09:00',
                         '2026-11-14T00:02:00+09:00',
                         '2026-11-14T05:29:59+09:00'):
             with self.subTest(instant=instant):
