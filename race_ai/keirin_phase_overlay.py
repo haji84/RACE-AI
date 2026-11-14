@@ -32,7 +32,7 @@ ATTACKS = frozenset(("NIGE", "MAKURI", "SASHI", "MAKURI_SASHI",
                      "LINE_SPLIT", "POSITION_GAIN", "OTHER"))
 UNKNOWN = "UNKNOWN"
 HEX = re.compile(r"^[a-f0-9]{64}$")
-RACE = re.compile(r"^\d{12}$")
+RACE = re.compile(r"^(?:\d{12}|keirin:\d{4}-\d{2}-\d{2}:[a-z][a-z0-9-]{2,40}:\d{1,2})$")
 
 
 class PhaseError(ValueError):
@@ -157,6 +157,50 @@ def build_phase_forecast(*, race_id, model_id, parent_prediction_sha256,
     }
     doc["phase_forecast_sha256"] = digest(doc)
     return checked_forecast(doc)
+
+
+
+def build_from_existing_pr71_saved(saved, *, model_id, stage_predictions,
+                                   clock, verified_ledger_reader=None):
+    """Bind phase hypotheses to an ACTUAL existing PR71 ledger read_suite row.
+
+    The owner runner must provide an independent callback checking source,
+    model, SHA and immutable SQLite/Git history. This function NEVER produces
+    tactical predictions from a top-eight list and NEVER backfills forecasts.
+    """
+    need(_confirmed(verified_ledger_reader, saved),
+         "EXISTING_PR71_LEDGER_NOT_INDEPENDENTLY_VERIFIED")
+    need(type(saved) is dict and
+         all(key in saved for key in (
+             "source", "suite", "source_sha256", "persisted_at")),
+         "EXISTING_PR71_SAVED_SUITE_REQUIRED")
+    source, suite = saved["source"], saved["suite"]
+    need(type(source) is dict and type(suite) is dict and
+         type(suite.get("models")) is dict and
+         model_id in KNOWN_PR71 and
+         model_id in suite["models"], "EXISTING_FOUR_MODEL_SUITE_REQUIRED")
+    model = suite["models"][model_id]
+    need(type(model) is dict and model.get("model_id") == model_id and
+         valid_sha(model.get("prediction_sha256")) and
+         valid_sha(model.get("snapshot_sha256")) and
+         valid_sha(saved.get("source_sha256")) and
+         model["snapshot_sha256"] == suite.get("input_sha256") and
+         source.get("race_id") == suite.get("race_id") and
+         source.get("official_cutoff_at") == suite.get("sales_cutoff_at") and
+         source.get("as_of") == suite.get("as_of"),
+         "PR71_LEDGER_OR_SOURCE_IDENTITY_MISMATCH")
+    need(when(source["as_of"]) <= when(saved["persisted_at"]),
+         "PR71_PARENT_TIME_ORDER_INVALID")
+    return build_phase_forecast(
+        race_id=source["race_id"],
+        model_id=model_id,
+        parent_prediction_sha256=model["prediction_sha256"],
+        pre_race_input_sha256=model["snapshot_sha256"],
+        parent_saved_at=saved["persisted_at"],
+        official_cutoff_at=source["official_cutoff_at"],
+        stage_predictions=stage_predictions,
+        clock=clock,
+    )
 
 
 def freeze_private_once(path, doc):
