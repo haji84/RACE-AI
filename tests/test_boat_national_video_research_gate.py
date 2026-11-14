@@ -4,7 +4,7 @@ Synthetic fixtures. No provider GET, private media, credentials, predictions
 on closed races, release promotion or alteration of original model outputs.
 """
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import unittest
 
 from race_ai.actions_contract import digest
@@ -75,6 +75,25 @@ class P1CoverageGateTests(unittest.TestCase):
         self.assertEqual(result['state'],'HOLD_NATIONWIDE_P1_INCOMPLETE')
         self.assertEqual(len(result['per_venue']),13)
         self.assertEqual(sum(v['scheduled'] for v in result['per_venue'].values()),156)
+
+    def test_real_cutoff_queue_eventually_admits_all_156_without_source_get(self):
+        from race_ai.boat_deadline_queue import select_due_races
+        schedule,_,_,_=example_scope()
+        lines=[dict(row,schedule_captured_at='2030-04-01T09:30:00+09:00',
+                    source_sha256='a'*64) for row in schedule]
+        closed=set()
+        for cutoff in sorted({x['cutoff_at'] for x in lines}):
+            tick=(datetime.fromisoformat(cutoff)-timedelta(minutes=12)).isoformat()
+            doc=select_due_races(lines,tick,already_frozen=frozenset(closed),max_items=None)
+            self.assertFalse(doc['forecast_generated'])
+            self.assertFalse(doc['source_fetch_performed'])
+            self.assertFalse(doc['freeze_proven'])
+            for row in doc['eligible']:
+                self.assertNotIn(row['race_id'],closed)
+                self.assertGreater((datetime.fromisoformat(row['cutoff_at'])-
+                                    datetime.fromisoformat(tick)).total_seconds(),210)
+                closed.add(row['race_id'])
+        self.assertEqual(len(closed),156)
 
     def test_incomplete_model_group_not_misreported_as_p1_complete(self):
         schedule,p0,p1,attempts=example_scope()
