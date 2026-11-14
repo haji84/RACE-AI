@@ -165,6 +165,10 @@ def freeze_private_once(path, doc):
     p = Path(path)
     need(p.parent.is_dir() and not p.parent.is_symlink() and
          not p.exists() and not p.is_symlink(), "PRIVATE_FREEZE_PATH_UNSAFE_OR_EXISTS")
+    # Reject a public checkout or world-readable parent even when the file
+    # itself would be mode 0600. Private snapshots belong in mode-0700 temp.
+    need((p.parent.stat().st_mode & 0o077) == 0,
+         "PRIVATE_FREEZE_DIRECTORY_MUST_BE_PRIVATE")
     payload = (canonical(doc) + "\n").encode("utf-8")
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
     flags |= getattr(os, "O_NOFOLLOW", 0)
