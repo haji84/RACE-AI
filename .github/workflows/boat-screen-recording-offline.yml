@@ -7,6 +7,8 @@ on:
     paths:
       - .github/workflows/boat-screen-recording-offline.yml
       - race_ai/boat_screen_record_research.py
+      - race_ai/boat_screen_model_bridge.py
+      - tests/test_boat_screen_model_bridge.py
       - tests/test_boat_screen_record_research.py
 permissions:
   contents: read
@@ -31,5 +33,5 @@ jobs:
         env:
           RACE_AI_RESEARCH_FIXTURE_ONLY: 'true'
         run: |
-          python -m unittest tests.test_boat_screen_record_research -v
+          python -m unittest tests.test_boat_screen_record_research tests.test_boat_screen_model_bridge -v
           python -m unittest tests.test_boat_video_rights_admission tests.test_boat_20261113_retained_counts -v
