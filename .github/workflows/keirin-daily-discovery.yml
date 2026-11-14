@@ -1,8 +1,6 @@
-name: KEIRIN dynamic nationwide daily race discovery
+name: KEIRIN non-Rakuten owner-saved race-day roster validation
+
 on:
-  push:
-    branches: [feat/keirin-fullcycle-worker-20261103]
-    paths: ['.github/workflows/keirin-daily-discovery.yml']
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -11,53 +9,63 @@ on:
         description: 'JST day YYYY-MM-DD (empty = today)'
         required: false
         type: string
-  schedule:
-    - cron: '8 5,7 * * *'
-      timezone: 'Asia/Tokyo'
+      source_file:
+        description: 'Existing non-sensitive saved roster JSON in workspace; NO site GET'
+        required: true
+        type: string
 
+# Legacy Rakuten/KDreams scheduled GET removed at owner's request.
+# No new automatic provider GET is enabled without validated access conditions.
 permissions:
   contents: read
 
 concurrency:
-  group: keirin-daily-discovery-${{ github.event_name }}-${{ github.ref }}
+  group: keirin-non-rakuten-discovery-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   discovery_tests:
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-      - name: Exact race ID, meeting-day, scope, no fabricated results
+      - name: Strict synthetic legacy parser regression; NO provider network
         run: |
           python -m unittest discover -s tests -p 'test_keirin_discovery.py' -v
           python -m unittest discover -s tests -p 'test_keirin_daily_ledger.py' -v
+      - name: Non-Rakuten source selection, date/venue identity and local-only reader
+        run: |
+          python -m unittest discover -s tests -p 'test_keirin_non_rakuten_sources.py' -v
+          python -m unittest discover -s tests -p 'test_keirin_non_rakuten_day.py' -v
 
-  daily_live_once:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+  manual_owner_roster_only:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-      - name: Discover all linked races in exactly one calendar-page GET
-        env:
-          EXPLICIT_DAY: ${{ github.event_name == 'workflow_dispatch' && inputs.day || '' }}
+      - name: Validate owner-saved dated non-Rakuten identities without HTTP
         shell: bash
+        env:
+          INPUT_SOURCE_FILE: ${{ inputs.source_file }}
+          INPUT_DATE: ${{ inputs.day }}
         run: |
-          if [ -n "$EXPLICIT_DAY" ]; then
-            python -m race_ai.keirin_daily_ledger --day "$EXPLICIT_DAY" --output today_manifest.json
+          if [ -n "$INPUT_DATE" ]; then
+            python -m race_ai.keirin_daily_ledger --day "$INPUT_DATE" \
+              --source-file "$INPUT_SOURCE_FILE" --output today_manifest.json
           else
-            python -m race_ai.keirin_daily_ledger --output today_manifest.json
+            python -m race_ai.keirin_daily_ledger \
+              --source-file "$INPUT_SOURCE_FILE" --output today_manifest.json
           fi
-      - name: Retain no-private-data roster and missing-evidence ledger
+      - name: Preserve no-private-data identity ledger only
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: keirin-public-day-roster-${{ github.run_id }}
+          name: keirin-owner-non-rakuten-day-${{ github.run_id }}
           path: today_manifest.json
           retention-days: 3
           if-no-files-found: error

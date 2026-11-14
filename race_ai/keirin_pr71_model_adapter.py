@@ -11,6 +11,7 @@ from hashlib import sha256
 
 from .keirin_result_delivery import canonical, utc
 from .keirin_next_forecast_worker import _no_market_features
+from .keirin_preflight import audit_pre_race
 
 
 class Pr71AdapterError(ValueError):
@@ -36,7 +37,9 @@ def run_pr71_for_next_race(private_snapshot, *, run_suite, verify_suite,
     _require(type(private_snapshot) is dict
              and private_snapshot.get('schema') == 'RACE_AI_KEIRIN_PRIVATE_PRE_RACE_V1'
              and type(private_snapshot.get('facts')) is dict
-             and set(private_snapshot['facts']) == {'pr71_evidenced_snapshot'},
+             and set(private_snapshot['facts']) in (
+                 {'pr71_evidenced_snapshot'},
+                 {'pr71_evidenced_snapshot','keirin_pre_race_audit_v1'}),
              'PR71_EVIDENCE_INPUT_REQUIRED')
     _no_market_features(private_snapshot)
     evidence = private_snapshot['facts']['pr71_evidenced_snapshot']
@@ -71,6 +74,28 @@ def run_pr71_for_next_race(private_snapshot, *, run_suite, verify_suite,
     _require(evidence['scope'] != 'OPERATOR_SUPPLIED_RESEARCH'
              or callable(source_admission),
              'REAL_SOURCE_ADMISSION_REQUIRED')
+
+    # Real races MUST inspect every pre-race factor for every starter.
+    # Incomplete inspection, or a missing critical factor, stops inference.
+    # Unknown noncritical data stay explicitly unknown in the hashed source.
+    # Synthetic-only tests remain isolated from this real-data gate.
+    if evidence['scope'] == 'OPERATOR_SUPPLIED_RESEARCH':
+        _require('keirin_pre_race_audit_v1' in private_snapshot['facts'],
+                 'COMPLETE_KEIRIN_PRE_RACE_AUDIT_REQUIRED')
+        evidence_hash = sha256(canonical(evidence)).hexdigest()
+        verdict = audit_pre_race(
+            private_snapshot['facts']['keirin_pre_race_audit_v1'],
+            race_id=private_snapshot['race_id'],
+            starters=private_snapshot['starters'],
+            cutoff_at=private_snapshot['official_cutoff_at'],
+            snapshot_as_of=private_snapshot['as_of'],
+            issued_at=at.isoformat(),
+            evidence_sha256=evidence_hash,
+        )
+        _require(verdict['all_factors_checked'] and
+                 verdict['full_forecast_gate_passed'],
+                 'KEIRIN_PRE_RACE_CORE_FACTORS_NOT_VERIFIED')
+
     # Actual untrained PR71 algorithm; source admission is validated by its
     # own per-feature validators as well as the owner worker source receipt.
     suite = run_suite(evidence, allow_source=source_admission)

@@ -18,6 +18,11 @@ def doc(n=7):
     return ("<html>"+ "".join(links)+"</html>").encode()
 
 class TestDiscover(unittest.TestCase):
+    def test_legacy_rakuten_live_get_is_disabled(self):
+        with self.assertRaisesRegex(
+                DiscoveryError, "RAKUTEN_LIVE_FETCH_DISABLED_BY_OWNER"):
+            get_single_day(DAY)
+
     def test_day_url_is_strict(self):
         self.assertEqual(URL,"https://keirin.kdreams.jp/kaisai/2026/11/03/")
         with self.assertRaises(DiscoveryError):

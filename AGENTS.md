@@ -1,5 +1,28 @@
 # RACE-AI: owner constraints
 
+## KEIRIN: mandatory every-race, every-rider pre-race inspection (2026-11-08)
+
+The owner explicitly requested: 「予想する時は今の情報を必ず全て確認すること」.
+
+- Before ANY KEIRIN 3連単 forecast or model A/B comparison, follow docs/KEIRIN_PRE_RACE_ALL_FACTORS_POLICY_20261108.md and the authoritative identifiers in race_ai/keirin_preflight.py.
+- Inspect ALL race-level items and ALL rider-level items for EACH starter. For 7 riders that means 347 audit statuses; for 9 riders, 437. Count changes if the registry is amended.
+- Every item must have a verifiable status: verified, unavailable, stale, rights_blocked, or not_applicable. Record why any item is not verified. Do NOT invent, impute as zero, quietly skip, or call unavailable information "checked and known".
+- In real-data PR71 research inference, the audit must be present in the hashed private pre-race snapshot. Missing entries, a cutoff/time/provenance failure, or an unverified CORE factor must fail closed BEFORE the forecast model runs. Optional unknowns must be disclosed.
+- Check date/venue/race/stage and advancement rules, deadline, official entrants and revisions, ALL lines/solo riders/roles, leader contests and alternative scenarios; per rider compare scoring, recent 3/10 races, S/H/B, escape/makuri/sashi/mark tactics, teammates, head-to-head, bank fit, direct comments, injuries/absence/return status, rest/fatigue, gear; track geometry and actual weather. See the full registry for every item.
+- No odds, popularity, tips, market-derived numbers, or post-result payouts may enter prediction features, learning, or model selection. Payouts may be used separately to compute POST-result research settlement only.
+- Confirm rights through independent authorization; a source URL or rights_ref string does not itself grant rights. The documentation/audit does not make a currently missing legal feeder or live execution operational.
+- Keep <=8 ordered trifecta picks, original pre-cutoff prediction immutable, results and revisions separate, reference virtual losses distinct from any verified real wagers, and A/B comparisons prospective on the same future races.
+- Changes to docs and tests are NOT evidence that every item is collected or used by the existing predictor. Do not claim full operation until a real permitted feeder, evidence/forecast readback, independent timestamp and forward-test quality are demonstrated.
+
+- For genuine pre-race rider source data missing PR71-required inferred ability metrics, do not invent them. An explicitly *separate* observed-only untrained research shadow `race_ai/keirin_real_rider_shadow.py` may compute at most 8 trifecta research rankings using independently traceable pre-cutoff rider scores, B counts, escape/makuri statistics and anticipated lines; all 347/437 factor statuses are still inspected. `race_ai/keirin_real_shadow_intake.py` stores private `shadow_pre` independently from the full PR71 store. Never call this the existing full PR71 run, a calibrated probability, a formal A/B proof or a verified Hit@8 result. See docs/KEIRIN_REAL_RIDER_SHADOW_FORECAST_20261108.md.
+
+- Rakuten/KDreams MUST NOT be used as a future KEIRIN source. Enforce `race_ai/keirin_non_rakuten_sources.py`: block *.kdreams.jp, *.rakuten.co.jp, *.rakuten.com and related origins from manual and licensed intake and prevent the old scheduled one-GET KDreams discovery. Use official KEIRIN.JP as the first reference candidate, WINTICKET, オッズパーク, チャリロト, netkeirin and JMA as supplementary candidates. None is automatically an authorized machine feed.
+- Owner-saved non-Rakuten racecards (CSV, and KEIRIN HEX-style markdown) are parsed only from already locally saved files by `race_ai/keirin_owner_saved_csv.py` and `race_ai/keirin_owner_saved_hex.py`. The private agent automatically normalizes them into partial 347/437-field audits without external HTTP. These converters MUST NOT be represented as a live scrape, independent provider publication proof, or a successful forecast when critical observations remain missing. Reject conflicting race count and placing data; source expected lineups are explicitly not official actual formations. Do not ingest upstream model marks, probabilities, odds or result labels.
+- Personal research: owner-captured, privately supplied observations MAY be processed offline through `race_ai/keirin_owner_manual.py` without a commercial API or provider licence manifest; this grants NO automatic remote collection, publication, or commercial rights. Every source must retain true source URL and as-of provenance, and missing values remain explicit.
+- 347 checked items != 347 separately published or automatically retrievable facts. In `race_ai/keirin_field_acquisition.py`, scenario hypotheses and calculated indicators are classified separately from direct source facts. Never call unobserved future scenarios "collected".
+- Owner requires all KEIRIN score inputs to have NO finite score ceiling, including >100 and >200. Never reject/cap a finite, nonnegative athlete score based on a max. Current transform is `keirin-audit-score_open_v2-v1` with model_value=raw_score/(100+raw_score), untrained and not a probability. Preserve source raw values and provenance, version any future change; never rewrite historic picks.
+
+
 ## Cloudflare is prohibited
 
 The owner explicitly instructed on 2026-11-03: 「Cloudflare使わない！」.
