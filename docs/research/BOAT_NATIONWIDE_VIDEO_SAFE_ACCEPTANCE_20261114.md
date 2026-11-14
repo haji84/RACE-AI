@@ -111,7 +111,7 @@ https://www.bunka.go.jp/seisaku/bunka_gyosei/kibankyoka/faq/index.html
 1. 公式開催資料のその日の全race IDとモデル適格分母、展示公開時計、締切とP1原本SHA/保存時刻を実日で照合。
 2. 起動欠落が解消し、朝最初のレースより前にP0→展示後P1→AES永続保存→別runner SHAが確認できることを実証。
 3. 実展示リプレイを通常の可視操作で取得できるか実証（権利・サイトの許容範囲とレースIDのDOM上の独立確認が必須）。
-4. 実艇番6艇の検出・追跡誤差、カメラ補正、動作特徴を人間または独立正解ラベルで検証。
+4. 実際に出走する3～6艇の艇番の検出・追跡誤差、カメラ補正、動作特徴を人間または独立正解ラベルで検証。欠場艇は予想入力に入れない。
 5. 事前に凍結した研究モデルで未来P1を生成・暗号保存、別runner検証して公式結果PDCAまでつなぐ。合成テストは本番の的中証明に加算しない。
 
 本番へ無断反映しない。mainとproductionの固定SHAを最初に取り直し、研究PRを誤ってmergeしない。
@@ -132,4 +132,22 @@ https://www.bunka.go.jp/seisaku/bunka_gyosei/kibankyoka/faq/index.html
 BOATCASTサイトポリシー：https://boatcast.jp/static/sitepolicy/index.html
 文化庁の著作権情報：https://www.bunka.go.jp/seisaku/bunka_gyosei/kibankyoka/faq/index.html
 
-本番/mainは未変更。研究用PR #288で最新の実録画と全国P1原本の評価を進める。実ボート展示映像で6艇識別に成功した件数、全国実レースP1原本が揃った件数、独立SHA完走数はいずれもまだ合格証拠が必要。
+本番/mainは未変更。研究用PR #288で最新の実録画と全国P1原本の評価を進める。実ボート展示映像で3～6艇の出走艇番号識別に成功した件数、全国実レースP1原本が揃った件数、独立SHA完走数はいずれもまだ合格証拠が必要。
+
+
+## 2026-11-15：欠場・出走取消で6艇揃わない場合のP1・映像解析
+
+ユーザーの追加要望：6艇フル出走を条件にしない。公式の出走艇だけをrace ID・枠番（艇番）・登録番号で扱う。枠番を詰め直さない。3号艇欠場なら1・2・4・5・6をそのまま解析し、3号艇を予想候補に含めない。
+
+- 5艇（例：1,2,4,5,6）、4艇（1,3,5,6）、3艇（2,4,6）の合成正解例で、実FFmpeg/OpenCVの追跡を確認。従来6艇も継続。
+- boat_video_tracking / boat_video_evaluation：実出走rosterに厳密一致する艇番のみ追跡・計測。重複、取り違え、除外した艇を使った原本は拒否。色のみから未認識を捏造しない。
+- boat_video_model_context / boat_video_sequential_context / boat_video_physical_context / boat_video_calibration：旋回、直線、助走、画角補正、誤差、欠損を出走艇数に合わせて計算。
+- boat_video_learning：実際のactive艇数で映像特徴量・支持数を計算。研究用動画モデルの三連単候補数はactive艇の順列数と整合。候補に出走取消艇を混ぜない。
+- 公式展示データの既存A/B P1は元から3～6艇のactive rosterに対応済み。本変更は映像側に残った6艇固定の解消であり、本番モデルや暗号原本は変更しない。
+- 2艇以下は三連単に必要な3艇に満たず、架空艇を足さずにHOLDする。
+
+CI：PR #288、検証コードSHA 0267f2a770749b0601920c08b34fe89d2c4518fb
+https://github.com/haji84/RACE-AI/actions/runs/43626165525 ：PR専用のChromium合成画面録画、AES/WebM復号、実OpenCV、従来6艇と3/4/5艇のモデル研究予想116件＋別の動画・証拠検証16件成功。
+https://github.com/haji84/RACE-AI/actions/runs/43626165601 ：既存のsource-free BOAT回帰CI成功。正式ソース取得・実レース予想のPR jobはSKIP。
+
+合格範囲：研究コードでの3～6艇対応とsource-freeテスト。実欠場レース映像の艇番識別精度、締切前の実P1暗号原本、別ランナーSHA、一日の全国完走は未実証。PRはDraftで、本番main・productionは未変更。
