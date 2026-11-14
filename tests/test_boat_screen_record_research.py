@@ -129,6 +129,31 @@ class ScreenAdmissionTests(unittest.TestCase):
         fake.new_context.assert_not_called()
         self.assertEqual(out['status'],'HOLD_SCREEN_SOURCE_INVALID')
 
+class ScreenRecorderRealBrowserTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from shutil import which
+        if which("ffmpeg") is None or which("ffprobe") is None:
+            raise unittest.SkipTest("ffmpeg must be installed for the real browser fixture")
+        from playwright.async_api import async_playwright
+        cls.fixture=tempfile.TemporaryDirectory()
+        cls.media=Path(cls.fixture.name)/"synthetic-replay.webm"
+        subprocess.run(["ffmpeg","-v","error","-f","lavfi","-i",
+                        "testsrc=size=320x240:rate=12","-t","2.0",
+                        "-c:v","libvpx","-b:v","400k","-an","-y",str(cls.media)],
+                       check=True,timeout=25)
+        cls.payload=base64.b64encode(cls.media.read_bytes()).decode("ascii")
+        cls.live_media=Path(cls.fixture.name)/"synthetic-live.webm"
+        subprocess.run(["ffmpeg","-v","error","-f","lavfi","-i",
+                        "testsrc=size=320x240:rate=12","-t","10.0",
+                        "-c:v","libvpx","-b:v","250k","-an","-y",str(cls.live_media)],
+                       check=True,timeout=35)
+        cls.live_payload=base64.b64encode(cls.live_media.read_bytes()).decode("ascii")
+
+    @classmethod
+    def tearDownClass(cls):
+        if hasattr(cls,"fixture"):cls.fixture.cleanup()
+
     def test_browser_visible_html5_playback_is_encrypted_then_sha_reopened(self):
         from playwright.async_api import async_playwright
         from race_ai.boat_screen_record_research import record_screen,unseal_screen
