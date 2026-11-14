@@ -140,53 +140,48 @@ class RightsAdmissionTests(unittest.TestCase):
         self.assertEqual(review(candidate(),agreement(),now=NOW,verify_grant=stale)['state'],
                          'HOLD_RIGHTS_RECEIPT_INVALID_OR_LATE')
 
-    def test_personal_nonpublic_research_can_proceed_without_written_grant(self):
+    def test_private_owner_research_is_default_with_no_confirmation_parameter(self):
+        import inspect
         from race_ai.boat_video_rights_admission import review
-        private=candidate(source_kind='OWNER_RECORDED')
-        without=review(private,None,now=NOW)
-        self.assertNotEqual(without['state'],'READY_OWNER_ATTESTED_PRIVATE_RESEARCH_ONLY')
-        accepted=review(private,None,now=NOW,personal_use_acknowledged=True)
-        self.assertEqual(accepted['state'],'READY_OWNER_ATTESTED_PRIVATE_RESEARCH_ONLY')
-        self.assertEqual(accepted['rights_basis'],'OPERATOR_ATTESTED_PRIVATE_RESEARCH')
+        self.assertNotIn('personal_use_acknowledged', inspect.signature(review).parameters)
+        accepted=review(candidate(source_kind='OWNER_RECORDED'),now=NOW)
+        self.assertEqual(accepted['state'],'READY_PRIVATE_RESEARCH_INPUT_ONLY')
+        self.assertEqual(accepted['rights_basis'],'PRIVATE_RESEARCH')
         self.assertFalse(accepted['source_authorization_independently_claimed'])
         self.assertFalse(accepted['production_video_forecast_proven'])
         self.assertFalse(accepted['publication_approved'])
         self.assertFalse(accepted['source_fetch_performed'])
 
-    def test_personal_attestation_not_a_public_or_foreign_media_license(self):
+    def test_private_default_does_not_claim_a_foreign_media_license(self):
         from race_ai.boat_video_rights_admission import review
-        wrong=candidate(source_kind='RIGHTS_HOLDER_SUPPLIED')
-        self.assertNotEqual(
-            review(wrong,None,now=NOW,personal_use_acknowledged=True)['state'],
-            'READY_OWNER_ATTESTED_PRIVATE_RESEARCH_ONLY')
-        result=review(candidate(source_kind='OWNER_RECORDED'),
-            agreement(),now=NOW,personal_use_acknowledged=True)
-        self.assertNotEqual(result['state'],'READY_OWNER_ATTESTED_PRIVATE_RESEARCH_ONLY')
-        late=review(candidate(source_kind='OWNER_RECORDED',captured_at=CUT),
-            None,now=NOW,personal_use_acknowledged=True)
+        foreign=review(candidate(source_kind='RIGHTS_HOLDER_SUPPLIED'),now=NOW)
+        self.assertNotEqual(foreign['state'],'READY_PRIVATE_RESEARCH_INPUT_ONLY')
+        unverified=review(candidate(source_kind='OWNER_RECORDED'),agreement(),now=NOW)
+        self.assertEqual(unverified['state'],'HOLD_INDEPENDENT_RIGHTS_RECEIPT_REQUIRED')
+        late=review(candidate(source_kind='OWNER_RECORDED',captured_at=CUT),now=NOW)
         self.assertEqual(late['state'],'HOLD_PRE_CUTOFF_VIDEO_SOURCE_REQUIRED')
-        foreign=review(candidate(source_kind='OWNER_RECORDED',race_id='20300401-01-01',
-                                 captured_at='2030-03-31T11:30:00+09:00'),
-                       None,now=NOW,personal_use_acknowledged=True)
-        self.assertNotEqual(foreign['state'],'READY_OWNER_ATTESTED_PRIVATE_RESEARCH_ONLY')
+        wrong=review(candidate(source_kind='OWNER_RECORDED',race_id='20300401-01-01',
+                         captured_at='2030-03-31T11:30:00+09:00'),now=NOW)
+        self.assertEqual(wrong['state'],'HOLD_VIDEO_SOURCE_DAY_MISMATCH')
 
-    def test_personal_owner_video_reaches_existing_private_intake_only(self):
+    def test_owner_private_video_enqueues_without_extra_confirmation(self):
+        import inspect
         from race_ai.boat_video_rights_admission import enqueue_licensed_capture
+        self.assertNotIn('personal_use_acknowledged',inspect.signature(enqueue_licensed_capture).parameters)
         export=dict(source_role='OWNER_AUTHORIZED',media_sha256='a'*64,
                     captured_at='2030-04-01T11:30:00+09:00')
         template=dict(race_id=RACE,cutoff_at=CUT)
+        original=deepcopy((export,template))
         with patch('race_ai.boat_video_capture_bridge.enqueue_export',
                    return_value=dict(status='ENQUEUED_UNVALIDATED',window_id=4,
                                      media_sha256='a'*64,job_sha256='e'*64)) as enqueue:
-            held=enqueue_licensed_capture('/private',export,template,None,now=NOW)
-            self.assertNotEqual(held['status'],'ENQUEUED_UNVALIDATED')
-            enqueue.assert_not_called()
-            admitted=enqueue_licensed_capture('/private',export,template,None,
-                now=NOW,personal_use_acknowledged=True)
-            enqueue.assert_called_once_with('/private',export,template)
+            admitted=enqueue_licensed_capture('/private',export,template,now=NOW)
+        enqueue.assert_called_once_with('/private',export,template)
         self.assertEqual(admitted['status'],'ENQUEUED_UNVALIDATED')
+        self.assertEqual(admitted['rights_basis'],'PRIVATE_RESEARCH')
         self.assertFalse(admitted['production_video_forecast_proven'])
         self.assertFalse(admitted['source_authorization_independently_claimed'])
+        self.assertEqual((export,template),original)
 
     def test_production_claim_is_never_inferred_from_any_receipt(self):
         from race_ai.boat_video_rights_admission import review
