@@ -164,20 +164,7 @@ class ReducedFieldVideoTests(unittest.TestCase):
                     comparison['calibration_evidence_sha256']=manifest['calibration_sha256']
                 evidence=seal_physical_evidence(evidence)
                 args['roster']=deepcopy(report['roster'])
-                # Synthetic fixture only: expose the failing source line, never data.
-                from unittest.mock import patch
-                from race_ai import boat_video_physical_context as engine
-                from race_ai import boat_video_calibration as calibration
-                import inspect
-                def guard(original,stage):
-                    def check(value):
-                        if not value:
-                            raise AssertionError('SHORT_FIELD_SYNTHETIC_GATE_'+stage+'_'+str(inspect.currentframe().f_back.f_lineno))
-                        return original(value)
-                    return check
-                with patch.object(engine,'_need',guard(engine._need,'physical')), \
-                     patch.object(calibration,'_need',guard(calibration._need,'calibration')):
-                    result=prepare_physical_video_context(report,evidence,manifest,**args)
+                result=prepare_physical_video_context(report,evidence,manifest,**args)
                 self.assertEqual([r['lane'] for r in result['participants']],list(active))
                 self.assertEqual(validate_physical_video_context(result,**args),result)
                 self.assertFalse(result['production_eligible'])
