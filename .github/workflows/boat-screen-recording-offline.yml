@@ -11,6 +11,10 @@ on:
       - tests/test_boat_screen_model_bridge.py
       - tests/test_boat_short_field_video.py
       - tests/test_boat_video_tracking.py
+      - tests/test_boat_video_sequential_context.py
+      - tests/test_boat_video_physical_context.py
+      - tests/test_boat_video_model_context.py
+      - tests/test_boat_video_evaluation.py
       - race_ai/boat_video_evaluation.py
       - race_ai/boat_video_model_context.py
       - race_ai/boat_video_tracking.py
@@ -40,5 +44,5 @@ jobs:
         env:
           RACE_AI_RESEARCH_FIXTURE_ONLY: 'true'
         run: |
-          python -m unittest tests.test_boat_screen_record_research tests.test_boat_screen_model_bridge tests.test_boat_short_field_video tests.test_boat_video_tracking -v
+          python -m unittest tests.test_boat_screen_record_research tests.test_boat_screen_model_bridge tests.test_boat_short_field_video tests.test_boat_video_tracking tests.test_boat_video_sequential_context tests.test_boat_video_physical_context tests.test_boat_video_model_context tests.test_boat_video_evaluation -v
           python -m unittest tests.test_boat_video_rights_admission tests.test_boat_20261113_retained_counts -v
