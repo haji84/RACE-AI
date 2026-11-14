@@ -284,8 +284,10 @@ async def record_screen(browser,source,grant=None,*,verify_grant=None,now,aes_ke
                     last.get("currentTime",0)-first.get("currentTime",0)>=
                          min(2.5,timeout_seconds/2)):
                 observed_live_progress=True
-        except Exception:
-            return _hold("HOLD_SCREEN_PLAYBACK_UNAVAILABLE")
+        except Exception as exc:
+            # Class name only: never expose private URLs, pages or credentials.
+            return dict(_hold("HOLD_SCREEN_PLAYBACK_UNAVAILABLE"),
+                        failure_class=type(exc).__name__)
         finally:
             try:
                 if context is not None:
