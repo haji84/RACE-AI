@@ -1,0 +1,34 @@
+name: KEIRIN previous-day recovery temporal boundary tests
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_daily_night_backfill.py'
+      - 'scripts/keirin_daily_dynamic_clip_collector.py'
+      - 'tests/test_keirin_daily_night_backfill.py'
+      - '.github/workflows/keirin-daily-night-backfill-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  previous-day-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Unit-test midnight date gate without any real footage
+        run: |
+          python -m py_compile race_ai/keirin_daily_night_backfill.py
+          python -m unittest discover -s tests -p 'test_keirin_daily_night_backfill.py' -v
+      - name: Report synthetic scope
+        run: |
+          {
+            echo 'Missing previous-day clips use a precommitted yesterday source inventory.'
+            echo 'No claim that every displayed old URL has a retrievable video.'
+            echo 'No retroactive before-cutoff forecasts. No real video or owner private key loaded.'
+          } >> "$GITHUB_STEP_SUMMARY"

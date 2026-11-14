@@ -1,0 +1,89 @@
+name: KEIRIN previous-JST-day missing short-replay recovery
+
+on:
+  pull_request:
+    paths:
+      - 'docs/evidence/keirin-yesterday-backfill-tick.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keirin-daily-prevday-video-backfill-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  replay-genuine-previous-day-misses-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 86
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            race_ai
+            scripts
+            tests
+            docs
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install ordinary browser for permitted historic replay playback
+        run: |
+          python -m pip install playwright==1.56.0 'cryptography>=44,<48'
+          python -m playwright install chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: No result leak and previous-day-only checks
+        run: |
+          python -m py_compile race_ai/keirin_daily_night_backfill.py
+          python -m py_compile scripts/keirin_daily_dynamic_clip_collector.py
+          python -m unittest discover -s tests -p 'test_keirin_daily_night_backfill.py' -v
+      - name: Complete only truly missed last-JST-day replays
+        id: backfill
+        continue-on-error: true
+        run: |
+          python -m scripts.keirin_daily_dynamic_clip_collector \
+            --previous-day-manifest docs/evidence/keirin-yesterday-frozen-manifest.json \
+            --private-retention-receipts docs/evidence/keirin-daily-private-retention-receipts.json \
+            --owner-public-key docs/keirin-historical-batch-20261109-public.pem \
+            --encrypted-dir "$RUNNER_TEMP/keirin-night-sealed" \
+            --report "$RUNNER_TEMP/keirin-night-wave.json" \
+            --manifest "$RUNNER_TEMP/keirin-night-manifest.json" \
+            --max-races 24
+      - name: Upload only AES-GCM historic browser screen ciphertext
+        if: steps.backfill.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-prevday-AES-sealed-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-night-sealed/
+          retention-days: 2
+          if-no-files-found: warn
+      - name: Preserve bounded previous-day failure and source SHA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-prevday-backfill-report-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/keirin-night-wave.json
+            ${{ runner.temp }}/keirin-night-manifest.json
+          retention-days: 3
+          if-no-files-found: warn
+      - name: Never misreport missing footage as recorded
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          path=Path(os.environ['RUNNER_TEMP'])/'keirin-night-wave.json'
+          if not path.is_file():
+              raise SystemExit('NIGHT_BACKFILL_FAILED_BEFORE_MANIFEST_VALIDATION')
+          d=json.loads(path.read_text())
+          print('Previous day',d.get('date_jst'),
+                'attempted',d.get('attempted',0),
+                'encrypted',d.get('encrypted',0),
+                'remaining',d.get('candidates_remaining_for_another_wave',0))
+          if d.get('attempted',0) and not d.get('encrypted',0):
+              raise SystemExit('NO_PREVDAY_MISSING_VIDEO_RECORDED')
+          PY

@@ -1,0 +1,98 @@
+name: Matsuyama 1R replay browser pilot (research only)
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/keirin_replay_probe.py'
+      - 'tests/test_keirin_replay_probe.py'
+      - 'docs/KEIRIN_MATSUYAMA_REPLAY_PILOT.md'
+      - '.github/workflows/keirin-replay-pilot.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bounded-recording-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            tests
+            docs
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install browser dependencies
+        run: |
+          python -m pip install playwright==1.56.0 opencv-python-headless==4.10.0.84 numpy==1.26.4 'cryptography>=44,<48'
+          python -m playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          ffmpeg -version | head -n 1
+      - name: Synthetic video-recording regression
+        run: python -m unittest discover -s tests -p 'test_keirin_replay_probe.py' -v
+      - name: Attempt one actual Matsuyama 1R browser playback
+        id: replay
+        continue-on-error: true
+        env:
+          RACE_AI_BROWSER_CHANNEL: chrome
+        run: |
+          python scripts/keirin_replay_probe.py --seconds 540 --report "$RUNNER_TEMP/matsuyama-1r-probe.json" --encrypted-dir "$RUNNER_TEMP/matsuyama1r-encrypted" --public-key docs/keirin-replay-pilot-public.pem
+      - name: Save ciphertext artifact only (research pilot)
+        if: steps.replay.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: matsuyama-1r-encrypted-private-research-frames
+          path: ${{ runner.temp }}/matsuyama1r-encrypted/
+          retention-days: 2
+          if-no-files-found: error
+      - name: Publish technical evidence without video
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,os
+          path=Path(os.environ['RUNNER_TEMP'])/'matsuyama-1r-probe.json'
+          item=json.loads(path.read_text()) if path.exists() else {}
+          lines=[
+            '## Matsuyama 2026-11-08 1R replay pilot',
+            f"- Technical playback: {item.get('playback_state','NOT_EXECUTED')}",
+            f"- Player natural end confirmed: {item.get('player_clip_completed','UNKNOWN')}",
+            f"- End reason: {item.get('video_end_reason','UNKNOWN')}",
+            f"- Entire unedited race independently verified: {item.get('whole_unedited_race_verified','UNKNOWN')}",
+            f"- Browser video time advanced: {item.get('html_video_advanced','UNKNOWN')}",
+            f"- HTTP status: {item.get('http_status','UNKNOWN')}",
+            f"- Page title: {item.get('page_title','UNKNOWN')}",
+            f"- Replay click: {item.get('click','UNKNOWN')}",
+            f"- Windows/frames: {item.get('browser_diagnostics','UNKNOWN')}",
+            f"- Video elements before: {item.get('media_before','UNKNOWN')}",
+            f"- Video elements after: {item.get('media_after','UNKNOWN')}",
+            f"- Only player recording kept: {item.get('player_video_only','UNKNOWN')}",
+            f"- Capture motion: {[x.get('motion') for x in item.get('captures',[])]}",
+            f"- Encrypted WebM copies: {item.get('encrypted_capture_count','NONE')}",
+            f"- Visual rider tracking: {item.get('rider_tracking','NOT_VERIFIED')}",
+            f"- Cause of 3-5-4: {item.get('cause_of_3_5_4','UNDETERMINED')}",
+            f"- Error: {item.get('error','NONE')}",
+            '- Raw footage never uploaded to public branches, artifacts, or logs.',
+            '- No stream extraction, no login or DRM bypass, no model weight changes.',
+          ]
+          Path(os.environ['GITHUB_STEP_SUMMARY']).write_text('\n'.join(lines)+'\n')
+          print('\n'.join(lines))
+          PY
+      - name: Require actual playback before reporting success
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,os,sys
+          path=Path(os.environ['RUNNER_TEMP'])/'matsuyama-1r-probe.json'
+          data=json.loads(path.read_text()) if path.exists() else {}
+          if data.get('playback_state')!='COMPLETE_PLAYER_CLIP_RECORDED':
+              sys.exit('NOT_VERIFIED: player clip was not recorded from start through natural end')
+          print('Player video recorded to natural end; entire unedited race and visual tactical analysis STILL NOT verified.')
+          PY

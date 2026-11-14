@@ -1,0 +1,55 @@
+name: WINTICKET historical Yahiko 20261030 1R video metadata probe
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/keirin_yahiko_20261030_1r_replay_probe.py'
+      - '.github/workflows/keirin-yahiko-20261030-video-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  one-past-race-public-player:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install chromium
+      - name: Syntax check
+        run: python -m py_compile scripts/keirin_yahiko_20261030_1r_replay_probe.py
+      - name: Click historical 1R replay via public UI and observe video metadata
+        run: |
+          python scripts/keirin_yahiko_20261030_1r_replay_probe.py "$RUNNER_TEMP/yahiko-20261030-1r.json"
+      - name: Report duration and player state without video media
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,os
+          p=Path(os.environ['RUNNER_TEMP'])/'yahiko-20261030-1r.json'
+          d=json.loads(p.read_text()) if p.exists() else {}
+          entries=d.get('video_later') or d.get('video_after_click') or []
+          lines=['## WINTICKET Yahiko 2026-10-30 1R past-race replay',
+                 '- Source: https://www.winticket.jp/keirin/yahiko/raceresult/2026103021/1/1',
+                 '- Page HTTP: '+str(d.get('http_status')),
+                 '- Title: '+str(d.get('page_title')),
+                 '- Replay button clicked: '+str(d.get('button_clicked')),
+                 '- Playback advanced: '+str(d.get('video_time_advanced')),
+                 '- Video element count: '+str(len(entries)),
+                 '- HTML5 video evidence: '+json.dumps(entries,ensure_ascii=False),
+                 '- Four full racing laps proven: NO; raw video copied: NO.']
+          Path(os.environ['GITHUB_STEP_SUMMARY']).write_text('\n'.join(lines)+'\n')
+          print('\n'.join(lines))
+          PY

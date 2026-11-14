@@ -1,0 +1,24 @@
+{
+  "schema": "RACE_AI_KEIRIN_DAILY_LIBRARY_READBACK_V1",
+  "date_jst": "2026-11-09",
+  "receipts": [
+    {
+      "race_id": "202611091201",
+      "recording_sha256": "19fd939ada0ab2914f80ae99c29b9792ba7712affb2feb5ce6c28d5a87a676f1",
+      "library_artifact_path": "/RACE-AI/KeirinVideo/2026-11-09/20261109_0921_wave1_Aomori1R2R_AESGCM.zip",
+      "library_byte_readback_verified": true
+    },
+    {
+      "race_id": "202611091202",
+      "recording_sha256": "90b586e0edf46909c67da0d27d8646354b1533cced1b718fe987481757bdbd9e",
+      "library_artifact_path": "/RACE-AI/KeirinVideo/2026-11-09/20261109_0921_wave1_Aomori1R2R_AESGCM.zip",
+      "library_byte_readback_verified": true
+    },
+    {
+      "race_id": "202611091203",
+      "recording_sha256": "81f47547240428c631ef31b7bcaec42ee76f3a7f631b3005bfc768c83b3f32af",
+      "library_artifact_path": "/RACE-AI/KeirinVideo/2026-11-09/20261109_0949_daily_Aomori3R_AESGCM.zip",
+      "library_byte_readback_verified": true
+    }
+  ]
+}

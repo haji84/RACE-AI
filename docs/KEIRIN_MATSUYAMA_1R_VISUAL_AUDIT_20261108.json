@@ -1,0 +1,88 @@
+{
+  "schema": "RACE_AI_KEIRIN_REPLAY_RESEARCH_OBSERVATION_V1",
+  "scope": "research_human_review_not_trainable",
+  "race_id": "202611087501",
+  "event_date_jst": "2026-11-08",
+  "venue": "松山",
+  "race_number": 1,
+  "source_page": "https://keirin.kdreams.jp/matsuyama/racecard/75202611080100/",
+  "github_actions_run": "https://github.com/haji84/RACE-AI/actions/runs/42482583611",
+  "encrypted_artifact_id": 13618910040,
+  "video": {
+    "html_player_duration_s": 92.208,
+    "html_player_ended_observed": true,
+    "recording_duration_s": 327.68,
+    "recording_sha256": "299f6b24fd46c79f88d1ec0afd3afa886cf5b8d439a38e05ed722b7c73f73eec",
+    "encrypted_upload_only": true,
+    "public_raw_media": false,
+    "replay_identified_from_visible_title": true
+  },
+  "review_method": "sampled_browser_screen_recording_frames_visually_reviewed_by_assistant",
+  "automated_rider_number_tracking": false,
+  "continuous_tracking_validated": false,
+  "full_unedited_race_verified": false,
+  "observed_outcome": {
+    "ordered_top3": [
+      3,
+      5,
+      4
+    ],
+    "capture_seconds_of_result_board": 99.5,
+    "broadcast_trifecta_payout_yen_per_100": 17390,
+    "independent_result_attestation": false
+  },
+  "timeline": [
+    {
+      "start_capture_s": 35,
+      "end_capture_s": 60,
+      "observation": "誘導員の後方で③④⑤の順に並び、①はその後方",
+      "certainty": "visual_observation"
+    },
+    {
+      "start_capture_s": 62,
+      "end_capture_s": 68,
+      "observation": "①が前へ進出し、③が先頭付近で追う",
+      "certainty": "visual_observation"
+    },
+    {
+      "start_capture_s": 72,
+      "end_capture_s": 82,
+      "observation": "①が先頭付近、③がすぐ後ろから迫り、④と⑤も続く",
+      "certainty": "visual_observation"
+    },
+    {
+      "start_capture_s": 85,
+      "end_capture_s": 92,
+      "observation": "③と①が接近し、⑤が④との差を詰める",
+      "certainty": "visual_observation"
+    },
+    {
+      "start_capture_s": 92.5,
+      "end_capture_s": 93,
+      "observation": "ゴール線で③が先着する場面を視認。⑤と④の前後関係は確定着順と整合",
+      "certainty": "visual_plus_broadcast_results"
+    },
+    {
+      "start_capture_s": 99.5,
+      "end_capture_s": 100,
+      "observation": "松山1Rの結果表示は1着③、2着⑤、3着④",
+      "certainty": "visual_observation"
+    }
+  ],
+  "model_review": {
+    "chat_reference_picks_contained_actual_result": false,
+    "original_model_prediction_frozen_and_verified": false,
+    "official_model_hit_rate_derived": false,
+    "calibrated_probability_of_actual_outcome": null,
+    "alternate_line_outcome_risk": "not_quantified"
+  },
+  "quality_gates": {
+    "unattended_browser_replay": true,
+    "encrypted_replay_capture": true,
+    "visual_case_study": true,
+    "unattended_semantic_rider_tracking": false,
+    "model_weight_updated": false,
+    "private_forecast_original_mutated": false
+  },
+  "next_gate": "検証済みの過去レースを使い、③優勝と⑤④逆転の条件付き確率を独立校正。今回だけで重みを変更しない。"
+}

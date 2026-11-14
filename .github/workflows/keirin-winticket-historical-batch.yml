@@ -1,0 +1,182 @@
+name: WINTICKET historical 4-race encrypted private replay cohort pilot
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/keirin_winticket_historical_batch_capture.py'
+      - 'tests/test_keirin_winticket_historical_batch_capture.py'
+      - 'docs/keirin-historical-batch-20261109-public.pem'
+      - '.github/workflows/keirin-winticket-historical-batch.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  four-distinct-replay-captures:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            tests
+            docs
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install browser recorder, ffprobe, encryption
+        run: |
+          python -m pip install playwright==1.56.0 'cryptography>=44,<48'
+          python -m playwright install chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Independent cryptographic preflight before browser activity
+        run: |
+          openssl pkey -pubin -in docs/keirin-historical-batch-20261109-public.pem -noout
+          python - <<'PY'
+          from cryptography.hazmat.primitives.serialization import load_pem_public_key
+          from pathlib import Path
+          k=load_pem_public_key(Path('docs/keirin-historical-batch-20261109-public.pem').read_bytes())
+          if k.key_size!=3072:
+              raise SystemExit('INCORRECT_HISTORICAL_KEY_SIZE')
+          print('Research-only 3072-bit RSA public key validated')
+          PY
+      - name: Syntax and strict per-race/historical holdout regression
+        run: |
+          python -m py_compile scripts/keirin_winticket_historical_batch_capture.py
+          python -m unittest discover -s tests -p 'test_keirin_winticket_historical_batch_capture.py' -v
+      - name: Capture 4 separate public WINTICKET historical replay screens
+        id: capture
+        continue-on-error: true
+        run: |
+          python -m scripts.keirin_winticket_historical_batch_capture \
+            --report "$RUNNER_TEMP/winticket-historical-batch.json" \
+            --encrypted-dir "$RUNNER_TEMP/winticket-historical-batch-sealed" \
+            --public-key docs/keirin-historical-batch-20261109-public.pem
+      - name: Keep encrypted replay evidence only, for local review
+        if: steps.capture.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: winticket-4-historical-races-aes256gcm-private-review
+          path: ${{ runner.temp }}/winticket-historical-batch-sealed/
+          retention-days: 2
+          if-no-files-found: error
+      - name: Summarize true capture status, never claim machine learning success
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'winticket-historical-batch.json'
+          data=json.loads(p.read_text()) if p.exists() else {}
+          lines=['## Four WINTICKET historical replay candidates',
+                 'Source supplied as ordinary public WINTICKET result pages.',
+                 'User reports WINTICKET use OK; exact permission scope is not documented.',
+                 f"Encrypted captures: {data.get('encrypted_races',0)} of 4",
+                 f"Training cohort candidates: {data.get('train_candidates',0)}",
+                 f"Blind reserved: {data.get('unseen_reserved',0)}"]
+          for r in data.get('races',[]):
+              lines.extend([
+                 f"### {r.get('race_id')}",
+                 f"- Cohort: {r.get('cohort')}",
+                 f"- Status: {r.get('technical_status')}",
+                 f"- HTTP: {r.get('http_status')}",
+                 f"- Player duration seconds: {r.get('player_duration_s')}",
+                 f"- Playback ended naturally: {r.get('player_ended')}",
+                 f"- SHA256 of captured screen: {r.get('screen_sha256')}",
+              ])
+          lines.extend([
+             'Four-lap video and actual tactical frame labels independently verified: NO',
+             'Actual real scene model trained or accuracy improved: NO',
+             'No plaintext browser recording uploaded to public code/artifacts/logs.'])
+          Path(os.environ['GITHUB_STEP_SUMMARY']).write_text('\n'.join(lines)+'\n')
+          print('\n'.join(lines))
+          PY
+      - name: Mark failure when insufficient new historical clips captured
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'winticket-historical-batch.json'
+          data=json.loads(p.read_text()) if p.exists() else {}
+          if data.get('encrypted_races',0)<2:
+              raise SystemExit('NOT_VERIFIED: fewer than two other historic replay captures')
+          print('Two or more encrypted historic captures present. No visual learning proof yet.')
+          PY
+
+
+  # Use the EXISTING browser/AES recorder for Aomori 1R post-result review.
+  aomori1r-postresult-private-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            tests
+            docs
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing browser and AES-GCM recorder dependencies
+        run: |
+          python -m pip install playwright==1.56.0 'cryptography>=44,<48'
+          python -m playwright install chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Verify existing owner-private review public key and race identity gate
+        run: |
+          openssl pkey -pubin -in docs/keirin-historical-batch-20261109-public.pem -noout
+          python -m unittest discover -s tests -p 'test_keirin_winticket_historical_batch_capture.py' -v
+      - name: Attempt ONE Aomori 2026-11-09 1R replay using existing recorder
+        id: capture_aomori
+        continue-on-error: true
+        run: |
+          python -m scripts.keirin_winticket_historical_batch_capture \
+            --review-aomori1r \
+            --report "$RUNNER_TEMP/aomori1r-video-status.json" \
+            --encrypted-dir "$RUNNER_TEMP/aomori1r-sealed" \
+            --public-key docs/keirin-historical-batch-20261109-public.pem
+      - name: Store Aomori ciphertext only on proved natural video end
+        if: steps.capture_aomori.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: aomori-20261109-1r-AESGCM-postresult-review
+          path: ${{ runner.temp }}/aomori1r-sealed/
+          retention-days: 2
+          if-no-files-found: error
+      - name: Record capture evidence without raw frames
+        if: always()
+        run: |
+          python - <<'PY'
+          import os,json
+          from pathlib import Path
+          path=Path(os.environ['RUNNER_TEMP'])/'aomori1r-video-status.json'
+          record=json.loads(path.read_text()) if path.is_file() else {}
+          rows=record.get('races',[])
+          a=rows[0] if len(rows)==1 else {}
+          summary=[
+              '## Aomori Nov 9 1R (post-result-only) player recording',
+              '- Race identity: '+str(a.get('race_id','UNVERIFIED')),
+              '- Source HTTP: '+str(a.get('http_status','UNVERIFIED')),
+              '- Browser player status: '+str(a.get('technical_status','NOT_SAVED')),
+              '- Player duration (seconds): '+str(a.get('player_duration_s')),
+              '- Ended naturally: '+str(a.get('player_ended')),
+              '- Screen SHA256: '+str(a.get('screen_sha256')),
+              '- Encrypted replay copies: '+str(a.get('encrypted_capture_count',0)),
+              '- Video frames independently reviewed for tactics: NO',
+              '- Race outcome was known before this capture: YES',
+              '- Forecast, historical holdout and trained model modified: NO',
+              '- Original WebM, rider frames and private decryption key public: NO',
+          ]
+          Path(os.environ['GITHUB_STEP_SUMMARY']).write_text('\n'.join(summary)+'\n')
+          print('\n'.join(summary))
+          if a.get('technical_status')!='ENCRYPTED_COMPLETE_PLAYER':
+              raise SystemExit('AOMORI_PLAYER_CAPTURE_UNVERIFIED_NO_VISUAL_CAUSE_CLAIM')
+          PY

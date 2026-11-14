@@ -1,0 +1,48 @@
+name: KEIRIN short historic video scene learning contracts
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_video_clip_policy.py'
+      - 'race_ai/keirin_video_partial_learning.py'
+      - 'tests/test_keirin_video_clip_policy.py'
+      - 'tests/test_keirin_video_partial_learning.py'
+      - 'race_ai/keirin_video_postrace_pdca.py'
+      - 'tests/test_keirin_video_partial_postrace.py'
+      - '.github/workflows/keirin-video-short-scene-learning.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reviewed-short-or-full-video:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install isolated numeric classifier
+        run: |
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scikit-learn==1.6.1
+      - name: Compile source and regression tests
+        run: |
+          python -m py_compile race_ai/keirin_video_clip_policy.py
+          python -m py_compile race_ai/keirin_video_partial_learning.py
+          python -m py_compile tests/test_keirin_video_partial_learning.py
+      - name: Partial video acceptance policy
+        run: python -m unittest discover -s tests -p 'test_keirin_video_clip_policy.py' -v
+      - name: Reviewed short highlight classification on never-seen synthetic race
+        run: python -m unittest discover -s tests -p 'test_keirin_video_partial_learning.py' -v
+      - name: Short video tactical/goal postrace candidate admission
+        run: python -m unittest discover -s tests -p 'test_keirin_video_partial_postrace.py' -v
+      - name: Report acceptance boundary
+        run: |
+          {
+            echo 'Short clips may teach only visible, independently reviewed scenes.'
+            echo 'Four laps are not inferred from 80s/92s clips.'
+            echo 'Train/holdout tests use INVENTED frames and mock attestations; real model accuracy unverified.'
+            echo 'No private video, frames, athlete identity or official forecast weights were committed or copied.'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,36 @@
+name: KEIRIN partial replay learning and full-race priority policy
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_video_clip_policy.py'
+      - 'tests/test_keirin_video_clip_policy.py'
+      - '.github/workflows/keirin-video-partial-policy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  partial-learning-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax check
+        run: |
+          python -m py_compile race_ai/keirin_video_clip_policy.py
+          python -m py_compile tests/test_keirin_video_clip_policy.py
+      - name: Verify independently reviewed partial clip use and full-race precedence
+        run: python -m unittest discover -s tests -p 'test_keirin_video_clip_policy.py' -v
+      - name: Distinguish synthetic policy tests from real video learning
+        run: |
+          {
+            echo 'Synthetic policy-only tests. Not proof of rights clearance or a trained real scene model.'
+            echo 'Past short replays may contribute independently reviewed visible attacks and goals.'
+            echo 'A short replay NEVER certifies four complete laps or absence of off-camera actions.'
+            echo 'No real video, frame images, private features or pre-cutoff forecast originals uploaded.'
+          } >> "$GITHUB_STEP_SUMMARY"

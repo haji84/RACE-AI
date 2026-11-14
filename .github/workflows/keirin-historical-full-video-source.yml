@@ -1,0 +1,56 @@
+name: KEIRIN historical public full-race source readiness
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/keirin_historical_full_video_public_probe.py'
+      - '.github/workflows/keirin-historical-full-video-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-source-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Chromium metadata probe dependency
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install chromium
+      - name: Syntax validation
+        run: python -m py_compile scripts/keirin_historical_full_video_public_probe.py
+      - name: Check public historical replay indexes only
+        run: |
+          python scripts/keirin_historical_full_video_public_probe.py "$RUNNER_TEMP/historical-full-race-sources.json"
+      - name: Summarize verified source availability without video
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'historical-full-race-sources.json'
+          data=json.loads(p.read_text()) if p.exists() else {}
+          lines=['## Historical KEIRIN full-race source probe',
+                 'No video downloaded, copied, decrypted, or authenticated.']
+          for row in data.get('sources',[]):
+              lines.extend([
+                '- '+row['source']+': '+row['status'],
+                '  HTTP: '+str(row.get('http_code')),
+                '  Title: '+str(row.get('title')),
+                '  Video count: '+str(row.get('media',{}).get('video_count')),
+                '  Player metadata: '+json.dumps(row.get('media',{}).get('loaded_media',[]),ensure_ascii=False)
+              ])
+          lines.append('A metadata candidate is NOT independently verified footage of four full laps.')
+          Path(os.environ['GITHUB_STEP_SUMMARY']).write_text('\n'.join(lines)+'\n')
+          print('\n'.join(lines))
+          PY

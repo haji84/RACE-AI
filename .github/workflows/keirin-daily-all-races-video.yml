@@ -1,0 +1,154 @@
+name: KEIRIN daily all-venues public replay capture and encrypted owner archive
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_daily_public_catalog.py'
+      - 'race_ai/keirin_daily_clip_batch.py'
+      - 'race_ai/keirin_private_sealed_payload.py'
+      - 'race_ai/keirin_daily_video_research.py'
+      - 'tests/test_keirin_private_sealed_payload.py'
+      - 'scripts/keirin_daily_public_discovery.py'
+      - 'scripts/keirin_daily_dynamic_clip_collector.py'
+      - 'docs/evidence/keirin-daily-private-retention-receipts.json'
+      - 'docs/evidence/keirin-daily-video-tick.json'
+      - 'tests/test_keirin_daily_public_catalog.py'
+      - 'tests/test_keirin_daily_clip_batch.py'
+      - '.github/workflows/keirin-daily-all-races-video.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keirin-daily-video-capture-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  discover-then-capture-completed:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 83
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            race_ai
+            scripts
+            tests
+            docs
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install ordinary browser, encryption, ffprobe
+        run: |
+          python -m pip install --disable-pip-version-check \
+            playwright==1.56.0 'cryptography>=44,<48' \
+            numpy==1.26.4 opencv-python-headless==4.10.0.84 scikit-learn==1.6.1
+          python -m playwright install chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Verify source dates, daily venue counts and retained SHA digests
+        run: |
+          python -m py_compile race_ai/keirin_daily_public_catalog.py
+          python -m py_compile race_ai/keirin_daily_clip_batch.py
+          python -m py_compile scripts/keirin_daily_public_discovery.py
+          python -m py_compile scripts/keirin_daily_dynamic_clip_collector.py
+          python -m unittest discover -s tests -p 'test_keirin_daily_public_catalog.py' -v
+          python -m unittest discover -s tests -p 'test_keirin_daily_clip_batch.py' -v
+          python -m unittest discover -s tests -p 'test_keirin_private_sealed_payload.py' -v
+          python - <<'PY'
+          from pathlib import Path
+          from cryptography.hazmat.primitives.serialization import load_pem_public_key
+          from cryptography.hazmat.primitives.asymmetric import rsa
+          p=Path("docs/keirin-historical-batch-20261109-public.pem")
+          key=load_pem_public_key(p.read_bytes())
+          if not isinstance(key,rsa.RSAPublicKey) or key.key_size!=3072:
+              raise SystemExit('OWNER_RSA_3072_PUBLIC_KEY_UNVERIFIED')
+          print('Owner private research RSA wrapping key validated')
+          PY
+      - name: Capture a bounded wave from TODAY published race results
+        id: capture
+        continue-on-error: true
+        run: |
+          python -m scripts.keirin_daily_dynamic_clip_collector \
+            --owner-public-key docs/keirin-historical-batch-20261109-public.pem \
+            --private-retention-receipts docs/evidence/keirin-daily-private-retention-receipts.json \
+            --encrypted-dir "$RUNNER_TEMP/keirin-daily-sealed" \
+            --sealed-research-dir "$RUNNER_TEMP/keirin-daily-sealed-research" \
+            --report "$RUNNER_TEMP/keirin-daily-wave.json" \
+            --manifest "$RUNNER_TEMP/keirin-daily-source-inventory.json" \
+            --max-races 24
+      - name: Upload owner-only ciphertext, never video pixels
+        if: steps.capture.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-daily-sealed-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-daily-sealed/
+          retention-days: 2
+          if-no-files-found: warn
+      - name: Upload separately encrypted private scene vectors and study
+        if: steps.capture.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-daily-private-sealed-research-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-daily-sealed-research/
+          retention-days: 2
+          if-no-files-found: warn
+      - name: Upload verification metadata and fixed TRAIN/HOLDOUT partition
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-daily-wave-evidence-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/keirin-daily-wave.json
+            ${{ runner.temp }}/keirin-daily-source-inventory.json
+          retention-days: 3
+          if-no-files-found: warn
+      - name: Report actual counts, still no automatic tactical truth
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ["RUNNER_TEMP"])/"keirin-daily-wave.json"
+          d=json.loads(p.read_text()) if p.exists() else {}
+          lines=[
+            '## Daily nationwide WINTICKET replay coverage',
+            f"- JST day: {d.get('date_jst','UNKNOWN')}",
+            f"- Venues publicly indexed: {d.get('discovered_venue_count','UNKNOWN')}",
+            f"- Racecards publicly indexed: {d.get('discovered_race_count','UNKNOWN')}",
+            f"- Results index race links: {d.get('result_page_links','UNKNOWN')}",
+            f"- Independently retained Library races skipped: {d.get('previously_retained_with_verified_readback',0)}",
+            f"- Actual video attempts: {d.get('attempted',0)}",
+            f"- Fully played and AES-GCM sealed: {d.get('encrypted',0)}",
+            f"- Private AES-sealed scene research batches: {d.get('encrypted_private_research_documents',0)}",
+            f"- Source-bound visual feature frames: {d.get('scene_feature_frame_count',0)}",
+            f"- Self-supervised model status: {d.get('scene_model_status','INSUFFICIENT_EVIDENCE')}",
+            f"- Pending another batch due to max-24 limit: {d.get('candidates_remaining_for_another_wave',0)}",
+            '- Train/Test split is frozen from race identity before viewing any video or outcome.',
+            '- Verified rider-specific tactics labels: 0 until independently reviewed.',
+            '- Forecast model improvement or uncut four laps: NOT VERIFIED.',
+          ]
+          for x in d.get('race_rows',[]):
+             lines.append('- '+str(x.get('race_id'))+
+                          ': '+str(x.get('status'))+
+                          '; video_sha256='+str(x.get('source_video_sha256'))+
+                          '; cohort='+str(x.get('cohort')))
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text("\n".join(lines)+"\n")
+          print("\n".join(lines))
+          PY
+      - name: Fail if capture itself crashed or known result clips all failed
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ["RUNNER_TEMP"])/"keirin-daily-wave.json"
+          if not p.is_file():
+              raise SystemExit('PUBLIC_CATALOG_OR_CAPTURE_FAILED_WITHOUT_EVIDENCE')
+          d=json.loads(p.read_text())
+          if d.get('attempted',0)>0 and d.get('encrypted',0)==0:
+              raise SystemExit('NO_COMPLETED_RESULT_VIDEO_SAVED')
+          print('Research capture status evidenced; no model training claim.')
+          PY

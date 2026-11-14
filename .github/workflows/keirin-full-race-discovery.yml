@@ -1,0 +1,49 @@
+name: Matsuyama 1R full-race archive discovery (no footage)
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/keirin_full_race_source_probe.py'
+      - '.github/workflows/keirin-full-race-discovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install chromium
+      - name: Discover official published stream metadata
+        env:
+          RACE_AI_PROBE_ONLY: '1'
+        run: |
+          python scripts/keirin_full_race_source_probe.py "$RUNNER_TEMP/full-race-source-report.json"
+      - name: Publish metadata only
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ["RUNNER_TEMP"])/"full-race-source-report.json"
+          if not p.exists():
+              raise SystemExit("NO_DISCOVERY_OUTPUT")
+          result=json.loads(p.read_text())
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"w") as f:
+              f.write("## Matsuyama 2026-11-08 1R full-race sources (metadata only)\n")
+              f.write("Not proof of a full four-lap race. No video was copied or saved.\n")
+              for source,v in result["channels"].items():
+                  f.write("\n### "+source+"\n")
+                  for e in v["rss"].get("entries",[])[:10]:
+                      f.write("- "+e.get("published","")+" "+e.get("title","").replace("\n"," ")+" ("+e.get("video_id","")+")\n")
+                  for kind,item in v["browser"].items():
+                      f.write("- "+kind+" page: "+item.get("title","ERROR")+" "+item.get("url","")+"\n")
+          PY

@@ -1,0 +1,41 @@
+# 競輪・過去の未知レースを使う独立検証（2026-11-09）
+
+## 結論
+開催中のレースを待つ必要はない。過去レースでも、その録画をモデルの学習・閾値調整・正解の先読みから隔離し、モデルを固定したあとに評価すれば、未学習レースでの能力を実証できる。
+
+## 手持ち映像と厳密な区分
+- 2026-11-08 松山9R: WINTICKETで発走前からレース後まで録画した626.320秒の実WebMが非公開作業環境にある。検証済みSHA-256: 9f8f8a487ebcea6f001f4f4159953c6d0f9a79b7e545fd1b53d6391d83fb7dab。すでに人が映像を見てレース場面/閾値設計を検討しているため **DEV（開発・回帰確認用）** とし、『初めて見たレースでの独立的中精度』に含めない。
+- 2026-11-08 松山1R: 過去のダイジェスト92.208秒は確認済み。全4周ではないので、4周の独立検証に使わない。ただし『不足映像を正しく拒否する』陰性テストには使える。
+- 完全未見の過去レース: 今の非公開動画保管先では別の全編録画が確認できていない。新たに候補を得た場合、学習ラベルや選手の着順を先に見ないで検証用に予約する。
+- 過去レースの映像候補はオッズパークの『競輪過去映像』ページ（https://www.oddspark.com/keirin/yosou/movie/archive/）。GitHub-hosted Chromeからは2026-11-09 00:34ごろの試行で HTTP 403 Access Denied となり、動画本体は確認できなかった。制限を回避せず、取得可能扱いにしない。
+- 競輪モバイル過去動画（2026-11-08高知F1）はHTMLのレースごとの「30秒」動画案内を確認した（GitHub Actions #42495619260）。全4周映像の代わりにならないため、未知レースの全周検証対象から除外する。
+
+## 追加した厳密な評価方法
+1. 過去レースを TRAIN（学習）、DEV（開発で既知）、HOLDOUT（完全未見）の3集合に、映像内容の学習より先に分ける。TRAIN/DEVに入ったレース・録画・フレームの再使用は禁止。
+2. TRAINの別レースに付いた人手の検証済み場面ラベルを、映像SHAとフレームSHAで照合してモデルを学習する。モデル重み・学習済みレース一覧・開発に使ったレース一覧を確定する。
+3. HOLDOUTの映像に正解を与えずSTART/HOME_PASS×4/GOAL/REPLAY_START/REPLAY_END/RESULTを予測し、時刻・フレームSHA・モデルSHAを含む予測ファイルを排他的に凍結する。
+4. 予測ファイルの凍結を独立に確認してから、人間または別の検証器が映像を見て作った正解表を開示する（事前のラベルは推論器に入力禁止）。
+5. 同一ラベル・時刻±4秒で1対1対応させ、各ラベルの適合率・再現率・F1を算出。4周すべて一致、ゴール位置一致、リプレイを周回として二重計数0、開始と結果の照合成功を別々に検査する。
+6. 同一映像をTRAIN/DEVとHOLDOUTの両方で使うこと、結果ラベルの先読み、凍結後の上書き、権利・時刻証明なしの本番合格宣言は禁止。合成映像は試験の仕組みの動作確認に限る。
+
+## 実装・責任境界
+- race_ai/keirin_historical_holdout.py: 厳密な未学習・未開発データの分離、予測ファイルのハッシュ照合、別レビュー正解表の真偽・映像一致、4周/リプレイ/ゴールの1対1検証、偽陽性数の計算。
+- tests/test_keirin_historical_holdout.py: 合成の真の4通過とゴールを一致させるテスト、リプレイ通過の誤カウント、ゴール欠損、開発済みレース混入、改ざん、時刻逆転、検証者不在の拒否。
+- CIで試験済みでも、公開GitHub環境には実映像・正解ラベル・秘密鍵は入れない。信頼済みの独立検証者と用途別利用条件の確認は、非公開の所有者実行環境で必須。
+- 注意: 同じ松山9Rを『特徴抽出・デバッグ用』として使用することはできるが、『未知レースの本番合格率』に含めてはいけない。未見過去映像が入るまでは合格率は未算定。
+
+## 現在の受入状況
+- 過去レースを用いた検証フレームワークのコード: 実装済み（最新CIの全件確認は別途必要）。
+- 松山9R全編の技術録画とフレーム抽出: 実行済み。
+- 独立ラベル付き複数の本物の過去レースによる学習: 未実施。
+- 完全未見の過去レースで4周/リプレイ/ゴールを自動判定して独立照合: 未実施。
+- 推論された映像特徴量を既存予想モデルに正式学習反映: 未実施。既存の予想原本とモデル重みは変更しない。
+
+朝まで開催を待つのではなく、既存の過去映像収集候補の確認と上記の検証器の実証を優先する。
+
+## 2026-11-09 owner policy update: verified short clips
+- **Full four-lap footage has priority, not exclusivity.** If all laps are not accessible, an independently reviewed short historic replay can still train attack, final sprint, positioning, finish/goal and replay SCENE categories that are visibly present.
+- Partial highlights NEVER establish four full laps or the non-occurrence of an unseen tactic. Review-derived positives are stored separately from unknown/off-camera actions, without setting missing=0.
+- Implementation: race_ai/keirin_video_clip_policy.py, race_ai/keirin_video_partial_learning.py and create_partial_postrace_learning_candidate in race_ai/keirin_video_postrace_pdca.py. Older full-lap proof and official-model-promotion gates remain strict.
+- Detailed authoritative rules: docs/KEIRIN_PARTIAL_VIDEO_TRAINING_POLICY_20261109.md.
+- WINTICKET 2026-10-30 Yahiko 1R was played successfully at 80.164s; it is a PARTIAL_HIGHLIGHTS **candidate**, NOT yet an externally permitted, reviewed or trained video. Do not claim improved forecast accuracy.

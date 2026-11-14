@@ -1,0 +1,38 @@
+name: KEIRIN historical blind holdout and replay scoring contracts
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_historical_holdout.py'
+      - 'tests/test_keirin_historical_holdout.py'
+      - 'race_ai/keirin_video_learning.py'
+      - '.github/workflows/keirin-historical-holdout-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  historical-holdout-fail-closed:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Source syntax and schema
+        run: |
+          python -m py_compile race_ai/keirin_historical_holdout.py
+          python -m py_compile tests/test_keirin_historical_holdout.py
+      - name: Blinded historical synthetic evaluation
+        run: |
+          python -m unittest discover -s tests -p 'test_keirin_historical_holdout.py' -v
+      - name: Prevent synthetic test from being mistaken as actual accuracy
+        run: |
+          {
+            echo 'Synthetic historical holdout contract tests only.'
+            echo 'Actual independent unseen historical full-race evaluation: NOT PROVEN.'
+            echo 'Matsuyama 2026-11-08 9R was used for development and may not count as a pristine untouched holdout.'
+            echo 'No actual race recording, user image, model weights or truth labels uploaded.'
+          } >> "$GITHUB_STEP_SUMMARY"

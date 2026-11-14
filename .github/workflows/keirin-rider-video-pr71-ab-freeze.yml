@@ -1,0 +1,36 @@
+name: KEIRIN same-race existing PR71 A vs video prior B future freeze gates
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_video_tactics_pr71_ab_gate.py'
+      - 'tests/test_keirin_video_tactics_pr71_ab_gate.py'
+      - '.github/workflows/keirin-rider-video-pr71-ab-freeze.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prospective-video-ab-guards:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate source syntax
+        run: |
+          python -m py_compile race_ai/keirin_video_tactics_pr71_ab_gate.py
+          python -m py_compile tests/test_keirin_video_tactics_pr71_ab_gate.py
+      - name: Verify existing A, original SHA and previous-video evidence contract
+        run: python -m unittest discover -s tests -p 'test_keirin_video_tactics_pr71_ab_gate.py' -v
+      - name: Print limits, not synthetic success as real A/B
+        run: |
+          {
+            echo 'Synthetic A/B gate tests passed.'
+            echo 'This job has no real PR71 private A forecast, no official training, no independent visual double-review, and no real measured uplift.'
+            echo 'Local private research A/B hashes may exist separately, but MUST NOT be presented as existing PR71 A.'
+            echo 'No raw copyrighted videos or user forecast originals uploaded. No bets, no merge.'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,63 @@
+{
+  "schema": "RACE_AI_KEIRIN_20261109_DAILY_SYSTEM_ACCEPTANCE_V1",
+  "date_jst": "2026-11-09",
+  "actual_dynamic_public_race_index": {
+    "venues": 8,
+    "races": 83,
+    "manifest_source": "WINTICKET_CURRENT_DAY_PUBLIC_RACECARD_AND_RESULTS",
+    "ci_run": "https://github.com/haji84/RACE-AI/actions/runs/42541675280",
+    "synthetic_parser_tests": 7
+  },
+  "owner_private_archive_evidence": {
+    "race_ids": [
+      "202611091201",
+      "202611091202",
+      "202611091203"
+    ],
+    "unique_complete_browser_replays_encrypted": 3,
+    "private_library_sha_readback_verified": 3,
+    "private_day_folder": "/RACE-AI/KeirinVideo/2026-11-09/",
+    "public_code_includes_plaintext_footage": false,
+    "dynamic_daily_capture_ci": "https://github.com/haji84/RACE-AI/actions/runs/42542055155",
+    "subsequent_dedupe_ci": "https://github.com/haji84/RACE-AI/actions/runs/42542902772"
+  },
+  "observed_real_video_private_research": {
+    "training_races": [
+      "202611091201",
+      "202611091202"
+    ],
+    "heldout_races": [
+      "202611091203"
+    ],
+    "training_frames": 103,
+    "holdout_frames": 50,
+    "total_frames": 153,
+    "feature_dimensions": 196,
+    "unsupervised_clusters": 6,
+    "train_mean_nearest_center_distance": 9.140628919174896,
+    "heldout_mean_nearest_center_distance": 11.918938529892072,
+    "model_private_sha256": "77a7c727f209ede56d51163078074c95d977214f288d605949a0f14d2d1d03dd",
+    "features_private_sha256": "2387def01a044025b5c72963e3fd93f92087966569cf4aba403db63379646337",
+    "review_queue_private_sha256": "c7dc906295d00049ad8f0e5ba6b6be2ec417233d1a6a9582a650a94105f31db8",
+    "private_folder": "/RACE-AI/KeirinVideo/2026-11-09/research/",
+    "all_three_library_files_verified_identical_sha_on_readback": true,
+    "full_lap_classifier_validated": false,
+    "tactical_rider_identity_labels_independently_approved": 0,
+    "real_trifecta_A_B_improvement_measured": false,
+    "official_prediction_weights_changed": false,
+    "classification_accuracy_from_cluster_distance_proven": false,
+    "safety_rule": "SCENE_CHANGE_PEAK_DOES_NOT_IMPLY_MAKURI_SASHI_OR_RIDER_ID"
+  },
+  "recurring_operation": {
+    "today_current_day_task": "11/9競輪83R映像収集・A/B検証",
+    "today_current_day_task_limited_to": "2026-11-10 00:30 JST",
+    "tomorrow_daily_capture_start": "2026-11-10 08:35 JST",
+    "daily_capture_slots_jst": "every hour 08:35-23:35",
+    "daily_private_research_start": "2026-11-10 00:50 JST",
+    "daily_private_research_target": "previous JST date",
+    "owner_reported_winticket_usage_ok": true,
+    "permission_full_scope_independently_documented": false,
+    "CI_on_draft_pr_requires_automation_tick_not_main_schedule": true
+  },
+  "formal_model_promotion": "NOT_AUTHORIZED_UNTIL_INDEPENDENT_RIDER_VIDEO_ACTIONS_AND_BEFORE_CUTOFF_A_B_HOLDOUT_ACCURACY_VERIFIED"
+}

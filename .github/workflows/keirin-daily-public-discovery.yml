@@ -1,0 +1,67 @@
+name: KEIRIN dynamic daily race discovery contracts
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_daily_public_catalog.py'
+      - 'scripts/keirin_daily_public_discovery.py'
+      - 'tests/test_keirin_daily_public_catalog.py'
+      - '.github/workflows/keirin-daily-public-discovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  no-guessed-daily-race-count:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            race_ai
+            scripts
+            tests
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check date, venue, route and independent-holdout rules
+        run: |
+          python -m py_compile race_ai/keirin_daily_public_catalog.py
+          python -m py_compile scripts/keirin_daily_public_discovery.py
+          python -m unittest discover -s tests -p 'test_keirin_daily_public_catalog.py' -v
+      - name: Install public browser metadata only
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install chromium
+      - name: Discover actual TODAY race list without video
+        run: |
+          python -m scripts.keirin_daily_public_discovery \
+            --output "$RUNNER_TEMP/keirin-today-discovered.json"
+      - name: Only race index metadata artifact, no video, results, odds
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-daily-dynamic-public-inventory-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-today-discovered.json
+          retention-days: 2
+          if-no-files-found: error
+      - name: Report count with no 83-race assumption for tomorrow
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          doc=json.loads((Path(os.environ["RUNNER_TEMP"])/"keirin-today-discovered.json").read_text())
+          lines=["## Nationwide KEIRIN daily dynamic inventory",
+                 "- Day: "+doc["date_jst"],
+                 "- Live race venue count: "+str(doc["discovered_venue_count"]),
+                 "- Live scheduled/linked races: "+str(doc["discovered_race_count"]),
+                 "- Result page links: "+str(sum(x["listed_on_raceresult_index"] for x in doc["races"])),
+                 "- Manifest SHA256: "+doc["manifest_sha256"],
+                 "- Actual source video downloaded: NONE",
+                 "- Market odds or result used for holdout assignment: NONE",
+                 "- All Japan coverage beyond visible links independently verified: NO"]
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text("\n".join(lines)+"\n")
+          print("\n".join(lines))
+          PY

@@ -1,0 +1,58 @@
+name: KEIRIN GitHub-only unattended scheduler prerequisites
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/keirin_autonomous_artifact_recovery.py'
+      - 'scripts/keirin_github_private_s3_archive.py'
+      - 'scripts/keirin_github_seal_owner_research.py'
+      - 'tests/test_keirin_github_private_s3_archive.py'
+      - 'race_ai/keirin_private_sealed_payload.py'
+      - 'race_ai/keirin_daily_clip_batch.py'
+      - 'race_ai/keirin_daily_night_backfill.py'
+      - 'scripts/keirin_daily_dynamic_clip_collector.py'
+      - 'scripts/keirin_winticket_historical_batch_capture.py'
+      - 'tests/test_keirin_autonomous_artifact_recovery.py'
+      - 'tests/test_keirin_private_sealed_payload.py'
+      - '.github/workflows/keirin-gh-autonomous-contracts.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  no-external-video-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline test libraries
+        run: |
+          python -m pip install --disable-pip-version-check \
+            playwright==1.56.0 'cryptography>=44,<48'
+      - name: Compile on-demand and scheduled runtime modules
+        run: |
+          python -m py_compile scripts/keirin_autonomous_artifact_recovery.py
+          python -m py_compile scripts/keirin_github_private_s3_archive.py
+          python -m py_compile scripts/keirin_github_seal_owner_research.py
+          python -m py_compile scripts/keirin_daily_dynamic_clip_collector.py
+          python -m py_compile scripts/keirin_winticket_historical_batch_capture.py
+          python -m py_compile race_ai/keirin_daily_clip_batch.py
+          python -m py_compile race_ai/keirin_daily_night_backfill.py
+          python -m py_compile race_ai/keirin_private_sealed_payload.py
+      - name: Cryptography, expiry-aware artifact dedup and private-source SHA
+        run: |
+          python -m unittest discover -s tests -p 'test_keirin_autonomous_artifact_recovery.py' -v
+          python -m unittest discover -s tests -p 'test_keirin_private_sealed_payload.py' -v
+          python -m unittest discover -s tests -p 'test_keirin_daily_clip_batch.py' -v
+          python -m unittest discover -s tests -p 'test_keirin_github_private_s3_archive.py' -v
+      - name: Safety statement
+        run: |
+          {
+            echo 'Synthetic only. This CI does not run actual race video recording.'
+            echo 'A scheduled workflow must be present on default main before GitHub runs it.'
+            echo 'Private archival service and independent rider action labeling remain separate.'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,137 @@
+name: WINTICKET single authorized race capture (disabled until rights granted)
+
+on:
+  workflow_dispatch:
+    inputs:
+      race_id:
+        description: 'YYYYMMDD-matsuyama-NN, independently confirmed'
+        required: true
+        type: string
+      race_number:
+        description: '1..12'
+        required: true
+        type: string
+      race_start_at:
+        description: 'Verified time: 2026-11-09T20:40:00+09:00 (EXAMPLE ONLY)'
+        required: true
+        type: string
+      record_from_at:
+        description: 'Start at least 90 seconds before verified race start'
+        required: true
+        type: string
+      record_until_at:
+        description: 'End at least 5 minutes after verified race start'
+        required: true
+        type: string
+      schedule_evidence_ref:
+        description: 'Actual authoritative published start time source reference'
+        required: true
+        type: string
+      recording_rights_ref:
+        description: 'Actual reviewed permission record. Example is not permission.'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  fail-closed-one-race:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 27
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            race_ai
+            scripts
+            docs
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Require separately configured operator rights and encryption key
+        env:
+          RACE_AI_VIDEO_RECORDING_PERMISSION: ${{ secrets.RACE_AI_VIDEO_RECORDING_PERMISSION }}
+          RACE_AI_VIDEO_CAPTURE_RSA_PUBLIC_PEM: ${{ secrets.RACE_AI_VIDEO_CAPTURE_RSA_PUBLIC_PEM }}
+        run: |
+          if [ "$RACE_AI_VIDEO_RECORDING_PERMISSION" != "APPROVED_BY_OWNER" ]; then
+            echo "::error::Recording rights not independently admitted. No source recording."
+            exit 2
+          fi
+          if [ -z "$RACE_AI_VIDEO_CAPTURE_RSA_PUBLIC_PEM" ]; then
+            echo "::error::No owner-controlled encryption key configured."
+            exit 2
+          fi
+          printf '%s\n' "$RACE_AI_VIDEO_CAPTURE_RSA_PUBLIC_PEM" > "$RUNNER_TEMP/owner-video-public.pem"
+          chmod 600 "$RUNNER_TEMP/owner-video-public.pem"
+      - name: Build a validated owner-supplied race window
+        env:
+          RACE_ID: ${{ inputs.race_id }}
+          RACE_NUMBER: ${{ inputs.race_number }}
+          RACE_START: ${{ inputs.race_start_at }}
+          RECORD_BEGIN: ${{ inputs.record_from_at }}
+          RECORD_END: ${{ inputs.record_until_at }}
+          SCHEDULE_REF: ${{ inputs.schedule_evidence_ref }}
+          RIGHTS_REF: ${{ inputs.recording_rights_ref }}
+        run: |
+          python - <<'PY'
+          import os,json
+          from pathlib import Path
+          p={
+            "schema":"RACE_AI_KEIRIN_LIVE_SCREEN_CAPTURE_PLAN_V1",
+            "race_id":os.environ["RACE_ID"],"venue":"matsuyama",
+            "race_number":int(os.environ["RACE_NUMBER"]),
+            "race_start_at":os.environ["RACE_START"],
+            "record_from_at":os.environ["RECORD_BEGIN"],
+            "record_until_at":os.environ["RECORD_END"],
+            "expected_laps":4,
+            "source_url":"https://www.winticket.jp/keirin/matsuyama/live",
+            "schedule_evidence_ref":os.environ["SCHEDULE_REF"],
+            "recording_rights_ref":os.environ["RIGHTS_REF"]
+          }
+          from race_ai.keirin_video_lap_gate import validate_plan
+          validate_plan(p)
+          Path(os.environ["RUNNER_TEMP"],"live-plan.json").write_text(json.dumps(p))
+          print("Race time and source schema admitted. Live rights independently gated.")
+          PY
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.56.0 'cryptography>=44,<48'
+          python -m playwright install chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Record one real event with a prestart buffer and postrace buffer
+        id: real_capture
+        env:
+          RACE_AI_VIDEO_RECORDING_PERMISSION: ${{ secrets.RACE_AI_VIDEO_RECORDING_PERMISSION }}
+        run: |
+          python -m scripts.keirin_winticket_prestart_recorder \
+            --plan "$RUNNER_TEMP/live-plan.json" \
+            --report "$RUNNER_TEMP/live-video-report.json" \
+            --encrypted-dir "$RUNNER_TEMP/live-cipher" \
+            --owner-public-key "$RUNNER_TEMP/owner-video-public.pem"
+      - name: Upload ciphertext ONLY on validated full-time-window
+        if: steps.real_capture.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-owner-encrypted-single-race-screen
+          path: ${{ runner.temp }}/live-cipher/
+          retention-days: 2
+          if-no-files-found: error
+      - name: Require visual proof before any four-lap completion claim
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,os
+          p=Path(os.environ["RUNNER_TEMP"],"live-video-report.json")
+          data=json.loads(p.read_text()) if p.exists() else {"status":"NOT_RUN"}
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"w") as out:
+              out.write("## Single-race screen-capture audit\n")
+              out.write("- Video recorder: "+str(data.get("status"))+"\n")
+              out.write("- Four real laps verified: FALSE (no independently approved vision model)\n")
+              out.write("- User screen recording needed: no\n")
+              out.write("- Raw video published: no\n")
+              out.write("- No stream extraction, no betting, no model weight changes\n")
+          PY
