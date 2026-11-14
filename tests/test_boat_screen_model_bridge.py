@@ -78,6 +78,19 @@ class ScreenToModelTests(unittest.TestCase):
             aes_key=b"k"*32,clock=lambda:START,verify_real_receipt=lambda *_:False)
         self.assertEqual(result["status"],"HOLD_SCREEN_SOURCE_RECEIPT_REJECTED")
 
+    def test_screen_video_context_has_only_current_active_field_not_six_phantoms(self):
+        for active in ([1,2,4,5,6],[1,3,5,6],[2,4,6]):
+            with self.subTest(active=active):
+                source=job(self.sha)
+                source['roster']=[r for r in source['roster'] if r['lane'] in active]
+                moments=iter([START+timedelta(seconds=1),START+timedelta(seconds=6)])
+                out=evaluate_encrypted_screen(self.cipher,source,
+                    aes_key=b'k'*32,clock=lambda:next(moments))
+                self.assertEqual(out['status'],'VIDEO_SCREEN_ANALYZED_UNVALIDATED_IDENTITIES')
+                self.assertEqual(out['tracking_lane_candidates'],len(active))
+                self.assertFalse(out['production_video_forecast_proven'])
+                self.assertFalse(out['model_prediction_generated'])
+
     def test_synthetic_cipher_is_not_convertible_to_real_race_input(self):
         result=evaluate_encrypted_screen(self.cipher,job(self.sha,"OWNER_LOCAL"),
             aes_key=b"k"*32,clock=lambda:START)
