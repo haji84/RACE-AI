@@ -64,7 +64,8 @@ def preflight(source,grant,*,now,verify_grant=None):
             return _hold("HOLD_SCREEN_SOURCE_INVALID")
         play=source["play_selector"]
         if play is not None and (type(play) is not str or
-                re.fullmatch(r'button(?:#[a-zA-Z][a-zA-Z0-9_-]*)?',play) is None):
+                (play!='展示リプレイ' and
+                 re.fullmatch(r'button(?:#[a-zA-Z][a-zA-Z0-9_-]*)?',play) is None)):
             return _hold("HOLD_SCREEN_SOURCE_INVALID")
         if (type(grant) is not dict or set(grant)!={"schema","race_id","page_url",
             "rights_evidence_sha256","grant_type","permitted_uses","valid_from",
@@ -190,7 +191,8 @@ async def _visible_state(page):
 
 
 async def record_screen(browser,source,grant,*,verify_grant,now,aes_key,
-                        fixture_loader=None,timeout_seconds=30):
+                        fixture_loader=None,timeout_seconds=30,
+                        verify_page_identity=None):
     """Record one ordinary visible HTML5 replay, then encrypt the screen WebM.
 
     In fixture mode the supplied loader sets LOCAL HTML only, and the output
@@ -207,6 +209,8 @@ async def record_screen(browser,source,grant,*,verify_grant,now,aes_key,
     if fixture_loader is not None and not callable(fixture_loader):
         return _hold("HOLD_SCREEN_FIXTURE_INVALID")
     if fixture_loader is None:
+        if not callable(verify_page_identity):
+            return _hold("HOLD_SCREEN_PAGE_IDENTITY_VERIFIER_REQUIRED")
         # A caller-injected historical clock cannot authorize real capture.
         if abs((_utc(now)-datetime.now(timezone.utc)).total_seconds())>120:
             return _hold("HOLD_SCREEN_LIVE_CLOCK_UNVERIFIED")
@@ -236,8 +240,15 @@ async def record_screen(browser,source,grant,*,verify_grant,now,aes_key,
                 if (response is None or response.status!=200 or
                         page.url!=source["page_url"]):
                     return _hold("HOLD_SCREEN_PAGE_IDENTITY_UNVERIFIED")
+                attestation=await verify_page_identity(page,source)
+                if (type(attestation) is not dict or
+                        attestation.get('race_id')!=source['race_id'] or
+                        attestation.get('observed_from_page') is not True):
+                    return _hold("HOLD_SCREEN_DOM_RACE_ID_UNVERIFIED")
                 if source["play_selector"] is not None:
-                    button=page.locator(source["play_selector"])
+                    button=(page.get_by_text("展示リプレイ",exact=True)
+                         if source["play_selector"]=="展示リプレイ"
+                         else page.locator(source["play_selector"]))
                     if await button.count()!=1 or not await button.is_visible():
                         return _hold("HOLD_SCREEN_PLAY_CONTROL_UNAVAILABLE")
                     await button.click(timeout=6000)
