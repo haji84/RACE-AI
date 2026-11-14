@@ -4,7 +4,9 @@ This is a private, source-free adapter between Playwright screen capture and
 the existing FFmpeg/OpenCV video evaluation. It never downloads a source,
 publishes a raw frame, labels boats automatically, scores races, rewrites a P1
 original, or calls an experimental model without qualified identity evidence.
-Any real-source video still requires separately authenticated rights/receipt.
+Research-only owner footage requires AES, original-media hash, capture day and
+cutoff checks, not a second permission/receipt confirmation. Independent source
+attestation is optional and may strengthen the audit, never falsely inferred.
 """
 from datetime import datetime
 import os
@@ -38,12 +40,13 @@ def evaluate_encrypted_screen(envelope, job, *, aes_key, clock,
                   ('SYNTHETIC_TEST','SYNTHETIC')) or
                 not fixture and source['kind'] not in ('OWNER_LOCAL','OFFICIAL_BROWSER_CAPTURE')):
             return _hold('HOLD_SCREEN_DATASET_SCOPE_MISMATCH')
-        if not fixture:
-            # Public repository metadata or a producer's boolean is not
-            # sufficient to license/attest an actual displayed video.
-            if (not callable(verify_real_receipt) or
-                    verify_real_receipt(envelope,checked) is not True):
-                return _hold('HOLD_SCREEN_REAL_SOURCE_RIGHTS_REQUIRED')
+        source_receipt_verified=False
+        if not fixture and verify_real_receipt is not None:
+            # Optional independent source proof is checked when actually
+            # provided; a boolean from untrusted metadata is not proof.
+            if not callable(verify_real_receipt) or verify_real_receipt(envelope,checked) is not True:
+                return _hold('HOLD_SCREEN_SOURCE_RECEIPT_REJECTED')
+            source_receipt_verified=True
         try:
             raw=unseal_screen(envelope,aes_key=aes_key)
         except ValueError:
@@ -65,7 +68,8 @@ def evaluate_encrypted_screen(envelope, job, *, aes_key, clock,
                 context.get('eligible_for_research') is not False):
             return _hold('HOLD_SCREEN_UNEXPECTED_CONTEXT_ELIGIBILITY')
         return dict(status='VIDEO_SCREEN_ANALYZED_UNVALIDATED_IDENTITIES',
-                    source_role='SYNTHETIC_FIXTURE' if fixture else 'RESEARCH_OWNER_BROWSER',
+                    source_role='SYNTHETIC_FIXTURE' if fixture else 'OWNER_DECLARED_PRIVATE_RESEARCH',
+                    source_receipt_independently_verified=source_receipt_verified,
                     race_id=checked['race_id'],report_sha256=report['report_sha256'],
                     video_context_sha256=context['context_sha256'],
                     dataset_status=report['dataset_status'],
