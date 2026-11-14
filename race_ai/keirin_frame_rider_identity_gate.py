@@ -294,17 +294,23 @@ def bridge_reviewed_frames(forecast,admission,roster,packets,*,
         group_a=pair[0].get("line_groups_candidate",UNKNOWN)
         group_b=pair[1].get("line_groups_candidate",UNKNOWN)
         observed_lines=UNKNOWN
+        second_wheel=UNKNOWN
         if (group_a!=UNKNOWN and group_a==group_b and
             _confirmed(line_relation_verifier,*pair,admission)):
             matched=set(ranks.values())
-            if set(x for line in group_a for x in line)<=matched:
-                observed_lines=group_a
-        second_wheel=UNKNOWN
-        if observed_lines!=UNKNOWN and leader!=UNKNOWN:
-            matching=[line[1] for line in observed_lines
-                      if len(line)>1 and line[0]==leader]
-            if len(matching)==1:
-                second_wheel=matching[0]
+            visible={number for line in group_a for number in line}
+            if visible<=matched:
+                # A partial broadcast may prove 1 rider's immediate follower,
+                # but MUST NOT mark the entire unseen field as a broken line.
+                if leader!=UNKNOWN:
+                    matching=[line[1] for line in group_a
+                              if len(line)>1 and line[0]==leader]
+                    if len(matching)==1:
+                        second_wheel=matching[0]
+                # Full lineup equality is scorable only if ALL starting
+                # cars are independently visible and position-confirmed.
+                if visible==set(roster):
+                    observed_lines=group_a
         if leader==UNKNOWN and top3==UNKNOWN and observed_lines==UNKNOWN:
             stages.append({"phase":phase,"state":"UNKNOWN",
                            "reason":"NO_TWO_FRAME_POSITION_CONSENSUS",
@@ -325,7 +331,8 @@ def bridge_reviewed_frames(forecast,admission,roster,packets,*,
             "line_groups":observed_lines,
             "second_wheel":second_wheel,"attack":UNKNOWN,
         }
-        any_line_verified=any_line_verified or observed_lines!=UNKNOWN
+        any_line_verified=(any_line_verified or observed_lines!=UNKNOWN or
+                           second_wheel!=UNKNOWN)
         checked_parts(measured)
         observations.append({
             "phase":phase,"recording_sec":midpoint,"scene":"LIVE",
@@ -335,8 +342,11 @@ def bridge_reviewed_frames(forecast,admission,roster,packets,*,
         })
         previous_time=midpoint
         stages.append({"phase":phase,"state":"TWO_FRAME_RANK_CANDIDATE",
-                       "reason":("TACTICS_UNVERIFIED" if observed_lines!=UNKNOWN
-                                 else "LINE_AND_TACTICS_UNVERIFIED"),
+                       "reason":(
+                           "TACTICS_UNVERIFIED" if observed_lines!=UNKNOWN
+                           else "PARTIAL_LINE_SECOND_WHEEL_ONLY"
+                           if second_wheel!=UNKNOWN
+                           else "LINE_AND_TACTICS_UNVERIFIED"),
                        "confirmed_position_count":len(ranks)})
     result={
         "schema":REPORT,"race_id":forecast["race_id"],
