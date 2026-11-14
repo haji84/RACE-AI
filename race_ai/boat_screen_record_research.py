@@ -49,7 +49,7 @@ def preflight(source,grant,*,now,verify_grant=None):
                 source.get("schema")!=_SOURCE_SCHEMA or
                 type(source.get("race_id")) is not str or
                 _RACE.fullmatch(source["race_id"]) is None or
-                source.get("mode") not in ("REPLAY",)):
+                source.get("mode") not in ("REPLAY","LIVE_WINDOW")):
             return _hold("HOLD_SCREEN_SOURCE_INVALID")
         cutoff=instant(source["cutoff_at"])
         if (cutoff.astimezone(JST).strftime("%Y%m%d")!=source["race_id"][:8] or
@@ -216,6 +216,7 @@ async def record_screen(browser,source,grant,*,verify_grant,now,aes_key,
         recorded=None
         first=last=None
         ended=False
+        observed_live_progress=False
         try:
             context=await browser.new_context(
                 viewport={"width":640,"height":360},
@@ -254,6 +255,11 @@ async def record_screen(browser,source,grant,*,verify_grant,now,aes_key,
                         ended=True
                         break
                 await page.wait_for_timeout(170)
+            if (source["mode"]=="LIVE_WINDOW" and
+                    first is not None and last is not None and
+                    last.get("currentTime",0)-first.get("currentTime",0)>=
+                         min(2.5,timeout_seconds/2)):
+                observed_live_progress=True
         except Exception:
             return _hold("HOLD_SCREEN_PLAYBACK_UNAVAILABLE")
         finally:
@@ -264,25 +270,29 @@ async def record_screen(browser,source,grant,*,verify_grant,now,aes_key,
                     recorded=Path(await page.video.path())
             except Exception:
                 recorded=None
-        if not ended or recorded is None or not recorded.is_file() or recorded.is_symlink():
+        admitted=ended if source["mode"]=="REPLAY" else observed_live_progress
+        if not admitted or recorded is None or not recorded.is_file() or recorded.is_symlink():
             return _hold("HOLD_VISIBLE_PLAYER_NOT_COMPLETE")
         try:
             stat=recorded.stat()
             if not 1000<=stat.st_size<=_MAX_SCREEN_BYTES:
                 return _hold("HOLD_SCREEN_CAPTURE_BYTES_INVALID")
             actual=_duration(recorded)
-            if actual+1.7<last["duration"] or actual>last["duration"]+30:
+            if (source["mode"]=="REPLAY" and
+                    (actual+1.7<last["duration"] or actual>last["duration"]+30)):
                 return _hold("HOLD_SCREEN_CAPTURE_DURATION_MISMATCH")
             raw=recorded.read_bytes()
             envelope=seal_screen(raw,race_id=source["race_id"],
                 page_url=source["page_url"],fixture=fixture_loader is not None,
                 aes_key=aes_key)
-            return dict(status="SCREEN_REPLAY_CAPTURE_ENCRYPTED_UNVALIDATED",
+            return dict(status=("SCREEN_REPLAY_CAPTURE_ENCRYPTED_UNVALIDATED"
+                                if source["mode"]=="REPLAY"
+                                else "SCREEN_LIVE_WINDOW_ENCRYPTED_UNVALIDATED"),
                 source_class=("SYNTHETIC_OFFLINE_BROWSER_FIXTURE" if fixture_loader is not None
                               else "OWNER_RIGHTS_GATED_BROWSER_SCREEN_UNVALIDATED"),
                 race_id=source["race_id"],media_sha256=envelope["media_sha256"],
                 screen_recording_bytes=len(raw),screen_duration_seconds=actual,
-                player_ended=True,screen_recording_technically_verified=True,
+                player_ended=ended,screen_recording_technically_verified=True,
                 production_video_forecast_proven=False,
                 public_video_approved=False,model_eligible=False,
                 source_fetch_performed=fixture_loader is None,
