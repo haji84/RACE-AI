@@ -115,6 +115,58 @@ class ReducedFieldVideoTests(unittest.TestCase):
         stale=deepcopy(base);stale['records'][0]['participants'].append(dict(number=3,registration_no='4203'))
         self.assertNotIn('boat_video_evaluations',enrich_view(stale,[report])['records'][0])
 
+    def test_sequential_image_motion_features_follow_short_roster(self):
+        from tests.test_boat_video_sequential_context import fixture as sequential_fixture,rebind
+        from race_ai.boat_video_sequential_context import (
+            prepare_sequential_video_context,validate_sequential_video_context)
+        for active in ACTIVE_CASES:
+            if not {1,2}<=set(active):
+                continue
+            with self.subTest(active=active):
+                report,evidence,args=sequential_fixture()
+                report['roster']=[r for r in report['roster'] if r['lane'] in active]
+                report['tracking']['tracks']=[r for r in report['tracking']['tracks'] if r['lane'] in active]
+                report['analysis_parameters']['phase_windows']={
+                    k:w for k,w in report['analysis_parameters']['phase_windows'].items() if int(k) in active}
+                evidence['roster']=deepcopy(report['roster'])
+                report,evidence=rebind(report,evidence)
+                args['roster']=deepcopy(report['roster'])
+                result=prepare_sequential_video_context(report,evidence,**args)
+                self.assertEqual([r['lane'] for r in result['participants']],list(active))
+                self.assertEqual(validate_sequential_video_context(result,**args),result)
+                self.assertFalse(result['production_eligible'])
+
+    def test_physical_geometry_features_follow_short_roster(self):
+        from tests.test_boat_video_physical_context import (
+            physical_fixture,seal_evidence as seal_physical_evidence)
+        from tests.test_boat_video_calibration import seal as seal_calibration,calibrate_tracks
+        from race_ai.boat_video_evaluation import _media
+        from race_ai.boat_video_physical_context import (
+            prepare_physical_video_context,validate_physical_video_context)
+        for active in ((1,2,4,5,6),(1,2,4,6),(1,2,6)):
+            with self.subTest(active=active):
+                report,evidence,manifest,args=physical_fixture()
+                report['roster']=[r for r in report['roster'] if r['lane'] in active]
+                report['tracking']['tracks']=[r for r in report['tracking']['tracks'] if r['lane'] in active]
+                report['media']=_media(report['tracking'])
+                report['analysis_parameters']['phase_windows']={
+                    k:w for k,w in report['analysis_parameters']['phase_windows'].items() if int(k) in active}
+                report['measurements']=measure_tracks(report['tracking']['tracks'],
+                    coordinate_space='REFERENCE_IMAGE_PX',
+                    phase_windows=report['analysis_parameters']['phase_windows'])
+                report=reseal(report)
+                manifest.update(report_sha256=report['report_sha256'],
+                                source_tracking_sha256=digest(report['tracking']))
+                manifest=seal_calibration(manifest)
+                evidence['report_sha256']=report['report_sha256']
+                evidence['roster']=deepcopy(report['roster'])
+                evidence=seal_physical_evidence(evidence)
+                args['roster']=deepcopy(report['roster'])
+                result=prepare_physical_video_context(report,evidence,manifest,**args)
+                self.assertEqual([r['lane'] for r in result['participants']],list(active))
+                self.assertEqual(validate_physical_video_context(result,**args),result)
+                self.assertFalse(result['production_eligible'])
+
     def test_original_ab_probability_supports_active_3_4_5_without_phantom_permutations(self):
         for active in ACTIVE_CASES:
             with self.subTest(active=active):
