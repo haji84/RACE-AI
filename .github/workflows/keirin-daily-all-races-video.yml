@@ -10,6 +10,8 @@ on:
       - 'tests/test_keirin_private_sealed_payload.py'
       - 'scripts/keirin_daily_public_discovery.py'
       - 'scripts/keirin_daily_dynamic_clip_collector.py'
+      - 'scripts/keirin_winticket_historical_batch_capture.py'
+      - 'tests/test_keirin_source_denial_failclosed.py'
       - 'docs/evidence/keirin-daily-private-retention-receipts.json'
       - 'docs/evidence/keirin-daily-video-tick.json'
       - 'tests/test_keirin_daily_public_catalog.py'
@@ -25,7 +27,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  provider-denial-offline-regression:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test denial classification and no-more-GETs without any browser launch
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.56.0 'cryptography>=44,<48'
+          python -m unittest discover -s tests -p 'test_keirin_source_denial_failclosed.py' -v
+          echo 'Offline tests only: no provider calls, no video clips, no rights granted' >> "$GITHUB_STEP_SUMMARY"
+
   discover-then-capture-completed:
+    # PRs must never fetch provider media; explicitly dispatched research only.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 83
     steps:
