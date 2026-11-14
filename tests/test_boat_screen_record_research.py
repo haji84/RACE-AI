@@ -70,6 +70,38 @@ class ScreenAdmissionTests(unittest.TestCase):
                                               verify_grant=verify_grant)["status"],
                                     "READY_PRIVATE_SCREEN_RESEARCH_ONLY")
 
+    def test_personal_screen_research_has_separate_opt_in_not_written_license(self):
+        from race_ai.boat_screen_record_research import preflight
+        denied=preflight(source(),None,now=NOW)
+        self.assertEqual(denied['status'],'HOLD_SCREEN_RIGHTS_UNAVAILABLE')
+        ready=preflight(source(),None,now=NOW,personal_use_acknowledged=True)
+        self.assertEqual(ready['status'],'READY_OWNER_ATTESTED_PRIVATE_SCREEN_RESEARCH_ONLY')
+        self.assertEqual(ready['rights_basis'],'OPERATOR_ATTESTED_PRIVATE_RESEARCH')
+        self.assertFalse(ready['rights_independently_verified'])
+        self.assertFalse(ready['production_video_forecast_proven'])
+        self.assertFalse(ready['public_video_approved'])
+
+    def test_personal_scope_cannot_overrule_source_or_deadline_guards(self):
+        from race_ai.boat_screen_record_research import preflight
+        for denied in (source(page_url='https://bad.example.com'),
+                       source(page_url='http://race.boatcast.jp/replay?jo=03'),
+                       source(cutoff_at='2030-04-02T12:00:00+09:00'),
+                       source(mode='DRM_BYPASS')):
+            result=preflight(denied,None,now=NOW,personal_use_acknowledged=True)
+            self.assertNotEqual(result['status'],'READY_OWNER_ATTESTED_PRIVATE_SCREEN_RESEARCH_ONLY')
+        late=preflight(source(),None,
+                       now=datetime.fromisoformat(CUT),personal_use_acknowledged=True)
+        self.assertEqual(late['status'],'HOLD_SCREEN_CUTOFF_NOT_SAFE')
+
+    def test_personal_screen_capture_still_requires_live_dom_race_identity(self):
+        from race_ai.boat_screen_record_research import record_screen
+        fake=AsyncMock()
+        out=asyncio.run(record_screen(fake,source(),None,
+            verify_grant=None,personal_use_acknowledged=True,now=NOW,
+            aes_key=b'k'*32,fixture_loader=None,timeout_seconds=12))
+        self.assertEqual(out['status'],'HOLD_SCREEN_PAGE_IDENTITY_VERIFIER_REQUIRED')
+        fake.new_context.assert_not_called()
+
     def test_visible_exhibition_replay_button_is_a_permitted_normal_ui_action(self):
         from race_ai.boat_screen_record_research import preflight
         result=preflight(source(play_selector="展示リプレイ"),grant(),
