@@ -164,6 +164,52 @@ def _two_frame_consensus(first,second,starters):
     return rank_to_rider
 
 
+
+
+def bridge_from_existing_pr71_ledger(forecast,admission,saved,packets,*,
+                                     ledger_readback_verifier=None,
+                                     pixel_source_verifier=None):
+    """Reuse the actual PR71 frozen private roster, not a user-typed roster.
+
+    A separate owner-host verifier must attest the exact saved SQLite/Git
+    ciphertext, model and source SHA. This method validates the joins but
+    cannot independently open the video or certify third-party evidence.
+    """
+    checked_forecast(forecast)
+    require(type(saved) is dict and
+            type(saved.get("source")) is dict and
+            type(saved.get("suite")) is dict,
+            "EXISTING_PR71_LEDGER_REQUIRED")
+    source=saved["source"];suite=saved["suite"]
+    models=suite.get("models")
+    require(type(models) is dict and
+            forecast["model_id"] in models and
+            type(models[forecast["model_id"]]) is dict,
+            "EXISTING_PR71_MODEL_REQUIRED")
+    model=models[forecast["model_id"]]
+    require(source.get("race_id")==forecast["race_id"] and
+            suite.get("race_id")==forecast["race_id"] and
+            source.get("official_cutoff_at")==forecast["official_cutoff_at"] and
+            source.get("as_of")==suite.get("as_of") and
+            model.get("model_id")==forecast["model_id"] and
+            model.get("prediction_sha256")==forecast["parent_prediction_sha256"] and
+            model.get("snapshot_sha256")==forecast["pre_race_input_sha256"] and
+            suite.get("input_sha256")==forecast["pre_race_input_sha256"] and
+            source.get("starters") is not None,
+            "PR71_PHASE_PARENT_OR_RACE_MISMATCH")
+    roster=source["starters"]
+    if not _confirmed(ledger_readback_verifier,saved,forecast):
+        # Do not allow an unverified SQLite snapshot or user-supplied roster
+        # to become "rider identity verified" through a successful OCR report.
+        return bridge_reviewed_frames(
+            forecast,admission,roster,packets,
+            roster_original_verifier=None,
+            pixel_source_verifier=None)
+    return bridge_reviewed_frames(
+        forecast,admission,roster,packets,
+        roster_original_verifier=lambda _f,_r:True,
+        pixel_source_verifier=pixel_source_verifier)
+
 def bridge_reviewed_frames(forecast,admission,roster,packets,*,
                            roster_original_verifier=None,
                            pixel_source_verifier=None):
