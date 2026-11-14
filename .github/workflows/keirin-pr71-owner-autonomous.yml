@@ -33,6 +33,7 @@ on:
       - 'race_ai/keirin_phase_overlay.py'
       - 'tests/test_keirin_phase_overlay.py'
       - 'tests/test_keirin_phase_pr102_integration.py'
+      - 'tests/test_keirin_phase_pr71_integration.py'
       - 'tests/test_live_15min_proof.py'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
@@ -58,6 +59,7 @@ on:
       - 'race_ai/keirin_phase_overlay.py'
       - 'tests/test_keirin_phase_overlay.py'
       - 'tests/test_keirin_phase_pr102_integration.py'
+      - 'tests/test_keirin_phase_pr71_integration.py'
       - 'tests/test_live_15min_proof.py'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
@@ -104,6 +106,7 @@ jobs:
           (cd "$GITHUB_WORKSPACE" && PYTHONPATH="$GITHUB_WORKSPACE" python -m unittest -v tests.test_live_15min_proof tests.test_keirin_live_source_readiness)
           (cd "$GITHUB_WORKSPACE" && PYTHONPATH="$GITHUB_WORKSPACE" python -m unittest -v tests.test_keirin_phase_overlay)
           (cd "$GITHUB_WORKSPACE" && PYTHONPATH="$GITHUB_WORKSPACE" RACE_AI_PR102_PINNED_SOURCE_ROOT="$GITHUB_WORKSPACE/pr102-video" python -m unittest -v tests.test_keirin_phase_pr102_integration)
+          (cd "$GITHUB_WORKSPACE/pr71-source" && RACE_AI_PHASE_MAIN_ROOT="$GITHUB_WORKSPACE" PYTHONPATH="$GITHUB_WORKSPACE/pr71-source:$GITHUB_WORKSPACE/pr71-source/tests" python "$GITHUB_WORKSPACE/tests/test_keirin_phase_pr71_integration.py")
           python -m unittest -v tests.test_keirin_winticket_prior_events tests.test_keirin_prior_selection tests.test_keirin_prior_private_stage tests.test_keirin_winticket_ex_connection tests.test_keirin_weather_input_connection tests.test_keirin_github_owner_future_intake
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_pr71_state.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_workflow_guard.py' -v
