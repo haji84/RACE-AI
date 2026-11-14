@@ -73,7 +73,7 @@ def _race_day(race):
 
 
 def _roster(value, *, view=False):
-    _need(type(value) is list and len(value) == 6)
+    _need(type(value) is list and 3 <= len(value) <= 6)
     result = {}
     for row in value:
         _need(type(row) is dict)
@@ -84,7 +84,7 @@ def _roster(value, *, view=False):
         _need(type(lane) is int and 1 <= lane <= 6 and lane not in result and
               type(registration) is str and re.fullmatch(r"[0-9]{4}", registration))
         result[lane] = registration
-    _need(len(set(result.values())) == 6)
+    _need(len(set(result.values())) == len(result))
     return result
 
 
@@ -146,11 +146,16 @@ def _source(value, race):
     return captured
 
 
-def _parameters(value):
+def _parameters(value, *, active_lanes=None):
     _need(type(value) is dict and set(value) <= _PARAMETERS)
     _tree(value)
     from .boat_video_tracking import _options
-    _options(value.get("options"))
+    options=value.get("options")
+    _options(options)
+    _need(type(options) is not dict or "active_lanes" not in options)
+    if active_lanes is not None:
+        windows=value.get("phase_windows") or {}
+        _need(all(type(k) is str and k in {str(n) for n in active_lanes} for k in windows))
     gap = value.get("max_gap_seconds", 0.3)
     _need(_finite(gap) and gap > 0)
     # Validate shapes without running phase discovery, especially on reads.
@@ -164,13 +169,14 @@ def _job(value):
     _need(value["schema_version"] == JOB_SCHEMA)
     race_day = _race_day(value["race_id"])
     _need(_time(value["cutoff_at"]).astimezone(_JST).date() == race_day)
-    _roster(value["roster"])
+    active=_roster(value["roster"])
     _source(value["source"], value["race_id"])
-    _parameters({key: value[key] for key in _PARAMETERS if key in value})
+    _parameters({key: value[key] for key in _PARAMETERS if key in value},
+                active_lanes=active)
     return deepcopy(value)
 
 
-def _tracking(value, digest):
+def _tracking(value, digest, *, active_lanes=None):
     _need(type(value) is dict and value.get("schema_version") == "RACE_AI_BOAT_VIDEO_TRACKS_V1")
     _tree(value)
     _need(value.get("model_eligible") is False and value.get("validation_status") == "UNVALIDATED" and
@@ -181,8 +187,9 @@ def _tracking(value, digest):
     duration = value.get("duration_seconds")
     _need(_finite(duration) and duration >= 0)
     _need(type(value.get("quality")) is dict and type(value.get("tracks")) is list)
-    _need({track.get("lane") for track in value["tracks"] if type(track) is dict} == set(range(1, 7))
-          and len(value["tracks"]) == 6)
+    required=set(range(1,7)) if active_lanes is None else set(active_lanes)
+    _need({track.get("lane") for track in value["tracks"] if type(track) is dict} == required
+          and len(value["tracks"]) == len(required))
     # Validation retains null invalid points and all unrecognized quality evidence.
     _tracks(value["tracks"])
     for track in value["tracks"]:
@@ -204,7 +211,7 @@ def _measurement(value, tracking):
           value.get("calibration_status") == "IMAGE_COORDINATES_ONLY" and
           value.get("physical_velocity") == "NOT_ESTABLISHED")
     lanes = value.get("lanes")
-    _need(type(lanes) is list and len(lanes) == 6)
+    _need(type(lanes) is list and len(lanes) == len(tracking['tracks']))
     identities = {track["lane"]: track.get("identity_status") for track in tracking["tracks"]}
     seen = set()
     for lane in lanes:
@@ -248,7 +255,8 @@ def _report(value):
           value["pre_cutoff_available"] == (captured <= start <= end < cutoff))
     _need(value["model_eligible"] is False and value["validation_status"] == "UNVALIDATED" and
           value["dataset_status"] == ("SYNTHETIC_ONLY" if value["source"]["kind"] == "SYNTHETIC_TEST" else "REAL_REPORTED"))
-    tracking = _tracking(value["tracking"], value["source"]["media_sha256"])
+    tracking = _tracking(value["tracking"], value["source"]["media_sha256"],
+                         active_lanes=_roster(value["roster"]))
     _need(_wire(value["media"]) == _wire(_media(tracking)))
     _measurement(value["measurements"], tracking)
     _need(0 < len(_wire(value)) <= _MAX_FILE)
@@ -302,7 +310,11 @@ def analyze_video(path, job, *, clock=None, extractor=None):
             from .boat_video_tracking import extract_tracks
             extractor = extract_tracks
         parameters = {key: specification[key] for key in _PARAMETERS if key in specification}
-        tracking = _tracking(extractor(path, options=parameters.get("options")), digest)
+        options=parameters.get("options")
+        options=(dict(options or {},active_lanes=sorted(_roster(specification['roster'])))
+                 if len(specification['roster']) < 6 else options)
+        tracking = _tracking(extractor(path, options=options), digest,
+                             active_lanes=_roster(specification['roster']))
         measured = measure_tracks(tracking["tracks"], coordinate_space="REFERENCE_IMAGE_PX",
             phase_windows=parameters.get("phase_windows"), start_gate=parameters.get("start_gate"),
             max_gap_seconds=parameters.get("max_gap_seconds", 0.3))
