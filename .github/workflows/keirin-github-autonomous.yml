@@ -202,6 +202,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # A scheduled wave may discover races before any replay link is ready.
+          # Zero AES-sealed clips is an acquisition HOLD, not an S3 upload attempt.
+          # Never call this durable archival success; independent readback stays gated.
+          verified_clips="$(python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'keirin-daily-wave.json'
+          if not p.is_file():
+              raise SystemExit('CAPTURE_REPORT_REQUIRED_BEFORE_ARCHIVE')
+          report=json.loads(p.read_text(encoding='utf-8'))
+          count=report.get('encrypted')
+          if type(count) is not int or not 0 <= count <= 1000:
+              raise SystemExit('INVALID_ENCRYPTED_VIDEO_COUNT')
+          print(count)
+          PY
+          )"
+          if [ "$verified_clips" = "0" ]; then
+            echo "HOLD_NO_ENCRYPTED_VIDEO_TO_ARCHIVE" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           if [ -z "$ARCHIVE_BUCKET" ]; then
             echo "DURABLE_PRIVATE_STORAGE_NOT_CONFIGURED" >> "$GITHUB_STEP_SUMMARY"
             exit 1
