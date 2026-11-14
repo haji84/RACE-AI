@@ -89,7 +89,7 @@ def _evidence(value,raw,roster,calibrated):
             row['world_frame_source_sha256']==calibrated['world_frame_source_sha256'] and
             row['calibration_evidence_sha256']==calibrated['calibration_sha256'] and
             row['clock_evidence_sha256']==digest(calibrated['clock_evidence']))
-        lanes=row['lanes'];_need(type(lanes) is dict and set(lanes)<=set(map(str,roster))))
+        lanes=row['lanes'];_need(type(lanes) is dict and set(lanes)<=set(map(str,roster)))
         for lane,part in lanes.items():
             _need(type(part) is dict and set(part)==_LANE_FIELDS and _nonnegative(part['uncertainty']))
             _sha(part['phase_evidence_sha256'])
