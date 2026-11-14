@@ -11,6 +11,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import copy
 import json
+import os
 import unittest
 
 from race_ai.keirin_phase_overlay import (
@@ -136,6 +137,17 @@ class BeforeCutoffSidecarTests(unittest.TestCase):
             with self.assertRaisesRegex(PhaseError, "PRIVATE_FREEZE_PATH_UNSAFE_OR_EXISTS"):
                 freeze_private_once(target, frozen())
             self.assertEqual(before, target.read_bytes())
+
+    def test_public_checkout_directory_cannot_hold_plaintext_forecast(self):
+        with TemporaryDirectory() as folder:
+            opened = Path(folder) / "public-checkout"
+            opened.mkdir()
+            os.chmod(opened, 0o755)
+            target = opened / "private-sidecar.json"
+            with self.assertRaisesRegex(
+                PhaseError, "PRIVATE_FREEZE_DIRECTORY_MUST_BE_PRIVATE"):
+                freeze_private_once(target, frozen())
+            self.assertFalse(target.exists())
 
     def test_tampering_with_stage_or_parent_sha_is_rejected(self):
         for change in ("leader", "parent_prediction_sha256", "frozen_at"):
