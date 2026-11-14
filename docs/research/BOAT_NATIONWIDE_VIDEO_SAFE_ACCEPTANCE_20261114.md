@@ -41,3 +41,24 @@ source-freeローカル回帰：`python -m unittest tests.test_boat_video_connec
 - `dataset_status=SYNTHETIC_ONLY`、`validation_status=UNVALIDATED`、`model_eligible=False`
 
 **このテストは展示映像の艇番識別・実測性能・予想生成を証明しない。** 初回、作業ディレクトリのsetgid許可ビットが0600/0700制約を満たさず拒否された。所有者専用の正しい0700へ修正すると成功した。本番保護のため、この権限検査は弱めていない。合成メディアも非公開の試験領域から本番・Public Gitへコピーしていない。
+
+## 実原本の件数証拠（本番へ影響なし）
+
+11月13日の保存済みowner原本を読んで作った、公開可能な**件数だけの抜粋**を`tests/fixtures/boat_20261113_authenticated_count_summary.json`に追加した。元のGitHub Actions検証ジョブ番号は`43482296813`、そのZIP内のJSON原本SHA256は`64922c4d6b5355e30b8d2316558d2b4e9beb73ee7e93c805291298b4b99bee53`。これは元の監査時点での証拠への参照であって、今回のCIがAESを再復号したことは意味しない。
+
+確認事項：公式掲載156、P0 136（2モデル272レコード）、P1 9（5モデル45レコード）、P1未確認147。内訳は締切後に取得された記録が21、試行記録なし126。1レースは公式締切とP1原本締切が不一致。展示映像を使った予想の原本は確認対象0。欠落147すべてがP1生成可能だったという証拠もない。これらの個別原因を「展示がなかった」と補完しない。
+
+## 実映像の権利と非公開AI解析の入口
+
+映像を使う前に`race_ai/boat_video_rights_admission.py`の研究専用入口を追加した。入力はレースID、締切、実動画SHA、取得時刻、権利者の明示した私的コピー・自動フレーム解析・研究予想への利用範囲、独立の許諾原本確認である。文面を自称するだけではHOLDし、条件が揃っても`READY_PRIVATE_RESEARCH_INPUT_ONLY`という**入力準備**しか認めない。映像DL／展示映像AI完成／本番公開／予想的中は認定しない。
+
+2026-11-14時点の確認済み一次情報：
+- BOATCAST公式サイトポリシー：https://boatcast.jp/static/sitepolicy/index.html （著作権者の許諾や法定例外を超える無断利用・大量アクセスの制約）。
+- ボートレース下関FAQ：https://www.boatrace-shimonoseki.jp/sp/index.php?page=other-faq （公式以外でのレース映像使用を認めない旨）。
+- ボートレース福岡FAQ：https://boatrace-fukuoka.com/modules/other/?page=index_faq （動画コンテンツ材料としての使用を案内。ただし自動DL・AI研究やモデル学習への包括許諾とは読めない）。
+- ボートレースまるがめFAQ：https://www1.marugameboat.jp/faq.htm （リプレイ映像等は非営利目的に限って一定の利用を案内し、他会場の許諾範囲とは区別）。
+- ボートレース多摩川：https://www.boatrace-tamagawa.com/sp/entry/?page=other-racevideo （オンラインでのレース映像公開について届出・回答が必要）。
+
+いずれのFAQも全国24場の自動取得・機械解析・AI学習・再配信をまとめて許可する根拠ではない。素材の権利・利用条件を確認できないものは、ユーザーが望む研究モードでも無条件で取り込まない。独立許諾確認コールバックの試験用モックを使った成功は**実際の利用許諾を得た証拠ではない**。
+
+本番への昇格条件は従来どおり、実映像＋許諾→実艇番照合→追跡精度・動作測定→締切前の保存済みP1原本→別runner SHA検証→将来結果PDCAまで、すべて本物の再現証拠が必要。
