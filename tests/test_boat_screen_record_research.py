@@ -102,6 +102,12 @@ class ScreenRecorderRealBrowserTests(unittest.TestCase):
                         "-c:v","libvpx","-b:v","400k","-an","-y",str(cls.media)],
                        check=True,timeout=25)
         cls.payload=base64.b64encode(cls.media.read_bytes()).decode("ascii")
+        cls.live_media=Path(cls.fixture.name)/"synthetic-live.webm"
+        subprocess.run(["ffmpeg","-v","error","-f","lavfi","-i",
+                        "testsrc=size=320x240:rate=12","-t","10.0",
+                        "-c:v","libvpx","-b:v","250k","-an","-y",str(cls.live_media)],
+                       check=True,timeout=35)
+        cls.live_payload=base64.b64encode(cls.live_media.read_bytes()).decode("ascii")
 
     @classmethod
     def tearDownClass(cls):
@@ -137,6 +143,34 @@ class ScreenRecorderRealBrowserTests(unittest.TestCase):
         self.assertFalse(outcome["production_video_forecast_proven"])
         with self.assertRaises(ValueError):
             unseal_screen(outcome["envelope"],aes_key=b"j"*32)
+
+    def test_live_window_records_visible_movement_without_forging_natural_end(self):
+        from playwright.async_api import async_playwright
+        from race_ai.boat_screen_record_research import record_screen,unseal_screen
+        async def record():
+            async with async_playwright() as pw:
+                browser=await pw.chromium.launch(headless=True,
+                    args=["--no-sandbox","--autoplay-policy=no-user-gesture-required"])
+                try:
+                    async def fixture_loader(page):
+                        await page.set_content(
+                            '<html><body><video controls autoplay muted playsinline '+
+                            'width="320" height="240" src="data:video/webm;base64,'+
+                            self.live_payload+'"></video></body></html>')
+                    return await record_screen(browser,source(mode="LIVE_WINDOW"),grant(),
+                        verify_grant=verify_grant,now=NOW,aes_key=b"k"*32,
+                        fixture_loader=fixture_loader,timeout_seconds=5)
+                finally:
+                    await browser.close()
+        outcome=asyncio.run(record())
+        self.assertEqual(outcome["status"],"SCREEN_LIVE_WINDOW_ENCRYPTED_UNVALIDATED")
+        self.assertEqual(outcome["source_class"],"SYNTHETIC_OFFLINE_BROWSER_FIXTURE")
+        self.assertFalse(outcome["player_ended"])
+        self.assertGreater(outcome["screen_duration_seconds"],3)
+        self.assertGreater(outcome["screen_recording_bytes"],1000)
+        self.assertEqual(outcome["media_sha256"],
+                         hashlib.sha256(unseal_screen(outcome["envelope"],aes_key=b"k"*32)).hexdigest())
+        self.assertFalse(outcome["production_video_forecast_proven"])
 
     def test_player_not_ended_is_not_retained_as_complete_exhibition(self):
         from playwright.async_api import async_playwright
