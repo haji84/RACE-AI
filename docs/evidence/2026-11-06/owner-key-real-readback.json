@@ -1,0 +1,53 @@
+{
+  "evidence_kind": "REAL_GITHUB_ARTIFACT_PRIVATE_READBACK",
+  "source_run_url": "https://github.com/haji84/RACE-AI/actions/runs/42138375467",
+  "source_head": "7e2d2da36565c519cb3084d1d24b1f6398935085",
+  "owner_secret_usable_in_actions": true,
+  "key_value_disclosed": false,
+  "term": {
+    "artifact_id": 13466404869,
+    "ciphertext_sha256": "91b2bb8e3888ce6841b8f3e56480fdadc92d899ee455c6ecf45e4561ab56b4b3",
+    "sqlite_sha256": "a7b2f5c6581146ecd643ef8d3b45b541e384815847355b7085a83891c7d11cd4",
+    "sqlite_bytes": 6262784,
+    "racers_read_back": 1643,
+    "course_rows": 9858,
+    "period_start": "2025-11-01",
+    "period_end": "2026-04-30",
+    "scope": "ALL_RECORDS_IN_PUBLISHED_TERM_FILE_NOT_ALL_CAREERS_OR_ACTIVE_REGISTRY",
+    "initial_actions_reader": "FAILED_BASE64_REGEXP_STACK_OVERFLOW",
+    "repaired_local_reader": "AUTHENTICATED_AND_VERIFIED",
+    "repaired_actions_reader": "AUTHENTICATED_AND_VERIFIED_ON_SEPARATE_RUNNER"
+  },
+  "venue_history": {
+    "artifact_id": 13466519644,
+    "month": "200501",
+    "ciphertext_sha256": "cb2eed86a8f9aa25fab4cccf0f844c354eafd3ad44c386e0a2cea2c7f5a20e7e",
+    "sqlite_sha256": "e0ce48864dadd48c1c647bbcd058997e719fe93366777878981c3f085ab444dd",
+    "listed_days": 31,
+    "parsed_days": 4,
+    "quarantined_days": 1,
+    "pending_days": 26,
+    "private_artifact_readback": "AUTHENTICATED_AND_VERIFIED",
+    "quarantine_reason": "2005-01-03: official strict parser reports five result rows for venue 15 race 1; entire day remains excluded"
+  },
+  "synthetic_regression": {
+    "maximum_snapshot_bytes": 8388608,
+    "maximum_snapshot_roundtrip": "PASS",
+    "strict_base64_and_oversize_rejection": "PASS",
+    "python_tests_run": 1568,
+    "python_tests_skipped": 56,
+    "python_tests_failed": 0
+  },
+  "all_available_period_complete": false,
+  "indefinite_retention_verified": false,
+  "forward_race_verified_by_this_intake": false,
+  "formal_backtest_eligible": false,
+  "production_promoted": false,
+  "raw_or_plaintext_published": false,
+  "repaired_actions_run_url": "https://github.com/haji84/RACE-AI/actions/runs/42139398162",
+  "repaired_actions_head": "b607654d3d603bcb7106c0a005a5d8902788827a",
+  "repaired_actions_reader_job_url": "https://github.com/haji84/RACE-AI/actions/runs/42139398162/job/127636721950",
+  "repaired_actions_term_upstream_gets": 0,
+  "repaired_actions_venue_reader": "AUTHENTICATED_AND_VERIFIED_ON_SEPARATE_RUNNER_5_DAY_BATCH",
+  "extended_private_month_counts": "owner-key-200501-venue-counts.json"
+}

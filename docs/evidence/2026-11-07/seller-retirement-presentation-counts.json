@@ -1,0 +1,150 @@
+{
+  "schema": "RACE_AI_SELLER_RETIREMENT_PRESENTATION_COUNTS_V1",
+  "status": "SELLER_RETIREMENT_VERIFIED",
+  "before_commit": "d4665a2d08f7c4369ff5bd9cf649fd9a28b12521",
+  "presentation_commit": "cf62654da0379d49b31af363b09c1aa617a0d020",
+  "changed_files": [
+    "app.js",
+    "existing-model-catalog.js",
+    "index.html",
+    "site-build.json"
+  ],
+  "active_model_families": 15,
+  "active_sport_cells": 30,
+  "archived_forecasts_rewritten": false,
+  "ciphertext_files_changed": false,
+  "daily_statistics_changed": false,
+  "owner_link_fields_changed": false,
+  "budget_policy_assets_changed": false,
+  "existing_utf8_asset_sizes_and_hashes_verified": true,
+  "sha256_standard_test_vectors": 3,
+  "read_only_ui_checks": {
+    "seller_not_additional_model": true,
+    "seller_only_row_not_forecast_filter": true,
+    "seller_only_row_not_available_outlook": true,
+    "active_comparison_retained": true,
+    "raw_input_unchanged": true
+  },
+  "official_source_requests": 0,
+  "plaintext_prediction_data_published": false,
+  "display_run_id": 42363442840,
+  "display_head_sha": "417918729949312b966e67dce7401325731728b9",
+  "display_job_conclusion": "success",
+  "browser_verification": {
+    "schema": "RACE_AI_LIVE_SITE_CHECK_COUNTS_V1",
+    "status": "LIVE_OWNER_SITE_VERIFIED",
+    "verified_at": "2026-11-07T10:27:40.754Z",
+    "widths_checked": 2,
+    "feed_generation": 30,
+    "current_day_results": 98,
+    "current_day_p1_groups": 57,
+    "native_p1_groups_required": 30,
+    "native_p1_detail_visible": true,
+    "future_native_visible_before_cutoff": false,
+    "previous_day_checked": true,
+    "active_model_families": 15,
+    "removed_seller_hidden": true,
+    "participant_names": true,
+    "editable_daily_budget": true,
+    "per_race_1000_simulation": true,
+    "hit_miss_rate_roi_and_settled_pending_net_visible": true,
+    "key_in_requests_or_storage": false,
+    "blocked_external_requests": 0,
+    "official_source_requests": 0,
+    "plaintext_published": false
+  },
+  "strict_display_evidence_status": "DISPLAY_EVIDENCE_VERIFIED",
+  "implementation_head_sha": "4a52c69c49fb142c8f5f3dd14cf25ecb9eca6489",
+  "full_ci": {
+    "run_id": 42363760967,
+    "head_sha": "4a52c69c49fb142c8f5f3dd14cf25ecb9eca6489",
+    "status": "completed",
+    "conclusion": "success",
+    "completed_at": "2026-11-07T10:53:32Z",
+    "python_discovery_tests": 3591,
+    "python_discovery_skipped": 360,
+    "focused_preflight_tests": 78,
+    "isolated_video_suite_tests": [
+      283,
+      185
+    ],
+    "node_suite_tests": [
+      88,
+      99
+    ],
+    "product_pages_exercised": 7,
+    "viewport_widths_exercised": 4
+  },
+  "accuracy_improvement_proven": false,
+  "all_pending_results_resolved": false,
+  "original_readback": {
+    "contexts": 132,
+    "generated_forecasts": 0,
+    "independently_verified": true,
+    "artifact_id": 13570586950,
+    "exact_original_git_retention_verified": true,
+    "retained_originals": 1
+  },
+  "frozen_budget_plan": {
+    "sha256": "9f9176a2eb0638436fbc138d20174b4dedab4a0eab7ceea0220a474243baec05",
+    "status": "SETTLED",
+    "scenarios": 28,
+    "reallocated": false,
+    "actual_purchases": false,
+    "independent_pre_cutoff_receipt_verified": false
+  },
+  "frozen_budget_assets_verified_unchanged": [
+    {
+      "path": "web/product-data.js",
+      "before": "1f0ac5fb0c02ef69bbac797986e5912c2c4745c8",
+      "after": "1f0ac5fb0c02ef69bbac797986e5912c2c4745c8",
+      "unchanged": true
+    },
+    {
+      "path": "web/saved-performance.js",
+      "before": "8745b7ba890b9248f110420deae1812e4a65d673",
+      "after": "8745b7ba890b9248f110420deae1812e4a65d673",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/boat_budget_plan.cjs",
+      "before": "cdba72b0e0c61e4095b21087cda14702ed3d97d0",
+      "after": "cdba72b0e0c61e4095b21087cda14702ed3d97d0",
+      "unchanged": true
+    }
+  ],
+  "old_active_worker_presentation_review": {
+    "head_sha": "784b446c62790d4cb3c7efe2e4f88dc778daa079",
+    "workflow_refresh_assets_steps": 0,
+    "feed_ref": "state/boat-saved-view",
+    "does_not_write_gh_pages_assets": true,
+    "source_blobs": {
+      "race_ai/saved_view_feed.py": "3a19404ab66574c6d05f8f9620dc88ad05859f52",
+      ".github/workflows/boat-nationwide-ab-one-shot.yml": "d003544b864b3d5808fde2d82d88d0b18e7ce7c1"
+    }
+  },
+  "saved_model_intake": {
+    "status": "SAVED_MODEL_RECOVERY_COMPLETE",
+    "unrepresented_scoped_forecasts": 0,
+    "originals_unchanged": true,
+    "appended_forecasts": 0,
+    "source_requests": 0
+  },
+  "bounded_original_maintenance": {
+    "complete": true,
+    "pending_required_artifact_ids": 0,
+    "pending_run_work": 0,
+    "full_current_view_readback_verified": false,
+    "scope": "BOUNDED_DESCRIPTOR_BACKFILL_AND_CLOSED_RESPONSE_VERIFICATION"
+  },
+  "integrated_head_focused_checks": {
+    "head_sha": "c43871ba761c98ad4ba86cfddc1bc2b20585da38",
+    "run_id": 42364217725,
+    "retirement_preflight": "success",
+    "full_workflow_conclusion": null,
+    "checked_at": "2026-11-07T10:46:44.503Z",
+    "verification_scope": "FOCUSED_PREFLIGHT_ONLY"
+  },
+  "verification_scope": "SELLER_RETIREMENT_IMPLEMENTATION_AND_DEPLOYED_PRESENTATION",
+  "integration_base_sha": "c43871ba761c98ad4ba86cfddc1bc2b20585da38"
+}

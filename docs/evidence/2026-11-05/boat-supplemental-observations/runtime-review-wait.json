@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-11-05T09:49:16.105553+00:00",
+  "local_port": 8765,
+  "state": "REVIEW_WAIT",
+  "halted_reason": "PREDECESSOR_REVIEW_REQUIRED",
+  "continuous": true,
+  "saved_prediction_count": 830,
+  "official_forecast_workflow_restarted": false,
+  "local_app_restarted": true
+}

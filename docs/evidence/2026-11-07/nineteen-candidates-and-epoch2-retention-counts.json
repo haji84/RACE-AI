@@ -1,0 +1,55 @@
+{
+  "artifact_ids": [
+    13565954830,
+    13567631116,
+    13565712482
+  ],
+  "candidate_count": 2,
+  "candidate_pointers": [
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/aef10ed97fe425d53d0b84860d100107cc4bb280b668eacc8e3fbb68aaf2607a/learning.json",
+      "manifest_sha256": "aef10ed97fe425d53d0b84860d100107cc4bb280b668eacc8e3fbb68aaf2607a",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "3761cda8de08055d6a07f8b9d2a928958ce5877e",
+      "status": "READY",
+      "training_sha256": "756c3c869cdd070fe3c9ecb7c94a1209ae2f1605ccc1237b3c50573ae7cbf6ea"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/cf6b124c176f9ffbeea76ebcfc0e8c3baadcc8763659a6302a9a6313feebd9c2/learning.json",
+      "manifest_sha256": "cf6b124c176f9ffbeea76ebcfc0e8c3baadcc8763659a6302a9a6313feebd9c2",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "3761cda8de08055d6a07f8b9d2a928958ce5877e",
+      "status": "READY",
+      "training_sha256": "d8867ff2c6411d31f8ac10d69a236dbe58c4222cca9b704ef302195b42e23529"
+    }
+  ],
+  "exact_candidate_and_original_zip_metadata_bytes_verified": true,
+  "fitted_models_per_candidate": 19,
+  "independent_git_readback_verified": true,
+  "no_default_pointer_updated": true,
+  "normal_horse_results": 3,
+  "only_new_immutable_paths_added": true,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "ref": "state/boat-pdca-transfer",
+  "result_pointer": {
+    "archived_at": "2026-11-07T10:06:01.911604+00:00",
+    "artifact_id": 13565712482,
+    "cipher_path": "state/all-existing-model-official-results/v1/9d23960289d145c22b72b47a9c80574d44a4d0cac44ecc88a752df0d9e38d9a4/fe12f808be9a6453c3ce77f4241ea704c06cea9c854d2b605fda6e50d234dc80.enc",
+    "cipher_sha256": "d5d28489f26c744debd1428cb954eb6473b034f5c3abff70f0957da9b6d9e4dd",
+    "head_sha": "9b4bc37648fbfad421daa80bd2300cda5e97e9df",
+    "independent_git_readback_verified": true,
+    "metadata_sha256": "fe12f808be9a6453c3ce77f4241ea704c06cea9c854d2b605fda6e50d234dc80",
+    "original_zip_sha256": "9d23960289d145c22b72b47a9c80574d44a4d0cac44ecc88a752df0d9e38d9a4",
+    "ref": "state/boat-pdca-transfer",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_ALL_EXISTING_OFFICIAL_RESULT_RETENTION_POINTER_V1",
+    "source_commit": "3761cda8de08055d6a07f8b9d2a928958ce5877e",
+    "workflow_run_id": 42349536138
+  },
+  "source_commit": "3761cda8de08055d6a07f8b9d2a928958ce5877e",
+  "special_horse_results": 1,
+  "state": "TWO_REAL_NINETEEN_CANDIDATES_AND_EPOCH2_RESULTS_INDEPENDENTLY_RESTORED"
+}

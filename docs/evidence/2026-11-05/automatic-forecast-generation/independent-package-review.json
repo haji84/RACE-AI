@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "ZIP_CRC_ok": true,
+  "member_hashes_verified": 318,
+  "source_files_current_repo_exact": 276,
+  "seed_files_verified": 20,
+  "seed_DB_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+  "GITHUB_forecasts_strict_restored": 293,
+  "GITHUB_P0": 288,
+  "GITHUB_P1": 5,
+  "Top8_SHA_time_artifact_identity_exact": true,
+  "LOCAL_and_GITHUB_kept_separate": true,
+  "source_archives_unchanged": true,
+  "caches": 0,
+  "symlinks": 0,
+  "source_GETs": 0,
+  "inference_calls": 0,
+  "zip_sha256": "78aa10f498ee4d10eb5c7a96a72748a59224f34a87c5e7d517ce9479bcbfc81f"
+}

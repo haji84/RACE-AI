@@ -1,0 +1,189 @@
+{
+  "schema": "RACE_AI_ATHLETE_REFERENCE_VERIFICATION_V1",
+  "date_utc": "2026-11-07",
+  "issue": "Sparse name/registration-only race entries previously opened athlete cards with no substantive information.",
+  "implementation_commit": "e55e6ec764beff6c54d33987f86e23569d9e4ba3",
+  "official_references": {
+    "profiles": 1669,
+    "with_term": 1643,
+    "basic_only": 26,
+    "period": {
+      "term": "2026-2",
+      "start": "2025-11-01",
+      "end": "2026-04-30"
+    },
+    "source_url": "https://www.boatrace.jp/static_extra/pc_static/download/data/kibetsu/fan2604.lzh",
+    "archive_sha256": "5c1e21cfe5a4dd53ea26eb07aca4905c4c20c3160b4a206ba96e92702eb4b46d",
+    "reference_captured_at": "2026-11-07T05:58:43.519506+00:00",
+    "newer_archive": "fan2610 not available (HTTP404) at source inspection; official sampled season/course agree with fan2604.",
+    "basic_only_behavior": "Official basic profile shown; absent course statistics explicitly unrecorded, never invented zeroes."
+  },
+  "behavior": {
+    "identity": "Same registration/name/synthetic gates as approved portrait catalogue.",
+    "preferred_courses": "10+ starts; course two-place rate minus weighted same-term all-athlete same-course baseline; explicitly labelled within-athlete fallback.",
+    "scenarios": "Course-conditional reference study with official own statistics, no new probability/tickets/model fit.",
+    "exhibition": "Complete identity-bound map required for named opponent comparisons; partial/conflicting maps retain own conditional explanation only.",
+    "historical_boundary": "Period includes or ends after target date: no retrospective scenario.",
+    "saved_originals": "No modification to saved inputs, forecast order, model choice, drafts or original hashes."
+  },
+  "verification": {
+    "node_contracts": {
+      "tests": 93,
+      "passed": 93
+    },
+    "observation_browser_contracts": {
+      "tests": 11,
+      "passed": 11
+    },
+    "python": {
+      "tests": 44,
+      "passed": 44
+    },
+    "local_explorer": {
+      "widths": [
+        320,
+        390,
+        1440
+      ],
+      "groups": 15,
+      "status": "PASS",
+      "coverage": [
+        "sparse real official references",
+        "six course statistics",
+        "partial saved and supplemental entries",
+        "basic-only athlete",
+        "synthetic isolation",
+        "saved zeros",
+        "modal reset",
+        "keyboard/focus",
+        "venues",
+        "preview"
+      ]
+    },
+    "existing_ui": {
+      "widths": [
+        320,
+        390,
+        1440,
+        1920
+      ],
+      "pages": 7,
+      "native_model_families": 16,
+      "status": "PASS"
+    },
+    "portraits": {
+      "widths": [
+        320,
+        390,
+        1440
+      ],
+      "status": "PASS"
+    },
+    "crypto_browser": {
+      "pages": 7,
+      "variants": 4,
+      "past_day": true,
+      "key_request_or_storage": false,
+      "status": "PASS"
+    },
+    "offline": {
+      "populated_sparse_official_profile": true,
+      "course_selector": true,
+      "external_assets_required": false,
+      "strict_csp": true,
+      "status": "PASS"
+    },
+    "fresh_review": {
+      "critical": 0,
+      "important": 1,
+      "minor": 0,
+      "important_fixed": "Partial exhibition entry evidence discarded and contradictory frame-neighbor courses invented; API and both-source browser regressions RED→GREEN.",
+      "remaining_findings": 0
+    },
+    "http": {
+      "status": "PASS",
+      "base": "https://haji84.github.io/RACE-AI/",
+      "manifest_sha256": "6d0cee687d92a6a373af2c0780ea765a9ee82c78ebe5db01ade438f292b375e5",
+      "checks": [
+        {
+          "path": "app.js",
+          "bytes": 162738,
+          "sha256": "6076646a31964e62863366635e0c0a5211e69d3c69ee7fe261ee396b3ed2378d"
+        },
+        {
+          "path": "data/racer-profiles.json",
+          "bytes": 2452782,
+          "sha256": "e810da0da13c47ec3f26dc5a1df67c153ee5dc7363e678fa79b61eabd60bb811"
+        },
+        {
+          "path": "index.html",
+          "bytes": 24432,
+          "sha256": "04c5a2fef5bb0514f3e8e03fa8223d58c5ed4fb79ec68da0b8350df70c46eaae"
+        },
+        {
+          "path": "racer-profiles-data.js",
+          "bytes": 2452994,
+          "sha256": "2f6cdf0e99ed84753b9be29e6c1a0704b86e19e8a86628b3454f30518730f68f"
+        },
+        {
+          "path": "racer-profiles.js",
+          "bytes": 8138,
+          "sha256": "2445816db9d1b571358b8967cec4532ca5d105e5d8b31a4f4360f12e0c75bf40"
+        },
+        {
+          "path": "style.css",
+          "bytes": 61313,
+          "sha256": "80b53351090190d1549610f6a3b0349753552adc83e9161bc8e1a1187e6cfd51"
+        },
+        {
+          "path": "views/1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec.json",
+          "bytes": 12661845,
+          "sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec"
+        }
+      ],
+      "unchanged_cipher_count": 7,
+      "unchanged_portrait_image_count": 54
+    },
+    "deployed_explorer": {
+      "status": "PASS",
+      "widths": [
+        320,
+        390,
+        1440
+      ],
+      "groups": 15,
+      "sparse_official_profile": true,
+      "course_switch": true,
+      "partial_participant_and_supplementary_entries": true,
+      "basic_only_and_synthetic_boundaries": true
+    }
+  },
+  "publication": {
+    "status": "PAGES_PRESENTATION_REFRESHED",
+    "source_commit": "de9cd9ca797d1b81e49fabd1ec9a8aec61794083",
+    "parent_commit": "5ff91278484886261cea2ba6443906891a864fcc",
+    "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+    "manifest_sha256": "6d0cee687d92a6a373af2c0780ea765a9ee82c78ebe5db01ade438f292b375e5",
+    "portrait_count": 1669,
+    "ciphertext_unchanged": true,
+    "plaintext_published": false,
+    "manifest_identity_unchanged": true,
+    "unchanged_cipher_count": 7,
+    "unchanged_portrait_image_count": 54,
+    "changed_assets": [
+      "app.js",
+      "data/racer-profiles.json",
+      "index.html",
+      "racer-profiles-data.js",
+      "racer-profiles.js",
+      "style.css"
+    ],
+    "implementation_commit": "e55e6ec764beff6c54d33987f86e23569d9e4ba3"
+  },
+  "limits": [
+    "Reference period is displayed; not rolling current-day performance.",
+    "UI race fixtures are invented and do not establish live race coverage or prediction accuracy.",
+    "No trained probability claim, new service, keys, costs, permission or model coefficient changes.",
+    "Reference catalogue presently covers BOAT athletes."
+  ]
+}

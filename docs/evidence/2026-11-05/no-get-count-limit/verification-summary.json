@@ -1,0 +1,70 @@
+{
+  "checked_at_utc": "2026-11-05T04:13:57.752407+00:00",
+  "checks": [
+    {
+      "suite": "python",
+      "count": 888,
+      "failures": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "command": "python -m unittest discover -s tests",
+      "log_sha256": "75f039509ec443880eb585cf8fda67d2ce73335a8be13107b5ca6a0bec1402a6"
+    },
+    {
+      "suite": "node",
+      "count": 179,
+      "failures": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "command": "node --test tests/*.test.cjs tests/*.test.mjs tests/ui_model.test.js",
+      "log_sha256": "42953ee8b0a290413ff9c4a3c1b4cfdc5884717762679c3aa0e85f4505c41a88"
+    },
+    {
+      "suite": "independent",
+      "count": 118,
+      "failures": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "command": "seven targeted unittest modules",
+      "log_sha256": "861af197b287d66cb5608c2d0e0c80b2b2b2bd18a70271c610a2db068e6f84dc"
+    },
+    {
+      "suite": "provider_related",
+      "count": 56,
+      "failures": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "command": "provider and existing related tests",
+      "log_sha256": "f36a8e6c2802ba880385b344aa7df0b11e874e67df4fa0fdb53987a5193cd3dd"
+    },
+    {
+      "suite": "local",
+      "count": 37,
+      "failures": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "command": "local controller/service/native HTTP integration",
+      "log_sha256": "02c4189b3be7d8bd013f81818a9535278ef62161b0f7d8a466ee97484175110b"
+    }
+  ],
+  "automatic_path_cumulative_GET_limit": null,
+  "automatic_path_call_GET_limit": null,
+  "HTTP_429_stop_retained": true,
+  "interval_seconds": 180,
+  "max_rounds": 24,
+  "max_seconds": 3900,
+  "old_halts_automatically_cleared": false,
+  "counters_reset": false,
+  "actual_source_GETs": 0,
+  "actual_inference": 0,
+  "live_profile_changed": false,
+  "active_GitHub_run_policy_changed": false,
+  "pushed": false,
+  "environment_published": false,
+  "browser_groups": 37,
+  "browser_PNGs": 58,
+  "browser_errors": 0,
+  "merged_public_head": "897a31c21b703f2474683fb13143f814686f92dd",
+  "after_merge_workflow_contract_tests": 16,
+  "after_merge_workflow_contract_failures": 0
+}

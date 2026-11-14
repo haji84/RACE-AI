@@ -1,0 +1,133 @@
+{
+  "manifest": {
+    "allow_order_only": true,
+    "checkpoint_artifacts": [
+      {
+        "digest": "sha256:94eb5be8ef74530f876a4e43b5aa4b7df349f7b3dc143174868cab7a0ac3d1fd",
+        "head_sha": "35be5f2c148654f2bc2aeeb07095bec650b5d40c",
+        "id": 13559822755,
+        "run_id": 42338084743
+      },
+      {
+        "digest": "sha256:bf724b11e0ea4e1a893d91656699fc6aad5897ed1a1e343c839efadb50a49168",
+        "head_sha": "3402a09eaabb8a7bfc3e9919946bbb7d66ae0e11",
+        "id": 13562547496,
+        "run_id": 42343017180
+      },
+      {
+        "digest": "sha256:9d23960289d145c22b72b47a9c80574d44a4d0cac44ecc88a752df0d9e38d9a4",
+        "head_sha": "9b4bc37648fbfad421daa80bd2300cda5e97e9df",
+        "id": 13565712482,
+        "run_id": 42349536138
+      },
+      {
+        "digest": "sha256:0be88d04dab4ab775b0d394cd4a7854a7b83805e6e3f59528675c9ddf43cdb64",
+        "head_sha": "11d070dd1984e50d8d5bd6fcca738865cdc93b19",
+        "id": 13578691832,
+        "run_id": 42383095124
+      },
+      {
+        "digest": "sha256:a50542b17cced7fec3aee37dd3ec5633eccb611c4d087375ef8b62b0b8c2b14e",
+        "head_sha": "0a5e2a02056ef828dbb805a1d39e537c6546522e",
+        "id": 13589980082,
+        "run_id": 42407158403
+      },
+      {
+        "digest": "sha256:3325b38c232236be928316a4de3da8e383c84d8eccc6da332761d5eaf6e9b8d7",
+        "head_sha": "d41f505cb00557dd1a6173a19b0945d7849e57fd",
+        "id": 13591897209,
+        "run_id": 42413260799
+      }
+    ],
+    "execution_day": "2026-11-08",
+    "native_artifacts": [
+      {
+        "digest": "sha256:864d9e43e1ffbcc231a38fc8467648ee21179f402523680700ace75ef397a248",
+        "head_sha": "8cf76d3d023591a4c67d04a0001465ac32b441c5",
+        "id": 13559236491,
+        "run_id": 42334526055
+      },
+      {
+        "digest": "sha256:10db96ba2e8179d37c404f7f9b17acdf9465b4f8a7f6999bc327f03e78a86e21",
+        "head_sha": "728b03530264f3494a408fb92bb61b541d3ae0d3",
+        "id": 13555822588,
+        "run_id": 42327254832
+      },
+      {
+        "digest": "sha256:112af9ed9ea13ec2d926cf846d860ca3537d0f1abbc0e966ea9b08345842904a",
+        "head_sha": "b0f8e29a785bf0bf71d09dfe634c3828403ee0be",
+        "id": 13559826825,
+        "run_id": 42336950420
+      },
+      {
+        "digest": "sha256:f80fa852cfdd24847d17fbc0dda98d855571504257b7270d5c3e8c5a9ebc8e42",
+        "head_sha": "9623f34a9b40245f7cc2caf498fcb5e1190399c0",
+        "id": 13562395496,
+        "run_id": 42341849641
+      }
+    ],
+    "plan_path": "audit/state/official-result-collection-plan-0e513b0e9eadde64f69fba65856f71b7c262b07d74b3ef029134b5d406825ff8.enc",
+    "plan_sha256": "0e513b0e9eadde64f69fba65856f71b7c262b07d74b3ef029134b5d406825ff8",
+    "prior_journal_artifacts": [
+      {
+        "digest": "sha256:dcc4a2c95d0677c00d0bd1c9a6f445decac5930405aff79f5f1d9a6792a78816",
+        "head_sha": "3402a09eaabb8a7bfc3e9919946bbb7d66ae0e11",
+        "id": 13562617631,
+        "run_id": 42343017180
+      },
+      {
+        "digest": "sha256:c94a854cacb4a4d3aafd49fab97eb977b97693150bee9a5ce2d42bc85cb7bf77",
+        "head_sha": "9b4bc37648fbfad421daa80bd2300cda5e97e9df",
+        "id": 13565712487,
+        "run_id": 42349536138
+      },
+      {
+        "digest": "sha256:973cfb36a0e336d7b6717362bf494f243afffff06a67d3d1b8f976adc5175d88",
+        "head_sha": "c43871ba761c98ad4ba86cfddc1bc2b20585da38",
+        "id": 13572350517,
+        "run_id": 42364217725
+      },
+      {
+        "digest": "sha256:72d1b53eec547a73cff15955e6b7f179f1391283c28d218ca48be95e36e35c79",
+        "head_sha": "901fb57d2d0f1d0fa0b4051285dca399654a4738",
+        "id": 13574582081,
+        "run_id": 42371023982
+      },
+      {
+        "digest": "sha256:3e581999ed8e6a0caeb3e15a32cf9ab6f364a8d5013ed4a62515dc9655639747",
+        "head_sha": "973629feb8bac893cc2dd051c6ad649c2783a491",
+        "id": 13577093759,
+        "run_id": 42378920749
+      },
+      {
+        "digest": "sha256:6fa01a5bac2a3469c3480cc82318cc62c10e85bb2b3d4d08a5a61ceaf97f1e55",
+        "head_sha": "d1e9823142b145154dcccb1a6cdca485679ec6c4",
+        "id": 13585774966,
+        "run_id": 42399972066
+      },
+      {
+        "digest": "sha256:1506a00c1d22c0c55ea54af3c13613a57b1d888f40f5ed89e726b9d6bede44a0",
+        "head_sha": "0a5e2a02056ef828dbb805a1d39e537c6546522e",
+        "id": 13589112763,
+        "run_id": 42407158403
+      },
+      {
+        "digest": "sha256:3daa8481b048baf39213a6eab4993da9bbd301a7e20974c0bd8ce96563732a2b",
+        "head_sha": "d41f505cb00557dd1a6173a19b0945d7849e57fd",
+        "id": 13591313088,
+        "run_id": 42413260799
+      }
+    ],
+    "schema": "RACE_AI_OFFICIAL_RESULT_COLLECT_INPUT_V3",
+    "target_event_day": "2026-11-07"
+  },
+  "mode": "FIXED_ATTEMPT_TWO_HISTORICAL_AFTER_VERIFIED_SAME_HOST_PROBE",
+  "old_journal_artifact_id": 13565712487,
+  "probe_journal_artifact_id": 13589112763,
+  "probe_request_sha256": "d35c63a6e50733e30443cc6e5c299ced526004f5fb76769a1ea2cc38a7f16990",
+  "probe_result_artifact_id": 13589980082,
+  "probe_sport": "autorace",
+  "pull_request": 71,
+  "repository_id": 1416489937,
+  "schema": "RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V3"
+}

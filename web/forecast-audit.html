@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none';script-src 'self';style-src 'self';connect-src 'self';img-src 'none';font-src 'none';object-src 'none';base-uri 'none';form-action 'none'">
+<title>RACE AI｜予想・結果照合ダッシュボード</title>
+<link rel="stylesheet" href="./forecast-audit.css">
+<script defer src="./forecast-audit-model.js"></script>
+<script defer src="./forecast-audit.js"></script>
+</head>
+<body>
+<header class="header"><div class="header-inner"><div class="identity"><span class="logo">RACE<span>-AI</span></span><div><strong>予想・結果照合</strong><small>4競技・3連単最大8点</small></div></div><div class="header-state">閲覧専用<br>自動投票なし</div></div></header>
+<main class="shell">
+<section class="hero"><div><p class="eyebrow">FORECAST / RESULT / EVIDENCE</p><h1>予想と結果の答え合わせ</h1><p>予想8点、公式結果、的中・不的中を同じカードで確認</p></div>
+<div class="target"><small>最終目標</small><strong>98<span>%</span></strong><em>未達・実測未確認</em></div></section>
+<div class="notice" id="data-notice" role="status">暫定台帳のみ。実レース予想は未接続です。</div>
+<div class="sport-tabs" role="tablist" aria-label="競技を選択">
+<button type="button" role="tab" class="active" aria-selected="true" data-sport="all">全競技</button>
+<button type="button" role="tab" aria-selected="false" data-sport="boat">ボート</button>
+<button type="button" role="tab" aria-selected="false" data-sport="keirin">競輪</button>
+<button type="button" role="tab" aria-selected="false" data-sport="autorace">オート</button>
+<button type="button" role="tab" aria-selected="false" data-sport="horse">競馬</button>
+</div>
+<section class="panel controls" aria-label="集計期間と検索">
+<div class="period-row"><div class="period-tabs" aria-label="集計期間">
+<button type="button" data-period="today" class="active" aria-pressed="true">今日</button>
+<button type="button" data-period="week" aria-pressed="false">今週</button>
+<button type="button" data-period="all" aria-pressed="false">累計</button></div>
+<label class="date-select">指定日 <input type="date" id="selected-date" aria-label="基準日を選択"></label></div>
+<div class="status-tabs" aria-label="的中状態で絞り込む">
+<button type="button" data-state="all" class="active" aria-pressed="true">全件</button>
+<button type="button" data-state="HIT" aria-pressed="false">的中</button>
+<button type="button" data-state="MISS" aria-pressed="false">不的中</button>
+<button type="button" data-state="PENDING" aria-pressed="false">結果待ち</button>
+<button type="button" data-state="NO_FORECAST" aria-pressed="false">未予想</button>
+<button type="button" data-state="PREDICTION_UNVERIFIED" aria-pressed="false">証拠不足</button>
+</div>
+<div class="toolbar-fields">
+<label>並び順 <select id="sort-order"><option value="latest">新着順</option><option value="payout">公式払戻順</option><option value="modelRate">AIモデル的中率順（参考）</option></select></label>
+<label>会場・R・モデル検索 <input id="search" type="search" placeholder="例：若松 12R"></label>
+</div>
+</section>
+<section class="stats" aria-label="対象期間の成績">
+<article class="stat"><span>台帳収録</span><strong id="total-races">未取得</strong><small id="coverage-note">全レース確認状況：未検証</small></article>
+<article class="stat"><span>締切前保存（申告）</span><strong id="frozen-count">未取得</strong><small>独立時刻証拠は別監査</small></article>
+<article class="stat"><span>結果評価可能</span><strong id="settled-count">未取得</strong><small id="hit-count">公式結果の母数</small></article>
+<article class="stat focus"><span>全対象 Hit@8</span><strong id="hit-rate">未検証</strong><small>98％は目標、実績ではない</small></article>
+</section>
+<div id="actual-money" class="purchase-note">実購入・払戻：記録なし（仮想購入は実収支に含めない）</div>
+<section class="panel model-panel"><div class="sectionhead"><div><h2>AIモデル別の成績</h2><p>分母・期間を表示して比較。別のレース集合は参考値。</p></div></div>
+<div class="table-wrap"><table><thead><tr><th>モデル / 競技</th><th>予想</th><th>評価可能</th><th>的中</th><th>Hit@8</th><th>比較条件</th></tr></thead><tbody id="model-breakdown"></tbody></table></div></section>
+<section class="panel sport-panel"><h2>競技別の成績</h2><div class="table-wrap"><table><thead><tr><th>競技</th><th>台帳</th><th>保存（申告）</th><th>評価可能</th><th>的中</th><th>Hit@8</th></tr></thead><tbody id="sport-breakdown"></tbody></table></div></section>
+<section class="sectionhead"><div><h2>レース別・予想と確定結果</h2><p id="shown-count">読込中</p></div><span id="data-kind" class="kind">未取得</span></section>
+<div class="race-list" id="race-list" aria-live="polite"></div>
+<section class="panel loader">
+<div><strong>データ取得と表示確認</strong><p id="data-meta">読込待ち</p><p id="last-refreshed">最終確認時刻：未取得</p></div>
+<div class="upload-actions">
+<button type="button" id="reload-feed" class="demo-button">配信済みデータを再確認</button>
+<button type="button" id="load-synthetic" class="demo-button">合成デモ</button>
+<label class="upload" for="import-files">JSON読込<input id="import-files" type="file" accept=".json,application/json" multiple></label>
+</div>
+<p id="import-error" class="error" role="alert" hidden></p>
+</section>
+<section class="panel notes"><h2>検証と表示のルール</h2><p>的中は、最大8点の予想が締切前に保存されたと申告するデータと、発売・確定済み3連単の一致で判定します。**このブラウザだけで保存時刻の真正性や公式結果の出典は証明できません。** 信頼済み外部レシートと公式情報との独立監査が別途必要です。</p>
+<p>未予想も結果が評価可能ならHit@8_allの分母に含めます。結果未確定・中止・非発売は別表示。払戻順は100円当たり公式払戻で、実購入損益とは別。合成サンプルの的中率は実績ではありません。</p>
+<p>自動更新は**同一サイトに保存された閲覧用JSONの再確認のみ**です。公式結果の収集・照合・自動配信はまだ未接続です。公開・課金・投票は行いません。</p></section>
+<footer>RACE-AI　4競技全レース対象　最終98％目標は未達・未実証</footer>
+</main>
+</body></html>

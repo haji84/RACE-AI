@@ -1,0 +1,27 @@
+{
+  "exact_cipher_and_manifest_bytes_verified": true,
+  "no_default_model_pointer_updated": true,
+  "old_dataset_preserved": true,
+  "plaintext_published": false,
+  "pointer": {
+    "dataset_path": "state/boat-venue-history/v1/datasets/c68d32474e1797a0409917fa96ad7393b4a0057bc5081ba31578ac131ec1f254/dataset.json",
+    "dataset_sha256": "c68d32474e1797a0409917fa96ad7393b4a0057bc5081ba31578ac131ec1f254",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_VENUE_DATASET_INPUT_V1",
+    "source_commit": "505800f55176867e8a5a06491fcc18eadca8e070",
+    "status": "READY"
+  },
+  "production_promoted": false,
+  "readback": {
+    "acquisition_complete": false,
+    "formal_backtest_eligible": false,
+    "known_racers": 2643,
+    "plaintext_published": false,
+    "source_days": 7963,
+    "status": "ENCRYPTED_ALL_VENUE_GRID_READBACK_VERIFIED",
+    "venues": 24,
+    "verified_cells": 63432
+  },
+  "source_commit": "505800f55176867e8a5a06491fcc18eadca8e070",
+  "state": "NOV6_ALL_RACER_GRID_RETAINED_AND_INDEPENDENTLY_RESTORED"
+}

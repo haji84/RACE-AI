@@ -1,0 +1,17 @@
+{
+  "artifact_id": 13571535349,
+  "exact_candidate_bytes_verified": true,
+  "fitted_model_count": 19,
+  "head_sha": "c43871ba761c98ad4ba86cfddc1bc2b20585da38",
+  "independent_git_readback_verified": true,
+  "no_default_pointer_updated": true,
+  "only_new_immutable_paths_added": true,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "ref": "state/boat-pdca-transfer",
+  "source_commit": "9b26d1631aa4b24cd672d1f7bb9234cb6c52ad13",
+  "state": "C438_REAL_NINETEEN_CANDIDATE_INDEPENDENTLY_RESTORED",
+  "training_sha256": "f39104dc8486171d0b8c0d56b97ee788feb0561c1e4a27b81c3d061618c594af",
+  "whole_workflow_conclusion": "PENDING_AT_RETENTION",
+  "workflow_run_id": 42364217725
+}

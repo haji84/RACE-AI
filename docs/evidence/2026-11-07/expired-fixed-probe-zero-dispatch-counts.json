@@ -1,0 +1,22 @@
+{
+  "actual_new_provider_requests": 0,
+  "attempt": 2,
+  "conclusion": "cancelled",
+  "head_sha": "08b587a25bc0e26610bc5d950f9c72d12e1a1db8",
+  "job_id": 128372146883,
+  "last_executed_step": "Complete job",
+  "last_substantive_step": "Python synthetic journal to viewer projection tests",
+  "last_substantive_step_conclusion": "cancelled",
+  "old_actual_browser_requests": null,
+  "old_browser_reserved_upper_bound": 24,
+  "old_total_upper_bound": 32,
+  "original_consumed_cipher_sha256": "81324c256bcded7e488cbe3aef94d682b135fc8f5ca7584651252e077542fa99",
+  "original_consumed_record_retained": true,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "provider_collection_step_reached": false,
+  "provider_step_conclusion": "skipped",
+  "provider_step_name": "Collect explicitly requested due official results using normal public navigation",
+  "state": "EXPIRED_FIXED_RECORD_ATTEMPT_CANCELLED_BEFORE_PROVIDER_STEP",
+  "workflow_run_id": 42355755138
+}

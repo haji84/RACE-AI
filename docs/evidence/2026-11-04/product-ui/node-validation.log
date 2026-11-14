@@ -1,0 +1,977 @@
+TAP version 13
+# Subtest: D1 migration builds all immutable forecast, outcome, stop-reason tables
+ok 1 - D1 migration builds all immutable forecast, outcome, stop-reason tables
+  ---
+  duration_ms: 3.372785
+  type: 'test'
+  ...
+# Subtest: atomic D1 result poll claim blocks immediate duplicate and persists safe retry
+ok 2 - atomic D1 result poll claim blocks immediate duplicate and persists safe retry
+  ---
+  duration_ms: 2.807938
+  type: 'test'
+  ...
+# Subtest: fail closed gate reasons are insert-only and deduplicated
+ok 3 - fail closed gate reasons are insert-only and deduplicated
+  ---
+  duration_ms: 2.395591
+  type: 'test'
+  ...
+# Subtest: no Cron is activated by installing pure code, default remains off
+ok 4 - no Cron is activated by installing pure code, default remains off
+  ---
+  duration_ms: 1.579859
+  type: 'test'
+  ...
+# Subtest: end-to-end SQLite cycle: previous settled result becomes next-race shadow, primary never changes
+ok 5 - end-to-end SQLite cycle: previous settled result becomes next-race shadow, primary never changes
+  ---
+  duration_ms: 91.216445
+  type: 'test'
+  ...
+# Subtest: failed official read records original reason and releases lease
+ok 6 - failed official read records original reason and releases lease
+  ---
+  duration_ms: 36.617583
+  type: 'test'
+  ...
+# Subtest: canonical A/B 120 probabilities and source remains unchanged
+ok 7 - canonical A/B 120 probabilities and source remains unchanged
+  ---
+  duration_ms: 7.590407
+  type: 'test'
+  ...
+# Subtest: late capture, date mismatch, missing motor or market data rejected
+ok 8 - late capture, date mismatch, missing motor or market data rejected
+  ---
+  duration_ms: 1.30534
+  type: 'test'
+  ...
+# Subtest: partial refund is not a normal miss or whole-race refund
+ok 9 - partial refund is not a normal miss or whole-race refund
+  ---
+  duration_ms: 3.65399
+  type: 'test'
+  ...
+# Subtest: no historical prediction is generated for a missing forecast
+ok 10 - no historical prediction is generated for a missing forecast
+  ---
+  duration_ms: 0.809038
+  type: 'test'
+  ...
+# Subtest: JST day independent of runner timezone
+ok 11 - JST day independent of runner timezone
+  ---
+  duration_ms: 0.201369
+  type: 'test'
+  ...
+# Subtest: nationwide index verifies date, venue and completeness
+ok 12 - nationwide index verifies date, venue and completeness
+  ---
+  duration_ms: 2.489806
+  type: 'test'
+  ...
+# Subtest: quota persists and backoff blocks subsequent requests
+ok 13 - quota persists and backoff blocks subsequent requests
+  ---
+  duration_ms: 3.38222
+  type: 'test'
+  ...
+# Subtest: atomic lease and deadline ordering
+ok 14 - atomic lease and deadline ordering
+  ---
+  duration_ms: 2.814434
+  type: 'test'
+  ...
+# Subtest: server timestamp, exact freeze readback and overwrite rejection
+ok 15 - server timestamp, exact freeze readback and overwrite rejection
+  ---
+  duration_ms: 23.061394
+  type: 'test'
+  ...
+# Subtest: result requires closed race and replay requires real next date
+ok 16 - result requires closed race and replay requires real next date
+  ---
+  duration_ms: 4.545695
+  type: 'test'
+  ...
+# Subtest: disabled runtime has no database or network side effects
+ok 17 - disabled runtime has no database or network side effects
+  ---
+  duration_ms: 0.911998
+  type: 'test'
+  ...
+# Subtest: old result backlog cannot starve venue discovery
+ok 18 - old result backlog cannot starve venue discovery
+  ---
+  duration_ms: 46.371181
+  type: 'test'
+  ...
+# Subtest: 120 valid outcomes and 8 unique uncalibrated tickets
+ok 19 - 120 valid outcomes and 8 unique uncalibrated tickets
+  ---
+  duration_ms: 3.550629
+  type: 'test'
+  ...
+# Subtest: private D1 insert-only freeze/readback and result PDCA idempotent
+ok 20 - private D1 insert-only freeze/readback and result PDCA idempotent
+  ---
+  duration_ms: 48.331796
+  type: 'test'
+  ...
+# Subtest: missing forecast stays a miss, never backfilled after finish
+ok 21 - missing forecast stays a miss, never backfilled after finish
+  ---
+  duration_ms: 1.586991
+  type: 'test'
+  ...
+# Subtest: wrong race, missing exhibition, rights and late time are refused
+ok 22 - wrong race, missing exhibition, rights and late time are refused
+  ---
+  duration_ms: 2.919914
+  type: 'test'
+  ...
+# Subtest: actual payout is only admitted after result and never improves historical predictor
+ok 23 - actual payout is only admitted after result and never improves historical predictor
+  ---
+  duration_ms: 4.402516
+  type: 'test'
+  ...
+# Subtest: timestamps must contain explicit timezone and do not silently use runner locale
+ok 24 - timestamps must contain explicit timezone and do not silently use runner locale
+  ---
+  duration_ms: 0.581485
+  type: 'test'
+  ...
+# Subtest: reacquiring identical official HTML after six hours is idempotent despite new capture time
+ok 25 - reacquiring identical official HTML after six hours is idempotent despite new capture time
+  ---
+  duration_ms: 7.768817
+  type: 'test'
+  ...
+# Subtest: six official racer identities and exhibition match
+ok 26 - six official racer identities and exhibition match
+  ---
+  duration_ms: 16.210297
+  type: 'test'
+  ...
+# Subtest: wrong source venue, missing exhibition, refunded and finish conflict reject
+ok 27 - wrong source venue, missing exhibition, refunded and finish conflict reject
+  ---
+  duration_ms: 5.294722
+  type: 'test'
+  ...
+# Subtest: PR64 style six tbody racer groups each with four display rows
+ok 28 - PR64 style six tbody racer groups each with four display rows
+  ---
+  duration_ms: 2.781802
+  type: 'test'
+  ...
+# Subtest: trifecta payout is audit-only and missing price remains unknown
+ok 29 - trifecta payout is audit-only and missing price remains unknown
+  ---
+  duration_ms: 2.973247
+  type: 'test'
+  ...
+# Subtest: real official HTML may print fullwidth racer lane numbers
+ok 30 - real official HTML may print fullwidth racer lane numbers
+  ---
+  duration_ms: 1.727671
+  type: 'test'
+  ...
+# Subtest: non-top-three finish disposition is not a fabricated ordinal place
+ok 31 - non-top-three finish disposition is not a fabricated ordinal place
+  ---
+  duration_ms: 2.108578
+  type: 'test'
+  ...
+# Subtest: unrelated official table body text cannot impersonate payout or refund thead
+ok 32 - unrelated official table body text cannot impersonate payout or refund thead
+  ---
+  duration_ms: 1.146459
+  type: 'test'
+  ...
+# Subtest: only earlier settled history produces separate probability mass and eight tickets
+ok 33 - only earlier settled history produces separate probability mass and eight tickets
+  ---
+  duration_ms: 27.499509
+  type: 'test'
+  ...
+# Subtest: future result, tampered SHA, wrong venue, or duplicate identity rejected
+ok 34 - future result, tampered SHA, wrong venue, or duplicate identity rejected
+  ---
+  duration_ms: 8.322744
+  type: 'test'
+  ...
+# Subtest: no forecast candidate created with insufficient settled history
+ok 35 - no forecast candidate created with insufficient settled history
+  ---
+  duration_ms: 19.339694
+  type: 'test'
+  ...
+# Subtest: primary is never edited; once frozen shadow cannot update after later PDCA
+ok 36 - primary is never edited; once frozen shadow cannot update after later PDCA
+  ---
+  duration_ms: 15.932946
+  type: 'test'
+  ...
+# Subtest: missing candidate is kept in denominator, and late result cannot be seen before race
+ok 37 - missing candidate is kept in denominator, and late result cannot be seen before race
+  ---
+  duration_ms: 3.825617
+  type: 'test'
+  ...
+# Subtest: result re-fetch with identical source SHA preserves original shadow audit timestamp
+ok 38 - result re-fetch with identical source SHA preserves original shadow audit timestamp
+  ---
+  duration_ms: 22.585013
+  type: 'test'
+  ...
+# Subtest: verified refund is terminal detail; old top3-only consumer still refuses it
+ok 39 - verified refund is terminal detail; old top3-only consumer still refuses it
+  ---
+  duration_ms: 11.588638
+  type: 'test'
+  ...
+# Subtest: refund settlement preserves picks; reopen in fresh process reproduces identical report
+ok 40 - refund settlement preserves picks; reopen in fresh process reproduces identical report
+  ---
+  duration_ms: 265.288261
+  type: 'test'
+  ...
+# Subtest: bad refund identities cannot be turned into a normal miss
+ok 41 - bad refund identities cannot be turned into a normal miss
+  ---
+  duration_ms: 5.355162
+  type: 'test'
+  ...
+# Subtest: scheduled control records refunded race then reaches final race without manual reset
+ok 42 - scheduled control records refunded race then reaches final race without manual reset
+  ---
+  duration_ms: 76.537125
+  type: 'test'
+  ...
+# Subtest: refund outcome is excluded from normal shadow training
+ok 43 - refund outcome is excluded from normal shadow training
+  ---
+  duration_ms: 3.996732
+  type: 'test'
+  ...
+# Subtest: four sports with synthetic winners are clearly separate
+ok 44 - four sports with synthetic winners are clearly separate
+  ---
+  duration_ms: 6.372299
+  type: 'test'
+  ...
+# Subtest: nonforecasts remain in full offered evaluable denominator
+ok 45 - nonforecasts remain in full offered evaluable denominator
+  ---
+  duration_ms: 0.514998
+  type: 'test'
+  ...
+# Subtest: not offered, void and pending are explicitly excluded
+ok 46 - not offered, void and pending are explicitly excluded
+  ---
+  duration_ms: 0.500428
+  type: 'test'
+  ...
+# Subtest: post-cutoff and missing external receipt are never counted as frozen
+ok 47 - post-cutoff and missing external receipt are never counted as frozen
+  ---
+  duration_ms: 0.970425
+  type: 'test'
+  ...
+# Subtest: winning combination must equal one of the ordered tickets
+ok 48 - winning combination must equal one of the ordered tickets
+  ---
+  duration_ms: 0.717986
+  type: 'test'
+  ...
+# Subtest: duplicate race IDs and conflicting files cannot silently overwrite
+ok 49 - duplicate race IDs and conflicting files cannot silently overwrite
+  ---
+  duration_ms: 1.118269
+  type: 'test'
+  ...
+# Subtest: malformed bets, ninth ticket and odds dependence rejected
+ok 50 - malformed bets, ninth ticket and odds dependence rejected
+  ---
+  duration_ms: 0.928229
+  type: 'test'
+  ...
+# Subtest: synthetic and real must never mix
+ok 51 - synthetic and real must never mix
+  ---
+  duration_ms: 1.200282
+  type: 'test'
+  ...
+# Subtest: audit-only 322 slots should show unknown hit-rate, not zero
+ok 52 - audit-only 322 slots should show unknown hit-rate, not zero
+  ---
+  duration_ms: 0.320713
+  type: 'test'
+  ...
+# Subtest: JST day and Monday-Sunday week use event day, not verification timestamp
+ok 53 - JST day and Monday-Sunday week use event day, not verification timestamp
+  ---
+  duration_ms: 2.62212
+  type: 'test'
+  ...
+# Subtest: sport and outcome tabs preserve the complete denominator
+ok 54 - sport and outcome tabs preserve the complete denominator
+  ---
+  duration_ms: 31.244192
+  type: 'test'
+  ...
+# Subtest: payout sort uses confirmed official 100 yen value and puts unknown last
+ok 55 - payout sort uses confirmed official 100 yen value and puts unknown last
+  ---
+  duration_ms: 0.955648
+  type: 'test'
+  ...
+# Subtest: model group calculation remains reference-only for different race cohorts
+ok 56 - model group calculation remains reference-only for different race cohorts
+  ---
+  duration_ms: 2.427038
+  type: 'test'
+  ...
+# Subtest: revision history must be sequential and latest result consistent
+ok 57 - revision history must be sequential and latest result consistent
+  ---
+  duration_ms: 0.895348
+  type: 'test'
+  ...
+# Subtest: market-bearing prediction and fabricated paid receipt cannot enter audit
+ok 58 - market-bearing prediction and fabricated paid receipt cannot enter audit
+  ---
+  duration_ms: 0.546815
+  type: 'test'
+  ...
+# Subtest: confirmed actual purchase is distinct from prediction and never inferred
+ok 59 - confirmed actual purchase is distinct from prediction and never inferred
+  ---
+  duration_ms: 0.19867
+  type: 'test'
+  ...
+# Subtest: files keep synthetic metrics entirely separate from real reports
+ok 60 - files keep synthetic metrics entirely separate from real reports
+  ---
+  duration_ms: 0.258225
+  type: 'test'
+  ...
+# Subtest: render screen contains tactile four sport tabs, history and owner controls
+ok 61 - render screen contains tactile four sport tabs, history and owner controls
+  ---
+  duration_ms: 0.399269
+  type: 'test'
+  ...
+# Subtest: Wilson interval makes tiny samples visibly uncertain
+ok 62 - Wilson interval makes tiny samples visibly uncertain
+  ---
+  duration_ms: 0.258208
+  type: 'test'
+  ...
+# Subtest: two parallel models compare against one race without duplicating it
+ok 63 - two parallel models compare against one race without duplicating it
+  ---
+  duration_ms: 0.525226
+  type: 'test'
+  ...
+# Subtest: parallel-model denominator includes missed or absent forecasts
+ok 64 - parallel-model denominator includes missed or absent forecasts
+  ---
+  duration_ms: 0.240043
+  type: 'test'
+  ...
+# Subtest: missing independent receipt or late parallel forecast cannot hit
+ok 65 - missing independent receipt or late parallel forecast cannot hit
+  ---
+  duration_ms: 0.218257
+  type: 'test'
+  ...
+# Subtest: duplicate comparison identity, market fields and ninth pick are rejected
+ok 66 - duplicate comparison identity, market fields and ninth pick are rejected
+  ---
+  duration_ms: 0.5968
+  type: 'test'
+  ...
+# Subtest: every valid trifecta, not only eight picks, for all four sports
+ok 67 - every valid trifecta, not only eight picks, for all four sports
+  ---
+  duration_ms: 50.042903
+  type: 'test'
+  ...
+# Subtest: complete combinations are required even if quote unavailable
+ok 68 - complete combinations are required even if quote unavailable
+  ---
+  duration_ms: 3.85324
+  type: 'test'
+  ...
+# Subtest: missing quote must be explicitly null and cannot masquerade as price zero
+ok 69 - missing quote must be explicitly null and cannot masquerade as price zero
+  ---
+  duration_ms: 1.690361
+  type: 'test'
+  ...
+# Subtest: time ordering, cutoff day and source status cannot be forged as independently verified
+ok 70 - time ordering, cutoff day and source status cannot be forged as independently verified
+  ---
+  duration_ms: 2.687923
+  type: 'test'
+  ...
+# Subtest: provider URL must be a valid HTTPS URL before it can appear as a source link
+ok 71 - provider URL must be a valid HTTPS URL before it can appear as a source link
+  ---
+  duration_ms: 1.073685
+  type: 'test'
+  ...
+# Subtest: sort odds and filter first boat; unknown odds always sort last
+ok 72 - sort odds and filter first boat; unknown odds always sort last
+  ---
+  duration_ms: 3.554535
+  type: 'test'
+  ...
+# Subtest: unknown official odds update time stays stale instead of inventing publish timestamp
+ok 73 - unknown official odds update time stays stale instead of inventing publish timestamp
+  ---
+  duration_ms: 1.050215
+  type: 'test'
+  ...
+# Subtest: missing provider timestamp cannot be replaced by invalid text
+ok 74 - missing provider timestamp cannot be replaced by invalid text
+  ---
+  duration_ms: 0.35056
+  type: 'test'
+  ...
+# Subtest: provider-published timestamp can be stale even when site ingested it now
+ok 75 - provider-published timestamp can be stale even when site ingested it now
+  ---
+  duration_ms: 0.867942
+  type: 'test'
+  ...
+# Subtest: read-only quote updates cannot alter frozen AI picks
+ok 76 - read-only quote updates cannot alter frozen AI picks
+  ---
+  duration_ms: 3.532957
+  type: 'test'
+  ...
+# Subtest: 60-second update target still shows real age and never guarantees fresh data
+ok 77 - 60-second update target still shows real age and never guarantees fresh data
+  ---
+  duration_ms: 1.077046
+  type: 'test'
+  ...
+# Subtest: mobile boat first display exposes all 120 tuples; larger sports stay paginated
+ok 78 - mobile boat first display exposes all 120 tuples; larger sports stay paginated
+  ---
+  duration_ms: 23.739058
+  type: 'test'
+  ...
+# Subtest: client receipt, official-time and quote changes remain distinct
+ok 79 - client receipt, official-time and quote changes remain distinct
+  ---
+  duration_ms: 2.989603
+  type: 'test'
+  ...
+# Subtest: Safari acceptance requires three ~60s automatic browser reads, not manual reads
+ok 80 - Safari acceptance requires three ~60s automatic browser reads, not manual reads
+  ---
+  duration_ms: 0.968012
+  type: 'test'
+  ...
+# Subtest: Safari receipt UI includes visible progress, fallback selection and no odds export
+ok 81 - Safari receipt UI includes visible progress, fallback selection and no odds export
+  ---
+  duration_ms: 0.605929
+  type: 'test'
+  ...
+# Subtest: copied UI receipts link three automatic reads to the same-race audit without rewriting
+ok 82 - copied UI receipts link three automatic reads to the same-race audit without rewriting
+  ---
+  duration_ms: 72.624579
+  type: 'test'
+  ...
+# Subtest: mixed-race, wrong-race or missing-race copied receipts cannot satisfy same-race D1 linkage
+ok 83 - mixed-race, wrong-race or missing-race copied receipts cannot satisfy same-race D1 linkage
+  ---
+  duration_ms: 43.696164
+  type: 'test'
+  ...
+# Subtest: an in-flight response keeps its original request race after the page URL changes
+ok 84 - an in-flight response keeps its original request race after the page URL changes
+  ---
+  duration_ms: 10.059039
+  type: 'test'
+  ...
+# Subtest: failed UI reads retain the requested race and never inherit stale feed receipt times
+ok 85 - failed UI reads retain the requested race and never inherit stale feed receipt times
+  ---
+  duration_ms: 17.489784
+  type: 'test'
+  ...
+# Subtest: owner-only embedded UI exactly matches the standalone browser assets
+ok 86 - owner-only embedded UI exactly matches the standalone browser assets
+  ---
+  duration_ms: 2.441736
+  type: 'test'
+  ...
+# Subtest: zero-default and rights guards forbid any network or D1 writes
+ok 87 - zero-default and rights guards forbid any network or D1 writes
+  ---
+  duration_ms: 1.411863
+  type: 'test'
+  ...
+# Subtest: 60s sustained single-race snapshots are measurable but not real provider proof
+ok 88 - 60s sustained single-race snapshots are measurable but not real provider proof
+  ---
+  duration_ms: 69.626163
+  type: 'test'
+  ...
+# Subtest: identical prices/published time preserve latest D1 entry but retain receipt
+ok 89 - identical prices/published time preserve latest D1 entry but retain receipt
+  ---
+  duration_ms: 3.209501
+  type: 'test'
+  ...
+# Subtest: 403/429 stops same race and no backoff circumvention
+ok 90 - 403/429 stops same race and no backoff circumvention
+  ---
+  duration_ms: 0.499412
+  type: 'test'
+  ...
+# Subtest: T-60 and HTTPS exact-host gate do not call provider
+ok 91 - T-60 and HTTPS exact-host gate do not call provider
+  ---
+  duration_ms: 0.564554
+  type: 'test'
+  ...
+# Subtest: response that completes after official cutoff cannot publish stale late quote
+ok 92 - response that completes after official cutoff cannot publish stale late quote
+  ---
+  duration_ms: 1.123979
+  type: 'test'
+  ...
+# Subtest: preview Worker defaults closed, even for read-only fetch
+ok 93 - preview Worker defaults closed, even for read-only fetch
+  ---
+  duration_ms: 56.255623
+  type: 'test'
+  ...
+# Subtest: unprotected Worker, wrong identity and caller-supplied headers cannot read or write
+ok 94 - unprotected Worker, wrong identity and caller-supplied headers cannot read or write
+  ---
+  duration_ms: 3.588893
+  type: 'test'
+  ...
+# Subtest: private health proves D1 binding but reports zero real races when empty
+ok 95 - private health proves D1 binding but reports zero real races when empty
+  ---
+  duration_ms: 2.616969
+  type: 'test'
+  ...
+# Subtest: existing full-market iPhone viewer and CSS are served only to Access owner
+ok 96 - existing full-market iPhone viewer and CSS are served only to Access owner
+  ---
+  duration_ms: 3.196354
+  type: 'test'
+  ...
+# Subtest: private source approval ref and secret must both match
+ok 97 - private source approval ref and secret must both match
+  ---
+  duration_ms: 1.859465
+  type: 'test'
+  ...
+# Subtest: all 120 quotes stored and read back, no AI forecasts mutated
+ok 98 - all 120 quotes stored and read back, no AI forecasts mutated
+  ---
+  duration_ms: 28.846335
+  type: 'test'
+  ...
+# Subtest: invalid quote corpus blocked before D1 write
+ok 99 - invalid quote corpus blocked before D1 write
+  ---
+  duration_ms: 1.690592
+  type: 'test'
+  ...
+# Subtest: ingest requires a single pilot race and an explicit daily cap
+ok 100 - ingest requires a single pilot race and an explicit daily cap
+  ---
+  duration_ms: 4.248169
+  type: 'test'
+  ...
+# Subtest: 60-second write cooldown and durable daily limit stop repeated ingestion
+ok 101 - 60-second write cooldown and durable daily limit stop repeated ingestion
+  ---
+  duration_ms: 5.826628
+  type: 'test'
+  ...
+# Subtest: price and provider time validity cannot be bypassed
+ok 102 - price and provider time validity cannot be bypassed
+  ---
+  duration_ms: 1.401323
+  type: 'test'
+  ...
+# Subtest: worker will not accept guessed forecast or result data in odds envelope
+ok 103 - worker will not accept guessed forecast or result data in odds envelope
+  ---
+  duration_ms: 0.45338
+  type: 'test'
+  ...
+# Subtest: three source,D1,Safari three-cycle contract is explicitly untrusted metadata
+ok 104 - three source,D1,Safari three-cycle contract is explicitly untrusted metadata
+  ---
+  duration_ms: 3.691447
+  type: 'test'
+  ...
+# Subtest: one manual shot or three browser-only refreshes cannot claim upstream E2E
+ok 105 - one manual shot or three browser-only refreshes cannot claim upstream E2E
+  ---
+  duration_ms: 1.91297
+  type: 'test'
+  ...
+# Subtest: source rights/quota/official cutoff must remain independent gates
+ok 106 - source rights/quota/official cutoff must remain independent gates
+  ---
+  duration_ms: 0.352173
+  type: 'test'
+  ...
+# Subtest: bad SHA, too-short cadence, post-cutoff writes and unchanged-only snapshots block
+ok 107 - bad SHA, too-short cadence, post-cutoff writes and unchanged-only snapshots block
+  ---
+  duration_ms: 0.451396
+  type: 'test'
+  ...
+# Subtest: browser timestamp must correspond to D1 stored delivery not an old stale receipt
+ok 108 - browser timestamp must correspond to D1 stored delivery not an old stale receipt
+  ---
+  duration_ms: 0.252778
+  type: 'test'
+  ...
+# Subtest: D1 readback finishing after cutoff is invalid
+ok 109 - D1 readback finishing after cutoff is invalid
+  ---
+  duration_ms: 0.193437
+  type: 'test'
+  ...
+# Subtest: original opaque bytes survive a durable create, close and read
+ok 110 - original opaque bytes survive a durable create, close and read
+  ---
+  duration_ms: 40.509557
+  type: 'test'
+  ...
+# Subtest: default, truthy, throwing and mutating gates make zero binding calls
+ok 111 - default, truthy, throwing and mutating gates make zero binding calls
+  ---
+  duration_ms: 9.452128
+  type: 'test'
+  ...
+# Subtest: absent reads are unresolved and create no file or schema
+ok 112 - absent reads are unresolved and create no file or schema
+  ---
+  duration_ms: 4.233249
+  type: 'test'
+  ...
+# Subtest: binary boundaries retain every byte through four MiB and eight chunks
+ok 113 - binary boundaries retain every byte through four MiB and eight chunks
+  ---
+  duration_ms: 903.275257
+  type: 'test'
+  ...
+# Subtest: early strict types, oversized inputs and claim getters deny before hash or binding
+ok 114 - early strict types, oversized inputs and claim getters deny before hash or binding
+  ---
+  duration_ms: 1.618005
+  type: 'test'
+  ...
+# Subtest: UTC microseconds and original timestamp spellings are preserved
+ok 115 - UTC microseconds and original timestamp spellings are preserved
+  ---
+  duration_ms: 6.766653
+  type: 'test'
+  ...
+# Subtest: caller closure mutations cannot rewrite a snapshotted claim or wire
+ok 116 - caller closure mutations cannot rewrite a snapshotted claim or wire
+  ---
+  duration_ms: 11.935101
+  type: 'test'
+  ...
+# Subtest: known equality is read only and complete scope prevents deduplication
+ok 117 - known equality is read only and complete scope prevents deduplication
+  ---
+  duration_ms: 54.665237
+  type: 'test'
+  ...
+# Subtest: foreign schema and raced foreign schema never acquire vault tables
+ok 118 - foreign schema and raced foreign schema never acquire vault tables
+  ---
+  duration_ms: 16.417778
+  type: 'test'
+  ...
+# Subtest: legal sqliteX names cannot hide foreign schema before or during initialization
+ok 119 - legal sqliteX names cannot hide foreign schema before or during initialization
+  ---
+  duration_ms: 16.640266
+  type: 'test'
+  ...
+# Subtest: middle and final chunk failures rollback metadata, chunks and initialization
+ok 120 - middle and final chunk failures rollback metadata, chunks and initialization
+  ---
+  duration_ms: 27.721318
+  type: 'test'
+  ...
+# Subtest: oversized SQL bodies are excluded before JavaScript materialization
+ok 121 - oversized SQL bodies are excluded before JavaScript materialization
+  ---
+  duration_ms: 87.710878
+  type: 'test'
+  ...
+# Subtest: partial or corrupt existing objects are never repaired
+ok 122 - partial or corrupt existing objects are never repaired
+  ---
+  duration_ms: 27.52243
+  type: 'test'
+  ...
+# Subtest: whole-object scalar preflight rejects before fetching any valid-sized body
+ok 123 - whole-object scalar preflight rejects before fetching any valid-sized body
+  ---
+  duration_ms: 75.132116
+  type: 'test'
+  ...
+# Subtest: SQL guards prevent mutation and late extra chunks
+ok 124 - SQL guards prevent mutation and late extra chunks
+  ---
+  duration_ms: 6.363408
+  type: 'test'
+  ...
+# Subtest: REPLACE cannot bypass create-only object and chunk protection
+ok 125 - REPLACE cannot bypass create-only object and chunk protection
+  ---
+  duration_ms: 8.384711
+  type: 'test'
+  ...
+# Subtest: 32 object and 16 MiB caps are atomic while equality at cap stays read only
+ok 126 - 32 object and 16 MiB caps are atomic while equality at cap stays read only
+  ---
+  duration_ms: 747.225967
+  type: 'test'
+  ...
+# Subtest: unknown write acknowledgment has no retry and exact read recovers without a write
+ok 127 - unknown write acknowledgment has no retry and exact read recovers without a write
+  ---
+  duration_ms: 9.555617
+  type: 'test'
+  ...
+# Subtest: missing SQL guard acknowledgment is never accepted as a successful protocol
+ok 128 - missing SQL guard acknowledgment is never accepted as a successful protocol
+  ---
+  duration_ms: 10.729651
+  type: 'test'
+  ...
+# Subtest: test adapter refuses Git targets, hardlinked aliases and lexical remote paths
+ok 129 - test adapter refuses Git targets, hardlinked aliases and lexical remote paths
+  ---
+  duration_ms: 6.239707
+  type: 'test'
+  ...
+# Subtest: two real processes overlap under one transaction and return the same object
+ok 130 - two real processes overlap under one transaction and return the same object
+  ---
+  duration_ms: 222.149218
+  type: 'test'
+  ...
+# Subtest: real process death before or after commit stays read-only on recovery
+ok 131 - real process death before or after commit stays read-only on recovery
+  ---
+  duration_ms: 156.742377
+  type: 'test'
+  ...
+# Subtest: read-only saved-record adapter exposes its public interface
+ok 132 - read-only saved-record adapter exposes its public interface
+  ---
+  duration_ms: 1.14577
+  type: 'test'
+  ...
+# Subtest: parse clones and freezes original provenance, dates, participants and saved tickets
+ok 133 - parse clones and freezes original provenance, dates, participants and saved tickets
+  ---
+  duration_ms: 11.730252
+  type: 'test'
+  ...
+# Subtest: existing audit-only and synthetic fixtures remain visible without official metrics
+ok 134 - existing audit-only and synthetic fixtures remain visible without official metrics
+  ---
+  duration_ms: 15.279346
+  type: 'test'
+  ...
+# Subtest: boolean-only receipt claims never produce official rates
+ok 135 - boolean-only receipt claims never produce official rates
+  ---
+  duration_ms: 1.474653
+  type: 'test'
+  ...
+# Subtest: explicit matching importer evidence allows reported official scores only
+ok 136 - explicit matching importer evidence allows reported official scores only
+  ---
+  duration_ms: 0.811143
+  type: 'test'
+  ...
+# Subtest: wrong pinned hashes or times cannot count as frozen or official
+ok 137 - wrong pinned hashes or times cannot count as frozen or official
+  ---
+  duration_ms: 1.053791
+  type: 'test'
+  ...
+# Subtest: missing source hash or explicit official scope stays research with reasons
+ok 138 - missing source hash or explicit official scope stays research with reasons
+  ---
+  duration_ms: 0.851401
+  type: 'test'
+  ...
+# Subtest: synthetic or audit dataset cannot assert official scope
+ok 139 - synthetic or audit dataset cannot assert official scope
+  ---
+  duration_ms: 0.666993
+  type: 'test'
+  ...
+# Subtest: research rows cannot add official hits or simulated money to actual purchases
+ok 140 - research rows cannot add official hits or simulated money to actual purchases
+  ---
+  duration_ms: 1.184153
+  type: 'test'
+  ...
+# Subtest: same model version P0 and P1 remain separate selectable originals
+ok 141 - same model version P0 and P1 remain separate selectable originals
+  ---
+  duration_ms: 1.308272
+  type: 'test'
+  ...
+# Subtest: unknown stage remains explicit and duplicate stage/model/version cannot replace original
+ok 142 - unknown stage remains explicit and duplicate stage/model/version cannot replace original
+  ---
+  duration_ms: 0.867034
+  type: 'test'
+  ...
+# Subtest: ranked candidate universe is preserved, never recalculated, and must match saved top8
+ok 143 - ranked candidate universe is preserved, never recalculated, and must match saved top8
+  ---
+  duration_ms: 1.239
+  type: 'test'
+  ...
+# Subtest: market data nested in prediction cannot bypass reused audit validation
+ok 144 - market data nested in prediction cannot bypass reused audit validation
+  ---
+  duration_ms: 0.561681
+  type: 'test'
+  ...
+# Subtest: result revisions retain payout and refunds separately from frozen prediction
+ok 145 - result revisions retain payout and refunds separately from frozen prediction
+  ---
+  duration_ms: 1.606685
+  type: 'test'
+  ...
+# Subtest: latest result and history must agree on payout, refunds and provenance
+ok 146 - latest result and history must agree on payout, refunds and provenance
+  ---
+  duration_ms: 1.154369
+  type: 'test'
+  ...
+# Subtest: official all-race denominator retains a missing prediction without hiding it
+ok 147 - official all-race denominator retains a missing prediction without hiding it
+  ---
+  duration_ms: 0.667392
+  type: 'test'
+  ...
+# Subtest: model denominators use sport/scope/stage/version instead of pooling P0/P1 or research
+ok 148 - model denominators use sport/scope/stage/version instead of pooling P0/P1 or research
+  ---
+  duration_ms: 0.907942
+  type: 'test'
+  ...
+# Subtest: summary exposes stage ledgers and withholds a pooled mixed-stage official rate
+ok 149 - summary exposes stage ledgers and withholds a pooled mixed-stage official rate
+  ---
+  duration_ms: 0.738905
+  type: 'test'
+  ...
+# Subtest: same-stage mixed models or versions cannot pool their official rates
+ok 150 - same-stage mixed models or versions cannot pool their official rates
+  ---
+  duration_ms: 2.066371
+  type: 'test'
+  ...
+# Subtest: stage cohort keeps eligible schedules lacking a saved prediction
+ok 151 - stage cohort keeps eligible schedules lacking a saved prediction
+  ---
+  duration_ms: 0.921315
+  type: 'test'
+  ...
+# Subtest: stage summaries use preserved variants and suppress a rate with no saved identity
+ok 152 - stage summaries use preserved variants and suppress a rate with no saved identity
+  ---
+  duration_ms: 1.681706
+  type: 'test'
+  ...
+# Subtest: refund combination aliases remain review cases and cannot inflate official rates
+ok 153 - refund combination aliases remain review cases and cannot inflate official rates
+  ---
+  duration_ms: 0.836994
+  type: 'test'
+  ...
+# Subtest: refund combination aliases validate unique tickets and agree with supplied refund details
+ok 154 - refund combination aliases validate unique tickets and agree with supplied refund details
+  ---
+  duration_ms: 1.451638
+  type: 'test'
+  ...
+# Subtest: actual confirmed purchases remain separate and are never inferred from candidate stake
+ok 155 - actual confirmed purchases remain separate and are never inferred from candidate stake
+  ---
+  duration_ms: 0.728948
+  type: 'test'
+  ...
+# Subtest: strict schema rejects duplicates, invalid dates, malformed refunds and non-JSON data
+ok 156 - strict schema rejects duplicates, invalid dates, malformed refunds and non-JSON data
+  ---
+  duration_ms: 0.938841
+  type: 'test'
+  ...
+# Subtest: calendar timestamp and explicit JST day must agree
+ok 157 - calendar timestamp and explicit JST day must agree
+  ---
+  duration_ms: 0.302368
+  type: 'test'
+  ...
+# Subtest: missing model identity is displayed without official eligibility or a false model match
+ok 158 - missing model identity is displayed without official eligibility or a false model match
+  ---
+  duration_ms: 0.526242
+  type: 'test'
+  ...
+# Subtest: hash aliases preserve their source and conflicting provenance is rejected
+ok 159 - hash aliases preserve their source and conflicting provenance is rejected
+  ---
+  duration_ms: 0.440718
+  type: 'test'
+  ...
+# Subtest: repeated local parsing is deterministic and has no network, clock or storage dependency
+ok 160 - repeated local parsing is deterministic and has no network, clock or storage dependency
+  ---
+  duration_ms: 0.788941
+  type: 'test'
+  ...
+# UI model behavior passed: variable entrants, allocation limits, manual ledger and real filters
+# Subtest: tests/ui_model.test.js
+ok 16 - tests/ui_model.test.js
+  ---
+  duration_ms: 82.642462
+  type: 'test'
+  ...
+1..161
+# tests 161
+# suites 0
+# pass 161
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3342.473319

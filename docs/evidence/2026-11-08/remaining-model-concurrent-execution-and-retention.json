@@ -1,0 +1,229 @@
+{
+  "schema": "RACE_AI_REMAINING_MODEL_CONCURRENT_EXECUTION_CHECKPOINT_V1",
+  "status": "ACTUAL_HISTORY_COMPATIBILITY_CORRECTED_NEW_OWN_FULL_CI_PENDING",
+  "as_of_utc": "2026-11-08T05:54:11.419824+00:00",
+  "private_originals_included": false,
+  "owner_key_included": false,
+  "real_data_status": {
+    "active_cells": 30,
+    "actually_fitted_cells": 19,
+    "fitted_by_sport": {
+      "boat": 14,
+      "horse": 5,
+      "autorace": 0,
+      "keirin": 0
+    },
+    "remaining_cells": 11,
+    "normal_teacher_races": {
+      "autorace": 5,
+      "keirin": 0
+    },
+    "required_normal_races_per_sport": 8,
+    "new_all_thirty_fit_count": 0,
+    "new_all_thirty_forward_pdca_count": 0,
+    "older_distinct_boat_forward_pairs": 14,
+    "new_model_provider_requests_this_continuation": 0
+  },
+  "last_actual_model_source": {
+    "head_sha": "d41f505cb00557dd1a6173a19b0945d7849e57fd",
+    "run_id": 42413260799,
+    "run_attempt": 2,
+    "conclusion": "success",
+    "whole_finished_at": "2026-11-07T21:50:07Z",
+    "source_requests": 32,
+    "new_normal_autorace_results": 3,
+    "cumulative_normal_autorace_results": 5
+  },
+  "abandoned_unexecuted_target": {
+    "head_sha": "bb0846b79320893d0edcc40d2fb4a7dbcc983680",
+    "run": {
+      "id": 42439911527,
+      "head_sha": "bb0846b79320893d0edcc40d2fb4a7dbcc983680",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "updated_at": "2026-11-08T03:23:07Z"
+    },
+    "own_first_viewer_job_id": 128606713081,
+    "first_python": {
+      "tests": 4409,
+      "failures": 0,
+      "skipped": 513,
+      "seconds": 1889.49
+    },
+    "issuer_holds": [
+      {
+        "run_id": 42442806518,
+        "job_id": 128615426492,
+        "state": "HOLD_FIXED_RECOVERY_ISSUANCE",
+        "reason": "OFFICIAL_ISSUE_TRANSPORT_CONCURRENT_REF",
+        "source_requests": 0
+      },
+      {
+        "run_id": 42443527432,
+        "job_id": 128622423722,
+        "state": "HOLD_FIXED_RECOVERY_ISSUANCE",
+        "reason": "OFFICIAL_ISSUE_CURRENT_PR",
+        "source_requests": 0
+      }
+    ],
+    "canonical_capsule_absence": {
+      "transfer_head": "4eb6d7e3e4231d04a837fe3a3e68b5b4f82db4dd",
+      "first_missing_component": "bcbdaa8b350402d8753d23632709eee6a15b75d6402b1d4cb7108334ed4fa5e6",
+      "checked_at": "2026-11-08 04:39:53 UTC"
+    },
+    "must_not_rerun_or_reissue": true
+  },
+  "implementation_scope": [
+    "Preserve one exact capsule while rebasing only across bounded allowed append-only state updates.",
+    "Execute the entire independently tested code tree while unrelated current PR code advances.",
+    "Bind exact intent, code, request, workflow and protected authority history before key access and source dispatch.",
+    "Prepare the next unchanged bounded plan from actual source outputs with explicit code/intent/current provenance.",
+    "Reuse exact authenticated RESULT originals across changed independently authenticated native cohorts without rewriting originals.",
+    "Retain separate original F30 future batches and their own clocks for source/result replay and rank-only PDCA."
+  ],
+  "retention_actual_status": {
+    "run_id": 42444478902,
+    "artifact_id": 13603691606,
+    "ready": false,
+    "reason": "ALL_MODEL_RESULT_RETENTION_IMMUTABLE_ORIGINAL_CONFLICT",
+    "owner_key_restoration_after_fix_verified": false,
+    "local_fix_review": "CLEAR",
+    "local_fix_test_count": 47,
+    "local_fix_tests_are_synthetic": true
+  },
+  "verification": {
+    "root_cas_regressions": {
+      "tests": 37,
+      "failures": 0,
+      "seconds": 16.87
+    },
+    "root_retention_regressions": {
+      "tests": 12,
+      "failures": 0,
+      "seconds": 0.281
+    },
+    "future_integration": {
+      "tests": 117,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1219.191,
+      "uses_synthetic_data_and_public_fixture_key": true
+    },
+    "final_frozen_regressions": {
+      "tests": 108,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 106.19,
+      "includes_both_wrapped_current_and_archival_probe_regression": true
+    },
+    "new_code_own_full_actions": "PENDING",
+    "real_fixed_second_source": "NOT_STARTED",
+    "frozen_worker_integration": {
+      "tests": 79,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 33.308
+    },
+    "test_sets_overlap": true,
+    "actual_public_failed_anchor_reader": {
+      "target_run_id": 42439911527,
+      "target_actual_attempt": 1,
+      "issuer_proof_artifacts": [
+        13602691274,
+        13603600952
+      ],
+      "proof_archives_bytes": [
+        413,
+        404
+      ],
+      "actual_metadata_snapshot_at": "2026-11-08T05:08:43Z",
+      "canonical_capsule_absent": true,
+      "local_complete_git_history_verified": true,
+      "owner_key_used": false,
+      "model_data_acquisition": false
+    },
+    "history_followup_root": {
+      "tests": 56,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 24.984
+    },
+    "history_followup_independent": {
+      "tests": 40,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 20.263,
+      "original_private_regressions": 2,
+      "review": "CLEAR"
+    }
+  },
+  "execution_constraints": {
+    "new_workflows": 0,
+    "new_jobs": 0,
+    "new_schedules": 0,
+    "new_prediction_models": 0,
+    "production_promotions": 0,
+    "main_merges": 0,
+    "bets": 0,
+    "existing_viewer_timeout_minutes": 90,
+    "source_request_limits_and_capability_ttl_changed": false,
+    "full_first_attempt_gate_preserved": true,
+    "normal_boat_worker_not_stopped_or_duplicated": true
+  },
+  "remaining_acceptance": [
+    "Actual normal AUTO8 and KEIRIN8 original results with independent readback.",
+    "Actual fit of all30 cells from common8 original races per sport, train6 and holdout2.",
+    "Owner-key encrypted retention and independent restoration of the new originals.",
+    "Fresh post-fit input, independent pre-cutoff forecast evidence and official-result PDCA; preserve missing/late/unknown exclusions."
+  ],
+  "ordinary_boat_continuation": {
+    "trigger_head_sha": "588be4a73b3152ecce5e0ec493755523b41fd587",
+    "run_id": 42450915404,
+    "predecessor_run_id": 42444478902,
+    "predecessor_whole_success_at": "2026-11-08T05:04:32Z",
+    "prior_session_requests": 104,
+    "lifetime_requests_preserved": 9526,
+    "lifetime_rounds_preserved": 547,
+    "prepared_round": null,
+    "source_wait": null,
+    "halted_reason": null,
+    "new_workflow_or_schedule": false,
+    "activation_is_separate_from_new_model_learning": true
+  },
+  "historical_merge_normalization": {
+    "superseded_unissued_code_head": "0231a6d6be37f28579d26b7c79047ccbe284c7d9",
+    "superseded_first_run_id": 42451474763,
+    "must_not_create_issue_or_rerun_that_target": true,
+    "actual_owner_merge": "d143c45b474b2a9bc7938c94fab158981163b712",
+    "merged_regular_marker_inherited_from_parent": true,
+    "different_parent_marker_epoch_proved_ancestor": true,
+    "unique_latest_epoch_dominates_all_parent_history": true,
+    "actual_normalized_marker_history": [
+      "7e889c363604e65a02719db7e6e7e3d619620da2",
+      "adde0e463115dc08ffb8967d243fdbdfeb5f24fa"
+    ],
+    "explicit_failed_anchor_preserved": true,
+    "actual_d41_source_and_cumulative_pins_preserved": true,
+    "omitted_actual_source_epochs": 0,
+    "metadata_pin_count": 18,
+    "native_artifacts": 4,
+    "prior_journal_artifacts": 8,
+    "checkpoint_artifacts": 6,
+    "metadata_observed_at": "2026-11-08T05:42:19.657413+00:00",
+    "failed_proof_observed_at": "2026-11-08T05:08:43Z",
+    "offline_replay": "PASS",
+    "candidate_module_sha256": "52772627d5d8219904ccdeb214a632f360c337e5978d375f677b6933d4d997df",
+    "owner_key_used_for_audit": false,
+    "archive_mac_admission_claimed": false,
+    "new_capability_created": false,
+    "new_C_created": false,
+    "full_first_admission_claimed": false,
+    "model_provider_requests": 0
+  }
+}

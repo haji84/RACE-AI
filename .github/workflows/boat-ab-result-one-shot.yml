@@ -1,0 +1,50 @@
+name: BOAT A-B independent official result (Vercel-free)
+on:
+  push:
+    branches:
+      - feat/four-sport-forecast-audit-view-20261022
+    paths:
+      - docs/evidence/boat-ab-result-trigger.txt
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: boat-ab-result-20261103-17-02
+  cancel-in-progress: false
+jobs:
+  verify:
+    name: Original frozen A/B versus verified official top3
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      RACE_AI_AB_RESULT_SOURCE_REVIEWED: 'true'
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: haji84/RACE-AI
+    steps:
+      - name: Checkout exact comparison code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Checkout fixed official result parser
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Read original immutable artifact and server save time
+        run: |
+          gh run download 41561946057 --repo haji84/RACE-AI --name boat-future-ab-41561946057 --dir ab_input
+          echo "RACE_AI_AB_GITHUB_CREATED_AT=$(gh api repos/haji84/RACE-AI/actions/artifacts/13197470628 --jq .created_at)" >> "$GITHUB_ENV"
+      - name: Validate independent audit and frozen-source contracts
+        run: python -m unittest tests.test_boat_ab_shadow tests.test_boat_ab_result_audit -v
+      - name: Compare actual official result without regenerating any forecast
+        run: python scripts/boat_ab_compare_result.py
+      - name: Preserve separate append-only official PDCA research report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-ab-result-20261103-17-02-${{ github.run_id }}
+          path: boat_ab_result_output/result.json
+          if-no-files-found: warn
+          retention-days: 7

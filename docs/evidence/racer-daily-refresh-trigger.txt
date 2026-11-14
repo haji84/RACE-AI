@@ -1,0 +1,3 @@
+2026-11-07T09:16:00Z
+Initialize the authorized daily namespace after verified partial-state restore and third-generation write/push. Existing state is never reset.
+Runtime: cfa61b38ed05156e23b012cacd802ec922b29b90

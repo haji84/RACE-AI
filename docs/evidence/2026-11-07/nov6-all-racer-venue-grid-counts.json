@@ -1,0 +1,229 @@
+{
+  "actual_upstream_gets": 0,
+  "formal_backtest_eligible": false,
+  "git_retained": false,
+  "grid_report": {
+    "all_venue_player_history_complete": false,
+    "available_at": "2026-11-07T10:55:41.637327+00:00",
+    "coverage": {
+      "fully_parsed_days": 7845,
+      "parsed_source_files": 7963,
+      "requested_calendar_days": 7980,
+      "requested_end": "2026-11-06",
+      "requested_start": "2005-01-01",
+      "source_set_sha256": "715e8b2ac0234d2cb4c952d6bc3d3e36c1d29447ccd7f1b3a7958a5710bb9d10",
+      "source_window_complete": false,
+      "unavailable_or_unprocessed_days": 17,
+      "unreported_venue_days": 156
+    },
+    "formal_backtest_eligible": false,
+    "grid_cells": 63432,
+    "known_racers": 2643,
+    "observed_racer_venue_pairs": 58830,
+    "observed_races": 1167294,
+    "observed_starts": 7003764,
+    "partitions": 72,
+    "plaintext_published": false,
+    "private_individual_records_published": false,
+    "roster_racers": 2643,
+    "schema": "RACE_AI_BOAT_VENUE_HISTORY_COVERAGE_V1",
+    "source_gaps": 0,
+    "status": "ENCRYPTED_VENUE_DATASET_CREATED",
+    "venue_counts": [
+      {
+        "racers": 2411,
+        "races": 49224,
+        "starts": 295344,
+        "venue_code": "01",
+        "venue_name": "\u6850\u751f"
+      },
+      {
+        "racers": 2473,
+        "races": 49213,
+        "starts": 295278,
+        "venue_code": "02",
+        "venue_name": "\u6238\u7530"
+      },
+      {
+        "racers": 2418,
+        "races": 44174,
+        "starts": 265044,
+        "venue_code": "03",
+        "venue_name": "\u6c5f\u6238\u5ddd"
+      },
+      {
+        "racers": 2434,
+        "races": 47774,
+        "starts": 286644,
+        "venue_code": "04",
+        "venue_name": "\u5e73\u548c\u5cf6"
+      },
+      {
+        "racers": 2427,
+        "races": 48319,
+        "starts": 289914,
+        "venue_code": "05",
+        "venue_name": "\u591a\u6469\u5ddd"
+      },
+      {
+        "racers": 2473,
+        "races": 52708,
+        "starts": 316248,
+        "venue_code": "06",
+        "venue_name": "\u6d5c\u540d\u6e56"
+      },
+      {
+        "racers": 2446,
+        "races": 49999,
+        "starts": 299994,
+        "venue_code": "07",
+        "venue_name": "\u84b2\u90e1"
+      },
+      {
+        "racers": 2476,
+        "races": 51426,
+        "starts": 308556,
+        "venue_code": "08",
+        "venue_name": "\u5e38\u6ed1"
+      },
+      {
+        "racers": 2447,
+        "races": 48998,
+        "starts": 293988,
+        "venue_code": "09",
+        "venue_name": "\u6d25"
+      },
+      {
+        "racers": 2475,
+        "races": 48771,
+        "starts": 292626,
+        "venue_code": "10",
+        "venue_name": "\u4e09\u56fd"
+      },
+      {
+        "racers": 2454,
+        "races": 45543,
+        "starts": 273258,
+        "venue_code": "11",
+        "venue_name": "\u3073\u308f\u3053"
+      },
+      {
+        "racers": 2444,
+        "races": 48821,
+        "starts": 292926,
+        "venue_code": "12",
+        "venue_name": "\u4f4f\u4e4b\u6c5f"
+      },
+      {
+        "racers": 2477,
+        "races": 48625,
+        "starts": 291750,
+        "venue_code": "13",
+        "venue_name": "\u5c3c\u5d0e"
+      },
+      {
+        "racers": 2464,
+        "races": 43346,
+        "starts": 260076,
+        "venue_code": "14",
+        "venue_name": "\u9cf4\u9580"
+      },
+      {
+        "racers": 2461,
+        "races": 50267,
+        "starts": 301602,
+        "venue_code": "15",
+        "venue_name": "\u4e38\u4e80"
+      },
+      {
+        "racers": 2469,
+        "races": 49758,
+        "starts": 298548,
+        "venue_code": "16",
+        "venue_name": "\u5150\u5cf6"
+      },
+      {
+        "racers": 2456,
+        "races": 47442,
+        "starts": 284652,
+        "venue_code": "17",
+        "venue_name": "\u5bae\u5cf6"
+      },
+      {
+        "racers": 2463,
+        "races": 47817,
+        "starts": 286902,
+        "venue_code": "18",
+        "venue_name": "\u5fb3\u5c71"
+      },
+      {
+        "racers": 2463,
+        "races": 48091,
+        "starts": 288546,
+        "venue_code": "19",
+        "venue_name": "\u4e0b\u95a2"
+      },
+      {
+        "racers": 2421,
+        "races": 49899,
+        "starts": 299394,
+        "venue_code": "20",
+        "venue_name": "\u82e5\u677e"
+      },
+      {
+        "racers": 2430,
+        "races": 48381,
+        "starts": 290286,
+        "venue_code": "21",
+        "venue_name": "\u82a6\u5c4b"
+      },
+      {
+        "racers": 2459,
+        "races": 49380,
+        "starts": 296280,
+        "venue_code": "22",
+        "venue_name": "\u798f\u5ca1"
+      },
+      {
+        "racers": 2443,
+        "races": 49170,
+        "starts": 295020,
+        "venue_code": "23",
+        "venue_name": "\u5510\u6d25"
+      },
+      {
+        "racers": 2446,
+        "races": 50148,
+        "starts": 300888,
+        "venue_code": "24",
+        "venue_name": "\u5927\u6751"
+      }
+    ],
+    "venues_with_observations": 24
+  },
+  "new_dataset_sha256": "c68d32474e1797a0409917fa96ad7393b4a0057bc5081ba31578ac131ec1f254",
+  "new_history_manifest_sha256": "bcddb2ec4d2708333cdbeeec7de3a23a5e47ca09c3fa22f5ceeb31c5cf7a7e0c",
+  "old_dataset_sha256": "3deb20e26ccc73add405032a45a790abb02d8424e43bb7d1e9b45861ab3d7a19",
+  "old_dataset_unchanged": true,
+  "old_roster_ids_preserved": 2643,
+  "parser_revision": 13,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "readback_report": {
+    "acquisition_complete": false,
+    "formal_backtest_eligible": false,
+    "known_racers": 2643,
+    "plaintext_published": false,
+    "source_days": 7963,
+    "status": "ENCRYPTED_ALL_VENUE_GRID_READBACK_VERIFIED",
+    "venues": 24,
+    "verified_cells": 63432
+  },
+  "requested_end": "2026-11-06",
+  "requested_start": "2005-01-01",
+  "state": "NOV6_ALL_RACER_24_VENUE_GRID_BUILT_AND_ENCRYPTED_READBACK_VERIFIED",
+  "typed_cache_counts": {
+    "actual_raw_parses": 1,
+    "cache_hits": 7962
+  }
+}

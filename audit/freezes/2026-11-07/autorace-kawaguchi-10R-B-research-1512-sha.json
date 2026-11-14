@@ -1,0 +1,43 @@
+{
+  "record_type": "precut_research_freeze_sha256",
+  "race_id": "2026-11-07_kawaguchi_10R",
+  "phase": "B_AFTER_CONFIRMED_TRIAL",
+  "version": "B_v1",
+  "source": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/10",
+  "source_observation_jst": "2026-11-07T15:12:48+09:00",
+  "generated_at_jst": "2026-11-07T15:12:48+09:00",
+  "cutoff_jst": "2026-11-07T15:16:00+09:00",
+  "private_json_basename": "autorace_20261107_kawaguchi_10R_B_v1_research_private.json",
+  "private_json_sha256": "0a372b090e896ff9560eab42dcd66e3073f8040c09e1c44b602d9992e9dce340",
+  "parent_A_sha256": "f3574b90a16875fab9813958bdfb3cc6f3ba998146b43b03e420449bca7231f1",
+  "basic8": [
+    "8-7-6",
+    "8-6-7",
+    "7-8-6",
+    "7-6-8",
+    "6-8-7",
+    "6-7-8",
+    "8-7-4",
+    "7-8-4"
+  ],
+  "extra4": [
+    "8-4-7",
+    "7-4-8",
+    "8-7-5",
+    "7-8-5"
+  ],
+  "source_trial_t": {
+    "1": 3.47,
+    "2": 3.42,
+    "3": 3.41,
+    "4": 3.38,
+    "5": 3.39,
+    "6": 3.34,
+    "7": 3.33,
+    "8": 3.31
+  },
+  "trained_model": false,
+  "calibrated_probability": false,
+  "private_original_not_in_git": true,
+  "old_A_unmodified": true
+}

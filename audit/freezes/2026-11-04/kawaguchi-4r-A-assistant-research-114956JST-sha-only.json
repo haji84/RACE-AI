@@ -1,0 +1,22 @@
+{
+  "schema": "RACE_AI_AUTORACE_RESEARCH_SHA_ANCHOR_V1",
+  "race_id": "autorace:2026-11-04:kawaguchi:4",
+  "venue": "川口",
+  "race_no": 4,
+  "phase": "A_PRE_TRIAL_INPUT_NO_SAME_DAY_TRIAL_USED",
+  "record_kind": "ASSISTANT_MANUALLY_OBSERVED_UNTRAINED_RESEARCH",
+  "model_id": "autorace-personal-observed-baseline-v1",
+  "private_library_path": "/RACE-AI/AutoracePrivate/autorace_20261104_kawaguchi_4R_A_assistant_observed_RESEARCH.json",
+  "forecast_sha256": "8256fc2e7bc4ffe1eed09177dbf3ce05a6fd06301a1f82ffe14464be25a92619",
+  "private_file_sha256": "85e36442b38e38dea09b241faeaa892661a376206c6431c759c4904191aba733",
+  "recorded_generation_at_jst": "2026-11-04T11:49:56.385723+09:00",
+  "sales_cutoff_at_jst": "2026-11-04T20:03:00+09:00",
+  "source_url": "https://autorace.tokyo-sports.co.jp/list/race/20261104024",
+  "trial_data_used": false,
+  "trial_publication_time_independently_verified": false,
+  "formal_external_pre_cutoff_receipt": false,
+  "formal_hit_at_8_eligible": false,
+  "probabilities_calibrated": false,
+  "private_trifecta_picks_not_published": true,
+  "notes": "7-car field observed on same-day race card before cutoff. Fixed untrained handicaps and prior placings baseline, no same-day trial data. car5 three previous finishes only. Trial first publication and independently authenticated freeze time unverified; research only. Preserves prior records and avoids hindsight updates."
+}

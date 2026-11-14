@@ -1,0 +1,55 @@
+{
+  "artifact_ids": [
+    13591897209,
+    13591313088,
+    13592450419
+  ],
+  "double_filter_composition_failure_preserved": true,
+  "entries": [
+    {
+      "archive_path": "recovery/official-results/transport-originals/3325b38c232236be928316a4de3da8e383c84d8eccc6da332761d5eaf6e9b8d7/f4253b679205816c95a1ff06563d407fbe4c8864c7c1f112a499f4fed28a9178/archive.zip",
+      "archive_sha256": "3325b38c232236be928316a4de3da8e383c84d8eccc6da332761d5eaf6e9b8d7",
+      "artifact_id": 13591897209,
+      "metadata_path": "recovery/official-results/transport-originals/3325b38c232236be928316a4de3da8e383c84d8eccc6da332761d5eaf6e9b8d7/f4253b679205816c95a1ff06563d407fbe4c8864c7c1f112a499f4fed28a9178/metadata.json",
+      "metadata_raw_sha256": "f4253b679205816c95a1ff06563d407fbe4c8864c7c1f112a499f4fed28a9178"
+    },
+    {
+      "archive_path": "recovery/official-results/transport-originals/3daa8481b048baf39213a6eab4993da9bbd301a7e20974c0bd8ce96563732a2b/d58511dce3449502ea0fcf5d75040ff25056c647b7a32eda3c05539f9d371935/archive.zip",
+      "archive_sha256": "3daa8481b048baf39213a6eab4993da9bbd301a7e20974c0bd8ce96563732a2b",
+      "artifact_id": 13591313088,
+      "metadata_path": "recovery/official-results/transport-originals/3daa8481b048baf39213a6eab4993da9bbd301a7e20974c0bd8ce96563732a2b/d58511dce3449502ea0fcf5d75040ff25056c647b7a32eda3c05539f9d371935/metadata.json",
+      "metadata_raw_sha256": "d58511dce3449502ea0fcf5d75040ff25056c647b7a32eda3c05539f9d371935"
+    },
+    {
+      "archive_path": "recovery/official-results/transport-originals/dfaf0fac8e44e6f5d5ed49fc694cffcad5041a2f096c4388cbddf425613d41f5/f8d9e5de627c0586e73b9073edc2b5a59b135aa5ca095bf998eae772bf2fa0ba/archive.zip",
+      "archive_sha256": "dfaf0fac8e44e6f5d5ed49fc694cffcad5041a2f096c4388cbddf425613d41f5",
+      "artifact_id": 13592450419,
+      "metadata_path": "recovery/official-results/transport-originals/dfaf0fac8e44e6f5d5ed49fc694cffcad5041a2f096c4388cbddf425613d41f5/f8d9e5de627c0586e73b9073edc2b5a59b135aa5ca095bf998eae772bf2fa0ba/metadata.json",
+      "metadata_raw_sha256": "f8d9e5de627c0586e73b9073edc2b5a59b135aa5ca095bf998eae772bf2fa0ba"
+    }
+  ],
+  "existing_DailyStateRepository_reused_without_new_transport_code": true,
+  "first_unfiltered_write_tree_timeout_preserved": true,
+  "independent_transport_readback_verified": true,
+  "local_MAC_reauthentication_performed": false,
+  "local_owner_key_used": false,
+  "new_immutable_paths": [
+    "recovery/official-results/transport-originals/3325b38c232236be928316a4de3da8e383c84d8eccc6da332761d5eaf6e9b8d7/f4253b679205816c95a1ff06563d407fbe4c8864c7c1f112a499f4fed28a9178/archive.zip",
+    "recovery/official-results/transport-originals/3325b38c232236be928316a4de3da8e383c84d8eccc6da332761d5eaf6e9b8d7/f4253b679205816c95a1ff06563d407fbe4c8864c7c1f112a499f4fed28a9178/metadata.json",
+    "recovery/official-results/transport-originals/3daa8481b048baf39213a6eab4993da9bbd301a7e20974c0bd8ce96563732a2b/d58511dce3449502ea0fcf5d75040ff25056c647b7a32eda3c05539f9d371935/archive.zip",
+    "recovery/official-results/transport-originals/3daa8481b048baf39213a6eab4993da9bbd301a7e20974c0bd8ce96563732a2b/d58511dce3449502ea0fcf5d75040ff25056c647b7a32eda3c05539f9d371935/metadata.json",
+    "recovery/official-results/transport-originals/dfaf0fac8e44e6f5d5ed49fc694cffcad5041a2f096c4388cbddf425613d41f5/f8d9e5de627c0586e73b9073edc2b5a59b135aa5ca095bf998eae772bf2fa0ba/archive.zip",
+    "recovery/official-results/transport-originals/dfaf0fac8e44e6f5d5ed49fc694cffcad5041a2f096c4388cbddf425613d41f5/f8d9e5de627c0586e73b9073edc2b5a59b135aa5ca095bf998eae772bf2fa0ba/metadata.json"
+  ],
+  "new_model_fit": 0,
+  "new_result_or_training_admission_created": false,
+  "new_source_capability_created": false,
+  "only_additions": true,
+  "original_ciphertext_and_AAD_unchanged": true,
+  "producer_Actions_MAC_and_result_journal_readback_verified": true,
+  "production_promoted": false,
+  "raw_private_plaintext_published": false,
+  "source_commit": "9a259b192f0dc8b0b28bc545062a355b0e9a9d71",
+  "source_provider_requests": 0,
+  "state": "EXACT_ORIGINAL_CIPHERTEXT_ZIP_AND_PUBLIC_METADATA_TRANSPORT_BACKUP_RESTORED"
+}

@@ -1,0 +1,41 @@
+{
+  "all_prior_journals_retained": true,
+  "capsule_issued": false,
+  "capture_execution_day": "2026-11-08",
+  "case_count": 1,
+  "checkpoint_count": 4,
+  "maximum_new_requests": 16,
+  "mode": "FIXED_ATTEMPT_TWO_HISTORICAL_SINGLE_NORMAL_UI_PROBE_16",
+  "new_prior_journal": {
+    "digest": "sha256:3e581999ed8e6a0caeb3e15a32cf9ab6f364a8d5013ed4a62515dc9655639747",
+    "head_sha": "973629feb8bac893cc2dd051c6ad649c2783a491",
+    "id": 13577093759,
+    "run_id": 42378920749
+  },
+  "new_thirty_future_pdca": 0,
+  "not_before": "2026-11-07T15:29:53Z",
+  "old_browser_actual": null,
+  "old_browser_reserved_limit": 24,
+  "old_fixed_epoch_upper_bound": 32,
+  "original_native_terms_routes_static_unchanged": true,
+  "original_second_case_selected_without_outcome_selection": true,
+  "plaintext_published": false,
+  "plan_sha256": "6b6c4994842068337d87ea5adeb0e7bea383f9a7eb07fb6c3a476a4fed9d3957",
+  "prepared_at": "2026-11-07T15:09:42.633600+00:00",
+  "previous_terminal": "2026-11-07T14:29:52Z",
+  "prior_journal_count": 5,
+  "production_promoted": false,
+  "provider_requests": 0,
+  "real_auto_normal_results_available": 1,
+  "real_keirin_normal_results_available": 0,
+  "real_trained_models": 19,
+  "request_sha256": "f4a399a81e63d1f5848c13059a0db0704375a7911b9e753a7912f2b2cfc3194d",
+  "reused_real_first_case_checkpoint": {
+    "digest": "sha256:0be88d04dab4ab775b0d394cd4a7854a7b83805e6e3f59528675c9ddf43cdb64",
+    "head_sha": "11d070dd1984e50d8d5bd6fcca738865cdc93b19",
+    "id": 13578691832,
+    "run_id": 42383095124
+  },
+  "state": "EXPLICIT_HISTORICAL_SECOND_AUTO_CASE_PREPARED_NO_AUTHORITY_ISSUED",
+  "target_event_day": "2026-11-07"
+}

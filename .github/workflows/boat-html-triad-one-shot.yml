@@ -1,0 +1,40 @@
+name: BOAT real program exhibition result HTML parity (3 GET max)
+on:
+  push:
+    branches: [feat/four-sport-forecast-audit-view-20261022]
+    paths:
+      - docs/evidence/boat-html-triad-trigger.txt
+permissions:
+  contents: read
+concurrency:
+  group: boat-html-triad-parity-20261103
+  cancel-in-progress: false
+jobs:
+  real_html:
+    if: github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    env:
+      BOAT_HTML_TRIAD_REVIEWED: 'true'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - name: Check Python syntax without source GET
+        run: python -m py_compile scripts/boat_html_triad_parity.py
+      - name: Probe one program, exhibition and final result with bounded GET
+        run: python scripts/boat_html_triad_parity.py
+      - name: Save only sanitized truth table and source SHA
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-triad-html-${{ github.run_id }}
+          path: parity_output/triad.json
+          if-no-files-found: warn
+          retention-days: 7

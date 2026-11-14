@@ -1,0 +1,32 @@
+{
+  "as_of": "2026-11-06T23:35:31.887378+00:00",
+  "course_finish_missing_reasons": {
+    "UNRESOLVED_DISPOSITION": 1
+  },
+  "missing_feature_participant_counts": {
+    "course_mean_finish": 1,
+    "exhibition_start_seconds": 6,
+    "exhibition_time_seconds": 6,
+    "recent_mean_finish": 6,
+    "recent_mean_st": 6
+  },
+  "original_forecasts_changed": false,
+  "parameters_changed": false,
+  "participants": 6,
+  "provided_feature_participant_counts": {
+    "course_mean_finish": 5,
+    "course_mean_st": 6,
+    "motor_top2_rate": 6,
+    "national_win_rate": 6
+  },
+  "publication_status_checked": false,
+  "schema": "RACE_AI_FROZEN_FUTURE_NATIVE_FEATURE_COVERAGE_V1",
+  "snapshot_sha256": "fae392f1d5c52c6a0b9b81bd981281367d5bafebfe6ef1771b11f9050c7e5690",
+  "source_artifact_id": 13549117749,
+  "source_capture_times": [
+    "2026-11-06T16:11:11.183766+00:00",
+    "2026-11-06T23:35:31.887347+00:00"
+  ],
+  "source_values_published": false,
+  "stage": "P0_PROGRAM_ONLY"
+}

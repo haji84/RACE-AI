@@ -1,0 +1,89 @@
+{
+  "checked_at_utc": "2026-11-04T16:11:28.493057+00:00",
+  "public_pr": {
+    "baseRefName": "codex/actions-four-sport-e2e",
+    "headRefName": "feat/four-sport-forecast-audit-view-20261022",
+    "headRefOid": "9b2f21ce7bbe1e0cf488bb7534d75aa4fdb1d51c",
+    "isDraft": true,
+    "state": "OPEN"
+  },
+  "check_runs": [
+    {
+      "id": 126695419375,
+      "name": "train_only_tests (windows-2022)",
+      "status": "queued",
+      "conclusion": null,
+      "html_url": "https://github.com/haji84/RACE-AI/actions/runs/41864508666/job/126695419375"
+    },
+    {
+      "id": 126695419277,
+      "name": "train_only_tests (ubuntu-24.04)",
+      "status": "queued",
+      "conclusion": null,
+      "html_url": "https://github.com/haji84/RACE-AI/actions/runs/41864508666/job/126695419277"
+    },
+    {
+      "id": 126695419261,
+      "name": "Viewer audit contract",
+      "status": "queued",
+      "conclusion": null,
+      "html_url": "https://github.com/haji84/RACE-AI/actions/runs/41864508666/job/126695419261"
+    },
+    {
+      "id": 126695418760,
+      "name": "Pinned PR64 store and PDCA synthetic E2E",
+      "status": "queued",
+      "conclusion": null,
+      "html_url": "https://github.com/haji84/RACE-AI/actions/runs/41864508666/job/126695418760"
+    },
+    {
+      "id": 126695163718,
+      "name": "CodeRabbit",
+      "status": "completed",
+      "conclusion": "skipped",
+      "html_url": "https://github.com/haji84/RACE-AI/runs/126695163718"
+    },
+    {
+      "id": 126695138023,
+      "name": "synthetic (windows-2022)",
+      "status": "queued",
+      "conclusion": null,
+      "html_url": "https://github.com/haji84/RACE-AI/actions/runs/41864509732/job/126695138023"
+    },
+    {
+      "id": 126695137684,
+      "name": "synthetic (ubuntu-24.04)",
+      "status": "queued",
+      "conclusion": null,
+      "html_url": "https://github.com/haji84/RACE-AI/actions/runs/41864509732/job/126695137684"
+    }
+  ],
+  "active_statuses_checked": {
+    "in_progress": [],
+    "queued": [
+      {
+        "id": 41864509732,
+        "head_sha": "9b2f21ce7bbe1e0cf488bb7534d75aa4fdb1d51c",
+        "name": "AUTORACE A-B and PDCA offline contract"
+      },
+      {
+        "id": 41864508666,
+        "head_sha": "9b2f21ce7bbe1e0cf488bb7534d75aa4fdb1d51c",
+        "name": "Forecast audit viewer contract"
+      },
+      {
+        "id": 41864375344,
+        "head_sha": "9374db60fa003bf38938bae71c74c8f379c942fe",
+        "name": "Forecast audit viewer contract"
+      },
+      {
+        "id": 41864375327,
+        "head_sha": "9374db60fa003bf38938bae71c74c8f379c942fe",
+        "name": "AUTORACE A-B and PDCA offline contract"
+      }
+    ]
+  },
+  "current_phase_github_push": false,
+  "current_phase_environment_publish": false,
+  "local_implementation_ci_claim": false
+}

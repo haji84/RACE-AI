@@ -1,0 +1,24 @@
+{
+  "verified_at_utc": "2026-11-04T14:11:10.038903+00:00",
+  "pr": 71,
+  "branch": "feat/four-sport-forecast-audit-view-20261022",
+  "tested_code_commit": "eefc57a9e73e3270d4d50d48e1a08729868d88e5",
+  "github_pr_head_at_read": "eefc57a9e73e3270d4d50d48e1a08729868d88e5",
+  "read_method": "public GitHub PR/Actions HTML; no private artifact bytes acquired",
+  "runs": [
+    {
+      "run_id": 41844165883,
+      "workflow": "Forecast audit viewer contract",
+      "target_commit_title": "eefc57a",
+      "conclusion": "success",
+      "url": "https://github.com/haji84/RACE-AI/actions/runs/41844165883"
+    },
+    {
+      "run_id": 41844165868,
+      "workflow": "AUTORACE A-B and PDCA offline contract",
+      "target_commit_title": "eefc57a",
+      "conclusion": "success",
+      "url": "https://github.com/haji84/RACE-AI/actions/runs/41844165868"
+    }
+  ]
+}

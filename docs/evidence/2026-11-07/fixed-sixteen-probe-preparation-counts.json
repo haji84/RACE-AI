@@ -1,0 +1,21 @@
+{
+  "all_prior_journal_pins_retained": true,
+  "capsule_issued": false,
+  "case_count": 1,
+  "maximum_new_requests": 16,
+  "old_browser_outcome": "UNKNOWN",
+  "old_source_requests_actual": null,
+  "old_source_requests_upper_bound": 32,
+  "original_case_route_terms_static_native_checkpoints_unchanged": true,
+  "plaintext_published": false,
+  "plan_sha256": "fe3b07ab24adcedb35a69add742cf34a3bd19699f9fb3e559ed06a3fb5cf0c2c",
+  "prepared_at": "2026-11-07T13:41:13.262153+00:00",
+  "prior_journal_count": 4,
+  "production_promoted": false,
+  "provider_requests": 0,
+  "request_mode": "FIXED_ATTEMPT_TWO_SINGLE_NORMAL_UI_PROBE_16",
+  "request_schema": "RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V4",
+  "request_sha256": "c89917e055a448b14adba9a26b4f538385b6fbb92c6e1c4665082312be907285",
+  "state": "EXPLICIT_SINGLE_CASE_FIXED_SIXTEEN_PLAN_PREPARED_NOT_AUTHORITY",
+  "superseded_unissued_max_eight_request_sha256": "905f2d4da047d911632703edbaa9cd8ccde99ea77f53240adb868c6ec65e2ceb"
+}

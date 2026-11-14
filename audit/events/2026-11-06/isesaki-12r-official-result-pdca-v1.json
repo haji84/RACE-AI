@@ -1,0 +1,72 @@
+{
+  "schema": "RACE_AI_AUTORACE_OFFICIAL_RESULT_RESEARCH_PDCA_AUDIT_V1",
+  "record_type": "POST_RACE_OFFICIAL_RESULT_SIDE_AUDIT_NOT_A_PREDICTION",
+  "race_id": "autorace:2026-11-06:isesaki:12",
+  "race_date_jst": "2026-11-06",
+  "observed_at_jst": "2026-11-07T02:50:44+09:00",
+  "official_source_url": "https://autorace.jp/race_info/RaceResult/isesaki/2026-11-06_12",
+  "source_status": "JKA_OFFICIAL_RESULT_TEXT_RETRIEVED_THROUGH_WEB_SEARCH_2026-11-07",
+  "independent_second_source_crosscheck_completed": false,
+  "confirmed": {
+    "road_condition": "良走路",
+    "weather": "晴",
+    "first_three_car_numbers": [
+      8,
+      2,
+      4
+    ],
+    "first_three_names": [
+      "高橋貢",
+      "笠原三義",
+      "白次義孝"
+    ],
+    "first_three_handicap_m": [
+      40,
+      10,
+      20
+    ],
+    "first_three_trial_time": [
+      3.28,
+      3.41,
+      3.37
+    ],
+    "trifecta": "8-2-4",
+    "trifecta_payout_per_100_jpy": 37540,
+    "refund_marking": "返還欄空欄"
+  },
+  "previous_forecast_A": {
+    "phase": "A_PRE_TRIAL_INPUT_NO_SAME_DAY_TRIAL_USED",
+    "forecast_sha256": "8750818527e6031c27f53c071294eb25c2783bf40c54f9f721d910ae097cefad",
+    "original_hash_audit_commit": "1298618f9b2d02d826f0920f20ff108e89c5f198",
+    "original_local_file_raw_sha256": "2812c44302a8872904675002ded85b06fae42ecc8471efa6dd25efe9febdee3b",
+    "source_original_filename": "autorace_20261106_isesaki_12R_A_assistant_observed_RESEARCH.json",
+    "previous_top8_count": 8,
+    "supplemental_count": 4,
+    "actual_outcome_in_top8": false,
+    "actual_outcome_in_top12": false,
+    "top8_jpy_stake_if_100_each": 800,
+    "top12_jpy_stake_if_100_each": 1200,
+    "assumed_payout_jpy_top8": 0,
+    "assumed_payout_jpy_top12": 0,
+    "hypothetical_return_pct_top8": 0,
+    "hypothetical_return_pct_top12": 0,
+    "formal_official_accuracy_eligible": false,
+    "forecast_trial_first_publication_independently_verified": false,
+    "forecast_private_immutable_independent_original_archived": false,
+    "bet_placed": false
+  },
+  "previous_forecast_B": {
+    "exists": false,
+    "match_status": "NOT_APPLICABLE_NO_PRE_CUTOFF_B"
+  },
+  "failure_analysis": {
+    "observed": "予想Aの8点・12点とも8号車を1着に据えた買い目は0点、2号車と4号車は一度も買い目に入らなかった。実際は8-2-4。",
+    "model_feature_limitation": "prior A ranking formula only uses recent finishes and handicap; player rank S-9, same-day trial, start, track type and SG-class performance were not used for numeric ranking.",
+    "caution": "因果は未確定。試走3.28の8号車を結果後に評価し直したものを、締切前の予想Bとみなさない。",
+    "suggested_next_validation": "当日試走を含めたBを締切前に独立保存できる回のみA/B差分比較し、ハンデ負荷とS級選手の評価の偏りを集計。改善候補であり既存係数は変更しない。"
+  },
+  "does_not_modify_forecast_A_or_B": true,
+  "does_not_change_model_coefficients": true,
+  "formal_performance_aggregate_changed": false,
+  "note": "Audited post-race finding only. No backfilled picks and no retroactive B. 0% rates are hypothetical per-race stake accounting, not confirmed real-world returns."
+}

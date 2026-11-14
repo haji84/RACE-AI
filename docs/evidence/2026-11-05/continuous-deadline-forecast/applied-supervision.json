@@ -1,0 +1,41 @@
+{
+  "observed_at": "2026-11-05T06:24:26.571072+00:00",
+  "source_head": "5ef86817daea89544d03f462f58110e1222a9518",
+  "workflow_id": 405276784,
+  "active_runs": [
+    {
+      "id": 41979370711,
+      "status": "in_progress",
+      "head_sha": "5ef86817daea89544d03f462f58110e1222a9518"
+    }
+  ],
+  "auto": {
+    "enabled": true,
+    "continuous": true,
+    "runtime_plane": "EXISTING_GITHUB_WORKFLOW",
+    "state": "RUNNING",
+    "source_limit": null,
+    "max_rounds": null,
+    "stop_at": null,
+    "active_run_id": 41979370711,
+    "projection_waiting": false
+  },
+  "saved_prediction_count": 753,
+  "saved_projection_counts": {
+    "races": 144,
+    "forecasts": 753,
+    "p0_forecasts": 288,
+    "p1_forecasts": 465,
+    "result_observations": 205,
+    "result_races": 94
+  },
+  "first_round_actions_status": "completed/success",
+  "next_round_actions_status": "in_progress",
+  "view_only_no_native_inference": true,
+  "host_availability_required": true,
+  "whole_day_or_24h_operation_proven": false,
+  "main_merged": false,
+  "public_app_published": false,
+  "actual_wager": false,
+  "production_model_promoted": false
+}

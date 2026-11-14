@@ -1,0 +1,52 @@
+{
+  "all_old_immutable_file_hashes_preserved": true,
+  "captured_at": "2026-11-06T00:47:01.755578+00:00",
+  "collection_result": {
+    "all_available_period_complete": false,
+    "inventory_captured_at": "2026-11-07T11:21:31.122902+00:00",
+    "months_processed_this_invocation": 1,
+    "newly_listed_days": 1,
+    "not_after": "2026-11-07",
+    "plaintext_published": false,
+    "source_gaps_require_separate_review": true,
+    "status": "DATED_HISTORY_DELTA_CHECKPOINTED",
+    "upstream_gets": 1
+  },
+  "collection_schema": "RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V2",
+  "current_upstream_gets": 1,
+  "formal_backtest_eligible": false,
+  "git_retained": false,
+  "inventory_captured_at": "2026-11-07T11:21:31.122902+00:00",
+  "inventory_lineage_authenticated": true,
+  "latest_month_catalog": {
+    "all_available_period_complete": false,
+    "excluded_listed_days": 0,
+    "formal_backtest_eligible": false,
+    "listed_days": 7,
+    "missing_days": 0,
+    "month": "202611",
+    "month_complete": false,
+    "parsed_days": 6,
+    "pending_days": 1,
+    "quarantined_days": 0,
+    "revision_observations": 14,
+    "schema": "RACE_AI_OFFICIAL_HISTORY_MONTH_V1",
+    "unique_archive_bytes": 244502,
+    "waiting_publication_days": 1
+  },
+  "new_day_wrapper_calls": 1,
+  "new_grid_built": false,
+  "new_manifest_sha256": "21fa168cf92140ae0c0cb8e85d8897ad2f66c4c211f7f9cebf0ea9f8efbb6708",
+  "not_after": "2026-11-07",
+  "old_days_refetched": 0,
+  "old_inventory_observations_reused_without_get": true,
+  "parent_manifest_sha256": "bcddb2ec4d2708333cdbeeec7de3a23a5e47ca09c3fa22f5ceeb31c5cf7a7e0c",
+  "plaintext_published": false,
+  "prior_menu_index_gets": 2,
+  "production_promoted": false,
+  "remaining_pending_days": [
+    "2026-11-07"
+  ],
+  "state": "ACTUAL_NOV7_DATED_INVENTORY_AND_NEW_DAY_DELTA_VERIFIED",
+  "total_upstream_gets": 3
+}

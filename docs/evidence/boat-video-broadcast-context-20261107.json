@@ -1,0 +1,129 @@
+{
+  "schema": "RACE_AI_EXHIBITION_COMMENTARY_DEVELOPMENT_EVIDENCE_V1",
+  "owner_steering": "USE_INDIVIDUAL_EXHIBITION_ORDER_AND_ANNOUNCED_RUNNING_BOAT_ORDER_AS_AUXILIARY_IDENTITY_EVIDENCE",
+  "source_sha256": {
+    "race_ai/boat_video_broadcast_context.py": "7c483b101e8f857f7e039bce7117b156a15769c927bd4d680c440e40a1fe56ae",
+    "race_ai/boat_video_commentary.py": "8cd3104a7644560927dad2466560d2595040f59d6369331bdbfd2244f1cb40a4",
+    "race_ai/boat_video_capture.py": "cddcae8cbe910b7c52ca0613a6b70c0d3a1822e765acceaeed4548b1f74ba8c6",
+    "scripts/boat_video_marker_analyze.py": "4498be4353e96eaf86920b944bdd2a93115998dde182306bb640966230c78e5d",
+    "tests/test_boat_video_broadcast_context.py": "4b656db08803160863e35297c6a67d139eb8be4ebd910e11fb3da8dd4e68d136",
+    "tests/test_boat_video_commentary.py": "d6fa99d052e9b7b4834756b474036a5483cbf404407b141828ee4229b833d7bd",
+    "tests/test_boat_video_capture.py": "8ac1674ab07d0b2ef22e85a638ad9dcd11ecdd69219a1493c6960ed1ac3f5a27",
+    "tests/test_boat_video_marker_cli.py": "49141b16940dad8109baa751d6ed5de63e922bb55e2103076a3075ef07244f90"
+  },
+  "implementation": {
+    "primary_identity": "CLOTHING_COLOR_AND_CURRENT_LK",
+    "printed_digits_required": false,
+    "audio_export_policy": "FIRST_EMBEDDED_AUDIO_STREAM_COPY_IF_PRESENT",
+    "existing_exports_rewritten": false,
+    "external_HLS_audio_groups_fetched": false,
+    "individual_exhibition_order": "EXPLICIT_DECLARED_ORDER_AND_PASS_INDEX_OR_SINGLE_BOAT_ANNOUNCEMENT",
+    "automatic_pass_boundary_validation": false,
+    "simultaneous_start_exhibition_is_not_individual_order": true,
+    "running_order": "EXPLICIT_JAPANESE_RANK_AND_BOAT_CLAIMS_NOT_IMAGE_X_SORT",
+    "clothing_labels_overridden": false,
+    "speech_adds_clothing_votes": false,
+    "parser_status": "FINITE_CONSERVATIVE_GRAMMAR_NOT_GENERAL_LANGUAGE_VERIFICATION",
+    "source_time_basis": "ABSOLUTE_MEDIA_AUDIO_PTS;FRAME_CONTEXT_USES_JOURNAL_SOURCE_PTS",
+    "speech_available_from": "AFTER_WHOLE_MODEL_INPUT_WINDOW_END",
+    "speech_window_seconds": 5,
+    "maximum_model_input_seconds": 30,
+    "acquisition_count_or_runtime_cap_added": false,
+    "speech_validity_seconds": 2,
+    "latency_calibrated": false,
+    "expired_or_superseded_claims_cannot_resurrect": true,
+    "prediction_eligible": false,
+    "production_eligible": false
+  },
+  "audio_preservation": {
+    "capture_tests_passed": 50,
+    "capture_tests_skipped": 0,
+    "real_FFmpeg_AAC_video_packet_bytes_PTS_DTS_match": true,
+    "silent_input_supported": true,
+    "legacy_receipts_reused_without_changes": true,
+    "unsupported_audio_fails_without_silent_drop": true,
+    "receipt_sha256": "8886dfa55269a9aea157017badfd78d1cc0b387c7b4954668b5f1326cbc8b2c5"
+  },
+  "ASR": {
+    "model_id": "openai/whisper-tiny",
+    "model_revision": "169d4a4341b33bc18d8881c4b69c2e104e1cc0af",
+    "model_sha256": "7ebd0e69e78190ffe1438491fa05cc1f5c1aa3a4c4db3bc1723adbb551ea2395",
+    "model_loading": "LOCAL_ONLY_PINNED_ASSETS_VERIFIED_BEFORE_AND_AFTER",
+    "trained_or_forecast_model_added": false,
+    "actual_input": "EXISTING_JAPANESE_EXHIBITION_EXPLAINER_PRIVATE_INFERENCE_ONLY",
+    "source_sha256": "7821356af29809c5da4a40eb06586896a8723d9068aba8e0b8a9e005dc535b70",
+    "original_audio_duration_seconds": 145.844535,
+    "decoded_PCM_samples": 2333513,
+    "sampling_rate": 16000,
+    "chunks_processed": 30,
+    "actual_runtime_seconds": 27.906,
+    "CPU_threads": 2,
+    "phase": "UNKNOWN",
+    "real_race_rank_ground_truth": false,
+    "accuracy_validated": false,
+    "technical_word_errors_observed": true,
+    "older_timestamped_probe_repetition_preserved": true,
+    "actual_product_run_receipt_sha256": "3fcd6e9a96f648a459a31f53dfa3ebf599cf32b3ec3c69f464057a2850deb37c"
+  },
+  "combined_CLI": {
+    "source_role": "REAL_ORIGINAL_CONTENT_SPARSE_DERIVATIVE_NOT_CONTINUOUS_IDENTITY_ACCEPTANCE",
+    "decoded_frames": 6,
+    "original_source_frames": [
+      0,
+      30,
+      60,
+      90,
+      120,
+      150
+    ],
+    "native_BGR_match_count": 6,
+    "fresh_pinned_person_detector": true,
+    "fresh_pinned_speech_model": true,
+    "GT_or_fake_provider_inputs": false,
+    "OCR_models_required": false,
+    "phase": "UNKNOWN",
+    "speech_chunks": 2,
+    "speech_window_seconds": 5.0,
+    "broadcast_frame_PTS_binding_validated": true,
+    "timing_note": "DERIVATIVE_VIDEO_PTS_RESCALED_BY_ENCODER;ABSOLUTE_DERIVATIVE_PTS_BOUND_TO_ITS_OWN_MEDIA_SHA;NOT_ORIGINAL_CLOCK",
+    "elapsed_seconds": 12.265892,
+    "artifact_sha256": {
+      "broadcast-context.json": "c9c644fa32992b57a6f114e918cbe2a3ba51b596f2691333ea8a1acc0e2d2290",
+      "commentary-receipt.json": "9b4aae574473b8b49b0615d943429398ec453b97a7fcbed4f6eeed4f6133b253",
+      "frames.jsonl": "5e46104c170be7066d5ded6fd27ab3cabc9af5aca6b89f75780147d38e338053",
+      "receipt.json": "e742753b125ba66be7f113c1ade5c35ae9875faf5258a9e2b04071e428a6f960"
+    },
+    "real_race_rank_ground_truth": false,
+    "real_time_six_rider_identification_established": false
+  },
+  "combined_reconciliation_sha256": "fd2b7c0eea58608019bea303912170d4496103a3438fece9bd1d3e1ad6167c7f",
+  "verification": {
+    "related_video_tests_passed": 748,
+    "skipped": 0,
+    "elapsed_seconds": 75.82,
+    "log_sha256": "49a5be081c61d0cdac2e380b4c49c6d75d8152060823932e752bb47096c099e3",
+    "context_tests": 30,
+    "commentary_tests": 15,
+    "independent_context_review_sha256": "ebd0ebb0718164d1ffecc95ce0b0b4c1ff7e81f5d683770e94ab1aa6cf720fd3"
+  },
+  "limits": [
+    "ACTUAL_LIVE_RACE_BOAT_AND_RANK_TRANSCRIPTION_ACCURACY_NOT_ESTABLISHED",
+    "INDIVIDUAL_EXHIBITION_PASS_SEGMENTATION_IS_DECLARED_NOT_AUTOMATICALLY_VALIDATED",
+    "SPEECH_BROADCAST_LATENCY_NOT_CALIBRATED",
+    "COLOUR_PERSON_SEMANTICS_HULL_BINDING_AND_REALTIME_VIDEO_GATES_REMAIN",
+    "OLD_VIDEO_ONLY_EXPORTS_CANNOT_RECOVER_DISCARDED_AUDIO",
+    "POST_START_COMMENTARY_NOT_USED_FOR_PRE_CUTOFF_FORECASTS_OR_OFFICIAL_RESULTS"
+  ],
+  "preservation": {
+    "live_PIDs": [
+      423218,
+      271439
+    ],
+    "stopped_or_restarted": false,
+    "original_forecast_SHA256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+    "production_forecast_model_switched": false,
+    "new_PR_or_workflow_or_service": false,
+    "provider_denials_bypassed": false,
+    "media_transcript_or_weights_published": false
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "scope": "LOCAL_IMPLEMENTATION_AND_PINNED_REAL_READBACK",
+  "python": {
+    "passed": 780,
+    "failed": 0,
+    "skipped": 0
+  },
+  "node": {
+    "passed": 179,
+    "failed": 0,
+    "skipped": 0
+  },
+  "synthetic_browser": {
+    "passed_groups": 33,
+    "widths": [
+      320,
+      390,
+      1440,
+      1920
+    ],
+    "png_count": 54,
+    "errors": 0
+  },
+  "real_browser": {
+    "widths": [
+      390,
+      1440
+    ],
+    "variant_checks": 1280,
+    "ticket_checks": 10240,
+    "raw_observation_checks": 1010,
+    "private_png_count": 28,
+    "private_traces": 2,
+    "external_requests": 0,
+    "errors": 0
+  },
+  "real_readback": {
+    "races": 144,
+    "baseline_predictions": 570,
+    "learned_predictions": 70,
+    "result_captures": 505,
+    "other_sport_source_only_records": 154,
+    "view_source_archives": 256,
+    "separately_preserved_terminal_source_archives": 1
+  },
+  "independent_review": "NO_REMAINING_MATERIAL_FINDINGS",
+  "new_provider_requests_by_this_phase": 0,
+  "new_workflow_runs_by_this_phase": 0,
+  "github_push_by_this_phase": false,
+  "environment_republished_by_this_phase": false,
+  "physical_safari_accepted": false,
+  "all_four_sport_real_operation_complete": false,
+  "accuracy_improvement_proven": false,
+  "previous_python_before_concurrent_horse_update": 755,
+  "integrated_public_base": "3c72b2dadc040bf43bf4a9efc1478907d7523827"
+}

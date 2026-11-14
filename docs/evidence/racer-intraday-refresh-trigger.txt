@@ -1,0 +1,35 @@
+2026-11-08: verify the private result viewer after successful result-only catch-up; retain existing state and report safe failure locations only.
+
+2026-11-08 beforeinfo publication diagnostic; retain sources and log safe codes only
+
+2026-11-08 verify independent saved-model switching after frontend HTTP readback
+
+2026-11-08 locate the private browser check failure using safe checker line numbers only
+
+2026-11-08 verify saved model switching with both rationale and outlook headings retained
+
+2026-11-08: stage-model-pdca verified old Top8 20261108. Source-free owner-AES historical due-ledger and model PDCA readback acceptance; no provider GET or forecast rewrite.
+
+2026-11-08: stage-model-pdca rerun after source-free checkout Authorization header isolation, with original due ledger / saved Top8 / independent readback preserved.
+
+2026-11-08: stage-model-pdca retry after repairing stage-only os import. Keep source GET zero and original encrypted history unchanged.
+
+2026-11-08: stage-model-pdca independently reopen encrypted old Top8 with the identical source-free credential scope; emit bounded code-only hold trace if a new gate fails.
+
+2026-11-09 JST: stage-model-pdca independently authenticated Nov8 aggregate model hit/miss, rank-of-first-in-frozen-Top8, high-payout >=10000 capture, and fixed 100-yen hypothetical model returns. No provider GET, new model, workflow, original rewrite, or wager.
+
+2026-11-09 JST: stage-model-pdca repeat authenticated Nov8 evidence with source-free same-race LEARNED_SHADOW versus matching baseline using existing strict saved-performance reader and independent AES/Git readback. No source GET, new worker or private ticket export.
+
+2026-11-09 JST: stage-model-pdca verify the entire indexed saved-period AES/Git Top8 PDCA history at source GET zero; explicitly keep all old race and model HOLDs, do not mark full completion until the due ledger is empty.
+
+2026-11-09 JST: stage-model-pdca verify all 62 unresolved BOAT race IDs in the existing encrypted private reason ledger and independently read back safe aggregate causes; no source GET, secrets, public race IDs or new workflow.
+
+2026-11-09 JST: stage-model-pdca identify which unresolved real BOAT cases have authenticated retained official result bytes for an entirely source-free replay; do not convert reference-only results into formal outcomes.
+
+2026-11-09 JST: stage-model-pdca replay ONLY previously AES authenticated model-result-evidence mismatches, requiring SHA/clock/pre-cutoff/formal-payout proof before appending an official result revision. Other 60 case HOLDs preserved, zero new source GET.
+
+2026-11-09 JST: stage-model-pdca report source-free authenticated model result replay rejection cause codes only; preserve 62 original HOLDs until their strict proofs pass. Also restore first-race visibility on 320px venue shortcuts.
+
+2026-11-09 JST: stage-model-pdca validate immutable same-clock source facts before allowing metadata-only parser re-projection; conflicting official payout/roster/cutoff remains HOLD with count-only diagnostics, never source GET.
+
+2026-11-09 JST: stage-model-pdca Reuse existing core owner-AES real assessment. Confirm verified_bulk_backtest.settle canonical Top8/multi-winner/refund/full-refund accounting and independent readback; do not fetch official provider, modify original forecasts or loosen HOLD.

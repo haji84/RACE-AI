@@ -1,0 +1,1665 @@
+{
+  "schema_version": "RACE_AI_REAL_VIDEO_COMPLETION_CONTINUATION_V1",
+  "checked_at": "2026-11-06T05:15:16.600890+00:00",
+  "scope": "IMPLEMENTATION_AND_ACTUAL_ARCHIVAL_TESTS_NOT_OPERATIONAL_ACCEPTANCE",
+  "local_integration_base_head": "63c0a50bc685f630581d941d18ac2917faf8bc65",
+  "source_code_sha256": {
+    "race_ai/boat_video_identity.py": "17b073ae9be4b7be70fd5600c8ebfbd31c61c69982f147d37b516baf56c12524",
+    "race_ai/boat_video_crnn.py": "bf5318f3faf1bd62ca24ca7702d32a156fafad8c0293d85b7b655bc9a6c6b632",
+    "race_ai/boat_video_tracking.py": "a628904c1c4b31d37854ceeb9103fc4e8ba7473616ccd581f156060239231fa3",
+    "race_ai/boat_video_calibration.py": "6634cecf9cd405966b84c552d35440d4848c7343279ebef4e43d45061656a392",
+    "race_ai/boat_video_physical_context.py": "a392fb62e709d03677755bfc846466cff6ea1c32282603ebf0ac997e8ac83c55",
+    "race_ai/boat_video_model_context.py": "1081dded2e7d3e761c9474dfb737225b35be95d74b5a7d88b311d104baab5157",
+    "race_ai/boat_video_learning.py": "7146f3af5b12a58d10b9989873e9af9bd175038cdc9f9bc972de501d6009da9c",
+    "race_ai/boat_video_connection.py": "dbf7573591b0ae54dec07fea5b2547543d4aa25dbae3d8d1659c52753f82a5bd",
+    "race_ai/boat_video_archive.py": "57d72175da666e62b08ac1c7b829574a83c9fccdd207872b54db4ae50f59f85c",
+    "race_ai/boat_video_publication.py": "fd87d2bd74251cfa0d76390e6fe6e687488fca79ab9ec29163be875446432445",
+    "race_ai/boat_video_intake.py": "bf3c301bd1a22bbc5cb2969b5190f274a26af5a6cdde6918df57470614acabc3",
+    "race_ai/observed_weight_learning.py": "87ba07415f78307976097b3e98f35a79ce8babb4812505fe3442801a18298b9b",
+    "race_ai/cycle_recovery.py": "570aeedf114934f835459187f906822c4e17bb9b55cfdda385393a7ac5ebcc3f",
+    "scripts/github_existing_cycle.py": "ff19e50075e837cc9c27c49e2dc00f2db66bf0f70fe98ed4d695ef26116deba8",
+    "scripts/boat_video_analyze.py": "90b125d8234eaa23fcf7af36e25c726bfca8fd85575c5e0686709a4555838bd5",
+    ".github/workflows/forecast-audit-ui.yml": "538e8de4d1d890e35784a9c9022f16b7b2c0828cd76a89d7e0cedf1c93ebab16"
+  },
+  "implementation": {
+    "optional_tiled_same_pinned_detector": true,
+    "optional_full_vocabulary_fp32_ctc_reader": true,
+    "fresh_identity_separate_from_actual_metric_camera_scene": true,
+    "physical_context_v2_independent_landmark_clock_and_error_contracts": true,
+    "existing_two_forecast_families_preserved": true,
+    "authenticated_archive_cycle_replay": true,
+    "encrypted_only_existing_workflow_publication": true,
+    "durable_intake_publication_journal": true,
+    "legacy_defaults_preserved": true,
+    "live_process_hot_reload_or_restart": false
+  },
+  "actual_archival_evaluations": [
+    {
+      "schema_version": "RACE_AI_TODA_FROZEN_BURST_INDEPENDENT_AUDIT_V1",
+      "audited_at": "2026-11-06T00:52:32.437145+00:00",
+      "source_media_sha256": "8d1e5bfa38926fde223d5a88042ee3d6c16ed997c49e57fe5071da437061afaa",
+      "reference_file_sha256": "a8332c9b07bf1a9572a8e0b1020ebd722b7d4281a4893a261fad1dff829a5877",
+      "source_code_sha256": {
+        "boat_video_crnn.py": "4d4c395bfc753f216684c5399c1c36f28b0fcd4f42857da4c3ce6da56f79698b",
+        "boat_video_identity.py": "5c1c20b3534809dbd346ecee08e615e73d8ff914bcf3f75c9743c4dadf847ea8",
+        "boat_video_tracking.py": "2d329a70a3349d45cb753662f2223f77789610bb3d84681d4aabbd7a5ef6ce2a"
+      },
+      "reference": {
+        "authentication_established": false,
+        "class": "INDEPENDENT_AI_VISUAL_REFERENCE",
+        "continuity_groups": 4,
+        "exhaustive_frames": 12,
+        "frames": 12,
+        "human_verified": false,
+        "physical_boat_boxes": 44,
+        "readable_number_instances": 15,
+        "unknown_number_instances": 29,
+        "whole_media_declared_heldout": true
+      },
+      "limitations": [
+        "Approximate independent AI reference is not verified human ground truth.",
+        "Only28 identity frames processed;12 scored and16 warmups.663 other identity frames NOT_EVALUATED.",
+        "Productcamera estimated all691samples with sparse hull masking; not equivalent to full detector camera masking.",
+        "Thirty-nominal-fps source plus existing sampling gives about3.75fps, not exact4fps.",
+        "The source is historical2022 Toda, not a current pre-cutoff source. UNKNOWN rights:private evaluation only,not training.",
+        "All12 frames scored, but no reference frame has six directly readable numerals; whole-six accuracy denominator is zero.",
+        "Zero switches with zero matched transitions is not evidence of stable tracking.",
+        "Hull candidate agreement does not establish identities, strength, calibrated probabilities or predictive improvement.",
+        "CRNN engine remainsUNKNOWN under existing benchmark engine inference; exact model/code pins are separate evidence.",
+        "Tesseract rich soft-budget counts are uninstrumented/null; typed frame-failure flags are a separate observation.",
+        "Within one venue/source, four sparse bursts do not certify whole-video/whole-race or cross-venue performance."
+      ],
+      "cases": [
+        {
+          "case": "yolox-tesseract-full",
+          "correct_number_instances": 0,
+          "known_readable_reference_instances": 15,
+          "identity_precision": null,
+          "identity_predictions_scored": 0,
+          "identity_wrong_matches": 0,
+          "identity_false_positive_regions": 0,
+          "whole_six_eligible_reference_frames": 0,
+          "whole_six_accuracy": null,
+          "all_six_temporal_candidate_frames_diagnostic28": 0,
+          "hull_metrics": {
+            "coverage": 0.45454545454545453,
+            "evaluated_frames": 12,
+            "false_positive_regions": 2,
+            "matched_regions": 20,
+            "missed_reference_boats": 24,
+            "precision": 0.9090909090909091,
+            "predictions_scored": 22,
+            "reference_visible_boats": 44,
+            "unmatched_predictions_excluded": 0
+          },
+          "valid_position_counts": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0
+          },
+          "decoded_frames": 5528,
+          "actual_sampled_camera_frames": 691,
+          "scored_reference_frames": 12,
+          "processed_identity_frames": 28,
+          "identity_unevaluated_frames": 663,
+          "identity_engine_class": "PINNED",
+          "engine_metadata_authenticated": false,
+          "source_after_unchanged": true,
+          "tracking_file_sha256": "62c7f684f258d5eb22cc0970bee53905426a892335e4f5b0f71edfea5b6bbbbe"
+        },
+        {
+          "case": "yolox-tesseract-tiled",
+          "correct_number_instances": 0,
+          "known_readable_reference_instances": 15,
+          "identity_precision": null,
+          "identity_predictions_scored": 0,
+          "identity_wrong_matches": 0,
+          "identity_false_positive_regions": 0,
+          "whole_six_eligible_reference_frames": 0,
+          "whole_six_accuracy": null,
+          "all_six_temporal_candidate_frames_diagnostic28": 0,
+          "hull_metrics": {
+            "coverage": 0.8409090909090909,
+            "evaluated_frames": 12,
+            "false_positive_regions": 12,
+            "matched_regions": 37,
+            "missed_reference_boats": 7,
+            "precision": 0.7551020408163265,
+            "predictions_scored": 49,
+            "reference_visible_boats": 44,
+            "unmatched_predictions_excluded": 0
+          },
+          "valid_position_counts": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0
+          },
+          "decoded_frames": 5528,
+          "actual_sampled_camera_frames": 691,
+          "scored_reference_frames": 12,
+          "processed_identity_frames": 28,
+          "identity_unevaluated_frames": 663,
+          "identity_engine_class": "PINNED",
+          "engine_metadata_authenticated": false,
+          "source_after_unchanged": true,
+          "tracking_file_sha256": "ae9130c4a976eeca3569133790e7dddf826bf94ad2f6b4fcd2e749b9c3a2705f"
+        },
+        {
+          "case": "yolox-crnn-tiled",
+          "correct_number_instances": 0,
+          "known_readable_reference_instances": 15,
+          "identity_precision": null,
+          "identity_predictions_scored": 0,
+          "identity_wrong_matches": 0,
+          "identity_false_positive_regions": 0,
+          "whole_six_eligible_reference_frames": 0,
+          "whole_six_accuracy": null,
+          "all_six_temporal_candidate_frames_diagnostic28": 0,
+          "hull_metrics": {
+            "coverage": 0.8409090909090909,
+            "evaluated_frames": 12,
+            "false_positive_regions": 12,
+            "matched_regions": 37,
+            "missed_reference_boats": 7,
+            "precision": 0.7551020408163265,
+            "predictions_scored": 49,
+            "reference_visible_boats": 44,
+            "unmatched_predictions_excluded": 0
+          },
+          "valid_position_counts": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0
+          },
+          "decoded_frames": 5528,
+          "actual_sampled_camera_frames": 691,
+          "scored_reference_frames": 12,
+          "processed_identity_frames": 28,
+          "identity_unevaluated_frames": 663,
+          "identity_engine_class": "UNKNOWN",
+          "engine_metadata_authenticated": false,
+          "source_after_unchanged": true,
+          "tracking_file_sha256": "bc706a4629c2fa47dc02b3b95a06e6456277ac587c8174e377f492fa0c1b04e6"
+        },
+        {
+          "case": "nanodet-tesseract-full",
+          "correct_number_instances": 0,
+          "known_readable_reference_instances": 15,
+          "identity_precision": null,
+          "identity_predictions_scored": 0,
+          "identity_wrong_matches": 0,
+          "identity_false_positive_regions": 0,
+          "whole_six_eligible_reference_frames": 0,
+          "whole_six_accuracy": null,
+          "all_six_temporal_candidate_frames_diagnostic28": 0,
+          "hull_metrics": {
+            "coverage": 0.25,
+            "evaluated_frames": 12,
+            "false_positive_regions": 0,
+            "matched_regions": 11,
+            "missed_reference_boats": 33,
+            "precision": 1.0,
+            "predictions_scored": 11,
+            "reference_visible_boats": 44,
+            "unmatched_predictions_excluded": 0
+          },
+          "valid_position_counts": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0
+          },
+          "decoded_frames": 5528,
+          "actual_sampled_camera_frames": 691,
+          "scored_reference_frames": 12,
+          "processed_identity_frames": 28,
+          "identity_unevaluated_frames": 663,
+          "identity_engine_class": "PINNED",
+          "engine_metadata_authenticated": false,
+          "source_after_unchanged": true,
+          "tracking_file_sha256": "500bb4567451aa4bc4611321fc8ab9ab0fdd7002db27966510998b73c7405efe"
+        }
+      ],
+      "private_audit_sha256": "4b79fe004dcb4b3c1e5cf67a124a494f9693dd864698922e729767460c596ca7",
+      "private_sha_manifest_sha256": "d2a6ae9aa64daa094ee1664714b17eb5883f325fc37b8729a1046c44d91b3703"
+    },
+    {
+      "schema_version": "RACE_AI_TODA_RESERVE_FROZEN_INDEPENDENT_AUDIT_V1",
+      "audited_at": "2026-11-06T01:55:35.759745+00:00",
+      "source_media_sha256": "d98404b831ef028fd1f2c61dd0b143217052d367bab240ad5a5902be04f97cbd",
+      "reference_file_sha256": "316e12d28da402c8be807570a9b9af88fbb39a2028ff348643343c787b08aaa8",
+      "source_code_sha256": {
+        "boat_video_crnn.py": "bf5318f3faf1bd62ca24ca7702d32a156fafad8c0293d85b7b655bc9a6c6b632",
+        "boat_video_identity.py": "17b073ae9be4b7be70fd5600c8ebfbd31c61c69982f147d37b516baf56c12524",
+        "boat_video_tracking.py": "a628904c1c4b31d37854ceeb9103fc4e8ba7473616ccd581f156060239231fa3"
+      },
+      "reference": {
+        "continuity_groups": 4,
+        "exhaustive_frames": 9,
+        "frames": 12,
+        "human_verified": false,
+        "known_non_racing_craft_instances": 3,
+        "physical_craft_boxes": 51,
+        "readable_number_instances": 12,
+        "reference_authentication_established": false,
+        "sparse_frames": 3,
+        "unknown_number_instances": 39,
+        "whole_media_declared_heldout": true
+      },
+      "limitations": [
+        "Approximate independent AI reference and non-racing supplement are not human-verified ground truth.",
+        "Only28actualidentityframes:16warmups and12scored; allotheridentityframesNOT_EVALUATED, not observedempty.",
+        "Full3741decodedframes and468camera samples use sparsehullmasking, not full-detector cameraequivalence.",
+        "Nominal4fps sampling is approximately3.75fps; groups are separate, no continuouswholevideo claim.",
+        "Primary51physicalcraft boxes include3explicitnon-racingcraft: hullcoverage is not51racingcompetitorinstances.",
+        "Nine referenceframes areexhaustive and3aresparse; standardbenchmarkexcludesunmatchedpredictions on sparseframes fromprecision.",
+        "No frame has6readablenumerals; whole-sixaccuracy denominator0 remainsnull, not0%.",
+        "Zero switches with0matchedtransitions doesnot establish stabletracking.",
+        "Non-racingwrong-ID count above is post-temporal-emission only; rawclassification hazards requireseparate diagnostic.",
+        "Appearanceclassifications arewholehull appearance, notdirectnumberOCR; scores/marginsunbounded anduncalibrated.",
+        "Appearance uses10independentlicensedoldtraininghulls; correlatedaugmentsarenotindependenttrainingexamples.",
+        "Historical2022Toda UNKNOWNrights/privateevaluationonly/nottraining; no currentpre-cutoffsource orfuturepairedresult.",
+        "Runtime includescodec/camera/inference foronepass, notpuremodelinference orcausalperformancegain; no repeatedtrials.",
+        "Matchedcontrolshares readerweights/thresholds/tiles; identityhelper producedno successfultemporaloutputs inthisbatch.",
+        "Purefrozenreading-order reconstruction aligns all28frames/95crops percase; oneappearancewrongprovisionalracingclassonknownnonrace remains despite0finalIDs."
+      ],
+      "cases": [
+        {
+          "case": "crnn-camera-reset-control",
+          "correct_number_instances": 0,
+          "known_readable_reference_instances": 12,
+          "identity_precision": null,
+          "identity_predictions_scored": 0,
+          "identity_wrong_matches": 0,
+          "identity_false_positive_regions": 0,
+          "whole_six_eligible_reference_frames": 0,
+          "whole_six_accuracy": null,
+          "all_six_temporal_candidate_frames_diagnostic28": 0,
+          "hull_metrics": {
+            "coverage": 0.6078431372549019,
+            "evaluated_frames": 12,
+            "false_positive_regions": 3,
+            "matched_regions": 31,
+            "missed_reference_boats": 20,
+            "precision": 0.9117647058823529,
+            "predictions_scored": 34,
+            "reference_visible_boats": 51,
+            "unmatched_predictions_excluded": 10
+          },
+          "valid_position_counts": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0
+          },
+          "scored_valid_position_counts": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0
+          },
+          "decoded_frames": 3741,
+          "actual_sampled_camera_frames": 468,
+          "scored_reference_frames": 12,
+          "processed_identity_frames": 28,
+          "warmup_identity_frames": 16,
+          "identity_unevaluated_frames": 440,
+          "engine_class": "UNKNOWN",
+          "engine_metadata_authenticated": false,
+          "source_after_unchanged": true,
+          "tracking_file_sha256": "cb5161919f71e263c0880c72650111ee625b4dbfa2af54ae426950ac4de49925",
+          "observed_extract_tracks_wall_seconds": 371.36974889499834,
+          "runtime_scope": "EXTRACT_TRACKS_INCLUDING_ITS_PROBE_DECODE_CAMERA_28_DETECTOR_READER_CALLS_AND_OBSERVATION_LOGGING; EXCLUDES_PRELIMINARY_METADATA_PROBE_MODEL_LOAD_AND_POSTSAVE_HASHING",
+          "known_non_racing_craft_reference_instances": 3,
+          "known_non_racing_craft_raw_hull_matches": 3,
+          "known_non_racing_craft_wrong_emitted_racing_id_regions": 0
+        },
+        {
+          "case": "crnn-fresh-camera-identity",
+          "correct_number_instances": 0,
+          "known_readable_reference_instances": 12,
+          "identity_precision": null,
+          "identity_predictions_scored": 0,
+          "identity_wrong_matches": 0,
+          "identity_false_positive_regions": 0,
+          "whole_six_eligible_reference_frames": 0,
+          "whole_six_accuracy": null,
+          "all_six_temporal_candidate_frames_diagnostic28": 0,
+          "hull_metrics": {
+            "coverage": 0.6078431372549019,
+            "evaluated_frames": 12,
+            "false_positive_regions": 3,
+            "matched_regions": 31,
+            "missed_reference_boats": 20,
+            "precision": 0.9117647058823529,
+            "predictions_scored": 34,
+            "reference_visible_boats": 51,
+            "unmatched_predictions_excluded": 10
+          },
+          "valid_position_counts": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0
+          },
+          "scored_valid_position_counts": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0
+          },
+          "decoded_frames": 3741,
+          "actual_sampled_camera_frames": 468,
+          "scored_reference_frames": 12,
+          "processed_identity_frames": 28,
+          "warmup_identity_frames": 16,
+          "identity_unevaluated_frames": 440,
+          "engine_class": "UNKNOWN",
+          "engine_metadata_authenticated": false,
+          "source_after_unchanged": true,
+          "tracking_file_sha256": "23726f22785bfc19685abea0f944306f2287d7a9deae1f2d37e2d4bfc5b62c1a",
+          "observed_extract_tracks_wall_seconds": 367.1228556159913,
+          "runtime_scope": "EXTRACT_TRACKS_INCLUDING_ITS_PROBE_DECODE_CAMERA_28_DETECTOR_READER_CALLS_AND_OBSERVATION_LOGGING; EXCLUDES_PRELIMINARY_METADATA_PROBE_MODEL_LOAD_AND_POSTSAVE_HASHING",
+          "known_non_racing_craft_reference_instances": 3,
+          "known_non_racing_craft_raw_hull_matches": 3,
+          "known_non_racing_craft_wrong_emitted_racing_id_regions": 0
+        },
+        {
+          "case": "private-appearance-fresh-camera-identity",
+          "correct_number_instances": 0,
+          "known_readable_reference_instances": 12,
+          "identity_precision": null,
+          "identity_predictions_scored": 0,
+          "identity_wrong_matches": 0,
+          "identity_false_positive_regions": 0,
+          "whole_six_eligible_reference_frames": 0,
+          "whole_six_accuracy": null,
+          "all_six_temporal_candidate_frames_diagnostic28": 0,
+          "hull_metrics": {
+            "coverage": 0.6078431372549019,
+            "evaluated_frames": 12,
+            "false_positive_regions": 3,
+            "matched_regions": 31,
+            "missed_reference_boats": 20,
+            "precision": 0.9117647058823529,
+            "predictions_scored": 34,
+            "reference_visible_boats": 51,
+            "unmatched_predictions_excluded": 10
+          },
+          "valid_position_counts": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0
+          },
+          "scored_valid_position_counts": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0
+          },
+          "decoded_frames": 3741,
+          "actual_sampled_camera_frames": 468,
+          "scored_reference_frames": 12,
+          "processed_identity_frames": 28,
+          "warmup_identity_frames": 16,
+          "identity_unevaluated_frames": 440,
+          "engine_class": "UNKNOWN",
+          "engine_metadata_authenticated": false,
+          "source_after_unchanged": true,
+          "tracking_file_sha256": "f35365b415b286ec9724d4a5ce0ab33b847a297c8b72d8a8acad476b03ebd75c",
+          "observed_extract_tracks_wall_seconds": 331.56757423300587,
+          "runtime_scope": "EXTRACT_TRACKS_INCLUDING_ITS_PROBE_DECODE_CAMERA_28_DETECTOR_READER_CALLS_AND_OBSERVATION_LOGGING; EXCLUDES_PRELIMINARY_METADATA_PROBE_MODEL_LOAD_AND_POSTSAVE_HASHING",
+          "known_non_racing_craft_reference_instances": 3,
+          "known_non_racing_craft_raw_hull_matches": 3,
+          "known_non_racing_craft_wrong_emitted_racing_id_regions": 0
+        }
+      ],
+      "private_audit_sha256": "5dcc6072fe32575138b8213859b61b12a00f15b0b6f039bba4c894d22969e546",
+      "private_sha_manifest_sha256": "4730d2b0027326b3c6c5436b0df6741f5cc85d2884ea89a745cd539f97fc15fb",
+      "known_non_racing_diagnostics": {
+        "scope": "POST_FREEZE_PURE_SCORING_AND_DETERMINISTIC_HULL_TO_READING_ORDER_RECONSTRUCTION_NO_POLICY_REPLAY",
+        "diagnostics_sha256": "212a456ba3bda59442a9dbf1bbbea189ff1a5044bc15e57fb18a4e1cfd4c447c",
+        "cases": [
+          {
+            "case": "crnn-camera-reset-control",
+            "counts": {
+              "crops_with_raw_localized_racing_digits": 0,
+              "current_accepted_racing_candidates_on_known_non_racing": 0,
+              "emitted_temporal_wrong_racing_ids": 0,
+              "known_non_racing_classified_crops": 2,
+              "known_non_racing_geometrically_blocked_or_unmatched_crops": 1,
+              "known_non_racing_reference_instances": 3,
+              "nonlocalized_whole_hull_digit_diagnostic_views": 0,
+              "observed_total_reader_crops": 95,
+              "provisional_appearance_unknown": 0,
+              "provisional_appearance_wrong_racing_classifications": 0,
+              "raw_localized_digit_proposal_views": 0,
+              "reader_order_alignment_verified_frames": 28,
+              "reconstructed_total_reader_crops": 95,
+              "unavailable_or_ambiguous_current_candidate_geometry": 0
+            }
+          },
+          {
+            "case": "crnn-fresh-camera-identity",
+            "counts": {
+              "crops_with_raw_localized_racing_digits": 0,
+              "current_accepted_racing_candidates_on_known_non_racing": 0,
+              "emitted_temporal_wrong_racing_ids": 0,
+              "known_non_racing_classified_crops": 2,
+              "known_non_racing_geometrically_blocked_or_unmatched_crops": 1,
+              "known_non_racing_reference_instances": 3,
+              "nonlocalized_whole_hull_digit_diagnostic_views": 0,
+              "observed_total_reader_crops": 95,
+              "provisional_appearance_unknown": 0,
+              "provisional_appearance_wrong_racing_classifications": 0,
+              "raw_localized_digit_proposal_views": 0,
+              "reader_order_alignment_verified_frames": 28,
+              "reconstructed_total_reader_crops": 95,
+              "unavailable_or_ambiguous_current_candidate_geometry": 0
+            }
+          },
+          {
+            "case": "private-appearance-fresh-camera-identity",
+            "counts": {
+              "crops_with_raw_localized_racing_digits": 0,
+              "current_accepted_racing_candidates_on_known_non_racing": 1,
+              "emitted_temporal_wrong_racing_ids": 0,
+              "known_non_racing_classified_crops": 2,
+              "known_non_racing_geometrically_blocked_or_unmatched_crops": 1,
+              "known_non_racing_reference_instances": 3,
+              "nonlocalized_whole_hull_digit_diagnostic_views": 0,
+              "observed_total_reader_crops": 95,
+              "provisional_appearance_unknown": 1,
+              "provisional_appearance_wrong_racing_classifications": 1,
+              "raw_localized_digit_proposal_views": 0,
+              "reader_order_alignment_verified_frames": 28,
+              "reconstructed_total_reader_crops": 95,
+              "unavailable_or_ambiguous_current_candidate_geometry": 0
+            }
+          }
+        ],
+        "model_inference_performed": false,
+        "admission_policy_replayed": false,
+        "limitations": [
+          "Reading-to-hull alignment is reconstructed, not newly instrumented. Exact per-frame counts are asserted for all28frames in everycase.",
+          "Non-racing targets are approximate AI annotations, not human authentication. Matching uses frozen IoU.5.",
+          "Provisional appearance class is before duplicate/temporal checks; current candidate is after duplicate clearing; final temporalID is distinct.",
+          "CRNN currentdigit geometry diagnostic uses unique centre containment, not hullIoU and not a certified correctdigit.",
+          "Repeated normalized digitviews are correlated; rawproposal counts are not independentidentity trials.",
+          "Whole-hull CRNNtext is nonlocalizeddiagnostic and cannotanchor anID.",
+          "Rawscore/margin are notprobabilities. Zero finalIDs cannot establish safe classification if provisional non-racing classes are wrong."
+        ]
+      }
+    }
+  ],
+  "private_rider_localization_spike": {
+    "scope": "REUSED_LICENSED_DEVELOPMENT_ONLY_NOT_HELDOUT",
+    "full_person_proposals": 7,
+    "full_shore_proposals_ai_audit": 7,
+    "tiled_person_proposals": 18,
+    "tiled_shore_or_background_ai_audit": 16,
+    "tiled_rider_regions_ai_audit": 2,
+    "six_boat_photo_person_proposals": 0,
+    "human_verified": false,
+    "hsv_or_color_assignment_run": false,
+    "shipped_or_adopted": false,
+    "summary_sha256": "a3a3e0f0249459b03e023a70cdb7d3092242de803b9f14232728a48b3bdad692"
+  },
+  "field_acceptance": {
+    "six_boat_identity": "FAILED",
+    "usable_real_positions": 0,
+    "independent_water_plane_clock_contact_or_strength_targets": 0,
+    "current_authorized_video_inputs_connected": 0,
+    "video_based_pre_cutoff_forecasts": 0,
+    "video_feature_future_official_result_pairs": 0,
+    "accuracy_improvement_proven": false,
+    "production_eligible": false,
+    "iphone_safari_acceptance": "NOT_EXECUTED"
+  },
+  "current_live_access": {
+    "resource": "FUKUOKA_20261106_CURRENT_LIVE",
+    "observed_at_jst": "2026-11-06T10:23:35+09:00",
+    "http_status": 403,
+    "player_code": "P01002",
+    "action": "STOPPED_NO_BYPASS_OR_RETRY",
+    "private_summary_sha256": "a3560d363953f9131425540d20d78c5d44deb4a8d05df0ed2b90581e89e5bdce"
+  },
+  "verification": {
+    "native_python": {
+      "tests": 1727,
+      "passed": 1727,
+      "skipped": 0,
+      "seconds": 266.454,
+      "log_sha256": "432341c46efea22eddbdea43e8fa26b7885017d4dc850fbdfe79509bbc282004",
+      "source_head": "27c198141ca6ded3c4a3f0d85a1f09417fb34c8b"
+    },
+    "scoped_and_cross_contract_review": "GREEN_NO_P1_P2",
+    "private_final_review_sha256": "c9c0a0d3813bac2792c00218ee545e0d9637b859167bf5b88c25d0efaa549a56",
+    "yaml_event_isolation": "9_PULL_REQUEST_JOBS_1_CIPHERTEXT_DISPATCH_JOB",
+    "existing_ci": "SUCCESS_EXACT_RUN_HEAD_2318CAC",
+    "browser_ci": "SUCCESS_SYNTHETIC_ONLY_NOT_SAFARI_OR_FIELD_ACCURACY",
+    "concurrent_recipient_handoff_regression": {
+      "tests": 16,
+      "passed": 16,
+      "skipped": 0,
+      "seconds": 8.505,
+      "source_head": "2318cac2a411d7050e0abf0a5c849778b1f99193",
+      "log_sha256": "2fe394f6c5dcc0e594862fefbef39828864d5fa6ab5f4b93b1d332b773504374"
+    },
+    "cancelled_prior_ci": {
+      "id": 42147499659,
+      "head_sha": "27c198141ca6ded3c4a3f0d85a1f09417fb34c8b",
+      "conclusion": "cancelled",
+      "reason": "NEW_CONCURRENT_HEAD_PUSH",
+      "general_python_and_isolated_cv_steps": "SUCCESS",
+      "browser_step": "CANCELLED_NOT_PASSED"
+    },
+    "implementation_ci_receipt": {
+      "checked_at": "2026-11-06T02:17:09.353253+00:00",
+      "runs": [
+        {
+          "id": 42148288953,
+          "workflow_id": 392270247,
+          "head_sha": "2318cac2a411d7050e0abf0a5c849778b1f99193",
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42148288953",
+          "created_at": "2026-11-06T02:07:30Z",
+          "updated_at": "2026-11-06T02:12:45Z"
+        },
+        {
+          "id": 42148288971,
+          "workflow_id": 405150548,
+          "head_sha": "2318cac2a411d7050e0abf0a5c849778b1f99193",
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42148288971",
+          "created_at": "2026-11-06T02:07:30Z",
+          "updated_at": "2026-11-06T02:07:51Z"
+        }
+      ],
+      "checkout_commit": "e536bc389f17af6c55147fd2c822394c78d29c23",
+      "checkout_parents": [
+        "bca59ebc5c7174e79d2dba027a97890f5d0d3d1f",
+        "2318cac2a411d7050e0abf0a5c849778b1f99193"
+      ],
+      "all_listed_task_source_hashes_match_branch_head_and_ci_checkout": true,
+      "additional_pr_base_files": [
+        "race_ai/discovery_reconcile.py",
+        "tests/test_discovery_reconcile.py"
+      ],
+      "general_python": {
+        "tests": 1735,
+        "skipped": 140,
+        "seconds": 122.426,
+        "status": "OK"
+      },
+      "isolated_video_python": {
+        "tests": 251,
+        "skipped": 0,
+        "seconds": 19.426,
+        "status": "OK"
+      },
+      "browser": {
+        "scope": "SYNTHETIC_ONLY",
+        "checks": 39,
+        "errors": [],
+        "widths": [
+          320,
+          390,
+          1440,
+          1920
+        ],
+        "source_requests": 0,
+        "png_files": 60,
+        "manual_visual_spot_review": [
+          "390-detail",
+          "1440-home"
+        ],
+        "iphone_safari": false,
+        "eight_reference_images_recompared_this_continuation": false
+      },
+      "product_ui_node": {
+        "tests": 48,
+        "passed": 48
+      },
+      "video_ui_node": {
+        "tests": 12,
+        "passed": 12,
+        "skipped": 0
+      },
+      "synthetic_ui_artifact": {
+        "id": 13470784383,
+        "sha256": "d716e61169a7cb30c590eb8695685034c332db64a23f0308632d1ab2727a8a59",
+        "crc_errors": 0
+      },
+      "ci_log_sha256": "0eeee3867b6e561c28bc7bc9f715920517bc90bcb60e695fde822e8f8027dbfd"
+    },
+    "implementation_ci_private_receipt_sha256": "7b1bb3359ffdd8f23ba31fe363322e327f943f44eea88fd4e674e9f4a8006c51",
+    "public_transcription_review_sha256": "194f1453b5c843b492a09d0f6350ce4dfc65492c653f100b03248723b3c0e3cf",
+    "stale_state_transfer_library_fix": {
+      "commit": "4edd3d4fb438af384de7251763d35a8dc22f8249",
+      "source_sha256": "abda16062c4b3ad94d3ed6ae973f93089c5a59b31a8d994b18e484ff4109366a",
+      "local_combined_tests": 27,
+      "skipped": 0,
+      "seconds": 19.082,
+      "local_log_sha256": "39a6c9906ee4cf6c9c78b68f2e580f2a8d9bb13f2dd4eeaa138f4fb1c424fbd8",
+      "independent_review_sha256": "003b0de4112e6d80d4053030603ca2574c999b572dfcb27ec3665e4486c6f49b",
+      "real_ci_run": 42155625025,
+      "viewer_contract_job": "SUCCESS",
+      "workflow": "FAILURE",
+      "real_input_reason": "STATE_REGRESSION_FILES",
+      "actual_incoming_originals_covered": false,
+      "canonical_or_pending_originals_modified": false,
+      "cli_readiness_followup": "STRICT_TYPED_CLI_HOLD_IMPLEMENTED_AND_MERGED_WITH_CONTRIBUTION_PROOFS; NOT_IMPORT_SUCCESS"
+    },
+    "final_integrated_native": {
+      "tests": 1806,
+      "skipped": 0,
+      "seconds": 389.439,
+      "status": "OK",
+      "log_sha256": "fc243432612b96ee2c7674a39b29e9be5b66ffc4ec70f5c56175d56f9dc8bd01",
+      "scope": "WORKTREE_BASE_B5A7568_WITH_UNLIMITED_POLICY_RESTORATION_BEFORE_LATER_26_FILE_MERGE; NOT_LATEST_HEAD_FULL_SUITE",
+      "later_26_file_merge_included": false
+    },
+    "saved_original_browser": {
+      "status": "PASS",
+      "scope": "INVENTED_DATA_SOFTWARE_CONTRACT_NOT_FIELD_ACCURACY",
+      "checks": [
+        "AUTOMATIC_STARTUP",
+        "PAST_DAY_RETAINED",
+        "FOUR_EXACT_SAVED_TOP8_VARIANTS",
+        "PRIVATE_OFFLINE_CSP",
+        "NO_GENERATE_LATEST_OR_STATUS_REQUESTS"
+      ],
+      "log_sha256": "774f9cbcfb83a9768aef6c4a343f8276a0bda61364b5b902ce2e3e41a16350a5"
+    },
+    "unlimited_owner_policy": {
+      "numeric_get_round_time_caps": null,
+      "source_403_429_retryafter_and_integrity_halts_preserved": true,
+      "counter_hash_receipt_lifetime_preserved": true,
+      "real_session_or_worker_modified": false,
+      "tests": 57,
+      "skipped": 0,
+      "seconds": 18.604,
+      "summary_sha256": "d0b1dc08b24de9c64dc101f5231fc83a73c60f10b5352aab13fc30f333f95e3e",
+      "manifest_sha256": "bcdbfb7626466fbdf2c95af370f22fa0ad2c8caeefa38f789ea2f0b1d1d0f3a7",
+      "independent_review_sha256": "8da981ec8fe7c6855e7c48f81fd6f59819abec5982d448a45b9a0c7a0a6337a8",
+      "restored_only_commit_8ddde85_artificial_caps": true,
+      "extra_migration_reason": "ROUND_SOURCE_BUDGET_EXHAUSTED"
+    },
+    "strict_cli_rebase_hold": {
+      "library_still_rejects_uncovered_originals": true,
+      "cli_status": "HOLD_TRANSFER_REBASE_REQUIRED",
+      "transfer_imported": false,
+      "encrypted_checkpoint_created": false,
+      "canonical_and_pending_originals_preserved": true,
+      "only_seven_typed_comparison_codes_after_both_auth_and_audits": true,
+      "auth_corruption_contribution_and_unknown_errors_remain_fatal": true,
+      "standalone_regression_tests": 30,
+      "standalone_seconds": 24.059,
+      "standalone_log_sha256": "ad3ef0a9436f15bed68cabe1c68abb0e2091a3f82c742badd6877b0dce9b4678",
+      "independent_integrated_review_sha256": "18244cafb0b9cd9ad976c260e1ed449124b0b21e67a1eb8604b41ae9f2b95b94",
+      "concurrent_contribution_and_accepted_import_registry_preserved": true
+    },
+    "followup_task_source_sha256": {
+      "race_ai/boat_pdca_recipient.py": "e6b4a715858a3bf33a94cbc23ecf404b72c384b206c1226f965d69cfaf84ed1a",
+      "scripts/boat_pdca_transfer.py": "cd05b7ee604973723ca84b66ceb31b9a1bb1cb00824effcffdfece93d87b1c26",
+      "tests/test_boat_pdca_recipient.py": "31c8a25fbb4d107ce1b86643da3a10293a9da66577cb33e51b99351960dce697",
+      "race_ai/repeated_cycle.py": "8c7c1d43605eb782fbda29907211078bb9f44a64913885eae5fbbcba63b615e2",
+      "tests/test_repeated_cycle.py": "df83ecf3b55e22f4b8b06bf6e77f2769241c796ec27b6b3d34e5651ffb680fd4",
+      "tests/test_observed_weight_learning.py": "01f62e195993320965270e54f812cf751862d502b459dd21dd5b30704ebf5e09",
+      "race_ai/boat_pdca_state.py": "2d4a7d1f20c8efb028810a8e71f414688175366aebc020f2e8810a252d48a2d1",
+      "race_ai/boat_pdca_import_registry.py": "963881d24140c1703b9def8c88c246f8033c12a0303184037d3c56b7375c6d79",
+      "race_ai/saved_pdca_view.py": "dbc0f19af70e969dbbc5c729fce53fa02cf125eceda653058015d1b8a0364b04",
+      "web/app.js": "71432a14763db3aa81a7113a7ac10d9ab6de3323f16c4878ee7b768a64ef35fc",
+      ".github/workflows/forecast-audit-ui.yml": "b868b24a154afebf0056a627878bcffea9b0529b2cd5e5d9db71627596aa8527"
+    },
+    "followup_existing_ci": {
+      "run_id": 42164381973,
+      "head_sha": "8075675482a80599795a4e5150c734777056a18b",
+      "status": "completed",
+      "conclusion": "success",
+      "checked_at": "2026-11-06T04:52:15.147583+00:00",
+      "private_receipt_sha256": "212421d8f3006ff0feae019371872c8020bcae6bf5c99ff54a9ce40330406bf2",
+      "jobs_success": 11,
+      "jobs_explicitly_skipped": 2,
+      "skipped_jobs": [
+        "Private video-context ciphertext intake or explicit HOLD",
+        "BOAT independent runner restores transferred production originals"
+      ],
+      "latest_merged_head_ci": "PENDING_SEPARATE_VERIFICATION",
+      "prior_exact_ci_receipts_preserved": true
+    },
+    "followup_task_source_sha256_scope": "HISTORICAL_SOURCE_CONTENT_TESTED_WITH_1806_NATIVE_BEFORE_LATER_26_FILE_MERGE; RETAINED_NOT_RELABELED_AS_LATEST",
+    "latest_concurrent_source_regression": {
+      "tests": 113,
+      "passed": 113,
+      "skipped": 0,
+      "seconds": 37.361,
+      "status": "OK",
+      "log_sha256": "6b307bdc45abe8189a21ea8f144ee0eec0e3ad0dac7c863f9e4d212cd1c95d68",
+      "scope": "WORKTREE_BASE_BF5655F_AFTER_26_FILE_MERGE_WITH_LOCAL_FORECAST_AUTOMATION_UNLIMITED_POLICY_TEST_RESTORED; SCOPED_ONLY",
+      "modules": [
+        "tests.test_boat_history_prospective",
+        "tests.test_boat_pdca_state",
+        "tests.test_boat_venue_dataset",
+        "tests.test_boat_venue_history",
+        "tests.test_boat_venue_history_handoff",
+        "tests.test_local_forecast_automation",
+        "tests.test_official_k_archive_consensus",
+        "tests.test_official_k_special_blocks",
+        "tests.test_teiai_feature_adapter",
+        "tests.test_teiai_history"
+      ],
+      "full_latest_head_suite": false
+    },
+    "authorization_reconnection": {
+      "commit": "8075675482a80599795a4e5150c734777056a18b",
+      "scope": "EXPLICIT_TRUSTED_LOCAL_CLI_SAME_CONFIGURED_GITHUB_CONNECTION_EXACT_401_CHECKPOINT_ONLY",
+      "same_repo_workflow_branch_and_authenticated_final_checkpoint_required": true,
+      "no_http_self_authorization_endpoint": true,
+      "source_403_429_waits_integrity_and_unknown_transaction_intents_preserved": true,
+      "mutex_private_flock_file_inode_digest_clock_and_save_failure_guards": true,
+      "prior_401_checkpoint_digest_and_verified_source_control_hash_preserved": true,
+      "reconnect_method_dispatches_or_mutates_github": false,
+      "unit_and_boundary": {
+        "tests": 40,
+        "passed": 40,
+        "skipped": 0,
+        "seconds": 2.077,
+        "log_sha256": "9475c22f5bff405254ecded9ad789ffd14a1921066df27b1a232f185c00e137c"
+      },
+      "integrated": {
+        "tests": 125,
+        "passed": 125,
+        "skipped": 0,
+        "seconds": 9.218,
+        "log_sha256": "a0abef0342407c23f2eaaf4af8aabb2c8095814d34dcbd2c456a9f493bf70886"
+      },
+      "cli": {
+        "tests": 19,
+        "passed": 19,
+        "skipped": 0,
+        "seconds": 5.436,
+        "added_tests": 3,
+        "log_sha256": "8664cbf551fe9853dbf8e703716169215da92f6101ef9b807ca20484a33a1f8a"
+      },
+      "independent_review": {
+        "verdict": "GREEN_NO_SCOPED_P1_P2",
+        "sha256": "df3ce9381bf3cfe888c8e51f7b1e091da2e839c46d6b31eb26211af0a299ed54",
+        "reviewer_did_not_observe_live_activation": true
+      },
+      "source_sha256": {
+        "race_ai/github_continuous_supervisor.py": "6026b91819df709b694fc1db14f317bc9335c03c8ed9b8b66918a1e425d45e1d",
+        "race_ai/local_forecast_server.py": "546f3abd45fb970213f5d27a0794e2d41370a8ed4dbfa8a0e5bb30b6c1c1d7e0",
+        "tests/test_github_continuous_supervisor.py": "158b519ae992fb378b73d9822a159deaca818deab60f5a44376e341250020930",
+        "tests/test_local_forecast_server.py": "c8df03cb3b2ee40ab3877c9b412556fcd0f2902e98fa551d3c7cf02cd2223226"
+      }
+    },
+    "latest_incoming_saved_pages_regression": {
+      "tests": 15,
+      "passed": 15,
+      "skipped": 0,
+      "seconds": 3.454,
+      "log_sha256": "4dd90408ac1ebcef0a69eb83f2bdaf05d0bd8c01365952b59596dd849421a87d",
+      "scope": "INCOMING_SAVED_PAGES_AND_VENUE_SOFTWARE_CONTRACTS"
+    },
+    "latest_saved_pages_browser": {
+      "status": "PASS",
+      "actual_webcrypto": true,
+      "pages": 7,
+      "checks": [
+        "RELOAD_AND_LINKS",
+        "FOUR_SAVED_VARIANTS",
+        "PAST_DAY",
+        "NO_KEY_REQUEST_OR_STORAGE",
+        "TAMPER_WRONG_MISSING_KEY_REFUSED"
+      ],
+      "log_sha256": "26cd21131de9c6a3ce2f51888da702056798dee741ee7f04f7e3cf005597d2a1",
+      "scope": "SOFTWARE_CONTRACT_NOT_SAFARI_OR_FIELD_ACCURACY"
+    },
+    "latest_full_native_after_auth_recovery": {
+      "status": "OK",
+      "tests": 1848,
+      "passed": 1848,
+      "skipped": 0,
+      "seconds": 442.671,
+      "process_exit_code": 0,
+      "source_head": "8075675482a80599795a4e5150c734777056a18b",
+      "log_sha256": "c12c04dbebe8f6dfb5dc86ee25c1f5669a977b863f05395a471126ddbf508da7",
+      "scope": "8075675_AUTH_RECONNECT_CODE_WITH_FINAL_SUPERVISOR_SHA6026; DOES_NOT_INCLUDE_LATER_OFFICIAL_K_NONE_TIME_REPAIR_MERGED_WHILE_SUITE_RUNNING",
+      "full_latest_merged_head_suite": false
+    },
+    "final_incoming_official_k_regression": {
+      "tests": 20,
+      "passed": 20,
+      "skipped": 0,
+      "seconds": 1.651,
+      "status": "OK",
+      "log_sha256": "abe4136ecf0c24f78000de9fefce630f6957b2d0872f71c52fd882809335908f",
+      "scope": "POST_8075675_OFFICIAL_K_SPECIAL_BLOCK_AND_ARCHIVE_CONSENSUS_NONE_RACE_AT_REPAIR_MERGED_IN_0C86DB4",
+      "first_command_nonexistent_module_import_error_corrected_without_implementation_change": true
+    },
+    "local_status_request_scoped_fix": {
+      "source_sha256": "c07e5e37523464aa69053c0052a908adb867ec4848077ac351d7453502b6851d",
+      "test_sha256": "efdeab74f48bb968e3d86ac04aaab332631ea538f65ec43460692a02b4ffa03a",
+      "status": "REVIEWED_APPLIED_LOCAL_TARGETED_TESTS_ACTUAL_READONLY_UI_AND_EXACT_CODE_CI_PASSED",
+      "one_fresh_integrity_and_context_preparation_per_request": true,
+      "cross_request_cache": false,
+      "next_request_updated_or_tampered_data_checked": true,
+      "tests": 62,
+      "passed": 62,
+      "skipped": 0,
+      "seconds": 40.581,
+      "log_sha256": "aa6e51cad46abee6b11978e7e8014e942b7b6dbdf9490828fed11f7c6c27ee88",
+      "private_report_sha256": "b9df392f363fe94fb2f12474afb09461a34be581bdd618a70214951d5cd5c5c6",
+      "private_seal_sha256": "87e221ac34d835ff8a22100cba3989dc1578ee38213b1e6740fc5bd1152f17ea",
+      "identical_input_after_profile_executed": false,
+      "after_profile_reason": "CANONICAL_INPUT_ADVANCED_AND_CONTEXT_COUNT_CHANGED_82_TO_89_DURING_AUTOMATION",
+      "speed_ratio_or_deployed_latency_improvement_claimed": false,
+      "live_ui_response_verified": true,
+      "independent_review": {
+        "verdict": "GREEN_NO_SCOPED_P1_P2",
+        "sha256": "989ec7fcd5f966d1a50afb0f32f26d9a4d866d576981ae0cf46aa95bec79fc11",
+        "independent_tests": 4,
+        "passed": 4,
+        "skipped": 0,
+        "seconds": 0.155,
+        "scope": "CODE_AND_CONTROLLED_REGRESSION_NOT_LIVE_LATENCY"
+      },
+      "existing_pr_commit": "63ecc928ed89e87901e4ccaa5184b30518f9c895",
+      "final_ci": "SUCCESS_EXACT_REQUEST_SCOPED_VIEW_CODE_HEAD_63ECC92",
+      "runtime_applied_at": "2026-11-06T05:08:14+00:00",
+      "runtime_health": {
+        "observed_at": "2026-11-06T05:08:53.147696+00:00",
+        "response_status": 200,
+        "elapsed_seconds": 6.749750457005575,
+        "private_receipt_sha256": "7ed3576c8e90a7e5f8fd60779a40f0ab268cbb6aaa0d486a54172629cf44fa63",
+        "single_observation_not_before_after_speed_ratio_or_sla": true
+      },
+      "readonly_390_1440_browser_acceptance": {
+        "result": "PASS",
+        "browser": "Chromium",
+        "started_at": "2026-11-06T05:09:21.720528+00:00",
+        "finished_at": "2026-11-06T05:10:11.968197+00:00",
+        "scope": "ACTUAL_PRIVATE_SAVED_FORECASTS_READONLY_UI_ORIGINAL_CONSISTENCY_NOT_SAFARI_REFERENCE8_OR_FIELD_ACCURACY",
+        "widths": [
+          390,
+          1440
+        ],
+        "per_width_stage_counts": {
+          "P0": {
+            "races": 156,
+            "saved_predictions": 312
+          },
+          "P1": {
+            "races": 156,
+            "saved_predictions": 288
+          }
+        },
+        "saved_prediction_count": 600,
+        "displayed_model_options_verified": 18,
+        "per_width_model_options": {
+          "P0": 2,
+          "P1": 7
+        },
+        "ordered_top8_and_all_prediction_sha_match_api": true,
+        "repeated_stage_get_response_bytes_unchanged": true,
+        "get_requests": 24,
+        "post_requests": 0,
+        "unsafe_requests": 0,
+        "external_requests": 0,
+        "source_requests": 0,
+        "generation_requests": 0,
+        "page_errors": 0,
+        "horizontal_overflow": 0,
+        "private_screenshots": 18,
+        "status_http_codes": [
+          200,
+          200
+        ],
+        "observed_status_seconds": [
+          2.3922,
+          2.8486
+        ],
+        "single_observations_not_speed_ratio_or_sla": true,
+        "root_visual_spot_checks": [
+          "390-P1-model-detail",
+          "1440-home"
+        ],
+        "safari_tested": false,
+        "original_eight_reference_comparison": false,
+        "field_accuracy_tested": false,
+        "private_report_sha256": "9faba57edab169f6031e1685125eddfa1e9ba9c0f05969c0017f1a53d4e3e33d",
+        "private_attempt2_json_sha256": "b3e0ce1c117771c5bd3dfaac33f008fda967ae81472ec8f0ce5807d8d6f4ec78",
+        "first_attempt_harness_csp_eval_issue_corrected_without_weakening_app_csp": true
+      },
+      "existing_ci_receipt": {
+        "checked_at": "2026-11-06T05:25:49.624789+00:00",
+        "scope": "EXISTING_PR71_REQUEST_SCOPED_VIEW_FIX",
+        "runs": [
+          {
+            "id": 42167380144,
+            "workflow_id": 392270247,
+            "head_sha": "63ecc928ed89e87901e4ccaa5184b30518f9c895",
+            "head_branch": "feat/four-sport-forecast-audit-view-20261022",
+            "event": "pull_request",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-11-06T05:15:50Z",
+            "updated_at": "2026-11-06T05:22:56Z",
+            "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42167380144"
+          },
+          {
+            "id": 42167380137,
+            "workflow_id": 405150548,
+            "head_sha": "63ecc928ed89e87901e4ccaa5184b30518f9c895",
+            "head_branch": "feat/four-sport-forecast-audit-view-20261022",
+            "event": "pull_request",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-11-06T05:15:50Z",
+            "updated_at": "2026-11-06T05:16:14Z",
+            "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42167380137"
+          }
+        ],
+        "private_actual_ui_report_sha256": "9faba57edab169f6031e1685125eddfa1e9ba9c0f05969c0017f1a53d4e3e33d",
+        "field_identification_strength_video_forward_acceptance": "NOT_ESTABLISHED",
+        "new_forecast_independent_receipt_sha256": "8e0cf4c01f63b5d9743afc42039241d59f9d32d0d5782466c75127cc56444f83",
+        "private_receipt_sha256": "4019ac16f329d0d75f02bee53b5f389d5bb0db45b32f9bbb9f40291dd49ac6ca",
+        "ci_log_sha256": "218d889aa3ee4e2d59a257fe955d217a64112cb24f777e9de5673284a0cf9377",
+        "general_python": {
+          "tests": 1853,
+          "skipped": 140,
+          "seconds": 200.126,
+          "status": "OK"
+        },
+        "isolated_video_python": {
+          "tests": 251,
+          "skipped": 0,
+          "seconds": 23.659,
+          "status": "OK"
+        },
+        "ci_is_not_field_acceptance": true,
+        "following_record_only_commit_checks": "SEPARATE_GITHUB_CHECKS_NOT_YET_STARTED_AT_THIS_RECORD_TIME"
+      }
+    },
+    "licensed_additional_catalog_check": {
+      "checked_at": "2026-11-06T05:22:29.587654+00:00",
+      "provider": "WIKIMEDIA_COMMONS",
+      "latest_http_status": 403,
+      "latest_response_at": "2026-11-06T05:20:46+00:00",
+      "state": "ALL_COMMONS_REQUESTS_STOPPED",
+      "new_requests": 1,
+      "new_media_downloads": 0,
+      "new_frames": 0,
+      "model_calls": 0,
+      "previous_429_cooldown_headers_not_confirmed_before_new_request": true,
+      "decision_error_recorded": true,
+      "cached_successful_queries": 10,
+      "cached_distinct_file_pages": 65,
+      "unfetched_continuations": 2,
+      "other_usable_licensed_clip_identified_in_cached_coverage": false,
+      "global_no_other_licensed_video_claim": false,
+      "private_receipt_sha256": "720dd64e6efe2e0771f5c08e834bbbb1e21b5fa82f2b248894e3ec7c88a3edab",
+      "runtime_network_policy": {
+        "mode": "unrestricted",
+        "state": "enforced",
+        "observations_current": true,
+        "configuration_changed_or_published": false
+      },
+      "http_403_cause": "NOT_ESTABLISHED_NOT_ASSUMED_TO_BE_ENVIRONMENT_ALLOWLIST"
+    },
+    "second_authorized_unlimited_policy_restoration": {
+      "status": "COMMITTED_MERGED_WITH_PARALLEL_UI_AND_HISTORY_AND_VERIFIED_IN_EXISTING_SOURCE_CI",
+      "conflicting_commits": [
+        "40325f9",
+        "7e11d9a"
+      ],
+      "owner_instructions": [
+        "取得上限なし",
+        "その上限や停止もなし",
+        "開発中も自動運転を止めない"
+      ],
+      "default_limits": {
+        "source_requests": null,
+        "per_round_requests": null,
+        "rounds": null,
+        "seconds": null
+      },
+      "source_sha256": "346335be7e60dbaa98d436589c4e2e0f28d83c7974bb11e5a9adf049a3f5fdbf",
+      "repeated_test_sha256": "d20be01d80783c0b43e57f87b15c62529931256fcbe96dd414db46c1b20343fa",
+      "learning_test_sha256": "01f62e195993320965270e54f812cf751862d502b459dd21dd5b30704ebf5e09",
+      "tests": 93,
+      "passed": 93,
+      "skipped": 0,
+      "seconds": 11.412,
+      "private_summary_sha256": "7526b4246d0bc14d1d5a7def67f03dbdfc1f812e02eca0bb8c570bb759e99a8e",
+      "raw_green_sha256": "343f066c940b54c0cfa68ef9701a1ee4c4bcbb376d6d31aead77cffca9ec7caf",
+      "independent_review_sha256": "da83c9907f94e2a24d40de41ee29bf7e6a49bfbbb83430d62eba2a5249a01bc5",
+      "independent_tests": {
+        "passed": 5,
+        "skipped": 0,
+        "seconds": 0.218
+      },
+      "simulated_over_old_caps": {
+        "charged_requests": 310,
+        "rounds": 27,
+        "elapsed_minutes": 78,
+        "scope": "SYNTHETIC_NO_REAL_SOURCE_GETS"
+      },
+      "preserved": [
+        "historical_request_claims",
+        "requests_by_kind",
+        "monotonic_lifetime_counters",
+        "round_started_requests",
+        "prepared_transaction",
+        "receipts",
+        "previous_migration_digest_chain",
+        "source_control",
+        "http401",
+        "http403",
+        "http429",
+        "retry_after",
+        "integrity_halts"
+      ],
+      "derived_lifetime_total_decrease_rejected_before_write": true,
+      "broken_duplicate_syntax_test_repaired": true,
+      "actual_427_request_history_or_live_checkpoints_modified": false,
+      "workflows_markers_runs_processes_modified": false,
+      "implemented_in": "2e80179a0c392dded5f13ca3e7a16229301b82f1",
+      "merged_pushed_head": "21afbd59c377af0f9a325736205654b3ea7948d5",
+      "verified_source_ci_head": "45a2749e36806035cd275c4b54bb2437931a2528",
+      "successful_ci": [
+        {
+          "id": 42172920937,
+          "workflow_id": 392270247,
+          "head_sha": "45a2749e36806035cd275c4b54bb2437931a2528",
+          "status": "completed",
+          "conclusion": "success",
+          "updated_at": "2026-11-06T06:20:59Z",
+          "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42172920937"
+        },
+        {
+          "id": 42172920961,
+          "workflow_id": 405150548,
+          "head_sha": "45a2749e36806035cd275c4b54bb2437931a2528",
+          "status": "completed",
+          "conclusion": "success",
+          "updated_at": "2026-11-06T06:12:11Z",
+          "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42172920961"
+        }
+      ],
+      "source_tests_workflows_equal_observed_1298618_head": true,
+      "private_final_receipt_sha256": "81b99553f70eea52faadc363a924dec31a2d7f8f6a4cae15b16d2805466fcac2",
+      "incoming_local_automation_test_repair": {
+        "tests": 36,
+        "passed": 36,
+        "skipped": 0,
+        "seconds": 2.867,
+        "source_test_sha256": "6f71bcf1ebe65784361b82dc1de46152e5604e55ada9b79b7256705a11065a8d",
+        "log_sha256": "8671f0b182a67663bb2614792384fa946c480ccedb5a18def9eb3037ada7ad5e"
+      }
+    },
+    "subsequent_unknown_finish_parser_regression": {
+      "tests": 25,
+      "passed": 25,
+      "skipped": 0,
+      "seconds": 0.214,
+      "log_sha256": "6ad87e134abc3ca3e24083a7de743b5e06dd1089f92fd91e940e39bfba0cbc71",
+      "scope": "CONCURRENT_K_UNKNOWN_FINISH_MISSING_TIMING_AND_DIRECT_CALLER_REPAIRS_RETAINED"
+    },
+    "upstream_results_budget_ui": {
+      "scope": "PRESERVED_CONCURRENT_FEATURES",
+      "synthetic_contract_tests": 15,
+      "synthetic_skipped": 0,
+      "synthetic_browser_scripts": [
+        "results_budget_browser",
+        "saved_pdca_browser",
+        "saved_pages_browser"
+      ],
+      "synthetic_browsers": "PASS",
+      "python_related_tests": 34,
+      "python_passed": 34,
+      "python_skipped": 0,
+      "python_seconds": 36.302,
+      "actual_readonly_browser": "PASS_ORIGINAL_DISPLAY_AND_CONTROLS_ONLY",
+      "widths": [
+        390,
+        1440
+      ],
+      "saved_count_at_main_check": 663,
+      "p0": 312,
+      "p1": 351,
+      "ledger_races": 156,
+      "observed_result_races": 73,
+      "get_requests": 26,
+      "unsafe_external_source_generation_requests": 0,
+      "ordered_top8_sha_and_repeat_bytes_unchanged": true,
+      "private_report_sha256": "64efa77b35ab5771801beda8375bfcaa6d4a74a5a7ac9f83a98e5b3aea506243",
+      "main_json_sha256": "3206b08ce19dcaaca267c62372f5ba47e4d31ce37c4d9d09029b02911d9b25ba",
+      "current_real_p1_budget_simulation": "NOT_ESTABLISHED",
+      "reason": "ALL_PLANS_EXCLUDED_FOR_MODEL_IDENTITY_UNKNOWN_OR_SAVE_CLOCK_UNKNOWN",
+      "pending_net_branch_live": "NOT_APPLICABLE_SYNTHETIC_ONLY_PASS",
+      "later_p1_count_observation": 372,
+      "later_all_groups_eligible_plans": 0,
+      "coverage_assertion_failure_preserved_not_product_error": true,
+      "safari": false,
+      "original_reference8_recomparison": false,
+      "video_field_validation": false
+    }
+  },
+  "continuity": {
+    "scope": "LOCAL_RUNNING_HEALTH_AND_ACTUAL_READONLY_UI_600_OBSERVATION_PLUS_SEPARATE_AUTHENTICATED_ONE_RACE_FIVE_MODEL_PRE_CUTOFF_SAVE_PROOF",
+    "observed_at": "2026-11-06T05:06:06+00:00",
+    "state": "RUNNING",
+    "continuous": true,
+    "initial_local_api_state_after_restart": "NOT_STARTED",
+    "initial_state_means": "FETCHING_VERIFIED_FINAL_ORIGINALS_NOT_PROOF_OF_ACTIVE_SUCCESSOR",
+    "last_saved_forecast_observation": {
+      "observed_at": "2026-11-06T04:19:56+00:00",
+      "saved_model_forecasts": 509,
+      "races": 156,
+      "p0_forecasts": 312,
+      "p1_forecasts": 197,
+      "result_observations": 70,
+      "result_races": 30,
+      "scope": "HISTORICAL_LOCAL_API_ONLY_NOT_LATEST_OR_INDEPENDENT_SAVE_CLOCK_PROOF"
+    },
+    "verified_final_run_counters": {
+      "run_id": 42148186039,
+      "requests_used": 427,
+      "lifetime_requests": 3547,
+      "lifetime_completed_rounds": 287,
+      "scope": "AUTHENTICATED_COMPLETED_RUN_NOT_NEW_SAVE_OR_SUCCESSOR_PROOF"
+    },
+    "preflight": {
+      "checked_at": "2026-11-06T04:45:56.333327+00:00",
+      "checkpoint_unchanged": true,
+      "active_run_ids": [],
+      "verification": "GH_AUTH_STATUS_AND_AUTHENTICATED_WORKFLOW_READS",
+      "repo": "haji84/RACE-AI",
+      "workflow_id": 405276784,
+      "run_id": 42148186039,
+      "source_control_sha256": "08d8c13c8a554c0d5182138201a249ff1a2fa866646d85cecaa56a8ab3699b22",
+      "private_receipt_sha256": "a33b9a1aef3748a54e78b3c9e68cd1cd6cd30cb4619ac91625f90ad3a41173ad"
+    },
+    "original_checkpoint_backup_sha256": "5f2df7227e59934f410d189be1a60af643791acaa57213b32785821b28adb108",
+    "reconnection": {
+      "applied_at": "2026-11-06T04:46:41.072582+00:00",
+      "recovery_count": 1,
+      "previous_api_wait": {
+        "http_status": 401,
+        "state": "AUTHORIZATION_WAIT",
+        "reason": "SOURCE_AUTHORIZATION_REQUIRED",
+        "retry_at": null
+      },
+      "api_wait_after_reconnect": null,
+      "recovery_only_checkpoint_sha256": "321c1d534288dc0aff596e2a0dae0d1139b4dbda101a718c0c0147172e6a399b",
+      "reconstructed_from_original_with_only_api_wait_and_receipt_addition_matches": true,
+      "subsequent_normal_tick_state_updates_are_separate": true
+    },
+    "monitor_transition": {
+      "graceful_local_monitor_close_at": "2026-11-06T05:08:14+00:00",
+      "previous_pid": 400731,
+      "current_pid": 406374,
+      "purpose": "APPLY_REVIEWED_REQUEST_SCOPED_STATUS_FIX_WITHOUT_STOPPING_REMOTE_FORECAST_WORKER",
+      "same_private_root_loopback_port_and_auth_context": true,
+      "loopback_port": 8765,
+      "intake_pid": 271439,
+      "intake_restarted": false,
+      "active_forecast_worker_run_id": 42164651846,
+      "active_forecast_worker_remained_in_progress": true,
+      "active_forecast_worker_cancelled": false,
+      "checkpoint_after_close_backup_sha256": "1863a475d4dea2d9b428f0ec4c4a1c2abb9716c9c232cd27ab577f88a5cd8c8e",
+      "checkpoint_state_signature_valid": true,
+      "checkpoint_active_run_id": 42164651846,
+      "stale_401_reconnect_flag_reapplied": false,
+      "api_wait_history_or_intent_reset": false
+    },
+    "original_database_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+    "direct_checkpoint_or_lock_tampering": false,
+    "alternate_identity_or_route_used": false,
+    "manual_workflow_dispatch_trigger_rerun_cancel": false,
+    "normal_existing_monitor_handoff_may_follow_after_all_unchanged_checks": true,
+    "successor_run_id": 42164651846,
+    "state_source": "AUTHENTICATED_GITHUB_METADATA_20261106T062300Z_CURRENT_SUCCESSOR_NOT_OLD_COMPLETED_RUN",
+    "successor_run": {
+      "workflow_id": 405276784,
+      "id": 42164651846,
+      "created_at": "2026-11-06T04:48:20Z",
+      "status": "in_progress",
+      "head_sha": "70514b3076614ea94b10e6595a9df9f5e858b320",
+      "reconnect_commit_is_ancestor": true,
+      "origin": "NORMAL_EXISTING_SUPERVISOR_HANDOFF_NOT_MANUAL_DISPATCH",
+      "new_forecast_saves_verified": true,
+      "all_races_pre_cutoff_coverage_certified": false
+    },
+    "local_api_status_response": "HTTP200_ONE_OBSERVATION_6_749750457_SECONDS",
+    "checkpoint_adopted_successor_run_id": 42164651846,
+    "checkpoint_workflow_api_wait_after_adoption": null,
+    "independent_new_forecast_save_proof": {
+      "workflow_id": 405276784,
+      "run_id": 42164651846,
+      "cycle": 3,
+      "p1_artifact_id": 13479011897,
+      "p1_artifact_created_at": "2026-11-06T04:59:07Z",
+      "result_artifact_id": 13478907182,
+      "result_artifact_created_at": "2026-11-06T04:59:16Z",
+      "new_unique_races": 1,
+      "new_regular_existing_model_p1_forecasts": 5,
+      "new_learned_shadow_forecasts": 2,
+      "github_server_creation_seconds_before_cutoff": 893,
+      "preferred_15_to_10_minute_window_satisfied": true,
+      "current_five_official_results": "PENDING_NOT_INCLUDED_AS_NEW_COMPLETED_PAIR_RESULTS",
+      "both_artifact_api_digest_equals_actual_bytes_sha256": true,
+      "all_zip_crc_valid": true,
+      "p1_bytes_identical_to_embedded_original_in_result_zip": true,
+      "initial_p0_artifact_sha256": "6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc",
+      "all_312_initial_prediction_sha_and_top8_retained": true,
+      "new_forecasts_use_video_features": false,
+      "all_races_pre_cutoff_coverage_certified": false,
+      "sanitized_private_receipt_sha256": "8e0cf4c01f63b5d9743afc42039241d59f9d32d0d5782466c75127cc56444f83",
+      "private_manifest_sha256": "d9a8ed3f90de89de99abf0bd92449c2f9a4cc1121106d616f17b7981a632ccc1",
+      "independent_checked_at": "2026-11-06T05:04:59.253219+00:00",
+      "p1_zip_sha256": "fba27c52a19a8e3d0ca8c934fc7d7326fcb039922e18b27a1440f60466d3909d",
+      "p1_json_sha256": "42bcd4c2d2efb2f484111c8031b353b7f9b7baf182d95f50d6e96de2221bb2c8",
+      "result_zip_sha256": "a8c0ff445660c3170a4b94ff0a4afc50c9e2844757c206512c74dd20af048bdd",
+      "original_p0_json_sha256": "e9ef52b153f8648aedec59fb3233d2405528e862858b211b754801d409ce0860"
+    },
+    "verified_result_artifact_totals": {
+      "artifact_id": 13478907182,
+      "created_at": "2026-11-06T04:59:16Z",
+      "regular_forecasts": 527,
+      "regular_scored": 307,
+      "regular_unscored": 220,
+      "learned_shadow_forecasts": 52,
+      "combined_forecasts": 579,
+      "scope": "THIS_AUTHENTICATED_ARTIFACT_ONLY_NOT_YET_FRESH_UI_STATUS",
+      "normal_feature_paired_model_rows": 44,
+      "normal_feature_paired_distinct_races": 22,
+      "baseline_hits": 15,
+      "learned_candidate_hits": 15,
+      "improvement_proven": false,
+      "video_feature_pairs": 0,
+      "current_five_pending_predictions_not_reported_as_completed_pairs": true,
+      "p0_forecasts": 312,
+      "p1_forecasts": 215,
+      "learned_shadow_distinct_races": 26,
+      "normal_feature_unpaired_learned_forecasts": 8
+    },
+    "historical_monitor_transitions": [
+      {
+        "graceful_idle_monitor_close_at": "2026-11-06T04:46:32+00:00",
+        "previous_pid": 157669,
+        "current_pid": 400731,
+        "same_private_root_loopback_port_and_auth_context": true,
+        "loopback_port": 8765,
+        "intake_pid": 271439,
+        "intake_restarted": false,
+        "active_forecast_worker_cancelled": false
+      }
+    ],
+    "latest_local_health_observation": {
+      "observed_at": "2026-11-06T05:08:53.147696+00:00",
+      "response_status": 200,
+      "automatic_state": "RUNNING",
+      "continuous": true,
+      "active_run_id": 42164651846,
+      "source_limit": null,
+      "max_rounds": null,
+      "stop_at": null,
+      "workflow_api_wait": null,
+      "counter_scope": "ACTIVE_RUN_UNVERIFIED",
+      "requests_used": null,
+      "lifetime_requests": null,
+      "lifetime_completed_rounds": null,
+      "saved_prediction_count": 600,
+      "scope": "LOCAL_ONLY_NOT_INDEPENDENT_600_PRE_CUTOFF_SAVE_CERTIFICATION",
+      "private_receipt_sha256": "7ed3576c8e90a7e5f8fd60779a40f0ab268cbb6aaa0d486a54172629cf44fa63"
+    },
+    "latest_local_ui_observation": {
+      "started_at": "2026-11-06T05:09:21.720528+00:00",
+      "finished_at": "2026-11-06T05:10:11.968197+00:00",
+      "browser": "Chromium",
+      "widths": [
+        390,
+        1440
+      ],
+      "saved_prediction_count": 600,
+      "p0_display_count": 312,
+      "p1_display_count": 288,
+      "automatic_state": "RUNNING",
+      "continuous": true,
+      "scope": "READONLY_UI_API_ORIGINAL_CONSISTENCY_NOT_INDEPENDENT_PRE_CUTOFF_TIME_PROOF_FOR_ALL_600",
+      "independent_artifact_527_regular_plus_52_shadow_is_separate_prior_time": true,
+      "private_attempt2_json_sha256": "b3e0ce1c117771c5bd3dfaac33f008fda967ae81472ec8f0ce5807d8d6f4ec78"
+    },
+    "new_successor_run": {
+      "id": 42172002810,
+      "head_sha": "e4fed1d74b2e43170ceb314a518bdba4104f21ff",
+      "status": "in_progress",
+      "conclusion": null,
+      "created_at": "2026-11-06T06:03:02Z"
+    },
+    "old_run_completion": {
+      "id": 42164651846,
+      "status": "completed",
+      "conclusion": "success",
+      "updated_at": "2026-11-06T05:47:39Z"
+    },
+    "successor_created_at": "2026-11-06T06:03:02Z",
+    "handoff_gap_observed_minutes": 15.383,
+    "handoff_gap_reason_scope": "CONCURRENT_FINITE_POLICY_CONFLICT_WAS_OBSERVED_AND_REPAIRED; NO_CLAIM_OF_UNINTERRUPTED_ALL_RACE_COVERAGE"
+  },
+  "activation_gates": [
+    "AUTHORIZED_CURRENT_MEDIA",
+    "ADEQUATE_INDEPENDENT_IDENTITIES_AND_TRACK_LABELS",
+    "FIELD_CALIBRATION_CLOCK_CONTACT_AND_STRENGTH_TARGETS",
+    "INDEPENDENT_CURRENT_CONTEXT_RECEIPTS",
+    "PRE_CUTOFF_FROZEN_PAIRS_AND_LATER_OFFICIAL_RESULTS",
+    "LOCAL_SENDER_AUTHORIZED_CRYPTO_CONNECTION_WITHOUT_EXPORTING_ACTIONS_ROOT_KEY",
+    "VIDEO_INGEST_WITH_CURRENT_CONFIGURED_KEY_NOT_TESTED"
+  ],
+  "main_merge_or_public_deployment": false,
+  "wagers": false,
+  "production_model_replacement": false,
+  "new_pr_workflow_forecast_family_service_or_fee": false,
+  "limitations": [
+    "Approximate AI references are not authenticated human ground truth.",
+    "Archival races with unknown exact roster/cutoff never become fabricated current race jobs.",
+    "UNKNOWN-rights sources were privately evaluated, never used for training or redistributed.",
+    "Sparse detector masking differs from full-detector camera estimation; no whole-video accuracy claim.",
+    "Zero emitted identities makes precision undefined and does not prove safety.",
+    "Same references reused across cases do not multiply independent sample size.",
+    "CTC sequence likelihood and appearance margins are uncalibrated, not prediction probabilities.",
+    "Code/fixture tests and hull agreement do not establish strength or prospective improvement."
+  ],
+  "platform_negative_test": {
+    "scope": "ONE_INVALID_INPUT_NEGATIVE_TEST_KEY_HOLD_BEFORE_PAYLOAD_NOT_REAL_CONTEXT_RECEIPT",
+    "checked_at": "2026-11-06T02:02:06.979687+00:00",
+    "run": {
+      "id": 42147537641,
+      "event": "workflow_dispatch",
+      "head_sha": "27c198141ca6ded3c4a3f0d85a1f09417fb34c8b",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-06T02:00:42Z",
+      "updated_at": "2026-11-06T02:00:54Z",
+      "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42147537641"
+    },
+    "receiver_status": "HOLD_OWNER_STATE_KEY_REQUIRED",
+    "uploaded_artifact_count": 0,
+    "private_features_or_keys_sent": false,
+    "platform_dispatch_observed": true,
+    "real_producer_or_live_process_activated": false,
+    "payload_rejection_tested_on_actual_runner": false,
+    "key_gate_held_before_payload": true,
+    "private_receipt_sha256": "c5abce5b76f6f9a2e9a5ed292a2521e9ea8a37101029cf1d60c3356b70deccca"
+  },
+  "concurrent_public_recipient_status": {
+    "scope": "READ_ONLY_EXISTING_RECIPIENT_STATUS_NOT_VIDEO_ACTIVATION",
+    "run_id": 42148288953,
+    "artifact_id": 13470563954,
+    "artifact_digest": "sha256:f8e965bfa43e7b6cf88f5b7fd25eac6899b16e7604f3fd5bb6e12d54de90236b",
+    "status": {
+      "status": "OWNER_RECIPIENT_READY"
+    },
+    "member_count": 2,
+    "owner_key_or_receiver_private_material_read": false,
+    "video_publication_compatibility_or_receipt_verified": false
+  },
+  "source_code_sha256_scope": "INITIAL_IMPLEMENTATION_TESTED_HEAD_2318CAC; later followups are separately identified",
+  "subsequent_development_checks": {
+    "full_current_crnn": {
+      "scope": "REUSED_LICENSED_DEVELOPMENT_ACTUAL_FULL_RUN_NOT_NEW_HELDOUT",
+      "source_media_sha256": "1ac1f0c27f58d8d64ebb1cfc13c2c4e9133cf7bbcce04052f23c28bf2e37f194",
+      "decoded_frames": 775,
+      "actual_sampled_frames": 97,
+      "real_detector_calls": 97,
+      "sampling_requested_fps": 4.0,
+      "observed_fps_approx": 3.7462,
+      "observed_wall_seconds": 708.03,
+      "timing_source": "FROZEN_RUN_SUMMARY_END_BEFORE_EVIDENCE_FSYNC; stdout/report end occurs about 0.016 seconds later",
+      "reference_class": "INDEPENDENT_AI_VISUAL_REFERENCE_NOT_HUMAN_AUTHENTICATED",
+      "reference_frames": 9,
+      "sampled_reference_frames": 6,
+      "unsampled_reference_frames": 3,
+      "known_readable_reference_instances": 10,
+      "correct_final_number_instances": 0,
+      "number_precision": null,
+      "whole_six_reference_denominator": 0,
+      "whole_six_accuracy": null,
+      "final_temporal_regions": 0,
+      "valid_lane_sample_cells": 0,
+      "total_requested_lane_sample_cells": 582,
+      "field_position_accuracy": null,
+      "hulls": {
+        "matched": 9,
+        "reference": 18,
+        "false_positive": 3,
+        "missed": 9,
+        "unmatched_on_sparse_references_excluded": 1
+      },
+      "reader": {
+        "calls": 109,
+        "complete": 109,
+        "soft_overruns": 0,
+        "skipped_views": 0,
+        "errors": 0,
+        "localized_raw_digit_views": 34,
+        "components_within_same_hull_frame": 24,
+        "normalization_duplicate_views": 10,
+        "whole_hull_diagnostic_digit_views_excluded": 1,
+        "actual_current_number_hypotheses": 20,
+        "samples_with_current_number_hypothesis": 16,
+        "ambiguous_hull_readings": 2,
+        "no_usable_hypothesis": 87
+      },
+      "camera": {
+        "reference_initialization": 1,
+        "accepted": 12,
+        "fit_rejected": 8,
+        "insufficient_background": 76,
+        "all_logical_identity_scenes_zero": true,
+        "hard_cuts_or_gaps": 0,
+        "all_20_current_number_hypotheses_occurred_with_insufficient_background": true,
+        "max_consecutive_unique_same_number_presence_in_same_logical_scene": 2,
+        "presence_count_does_not_replay_or_establish_geometric_association": true
+      },
+      "source_assets_pixels_pts_and_observer_returns_verified": true,
+      "neural_reruns": 0,
+      "engine_class_in_legacy_benchmark": "UNKNOWN; exact actual factory and pins recorded separately",
+      "private_raw_freeze_sha256": "04981e94c96173748e64f9cf5dc89aa9f7f29e0db95ea1a5e6f7fc9e5c74f7d0",
+      "private_summary_sha256": "ea812429429dae8e17020a2434e3da8830e2148ede0c4c9791fe7437a45a1aef",
+      "private_manifest_sha256": "6e44810818171b2f2d7155ca27c8e6572b6309308a6ae9e1d0280df5bdf3524b",
+      "private_independent_summary_sha256": "eb269ba2930d6cad19edb7d33647ad9d05f6b48d5d39db8257053874bf956364",
+      "private_independent_report_sha256": "fdeb6b3bf52e14696c21d5bb06542ea3e1a406ea1f0fd29b7003842581002c9f",
+      "private_independent_manifest_sha256": "c4d5d99a53fb5cdc4d528547677de0fc05a3627c8847ce08e2fda071b332123e",
+      "corrected_counter_scope": "V2 uses identity_continuity_scene; V1 metric-scene mistake retained without altering raw data"
+    },
+    "db_text_localizer": {
+      "scope": "SAME_12_PREDICTED_HULL_CROPS_REUSED_LICENSED_DEVELOPMENT_ONLY",
+      "candidate": "OFFICIAL_OPENCV_ZOO_PP_OCRV3_ENGLISH_FP32_DB",
+      "asset_bytes": 2423490,
+      "asset_sha256": "03f550c6b406fda8bf54bd8327815f6c7e2edd98cea02348c93d879254366587",
+      "license": "Apache-2.0",
+      "fixed_default_policy": "736; binary .3; polygon .5; unclip 2; max candidates 200",
+      "recognizer": "UNCHANGED_FULL_37_CLASS_FP32_CRNN",
+      "baseline": {
+        "localized_regions": 46,
+        "digit_region_reference_matches": 8,
+        "reference_digit_boxes": 10,
+        "raw_correct_digit_views": 10,
+        "matched_reference_instances": 6,
+        "duplicate_views": 4,
+        "soft_overruns": 1,
+        "overrun_wall_seconds": 8.983,
+        "skipped_views": 7,
+        "complete_hull_readings": 11
+      },
+      "candidate_result": {
+        "text_regions": 7,
+        "digit_region_reference_matches": 1,
+        "reference_digit_boxes": 10,
+        "single_1_to_6_raw_candidates": 0,
+        "complete_hull_readings": 12,
+        "soft_overruns": 0
+      },
+      "not_a_causal_runtime_or_field_accuracy_comparison": true,
+      "adopted": false,
+      "further_variants_run": false,
+      "private_report_sha256": "138e266de3bf9475b463361f91fd2e41908986c5b52f5b5c89110f9f237bb9de",
+      "private_summary_sha256": "6d6e9b709d84136fc996917cdb01e9b973f23763bf2e1efad948336e89d7c4d6",
+      "private_manifest_sha256": "8021756e965258b72f6b39ad71ce0ff6040eb0daa047ea171d0564adecce3468"
+    },
+    "camera_roi": {
+      "scope": "CACHED_REAL_HULLS_AND_ACTUAL_PIXELS_CAMERA_ONLY_RECOMPUTATION",
+      "fixed_policies": [
+        "ORIGINAL_WATER_ROI",
+        "FULL_IMAGE"
+      ],
+      "per_case_decoded_frames": 775,
+      "per_case_sampled_frames": 97,
+      "per_case_adjacent_pairs": 96,
+      "default_control_status_h_and_all_quality_mismatches": 0,
+      "pixel_pts_cache_mismatches": 0,
+      "errors": 0,
+      "default_accepted": 12,
+      "full_image_accepted": 15,
+      "default_fit_rejected": 8,
+      "full_image_fit_rejected": 5,
+      "insufficient_background_both": 76,
+      "insufficient_frame_sets_identical": true,
+      "new_neural_or_reader_calls": 0,
+      "new_identity_or_strength_evaluation": false,
+      "independent_shore_landmark_validation": false,
+      "validation_status": "UNVALIDATED",
+      "main_background_bottleneck_resolved": false,
+      "adopted": false,
+      "further_roi_sweeps": false,
+      "private_report_sha256": "56abdb5c443fb7e5e9bb8ea0bcf648ef7daf543425723d8139444f3f9dcc8991",
+      "private_result_sha256": "c685765359f9bd5f408d86f26c6f75bc59ae27dc5c71d078d4fbcc852c92de87",
+      "private_manifest_sha256": "60d554a356a08397cbdc947d0ecbd1fd86334c3416a6ec7441a1f3f4987185a0"
+    },
+    "fresh_official_source_availability": {
+      "checked_at": "2026-11-06T04:48:02.268590+00:00",
+      "scope": "TWO_DISTINCT_OFFICIAL_NORMAL_PUBLISHED_PATHS_NOT_ALL_VENUES",
+      "private_summary_sha256": "37743b7b5bb3adc034def72d99849f056c6f8c9878b98cf35577d506ad510cf4",
+      "toda": {
+        "state": "NORMAL_BROWSER_TUNNEL_CONNECTION_FAILED_STOPPED",
+        "error": "ERR_TUNNEL_CONNECTION_FAILED",
+        "http_authorization_denial_observed": false,
+        "actual_video_played": false
+      },
+      "heiwajima": {
+        "published_pages_http_status": 200,
+        "state": "KNOWN_STOPPED_PROVIDER_BOUNDARY_NOT_REQUESTED",
+        "provider_playback_api_requests": 0,
+        "http_authorization_denial_observed_on_this_resource": false,
+        "actual_video_played": false
+      },
+      "actual_media_clips_acquired": 0,
+      "actual_media_frames_acquired": 0,
+      "continuous_six_numbers_verified": false,
+      "inference_ground_truth_or_scoring_run": false,
+      "rights_or_training_reuse_permission_established": false,
+      "alternate_identity_route_session_transport_or_denied_resource_retry": false
+    }
+  },
+  "historical_continuity_observations": [
+    {
+      "observed_at": "2026-11-06T01:54:30.449461+00:00",
+      "scope": "LOCAL_API_STATUS_ONLY",
+      "saved_model_forecasts": 425,
+      "races": 156,
+      "p0_forecasts": 312,
+      "p1_forecasts": 113,
+      "state": "RUNNING",
+      "continuous": true,
+      "existing_active_run_id": 42142323217,
+      "original_database_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+      "protected_pids": [
+        157669,
+        271439
+      ],
+      "restarted": false,
+      "private_continuity_sha256": "6329aa1d2b454492594fbcdfe70e568eb27870a2facc04877551aa45e872993d"
+    },
+    {
+      "observed_at": "2026-11-06T04:19:56+00:00",
+      "scope": "LOCAL_API_STATUS_ONLY_NOT_INDEPENDENT_PRE_CUTOFF_SAVE_PROOF",
+      "saved_model_forecasts": 509,
+      "races": 156,
+      "p0_forecasts": 312,
+      "p1_forecasts": 197,
+      "result_observations": 70,
+      "result_races": 30,
+      "state": "SOURCE_WAIT",
+      "continuous": true,
+      "continuous_means_configuration_not_active_run": true,
+      "recorded_active_run_id": 42148186039,
+      "recorded_run_actual_status": "completed",
+      "recorded_run_actual_conclusion": "success",
+      "recorded_run_completed_at": "2026-11-06T02:57:26Z",
+      "recorded_run_head_sha": "8494b85923e10d57f9c6f23a28f3aa38bfc33797",
+      "subsequent_active_or_queued_runs_observed_at_0421_utc": 0,
+      "checkpoint_last_observed_at": "2026-11-06T02:39:32.683246+00:00",
+      "checkpoint_sha256": "5f2df7227e59934f410d189be1a60af643791acaa57213b32785821b28adb108",
+      "workflow_api_wait": {
+        "http_status": 401,
+        "state": "AUTHORIZATION_WAIT",
+        "reason": "SOURCE_AUTHORIZATION_REQUIRED",
+        "retry_at": null
+      },
+      "official_github_cli_auth_status": {
+        "checked_at": "2026-11-06T04:38:00+00:00",
+        "exit_code": 0,
+        "logged_in_reported": true,
+        "invalid_token_reported": false,
+        "same_configured_auth_context": true,
+        "private_log_sha256": "ecb08b31ffe6489d11874cad4300698163412a0a1720df2b71bc1d362ed7b74e",
+        "does_not_establish_old_401_cause_or_resume": true
+      },
+      "recovery_status": "TRUSTED_RECOVERY_PREPARATION_PENDING_NOT_EXECUTED",
+      "checkpoint_wait_reset": false,
+      "direct_checkpoint_or_lock_tampering": false,
+      "alternate_identity_or_route_used": false,
+      "diagnosis_sha256": "e87a9cb8268f6cf4d1b4eac400fa31c5b4530a0c3dbcd8a60b6fd25c28ecd378",
+      "original_database_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+      "protected_pids": [
+        157669,
+        271439
+      ],
+      "restarted": false,
+      "forecast_workflow_trigger_rerun_cancel_by_this_work": false
+    }
+  ]
+}

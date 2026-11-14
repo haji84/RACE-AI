@@ -1,0 +1,41 @@
+{
+  "all_retained_member_bytes_verified": true,
+  "catalog_partial_source_days_are_not_complete_days": true,
+  "exact_new_original_cipher_and_manifest_bytes_verified": true,
+  "independent_git_readback_verified": true,
+  "initial_final_count_assertion_corrected_without_source_retry": true,
+  "no_default_model_pointer_updated": true,
+  "old_collection_pointer_preserved": true,
+  "only_new_immutable_paths_added": true,
+  "plaintext_published": false,
+  "pointer": {
+    "manifest_path": "state/boat-venue-history/v1/manifests/bcddb2ec4d2708333cdbeeec7de3a23a5e47ca09c3fa22f5ceeb31c5cf7a7e0c.json",
+    "manifest_sha256": "bcddb2ec4d2708333cdbeeec7de3a23a5e47ca09c3fa22f5ceeb31c5cf7a7e0c",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_VENUE_COLLECTION_INPUT_V1",
+    "source_commit": "505800f55176867e8a5a06491fcc18eadca8e070",
+    "status": "READY"
+  },
+  "production_promoted": false,
+  "readback_member_files": 841,
+  "readback_report": {
+    "all_period_collection_complete": false,
+    "formal_backtest_eligible": false,
+    "listed_days": 7963,
+    "manifest_sha256": "bcddb2ec4d2708333cdbeeec7de3a23a5e47ca09c3fa22f5ceeb31c5cf7a7e0c",
+    "missing_days": 0,
+    "months_restored": 263,
+    "not_yet_published_days": 0,
+    "parsed_days": 7846,
+    "partial_source_days": 117,
+    "pending_days": 0,
+    "plaintext_published": false,
+    "published_months": 263,
+    "quarantined_days": 0,
+    "status": "OWNER_VENUE_COLLECTION_READBACK_VERIFIED",
+    "unprocessed_listed_days": 0,
+    "waiting_publication_days": 0
+  },
+  "source_commit": "505800f55176867e8a5a06491fcc18eadca8e070",
+  "state": "NOV6_OFFICIAL_COLLECTION_IMMUTABLY_RETAINED_AND_INDEPENDENTLY_RESTORED"
+}

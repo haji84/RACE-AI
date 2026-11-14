@@ -1,0 +1,138 @@
+{
+  "run_id": 42418481443,
+  "job_id": 128541617986,
+  "head_sha": "212f4dc1d3a8fe9879cbbbb64cdf90540d2b3fa2",
+  "job_conclusion": "SUCCESS",
+  "accuracy_improvement_proven": false,
+  "boat": {
+    "all_saved_before_both_clocks": 2,
+    "current_rejection_reason_counts": {
+      "RESULT_CUTOFF_MISMATCH": 1,
+      "RESULT_IDENTITY_UNVERIFIED": 2
+    },
+    "cutoff_offset_seconds_counts": {
+      "0": 2,
+      "600": 1
+    },
+    "future_unmatched_races": 0,
+    "held_races": 3,
+    "latest_held_body_identity_verified": 1,
+    "overdue_unmatched_races": 3,
+    "races": 132,
+    "result_states": {
+      "final": 129,
+      "unsupported": 3
+    },
+    "saved_roster_sizes": {
+      "6": 3
+    },
+    "source_roster_sizes": {
+      "0": 2,
+      "6": 1
+    },
+    "unknown_or_mixed_cutoff_unmatched_races": 0
+  },
+  "continuity_projection": {
+    "artifact_id": 13576047576,
+    "authenticated_continuity_readback": true,
+    "base_conflicting_capture_groups": 0,
+    "conflicting_capture_groups": 0,
+    "different_source_bytes_conflicts": 0,
+    "differing_data_fields": {},
+    "differing_fields": {},
+    "differing_finish_fields": {},
+    "observations_reconciled": 0,
+    "same_source_bytes_conflicts": 0,
+    "uncomparable_observations": 0,
+    "unknown_source_bytes_conflicts": 0,
+    "variant_pairs": 0
+  },
+  "day_jst": "2026-11-07",
+  "diagnostic_only": true,
+  "feed_generation": 48,
+  "forecasting_performed": false,
+  "journal_artifact_id": 13591313088,
+  "native": {
+    "blocked_method_counts": {
+      "GET": 39,
+      "POST": 20
+    },
+    "blocked_reason_counts": {
+      "OFFICIAL_BROWSER_NORMAL_READ_IDENTITY": 13,
+      "OFFICIAL_BROWSER_NORMAL_READ_POST": 7,
+      "OFFICIAL_BROWSER_NORMAL_UI_READ": 1,
+      "OFFICIAL_BROWSER_OFFICIAL_SOURCE": 4,
+      "OFFICIAL_BROWSER_UNNEEDED_RESOURCE": 28,
+      "OTHER": 6
+    },
+    "case_reason_counts": {
+      "OFFICIAL_BROWSER_CAPTURE_STOPPED": 1
+    },
+    "case_state_counts": {
+      "CAPTURED": 3,
+      "HOLD_UI_OR_SOURCE_UNAVAILABLE": 1,
+      "OTHER": 2
+    },
+    "failure_error_code": "OTHER",
+    "failure_stage": "OTHER",
+    "http_status_counts": {
+      "200": 32
+    },
+    "known_endpoint_counts": {
+      "OTHER": 17,
+      "OtherRaceInfo": 8,
+      "Program": 1,
+      "RaceResult": 6
+    },
+    "original_index_available": true,
+    "request_count_unknown": false,
+    "required_role_status_counts": {
+      "OTHER": {
+        "200": 1
+      },
+      "identity": {
+        "200": 3
+      },
+      "result": {
+        "200": 3
+      }
+    },
+    "resource_type_counts": {
+      "document": 1,
+      "xhr": 31
+    },
+    "saved_rendered_dom_count": 3,
+    "semantic_ui_clicks": 9,
+    "source_requests": 32,
+    "source_requests_upper_bound": 32,
+    "static_cache_replays": 7,
+    "stop_reason": "REQUEST_LIMIT",
+    "wire_method_counts": {
+      "GET": 17,
+      "POST": 15
+    }
+  },
+  "official_source_requests": 0,
+  "originals_changed": false,
+  "plaintext_source_published": false,
+  "results_admitted": 0,
+  "retained_sp_holds": {
+    "authenticated_matching_captures": 3,
+    "capture_reason_counts": {},
+    "held_races": 3,
+    "originals_changed": false,
+    "parser_reason_counts": {
+      "AVAILABLE": 1,
+      "RESULT_WINNER_INVALID": 2
+    },
+    "projection_reason_counts": {
+      "RESULT_CUTOFF_MISMATCH": 1
+    },
+    "results_admitted": 0,
+    "source_requests": 0,
+    "status": "RETAINED_SP_HOLD_AUDIT_VERIFIED"
+  },
+  "schema": "RACE_AI_REMAINING_COMPLETION_AUDIT_V1",
+  "source_requests": 0,
+  "status": "REMAINING_COMPLETION_AUDIT_VERIFIED"
+}

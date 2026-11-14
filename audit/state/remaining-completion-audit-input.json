@@ -1,0 +1,16 @@
+{
+  "schema": "RACE_AI_REMAINING_COMPLETION_AUDIT_INPUT_V1",
+  "day_jst": "2026-11-07",
+  "continuity_artifact": {
+    "id": 13576047576,
+    "digest": "sha256:7f0ad9796688ad11e2b2ac062af6673867b08389870e6f990c56eaa8866b95b8",
+    "run_id": 42376316340,
+    "head_sha": "6a1a1f1a12248dc35f22a512783c279544c70086"
+  },
+  "journal_artifact": {
+    "id": 13591313088,
+    "digest": "sha256:3daa8481b048baf39213a6eab4993da9bbd301a7e20974c0bd8ce96563732a2b",
+    "run_id": 42413260799,
+    "head_sha": "d41f505cb00557dd1a6173a19b0945d7849e57fd"
+  }
+}

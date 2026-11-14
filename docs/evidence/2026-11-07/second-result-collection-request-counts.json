@@ -1,0 +1,20 @@
+{
+  "completion_claimed": false,
+  "elapsed_since_prior_epoch_seconds": 4708.210898,
+  "execution_day": "2026-11-07",
+  "first_epoch_journal_omitted": false,
+  "future_cases_require_cutoff_plus_120_seconds": true,
+  "maximum_requests": 32,
+  "minimum_elapsed_seconds": 3600,
+  "native_inputs_unchanged": true,
+  "new_provider_requests_at_request_time": 0,
+  "new_workflow_or_schedule_created": false,
+  "prior_denials": 0,
+  "prior_epoch_started_at": "2026-11-07T05:43:24.774005+00:00",
+  "prior_journal_artifact_id": 13562617631,
+  "prior_unknown_requests": 0,
+  "requested_at": "2026-11-07T07:01:52.984903+00:00",
+  "schema": "RACE_AI_EXPLICIT_RESULT_COLLECTION_REQUEST_COUNTS_V1",
+  "source_plan_unchanged": true,
+  "state": "SECOND_EXPLICIT_EPOCH_REQUESTED_NOT_YET_COLLECTED"
+}

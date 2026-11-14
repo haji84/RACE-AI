@@ -1,0 +1,1628 @@
+name: Forecast audit viewer contract
+on:
+  pull_request:
+    branches:
+      - codex/actions-four-sport-e2e
+    paths: ['requirements-history.txt', 'race_ai/**', 'scripts/**', 'tests/**', 'workers/**', 'web/**', 'docs/**', 'audit/**', '.github/workflows/**']
+  workflow_dispatch:
+    inputs:
+      video_context_cipher:
+        description: 'Owner-encrypted context envelope; never supply a key, media or plaintext features'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.event_name == 'workflow_dispatch' && format('boat-video-publication-{0}', github.run_id) || format('forecast-audit-{0}-{1}', github.ref, github.event.pull_request.head.sha || github.sha) }}
+  cancel-in-progress: false
+jobs:
+  train_only_tests:
+    if: github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify training isolation and creation-time constraints
+        run: python -m unittest discover -s tests -p "test_four_sport*learning.py" -v
+      - name: Verify separate training artifact and validation API
+        run: python -m unittest discover -s tests -p test_four_sport_train_only.py -v
+  pr64_cross_branch_bridge:
+    if: github.event_name == 'pull_request'
+    name: Pinned PR64 store and PDCA synthetic E2E
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout PR71 exact tested HEAD
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Checkout immutable PR64 implementation as integration reference
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Verify PR64 actual store and own pinned result projection
+        env:
+          PR64_REFERENCE_ROOT: pr64-reference
+        run: |
+          python tests/pr64_bridge_harness.py
+          PYTHONPATH=. python tests/boat_historical_route_harness.py
+          python -m unittest tests.test_exhibition_autorun -v
+  boat_pdca_state_producer:
+    if: github.event_name == 'pull_request'
+    name: BOAT invented-data encrypted state producer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      cipher_sha256: ${{ steps.produce.outputs.cipher_sha256 }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Create invented history and immutable pair, then encrypt SQLite
+        id: produce
+        run: python -m scripts.boat_pdca_handoff_fixture produce --work "$RUNNER_TEMP/boat-producer" --artifact "$RUNNER_TEMP/boat-sealed"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-pdca-synthetic-state-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/boat-sealed/state.enc
+            ${{ runner.temp }}/boat-sealed/proof.json
+            ${{ runner.temp }}/boat-sealed/handoff-proof.json
+          retention-days: 3
+          if-no-files-found: error
+  boat_pdca_state_consumer:
+    if: github.event_name == 'pull_request'
+    name: BOAT restore on another runner and score result revisions once
+    needs: boat_pdca_state_producer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: boat-pdca-synthetic-state-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-incoming
+      - name: Restore exact originals, score revisions, reject replay, prepare next pair
+        env:
+          RACE_AI_EXPECTED_CIPHER_SHA256: ${{ needs.boat_pdca_state_producer.outputs.cipher_sha256 }}
+          EXPECTED_PRODUCER_RUN_ID: ${{ github.run_id }}
+          EXPECTED_PRODUCER_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python -m scripts.boat_pdca_handoff_fixture consume --work "$RUNNER_TEMP/boat-consumer" --artifact "$RUNNER_TEMP/boat-incoming"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-pdca-synthetic-restore-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-consumer/consumer-proof.json
+          retention-days: 3
+          if-no-files-found: error
+  boat_pdca_owner_recipient:
+    name: BOAT owner public recipient (root key stays in Actions)
+    if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Derive only the receiving public key from the configured owner secret
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: python -m scripts.boat_pdca_transfer receiver --private-dir "$RUNNER_TEMP/boat-owner-recipient"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-owner-recipient-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/boat-owner-recipient/receiver.json
+            ${{ runner.temp }}/boat-owner-recipient/status.json
+          retention-days: 7
+          if-no-files-found: error
+  boat_pdca_owner_transfer:
+    name: BOAT receive encrypted originals using the existing owner key
+    if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    outputs:
+      encrypted: ${{ steps.receive.outputs.encrypted }}
+      transfer_sha256: ${{ steps.receive.outputs.transfer_sha256 }}
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Decrypt owner-addressed transport, preserve prior state and seal canonical checkpoint
+        id: receive
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: python -m scripts.boat_pdca_transfer receive --input audit/state/boat-pdca-transfer-input.json --previous-input audit/state/boat-pdca-production-input.json --accepted-imports audit/state/boat-pdca-accepted-imports.json --private-dir "$RUNNER_TEMP/boat-owner-state"
+      - name: Retain only owner-encrypted canonical state and public counts
+        id: upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-owner-pdca-state-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/boat-owner-state/sealed/state.enc
+            ${{ runner.temp }}/boat-owner-state/sealed/proof.json
+            ${{ runner.temp }}/boat-owner-state/sealed/handoff-proof.json
+            ${{ runner.temp }}/boat-owner-state/status.json
+          retention-days: 7
+          if-no-files-found: error
+  boat_pdca_owner_transfer_readback:
+    name: BOAT independent runner restores transferred production originals
+    needs: boat_pdca_owner_transfer
+    if: needs.boat_pdca_owner_transfer.outputs.encrypted == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Read the exact producer artifact from this run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.boat_pdca_owner_transfer.outputs.artifact_id }}
+          path: ${{ runner.temp }}/boat-owner-state-incoming
+          merge-multiple: true
+      - name: Authenticate canonical state, exact originals and idempotent result replay
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_EXPECTED_TRANSFER_SHA: ${{ needs.boat_pdca_owner_transfer.outputs.transfer_sha256 }}
+        run: python -m scripts.boat_pdca_transfer verify --folder "$RUNNER_TEMP/boat-owner-state-incoming/sealed" --private-dir "$RUNNER_TEMP/boat-owner-state-readback" --transfer-sha "$RACE_AI_EXPECTED_TRANSFER_SHA" --input audit/state/boat-pdca-transfer-input.json
+      - name: Keep count-only independent readback proof
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-owner-pdca-readback-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/boat-owner-state-readback/status.json
+          retention-days: 7
+          if-no-files-found: error
+  boat_pdca_production_readback:
+    name: BOAT production encrypted-state acceptance or explicit HOLD
+    permissions:
+      contents: read
+      actions: read  # Re-read only this repository's actual encrypted artifacts.
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Require owner key before pinned ciphertext GET and private restore
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_pdca_github readback --input audit/state/boat-pdca-production-input.json --private-dir "$RUNNER_TEMP/boat-production-readback"
+      - name: Retain count-only acceptance status, never decrypted state
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-production-readback-status-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/boat-production-readback/production-readback-status.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Audit retained completion blockers without provider requests
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          message="$(git log -1 --format=%s)"
+          if [[ "$message" == completion-audit:* || "$message" == 'saved-view: audit retained result conflicts without source requests' ]]; then
+            python -m scripts.boat_remaining_completion_audit --input audit/state/remaining-completion-audit-input.json
+          else
+            echo 'Retained completion audit not requested.'
+          fi
+      - name: Connect frozen venue observations to existing shadow fitter or explicit HOLD
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_SOURCE_REVIEW_KEY: ${{ secrets.RACE_AI_SOURCE_REVIEW_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          policy_args=()
+          if [[ -f audit/state/boat-venue-learning-permissions.json ]]; then
+            policy_args+=(--permission-policy audit/state/boat-venue-learning-permissions.json)
+          fi
+          if [[ -f audit/state/boat-venue-learning-owner-research.json ]]; then
+            policy_args+=(--owner-research-record audit/state/boat-venue-learning-owner-research.json)
+          fi
+          if [[ -f audit/state/all-existing-model-derived-owner-research.json ]]; then
+            python -m scripts.all_existing_model_learning fit --restored-dir "$RUNNER_TEMP/boat-production-readback" --derive-from-observed --owner-research-record audit/state/all-existing-model-derived-owner-research.json --out-dir "$RUNNER_TEMP/boat-venue-learning"
+          elif [[ -f audit/state/all-existing-model-owner-research.json ]]; then
+            python -m scripts.all_existing_model_learning fit --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/boat-venue-learning"
+          else
+            python -m scripts.boat_venue_learning --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/boat-venue-learning" "${policy_args[@]}"
+          fi
+      - name: Keep owner-encrypted learning candidate and count-only status
+        id: model_candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-venue-learning-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/boat-venue-learning/learning.enc
+            ${{ runner.temp }}/boat-venue-learning/learning.json
+            ${{ runner.temp }}/boat-venue-learning/summary.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Fit the explicit eight-race native research cohort from authenticated private originals
+        id: native_research_fit
+        if: hashFiles('audit/state/all-existing-model-native-ci-input.json') != ''
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == native-p1-compare:* ]]; then
+            exit 0
+          fi
+          plan=audit/state/all-existing-model-native-ci-input.json
+          if [[ -f audit/state/all-existing-model-full-native-ci-input.json ]]; then
+            plan=audit/state/all-existing-model-full-native-ci-input.json
+          fi
+          python -m scripts.all_existing_model_learning_ci --input "$plan" --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/all-native-learning"
+          echo 'fit_executed=true' >> "$GITHUB_OUTPUT"
+      - name: Keep the encrypted native research fit and count-only status
+        id: native_model_candidate
+        if: hashFiles('audit/state/all-existing-model-native-ci-input.json') != '' && steps.native_research_fit.outputs.fit_executed == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-model-learning-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/all-native-learning/learning.enc
+            ${{ runner.temp }}/all-native-learning/learning.json
+            ${{ runner.temp }}/all-native-learning/summary.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Freeze the explicitly requested official native inputs
+        id: official_native_freeze
+        if: hashFiles('audit/state/manual-official-freeze-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          # A one-time request on this commit; this makes no provider requests.
+          if [[ "$(git log -1 --format=%s)" == official-native-freeze:* ]]; then
+            plan=audit/state/manual-official-freeze-input.json
+            if [[ -f audit/state/manual-official-backup-freeze-input.json ]]; then
+              plan=audit/state/manual-official-backup-freeze-input.json
+            fi
+            if [[ -f audit/state/manual-official-future-freeze-input.json ]]; then
+              plan=audit/state/manual-official-future-freeze-input.json
+            fi
+            candidate_artifact="$(python -c 'import json,sys; p=json.load(open(sys.argv[1])); print(p["carrier_artifact"]["id"] if p["schema"]=="RACE_AI_MANUAL_OFFICIAL_NATIVE_FREEZE_INPUT_V3" else sys.argv[2])' "$plan" '${{ steps.native_model_candidate.outputs.artifact-id }}')"
+            python -m scripts.all_existing_model_official_freeze --input "$plan" --candidate-artifact "$candidate_artifact" --out-dir "$RUNNER_TEMP/official-native-freeze"
+          fi
+      - name: Independently save the encrypted official native input capsules
+        id: official_native_upload
+        if: steps.official_native_freeze.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.official_native_freeze.outputs.artifact_name }}
+          path: ${{ runner.temp }}/official-native-freeze/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Re-read the actual official native input artifact before its deadlines
+        if: steps.official_native_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          plan=audit/state/manual-official-freeze-input.json
+          if [[ -f audit/state/manual-official-backup-freeze-input.json ]]; then
+            plan=audit/state/manual-official-backup-freeze-input.json
+          fi
+          if [[ -f audit/state/manual-official-future-freeze-input.json ]]; then
+            plan=audit/state/manual-official-future-freeze-input.json
+          fi
+          python -m scripts.all_existing_model_official_freeze --input "$plan" --readback-artifact '${{ steps.official_native_upload.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/official-native-freeze"
+      - name: Keep count-only official native receipt proof
+        if: steps.official_native_upload.outputs.artifact-id != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-native-freeze-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/official-native-freeze.status.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Freeze the explicitly requested official browser source packet
+        id: official_source_packet
+        if: hashFiles('audit/state/official-source-packet-freeze-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-source-freeze:* ]]; then
+            plan=audit/state/official-source-packet-freeze-input.json
+            if [[ -f audit/state/official-source-packet-future-freeze-input.json ]]; then
+              plan=audit/state/official-source-packet-future-freeze-input.json
+            fi
+            candidate_artifact="$(python -c 'import json,sys; p=json.load(open(sys.argv[1])); print(p["carrier_artifact"]["id"] if p["schema"]=="RACE_AI_OFFICIAL_SOURCE_PACKET_FREEZE_INPUT_V2" else sys.argv[2])' "$plan" '${{ steps.native_model_candidate.outputs.artifact-id }}')"
+            python -m scripts.all_existing_model_source_packet_freeze --input "$plan" --candidate-artifact "$candidate_artifact" --out-dir "$RUNNER_TEMP/official-source-packet"
+          fi
+      - name: Independently save encrypted native inputs from the official source packet
+        id: official_source_packet_upload
+        if: steps.official_source_packet.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.official_source_packet.outputs.artifact_name }}
+          path: ${{ runner.temp }}/official-source-packet/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Verify actual saved source packet inputs before their deadlines
+        if: steps.official_source_packet_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          plan=audit/state/official-source-packet-freeze-input.json
+          if [[ -f audit/state/official-source-packet-future-freeze-input.json ]]; then
+            plan=audit/state/official-source-packet-future-freeze-input.json
+          fi
+          python -m scripts.all_existing_model_source_packet_freeze --input "$plan" --readback-artifact '${{ steps.official_source_packet_upload.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/official-source-packet"
+      - name: Keep count-only official source packet receipt proof
+        if: steps.official_source_packet_upload.outputs.artifact-id != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-source-packet-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/official-source-packet.status.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Compare the explicitly pinned future native cohort
+        id: native_future
+        if: hashFiles('audit/state/all-existing-model-native-future-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == native-p1-compare:* ]]; then
+            python -m scripts.all_existing_model_native_future --manifest audit/state/all-existing-model-native-future-input.json --out-dir "$RUNNER_TEMP/all-native-future"
+          fi
+      - name: Independently save the encrypted native future comparison
+        id: native_future_upload
+        if: steps.native_future.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.native_future.outputs.artifact_name }}
+          path: ${{ runner.temp }}/all-native-future/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Keep the encrypted original-source provenance for the thirty-cell path
+        id: native_future_origin_upload
+        if: steps.native_future.outputs.origin_ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.native_future.outputs.origin_artifact_name }}
+          path: ${{ runner.temp }}/all-native-future.origin/origin.enc
+          retention-days: 7
+          if-no-files-found: error
+      - name: Verify the actual native future comparison receipt
+        if: steps.native_future_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          ORIGIN_REQUIRED: ${{ steps.native_future.outputs.origin_ready }}
+          ORIGIN_ARTIFACT_ID: ${{ steps.native_future_origin_upload.outputs.artifact-id }}
+        shell: bash
+        run: |
+          origin_args=()
+          if [[ "$ORIGIN_REQUIRED" == 'true' ]]; then
+            test -n "$ORIGIN_ARTIFACT_ID"
+            origin_args+=(--readback-origin-artifact "$ORIGIN_ARTIFACT_ID")
+          fi
+          python -m scripts.all_existing_model_native_future --manifest audit/state/all-existing-model-native-future-input.json --out-dir "$RUNNER_TEMP/all-native-future" --readback-artifact '${{ steps.native_future_upload.outputs.artifact-id }}' "${origin_args[@]}"
+      - name: Keep count-only native future comparison proof
+        if: steps.native_future_upload.outputs.artifact-id != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-native-future-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/all-native-future.status.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Replay the explicitly requested encrypted official result sources
+        id: official_result_freeze
+        if: hashFiles('audit/state/official-result-freeze-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-results-freeze:* ]]; then
+            python -m scripts.all_existing_model_official_result_freeze --input audit/state/official-result-freeze-input.json --out-dir "$RUNNER_TEMP/official-result-freeze"
+          fi
+      - name: Independently save only the encrypted official result payload
+        id: official_result_upload
+        if: steps.official_result_freeze.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.official_result_freeze.outputs.artifact_name }}
+          path: ${{ runner.temp }}/official-result-freeze/results.enc
+          retention-days: 7
+          if-no-files-found: error
+      - name: Replay the actual saved official results against frozen native inputs
+        if: steps.official_result_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_official_result_freeze --input audit/state/official-result-freeze-input.json --out-dir "$RUNNER_TEMP/official-result-freeze" --readback-artifact '${{ steps.official_result_upload.outputs.artifact-id }}'
+      - name: Keep count-only official result source receipt proof
+        if: steps.official_result_upload.outputs.artifact-id != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-result-source-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/official-result-freeze.status.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Execute the explicitly requested common-eight order-only research fit
+        id: order_only_fit
+        if: hashFiles('audit/state/all-existing-model-order-only-ci-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-order-only-fit:* ]]; then
+            python -m scripts.all_existing_model_order_only_fit --input audit/state/all-existing-model-order-only-ci-input.json --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/order-only-fit"
+          fi
+      - name: Keep the encrypted thirty-cell research candidate
+        if: steps.order_only_fit.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-model-learning-${{ github.run_id }}-2
+          path: |
+            ${{ runner.temp }}/order-only-fit/learning.enc
+            ${{ runner.temp }}/order-only-fit/learning.json
+            ${{ runner.temp }}/order-only-fit/summary.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Keep the encrypted explicit owner-decision audit separately
+        if: always() && steps.order_only_fit.outputs.owner_record_ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-order-only-owner-decision-${{ github.run_id }}
+          path: ${{ runner.temp }}/order-only-fit.owner-research.enc
+          retention-days: 7
+          if-no-files-found: error
+      - name: Score the explicitly requested nonfinancial native comparison
+        id: order_only_pdca
+        if: hashFiles('audit/state/all-existing-model-order-only-pdca-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == order-only-pdca:* ]]; then
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+            python -m scripts.all_existing_model_order_only_pdca --input audit/state/all-existing-model-order-only-pdca-input.json --out-dir "$RUNNER_TEMP/order-only-pdca"
+          fi
+      - name: Keep only encrypted native order comparison partitions
+        id: order_only_pdca_upload
+        if: steps.order_only_pdca.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.order_only_pdca.outputs.artifact_name }}
+          path: ${{ runner.temp }}/order-only-pdca/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Independently verify the actual nonfinancial comparison artifact
+        if: steps.order_only_pdca_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_order_only_pdca --input audit/state/all-existing-model-order-only-pdca-input.json --out-dir "$RUNNER_TEMP/order-only-pdca" --readback-artifact '${{ steps.order_only_pdca_upload.outputs.artifact-id }}'
+      - name: Keep count-only native order comparison status
+        if: always() && steps.order_only_pdca.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-order-only-pdca-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/order-only-pdca.status.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Score the explicitly requested native cash comparison
+        id: cash_native_pdca
+        if: hashFiles('audit/state/all-existing-model-cash-pdca-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == cash-native-pdca:* ]]; then
+            umask 077
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+            python -m scripts.all_existing_model_cash_pdca --input audit/state/all-existing-model-cash-pdca-input.json --out-dir "$RUNNER_TEMP/cash-native-pdca"
+          fi
+      - name: Keep only encrypted native cash comparison partitions
+        id: cash_native_pdca_upload
+        if: steps.cash_native_pdca.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.cash_native_pdca.outputs.artifact_name }}
+          path: ${{ runner.temp }}/cash-native-pdca/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Independently verify the actual native cash comparison artifact
+        if: steps.cash_native_pdca_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_cash_pdca --input audit/state/all-existing-model-cash-pdca-input.json --out-dir "$RUNNER_TEMP/cash-native-pdca" --readback-artifact '${{ steps.cash_native_pdca_upload.outputs.artifact-id }}'
+      - name: Keep count-only native cash comparison status
+        if: always() && steps.cash_native_pdca.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-cash-pdca-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/cash-native-pdca.status.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Score explicitly requested thirty-cell nonfinancial native comparison
+        id: thirty_order_pdca
+        if: hashFiles('audit/state/all-existing-model-thirty-order-pdca-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == all-thirty-order-pdca:* ]]; then
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+            python -m scripts.all_existing_model_thirty_order_pdca --input audit/state/all-existing-model-thirty-order-pdca-input.json --out-dir "$RUNNER_TEMP/thirty-order-pdca"
+          fi
+      - name: Retain only encrypted thirty-cell nonfinancial comparison partitions
+        id: thirty_order_pdca_upload
+        if: steps.thirty_order_pdca.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.thirty_order_pdca.outputs.artifact_name }}
+          path: ${{ runner.temp }}/thirty-order-pdca/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Independently read back the actual thirty-cell nonfinancial artifact
+        if: steps.thirty_order_pdca_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_thirty_order_pdca --input audit/state/all-existing-model-thirty-order-pdca-input.json --out-dir "$RUNNER_TEMP/thirty-order-pdca" --readback-artifact '${{ steps.thirty_order_pdca_upload.outputs.artifact-id }}'
+      - name: Keep count-only thirty-cell nonfinancial comparison status
+        if: always() && steps.thirty_order_pdca.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-thirty-order-pdca-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/thirty-order-pdca.status.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Freeze the requested future P0 comparison from retained inputs only
+        id: future_p0
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          # Explicit one-shot commit request; routine CI never issues forecasts.
+          if [[ "$(git log -1 --format=%s)" == future-p0:* ]]; then
+            python -m scripts.all_existing_model_future_p0 --candidate-artifact '${{ steps.model_candidate.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/all-existing-model-future-p0"
+          fi
+      - name: Independently save the nine encrypted future P0 pairs
+        id: future_p0_upload
+        if: steps.future_p0.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-model-pairs-${{ github.run_id }}-900001
+          path: ${{ runner.temp }}/all-existing-model-future-p0/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Re-read actual saved future pairs and verify the pre-cutoff witness
+        if: steps.future_p0_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_future_p0 --readback-artifact '${{ steps.future_p0_upload.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/all-existing-model-future-p0"
+      - name: Retain count-only actual future comparison proof
+        if: steps.future_p0_upload.outputs.artifact-id != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-model-future-p0-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/all-existing-model-future-p0.status.json
+          retention-days: 7
+          if-no-files-found: error
+  official_result_recovery_issuer:
+    name: Source-free exact-run recovery issuer
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/four-sport-forecast-audit-view-20261022' && github.actor == 'haji84' && github.actor_id == '173585154' && github.triggering_actor == 'haji84' && github.run_attempt == '1'
+    permissions:
+      contents: write  # Only this source-free job can append one opaque capsule.
+      actions: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact issue HEAD with complete parent metadata
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          filter: blob:none
+          fetch-tags: false
+      - name: Route only the explicit issue-only commit prefix
+        id: issue_route
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-results-issue:* ]]; then
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+          elif [[ "$(git log -1 --format=%s)" == official-results-prepare:* ]]; then
+            echo 'prepare_requested=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Checkout immutable existing PR64 parser for authentication imports
+        if: steps.issue_route.outputs.requested == 'true' || steps.issue_route.outputs.prepare_requested == 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Verify tested execution before dependencies or owner key
+        id: frozen_execution
+        if: steps.issue_route.outputs.requested == 'true' || steps.issue_route.outputs.prepare_requested == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FROZEN_KIND: ${{ steps.issue_route.outputs.requested == 'true' && 'issue' || 'prepare' }}
+        shell: bash
+        run: |
+          umask 077
+          python -I -S - <<'PYTHON'
+          import base64, hashlib, json, os, re, subprocess, sys
+          from pathlib import Path
+          root = Path.cwd().resolve()
+          workflow = '.github/workflows/forecast-audit-ui.yml'
+          bootstrap = 'scripts/official_frozen_execution.py'
+          def need(ok):
+              if not ok:
+                  raise SystemExit('HOLD_FROZEN_BOOTSTRAP_PROVENANCE')
+          def git(*args):
+              value = subprocess.run(['git', '--no-replace-objects', *args], cwd=root, capture_output=True, timeout=30)
+              need(value.returncode == 0 and len(value.stdout) <= 36 * 1024 * 1024)
+              return value.stdout
+          def sha(value):
+              need(type(value) is str and re.fullmatch(r'[a-f0-9]{40}', value) is not None)
+              return value
+          def blob(head, path):
+              head = sha(head)
+              row = git('ls-tree', '-z', head, '--', path).split(b'\0')
+              need(len(row) == 2 and row[1] == b'')
+              attrs, name = row[0].split(b'\t', 1)
+              mode, kind, ident = attrs.decode('ascii').split()
+              need(mode == '100644' and kind == 'blob' and name.decode() == path)
+              return sha(ident), git('cat-file', 'blob', ident)
+          def github(path):
+              need(re.fullmatch(r'git/(?:commits|trees|blobs)/[a-f0-9]{40}', path) is not None)
+              value = subprocess.run(['gh', 'api', 'repos/haji84/RACE-AI/' + path], capture_output=True, timeout=50)
+              need(value.returncode == 0 and 0 < len(value.stdout) <= 36 * 1024 * 1024)
+              result = json.loads(value.stdout)
+              need(type(result) is dict)
+              return result
+          def executed_workflow(head):
+              local = subprocess.run(['git', '--no-replace-objects', 'cat-file', '-e', head + '^{commit}'], cwd=root, capture_output=True, timeout=30)
+              if local.returncode == 0:
+                  return blob(head, workflow)
+              commit = github('git/commits/' + head)
+              need(commit.get('sha') == head and type(commit.get('tree')) is dict)
+              tree = sha(commit['tree'].get('sha'))
+              for number, part in enumerate(workflow.split('/')):
+                  obj = github('git/trees/' + tree)
+                  need(obj.get('sha') == tree and obj.get('truncated') is False and type(obj.get('tree')) is list)
+                  rows = [row for row in obj['tree'] if type(row) is dict and row.get('path') == part]
+                  need(len(rows) == 1)
+                  row = rows[0]
+                  if number < 2:
+                      need(row.get('mode') == '040000' and row.get('type') == 'tree')
+                      tree = sha(row.get('sha'))
+                  else:
+                      need(row.get('mode') == '100644' and row.get('type') == 'blob')
+                      ident = sha(row.get('sha'))
+                      obj = github('git/blobs/' + ident)
+                      need(obj.get('sha') == ident and obj.get('encoding') == 'base64')
+                      raw = base64.b64decode(obj.get('content'), validate=False)
+                      need(type(obj.get('size')) is int and obj['size'] == len(raw))
+                      need(hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest() == ident)
+                      return ident, raw
+          need('RACE_AI_STATE_KEY' not in os.environ)
+          intent = sha(git('rev-parse', 'HEAD').decode().strip())
+          kind = os.environ.get('FROZEN_KIND')
+          need(kind in ('issue', 'prepare'))
+          path = 'audit/state/official-result-recovery-' + ('issue-request.json' if kind == 'issue' else 'prepare-request.json')
+          def pairs(rows):
+              result = {}
+              for key, value in rows:
+                  need(key not in result)
+                  result[key] = value
+              return result
+          request = json.loads(blob(intent, path)[1], object_pairs_hook=pairs)
+          need(type(request) is dict)
+          if kind == 'issue':
+              need(request.get('schema') == 'RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_REQUEST_V2')
+              tested = sha(request.get('tested_execution_head_sha'))
+              need(type(request.get('target')) is dict and request['target'].get('head_sha') == tested)
+          else:
+              need(request.get('schema') == 'RACE_AI_OFFICIAL_RESULT_PLAN_PREPARE_REQUEST_V3')
+              need(type(request.get('verified_code_ancestor')) is dict)
+              tested = sha(request['verified_code_ancestor'].get('head_sha'))
+          actual_workflow = sha(os.environ.get('GITHUB_WORKFLOW_SHA'))
+          need(actual_workflow == os.environ.get('GITHUB_SHA'))
+          for protected in (workflow, bootstrap, 'requirements-history.txt'):
+              expected = blob(tested, protected)
+              need(blob(intent, protected) == expected)
+              if protected == workflow:
+                  need(executed_workflow(actual_workflow) == expected)
+              else:
+                  local = root / protected
+                  need(local.is_file() and not any(p.is_symlink() for p in (local, *local.parents)))
+                  need(local.read_bytes() == expected[1])
+          raw = blob(tested, bootstrap)[1]
+          sys.argv = [str(root / bootstrap), '--git-root', str(root), '--intent-head', intent,
+                      '--kind', kind, '--out-dir', str(Path(os.environ['RUNNER_TEMP']) / 'official-frozen-execution')]
+          exec(compile(raw, str(root / bootstrap), 'exec'), {'__name__': '__main__', '__file__': str(root / bootstrap)})
+          PYTHON
+      - name: Install existing pinned archive authentication dependencies
+        if: (steps.issue_route.outputs.requested == 'true' || steps.issue_route.outputs.prepare_requested == 'true') && steps.frozen_execution.outputs.ready == 'true'
+        working-directory: ${{ steps.frozen_execution.outputs.execution_root }}
+        run: python -I -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Issue one consumed exact-parent capsule and authenticate remote readback
+        id: issue
+        if: steps.issue_route.outputs.requested == 'true' && steps.frozen_execution.outputs.ready == 'true'
+        working-directory: ${{ steps.frozen_execution.outputs.execution_root }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          FROZEN_EXECUTION_ROOT: ${{ steps.frozen_execution.outputs.execution_root }}
+          FROZEN_GIT_ROOT: ${{ steps.frozen_execution.outputs.git_root }}
+          FROZEN_INTENT_HEAD: ${{ steps.frozen_execution.outputs.intent_head }}
+          FROZEN_EXECUTION_HEAD: ${{ steps.frozen_execution.outputs.execution_head }}
+        shell: bash
+        run: |
+          umask 077
+          python -I - <<'PY'
+          from pathlib import Path
+          import os, sys
+          execution = Path(os.environ['FROZEN_EXECUTION_ROOT']).resolve(strict=True)
+          os.chdir(execution)
+          sys.path.insert(0, str(execution))
+          import race_ai
+          race_ai.__path__.append(str(execution.parent / 'pr64-reference' / 'race_ai'))
+          from scripts.all_existing_model_official_result_issue import main
+          raise SystemExit(main(['--proof', str(Path(os.environ['RUNNER_TEMP']) / 'official-result-recovery-issue-proof.json'),
+              '--frozen-git-root', os.environ['FROZEN_GIT_ROOT'], '--frozen-intent-head', os.environ['FROZEN_INTENT_HEAD'],
+              '--frozen-execution-head', os.environ['FROZEN_EXECUTION_HEAD']]))
+          PY
+      - name: Prepare authenticated unchanged KEIRIN plan without source or issuance
+        id: prepare
+        if: steps.issue_route.outputs.prepare_requested == 'true' && steps.frozen_execution.outputs.ready == 'true'
+        working-directory: ${{ steps.frozen_execution.outputs.execution_root }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          FROZEN_EXECUTION_ROOT: ${{ steps.frozen_execution.outputs.execution_root }}
+          FROZEN_GIT_ROOT: ${{ steps.frozen_execution.outputs.git_root }}
+          FROZEN_INTENT_HEAD: ${{ steps.frozen_execution.outputs.intent_head }}
+          FROZEN_EXECUTION_HEAD: ${{ steps.frozen_execution.outputs.execution_head }}
+        shell: bash
+        run: |
+          umask 077
+          python -I - <<'PY'
+          from pathlib import Path
+          import os, sys
+          execution = Path(os.environ['FROZEN_EXECUTION_ROOT']).resolve(strict=True)
+          os.chdir(execution)
+          sys.path.insert(0, str(execution))
+          import race_ai
+          race_ai.__path__.append(str(execution.parent / 'pr64-reference' / 'race_ai'))
+          from scripts.all_existing_model_official_result_prepare import main
+          raise SystemExit(main(['--out-dir', str(Path(os.environ['RUNNER_TEMP']) / 'official-result-recovery-preparation'),
+              '--frozen-git-root', os.environ['FROZEN_GIT_ROOT'], '--frozen-intent-head', os.environ['FROZEN_INTENT_HEAD'],
+              '--frozen-execution-head', os.environ['FROZEN_EXECUTION_HEAD']]))
+          PY
+      - name: Retain only public hashes, counts and exact target issuance proof
+        if: always() && steps.issue_route.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-result-recovery-issue-proof-${{ github.run_id }}-1
+          path: ${{ runner.temp }}/official-result-recovery-issue-proof.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Retain only encrypted plan, public request and safe preparation counts
+        if: always() && steps.issue_route.outputs.prepare_requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-result-recovery-preparation-${{ github.run_id }}-1
+          path: |
+            ${{ runner.temp }}/official-result-recovery-preparation/sealedplan.enc
+            ${{ runner.temp }}/official-result-recovery-preparation/request.json
+            ${{ runner.temp }}/official-result-recovery-preparation/counts.json
+          retention-days: 7
+          if-no-files-found: error
+  viewer_python_full:
+    if: github.event_name == 'pull_request'
+    name: Viewer Python complete suite (shard ${{ matrix.shard }}/4)
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          filter: blob:none
+          fetch-tags: false
+      - name: Checkout pinned PR64 parser for offline tests
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Checkout pinned PR72 adapters for offline tests
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+      - name: Use Node24 for Python subprocess contracts
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.19.0'
+          package-manager-cache: false
+      - name: Install existing offline dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Execute deterministic full-suite shard
+        run: python -m scripts.ci_unittest_shard --index '${{ matrix.shard }}' --count 4
+
+  viewer_contract:
+    needs: viewer_python_full
+    if: github.event_name == 'pull_request'
+    name: Viewer audit contract
+    permissions:
+      contents: read
+      actions: read
+    runs-on: ubuntu-24.04
+    # Observed full Python runs reached 2,305s; real-codec regressions add
+    # roughly 1,251s. Keep video/browser checks within this same existing job.
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          filter: blob:none
+          fetch-tags: false
+      - name: Checkout pinned PR64 parser for complete Python discovery
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Checkout pinned PR72 source adapters for complete Python discovery
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+      - name: Verify repository revision
+        run: git rev-parse HEAD
+      - name: Use Node24 for local SQLite batch tests
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.19.0'
+          package-manager-cache: false
+      - name: Check viewer script syntax
+        run: |
+          node --check web/forecast-audit-model.js
+          node --check web/forecast-audit.js
+          node --check web/full-odds-model.js
+          node --check web/full-odds.js
+          node --check workers/odds_feed_worker.mjs
+          node --check workers/odds_auto_source_cron.mjs
+          node --check race_ai/odds_three_cycle_audit.mjs
+          node --check workers/private_wire_vault.mjs
+          node --check workers/private_wire_vault_schema.mjs
+          node --check tests/support/local_private_wire_d1.mjs
+      - name: Validate Vercel-free BOAT lifecycle logic
+        run: |
+          node --check workers/boat_nonvercel_core.mjs
+          node --test tests/boat_nonvercel_core.test.mjs
+          node --check workers/boat_official_html.mjs
+          node --check workers/boat_nonvercel_cron.mjs
+          node --check workers/boat_pdca_shadow.mjs
+          node --test tests/boat_official_html.test.mjs tests/boat_pdca_shadow.test.mjs tests/existing_pdca_parameters.test.mjs tests/boat_continuous_control.test.mjs
+      - name: Node contract and denominator tests
+        run: node --test --test-reporter=tap tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs tests/odds_three_cycle_audit.test.mjs tests/private_wire_vault.test.mjs
+      - name: Install pinned private history cache crypto (synthetic keys only)
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Check exact registered history witness bytes (owner request only)
+        id: history_witness_check
+        if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'haji84' && github.event.pull_request.user.id == 173585154 && github.actor == 'haji84' && github.actor_id == '173585154' && github.triggering_actor == 'haji84' && github.run_attempt == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == history-witness-check:* && -f audit/state/boat-venue-future-grid-input.json ]]; then
+            python -m scripts.boat_history_witness_check
+          fi
+      - name: Verify owner-requested seller retirement and legacy readback
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import unittest, race_ai
+          race_ai.__path__.extend(str(Path(root) / 'race_ai') for root in ('pr64-reference', 'pr72-reference'))
+          suite = unittest.defaultTestLoader.loadTestsFromNames(('tests.test_seller_retirement','tests.test_boat_saved_p0_seller_sources','tests.test_all_existing_model_generation_clock','tests.test_all_existing_model_cli_derivation','tests.test_boat_seller_inputs','tests.test_boat_seller_official_source','tests.test_dispatch_product_projection','tests.test_boat_saved_display_evidence','tests.test_boat_saved_site_context'))
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(not result.wasSuccessful())
+          PY
+          node --test tests/model_catalog.test.cjs
+      - name: Verify full same-head attempt-one evidence before optional recovery reuse
+        id: official_recovery_preflight
+        if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && github.run_attempt == '2' && hashFiles('audit/state/official-result-recovery-request.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-results-collect:* ]]; then
+            python -m scripts.all_existing_model_official_result_recovery --frozen-source --preflight --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-preflight"
+          fi
+      - name: Validate history formats, official reconciliation and unchanged model contracts offline
+        run: python -m unittest discover -s tests -p 'test_teiai*.py' -v
+      # Full Python discovery is covered once per module by the isolated
+      # viewer_python_full matrix; video/browser validation may run promptly.
+      - name: Verify isolated experimental video decoding and measurements
+        if: steps.official_recovery_preflight.outputs.reuse_prior_verification != 'true'
+        run: |
+          python -m venv "$RUNNER_TEMP/race-ai-video-tools"
+          "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m pip install -r requirements-video.txt -r requirements-history.txt
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null || ! command -v tesseract >/dev/null; then
+            # The Azure HTTP mirror stalled package downloads before any video test ran.
+            # Keep Ubuntu's signed packages and use its canonical HTTPS archive.
+            if [ -f /etc/apt/apt-mirrors.txt ]; then
+              sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
+            fi
+            sudo apt-get update
+            sudo apt-get install --no-install-recommends -y ffmpeg tesseract-ocr tesseract-ocr-eng
+          fi
+          "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_tracking tests.test_boat_video_identity tests.test_boat_video_identity_tracking tests.test_boat_video_ocr_reliability tests.test_boat_video_intake tests.test_boat_video_cli tests.test_boat_video_tiled_detector tests.test_boat_video_crnn tests.test_boat_video_camera_identity tests.test_boat_video_calibration tests.test_boat_video_physical_context tests.test_boat_video_sequential_context tests.test_boat_video_vision_cli tests.test_boat_video_publication tests.test_boat_video_publication_intake -v
+          "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_marker_reader tests.test_boat_video_marker_flow tests.test_boat_video_marker_identity tests.test_boat_video_marker_pipeline tests.test_boat_video_marker_verifier tests.test_boat_video_ppocr tests.test_boat_video_marker_cli tests.test_boat_video_rider_detector tests.test_boat_video_rider_tracking tests.test_boat_video_clothing_identity tests.test_boat_video_broadcast_context tests.test_boat_video_commentary tests.test_boat_video_phase tests.test_boat_video_activity tests.test_boat_video_reazon -v
+      - name: Integrated product UI contracts
+        run: |
+          node --check web/app.js
+          node --check web/saved-performance.js
+          node --check web/ui-model.js
+          node --check web/product-data.js
+          node --check web/existing-model-catalog.js
+          node --check scripts/existing_pdca_offline.mjs
+          node --test --test-reporter=tap tests/ui_model.test.js tests/race_explorer.test.cjs tests/product_data.test.cjs tests/model_catalog.test.cjs tests/existing_pdca_offline.test.mjs tests/saved_performance.test.cjs tests/racer_portraits.test.cjs tests/racer_portrait_atlas.test.cjs tests/racer_profiles.test.cjs tests/racer_daily.test.cjs
+          python -m unittest tests.test_racer_profiles tests.test_boat_racer_term tests.test_racer_daily tests.test_racer_daily_handoff tests.test_racer_intraday_source tests.test_racer_intraday_aggregate tests.test_racer_intraday tests.test_racer_intraday_handoff tests.test_racer_intraday_transport tests.test_racer_intraday_refresh
+      - name: Install isolated pinned browser test tooling
+        run: |
+          npm install --prefix "$RUNNER_TEMP/race-ai-ui-tools" --no-package-lock --ignore-scripts playwright@1.62.1
+          "$RUNNER_TEMP/race-ai-ui-tools/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Collect explicitly requested due official results using normal public navigation
+        id: official_result_collect
+        if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && hashFiles('audit/state/official-result-collect-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          NODE_PATH: ${{ runner.temp }}/race-ai-ui-tools/node_modules
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-results-collect:* ]]; then
+            export CHROMIUM_PATH="$(node -e 'process.stdout.write(require("playwright").chromium.executablePath())')"
+            if [[ -f audit/state/official-result-recovery-request.json ]]; then
+              python -m scripts.all_existing_model_official_result_recovery --frozen-source --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-collection"
+            else
+              echo 'requested=true' >> "$GITHUB_OUTPUT"
+              python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection"
+            fi
+          fi
+      - name: Independently save only the collected official result ciphertext
+        id: collected_official_result_upload
+        if: steps.official_result_collect.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.official_result_collect.outputs.artifact_name }}
+          path: ${{ runner.temp }}/official-result-collection/results.enc
+          retention-days: 7
+          if-no-files-found: error
+      - name: Retain the encrypted collection journal including interrupted attempts
+        id: official_collection_journal_upload
+        if: always() && steps.official_result_collect.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-result-collection-journal-${{ github.run_id }}
+          path: ${{ runner.temp }}/official-result-collection.collection.enc
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Verify the collected result artifact against the original frozen inputs
+        if: steps.collected_official_result_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ -f audit/state/official-result-recovery-request.json ]]; then
+            python -m scripts.all_existing_model_official_result_recovery --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-collection" --readback-artifact '${{ steps.collected_official_result_upload.outputs.artifact-id }}'
+          else
+            python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection" --readback-artifact '${{ steps.collected_official_result_upload.outputs.artifact-id }}'
+          fi
+      - name: Verify the actual encrypted collection journal even when results remain held
+        if: always() && steps.official_collection_journal_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ -f audit/state/official-result-recovery-request.json ]]; then
+            python -m scripts.all_existing_model_official_result_recovery --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-collection" --readback-journal-artifact '${{ steps.official_collection_journal_upload.outputs.artifact-id }}'
+          else
+            python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection" --readback-journal-artifact '${{ steps.official_collection_journal_upload.outputs.artifact-id }}'
+          fi
+      - name: Keep count-only official result collection status
+        if: always() && steps.official_result_collect.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-result-collection-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/official-result-collection.status.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Exercise seven product pages at four viewport widths
+        env:
+          NODE_PATH: ${{ runner.temp }}/race-ai-ui-tools/node_modules
+          UI_JOURNAL_EXPORT: ${{ runner.temp }}/product-ui-journal.json
+          UI_PRIVATE_CYCLE_EXPORT: ${{ runner.temp }}/private-cycle-view.json
+          UI_DISPATCH_VIEWS: ${{ runner.temp }}/private-dispatch-views.json
+        run: |
+          python -m race_ai.synthetic_e2e --db "$RUNNER_TEMP/product-ui-synthetic.sqlite"
+          python -m race_ai.audit_projection --db "$RUNNER_TEMP/product-ui-synthetic.sqlite" --out "$UI_JOURNAL_EXPORT"
+          python -m tests.private_cycle_ui_fixture --out "$UI_PRIVATE_CYCLE_EXPORT"
+          python -m tests.private_dispatch_ui_fixture --out "$UI_DISPATCH_VIEWS"
+          node tests/ui_browser.test.js
+          node tests/saved_pdca_browser.test.js
+          node tests/saved_pages_browser.test.js
+          node tests/results_budget_browser.test.js
+          node tests/racer_portraits_browser.test.cjs
+          node tests/venue_names_browser.test.cjs
+          node tests/race_explorer_browser.test.cjs
+          node tests/racer_intraday_browser.test.cjs
+          node tests/result_detail_browser.test.cjs
+          node --test tests/boat_video_ui.test.mjs
+      - name: Retain synthetic-only UI interaction evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: synthetic-product-ui-${{ github.sha }}
+          path: artifacts/ui-browser/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Read frozen real-race research record by immutable commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0643ed09343d10a3181af855ad4065cb07074208
+          path: independent-forecast-evidence
+          persist-credentials: false
+      - name: Verify historical pre-cutoff research snapshot without refreshing forecast
+        run: |
+          python - <<'PY'
+          import json, pathlib, itertools, math
+          p=pathlib.Path('independent-forecast-evidence/audit/2026-10-22/prospective_shadow_kojima_12r_0929JST_immutable.json')
+          d=json.loads(p.read_text())
+          rows=d['races']
+          assert len(rows)==12 and len({r['race_id'] for r in rows})==12
+          for race in rows:
+              assert race['outcome_at_forecast_time'] is None and race['candidate_count']==120
+              assert len(race['ordered_top8'])==8 and race['all_valid_candidates_ranked']
+              w=race['model']['class_weight']; lanes=race['model']['lane_bias']; grades=race['entrant_classes']
+              strengths=[w[g]*b for g,b in zip(grades,lanes)]; total=sum(strengths)
+              u=[]
+              for a,b,c in itertools.permutations(range(1,7),3):
+                  sa,sb,sc=strengths[a-1],strengths[b-1],strengths[c-1]
+                  u.append(([a,b,c],sa/total*sb/(total-sa)*sc/(total-sa-sb)))
+              assert len(u)==120 and math.isclose(sum(t[1] for t in u),1,abs_tol=1e-9)
+              u.sort(key=lambda item:(-item[1],item[0]))
+              assert [t[0] for t in u[:8]]==[r['combination'] for r in race['ordered_top8']]
+              assert race['model']['validated_accuracy'] is False and race['betting_decision']=='NO_BET'
+          print('IMMUTABLE_RESEARCH_PROOF_12_OK: git-pinned pre-result ranking replays; NOT a trusted external freeze receipt')
+          PY
+      - name: Validate public audit seed
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          obj=json.loads(Path("web/data/2026-10-22-forecast-audit.json").read_text())
+          races=obj["records"]
+          assert obj["dataset_status"]=="AUDIT_ONLY"
+          assert len(races)==322
+          assert len({x["race_id"] for x in races})==322
+          assert all(x["prediction"] is None and x["result"] is None for x in races)
+          assert all(x["offering_status"]=="UNKNOWN" for x in races)
+          print("AUDIT_ONLY 322 distinct race slots; no predictions or outcomes fabricated")
+          PY
+  official_future_source_capture:
+    name: One-shot official future native source capture
+    needs: [train_only_tests, pr64_cross_branch_bridge, boat_pdca_state_producer, boat_pdca_state_consumer, viewer_contract]
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/four-sport-forecast-audit-view-20261022' && github.event.pull_request.base.ref == 'codex/actions-four-sport-e2e' && github.event.pull_request.user.login == 'haji84' && github.event.pull_request.user.id == 173585154 && github.actor == 'haji84' && github.actor_id == '173585154' && github.triggering_actor == 'haji84' && github.run_attempt == '1' && needs.train_only_tests.result == 'success' && needs.pr64_cross_branch_bridge.result == 'success' && needs.boat_pdca_state_producer.result == 'success' && needs.boat_pdca_state_consumer.result == 'success' && needs.viewer_contract.result == 'success'
+    permissions:
+      contents: write  # Create only the fixed experiment-wide consumed marker.
+      actions: read
+    runs-on: ubuntu-24.04
+    # JRA alone may wait source-free for the actual prior-terminal interval:
+    # 3,605-second admission budget plus one in-flight GitHub read, then the
+    # existing bounded capture and readback.
+    timeout-minutes: 80
+    steps:
+      - name: Checkout exact future source HEAD without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Route only the explicit current-day future source request
+        id: future_source_route
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-future-source-capture:* && -f audit/state/official-future-source-capture-input.json ]]; then
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+          elif [[ "$(git log -1 --format=%s)" == official-future-result-capture:* && -f audit/state/official-future-source-capture-input.json ]]; then
+            printf 'requested=true\ncapture_kind=RESULT\n' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Checkout immutable PR64 authentication parser
+        if: steps.future_source_route.outputs.requested == 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Checkout immutable PR72 native source adapters
+        if: steps.future_source_route.outputs.requested == 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+      - name: Install existing pinned private archive dependencies
+        if: steps.future_source_route.outputs.requested == 'true'
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Validate the complete public input before choosing its source scope
+        id: future_source_scope
+        if: steps.future_source_route.outputs.requested == 'true'
+        env:
+          FUTURE_CAPTURE_KIND: ${{ steps.future_source_route.outputs.capture_kind || 'SOURCE' }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os, race_ai
+          from datetime import datetime, timezone
+          from pathlib import Path
+          race_ai.__path__.extend(str(Path(p).resolve()) for p in ('pr64-reference/race_ai','pr72-reference/race_ai'))
+          try:
+              from race_ai.permissioned_source_delivery import read_json_bytes
+              raw=Path('audit/state/official-future-source-capture-input.json').read_bytes()
+              if len(raw)>65536:raise ValueError('INPUT_BOUND')
+              value=read_json_bytes(raw)
+              kind=os.environ['FUTURE_CAPTURE_KIND']
+              if kind=='SOURCE' and value.get('schema')=='RACE_AI_OFFICIAL_FUTURE_SOURCE_CAPTURE_INPUT_V1':
+                  from race_ai.all_existing_model_future_source_capture import validate_manifest
+                  scope,prefix='autorace-keirin','official-future-source-capture'
+              elif kind=='SOURCE' and value.get('schema')=='RACE_AI_JRA_FUTURE_SOURCE_CAPTURE_INPUT_V1':
+                  from race_ai.jra_future_source_capture import validate_manifest
+                  scope,prefix='horse','official-jra-future-source-capture'
+              elif kind=='RESULT' and value.get('schema') in ('RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_INPUT_V1','RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_INPUT_V2'):
+                  from race_ai.all_existing_model_future_result_capture import validate_manifest
+                  scope,prefix='official-result','official-future-result-capture'
+              else:raise ValueError('INPUT_SCHEMA')
+              validate_manifest(value,now=datetime.now(timezone.utc))
+          except Exception:raise SystemExit('FUTURE_SOURCE_INPUT_REJECTED') from None
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('scope='+scope+'\nsource_artifact_prefix='+prefix+'\n')
+          PY
+      - name: Use the pinned Node runtime for isolated future source tooling
+        if: steps.future_source_route.outputs.requested == 'true' && (steps.future_source_scope.outputs.scope == 'autorace-keirin' || steps.future_source_scope.outputs.scope == 'official-result')
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.19.0'
+          package-manager-cache: false
+      - name: Install isolated pinned future source browser tooling
+        if: steps.future_source_route.outputs.requested == 'true' && (steps.future_source_scope.outputs.scope == 'autorace-keirin' || steps.future_source_scope.outputs.scope == 'official-result')
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/race-ai-future-ui-tools" --no-package-lock --ignore-scripts playwright@1.62.1
+          "$RUNNER_TEMP/race-ai-future-ui-tools/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Bind the executable to the installed pinned Playwright version
+        id: future_source_browser
+        if: steps.future_source_route.outputs.requested == 'true' && (steps.future_source_scope.outputs.scope == 'autorace-keirin' || steps.future_source_scope.outputs.scope == 'official-result')
+        env:
+          NODE_PATH: ${{ runner.temp }}/race-ai-future-ui-tools/node_modules
+        shell: bash
+        run: |
+          browser="$(node -e 'if(require("playwright/package.json").version!=="1.62.1")process.exit(1);process.stdout.write(require("playwright").chromium.executablePath())')"
+          test -x "$browser"
+          printf 'chromium_path=%s\n' "$browser" >> "$GITHUB_OUTPUT"
+      - name: Reserve once and encrypt the exact future native source inputs
+        id: future_source_capture
+        if: steps.future_source_route.outputs.requested == 'true' && steps.future_source_scope.outputs.scope != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          FUTURE_SOURCE_SCOPE: ${{ steps.future_source_scope.outputs.scope }}
+          NODE_PATH: ${{ runner.temp }}/race-ai-future-ui-tools/node_modules
+          CHROMIUM_PATH: ${{ steps.future_source_browser.outputs.chromium_path }}
+        shell: bash
+        run: |
+          umask 077
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'official-future-source-capture'
+          proof=root.with_name(root.name+'.status.json')
+          scope=os.environ['FUTURE_SOURCE_SCOPE']
+          schemas={'autorace-keirin':'RACE_AI_OFFICIAL_FUTURE_SOURCE_CAPTURE_COUNTS_V1','horse':'RACE_AI_JRA_FUTURE_SOURCE_CAPTURE_COUNTS_V1',
+              'official-result':'RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_COUNTS_V1'}
+          pending=dict(schema=schemas[scope],ready=False,
+              state='HOLD_SOURCE_OUTCOME_NOT_YET_VERIFIED',source_requests=None,source_request_upper_bound=32,
+              old_source_requests_actual=None,old_source_requests_upper_bound=32,old_browser_outcome='UNKNOWN',
+              plaintext_published=False,actual_purchases=False,production_promoted=False,
+              independent_pre_cutoff_receipt_verified=False)
+          if scope=='official-result':pending.update(independent_result_artifact_receipt_verified=False,
+              all_requested_cases_confirmed=False,monetary_evaluation_available=False,
+              evaluation_scope='ORDER_ONLY_NO_MONETARY_EVALUATION')
+          fd=os.open(proof,os.O_WRONLY|os.O_CREAT|os.O_EXCL|getattr(os,'O_NOFOLLOW',0),0o600)
+          with os.fdopen(fd,'w') as stream:json.dump(pending,stream,sort_keys=True)
+          import race_ai
+          race_ai.__path__.extend(str(Path(p).resolve()) for p in ('pr64-reference/race_ai','pr72-reference/race_ai'))
+          if scope=='autorace-keirin':
+              from scripts.all_existing_model_future_source_capture import main
+          elif scope=='horse':
+              os.environ.pop('NODE_PATH',None);os.environ.pop('CHROMIUM_PATH',None)
+              from scripts.jra_future_source_capture import main
+          elif scope=='official-result':
+              from scripts.all_existing_model_future_result_capture import main
+          else:raise SystemExit('FUTURE_SOURCE_SCOPE_REJECTED')
+          raise SystemExit(main(['--input','audit/state/official-future-source-capture-input.json','--out-dir',str(root)]))
+          PY
+      - name: Save only ready encrypted native input partitions
+        id: future_source_native_upload
+        if: steps.future_source_capture.outputs.ready == 'true' && steps.future_source_scope.outputs.scope != 'official-result'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.future_source_capture.outputs.artifact_name }}
+          path: ${{ runner.temp }}/official-future-source-capture/native/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Save only ready encrypted forward official results
+        id: future_source_result_upload
+        if: steps.future_source_capture.outputs.ready == 'true' && steps.future_source_scope.outputs.scope == 'official-result'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-official-results-${{ github.run_id }}-900030
+          path: ${{ runner.temp }}/official-future-source-capture/result/results.enc
+          retention-days: 7
+          if-no-files-found: error
+      - name: Always retain only encrypted source reservation and original evidence
+        id: future_source_upload
+        if: always() && steps.future_source_route.outputs.requested == 'true' && steps.future_source_scope.outputs.scope != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.future_source_capture.outputs.source_artifact_name || format('{0}-{1}', steps.future_source_scope.outputs.source_artifact_prefix, github.run_id) }}
+          path: ${{ runner.temp }}/official-future-source-capture/source/*.enc
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Verify actual source receipt and every ready native baseline receipt
+        id: future_source_readback
+        if: always() && steps.future_source_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          FUTURE_SOURCE_SCOPE: ${{ steps.future_source_scope.outputs.scope }}
+          NATIVE_INPUT_ARTIFACT_ID: ${{ steps.future_source_native_upload.outputs.artifact-id }}
+          RESULT_ARTIFACT_ID: ${{ steps.future_source_result_upload.outputs.artifact-id }}
+          SOURCE_CAPTURE_ARTIFACT_ID: ${{ steps.future_source_upload.outputs.artifact-id }}
+        shell: bash
+        run: |
+          umask 077
+          python - <<'PY'
+          import os, race_ai
+          from pathlib import Path
+          race_ai.__path__.extend(str(Path(p).resolve()) for p in ('pr64-reference/race_ai','pr72-reference/race_ai'))
+          scope=os.environ['FUTURE_SOURCE_SCOPE']
+          if scope=='autorace-keirin':
+              from scripts.all_existing_model_future_source_capture import main
+          elif scope=='horse':
+              from scripts.jra_future_source_capture import main
+          elif scope=='official-result':
+              from scripts.all_existing_model_future_result_capture import main
+          else:raise SystemExit('FUTURE_SOURCE_SCOPE_REJECTED')
+          args=['--input','audit/state/official-future-source-capture-input.json',
+              '--out-dir',str(Path(os.environ['RUNNER_TEMP'])/'official-future-source-capture'),
+              '--readback-source',os.environ['SOURCE_CAPTURE_ARTIFACT_ID']]
+          if scope=='official-result':
+              if os.environ.get('NATIVE_INPUT_ARTIFACT_ID'):raise SystemExit('FUTURE_RESULT_ARTIFACT_KIND_REJECTED')
+              if os.environ.get('RESULT_ARTIFACT_ID'):args+=['--readback-result',os.environ['RESULT_ARTIFACT_ID']]
+          else:
+              if os.environ.get('RESULT_ARTIFACT_ID'):raise SystemExit('FUTURE_SOURCE_ARTIFACT_KIND_REJECTED')
+              if os.environ.get('NATIVE_INPUT_ARTIFACT_ID'):args+=['--readback-native',os.environ['NATIVE_INPUT_ARTIFACT_ID']]
+          raise SystemExit(main(args))
+          PY
+      - name: Always retain count-only future source verification status
+        id: future_source_proof
+        if: always() && steps.future_source_route.outputs.requested == 'true' && steps.future_source_scope.outputs.scope != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.future_source_scope.outputs.source_artifact_prefix }}-proof-${{ github.run_id }}-1
+          path: ${{ runner.temp }}/official-future-source-capture.status.json
+          retention-days: 7
+          if-no-files-found: ignore
+  official_all_racer_intake:
+    name: Official all-racer bulk intake (owner key or explicit HOLD)
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      encrypted: ${{ steps.capture.outputs.encrypted }}
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      venue_encrypted: ${{ steps.venue_capture.outputs.encrypted }}
+      venue_artifact_id: ${{ steps.venue_upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.event.pull_request.head.sha }}'}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with: {node-version: '24.19.0', package-manager-cache: false}
+      - name: Install pinned private intake dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Restore only encrypted all-racer cache
+        id: racer_cache
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: ${{ runner.temp }}/all-racer-encrypted-cache
+          key: boat-all-racers-v1-5c1e21cfe5a4dd53ea26eb07aca4905c4c20c3160b4a206ba96e92702eb4b46d
+      - name: Verify owner key before single approved official file GET
+        id: capture
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: |
+          python -m scripts.boat_all_racers capture --out-dir "$RUNNER_TEMP/all-racer-intake" --reuse-dir "$RUNNER_TEMP/all-racer-encrypted-cache"
+          python - <<'PY'
+          import json, os, pathlib
+          report=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'all-racer-intake'/'summary.json').read_text())
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('encrypted='+str(report.get('encrypted_checkpoint_created') is True).lower()+'\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('All-racer intake status: '+report['status']+'\n')
+              out.write('No plaintext source or database artifact; HOLD is not ingestion success.\n')
+          PY
+      - name: Reuse pinned history before any bounded bootstrap capture
+        id: venue_capture
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          from scripts.boat_venue_history import capture_month
+          from scripts.boat_all_racers import _write
+          pointer=json.loads(pathlib.Path('audit/state/boat-venue-history-input.json').read_text())
+          folder=pathlib.Path(os.environ['RUNNER_TEMP'])/'venue-history-month'
+          if pointer.get('status')=='READY':
+              assert pointer.get('schema')=='RACE_AI_BOAT_VENUE_COLLECTION_INPUT_V1' and pointer.get('repository_id')=='1416489937'
+              folder.mkdir(mode=0o700)
+              report=dict(status='PINNED_HISTORY_READBACK_REQUIRED_NO_PROVIDER_GET',upstream_gets=0,encrypted_checkpoint_created=False)
+              _write(folder/'summary.json',json.dumps(report).encode())
+          else:
+              assert pointer.get('status')=='WAITING_ENCRYPTED_INPUT'
+              report=capture_month(folder,month='200501',max_files=5)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('encrypted='+str(report.get('encrypted_checkpoint_created') is True).lower()+'\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('Venue history status: '+report['status']+'\n')
+              out.write('One bounded month is not all-period completeness.\n')
+          PY
+      - name: Preserve only encrypted monthly history and count-only status
+        id: venue_upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-venue-history-200501-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/venue-history-month/history.checkpoint
+            ${{ runner.temp }}/venue-history-month/summary.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Prepare ciphertext-only cache when owner encryption succeeded
+        if: steps.capture.outputs.encrypted == 'true' && steps.racer_cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/all-racer-encrypted-cache"
+          cp "$RUNNER_TEMP/all-racer-intake/racers.checkpoint" "$RUNNER_TEMP/all-racer-encrypted-cache/"
+          cp "$RUNNER_TEMP/all-racer-intake/summary.json" "$RUNNER_TEMP/all-racer-encrypted-cache/"
+      - name: Save only verified encrypted source snapshot for request reuse
+        if: steps.capture.outputs.encrypted == 'true' && steps.racer_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: ${{ runner.temp }}/all-racer-encrypted-cache
+          key: boat-all-racers-v1-5c1e21cfe5a4dd53ea26eb07aca4905c4c20c3160b4a206ba96e92702eb4b46d
+      - name: Retain encrypted checkpoint and count-only status
+        id: upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-all-racers-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/all-racer-intake/racers.checkpoint
+            ${{ runner.temp }}/all-racer-intake/summary.json
+          if-no-files-found: error
+          retention-days: 7
+  official_all_racer_readback:
+    name: Independently restore encrypted all-racer SQLite
+    needs: official_all_racer_intake
+    if: github.event_name == 'pull_request' && needs.official_all_racer_intake.outputs.encrypted == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.event.pull_request.head.sha }}'}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with: {node-version: '24.19.0', package-manager-cache: false}
+      - name: Install pinned reader dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Read exact intake artifact from this run in a separate job
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.official_all_racer_intake.outputs.artifact_id }}
+          path: ${{ runner.temp }}/all-racer-readback
+          merge-multiple: true
+      - name: Authenticate, decrypt, verify SQLite and lookup every racer
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_all_racers restore --folder "$RUNNER_TEMP/all-racer-readback"
+      - name: Read exact monthly-history ciphertext in this independent reader
+        if: needs.official_all_racer_intake.outputs.venue_encrypted == 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.official_all_racer_intake.outputs.venue_artifact_id }}
+          path: ${{ runner.temp }}/venue-history-readback
+          merge-multiple: true
+      - name: Authenticate monthly raw source hashes and parsed-day counts
+        if: needs.official_all_racer_intake.outputs.venue_encrypted == 'true'
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_venue_history restore-month --month 200501 --folder "$RUNNER_TEMP/venue-history-readback"
+      - name: Restore pinned full-period monthly generations and verify every original hash
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          history_input=audit/state/boat-venue-history-input.json
+          if [[ -f audit/state/boat-venue-history-dated-research-input.json ]]; then
+            history_input=audit/state/boat-venue-history-dated-research-input.json
+          elif [[ -f audit/state/boat-venue-history-nov6-research-input.json ]]; then
+            history_input=audit/state/boat-venue-history-nov6-research-input.json
+          fi
+          python -m scripts.boat_venue_history_handoff readback --input "$history_input" --out-dir "$RUNNER_TEMP/venue-history-all-period"
+      - name: Restore encrypted venue grid and verify all racer and course cells
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          dataset_input=audit/state/boat-venue-dataset-input.json
+          if [[ -f audit/state/boat-venue-dataset-nov7-research-input.json ]]; then
+            dataset_input=audit/state/boat-venue-dataset-nov7-research-input.json
+          elif [[ -f audit/state/boat-venue-dataset-nov6-research-input.json ]]; then
+            dataset_input=audit/state/boat-venue-dataset-nov6-research-input.json
+          fi
+          python -m scripts.boat_venue_dataset readback --input "$dataset_input" --out-dir "$RUNNER_TEMP/venue-history-grid"
+      - name: Restore immutable encrypted personal-research coefficients
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_venue_learning_handoff readback --input audit/state/boat-venue-learning-input.json --out-dir "$RUNNER_TEMP/venue-learning-retained"
+
+  video_context_cipher_ingest:
+    name: Private video-context ciphertext intake or explicit HOLD
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'haji84/RACE-AI' && github.ref == 'refs/heads/feat/four-sport-forecast-audit-view-20261022'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Install existing private archive crypto dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Validate owner key, dispatch origin and pre-cutoff ciphertext
+        id: receive
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m race_ai.boat_video_publication receive --event-file "$GITHUB_EVENT_PATH" --out "$RUNNER_TEMP/boat-video-context-ingest"
+      - name: Retain ciphertext only for independent receipt verification
+        if: steps.receive.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: race-video-context-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-video-context-ingest/video-context.enc
+          retention-days: 90
+          if-no-files-found: error

@@ -1,0 +1,1 @@
+{"manifest_path": "state/boat-venue-history/v1/manifests/bcddb2ec4d2708333cdbeeec7de3a23a5e47ca09c3fa22f5ceeb31c5cf7a7e0c.json", "manifest_sha256": "bcddb2ec4d2708333cdbeeec7de3a23a5e47ca09c3fa22f5ceeb31c5cf7a7e0c", "repository_id": "1416489937", "schema": "RACE_AI_BOAT_VENUE_COLLECTION_INPUT_V1", "source_commit": "505800f55176867e8a5a06491fcc18eadca8e070", "status": "READY"}

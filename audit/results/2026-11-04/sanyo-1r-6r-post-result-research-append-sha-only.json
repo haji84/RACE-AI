@@ -1,0 +1,19 @@
+{
+  "schema": "RACE_AI_AUTORACE_RESEARCH_PDCA_SHA_ANCHOR_V1",
+  "session_date_jst": "2026-11-04",
+  "research_only": true,
+  "privacy": "sha-only",
+  "race_ids": [
+    "autorace:2026-11-04:sanyo:1",
+    "autorace:2026-11-04:sanyo:2",
+    "autorace:2026-11-04:sanyo:3",
+    "autorace:2026-11-04:sanyo:4",
+    "autorace:2026-11-04:sanyo:5",
+    "autorace:2026-11-04:sanyo:6"
+  ],
+  "private_library_path": "/RACE-AI/AutoracePrivate/autorace_20261104_sanyo_1R_6R_research_PDCA_append.json",
+  "private_file_sha256": "e80348cfd9ad8c3bf4d6f82040f58f9a32b8d2ca961d35614c7df6aec6aeb186",
+  "data_source": "https://www.chariloto.com/auto/results/006/2026-11-04",
+  "formal_pre_trial_A_status": "unverified",
+  "note": "Append-only posterior third-party result study; A remains unchanged; no pre-cutoff B saved; no model coefficient update; preceding two-race research audit remains preserved."
+}

@@ -1,0 +1,13 @@
+{
+  "elapsed_seconds": 0.893,
+  "full_ancestry_requested": false,
+  "git_object_bytes": 891789,
+  "key_read": false,
+  "manifest_sha256": "21fa168cf92140ae0c0cb8e85d8897ad2f66c4c211f7f9cebf0ea9f8efbb6708",
+  "metadata_and_requested_blob_only": true,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "provider_requests": 0,
+  "source_commit": "244a7312f1ad32ecf471e35be1c4247e46c5b8ef",
+  "state": "ACTUAL_PINNED_GITHUB_METADATA_READ_WITH_EXISTING_BOUNDED_BLOB_TRANSPORT_VERIFIED"
+}

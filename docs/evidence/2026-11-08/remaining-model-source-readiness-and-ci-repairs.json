@@ -1,0 +1,106 @@
+{
+  "actual_active_models": 30,
+  "actual_auto_normal_results": 5,
+  "actual_fitted_models": 19,
+  "actual_keirin_normal_results": 0,
+  "actual_prior_ci_failures": [
+    {
+      "failed_step": 25,
+      "head_sha": "39c1c658aa5af9148211d30e9d285f98d2c96554",
+      "job_id": 128567654037,
+      "python_seconds": 2329.349,
+      "python_tests": 4370,
+      "reason": "Final fixture was still queried in the newly separated upcoming view.",
+      "run_id": 42427116288,
+      "whole_conclusion": "failure"
+    },
+    {
+      "failed_step": 15,
+      "head_sha": "1bd298f753b4a8008d0730b376d6e3d495b23281",
+      "job_id": 128572880910,
+      "python_seconds_before_failfast": 1351.939,
+      "reason": "Audit expected the former cutoff mismatch reason although missing per-original cutoff clocks now correctly produce a chronology hold.",
+      "reported_tests_before_failfast": 1581,
+      "run_id": 42428809036,
+      "whole_conclusion": "failure"
+    }
+  ],
+  "browser_fixtures": {
+    "all_ci_exports_and_widths_main_checks": 39,
+    "formal_evaluable_zero_and_synthetic_badge_checks_strengthened": true,
+    "independent_review": "CLEAR",
+    "lifecycle_widths": 3,
+    "main_errors": 0,
+    "product_changes": 0,
+    "result_detail_widths": 3,
+    "venue_settled": 1,
+    "venue_upcoming": 24,
+    "venue_widths": 3,
+    "widths": [
+      320,
+      390,
+      1440,
+      1920
+    ]
+  },
+  "independent_reviews": "CLEAR",
+  "keirin_selector": {
+    "actual_selector_success": false,
+    "default_and_absent_v1_unchanged": true,
+    "no_guessed_time_or_raw_entrant_export": true,
+    "provider_requests": 0,
+    "published_v2_adds_at_most_alternatives": 11,
+    "same_authenticated_s16_response_only": true,
+    "tests": 13
+  },
+  "main_merged": false,
+  "new_candidate_actual_future_pdca": 0,
+  "new_code_whole_first_ci_verified": false,
+  "new_provider_requests": 0,
+  "new_recovery_capsule": false,
+  "new_workflows_jobs_schedules_permissions": 0,
+  "production_promoted": false,
+  "python_fixture_correction": {
+    "actual_red_failures_in_complete_module": 2,
+    "failures": 0,
+    "global_hold_and_zero_admission_preserved": true,
+    "no_missing_clock_invented": true,
+    "production_changes": 0,
+    "root_integrated_tests": 49,
+    "skips": 0
+  },
+  "reviewed_local_commits": {
+    "browser_phase_fixtures": "05ed15d9d05fe7288074f84f14693614e753081d",
+    "published_keirin_alternatives": "876bf7c5879792af5a4d63ed6cef7c0612d72157",
+    "source_free_code_reuse": "bea25d3482aa00f6dbed4124b8ffa6ce92c71798",
+    "transparent_merge": "ef3eed957a3184d8725d0bb5a61d53d11e8ff824"
+  },
+  "schema": "RACE_AI_REMAINING_MODEL_SOURCE_READINESS_CODE_COUNTS_V1",
+  "scope": "SYNTHETIC_CONTRACT_BROWSER_AND_ACTUAL_READ_ONLY_GIT_HISTORY",
+  "source_free_p2": {
+    "actual_executed_workflow_blob_must_equal_verified_code_ancestor": true,
+    "actual_owner_key_or_provider_used": false,
+    "actual_two_hop_git_changes_only_regular_issue_and_prepare_json": true,
+    "code_ancestor_must_be_exact_actual_previous_source": true,
+    "final_fast_tests": 40,
+    "new_request_schema": "RACE_AI_OFFICIAL_RESULT_PLAN_PREPARE_REQUEST_V2",
+    "next_provider_head_still_requires_own_full_first": true,
+    "outputs": 3,
+    "parent_whole_first_verified": false,
+    "root_integrated_tests": 18,
+    "root_seconds": 26.167,
+    "round": 900033
+  },
+  "source_request_raw_sha256": "deb8a5d147ed3ae138d2331509806f74ad89acc7e3aeef9471194bf6dfe93c6a",
+  "source_request_sha256": "bcbdaa8b350402d8753d23632709eee6a15b75d6402b1d4cb7108334ed4fa5e6",
+  "transparent_merge": {
+    "actual_1bd_red": "OFFICIAL_ISSUE_LATEST_ISSUE_COMMIT_REQUIRED",
+    "actual_green_issue_bytes": 521,
+    "actual_green_issue_sha256": "80ed23f6849cafd4a60e2abb18f8cb0a71d584f1d5115280358440a07c4f849c",
+    "all_nonmerge_changes_and_existing_issuer_guards_preserved": true,
+    "focused_tests": 59,
+    "local_full_constructor_verified": false,
+    "production_lines": 14,
+    "real_git_tests": 11
+  }
+}

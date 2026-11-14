@@ -1,0 +1,113 @@
+name: BOAT national three-race results against frozen A/B (no Vercel)
+on:
+  push:
+    branches: [feat/four-sport-forecast-audit-view-20261022]
+    paths: [docs/evidence/boat-national-results-trigger.txt]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: boat-nationwide-3r-independent-result
+  cancel-in-progress: false
+jobs:
+  discover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    outputs:
+      artifacts: ${{ steps.select.outputs.artifacts }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.sha }}'}
+      - id: select
+        run: |
+          python - <<'PY'
+          import json,os,re
+          from collections import Counter
+          from pathlib import Path
+          root=Path('docs/evidence/2026-11-03')
+          records=json.loads((root/'boat-canonical-freeze-index.json').read_text())['entries']+json.loads((root/'boat-freeze-prior-observations.json').read_text())['entries']
+          ids=sorted(k for k,n in Counter(r['artifact_id'] for r in records).items() if 1<=n<=3)
+          last=Path('docs/evidence/boat-national-results-trigger.txt').read_text().strip().splitlines()[-1]
+          if last.startswith('only_artifacts='):
+              only=last.split('=',1)[1].split(','); assert all(re.fullmatch(r'[0-9]+',i) and int(i) in ids for i in only)
+              ids=sorted({int(i) for i in only})
+          assert 0<len(ids)<=24
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f: print('artifacts='+json.dumps(ids),file=f)
+          PY
+  independent_result:
+    needs: discover
+    if: github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        artifact: ${{ fromJSON(needs.discover.outputs.artifacts) }}
+    name: Verify registered national batch ${{ matrix.artifact }}
+    env:
+      ORIGINAL_ID: ${{ matrix.artifact }}
+      RACE_AI_NATIONAL_RESULT_OWNER_REVIEWED: 'true'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.sha }}'}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - name: Read original artifact and server receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir national_source
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ORIGINAL_ID" > national_source/receipt.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ORIGINAL_ID/zip" > national_source/original.zip
+      - name: Check frozen-model scorer and input ledger
+        run: python -m unittest tests.test_boat_freeze_index tests.test_boat_ab_result_audit tests.test_boat_shadow_result_audit tests.test_boat_result_date_policy tests.test_boat_historical_result_roster -v
+      - name: Validate archive and attribute scores to the first preclose receipt only
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,zipfile
+          from datetime import datetime
+          from pathlib import Path
+          from scripts import boat_nationwide_result_audit as audit
+          from race_ai.boat_freeze_index import load_original_race_ids
+          from race_ai.boat_shadow_result_audit import compare_frozen_current_shadows
+          from race_ai.boat_abc_cohort import summarize_abc_results
+          def require(ok,msg):
+              if not ok: raise ValueError(msg)
+          def sha(b): return hashlib.sha256(b).hexdigest()
+          def ts(s): return datetime.fromisoformat(s.replace('Z','+00:00'))
+          root=Path('national_source'); base=Path('docs/evidence/2026-11-03'); index=base/'boat-canonical-freeze-index.json'; all_rows=json.loads(index.read_bytes())['entries']; primary={r['race_id']:r for r in all_rows}
+          for r in json.loads((base/'boat-freeze-prior-observations.json').read_bytes())['entries']:
+              p=primary[r['race_id']]; require(p['cutoff_at']==r['cutoff_at'] and ts(r['server_created_at'])<ts(p['server_created_at'])<ts(r['cutoff_at']),'prior origin order mismatch'); all_rows.append(r); primary[r['race_id']]=r
+          ident=int(os.environ['ORIGINAL_ID']); entries=[r for r in all_rows if r['artifact_id']==ident]; reg={r['race_id']:r for r in entries}
+          meta=json.loads((root/'receipt.json').read_bytes()); raw=(root/'original.zip').read_bytes(); run=meta['workflow_run']['id']; saved=meta['created_at']; dig=sha(raw)
+          require(1<=len(entries)<=3 and len(entries)==len(reg),'registered batch coverage'); require(meta['id']==ident and not meta['expired'] and meta['name']==f'boat-national-cutoff-{run}' and meta['digest']=='sha256:'+dig,'bad server receipt')
+          with zipfile.ZipFile(root/'original.zip') as z:
+              require(z.namelist()==['national.json'] and z.getinfo('national.json').file_size<=250000,'archive layout'); body=z.read('national.json')
+          pairs=json.loads(body)['paired_forecasts']; require(len(pairs)==len(reg) and {p['race_id'] for p in pairs}==set(reg),'missing race')
+          for p in pairs:
+              r=reg[p['race_id']]; require(r['run_id']==run and r['server_created_at']==saved and r['zip_sha256']==dig and r['json_sha256']==sha(body),'source mismatch');require(r['bundle_sha256']==p['bundle_sha256'] and ts(saved)<ts(r['cutoff_at'])==ts(p['cutoff_at']),'race mismatch')
+          (root/'national.json').write_bytes(body);audit.RUN_ID=run; audit.ARTIFACT_ID=ident; audit.FORECAST_SHA=sha(body); os.environ['RACE_AI_NATIONAL_GITHUB_CREATED_AT']=saved
+          result=audit.run(); rows=result['official_results'];require(len(rows)==len(reg) and {r['race_id'] for r in rows}==set(reg),'coverage')
+          for i,r in enumerate(rows):
+              rid=r['race_id']; first=primary[rid];
+              if first['artifact_id']!=ident: rows[i]={'race_id':rid,'state':'EXCLUDE_REPEAT_USE_EARLIER_RECEIPT','earliest_artifact_id':first['artifact_id']}
+          result['status']='SOME_RESULTS_VERIFIED' if any(r['state']=='INDEPENDENT_AB_RESULT_VERIFIED' for r in rows) else 'OFFICIAL_RESULTS_PENDING_OR_UNVERIFIED'
+          result['first_receipt_per_race_only']=True
+          # Compare an already frozen challenger, never train or rerank it here.
+          # Earliest-receipt exclusion happens first, and missing/special outcomes
+          # remain missing/special rather than silently becoming zero-hit rows.
+          result['frozen_current_feature_comparison']=compare_frozen_current_shadows(json.loads(body),result,saved)
+          result['frozen_abc_selected_cohort_scorecard']=summarize_abc_results([result])
+          (audit.OUT/'result.json').write_text(json.dumps(result,ensure_ascii=False,sort_keys=True,separators=(',',':')))
+          for r in rows: print('FINAL_AUDIT',r['race_id'],r['state'],r.get('official_top3'),r.get('payout_per_100_yen'))
+          print('FROZEN_ABC_COMPARISONS',result['frozen_current_feature_comparison']['scored_comparison_count'])
+          PY
+      - name: Save result separately from original forecast
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ matrix.artifact == 13202833722 && format('boat-national-3r-result-{0}-{1}', github.run_id, github.run_attempt) || format('boat-national-3r-result-{0}-{1}-{2}', github.run_id, github.run_attempt, matrix.artifact) }}
+          path: boat_national_result_output/result.json
+          if-no-files-found: error
+          retention-days: 7

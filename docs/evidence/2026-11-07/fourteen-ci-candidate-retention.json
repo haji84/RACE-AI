@@ -1,0 +1,29 @@
+{
+  "actual_candidate_artifact_id": 13559460657,
+  "code_head_sha": "8cf76d3d023591a4c67d04a0001465ac32b441c5",
+  "earlier_manual_git_readback_succeeded": false,
+  "existing_reviewed_reader_factory": true,
+  "fitted_cells": 14,
+  "independent_object_database": true,
+  "plaintext_published": false,
+  "pointer": {
+    "manifest_path": "state/boat-venue-history/v1/learning/874e1e5aeb33455bf9a858b51261d26f440c32e88a35d3cf0429b1c7e675d006/learning.json",
+    "manifest_sha256": "874e1e5aeb33455bf9a858b51261d26f440c32e88a35d3cf0429b1c7e675d006",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+    "source_commit": "1e839500361dd132efa4dc4b334a741a43835959",
+    "status": "READY",
+    "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+  },
+  "production_promoted": false,
+  "readback": {
+    "encrypted_readback_verified": true,
+    "fitted_model_count": 14,
+    "manifest_sha256": "874e1e5aeb33455bf9a858b51261d26f440c32e88a35d3cf0429b1c7e675d006",
+    "plaintext_published": false,
+    "source_commit": "1e839500361dd132efa4dc4b334a741a43835959",
+    "status": "OWNER_VENUE_LEARNING_READBACK_VERIFIED",
+    "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+  },
+  "run_id": 42334526055
+}

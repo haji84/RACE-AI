@@ -1,0 +1,168 @@
+{
+  "schema": "RACE_AI_VIDEO_PHASE_MATCHED_FORWARD_CHECKPOINT_V1",
+  "recorded_at_JST": "2026-11-08T08:32:45.970678+09:00",
+  "all_user_goals_complete": false,
+  "work_continues": true,
+  "scope": "Implemented software checkpoint; source-only AI development measurements, not validated LIVE/identity/physical strength/forecast improvement.",
+  "integrated_remote_base": "6582e6d9f5cff00cb619f8d12d0ce9b24e161dce",
+  "tested_source_sha256": {
+    "race_ai/boat_video_phase.py": "a335c97378bcb7a9a10ef43c5dd890dba255cf7cd795cefa6dd0440c8f1a5976",
+    "tests/test_boat_video_phase.py": "198590876ccadc79077b06beba289e3225e634f36e30787b3548f95f8f744aa1",
+    "race_ai/boat_video_forward.py": "0da41866178d5652a55fbf4a4264b58502c1b746d7b9cb971f310fd1585c8cb4",
+    "tests/test_boat_video_forward.py": "b171e5e421cc9df7c4942fde67054164a541ef91dca115aaa0a372357537c5ef"
+  },
+  "software_verification": {
+    "video_regression": {
+      "run": 907,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "seconds": 171.1990725939977,
+      "source_unchanged": true,
+      "result_sha256": "aaa09283080b3f055db3cebbf2f0170c95ec3d745cdbe2a9530808f5659398f4"
+    },
+    "phase_module_tests": 37,
+    "matched_forward_related_tests": 86,
+    "test_groups_overlap_do_not_sum": true,
+    "independent_forward_review_findings_fixed": 3,
+    "independent_scoped_review": "APPROVE",
+    "independent_forward_review_sha256": "5b3649ea5c229fc2a3aa1fdeb01083fc5e9fabc78dc1f771c588de5384bff759",
+    "independent_phase_report_sha256": "eb7fa3efc2a9157ee5b5dd004c5cd770940dd45ab67f67a0c5a467d56f058773",
+    "this_checkpoint_CI": "PENDING_AFTER_PUSH",
+    "checks_url": "https://github.com/haji84/RACE-AI/pull/71/checks"
+  },
+  "phase": {
+    "implemented": "Automatic fixed full-frame white-core fallback after a successful grayscale UNKNOWN; preserve grayscale explanations, conflicts, all OCR views and source provenance.",
+    "fixed_threshold": 200,
+    "native_new_development_views": {
+      "total": 3,
+      "old_known_labels": 0,
+      "new_known_labels": 3,
+      "human_ground_truth": false
+    },
+    "consecutive_development_frames": {
+      "total": 21,
+      "raw_label_candidates": 19,
+      "low_support_unknown": 2,
+      "temporally_confirmed": 16,
+      "tracker_unknown": 5
+    },
+    "original147_development_cohort": {
+      "new_candidates_from_fixed_white_view": 0,
+      "negative_reference_count": 91,
+      "new_false_candidates": 0,
+      "grayscale_explanatory_cases_preserved": 13,
+      "human_ground_truth": false
+    },
+    "whole_original_CLI": {
+      "status": "SUCCESS",
+      "frames": 5528,
+      "probed_frames": 5528,
+      "displayed_seconds": 184.266,
+      "first_pts": 0.0,
+      "last_pts": 184.233,
+      "receipt_sha256": "ec2d4fc46b9c9d4f30b5a5f0a95fc7e173c84bee6e665c20f385a7e4e8c7c757",
+      "journal_sha256": "a37e97049c5b5cd08132fe5036fb81a63669a402f95aecfca84838d75e674ee6",
+      "network_requests": 0,
+      "observed_counts_not_accuracy": {
+        "observations": 185,
+        "not_observed": 5343,
+        "candidates": {
+          "EXHIBITION_START": 47,
+          "UNKNOWN": 87,
+          "EXHIBITION_LAP": 51
+        },
+        "confirmed": {
+          "UNKNOWN": 121,
+          "EXHIBITION_START": 34,
+          "EXHIBITION_LAP": 30
+        }
+      },
+      "independent_full_clip_label_scoring": "IN_PROGRESS",
+      "authentication_and_model_eligibility": false
+    },
+    "first_input_declaration_failed_at_181_seconds": true,
+    "actual_source_duration_is_184_266_filename_180_is_not_truth": true,
+    "unobserved_frames_are_not_filled": true,
+    "opencv_vs_product_decoder_boundary": {
+      "all61_pts_equal": true,
+      "opencv_BGR_equal_to_product": false,
+      "canonical_reextract_matches_product_all61": true,
+      "max_channel_delta_old_vs_canonical": 18,
+      "mean_channel_delta_old_vs_canonical": 0.2726986566484517,
+      "new_identity_inference_held_until_reference_rebound": true
+    }
+  },
+  "matched_forward": {
+    "entrypoints": [
+      "fit_matched",
+      "register_study",
+      "forecast",
+      "score"
+    ],
+    "existing_families_only": true,
+    "ordinary_training_features_preserved": true,
+    "frozen_event_and_media_separation": true,
+    "comparison_retains_forecast_result_input_proofs": true,
+    "real_retained_native_replay": {
+      "families": 2,
+      "participants": 6,
+      "saved_suite_exact": true
+    },
+    "real_video_contexts_found": 0,
+    "real_forward_video_pairs": 0,
+    "improvement_proven": false,
+    "production_model_changed": false
+  },
+  "identity_research": {
+    "baseline_held_photo_riders": 0,
+    "sparse_domain_head": {
+      "true_reference_envelopes_recovered": 6,
+      "survivors": 1451,
+      "adopted": false
+    },
+    "source_reviewed_negative_repair": {
+      "true_reference_envelopes_recovered": 6,
+      "survivors": 1083,
+      "adopted": false
+    },
+    "learned_box_head": {
+      "true_reference_envelopes_recovered": 5,
+      "reference_envelopes": 6,
+      "survivors": 112,
+      "independently_safe_visible_parts": 8,
+      "unsafe_or_unresolved": 104,
+      "conservative_calibration_retained_rider_coverage": 1,
+      "calibration_adopted": false
+    },
+    "new_neutral_rider_data_repair": "IN_PROGRESS",
+    "all_identity_metrics_are_AI_development_not_human_field_accuracy": true,
+    "garment_masks_whole_hulls_and_contact_points_verified": false
+  },
+  "speech": {
+    "human_reference_fields": 2,
+    "current_correct_supported_fields": 1,
+    "additional_independent_human_reference_fields": 0,
+    "full_teacher_unprompted_greedy_still_unmet": true,
+    "short_genre_only_conditioning": "IN_PROGRESS_NO_RESULT_CLAIM",
+    "raw_transcript_or_boat_rank_answers_rewritten": false,
+    "AI_controls_establish_human_false_positive_rate": false
+  },
+  "physical": {
+    "baseline_metric_positions_accepted": 0,
+    "baseline_metric_position_opportunities": 582,
+    "official_nominal_hull_length_m": 2.895,
+    "global_survey_controls_verified": 0,
+    "local_ruler_conditional_math_feasible": true,
+    "camera_model_choice_can_change_inferred_acceleration": true,
+    "verified_speed_acceleration_turn_strength_or_improvement": false
+  },
+  "preservation": {
+    "protected_live_checkout_changed": false,
+    "live_processes_restarted": false,
+    "checkpoint_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+    "new_PR_issue_workflow_service_fee_or_forecast_family": false,
+    "new_acquisition_count_cap": false,
+    "main_merged_app_published_wager_or_production_switch": false
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "candidate_artifact_digest": "sha256:eb600ff973365c1e7160e7cd0baa85c89cd3da0d4eb922ecc3ada3fc825b4b5b",
+  "candidate_artifact_id": 13555727734,
+  "ci_fitted_cells": 12,
+  "ci_training_sha256": "2c55857084ae3ce8fee9cd05fbc2c19867f330f531334bb8a8f29fe321605654",
+  "earliest_sales_cutoff": "2026-11-07T11:24:00+09:00",
+  "head_sha": "728b03530264f3494a408fb92bb61b541d3ae0d3",
+  "horse_models_fitted": 0,
+  "horse_predictions_saved": 0,
+  "independent_pre_cutoff_receipt_verified": true,
+  "input_artifact_digest": "sha256:10db96ba2e8179d37c404f7f9b17acdf9465b4f8a7f6999bc327f03e78a86e21",
+  "input_artifact_id": 13555822588,
+  "input_saved_at": "2026-11-07T02:04:55Z",
+  "local_ci_parameters_and_holdout_equal": true,
+  "native_input_cells": 5,
+  "native_input_count": 40,
+  "native_input_races": 8,
+  "official_future_results_verified": 0,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "run_id": 42327254832,
+  "state": "ACTUAL_CI_TWELVE_FIT_AND_HORSE_INPUTS_PRE_CUTOFF_VERIFIED"
+}

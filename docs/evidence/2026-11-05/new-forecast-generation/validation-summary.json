@@ -1,0 +1,19 @@
+{
+  "native_provider_tests": 21,
+  "native_service_tests": 7,
+  "http_tests": 8,
+  "launcher_tests": 9,
+  "node_tests": 179,
+  "browser_synthetic_groups": 35,
+  "browser_synthetic_png_count": 56,
+  "actual_browser_variants": 294,
+  "actual_browser_tickets": 2352,
+  "actual_generated_forecasts": 288,
+  "physical_safari_accepted": false,
+  "all_four_sport_real_operation_complete": false,
+  "private_raw_bodies_in_git": false,
+  "python_tests": 829,
+  "python_failures": 0,
+  "skipped_tests": 0,
+  "isolated_launch_package_verified": true
+}

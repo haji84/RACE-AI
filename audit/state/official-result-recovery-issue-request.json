@@ -1,0 +1,22 @@
+{
+  "schema": "RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_REQUEST_V2",
+  "repository_id": 1416489937,
+  "workflow_id": 392270247,
+  "pull_request": 71,
+  "target": {
+    "head_sha": "8d880c9ffacb5eba45108ea9ad5e36adb0aefc90",
+    "run_id": 42452628804,
+    "run_attempt": 2
+  },
+  "target_first_viewer_job_id": 128644899792,
+  "recovery_request_sha256": "bcbdaa8b350402d8753d23632709eee6a15b75d6402b1d4cb7108334ed4fa5e6",
+  "recovery_request_blob_sha256": "deb8a5d147ed3ae138d2331509806f74ad89acc7e3aeef9471194bf6dfe93c6a",
+  "tested_execution_head_sha": "8d880c9ffacb5eba45108ea9ad5e36adb0aefc90",
+  "intent_parent_sha": "25f93d9791f264655cae969da05563d3cb387cf8",
+  "failed_issue_dispositions": [
+    {
+      "intent_head_sha": "7e889c363604e65a02719db7e6e7e3d619620da2",
+      "issue_blob_sha256": "db723367d4ff728c6d70fdb8a60ebedef18c780769527ee4039a04265477d65b"
+    }
+  ]
+}
