@@ -35,11 +35,16 @@ def _finite(value):
 def _options(options):
     if options is not None and not isinstance(options, dict):
         raise ValueError("options must be an object")
-    if options and set(options) - set(_DEFAULTS):
+    if options and set(options) - (set(_DEFAULTS)|{'active_lanes'}):
         raise ValueError("unknown tracking option")
     result = dict(_DEFAULTS, **(options or {}))
     for key, value in result.items():
-        if key == "water_roi":
+        if key == "active_lanes":
+            if (type(value) is not list or not 3 <= len(value) <= 6 or
+                    any(type(n) is not int or not 1 <= n <= 6 for n in value) or
+                    value != sorted(set(value))):
+                raise ValueError("active lanes must be unique verified boat numbers")
+        elif key == "water_roi":
             if (not isinstance(value, (list, tuple)) or len(value) != 4
                     or not all(_finite(v) for v in value)
                     or not 0 <= value[0] < value[2] <= 1
@@ -429,10 +434,11 @@ def extract_tracks(path, *, options=None, identity_provider=None):
         roi = np.zeros((height, width), np.uint8)
         x0, y0, x1, y1 = config["water_roi"]
         roi[math.ceil(y0*height):math.floor(y1*height), math.ceil(x0*width):math.floor(x1*width)] = 255
+        active_lanes=config.get("active_lanes",list(range(1,7)))
         tracks = [{"lane": lane, "identity_status": "COLOR_CANDIDATE" if identity_provider is None else
-                   "NUMBER_TEMPORAL_CANDIDATE", "samples": []} for lane in range(1, 7)]
+                   "NUMBER_TEMPORAL_CANDIDATE", "samples": []} for lane in active_lanes]
         states = {lane: {"scene": 0, "previous_valid": False, "previous_point": None,
-                         "last_visible_point": None, "last_visible_t": None} for lane in range(1, 7)}
+                         "last_visible_point": None, "last_visible_t": None} for lane in active_lanes
         color_occlusions = set()
         camera_estimates, flags = [], {"COLOR_DOES_NOT_VERIFY_BOAT_IDENTITY", "ACHROMATIC_LANES_UNRESOLVED",
                                        "SYNTHETIC_TESTS_DO_NOT_ESTABLISH_FIELD_VALIDATION", "POSITION_ERROR_HEURISTIC_UNCERTIFIED"}
@@ -492,6 +498,10 @@ def extract_tracks(path, *, options=None, identity_provider=None):
                     drift_error += camera["residual_rms_px"]
                     candidates, ambiguous = (_candidates(masks, motion, config, cv2, np) if identity_provider is None else
                                              _provider_candidates(observation, roi, motion, cv2, np))
+                    # Withdrawn entrants are never tracked or ranked.
+                    candidates={lane:items for lane,items in candidates.items()
+                                if lane in states}
+                    ambiguous &= set(states)
                     positions = {lane: _reference_point(transform, items[0]["point"], np)
                                  for lane, items in candidates.items() if len(items) == 1}
                     # A color replacing another nearby color is an occlusion, not
