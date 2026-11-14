@@ -10,10 +10,11 @@ import unittest
 
 from race_ai.keirin_frame_rider_identity_gate import (
     FrameIdentityError, SCHEMA, REPORT, bridge_reviewed_frames,
+    bridge_from_existing_pr71_ledger,
 )
 from race_ai.keirin_phase_overlay import score_six_phases
 from tests.test_keirin_phase_overlay import (
-    frozen, admitted, stage, result, digest, UNKNOWN,
+    frozen, admitted, stage, result, digest, UNKNOWN, RID,
 )
 
 ROSTER=[1,2,3,4,5,6,7]
@@ -58,6 +59,28 @@ def bridge(frames=None,*,video=None,roster=None,confirm=True,pixel=True):
     )
 
 
+def saved_suite():
+    f=frozen()
+    before="2030-01-15T09:00:00+09:00"
+    return {
+        "source":{
+            "race_id":RID,"official_cutoff_at":f["official_cutoff_at"],
+            "as_of":before,"starters":list(ROSTER),
+        },
+        "suite":{
+            "race_id":RID,"as_of":before,
+            "input_sha256":f["pre_race_input_sha256"],
+            "models":{
+                f["model_id"]:{
+                    "model_id":f["model_id"],
+                    "prediction_sha256":f["parent_prediction_sha256"],
+                    "snapshot_sha256":f["pre_race_input_sha256"],
+                },
+            },
+        },
+    }
+
+
 class ExistingRiderCandidateGateTests(unittest.TestCase):
     def test_two_verified_frames_bind_candidate_numbers_and_ranks(self):
         out=bridge()
@@ -91,6 +114,37 @@ class ExistingRiderCandidateGateTests(unittest.TestCase):
         self.assertEqual(scored["accuracy_on_comparable_components_pct"],100.0)
         self.assertEqual(scored["status"],"RESEARCH_SCORE_ONLY_NOT_FORMAL")
         self.assertFalse(scored["automatic_model_promotion"])
+
+    def test_existing_pr71_saved_roster_and_digests_are_reused(self):
+        a=admitted(observations(),synthetic=False)
+        f=frozen()
+        report=bridge_from_existing_pr71_ledger(
+            f,a,saved_suite(),packets(),
+            ledger_readback_verifier=lambda saved,row:True,
+            pixel_source_verifier=lambda packet,admission,roster:True)
+        self.assertTrue(report["roster_verifier_accepted"])
+        self.assertEqual(report["phase_observations"][0]["measured"]["leader"],1)
+        self.assertFalse(report["attack_or_success_verified"])
+
+    def test_unverified_saved_pr71_db_cannot_attest_rider_identity(self):
+        a=admitted(observations(),synthetic=False)
+        denied=bridge_from_existing_pr71_ledger(
+            frozen(),a,saved_suite(),packets(),
+            ledger_readback_verifier=lambda *_:False,
+            pixel_source_verifier=lambda *_:True)
+        self.assertFalse(denied["roster_verifier_accepted"])
+        self.assertEqual(denied["phase_observations"],[])
+
+    def test_modified_existing_model_source_sha_cannot_match_phase(self):
+        saved=saved_suite()
+        k=frozen()["model_id"]
+        saved["suite"]["models"][k]["prediction_sha256"]="b"*64
+        with self.assertRaisesRegex(FrameIdentityError,
+                                    "PR71_PHASE_PARENT_OR_RACE_MISMATCH"):
+            bridge_from_existing_pr71_ledger(
+                frozen(),admitted(observations(),synthetic=False),
+                saved,packets(),ledger_readback_verifier=lambda *args:True,
+                pixel_source_verifier=lambda *args:True)
 
     def test_empty_or_unreviewed_frames_make_all_stages_unknown(self):
         for row in ([],packets()[:1]):
