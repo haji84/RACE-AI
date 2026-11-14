@@ -166,7 +166,8 @@ class ReducedFieldVideoTests(unittest.TestCase):
                 args['roster']=deepcopy(report['roster'])
                 result=prepare_physical_video_context(report,evidence,manifest,**args)
                 self.assertEqual([r['lane'] for r in result['participants']],list(active))
-                self.assertEqual(validate_physical_video_context(result,**args),result)
+                scope={k:args[k] for k in ('race_id','cutoff_at','roster','as_of')}
+                self.assertEqual(validate_physical_video_context(result,**scope),result)
                 self.assertFalse(result['production_eligible'])
 
     def test_existing_video_model_vectors_use_active_3_4_5_only(self):
