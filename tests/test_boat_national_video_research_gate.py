@@ -13,7 +13,12 @@ from tests.test_boat_video_connection import VideoConnectionTests, controlled_co
 JST = timezone(timedelta(hours=9))
 DAY = '2030-04-01'
 NOW = datetime(2030, 4, 1, 21, 0, tzinfo=JST)
-MODELS = ('synthetic-p1-A', 'synthetic-p1-B')
+MODELS = ('boat-course-motor-shadow-v0.1-UNTRAINED',
+          'boat-display-rating-PL-reference-v1-UNVALIDATED',
+          'boat-local-start-course-shadow-v0.1-UNTRAINED',
+          'boat-observed-pairwise-factor-v1',
+          'boat-observed-pairwise-start-v1')
+P0_MODELS = ('boat-observed-pairwise-factor-v1', 'boat-observed-pairwise-start-v1')
 
 
 def example_scope():
@@ -27,10 +32,10 @@ def example_scope():
                 cutoff_at=f'2030-04-01T{10+(number-1)//2:02d}:{(number-1)%2*30:02d}:00+09:00'))
     target = next(r for r in schedule if r['race_id']=='20300401-24-12')
     target['cutoff_at'] = '2030-04-01T17:30:00+09:00'
-    p0 = [dict(race_id=r['race_id'],stage='P0',model_id='synthetic-p0',
+    p0 = [dict(race_id=r['race_id'],stage='P0',model_id=m,
                as_of='2030-04-01T09:00:00+09:00',
                server_saved_at='2030-04-01T09:01:00+09:00',cutoff_at=r['cutoff_at'])
-          for r in schedule[:136]]
+          for r in schedule[:136] for m in P0_MODELS]
     p1 = [dict(race_id=r['race_id'],stage='P1',model_id=m,
                as_of='2030-04-01T09:20:00+09:00',
                server_saved_at='2030-04-01T09:21:00+09:00',cutoff_at=r['cutoff_at'])
@@ -55,6 +60,8 @@ class P1CoverageGateTests(unittest.TestCase):
         result=self.audit()
         self.assertEqual(result['official_schedule_races'],156)
         self.assertEqual(result['p0_races'],136)
+        self.assertEqual(result['p0_original_slots'],272)
+        self.assertEqual(result['p1_original_slots'],45)
         self.assertEqual(result['p1_any_races'],9)
         self.assertEqual(result['p1_complete_races'],9)
         self.assertEqual(result['p1_missing_races'],147)
