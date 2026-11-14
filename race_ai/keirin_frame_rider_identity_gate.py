@@ -72,9 +72,10 @@ def _frame_receipts(admission):
 
 
 def _check_packet(row, admission, receipt, starters):
-    require(type(row) is dict and set(row)=={
-        "schema","phase","frame_sha256","review_ref","recording_sec",
-        "scene","candidates"}, "FRAME_CANDIDATE_SCHEMA_INVALID")
+    base={"schema","phase","frame_sha256","review_ref","recording_sec",
+          "scene","candidates"}
+    require(type(row) is dict and set(row) in (base,base|{"line_groups_candidate"}),
+            "FRAME_CANDIDATE_SCHEMA_INVALID")
     require(row["schema"]==SCHEMA and row["phase"] in PHASES,
             "FRAME_PHASE_NOT_ADMITTED")
     require(valid_sha(row["frame_sha256"]) and
@@ -122,6 +123,19 @@ def _check_packet(row, admission, receipt, starters):
         if rank!=UNKNOWN:
             require(rank not in ranks,"DUPLICATE_RACE_POSITION_IN_FRAME")
             ranks.add(rank)
+    groups=row.get("line_groups_candidate",UNKNOWN)
+    if groups!=UNKNOWN:
+        require(type(groups) is list and 1<=len(groups)<=len(starters),
+                "OBSERVED_LINE_CANDIDATE_INVALID")
+        seen=set()
+        for line in groups:
+            require(type(line) is list and 1<=len(line)<=len(starters) and
+                    all(_number(x) and x in starters for x in line),
+                    "OBSERVED_LINE_CANDIDATE_INVALID")
+            for rider in line:
+                require(rider not in seen and rider in numbers,
+                        "LINE_MEMBER_MISSING_FROM_FRAME_OR_DUPLICATED")
+                seen.add(rider)
     return row
 
 
@@ -168,7 +182,8 @@ def _two_frame_consensus(first,second,starters):
 
 def bridge_from_existing_pr71_ledger(forecast,admission,saved,packets,*,
                                      ledger_readback_verifier=None,
-                                     pixel_source_verifier=None):
+                                     pixel_source_verifier=None,
+                                     line_relation_verifier=None):
     """Reuse the actual PR71 frozen private roster, not a user-typed roster.
 
     A separate owner-host verifier must attest the exact saved SQLite/Git
@@ -204,15 +219,18 @@ def bridge_from_existing_pr71_ledger(forecast,admission,saved,packets,*,
         return bridge_reviewed_frames(
             forecast,admission,roster,packets,
             roster_original_verifier=None,
-            pixel_source_verifier=None)
+            pixel_source_verifier=None,
+            line_relation_verifier=None)
     return bridge_reviewed_frames(
         forecast,admission,roster,packets,
         roster_original_verifier=lambda _f,_r:True,
-        pixel_source_verifier=pixel_source_verifier)
+        pixel_source_verifier=pixel_source_verifier,
+        line_relation_verifier=line_relation_verifier)
 
 def bridge_reviewed_frames(forecast,admission,roster,packets,*,
                            roster_original_verifier=None,
-                           pixel_source_verifier=None):
+                           pixel_source_verifier=None,
+                           line_relation_verifier=None):
     """Return candidate-stage observations for the existing scorer.
 
     Both callbacks must independently inspect the original private snapshot,
@@ -244,7 +262,7 @@ def bridge_reviewed_frames(forecast,admission,roster,packets,*,
     access=(admission.get("training_eligible") is True and
             admission.get("admitted_coverage") in (
                 "FULL_FOUR_LAPS","PARTIAL_HIGHLIGHTS"))
-    observations=[];stages=[];previous_time=-1.0
+    observations=[];stages=[];previous_time=-1.0;any_line_verified=False
     for phase,weight in STAGES:
         rows=sorted(by_phase[phase],key=lambda x:x["recording_sec"])
         usable=[]
@@ -270,7 +288,24 @@ def bridge_reviewed_frames(forecast,admission,roster,packets,*,
         leader=ranks.get(1,UNKNOWN)
         top3=([ranks[1],ranks[2],ranks[3]]
               if all(i in ranks for i in (1,2,3)) else UNKNOWN)
-        if leader==UNKNOWN and top3==UNKNOWN:
+        # Line adjacency and front/back direction require an INDEPENDENT
+        # two-frame visual relation attestor; the input group is a candidate.
+        # Never copy the forecast's expected grouping as an observed lineup.
+        group_a=pair[0].get("line_groups_candidate",UNKNOWN)
+        group_b=pair[1].get("line_groups_candidate",UNKNOWN)
+        observed_lines=UNKNOWN
+        if (group_a!=UNKNOWN and group_a==group_b and
+            _confirmed(line_relation_verifier,*pair,admission)):
+            matched=set(ranks.values())
+            if set(x for line in group_a for x in line)<=matched:
+                observed_lines=group_a
+        second_wheel=UNKNOWN
+        if observed_lines!=UNKNOWN and leader!=UNKNOWN:
+            matching=[line[1] for line in observed_lines
+                      if len(line)>1 and line[0]==leader]
+            if len(matching)==1:
+                second_wheel=matching[0]
+        if leader==UNKNOWN and top3==UNKNOWN and observed_lines==UNKNOWN:
             stages.append({"phase":phase,"state":"UNKNOWN",
                            "reason":"NO_TWO_FRAME_POSITION_CONSENSUS",
                            "confirmed_position_count":len(ranks)})
@@ -282,13 +317,15 @@ def bridge_reviewed_frames(forecast,admission,roster,packets,*,
                            "reason":"PHASE_TIME_ORDER_CONFLICT",
                            "confirmed_position_count":len(ranks)})
             continue
-        # A race-position rank is not equivalent to 2nd wheel in a LINE.
-        # Camera projection cannot reveal actual line continuity/tactics
-        # without further independent motion/line annotation.
+        # Overall 2nd place is not necessarily the second wheel of a LINE.
+        # The latter is admitted only after independent line-relationship
+        # review agrees across two genuine LIVE frames.
         measured={
             "leader":leader,"top3":top3,
-            "line_groups":UNKNOWN,"second_wheel":UNKNOWN,"attack":UNKNOWN,
+            "line_groups":observed_lines,
+            "second_wheel":second_wheel,"attack":UNKNOWN,
         }
+        any_line_verified=any_line_verified or observed_lines!=UNKNOWN
         checked_parts(measured)
         observations.append({
             "phase":phase,"recording_sec":midpoint,"scene":"LIVE",
@@ -298,7 +335,8 @@ def bridge_reviewed_frames(forecast,admission,roster,packets,*,
         })
         previous_time=midpoint
         stages.append({"phase":phase,"state":"TWO_FRAME_RANK_CANDIDATE",
-                       "reason":"LINE_AND_TACTICS_UNVERIFIED",
+                       "reason":("TACTICS_UNVERIFIED" if observed_lines!=UNKNOWN
+                                 else "LINE_AND_TACTICS_UNVERIFIED"),
                        "confirmed_position_count":len(ranks)})
     result={
         "schema":REPORT,"race_id":forecast["race_id"],
@@ -312,7 +350,7 @@ def bridge_reviewed_frames(forecast,admission,roster,packets,*,
         "stage_status":stages,
         "registered_starter_count":len(roster),
         "no_position_inferred_from_image_coordinates":True,
-        "line_or_second_wheel_verified":False,
+        "line_or_second_wheel_verified":any_line_verified,
         "attack_or_success_verified":False,
         "real_rider_recognition_accuracy_established":False,
         "same_race_training_or_forecast_modified":False,
