@@ -294,7 +294,9 @@ def _tracking(value):
     _need(all(type(value.get(k)) is int and 0 < value[k] <= 16384 for k in ('width','height')))
     _need(_number(value.get('duration_seconds')) and value['duration_seconds'] >= 0)
     _tracks(value['tracks'])
-    _need(len(value['tracks']) == 6 and {r['lane'] for r in value['tracks']} == set(range(1,7)))
+    active={r['lane'] for r in value['tracks']}
+    _need(3 <= len(value['tracks']) <= 6 and len(active) == len(value['tracks'])
+          and all(type(lane) is int and 1 <= lane <= 6 for lane in active))
     for track in value['tracks']:
         _need(len(track['samples']) <= 20000 and all(r['t'] <= value['duration_seconds'] for r in track['samples']))
     return value
