@@ -56,6 +56,28 @@ class ScreenToModelTests(unittest.TestCase):
         self.assertFalse(result["original_forecast_modified"])
         self.assertEqual(result["dataset_status"],"SYNTHETIC_ONLY")
 
+    def test_private_owner_screen_is_analyzable_without_repeated_rights_receipt(self):
+        real=seal_screen(self.raw,race_id=RACE,
+            page_url="https://race.boatcast.jp/replay?jo=03",fixture=False,
+            aes_key=b"k"*32,captured_at=START.isoformat())
+        moments=iter([START+timedelta(seconds=1),START+timedelta(seconds=6)])
+        result=evaluate_encrypted_screen(real,job(self.sha,kind="OWNER_LOCAL"),
+               aes_key=b"k"*32,clock=lambda:next(moments))
+        self.assertEqual(result["status"],"VIDEO_SCREEN_ANALYZED_UNVALIDATED_IDENTITIES")
+        self.assertEqual(result["source_role"],"OWNER_DECLARED_PRIVATE_RESEARCH")
+        self.assertFalse(result["source_receipt_independently_verified"])
+        self.assertFalse(result["production_video_forecast_proven"])
+        self.assertFalse(result["model_prediction_generated"])
+        self.assertEqual(result["dataset_status"],"REAL_REPORTED")
+
+    def test_supplied_external_receipt_must_still_be_valid(self):
+        real=seal_screen(self.raw,race_id=RACE,
+            page_url="https://race.boatcast.jp/replay?jo=03",fixture=False,
+            aes_key=b"k"*32,captured_at=START.isoformat())
+        result=evaluate_encrypted_screen(real,job(self.sha,kind="OWNER_LOCAL"),
+            aes_key=b"k"*32,clock=lambda:START,verify_real_receipt=lambda *_:False)
+        self.assertEqual(result["status"],"HOLD_SCREEN_SOURCE_RECEIPT_REJECTED")
+
     def test_synthetic_cipher_is_not_convertible_to_real_race_input(self):
         result=evaluate_encrypted_screen(self.cipher,job(self.sha,"OWNER_LOCAL"),
             aes_key=b"k"*32,clock=lambda:START)
