@@ -68,3 +68,14 @@ User-reported information: a ~2m48s screen recording, chat-only forecast, and a 
 6. Evaluate many future *unseen* race cohorts, compare the unchanged four-model baseline vs any candidate, and promote weights only after robust independent evidence and owner approval.
 
 **Acceptance is separated**: code and synthetic CI; actual video/forecast production; genuine post-race comparison; and independently proven out-of-sample improvement. They may not be collapsed into one green check.
+
+## Additional code-path integration evidence (GitHub CI)
+
+- `build_from_existing_pr71_saved` consumes a **verified existing** `FourModelRankLedger.read_suite(race_id)` row, checks matching race/cutoff/as-of, and binds the exact saved per-model `prediction_sha256` and `snapshot_sha256` to the separate six-phase sidecar. It requires a trusted independent source-suite verifier and does **not** manufacture stage forecasts from Top8 combinations.
+- Existing SHA-pinned PR #102 `keirin_video_clip_policy.assess_clip` runs in a source-free, fictional clip integration test; only independently reviewed frame IDs admitted by that existing policy can enter the stage overlay. This is not a new video learning/classifier engine.
+- GitHub Actions [43586082434](https://github.com/haji84/RACE-AI/actions/runs/43586082434) on research PR #291: completed SUCCESS. New research checks: phase overlay **23**, existing PR #102 clip admission integration **2**, existing PR71 frozen SQLite model integration **4**, totaling **29** source-free tests. Other existing CI regressions also passed. Test rights/clock callbacks in these fixtures are simulated and are **not** real independent receipts.
+- The freeze rejects a directory accessible to other users, reducing risk of saving unencrypted stage forecasts in the public repository workspace. It still requires a correctly configured owner-private AES Git archive for durable retention; no such production sidecar archive has been deployed.
+
+### Outstanding connection and activation boundaries
+
+The PR71 read-suite adapter and video admission adapter now pass **code-path integration** with synthetic evidence. Neither has been called with a live, independently authenticated pre-cutoff race plus permitted actual rider-recognized video. Actual future stage projection, Git AES private sidecar persistence, independent race footage labeling, automatic join and PDCA scoring, read-only Pages display, and blind out-of-sample model improvement are still separate, UNVERIFIED production gates.
