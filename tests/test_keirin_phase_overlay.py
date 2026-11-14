@@ -343,7 +343,7 @@ class PostRaceStageScoreTests(unittest.TestCase):
         a = admitted(obs)
         with self.assertRaisesRegex(PhaseError, "DUPLICATE_STAGE_FRAME"):
             compare(obs, permission=a)
-        obs = [stage("GOAL", 161), stage("BELL", 39)]
+        obs = [stage("BELL", 161), stage("GOAL", 39)]
         with self.assertRaisesRegex(PhaseError, "STAGES_NOT_IN_VIDEO_TIME_ORDER"):
             compare(obs)
 
