@@ -438,7 +438,7 @@ def extract_tracks(path, *, options=None, identity_provider=None):
         tracks = [{"lane": lane, "identity_status": "COLOR_CANDIDATE" if identity_provider is None else
                    "NUMBER_TEMPORAL_CANDIDATE", "samples": []} for lane in active_lanes]
         states = {lane: {"scene": 0, "previous_valid": False, "previous_point": None,
-                         "last_visible_point": None, "last_visible_t": None} for lane in active_lanes
+                         "last_visible_point": None, "last_visible_t": None} for lane in active_lanes}
         color_occlusions = set()
         camera_estimates, flags = [], {"COLOR_DOES_NOT_VERIFY_BOAT_IDENTITY", "ACHROMATIC_LANES_UNRESOLVED",
                                        "SYNTHETIC_TESTS_DO_NOT_ESTABLISH_FIELD_VALIDATION", "POSITION_ERROR_HEURISTIC_UNCERTIFIED"}
