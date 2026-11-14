@@ -74,3 +74,41 @@ def review(candidate,grant,*,now,verify_grant=None):
         return result
     except (KeyError,ValueError,TypeError,OverflowError,AssertionError,AttributeError):
         return _hold('HOLD_RIGHTS_RECEIPT_INVALID_OR_LATE',candidate)
+
+
+
+def enqueue_licensed_capture(private_root, export_record, template, grant, *, now, verify_grant=None):
+    """Opt-in rights-gated bridge to the existing verified private intake.
+
+    This function does not capture remote media, accept a public license claim,
+    publish video, certify identity or create a race forecast. The existing
+    enqueue_export path separately verifies the saved capture's actual bytes.
+    """
+    hold=dict(status='HOLD_CAPTURE_SOURCE_NOT_OWNER_BOUND',source_fetch_performed=False,
+              production_video_forecast_proven=False,source_authorization_independently_claimed=False)
+    if (type(export_record) is not dict or export_record.get('source_role')!='OWNER_AUTHORIZED'
+            or type(template) is not dict or not all(k in template for k in ('race_id','cutoff_at'))
+            or type(export_record.get('media_sha256')) is not str or
+            type(export_record.get('captured_at')) is not str):
+        return hold
+    source=dict(race_id=template['race_id'],cutoff_at=template['cutoff_at'],
+                captured_at=export_record['captured_at'],media_sha256=export_record['media_sha256'],
+                source_kind='OWNER_RECORDED')
+    decision=review(source,grant,now=now,verify_grant=verify_grant)
+    if decision['state']!='READY_PRIVATE_RESEARCH_INPUT_ONLY':
+        return dict(status=decision['state'],source_fetch_performed=False,
+                    production_video_forecast_proven=False,
+                    source_authorization_independently_claimed=False)
+    from .boat_video_capture_bridge import enqueue_export
+    try:
+        receipt=enqueue_export(private_root,export_record,template)
+        if (type(receipt) is not dict or receipt.get('status')!='ENQUEUED_UNVALIDATED' or
+                receipt.get('media_sha256')!=source['media_sha256']):
+            raise ValueError('CAPTURE_NOT_VERIFIED_FOR_PRIVATE_RESEARCH')
+    except (OSError,ValueError,TypeError,KeyError):
+        return dict(status='HOLD_VERIFIED_CAPTURE_UNAVAILABLE',source_fetch_performed=False,
+                    production_video_forecast_proven=False,
+                    source_authorization_independently_claimed=False)
+    return dict(status='ENQUEUED_UNVALIDATED',source_fetch_performed=False,
+                production_video_forecast_proven=False,source_authorization_independently_claimed=True,
+                media_sha256=receipt['media_sha256'],job_sha256=receipt['job_sha256'])
