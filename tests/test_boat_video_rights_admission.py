@@ -124,6 +124,13 @@ class RightsAdmissionTests(unittest.TestCase):
                 self.assertEqual(out['status'],'HOLD_CAPTURE_SOURCE_NOT_OWNER_BOUND')
         enqueue.assert_not_called()
 
+    def test_foreign_day_cutoff_or_previous_day_footage_cannot_be_relabelled_as_exhibition(self):
+        from race_ai.boat_video_rights_admission import review
+        for source in (candidate(cutoff_at='2030-04-02T12:00:00+09:00'),
+                       candidate(captured_at='2030-03-31T11:30:00+09:00')):
+            self.assertEqual(review(source,agreement(),now=NOW,verify_grant=verifier)['state'],
+                             'HOLD_VIDEO_SOURCE_DAY_MISMATCH')
+
     def test_production_claim_is_never_inferred_from_any_receipt(self):
         from race_ai.boat_video_rights_admission import review
         for k in ('OWNER_RECORDED','RIGHTS_HOLDER_SUPPLIED'):
