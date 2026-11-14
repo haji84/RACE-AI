@@ -40,8 +40,8 @@ def evaluate_encrypted_screen(envelope, job, *, aes_key, clock,
         if not fixture:
             # Public repository metadata or a producer's boolean is not
             # sufficient to license/attest an actual displayed video.
-            if not callable(verify_real_receipt) or
-                    verify_real_receipt(envelope,checked) is not True:
+            if (not callable(verify_real_receipt) or
+                    verify_real_receipt(envelope,checked) is not True):
                 return _hold('HOLD_SCREEN_REAL_SOURCE_RIGHTS_REQUIRED')
         try:
             raw=unseal_screen(envelope,aes_key=aes_key)
