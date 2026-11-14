@@ -32,6 +32,7 @@ on:
       - 'race_ai/live_15min_proof.py'
       - 'race_ai/keirin_phase_overlay.py'
       - 'tests/test_keirin_phase_overlay.py'
+      - 'tests/test_keirin_phase_pr102_integration.py'
       - 'tests/test_live_15min_proof.py'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
@@ -56,6 +57,7 @@ on:
       - 'race_ai/live_15min_proof.py'
       - 'race_ai/keirin_phase_overlay.py'
       - 'tests/test_keirin_phase_overlay.py'
+      - 'tests/test_keirin_phase_pr102_integration.py'
       - 'tests/test_live_15min_proof.py'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
@@ -81,6 +83,12 @@ jobs:
           ref: fe7e5581263b2b31fbd45536ac6a611c2779fa65
           path: pr71-source
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          # Existing video evidence/PDCA source, never a mutable PR branch.
+          ref: c26ac0927647f317acf855e0c42cd1703232c19b
+          path: pr102-video
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -95,6 +103,7 @@ jobs:
           python -m unittest -v tests.test_keirin_licensed_result_stage tests.test_keirin_license_api_ingest
           (cd "$GITHUB_WORKSPACE" && PYTHONPATH="$GITHUB_WORKSPACE" python -m unittest -v tests.test_live_15min_proof tests.test_keirin_live_source_readiness)
           (cd "$GITHUB_WORKSPACE" && PYTHONPATH="$GITHUB_WORKSPACE" python -m unittest -v tests.test_keirin_phase_overlay)
+          (cd "$GITHUB_WORKSPACE" && PYTHONPATH="$GITHUB_WORKSPACE" RACE_AI_PR102_PINNED_SOURCE_ROOT="$GITHUB_WORKSPACE/pr102-video" python -m unittest -v tests.test_keirin_phase_pr102_integration)
           python -m unittest -v tests.test_keirin_winticket_prior_events tests.test_keirin_prior_selection tests.test_keirin_prior_private_stage tests.test_keirin_winticket_ex_connection tests.test_keirin_weather_input_connection tests.test_keirin_github_owner_future_intake
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_pr71_state.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_workflow_guard.py' -v
