@@ -115,3 +115,19 @@ https://www.bunka.go.jp/seisaku/bunka_gyosei/kibankyoka/faq/index.html
 5. 事前に凍結した研究モデルで未来P1を生成・暗号保存、別runner検証して公式結果PDCAまでつなぐ。合成テストは本番の的中証明に加算しない。
 
 本番へ無断反映しない。mainとproductionの固定SHAを最初に取り直し、研究PRを誤ってmergeしない。
+
+## 2026-11-15: 個人研究を一律に書面許諾必須とする過剰制限の是正
+
+前の設計では、個人利用・非公開の映像解析まで「権利者の個別書面許諾がなければ実装不可」にしていた。ユーザーは既に利用条件を確認して研究開発を開始していたため、**個人研究の明示的な本人確認モード**を別に用意し、書面許諾の一律強制を廃止した。現実の権利やサイト運用を無条件に許可したと断定するものではない。
+
+- BOATCASTサイトポリシーの一次情報：https://boatcast.jp/static/sitepolicy/index.html （著作権法で認められる私的使用などの範囲を明記）。
+- 文化庁の一次情報：https://www.bunka.go.jp/seisaku/bunka_gyosei/kibankyoka/faq/index.html （第30条と、第30条の4の非享受目的の情報解析の可能性を説明）。例外の適用範囲・権利者利益への影響・サイト利用上の規則は別途注意が必要。
+
+研究用コードの入口：
+
+1. ローカルに取得済みの本人の研究素材を使う場合、`boat_video_rights_admission.review(source,None,now=...,personal_use_acknowledged=True)`を使用できる。指定は明示的な `True` のみ。対象は`OWNER_RECORDED`、一致するレースID・当日・締切前取得時刻・SHAを要求し、`READY_OWNER_ATTESTED_PRIVATE_RESEARCH_ONLY`を返す。
+2. 画面録画も`boat_screen_record_research.preflight(source,None,now=...,personal_use_acknowledged=True)`で研究用確認を行い、`record_screen(...,personal_use_acknowledged=True)`へ渡せる。実サイトへ接続するときは、従来どおりHTTPSの正規ホスト・安全な締切時刻・独立したDOM上のレースID確認・正常な画面再生・暗号化を必須とする。
+3. 権利者からの明示的な個別書面許諾がある場合は、従来の`grant + verify_grant`経路を別に維持。**個人研究を本人が確認したことと、個別の書面許諾を独立認証したことは混同しない。**
+4. どちらでも保存素材は個人・非公開の研究入力のみであり、公開動画の再配信、DRMやログイン制限の回避、無制限のアクセス、本番モデル・買い目への自動反映、結果を知った後の正式予想生成は禁止。
+
+この変更はDraft研究PR #288 のみ。本番の既存P0/P1モデルとmain/productionワークフローには反映していない。Playwrightの合成動画による録画・AES暗号化・復号SHA照合、および既存の権限不正・ソース不一致・締切後・公開用途禁止の回帰テストで確認する。実サイトの表示から6艇の番号を正確に識別し、締切前にP1研究予想が保存された実証は別ゲートで未完のまま残す。
