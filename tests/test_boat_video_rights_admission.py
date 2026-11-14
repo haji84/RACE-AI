@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta, timezone
 import unittest
 from copy import deepcopy
+from unittest.mock import patch
 from race_ai.actions_contract import digest
 
 JST=timezone(timedelta(hours=9))
@@ -81,6 +82,47 @@ class RightsAdmissionTests(unittest.TestCase):
             receipt=verifier(doc,original);receipt['verified_at']=CUT;return receipt
         self.assertEqual(review(candidate(),agreement(),now=NOW,verify_grant=late)['state'],
                          'HOLD_RIGHTS_RECEIPT_INVALID_OR_LATE')
+
+    def test_rights_hold_cannot_enqueue_verified_hls_export(self):
+        from race_ai.boat_video_rights_admission import enqueue_licensed_capture
+        export=dict(source_role='OWNER_AUTHORIZED',media_sha256='a'*64,
+                    captured_at='2030-04-01T11:30:00+09:00')
+        template=dict(race_id=RACE,cutoff_at=CUT)
+        with patch('race_ai.boat_video_capture_bridge.enqueue_export') as enqueue:
+            out=enqueue_licensed_capture('/private',export,template,agreement(),
+                                         now=NOW,verify_grant=None)
+        enqueue.assert_not_called()
+        self.assertEqual(out['status'],'HOLD_INDEPENDENT_RIGHTS_RECEIPT_REQUIRED')
+
+    def test_granted_source_routes_into_existing_verified_private_intake(self):
+        from race_ai.boat_video_rights_admission import enqueue_licensed_capture
+        export=dict(source_role='OWNER_AUTHORIZED',media_sha256='a'*64,
+                    captured_at='2030-04-01T11:30:00+09:00')
+        template=dict(race_id=RACE,cutoff_at=CUT)
+        before=deepcopy((export,template))
+        with patch('race_ai.boat_video_capture_bridge.enqueue_export',
+                   return_value=dict(status='ENQUEUED_UNVALIDATED',window_id=4,
+                                     media_sha256='a'*64,job_sha256='e'*64)) as enqueue:
+            out=enqueue_licensed_capture('/private',export,template,agreement(),
+                                         now=NOW,verify_grant=verifier)
+        enqueue.assert_called_once_with('/private',export,template)
+        self.assertEqual(out['status'],'ENQUEUED_UNVALIDATED')
+        self.assertFalse(out['production_video_forecast_proven'])
+        self.assertTrue(out['source_authorization_independently_claimed'])
+        self.assertEqual((export,template),before)
+
+    def test_synthetic_or_license_dev_source_cannot_relabel_as_real_owner_video(self):
+        from race_ai.boat_video_rights_admission import enqueue_licensed_capture
+        export=dict(source_role='SYNTHETIC_TEST',media_sha256='a'*64,
+                    captured_at='2030-04-01T11:30:00+09:00')
+        template=dict(race_id=RACE,cutoff_at=CUT)
+        with patch('race_ai.boat_video_capture_bridge.enqueue_export') as enqueue:
+            for role in ('SYNTHETIC_TEST','LICENSED_DEVELOPMENT'):
+                export['source_role']=role
+                out=enqueue_licensed_capture('/private',export,template,agreement(),
+                                             now=NOW,verify_grant=verifier)
+                self.assertEqual(out['status'],'HOLD_CAPTURE_SOURCE_NOT_OWNER_BOUND')
+        enqueue.assert_not_called()
 
     def test_production_claim_is_never_inferred_from_any_receipt(self):
         from race_ai.boat_video_rights_admission import review
