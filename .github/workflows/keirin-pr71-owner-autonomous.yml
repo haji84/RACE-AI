@@ -88,7 +88,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           # Existing video evidence/PDCA source, never a mutable PR branch.
-          ref: c26ac0927647f317acf855e0c42cd1703232c19b
+          ref: c52ff0216435b97a0209c43bbe5d0de589445736
           path: pr102-video
           persist-credentials: false
       - uses: actions/setup-python@v5
