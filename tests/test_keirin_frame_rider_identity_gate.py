@@ -151,7 +151,17 @@ class ExistingRiderCandidateGateTests(unittest.TestCase):
     def test_independent_two_frame_line_joins_can_score_real_line_mismatch(self):
         p=packets()
         for row in p:
-            row["line_groups_candidate"]=[[1,7],[2]]
+            for n,car in enumerate((3,4,5,6),start=4):
+                row["candidates"].append({
+                    "track_id":f"track-{car}",
+                    "car_number_candidate":car,
+                    "number_confidence":.97,
+                    "rank_candidate":n,
+                    "rank_confidence":.96,
+                    "bbox_xywh_normalized":[.1+(n-1)*.12,.2,.08,.16],
+                    "recognition_kind":"OCR_CANDIDATE",
+                })
+            row["line_groups_candidate"]=[[1,7],[2],[3,4],[5,6]]
         a=admitted(observations(),synthetic=False)
         without=bridge(frames=p,video=a)
         self.assertEqual(without["phase_observations"][0]["measured"]["line_groups"],
@@ -159,7 +169,7 @@ class ExistingRiderCandidateGateTests(unittest.TestCase):
         self.assertFalse(without["line_or_second_wheel_verified"])
         with_lines=bridge(frames=p,video=a,lines=True)
         measured=with_lines["phase_observations"][0]["measured"]
-        self.assertEqual(measured["line_groups"],[[1,7],[2]])
+        self.assertEqual(measured["line_groups"],[[1,7],[2],[3,4],[5,6]])
         self.assertEqual(measured["second_wheel"],7)
         self.assertTrue(with_lines["line_or_second_wheel_verified"])
         self.assertEqual(measured["attack"],UNKNOWN)
@@ -173,6 +183,29 @@ class ExistingRiderCandidateGateTests(unittest.TestCase):
         self.assertEqual(scored["earned_points_out_of_100_possible"],9.0)
         self.assertEqual(scored["phases"][1]["component_outcomes"]["line_groups"],
                          "MISS")
+        self.assertEqual(scored["phases"][1]["component_outcomes"]["second_wheel"],
+                         "MISS")
+        self.assertFalse(scored["formal_evaluation_inputs_attested"])
+
+    def test_partial_visible_line_scores_second_wheel_not_full_line_groups(self):
+        p=packets()
+        for row in p:
+            row["line_groups_candidate"]=[[1,7],[2]]
+        a=admitted(observations(),synthetic=False)
+        f=bridge(frames=p,video=a,lines=True)
+        seen=f["phase_observations"][0]["measured"]
+        self.assertEqual(seen["line_groups"],UNKNOWN)
+        self.assertEqual(seen["second_wheel"],7)
+        self.assertEqual(f["stage_status"][1]["reason"],
+                         "PARTIAL_LINE_SECOND_WHEEL_ONLY")
+        scored=score_six_phases(
+            frozen(),a,f["phase_observations"],
+            visual_verifier=lambda *args:True,
+            rights_verifier=lambda *args:True)
+        self.assertEqual(scored["comparison_coverage_pct"],11.25)
+        self.assertEqual(scored["earned_points_out_of_100_possible"],9.0)
+        self.assertEqual(scored["phases"][1]["component_outcomes"]["line_groups"],
+                         "UNKNOWN")
         self.assertEqual(scored["phases"][1]["component_outcomes"]["second_wheel"],
                          "MISS")
         self.assertFalse(scored["formal_evaluation_inputs_attested"])
