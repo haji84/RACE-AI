@@ -74,7 +74,7 @@ def _evidence(value, report, target_roster):
     _time(value["created_at"])
     _sha(value["heldout_evidence_sha256"], optional=True)
     identities = value["identities"]
-    _need(type(identities) is list and len(identities) == 6)
+    _need(type(identities) is list and len(identities) == len(target_roster))
     tracks = {row["lane"]: row for row in report["tracking"]["tracks"]}
     by_lane, frame_hashes = {}, {}
     for row in identities:
@@ -103,7 +103,7 @@ def _evidence(value, report, target_roster):
             _need(index not in frame_hashes or frame_hashes[index] == frame["frame_sha256"])
             frame_hashes[index] = frame["frame_sha256"]
         by_lane[lane] = row
-    _need(set(by_lane) == set(range(1, 7)))
+    _need(set(by_lane) == set(target_roster))
     comparisons = value["comparisons"]
     _need(type(comparisons) is dict and set(comparisons) <= {row[1] for row in FEATURE_SCHEMA})
     for comparison in comparisons.values():
@@ -116,13 +116,13 @@ def _evidence(value, report, target_roster):
         for key in ("camera_evidence_sha256", "calibration_evidence_sha256", "clock_evidence_sha256"):
             _sha(comparison[key], optional=True)
         uncertainty = comparison["uncertainty_by_lane"]
-        _need(type(uncertainty) is dict and set(uncertainty) == set(map(str, range(1, 7))) and
+        _need(type(uncertainty) is dict and set(uncertainty) == set(map(str,target_roster)) and
               all(_nonnegative(error) for error in uncertainty.values()))
     return value, by_lane
 
 
 def _comparison_window(report, comparison):
-    """Derive one shared source-PTS interval from the exact six track samples."""
+    """Derive one shared source-PTS interval from the active track samples."""
     result = deepcopy(comparison)
     result.update(source_pts_seconds=None, t_start=None, t_end=None)
     common = None
@@ -174,9 +174,9 @@ def _phase_reason(report, identities, phase, comparison):
 
 
 def prepare_video_context(report, identity_evidence, *, race_id, cutoff_at, roster, as_of):
-    """Return six rows of four raw typed cells, or explicit missing reasons.
+    """Return one row per active entrant (3-6), or explicit missing reasons.
 
-    ``identity_evidence`` is a sealed COMPARISON_EVIDENCE_V1 envelope. Its six
+    ``identity_evidence`` is a sealed COMPARISON_EVIDENCE_V1 envelope. Its active
     numbered identity rows bind complete tracks and reference frame hashes;
     each phase comparison binds one scene, identical observed frames/times,
     camera/calibration/clock references, and same-unit per-lane error bounds.
@@ -244,7 +244,7 @@ def prepare_video_context(report, identity_evidence, *, race_id, cutoff_at, rost
             "prediction_eligible": False, "production_eligible": False, "performance_rating": "NOT_COMPUTED",
             "comparisons": comparisons, "participants": []}
         participants = {lane: {"lane": lane, "registration_number": target_roster[lane], "feature_cells": {}}
-                        for lane in range(1, 7)}
+                        for lane in sorted(target_roster)}
         measurements = {lane["lane"]: lane for lane in raw["measurements"]["lanes"]}
         for feature, phase, metric, unit in FEATURE_SCHEMA:
             comparison = comparisons.get(phase)
@@ -365,10 +365,10 @@ def validate_video_context(context, *, race_id, cutoff_at, roster, as_of):
             for key in ("camera_evidence_sha256", "calibration_evidence_sha256", "clock_evidence_sha256"):
                 _sha(comparison[key], optional=True)
             errors = comparison["uncertainty_by_lane"]
-            _need(type(errors) is dict and set(errors) == set(map(str, range(1, 7))) and
+            _need(type(errors) is dict and set(errors) == set(map(str,target)) and
                   all(_nonnegative(error) for error in errors.values()))
         participants = value["participants"]
-        _need(type(participants) is list and len(participants) == 6)
+        _need(type(participants) is list and len(participants) == len(target))
         found, reasons, numeric_by_feature = {}, set(), dict.fromkeys(FEATURE_IDS, 0)
         for participant in participants:
             _need(type(participant) is dict and set(participant) == {"lane", "registration_number", "feature_cells"})
