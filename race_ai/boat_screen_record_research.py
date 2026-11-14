@@ -109,19 +109,22 @@ def _bytes(text):
     return base64.b64decode(text,validate=True)
 
 
-def seal_screen(video_bytes,*,race_id,page_url,fixture,aes_key):
+def seal_screen(video_bytes,*,race_id,page_url,fixture,aes_key,captured_at=None):
     """Private encrypted bytes only; no plaintext media on public Git."""
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     if (type(video_bytes) is not bytes or not 0<len(video_bytes)<=_MAX_SCREEN_BYTES or
         type(aes_key) is not bytes or len(aes_key)!=32 or
         type(race_id) is not str or _RACE.fullmatch(race_id) is None or
-        type(page_url) is not str or type(fixture) is not bool):
+        type(page_url) is not str or type(fixture) is not bool or
+        (captured_at is not None and type(captured_at) is not str)):
         raise ValueError("BOAT_SCREEN_CIPHER_INVALID")
     import os
+    captured_at=captured_at or datetime.now(timezone.utc).isoformat()
+    instant(captured_at)
     digest_media=sha256(video_bytes).hexdigest()
     binding=dict(schema=_CIPHER_SCHEMA,race_id=race_id,media_sha256=digest_media,
                  source_page_sha256=sha256(page_url.encode()).hexdigest(),
-                 synthetic_fixture=fixture)
+                 synthetic_fixture=fixture,captured_at=captured_at)
     aad=json.dumps(binding,sort_keys=True,separators=(',',':')).encode()
     nonce=os.urandom(12)
     cipher=AESGCM(aes_key).encrypt(nonce,video_bytes,aad)
@@ -131,9 +134,10 @@ def seal_screen(video_bytes,*,race_id,page_url,fixture,aes_key):
 def unseal_screen(envelope,*,aes_key):
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     if (type(envelope) is not dict or set(envelope)!={"schema","race_id","media_sha256",
-        "source_page_sha256","synthetic_fixture","nonce","ciphertext"} or
+        "source_page_sha256","synthetic_fixture","captured_at","nonce","ciphertext"} or
         envelope.get("schema")!=_CIPHER_SCHEMA or type(aes_key) is not bytes or len(aes_key)!=32 or
-        type(envelope.get("race_id")) is not str or _RACE.fullmatch(envelope["race_id"]) is None):
+        type(envelope.get("race_id")) is not str or _RACE.fullmatch(envelope["race_id"]) is None or
+        type(envelope.get("captured_at")) is not str):
         raise ValueError("BOAT_SCREEN_CIPHER_INVALID")
     fields={k:v for k,v in envelope.items() if k not in ("nonce","ciphertext")}
     try:
@@ -284,7 +288,8 @@ async def record_screen(browser,source,grant,*,verify_grant,now,aes_key,
             raw=recorded.read_bytes()
             envelope=seal_screen(raw,race_id=source["race_id"],
                 page_url=source["page_url"],fixture=fixture_loader is not None,
-                aes_key=aes_key)
+                aes_key=aes_key,captured_at=(now.isoformat() if fixture_loader is not None
+                else datetime.now(timezone.utc).isoformat()))
             return dict(status=("SCREEN_REPLAY_CAPTURE_ENCRYPTED_UNVALIDATED"
                                 if source["mode"]=="REPLAY"
                                 else "SCREEN_LIVE_WINDOW_ENCRYPTED_UNVALIDATED"),
