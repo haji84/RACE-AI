@@ -231,12 +231,19 @@ def checked_observation(obs, admission):
     checked_parts(obs["measured"])
     # Every scored frame must already exist in the PR102 independently
     # reviewed scene receipt. The phase model cannot invent frame hashes.
-    receipt = {(x.get("frame_sha256"), x.get("review_ref"))
+    receipt = {(x.get("frame_sha256"), x.get("review_ref")): x
                for x in admission["reviewed_scene_frames"]
                if type(x) is dict}
-    need(all((frame, ref) in receipt for frame, ref in
-             zip(obs["frame_sha256"], obs["review_refs"])),
-         "PHASE_FRAME_NOT_IN_VIDEO_ADMISSION")
+    for frame, ref in zip(obs["frame_sha256"], obs["review_refs"]):
+        need((frame, ref) in receipt, "PHASE_FRAME_NOT_IN_VIDEO_ADMISSION")
+        matched = receipt[frame, ref]
+        frame_time = matched.get("time_s")
+        need(type(frame_time) in (int, float) and math.isfinite(frame_time) and
+             abs(frame_time - obs["recording_sec"]) <= 5,
+             "PHASE_FRAME_TIME_NOT_ATTESTED")
+        if obs["scene"] == "LIVE":
+            need(matched.get("label") != "REPLAY",
+                 "REPLAY_FRAME_CANNOT_PROVE_LIVE_PHASE")
     return obs
 
 
@@ -258,7 +265,8 @@ def _confirmed(cb, *args):
 def score_six_phases(forecast, admission, observations, *,
                      visual_verifier=None, frozen_original_verifier=None,
                      rights_verifier=None, official_result=None,
-                     official_result_verifier=None):
+                     official_result_verifier=None,
+                     prospective_window_verifier=None):
     """Score only attested visual components. No model learning or mutation.
 
     The independent callbacks must check actual private recording bytes,
@@ -274,9 +282,14 @@ def score_six_phases(forecast, admission, observations, *,
     by_stage = {}
     used = set()
     prev = -1.0
+    phase_position = {name: i for i, (name, _) in enumerate(STAGES)}
+    previous_phase_position = -1
     for obs in observations:
         checked_observation(obs, admission)
         need(obs["phase"] not in by_stage, "DUPLICATE_STAGE_OBSERVATION")
+        need(phase_position[obs["phase"]] > previous_phase_position,
+             "STAGES_NOT_IN_PHASE_ORDER")
+        previous_phase_position = phase_position[obs["phase"]]
         need(obs["recording_sec"] > prev, "STAGES_NOT_IN_VIDEO_TIME_ORDER")
         prev = obs["recording_sec"]
         for frame in obs["frame_sha256"]:
@@ -290,6 +303,9 @@ def score_six_phases(forecast, admission, observations, *,
         admission.get("training_eligible") is True and
         admission["admitted_coverage"] != "NONE" and owner_rights))
     original_ok = _confirmed(frozen_original_verifier, forecast)
+    # Reuse the existing live_15min_proof gate via a trusted caller. The
+    # SHA/clock in this sidecar alone is NOT an external schedule receipt.
+    prospective_ok = _confirmed(prospective_window_verifier, forecast)
     result_ok = False
     official_order = None
     if official_result is not None:
@@ -355,7 +371,8 @@ def score_six_phases(forecast, admission, observations, *,
                      by_stage["GOAL"]["measured"]["top3"] != UNKNOWN and
                      by_stage["GOAL"]["measured"]["top3"] != official_order)
     formal = (not synthetic and video_allowed and original_ok and
-              result_ok and comparable_weight > 0 and not goal_conflict)
+              prospective_ok and result_ok and comparable_weight > 0 and
+              not goal_conflict)
     if goal_conflict:
         status = "HOLD_GOAL_VIDEO_OFFICIAL_RESULT_CONFLICT"
     elif not comparable_weight:
@@ -385,6 +402,7 @@ def score_six_phases(forecast, admission, observations, *,
         "phases": stages,
         "missed_component_candidates": missed,
         "independent_frozen_original_attested": original_ok,
+        "independent_prospective_window_attested": prospective_ok,
         "independent_video_rights_attested": bool(owner_rights and not synthetic),
         "official_result_independently_attested": result_ok,
         "formal_evaluation_inputs_attested": formal,
