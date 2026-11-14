@@ -84,6 +84,9 @@ async def run(args):
             batch["not_selected_due_to_wave_cap"],
         "available_candidates_this_wave":len(batch["selected"]),
         "attempted":0,"encrypted":0,"race_rows":[],
+        "provider_denial_stopped_wave":False,
+        "provider_denial_http_status":None,
+        "provider_denial_deferred_in_wave":0,
         "owner_reports_winticket_permission":True,
         "exact_permission_scope_independently_documented":False,
         "full_four_laps_asserted":False,
@@ -160,7 +163,18 @@ async def run(args):
                         entry.get("private_feature_extraction_status")
                         =="SUCCEEDED_EPHEMERAL",
                 })
-                result["status"]="PARTIAL_BATCH_PROGRESS"
+                denied=(entry.get("technical_status")=="SOURCE_ACCESS_DENIED_NO_RETRY"
+                        and entry.get("http_status") in (403,429))
+                if denied:
+                    # Same source session: stop immediately rather than making
+                    # more 403/429 requests or seeking a different host.
+                    result["provider_denial_stopped_wave"]=True
+                    result["provider_denial_http_status"]=entry["http_status"]
+                    result["provider_denial_deferred_in_wave"]=(
+                        len(batch["selected"])-result["attempted"])
+                    result["status"]="HOLD_PROVIDER_ACCESS_DENIED_NO_RETRY"
+                else:
+                    result["status"]="PARTIAL_BATCH_PROGRESS"
                 args.report.write_text(json.dumps(
                     result,ensure_ascii=False,indent=2))
                 print(json.dumps({
@@ -168,6 +182,8 @@ async def run(args):
                     "status":entry.get("technical_status"),
                     "success_so_far":result["encrypted"]
                 },ensure_ascii=False),flush=True)
+                if denied:
+                    break
                 await asyncio.sleep(1)
         finally:
             await browser.close()
@@ -207,7 +223,8 @@ async def run(args):
         result["encrypted_private_research_documents"]=0
         result["scene_feature_races"]=0
         result["scene_feature_frame_count"]=0
-    result["status"]="WAVE_RECORDED_OR_FAILED_PER_RACE"
+    if not result["provider_denial_stopped_wave"]:
+        result["status"]="WAVE_RECORDED_OR_FAILED_PER_RACE"
     result["ended_jst"]=datetime.now(JST).isoformat()
     args.report.write_text(json.dumps(result,ensure_ascii=False,indent=2))
     return result
