@@ -29,6 +29,9 @@ PAST_RESULT_PATH = re.compile(
     r'^/keirin/[a-z][a-z0-9-]{2,30}/raceresult/[0-9]{10}/[1-3]/(?:[1-9]|1[0-2])$')
 PAST_CACHE_MAX_BYTES = 24 * 1024 * 1024
 PAST_CACHE_ENTRY_MAX_BYTES = 2 * 1024 * 1024
+# Page-attempt budgets only; source/clock/quality gates are never relaxed.
+PRIOR_RESULT_PAGES_PER_CYCLE = 120
+PRIOR_RESULT_PAGES_PER_RACE = 32
 
 
 def need(ok, reason):
@@ -242,6 +245,14 @@ def collect_owner_inputs(inbox, *, owner_auto_confirmed, capture=None, probe=Non
         except (ValueError, OSError, KeyError, TypeError):
             out['invalid_partial_records'] += 1
     ordered = sorted(latest.values(), key=lambda row:(row[2], row[0]['race_id']))
+    # The old per-race max_pages=100 could exhaust a 240-second worker on
+    # the earliest few races. Divide bounded historical reads fairly among
+    # currently prospective cards, without fetching extra pages or claiming
+    # that a partial historical sample completes a model input.
+    eligible = sum(now + MARGIN < row[2] for row in ordered)
+    prior_pages_per_race = min(PRIOR_RESULT_PAGES_PER_RACE,
+                               max(1, PRIOR_RESULT_PAGES_PER_CYCLE // max(1, eligible)))
+    out['prior_result_max_pages_per_race'] = prior_pages_per_race
     for index, (item, captured, cutoff, n) in enumerate(ordered):
         if not session.available():
             out['history_races_deferred'] += len(ordered)-index
@@ -255,7 +266,7 @@ def collect_owner_inputs(inbox, *, owner_auto_confirmed, capture=None, probe=Non
              'PRIVATE_HISTORY_PATH_UNSAFE')
         private.mkdir(mode=0o700, parents=True, exist_ok=True)
         try:
-            report = probe(race_id=rid, racecard_url=item['source_url'], max_pages=100,
+            report = probe(race_id=rid, racecard_url=item['source_url'], max_pages=prior_pages_per_race,
                 fetch=session, clock=clock, private_evidence_dir=private,
                 include_modelled_weather=True)
             need(instant(clock()) < cutoff, 'HISTORY_COLLECTION_CROSSED_CUTOFF')
