@@ -69,7 +69,7 @@ def review(candidate,grant,*,now,verify_grant=None):
                 receipt.get('state')!='INDEPENDENT_RIGHTS_RECEIPT_VERIFIED' or
                 receipt.get('manifest_sha256')!=digest(grant) or
                 receipt.get('evidence_sha256')!=grant['grant_evidence_sha256'] or
-                instant(receipt['verified_at'])>now):
+                not instant(grant['restrictions_verified_at'])<=instant(receipt['verified_at'])<=now):
             return _hold('HOLD_RIGHTS_RECEIPT_INVALID_OR_LATE',candidate)
         result=_hold('READY_PRIVATE_RESEARCH_INPUT_ONLY',candidate)
         result.update(video_sha256=candidate['media_sha256'],grant_sha256=digest(grant),
