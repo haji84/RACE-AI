@@ -47,7 +47,8 @@ class OwnerInputTests(unittest.TestCase):
     def invoke(self, **kw):
         return collect_owner_inputs(self.root, owner_auto_confirmed=True,
             capture=kw.pop('capture',self.capture), probe=kw.pop('probe',self.probe),
-            fetch=lambda url:self.network.append(url) or b'ordinary page',
+            fetch=kw.pop('fetch',lambda url:self.network.append(url)
+                         or b'ordinary page'),
             clock=self.clock, monotonic=lambda:0.0, **kw)
     def test_uses_existing_capture_and_history_without_promoting_partial_data(self):
         r=self.invoke()
@@ -115,6 +116,42 @@ class OwnerInputTests(unittest.TestCase):
         r=self.invoke(capture=tamper)
         self.assertEqual(self.probed,[])
         self.assertEqual(r['invalid_partial_records'],1)
+    def test_blocked_source_reports_specific_safe_code_and_no_model(self):
+        calls=[]
+        def denied(url):
+            calls.append(url)
+            raise ValueError('PUBLIC_PAGE_BLOCKED_OR_RATE_LIMITED_NO_RETRY')
+        def capture(root, fetch, **kwargs):
+            fetch('https://www.winticket.jp/keirin/odds/20300115')
+        result=self.invoke(capture=capture,fetch=denied)
+        self.assertEqual(len(calls),1)
+        self.assertTrue(result['source_capture_held'])
+        self.assertTrue(result['provider_denial_stopped_requests'])
+        self.assertEqual(result['source_capture_hold_code'],
+                         'PROVIDER_ACCESS_DENIED_NO_RETRY')
+        self.assertEqual(result['source_session_stop_code'],
+                         'PROVIDER_ACCESS_DENIED_NO_RETRY')
+        self.assertEqual(result['new_pre_race_inputs'],0)
+        self.assertFalse((self.root/'pre').exists())
+        self.assertNotIn('www.winticket',json.dumps(result))
+
+    def test_transient_unavailability_and_unpublished_are_not_403(self):
+        def capture(root, fetch, **kwargs):
+            fetch('https://www.winticket.jp/keirin/odds/20300115')
+        for code, expected in (
+                ('PUBLIC_PAGE_NOT_PUBLISHED_OR_GONE','SOURCE_NOT_PUBLISHED'),
+                ('PUBLIC_PAGE_NETWORK_UNAVAILABLE','SOURCE_NETWORK_UNAVAILABLE'),
+                ('unexpected diagnostic with private page',
+                 'SOURCE_CAPTURE_UNAVAILABLE_OR_INVALID')):
+            def bad(url):
+                raise ValueError(code)
+            with self.subTest(code=code):
+                report=self.invoke(capture=capture,fetch=bad)
+                self.assertEqual(report['source_capture_hold_code'],expected)
+                self.assertEqual(report['source_session_stop_code'],'NONE')
+                self.assertFalse(report['provider_denial_stopped_requests'])
+                self.assertNotIn('private page',json.dumps(report))
+
     def test_no_source_can_override_inbox_privacy(self):
         link=self.root/'link'; link.symlink_to(self.root,target_is_directory=True)
         with self.assertRaises(ValueError):
