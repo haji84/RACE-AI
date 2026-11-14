@@ -49,13 +49,15 @@ def packets():
     return result
 
 
-def bridge(frames=None,*,video=None,roster=None,confirm=True,pixel=True):
+def bridge(frames=None,*,video=None,roster=None,confirm=True,pixel=True,
+           lines=False):
     frames=packets() if frames is None else frames
     a=admitted(observations(),synthetic=False) if video is None else video
     return bridge_reviewed_frames(
         frozen(),a,ROSTER if roster is None else roster,frames,
         roster_original_verifier=lambda f,r:confirm,
         pixel_source_verifier=lambda packet,admission,roster:pixel,
+        line_relation_verifier=lambda first,second,admission:lines,
     )
 
 
@@ -145,6 +147,60 @@ class ExistingRiderCandidateGateTests(unittest.TestCase):
                 frozen(),admitted(observations(),synthetic=False),
                 saved,packets(),ledger_readback_verifier=lambda *args:True,
                 pixel_source_verifier=lambda *args:True)
+
+    def test_independent_two_frame_line_joins_can_score_real_line_mismatch(self):
+        p=packets()
+        for row in p:
+            row["line_groups_candidate"]=[[1,7],[2]]
+        a=admitted(observations(),synthetic=False)
+        without=bridge(frames=p,video=a)
+        self.assertEqual(without["phase_observations"][0]["measured"]["line_groups"],
+                         UNKNOWN)
+        self.assertFalse(without["line_or_second_wheel_verified"])
+        with_lines=bridge(frames=p,video=a,lines=True)
+        measured=with_lines["phase_observations"][0]["measured"]
+        self.assertEqual(measured["line_groups"],[[1,7],[2]])
+        self.assertEqual(measured["second_wheel"],7)
+        self.assertTrue(with_lines["line_or_second_wheel_verified"])
+        self.assertEqual(measured["attack"],UNKNOWN)
+        scored=score_six_phases(
+            frozen(),a,with_lines["phase_observations"],
+            visual_verifier=lambda *args:True,
+            rights_verifier=lambda *args:True,
+        )
+        # BELL leader+top3 agree (9 pts); line and second-wheel do not (4.5 pts).
+        self.assertEqual(scored["comparison_coverage_pct"],13.5)
+        self.assertEqual(scored["earned_points_out_of_100_possible"],9.0)
+        self.assertEqual(scored["phases"][1]["component_outcomes"]["line_groups"],
+                         "MISS")
+        self.assertEqual(scored["phases"][1]["component_outcomes"]["second_wheel"],
+                         "MISS")
+        self.assertFalse(scored["formal_evaluation_inputs_attested"])
+
+    def test_disagreement_or_missing_independent_line_attestor_means_unknown(self):
+        p=packets()
+        p[0]["line_groups_candidate"]=[[1,7],[2]]
+        p[1]["line_groups_candidate"]=[[1],[7,2]]
+        out=bridge(frames=p,lines=True)
+        self.assertEqual(out["phase_observations"][0]["measured"]["line_groups"],
+                         UNKNOWN)
+        self.assertFalse(out["line_or_second_wheel_verified"])
+        p[1]["line_groups_candidate"]=[[1,7],[2]]
+        out=bridge(frames=p,lines=False)
+        self.assertEqual(out["phase_observations"][0]["measured"]["line_groups"],
+                         UNKNOWN)
+
+    def test_line_cannot_contain_unseen_car_or_duplicate_member(self):
+        p=packets()
+        p[0]["line_groups_candidate"]=[[1,4],[7,2]]
+        with self.assertRaisesRegex(
+                FrameIdentityError,"LINE_MEMBER_MISSING_FROM_FRAME_OR_DUPLICATED"):
+            bridge(frames=p,lines=True)
+        p=packets()
+        p[0]["line_groups_candidate"]=[[1,7],[1,2]]
+        with self.assertRaisesRegex(
+                FrameIdentityError,"LINE_MEMBER_MISSING_FROM_FRAME_OR_DUPLICATED"):
+            bridge(frames=p,lines=True)
 
     def test_empty_or_unreviewed_frames_make_all_stages_unknown(self):
         for row in ([],packets()[:1]):
