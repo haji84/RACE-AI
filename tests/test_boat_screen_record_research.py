@@ -70,6 +70,21 @@ class ScreenAdmissionTests(unittest.TestCase):
                                               verify_grant=verify_grant)["status"],
                                     "READY_PRIVATE_SCREEN_RESEARCH_ONLY")
 
+    def test_visible_exhibition_replay_button_is_a_permitted_normal_ui_action(self):
+        from race_ai.boat_screen_record_research import preflight
+        result=preflight(source(play_selector="展示リプレイ"),grant(),
+                         now=NOW,verify_grant=verify_grant)
+        self.assertEqual(result["status"],"READY_PRIVATE_SCREEN_RESEARCH_ONLY")
+
+    def test_real_page_requires_independent_DOM_race_identity_before_open(self):
+        from race_ai.boat_screen_record_research import record_screen
+        fake=AsyncMock()
+        result=asyncio.run(record_screen(fake,source(),grant(),
+            verify_grant=verify_grant,now=NOW,aes_key=b"k"*32,
+            fixture_loader=None,timeout_seconds=12))
+        fake.new_context.assert_not_called()
+        self.assertEqual(result["status"],"HOLD_SCREEN_PAGE_IDENTITY_VERIFIER_REQUIRED")
+
     def test_approved_grant_never_proves_model_or_public_video_use(self):
         from race_ai.boat_screen_record_research import preflight
         s=source();g=grant();before=deepcopy((s,g))
