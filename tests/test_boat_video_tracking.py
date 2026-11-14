@@ -84,6 +84,23 @@ class SyntheticDecodedTrackingTests(unittest.TestCase):
         self.assertTrue(out["quality"]["camera_estimates"])
         self.assertIn("COLOR_DOES_NOT_VERIFY_BOAT_IDENTITY", out["quality"]["flags"])
 
+    def test_real_cv_uses_actual_active_lanes_5_4_3_and_excludes_absent_color(self):
+        path=self.clip()
+        for active in ([1,2,4,5,6],[1,3,5,6],[2,4,6]):
+            with self.subTest(active=active):
+                raw=self.run_clip(path,active_lanes=active)
+                self.assertEqual([r["lane"] for r in raw["tracks"]],active)
+                self.assertFalse(raw["model_eligible"])
+                self.assertEqual(raw["validation_status"],"UNVALIDATED")
+                self.assertEqual(set(raw["quality"]["valid_sample_counts"]),set(map(str,active)))
+                if 3 in active:
+                    self.assertGreaterEqual(sum(p["valid"] for p in raw["tracks"][active.index(3)]["samples"]),20)
+                else:
+                    self.assertNotIn(3,{r["lane"] for r in raw["tracks"]})
+        for bad in ([1,1,3],[1,2],[0,2,3],[2,3,7],[2,1,3],[True,2,3]):
+            with self.subTest(bad=bad),self.assertRaises(ValueError):
+                self.run_clip(path,active_lanes=bad)
+
     def test_accelerating_camera_pan_does_not_become_boat_speed_trend(self):
         # Encode a distinct clip with accelerating camera x=floor(i*i/16).
         cv2, np = self.cv2, self.np
