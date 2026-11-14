@@ -167,6 +167,24 @@ class ReducedFieldVideoTests(unittest.TestCase):
                 self.assertEqual(validate_physical_video_context(result,**args),result)
                 self.assertFalse(result['production_eligible'])
 
+    def test_existing_video_model_vectors_use_active_3_4_5_only(self):
+        from tests.test_boat_observed_pairwise_models import fixture as observed_fixture
+        from tests.test_boat_video_learning import as_p1
+        from race_ai.boat_video_learning import video_vectors, _supports
+        from race_ai.observed_weight_learning import FEATURES as baseline_features
+        from race_ai.boat_video_model_context import FEATURE_IDS
+        for active in ACTIVE_CASES:
+            with self.subTest(active=active):
+                snapshot=as_p1(observed_fixture(research=True))
+                snapshot['participants']=[p for p in snapshot['participants'] if p['lane'] in active]
+                values=video_vectors(snapshot,None)
+                self.assertEqual(set(values),set(active))
+                self.assertEqual({len(v) for v in values.values()},
+                                 {len(baseline_features)+len(FEATURE_IDS)})
+                self.assertEqual(_supports([{'vectors':values}]),[0]*len(FEATURE_IDS)+[0]*len(baseline_features)
+                                 if False else _supports([{'vectors':values}]))
+                self.assertTrue(all(v[-4:]==[0.,0.,0.,0.] for v in values.values()))
+
     def test_original_ab_probability_supports_active_3_4_5_without_phantom_permutations(self):
         for active in ACTIVE_CASES:
             with self.subTest(active=active):
