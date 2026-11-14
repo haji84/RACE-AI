@@ -80,6 +80,32 @@ class OwnerInputTests(unittest.TestCase):
         r=self.invoke(capture=several)
         self.assertEqual(len(self.probed),2)
         self.assertEqual(r['history_races_processed'],2)
+    def test_history_lookup_budget_is_shared_by_six_future_races(self):
+        # Six prospective races must not each consume up to 100 old pages
+        # before the remaining races are even inspected.
+        prior_limits=[]
+        def six(root,**kw):
+            for number in range(1,7):
+                card(root,rid=f'2030011512{number:02d}',
+                     source=f'https://www.winticket.jp/keirin/aomori/racecard/2030011512/1/{number}')
+            return {'source_day_schedule_race_count':78}
+        def bounded_probe(**kw):
+            prior_limits.append(kw['max_pages'])
+            return self.probe(**kw)
+        report=self.invoke(capture=six,probe=bounded_probe)
+        self.assertEqual(report['history_races_processed'],6)
+        self.assertEqual(prior_limits,[20]*6)
+        self.assertEqual(report['prior_result_max_pages_per_race'],20)
+        self.assertLessEqual(sum(prior_limits),120)
+        self.assertEqual(report['new_pre_race_inputs'],0)
+        self.assertFalse(report['actual_four_model_forecast_saved'])
+        self.assertFalse((self.root/'pre').exists())
+
+    def test_single_future_race_still_gets_bounded_history(self):
+        report=self.invoke()
+        self.assertEqual(report['prior_result_max_pages_per_race'],32)
+        self.assertEqual(self.probed,['203001151201'])
+
     def test_bad_source_card_id_and_hash_are_not_used(self):
         def tamper(root,**kw):
             card(root)
