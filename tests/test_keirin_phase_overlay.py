@@ -15,7 +15,7 @@ import os
 import unittest
 
 from race_ai.keirin_phase_overlay import (
-    PHASE_SCHEMA, SCORE_SCHEMA, STAGES, UNKNOWN, PhaseError, digest,
+    PHASE_SCHEMA, SCORE_SCHEMA, STAGES, PARTS, UNKNOWN, PhaseError, digest,
     build_phase_forecast, checked_forecast, freeze_private_once,
     score_six_phases,
 )
@@ -126,6 +126,15 @@ class BeforeCutoffSidecarTests(unittest.TestCase):
         self.assertEqual(row["schema"], PHASE_SCHEMA)
         self.assertEqual(list(row["stage_predictions"]), [x for x, _ in STAGES])
         self.assertEqual(sum(weight for _, weight in STAGES), 100)
+        self.assertEqual(dict(STAGES), {
+            "INITIAL": 10, "BELL": 15, "FINAL_HOME": 15,
+            "FINAL_BACK": 20, "FOURTH_CORNER": 15, "GOAL": 25,
+        })
+        self.assertEqual(dict(PARTS), {
+            "leader": 25, "top3": 35, "line_groups": 15,
+            "second_wheel": 15, "attack": 10,
+        })
+        self.assertEqual(sum(v for _, v in PARTS), 100)
         self.assertEqual(checked_forecast(row), row)
 
     def test_private_create_once_binds_exact_readback_and_never_overwrites(self):
