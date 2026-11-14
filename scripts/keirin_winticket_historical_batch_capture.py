@@ -94,27 +94,34 @@ async def capture_one(browser, source, root, public_key, *, on_verified_plaintex
             response=await page.goto(
                 source["url"],wait_until="domcontentloaded",timeout=26000)
             entry["http_status"]=response.status if response else None
-            await page.wait_for_timeout(2600)
-            title=await page.title()
-            entry["page_title"]=title[:160]
-            if not identity_ok(source,page.url,title,entry["http_status"]):
-                entry["technical_status"]="RACE_IDENTITY_MISMATCH"
+            # Distinguish a provider refusal from a genuine race/title mismatch.
+            # Never probe the player or create a new capture after 403/429.
+            if entry["http_status"] in (403, 429):
+                entry["technical_status"]="SOURCE_ACCESS_DENIED_NO_RETRY"
+            elif entry["http_status"]!=200:
+                entry["technical_status"]="SOURCE_HTTP_NOT_OK"
             else:
-                loc=page.locator("text=映像を観る").first
-                if not (await loc.count() and await loc.is_visible()):
-                    entry["technical_status"]="NO_VISIBLE_REPLAY_CONTROL"
+                await page.wait_for_timeout(2600)
+                title=await page.title()
+                entry["page_title"]=title[:160]
+                if not identity_ok(source,page.url,title,entry["http_status"]):
+                    entry["technical_status"]="RACE_IDENTITY_MISMATCH"
                 else:
-                    await loc.click(timeout=6000)
-                    await page.wait_for_timeout(700)
-                    first,last,ended,checks,reason=await watch_to_player_end(
-                        page,seconds=200,fixture=False)
-                    entry["player_checks"]=checks
-                    entry["player_end_reason"]=reason
-                    entry["player_duration_s"]=(
-                        last.get("duration") if last else None)
-                    entry["player_ended"]=bool(last and last.get("ended"))
-                    entry["technical_status"]=(
-                        "PLAYER_FINISHED" if ended else "PLAYER_NOT_FINISHED")
+                    loc=page.locator("text=映像を観る").first
+                    if not (await loc.count() and await loc.is_visible()):
+                        entry["technical_status"]="NO_VISIBLE_REPLAY_CONTROL"
+                    else:
+                        await loc.click(timeout=6000)
+                        await page.wait_for_timeout(700)
+                        first,last,ended,checks,reason=await watch_to_player_end(
+                            page,seconds=200,fixture=False)
+                        entry["player_checks"]=checks
+                        entry["player_end_reason"]=reason
+                        entry["player_duration_s"]=(
+                            last.get("duration") if last else None)
+                        entry["player_ended"]=bool(last and last.get("ended"))
+                        entry["technical_status"]=(
+                            "PLAYER_FINISHED" if ended else "PLAYER_NOT_FINISHED")
         except Exception as exc:
             entry["technical_status"]="BROWSER_CAPTURE_ERROR"
             entry["error_type"]=type(exc).__name__
@@ -127,7 +134,8 @@ async def capture_one(browser, source, root, public_key, *, on_verified_plaintex
                 entry["screencast_error_type"]=type(exc).__name__
             pass
 
-        if selected is not None and selected.is_file():
+        if (entry["technical_status"]!="SOURCE_ACCESS_DENIED_NO_RETRY"
+                and selected is not None and selected.is_file()):
             tech=video_metadata(selected)
             entry["screen_format"]=tech.get("ffprobe")
             entry["screen_bytes"]=tech.get("bytes")
@@ -155,6 +163,7 @@ async def capture_one(browser, source, root, public_key, *, on_verified_plaintex
             else:
                 entry["failure_before_integrity_check"]=entry["technical_status"]
                 entry["technical_status"]="INCOMPLETE_NOT_EXPORTED"
+        # Denied pages never become false race-identity failures or clip evidence.
         return entry
 
 async def execute(report, root, public_key, *, review_aomori1r=False):
