@@ -131,6 +131,15 @@ class RightsAdmissionTests(unittest.TestCase):
             self.assertEqual(review(source,agreement(),now=NOW,verify_grant=verifier)['state'],
                              'HOLD_VIDEO_SOURCE_DAY_MISMATCH')
 
+    def test_grant_review_receipt_must_not_precede_actual_rights_review(self):
+        from race_ai.boat_video_rights_admission import review
+        def stale(doc,original):
+            evidence=verifier(doc,original)
+            evidence['verified_at']='2030-04-01T11:34:00+09:00'
+            return evidence
+        self.assertEqual(review(candidate(),agreement(),now=NOW,verify_grant=stale)['state'],
+                         'HOLD_RIGHTS_RECEIPT_INVALID_OR_LATE')
+
     def test_production_claim_is_never_inferred_from_any_receipt(self):
         from race_ai.boat_video_rights_admission import review
         for k in ('OWNER_RECORDED','RIGHTS_HOLDER_SUPPLIED'):
