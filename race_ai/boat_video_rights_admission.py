@@ -1,8 +1,9 @@
 """Fail-closed legal-source admission before optional exhibition-video research.
 
 Research only. A public FAQ, an asserted license, or a self-declared SHA cannot
-prove a permitted automated download/ML use. The caller must independently
-retrieve and verify the actual applicable authorization via verify_grant.
+prove unrestricted automated use. Separate paths accept either a specific
+independently verified grant or the owner's explicit private-research scope
+acknowledgment, without treating the latter as independent legal verification.
 This pure gate never fetches video, modifies forecast originals, or authorizes
 publication. It is not a substitute for legal review.
 """
@@ -23,7 +24,7 @@ def _hold(state, candidate):
                 source_fetch_performed=False, production_video_forecast_proven=False,
                 publication_approved=False, source_authorization_independently_claimed=False)
 
-def review(candidate,grant,*,now,verify_grant=None):
+def review(candidate,grant,*,now,verify_grant=None,personal_use_acknowledged=False):
     """Admission request does no I/O. Missing/contradictory proofs always HOLD."""
     if type(candidate) is not dict or set(candidate)!=CANDIDATE_FIELDS or not isinstance(now,datetime) or now.utcoffset() is None:
         return _hold('HOLD_VIDEO_SOURCE_INPUT_INVALID',candidate)
@@ -44,6 +45,18 @@ def review(candidate,grant,*,now,verify_grant=None):
             return _hold('HOLD_PRE_CUTOFF_WINDOW_CLOSED',candidate)
         if captured>now:
             return _hold('HOLD_PRE_CUTOFF_VIDEO_SOURCE_REQUIRED',candidate)
+        # The user already confirmed private, non-published research use.
+        # A separate owner-acknowledged mode must not falsely claim written
+        # rightsholder permission, or authorize playback restriction bypass,
+        # publication, source crawling, or automatic production forecasting.
+        if personal_use_acknowledged is True:
+            if grant is not None or candidate['source_kind']!='OWNER_RECORDED':
+                return _hold('HOLD_PERSONAL_RESEARCH_SCOPE_CONFLICT',candidate)
+            result=_hold('READY_OWNER_ATTESTED_PRIVATE_RESEARCH_ONLY',candidate)
+            result.update(rights_basis='OPERATOR_ATTESTED_PRIVATE_RESEARCH',
+                          rights_independently_verified=False,
+                          video_sha256=candidate['media_sha256'])
+            return result
         if (type(grant) is not dict or set(grant)!=GRANT_FIELDS or grant.get('schema')!=SCHEMA or
                 grant.get('rights_source')!='RIGHTS_HOLDER_WRITTEN_GRANT'):
             return _hold('HOLD_EXPLICIT_RIGHTS_SCOPE_REQUIRED',candidate)
@@ -80,7 +93,8 @@ def review(candidate,grant,*,now,verify_grant=None):
 
 
 
-def enqueue_licensed_capture(private_root, export_record, template, grant, *, now, verify_grant=None):
+def enqueue_licensed_capture(private_root, export_record, template, grant, *, now, verify_grant=None,
+                             personal_use_acknowledged=False):
     """Opt-in rights-gated bridge to the existing verified private intake.
 
     This function does not capture remote media, accept a public license claim,
@@ -97,8 +111,10 @@ def enqueue_licensed_capture(private_root, export_record, template, grant, *, no
     source=dict(race_id=template['race_id'],cutoff_at=template['cutoff_at'],
                 captured_at=export_record['captured_at'],media_sha256=export_record['media_sha256'],
                 source_kind='OWNER_RECORDED')
-    decision=review(source,grant,now=now,verify_grant=verify_grant)
-    if decision['state']!='READY_PRIVATE_RESEARCH_INPUT_ONLY':
+    decision=review(source,grant,now=now,verify_grant=verify_grant,
+                    personal_use_acknowledged=personal_use_acknowledged)
+    if decision['state'] not in ('READY_PRIVATE_RESEARCH_INPUT_ONLY',
+                                'READY_OWNER_ATTESTED_PRIVATE_RESEARCH_ONLY'):
         return dict(status=decision['state'],source_fetch_performed=False,
                     production_video_forecast_proven=False,
                     source_authorization_independently_claimed=False)
@@ -113,5 +129,7 @@ def enqueue_licensed_capture(private_root, export_record, template, grant, *, no
                     production_video_forecast_proven=False,
                     source_authorization_independently_claimed=False)
     return dict(status='ENQUEUED_UNVALIDATED',source_fetch_performed=False,
-                production_video_forecast_proven=False,source_authorization_independently_claimed=True,
+                production_video_forecast_proven=False,
+                source_authorization_independently_claimed=(decision['state']=='READY_PRIVATE_RESEARCH_INPUT_ONLY'),
+                rights_basis=decision.get('rights_basis','INDEPENDENT_WRITTEN_GRANT'),
                 media_sha256=receipt['media_sha256'],job_sha256=receipt['job_sha256'])
