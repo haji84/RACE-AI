@@ -172,6 +172,49 @@ class ScreenRecorderRealBrowserTests(unittest.TestCase):
                          hashlib.sha256(unseal_screen(outcome["envelope"],aes_key=b"k"*32)).hexdigest())
         self.assertFalse(outcome["production_video_forecast_proven"])
 
+    def test_screen_capture_unseals_into_existing_real_video_evaluator_but_not_production_p1(self):
+        from playwright.async_api import async_playwright
+        from race_ai.boat_screen_record_research import record_screen,unseal_screen
+        from race_ai.boat_video_evaluation import analyze_video
+        from race_ai.boat_video_model_context import prepare_video_context
+        async def record():
+            async with async_playwright() as pw:
+                browser=await pw.chromium.launch(headless=True,
+                    args=["--no-sandbox","--autoplay-policy=no-user-gesture-required"])
+                try:
+                    async def fixture_loader(page):
+                        await page.set_content('<html><body><video controls autoplay muted playsinline '+
+                            'width="320" height="240" src="data:video/webm;base64,'+
+                            self.payload+'"></video></body></html>')
+                    return await record_screen(browser,source(),grant(),
+                        verify_grant=verify_grant,now=NOW,aes_key=b"k"*32,
+                        fixture_loader=fixture_loader,timeout_seconds=12)
+                finally:
+                    await browser.close()
+        outcome=asyncio.run(record())
+        self.assertEqual(outcome["status"],"SCREEN_REPLAY_CAPTURE_ENCRYPTED_UNVALIDATED")
+        with tempfile.TemporaryDirectory() as temp:
+            folder=Path(temp);folder.chmod(0o700)
+            path=folder/"screen.webm"
+            path.write_bytes(unseal_screen(outcome["envelope"],aes_key=b"k"*32))
+            path.chmod(0o600)
+            job=dict(schema_version="RACE_AI_BOAT_VIDEO_JOB_V1",race_id=RACE,
+                cutoff_at=CUT,roster=[dict(lane=i,registration_number=str(4200+i))
+                                      for i in range(1,7)],
+                source=dict(kind="SYNTHETIC_TEST",media_sha256=outcome["media_sha256"],
+                            captured_at=NOW.isoformat(),identity_status="SYNTHETIC"))
+            moments=iter([NOW+timedelta(seconds=1),NOW+timedelta(seconds=8)])
+            report=analyze_video(path,job,clock=lambda: next(moments))
+            self.assertEqual(report["dataset_status"],"SYNTHETIC_ONLY")
+            self.assertEqual(report["validation_status"],"UNVALIDATED")
+            self.assertFalse(report["model_eligible"])
+            self.assertEqual(len(report["tracking"]["tracks"]),6)
+            context=prepare_video_context(report,None,race_id=RACE,cutoff_at=CUT,
+                roster=job["roster"],as_of=(NOW+timedelta(seconds=10)).isoformat())
+            self.assertFalse(context["production_eligible"])
+            self.assertFalse(context["prediction_eligible"])
+            self.assertFalse(context["eligible_for_research"])
+
     def test_player_not_ended_is_not_retained_as_complete_exhibition(self):
         from playwright.async_api import async_playwright
         from race_ai.boat_screen_record_research import record_screen
