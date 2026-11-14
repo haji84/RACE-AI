@@ -79,3 +79,38 @@ User-reported information: a ~2m48s screen recording, chat-only forecast, and a 
 ### Outstanding connection and activation boundaries
 
 The PR71 read-suite adapter and video admission adapter now pass **code-path integration** with synthetic evidence. Neither has been called with a live, independently authenticated pre-cutoff race plus permitted actual rider-recognized video. Actual future stage projection, Git AES private sidecar persistence, independent race footage labeling, automatic join and PDCA scoring, read-only Pages display, and blind out-of-sample model improvement are still separate, UNVERIFIED production gates.
+
+
+## 2026-11-15 JST: actual 403 root cause, source safety repair and frame-ID validation
+
+### Production evidence, not synthetic completion
+
+- [main PR71 run 43615418955](https://github.com/haji84/RACE-AI/actions/runs/43615418955) reached a source-owner HOLD after one provider request for 2026-11-15 JST: provider_denial_stopped_requests=true; new_pre_race_inputs=0; actual_four_model_forecast_saved=false; independent model readback skipped.
+- The [video capture fallback run 43619018351](https://github.com/haji84/RACE-AI/actions/runs/43619018351) uploaded 14-day **metadata-only** artifact ID 14123028109. The exact downloaded ZIP SHA256 is 9a62bda0fd0df47ee7822c5c5c84fa52e32d168b89e8112d6bc42c1a832cf09a; internal keirin-daily-wave.json SHA256 is 85028784427923331d0a875a7786b6461f6300c980760aeaff79084ab9744c91. Authenticated workflow metadata reports 67 indexed races, 24 result links, 24 attempts, 24 HTTP 403, zero encrypted clips and zero independently verified tactics. All 24 had been marked INCOMPLETE_NOT_EXPORTED with failure_type=RACE_IDENTITY_MISMATCH, wrongly conflating a source refusal with a genuine mismatch.
+- Do not bypass/retry HTTP 403 or 429, switch hosts silently, or conclude the race URL format is defective without a successful source page.
+
+### Existing Draft PR #102: bounded source-denial repair
+
+- scripts/keirin_winticket_historical_batch_capture.py now distinguishes HTTP 403/429 SOURCE_ACCESS_DENIED_NO_RETRY from actual HTTP-200 race/title mismatches. Denied responses never read the title, attempt player playback, or claim ciphertext video.
+- scripts/keirin_daily_dynamic_clip_collector.py stops the SAME wave after the first 403/429, deferring the remaining candidates and preserving public-safe hold fields: provider_denial_stopped_wave, provider_denial_http_status, provider_denial_deferred_in_wave. No new scraper, rights, alternative host, or source retries.
+- All **5 source-free regressions** passed on [Actions 43621134941](https://github.com/haji84/RACE-AI/actions/runs/43621134941). That CI is not a production video capture.
+- Existing video source for the two PR #291 research/CI checkouts is pinned to exact verified PR #102 HEAD c52ff0216435b97a0209c43bbe5d0de589445736. Existing main, provider permissions, model weights and past encrypted originals remain unchanged.
+- scripts/keirin_cloud_owner_inputs.py adds source_capture_hold_code and source_session_stop_code for denial, deadline, unpublished and network/unavailable, exposing neither source HTML, rider identity nor arbitrary exceptions.
+
+### Existing PR71 + PR102 frame-to-rider bridge on Draft PR #291
+
+- race_ai/keirin_frame_rider_identity_gate.py accepts CANDIDATE car numbers, normalized boxes and position observations from source-bound PR102 reviewed video frames, not from official final results or model predictions. It verifies exact admission/frame SHA pairs, review refs, frame times, distinct LIVE frames, unique roster riders, position ranks and confidence before producing limited phase observations.
+- Two separate frames must agree on a car number and race position. A signed, independently restored existing PR71 roster/model snapshot and separate visual/pixel attestor are required. Missing, conflicted, low-confidence, duplicate/replayed or source-mismatched frames yield UNKNOWN.
+- bridge_from_existing_pr71_ledger binds riders to actual PR71 read_suite source starters, model ID, parent prediction SHA and input SHA rather than an arbitrary manually typed field.
+- Only observed leader and ranked top three feed the existing six-phase scorer. Line groups, actual second-wheel, attack type/success, and all unseen phases remain UNKNOWN. Camera geometry alone is NOT a race rank; a two-frame metadata vote is not proof of real OCR recognition.
+- The new source-free regressions cover absent rights/pixel review, low confidence, changing ranks, video-replay frames, missing hashes, incorrect roster, duplicate car/rank, and mismatched saved model SHAs. No new forecasting model or independent video AI was created.
+
+### Remaining live acceptance gates
+
+1. Legitimate source access and complete before-cutoff inputs; real PR71 4-model frozen AES original with separate-runner readback. Source refusal remains a HOLD, not a success or a prompt to evade restrictions.
+2. Authorized real video pixels in a private GitHub Actions runtime, actual numeric OCR/visual rider detection from frames, reviewer-labeled ground truth, and measured identity precision/coverage. This continuation has **zero** such real verified rider-number cases. A private RSA key and permitted footage have not been supplied to this analysis.
+3. Independent frame-level line continuity/second-wheel/attack recognition, race-ID alignment, authenticated official result and stage scores; each unknown component remains excluded.
+4. Resume/retention without public raw video and without requiring owner ZBook storage. GitHub artifacts expire; permanent private storage remains unconfigured and no new paid service is authorized.
+5. Read-only safe site display, paired future-race A/B holdout assessment, and owner-approved model promotion only after independent evidence.
+
+Implementation/CI acceptance is distinct from actual real-race video recognition and model improvement. **Main production acceptance remains NOT PROVEN**.
