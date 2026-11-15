@@ -1,0 +1,62 @@
+{
+  "schema": "RACE_AI_KEIRIN_REAL_BLIND_REVIEW_WORKBENCH_SMOKE_V1",
+  "created_at_jst": "2026-11-15",
+  "race_id": "202611098402",
+  "source_real_video_sha256": "4e389a46c223b7cb2eaa7c5c5bdc34ade229deedea8a3c795c8be987b57aa810",
+  "frozen_color_proposal_sha256": "b207ec30d3fb368b9d9e64b494aa8e9e3657aac388023226c798da8ba8a98bae",
+  "source_packet_type": "OWNER_PRIVATE_ENCRYPTED_ORIGINAL_RESTORED_AFTER_AUTHENTICATED_SHA_AND_GCM",
+  "source_packet_count": 2,
+  "reviewers": [
+    {
+      "slot": "reviewer_A_pending",
+      "actual_human_assigned": false,
+      "image_count": 46,
+      "offline_html_sha256": "4bfab49ce7c1beba6840fab40856aaaf9843afdff9077acd2fa723831ccc6469",
+      "html_bytes": 12768730,
+      "source_frame_png_width_px": 515
+    },
+    {
+      "slot": "reviewer_B_pending",
+      "actual_human_assigned": false,
+      "image_count": 46,
+      "offline_html_sha256": "95d6bd402dbce180486952da643584860c76f7ca1669ab459409b39e7ac845eb",
+      "html_bytes": 12768730,
+      "source_frame_png_width_px": 515
+    }
+  ],
+  "exact_public_source_from_successful_GitHub_CI_artifact": {
+    "source_commit": "c3de415efd5bbd52fd4df32ef06c8f41fbee1237",
+    "artifact_id": 14147724108,
+    "run_id": 43680959314,
+    "code_path": "scripts/keirin_private_blind_review_workbench.py",
+    "synthetic_unit_tests_passed": 7,
+    "existing_pr71_synthetic_CI_conclusion": "success"
+  },
+  "actual_real_frame_browser_local_smoke": {
+    "browser": "headless Chromium",
+    "source_type": "generated standalone owner-private HTML with embedded original 46 PNG frames",
+    "rendered_review_A": true,
+    "rendered_review_B": true,
+    "original_image_rendered_width_px": 515,
+    "reviewer_A_draw_box_mouse_pointer_test_passed": true,
+    "reviewer_A_jersey_car4_color_only_draft_export_test_passed": true,
+    "reviewer_A_car_selection_reset_to_unknown_test_passed": true,
+    "reviewer_B_progress_and_incomplete_export_gate_test_passed": true,
+    "browser_pageerrors": 0,
+    "network_requests_observed": 0,
+    "real_independent_human_reviewer_annotations_collected": 0,
+    "automated_test_annotation_discarded": true
+  },
+  "privacy": {
+    "public_GitHub_commit_contains_raw_image": false,
+    "public_GitHub_commit_contains_annotated_bbox": false,
+    "sandbox_html_contains_sensitive_raw_frames": true,
+    "public_distribution_allowed": false,
+    "relevance": "Private end-user files for two genuine independently assigned reviewers only",
+    "source_owner_RSA_key_in_public_GitHub": false,
+    "source_owner_RSA_private_key_in_user_shared_HTML": false,
+    "assistant_delivered_user_private_HTML": true,
+    "reviewer_private_signed_receipts_completed": false
+  },
+  "status": "REAL_VIDEO_REVIEW_UI_READY_TWO_INDEPENDENT_HUMAN_LABELS_STILL_MISSING"
+}
