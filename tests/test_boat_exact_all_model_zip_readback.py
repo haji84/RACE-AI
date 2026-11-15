@@ -44,7 +44,7 @@ class SourceFreeExactZipTests(unittest.TestCase):
 
     def test_real_receipt_before_cutoff_is_required_but_does_not_create_proof(self):
         row=original()
-        (seen,holds,missing),index,prior=self.scan(row)
+        (seen,holds,missing,reused),index,prior=self.scan(row)
         self.assertEqual(seen,[(row['race_id'],'boat-model-A',True,True)])
         self.assertEqual(missing,0)
         self.assertEqual(dict(holds),{})
@@ -54,7 +54,7 @@ class SourceFreeExactZipTests(unittest.TestCase):
     def test_unmatched_original_tickets_never_pass_content_comparison(self):
         row=original()
         view=original(tickets=['6-5-4'])
-        (seen,holds,missing),_,_=self.scan(row,view_row=view)
+        (seen,holds,missing,reused),_,_=self.scan(row,view_row=view)
         self.assertEqual(missing,1)
         self.assertFalse(seen[0][3])
         self.assertTrue(seen[0][2])
@@ -62,7 +62,7 @@ class SourceFreeExactZipTests(unittest.TestCase):
     def test_late_actual_artifact_time_is_not_preclose_even_with_claimed_flag(self):
         late='2030-04-01T12:01:00+09:00'
         row=original(created=late)
-        (seen,holds,missing),_,_=self.scan(row,physical=late)
+        (seen,holds,missing,reused),_,_=self.scan(row,physical=late)
         self.assertFalse(seen[0][2])
         self.assertEqual(holds['NOT_PHYSICALLY_PRE_CUTOFF'],1)
 
@@ -73,7 +73,7 @@ class SourceFreeExactZipTests(unittest.TestCase):
 
     def test_missing_official_cutoff_cannot_promote_forecast(self):
         row=original();row['cutoff_at']=None
-        (seen,holds,_),_,_=self.scan(row)
+        (seen,holds,_,reused),_,_=self.scan(row)
         self.assertFalse(seen[0][2])
         self.assertEqual(holds['OFFICIAL_RACE_CUTOFF_UNAVAILABLE'],1)
 
@@ -81,6 +81,20 @@ class SourceFreeExactZipTests(unittest.TestCase):
         row=original();row['prediction']['source_code_commit']='f'*40
         with self.assertRaises(ValueError):
             self.scan(row)
+
+    def test_prior_baseline_receipt_inside_model_zip_is_not_falsely_resaved(self):
+        source=original()
+        reused=deepcopy(source)
+        reused['prediction']['artifact_id']=999
+        reused['prediction']['dispatch_status']='ORIGINAL_REUSED'
+        idx=Counter()
+        rows,holds,missing,baseline=exact._scan(dict(records=[reused]),day=DAY,
+             artifact_id=101,physical_saved_at=CREATED,
+             expected={'boat-model-A'},clock=NOW,source_original_index=idx)
+        self.assertEqual(rows,[])
+        self.assertEqual(baseline,1)
+        self.assertEqual(missing,0)
+        self.assertFalse(holds)
 
     def test_exact_file_refetched_even_if_view_already_contains_the_same_original(self):
         from race_ai import boat_all_model_recovery as R
@@ -121,6 +135,7 @@ class SourceFreeExactZipTests(unittest.TestCase):
         self.assertEqual(report['github_zip_sha256_independently_verified'],1)
         self.assertEqual(report['aes_originals_independently_decrypted'],1)
         self.assertEqual(report['physical_pre_cutoff_distinct_model_slots'],1)
+        self.assertEqual(report['referenced_existing_baseline_p1_rows_not_recounted'],0)
         self.assertEqual(report['original_predictions_matched_saved_AES_view'],1)
         self.assertEqual(report['previously_archived_coverages_skipped_without_zip_read'],0)
         self.assertIn('actions/artifacts/101/zip',calls)
