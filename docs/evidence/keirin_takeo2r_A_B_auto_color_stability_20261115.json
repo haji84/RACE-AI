@@ -67,5 +67,23 @@
   "original_model_weights_changed": false,
   "main_changed_by_this_research": false,
   "personal_frame_pixels_or_review_bboxes_publicly_committed": false,
-  "methodological_caveat": "A and B are stricter/looser configurations of the SAME HSV color segmentation family. Agreement tests sensitivity, not true rider identity or accuracy; missing A/B matches are not automatically false positive/false negative."
+  "methodological_caveat": "A and B are stricter/looser configurations of the SAME HSV color segmentation family. Agreement tests sensitivity, not true rider identity or accuracy; missing A/B matches are not automatically false positive/false negative.",
+  "exact_implementation_rerun": {
+    "retrieved_source_from_GitHub_Actions_artifact_id": 14153235201,
+    "source_CI_run_id": 43692253647,
+    "modules": [
+      "race_ai/keirin_color_ab_stability.py",
+      "scripts/keirin_private_color_ab_compare.py"
+    ],
+    "ran_exact_public_source_over_private_46_replay_frames": true,
+    "all_46_source_frames_sha_matched": true,
+    "frozen_A_proposals_sha_matched": true,
+    "actual_rerun_A_candidates": 222,
+    "actual_rerun_B_candidates": 114,
+    "actual_rerun_spatial_matches": 99,
+    "actual_rerun_joint_color_matches": 96,
+    "private_actual_run_redacted_report_file_sha256": "80b32360c0554c05c7334a474bf34b4b29d10b54c7dd2722ef58bf4af92d21a6",
+    "script_did_not_write_annotated_frames": true,
+    "remains_not_true_rider_accuracy": true
+  }
 }
