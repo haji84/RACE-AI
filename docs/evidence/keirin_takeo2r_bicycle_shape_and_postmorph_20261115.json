@@ -1,0 +1,116 @@
+{
+  "schema": "RACE_AI_KEIRIN_TAKEO2R_BICYCLE_SHAPE_AND_MORPHOLOGY_RESEARCH_V1",
+  "as_of_jst": "2026-11-15",
+  "race_id": "202611098402",
+  "experiment_purpose": "One incremental existing-PR291 research implementation: distinguish background/bicycle geometry risks without losing plausible rider color blobs; investigate nine strict-color 95+ no-B cases and interrupt uncertain camera transitions.",
+  "source_integrity": {
+    "owner_private_original_recording_sha256": "4e389a46c223b7cb2eaa7c5c5bdc34ade229deedea8a3c795c8be987b57aa810",
+    "frozen_original_A_proposal_sha256": "b207ec30d3fb368b9d9e64b494aa8e9e3657aac388023226c798da8ba8a98bae",
+    "private_A_HTML_sha256": "4bfab49ce7c1beba6840fab40856aaaf9843afdff9077acd2fa723831ccc6469",
+    "private_B_HTML_sha256": "95d6bd402dbce180486952da643584860c76f7ca1669ab459409b39e7ac845eb",
+    "original_saved_frames_SHA_matched": 46,
+    "A_B_decoded_frame_bytes_identical": 46,
+    "original_A_color_proposals_modified": false
+  },
+  "original_A_B_baseline": {
+    "A_color_blobs": 222,
+    "B_stricter_color_blobs": 114,
+    "spatial_pairs_within_40_px": 99,
+    "spatial_and_color_pairs": 96,
+    "A_without_B_spatial": 123,
+    "B_without_A_spatial": 15
+  },
+  "post_morph_root_causes": {
+    "raw_strict_HSV_pixels_zero": 49,
+    "raw_strict_HSV_pixels_1_to_94": 65,
+    "raw_strict_HSV_pixels_95_plus_but_no_B_spatial_pair": 9,
+    "post_morph_nine_breakdown": {
+      "POST_MORPH_EACH_OVERLAPPING_COMPONENT_BELOW_95": 9
+    },
+    "meaning": "All nine cases preserve >=95 raw strict-color pixels inside the frozen A region, but each touching connected component after the existing B morphology falls below 95px. This explains B candidate non-creation; whether the A region actually belongs to an athlete is not known."
+  },
+  "weak_bicycle_shape_context": {
+    "method": "OpenCV grayscale HoughCircles wheel-like circular-arc pairs under each A color blob, on fixed 1024x584 image band; unrelated billboard/background circle pairs can still match.",
+    "total_A_color_blobs": 222,
+    "candidate_blobs_with_weak_two_wheel_context": 71,
+    "blobs_without_two_wheel_context": 151,
+    "A_only_spatial_blobs_with_weak_wheel_context": 41,
+    "A_only_background_risk_and_no_wheel_context": 23,
+    "broad_image_background_risk_flag_all_A": 41,
+    "blobs_auto_removed_or_forced_negative": 0,
+    "priority_scenes": {
+      "14": {
+        "A_color_blobs": 11,
+        "weak_wheel_context": 6,
+        "A_only_with_wheel": 5,
+        "A_only_background_risk_without_wheel": 2
+      },
+      "32": {
+        "A_color_blobs": 11,
+        "weak_wheel_context": 0,
+        "A_only_with_wheel": 0,
+        "A_only_background_risk_without_wheel": 5
+      },
+      "82": {
+        "A_color_blobs": 8,
+        "weak_wheel_context": 3,
+        "A_only_with_wheel": 3,
+        "A_only_background_risk_without_wheel": 1
+      }
+    },
+    "guardrail": "Frame 32 visibly includes real cyclists despite zero Hough-wheel candidates. No-wheel cannot be treated as proof of non-athlete; wheel pairs do not certify a person either."
+  },
+  "camera_motion_scene_guard": {
+    "source_frames": 46,
+    "adjacent_2s_pairs": 45,
+    "research_background_geometry_candidate_pairs": 16,
+    "background_transform_unverified_pairs": 29,
+    "candidate_scene_segments_after_fail_closed_breaks": 30,
+    "single_frame_segments": 24,
+    "longest_segment_in_source_frames": 6,
+    "original_untrusted_color_tracks_seen_twice": 29,
+    "scene_guarded_untrusted_color_tracks_seen_twice": 28,
+    "no_continuity_across_unverified_transition": true,
+    "recognized_same_person_track_count": null
+  },
+  "source_and_reproduction": {
+    "existing_PR291_modules": [
+      "race_ai/keirin_color_failure_triage.py",
+      "race_ai/keirin_color_ab_stability.py",
+      "race_ai/keirin_camera_motion_quality.py",
+      "race_ai/keirin_color_track_flow_guard.py",
+      "race_ai/keirin_visual_jersey_proposals.py"
+    ],
+    "added_research_components": [
+      "race_ai/keirin_bicycle_shape_context.py",
+      "scripts/keirin_private_bicycle_shape_motion_audit.py",
+      "tests/test_keirin_bicycle_shape_context.py",
+      "tests/test_keirin_private_bicycle_shape_motion_audit.py"
+    ],
+    "redacted_shape_camera_report_SHA256": "da9702680e1d1b087c23dd413a823509b920e6cc7502fe8f723748e4846c6478",
+    "same_report_SHA256_second_exact_source_replay": "da9702680e1d1b087c23dd413a823509b920e6cc7502fe8f723748e4846c6478",
+    "redacted_postmorph_report_SHA256": "fdf66b7df2908ff129d850391a9f528402a3156dc3591df35cac77b8144884a4",
+    "exact_CI_exported_public_code_artifact_id": 14167620201,
+    "synthetic_regression_CI_run": 43727956963,
+    "synthetic_CI_conclusion": "success",
+    "actual_private_46frame_replay_under_exact_CI_exported_source": true,
+    "different_GitHub_runner_with_owner_private_key_readback_verified": false
+  },
+  "acceptance": {
+    "actual_independently_verified_people": 0,
+    "actual_vehicle_number_OCR_accuracy_pct": null,
+    "actual_person_detection_precision_pct": null,
+    "actual_person_detection_recall_pct": null,
+    "same_rider_track_accuracy_pct": null,
+    "real_position_line_and_phase_accuracy_pct": null,
+    "formal_phase_scoring_or_PDCA_updated": false,
+    "PR71_model_weights_updated": false,
+    "existing_originals_rewritten": false,
+    "privacy_verified_no_public_raw_pixels_or_owner_key": true,
+    "new_paid_services_added": false,
+    "main_merged": false,
+    "research_hypotheses_not_formal_accuracy": true,
+    "research_gate_provisional": "SOURCE_INTEGRITY_AND_WEAK_CUES_REPLAYED",
+    "formal_gate": "HOLD_INDEPENDENT_GROUND_TRUTH_UNAVAILABLE"
+  }
+}
