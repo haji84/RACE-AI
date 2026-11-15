@@ -1,0 +1,144 @@
+{
+  "schema": "RACE_AI_KEIRIN_MULTIRACE_OFFLINE_CROSS_RACE_RESEARCH_HANDOFF_V1",
+  "compiled_at_jst": "2026-11-16",
+  "scope": "TWO_STORED_REAL_WEBM_REPLAYS_UNDER_EXISTING_PR291_RESEARCH_HEURISTICS",
+  "provenance": "PRIVATE_OWNER_ARCHIVE_CIPHER_WITH_PER_RACE_PLAINTEXT_SHA_AND_PRIOR_LOCAL_REPLAY_REPORTS",
+  "owner_private_library_original_archive": "/RACE-AI/KeirinVideo/2026-11-09/20261109_missing6_verified_ciphertext_only.zip",
+  "real_races": [
+    {
+      "race_id": "202611097401",
+      "source_venue_verified": false,
+      "source_video_sha256": "9dd4bd40effc18e4e58765792685d9934e2dbf1d5fe8faaab366418247f464ad",
+      "source_duration_s": 128,
+      "selected_frame_interval_s": 2,
+      "source_frame_sha_matches": 64,
+      "frozen_A_color_region_candidates": 364,
+      "frozen_A_proposal_sha256": "c8e69df3eec0e91890f99561254c77ff34e2834f6859cdbf691499ef5bfc6bb5",
+      "frozen_A_private_file_sha256": "809da154b08efb9d8526ecf4453c71f5f1802cac67ce5ada5d1f172519501c6a",
+      "B_stricter_color_region_candidates": 312,
+      "A_B_spatially_matched_pairs": 166,
+      "A_B_spatial_and_color_matched_pairs": 153,
+      "weak_wheel_shape_context_A_regions": 256,
+      "camera_background_flow_candidate_pairs": 25,
+      "camera_unqualified_pairs": 38,
+      "camera_pair_denominator": 63,
+      "source_research_scene_segments": 39,
+      "baseline_color_tracks_seen_in_two_frames": 63,
+      "scene_guarded_color_tracks_seen_in_two_frames": 60,
+      "raw95_plus_postmorph_causes": {
+        "POST_MORPH_COMPONENT_EXISTS_BUT_NO_A_B_SPATIAL_PAIR": 1,
+        "POST_MORPH_COMPONENT_GEOMETRY_REJECTED": 3,
+        "POST_MORPH_EACH_OVERLAPPING_COMPONENT_BELOW_95": 33
+      },
+      "source_replay_redacted_local_file_sha256": "1ee2163a413cd189b060d0423c170ea0f08325d78fb9e9f22cfe149a492e2acd",
+      "OCR": {
+        "samples_source_frames": 5,
+        "fixed_clip_seconds": [
+          16,
+          32,
+          48,
+          64,
+          80
+        ],
+        "frozen_A_regions_in_sampled_frames": 39,
+        "exploratory_crop_eligible": 29,
+        "too_small": 10,
+        "Tesseract_subprocess_calls": 58,
+        "verified_numerical_digits": 0,
+        "accepted_two_preprocessing_agreed_glyphs": 0,
+        "real_digit_accuracy_pct": null,
+        "redacted_local_report_sha256": "45d7490d3266234cbe1e4e06dd3c400a84e232316ff7dfbce17bca675b2f7d17"
+      }
+    },
+    {
+      "race_id": "202611098403",
+      "venue": "武雄",
+      "race_no": 3,
+      "source_video_sha256": "69d529a4a7b178e2506b9576105fcbcf73764b19d17f5ed67daa79be39082e81",
+      "source_duration_s": 90,
+      "selected_frame_interval_s": 2,
+      "source_frame_sha_matches": 45,
+      "frozen_A_color_region_candidates": 238,
+      "frozen_A_proposal_sha256": "45c31bb1742f4f8dd80f7a6e0471e3bee78239983904db8fddbe89ad40584be3",
+      "frozen_A_private_file_sha256": "9ddea142dbfff067005b4dff378c3b1f9e29201be632c4ba245cd71bb27b4356",
+      "B_stricter_color_region_candidates": 113,
+      "A_B_spatially_matched_pairs": 103,
+      "A_B_spatial_and_color_matched_pairs": 95,
+      "weak_wheel_shape_context_A_regions": 85,
+      "camera_background_flow_candidate_pairs": 14,
+      "camera_unqualified_pairs": 30,
+      "camera_pair_denominator": 44,
+      "source_research_scene_segments": 31,
+      "baseline_color_tracks_seen_in_two_frames": 42,
+      "scene_guarded_color_tracks_seen_in_two_frames": 30,
+      "raw95_plus_postmorph_causes": {
+        "POST_MORPH_COMPONENT_EXISTS_BUT_NO_A_B_SPATIAL_PAIR": 1,
+        "POST_MORPH_EACH_OVERLAPPING_COMPONENT_BELOW_95": 9
+      },
+      "source_replay_redacted_local_file_sha256": "890b01d5c0eab167c19ee5e8ce5a46505a1f1383d573e85f23eb140dff67563a",
+      "OCR": {
+        "samples_source_frames": 5,
+        "fixed_clip_seconds": [
+          16,
+          32,
+          48,
+          64,
+          80
+        ],
+        "frozen_A_regions_in_sampled_frames": 29,
+        "exploratory_crop_eligible": 23,
+        "too_small": 6,
+        "Tesseract_subprocess_calls": 46,
+        "verified_numerical_digits": 0,
+        "accepted_two_preprocessing_agreed_glyphs": 0,
+        "real_digit_accuracy_pct": null,
+        "redacted_local_report_sha256": "6e6d11360716614376e6f539cf9458b7c099133047ffce795005767fed5767f8"
+      }
+    }
+  ],
+  "aggregates": {
+    "source_frame_SHA_matches": 109,
+    "color_A_region_candidates": 602,
+    "color_B_region_candidates": 425,
+    "A_B_spatial_matches": 269,
+    "A_B_spatial_and_color_matches": 248,
+    "wheel_like_context_A_region_candidates": 341,
+    "camera_candidate_pairs": 39,
+    "camera_pair_denominator": 107,
+    "camera_unqualified_pairs": 68,
+    "OCR_five_sample_frames_per_race": 10,
+    "OCR_sampled_A_regions": 68,
+    "OCR_eligible": 52,
+    "accepted_numerical_digits": 0,
+    "actual_numerical_digit_accuracy_pct": null,
+    "independent_human_verified_person_bbox_count": 0,
+    "actual_person_detection_precision_pct": null,
+    "actual_person_detection_recall_pct": null,
+    "actual_same_rider_tracking_accuracy_pct": null,
+    "actual_line_position_and_phase_accuracy_pct": null
+  },
+  "source_code": {
+    "existing_detector": "race_ai/keirin_visual_jersey_proposals.py",
+    "existing_A_B": "race_ai/keirin_color_ab_stability.py",
+    "existing_camera_guard": "race_ai/keirin_color_track_flow_guard.py",
+    "added_research_only_code": [
+      "race_ai/keirin_shape_digit_candidate_research.py",
+      "scripts/keirin_private_shape_digit_holdout.py",
+      "tests/test_keirin_shape_digit_candidate_research.py"
+    ],
+    "preexisting_detector_module_sha256": "2493ee8738bc171c80440d751ce83b842d77d52fe5a550796579b92b3adf95f8",
+    "existing_models_weights_unmodified": true
+  },
+  "limitations": [
+    "These results were generated in a private ephemeral local environment, not independent GitHub runner proof of two-race full replay.",
+    "Color blobs and near-wheel circles have no independently verified real-person labels.",
+    "Two image preprocessings of the same small crop are NOT independent witnesses of a car number.",
+    "No accepted digits means OCR abstained, not that all vehicle numbers were incorrect or OCR accuracy equals zero.",
+    "No complete race phase timeline was independently verified. Source clip seconds are not race initial/bell/H/B/4C/goal phases.",
+    "No human identity/labels/official pre-cutoff predictions or model-improvement provenance were used.",
+    "Public file excludes decoded videos, source pixels, frozen private bounding-box candidate details, owner key and signed reviewer data."
+  ],
+  "formal_PDCAs_scored": 0,
+  "official_model_training_eligible": false,
+  "privacy_raw_frames_in_GitHub": false
+}
