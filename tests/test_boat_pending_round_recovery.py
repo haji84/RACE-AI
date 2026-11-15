@@ -214,4 +214,92 @@ class PhysicalRecoveryTests(RecoveryCase):
         self.assertIsNotNone(recovery.verify_dispatch_proof(proof,[self.run_meta],self.control,HEAD,NOW))
         self.assertEqual(self.control['prepared_round'],3)
 
+
+class ZeroRoundFailedOwnerTests(RecoveryCase):
+    """Failed owner did P0 bookkeeping but no official P1 round or source GET."""
+
+    def setUp(self):
+        super().setUp()
+        self.run_meta['name']='BOAT nationwide cutoff-ordered A/B research (no Vercel)'
+        self.control.update(completed_round=0, prepared_round=None,
+                            previous_session_requests=0, lifetime_requests=88,
+                            day_start_lifetime_requests=88,
+                            lifetime_completed_rounds=7)
+        final=[dict(id=702,name='race-cycle-continuity-99'),
+               dict(id=703,name='race-source-control-99')]
+        self.responses['actions/runs/99/artifacts?per_page=100']=json.dumps(
+            dict(total_count=2,artifacts=final)).encode()
+        self.responses['actions/runs/99']=json.dumps(self.run_meta).encode()
+
+    def verify(self):
+        return recovery.verify_no_pending_failed_owner(
+            lambda key:self.responses[key],self.run_meta,self.control,now=NOW)
+
+    def test_zero_round_failed_owner_is_sourcefree_and_all_counters_remain_unchanged(self):
+        before=deepcopy(self.control)
+        with patch('urllib.request.urlopen',side_effect=AssertionError('official source')):
+            checked=self.verify()
+        self.assertEqual(checked['control']['completed_round'],0)
+        self.assertIsNone(checked['control']['prepared_round'])
+        self.assertEqual(checked['control']['lifetime_requests'],88)
+        self.assertEqual(checked['original_artifact_ids'],[])
+        self.assertEqual(checked['new_forecasts'],0)
+        self.assertEqual(checked['official_source_requests'],0)
+        self.assertEqual(checked['control']['recovery']['schema'],
+                         recovery.IDLE_SCHEMA)
+        self.assertEqual(self.control,before)
+        self.assertEqual({k:v for k,v in checked['control'].items() if k!='recovery'}, before)
+
+    def test_any_released_round_result_or_p1_original_prevents_idle_certification(self):
+        key='actions/runs/99/artifacts?per_page=100'
+        original=json.loads(self.responses[key])
+        for name in ('boat-national-cutoff-99',
+                     'race-existing-cycle-99',
+                     'boat-national-cutoff-99-cycle-01',
+                     'race-existing-cycle-99-cycle-01'):
+            with self.subTest(name=name):
+                extra=deepcopy(original);extra['artifacts'].append(dict(id=800,name=name))
+                extra['total_count']+=1
+                self.responses[key]=json.dumps(extra).encode()
+                with self.assertRaises(ValueError):self.verify()
+        self.responses[key]=json.dumps(original).encode()
+
+    def test_source_usage_halt_uncertain_or_nonzero_round_still_hard_holds(self):
+        changes=[dict(previous_session_requests=1),
+                 dict(lifetime_requests=89),
+                 dict(day_start_lifetime_requests=None),
+                 dict(source_wait=dict(state='SOURCE_REVIEW_WAIT')),
+                 dict(previous_halted_reason='HTTP_RATE_LIMIT'),
+                 dict(prepared_round=1),
+                 dict(completed_round=1),
+                 dict(completed_round=True)]
+        for update in changes:
+            with self.subTest(update=update):
+                original=deepcopy(self.control);self.control.update(update)
+                with self.assertRaises(ValueError):self.verify()
+                self.control=original
+
+    def test_sourcefree_history_replay_produces_idempotent_no_pending_proof(self):
+        from scripts.boat_recover_failed_owner import recover_history
+        params=dict(runs=[self.run_meta],get=lambda p:self.responses[p],
+            load_control=lambda _:deepcopy(self.control),
+            replay_day=lambda:dict(complete=True,rows=[dict(stage='P0')]),
+            now=NOW,expected_head=HEAD)
+        def no_retained_pair(*_):raise AssertionError('no P1 pair to retain')
+        proof=recover_history(**params,retain=no_retained_pair)
+        self.assertEqual(proof['repairs'][0]['vault_commit'],None)
+        self.assertEqual(proof['repairs'][0]['original_artifact_ids'],[])
+        self.assertEqual(proof['latest_control']['lifetime_requests'],88)
+        self.assertIsNotNone(recovery.verify_dispatch_proof(
+            proof,[self.run_meta],self.control,HEAD,NOW))
+        tampered=deepcopy(proof)
+        tampered['repairs'][0]['control']['lifetime_requests']=0
+        self.assertIsNone(recovery.verify_dispatch_proof(
+            tampered,[self.run_meta],self.control,HEAD,NOW))
+        tampered=deepcopy(proof)
+        tampered['repairs'][0]['control']['recovery']['no_p1_or_result_artifacts_verified']=False
+        self.assertIsNone(recovery.verify_dispatch_proof(
+            tampered,[self.run_meta],self.control,HEAD,NOW))
+        self.assertEqual(self.control['lifetime_requests'],88)
+
 if __name__=='__main__': unittest.main()
