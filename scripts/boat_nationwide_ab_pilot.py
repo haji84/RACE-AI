@@ -460,17 +460,20 @@ def make_pair(day,race,*,research_target=None):
                  roster=roster,beforeinfo=result['context'],pitreport=None,entry_history=None,forecast_inputs_used=False)
     if context is not None:supplemental_contexts[race_id]=context
     if result.get("data") is None:
-        comment_wait=collect_pitreport(context,day)
-        comment_wait=collect_entry_history(context,day,paused=comment_wait)
+        # Mandatory P1 exhibition inputs are not available. Spending optional
+        # pitreport/history GETs here can source-wait the *entire* national
+        # queue and miss other races' true pre-cutoff P1 windows.
+        # Preserve the authentic publication wait; never invent measurements.
         return {"race_id":race_id,"state":"EXHIBITION_NOT_FULLY_PUBLISHED",
                 "source_sha256":preview_sha,
-                "source_wait":comment_wait or _publication_wait(race,_clock(day))},None,None,None,None
+                "source_wait":_publication_wait(race,_clock(day))},None,None,None,None
     six=sorted(result["data"]["boats"],key=lambda r:r["lane"])
     if len(six)!=len(active) or any(r["display_time"] is None for r in six):
-        comment_wait=collect_pitreport(context,day)
-        comment_wait=collect_entry_history(context,day,paused=comment_wait)
+        # Missing/withdrawn boats remain absent from official P1. Do not
+        # burn the remaining source clock on optional material before the
+        # next eligible race receives mandatory beforeinfo.
         return {"race_id":race_id,"state":"EXHIBITION_TIME_INCOMPLETE",
-                "source_wait":comment_wait or _publication_wait(race,_clock(day))},None,None,None,None
+                "source_wait":_publication_wait(race,_clock(day))},None,None,None,None
     generated=observed_timestamp()
     retention=None
     if callable(MODEL_INPUT_SINK):
