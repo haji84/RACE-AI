@@ -51,7 +51,7 @@
   ],
   "historical_VAULT_inner_operation": "UNKNOWN_NOT_RECORDED",
   "keyless_filtered_vault_fetch_seconds": 1.807679193,
-  "repository_writes_to_production_or_main": 0,
+  "repository_writes_to_production_or_main": 1,
   "official_provider_GETs_by_this_work": 0,
   "new_forecasts_by_this_work": 0,
   "originals_changed": false,
@@ -90,8 +90,8 @@
   "production_candidate": "0db526870a509cd6e68c44e693ed3e73d3b0e50f",
   "main_candidate_base": "96e0045ffb3a8368c4f63cb955564bb4e6259c0e",
   "existing_main_PR289_start": "b754c8a0167f68ae2711e42e67c995e9a38f9bc8",
-  "active_release_binding": "REHEARSAL_CANDIDATE_NOT_CURRENT_PRODUCTION_HEAD",
-  "requires_rebind_to_actual_production_merge_sha": true,
+  "active_release_binding": "ACTUAL_PRODUCTION_HEAD",
+  "requires_rebind_to_actual_production_merge_sha": false,
   "producer_exact_head_CI": [
     {
       "run_id": 43769691369,
@@ -174,5 +174,9 @@
     "successful": 12,
     "failed": 0,
     "pending": 0
-  }
+  },
+  "owner_approval_received": true,
+  "actual_production_head": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+  "production_merge_completed": true,
+  "main_merge_completed": false
 }

@@ -1,3 +1,24 @@
+<!-- RACE_AI_BOAT_OWNER_APPROVED_RELEASE_20261116 -->
+# 2026-11-16 JST｜本人承認済み：BOAT本番復旧リリース
+
+本人がこのチャットで「承認する」と回答。既存PR #302のproduction統合、実HEADへ同期した
+既存PR #289のmain統合、自動予想の再開・独立読戻しが承認された。
+追加の確認待ちではない。無断の一般公開・モデル係数切替・新規課金・投票は含まない。
+
+- **production統合済み:** PR #302、実HEAD `84128e0ec8bd9fe3da64ad49f74b8511b07e72be`。
+  GitHubから読戻し、レビュー済み0db526870とtreeが完全一致することを確認。
+- **mainの固定SHAを同期済み:** 6ファイル22箇所を上記実HEADへ変更。
+  履歴原本の読取専用5d1dabffは保全。ローカルmain gate74件、独立AES reader37件成功。
+  この記録時点ではPR #289の最終CI・main統合・真正な別runner実行を続けて確認する。
+- **未実証:** 実障害のAES復旧→新worker→新P1保存、全レース/モデルの連続完走、
+  新結果→PDCA→画面の一巡、映像・精度改善。合成試験を実レース成功へ数えない。
+- **保全:** 原本変更0、新PR/Issue/workflow/外部サービス/課金0。旧PC常駐monitorの再起動なし。
+
+[承認後リリース証拠](evidence/boat-owner-approved-release-20261116.json) /
+[既存PR #289の最新Checks](https://github.com/haji84/RACE-AI/pull/289/checks)。
+以下は承認前の検証記録であり、そこでの「承認が必要」は過去の状態。
+<!-- /RACE_AI_BOAT_OWNER_APPROVED_RELEASE_20261116 -->
+
 # RACE-AI 最新状況（2026-11-16 JST）
 
 BOAT最終引継ぎのG1を優先し、実障害の原本調査からコード修正まで進めた。

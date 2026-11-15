@@ -193,3 +193,14 @@ BOAT復旧gate69件（run43770742038）、独立原本37件（run43770742073）�
 mirror205/30件・結果31件・起動44件（run43770742201）が成功した。範囲は重複する。
 本番AES監査とproducer/dispatcherはPRではskippedで、本番再開成功には数えない。
 この後継の記録更新はdocsのみ。productionは5d1dabff、mainは96e0045ffのまま。
+
+
+## 承認後の本番統合（2026-11-16 JST）
+
+本人の「承認する」を受領し、PR #302を保護ルールの通常mergeで統合した。
+実production HEAD `84128e0ec8bd9fe3da64ad49f74b8511b07e72be` のtreeはレビュー済み0db526870と完全一致。
+PR #289のlive固定SHA22箇所をこの実HEADへ同期し、ローカル74/37件成功。
+既知の旧5d1dabffはread-only監査にのみ保持し、dispatcherの許可へ追加しない。
+mainの最終CI→通常merge→別runnerの実AES→真の新owner保存を続けて実行する。
+本書の以前の「承認待ち・production未変更」はその記録時点の履歴である。
+[承認後の正本証拠](evidence/boat-owner-approved-release-20261116.json)を参照。

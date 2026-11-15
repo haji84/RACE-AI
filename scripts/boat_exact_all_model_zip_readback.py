@@ -15,7 +15,7 @@ from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 import re
 
-OWNER_SHA='0db526870a509cd6e68c44e693ed3e73d3b0e50f'
+OWNER_SHA='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
 # Read-only replay of already sealed originals. This is not a dispatcher pin.
 PREVIOUS_OWNER_SHA='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
 SCHEMA='RACE_AI_BOAT_EXACT_ALL_MODEL_ZIP_READBACK_V1'
