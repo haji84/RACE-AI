@@ -32,6 +32,13 @@ def gate_source():
         '\n          PY_BROWSER_FAIL', 1)[0])
 
 
+def context_gate_source():
+    site=boundary()
+    return textwrap.dedent(site.split(
+        "python - <<'PY_CONTEXT_HOLD'\n",1)[1].split(
+        "\n          PY_CONTEXT_HOLD",1)[0])
+
+
 class ReadOnlySiteRetryTests(unittest.TestCase):
     def test_bounded_only_after_independent_aes_and_model_readback(self):
         site = boundary()
@@ -59,6 +66,48 @@ class ReadOnlySiteRetryTests(unittest.TestCase):
                 with contextlib.redirect_stdout(out):
                     exec(compile(gate_source(), 'sanitized_pages_failure_report', 'exec'), {'__name__':'__main__'})
             return json.loads(out.getvalue())
+
+    def test_private_site_context_failures_are_classified_without_secrets(self):
+        gate=context_gate_source()
+        compile(gate,'private_site_context_failure_report','exec')
+        site=boundary()
+        self.assertIn('BOAT_PRIVATE_SITE_CONTEXT_READY',site)
+        self.assertIn('BOAT_PRIVATE_SITE_CONTEXT_HOLD',site)
+        self.assertIn('python -m scripts.boat_saved_site_context',site)
+        self.assertLess(site.index('BOAT_PRIVATE_SITE_CONTEXT_HOLD'),
+                        site.index('PROBE_RACE='))
+        self.assertNotIn('--sync-results',gate)
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'boat-fresh-site-context-summary.json'
+            secret='PRIVATE_SAVED_URL_OR_SECRET_CANNOT_LEAK'
+            report=dict(status='SAVED_SITE_CONTEXT_REJECTED',
+                        reason='SAVED_SITE_SELECTED_DAY_REQUIRED',code_trace=[secret],
+                        owner_url=secret,access_token=secret)
+            path.write_text(json.dumps(report),encoding='utf-8')
+            out=io.StringIO()
+            with patch.dict(os.environ,{'RUNNER_TEMP':directory}):
+                with contextlib.redirect_stdout(out):
+                    exec(compile(gate,'site_context_test','exec'),{'__name__':'__main__'})
+            result=json.loads(out.getvalue())
+            self.assertEqual(result['status'],'BOAT_PRIVATE_SITE_CONTEXT_HOLD')
+            self.assertEqual(result['reason'],'SAVED_SITE_SELECTED_DAY_REQUIRED')
+            self.assertFalse(result['original_or_result_modified'])
+            self.assertEqual(result['provider_gets'],0)
+            self.assertNotIn(secret,out.getvalue())
+
+    def test_untrusted_site_context_report_does_not_print_raw_reason(self):
+        gate=context_gate_source()
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'boat-fresh-site-context-summary.json'
+            path.write_text(json.dumps(dict(status='SAVED_SITE_CONTEXT_REJECTED',
+                                            reason='SECRET_URL_https://example.invalid')),
+                            encoding='utf-8')
+            out=io.StringIO()
+            with patch.dict(os.environ,{'RUNNER_TEMP':directory}):
+                with contextlib.redirect_stdout(out):
+                    exec(compile(gate,'site_context_test','exec'),{'__name__':'__main__'})
+            self.assertEqual(json.loads(out.getvalue())['reason'],'CONTEXT_FAILURE_UNCLASSIFIED')
+            self.assertNotIn('example.invalid',out.getvalue())
 
     def test_untrusted_browser_dump_cannot_leak_owner_hash_or_private_details(self):
         private='SECRET_DO_NOT_PRINT_PRIVATE_OWNER_URL_OR_AES_KEY'
