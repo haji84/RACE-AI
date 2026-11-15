@@ -380,6 +380,10 @@ def parse_program(raw: bytes, *, day: date, venue: str, race_no: int,
                 candidates.append(table)
     race_id = f"{expected[0]}-{venue}-{race_no:02d}"
     closed_at = f"{day.isoformat()}T{closing}:00+09:00"
+    # The official venue/day page can explicitly flag a revised closing grid.
+    # Preserve the notice as evidence, not as a replacement for two independently
+    # dated race-specific clocks or the unobserved actual voting close.
+    schedule_change_notice = "締切予定時刻が変更されております" in _compact(frame.text())
     race_status = _race_status(frame)
     if not candidates and race_status != "LISTED":
         boats = []
@@ -396,6 +400,7 @@ def parse_program(raw: bytes, *, day: date, venue: str, race_no: int,
     eligible = same_day and captured < datetime.fromisoformat(closed_at)
     return dict(schema=SCHEMA, date_jst=day.isoformat(), venue=venue, race_id=race_id,
                 closed_at=closed_at, boats=boats, source_url=source_url,
+                schedule_change_notice=schedule_change_notice,
                 source_sha256=sha256(raw).hexdigest(), first_observed_at=captured_at,
                 captured_at=captured_at, redistribution_authorized=False,
                 status="OFFICIAL_BODY_IDENTITY_VERIFIED", body_identity_verified=True, race_status=race_status,
