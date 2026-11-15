@@ -1,0 +1,71 @@
+{
+  "schema": "RACE_AI_KEIRIN_A_B_COLOR_STABILITY_RESEARCH_V1",
+  "checked_at_jst": "2026-11-15",
+  "race_id": "202611098402",
+  "source_video_sha256": "4e389a46c223b7cb2eaa7c5c5bdc34ade229deedea8a3c795c8be987b57aa810",
+  "original_A_frozen_proposal_sha256": "b207ec30d3fb368b9d9e64b494aa8e9e3657aac388023226c798da8ba8a98bae",
+  "reviewer_A_HTML_sha256": "4bfab49ce7c1beba6840fab40856aaaf9843afdff9077acd2fa723831ccc6469",
+  "reviewer_B_HTML_sha256": "95d6bd402dbce180486952da643584860c76f7ca1669ab459409b39e7ac845eb",
+  "source_SHA_matched_frames_A_and_B": 46,
+  "visual_source_frame_byte_identical_across_A_B": 46,
+  "method_A": "EXISTING_IMMUTABLE_PR291_HSV_COLOR_REGION_COMPONENTS",
+  "method_B": "STRICTER_HSV_HUE_BANDS_AND_SATURATION_BRIGHTNESS_ON_THE_IDENTICAL_BGN_CROP",
+  "method_B_is_new_independent_detector_or_human_review": false,
+  "parameters_not_calibrated_as_probability": true,
+  "matched_definition": "GREEDY_ONE_TO_ONE_NEAREST_CENTER_WITHIN_40_PX_FIRST;_MATCHED_CAR_COLOR_ONLY_AFTER_SPATIAL_PAIRING",
+  "frozen_A_candidates": 222,
+  "B_stricter_color_candidates": 114,
+  "one_to_one_spatially_matched_region_pairs": 99,
+  "one_to_one_spatial_and_color_agreement_pairs": 96,
+  "spatial_pairs_with_disagreed_color": 3,
+  "A_regions_without_matching_B_color": 126,
+  "B_regions_without_matching_A_color": 18,
+  "percent_A_region_color_reproduced_by_B": 43.243,
+  "percent_B_region_color_reproduced_by_A": 84.211,
+  "frames_with_high_A_only_difference": [
+    {
+      "second": 14,
+      "A_count": 11,
+      "B_count": 4,
+      "agreed": 2
+    },
+    {
+      "second": 32,
+      "A_count": 11,
+      "B_count": 3,
+      "agreed": 3
+    },
+    {
+      "second": 82,
+      "A_count": 8,
+      "B_count": 1,
+      "agreed": 0
+    },
+    {
+      "second": 76,
+      "A_count": 9,
+      "B_count": 3,
+      "agreed": 3
+    },
+    {
+      "second": 34,
+      "A_count": 7,
+      "B_count": 1,
+      "agreed": 1
+    }
+  ],
+  "reference_annotations_not_used": true,
+  "independent_human_ground_truth_reviewers": 0,
+  "independent_human_ground_truth_annotations": 0,
+  "true_rider_detection_precision_pct": null,
+  "true_rider_detection_recall_pct": null,
+  "true_car_number_identity_accuracy_pct": null,
+  "same_rider_tracking_accuracy_pct": null,
+  "true_position_line_stage_accuracy_pct": null,
+  "eligible_to_publish_official_success_rate": false,
+  "eligible_to_train_existing_model": false,
+  "original_model_weights_changed": false,
+  "main_changed_by_this_research": false,
+  "personal_frame_pixels_or_review_bboxes_publicly_committed": false,
+  "methodological_caveat": "A and B are stricter/looser configurations of the SAME HSV color segmentation family. Agreement tests sensitivity, not true rider identity or accuracy; missing A/B matches are not automatically false positive/false negative."
+}
