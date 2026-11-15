@@ -9,6 +9,7 @@ import base64
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import unittest
+from pathlib import Path
 from scripts.boat_main_dispatch_gate import decide, RELEASE_REF, RELEASE_SHA, RELEASE_TOKEN
 
 JST=ZoneInfo('Asia/Tokyo')
@@ -58,6 +59,19 @@ class EarlyOwnerAdmissionTests(unittest.TestCase):
             with self.subTest(changed=patch):
                 args=dict(base,**patch)
                 self.assertFalse(decide(**args)['dispatch_allowed'])
+
+    def test_0530_jst_cron_is_owner_only_not_an_extra_result_get_cycle(self):
+        # Merely moving the gate to 05:30 would not schedule any 05:30 job.
+        workflow = Path('.github/workflows/boat-racer-daily.yml').read_text()
+        header = workflow.split('jobs:', 1)[0]
+        owner = workflow.split('  owner_p0_p1_dispatch:', 1)[1]
+        daily = workflow.split('  daily:', 1)[1].split('  owner_p0_p1_dispatch:', 1)[0]
+        source_mirror = workflow.split('  source_mirror:', 1)[1].split('  daily:', 1)[0]
+        self.assertIn("- cron: '30 20 * * *'", header)  # 20:30 UTC = 05:30 JST
+        self.assertIn("github.event.schedule == '30 20 * * *'", owner)
+        self.assertIn("!(github.event_name == 'schedule' && github.event.schedule == '30 20 * * *')", daily)
+        self.assertNotIn("github.event.schedule == '30 20 * * *'", source_mirror)
+
 
 if __name__=='__main__':
     unittest.main()
