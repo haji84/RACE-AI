@@ -157,6 +157,10 @@ jobs:
           from datetime import datetime,timezone
           from pathlib import Path
           import race_ai
+          for folder in ('pr64-reference','pr72-reference'):
+              package=Path(folder,'race_ai').resolve()
+              assert package.is_dir()
+              race_ai.__path__.append(str(package))
           from scripts.boat_private_original_vault import _environment
           from scripts.github_existing_cycle import gh
           from race_ai.racer_result_bridge import SavedResultBridge
