@@ -86,7 +86,7 @@ class IndependentHeldoutRiderAuditTests(unittest.TestCase):
     def test_two_independent_complete_annotations_can_score_prec_recall(self):
         out=accepted()
         self.assertEqual(out["schema"],AUDIT_SCHEMA)
-        self.assertEqual(out["status"],"TWO_REVIEW_TORSO_REGION_DETECTION_ADMITTED")
+        self.assertEqual(out["status"],"TWO_REVIEW_JERSEY_COLOR_REGION_DETECTION_ADMITTED")
         self.assertEqual(out["true_positive_region_boxes"],2)
         self.assertEqual(out["false_positive_region_boxes"],0)
         self.assertEqual(out["false_negative_region_boxes"],0)
@@ -202,6 +202,19 @@ class IndependentHeldoutRiderAuditTests(unittest.TestCase):
                 model_code_sha256=MODEL,model_train_race_ids=[RACE],
                 frames=get_prediction()["frames"],frozen_at=T,
                 target_kind="JERSEY_COLOR_REGION")
+
+    def test_malformed_frames_and_reviews_fail_closed_with_a_typed_hold(self):
+        p=get_prediction()
+        p["frames"]=[None]
+        with self.assertRaisesRegex(
+            HoldoutGateError,"FRAMES_MISSING_OR_REUSED"):
+            checked_proposal(p)
+        p=get_prediction()
+        q=review(p,"blind_A_01")
+        q["frames"]=[None]
+        with self.assertRaisesRegex(
+            HoldoutGateError,"REVIEW_FRAME_SET_NOT_COMPLETE"):
+            checked_review(q,p)
 
     def test_private_freeze_create_once_with_exact_SHA(self):
         p=get_prediction()
