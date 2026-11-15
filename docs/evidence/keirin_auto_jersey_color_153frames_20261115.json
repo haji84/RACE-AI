@@ -82,5 +82,36 @@
     "No real complete-six-phase scoring or model learning was performed, and existing PR71 formal prediction remains unchanged"
   ],
   "main_merged": false,
-  "formal_learning_eligible": false
+  "formal_learning_eligible": false,
+  "temporal_nearest_color_blob_research": {
+    "comparison_window_seconds": [
+      -2,
+      2
+    ],
+    "max_color_blob_neighbor_distance_px": 85,
+    "joint_position_and_color_matches_evaluated": 12,
+    "with_same_color_candidate_in_at_least_one_neighbor_frame": 10,
+    "without_matching_neighbor_color_blob": 2,
+    "one_review_count_by_race": [
+      {
+        "race_id": "202611091201",
+        "matched_spatial_color": 4,
+        "neighbor_candidate": 4
+      },
+      {
+        "race_id": "202611091202",
+        "matched_spatial_color": 3,
+        "neighbor_candidate": 1
+      },
+      {
+        "race_id": "202611091203",
+        "matched_spatial_color": 5,
+        "neighbor_candidate": 5
+      }
+    ],
+    "temporal_research_report_sha256": "1769c911933fcc0dd2490aa7543d070163afc90e67b65a3501f9274560303936",
+    "does_not_prove_same_rider_identity": true,
+    "independently_verified_track_accuracy_pct": null,
+    "automatically_admitted_to_phase_scoring": false
+  }
 }
