@@ -1106,7 +1106,30 @@ jobs:
           assert re.fullmatch(r'20[0-9]{2}-[01][0-9]-[0-3][0-9]',day)
           assert datetime.date.fromisoformat(day).isoformat()==day
           PY
-          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --day "$TARGET_DAY" --stage P0 > "$RUNNER_TEMP/boat-fresh-site-context-summary.json"
+          # On failure the context builder writes a bounded private-local JSON
+          # error record. Emit only a whitelisted status+reason, never the URL,
+          # decrypted records, stack trace or source payload.
+          if python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --day "$TARGET_DAY" --stage P0 > "$RUNNER_TEMP/boat-fresh-site-context-summary.json"; then
+            echo 'BOAT_PRIVATE_SITE_CONTEXT_READY'
+          else
+            python - <<'PY_CONTEXT_HOLD'
+          import json,os,re
+          from pathlib import Path
+          safe=dict(status='BOAT_PRIVATE_SITE_CONTEXT_HOLD',reason='CONTEXT_FAILURE_UNCLASSIFIED',
+                    original_or_result_modified=False,provider_gets=0)
+          path=Path(os.environ['RUNNER_TEMP'])/'boat-fresh-site-context-summary.json'
+          try:
+              report=json.loads(path.read_text(encoding='utf-8'))
+              if type(report) is dict and report.get('status')=='SAVED_SITE_CONTEXT_REJECTED':
+                  reason=report.get('reason')
+                  if type(reason) is str and re.fullmatch(r'(?:SAVED_SITE|FEED|HISTORY|VAULT|STATE)_[A-Z0-9_]{1,100}',reason):
+                      safe['reason']=reason
+          except (OSError,UnicodeError,ValueError,TypeError):
+              pass
+          print(json.dumps(safe,sort_keys=True))
+          PY_CONTEXT_HOLD
+            exit 2
+          fi
           python - <<'PY'
           import json,os
           from pathlib import Path
