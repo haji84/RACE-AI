@@ -44,7 +44,7 @@ jobs:
           assert "github.event.workflow_run.head_sha == '5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'" in live
           assert "github.event.workflow_run.event == 'workflow_dispatch'" in live
           assert "github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111'" in live
-          # Construct expression syntax in two strings: GitHub expands ${{ }} inside
+          # Construct secret-expression syntax in two strings: GitHub expands it inside
           # inline workflow scripts even when it is intended as Python test text.
           secret_token='
           assert "owner_evidence_audit.py" in live and "inspect_run" in live
