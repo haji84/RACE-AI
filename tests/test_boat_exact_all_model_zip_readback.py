@@ -4,6 +4,10 @@ All races, artifact bytes and clocks are fictional. No GitHub requests,
 racing GET, plaintext forecast export, or source upload.
 """
 from collections import Counter
+from pathlib import Path
+import race_ai
+PIN=str(Path(__file__).resolve().parents[1]/'owner-source/race_ai')
+if PIN not in race_ai.__path__:race_ai.__path__.append(PIN)
 from copy import deepcopy
 from datetime import datetime, timezone
 import json
@@ -27,7 +31,8 @@ def original(*,rid='20300401-01-01',mid='boat-model-A',created=CREATED,
       as_of='2030-04-01T11:40:00+09:00',
       generated_at='2030-04-01T11:41:00+09:00',
       cutoff_at=cutoff,server_saved_at=created,
-      external_receipt_verified=True,eligible_pre_cutoff=True)
+      external_receipt_verified=True,eligible_pre_cutoff=True,
+      dispatch_status='GENERATED_UNATTESTED')
     return dict(sport='boat',event_date_jst=DAY,race_id=rid,
                 cutoff_at=CUTOFF,prediction=forecast,comparison_predictions=[])
 
