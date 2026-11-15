@@ -265,6 +265,9 @@ canvas.addEventListener("pointerup",ev=>{
   race_position:rank==="UNKNOWN"?"UNKNOWN":Number(rank),
   line_role:line
  });
+ // A previously selected car must never silently carry into the next
+ // rectangle or frame. Make each number/evidence assignment deliberate.
+ for(const id of ["car","evidence","rank","line"])$(id).value="UNKNOWN";
  reviews[n].exhaustive_visible_targets=false;status("");render();
 });
 $("undo").addEventListener("click",()=>{reviews[n].annotations.pop();reviews[n].exhaustive_visible_targets=false;render()});
@@ -291,7 +294,8 @@ function download(complete){
  const blob=new Blob([data],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
  a.href=url;a.download=seed.race_id+"_"+seed.reviewer_id+"_"+(complete?"READY":"DRAFT")+".json";
- a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
  status("保存したJSONは非公開で保管してください。独立した署名と所有者検証は別工程です。");
 }
 $("exportDraft").addEventListener("click",()=>download(false));
