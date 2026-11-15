@@ -71,6 +71,7 @@ on:
       - 'race_ai/keirin_bicycle_shape_context.py'
       - 'scripts/keirin_private_bicycle_shape_motion_audit.py'
       - 'tests/test_keirin_bicycle_shape_context.py'
+      - 'tests/test_keirin_private_bicycle_shape_motion_audit.py'
       - 'tests/test_live_15min_proof.py'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
@@ -134,6 +135,7 @@ on:
       - 'race_ai/keirin_bicycle_shape_context.py'
       - 'scripts/keirin_private_bicycle_shape_motion_audit.py'
       - 'tests/test_keirin_bicycle_shape_context.py'
+      - 'tests/test_keirin_private_bicycle_shape_motion_audit.py'
       - 'tests/test_live_15min_proof.py'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
@@ -200,6 +202,7 @@ jobs:
           (cd "$GITHUB_WORKSPACE" && PYTHONPATH="$GITHUB_WORKSPACE" python -m unittest -v tests.test_keirin_camera_motion_quality)
           (cd "$GITHUB_WORKSPACE" && PYTHONPATH="$GITHUB_WORKSPACE" python -m unittest -v tests.test_keirin_color_track_flow_guard)
           (cd "$GITHUB_WORKSPACE" && PYTHONPATH="$GITHUB_WORKSPACE" python -m unittest -v tests.test_keirin_bicycle_shape_context)
+          (cd "$GITHUB_WORKSPACE" && PYTHONPATH="$GITHUB_WORKSPACE" python -m unittest -v tests.test_keirin_private_bicycle_shape_motion_audit)
           python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_private_bicycle_shape_motion_audit.py"
           python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_private_camera_motion_audit.py"
           python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_private_color_failure_triage.py"
