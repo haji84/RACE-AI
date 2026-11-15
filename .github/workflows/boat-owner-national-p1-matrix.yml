@@ -54,6 +54,23 @@ jobs:
           print('BOAT_NATIONAL_P1_OWNER_SOURCE_FREE_CI_CONTRACT_PASSED')
           PY
 
+      - name: Compile the independent ALL_MODEL AES reader and keep provider source outside
+        run: |
+          python - <<'PY_CONTRACT'
+          import ast,textwrap
+          from pathlib import Path
+          source=Path('.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
+          stage=source.split("python - <<'PY_ALL_MODEL'\n",1)[1].split("\n          PY_ALL_MODEL",1)[0]
+          ast.parse(textwrap.dedent(stage),filename='real_independent_all_model_gate')
+          assert "recover_saved_models(raw,gh,run_ids=(ident,),day=day,max_artifacts=128)" in stage
+          assert "RACE_AI_STATE_KEY" in source
+          assert "source_originals_modified=False" in stage
+          assert "provider_gets=0" in stage
+          assert "original_forecasts" not in stage.split("print(json.dumps(out",1)[1]
+          assert 'www.boatrace.jp' not in stage
+          print('BOAT_ALL_MODEL_READONLY_AUDIT_PATH_COMPILED')
+          PY_CONTRACT
+
   authenticated_original_matrix:
     name: Independently reopen sealed national P0/P1 original matrix
     if: >-
@@ -143,6 +160,92 @@ jobs:
                   race_provider_gets=0,source_originals_modified=False)))
               raise SystemExit(2)
           PY
+      - name: Reopen ALL_MODEL GitHub originals on independent runner and measure true model slots
+        if: success()
+        working-directory: owner-source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43661420983' }}
+        run: |
+          python - <<'PY_ALL_MODEL'
+          import importlib.util,json,os,re
+          from datetime import datetime,timezone
+          from pathlib import Path
+          import race_ai
+          for folder in ('pr64-reference','pr72-reference'):
+              package=Path(folder,'race_ai').resolve()
+              assert package.is_dir()
+              race_ai.__path__.append(str(package))
+          from scripts.boat_private_original_vault import _environment
+          from scripts.github_existing_cycle import gh
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai import saved_view_feed as F
+          from race_ai.boat_all_model_recovery import recover_saved_models
+          from race_ai.existing_model_coverage import active_catalog
+          root=Path('.').resolve()
+          main=Path('..').resolve()
+          script=main/'scripts/boat_owner_national_p1_matrix.py'
+          spec=importlib.util.spec_from_file_location('boat_saved_model_matrix_sourcefree',script)
+          mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
+          try:
+              baseline=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-national-p1-counts.json').read_text())
+              ident=int(os.environ['OWNER_AUDIT_RUN_ID'])
+              assert baseline['owner_run_id']==ident and baseline['owner_original_reader_independently_verified'] is True
+              day=baseline['day_jst'];scheduled=baseline['retained_schedule_races']
+              repo=_environment(root)
+              current=SavedResultBridge(repo,now=datetime.now(timezone.utc))
+              raw=F.current_view(current.git,current.bootstrap,day=day)[3]
+              models=[x['model_id'] for x in active_catalog() if 'boat' in x['applicable_sports']]
+              before=mod.saved_view_coverage(raw,day=day,model_ids=models,
+                         scheduled_races=scheduled,now=datetime.now(timezone.utc))
+              replayed,counts=recover_saved_models(raw,gh,run_ids=(ident,),day=day,max_artifacts=128)
+              after=mod.saved_view_coverage(replayed,day=day,model_ids=models,
+                         scheduled_races=scheduled,now=datetime.now(timezone.utc))
+              assert (counts['originals_unchanged'] is True and
+                      counts['official_source_requests']==0 and
+                      after['p1_qualified_unique_slots']>=before['p1_qualified_unique_slots'])
+              complete=(counts['status']=='SAVED_MODEL_RECOVERY_COMPLETE' and
+                        counts['deferred_artifacts']==0 and counts['deferred_runs']==0 and
+                        after['missing_p1_model_slots']==0 and after['cutoff_conflicts']==0 and
+                        after['unsupported_or_extra_models']==0)
+              out=dict(schema='BOAT_INDEPENDENT_ALL_MODEL_VAULT_P1_AUDIT_V1',
+                       status='ALL_MODEL_P1_VAULT_COMPLETE' if complete else 'HOLD_ALL_MODEL_P1_COVERAGE',
+                       day_jst=day,owner_run_id=ident,
+                       original_p1_only_slots=baseline['p1_saved_expected_slots'],
+                       aes_view_before=before,aes_view_after=after,
+                       artifact_rounds_verified=counts['archives_verified'],
+                       physical_models_generated=counts['generated_forecasts_reported'],
+                       restored_p1_model_rows=counts['appended_p1_forecasts'],
+                       deferred_artifacts=counts['deferred_artifacts'],
+                       unrepresented_scoped_forecasts=counts['unrepresented_scoped_forecasts'],
+                       independent_readback=True,
+                       all_model_p1_present=complete,real_video_identity_verified=False,
+                       website_e2e_verified=False,
+                       provider_gets=0,source_originals_modified=False)
+              safe=Path(os.environ['RUNNER_TEMP'])/'boat-all-model-vault-counts.json'
+              assert not safe.exists() and not safe.is_symlink()
+              safe.write_text(json.dumps(out,sort_keys=True)+'\n',encoding='utf-8')
+              print(json.dumps(out,sort_keys=True))
+          except Exception as exc:
+              reason=str(exc)
+              if not (type(reason) is str and re.fullmatch(
+                  r'(?:ALL_MODEL_RECOVERY|ALL_MODEL_FORECAST|BOAT_OWNER_NATIONAL_P1_MATRIX|VAULT|FEED)_[A-Z0-9_]{1,100}',reason)):
+                  reason='INDEPENDENT_ALL_MODEL_REPLAY_NOT_AVAILABLE'
+              print(json.dumps(dict(status='HOLD_ALL_MODEL_VAULT_READBACK',
+                                    reason=reason,provider_gets=0,
+                                    production_forecasts_modified=False)))
+              raise SystemExit(2)
+          PY_ALL_MODEL
+      - name: Retain only count-only ALL_MODEL vault audit, no decrypted forecasts
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-all-model-vault-p1-coverage-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-all-model-vault-counts.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Retain only aggregate model counts, never original races or media
         if: success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

@@ -88,3 +88,91 @@ def calculate(report,model_ids,*,independent_original_reader=False):
         public_video_usable=False,full_e2e_website_proven=False,
         original_forecasts_unchanged=True,racing_provider_gets=0,
         no_forecast_generation=True)
+
+
+def saved_view_coverage(view, *, day, model_ids, scheduled_races, now):
+    """Read-only P1 projection count from an already AES-authenticated view.
+
+    A caller's boolean receipt flag is not proof of its GitHub ZIP. The
+    independent native ALL_MODEL recovery reader must attest ZIP clocks and
+    AES content *before* this count can supplement the original-only report.
+    Return model/race counts only, never race IDs, persons, or predictions.
+    """
+    from datetime import datetime, timezone, timedelta, date
+    _need(type(day) is str and type(view) is dict and
+          type(view.get('records')) is list and
+          isinstance(now,datetime) and now.utcoffset() is not None)
+    _need(date.fromisoformat(day).isoformat()==day)
+    _need(type(scheduled_races) is int and 0<scheduled_races<=288)
+    _need(type(model_ids) in (list,tuple) and len(model_ids)>0 and
+          len(model_ids)==len(set(model_ids)) and
+          all(type(m) is str and MODEL.fullmatch(m) for m in model_ids))
+    expected=set(model_ids);seen_races=set();qualified=set()
+    excluded=Counter();extra=set();observed_p1=set();conflicts=0
+    clock=now.astimezone(timezone.utc)
+    for row in view['records']:
+        if row.get('sport')!='boat' or row.get('event_date_jst')!=day:
+            continue
+        rid=row.get('race_id')
+        _need(type(rid) is str and re.fullmatch(r'[0-9]{8}-(?:0[1-9]|1[0-9]|2[0-4])-(?:0[1-9]|1[0-2])',rid)
+              and rid.startswith(day.replace('-','')) and rid not in seen_races)
+        seen_races.add(rid)
+        cutoff=_clock(row.get('cutoff_at'))
+        _need(cutoff.astimezone(timezone(timedelta(hours=9))).date().isoformat()==day)
+        preds=[row.get('prediction'),*(row.get('comparison_predictions') or [])]
+        _need(len(preds)<=128)
+        for p in preds:
+            if p is None or p.get('stage')!='P1':continue
+            mid=p.get('model_id')
+            _need(type(mid) is str and MODEL.fullmatch(mid))
+            if mid not in expected:
+                extra.add(mid)
+                continue
+            slot=(rid,mid);observed_p1.add(slot)
+            if (p.get('external_receipt_verified') is not True or
+                p.get('eligible_pre_cutoff') is not True or
+                type(p.get('artifact_id')) is not int or p['artifact_id']<=0 or
+                type(p.get('original_json_sha256')) is not str or
+                re.fullmatch('[a-f0-9]{64}',p['original_json_sha256']) is None):
+                excluded['RECEIPT_OR_PRE_CUTOFF_UNVERIFIED']+=1
+                continue
+            try:
+                asof=_clock(p.get('as_of'))
+                saved=_clock(p.get('server_saved_at'))
+                generated=_clock(p.get('generated_at'))
+                original_cutoff=_clock(p.get('cutoff_at') or row.get('cutoff_at'))
+            except (TypeError,ValueError,AttributeError):
+                excluded['P1_TIMESTAMP_INVALID']+=1
+                continue
+            if original_cutoff!=cutoff:
+                conflicts+=1;continue
+            # GitHub's artifact metadata can truncate fractional seconds.
+            ordered=asof<=saved or (saved.microsecond==0 and
+                                    saved<=asof<saved+timedelta(seconds=1))
+            if (not ordered or max(asof,generated,saved)>clock or
+                max(asof,generated,saved)>=cutoff):
+                excluded['P1_NOT_PHYSICALLY_BEFORE_CUTOFF']+=1
+                continue
+            qualified.add(slot)
+    _need(len(seen_races)<=scheduled_races)
+    by_model=[dict(model_id=mid,p1_saved_races=sum(k[1]==mid for k in qualified),
+                   missing_races=scheduled_races-sum(k[1]==mid for k in qualified))
+              for mid in sorted(expected)]
+    present=len(qualified);total=scheduled_races*len(expected)
+    return dict(schema='RACE_AI_BOAT_AES_SAVED_VIEW_P1_COUNTS_V1',day_jst=day,
+        scheduled_races=scheduled_races,saved_view_race_rows=len(seen_races),
+        expected_model_count=len(expected),expected_model_slots=total,
+        p1_qualified_unique_slots=present,missing_p1_model_slots=total-present,
+        p1_seen_unqualified_slots=len(observed_p1-qualified),
+        unsupported_or_extra_models=len(extra),
+        cutoff_conflicts=conflicts,excluded_reasons=dict(sorted(excluded.items())),
+        by_model=by_model,independently_authenticated_source_zip_claim=False,
+        original_forecasts_changed=False,official_source_gets=0)
+ 
+def _clock(text):
+    from datetime import datetime
+    if type(text) is not str:raise ValueError('BOAT_OWNER_NATIONAL_P1_MATRIX_CLOCK_INVALID')
+    try:value=datetime.fromisoformat(text.replace('Z','+00:00'))
+    except (ValueError,OverflowError):raise ValueError('BOAT_OWNER_NATIONAL_P1_MATRIX_CLOCK_INVALID') from None
+    if value.utcoffset() is None:raise ValueError('BOAT_OWNER_NATIONAL_P1_MATRIX_CLOCK_INVALID')
+    return value
