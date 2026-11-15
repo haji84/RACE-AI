@@ -15,6 +15,7 @@ from race_ai.keirin_color_ab_stability import (
 )
 from race_ai.keirin_visual_jersey_proposals import detect_color_regions
 from race_ai.keirin_bicycle_shape_context import BicycleContextError
+from race_ai.keirin_color_ab_stability import ABStabilityError
 from scripts.keirin_private_bicycle_shape_motion_audit import run
 
 
@@ -118,7 +119,7 @@ class PrivateBicycleCameraResearchFixture(unittest.TestCase):
 
     def test_wrong_stored_html_bytes_not_accepted(self):
         with self.assertRaisesRegex(
-            BicycleContextError,"PRIVATE_HTML_BYTES_SHA_MISMATCH"):
+            ABStabilityError,"PRIVATE_HTML_BYTES_SHA_MISMATCH"):
             self.audit(sha_A="f"*64)
 
     def test_original_A_B_counts_must_not_change_to_fit_desired_report(self):
