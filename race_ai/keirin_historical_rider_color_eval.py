@@ -126,9 +126,7 @@ def aggregate_historical_color_scores(records, *, race_ids, sample_frames_expect
          0<=complete_frame_sha_matches<=sample_frames_expected,
          "FRAME_SHA_COUNT_INVALID")
     seen=set();summaries=[]
-    for rid in race_ids:
-        rows=[]
-        for row in records:
+    for row in records:
             need(type(row) is dict and set(row)=={
                 "race_id","frame_sha256","sample_second",
                 "reviewed_car_number","candidate_car_number"},
@@ -145,8 +143,8 @@ def aggregate_historical_color_scores(records, *, race_ids, sample_frames_expect
             key=(row["race_id"],row["frame_sha256"],row["reviewed_car_number"])
             need(key not in seen, "DUPLICATE_REVIEWED_CAR_FRAME")
             seen.add(key)
-            if row["race_id"]==rid:
-                rows.append(row)
+    for rid in race_ids:
+        rows=[x for x in records if x["race_id"]==rid]
         decided=[x for x in rows if x["candidate_car_number"]!=UNKNOWN]
         hits=sum(x["candidate_car_number"]==x["reviewed_car_number"]
                  for x in decided)
