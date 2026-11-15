@@ -48,19 +48,20 @@ def original(*,rid='20300401-01-01',mid='boat-model-A',created=CREATED,
 
 
 class SourceFreeExactZipTests(unittest.TestCase):
-    def scan(self,row,*,physical=CREATED,view_row=None):
+    def scan(self,row,*,physical=CREATED,view_row=None,official_cutoff=CUTOFF):
         view=row if view_row is None else view_row
         idx=Counter([exact._identity(view['race_id'],view['prediction'])])
         saved=deepcopy(idx)
         result=exact._scan(dict(records=[row]),day=DAY,artifact_id=101,
                   physical_saved_at=physical,expected={'boat-model-A'},
-                  clock=NOW,source_original_index=idx)
+                  clock=NOW,source_original_index=idx,
+                   official_cutoffs={row['race_id']:exact.moment(official_cutoff)})
         return result,idx,saved
 
     def test_real_receipt_before_cutoff_is_required_but_does_not_create_proof(self):
         row=original()
         (seen,holds,missing,reused),index,prior=self.scan(row)
-        self.assertEqual(seen,[(row['race_id'],'boat-model-A',True,True)])
+        self.assertEqual(seen,[(row['race_id'],'boat-model-A',True,True,True)])
         self.assertEqual(missing,0)
         self.assertEqual(dict(holds),{})
         self.assertEqual(sum(index.values()),0)
@@ -97,15 +98,26 @@ class SourceFreeExactZipTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.scan(row)
 
+    def test_independent_official_cutoff_conflict_remains_hold(self):
+        row=original()
+        (seen,holds,missing,reused),_,_=self.scan(
+            row,official_cutoff='2030-04-01T11:59:00+09:00')
+        self.assertEqual(missing,0)
+        self.assertTrue(seen[0][2])   # the ZIP-declared cutoff is later
+        self.assertFalse(seen[0][4])  # separate official schedule disagrees
+        self.assertEqual(holds['INDEPENDENT_OFFICIAL_CUTOFF_CONFLICT'],1)
+
     def test_prior_baseline_receipt_inside_model_zip_is_not_falsely_resaved(self):
         source=original()
         reused=deepcopy(source)
         reused['prediction']['artifact_id']=999
         reused['prediction']['dispatch_status']='ORIGINAL_REUSED'
         idx=Counter()
+        row=reused
         rows,holds,missing,baseline=exact._scan(dict(records=[reused]),day=DAY,
              artifact_id=101,physical_saved_at=CREATED,
-             expected={'boat-model-A'},clock=NOW,source_original_index=idx)
+             expected={'boat-model-A'},clock=NOW,source_original_index=idx,
+                   official_cutoffs={row['race_id']:exact.moment(CUTOFF)})
         self.assertEqual(rows,[])
         self.assertEqual(baseline,1)
         self.assertEqual(missing,0)
@@ -142,7 +154,9 @@ class SourceFreeExactZipTests(unittest.TestCase):
              patch.object(R,'_listed',return_value=(101,1)),\
              patch.object(R,'_metadata',return_value=(fake_meta,False)),\
              patch.object(R,'_project',side_effect=fake_project),\
-             patch.object(C,'artifact_pages',return_value=[record]):
+             patch.object(C,'artifact_pages',return_value=[record]),\
+             patch.object(exact,'_official_cutoffs',
+                          return_value={view['records'][0]['race_id']:exact.moment(CUTOFF)}):
             report=exact.audit(get=get,repo='unused',run_id=42,day=DAY,
                                expected_models=['boat-model-A'],original_view=view,
                                now=NOW,owner_key=bytes(range(32)))
@@ -150,6 +164,7 @@ class SourceFreeExactZipTests(unittest.TestCase):
         self.assertEqual(report['github_zip_sha256_independently_verified'],1)
         self.assertEqual(report['aes_originals_independently_decrypted'],1)
         self.assertEqual(report['physical_pre_cutoff_distinct_model_slots'],1)
+        self.assertEqual(report['official_schedule_crosschecked_pre_cutoff_model_slots'],1)
         self.assertEqual(report['referenced_existing_baseline_p1_rows_not_recounted'],0)
         self.assertEqual(report['original_predictions_matched_saved_AES_view'],1)
         self.assertEqual(report['previously_archived_coverages_skipped_without_zip_read'],0)
