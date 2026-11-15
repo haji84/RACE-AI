@@ -97,7 +97,7 @@
     "Distinct independent source and model lineage readback. Disagreement/partial ground truth is HOLD, not 0/100 precision",
     "Only after real candidate-to-truth person and number track validation may later stage scoring be independently admitted"
   ],
-  "status": "SOURCE_AND_CANDIDATE_FROZEN_PRIVATE_ENVELOPES_CREATED_REVIEW_TRUTH_NOT_YET_ACQUIRED",
+  "status": "PRIVATE_CIPHER_RESTORED_WITH_EXACT_GITHUB_CODE_TWO_EXTERNAL_REVIEWERS_STILL_MISSING",
   "external_historical_roster_reference": {
     "source_date_jst": "2026-11-09",
     "race_no": 2,
@@ -131,7 +131,11 @@
     "real_signed_review_receipts": 0,
     "self_certified_reviewer_ids_never_authorize_metrics": true,
     "duplicate_signing_key_rejected": true,
-    "formal_true_positive_false_positive_false_negative_measured": false
+    "formal_true_positive_false_positive_false_negative_measured": false,
+    "owner_controlled_registry_attestor_required": true,
+    "two_separate_signing_keys_alone_insufficient": true,
+    "private_signer_offline_source": "scripts/keirin_sign_blind_review_private.py",
+    "real_reviewer_identity_and_independence_attested": false
   },
   "actual_sealed_archive_restore_using_CI_exact_source": {
     "github_source_artifact_id": 14146679373,
@@ -157,6 +161,9 @@
     "independently_verified_car_IDs": 0,
     "exact_source_code_frozen_after_first_video_pilot": false,
     "production_phase_scoring_unlocked": false,
-    "review_pixels_and_keys_in_public_repo": false
+    "review_pixels_and_keys_in_public_repo": false,
+    "exact_public_GitHub_restore_CI_run_id": 43677376341,
+    "actual_GitHub_source_CI_completed_success": true,
+    "owning_private_key_copy_destroyed_after_recovery": true
   }
 }
