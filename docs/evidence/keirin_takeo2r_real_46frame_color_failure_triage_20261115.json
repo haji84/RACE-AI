@@ -1,0 +1,67 @@
+{
+  "schema": "RACE_AI_KEIRIN_COLOR_FAILURE_TRIAGE_REAL_46FRAMES_V1",
+  "race_id": "202611098402",
+  "date_jst": "2026-11-15",
+  "source_video_sha256": "4e389a46c223b7cb2eaa7c5c5bdc34ade229deedea8a3c795c8be987b57aa810",
+  "frozen_A_proposals_sha256": "b207ec30d3fb368b9d9e64b494aa8e9e3657aac388023226c798da8ba8a98bae",
+  "reviewer_A_html_sha256": "4bfab49ce7c1beba6840fab40856aaaf9843afdff9077acd2fa723831ccc6469",
+  "reviewer_B_html_sha256": "95d6bd402dbce180486952da643584860c76f7ca1669ab459409b39e7ac845eb",
+  "method": "Same source BGR each 2s, A original immutable HSV components, B strict hue/saturation/value; one-to-one nearest spatial <=40px independent of color; strict HSV pixel count inside A box before B morphology",
+  "implementation": "race_ai/keirin_color_failure_triage.py; scripts/keirin_private_color_failure_triage.py",
+  "GitHub_CI_evidence": {
+    "source_artifact_id": 14153948029,
+    "source_ci_run_id": 43695605220,
+    "new_synthetic_tests_passed": 6
+  },
+  "replayed_original_frames_and_identical_A_B_pixel_bytes": 46,
+  "A_original_color_region_candidates": 222,
+  "B_strict_color_region_candidates": 114,
+  "spatial_pairs": 99,
+  "same_color_pairs": 96,
+  "cross_color_spatial_pairs": 3,
+  "A_without_spatial_partner": 123,
+  "B_without_spatial_partner": 15,
+  "A_without_same_color_match": 126,
+  "B_without_same_color_match": 18,
+  "A_only_reasons": {
+    "strict_HSV_pixels_zero": 49,
+    "strict_HSV_pixels_1_to_94": 65,
+    "strict_HSV_pixels_95_or_more_but_no_spatial_partner": 9,
+    "total": 123
+  },
+  "A_only_by_color_number": {
+    "3": 29,
+    "4": 11,
+    "5": 17,
+    "6": 38,
+    "7": 28
+  },
+  "A_only_shape_flags": {
+    "horizontally_elongated_gt_3_times_height": 8,
+    "box_starts_within_upper_240_px_of_584_px_viewport": 29,
+    "overlap_with_pixel_cause_categories_possible": true
+  },
+  "frames_highest_A_only_counts": [
+    14,
+    32,
+    82,
+    6,
+    34
+  ],
+  "visually_inspected_single_assistant_no_independent_truth": {
+    "sec14": "Track and bike-adjacent surface patches visible among color regions; riders also visible",
+    "sec32": "Background billboard/signage color regions visible; rider uniforms also present",
+    "sec82": "Track surface color regions visible while some riders' kits remain unclassified by B",
+    "visual_claims_not_fully_exhaustive_annotation": true
+  },
+  "research_conclusion": "114 of 123 spatially A-only regions have fewer than 95 strict B-color pixels inside A box. Tightening HSV reduces sensitivity to background patches but can suppress true jersey regions; no precision/recall proof. Nine regions have enough strict pixels but no spatial B pair, mechanism unresolved (morphology, splitting, centroid/shape or viewpoint).",
+  "not_independent_human_truth": true,
+  "true_rider_detection_precision_pct": null,
+  "true_rider_detection_recall_pct": null,
+  "true_car_number_id_accuracy_pct": null,
+  "true_same_person_tracking_accuracy_pct": null,
+  "true_six_stage_accuracy_pct": null,
+  "new_model_weight_training": false,
+  "public_raw_frame_pixels_or_bboxes": false,
+  "production_PDCA_not_activated": true
+}
