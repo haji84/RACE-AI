@@ -10,6 +10,8 @@ on:
     branches: [main]
     paths:
       - .github/workflows/boat-owner-national-p1-matrix.yml
+      - scripts/boat_owner_national_p1_matrix.py
+      - tests/test_boat_owner_national_p1_matrix.py
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
     types: [completed]
