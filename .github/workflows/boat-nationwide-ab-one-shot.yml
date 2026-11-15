@@ -26,6 +26,8 @@ on:
       - tests/fixtures/boat_20261113_authenticated_count_summary.json
       - tests/test_boat_20261113_retained_counts.py
       - tests/test_boat_unbounded_forecast_policy.py
+      - tests/test_boat_mandatory_exhibition_priority.py
+      - scripts/boat_nationwide_ab_pilot.py
       - race_ai/repeated_cycle.py
       - race_ai/cycle_recovery.py
       - scripts/github_existing_cycle.py
@@ -95,7 +97,8 @@ jobs:
                  'tests.test_boat_first_p0_readback','tests.test_boat_first_p0_reconcile',
                  'tests.test_boat_saved_result_recovery','tests.test_boat_source_control_mirror',
                  'tests.test_supervisor_durable_readback','tests.test_boat_saved_site_context',
-                 'tests.test_repeated_cycle','tests.test_boat_unbounded_forecast_policy','tests.test_github_existing_cycle_startup_wait',
+                 'tests.test_repeated_cycle','tests.test_boat_unbounded_forecast_policy',
+                  'tests.test_boat_mandatory_exhibition_priority','tests.test_github_existing_cycle_startup_wait',
                  'tests.test_boat_source_control','tests.test_continuity_checkpoint',
                  'tests.test_boat_seller_official_source','tests.test_boat_program_source']
           result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
