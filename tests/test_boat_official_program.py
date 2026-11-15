@@ -215,6 +215,17 @@ class OfficialProgramTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.parse(page(row_options={1: dict(name=" ")}))
 
+    def test_official_changed_schedule_notice_is_preserved_without_inventing_actual_close(self):
+        self.assertFalse(self.parse(page())["schedule_change_notice"])
+        notice='<p>締切予定時刻が変更されております。ご注意ください。</p>'
+        updated=self.parse(page(content=notice+program_table()))
+        self.assertTrue(updated["schedule_change_notice"])
+        self.assertEqual(updated["closed_at"],"2030-04-01T20:30:00+09:00")
+        self.assertIsNone(updated["source"]["published_at"])
+        # A generic delay message is not itself a revised sale deadline.
+        delayed=self.parse(page(content='<p>発走が遅れております。</p>'+program_table()))
+        self.assertFalse(delayed["schedule_change_notice"])
+
     def test_historical_receipt_is_explicitly_ineligible_without_backdated_time(self):
         for at in ("2030-04-01T20:30:00+09:00", "2030-04-02T18:00:00+09:00", "2030-03-31T18:00:00+09:00"):
             with self.subTest(at=at):

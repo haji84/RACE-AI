@@ -36,13 +36,14 @@ def encrypted(raw, metadata, kind):
     return outer,meta
 
 
-def fixture():
+def fixture(*, requests_used=88, day_start_lifetime_requests=0):
+    lifetime_requests=day_start_lifetime_requests+requests_used
     p1_raw, p1_meta = deepcopy(_artifacts()[0][1])
     p1_meta.update(name='boat-national-cutoff-99-cycle-03', expires_at='2030-04-08T02:00:00Z')
     p1_raw, p1_meta = encrypted(p1_raw, p1_meta, 'P1')
-    session = dict(day_jst=DAY, run_id=99, requests_used=88, completed_round=2,
-                   prepared_round=3, lifetime_requests=88, lifetime_completed_rounds=2,
-                   day_start_lifetime_requests=0, source_wait=None, halted_reason=None)
+    session = dict(day_jst=DAY, run_id=99, requests_used=requests_used, completed_round=2,
+                   prepared_round=3, lifetime_requests=lifetime_requests, lifetime_completed_rounds=2,
+                   day_start_lifetime_requests=day_start_lifetime_requests, source_wait=None, halted_reason=None)
     report = dict(day_jst=DAY, run_id='99', code_sha=HEAD, round_no=3,
                   first_forecast_artifacts=[p1_meta], bounded_repeat_session=session,
                   result_observation_versions=0, updated_at='2030-04-01T02:30:00Z')
@@ -59,9 +60,9 @@ def fixture():
                created_at='2030-04-01T01:30:00Z', updated_at='2030-04-01T02:32:00Z',
                repository=dict(id=1416489937, full_name='haji84/RACE-AI'),
                head_repository=dict(id=1416489937, full_name='haji84/RACE-AI'))
-    control = dict(previous_run_id=99, day_jst=DAY, previous_session_requests=88,
-                   completed_round=2, prepared_round=3, lifetime_requests=88,
-                   lifetime_completed_rounds=2, day_start_lifetime_requests=0,
+    control = dict(previous_run_id=99, day_jst=DAY, previous_session_requests=requests_used,
+                   completed_round=2, prepared_round=3, lifetime_requests=lifetime_requests,
+                   lifetime_completed_rounds=2, day_start_lifetime_requests=day_start_lifetime_requests,
                    source_wait=None, previous_halted_reason=None, previous_stop_reason=None,
                    receipt=dict(id=702, digest='sha256:'+'b'*64, created_at='2030-04-01T02:31:00Z'),
                    source_control_receipt=dict(id=703, digest='sha256:'+'c'*64, created_at='2030-04-01T02:31:01Z'))
@@ -87,6 +88,20 @@ class RecoveryCase(unittest.TestCase):
 
 
 class PendingRoundRecoveryTests(RecoveryCase):
+    def test_pending_recovery_accepts_matching_sealed_usage_above_retired_daily_cap(self):
+        self.run_meta,self.control,self.responses=fixture(
+            requests_used=452,day_start_lifetime_requests=11072)
+        before=deepcopy((self.control,self.responses))
+        try:
+            checked=self.recover()
+        except ValueError as error:
+            self.fail('Authenticated unbounded source usage rejected by legacy cap: '+str(error))
+        self.assertEqual(checked['control']['previous_session_requests'],452)
+        self.assertEqual(checked['control']['lifetime_requests'],11524)
+        self.assertEqual(checked['control']['day_start_lifetime_requests'],11072)
+        self.assertEqual(checked['control']['completed_round'],3)
+        self.assertEqual((self.control,self.responses),before)
+
     def test_new_process_restores_round_without_changing_originals_or_inference(self):
         before = deepcopy((self.control, self.responses))
         with patch('urllib.request.urlopen', side_effect=AssertionError('provider access')):
@@ -213,5 +228,135 @@ class PhysicalRecoveryTests(RecoveryCase):
         proof=recover_history(**parameters,retain=lambda *_:dict(independent_git_readback_verified=True,source_commit='d'*40))
         self.assertIsNotNone(recovery.verify_dispatch_proof(proof,[self.run_meta],self.control,HEAD,NOW))
         self.assertEqual(self.control['prepared_round'],3)
+
+
+class ZeroRoundFailedOwnerTests(RecoveryCase):
+    """Failed owner did P0 bookkeeping but no official P1 round or source GET."""
+
+    def setUp(self):
+        super().setUp()
+        self.run_meta['name']='BOAT nationwide cutoff-ordered A/B research (no Vercel)'
+        self.control.update(completed_round=0, prepared_round=None,
+                            previous_session_requests=0, lifetime_requests=88,
+                            day_start_lifetime_requests=88,
+                            lifetime_completed_rounds=7)
+        final=[dict(id=702,name='race-cycle-continuity-99'),
+               dict(id=703,name='race-source-control-99')]
+        self.responses['actions/runs/99/artifacts?per_page=100']=json.dumps(
+            dict(total_count=2,artifacts=final)).encode()
+        self.responses['actions/runs/99']=json.dumps(self.run_meta).encode()
+
+    def verify(self):
+        return recovery.verify_no_pending_failed_owner(
+            lambda key:self.responses[key],self.run_meta,self.control,now=NOW)
+
+    def test_zero_round_failed_owner_is_sourcefree_and_all_counters_remain_unchanged(self):
+        before=deepcopy(self.control)
+        with patch('urllib.request.urlopen',side_effect=AssertionError('official source')):
+            checked=self.verify()
+        self.assertEqual(checked['control']['completed_round'],0)
+        self.assertIsNone(checked['control']['prepared_round'])
+        self.assertEqual(checked['control']['lifetime_requests'],88)
+        self.assertEqual(checked['original_artifact_ids'],[])
+        self.assertEqual(checked['new_forecasts'],0)
+        self.assertEqual(checked['official_source_requests'],0)
+        self.assertEqual(checked['control']['recovery']['schema'],
+                         recovery.IDLE_SCHEMA)
+        self.assertEqual(self.control,before)
+        self.assertEqual({k:v for k,v in checked['control'].items() if k!='recovery'}, before)
+
+    def test_zero_round_keeps_requests_from_an_earlier_same_day_owner(self):
+        # Operational counters from owner43683174565 and its successful
+        # predecessor43661420983; archive identities/dates remain synthetic.
+        self.control.update(lifetime_requests=11524,
+                            day_start_lifetime_requests=11072,
+                            lifetime_completed_rounds=608)
+        before=deepcopy(self.control)
+        try:
+            checked=self.verify()
+        except ValueError as error:
+            self.fail('Zero-request successor rejected inherited daily usage: '+str(error))
+        self.assertEqual(self.control,before)
+        self.assertEqual({k:v for k,v in checked['control'].items() if k!='recovery'},before)
+        self.assertEqual(checked['official_source_requests'],0)
+        self.assertEqual(checked['new_forecasts'],0)
+
+    def test_dispatch_proof_preserves_prior_daily_usage_without_reset(self):
+        self.control.update(lifetime_requests=11524,
+                            day_start_lifetime_requests=11072,
+                            lifetime_completed_rounds=608)
+        fixed=deepcopy(self.control)
+        fixed['recovery']=dict(schema=recovery.IDLE_SCHEMA,previous_run_id=99,
+            round_no=None,verified_at=NOW.isoformat(),
+            original_control_receipt=deepcopy(self.control['receipt']),
+            source_attempts=0,no_p1_or_result_artifacts_verified=True,
+            no_future_forecast_generated=True,originals_rewritten=False)
+        proof=dict(schema=recovery.PROOF_SCHEMA,head_sha=HEAD,day_jst=DAY,
+            verified_at=NOW.isoformat(),history_sha256=recovery.history_digest([self.run_meta]),
+            latest_control=deepcopy(fixed),repairs=[dict(run_id=99,
+                original_control=deepcopy(self.control),control=fixed,
+                vault_commit=None,original_artifact_ids=[])])
+        accepted=recovery.verify_dispatch_proof(proof,[self.run_meta],self.control,HEAD,NOW)
+        self.assertIsNotNone(accepted,'Valid prior daily usage must not invalidate zero-round proof')
+        self.assertEqual(accepted['lifetime_requests'],11524)
+        self.assertEqual(accepted['day_start_lifetime_requests'],11072)
+        tampered=deepcopy(proof)
+        for entry in (tampered['latest_control'],tampered['repairs'][0]['control']):
+            entry['lifetime_requests']=11072
+        self.assertIsNone(recovery.verify_dispatch_proof(
+            tampered,[self.run_meta],self.control,HEAD,NOW))
+
+    def test_any_released_round_result_or_p1_original_prevents_idle_certification(self):
+        key='actions/runs/99/artifacts?per_page=100'
+        original=json.loads(self.responses[key])
+        for name in ('boat-national-cutoff-99',
+                     'race-existing-cycle-99',
+                     'boat-national-cutoff-99-cycle-01',
+                     'race-existing-cycle-99-cycle-01'):
+            with self.subTest(name=name):
+                extra=deepcopy(original);extra['artifacts'].append(dict(id=800,name=name))
+                extra['total_count']+=1
+                self.responses[key]=json.dumps(extra).encode()
+                with self.assertRaises(ValueError):self.verify()
+        self.responses[key]=json.dumps(original).encode()
+
+    def test_source_usage_halt_uncertain_or_nonzero_round_still_hard_holds(self):
+        changes=[dict(previous_session_requests=1),
+                 dict(lifetime_requests=87),
+                 dict(day_start_lifetime_requests=89),
+                 dict(day_start_lifetime_requests=None),
+                 dict(source_wait=dict(state='SOURCE_REVIEW_WAIT')),
+                 dict(previous_halted_reason='HTTP_RATE_LIMIT'),
+                 dict(prepared_round=1),
+                 dict(completed_round=1),
+                 dict(completed_round=True)]
+        for update in changes:
+            with self.subTest(update=update):
+                original=deepcopy(self.control);self.control.update(update)
+                with self.assertRaises(ValueError):self.verify()
+                self.control=original
+
+    def test_sourcefree_history_replay_produces_idempotent_no_pending_proof(self):
+        from scripts.boat_recover_failed_owner import recover_history
+        params=dict(runs=[self.run_meta],get=lambda p:self.responses[p],
+            load_control=lambda _:deepcopy(self.control),
+            replay_day=lambda:dict(complete=True,rows=[dict(stage='P0')]),
+            now=NOW,expected_head=HEAD)
+        def no_retained_pair(*_):raise AssertionError('no P1 pair to retain')
+        proof=recover_history(**params,retain=no_retained_pair)
+        self.assertEqual(proof['repairs'][0]['vault_commit'],None)
+        self.assertEqual(proof['repairs'][0]['original_artifact_ids'],[])
+        self.assertEqual(proof['latest_control']['lifetime_requests'],88)
+        self.assertIsNotNone(recovery.verify_dispatch_proof(
+            proof,[self.run_meta],self.control,HEAD,NOW))
+        tampered=deepcopy(proof)
+        tampered['repairs'][0]['control']['lifetime_requests']=0
+        self.assertIsNone(recovery.verify_dispatch_proof(
+            tampered,[self.run_meta],self.control,HEAD,NOW))
+        tampered=deepcopy(proof)
+        tampered['repairs'][0]['control']['recovery']['no_p1_or_result_artifacts_verified']=False
+        self.assertIsNone(recovery.verify_dispatch_proof(
+            tampered,[self.run_meta],self.control,HEAD,NOW))
+        self.assertEqual(self.control['lifetime_requests'],88)
 
 if __name__=='__main__': unittest.main()

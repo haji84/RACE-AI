@@ -9,6 +9,7 @@ on:
       - scripts/boat_recover_failed_owner.py
       - scripts/github_existing_cycle.py
       - tests/test_boat_pending_round*.py
+      - tests/test_repeated_cycle.py
 permissions:
   contents: read
 jobs:

@@ -83,7 +83,7 @@ def today_owners(history, *, now, expected_head):
 
 def recover_history(runs, *, get, load_control, replay_day, retain, now, expected_head):
     from race_ai.boat_pending_round_recovery import (PROOF_SCHEMA, JST, need,
-        verify_pending_round, history_digest, verify_dispatch_proof)
+        verify_pending_round, verify_no_pending_failed_owner, history_digest, verify_dispatch_proof)
     from race_ai.boat_owner_source_identity import authenticated_live_owner_run
     snapshots = []
     controls = {}
@@ -105,13 +105,24 @@ def recover_history(runs, *, get, load_control, replay_day, retain, now, expecte
         if run['conclusion'] != 'failure':
             continue
         control = controls[run['id']]
-        checked = verify_pending_round(get, run, control, now=now)
-        saved = retain(checked, run)
-        need(saved.get('independent_git_readback_verified') is True and
-             re.fullmatch('[a-f0-9]{40}',str(saved.get('source_commit'))), 'VAULT_READBACK_MISSING')
-        repairs.append(dict(run_id=run['id'], original_control=deepcopy(control),
-            control=checked['control'], vault_commit=saved['source_commit'],
-            original_artifact_ids=checked['original_artifact_ids']))
+        if control.get('prepared_round') is None:
+            # A failed owner can stop during P0 retention BEFORE round 01.
+            # The old pending-round-only recovery rejected this genuine state.
+            # Authenticate absent P1/RESULT artifacts, source budget == 0,
+            # and the already replayed P0 before allowing a successor gate.
+            checked = verify_no_pending_failed_owner(get, run, control, now=now)
+            repairs.append(dict(run_id=run['id'], original_control=deepcopy(control),
+                control=checked['control'], vault_commit=None,
+                original_artifact_ids=[]))
+        else:
+            checked = verify_pending_round(get, run, control, now=now)
+            saved = retain(checked, run)
+            need(saved.get('independent_git_readback_verified') is True and
+                 re.fullmatch('[a-f0-9]{40}',str(saved.get('source_commit'))),
+                 'VAULT_READBACK_MISSING')
+            repairs.append(dict(run_id=run['id'], original_control=deepcopy(control),
+                control=checked['control'], vault_commit=saved['source_commit'],
+                original_artifact_ids=checked['original_artifact_ids']))
         if run['id'] == latest['id']:
             latest_control = checked['control']
     proof = dict(schema=PROOF_SCHEMA, head_sha=expected_head, day_jst=now.astimezone(JST).date().isoformat(),

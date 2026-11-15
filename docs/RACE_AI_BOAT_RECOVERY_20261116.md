@@ -1,0 +1,63 @@
+# BOAT停止復旧の修正とリリース引継ぎ（2026-11-16 JST）
+
+本書は `RACE_AI_BOAT_CODEX_HANDOFF_20261116.md` のG1を継続した記録。
+**コード検証済み、本番復旧は未実証。** PR #302/#289を使い、新規PRは作らない。
+
+## 再取得した正本
+
+main `96e0045ffb3a8368c4f63cb955564bb4e6259c0e`、production
+`5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4`、PR #302の開始HEAD
+`a5d19e8f8b70eaacd9c5841bc95f5cbbb2e8b145`。
+
+- 失敗owner: https://github.com/haji84/RACE-AI/actions/runs/43683174565
+- 復旧失敗: https://github.com/haji84/RACE-AI/actions/runs/43716692197
+- 引継ぎ元owner: https://github.com/haji84/RACE-AI/actions/runs/43661420983
+
+失敗ownerのALL_MODEL・source-control・continuity、および前ownerのsummary・continuityの
+5 ZIPを再取得し、GitHubメタデータのサイズ・SHA256と一致確認した。
+このホストにはAES鍵がなく、復号・別runner認証を完了したとは扱わない。
+
+## 確認した原因と修正
+
+1. zero-round復旧が、当該workerのGET0だけでなく一日全体のGET0を要求していた。
+   前workerの452件を引継ぐ実障害では累積11524・当日基点11072・巡回累積608・
+   失敗worker使用0。この正当な継続を拒否した。新条件は基点≦累積を認め、
+   当該worker使用0、署名済みsource-controlとの完全一致、原本在庫・受領証、
+   待機/停止なしの検証を維持する。カウンタをゼロへ書き換えない。
+2. prepared-round復旧に古い240 GET制限が残っていた。既存の上限撤去方針と整合させ、
+   カウンタの順序・型・署名済みP1/RESULTペアとの一致・403/429時のHOLDは維持した。
+3. VaultのGit設定引数 `-c` によりfetch判定が外れ、既存の180秒ではなく60秒が適用された。
+   実際のサブコマンドを判定し、リモート書換え拒否と既存180秒を適用する。
+   タイムアウトは操作別の固定コードのみ出力し、引数・通信本文・秘密は出さない。
+4. mainの独立したproof消費器にもzero-round分岐が不足していた。
+   修正済みproofをproductionが出してもmainが拒否するため、既存PR #289で同期する。
+
+実障害のdisplay feedは180秒タイムアウトを2回記録し、その後Vault保存が約64秒で失敗した。
+Vaultの内側の失敗操作は旧ログにないため、3を唯一の歴史的原因とは断定しない。
+修正後の新しい一時bare repositoryからの鍵不要・blobなし読取りは1.808秒で成功したが、
+これはAES読戻し・書込み成功の証明ではない。
+
+## 検証の範囲
+
+- 失敗を再現した回帰テストを追加し、既存owner全385件、復旧/Vault全179件、
+  サイトNode15件、main消費器関連55件成功。範囲は重複しており合算しない。
+- 独立レビューでカウンタ境界・偽造proof・Gitタイムアウト・秘密非出力を確認。
+- 実障害の取得済みZIPを使う歴史時刻での再現は成功。現在のdispatch許可として使わない。
+- 公式providerへの新規GET0、新規予想0、既存原本変更0。本番の再開成功を意味しない。
+
+詳細は [件数・SHA証拠](evidence/boat-zero-round-recovery-validation-20261116.json)。
+個別CIは既存PR #302の厳密HEADのChecksを正とし、別HEADの緑を流用しない。
+
+## リリースと未完ゲート
+
+本人の従来の「main統合・本番切替を無断実施しない」に従い、まだproduction/mainは変更しない。
+本番更新には、レビュー済みPR #302の統合後の**実際のproduction HEAD**を確定し、
+既存PR #289のowner発火・復旧・mirror・独立readerの厳密固定SHAを同期する必要がある。
+旧原本を再監査するSHAは、既知の履歴用読取りとして別に保持する。
+mainのSHAチェック撤去、GitHubイベント偽装、secretジョブの手動迂回は行わない。
+
+G1はコード/ローカル試験合格で、本番の「実AES復旧→別runner→新P1保存」待ち。
+G2の真正な締切延長、G3の日付跨ぎ、G4/G5の全国適格分母と全14モデル照合、
+G6の新結果→PDCA→Pages、G7の3〜6艇映像、G8の連続運用・未来精度も
+それぞれ実データ合格待ち。過去の9モデル枠の締切不一致HOLDは変更しない。
+98%は未達・実現可能性未証明。旧ローカル常駐処理の再起動や原本再生成で補わない。

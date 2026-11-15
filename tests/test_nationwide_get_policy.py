@@ -65,6 +65,52 @@ class NationwideGetPolicyTests(unittest.TestCase):
     def setUp(self):
         FixedClock.current=NOW
 
+    def test_dual_official_revised_cutoff_reaches_existing_p1_wait_and_preserves_old_schedule(self):
+        from tests.test_boat_live_cutoff_revision import example, RID, NEW
+        from datetime import date
+        base,program,before=example()
+        original=dict(base)
+        program['boats']=[dict(lane=i,racer_registration_id=str(4000+i),entry_status='listed')
+                          for i in (1,2,3)]
+        today=date(2030,4,1)
+        captured=datetime(2030,4,1,11,40,tzinfo=pilot.JST)
+        preview=datetime(2030,4,1,11,41,tzinfo=pilot.JST)
+        now=datetime(2030,4,1,11,42,tzinfo=pilot.JST)
+        with patch.object(pilot,'_clock',return_value=now), \
+             patch.object(pilot,'get',side_effect=[(b'official program',captured,'b'*64),
+                                                   (b'official preview',preview,'c'*64)]) as source, \
+             patch.object(pilot,'parse_official_racelist',return_value=program), \
+             patch.object(pilot,'parse_active_beforeinfo',return_value=before), \
+             patch.object(pilot,'collect_pitreport',return_value=None), \
+             patch.object(pilot,'collect_entry_history',return_value=None), \
+             patch.object(pilot,'supplemental_contexts',{}):
+            status,*forecasts=pilot.make_pair(today,base)
+            self.assertEqual(status['state'],'EXHIBITION_NOT_FULLY_PUBLISHED')
+            self.assertEqual(status['cutoff_revision']['revised_cutoff_at'],NEW)
+            self.assertEqual(pilot.supplemental_contexts[RID]['cutoff_at'],NEW)
+            self.assertEqual(len(source.call_args_list),2)
+            self.assertEqual(forecasts,[None,None,None,None])
+        self.assertEqual(base,original)
+
+    def test_late_source_change_without_notice_does_not_extend_p1_deadline(self):
+        from tests.test_boat_live_cutoff_revision import example
+        from datetime import date
+        base,program,before=example(notice=False)
+        program['boats']=[dict(lane=i,racer_registration_id=str(4000+i),entry_status='listed')
+                          for i in (1,2,3)]
+        captured=datetime(2030,4,1,11,40,tzinfo=pilot.JST)
+        preview=datetime(2030,4,1,11,41,tzinfo=pilot.JST)
+        now=datetime(2030,4,1,11,42,tzinfo=pilot.JST)
+        with patch.object(pilot,'_clock',return_value=now), \
+             patch.object(pilot,'get',side_effect=[(b'official program',captured,'b'*64),
+                                                   (b'official preview',preview,'c'*64)]), \
+             patch.object(pilot,'parse_official_racelist',return_value=program), \
+             patch.object(pilot,'parse_active_beforeinfo',return_value=before):
+            status,*forecasts=pilot.make_pair(date(2030,4,1),base)
+        self.assertEqual(status['state'],
+                         'HOLD_CUTOFF_EXTENSION_WITHOUT_OFFICIAL_CHANGE_NOTICE')
+        self.assertEqual(forecasts,[None,None,None,None])
+
     def test_sixty_real_get_calls_keep_count_and_response_past_former_cap(self):
         transport = Transport()
         with patch.object(pilot, 'requests_used', 0), \

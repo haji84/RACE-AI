@@ -5,6 +5,9 @@ on:
     paths:
       - .github/workflows/boat-vault-read-retry-contract.yml
       - scripts/boat_private_original_vault.py
+      - race_ai/boat_pdca_github_handoff.py
+      - race_ai/boat_private_original_vault.py
+      - tests/test_boat_pdca_github_handoff.py
       - tests/test_boat_private_original_vault*.py
 permissions:
   contents: read
@@ -37,7 +40,9 @@ jobs:
                  'tests.test_boat_private_original_vault_live_artifact_retry',
                  'tests.test_boat_private_original_vault_cli',
                  'tests.test_boat_private_original_vault',
-                 'tests.test_private_original_archive_readers']
+                 'tests.test_private_original_archive_readers',
+                 'tests.test_boat_pdca_github_handoff',
+                 'tests.test_boat_private_original_vault_isolation']
           result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
           raise SystemExit(not result.wasSuccessful())
           PY
