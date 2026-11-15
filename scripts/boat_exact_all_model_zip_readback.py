@@ -57,8 +57,50 @@ def _identity(race_id,prediction):
         ensure_ascii=False,allow_nan=False).encode()).hexdigest()
 
 
+def _official_cutoffs(get, repo, run, listing, reader, *, day, now, key):
+    """Re-open P0 ZIP and independently verify the original official B source.
+
+    An ALL_MODEL P1 archive cannot certify its own sales cutoff. Every cutoff
+    used for acceptance is bound to the separately sealed official P0 ledger.
+    """
+    import json
+    from race_ai.actions_contract import digest
+    from race_ai.boat_source_control import _metadata
+    from race_ai.boat_private_original_vault import _artifact, REPO_ID
+    from race_ai.frozen_day_cycle import read_p0
+    from race_ai.boat_program_source import load_program_source
+    first=[a for a in listing if a.get('name')==f"boat-p0-existing-{run['id']}"]
+    need(len(first)==1)
+    item=first[0]
+    ident=item['id']
+    meta_raw=reader.read(f'actions/artifacts/{ident}',128*1024)
+    meta=json.loads(meta_raw)
+    raw=get(f'actions/artifacts/{ident}/zip')
+    _metadata(raw,meta,name=item['name'],run_id=run['id'],head_sha=OWNER_SHA)
+    _artifact(raw,meta_raw,key=key,now=now,expected_kind='P0')
+    doc,p0=read_p0(raw,meta,expected_day=day)
+    receipt=dict(repository_id=REPO_ID,repository='haji84/RACE-AI',
+        run_id=str(run['id']),head_sha=OWNER_SHA,
+        artifact_id=ident,created_at=meta['created_at'],
+        payload_sha256=digest(doc),independently_verified=True)
+    verified=load_program_source(day,doc,receipt,repo,key=key,as_of=now.isoformat())
+    need(verified is not None)
+    schedule=doc.get('schedule')
+    need(type(schedule) is list and 0<len(schedule)<=288)
+    ledger={}
+    for item in schedule:
+        need(type(item) is dict)
+        rid=item.get('race_id')
+        need(type(rid) is str and RACE.fullmatch(rid) and
+             rid.startswith(day.replace('-','')) and rid not in ledger)
+        cutoff=moment(item.get('cutoff_at'))
+        need(cutoff.astimezone(JST).date().isoformat()==day)
+        ledger[rid]=cutoff
+    return ledger
+
+
 def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
-          source_original_index):
+          source_original_index,official_cutoffs):
     need(type(projection) is dict and type(projection.get('records')) is list)
     outputs=[];unqualified=Counter();missing_from_view=0;reused_baseline=0
     saved=moment(physical_saved_at)
