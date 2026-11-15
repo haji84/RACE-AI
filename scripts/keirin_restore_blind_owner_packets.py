@@ -155,6 +155,8 @@ def restore(*,sealed_archive,owner_private_key,private_output,
                     need(byte_count<=40_000_000,
                          "PRIVATE_REVIEW_ARCHIVE_TOO_LARGE")
                     files.append((name,data))
+        except BlindRestoreError:
+            raise
         except (BadZipFile,KeyError,ValueError):
             raise BlindRestoreError("PRIVATE_REVIEW_ZIP_INVALID") from None
         need(len([x for x,_ in files if x.startswith("source_")])>=1 and
