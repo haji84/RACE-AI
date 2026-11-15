@@ -98,5 +98,17 @@
     "future_regeneration": "REQUIRES_RESTORING_SAME_PRIVATE_CIPHER_ARCHIVE_AND_FROZEN_PROPOSALS_WITH_SHA",
     "completed_independent_reference_sets": 0,
     "private_review_images_or_keys_in_public_github": false
+  },
+  "local_readback_separate_process": {
+    "original_media_sha256_against_cipher_manifest": "VERIFIED",
+    "private_frozen_proposal_byte_sha256": "VERIFIED",
+    "first_review_pre_detector_note_sha256": "VERIFIED",
+    "canonical_proposal_digest": "VERIFIED",
+    "reviewed_frame_count": 45,
+    "frozen_candidate_count": 214,
+    "two_private_packet_slots_with_45_images_each": "VERIFIED",
+    "external_different_runner_or_host_readback_verified": false,
+    "independent_rider_review_finished": false,
+    "precision_recall_or_identity_accuracy_verified": false
   }
 }
