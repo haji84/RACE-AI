@@ -4,7 +4,8 @@ from hashlib import sha256
 import unittest
 
 from race_ai.keirin_color_failure_triage import (
-    ABStabilityError, diagnose_frame, summarize_diagnosis, SCHEMA,
+    ABStabilityError, diagnose_frame, summarize_diagnosis,
+    _post_morph_mechanism, SCHEMA,
 )
 from race_ai.keirin_visual_jersey_proposals import detect_color_regions
 
@@ -88,6 +89,39 @@ class ResearchFailureTriageTests(unittest.TestCase):
                                     "A_B_FROZEN_BASELINE_DRIFT_REJECTED"):
             summarize_diagnosis([r],**{**kwargs,
                 "expected_color_count":kwargs["expected_color_count"]+1})
+
+    def test_95plus_strict_pixels_can_split_into_sub95_components(self):
+        import numpy as np
+        mask=np.zeros((584,1024),dtype=bool)
+        # Two disjoint 70px regions: total 140 > B min area 95,
+        # but no single connected component survives at >=95.
+        mask[250:260,100:107]=True
+        mask[250:260,130:137]=True
+        answer=_post_morph_mechanism(mask,(90,245,60,30))
+        self.assertEqual(
+            answer,"POST_MORPH_EACH_OVERLAPPING_COMPONENT_BELOW_95")
+        # A tiny isolated patch can disappear in B's morphological OPEN.
+        tiny=np.zeros((584,1024),dtype=bool)
+        tiny[250:252,100:102]=True
+        self.assertEqual(
+            _post_morph_mechanism(tiny,(95,245,20,20)),
+            "NO_POST_MORPH_COMPONENT_OVERLAPS_A")
+
+    def test_post_morph_subcategories_sum_to_raw95plus_group(self):
+        img,h,a=sample([88,70,150])
+        report=diagnose_frame(img,a,expected_sha256=h,second=14)
+        self.assertEqual(
+            sum(report["A_only_raw95_plus_post_morph_causes"].values()),
+            report["A_only_strict_pixel_categories"][
+                "STRICT_PIXELS_95_PLUS_BUT_NO_SPATIAL_PAIR"])
+        out=summarize_diagnosis(
+            [report],race_id="202611098402",expected_frame_count=1,
+            expected_A_count=report["A_frozen_color_regions"],
+            expected_B_count=report["B_stricter_color_regions"],
+            expected_spatial_count=report["spatially_paired_regions"],
+            expected_color_count=report["same_color_pairs"])
+        self.assertIsNone(out["actual_rider_detection_recall_pct"])
+        self.assertFalse(out["model_learning_or_formal_PDCA_updated"])
 
     def test_duplicate_frame_sha_is_not_a_valid_2frame_source(self):
         img,h,a=sample([88,70,150])
