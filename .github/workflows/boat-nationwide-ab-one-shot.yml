@@ -41,6 +41,12 @@ on:
       - tests/test_boat_seller_official_source.py
       - tests/test_boat_program_source.py
       - tests/saved_site_check.test.cjs
+      - race_ai/boat_official_program.py
+      - race_ai/boat_live_cutoff_revision.py
+      - scripts/boat_nationwide_ab_pilot.py
+      - tests/test_boat_official_program.py
+      - tests/test_boat_live_cutoff_revision.py
+      - tests/test_nationwide_get_policy.py
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
     paths:
@@ -95,6 +101,8 @@ jobs:
           result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
           raise SystemExit(not result.wasSuccessful())
           PY_RECOVERY_TEST
+      - name: Verify dated official closing revisions and unchanged old-B authority without source GET
+        run: python -m unittest tests.test_boat_official_program tests.test_boat_live_cutoff_revision tests.test_nationwide_get_policy -v
       - name: Verify existing Pages checker stage identity and private request boundary
         run: node --test tests/saved_site_check.test.cjs
   saved_view_publication:
