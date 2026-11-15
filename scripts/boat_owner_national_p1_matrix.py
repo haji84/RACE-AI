@@ -117,8 +117,18 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now):
         _need(type(rid) is str and re.fullmatch(r'[0-9]{8}-(?:0[1-9]|1[0-9]|2[0-4])-(?:0[1-9]|1[0-2])',rid)
               and rid.startswith(day.replace('-','')) and rid not in seen_races)
         seen_races.add(rid)
-        cutoff=_clock(row.get('cutoff_at'))
-        _need(cutoff.astimezone(timezone(timedelta(hours=9))).date().isoformat()==day)
+        # A real saved-view row can have no top-level cutoff while its source
+        # forecast still has a date. Never infer a matching official cutoff
+        # from that forecast, a race number, or a guessed timetable.
+        # Keep the row in the national denominator and HOLD its P1 slots.
+        try:
+            cutoff=_clock(row.get('cutoff_at'))
+        except (TypeError,ValueError,AttributeError):
+            excluded['ROW_OFFICIAL_CUTOFF_MISSING_OR_INVALID']+=1
+            continue
+        if cutoff.astimezone(timezone(timedelta(hours=9))).date().isoformat()!=day:
+            excluded['ROW_OFFICIAL_CUTOFF_OUTSIDE_DAY']+=1
+            continue
         preds=[row.get('prediction'),*(row.get('comparison_predictions') or [])]
         _need(len(preds)<=128)
         for p in preds:
