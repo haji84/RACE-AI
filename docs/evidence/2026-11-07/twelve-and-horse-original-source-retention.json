@@ -1,0 +1,129 @@
+{
+  "independent_git_readback_verified": true,
+  "locators": [
+    {
+      "artifact_id": 13549410020,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6.json",
+      "batch_sha256": "f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6",
+      "entry_sha256": "86cbe5ccc3c6e7e3478ad6aecdfad36d20f3800912d32669c8fe69f85c8cf506",
+      "kind": "PRIVATE_PAIRS",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "9f128894340badce0ed3cf3da36255224d36bd09",
+      "status": "READY"
+    },
+    {
+      "artifact_id": 13548923129,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6.json",
+      "batch_sha256": "f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6",
+      "entry_sha256": "92fedaf46723533a8ad0daeeeafb773019a7f5c56fba1b18655230a204a59bf7",
+      "kind": "PRIVATE_PAIRS",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "9f128894340badce0ed3cf3da36255224d36bd09",
+      "status": "READY"
+    },
+    {
+      "artifact_id": 13549728398,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6.json",
+      "batch_sha256": "f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6",
+      "entry_sha256": "7e6eabb1cb8f3a7c23464f55b344b8f74a16fe5b62fd517632e4a95178fd74bc",
+      "kind": "PRIVATE_PAIRS",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "9f128894340badce0ed3cf3da36255224d36bd09",
+      "status": "READY"
+    },
+    {
+      "artifact_id": 13550373119,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6.json",
+      "batch_sha256": "f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6",
+      "entry_sha256": "8f653bb93093bf6246b167c13b196b12e902b3d738300431358d00650b8ba723",
+      "kind": "PRIVATE_PAIRS",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "9f128894340badce0ed3cf3da36255224d36bd09",
+      "status": "READY"
+    },
+    {
+      "artifact_id": 13551576997,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6.json",
+      "batch_sha256": "f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6",
+      "entry_sha256": "03461d98a511043d89593646ac7c785435f729a52c10a53b0f911c8de433bbfc",
+      "kind": "PRIVATE_PAIRS",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "9f128894340badce0ed3cf3da36255224d36bd09",
+      "status": "READY"
+    },
+    {
+      "artifact_id": 13551780376,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6.json",
+      "batch_sha256": "f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6",
+      "entry_sha256": "0089a3ad4517216deba21e3a0a9766cf3002b855f64ec9b3f73d8ee69ff73746",
+      "kind": "PRIVATE_PAIRS",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "9f128894340badce0ed3cf3da36255224d36bd09",
+      "status": "READY"
+    },
+    {
+      "artifact_id": 13551953885,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6.json",
+      "batch_sha256": "f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6",
+      "entry_sha256": "ecdbeb595a816532efc99d9fd1fa5ee354d4c3a5aa235f0ba0512807f3469fa2",
+      "kind": "PRIVATE_PAIRS",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "9f128894340badce0ed3cf3da36255224d36bd09",
+      "status": "READY"
+    },
+    {
+      "artifact_id": 13552609080,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6.json",
+      "batch_sha256": "f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6",
+      "entry_sha256": "ef8003933d03c624cfac38102b765a36852bc52c9a505d1080072751a83c3ae9",
+      "kind": "PRIVATE_PAIRS",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "9f128894340badce0ed3cf3da36255224d36bd09",
+      "status": "READY"
+    },
+    {
+      "artifact_id": 13554471265,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6.json",
+      "batch_sha256": "f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6",
+      "entry_sha256": "e83b00c952698cbf9fd5f9582b2257a6e259abaf82bfdef89517ff36e573cefc",
+      "kind": "RESULT",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "9f128894340badce0ed3cf3da36255224d36bd09",
+      "status": "READY"
+    },
+    {
+      "artifact_id": 13555822588,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6.json",
+      "batch_sha256": "f9d1b1266ee164eff81e0cd316319b6cd7acededed7d78b52c1f9b8e3e5c88d6",
+      "entry_sha256": "a581a0a6839f69402de1751c505f91b524b2674de1480eec7c394eba5c2bbe90",
+      "kind": "PRIVATE_PAIRS",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "9f128894340badce0ed3cf3da36255224d36bd09",
+      "status": "READY"
+    }
+  ],
+  "plaintext_published": false,
+  "retained_originals": 10,
+  "source_commit": "9f128894340badce0ed3cf3da36255224d36bd09",
+  "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+}

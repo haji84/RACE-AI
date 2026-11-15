@@ -1,0 +1,19 @@
+{
+  "artifact_id": 13560101855,
+  "captured_native_inputs": 28,
+  "digest": "sha256:59c85f55c9ceb40aad7ebe9f18ece2bd0f26f730a34d5811f9de8e6c678cec54",
+  "fitted_cell_count": 14,
+  "forecast_partitions": 28,
+  "future_pairs": 28,
+  "head_sha": "013c59c3f41209993bfba1f4b2b93791deba3d6c",
+  "independent_pre_cutoff_receipt_verified": true,
+  "official_results_matched": 0,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "real_future_fourteen_pdca_verified": false,
+  "run_id": 42336097863,
+  "saved_at": "2026-11-07T04:11:02Z",
+  "state": "ACTUAL_FOURTEEN_NATIVE_FUTURE_PAIRS_PRE_CUTOFF_VERIFIED",
+  "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03",
+  "unique_future_races": 2
+}

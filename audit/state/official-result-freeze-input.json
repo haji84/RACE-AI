@@ -1,0 +1,33 @@
+{
+  "allow_order_only": true,
+  "execution_day": "2026-11-07",
+  "native_artifacts": [
+    {
+      "digest": "sha256:864d9e43e1ffbcc231a38fc8467648ee21179f402523680700ace75ef397a248",
+      "head_sha": "8cf76d3d023591a4c67d04a0001465ac32b441c5",
+      "id": 13559236491,
+      "run_id": 42334526055
+    },
+    {
+      "digest": "sha256:10db96ba2e8179d37c404f7f9b17acdf9465b4f8a7f6999bc327f03e78a86e21",
+      "head_sha": "728b03530264f3494a408fb92bb61b541d3ae0d3",
+      "id": 13555822588,
+      "run_id": 42327254832
+    },
+    {
+      "digest": "sha256:112af9ed9ea13ec2d926cf846d860ca3537d0f1abbc0e966ea9b08345842904a",
+      "head_sha": "b0f8e29a785bf0bf71d09dfe634c3828403ee0be",
+      "id": 13559826825,
+      "run_id": 42336950420
+    },
+    {
+      "digest": "sha256:f80fa852cfdd24847d17fbc0dda98d855571504257b7270d5c3e8c5a9ebc8e42",
+      "head_sha": "9623f34a9b40245f7cc2caf498fcb5e1190399c0",
+      "id": 13562395496,
+      "run_id": 42341849641
+    }
+  ],
+  "packet_path": "audit/state/official-result-source-packet-889eba40ecb228f8a632bc7304c6feff4222736aa4daaa8df88e9902db8fdc19.enc",
+  "packet_sha256": "889eba40ecb228f8a632bc7304c6feff4222736aa4daaa8df88e9902db8fdc19",
+  "schema": "RACE_AI_OFFICIAL_RESULT_FREEZE_INPUT_V1"
+}

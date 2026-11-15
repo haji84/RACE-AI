@@ -1,0 +1,63 @@
+{
+  "schema": "RACE_AI_OWNER_CODE_ONLY_RELEASE_FACTS_V1",
+  "recorded_date_jst": "2026-11-08",
+  "repository": "haji84/RACE-AI",
+  "pr": 71,
+  "from_head": "9375d89142829340d871fc1145c04ffc3a72f680",
+  "staged_code_head": "14a5c109e332e008e103311a989c23b13d8410e6",
+  "scope": "OWNER_AUTHORIZED_CODE_ONLY_UNISSUED_RECOVERY_STAGE",
+  "native_result_source_capability": "HOLD_NOT_RELEASED",
+  "native_issue_request_target": "8d880c9ffacb5eba45108ea9ad5e36adb0aefc90",
+  "native_issue_run": 42457957612,
+  "native_issue_run_conclusion": "failure_before_capsule_issuance",
+  "current_first_ci_run": 42464729698,
+  "current_first_ci_conclusion": "failure_ui_test_2030_today_vs_2026_11_06",
+  "current_first_ci_issue_job": "completed_success_but_issuer_steps_skipped",
+  "current_native_source_job": "skipped",
+  "current_branch_active_runs": 0,
+  "preexisting_capsule_repository": "state/boat-pdca-transfer",
+  "preexisting_capsule_digest_directories": 6,
+  "current_head_capsule_observed": false,
+  "previous_issue_target_capsule_observed": false,
+  "do_not_reset": [
+    "OLD_UNKNOWN24",
+    "OLD_EPOCH_UPPER32",
+    "401_403_429_HOLD",
+    "ORIGINAL_P0_P1",
+    "PREVIOUS_ISSUE_REQUEST",
+    "PRIOR_STATE"
+  ],
+  "implementation_changes_from_candidate": [
+    "docs/evidence/2026-11-08/all-history-pdca-actual-gates-staged.json",
+    "race_ai/racer_intraday.py",
+    "race_ai/racer_result_bridge.py",
+    "race_ai/result_due_ledger.py",
+    "race_ai/retained_model_pdca_audit.py",
+    "scripts/all_existing_model_official_result_retain.py",
+    "scripts/racer_intraday_refresh.py",
+    "scripts/verify_all_history_pdca_readback.py",
+    "tests/saved_pages_browser.test.js",
+    "tests/test_official_result_retain_worker_cli.py",
+    "tests/test_racer_result_bridge.py",
+    "tests/test_result_due_ledger.py",
+    "tests/test_retained_model_pdca_audit.py",
+    "tests/test_verify_all_history_pdca_readback.py"
+  ],
+  "excluded_from_this_commit": [
+    "existing_workflow_definitions",
+    "production_state",
+    "source_grants",
+    "source_requests",
+    "scheduler_config",
+    "purchase_actions"
+  ],
+  "completed_proof": false,
+  "next_critical_gates": [
+    "First CI full PASS at exact new HEAD",
+    "Native issuer remains in HOLD until separate canonical root approval",
+    "GitHub Actions authenticated historical original P0/P1 and official RESULT matched",
+    "Persistent model-by-model PDCA archived without revision loss",
+    "Encrypted Git independent fresh-process readback",
+    "Existing schedule pinned to verified exact production code"
+  ]
+}

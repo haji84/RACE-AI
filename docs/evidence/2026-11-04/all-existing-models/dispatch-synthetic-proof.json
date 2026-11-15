@@ -1,0 +1,18 @@
+{
+  "scope": "SYNTHETIC_ONLY",
+  "actual_real_races": 0,
+  "scheduled_test_races": 4,
+  "catalog_families": 16,
+  "status_counts": {
+    "INPUT_MISSING": 11,
+    "GENERATED_UNATTESTED": 16,
+    "TRAINED_ARTIFACT_MISSING": 4,
+    "NOT_APPLICABLE": 33
+  },
+  "native_group_invocations": 4,
+  "source_requests": 0,
+  "external_receipts_created": false,
+  "originals_overwritten": false,
+  "new_model_created": false,
+  "all_models_operational": false
+}

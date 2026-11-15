@@ -1,0 +1,62 @@
+{
+  "initial_batch": true,
+  "portrait_count": 6,
+  "all_athletes_complete": false,
+  "style": "OWNER_APPROVED_OFFICIAL_PROFILE_ILLUSTRATION_NO_HELMET",
+  "entries": [
+    {
+      "registration": "3415",
+      "name": "松井繁",
+      "source_url": "https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=3415",
+      "source_photo_sha256": "1276ba85530653e2e16ec9bb0f6eec887d6956f09072496b587cacde7fbb7be3",
+      "asset": "web/assets/racer-portraits/boat-3415.webp",
+      "asset_sha256": "9b253fd0035b989a2e4d107f0fba2e1ebe91564fbcbb5148461cbea2680746d9",
+      "asset_bytes": 1071860
+    },
+    {
+      "registration": "3897",
+      "name": "白井英治",
+      "source_url": "https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=3897",
+      "source_photo_sha256": "68ba7778a8e648fc1c12704347561dfc1b29bc4da999ec18fce34ce5874c9b0a",
+      "asset": "web/assets/racer-portraits/boat-3897.webp",
+      "asset_sha256": "2128fcecb51d80797f05f516d8583b51dbc9d06924ca3caf6e6f7d820eccd11e",
+      "asset_bytes": 1060220
+    },
+    {
+      "registration": "3941",
+      "name": "池田浩二",
+      "source_url": "https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=3941",
+      "source_photo_sha256": "a0298574e9789df1329585d7d942f84b95da79f15c7772279f4736af517aebfa",
+      "asset": "web/assets/racer-portraits/boat-3941.webp",
+      "asset_sha256": "1107beac0f6f5fb6825e0ffe1847e27630eeaab3af4031dd1c8b3b52f9ed3cdd",
+      "asset_bytes": 1070338
+    },
+    {
+      "registration": "4238",
+      "name": "毒島誠",
+      "source_url": "https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4238",
+      "source_photo_sha256": "3d501a1f37a7dc4abfd539926839c9c73068377774b2e1013cfcafe4de05db1b",
+      "asset": "web/assets/racer-portraits/boat-4238.webp",
+      "asset_sha256": "e8a9267670195ef9b6a6e6869116901f2e43dc6ad398a5ab8c5131e3ef93a301",
+      "asset_bytes": 1066366
+    },
+    {
+      "registration": "4320",
+      "name": "峰竜太",
+      "source_url": "https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4320",
+      "source_photo_sha256": "1bb3fb464afc54bbab70ddabf4df9cc2ab1c86529df93b4ffd061d340e029e08",
+      "asset": "web/assets/racer-portraits/boat-4320.webp",
+      "asset_sha256": "7e46dffbed0a4dd9e39358dadfdf6416bbac0f60dd947b032d3f4e76e1dd40ae",
+      "asset_bytes": 1112388
+    },
+    {
+      "registration": "4444",
+      "name": "桐生順平",
+      "source_url": "https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4444",
+      "source_photo_sha256": "a62ddafed29367a6f8d8db4e31a04dc51ea6d8776aafa8f5c9a2edcc7babe5de",
+      "asset": "web/assets/racer-portraits/boat-4444.webp",
+      "asset_sha256": "8eb8d7d5daab1e2f07b3dfe0f8587143d6d67b268ab716a6797eb63d66672dce",
+      "asset_bytes": 1164804
+    }
+  ]
+}

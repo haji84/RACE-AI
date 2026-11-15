@@ -1,0 +1,8 @@
+{
+  "race_ai/repeated_cycle.py": "7f02b6dd46093975fdee2c52cbd432ff9b46d9b61d225a60b3020d53d3647d0c",
+  "race_ai/current_boat_inputs.py": "8f02f1bea29b537c537e542e4803ecf337a5710ed9a700afb0aa4f78bcafe2a7",
+  "race_ai/local_forecast_service.py": "d999e4d255010a4bccee8cdc734226203150718b6de65d40e45cc69c45c7d312",
+  "race_ai/local_forecast_automation.py": "84dd78d4f45da25b84b9199b5d3a86840e676d86629720098dae73e42061a85d",
+  "scripts/boat_nationwide_ab_pilot.py": "afe79996324e37e5f78bc488eda342329046f7be798a53777ca7352b2d28928e",
+  "web/app.js": "a8ae1bfaf376c3c9acbf979d97975135f967c2eb8c57291b2814760bd0cc9348"
+}

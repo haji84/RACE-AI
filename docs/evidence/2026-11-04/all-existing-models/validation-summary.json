@@ -1,0 +1,23 @@
+{
+  "scope": "SYNTHETIC_AND_LOCAL_SOFTWARE_VERIFICATION_ONLY",
+  "python_tests": 618,
+  "node_tests": 165,
+  "failures": 0,
+  "skipped": 0,
+  "catalog_families": 16,
+  "native_families_exercised_in_tests": 16,
+  "actual_real_forecast_imports": 0,
+  "source_requests": 0,
+  "browser_flow_groups": 25,
+  "browser_widths": [
+    320,
+    390,
+    1440,
+    1920
+  ],
+  "full_browser_screenshots": 28,
+  "new_coverage_screenshots_retained": 8,
+  "live_execution_started": false,
+  "existing_source_cap_changed": false,
+  "model_engines_modified": false
+}

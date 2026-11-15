@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "isolated_package_imports": true,
+  "seed_originals": 288,
+  "regenerated": 0,
+  "reused": 288,
+  "provider_requests_during_verification": 0,
+  "source_counter_preserved": 1,
+  "typed_originals_unchanged": true,
+  "private_native_originals_sha256": "c8378139aeda08f340059b4ae0327cbde021dcca787f3b60e87e25fa18e09502",
+  "platform": "Linux/POSIX",
+  "physical_safari": false
+}

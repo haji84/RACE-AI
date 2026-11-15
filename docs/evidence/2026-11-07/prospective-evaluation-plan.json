@@ -1,0 +1,359 @@
+{
+  "actual_purchases": false,
+  "alternative_scenarios": true,
+  "cohort_forecasts": 924,
+  "cohort_races": 132,
+  "cohort_sha256": "19b5775b93b9c43ea948ff2ac81fc67309d6e55cbd21069c868dafec906f6329",
+  "created_at": "2026-11-06T22:56:34.091332+00:00",
+  "day": "2026-11-07",
+  "evaluation": {
+    "allocation_rule": "PINNED_SAVED_PERFORMANCE_POLICY_WITH_PRE_RESULT_FROZEN_SUPPORT",
+    "alpha": 0.05,
+    "budget_rule": "DEADLINE_ORDER_NO_REINVESTMENT_100_YEN_LOTS",
+    "event_day": "2026-11-07",
+    "exhibition_cohort": "ALL_APPLICABLE_P1_WITH_ACTUAL_PRE_CUTOFF_RECEIPTS",
+    "hit_denominator": "NORMAL_MATCHED_SETTLED_RACES_EXCLUDING_VOID_AND_PARTIAL_REFUND",
+    "improvement_proven": false,
+    "morning_cohort": "EXACT_924_FROZEN_P0_FORECASTS",
+    "multiple_comparisons": "HOLM_WITHIN_REGISTERED_COMPARISON_SET",
+    "paired_rule": "SAME_RACE_STAGE_NATIVE_INPUT_AND_BASE_MODEL_IDENTITY",
+    "partial_refunds": "FINANCIAL_SETTLEMENT_SEPARATE_FROM_NORMAL_HIT_DENOMINATOR",
+    "pending_result": "PENDING_NOT_MISS",
+    "promotion_allowed": false,
+    "sports": [
+      "boat"
+    ],
+    "statistical_test": "EXACT_PAIRED_DISCORDANCE_TWO_SIDED"
+  },
+  "first_included_cutoff_at": "2026-11-07T08:35:00+09:00",
+  "independent_pre_cutoff_receipt_verified": false,
+  "model_groups": 7,
+  "original_evidence_artifacts": [
+    13520355202
+  ],
+  "plan_sha256": "9f9176a2eb0638436fbc138d20174b4dedab4a0eab7ceea0220a474243baec05",
+  "policy_commit": "fe5064e63c2e1c3f5ce32397305f873e89c63cc2",
+  "policy_files_sha256": {
+    "scripts/boat_budget_plan.cjs": "2ded0ebf6ff5365706d54f5a1c877545c197ca33389292a44441744dd39bcf6f",
+    "web/product-data.js": "70c9ecc60aaac7225233487d0ed930ce7343a9b59b28dc02f4ba0d12c10fb04f",
+    "web/saved-performance.js": "94a05ed6ee8d9a1287d10861e14f927b695b22d989f80395cf3e4d8bb3412213"
+  },
+  "private_plan_location": "OWNER_PRIVATE_NO_PLAINTEXT_UPLOAD",
+  "results_used": false,
+  "scenario_counts": [
+    {
+      "bought": 6,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 1,
+      "model_group_index": 1,
+      "planned_stake_yen": 4800,
+      "race_budget": 800,
+      "reserved_yen": 4800,
+      "unspent_yen": 200
+    },
+    {
+      "bought": 5,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 2,
+      "model_group_index": 1,
+      "planned_stake_yen": 5000,
+      "race_budget": 1000,
+      "reserved_yen": 5000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 12,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 3,
+      "model_group_index": 1,
+      "planned_stake_yen": 9600,
+      "race_budget": 800,
+      "reserved_yen": 9600,
+      "unspent_yen": 400
+    },
+    {
+      "bought": 10,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 4,
+      "model_group_index": 1,
+      "planned_stake_yen": 10000,
+      "race_budget": 1000,
+      "reserved_yen": 10000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 6,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 5,
+      "model_group_index": 2,
+      "planned_stake_yen": 4800,
+      "race_budget": 800,
+      "reserved_yen": 4800,
+      "unspent_yen": 200
+    },
+    {
+      "bought": 5,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 6,
+      "model_group_index": 2,
+      "planned_stake_yen": 5000,
+      "race_budget": 1000,
+      "reserved_yen": 5000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 12,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 7,
+      "model_group_index": 2,
+      "planned_stake_yen": 9600,
+      "race_budget": 800,
+      "reserved_yen": 9600,
+      "unspent_yen": 400
+    },
+    {
+      "bought": 10,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 8,
+      "model_group_index": 2,
+      "planned_stake_yen": 10000,
+      "race_budget": 1000,
+      "reserved_yen": 10000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 6,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 9,
+      "model_group_index": 3,
+      "planned_stake_yen": 4800,
+      "race_budget": 800,
+      "reserved_yen": 4800,
+      "unspent_yen": 200
+    },
+    {
+      "bought": 5,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 10,
+      "model_group_index": 3,
+      "planned_stake_yen": 5000,
+      "race_budget": 1000,
+      "reserved_yen": 5000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 12,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 11,
+      "model_group_index": 3,
+      "planned_stake_yen": 9600,
+      "race_budget": 800,
+      "reserved_yen": 9600,
+      "unspent_yen": 400
+    },
+    {
+      "bought": 10,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 12,
+      "model_group_index": 3,
+      "planned_stake_yen": 10000,
+      "race_budget": 1000,
+      "reserved_yen": 10000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 6,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 13,
+      "model_group_index": 4,
+      "planned_stake_yen": 4800,
+      "race_budget": 800,
+      "reserved_yen": 4800,
+      "unspent_yen": 200
+    },
+    {
+      "bought": 5,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 14,
+      "model_group_index": 4,
+      "planned_stake_yen": 5000,
+      "race_budget": 1000,
+      "reserved_yen": 5000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 12,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 15,
+      "model_group_index": 4,
+      "planned_stake_yen": 9600,
+      "race_budget": 800,
+      "reserved_yen": 9600,
+      "unspent_yen": 400
+    },
+    {
+      "bought": 10,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 16,
+      "model_group_index": 4,
+      "planned_stake_yen": 10000,
+      "race_budget": 1000,
+      "reserved_yen": 10000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 6,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 17,
+      "model_group_index": 5,
+      "planned_stake_yen": 4800,
+      "race_budget": 800,
+      "reserved_yen": 4800,
+      "unspent_yen": 200
+    },
+    {
+      "bought": 5,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 18,
+      "model_group_index": 5,
+      "planned_stake_yen": 5000,
+      "race_budget": 1000,
+      "reserved_yen": 5000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 12,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 19,
+      "model_group_index": 5,
+      "planned_stake_yen": 9600,
+      "race_budget": 800,
+      "reserved_yen": 9600,
+      "unspent_yen": 400
+    },
+    {
+      "bought": 10,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 20,
+      "model_group_index": 5,
+      "planned_stake_yen": 10000,
+      "race_budget": 1000,
+      "reserved_yen": 10000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 6,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 21,
+      "model_group_index": 6,
+      "planned_stake_yen": 4800,
+      "race_budget": 800,
+      "reserved_yen": 4800,
+      "unspent_yen": 200
+    },
+    {
+      "bought": 5,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 22,
+      "model_group_index": 6,
+      "planned_stake_yen": 5000,
+      "race_budget": 1000,
+      "reserved_yen": 5000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 12,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 23,
+      "model_group_index": 6,
+      "planned_stake_yen": 9600,
+      "race_budget": 800,
+      "reserved_yen": 9600,
+      "unspent_yen": 400
+    },
+    {
+      "bought": 10,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 24,
+      "model_group_index": 6,
+      "planned_stake_yen": 10000,
+      "race_budget": 1000,
+      "reserved_yen": 10000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 6,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 25,
+      "model_group_index": 7,
+      "planned_stake_yen": 4800,
+      "race_budget": 800,
+      "reserved_yen": 4800,
+      "unspent_yen": 200
+    },
+    {
+      "bought": 5,
+      "daily_budget": 5000,
+      "held_yen": 0,
+      "id": 26,
+      "model_group_index": 7,
+      "planned_stake_yen": 5000,
+      "race_budget": 1000,
+      "reserved_yen": 5000,
+      "unspent_yen": 0
+    },
+    {
+      "bought": 12,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 27,
+      "model_group_index": 7,
+      "planned_stake_yen": 9600,
+      "race_budget": 800,
+      "reserved_yen": 9600,
+      "unspent_yen": 400
+    },
+    {
+      "bought": 10,
+      "daily_budget": 10000,
+      "held_yen": 0,
+      "id": 28,
+      "model_group_index": 7,
+      "planned_stake_yen": 10000,
+      "race_budget": 1000,
+      "reserved_yen": 10000,
+      "unspent_yen": 0
+    }
+  ],
+  "scenarios": 28,
+  "schema": "RACE_AI_PROSPECTIVE_EVALUATION_REGISTRATION_V1",
+  "source_view": {
+    "cipher_sha256": "be1864dd56a2e5d96fb3e7123a6a7e9784121a429dec68b4d653287cddffed4f",
+    "commit": "2f8da904498f9d77f39072180f2520d979ab89b5"
+  }
+}

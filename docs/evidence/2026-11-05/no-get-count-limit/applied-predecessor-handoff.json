@@ -1,0 +1,75 @@
+{
+  "observed_at_utc": "2026-11-05T04:38:58.767466+00:00",
+  "predecessor": {
+    "id": 41964059991,
+    "head_sha": "fea5b2a404dd5eb5a602d741263a95000c1e3b6f",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-05T03:50:17Z",
+    "updated_at": "2026-11-05T04:38:33Z"
+  },
+  "successor": {
+    "id": 41967896991,
+    "head_sha": "717725c26c3be7ffd1ee02c045b3311a169aef3c",
+    "status": "in_progress",
+    "conclusion": null,
+    "created_at": "2026-11-05T04:27:12Z",
+    "updated_at": "2026-11-05T04:38:36Z"
+  },
+  "other_active_or_pending_runs": [],
+  "latest_saved_result": {
+    "artifact_id": 13388234377,
+    "artifact_created_at": "2026-11-05T04:38:16Z",
+    "sha256": "cb260cdd48f41be7a9d12c51ab3a255e7ae0cedb58b470bf0e237ba57ac5735c",
+    "api_digest_match": true,
+    "CRC_ok": true,
+    "saved_report_at": "2026-11-05T04:38:14.510444+00:00",
+    "round_no": 16,
+    "forecast_count": 533,
+    "stage_counts": {
+      "P0": 288,
+      "P1": 245
+    },
+    "stage_races": {
+      "P0": 144,
+      "P1": 49
+    },
+    "scored_model_forecasts": 314,
+    "normal_scored_races": 62,
+    "result_observation_versions": 125,
+    "learning_shadow_saved": 66,
+    "learning_paired_model_rows": 46,
+    "learning_improvement_proven": false,
+    "session": {
+      "started_at": "2026-11-05T03:52:52.667719+00:00",
+      "stop_at": "2026-11-05T04:57:52.667719+00:00",
+      "prepared_round": 16,
+      "completed_round": 15,
+      "requests_used": 240,
+      "source_limit": 240,
+      "halted_reason": null
+    }
+  },
+  "source_stop_detected": false,
+  "mutations": 0,
+  "official_source_GETs": 0,
+  "inference": 0,
+  "normal_policy_stop_detected": true,
+  "authenticated_final_session": {
+    "artifact_id": 13388199631,
+    "artifact_created_at": "2026-11-05T04:38:25Z",
+    "sha256": "0234daec544f4b1353ff4d214fafced0e4c683a62ea2b2ee9980542f2970cef2",
+    "api_digest_match": true,
+    "CRC_ok": true,
+    "session_sha256_match": true,
+    "run_id": 41964059991,
+    "day_jst": "2026-11-05",
+    "started_at": "2026-11-05T03:52:52.667719+00:00",
+    "stop_at": "2026-11-05T04:57:52.667719+00:00",
+    "prepared_round": null,
+    "completed_round": 16,
+    "requests_used": 240,
+    "source_limit": 240,
+    "halted_reason": "SESSION_SOURCE_BUDGET_EXHAUSTED"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "actual_source_request_count": 8,
+  "formal_pdca_claim": false,
+  "horse_fitted_cells": 0,
+  "independent_result_artifact_receipt_verified": false,
+  "normal_results": 1,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "registered_roster_matches": 2,
+  "result_source_packet_sha256": "dfbafa07ab179046acd127b397a0a067d020cdaa418dcd4ff52fdf8f30cdaacd",
+  "source_packet_sealed_locally": true,
+  "special_results": 1,
+  "state": "ACTUAL_TWO_HORSE_RESULT_SOURCES_REPLAYED_LOCALLY"
+}

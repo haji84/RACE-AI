@@ -1,0 +1,62 @@
+{
+  "schema": "RACE_AI_AUTORACE_OFFICIAL_RESULT_CROSSCHECK_APPEND_V1",
+  "race_day_jst": "2026-11-05",
+  "source_checked_date_jst": "2026-11-05",
+  "venue": "sanyo",
+  "prior_status": "Results for 4R and 11R had been reported from secondary sources; independent official source verification had been incomplete.",
+  "current_status": "Primary-source text for 4R and 11R now independently matches the earlier published trifecta and per-100-yen payout.",
+  "official_source_base": "https://autorace.jp/race_info/RaceResult/sanyou/",
+  "checks": [
+    {
+      "race_no": 4,
+      "source": "https://autorace.jp/race_info/RaceResult/sanyou/2026-11-05_4",
+      "first_second_third": [
+        8,
+        7,
+        6
+      ],
+      "trifecta_payout_per_100_yen": 7260,
+      "top3_trial_time": [
+        3.87,
+        4.03,
+        3.97
+      ],
+      "top3_start_timing": [
+        0.43,
+        0.3,
+        0.16
+      ],
+      "track": "wet",
+      "result_matches_prior_secondary": true,
+      "caveat": "The official page search text also contains an inconsistent '開催は中止' display fragment alongside complete finish/payout records. Do not interpret that fragment as an actual cancellation without a separate race-status check."
+    },
+    {
+      "race_no": 11,
+      "source": "https://autorace.jp/race_info/RaceResult/sanyou/2026-11-05_11",
+      "first_second_third": [
+        6,
+        8,
+        5
+      ],
+      "trifecta_payout_per_100_yen": 28510,
+      "top3_trial_time": [
+        3.7,
+        3.59,
+        3.64
+      ],
+      "top3_start_timing": [
+        0.14,
+        0.14,
+        0.12
+      ],
+      "track": "wet",
+      "result_matches_prior_secondary": true
+    }
+  ],
+  "source_type": "Official AUTORACE.JP search-readable published race-result page; source links are primary-source URLs.",
+  "prediction_originals_modified": false,
+  "prior_research_A_and_B_modified": false,
+  "retrospective_predictions_created": false,
+  "formal_forecast_KPI_status": "unchanged: not eligible without independently evidenced pre-trial/pre-cutoff freeze",
+  "note": "This audit records only new independent result-source corroboration for already reported 4R and 11R. No bets, pick bodies, model weights, or unverified payouts are added."
+}

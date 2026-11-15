@@ -1,0 +1,63 @@
+{
+  "cohort_size": 8,
+  "full_native_boat_cohort": true,
+  "keep_other_sports": true,
+  "native_artifacts": [
+    {
+      "digest": "sha256:4a1e998e4e3e3b01b5fbf5d0baed60b5e044d8f544042b1669100116824500b1",
+      "id": 13553434674
+    },
+    {
+      "digest": "sha256:c79005dacd32626050f0fe5c1e711eb3882a53b798c8a06b536fcbcbc3397e77",
+      "id": 13554540696
+    },
+    {
+      "digest": "sha256:62982f0c9192d356bfcea008215e41ab473a60c6a2cabe048f40cbdb2dcf5bae",
+      "id": 13554582068
+    },
+    {
+      "digest": "sha256:210a46a74c5b440227f3dc67475d419fa92d01b9fb9f631c8c0724caad1bcff3",
+      "id": 13555305525
+    },
+    {
+      "digest": "sha256:4f7d84abaf5935b86d52f2ae3ecd05ce8174874bb2a3213e7775e943dcbb6510",
+      "id": 13554679016
+    },
+    {
+      "digest": "sha256:891b976a956288c0bf4adaecd1983f26d9ae87f47f8dab1ac1826db1356fc7bf",
+      "id": 13555416216
+    },
+    {
+      "digest": "sha256:11ed26a029f40e6b4bf0dfd7ae79f46ee6e8612f512e5005da82c7c6ef322fe3",
+      "id": 13554904825
+    },
+    {
+      "digest": "sha256:10db96ba2e8179d37c404f7f9b17acdf9465b4f8a7f6999bc327f03e78a86e21",
+      "id": 13555822588
+    },
+    {
+      "digest": "sha256:112af9ed9ea13ec2d926cf846d860ca3537d0f1abbc0e966ea9b08345842904a",
+      "id": 13559826825
+    }
+  ],
+  "owner_research_record": "audit/state/all-existing-model-nineteen-native-owner-research.json",
+  "result_artifacts": [
+    {
+      "digest": "sha256:8d0ffc95d96d8570cf1713b1addb2c59b063104e8ea6f8361fe43ebab2362dc7",
+      "id": 13556448639
+    },
+    {
+      "digest": "sha256:94eb5be8ef74530f876a4e43b5aa4b7df349f7b3dc143174868cab7a0ac3d1fd",
+      "id": 13559822755
+    },
+    {
+      "digest": "sha256:bf724b11e0ea4e1a893d91656699fc6aad5897ed1a1e343c839efadb50a49168",
+      "id": 13562547496
+    },
+    {
+      "digest": "sha256:9d23960289d145c22b72b47a9c80574d44a4d0cac44ecc88a752df0d9e38d9a4",
+      "id": 13565712482
+    }
+  ],
+  "schema": "RACE_AI_ALL_EXISTING_MODEL_CI_INPUT_V3"
+}

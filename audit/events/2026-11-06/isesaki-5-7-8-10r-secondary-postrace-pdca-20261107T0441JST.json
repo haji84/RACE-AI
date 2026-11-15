@@ -1,0 +1,128 @@
+{
+  "schema": "RACE_AI_AUTORACE_SECONDARY_POSTRACE_RESEARCH_PDCA_V1",
+  "record_type": "POST_RACE_OBSERVATION_NOT_PREDICTION",
+  "race_date_jst": "2026-11-06",
+  "checked_at_jst": "2026-11-07T04:41:32+09:00",
+  "venue": "伊勢崎",
+  "source_classification": "SECONDARY_NEXT_DAY_ENTRANT_PREVIOUS_RACE_FINISH_CROSSREFERENCED_WITH_ORIGINAL_DAY_CAR_NUMBER",
+  "official_result_and_trifecta_payout_independent_crosscheck_completed": false,
+  "caution": "Nov 7 racer car numbers differ from Nov 6 car numbers: map racer NAME to Nov 6 lineup before assigning finish-order car numbers.",
+  "races": [
+    {
+      "race_no": 5,
+      "observed_podium": [
+        8,
+        3,
+        5
+      ],
+      "podium_completeness": "THREE_POSITIONS_SECONDARY_ONLY",
+      "observations": [
+        {
+          "place": 1,
+          "name": "内山高秀",
+          "original_car_no": 8,
+          "next_day_history_url": "https://autorace.tokyo-sports.co.jp/list/race/20261107038"
+        },
+        {
+          "place": 2,
+          "name": "廿樂歩",
+          "original_car_no": 3,
+          "next_day_history_url": "https://autorace.tokyo-sports.co.jp/list/race/20261107035"
+        },
+        {
+          "place": 3,
+          "name": "谷川一貴",
+          "original_car_no": 5,
+          "next_day_history_url": "https://autorace.tokyo-sports.co.jp/list/race/202611070310"
+        }
+      ],
+      "original_lineup_url": "https://autorace.tokyo-sports.co.jp/list/race/20261106035",
+      "forecast_A_sha256": "1c1087b3a072fa6984697948d2e4c355066443a11b0b78d80a74c89368b56727",
+      "A_top8_match": false,
+      "A_top12_match": false,
+      "reason": "Original saved A candidate set does not contain original car 8; actual winner car 8."
+    },
+    {
+      "race_no": 7,
+      "observed_positions": [
+        {
+          "place": 1,
+          "car_no": 8,
+          "name": "伊藤信夫"
+        }
+      ],
+      "podium_completeness": "FIRST_ONLY_SECONDARY",
+      "observations_url": "https://autorace.tokyo-sports.co.jp/list/race/20261107031",
+      "original_lineup_url": "https://autorace.tokyo-sports.co.jp/list/race/20261106037",
+      "forecast_A_sha256": "9898f529e036314ac095006eee4a9eeb0a618dda1bd49ce3db21e6779482f306",
+      "A_top8_match": false,
+      "A_top12_match": false,
+      "reason": "Saved A top8/extra4 contain no car 8 as first-place pick."
+    },
+    {
+      "race_no": 8,
+      "observed_positions": [
+        {
+          "place": 2,
+          "car_no": 7,
+          "name": "西原智昭"
+        }
+      ],
+      "podium_completeness": "SECOND_ONLY_SECONDARY",
+      "observations_url": "https://autorace.tokyo-sports.co.jp/list/race/20261107035",
+      "original_lineup_url": "https://autorace.tokyo-sports.co.jp/list/race/20261106038",
+      "forecast_A_sha256": "621f906675cfa05cc7eab536feced6a782dc41b4e137675e58f8d9666560e26a",
+      "A_top8_match": false,
+      "A_top12_match": false,
+      "reason": "Saved A top8/extra4 contain no car 7 at any placing."
+    },
+    {
+      "race_no": 10,
+      "observed_positions": [
+        {
+          "place": 1,
+          "car_no": 8,
+          "name": "荒尾聡"
+        },
+        {
+          "place": 2,
+          "car_no": 7,
+          "name": "鈴木聡太"
+        },
+        {
+          "place": 3,
+          "car_no": 4,
+          "name": "鈴木清市"
+        }
+      ],
+      "podium_completeness": "THREE_POSITIONS_SECONDARY_ONLY",
+      "observations_urls": [
+        "https://autorace.tokyo-sports.co.jp/list/race/20261107039",
+        "https://autorace.tokyo-sports.co.jp/list/race/202611070311",
+        "https://autorace.tokyo-sports.co.jp/list/race/20261107031"
+      ],
+      "original_lineup_url": "https://autorace.tokyo-sports.co.jp/list/race/202611060310",
+      "forecast_A_sha256": "07da5b0e8ea8e46a9ffa5b66455833452acf2e0aa3fd5de27c7d0d6154c0ea56",
+      "forecast_B_sha256": "aaf84592e5a59cc2af0ed10ff3033654721597067bdc212bae482c5be99b6fc6",
+      "A_top8_match": false,
+      "A_top12_match": false,
+      "B_top8_match": false,
+      "B_top12_match": false,
+      "reason": "A and post-trial B both chose winner 8 repeatedly but completely excluded second-place 7."
+    }
+  ],
+  "unconfirmed": {
+    "trifecta_payout_jpy_per_100": null,
+    "refunds": null,
+    "official_full_race_result_crosscheck": false,
+    "official_total_return_ratio": null,
+    "actual_bet_purchase": null
+  },
+  "conditional_return_if_no_refund": "Four research A 8/12 picks and 10R research B 8/12 all have zero winning combinations; formal net return is withheld until refund and official payout/finish-order check.",
+  "research_forecast_A_classification": "A_PRE_TRIAL_INPUT_NO_SAME_DAY_TRIAL_USED; first trial publication independently timestamped=false",
+  "formal_Hit_at_8_aggregate_changed": false,
+  "formal_return_percent_aggregate_changed": false,
+  "model_coefficients_changed": false,
+  "forecast_originals_modified": false,
+  "backfilled_forecasts_created": false
+}

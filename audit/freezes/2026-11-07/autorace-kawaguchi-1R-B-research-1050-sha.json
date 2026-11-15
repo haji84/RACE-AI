@@ -1,0 +1,20 @@
+{
+  "schema": "AUTORACE_PUBLIC_HASH_ANCHOR_V1",
+  "race_id": "2026-11-07_kawaguchi_1R",
+  "phase": "B_AFTER_CONFIRMED_TRIAL",
+  "version": "B_v1",
+  "generated_at_jst": "2026-11-07T10:50:02+09:00",
+  "conservative_cutoff_jst": "2026-11-07T10:54:00+09:00",
+  "underlying_A_v2_original_sha256": "b2ca219166fd3c3606c03d1dded85536717adac878d58388f6a245e2461c1d9a",
+  "research_B_original_sha256": "01eb26ba727661610bbe5a6a68b850ffdcf480647fe38a16733292f556b10ed5",
+  "predictive_content_published": false,
+  "private_original_state": "local_conversation_attachment_only; GitHub stores SHA and timestamp, not B payload",
+  "source_urls": [
+    "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/1",
+    "https://autorace.tokyo-sports.co.jp/list/race/20261107021"
+  ],
+  "observed_change": "new 1R trial times and temporary WINTICKET 10:56 cutoff vs earlier 10:54 source",
+  "unchanged_preexisting_A": true,
+  "effective_cutoff_policy": "earliest independently published cutoff 10:54",
+  "note": "Append-only audit. Do not claim this is GitHub prior forecast until Github independent timestamp confirmed."
+}

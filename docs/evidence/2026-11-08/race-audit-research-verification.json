@@ -1,0 +1,105 @@
+{
+  "schema": "RACE_AI_RESEARCH_AUDIT_UI_VERIFICATION_V1",
+  "status": "LIVE_OWNER_SITE_VERIFIED",
+  "request": "Move verification information to research while retaining stored rationale in race detail",
+  "ui_source_commit": "78b9d99",
+  "verifier_runtime": "3f28510c103e86f182895c44c3144b5ae7eaf496",
+  "main_commit": "810dce1c03b97da090d09c0cbe028be4eb848430",
+  "main_workflow_pr": 90,
+  "runtime_delta_files": [
+    "scripts/boat_saved_site_check.cjs"
+  ],
+  "collection_code_unchanged": true,
+  "pages": {
+    "status": "PAGES_PRESENTATION_REFRESHED",
+    "source_commit": "255b81cd9ca338654c67e701dfa2a82afd2428c7",
+    "parent_commit": "227254126d38a4c0e56e0aacd02bc1396f3e02ed",
+    "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+    "manifest_sha256": "6cc26988cc5371645ba613e2aaeab9e645cf7e2c524d037456ced60d9f69c8f1",
+    "portrait_count": 1669,
+    "ciphertext_unchanged": true,
+    "plaintext_published": false,
+    "changed_files": [
+      "app.js",
+      "index.html",
+      "site-build.json",
+      "style.css"
+    ],
+    "ciphertext_files_preserved": 7,
+    "portrait_files_preserved": 57,
+    "all_other_files_unchanged": true
+  },
+  "final_pages_readback": {
+    "commit": "9d7a6f4304235512c1bb2f094720cb5d29305635",
+    "protected_ciphertext_files": 7,
+    "protected_portrait_files": 57,
+    "ui_bytes_match_tested_assets": true,
+    "manifest_unchanged_after_presentation_release": true
+  },
+  "tests": {
+    "node_passed": 93,
+    "python_packaging_context_passed": 25,
+    "minimal_verifier_contract_passed": 7,
+    "fixture_widths": [
+      320,
+      390,
+      1440
+    ],
+    "regressions": [
+      "audit absent from every race tab",
+      "audit visible without a disclosure in research",
+      "stored P0/P1 rationale remains in race detail",
+      "selected race/model survives study round trip",
+      "missing forecast reason stays in research",
+      "pending/final outcome and payout remain visible",
+      "existing explorer, athlete profiles, previews and budget drafts"
+    ]
+  },
+  "live_run": {
+    "id": 42398357632,
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/42398357632",
+    "collection_status": "INTRADAY_REFRESHED",
+    "forecast_inputs_changed": false,
+    "private_sources_published": false,
+    "browser": {
+      "schema": "RACE_AI_LIVE_SITE_CHECK_COUNTS_V1",
+      "status": "LIVE_OWNER_SITE_VERIFIED",
+      "verified_at": "2026-11-07T17:55:30.170Z",
+      "widths_checked": 3,
+      "feed_generation": 44,
+      "checked_day": "2026-11-07",
+      "current_day": "2026-11-08",
+      "date_scope": "HISTORICAL_DAY",
+      "checked_day_results": 129,
+      "checked_day_p1_groups": 57,
+      "current_day_results": null,
+      "current_day_p1_groups": null,
+      "selected_saved_day": "2026-11-07",
+      "compact_result_ui_verified": true,
+      "research_audit_verified": true,
+      "available_rationale_preserved": true,
+      "rationale_views_checked": 0,
+      "probe_result_matched": true,
+      "native_p1_groups_required": 30,
+      "native_p1_detail_visible": true,
+      "future_native_visible_before_cutoff": false,
+      "previous_day_checked": true,
+      "active_model_families": 15,
+      "removed_seller_hidden": true,
+      "participant_names": true,
+      "editable_daily_budget": true,
+      "per_race_1000_simulation": true,
+      "hit_miss_rate_roi_and_settled_pending_net_visible": true,
+      "key_in_requests_or_storage": false,
+      "blocked_external_requests": 0,
+      "official_source_requests": 0,
+      "plaintext_published": false
+    }
+  },
+  "rationale_verification": {
+    "positive_stored_text_checked_with_invented_fixture": true,
+    "live_selected_p0_had_stored_rationale_text": false,
+    "missing_text_not_generated": true
+  },
+  "originals_or_keys_or_raw_sources_published": false
+}

@@ -1,0 +1,9 @@
+{
+  "local_API_source_limit": null,
+  "local_automatic_state": "STOPPED",
+  "local_automatic_stop_reason": "INTERRUPTED_ROUND_REQUIRES_REVIEW",
+  "source_GET_count_preserved": 3,
+  "saved_original_count_preserved": 288,
+  "original_DB_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+  "source_collection_started": false
+}

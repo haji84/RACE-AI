@@ -1,0 +1,44 @@
+# 2026-11-08 JST | Issue #67: previous-day 2026-11-07 four-sport audit, evidence-only
+
+**Status:** partial, authenticated GitHub metadata and selected official primary spot-checks. **Do NOT promote to formal four-sport accuracy or actual-purchase ROI.** This report adds no forecasts, changes no tickets/model coefficients/production behavior, places no bets, and makes no external paid contracts.
+
+## Collection boundary
+- Scope: events dated **2026-11-07 JST** in BOAT, KEIRIN, AUTORACE, JRA/NAR HORSE; previous unresolved original-join conditions remain unresolved unless specifically proven below.
+- Branch/source observation: existing Draft PR #71 `feat/four-sport-forecast-audit-view-20261022`; current audited evidence files in `docs/evidence/2026-11-07/` and `docs/evidence/2026-11-08/`; read-only GitHub Actions metadata and logs, plus BOATRACE/JRA public primary pages. The daily GitHub Actions run `42428093083` reached overall `success` as of **2026-11-08 09:08:59 JST**. No owner-private decryption was performed.
+- No unrestricted scraping, source-right inference, or assertion of all official source records confirmed. Replayed/derived state and individual first-party result records must remain distinguishable.
+
+## Verified/observed evidence matrix
+
+| Sport | Event-day source/result state | Before-cutoff frozen-forecast state | Eligible formal score today |
+| --- | --- | --- | --- |
+| BOAT | Existing private owner feed's historical audit at generation 39: **132 race slots**, **129 final**, **3 unsupported**; 3 held had `RESULT_CUTOFF_MISMATCH:1` and `RESULT_IDENTITY_UNVERIFIED:2`. Subsequently the **2026-11-08 09:08:54 JST** live owner-site verification of generation 65 showed **131 completed result displays** for 2026-11-07, but this does **not** independently certify per-race refund/revision provenance or that 131 were all ordinary paid results. | 2026-11-07 first P0 receipt: **132 distinct races / 264 model forecasts**; run `42249906279`, artifact `13520355202`, originally server-saved **2026-11-07 01:11:14 JST**, ZIP SHA256 `98abf598c8685bef240f03e135e900dce78b89057c80959b93934d601d58dd3d`. An independent **2026-11-08** artifact-list GET showed `expired=false` and the GitHub ZIP digest equal to the receipt SHA. **Not** per-race plaintext/individual independent receipt evaluation; `permanent_private_storage_proven=false`. The site additionally displayed **57 P1 groups**, not 57 certified unique race predictions. | `Hit@1=null; Hit@8_all=null; ROI=null; verified coverage=null`. |
+| KEIRIN | Existing Issue #67 incremental research comment `#issuecomment-6714402184` documents **7 venues / 72 of 72** third-party posted trifecta results for 2026-11-07; does **not** certify promoter-primary all-72 final refund/revision audits. These 72 are a provisional roster, not a verified count of matched official eligible forecasts. | Real 2026-11-07 immutable A/B forecast original and independent race-cutoff receipts remain unlinked. The previously reconstructed 2026-11-03 study set (76 rows) is not a substitute for this day's pre-cutoff evidence or formal validation. | `Hit@1=null; Hit@8_all=null; ROI=null; verified coverage=null`. |
+| AUTORACE | No independently read complete 2026-11-07 all-race primary result + refund/revision matrix in this execution. Existing 2026-11-07 research/archive counts do not establish an eligible complete official roster. | Genuine 2026-11-07 cutoff-stamped race-specific frozen A/B top8 and source-licensed original joins not independently available. | All formal values `null`; denominator unresolved. |
+| JRA/NAR HORSE | One directly opened first-party **JRA 福島8R 2026-11-07** record confirms the finish **9-12-1**, trifecta **¥18,030 per ¥100**; this does not confirm the full JRA+NAR race roster. | The matching race's model version, original immutable top8, independently verified cutoff certificate and probability-origin evidence are not joined. | All formal values `null`; denominator unresolved. |
+
+**BOAT primary spot-check performed 2026-11-08:** official 三国1R on 2026-11-07 had cutoff scheduled **08:47 JST**, finish/trifecta **1-4-5**, **¥4,420 per ¥100**, with empty refund field as displayed. **No actual model hit or economic gain inferred** because the protected pre-cutoff top8 was not independently decrypted/paired here.
+
+Source:
+- BOAT official result `https://www.boatrace.jp/owpc/pc/race/raceresult?hd=20261107&jcd=10&rno=1`
+- JRA official record `https://www.jra.go.jp/JRADB/accessS.html?CNAME=pw01sde0103202603010820261107/9C`
+- KEIRIN third-party study record `https://github.com/haji84/RACE-AI/issues/67#issuecomment-6714402184` ; vendor source `https://keirin.kdreams.jp/harailist/2026/11/07/`
+- P0 evidence `docs/evidence/2026-11-07/p0-first-receipt.json`; verified original artifact `https://github.com/haji84/RACE-AI/actions/runs/42249906279`, artifact ID `13520355202`; expiration **2026-11-13T16:11:12Z = 2026-11-14 01:11:12 JST**.
+- BOAT held evidence `docs/evidence/2026-11-08/result-reconciliation-progress-counts.json`, `docs/evidence/2026-11-08/retained-sp-original-rejection-counts.json` (historical snapshot, not latest generation).
+- Latest readback `https://github.com/haji84/RACE-AI/actions/runs/42428093083`, job `128570657266`; `LIVE_OWNER_SITE_VERIFIED`, generation 65, 2026-11-08T00:08:54.852Z; 131 completed results for 2026-11-07, 57 P1 groups. This job did not independently decrypt/grade all immutable forecasts.
+
+## Strict numerator/denominator policy (no guessed metrics)
+For each sport/venue/day/model: enumerate official eligible 3連単 race IDs and actual result revision/refunds; exclude official void/non-sale from the scored denominator according to the rules while retaining them in the master ledger. **Missing, skip, past-cutoff and NO_FORECAST remain in the official eligible denominator and contribute 0 hit**, never silently removed. A result-only row with no independently authenticated forecast is **unknown forecast coverage until the lookup is complete**, not proof of loss or win. Aggregate across models only when the primary-model selection rule and timestamp are predeclared; multiple model/stage rows are not distinct races. Only fully authenticated probability distributions may yield Brier/Log Loss/calibration. Use official payout values for *hypothetical* fixed-stake returns, separately from unavailable *actual* purchase receipts.
+
+**Formal combined score as of this run:** `Hit@1_all=null, Hit@8_all=null, verified forecast coverage=null, hypothetical payout-adjusted ROI=null, actual purchased ROI=null, Brier=null, Log Loss=null`. No new formally certified settled A/B pair or accuracy improvement; no backdated prediction edit.
+
+## Fact / hypothesis PDCA
+- **Observed operational faults:** Nov 7 BOAT 3 held identities/cutoff conflicts in audited older generation; newer result display advanced from 129 to 131 but primary provenance of the two newly displayed results and status of the last held row require reconciliation. Nov 7 BOAT first P0 original is under a 7-day Actions retention clock and has **no verified indefinite protected readback**. KEIRIN/AUTORACE/HORSE strict raw source→immutable pick→independent receipt joins remain incomplete. Forecast P1 group counts cannot substitute for complete race coverage.
+- **Hypotheses not asserted as tactical causation:** candidates missing a first-place scenario, course/line/track/exhibition features and missing P1 data could be predictive weaknesses. No outcome-specific model changes without forward, same-race, pre-registered A/B on unused future results.
+
+## Next acceptance gates
+1. Owner-protected original bytes and independent per-race pre-cutoff receipt + same byte/SHA readback for 132 BOAT slots and any native non-BOAT originals; prioritize `13520355202` before Nov 14 01:11 JST. Distinguish historical SHA-only and synthesized receipts.
+2. Build complete official result/revision/refund table for each venue/date and master missing-forecast roster; resolve BOAT final held 1 or any revised result before final aggregation.
+3. Evaluate Hit@1 and Hit@8 against all eligible races including missing forecasts; calculate hypothetical ¥100-by-ticket settlement using actual payouts/returns and prove actual purchases separately if any. One model/stage partition per score, never combine model predictions as one 8-point ticket.
+4. Evaluate probability calibration only if a frozen calibrated distribution and independent held-out source exist. Compare baseline/candidates on future never-used eligible events and preserve original immutable logs.
+
+**Limit:** This report and Issue #67 comment are public non-sensitive evidence summaries only. No privileged data, ciphertext, secret, race-level private ticket or login is published; no paid services, betting, new PR, or source rights escalation.

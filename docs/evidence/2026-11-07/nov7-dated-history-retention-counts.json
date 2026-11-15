@@ -1,0 +1,26 @@
+{
+  "actual_total_upstream_gets": 3,
+  "formal_backtest_eligible": false,
+  "full_new_commit_collection_readback_in_actions_pending": true,
+  "independent_new_cipher_metadata_and_inventory_bytes_verified": true,
+  "new_immutable_files": 8,
+  "no_default_model_pointer_updated": true,
+  "old_days_refetched": 0,
+  "old_immutable_files_changed_or_deleted": 0,
+  "parent_lineage_and_clocks_authenticated": true,
+  "pending_target_day": "2026-11-07",
+  "plaintext_published": false,
+  "pointer": {
+    "manifest_path": "state/boat-venue-history/v1/manifests/21fa168cf92140ae0c0cb8e85d8897ad2f66c4c211f7f9cebf0ea9f8efbb6708.json",
+    "manifest_sha256": "21fa168cf92140ae0c0cb8e85d8897ad2f66c4c211f7f9cebf0ea9f8efbb6708",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_VENUE_COLLECTION_INPUT_V1",
+    "source_commit": "244a7312f1ad32ecf471e35be1c4247e46c5b8ef",
+    "status": "READY"
+  },
+  "prior_independent_monthly_readback_reused": true,
+  "production_promoted": false,
+  "source_commit": "244a7312f1ad32ecf471e35be1c4247e46c5b8ef",
+  "state": "ACTUAL_DATED_INVENTORY_AND_WAITING_DAY_RETAINED_NEW_BYTES_INDEPENDENTLY_RESTORED",
+  "waiting_publication_days": 1
+}

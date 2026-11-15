@@ -1,0 +1,22 @@
+{
+  "schema": "RACE_AI_AUTORACE_RESEARCH_SHA_ANCHOR_V1",
+  "race_id": "autorace:2026-11-04:sanyo:4",
+  "venue": "山陽",
+  "race_no": 4,
+  "phase": "A_PRE_TRIAL_INPUT_NO_SAME_DAY_TRIAL_USED",
+  "record_kind": "ASSISTANT_MANUALLY_OBSERVED_UNTRAINED_RESEARCH",
+  "model_id": "autorace-personal-observed-baseline-v1",
+  "private_library_path": "/RACE-AI/AutoracePrivate/autorace_20261104_sanyo_4R_A_assistant_observed_RESEARCH.json",
+  "forecast_sha256": "11b96eec9d5191dc78c40d4da8751ec276d3c853d98e8256c1149c746da3cb14",
+  "private_file_sha256": "1481dadb3ccb030e8e9a5722d39960a3c18d8f62551f737eed88e36e96e5b77a",
+  "recorded_generation_at_jst": "2026-11-04T11:16:15+09:00",
+  "sales_cutoff_at_jst": "2026-11-04T12:03:00+09:00",
+  "source_url": "https://autorace.tokyo-sports.co.jp/list/race/20261104064",
+  "trial_data_used": false,
+  "trial_publication_time_independently_verified": false,
+  "formal_external_pre_cutoff_receipt": false,
+  "formal_hit_at_8_eligible": false,
+  "probabilities_calibrated": false,
+  "private_trifecta_picks_not_published": true,
+  "notes": "Assistant manual one-shot source observation; anomaly values 0/9 excluded where present. Formula reproduces repository baseline only; no independent trial-publication timestamp. Neither GitHub commit nor library creation is an independent authenticated freeze proof. Research-only, existing predictions unchanged."
+}

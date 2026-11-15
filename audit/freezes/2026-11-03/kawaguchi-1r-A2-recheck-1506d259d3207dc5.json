@@ -1,0 +1,14 @@
+{
+  "schema": "RACE_AI_GITHUB_FREEZE_ANCHOR_V1",
+  "race_id": "autorace:2026-11-03:kawaguchi:1",
+  "phase": "A_PRE_TRIAL",
+  "variant": "A2_SOURCE_RECHECK_RESEARCH",
+  "prediction_sha256": "1506d259d3207dc571139e132bee98dc551de07d761ce778c7148bacd2214535",
+  "input_sha256": "02df10b9bd152963de9e2ab9f92dc5e768b2c3a567b82416677198563cee50bc",
+  "generated_at_claimed": "2026-11-03T17:36:26.557369+09:00",
+  "source_url": "https://autorace.tokyo-sports.co.jp/list/race/20261103021",
+  "cutoff_at": "2026-11-03T18:48:00+09:00",
+  "prior_A_unchanged": "9e84ac2c5a4abb353720e04399d5f06ad819da5e2d4756a3edbecc420528f9e0",
+  "formal_hit_at_8_eligible": false,
+  "source_record_hard_note": "5号車の過去5走の1件は9着と表示されたため未採用。直近4件のみ使用。その他は出走表表示値。買い目は非公開。"
+}

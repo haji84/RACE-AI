@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "ZIP_CRC_ok": true,
+  "listed_member_SHA256_verified": 318,
+  "total_files": 319,
+  "source_files_current_repo_exact": 276,
+  "seed_files_exact_previous_reviewed": 20,
+  "seed_DB_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+  "GitHub_original_ZIPs_exact_previous_reviewed": 3,
+  "GitHub_support_files_exact_previous_reviewed": 15,
+  "forecast_JSONs_exact_previous_reviewed": 2,
+  "LOCAL_originals_retained": 288,
+  "GITHUB_originals_retained": 293,
+  "GITHUB_P1_retained": 5,
+  "count_limit_constants": {
+    "SOURCE_LIMIT": null,
+    "REQUEST_LIMIT": null,
+    "CALL_REQUEST_LIMIT": null,
+    "REQUEST_CAP": null
+  },
+  "delivery_count_limits_null": true,
+  "UI_explicit_null_unlimited": true,
+  "STOPPED_state_preserved": true,
+  "caches": 0,
+  "symlinks": 0,
+  "source_GETs_by_review": 0,
+  "inference_calls_by_review": 0,
+  "zip_sha256": "a5adc98ca72f02c4501900593c13fb9a8313f82e72d1895eb3f351306c7a29cb",
+  "previous_reviewed_zip_sha256": "78aa10f498ee4d10eb5c7a96a72748a59224f34a87c5e7d517ce9479bcbfc81f",
+  "private_original_members_byte_identical_between_archives": 38
+}

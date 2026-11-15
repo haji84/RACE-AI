@@ -1,0 +1,25 @@
+-- Dedicated owner-only D1. No expiration or deletion of original evidence.
+CREATE TABLE IF NOT EXISTS live_days(day TEXT PRIMARY KEY,venues_json TEXT NOT NULL,source_sha TEXT NOT NULL,captured_at TEXT NOT NULL,db_saved_at TEXT NOT NULL DEFAULT(strftime('%Y-%m-%dT%H:%M:%fZ','now')));
+CREATE TABLE IF NOT EXISTS live_venues(day TEXT NOT NULL,venue TEXT NOT NULL,state TEXT NOT NULL DEFAULT 'WAIT',next_at INTEGER NOT NULL DEFAULT 0,lease_until INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(day,venue));
+CREATE TABLE IF NOT EXISTS live_races(race_id TEXT PRIMARY KEY,day TEXT NOT NULL,venue TEXT NOT NULL,race_no INTEGER NOT NULL,cutoff_at TEXT NOT NULL,cutoff_ms INTEGER NOT NULL,schedule_sha TEXT NOT NULL,stage TEXT NOT NULL DEFAULT 'PROGRAM',next_at INTEGER NOT NULL DEFAULT 0,lease_until INTEGER NOT NULL DEFAULT 0,attempts INTEGER NOT NULL DEFAULT 0,program_json TEXT,program_sha TEXT,program_captured_at TEXT,last_error TEXT,result_sha TEXT);
+CREATE INDEX IF NOT EXISTS live_due ON live_races(stage,next_at,cutoff_ms);
+CREATE INDEX IF NOT EXISTS live_day ON live_races(day,race_id);
+CREATE TABLE IF NOT EXISTS live_freezes(race_id TEXT PRIMARY KEY REFERENCES live_races(race_id),body_json TEXT NOT NULL,sha256 TEXT NOT NULL,db_saved_at TEXT NOT NULL DEFAULT(strftime('%Y-%m-%dT%H:%M:%fZ','now')));
+CREATE TABLE IF NOT EXISTS live_results(race_id TEXT NOT NULL,source_sha TEXT NOT NULL,fact_json TEXT NOT NULL,report_json TEXT NOT NULL,report_sha TEXT NOT NULL,db_saved_at TEXT NOT NULL DEFAULT(strftime('%Y-%m-%dT%H:%M:%fZ','now')),PRIMARY KEY(race_id,source_sha));
+CREATE TABLE IF NOT EXISTS live_events(id INTEGER PRIMARY KEY AUTOINCREMENT,race_id TEXT,stage TEXT NOT NULL,reason TEXT NOT NULL,at TEXT NOT NULL DEFAULT(strftime('%Y-%m-%dT%H:%M:%fZ','now')));
+CREATE TABLE IF NOT EXISTS live_budget(utc_day TEXT PRIMARY KEY,requests INTEGER NOT NULL DEFAULT 0,blocked_until INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS live_clock(slot INTEGER PRIMARY KEY,at TEXT NOT NULL DEFAULT(strftime('%Y-%m-%dT%H:%M:%fZ','now')),completed_at TEXT,state TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS live_replays(race_id TEXT NOT NULL,source_sha TEXT NOT NULL,replay_day TEXT NOT NULL,report_sha TEXT NOT NULL,db_checked_at TEXT NOT NULL DEFAULT(strftime('%Y-%m-%dT%H:%M:%fZ','now')),PRIMARY KEY(race_id,source_sha,replay_day));
+CREATE TRIGGER IF NOT EXISTS live_f_no_update BEFORE UPDATE ON live_freezes BEGIN SELECT RAISE(ABORT,'ORIGINAL_IMMUTABLE'); END;
+CREATE TRIGGER IF NOT EXISTS live_f_no_delete BEFORE DELETE ON live_freezes BEGIN SELECT RAISE(ABORT,'ORIGINAL_IMMUTABLE'); END;
+CREATE TRIGGER IF NOT EXISTS live_r_no_update BEFORE UPDATE ON live_results BEGIN SELECT RAISE(ABORT,'RESULT_REVISION_IMMUTABLE'); END;
+CREATE TRIGGER IF NOT EXISTS live_r_no_delete BEFORE DELETE ON live_results BEGIN SELECT RAISE(ABORT,'RESULT_REVISION_IMMUTABLE'); END;
+CREATE TRIGGER IF NOT EXISTS live_day_no_update BEFORE UPDATE ON live_days BEGIN SELECT RAISE(ABORT,'DAY_IDENTITY_IMMUTABLE'); END;
+CREATE TRIGGER IF NOT EXISTS live_day_no_delete BEFORE DELETE ON live_days BEGIN SELECT RAISE(ABORT,'DAY_IDENTITY_IMMUTABLE'); END;
+CREATE TRIGGER IF NOT EXISTS live_event_no_update BEFORE UPDATE ON live_events BEGIN SELECT RAISE(ABORT,'AUDIT_IMMUTABLE'); END;
+CREATE TRIGGER IF NOT EXISTS live_event_no_delete BEFORE DELETE ON live_events BEGIN SELECT RAISE(ABORT,'AUDIT_IMMUTABLE'); END;
+CREATE TRIGGER IF NOT EXISTS live_replay_no_update BEFORE UPDATE ON live_replays BEGIN SELECT RAISE(ABORT,'REPLAY_IMMUTABLE'); END;
+CREATE TRIGGER IF NOT EXISTS live_replay_no_delete BEFORE DELETE ON live_replays BEGIN SELECT RAISE(ABORT,'REPLAY_IMMUTABLE'); END;
+CREATE UNIQUE INDEX IF NOT EXISTS live_event_once ON live_events(race_id,stage,reason);
+CREATE TABLE IF NOT EXISTS live_capacity(id INTEGER PRIMARY KEY CHECK(id=1),allocated_bytes INTEGER NOT NULL DEFAULT 0);
+INSERT OR IGNORE INTO live_capacity(id,allocated_bytes) VALUES(1,0);

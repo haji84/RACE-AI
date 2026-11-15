@@ -1,0 +1,17 @@
+{
+  "capsule_issued": false,
+  "failed_job_id": 128393543820,
+  "failed_step": "Restore pinned full-period monthly generations and verify every original hash",
+  "failure_reason": "GIT_FULL_ANCESTRY_FETCH_TIMEOUT_180_SECONDS",
+  "head_sha": "29eca042c829314b67b89eaecf2bb38a2730d419",
+  "next_fix": "REUSE_EXISTING_BOUNDED_BLOB_TRANSPORT_FOR_HISTORY_AND_GRID_READBACK",
+  "old_unknown_preserved": true,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "provider_requests": 0,
+  "provider_step_conclusion": "skipped",
+  "run_attempt": 1,
+  "state": "UNISSUED_NEXT_PROBE_RUN_CANCELLED_AFTER_UNBOUNDED_GIT_READER_TIMEOUT",
+  "workflow_conclusion": "cancelled",
+  "workflow_run_id": 42369144075
+}

@@ -1,0 +1,68 @@
+{
+  "allow_order_only": true,
+  "native_artifacts": [
+    {
+      "digest": "sha256:864d9e43e1ffbcc231a38fc8467648ee21179f402523680700ace75ef397a248",
+      "head_sha": "8cf76d3d023591a4c67d04a0001465ac32b441c5",
+      "id": 13559236491,
+      "run_id": 42334526055
+    },
+    {
+      "digest": "sha256:10db96ba2e8179d37c404f7f9b17acdf9465b4f8a7f6999bc327f03e78a86e21",
+      "head_sha": "728b03530264f3494a408fb92bb61b541d3ae0d3",
+      "id": 13555822588,
+      "run_id": 42327254832
+    },
+    {
+      "digest": "sha256:112af9ed9ea13ec2d926cf846d860ca3537d0f1abbc0e966ea9b08345842904a",
+      "head_sha": "b0f8e29a785bf0bf71d09dfe634c3828403ee0be",
+      "id": 13559826825,
+      "run_id": 42336950420
+    },
+    {
+      "digest": "sha256:f80fa852cfdd24847d17fbc0dda98d855571504257b7270d5c3e8c5a9ebc8e42",
+      "head_sha": "9623f34a9b40245f7cc2caf498fcb5e1190399c0",
+      "id": 13562395496,
+      "run_id": 42341849641
+    }
+  ],
+  "result_artifacts": [
+    {
+      "digest": "sha256:94eb5be8ef74530f876a4e43b5aa4b7df349f7b3dc143174868cab7a0ac3d1fd",
+      "head_sha": "35be5f2c148654f2bc2aeeb07095bec650b5d40c",
+      "id": 13559822755,
+      "run_id": 42338084743
+    },
+    {
+      "digest": "sha256:bf724b11e0ea4e1a893d91656699fc6aad5897ed1a1e343c839efadb50a49168",
+      "head_sha": "3402a09eaabb8a7bfc3e9919946bbb7d66ae0e11",
+      "id": 13562547496,
+      "run_id": 42343017180
+    },
+    {
+      "digest": "sha256:9d23960289d145c22b72b47a9c80574d44a4d0cac44ecc88a752df0d9e38d9a4",
+      "head_sha": "9b4bc37648fbfad421daa80bd2300cda5e97e9df",
+      "id": 13565712482,
+      "run_id": 42349536138
+    },
+    {
+      "digest": "sha256:0be88d04dab4ab775b0d394cd4a7854a7b83805e6e3f59528675c9ddf43cdb64",
+      "head_sha": "11d070dd1984e50d8d5bd6fcca738865cdc93b19",
+      "id": 13578691832,
+      "run_id": 42383095124
+    },
+    {
+      "digest": "sha256:a50542b17cced7fec3aee37dd3ec5633eccb611c4d087375ef8b62b0b8c2b14e",
+      "head_sha": "0a5e2a02056ef828dbb805a1d39e537c6546522e",
+      "id": 13589980082,
+      "run_id": 42407158403
+    },
+    {
+      "digest": "sha256:3325b38c232236be928316a4de3da8e383c84d8eccc6da332761d5eaf6e9b8d7",
+      "head_sha": "d41f505cb00557dd1a6173a19b0945d7849e57fd",
+      "id": 13591897209,
+      "run_id": 42413260799
+    }
+  ],
+  "schema": "RACE_AI_OFFICIAL_RESULT_RETAIN_INPUT_V1"
+}

@@ -1,0 +1,539 @@
+{
+  "schema": "RACE_AI_PHASE_AND_REAL_ANNOUNCER_VALIDATION_V1",
+  "recorded_day_jst": "2026-11-08",
+  "overall_status": "VALIDATED_AS_NOT_MEETING_OPERATIONAL_ACCEPTANCE",
+  "source_sha256": {
+    "race_ai/boat_video_phase.py": "4c21bc115145e3aecd3fd806edcf3bf2c7ba6ac16d499cf8e619d787864a38ab",
+    "race_ai/boat_video_commentary.py": "ae77c4bdceddf7e3fe6c5bd19efefdfc936648e81fe47e69bb1b13c8e9b6726a",
+    "race_ai/boat_video_broadcast_context.py": "cbe3144fe71489a5ae9e7026d16ecc68d93ef06f36523e81b55f9ce7d4b91c54",
+    "scripts/boat_video_marker_analyze.py": "282a4b2f8c13f54b6357677ae15522287c6e74935281f0a4356bee0e4e23e0d1",
+    "tests/test_boat_video_phase.py": "23d0bcfc5656455709d8283ff4c183e686c3e6b74b5159ad85ad2c8784ce7803",
+    "tests/test_boat_video_commentary.py": "462c79aeb7f4ccf8520e1294c0af96695e92d29224977c57aec175f2d62b38b1",
+    "tests/test_boat_video_broadcast_context.py": "b014a196be0c819513705fda5a9a39dd4039fe9ca45bba1c9ea3ff14001939c5",
+    "tests/test_boat_video_marker_cli.py": "83d84ad43f6645d7f671c843f9d80ca4599edaa5f5f9b31b9f7359993ef90c8c"
+  },
+  "automatic_phase": {
+    "prior_implementation": "DECLARED_PHASE_ONLY_NO_AUTOMATIC_CLASSIFIER",
+    "new_implementation": "PINNED_JAPANESE_FULL_FRAME_SCREEN_LABEL_OCR_PLUS_DISTINCT_FRAME_CONFIRMATION",
+    "source": "EXISTING_EXHIBITION_EXPLAINER_ORIGINAL",
+    "source_media_sha256": "7821356af29809c5da4a40eb06586896a8723d9068aba8e0b8a9e005dc535b70",
+    "reference_scope": "SOURCE_ONLY_AI_DEVELOPMENT_REFERENCE_NOT_HUMAN_OR_INDEPENDENT_HELDOUT",
+    "reference255_sha256": "83262bac65ddb0b6588dd60f3edc052f50db7f017336d19641080b69c091bf98",
+    "fixed_samples": 147,
+    "reference_primary_exhibition": 55,
+    "reference_nonprimary_exhibition": 91,
+    "reference_unknown": 1,
+    "raw_valid_OCR_observations": 147,
+    "confirmed_detected_exhibition": 1,
+    "missed_or_abstained_exhibition": 54,
+    "false_positive_exhibition": 0,
+    "all_prediction_UNKNOWN": 146,
+    "raw_label_candidates": 3,
+    "raw_candidate_missed_or_abstained_exhibition": 52,
+    "specific_reference_counts": {
+      "general": 19,
+      "start": 18,
+      "lap": 18
+    },
+    "general_and_lap_all_unknown": true,
+    "negative_91_all_unknown_not_semantic_negative_success": true,
+    "metrics": {
+      "confirmed": {
+        "binary_counts_operational_UNKNOWN_is_no_positive_claim": {
+          "TP": 1,
+          "FP": 0,
+          "FN_NO_POSITIVE_CLAIM": 54,
+          "TN_NO_POSITIVE_CLAIM": 91
+        },
+        "reference_known_rows": 146,
+        "reference_UNKNOWN_rows": 1,
+        "all147_prediction_UNKNOWN": 146,
+        "known146_prediction_UNKNOWN": 145,
+        "positive_claim_rows": 1,
+        "explicit_negative_semantic_predictions": 0,
+        "all_negative91_are_UNKNOWN": true,
+        "TN_does_not_mean_successful_negative_scene_classification": true,
+        "binary_weighted_seconds": {
+          "TN_NO_POSITIVE_CLAIM": 89.866667,
+          "FN_NO_POSITIVE_CLAIM": 53.599999999999994,
+          "TP": 1.0,
+          "FP": 0.0
+        },
+        "sample_time_weighted_interval_IoU_PROXY": 0.018315018315018316,
+        "weighted_union_seconds": 54.599999999999994,
+        "specific_type_metrics": {
+          "EXHIBITION_GENERAL": {
+            "reference_support": 19,
+            "exact_type_TP": 0,
+            "FN_including_UNKNOWN_or_wrongtype": 19,
+            "UNKNOWN_predictions": 19,
+            "wrong_specific_type_predictions": 0,
+            "FP_on_other_known_categories": 0,
+            "compatible_core_weighted_reference_seconds": 18.900000000000002,
+            "compatible_core_weighted_TP_seconds": 0,
+            "compatible_core_weighted_FP_seconds": 0,
+            "sample_time_weighted_type_IoU_PROXY": 0.0,
+            "generic_label_not_in_algorithm_output_vocabulary": true
+          },
+          "EXHIBITION_START": {
+            "reference_support": 18,
+            "exact_type_TP": 1,
+            "FN_including_UNKNOWN_or_wrongtype": 17,
+            "UNKNOWN_predictions": 17,
+            "wrong_specific_type_predictions": 0,
+            "FP_on_other_known_categories": 0,
+            "compatible_core_weighted_reference_seconds": 17.6,
+            "compatible_core_weighted_TP_seconds": 1.0,
+            "compatible_core_weighted_FP_seconds": 0,
+            "sample_time_weighted_type_IoU_PROXY": 0.056818181818181816,
+            "generic_label_not_in_algorithm_output_vocabulary": false
+          },
+          "EXHIBITION_LAP": {
+            "reference_support": 18,
+            "exact_type_TP": 0,
+            "FN_including_UNKNOWN_or_wrongtype": 18,
+            "UNKNOWN_predictions": 18,
+            "wrong_specific_type_predictions": 0,
+            "FP_on_other_known_categories": 0,
+            "compatible_core_weighted_reference_seconds": 17.199999999999996,
+            "compatible_core_weighted_TP_seconds": 0,
+            "compatible_core_weighted_FP_seconds": 0,
+            "sample_time_weighted_type_IoU_PROXY": 0.0,
+            "generic_label_not_in_algorithm_output_vocabulary": false
+          }
+        },
+        "category_confusion_all147": {
+          "NOT_PRIMARY_EXHIBITION": {
+            "UNKNOWN": 91
+          },
+          "EXHIBITION_GENERAL": {
+            "UNKNOWN": 19
+          },
+          "UNKNOWN_REFERENCE": {
+            "UNKNOWN": 1
+          },
+          "EXHIBITION_START": {
+            "UNKNOWN": 17,
+            "EXHIBITION_START": 1
+          },
+          "EXHIBITION_LAP": {
+            "UNKNOWN": 18
+          }
+        },
+        "source_scene_category_confusion_all147": {
+          "INTRO_EXPLANATION_INFORMATION_GRAPHIC": {
+            "UNKNOWN": 4
+          },
+          "ACTUAL_EXHIBITION_GENERAL": {
+            "UNKNOWN": 19
+          },
+          "REAL_BOAT_WIPE_GENERAL_TO_START_UNKNOWN": {
+            "UNKNOWN": 1
+          },
+          "ACTUAL_START_EXHIBITION_CONTEXT": {
+            "UNKNOWN": 17,
+            "EXHIBITION_START": 1
+          },
+          "ACTUAL_LAP_EXHIBITION_CONTEXT": {
+            "UNKNOWN": 18
+          },
+          "VENUE_INTERIOR_SPECTATORS_INFORMATION": {
+            "UNKNOWN": 3
+          },
+          "EXHIBITION_INFORMATION_MONITOR": {
+            "UNKNOWN": 12
+          },
+          "EXHIBITION_TIME_EXPLANATION_GRAPHIC": {
+            "UNKNOWN": 14
+          },
+          "ORIGINAL_EXHIBITION_TIME_EXPLANATION_GRAPHIC": {
+            "UNKNOWN": 14
+          },
+          "EXPLANATION_GRAPHIC_WITH_ACTUAL_BOAT_INSET": {
+            "UNKNOWN": 33
+          },
+          "CLOSING_INFORMATION_MONITOR_EXPLANATION": {
+            "UNKNOWN": 11
+          }
+        },
+        "false_positive_by_negative_cohort": {
+          "diagrams28": {
+            "rows": 28,
+            "positive_claims": 0
+          },
+          "actualboat_inset_explanations33": {
+            "rows": 33,
+            "positive_claims": 0
+          },
+          "all_negative91": {
+            "rows": 91,
+            "positive_claims": 0
+          }
+        },
+        "positive_claim_frame_indices": [
+          810
+        ],
+        "positive_claim_sourcePTS_seconds": [
+          27.036
+        ],
+        "boundary_point_delay_and_undercoverage": {
+          "first_positive_sourcePTS_seconds": 27.036,
+          "last_positive_sourcePTS_seconds": 27.036,
+          "delay_after_primary_exhibition_onset_bracket_seconds": [
+            23.400000000000002,
+            23.5
+          ],
+          "delay_after_start_chapter_core_onset_bracket_seconds": [
+            3.5,
+            3.6000000000000014
+          ],
+          "last_positive_shortfall_before_primary_exhibition_end_bracket_seconds": [
+            32.199999999999996,
+            32.3
+          ],
+          "lap_onset_delay": "UNDEFINED_NO_LAP_PREDICTION",
+          "generic_onset_delay": "UNDEFINED_NO_GENERIC_PREDICTION"
+        }
+      },
+      "rawcandidate": {
+        "binary_counts_operational_UNKNOWN_is_no_positive_claim": {
+          "TP": 3,
+          "FP": 0,
+          "FN_NO_POSITIVE_CLAIM": 52,
+          "TN_NO_POSITIVE_CLAIM": 91
+        },
+        "reference_known_rows": 146,
+        "reference_UNKNOWN_rows": 1,
+        "all147_prediction_UNKNOWN": 144,
+        "known146_prediction_UNKNOWN": 143,
+        "positive_claim_rows": 3,
+        "explicit_negative_semantic_predictions": 0,
+        "all_negative91_are_UNKNOWN": true,
+        "TN_does_not_mean_successful_negative_scene_classification": true,
+        "binary_weighted_seconds": {
+          "TN_NO_POSITIVE_CLAIM": 89.866667,
+          "FN_NO_POSITIVE_CLAIM": 51.599999999999994,
+          "TP": 3.0,
+          "FP": 0.0
+        },
+        "sample_time_weighted_interval_IoU_PROXY": 0.05494505494505495,
+        "weighted_union_seconds": 54.599999999999994,
+        "specific_type_metrics": {
+          "EXHIBITION_GENERAL": {
+            "reference_support": 19,
+            "exact_type_TP": 0,
+            "FN_including_UNKNOWN_or_wrongtype": 19,
+            "UNKNOWN_predictions": 19,
+            "wrong_specific_type_predictions": 0,
+            "FP_on_other_known_categories": 0,
+            "compatible_core_weighted_reference_seconds": 18.900000000000002,
+            "compatible_core_weighted_TP_seconds": 0,
+            "compatible_core_weighted_FP_seconds": 0,
+            "sample_time_weighted_type_IoU_PROXY": 0.0,
+            "generic_label_not_in_algorithm_output_vocabulary": true
+          },
+          "EXHIBITION_START": {
+            "reference_support": 18,
+            "exact_type_TP": 3,
+            "FN_including_UNKNOWN_or_wrongtype": 15,
+            "UNKNOWN_predictions": 15,
+            "wrong_specific_type_predictions": 0,
+            "FP_on_other_known_categories": 0,
+            "compatible_core_weighted_reference_seconds": 17.6,
+            "compatible_core_weighted_TP_seconds": 3.0,
+            "compatible_core_weighted_FP_seconds": 0,
+            "sample_time_weighted_type_IoU_PROXY": 0.17045454545454544,
+            "generic_label_not_in_algorithm_output_vocabulary": false
+          },
+          "EXHIBITION_LAP": {
+            "reference_support": 18,
+            "exact_type_TP": 0,
+            "FN_including_UNKNOWN_or_wrongtype": 18,
+            "UNKNOWN_predictions": 18,
+            "wrong_specific_type_predictions": 0,
+            "FP_on_other_known_categories": 0,
+            "compatible_core_weighted_reference_seconds": 17.199999999999996,
+            "compatible_core_weighted_TP_seconds": 0,
+            "compatible_core_weighted_FP_seconds": 0,
+            "sample_time_weighted_type_IoU_PROXY": 0.0,
+            "generic_label_not_in_algorithm_output_vocabulary": false
+          }
+        },
+        "category_confusion_all147": {
+          "NOT_PRIMARY_EXHIBITION": {
+            "UNKNOWN": 91
+          },
+          "EXHIBITION_GENERAL": {
+            "UNKNOWN": 19
+          },
+          "UNKNOWN_REFERENCE": {
+            "UNKNOWN": 1
+          },
+          "EXHIBITION_START": {
+            "UNKNOWN": 15,
+            "EXHIBITION_START": 3
+          },
+          "EXHIBITION_LAP": {
+            "UNKNOWN": 18
+          }
+        },
+        "source_scene_category_confusion_all147": {
+          "INTRO_EXPLANATION_INFORMATION_GRAPHIC": {
+            "UNKNOWN": 4
+          },
+          "ACTUAL_EXHIBITION_GENERAL": {
+            "UNKNOWN": 19
+          },
+          "REAL_BOAT_WIPE_GENERAL_TO_START_UNKNOWN": {
+            "UNKNOWN": 1
+          },
+          "ACTUAL_START_EXHIBITION_CONTEXT": {
+            "UNKNOWN": 15,
+            "EXHIBITION_START": 3
+          },
+          "ACTUAL_LAP_EXHIBITION_CONTEXT": {
+            "UNKNOWN": 18
+          },
+          "VENUE_INTERIOR_SPECTATORS_INFORMATION": {
+            "UNKNOWN": 3
+          },
+          "EXHIBITION_INFORMATION_MONITOR": {
+            "UNKNOWN": 12
+          },
+          "EXHIBITION_TIME_EXPLANATION_GRAPHIC": {
+            "UNKNOWN": 14
+          },
+          "ORIGINAL_EXHIBITION_TIME_EXPLANATION_GRAPHIC": {
+            "UNKNOWN": 14
+          },
+          "EXPLANATION_GRAPHIC_WITH_ACTUAL_BOAT_INSET": {
+            "UNKNOWN": 33
+          },
+          "CLOSING_INFORMATION_MONITOR_EXPLANATION": {
+            "UNKNOWN": 11
+          }
+        },
+        "false_positive_by_negative_cohort": {
+          "diagrams28": {
+            "rows": 28,
+            "positive_claims": 0
+          },
+          "actualboat_inset_explanations33": {
+            "rows": 33,
+            "positive_claims": 0
+          },
+          "all_negative91": {
+            "rows": 91,
+            "positive_claims": 0
+          }
+        },
+        "positive_claim_frame_indices": [
+          780,
+          810,
+          870
+        ],
+        "positive_claim_sourcePTS_seconds": [
+          26.036,
+          27.036,
+          29.036
+        ],
+        "boundary_point_delay_and_undercoverage": {
+          "first_positive_sourcePTS_seconds": 26.036,
+          "last_positive_sourcePTS_seconds": 29.036,
+          "delay_after_primary_exhibition_onset_bracket_seconds": [
+            22.400000000000002,
+            22.5
+          ],
+          "delay_after_start_chapter_core_onset_bracket_seconds": [
+            2.5,
+            2.6000000000000014
+          ],
+          "last_positive_shortfall_before_primary_exhibition_end_bracket_seconds": [
+            30.199999999999996,
+            30.299999999999997
+          ],
+          "lap_onset_delay": "UNDEFINED_NO_LAP_PREDICTION",
+          "generic_onset_delay": "UNDEFINED_NO_GENERIC_PREDICTION"
+        }
+      }
+    },
+    "durability": {
+      "top_phase_confirmed_positive_frames": 1,
+      "positive_runs_at_fixed1Hz_samples": [
+        {
+          "frame_indices": [
+            810
+          ],
+          "sourcePTS_seconds": [
+            27.036
+          ],
+          "rows": 1
+        }
+      ],
+      "durable_interval_detection_established": false,
+      "closed_repeated_screenlabel_observation_envelopes": [
+        {
+          "confirmed_from_t": 27.036,
+          "distinct_frame_observations": 2,
+          "first_frame_index": 780,
+          "first_observed_t": 26.036,
+          "last_frame_index": 810,
+          "last_observed_t": 27.036,
+          "phase_label": "EXHIBITION_START",
+          "scope": "REPEATED_SCREEN_LABEL_CANDIDATE_NOT_ACTIVITY_GROUND_TRUTH",
+          "source_scene": 0
+        }
+      ],
+      "first_envelope_closure_observed_sourcePTS_seconds": 28.036,
+      "envelope_is_not_groundtruth_or_continuously_observed_activity": true,
+      "Voronoi_proxy_one_second_positive_weight_is_not_one_second_native_frame_confirmation": true
+    },
+    "native4376_frames_individually_ground_truthed": false,
+    "time_IoU_is_sample_cell_proxy_not_dense_frame_truth": true,
+    "durable_exhibition_interval_gate_met": false,
+    "complete_score_sha256": "70c91e1d3584fe622b27a1e99e73e4c2484c6e104c004a498bb1d770cd1446a3",
+    "V1_configuration_failure_147_preserved": true,
+    "final_raw147_sha256": "0ac5a7c79e48365d2eb3ca03f75beb72edb489848a18926cff6656bfcb7331bb"
+  },
+  "full_original_phase_CLI": {
+    "original_decoded_frames": 4376,
+    "all_frames_journaled": true,
+    "actual_source_first_last_PTS": [
+      0.036,
+      145.869333
+    ],
+    "reference147_native_BGR_and_PTS_match": true,
+    "OCR_sample_count": 146,
+    "unsampled_current_frame_ocr_not_invented": true,
+    "multi_shot_phase_analysis_does_not_claim_identity_continuity": true,
+    "receipt_sha256": "a605b3c434d2ea7cecc40e22db8d18ea5bcb5d757fec51e58206918136a5806b",
+    "reconciliation_sha256": "afd83dabf42c394dbde9d8271376f3699b570a98a81fc5f2c4bd070f8b9df91d"
+  },
+  "real_announcer_audio": {
+    "normal_previously_successful_archive_source": true,
+    "source_window_seconds": [
+      2700,
+      4140
+    ],
+    "acquired_minutes": 24,
+    "source_audio_windows": 4,
+    "per_window_Opus_packets": 18000,
+    "all_input_demux_pts_equal_saved_packet_pts": true,
+    "all288_diagnostic_windows_retained": true,
+    "first_stage_Tiny_raw_inference_windows": 253,
+    "first_stage_explicit_low_signal_not_inferred": 35,
+    "raw_coverage_receipt_sha256": "9188ba7c6911cfc3b2b636440d489ce2370a04f7c3fe37c0c4009a0ea16bda7c",
+    "mixed_race_and_exhibition_not_one_RACE": true,
+    "low_signal_hallucination_baseline_preserved": true
+  },
+  "product_audio_validation": {
+    "source_intervals_seconds": [
+      [
+        3420,
+        3780
+      ],
+      [
+        3780,
+        4140
+      ]
+    ],
+    "total_diagnostic_windows": 144,
+    "recognizer_calls": 109,
+    "low_signal_abstentions": 35,
+    "unusable_length_limit_chunks": 7,
+    "usable_unverified_chunks": 102,
+    "rank_syntax_candidate_claims": 2,
+    "human_verified_complete_race_transcripts": 0,
+    "body_ID_bindings": 0,
+    "source_receipts_sha256": [
+      "a549ff8bdee999368bed9faf75fa9e7e6f8d1867a4474113e704f7ee40497880",
+      "ad1447d7370ed814d210f5599344ceda29a0ba00a450249a2fd1142968e1db71"
+    ]
+  },
+  "human_verified_targeted_clip": {
+    "source_pts": [
+      3785.021,
+      3790.021
+    ],
+    "source_PCM_sha_bound": true,
+    "requested_rank_boat_pairs": [
+      {
+        "rank": 1,
+        "boat_number": 1
+      },
+      {
+        "rank": 2,
+        "boat_number": 6
+      }
+    ],
+    "correct_rank_pairs": 0,
+    "missed_rank_pairs": 2,
+    "incorrect_rank_pairs": 0,
+    "emitted_rank_pairs": 0,
+    "targeted_rank_recall": 0.0,
+    "rank_precision": null,
+    "explicit_unit_boat_targets_found": [
+      1
+    ],
+    "explicit_unit_boat_targets_missing": [
+      6
+    ],
+    "other_unverified_boat_tokens": [
+      2
+    ],
+    "boat_target_token_recall": 0.5,
+    "word_error_rate": null,
+    "full_transcript_reference_available": false,
+    "general_accuracy_established": false,
+    "official_results_used": false,
+    "forecast_improvement_established": false
+  },
+  "human_clip_evaluation_sha256": "fc524f65321d3f28db4270880541377a4fe7a8d86637d66ae6ef1654084f6886",
+  "human_reference_scope": "ONE_OWNER_LISTENED_5_SECOND_CLIP_TWO_REQUESTED_RANK_FIELDS_NOT_FULL_TRANSCRIPT_OR_POPULATION_ACCURACY",
+  "independent_Base_reference": {
+    "model_id": "openai/whisper-base",
+    "revision": "e37978b90ca9030d5170a5c07aadb050351a65bb",
+    "all36_fixed_30s_raw_windows_sealed_before_Tiny_read": true,
+    "scope": "AI_REFERENCE_NOT_HUMAN_GT_SAME_FAMILY_CORRELATED",
+    "ambiguous_and_repetitive_outputs_preserved": true,
+    "lineage_sha256": "a41085f151aa8c7959d229280373a8af1d7111dcc7aec432d460509cdb629d8d"
+  },
+  "corrected_failures": [
+    "PRIVATE_TESSDATA_LACKED_TSV_CONFIGURATION",
+    "FRACTIONAL_NATIVE_OCR_BOX_REJECTED",
+    "ATOMIC_PHASE_FINAL_ALLOCATION",
+    "LARGE_SOURCE_PTS_TRUNCATED_PCM_BEFORE_START",
+    "LOW_SIGNAL_TEXT_HALLUCINATION_NOT_IDENTIFICATION_SUCCESS",
+    "GENERAL_EXPLANATION_BARE_BAN_FALSE_BOAT_ID"
+  ],
+  "actual30_explainer_counterfactual_LAP": {
+    "before_boat_claims": 1,
+    "after_boat_claims": 0,
+    "evaluation_sha256": "7fe2ae475a85a7cd98eaf193087cdecfc27ea3361fa3d26d8cd9d95b867b0df0"
+  },
+  "regression": {
+    "related_video_tests_passed": 778,
+    "skipped": 0,
+    "elapsed_seconds": 79.396,
+    "log_sha256": "59ef7b82e4e993516b4adeba0c67da211be500edd38e946ea9d2349316bcee5b"
+  },
+  "preservation": {
+    "live_processes_stopped_or_restarted": false,
+    "protected_live_checkout_changed": false,
+    "original_forecast_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+    "new_forecast_family_or_service_or_workflow": false,
+    "new_fee_or_publication": false,
+    "provider_denials_bypassed": false,
+    "media_audio_transcripts_models_uploaded_to_Git": false,
+    "acquisition_GET_round_or_lifetime_stop_cap_added": false,
+    "official_results_or_pre_cutoff_forecasts_from_race_audio": false
+  },
+  "remaining": [
+    "PHASE_ACTIVITY_AND_BOUNDARY_RECALL_NOT_ACCEPTABLE",
+    "ANNOUNCER_NUMBER_AND_RANK_ACCURACY_NOT_ACCEPTABLE_IN_HUMAN_CLIP",
+    "LARGER_INDEPENDENT_HUMAN_AUDIO_AND_VIDEO_REFERENCE_NEEDED",
+    "MIXED_RACE_BOUNDARIES_AND_BROADCAST_DELAY_NOT_VALIDATED",
+    "HULL_BINDING_REALTIME_VIDEO_STRENGTH_FORECAST_IMPROVEMENT_NOT_ESTABLISHED"
+  ],
+  "human_clip_independent_review_sha256": "c9da55356d1a6b4ad3044d9c8d583ced552763e2771913ef70b48c2bd3e29e5c"
+}

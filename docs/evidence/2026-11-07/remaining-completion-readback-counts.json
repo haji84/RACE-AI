@@ -1,0 +1,128 @@
+{
+  "schema": "RACE_AI_REMAINING_COMPLETION_READBACK_COUNTS_V1",
+  "observed_at": "2026-11-07T14:42:19.7816200Z",
+  "code_commit": "671bfd470ba021e8c530d387e41a4fe8a66d9a00",
+  "workflow_run_id": 42382724726,
+  "production_job_id": 128433570572,
+  "production_job_conclusion": "success",
+  "whole_workflow_conclusion": "NOT_YET_CONFIRMED",
+  "actual_audit": {
+    "accuracy_improvement_proven": false,
+    "boat": {
+      "all_saved_before_both_clocks": 13,
+      "current_rejection_reason_counts": {
+        "RESULT_CUTOFF_MISMATCH": 12,
+        "RESULT_IDENTITY_UNVERIFIED": 2
+      },
+      "cutoff_offset_seconds_counts": {
+        "0": 2,
+        "120": 3,
+        "180": 2,
+        "240": 2,
+        "300": 2,
+        "360": 1,
+        "540": 1,
+        "600": 1
+      },
+      "future_unmatched_races": 0,
+      "held_races": 14,
+      "latest_held_body_identity_verified": 12,
+      "overdue_unmatched_races": 34,
+      "races": 132,
+      "result_states": {
+        "final": 98,
+        "missing": 19,
+        "pending": 1,
+        "unsupported": 14
+      },
+      "saved_roster_sizes": {
+        "6": 14
+      },
+      "source_roster_sizes": {
+        "0": 2,
+        "6": 12
+      },
+      "unknown_or_mixed_cutoff_unmatched_races": 0
+    },
+    "continuity_projection": {
+      "artifact_id": 13576047576,
+      "authenticated_continuity_readback": true,
+      "base_conflicting_capture_groups": 0,
+      "conflicting_capture_groups": 0,
+      "different_source_bytes_conflicts": 0,
+      "differing_data_fields": {},
+      "differing_fields": {},
+      "differing_finish_fields": {},
+      "observations_reconciled": 0,
+      "same_source_bytes_conflicts": 0,
+      "uncomparable_observations": 0,
+      "unknown_source_bytes_conflicts": 0,
+      "variant_pairs": 0
+    },
+    "day_jst": "2026-11-07",
+    "diagnostic_only": true,
+    "feed_generation": 30,
+    "forecasting_performed": false,
+    "journal_artifact_id": 13577093759,
+    "native": {
+      "blocked_method_counts": {
+        "GET": 33,
+        "POST": 5
+      },
+      "blocked_reason_counts": {
+        "OFFICIAL_BROWSER_NORMAL_READ_IDENTITY": 4,
+        "OFFICIAL_BROWSER_NORMAL_READ_POST": 1,
+        "OFFICIAL_BROWSER_NORMAL_UI_READ": 1,
+        "OFFICIAL_BROWSER_OFFICIAL_SOURCE": 4,
+        "OFFICIAL_BROWSER_UNNEEDED_RESOURCE": 28
+      },
+      "case_reason_counts": {
+        "OTHER": 1
+      },
+      "failure_stage": "SOURCE_VALIDATION",
+      "http_status_counts": {
+        "200": 15,
+        "404": 1
+      },
+      "known_endpoint_counts": {
+        "OTHER": 11,
+        "OtherRaceInfo": 3,
+        "Program": 1,
+        "RaceResult": 1
+      },
+      "original_index_available": true,
+      "request_count_unknown": false,
+      "resource_type_counts": {
+        "document": 1,
+        "xhr": 15
+      },
+      "saved_rendered_dom_count": 1,
+      "semantic_ui_clicks": 2,
+      "source_requests": 16,
+      "source_requests_upper_bound": 16,
+      "static_cache_replays": 7,
+      "stop_reason": "FINISHED",
+      "wire_method_counts": {
+        "GET": 11,
+        "POST": 5
+      }
+    },
+    "official_source_requests": 0,
+    "originals_changed": false,
+    "plaintext_source_published": false,
+    "results_admitted": 0,
+    "schema": "RACE_AI_REMAINING_COMPLETION_AUDIT_V1",
+    "source_requests": 0,
+    "status": "REMAINING_COMPLETION_AUDIT_VERIFIED"
+  },
+  "current_real_fit_cells": 19,
+  "active_sport_cells": 30,
+  "remaining_cells": {
+    "autorace": 6,
+    "keirin": 5
+  },
+  "new_native_prospective_pdca_count": 0,
+  "positive_accuracy_improvement_demonstrated": false,
+  "originals_changed": false,
+  "frozen_finance_assets_changed": false
+}

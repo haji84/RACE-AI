@@ -1,0 +1,94 @@
+{
+  "artifact_digest": "sha256:973cfb36a0e336d7b6717362bf494f243afffff06a67d3d1b8f976adc5175d88",
+  "artifact_id": 13572350517,
+  "body_fields": [
+    "attempts",
+    "browser_attempt",
+    "browser_captures",
+    "browser_index",
+    "browser_process_diagnostic",
+    "browser_quarantine",
+    "captures",
+    "cases",
+    "code_sha",
+    "collection_plan_sha256",
+    "epoch_started_at",
+    "execution_day",
+    "manifest",
+    "manifest_sha256",
+    "maximum_requests",
+    "recovery_authorization",
+    "schema",
+    "workflow_run_id"
+  ],
+  "browser_attempt": {
+    "actual_request_count": 8,
+    "completed_at": "2026-11-07T11:06:02.964566+00:00",
+    "started_at": "2026-11-07T11:05:46.607515+00:00",
+    "state": "COMPLETE"
+  },
+  "browser_failure": {},
+  "browser_index_fields": [
+    "actual_request_count",
+    "cases",
+    "completed_at",
+    "diagnostic_projection_only",
+    "ledger",
+    "manual_api_requests",
+    "normal_ui_only",
+    "original_index_sha256",
+    "responses",
+    "schema",
+    "started_at",
+    "stop_reason",
+    "stopped_host"
+  ],
+  "case_states": [
+    {
+      "state": "HOLD_UI_OR_SOURCE_UNAVAILABLE"
+    }
+  ],
+  "epoch_started_at": "2026-11-07T11:05:25.189443+00:00",
+  "head_sha": "c43871ba761c98ad4ba86cfddc1bc2b20585da38",
+  "index_ledger_count": 35,
+  "index_requests": 0,
+  "journal_cipher_sha256": "0696ae53e867e549490ad7b63bfd336d46ef2a4a509ffdf522202abb506ff016",
+  "ledger_http_statuses": [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200
+  ],
+  "new_normal_results": 0,
+  "old_browser_unknown_upper_bound": 24,
+  "old_total_unknown_upper_bound": 32,
+  "plaintext_published": false,
+  "process_diagnostic": {
+    "returncode": 0,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_sha256": "202b9085e7ad16ab7abc6623874cdc3a1516a45fe23a347b534f1280cc776587",
+    "timed_out": false
+  },
+  "production_promoted": false,
+  "quarantine_fields": [
+    "complete",
+    "failure_code",
+    "files",
+    "inventory",
+    "inventory_sha256",
+    "referenced_file_count",
+    "retained_raw_bytes",
+    "returned_index_sha256",
+    "schema"
+  ],
+  "quarantine_summary": {
+    "complete": true
+  },
+  "saved_at": "2026-11-07T11:06:04Z",
+  "state": "REAL_FIXED_PROBE_JOURNAL_AUTHENTICATED",
+  "workflow_run_id": 42364217725
+}

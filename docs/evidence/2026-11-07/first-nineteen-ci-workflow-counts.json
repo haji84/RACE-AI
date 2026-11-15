@@ -1,0 +1,14 @@
+{
+  "actual_fitted_model_count": 19,
+  "actual_learning_artifact_id": 13565954830,
+  "ci_local_parameter_support_holdout_parity_verified": true,
+  "failed_job": "Viewer audit contract",
+  "failed_step": "Verify isolated experimental video decoding and measurements",
+  "failure": "SYNTHETIC_VIDEO_FIXTURE_EXPECTED_SIX_FRAMES",
+  "head_sha": "1a8e0f3b79f9c553857582a7aa7196874e22d9f8",
+  "plaintext_published": false,
+  "production_promoted": false,
+  "state": "NINETEEN_FIT_SUCCESS_WHOLE_CI_VIDEO_FIXTURE_FAILURE",
+  "whole_workflow_conclusion": "failure",
+  "workflow_run_id": 42352845874
+}

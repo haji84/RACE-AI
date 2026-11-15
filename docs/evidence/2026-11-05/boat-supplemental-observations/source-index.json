@@ -1,0 +1,85 @@
+{
+  "scope": "OWNER_REQUESTED_PERSONAL_OFFICIAL_SOURCE_COLLECTION",
+  "official_gets_during_development": 11,
+  "source_authenticity_independently_verified": false,
+  "raw_html_lzh_and_comments_committed": false,
+  "sources": [
+    {
+      "url": "https://www1.mbrace.or.jp/od2/B/202611/b261104.lzh",
+      "status": 200,
+      "byte_count": 28035,
+      "sha256": "61ece81a35dd5340d56a1c18c129d6853e43a30e47b9fa53329f9efebcc88f2a",
+      "acquired_at": "2026-11-05T08:54:45.950732+00:00"
+    },
+    {
+      "url": "https://www1.mbrace.or.jp/od2/K/202611/k261104.lzh",
+      "status": 200,
+      "byte_count": 34207,
+      "sha256": "c19709a16aa4fa0b7f7b8eafdeb86c9616d6b486a6b70308defd7b4f18a3ff0c",
+      "acquired_at": "2026-11-05T08:54:47.831520+00:00"
+    },
+    {
+      "url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=6&jcd=12&hd=20261105",
+      "status": 200,
+      "byte_count": 48404,
+      "sha256": "835ee3f0a292dc4e166befd9d1aae560bb9f8c254ce66e720795cb5ec4779f8a",
+      "acquired_at": "2026-11-05T09:09:42.035335+00:00"
+    },
+    {
+      "url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=12&jcd=12&hd=20261105",
+      "status": 200,
+      "byte_count": 45539,
+      "sha256": "b855891af72f87c642dbfee9939b0d4e98e0f3b6aefbcffa4a4695e7bc2940be",
+      "acquired_at": "2026-11-05T09:02:31.103292+00:00"
+    },
+    {
+      "url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=12&jcd=01&hd=20261105",
+      "status": 200,
+      "byte_count": 45502,
+      "sha256": "95eeb634460f1cb8557e07835387d02e6a35d962bac4e8f0ffe7d09842eb8c1e",
+      "acquired_at": "2026-11-05T08:46:49.531531+00:00"
+    },
+    {
+      "url": "https://www.boatrace.jp/owpc/pc/race/pitreport?rno=12&jcd=12&hd=20261105",
+      "status": 200,
+      "byte_count": 36150,
+      "sha256": "a0a163bdc663f5b26b05dedbdd3d280ce4b2f8a38840c647cb2355f0e8272c46",
+      "acquired_at": "2026-11-05T08:54:50.710019+00:00"
+    },
+    {
+      "url": "https://www.boatrace.jp/owpc/pc/race/pitreport?rno=12&jcd=15&hd=20261105",
+      "status": 200,
+      "byte_count": 29173,
+      "sha256": "4eece8b416723011536c4ee38585150b6b0ac373af814114973cb731716c4616",
+      "acquired_at": "2026-11-05T08:54:52.410034+00:00"
+    },
+    {
+      "url": "https://www.boatrace.jp/owpc/pc/race/pitreport?rno=12&jcd=01&hd=20261105",
+      "status": 200,
+      "byte_count": 29276,
+      "sha256": "a737c945db9f1906d424bec3fc418c6bf2c38e4f4d197ede13f2429b15ff8a6c",
+      "acquired_at": "2026-11-05T08:46:51.256322+00:00"
+    },
+    {
+      "url": "https://www.boatrace.jp/owpc/pc/race/racelist?rno=12&jcd=01&hd=20261105",
+      "status": 200,
+      "byte_count": 68857,
+      "sha256": "3718b9ef5188e9d42e81cd6fc7d9a1f83226cb438cc2a5c4cb753994e0365a61",
+      "acquired_at": "2026-11-05T09:02:27.409392+00:00"
+    },
+    {
+      "url": "https://www.boatrace.jp/owpc/pc/race/racelist?rno=6&jcd=12&hd=20261105",
+      "status": 200,
+      "byte_count": 68205,
+      "sha256": "0f53ba2f6bad21791767bdb66694a720507f48fe2a047b3f079a4746f2c8e6b1",
+      "acquired_at": "2026-11-05T09:09:39.414457+00:00"
+    },
+    {
+      "url": "https://www.boatrace.jp/owpc/pc/race/racelist?rno=12&jcd=12&hd=20261105",
+      "status": 200,
+      "byte_count": 67992,
+      "sha256": "eb685b6df15151eaefe7ff6a0641f86bdf4de434f1fc39103a222499dd9936a8",
+      "acquired_at": "2026-11-05T09:02:29.130786+00:00"
+    }
+  ]
+}

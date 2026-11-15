@@ -1,0 +1,24 @@
+{
+  "schema": "RACE_AI_AUTORACE_RESEARCH_CHECKSUM_ANCHOR_V1",
+  "race_id": "autorace:2026-11-07:kawaguchi:1",
+  "venue": "川口",
+  "race_no": 1,
+  "phase": "A_PRE_TRIAL",
+  "model_id": "autorace-personal-observed-baseline-v1",
+  "model_version": "0.1.0-HEURISTIC-UNTRAINED",
+  "generated_at": "2026-11-07T09:10:51.628757+09:00",
+  "cutoff_at": "2026-11-07T10:54:00+09:00",
+  "forecast_sha256": "c6b8a8b16f0b5798021c8cdb223b790d89ad72f67fd3ec14003cdca1b230b1f2",
+  "input_sha256": "f6aa66fe43b393a9336f927080137b373e2a4a51601eb18687fe7809289b0c06",
+  "original_location": "conversation_generated_file_not_confirmed_privately_persisted",
+  "source": "https://autorace.tokyo-sports.co.jp/list/race/20261107021",
+  "corroboration": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/1",
+  "interpretation": "Personal observed research only. Untrained heuristics, no calibrated win probabilities, no official or provider-backed cutoff receipt; public anchor is SHA only.",
+  "source_first_publication_verified": false,
+  "model_uses": [
+    "handicap",
+    "four_to_five_valid_recent_finishes"
+  ],
+  "excluded_observation_note": "Car #1 had one 0th / not classified result, excluded rather than imputed.",
+  "no_bet": true
+}

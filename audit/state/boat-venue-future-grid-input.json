@@ -1,0 +1,21 @@
+{
+  "course_feature_policy": "EXPLICIT_REPLACE_SUPPORTED_COURSE_FIELDS_RETAIN_PRIOR_V1",
+  "dataset_pointer": {
+    "dataset_path": "state/boat-venue-history/v1/datasets/7ea4281b5674e605918536ecf905d726d78c721aa0f6c6ed60d4c51d250d5678/dataset.json",
+    "dataset_sha256": "7ea4281b5674e605918536ecf905d726d78c721aa0f6c6ed60d4c51d250d5678",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_VENUE_DATASET_INPUT_V1",
+    "source_commit": "bd932a4d91317c5d8349989a96ddb184938c539d",
+    "status": "READY"
+  },
+  "observed_only": true,
+  "readback": {
+    "head_sha": "b3239877b05c2725af459cec13c1d1501a820a09",
+    "job_id": 128471073052,
+    "log_sha256": "4f2c015998399c4031502cc072635458609269551f019eeda80d6d1673a0ad1f",
+    "metadata_sha256": "9fd49f6c2b9b920a06d8c392dbf14a5b3cb94616c513de678a8c6bd7e35a3b32",
+    "run_attempt": 1,
+    "run_id": 42395208517
+  },
+  "schema": "RACE_AI_PROSPECTIVE_BOAT_VENUE_GRID_INPUT_V1"
+}

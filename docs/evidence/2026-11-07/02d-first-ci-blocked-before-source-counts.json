@@ -1,0 +1,34 @@
+{
+  "actions_auto_provider_requests": 0,
+  "active_model_slots": 30,
+  "corrections": [
+    "Explicit0600 fixture files; production privacy guard unchanged",
+    "XOR1 corruption always changes a byte; independent reader call is asserted"
+  ],
+  "failure_causes": [
+    "Synthetic capture indexes inherited runner umask022 and had mode0644; production correctly required0600",
+    "Synthetic corruption replaced the last cipher byte with x, which can already be x"
+  ],
+  "focused_test_failures": 0,
+  "focused_tests_under_umask022": 45,
+  "full_ci_revalidation_pending": true,
+  "head_sha": "02d370557ce112202883f924dace3db4aadde12b",
+  "new_source_capsule_issued": false,
+  "new_thirty_model_future_pdca": 0,
+  "plaintext_originals_published": false,
+  "production_promoted": false,
+  "python_errors": 2,
+  "python_failures": 1,
+  "python_seconds": 2270.72,
+  "python_tests_run": 4030,
+  "python_tests_skipped": 429,
+  "real_trained_model_slots": 19,
+  "run_attempt": 1,
+  "run_id": 42389817524,
+  "schema": "RACE_AI_VERIFIED_CI_SOURCE_HOLD_COUNTS_V1",
+  "source_gate_state": "NEW_TARGET_FIRST_FULL_CI_NOT_SUCCESS_NO_SOURCE",
+  "source_scope": "FIXED_ATTEMPT_TWO_AUTO2_NORMAL_UI",
+  "viewer_job_id": 128454846475,
+  "workflow_completed_at": "2026-11-07T16:47:50Z",
+  "workflow_conclusion": "failure"
+}

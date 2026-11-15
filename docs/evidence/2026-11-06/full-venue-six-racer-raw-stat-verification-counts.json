@@ -1,0 +1,17 @@
+{
+  "checked_at": "2026-11-06T05:59:21.138087+00:00",
+  "checked_original_source_days": 7962,
+  "checked_racers": 6,
+  "dataset_sha256": "3deb20e26ccc73add405032a45a790abb02d8424e43bb7d1e9b45861ab3d7a19",
+  "model_coefficients_changed": false,
+  "new_provider_gets": 0,
+  "observed_course_denominators_verified": true,
+  "pair_sha256": "65372105718d47bab9a441501cd8455ad747852b5aae00951a9791c81577bc4a",
+  "private_raw_published": false,
+  "race_id": "20261106-22-10",
+  "racer_venue_and_course_memberships_verified": true,
+  "schema": "RACE_AI_REAL_SIX_RACER_RAW_VENUE_CONSERVATION_COUNTS_V1",
+  "st_status_counts_verified": true,
+  "st_values_verified": true,
+  "unknown_course_counts_preserved": true
+}

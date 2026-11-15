@@ -1,0 +1,21 @@
+{
+  "all_http_200": true,
+  "artifact_digest": "sha256:72d1b53eec547a73cff15955e6b7f179f1391283c28d218ca48be95e36e35c79",
+  "artifact_id": 13574582081,
+  "cipher_sha256": "de48957754b35cade0387eeb7b1821dad868726821d559ded1557c3209deae20",
+  "exact_original_zip_metadata_and_cipher_bytes_verified": true,
+  "head_sha": "901fb57d2d0f1d0fa0b4051285dca399654a4738",
+  "independent_git_readback_verified": true,
+  "new_results": 0,
+  "no_default_model_pointer_updated": true,
+  "old_browser_unknown_upper_bound": 24,
+  "old_total_unknown_upper_bound": 32,
+  "only_new_immutable_path_added": true,
+  "path": "recovery/official-results/journal-originals/72d1b53eec547a73cff15955e6b7f179f1391283c28d218ca48be95e36e35c79/f297edf4cb638444f37c197c962be34e3b5c7a6976c538d8d72feafe12e13ec2.enc",
+  "plaintext_published": false,
+  "production_promoted": false,
+  "source_commit": "710b7437740ae38c05c68fb3a26cb00f4e54a374",
+  "source_requests": 8,
+  "state": "REAL_BOUNDED_PROBE_JOURNAL_ORIGINAL_ZIP_AND_METADATA_RETAINED_AND_INDEPENDENTLY_RESTORED",
+  "workflow_run_id": 42371023982
+}

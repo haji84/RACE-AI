@@ -1,0 +1,22 @@
+{
+  "schema": "RACE_AI_AUTORACE_ASSISTANT_SHA_ONLY_FORECAST_RESEARCH_V1",
+  "record_type": "RESEARCH_A_CONTENT_HASH_ONLY",
+  "race_id": "autorace:2026-11-06:sanyo:8",
+  "event_date_jst": "2026-11-06",
+  "venue": "山陽",
+  "race_no": 8,
+  "phase": "A_PRE_TRIAL_INPUT_NO_SAME_DAY_TRIAL_USED",
+  "generated_at_jst": "2026-11-06T13:20:39.513931+09:00",
+  "scheduled_cutoff_at_jst": "2026-11-06T14:00:00+09:00",
+  "research_forecast_sha256": "dabf6b5ddac611a602fd00e271716ba4569268e3a5f665ee531d0dfc389797e7",
+  "research_forecast_filename": "autorace_20261106_sanyo_8R_A_assistant_observed_RESEARCH.json",
+  "source_url": "https://autorace.tokyo-sports.co.jp/list/race/20261106068",
+  "crosscheck_url": "https://www.winticket.jp/autorace/sanyo/racecard/2026110406/3/8",
+  "full_prediction_text_in_public_repo": false,
+  "private_library_full_original_saved": false,
+  "private_library_error": "AccessDeny FileDrive_b3acd7caddc4819189d1672b910c7b88",
+  "source_first_publication_verified": false,
+  "calibrated_winning_probability": false,
+  "formal_score_eligible": false,
+  "notes": "Hash only. Predicted BEFORE cutoff, but a) proof of first trial publication absent b) independent permanent custody of full prediction absent. Never update this record after result."
+}

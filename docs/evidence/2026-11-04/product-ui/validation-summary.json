@@ -1,0 +1,42 @@
+{
+  "scope": "LOCAL_DEVELOPMENT_AND_SYNTHETIC_BROWSER_ONLY",
+  "python": {
+    "tests": 563,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "node": {
+    "tests": 161,
+    "failures": 0,
+    "skipped": 0
+  },
+  "browser": {
+    "widths": [
+      320,
+      390,
+      1440,
+      1920
+    ],
+    "screenshots": 28,
+    "flow_groups": 25,
+    "page_errors": 0,
+    "source_requests": 0
+  },
+  "real_private_forecasts_imported": 0,
+  "production_model_changed": false,
+  "logs": {
+    "python": {
+      "sha256": "711b3c2209aa8b1ce92a67af27bd8b748b1fb90a48e91dbcbbdcb0e786d54873",
+      "filename": "python-validation.log"
+    },
+    "node": {
+      "sha256": "cb4c627992a0f87a223dc841de063bc3eba3c42647c83c7c69db95194267c1cc",
+      "filename": "node-validation.log"
+    },
+    "browser": {
+      "sha256": "8aade98ec9c42ebe5493850e6e4ce190059846284bccf4d5fd96396981f1b95e",
+      "filename": "browser-validation.log"
+    }
+  }
+}

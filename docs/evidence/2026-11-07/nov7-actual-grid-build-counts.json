@@ -1,0 +1,41 @@
+{
+  "actual_raw_parse_days": [
+    "2026-11-06",
+    "2026-11-07"
+  ],
+  "all_available_period_complete": false,
+  "all_old_grid_bytes_preserved": true,
+  "available_at": "2026-11-07T16:46:40.072308+00:00",
+  "canonical_training_pointers_changed": false,
+  "formal_backtest_eligible": false,
+  "git_retained": false,
+  "git_retention_and_actions_readback_pending": true,
+  "grid_cells": 63432,
+  "known_racers": 2643,
+  "new_dataset_sha256": "7ea4281b5674e605918536ecf905d726d78c721aa0f6c6ed60d4c51d250d5678",
+  "new_history_manifest_sha256": "9e611681e582e3760a91150264d3d7a0894a1c080a2e2b48a49344973c353ac0",
+  "new_inventory_gets": 0,
+  "new_recovery_http_gets": 1,
+  "observed_racer_venue_pairs": 58836,
+  "observed_races": 1167426,
+  "observed_starts": 7004556,
+  "old_archive_days_refetched": 0,
+  "original_empty_attempt11_preserved": true,
+  "plaintext_published": false,
+  "prior_http200_unretained_gets": 1,
+  "production_promoted": false,
+  "requested_end": "2026-11-07",
+  "requested_start": "2005-01-01",
+  "schema": "RACE_AI_NOV7_REAL_GRID_BUILD_COUNTS_V1",
+  "source_files": 7964,
+  "state": "NOV7_ALL_RACER_24_VENUE_GRID_BUILT_AND_ENCRYPTED_READBACK_VERIFIED",
+  "typed_cache_counts": {
+    "actual_raw_parses": 2,
+    "cache_hits": 7962
+  },
+  "unlisted_calendar_days": 17,
+  "unreported_venue_days": 156,
+  "upstream_gets_during_grid_build": 0,
+  "venues": 24,
+  "verified_cells": 63432
+}

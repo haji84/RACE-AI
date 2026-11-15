@@ -1,0 +1,44 @@
+name: BOAT paired future shadow one-shot (Vercel-free)
+on:
+  push:
+    branches:
+      - feat/four-sport-forecast-audit-view-20261022
+    paths:
+      - docs/evidence/boat-ab-pilot-trigger.txt
+permissions:
+  contents: read
+concurrency:
+  group: boat-future-ab-20261103
+  cancel-in-progress: false
+jobs:
+  future_pair:
+    name: Freeze both models before same actual race deadline
+    if: github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    env:
+      RACE_AI_AB_SOURCE_REVIEWED: 'true'
+    steps:
+      - name: Checkout exact PR71 source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Checkout immutable PR64 parser reference
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Test both offline models without result data
+        run: python -m unittest tests.test_boat_ab_shadow -v
+      - name: Fetch bounded official future source and freeze A/B research data
+        run: python scripts/boat_ab_future_pilot.py
+      - name: Upload only normalized forecasts and source SHA
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-future-ab-${{ github.run_id }}
+          path: boat_ab_output/pair.json
+          if-no-files-found: warn
+          retention-days: 7

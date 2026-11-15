@@ -1,0 +1,137 @@
+{
+  "all_published_history_readback": {
+    "counts": {
+      "all_period_collection_complete": false,
+      "formal_backtest_eligible": false,
+      "listed_days": 7963,
+      "manifest_sha256": "184329fd485eb7bb28ab18182feb92911ec636a2c21f3e8aa5ca930376aa0903",
+      "missing_days": 0,
+      "months_restored": 263,
+      "not_yet_published_days": 1,
+      "parsed_days": 7845,
+      "partial_source_days": 117,
+      "pending_days": 1,
+      "plaintext_published": false,
+      "published_months": 263,
+      "quarantined_days": 0,
+      "status": "OWNER_VENUE_COLLECTION_READBACK_VERIFIED",
+      "unprocessed_listed_days": 0,
+      "waiting_publication_days": 1
+    },
+    "logged_at": "2026-11-06T06:01:24.9012852Z"
+  },
+  "all_venue_grid_readback": {
+    "counts": {
+      "acquisition_complete": false,
+      "formal_backtest_eligible": false,
+      "known_racers": 2643,
+      "plaintext_published": false,
+      "source_days": 7962,
+      "status": "ENCRYPTED_ALL_VENUE_GRID_READBACK_VERIFIED",
+      "venues": 24,
+      "verified_cells": 63432
+    },
+    "logged_at": "2026-11-06T06:02:29.4017895Z"
+  },
+  "full_venue_future_pair_result_pending_at_this_snapshot": true,
+  "head_sha": "9996e08a3b29d3a6bbd86c02f7d7ed4f32e19c64",
+  "history_readback_job_id": 127740697689,
+  "private_raw_published": false,
+  "production_model_promoted": false,
+  "production_readback": {
+    "counts": {
+      "accuracy_improvement_proven": false,
+      "admitted_prospective_races": 6,
+      "admitted_summary": {
+        "accuracy_improvement_proven": false,
+        "actual_purchases": false,
+        "excluded_special_or_pending_races": 0,
+        "models": [
+          {
+            "baseline_hit_rate": 0.6666666666666666,
+            "baseline_hits": 4,
+            "baseline_received_yen": 4100,
+            "baseline_roi": 0.8541666666666666,
+            "baseline_stake_yen": 4800,
+            "history_hit_rate": 0.8333333333333334,
+            "history_hits": 5,
+            "history_received_yen": 7690,
+            "history_roi": 1.6020833333333333,
+            "history_stake_yen": 4800,
+            "model_id": "boat-observed-pairwise-factor-v1",
+            "scored": 6
+          },
+          {
+            "baseline_hit_rate": 0.6666666666666666,
+            "baseline_hits": 4,
+            "baseline_received_yen": 4100,
+            "baseline_roi": 0.8541666666666666,
+            "baseline_stake_yen": 4800,
+            "history_hit_rate": 0.6666666666666666,
+            "history_hits": 4,
+            "history_received_yen": 5040,
+            "history_roi": 1.05,
+            "history_stake_yen": 4800,
+            "model_id": "boat-observed-pairwise-start-v1",
+            "scored": 6
+          }
+        ],
+        "normal_races": 6,
+        "production_promoted": false,
+        "result_revisions": 6,
+        "schema": "RACE_AI_AUTHENTICATED_HISTORY_TRIAL_SUMMARY_V1",
+        "unique_races": 6
+      },
+      "external_receipts_rechecked_live": false,
+      "independent_pre_cutoff_receipt_verified": false,
+      "mode": "production",
+      "original_bytes_verified": true,
+      "pairs": 158,
+      "pairs_verified": 158,
+      "plaintext_published": false,
+      "production_schema_readback_verified": true,
+      "result_revisions": 6,
+      "retained_file_versions": 783,
+      "score_replays": 6,
+      "scorings": 6,
+      "source_commit": "09c15ffb1f74210235564cd32cd1eb65119bee56",
+      "source_gets": 1,
+      "state_content_sha256": "f75aea68e1750ce932c7300ba4a08b54bc8a716b911da909751f2a328d6320bf",
+      "status": "PRODUCTION_STATE_READBACK_VERIFIED"
+    },
+    "logged_at": "2026-11-06T05:59:55.0165342Z"
+  },
+  "production_readback_job_id": 127740594750,
+  "racer_roster_readback": {
+    "counts": {
+      "ciphertext_sha256": "91b2bb8e3888ce6841b8f3e56480fdadc92d899ee455c6ecf45e4561ab56b4b3",
+      "durable_encrypted_storage_verified": true,
+      "formal_backtest_eligible": false,
+      "forward_race_verified": false,
+      "lookup_verified_racers": 1643,
+      "population": {
+        "all_career_history_complete": false,
+        "course_rows": 9858,
+        "current_active_registry_complete": false,
+        "formal_backtest_eligible": false,
+        "history_racers": 0,
+        "history_starts": 0,
+        "known_racer_ids": 1643,
+        "production_promoted": false,
+        "schema": "RACE_AI_ALL_BOAT_RACERS_V1",
+        "sources": 1,
+        "term_racers": 1643,
+        "term_versions": 1643
+      },
+      "production_promoted": false,
+      "raw_or_plaintext_published": false,
+      "status": "ENCRYPTED_ALL_RACERS_READBACK_VERIFIED"
+    },
+    "logged_at": "2026-11-06T06:00:06.0781259Z"
+  },
+  "readback_jobs_conclusion": "success",
+  "run_id": 42171293614,
+  "run_url": "https://github.com/haji84/RACE-AI/actions/runs/42171293614",
+  "schema": "RACE_AI_INDEPENDENT_FULL_HISTORY_G4_READBACK_COUNTS_V1",
+  "whole_run_conclusion": "success"
+}

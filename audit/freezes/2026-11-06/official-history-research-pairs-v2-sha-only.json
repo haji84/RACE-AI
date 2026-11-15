@@ -1,0 +1,1434 @@
+{
+  "accuracy_improvement_proven": false,
+  "actual_purchases": false,
+  "admission_status": "LOCAL_COMPLETION_VERIFIED_EXTERNAL_ATTESTATION_PENDING",
+  "auto_promoted": false,
+  "entries": [
+    {
+      "cutoff_at": "2026-11-06T08:35:00+09:00",
+      "file_sha256": "bbdc171095a0a8b26193ad8702db5f21bbc7364b3300cf3c29d41abb759287fe",
+      "local_freeze_receipt_sha256": "6a5223f57070582adb2c72058b96919dd5275fdbc984b0ffbe38926a92161514",
+      "pair_sha256": "078327244f5e579f11d5f77385862399f16ef94457d144023b55b2697a100407",
+      "race_id": "20261106-23-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:49.604796+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T08:47:00+09:00",
+      "file_sha256": "bc553ac84b8c66ffd6864f284f7cf5d089cd0aeab45dc164320979aec86b5459",
+      "local_freeze_receipt_sha256": "78c9d8e36f9682f7a3ecaeec6385c1438b850ed5ee2edf8e1e8a666d07eb9897",
+      "pair_sha256": "c179dd766d4082954afc22319341da76e1dab84875cb6c0a99a0bf4c99ad8164",
+      "race_id": "20261106-10-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:49.711335+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T09:01:00+09:00",
+      "file_sha256": "ba684e3175797a7a05f7f3f51ea15b2b85a259fe546b9e93a1d04a9c7a699184",
+      "local_freeze_receipt_sha256": "3519e059a5f862c5e3a2337ca881c919e8e9d62673286529f2aa540011ea36c3",
+      "pair_sha256": "caea012db8cff372590d88465c2600106716eae273f369ee88da22106b58e212",
+      "race_id": "20261106-23-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:49.839846+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T09:13:00+09:00",
+      "file_sha256": "48c21dc5559b26e3195ac2e69ea76fb7fa05de3e542a6bfec61b5b7f83d1409d",
+      "local_freeze_receipt_sha256": "4687bc4a999043d60031746f566a5d9a2b6682a6d02cc05045676550346de292",
+      "pair_sha256": "f5a7f2b29600fc42dd2b6e4dc98abf4133eb7114b300a752fad9dbab872a4230",
+      "race_id": "20261106-10-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:49.953098+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T09:27:00+09:00",
+      "file_sha256": "709ce4e0c9bd342a687099ab7528189f3e4c0fb3f4419a727dfb3746aae09f10",
+      "local_freeze_receipt_sha256": "188361bd6d061796d4e2da13521e107b081dbcf140c2eae2a9033021a8c4e268",
+      "pair_sha256": "5124c25c94f386992c03c382fdb5a7cf34baf270e4c10251650f74df45581d75",
+      "race_id": "20261106-23-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:50.071597+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T09:39:00+09:00",
+      "file_sha256": "0dbc80e3cdfc4fa3d2f81a69d620b75d5bce601c2a28a2e275c0538394f16ece",
+      "local_freeze_receipt_sha256": "3994f599fd9a5cbd0d8689daf8f7f981e9b4bfff43a5f33319a73c39eb588a25",
+      "pair_sha256": "eed1a3ce027d87e748f4d2302444fbe036b28a29c842794f0e2157cc9c79e16d",
+      "race_id": "20261106-10-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:50.179709+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T09:53:00+09:00",
+      "file_sha256": "7bba6a4229e0563b687d1261867cc64f3b11ffe3d064e284ab2f637332a67fd9",
+      "local_freeze_receipt_sha256": "fd0bd71f9529162b148bdc487369eef65a8667326a4bf4a9249df6397f2c700f",
+      "pair_sha256": "521cb7df6ec30776bd96c0da3eb644db973eccab033dee0a988c8106167b9c4a",
+      "race_id": "20261106-23-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:50.289935+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:05:00+09:00",
+      "file_sha256": "1061ec6a9c0cb844dc6078ff2cef185692f685689a33fa23aa3969c0520d770c",
+      "local_freeze_receipt_sha256": "ad589b66fa02a7dd5be103cabaf86a922bcfea37e8cbf2b8863cd478ccc771e6",
+      "pair_sha256": "059770c61a2f160c87c53edf4254884930fff246ac89d71a5f937074a5738691",
+      "race_id": "20261106-10-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:50.388763+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:16:00+09:00",
+      "file_sha256": "24158365fd2ba810557b6375e673fef16c30c53a593b1e0fe5d5915477f06b19",
+      "local_freeze_receipt_sha256": "b51a45409132be476e58fcdee1e4f3b0c843d15eb1b602e15526e7adaa4f242d",
+      "pair_sha256": "5e7db3755b52caedf4d63947f46a3e556a25a28a7177f69a979dc75e0c4134a4",
+      "race_id": "20261106-17-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:50.504925+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:20:00+09:00",
+      "file_sha256": "de3140baab5b9a5791e349d8659005895424c99e47d15b3e5f2b8180f33bf0cc",
+      "local_freeze_receipt_sha256": "6f19f690412765495229027a7986e6379f82a044edf5322027dc4ab7c8ac7387",
+      "pair_sha256": "a82fbc7e9e5405a1927f5d356fd168414fd93895190d77e5ce8dd27d16c71c37",
+      "race_id": "20261106-23-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:50.779778+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:23:00+09:00",
+      "file_sha256": "edee1be5df6239c7c0a2bd9e3268ccd92d679a48e296ff8dce9c38cd09e874fd",
+      "local_freeze_receipt_sha256": "e149d25e407c2949ff523a63b26c59fffb562887b8230690447bafcf75b621f3",
+      "pair_sha256": "4ed974ea81caf0c27ab825b67269cc8ac8e6bf142de05efee70909149e74059a",
+      "race_id": "20261106-11-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:50.885870+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:25:00+09:00",
+      "file_sha256": "30da3572a3f1e547fc2fd821d671017cb300dae36454276a8676c83e7001f448",
+      "local_freeze_receipt_sha256": "9a4f30dd2183edad01aed3ce21321ecf92ac1604e837e5ce03d4163eed1295bc",
+      "pair_sha256": "5284858f6cc3185acbccd6eee8e3a3684a22ebcfadcdd89103b453b04a5ac423",
+      "race_id": "20261106-08-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:51.006038+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:30:00+09:00",
+      "file_sha256": "6a207d58ba9598f4364f49e3cb479cf2aeee4dd046e6197d537f4e9e90fda846",
+      "local_freeze_receipt_sha256": "b53adc6c8963d34a01ad1a6322be5e885057b899dd49dc9882118894bd303d69",
+      "pair_sha256": "a9118697210c5fca6683fd2694b50f4e61551fd8c5535820392c3a7e0ee5cc10",
+      "race_id": "20261106-05-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:51.116886+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:33:00+09:00",
+      "file_sha256": "b59fbe7fb6d8c89406234fc3445c8d8d36ff668a6c0640d3288a7130c1192250",
+      "local_freeze_receipt_sha256": "32192d14f91bac9cd4e0fbee54084a3da475c1487916faa065b01cce702c7049",
+      "pair_sha256": "50767e895a4c93bcba7d64619e08ed0bc615de0afe23825ee872c36c0d09f31c",
+      "race_id": "20261106-10-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:51.227047+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:41:00+09:00",
+      "file_sha256": "a5ee11126b51706feb6fe59266d75af1ace66730d6214caff8f360d6f234dcea",
+      "local_freeze_receipt_sha256": "0d2838a78650fbc7c5c2e01a251dce8f56d0600b5b03487d647d1703ccc36387",
+      "pair_sha256": "de7cad2429cec13b7605146c8e9e65e0bbf1eeb8cecfa7629071e48127899dab",
+      "race_id": "20261106-17-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:51.338643+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:43:00+09:00",
+      "file_sha256": "d823653e9e72f57671f261ee2199f24671ea1deb2bdb34d3ce4c52407e830a4a",
+      "local_freeze_receipt_sha256": "b0e2922dd6969926553209511b78dd1da359bbd27fdd05b3ad39e9b646c32f08",
+      "pair_sha256": "1ac9b0e1fe54af5012ecad9fa8a49ba800fa21b60ae06476f4b3a83d6afd9f01",
+      "race_id": "20261106-22-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:51.437205+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:45:00+09:00",
+      "file_sha256": "47f011121256d6f5b997b404cd907525c987f7468da91a0926ea05c67220edb3",
+      "local_freeze_receipt_sha256": "99ab67ae99f2a7533a7dc94eca0a8a262dca0dadc9dec3dc7596308488ec84e1",
+      "pair_sha256": "f3bea89d06dbbafe6b38ae82690bf45081c714588d46b329e0ad12f0a37f7fbf",
+      "race_id": "20261106-02-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:51.551345+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:48:00+09:00",
+      "file_sha256": "cfa88dcc02f2059bc657b6a9780a1b8dda565956050bc89f218b928e347957c0",
+      "local_freeze_receipt_sha256": "0a87b49dbab2f06c44137ba95be4ff95d35d2917ad5286b9aabd30eebe7dd7be",
+      "pair_sha256": "d2acec859f3a86d7130a2317d10b02da4a787385157fc4f815789b148f3ec216",
+      "race_id": "20261106-23-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:51.658221+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:50:00+09:00",
+      "file_sha256": "ee803bf9599555d0b8fefe0ae07bb083a790cc372184ff011ff988cffd1c4556",
+      "local_freeze_receipt_sha256": "393c64ec1698e12140afa98c0107563e921662cda032fde2121e96e0e9f5a1aa",
+      "pair_sha256": "31fe4ea45510d591bc61734dc8987cf0b114636ab3a2cd9061490873cc8c32d9",
+      "race_id": "20261106-14-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:51.766625+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:53:00+09:00",
+      "file_sha256": "2c863b425525b89d539461ece29c8c98c86e9e7f44efc830e8987632f91abe53",
+      "local_freeze_receipt_sha256": "823fab94b9f7de9c07d5dad2695a7e4a9ad6aac81b43d25c2e3dccdb3bf5410c",
+      "pair_sha256": "bfe215bee0f33eec8eaf2af3408e27ba9a821477f05c7b18ae1add65ecf5439a",
+      "race_id": "20261106-08-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:51.880884+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:55:00+09:00",
+      "file_sha256": "0b3455d7d7dee6a4aac11d4c78092ea2aa0c1dbf828a4142b082732eb6e197a3",
+      "local_freeze_receipt_sha256": "bbf508284fa978bc7792fccc5e9dd6b111926a3205b84baa76143345a5b27330",
+      "pair_sha256": "c53f46dca55b845ad0f8c2363a3b144663f6151fcb482de78ce11e6133c23f1f",
+      "race_id": "20261106-11-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:51.982921+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:57:00+09:00",
+      "file_sha256": "788eab7aa4f98e08a0484df201442de4f8ca0d72c7393df597377227bd53b926",
+      "local_freeze_receipt_sha256": "bf4a85291eb5379f9185ec29b2f2aed353b010e434aca2906f2959822926fc60",
+      "pair_sha256": "958710eb5c78145025ada388d89cf5281c5278d2290b87cd1fc1ca49260a073f",
+      "race_id": "20261106-05-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:52.098363+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:59:00+09:00",
+      "file_sha256": "7b00086c187270ea0d25fae4660c669036b691a642b32f6358f54b3c2e18930e",
+      "local_freeze_receipt_sha256": "a15f4c592163c429c6f867b0252b9be565adc585d04b66e00ffd84bad4fe4000",
+      "pair_sha256": "ffdd0709cd129f3e4f76e3f1264632649a45b4001fe8ef531b1e6dc6dcfde42d",
+      "race_id": "20261106-03-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:52.201144+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:02:00+09:00",
+      "file_sha256": "d247fd457dbf5c80e7b295703d05170a76e8c7cf0fbb8d7091c34d88affffd3a",
+      "local_freeze_receipt_sha256": "1b2ad126d3c558c8a725b73bf9458c3c623f9052d1211be1ecac1a1588e57bd3",
+      "pair_sha256": "9c37d8b5a600b62e5673c5830520fda7de67ace5412830a684a8da3dda4784e6",
+      "race_id": "20261106-10-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:52.323798+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:07:00+09:00",
+      "file_sha256": "6bce9bba997174aa8d4c70c988d7f220a90ff45de8740eca4ade400e2cd2215a",
+      "local_freeze_receipt_sha256": "bb5e4c0f5e9cc16401958e508c0864e6eada768a6bcdd936111449fe821ec008",
+      "pair_sha256": "6895c816414804ea7fd3af6b79348626adfc50852f539e078c96aeed3747e6f1",
+      "race_id": "20261106-17-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:52.432857+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:10:00+09:00",
+      "file_sha256": "57bb813e026e972c1fadd450ee2258284b7d7bbcd1ca376835f81363750da4ae",
+      "local_freeze_receipt_sha256": "b2dd8af9b9a15295a1d8b11dfdc37bd7931ac2a1d3dcc096ff8acd8e6f025cea",
+      "pair_sha256": "abfbe9f85b1ae04c75a47778de33f19378fb4fea68223b8d10349731a1621b30",
+      "race_id": "20261106-22-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:52.547488+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:12:00+09:00",
+      "file_sha256": "51f2358a9d9ec92f0e47b9dcd674ef812041a2193a5c8681003f14e5080c75df",
+      "local_freeze_receipt_sha256": "7899d7769615c834308a1e61697577d8c9016ad759f1fa04541f12343e6a31e1",
+      "pair_sha256": "02f819933c251677c873ecbd36b57c64ee1f6301ec2ff0d8681f15e8c81ee607",
+      "race_id": "20261106-02-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:52.650192+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:17:00+09:00",
+      "file_sha256": "9cb622f77a01da494400b76dfe9a9c3ae65b2bab20ebfcb0a6068a7672b50c52",
+      "local_freeze_receipt_sha256": "e2e9ebaff4b245f56e8a90d4c8df706f7907c41a08ee8a6ea14ea5a6a9782c7f",
+      "pair_sha256": "97dd1e53cc9801e4e1966c490c4d5277c2d0c1ff288b7105076a7ecebb487152",
+      "race_id": "20261106-14-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:52.757250+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:21:00+09:00",
+      "file_sha256": "c6d3e1ab5e4cc2feb1917ecaff002129aec63f90773ec3274b0a33789571ad66",
+      "local_freeze_receipt_sha256": "d840f69190ae75ae4316cad8edd8bba332f6ca8412fb0e725d75cffe2cedf12a",
+      "pair_sha256": "e0cc5dbc8b656e954c7e102233b7d09e170acdf25f443e35c29a37af8b4ffd29",
+      "race_id": "20261106-11-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:52.872410+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:23:00+09:00",
+      "file_sha256": "ccd13fd94cb3e7a9b000891fc8d1edba0673bb12716edbd8ed571449f5ea538f",
+      "local_freeze_receipt_sha256": "6a9085665f81231ca7c4d74bba4f6f9f7641f73ac49e54712750346e8496a2f1",
+      "pair_sha256": "9b58424acdcc7faa588cf2447ac57ea27fc461c3232043812a957ad30c4721f1",
+      "race_id": "20261106-23-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:52.978556+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:24:00+09:00",
+      "file_sha256": "f35e550643a845a054877a53aa703839532735a405415b78c140dd72dcc3a558",
+      "local_freeze_receipt_sha256": "1cc4556e7b2aa384059ccdf3d15df228b1b18663209666c684a39a91542a95ec",
+      "pair_sha256": "a3d7ef2638fd9f0dca2c93c470bc113e91072d584912bb766f3966448c62342c",
+      "race_id": "20261106-08-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:53.085414+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:25:00+09:00",
+      "file_sha256": "a3961a25985ce5f3522707873f51bb00cf31ef19ab6830795935e992808fae79",
+      "local_freeze_receipt_sha256": "1d559d89e84e95417c458b659a490d3149fa2510e36f019c9282d3995401f6f7",
+      "pair_sha256": "2ebaacc34e7d48806d1df33d7e4e72e212922d340d8302ba730898bbdbbf98bf",
+      "race_id": "20261106-03-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:53.187813+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:26:00+09:00",
+      "file_sha256": "398665721c4d905ed4329971eb81daf9b8649e227a64d80dc58f4386a62f9f05",
+      "local_freeze_receipt_sha256": "a8d36dfb57d7699576cfc7433ed6879d9d5d8ec536ea0aba39a437f6aa82554b",
+      "pair_sha256": "a022c7b509277c9d0b1ba99fb3753f987fada7d6f42bab6013f432d2964ecebf",
+      "race_id": "20261106-05-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:53.304788+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:31:00+09:00",
+      "file_sha256": "357b72602a58fb0fa73b0ab487d5f79b93f930d9ba9e524383c91bff4f5d3890",
+      "local_freeze_receipt_sha256": "9acf7ca91024d47b4f88b1574ec4b2aff607a5df4a1f7db3ad328dd111a6e2c6",
+      "pair_sha256": "eb581a41a1e8760334ad4eb110dc40453f05cae95fa6fa5c13a5f5499e965284",
+      "race_id": "20261106-10-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:53.405519+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:34:00+09:00",
+      "file_sha256": "d5db39a437a14036b0c9f62fc5add6521fe9ebf3d69c2b8cae1a5fea2deaf299",
+      "local_freeze_receipt_sha256": "6d84294205160cee327bc52725fce8a4b7c6a79f8772f5b69ccc0713f8664af6",
+      "pair_sha256": "8bf935ad42b6fdb25d15369119588c7c3e526692c71d93d4168a018c51aa5a9e",
+      "race_id": "20261106-17-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:53.512747+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:37:00+09:00",
+      "file_sha256": "0e58dab1fb858181f5161f8edec3c7d9f9396b8e9675f0eb9b47704f9a6f7c6f",
+      "local_freeze_receipt_sha256": "7a5a1d032ed331e8e82ca3156d2194ac41d6da8151a466e9015ef549eebe93d2",
+      "pair_sha256": "5b9a584b7bdf14e182363af2a120482b2f471382e4159cab312f34b5a11c29ae",
+      "race_id": "20261106-22-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:53.618834+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:39:00+09:00",
+      "file_sha256": "7dc611c7b6b9d3d146ace98c8bb56d24a9be5c89bd0e6c41a23ce6c17be33795",
+      "local_freeze_receipt_sha256": "a0980dcb6b4208b5e8d3504036a8a41337bf0586e8fec0bfc0479d2cfc88c637",
+      "pair_sha256": "112984bd34254bf0b1ad79c83604ddc4109e278815435175c6689a2d5b61b5e8",
+      "race_id": "20261106-02-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:53.719529+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:44:00+09:00",
+      "file_sha256": "aeeb88f47d55622a3bf06b885bde8624040713a1cc1abcf804445287e47e2ded",
+      "local_freeze_receipt_sha256": "190ea0d7acada8f542331357a80be293f510bbd47179ce937eeebc02d144b305",
+      "pair_sha256": "a933d54e7e929f9df6b469ed6c6552f4fb5673ec52296f4c695a1121216559e7",
+      "race_id": "20261106-14-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:53.840740+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:49:00+09:00",
+      "file_sha256": "d9fc6b8c0fb225314fb1a814bf2a651d92f512476e4d5168cb1be729fec37bc4",
+      "local_freeze_receipt_sha256": "53433e898b66e7301b7d17083cb91ec93a362246e035eba1816d4d159c90068a",
+      "pair_sha256": "72d5655d4d53fd7f4c442f996a5b168290db41914a4c88711e7885ce900b8307",
+      "race_id": "20261106-11-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:53.942577+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:51:00+09:00",
+      "file_sha256": "8cec8ca6ac58f973bcad46b8af4c0bddb9fe92b9a7af615aac5b772ed291f0c9",
+      "local_freeze_receipt_sha256": "8e2b6098e55e904df1b7e5c71e8909fe6328dcbbb45f10ea0b1f7235ac827e8b",
+      "pair_sha256": "2caae270fa4486b704dd08a791692155ad46fbb6da604ebe6aa0732a9c58191d",
+      "race_id": "20261106-03-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:54.054136+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:53:00+09:00",
+      "file_sha256": "794935700cd567c62936bbb9b571cecec8c579217dec0b907857dfc398121a47",
+      "local_freeze_receipt_sha256": "f8f79809bf64cfdcf2e5c5be83be619174b5ae1716243ecc8d0e40e423b4a57e",
+      "pair_sha256": "69085d8841fface8d7d1fae63081020805db857c46cef2219e942486d05e96e3",
+      "race_id": "20261106-08-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:54.156259+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:55:00+09:00",
+      "file_sha256": "e26de37bc098b49aa8d973811b161eb83728b0cd24388f7ecaf669c8ae43e9a6",
+      "local_freeze_receipt_sha256": "84ffd5538805061ee622c6eeab7ae053a034381872ca3ee1c467dd627acebe5c",
+      "pair_sha256": "8a42e4ffdd24e23acfa180b50a0046e1fe70ee0f5a952234cf7703ed21fde68f",
+      "race_id": "20261106-05-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:54.255219+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:58:00+09:00",
+      "file_sha256": "7e3dfe201c6c63d29ea4cfb741e22ca500fc78e416cb7e3951b6c0c43c080e73",
+      "local_freeze_receipt_sha256": "adf31c9daffb29134eced28f6f02c5753f8a8174520ce11a9710d60fe640f22a",
+      "pair_sha256": "3c061792c107ffbc953ba7d541a28027c12c6dbf1c9ed2343924cd77388063af",
+      "race_id": "20261106-17-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:54.363505+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:00:00+09:00",
+      "file_sha256": "15cbaaa31d42def34f927cf287defb0d1d8182d54e318a464dcbad7a381a7901",
+      "local_freeze_receipt_sha256": "87c59e1aafb54cfcd19d589b32f16c97ab2d130016ace61eed55f3cfb330b81c",
+      "pair_sha256": "cec82767b1296f1827e26bd65fb3040697e1151cf306b94b4127cd9b557ed59b",
+      "race_id": "20261106-23-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:54.472879+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:03:00+09:00",
+      "file_sha256": "e2a25a71949bb67977e13b3278c4ec7175b9dfb01473ea9aad1dbd988da0271f",
+      "local_freeze_receipt_sha256": "39aaceb27154c7b0535c643b9a56e6d5c01fd9b40122f27a7953395b544b4bea",
+      "pair_sha256": "7aff40d901ac0f6db7d195d00f2bbfcaee2dd9b01c72baf022fbb00d8541ec45",
+      "race_id": "20261106-10-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:54.601427+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:06:00+09:00",
+      "file_sha256": "611db78fb2d6686af04616653881b5586d0e0918b34e18aa203620628f3a3e2f",
+      "local_freeze_receipt_sha256": "8da10d74f7b269c1a18a54f076492bb760e01fcf3cbbce50c99c8a8f844c4006",
+      "pair_sha256": "a0cc4fbd1646f974d3969974edc353791678500a5872c7a5f1ee90071e85fe86",
+      "race_id": "20261106-02-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:54.705840+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:09:00+09:00",
+      "file_sha256": "17bffb3c6bd1d2e309c8718f1bb8d92253d7791f90828b1514e1f6c2e1312963",
+      "local_freeze_receipt_sha256": "4ddb0ced3052ea3f429d32e83eba8a1ab8c7375b5a50dc3896adfb0ae258d677",
+      "pair_sha256": "7decbf7c7f54d86b33f3e227913d5ce8b0f8bd0e1ae8d8832b1bcc04adb24520",
+      "race_id": "20261106-22-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:54.821271+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:12:00+09:00",
+      "file_sha256": "e68db7f06737fbf6f3853f497bae1cbb109e8c77d0fbfd701a5e95a7ba954a4c",
+      "local_freeze_receipt_sha256": "47c5c1b1237cc8e8c91c5c13d28eca36e56dcb6bec33211d3575e1b20fdaee2d",
+      "pair_sha256": "b73a49047b7c0f506ac704530f4a142c9df59224720f43212b910d2e2e24f423",
+      "race_id": "20261106-14-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:54.920405+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:17:00+09:00",
+      "file_sha256": "451394106e8f9f52fe3a3ee5892bd2e9c5616f8a1940fef4a51b36b616fbb762",
+      "local_freeze_receipt_sha256": "a834a94cf3766dbd4a8fdf54456f103fa68114b2aa4b9a875b3784955fa73ad8",
+      "pair_sha256": "beaed953885e5af5189ac88ffac06d71e2684fa9dd0665015a317c7e673df3a9",
+      "race_id": "20261106-03-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:55.026884+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:20:00+09:00",
+      "file_sha256": "8a01ca124a2172f77353e58c157b798d7ec3c2a5582181f7338cad7a363a444e",
+      "local_freeze_receipt_sha256": "fc3c83297769a09411ac78bf20aaa8b1121bc25102e3b1d7cf29341c729f33a7",
+      "pair_sha256": "c6a2778f7b229c8e5250d4775bfe5affb3a531f2ad5a1d5c36076e0f541c644c",
+      "race_id": "20261106-11-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:55.258485+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:22:00+09:00",
+      "file_sha256": "7e77979bd87d8135f0effc962e6ac8661d9cec78b746a8a2040dd6a9d20ef574",
+      "local_freeze_receipt_sha256": "baab080d971c62ea5f872a3a658c0d21d33ef017b20304b15e45367ea9ae05f0",
+      "pair_sha256": "8f82c21337008b391d9c87cec37c50b17b7117dd5aae1352f2d03b312fbdaf8b",
+      "race_id": "20261106-17-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:55.363738+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:24:00+09:00",
+      "file_sha256": "a9e83905aa1bf4a67a17c07312a89fad9452adae9cf0f63380e52469df1fb363",
+      "local_freeze_receipt_sha256": "f721117332774342f45b029faef838ad7c57d996a4bceabf6acce6279d635354",
+      "pair_sha256": "2488156c7d250805bcaafec20312fbe556bb55f10c20cb42bd8a33322c0eaa96",
+      "race_id": "20261106-05-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:55.467475+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:28:00+09:00",
+      "file_sha256": "e36bd14a94d197f84172c553116f8c2465e5b39c18bbf24df261a80c4a6401e2",
+      "local_freeze_receipt_sha256": "29a1c7bc8bd40e0b6cf5899e78fd059faec84801eae4d29d7dc8db2e531c4e88",
+      "pair_sha256": "3866c3da4a77b4c7eeed2faf8c698b21f5d0e49039f0385f200dd63dec5a73f3",
+      "race_id": "20261106-08-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:55.587670+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:31:00+09:00",
+      "file_sha256": "0ad97ccca1ad34d30aa2768f81574ff1de50db6fc546c41d51aaa4c4eeeff3d3",
+      "local_freeze_receipt_sha256": "0dcb483eb5ad28831a2f30914ea6b1f35cc7ad71be715853d5ce1110bb9f8477",
+      "pair_sha256": "b7fde3d93c91e5819e1b0b4b1a489a1dc0c89a1fdd7e4d52b19587e79da61a21",
+      "race_id": "20261106-23-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:55.694856+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:33:00+09:00",
+      "file_sha256": "fdf130b1e11bff6edc7c8e636c1b3443634cd966d1d9470cc92f4ce0074bb892",
+      "local_freeze_receipt_sha256": "702f4b902c919e44320ab43eb3fb33db3a0f459391b26da31bdb714dfb53b92c",
+      "pair_sha256": "af22a666fca8358ebe1747e8492b92c20dd1d1e0d53987fe67b77256ce36a01c",
+      "race_id": "20261106-02-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:55.804974+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:35:00+09:00",
+      "file_sha256": "2f8ed623ace94ae82f8cf74a38f186e349ec04659ad3eae1874352f750dcca8e",
+      "local_freeze_receipt_sha256": "4d530db43d91a3d126a5f995027dc0e4b1af853010590f37b4a4ac8e71736ed9",
+      "pair_sha256": "3ae4998cf0ead86d59dc3cdd4fb9662085aeac4d4f6044440ca4db89427e2e12",
+      "race_id": "20261106-22-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:55.915998+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:37:00+09:00",
+      "file_sha256": "016a0496cae020b08b38d2d5272dfd1455fbb1b90a344226077f2ba464bd4d34",
+      "local_freeze_receipt_sha256": "cf2fc4070d582c3ef473582828cf8e230df8e3265af934d58f80562326fc41ff",
+      "pair_sha256": "f68dcb51ebc678b6643a7abfc5ea442a403cb6e1755522335499ccfa7ee2e216",
+      "race_id": "20261106-10-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:56.033529+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:40:00+09:00",
+      "file_sha256": "9324cae45a5c745fce160786b54d91aeb48a4cf9a6747c2cba31d5203d7634ff",
+      "local_freeze_receipt_sha256": "a2be2072815dddc0f93fe1e2644c70d3571fd07d248fb1e4bb99280b2f14a69a",
+      "pair_sha256": "06205cb14c838e298ca21c88d7440ca77a283a121ef5277fa2107024de3b7f7b",
+      "race_id": "20261106-14-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:56.151521+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:43:00+09:00",
+      "file_sha256": "44e7bb10173aa7cdd9bd3ac5ef15526a3437317ca19c269ffe8769ceb6fd9560",
+      "local_freeze_receipt_sha256": "64624903c983189c3cb7654f7cf25eb751d2e656a6b3f15eba9c0a3ed2418d02",
+      "pair_sha256": "9c791d8759d4b3c50815f6474fff69423862be3915a64c78da2292df9828b549",
+      "race_id": "20261106-03-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:56.248275+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:47:00+09:00",
+      "file_sha256": "82113a45c91a2ddfb1939e1f84a278d63be96243a0fa204b8e685ba9aad9e428",
+      "local_freeze_receipt_sha256": "fa2fb2d977f96c4e3933ccb10b53ac2ff013b2624defff2b0ee85cf681e63149",
+      "pair_sha256": "678640902d7ce7f166b0df75cf145f6d26d946c63bec6f30b12827eaa500122c",
+      "race_id": "20261106-11-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:56.354100+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:51:00+09:00",
+      "file_sha256": "573aa616ae9348f24720aba5f665d1e4140270d167e84791d41e327d9a7d1ad1",
+      "local_freeze_receipt_sha256": "acfd05a8053b6f4d81a650fe96901e49cad0d434e1e3e3a183824be75001bc43",
+      "pair_sha256": "e8ce6cb18baafad4e43fd0b650f96a841f5198132b10e6524b86fb6043fee672",
+      "race_id": "20261106-17-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:56.456238+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:53:00+09:00",
+      "file_sha256": "5c9220ee825fa4ea31bc34153589f34f994f6a0a234419718c94851eb8c56db5",
+      "local_freeze_receipt_sha256": "4b740b524be624c26288a3f73e6cb9741bdd69eca20cdb2f6c29c6f2494b4812",
+      "pair_sha256": "21665fcd44549042e88d61408de22487f628ef8dbee0bc783c8b37184f8bcd0d",
+      "race_id": "20261106-05-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:56.569972+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:58:00+09:00",
+      "file_sha256": "b59ae706611256a31c4aa1a991ee26fd381204c1d120b98084aea613a8b51f5c",
+      "local_freeze_receipt_sha256": "5af5f05516d90a17362962d50712f471f94369eefd17995682d85e55c32f12be",
+      "pair_sha256": "1c246b7d26ac31bb320e6f1ad32dfc2d648ba24ead6109211fdbf01ec914aa75",
+      "race_id": "20261106-08-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:56.673291+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:00:00+09:00",
+      "file_sha256": "83e501d7066afba74639b551a738166bfd2ee8dc75632fa099ce17fe3ce157fa",
+      "local_freeze_receipt_sha256": "f5490397c79177d500257b6cee4709bdf10a0d5b3a4c9347eb68bae94cfccc3f",
+      "pair_sha256": "328be9359d92425525a52135f5ffc7f2faf7786839c67811eb9a62e0be802847",
+      "race_id": "20261106-02-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:56.765460+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:03:00+09:00",
+      "file_sha256": "d9818cc1f40abf67b7a86a918b130caed079bffad55e6da61a395d8a0893c622",
+      "local_freeze_receipt_sha256": "e560389706122f4a93f8bed012352f3c20d2a7d642978c4b5aeaeac6b4904bea",
+      "pair_sha256": "8c27356e48d067d03a0cea61d29f167a11c59985b5c2500f9de6a185ba185ace",
+      "race_id": "20261106-23-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:56.875436+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:06:00+09:00",
+      "file_sha256": "9f98d3b11804e9f2cc0c60f04c0d066ea22a7557434d5016386f7569d072e80f",
+      "local_freeze_receipt_sha256": "5e61f0d291529e76ef8d5d8a9b9e455d7168212cff985b052bc1c7a241b4efd7",
+      "pair_sha256": "5639548fe2e76956903073c911d9e0d0eab4d1237d827906977faa7ac5e8acec",
+      "race_id": "20261106-22-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:56.980591+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:08:00+09:00",
+      "file_sha256": "d8fc7c589498d33e42ec0e42da12380f48a78ae2027ae6b1d6a86165035fd3fd",
+      "local_freeze_receipt_sha256": "351b285ed8ef769355a2abd66c7564493836ad44e7ed53c9b750b8af5de1053b",
+      "pair_sha256": "dbb8a6939946c3b77dcf8f16fcd9da70badb59398f27f72936a23f13c1931865",
+      "race_id": "20261106-14-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:57.088248+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:09:00+09:00",
+      "file_sha256": "8b860ca21de86b8732111ddb0b95c80b7136eff94fe223f9b95cdae5edfa43a0",
+      "local_freeze_receipt_sha256": "ed5cdbc17f48dc2ccc7a661cb01e8dcee41249e486c679da8a998960f88bc756",
+      "pair_sha256": "ace897ca4cb533cd2001e4c0548059f5ebd16d4717ab452b6d20116bfc7acb74",
+      "race_id": "20261106-03-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:57.188877+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:11:00+09:00",
+      "file_sha256": "48402c36fc585ad7b54bd77a59b0c0b5e0fe6b6bc532477de350e63d19885f8c",
+      "local_freeze_receipt_sha256": "f63a6f4b0c727147f11101fb5706ef7b4fb652a640032a55ba9c9b5b6583d7de",
+      "pair_sha256": "4f293e0f9a3b922d1d620933ffbc866c3af80ff2681f5d221d71d64a2a3adfd5",
+      "race_id": "20261106-10-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:57.311455+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:15:00+09:00",
+      "file_sha256": "ddb15267aa65633ee453c684af9ef14c41da8693e5ab607bcdd47af57c250365",
+      "local_freeze_receipt_sha256": "5d1666b288800f63fb42c96ef7b1c63369362c642ab4ae1fb9ffb5ac8eab2c1f",
+      "pair_sha256": "609da2245ac01e80fbfd788e204dc10aee5550d04d26c6ba59ef429dbf17c74a",
+      "race_id": "20261106-11-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:57.430013+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:20:00+09:00",
+      "file_sha256": "719a1f5948fdec18e3253d514a3220ba966079490582e2552c7508db7244176a",
+      "local_freeze_receipt_sha256": "a709b4d85fd3ade6654f1d0a09f2c1adc0d734951497fc05e0beb5ced69657ef",
+      "pair_sha256": "c4dd0be75672fdc0863092aeb956d07be0a0a3f22213eef813e39cca81e2554e",
+      "race_id": "20261106-17-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:57.538425+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:22:00+09:00",
+      "file_sha256": "c05484f492733f2f1d6b1402025b1dcc3c5c6374b921b4ebe3f6577137f3d017",
+      "local_freeze_receipt_sha256": "696ecd1919a3d93e9af9d7337ffd3d2015553a1626063c146bf44770ad57b98a",
+      "pair_sha256": "8d34798edff1a661cd8eeb65156e277236e67d63d72e1ad2de73d858491da76f",
+      "race_id": "20261106-05-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:57.646620+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:26:00+09:00",
+      "file_sha256": "47123fe72f3f0a58e8e577c7f6627482856ed085caa9098cf77ddcf1a5a0b6dc",
+      "local_freeze_receipt_sha256": "92da62048fa96c53746f3ceb4d36cdc5ebfb28beb358a7224b0f380b5c88e461",
+      "pair_sha256": "1b15460fa4c2347dbb91196edf46ed532aefbd7309ea7702a2d0aa12371fc4e1",
+      "race_id": "20261106-08-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:57.742958+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:28:00+09:00",
+      "file_sha256": "e7a10336ae29e537dd21c3537dd22f3ef6737b2d025e39d8144f86ea06e5feb3",
+      "local_freeze_receipt_sha256": "7e57f22f1a9c90465051f4efa90b655ea0fd8b45dde04035fc0b6c47af0c31e2",
+      "pair_sha256": "a9c52e352d2903f2f40b4c24362e6ead517f55f8fcbafd5011796abcd1e38311",
+      "race_id": "20261106-02-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:57.853460+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:33:00+09:00",
+      "file_sha256": "6ec3152b924c733df43637751565c68c0207a753d432653648cabbbf6fdc85c4",
+      "local_freeze_receipt_sha256": "d82a611a964f6765662671e4433067b192a588bad67296d4c92107863b89398f",
+      "pair_sha256": "47b0644da963fb4640b3cdcea51ae63c5fbc7dc5ff68b55cbd4843b17e444c2c",
+      "race_id": "20261106-23-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:57.955646+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:35:00+09:00",
+      "file_sha256": "3c4f648413b83cfac5b791151e56c03d8438d9243d93b9c225279e3a55843153",
+      "local_freeze_receipt_sha256": "adff267023b8b035a3cef7fb2123ae5d2938123393c7d876f47f531f27475f26",
+      "pair_sha256": "bca01943e61d26cce375f510584ec24dfbd6925381f92397418f1faa428a2d3d",
+      "race_id": "20261106-03-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:58.066186+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:36:00+09:00",
+      "file_sha256": "1d9dfd4763c1b24889aee3ba76d34451d9a4aea3091f4132ae177d3c818639ec",
+      "local_freeze_receipt_sha256": "c87f5c5dccff640145164ac2160b7a5fb9430b97ee9dc5d3217faeefb2d96174",
+      "pair_sha256": "458a0f9c2068303ee64cc534175fecbe6f33a5e08d68e174a91347a19f9f66bd",
+      "race_id": "20261106-14-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:58.171329+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:41:00+09:00",
+      "file_sha256": "b5ad0fff2ebcd9bceb731bd9bf22ab54e6cebfd88c994c976f15e46118fbc1ae",
+      "local_freeze_receipt_sha256": "408f40db7dfe26b3102560f343dbdb62af377c921c644798bd934b010e5b1594",
+      "pair_sha256": "4b5efa4124442afe3753430a41d390df5bed3693e1199db1dec3401d184ede0e",
+      "race_id": "20261106-22-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:58.267338+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:45:00+09:00",
+      "file_sha256": "646dc999e770802d1fe358df36718170890b8b57dc592b9e5ecf8da9a5298f01",
+      "local_freeze_receipt_sha256": "17c11ed55fa76f8efc0baf7bfa73de6ceab72ab83456d94143a7ae7725a437ca",
+      "pair_sha256": "50e468eb0729f169256690d7d6f76835a4bd9038e6a57e79db7e6debccb759da",
+      "race_id": "20261106-17-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:58.375916+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:47:00+09:00",
+      "file_sha256": "4538aa9dd0d0bc57ba49db1bef2d5c4dfab0ecb3bedb879a8e0a9c7645fde44a",
+      "local_freeze_receipt_sha256": "91270778908f3aa0349542e16f4c20d932a4506e7ac9ccb360f0c404c29b3360",
+      "pair_sha256": "611311eb44250c6633bb0b476049bb8446dd772099a80022b232a48d9dd7feb2",
+      "race_id": "20261106-10-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:58.481330+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:49:00+09:00",
+      "file_sha256": "a722d2a892439b64192091d7dc22e10312c6e56ff48d144d328ea6b8099add69",
+      "local_freeze_receipt_sha256": "19af16f340721793bf1cfb33e336a31c6d99b3c4431f3f534f78d6e92d4591b1",
+      "pair_sha256": "356cb31eb6950df058f7715418106be64361104433910659b323c90d78011b78",
+      "race_id": "20261106-11-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:58.594551+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:51:00+09:00",
+      "file_sha256": "7ba11bc18cbf28e28953bfd44f55fa46e3436b59d6ebd5dd98f02f00d0f53f06",
+      "local_freeze_receipt_sha256": "5efd82b8f269e198e0fbf601f9f81c14302bdb3ff64523673b876144c3d80c0d",
+      "pair_sha256": "7252973e75e25bc26c9fd096e9185c0ab1a604c08a26411d592f81ad85997f53",
+      "race_id": "20261106-05-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:58.697837+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:55:00+09:00",
+      "file_sha256": "aa6a293bb9c01aee98e035752287d9a58dfb5796d3432fe1af86157a1a6b6614",
+      "local_freeze_receipt_sha256": "1e217f70354c19b6d7d1cd16dce2a1cc9ac55ff8c1d95471a3332c050de7696c",
+      "pair_sha256": "4f5373eaa643602fe02b2f5e9a490d913c3f2e0db287f16d193f13e852fdf3db",
+      "race_id": "20261106-08-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:58.800192+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:57:00+09:00",
+      "file_sha256": "3fae985d0f4d6a2a1fdb8a66fa89a96e1286b21da2940564041c88ead775a438",
+      "local_freeze_receipt_sha256": "d58450d9ae51739aaecb44a1b6fcfffebf18ca4984d2192f3917352da8c6eb03",
+      "pair_sha256": "87c02a1b03fd7cb0da83258e5abe6e189cb4f6967b07230fc0137ae7e3a9a53e",
+      "race_id": "20261106-02-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:58.909267+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:02:00+09:00",
+      "file_sha256": "f67c51ddc3fe2c3129b0956b4bba9b1b84b5306536ab9043ddb9a2baa0c9bd81",
+      "local_freeze_receipt_sha256": "3d7be5196e7106c8250ea9344de14ac159fc8a94cd70c7505822e1fd31faf5ca",
+      "pair_sha256": "387101e4d93fcc97f947f1b5e708a03a3ebc602041f71d67562d4fcfc5362acb",
+      "race_id": "20261106-03-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:59.016178+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:04:00+09:00",
+      "file_sha256": "1f273b57ebffcec638a84267d0535356832401ae622d21d71d9ec372275b977a",
+      "local_freeze_receipt_sha256": "1cd0ab389480dd0bd3fda0556f3e1f3f256d65c227c2cdeafc1058f5c3c954eb",
+      "pair_sha256": "ba964365bf6dc24330732168cdbc297a397600452b36de32421e3aea645b6ae8",
+      "race_id": "20261106-14-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:59.126030+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:12:00+09:00",
+      "file_sha256": "964e885166e96fa87d2e813053217196cecd5cd4fe60f1cd700376dfd49e2fad",
+      "local_freeze_receipt_sha256": "051368d9082d800157dbf418b4a0111f48f9d8b3d4c1e62b48b5862e5d92e224",
+      "pair_sha256": "56d87eae0cf6bb6ef49422978dce094497fff8ef6b369eda9a539f49dd2ceb54",
+      "race_id": "20261106-17-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:59.362650+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:14:00+09:00",
+      "file_sha256": "8bce9354acd1d72cf265d93f9728a751f17917fb58e438790d366e40085b96fd",
+      "local_freeze_receipt_sha256": "c9eff1cbc21121c2fdb6cebadf19d77078a85056979a19f4a1bcd96ffc2919ed",
+      "pair_sha256": "dc5f76d7004d1b948dde6cfbbeb40febed8dadf9ac9b67dee1abe02d06e6127e",
+      "race_id": "20261106-23-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:59.469411+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:17:00+09:00",
+      "file_sha256": "51e685f5ce08b680bcd4177709ffea48f56f4af904ffe82660af1536d602bd47",
+      "local_freeze_receipt_sha256": "3684c1bb335875418755dda2ce89855ff442518d5aa617b8e48b59d860406ed0",
+      "pair_sha256": "62e417332002e3999e84d8eb557c5dd59f44c022a05da0d246dbd4823f503f80",
+      "race_id": "20261106-22-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:59.582271+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:20:00+09:00",
+      "file_sha256": "91ca2a3c7f2a3c7acb867993f0aefbce9112a2b4d5f1f44d9be134e12c8845c3",
+      "local_freeze_receipt_sha256": "f3caf692549e76cec7ebf53ec72bc853334b070d1018e230217d95d963d86c81",
+      "pair_sha256": "3a80c5b83d148c46d6dabe272305b78b11bc28357622a58229fa838ff675ce08",
+      "race_id": "20261106-11-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:59.684964+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:21:00+09:00",
+      "file_sha256": "b0dfe8a12520414d20997bb6714e36107c204e6b349ee35cc276b042289eb4bb",
+      "local_freeze_receipt_sha256": "22be62cc35415f11898e471bb6e91ab6d76b3a0373d2c86f426a39f9aee66dd3",
+      "pair_sha256": "59d2a7f356ceb57b9741029a49ddf63cc51997d90b03601bcd648a75c6ce6210",
+      "race_id": "20261106-05-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:59.782272+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:23:00+09:00",
+      "file_sha256": "f2adff42a276da3ba5aa10f8efa3763840e8762195519859760df78bfc815701",
+      "local_freeze_receipt_sha256": "41337a76626aa2c9dce22f8246138aadc46b8f66eb64e1e7716997ffa49c1038",
+      "pair_sha256": "25fdf8d51df3b899c7c9a4dd1c8db905cba3865547cc0df6b022b291e2a36d09",
+      "race_id": "20261106-08-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:59.891449+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:25:00+09:00",
+      "file_sha256": "d9d704c29da298266313d07b623ee4d62c795a7b6a5190e2eb0cede2549f4cb4",
+      "local_freeze_receipt_sha256": "1ce402de3f53cdac5f30485362368914a51c7c057e5ed4ee05116dfb2a013f77",
+      "pair_sha256": "60057bdd3153ac3f2c35d533486a249386c8ca5dc71a9b06a7bed3664fd29b92",
+      "race_id": "20261106-10-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:19:59.999796+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:27:00+09:00",
+      "file_sha256": "23da92c25e56ca529869ffdf58171816ccfc66639b3cd81bd1ae8a07ec85d2b2",
+      "local_freeze_receipt_sha256": "1db265295ec69955b38948153eb8e13344613499ac6e2acb0d1deb6860fef1d0",
+      "pair_sha256": "f9fe6e0ffc118008e59995648edbeee92dbc3bf6e3ed31275cd92568cec39951",
+      "race_id": "20261106-02-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:00.108546+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:30:00+09:00",
+      "file_sha256": "20e9339918092df26682615ee595e97f890cd77f285598a960ab354d160a9142",
+      "local_freeze_receipt_sha256": "1e3aeed678c2c5010626f22c2830d7c1a4f9315d9808f98aff57e02c0bc4a41c",
+      "pair_sha256": "b06a5b5f4983f10c93163d0e94220006e719497096278c6b322166e050f96eac",
+      "race_id": "20261106-03-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:00.214420+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:34:00+09:00",
+      "file_sha256": "4018798ae8800dedc3f0fa8afe41a011255fdcd2b74979f96100135a9885235d",
+      "local_freeze_receipt_sha256": "a364593d31886a00669e70510fc8dcd2f6e2a38f6065a2e1e7d36d669e7416f3",
+      "pair_sha256": "add88604c9e299d8beba0a064614488b920d05fa5f7d9bfd60dc99a467f6d383",
+      "race_id": "20261106-14-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:00.327896+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:42:00+09:00",
+      "file_sha256": "8cba7e3ed036056bef45da6fe73e1e35acf6a2f13b95195ca199ecb594fc4751",
+      "local_freeze_receipt_sha256": "093049c3660d2a375cfe8e849e3227a5ffbdd4752abb44605d2fbf020a32e6d9",
+      "pair_sha256": "de31adffdd7ffdfe73501f027e06ffe18b1bf996c69422c4d51161ec68b140ce",
+      "race_id": "20261106-17-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:00.448272+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:45:00+09:00",
+      "file_sha256": "d17298999471788f58a6a4b3ee6b51907d8af9f070f8b626085c66063a623372",
+      "local_freeze_receipt_sha256": "3e21a0edb8a4466ecb5dadbb69ec30004d78f8438700f41f40d89b4ba299fbe3",
+      "pair_sha256": "fdb1fe6ad796649a47d85c41d61e450f920c5be8d133781b19ba16217319dc89",
+      "race_id": "20261106-22-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:00.558441+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:48:00+09:00",
+      "file_sha256": "9cf0a1247053d0f785f983aaebdecfc3327a128bf660f6ba1871d94ee51e8d43",
+      "local_freeze_receipt_sha256": "3edb4d20d2b4667f1cc9115e3374c99a3092da6ab0a9adc3a4d9aef1c30ac1cb",
+      "pair_sha256": "7ee22ab5e74382004a3cb1ed365b29341f5fe1dd703a4770e58c50df24affbf8",
+      "race_id": "20261106-11-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:00.671839+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:52:00+09:00",
+      "file_sha256": "953afd35bc8ee25db4579021035bbfd97cf9f44458cb61d244cb870d0cfa8c98",
+      "local_freeze_receipt_sha256": "de3f1b915db52d56c7102db831ed77687376b46e03c6eab6abedb2e24fea65cd",
+      "pair_sha256": "61905c756facf3fd123c0c28a631cc0b2fd8164078946ad67e52d0dcc1a00f8e",
+      "race_id": "20261106-05-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:00.778166+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:57:00+09:00",
+      "file_sha256": "02fe0002ff8313fbcb27987b44d3f83432da15bd72abc715cf3f8c3f0406be54",
+      "local_freeze_receipt_sha256": "fc6e329d1154990d739b5bb7ec7ff9a37ccda3b2b21f4f559f94f10ab630d49b",
+      "pair_sha256": "9d821b43bbe1f45214611e3414f0c5a40222af36c18bbd6d545837b82fbad553",
+      "race_id": "20261106-02-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:00.885520+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:59:00+09:00",
+      "file_sha256": "41b68ba9f3bf0d26830359106f3f86705e8cd78a2a7ce49bc2b25a52750d1a7b",
+      "local_freeze_receipt_sha256": "f335c853ec24f367bbf5f49fe11e53d7c9bd3162046b9f623223d29a4abb8ab4",
+      "pair_sha256": "906cc8811fd923a65ac7c0bcca132039f299f3f3acdf0f58599e706eb3c021ec",
+      "race_id": "20261106-03-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:00.996320+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:01:00+09:00",
+      "file_sha256": "48f230f646a123c3bc3a17e2a64590f32fa2bca331a5d72aea0a0a3cb20933d1",
+      "local_freeze_receipt_sha256": "1cfd89068139ccb02c6c4bbb37857f59d6127c4941b4742ca8c5fd7006fb7640",
+      "pair_sha256": "1b4fa0bbb0438d335f13c7e29ddcd134797fc8b36022daf3ad5a8c8f31e5aef9",
+      "race_id": "20261106-08-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:01.103339+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:05:00+09:00",
+      "file_sha256": "9061a0d3666931c2e6ea953acd6647b4585d3bb855c4404efd9f4d85dbb4b43b",
+      "local_freeze_receipt_sha256": "a3e55628ce23b248509899b19f8f9fa2131b18467572d5041ea8fd225d447803",
+      "pair_sha256": "bcaf4ac1dcab71cfbef5dfada50b506dd03b91a8117e0be459de70f108e873dc",
+      "race_id": "20261106-14-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:01.206328+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:11:00+09:00",
+      "file_sha256": "c95b68d4ff833b9fdbc8a773cc828c8dae0c0ef6a5d0a965eb2b0406ce5d5943",
+      "local_freeze_receipt_sha256": "0119a8ec81fffcb3e3d761685a87c0b55e116735fae9fdca06f9a81a8da2c55b",
+      "pair_sha256": "c20e8cfe0fe38c09dc45eba819816a906e5ceb05adaf9ebb48189b8c80ec7b9a",
+      "race_id": "20261106-22-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:01.311596+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:17:00+09:00",
+      "file_sha256": "f19616f745882a0c76a7ea3f8c62bf176ae6afdb7bebd7d98ce95d3980931571",
+      "local_freeze_receipt_sha256": "53cb1654d96213429d20e7cd4d73cf3b5fbe9fa633d02f7261e6c0ec52a88feb",
+      "pair_sha256": "799fe0fa24af8f1d8bf48c24a19b0fded941d48d071d71423e26ad268e81d0ba",
+      "race_id": "20261106-12-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:01.421141+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:20:00+09:00",
+      "file_sha256": "9c0b6f56e25fd52c99c1f0c3908c737551b37abe4c53e152884b9259474f3750",
+      "local_freeze_receipt_sha256": "fb35a39b62775543eab2d4f0ea538382b05e0ff812a1e63f85c2e45fdb8f6a7b",
+      "pair_sha256": "c92fc5401ca8d164aef51c6efe5d2ab2320a20c61a6746e29dc07f4406e31ba4",
+      "race_id": "20261106-01-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:01.554616+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:21:00+09:00",
+      "file_sha256": "854a7e393b5cce68a870f099e8637e21cdd5cb55e7b2de573842531bd4f3cb95",
+      "local_freeze_receipt_sha256": "0024e5abb10a5cab9c4442b46cc28ab9f4d72a7f5e36b4432e17f81e08d60279",
+      "pair_sha256": "e6e48fad7a6dcde55adcf675ef895b8039be77a0bf1519a1235d2d6ddd12c157",
+      "race_id": "20261106-15-01",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:01.656657+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:23:00+09:00",
+      "file_sha256": "e21b28d719bfff97563656cf072802aa1fd517757ddc019b2469122b9978de48",
+      "local_freeze_receipt_sha256": "59b7b4cc7d0b3eb6a3c0bf35c1cf73acfdc15ab92ed547e5220a5577849bae41",
+      "pair_sha256": "33708bcd40da213ab84cf80e4f1551868b5aac728526aa710a05ab5010e3272a",
+      "race_id": "20261106-11-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:01.758173+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:24:00+09:00",
+      "file_sha256": "13140b9391a90674cbb46931ca4d09c4d63ab0da5bb2f15f9b46a3370c0dd1a6",
+      "local_freeze_receipt_sha256": "6ce5bfb6e14b00f9f8a2ee81fb8c57b02351b9c0c6b9b1da78d054964cd13274",
+      "pair_sha256": "a01d951926249a7f2962079e7fc4bbbbcad94c83951f1cde6b45753dfc5fafc5",
+      "race_id": "20261106-05-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:01.872325+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:28:00+09:00",
+      "file_sha256": "602e48436f4104a3e484112ac7f2c5cfccdea0882f3e1c9c49c50ae906c93b56",
+      "local_freeze_receipt_sha256": "b01687c63247512fc6df1f4110f13d9cd4ac913dbc5f80e2a545e4dbe330dc09",
+      "pair_sha256": "2a851f8c2be61fbd827e5ca8acdf6a54c705a98fc55e148e5789a6b0b9bbc899",
+      "race_id": "20261106-02-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:01.978109+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:29:00+09:00",
+      "file_sha256": "0721d606200237ac59a034e773479ca5b43a1d871987fb33689d3f167cc3c4ec",
+      "local_freeze_receipt_sha256": "2b9c9d8a55ed9d899df91d79649a4ecaa197dc9ab39fa9d7dd818dce91657c6a",
+      "pair_sha256": "43dd83914586fd13e35b34fdc7394690b0b24260afd37f32e9cb1584b3c34665",
+      "race_id": "20261106-03-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:02.085825+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:32:00+09:00",
+      "file_sha256": "b6b26461085435ab469bf02b260195c1c47e7e0affa43dcf85d42ab7499e0b95",
+      "local_freeze_receipt_sha256": "8eeddb04a5f8cc8f1798baf0d60d2f42e92d5ed088a7a8a94585064f5bc25991",
+      "pair_sha256": "14a516249f38e4ff088e3902d465a8e92b16d5325d2e6936f6d8b3f402271c7d",
+      "race_id": "20261106-17-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:02.185633+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:34:00+09:00",
+      "file_sha256": "67c85cd3b3b086b5536a5630c91e8c5e84edc4283b56180c182ee5fbbb79678c",
+      "local_freeze_receipt_sha256": "461c82d9072b5c4904de7eeb2712ef05bf80e8628fbe040e57a0c1b7ca98ec6a",
+      "pair_sha256": "c338c1a742c71b717d1cb1260e2d4c661cbdbf7b441e2184f61e56a48e0c420c",
+      "race_id": "20261106-08-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:02.283166+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:39:00+09:00",
+      "file_sha256": "c417c866a0665abd70fc09c4036e7724b856f82237493f81557c950538d27ab0",
+      "local_freeze_receipt_sha256": "f96f40d72f85dc78c8f8221710691a2a69ad801d307f10ed32e371ed794537e8",
+      "pair_sha256": "41d4109132473fc202aac39c25b586303b5f76664cae897f814fa1c09d79c92d",
+      "race_id": "20261106-14-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:02.406996+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:43:00+09:00",
+      "file_sha256": "6b32147d94dd2d18d25f0a036344f2913f7f034d3c4ef479f549c58856966933",
+      "local_freeze_receipt_sha256": "49c89f9bd26767086f00584c4f2fe0360781983298f95a935a4826a7099fd82f",
+      "pair_sha256": "00bdd1900fc4fd9a6f21dcd0f0aa4cfad96f1e75fd0d2a932bb7bb3527195453",
+      "race_id": "20261106-22-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:02.516962+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:45:00+09:00",
+      "file_sha256": "be5cc267557b5063e0ea391945d8f6ec175f9476982fff78964686c0c9c62777",
+      "local_freeze_receipt_sha256": "ecbd0872a666abe8b2c04bc544f2a6da5d109737c546d829009ffa3508d1a62b",
+      "pair_sha256": "2ea5b15576ea75539ba94552449bf0d4d0e88e71ed59229b7c2c2550afc1fe99",
+      "race_id": "20261106-01-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:02.626364+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:47:00+09:00",
+      "file_sha256": "35d9c3a8312f6a2bbbcd2b84220aa4fb2b4f397be5afe4ce53ec8bb8b3cea308",
+      "local_freeze_receipt_sha256": "650cf27e2c18584a995f86f8878ed22fc9b78a857dc817f9ecc932d1e7878bd0",
+      "pair_sha256": "126de8f7ff36f0b3eaaac527b53c09ba1390a5f8c0a9d296ade69a3beef291ee",
+      "race_id": "20261106-15-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:02.728523+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:51:00+09:00",
+      "file_sha256": "5f81f1110962acb73552465da217d4eac0d6d15b2683c4aefa999654d1c229b5",
+      "local_freeze_receipt_sha256": "be85ca9912c5d11f6cf26e1529d123c9cc83b1f0b8a193167dea2aacd379be18",
+      "pair_sha256": "850b2742d617b78dc6d3e84bbff18fb07bb581ccbea289d8669684bd83c81234",
+      "race_id": "20261106-12-02",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:02.840707+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:58:00+09:00",
+      "file_sha256": "b3b72bb0736e11d555a8831b5e78d66dfe070ab18283ab7be88e78b7e6b67d56",
+      "local_freeze_receipt_sha256": "e75063e615e564a29a59cbed17a7666406471a4539e703c7582b162f78b5a845",
+      "pair_sha256": "8b402050111f8cdb115c30af30f66800fda4c33e9dc3e2b431f2efe7ddd21177",
+      "race_id": "20261106-11-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:02.953998+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:00:00+09:00",
+      "file_sha256": "d56f4103faa93ae7a8a1851856d11da84387cdf00c2cc55151ef8e1ff35ca8c2",
+      "local_freeze_receipt_sha256": "8234811eef26551b9b27286afbf5719b20269209b36981f6a03fce720a9c3d79",
+      "pair_sha256": "478c724046b2dc9ba922aa2232266280b52cd443b05b64fc052928ee3e160631",
+      "race_id": "20261106-02-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:03.069551+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:00:00+09:00",
+      "file_sha256": "220687df6f36ac91b032dd1e1c00ef7a122234ce63e837539246779943656f74",
+      "local_freeze_receipt_sha256": "b78fa1d25e911e3c89beecadafd0818cbbc9da813e6b62d6d1605c999a88d1ee",
+      "pair_sha256": "7e4ee1011dc66f47fd5f9d5f2a97451a7dc4eef0b5992af12b9bfc753e4fb5b1",
+      "race_id": "20261106-03-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:03.181454+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:03:00+09:00",
+      "file_sha256": "c292d391246860f35a71dcccdd852c9c6e1f668b63a2c0996c4803b3d0878d86",
+      "local_freeze_receipt_sha256": "9843fff98ab971433249a86b18bead4c77f1d361d9ad186ee244f618e3349527",
+      "pair_sha256": "dc9b32bb82828b1f603ed2c2ec7e90db807ca159194c0a1e3511c59cb857d87e",
+      "race_id": "20261106-05-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:03.287436+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:08:00+09:00",
+      "file_sha256": "368f8a35dbe8d50c5f156e538f775250c371ed10dda768d0d290d196765d7dab",
+      "local_freeze_receipt_sha256": "21e72332fbbf419771a47f29ce85af1108e28bf2bfed320086d7029c5a3e7527",
+      "pair_sha256": "ceedad05970b843d67cfd0197c088cdb127552a5f15a6c373b7d38ca82cb78d9",
+      "race_id": "20261106-08-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:03.399467+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:10:00+09:00",
+      "file_sha256": "fc0883a0a1418989580db794ea85ca498f8c5e2a171cd67354494b869150c2e5",
+      "local_freeze_receipt_sha256": "37fcc06dbb45f74ceeb45a0b367c3782e581cbeaa4e23ce79b8cabec92967b0a",
+      "pair_sha256": "63d2b74460dafd33694263b13690521cc9e0e9e7458d4f97249a20efb8f711b1",
+      "race_id": "20261106-01-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:03.511333+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:12:00+09:00",
+      "file_sha256": "d2044ecd35f8f142fea4df69eff9de59d6c565ed9b410d5a168d60023e7524b2",
+      "local_freeze_receipt_sha256": "f84b7cf6777f0604f4a4ad74ce10bad7cf6e96f2e21a55c77c5a48d0ec48c223",
+      "pair_sha256": "e1fbd6ff48e333aaff72e7521a54d45bf0341ffb7f852505a858afc62d3276c7",
+      "race_id": "20261106-15-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:03.629465+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:15:00+09:00",
+      "file_sha256": "9ef68f1057eb5a531693791e1a29a07478f5c7477f03e23164fec1b95cb23ea5",
+      "local_freeze_receipt_sha256": "dbfe7e201a08cab2ce11548ea5808b0a8385063eb9da94f6c6deb408d96c81f1",
+      "pair_sha256": "d39e93da4a477d91648715aa599c6489d33f1d407ce059f7383fdc8e72e0bba2",
+      "race_id": "20261106-14-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:03.880893+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:21:00+09:00",
+      "file_sha256": "9e834fbec1da3252383086c764e5cf8eebeb53661635f00599a7c4cac15735a1",
+      "local_freeze_receipt_sha256": "42712a4d0fb6c11849cc2a850ed667937f4842b9879cce92fce7b6fe9fe2afd0",
+      "pair_sha256": "bdb10dd8ca5c86e380d9dc0fb45a6ec8888c291bcb1f981271ae5c1712219ef2",
+      "race_id": "20261106-22-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:03.995328+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:27:00+09:00",
+      "file_sha256": "143b4128e381a0436d168b2deab0bbb3778327df6b5183eaa6aa92850bee10a8",
+      "local_freeze_receipt_sha256": "bb9125462b02a3efde27148dbebf090bb80604ce0ffa5808249e9871da7587ce",
+      "pair_sha256": "552d2f767eb5fe6b7e8fea86be9bab0e5ecbd259279dd9c4ac743e1e904a3662",
+      "race_id": "20261106-12-03",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:04.106349+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:35:00+09:00",
+      "file_sha256": "c6cde88f5430bc0c28382d6670f57634e4b009d7390f136c5ea5a3b8e13c51ed",
+      "local_freeze_receipt_sha256": "5b02d62a39a53513957405ab2f14449c66a02c8796197164f83bfd6c8e1ac9a4",
+      "pair_sha256": "2ca0889932f4881488d35b5f3732236933beb2a6be6810e2a6561e2b927a24e5",
+      "race_id": "20261106-01-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:04.209948+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:43:00+09:00",
+      "file_sha256": "da06afcc1f42b37d5acb1ac4715d986c4c26b229b17ef5b930c47706c2e26f77",
+      "local_freeze_receipt_sha256": "9016bd7d631953048ec5a4d22c872a7b2bdb9ffeccf3e9b60000852190371e6a",
+      "pair_sha256": "2a16802eae5ec1d806209b79d097606f5455723913e3a9b1364351a5d7a2eb5d",
+      "race_id": "20261106-15-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:04.314041+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:52:00+09:00",
+      "file_sha256": "f83725813fa96f716887d176c4283dba20475f14b3914a23f2518b1d0398303b",
+      "local_freeze_receipt_sha256": "5f96cc782d20b52df0429eb0e0242f3bc163df42b8182d90c0ea3fd5c842d445",
+      "pair_sha256": "e9bf76f0df641dce0bc48146a82cc1fcd3dab9bf3bae7190cac8bf401e649995",
+      "race_id": "20261106-12-04",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:04.419145+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:01:00+09:00",
+      "file_sha256": "ed93505df8dfe28a81cdb0dc3f10f8cd52b43b4b8ac1e23d37a99d86456212c5",
+      "local_freeze_receipt_sha256": "e2ca2af92e9385373cf4766e0588f34d91eb4b9a1a5485e54fb5fdd7dcf439ca",
+      "pair_sha256": "b28af45567adadd8c90dfb0a4cedde81a6a93595fea1d0bd8b8f32c32e767752",
+      "race_id": "20261106-01-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:04.528358+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:10:00+09:00",
+      "file_sha256": "10e1241551e8e65b4c254240b6656f15f52a6b021bf0f1014326e38345f9f236",
+      "local_freeze_receipt_sha256": "204432fb4394880c0b72d04000852217de2d2e4c5265d23d7ffcdfbf9f5bf820",
+      "pair_sha256": "c41c225a8d5e7a6acbb791bbfc79f0838e53ecf1866b3f67b1237acaa8898872",
+      "race_id": "20261106-15-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:04.632993+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:19:00+09:00",
+      "file_sha256": "48bcc4808a1e4ba0f233b831a5e35ff2d5734ba18272e3839b9cf961b0175cbc",
+      "local_freeze_receipt_sha256": "9d9f746b41fe91efccb1e5b7625ac485f77140cbb8c34a866e4df89b9904bf0c",
+      "pair_sha256": "2b3779a5f3ac1f64f6f4731dbcdb66accf55419f27dbb3199c43075f4bdbbc91",
+      "race_id": "20261106-12-05",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:04.736996+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:28:00+09:00",
+      "file_sha256": "69c48f2787641e690851ef56d0a594ab5409f50babb1611bcf523e0f235f9bc1",
+      "local_freeze_receipt_sha256": "f36e081ab589049b084dffb3f927e6277fb4b2202d3aec3d7cb390613154560e",
+      "pair_sha256": "ef867562830ccd6ad06cadb7e330d4f57c96ad33b27580fb1eaa499d61e99250",
+      "race_id": "20261106-01-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:04.842768+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:37:00+09:00",
+      "file_sha256": "35361403a36e12469ec2ff64cadb351d7a934c93360e9b6e4044a23b684b8799",
+      "local_freeze_receipt_sha256": "f9f1c5ae2f5914fedadb9791e1b07298ce5a39c3e83ba695fe8901c3a74cde0b",
+      "pair_sha256": "bd8cba5b6511d89c65e2199c28c48f7f80d5bbce76487fb4714a02d7e2342482",
+      "race_id": "20261106-15-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:04.949408+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:46:00+09:00",
+      "file_sha256": "8ff57f64a73e1c8dfc742e4d68a66a858f20bb9318cdda2064aaf7fce98d8760",
+      "local_freeze_receipt_sha256": "7280e1f6f3c2c03c84745a4bb452aec5dce6b397648008d426cea5f5a466a9fe",
+      "pair_sha256": "f24796619a65ae244ffdcbf28ad01ff8433b911bb6627552eebeef3133f9b26f",
+      "race_id": "20261106-12-06",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:05.055957+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:55:00+09:00",
+      "file_sha256": "ba2c84248e75333779d963ed6b410e28702d288b30ca792dbdee4c67d6b8eb23",
+      "local_freeze_receipt_sha256": "4f7b0f1dd8782ace9e7c7b9642b5ba62d9d59aee1fdb6338975cce6b31df6a45",
+      "pair_sha256": "be98c91b93ccdc5b21434cdbc6e70a1f57d6944acc7c5a4d88aaf49d4b52f8b4",
+      "race_id": "20261106-01-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:05.171750+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T18:04:00+09:00",
+      "file_sha256": "c05a7aea9479a701e102c132a097221bd1f4c17f5cca3fdca984052df78c60ce",
+      "local_freeze_receipt_sha256": "82f8f502aace58e861f0bbe917237b9825ab13a69f7d30745e4cc0bfd5535258",
+      "pair_sha256": "66411a5da50058ede106636513e2dbb9bac064ea45de9572b1e86aa3c02a0afa",
+      "race_id": "20261106-15-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:05.272739+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T18:13:00+09:00",
+      "file_sha256": "663e4ff52abb41b2b68f18642b6f8550bc4ae9903bc685f8308d9b2195b4b863",
+      "local_freeze_receipt_sha256": "74b5d0a326a664673f15b16790faf70d3bbb8aaacdc9e67d7c8778fafeb01c1d",
+      "pair_sha256": "6f779b9a3f5c628efd783dea75f25d8d64b26819041fa3f279fc96bbc74de1f0",
+      "race_id": "20261106-12-07",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:05.384746+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T18:23:00+09:00",
+      "file_sha256": "89914d8195c55ea6fd7ad43cc744a0477bb7e763fca39639bef38dacf7b46f87",
+      "local_freeze_receipt_sha256": "4d1b6b89468360270c08c248d21cd72619d8d8c090bf1ce75b0a5279dc29c558",
+      "pair_sha256": "5198e07d264d0895df38df21d5edf567f09e09b79c84614d6addb1e665d2b149",
+      "race_id": "20261106-01-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:05.497609+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T18:33:00+09:00",
+      "file_sha256": "4c690ee2a72d688c0ebee85c229338a84b9279e53898ba2b65b939c8d1e16251",
+      "local_freeze_receipt_sha256": "b718ecbf400229283db764bbd056a198eaff8ff75552adb3a2660e03d5a62e98",
+      "pair_sha256": "c0084ac7593b9832bb32b73c0fa2aaca5c04d5d16b10ebea5995d4d541a06b9a",
+      "race_id": "20261106-15-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:05.611485+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T18:43:00+09:00",
+      "file_sha256": "fef626d679bf376284bc22eb847de2587070a09a41a59ad5bcbe52bebdc63d9b",
+      "local_freeze_receipt_sha256": "93be0ba1118462e19c1255dddd96241b7e32e0f59a5aeaf3d8c8b1233ea5784d",
+      "pair_sha256": "a2848f1e2d02653c44ec1a7bd0a3cb40927baa8a94d8607377db35584e69dda3",
+      "race_id": "20261106-12-08",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:05.725910+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T18:54:00+09:00",
+      "file_sha256": "507a5fd710123424e5416b6832072c0bef9abf29a617ce75ad0854ddd392eedc",
+      "local_freeze_receipt_sha256": "df5a24edf433e50081fe318376657d6a33de03580117037d24e1e0dad8717d7a",
+      "pair_sha256": "8b242f6f0824398be9cc49ce0bdf3efd3aa3e8fb6e52fc2ef2829ed3e9f90363",
+      "race_id": "20261106-01-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:05.840726+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:04:00+09:00",
+      "file_sha256": "8d04ab32dcd7b826613f334e842f6a6c64a165ce8fe655a8390d36d0dc58a053",
+      "local_freeze_receipt_sha256": "d5699e6922fdb4fd2933158ff19e7b3ed828bba03e5a4210dbbfd005727ee2d4",
+      "pair_sha256": "6d67387cdf63e52c762431a15cbb12d66c5d347797453a7a7ef75036aaf16431",
+      "race_id": "20261106-15-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:05.965319+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:14:00+09:00",
+      "file_sha256": "22b0a147c2083cb867c473f41a133c8ac95cb3975e2a88d0d6e03ac8ae264391",
+      "local_freeze_receipt_sha256": "07b4bb6daca393ef2d399c809ef271b478d811513741ed71f951297bb25143d3",
+      "pair_sha256": "799c9b8b8dc23f4b01316471a1587f27af6cae980fe1d4e3d1a0b5ffc0993be8",
+      "race_id": "20261106-12-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:06.076713+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:25:00+09:00",
+      "file_sha256": "b9a38e2b59c30f3b122e895cc85e842130fe30df8202918424822c15a7f6030e",
+      "local_freeze_receipt_sha256": "8ae05246959cd14b9a9341d02d1c5990dfb54d5cbdab2e0c685f9d285157e999",
+      "pair_sha256": "a0d4cb61dee95afdc96a555648fa4ab310e71d7ec46f249cb448fc10d5cbad4d",
+      "race_id": "20261106-01-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:06.186688+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:36:00+09:00",
+      "file_sha256": "32adae0bc8a12f79d6731ea6bc731b4d2320658636cec7acf8fbcbac23dd5958",
+      "local_freeze_receipt_sha256": "e4bdc0a7eeabbaf172b19117beffc9709c55325276c231698a4548e41b0ef1ee",
+      "pair_sha256": "45753deb7b22a6b088733f74028b532f88838b51e53c8eb3ccdbdc5a0d811148",
+      "race_id": "20261106-15-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:06.292532+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:47:00+09:00",
+      "file_sha256": "3a3d87f7179a0581144fd563e57c5b87ef9cdda4f56b57a31fcf90e363177f11",
+      "local_freeze_receipt_sha256": "ab86bff78b6381fc7a559ad47ce7c3c22ba4dab35810d009ac814d38512716e4",
+      "pair_sha256": "db5d75b1587357e94958e9c5e57831e03edaa3d71b1b9f28a52c4d7b4ce2d6f1",
+      "race_id": "20261106-12-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:06.399612+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:58:00+09:00",
+      "file_sha256": "1d67c945c4aa738b2ff012688864ef7c9b6421cad72dde20181bf3f73d5303d2",
+      "local_freeze_receipt_sha256": "2688fe7072bdc0214cd871c1c5954c25c6027394879454bef7a6cba635b569f3",
+      "pair_sha256": "db05a3af879908f44eb4e6154db5748826980926be1809965649004ce9a59979",
+      "race_id": "20261106-01-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:06.498631+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T20:07:00+09:00",
+      "file_sha256": "08e70205aa9f64ccd045ac2cc3dffafe2c08297b0f4a2bd842a61ab3f3520037",
+      "local_freeze_receipt_sha256": "f3fbefe10d5d1f3767363d06cf20091b49a77440a0d59307c679e61828e4040c",
+      "pair_sha256": "bf5535b156567bed78e1b225cb94343a9e6dc5831d76f0a5ea3c11c8441ef2eb",
+      "race_id": "20261106-15-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:06.615787+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T20:16:00+09:00",
+      "file_sha256": "0a1f3360bafdd4c357ede69ac3abee0bbc0c7c7c725309959533b8fe6a49a30b",
+      "local_freeze_receipt_sha256": "0e8c74c14acedc70f54b8d597b9b2c9c0ac61e846015267979379cf9f0c30334",
+      "pair_sha256": "95d2e1c9c8ee38b193ed86183f4855bac7399dae482b1a0fa7c98057197b322f",
+      "race_id": "20261106-12-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:06.719890+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T20:30:00+09:00",
+      "file_sha256": "278c17948e9571def1470cf8c35403c91379d3fd0bc51d5dd87e437d23399429",
+      "local_freeze_receipt_sha256": "67065ff0879b7acdf472d311cde3b006e553fb7a538552bff16c1ace9f407788",
+      "pair_sha256": "d4ff73b198511c3e07df9667abcb3d2d9faa43d19251c183a282e04a1b06df54",
+      "race_id": "20261106-01-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:06.827030+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T20:38:00+09:00",
+      "file_sha256": "0bb1144ff0ca4e5932eae06a979b12d7cbad1fb983b691ec9f5312da4f63a462",
+      "local_freeze_receipt_sha256": "71174f66afb1a49a49bed36f565f219a907307c500d5807bfa4f895122f04f31",
+      "pair_sha256": "5b3a93078cf7f4cdcbbab0db66950af9963c457ef37eb794da8fa8324e1b9e2b",
+      "race_id": "20261106-15-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:06.933103+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T20:45:00+09:00",
+      "file_sha256": "aa8bad9e32c387c82c8598a8b519986915a0576176e5bc8017ca738f085deab7",
+      "local_freeze_receipt_sha256": "8c0e40e54169abcc3742671da3957c5a101b565ca69a5e491ed3c8f8988f653c",
+      "pair_sha256": "6213bc4f660ca78bebf6f15c8e93706b05903d09e434db2ac7c394d9da81d1c0",
+      "race_id": "20261106-12-12",
+      "stage": "P0",
+      "write_completed_at": "2026-11-05T22:20:07.040460+00:00"
+    }
+  ],
+  "exact_ticket_count": 8,
+  "feature_calculation": "observed_result_history._features_shared_with_teiai_feature_adapter",
+  "history_coverage": {
+    "participants_with_recent_finish": 468,
+    "participants_with_recent_st": 897
+  },
+  "history_fields": [
+    "recent_mean_finish",
+    "recent_mean_st"
+  ],
+  "independent_pre_cutoff_receipt_verified": false,
+  "information_as_of": "2026-11-05T22:19:44.826598+00:00",
+  "input_variants": 2,
+  "local_freeze_completed_at": "2026-11-05T22:20:07.040460+00:00",
+  "model_families": 2,
+  "prepared_races": 156,
+  "private_zip_sha256": "0512dd0b4b361f624d37015509d13055a82c031103f60b2df7fc789e9a22096c",
+  "protocol_sha256": "48287bd1f14bef90afb0e1ec6fa933d0742bbfa7a51243394f29afbf7f85d48b",
+  "research_forecasts": 624,
+  "research_only": true,
+  "scheduled_races": 156,
+  "schema": "RACE_AI_RESEARCH_PAIRS_SHA_ONLY_V2"
+}

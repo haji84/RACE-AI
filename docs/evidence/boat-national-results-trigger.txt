@@ -1,0 +1,56 @@
+2026-11-03 JST after all three original nationwide races closed (13:11 Miyajima7R, 13:12 Heiwajima6R, 13:16 Fukuoka6R). Compare against externally frozen GitHub Actions 41575766782 artifact 13202833722, server created 13:03:20; no retroactive A/B changes; official-only result and >=10000-yen misses; no Vercel.
+
+2026-11-03 13:24 JST: independent post-close official recheck of earlier source-confirmed Miyajima7R, Heiwajima6R and Fukuoka6R, fixed original GH artifact unchanged. No new predictions or Vercel.
+
+2026-11-03 13:22 JST scheduled recheck: read-only official individual result after 13:18 pending; same GitHub original 41575766782, no frozen forecast update, no score on pending; bounded <=6 official GET. 
+
+Canonical handoff follow-through, 2026-11-03: verify original archives for all three registered national batches and check officially settled results; preserve refund, pending and unverified states. No model changes or retrospective forecasts.
+
+Reconciliation: earliest receipt takes precedence for Heiwajima 7R. Only the recovered 13:24 and unresolved 13:35 batches need further evaluation. Do not count any race twice.
+only_artifacts=13204251708,13204793279
+
+2026-11-03 14:31 JST only previously pending/uncertain official results on verified original batches; preserve earliest independent receipt and append-only evidence, no duplicate scores; 6 official GET per batch.
+only_artifacts=13204251708,13204793279
+
+2026-11-03 15:44 JST: one-shot independent original-readback official-result audit for 14:32 JST 2-race batch only (平和島9R, 福岡9R), compare official finish status/abnormal/return, no post-result prediction changes or repeat counts; cohort totals only after official verification.
+only_artifacts=13206788773
+
+2026-11-03 JST classification correction revision: previous 2-race result audit labeled a completed 3T as ordinary despite non-finisher statuses (Fukuoka9R 転/妨). Re-audit unchanged frozen original, preserve all old evidence as append-only, separate abnormal-finish from ordinary A/B denominators; no new forecast.
+only_artifacts=13206788773
+
+2026-11-03 JST exceptional outcome reclassification review: re-audit earliest Heiwajima7R receipt in frozen 13204251708 alongside its two original batchmates. Previous selected-13 cohort included 5号艇 落 despite no 3T refund. Correct audit revision labels nonfinisher separately without re-scoring or changing old frozen models; preserve original receipts.
+only_artifacts=13204251708
+
+2026-11-03 15:49 JST independent new three-race national freeze original result check after all cutoffs+90sec: 平和島11R / 桐生2R / 丸亀2R. Exact 15:38:44Z GitHub original/JSON/ZIP SHA must match. Official result unpublished remains pending; abnormal finish separate; no post-outcome rerank, no duplicate scoring.
+only_artifacts=13210132613
+
+2026-11-03 16:19 JST independent recheck of three 15:38-frozen races after official payout results became visible (平和島11R 5-1-4, 桐生2R 1-2-6, 丸亀2R 1-2-3); preserve normal vs abnormal, six-boats and current official cutoff identity; previous 15:49 result artifact was pending/safe stop and is not scored or deleted. Max six official GET; no rerank, no overlap.
+only_artifacts=13210132613
+
+2026-11-03 JST owner accuracy-improvement cycle: audit only the as-yet-unscored 16:16:40 JST original batch (Omura3R/Fukuoka12R). Verify original ZIP/JSON, earliest receipt and final official settlement; do not regenerate forecasts. C-lite frozen in the same original is a separately evaluated research challenger, never replace A/B. At most four official GET for two races. Keep exceptional and missing outcomes explicit.
+only_artifacts=13211344716
+
+2026-11-03 17:37 JST additive C-lite scoring revision: prove the new frozen-shadow comparison on the last two complete original batches, five identical pre-cutoff races. This is NOT five new official results and NOT five new forecasts. Earlier A/B result records are already known; preserve them and deduplicate cumulative reporting. Reconfirm official source identity (ten GET total) while adding previously unreported C-lite scores and factual miss flags. No coefficient fitting, result-fed reranking, model promotion, public raw predictions, or any new freeze. Correct original first-batch server time is 06:38:44Z = 15:38:44 JST.
+only_artifacts=13210132613,13211344716
+
+2026-11-03 18:43 JST one-shot: audit previously frozen 17:38:23 JST Omura 6R (20261103-24-06), original artifact 13216650196. Verify exact original ZIP/JSON and external preclose receipt, individual settled official result/6-finishers/refund; A/B/C-lite separate. Append-only, no refreeze, no market-input, no duplicate score; max 2 official GET.
+only_artifacts=13216650196
+
+2026-11-03 19:16 JST independent one-shot first result check for already frozen Kiryu 9R (race_id 20261103-01-09), original artifact 13220026930 created 18:44:46 JST before 18:55 official cutoff. Recheck resultlist AND racerresult; official not published stays pending. Validate 6 finishers, trifecta payout, refunds/abnormality before A/B/C-lite grading. No rerank, duplicate, original change or unverified hit. Only this batch; <=2 source GET.
+only_artifacts=13220026930
+
+2026-11-03 20:30 JST single independent official-result check of already frozen Kiryu10R 20261103-01-10, original run 41617511245 / artifact 13220834629 (19:14:12 JST receipt vs 19:23 cutoff). Validate original ZIP/JSON and first receipt, official six finishers, refunds/abnormal and trifecta, A/B and separate C-lite. No changes to past predictions; <=2 official GET. Previous Kiryu9R is not new.
+only_artifacts=13220834629
+
+2026-11-03 21:53 JST one-shot final-day result audit for already frozen 20:31:23 JST paired original artifact 13227136203 only: Marugame12R (20261103-15-12, cutoff 20:38) and Omura12R (20261103-24-12, cutoff 20:45). Before any score, reread external GitHub receipt and exact ZIP/JSON hashes, then independent official six-finisher outcome, 3T payout, refund/special statuses. A/B and separately frozen C-lite, no rerank, no double counting, no new predictions, no model update. Any not final or source error stays pending. <=4 official GET total.
+only_artifacts=13227136203
+
+
+2026-11-04 01:xx JST D+1 strictly bounded historical official result recheck, with original 2026-11-03 batch 13204251708 only (first Heiwajima7R receipt plus Miyajima8R and Tokuyama11R). Exact GitHub pre-cutoff original ZIP/JSON SHA and earliest receipt remain mandatory; check original six finishers, 3T, refund, special state, no retargeted pre-close predictions, no extra scored unique result counts. Date gate now permits historical result identity after JST rollover without changing official cutoff. <=6 official GET, stop on source restrictions/4xx. No main/public/deployment/charge/wager.
+only_artifacts=13204251708
+
+
+2026-11-04 03:33 JST bounded D+1 verification after cross-day roster correction: recheck ONLY existing original artifact 13204251708 (Miyajima8R, Tokuyama11R, earliest Heiwajima7R). Original ZIP/JSON/receipt SHA and first receipt must match. Previous run 41675366137 yielded three SourceError safe stops, not scored; this is one post-fix verification attempt, not three new race results. Require individual official racerresult 6 entrants, refund/abnormal/payout before scoring; 4xx or source ambiguity safe stop, no retry. Do not modify original, index, frozen models, PR64 or unresolved nonce; no cumulative re-add.
+only_artifacts=13204251708
+2026-11-04 09:22 JST individual independent result replay of previously frozen 三国1R original 13280958753, 3号艇転 special result; preserve original and do not count as normal; no rePOST
+only_artifacts=13280958753

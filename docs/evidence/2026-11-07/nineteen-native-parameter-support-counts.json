@@ -1,0 +1,165 @@
+{
+  "accuracy_improvement_proven": false,
+  "artifact_id": 13565954830,
+  "default_registry_sha256": "07da538c97be334845f268a10fb0d7676d3b2cdcd7a3a922b0f7d7d798aaf3f6",
+  "model_count": 19,
+  "models": {
+    "boat/boat-comprehensive-v1": {
+      "changed_parameter_count": 7,
+      "holdout_races": 2,
+      "parameter_count": 8,
+      "supported_parameter_count": 8,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/boat-course-entry-method-scenarios-v0.1-UNTRAINED": {
+      "changed_parameter_count": 7,
+      "holdout_races": 2,
+      "parameter_count": 8,
+      "supported_parameter_count": 8,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/boat-course-motor-shadow-v0.1-UNTRAINED": {
+      "changed_parameter_count": 9,
+      "holdout_races": 2,
+      "parameter_count": 9,
+      "supported_parameter_count": 9,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/boat-display-rating-PL-reference-v1-UNVALIDATED": {
+      "changed_parameter_count": 2,
+      "holdout_races": 2,
+      "parameter_count": 2,
+      "supported_parameter_count": 2,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/boat-local-start-course-shadow-v0.1-UNTRAINED": {
+      "changed_parameter_count": 12,
+      "holdout_races": 2,
+      "parameter_count": 12,
+      "supported_parameter_count": 12,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/boat-observed-pairwise-factor-v1": {
+      "changed_parameter_count": 6,
+      "holdout_races": 2,
+      "parameter_count": 8,
+      "supported_parameter_count": 6,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/boat-observed-pairwise-start-v1": {
+      "changed_parameter_count": 6,
+      "holdout_races": 2,
+      "parameter_count": 8,
+      "supported_parameter_count": 6,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/boat-pdca-lane-shadow-v1": {
+      "changed_parameter_count": 1,
+      "holdout_races": 2,
+      "parameter_count": 1,
+      "supported_parameter_count": 1,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/boat-scenario-mixture-v1": {
+      "changed_parameter_count": 25,
+      "holdout_races": 2,
+      "parameter_count": 26,
+      "supported_parameter_count": 25,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/multisport-chronological-ranker-v1": {
+      "changed_parameter_count": 20,
+      "holdout_races": 2,
+      "parameter_count": 93,
+      "supported_parameter_count": 20,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/multisport-conditional-duel-v1": {
+      "changed_parameter_count": 9,
+      "holdout_races": 2,
+      "parameter_count": 17,
+      "supported_parameter_count": 9,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/multisport-factor-interaction-v1": {
+      "changed_parameter_count": 7,
+      "holdout_races": 2,
+      "parameter_count": 11,
+      "supported_parameter_count": 7,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/multisport-race-trajectory-v1": {
+      "changed_parameter_count": 10,
+      "holdout_races": 2,
+      "parameter_count": 20,
+      "supported_parameter_count": 10,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "boat/multisport-scenario-ensemble-v1": {
+      "changed_parameter_count": 9,
+      "holdout_races": 2,
+      "parameter_count": 17,
+      "supported_parameter_count": 9,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "horse/multisport-chronological-ranker-v1": {
+      "changed_parameter_count": 12,
+      "holdout_races": 2,
+      "parameter_count": 121,
+      "supported_parameter_count": 12,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "horse/multisport-conditional-duel-v1": {
+      "changed_parameter_count": 9,
+      "holdout_races": 2,
+      "parameter_count": 19,
+      "supported_parameter_count": 9,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "horse/multisport-factor-interaction-v1": {
+      "changed_parameter_count": 5,
+      "holdout_races": 2,
+      "parameter_count": 12,
+      "supported_parameter_count": 6,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "horse/multisport-race-trajectory-v1": {
+      "changed_parameter_count": 9,
+      "holdout_races": 2,
+      "parameter_count": 22,
+      "supported_parameter_count": 9,
+      "train_races": 6,
+      "unique_races": 8
+    },
+    "horse/multisport-scenario-ensemble-v1": {
+      "changed_parameter_count": 6,
+      "holdout_races": 2,
+      "parameter_count": 18,
+      "supported_parameter_count": 6,
+      "train_races": 6,
+      "unique_races": 8
+    }
+  },
+  "plaintext_published": false,
+  "production_promoted": false,
+  "schema": "RACE_AI_NINETEEN_NATIVE_PARAMETER_SUPPORT_COUNTS_V1",
+  "state": "ACTUAL_CI_CANDIDATE_PARAMETER_SUPPORT_VERIFIED",
+  "training_sha256": "756c3c869cdd070fe3c9ecb7c94a1209ae2f1605ccc1237b3c50573ae7cbf6ea"
+}

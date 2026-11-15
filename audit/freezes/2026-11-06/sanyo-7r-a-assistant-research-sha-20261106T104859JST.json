@@ -1,0 +1,29 @@
+{
+  "schema": "RACE_AI_AUTORACE_ASSISTANT_SHA_ONLY_FORECAST_RESEARCH_V1",
+  "record_type": "RESEARCH_A_CONTENT_HASH_ONLY",
+  "race_id": "autorace:2026-11-06:sanyo:7",
+  "event_date_jst": "2026-11-06",
+  "venue": "山陽",
+  "race_no": 7,
+  "phase": "A_PRE_TRIAL_INPUT_NO_SAME_DAY_TRIAL_USED",
+  "generated_at_jst": "2026-11-06T10:48:59.997594+09:00",
+  "scheduled_cutoff_at_jst": "2026-11-06T13:29:00+09:00",
+  "research_forecast_sha256": "1f0a966d100b4b001fa172ac96b6070bc988be012c4ad506f5b0ea5f1fbf52cd",
+  "exact_private_json_file_sha256": "cfea672d457dff1d0641f8308ee3c125d6b5bf162023d9174a57a08fbfde8eb7",
+  "private_forecast_filename": "autorace_20261106_sanyo_7R_A_assistant_observed_RESEARCH.json",
+  "forecast_content_location": "LOCAL_CONVERSATION_ARTIFACT_ONLY",
+  "model_id": "autorace-personal-observed-baseline-v1",
+  "source_urls": [
+    "https://autorace.tokyo-sports.co.jp/list/race/20261106067",
+    "https://www.winticket.jp/autorace/sanyo/racecard/2026110406/3/7"
+  ],
+  "ordered_top8_count": 8,
+  "supplemental_four_count": 4,
+  "official_trial_independently_verified": false,
+  "pre_trial_first_publication_verified": false,
+  "independent_pre_cutoff_receipt_verified": false,
+  "formal_hit_at_8_eligible": false,
+  "reported_probabilities_calibrated": false,
+  "full_text_not_in_repo": true,
+  "note": "Append-only A input. Start and wet conditions documented but unweighted. First publication and private durable receipt unverified."
+}

@@ -1,0 +1,161 @@
+{
+  "schema": "RACE_AI_ORDINARY_BROWSING_VERIFICATION_V1",
+  "date_utc": "2026-11-07",
+  "reported_issue": "Ordinary race browsing still displayed research JSON import and synthetic test controls.",
+  "observed_before": {
+    "encrypted": true,
+    "fileMessage": "保存原本を読み込めませんでした。保存先と同期状態を確認してください。",
+    "banner": "データ未取得 · 許可された保存原本を端末内で読み込めます。",
+    "importVisible": true,
+    "testVisible": true,
+    "homeEmpty": "≋この条件のレースは未取得です許可された保存JSONを読み込むと、レース・モデル・結果を確認できます。保存JSONを読み込む",
+    "operationSummary": "予想とデータ接続の状況"
+  },
+  "correction": {
+    "import_and_synthetic_controls": "Settings -> Data management / operation checks (advanced), closed initially.",
+    "ordinary_home": "No file picker or research JSON input instruction.",
+    "missing_link": "Explain that the existing viewing link is required before requesting ciphertext.",
+    "saved_views": "Existing encrypted, local and offline automatic display retained.",
+    "evidence_labels": "Research and synthetic classifications retained; no upgrade to official results."
+  },
+  "tests": {
+    "node": {
+      "tests": 93,
+      "passed": 93
+    },
+    "python_packaging": {
+      "tests": 33,
+      "passed": 33
+    },
+    "full_ui": {
+      "status": "PASS",
+      "pages": 7,
+      "widths": [
+        320,
+        390,
+        1440,
+        1920
+      ],
+      "sports": 4,
+      "native_families": 16,
+      "includes": [
+        "explicit settings import access",
+        "native clear actions through settings",
+        "manual and automatic generation",
+        "history and unchanged drafts"
+      ]
+    },
+    "explorer": {
+      "status": "PASS",
+      "groups": 15,
+      "widths": [
+        320,
+        390,
+        1440
+      ],
+      "athlete_reference_data": "Real public official statistics on invented sparse race fixtures."
+    },
+    "encrypted_browser": {
+      "status": "PASS",
+      "pages": 7,
+      "variants": 4,
+      "real_webcrypto_on_invented_private_fixture": true,
+      "missing_wrong_and_tampered_links": true,
+      "no_key_requests_or_browser_storage": true,
+      "no_cipher_fetch_without_link": true
+    },
+    "offline_browser": {
+      "status": "PASS",
+      "populated_athlete_profiles": true,
+      "strict_csp": true
+    },
+    "deployed_ordinary": [
+      {
+        "width": 320,
+        "status": "PASS",
+        "noUploadOnHome": true,
+        "explicitAdvancedSettings": true,
+        "missingLinkExplained": true,
+        "noCipherFetch": true
+      },
+      {
+        "width": 390,
+        "status": "PASS",
+        "noUploadOnHome": true,
+        "explicitAdvancedSettings": true,
+        "missingLinkExplained": true,
+        "noCipherFetch": true
+      },
+      {
+        "width": 1440,
+        "status": "PASS",
+        "noUploadOnHome": true,
+        "explicitAdvancedSettings": true,
+        "missingLinkExplained": true,
+        "noCipherFetch": true
+      }
+    ],
+    "deployed_explorer": {
+      "status": "PASS",
+      "groups": 15,
+      "widths": [
+        320,
+        390,
+        1440
+      ]
+    }
+  },
+  "publication": {
+    "status": "PAGES_PRESENTATION_REFRESHED",
+    "source_commit": "79f09bc9f197511acb25dc0d49bce3a1b35f44ef",
+    "parent_commit": "de9cd9ca797d1b81e49fabd1ec9a8aec61794083",
+    "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+    "manifest_sha256": "99b9371cf68a78fd6fb0e3fad914d1873f591fa696b06530dca760bee782173e",
+    "portrait_count": 1669,
+    "ciphertext_unchanged": true,
+    "plaintext_published": false,
+    "changed_assets": [
+      "app.js",
+      "index.html",
+      "style.css"
+    ],
+    "unchanged_cipher_count": 7,
+    "unchanged_portrait_image_count": 54,
+    "manifest_identity_unchanged": true,
+    "implementation_commit": "a3a568437a6c0c4da2ba28c5134f3660a56adcca"
+  },
+  "http": {
+    "status": "PASS",
+    "base": "https://haji84.github.io/RACE-AI/",
+    "manifest_sha256": "99b9371cf68a78fd6fb0e3fad914d1873f591fa696b06530dca760bee782173e",
+    "checks": [
+      {
+        "path": "app.js",
+        "bytes": 164263,
+        "sha256": "a4e4fa514eb6bec01eb9c7747c8a6dca393674540624a1703a4033f4e85794c5"
+      },
+      {
+        "path": "index.html",
+        "bytes": 24746,
+        "sha256": "c674d76ea0259bd60168b2565943cd0bc5aaf218ab9db73e4fc1b646a20f726f"
+      },
+      {
+        "path": "style.css",
+        "bytes": 61348,
+        "sha256": "7d6104da6aaaec28c3dde904d17dccdd7a9cc3ea8871dc6e4a0ad4da4e78b9d3"
+      },
+      {
+        "path": "views/1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec.json",
+        "bytes": 12661845,
+        "sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec"
+      }
+    ],
+    "unchanged_cipher_count": 7,
+    "unchanged_portrait_image_count": 54
+  },
+  "limitations": [
+    "No new official-data collection, prediction model or hosting service.",
+    "The unauthenticated public URL does not reveal private forecast data.",
+    "Synthetic forecast fixtures validate operation, not live prediction accuracy."
+  ]
+}

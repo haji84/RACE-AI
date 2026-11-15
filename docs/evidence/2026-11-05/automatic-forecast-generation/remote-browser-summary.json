@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "source_scope": "EXISTING_GITHUB_AUTOMATIC_ROUND11",
+  "forecast_count": 293,
+  "p0_forecast_count": 288,
+  "p1_forecast_count": 5,
+  "p1_races": 1,
+  "widths": [
+    390,
+    1440
+  ],
+  "rendered_p1_variants": 10,
+  "rendered_p1_tickets": 80,
+  "generation_posts": 0,
+  "external_requests": 0,
+  "page_errors": 0,
+  "console_errors": 0,
+  "actual_safari": false,
+  "finished_at_utc": "2026-11-04T23:30:50.957Z"
+}

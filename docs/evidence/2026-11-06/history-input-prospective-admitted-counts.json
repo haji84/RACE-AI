@@ -1,0 +1,51 @@
+{
+  "accuracy_improvement_proven": false,
+  "actual_purchases": false,
+  "encrypted_admission_state_published": false,
+  "excluded_special_or_pending_races": 0,
+  "models": [
+    {
+      "baseline_hit_rate": 0.6,
+      "baseline_hits": 3,
+      "baseline_received_yen": 3740,
+      "baseline_roi": 0.935,
+      "baseline_stake_yen": 4000,
+      "history_hit_rate": 0.8,
+      "history_hits": 4,
+      "history_received_yen": 7330,
+      "history_roi": 1.8325,
+      "history_stake_yen": 4000,
+      "model_id": "boat-observed-pairwise-factor-v1",
+      "scored": 5
+    },
+    {
+      "baseline_hit_rate": 0.6,
+      "baseline_hits": 3,
+      "baseline_received_yen": 3740,
+      "baseline_roi": 0.935,
+      "baseline_stake_yen": 4000,
+      "history_hit_rate": 0.6,
+      "history_hits": 3,
+      "history_received_yen": 4680,
+      "history_roi": 1.17,
+      "history_stake_yen": 4000,
+      "model_id": "boat-observed-pairwise-start-v1",
+      "scored": 5
+    }
+  ],
+  "normal_races": 5,
+  "original_pairs_regenerated": false,
+  "predeclared_pairs": 156,
+  "production_promoted": false,
+  "result_revisions": 5,
+  "schema": "RACE_AI_AUTHENTICATED_HISTORY_TRIAL_SUMMARY_V1",
+  "synthetic_test": false,
+  "unique_races": 5,
+  "unobserved_or_not_yet_scored_pairs": 151,
+  "verification_scope": "ACTUAL_GITHUB_PRE_CUTOFF_MANIFEST_MEMBERSHIP_AND_OFFICIAL_RESULT_REPLAY",
+  "witness_created_at": "2026-11-05T22:48:52Z",
+  "witness_head": "e365a86bcee79c2d58ff7f5541a1fb0e13ff5ca8",
+  "witness_manifest_sha256": "1ab4c9d63e76f11296915e71cd6aa5401a891b965e5ec743337c9ad18f31aff8",
+  "witness_path": "audit/freezes/2026-11-06/official-history-research-pairs-v2-sha-only.json",
+  "witness_run_id": 42124634538
+}

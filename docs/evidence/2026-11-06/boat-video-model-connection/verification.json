@@ -1,0 +1,227 @@
+{
+  "schema_version": "RACE_AI_BOAT_VIDEO_MODEL_CONNECTION_EVIDENCE_V1",
+  "checked_at": "2026-11-05T18:27:55.157455+00:00",
+  "reviewed_base_head": "3123f54ebea1b90eff453c322fd3009cd5a52097",
+  "scope": "SOFTWARE_AND_SYNTHETIC_RESEARCH_PATH_NOT_REAL_VIDEO_ACCEPTANCE",
+  "source_sha256": {
+    ".github/workflows/forecast-audit-ui.yml": "61212aa3838f8d2f3d42b829b7e0a8bda338e13db7894efc01ba42c016195747",
+    "race_ai/boat_video_connection.py": "de3e3e91629d0b6fb385cd8bab87e400fac8df7b9ebef959535402ab70abf64d",
+    "race_ai/boat_video_evaluation.py": "ac8130a4d60295b8dcfe59217bae38117696cc026b6923c7418a706ae3035280",
+    "race_ai/boat_video_identity.py": "1de514f73c273b96ea993281a7fb8fe6c199d8e112b5b110ba72f205b4dbc82d",
+    "race_ai/boat_video_intake.py": "8e6518511cac3ba6a59765f0cfe2cb22cbc90a02e1d5cfea0057074a5855f1f8",
+    "race_ai/boat_video_learning.py": "606d7231a6bc9a9d98a323a20ec92e3ccc5ceb79091df4e340b1f369849a00e5",
+    "race_ai/boat_video_measurements.py": "3569ea5528f0e06976679be679e1c6dde56d5681aa23be1965c95050ca63eb13",
+    "race_ai/boat_video_model_context.py": "dfc3d24319a333c8dd63965cccf511377df1890c0256573e6d22590f0d93fc95",
+    "race_ai/boat_video_tracking.py": "2d329a70a3349d45cb753662f2223f77789610bb3d84681d4aabbd7a5ef6ce2a",
+    "race_ai/observed_weight_learning.py": "87ba07415f78307976097b3e98f35a79ce8babb4812505fe3442801a18298b9b",
+    "race_ai/private_cycle_projection.py": "e1ac9faeed70d307c8f33217692ae521c4d6292ef87171f83b6066fc3edf208a",
+    "race_ai/private_saved_comparison.py": "28313fd449464671d74b6676b7367ab2598bce1edd4f2881cb253cab3baa1d66",
+    "requirements-video.txt": "99325d819b778b2594cfefe0cf2c69e311ff8160c009470ffa22a29c254ed53c",
+    "scripts/boat_video_analyze.py": "c4d6db1775be7816797d595ed7f388ac5a0dc7e8f7155b45f23619a3de592498",
+    "scripts/boat_video_intake.py": "23a365d6141ba9e220ae52c625e4d539d2d84e48b4917db2f833e2ab36e86f56",
+    "tests/boat_video_ui.test.mjs": "b9eb98c8951b16d1a68ade51687e53ccf82010b0003acfa6abceeb973a17fc4c",
+    "tests/test_boat_video_cli.py": "afc3328745f3edc7c93c32026d1fe00bb1d5e287332f11b3b64b96c92135ff53",
+    "tests/test_boat_video_connection.py": "de4d902d27a413db182babee474b2dd8b56082c42cd024d5fa5ea253bfb4238a",
+    "tests/test_boat_video_evaluation.py": "066a4ffb683a2bb4562482d8abec54c890ef68f5cec153c277e817949b857a82",
+    "tests/test_boat_video_identity.py": "bd3d8c219ad2de7833f64992a0956b34412f139fe5a7aeebfd469f3c8e184047",
+    "tests/test_boat_video_identity_tracking.py": "c1b5f21ebae8c410693b5a8ef95da8dbe457ce4ea2875c8732bebb292fc13af2",
+    "tests/test_boat_video_intake.py": "869f5a970fe3378be856cc1bd4ab21fd05c478918fa6204e45f811c3e83a8c10",
+    "tests/test_boat_video_learning.py": "047958a0a5c727ea15ffcd6d6cc46a2afd66c605826033d71a90454c9f5de27c",
+    "tests/test_boat_video_measurements.py": "0f7dc72828b7c85fa2cb3d6f1cecdec2bbf2c200d231f5218e05637a7f0fe069",
+    "tests/test_boat_video_model_context.py": "5e95ce5ce7630d6a90a1f062ddff5fe8292e89f0d5f50a396f90222080036d75",
+    "tests/test_boat_video_tracking.py": "9676b1253beafce44bdac0bcf5369f679eea163091900a136e6a17bcddf9f19f",
+    "tests/test_video_existing_hooks.py": "bf854f032844ede341bcd3d2ad37e0bc003e1a5bc843b5a91b73ed68a0083f1d",
+    "tests/test_video_shadow_projection.py": "1ffe3d0dc286276604b9c02b39de31b98bae87b8fd128c7901f29af8a12c000e",
+    "tests/ui_browser.test.js": "3a03b47cab6ed7581622e3daa6d8c348ef5c12e87d99228be4e07f25371d0eef",
+    "web/ui-model.js": "736594300d0b7bdc760d185586cad8c75fcdd13c1fe1436aa2f040a815e32314"
+  },
+  "verification": {
+    "python": {
+      "command": "isolated pinned CV venv: python -m unittest discover -s tests -v",
+      "passed": 1451,
+      "skipped": 0,
+      "seconds": 555.94,
+      "exit_code": 0,
+      "log_sha256": "068b73671747ef105f96eeca91982ec39e1bac6b820a5052e74bc00c13346695",
+      "post_suite_change": "one trailing blank line removed from identity tracking tests; AST unchanged and affected tests rerun"
+    },
+    "node": {
+      "passed": 94,
+      "failed": 0,
+      "log_sha256": "0698ee8ddd185d20f6ec924306600094ee4e1385ff95246c6823be303eae62a6"
+    },
+    "live_browser": {
+      "dataset_status": "SYNTHETIC_ONLY",
+      "checks_passed": 12,
+      "widths": [
+        390,
+        1440
+      ],
+      "real_video_count": 0,
+      "server_restarted": false,
+      "live_write_requests": 0,
+      "source_edited": false,
+      "private_report_sha256": "f2bc25778e17d97b6c73331d4d65410657313fdbc6a8e58a912885f465323332",
+      "sidecar_is_same_as_model_context": false,
+      "sidecar_method": "explicit browser-only synthetic attachment; no production enrichment proof",
+      "final_index_sha256": "f7fd1f4f10f2fa3fce5aa9ac2688e2ef73a25a1aa87e722090c756bd01743d9d"
+    },
+    "full_ui": {
+      "status": "UNCHANGED_RETRY_PASS",
+      "first_attempt_checks_passed": 3,
+      "failure_proof_sha256": "cbb40c689373266a1cf18837312e81f4f864a7dcd7755fac0ad71582d0745f41",
+      "checks_passed": 30,
+      "widths": [
+        320,
+        390,
+        1440,
+        1920
+      ],
+      "errors": [],
+      "report_sha256": "1ec645a8a2c619b1804bcfe160cb20d4b31bccfead6441dc50b3d628e20708f2",
+      "first_attempt_cause": "UNPROVEN_NON_REPRODUCED_ACTION_TIMEOUT",
+      "source_or_timeout_changed": false,
+      "diagnostic_summary_sha256": "307993de473ef08778a48ae36f6a3ac6c27427ba9d26572d6ebfe0b649c0f763"
+    },
+    "identity_tracking_after_whitespace": {
+      "passed": 8,
+      "exit_code": 0,
+      "log_sha256": "8b139087728da96ab7528af348efac2ced58846a9f1479b7a3cd918d06501377"
+    }
+  },
+  "synthetic_integration": {
+    "dataset_status": "SYNTHETIC_ONLY",
+    "real_exhibition_videos": 0,
+    "job_sha256": "0129278d4e24fa6cf74ad743e54bd6a4a491959c2133ce924da21b3ef00bb2cc",
+    "report_sha256": "48c33c79bcaceae8e28b779afefe4dafcebdba784d9d701364230105eaf2ec0a",
+    "all_six_candidate_tracks": 6,
+    "straight_measured_lanes": 6,
+    "all_six_uses_actual_identity_association": true,
+    "detector_and_number_reader": "CONTROLLED_FIXTURE_OBSERVATIONS",
+    "media_original_sha256_unchanged": true,
+    "model_context_missing_reasons": [
+      "SYNTHETIC_ONLY"
+    ],
+    "existing_family_training_state": "INSUFFICIENT_VIDEO_SUPPORT",
+    "video_weights_all_zero": true,
+    "second_poll_processed": 0
+  },
+  "connection_persistence": {
+    "first_processed": 2,
+    "second_processed": 0,
+    "second_reused": 2,
+    "post_cutoff_outputs_blocked": true,
+    "private_proof_sha256": "0aa99ce6859904ba38f1c4a12b3e0c90af96a2e38f14ced6612b9f69bf96bac2"
+  },
+  "existing_models": {
+    "family_ids": [
+      "boat-observed-pairwise-factor-v1",
+      "boat-observed-pairwise-start-v1"
+    ],
+    "research_version": "0.3.0-VIDEO-EXPERIMENTAL",
+    "new_forecast_families": 0,
+    "original_official_features": 8,
+    "optional_video_features": 4,
+    "video_stage": "P1_ONLY",
+    "default_legacy_paths_unchanged": true,
+    "real_video_training_count": 0,
+    "real_video_prediction_count": 0,
+    "production_eligible": false
+  },
+  "legacy_default_video": {
+    "before_json_sha256": "c22cbcd285e8f493ad68cb75ae585b283d06d56f8f4d095c3cf4cfac9f1aebb6",
+    "before_after_full_objects_equal": true,
+    "canonical_compact_json_sha256": "cc85bb33f866c0d9e14f45d7a49256a418fecf30fc710b6b52592d015eb9f461"
+  },
+  "existing_local_assets": {
+    "nanodet_sha256": "4b82da9944b88577175ee23a459dce2e26e6e4be573def65b1055dc2d9720186",
+    "yolox_sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+    "actual_local_detector_ocr_cli_exit_code": 0,
+    "controlled_neutral_clip_measured_phases": 0,
+    "field_identification_proven": false,
+    "new_model_downloads": 0,
+    "large_binaries_vendored": false,
+    "licenses_sha256": {
+      "docs/licenses/opencv-zoo/NANODET_LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "docs/licenses/opencv-zoo/NANODET_NOTICE": "3d80e4c14fc9115523c63a9bca273f63aecb7c78e550d89b9aec31de10854363",
+      "docs/licenses/opencv-zoo/YOLOX_LICENSE": "0ec3668d3274bcf29e8a29e9576d5a2cd96fc78d3c5bec4387355a796e5d9088",
+      "docs/licenses/opencv-zoo/YOLOX_NOTICE": "c57aa80c5895d6eab2895c6135e02f7cb882e1d08f62890b6ca12cf93924fda0"
+    }
+  },
+  "independent_review": {
+    "identity_tracking_storage_findings_resolved": true,
+    "context_learning_causality_findings_resolved": true,
+    "final_coordinator_deadline_findings_resolved": true,
+    "last_deadline_regressions_independently_passed": 3,
+    "field_validation_complete": false
+  },
+  "official_source": {
+    "real_exhibition_videos": 0,
+    "normal_sdk_denied_venues": [
+      "Suminoe",
+      "Tamagawa",
+      "Tokuyama"
+    ],
+    "status": 403,
+    "message": "この動画の視聴は許可されていません。",
+    "current_two_venue_proof_sha256": "d5a3c9c52cd8d5d58f6aec756debb3931740f4ec769f40819421bfe2ab619a02",
+    "all_venues_unavailable_claimed": false,
+    "restrictions_bypassed": false
+  },
+  "local_intake_runtime": {
+    "pid": 271439,
+    "follow": true,
+    "connect_models": true,
+    "state": "WAITING_FOR_AUTHORIZED_SOURCE",
+    "automatic_official_fetch": false,
+    "real_video_count": 0,
+    "private_manifest_sha256": "416e7b5e11389447c15cf07b385c9193b53ea489f5fbe2a076d19a913863fdc0"
+  },
+  "forecast_continuity": {
+    "server_pid": 157669,
+    "server_restarted": false,
+    "workflow_id": 405276784,
+    "run_id": 42079188438,
+    "run_head": "3123f54ebea1b90eff453c322fd3009cd5a52097",
+    "automatic_state": "RUNNING",
+    "continuous": true,
+    "native_original_sha256_unchanged": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+    "new_forecast_trigger": false
+  },
+  "uncompleted": [
+    "authorized continuous actual video source",
+    "field identification accuracy of all six boats",
+    "independent phase/camera/clock validation",
+    "practical strength assessment",
+    "independently saved pre-cutoff real video forecasts",
+    "prospective accuracy improvement",
+    "real-device Safari"
+  ],
+  "publication_or_main_merge": false,
+  "production_model_change": false,
+  "github_ci": {
+    "checked_at": "2026-11-05T18:41:00.525674+00:00",
+    "tested_head": "981768b4a2f46076877202f7676c9639644e5624",
+    "exact_checkout_head_confirmed_in_logs": true,
+    "viewer_run_id": 42085233304,
+    "viewer_url": "https://github.com/haji84/RACE-AI/actions/runs/42085233304",
+    "autorace_run_id": 42085233355,
+    "both_runs_completed_success": true,
+    "normal_python_discovered": 1451,
+    "normal_python_skipped": 44,
+    "isolated_video_python_passed": 104,
+    "isolated_video_python_skipped": 0,
+    "all_44_normal_skips_matched_to_isolated_passes": true,
+    "browser_checks_passed": 39,
+    "video_ui_node_passed": 12,
+    "autorace_ubuntu_passed": 31,
+    "autorace_windows_passed": 21,
+    "autorace_windows_explicit_posix_skips": 10,
+    "all_racer_intake_state": "HOLD_OWNER_STATE_KEY_MISSING",
+    "all_racer_upstream_gets": 0,
+    "encrypted_restore_state": "SKIPPED",
+    "viewer_private_log_sha256": "ca0ef31fd12e7f0ca8e68c07ffc36b2a24f4845ae16d9cf15eaf40b1d57ab042",
+    "autorace_private_log_sha256": "45716f5b7318813278293edbaf64b67e3baa0f691a0242574611d4a961debce4"
+  },
+  "concurrent_audit_head_preserved": "04c43216c318af28a008133bae5ae69263343866"
+}

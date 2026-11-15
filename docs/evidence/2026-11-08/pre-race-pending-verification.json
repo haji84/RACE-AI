@@ -1,0 +1,167 @@
+{
+  "schema": "RACE_AI_PRE_RACE_PENDING_UI_VERIFICATION_V1",
+  "status": "LIVE_OWNER_SITE_VERIFIED",
+  "request": "Separate pre-race forecasts from actual missing results",
+  "root_cause": "UI comparison pending status was displayed and aggregated before the saved deadline; financial pending allocations had the same presentation ambiguity",
+  "ui_source_commit": "c8df8b34a10cde55fd7a8fdcd94d18470ed24513",
+  "verifier_runtime": "b50a166afca32742e36106f70180168be22dd968",
+  "runtime_predecessor": "0dd7c7a4d34492fc537311b5b7304fadc58768e7",
+  "runtime_delta_files": [
+    "scripts/boat_saved_site_check.cjs"
+  ],
+  "main_commit": "0cfc668f6220ec07a25c69d4c9318b023b7beab3",
+  "main_workflow_pr": 92,
+  "main_workflow_only_pr": true,
+  "required_and_reported_checks_passed": true,
+  "collection_and_financial_code_unchanged": true,
+  "tests": {
+    "node_contracts_passed": 122,
+    "packaging_context_python_passed": 25,
+    "minimal_verifier_passed": 7,
+    "controlled_clock_fixture_widths": [
+      320,
+      390,
+      1440
+    ],
+    "red_observed": [
+      "pre-race card incorrectly described as pending result",
+      "pre-race allocation incorrectly described as waiting for result money"
+    ],
+    "regressions": [
+      "only closed missing results counted as pending",
+      "future and unknown deadline races excluded from result table",
+      "existing result table order preserved",
+      "deadline transitions refresh summary on navigation",
+      "simulations retain original inputs and financial calculations",
+      "stored rationale, history, WebCrypto, offline and athlete navigation retained"
+    ]
+  },
+  "publication": {
+    "status": "PAGES_PRESENTATION_REFRESHED",
+    "source_commit": "5592e3bd65072cc66ee102c7f04576dd7f9b02ad",
+    "parent_commit": "526841fbf1da702320ed27515b252394c3cc6a47",
+    "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+    "manifest_sha256": "4c19209bcb4d6e37338743619c862f2da5f106d9532b4b7d9f64f739e3fbf8a2",
+    "portrait_count": 1669,
+    "ciphertext_unchanged": true,
+    "plaintext_published": false,
+    "changed_files": [
+      "app.js",
+      "index.html",
+      "site-build.json",
+      "style.css",
+      "ui-model.js"
+    ],
+    "ciphertext_files_preserved": 7,
+    "portrait_files_preserved": 57,
+    "all_other_files_unchanged": true,
+    "ui_source_commit": "c8df8b34a10cde55fd7a8fdcd94d18470ed24513"
+  },
+  "raw_pending_inventory_not_rewritten": true,
+  "keys_or_originals_or_raw_sources_published": false,
+  "publication_readback": {
+    "commit": "f590fb6c0120403014de4f477e7a68b1791554a6",
+    "protected_ciphertext_files": 7,
+    "protected_portrait_files": 57,
+    "ui_bytes_match_tested_assets": true,
+    "manifest_unchanged_after_presentation_release": true,
+    "public_http_asset_bytes_verified": true
+  },
+  "live_verification_attempts": {
+    "run_id": 42423913243,
+    "first_job_id": 128557996327,
+    "first_status": "LIVE_OWNER_SITE_REJECTED",
+    "first_context_ready_at": "2026-11-07T23:11:05.2419828Z",
+    "first_rejected_at": "2026-11-07T23:11:50.7813281Z",
+    "pages_deployed_at": "2026-11-07T23:11:26Z",
+    "first_check_overlapped_pages_deployment": true,
+    "retry_started_after_public_asset_bytes_verified": true
+  },
+  "live_run": {
+    "id": 42423913243,
+    "attempt": 2,
+    "job_id": 128559151132,
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/42423913243",
+    "browser": {
+      "schema": "RACE_AI_LIVE_SITE_CHECK_COUNTS_V1",
+      "status": "LIVE_OWNER_SITE_VERIFIED",
+      "verified_at": "2026-11-07T23:19:12.807Z",
+      "widths_checked": 3,
+      "feed_generation": 51,
+      "checked_day": "2026-11-07",
+      "current_day": "2026-11-08",
+      "date_scope": "HISTORICAL_DAY",
+      "checked_day_results": 129,
+      "checked_day_p1_groups": 57,
+      "current_day_results": null,
+      "current_day_p1_groups": null,
+      "selected_saved_day": "2026-11-07",
+      "current_day_lifecycle_views_checked": 3,
+      "current_day_upcoming_rows_checked": 180,
+      "current_day_upcoming_races": 132,
+      "current_day_closed_races": 0,
+      "current_day_pending_result_races": 0,
+      "race_lifecycle_tabs_verified": true,
+      "upcoming_rows_checked": 0,
+      "venue_result_views_checked": 3,
+      "ai_results_navigation_verified": true,
+      "compact_result_ui_verified": true,
+      "research_audit_verified": true,
+      "available_rationale_preserved": true,
+      "rationale_views_checked": 0,
+      "probe_result_matched": true,
+      "native_p1_groups_required": 30,
+      "native_p1_detail_visible": true,
+      "future_native_visible_before_cutoff": false,
+      "previous_day_checked": true,
+      "active_model_families": 15,
+      "removed_seller_hidden": true,
+      "participant_names": true,
+      "editable_daily_budget": true,
+      "per_race_1000_simulation": true,
+      "hit_miss_rate_roi_and_settled_pending_net_visible": true,
+      "key_in_requests_or_storage": false,
+      "blocked_external_requests": 0,
+      "official_source_requests": 0,
+      "plaintext_published": false
+    },
+    "collection": {
+      "schema": "RACE_AI_RACER_INTRADAY_RUN_V1",
+      "status": "INTRADAY_REFRESHED",
+      "implementation_commit": "b50a166afca32742e36106f70180168be22dd968",
+      "checked_at": "2026-11-07T23:14:52.802847+00:00",
+      "source_requests": 12,
+      "new_observations": 0,
+      "forecast_inputs_changed": false,
+      "private_sources_published": false,
+      "result_sync": {
+        "changed_races": 12,
+        "checked_at": "2026-11-07T23:14:52.802847+00:00",
+        "confirmed": 129,
+        "held": 3,
+        "pending": 132,
+        "races": 264,
+        "schema": "RACE_AI_RESULT_SYNC_V1",
+        "state": "READY"
+      }
+    }
+  },
+  "current_day_interpretation": {
+    "day": "2026-11-08",
+    "verified_at_jst": "2026-11-08T08:19:12+09:00",
+    "pre_race": 132,
+    "closed": 0,
+    "missing_closed_results": 0,
+    "visible_upcoming_rows_checked_across_three_widths": 180,
+    "rows_are_repeated_across_widths": true,
+    "raw_unresolved_inventory_includes_pre_race": true
+  },
+  "verification_limits": {
+    "native_future_p1_not_available_in_this_check": true,
+    "positive_real_upcoming_order_and_status_checked": true,
+    "stored_rationale_positive_text_checked_with_invented_fixture": true,
+    "live_selected_p0_has_no_stored_rationale_text": true,
+    "finish_to_publication_latency_measured": false,
+    "full_repository_suite_not_repeated_for_this_ui_fix": true
+  }
+}

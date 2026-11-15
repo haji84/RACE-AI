@@ -1,0 +1,27 @@
+{
+  "actual_forecasts_saved": 0,
+  "actual_models_fitted": 0,
+  "counts": {
+    "held_cases": 0,
+    "ready_races_by_sport": {
+      "autorace": 8,
+      "keirin": 8
+    },
+    "rejected_cases": 0
+  },
+  "encrypted_readback_verified": true,
+  "independent_pre_cutoff_receipt_verified": false,
+  "known_predeclared_withdrawal_case_excluded_from_learning_cohort": 1,
+  "models_by_sport": {
+    "autorace": 6,
+    "keirin": 5
+  },
+  "native_inputs": 88,
+  "original_excluded_case_retained_privately": true,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "races": 16,
+  "source_packet_sha256": "1cd8f35899da336bd418d94adadd3885ac0074b124ccaf47503a242f91252b67",
+  "source_requests": 0,
+  "state": "ACTUAL_AUTO_AND_KEIRIN_SIXTEEN_CASE_SOURCE_REPLAY_VERIFIED"
+}

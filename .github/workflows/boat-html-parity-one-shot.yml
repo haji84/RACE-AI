@@ -1,0 +1,39 @@
+name: BOAT real HTML parser parity (single bounded GET)
+on:
+  push:
+    branches:
+      - feat/four-sport-forecast-audit-view-20261022
+    paths:
+      - docs/evidence/boat-html-parity-trigger.txt
+permissions:
+  contents: read
+concurrency:
+  group: boat-real-html-parity-20261103
+  cancel-in-progress: false
+jobs:
+  official_parser_parity:
+    if: github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    env:
+      BOAT_HTML_PARITY_ONE_SHOT_REVIEWED: 'true'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - name: Bounded one GET RAM-only dual parser validation
+        run: python scripts/boat_html_parity_probe.py
+      - name: Upload only sanitized parity report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-html-parity-${{ github.run_id }}
+          path: parity_output/parity.json
+          if-no-files-found: warn
+          retention-days: 7

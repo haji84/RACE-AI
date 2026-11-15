@@ -1,0 +1,14 @@
+{
+  "schema": "RACE_AI_AUTORACE_ASSISTANT_SHA_ONLY_RESEARCH_V1",
+  "race_id": "autorace:2026-11-05:sanyo:12",
+  "record_type": "ASSISTANT_OBSERVED_PRE_CUTOFF_RESEARCH_A",
+  "created_at_claim_jst": "2026-11-05T15:34:11.824381+09:00",
+  "cutoff_at_jst": "2026-11-05T16:10:00+09:00",
+  "prediction_sha256": "8580a5328a39d803518ac18931df62e31279ea465eb2a27d2bdad0b497a73aed",
+  "input_sha256": "838248fef2ffb00865d1552af9604ff07e738a54b609d90b0e4dd64f5f97b47a",
+  "forecast_content_in_repository": false,
+  "source_first_publication_independently_verified": false,
+  "external_independent_receipt": false,
+  "formal_hit_at_8_eligible": false,
+  "tracked_private_library_filename": "autorace_20261105_sanyo_12R_A_assistant_observed_RESEARCH_153411JST.json"
+}

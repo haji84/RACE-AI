@@ -1,0 +1,20 @@
+{
+  "decision": {
+    "basis": "OWNER_PERSONAL_RESEARCH",
+    "commercial_use_permitted": false,
+    "dataset_pointer_sha256": "4aac529349da40bfb656a3b80034429a3435bb2c69e77583c4b3f4fac4a54da5",
+    "expires_at": "2027-02-04T15:58:50.387744+00:00",
+    "instruction_ref": "OWNER_INSTRUCTION_20261107_PERSONAL_RESEARCH",
+    "issued_at": "2026-11-06T15:58:50.387744+00:00",
+    "production_promoted": false,
+    "provider_permission_confirmed": false,
+    "public_raw_data_permitted": false,
+    "purpose": "EXISTING_TWO_FAMILY_SHADOW_FIT",
+    "repository_id": "1416489937",
+    "source_content_sha256": "acaf50cb43abff101fc77a334348756c6bae8b8f7fe25f07f4e7f566a86435fd",
+    "source_pointer_sha256": "b0e8da55718c272b01fd62e73fe5dec20f559eb523084bd391957152ff3a9f7f",
+    "source_refs_sha256": "2a7d0d919a06a3028b525537a5de47810e0215927ddd1c3e6fb010bb37c8fdb3"
+  },
+  "mac": "0b77b43975e0b2600c3b103cfe0e87095d034e50c5f1ad71f2b289d12944b10d",
+  "schema": "RACE_AI_BOAT_VENUE_OWNER_PERSONAL_RESEARCH_V1"
+}

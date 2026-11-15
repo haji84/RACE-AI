@@ -1,0 +1,48 @@
+name: BOAT actual official result PDCA one-shot (no Vercel)
+on:
+  push:
+    branches: [feat/four-sport-forecast-audit-view-20261022]
+    paths:
+      - docs/evidence/boat-real-result-trigger.txt
+permissions:
+  contents: read
+concurrency:
+  group: boat-real-result-20261103-17-01
+  cancel-in-progress: false
+jobs:
+  official_readonly:
+    name: Read official results without regenerating frozen predictions
+    if: github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    env:
+      BOAT_RESULT_ONE_SHOT_OWNER_APPROVED: 'true'
+    steps:
+      - name: Checkout exact audit source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Checkout fixed real-source parser
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Test bounded capture before any live read
+        run: python -m unittest tests.test_boat_missing_result_capture -v
+      - name: Check official result or capture the two explicitly requested missing originals
+        run: |
+          if grep -qx 'mode=capture-missing-results-20261104' docs/evidence/boat-real-result-trigger.txt; then
+            python scripts/boat_missing_result_capture.py
+          else
+            python scripts/boat_actual_result_probe.py
+          fi
+      - name: Preserve append-only PDCA evidence as separate run artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-result-miyajima1r-${{ github.run_id }}
+          path: result_output/result.json
+          if-no-files-found: error
+          retention-days: 7

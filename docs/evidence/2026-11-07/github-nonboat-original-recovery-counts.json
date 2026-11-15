@@ -1,0 +1,130 @@
+{
+  "schema": "RACE_AI_NONBOAT_GITHUB_READONLY_RECOVERY_PUBLIC_COUNTS_V1",
+  "state": "BOUNDED_SEARCH_COMPLETED_NO_ELIGIBLE_NONBOAT_ORIGINALS_RECOVERED",
+  "repository": "haji84/RACE-AI",
+  "ref_and_state_snapshot_checked_at_utc": "2026-11-06T23:35:33Z",
+  "remote_branches": {
+    "observed_tip_count": 108,
+    "recursive_tree_queries": 108,
+    "successful_recursive_tree_queries": 108,
+    "truncated_trees": 0,
+    "candidate_data_entries_by_path_and_blob": 1247,
+    "known_original_basename_targets": 21,
+    "known_original_basename_matches": 0,
+    "public_nonboat_csv_sqlite_xlsx_jsonl_corpus_found": false
+  },
+  "local_historical_objects": {
+    "reachable_commits": 1136,
+    "unreachable_commit_objects": 663,
+    "total_commit_objects": 1799,
+    "known_original_path_matches": 0,
+    "eligible_deleted_nonboat_originals_recovered": 0,
+    "scope": "All locally present reachable and unreachable commit objects; not every historical or unreachable GitHub server object."
+  },
+  "keirin_state": {
+    "ref": "state/keirin-encrypted-history",
+    "head_sha": "2c0f9edfe069ce8a190a348c4497c4ed906bd30a",
+    "latest_path": "state/keirin/v1/latest.json",
+    "mode": "synthetic",
+    "generation": 1,
+    "producer_run_id": 41661810084,
+    "cipher_path": "state/keirin/v1/snapshots/g000001-c1bddac6a6b18b7a88a5eac1509ec27dcead28f4ecdb1a0b5fc9503dac84885b.enc",
+    "cipher_bytes": 103986,
+    "cipher_sha256": "c1bddac6a6b18b7a88a5eac1509ec27dcead28f4ecdb1a0b5fc9503dac84885b",
+    "proof_synthetic_only": true,
+    "eligible_real_training_original": false
+  },
+  "historical_keirin_sha_only_anchor": {
+    "commit": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+    "path": "audit/sha-only/2026-11-03/keirin-aomori8r-9d42869e.json",
+    "schema": "RACE_AI_PRE_CUTOFF_SHA_ONLY_ANCHOR_V1",
+    "private_original_not_uploaded": true,
+    "native_input_or_registered_roster_recovered": false
+  },
+  "actions": {
+    "selection_window": "2026-11-03 through 2026-11-07, plus the known 2026-10-24 source-format run",
+    "selected_run_artifact_listing_calls": 15,
+    "selected_listings_with_any_artifacts": 0,
+    "native_training_records_recovered": 0,
+    "selected_run_ids": [
+      40068720296,
+      41558697314,
+      41561190816,
+      41561632885,
+      41566174728,
+      41576884249,
+      41607291668,
+      41661601885,
+      41661810084,
+      41661882147,
+      41661882213,
+      41661926822,
+      41683958185,
+      42291995364,
+      42312523164
+    ],
+    "independent_gh_zero_artifact_count_run_ids": [
+      41576884249,
+      41661810084,
+      41683958185,
+      42291995364,
+      40068720296,
+      41561632885,
+      41661926822
+    ],
+    "expired_synthetic_artifact": {
+      "artifact_id": 13243000928,
+      "producer_run_id": 41661810084,
+      "produce_job_id": 126006642035,
+      "name": "keirin-synthetic-encrypted-checkpoint",
+      "metadata_http_status": 404,
+      "download_http_status": 410,
+      "status": "EXPIRED",
+      "retention_days": 3,
+      "synthetic_only": true
+    },
+    "result_only_run_id": 41683958185,
+    "result_only_job_id": 126084623493,
+    "scope": "Fifteen selected relevant run listings; not every run. Counts describe each read and do not describe later outputs of running or future jobs."
+  },
+  "old_source_format_probe": {
+    "path": "docs/evidence/P0_NONBOAT_FIRSTPARTY_3SPORT_REAL_AUDIT_20261024.json",
+    "example_ref": "9a919373264e6828698f89ba598f49bb309030ac",
+    "run_id": 40068720296,
+    "job_id": 120797338745,
+    "raw_provider_html_persisted": false,
+    "verified_participant_identity_sport_count": 0,
+    "jra_charset_followup_run_id": 40068909171,
+    "jra_raw_html_stored": false,
+    "jra_horse_bound_weight_verified": false,
+    "autorace_is11_same_race_capture_count": 5,
+    "autorace_is11_numeric_trial_car_count_each": 0
+  },
+  "result": {
+    "eligible_nonboat_training_records_recovered": 0,
+    "nonboat_cells_completed_by_this_recovery": 0,
+    "nonboat_cells_still_without_qualifying_real_cohort": 16,
+    "all_four_sport_real_learning_complete": false,
+    "global_original_absence_claimed": false
+  },
+  "recovery_operations": {
+    "new_provider_gets": 0,
+    "owner_key_reads": 0,
+    "decryptions": 0,
+    "remote_mutations": 0,
+    "code_or_existing_document_mutations": 0,
+    "source_permission_requests": 0,
+    "user_upload_requests": 0,
+    "external_messages": 0,
+    "new_cloud_services": 0,
+    "charges": 0,
+    "scope": "Source-recovery operations; these two new public count/evidence documents are the only repository files created by this documentation task."
+  },
+  "limits": [
+    "All 108 observed remote branch tips were inventoried without truncated trees.",
+    "Historical inspection covers 1799 locally present commit objects, not every historical or unreachable object on GitHub.",
+    "Actions inspection covers 15 selected run listings and the named expired synthetic artifact, not every run or expired payload.",
+    "No conclusion is made about originals in unconnected private storage or other devices.",
+    "SHA references, tickets, post-race observations and synthetic ciphertext do not substitute for genuine native inputs, registered identities and independent pre-cutoff save evidence."
+  ]
+}

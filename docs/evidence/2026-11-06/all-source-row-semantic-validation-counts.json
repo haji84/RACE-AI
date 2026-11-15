@@ -1,0 +1,20 @@
+{
+  "accuracy_100_percent_claim": false,
+  "boat_entry_rows": 7002900,
+  "checked_at": "2026-11-06T06:17:01.127259+00:00",
+  "new_provider_gets": 0,
+  "private_raw_published": false,
+  "races": 1167150,
+  "races_with_tied_numeric_finish": 1265,
+  "schema": "RACE_AI_REAL_ALL_SOURCE_ROW_SEMANTIC_VALIDATION_COUNTS_V1",
+  "source_days": 7962,
+  "st_status_counts": {
+    "ABSENT": 9775,
+    "F": 28196,
+    "L": 1010,
+    "MISSING": 1,
+    "OK": 6963880,
+    "S": 38
+  },
+  "violations": {}
+}

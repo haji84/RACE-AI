@@ -1,0 +1,14 @@
+{
+  "accuracy_improvement_proven": false,
+  "independent_remote_retention_verified": false,
+  "parameters_changed": false,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "review_payload_sha256": "1a58f83e868d176ab6f46e6f8c46749b6515fc4680657c1cea981a997a86ea69",
+  "reviewed_cells": 14,
+  "schema": "RACE_AI_NATIVE_NEXT_FORECAST_REVIEW_COUNTS_V1",
+  "source_pdca_report_sha256": "c1aa736c5b6640ceac0325fc65d57571a491395af6463026e50a21b82ee036ca",
+  "source_unique_ordinary_races": 1,
+  "special_excluded_races": 1,
+  "state": "POST_RESULT_RESEARCH_REVIEW_ENCRYPTED_AND_LOCALLY_VERIFIED"
+}

@@ -1,0 +1,36 @@
+{
+  "state": "STRICT_PROJECTION_VERIFIED",
+  "run_id": 41967896991,
+  "head_sha": "717725c26c3be7ffd1ee02c045b3311a169aef3c",
+  "run_conclusion": "success",
+  "baseline_rows_sha_top8_and_lineage_verified": 623,
+  "baseline_rows_sha256": "9337212c46b1fc0fa57a40d898b27252e5a92143afbb2064629462a0968f59f0",
+  "result_observations_exactly_preserved": 192,
+  "result_observations_sha256": "a93160d09a8c92fc30d3cb38ca2e6c1029de032cf500d5f3cdc1af3007c7ddfd",
+  "normalized_state_bytes": 16171960,
+  "normalized_forecast_documents": 51,
+  "retained_original_document_references": 170,
+  "snapshot_pointer": {
+    "day_jst": "2026-11-05",
+    "manifest_sha256": "cc3e5a55edc045c16b00eac42b24f8560524e97c320c0a9adaeb50badd2aea3d",
+    "revision": "4216b8f32de10e1461bfcb761b7b981f3c4537ca36da0779d8d53eaebbc5bb27",
+    "status_sha256": "af5c50895d66b8983ec04e6fb0879661fd589fc6a27cfcdf32e0307d8fd97ae7",
+    "view_sha256": "a1add7ea4fe049884088e2e92b8a62c93c5c88caf04b2517085465f2e75112f2"
+  },
+  "official_source_get_requests": 0,
+  "inference_requests": 0,
+  "counts": {
+    "forecasts": 725,
+    "p0_forecasts": 288,
+    "p1_forecasts": 437,
+    "races": 144,
+    "result_observations": 192,
+    "result_races": 87
+  },
+  "artifact_count": 126,
+  "forecast_variant_counts": {
+    "baseline": 623,
+    "learned_research_shadow": 102
+  },
+  "scope": "Saved originals through completed predecessor, not new continuous predictions or whole-day coverage"
+}

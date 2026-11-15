@@ -1,0 +1,1 @@
+2026-11-03 JST: owner-requested source-free regression after real parser failure. Run Node24 HTML + D1 SQLite tests only. No official GET, model predictions, deployments, cron, secrets, costs, wagers or production change.

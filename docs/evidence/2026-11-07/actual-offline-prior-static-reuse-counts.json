@@ -1,0 +1,20 @@
+{
+  "actual_prior_requests": 8,
+  "implementation_source_sha256": "10c1c9d97e2a25a98933ac4a61a37d3fd9b1e0bcbb91590ca66abe15f45a5028",
+  "journal_artifact_id": 13572350517,
+  "journal_digest": "sha256:973cfb36a0e336d7b6717362bf494f243afffff06a67d3d1b8f976adc5175d88",
+  "maximum_source_requests_unchanged": 8,
+  "merged_static_entries": 7,
+  "old_browser_unknown_upper_bound": 24,
+  "old_fixed_epoch_total_upper_bound": 32,
+  "old_signed_plan_unchanged": true,
+  "original_script_cache_entries": 4,
+  "plaintext_published": false,
+  "prior_css_bytes": 774466,
+  "prior_css_count": 3,
+  "production_promoted": false,
+  "real_reacquisition_success": false,
+  "request_limit_not_reset": true,
+  "source_requests": 0,
+  "state": "REAL_AUTHENTICATED_PRIOR_CSS_EXTRACTED_AND_OFFLINE_ROUTE_POLICY_VERIFIED"
+}

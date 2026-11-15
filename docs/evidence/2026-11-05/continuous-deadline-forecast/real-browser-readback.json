@@ -1,0 +1,47 @@
+{
+  "scope": "OWNER_PRIVATE_REAL_SAVED_ORIGINAL_READBACK",
+  "widths": [
+    {
+      "width": 390,
+      "phases": {
+        "P0": {
+          "saved_forecasts": 288,
+          "revision": "bf6564de74a26baa6bfd67b7ca7f317d3fe23f2fd3d0fb5c7f6aca0992f10750",
+          "coverage_known": false,
+          "displayed_original_sha256": "cbeb2d3c181fc649b3a4971293750332b5ba5aab38c0094261a30961b7270237"
+        },
+        "P1": {
+          "saved_forecasts": 437,
+          "revision": "9376cee51d77c045db6f7d49dfe5410e141d637237984f05602d660684df3105",
+          "coverage_known": false,
+          "displayed_original_sha256": "bbbbc696860db12c5aed3ffb54c408032b3418d8c3c994861539eb69edc48a42"
+        }
+      },
+      "automatic_message": "取得条件・保存原本の確認を待っています · 取得条件と保存済み原本の確認が必要です · 取得回数上限なし · 保存原本を自動更新しました。保存済み 437件・全モデルの網羅性は未検証です。"
+    },
+    {
+      "width": 1440,
+      "phases": {
+        "P0": {
+          "saved_forecasts": 288,
+          "revision": "bf6564de74a26baa6bfd67b7ca7f317d3fe23f2fd3d0fb5c7f6aca0992f10750",
+          "coverage_known": false,
+          "displayed_original_sha256": "cbeb2d3c181fc649b3a4971293750332b5ba5aab38c0094261a30961b7270237"
+        },
+        "P1": {
+          "saved_forecasts": 437,
+          "revision": "9376cee51d77c045db6f7d49dfe5410e141d637237984f05602d660684df3105",
+          "coverage_known": false,
+          "displayed_original_sha256": "bbbbc696860db12c5aed3ffb54c408032b3418d8c3c994861539eb69edc48a42"
+        }
+      },
+      "automatic_message": "取得条件・保存原本の確認を待っています · 取得条件と保存済み原本の確認が必要です · 取得回数上限なし · 保存原本を自動更新しました。保存済み 437件・全モデルの網羅性は未検証です。"
+    }
+  ],
+  "errors": [],
+  "generation_posts": 0,
+  "native_database_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+  "native_source_count_preserved": 3,
+  "physical_safari": false,
+  "readback_only": true
+}

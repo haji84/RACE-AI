@@ -1,0 +1,223 @@
+"""Published official K inventory + bounded immutable monthly raw revisions.
+
+No HTTP, no guessed endpoints, no model/state reset. Serialize each month only
+through the existing AES-GCM checkpoint. Parse failures stay source gaps.
+"""
+from datetime import date
+from html.parser import HTMLParser
+import hashlib
+import json
+import re
+import sqlite3
+
+from .actions_contract import stamp
+from .teiai_history import need,racer_number
+from .boat_venue_history import VenueHistory
+from .official_lzh_extract import extract_daily_lzh
+from .teiai_official_reconciliation import official_day,OFFICIAL_K_PARSER_REVISION
+from .official_k_archive import parse_archive
+from .source_retry_policy import wait_active
+
+SCHEMA='RACE_AI_OFFICIAL_HISTORY_MONTH_V1'
+MAX_DB=8*1024*1024
+
+
+def _interpret(day,raw,captured_at):
+    try:
+        d=date.fromisoformat(day)
+        parsed=parse_archive(raw,day=day)
+        if parsed['unpublished_venues']:
+            from .boat_venue_history import JST
+            past=d<stamp(captured_at).astimezone(JST).date()
+            return ('PARTIAL_SOURCE' if past else 'WAITING_PUBLICATION'),'OFFICIAL_EXPLICIT_END_OF_VENUE_PUBLICATION_PENDING',len(parsed['rows'])
+        return 'PARSED',None,len(parsed['rows'])
+    except (ValueError,UnicodeError):
+        return 'QUARANTINED','OFFICIAL_FORMAT_OR_SPECIAL_RESULT_UNSUPPORTED',0
+
+
+class _Fields(HTMLParser):
+    def __init__(self,raw):
+        super().__init__();self.months=[];self.days=[];self.feed(raw.decode('latin1'))
+    def handle_starttag(self,tag,attrs):
+        a={k.lower():v for k,v in attrs}
+        if tag=='option' and re.fullmatch(r'[0-9]{6}',a.get('value') or ''):self.months.append(a['value'])
+        if tag=='input' and (a.get('name') or '').upper()=='MDAY' and (a.get('type') or '').lower()=='radio':self.days.append(a.get('value'))
+
+
+def _month(value):
+    need(type(value) is str and re.fullmatch(r'[0-9]{6}',value),'HISTORY_MONTH_INVALID')
+    return date(int(value[:4]),int(value[4:]),1)
+
+
+def published_months(raw):
+    need(type(raw) is bytes and 0<len(raw)<=200000,'HISTORY_MENU_SIZE_INVALID')
+    need(re.search(rb'var\s+dir\s*=\s*[\'\"]/od2/K/[\'\"]',raw),'HISTORY_MENU_SOURCE_CHANGED')
+    months=_Fields(raw).months
+    need(months and len(months)==len(set(months)),'HISTORY_MENU_EMPTY_OR_DUPLICATE')
+    for m in months:_month(m)
+    return sorted(months)
+
+
+def published_days(raw,*,month,not_after):
+    d=_month(month);end=date.fromisoformat(not_after)
+    need(type(raw) is bytes and 0<len(raw)<=200000,'HISTORY_MONTH_INDEX_SIZE_INVALID')
+    expected=f'/od2/K/{month}/k{month[2:]}'.encode()
+    need(re.search(rb'var\s+dir\s*=\s*[\'\"]'+re.escape(expected)+rb'[\'\"]',raw),'HISTORY_MONTH_INDEX_IDENTITY')
+    days=_Fields(raw).days
+    need(days and len(days)==len(set(days)),'HISTORY_DAY_INDEX_EMPTY_OR_DUPLICATE')
+    found=[]
+    for value in days:
+        need(type(value) is str and re.fullmatch(r'[0-9]{2}',value),'HISTORY_DAY_VALUE_INVALID')
+        actual=date(d.year,d.month,int(value))
+        if actual<=end:found.append(actual.isoformat())
+    return sorted(found)
+
+
+class HistoryMonth:
+    def __init__(self,*,month,index_raw,not_after,roster=()):
+        self.month=month;days=published_days(index_raw,month=month,not_after=not_after)
+        self.db=sqlite3.connect(':memory:');self.db.executescript('''
+          PRAGMA foreign_keys=ON; PRAGMA trusted_schema=OFF;
+          CREATE TABLE meta(schema TEXT, month TEXT, not_after TEXT, index_raw BLOB, roster TEXT);
+          CREATE TABLE expected(day TEXT PRIMARY KEY);
+          CREATE TABLE archives(sha TEXT PRIMARY KEY, raw BLOB NOT NULL);
+          CREATE TABLE observations(id INTEGER PRIMARY KEY, day TEXT NOT NULL REFERENCES expected(day),
+            sha TEXT REFERENCES archives(sha), captured_at TEXT NOT NULL, state TEXT NOT NULL, reason TEXT, starts INTEGER);
+          CREATE TABLE waits(id INTEGER PRIMARY KEY, document TEXT);
+        ''')
+        roster=sorted({racer_number(p) for p in roster})
+        self.db.execute('INSERT INTO meta VALUES (?,?,?,?,?)',(SCHEMA,month,not_after,index_raw,json.dumps(roster)))
+        self.db.executemany('INSERT INTO expected VALUES (?)',[(d,) for d in days]);self.db.commit()
+
+    def _day(self,day):need(self.db.execute('SELECT 1 FROM expected WHERE day=?',(day,)).fetchone(),'HISTORY_UNLISTED_DAY')
+    def _heads(self):
+        return self.db.execute('SELECT day,sha,captured_at,state,reason,starts FROM observations o '
+                               'WHERE id=(SELECT max(i.id) FROM observations i WHERE i.day=o.day) ORDER BY day').fetchall()
+
+    def extend_inventory(self,index_raw,*,not_after,captured_at,parent_sqlite_sha256):
+        """Append an independently observed listing without changing old facts."""
+        clock=stamp(captured_at)
+        need(re.fullmatch('[a-f0-9]{64}',parent_sqlite_sha256 or ''),'HISTORY_INVENTORY_PARENT_HASH_INVALID')
+        rows=self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='inventory_observations'").fetchone()
+        previous=self.db.execute('SELECT not_after,captured_at FROM inventory_observations ORDER BY id DESC LIMIT 1').fetchone() if rows else None
+        old_end=previous[0] if previous else self.db.execute('SELECT not_after FROM meta').fetchone()[0]
+        need(not_after>=old_end and (not previous or clock>=stamp(previous[1])),'HISTORY_INVENTORY_CLOCK_OR_SCOPE_REGRESSION')
+        need(all(stamp(r[0])<=clock for r in self.db.execute('SELECT captured_at FROM observations')),'HISTORY_INVENTORY_CLOCK_OR_SCOPE_REGRESSION')
+        days=set(published_days(index_raw,month=self.month,not_after=not_after))
+        old={d for (d,) in self.db.execute('SELECT day FROM expected')}
+        need(old<=days,'HISTORY_INVENTORY_LISTING_REGRESSION')
+        added=sorted(days-old)
+        with self.db:
+            self.db.execute('CREATE TABLE IF NOT EXISTS inventory_observations(id INTEGER PRIMARY KEY,index_raw BLOB NOT NULL,not_after TEXT NOT NULL,captured_at TEXT NOT NULL,parent_sqlite_sha256 TEXT NOT NULL)')
+            self.db.execute('INSERT INTO inventory_observations(index_raw,not_after,captured_at,parent_sqlite_sha256) VALUES (?,?,?,?)',(index_raw,not_after,captured_at,parent_sqlite_sha256))
+            self.db.executemany('INSERT INTO expected VALUES (?)',[(d,) for d in added])
+        return added
+
+    def record(self,day,raw,*,captured_at,parsed_at=None):
+        self._day(day);stamp(captured_at)
+        if parsed_at is not None:need(stamp(parsed_at)>=stamp(captured_at),'HISTORY_REPARSE_CLOCK_REGRESSION')
+        need(type(raw) is bytes and 0<len(raw)<=16000000,'HISTORY_ARCHIVE_SIZE_INVALID')
+        sha=hashlib.sha256(raw).hexdigest();last=self.db.execute('SELECT sha,captured_at FROM observations WHERE day=? ORDER BY id DESC LIMIT 1',(day,)).fetchone()
+        if last and last[0]==sha:return False
+        need(not last or stamp(last[1])<=stamp(captured_at),'HISTORY_OBSERVATION_CLOCK_REGRESSION')
+        state,reason,n=_interpret(day,raw,captured_at)
+        with self.db:
+            self.db.execute('INSERT OR IGNORE INTO archives VALUES (?,?)',(sha,raw))
+            current=self.db.execute('INSERT INTO observations(day,sha,captured_at,state,reason,starts) VALUES (?,?,?,?,?,?)',(day,sha,captured_at,state,reason,n)).lastrowid
+            self._events_table()
+            self.db.execute('INSERT INTO parse_events VALUES (?,NULL,?,?)',(current,parsed_at,OFFICIAL_K_PARSER_REVISION))
+        return True
+
+    def _events_table(self):
+        self.db.execute('CREATE TABLE IF NOT EXISTS parse_events (observation_id INTEGER PRIMARY KEY REFERENCES observations(id), prior_observation_id INTEGER REFERENCES observations(id), parsed_at TEXT, parser_revision INTEGER NOT NULL)')
+
+    def reparse_candidates(self):
+        events=self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='parse_events'").fetchone()
+        result=[]
+        for day,_,_,state,_,_ in self._heads():
+            if state not in ('QUARANTINED','WAITING_PUBLICATION'):continue
+            row=self.db.execute('SELECT parser_revision FROM parse_events WHERE observation_id=(SELECT max(id) FROM observations WHERE day=?)',(day,)).fetchone() if events else None
+            if not row or row[0]<OFFICIAL_K_PARSER_REVISION:result.append(day)
+        return result
+
+    def reparse(self,day,*,parsed_at):
+        """Append a parser interpretation of retained bytes; never fetch/reset.
+
+        The source capture clock is unchanged. A separate event records the
+        later processing clock and parser revision, including failed repairs.
+        V1 snapshots gain the optional event table only on explicit reanalysis.
+        """
+        self._day(day);clock=stamp(parsed_at)
+        previous=self.db.execute('SELECT id,sha,captured_at FROM observations WHERE day=? ORDER BY id DESC LIMIT 1',(day,)).fetchone()
+        need(previous is not None and previous[1] is not None,'HISTORY_REPARSE_REQUIRES_RETAINED_SOURCE')
+        prior_id,sha,captured_at=previous
+        need(clock>=stamp(captured_at),'HISTORY_REPARSE_CLOCK_REGRESSION')
+        stored=self.db.execute('SELECT raw FROM archives WHERE sha=?',(sha,)).fetchone()
+        need(stored is not None and hashlib.sha256(stored[0]).hexdigest()==sha,'HISTORY_RAW_HASH_MISMATCH')
+        events=self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='parse_events'").fetchone()
+        event=self.db.execute('SELECT parsed_at,parser_revision FROM parse_events WHERE observation_id=?',(prior_id,)).fetchone() if events else None
+        if event:
+            if event[0] is not None:need(clock>=stamp(event[0]),'HISTORY_REPARSE_CLOCK_REGRESSION')
+            if event[1]==OFFICIAL_K_PARSER_REVISION:return False
+        state,reason,n=_interpret(day,stored[0],captured_at)
+        with self.db:
+            self._events_table()
+            current=self.db.execute('INSERT INTO observations(day,sha,captured_at,state,reason,starts) VALUES (?,?,?,?,?,?)',(day,sha,captured_at,state,reason,n)).lastrowid
+            self.db.execute('INSERT INTO parse_events VALUES (?,?,?,?)',(current,prior_id,parsed_at,OFFICIAL_K_PARSER_REVISION))
+        return True
+
+    def missing(self,day,*,captured_at,http_status):
+        self._day(day);stamp(captured_at);need(http_status==404,'HISTORY_MISSING_REQUIRES_404')
+        with self.db:self.db.execute('INSERT INTO observations(day,sha,captured_at,state,reason,starts) VALUES (?,NULL,?,?,?,0)',
+                                    (day,captured_at,'MISSING','SOURCE_LISTED_BUT_404_NOT_PROVEN_NO_RACE'))
+
+    def set_wait(self,document):
+        with self.db:self.db.execute('INSERT INTO waits(document) VALUES (?)',(json.dumps(document) if document else None,))
+    def active_wait(self,now):
+        row=self.db.execute('SELECT document FROM waits ORDER BY id DESC LIMIT 1').fetchone()
+        wait=json.loads(row[0]) if row and row[0] else None
+        return wait if wait is not None and wait_active(wait,now) else None
+
+    def pending(self):
+        done={r[0] for r in self._heads() if r[3]!='WAITING_PUBLICATION'}
+        return [d for (d,) in self.db.execute('SELECT day FROM expected ORDER BY day') if d not in done]
+
+    def archives(self):
+        for day,sha,captured,state,_,_ in self._heads():
+            if state not in ('PARSED','PARTIAL_SOURCE'):continue
+            raw=self.db.execute('SELECT raw FROM archives WHERE sha=?',(sha,)).fetchone()[0]
+            need(hashlib.sha256(raw).hexdigest()==sha,'HISTORY_RAW_HASH_MISMATCH')
+            yield dict(day=day,raw=raw,captured_at=captured,source_sha256=sha)
+
+    def summary(self):
+        heads=self._heads();states={s:sum(r[3]==s for r in heads) for s in ('PARSED','MISSING','QUARANTINED')}
+        expected=self.db.execute('SELECT count(*) FROM expected').fetchone()[0]
+        events=self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='inventory_observations'").fetchone()
+        index_raw=(self.db.execute('SELECT index_raw FROM inventory_observations ORDER BY id DESC LIMIT 1').fetchone()[0]
+                   if events else self.db.execute('SELECT index_raw FROM meta').fetchone()[0])
+        excluded=len(_Fields(index_raw).days)-expected
+        waiting=sum(r[3]=='WAITING_PUBLICATION' for r in heads)
+        partial=sum(r[3]=='PARTIAL_SOURCE' for r in heads)
+        report=dict(schema=SCHEMA,month=self.month,listed_days=expected,parsed_days=states['PARSED'],
+                    missing_days=states['MISSING'],quarantined_days=states['QUARANTINED'],pending_days=expected-len(heads)+waiting,
+                    revision_observations=self.db.execute('SELECT count(*) FROM observations').fetchone()[0],
+                    unique_archive_bytes=self.db.execute('SELECT coalesce(sum(length(raw)),0) FROM archives').fetchone()[0],
+                    excluded_listed_days=excluded,month_complete=expected>0 and states['PARSED']==expected and excluded==0,
+                    all_available_period_complete=False,formal_backtest_eligible=False)
+        if waiting:report['waiting_publication_days']=waiting
+        if partial:report['partial_source_days']=partial
+        return report
+
+    def serialize(self):
+        self.db.commit();raw=self.db.serialize();need(len(raw)<=MAX_DB,'HISTORY_MONTH_PARTITION_SIZE_LIMIT');return raw
+    @classmethod
+    def restore(cls,raw,*,expected_sha256,month):
+        need(type(raw) is bytes and 16<=len(raw)<=MAX_DB and hashlib.sha256(raw).hexdigest()==expected_sha256
+             and raw.startswith(b'SQLite format 3\0'),'HISTORY_MONTH_HASH_INVALID')
+        obj=object.__new__(cls);obj.month=month;obj.db=sqlite3.connect(':memory:');obj.db.deserialize(raw)
+        obj.db.execute('PRAGMA trusted_schema=OFF');obj.db.execute('PRAGMA foreign_keys=ON')
+        need(obj.db.execute('PRAGMA quick_check').fetchall()==[('ok',)] and obj.db.execute('PRAGMA foreign_key_check').fetchall()==[], 'HISTORY_MONTH_DB_CORRUPT')
+        need(obj.db.execute('SELECT schema,month FROM meta').fetchall()==[(SCHEMA,month)],'HISTORY_MONTH_SCOPE_MISMATCH')
+        for stored_sha,archive in obj.db.execute('SELECT sha,raw FROM archives'):
+            need(hashlib.sha256(archive).hexdigest()==stored_sha,'HISTORY_RAW_HASH_MISMATCH')
+        return obj

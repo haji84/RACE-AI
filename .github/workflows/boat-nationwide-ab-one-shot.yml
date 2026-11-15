@@ -1,0 +1,690 @@
+# Retain authenticated empty legacy attempts separately from forecasts.
+name: BOAT nationwide cutoff-ordered A/B research (no Vercel)
+on:
+  # Live model runner is called from the trusted main launcher, not arbitrary
+  # pushes to this research branch. The old saved-view push repair is retained.
+  workflow_dispatch:
+    inputs:
+      production_scope:
+        required: true
+        type: choice
+        description: 'Use existing P0/P1 source owner and scorer only'
+        options: [existing-owner-p0-p1]
+  pull_request:
+    branches: [feat/four-sport-forecast-audit-view-20261022]
+    paths:
+      - .github/workflows/boat-nationwide-ab-one-shot.yml
+      - tests/test_boat_main_entry_contract.py
+      - web/product-data.js
+      - tests/product_data.test.cjs
+  push:
+    branches: [feat/four-sport-forecast-audit-view-20261022]
+    paths:
+      - docs/evidence/boat-nationwide-pilot-trigger.txt
+      - .github/workflows/boat-nationwide-ab-one-shot.yml
+permissions:
+  contents: write  # Existing first-P0 index and encrypted display feed only.
+  actions: read
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && 'boat-main-entry-offline-pr-check' || (startsWith(github.event.head_commit.message, 'saved-view:') && 'boat-saved-view-publication' || 'boat-nationwide-cutoff-20261103') }}
+  cancel-in-progress: false
+jobs:
+  main_entry_contract:
+    name: Main to legacy BOAT P0-P1 source-free contract
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify existing model owner and single production entry
+        run: python -m unittest tests.test_boat_main_entry_contract -v
+      - name: Verify saved-result name provenance and reject foreign identities (offline only)
+        run: node --test tests/product_data.test.cjs
+  saved_view_publication:
+    name: Encrypted saved-model display and retained-input execution (no official source requests)
+    if: github.repository == 'haji84/RACE-AI' && github.event_name == 'push' && startsWith(github.event.head_commit.message, 'saved-view:')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+      RACE_AI_PROGRAM_SOURCE_ENABLED: 'true'
+    steps:
+      - name: Exact reviewed display publisher
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.sha }}'}
+      - name: Verify public prospective policy is still before its first outcome
+        id: prospective_policy
+        if: hashFiles('docs/evidence/2026-11-07/prospective-evaluation-plan.json') != ''
+        run: |
+          python - <<'PY_PLAN'
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import hashlib, json, os, re
+          path=Path('docs/evidence/2026-11-07/prospective-evaluation-plan.json')
+          raw=path.read_bytes(); plan=json.loads(raw)
+          # A public declaration wraps counts; it is never the private plan.
+          assert plan['schema']=='RACE_AI_PROSPECTIVE_EVALUATION_REGISTRATION_V1'
+          assert re.fullmatch('[a-f0-9]{40}',plan['policy_commit'])
+          files={'web/product-data.js','web/saved-performance.js','scripts/boat_budget_plan.cjs'}
+          assert set(plan['policy_files_sha256'])==files
+          now=datetime.now(timezone.utc)
+          start=datetime.fromisoformat(plan['created_at'].replace('Z','+00:00'))
+          cutoff=datetime.fromisoformat(plan['first_included_cutoff_at'].replace('Z','+00:00'))
+          ready=start<=now<cutoff and all(hashlib.sha256(Path(name).read_bytes()).hexdigest()==digest for name,digest in plan['policy_files_sha256'].items())
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:output.write('ready='+str(ready).lower()+'\n')
+          print(json.dumps({'status':'PROSPECTIVE_POLICY_WINDOW_OPEN' if ready else 'PROSPECTIVE_POLICY_WINDOW_CLOSED','policy_sha256':hashlib.sha256(raw).hexdigest(),'private_plan_uploaded':False}))
+          PY_PLAN
+      - name: Independently witness only the public pre-result policy declaration
+        if: steps.prospective_policy.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-prospective-evaluation-policy-${{ github.run_id }}
+          path: docs/evidence/2026-11-07/prospective-evaluation-plan.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Pinned official parser for retained result bytes
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - name: Checkout immutable 2026-11-07 registered evaluation rules
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: fe5064e63c2e1c3f5ce32397305f873e89c63cc2
+          path: registered-policy-reference
+      - name: Require SHA-matched frozen policy; reject later rule substitution
+        run: |
+          python -m unittest tests.test_boat_registered_policy tests.test_boat_frozen_cutoff_contract_audit -v
+          node --check scripts/boat_frozen_plan_settlement.cjs
+          node tests/boat_frozen_input_diagnostic.cjs
+          python - <<'PY_POLICY'
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import json, os
+          from scripts.boat_registered_policy import staged_registered_policy
+          registration=json.loads(Path('docs/evidence/2026-11-07/prospective-evaluation-plan.json').read_text())
+          with staged_registered_policy(registration,repository=Path('.'),
+                                        temporary=os.environ['RUNNER_TEMP']):
+              print(json.dumps(dict(status='REGISTERED_PRE_OUTCOME_POLICY_VERIFIED',
+                  policy_commit=registration['policy_commit'],
+                  pinned_policy_file_count=len(registration['policy_files_sha256']),
+                  registered_day=registration['day'],forecast_generation=False,
+                  frozen_plan_modified=False,official_source_requests=0),sort_keys=True))
+          PY_POLICY
+      - name: Install pinned encrypted display dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Initialize encrypted display feed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_saved_view_feed --seed-only
+      - name: Retain and independently restore exact saved originals without taking over the active worker
+        timeout-minutes: 12
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        # Exact owner-encrypted Git retention and cache-only replay. Closed-run
+        # receipts are retained only when every native original is present.
+        # Active collection is never adopted, restarted or replaced here.
+        run: python -m scripts.boat_original_maintenance backfill --repo-root . --run-config audit/state/boat-model-recovery-input.json --output '${{ runner.temp }}/boat-original-maintenance.json'
+      - name: Retain safe completed-worker control for the existing hourly coordinator
+        id: handoff_mirror
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_source_control_mirror latest-closed --repo-root . --output '${{ runner.temp }}/boat-source-control-display.json'
+      - name: Automatically match saved results and publish encrypted display
+        id: saved_model_publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_saved_view_feed --hydrate-originals --history-when-compatible --recover-model-config
+      - name: Settle the unchanged prospective allocation and report matched saved-model evidence
+        id: prospective_audit
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_prospective_audit --output '${{ runner.temp }}/boat-prospective-audit-display.json'
+      - name: Display only bounded registered frozen-input diagnostics
+        if: always() && steps.prospective_audit.outcome != 'skipped'
+        continue-on-error: true
+        run: |
+          python - <<'PY_DIAG'
+          import json, os
+          from pathlib import Path
+          file=Path(os.environ['RUNNER_TEMP'])/'boat-prospective-audit-display.json'
+          if file.is_file() and 0 < file.stat().st_size < 8*1024*1024:
+              report=json.loads(file.read_text())
+              settlement=report.get('frozen_settlement') or {}
+              allowed=('diagnostic_stage','diagnostic_class','diagnostic_module',
+                       'diagnostic_line','diagnostic_caller_module','diagnostic_caller_line',
+                       'diagnostic_origin_module','diagnostic_origin_line')
+              summary={field:settlement[field] for field in allowed if field in settlement}
+              print(json.dumps(dict(status='FROZEN_CAUSE_CODE_ONLY',
+                                    frozen_status=settlement.get('status'),
+                                    reason=settlement.get('reason'),
+                                    **summary),sort_keys=True))
+          PY_DIAG
+      - name: Execute current-day P0 native families with the retained real inputs
+        id: all_models_bootstrap
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_all_model_cycle bootstrap-current --round 0
+      - name: Freeze new P0 families as owner ciphertext only
+        if: steps.all_models_bootstrap.outputs.ready == 'true'
+        id: all_models_bootstrap_freeze
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-all-model-forecasts-${{ github.run_id }}-r0
+          path: ${{ runner.temp }}/boat-all-model-forecasts/cycle-0/forecasts.enc
+          if-no-files-found: error
+          retention-days: 7
+      - name: Read back genuine current-day P0 execution and retain encrypted originals
+        if: steps.all_models_bootstrap_freeze.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_all_model_cycle readback --round 0 --artifact '${{ steps.all_models_bootstrap_freeze.outputs.artifact-id }}'
+      - name: Retain the exact current-day model artifact beyond its expiry
+        if: steps.all_models_bootstrap_freeze.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.all_models_bootstrap_freeze.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-bootstrap-original-vault.json'
+      - name: Publish the unified saved-model view
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_saved_view_feed --hydrate-originals --history-when-compatible --recover-model-config
+      - name: Check saved models and result comparisons on November 8-10 without provider GET
+        if: always() && steps.saved_model_publication.outcome == 'success'
+        timeout-minutes: 6
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: |
+          python -m unittest tests.test_boat_saved_three_day_acceptance -v
+          python -m scripts.boat_saved_three_day_acceptance --days 2026-11-08 2026-11-09 2026-11-10
+      - name: Install the existing pinned browser checker
+        if: always() && steps.saved_model_publication.outcome == 'success'
+        id: browser_tooling
+        continue-on-error: true
+        timeout-minutes: 3
+        run: npm install --prefix "$RUNNER_TEMP/boat-live-ui-tools" --no-package-lock --ignore-scripts playwright@1.62.1
+      - name: Verify the actual private owner site without the local workspace
+        if: always() && steps.saved_model_publication.outcome == 'success' && steps.browser_tooling.outcome == 'success'
+        id: owner_site_check
+        continue-on-error: true
+        timeout-minutes: 4
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          NODE_PATH: ${{ runner.temp }}/boat-live-ui-tools/node_modules
+        run: |
+          set -o pipefail
+          checked_day="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["day"])' "$RUNNER_TEMP/boat-prospective-audit-display.json")"
+          python -m scripts.boat_saved_site_context --day "$checked_day" --output "$RUNNER_TEMP/boat-saved-site-context.json"
+          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" | tee "$RUNNER_TEMP/boat-live-site-check-counts.json"
+      - name: Verify November 8 saved model tickets and result tabs in the actual owner page
+        if: always() && steps.saved_model_publication.outcome == 'success' && steps.browser_tooling.outcome == 'success'
+        id: november8_site_check
+        continue-on-error: true
+        timeout-minutes: 4
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          NODE_PATH: ${{ runner.temp }}/boat-live-ui-tools/node_modules
+        run: |
+          set -o pipefail
+          if [[ -f "$RUNNER_TEMP/boat-saved-site-context.json" ]]; then
+            mv "$RUNNER_TEMP/boat-saved-site-context.json" "$RUNNER_TEMP/boat-saved-site-context-original.json"
+          fi
+          python -m scripts.boat_saved_site_context --day 2026-11-08 --output "$RUNNER_TEMP/boat-saved-site-context.json"
+          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" | tee "$RUNNER_TEMP/boat-live-site-nov8-check-counts.json"
+      - name: Retain aggregate evaluation counts without private plans or source rows
+        if: always() && steps.prospective_audit.outcome != 'skipped'
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-prospective-evaluation-${{ github.run_id }}-display
+          path: |
+            ${{ runner.temp }}/boat-prospective-audit-display.json
+            ${{ runner.temp }}/boat-live-site-check-counts.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Require verified site display and unchanged frozen settlement
+        if: always() && steps.saved_model_publication.outcome == 'success'
+        env:
+          SITE_CHECK_OUTCOME: ${{ steps.owner_site_check.outcome }}
+          AUDIT_OUTCOME: ${{ steps.prospective_audit.outcome }}
+        run: python -m scripts.boat_saved_display_evidence
+  official_national:
+    name: Existing frozen P0, exhibition P1, separate official results and PDCA
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      ((github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/production/boat-p0-p1-20261111' &&
+        inputs.production_scope == 'existing-owner-p0-p1') ||
+       (github.event_name == 'push' &&
+        github.ref == 'refs/heads/feat/four-sport-forecast-audit-view-20261022' &&
+        startsWith(github.event.head_commit.message, 'boat-grid-forward:')))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED: 'true'
+      RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+      RACE_AI_FORWARD_REQUEST: ${{ startsWith(github.event.head_commit.message, 'boat-grid-forward:') && 'audit/state/boat-venue-future-forward-request.json' || '' }}
+    steps:
+      - name: Exact PR71 code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.sha }}'}
+      - name: Verify exact canonical release ref and source SHA before owner source use
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          test "$GITHUB_REPOSITORY" = 'haji84/RACE-AI'
+          test "$GITHUB_REF" = 'refs/heads/production/boat-p0-p1-20261111'
+          test '${{ inputs.production_scope }}' = 'existing-owner-p0-p1'
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          echo 'BOAT_CANONICAL_REF_AND_HEAD_ATTESTED'
+      - name: Pinned official parser
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - name: Pinned existing integration adapters
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - name: Pinned 2026-11-07 settlement policy (existing native cycles)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: fe5064e63c2e1c3f5ce32397305f873e89c63cc2
+          path: registered-policy-reference
+      - name: Verify immutable policy isolation before the existing cycle
+        run: python -m unittest tests.test_boat_registered_policy -v
+      - name: Install existing owner-encryption dependencies for private research
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Test native frozen-input HOLD diagnostics without owner records
+        run: |
+          node --check scripts/boat_frozen_plan_settlement.cjs
+          node tests/boat_frozen_input_diagnostic.cjs
+      - name: Test originals, pending results, tampering and unchanged models
+        run: |
+          python -m unittest tests.test_continuity_checkpoint tests.test_continuity_archive_size tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards tests.test_observed_p1_connection tests.test_external_research_registry tests.test_repeated_cycle tests.test_observed_weight_learning tests.test_first_p0_bootstrap tests.test_boat_private_original_archive tests.test_private_original_archive_readers tests.test_boat_source_control tests.test_github_existing_cycle_startup_wait tests.test_cycle_workflow_references -v
+      - name: Install pinned encrypted display dependencies
+        continue-on-error: true
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Enable cache-first original recovery after offline tests
+        run: python -c "import os; open(os.environ['GITHUB_ENV'],'a').write('RACE_AI_ORIGINAL_VAULT_ENABLED=true\\nRACE_AI_SAVED_PROGRAM_CAPTURE=true\\nRACE_AI_PROGRAM_SOURCE_ENABLED=true\\n')"
+      - name: Initialize encrypted display feed from pinned saved forecasts
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_saved_view_feed --seed-only
+      - name: Catch up saved forecasts from verified previous official result archive
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_saved_view_feed --hydrate-originals --recover-model-run '${{ github.run_id }}'
+      - name: Pin event day and physical worker handoff using actual clock
+        run: |
+          python - <<'PY_CLOCK'
+          from datetime import datetime, timedelta, timezone
+          import os
+          from zoneinfo import ZoneInfo
+          now = datetime.now(timezone.utc)
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write('RACE_AI_EVENT_DAY=' + now.astimezone(ZoneInfo('Asia/Tokyo')).date().isoformat() + '\n')
+              output.write('RACE_AI_WORKER_HANDOFF_AT=' + (now + timedelta(minutes=330)).isoformat() + '\n')
+          PY_CLOCK
+      - name: Admit only the explicit tested-parent BOAT research request
+        id: forward_admit
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_prospective_forward admit
+      - name: Check all earlier same-day receipts before first P0
+        id: first_p0
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python scripts/first_p0_bootstrap.py preflight
+      - name: Authenticate the requested grid before any bootstrap source GET
+        if: steps.forward_admit.outputs.research == 'true'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_prospective_forward preload
+      - name: Obtain first P0 from verified official B only if truly absent
+        id: first_capture
+        if: steps.first_p0.outputs.capture == 'true'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python scripts/first_p0_bootstrap.py capture-wait
+      - name: Protect first P0 before public artifact storage
+        if: steps.first_p0.outputs.capture == 'true' && steps.first_capture.outputs.capture_complete == 'true'
+        run: python -m scripts.boat_private_original_archive pack --kind P0 --input boat_all_day_output/forecasts.json --output-dir '${{ runner.temp }}/boat-private-originals/first-p0'
+      - name: Save first P0 separately before reading results
+        if: steps.first_p0.outputs.capture == 'true' && steps.first_capture.outputs.capture_complete == 'true'
+        id: first_upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-p0-existing-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-private-originals/first-p0/private-original.enc
+          if-no-files-found: error
+          retention-days: 7
+      - name: Read back original ZIP and create-only first receipt index
+        if: steps.first_p0.outputs.capture == 'true' && steps.first_capture.outputs.capture_complete == 'true'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python scripts/first_p0_bootstrap.py finalize --artifact-id '${{ steps.first_upload.outputs.artifact-id }}'
+      - name: Retain the exact first P0 and unchanged GitHub receipt beyond expiry
+        if: steps.first_p0.outputs.capture == 'true' && steps.first_capture.outputs.capture_complete == 'true'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.first_upload.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-first-original-vault.json'
+      - name: Reuse authenticated first original, never silently regenerate it
+        id: restore
+        if: steps.first_p0.outputs.capture != 'true' || steps.first_capture.outputs.capture_complete == 'true'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python scripts/github_existing_cycle.py restore
+      - name: Retain the already captured official B for future native input replay
+        if: steps.first_p0.outputs.capture == 'true' && steps.first_capture.outputs.capture_complete == 'true' && steps.restore.conclusion == 'success'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_program_source retain --day '${{ env.RACE_AI_EVENT_DAY }}' --repo-root . --output '${{ runner.temp }}/boat-program-source-vault.json'
+      - name: Execute new-day P0 families from the authenticated first receipt
+        if: steps.restore.conclusion == 'success' && env.RACE_AI_FORWARD_REQUEST == ''
+        continue-on-error: true
+        id: new_day_models
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_all_model_cycle bootstrap-current --round 0
+      - name: Freeze additional new-day P0 as owner ciphertext
+        if: steps.new_day_models.outputs.ready == 'true'
+        continue-on-error: true
+        id: new_day_models_freeze
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-all-model-forecasts-${{ github.run_id }}-r0
+          path: ${{ runner.temp }}/boat-all-model-forecasts/cycle-0/forecasts.enc
+          if-no-files-found: error
+          retention-days: 7
+      - name: Verify and retain additional new-day P0 originals
+        if: steps.new_day_models_freeze.outputs.artifact-id != ''
+        continue-on-error: true
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_all_model_cycle readback --round 0 --artifact '${{ steps.new_day_models_freeze.outputs.artifact-id }}'
+      - name: Retain exact additional P0 execution and physical save receipt beyond expiry
+        if: steps.new_day_models_freeze.outputs.artifact-id != ''
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.new_day_models_freeze.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-new-day-original-vault.json'
+      - name: Publish authenticated new-day originals with the existing owner view
+        if: steps.restore.conclusion == 'success' && env.RACE_AI_FORWARD_REQUEST == ''
+        continue-on-error: true
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_saved_view_feed --hydrate-originals --recover-model-run '${{ github.run_id }}'
+      - name: Mirror the previous completed worker without exposing its private payload
+        continue-on-error: true
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_source_control_mirror latest-closed --repo-root . --output '${{ runner.temp }}/boat-source-control-previous.json'
+      - name: Wait without source requests for the authenticated exhibition window
+        id: exhibition_window
+        if: steps.restore.conclusion == 'success'
+        run: python scripts/github_existing_cycle.py wait-for-window
+      - name: Initialize continuous source session and account for initial B GET
+        id: repeat_start
+        if: steps.restore.conclusion == 'success' && steps.exhibition_window.outputs.window_ready == 'true'
+        env:
+          RACE_AI_FIRST_P0_CAPTURED: ${{ steps.first_p0.outputs.capture }}
+        run: python scripts/github_existing_cycle.py repeat-start
+      - name: Deadline-ordered five-model round 01
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '1'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 02
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '2'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 03
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '3'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 04
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '4'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 05
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '5'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 06
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '6'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 07
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '7'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 08
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '8'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 09
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '9'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 10
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '10'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 11
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '11'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 12
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '12'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 13
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '13'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 14
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '14'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 15
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '15'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 16
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '16'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 17
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '17'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 18
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '18'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 19
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '19'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 20
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '20'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 21
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '21'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 22
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '22'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 23
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '23'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Deadline-ordered five-model round 24
+        if: steps.repeat_start.outputs.session_ready == 'true'
+        uses: ./.github/actions/existing-model-round
+        env: {GH_TOKEN: '${{ github.token }}'}
+        with:
+          round: '24'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Require explicit research READY or retain an honest HOLD
+        if: always() && startsWith(github.event.head_commit.message, 'boat-grid-forward:')
+        run: python -m scripts.boat_prospective_forward finalize
+      - name: Retain count-only prospective BOAT research proof
+        if: always() && startsWith(github.event.head_commit.message, 'boat-grid-forward:')
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-prospective-forward-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-prospective-forward/proof.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Build compact sealed handoff without retained original ZIP archives
+        if: always()
+        run: python -m race_ai.continuity_checkpoint --source-dir cycle_recovery_output --out-dir cycle_checkpoint_output --expected-run '${{ github.run_id }}'
+      - name: Protect complete continuity before public artifact storage
+        if: always() && hashFiles('cycle_checkpoint_output/**') != ''
+        id: checkpoint_private
+        run: python -m scripts.boat_private_original_archive pack --kind CONTINUITY --input cycle_checkpoint_output --output-dir '${{ runner.temp }}/boat-private-originals/continuity'
+      - name: Preserve verified continuity journal without public source pages
+        if: always() && steps.checkpoint_private.outcome == 'success'
+        id: checkpoint_upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: race-cycle-continuity-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-private-originals/continuity/private-original.enc
+          if-no-files-found: error
+          retention-days: 7
+      - name: Derive count-only handoff control from the exact encrypted continuity
+        if: always() && steps.checkpoint_upload.outcome == 'success'
+        id: source_control_pack
+        run: python -m scripts.boat_source_control pack --cipher '${{ runner.temp }}/boat-private-originals/continuity/private-original.enc' --output-dir '${{ runner.temp }}/boat-source-control'
+      - name: Preserve count-only source control for the existing supervisor
+        if: always() && steps.source_control_pack.outcome == 'success'
+        id: source_control_upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: race-source-control-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-source-control/source-control.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Retain exact continuity and its count-only companion beyond artifact expiry
+        if: always() && steps.checkpoint_upload.outcome == 'success' && steps.source_control_upload.outcome == 'success'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.checkpoint_upload.outputs.artifact-id }}' --artifact '${{ steps.source_control_upload.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-handoff-original-vault.json'
+      - name: Preserve exact raw result responses even if a later validation failed
+        if: always()
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          if [[ -d '${{ runner.temp }}/boat-saved-view-captures' ]]; then
+            python -m scripts.boat_private_original_vault retain-captures --capture-dir '${{ runner.temp }}/boat-saved-view-captures' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-final-capture-vault.json'
+          fi
+      - name: Prepare exact source verification bundle, no data or credentials
+        if: always()
+        run: tar -czf source-bundle.tar.gz --exclude='.git' --exclude='__pycache__' race_ai scripts tests .github pr64-reference/race_ai pr72-reference/race_ai
+      - name: Retain reproducible source for independent local testing
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: existing-cycle-source-${{ github.run_id }}
+          path: source-bundle.tar.gz
+          retention-days: 1

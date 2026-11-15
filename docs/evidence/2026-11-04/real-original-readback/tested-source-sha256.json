@@ -1,0 +1,10 @@
+{
+  "web/index.html": "a8d44c2a647bcd9d2900666ebc15b5260d32c4ebaee5491dc17c4b5659a6baa4",
+  "web/app.js": "06f725ecdb67861f8094735219e2653a409686b8355a4968fdede49438831253",
+  "web/style.css": "98cbd7b697d40ea4e53195858b165ba3473f5b2138aadc5ac479c4660962b509",
+  "web/product-data.js": "cffe2a307ef04b5c6f8416e4d5e43d59f87698da54eb13566aa756364c878ad4",
+  "race_ai/private_cycle_capture.py": "a7b599f5e5646854b773b49218c5ec38c444e85de46cdccffbe21c9d23c6dc87",
+  "race_ai/private_cycle_restore.py": "2e85994a8e97b0817d54a8934a9ed206119ada079c4d8ed749eb1f756b7d7e3a",
+  "race_ai/private_cycle_projection.py": "121110e9b69cf23babc4661b27033ef8f9eea6fb0ba39e19e4ed473fdd83f121",
+  "race_ai/saved_card_projection.py": "e61a486dd7576a5ad77f143051230de5c9c5578595ba165a5e68ea6649b2b622"
+}

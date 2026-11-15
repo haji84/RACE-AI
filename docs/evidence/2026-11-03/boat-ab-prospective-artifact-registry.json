@@ -1,0 +1,63 @@
+{
+  "schema": "RACE_AI_BOAT_AB_ARTIFACT_REGISTRY_V1",
+  "source_registry": {
+    "source_url": "https://www.boatrace.jp/owpc/pc/race/racelist?rno=2&jcd=17&hd=20261103",
+    "source_sha256": "70ed99c65293ea259f31c9d59523ff17f5fe9ff56e1c132f3a74baa549746a96",
+    "source_captured_at": "2026-11-03T01:46:58.701922+00:00",
+    "independently_verified": true,
+    "coverage_scope": "SELECTED_RACES"
+  },
+  "races": [
+    {
+      "race_id": "20261103-17-02",
+      "cutoff_at": "2026-11-03T10:55:00+09:00",
+      "frozen": {
+        "run_id": 41561946057,
+        "artifact_id": 13197470628,
+        "name": "boat-future-ab-41561946057",
+        "zip_sha256": "247361469bdce08823e596a12ac2cebd8c9765d309cc85d6510d65d44912f2d9",
+        "json_sha256": "2666d0de2a0cbda26835a5e738f70b72f242f0862c6e2a6ce0af704ba4e2caff",
+        "bundle_sha256": "9f919e2005d7d504cd3b10dee31dbee32f092fe5ff27529d4df70b37a636a7fd"
+      },
+      "official_result": {
+        "run_id": 41564740819,
+        "artifact_id": 13197154403,
+        "name": "boat-ab-result-20261103-17-02-41564740819",
+        "zip_sha256": "a74da1ca48313e91a52abd775aabadd795808c838ffdda6b4321e7307c04cf2c",
+        "json_sha256": "b284035400543b28e4c980b4cd422b7e0aaa15b83817b80f491a5e002fac1b20"
+      }
+    },
+    {
+      "race_id": "20261103-17-03",
+      "cutoff_at": "2026-11-03T11:19:00+09:00",
+      "frozen": {
+        "run_id": 41564362916,
+        "artifact_id": 13198428110,
+        "name": "boat-future-ab-41564362916",
+        "zip_sha256": "3b943dd4ee9a2d8309b8abb7cdd888f3b8107e4cf0b6658eac8c183f6120f317",
+        "json_sha256": "5d58f23261513f44c31808f1d2d4ebbec65437f1012d9a94f295acaf1c3e11be",
+        "bundle_sha256": "6c73217a740d10b6e288390c9edec992be3087909acb02c24c59d4d19dbfaf7c"
+      },
+      "official_result": {
+        "run_id": 41570947566,
+        "artifact_id": 13200484868,
+        "name": "boat-ab-next-result-41570947566",
+        "zip_sha256": "ac8972733b3b1b5ef8f9ae508b543bc3fc567cf672d7afa5ad02bf711e862646",
+        "json_sha256": "ca2ca308ddba77e9af757cebbe0fc7b6daae8af675a85c97571ceeed54902002"
+      }
+    },
+    {
+      "race_id": "20261103-17-04",
+      "cutoff_at": "2026-11-03T11:47:00+09:00",
+      "frozen": {
+        "run_id": 41567387450,
+        "artifact_id": 13199222868,
+        "name": "boat-future-ab-41567387450",
+        "zip_sha256": "61f67a3b58ccffa6f2b106c2443cf346ea29e20484e50f4f301b7b8bbdb43a6b",
+        "json_sha256": "66e42619da9327d1233d6333849b091a1704f23677f72da4886c088cd729b1d3",
+        "bundle_sha256": "6dfa153cd25ba0b8cee4c1cf16277ef89e61cada92a608305aeca3cb46fadd27"
+      },
+      "official_result": null
+    }
+  ]
+}

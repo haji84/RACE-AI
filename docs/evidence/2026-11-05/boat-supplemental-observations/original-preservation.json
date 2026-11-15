@@ -1,0 +1,14 @@
+{
+  "original_predictions": 830,
+  "display_predictions": 830,
+  "all_original_prediction_fields_unchanged": true,
+  "result_fields_unchanged": true,
+  "supplemental_context_races": [
+    "20261105-01-12",
+    "20261105-12-06",
+    "20261105-12-12"
+  ],
+  "native_database_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+  "native_expected_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+  "new_forecasts": 0
+}

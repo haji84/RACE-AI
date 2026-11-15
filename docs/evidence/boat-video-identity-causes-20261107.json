@@ -1,0 +1,954 @@
+{
+  "schema_version": "RACE_AI_BOAT_IDENTITY_CAUSAL_CONTINUATION_V1",
+  "recorded_at_jst": "2026-11-07T22:23:57.785953+09:00",
+  "existing_draft_pr": 71,
+  "request_complete": false,
+  "continuous_six_boat_identification_complete": false,
+  "production_default_or_forecast_model_changed": false,
+  "model_eligible": false,
+  "source_code_sha256": {
+    "race_ai/boat_video_crnn.py": "4cc3235b30b1bb23774744e7069e938bda00beed1860a7948ec9e0dfba8d9f06",
+    "race_ai/boat_video_marker_reader.py": "dc67bda29e3fa4664ff49a773cd2a71f97ce5b1c41ff9c7b31953450bdc66081",
+    "race_ai/boat_video_marker_flow.py": "47b36ec633d11bbd7dad382e58f1b59ef9eb066eae2786d69e164c1fead9818d",
+    "race_ai/boat_video_marker_identity.py": "956658ac4757e2314bba91df8bd03c434a7c60d717d58369f28a193228807cd8",
+    "race_ai/boat_video_marker_verifier.py": "6e916e8917a393a4f253bb732cb2de1f4b0cabc3a19a3b88f0185a04c9bb079e",
+    "race_ai/boat_video_ppocr.py": "83d4eff2b1fc8716a092c1e7457489e64a0b6af35aa0224eb4e7220cfe1ba15a",
+    "race_ai/boat_video_marker_pipeline.py": "94d80c7ed00426757294b9b93a9bdc59dedc96ce0636a794ba2f6a6709e452ca",
+    "scripts/boat_video_marker_analyze.py": "89e63bc19f6c80168bc8d3aa2b1cec9e045a8c401d1fcf0187383ca1e8bef5e7"
+  },
+  "actual_missing_stage_reproduction": {
+    "original_frames": 76,
+    "reference_opportunities": 102,
+    "before_registered": 59,
+    "before_missing": 43,
+    "before_missing_primary_barriers": {
+      "association_restart": 10,
+      "below_three_observations": 21,
+      "duplicate_number": 2,
+      "local_glyph_reject0": 3,
+      "known_lineage_flow_loss": 2,
+      "upstream_unresolved_without_dense_reference": 5
+    },
+    "below_three_observations_partition": {
+      "initial_warmup": 7,
+      "association_restart_recovery": 8,
+      "admission_or_duplicate_recovery": 6
+    },
+    "initial7_is_not_all_intrinsically_unavoidable_waits": true,
+    "same_real_context_key_TRACKED_same_fresh_number_restarts": [
+      {
+        "frame": 207,
+        "number": 2,
+        "discarded_fresh_count": 5,
+        "gate": "DISTANCE"
+      },
+      {
+        "frame": 211,
+        "number": 2,
+        "discarded_fresh_count": 1,
+        "gate": "AREA_RATIO"
+      },
+      {
+        "frame": 215,
+        "number": 2,
+        "discarded_fresh_count": 4,
+        "gate": "AREA_RATIO"
+      },
+      {
+        "frame": 241,
+        "number": 1,
+        "discarded_fresh_count": 1,
+        "gate": "DISTANCE"
+      },
+      {
+        "frame": 316,
+        "number": 3,
+        "discarded_fresh_count": 4,
+        "gate": "DISTANCE"
+      }
+    ],
+    "global_seed_lost_by_flow_hypothesis_actual76_cases": 0,
+    "reconcile_mutual_center_mismatch_hypothesis_actual76_cases": 0,
+    "duplicate4_counterexamples": {
+      "frames": [
+        480,
+        482
+      ],
+      "false_region": "orange/black bank fender",
+      "genuine4_also_rejected_by_correct_duplicate_guard": true
+    },
+    "minimum_three_fresh_source_frames_not_reduced": true,
+    "context_pixel_lineage_is_hull_identity_authentication": false
+  },
+  "actual_final76": {
+    "original_frames": 76,
+    "actual_classified_regions": 32587,
+    "actual_PP_crops": 317,
+    "actual_PP_global": 156,
+    "actual_PP_local": 161,
+    "runtime_seconds": 130.56610210597864,
+    "before_events": 86,
+    "after_events": 98,
+    "old86_number_box_BGR_PTS_preserved": true,
+    "added_events": 12,
+    "added12_AI_current_print_match": 12,
+    "added12_clear_partial_glyph": 6,
+    "added12_crop_edge_contact_uncertain": 4,
+    "added12_near_complete": 2,
+    "added12_PP_transcript_disagrees": 3,
+    "PP_original_transcripts_not_rewritten": true,
+    "registered_by_number": {
+      "1": 26,
+      "2": 15,
+      "3": 13,
+      "4": 12,
+      "5": 19,
+      "6": 13
+    },
+    "fixed17_registered_by_number": {
+      "1": 11,
+      "2": 10,
+      "3": 13,
+      "4": 12,
+      "5": 11,
+      "6": 10
+    },
+    "fixed102_registered_before": 59,
+    "fixed102_registered_after": 67,
+    "fixed17_complete_tracklets": 0,
+    "total_fixed17_tracklets": 6,
+    "maximum_simultaneous_registered": 3,
+    "first_qualification_frame_onward_registered": 67,
+    "first_qualification_frame_onward_denominator": 84,
+    "conditional_metric_does_not_replace_full102_denominator": true,
+    "all_hull_boxes_null": true,
+    "human_ground_truth": false,
+    "training_overlap": true,
+    "independent_holdout": false
+  },
+  "actual_full775": {
+    "decoded_frames": 775,
+    "all_native_BGR_and_actual_source_PTS_match_canonical": true,
+    "original_media_sha256": "1ac1f0c27f58d8d64ebb1cfc13c2c4e9133cf7bbcce04052f23c28bf2e37f194",
+    "all_pins_unchanged": true,
+    "CLI_exit_code": 0,
+    "CLI_status": "SUCCESS",
+    "SUCCESS_scope": "complete processing and held-source integrity, not perception accuracy",
+    "registered_events_NOT_accuracy": 606,
+    "registered_by_number": {
+      "1": 103,
+      "2": 58,
+      "3": 15,
+      "4": 174,
+      "5": 229,
+      "6": 27
+    },
+    "maximum_simultaneous_registered": 3,
+    "native_review_status": "EXHAUSTIVE_606_EVENT_NATIVE_AI_REVIEW_FROZEN",
+    "known_current_false_example": {
+      "frame": 37,
+      "number": 4,
+      "box": [
+        1296.8341064453125,
+        551.0033569335938,
+        13.0,
+        16.0
+      ],
+      "physical_context": "building window/beam, no boat"
+    },
+    "context_hint_diagnostic_counts": {
+      "ELIGIBLE": 915,
+      "NOT_REQUESTED": 366,
+      "OMITTED": 0
+    },
+    "native_AI_semantics": {
+      "current_print_matches": 564,
+      "background_nonnumeric_false": 36,
+      "craft_nonnumeric_false": 5,
+      "unreadable_UNKNOWN": 1,
+      "number_glyph_wrong_label_or_current_swap_confirmed": 0,
+      "all_606_unique_rows_and_event_hashes_covered": true,
+      "maximum_simultaneous_current_correct_prints": 3,
+      "longest_same_id_consecutive_current_correct_frames_by_number": {
+        "1": 28,
+        "2": 14,
+        "3": 11,
+        "4": 28,
+        "5": 58,
+        "6": 10
+      },
+      "human_GT": false,
+      "training_overlap": true,
+      "independent_holdout": false,
+      "field_accuracy": false
+    }
+  },
+  "full775_association_only_counterfactual": {
+    "new_NN_OCR_LK_forwards": 0,
+    "frames": 775,
+    "old_M_equals_new_M_without_hint_all_frames": true,
+    "new_M_with_hint_equals_actual_all_frames": true,
+    "no_hint_events": 541,
+    "context_hint_events": 606,
+    "old_events_preserved": 541,
+    "added": 65,
+    "removed": 0,
+    "added_semantics_status": "POST_REFERENCE_SEAL_JOIN_COMPLETE_NO_LABEL_CHANGES",
+    "scope": "counterfactual from actual CLASSIFIER policy observations, not new video inference or CTC blank-mode equivalence",
+    "native_AI_semantics": {
+      "old541": {
+        "correct_current_print": 501,
+        "background_nonnumeric": 36,
+        "craft_nonnumeric": 3,
+        "UNKNOWN": 1
+      },
+      "added65": {
+        "correct_current_print": 63,
+        "background_nonnumeric": 0,
+        "craft_nonnumeric": 2,
+        "UNKNOWN": 0
+      },
+      "removed": 0,
+      "all65_full_identity_source_PTS_BGR_number_box_unique_exact_joins": true,
+      "independent_replay_output_parity_checked": true
+    }
+  },
+  "checks": {
+    "all_video_tests": {
+      "passed": true,
+      "tests": 627,
+      "skips": 0,
+      "seconds": 69.171
+    },
+    "related_6_modules": {
+      "passed": true,
+      "tests": 122,
+      "skips": 0
+    },
+    "independent_review": "GREEN after genuine post-refit flow-statistic abort was reproduced and fixed",
+    "quality_fix": "Finite accepted flow outside stricter optional-hint bounds omits the hint with reasons and uses legacy geometry; malformed/nonfinite evidence still rejected; direct M validation unchanged",
+    "all_repository_3106_pass_is_older_commit_only": true,
+    "CI_baseline": "7ccc3843 and upstream 746263a7 viewer job cancelled during full Python at existing 15-minute deadline",
+    "CI_change": "Same existing viewer job 40-minute test deadline plus seven marker modules in existing isolated video step; no new jobs/workflow/schedule/source polling",
+    "latest_rebased_GitHub_checks_complete": false,
+    "rider_integration_relevant_video_regression": {
+      "tests": 670,
+      "skips": 0,
+      "result": "PASS",
+      "seconds": 71.743,
+      "scope": "All test_boat_video*.py at rider tracker7d/detector28c/CLI b3f; not full repository HEAD test result",
+      "log_sha256": "abd67f34d50eafce8d89e305e106afeaf5a5f136999999dc4ebf70b1d43a9314"
+    },
+    "current_point_and_fixture_video_regression": {
+      "tests": 677,
+      "skips": 0,
+      "result": "PASS",
+      "seconds": 76.335,
+      "log_sha256": "e8793f57bfd3c028b21fad63afce6cf3c199bda22d07569c27f35bc87c9fb63a",
+      "scope": "Relevant video modules only: tracker98be and native6/nonzeroPTS Matroska FFV1 fixture; no latest full-repository CI success claim"
+    },
+    "final_merged_point98_video_regression": {
+      "tests": 677,
+      "skips": 0,
+      "result": "PASS",
+      "seconds": 68.198,
+      "log_sha256": "f97762c5030ff75bf53c4b37f393c81b18812721bd4f9c6531f50ee24e5bd659",
+      "scope": "Merged upstream MP4 muxer-offset6/encoded-probed-decoded count fixture and currentpoint tracker98; relevant video modules, not full-repository exactHEAD CI"
+    },
+    "frozen_d9c2_GitHub_workflow": {
+      "commit": "d9c2ee93abd8f88dc8b86337a2c362523b566401",
+      "run_id": 42358009132,
+      "conclusion": "failure",
+      "failed_job": "Viewer audit contract",
+      "failed_step": "Verify owner-requested seller retirement and legacy readback",
+      "CV_source_fix_or_latest_full_CI_green_claim": false,
+      "scope": "Concurrent non-vision seller/legacy contract; preserve owner-requested retirement and report separately from677 local video tests"
+    }
+  },
+  "unsuitable_private_prototypes_not_adopted": {
+    "glyph_plus20": {
+      "same_old10120_feature_rows_preserved": true,
+      "added_photo_glyphs": 20,
+      "additional_augmented_rows": 4000,
+      "one_fit": true,
+      "old_weights_unchanged": true,
+      "Todo_training": false,
+      "oracle18_correct": 5,
+      "oracle18_wrong_nonzero": 2,
+      "oracle18_reject0": 11,
+      "all6_anchor_pass": 0
+    },
+    "wide_YOLOX": {
+      "actual_forwards": 21,
+      "actual_genuine_print_positions_including_one_duplicate_partial": 16,
+      "retained_genuine_positions": 5,
+      "bank_window_examples_rejected": 5,
+      "specific_body_ownership_proven": false
+    },
+    "DINO_three_frames": {
+      "actual_forwards": 3,
+      "accepted_whole_envelope_matches": 8,
+      "reference_bodies": 18,
+      "all6_frame_pass": 0,
+      "raw_oracle18_geometry_is_not_detected18": true
+    },
+    "body_HOG": {
+      "train_bodies": 10,
+      "train_explicit_background": 16,
+      "DEV_body_correct": 5,
+      "DEV_body_total": 6,
+      "DEV_background_correct": 7,
+      "DEV_background_total": 9,
+      "transfer_body_correct": 8,
+      "transfer_body_total": 10,
+      "transfer_background_correct": 7,
+      "transfer_background_total": 12,
+      "automatic_detection_or_owner_proven": false
+    },
+    "whole_body_appearance": {
+      "train_clean_print_bound_bodies": 9,
+      "train_water_background": 8,
+      "Fotois_direct_pair_correct": 1,
+      "Fotois_direct_pairs": 8,
+      "nontrain_background_numeric_false": 13,
+      "nontrain_background_total": 29,
+      "Todo_training_or_input": false,
+      "printed_number_independence_proven": false
+    },
+    "existing_color_masks": {
+      "photo_chromatic_number_crop_has_corresponding_color": 13,
+      "photo_chromatic_number_crops": 13,
+      "Todo_corresponding_color": 3,
+      "Todo_chromatic_crops": 12,
+      "real4_blue_mask_zero": 3,
+      "false4_blue_mask_zero": 5,
+      "mandatory_color_rejection_adopted": false
+    },
+    "rider_appearance": {
+      "photo_training_riders": 12,
+      "photo_training_background": 8,
+      "direct_number_teachers_per_class": 2,
+      "Fotois_transfer_correct": 5,
+      "Fotois_transfer_total": 8,
+      "nontrain_background_numeric_false": 24,
+      "nontrain_background_total": 29,
+      "Todo_oracle_rider_ROI_correct": 10,
+      "Todo_oracle_rider_ROI_wrong": 7,
+      "Todo_oracle_rider_ROI_UNKNOWN": 1,
+      "Todo_all6_frame_pass": 0,
+      "Todo_frames": 3,
+      "number4_and6_correct": 0,
+      "Todo_training": false,
+      "oracle_ROI_is_automatic_inference": false,
+      "printed_number_recognition": false,
+      "independent_number_from_color_certification": false,
+      "feature_pose_color_domain_differences_observed": true,
+      "illumination_causality_established": false
+    },
+    "RBF_glyph_capacity": {
+      "existing_TRAIN_rows": 14120,
+      "same_existing_541_features_and_all_labels": true,
+      "fit_calls": 1,
+      "kernel": "RBF",
+      "C": 2,
+      "gamma_scale_actual": 0.12205147067990423,
+      "TRAIN_correct": 14118,
+      "TRAIN_total": 14120,
+      "TRAIN_quality_is_field_accuracy": false,
+      "Todo_oracle_glyph_correct": 5,
+      "Todo_oracle_glyph_reject0": 11,
+      "Todo_oracle_glyph_wrong_nonzero": 2,
+      "all6_anchor_pass": 0,
+      "relative_to_plus20_linear_same_aggregate": true,
+      "improved_cases": 2,
+      "worsened_cases": 2,
+      "trainer_DEV_results_seen": true,
+      "Todo_training": false,
+      "production_adoption": false
+    }
+  },
+  "object_part_extent_diagnosis": {
+    "default_YOLOX_Todo_final_boxes": 20,
+    "whole_envelope": 1,
+    "hull_part": 11,
+    "mixed": 8,
+    "three_frames_each_contain_parts_of_all6_distinct_real_boats": true,
+    "rider_envelope_IoU_failure_is_not_proof_no_hull_part_was_detected": true,
+    "box_equals_single_complete_craft_assumption_valid": false,
+    "raw85_supervised_head": "DESIGN_ONLY_NOT_FITTED",
+    "rider_visual_number_binding": "IN_PREPARATION_NOT_COMPLETED"
+  },
+  "performance": {
+    "profile_original_frames": 16,
+    "refresh1_wall_seconds": 42.83,
+    "refresh8_wall_seconds": 7.214,
+    "refresh1_pipeline_seconds": 41.485,
+    "refresh8_pipeline_seconds": 6.216,
+    "global_discovery_fraction_of_profiled_pipeline": 0.67,
+    "LK_dominant_hypothesis_supported": false,
+    "refresh1_registered": 27,
+    "refresh8_registered": 16,
+    "held_numbers": 0,
+    "profiling_and_simultaneous_load_limit_precision": true,
+    "thread2_all8509_candidates_and_order_exact": true,
+    "thread2_wall_reduction_fraction": 0.0393,
+    "thread2_CPU_increase_fraction": 0.5598,
+    "thread2_peak_RSS_increase_fraction": 0.6503,
+    "thread2_production_adopted": false
+  },
+  "external_input_scope": {
+    "all_venues_HTTP403_proven": false,
+    "all_venues_require_external_API_contract_proven": false,
+    "exact_denials_and_same_provider_probe_stop_retained": true,
+    "current_different_provider_content_confirmed": false,
+    "new_provider_player_or_media_requests_in_scope_audit": 0,
+    "denied_content_retry_or_bypass": false,
+    "Todo_rights_race_date": "UNKNOWN_PRIVATE_CV_INFERENCE_ONLY_NOT_TRAINING_OR_PUBLICATION",
+    "record_scope": "Earlier official-provider access audit only; later independently licensed Flickr still-photo acquisition is separate, not current official LIVE access"
+  },
+  "preservation": {
+    "protected_live_head": "ef818e510c8ceb62d4c147ab8d4db1c3cf252435",
+    "existing_monitor_PID": 423218,
+    "existing_video_intake_PID": 271439,
+    "original_forecast_SQLite_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+    "new_PR_Issue_workflow_schedule_service_paid_API": false,
+    "main_public_app_wager_production_model_switch": false,
+    "new_acquisition_count_total_GET_round_or_lifetime_stop_limit": false,
+    "raw_media_models_private_forecasts_added_to_git": false
+  },
+  "private_evidence_sha256": {
+    "actual_final76": "7312ee1fa6b3dbde4130ea6d20a2daff23786deef2fa0aeb3d1b3faceb0ffa61",
+    "final76_pixel_binding": "f1ee80e1925b0e31c9aa53d7a305ae46fe3d83074d374bb61fce31cdb20e8eef",
+    "added12_ai_score": "472a4d764f8249476adbd5abd4ed30312cb8a83fd51fa4b9e4dd09c1110e53e0",
+    "full775_receipt": "ecf119e92b7ea89ff768a7b0fe5fa1a9039ea10d7d1cd4adcae90b306d2d734e",
+    "full775_journal": "92d998ba52e0f44e8a95e94f4278c18dfc938d8a93d9e568625ef137492a6f22",
+    "full775_source_complete": "17284ff7ed5f9103237f30fef3afd05eb5b3de9a6b5ceb683d159c95056e1352",
+    "full775_counterfactual": "171114e3e78f048ff11a6c1a45770c68e78a9a422a00370ef72c38bac4a75635",
+    "cause_breakdown": "5008efdb4f96e2af84ce5396da953d82d2088c8d4ab60fc288ee8fa4fc8319a3",
+    "actual_gate_fixtures": "5bec6c4a8485236cf49e350da683572d56decf31b0605416224217ae46993934",
+    "all_video_tests": "24769c26a528f37156a071bba23d05f585869c65be85539f9b5c50ae57fea228",
+    "body_glyph_physical_pairs": "f401e9b2230315a08a28d648ab9efb803da51bb8b72bfa0bf084a7ef91c1cf10",
+    "official_input_scope_audit": "027417256fc3f55399b451c4d0109b3926970ac4fcd7461d19a279288a262b93",
+    "all606_native_AI_score": "5de18ea513fb4ace6d236afeff5b63c716b0248977555e0a849a283a5994afb4",
+    "all606_coverage_receipt": "37edcb33b67abce5ebf941df868811212f161e350641955c20ba790640daea20",
+    "added65_postsealed_AI_join": "140b6f9764054633868436788897b912d91cbaaa6a5370ee335b7d032cdadf2a",
+    "added65_join_receipt": "df5524382a393df8121679b43ab50d4bbd3b60f0cecf584bb8b0ca819d65ade3",
+    "person18_native_AI_source_audit": "96eb5dc4fab8b41569863ad2d3a8ec65fcd0eff4e74246baaa891fdb242d333d",
+    "person18_rider_extent_comparison": "306ecdec28aec2ee5c77bfb8fc0c936363071e5f411c86e09e262ed972e80db4",
+    "rider18_number_oracle_score": "cef33b943e12518ab300314092e99caea7c7dbc112b5f65d624748fab9103793",
+    "rider30_pixel_source_differences": "71604012e0f8bf9b61088de658f66b89d2999e50be8d06761c075c0d97eaf59d",
+    "rider_detector61_complete": "e0a530421522a13b0fa5b0896be4697e7fd86c34c9c65860fcc927c2b1e9694d",
+    "rider_detector61_cached3_parity": "115596276de6e1eb97b2af787994c137ef834375ab8490df0106b7e22c510f1a",
+    "rider_detector61_AI373_score": "ecb2b44d820f98cc7dfb8b898f34af487c9a4fadb8b70166d73d3c1f1b2b2e39",
+    "rider_tracker61_final_complete": "783ef58bb3555d381d04d57d21c6a3f9c96ec896a5f77ce73ed8063077292e45",
+    "rider_tracker61_final_journal": "18da1f087176c053dbb0bfc410d51a62d8119f78ef6dad6789d8f6cb785727ca",
+    "rider_tracker61_causal_trace": "0837483c3c1314a41dc858b580c89f127f2ba491db97024df4e2ee5b28daf8e2",
+    "rider_tracker_independent_review": "d22e347b3b40ab3353c6ec542bc6c1e697ee3b1a7427cc90dc45ddad3a0153f9",
+    "marker_rider_CLI_independent_review": "4cc7af256f630db552f47c71a35c2aa60c727ed25e706d490d7c1d56f188b9b2",
+    "RBF_TRAIN_only_report": "007ba931d9e9afa6923c1685b5168afa5d5ca117143c266c6c07ac9f6d5f6b24",
+    "RBF_oracle18_postseal_score": "3e7e4b1b477da6772621dad96d3e04a624ff131ea9772d339537af0357e4d751",
+    "rider_tracker61_native_AI402_plus5_score": "24c78dd9e7efcd7fa5aff8cbf1268ff371222599047992a07e9920e30553a100",
+    "rider_currentpoint_actual61_receipt": "9d25e957fa36af8fe4a1ac16989dbdeb1bfc7e03c9d3e53b6e5c9172c3cdee6e",
+    "rider_currentpoint_actual61_journal": "1694dc3aac3839f237d96a49b9a749a3295118fb9cf174be014e5a0eb6665ba4",
+    "rider_currentpoint_AI391_plus11_UNBOUND": "d3c886bc437be1aac1111b57f924deb290d95cf4fe32c3a3948409f618d71797",
+    "rider_currentpoint_independent_review": "1980d4c1b815ecb69556e3abaa7f7dcd42ae41f47332ff5017543e1bdd4cbbe2",
+    "new36_licensed_direct_print": "27e4117e5ea4255ec1aaef1df6546e40fc2310d818b169d5f8196ca57b962681",
+    "new46_licensed_rider_observations": "f949f759d4fa732826ff589720f9c2d43849edefca33a6a0dfd95a242ac26161",
+    "CC9_rider_absent_equipment66": "c0d9598aa6d07cfce8d1f19c48575f72ce0889f38f0b93ec8fd59afd70e28e00",
+    "DINO_person22_RAW": "4780af355f24cff43646c58e9aadc30c4f385d155ab9dd7002b20b9bf4ea8f8d",
+    "DINO_person22_AI20score": "b0fce6f62c923ecfe56e5ecef39aa26c847ffb1be310fd4a83cb8b17fd2dd158",
+    "glyph_CNN_dataset_beforefit": "d2617e27066c3758edcbf0997debbe779c1409ea8269169c63e49931aa9470e8",
+    "glyph_CNN_protocol_beforefit": "3c064b65a8b1b0a139c536d7a0b32e396063fcc8f55c8264932ede637687c9e3",
+    "glyph_CNN_model_receipt": "ac5073d60efc615b5fcb05c5ac638af32042c9ca4cc6cc97eefa9603dd14a092",
+    "glyph_CNN_completion": "a975ad026db63e96bc3c1b0177976f06b1cc54382806b529300bcfb9350330a6",
+    "glyph_CNN_artifact_index": "709c9a53f047ef2c1f35a4385ac17fc2b697a5a478b3606b409563c9ad2b1c57",
+    "glyph_CNN_oracle18_raw": "fb62e2ec8eeba0330138e1ba68b7a3e7d793908bcb1be9f5032507cd899f91a7",
+    "glyph_CNN_oracle18_postseal_AIscore": "a88a94668330070584ab9a1c8bd16b107f117ef5f09a5c73954768a57317d552",
+    "glyph18_blind_native_judgments": "ae1fa3f52f66bb297aa4a93f429b1624f4ab631bd6dbd8308d03e328699cf6d8",
+    "glyph18_blind_native_postseal_join": "3c6279ca8d5ce06605141b062614494f658efdfb9a13713580443660cd19808f",
+    "RIDER_RGB_V1_model_report": "e0b062b192df60fa235b658d7a814b78ef1013a52b13e45b794c0fe8059d5db0",
+    "RIDER_RGB_V1_all_stages_AI_score": "aa5977f079c1acbdae9587db175b8906355dd74ba559930321a3a6231efefea0",
+    "RIDER_RGB_V1_score_receipt": "c0d468a26628960d66403adc8b1905e1b6a7493b9aded5b8d01342c36c2e7a04",
+    "RIDER_RGB_V1_current391_RAW": "20c5a99051aaad36a2b59299a34fbda7f8ee2b4fa71c91815b4784d17c9a19ec",
+    "RIDER_RGB_V1_no_forward_rank_diagnosis": "951b27ccf5878a3bc8a92a4e29fe6e09038662e27760ef9a57c57cbcc38876bc",
+    "SAM2_original60_RAW": "105e94c4d5ff936337c57f348db950dba855898fe6317a7e2450aaf6e96212fa",
+    "SAM2_original60_native_AIjudgments": "4152d5300532c1b3491e6717c8314d529b9fcb1f27818c5303d36bbe08ce7af2",
+    "SAM2_fixed_selector_postseal_join": "50f6c5d869ed82288f99c6a5dbd0cd3a23abe73ea11317433e8ef555fb7e963c",
+    "SAM2_contactV2_RAW": "e34b50a685e1f8d2840ea98495aa27d72db1ee94b4cc679706c25e0faf58c01b",
+    "SAM2_contactV2_complete": "cb6e4829a637cc173971e2bdfbfb39c21f865e45862772d2b14f0b8d56b4f225",
+    "new_CC100_root_integrity_readback": "37ca3621eb9fa87a59a28e7abf77a5862a5029f3e53bf516d827a93f5f442184",
+    "new_CC1_native_rider_reference": "ebed15a4c34bd76e32a4f1830182b7a04fa33a9621160457cceb314f2d5c9fb8",
+    "SAM2_contactV2_final_manifest": "466e3ea3b779e42b8c5f19de0463ed32d836c22bb40bb270e693ac780b507ecd",
+    "SAM2_contactV2_content_verification": "b39a13858de97569242a50331fd305cdcc35e77c4d5f786f449b8f09fdb01053"
+  },
+  "rider_part_development": {
+    "status": "IMPLEMENTED_LOCAL_ANONYMOUS_RIDER_PATH_NOT_SIX_NUMBERED_IDENTITIES",
+    "existing_yolox_asset_sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+    "class0_person_not_class8_boat": true,
+    "preexisting_fixed_half_objectness_times_class_and_raw_argmax": true,
+    "no_new_forecast_family_or_production_default": true,
+    "three_anchor_cached_postprocess": {
+      "new_NN_calls": 0,
+      "genuine_single_rider_parts": 18,
+      "candidates": 18,
+      "all6_rider_parts_each_anchor": true,
+      "full_visible_rider_IoU_half_matches": 16,
+      "full_visible_rider_references": 18,
+      "max_overlap_parent_hull_is_mixed": 9,
+      "automatic_parent_boat_link_established": false,
+      "numeric_ID_established": false
+    },
+    "actual_product_detector61": {
+      "original_frames": 61,
+      "source_frame_range_inclusive": [
+        270,
+        330
+      ],
+      "current_native_BGR_PTS_verified_all": true,
+      "actual_DNN_forward_calls": 427,
+      "all_three_cached_anchors_boxes_scores_exact": true,
+      "candidate_total": 373,
+      "candidate_count_frame_frequency": {
+        "5": 8,
+        "6": 40,
+        "7": 11,
+        "8": 2
+      },
+      "runtime_seconds": 276.624,
+      "source_and_model_pins_unchanged": true,
+      "exhaustive_semantic_review": "FROZEN_373_CURRENT_NATIVE_CANDIDATE_ROWS",
+      "numeric_inference_calls": 0,
+      "six_rider_continuity_established": false,
+      "rider_IS_hull": false,
+      "source_rights": "UNKNOWN_PRIVATE_INFERENCE_ONLY_NOT_TRAINING_OR_DISTRIBUTION",
+      "semantics": {
+        "primary_rider_parts": 369,
+        "clear_single_rider_parts": 367,
+        "secondary_boundary_purity_UNKNOWN": 2,
+        "motor_NO_PERSON": 4,
+        "same_rider_duplicate_parts": 11,
+        "distinct_rider_frame_presences": 358,
+        "all6_primary_riders_present_frames": 53,
+        "total_frames": 61,
+        "all6_riders_known_source_visible_frames": 61,
+        "missing_primary6_source_frames": [
+          296,
+          297,
+          298,
+          310,
+          311,
+          313
+        ],
+        "missing_primary3_source_frames": [
+          319,
+          324
+        ],
+        "misses_prefinal_score_NMS_cause": "UNOBSERVED_DO_NOT_ATTRIBUTE",
+        "independent_heldout": false
+      }
+    },
+    "guards": {
+      "per_view_head_selection": 256,
+      "NMS_candidates": 12,
+      "maximum_native_views_per_frame": 7,
+      "guards_are_per_input_resources_not_race_GET_or_lifetime_limits": true
+    },
+    "number_binding": "Separate physical pair dependency; containment/nearest/appearance/elimination never establish printed number",
+    "model_eligible": false,
+    "actual_product_anonymous_tracker61": {
+      "source_sha256": "7d337999799ecd93943712cd54cf19d5f5f61edccc1bc6d1ad6ba7b69ff8a464",
+      "original_frames": 61,
+      "actual_LK": true,
+      "cached_actual_detector_DNN_outputs_replayed": true,
+      "new_DNN_calls": 0,
+      "earlier_actual_detector_DNN_calls": 427,
+      "number_provider": null,
+      "all_number_fields_UNKNOWN": true,
+      "hull_positions_inferred": false,
+      "track_rows": 402,
+      "visibility_counts": {
+        "CURRENT_DETECTION_UNTRACKED": 23,
+        "DETECTION_AND_PIXEL_TRACK": 350,
+        "PIXEL_TRACKED_RIDER_HYPOTHESIS": 29
+      },
+      "stable_anonymous_keys_for_all61": 4,
+      "other_tracklets_fragmented": true,
+      "semantic_review": "EXHAUSTIVE_NATIVE_AI402_PLUS5_REJECTED_SEALED",
+      "all_pins_unchanged": true,
+      "six_numbered_identity_success": false,
+      "semantics": {
+        "primary_rider_part_rows": 377,
+        "nonperson_motor_rows": 25,
+        "all6_primary_source_rider_parts_present_frames": 61,
+        "total_frames": 61,
+        "exact6_outputs_without_duplicates_or_motor_extra_frames": 30,
+        "same_rider_duplicate_part_rows": 11,
+        "same_primary_source_observed_swaps_within_any_R": 0,
+        "rider_to_motor_switches_observed": 0,
+        "R8_is_motor_frames": 25,
+        "source6_fragmented_R_IDs": 7,
+        "source4_fragmented_R_IDs": 11,
+        "R1_R2_R3_R4_current_primary_parts_continuous_all61": true,
+        "rejected_flow_only_duplicate_components_separately_retained": 5,
+        "source_numbers_are_postoutput_diagnostics_not_inference_outputs": true,
+        "human_ground_truth": false,
+        "independent_holdout": false
+      }
+    },
+    "independent_review": "GREEN_DETECTOR39_TRACKER7_TARGETED_CLI16_CONTROLLED_TESTS_NOT_REAL_ACCURACY",
+    "CLI": {
+      "optional_argument": "--rider-model LOCAL_PINNED_YOLOX",
+      "same_original_frames_in_separate_journal_field": "pipeline_result.rider_part_tracking",
+      "marker_numbers_assigned_to_riders": false,
+      "number_binding": "NOT_IMPLEMENTED_NO_NUMBER_PRODUCER",
+      "production_intake_or_forecast_defaults_changed": false
+    }
+  },
+  "source_code_sha256_scope": "Frozen marker full775 actual execution; original CLI89e63 remains historical, not the later optional rider CLI",
+  "rider_integration_source_code_sha256": {
+    "race_ai/boat_video_rider_detector.py": "28c1052f5744641b6f0f3ec48c3aa774af7eff5f0fceaffe5372cefdc2228b34",
+    "race_ai/boat_video_rider_tracking.py": "7d337999799ecd93943712cd54cf19d5f5f61edccc1bc6d1ad6ba7b69ff8a464",
+    "scripts/boat_video_marker_analyze.py": "b3f802050ae392dc4357311cfc946543dc6233536cf41adbd89f04bec75b448f",
+    "tests/test_boat_video_rider_detector.py": "69ac610d9956a35cdcb1092e9cb49a34b37e5ea0a406f6a17944aadee4ae0615",
+    "tests/test_boat_video_rider_tracking.py": "46fe30af6a273fd5608c448dec68bdf01a030a49a7c463daa43ad3c3c65d9660",
+    "tests/test_boat_video_marker_cli.py": "666c51bf52dc1bd1142d9e750feb7c2696521764700944f61cef9a8e6bceaa29"
+  },
+  "rider_integration_source_code_sha256_scope": "Closed first rider lifecycle checkpoint329014cb: tracker7d/CLI b3; later point association and fixture pins stored separately",
+  "current_point_rider_source_code_sha256": {
+    "race_ai/boat_video_rider_detector.py": "28c1052f5744641b6f0f3ec48c3aa774af7eff5f0fceaffe5372cefdc2228b34",
+    "race_ai/boat_video_rider_tracking.py": "98befe308f081d14ecf334dfc02db7194816535e3584774a9f78dd6b9b708673",
+    "scripts/boat_video_marker_analyze.py": "b3f802050ae392dc4357311cfc946543dc6233536cf41adbd89f04bec75b448f",
+    "tests/test_boat_video_rider_detector.py": "69ac610d9956a35cdcb1092e9cb49a34b37e5ea0a406f6a17944aadee4ae0615",
+    "tests/test_boat_video_rider_tracking.py": "3636a88cecf0f33e6ef97a5325c9d705e8582fbefcf0ef02738964b4c33ecf01",
+    "tests/test_boat_video_marker_cli.py": "def172a2b1bbf8dfc69593128a5aef58146412446fe2dfebfa3189348ff33c9c"
+  },
+  "current_point_rider_development": {
+    "status": "SIX_ANONYMOUS_PRIMARY_RIDER_PARTS_CONTINUOUS_ON_LOCAL61_NOT_NUMBERED_BOATS",
+    "same_IoU_half_unchanged": true,
+    "point_association": {
+      "minimum_current_reliable_points": 4,
+      "minimum_fraction_covered_by_current_detection": 0.75,
+      "fraction_from_preexisting_F_affine_inlier_ratio": true,
+      "foreign_R_current_points_allowed": 0,
+      "current_F_frame_index_PTS_scene_BGR_verified": true,
+      "ambiguous_detections_preserved_unbound": true,
+      "representative_selection_uses_number_or_score": false,
+      "one_shared_point_blocks_unbound_proposal_new_R_birth": true
+    },
+    "actual61": {
+      "frames": 61,
+      "source_original_indices_inclusive": [
+        270,
+        330
+      ],
+      "source_PTS_BGR_exact": true,
+      "cached_detector_forward_calls": 427,
+      "new_DNN_calls": 0,
+      "actual_LK": true,
+      "runtime_seconds": 13.920666210004129,
+      "output_rows": 391,
+      "primary_rider_part_rows": 366,
+      "nonperson_motor_rows": 25,
+      "raw_observations_retained": 373,
+      "raw_partition": {
+        "fresh_detections_output": 362,
+        "UNBOUND_proposals": 11
+      },
+      "all6_primary_riders_same_R_each_of61": true,
+      "continuous_primary_R_IDs": 6,
+      "previous_7d_continuous_primary_R_IDs": 4,
+      "same_primary_source_swaps_observed": 0,
+      "same_rider_duplicate_output_rows": 0,
+      "previous_same_rider_duplicate_output_rows": 11,
+      "motor_rows_unchanged": 25,
+      "exact6_outputs_without_nonperson_extra_frames": 36,
+      "total_frames_for_exact6_measure": 61,
+      "association_evidence_counts": {
+        "IOU_GEOMETRY": 336,
+        "CURRENT_LK_POINT_SUPPORT": 19
+      },
+      "numeric_number_fields": "ALL_NONE_NO_NUMBER_PROVIDER",
+      "hull_positions": "ALL_NONE",
+      "individual_LK_point_clothing_mask_certified": false,
+      "source_rights": "UNKNOWN_PRIVATE_INFERENCE_ONLY_NOT_TRAINING_PUBLICATION",
+      "native_semantics_scope": "AI_DEVELOPMENT_POSTOUTPUT_NOT_HUMAN_GT_NOT_FIELD",
+      "independent_heldout": false
+    },
+    "six_numbered_or_wholeboat_identities_complete": false,
+    "production_or_forecast_model_switched": false,
+    "model_eligible": false
+  },
+  "CI_fixture_correction": {
+    "prior_run_id": 42351039195,
+    "prior_commit": "2ae274d1fb08b593fa172cca87fe83486d1a3916",
+    "observed_failure": "MarkerCliTests.setUpClass six displayed unique frames assertion",
+    "prior_full_Python_step_completed_before_isolated_video_failure": true,
+    "local_counterexample": "FFmpeg7.1.5 MPEG4/MP4 nb_frames6 but5 displayed frames; disabling editlist loses nonzero PTS",
+    "test_only_correction": "Retain concurrent upstream MP4 fixture: explicit6 encoded frames, muxer output_ts_offset2, encoded/probed/decoded/unique6 checks",
+    "CLI16_tests_PASS_seconds": 4.827,
+    "latest_exact_HEAD_CI": "PENDING_AFTER_PUSH",
+    "full_CI_green_claim": false,
+    "local_interim_test_fixture": "Matroska FFV1 explicit6/nonzeroPTS,16PASS and first677 regression retained as closed local evidence",
+    "final_fixture_source_sha256": "66278338975ba51b9ec9c1ef91770eb6560b5abce6ef711ae4a7c1a3c2a3dabf",
+    "merged_CLI_log_sha256": "4e096ee926f0e195e0804abb18c6c643c52d07fde159c05bc4c21a04b4af7f27",
+    "final_merged_video_tests": "677PASS_0skip_68.198s"
+  },
+  "licensed_training_data_addition": {
+    "new_direct_print_glyphs": 36,
+    "new_glyph_class1_to6": [
+      0,
+      11,
+      8,
+      6,
+      4,
+      7
+    ],
+    "new_glyph_distinct_photos": 23,
+    "old_photo_glyphs": 20,
+    "total_photo_glyphs": 56,
+    "new_rider_observations": 46,
+    "existing_rider_observations": 26,
+    "total_rider_photo_observations": 72,
+    "observations_are_independent_people": false,
+    "number_UNKNOWN_craft_observations_retained": 20,
+    "new_actor_part_negatives": 66,
+    "hardnegative_subtypes": {
+      "motor_core": 23,
+      "unoccupied_hull_foredeck_cowling": 30,
+      "markers_shore_equipment": 13
+    },
+    "hardnegative_IGNORE": 9,
+    "actor_negatives_are_glyph_reject0_labels": false,
+    "training_Todo_unknown_media": false,
+    "new_source_acquisition": false,
+    "record_scope": "Previously cached preferred27 photograph additions; no new source acquisition in that old batch"
+  },
+  "private_glyph_CNN_capacity": {
+    "status": "ORACLE18_UNMET_NOT_ADOPTED",
+    "same_old14120_images_HOG541_and_labels_bitexact": true,
+    "training_rows": 21320,
+    "new_photo_augmented_rows": 7200,
+    "old_native_glyphs_and_photos_replaced": false,
+    "epochs": 30,
+    "optimizer_steps": 5010,
+    "fit_calls": 1,
+    "parameters": 25991,
+    "training_seconds": 419.351,
+    "all_training_rows_each_epoch_no_duplicate_or_drop": true,
+    "all21320_save_reload_logits_bitexact": true,
+    "train_and_eval_tensor_contract": "float32_uint8_div127.5_minus1",
+    "Todo_training": false,
+    "trainer_known_DEV_awareness": true,
+    "independent_holdout_or_field_accuracy": false,
+    "production_adoption": false,
+    "model_sha256": "bddf776a453166c0c56ee3e7285bc92ffd009d5d0192942907ebbbfd5b8d476a",
+    "new36_data_and_CNN_representation_both_changed": true,
+    "oracle18_correct": 8,
+    "oracle18_reject0": 9,
+    "oracle18_wrong_nonzero": 1,
+    "oracle18_correct_by_number": {
+      "1": 2,
+      "2": 1,
+      "3": 0,
+      "4": 0,
+      "5": 3,
+      "6": 2
+    },
+    "oracle_anchors_correct_of6": [
+      1,
+      3,
+      4
+    ],
+    "all6_anchor_pass": 0,
+    "changed_correct_relative_to_plus20_HOG": {
+      "newly_correct": 5,
+      "lost_correct": 2
+    },
+    "printed4_capacity_unresolved": true,
+    "oracle_ROI_is_automatic_pipeline": false
+  },
+  "blind_native_glyph_readability": {
+    "scope": "Independent fresh AI observer; original18 anonymous glyph pixels only, no scene/number-range/model-output context; raw judgments sealed before old-reference join",
+    "images": 18,
+    "CLEAR": 6,
+    "AMBIGUOUS": 12,
+    "UNREADABLE": 0,
+    "CLEAR_transcriptions": {
+      "prior_scene_reference1_read_as7": 3,
+      "prior_scene_reference5_read_as5": 3
+    },
+    "prior_reference_numbers2_3_4_6_each_three_are_ambiguous": true,
+    "reference_labels_rewritten": false,
+    "human_GT_or_proven_literal_labels": false,
+    "reason_for_audit": "Separate tiny native glyph ambiguity from classifier defects; no model retuning or label repair after outputs"
+  },
+  "new_licensed_still_source": {
+    "provider": "Flickr ordinary public feed/catalog/photo/sizes pages",
+    "publisher_photo_id": "nakashi/48124851311",
+    "author": "nakashi",
+    "license": "CC BY-SA 2.0",
+    "captured_photo_date_displayed": "2019-06-23",
+    "original_dimensions_wh": [
+      3871,
+      2203
+    ],
+    "original_bytes": 4213258,
+    "original_sha256": "eab020497e17ffc346753c9243743cdee32080d219d3102c5b77071adfb584b8",
+    "rights_receipt_sha256": "c2845b12fc7e76886f62c4550308724d8fcc6c0687d06f01732fa3293d58f20b",
+    "acquisition_checkpoint_sha256": "678bb4da7c3a602afdce92f4580c56b0b486e251fba8efd65549e731d161ce11",
+    "individual_public_rights_verified_before_original_download": true,
+    "API_key_account_cookie_or_custom_UA_used": false,
+    "previous_denied_content_or_Commons_photo_retrieved_by_host_switch": false,
+    "original_resized": false,
+    "current_official_LIVE403_resolved": false,
+    "ongoing_frozen_training_dataset_modified": false,
+    "source_only_annotation_status": "IN_PROGRESS_SEPARATE_NEXT_DATASET_CANDIDATE",
+    "new_public_collection_continues_without_added_count_or_lifetime_stop": true,
+    "API_key_account_cookie_or_custom_UA_used_scope": "No API key, new account, authenticated cookie/session or UA impersonation; ordinary public page chain only",
+    "verified_preserved_source_files": 100,
+    "verified_unique_original_and_RGB_hashes": 100,
+    "all100_are_number_or_rider_teachers": false,
+    "known_public_frontier_processed_not_catalog_completion_or_configured_count_cap": true
+  },
+  "current_point_rider_source_code_sha256_scope": "Closed point98 execution and first677 regression with local Matroska fixture; concurrent upstream MP4 fixture is retained in final merged tree",
+  "current_merged_rider_source_code_sha256": {
+    "race_ai/boat_video_rider_detector.py": "28c1052f5744641b6f0f3ec48c3aa774af7eff5f0fceaffe5372cefdc2228b34",
+    "race_ai/boat_video_rider_tracking.py": "98befe308f081d14ecf334dfc02db7194816535e3584774a9f78dd6b9b708673",
+    "scripts/boat_video_marker_analyze.py": "b3f802050ae392dc4357311cfc946543dc6233536cf41adbd89f04bec75b448f",
+    "tests/test_boat_video_rider_detector.py": "69ac610d9956a35cdcb1092e9cb49a34b37e5ea0a406f6a17944aadee4ae0615",
+    "tests/test_boat_video_rider_tracking.py": "3636a88cecf0f33e6ef97a5325c9d705e8582fbefcf0ef02738964b4c33ecf01",
+    "tests/test_boat_video_marker_cli.py": "66278338975ba51b9ec9c1ef91770eb6560b5abce6ef711ae4a7c1a3c2a3dabf"
+  },
+  "private_RIDER_RGB_CNN_V1": {
+    "status": "AUTOMATIC391_UNMET_NOT_ADOPTED",
+    "model_sha256": "2e433503e0c25b8a7ee58cfcc93e34abddc978d382ad00856c6b09c1d6a03dfc",
+    "training_base_observations": 166,
+    "training_variants": 8300,
+    "epochs": 30,
+    "fit_calls": 1,
+    "parameters": 26279,
+    "new_Flickr_sources_in_training": 0,
+    "class1_native_teachers": 2,
+    "Todo_training": false,
+    "oracle18_matches": 9,
+    "automatic_current391": {
+      "known_primary_rows": 366,
+      "matches": 181,
+      "rejected0": 170,
+      "wrong_number2_to3": 15,
+      "formal_clear_primary": 364,
+      "formal_clear_matches": 179,
+      "secondary_boundary_UNKNOWN": 2,
+      "all6_correct_frames": 0,
+      "total_frames": 61,
+      "correct_per_number1to6": [
+        0,
+        8,
+        51,
+        61,
+        61,
+        0
+      ],
+      "motor_class0_correct": 25,
+      "motor_rows": 25,
+      "max_simultaneous_correct_number_candidates": 4,
+      "longest_matching_current_frames_per_number": [
+        0,
+        5,
+        43,
+        61,
+        61,
+        0
+      ],
+      "number2_strict_longest_excluding_boundary_UNKNOWN": 3
+    },
+    "new_forward_calls": 5,
+    "new_forward_input_examples": 420,
+    "exact_B373_raw_replay_rows_in_C391": 362,
+    "production_adoption": false,
+    "printed_number_observed": false,
+    "human_GT_or_independent_field_accuracy": false
+  },
+  "raw_logit_cause_diagnosis": {
+    "new_NN_calls": 0,
+    "new_fit_calls": 0,
+    "operational_predictions_modified": false,
+    "class1_true_logit_rank": {
+      "rank6": 41,
+      "rank7": 20
+    },
+    "class6_true_logit_rank": {
+      "rank3": 2,
+      "rank4": 50,
+      "rank5": 9
+    },
+    "excluding0_diagnostic_only": {
+      "true1_would_be2": 11,
+      "true1_would_be3": 50,
+      "true6_would_be5": 61,
+      "all25_motors_would_be_falsely_numbered": true
+    },
+    "loosening_reject_or_forcing_nonzero_solves_failure": false,
+    "conclusion": "Number representation/data are insufficient, not only class0 rejection; person presence and unknown number must remain distinct and new licensed pose/color data are needed."
+  },
+  "SAM2_instance_mask_probe": {
+    "publisher_model": "facebook/sam2.1-hiera-tiny",
+    "publisher_revision": "de431c4043854a71d8101e17995dfe596bf101a5",
+    "asset_sha256": "48c14467e5cf9e51870511feb72c89688e82dd74523142c0538b663e193ac2a7",
+    "asset_bytes": 155908064,
+    "license": "Apache-2.0",
+    "new_forecast_model_family": false,
+    "baseline": {
+      "images": 3,
+      "automatic_boat_box_prompts": 20,
+      "masks_retained": 60,
+      "manual_GT_prompts_or_clicks": false,
+      "AI_primary_categories": {
+        "WHOLE_HULL": 34,
+        "WHOLE_CRAFT": 12,
+        "WATER_SHORE_BACKGROUND": 9,
+        "MULTIPLE_BOATS": 3,
+        "HULL_PART": 2
+      },
+      "raw_all60_clean_visible_hull_coverage_per6": [
+        5,
+        5,
+        6
+      ],
+      "fixed_default20_then_mask_NMS_selected": 20,
+      "fixed_selected_clean_visible_hull_coverage_per6": [
+        5,
+        5,
+        6
+      ],
+      "default_selector_is_six_instance_success": false
+    },
+    "automatic_contact_V2": {
+      "status": "RAW_COMPLETE_SEMANTICALLY_UNSCORED",
+      "PERSON_candidates": 18,
+      "BOAT_candidates": 20,
+      "automatic_pairs": 20,
+      "positive": "detected_PERSON_bottomcentre",
+      "negatives": "all_other_detected_PERSON_bottomcentres",
+      "matching": "all_BOAT_boxes_containing_that_contact_hypothesis_no_nearest",
+      "model_vision_decoder_batch_calls_each": 3,
+      "all_multimasks_saved": 60,
+      "manual_GT_or_number_prompts": false,
+      "source_assets_before_after_unchanged": true,
+      "model_or_quality_threshold_changed": false,
+      "clean6_hull_or_number_success_established": false
+    },
+    "product_or_forecast_deployment": false,
+    "source_unknown_rights_private_inference_only": true
+  },
+  "execution_constraint": {
+    "parallel_AI_agents_reported_usage_limit": true,
+    "observed_error": "You’ve hit your usage limit.",
+    "additional_billing_or_account_created": false,
+    "local_evidence_preserved": true,
+    "existing_forecast_processes_stopped_or_restarted": false,
+    "request_complete": false,
+    "remaining_work": "Curate licensed modern rider/clothing data; separate person presence from unknown number; independently score contact masks; implement verified automatic part/number binding and validate six numbered identities."
+  },
+  "current_merged_rider_source_code_sha256_scope": "Frozen tested checkpoint d9c2ee93abd8f88dc8b86337a2c362523b566401; no claim later concurrent full HEAD has been retested"
+}

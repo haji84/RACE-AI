@@ -1,0 +1,81 @@
+{
+  "checked_at": "2026-11-05T09:48:14.999Z",
+  "automatic_display": true,
+  "cases": [
+    {
+      "width": 390,
+      "race_id": "20261105-12-12",
+      "actual_source_sha256": "b855891af72f87c642dbfee9939b0d4e98e0f3b6aefbcffa4a4695e7bc2940be",
+      "comments": 3,
+      "display_times": 0,
+      "exhibition_st": 0,
+      "context_pre_cutoff": true,
+      "real_parser_shape_accepted": true,
+      "original_top8_unchanged": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 390,
+      "race_id": "20261105-12-06",
+      "actual_source_sha256": "835ee3f0a292dc4e166befd9d1aae560bb9f8c254ce66e720795cb5ec4779f8a",
+      "comments": 0,
+      "display_times": 6,
+      "exhibition_st": 6,
+      "context_pre_cutoff": false,
+      "real_parser_shape_accepted": true,
+      "original_top8_unchanged": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 390,
+      "race_id": "20261105-01-12",
+      "actual_source_sha256": "95eeb634460f1cb8557e07835387d02e6a35d962bac4e8f0ffe7d09842eb8c1e",
+      "comments": 0,
+      "display_times": 0,
+      "exhibition_st": 0,
+      "context_pre_cutoff": true,
+      "real_parser_shape_accepted": true,
+      "original_top8_unchanged": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 1440,
+      "race_id": "20261105-12-12",
+      "actual_source_sha256": "b855891af72f87c642dbfee9939b0d4e98e0f3b6aefbcffa4a4695e7bc2940be",
+      "comments": 3,
+      "display_times": 0,
+      "exhibition_st": 0,
+      "context_pre_cutoff": true,
+      "real_parser_shape_accepted": true,
+      "original_top8_unchanged": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 1440,
+      "race_id": "20261105-12-06",
+      "actual_source_sha256": "835ee3f0a292dc4e166befd9d1aae560bb9f8c254ce66e720795cb5ec4779f8a",
+      "comments": 0,
+      "display_times": 6,
+      "exhibition_st": 6,
+      "context_pre_cutoff": false,
+      "real_parser_shape_accepted": true,
+      "original_top8_unchanged": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 1440,
+      "race_id": "20261105-01-12",
+      "actual_source_sha256": "95eeb634460f1cb8557e07835387d02e6a35d962bac4e8f0ffe7d09842eb8c1e",
+      "comments": 0,
+      "display_times": 0,
+      "exhibition_st": 0,
+      "context_pre_cutoff": true,
+      "real_parser_shape_accepted": true,
+      "original_top8_unchanged": true,
+      "horizontal_overflow": false
+    }
+  ],
+  "posts": 0,
+  "external_requests": 0,
+  "errors": []
+}

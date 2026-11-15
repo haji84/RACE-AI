@@ -1,0 +1,59 @@
+{
+  "schema": "RACE_AI_AUTORACE_RESULT_SIDE_POSTHOC_AUDIT_V1",
+  "record_type": "OBSERVED_SCRATCH_AND_CONDITIONAL_REFUND_IMPACT_ONLY",
+  "race_id": "autorace:2026-11-06:sanyo:3",
+  "observed_at_jst": "2026-11-06T14:07:42+09:00",
+  "event_date_jst": "2026-11-06",
+  "official_result_not_verified": true,
+  "confirmed_information": {
+    "car_no": 6,
+    "name": "番田隆弘",
+    "status": "欠場",
+    "source_urls": [
+      "https://autorace.tokyo-sports.co.jp/list/race/20261106063",
+      "https://www.winticket.jp/autorace/sanyo/racecard/2026110406?index=3"
+    ]
+  },
+  "existing_forecast_reference": {
+    "phase": "A_no_trial_used_research_not_formally_qualified",
+    "pre_cutoff_hash_commit": "a8756cf6e2b17aa20f560181c92de3fe22acc225",
+    "research_forecast_sha256": "496cc147674ae384cd38090b245f09716f3051d3cbaa31865f7d93f0463789f7",
+    "source_of_displayed_picks": "2026-11-06 10:50 JST chat assistant report; not independently verified against SHA original",
+    "basic8_picks": [
+      "1-5-6",
+      "1-6-5",
+      "5-1-6",
+      "6-1-5",
+      "5-6-1",
+      "6-5-1",
+      "1-5-4",
+      "1-5-7"
+    ],
+    "additional4_picks": [
+      "1-5-2",
+      "1-5-3",
+      "5-1-4",
+      "1-4-5"
+    ]
+  },
+  "impact": {
+    "basic8_car6_containing": 6,
+    "basic8_unaffected": 2,
+    "extended12_car6_containing": 6,
+    "extended12_unaffected": 6,
+    "hypothetical_all_100yen_refund_eligible_if_ticket_issued": 600,
+    "hypothetical_net_at_risk_basic8_after_refunds_yen": 200,
+    "hypothetical_net_at_risk_extended12_after_refunds_yen": 600,
+    "refund_and_net_at_risk_conditional_on_actual_purchase_and_official_refund_payout": true,
+    "real_purchase_unknown": true,
+    "hit_and_roi": "NOT_EVALUATED_NO_OFFICIAL_TRIFECTA_RESULT_OR_PAYOUT"
+  },
+  "refund_rule_reference": "https://www.keirin-autorace.or.jp/regulation/autorace/kyousoujisshikisoku_autorace.html",
+  "non_mutation_guarantees": {
+    "prediction_originals_modified": false,
+    "prediction_sha_records_modified": false,
+    "after_the_fact_prediction_generated": false,
+    "model_parameters_changed": false
+  },
+  "notes": "Post-hoc event audit: scratch information must never be used to rewrite pre-trial A. Avoid treating void picks as ordinary incorrect picks. The pre-cutoff A is research-only because original preservation/pre-trial proof is incomplete. This record is not a prediction."
+}

@@ -1,0 +1,13 @@
+{
+  "horse_fitted_cells": 0,
+  "independent_result_artifact_receipts_verified": true,
+  "native_archive_count": 4,
+  "native_input_count": 177,
+  "normal_results": 8,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "result_archive_count": 3,
+  "result_receipts_sha256": "db901bb3019e551f6691bbe58b8db159b1c814590e74fe16951d3a3bf56c8dbb",
+  "special_results": 2,
+  "state": "ACTUAL_EIGHT_NORMAL_HORSE_RESULTS_AUTHENTICATED"
+}

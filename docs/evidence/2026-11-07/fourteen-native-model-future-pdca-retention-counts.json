@@ -1,0 +1,156 @@
+{
+  "accuracy_improvement_proven": false,
+  "actual_purchases": false,
+  "exact_cipher_and_metadata_files_verified": true,
+  "independent_git_readback_partitions": 15,
+  "models_scored": 14,
+  "ordinary_races": 1,
+  "parameters_changed": false,
+  "plaintext_published": false,
+  "pointers": [
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/a3854bfc7c0ce268597eac17a343683d837d4ec30ba65982535d4cd870ee1ca7/learning.json",
+      "manifest_sha256": "a3854bfc7c0ce268597eac17a343683d837d4ec30ba65982535d4cd870ee1ca7",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "8bbd19b8db4e10eb3d952de579c687abf351c66e",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/b1e8c3b8981a7825f9e72d9c526c944ce7f35661c646149e3b1bcd4ef079877b/learning.json",
+      "manifest_sha256": "b1e8c3b8981a7825f9e72d9c526c944ce7f35661c646149e3b1bcd4ef079877b",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "b3acd33b006e606e6b24c92c203effe300cc4f26",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/e1400012e5c5912ff5923c88ce58b6246c745f42851a55105c9fbd7e716efc8e/learning.json",
+      "manifest_sha256": "e1400012e5c5912ff5923c88ce58b6246c745f42851a55105c9fbd7e716efc8e",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "642da6013a77e9587fa48ee4d310cbbb6148895f",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/7d76473c8d662e5811f9fffa49b0d425533dcb6b28efd45f3ff725a6326daec5/learning.json",
+      "manifest_sha256": "7d76473c8d662e5811f9fffa49b0d425533dcb6b28efd45f3ff725a6326daec5",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "69b9d05392a8c091bbce9d7896c74ef6293e6ff0",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/a3ccfbcaed3b343583dfb87dadc13fe7c05208c60524b1c00449915ac222a674/learning.json",
+      "manifest_sha256": "a3ccfbcaed3b343583dfb87dadc13fe7c05208c60524b1c00449915ac222a674",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "1a08dc188de216f9efd9eadddefd9e7c2930d2f4",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/969a0b472443544b0ca2ac6580220b6f00b76d577926337e89837bfb60f326b6/learning.json",
+      "manifest_sha256": "969a0b472443544b0ca2ac6580220b6f00b76d577926337e89837bfb60f326b6",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "a4359848f5784518cc488f775aa096df5387fdda",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/342d6557f529294a6fe73d3828a44ce28d2cc693dd9b1601753e9637ab9d2280/learning.json",
+      "manifest_sha256": "342d6557f529294a6fe73d3828a44ce28d2cc693dd9b1601753e9637ab9d2280",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "b9acc0f29187e7b8d96e70fb87ebd0d9229ea5f3",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/58ae9111f7673bc8a85c6b97c760cc79d3743f7e1417a902c9e18a32a9821a50/learning.json",
+      "manifest_sha256": "58ae9111f7673bc8a85c6b97c760cc79d3743f7e1417a902c9e18a32a9821a50",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "5a277159118016f0380d7c39a8a8495714de954b",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/ae43b199206c4bb7cdb83b9f27594bcbf212eec4b3a5090ba22be3f0c002d664/learning.json",
+      "manifest_sha256": "ae43b199206c4bb7cdb83b9f27594bcbf212eec4b3a5090ba22be3f0c002d664",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "294b2b6e03c437282fbdbd4626c69b47ef7b9745",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/1840973d4495769fd2c7ea8a8e0eae39d514c4a6506f4bdcc80781f28c9fcc56/learning.json",
+      "manifest_sha256": "1840973d4495769fd2c7ea8a8e0eae39d514c4a6506f4bdcc80781f28c9fcc56",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "5cea8b88ddbff9da9fd49ba678e5c3f140bb7c55",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/4a0749bb3d97d66988c4cd8fa103954b5a78e612bb6a35483f035305f421c856/learning.json",
+      "manifest_sha256": "4a0749bb3d97d66988c4cd8fa103954b5a78e612bb6a35483f035305f421c856",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "bd1b721c04bec068cb20fa1854311a59fc511bbe",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/115e552fa4ed6ff7768968438ab8177dee8e7a44d8d27fbfae446870f0a9d740/learning.json",
+      "manifest_sha256": "115e552fa4ed6ff7768968438ab8177dee8e7a44d8d27fbfae446870f0a9d740",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "ee166b28edcaf14f7be0e9c7bda07526d5f6858b",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/7ef063b03ee523f30b9235cce315084f50a41cb0d5b479a4f14abb7045a1fc64/learning.json",
+      "manifest_sha256": "7ef063b03ee523f30b9235cce315084f50a41cb0d5b479a4f14abb7045a1fc64",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "f5fb54abc600a0be20e5639dea7a527fe5b6dcf0",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/7a26fc1a028620502cc180e9ba1ceb93a2d9862e1a028f2020fdbb0ee91f57d8/learning.json",
+      "manifest_sha256": "7a26fc1a028620502cc180e9ba1ceb93a2d9862e1a028f2020fdbb0ee91f57d8",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "6fead6158aa3679b01ee1fb78f5f06ecc751c4fe",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    },
+    {
+      "manifest_path": "state/boat-venue-history/v1/learning/e045d7fdf3d017b1c023c0fdb1cf3de4baee880780cf52778623cc8a224ebe18/learning.json",
+      "manifest_sha256": "e045d7fdf3d017b1c023c0fdb1cf3de4baee880780cf52778623cc8a224ebe18",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+      "source_commit": "ed2a076ff67282da07ce894175e5f08a9728523a",
+      "status": "READY",
+      "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+    }
+  ],
+  "post_result_review_partitions_retained": 1,
+  "production_promoted": false,
+  "retained_partitions": 15,
+  "schema": "RACE_AI_FOURTEEN_NATIVE_PDCA_REMOTE_RETENTION_COUNTS_V1",
+  "scored_pdca_partitions_retained": 14,
+  "source_evaluation_report_sha256": "3fc7d4edc17e7b4a18389c34cef02bfb3323791f3f79ce2cd2910c1b55f24a63",
+  "source_forecast_artifact_id": 13560101855,
+  "source_result_artifact_id": 13562004620,
+  "state": "FOURTEEN_SCORED_PDCA_AND_REVIEW_RETAINED_AND_INDEPENDENTLY_RESTORED"
+}

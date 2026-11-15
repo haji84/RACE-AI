@@ -1,0 +1,29 @@
+{
+  "schema": "RACE_AI_AUTORACE_ASSISTANT_SHA_ONLY_FORECAST_RESEARCH_V1",
+  "record_type": "RESEARCH_A_CONTENT_HASH_ONLY",
+  "race_id": "autorace:2026-11-06:sanyo:5",
+  "event_date_jst": "2026-11-06",
+  "venue": "山陽",
+  "race_no": 5,
+  "phase": "A_PRE_TRIAL_INPUT_NO_SAME_DAY_TRIAL_USED",
+  "generated_at_jst": "2026-11-06T10:47:45.947214+09:00",
+  "scheduled_cutoff_at_jst": "2026-11-06T12:31:00+09:00",
+  "research_forecast_sha256": "2b5a8456662f40e7ba5a488808ef14063d56e7f8961c942680e7f242e593a74e",
+  "exact_private_json_file_sha256": "f6ee459f34e136212846c6d2eacbd7875052904a25be17e648f6b53ccc7345f3",
+  "private_forecast_filename": "autorace_20261106_sanyo_5R_A_assistant_observed_RESEARCH.json",
+  "forecast_content_location": "LOCAL_CONVERSATION_ARTIFACT_ONLY",
+  "model_id": "autorace-personal-observed-baseline-v1",
+  "source_urls": [
+    "https://autorace.tokyo-sports.co.jp/list/race/20261106065",
+    "https://www.winticket.jp/autorace/sanyo/racecard/2026110406/3/5"
+  ],
+  "ordered_top8_count": 8,
+  "supplemental_four_count": 4,
+  "official_trial_independently_verified": false,
+  "pre_trial_first_publication_verified": false,
+  "independent_pre_cutoff_receipt_verified": false,
+  "formal_hit_at_8_eligible": false,
+  "reported_probabilities_calibrated": false,
+  "full_text_not_in_repo": true,
+  "note": "Append-only source snapshot, no live trial data. Independent cutoff receipt for private content and first trial publication not certified."
+}

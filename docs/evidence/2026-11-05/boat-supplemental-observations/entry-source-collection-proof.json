@@ -1,0 +1,14 @@
+{
+  "status": "READY",
+  "history_day": "2026-11-04",
+  "actual_source_files_reused": 2,
+  "actual_new_official_gets": 0,
+  "cached_second_call_gets": 0,
+  "normal_races": 129,
+  "abnormal_races": 15,
+  "racer_starts": 774,
+  "inward_samples": 42,
+  "crossed_samples": 44,
+  "live_pipeline_run": false,
+  "forecast_inputs_used": false
+}

@@ -1,0 +1,260 @@
+{
+  "schema": "RACE_AI_LIVE_BEFOREINFO_VERIFICATION_V1",
+  "verified_at": "2026-11-08T04:09:46.443Z",
+  "runtime_commit": "914941a6244364480370ac392441ad4bb5781f83",
+  "source_commits": [
+    "a7ce5b5cb2978d1923b240826a7bab05fa8f3e2f",
+    "8d8f4464747badd9acfe9e6b428de5fb57a7d66c"
+  ],
+  "main_pull": 99,
+  "main_commit": "284d70a022721233b9ea742af451d634cbe3a2c3",
+  "root_causes": [
+    "The recurring results/statistics collector did not request beforeinfo.",
+    "Local optional observations had no recurring path into the encrypted public viewer.",
+    "The preview tab led with the morning forecast empty fields."
+  ],
+  "production": {
+    "run_id": 42444825092,
+    "job_id": 128623119363,
+    "run_attempt": 2,
+    "conclusion": "success",
+    "collector": {
+      "schema": "RACE_AI_RACER_INTRADAY_RUN_V1",
+      "status": "INTRADAY_REFRESHED",
+      "implementation_commit": "914941a6244364480370ac392441ad4bb5781f83",
+      "checked_at": "2026-11-08T04:06:40.693455+00:00",
+      "source_requests": 12,
+      "beforeinfo": {
+        "forecast_inputs_used": false,
+        "parsed": 4,
+        "published_races": 12,
+        "rejected": 0,
+        "requests": 4
+      },
+      "result_sync": {
+        "changed_races": 11,
+        "checked_at": "2026-11-08T04:06:40.693455+00:00",
+        "confirmed": 181,
+        "held": 2,
+        "pending": 81,
+        "races": 264,
+        "schema": "RACE_AI_RESULT_SYNC_V1",
+        "state": "READY"
+      },
+      "result_rejection_reason_counts": {
+        "RESULT_CUTOFF_REFERENCE_ROSTER_REQUIRED": 1,
+        "RESULT_IDENTITY_UNVERIFIED": 1
+      },
+      "forecast_inputs_changed": false,
+      "private_sources_published": false
+    },
+    "site": {
+      "schema": "RACE_AI_LIVE_SITE_CHECK_COUNTS_V1",
+      "status": "LIVE_OWNER_SITE_VERIFIED",
+      "verified_at": "2026-11-08T04:09:46.443Z",
+      "widths_checked": 3,
+      "feed_generation": 85,
+      "checked_day": "2026-11-08",
+      "current_day": "2026-11-08",
+      "date_scope": "CURRENT_DAY",
+      "checked_day_results": 49,
+      "checked_day_p1_groups": 23,
+      "current_day_results": 49,
+      "current_day_p1_groups": 23,
+      "lifecycle_checked_day": "2026-11-08",
+      "selected_saved_day": "2026-11-08",
+      "current_day_lifecycle_views_checked": 3,
+      "current_day_upcoming_rows_checked": 180,
+      "current_day_upcoming_races": 76,
+      "current_day_closed_races": 56,
+      "current_day_pending_result_races": 5,
+      "race_lifecycle_tabs_verified": true,
+      "upcoming_rows_checked": 180,
+      "venue_result_views_checked": 3,
+      "ai_results_navigation_verified": true,
+      "compact_result_ui_verified": true,
+      "research_audit_verified": true,
+      "available_rationale_preserved": true,
+      "rationale_views_checked": 0,
+      "probe_result_matched": false,
+      "native_p1_groups_required": 11,
+      "native_p1_detail_visible": true,
+      "future_native_visible_before_cutoff": false,
+      "previous_day_checked": true,
+      "active_model_families": 15,
+      "removed_seller_hidden": true,
+      "live_beforeinfo_views_checked": 3,
+      "live_beforeinfo_times_checked": 18,
+      "participant_names": true,
+      "editable_daily_budget": true,
+      "per_race_1000_simulation": true,
+      "hit_miss_rate_roi_and_settled_pending_net_visible": true,
+      "key_in_requests_or_storage": false,
+      "blocked_external_requests": 0,
+      "official_source_requests": 0,
+      "plaintext_published": false
+    },
+    "context_counts": {
+      "checked_day": "2026-11-08",
+      "completed_results": 49,
+      "current_day": "2026-11-08",
+      "date_scope": "CURRENT_DAY",
+      "future_native_available": false,
+      "generation": 85,
+      "live_beforeinfo_races": 6,
+      "native_p1_groups": 11,
+      "official_source_requests": 0,
+      "plaintext_published": false,
+      "status": "SAVED_SITE_PRIVATE_CONTEXT_READY"
+    }
+  },
+  "frontend": {
+    "release": {
+      "status": "PAGES_PRESENTATION_REFRESHED",
+      "source_commit": "66d69164f278a3943d38cc05d85041faf38a5bb7",
+      "parent_commit": "e532e0314f3d3a12e77b6003e0742eb1efe85b5c",
+      "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+      "manifest_sha256": "53a8d55a15dd557594ae0266a0363b8672447c73a58bf2e0db077bd4a98f086e",
+      "portrait_count": 1669,
+      "ciphertext_unchanged": true,
+      "plaintext_published": false,
+      "changed_files": [
+        "app.js",
+        "index.html",
+        "saved-view-crypto.js",
+        "site-build.json"
+      ],
+      "ciphertext_files_preserved": 7,
+      "portrait_files_preserved": 57,
+      "published": true,
+      "ui_source_commit": "914941a6244364480370ac392441ad4bb5781f83"
+    },
+    "readback": {
+      "pages_commit": "7c1a7e265096fb0cb8f865f302658fee099b1f46",
+      "public_http_assets_match": true,
+      "beforeinfo_code_matches_reviewed_runtime": true,
+      "newer_presentation_preserved": true,
+      "served_asset_commits": [
+        "66d69164f278a3943d38cc05d85041faf38a5bb7",
+        "7c1a7e265096fb0cb8f865f302658fee099b1f46"
+      ],
+      "protected_ciphertext_files": 7,
+      "protected_portrait_files": 57
+    },
+    "verified_before_runtime_activation": true
+  },
+  "validation": {
+    "python_related_tests": 96,
+    "node_contract_and_browser_tests": 90,
+    "context_runtime_tests": 15,
+    "python_command": "python -m unittest tests.test_racer_beforeinfo tests.test_racer_result_bridge tests.test_racer_intraday_refresh tests.test_racer_intraday_transport tests.test_racer_intraday tests.test_racer_intraday_handoff tests.test_saved_view_feed tests.test_saved_view_history tests.test_boat_saved_site_context tests.test_boat_context_store -q",
+    "node_command": "node --test tests/product_data.test.cjs tests/saved_performance.test.cjs tests/boat_context_ui.test.mjs tests/saved_site_check.test.cjs",
+    "real_webcrypto_feed_with_new_mutable_field": true,
+    "two_month_history_webcrypto": true,
+    "result_detail_widths": [
+      320,
+      390,
+      1440
+    ],
+    "local_full_refresh_total_requests": 12,
+    "local_full_refresh_beforeinfo_races": 4,
+    "encrypted_restart_and_readback": true,
+    "required_main_checks_passed": true,
+    "independent_review_remaining_blockers": 0,
+    "unrelated_full_suite_rerun": false,
+    "review_fixes": [
+      "Late exhibition courses cannot enter earlier scenarios through the source context or preview-card participant.",
+      "Incomplete exhibition retries even after cutoff.",
+      "Existing matched comments/history keep their own source clocks and admission flags.",
+      "Accepted registration aliases collect and conflicting aliases reject."
+    ],
+    "test_fixture_maintenance": "The existing encrypted-feed browser fixture now opens the results tab before looking for an already ended race.",
+    "browser_count_scope": "One selected six-boat race at each of three widths: 18 timing checks, not 18 unique racers or races."
+  },
+  "behavior": {
+    "shared_official_requests_per_run_max": 12,
+    "beforeinfo_requests_per_run_max": 4,
+    "start_spacing_seconds_min": 1,
+    "active_window": "current-day upcoming races within 60 minutes; oldest checked first; missing same-day past facts backfill after upcoming work",
+    "unpublished_exhibition_retried": true,
+    "404_without_retry_after_retried": true,
+    "429_wait_shared_with_results": true,
+    "last_valid_facts_retained_on_source_failure": true,
+    "body_race_and_six_registration_binding_required": true,
+    "separate_mutable_field": "live_boat_observation",
+    "original_forecast_context_unchanged": true,
+    "five_minute_schedule": "2-59/5 0-14,22-23 * * *",
+    "trusted_publisher_completion_wakeup_retained": true,
+    "browser_poll_seconds": 60
+  },
+  "preservation": {
+    "forecast_original_hash_and_inventory": true,
+    "result_history": true,
+    "saved_comments_and_context_source_clocks": true,
+    "portraits": 57,
+    "athlete_profiles": 1669,
+    "encrypted_presentation_files": 7,
+    "financial_algorithm_changed": false,
+    "new_provider_or_permissions": false,
+    "raw_sources_owner_url_or_keys_published": false,
+    "bets_placed": false
+  },
+  "limitations": [
+    "Only published fields are displayed. Missing ST, course and comments are not invented.",
+    "This connects official beforeinfo. Pitreport/history remain separately captured sources, not a claim that every race provides a comment.",
+    "GitHub queues, official publication timing and distribution caches can delay reflection. Complete same-day coverage and finish-to-display latency are not asserted by a bounded production run.",
+    "The additional time-scheduled execution after this activation is not yet observed; the existing schedule and publisher wakeup remain configured."
+  ],
+  "publication_recovery": {
+    "initial_run": 42444825092,
+    "initial_result_sync": {
+      "changed_races": 0,
+      "checked_at": "2026-11-08T03:58:22.490354+00:00",
+      "confirmed": 176,
+      "held": 1,
+      "pending": 87,
+      "races": 264,
+      "schema": "RACE_AI_RESULT_SYNC_V1",
+      "state": "RETRY"
+    },
+    "initial_beforeinfo": {
+      "forecast_inputs_used": false,
+      "parsed": 4,
+      "published_races": 0,
+      "rejected": 0,
+      "requests": 4
+    },
+    "recovery_run": 42445101429,
+    "recovery": {
+      "schema": "RACE_AI_RACER_INTRADAY_RUN_V1",
+      "status": "INTRADAY_REFRESHED",
+      "implementation_commit": "a4edf2ec1c815148d1abd32f7b9ca41ee15339ec",
+      "checked_at": "2026-11-08T04:02:27.998748+00:00",
+      "source_requests": 12,
+      "beforeinfo": {
+        "forecast_inputs_used": false,
+        "parsed": 4,
+        "published_races": 8,
+        "rejected": 0,
+        "requests": 4
+      },
+      "result_sync": {
+        "changed_races": 24,
+        "checked_at": "2026-11-08T04:02:27.998748+00:00",
+        "confirmed": 179,
+        "held": 1,
+        "pending": 84,
+        "races": 264,
+        "schema": "RACE_AI_RESULT_SYNC_V1",
+        "state": "READY"
+      },
+      "result_rejection_reason_counts": {
+        "RESULT_IDENTITY_UNVERIFIED": 1
+      },
+      "forecast_inputs_changed": false,
+      "private_sources_published": false
+    },
+    "initial_failure_code_available": false,
+    "explanation": "The initial publication returned RETRY while retaining four authenticated captures. The next bounded run published those captures plus four new ones; final main-runtime verification published twelve. The initial exception detail was not recorded, so no specific underlying exception is asserted."
+  }
+}

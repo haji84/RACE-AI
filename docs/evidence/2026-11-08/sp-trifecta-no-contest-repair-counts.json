@@ -1,0 +1,130 @@
+{
+  "accuracy_improvement_proven": false,
+  "actual_audit_schema": "RACE_AI_REMAINING_COMPLETION_AUDIT_V1",
+  "actual_audit_status": "RETAINED_SP_ONLY_AUDIT_VERIFIED",
+  "boat": {
+    "all_saved_before_both_clocks": 2,
+    "current_rejection_reason_counts": {
+      "RESULT_CUTOFF_MISMATCH": 1,
+      "RESULT_IDENTITY_UNVERIFIED": 2
+    },
+    "cutoff_offset_seconds_counts": {
+      "0": 2,
+      "600": 1
+    },
+    "future_unmatched_races": 0,
+    "held_races": 3,
+    "latest_held_body_identity_verified": 1,
+    "overdue_unmatched_races": 3,
+    "races": 132,
+    "result_states": {
+      "final": 129,
+      "unsupported": 3
+    },
+    "saved_roster_sizes": {
+      "6": 3
+    },
+    "source_roster_sizes": {
+      "0": 2,
+      "6": 1
+    },
+    "unknown_or_mixed_cutoff_unmatched_races": 0
+  },
+  "continuity_projection": null,
+  "day_jst": "2026-11-07",
+  "deployed_ui_preservation": {
+    "assets": [
+      "app.js",
+      "index.html",
+      "style.css",
+      "ui-model.js"
+    ],
+    "current_day_reader_preserved": true,
+    "current_day_source_commit": "2f318969ca25ee8a3c796d1364e986c0882db2bc",
+    "frozen_product_data_changed": false,
+    "frozen_saved_performance_changed": false,
+    "pages_commit": "1297f884d9d88536aa15a7d4afaf8a49b6de30bd",
+    "public_app_sha256_before": "8dca67e0c0ab5c29e407c9f26bb3806b18494aa2815299fcfdf7604a04602c0f",
+    "rendered_original_index_exact": true,
+    "result_wording_only_delta": true,
+    "source_commit": "6582e6d9f5cff00cb619f8d12d0ce9b24e161dce"
+  },
+  "diagnostic_only": true,
+  "feed_generation": 49,
+  "forecasting_performed": false,
+  "journal_artifact_id": null,
+  "native": null,
+  "official_source_requests": 0,
+  "originals_changed": false,
+  "parser_blob_sha": "a9e7e7ba34953a21d22a3731bf7f4d86195ebe17",
+  "plaintext_source_published": false,
+  "planned_result_dispositions": {
+    "final": 129,
+    "unsupported_original_cutoff_conflict": 1,
+    "void": 2
+  },
+  "producer_head_sha": "e638c557cc2f306c63f5c0ef2a6cde4a440f377d",
+  "producer_job_id": 128556281063,
+  "producer_run_id": 42423341964,
+  "results_admitted": 0,
+  "retained_sp_holds": {
+    "authenticated_matching_captures": 3,
+    "capture_reason_counts": {},
+    "forecast_chronology_counts": {
+      "ALL_BEFORE_ALL_CUTOFFS": 2,
+      "NOT_ALL_BEFORE_ALL_CUTOFFS": 1
+    },
+    "held_races": 3,
+    "originals_changed": false,
+    "parser_reason_counts": {
+      "AVAILABLE": 3
+    },
+    "payout_amount_shape_counts": {
+      "POSITIVE_AMOUNT": 1,
+      "REFUND_100": 2
+    },
+    "payout_shape_counts": {
+      "ASCII_TRIFECTA": 1,
+      "NO_CONTEST": 2
+    },
+    "per_original_cutoff_projection_reason_counts": {
+      "RESULT_CUTOFF_REFERENCE_CHRONOLOGY": 1,
+      "SUPPORTED": 3
+    },
+    "projection_reason_counts": {
+      "RESULT_CUTOFF_MISMATCH": 1,
+      "SUPPORTED": 2
+    },
+    "refund_coverage_counts": {
+      "ALL_TRIFECTAS_COVERED": 2,
+      "NONE": 1
+    },
+    "results_admitted": 0,
+    "source_deadline_chronology_counts": {
+      "ALL_BEFORE_SOURCE_CUTOFF": 3
+    },
+    "source_requests": 0,
+    "status": "RETAINED_SP_HOLD_AUDIT_VERIFIED"
+  },
+  "schema": "RACE_AI_SP_TRIFECTA_NO_CONTEST_REPAIR_PROOF_V1",
+  "site_publication_verified": false,
+  "source_requests": 0,
+  "status": "RETAINED_REFUND_PARSER_VERIFIED",
+  "validation": {
+    "browser_budget_mobile_and_desktop": true,
+    "browser_compact_widths": [
+      320,
+      390,
+      1440
+    ],
+    "frozen_product_and_financial_modules_changed": false,
+    "hits_created": 0,
+    "independent_review_blockers": 0,
+    "misses_created": 0,
+    "node_frozen_performance": 23,
+    "original_prediction_hash_conserved": true,
+    "python_settlement_integrity_and_sync": 31,
+    "python_shared_bridge_and_refresh": 7,
+    "thousand_yen_refund": 1000
+  }
+}

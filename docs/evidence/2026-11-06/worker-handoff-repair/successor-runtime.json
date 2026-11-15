@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "continuous": true,
+  "state": "RUNNING",
+  "active_run_id": 42055132384,
+  "halted_reason": null,
+  "max_rounds": null,
+  "source_limit": null,
+  "stop_at": null,
+  "requests_used": null,
+  "counter_scope": "ACTIVE_RUN_UNVERIFIED"
+}

@@ -1,0 +1,134 @@
+{
+  "checked_at_utc": "2026-11-04T23:25:01.972847+00:00",
+  "pr_head": "ab57ae2f297066cf0eed77cdaf8ad5219943f3c2",
+  "run": {
+    "id": 41929106428,
+    "workflow_id": 405276784,
+    "head_sha": "63bc3ec3808b4c126e5fbf2de92d8e1525800a0a",
+    "status": "in_progress",
+    "created_at": "2026-11-04T22:53:05Z"
+  },
+  "actions_completed_rounds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "actions_in_progress_steps": [
+    "Deadline-ordered five-model round 12"
+  ],
+  "round11_saved_status": {
+    "day_jst": "2026-11-05",
+    "updated_at": "2026-11-04T23:23:56.432161+00:00",
+    "forecast_count": 293,
+    "distinct_races": 144,
+    "scored_forecasts": 0,
+    "pending_forecasts": 293,
+    "result_observation_versions": 0,
+    "scheduled_boat_races": 144,
+    "round_no": 11,
+    "past_forecasts_changed": false,
+    "auto_promoted": false,
+    "formal_model_superiority": false,
+    "continuous_operation_proven": false,
+    "all_models_operational": false
+  },
+  "session_snapshot": {
+    "started_at": "2026-11-04T22:53:43.531870+00:00",
+    "stop_at": "2026-11-04T23:58:43.531870+00:00",
+    "prepared_round": 11,
+    "completed_round": 10,
+    "requests_used": 49,
+    "source_limit": 240,
+    "max_rounds": 24,
+    "interval_seconds": 180,
+    "halted_reason": null
+  },
+  "remaining_at_snapshot": {
+    "source_GET": 191,
+    "rounds_after_prepared": 13,
+    "seconds_until_stop_at_saved_status": 2087.099709
+  },
+  "p1_round11": {
+    "observed_at": "2026-11-04T23:23:51.134147+00:00",
+    "state": "FORECASTS_GENERATED_NEED_ARTIFACT_CLOCK_VERIFICATION",
+    "reason": "NEEDS_INDEPENDENT_GITHUB_ARTIFACT_TIME_CHECK",
+    "paired_forecast_count": 1,
+    "source_request_count": 3,
+    "source_request_cap": 45
+  },
+  "learning": {
+    "state": "INSUFFICIENT_VERIFIED_RACES",
+    "unique_races": 0,
+    "saved_shadow_forecasts": 0,
+    "paired_forecasts": 0,
+    "accuracy_improvement_proven": false
+  },
+  "round11_forecasts_csv_rows": 293,
+  "round11_result_observations": 0,
+  "embedded_first_P0_sha256": "3a8bde638b93b61cbe21843bff5f3dbaf120c486b45f39efc3ea3a78f89034ab",
+  "embedded_current_P1_sha256": "ca92dcd29de525ffb916298af996a22af5155be020cd7d0b8183ae37af025cec",
+  "artifacts": [
+    {
+      "id": 13371295414,
+      "created_at": "2026-11-04T22:53:32Z",
+      "sha256": "3a8bde638b93b61cbe21843bff5f3dbaf120c486b45f39efc3ea3a78f89034ab",
+      "api_digest_match": true,
+      "CRC_ok": true,
+      "bytes": 818183
+    },
+    {
+      "id": 13372622656,
+      "created_at": "2026-11-04T23:23:52Z",
+      "sha256": "ca92dcd29de525ffb916298af996a22af5155be020cd7d0b8183ae37af025cec",
+      "api_digest_match": true,
+      "CRC_ok": true,
+      "bytes": 17574
+    },
+    {
+      "id": 13372517891,
+      "created_at": "2026-11-04T23:23:58Z",
+      "sha256": "b0014bd6477b17476f88e5931137c82b4d302a50285d16a7bd4c78b83881fe95",
+      "api_digest_match": true,
+      "CRC_ok": true,
+      "bytes": 844634
+    }
+  ],
+  "job_logs_available": false,
+  "job_logs_http_status": 404,
+  "external_official_GETs": 0,
+  "inference_runs": 0,
+  "repository_mutations": 0,
+  "local_profile_mutations": 0,
+  "remote_mutations": 0,
+  "independent_p1_receipt_clock_check": {
+    "p1_model_forecast_count": 5,
+    "p1_distinct_races": 1,
+    "all_p1_reference_verified_artifact": true,
+    "all_p1_server_saved_at_matches_api": true,
+    "all_p1_as_of_precedes_save": true,
+    "all_p1_saved_before_cutoff": true,
+    "all_p1_margin_at_least_210s": true,
+    "min_save_to_cutoff_seconds": 668.0,
+    "max_save_to_cutoff_seconds": 668.0,
+    "cutoff_min": "2026-11-05T08:35:00+09:00",
+    "cutoff_max": "2026-11-05T08:35:00+09:00",
+    "p1_model_sha256s": [
+      "0a79dd0e7ef02e7fd4da962f596e586246285674f32557f6358bafa0988a873b",
+      "108e841522ff6fb216124b48ea9f765c0579b940fc437ed376f18253264f4e7e",
+      "3a6a4cf1af52e5c68c583877df8e993f682274cbabcdd0a54b0d68d76e84119b",
+      "ab1ac1f9ba4e934eb54fee9e0d973fa61a5ca505572eaeedc20d756434b7ec43",
+      "bbbbc696860db12c5aed3ffb54c408032b3418d8c3c994861539eb69edc48a42"
+    ],
+    "result_record_states": {
+      "RESULT_PENDING": 5
+    }
+  }
+}

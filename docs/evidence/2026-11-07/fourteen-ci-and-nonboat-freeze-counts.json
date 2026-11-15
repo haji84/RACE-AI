@@ -1,0 +1,35 @@
+{
+  "actual_pre_cutoff_receipt_verified": true,
+  "candidate_artifact_id": 13559460657,
+  "candidate_digest": "sha256:a7aa500195411fa1abe75b8f0fc63a0ed5dae88feedde288d5f4daa2dab15559",
+  "default_registry_unchanged": true,
+  "derived_records": 0,
+  "fitted_cells": 14,
+  "head_sha": "8cf76d3d023591a4c67d04a0001465ac32b441c5",
+  "holdout_races_per_cell": 2,
+  "input_partitions_authenticated": 16,
+  "local_ci_parameters_support_and_holdout_equal": true,
+  "native_input_total": 88,
+  "native_inputs_by_sport": {
+    "autorace": 48,
+    "keirin": 40
+  },
+  "native_records": 112,
+  "new_nonboat_fitted_cells": 0,
+  "new_nonboat_forecasts": 0,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "ranker_training_creation_clocks_preserved_separately": true,
+  "real_future_fourteen_pdca_verified": false,
+  "run_id": 42334526055,
+  "source_input_artifact_id": 13559236491,
+  "source_input_digest": "sha256:864d9e43e1ffbcc231a38fc8467648ee21179f402523680700ace75ef397a248",
+  "source_input_saved_at": "2026-11-07T03:35:08Z",
+  "source_races_by_sport": {
+    "autorace": 8,
+    "keirin": 8
+  },
+  "state": "ACTUAL_FOURTEEN_CI_FIT_AND_NONBOAT_PRE_CUTOFF_INPUTS_VERIFIED",
+  "train_races_per_cell": 6,
+  "training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03"
+}

@@ -1,0 +1,81 @@
+{
+  "source": "REAL_SAVED_PRIVATE_VIEW_WITH_SUPPLEMENTAL_OFFICIAL_CAPTURES",
+  "checked_at": "2026-11-05T09:23:59.759Z",
+  "cases": [
+    {
+      "width": 390,
+      "race_id": "20261105-12-12",
+      "beforeinfo_sha256": "b855891af72f87c642dbfee9939b0d4e98e0f3b6aefbcffa4a4695e7bc2940be",
+      "pitreport_sha256": "a0a163bdc663f5b26b05dedbdd3d280ce4b2f8a38840c647cb2355f0e8272c46",
+      "comments": 3,
+      "display_times": 0,
+      "exhibition_st": 0,
+      "context_pre_cutoff": true,
+      "original_top8_unchanged": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 390,
+      "race_id": "20261105-12-06",
+      "beforeinfo_sha256": "835ee3f0a292dc4e166befd9d1aae560bb9f8c254ce66e720795cb5ec4779f8a",
+      "pitreport_sha256": null,
+      "comments": 0,
+      "display_times": 6,
+      "exhibition_st": 6,
+      "context_pre_cutoff": false,
+      "original_top8_unchanged": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 390,
+      "race_id": "20261105-01-12",
+      "beforeinfo_sha256": "95eeb634460f1cb8557e07835387d02e6a35d962bac4e8f0ffe7d09842eb8c1e",
+      "pitreport_sha256": "a737c945db9f1906d424bec3fc418c6bf2c38e4f4d197ede13f2429b15ff8a6c",
+      "comments": 0,
+      "display_times": 0,
+      "exhibition_st": 0,
+      "context_pre_cutoff": true,
+      "original_top8_unchanged": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 1440,
+      "race_id": "20261105-12-12",
+      "beforeinfo_sha256": "b855891af72f87c642dbfee9939b0d4e98e0f3b6aefbcffa4a4695e7bc2940be",
+      "pitreport_sha256": "a0a163bdc663f5b26b05dedbdd3d280ce4b2f8a38840c647cb2355f0e8272c46",
+      "comments": 3,
+      "display_times": 0,
+      "exhibition_st": 0,
+      "context_pre_cutoff": true,
+      "original_top8_unchanged": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 1440,
+      "race_id": "20261105-12-06",
+      "beforeinfo_sha256": "835ee3f0a292dc4e166befd9d1aae560bb9f8c254ce66e720795cb5ec4779f8a",
+      "pitreport_sha256": null,
+      "comments": 0,
+      "display_times": 6,
+      "exhibition_st": 6,
+      "context_pre_cutoff": false,
+      "original_top8_unchanged": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 1440,
+      "race_id": "20261105-01-12",
+      "beforeinfo_sha256": "95eeb634460f1cb8557e07835387d02e6a35d962bac4e8f0ffe7d09842eb8c1e",
+      "pitreport_sha256": "a737c945db9f1906d424bec3fc418c6bf2c38e4f4d197ede13f2429b15ff8a6c",
+      "comments": 0,
+      "display_times": 0,
+      "exhibition_st": 0,
+      "context_pre_cutoff": true,
+      "original_top8_unchanged": true,
+      "horizontal_overflow": false
+    }
+  ],
+  "posts": 0,
+  "external_requests": 0,
+  "errors": []
+}

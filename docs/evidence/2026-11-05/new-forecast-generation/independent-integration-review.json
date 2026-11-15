@@ -1,0 +1,17 @@
+{
+  "result": "PASS_NO_REMAINING_MATERIAL_FINDINGS",
+  "fresh_provider_and_launcher_tests": 30,
+  "native_originals_compared": 288,
+  "first_http_new_forecasts": 288,
+  "retry_http_new_forecasts": 0,
+  "retry_http_reused_forecasts": 288,
+  "package_json_forecasts_compared": 288,
+  "native_prediction_sha_and_output_sha_and_top8_equal": true,
+  "source_db_unchanged": true,
+  "source_get_counter": 1,
+  "review_provider_calls": 0,
+  "review_inference_calls": 0,
+  "package_crc_and_all_member_sha_verified": true,
+  "public_evidence_contains_no_private_paths_credentials_raw_forecasts_or_bodies": true,
+  "package_sha256": "7345b569b55cc98b21bee7db8aa009166a3e307c39dc3cfbbabe6bfb318cb35b"
+}
