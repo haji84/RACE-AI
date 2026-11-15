@@ -251,6 +251,29 @@ class ExistingRiderCandidateGateTests(unittest.TestCase):
         out=bridge(video=a)
         self.assertEqual(out["phase_observations"],[])
 
+    def test_six_car_video_review_is_supported_but_not_pr71_model_promotion(self):
+        p=packets()
+        for row in p:
+            for item in row["candidates"]:
+                if item["car_number_candidate"]==7:
+                    item["car_number_candidate"]=6
+                    item["track_id"]="track-6"
+        r=bridge(frames=p,roster=[1,2,3,4,5,6])
+        self.assertEqual(r["registered_starter_count"],6)
+        self.assertEqual(r["phase_observations"][0]["measured"]["top3"],
+                         [1,6,2])
+        self.assertFalse(r["same_race_training_or_forecast_modified"])
+
+    def test_color_blob_without_verified_number_never_promotes_phase_score(self):
+        p=packets()
+        for row in p:
+            for item in row["candidates"]:
+                item["recognition_kind"]="UNTRUSTED_COLOR_BLOB"
+        r=bridge(frames=p,pixel=True,confirm=True,lines=True)
+        self.assertEqual(r["phase_observations"],[])
+        self.assertFalse(r["real_rider_recognition_accuracy_established"])
+        self.assertEqual(r["stage_status"][1]["state"],"UNKNOWN")
+
     def test_low_ocr_confidence_stays_unknown(self):
         p=packets()
         for row in p:
@@ -314,7 +337,7 @@ class ExistingRiderCandidateGateTests(unittest.TestCase):
     def test_wrong_roster_confirmation_does_not_bypass_independent_proof(self):
         with self.assertRaisesRegex(FrameIdentityError,
                                     "EXISTING_PR71_ROSTER_REQUIRED"):
-            bridge(roster=[1,2,3])
+            bridge(roster=[1,2])
         out=bridge(confirm=False)
         self.assertFalse(out["roster_verifier_accepted"])
         self.assertEqual(out["phase_observations"],[])
