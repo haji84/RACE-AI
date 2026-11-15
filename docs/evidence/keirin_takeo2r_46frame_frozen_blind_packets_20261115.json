@@ -132,5 +132,31 @@
     "self_certified_reviewer_ids_never_authorize_metrics": true,
     "duplicate_signing_key_rejected": true,
     "formal_true_positive_false_positive_false_negative_measured": false
+  },
+  "actual_sealed_archive_restore_using_CI_exact_source": {
+    "github_source_artifact_id": 14146679373,
+    "source_CI_run_id": 43677376341,
+    "source_CI_workflow_name": "KEIRIN PR71 GitHub-only forecast and PDCA",
+    "restore_source_path": "scripts/keirin_restore_blind_owner_packets.py",
+    "restore_source_sha256": "c39084377e5913b749b0d79e0a2cc8059b0710971756f1848736100125bda640",
+    "private_signer_source_sha256": "73268d51fb6b9c12789b00694129f034d16e7fed75e4be8ee1a994ab93c5941c",
+    "review_signature_verifier_source_sha256": "4dd405ace37b91a2dc27ef6f2fff41ed55fc7449e807c243a2b02848f8fb225b",
+    "actual_encrypted_archive_count": 3,
+    "original_frozen_proposal_restored_sha_match": true,
+    "blind_packet_A_restored_file_count": 48,
+    "blind_packet_B_restored_file_count": 48,
+    "blind_packet_A_source_png_count": 46,
+    "blind_packet_B_source_png_count": 46,
+    "blank_reviews_rejected_from_formal_status": true,
+    "all_cipher_zip_expected_hashes_verified": true,
+    "private_owner_RSA_OAEP_decryption_and_AES_GCM_tag_verified": true,
+    "same_runtime_separate_python_process_readback_verified": true,
+    "independent_new_GitHub_runner_decrypt_readback_verified": false,
+    "signed_real_A_review_receipts": 0,
+    "signed_real_B_review_receipts": 0,
+    "independently_verified_car_IDs": 0,
+    "exact_source_code_frozen_after_first_video_pilot": false,
+    "production_phase_scoring_unlocked": false,
+    "review_pixels_and_keys_in_public_repo": false
   }
 }
