@@ -101,13 +101,16 @@ def _official_cutoffs(get, repo, run, listing, reader, *, day, now, key):
 
 def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
           source_original_index,official_cutoffs):
-    need(type(projection) is dict and type(projection.get('records')) is list)
+    need(type(projection) is dict and type(projection.get('records')) is list and
+         type(official_cutoffs) is dict and official_cutoffs)
     outputs=[];unqualified=Counter();missing_from_view=0;reused_baseline=0
     saved=moment(physical_saved_at)
     for row in projection['records']:
         if row.get('sport')!='boat' or row.get('event_date_jst')!=day:continue
         rid=row.get('race_id')
         need(type(rid) is str and RACE.fullmatch(rid) and rid[:8]==day.replace('-',''))
+        verified_cutoff=official_cutoffs.get(rid)
+        need(isinstance(verified_cutoff,datetime) and verified_cutoff.utcoffset() is not None)
         try:official=moment(row.get('cutoff_at'))
         except ValueError:
             official=None
@@ -143,11 +146,11 @@ def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
                 missing_from_view+=1
             if official is None:
                 unqualified['OFFICIAL_RACE_CUTOFF_UNAVAILABLE']+=1
-                outputs.append((rid,mid,False,matched))
+                outputs.append((rid,mid,False,matched,False))
                 continue
             if not p.get('cutoff_at'):
                 unqualified['ORIGINAL_CUTOFF_MISSING']+=1
-                outputs.append((rid,mid,False,matched))
+                outputs.append((rid,mid,False,matched,False))
                 continue
             try:
                 cutoff=moment(p['cutoff_at'])
@@ -155,11 +158,11 @@ def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
                 generated=moment(p['generated_at'])
             except (KeyError,ValueError,TypeError):
                 unqualified['ORIGINAL_CLOCK_MISSING_OR_INVALID']+=1
-                outputs.append((rid,mid,False,matched))
+                outputs.append((rid,mid,False,matched,False))
                 continue
             if cutoff!=official:
                 unqualified['RACE_ORIGINAL_CUTOFF_CONFLICT']+=1
-                outputs.append((rid,mid,False,matched))
+                outputs.append((rid,mid,False,matched,False))
                 continue
             ordered=asof<=saved or (saved.microsecond==0 and
                                     saved<=asof<saved+timedelta(seconds=1))
@@ -170,7 +173,10 @@ def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
                       saved<=clock and ordered and generated_order)
             if not eligible:
                 unqualified['NOT_PHYSICALLY_PRE_CUTOFF']+=1
-            outputs.append((rid,mid,eligible,matched))
+            if official!=verified_cutoff:
+                unqualified['INDEPENDENT_OFFICIAL_CUTOFF_CONFLICT']+=1
+            official_eligible=eligible and official==verified_cutoff
+            outputs.append((rid,mid,eligible,matched,official_eligible))
     return outputs,unqualified,missing_from_view,reused_baseline
 
 
