@@ -1,0 +1,80 @@
+{
+  "schema": "RACE_AI_KEIRIN_HISTORICAL_PRIVATE_COLOR_SINGLE_REVIEW_PILOT_V1",
+  "evaluated_at_jst": "2026-11-15",
+  "sampling": "3_saved_races_153_earlier_source_bound_frames_with_three_separate_heldout_capture_second_scenes",
+  "source_frame_feature_file_sha256": "2387def01a044025b5c72963e3fd93f92087966569cf4aba403db63379646337",
+  "private_review_reference_sha256": "27b9ea082d77a38f47b6eaa90223b53381d098177b6dd6d5c5530ab168c98c09",
+  "source_recordings": [
+    {
+      "race_id": "202611091201",
+      "source_sha256": "19fd939ada0ab2914f80ae99c29b9792ba7712affb2feb5ce6c28d5a87a676f1",
+      "saved_frame_count": 54
+    },
+    {
+      "race_id": "202611091202",
+      "source_sha256": "90b586e0edf46909c67da0d27d8646354b1533cced1b718fe987481757bdbd9e",
+      "saved_frame_count": 49
+    },
+    {
+      "race_id": "202611091203",
+      "source_sha256": "81f47547240428c631ef31b7bcaec42ee76f3a7f631b3005bfc768c83b3f32af",
+      "saved_frame_count": 50
+    }
+  ],
+  "exact_frame_sha_matches": 153,
+  "expected_saved_frame_samples": 153,
+  "per_race_manual_reviewed_color_results": [
+    {
+      "race_id": "202611091201",
+      "manual_crop_count": 6,
+      "color_candidate_count": 4,
+      "matches_with_single_manual_review": 3,
+      "candidate_fraction_pct": 66.667,
+      "single_review_matches_among_decided_pct": 75
+    },
+    {
+      "race_id": "202611091202",
+      "manual_crop_count": 5,
+      "color_candidate_count": 4,
+      "matches_with_single_manual_review": 4,
+      "candidate_fraction_pct": 80,
+      "single_review_matches_among_decided_pct": 100
+    },
+    {
+      "race_id": "202611091203",
+      "manual_crop_count": 7,
+      "color_candidate_count": 5,
+      "matches_with_single_manual_review": 5,
+      "candidate_fraction_pct": 71.429,
+      "single_review_matches_among_decided_pct": 100
+    }
+  ],
+  "manually_located_jerseys": 18,
+  "color_candidates_reported": 13,
+  "color_matches_against_single_visual_review": 12,
+  "candidate_decision_coverage_pct": 72.222,
+  "match_rate_within_decided_pseudo_labels_pct": 92.308,
+  "all_crops_match_pct_with_abstentions_not_counted_success": 66.667,
+  "automatic_rider_detection_accuracy_pct": null,
+  "digit_OCR_accuracy_pct": null,
+  "independently_verified_car_id_accuracy_pct": null,
+  "position_accuracy_pct": null,
+  "line_accuracy_pct": null,
+  "phase_6_count": 18,
+  "independently_verified_phase_count": 0,
+  "phase_scoring_accuracy_pct": null,
+  "phase_coverage_pct": 0,
+  "root_cause_notes": [
+    "Single visual reviewer chose the rider torso center; not blind independent reference; same three races different heldout samples.",
+    "Some real rider jackets and dark kits are ambiguous against track and background; 5/18 abstentions and 1/13 wrong classification.",
+    "No automatic location/detection or timestamped stage labels; do not use this score as automatic recognition accuracy.",
+    "Never use official finish result to label stage/position; source SHA proved exact underlying media only.",
+    "Class thresholds were frozen on separate early exploration frames, not calibrated to actual full frames."
+  ],
+  "forecast_originals_changed": false,
+  "model_learning_performed": false,
+  "official_accuracy_changed": false,
+  "raw_pixels_or_private_key_publicly_shared": false,
+  "formal_training_eligible": false,
+  "report_sha256": "e43b5eea08af009f408189462acdce4d2b6703b0a3edc25bfaf5edc734dd6b2f"
+}
