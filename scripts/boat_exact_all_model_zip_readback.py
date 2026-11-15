@@ -44,14 +44,17 @@ def _identity(race_id,prediction):
     Source SHA, actual GitHub artifact ID, forecast hash, ordered tickets,
     generated/as-of/cutoff and physically received clock must all agree.
     """
-    from race_ai.actions_contract import digest
+    from hashlib import sha256
+    import json
     p=prediction
-    return digest([race_id,p.get('stage'),p.get('model_id'),
-                   p.get('model_version'),p.get('artifact_id'),
-                   p.get('original_json_sha256'),p.get('source_code_commit'),
-                   p.get('prediction_sha256'),p.get('output_sha256'),
-                   p.get('ordered_top8'),p.get('as_of'),p.get('generated_at'),
-                   p.get('server_saved_at'),p.get('cutoff_at')])
+    values=[race_id,p.get('stage'),p.get('model_id'),
+            p.get('model_version'),p.get('artifact_id'),
+            p.get('original_json_sha256'),p.get('source_code_commit'),
+            p.get('prediction_sha256'),p.get('output_sha256'),
+            p.get('ordered_top8'),p.get('as_of'),p.get('generated_at'),
+            p.get('server_saved_at'),p.get('cutoff_at')]
+    return sha256(json.dumps(values,sort_keys=True,separators=(',',':'),
+        ensure_ascii=False,allow_nan=False).encode()).hexdigest()
 
 
 def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
