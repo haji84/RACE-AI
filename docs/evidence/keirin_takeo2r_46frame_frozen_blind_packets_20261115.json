@@ -1,0 +1,101 @@
+{
+  "schema": "RACE_AI_KEIRIN_TAKEO2R_ENCRYPTED_FROZEN_REVIEW_HANDOFF_V1",
+  "as_of_jst": "2026-11-15",
+  "race_id": "202611098402",
+  "venue": "Takeo",
+  "source_date_jst": "2026-11-09",
+  "scope": "REAL_HISTORICAL_SOURCE_ONLY_RESEARCH_NOT_PROVEN_BLIND_HOLDOUT",
+  "source_provenance": {
+    "prior_private_archive": "/RACE-AI/KeirinVideo/2026-11-09/20261109_missing6_verified_ciphertext_only.zip",
+    "source_video_sha256": "4e389a46c223b7cb2eaa7c5c5bdc34ade229deedea8a3c795c8be987b57aa810",
+    "authenticated_source_decrypt": true,
+    "original_source_video_remains_owner_private": true,
+    "source_video_present_in_public_repo": false,
+    "source_rights_independently_documented": false
+  },
+  "exact_detector_provenance": {
+    "source_code_path": "race_ai/keirin_visual_jersey_proposals.py",
+    "source_sha256": "2493ee8738bc171c80440d751ce83b842d77d52fe5a550796579b92b3adf95f8",
+    "source_copied_from_existing_GitHub_PR71_CI_artifact": 14146597007,
+    "model_train_color_pilot_race_ids": [
+      "202611091201",
+      "202611091202",
+      "202611091203",
+      "202611098401"
+    ],
+    "this_race_not_in_those_four_pilots": true,
+    "separate_prior_model_train_lineage_independently_attested": false,
+    "video_rider_roster_authentic_source_attested": false,
+    "candidate_number_universe_only": "1-9 allowed for exploratory color blobs, NOT verified starter list"
+  },
+  "frozen_actual_video_prediction": {
+    "frozen_at_utc": "2026-11-15T04:18:53.110480+00:00",
+    "exact_real_frame_count": 46,
+    "sampling": "every 2 seconds based on source duration 92.44 s, fixed before reading predictions",
+    "untrusted_color_blob_regions": 222,
+    "recording_fps": 25,
+    "video_duration_seconds": 92.44,
+    "proposal_schema": "RACE_AI_KEIRIN_BLIND_HOLDOUT_PROPOSALS_V1",
+    "proposal_sha256": "b207ec30d3fb368b9d9e64b494aa8e9e3657aac388023226c798da8ba8a98bae",
+    "frozen_private_file_sha256": "d31f4786e91375eded54f57a955e8bae156d4cfd2d4ef679793dc4558f760869",
+    "private_create_once_and_same_host_readback_sha_verified": true,
+    "independent_external_runner_readback": false,
+    "candidate_coords_leaked_to_reviewers": false
+  },
+  "encrypted_reviewer_assets": [
+    {
+      "kind": "FROZEN_COLOR_PROPOSALS",
+      "file": "TAKEO2R_20261109_FROZEN_COLOR_PROPOSALS_OWNER_RSA_AES256GCM.zip",
+      "sha256": "66140371ea5f9775531262941405fe7b5765618715f74d5d42d1bd7f5948c601",
+      "bytes": 38653,
+      "local_decrypt_sha_readback": true
+    },
+    {
+      "kind": "PENDING_REVIEWER_A",
+      "file": "TAKEO2R_20261109_BLIND_REVIEWER_A_PENDING_OWNER_RSA_AES256GCM.zip",
+      "sha256": "0c50e5946daed323c37446c17cc415f36dcd33c57a594638dd93736d5f9210ac",
+      "bytes": 9201783,
+      "frames": 46,
+      "local_decrypt_sha_readback": true
+    },
+    {
+      "kind": "PENDING_REVIEWER_B",
+      "file": "TAKEO2R_20261109_BLIND_REVIEWER_B_PENDING_OWNER_RSA_AES256GCM.zip",
+      "sha256": "70d79e1ba1373cd544b5a7c5f0be323b868f8391a977fc3e096910f6792de5b0",
+      "bytes": 9201784,
+      "frames": 46,
+      "local_decrypt_sha_readback": true
+    }
+  ],
+  "privacy_and_retention": {
+    "seal_method": "AES-256-GCM with independently random nonce/key per payload, RSA-OAEP-SHA256 owner keywrap; ciphertext integrity and decryption checked",
+    "private_PEM_signer_key_in_public_GitHub": false,
+    "reviewer_images_in_public_GitHub": false,
+    "raw_person_coordinates_in_public_GitHub": false,
+    "public_repository_receipt_only": true,
+    "chat_encrypted_artifacts_generated": true,
+    "persistent_private_Library_upload_succeeded": false,
+    "Library_upload_error": "destination_conflict returned for all attempted files; no persisted file is claimed",
+    "future_archive_recovery_from_chats_not_guaranteed": true
+  },
+  "independent_ground_truth": {
+    "actual_reviewers_assigned": 0,
+    "separate_A_completed": 0,
+    "separate_B_completed": 0,
+    "independently_verified_person_bbox_count": 0,
+    "independent_person_detection_precision_pct": null,
+    "independent_person_detection_recall_pct": null,
+    "independent_car_number_accuracy_pct": null,
+    "independent_rider_track_accuracy_pct": null,
+    "independent_line_position_accuracy_pct": null,
+    "verified_phase_count": 0,
+    "formal_PDCA_or_training_updated": false
+  },
+  "next_acceptance": [
+    "Trust registry with two independently authenticated reviewer Ed25519 public keys and preissued distinct challenges; signed receipts must be provided out of band, no self-declared identity flags",
+    "Owner-private packet restoration and blinded independent annotation of all 46 frozen source frames, including previously unlabelled riders and false-positive candidates",
+    "Distinct independent source and model lineage readback. Disagreement/partial ground truth is HOLD, not 0/100 precision",
+    "Only after real candidate-to-truth person and number track validation may later stage scoring be independently admitted"
+  ],
+  "status": "SOURCE_AND_CANDIDATE_FROZEN_PRIVATE_ENVELOPES_CREATED_REVIEW_TRUTH_NOT_YET_ACQUIRED"
+}
