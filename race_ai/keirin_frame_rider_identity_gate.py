@@ -24,7 +24,8 @@ SCHEMA="RACE_AI_KEIRIN_RIDER_FRAME_CANDIDATES_V1"
 REPORT="RACE_AI_KEIRIN_RIDER_FRAME_REVIEW_BRIDGE_V1"
 PHASES=tuple(name for name,_ in STAGES)
 TRACK=re.compile(r"^[A-Za-z0-9._-]{1,50}$")
-RECOGNITION_KINDS=frozenset(("OCR_CANDIDATE","INDEPENDENT_FRAME_REVIEW"))
+RECOGNITION_KINDS=frozenset(("OCR_CANDIDATE","INDEPENDENT_FRAME_REVIEW",
+                             "UNTRUSTED_COLOR_BLOB"))
 NUM_MIN_CONFIDENCE=0.92
 POSITION_MIN_CONFIDENCE=0.90
 
@@ -153,7 +154,9 @@ def _two_frame_consensus(first,second,starters):
         left,right=a[track],b[track]
         number=left["car_number_candidate"]
         position=left["rank_candidate"]
-        if (number==UNKNOWN or position==UNKNOWN or
+        if (left["recognition_kind"]=="UNTRUSTED_COLOR_BLOB" or
+            right["recognition_kind"]=="UNTRUSTED_COLOR_BLOB" or
+            number==UNKNOWN or position==UNKNOWN or
             number!=right["car_number_candidate"] or
             position!=right["rank_candidate"] or
             number not in starters or
@@ -240,7 +243,9 @@ def bridge_reviewed_frames(forecast,admission,roster,packets,*,
     """
     checked_forecast(forecast)
     checked_admission(admission,forecast["race_id"])
-    require(type(roster) is list and len(roster) in (7,9) and
+    # Video-side research supports short 6-car races; the separate formal
+    # PR71 7/9-starter forecast gate remains unchanged and unpromoted.
+    require(type(roster) is list and 3<=len(roster)<=9 and
             all(_number(x) for x in roster) and
             len(set(roster))==len(roster),
             "EXISTING_PR71_ROSTER_REQUIRED")
