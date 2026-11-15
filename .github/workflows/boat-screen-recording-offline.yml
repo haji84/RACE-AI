@@ -8,6 +8,8 @@ on:
       - .github/workflows/boat-screen-recording-offline.yml
       - race_ai/boat_screen_record_research.py
       - race_ai/boat_screen_model_bridge.py
+      - race_ai/boat_video_screen_queue.py
+      - tests/test_boat_video_screen_queue.py
       - tests/test_boat_screen_model_bridge.py
       - tests/test_boat_short_field_video.py
       - tests/test_boat_video_tracking.py
@@ -57,4 +59,4 @@ jobs:
           RACE_AI_RESEARCH_FIXTURE_ONLY: 'true'
         run: |
           python -m unittest tests.test_boat_screen_record_research tests.test_boat_screen_model_bridge tests.test_boat_short_field_video tests.test_boat_video_tracking tests.test_boat_video_sequential_context tests.test_boat_video_physical_context tests.test_boat_video_model_context tests.test_boat_video_evaluation -v
-          python -m unittest tests.test_boat_video_rights_admission tests.test_boat_20261113_retained_counts -v
+          python -m unittest tests.test_boat_video_rights_admission tests.test_boat_20261113_retained_counts tests.test_boat_video_screen_queue -v
