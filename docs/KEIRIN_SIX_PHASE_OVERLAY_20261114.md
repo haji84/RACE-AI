@@ -114,3 +114,33 @@ The PR71 read-suite adapter and video admission adapter now pass **code-path int
 5. Read-only safe site display, paired future-race A/B holdout assessment, and owner-approved model promotion only after independent evidence.
 
 Implementation/CI acceptance is distinct from actual real-race video recognition and model improvement. **Main production acceptance remains NOT PROVEN**.
+
+
+## 2026-11-15 JST: ACTUAL historical 153-frame color-candidate experiment (reproducible but not formal)
+
+All sources were already preserved in the owner-private Library. The exact existing RSA-OAEP/AES-256-GCM archives for Aomori 2026-11-09 1R, 2R, 3R were opened in a private temporary runtime. No browser GET, no owner device archive, no provider rights change, no model update.
+
+**Source media and frame integrity:** The original user-private source SHA256 was verified for all three WebM recordings. Saved feature sampling at each original timestamp reproduced **54/54 + 49/49 + 50/50 = 153/153** exact BGR cropped pixel SHA256 matches. It is real source-byte integrity, NOT car recognition correctness. SHA lineage and race IDs are in docs/evidence/keirin_historical_color_single_review_153frames_20261115.json.
+
+**Preliminary car-color research:** A single visual reviewer manually localized 18 visible upper-torso crops across three separate *saved* frames: 1R t=48 s / 6 riders, 2R t=64 s / 5 riders, 3R t=78 s / 7 riders. A deterministic jersey-color HSV baseline, frozen after earlier exploratory frames, generated **13/18** candidate vehicle numbers, of which **12/13** matched those manual visual labels. This means:
+- Candidate coverage, conditional on **manually prelocated riders**: **72.222%** (13/18).
+- Agreement with **single visual-review** labels among decided guesses: **92.308%** (12/13). One mismatch; five abstentions.
+- Matches out of all manually located patches: 12/18 = 66.667%, NOT a general auto-recognition rate.
+- Races per-crop: 1R 3 matches/4 decisions/6 located; 2R 4/4/5; 3R 5/5/7.
+- This is a **within-the-same-races held-out-frame** proof-of-concept, not a new-race blind evaluation or independently adjudicated ground truth. No claim of 92.3% deployed rider recognition, trained OCR or automatic localization.
+
+**New implementation on this PR #291:**
+- race_ai/keirin_historical_rider_color_eval.py: frozen 1-7 jersey colors (8/9 unvalidated provisional), abstain when color evidence too small/ambiguous, 3-to-9-starter *video-only evaluation*. A color fraction is not a probability; NEVER silently elevate to trusted rider/OCR identity.
+- scripts/keirin_historical_color_eval_offline.py: private-runner-only command line to verify entire original video SHA, independently decode every saved frame SHA, read private single-review crop positions, and aggregate *without exporting raw pixels or privately reviewed boxes*. It does not create bounding boxes or recognize phase/track position automatically.
+- tests/test_keirin_historical_rider_color_eval.py: nine synthetic source-free classifier and aggregate tests. tests/test_keirin_historical_color_runtime.py: four synthetic OpenCV decoding and wrong-SHA tests. Same existing PR71 synthetic CI workflow; no new schedule or provider ingestion. [CI 43664309526](https://github.com/haji84/RACE-AI/actions/runs/43664309526) completed/success on source code HEAD 531f4bbffae79617103d482ef5c37dd0af14cd8b.
+- True past-media pilot aggregate (without raw frames, coordinates, rider names or private key): docs/evidence/keirin_historical_color_single_review_153frames_20261115.json. Its SHA and numbers are from private prototype replay, not fabricated from unit-test fixtures. The publicly committed code's CLI is validated with synthetic decoding but not yet live-installed in main.
+
+**Truthful phase/position denominators:**
+- Automatic rider detection recall/precision: UNKNOWN, because upper-torso centers were manually selected, not found by a detector.
+- Actual number-digit OCR accuracy: UNKNOWN, because this is a jersey-color classifier, not a visual digit reader.
+- Independent vehicle-ID ground-truth accuracy: UNKNOWN, because the labels had one visual reviewer and no official/unbiased second witness.
+- Race position, group/line continuity, second-wheel, attack type/success precision: UNKNOWN, no frame-level independently reviewed truth for those tasks.
+- Six required phases × three historical races: **0 of 18 independently evidenced**, because these are short past-race clips, no valid phase boundary/individual lineup labels. The **coverage** can be reported as 0%, but phase *accuracy* must be null, NEVER 0% error or a fake full score.
+- Historical chat/picks and visible outcomes were never introduced as retrospectively frozen pre-cutoff PR71 model originals, and formal PDCA/training is still forbidden.
+
+**Next acceptance gates:** real rider upper-body localization against independently annotated images, matching vehicle numbers from both helmet/jersey color and permitted number OCR, multi-frame tracking with blocked camera/replay cuts, actual line topology and phase boundary proofs on complete races, then independent future-race validation and before-cutoff original join. Site reporting must show coverage, abstentions, and UNKNOWN per metric. Do not raise or calibrate candidate confidence by simply relabeling jersey color evidence as probability.
