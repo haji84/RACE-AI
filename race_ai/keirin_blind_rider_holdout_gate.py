@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from datetime import datetime
 from hashlib import sha256
-from itertools import permutations
 from pathlib import Path
 import json
 import math
@@ -102,7 +101,9 @@ def checked_proposal(doc):
          "TRAIN_OR_HOLDOUT_RACE_LEAK")
     frames=doc["frames"]
     need(type(frames) is list and 1<=len(frames)<=600 and
-         len(frames)==len({row["frame_sha256"] for row in frames}),
+         all(type(row) is dict and "frame_sha256" in row for row in frames),
+         "FRAMES_MISSING_OR_REUSED")
+    need(len(frames)==len({row["frame_sha256"] for row in frames}),
          "FRAMES_MISSING_OR_REUSED")
     last=-1.0
     for row in frames:
@@ -185,6 +186,7 @@ def checked_review(review,proposal):
     expected=[x["frame_sha256"] for x in proposal["frames"]]
     rows=review["frames"]
     need(type(rows) is list and
+         all(type(x) is dict for x in rows) and
          [x.get("frame_sha256") for x in rows]==expected,
          "REVIEW_FRAME_SET_NOT_COMPLETE")
     for row in rows:
@@ -327,7 +329,7 @@ def audit(proposal,review_a=None,review_b=None,*,
         "race_id":proposal["race_id"],
         "recording_sha256":proposal["recording_sha256"],
         "proposal_sha256":proposal["proposal_sha256"],
-        "status":("TWO_REVIEW_TORSO_REGION_DETECTION_ADMITTED"
+        "status":("TWO_REVIEW_JERSEY_COLOR_REGION_DETECTION_ADMITTED"
                   if ready and proposal["target_kind"]=="JERSEY_COLOR_REGION"
                   else "TWO_REVIEW_FULL_BODY_DETECTION_ADMITTED"
                   if ready else "HOLD_INDEPENDENT_GROUND_TRUTH_UNVERIFIED"),
