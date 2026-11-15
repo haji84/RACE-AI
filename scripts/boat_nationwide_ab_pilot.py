@@ -468,6 +468,10 @@ def make_pair(day,race,*,research_target=None):
     if revision is not None:
         race=dict(race,cutoff_at=choice['effective_cutoff_at'])
         cutoff=datetime.fromisoformat(race['cutoff_at'])
+    # Preserve the first independently saved official schedule as the earlier
+    # physical cutoff until an independent official amendment is accepted.
+    # Never let a new later planned time rescue a post-original-close artifact.
+    safe_deadline=min(datetime.fromisoformat(choice['originally_scheduled_cutoff_at']),cutoff)
     def with_revision(status):
         if revision is not None:status['cutoff_revision']=revision
         return status
@@ -499,7 +503,7 @@ def make_pair(day,race,*,research_target=None):
         except (ValueError,OSError,KeyError,TypeError) as ex:
             retention=dict(state='INPUT_RETENTION_REJECTED',failure_class=type(ex).__name__)
     if race.get('source_capture_only') is True:
-        if _clock(day)+MIN_TO_CUTOFF>=cutoff:
+        if _clock(day)+MIN_TO_CUTOFF>=safe_deadline:
             return dict(race_id=race_id,state='TOO_LATE_AFTER_SOURCE'),None,None,None,None
         ready=retention is not None and retention['state']=='SOURCE_INPUT_RETAINED'
         return with_revision(dict(race_id=race_id,state='SOURCE_READY_ADDITIONAL_MODELS' if ready else 'ADDITIONAL_MODEL_INPUT_REJECTED',
@@ -532,7 +536,7 @@ def make_pair(day,race,*,research_target=None):
     }
     _clock(day)
     computed=model.build_pair(data,generated)
-    if _clock(day)+MIN_TO_CUTOFF>=cutoff:
+    if _clock(day)+MIN_TO_CUTOFF>=safe_deadline:
         return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None,None
     # C-lite uses the *same official observations*, including local rate and
     # the already published historical average ST. It remains separate from
@@ -551,7 +555,7 @@ def make_pair(day,race,*,research_target=None):
     }
     extended=None
     try:
-        if _clock(day)+MIN_TO_CUTOFF>=cutoff:
+        if _clock(day)+MIN_TO_CUTOFF>=safe_deadline:
             return {"race_id":race_id,"state":"TOO_LATE_BEFORE_MODEL"},None,None,None,None
         extended=build_live_feature_shadow(data,extra,observed_timestamp())
     except ValueError as ex:
@@ -561,7 +565,7 @@ def make_pair(day,race,*,research_target=None):
     # A failure isolated to this adapter does not discard the ready A/B pair.
     observed=None
     try:
-        if _clock(day)+MIN_TO_CUTOFF>=cutoff:
+        if _clock(day)+MIN_TO_CUTOFF>=safe_deadline:
             return {"race_id":race_id,"state":"TOO_LATE_BEFORE_MODEL"},None,None,None,None
         history_options={} if OBSERVED_HISTORY_CONTEXT is None else {"history_context":OBSERVED_HISTORY_CONTEXT}
         observed=build_observed_p1(data,extra,generated,
@@ -576,7 +580,7 @@ def make_pair(day,race,*,research_target=None):
     # relevant cutoff and label the priced research variant separately.
     priced={"race_id":race_id,"state":"OFFICIAL_PRE_CLOSE_PRICES_NOT_VERIFIED"}
     paused=None
-    if _clock(day)+MIN_TO_CUTOFF<cutoff:
+    if _clock(day)+MIN_TO_CUTOFF<safe_deadline:
         try:
             price_url=update_endpoint(day,venue,n,"odds3t")
             odds_raw,odds_at,odds_sha=get(price_url,day=day)
@@ -599,7 +603,7 @@ def make_pair(day,race,*,research_target=None):
             else:
                 priced={"race_id":race_id,"state":"OFFICIAL_PRE_CLOSE_PRICES_NOT_VERIFIED",
                         "failure_class":type(ex).__name__}
-    if _clock(day)+MIN_TO_CUTOFF>=cutoff:
+    if _clock(day)+MIN_TO_CUTOFF>=safe_deadline:
         return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None,None
     paused=collect_pitreport(context,day,paused=paused)
     paused=collect_entry_history(context,day,paused=paused)
