@@ -12,6 +12,9 @@ if PIN_ROOT not in sys.path:sys.path.insert(0,PIN_ROOT)
 # Import the whole pinned owner package, never mix its modules with main's
 # incompatible dispatch dependencies (e.g. sparse-schema constants).
 import race_ai
+for folder in ('pr64-reference','pr72-reference'):
+    pin=str(ROOT/'owner-source'/folder/'race_ai')
+    if pin not in race_ai.__path__:race_ai.__path__.append(pin)
 import scripts
 MAIN_SCRIPTS=str(ROOT/'scripts')
 if MAIN_SCRIPTS not in scripts.__path__:scripts.__path__.append(MAIN_SCRIPTS)
