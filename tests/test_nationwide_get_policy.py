@@ -76,13 +76,13 @@ class NationwideGetPolicyTests(unittest.TestCase):
         captured=datetime(2030,4,1,11,40,tzinfo=pilot.JST)
         preview=datetime(2030,4,1,11,41,tzinfo=pilot.JST)
         now=datetime(2030,4,1,11,42,tzinfo=pilot.JST)
-        with patch.object(pilot,'_clock',return_value=now), \\
+        with patch.object(pilot,'_clock',return_value=now), \
              patch.object(pilot,'get',side_effect=[(b'official program',captured,'b'*64),
-                                                   (b'official preview',preview,'c'*64)]) as source, \\
-             patch.object(pilot,'parse_official_racelist',return_value=program), \\
-             patch.object(pilot,'parse_active_beforeinfo',return_value=before), \\
-             patch.object(pilot,'collect_pitreport',return_value=None), \\
-             patch.object(pilot,'collect_entry_history',return_value=None), \\
+                                                   (b'official preview',preview,'c'*64)]) as source, \
+             patch.object(pilot,'parse_official_racelist',return_value=program), \
+             patch.object(pilot,'parse_active_beforeinfo',return_value=before), \
+             patch.object(pilot,'collect_pitreport',return_value=None), \
+             patch.object(pilot,'collect_entry_history',return_value=None), \
              patch.object(pilot,'supplemental_contexts',{}):
             status,*forecasts=pilot.make_pair(today,base)
             self.assertEqual(status['state'],'EXHIBITION_NOT_FULLY_PUBLISHED')
@@ -101,10 +101,10 @@ class NationwideGetPolicyTests(unittest.TestCase):
         captured=datetime(2030,4,1,11,40,tzinfo=pilot.JST)
         preview=datetime(2030,4,1,11,41,tzinfo=pilot.JST)
         now=datetime(2030,4,1,11,42,tzinfo=pilot.JST)
-        with patch.object(pilot,'_clock',return_value=now), \\
+        with patch.object(pilot,'_clock',return_value=now), \
              patch.object(pilot,'get',side_effect=[(b'official program',captured,'b'*64),
-                                                   (b'official preview',preview,'c'*64)]), \\
-             patch.object(pilot,'parse_official_racelist',return_value=program), \\
+                                                   (b'official preview',preview,'c'*64)]), \
+             patch.object(pilot,'parse_official_racelist',return_value=program), \
              patch.object(pilot,'parse_active_beforeinfo',return_value=before):
             status,*forecasts=pilot.make_pair(date(2030,4,1),base)
         self.assertEqual(status['state'],
