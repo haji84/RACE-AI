@@ -56,7 +56,7 @@ def prepare(*,same_key=False):
 class SignedBlindReviewTrustedInputs(unittest.TestCase):
     def test_two_distinct_keys_with_matching_receipts_allow_synthetic_gate(self):
         p,a,b,t,sa,sb=prepare()
-        cb=make_trusted_callback(signed_a=sa,signed_b=sb,trusted_registry=t)
+        cb=make_trusted_callback(signed_a=sa,signed_b=sb,trusted_registry=t,registry_attestor=lambda *_:True)
         self.assertTrue(cb(a,b,p))
         result=audit(
             p,a,b,
@@ -72,9 +72,21 @@ class SignedBlindReviewTrustedInputs(unittest.TestCase):
         self.assertIsNone(result["digit_OCR_accuracy_pct"])
         self.assertIsNone(result["confirmed_rider_person_ID_accuracy_pct"])
 
+    def test_self_declared_two_signatures_do_not_prove_independent_people(self):
+        p,a,b,t,sa,sb=prepare()
+        # Even two valid distinct cryptographic keys cannot authenticate
+        # separate human reviewers without an external owner witness.
+        untrusted=make_trusted_callback(
+            signed_a=sa,signed_b=sb,trusted_registry=t)
+        self.assertFalse(untrusted(a,b,p))
+        deny=make_trusted_callback(
+            signed_a=sa,signed_b=sb,trusted_registry=t,
+            registry_attestor=lambda *_:False)
+        self.assertFalse(deny(a,b,p))
+
     def test_two_keys_registered_to_same_signer_are_rejected(self):
         p,a,b,t,sa,sb=prepare(same_key=True)
-        cb=make_trusted_callback(signed_a=sa,signed_b=sb,trusted_registry=t)
+        cb=make_trusted_callback(signed_a=sa,signed_b=sb,trusted_registry=t,registry_attestor=lambda *_:True)
         self.assertFalse(cb(a,b,p))
         result=audit(
             p,a,b,
@@ -91,25 +103,25 @@ class SignedBlindReviewTrustedInputs(unittest.TestCase):
         bad=deepcopy(t)
         bad["reviewer_alpha"]["identity_attested_out_of_band"]=False
         self.assertFalse(make_trusted_callback(
-            signed_a=sa,signed_b=sb,trusted_registry=bad)(a,b,p))
+            signed_a=sa,signed_b=sb,trusted_registry=bad,registry_attestor=lambda *_:True)(a,b,p))
         bad=deepcopy(t)
         bad["reviewer_beta"]["trusted_public_key_pem"]=b"not a key"
         self.assertFalse(make_trusted_callback(
-            signed_a=sa,signed_b=sb,trusted_registry=bad)(a,b,p))
+            signed_a=sa,signed_b=sb,trusted_registry=bad,registry_attestor=lambda *_:True)(a,b,p))
 
     def test_review_tampering_after_approval_causes_signature_hold(self):
         p,a,b,t,sa,sb=prepare()
         q=deepcopy(sa)
         q["review_sha256"]="f"*64
-        cb=make_trusted_callback(signed_a=q,signed_b=sb,trusted_registry=t)
+        cb=make_trusted_callback(signed_a=q,signed_b=sb,trusted_registry=t,registry_attestor=lambda *_:True)
         self.assertFalse(cb(a,b,p))
         q=deepcopy(sa)
         q["signed_at"]="2030-01-15T10:02:00+09:00"
-        cb=make_trusted_callback(signed_a=q,signed_b=sb,trusted_registry=t)
+        cb=make_trusted_callback(signed_a=q,signed_b=sb,trusted_registry=t,registry_attestor=lambda *_:True)
         self.assertFalse(cb(a,b,p))
         q=deepcopy(sa)
         q["signature_b64"]=base64.b64encode(b"\x00"*64).decode("ascii")
-        cb=make_trusted_callback(signed_a=q,signed_b=sb,trusted_registry=t)
+        cb=make_trusted_callback(signed_a=q,signed_b=sb,trusted_registry=t,registry_attestor=lambda *_:True)
         self.assertFalse(cb(a,b,p))
 
     def test_packet_and_preissued_challenge_cannot_be_changed(self):
@@ -118,20 +130,20 @@ class SignedBlindReviewTrustedInputs(unittest.TestCase):
             q=deepcopy(sa)
             q[changed]="a"*64
             with self.subTest(field=changed):
-                cb=make_trusted_callback(signed_a=q,signed_b=sb,trusted_registry=t)
+                cb=make_trusted_callback(signed_a=q,signed_b=sb,trusted_registry=t,registry_attestor=lambda *_:True)
                 self.assertFalse(cb(a,b,p))
 
     def test_signature_before_review_is_rejected_even_if_cryptographically_valid(self):
         p,a,b,t,sa,sb=prepare()
         sa["signed_at"]="2030-01-15T09:59:00+09:00"
         self.assertFalse(make_trusted_callback(
-            signed_a=sa,signed_b=sb,trusted_registry=t)(a,b,p))
+            signed_a=sa,signed_b=sb,trusted_registry=t,registry_attestor=lambda *_:True)(a,b,p))
 
     def test_trusted_registry_is_not_taken_from_review_json(self):
         p,a,b,t,sa,sb=prepare()
         a["trusted_public_key_pem"]=t[a["reviewer_id"]]["trusted_public_key_pem"]
         self.assertFalse(make_trusted_callback(
-            signed_a=sa,signed_b=sb,trusted_registry=t)(a,b,p))
+            signed_a=sa,signed_b=sb,trusted_registry=t,registry_attestor=lambda *_:True)(a,b,p))
 
 
 if __name__=="__main__":
