@@ -14,7 +14,8 @@ import re
 import subprocess
 import sys
 
-OWNER_SHA='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
+OWNER_SHA='0db526870a509cd6e68c44e693ed3e73d3b0e50f'
+PREVIOUS_OWNER_SHA='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
 HISTORIC_RUN=43348227701
 HISTORIC_SHA='0796b52c2804177976e4c2e5ab9b65f32589720b'
 JST=timezone(timedelta(hours=9))
@@ -23,6 +24,14 @@ RID=re.compile(r'20[0-9]{6}-(?:0[1-9]|1[0-9]|2[0-4])-(?:0[1-9]|1[0-2])\Z')
 
 def need(ok, reason):
     if not ok: raise ValueError('OWNER_AUDIT_'+reason)
+
+
+def _source_pinned(run_id,head_sha):
+    # Historical acceptance is confined to this read-only auditor. Dispatch
+    # and the live reader checkout still use the single exact OWNER_SHA.
+    return (type(run_id) is int and run_id>0 and type(head_sha) is str and
+            (head_sha in (OWNER_SHA,PREVIOUS_OWNER_SHA) or
+             (run_id==HISTORIC_RUN and head_sha==HISTORIC_SHA)))
 
 
 def stamp(value):
@@ -140,6 +149,80 @@ def pending_pair_report(control,p1_raw,result_report,nested_p1,*,run,day,digest)
                 verified=True,successor_dispatch_allowed=False)
 
 
+def inspect_failed_checkpoint(*,get,run_id,now,key=None):
+    """Audit a historical zero-round AES checkpoint without creating a proof.
+
+    A failed P0 save can have no same-run first P0. Authenticate its exact
+    continuity and public companion at the real audit clock instead. This
+    reader never calls the same-day recovery admission or changes counters.
+    """
+    from race_ai import boat_all_model_recovery as R
+    from race_ai.cycle_recovery import artifact_pages
+    from race_ai import boat_private_original_archive as archive
+    from race_ai import boat_source_control as source
+    need(callable(get) and type(run_id) is int and run_id>0 and
+         isinstance(now,datetime) and now.utcoffset() is not None,'CHECKPOINT_INPUT_INVALID')
+    reader=R._MetadataReader(get)
+    run=R._run(reader.read(f'actions/runs/{run_id}',1024*1024),run_id,now)
+    need(_source_pinned(run_id,run['head_sha']) and
+         run.get('head_branch')=='production/boat-p0-p1-20261111' and
+         run.get('event')=='workflow_dispatch' and run.get('status')=='completed' and
+         run.get('conclusion')=='failure' and type(run.get('run_attempt')) is int and
+         run['run_attempt']==1,'FAILED_CHECKPOINT_RUN_REJECTED')
+    listed=artifact_pages(reader,run_id)
+    need(2<=len(listed)<=128 and all(type(a.get('name')) is str for a in listed) and
+         len({a['name'] for a in listed})==len(listed),'CHECKPOINT_INVENTORY_INVALID')
+    forbidden=re.compile(r'(?:boat-national-cutoff|race-existing-cycle)-'+str(run_id)+
+                         r'(?:-cycle-[0-9]+)?\Z')
+    need(not any(forbidden.fullmatch(a['name']) for a in listed),'CHECKPOINT_HAS_PENDING_ARTIFACTS')
+    packets=[]
+    for prefix,limit in (('race-source-control',source.MAX_SUMMARY_ZIP),
+                         ('race-cycle-continuity',source.MAX_CONTINUITY_ZIP)):
+        selected=[a for a in listed if a['name']==f'{prefix}-{run_id}']
+        need(len(selected)==1,'CHECKPOINT_MISSING_OR_DUPLICATE')
+        item=selected[0];ident=item['id']
+        meta=json.loads(reader.read(f'actions/artifacts/{ident}',128*1024))
+        need(all(meta.get(k)==item.get(k) for k in
+                 ('id','name','size_in_bytes','digest','created_at','expired')) and
+             meta.get('expired') is False and
+             stamp(run['created_at'])<=stamp(meta.get('created_at'))<=stamp(run['updated_at']) and
+             now<stamp(meta.get('expires_at')),'CHECKPOINT_METADATA_CHANGED_OR_EXPIRED')
+        raw=get(f'actions/artifacts/{ident}/zip')
+        need(type(raw) is bytes and 0<len(raw)<=limit,'CHECKPOINT_ZIP_BOUND_INVALID')
+        packets.append((raw,meta))
+    public,public_meta=packets[0];continuity,continuity_meta=packets[1]
+    control=source.read_summary(public,public_meta,continuity,continuity_meta,
+                                run_id=run_id,head_sha=run['head_sha'])
+    with archive._checked_zip(continuity,max_zip_bytes=source.MAX_CONTINUITY_ZIP) as z:
+        need(z.namelist()==[archive.CIPHER_MEMBER],'CHECKPOINT_CIPHER_REQUIRED')
+        cipher=z.read(archive.CIPHER_MEMBER)
+    # build_summary performs real AES authentication, validates the sealed
+    # session, and exports only whitelisted fields. Opaque ZIP binding alone
+    # is insufficient; every public field must equal this decrypted summary.
+    derived=source.build_summary(cipher,run_id=run_id,head_sha=run['head_sha'],key=key)
+    with archive._checked_zip(public,max_zip_bytes=source.MAX_SUMMARY_ZIP,
+                              max_expanded=source.MAX_SUMMARY) as z:
+        need(z.namelist()==[source.MEMBER],'CHECKPOINT_PUBLIC_MEMBERS_INVALID')
+        need(source._json(z.read(source.MEMBER))==derived,'CHECKPOINT_AES_PUBLIC_DISAGREE')
+    need(control['completed_round']==0 and control['prepared_round'] is None and
+         control['previous_session_requests']==0 and control['source_wait'] is None and
+         control['previous_halted_reason'] is None and control['previous_stop_reason'] is None and
+         type(control.get('day_start_lifetime_requests')) is int and
+         control['day_start_lifetime_requests']<=control['lifetime_requests'],
+         'CHECKPOINT_NOT_ZERO_ROUND')
+    return dict(status='FAILED_OWNER_CHECKPOINT_AES_VERIFIED_READONLY',
+        owner_run_id=run_id,owner_head_sha=run['head_sha'],day_jst=control['day_jst'],
+        audit_at=now.isoformat(),failed_session_requests=control['previous_session_requests'],
+        inherited_same_day_requests=control['lifetime_requests']-control['day_start_lifetime_requests'],
+        lifetime_requests=control['lifetime_requests'],
+        lifetime_completed_rounds=control['lifetime_completed_rounds'],
+        continuity_artifact_id=continuity_meta['id'],continuity_zip_digest=continuity_meta['digest'],
+        source_control_artifact_id=public_meta['id'],source_control_zip_digest=public_meta['digest'],
+        aes_authenticated=True,public_counters_match_AES=True,
+        successor_dispatch_allowed=False,live_recovery_to_new_p1_proven=False,
+        official_source_requests=0,new_forecasts=0,original_forecasts_changed=False)
+
+
 def inspect_run(repo,run_id,*,now):
     """Use original cryptographic readers with the real audit clock, never backdate."""
     from scripts.boat_private_original_vault import _environment
@@ -160,7 +243,7 @@ def inspect_run(repo,run_id,*,now):
     need(authenticated_live_owner_run(run) and run.get('id')==run_id and
          run.get('head_branch')=='production/boat-p0-p1-20261111' and run.get('event')=='workflow_dispatch' and
          run.get('status')=='completed','OWNER_RUN_REJECTED')
-    need(run['head_sha']==OWNER_SHA or (run_id==HISTORIC_RUN and run['head_sha']==HISTORIC_SHA),
+    need(_source_pinned(run_id,run['head_sha']),
          'OWNER_SOURCE_NOT_PINNED')
     day=stamp(run['created_at']).astimezone(JST).date().isoformat()
     need(stamp(run['created_at'])<=stamp(run['updated_at'])<=now,'RUN_CLOCK_INVALID')

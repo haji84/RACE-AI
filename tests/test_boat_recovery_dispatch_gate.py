@@ -57,6 +57,31 @@ class RecoveryGateTests(unittest.TestCase):
         self.assertEqual((self.args,self.proof),before)
         self.assertEqual(out['official_source_requests'],0)
 
+    def test_zero_round_recovery_preserves_prior_same_day_owner_usage(self):
+        original=self.proof['repairs'][0]['original_control']
+        original.update(completed_round=0,prepared_round=None,
+            previous_session_requests=0,lifetime_requests=11524,
+            day_start_lifetime_requests=11072,lifetime_completed_rounds=608)
+        fixed=deepcopy(original)
+        fixed['recovery']=dict(schema='RACE_AI_NO_PENDING_FAILED_OWNER_V1',
+            previous_run_id=99,round_no=None,verified_at=NOW.isoformat(),
+            original_control_receipt=deepcopy(original['receipt']),source_attempts=0,
+            no_p1_or_result_artifacts_verified=True,no_future_forecast_generated=True,
+            originals_rewritten=False)
+        self.proof['repairs'][0].update(control=fixed,vault_commit=None,original_artifact_ids=[])
+        self.proof['latest_control']=deepcopy(fixed)
+        self.args['continuation_proof']=deepcopy(original)
+        before=deepcopy((self.args,self.proof))
+        out=gate.decide(**self.args,recovery_proof=self.proof)
+        self.assertTrue(out['dispatch_allowed'],'Main must consume the reviewed zero-round proof')
+        self.assertEqual(out['status'],'READY_VERIFIED_RECOVERED_OWNER_CONTINUATION')
+        self.assertEqual((self.args,self.proof),before)
+        self.assertEqual(out['official_source_requests'],0)
+        tampered=deepcopy(self.proof)
+        for row in (tampered['latest_control'],tampered['repairs'][0]['control']):
+            row['lifetime_requests']=11072
+        self.assertFalse(gate.decide(**self.args,recovery_proof=tampered)['dispatch_allowed'])
+
     def test_failed_repair_leaves_next_invocation_in_recovery_not_forecast_mode(self):
         for _ in range(2):
             result=gate.decide(**self.args,recovery_proof=None)
