@@ -180,6 +180,100 @@ def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
     return outputs,unqualified,missing_from_view,reused_baseline
 
 
+
+def cutoff_source_disagreement(projection, payload, rows, *, artifact_id,
+                               official_cutoffs, first_p0_saved_at, p1_saved_at):
+    """Classify a P1/P0 cutoff gap using the actual authenticated P1 input bytes.
+
+    This is a source-free, read-only diagnosis, NEVER permission to accept a
+    conflicting forecast. Later official racecard+exhibition agreement does
+    NOT alone prove a legitimate schedule revision. Aggregate fields only:
+    no race ID, model ID, exact clock, source URL/SHA, ticket or plaintext.
+    """
+    need(type(projection) is dict and type(projection.get('records')) is list and
+         type(payload) is dict and type(payload.get('current_inputs')) is list and
+         type(rows) is list and type(official_cutoffs) is dict)
+    first_saved=moment(first_p0_saved_at); last_saved=moment(p1_saved_at)
+    need(first_saved<=last_saved)
+    scoped=[(rid,mid) for rid,mid,eligible,matched,officially_valid in rows
+            if eligible and not officially_valid]
+    if not scoped:
+        return dict(conflicting_model_slots=0,conflicting_races=0,
+                    source_relation_slots={},p1_minus_first_p0_cutoff_seconds_slots={},
+                    racelist_captured_after_first_p0_saved_slots=0)
+    current={}
+    for record in payload['current_inputs']:
+        need(type(record) is dict and type(record.get('program')) is dict)
+        rid=record['program'].get('race_id')
+        need(type(rid) is str and RACE.fullmatch(rid) and rid not in current)
+        current[rid]=record
+    projected={}
+    for record in projection['records']:
+        rid=record.get('race_id')
+        need(type(rid) is str and RACE.fullmatch(rid) and rid not in projected)
+        projected[rid]=record
+    relation=Counter(); offsets=Counter(); later=0
+    for rid,mid in scoped:
+        need(rid in projected and rid in official_cutoffs)
+        saved_row=projected[rid]
+        # _scan independently establishes these exact physical P1 slots.
+        own=[p for p in [saved_row.get('prediction'),*(saved_row.get('comparison_predictions') or [])]
+             if p is not None and p.get('stage')=='P1' and
+             p.get('artifact_id')==artifact_id and p.get('model_id')==mid]
+        need(len(own)==1)
+        view_cutoff=moment(saved_row['cutoff_at'])
+        p0_cutoff=official_cutoffs[rid]
+        need(view_cutoff!=p0_cutoff)
+        delta=(view_cutoff-p0_cutoff).total_seconds()
+        key=(str(int(delta)) if delta.is_integer() else 'FRACTIONAL_SECONDS')
+        offsets[key]+=1
+        context=current.get(rid)
+        if context is None:
+            relation['P1_SOURCE_CONTEXT_MISSING']+=1
+            continue
+        try:
+            program=context['program'];preview=context['beforeinfo']
+            before_context=preview['context']
+            # The original dispatch validated the pair; independently compare
+            # its captured SOURCE fields rather than the P1 model's own cutoff.
+            source_bound=(program.get('body_identity_verified') is True and
+                program.get('status')=='OFFICIAL_BODY_IDENTITY_VERIFIED' and
+                preview.get('body_identity_verified') is True and
+                preview.get('status')=='AVAILABLE' and
+                program.get('race_id')==rid and preview.get('race_id')==rid and
+                type(program.get('source_sha256')) is str and
+                SHA.fullmatch(program['source_sha256']) is not None and
+                type(preview.get('source_sha256')) is str and
+                SHA.fullmatch(preview['source_sha256']) is not None and
+                program.get('source',{}).get('sha256')==program['source_sha256'] and
+                before_context.get('source',{}).get('sha256')==preview['source_sha256'])
+            program_cutoff=moment(program['closed_at'])
+            before_cutoff=moment(preview['closed_at'])
+            context_cutoff=moment(before_context['source_cutoff_at'])
+            program_at=moment(program['captured_at'])
+            preview_at=moment(preview['captured_at'])
+            asof=moment(context['as_of'])
+            source_bound=source_bound and program_at<=preview_at<=asof<=last_saved
+        except (KeyError,TypeError,ValueError,AttributeError):
+            source_bound=False
+        if not source_bound:
+            relation['P1_SOURCE_PROVENANCE_UNVERIFIED']+=1
+        elif program_cutoff==before_cutoff==context_cutoff==view_cutoff:
+            relation['P1_RACELIST_AND_EXHIBITION_AGREE_BUT_FIRST_P0_DIFFERS']+=1
+            later+=int(program_at>first_saved)
+        elif program_cutoff==before_cutoff==context_cutoff==p0_cutoff:
+            relation['P1_VIEW_DIFFERS_FROM_BOTH_SOURCE_CUTOFFS']+=1
+        elif program_cutoff!=before_cutoff or before_cutoff!=context_cutoff:
+            relation['P1_RACELIST_AND_EXHIBITION_DISAGREE']+=1
+        else:
+            relation['P1_VIEW_AND_VERIFIED_INPUT_CUTOFF_DISAGREE']+=1
+    need(sum(relation.values())==len(scoped))
+    return dict(conflicting_model_slots=len(scoped),
+        conflicting_races=len({rid for rid,_ in scoped}),
+        source_relation_slots=dict(sorted(relation.items())),
+        p1_minus_first_p0_cutoff_seconds_slots=dict(sorted(offsets.items())),
+        racelist_captured_after_first_p0_saved_slots=later)
+
 def audit(*,get,repo,run_id,day,expected_models,original_view,now,
           maximum_artifacts=64,owner_key=None):
     """Read all original ZIPs, ignoring any already-cached coverage shortcut.
@@ -232,7 +326,7 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
     original_copy=Counter(source_index)
     physical_forecasts=0;matched=0;absent=0;eligible_slots=set();official_slots=set()
     duplicates=0;invalid=Counter();by_model=Counter();official_by_model=Counter()
-    round_counts=[];baseline_reuses=0
+    round_counts=[];baseline_reuses=0;cutoff_diagnostics=[]
     all_archive_sha_verified=0;all_aes_authenticated=0
     for round_no,artifact_id,listed_item in targets:
         meta_raw=reader.read(f'actions/artifacts/{artifact_id}',128*1024)
@@ -260,6 +354,22 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
                 else:eligible_slots.add(slot);by_model[mid]+=1
             if officially_valid and slot not in official_slots:
                 official_slots.add(slot);official_by_model[mid]+=1
+        # Re-open only conflicting already verified ZIPs to distinguish the
+        # sealed P1 racecard/exhibition deadline from the first official P0 B
+        # schedule. The 9 conflicting model slots remain HOLD; no re-scoring.
+        if holds.get('INDEPENDENT_OFFICIAL_CUTOFF_CONFLICT',0):
+            p0=[a for a in listed if a.get('name')==f"boat-p0-existing-{run['id']}"]
+            need(len(p0)==1)
+            with R._checked_zip(raw,max_zip_bytes=R.MAX_ZIP_BYTES,
+                                max_expanded=R.store.MAX_WIRE) as archive:
+                need(archive.namelist()==['forecasts.enc'])
+                native_payload=R.store.open_forecasts(archive.read('forecasts.enc'),key=key)
+            diagnostic=cutoff_source_disagreement(projected,native_payload,rows,
+                artifact_id=artifact_id,official_cutoffs=official_cutoffs,
+                first_p0_saved_at=p0[0]['created_at'],p1_saved_at=meta['created_at'])
+            need(diagnostic['conflicting_model_slots']==
+                 holds['INDEPENDENT_OFFICIAL_CUTOFF_CONFLICT'])
+            cutoff_diagnostics.append(dict(round=round_no,**diagnostic))
         invalid.update(holds);baseline_reuses+=reused
         round_counts.append(dict(round=round_no,source_archive_zip_sha_verified=True,
                                  aes_decrypted_and_projected=True,
@@ -291,6 +401,7 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         per_model_physically_pre_cutoff=dict(sorted(by_model.items())),
         per_model_official_schedule_crosschecked=dict(sorted(official_by_model.items())),
         round_evidence=round_counts,
+        source_cutoff_conflict_diagnostics=cutoff_diagnostics,
         previously_archived_coverages_skipped_without_zip_read=0,
         racing_provider_gets=0,prediction_generation_performed=False,
         production_predictions_modified=False,website_end_to_end_proven=False)
