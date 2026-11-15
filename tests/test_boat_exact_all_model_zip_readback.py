@@ -123,6 +123,79 @@ class SourceFreeExactZipTests(unittest.TestCase):
         self.assertEqual(missing,0)
         self.assertFalse(holds)
 
+
+    def source_context(self, *, program_cutoff=CUTOFF, preview_cutoff=CUTOFF,
+                       context_cutoff=CUTOFF, program_at='2030-04-01T11:30:00+09:00',
+                       preview_at='2030-04-01T11:37:00+09:00'):
+        row=original()
+        rid=row['race_id']
+        return dict(program=dict(race_id=rid,closed_at=program_cutoff,
+            body_identity_verified=True,status='OFFICIAL_BODY_IDENTITY_VERIFIED',
+            source_sha256='a'*64,source={'sha256':'a'*64},captured_at=program_at),
+            beforeinfo=dict(race_id=rid,closed_at=preview_cutoff,
+            body_identity_verified=True,status='AVAILABLE',source_sha256='b'*64,
+            captured_at=preview_at,context=dict(source_cutoff_at=context_cutoff,
+                source={'sha256':'b'*64})),
+            as_of='2030-04-01T11:40:00+09:00')
+
+    def diagnose(self, *, context=None, official='2030-04-01T11:59:00+09:00'):
+        row=original()
+        contexts=[] if context is False else [self.source_context() if context is None else context]
+        return exact.cutoff_source_disagreement(
+            dict(records=[row]),dict(current_inputs=contexts),
+            [(row['race_id'],'boat-model-A',True,True,False)],artifact_id=101,
+            official_cutoffs={row['race_id']:exact.moment(official)},
+            first_p0_saved_at='2030-04-01T11:20:00+09:00',
+            p1_saved_at=CREATED)
+
+    def test_round23_p1_racelist_and_exhibition_agree_but_first_p0_differs(self):
+        report=self.diagnose()
+        self.assertEqual(report['conflicting_model_slots'],1)
+        self.assertEqual(report['conflicting_races'],1)
+        self.assertEqual(report['source_relation_slots'],
+            {'P1_RACELIST_AND_EXHIBITION_AGREE_BUT_FIRST_P0_DIFFERS':1})
+        self.assertEqual(report['p1_minus_first_p0_cutoff_seconds_slots'],{'60':1})
+        self.assertEqual(report['racelist_captured_after_first_p0_saved_slots'],1)
+        self.assertNotIn('20300401-01-01',json.dumps(report))
+        self.assertNotIn('a'*64,json.dumps(report))
+
+    def test_round23_source_disagreement_never_grants_official_deadline(self):
+        record=self.source_context(preview_cutoff='2030-04-01T11:58:00+09:00')
+        report=self.diagnose(context=record)
+        self.assertEqual(report['source_relation_slots'],
+                         {'P1_RACELIST_AND_EXHIBITION_DISAGREE':1})
+        # The existing independent _scan remains authoritative: failure is HOLD.
+        (seen,holds,_,_),_,_=self.scan(original(),
+            official_cutoff='2030-04-01T11:59:00+09:00')
+        self.assertFalse(seen[0][4])
+        self.assertEqual(holds['INDEPENDENT_OFFICIAL_CUTOFF_CONFLICT'],1)
+
+    def test_round23_missing_or_late_source_never_masquerades_as_revision(self):
+        self.assertEqual(self.diagnose(context=False)['source_relation_slots'],
+            {'P1_SOURCE_CONTEXT_MISSING':1})
+        future=self.source_context(program_at='2030-04-01T11:50:00+09:00',
+                                   preview_at='2030-04-01T11:52:00+09:00')
+        self.assertEqual(self.diagnose(context=future)['source_relation_slots'],
+            {'P1_SOURCE_PROVENANCE_UNVERIFIED':1})
+
+    def test_source_context_reuses_first_p0_clock_only_for_diagnosis(self):
+        row=original()
+        no_conflict=exact.cutoff_source_disagreement(
+            dict(records=[row]),dict(current_inputs=[]),
+            [(row['race_id'],'boat-model-A',True,True,True)],artifact_id=101,
+            official_cutoffs={row['race_id']:exact.moment(CUTOFF)},
+            first_p0_saved_at='2030-04-01T11:20:00+09:00',
+            p1_saved_at=CREATED)
+        self.assertEqual(no_conflict['conflicting_model_slots'],0)
+        self.assertFalse(no_conflict['source_relation_slots'])
+
+    def test_source_projection_mismatch_is_not_reported_as_later_official_revision(self):
+        context=self.source_context(program_cutoff='2030-04-01T11:59:00+09:00',
+            preview_cutoff='2030-04-01T11:59:00+09:00',
+            context_cutoff='2030-04-01T11:59:00+09:00')
+        self.assertEqual(self.diagnose(context=context)['source_relation_slots'],
+            {'P1_VIEW_DIFFERS_FROM_BOTH_SOURCE_CUTOFFS':1})
+
     def test_exact_file_refetched_even_if_view_already_contains_the_same_original(self):
         from race_ai import boat_all_model_recovery as R
         from race_ai import cycle_recovery as C
