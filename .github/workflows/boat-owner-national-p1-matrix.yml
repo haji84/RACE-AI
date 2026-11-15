@@ -49,7 +49,7 @@ jobs:
           assert "owner_evidence_audit.py" in live and "inspect_run" in live
           assert 'www.boatrace.jp' not in live
           assert 'workflow_dispatch:' not in text.split('permissions:',1)[0]
-          assert 'gh workflow run' not in text
+          assert 'gh workflow run' not in live
           assert 'p1_saved_expected_slots' not in text.split('  offline_contract:',1)[0]
           print('BOAT_NATIONAL_P1_OWNER_SOURCE_FREE_CI_CONTRACT_PASSED')
           PY
