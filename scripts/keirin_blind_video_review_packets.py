@@ -64,8 +64,13 @@ def generate(*,frozen_proposal,source_video,private_output,
              all(type(x) in (int,float) for x in selected_seconds),
              "INVALID_PREDECLARED_REVIEW_SECONDS")
         selected=set(selected_seconds)
-        chosen=[x for x in raw if x["recording_sec"] in selected]
-        need(len(chosen)==len(selected),"REVIEW_SAMPLES_NOT_IN_FROZEN_SOURCE")
+        # The independent holdout metric gate requires exhaustive
+        # annotations for EVERY frame admitted by this frozen proposal.
+        # Arbitrary reviewer-side frame selection would cherry-pick easy
+        # photos and cannot certify recall/false positives.
+        need(selected=={x["recording_sec"] for x in raw},
+             "PARTIAL_REVIEW_CANNOT_CERTIFY_COMPLETE_HOLDOUT")
+        chosen=raw
     cap=cv2.VideoCapture(str(source))
     need(cap.isOpened(),"REAL_VIDEO_DECODE_REQUIRED")
     media={}
