@@ -21,7 +21,7 @@ def make_frame(*,bike=False,banner=False):
 
     img=np.full((292,515,3),160,dtype=np.uint8)
     if banner:
-        cv2.rectangle(img,(175,111),(230,122),(0,220,230),-1)
+        cv2.rectangle(img,(175,111),(211,122),(0,220,230),-1)
     else:
         # Blue region is intentionally not a labeled rider. It merely sits
         # above two round contours arranged like small bicycle wheels.
