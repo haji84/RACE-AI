@@ -1,0 +1,170 @@
+# RACE-AI BOAT Codex最終完成引継ぎ
+記録基準：2026年11月16日 01:53 JST
+
+> **Codexへ：引継ぎの復唱だけで終了しない。GitHubの現HEAD、PR、Actions、実レースの暗号原本を再取得し、未完了から実装→テスト→本番→独立検証へ進む。**
+> 本文のSHA・件数は記録時点の事実であり、常に最新とは限らない。終了時は本書に新しい証拠・失敗・次工程を追記し、GitHub読戻しまで確認する。
+
+## 0. 正本・担当範囲・最初の操作
+
+- Repository: https://github.com/haji84/RACE-AI
+- この引継ぎの対象は**ボートレース部門の完成**。競輪・オート・競馬の既存資産を壊さず、4競技の上位Goalは維持。
+- 上位Goal: https://github.com/haji84/RACE-AI/issues/67 （関連 #68）。
+- 旧引継ぎ `docs/RACE_AI_HANDOFF_20261114_AUTO_P1.md`、`docs/RACE_AI_HANDOFF_20261113_P1.md`、最新の各workflow/runを照合。古い引継ぎにある当時の件数を、現在の数値だと誤認しない。
+- **最初の実作業はPR #302のコードと、実owner障害#43683174565→main復旧失敗#43716692197の原本証拠を再検証すること**。単なる計画や新モデルの追加で終わらない。
+- GitHub保護ルール、既存PR、source SHA、単一writerを尊重する。mainの直書きが拒否される場合は**PR経由**。保護解除・force pushはしない。
+
+最初に実行する確認例（ローカルに必要な権限がある場合）：
+
+```bash
+git fetch origin
+git rev-parse origin/main
+git rev-parse origin/production/boat-p0-p1-20261111
+gh pr view 302 --json state,isDraft,headRefOid,baseRefOid,mergeable
+gh pr checks 302
+gh run list --workflow boat-nationwide-ab-one-shot.yml --limit 30
+gh run list --workflow boat-racer-daily.yml --limit 30
+git grep -n '5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4' origin/main -- .github scripts race_ai
+```
+
+## 1. 完成GOALと判定の原則
+
+全国の全公式開催日・全会場・全レース（最初のレースから最後まで）について、既存のモデル別**P0（展示前）・P1（展示後）**を、当日の正しい締切前に自動生成する。GitHub Actionsで不変のAES暗号原本を保存し、**別runner**がZIP/SHA256/AES/元予想・入力時点/実保存時刻を独立照合。公式結果の新規公開・訂正・返還・中止を取得して照合/PDCAし、GitHub Pagesの予想・レース一覧・公式結果・モデル別成績へ自動反映する。実際の画面で確認する。
+
+- **GitHub Actions主体、PC常時稼働なし、Vercelなし、無断の追加課金なし**。公開済みの研究用リポジトリを維持。
+- 各レースと各モデルの適格分母を先に確定。欠場、3連単非発売、中止、展示未公開、ソース欠落、取得拒否、締切超過、実行失敗を別々に記録する。予想できないものも`NO_FORECAST`/`HOLD`等で台帳に残し、成功率を水増ししない。
+- 既存モデル・採点器・出走/コース/モーター/チルト/展示/天気/風・波などの根拠ある特徴量を再利用。欠測を想像で埋めない。正式AI予想は**オッズ・人気非依存、3連単最大8点**。実購入と研究シミュレーションを混ぜない。自動投票・決済を行わない。
+- 展示タイム等の**数値データP1**と、展示**映像を解析するP1**は別ゲート。映像は3〜6艇（欠場・飛び艇番込み）を実画面で識別、動作測定→既存モデル特徴→締切前P1→暗号保存→別runner照合→未来レースで評価。
+- 上位#67の`Hit@8_all >= 98%`は**未達・実現可能性も未証明の挑戦目標**。予想基盤完成と精度Goal達成を分離する。
+- **CI緑、実装済、PR作成/統合、過去データの復元、画面が表示されただけでは最終完成ではない。** 本物の新しい実レースと正しい全件分母で、本番の連続自動完走・障害復旧を証明して初めて合格。
+
+## 2. 最新GitHubスナップショット（上記基準時刻に再確認）
+
+| 対象 | 状態 |
+| --- | --- |
+| `main` HEAD | `fe216832f80ac3fa5f9c25e2999494482c1e8737` |
+| `production/boat-p0-p1-20261111` HEAD | `5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4` |
+| **PR #302** | https://github.com/haji84/RACE-AI/pull/302 ／**OPEN、review-ready、NOT MERGED** |
+| PR #302 HEAD | `a5d19e8f8b70eaacd9c5841bc95f5cbbb2e8b145`。baseは上記production |
+| PR #301 | https://github.com/haji84/RACE-AI/pull/301 ／main統合済、時刻不一致の診断実装 |
+| 本番の新しい全国14モデルP1一巡 | **未実証**。#302のCI合格は本番稼働とは別 |
+| 新しい当日公式結果→PDCA→Pagesの全件自動完走 | **未実証** |
+
+### PR #302の中身（本番にはまだない）
+
+- `race_ai/boat_official_program.py`: 公式出走表上の「締切予定時刻変更」の明示的案内を記録。
+- `race_ai/boat_live_cutoff_revision.py`: 最初の公式B開催情報、後続の公式出走表、beforeinfoのレースID・URL・SHA・取得時刻・予定締切を照合し、予定締切の短縮/延長を扱う**研究用の判定処理**。
+- `scripts/boat_nationwide_ab_pilot.py`: 変更後の予定締切をP1候補へつなぐ。ただし実際の物理保存に関して`safe_deadline=min(初期,変更後)`という保守境界を残しており、**旧締切以降の延長を実際に救済する機能は完成していない**。正式な先行公式証拠と別runner実保存監査を作って完成させる。
+- `race_ai/boat_pending_round_recovery.py` / `scripts/boat_recover_failed_owner.py` / `scripts/boat_failed_recovery_contract.py`: P1の`prepared_round`がない**P0保存失敗（zero-round）**を、真正なP1/RESULTペアを伴う巡回途中失敗と区別して復旧判定。勝手な予想再生成・GETカウンタ書換えはしない。
+- 日付跨ぎで合成試験が誤って落ちる問題、およびランダムSHAが架空の登録番号と偶然一致してプライバシー試験が落ちる問題を修正。**実際の秘密漏れ検査は残す。**
+
+PR #302の最終HEADでの実CI：
+- 復旧 https://github.com/haji84/RACE-AI/actions/runs/43727198062 ：**137 tests PASS**。
+- owner側 https://github.com/haji84/RACE-AI/actions/runs/43727198053 ：**321 tests PASS**＋締切補正・関連**46 tests PASS**。
+- これらは主として**source-free/保存原本/合成データ回帰試験**。PRの新規公式予想producer jobはskipped。本番の新規予想0件を「成功」に加算しない。
+
+## 3. 実データから確定した事実（新旧の混同禁止）
+
+### 3.1 2026-11-15の全国P1原本
+
+- 真正なowner：https://github.com/haji84/RACE-AI/actions/runs/43661420983
+- **全20件のALL_MODEL暗号ZIP**を再ダウンロードし、ZIP SHA/復号・元予想との一致を別runnerで照合した実run：https://github.com/haji84/RACE-AI/actions/runs/43693629492
+- 当初公式B開催情報：**156レース・14モデル・名目上限2,184レース×モデル枠**。モデルの適用条件別の正確な分母を日別に別途定義すること。
+- この監査のP0原本：**148/156レース**。P1の新規物理保存、自己申告時刻より前の枠**216**。最初の独立公式P0締切とも一致して正式適格と確認できたのは**207**。
+- **第23巡回の1レース×9モデル**が不一致。P1で後から取得したracelistとbeforeinfoの予定締切は**P0より60秒後で互いに一致**。元出走表の取得は初回P0保存後。
+- **結論は時刻差の存在まで**。実際の公式販売締切延長だったか、元データ間の表記/定義差かは未確定。9枠は`INDEPENDENT_OFFICIAL_CUTOFF_CONFLICT`としてHOLD。元予想・実保存時刻を書換えたり過去の成功件数へ後付け加算しない。
+- **207/2,184（約9.48%）はこのALL_MODEL原本の名目照合率**。既存A/Bのbaseline P1再利用120レコードを無検証で合算しない。モデル別適格分母と本当の重複排除を独立に計算。
+- この監査はsource新規GET 0。翌日以降に全国P1が生成できた証拠ではない。
+
+### 3.2 2026-11-12のP0/結果とサイトは以前より前進
+
+**この時点で「サイトはすべて失敗」として扱うと誤り。** 同時に「サイト完了＝新レース結果E2E完了」でもない。
+
+- 日別正式スコア監査：https://github.com/haji84/RACE-AI/actions/runs/43737919281 。**142レース/284件のP0**について、元の132確定レースに加え、以前参考扱いだった10レースにオーナー採用の時刻参照ルールを**採点コピーのみ**適用し、142レース・284件を評価したと報告。元予想の改変0、新規source GET0。
+- 暗号ビュー・Pages配信HTTPの一致実証：https://github.com/haji84/RACE-AI/actions/runs/43737919341 。3 jobs成功、**142レース/284件**でAESの保存ビュー、既存採点、公開サイト資産の一致確認。既存原本の正常表示という意味。**新しい実レースの結果公開からサイトまで毎日全件自動完走した実証ではない**。
+- 直近の結果復旧：https://github.com/haji84/RACE-AI/actions/runs/43737888163 はsource-freeの`SCHEDULE_WINDOW_INACTIVE`で成功。新規結果収集成功ではない。
+- それ以前の https://github.com/haji84/RACE-AI/actions/runs/43710999511 は実結果取得/PDCAの一部成功後、Pagesへの新結果検証で`SAVED_SITE_OPERATION_FAILED`。この経路は**新しい結果のend-to-end実証が残る**。
+
+### 3.3 直近の重大な本番停止
+
+- https://github.com/haji84/RACE-AI/actions/runs/43683174565 ：本番ownerの追加P0原本保存ステップ`Retain exact additional P0 execution and physical save receipt beyond expiry`が失敗。ログには`FEED_OPERATION_FAILED / TimeoutExpired`、`VAULT_OPERATION_FAILED`も記録。source-controlの最終集計は`completed_round=0`、GET使用0が観測された。**根本原因が完全に1個へ確定したと断定しない**。
+- https://github.com/haji84/RACE-AI/actions/runs/43716692197 ：2026-11-15 22時頃JSTのmain起動、失敗したownerの原本復旧で`HOLD_FAILED_OWNER_RECOVERY / ROUND_RECOVERY_COUNTERS_INVALID`。
+- 旧復旧器は`prepared_round>=1`を要求していたが、本件は**P1第1巡前のP0保存失敗**。PR #302がzero-round分岐と厳格な実証条件を実装・テストした。ただし**実障害のAES原本から次の新本番worker起動・新P1保存成功はまだ未証明**。
+- 実原本の復元に疑義が残るなら後続の公式GETを止めてHOLD。新規ownerの連続再起動による強行突破は禁止。
+
+## 4. Codex開発の優先順位と各合格ゲート
+
+| Gate | 工程 | 必須の実証 |
+| --- | --- | --- |
+| **G1 最優先** | **本番P0保存障害とzero-round復旧** | #43683174565の原本/continuity/source-control、#43716692197の失敗理由を独立読戻し。PR #302の修正をレビュー。失敗→安全復旧→別runner→次workerの新予想保存を真正なGitHub runで証明 |
+| **G2** | **公式締切変更・発走時刻分離** | 初期B予定・変更後の公式予定・**実際の発売終了が独立確認できた場合のみその値**・実発走を別フィールドで保持。時刻短縮/延長・発走だけの遅延・F/欠艇を分離。実ソースと保存時刻を別runnerで照合 |
+| **G3** | **朝の早期起動/日付跨ぎ/持続運転** | PR #289（05:30 JST早朝trigger）、PR #292（JST日付handoff）を精査。GitHub schedule遅延時も初回対象レースの欠落を隠さず補正。原本を引継いで次workerが新レースを処理 |
+| **G4** | **全国全件P0/P1の生成** | 全国の公式対象race ID/3連単成立/モデル適用条件を確定。必須beforeinfo優先、任意pitreport/履歴取得で予想が止まらない（PR #288参照）。初レース〜最終レースを取得・保存。欠落はNO_FORECAST |
+| **G5** | **14モデルのAES独立監査** | race×modelごとにP0/P1、source captured、予想generated、外部artifact physical saved、ZIP/SHA/AES、独立公式締切、変更履歴を照合。実行適格・未適格/欠落/遅延/重複を区別 |
+| **G6** | **公式結果→独立照合→PDCA→Pages** | 新しい実レース結果取得、公式修正/返還、AES結果読戻し、既存採点器の結果、サイトHTTPとスマホ画面を同一run/race/modelで一巡。通常結果取得の12GET固定残存はPR #286の差分と実運用で検証 |
+| **G7** | **展示映像3〜6艇** | PR #288を活用。実映像の同一艇/艇番・進入・走行/ターン変化を独立の正解ラベルで検証。展示データP1と映像P1の入力・原本を分離。欠場で不連続艇番も正確に処理 |
+| **G8** | **本番連続運用と精度検証** | 複数開催日の全件生成/保存/読戻し/結果/PDCA/表示・停止復旧、未予想率、モデル別Hit@8_all、未来A/B改善効果を実証。目標98%未達なら未達と報告 |
+
+**途中でPRを何本作ったかを成果としない。** 必須証拠が揃ったGateだけ実データ合格とする。G1/G2とG3/G4の検証に安全に並行できる工程は並行可だが、公式取得するwriterを二重起動しない。
+
+## 5. 重要PR・作業入口
+
+### 最新重要PR
+
+- **#302（production修正候補、最優先、NOT MERGED）** https://github.com/haji84/RACE-AI/pull/302
+- **#288（全国P1・3〜6艇動画、Draft）** https://github.com/haji84/RACE-AI/pull/288
+- **#289（05:30 JST早期起動、main向けDraft）** https://github.com/haji84/RACE-AI/pull/289
+- **#292（日付跨ぎのDAY_HANDOFF、Draft）** https://github.com/haji84/RACE-AI/pull/292
+- **#286（通常結果GET固定上限見直し、main向けDraft）** https://github.com/haji84/RACE-AI/pull/286
+- **#301（第23巡回時刻差の独立診断、main統合済み）** https://github.com/haji84/RACE-AI/pull/301
+
+### コードの入口
+
+- 本番owner：`.github/workflows/boat-nationwide-ab-one-shot.yml`、`scripts/boat_nationwide_ab_pilot.py`、`race_ai/boat_all_model_cycle.py`、`race_ai/boat_active_exhibition.py`、`race_ai/repeated_cycle.py`、`scripts/github_existing_cycle.py`。
+- 時刻/公式B：`race_ai/boat_official_program.py`、`race_ai/boat_program_source.py`、`race_ai/boat_deadline_queue.py`、PR #302の`race_ai/boat_live_cutoff_revision.py`。
+- 復旧・暗号原本：`race_ai/boat_pending_round_recovery.py`、`scripts/boat_recover_failed_owner.py`、`scripts/boat_failed_recovery_contract.py`、`race_ai/boat_private_original_vault.py`、`race_ai/boat_source_control.py`。
+- main起動：`.github/workflows/boat-racer-daily.yml`、`scripts/boat_main_dispatch_gate.py`、`scripts/boat_recovery_dispatch_gate.py`。
+- 14モデルP1独立監査：`.github/workflows/boat-owner-national-p1-matrix.yml`、`scripts/boat_exact_all_model_zip_readback.py`、`scripts/boat_owner_national_p1_matrix.py`。
+- 結果/サイト：`.github/workflows/boat-result-gap-recovery.yml`、`scripts/boat_saved_site_context.py`、`scripts/boat_saved_site_check.cjs`、`race_ai/saved_view_feed.py`。
+- 実映像：`race_ai/boat_video_*.py`群、PR #288の`race_ai/boat_video_screen_queue.py`を差分ごと実見する。
+
+## 6. 特に危険なリリース障害：production SHA固定
+
+mainのowner dispatcher、復旧gate、source mirror、14モデル独立監査のworkflow/固定readerが**旧production SHA `5d1dabff...`を厳密に参照**している。
+
+1. PR #302をproductionへ単に統合すると、production HEADが新しくなり、**mainが旧SHAを照合するため次の新ownerがHOLDになる**。
+2. 承認された本番リリース工程では、まずPR #302の差分・同HEADのCIをレビューし、実原本復旧ゲートが安全か確認。production統合時の**新しい実HEAD SHA**を確定する。
+3. 続けてmainの既存owner発火、復旧、source mirror、全国P1独立監査とその固定SHAテストの**必要な箇所を新しい厳密SHAへ対応づける**。無条件のSHAチェック廃止で迂回しない。
+4. 必ずmainの新HEADでsource-free検証を通し、次に公式データ利用を伴うownerの**真のrun**を一度起動・独立読戻し。権限や固定SHAの差し替えは重大本番変更として本人の承認条件に従う。
+5. GitHub Actionsの定期起動時刻と即時結果反映は保証されない。実測の待機・遅延・欠損を画面と原本へ残す。
+
+ユーザーは研究範囲の既存許可について毎回の再確認は求めていない。**許可済み範囲は継続する**。ただし新しい外部映像の権利不明箇所だけを区別し、新規課金・一般公開・秘密/権限の重大変更は本人承認を要求する。既存原本の事後改変、結果を見た後の予想生成、GET履歴ゼロ戻し、403/429無視、Public Gitへの平文/鍵の混入は禁止。
+
+## 7. 時刻変更/復旧の最低テストシナリオ
+
+1. 12:00→12:01の**公式締切延長**を両公式ソースと変更案内で12:00前に検知し、生成と外部保存が本当に締切前だったか検証。元の12:00より後の予想を正式扱いするための証拠仕様は別ゲート。
+2. 12:00→11:59の締切短縮。新しい締切を越えてしまった原本は不適格。
+3. 発走時刻だけが12:20にずれるが締切は12:00のまま。**発走遅延だけでP1締切延長をしない**。
+4. 最初の公式Bとracelist/beforeinfoの時刻不一致、片方だけの変更、race ID/日付間違い、SHA違い、取得後知り・時刻逆行 → HOLD、原本不変。
+5. 朝の最初のレースで予定Actions遅延 → 元の全国分母は削除せずNO_FORECAST、改善後の別日で復旧実証。
+6. `prepared_round=None`のP0保存段階失敗、P1/RESULTペアなし、GET0 → 元の暗号原本とsource-controlからzero-round復旧を判定。未保存のP1を捏造しない。
+7. `prepared_round>=1`なのにP1/RESULTの片方がない・署名不一致・source wait/403/429 → unsafe dispatchを拒否。
+8. 23:59→00:00 JSTを跨ぐ継続workerと翌日の初レース。前日の実GET累積を隠したリセットは不可。
+9. 3/4/5/6艇の実出走・欠艇・飛び艇番。存在しない艇を予想/動画の学習へ挿入しない。
+10. 新しい公式結果で「公開検知→AES→別runner→PDCA→Pages HTTP/スマホ画面」の同一race/model一巡。
+
+## 8. 毎回の実行報告・次チャットの再開方法
+
+Codexは以下をGitHubへ残す：
+
+- 今回使った`main`/`production`/`PR`の厳密HEAD SHAと差分、最新CI run、**本番実run ID**、保存済みartifact ID/SHAと別runner結果。
+- 日別の公式レース分母、3連単適格レース、対象モデル枠、P0/P1生成数、締切前物理保存数、独立AES読戻し数、結果取得、採点、Pages反映、NO_FORECASTの理由。**不明・未検証と0は区別**。
+- Gateごとに`未着手／調査中／コード・CI合格／本番一部／実データ合格／HOLD`を明示。事実・推測・要確認を混ぜない。
+- 最後に本書（または後継引継ぎ）へ**今回成功・失敗原因・未完条件・次の一手**を追記してGitHubから読戻す。引継ぎだけで完成宣言しない。
+
+## 9. Codexにそのまま渡す開始指示
+
+> haji84/RACE-AIのボートレース部門を最終完成まで進めてください。最初にこの `docs/RACE_AI_BOAT_CODEX_HANDOFF_20261116.md` とIssue #67を読み、最新main/productionのHEAD、PR #302/#288/#289/#292/#286、Actions・暗号保存原本を再取得してください。最優先は実owner #43683174565 の追加P0保存失敗と、main #43716692197 の ROUND_RECOVERY_COUNTERS_INVALID を真正な原本で直して、停止復旧後に新規予想が生成される実runを証明することです。PR #302の締切補正をレビューして、安全な本番更新とmain固定SHAの同期を行い、最初のレースから全国すべての適格race×14モデルP0/P1を締切前生成・AES保存・別runner照合で検証してください。公式の締切予定変更と実際の発売終了・発走遅延を別管理。第23巡回の過去9モデル枠の後付け合格は禁止。次に新規公式結果→暗号保存→独立PDCA→公開サイトの実画面まで自動一巡し、3〜6艇の展示映像AIも実証してください。CI成功だけで完了と言わず、工程ごとにSHA/run/原本証拠と未完件数をGitHubへ残してください。重大な本番変更は本人の承認条件に従ってください。
+
+---
+
+**この文書の保存・PR作成それ自体は、production統合・本番予想の再開・全国全14モデル合格を意味しない。**
