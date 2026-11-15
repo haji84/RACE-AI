@@ -6,7 +6,7 @@ from copy import deepcopy
 import json
 import unittest
 
-from scripts.boat_owner_national_p1_matrix import calculate
+from scripts.boat_owner_national_p1_matrix import calculate, saved_view_coverage
 
 IDS=['boat-A','boat-B','boat-C']
 DAY='2030-04-01'
@@ -95,6 +95,65 @@ class ActualReaderMatrixTests(unittest.TestCase):
         self.assertEqual(result['racing_provider_gets'],0)
         self.assertTrue(result['original_forecasts_unchanged'])
         self.assertFalse(result['public_video_usable'])
+
+
+
+class SealedViewCoverageTests(unittest.TestCase):
+    def example(self):
+        cutoff='2030-04-01T12:00:00+09:00'
+        original=dict(stage='P1',model_id='boat-A',cutoff_at=cutoff,
+                      as_of='2030-04-01T11:40:00+09:00',
+                      generated_at='2030-04-01T11:40:03+09:00',
+                      server_saved_at='2030-04-01T11:41:00+09:00',
+                      external_receipt_verified=True,eligible_pre_cutoff=True,
+                      artifact_id=123,original_json_sha256='a'*64)
+        row=dict(sport='boat',event_date_jst='2030-04-01',
+                 race_id='20300401-01-01',cutoff_at=cutoff,
+                 prediction=None,comparison_predictions=[original])
+        return dict(records=[row]),original
+
+    def test_only_physically_pre_cutoff_owner_originals_count(self):
+        view,_=self.example()
+        result=saved_view_coverage(view,day=DAY,model_ids=['boat-A','boat-B'],
+                                   scheduled_races=2,now=NOW)
+        self.assertEqual(result['expected_model_slots'],4)
+        self.assertEqual(result['p1_qualified_unique_slots'],1)
+        self.assertEqual(result['missing_p1_model_slots'],3)
+        self.assertEqual(result['saved_view_race_rows'],1)
+        self.assertFalse(result['independently_authenticated_source_zip_claim'])
+
+    def test_a_saved_after_cutoff_and_unattested_receipt_do_not_count(self):
+        for changes in ({'server_saved_at':'2030-04-01T13:00:00+09:00'},
+                        {'external_receipt_verified':False},
+                        {'eligible_pre_cutoff':False},
+                        {'original_json_sha256':'wrong'}):
+            view,source=self.example()
+            view['records'][0]['comparison_predictions']=[dict(source,**changes)]
+            result=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],
+                                       scheduled_races=1,now=NOW)
+            self.assertEqual(result['p1_qualified_unique_slots'],0)
+            self.assertEqual(result['missing_p1_model_slots'],1)
+
+    def test_duplicate_immutable_race_or_changed_day_is_rejected(self):
+        view,_=self.example()
+        view['records'].append(deepcopy(view['records'][0]))
+        with self.assertRaises(ValueError):
+            saved_view_coverage(view,day=DAY,model_ids=['boat-A'],
+                                scheduled_races=2,now=NOW)
+        view['records'].pop()
+        view['records'][0]['race_id']='20300402-01-01'
+        with self.assertRaises(ValueError):
+            saved_view_coverage(view,day=DAY,model_ids=['boat-A'],
+                                scheduled_races=1,now=NOW)
+
+    def test_unknown_model_not_promoted_to_coverage(self):
+        view,source=self.example()
+        view['records'][0]['comparison_predictions'].append(dict(source,model_id='alien-X'))
+        result=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],
+                                   scheduled_races=1,now=NOW)
+        self.assertEqual(result['unsupported_or_extra_models'],1)
+        self.assertEqual(result['p1_qualified_unique_slots'],1)
+        self.assertNotIn('20300401-01-01',json.dumps(result))
 
 
 if __name__=='__main__':
