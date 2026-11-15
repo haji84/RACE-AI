@@ -181,7 +181,7 @@ def verify_no_pending_failed_owner(get, run, control, *, now):
         need(names.count(kind+'-'+str(ident))==1,'IDLE_CHECKPOINT_INVENTORY_INVALID')
     need(len(set(names))==len(names),'IDLE_DUPLICATE_ARTIFACT')
     forbidden=re.compile(r'(?:race-existing-cycle|boat-national-cutoff)-'+str(ident)+
-                         r'(?:-cycle-[0-9]+)?\\Z')
+                         r'(?:-cycle-[0-9]+)?\Z')
     need(not any(forbidden.fullmatch(name) for name in names),
          'IDLE_P1_OR_RESULT_ARTIFACT_PRESENT')
     evidence=dict(schema=IDLE_SCHEMA, previous_run_id=ident, round_no=None,
