@@ -101,6 +101,13 @@ class PrivateRunnerRegression(unittest.TestCase):
                                     "SAVED_SOURCE_FRAME_SHA_MISMATCH"):
             self.check()
 
+    def test_untrusted_race_id_path_rejected_before_video_access(self):
+        self.review["races"][0]["race_id"]="../other-video"
+        self.save()
+        with self.assertRaisesRegex(HistoricalColorError,
+                                    "UNTRUSTED_RACE_PATH_REJECTED"):
+            self.check()
+
     def test_private_roster_unexpected_extra_rider_and_forged_location_fail(self):
         self.review["races"][0]["starters"]=[1,2]
         self.save()
