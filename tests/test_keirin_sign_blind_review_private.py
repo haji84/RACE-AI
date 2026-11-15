@@ -91,7 +91,8 @@ class OwnerPrivateReviewSignerTests(unittest.TestCase):
                                             serialization.Encoding.Raw,
                                             serialization.PublicFormat.Raw))
         self.assertEqual(self.output.stat().st_mode&0o077,0)
-        with self.assertRaises(FileExistsError):
+        with self.assertRaisesRegex(
+            SignerError,"REVIEW_SIGNATURE_MUST_BE_PRIVATE_CREATE_ONCE"):
             self.call()
 
     def test_signing_incomplete_review_never_becomes_independent_evidence(self):
