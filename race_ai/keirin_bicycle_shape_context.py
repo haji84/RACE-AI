@@ -166,6 +166,20 @@ def analyze_frame(bgr, frozen_a, *, expected_sha256, second):
     stats["B_CANDIDATES"]=len(B)
     stats["A_B_SPATIAL_PAIRS"]=len(associations)
     stats["A_B_SAME_COLOR_PAIRS"]=stats["A_B_SPATIAL_AND_COLOR_AGREEMENT"]
+    # Counter omits zero-valued entries. Stable explicit zeros are essential
+    # for trustworthy empty-source/abstention reporting and regression tests.
+    required_counts=(
+        "A_CANDIDATES","B_CANDIDATES","A_B_SPATIAL_PAIRS",
+        "A_B_SAME_COLOR_PAIRS",
+        "A_ONLY_NO_B_SPATIAL_PAIR",
+        "A_B_SPATIAL_AND_COLOR_AGREEMENT",
+        "A_B_SPATIAL_COLOR_DISAGREEMENT",
+        "WEAK_WHEEL_PAIR_CONTEXT",
+        "NO_WEAK_WHEEL_PAIR_EVIDENCE",
+        "A_ONLY_WITH_POSSIBLE_BICYCLE_CONTEXT",
+        "BROAD_IMAGE_BACKGROUND_RISK_FLAG",
+        "A_ONLY_BACKGROUND_RISK_WITHOUT_WHEEL_CUE",
+    )
     need(sum(stats[k] for k in (
          "A_ONLY_NO_B_SPATIAL_PAIR",
          "A_B_SPATIAL_AND_COLOR_AGREEMENT",
@@ -175,7 +189,7 @@ def analyze_frame(bgr, frozen_a, *, expected_sha256, second):
         "schema":SCHEMA,
         "second":second,
         "source_frame_sha256":expected_sha256,
-        "counts":dict(stats),
+        "counts":{k:int(stats.get(k,0)) for k in required_counts},
         "private_candidate_hypotheses_not_ground_truth":private_records,
         "automatically_removed_candidate_count":0,
         "missing_wheels_do_not_erase_riders":True,
