@@ -219,6 +219,10 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         targets.append((round_no,artifact_id,item))
     need(0<len(targets)<=maximum_artifacts)
     targets.sort()
+    official_cutoffs=_official_cutoffs(get,repo,run,listed,reader,day=day,now=now,key=key)
+    day_rows={r['race_id'] for r in original_view['records']
+              if r.get('sport')=='boat' and r.get('event_date_jst')==day}
+    need(day_rows==set(official_cutoffs))
     source_index=Counter()
     for row in original_view['records']:
         if row.get('sport')!='boat' or row.get('event_date_jst')!=day:continue
@@ -226,8 +230,9 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
             if p is not None and p.get('stage')=='P1':
                 source_index[_identity(row['race_id'],p)]+=1
     original_copy=Counter(source_index)
-    physical_forecasts=0;matched=0;absent=0;eligible_slots=set()
-    duplicates=0;invalid=Counter();by_model=Counter();round_counts=[];baseline_reuses=0
+    physical_forecasts=0;matched=0;absent=0;eligible_slots=set();official_slots=set()
+    duplicates=0;invalid=Counter();by_model=Counter();official_by_model=Counter()
+    round_counts=[];baseline_reuses=0
     all_archive_sha_verified=0;all_aes_authenticated=0
     for round_no,artifact_id,listed_item in targets:
         meta_raw=reader.read(f'actions/artifacts/{artifact_id}',128*1024)
@@ -245,26 +250,29 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         rows,holds,missing,reused=_scan(projected,day=day,artifact_id=artifact_id,
                                 physical_saved_at=meta['created_at'],
                                 expected=expected,clock=now,
-                                source_original_index=source_index)
-        for rid,mid,eligible,equal in rows:
+                                source_original_index=source_index,
+                                official_cutoffs=official_cutoffs)
+        for rid,mid,eligible,equal,officially_valid in rows:
             physical_forecasts+=1;matched+=int(equal);absent+=int(not equal)
+            slot=(rid,mid)
             if eligible:
-                slot=(rid,mid)
                 if slot in eligible_slots:duplicates+=1
                 else:eligible_slots.add(slot);by_model[mid]+=1
+            if officially_valid and slot not in official_slots:
+                official_slots.add(slot);official_by_model[mid]+=1
         invalid.update(holds);baseline_reuses+=reused
         round_counts.append(dict(round=round_no,source_archive_zip_sha_verified=True,
                                  aes_decrypted_and_projected=True,
                                  forecast_p1_rows=len(rows),reused_baseline_p1_rows=reused,
                                  physically_pre_cutoff=sum(row[2] for row in rows),
+                                 independently_official_cutoff_verified=sum(row[4] for row in rows),
                                  saved_view_originals_matched=sum(row[3] for row in rows)))
     need(0<all_archive_sha_verified==all_aes_authenticated==len(targets))
     need(matched+absent==physical_forecasts and
          all(original_copy[key]>=source_index.get(key,0) for key in source_index))
     # Difference is diagnostic only. Missing, duplicated and late original
     # predictions never become a successful user-visible completion claim.
-    official_total=len(expected)*len({r['race_id'] for r in original_view['records']
-                                  if r.get('sport')=='boat' and r.get('event_date_jst')==day})
+    official_total=len(expected)*len(official_cutoffs)
     return dict(schema=SCHEMA,status='AES_ZIP_REPLAY_VERIFIED_P1_COVERAGE_INCOMPLETE',
         day_jst=day,owner_run_id=run_id,owner_source_commit=OWNER_SHA,
         actual_listed_archives=len(targets),github_zip_sha256_independently_verified=all_archive_sha_verified,
@@ -273,12 +281,15 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         p1_forecast_rows_reopened=physical_forecasts,
         referenced_existing_baseline_p1_rows_not_recounted=baseline_reuses,
         physical_pre_cutoff_distinct_model_slots=len(eligible_slots),
+        authentic_official_P0_schedule_races=len(official_cutoffs),
+        official_schedule_crosschecked_pre_cutoff_model_slots=len(official_slots),
         original_predictions_matched_saved_AES_view=matched,
         original_predictions_missing_from_saved_AES_view=absent,
         duplicate_eligible_model_slots=duplicates,
         unqualified_original_reasons=dict(sorted(invalid.items())),
         scheduled_view_model_slot_upper_bound=official_total,
         per_model_physically_pre_cutoff=dict(sorted(by_model.items())),
+        per_model_official_schedule_crosschecked=dict(sorted(official_by_model.items())),
         round_evidence=round_counts,
         previously_archived_coverages_skipped_without_zip_read=0,
         racing_provider_gets=0,prediction_generation_performed=False,
