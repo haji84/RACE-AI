@@ -9,7 +9,8 @@
   GitHubから読戻し、レビュー済み0db526870とtreeが完全一致することを確認。
 - **mainの固定SHAを同期済み:** 6ファイル22箇所を上記実HEADへ変更。
   履歴原本の読取専用5d1dabffは保全。ローカルmain gate74件、独立AES reader37件成功。
-  この記録時点ではPR #289の最終CI・main統合・真正な別runner実行を続けて確認する。
+  実HEAD同期後のCIも成功。既存のmain release push起動経路で最初のworkerを開始し、
+  main統合・真正な別runner実行・新しい予想保存を続けて確認する。
 - **未実証:** 実障害のAES復旧→新worker→新P1保存、全レース/モデルの連続完走、
   新結果→PDCA→画面の一巡、映像・精度改善。合成試験を実レース成功へ数えない。
 - **保全:** 原本変更0、新PR/Issue/workflow/外部サービス/課金0。旧PC常駐monitorの再起動なし。
