@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  offline_contract:
+  unit:
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
     runs-on: ubuntu-24.04
     timeout-minutes: 6
@@ -50,7 +50,7 @@ jobs:
           assert 'www.boatrace.jp' not in live
           assert 'workflow_dispatch:' not in text.split('permissions:',1)[0]
           assert 'gh workflow run' not in live
-          assert 'p1_saved_expected_slots' not in text.split('  offline_contract:',1)[0]
+          assert 'p1_saved_expected_slots' not in text.split('  unit:',1)[0]
           print('BOAT_NATIONAL_P1_OWNER_SOURCE_FREE_CI_CONTRACT_PASSED')
           PY
 
