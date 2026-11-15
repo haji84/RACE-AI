@@ -5,6 +5,8 @@ reset GET counters, or treat a prepared round/source wait as a clean handoff.
 """
 import tempfile
 import unittest
+import os
+from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -71,6 +73,38 @@ class MidnightWorkerHandoffTests(unittest.TestCase):
         self.assertTrue(cycle.prepare(successor, 1, now=MIDNIGHT)['active'])
         cycle.SourceGuard(successor, clock=lambda: MIDNIGHT).charge('forecast')
         self.assertEqual(cycle.load(successor)['lifetime_requests'], 703)
+
+    def test_expired_physical_deadline_uses_actual_jst_day_without_extra_work(self):
+        from scripts import github_existing_cycle as owner
+        from scripts import boat_prospective_forward as forward
+
+        for now, expected in ((START + timedelta(minutes=6), 'WORKER_HANDOFF'),
+                              (MIDNIGHT, 'DAY_HANDOFF')):
+            with self.subTest(now=now), tempfile.TemporaryDirectory() as root_dir:
+                root = Path(root_dir)
+                session = root / 'cycle_recovery_output' / 'repeat-session.json'
+                output = root / 'github-output.txt'
+                cycle.start(session, day=DAY, run_id=71, now=START)
+                self.assertTrue(cycle.prepare(session, 1, now=START)['active'])
+                cycle.complete(session, 1, now=START + timedelta(seconds=10),
+                               forecast_artifact=71, result_artifact=72)
+
+                class FixedDatetime(datetime):
+                    @classmethod
+                    def now(cls, tz=None):
+                        return now.astimezone(tz) if tz is not None else now.replace(tzinfo=None)
+
+                env = {'RACE_AI_WORKER_HANDOFF_AT': (START + timedelta(minutes=5)).isoformat(),
+                       'GITHUB_OUTPUT': str(output)}
+                with patch.object(owner, 'ROOT', root), patch.object(owner, 'datetime', FixedDatetime), \
+                     patch.object(forward, 'active', return_value=False), patch.dict(os.environ, env):
+                    owner.repeat_prepare(DAY, 2)
+                after = cycle.load(session)
+                self.assertEqual(after['halted_reason'], expected)
+                self.assertEqual(after['completed_round'], 1)
+                self.assertEqual(after['requests_used'], 0)
+                self.assertEqual(after['receipts'][0]['forecast_artifact'], 71)
+                self.assertIn('reason=' + expected, output.read_text())
 
     def test_uncommitted_round_remains_a_hard_failure_after_midnight(self):
         cycle.start(self.path, day=DAY, run_id=2, now=START)
