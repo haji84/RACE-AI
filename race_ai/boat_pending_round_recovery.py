@@ -127,6 +127,74 @@ def verify_pending_round(get, run, control, *, now):
                 original_artifact_ids=[v['metadata']['id'] for v in selected],
                 replayed_p1_rows=len(rows), new_forecasts=0, official_source_requests=0)
 
+IDLE_SCHEMA = 'RACE_AI_NO_PENDING_FAILED_OWNER_V1'
+
+
+def verify_no_pending_failed_owner(get, run, control, *, now):
+    """Attest a failed pre-round P0 stage, without pretending a round was repaired.
+
+    Requires actual independently decrypted final-control readback by the caller,
+    a complete source-free replay of the first P0, zero due-day source requests
+    and absence of P1/RESULT artifacts. Anything uncertain remains hard HOLD.
+    No source GET, forecast regeneration, archive write or counter adjustment.
+    """
+    from .cycle_recovery import artifact_pages
+    need(type(now) is type(ts(run['created_at'])) and now.utcoffset() is not None
+         and type(run) is dict and type(control) is dict,
+         'IDLE_INPUT_INVALID')
+    need(authenticated_live_owner_run(run) and run.get('head_branch')==OWNER_BRANCH
+         and run.get('event')=='workflow_dispatch' and
+         run.get('status')=='completed' and run.get('conclusion')=='failure'
+         and run.get('run_attempt',1)==1,
+         'IDLE_OWNER_RUN_INVALID')
+    ident=run.get('id')
+    need(type(ident) is int and ident>0 and control.get('previous_run_id')==ident and
+         control.get('day_jst')==now.astimezone(JST).date().isoformat(),
+         'IDLE_OWNER_SCOPE_INVALID')
+    names=('completed_round','previous_session_requests','lifetime_requests',
+           'lifetime_completed_rounds','day_start_lifetime_requests')
+    need(all(type(control.get(k)) is int and control[k]>=0 for k in names)
+         and control.get('prepared_round') is None
+         and control['completed_round']==0 and control['previous_session_requests']==0
+         and control['lifetime_requests']==control['day_start_lifetime_requests']
+         and control.get('source_wait') is None
+         and control.get('previous_halted_reason') is None
+         and control.get('previous_stop_reason') is None,
+         'IDLE_CONTROL_OR_SOURCE_HOLD')
+    start,end=ts(run['created_at']),ts(run['updated_at'])
+    need(start<=end<=now,'IDLE_RUN_CLOCK_INVALID')
+    for k in ('receipt','source_control_receipt'):
+        receipt=control.get(k)
+        need(type(receipt) is dict and type(receipt.get('id')) is int
+             and receipt['id']>0 and
+             re.fullmatch('sha256:[a-f0-9]{64}',str(receipt.get('digest')))
+             and start<=ts(receipt['created_at'])<=end,
+             'IDLE_CHECKPOINT_RECEIPT_INVALID')
+    listing=artifact_pages(get,ident)
+    need(type(listing) is list and 2<=len(listing)<=128
+         and all(type(a) is dict and type(a.get('name')) is str
+                 and type(a.get('id')) is int and a['id']>0
+                 for a in listing),
+         'IDLE_ARTIFACT_LISTING_INVALID')
+    names=[a['name'] for a in listing]
+    for kind in ('race-cycle-continuity','race-source-control'):
+        need(names.count(kind+'-'+str(ident))==1,'IDLE_CHECKPOINT_INVENTORY_INVALID')
+    need(len(set(names))==len(names),'IDLE_DUPLICATE_ARTIFACT')
+    forbidden=re.compile(r'(?:race-existing-cycle|boat-national-cutoff)-'+str(ident)+
+                         r'(?:-cycle-[0-9]+)?\\Z')
+    need(not any(forbidden.fullmatch(name) for name in names),
+         'IDLE_P1_OR_RESULT_ARTIFACT_PRESENT')
+    evidence=dict(schema=IDLE_SCHEMA, previous_run_id=ident, round_no=None,
+                  verified_at=now.isoformat(), original_control_receipt=deepcopy(control['receipt']),
+                  source_attempts=0, no_p1_or_result_artifacts_verified=True,
+                  no_future_forecast_generated=True, originals_rewritten=False)
+    repaired=deepcopy(control)
+    repaired['recovery']=evidence
+    return dict(schema=IDLE_SCHEMA,control=repaired,originals=[],
+                original_artifact_ids=[],replayed_p1_rows=0,
+                new_forecasts=0,official_source_requests=0)
+
+
 from scripts.boat_failed_recovery_contract import (PROOF_SCHEMA, history_digest, verify_dispatch_proof)
 
 
