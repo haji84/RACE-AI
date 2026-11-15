@@ -250,6 +250,47 @@ class ZeroRoundFailedOwnerTests(RecoveryCase):
         self.assertEqual(self.control,before)
         self.assertEqual({k:v for k,v in checked['control'].items() if k!='recovery'}, before)
 
+    def test_zero_round_keeps_requests_from_an_earlier_same_day_owner(self):
+        # Operational counters from owner43683174565 and its successful
+        # predecessor43661420983; archive identities/dates remain synthetic.
+        self.control.update(lifetime_requests=11524,
+                            day_start_lifetime_requests=11072,
+                            lifetime_completed_rounds=608)
+        before=deepcopy(self.control)
+        try:
+            checked=self.verify()
+        except ValueError as error:
+            self.fail('Zero-request successor rejected inherited daily usage: '+str(error))
+        self.assertEqual(self.control,before)
+        self.assertEqual({k:v for k,v in checked['control'].items() if k!='recovery'},before)
+        self.assertEqual(checked['official_source_requests'],0)
+        self.assertEqual(checked['new_forecasts'],0)
+
+    def test_dispatch_proof_preserves_prior_daily_usage_without_reset(self):
+        self.control.update(lifetime_requests=11524,
+                            day_start_lifetime_requests=11072,
+                            lifetime_completed_rounds=608)
+        fixed=deepcopy(self.control)
+        fixed['recovery']=dict(schema=recovery.IDLE_SCHEMA,previous_run_id=99,
+            round_no=None,verified_at=NOW.isoformat(),
+            original_control_receipt=deepcopy(self.control['receipt']),
+            source_attempts=0,no_p1_or_result_artifacts_verified=True,
+            no_future_forecast_generated=True,originals_rewritten=False)
+        proof=dict(schema=recovery.PROOF_SCHEMA,head_sha=HEAD,day_jst=DAY,
+            verified_at=NOW.isoformat(),history_sha256=recovery.history_digest([self.run_meta]),
+            latest_control=deepcopy(fixed),repairs=[dict(run_id=99,
+                original_control=deepcopy(self.control),control=fixed,
+                vault_commit=None,original_artifact_ids=[])])
+        accepted=recovery.verify_dispatch_proof(proof,[self.run_meta],self.control,HEAD,NOW)
+        self.assertIsNotNone(accepted,'Valid prior daily usage must not invalidate zero-round proof')
+        self.assertEqual(accepted['lifetime_requests'],11524)
+        self.assertEqual(accepted['day_start_lifetime_requests'],11072)
+        tampered=deepcopy(proof)
+        for entry in (tampered['latest_control'],tampered['repairs'][0]['control']):
+            entry['lifetime_requests']=11072
+        self.assertIsNone(recovery.verify_dispatch_proof(
+            tampered,[self.run_meta],self.control,HEAD,NOW))
+
     def test_any_released_round_result_or_p1_original_prevents_idle_certification(self):
         key='actions/runs/99/artifacts?per_page=100'
         original=json.loads(self.responses[key])
@@ -266,7 +307,8 @@ class ZeroRoundFailedOwnerTests(RecoveryCase):
 
     def test_source_usage_halt_uncertain_or_nonzero_round_still_hard_holds(self):
         changes=[dict(previous_session_requests=1),
-                 dict(lifetime_requests=89),
+                 dict(lifetime_requests=87),
+                 dict(day_start_lifetime_requests=89),
                  dict(day_start_lifetime_requests=None),
                  dict(source_wait=dict(state='SOURCE_REVIEW_WAIT')),
                  dict(previous_halted_reason='HTTP_RATE_LIMIT'),

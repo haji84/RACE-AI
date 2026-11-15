@@ -134,7 +134,7 @@ def verify_no_pending_failed_owner(get, run, control, *, now):
     """Attest a failed pre-round P0 stage, without pretending a round was repaired.
 
     Requires actual independently decrypted final-control readback by the caller,
-    a complete source-free replay of the first P0, zero due-day source requests
+    a complete source-free replay of the first P0, zero failed-session requests
     and absence of P1/RESULT artifacts. Anything uncertain remains hard HOLD.
     No source GET, forecast regeneration, archive write or counter adjustment.
     """
@@ -156,7 +156,9 @@ def verify_no_pending_failed_owner(get, run, control, *, now):
     need(all(type(control.get(k)) is int and control[k]>=0 for k in names)
          and control.get('prepared_round') is None
          and control['completed_round']==0 and control['previous_session_requests']==0
-         and control['lifetime_requests']==control['day_start_lifetime_requests']
+         # Earlier owners can have spent requests on this same day. Only
+         # this failed session must be source-free; retain the inherited total.
+         and control['day_start_lifetime_requests']<=control['lifetime_requests']
          and control.get('source_wait') is None
          and control.get('previous_halted_reason') is None
          and control.get('previous_stop_reason') is None,

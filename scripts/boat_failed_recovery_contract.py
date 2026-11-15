@@ -85,7 +85,7 @@ def verify_dispatch_proof(proof, runs, fresh_control, expected_head, now):
                 need(all(type(original.get(k)) is int and original[k]>=0 for k in names)
                      and original['completed_round']==0
                      and original['previous_session_requests']==0
-                     and original['lifetime_requests']==original['day_start_lifetime_requests']
+                     and original['day_start_lifetime_requests']<=original['lifetime_requests']
                      and original.get('source_wait') is None
                      and original.get('previous_halted_reason') is None
                      and original.get('previous_stop_reason') is None, 'PROOF_IDLE_SOURCE_UNVERIFIED')
