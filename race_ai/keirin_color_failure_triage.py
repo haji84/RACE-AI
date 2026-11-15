@@ -60,6 +60,47 @@ def _bounds(candidate):
     return px,py,pw,ph
 
 
+def _post_morph_mechanism(strict_mask, bbox):
+    """Investigate the 95+ raw pixel but B-no-match subgroup, not people.
+
+    Apply the EXACT conservative B morphology and track-strip ROI. Diagnose
+    whether strict-color raw pixels break into components below B's minimum
+    area, have no overlapping component, or remain big but fail geometry or
+    spatial assignment. Intersection uses bounding boxes as a research proxy,
+    never a verified segmentation mask for a real rider.
+    """
+    import cv2
+    import numpy as np
+
+    x,y,w,h=bbox
+    mask=np.uint8(strict_mask)*255
+    mask[:ROI_Y[0],:]=0
+    mask[ROI_Y[1]:,:]=0
+    kernel=cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
+    mask=cv2.morphologyEx(mask,cv2.MORPH_OPEN,kernel)
+    mask=cv2.morphologyEx(mask,cv2.MORPH_CLOSE,kernel)
+    count,_,stats,_=cv2.connectedComponentsWithStats(
+        mask,8,cv2.CV_32S)
+    intersections=[]
+    for q in range(1,count):
+        a,b,c,d,area=[int(z) for z in stats[q]]
+        iw=max(0,min(x+w,a+c)-max(x,a))
+        ih=max(0,min(y+h,b+d)-max(y,b))
+        if iw*ih>0:
+            intersections.append((a,b,c,d,area))
+    if not intersections:
+        return "NO_POST_MORPH_COMPONENT_OVERLAPS_A"
+    if all(z[4]<95 for z in intersections):
+        return "POST_MORPH_EACH_OVERLAPPING_COMPONENT_BELOW_95"
+    eligible=any(
+        95<=area<=2500 and 6<=cw<=80 and
+        6<=ch<=50 and cw/ch<=8
+        for _,_,cw,ch,area in intersections)
+    if not eligible:
+        return "POST_MORPH_COMPONENT_GEOMETRY_REJECTED"
+    return "POST_MORPH_COMPONENT_EXISTS_BUT_NO_A_B_SPATIAL_PAIR"
+
+
 def diagnose_frame(bgr, frozen_a, *, expected_sha256, second):
     """Research tier counts of frozen colour proposals against stricter B.
 
@@ -107,6 +148,7 @@ def diagnose_frame(bgr, frozen_a, *, expected_sha256, second):
     h,s,v=cv2.split(hsv)
     masks={color:_mask_strict(h,s,v,color) for color in SUPPORTED}
     cause=Counter();per_color=Counter()
+    post_morph=Counter()
     wide=upper=0
     for i,(x,y,w,ht) in enumerate(boxes):
         if i in assigned_a:continue
@@ -123,6 +165,11 @@ def diagnose_frame(bgr, frozen_a, *, expected_sha256, second):
             cause["STRICT_PIXEL_COUNT_BELOW_95_COMPONENT_MIN"]+=1
         else:
             cause["STRICT_PIXELS_95_PLUS_BUT_NO_SPATIAL_PAIR"]+=1
+            post_morph[_post_morph_mechanism(
+                masks[car],(x,y,w,ht))]+=1
+    need(sum(post_morph.values())==
+         cause["STRICT_PIXELS_95_PLUS_BUT_NO_SPATIAL_PAIR"],
+         "POST_MORPH_TRIAGE_SUBTOTAL_CHANGED")
     need(sum(cause.values())==len(frozen_a)-len(assigned_a),
          "TRIAGE_COUNTS_INCONSISTENT")
     return {
@@ -142,6 +189,7 @@ def diagnose_frame(bgr, frozen_a, *, expected_sha256, second):
                 "STRICT_PIXEL_COUNT_BELOW_95_COMPONENT_MIN",
                 "STRICT_PIXELS_95_PLUS_BUT_NO_SPATIAL_PAIR")
         },
+        "A_only_raw95_plus_post_morph_causes":dict(sorted(post_morph.items())),
         "A_only_by_color":{str(c):int(per_color[c]) for c in SUPPORTED},
         "A_only_wider_than_3x_height":wide,
         "A_only_y_below_top_240_pixels":upper,
@@ -174,10 +222,16 @@ def summarize_diagnosis(rows, *, race_id, expected_frame_count,
           expected_spatial_count,expected_color_count),
          "A_B_FROZEN_BASELINE_DRIFT_REJECTED")
     causes=Counter()
+    post_morph_causes=Counter()
     cars=Counter()
     for row in rows:
         causes.update(row["A_only_strict_pixel_categories"])
+        post_morph_causes.update(
+            row.get("A_only_raw95_plus_post_morph_causes",{}))
         cars.update(row["A_only_by_color"])
+    need(sum(post_morph_causes.values())==
+         causes["STRICT_PIXELS_95_PLUS_BUT_NO_SPATIAL_PAIR"],
+         "POST_MORPH_TRIAGE_SUBTOTAL_CHANGED")
     return {
         "schema":"RACE_AI_KEIRIN_COLOR_FAILURE_TRIAGE_AGGREGATE_V1",
         "race_id":race_id,
@@ -193,6 +247,8 @@ def summarize_diagnosis(rows, *, race_id, expected_frame_count,
         "B_only_without_spatial_pair":
             total("B_regions_no_spatial_partner"),
         "A_only_strict_pixel_categories":dict(sorted(causes.items())),
+        "A_only_raw95_plus_post_morph_causes":
+            dict(sorted(post_morph_causes.items())),
         "A_only_by_color":dict(sorted(cars.items())),
         "A_only_wider_than_3x_height":total("A_only_wider_than_3x_height"),
         "A_only_y_below_top_240_pixels":total(
