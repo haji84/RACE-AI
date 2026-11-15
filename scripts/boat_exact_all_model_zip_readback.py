@@ -57,7 +57,7 @@ def _identity(race_id,prediction):
 def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
           source_original_index):
     need(type(projection) is dict and type(projection.get('records')) is list)
-    outputs=[];unqualified=Counter();missing_from_view=0
+    outputs=[];unqualified=Counter();missing_from_view=0;reused_baseline=0
     saved=moment(physical_saved_at)
     for row in projection['records']:
         if row.get('sport')!='boat' or row.get('event_date_jst')!=day:continue
@@ -70,9 +70,16 @@ def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
         need(len(predictions)<=128)
         for p in predictions:
             if p is None or p.get('stage')!='P1':continue
-            need(type(p) is dict and p.get('artifact_id')==artifact_id and
-                 p.get('external_receipt_verified') is True and
-                 p.get('source_code_commit')==OWNER_SHA and
+            need(type(p) is dict and p.get('external_receipt_verified') is True and
+                 p.get('source_code_commit')==OWNER_SHA)
+            # The sealed ALL_MODEL packet can also reference exact baseline A/B
+            # P1 originals. Their independent source ZIP must be verified via
+            # its own P1 pathway; this ZIP authenticates only its new predictions.
+            if p.get('artifact_id')!=artifact_id:
+                need(p.get('dispatch_status')=='ORIGINAL_REUSED')
+                reused_baseline+=1
+                continue
+            need(p.get('dispatch_status')=='GENERATED_UNATTESTED' and
                  p.get('server_saved_at')==physical_saved_at and
                  type(p.get('original_json_sha256')) is str and
                  SHA.fullmatch(p['original_json_sha256']) is not None)
@@ -119,7 +126,7 @@ def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
             if not eligible:
                 unqualified['NOT_PHYSICALLY_PRE_CUTOFF']+=1
             outputs.append((rid,mid,eligible,matched))
-    return outputs,unqualified,missing_from_view
+    return outputs,unqualified,missing_from_view,reused_baseline
 
 
 def audit(*,get,repo,run_id,day,expected_models,original_view,now,
@@ -169,7 +176,7 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
                 source_index[_identity(row['race_id'],p)]+=1
     original_copy=Counter(source_index)
     physical_forecasts=0;matched=0;absent=0;eligible_slots=set()
-    duplicates=0;invalid=Counter();by_model=Counter();round_counts=[]
+    duplicates=0;invalid=Counter();by_model=Counter();round_counts=[];baseline_reuses=0
     all_archive_sha_verified=0;all_aes_authenticated=0
     for round_no,artifact_id,listed_item in targets:
         meta_raw=reader.read(f'actions/artifacts/{artifact_id}',128*1024)
@@ -184,7 +191,7 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
              receipt.get('artifact_id')==artifact_id and
              receipt.get('head_sha')==OWNER_SHA)
         all_archive_sha_verified+=1;all_aes_authenticated+=1
-        rows,holds,missing=_scan(projected,day=day,artifact_id=artifact_id,
+        rows,holds,missing,reused=_scan(projected,day=day,artifact_id=artifact_id,
                                 physical_saved_at=meta['created_at'],
                                 expected=expected,clock=now,
                                 source_original_index=source_index)
@@ -194,10 +201,10 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
                 slot=(rid,mid)
                 if slot in eligible_slots:duplicates+=1
                 else:eligible_slots.add(slot);by_model[mid]+=1
-        invalid.update(holds)
+        invalid.update(holds);baseline_reuses+=reused
         round_counts.append(dict(round=round_no,source_archive_zip_sha_verified=True,
                                  aes_decrypted_and_projected=True,
-                                 forecast_p1_rows=len(rows),
+                                 forecast_p1_rows=len(rows),reused_baseline_p1_rows=reused,
                                  physically_pre_cutoff=sum(row[2] for row in rows),
                                  saved_view_originals_matched=sum(row[3] for row in rows)))
     need(0<all_archive_sha_verified==all_aes_authenticated==len(targets))
@@ -213,6 +220,7 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         aes_originals_independently_decrypted=all_aes_authenticated,
         original_content_projection_verified=all_aes_authenticated,
         p1_forecast_rows_reopened=physical_forecasts,
+        referenced_existing_baseline_p1_rows_not_recounted=baseline_reuses,
         physical_pre_cutoff_distinct_model_slots=len(eligible_slots),
         original_predictions_matched_saved_AES_view=matched,
         original_predictions_missing_from_saved_AES_view=absent,
