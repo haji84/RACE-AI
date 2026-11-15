@@ -1,0 +1,86 @@
+{
+  "schema": "RACE_AI_KEIRIN_HISTORICAL_AUTO_COLOR_PROPOSAL_SINGLE_REVIEW_V1",
+  "evaluated_at_jst": "2026-11-15",
+  "source_type": "EXISTING_OWNER_PRIVATE_RSA_AESGCM_WEBM_AND_SAVED_SOURCE_BOUND_FRAMES",
+  "method": "OpenCV HSV mask palette from existing single-review code; binary opening/closing; bounded 1024x584 track strip; connected components; per-color spatial dedupe; manual centers only AFTER all predictions for evaluation",
+  "scope": "EXPLORATORY_RESEARCH_ONLY_NOT_BLIND_NOT_INDEPENDENT",
+  "source_frame_feature_sha256": "2387def01a044025b5c72963e3fd93f92087966569cf4aba403db63379646337",
+  "single_reviewer_private_reference_sha256": "27b9ea082d77a38f47b6eaa90223b53381d098177b6dd6d5c5530ab168c98c09",
+  "private_redacted_report_sha256": "d16a065ff5abe00266f5f247acef3a4517bb1d090385739850547bc752f641d6",
+  "public_private_key_or_frame_pixels_committed": false,
+  "automatic_detector_gets_manual_center_as_input": false,
+  "frame_crop_SHA256_checks": {
+    "matched": 153,
+    "expected": 153
+  },
+  "matching_reference": {
+    "frames": 3,
+    "reviewed_jersey_positions": 18,
+    "matching_radius_px": 40,
+    "independent_second_reviewer": false
+  },
+  "evaluated": {
+    "automatic_proposals_on_reviewed_frames": 28,
+    "spatial_matches_one_to_one": 12,
+    "spatial_and_color_matches_one_to_one": 12,
+    "labeled_jerseys_not_matched": 6,
+    "additional_unmatched_color_blobs": 16,
+    "additional_unmatched_blobs_independently_adjudicated_false_positive": false,
+    "single_review_spatial_agreement_pct": 66.667,
+    "single_review_joint_color_spatial_agreement_pct": 66.667,
+    "actual_digit_OCR_accuracy_pct": null,
+    "independently_verified_rider_detection_recall_pct": null,
+    "independently_verified_rider_id_accuracy_pct": null,
+    "independently_verified_position_accuracy_pct": null,
+    "independently_verified_line_accuracy_pct": null,
+    "real_verified_phase_count": 0,
+    "required_six_phase_slots": 18,
+    "phase_accuracy_pct": null
+  },
+  "data_rows": [
+    {
+      "race_id": "202611091201",
+      "video_sha256": "19fd939ada0ab2914f80ae99c29b9792ba7712affb2feb5ce6c28d5a87a676f1",
+      "source_frames_sha_matched": 54,
+      "all_frame_color_blobs": 478,
+      "blob_tracks_seen_two_plus_frames": 103,
+      "provisional_labels": 6,
+      "reviewed_frame_color_proposals": 7,
+      "spatial_matches": 4,
+      "joint_color_matches": 4
+    },
+    {
+      "race_id": "202611091202",
+      "video_sha256": "90b586e0edf46909c67da0d27d8646354b1533cced1b718fe987481757bdbd9e",
+      "source_frames_sha_matched": 49,
+      "all_frame_color_blobs": 688,
+      "blob_tracks_seen_two_plus_frames": 150,
+      "provisional_labels": 5,
+      "reviewed_frame_color_proposals": 14,
+      "spatial_matches": 3,
+      "joint_color_matches": 3
+    },
+    {
+      "race_id": "202611091203",
+      "video_sha256": "81f47547240428c631ef31b7bcaec42ee76f3a7f631b3005bfc768c83b3f32af",
+      "source_frames_sha_matched": 50,
+      "all_frame_color_blobs": 501,
+      "blob_tracks_seen_two_plus_frames": 104,
+      "provisional_labels": 7,
+      "reviewed_frame_color_proposals": 7,
+      "spatial_matches": 5,
+      "joint_color_matches": 5
+    }
+  ],
+  "absolute_limits": [
+    "18 provisional positions were inspected previously on the same recordings; this is not a blinded unused-race evaluation",
+    "White/black and uncalibrated pink/purple jersey colors are intentionally not auto-assigned due to false positives; missing categories are not model failures",
+    "Color components and tracks are NOT proven people or race numbers; many track-surface / reflections / overlay candidates remain",
+    "Only 3 manually reviewed snapshots have rider number reference; no independently annotated frame-by-frame object bounding-box ground truth and no 2nd reviewer",
+    "Unmatched proposals cannot be treated as false positives because one scene has incomplete manual annotations",
+    "Actual scene stage identity, exact live lane ranks, line relations and attack outcomes have no independently verified labels",
+    "No real complete-six-phase scoring or model learning was performed, and existing PR71 formal prediction remains unchanged"
+  ],
+  "main_merged": false,
+  "formal_learning_eligible": false
+}
