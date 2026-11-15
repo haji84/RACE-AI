@@ -348,7 +348,7 @@ jobs:
           ref: '${{ github.event.pull_request.head.sha }}'
           persist-credentials: false
       - name: Test actual schedule-gap and bounded fresh-result admission
-        run: python -m unittest tests.test_boat_result_gap_audit tests.test_boat_result_gap_fresh_gate tests.test_boat_result_fresh_postflight -v
+        run: python -m unittest tests.test_boat_result_gap_audit tests.test_boat_result_gap_fresh_gate tests.test_boat_result_fresh_postflight tests.test_boat_result_live_pages_retry -v
       - name: Assert only the new guarded source step can use provider GET
         run: |
           python - <<'PY'
