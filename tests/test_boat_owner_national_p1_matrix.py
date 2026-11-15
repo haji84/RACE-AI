@@ -5,11 +5,13 @@ No source traffic, AES secrets, model inference, or private race identities.
 from copy import deepcopy
 import json
 import unittest
+from datetime import datetime,timezone
 
 from scripts.boat_owner_national_p1_matrix import calculate, saved_view_coverage
 
 IDS=['boat-A','boat-B','boat-C']
 DAY='2030-04-01'
+NOW=datetime(2030,4,2,tzinfo=timezone.utc)
 
 
 def fixture():
