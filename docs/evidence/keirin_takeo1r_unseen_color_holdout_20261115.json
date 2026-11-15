@@ -83,5 +83,20 @@
     "Only independently attested two-rater complete box labels can enable precision/recall/F1 in race_ai.keirin_blind_rider_holdout_gate",
     "No raw clips, image pixels, exact rider label positions or owner RSA secrets are committed"
   ],
-  "status": "REAL_HELDOUT_SOURCE_INTEGRITY_AND_EXPLORATORY_COLOR_PROPOSALS_ONLY_TWO_REVIEW_TRUTH_HOLD"
+  "status": "REAL_HELDOUT_SOURCE_INTEGRITY_AND_EXPLORATORY_COLOR_PROPOSALS_ONLY_TWO_REVIEW_TRUTH_HOLD",
+  "blind_review_packet_status": {
+    "original_frame_sha_verified_against_frozen_manifest": 45,
+    "reviewer_slots_generated": 2,
+    "source_frames_per_slot": 45,
+    "total_unauthenticated_private_review_images_generated": 90,
+    "prediction_boxes_hidden_from_review_templates": true,
+    "reviewer_slots_assigned": 0,
+    "independent_reviewers_completed": 0,
+    "reviewer_a_unfinished_template_sha256": "d2bb26c3a33d4282671d3c64eba324c725e47a4c218c0f9bad85882aaabb6930",
+    "reviewer_b_unfinished_template_sha256": "ee13575dc17a892db43ef33b69b79242c60f07a24164d74b396d7de680cf7d93",
+    "packet_store": "EPHEMERAL_OWNER_PRIVATE_ANALYSIS_ONLY_NOT_PERSISTED_IN_LIBRARY",
+    "future_regeneration": "REQUIRES_RESTORING_SAME_PRIVATE_CIPHER_ARCHIVE_AND_FROZEN_PROPOSALS_WITH_SHA",
+    "completed_independent_reference_sets": 0,
+    "private_review_images_or_keys_in_public_github": false
+  }
 }
