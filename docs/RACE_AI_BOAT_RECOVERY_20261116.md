@@ -98,3 +98,10 @@ main gate 74件、matrix/exact/failed-checkpointの独立package試験37件成�
 
 [main準備証拠](evidence/boat-main-zero-round-release-preparation-20261116.json)。
 CI本番producer skippedと本番未更新を、現在の未予想0件と取り違えない。
+
+
+main側のコードHEAD `80b3b81f7ddb8e79a7d6f751d621043022ae7fbe` で全12チェック成功。
+BOAT復旧gate69件（run43770742038）、独立原本37件（run43770742073）、
+mirror205/30件・結果31件・起動44件（run43770742201）が成功した。範囲は重複する。
+本番AES監査とproducer/dispatcherはPRではskippedで、本番再開成功には数えない。
+この後継の記録更新はdocsのみ。productionは5d1dabff、mainは96e0045ffのまま。

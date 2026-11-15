@@ -186,3 +186,10 @@ production/mainは未変更で、本人承認後にPR302統合の実HEADへmain�
 G1の別runner実鍵読戻し→新worker新P1、G2〜G8の未完条件は継続。
 [最新状況](RACE_AI_LATEST_STATUS.md)、[修正詳細・次工程](RACE_AI_BOAT_RECOVERY_20261116.md)、
 [機械可読証拠](evidence/boat-main-zero-round-release-preparation-20261116.json)を参照。
+
+
+main側のコードHEAD `80b3b81f7ddb8e79a7d6f751d621043022ae7fbe` で全12チェック成功。
+BOAT復旧gate69件（run43770742038）、独立原本37件（run43770742073）、
+mirror205/30件・結果31件・起動44件（run43770742201）が成功した。範囲は重複する。
+本番AES監査とproducer/dispatcherはPRではskippedで、本番再開成功には数えない。
+この後継の記録更新はdocsのみ。productionは5d1dabff、mainは96e0045ffのまま。

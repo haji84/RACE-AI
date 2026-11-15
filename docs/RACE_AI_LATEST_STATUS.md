@@ -15,6 +15,11 @@ BOAT最終引継ぎのG1を優先し、実障害の原本調査からコード�
 - 過去原本の再検証は実runのSHAと受領証・予想のsource SHAを厳密照合する。
   失敗runのAES checkpoint専用読取も既存監査jobに接続。main gate74件、
   独立したmatrix/exact/failed-AES37件のローカル試験成功。実鍵の監査はまだ未実行。
+- PR289コードHEAD `80b3b81f7ddb8e79a7d6f751d621043022ae7fbe` でもGitHub全12チェック成功。
+  [復旧gate69件](https://github.com/haji84/RACE-AI/actions/runs/43770742038)、
+  [独立原本読取37件](https://github.com/haji84/RACE-AI/actions/runs/43770742073)、
+  [既存mirror205/30件・結果31件・起動44件](https://github.com/haji84/RACE-AI/actions/runs/43770742201)が成功。
+  範囲は重複する。本番のAES・取得・dispatch jobはPR上でskipped。
 - 実障害と前workerの5 ZIPのGitHub SHA・サイズを再検証し、使用量11524/11072/0、
   巡回累積608を保全。歴史時刻での再現は現在のdispatch許可にはしない。
 

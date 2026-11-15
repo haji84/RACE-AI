@@ -81,7 +81,11 @@
     "GREEN-MAIN-FAILED-CHECKPOINT-AES.log": "c3f0884bd5ae11c6905763f5348cde985a47dd0dce7f5be4029a9f6eb86f9588",
     "CI-PR302-0db526-owner.log": "72b19bf62d033ace861f5cf26bbc361403ce59706a332ca25fdb3f59e84a1375",
     "CI-PR302-0db526-recovery.log": "430e27ec2890d330cb8b5762b943bb32ade7da007eccf1af50a8246fd53db196",
-    "CI-PR302-0db526-vault.log": "e684c36fba6b839358a8f508fbff6a978bdba76c912e2dda79a3276e1acc3ca6"
+    "CI-PR302-0db526-vault.log": "e684c36fba6b839358a8f508fbff6a978bdba76c912e2dda79a3276e1acc3ca6",
+    "CI-PR289-80b3b81-gate.log": "615b1bcc582e7cb1950c476e5c2cf8c8d8e608222349d7ce19daf365fcc1234d",
+    "CI-PR289-80b3b81-readback.log": "90de7fdee49053bc82c0aec3ece939c0b2c9fd5eb1d9fc7086752b6829fce1c9",
+    "CI-PR289-80b3b81-mirror-and-result.log": "b452bcd886cb1feadb2df40d9b1e0753380ac52a0129d91effda5e6e667cfc71",
+    "GITHUB-DOC-READBACK-FROZEN.json": "d933982f3b68a7f01e81754a8a42ae5249bcb2fbe087a194901543b6afe7a883"
   },
   "production_candidate": "0db526870a509cd6e68c44e693ed3e73d3b0e50f",
   "main_candidate_base": "96e0045ffb3a8368c4f63cb955564bb4e6259c0e",
@@ -138,5 +142,37 @@
     "additional_rejection_cases": 30,
     "findings": 0,
     "real_AES_or_live_release_not_proven": true
+  },
+  "main_code_validation_head": "80b3b81f7ddb8e79a7d6f751d621043022ae7fbe",
+  "main_exact_head_CI": [
+    {
+      "run_id": 43770742038,
+      "conclusion": "success",
+      "scopes": [
+        69
+      ]
+    },
+    {
+      "run_id": 43770742073,
+      "conclusion": "success",
+      "scopes": [
+        37
+      ]
+    },
+    {
+      "run_id": 43770742201,
+      "conclusion": "success",
+      "scopes": [
+        205,
+        30,
+        31,
+        44
+      ]
+    }
+  ],
+  "main_all_checks_at_code_head": {
+    "successful": 12,
+    "failed": 0,
+    "pending": 0
   }
 }
