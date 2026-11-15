@@ -433,7 +433,7 @@ def make_pair(day,race,*,research_target=None):
         paused=collect_entry_history(context,day,paused=paused)
         return dict(race_id=race_id,state='PROGRAM_STATS_UNSUPPORTED_CONTEXT_ONLY',
                     program_sha256=program_sha,exhibition_sha256=preview_sha,source_wait=paused),None,None,None,None
-    if program["race_id"]!=race_id or program["closed_at"]!=race["cutoff_at"]:
+    if program["race_id"]!=race_id:
         return {"race_id":race_id,"state":"OFFICIAL_PROGRAM_OR_WITHDRAWAL_CONFLICT"},None,None,None,None
     active=[r for r in program['boats'] if r['entry_status']=='listed']
     if program.get('race_status','LISTED')!='LISTED' or not 3<=len(active)<=6:
@@ -455,6 +455,22 @@ def make_pair(day,race,*,research_target=None):
         return dict(race_id=race_id,state='HOLD_RESEARCH_TARGET_CAPTURE_CLOCK_MISMATCH'),None,None,None,None
     if target is not None and preview_at+source_margin>=cutoff:
         return dict(race_id=race_id,state='TOO_LATE_AFTER_SOURCE'),None,None,None,None
+    # A source-bound official date/race-specific recheck can be earlier/later
+    # than the first venue/day closing grid. Do not simply reject a changed
+    # schedule, but NEVER infer it from a delayed start or a result.
+    from race_ai.boat_live_cutoff_revision import resolve_cutoff
+    choice=resolve_cutoff(race,program,result,now=_clock(day).isoformat(),
+                          margin_seconds=int(source_margin.total_seconds()))
+    if choice['effective_cutoff_at'] is None:
+        return dict(race_id=race_id,state=choice['status'],
+                    proposed_cutoff_at=choice['proposed_cutoff_at']),None,None,None,None
+    revision=choice['cutoff_revision']
+    if revision is not None:
+        race=dict(race,cutoff_at=choice['effective_cutoff_at'])
+        cutoff=datetime.fromisoformat(race['cutoff_at'])
+    def with_revision(status):
+        if revision is not None:status['cutoff_revision']=revision
+        return status
     roster=[dict(lane=r['lane'],registration_number=r['racer_registration_id']) for r in active]
     context=dict(schema='RACE_AI_BOAT_SUPPLEMENTAL_CONTEXT_V1',race_id=race_id,cutoff_at=race['cutoff_at'],
                  roster=roster,beforeinfo=result['context'],pitreport=None,entry_history=None,forecast_inputs_used=False)
@@ -462,15 +478,15 @@ def make_pair(day,race,*,research_target=None):
     if result.get("data") is None:
         comment_wait=collect_pitreport(context,day)
         comment_wait=collect_entry_history(context,day,paused=comment_wait)
-        return {"race_id":race_id,"state":"EXHIBITION_NOT_FULLY_PUBLISHED",
+        return with_revision({"race_id":race_id,"state":"EXHIBITION_NOT_FULLY_PUBLISHED",
                 "source_sha256":preview_sha,
-                "source_wait":comment_wait or _publication_wait(race,_clock(day))},None,None,None,None
+                "source_wait":comment_wait or _publication_wait(race,_clock(day))}),None,None,None,None
     six=sorted(result["data"]["boats"],key=lambda r:r["lane"])
     if len(six)!=len(active) or any(r["display_time"] is None for r in six):
         comment_wait=collect_pitreport(context,day)
         comment_wait=collect_entry_history(context,day,paused=comment_wait)
-        return {"race_id":race_id,"state":"EXHIBITION_TIME_INCOMPLETE",
-                "source_wait":comment_wait or _publication_wait(race,_clock(day))},None,None,None,None
+        return with_revision({"race_id":race_id,"state":"EXHIBITION_TIME_INCOMPLETE",
+                "source_wait":comment_wait or _publication_wait(race,_clock(day))}),None,None,None,None
     generated=observed_timestamp()
     retention=None
     if callable(MODEL_INPUT_SINK):
@@ -486,13 +502,13 @@ def make_pair(day,race,*,research_target=None):
         if _clock(day)+MIN_TO_CUTOFF>=cutoff:
             return dict(race_id=race_id,state='TOO_LATE_AFTER_SOURCE'),None,None,None,None
         ready=retention is not None and retention['state']=='SOURCE_INPUT_RETAINED'
-        return dict(race_id=race_id,state='SOURCE_READY_ADDITIONAL_MODELS' if ready else 'ADDITIONAL_MODEL_INPUT_REJECTED',
+        return with_revision(dict(race_id=race_id,state='SOURCE_READY_ADDITIONAL_MODELS' if ready else 'ADDITIONAL_MODEL_INPUT_REJECTED',
             program_sha256=program_sha,exhibition_sha256=preview_sha,generated_at=generated,
-            additional_model_input=retention or dict(state='INPUT_SINK_UNAVAILABLE')),None,None,None,None
+            additional_model_input=retention or dict(state='INPUT_SINK_UNAVAILABLE'))),None,None,None,None
     prepared=build_native_inputs(program,result,as_of=generated)
     if 'boat_ab' not in prepared['native_inputs']:
-        return dict(race_id=race_id,state='READY_MODEL_SPECIFIC_INPUTS',
-                    model_readiness=prepared['readiness']),None,None,None,None
+        return with_revision(dict(race_id=race_id,state='READY_MODEL_SPECIFIC_INPUTS',
+                    model_readiness=prepared['readiness'])),None,None,None,None
     motor={r['lane']:r.get('motor_top2_rate',r.get('motor_two_place_rate_percent')) for r in active}
     entrants={r["lane"]:r for r in active}
     boats=[]
@@ -600,7 +616,7 @@ def make_pair(day,race,*,research_target=None):
             "program_sha256":program_sha,"exhibition_sha256":preview_sha,
             "generated_at":generated,"source_wait":paused}
     if retention is not None:status['additional_model_input']=retention
-    return status,computed,extended,priced,observed
+    return with_revision(status),computed,extended,priced,observed
 
 
 def run(*, schedule_snapshot=None,research_target=None):
