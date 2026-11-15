@@ -86,9 +86,26 @@ class VaultCaptureRefreshTests(unittest.TestCase):
         self.raw,self.metadata=F.original()
         self.responses={'actions/artifacts/101':self.metadata,'actions/artifacts/101/zip':self.raw,
             'actions/runs/2':F.wire(dict(id=2,head_sha=F.HEAD,workflow_id=405276784,
-                head_branch='feat/four-sport-forecast-audit-view-20261022',
+                head_branch='feat/four-sport-forecast-audit-view-20261022',event='push',
                 repository=dict(id=1416489937,full_name='haji84/RACE-AI'),
                 head_repository=dict(id=1416489937,full_name='haji84/RACE-AI')))}
+
+    def test_missing_or_nonowner_event_stops_before_new_original_body_or_write(self):
+        import json
+        actual=json.loads(self.responses['actions/runs/2'])
+        for event in (None,'pull_request','schedule'):
+            with self.subTest(event=event):
+                invalid=dict(actual)
+                if event is None:invalid.pop('event')
+                else:invalid['event']=event
+                replies=dict(self.responses,**{'actions/runs/2':F.wire(invalid)})
+                calls=[];parent=self.f.writer.head()
+                def get(path):calls.append(path);return replies[path]
+                code,report=self.f.run_cli(['capture','--artifact','101','--expected-parent','current'],get=get)
+                self.assertEqual(code,2)
+                self.assertEqual(report['reason'],'VAULT_LIVE_WORKFLOW_IDENTITY_INVALID')
+                self.assertEqual(calls,['actions/artifacts/101','actions/runs/2'])
+                self.assertEqual(self.f.writer.head(),parent)
 
     def test_current_capture_refreshes_after_metadata_get_without_repeating_gets(self):
         calls=[];foreign=[]

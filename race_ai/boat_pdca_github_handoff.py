@@ -42,9 +42,18 @@ class GitStateRepository:
         need(result.returncode==1,'STATE_GIT_URL_REWRITES_REJECTED')
 
     def _run(self,args,*,body=None,env=None):
-        if args and args[0] in ('ls-remote','fetch','push'):self._reject_rewrites(env)
-        result=subprocess.run(['git',*args],cwd=self.repo,input=body,stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,timeout=180 if args and args[0]=='fetch' else 60,env=env)
+        # Vault commands prepend scoped -c options. Classify the actual Git
+        # subcommand, rather than accidentally treating a fetch as local I/O.
+        index=0
+        while index+1<len(args) and args[index]=='-c':index+=2
+        command=args[index] if index<len(args) else None
+        if command in ('ls-remote','fetch','push'):self._reject_rewrites(env)
+        try:
+            result=subprocess.run(['git',*args],cwd=self.repo,input=body,stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,timeout=180 if command=='fetch' else 60,env=env)
+        except subprocess.TimeoutExpired:
+            operation={'fetch':'FETCH','ls-remote':'REMOTE_LOOKUP','push':'PUSH'}.get(command,'OPERATION')
+            raise ValueError('STATE_GIT_'+operation+'_TIMEOUT') from None
         need(result.returncode==0,'STATE_GIT_OPERATION_FAILED');return result.stdout
 
     def _check_remote(self):

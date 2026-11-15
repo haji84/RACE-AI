@@ -156,8 +156,14 @@ class VaultGitRepository(GitStateRepository):
     def _run(self,args,*,body=None,env=None):
         if args and args[0] in ('ls-remote','fetch','push'):
             self._reject_rewrites(env)
-        return super()._run(['-c','remote.origin.promisor=true',
-            '-c','remote.origin.partialclonefilter=blob:none','-c','protocol.version=2',*args],body=body,env=env)
+        try:
+            return super()._run(['-c','remote.origin.promisor=true',
+                '-c','remote.origin.partialclonefilter=blob:none','-c','protocol.version=2',*args],body=body,env=env)
+        except ValueError as error:
+            if str(error) in {'STATE_GIT_FETCH_TIMEOUT','STATE_GIT_REMOTE_LOOKUP_TIMEOUT',
+                             'STATE_GIT_PUSH_TIMEOUT','STATE_GIT_OPERATION_TIMEOUT'}:
+                raise ValueError(str(error).replace('STATE_','VAULT_',1)) from None
+            raise
 
     def fetch(self,commit):
         _hex(commit,_HEAD)

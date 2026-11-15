@@ -35,7 +35,7 @@ def _counts(control):
          control['prepared_round'] == control['completed_round'] + 1, 'ROUND_ORDER_INVALID')
     total, base, used = (control[n] for n in ('lifetime_requests', 'day_start_lifetime_requests',
                                             'previous_session_requests'))
-    need(base <= total and used <= total-base <= 240 and
+    need(base <= total and used <= total-base and
          control['lifetime_completed_rounds'] >= control['completed_round'], 'BUDGET_INVALID')
     need(control.get('source_wait') is None and control.get('previous_halted_reason') is None
          and control.get('previous_stop_reason') is None, 'SOURCE_HOLD')

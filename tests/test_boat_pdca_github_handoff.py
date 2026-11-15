@@ -52,13 +52,37 @@ class GithubHandoffTests(unittest.TestCase):
 
     def test_large_pinned_fetch_has_a_bounded_longer_timeout_than_local_commands(self):
         from race_ai.boat_pdca_github_handoff import GitStateRepository
-        git=object.__new__(GitStateRepository);git.repo=Path('.')
-        with patch.object(git,'_reject_rewrites'),patch('race_ai.boat_pdca_github_handoff.subprocess.run',return_value=subprocess.CompletedProcess([],0,b'',b'')) as run:
-            git._run(['fetch','fixture'])
-            self.assertGreater(run.call_args.kwargs['timeout'],60)
-            self.assertLessEqual(run.call_args.kwargs['timeout'],180)
-            git._run(['rev-list','--all'])
-            self.assertLessEqual(run.call_args.kwargs['timeout'],60)
+        from race_ai.boat_private_original_vault import VaultGitRepository
+        for kind in (GitStateRepository,VaultGitRepository):
+            with self.subTest(transport=kind.__name__):
+                git=object.__new__(kind);git.repo=Path('.')
+                with patch.object(git,'_reject_rewrites'),patch('race_ai.boat_pdca_github_handoff.subprocess.run',return_value=subprocess.CompletedProcess([],0,b'',b'')) as run:
+                    git._run(['fetch','fixture'])
+                    self.assertGreater(run.call_args.kwargs['timeout'],60)
+                    self.assertLessEqual(run.call_args.kwargs['timeout'],180)
+                    git._run(['rev-list','--all'])
+                    self.assertLessEqual(run.call_args.kwargs['timeout'],60)
+
+    def test_git_timeout_reports_only_fixed_operation_without_secret_command_output(self):
+        from race_ai.boat_pdca_github_handoff import GitStateRepository
+        from race_ai.boat_private_original_vault import VaultGitRepository
+        for kind,prefix in ((GitStateRepository,'STATE'),(VaultGitRepository,'VAULT')):
+            git=object.__new__(kind);git.repo=Path('.')
+            for command,label in [('fetch','FETCH'),('ls-remote','REMOTE_LOOKUP'),
+                                  ('push','PUSH'),('show','OPERATION')]:
+                with self.subTest(transport=kind.__name__,command=command):
+                    failure=subprocess.TimeoutExpired(['git',command,'private-command-sentinel'],60,
+                        output=b'private-stdout-sentinel',stderr=b'private-stderr-sentinel')
+                    with patch.object(git,'_reject_rewrites'),patch(
+                            'race_ai.boat_pdca_github_handoff.subprocess.run',side_effect=failure):
+                        try:
+                            git._run([command,'private-command-sentinel'])
+                        except Exception as error:
+                            self.assertIs(type(error),ValueError)
+                            self.assertEqual(str(error),prefix+'_GIT_'+label+'_TIMEOUT')
+                            self.assertNotIn('sentinel',repr(error))
+                        else:
+                            self.fail('Timed-out Git operation was accepted')
 
     def test_cli_missing_key_reports_hold_and_unexpected_errors_do_not_echo_private_data(self):
         import io

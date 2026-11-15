@@ -36,13 +36,14 @@ def encrypted(raw, metadata, kind):
     return outer,meta
 
 
-def fixture():
+def fixture(*, requests_used=88, day_start_lifetime_requests=0):
+    lifetime_requests=day_start_lifetime_requests+requests_used
     p1_raw, p1_meta = deepcopy(_artifacts()[0][1])
     p1_meta.update(name='boat-national-cutoff-99-cycle-03', expires_at='2030-04-08T02:00:00Z')
     p1_raw, p1_meta = encrypted(p1_raw, p1_meta, 'P1')
-    session = dict(day_jst=DAY, run_id=99, requests_used=88, completed_round=2,
-                   prepared_round=3, lifetime_requests=88, lifetime_completed_rounds=2,
-                   day_start_lifetime_requests=0, source_wait=None, halted_reason=None)
+    session = dict(day_jst=DAY, run_id=99, requests_used=requests_used, completed_round=2,
+                   prepared_round=3, lifetime_requests=lifetime_requests, lifetime_completed_rounds=2,
+                   day_start_lifetime_requests=day_start_lifetime_requests, source_wait=None, halted_reason=None)
     report = dict(day_jst=DAY, run_id='99', code_sha=HEAD, round_no=3,
                   first_forecast_artifacts=[p1_meta], bounded_repeat_session=session,
                   result_observation_versions=0, updated_at='2030-04-01T02:30:00Z')
@@ -59,9 +60,9 @@ def fixture():
                created_at='2030-04-01T01:30:00Z', updated_at='2030-04-01T02:32:00Z',
                repository=dict(id=1416489937, full_name='haji84/RACE-AI'),
                head_repository=dict(id=1416489937, full_name='haji84/RACE-AI'))
-    control = dict(previous_run_id=99, day_jst=DAY, previous_session_requests=88,
-                   completed_round=2, prepared_round=3, lifetime_requests=88,
-                   lifetime_completed_rounds=2, day_start_lifetime_requests=0,
+    control = dict(previous_run_id=99, day_jst=DAY, previous_session_requests=requests_used,
+                   completed_round=2, prepared_round=3, lifetime_requests=lifetime_requests,
+                   lifetime_completed_rounds=2, day_start_lifetime_requests=day_start_lifetime_requests,
                    source_wait=None, previous_halted_reason=None, previous_stop_reason=None,
                    receipt=dict(id=702, digest='sha256:'+'b'*64, created_at='2030-04-01T02:31:00Z'),
                    source_control_receipt=dict(id=703, digest='sha256:'+'c'*64, created_at='2030-04-01T02:31:01Z'))
@@ -87,6 +88,20 @@ class RecoveryCase(unittest.TestCase):
 
 
 class PendingRoundRecoveryTests(RecoveryCase):
+    def test_pending_recovery_accepts_matching_sealed_usage_above_retired_daily_cap(self):
+        self.run_meta,self.control,self.responses=fixture(
+            requests_used=452,day_start_lifetime_requests=11072)
+        before=deepcopy((self.control,self.responses))
+        try:
+            checked=self.recover()
+        except ValueError as error:
+            self.fail('Authenticated unbounded source usage rejected by legacy cap: '+str(error))
+        self.assertEqual(checked['control']['previous_session_requests'],452)
+        self.assertEqual(checked['control']['lifetime_requests'],11524)
+        self.assertEqual(checked['control']['day_start_lifetime_requests'],11072)
+        self.assertEqual(checked['control']['completed_round'],3)
+        self.assertEqual((self.control,self.responses),before)
+
     def test_new_process_restores_round_without_changing_originals_or_inference(self):
         before = deepcopy((self.control, self.responses))
         with patch('urllib.request.urlopen', side_effect=AssertionError('provider access')):
