@@ -160,6 +160,18 @@ jobs:
           python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_variable.py" "$GITHUB_WORKSPACE/scripts/keirin_source_gap_plan.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_owner_inputs.py"
       - name: Do not claim synthetic results as live
         run: echo 'Synthetic model and AES tests are not actual real-race prediction evidence.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Export only public research detector code for independent local replay
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-public-frame-verifier-${{ github.sha }}
+          path: |
+            race_ai/keirin_visual_jersey_proposals.py
+            race_ai/keirin_historical_rider_color_eval.py
+            race_ai/keirin_blind_rider_holdout_gate.py
+            scripts/keirin_blind_video_review_packets.py
+          retention-days: 2
+          if-no-files-found: error
       - name: Main-only owner-approved real source connection without production secrets
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
