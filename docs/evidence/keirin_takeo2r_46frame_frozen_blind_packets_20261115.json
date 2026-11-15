@@ -97,5 +97,40 @@
     "Distinct independent source and model lineage readback. Disagreement/partial ground truth is HOLD, not 0/100 precision",
     "Only after real candidate-to-truth person and number track validation may later stage scoring be independently admitted"
   ],
-  "status": "SOURCE_AND_CANDIDATE_FROZEN_PRIVATE_ENVELOPES_CREATED_REVIEW_TRUTH_NOT_YET_ACQUIRED"
+  "status": "SOURCE_AND_CANDIDATE_FROZEN_PRIVATE_ENVELOPES_CREATED_REVIEW_TRUTH_NOT_YET_ACQUIRED",
+  "external_historical_roster_reference": {
+    "source_date_jst": "2026-11-09",
+    "race_no": 2,
+    "venue": "武雄",
+    "reported_starter_count": 7,
+    "number_to_name": {
+      "1": "天野純平",
+      "2": "市本隆司",
+      "3": "三ッ井武",
+      "4": "藤原俊太郎",
+      "5": "神尾敬冬",
+      "6": "金子周一郎",
+      "7": "徳吉広紀"
+    },
+    "independent_public_entry_page_urls": [
+      "https://keirin.kdreams.jp/takeo/racedetail/8420261109010002/?pageType=KS_RACE_CARD_PAGE_TYPE_SHOW_RESULT",
+      "https://www.keirin-mobile.jp/top/page.php?date=20261109&jcode=84&race=2",
+      "https://keirin.tokyo-sports.co.jp/list/race/20261108_30916"
+    ],
+    "organizer_first_party_source_not_independently_attested": true,
+    "actual_on_frame_person_car_mapping_verified": false,
+    "result_payout_not_used_to_derive_live_phase_truth": true,
+    "original_predicted_color_regions_not_recomputed_after_public_roster_lookup": true
+  },
+  "review_signatures": {
+    "implemented_source": "race_ai/keirin_signed_blind_review_gate.py",
+    "offline_private_signer": "scripts/keirin_sign_blind_review_private.py",
+    "expected_algorithm": "Ed25519 with two externally authenticated distinct signers, preissued unique per-packet SHA challenges",
+    "real_signer_A_registered": false,
+    "real_signer_B_registered": false,
+    "real_signed_review_receipts": 0,
+    "self_certified_reviewer_ids_never_authorize_metrics": true,
+    "duplicate_signing_key_rejected": true,
+    "formal_true_positive_false_positive_false_negative_measured": false
+  }
 }
