@@ -54,6 +54,23 @@ jobs:
           print('BOAT_NATIONAL_P1_OWNER_SOURCE_FREE_CI_CONTRACT_PASSED')
           PY
 
+      - name: Compile the independent ALL_MODEL AES reader and keep provider source outside
+        run: |
+          python - <<'PY_CONTRACT'
+          import ast,textwrap
+          from pathlib import Path
+          source=Path('.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
+          stage=source.split("python - <<'PY_ALL_MODEL'\n",1)[1].split("\n          PY_ALL_MODEL",1)[0]
+          ast.parse(textwrap.dedent(stage),filename='real_independent_all_model_gate')
+          assert "recover_saved_models(raw,gh,run_ids=(ident,),day=day,max_artifacts=128)" in stage
+          assert "RACE_AI_STATE_KEY" in source
+          assert "source_originals_modified=False" in stage
+          assert "provider_gets=0" in stage
+          assert "original_forecasts" not in stage.split("print(json.dumps(out",1)[1]
+          assert 'www.boatrace.jp' not in stage
+          print('BOAT_ALL_MODEL_READONLY_AUDIT_PATH_COMPILED')
+          PY_CONTRACT
+
   authenticated_original_matrix:
     name: Independently reopen sealed national P0/P1 original matrix
     if: >-
