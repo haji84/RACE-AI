@@ -148,6 +148,35 @@ class SealedViewCoverageTests(unittest.TestCase):
             saved_view_coverage(view,day=DAY,model_ids=['boat-A'],
                                 scheduled_races=1,now=NOW)
 
+
+    def test_missing_official_top_level_cutoff_is_counted_as_hold_not_a_fake_success(self):
+        view,_=self.example()
+        second=deepcopy(view['records'][0])
+        second['race_id']='20300401-01-02'
+        second['cutoff_at']=None
+        view['records'].append(second)
+        report=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],
+                                   scheduled_races=2,now=NOW)
+        self.assertEqual(report['saved_view_race_rows'],2)
+        self.assertEqual(report['p1_qualified_unique_slots'],1)
+        self.assertEqual(report['missing_p1_model_slots'],1)
+        self.assertEqual(report['excluded_reasons'],
+                         {'ROW_OFFICIAL_CUTOFF_MISSING_OR_INVALID':1})
+        self.assertNotIn('20300401-01-02',json.dumps(report))
+
+    def test_invalid_or_cross_day_cutoff_never_causes_provisional_readback_success(self):
+        for value,reason in ((42,'ROW_OFFICIAL_CUTOFF_MISSING_OR_INVALID'),
+                             ('not-a-timestamp','ROW_OFFICIAL_CUTOFF_MISSING_OR_INVALID'),
+                             ('2030-04-02T11:00:00+09:00','ROW_OFFICIAL_CUTOFF_OUTSIDE_DAY')):
+            with self.subTest(value=value):
+                view,_=self.example()
+                view['records'][0]['cutoff_at']=value
+                counts=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],
+                                           scheduled_races=1,now=NOW)
+                self.assertEqual(counts['p1_qualified_unique_slots'],0)
+                self.assertEqual(counts['missing_p1_model_slots'],1)
+                self.assertEqual(counts['excluded_reasons'][reason],1)
+
     def test_unknown_model_not_promoted_to_coverage(self):
         view,source=self.example()
         view['records'][0]['comparison_predictions'].append(dict(source,model_id='alien-X'))
