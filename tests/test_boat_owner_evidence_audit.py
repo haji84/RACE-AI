@@ -144,6 +144,18 @@ class PendingLinkTests(unittest.TestCase):
 
 
 class CurrentReleaseEvidenceWiringTests(unittest.TestCase):
+    def test_historical_sources_remain_readonly_and_exact_after_release_update(self):
+        from unittest.mock import patch
+        old='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
+        with patch.object(audit,'OWNER_SHA','e'*40):
+            self.assertTrue(audit._source_pinned(42,'e'*40))
+            self.assertTrue(audit._source_pinned(42,old))
+            self.assertTrue(audit._source_pinned(audit.HISTORIC_RUN,audit.HISTORIC_SHA))
+            for run,sha in ((42,audit.HISTORIC_SHA),(42,'f'*40),
+                            (42,None),(True,old),(0,old)):
+                with self.subTest(run=run,sha=sha):
+                    self.assertFalse(audit._source_pinned(run,sha))
+
     def test_owner_video_and_national_p1_evidence_is_bound_to_latest_release(self):
         from pathlib import Path
         from scripts.boat_main_dispatch_gate import RELEASE_SHA

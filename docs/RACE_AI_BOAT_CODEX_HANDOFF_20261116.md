@@ -168,3 +168,39 @@ Codexは以下をGitHubへ残す：
 ---
 
 **この文書の保存・PR作成それ自体は、production統合・本番予想の再開・全国全14モデル合格を意味しない。**
+
+## 10. 継続実装の更新（2026-11-16 JST）
+
+最新mainは `96e0045ffb3a8368c4f63cb955564bb4e6259c0e`。既存PR #302へ追加修正し、
+HEAD `0db526870a509cd6e68c44e693ed3e73d3b0e50f` のCI3系統が成功した。
+実障害のworker GET0と当日全体GET0を混同する拒否を修正し、実累積11524/基点11072を保全。
+巡回途中復旧の旧240件制限、VaultのGit設定引数によるfetch60秒誤判定も修正した。
+64秒の実保存失敗の内部操作は旧ログにないため、唯一の原因とは認定しない。
+
+既存PR #289は早朝起動を維持してmain最新を取り込み、zero-round proof消費器も同期。
+main gate74件、matrix/exact/failed-AES37件がローカル成功。
+過去原本のread-only検証は実runのSHAへ一致させ、既存監査jobに失敗checkpointのAES読取を追加。
+この監査は履歴を現在のdispatch許可へ変換しない。
+
+production/mainは未変更で、本人承認後にPR302統合の実HEADへmain固定SHAを再結合する。
+G1の別runner実鍵読戻し→新worker新P1、G2〜G8の未完条件は継続。
+[最新状況](RACE_AI_LATEST_STATUS.md)、[修正詳細・次工程](RACE_AI_BOAT_RECOVERY_20261116.md)、
+[機械可読証拠](evidence/boat-main-zero-round-release-preparation-20261116.json)を参照。
+
+
+main側のコードHEAD `80b3b81f7ddb8e79a7d6f751d621043022ae7fbe` で全12チェック成功。
+BOAT復旧gate69件（run43770742038）、独立原本37件（run43770742073）、
+mirror205/30件・結果31件・起動44件（run43770742201）が成功した。範囲は重複する。
+本番AES監査とproducer/dispatcherはPRではskippedで、本番再開成功には数えない。
+この後継の記録更新はdocsのみ。productionは5d1dabff、mainは96e0045ffのまま。
+
+
+## 承認後の本番統合（2026-11-16 JST）
+
+本人の「承認する」を受領し、PR #302を保護ルールの通常mergeで統合した。
+実production HEAD `84128e0ec8bd9fe3da64ad49f74b8511b07e72be` のtreeはレビュー済み0db526870と完全一致。
+PR #289のlive固定SHA22箇所をこの実HEADへ同期し、ローカル74/37件成功。
+既知の旧5d1dabffはread-only監査にのみ保持し、dispatcherの許可へ追加しない。
+mainの最終CI→通常merge→別runnerの実AES→真の新owner保存を続けて実行する。
+本書の以前の「承認待ち・production未変更」はその記録時点の履歴である。
+[承認後の正本証拠](evidence/boat-owner-approved-release-20261116.json)を参照。

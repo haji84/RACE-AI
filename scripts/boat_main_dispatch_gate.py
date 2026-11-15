@@ -18,7 +18,7 @@ SCHEMA = "RACE_AI_BOAT_MAIN_OWNER_DISPATCH_GATE_V1"
 REPO = "haji84/RACE-AI"
 WORKFLOW = "BOAT nationwide cutoff-ordered A/B research (no Vercel)"
 RELEASE_REF = "production/boat-p0-p1-20261111"
-RELEASE_SHA = "5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4"
+RELEASE_SHA = "84128e0ec8bd9fe3da64ad49f74b8511b07e72be"
 FIRST_FAILED_ID = 42993305843
 FIRST_FAILED_SHA = "5f5bd960e3377a87541f9d6b348d3c045ea51cf0"
 RELEASE_TOKEN = "RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1"
@@ -305,9 +305,16 @@ def decide(*, now: datetime, release: dict, owner_doc: dict, history: dict,
                         status = "READY_VERIFIED_SAME_DAY_CONTINUATION"
                     else:
                         status = "HOLD_ALREADY_DISPATCHED_FOR_JST_DAY"
-    # A delayed 23:57 JST schedule must not consume tomorrow's single-owner
-    # admission just after midnight. The first next-day window is 06:20.
-    if status.startswith("READY_") and now.astimezone(ZoneInfo("Asia/Tokyo")).hour < 6:
+    # A source-free 05:30+ JST warm-start can put the owner into its
+    # authenticated first-P0 wait before the first morning race. On 2026-11-14
+    # a 05:57 BOAT schedule was held and later runs did not start the owner
+    # until 10:28. GitHub cron timing remains uncontrolled; this change only
+    # prevents rejecting an already-delivered early same-day event.
+    # The old midnight guard, release SHA, single writer, source 403/429 and
+    # encrypted-original checks are unchanged.
+    local = now.astimezone(ZoneInfo("Asia/Tokyo"))
+    if status.startswith("READY_") and (local.hour < 5 or
+                                         local.hour == 5 and local.minute < 30):
         status = "HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW"
     return {
         "schema": SCHEMA,

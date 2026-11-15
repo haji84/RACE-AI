@@ -15,7 +15,9 @@ from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 import re
 
-OWNER_SHA='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
+OWNER_SHA='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
+# Read-only replay of already sealed originals. This is not a dispatcher pin.
+PREVIOUS_OWNER_SHA='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
 SCHEMA='RACE_AI_BOAT_EXACT_ALL_MODEL_ZIP_READBACK_V1'
 JST=timezone(timedelta(hours=9))
 SHA=re.compile(r'[a-f0-9]{64}\Z')
@@ -25,6 +27,11 @@ MODEL=re.compile(r'[A-Za-z0-9_.-]{1,128}\Z')
 
 def need(ok):
     if not ok:raise ValueError('BOAT_EXACT_ZIP_READBACK_REJECTED')
+
+
+def _owner_head(value):
+    need(type(value) is str and value in (OWNER_SHA,PREVIOUS_OWNER_SHA))
+    return value
 
 
 def moment(text):
@@ -69,6 +76,7 @@ def _official_cutoffs(get, repo, run, listing, reader, *, day, now, key):
     from race_ai.boat_private_original_vault import _artifact, REPO_ID
     from race_ai.frozen_day_cycle import read_p0
     from race_ai.boat_program_source import load_program_source
+    owner_head=_owner_head(run.get('head_sha'))
     first=[a for a in listing if a.get('name')==f"boat-p0-existing-{run['id']}"]
     need(len(first)==1)
     item=first[0]
@@ -76,11 +84,11 @@ def _official_cutoffs(get, repo, run, listing, reader, *, day, now, key):
     meta_raw=reader.read(f'actions/artifacts/{ident}',128*1024)
     meta=json.loads(meta_raw)
     raw=get(f'actions/artifacts/{ident}/zip')
-    _metadata(raw,meta,name=item['name'],run_id=run['id'],head_sha=OWNER_SHA)
+    _metadata(raw,meta,name=item['name'],run_id=run['id'],head_sha=owner_head)
     _artifact(raw,meta_raw,key=key,now=now,expected_kind='P0')
     doc,p0=read_p0(raw,meta,expected_day=day)
     receipt=dict(repository_id=REPO_ID,repository='haji84/RACE-AI',
-        run_id=str(run['id']),head_sha=OWNER_SHA,
+        run_id=str(run['id']),head_sha=owner_head,
         artifact_id=ident,created_at=meta['created_at'],
         payload_sha256=digest(doc),independently_verified=True)
     verified=load_program_source(day,doc,receipt,repo,key=key,as_of=now.isoformat())
@@ -100,7 +108,8 @@ def _official_cutoffs(get, repo, run, listing, reader, *, day, now, key):
 
 
 def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
-          source_original_index,official_cutoffs):
+          source_original_index,official_cutoffs,expected_owner_sha=None):
+    owner_head=_owner_head(OWNER_SHA if expected_owner_sha is None else expected_owner_sha)
     need(type(projection) is dict and type(projection.get('records')) is list and
          type(official_cutoffs) is dict and official_cutoffs)
     outputs=[];unqualified=Counter();missing_from_view=0;reused_baseline=0
@@ -119,7 +128,7 @@ def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
         for p in predictions:
             if p is None or p.get('stage')!='P1':continue
             need(type(p) is dict and p.get('external_receipt_verified') is True and
-                 p.get('source_code_commit')==OWNER_SHA)
+                 p.get('source_code_commit')==owner_head)
             # The sealed ALL_MODEL packet can also reference exact baseline A/B
             # P1 originals. Their independent source ZIP must be verified via
             # its own P1 pathway; this ZIP authenticates only its new predictions.
@@ -296,8 +305,8 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
     key=state_key('production',owner_key)
     reader=R._MetadataReader(get)
     run=R._run(reader.read(f'actions/runs/{run_id}',1024*1024),run_id,now)
-    need(run.get('head_sha')==OWNER_SHA and
-         run.get('head_branch')=='production/boat-p0-p1-20261111' and
+    owner_head=_owner_head(run.get('head_sha'))
+    need(run.get('head_branch')=='production/boat-p0-p1-20261111' and
          run.get('event')=='workflow_dispatch' and
          run.get('status')=='completed')
     day_from_run=moment(run['created_at']).astimezone(JST).date().isoformat()
@@ -339,13 +348,14 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         need(receipt.get('independently_verified') is True and
              receipt.get('created_at')==meta['created_at'] and
              receipt.get('artifact_id')==artifact_id and
-             receipt.get('head_sha')==OWNER_SHA)
+             receipt.get('head_sha')==owner_head)
         all_archive_sha_verified+=1;all_aes_authenticated+=1
         rows,holds,missing,reused=_scan(projected,day=day,artifact_id=artifact_id,
                                 physical_saved_at=meta['created_at'],
                                 expected=expected,clock=now,
                                 source_original_index=source_index,
-                                official_cutoffs=official_cutoffs)
+                                official_cutoffs=official_cutoffs,
+                                expected_owner_sha=owner_head)
         for rid,mid,eligible,equal,officially_valid in rows:
             physical_forecasts+=1;matched+=int(equal);absent+=int(not equal)
             slot=(rid,mid)
@@ -384,7 +394,7 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
     # predictions never become a successful user-visible completion claim.
     official_total=len(expected)*len(official_cutoffs)
     return dict(schema=SCHEMA,status='AES_ZIP_REPLAY_VERIFIED_P1_COVERAGE_INCOMPLETE',
-        day_jst=day,owner_run_id=run_id,owner_source_commit=OWNER_SHA,
+        day_jst=day,owner_run_id=run_id,owner_source_commit=owner_head,
         actual_listed_archives=len(targets),github_zip_sha256_independently_verified=all_archive_sha_verified,
         aes_originals_independently_decrypted=all_aes_authenticated,
         original_content_projection_verified=all_aes_authenticated,

@@ -45,12 +45,17 @@ class RecoveryAdmissionTests(unittest.TestCase):
             ('push','racer-intraday-refresh: stage-model-pdca','skipped',True),
         ):
             context={'github':NS(event_name=event,repository='haji84/RACE-AI',ref='refs/heads/main',
-                                 event=NS(head_commit=NS(message=message))),
+                                 event=NS(head_commit=NS(message=message),
+                                          schedule=('20 21 * * *' if event=='schedule' else None))),
                      'needs':NS(source_mirror=NS(result='skipped'),original_reconcile=NS(result=result)),
                      'cancelled':lambda:False,'contains':lambda a,b:b in a,
                      'startsWith':lambda a,b:a.startswith(b)}
             with self.subTest(event=event,result=result,message=message):
                 self.assertEqual(eval(expression,{'__builtins__':{}},context),expected)
+                if event == 'schedule':
+                    # 05:30 JST is owner-only; it cannot also run the result collector.
+                    context['github'].event.schedule = '30 20 * * *'
+                    self.assertFalse(eval(expression,{'__builtins__':{}},context))
 
     def test_failed_run_original_is_recoverable_without_new_source_permission(self):
         run, artifacts = evidence()

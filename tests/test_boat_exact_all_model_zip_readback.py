@@ -98,6 +98,25 @@ class SourceFreeExactZipTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.scan(row)
 
+    def test_historic_original_stays_bound_to_its_authenticated_run_head(self):
+        old='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
+        row=original();row['prediction']['source_code_commit']=old
+        with patch.object(exact,'OWNER_SHA','e'*40):
+            for expected in (old,'e'*40,'f'*40):
+                with self.subTest(expected=expected):
+                    index=Counter([exact._identity(row['race_id'],row['prediction'])])
+                    def read():
+                        return exact._scan(dict(records=[row]),day=DAY,artifact_id=101,
+                            physical_saved_at=CREATED,expected={'boat-model-A'},clock=NOW,
+                            source_original_index=index,
+                            official_cutoffs={row['race_id']:exact.moment(CUTOFF)},
+                            expected_owner_sha=expected)
+                    if expected==old:
+                        self.assertEqual(read()[0][0][2:],(True,True,True))
+                    else:
+                        with self.assertRaises(ValueError):read()
+        self.assertEqual(row['prediction']['source_code_commit'],old)
+
     def test_independent_official_cutoff_conflict_remains_hold(self):
         row=original()
         (seen,holds,missing,reused),_,_=self.scan(
@@ -197,13 +216,22 @@ class SourceFreeExactZipTests(unittest.TestCase):
             {'P1_VIEW_DIFFERS_FROM_BOTH_SOURCE_CUTOFFS':1})
 
     def test_exact_file_refetched_even_if_view_already_contains_the_same_original(self):
+        self.replay_fixture(exact.OWNER_SHA)
+
+    def test_historic_release_can_be_replayed_after_active_source_changes(self):
+        with patch.object(exact,'OWNER_SHA','e'*40):
+            self.replay_fixture('5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4')
+
+    def replay_fixture(self,owner_sha):
         from race_ai import boat_all_model_recovery as R
         from race_ai import cycle_recovery as C
-        run=dict(id=42,head_sha=exact.OWNER_SHA,
+        run=dict(id=42,head_sha=owner_sha,
                  head_branch='production/boat-p0-p1-20261111',
                  event='workflow_dispatch',status='completed',
                  created_at='2030-04-01T02:00:00Z')
         view=dict(records=[original()])
+        view['records'][0]['prediction']['source_code_commit']=owner_sha
+        before=deepcopy(view)
         calls=[]
         data={f'actions/runs/42':b'fictional-run',
               f'actions/artifacts/101':b'fictional-metadata',
@@ -222,7 +250,7 @@ class SourceFreeExactZipTests(unittest.TestCase):
             return projection,dict(contexts=1,generated_forecasts=1,
                                    reused_baseline_forecasts=0),dict(
               independently_verified=True,created_at=CREATED,artifact_id=101,
-              head_sha=exact.OWNER_SHA)
+              head_sha=owner_sha)
         with patch.object(R,'_run',return_value=run),\
              patch.object(R,'_listed',return_value=(101,1)),\
              patch.object(R,'_metadata',return_value=(fake_meta,False)),\
@@ -234,6 +262,7 @@ class SourceFreeExactZipTests(unittest.TestCase):
                                expected_models=['boat-model-A'],original_view=view,
                                now=NOW,owner_key=bytes(range(32)))
         self.assertEqual(report['actual_listed_archives'],1)
+        self.assertEqual(report['owner_source_commit'],owner_sha)
         self.assertEqual(report['github_zip_sha256_independently_verified'],1)
         self.assertEqual(report['aes_originals_independently_decrypted'],1)
         self.assertEqual(report['physical_pre_cutoff_distinct_model_slots'],1)
@@ -245,7 +274,20 @@ class SourceFreeExactZipTests(unittest.TestCase):
         self.assertEqual(report['racing_provider_gets'],0)
         self.assertNotIn('20300401-01-01',json.dumps(report))
         self.assertFalse(report['production_predictions_modified'])
-        self.assertEqual(view,dict(records=[original()]))
+        self.assertEqual(view,before)
+
+    def test_unknown_run_source_is_rejected_before_artifact_access(self):
+        from race_ai import boat_all_model_recovery as R
+        from race_ai import cycle_recovery as C
+        run=dict(id=42,head_sha='f'*40,
+            head_branch='production/boat-p0-p1-20261111',event='workflow_dispatch',
+            status='completed',created_at='2030-04-01T02:00:00Z')
+        with patch.object(R,'_run',return_value=run),patch.object(C,'artifact_pages') as listing:
+            with self.assertRaises(ValueError):
+                exact.audit(get=lambda _:b'fictional-run',repo='unused',run_id=42,day=DAY,
+                    expected_models=['boat-model-A'],original_view=dict(records=[original()]),
+                    now=NOW,owner_key=bytes(range(32)))
+        listing.assert_not_called()
 
 
 if __name__=='__main__':unittest.main()

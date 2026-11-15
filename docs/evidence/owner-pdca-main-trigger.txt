@@ -389,3 +389,16 @@ PR #209 のmain接続で既存のfirst-P0読戻しは元の2026-11-12 source run
 最後の1件について正しいレースDOM/登録番号/枠番/氏名が3画面幅で一致することを確認する。
 結果は last_profile_exact_browser_verified と last_profile_browser_views_checked の件数のみ報告。
 外部公式データGET=0、新規予想=0、元SHA不変。失敗はHOLD、個人識別値はPublicに出さない。
+
+
+2026-11-16 JST: the owner explicitly approved PR302 production integration,
+PR289 actual-SHA main integration, and real automatic forecast restart validation.
+Production84128e0ec8bd9fe3da64ad49f74b8511b07e72be exactly matches the
+reviewed0db526870 tree. Use the EXISTING trusted protected-main release push
+route with its original boat-owner-release: single-real-session-20261111 prefix.
+This is a new invocation of the existing route, not a historical timestamp or
+a new event type. Fresh source-owner/release/history/single-writer gates and
+the producer's authentic AES restoration remain mandatory. A failed, missing,
+expired, refused or mismatched original remains HOLD; no repeated blind dispatch.
+The existing completion-event path continues later workers. No new workflow,
+schedule, permissions, provider, model, fee, public plaintext or wager.

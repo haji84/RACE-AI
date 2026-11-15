@@ -178,7 +178,7 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now):
         cutoff_conflicts=conflicts,excluded_reasons=dict(sorted(excluded.items())),
         by_model=by_model,independently_authenticated_source_zip_claim=False,
         original_forecasts_changed=False,official_source_gets=0)
- 
+
 def _clock(text):
     from datetime import datetime
     if type(text) is not str:raise ValueError('BOAT_OWNER_NATIONAL_P1_MATRIX_CLOCK_INVALID')
