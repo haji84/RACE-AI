@@ -1,0 +1,41 @@
+{
+  "schema": "RACE_AI_KEIRIN_TAKEO2R_CAMERA_MOTION_QUALITY_REAL_CI_SOURCE_V1",
+  "as_of_jst": "2026-11-15",
+  "race_id": "202611098402",
+  "source_video_sha256": "4e389a46c223b7cb2eaa7c5c5bdc34ade229deedea8a3c795c8be987b57aa810",
+  "original_A_frozen_proposal_sha256": "b207ec30d3fb368b9d9e64b494aa8e9e3657aac388023226c798da8ba8a98bae",
+  "private_html_A_source_sha256": "4bfab49ce7c1beba6840fab40856aaaf9843afdff9077acd2fa723831ccc6469",
+  "GitHub_CI_artifact_id": 14154765365,
+  "GitHub_CI_run_id": 43695955725,
+  "source_code": [
+    "race_ai/keirin_camera_motion_quality.py",
+    "scripts/keirin_private_camera_motion_audit.py"
+  ],
+  "method": "Sparse Lucas-Kanade feature flow across adjacent 2-second source samples, cv2.estimateAffinePartial2D RANSAC, candidate background transform only if >=20 inliers and >=50% inlier ratio and scale 0.8..1.25; no athlete motion/identity labels",
+  "original_source_frames_SHA_verified": 46,
+  "adjacent_two_second_pairs_examined": 45,
+  "global_background_transform_quality_candidate_only": 16,
+  "not_qualified_background_transform": 29,
+  "hold_reasons": {
+    "insufficient_source_features": 1,
+    "insufficient_tracked_features": 1,
+    "low_RANSAC_inlier_global_flow": 27
+  },
+  "example_difficult_seconds": [
+    14,
+    32,
+    82
+  ],
+  "candidate_quality_must_not_be_treated_as_actual_person_track": true,
+  "camera_cut_events_independently_verified": false,
+  "actual_rider_detection_recall_pct": null,
+  "actual_rider_track_accuracy_pct": null,
+  "actual_car_number_OCR_accuracy_pct": null,
+  "actual_line_position_accuracy_pct": null,
+  "real_independent_human_ground_truth_count": 0,
+  "six_phase_score_updated": false,
+  "production_training_or_model_weights_modified": false,
+  "public_raw_frames_or_bbox_coordinates": false,
+  "local_redacted_report_sha256": "d5c50ee806fdde2f51599a85130b94c4940ab187ef6750f3ab7fd49049d38679",
+  "conclusion": "Global camera flow is unreliable for 29/45 adjacent source sample pairs by conservative research thresholds. Do not use simple same-color nearby pixels to establish same rider or tactical phases."
+}
