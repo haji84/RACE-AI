@@ -12,6 +12,7 @@ from hashlib import sha256
 from pathlib import Path
 import json
 import os
+import re
 
 from race_ai.keirin_historical_rider_color_eval import (
     HistoricalColorError, aggregate_historical_color_scores,
@@ -44,6 +45,8 @@ def run(*, decrypted_private_dir, saved_frame_features, manual_review):
             "race_id","source_sha256","starters","labels"},
             "PRIVATE_REVIEW_RACE_FIELDS")
         rid=case["race_id"]
+        need(type(rid) is str and re.fullmatch(r"\d{12}",rid),
+             "UNTRUSTED_RACE_PATH_REJECTED")
         need(rid in indexed and case["source_sha256"]==indexed[rid]["source_sha256"]
              and valid_sha(case["source_sha256"]),
              "SOURCE_SHA_OR_RACE_NOT_VERIFIED")
