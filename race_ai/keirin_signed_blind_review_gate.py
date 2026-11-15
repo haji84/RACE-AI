@@ -122,15 +122,24 @@ def verify_receipt(review,proposal,receipt,registry_entry):
 
 def verify_two_signed_independent_reviews(
         review_a,review_b,proposal,*,signed_a,signed_b,
-        trusted_registry):
+        trusted_registry,registry_attestor=None):
     """Callable implementation for the existing callback, not an approval.
 
     Requires two separately approved public keys and two private signatures.
-    Trust registry itself must be supplied through the owner-controlled
-    environment. This cannot prove what a human saw, which requires actual
-    source-frame verification by the separate video attestor.
+    A self-created JSON trust registry is NOT authority: an independently
+    trusted owner callback must verify actual reviewer-person assignments,
+    distinct independently controlled keys and pre-issued challenges.
+    This cannot itself prove what the reviewer saw.
     """
     checked_proposal(proposal)
+    need(callable(registry_attestor),
+         "INDEPENDENT_TRUST_REGISTRY_ATTESTOR_REQUIRED")
+    try:
+        trust_accepted=registry_attestor(trusted_registry,proposal) is True
+    except Exception:
+        trust_accepted=False
+    need(trust_accepted,
+         "REVIEWER_TRUST_REGISTRY_NOT_INDEPENDENTLY_ATTESTED")
     need(type(trusted_registry) is dict and
          set(trusted_registry)=={
              review_a.get("reviewer_id"),review_b.get("reviewer_id")} and
@@ -147,15 +156,17 @@ def verify_two_signed_independent_reviews(
 
 
 def make_trusted_callback(*,signed_a=None,signed_b=None,
-                          trusted_registry=None):
+                          trusted_registry=None,registry_attestor=None):
     """Existing scorer calls callback(a,b,p); missing inputs fail closed."""
     def verify(a,b,p):
-        if signed_a is None or signed_b is None or trusted_registry is None:
+        if (signed_a is None or signed_b is None or
+            trusted_registry is None or registry_attestor is None):
             return False
         try:
             return verify_two_signed_independent_reviews(
                 a,b,p,signed_a=signed_a,signed_b=signed_b,
-                trusted_registry=trusted_registry) is True
+                trusted_registry=trusted_registry,
+                registry_attestor=registry_attestor) is True
         except (IndependentSignerError,ValueError,TypeError,KeyError):
             return False
     return verify
