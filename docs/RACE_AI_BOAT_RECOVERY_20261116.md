@@ -1,7 +1,9 @@
 # BOAT停止復旧の修正とリリース引継ぎ（2026-11-16 JST）
 
 本書は `RACE_AI_BOAT_CODEX_HANDOFF_20261116.md` のG1を継続した記録。
-**コード検証済み、本番復旧は未実証。** PR #302/#289を使い、新規PRは作らない。
+**承認後にPR #302/#289を適用し、新P0/P1保存を実証。独立した新P1 AES・連続無人引継ぎ・画面受入は検証中。**
+最新の件数と失敗は [最新状況](RACE_AI_LATEST_STATUS.md) 冒頭と末尾の追記を参照。
+以下は障害調査開始時点の記録を保全する。新規PRは作らない。
 
 ## 再取得した正本
 
@@ -116,3 +118,14 @@ PR #289のlive固定SHA22箇所をこの実HEADへ同期し、ローカル74/37�
 mainの最終CI→通常merge→別runnerの実AES→真の新owner保存を続けて実行する。
 本書の以前の「承認待ち・production未変更」はその記録時点の履歴である。
 [承認後の正本証拠](evidence/boat-owner-approved-release-20261116.json)を参照。
+
+
+## 実運転再開と受入の更新
+
+PR302/289は本人承認後にproduction84128e0/mainEA8965へ統合済み。
+実障害のAES/counter独立読戻しはrun43772458812で合格。
+新owner43772481781が自動起動し、P0恒久保存とP1暗号ZIPの物理保存を確認した。
+新しい原本の全件数・締切・AESは、別runnerの完了イベント監査へ続ける。
+受入43778358422は結果更新が一部成功、画面は汎用BROWSER_CHECK_FAILEDで未合格。
+既存PR286でcollectorと読取版を同期し、実画面を再試験する。source84128は稼働を継続。
+[最新の件数・SHA・未完条件](evidence/boat-approved-restart-live-20261116.json)を参照。
