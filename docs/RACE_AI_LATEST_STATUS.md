@@ -18,6 +18,8 @@ productionはb491fb21ce58ba085dd8f54bb7326442b840d8f4。
 RESULT AESおよびreport読戻しが通り、第2巡も04:43:47Zに成功終了して第3巡以降へ自動で進んだ。原本は暗号化されたまま保持。
 新P1の別runnerによる独立AES全件監査、当日全1680slotの達成はまだ証明していない。
 新P1の件数・予想精度をZIPのサイズやjob成功だけから推定しない。
+新巡回RESULTのnested P1と元P1 ZIPのbyte一致の独立検証は未実行。
+
 **画面・結果の実再検証**：run43804655533/job133092532108が合格。
 選択した保存済み2日分で公式GET212、結果sync276レース、変更42件、confirmed194・held12・pending70、
 新しい結果観測35件。予想入力や原本は変更していない。Chromeで3つのスマホ/PC幅を操作し、
@@ -26,7 +28,6 @@ group/訪問/照合回数を固有モデル数・固有レース数へ換算し�
 P1通常モードで、指定P0原本の個別probeは未指定（expected_original_matched=false）。
 原本hash/Top8等の通常表示照合と、この未指定probeを混同しない。
 実機Safari、8参考画面すべての視覚比較、新P1の別runner AES全件監査は未確認。
-実ブラウザ再試験43804655533は実行中。既に43790076944のスマホ幅/PC幅Chromeは合格。
 詳細な実行/段階証拠はevidence/boat-orphan-p1-live-recovery-20261116.jsonと後続追記を参照。
 
 **未完成**：全日120レース×14モデルの1680slot充足、無人での次workerへの継続、
@@ -34,6 +35,8 @@ P1通常モードで、指定P0原本の個別probeは未指定（expected_origi
 既存の45slotと別ownerの27slotは重複範囲を解かず合算しない。
 実機Safariは実機接続が必要。新しいvendor/課金/PR/job/cron/モデル系統/投票は追加していない。
 ソースSHAの追加変更は実行中のproducerへ適用せず、旧PC monitorは停止状態を維持する。
+
+以下は各時点の履歴であり、現在の状態は先頭の追記を参照する。
 
 <!-- BOAT independent original readback 2026-11-16 -->
 ## 2026-11-16: 中断予想の別runner読戻し合格、後継起動は確認中
@@ -221,5 +224,3 @@ mainへ統合する必要がある。現在のPR289の候補SHAをそのままma
 
 [詳細・リリース順序](RACE_AI_BOAT_RECOVERY_20261116.md) /
 [件数・原本/テストSHA証拠](evidence/boat-main-zero-round-release-preparation-20261116.json)
-
-新巡回RESULTのnested P1と元P1 ZIPのbyte一致を独立検証したとは主張しない。

@@ -79,7 +79,7 @@ PR174では既存push対象owner-pdca-main-trigger.txtが変わらず、release 
 既存main push43803669261が実AES/原本保持を完了し、source b491fb21への既存gateが
 READY_VERIFIED_RECOVERED_OWNER_CONTINUATIONを返した。復旧で予想・RESULT・公式GETは生成せず、
 旧6/7と11812/11524/70/638を維持。後継43803973248が04:25:06Zに自動起動した。
-原本・待機clock・counterを保全し、引継ぎ後の最初の実P1と公式結果は確認中。
+復旧直後04:25の時点では、原本・待機clock・counterを保全し、後続の実P1/結果は確認中だった。
 
 後継43803973248は第1巡を04:41:02Zに正常終了し、第2巡へ自動進行。
 P1原本14197897453（04:38:08Z）と追加モデルP1 14198425877（04:38:29Z）の
