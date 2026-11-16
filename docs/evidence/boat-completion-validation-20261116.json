@@ -1,0 +1,113 @@
+{
+  "schema": "RACE_AI_BOAT_COMPLETION_PROGRESS_V1",
+  "recorded_at_utc": "2026-11-16T06:28:12.357559+00:00",
+  "snapshot": {
+    "main": "0c7d1b766a45c9921a88e2c01a47c80060cf9e6f",
+    "production": "b491fb21ce58ba085dd8f54bb7326442b840d8f4",
+    "source_candidate": "d08100d7c7385b0c0339aca34c671948b6250cb2",
+    "main_candidate": "f39b52f5a5b3bdb3250efcfc97c7f51d33e4519b",
+    "source_pr": 288,
+    "main_pr": 69
+  },
+  "live": {
+    "finished_owner_run_id": 43803973248,
+    "finished_rounds": 24,
+    "lifetime_requests": 12236,
+    "final_stop_reason": "WORKER_HANDOFF",
+    "automatic_schedule_run_id": 43812709551,
+    "automatic_successor_run_id": 43813602799,
+    "manual_gate_rerun_attempt_cancelled": true,
+    "producer_cancelled_by_development": false,
+    "new_owner_independent_AES_audit_complete": false
+  },
+  "coverage": {
+    "retained_schedule_races": 120,
+    "catalog_model_count": 14,
+    "nominal_p1_slots": 1680,
+    "full_day_all_model_proven": false,
+    "legacy_three_models_missing_native_generation_and_source_binding": true,
+    "future_generation_event_fix": "IN_PROGRESS",
+    "old_original_clock_backfilled": false,
+    "window_priority": "T_MINUS_15_TO_10"
+  },
+  "safari": {
+    "source_free_tests": 15,
+    "native_safari_run_observed": false,
+    "physical_iphone_verified": false,
+    "all_eight_reference_screens_visually_verified": false,
+    "workflow_jobs_added": 0,
+    "permissions_added": false,
+    "paid_runner_added": false
+  },
+  "video": {
+    "official_player_document_http_status": 200,
+    "official_playback_api_http_status": 403,
+    "official_playback_api_error": "この動画の視聴は許可されていません。",
+    "provider_rejection_condition": "UNCONFIRMED",
+    "official_new_video_bytes": 0,
+    "independent_six_boat_continuity_proven": false,
+    "physical_strength_validated": false,
+    "prospective_video_improvement_proven": false,
+    "existing_rgb_candidate_development_oracle_rows": 18,
+    "existing_rgb_candidate_development_oracle_matches": 9,
+    "existing_rgb_candidate_all_six_correct_frames": 0,
+    "reference_is_independent_human_ground_truth": false,
+    "existing_rgb_candidate_retrained": false,
+    "unrelated_official_youtube_ui_route": "ERR_TUNNEL_CONNECTION_FAILED"
+  },
+  "learning": {
+    "mode": "RETROSPECTIVE",
+    "actual_fit_invocations": 1,
+    "training_eligible_races": 133,
+    "solver_train_races": 100,
+    "internal_holdout_races": 33,
+    "evaluation_day": "20261106",
+    "evaluation_phase_counts": {
+      "P0": 72,
+      "P1": 84
+    },
+    "declared_evaluation_races": 156,
+    "evaluation_raw_count": 312,
+    "all_raw_sealed_at": "2026-11-16T05:28:35.756947+00:00",
+    "evaluation_labels_deserialized_at": "2026-11-16T05:30:38.032809+00:00",
+    "training_sha256": "8776c15757b0d66306ad4fd91f1e461b6eedd0901fb5f69ee773362ce560c95b",
+    "protocol_file_sha256": "4bb2b8e5711f1c7cdab7c89284e2c238d3dba7d68f4093be71000804380bab5b",
+    "raw_file_sha256": "09e4d6259c740dec6a9660818428e77140302414aca99970c50e6a5b534a57a9",
+    "prospective": false,
+    "production_promoted": false,
+    "accuracy_improvement_proven": false,
+    "comparisons": [
+      {
+        "model_id": "boat-observed-pairwise-factor-v1",
+        "normally_settled_paired_races": 127,
+        "baseline_hits": 32,
+        "candidate_hits": 34,
+        "candidate_only_wins": 3,
+        "baseline_only_losses": 1,
+        "holm_adjusted_p_two_families": 0.75
+      },
+      {
+        "model_id": "boat-observed-pairwise-start-v1",
+        "normally_settled_paired_races": 127,
+        "baseline_hits": 33,
+        "candidate_hits": 36,
+        "candidate_only_wins": 4,
+        "baseline_only_losses": 1,
+        "holm_adjusted_p_two_families": 0.75
+      }
+    ],
+    "excluded_from_normal_settlement_per_family": 29,
+    "accuracy_claim": "RETROSPECTIVE_EXPLORATORY_ONLY_NO_PROVEN_IMPROVEMENT_OR_98_PERCENT"
+  },
+  "constraints": {
+    "forecast_originals_modified": false,
+    "new_prs": 0,
+    "new_remote_branches": 0,
+    "new_workflows": 0,
+    "new_jobs": 0,
+    "model_families_added": 0,
+    "new_cron": 0,
+    "new_service": false,
+    "bets_placed": false
+  }
+}
