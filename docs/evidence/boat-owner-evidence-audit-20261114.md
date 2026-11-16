@@ -73,3 +73,24 @@ PR174では既存push対象owner-pdca-main-trigger.txtが変わらず、release 
 新event/trigger/job/cron/権限は追加しない。真正なmain pushで実AES復旧を検証し、
 後継workerの最初の使用量と新しい締切前P1保存を確認するまで再開成功にはしない。
 実checkpoint AES復旧、新worker、映像・全日coverage・実機Safari・精度改善は未確認。
+
+## 2026-11-16: 実orphan復旧と後継起動
+
+既存main push43803669261が実AES/原本保持を完了し、source b491fb21への既存gateが
+READY_VERIFIED_RECOVERED_OWNER_CONTINUATIONを返した。復旧で予想・RESULT・公式GETは生成せず、
+旧6/7と11812/11524/70/638を維持。後継43803973248が04:25:06Zに自動起動した。
+復旧直後04:25の時点では、原本・待機clock・counterを保全し、後続の実P1/結果は確認中だった。
+
+後継43803973248は第1巡を04:41:02Zに正常終了し、第2巡へ自動進行。
+P1原本14197897453（04:38:08Z）と追加モデルP1 14198425877（04:38:29Z）の
+実ZIPを外から再取得し、SHA/サイズ/run/head/暗号化memberの一致を確認した。
+producer内のAES/vaultとRESULT AES/report読戻しは必須stepを通過。
+この新P1の別runnerによる全件AES監査は未実行で、件数や全日充足を推定しない。
+
+新巡回RESULTのnested P1と元P1 ZIPのbyte一致を独立検証したとは主張しない。
+
+実画面再受入43804655533は04:45:17ZにChromeの3幅で合格。当日結果47件、P1表示21group、
+根拠3view、upcoming行訪問180、モデル切替の原本照合6回。group/訪問を固有数へ換算しない。
+公式GET212で保存済み2日分の結果sync276レース、changed42・confirmed194・held12・pending70、
+新観測35を記録。予想入力・原本を変更せず、private原本や鍵を公開していない。
+実機Safari、8画面の完全視覚比較、新P1別runner AESと全1680slot・映像・精度改善は未達。
