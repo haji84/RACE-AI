@@ -1,0 +1,131 @@
+{
+  "schema": "RACE_AI_BOAT_APPROVED_RESTART_LIVE_20261116_V1",
+  "observed_at": "2026-11-16T00:29:00.895342+00:00",
+  "owner_approval_received": true,
+  "production": {
+    "at": "2026-11-15T22:51:44.858780+00:00",
+    "pr": 302,
+    "merged": true,
+    "reviewed_head": "0db526870a509cd6e68c44e693ed3e73d3b0e50f",
+    "actual_production_head": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "reviewed_tree": "2fa75e7cef52f90a1c70dd0c8f647842cf6aae77",
+    "actual_tree": "2fa75e7cef52f90a1c70dd0c8f647842cf6aae77",
+    "tree_exactly_matches_reviewed_candidate": true
+  },
+  "main": {
+    "at": "2026-11-15T23:01:20.249226+00:00",
+    "pr": 289,
+    "merged": true,
+    "actual_main_head": "ea8965bd49955f5d1e204ca318cf9c542352f345",
+    "reviewed_head": "172fe18159949807a433fb0272734645f3ea333d",
+    "actual_tree": "0acbb8efb22f2a7958e4429e0f10acdc5956db1a",
+    "tree_matches_reviewed_head": true,
+    "expected_production": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "owner_approval_received": true
+  },
+  "historical_failed_owner_separate_runner_AES": {
+    "run": 43772458812,
+    "artifact": 14185455502,
+    "zip_sha256": "14dd31f2d6ec18c1b22f8b1ad270a8af75c913c843936bb3b2d27ee6cd739a6b",
+    "verified": true,
+    "counts": {
+      "aes_authenticated": true,
+      "audit_at": "2026-11-15T23:01:18.314562+00:00",
+      "continuity_artifact_id": 14149543103,
+      "continuity_zip_digest": "sha256:43af3b74965d19a709384a101cf76ba0d3498450328b4c91d373916ebb7ab663",
+      "day_jst": "2026-11-15",
+      "failed_session_requests": 0,
+      "inherited_same_day_requests": 452,
+      "lifetime_completed_rounds": 608,
+      "lifetime_requests": 11524,
+      "live_recovery_to_new_p1_proven": false,
+      "new_forecasts": 0,
+      "official_source_requests": 0,
+      "original_forecasts_changed": false,
+      "owner_head_sha": "5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4",
+      "owner_run_id": 43683174565,
+      "public_counters_match_AES": true,
+      "source_control_artifact_id": 14149712572,
+      "source_control_zip_digest": "sha256:0f6eb9c2d3e5e3a892802ed54b509463a1e89db9c855bb0d08660fa121347dfe",
+      "status": "FAILED_OWNER_CHECKPOINT_AES_VERIFIED_READONLY",
+      "successor_dispatch_allowed": false
+    }
+  },
+  "new_owner": {
+    "run_id": 43772481781,
+    "head": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "automatic_dispatch_run": 43772458763,
+    "additional_P0_permanent_retention_step_succeeded": true,
+    "first_P0_artifact": 14184883244,
+    "all_model_P0_artifact": 14185222651,
+    "first_native_P1": {
+      "artifact_id": 14185736161,
+      "name": "boat-national-cutoff-43772481781",
+      "created_at": "2026-11-15T23:20:46Z",
+      "zip_sha256": "2b17fc127f11e1c5ee9350c4660b3363b8880771b5ed70b54c746f73ad73754a",
+      "metadata_size_and_SHA_verified": true,
+      "encrypted_outer_member_verified": true,
+      "host_AES_decrypted": false
+    },
+    "all_model_P1_round2": {
+      "artifact_id": 14185712188,
+      "name": "boat-all-model-forecasts-43772481781-r2",
+      "created_at": "2026-11-15T23:24:08Z",
+      "zip_sha256": "23cac5682641dc8ca70fb76d969a0ef382fed9542422b765b38f27207479b06d",
+      "metadata_size_and_SHA_verified": true,
+      "encrypted_outer_member_verified": true,
+      "host_AES_decrypted": false
+    },
+    "independent_new_P1_AES_and_cutoff_audit_pending": true,
+    "current_day_denominator": null,
+    "current_forecast_count": null,
+    "observed_job_status": "completed",
+    "observed_job_conclusion": "success",
+    "observed_at": "2026-11-16T00:32:33.751196+00:00"
+  },
+  "existing_site_acceptance": {
+    "run": 43778358422,
+    "collector_status": "INTRADAY_REFRESHED",
+    "result_scope": "TWO_SELECTED_SAVED_DAYS_NOT_TODAY_ONLY",
+    "changed_races": 9,
+    "confirmed": 149,
+    "held": 9,
+    "pending": 118,
+    "browser_status": "LIVE_OWNER_SITE_REJECTED",
+    "reason": "SAVED_SITE_BROWSER_CHECK_FAILED",
+    "context_generation": 314,
+    "browser_root_cause": "NOT_YET_OBSERVED_SAFE_DIAGNOSTICS_MISSING_IN_OLD_READER"
+  },
+  "proposed_existing_PR286": {
+    "collector_pin": "b47ac0d0ac8076f632316eacc347b0765bb816c1",
+    "manual_current_P1_readonly_verifier": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "special_historical_P0_reader": "0796b52c2804177976e4c2e5ab9b65f32589720b",
+    "new_jobs_or_permissions": 0,
+    "new_schedules_or_services": 0,
+    "producer_change": false
+  },
+  "local_validation": {
+    "main_contract_tests": 74,
+    "existing_isolated_reader_tests": 37,
+    "pinned_collector_tests": 31,
+    "independent_review_findings": 0,
+    "live_browser_not_yet_accepted": true
+  },
+  "prior_forecast_originals_modified": false,
+  "host_AES_decryption": false,
+  "host_official_provider_GETs": 0,
+  "public_plaintext_or_keys_added": false,
+  "new_PRs_or_model_families": 0,
+  "all_gates_complete": false,
+  "accuracy_98_percent_proven": false,
+  "evidence_sha256": {
+    "APPROVED-PRODUCTION-MERGE-FROZEN.json": "6985cb77e6ca1fde0b6b455b00b0b9ccb0469cab5331e8d6421edc59884964f3",
+    "APPROVED-MAIN-MERGE-FROZEN.json": "4f38044ec27ddc71ae392d76f48622ae1e83774f5c70f5c9006fde96170436c3",
+    "REAL-FAILED-CHECKPOINT-AES-READBACK-FROZEN.json": "6b730d5e7abad969b572c8ef5f00766df58e11dd3c21123297c84f15af1c8571",
+    "REAL-NEW-P1-PHYSICAL-RECEIPTS-FROZEN.json": "0face3d2478fbf2846ecc3ddca1cf5c8b1fee70ab6a8eee70725f93f07adc7dc",
+    "REAL-EXISTING-INTRADAY-SITE-ACCEPTANCE-43778358422.log": "6e2741347c4c33b6942785bb44a244683eae409127fb124a898f8d7f5216cc26",
+    "RESULT-VERIFIER-CALLER-GREEN.log": "fca637f4802feb4d9411cbec30293be0a9c0035745b40473dbb64dae6f000c8e",
+    "RESULT-VERIFIER-EXISTING-READERS-GREEN.log": "dfecc7081bc4d6d0fe3fbc50305d2a0dd56f80eca6f2cb28f344db805f8ba929",
+    "PINNED-B47-FAST-RESULT-TESTS.log": "4c63990833236f3b87157c3d21f36f93e3f0b415afb566294aeb8d2f1c9f6aa5"
+  }
+}

@@ -342,7 +342,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertIn("github.ref == 'refs/heads/main'",daily)
         self.assertIn("docs/evidence/owner-pdca-main-trigger.txt",workflow.split('jobs:',1)[0])
         self.assertEqual(workflow.count('name: Reflect confirmed races and retain encrypted incremental source packets'),1)
-        self.assertIn("'6327bc5675aee2da94ac13397f1f86f39b27d8fd'",daily)
+        self.assertIn("'b47ac0d0ac8076f632316eacc347b0765bb816c1'",daily)
         self.assertIn('Authenticate the saved 11/12 P0 receipt before results or read-only view',daily)
         self.assertLess(daily.index('Use pinned collector for official results and stage-aware P0 reader'),
                         daily.index('path: pr64-reference'))
@@ -375,7 +375,10 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertEqual(daily.count(reader),1)
         reader_steps=daily.split(reader,1)[1].split('      - name: Install browser check only for an explicit verification run',1)[0]
         self.assertEqual(reader_steps.count('uses: actions/checkout@'),3)
-        self.assertIn('ref: 0796b52c2804177976e4c2e5ab9b65f32589720b',reader_steps)
+        from scripts.boat_main_dispatch_gate import RELEASE_SHA
+        self.assertIn("github.event_name == 'workflow_dispatch' && '"+RELEASE_SHA+
+                      "' || '0796b52c2804177976e4c2e5ab9b65f32589720b'",reader_steps)
+        self.assertEqual(reader_steps.count("github.ref == 'refs/heads/main' && inputs.verify_site"),3)
         self.assertIn('ref: 761247bee0209e37b1af6b8885e92cad3e9260a5',reader_steps)
         self.assertIn('ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe',reader_steps)
         self.assertIn('path: pr64-reference',reader_steps)
@@ -383,7 +386,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertEqual(reader_steps.count('boat-result-refresh: owner-p0-43131905826-20261112'),3)
         self.assertNotIn('gh workflow run',reader_steps)
         self.assertNotIn('racer_intraday_refresh',reader_steps)
-        self.assertIn("'6327bc5675aee2da94ac13397f1f86f39b27d8fd'",daily)
+        self.assertIn("'b47ac0d0ac8076f632316eacc347b0765bb816c1'",daily)
         self.assertIn('VERIFY_SAVED_P0:',daily)
         self.assertNotIn(reader,daily.split(result,1)[0])
 
@@ -401,7 +404,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertIn("context['minimum_results']>=11",daily)
         self.assertIn('RESULT_VIEW_ONLY:',daily)
         self.assertIn("'0796b52c2804177976e4c2e5ab9b65f32589720b'",daily)
-        self.assertIn("'6327bc5675aee2da94ac13397f1f86f39b27d8fd'",daily)
+        self.assertIn("'b47ac0d0ac8076f632316eacc347b0765bb816c1'",daily)
         self.assertIn("startsWith(github.event.head_commit.message, 'boat-result-view')",daily)
         self.assertIn('VERIFY_SAVED_P0:',daily)
         self.assertIn('--compact-results',daily)

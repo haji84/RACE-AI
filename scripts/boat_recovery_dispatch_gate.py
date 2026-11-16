@@ -117,7 +117,64 @@ def decide(*, now, release, owner_doc, history, retry_proof=None,
     return result
 
 
-def main(argv=None):
+def trusted_owner_completion(history, now, *, env=None):
+    """Verify GitHub's completed-owner event against independent live run history.
+
+    This only enables a source-free gate decision. A genuine AES continuity
+    control and release approval remain mandatory before any new owner starts.
+    """
+    env = os.environ if env is None else env
+    if (env.get('GITHUB_ACTIONS')!='true' or
+            env.get('GITHUB_EVENT_NAME')!='workflow_run' or
+            env.get('GITHUB_REPOSITORY')!=base.REPO or
+            env.get('GITHUB_REF')!='refs/heads/main' or
+            not isinstance(now,datetime) or now.utcoffset() is None):
+        return False
+    try:
+        name=env.get('GITHUB_EVENT_PATH')
+        if type(name) is not str or not name:return False
+        path=Path(name)
+        if path.is_symlink() or not path.is_file() or not 0<path.stat().st_size<=base.MAX_JSON_BYTES:
+            return False
+        payload=json.loads(path.read_text(encoding='utf-8'))
+        if type(payload) is not dict or payload.get('action')!='completed':
+            return False
+        actual=payload.get('workflow_run')
+        if type(actual) is not dict or not type(actual.get('id')) is int or actual['id']<=0:
+            return False
+        if (actual.get('name')!=base.WORKFLOW or
+                actual.get('event')!='workflow_dispatch' or
+                actual.get('head_branch')!=base.RELEASE_REF or
+                actual.get('head_sha')!=base.RELEASE_SHA or
+                actual.get('status')!='completed' or
+                actual.get('conclusion') not in ('success','failure') or
+                (actual.get('head_repository') or {}).get('full_name')!=base.REPO or
+                (actual.get('repository') or {}).get('full_name')!=base.REPO):
+            return False
+        creation=base._stamp(actual.get('created_at'))
+        if (creation>now or
+                creation.astimezone(ZoneInfo('Asia/Tokyo')).date() !=
+                now.astimezone(ZoneInfo('Asia/Tokyo')).date()):
+            return False
+        items=history.get('workflow_runs')
+        total=history.get('total_count')
+        if (type(items) is not list or len(items)>100 or type(total) is not int or
+                total<len(items)):
+            return False
+        matches=[row for row in items if type(row) is dict and row.get('id')==actual['id']]
+        if len(matches)!=1:return False
+        source=matches[0]
+        for field in ('id','name','event','head_branch','head_sha',
+                      'status','conclusion','created_at'):
+            if source.get(field)!=actual.get(field):return False
+        today=_today(history,now)
+        return (bool(today) and
+                max(today,key=lambda row:base._stamp(row['created_at']))['id']==actual['id'])
+    except (KeyError,ValueError,TypeError,OSError,UnicodeError,OverflowError):
+        return False
+
+
+def main(argv=None, *, now=None):
     p=argparse.ArgumentParser(description=__doc__)
     for name in ('release','owner-doc','history'):
         p.add_argument('--'+name,type=Path,required=True)
@@ -126,10 +183,12 @@ def main(argv=None):
     p.add_argument('--verify-source-handoff',action='store_true')
     p.add_argument('--github-output',type=Path)
     args=p.parse_args(argv)
-    now=datetime.now(timezone.utc)
+    now=now or datetime.now(timezone.utc)
     history=base._load(args.history)
+    triggered=trusted_owner_completion(history,now)
+    source_gate_event=(os.environ.get('GITHUB_EVENT_NAME')=='schedule' or triggered)
     control=None
-    if args.verify_source_handoff and os.environ.get('GITHUB_EVENT_NAME')=='schedule':
+    if args.verify_source_handoff and source_gate_event:
         candidates=_today(history,now)
         if candidates:
             latest=max(candidates,key=lambda r:base._stamp(r['created_at']))
@@ -140,9 +199,9 @@ def main(argv=None):
                     control=None
     proof=None
     if args.recovery_proof:
-        if (os.environ.get('GITHUB_ACTIONS')!='true' or os.environ.get('GITHUB_EVENT_NAME')!='schedule'
+        if (os.environ.get('GITHUB_ACTIONS')!='true' or not source_gate_event
                 or os.environ.get('GITHUB_REPOSITORY')!='haji84/RACE-AI'):
-            raise ValueError('RECOVERY_PROOF_TRUSTED_SCHEDULE_REQUIRED')
+            raise ValueError('RECOVERY_PROOF_TRUSTED_TRIGGER_REQUIRED')
         proof=base._load(args.recovery_proof)
     result=decide(now=now,release=base._load(args.release),owner_doc=base._load(args.owner_doc),
         history=history,retry_proof=base._load(args.retry_proof) if args.retry_proof else None,
