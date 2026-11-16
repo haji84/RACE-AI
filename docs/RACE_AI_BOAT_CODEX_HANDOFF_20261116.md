@@ -1,4 +1,13 @@
 # RACE-AI BOAT Codex最終完成引継ぎ
+最新の実確認は [最新状況](RACE_AI_LATEST_STATUS.md) 冒頭を優先する。
+PR302/289/286統合、新P1の6 ZIP独立AES照合後、次owner43782543906がARTIFACT_METADATA404で7巡目に失敗。
+真正なcallback43784862364も復旧helperのTRUSTED_SCHEDULE_REQUIREDで拒否された。
+使用70・累積11812・基点11524・完了6/準備7・巡回累積638を原本受領証で照合。未完了roundを完了扱いしない。
+結果取得側の別障害INTRADAY_CAPTURE_CLOCK_INVALIDは、b47に時計・2回帰試験だけの修正を実装した。
+実経過時間で同じ5分未来guardを保ち、source48件・main caller44件成功。source独立レビューも合格。
+source不変SHA b9a1451df474e52d95bd40253676365c4fa0940dを既存mainPR143の履歴から参照し、実HEAD CIと画面再試験を行う。
+producer84128はこの結果専用修正では切り替えない。無人引継ぎ・全件・映像・98%の合格とは数えない。
+
 記録基準：2026年11月16日 01:53 JST
 
 > **Codexへ：引継ぎの復唱だけで終了しない。GitHubの現HEAD、PR、Actions、実レースの暗号原本を再取得し、未完了から実装→テスト→本番→独立検証へ進む。**
