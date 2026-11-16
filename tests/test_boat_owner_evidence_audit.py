@@ -165,6 +165,7 @@ class CurrentReleaseEvidenceWiringTests(unittest.TestCase):
             self.assertTrue(audit._source_pinned(42,'e'*40))
             self.assertTrue(audit._source_pinned(42,old))
             self.assertTrue(audit._source_pinned(42,'84128e0ec8bd9fe3da64ad49f74b8511b07e72be'))
+            self.assertTrue(audit._source_pinned(42,'b491fb21ce58ba085dd8f54bb7326442b840d8f4'))
             self.assertTrue(audit._source_pinned(audit.HISTORIC_RUN,audit.HISTORIC_SHA))
             for run,sha in ((42,audit.HISTORIC_SHA),(42,'f'*40),
                             (42,None),(True,old),(0,old)):

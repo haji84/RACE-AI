@@ -218,12 +218,25 @@ class MatrixReadbackScopeTests(unittest.TestCase):
                 changed['scope_sha256']=digest({k:v for k,v in changed.items() if k!='scope_sha256'})
                 self.assertFalse(self.coverage(output,mid,changed)['independently_authenticated_source_zip_claim'])
 
-    def test_native_original_is_separately_reopened_and_legacy_clock_hold_survives(self):
+    def test_all_model_view_body_cannot_supply_its_own_unverified_fields(self):
+        for field,value in (('input_sha256','f'*64),('output_sha256','f'*64),('source_sha256','f'*64),
+                            ('scope_note','unverified'),('odds_independent',False),('missing_reasons',[])):
+            with self.subTest(field=field):
+                view,get,mid=self.example()
+                target=next(p for row in view['records'] for p in [row['prediction'],*row['comparison_predictions']]
+                            if p['model_id']==mid)
+                if field=='missing_reasons':value=['UNVERIFIED_FIELD']
+                target[field]=value
+                with self.assertRaises(ValueError):
+                    output,_,readback=self.reopen(view,get)
+                    audit.matrix_readback_scope(output,readback,now=fixture.CLOCK)
+
+    def native_example(self):
         import io,zipfile
         from race_ai.boat_private_original_archive import seal_original_zip
         from race_ai import boat_saved_prediction_evidence as native
         from tests.test_boat_saved_prediction_evidence import original_view
-        view,_,raw,meta=original_view('P1');before=deepcopy(view)
+        view,_,raw,meta=original_view('P1')
         cipher=seal_original_zip(raw,run_id=99,head_sha=fixture.HEAD,kind='P1',key=fixture.KEY)
         wrapper=io.BytesIO()
         with zipfile.ZipFile(wrapper,'w') as z:z.writestr('private-original.enc',cipher)
@@ -235,6 +248,41 @@ class MatrixReadbackScopeTests(unittest.TestCase):
         get.bodies.update({'actions/runs/99':fixture.wire(run),
             'actions/runs/99/artifacts?per_page=100':fixture.wire(dict(total_count=1,artifacts=[meta])),
             'actions/artifacts/123':fixture.wire(meta),'actions/artifacts/123/zip':raw})
+        return view,get
+
+    def test_native_view_body_cannot_supply_its_own_unverified_fields(self):
+        for field,value in (('input_sha256','f'*64),('output_sha256','f'*64),('source_sha256','f'*64),
+                            ('scope_note','unverified'),('ordered_candidates',[])):
+            with self.subTest(field=field):
+                view,get=self.native_example();view['records'][0]['prediction'][field]=value
+                with self.assertRaises(ValueError):
+                    output,_,readback=self.reopen(view,get)
+                    audit.matrix_readback_scope(output,readback,now=fixture.CLOCK)
+
+    def test_genuine_enriched_native_projection_and_row_sidecars_remain_accepted(self):
+        import base64,json
+        from race_ai.frozen_day_cycle import read_p1
+        from race_ai.boat_saved_view_intake import project_native_state
+        from race_ai.boat_saved_prediction_evidence import _read_archive
+        view,get=self.native_example();raw=get.bodies['actions/artifacts/123/zip']
+        meta=json.loads(get.bodies['actions/artifacts/123'])
+        with patch.dict(os.environ,{'RACE_AI_STATE_KEY':base64.b64encode(fixture.KEY).decode()}):
+            document,rows=read_p1(raw,meta)
+        _,_,wrapper=_read_archive(raw,meta,fixture.KEY)
+        state=dict(schema='RACE_AI_RECOVERED_FIRST_RECEIPTS_V1',day_jst=fixture.DAY,
+            rows=rows,receipts=[meta],observations=[],complete=False)
+        state['state_sha256']=digest(state)
+        enriched=project_native_state(state,documents=[wrapper]);before=forecast_inventory(enriched)
+        enriched['records'][0]['result']={'status':'pending'}
+        enriched['records'][0]['saved_prediction_evidence']={}
+        output,_,readback=self.reopen(enriched,get)
+        self.assertEqual(forecast_inventory(output),before)
+        self.assertEqual(forecast_inventory(enriched),before)
+        self.assertEqual(len(readback['native_originals']),1)
+
+    def test_native_original_is_separately_reopened_and_legacy_clock_hold_survives(self):
+        from race_ai import boat_saved_prediction_evidence as native
+        view,get=self.native_example();before=deepcopy(view)
         replayed,counts,readback=self.reopen(view,get)
         self.assertEqual(counts['archives_verified'],0)
         self.assertIn('actions/artifacts/123/zip',get.calls)

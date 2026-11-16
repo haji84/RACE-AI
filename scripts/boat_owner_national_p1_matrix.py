@@ -259,7 +259,7 @@ def _readback_scope_counts(scope,counted,*,day,now):
     try:
         from race_ai.actions_contract import digest
         from race_ai.boat_saved_model_view import saved_prediction_identity
-        _need(type(scope) is dict and scope.get('schema')=='BOAT_INDEPENDENT_ORIGINAL_READBACK_SCOPE_V1'
+        _need(type(scope) is dict and scope.get('schema')=='BOAT_INDEPENDENT_ORIGINAL_READBACK_SCOPE_V2'
               and scope.get('day_jst')==day and _clock(scope['checked_at'])<=now
               and scope.get('scope_sha256')==digest({k:v for k,v in scope.items() if k!='scope_sha256'}))
         inventory=scope['inventory'];artifacts=scope['artifacts'];runs=scope['run_ids']

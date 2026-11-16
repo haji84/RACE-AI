@@ -1,3 +1,25 @@
+<!-- BOAT approved source release 2026-11-16T07:55Z -->
+## 2026-11-16: 原本保全の修正版をproductionへ統合
+
+本人承認に基づき既存PR288を通常mergeし、実productionは
+`c123b8538006b3189181195bbc91d8f28d216ba5`（07:55:20 UTC）。
+reviewed `d798acd9` のtree `3888e6d7` と完全一致をGitHub/Gitで読戻した。
+旧owner43818666068は07:54:09 UTCに24巡successで自然終了、累積GET12770。
+稼働中のproducerは停止・差替えず、P1/RESULT/continuity/controlは保全した。
+
+修正版は必須展示入力優先、真正native計算event、旧as_of生成時計の拒否、既知の不変原本locator、
+同じtraining SHA42117035の暗号学習入力復元、透明playerの誤検出拒否を含む。
+sourceのexact HEAD CI3系統と独立レビューが合格。関連Python群3/12/468/38/123/46件は重複を含む。
+新しい実runでの生成・学習入力復元はこの記録時点では未実施。
+
+mainは旧0c7d1b76。既存PR69で実production SHAへdispatch/reader/auditを同期する。
+旧b491は既存原本のread-only検証とSafariの不変readerに保持し、古いsourceへのdispatch許可はしない。
+原本全本文・全ownerのfresh AES再読戻しを合格条件へ追加して検証中。
+Safariは同一公開資産と認証済み原本を実Mac Safariで確認する経路を準備済みで、本番実行はmain統合後。
+全日1680slot、実機iPhone、映像3項目、前向き改善・98%の実証は未合格。
+
+以下は過去の記録。最新実SHA・値はこの節と後続の実証記録を優先する。
+
 <!-- BOAT completion continued 2026-11-16 -->
 ## 2026-11-16: 全件監査・Safari・映像・実学習の継続検証
 

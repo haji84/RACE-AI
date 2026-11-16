@@ -15,10 +15,11 @@ from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 import re
 
-OWNER_SHA='b491fb21ce58ba085dd8f54bb7326442b840d8f4'
+OWNER_SHA='c123b8538006b3189181195bbc91d8f28d216ba5'
 # Read-only replay of already sealed originals. This is not a dispatcher pin.
 PREVIOUS_OWNER_SHA='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
 REVIEWED_PREVIOUS_OWNER_SHA='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
+RETAINED_OWNER_SHA='b491fb21ce58ba085dd8f54bb7326442b840d8f4'
 SCHEMA='RACE_AI_BOAT_EXACT_ALL_MODEL_ZIP_READBACK_V1'
 JST=timezone(timedelta(hours=9))
 SHA=re.compile(r'[a-f0-9]{64}\Z')
@@ -31,7 +32,7 @@ def need(ok):
 
 
 def _owner_head(value):
-    need(type(value) is str and value in (OWNER_SHA,PREVIOUS_OWNER_SHA,REVIEWED_PREVIOUS_OWNER_SHA))
+    need(type(value) is str and value in (OWNER_SHA,PREVIOUS_OWNER_SHA,REVIEWED_PREVIOUS_OWNER_SHA,RETAINED_OWNER_SHA))
     return value
 
 

@@ -117,6 +117,12 @@ class SourceFreeExactZipTests(unittest.TestCase):
                         with self.assertRaises(ValueError):read()
         self.assertEqual(row['prediction']['source_code_commit'],old)
 
+    def test_last_released_worker_remains_readonly_after_new_source_release(self):
+        old='b491fb21ce58ba085dd8f54bb7326442b840d8f4'
+        with patch.object(exact,'OWNER_SHA','e'*40):
+            self.assertEqual(exact._owner_head(old),old)
+            with self.assertRaises(ValueError):exact._owner_head('f'*40)
+
     def test_independent_official_cutoff_conflict_remains_hold(self):
         row=original()
         (seen,holds,missing,reused),_,_=self.scan(
