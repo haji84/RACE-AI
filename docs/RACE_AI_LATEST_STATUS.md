@@ -2449,3 +2449,26 @@ P0/P1原本生成・AES保存・独立読戻し・既存公式結果照合を実
 画面表示、公式結果取得、元の結果照合器でのモデル別PDCA
 の本番成功を主張するものではない。
 <!-- END_RACE_AI_SOURCE_OWNER_RELEASE_20261111 -->
+
+## 2026-11-16: 保存済みP1を残した中断巡回の復旧
+
+本人の「承認する」に基づく既存PR164の修正。以前の取得枠提案は履歴として保存し、
+現行84128の内容から修正した。予想取得件数の固定上限や別モデルは追加していない。
+
+owner43782543906はP1原本14189866940を保存後、GitHubのARTIFACT_METADATA読取404で
+第7巡を中断した。最終checkpointは完了6・準備7・累積GET11812・当日基点11524・
+worker GET70・完了巡回累積638。RESULT第7巡は保存されていない。
+
+修正は、実AESと公開counterの一致・完全inventory・既存予想とのfirst-receipt一致を
+検証し、P1/CONTINUITY/SOURCE_CONTROLの原本3点を既存AES Git vaultへ保持した後だけ
+準備中の印を解除する。完了数・使用量を進めず、RESULTを作らない。producerも
+現在checkout SHAまたは明示レビュー済み84128の原本に限定して再検証する。
+保存済みscheduleと候補別publication waitの時刻を保持し、180秒の鮮度判定を維持する。
+
+既存mainの本物のschedule/callback/release-pushを認証する。保存直後のmetadata404は
+現在run/attempt1のupload ID・名前・digestを照合したものだけ最大3回同じIDを再読込する。
+提供元403/429、未知のID、ZIP404、改変、検証不能は従来どおり停止する。
+
+この記録時点で実原本のAES復旧と新workerの締切前P1保存は未確認。
+ローカルfixtureの合格を、本番再開・全レース充足・映像・精度改善の達成に数えない。
+既存の本人承認による起動境界は継続する: RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1。

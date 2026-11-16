@@ -44,9 +44,14 @@ class WorkflowReferencesTest(unittest.TestCase):
             self.assertLess(text.index(preload),text.index(capture))
             steps=[step for step in steps if step not in prospective_steps]
         private_steps=[step for step in steps if 'venue-research-' in step]
-        model_steps=[step for step in steps if 'boat_all_model_cycle' in step or 'boat-all-model-forecasts' in step]
+        # Upload receipts also name the model artifact inside mandatory vault
+        # retention. Only generation/readback and the upload itself are optional.
+        model_steps=[step for step in steps if 'boat_all_model_cycle' in step or
+                     ('boat-all-model-forecasts' in step and 'uses: '+UPLOAD in step)]
         protection_steps=[step for step in steps if 'boat_private_original_archive' in step]
         vault_steps=[step for step in steps if 'boat_private_original_vault' in step]
+        for retained in vault_steps:
+            self.assertNotIn('continue-on-error:',retained)
         evaluation_steps=[step for step in steps if 'boat_prospective_audit' in step or 'boat-prospective-audit' in step]
         # Keep the original nine mandatory steps separate from optional retention.
         retention_steps=[step for step in steps if step.split('\n',1)[0] in RETENTION_NAMES]
