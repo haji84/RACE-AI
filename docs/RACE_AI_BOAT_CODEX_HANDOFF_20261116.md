@@ -211,7 +211,15 @@ mainの最終CI→通常merge→別runnerの実AES→真の新owner保存を続�
 PR302/289は本人承認後にproduction84128e0/mainEA8965へ統合済み。
 実障害のAES/counter独立読戻しはrun43772458812で合格。
 新owner43772481781が自動起動し、P0恒久保存とP1暗号ZIPの物理保存を確認した。
-新しい原本の全件数・締切・AESは、別runnerの完了イベント監査へ続ける。
+新しい原本の全件数・締切・AESは、既存の別runner監査へ続ける。
 受入43778358422は結果更新が一部成功、画面は汎用BROWSER_CHECK_FAILEDで未合格。
 既存PR286でcollectorと読取版を同期し、実画面を再試験する。source84128は稼働を継続。
 [最新の件数・SHA・未完条件](evidence/boat-approved-restart-live-20261116.json)を参照。
+
+owner43772481781は24巡を成功終了し、真正なcontinuity/source-controlのZIP/SHA照合で
+累積GET11742・当日基点11524・当該worker218・巡回累積632を確認した。
+完了イベントの自動引継ぎは未着。実時刻の既存gateが
+`READY_VERIFIED_SAME_DAY_CONTINUATION` と判定後、09:48 JSTに43782543906を補助起動した。
+無人引継ぎの合格には数えず、カウンター・原本・source84128は維持する。
+新P1の独立AESを取りこぼさないため、既存PR286の既存監査jobのmain push対象だけを
+完了済み43772481781へ変更。workflow_runの動的な対象選択・実鍵・実時刻検証は維持する。

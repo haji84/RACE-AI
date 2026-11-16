@@ -198,7 +198,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
-          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43661420983' }}
+          # Normal main push reopens the first completed approved-release owner.
+          # Genuine completion events continue to select their own actual run.
+          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43772481781' }}
         run: |
           python - <<'PY'
           import importlib.util,json,os,re,subprocess
@@ -250,7 +252,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
-          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43661420983' }}
+          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43772481781' }}
         run: |
           python - <<'PY_ALL_MODEL'
           import importlib.util,json,os,re
@@ -328,7 +330,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
-          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43661420983' }}
+          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43772481781' }}
         run: |
           python - <<'PY_EXACT'
           import importlib.util,json,os,re,subprocess

@@ -1,6 +1,6 @@
 {
   "schema": "RACE_AI_BOAT_APPROVED_RESTART_LIVE_20261116_V1",
-  "observed_at": "2026-11-16T00:29:00.895342+00:00",
+  "observed_at": "2026-11-16T00:50:30.676598+00:00",
   "owner_approval_received": true,
   "production": {
     "at": "2026-11-15T22:51:44.858780+00:00",
@@ -81,7 +81,16 @@
     "current_forecast_count": null,
     "observed_job_status": "completed",
     "observed_job_conclusion": "success",
-    "observed_at": "2026-11-16T00:32:33.751196+00:00"
+    "observed_at": "2026-11-16T00:32:33.751196+00:00",
+    "final_public_control_counts": {
+      "completed_round": 24,
+      "prepared_round": null,
+      "previous_session_requests": 218,
+      "lifetime_requests": 11742,
+      "day_start_lifetime_requests": 11524,
+      "lifetime_completed_rounds": 632,
+      "previous_stop_reason": "WORKER_HANDOFF"
+    }
   },
   "existing_site_acceptance": {
     "run": 43778358422,
@@ -102,14 +111,17 @@
     "special_historical_P0_reader": "0796b52c2804177976e4c2e5ab9b65f32589720b",
     "new_jobs_or_permissions": 0,
     "new_schedules_or_services": 0,
-    "producer_change": false
+    "producer_change": false,
+    "existing_readonly_push_audit_run_id": 43772481781
   },
   "local_validation": {
     "main_contract_tests": 74,
     "existing_isolated_reader_tests": 37,
     "pinned_collector_tests": 31,
     "independent_review_findings": 0,
-    "live_browser_not_yet_accepted": true
+    "live_browser_not_yet_accepted": true,
+    "new_owner_matrix_caller_tests": 37,
+    "new_owner_matrix_default_independently_reviewed": true
   },
   "prior_forecast_originals_modified": false,
   "host_AES_decryption": false,
@@ -126,6 +138,23 @@
     "REAL-EXISTING-INTRADAY-SITE-ACCEPTANCE-43778358422.log": "6e2741347c4c33b6942785bb44a244683eae409127fb124a898f8d7f5216cc26",
     "RESULT-VERIFIER-CALLER-GREEN.log": "fca637f4802feb4d9411cbec30293be0a9c0035745b40473dbb64dae6f000c8e",
     "RESULT-VERIFIER-EXISTING-READERS-GREEN.log": "dfecc7081bc4d6d0fe3fbc50305d2a0dd56f80eca6f2cb28f344db805f8ba929",
-    "PINNED-B47-FAST-RESULT-TESTS.log": "4c63990833236f3b87157c3d21f36f93e3f0b415afb566294aeb8d2f1c9f6aa5"
+    "PINNED-B47-FAST-RESULT-TESTS.log": "4c63990833236f3b87157c3d21f36f93e3f0b415afb566294aeb8d2f1c9f6aa5",
+    "ASSISTED-CONTINUATION-CHECK-20261116T004745Z/verified-control.json": "b80d12639e1d9ffefbe891237f13db0c7c1fb2f7478ccd7d37e58e6d8f42ca57",
+    "ASSISTED-CONTINUATION-CHECK-20261116T004745Z/decision.json": "016650d038c9ec0ea8def688a797d32c223374aaf4d4e55e2b5f1f5daa4aa732",
+    "ASSISTED-CONTINUATION-CHECK-20261116T004745Z/ASSISTED-DISPATCH-REQUEST-FROZEN.json": "0f77ed59e08244012ed3bebcf13aa7685163fa21c7e432169a77dd31f70425e4",
+    "NEW-OWNER-AUDIT-CALLER-GREEN.log": "fe52e4784238c27c25933ad19b2e20316db7f5ee74183cb3db5b04ab8aff220b",
+    "PR286-FINAL-CONSTRAINT-CHECK.json": "80096949c8fecdfe52aee75c7a926a938460b69554cd6b873b520cfb68de37d5"
+  },
+  "assisted_continuation": {
+    "run_id": 43782543906,
+    "parent_run_id": 43772481781,
+    "created_at": "2026-11-16T00:48:27Z",
+    "actor": "haji84",
+    "head": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "gate": "READY_VERIFIED_SAME_DAY_CONTINUATION",
+    "automatic_completion_event_observed": false,
+    "unattended_handoff_proven": false,
+    "counter_reset": false,
+    "source_originals_changed": false
   }
 }
