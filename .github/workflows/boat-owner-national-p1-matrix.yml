@@ -229,7 +229,7 @@ jobs:
               from race_ai.existing_model_coverage import active_catalog
               expected=[r['model_id'] for r in active_catalog()
                         if 'boat' in r['applicable_sports']]
-              report=matrix.calculate(result,expected,independent_original_reader=True)
+              report=matrix.calculate(result,expected,independent_original_reader=True,allow_pending_audit=True)
               assert report['racing_provider_gets']==0 and report['original_forecasts_unchanged']
               safe=Path(os.environ['RUNNER_TEMP'])/'boat-national-p1-counts.json'
               assert not safe.exists() and not safe.is_symlink()

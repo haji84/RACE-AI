@@ -306,7 +306,8 @@ def inspect_run(repo,run_id,*,now):
                   source_program_sha256=document['source_sha256'])
     control=read_final_control(gh,run)
     result['source_control']={k:control.get(k) for k in ('completed_round','prepared_round',
-        'previous_session_requests','lifetime_requests','day_start_lifetime_requests','previous_stop_reason')}
+        'previous_session_requests','lifetime_requests','day_start_lifetime_requests',
+        'lifetime_completed_rounds','previous_stop_reason')}
     result['pending_pair']=dict(status='NO_PENDING_ROUND',verified=False,successor_dispatch_allowed=False)
     if control.get('prepared_round') is not None:
         try:

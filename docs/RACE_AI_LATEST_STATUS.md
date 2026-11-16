@@ -23,7 +23,7 @@ RESULT必須条件で復旧が失敗していた。予想が現在稼働中と�
 最終checkpointを保持し、完了数・使用量を変えずに後継workerへ引き継ぐ。
 保存直後のmetadata404だけに現在runのupload receiptを使った限定再読込を実装。
 真正callback/release-pushの認証と、日内引継ぎで朝のP0原本を再利用する参照を修正。
-修正候補は全live pin23箇所を実production SHAへ同期済み。ローカル119件が合格。
+修正候補は全live pin23箇所を実production SHAへ同期済み。ローカル120件が合格。
 実AES runnerでの14189866940検証、新worker起動、累積11812からの増分と新たな締切前P1保存は
 本記録時点では未確認。過去の予想・結果・待機clock・使用量を改変しない。
 

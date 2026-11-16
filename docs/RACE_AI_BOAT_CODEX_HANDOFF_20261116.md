@@ -257,5 +257,5 @@ prepared印だけを解除する。6巡を7巡にせず、RESULTを生成せず�
 未達条件はそのまま残る。詳細な最新事実はRACE_AI_LATEST_STATUS.mdの先頭追記を参照。
 
 PR164はCI・独立レビュー後に通常保護merge済み。実sourceはb491fb21ce58ba085dd8f54bb7326442b840d8f4。
-main174の23live pinをこの実SHAへ同期した。source607件と独立193件、main119件は合格。
+main174の23live pinをこの実SHAへ同期した。source607件と独立193件、main120件は合格。
 実orphan AESと新P1の受入は続けて確認する。未確認を合格に数えない。
