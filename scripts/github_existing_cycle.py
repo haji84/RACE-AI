@@ -150,7 +150,7 @@ def restore(day,*,video_context_artifacts=(),video_reader=None):
 def _venue_research_preload(*,round_no,clock=None):
     """Optional private I/O finishes before fresh official P1 capture begins."""
     config=ROOT/'audit/state/boat-venue-learning-context-input.json'
-    if not config.is_file():return None,None
+    if not config.is_file() and os.environ.get('RACE_AI_CANDIDATE_RESTORE_REQUIRED')!='true':return None,None
     import tempfile,shutil
     folder=None
     try:
@@ -160,8 +160,9 @@ def _venue_research_preload(*,round_no,clock=None):
         private_base=private_base.resolve()
         need(private_base!=ROOT.resolve() and ROOT.resolve() not in private_base.parents,
              'VENUE_RESEARCH_PRIVATE_ROOT_REQUIRED')
+        from race_ai.boat_venue_research_runtime import preload_venue_research,select_learning_context
+        config=select_learning_context(config,private_base,env=os.environ,now=clock() if clock else None)
         folder=Path(tempfile.mkdtemp(prefix='boat-venue-preload-',dir=private_base))
-        from race_ai.boat_venue_research_runtime import preload_venue_research
         runtime=preload_venue_research(config,ROOT/'audit/state/boat-venue-dataset-input.json',
             folder,ROOT,gh=gh,clock=clock)
         runtime['preload_folder']=folder

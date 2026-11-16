@@ -76,7 +76,7 @@ jobs:
     name: Main to legacy BOAT P0-P1 source-free contract
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 18
     permissions:
       contents: read
     steps:
@@ -110,6 +110,12 @@ jobs:
                  'tests.test_supervisor_durable_readback','tests.test_boat_saved_site_context',
                  'tests.test_repeated_cycle','tests.test_boat_unbounded_forecast_policy',
                   'tests.test_boat_mandatory_exhibition_priority','tests.test_github_existing_cycle_startup_wait',
+                 'tests.test_boat_native_coverage_evidence','tests.test_boat_all_model_diagnostics',
+                 'tests.test_boat_screen_source_rejection','tests.test_boat_screen_record_research.ScreenAdmissionTests',
+                 'tests.test_boat_venue_candidate_restore','tests.test_boat_venue_cycle_connection',
+                 'tests.test_boat_venue_research_runtime','tests.test_boat_venue_learning_handoff',
+                 'tests.test_boat_venue_learning_context','tests.test_boat_venue_learning',
+                 'tests.test_observed_weight_learning',
                  'tests.test_boat_source_control','tests.test_continuity_checkpoint',
                  'tests.test_boat_seller_official_source','tests.test_boat_program_source',
                  'tests.test_boat_pending_round_recovery']
@@ -118,6 +124,23 @@ jobs:
           PY_RECOVERY_TEST
       - name: Nationwide P1 gap audit and existing video-model experimental chain (no provider GET)
         run: python -m unittest tests.test_boat_national_video_research_gate tests.test_boat_video_rights_admission tests.test_boat_20261113_retained_counts -v
+      - name: Install existing research recorder dependencies inside the same offline CI job
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements-video.txt playwright==1.56.0
+          python -m playwright install --with-deps chromium
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install --no-install-recommends -y ffmpeg
+          fi
+      - name: Exercise display-only recording and three-to-six active boats on local fixtures
+        env:
+          RACE_AI_RESEARCH_FIXTURE_ONLY: 'true'
+        run: >-
+          python -m unittest tests.test_boat_screen_record_research tests.test_boat_screen_model_bridge
+          tests.test_boat_short_field_video tests.test_boat_video_tracking
+          tests.test_boat_video_sequential_context tests.test_boat_video_physical_context
+          tests.test_boat_video_model_context tests.test_boat_video_evaluation
+          tests.test_boat_video_screen_queue -v
       - name: Verify dated official closing revisions and unchanged old-B authority without source GET
         run: python -m unittest tests.test_boat_official_program tests.test_boat_live_cutoff_revision tests.test_nationwide_get_policy -v
       - name: Verify existing Pages checker stage identity and private request boundary
@@ -357,6 +380,7 @@ jobs:
     env:
       RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED: 'true'
       RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+      RACE_AI_CANDIDATE_RESTORE_REQUIRED: 'true'
       RACE_AI_FORWARD_REQUEST: ${{ startsWith(github.event.head_commit.message, 'boat-grid-forward:') && 'audit/state/boat-venue-future-forward-request.json' || '' }}
     steps:
       - name: Exact PR71 code
@@ -415,6 +439,30 @@ jobs:
       - name: Install pinned encrypted display dependencies
         continue-on-error: true
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Restore the exact retained research candidate without fitting or source access
+        id: venue_candidate_restore
+        continue-on-error: true
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_venue_learning_handoff restore-context --out-dir '${{ runner.temp }}/boat-venue-candidate-restore'
+      - name: Save only the unchanged three-file encrypted candidate package
+        id: venue_candidate_upload
+        if: steps.venue_candidate_restore.outcome == 'success' && steps.venue_candidate_restore.outputs.ready == 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-venue-learning-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/boat-venue-candidate-restore/candidate/learning.enc
+            ${{ runner.temp }}/boat-venue-candidate-restore/candidate/learning.json
+            ${{ runner.temp }}/boat-venue-candidate-restore/candidate/summary.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Independently read new candidate receipt and authenticate a private current-worker override
+        id: venue_candidate_readback
+        if: steps.venue_candidate_upload.outcome == 'success' && steps.venue_candidate_upload.outputs.artifact-id != ''
+        continue-on-error: true
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_venue_learning_handoff verify-context --artifact-id '${{ steps.venue_candidate_upload.outputs.artifact-id }}' --out-dir '${{ runner.temp }}/boat-venue-candidate-restore'
       - name: Enable cache-first original recovery after offline tests
         run: python -c "import os; open(os.environ['GITHUB_ENV'],'a').write('RACE_AI_ORIGINAL_VAULT_ENABLED=true\\nRACE_AI_SAVED_PROGRAM_CAPTURE=true\\nRACE_AI_PROGRAM_SOURCE_ENABLED=true\\n')"
       - name: Initialize encrypted display feed from pinned saved forecasts

@@ -8,7 +8,12 @@ import re
 JST = timezone(timedelta(hours=9))
 OWNER_BRANCH = 'production/boat-p0-p1-20261111'
 SCHEMA = 'RACE_AI_PENDING_ROUND_RECOVERY_V1'
-REVIEWED_PREVIOUS_OWNER_SHAS = frozenset({'84128e0ec8bd9fe3da64ad49f74b8511b07e72be'})
+REVIEWED_PREVIOUS_OWNER_SHAS = frozenset({
+    '84128e0ec8bd9fe3da64ad49f74b8511b07e72be',
+    # Exact immutable worker retained through the next protected release.
+    # This admits original/control readback, never dispatch of an old source.
+    'b491fb21ce58ba085dd8f54bb7326442b840d8f4',
+})
 
 
 def need(ok, reason):

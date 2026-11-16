@@ -25,6 +25,7 @@ _SOURCE_SCHEMA="RACE_AI_BOAT_SCREEN_SOURCE_V1"
 _GRANT_SCHEMA="RACE_AI_BOAT_SCREEN_RIGHTS_V1"
 _CIPHER_SCHEMA="RACE_AI_BOAT_SCREEN_CAPTURE_AES_V1"
 _URL_HOSTS=frozenset(("race.boatcast.jp","boatcast.jp","www.boatrace.jp"))
+_PLAYER_HOSTS=_URL_HOSTS | frozenset(("front.player.boatrace-cdn.jp", "playback.api.streaks.jp"))
 _REQUIRED_USES=frozenset(("SCREEN_RECORDING","PRIVATE_VIDEO_ANALYSIS","RESEARCH_P1_DERIVATION"))
 _MAX_SCREEN_BYTES=256*1024*1024
 
@@ -234,6 +235,26 @@ async def record_screen(browser,source,grant=None,*,verify_grant=None,now,aes_ke
         first=last=None
         ended=False
         observed_live_progress=False
+        rejection=[]
+        source_opened=False
+
+        def observe_response(response):
+            # Observe the official player's ordinary requests only. Do not
+            # repeat a refused request or copy its URL/body/credentials.
+            try:
+                parsed=urlsplit(response.url)
+                if (parsed.hostname in _PLAYER_HOSTS and response.status in (401,403,429)
+                        and response.request.resource_type in ('document','xhr','fetch')
+                        and not rejection):
+                    rejection.append(response.status)
+            except (ValueError,TypeError,AttributeError):
+                pass
+
+        def source_rejected():
+            return dict(_hold('HOLD_SCREEN_PROVIDER_HTTP_'+str(rejection[0])),
+                        source_fetch_performed=source_opened,
+                        http_status=rejection[0],
+                        provider_requests_retried=0)
         try:
             context=await browser.new_context(
                 viewport={"width":640,"height":360},
@@ -244,12 +265,16 @@ async def record_screen(browser,source,grant=None,*,verify_grant=None,now,aes_ke
             if fixture_loader is not None:
                 await fixture_loader(page)
             else:
+                page.on('response',observe_response)
+                source_opened=True
                 response=await page.goto(source["page_url"],
                                          wait_until="domcontentloaded",timeout=20000)
+                if rejection:return source_rejected()
                 if (response is None or response.status!=200 or
                         page.url!=source["page_url"]):
                     return _hold("HOLD_SCREEN_PAGE_IDENTITY_UNVERIFIED")
                 attestation=await verify_page_identity(page,source)
+                if rejection:return source_rejected()
                 if (type(attestation) is not dict or
                         attestation.get('race_id')!=source['race_id'] or
                         attestation.get('observed_from_page') is not True):
@@ -264,6 +289,7 @@ async def record_screen(browser,source,grant=None,*,verify_grant=None,now,aes_ke
             import time
             deadline=time.monotonic()+timeout_seconds
             while time.monotonic()<deadline:
+                if rejection:return source_rejected()
                 current=await _visible_state(page)
                 if current:
                     if first is None:
@@ -285,6 +311,7 @@ async def record_screen(browser,source,grant=None,*,verify_grant=None,now,aes_ke
                          min(2.5,timeout_seconds/2)):
                 observed_live_progress=True
         except Exception as exc:
+            if rejection:return source_rejected()
             # Class name only: never expose private URLs, pages or credentials.
             return dict(_hold("HOLD_SCREEN_PLAYBACK_UNAVAILABLE"),
                         failure_class=type(exc).__name__)
