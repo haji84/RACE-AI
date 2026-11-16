@@ -222,7 +222,10 @@ class SourceFreeExactZipTests(unittest.TestCase):
         with patch.object(exact,'OWNER_SHA','e'*40):
             self.replay_fixture('5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4')
 
-    def replay_fixture(self,owner_sha):
+    def test_continuation_cutoff_hold_uses_actual_canonical_p0_receipt(self):
+        self.replay_fixture(exact.OWNER_SHA,conflict=True)
+
+    def replay_fixture(self,owner_sha,*,conflict=False):
         from race_ai import boat_all_model_recovery as R
         from race_ai import cycle_recovery as C
         run=dict(id=42,head_sha=owner_sha,
@@ -251,22 +254,39 @@ class SourceFreeExactZipTests(unittest.TestCase):
                                    reused_baseline_forecasts=0),dict(
               independently_verified=True,created_at=CREATED,artifact_id=101,
               head_sha=owner_sha)
+        from unittest.mock import MagicMock
+        archive=MagicMock()
+        archive.__enter__.return_value.namelist.return_value=['forecasts.enc']
+        archive.__enter__.return_value.read.return_value=b'fixture-cipher'
+        parent_saved='2030-04-01T01:59:59Z'
         with patch.object(R,'_run',return_value=run),\
              patch.object(R,'_listed',return_value=(101,1)),\
              patch.object(R,'_metadata',return_value=(fake_meta,False)),\
              patch.object(R,'_project',side_effect=fake_project),\
              patch.object(C,'artifact_pages',return_value=[record]),\
+             patch.object(exact,'_canonical_p0',return_value=(dict(created_at=parent_saved),dict(id=41))) as canonical,\
+             patch.object(R,'_checked_zip',return_value=archive),\
+             patch.object(R.store,'open_forecasts',return_value={}),\
+             patch.object(exact,'cutoff_source_disagreement',return_value=dict(conflicting_model_slots=1)) as diagnose,\
              patch.object(exact,'_official_cutoffs',
-                          return_value={view['records'][0]['race_id']:exact.moment(CUTOFF)}):
+                          return_value={view['records'][0]['race_id']:exact.moment(
+                              '2030-04-01T11:59:00+09:00' if conflict else CUTOFF)}):
             report=exact.audit(get=get,repo='unused',run_id=42,day=DAY,
                                expected_models=['boat-model-A'],original_view=view,
                                now=NOW,owner_key=bytes(range(32)))
+        if conflict:
+            canonical.assert_called_once()
+            self.assertEqual(diagnose.call_args.kwargs['first_p0_saved_at'],parent_saved)
+            self.assertEqual(report['unqualified_original_reasons']['INDEPENDENT_OFFICIAL_CUTOFF_CONFLICT'],1)
+            self.assertEqual(report['official_schedule_crosschecked_pre_cutoff_model_slots'],0)
+        else:
+            canonical.assert_not_called();diagnose.assert_not_called()
         self.assertEqual(report['actual_listed_archives'],1)
         self.assertEqual(report['owner_source_commit'],owner_sha)
         self.assertEqual(report['github_zip_sha256_independently_verified'],1)
         self.assertEqual(report['aes_originals_independently_decrypted'],1)
         self.assertEqual(report['physical_pre_cutoff_distinct_model_slots'],1)
-        self.assertEqual(report['official_schedule_crosschecked_pre_cutoff_model_slots'],1)
+        self.assertEqual(report['official_schedule_crosschecked_pre_cutoff_model_slots'],0 if conflict else 1)
         self.assertEqual(report['referenced_existing_baseline_p1_rows_not_recounted'],0)
         self.assertEqual(report['original_predictions_matched_saved_AES_view'],1)
         self.assertEqual(report['previously_archived_coverages_skipped_without_zip_read'],0)

@@ -13,12 +13,13 @@ import os
 from pathlib import Path
 import re
 from zoneinfo import ZoneInfo
+from scripts.boat_failed_recovery_contract import reviewed_recovery_origin
 
 SCHEMA = "RACE_AI_BOAT_MAIN_OWNER_DISPATCH_GATE_V1"
 REPO = "haji84/RACE-AI"
 WORKFLOW = "BOAT nationwide cutoff-ordered A/B research (no Vercel)"
 RELEASE_REF = "production/boat-p0-p1-20261111"
-RELEASE_SHA = "84128e0ec8bd9fe3da64ad49f74b8511b07e72be"
+RELEASE_SHA = "b491fb21ce58ba085dd8f54bb7326442b840d8f4"
 FIRST_FAILED_ID = 42993305843
 FIRST_FAILED_SHA = "5f5bd960e3377a87541f9d6b348d3c045ea51cf0"
 RELEASE_TOKEN = "RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1"
@@ -43,7 +44,7 @@ def _stamp(value: str) -> datetime:
     return dt.astimezone(timezone.utc)
 
 
-def recovery_selection(*, run: dict, artifacts: dict) -> dict:
+def recovery_selection(*, run: dict, artifacts: dict, _checkpoint_only=False) -> dict:
     """Select saved bytes only; this never authorizes another source attempt."""
     def require(ok):
         if not ok:
@@ -58,7 +59,7 @@ def recovery_selection(*, run: dict, artifacts: dict) -> dict:
                        run.get('head_sha') == 'cf7b6f6a926396c6873e78fe1ad1d3d6840088a8')
     if run['id'] == 43131905826:
         require(retained_old_p0)  # Never reassign this immutable run to a newer release.
-    require((original_incident or retained_old_p0 or run.get('head_sha') == RELEASE_SHA) and
+    require((original_incident or retained_old_p0 or reviewed_recovery_origin(run.get('head_sha'),RELEASE_SHA)) and
             run.get('head_branch') == RELEASE_REF and
             run.get('event') == 'workflow_dispatch' and
             type(run.get('workflow_id')) is int and run['workflow_id'] == 405276784 and
@@ -76,7 +77,9 @@ def recovery_selection(*, run: dict, artifacts: dict) -> dict:
                 for item in items))
     require(len({item['id'] for item in items}) == len(items))
     selected = []
-    for prefix in ('boat-p0-existing', 'race-cycle-continuity', 'race-source-control'):
+    prefixes=('race-cycle-continuity','race-source-control') if _checkpoint_only else (
+        'boat-p0-existing','race-cycle-continuity','race-source-control')
+    for prefix in prefixes:
         found = [item for item in items if item.get('name') == f"{prefix}-{run['id']}"]
         require(len(found) == 1)
         item = found[0]
@@ -91,6 +94,8 @@ def recovery_selection(*, run: dict, artifacts: dict) -> dict:
                 re.fullmatch(r'sha256:[a-f0-9]{64}', item['digest']) is not None)
         _stamp(item.get('created_at'))
         selected.append(item)
+    if _checkpoint_only:
+        return dict(source_run_id=run['id'],source_sha=run['head_sha'],source_dispatch_allowed=False)
     if retained_old_p0:
         # Pin exact authentic source artifacts, not only a now-mutable
         # production branch name or a date. The independent AES reader still
@@ -107,6 +112,60 @@ def recovery_selection(*, run: dict, artifacts: dict) -> dict:
                 p0_artifact=selected[0]['id'],
                 companion_artifacts=[item['id'] for item in selected[1:]],
                 source_dispatch_allowed=False)
+
+
+def resolve_recovery_selection(*,run,artifacts,get,receipt_commit):
+    """Reuse the canonical day's first P0 when a continuation issued none.
+
+    The frozen registry blob selects an earlier actual owner. Its own original
+    checkpoint pair is retained; downstream AES readback must still reproduce
+    the complete first receipt. This grants no source dispatch permission.
+    """
+    first=[a for a in artifacts.get('artifacts',[]) if type(a) is dict and
+           a.get('name')==f"boat-p0-existing-{run.get('id')}"]
+    if first:
+        return recovery_selection(run=run,artifacts=artifacts)
+    recovery_selection(run=run,artifacts=artifacts,_checkpoint_only=True)
+    def require(ok):
+        if not ok:raise ValueError('BOAT_ORIGINAL_CANONICAL_RECEIPT_REJECTED')
+    require(type(receipt_commit) is str and re.fullmatch('[a-f0-9]{40}',receipt_commit))
+    day=_stamp(run['created_at']).astimezone(ZoneInfo('Asia/Tokyo')).date().isoformat()
+    path=f'docs/evidence/{day}/p0-first-receipt.json'
+    value=get(f'contents/{path}?ref={receipt_commit}')
+    require(type(value) is dict and value.get('type')=='file' and value.get('path')==path
+            and value.get('encoding')=='base64' and type(value.get('content')) is str)
+    import hashlib
+    try:
+        raw=base64.b64decode(value['content'].replace('\n',''),validate=True)
+        require(0<len(raw)<=16384 and value.get('size')==len(raw) and value.get('sha')==
+                hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw).hexdigest())
+        receipt=json.loads(raw)
+    except (ValueError,TypeError):
+        raise ValueError('BOAT_ORIGINAL_CANONICAL_RECEIPT_REJECTED') from None
+    require(type(receipt) is dict and receipt.get('schema')=='RACE_AI_P0_FIRST_RECEIPT_V1'
+            and receipt.get('day_jst')==day and receipt.get('no_regeneration') is True
+            and type(receipt.get('run_id')) is int and receipt['run_id']>0
+            and receipt['run_id']!=run['id'] and type(receipt.get('artifact_id')) is int)
+    origin=get(f'actions/runs/{receipt["run_id"]}')
+    pages=[]
+    for number in range(1,12):
+        suffix='' if number==1 else f'&page={number}'
+        page=get(f'actions/runs/{receipt["run_id"]}/artifacts?per_page=100'+suffix)
+        require(type(page) is dict and type(page.get('artifacts')) is list
+                and type(page.get('total_count')) is int and 0<page['total_count']<=1024
+                and (not pages or page['total_count']==pages[0]['total_count']))
+        pages.append(page)
+        if sum(len(p['artifacts']) for p in pages)>=page['total_count']:break
+        require(len(page['artifacts'])==100)
+    inventory=dict(total_count=pages[0]['total_count'],artifacts=[a for p in pages for a in p['artifacts']])
+    selected=recovery_selection(run=origin,artifacts=inventory)
+    original=next(a for a in inventory['artifacts'] if a['id']==selected['p0_artifact'])
+    require(selected['day_jst']==day and selected['p0_artifact']==receipt['artifact_id']
+            and original['digest']=='sha256:'+str(receipt.get('zip_sha256'))
+            and original['created_at']==receipt.get('server_created_at')
+            and _stamp(origin['created_at'])<=_stamp(original['created_at'])<=_stamp(run['created_at']))
+    selected['requested_run_id']=run['id']
+    return selected
 
 
 def _verified_failed_before_source(row, evidence):
@@ -188,7 +247,7 @@ def _verified_continuation(today: list, control: dict, now: datetime) -> bool:
     latest=ordered[0]
     if any(type(r.get('id')) is not int or r['id']<=0 or
            r.get('event')!='workflow_dispatch' or r.get('head_branch')!=RELEASE_REF or
-           r.get('head_sha')!=RELEASE_SHA or r.get('status')!='completed' or
+           not reviewed_recovery_origin(r.get('head_sha'),RELEASE_SHA) or r.get('status')!='completed' or
            r.get('conclusion')!='success' for r in ordered):
         return False
     if len({r['id'] for r in ordered})!=len(ordered):

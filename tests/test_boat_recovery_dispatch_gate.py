@@ -57,6 +57,62 @@ class RecoveryGateTests(unittest.TestCase):
         self.assertEqual((self.args,self.proof),before)
         self.assertEqual(out['official_source_requests'],0)
 
+    def orphan(self):
+        args, proof = evidence()
+        args['history']['workflow_runs'][0]['run_attempt'] = 1
+        original = proof['repairs'][0]['original_control']
+        fixed = deepcopy(original)
+        fixed['prepared_round'] = None
+        fixed['recovery'] = dict(schema='RACE_AI_ORPHAN_P1_ABANDONMENT_V1', previous_run_id=99,
+            round_no=3, verified_at=NOW.isoformat(), original_control_receipt=deepcopy(original['receipt']),
+            original_control=deepcopy(original),
+            p1_receipt=dict(id=123,digest='sha256:'+'d'*64,created_at='2030-04-01T02:00:00Z'),
+            continuity_receipt=deepcopy(original['receipt']),
+            source_control_receipt=deepcopy(original['source_control_receipt']),
+            checkpoint_AES_authenticated=True,public_control_matches_AES=True,
+            missing_result_inventory_verified=True,first_receipt_union_verified=True,
+            completed_round_advanced=False,originals_rewritten=False)
+        proof['repairs'][0].update(control=fixed, original_artifact_ids=[123,702,703],
+                                  original_head_sha=base.RELEASE_SHA)
+        proof['latest_control'] = deepcopy(fixed)
+        return args, proof
+
+    def test_orphan_is_abandoned_without_completed_round_or_counter_increase(self):
+        args, proof = self.orphan()
+        before = deepcopy((args, proof))
+        decision = gate.decide(**args, recovery_proof=proof)
+        self.assertTrue(decision['dispatch_allowed'])
+        self.assertEqual(proof['latest_control']['completed_round'], 2)
+        self.assertEqual(proof['latest_control']['lifetime_completed_rounds'], 2)
+        self.assertEqual((args, proof), before)
+        for field, value in [('completed_round',3),('lifetime_completed_rounds',3),
+                             ('lifetime_requests',0),('day_start_lifetime_requests',88)]:
+            altered=deepcopy(proof)
+            altered['repairs'][0]['control'][field]=value
+            altered['latest_control'][field]=value
+            with self.subTest(field=field):
+                self.assertFalse(gate.decide(**args,recovery_proof=altered)['dispatch_allowed'])
+
+    def test_exact_reviewed_previous_owner_can_recover_under_new_current_dispatch_release(self):
+        from unittest.mock import patch
+        args, proof = self.orphan()
+        previous='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
+        args['history']['workflow_runs'][0]['head_sha']=previous
+        proof['repairs'][0]['original_head_sha']=previous
+        proof['history_sha256']=contract.history_digest(args['history']['workflow_runs'])
+        current='e'*40
+        proof['head_sha']=current
+        args['release']['object']['sha']=current
+        with patch.object(base,'RELEASE_SHA',current):
+            self.assertTrue(gate.decide(**args,recovery_proof=proof)['dispatch_allowed'])
+            args['release']['object']['sha']=previous
+            self.assertFalse(gate.decide(**args,recovery_proof=proof)['dispatch_allowed'])
+            args['release']['object']['sha']=current
+            args['history']['workflow_runs'][0]['head_sha']='d'*40
+            proof['repairs'][0]['original_head_sha']='d'*40
+            proof['history_sha256']=contract.history_digest(args['history']['workflow_runs'])
+            self.assertFalse(gate.decide(**args,recovery_proof=proof)['dispatch_allowed'])
+
     def test_zero_round_recovery_preserves_prior_same_day_owner_usage(self):
         original=self.proof['repairs'][0]['original_control']
         original.update(completed_round=0,prepared_round=None,

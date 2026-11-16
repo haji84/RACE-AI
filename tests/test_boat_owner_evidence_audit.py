@@ -34,6 +34,20 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(value['scheduled_without_baseline_p1'],3)
         self.assertEqual(value['p1_eligibility_unknown'],3)
         self.assertFalse(value['all_models_complete_proven'])
+
+    def test_continuation_reads_canonical_first_p0_from_actual_earlier_origin(self):
+        from tests.test_boat_first_p0_recovery_gate import RecoveryAdmissionTests
+        current,listing,replies=RecoveryAdmissionTests().continued_day()
+        # The helper fixture returns decoded responses; the auditor transports
+        # bytes and pins the registry commit before resolving its original.
+        values=dict(replies)
+        values['git/ref/heads/feat/four-sport-forecast-audit-view-20261022']=dict(object=dict(sha='d'*40))
+        values['actions/artifacts/13842474540']=values['actions/runs/99/artifacts?per_page=100']['artifacts'][0]
+        item,origin=audit.first_p0_original(lambda p:json.dumps(values[p]).encode(),
+                                           current,listing['artifacts'])
+        self.assertEqual(origin['id'],99)
+        self.assertEqual(item['id'],13842474540)
+        self.assertEqual(item['workflow_run']['id'],origin['id'])
     def test_unverified_schedule_cannot_prove_nationwide_coverage(self):
         value=audit.summarize(self.schedule,self.p0,self.p1,[],day=DAY,now=NOW,official_program_verified=False)
         self.assertIsNone(value['scheduled_races'])
@@ -150,6 +164,7 @@ class CurrentReleaseEvidenceWiringTests(unittest.TestCase):
         with patch.object(audit,'OWNER_SHA','e'*40):
             self.assertTrue(audit._source_pinned(42,'e'*40))
             self.assertTrue(audit._source_pinned(42,old))
+            self.assertTrue(audit._source_pinned(42,'84128e0ec8bd9fe3da64ad49f74b8511b07e72be'))
             self.assertTrue(audit._source_pinned(audit.HISTORIC_RUN,audit.HISTORIC_SHA))
             for run,sha in ((42,audit.HISTORIC_SHA),(42,'f'*40),
                             (42,None),(True,old),(0,old)):

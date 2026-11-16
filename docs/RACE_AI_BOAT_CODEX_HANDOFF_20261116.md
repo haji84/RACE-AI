@@ -232,3 +232,30 @@ owner43772481781は24巡を成功終了し、真正なcontinuity/source-control�
 無人引継ぎの合格には数えず、カウンター・原本・source84128は維持する。
 新P1の独立AESを取りこぼさないため、既存PR286の既存監査jobのmain push対象だけを
 完了済み43772481781へ変更。workflow_runの動的な対象選択・実鍵・実時刻検証は維持する。
+## 追記: 再接続後の優先復旧と実画面合格
+
+この節が古い「main未統合」「画面未合格」「source稼働継続」に対する最新の差分。
+PR143は本人承認後にmain78b2847145e20293ea6c154df38918e726ebc133へ統合済み。
+結果読取b9a1451dfは実経過時間を扱い、run43790076944の結果取得・実Chrome検証が成功。
+当日結果15件とnative P1表示をスマホ幅・PC幅で照合した。実機Safariは未確認。
+
+owner43782543906は第7巡P1原本14189866940の保存後にGitHub metadata404で失敗した。
+原本のzip SHAはbf59065e3265581e904b076c382d206f8955db9ae89a0ba8e75641d7e2abb12a。
+最終checkpoint pairは14190011394/14189372943。公開counterは完了6・準備7、
+累積GET11812・当日基点11524・worker70・完了巡回累積638。RESULT7は存在しない。
+実orphan AES読戻しは未確認。新しい予想が稼働しているとは扱わない。
+
+既存PR164(source)/174(main)だけを再利用して、元のproposal履歴を保全したまま
+現行production84128/main78b284のtreeから修正する。有限取得枠の古い提案を再適用しない。
+孤立P1を実AES/全inventory/first receiptで検証し、既存vaultへの原本3点retention後に
+prepared印だけを解除する。6巡を7巡にせず、RESULTを生成せず、全counterと元clockを保持。
+後継workerの最初の課金GETは11813。scheduleキャッシュの180秒判定と提供元holdを保持する。
+真正なcallback/schedule/既存release-pushを認証し、mainのlive pinはsourceの実保護merge SHAへ
+同期する。明示レビュー済み84128を過去原本originとしてのみ許可し、任意祖先を許可しない。
+
+実復旧・新P1・別runner AES・画面を順に検証するまで合格にしない。全モデル/映像/精度/98%の
+未達条件はそのまま残る。詳細な最新事実はRACE_AI_LATEST_STATUS.mdの先頭追記を参照。
+
+PR164はCI・独立レビュー後に通常保護merge済み。実sourceはb491fb21ce58ba085dd8f54bb7326442b840d8f4。
+main174の23live pinをこの実SHAへ同期した。source607件と独立193件、main119件は合格。
+実orphan AESと新P1の受入は続けて確認する。未確認を合格に数えない。

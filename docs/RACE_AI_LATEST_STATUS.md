@@ -1,3 +1,38 @@
+<!-- BOAT recovery update 2026-11-16: latest facts precede preserved history. -->
+## 2026-11-16: 実画面の合格と自動予想復旧の状況
+
+本人の「承認する」に基づき既存PR302/289/286/143/164を保護ルールに従って統合済み。
+本更新前のmain実HEADは78b2847145e20293ea6c154df38918e726ebc133、
+producer実HEADはb491fb21ce58ba085dd8f54bb7326442b840d8f4。
+
+**実データで合格した部分**：結果バッチの実経過時間を加えた読取版b9a1451dfを
+既存PR143で反映。実Actions run43790076944の結果取得とChromeブラウザ操作が成功した。
+選択した保存済み2日分で公式GET179、結果sync276レース、変更22件、confirmed162・
+held10・pending104を記録。ブラウザでは当日結果15件、native P1表示14group、根拠3view、
+スマホ幅・PC幅を跨ぐupcoming row訪問180を原本と照合した。group/訪問数を
+固有モデル数・固有レース数に数えない。実機Safariと8画面すべての視覚受入は未確認。
+
+**現在の停止原因**：owner43782543906はP1第7巡14189866940を保存した後、
+GitHub ARTIFACT_METADATA 404で停止。CONTINUITY14190011394とSOURCE_CONTROL14189372943の
+ZIP/SHA照合では完了6・準備7・累積GET11812・当日基点11524・当該worker70・
+完了巡回累積638。第7巡のRESULTは存在しない。公開counterの照合だけでは
+実AES復旧の合格にしない。callbackは到着したが、旧helperのschedule限定と
+RESULT必須条件で復旧が失敗していた。予想が現在稼働中とは報告しない。
+
+**既存PR164/174の修正**：AES/public/canonical first receiptを検証して孤立P1と
+最終checkpointを保持し、完了数・使用量を変えずに後継workerへ引き継ぐ。
+保存直後のmetadata404だけに現在runのupload receiptを使った限定再読込を実装。
+真正callback/release-pushの認証と、日内引継ぎで朝のP0原本を再利用する参照を修正。
+修正候補は全live pin23箇所を実production SHAへ同期済み。ローカル119件が合格。
+実AES runnerでの14189866940検証、新worker起動、累積11812からの増分と新たな締切前P1保存は
+本記録時点では未確認。過去の予想・結果・待機clock・使用量を改変しない。
+
+既存の6つのALL_MODEL ZIPの独立AES読戻しで、正式な締切前45slot（9model×5race）を
+saved viewと照合済み。別のnative25slotには適格性/生成時刻のview証拠不足があり、
+合計70合格とはしない。当日120レース×14モデル=1680slotの全日充足は未証明。
+映像3項目、無人の継続引継ぎ、予想改善の前向き実証、98%も未達。
+新規課金・新service・モデル系統・Issue・PR・job・cron・投票は追加しない。
+
 <!-- RACE_AI_BOAT_CLOCK_RECOVERY_20261116 -->
 # 2026-11-16 JST｜再接続後の実確認：P1独立AES合格、結果取得の時計修正を反映中
 

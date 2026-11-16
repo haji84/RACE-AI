@@ -15,9 +15,10 @@ from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 import re
 
-OWNER_SHA='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
+OWNER_SHA='b491fb21ce58ba085dd8f54bb7326442b840d8f4'
 # Read-only replay of already sealed originals. This is not a dispatcher pin.
 PREVIOUS_OWNER_SHA='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
+REVIEWED_PREVIOUS_OWNER_SHA='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
 SCHEMA='RACE_AI_BOAT_EXACT_ALL_MODEL_ZIP_READBACK_V1'
 JST=timezone(timedelta(hours=9))
 SHA=re.compile(r'[a-f0-9]{64}\Z')
@@ -30,7 +31,7 @@ def need(ok):
 
 
 def _owner_head(value):
-    need(type(value) is str and value in (OWNER_SHA,PREVIOUS_OWNER_SHA))
+    need(type(value) is str and value in (OWNER_SHA,PREVIOUS_OWNER_SHA,REVIEWED_PREVIOUS_OWNER_SHA))
     return value
 
 
@@ -64,6 +65,16 @@ def _identity(race_id,prediction):
         ensure_ascii=False,allow_nan=False).encode()).hexdigest()
 
 
+def _canonical_p0(get,run,listing):
+    """Keep both cutoff verification and conflict diagnostics on one origin."""
+    import importlib.util
+    from pathlib import Path
+    path=Path(__file__).with_name('boat_owner_evidence_audit.py')
+    spec=importlib.util.spec_from_file_location('canonical_p0_evidence_audit',path)
+    auditor=importlib.util.module_from_spec(spec);spec.loader.exec_module(auditor)
+    return auditor.first_p0_original(get,run,listing)
+
+
 def _official_cutoffs(get, repo, run, listing, reader, *, day, now, key):
     """Re-open P0 ZIP and independently verify the original official B source.
 
@@ -76,19 +87,18 @@ def _official_cutoffs(get, repo, run, listing, reader, *, day, now, key):
     from race_ai.boat_private_original_vault import _artifact, REPO_ID
     from race_ai.frozen_day_cycle import read_p0
     from race_ai.boat_program_source import load_program_source
-    owner_head=_owner_head(run.get('head_sha'))
-    first=[a for a in listing if a.get('name')==f"boat-p0-existing-{run['id']}"]
-    need(len(first)==1)
-    item=first[0]
+    _owner_head(run.get('head_sha'))
+    item,origin=_canonical_p0(get,run,listing)
+    owner_head=_owner_head(origin.get('head_sha'))
     ident=item['id']
     meta_raw=reader.read(f'actions/artifacts/{ident}',128*1024)
     meta=json.loads(meta_raw)
     raw=get(f'actions/artifacts/{ident}/zip')
-    _metadata(raw,meta,name=item['name'],run_id=run['id'],head_sha=owner_head)
+    _metadata(raw,meta,name=item['name'],run_id=origin['id'],head_sha=owner_head)
     _artifact(raw,meta_raw,key=key,now=now,expected_kind='P0')
     doc,p0=read_p0(raw,meta,expected_day=day)
     receipt=dict(repository_id=REPO_ID,repository='haji84/RACE-AI',
-        run_id=str(run['id']),head_sha=owner_head,
+        run_id=str(origin['id']),head_sha=owner_head,
         artifact_id=ident,created_at=meta['created_at'],
         payload_sha256=digest(doc),independently_verified=True)
     verified=load_program_source(day,doc,receipt,repo,key=key,as_of=now.isoformat())
@@ -368,15 +378,14 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         # sealed P1 racecard/exhibition deadline from the first official P0 B
         # schedule. The 9 conflicting model slots remain HOLD; no re-scoring.
         if holds.get('INDEPENDENT_OFFICIAL_CUTOFF_CONFLICT',0):
-            p0=[a for a in listed if a.get('name')==f"boat-p0-existing-{run['id']}"]
-            need(len(p0)==1)
+            p0,_=_canonical_p0(get,run,listed)
             with R._checked_zip(raw,max_zip_bytes=R.MAX_ZIP_BYTES,
                                 max_expanded=R.store.MAX_WIRE) as archive:
                 need(archive.namelist()==['forecasts.enc'])
                 native_payload=R.store.open_forecasts(archive.read('forecasts.enc'),key=key)
             diagnostic=cutoff_source_disagreement(projected,native_payload,rows,
                 artifact_id=artifact_id,official_cutoffs=official_cutoffs,
-                first_p0_saved_at=p0[0]['created_at'],p1_saved_at=meta['created_at'])
+                first_p0_saved_at=p0['created_at'],p1_saved_at=meta['created_at'])
             need(diagnostic['conflicting_model_slots']==
                  holds['INDEPENDENT_OFFICIAL_CUTOFF_CONFLICT'])
             cutoff_diagnostics.append(dict(round=round_no,**diagnostic))
