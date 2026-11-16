@@ -183,9 +183,11 @@ def _safe_result(report, rid, n):
 
 
 def collect_owner_inputs(inbox, *, owner_auto_confirmed, capture=None, probe=None,
-                         fetch=None, clock=None, monotonic=None, budget_seconds=240):
+                         fetch=None, clock=None, monotonic=None, budget_seconds=240,
+                         single_race_pilot=False):
     """All eligible captured races in cutoff order, with no invented features."""
     need(owner_auto_confirmed is True, 'EXPLICIT_OWNER_AUTOMATIC_SCOPE_REQUIRED')
+    need(type(single_race_pilot) is bool, 'PILOT_FLAG_MUST_BE_BOOLEAN')
     root = _private_root(inbox)
     need(type(budget_seconds) in (int, float) and 1 <= budget_seconds <= 600,
          'SOURCE_WORK_TIME_BUDGET_INVALID')
@@ -258,6 +260,22 @@ def collect_owner_inputs(inbox, *, owner_auto_confirmed, capture=None, probe=Non
         except (ValueError, OSError, KeyError, TypeError):
             out['invalid_partial_records'] += 1
     ordered = sorted(latest.values(), key=lambda row:(row[2], row[0]['race_id']))
+    if single_race_pilot:
+        # Preserve full-day discovery, then spend the bounded historic-source
+        # probe budget on the first source-verified *future* race only.
+        # The output is still PARTIAL_INPUT_ONLY and is never promoted to pre/.
+        eligible_for_pilot = [
+            row for row in ordered if instant(clock()) + MARGIN < row[2]
+        ]
+        out['single_race_pilot'] = True
+        out['pilot_eligible_races_observed'] = len(eligible_for_pilot)
+        out['pilot_other_eligible_races_deferred'] = max(
+            0, len(eligible_for_pilot) - 1)
+        out['pilot_expired_or_too_close_not_selected'] = (
+            len(ordered) - len(eligible_for_pilot))
+        ordered = eligible_for_pilot[:1]
+    else:
+        out['single_race_pilot'] = False
     # The old per-race max_pages=100 could exhaust a 240-second worker on
     # the earliest few races. Divide bounded historical reads fairly among
     # currently prospective cards, without fetching extra pages or claiming
@@ -315,11 +333,14 @@ def main(argv=None):
     parser.add_argument('--inbox', required=True)
     parser.add_argument('--owner-automatic-fetch-confirmed', action='store_true')
     parser.add_argument('--budget-seconds', type=int, default=240)
+    parser.add_argument('--single-race-pilot', action='store_true',
+                        help='Research only: inspect earliest eligible race, no model promotion')
     args = parser.parse_args(argv)
     try:
         report = collect_owner_inputs(args.inbox,
             owner_auto_confirmed=args.owner_automatic_fetch_confirmed,
-            budget_seconds=args.budget_seconds)
+            budget_seconds=args.budget_seconds,
+            single_race_pilot=args.single_race_pilot)
         print(json.dumps(report, sort_keys=True, ensure_ascii=False))
         return 0
     except (ValueError, OSError, KeyError, TypeError):
