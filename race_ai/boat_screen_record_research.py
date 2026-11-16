@@ -179,13 +179,21 @@ def _duration(path):
 async def _visible_state(page):
     # Only read the visible HTML5 player API (including ordinary iframes).
     # Never read direct media URLs or inspect/decode a protected stream.
+    visible="""(element) => {
+      const b=element.getBoundingClientRect();
+      if(Math.min(b.right,innerWidth)-Math.max(b.left,0)<=40 ||
+         Math.min(b.bottom,innerHeight)-Math.max(b.top,0)<=40)return false;
+      for(let e=element;e;e=e.parentElement){
+        const css=getComputedStyle(e);
+        if(css.display==='none'||css.visibility==='hidden'||css.visibility==='collapse'||
+           Number(css.opacity)<=0||css.contentVisibility==='hidden')return false;
+      }
+      return true;
+    }"""
     js="""() => {
       const player=document.querySelector('video');
       if(!player)return null;
-      const b=player.getBoundingClientRect();
-      const css=getComputedStyle(player);
-      return {visible:b.width>40&&b.height>40&&css.display!=='none'&&
-            css.visibility!=='hidden',currentTime:player.currentTime,
+      return {visible:("""+visible+""")(player),currentTime:player.currentTime,
         duration:Number.isFinite(player.duration)?player.duration:null,
         ended:player.ended,readyState:player.readyState,paused:player.paused};
     }"""
@@ -193,7 +201,14 @@ async def _visible_state(page):
         try:
             result=await frame.evaluate(js)
             if result and result.get("visible") is True and result.get("readyState",0)>=1:
-                return result
+                parent=frame
+                while parent.parent_frame is not None:
+                    element=await parent.frame_element()
+                    if not await element.evaluate(visible):
+                        break
+                    parent=parent.parent_frame
+                else:
+                    return result
         except Exception:
             continue
     return None
@@ -238,6 +253,9 @@ async def record_screen(browser,source,grant=None,*,verify_grant=None,now,aes_ke
         rejection=[]
         source_opened=False
 
+        def capture_hold(code):
+            return dict(_hold(code),source_fetch_performed=source_opened)
+
         def observe_response(response):
             # Observe the official player's ordinary requests only. Do not
             # repeat a refused request or copy its URL/body/credentials.
@@ -272,19 +290,19 @@ async def record_screen(browser,source,grant=None,*,verify_grant=None,now,aes_ke
                 if rejection:return source_rejected()
                 if (response is None or response.status!=200 or
                         page.url!=source["page_url"]):
-                    return _hold("HOLD_SCREEN_PAGE_IDENTITY_UNVERIFIED")
+                    return capture_hold("HOLD_SCREEN_PAGE_IDENTITY_UNVERIFIED")
                 attestation=await verify_page_identity(page,source)
                 if rejection:return source_rejected()
                 if (type(attestation) is not dict or
                         attestation.get('race_id')!=source['race_id'] or
                         attestation.get('observed_from_page') is not True):
-                    return _hold("HOLD_SCREEN_DOM_RACE_ID_UNVERIFIED")
+                    return capture_hold("HOLD_SCREEN_DOM_RACE_ID_UNVERIFIED")
                 if source["play_selector"] is not None:
                     button=(page.get_by_text("展示リプレイ",exact=True)
                          if source["play_selector"]=="展示リプレイ"
                          else page.locator(source["play_selector"]))
                     if await button.count()!=1 or not await button.is_visible():
-                        return _hold("HOLD_SCREEN_PLAY_CONTROL_UNAVAILABLE")
+                        return capture_hold("HOLD_SCREEN_PLAY_CONTROL_UNAVAILABLE")
                     await button.click(timeout=6000)
             import time
             deadline=time.monotonic()+timeout_seconds
@@ -313,7 +331,7 @@ async def record_screen(browser,source,grant=None,*,verify_grant=None,now,aes_ke
         except Exception as exc:
             if rejection:return source_rejected()
             # Class name only: never expose private URLs, pages or credentials.
-            return dict(_hold("HOLD_SCREEN_PLAYBACK_UNAVAILABLE"),
+            return dict(capture_hold("HOLD_SCREEN_PLAYBACK_UNAVAILABLE"),
                         failure_class=type(exc).__name__)
         finally:
             try:
@@ -325,15 +343,15 @@ async def record_screen(browser,source,grant=None,*,verify_grant=None,now,aes_ke
                 recorded=None
         admitted=ended if source["mode"]=="REPLAY" else observed_live_progress
         if not admitted or recorded is None or not recorded.is_file() or recorded.is_symlink():
-            return _hold("HOLD_VISIBLE_PLAYER_NOT_COMPLETE")
+            return capture_hold("HOLD_VISIBLE_PLAYER_NOT_COMPLETE")
         try:
             stat=recorded.stat()
             if not 1000<=stat.st_size<=_MAX_SCREEN_BYTES:
-                return _hold("HOLD_SCREEN_CAPTURE_BYTES_INVALID")
+                return capture_hold("HOLD_SCREEN_CAPTURE_BYTES_INVALID")
             actual=_duration(recorded)
             if (source["mode"]=="REPLAY" and
                     (actual+1.7<last["duration"] or actual>last["duration"]+30)):
-                return _hold("HOLD_SCREEN_CAPTURE_DURATION_MISMATCH")
+                return capture_hold("HOLD_SCREEN_CAPTURE_DURATION_MISMATCH")
             raw=recorded.read_bytes()
             envelope=seal_screen(raw,race_id=source["race_id"],
                 page_url=source["page_url"],fixture=fixture_loader is not None,
@@ -354,4 +372,4 @@ async def record_screen(browser,source,grant=None,*,verify_grant=None,now,aes_ke
                 source_fetch_performed=fixture_loader is None,
                 envelope=envelope)
         except (OSError,ValueError,TypeError,OverflowError,subprocess.SubprocessError,UnicodeError):
-            return _hold("HOLD_SCREEN_CAPTURE_VERIFICATION_FAILED")
+            return capture_hold("HOLD_SCREEN_CAPTURE_VERIFICATION_FAILED")

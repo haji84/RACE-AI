@@ -231,7 +231,63 @@ class AllModelCycleTests(unittest.TestCase):
                 self.assertEqual(p["artifact_id"], 100)
                 self.assertEqual(p["persisted_at"], current["created_at"])
             self.assertEqual(p["source_code_commit"], HEAD)
-            self.assertTrue(p["eligible_pre_cutoff"])
+            missing_clock=p['dispatch_status']=='ORIGINAL_REUSED' and p['model_id'] not in __import__(
+                'race_ai.boat_ab_shadow',fromlist=['MODEL_IDS']).MODEL_IDS
+            self.assertEqual(p["eligible_pre_cutoff"],not missing_clock)
+            if missing_clock:self.assertIsNone(p['generated_at'])
+
+    def test_reused_legacy_asof_never_becomes_a_generation_clock(self):
+        baseline=native_baseline(source_context())
+        payload=self.run_round(baseline_document=baseline,baseline_receipt=receipt(baseline,
+            artifact=99,saved='2030-04-01T18:00:02+09:00'))
+        from race_ai.boat_ab_shadow import MODEL_IDS as AB
+        reused=[s for s in payload['dispatch_reports'][0]['slots'] if s['status']=='ORIGINAL_REUSED' and s['model_id'] not in AB]
+        self.assertEqual(len(reused),3)
+        self.assertTrue(all(s['dispatch_generated_at'] is None for s in reused))
+        # Reopen an old payload that carried the historical as_of substitution.
+        for slot in reused:slot['dispatch_generated_at']=ASOF
+        before=deepcopy(payload)
+        view=cycle.project_round(payload,receipt(payload))
+        originals=[p for p in self.predictions(view) if p['dispatch_status']=='ORIGINAL_REUSED' and p['model_id'] not in AB]
+        self.assertTrue(all(p['generated_at'] is None and p['eligible_pre_cutoff'] is False for p in originals))
+        self.assertTrue(all(p['native_clock_provenance']=='NATIVE_GENERATION_CLOCK_MISSING' for p in originals))
+        self.assertEqual(payload,before)
+
+    def test_fresh_baseline_events_qualify_all_five_without_changing_native_hashes(self):
+        from race_ai.boat_native_generation_event import record_generation_event
+        ctx=source_context();baseline=native_baseline(ctx)
+        native_before=deepcopy(baseline)
+        pair=baseline['paired_forecasts'][0]
+        models=[baseline['additional_official_feature_shadows'][0],*baseline['observed_pairwise_p1_bundles'][0]['suite']['models'].values()]
+        baseline['native_generation_events']=[record_generation_event(model,race_id=pair['race_id'],
+            source_snapshot_sha256=pair['source_sha256'],program_source_sha256=pair['program_source_sha256'],
+            beforeinfo_source_sha256=pair['beforeinfo_source_sha256'],
+            computation_started_at='2030-04-01T18:00:00.100000+09:00',
+            computation_completed_at='2030-04-01T18:00:00.200000+09:00') for model in models]
+        payload=self.run_round(ctx,baseline_document=baseline,baseline_receipt=receipt(baseline,
+            artifact=99,saved='2030-04-01T18:00:02+09:00'))
+        view=cycle.project_round(payload,receipt(payload))
+        reused=[p for p in self.predictions(view) if p['dispatch_status']=='ORIGINAL_REUSED']
+        self.assertEqual(len(reused),5)
+        self.assertTrue(all(p['eligible_pre_cutoff'] for p in reused))
+        completed=[p for p in reused if p.get('computation_completed_at') is not None]
+        self.assertEqual(len(completed),3)
+        self.assertTrue(all(p['generated_at'] is None for p in completed))
+        self.assertEqual({k:v for k,v in baseline.items() if k!='native_generation_events'},native_before)
+
+    def test_event_for_a_different_native_hash_is_rejected_not_silently_ignored(self):
+        from race_ai.boat_native_generation_event import record_generation_event
+        ctx=source_context();baseline=native_baseline(ctx);pair=baseline['paired_forecasts'][0]
+        event=record_generation_event(baseline['additional_official_feature_shadows'][0],race_id=pair['race_id'],
+            source_snapshot_sha256=pair['source_sha256'],program_source_sha256=pair['program_source_sha256'],
+            beforeinfo_source_sha256=pair['beforeinfo_source_sha256'],
+            computation_started_at='2030-04-01T18:00:00.100000+09:00',
+            computation_completed_at='2030-04-01T18:00:00.200000+09:00')
+        event['prediction_sha256']='0'*64
+        event['event_sha256']=digest({k:v for k,v in event.items() if k!='event_sha256'})
+        baseline['native_generation_events']=[event]
+        with self.assertRaises(ValueError):self.run_round(ctx,baseline_document=baseline,
+            baseline_receipt=receipt(baseline,artifact=99,saved='2030-04-01T18:00:02+09:00'))
 
     def test_baseline_observed_http_provenance_cannot_conflict_with_saved_source(self):
         ctx = source_context()

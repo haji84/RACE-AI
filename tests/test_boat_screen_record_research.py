@@ -154,6 +154,36 @@ class ScreenRecorderRealBrowserTests(unittest.TestCase):
     def tearDownClass(cls):
         if hasattr(cls,"fixture"):cls.fixture.cleanup()
 
+    def test_transparent_player_and_transparent_parent_are_not_visible_recordings(self):
+        import html
+        from playwright.async_api import async_playwright
+        from race_ai.boat_screen_record_research import record_screen
+        async def record():
+            outcomes=[]
+            async with async_playwright() as pw:
+                browser=await pw.chromium.launch(headless=True,
+                    args=['--no-sandbox','--autoplay-policy=no-user-gesture-required'])
+                try:
+                    for player_style,parent_style,hidden_frame in [
+                            ('opacity:0','',False),('','opacity:0',False),('','',True)]:
+                        async def loader(page):
+                            content=('<div style="'+parent_style+'"><video autoplay muted '+
+                                'style="width:320px;height:240px;'+player_style+'" '+
+                                'src="data:video/webm;base64,'+self.payload+'"></video></div>')
+                            if hidden_frame:
+                                content='<iframe style="opacity:0;width:400px;height:280px" srcdoc="'+html.escape(content,quote=True)+'"></iframe>'
+                            await page.set_content(content)
+                        outcomes.append(await record_screen(browser,source(),now=NOW,aes_key=b'k'*32,
+                            fixture_loader=loader,timeout_seconds=3))
+                finally:
+                    await browser.close()
+            return outcomes
+        for index,outcome in enumerate(asyncio.run(record())):
+            with self.subTest(case=index):
+                self.assertEqual(outcome['status'],'HOLD_VISIBLE_PLAYER_NOT_COMPLETE')
+                self.assertNotIn('envelope',outcome)
+                self.assertFalse(outcome['model_eligible'])
+
     def test_browser_visible_html5_playback_is_encrypted_then_sha_reopened(self):
         from playwright.async_api import async_playwright
         from race_ai.boat_screen_record_research import record_screen,unseal_screen

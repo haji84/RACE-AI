@@ -259,15 +259,36 @@ def _originals(document, receipt, contexts, head, now):
     _need(document.get("schema") == "RACE_AI_NATIONWIDE_PRE_CUTOFF_AB_V1", "BASELINE_SCHEMA_INVALID")
     proof = _receipt(receipt, digest(document), head)
     _need(_time(proof["created_at"]) <= now, "BASELINE_RECEIPT_IN_FUTURE")
+    from .boat_native_generation_event import event_index
+    events=event_index(document)
+    if events:
+        from .private_cycle_projection import _native_entries
+        _need(set(events)<=set(_native_entries([document])), 'NATIVE_EVENT_OUTPUT_MISSING')
     originals = []; parents = {}
-    def add(prediction, rid, at, context=None, input_hash=None):
+    def add(prediction, rid, at, context=None, input_hash=None, generation_event=None, clock_source=None):
         current = contexts[rid]; cutoff = current["program"]["closed_at"]
-        _need(_time(at) <= now and _not_before(at, proof["created_at"]), "BASELINE_SAVE_BEFORE_GENERATION")
-        originals.append(dict(race_id=rid, sport="boat", stage="P1", cutoff_at=cutoff,
+        asof=prediction.get('as_of') or (context or {}).get('generated_at')
+        _need(asof is not None and _time(asof)<=now and _not_before(asof,proof['created_at']),
+              'BASELINE_SAVE_BEFORE_INPUT')
+        if at is not None:
+            _need(_time(at) <= now and _not_before(at, proof["created_at"]), "BASELINE_SAVE_BEFORE_GENERATION")
+        original=dict(race_id=rid, sport="boat", stage="P1", cutoff_at=cutoff,
             model_id=prediction["model_id"], model_version=prediction.get("model_version"), prediction=deepcopy(prediction),
             prediction_sha256=_native_hash(prediction), output_sha256=digest(prediction), native_context=deepcopy(context),
             original_input_sha256=input_hash,
-            scope="OPERATOR_SUPPLIED_RESEARCH", dispatch_generated_at=at, external_receipt_verified=False, official_prediction=False))
+            original_input_as_of=asof,scope="OPERATOR_SUPPLIED_RESEARCH", dispatch_generated_at=at,
+            external_receipt_verified=False, official_prediction=False)
+        if generation_event is not None:
+            original.update(native_generation_event=deepcopy(generation_event),native_clock_source=deepcopy(clock_source))
+        originals.append(original)
+    def generation(prediction,rid):
+        from .boat_native_generation_event import read_generation_event
+        pair=parents[rid]
+        source={k:pair[k] for k in ('source_sha256','program_source_sha256','beforeinfo_source_sha256','source_captured_at')}
+        source['source_snapshot_sha256']=source.pop('source_sha256')
+        event=read_generation_event(document,prediction,race_id=rid,**source,
+            cutoff_at=pair['cutoff_at'],saved_at=proof['created_at'])
+        return event,source
     for pair in document.get("paired_forecasts", []):
         rid = pair.get("race_id")
         if rid not in contexts:
@@ -284,7 +305,9 @@ def _originals(document, receipt, contexts, head, now):
         rid = prediction.get("race_id")
         if rid in parents and "bundle_sha256" in prediction:
             _need(prediction["source_snapshot_sha256"] == parents[rid]["source_sha256"], "BASELINE_C_SOURCE_MISMATCH")
-            add(prediction, rid, prediction["as_of"], input_hash=prediction["source_snapshot_sha256"])
+            event,source=generation(prediction,rid)
+            add(prediction, rid, prediction.get('generated_at'), input_hash=prediction["source_snapshot_sha256"],
+                generation_event=event,clock_source=source)
     for bundle in document.get("observed_pairwise_p1_bundles", []):
         rid = bundle.get("race_id")
         if rid not in parents or "suite" not in bundle:
@@ -311,7 +334,9 @@ def _originals(document, receipt, contexts, head, now):
                   "BASELINE_OBSERVED_HTTP_BINDING_INVALID")
         for prediction in suite["models"].values():
             _need(prediction.get("snapshot_sha256") == suite["snapshot_sha256"], "BASELINE_OBSERVED_MODEL_INPUT_INVALID")
-            add(prediction, rid, snap["as_of"], input_hash=suite["snapshot_sha256"])
+            event,source=generation(prediction,rid)
+            add(prediction, rid, prediction.get('generated_at'), input_hash=suite["snapshot_sha256"],
+                generation_event=event,clock_source=source)
     return originals, dict(document_sha256=digest(document), receipt=proof)
 
 
@@ -552,25 +577,57 @@ def project_round(payload, receipt):
                 reused = slot["status"] == "ORIGINAL_REUSED"
                 proof = prior_receipt if reused else current_receipt
                 _need(proof is not None, "ORIGINAL_RECEIPT_REQUIRED")
-                generated = p.get("generated_at") or slot.get("dispatch_generated_at")
+                event=None
+                if reused:
+                    generated=slot['prediction'].get('generated_at')
+                    parent=slot.get('native_context') or {}
+                    if slot['model_id'] in dict(GROUPS)['boat_ab']:
+                        generated=parent.get('generated_at')
+                    if slot.get('native_generation_event') is not None:
+                        from .boat_native_generation_event import read_generation_event
+                        source=slot['native_clock_source']
+                        parents=[s.get('native_context') for s in report['slots']
+                                 if s['model_id'] in dict(GROUPS)['boat_ab'] and s['status']=='ORIGINAL_REUSED']
+                        _need(parents and all(type(parent) is dict and _native_hash(parent) is not None
+                              and parent['source_sha256']==source['source_snapshot_sha256']
+                              and parent['program_source_sha256']==source['program_source_sha256']
+                              and parent['beforeinfo_source_sha256']==source['beforeinfo_source_sha256']
+                              for parent in parents), 'NATIVE_EVENT_BASE_SOURCE_MISMATCH')
+                        _need(ctx is not None and source['program_source_sha256']==ctx['program']['source_sha256']
+                              and source['beforeinfo_source_sha256']==ctx['beforeinfo']['source_sha256']
+                              and _time(source['source_captured_at'])==max(_time(ctx['program']['captured_at']),
+                                  _time(ctx['beforeinfo']['captured_at'])), 'NATIVE_EVENT_CURRENT_SOURCE_MISMATCH')
+                        event=read_generation_event(dict(native_generation_events=[slot['native_generation_event']]),
+                            slot['prediction'],race_id=row['race_id'],**source,
+                            cutoff_at=row['cutoff_at'],saved_at=proof['created_at'])
+                else:
+                    generated = p.get("generated_at") or slot.get("dispatch_generated_at")
                 asof = p.get("as_of") or (slot.get("dispatch_generated_at") if reused else
                                            ctx["as_of"] if ctx else report["as_of"])
-                _need(generated is not None and _not_before(generated, proof["created_at"]), "SAVED_BEFORE_GENERATION")
-                eligible = max(_time(asof), _time(generated), _time(proof["created_at"])) < _time(row["cutoff_at"])
+                clock_proof=generated if generated is not None else event['computation_completed_at'] if event else None
+                _need(clock_proof is None or _not_before(clock_proof, proof["created_at"]), "SAVED_BEFORE_GENERATION")
+                eligible = clock_proof is not None and max(_time(asof), _time(clock_proof), _time(proof["created_at"])) < _time(row["cutoff_at"])
                 p.update(persisted_at=proof["created_at"], server_saved_at=proof["created_at"], artifact_id=proof["artifact_id"],
                          original_json_sha256=proof["payload_sha256"], source_code_commit=proof["head_sha"],
                          original_json_hash_scope="CANONICAL_DOCUMENT_SHA256",
                          generated_at=generated, as_of=asof, external_receipt_verified=True, eligible_pre_cutoff=eligible,
                          source_provenance=bindings, receipt_run_id=str(proof["run_id"]))
+                if reused:
+                    p['native_clock_provenance']=('ACTUAL_NATIVE_CALL_COMPLETION' if event else
+                        'EXACT_NATIVE_GENERATED_AT' if generated is not None else 'NATIVE_GENERATION_CLOCK_MISSING')
+                if event is not None:
+                    p.update(native_generation_event=event,computation_started_at=event['computation_started_at'],
+                             computation_completed_at=event['computation_completed_at'])
                 if p.get("input_sha256") is None:
                     p["input_sha256"] = slot.get("original_input_sha256") if reused else report["input_sha256"]
                     p["input_hash_scope"] = "BASELINE_NATIVE_INPUT_BINDING" if reused else "DISPATCH_NATIVE_INPUT_MAP"
                 if p.get("source_sha256") is None:
                     p["source_sha256"] = digest(bindings); p["source_hash_scope"] = "SOURCE_BINDING_MANIFEST"
-                p["missing_reasons"] = [r for r in p["missing_reasons"] if r not in
-                    {"INDEPENDENT_RECEIPT_NOT_VERIFIED", "GENERATED_AT_NOT_SAVED", "INPUT_SHA_NOT_SAVED", "SOURCE_SHA_NOT_SAVED"}]
+                removed={"INDEPENDENT_RECEIPT_NOT_VERIFIED", "INPUT_SHA_NOT_SAVED", "SOURCE_SHA_NOT_SAVED"}
+                if generated is not None:removed.add('GENERATED_AT_NOT_SAVED')
+                p["missing_reasons"] = [r for r in p["missing_reasons"] if r not in removed]
                 if not eligible:
-                    p["missing_reasons"].append("SAVED_AFTER_CUTOFF")
+                    p["missing_reasons"].append("NATIVE_GENERATION_CLOCK_MISSING" if clock_proof is None else "SAVED_AFTER_CUTOFF")
             records.append(row)
     days = {row["event_date_jst"] for row in records}
     research_proof = None

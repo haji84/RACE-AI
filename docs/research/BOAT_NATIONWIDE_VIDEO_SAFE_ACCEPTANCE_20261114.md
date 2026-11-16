@@ -151,3 +151,13 @@ https://github.com/haji84/RACE-AI/actions/runs/43626165525 ：PR専用のChromiu
 https://github.com/haji84/RACE-AI/actions/runs/43626165601 ：既存のsource-free BOAT回帰CI成功。正式ソース取得・実レース予想のPR jobはSKIP。
 
 合格範囲：研究コードでの3～6艇対応とsource-freeテスト。実欠場レース映像の艇番識別精度、締切前の実P1暗号原本、別ランナーSHA、一日の全国完走は未実証。PRはDraftで、本番main・productionは未変更。
+
+## 2026-11-16: 既存CIへの統合と実データゲート
+
+今回のrelease候補は、上記proposalの独立screen workflowを追加しない。
+録画・3〜6艇・AES・cache回帰を既存owner workflowのPR専用main_entry_contract jobへ統合し、
+本番b491との比較でworkflow/job/cron/権限の追加は0。
+native生成時計は入力as_ofと分離し、新しい推論呼出しの実開始・終了時刻だけをsource・出力hashへ結合する。
+旧原本に実時計がない場合はHOLDのまま保持する。
+実公式プレーヤーの403、6艇継続識別・物理的強さ・前向き精度の未達は維持し、
+合成Chromium画面や開発用oracleの一致を実受入の代用にはしない。

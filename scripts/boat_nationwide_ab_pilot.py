@@ -190,6 +190,9 @@ def stop(reason, *, source=None, schedule=None, queue=None, tries=None,
          forecasts=None, extended=None, priced=None, observed=None,
          source_wait=None,candidate_waits=None,next_check_at=None,targets=None):
     OUTPUT.mkdir(parents=True,exist_ok=True)
+    attempts=[dict(row) for row in tries or []]
+    generation_events=[]
+    for row in attempts:generation_events.extend(row.pop('native_generation_events',[]))
     result={
         "schema":"RACE_AI_NATIONWIDE_PRE_CUTOFF_AB_V1",
         "state":"OBSERVED_ATTEMPT_NO_FORECAST" if not forecasts else "FORECASTS_GENERATED_NEED_ARTIFACT_CLOCK_VERIFICATION",
@@ -206,7 +209,7 @@ def stop(reason, *, source=None, schedule=None, queue=None, tries=None,
         "verified_active_venues":schedule["active_venues"] if schedule else [],
         "verified_venue_count":len(schedule["active_venues"]) if schedule else 0,
         "official_race_registry":queue or [],
-        "candidate_attempts":tries or [],
+        "candidate_attempts":attempts,
         "paired_forecasts":forecasts or [],
         "paired_forecast_count":len(forecasts or []),
         "additional_official_feature_shadows":extended or [],
@@ -222,6 +225,7 @@ def stop(reason, *, source=None, schedule=None, queue=None, tries=None,
         "live_continuous_collection_enabled":False,
         "vercel_used":False,
     }
+    if generation_events:result['native_generation_events']=generation_events
     (OUTPUT/"national.json").write_text(
         json.dumps(result,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False),
         encoding="utf-8")
@@ -556,11 +560,19 @@ def make_pair(day,race,*,research_target=None):
             "exhibition_st_status":next(x for x in six if x["lane"]==r["lane"])["preview_st_status"],
         } for r in active],
     }
+    from race_ai.boat_native_generation_event import record_generation_event
+    event_bindings=dict(race_id=race_id,source_snapshot_sha256=computed['source_sha256'],
+                        program_source_sha256=program_sha,beforeinfo_source_sha256=preview_sha)
+    generation_events=[]
     extended=None
     try:
         if _clock(day)+MIN_TO_CUTOFF>=safe_deadline:
             return {"race_id":race_id,"state":"TOO_LATE_BEFORE_MODEL"},None,None,None,None
-        extended=build_live_feature_shadow(data,extra,observed_timestamp())
+        clite_started=observed_timestamp()
+        extended=build_live_feature_shadow(data,extra,clite_started)
+        clite_completed=observed_timestamp()
+        generation_events.append(record_generation_event(extended,**event_bindings,
+            computation_started_at=clite_started,computation_completed_at=clite_completed))
     except ValueError as ex:
         if str(ex) in _HANDOFF_REASONS:raise
         extended={"race_id":race_id,"state":"C_LITE_SOURCE_NOT_ADMITTED"}
@@ -571,10 +583,15 @@ def make_pair(day,race,*,research_target=None):
         if _clock(day)+MIN_TO_CUTOFF>=safe_deadline:
             return {"race_id":race_id,"state":"TOO_LATE_BEFORE_MODEL"},None,None,None,None
         history_options={} if OBSERVED_HISTORY_CONTEXT is None else {"history_context":OBSERVED_HISTORY_CONTEXT}
+        observed_started=observed_timestamp()
         observed=build_observed_p1(data,extra,generated,
             program_url=url,preview_url=official_preview_url,
             program_captured_at=at.isoformat(),preview_captured_at=preview_at.isoformat(),
             owner_reviewed=os.environ.get("RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED")=="true",**history_options)
+        observed_completed=observed_timestamp()
+        generation_events.extend(record_generation_event(prediction,**event_bindings,
+            computation_started_at=observed_started,computation_completed_at=observed_completed)
+            for prediction in observed['suite']['models'].values())
     except ValueError as ex:
         if str(ex) in _HANDOFF_REASONS:raise
         observed={"race_id":race_id,"state":"OBSERVED_P1_INPUT_REJECTED","reason":str(ex)[:160]}
@@ -621,7 +638,7 @@ def make_pair(day,race,*,research_target=None):
             pass
     status={"race_id":race_id,"state":"AB_GENERATED_NOT_YET_EXTERNAL_FROZEN",
             "program_sha256":program_sha,"exhibition_sha256":preview_sha,
-            "generated_at":generated,"source_wait":paused}
+            "generated_at":generated,"source_wait":paused,"native_generation_events":generation_events}
     if retention is not None:status['additional_model_input']=retention
     return with_revision(status),computed,extended,priced,observed
 

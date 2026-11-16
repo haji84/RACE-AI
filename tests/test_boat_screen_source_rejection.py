@@ -40,6 +40,7 @@ class ScreenSourceRejectionTests(unittest.TestCase):
         self.assertNotIn('private-media-reference', str(result))
         self.assertNotIn('envelope', result)
         self.assertFalse(result['model_eligible'])
+        self.assertTrue(result['source_fetch_performed'])
         return result, visible
 
     def test_official_playback_rejection_has_exact_safe_status_and_stops_before_polling(self):

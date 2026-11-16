@@ -104,6 +104,9 @@ def _read_archive(raw, metadata, key):
                    member_sha256=hashlib.sha256(body).hexdigest(), document=doc)
     entries = _native_entries([wrapped])
     _need(all(k[1] == phase for k in entries), "NATIVE_PHASE_INVALID")
+    from .boat_native_generation_event import event_index
+    events=event_index(doc)
+    _need(set(events)<=set(entries), "GENERATION_EVENT_OUTPUT_MISSING")
     return doc, entries, wrapped
 
 
@@ -168,11 +171,28 @@ def _native_facts(doc, entry, metadata):
     if completed is not None:
         _need(ts(asof) <= ts(completed) and _before_save(completed, saved) and
               (generated is None or ts(generated) <= ts(completed)), "COMPLETION_CLOCK_INVALID")
-    return dict(model_id=model["model_id"], stage=stage, model_version=model.get("model_version"),
+    facts=dict(model_id=model["model_id"], stage=stage, model_version=model.get("model_version"),
                 prediction_sha256=model.get("prediction_sha256", model.get("model_sha256", model.get("bundle_sha256"))),
                 input_sha256=model.get("input_sha256", model.get("snapshot_sha256", model.get("source_snapshot_sha256"))),
                 source_sha256=source_sha, as_of=asof, cutoff_at=cutoff, generated_at=generated,
-                generation_completed_no_later_than=completed), _roster(people), source_clocks
+                generation_completed_no_later_than=completed)
+    from .boat_native_generation_event import event_index,read_generation_event
+    key=(rid,stage,model['model_id'],facts['prediction_sha256'])
+    if key in event_index(doc):
+        _need(stage=='P1' and pair is not None, "GENERATION_EVENT_SOURCE_MISSING")
+        if model.get('source_snapshot_sha256') is not None:
+            _need(model['source_snapshot_sha256']==pair['source_sha256'], "GENERATION_EVENT_SOURCE_CONFLICT")
+        else:
+            matched=[b for b in doc.get('observed_pairwise_p1_bundles',[]) if b.get('race_id')==rid
+                     and b.get('suite',{}).get('models',{}).get(model['model_id'])==model]
+            _need(len(matched)==1 and matched[0]['base_source_sha256']==pair['source_sha256'],
+                  "GENERATION_EVENT_OBSERVED_SOURCE_CONFLICT")
+        event=read_generation_event(doc,model,race_id=rid,source_snapshot_sha256=pair['source_sha256'],
+            program_source_sha256=pair['program_source_sha256'],beforeinfo_source_sha256=pair['beforeinfo_source_sha256'],
+            source_captured_at=pair['source_captured_at'],cutoff_at=cutoff,saved_at=saved)
+        facts.update(native_generation_event=event,computation_started_at=event['computation_started_at'],
+                     computation_completed_at=event['computation_completed_at'])
+    return facts, _roster(people), source_clocks
 
 
 def _official_schedule(rows):
@@ -230,6 +250,11 @@ def _coverage_evidence(row, prediction, native, source_clocks, schedule, now):
     _need(type(source_clocks) is list and all(type(at) is str and ts(at) <= ts(facts["as_of"])
                                             for at in source_clocks), "COVERAGE_SOURCE_CLOCK_INVALID")
     generated, asof, saved = facts["generated_at"], facts["as_of"], artifact["created_at"]
+    completed=facts.get('computation_completed_at')
+    clock_proof=generated if generated is not None else completed
+    source_hash=facts.get('source_sha256')
+    if source_hash is None and completed is not None:
+        source_hash=facts['native_generation_event']['source_snapshot_sha256']
     if generated is not None:
         _need(ts(asof) <= ts(generated) and _before_save(generated, saved), "COVERAGE_GENERATION_CLOCK_INVALID")
     source_at = max(source_clocks, key=ts) if source_clocks else None
@@ -243,23 +268,32 @@ def _coverage_evidence(row, prediction, native, source_clocks, schedule, now):
         reason = "OFFICIAL_CUTOFF_CONFLICT"
     elif ts(schedule["schedule_captured_at"]) > ts(asof):
         reason = "OFFICIAL_SCHEDULE_AFTER_INPUT"
-    elif generated is None:
+    elif clock_proof is None:
         reason = "NATIVE_GENERATED_AT_MISSING"
-    elif source_at is None or type(facts.get("source_sha256")) is not str or not re.fullmatch("[a-f0-9]{64}", facts["source_sha256"]):
+    elif source_at is None or type(source_hash) is not str or not re.fullmatch("[a-f0-9]{64}", source_hash):
         reason = "NATIVE_SOURCE_EVIDENCE_MISSING"
-    elif max(ts(at) for at in (asof, generated, saved, source_at)) > now:
+    elif max(ts(at) for at in (asof, clock_proof, saved, source_at)) > now:
         reason = "NATIVE_CLOCK_IN_FUTURE"
-    elif max(ts(at) for at in (asof, generated, saved, source_at)) >= ts(schedule["cutoff_at"]):
+    elif max(ts(at) for at in (asof, clock_proof, saved, source_at)) >= ts(schedule["cutoff_at"]):
         reason = "NATIVE_NOT_PHYSICALLY_BEFORE_CUTOFF"
     elif prediction.get("eligible_pre_cutoff") is False:
         reason = "SAVED_PREDICTION_EXPLICITLY_INELIGIBLE"
-    return dict(schema=COVERAGE_SCHEMA, native_evidence_sha256=digest(native),
+    proof=dict(schema=COVERAGE_SCHEMA, native_evidence_sha256=digest(native),
                 checked_at=now.isoformat(), official_schedule=deepcopy(schedule), source_capture_clocks=deepcopy(source_clocks),
                 status="HOLD" if reason else "QUALIFIED_PRE_CUTOFF", reason=reason,
                 model_id=facts["model_id"], stage=facts["stage"], as_of=asof, generated_at=generated,
-                source_captured_at=source_at, source_sha256=facts.get("source_sha256"), server_saved_at=saved,
+                source_captured_at=source_at, source_sha256=source_hash, server_saved_at=saved,
                 cutoff_at=schedule["cutoff_at"] if schedule else None, artifact_id=artifact["id"],
                 original_json_sha256=artifact["member_sha256"])
+    if completed is not None:
+        event=facts['native_generation_event']
+        _need(event['event_sha256']==digest({k:v for k,v in event.items() if k!='event_sha256'}) and
+              ts(asof)<=ts(event['computation_started_at'])<=ts(completed) and _before_save(completed,saved),
+              'COVERAGE_COMPUTATION_EVENT_INVALID')
+        proof.update(computation_started_at=event['computation_started_at'],computation_completed_at=completed,
+                     native_generation_event_sha256=event['event_sha256'],clock_proof_kind='ACTUAL_NATIVE_CALL_COMPLETION',
+                     source_hash_scope='NATIVE_BASE_SOURCE_SNAPSHOT')
+    return proof
 
 
 def native_coverage_evidence(row, prediction, *, now):
