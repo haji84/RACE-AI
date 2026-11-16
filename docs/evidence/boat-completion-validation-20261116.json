@@ -1,8 +1,8 @@
 {
   "schema": "RACE_AI_BOAT_COMPLETION_PROGRESS_V1",
-  "recorded_at_utc": "2026-11-16T07:57:56.042079+00:00",
+  "recorded_at_utc": "2026-11-16T08:14:25.096998+00:00",
   "snapshot": {
-    "main": "0c7d1b766a45c9921a88e2c01a47c80060cf9e6f",
+    "main": "0c0c18db0b9f76fc75b63031ad528e2b2637b325",
     "production": "c123b8538006b3189181195bbc91d8f28d216ba5",
     "source_candidate": "d08100d7c7385b0c0339aca34c671948b6250cb2",
     "main_candidate": "f39b52f5a5b3bdb3250efcfc97c7f51d33e4519b",
@@ -52,7 +52,19 @@
     "all_eight_reference_screens_visually_verified": false,
     "workflow_jobs_added": 0,
     "permissions_added": false,
-    "paid_runner_added": false
+    "paid_runner_added": false,
+    "first_actual_mac_attempt": {
+      "run": 43828472149,
+      "job": 133167786026,
+      "status": "FAILED_BEFORE_BROWSER",
+      "phase": "SOURCE_FREE_BOUNDARIES",
+      "python_observed": "3.14.7",
+      "required_python": "3.11",
+      "tests_passed": 14,
+      "tests_run": 15,
+      "setup_order_fix_local_tests": 16,
+      "privacy_stderr_assertion_preserved": true
+    }
   },
   "video": {
     "official_player_document_http_status": 200,
@@ -158,5 +170,25 @@
     "finished_at_utc": "2026-11-16T07:54:09Z",
     "lifetime_requests": 12770,
     "producer_cancelled": false
+  },
+  "approved_main_release": {
+    "pr": 69,
+    "actual_merge_sha": "0c0c18db0b9f76fc75b63031ad528e2b2637b325",
+    "reviewed_head": "f25c9ccde905c618005315993f8f89551eadf16c",
+    "tree": "6144c402115d9dc3d87bc25050fb9c72a83c4f36",
+    "reviewed_tree_equal": true,
+    "normal_protected_merge": true,
+    "source_free_checks_passed": 13
+  },
+  "new_source_owner": {
+    "run_id": 43829249080,
+    "head_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
+    "created_at": "2026-11-16T08:11:22Z",
+    "genuine_gate_run": 43828431834,
+    "genuine_gate_job": 133167655039,
+    "original_recovered_runs": 2,
+    "official_gets_in_gate": 0,
+    "new_forecasts_in_gate": 0,
+    "new_live_originals_verified": false
   }
 }

@@ -84,15 +84,15 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           path: .native-safari-tools
           persist-credentials: false
-      - name: Exercise source-free Safari privacy and identity boundaries
-        if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari')
-        working-directory: .native-safari-tools
-        run: python3 -m unittest discover -s tests -p 'test_boat_native_safari_acceptance.py' -v
       - name: Use the existing supported Python for authenticated saved-view reads
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.11'
+      - name: Exercise source-free Safari privacy and identity boundaries
+        if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari')
+        working-directory: .native-safari-tools
+        run: python3 -m unittest discover -s tests -p 'test_boat_native_safari_acceptance.py' -v
       - name: Checkout the immutable read-only P1 context code
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
