@@ -156,6 +156,8 @@ def start(path, *, day, run_id, now, source_control=None):
     # Missing same-day baseline remains a hard error.
     inherited_total=control.get('lifetime_requests',0)
     inherited_day=control.get('day_jst')
+    if inherited_day==day:
+        _need(control.get('prepared_round') is None,'UNRESOLVED_PARENT_PREPARED_ROUND')
     day_base=(control.get('day_start_lifetime_requests') if inherited_day==day
               else inherited_total)
     _need(type(day_base) is int and 0<=day_base<=inherited_total,
@@ -323,6 +325,46 @@ class SourceGuard:
         state['source_wait']=waiting;write_state(self.path,state)
         return waiting
 
+def retained_schedule_snapshot(document, *, day, receipt_at):
+    """Keep authenticated schedule/publication clocks; do not make them fresh."""
+    keys=('official_day_source','official_race_registry','verified_active_venues',
+          'candidate_source_waits','next_check_at')
+    _need(type(document) is dict,'RECOVERED_SCHEDULE_CACHE_INVALID')
+    if not any(k in document for k in keys):return None
+    saved=instant(receipt_at)
+    def captured(value):
+        at=instant(value)
+        _need(at<=saved or saved.microsecond==0 and saved<=at<saved+timedelta(seconds=1),
+              'RECOVERED_SCHEDULE_CLOCK_INVALID')
+    source=document.get('official_day_source')
+    if source is not None:
+        _need(type(source) is dict,'RECOVERED_SCHEDULE_CACHE_INVALID')
+        if source.get('captured_at') is not None:captured(source['captured_at'])
+    rows=document.get('official_race_registry')
+    if rows is not None:
+        _need(type(rows) is list and all(type(r) is dict and
+            type(r.get('race_id')) is str and r['race_id'].startswith(day.replace('-','')+'-')
+            for r in rows),'RECOVERED_SCHEDULE_CACHE_INVALID')
+        _need(len({r['race_id'] for r in rows})==len(rows),'RECOVERED_SCHEDULE_CACHE_INVALID')
+        for row in rows:
+            if row.get('schedule_captured_at') is not None:captured(row['schedule_captured_at'])
+            if row.get('cutoff_at') is not None:
+                _need(instant(row['cutoff_at']).astimezone(JST).date().isoformat()==day,
+                      'RECOVERED_SCHEDULE_CACHE_INVALID')
+    waits=document.get('candidate_source_waits')
+    if waits is not None:
+        _need(type(waits) is list,'RECOVERED_PUBLICATION_WAIT_INVALID')
+        for wait in waits:
+            _need(type(wait) is dict and type(wait.get('race_id')) is str and
+                 wait['race_id'].startswith(day.replace('-','')+'-') and
+                 wait.get('state')=='WAITING_PUBLICATION','RECOVERED_PUBLICATION_WAIT_INVALID')
+            if wait.get('retry_at') is not None:instant(wait['retry_at'])
+            if wait.get('cutoff_at') is not None:
+                _need(instant(wait['cutoff_at']).astimezone(JST).date().isoformat()==day,
+                      'RECOVERED_PUBLICATION_WAIT_INVALID')
+    return {k:copy.deepcopy(document[k]) for k in keys if k in document}
+
+
 def usable_schedule(doc, *, day, now):
     """Only short-lived previously validated schedule metadata, never race inputs."""
     try:
@@ -355,8 +397,10 @@ def checkpoint(path, previous, rows, observations, receipts, *, p1_doc, p1_recei
         _need(len(body_hashes)<=1,'conflicting P1 body hashes')
         body_sha=next(iter(body_hashes),None)
         _need(not p1_doc.get('paired_forecasts') or body_sha is not None,'P1 pair without verified rows')
-        state['schedule_cache']={k:copy.deepcopy(p1_doc[k]) for k in
-            ('official_day_source','official_race_registry','verified_active_venues','candidate_source_waits','next_check_at') if k in p1_doc}
+        cache=retained_schedule_snapshot(p1_doc,day=state['day_jst'],receipt_at=p1_receipt['created_at'])
+        if cache is not None:
+            state['schedule_cache']=cache
+            state['schedule_cache_receipt']=copy.deepcopy(p1_receipt)
         if p1_doc.get('entry_observation_history') is not None:
             from .boat_entry_source_collection import optional_cache_from_document
             candidate,rejection=optional_cache_from_document(p1_doc,

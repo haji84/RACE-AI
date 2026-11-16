@@ -89,22 +89,100 @@ def _github_read_diagnostic(kind, attempt, reason, status, *, delay=None):
     print(json.dumps(record, sort_keys=True), file=sys.stderr)
 
 
-def _gh(endpoint):
+def _fresh_upload_context(ids, repo, get, now):
+    """Bind an opt-in visibility retry to this runner's exact upload receipts.
+
+    Receipts come from upload-artifact outputs, never a dispatch input. This
+    only permits re-reading metadata; capture still checks the ZIP and AES.
+    """
+    V._need(os.environ.get('GITHUB_ACTIONS') == 'true'
+            and os.environ.get('GITHUB_REPOSITORY') == 'haji84/RACE-AI'
+            and os.environ.get('GITHUB_REF') == 'refs/heads/production/boat-p0-p1-20261111'
+            and os.environ.get('GITHUB_RUN_ATTEMPT') == '1', 'FRESH_UPLOAD_CONTEXT_INVALID')
+    run_id = os.environ.get('GITHUB_RUN_ID', '')
+    head = os.environ.get('GITHUB_SHA', '')
+    V._need(re.fullmatch('[1-9][0-9]{0,19}', run_id) is not None
+            and re.fullmatch('[a-f0-9]{40}', head) is not None, 'FRESH_UPLOAD_CONTEXT_INVALID')
+    local = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=repo,
+                                   stderr=subprocess.DEVNULL, timeout=10).decode().strip()
+    V._need(local == head, 'FRESH_UPLOAD_CHECKOUT_INVALID')
+    raw = os.environ.get('RACE_AI_FRESH_UPLOAD_RECEIPTS', '')
+    V._need(0 < len(raw.encode()) <= 16384, 'FRESH_UPLOAD_RECEIPTS_INVALID')
+    try:
+        receipts = json.loads(raw)
+    except (ValueError, TypeError):
+        raise ValueError('VAULT_FRESH_UPLOAD_RECEIPTS_INVALID') from None
+    V._need(type(receipts) is list and 0 < len(receipts) <= V.MAX_BATCH,
+            'FRESH_UPLOAD_RECEIPTS_INVALID')
+    entries = {}
+    for row in receipts:
+        V._need(type(row) is dict and set(row) == {'artifact_id', 'name', 'digest'},
+                'FRESH_UPLOAD_RECEIPTS_INVALID')
+        # An optional upload skipped by Actions has no ID and no digest.
+        if row['artifact_id'] == '' and row['digest'] == '':
+            continue
+        ident, name, digest = row['artifact_id'], row['name'], row['digest']
+        V._need(type(ident) is str and re.fullmatch('[1-9][0-9]{0,19}', ident) is not None
+                and type(name) is str and type(digest) is str, 'FRESH_UPLOAD_RECEIPTS_INVALID')
+        ident = int(ident)
+        digest = digest.removeprefix('sha256:')
+        V._need(re.fullmatch('[a-f0-9]{64}', digest) is not None and ident not in entries,
+                'FRESH_UPLOAD_RECEIPTS_INVALID')
+        try:
+            kind = V._kind(dict(name=name, workflow_run=dict(id=int(run_id))))
+        except (ValueError, KeyError, TypeError):
+            raise ValueError('VAULT_FRESH_UPLOAD_RECEIPTS_INVALID') from None
+        V._need(kind in ('P0', 'P1', 'RESULT', 'ALL_MODEL'), 'FRESH_UPLOAD_KIND_INVALID')
+        entries[ident] = dict(id=ident, name=name, digest='sha256:'+digest)
+    V._need(entries and len(set(ids)) == len(ids) and set(entries) == set(ids),
+            'FRESH_UPLOAD_RECEIPTS_INVALID')
+    run = V._json(get('actions/runs/'+run_id), 256*1024)
+    V._need(authenticated_live_owner_run(run) and run.get('id') == int(run_id)
+            and run.get('head_sha') == head and run.get('head_branch') == 'production/boat-p0-p1-20261111'
+            and run.get('status') == 'in_progress' and run.get('run_attempt') == 1,
+            'FRESH_UPLOAD_RUN_INVALID')
+    started = V._time(run.get('created_at'))
+    V._need(started <= now, 'FRESH_UPLOAD_CLOCK_INVALID')
+    deadline = time.monotonic()+60
+    return {f'actions/artifacts/{ident}': dict(receipt=row, run_id=int(run_id), head_sha=head,
+            run_started_at=started, now=now, deadline=deadline) for ident, row in entries.items()}
+
+
+def _verify_fresh_upload_metadata(raw, context):
+    value = V._json(raw, V.MAX_METADATA)
+    expected = context['receipt']
+    V._need(type(value) is dict and all(value.get(k) == v for k, v in expected.items())
+            and value.get('expired') is False and type(value.get('size_in_bytes')) is int
+            and 0 < value['size_in_bytes'] <= V.MAX_ORIGINAL, 'FRESH_UPLOAD_METADATA_INVALID')
+    run = value.get('workflow_run')
+    V._need(type(run) is dict and run.get('id') == context['run_id']
+            and run.get('head_sha') == context['head_sha'] and all(
+                type(run.get(k)) is int and run[k] == 1416489937
+                for k in ('repository_id', 'head_repository_id')), 'FRESH_UPLOAD_METADATA_INVALID')
+    V._need(context['run_started_at'] <= V._time(value.get('created_at')) <= context['now']
+            < V._time(value.get('expires_at')), 'FRESH_UPLOAD_CLOCK_INVALID')
+
+
+def _gh(endpoint, *, fresh_uploads=None, once_get=None):
     """Retry the same exact GitHub read, never the forecast or provider source.
 
-    Only explicit HTTP 5xx, local read timeout and recognized transient
-    transport failures retry. Authentication, rate limits, ambiguous failures
+    Explicit HTTP 5xx, local read timeout and recognized transient transport
+    failures retry. A trusted current upload also permits its exact metadata
+    404 for 60 seconds. Authentication, rate limits, ambiguous failures
     and integrity/size errors stay closed. After recovery the existing capture
     verifies the original digest/identity/time before the next round can run.
     """
     kind = _github_endpoint_kind(endpoint)
+    fresh = fresh_uploads.get(endpoint) if fresh_uploads else None
     for attempt in range(1, 4):
         try:
-            raw = _gh_once(endpoint)
+            raw = (once_get or _gh_once)(endpoint)
         except ValueError as exc:
             reason = str(exc)
             retryable = (re.fullmatch(r'VAULT_GITHUB_HTTP_5[0-9]{2}', reason) is not None
-                         or reason in ('VAULT_GITHUB_READ_TIMEOUT', 'VAULT_GITHUB_TRANSPORT_TRANSIENT'))
+                         or reason in ('VAULT_GITHUB_READ_TIMEOUT', 'VAULT_GITHUB_TRANSPORT_TRANSIENT')
+                         or (reason == 'VAULT_GITHUB_HTTP_404' and kind == 'ARTIFACT_METADATA'
+                             and fresh is not None and time.monotonic() <= fresh['deadline']))
             if not retryable or attempt == 3:
                 _github_read_diagnostic(kind, attempt, reason, 'GITHUB_READ_FAILED')
                 raise
@@ -112,6 +190,8 @@ def _gh(endpoint):
             _github_read_diagnostic(kind, attempt, reason, 'GITHUB_READ_RETRY', delay=delay)
             time.sleep(delay)
         else:
+            if fresh is not None:
+                _verify_fresh_upload_metadata(raw, fresh)
             if attempt > 1:
                 _github_read_diagnostic(kind, attempt, 'VAULT_GITHUB_READ_OK', 'GITHUB_READ_RECOVERED')
             return raw
@@ -315,6 +395,8 @@ def _parser():
             command.add_argument('--expected-parent', required=True)
         if name in ('capture','lookup'):
             command.add_argument('--artifact', type=int, action='append', required=True)
+        if name == 'capture':
+            command.add_argument('--fresh-upload', action='store_true')
         if name == 'retain-files': command.add_argument('--manifest', required=True)
         if name == 'retain-captures': command.add_argument('--capture-dir', required=True)
         if name in ('restore','restore-captures'):
@@ -331,8 +413,12 @@ def main(argv=None, *, transport=None, readback_transport=None, github_get=None,
         clock = now or datetime.now(timezone.utc)
         V._need(type(clock) is datetime and clock.utcoffset() is not None, 'AWARE_CLOCK_REQUIRED')
         if args.command == 'capture':
+            get = github_get or _gh
+            if args.fresh_upload:
+                context = _fresh_upload_context(args.artifact, repo, get, clock)
+                get = lambda endpoint: _gh(endpoint, fresh_uploads=context, once_get=github_get)
             report = _capture(args.artifact, repo, _parent(git,args.expected_parent), git,
-                              readback_transport, github_get or _gh, clock,
+                              readback_transport, get, clock,
                               allow_refresh=args.expected_parent == 'current')
         elif args.command == 'retain-files':
             report = V.retain_originals(_file_records(args.manifest,repo), repo,

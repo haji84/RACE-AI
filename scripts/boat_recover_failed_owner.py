@@ -2,7 +2,7 @@
 
 Run only from trusted Actions checkouts, never from PR data or a forecast job
 rerun. No official-source fetch, inference, scorer, clock rewrite or counter
-reset. A failure produces no permission; a later scheduled launcher retries
+reset. A failure produces no permission; a later trusted main launcher retries
 this recovery phase rather than re-running the failed prediction job.
 """
 import argparse
@@ -16,6 +16,57 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+MAIN_WORKFLOW_REF='haji84/RACE-AI/.github/workflows/boat-racer-daily.yml@refs/heads/main'
+RELEASE_PREFIX='boat-owner-release: single-real-session-20261111'
+
+
+def trusted_main_invocation(event, document, *, workflow_ref, ref, sha, expected_source_head):
+    """Match existing main job events; never relabel a callback as a schedule."""
+    from scripts.boat_failed_recovery_contract import need,reviewed_recovery_origin
+    need(workflow_ref==MAIN_WORKFLOW_REF and ref=='refs/heads/main' and
+         type(sha) is str and re.fullmatch('[a-f0-9]{40}',sha) and
+         type(document) is dict,'TRUSTED_MAIN_EVENT_REQUIRED')
+    repository=document.get('repository')
+    need(type(repository) is dict and type(repository.get('id')) is int and
+         repository['id']==1416489937 and repository.get('full_name')=='haji84/RACE-AI',
+         'TRUSTED_MAIN_REPOSITORY_REQUIRED')
+    if event=='schedule':
+        need(document.get('schedule') in ('30 20 * * *','20 21 * * *',
+             '2-59/5 22-23 * * *','2-59/5 0-14 * * *'),'TRUSTED_MAIN_SCHEDULE_REQUIRED')
+    elif event=='workflow_run':
+        run=document.get('workflow_run');need(type(run) is dict,'TRUSTED_CALLBACK_REQUIRED')
+        head=run.get('head_repository')
+        need(type(run.get('id')) is int and run['id']>0 and
+             type(run.get('workflow_id')) is int and run['workflow_id']==405276784 and
+             run.get('name')=='BOAT nationwide cutoff-ordered A/B research (no Vercel)' and
+             run.get('head_branch')=='production/boat-p0-p1-20261111' and
+             run.get('event')=='workflow_dispatch' and run.get('status')=='completed' and
+             run.get('conclusion') in ('failure','success') and
+             type(run.get('run_attempt')) is int and run['run_attempt']==1 and
+             reviewed_recovery_origin(run.get('head_sha'),expected_source_head) and
+             type(head) is dict and type(head.get('id')) is int and head['id']==1416489937 and
+             head.get('full_name')=='haji84/RACE-AI','TRUSTED_CALLBACK_REQUIRED')
+    elif event=='push':
+        commit=document.get('head_commit')
+        need(document.get('ref')==ref and document.get('after')==sha and
+             type(commit) is dict and commit.get('id')==sha and
+             type(commit.get('message')) is str and commit['message'].startswith(RELEASE_PREFIX),
+             'TRUSTED_RELEASE_PUSH_REQUIRED')
+    else:
+        need(False,'TRUSTED_MAIN_EVENT_REQUIRED')
+    return True
+
+
+def _invocation_context(expected_head):
+    from scripts.boat_failed_recovery_contract import need
+    path=Path(os.environ.get('GITHUB_EVENT_PATH',''))
+    need(path.is_file() and not path.is_symlink() and 0<path.stat().st_size<=1024*1024,
+         'TRUSTED_MAIN_EVENT_FILE_REQUIRED')
+    try:document=json.loads(path.read_text(encoding='utf8'))
+    except (ValueError,UnicodeError):need(False,'TRUSTED_MAIN_EVENT_FILE_REQUIRED')
+    return trusted_main_invocation(os.environ.get('GITHUB_EVENT_NAME'),document,
+        workflow_ref=os.environ.get('GITHUB_WORKFLOW_REF'),ref=os.environ.get('GITHUB_REF'),
+        sha=os.environ.get('GITHUB_SHA'),expected_source_head=expected_head)
 
 
 def _packages():
@@ -50,7 +101,13 @@ def retain_verified_pair(checked, run, repo, *, now, transport=None, readback_tr
 def recover_restored_pending(state, get, repo, *, now=None):
     from race_ai.boat_pending_round_recovery import reconcile_restored_state
     now = now or datetime.now(timezone.utc)
-    restored, pending = reconcile_restored_state(state, get, now=now)
+    control=state.get('source_control')
+    if (not control or control.get('prepared_round') is None
+            or control.get('day_jst')!=state.get('day_jst')):
+        return state
+    head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,
+                                 stderr=subprocess.DEVNULL,timeout=10).decode().strip()
+    restored, pending = reconcile_restored_state(state, get, now=now,expected_head=head)
     if pending is not None:
         saved = retain_verified_pair(pending['verified'], pending['run'], repo, now=now)
         restored['pending_round_recovery_vault_commit'] = saved['source_commit']
@@ -61,6 +118,7 @@ def today_owners(history, *, now, expected_head):
     from race_ai.boat_pending_round_recovery import JST, need
     from race_ai.frozen_day_cycle import ts
     from race_ai.boat_owner_source_identity import OWNER_BRANCH
+    from scripts.boat_failed_recovery_contract import reviewed_recovery_origin
     rows, total = history.get('workflow_runs'), history.get('total_count')
     need(type(rows) is list and type(total) is int and 0 <= len(rows) <= 100 and total >= len(rows),
          'HISTORY_INCOMPLETE')
@@ -75,7 +133,8 @@ def today_owners(history, *, now, expected_head):
     need(not any(r.get('status') != 'completed' for r in owners), 'ACTIVE_OWNER')
     today = [r for r in owners if ts(r['created_at']).astimezone(JST).date() == day]
     need(1 <= len(today) <= 24 and len({r['id'] for r in today}) == len(today), 'HISTORY_BOUND')
-    need(all(r.get('head_sha') == expected_head and r.get('conclusion') in ('failure','success') for r in today),
+    need(all(reviewed_recovery_origin(r.get('head_sha'),expected_head) and
+             r.get('conclusion') in ('failure','success') for r in today),
          'HISTORY_OWNER_RELEASE')
     need(any(r['conclusion'] == 'failure' for r in today), 'NO_FAILED_OWNER')
     return today
@@ -83,14 +142,16 @@ def today_owners(history, *, now, expected_head):
 
 def recover_history(runs, *, get, load_control, replay_day, retain, now, expected_head):
     from race_ai.boat_pending_round_recovery import (PROOF_SCHEMA, JST, need,
-        verify_pending_round, verify_no_pending_failed_owner, history_digest, verify_dispatch_proof)
+        verify_recoverable_pending, verify_no_pending_failed_owner, history_digest, verify_dispatch_proof)
     from race_ai.boat_owner_source_identity import authenticated_live_owner_run
+    from scripts.boat_failed_recovery_contract import reviewed_recovery_origin
     snapshots = []
     controls = {}
     for row in runs:
         actual = json.loads(get(f'actions/runs/{row["id"]}'))
         need(authenticated_live_owner_run(actual) and history_digest([actual]) == history_digest([row])
-             and actual.get('run_attempt',1) == 1 and actual['head_sha'] == expected_head, 'RUN_CHANGED')
+             and actual.get('run_attempt',1) == 1 and
+             reviewed_recovery_origin(actual['head_sha'],expected_head), 'RUN_CHANGED')
         snapshots.append(actual)
         controls[actual['id']] = load_control(actual)
     # Existing readers replay every saved day original, including original
@@ -115,7 +176,8 @@ def recover_history(runs, *, get, load_control, replay_day, retain, now, expecte
                 control=checked['control'], vault_commit=None,
                 original_artifact_ids=[]))
         else:
-            checked = verify_pending_round(get, run, control, now=now)
+            checked = verify_recoverable_pending(get, run, control, now=now,replayed_state=state,
+                                                 expected_head=expected_head)
             saved = retain(checked, run)
             need(saved.get('independent_git_readback_verified') is True and
                  re.fullmatch('[a-f0-9]{40}',str(saved.get('source_commit'))),
@@ -125,6 +187,7 @@ def recover_history(runs, *, get, load_control, replay_day, retain, now, expecte
                 original_artifact_ids=checked['original_artifact_ids']))
         if run['id'] == latest['id']:
             latest_control = checked['control']
+        repairs[-1]['original_head_sha']=run['head_sha']
     proof = dict(schema=PROOF_SCHEMA, head_sha=expected_head, day_jst=now.astimezone(JST).date().isoformat(),
                  verified_at=now.isoformat(), history_sha256=history_digest(runs),
                  latest_control=latest_control, repairs=repairs)
@@ -145,7 +208,7 @@ def main(argv=None):
         from race_ai.cycle_recovery import recover
         from scripts import boat_private_original_vault as vault
         from scripts.github_existing_cycle import gh
-        need(os.environ.get('GITHUB_EVENT_NAME') == 'schedule', 'TRUSTED_SCHEDULE_REQUIRED')
+        _invocation_context(args.expected_head)
         repo = vault._environment(ROOT)
         actual_head = subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,timeout=10).decode().strip()
         need(actual_head == args.expected_head, 'CHECKOUT_RELEASE_CHANGED')
