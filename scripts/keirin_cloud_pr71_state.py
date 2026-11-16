@@ -349,7 +349,14 @@ def _licensed_inputs(inbox,source_root):
         if e.get("RACE_AI_OWNER_AUTO_SOURCE_PROFILE") != PROFILE:
             return None,None,"SOURCE_FEED_NOT_CONFIGURED"
         require_main_event()
-        report=collect_owner_inputs(inbox,owner_auto_confirmed=True)
+        # Isolated owner research option: choose the earliest eligible real
+        # race for a bounded source probe. It is OFF by default and NEVER
+        # changes the formal PR71 admission, AES, or public release gates.
+        pilot=e.get("RACE_AI_KEIRIN_ONE_RACE_PILOT", "0")
+        need(pilot in ("0", "1"), "ONE_RACE_PILOT_OPTION_INVALID")
+        report=collect_owner_inputs(
+            inbox,owner_auto_confirmed=True,
+            single_race_pilot=(pilot == "1"))
         need(report.get("new_pre_race_inputs")==0 and
              report.get("actual_four_model_forecast_saved") is False and
              report.get("provider_machine_rights_independently_verified") is False,
