@@ -1,5 +1,8 @@
 """Admission of existing immutable artifacts, without source requests."""
 import copy
+import base64
+import hashlib
+import json
 from pathlib import Path
 import re
 from types import SimpleNamespace as NS
@@ -28,6 +31,56 @@ def evidence():
 
 
 class RecoveryAdmissionTests(unittest.TestCase):
+    def continued_day(self):
+        original, artifacts=evidence()
+        original.update(id=99,head_sha=gate.RELEASE_SHA,created_at='2026-11-11T08:00:00Z')
+        for item in artifacts['artifacts']:
+            item['name']=item['name'].replace('42995325741','99')
+            item['workflow_run'].update(id=99,head_sha=gate.RELEASE_SHA)
+        current=dict(original,id=100,created_at='2026-11-11T10:00:00Z')
+        remaining=copy.deepcopy(artifacts['artifacts'][1:])
+        for item in remaining:
+            item.update(id=item['id']+100, name=item['name'].replace('-99','-100'))
+            item['workflow_run']['id']=100
+        p0=artifacts['artifacts'][0]
+        receipt=dict(schema='RACE_AI_P0_FIRST_RECEIPT_V1',day_jst='2026-11-11',
+            artifact_id=p0['id'],run_id=99,server_created_at=p0['created_at'],
+            zip_sha256=p0['digest'][7:],json_sha256='b'*64,race_count=2,model_forecast_count=10,
+            no_regeneration=True,retention_days=7,permanent_private_storage_proven=False)
+        raw=(json.dumps(receipt,ensure_ascii=False,sort_keys=True,separators=(',',':'))+'\n').encode()
+        path='docs/evidence/2026-11-11/p0-first-receipt.json'
+        file=dict(type='file',path=path,size=len(raw),encoding='base64',
+            sha=hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw).hexdigest(),
+            content=base64.b64encode(raw).decode())
+        replies={f'contents/{path}?ref='+('d'*40):file,'actions/runs/99':original,
+                 'actions/runs/99/artifacts?per_page=100':artifacts}
+        return current,dict(total_count=2,artifacts=remaining),replies
+
+    def test_continuation_uses_exact_canonical_first_receipt_and_original_companions(self):
+        current,artifacts,replies=self.continued_day()
+        before=copy.deepcopy((current,artifacts,replies))
+        selected=gate.resolve_recovery_selection(run=current,artifacts=artifacts,
+            get=lambda endpoint:replies[endpoint],receipt_commit='d'*40)
+        self.assertEqual(selected['source_run_id'],99)
+        self.assertEqual(selected['requested_run_id'],100)
+        self.assertEqual(selected['p0_artifact'],13842474540)
+        self.assertEqual(selected['companion_artifacts'],[13842779131,13842973909])
+        self.assertFalse(selected['source_dispatch_allowed'])
+        self.assertEqual((current,artifacts,replies),before)
+
+    def test_continuation_rejects_wrong_receipt_blob_digest_day_and_original_origin(self):
+        def change_digest(replies):
+            replies['actions/runs/99/artifacts?per_page=100']['artifacts'][0]['digest']='sha256:'+'c'*64
+        def change_origin(replies):
+            replies['actions/runs/99']['head_sha']='c'*40
+        def change_blob(replies):
+            next(v for k,v in replies.items() if k.startswith('contents/'))['sha']='c'*40
+        for mutate in (change_digest,change_origin,change_blob):
+            current,artifacts,replies=self.continued_day();mutate(replies)
+            with self.subTest(mutate=mutate.__name__),self.assertRaises(ValueError):
+                gate.resolve_recovery_selection(run=current,artifacts=artifacts,
+                    get=lambda endpoint:replies[endpoint],receipt_commit='d'*40)
+
     def test_recovery_failure_cannot_run_later_publication_but_normal_polling_can(self):
         # Evaluate the workflow's actual boolean guard with controlled GitHub
         # contexts; removing the dependency guard exposes the old-view publish.

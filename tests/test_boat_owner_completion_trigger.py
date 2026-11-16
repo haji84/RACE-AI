@@ -66,6 +66,32 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
     def test_authentic_owner_completion_is_recognized(self):
         self.assertTrue(self.trusted())
 
+    def test_reviewed_previous_release_completion_is_bound_to_the_actual_history(self):
+        previous='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
+        actual=dict(self.run,head_sha=previous)
+        history=dict(total_count=1,workflow_runs=[actual])
+        with patch.object(base,'RELEASE_SHA','e'*40):
+            self.assertTrue(self.trusted(event(actual),hist=history))
+            actual=dict(actual,head_sha='f'*40)
+            self.assertFalse(self.trusted(event(actual),hist=dict(total_count=1,workflow_runs=[actual])))
+
+    def test_existing_release_push_context_is_genuine_and_bound_to_actual_main_sha(self):
+        sha='e'*40
+        self.eventpath.write_text(json.dumps(dict(ref='refs/heads/main', after=sha,
+            repository=dict(id=1416489937,full_name=base.REPO),head_commit=dict(
+                id=sha,message='boat-owner-release: single-real-session-20261111 | retained orphan'))))
+        env=dict(self.env,GITHUB_EVENT_NAME='push',GITHUB_SHA=sha,
+            GITHUB_WORKFLOW_REF='haji84/RACE-AI/.github/workflows/boat-racer-daily.yml@refs/heads/main')
+        self.assertTrue(launcher.trusted_release_push(env=env))
+        for change in (dict(GITHUB_EVENT_NAME='workflow_dispatch'),dict(GITHUB_SHA='f'*40),
+                       dict(GITHUB_REF='refs/heads/other'),dict(GITHUB_WORKFLOW_REF='other')):
+            with self.subTest(change=change):
+                self.assertFalse(launcher.trusted_release_push(env=dict(env,**change)))
+        document=json.loads(self.eventpath.read_text())
+        document['head_commit']['message']='ordinary update'
+        self.eventpath.write_text(json.dumps(document))
+        self.assertFalse(launcher.trusted_release_push(env=env))
+
     def test_untrusted_pr_foreign_head_and_denials_remain_closed(self):
         for field,invalid in (
             ("head_sha","0"*40),("head_branch","main"),

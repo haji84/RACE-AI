@@ -14,7 +14,7 @@ import subprocess
 import sys
 from zoneinfo import ZoneInfo
 from scripts import boat_main_dispatch_gate as base
-from scripts.boat_failed_recovery_contract import verify_dispatch_proof
+from scripts.boat_failed_recovery_contract import verify_dispatch_proof, reviewed_recovery_origin
 
 
 def read_pinned_control(run, *, reader_root=None):
@@ -102,7 +102,7 @@ def decide(*, now, release, owner_doc, history, retry_proof=None,
     if now.astimezone(ZoneInfo('Asia/Tokyo')).hour<6:return result
     runs=_today(history,now)
     if (not runs or len({r['id'] for r in runs})!=len(runs) or
-            any(r.get('head_sha')!=base.RELEASE_SHA or r.get('status')!='completed' or
+            any(not reviewed_recovery_origin(r.get('head_sha'),base.RELEASE_SHA) or r.get('status')!='completed' or
                 r.get('conclusion') not in ('success','failure') for r in runs) or
             not any(r.get('conclusion')=='failure' for r in runs)):return result
     result['recovery_required']=True
@@ -145,7 +145,7 @@ def trusted_owner_completion(history, now, *, env=None):
         if (actual.get('name')!=base.WORKFLOW or
                 actual.get('event')!='workflow_dispatch' or
                 actual.get('head_branch')!=base.RELEASE_REF or
-                actual.get('head_sha')!=base.RELEASE_SHA or
+                not reviewed_recovery_origin(actual.get('head_sha'),base.RELEASE_SHA) or
                 actual.get('status')!='completed' or
                 actual.get('conclusion') not in ('success','failure') or
                 (actual.get('head_repository') or {}).get('full_name')!=base.REPO or
@@ -174,6 +174,30 @@ def trusted_owner_completion(history, now, *, env=None):
         return False
 
 
+def trusted_release_push(*, env=None):
+    """Authenticate the existing release hook from its actual event file."""
+    env=os.environ if env is None else env
+    if (env.get('GITHUB_ACTIONS')!='true' or env.get('GITHUB_EVENT_NAME')!='push'
+            or env.get('GITHUB_REPOSITORY')!=base.REPO or env.get('GITHUB_REF')!='refs/heads/main'
+            or env.get('GITHUB_WORKFLOW_REF')!=
+                'haji84/RACE-AI/.github/workflows/boat-racer-daily.yml@refs/heads/main'
+            or re.fullmatch('[a-f0-9]{40}',env.get('GITHUB_SHA','')) is None):
+        return False
+    try:
+        path=Path(env.get('GITHUB_EVENT_PATH',''))
+        if path.is_symlink() or not path.is_file() or not 0<path.stat().st_size<=base.MAX_JSON_BYTES:
+            return False
+        payload=json.loads(path.read_text(encoding='utf8'))
+        repo=payload.get('repository');commit=payload.get('head_commit')
+        return (type(repo) is dict and type(repo.get('id')) is int and repo['id']==1416489937
+            and repo.get('full_name')==base.REPO and payload.get('ref')=='refs/heads/main'
+            and payload.get('after')==env['GITHUB_SHA'] and type(commit) is dict
+            and commit.get('id')==env['GITHUB_SHA'] and type(commit.get('message')) is str
+            and commit['message'].startswith('boat-owner-release: single-real-session-20261111'))
+    except (OSError,ValueError,TypeError,AttributeError):
+        return False
+
+
 def main(argv=None, *, now=None):
     p=argparse.ArgumentParser(description=__doc__)
     for name in ('release','owner-doc','history'):
@@ -186,7 +210,7 @@ def main(argv=None, *, now=None):
     now=now or datetime.now(timezone.utc)
     history=base._load(args.history)
     triggered=trusted_owner_completion(history,now)
-    source_gate_event=(os.environ.get('GITHUB_EVENT_NAME')=='schedule' or triggered)
+    source_gate_event=(os.environ.get('GITHUB_EVENT_NAME')=='schedule' or triggered or trusted_release_push())
     control=None
     if args.verify_source_handoff and source_gate_event:
         candidates=_today(history,now)

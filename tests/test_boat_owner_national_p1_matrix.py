@@ -27,6 +27,24 @@ def fixture():
 
 
 class ActualReaderMatrixTests(unittest.TestCase):
+    def test_partial_failed_round_retains_actual_control_without_granting_completion(self):
+        doc=fixture();doc['owner_conclusion']='failure'
+        doc['source_control'].update(completed_round=6,prepared_round=7,
+            lifetime_requests=11812,previous_session_requests=70,
+            day_start_lifetime_requests=11524,lifetime_completed_rounds=638)
+        before=deepcopy(doc)
+        report=calculate(doc,IDS,independent_original_reader=True,allow_pending_audit=True)
+        self.assertEqual(report['status'],'HOLD_INTERRUPTED_ROUND_PARTIAL_AUDIT')
+        self.assertEqual(report['observed_source_control'],doc['source_control'])
+        self.assertFalse(report['all_expected_models_p1_readback_proven'])
+        self.assertFalse(report['successor_dispatch_allowed'])
+        self.assertEqual(doc,before)
+        with self.assertRaises(ValueError):calculate(doc,IDS,independent_original_reader=True)
+        for change in (dict(prepared_round=8),dict(prepared_round=True),dict(completed_round=-1)):
+            bad=deepcopy(doc);bad['source_control'].update(change)
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                calculate(bad,IDS,independent_original_reader=True,allow_pending_audit=True)
+
     def test_all_4_races_3_models_counts_complete_only_after_original_reader(self):
         doc=fixture()
         no=calculate(doc,IDS)

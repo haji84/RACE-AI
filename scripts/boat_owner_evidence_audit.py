@@ -14,8 +14,9 @@ import re
 import subprocess
 import sys
 
-OWNER_SHA='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
+OWNER_SHA='b491fb21ce58ba085dd8f54bb7326442b840d8f4'
 PREVIOUS_OWNER_SHA='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
+REVIEWED_PREVIOUS_OWNER_SHA='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
 HISTORIC_RUN=43348227701
 HISTORIC_SHA='0796b52c2804177976e4c2e5ab9b65f32589720b'
 JST=timezone(timedelta(hours=9))
@@ -30,7 +31,7 @@ def _source_pinned(run_id,head_sha):
     # Historical acceptance is confined to this read-only auditor. Dispatch
     # and the live reader checkout still use the single exact OWNER_SHA.
     return (type(run_id) is int and run_id>0 and type(head_sha) is str and
-            (head_sha in (OWNER_SHA,PREVIOUS_OWNER_SHA) or
+            (head_sha in (OWNER_SHA,PREVIOUS_OWNER_SHA,REVIEWED_PREVIOUS_OWNER_SHA) or
              (run_id==HISTORIC_RUN and head_sha==HISTORIC_SHA)))
 
 
@@ -50,6 +51,32 @@ def retained_attempts(document):
     rows=document.get('candidate_attempts')
     need(type(rows) is list and all(type(row) is dict for row in rows),'P1_ATTEMPTS_MISSING')
     return rows
+
+
+def first_p0_original(get, run, listing):
+    """Resolve a continuation's earlier canonical first P0 without regeneration."""
+    first=[x for x in listing if x.get('name')==f'boat-p0-existing-{run["id"]}']
+    if first:
+        need(len(first)==1,'FIRST_P0_MISSING_OR_DUPLICATE')
+        return first[0],run
+    # This auditor is loaded from exact main while its native AES readers run
+    # in the pinned producer checkout. Load the adjacent main gate explicitly.
+    import importlib.util
+    path=Path(__file__).with_name('boat_main_dispatch_gate.py')
+    spec=importlib.util.spec_from_file_location('canonical_p0_recovery_gate',path)
+    gate=importlib.util.module_from_spec(spec);spec.loader.exec_module(gate)
+    def document(endpoint):
+        return json.loads(get(endpoint))
+    reference=document('git/ref/heads/feat/four-sport-forecast-audit-view-20261022')
+    commit=(reference.get('object') or {}).get('sha')
+    need(type(commit) is str and re.fullmatch('[a-f0-9]{40}',commit),'FIRST_P0_RECEIPT_REF_INVALID')
+    selected=gate.resolve_recovery_selection(run=run,
+        artifacts=dict(total_count=len(listing),artifacts=listing),get=document,receipt_commit=commit)
+    origin=document(f'actions/runs/{selected["source_run_id"]}')
+    item=document(f'actions/artifacts/{selected["p0_artifact"]}')
+    need(origin.get('id')==selected['source_run_id'] and origin.get('head_sha')==selected['source_sha'],
+         'FIRST_P0_ORIGIN_CHANGED')
+    return item,origin
 
 
 def summarize(schedule,p0_rows,p1_rows,attempts,*,day,now,official_program_verified,
@@ -248,17 +275,18 @@ def inspect_run(repo,run_id,*,now):
     day=stamp(run['created_at']).astimezone(JST).date().isoformat()
     need(stamp(run['created_at'])<=stamp(run['updated_at'])<=now,'RUN_CLOCK_INVALID')
     listing=artifact_pages(gh,run_id)
-    def read(item,kind):
+    def read(item,kind,*,origin=None):
+        origin=run if origin is None else origin
         meta_raw=gh(f'actions/artifacts/{item["id"]}');meta=json.loads(meta_raw)
         need(meta.get('id')==item['id'],'ARTIFACT_ID_CHANGED')
         raw=gh(f'actions/artifacts/{item["id"]}/zip')
-        _metadata(raw,meta,name=item['name'],run_id=run_id,head_sha=run['head_sha'])
+        _metadata(raw,meta,name=item['name'],run_id=origin['id'],head_sha=origin['head_sha'])
         _artifact(raw,meta_raw,key=None,now=now,expected_kind=kind)
         return raw,meta
-    first=[x for x in listing if x['name']==f'boat-p0-existing-{run_id}']
-    need(len(first)==1,'FIRST_P0_MISSING_OR_DUPLICATE')
-    raw,meta=read(first[0],'P0');document,p0=read_p0(raw,meta,expected_day=day)
-    normalized=dict(repository_id=REPO_ID,repository='haji84/RACE-AI',run_id=str(run_id),head_sha=run['head_sha'],
+    first,p0_origin=first_p0_original(gh,run,listing)
+    raw,meta=read(first,'P0',origin=p0_origin);document,p0=read_p0(raw,meta,expected_day=day)
+    normalized=dict(repository_id=REPO_ID,repository='haji84/RACE-AI',
+        run_id=str(meta['workflow_run']['id']),head_sha=meta['workflow_run']['head_sha'],
         artifact_id=meta['id'],created_at=meta['created_at'],payload_sha256=digest(document),independently_verified=True)
     program=load_program_source(day,document,normalized,repo,as_of=now.isoformat())
     p1=[];attempts=[];videos=[];rejected=0;p1_originals={}
@@ -273,11 +301,13 @@ def inspect_run(repo,run_id,*,now):
     result=summarize(document['schedule'],p0,p1,attempts,day=day,now=now,
         official_program_verified=program is not None,video_rows=videos,video_rejections=rejected)
     result.update(owner_run_id=run_id,owner_head_sha=run['head_sha'],reader_head_sha=OWNER_SHA,
+                  first_p0_origin_run_id=p0_origin['id'],first_p0_origin_sha=p0_origin['head_sha'],
                   owner_conclusion=run['conclusion'],authenticated_p1_artifacts=len(p1_originals),
                   source_program_sha256=document['source_sha256'])
     control=read_final_control(gh,run)
     result['source_control']={k:control.get(k) for k in ('completed_round','prepared_round',
-        'previous_session_requests','lifetime_requests','day_start_lifetime_requests','previous_stop_reason')}
+        'previous_session_requests','lifetime_requests','day_start_lifetime_requests',
+        'lifetime_completed_rounds','previous_stop_reason')}
     result['pending_pair']=dict(status='NO_PENDING_ROUND',verified=False,successor_dispatch_allowed=False)
     if control.get('prepared_round') is not None:
         try:
