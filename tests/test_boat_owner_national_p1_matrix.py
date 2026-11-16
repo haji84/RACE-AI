@@ -119,6 +119,41 @@ class ActualReaderMatrixTests(unittest.TestCase):
 
 
 class SealedViewCoverageTests(unittest.TestCase):
+    def test_actual_completion_proof_counts_without_inventing_generated_at(self):
+        view,source=self.example()
+        source['generated_at']=None
+        view['records'][0]['saved_prediction_coverage']={'authenticated-native-fixture':{}}
+        original=deepcopy(view)
+        # The pure calculator receives an already authenticated reader result.
+        proof=dict(status='QUALIFIED_PRE_CUTOFF',as_of=source['as_of'],generated_at=None,
+            computation_completed_at='2030-04-01T11:40:03+09:00',
+            clock_proof_kind='ACTUAL_NATIVE_CALL_COMPLETION',
+            server_saved_at=source['server_saved_at'],cutoff_at=source['cutoff_at'])
+        result=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],scheduled_races=1,now=NOW,
+                                  native_coverage_reader=lambda *a,**k:proof)
+        self.assertEqual(result['p1_qualified_unique_slots'],1)
+        self.assertEqual(view,original)
+        view['records'][0].pop('saved_prediction_coverage')
+        source.update(computation_completed_at=proof['computation_completed_at'],
+                      clock_proof_kind=proof['clock_proof_kind'])
+        unproven=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],scheduled_races=1,now=NOW)
+        self.assertEqual(unproven['p1_qualified_unique_slots'],0)
+        source.update(computation_completed_at=proof['computation_completed_at'],
+                      clock_proof_kind=proof['clock_proof_kind'])
+        result=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],scheduled_races=1,now=NOW)
+        self.assertEqual(result['p1_qualified_unique_slots'],0,'unattested clock fields became proof')
+
+    def test_legacy_reused_asof_is_not_generation_proof(self):
+        for mid in ('boat-local-start-course-shadow-v0.1-UNTRAINED',
+                    'boat-observed-pairwise-factor-v1','boat-observed-pairwise-start-v1'):
+            with self.subTest(model=mid):
+                view,source=self.example()
+                source.update(model_id=mid,dispatch_status='ORIGINAL_REUSED',generated_at=source['as_of'])
+                original=deepcopy(view)
+                result=saved_view_coverage(view,day=DAY,model_ids=[mid],scheduled_races=1,now=NOW)
+                self.assertEqual(result['p1_qualified_unique_slots'],0)
+                self.assertEqual(view,original)
+
     def example(self):
         cutoff='2030-04-01T12:00:00+09:00'
         original=dict(stage='P1',model_id='boat-A',cutoff_at=cutoff,

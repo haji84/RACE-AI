@@ -166,6 +166,7 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now,
                 extra.add(mid)
                 continue
             slot=(rid,mid);observed_p1.add(slot)
+            native=None
             if row.get('saved_prediction_coverage'):
                 try:
                     reader=native_coverage_reader
@@ -183,7 +184,14 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now,
                     # Audit-local projection only: retain the exact saved body.
                     p=dict(p,as_of=native['as_of'],generated_at=native['generated_at'],
                            server_saved_at=native['server_saved_at'],cutoff_at=native['cutoff_at'],
-                           external_receipt_verified=True,eligible_pre_cutoff=True)
+                           external_receipt_verified=True,eligible_pre_cutoff=True,
+                           computation_completed_at=native.get('computation_completed_at'),
+                           clock_proof_kind=native.get('clock_proof_kind'))
+            if (p.get('dispatch_status')=='ORIGINAL_REUSED' and mid in {
+                    'boat-local-start-course-shadow-v0.1-UNTRAINED',
+                    'boat-observed-pairwise-factor-v1','boat-observed-pairwise-start-v1'} and native is None):
+                excluded['REUSED_NATIVE_GENERATION_CLOCK_UNVERIFIED']+=1
+                continue
             if (p.get('external_receipt_verified') is not True or
                 p.get('eligible_pre_cutoff') is not True or
                 type(p.get('artifact_id')) is not int or p['artifact_id']<=0 or
@@ -194,7 +202,9 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now,
             try:
                 asof=_clock(p.get('as_of'))
                 saved=_clock(p.get('server_saved_at'))
-                generated=_clock(p.get('generated_at'))
+                proof_clock=(_clock(p['generated_at']) if p.get('generated_at') is not None else
+                    _clock(p.get('computation_completed_at')) if native is not None and p.get('clock_proof_kind')=='ACTUAL_NATIVE_CALL_COMPLETION' else
+                    _clock(None))
                 original_cutoff=_clock(p.get('cutoff_at') or row.get('cutoff_at'))
             except (TypeError,ValueError,AttributeError):
                 excluded['P1_TIMESTAMP_INVALID']+=1
@@ -204,8 +214,8 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now,
             # GitHub's artifact metadata can truncate fractional seconds.
             ordered=asof<=saved or (saved.microsecond==0 and
                                     saved<=asof<saved+timedelta(seconds=1))
-            if (not ordered or max(asof,generated,saved)>clock or
-                max(asof,generated,saved)>=cutoff):
+            if (not ordered or max(asof,proof_clock,saved)>clock or
+                max(asof,proof_clock,saved)>=cutoff):
                 excluded['P1_NOT_PHYSICALLY_BEFORE_CUTOFF']+=1
                 continue
             qualified.add(slot)

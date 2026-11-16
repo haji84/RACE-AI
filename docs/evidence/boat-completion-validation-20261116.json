@@ -18,7 +18,22 @@
     "automatic_successor_run_id": 43813602799,
     "manual_gate_rerun_attempt_cancelled": true,
     "producer_cancelled_by_development": false,
-    "new_owner_independent_AES_audit_complete": false
+    "new_owner_independent_AES_audit_complete": false,
+    "failed_successor_run_id": 43813602799,
+    "failed_round": 9,
+    "failed_checkpoint_completed_round": 8,
+    "failed_checkpoint_prepared_round": 9,
+    "failed_operation": "VAULT_MUTABLE_REF_REMOTE_LOOKUP",
+    "underlying_git_failure_condition": "UNKNOWN_NO_RETAINED_STDERR",
+    "failed_round_p1_artifact_id": 14202239943,
+    "failed_round_result_artifact_id": 14203116284,
+    "recovery_gate_run_id": 43812709551,
+    "recovery_gate_attempt": 2,
+    "recovery_gate_job_id": 133134392902,
+    "recovery_gate_status": "READY_VERIFIED_RECOVERED_OWNER_CONTINUATION",
+    "post_recovery_successor_run_id": 43818666068,
+    "manual_authenticated_recovery_gate_rerun": true,
+    "unattended_continuous_handoff_proven": false
   },
   "coverage": {
     "retained_schedule_races": 120,
@@ -109,5 +124,15 @@
     "new_cron": 0,
     "new_service": false,
     "bets_placed": false
+  },
+  "source_clock_fix": {
+    "status": "SOURCE_FREE_TESTS_AND_INDEPENDENT_REVIEW_PASSED_NOT_PRODUCTION",
+    "new_legacy_native_families_qualified": 5,
+    "legacy_asof_derived_families_held": 3,
+    "source_python_tests": 116,
+    "node_tests": 7,
+    "main_consumer_tests": 20,
+    "old_forecast_view_inventory_unchanged": true,
+    "new_model_family": false
   }
 }
