@@ -102,6 +102,58 @@ class OwnerInputTests(unittest.TestCase):
         self.assertFalse(report['actual_four_model_forecast_saved'])
         self.assertFalse((self.root/'pre').exists())
 
+    def test_single_race_pilot_picks_earliest_and_preserves_other_races(self):
+        def three(root, **kw):
+            self.assertEqual(kw['max_races'], 120)
+            for n in (3, 1, 2):
+                card(root, rid=f'2030011512{n:02d}',
+                     source=f'https://www.winticket.jp/keirin/aomori/racecard/2030011512/1/{n}',
+                     cutoff=f'2030-01-15T10:0{n}:00+09:00')
+            return {'source_day_schedule_race_count': 78}
+        result = self.invoke(capture=three, single_race_pilot=True)
+        self.assertEqual(self.probed, ['203001151201'])
+        self.assertEqual(result['history_races_processed'], 1)
+        self.assertTrue(result['single_race_pilot'])
+        self.assertEqual(result['pilot_eligible_races_observed'], 3)
+        self.assertEqual(result['pilot_other_eligible_races_deferred'], 2)
+        self.assertEqual(result['prior_result_max_pages_per_race'], 32)
+        self.assertFalse(result['actual_four_model_forecast_saved'])
+        self.assertEqual(result['new_pre_race_inputs'], 0)
+        self.assertFalse((self.root/'pre').exists())
+
+    def test_single_race_pilot_skips_expired_and_never_backfills(self):
+        def two(root, **kw):
+            card(root, rid='203001151201',
+                 cutoff='2030-01-15T09:05:00+09:00')
+            card(root, rid='203001151202',
+                 source='https://www.winticket.jp/keirin/aomori/racecard/2030011512/1/2',
+                 cutoff='2030-01-15T09:40:00+09:00')
+            return {'source_day_schedule_race_count': 78}
+        result = self.invoke(capture=two, single_race_pilot=True)
+        self.assertEqual(self.probed, ['203001151202'])
+        self.assertEqual(result['pilot_expired_or_too_close_not_selected'], 1)
+        self.assertEqual(result['pilot_other_eligible_races_deferred'], 0)
+        self.assertEqual(result['history_races_processed'], 1)
+        self.assertEqual(result['new_pre_race_inputs'], 0)
+
+    def test_single_race_pilot_rejects_nonboolean_control(self):
+        with self.assertRaisesRegex(ValueError, 'PILOT_FLAG_MUST_BE_BOOLEAN'):
+            self.invoke(single_race_pilot='true')
+        self.assertEqual(self.probed, [])
+
+    def test_single_race_pilot_does_not_evade_provider_denial(self):
+        calls = []
+        def denied(url):
+            calls.append(url)
+            raise ValueError('PUBLIC_PAGE_BLOCKED_OR_RATE_LIMITED_NO_RETRY')
+        def capture(root, fetch, **kw):
+            fetch('https://www.winticket.jp/keirin/odds/20300115')
+        result = self.invoke(capture=capture, fetch=denied, single_race_pilot=True)
+        self.assertEqual(len(calls), 1)
+        self.assertTrue(result['provider_denial_stopped_requests'])
+        self.assertEqual(result['history_races_processed'], 0)
+        self.assertFalse(result['actual_four_model_forecast_saved'])
+
     def test_single_future_race_still_gets_bounded_history(self):
         report=self.invoke()
         self.assertEqual(report['prior_result_max_pages_per_race'],32)
