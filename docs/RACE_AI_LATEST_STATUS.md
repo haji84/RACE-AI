@@ -1,3 +1,30 @@
+<!-- RACE_AI_BOAT_CLOCK_RECOVERY_20261116 -->
+# 2026-11-16 JST｜再接続後の実確認：P1独立AES合格、結果取得の時計修正を反映中
+
+- 本人承認後に既存PR302/289/286を通常merge。production84128e0、main65743d13をGitHubから再確認。
+- 実監査43783302118で新owner43772481781の6 ZIPを別runnerがSHA/AES/元内容で照合。
+  追加9モデルの45枠は公式締切前で画面原本とも一致。全日分母120×14＝1680は未完走。
+  通常5モデルの25枠は別の原本監査で確認したが、旧表示schemaのmetadata欠測を補完して加算しない。
+- 次owner43782543906は09:59:03 JSTにP1を保存した後、10:12 JSTに7巡目で失敗した。
+  実エラーはVaultのARTIFACT_METADATA読取404。最終controlは完了6・準備7・使用70・累積11812・
+  当日基点11524・巡回累積638。署名済みcontinuity/source-controlのZIP/SHAが一致し、改変していない。
+  callback43784862364は真正なworkflow_runだが、復旧helperがschedule専用で拒否した。
+  当該失敗にはP1だけが保存されRESULTが未保存の可能性があり、完了扱い・counter reset・盲目的な再実行をしない。
+- 結果画面受入43783346260はINTRADAY_CAPTURE_CLOCK_INVALIDでbrowser前に失敗。
+  9分の取得処理を開始時刻＋5分で検証していた実不具合を再現し、応答までの実経過時間を使うよう修正。
+  未来時刻の許容5分、元の取得時刻・queue時点・取得拒否・保存処理は維持する。
+  修正sourceはb9a1451df474e52d95bd40253676365c4fa0940d。既存b47との差分は時計と2回帰試験の2ファイルのみ。
+  427秒の正常取得がRED→GREEN、301秒先の未来時刻は拒否。関連48件とsource独立レビュー合格。
+  main caller44件も再接続後に合格。既存PR143で実SHAをpinし、同HEAD CI→main反映→実取得/browserを続ける。
+  source commitは既存PR143の履歴に保持し、mainの実treeは呼出し・テスト・件数/SHA文書だけを変更する。
+- クラウド切断から復旧し、修正commit・証拠を確認。予想workerの停止操作はしていないが、上記の実失敗により
+  新しい予想workerは未稼働。G1復旧、無人handoff、全件coverage、画面、映像、前向き精度改善は未完了。
+
+新PR/Issue/branch/workflow/job/権限/スケジュール/モデル系統/課金・投票・予想原本改変は0。
+98%は未達・実現可能性未証明。[件数・SHA証拠](evidence/boat-approved-restart-live-20261116.json)。
+以下は以前の記録として保全する。
+<!-- /RACE_AI_BOAT_CLOCK_RECOVERY_20261116 -->
+
 <!-- RACE_AI_BOAT_LIVE_RESTART_20261116 -->
 # 2026-11-16 JST｜承認済み本番復旧：新P0/P1の自動保存を確認
 

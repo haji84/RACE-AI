@@ -342,7 +342,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertIn("github.ref == 'refs/heads/main'",daily)
         self.assertIn("docs/evidence/owner-pdca-main-trigger.txt",workflow.split('jobs:',1)[0])
         self.assertEqual(workflow.count('name: Reflect confirmed races and retain encrypted incremental source packets'),1)
-        self.assertIn("'b47ac0d0ac8076f632316eacc347b0765bb816c1'",daily)
+        self.assertIn("'b9a1451df474e52d95bd40253676365c4fa0940d'",daily)
         self.assertIn('Authenticate the saved 11/12 P0 receipt before results or read-only view',daily)
         self.assertLess(daily.index('Use pinned collector for official results and stage-aware P0 reader'),
                         daily.index('path: pr64-reference'))
@@ -386,7 +386,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertEqual(reader_steps.count('boat-result-refresh: owner-p0-43131905826-20261112'),3)
         self.assertNotIn('gh workflow run',reader_steps)
         self.assertNotIn('racer_intraday_refresh',reader_steps)
-        self.assertIn("'b47ac0d0ac8076f632316eacc347b0765bb816c1'",daily)
+        self.assertIn("'b9a1451df474e52d95bd40253676365c4fa0940d'",daily)
         self.assertIn('VERIFY_SAVED_P0:',daily)
         self.assertNotIn(reader,daily.split(result,1)[0])
 
@@ -404,7 +404,7 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertIn("context['minimum_results']>=11",daily)
         self.assertIn('RESULT_VIEW_ONLY:',daily)
         self.assertIn("'0796b52c2804177976e4c2e5ab9b65f32589720b'",daily)
-        self.assertIn("'b47ac0d0ac8076f632316eacc347b0765bb816c1'",daily)
+        self.assertIn("'b9a1451df474e52d95bd40253676365c4fa0940d'",daily)
         self.assertIn("startsWith(github.event.head_commit.message, 'boat-result-view')",daily)
         self.assertIn('VERIFY_SAVED_P0:',daily)
         self.assertIn('--compact-results',daily)
