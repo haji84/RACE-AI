@@ -1,6 +1,7 @@
 """Settlement targets share the actual athlete collector's request budget."""
 from datetime import timedelta
 import unittest
+from unittest.mock import patch
 from tests import test_racer_intraday as RuntimeFixtures
 from tests.test_boat_sp_settlement import document
 from tests.intraday_fixture import packet,day_index
@@ -21,6 +22,34 @@ class ResultQueueTests(unittest.TestCase):
             date,venue,n=identity(url);d=document(day=date.replace('-',''),venue=venue,number=n);d['raceheader']['rlinklist'][n-1]['deadline']='10:00';d['maindata']['infolist3t'][0]['dividend']=price
             return packet(d)[0],NOW.isoformat()
         return calls,fetch
+    def test_long_capture_keeps_actual_receipts_after_five_minutes(self):
+        state=self.state();base=self.base();calls,source=self.source_results()
+        elapsed=[0]
+        def delayed(url):
+            raw,_=source(url);elapsed[0]+=61
+            return raw,(NOW+timedelta(seconds=elapsed[0])).isoformat()
+        with patch('race_ai.racer_intraday.time.monotonic',lambda:elapsed[0]):
+            report=state.advance(base,now=NOW,fetch=delayed,max_requests=7,
+                                 result_targets=self.targets(count=6))
+        self.assertEqual(report['requests'],7)
+        self.assertEqual(len(state.control['settlement_captures']),6)
+        self.assertGreater(elapsed[0],5*60)
+        self.assertEqual(state.control['settlement_captures']['20261107-17-06']['captured_at'],
+                         (NOW+timedelta(seconds=elapsed[0])).isoformat())
+
+    def test_long_capture_still_rejects_a_receipt_ahead_of_elapsed_real_time(self):
+        state=self.state();base=self.base();calls,source=self.source_results()
+        elapsed=[0]
+        def delayed(url):
+            raw,_=source(url);elapsed[0]+=61
+            skew=5*60+1 if len(calls)==7 else 0
+            return raw,(NOW+timedelta(seconds=elapsed[0]+skew)).isoformat()
+        with patch('race_ai.racer_intraday.time.monotonic',lambda:elapsed[0]):
+            with self.assertRaisesRegex(ValueError,'INTRADAY_CAPTURE_CLOCK_INVALID'):
+                state.advance(base,now=NOW,fetch=delayed,max_requests=7,
+                              result_targets=self.targets(count=6))
+        self.assertEqual(len(calls),7,'the valid earlier responses must be retained')
+        self.assertEqual(len(state.control['settlement_captures']),5)
     def test_pending_result_is_fetched_even_when_K_already_contains_its_statistics(self):
         s=self.state();base=self.base();calls,fetch=self.source_results();target=self.targets('20261104')[0]
         s.advance(base,now=NOW,fetch=fetch,max_requests=2);calls.clear()

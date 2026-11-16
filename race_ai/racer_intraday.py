@@ -119,6 +119,7 @@ class IntradayState:
         return dict(day=day,last_checked_at=c['last_checked_at'] or now.isoformat(),latest_result_at=max(captures,default=None),expected_races=expected,confirmed_races=len(confirmed),pending_races=None if expected is None else max(0,expected-len(confirmed)),schedule_complete=complete,source_state=state,revision_conflicts=len(c['conflicts']),source_receipts=list(receipts.values()))
     def advance(self,base,*,now,fetch,max_requests=12,result_targets=(),source_deadline=None):
         now=clock(now);need(type(max_requests) is int and max_requests>=1,'INTRADAY_REQUEST_BOUND');need(source_deadline is None or type(source_deadline) in (int,float) and math.isfinite(source_deadline),'INTRADAY_SOURCE_DEADLINE_INVALID');c=self.control;day=now.astimezone(JST).date();text=day.isoformat();requests=changed=0
+        started=time.monotonic()
         self.extra_rows(base,now=now)
         self.rollover(now)
         targets={}
@@ -139,7 +140,15 @@ class IntradayState:
                     source_deadline is not None and time.monotonic()>=source_deadline):return None
             requests+=1
             try:
-                raw,at=fetch(url);at=clock(at);need(at<=now+timedelta(minutes=5),'INTRADAY_CAPTURE_CLOCK_INVALID')
+                raw,at=fetch(url);at=clock(at)
+                # The queue's as-of time stays fixed, but a paced batch can
+                # last longer than the allowed five-minute future skew.
+                # Compare each receipt with elapsed real time, retaining
+                # its original timestamp and the same future-skew guard.
+                elapsed=time.monotonic()-started
+                need(math.isfinite(elapsed) and elapsed>=0 and
+                     at<=now+timedelta(seconds=elapsed,minutes=5),
+                     'INTRADAY_CAPTURE_CLOCK_INVALID')
                 return raw,dict(source_url=url,captured_at=at.isoformat(),http_status=200,source_sha256=sha(raw))
             except SourceWait as exc:
                 status=getattr(exc,'plan',{}).get('http_status');key=url if status==404 else host
