@@ -1,3 +1,18 @@
+<!-- BOAT independent original readback 2026-11-16 -->
+## 2026-11-16: 中断予想の別runner読戻し合格、後継起動は確認中
+
+PR164の実sourceはb491fb21、PR174の実mainはce33c976。別runnerの実監査43802953053が成功。
+中断owner43782543906のP1を含む原本を認証し、6/7・累積11812・当日基点11524・worker70・
+巡回累積638を改変せず記録した。native P1は3レース/15slot。4個の実ALL_MODEL ZIPを
+SHA/AESで再読込し、正式な締切前27slotがsaved AES原本と一致。全日1680slotの完成ではない。
+[独立読戻しのcountsとSHA](evidence/boat-orphan-p1-independent-readback-20261116.json)。
+
+PR174では既存の起動対象fileが変更されず、release launcherは走らなかった。
+既存PR199の履歴を保全したdocs差分でowner-pdca-main-trigger.txtを更新し、既存経路を実行する。
+新規workflow・job・cron・event・権限は追加しない。実checkpoint AES復旧、vaultへの3原本保持、
+新workerと累積11812からの増分、新たな締切前P1保存はこれから確認する。
+映像・全レース×全モデル・無人継続・実機Safari・精度改善・98%は未達のまま。
+
 <!-- BOAT recovery update 2026-11-16: latest facts precede preserved history. -->
 ## 2026-11-16: 実画面の合格と自動予想復旧の状況
 

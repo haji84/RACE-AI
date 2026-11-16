@@ -56,3 +56,20 @@ production203ca70のrepeated_cycle.pyはSOURCE_LIMIT240、ROUND_SOURCE_LIMIT45�
 
 完了：失敗owner復旧の本番接続、復旧条件と回帰テスト、実公式資料に基づく分母と基本P1不足の確定、実第3巡の原本・取得回数対応確認。
 未完了：実時間帯の障害復旧から次P1生成までの本番成功、全国全モデルP1完成、実展示映像を使った予想完成。
+
+## 2026-11-16: 中断ownerの独立読戻しと既存起動経路
+
+以前の240/45取得枠は歴史記録。現在のproduction b491fb21は件数の固定上限を追加せず、
+原本と使用量を保持する。PR164/174は本人承認後に通常保護merge済み。
+別runnerの実監査43802953053/job133087189515は成功し、故障owner43782543906を読戻した。
+canonical朝P0は120レース。native P1は3レース/15slot、全14モデルの当日分母は1680slot。
+未完了controlは6/7、累積GET11812・当日基点11524・worker70・巡回累積638を保ったまま
+HOLD_INTERRUPTED_ROUND_PARTIAL_AUDITを出し、dispatch/full coverageは許可していない。
+さらに4つの実ALL_MODEL ZIPをSHA/AESで再読込し、正式な締切前27slotをsaved AES原本と照合。
+違うrunの45/27slotを合算して全日充足とはしない。予想原本・結果・clockは変更していない。
+
+PR174では既存push対象owner-pdca-main-trigger.txtが変わらず、release launcherは未実行。
+既存PR199の旧proposal履歴を保全したdocs差分だけで、この既存対象fileを変更する。
+新event/trigger/job/cron/権限は追加しない。真正なmain pushで実AES復旧を検証し、
+後継workerの最初の使用量と新しい締切前P1保存を確認するまで再開成功にはしない。
+実checkpoint AES復旧、新worker、映像・全日coverage・実機Safari・精度改善は未確認。

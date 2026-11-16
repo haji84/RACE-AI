@@ -1,0 +1,73 @@
+{
+  "run_id": 43802953053,
+  "job_id": 133087189515,
+  "conclusion": "success",
+  "main_sha": "ce33c976361d4133523ff1d83ec727cc1ff2eb30",
+  "source_reader_sha": "b491fb21ce58ba085dd8f54bb7326442b840d8f4",
+  "actual_audited_owner_run": 43782543906,
+  "log_sha256": "51b98494e21a3f381e40e4c0b4dd672cbd4bfe3565462164d19569d1cbe2e296",
+  "reports": [
+    {
+      "all_expected_models_p1_readback_proven": false,
+      "baseline_p0_races": 120,
+      "baseline_p1_any_races": 3,
+      "day_jst": "2026-11-16",
+      "expected_active_model_count": 14,
+      "expected_p1_model_slots": 1680,
+      "missing_p1_model_slots": 1665,
+      "observed_source_control": {
+        "completed_round": 6,
+        "day_start_lifetime_requests": 11524,
+        "lifetime_completed_rounds": 638,
+        "lifetime_requests": 11812,
+        "prepared_round": 7,
+        "previous_session_requests": 70,
+        "previous_stop_reason": null
+      },
+      "owner_original_reader_independently_verified": true,
+      "owner_run_id": 43782543906,
+      "p1_saved_expected_slots": 15,
+      "racing_provider_gets": 0,
+      "retained_schedule_races": 120,
+      "scheduled_races": 120,
+      "schema": "RACE_AI_BOAT_OWNER_NATIONAL_P1_MATRIX_V1",
+      "source_owner_conclusion": "failure",
+      "status": "HOLD_INTERRUPTED_ROUND_PARTIAL_AUDIT",
+      "successor_dispatch_allowed": false
+    },
+    {
+      "all_model_p1_present": false,
+      "artifact_rounds_verified": 0,
+      "day_jst": "2026-11-16",
+      "deferred_artifacts": 0,
+      "independent_readback": true,
+      "owner_run_id": 43782543906,
+      "physical_models_generated": 0,
+      "provider_gets": 0,
+      "restored_p1_model_rows": 0,
+      "schema": "BOAT_INDEPENDENT_ALL_MODEL_VAULT_P1_AUDIT_V1",
+      "source_originals_modified": false,
+      "status": "HOLD_ALL_MODEL_P1_COVERAGE",
+      "unrepresented_scoped_forecasts": 0
+    },
+    {
+      "actual_listed_archives": 4,
+      "aes_originals_independently_decrypted": 4,
+      "day_jst": "2026-11-16",
+      "github_zip_sha256_independently_verified": 4,
+      "official_schedule_crosschecked_pre_cutoff_model_slots": 27,
+      "original_predictions_matched_saved_AES_view": 27,
+      "original_predictions_missing_from_saved_AES_view": 0,
+      "owner_run_id": 43782543906,
+      "owner_source_commit": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+      "p1_forecast_rows_reopened": 27,
+      "physical_pre_cutoff_distinct_model_slots": 27,
+      "prediction_generation_performed": false,
+      "production_predictions_modified": false,
+      "racing_provider_gets": 0,
+      "schema": "RACE_AI_BOAT_EXACT_ALL_MODEL_ZIP_READBACK_V1",
+      "status": "AES_ZIP_REPLAY_VERIFIED_P1_COVERAGE_INCOMPLETE",
+      "unqualified_original_reasons": {}
+    }
+  ]
+}
