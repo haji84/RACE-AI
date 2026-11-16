@@ -290,6 +290,7 @@ def recover(get,day,*,current_run,out,clock=None,video_receipt_verifier=None):
     learning_shadows=[];learning_context=None;training_proofs={}
     history_context=None;history_proofs={};history_documents=[]
     entry_history_cache=None;entry_history_order=None;entry_history_rejections=0
+    schedule_cache=None;schedule_cache_order=None;schedule_cache_receipt=None
     clock=clock or (lambda:datetime.now(timezone.utc))
     if video_receipt_verifier is None:
         from .boat_video_archive import VideoContextArchiveReader
@@ -369,6 +370,11 @@ def recover(get,day,*,current_run,out,clock=None,video_receipt_verifier=None):
                 items=attach_snapshots(doc,items)
                 rows+=items
                 if prefix=='boat-national-cutoff-':
+                    from .repeated_cycle import retained_schedule_snapshot
+                    snapshot=retained_schedule_snapshot(doc,day=day,receipt_at=meta['created_at'])
+                    order=(ts(meta['created_at']),ident)
+                    if snapshot is not None and (schedule_cache_order is None or order>schedule_cache_order):
+                        schedule_cache=snapshot;schedule_cache_order=order;schedule_cache_receipt=copy.deepcopy(meta)
                     from .boat_entry_source_collection import optional_cache_from_document
                     candidate_cache,rejection=optional_cache_from_document(doc,day=day,as_of=meta['created_at'])
                     if rejection is not None:entry_history_rejections+=1
@@ -447,6 +453,9 @@ def recover(get,day,*,current_run,out,clock=None,video_receipt_verifier=None):
                entry_observation_history=entry_history_cache,
                entry_observation_history_rejections=entry_history_rejections,
                entry_observation_history_rejection_reason='ENTRY_HISTORY_CACHE_REJECTED' if entry_history_rejections else None)
+    if schedule_cache is not None:
+        state['schedule_cache']=schedule_cache
+        state['schedule_cache_receipt']=schedule_cache_receipt
     if video_context_artifact_ids:
         # IDs are handles for the next invocation to independently re-read;
         # they are not JSON authentication claims or substitute receipt proofs.

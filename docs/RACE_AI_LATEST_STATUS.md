@@ -1,3 +1,17 @@
+<!-- RACE_AI_BOAT_ZERO_ROUND_RECOVERY_20261116 -->
+# 2026-11-16 JST｜BOAT停止復旧の原因修正・本番更新の準備
+
+最新の[BOAT引継ぎ](RACE_AI_BOAT_RECOVERY_20261116.md)に基づく更新。対象は既存PR #302とmain側の既存PR #289。以下の古いPR71・ローカル常駐処理の記録は当時の履歴として保存し、旧monitorを再開する指示として扱わない。
+
+- **実装・ローカル検証済み:** 失敗workerのGET0と当日全体のGET0を混同する復旧条件を修正。実障害の引継ぎ値は累積11524・当日基点11072・当該worker使用0で、カウンタを変更せず受理する。巡回途中復旧に残っていた旧240件制限も撤去し、署名済み原本との完全一致条件は保持。
+- **保存通信の修正:** Vaultが付けるGitの設定引数でfetchが60秒扱いになっていた不具合を修正し、既存設計の180秒を適用。タイムアウトは秘密を含まない操作別コードで記録する。実障害時の64秒失敗の内部操作は未記録のため原因を断定しない。
+- **検証:** 既存owner全385件、復旧・Vault全179件、サイトNode15件成功（範囲に重複あり）。mainのzero-round受理不足もRED再現・修正し関連55件成功。独立コードレビューで追加指摘なし。CI・本番実証は厳密HEADのActions結果を別途確認する。
+- **未完成:** 実障害AESの別runner読戻しから次workerの新P1保存までのG1、G2〜G8の新規実レース検証は未合格。実原本ZIPのSHA確認と歴史時刻での再現は、本番の復旧許可やAES復号成功を意味しない。
+- **本人承認が必要:** 既存の無断main統合・本番変更禁止に従い、production/mainは変更していない。productionの新実HEADとmainの厳密固定SHAを同期するリリース案を準備する。原本改変・新PR/Issue/workflow・新規課金・投票は0。
+
+[件数とハッシュの証拠](evidence/boat-zero-round-recovery-validation-20261116.json)。平文予想・映像・鍵・暗号原本本文はGitへ追加しない。
+<!-- /RACE_AI_BOAT_ZERO_ROUND_RECOVERY_20261116 -->
+
 <!-- RACE_AI_OWNER_CODE_ONLY_UNISSUED_RELEASE_20261108 -->
 # 2026-11-08｜オーナー指示によるCODE専用再開、公式取得の固定境界は継続
 
@@ -2435,3 +2449,26 @@ P0/P1原本生成・AES保存・独立読戻し・既存公式結果照合を実
 画面表示、公式結果取得、元の結果照合器でのモデル別PDCA
 の本番成功を主張するものではない。
 <!-- END_RACE_AI_SOURCE_OWNER_RELEASE_20261111 -->
+
+## 2026-11-16: 保存済みP1を残した中断巡回の復旧
+
+本人の「承認する」に基づく既存PR164の修正。以前の取得枠提案は履歴として保存し、
+現行84128の内容から修正した。予想取得件数の固定上限や別モデルは追加していない。
+
+owner43782543906はP1原本14189866940を保存後、GitHubのARTIFACT_METADATA読取404で
+第7巡を中断した。最終checkpointは完了6・準備7・累積GET11812・当日基点11524・
+worker GET70・完了巡回累積638。RESULT第7巡は保存されていない。
+
+修正は、実AESと公開counterの一致・完全inventory・既存予想とのfirst-receipt一致を
+検証し、P1/CONTINUITY/SOURCE_CONTROLの原本3点を既存AES Git vaultへ保持した後だけ
+準備中の印を解除する。完了数・使用量を進めず、RESULTを作らない。producerも
+現在checkout SHAまたは明示レビュー済み84128の原本に限定して再検証する。
+保存済みscheduleと候補別publication waitの時刻を保持し、180秒の鮮度判定を維持する。
+
+既存mainの本物のschedule/callback/release-pushを認証する。保存直後のmetadata404は
+現在run/attempt1のupload ID・名前・digestを照合したものだけ最大3回同じIDを再読込する。
+提供元403/429、未知のID、ZIP404、改変、検証不能は従来どおり停止する。
+
+この記録時点で実原本のAES復旧と新workerの締切前P1保存は未確認。
+ローカルfixtureの合格を、本番再開・全レース充足・映像・精度改善の達成に数えない。
+既存の本人承認による起動境界は継続する: RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1。

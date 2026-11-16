@@ -8,6 +8,7 @@ import importlib
 import io
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -309,8 +310,17 @@ class FirstP0ReconcileTests(unittest.TestCase):
         self.assertEqual(self.intraday.head(), source['source_commit'])
         self.assertEqual(self.vault.head(), self.bundle['vault_commit'])
         public = wire(report).decode()
+        # Random SHA-256/commit hex can contain the literal digits "4001".
+        # Mask only complete authenticated digests, never ordinary data fields,
+        # before checking the public aggregate for leaked racer identifiers.
+        sanitized = re.sub(r'(?<![a-f0-9])[a-f0-9]{64}(?![a-f0-9])',
+                           '<SHA256>', public)
+        sanitized = re.sub(r'(?<![a-f0-9])[a-f0-9]{40}(?![a-f0-9])',
+                           '<COMMIT>', sanitized)
         for forbidden in ('top8', 'ranked', 'racername', '4001', '20300401-01-01', '架空', 'per_forecast'):
-            self.assertNotIn(forbidden, public)
+            self.assertNotIn(forbidden, sanitized)
+        self.assertIn('4001', re.sub(r'(?<![a-f0-9])[a-f0-9]{64}(?![a-f0-9])',
+                                     '<SHA256>', '{"racer_registration":"4001"}'))
 
     def test_missing_results_publishes_exact_original_with_hold_and_replay_is_quiet(self):
         self.save_results()

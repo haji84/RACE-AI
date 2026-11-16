@@ -128,18 +128,32 @@ runs:
       env:
         P0_SUPPLEMENT_ARTIFACT: ${{ steps.discovery_freeze.outputs.artifact-id }}
         RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+        RACE_AI_FRESH_UPLOAD_RECEIPTS: >-
+          [{"artifact_id":"${{ steps.freeze.outputs.artifact-id }}","name":"${{ steps.ready.outputs.forecast_name }}","digest":"${{ steps.freeze.outputs.artifact-digest }}"},
+           {"artifact_id":"${{ steps.discovery_freeze.outputs.artifact-id }}","name":"${{ steps.ready.outputs.p0_name }}","digest":"${{ steps.discovery_freeze.outputs.artifact-digest }}"}]
       run: |
         original_args=()
+        fresh_args=()
+        if [[ "$GITHUB_REF" == 'refs/heads/production/boat-p0-p1-20261111' ]]; then
+          fresh_args+=(--fresh-upload)
+        fi
         if [[ -n "$P0_SUPPLEMENT_ARTIFACT" ]]; then
           original_args+=(--artifact "$P0_SUPPLEMENT_ARTIFACT")
         fi
-        python -m scripts.boat_private_original_vault capture --artifact '${{ steps.freeze.outputs.artifact-id }}' "${original_args[@]}" --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-baseline-original-vault-${{ inputs.round }}.json'
+        python -m scripts.boat_private_original_vault capture "${fresh_args[@]}" --artifact '${{ steps.freeze.outputs.artifact-id }}' "${original_args[@]}" --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-baseline-original-vault-${{ inputs.round }}.json'
     - name: Retain exact additional model execution beyond artifact expiry
       if: steps.ready.outputs.active == 'true' && steps.all_models_freeze.outputs.artifact-id != ''
       shell: bash
       env:
         RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
-      run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.all_models_freeze.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-model-original-vault-${{ inputs.round }}.json'
+        RACE_AI_FRESH_UPLOAD_RECEIPTS: >-
+          [{"artifact_id":"${{ steps.all_models_freeze.outputs.artifact-id }}","name":"boat-all-model-forecasts-${{ github.run_id }}-r${{ inputs.round }}","digest":"${{ steps.all_models_freeze.outputs.artifact-digest }}"}]
+      run: |
+        fresh_args=()
+        if [[ "$GITHUB_REF" == 'refs/heads/production/boat-p0-p1-20261111' ]]; then
+          fresh_args+=(--fresh-upload)
+        fi
+        python -m scripts.boat_private_original_vault capture "${fresh_args[@]}" --artifact '${{ steps.all_models_freeze.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-model-original-vault-${{ inputs.round }}.json'
     - name: Retain explicit native carrier originals before the proof barrier
       if: steps.ready.outputs.active == 'true' && inputs.prospective-grid-input != '' && env.RACE_AI_FORWARD_REQUEST != '' && steps.venue_research_freeze.outputs.artifact-id != ''
       shell: bash
@@ -201,8 +215,14 @@ runs:
       shell: bash
       env:
         RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+        RACE_AI_FRESH_UPLOAD_RECEIPTS: >-
+          [{"artifact_id":"${{ steps.result.outputs.artifact-id }}","name":"${{ steps.ready.outputs.result_name }}","digest":"${{ steps.result.outputs.artifact-digest }}"}]
       run: |
-        python -m scripts.boat_private_original_vault capture --artifact '${{ steps.result.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-result-original-vault-${{ inputs.round }}.json'
+        fresh_args=()
+        if [[ "$GITHUB_REF" == 'refs/heads/production/boat-p0-p1-20261111' ]]; then
+          fresh_args+=(--fresh-upload)
+        fi
+        python -m scripts.boat_private_original_vault capture "${fresh_args[@]}" --artifact '${{ steps.result.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-result-original-vault-${{ inputs.round }}.json'
         if [[ -d '${{ runner.temp }}/boat-saved-view-captures' ]]; then
           python -m scripts.boat_private_original_vault retain-captures --capture-dir '${{ runner.temp }}/boat-saved-view-captures' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-capture-vault-${{ inputs.round }}.json'
         fi

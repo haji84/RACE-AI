@@ -598,9 +598,11 @@ class RepeatedWiringTests(unittest.TestCase):
         location=str(Path(__file__).resolve().parents[1]/'pr64-reference/race_ai')
         if location not in race_ai.__path__: race_ai.__path__.append(location)
         from scripts import boat_nationwide_ab_pilot as pilot
-        now=datetime.now(timezone.utc);day=now.astimezone(r.JST).date().isoformat()
+        # Fix a clock-dependent false failure at 23:45-23:59 JST: now+15min
+        # otherwise crosses the event-day boundary and is a different race day.
+        now=stamp();day=now.astimezone(r.JST).date().isoformat()
         doc={'official_day_source':{'captured_at':now.isoformat(),'source_sha256':'a'*64,'url':'https://www.boatrace.jp/owpc/pc/race/index?hd='+day.replace('-',''),'active_venues':['01']},'verified_active_venues':['01'],'official_race_registry':[{'race_id':day.replace('-','')+'-01-01','cutoff_at':(now+timedelta(minutes=15)).astimezone(r.JST).isoformat(),'schedule_captured_at':now.isoformat(),'source_sha256':'b'*64}]}
-        with tempfile.TemporaryDirectory() as temp, patch.object(pilot,'OUTPUT',Path(temp)), patch.dict('os.environ',{'RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED':'true'}), patch.object(pilot,'official_schedule') as discovery, patch.object(pilot,'load_original_race_ids',return_value=frozenset()), patch.object(pilot,'make_pair',return_value=({'state':'NOT_READY'},None,None,None,None)) as candidate:
+        with tempfile.TemporaryDirectory() as temp, patch.object(pilot,'OUTPUT',Path(temp)), patch.dict('os.environ',{'RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED':'true'}), patch.object(pilot,'_clock',return_value=now), patch.object(pilot,'official_schedule') as discovery, patch.object(pilot,'load_original_race_ids',return_value=frozenset()), patch.object(pilot,'make_pair',return_value=({'state':'NOT_READY'},None,None,None,None)) as candidate:
             result=pilot.run(schedule_snapshot=doc)
             discovery.assert_not_called();candidate.assert_called_once()
             self.assertEqual(result['official_day_source']['captured_at'],now.isoformat())

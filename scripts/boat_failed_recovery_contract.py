@@ -8,6 +8,7 @@ import re
 JST = timezone(timedelta(hours=9))
 OWNER_BRANCH = 'production/boat-p0-p1-20261111'
 SCHEMA = 'RACE_AI_PENDING_ROUND_RECOVERY_V1'
+REVIEWED_PREVIOUS_OWNER_SHAS = frozenset({'84128e0ec8bd9fe3da64ad49f74b8511b07e72be'})
 
 
 def need(ok, reason):
@@ -24,6 +25,13 @@ def digest(value):
     return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()
 
 
+def reviewed_recovery_origin(head, expected_head):
+    """Exact current release or explicitly reviewed original; never ancestry."""
+    return (type(head) is str and type(expected_head) is str and
+            re.fullmatch('[a-f0-9]{40}',expected_head) is not None and
+            (head==expected_head or head in REVIEWED_PREVIOUS_OWNER_SHAS))
+
+
 def _counts(control):
     names = ('completed_round', 'prepared_round', 'previous_session_requests',
              'lifetime_requests', 'lifetime_completed_rounds', 'day_start_lifetime_requests')
@@ -37,6 +45,13 @@ def _counts(control):
     need(control.get('source_wait') is None and control.get('previous_halted_reason') is None
          and control.get('previous_stop_reason') is None, 'SOURCE_HOLD')
 
+IDLE_SCHEMA = 'RACE_AI_NO_PENDING_FAILED_OWNER_V1'
+ORPHAN_SCHEMA = 'RACE_AI_ORPHAN_P1_ABANDONMENT_V1'
+ORPHAN_EVIDENCE_FIELDS = frozenset(('schema','previous_run_id','round_no','verified_at',
+    'original_control_receipt','original_control','p1_receipt','continuity_receipt',
+    'source_control_receipt','checkpoint_AES_authenticated','public_control_matches_AES',
+    'missing_result_inventory_verified','first_receipt_union_verified',
+    'completed_round_advanced','originals_rewritten'))
 PROOF_SCHEMA = 'RACE_AI_FAILED_OWNER_RECOVERY_PROOF_V1'
 
 
@@ -59,7 +74,7 @@ def verify_dispatch_proof(proof, runs, fresh_control, expected_head, now):
         need(0 <= (now-ts(proof['verified_at'])).total_seconds() <= 600, 'PROOF_CLOCK')
         need(type(runs) is list and 1 <= len(runs) <= 24 and
              len({r['id'] for r in runs}) == len(runs), 'PROOF_HISTORY')
-        need(all(type(r.get('id')) is int and r['id'] > 0 and r.get('head_sha') == expected_head
+        need(all(type(r.get('id')) is int and r['id'] > 0 and reviewed_recovery_origin(r.get('head_sha'),expected_head)
              and r.get('head_branch') == OWNER_BRANCH and r.get('event') == 'workflow_dispatch'
              and r.get('status') == 'completed' and r.get('conclusion') in ('success','failure')
              for r in runs), 'PROOF_RUN')
@@ -69,28 +84,86 @@ def verify_dispatch_proof(proof, runs, fresh_control, expected_head, now):
         need(type(repairs) is list and len(repairs) == len(failed) and
              {r['run_id'] for r in repairs} == failed and failed, 'PROOF_REPAIRS')
         checked = {}
+        origins={r['id']:r['head_sha'] for r in runs}
+        run_details={r['id']:r for r in runs}
         for repair in repairs:
             original, fixed = repair['original_control'], repair['control']
-            _counts(original)
             need(original.get('previous_run_id') == repair['run_id'] and
-                 original.get('day_jst') == proof['day_jst'] and
-                 re.fullmatch('[a-f0-9]{40}',str(repair.get('vault_commit'))), 'PROOF_ORIGINAL')
+                 original.get('day_jst') == proof['day_jst'], 'PROOF_ORIGINAL_IDENTITY')
+            if origins[repair['run_id']]!=expected_head:
+                need(repair.get('original_head_sha')==origins[repair['run_id']],
+                     'PROOF_REVIEWED_ORIGIN_MISSING')
             evidence = fixed['recovery']
-            need(evidence.get('schema') == SCHEMA and evidence.get('previous_run_id') == repair['run_id']
-                 and evidence.get('round_no') == original['prepared_round'] and
+            need(evidence.get('previous_run_id') == repair['run_id'] and
                  evidence.get('original_control_receipt') == original['receipt'], 'PROOF_LINK')
             need(0 <= (now-ts(evidence['verified_at'])).total_seconds() <= 600, 'PROOF_REPAIR_CLOCK')
-            references = [evidence['p1_receipt'], evidence['result_receipt']]
-            need(repair.get('original_artifact_ids') == [r['id'] for r in references] and
-                 len({r['id'] for r in references}) == 2 and
-                 all(type(r['id']) is int and r['id'] > 0 and
-                     re.fullmatch('sha256:[a-f0-9]{64}',str(r['digest'])) and
-                     ts(r['created_at']) <= ts(original['receipt']['created_at'])
-                     for r in references), 'PROOF_RECEIPTS')
             expected = deepcopy(original)
-            expected.update(completed_round=original['prepared_round'], prepared_round=None,
-                            lifetime_completed_rounds=original['lifetime_completed_rounds']+1,
-                            recovery=evidence)
+            if original.get('prepared_round') is None:
+                names=('completed_round','previous_session_requests','lifetime_requests',
+                       'lifetime_completed_rounds','day_start_lifetime_requests')
+                need(all(type(original.get(k)) is int and original[k]>=0 for k in names)
+                     and original['completed_round']==0
+                     and original['previous_session_requests']==0
+                     and original['day_start_lifetime_requests']<=original['lifetime_requests']
+                     and original.get('source_wait') is None
+                     and original.get('previous_halted_reason') is None
+                     and original.get('previous_stop_reason') is None, 'PROOF_IDLE_SOURCE_UNVERIFIED')
+                need(evidence.get('schema')==IDLE_SCHEMA
+                     and evidence.get('round_no') is None
+                     and evidence.get('source_attempts')==0
+                     and evidence.get('no_p1_or_result_artifacts_verified') is True
+                     and evidence.get('no_future_forecast_generated') is True
+                     and evidence.get('originals_rewritten') is False
+                     and repair.get('original_artifact_ids') == []
+                     and repair.get('vault_commit') is None, 'PROOF_IDLE_MISMATCH')
+                expected['recovery']=evidence
+            elif evidence.get('schema')==ORPHAN_SCHEMA:
+                _counts(original)
+                need(set(evidence)==ORPHAN_EVIDENCE_FIELDS and
+                     repair.get('original_head_sha')==origins[repair['run_id']] and
+                     type(run_details[repair['run_id']].get('run_attempt')) is int and
+                     run_details[repair['run_id']]['run_attempt']==1,
+                     'PROOF_ORPHAN_ORIGIN_UNVERIFIED')
+                need(re.fullmatch('[a-f0-9]{40}',str(repair.get('vault_commit'))),
+                     'PROOF_ORPHAN_VAULT_REQUIRED')
+                need(evidence.get('round_no')==original['prepared_round'] and
+                     evidence.get('original_control')==original and
+                     evidence.get('continuity_receipt')==original['receipt'] and
+                     evidence.get('source_control_receipt')==original['source_control_receipt'],
+                     'PROOF_ORPHAN_CHECKPOINT_CHANGED')
+                need(all(evidence.get(k) is True for k in (
+                     'checkpoint_AES_authenticated','public_control_matches_AES',
+                     'missing_result_inventory_verified','first_receipt_union_verified')) and
+                     evidence.get('completed_round_advanced') is False and
+                     evidence.get('originals_rewritten') is False,
+                     'PROOF_ORPHAN_AUTHENTICATION_MISSING')
+                references=[evidence['p1_receipt'],evidence['continuity_receipt'],
+                            evidence['source_control_receipt']]
+                need(repair.get('original_artifact_ids')==[r['id'] for r in references] and
+                     len({r['id'] for r in references})==3 and all(
+                     type(r['id']) is int and r['id']>0 and
+                     re.fullmatch('sha256:[a-f0-9]{64}',str(r['digest'])) and
+                     ts(r['created_at'])<=ts(original['source_control_receipt']['created_at'])
+                     for r in references) and
+                     ts(references[0]['created_at'])<=ts(original['receipt']['created_at']),
+                     'PROOF_ORPHAN_RECEIPTS_CHANGED')
+                expected.update(prepared_round=None,recovery=evidence)
+            else:
+                _counts(original)
+                need(re.fullmatch('[a-f0-9]{40}',str(repair.get('vault_commit'))),
+                     'PROOF_ORIGINAL')
+                need(evidence.get('schema') == SCHEMA and
+                     evidence.get('round_no') == original['prepared_round'], 'PROOF_ROUND')
+                references = [evidence['p1_receipt'], evidence['result_receipt']]
+                need(repair.get('original_artifact_ids') == [r['id'] for r in references] and
+                     len({r['id'] for r in references}) == 2 and
+                     all(type(r['id']) is int and r['id'] > 0 and
+                         re.fullmatch('sha256:[a-f0-9]{64}',str(r['digest'])) and
+                         ts(r['created_at']) <= ts(original['receipt']['created_at'])
+                         for r in references), 'PROOF_RECEIPTS')
+                expected.update(completed_round=original['prepared_round'], prepared_round=None,
+                                lifetime_completed_rounds=original['lifetime_completed_rounds']+1,
+                                recovery=evidence)
             need(expected == fixed, 'PROOF_COUNTER_OR_STATE_CHANGED')
             checked[repair['run_id']] = repair
         latest = max(runs,key=lambda r:ts(r['created_at']))
