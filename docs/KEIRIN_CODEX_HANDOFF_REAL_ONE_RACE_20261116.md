@@ -1,0 +1,95 @@
+# RACE-AI 競輪：Codexへの開発引継ぎ（2026-11-16）
+## 最優先ゴール：実レース1件を無人完走し、その後全国へ
+
+> オーナーの2026-11-16指示：「ここ［ChatGPT］は完成まで手動［予想・結果検証］でして、作業工程はCodexに引き継ぐ！」
+
+**責務を厳密に分離する。** ChatGPT会話では完成まで手動研究予想（出走表・選手コメント・ライン・6局面・3連単・事後結果照合）を継続する。**CodexはRACE-AI既存コードの開発・テスト・本番検証を担当**。両者のデータ原本・的中実績を混同せず、手動予想の的中やGitHub Issueの作成時刻を「正式モデルの無人予想実証」に代入しない。手動予想が外れても事後に買い目を変更しない。
+
+## 一発目の受入条件（これ以外を「完成」と報告しない）
+
+未来の実在する競輪**1レース**について、**ユーザーの手動操作なし**で以下を同じレースID・同じ開催日で連続完走させること。
+
+1. 開催・出走人数・全車番・選手名・競走得点・直近成績・H/B/決まり手・脚質・本人コメント・想定ライン・開催バンク・気象・正式発売締切（変更公表を含む）の**利用時点と出典**を取得、整合性を検査。未取得はUNKNOWNにする。入力に結果・着順・オッズ由来の未来情報を混ぜない。自動収集条件が満たせない場合はHOLDし、架空データや無許可制限回避は禁止。
+2. 既存PR71の**4モデル**を、既存の正式入力ゲートを満たした状態で実計算。3連単は各モデルの実出力を保存。可変0〜12点の研究PR103は参考系として分ける。会話内の手動10〜14点をモデルが出したと偽らない。
+3. **初周→打鐘→最終H→最終B→4角→ゴール**の6局面について、実入力と想定ラインから**事前に**複数展開（先行、捲り、差し、追走離れ、単騎、別ラインの2・3着、当日風や状態の欠測）を生成し、各局面と各候補の採用・除外理由を保全。局面の実態を未来に見たように書かない。現行PR291はスキーマと採点が中心で、**自動で予測内容を生成する処理は未接続**。Top8から後付けで局面を逆算しない。
+4. 予想原本・6局面サイドカー・ソースSHA・モデルID・生成時計・正式締切を関連付け、**締切前（既存ゲートでは少なくとも65秒前）**にAES-256-GCMで非公開保全。原本を二度作らない。異なるGitHub Actions runner・別ジョブで復号、本文SHA、Git履歴、モデルSHA、時刻を独立読戻し確認する。
+5. 正式な**公式結果・同着（複数の有効な3連単）・失格/落車・返還・結果訂正**を後から取り込み、元予想と照合。Hit@1、Hit@k、買い目別の100円仮想払戻、未予想、保留、未取得を区別。実購入・実収益は本人の購入証拠なしに計上しない。結果を予想原本へ逆流させず、結果改訂はappend-only。
+6. 1レースの実運用レポートに、開催日/場/R、当日スケジュール出典、予想生成/保存時刻、入力・予想・結果SHA、**別runner読戻しID**、発売締切差、モデル別3連単、6局面事前仮説、公式結果、照合結果、失敗の有無、サイト表示検証を記載。元原本と実表示が一致することを確認する。
+7. フレーム単位の6局面**事後映像採点**は独立の追加受入ゲート。最初の1レースでまず必要なのは**6局面の事前予測自動生成とゴールの公式結果照合**であり、映像未取得の初周/BELL/H/B/4角を「採点成功」としない。映像の全局面自動一致が未達ならUNKNOWNで表示し、1レースの「6局面実走採点済み」とは呼ばない。
+
+**初回GO/NO-GO**：合成CI緑・コード完成・workflow登録・起動成功・架空レース・人手で作った予想の一致は合格ではない。以上が**新規の実レース証拠**で通った場合にのみ「無人1レース予想→照合成功」を合格。その後 1開催→1日→全国全開催・全Rへ段階的に広げる。GitHub Actionsのscheduleの遅延・抜けは発生し得るので0秒即時性や全件無欠落を無根拠に保証しない。
+
+## 正本の場所／既存資産は捨てない
+
+- 唯一の開発repo: [haji84/RACE-AI](https://github.com/haji84/RACE-AI)（PUBLIC、main保護中）
+- 現作業： [PR #291](https://github.com/haji84/RACE-AI/pull/291)（六局面スコア overlay、Draft、branch `research/keirin-six-phase-score-20261114`、基底はDraft PR #290）
+- 基底： [PR #290](https://github.com/haji84/RACE-AI/pull/290)（既存ソース収集の公平な予算配分、動画0件の正しいHOLD、Draft、mainは変更していない）
+- 四モデル＋結果監査： [PR #71](https://github.com/haji84/RACE-AI/pull/71)、`scripts/keirin_cloud_pr71_state.py`、`race_ai/keirin_pr71_four_model_rank.py`（PR71 pinned sourceに存在）、`race_ai/live_15min_proof.py`、`scripts/keirin_day_four_model_audit.py`
+- 実出走表の部分入力＆347/437状態監査： [PR #101](https://github.com/haji84/RACE-AI/pull/101)；変動買い目0〜12点は [PR #103](https://github.com/haji84/RACE-AI/pull/103)（いずれも研究、正式PR71への欠測の横流し禁止）
+- 既存動画保存・研究： [PR #102](https://github.com/haji84/RACE-AI/pull/102) と `.github/workflows/keirin-github-autonomous.yml`
+- 六局面スキーマ/配点: `race_ai/keirin_phase_overlay.py`、`docs/KEIRIN_SIX_PHASE_OVERLAY_20261114.md`、合成テスト `tests/test_keirin_phase_overlay.py`。暫定100点の配点は**初周10、打鐘15、最終H15、最終B20、4角15、ゴール25**。現時点で実映像の正式選手識別/局面正解は0件認証。
+- GitHub-only暗号履歴、既存SQLite、GitHub Actions workflowを再利用。**Cloudflare、Vercel、新規外部課金・新規リポジトリ、無断のSecrets変更、一般公開変更、自動投票は禁止**（`AGENTS.md`を必ず読む）。原本非公開を守る。
+- 11月16日の手動研究予想・結果報告は[PR291の既存コメント](https://github.com/haji84/RACE-AI/pull/291)にあり、会場別の見返し用索引は[Issue #307](https://github.com/haji84/RACE-AI/issues/307)。**これは手動予想**。モデルの学習・正式Hit@8母数に混ぜない。
+
+## 2026-11-16時点の検証済み現在地
+
+1. mainの実HEADは `058ba8c157722c1dc3565f8ca956567e29b95493`（確認時点。Codex着手時に再取得必須）。
+2. PR291の確認済み作業HEADは `926e92b8c3474878c351bcfca952751086d56280`（新たな書込み前に再取得必須）。PR291は**OPEN/未統合**で、PR290もOPEN/未統合。保護mainへ勝手にmergeしない。
+3. 1レース集中研究候補の改修3コミット：
+   - `2e40e18e64248b1fc3f56858b1a79cc5821e581e`: `scripts/keirin_cloud_owner_inputs.py` に任意の `single_race_pilot=False` を追加。期日前の最も早い1レースだけを調査対象に絞り、全件一覧と他対象のdeferred数を保全。既存予算や入力のHOLDは不変。
+   - `d99dcaad035f59a6ef4be60e5ad31d378c1f058f`: `tests/test_keirin_cloud_owner_inputs.py` に4件の合成回帰テストを追加（最優先選択、締切が近い場合の除外、flag型、provider拒否の停止）。
+   - `926e92b8c3474878c351bcfca952751086d56280`: `scripts/keirin_cloud_pr71_state.py` に `RACE_AI_KEIRIN_ONE_RACE_PILOT=1` の既定OFF研究オプションを接続。正式モデル用の不足データを無理に通さず、partial取得は依然HOLD。
+4. **最新実CIはRED**：[Actions #43844546190](https://github.com/haji84/RACE-AI/actions/runs/43844546190)、HEAD `926e92...`、`synthetic-ci` step **“Existing PR71 and GitHub-only encrypted production state regressions”** が失敗。他の同HEADの動画系研究CI成功はこの不合格を打ち消さない。
+5. **失敗の根拠はジョブログで確認済み**：`tests/test_keirin_live_source_readiness.py:87` の `test_uses_preexisting_producer_and_owned_profile_without_new_scraper` が、旧コードの **完全一致文字列** `collect_owner_inputs(inbox,owner_auto_confirmed=True)` を期待したため `AssertionError`。現在は引数追加の**複数行呼出** `collect_owner_inputs(inbox,owner_auto_confirmed=True,single_race_pilot=...)` に変わり、文字列一致しない。ログは**28 testsで1 failure**。これは呼び出し表記に依存するテストの失敗と確認できるが、他の回帰の成否まで自動的に保証しない。
+6. 本番の最新実例：[PR71 schedule run #43828295009](https://github.com/haji84/RACE-AI/actions/runs/43828295009) はworkflow **success** でも **artifacts 0、independent-cloud-readback skipped**。本物の4モデル予想新規保存と公式結果完走の証明ではない。映像 [run #43818630786](https://github.com/haji84/RACE-AI/actions/runs/43818630786) はcapture job失敗、独立 [#43818793140](https://github.com/haji84/RACE-AI/actions/runs/43818793140) も readback失敗。ソース拒否/不完全入力が最大障害。公式の全レース自動完走件数は未証明。
+7. 実Takeo2R映像46フレームに対して色領域A222/B114、背景物等の混入リスク、2秒差45組で動き品質採用16/HOLD29などの**研究計測**をしたが、**実選手番号の真の識別精度、連続追跡、6局面実走正解、独立正解ラベルは未取得**（PR291参照）。これを「動画AIが完成」と宣言しない。
+
+## Codexが最初に着手する工程（順番固定、既存PR上で進める）
+
+### P00　着手時点の真実を確認する
+`AGENTS.md` → この文書 → PR #291 / #290 / #71 / #101 / #102 / #103 → mainと作業HEAD・CI → 既存Actions/結果保存 → 欠測の分類を読む。最新PR291のHEADがこの文書の `926e92...` から変わっていれば新HEAD優先。勝手にmain変更・二重worker起動・独立した新モデル権威を作らない。
+
+### P01　最新CI REDを再現・修復し、回帰を追加する
+- まず [失敗run #43844546190](https://github.com/haji84/RACE-AI/actions/runs/43844546190) と `tests/test_keirin_live_source_readiness.py:87` を読む。
+- 旧コード文字列をそのまま保持するために実装を戻すのではなく、**実際の契約（approved owner profile、任意pilot既定OFF、未認可の正式入力昇格禁止、provider403/429の遮断、予算と締切、秘密非公開）**をテストできる形に修復する。静的な文字列チェックは変更に弱いので、呼出し契約をmockで検証する方が望ましい。
+- 追加済み4件を実行し、未追加の `tests/test_keirin_cloud_pr71_state.py` 側にpilot OFF/ON/無効値拒否のsource-free回帰も必要なら追加。本人への確認なしにsource policyを緩めない。
+- 最新HEADの**全関連CIが緑**になって初めてP01完了。ただし合成CIを本番合格には換算しない。
+
+### P02　最初の実レース1件で「不足項目」を確定する
+- 当日未来1レースを**締切順**で選び、実原本の開催予定・人数・全選手・本人コメント・得点/H/B・近況・バンク・気象のsource_id/取得時刻を確認。
+- `scripts/keirin_cloud_owner_inputs.py` のsingle-race-pilotで、対象の不足項目と真正なsourceファミリーを分類し、既存の取得上限内で重複GETを削減。2026-11-14の旧事例は6 future cards/3 history probes、取得252回、240秒打切、正式予想0。**全93必須slotが揃わない限り正式PR71へpromoteしない。** 任意の未公開能力を創作しない。
+- 一部取得できる場合は`RESEARCH_SHADOW`として機械可読に分け、正式予想には数えない。取得元の権利・robots・403/429を迂回しない。停止したらHOLDの実証と原因を保存する。
+
+### P03　実データから自動6局面予想と正式3連単を結ぶ
+- 既存のPR71事前入力→4モデルの組合せ出力を再利用する。6局面はそれらのTop8から逆算せず、同じ事前ソースに基づく**研究用の独立した推論関数/展開シナリオ生成機能**を作り、後でモデルの実原本SHAへ紐付ける。
+- 初周ライン群、打鐘・H・B・4角の主導権/先頭/番手/3着候補、ゴール買い目、複数シナリオ、採用・除外理由、位置のUNKNOWNを機械可読化。出典なしで車番ごとの正確な位置を断言しない。
+- `race_ai/keirin_phase_overlay.py` の `build_from_existing_pr71_saved` は検証済み保存model/入力SHAを要求する。**今はcallerが6局面を自動生成していない**のでこの接続を作る。モデル正式入力不足時はshadow相当の研究出力と、正式モデルHOLDを別々に出す。
+- 研究0〜12点はPR103を使い、手動の点数に合わせて根拠なく変更しない。可変点数も別のCIと実データA/B検証が必要。
+
+### P04　締切前原本をGitHub-onlyで保存・別runner読戻し
+- 既存AES-GCM/private SQLite/Git履歴/state branchを利用し、モデル本文・各6局面・input/source SHA/official cutoffを**同じrace_idで結合して不変保存**。
+- 保存はcreate-only。GitHub Actionsの別runnerからfresh AES/SHA/readback、生成と公表の時系列、race_id/モデルID/本文同一性を確認する。欠落・遅延・重複・中断復旧をテスト。GitHub Actions artifactが期限付きであることを永続保管と言わない。
+- 既存state secretなどの**中身を表示せず**、公開repoに生原本/車券情報/鍵を出さない。repo visibility/外部サービス・費用はオーナー承認が必要。
+
+### P05　公式結果→改訂→採点→実画面を同一レースで証明
+- 公式着順と決まり手、同着で複数3連単的中となる場合、F/落車/失格/返還、払戻の公式原本と公開時刻を取得し、予想より後のデータとして別保存。
+- 既存 `PrivateKeirinStore` / result revisions / viewerを再利用。第1候補Hitと候補内Hit、参考的中と実購入、実際のROI（証拠ありのみ）を分ける。
+- 自動保存原本とWeb/スマホ表示が同じ内容であることを実画面で検証。結果の公式改訂は別revision。局面実動画がないならその5局面の**実測採点**はUNKNOWN、ゴールだけ公式結果採点と表示する。
+
+### P06　初回のNO-GO原因を潰して次回までリトライし、1件の実完走へ
+1開催中に「未完了原因→実ソース修正→次の未来レースで再試験」のPDCAを回す。すでに締切を過ぎたレースに後付けで原本を作らない。常に1件の`race_id`に紐付いたソース/生成時刻/モデル4種類/6局面/暗号ZIP/独立reader/公式結果/サイト表示の**同一証拠束**を要求。
+**1回成功の後**、別日で停止復旧を経て1開催→全国全Rへ広げる。映像を使った5局面の正式採点は専用ゲートで、選手識別/追跡・独立ラベルの実認証がない場合は別課題のまま。
+
+## Codexの報告フォーマット（毎回GitHubへ残し、読戻す）
+
+- 【対象】repo / 最新main HEAD / PR#291 HEAD / 実装ファイル / コミットSHA / CI-run
+- 【新たな実証】実レース日付・場・R、公式締切、保存時計、モデル出力件数、6局面生成件数、暗号原本と別runner復号結果、公式結果照合、サイト表示
+- 【合格ゲート】P00〜P06を `PASS / HOLD / FAIL / NOT_RUN` で独立報告
+- 【失敗】失敗code・再現条件・元の不変原本の所在・次の作業
+- 【保全】モデルの重み、既存予想/結果revision、課金、permissions、外部サービス、買い目購入、他競技への影響をそれぞれ変更有無で明示
+- 【次の1工程】長い提案だけで止めず、**直ちに実装・テスト・CI・実証できるところまで進める**。外部承認が必要な変更だけ先に理由を示して本人に確認。
+
+**引継ぎは一度きりの説明で終わらせない。** CodexはPR291（必要に応じ基底PR290）に実装/テスト/CI証拠・未完ゲートを更新し、毎回GitHubの最新実HEADを再取得。別の新規独立repo/PR/Actionsを量産しない。既存ブランチとmainの保護を維持。実レース証拠が揃うまでは「完成」と呼ばない。
+
+---
+**この引継ぎ文書自体のGitHub保存/読戻しは、本番無人レース完走の証拠ではない。**
