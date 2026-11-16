@@ -1,3 +1,24 @@
+<!-- BOAT main release and actual Safari attempt 2026-11-16T08:11Z -->
+## 2026-11-16: 実source更新・自動後継起動、Mac試験の失敗修正
+
+本人承認に基づく既存PR69の通常merge後、main実HEADは
+`0c0c18db0b9f76fc75b63031ad528e2b2637b325`。reviewed f25c9ccdとtree完全一致。
+同HEAD前の全13 CI checkが成功し、原本fullbody・全owner scopeの独立レビューも合格。
+本番sourceは`c123b8538006b3189181195bbc91d8f28d216ba5`。
+真正なmain push run43828431834/job133167655039が過去停止2件の原本を別runnerで検証し、
+元予想/使用量を変えずに後継owner43829249080を08:11:22 UTCに起動した。
+旧owner自然終了からこの新規実行までの間隔は約17分。無停止・全締切充足とは呼ばない。
+新しい実予想の生成/保存件数、全モデル正式適格、別runner AESは継続確認中。
+
+実Macの既存単一proof jobをrun43828472149で実行したが、Safari操作前に失敗した。
+指定Python3.11のsetup前に境界テストがMac標準3.14.7で動き、
+loopback拒否のstderr空assertionが失敗（14/15合格）。省略されたstderr全文の種類は未確定。
+既存setup stepをテスト前へ移し、15既存試験と新しい順序試験の計16件がローカル成功。
+ログ非露出のassertionは維持し、変更は実行順と回帰試験のみ。実Mac再試験へ進める。
+実機iPhone、ブラウザAES/本人認証、8参考画面の完全視覚受入は未確認。
+
+以下は過去の時点記録。映像3項目・全日充足・前向き改善・98%を実証済みとは扱わない。
+
 <!-- BOAT approved source release 2026-11-16T07:55Z -->
 ## 2026-11-16: 原本保全の修正版をproductionへ統合
 

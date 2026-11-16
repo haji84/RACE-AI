@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import tempfile
 import subprocess
+import shlex
 import threading
 import unittest
 import urllib.error
@@ -52,6 +53,28 @@ def context_fixture():
                      'tickets_sha256': '2' * 64}]}}
 
 
+def acceptance_workflow_steps():
+    """Read scalar step fields without requiring an extra YAML dependency."""
+    path = Path(__file__).resolve().parents[1] / '.github/workflows/boat-owner-formal-live-pages-proof.yml'
+    steps, current = [], None
+    for line in path.read_text(encoding='utf-8').splitlines():
+        if line.startswith('      - '):
+            current = {}
+            steps.append(current)
+            field = line[8:]
+        elif current is not None and line.startswith('        ') and not line.startswith('         '):
+            field = line[8:]
+        elif current is not None and line.startswith('          python-version:'):
+            current['python-version'] = line.split(':', 1)[1].strip().strip("'\"")
+            continue
+        else:
+            continue
+        if ':' in field:
+            name, value = field.split(':', 1)
+            current[name] = value.strip()
+    return steps
+
+
 @contextmanager
 def driver_endpoint(capabilities):
     """The Mac-only dependency is replaced at its actual W3C HTTP boundary."""
@@ -90,6 +113,23 @@ def driver_endpoint(capabilities):
 class NativeSafariAcceptanceTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(S, 'native Safari acceptance adapter is not implemented')
+
+    def test_native_workflow_pins_python_before_running_privacy_boundaries(self):
+        steps = acceptance_workflow_steps()
+        setup = [(index, step) for index, step in enumerate(steps)
+                 if step.get('uses', '').startswith('actions/setup-python@')]
+        tests = [(index, step) for index, step in enumerate(steps)
+                 if shlex.split(step.get('run', ''))[:3] == ['python3', '-m', 'unittest']]
+        self.assertEqual(len(setup), 1)
+        self.assertEqual(len(tests), 1)
+        setup_index, setup_step = setup[0]
+        tests_index, tests_step = tests[0]
+        self.assertLess(setup_index, tests_index,
+                        'native privacy tests must use the pinned Python, not the macOS image default')
+        self.assertEqual(setup_step['python-version'], '3.11')
+        self.assertIn("inputs.browser == 'native-safari'", setup_step['if'])
+        arguments = shlex.split(tests_step['run'])
+        self.assertEqual(arguments[arguments.index('-p') + 1], 'test_boat_native_safari_acceptance.py')
 
     def test_missing_or_modified_manifest_asset_cannot_be_served(self):
         with tempfile.TemporaryDirectory() as name:
