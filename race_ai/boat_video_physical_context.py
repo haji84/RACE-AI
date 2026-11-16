@@ -50,7 +50,7 @@ def _seal(value):
 
 
 def _identities(value,raw,roster):
-    _need(type(value) is list and 0 <= len(value) <= 6)
+    _need(type(value) is list and 0 <= len(value) <= len(roster))
     tracks={r['lane']:r for r in raw['tracking']['tracks']};result={}
     for row in value:
         _need(type(row) is dict and set(row)==_IDENTITY_FIELDS)
@@ -89,7 +89,7 @@ def _evidence(value,raw,roster,calibrated):
             row['world_frame_source_sha256']==calibrated['world_frame_source_sha256'] and
             row['calibration_evidence_sha256']==calibrated['calibration_sha256'] and
             row['clock_evidence_sha256']==digest(calibrated['clock_evidence']))
-        lanes=row['lanes'];_need(type(lanes) is dict and set(lanes)<=set(map(str,range(1,7))))
+        lanes=row['lanes'];_need(type(lanes) is dict and set(lanes)<=set(map(str,roster)))
         for lane,part in lanes.items():
             _need(type(part) is dict and set(part)==_LANE_FIELDS and _nonnegative(part['uncertainty']))
             _sha(part['phase_evidence_sha256'])
@@ -219,7 +219,7 @@ def prepare_physical_video_context(report,identity_evidence,calibration_manifest
             measurement_parameters=dict(phase_windows=deepcopy(phase_windows),start_gate=deepcopy(start_gate),
                                         max_gap_seconds=max_gap_seconds))
         tracks={r['lane']:r for r in calibrated['tracks']}
-        participants={lane:dict(lane=lane,registration_number=target[lane],feature_cells={}) for lane in range(1,7)}
+        participants={lane:dict(lane=lane,registration_number=target[lane],feature_cells={}) for lane in sorted(target)}
         for feature,phase,metric,unit in PHYSICAL_FEATURE_SCHEMA:
             cells=[];comparison=comparisons.get(phase)
             for lane,participant in participants.items():
@@ -302,7 +302,7 @@ def validate_physical_video_context(context,*,race_id,cutoff_at,roster,as_of):
         kinds=value['identity_reviewer_kinds'];_need(type(kinds) is list and kinds==sorted(set(kinds))
             and all(k in ('HUMAN_MANUAL','AGENT','AUTOMATED_DETECTOR') for k in kinds))
         identities=value['identity_supported_lanes'];_need(type(identities) is list and identities==sorted(set(identities))
-            and all(type(n) is int and 1<=n<=6 for n in identities) and bool(identities)==bool(kinds))
+            and all(type(n) is int and n in target for n in identities) and bool(identities)==bool(kinds))
         _need(value['dataset_status'] in ('REAL_REPORTED','SYNTHETIC_ONLY'))
         duration=value['media_duration_seconds'];_need(_nonnegative(duration))
         parameters=value['measurement_parameters'];_need(type(parameters) is dict and
@@ -310,7 +310,7 @@ def validate_physical_video_context(context,*,race_id,cutoff_at,roster,as_of):
         from .boat_video_measurements import _windows,_gate
         _need(parameters['start_gate'] is None or type(parameters['start_gate']) is dict and
               parameters['start_gate'].get('coordinate_space')=='WATER_PLANE_METRES')
-        _windows(parameters['phase_windows'],range(1,7));_gate(parameters['start_gate'],'WATER_PLANE_METRES')
+        _windows(parameters['phase_windows'],target);_gate(parameters['start_gate'],'WATER_PLANE_METRES')
         _need(_nonnegative(parameters['max_gap_seconds']) and parameters['max_gap_seconds']>0)
         comparisons=value['comparisons'];_need(type(comparisons) is dict and set(comparisons)<={r[1] for r in FEATURE_SCHEMA})
         for comparison in comparisons.values():
@@ -319,7 +319,7 @@ def validate_physical_video_context(context,*,race_id,cutoff_at,roster,as_of):
             for key in ('world_frame_id','world_frame_source_sha256'):_need(comparison[key]==value[key])
             _need(comparison['calibration_evidence_sha256']==value['calibration_sha256']
                   and comparison['clock_evidence_sha256']==value['clock_evidence_sha256'])
-            _need(type(comparison['lanes']) is dict and set(comparison['lanes'])<=set(map(str,range(1,7))))
+            _need(type(comparison['lanes']) is dict and set(comparison['lanes'])<=set(map(str,target)))
             for window in comparison['lanes'].values():
                 _need(type(window) is dict and set(window)==_LANE_CONTEXT_FIELDS and _nonnegative(window['uncertainty']))
                 _sha(window['phase_evidence_sha256']);_sha(window['camera_evidence_sha256'],optional=True)
@@ -332,7 +332,7 @@ def validate_physical_video_context(context,*,race_id,cutoff_at,roster,as_of):
                         all(_nonnegative(t) and t<=duration for t in points) and all(a<b for a,b in zip(points,points[1:]))
                         and window['t_start']==points[0] and window['t_end']==points[-1] and window['camera_evidence_sha256'] is not None)
                     _need(all(type(window[k]) is int and window[k]>=0 for k in ('scene','camera_scene')))
-        participants=value['participants'];_need(type(participants) is list and len(participants)==6)
+        participants=value['participants'];_need(type(participants) is list and len(participants)==len(target))
         found,reasons,counts={},set(),dict.fromkeys(FEATURE_IDS,0)
         for participant in participants:
             _need(type(participant) is dict and set(participant)=={'lane','registration_number','feature_cells'})

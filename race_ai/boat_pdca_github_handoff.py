@@ -54,7 +54,14 @@ class GitStateRepository:
         except subprocess.TimeoutExpired:
             operation={'fetch':'FETCH','ls-remote':'REMOTE_LOOKUP','push':'PUSH'}.get(command,'OPERATION')
             raise ValueError('STATE_GIT_'+operation+'_TIMEOUT') from None
-        need(result.returncode==0,'STATE_GIT_OPERATION_FAILED');return result.stdout
+        if result.returncode!=0:
+            operation={'fetch':'FETCH','ls-remote':'REMOTE_LOOKUP','push':'PUSH'}.get(command,'LOCAL')
+            message=result.stderr.decode('utf-8',errors='replace') if isinstance(result.stderr,bytes) else ''
+            statuses=set(re.findall(r'(?i)(?:\bHTTP(?:/\d+(?:\.\d+)?)?[\s:]+|\breturned error:\s*)([45][0-9]{2})\b',message))
+            status='HTTP_'+next(iter(statuses)) if len(statuses)==1 else 'UNKNOWN'
+            # Fixed classes only: never expose argv, URLs, tokens or response bodies.
+            raise ValueError('STATE_GIT_OPERATION_FAILED_'+operation+'_'+status) from None
+        return result.stdout
 
     def _check_remote(self):
         fetch=self._run(['remote','get-url','--all','origin']).decode().splitlines()

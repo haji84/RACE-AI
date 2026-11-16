@@ -8,6 +8,7 @@ existed then; it does not invent a missing generation timestamp.
 """
 from collections import Counter
 from copy import deepcopy
+from datetime import datetime
 import hashlib
 import json
 import re
@@ -20,6 +21,7 @@ from .frozen_day_cycle import check_clock, official_id, sealed, ts
 from .private_cycle_projection import _native_entries, read_state_json
 
 SCHEMA = "RACE_AI_SAVED_PREDICTION_EVIDENCE_V1"
+COVERAGE_SCHEMA = "RACE_AI_SAVED_NATIVE_COVERAGE_V1"
 REPOSITORY_ID = 1416489937
 
 
@@ -102,6 +104,9 @@ def _read_archive(raw, metadata, key):
                    member_sha256=hashlib.sha256(body).hexdigest(), document=doc)
     entries = _native_entries([wrapped])
     _need(all(k[1] == phase for k in entries), "NATIVE_PHASE_INVALID")
+    from .boat_native_generation_event import event_index
+    events=event_index(doc)
+    _need(set(events)<=set(entries), "GENERATION_EVENT_OUTPUT_MISSING")
     return doc, entries, wrapped
 
 
@@ -166,25 +171,174 @@ def _native_facts(doc, entry, metadata):
     if completed is not None:
         _need(ts(asof) <= ts(completed) and _before_save(completed, saved) and
               (generated is None or ts(generated) <= ts(completed)), "COMPLETION_CLOCK_INVALID")
-    return dict(model_id=model["model_id"], stage=stage, model_version=model.get("model_version"),
+    facts=dict(model_id=model["model_id"], stage=stage, model_version=model.get("model_version"),
                 prediction_sha256=model.get("prediction_sha256", model.get("model_sha256", model.get("bundle_sha256"))),
                 input_sha256=model.get("input_sha256", model.get("snapshot_sha256", model.get("source_snapshot_sha256"))),
                 source_sha256=source_sha, as_of=asof, cutoff_at=cutoff, generated_at=generated,
-                generation_completed_no_later_than=completed), _roster(people)
+                generation_completed_no_later_than=completed)
+    from .boat_native_generation_event import event_index,read_generation_event
+    key=(rid,stage,model['model_id'],facts['prediction_sha256'])
+    if key in event_index(doc):
+        _need(stage=='P1' and pair is not None, "GENERATION_EVENT_SOURCE_MISSING")
+        if model.get('source_snapshot_sha256') is not None:
+            _need(model['source_snapshot_sha256']==pair['source_sha256'], "GENERATION_EVENT_SOURCE_CONFLICT")
+        else:
+            matched=[b for b in doc.get('observed_pairwise_p1_bundles',[]) if b.get('race_id')==rid
+                     and b.get('suite',{}).get('models',{}).get(model['model_id'])==model]
+            _need(len(matched)==1 and matched[0]['base_source_sha256']==pair['source_sha256'],
+                  "GENERATION_EVENT_OBSERVED_SOURCE_CONFLICT")
+        event=read_generation_event(doc,model,race_id=rid,source_snapshot_sha256=pair['source_sha256'],
+            program_source_sha256=pair['program_source_sha256'],beforeinfo_source_sha256=pair['beforeinfo_source_sha256'],
+            source_captured_at=pair['source_captured_at'],cutoff_at=cutoff,saved_at=saved)
+        facts.update(native_generation_event=event,computation_started_at=event['computation_started_at'],
+                     computation_completed_at=event['computation_completed_at'])
+    return facts, _roster(people), source_clocks
 
 
-def hydrate_prediction_evidence(view, archives, *, key=None):
+def _official_schedule(rows):
+    """Validate the caller's separately authenticated official schedule ledger.
+
+    A forecast's own cutoff is never an independent official schedule. The
+    caller must authenticate these source SHA/capture bindings before intake.
+    """
+    _need(type(rows) is list and len(rows) <= 288, "OFFICIAL_SCHEDULE_INVALID")
+    result = {}
+    for row in rows:
+        _need(type(row) is dict and set(row) == {
+            "race_id", "cutoff_at", "schedule_captured_at", "source_sha256"}, "OFFICIAL_SCHEDULE_INVALID")
+        rid = row["race_id"]
+        _need(type(rid) is str and re.fullmatch(r"[0-9]{8}-(?:0[1-9]|1[0-9]|2[0-4])-(?:0[1-9]|1[0-2])", rid)
+              and rid not in result and type(row["source_sha256"]) is str
+              and re.fullmatch("[a-f0-9]{64}", row["source_sha256"]), "OFFICIAL_SCHEDULE_INVALID")
+        cutoff, captured = ts(row["cutoff_at"]), ts(row["schedule_captured_at"])
+        from .boat_observation_context import JST
+        # A late first-P0 capture must retain already-closed races in the day
+        # ledger. Their own native qualification still requires capture<=input.
+        _need(cutoff.astimezone(JST).strftime("%Y%m%d") == rid[:8]
+              and captured.astimezone(JST).strftime("%Y%m%d") == rid[:8],
+              "OFFICIAL_SCHEDULE_CLOCK_INVALID")
+        result[rid] = row
+    return result
+
+
+def _coverage_evidence(row, prediction, native, source_clocks, schedule, now):
+    """Derive metadata beside a prediction; this never modifies its body."""
+    _need(isinstance(now, datetime) and now.utcoffset() is not None, "COVERAGE_CLOCK_INVALID")
+    _need(type(native) is dict and native.get("schema") == SCHEMA and
+          native.get("verification_scope") == "AUTHENTICATED_NATIVE_ARTIFACT_IMPORT" and
+          native.get("saved_prediction_identity") == saved_prediction_identity(prediction) and
+          native.get("prediction_original_sha256") == digest(prediction) and
+          native.get("prediction_binding_sha256") == prediction_content_binding(prediction),
+          "COVERAGE_ORIGINAL_UNBOUND")
+    facts, artifact = native["native"], native["artifact"]
+    _need(facts["model_id"] == prediction["model_id"] and facts["stage"] == prediction["stage"] and
+          facts["prediction_sha256"] == prediction.get("prediction_sha256", prediction.get("model_sha256")) and
+          _clock_equal(facts["as_of"], prediction["as_of"]) and
+          _clock_equal(facts["cutoff_at"], prediction["cutoff_at"]) and
+          artifact["id"] == prediction["artifact_id"] and artifact["repository_id"] == REPOSITORY_ID and
+          artifact["member_sha256"] == prediction["original_json_sha256"] and
+          _clock_equal(artifact["created_at"], prediction["persisted_at"]) and
+          type(artifact["run_id"]) is int and artifact["run_id"] > 0 and
+          re.fullmatch("[a-f0-9]{40}", artifact["head_sha"]) and
+          re.fullmatch("sha256:[a-f0-9]{64}", artifact["digest"]) and
+          artifact["member"] == ("national.json" if prediction["stage"] == "P1" else "forecasts.json") and
+          (prediction.get("source_code_commit") is None or prediction["source_code_commit"] == artifact["head_sha"]),
+          "COVERAGE_NATIVE_UNBOUND")
+    for field in ("generated_at", "source_sha256", "input_sha256", "model_version"):
+        _need(prediction.get(field) is None or facts.get(field) is None or prediction[field] == facts[field],
+              "COVERAGE_NATIVE_CONFLICT")
+    _need(type(source_clocks) is list and all(type(at) is str and ts(at) <= ts(facts["as_of"])
+                                            for at in source_clocks), "COVERAGE_SOURCE_CLOCK_INVALID")
+    generated, asof, saved = facts["generated_at"], facts["as_of"], artifact["created_at"]
+    completed=facts.get('computation_completed_at')
+    clock_proof=generated if generated is not None else completed
+    source_hash=facts.get('source_sha256')
+    if source_hash is None and completed is not None:
+        source_hash=facts['native_generation_event']['source_snapshot_sha256']
+    if generated is not None:
+        _need(ts(asof) <= ts(generated) and _before_save(generated, saved), "COVERAGE_GENERATION_CLOCK_INVALID")
+    source_at = max(source_clocks, key=ts) if source_clocks else None
+    reason = None
+    if schedule is None:
+        reason = "OFFICIAL_SCHEDULE_MISSING"
+    elif row.get("cutoff_at") is None:
+        reason = "ROW_OFFICIAL_CUTOFF_MISSING"
+    elif (ts(schedule["cutoff_at"]) != ts(facts["cutoff_at"]) or
+          ts(row["cutoff_at"]) != ts(schedule["cutoff_at"])):
+        reason = "OFFICIAL_CUTOFF_CONFLICT"
+    elif ts(schedule["schedule_captured_at"]) > ts(asof):
+        reason = "OFFICIAL_SCHEDULE_AFTER_INPUT"
+    elif clock_proof is None:
+        reason = "NATIVE_GENERATED_AT_MISSING"
+    elif source_at is None or type(source_hash) is not str or not re.fullmatch("[a-f0-9]{64}", source_hash):
+        reason = "NATIVE_SOURCE_EVIDENCE_MISSING"
+    elif max(ts(at) for at in (asof, clock_proof, saved, source_at)) > now:
+        reason = "NATIVE_CLOCK_IN_FUTURE"
+    elif max(ts(at) for at in (asof, clock_proof, saved, source_at)) >= ts(schedule["cutoff_at"]):
+        reason = "NATIVE_NOT_PHYSICALLY_BEFORE_CUTOFF"
+    elif prediction.get("eligible_pre_cutoff") is False:
+        reason = "SAVED_PREDICTION_EXPLICITLY_INELIGIBLE"
+    proof=dict(schema=COVERAGE_SCHEMA, native_evidence_sha256=digest(native),
+                checked_at=now.isoformat(), official_schedule=deepcopy(schedule), source_capture_clocks=deepcopy(source_clocks),
+                status="HOLD" if reason else "QUALIFIED_PRE_CUTOFF", reason=reason,
+                model_id=facts["model_id"], stage=facts["stage"], as_of=asof, generated_at=generated,
+                source_captured_at=source_at, source_sha256=source_hash, server_saved_at=saved,
+                cutoff_at=schedule["cutoff_at"] if schedule else None, artifact_id=artifact["id"],
+                original_json_sha256=artifact["member_sha256"])
+    if completed is not None:
+        event=facts['native_generation_event']
+        _need(event['event_sha256']==digest({k:v for k,v in event.items() if k!='event_sha256'}) and
+              ts(asof)<=ts(event['computation_started_at'])<=ts(completed) and _before_save(completed,saved),
+              'COVERAGE_COMPUTATION_EVENT_INVALID')
+        proof.update(computation_started_at=event['computation_started_at'],computation_completed_at=completed,
+                     native_generation_event_sha256=event['event_sha256'],clock_proof_kind='ACTUAL_NATIVE_CALL_COMPLETION',
+                     source_hash_scope='NATIVE_BASE_SOURCE_SNAPSHOT')
+    return proof
+
+
+def native_coverage_evidence(row, prediction, *, now):
+    """Read a separately bound AES-native coverage proof, or None when absent.
+
+    Use only on an authenticated saved view. This validates the derivation and
+    original binding; it cannot independently authenticate the view or sources.
+    Missing genuine generation clocks remain HOLD even after their race ends.
+    """
+    identity = digest([row["race_id"], saved_prediction_identity(prediction)])
+    values = row.get("saved_prediction_coverage", {})
+    _need(type(values) is dict, "COVERAGE_INVALID")
+    proof = values.get(identity)
+    if proof is None: return None
+    _need(type(proof) is dict and proof.get("schema") == COVERAGE_SCHEMA and
+          isinstance(now, datetime) and now.utcoffset() is not None, "COVERAGE_INVALID")
+    native = row.get("saved_prediction_evidence", {}).get(identity)
+    _need(type(native) is dict and proof.get("native_evidence_sha256") == digest(native), "COVERAGE_EVIDENCE_UNBOUND")
+    schedule = proof.get("official_schedule")
+    if schedule is not None:
+        _need(row["race_id"] in _official_schedule([schedule]), "COVERAGE_SCHEDULE_UNBOUND")
+    checked = ts(proof["checked_at"])
+    _need(checked <= now, "COVERAGE_CHECK_IN_FUTURE")
+    expected = _coverage_evidence(row, prediction, native, proof.get("source_capture_clocks"), schedule, checked)
+    _need(proof == expected, "COVERAGE_DERIVATION_CHANGED")
+    return deepcopy(proof)
+
+
+def hydrate_prediction_evidence(view, archives, *, key=None, official_schedule=None, now=None):
     """Return ``(new_view, aggregate_counts)`` with separately bound evidence.
 
     ``archives`` contains exact ``(actual_github_zip_bytes, metadata_dict)``
     pairs. Authentication of the metadata's retrieval belongs to the caller.
     Existing evidence is append-only; conflicts and source mismatch stop intake.
+    An optional independently authenticated official schedule adds separate
+    coverage evidence. Missing exact native clocks are recorded as HOLD.
     """
     from .saved_view_feed import forecast_inventory
     _need(type(view) is dict and type(view.get("records")) is list and len(view["records"]) <= 5000,
           "VIEW_INVALID")
     before = forecast_inventory(view)
     output = deepcopy(view)
+    schedule = None if official_schedule is None else _official_schedule(official_schedule)
+    if schedule is not None:
+        _need(isinstance(now, datetime) and now.utcoffset() is not None, "COVERAGE_CLOCK_INVALID")
     originals = {}
     for raw, metadata in archives:
         doc, entries, wrapper = _read_archive(raw, metadata, key)
@@ -216,7 +370,7 @@ def hydrate_prediction_evidence(view, archives, *, key=None):
                   _clock_equal(prediction["persisted_at"], metadata["created_at"]) and
                   (prediction.get("source_code_commit") is None or prediction["source_code_commit"] == metadata["workflow_run"]["head_sha"]),
                   "SAVED_ORIGINAL_UNBOUND")
-            facts, roster = _native_facts(doc, entry, metadata)
+            facts, roster, source_clocks = _native_facts(doc, entry, metadata)
             rosters = [row.get("participants", []), *[s.get("participants", []) for s in row.get("saved_participant_rosters", [])]]
             _need(any(_roster(people) == roster for people in rosters), "SAVED_ROSTER_UNBOUND")
             for field in ("model_version", "input_sha256", "source_sha256", "generated_at"):
@@ -234,14 +388,30 @@ def hydrate_prediction_evidence(view, archives, *, key=None):
                            "NATIVE_ASOF_AND_PRE_CUTOFF_ORIGINAL")
             _need(identity not in evidence or evidence[identity] == current, "EXISTING_EVIDENCE_CONFLICT")
             evidence[identity] = current
+            if schedule is not None:
+                coverage = row.setdefault("saved_prediction_coverage", {})
+                _need(type(coverage) is dict, "COVERAGE_INVALID")
+                old = coverage.get(identity)
+                checked = ts(old["checked_at"]) if old is not None else now
+                proof = _coverage_evidence(row, prediction, current, source_clocks, schedule.get(row["race_id"]), checked)
+                _need(old is None or old == proof, "EXISTING_COVERAGE_CONFLICT")
+                coverage[identity] = proof
         if evidence:
             row["saved_prediction_evidence"] = evidence
             for item in evidence.values():
                 total["evidenced_predictions"] += 1
                 total["exact_generation_clocks" if item["native"]["generated_at"] is not None else "native_asof_clocks"] += 1
                 total["completion_upper_bounds"] += item["native"]["generation_completed_no_later_than"] is not None
+        if schedule is not None:
+            _need(set(row.get("saved_prediction_coverage", {})) <= set(identities), "COVERAGE_ORIGINAL_MISSING")
+            for prediction in predictions:
+                proof = native_coverage_evidence(row, prediction, now=now)
+                if proof is not None:
+                    total["native_pre_cutoff_qualified" if proof["status"] == "QUALIFIED_PRE_CUTOFF" else "native_pre_cutoff_held"] += 1
     _need(forecast_inventory(output) == before, "ORIGINAL_INVENTORY_CHANGED")
     counts = dict(schema="RACE_AI_SAVED_PREDICTION_EVIDENCE_COUNTS_V1", authenticated_archives=len(originals),
                   saved_predictions=len(before), **{k:total[k] for k in ("evidenced_predictions", "exact_generation_clocks", "native_asof_clocks", "completion_upper_bounds")},
                   originals_unchanged=True, accuracy_improvement_proven=False, actual_purchases=False)
+    if schedule is not None:
+        counts.update({k:total[k] for k in ("native_pre_cutoff_qualified", "native_pre_cutoff_held")})
     return output, counts

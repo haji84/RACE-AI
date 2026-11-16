@@ -21,11 +21,14 @@ def context():
 class SupplementalCollectionTests(unittest.TestCase):
     def test_pending_exhibition_retains_separate_weather_context(self):
         ctx=context()
-        with patch.object(pilot,'_clock',return_value=AT), patch.object(pilot,'get',side_effect=[(b'program',AT,'a'*64),(b'pending',AT,'b'*64)]), patch.object(pilot,'parse_official_racelist',return_value=dict(race_id=RID,closed_at=CUTOFF,boats=[dict(r,entry_status='listed') for r in ROSTER])), patch.object(pilot,'motor_top2',return_value={}), patch.object(pilot,'parse_active_beforeinfo',return_value=dict(status='PENDING',data=None,context=ctx['beforeinfo'])), patch.object(pilot,'capture_before_context',return_value=ctx,create=True), patch.object(pilot,'supplemental_contexts',{},create=True), patch.object(pilot,'collect_pitreport',return_value=None,create=True) as comments, patch.object(pilot,'collect_entry_history',return_value=None):
+        with patch.object(pilot,'_clock',return_value=AT), patch.object(pilot,'get',side_effect=[(b'program',AT,'a'*64),(b'pending',AT,'b'*64)]), patch.object(pilot,'parse_official_racelist',return_value=dict(race_id=RID,closed_at=CUTOFF,boats=[dict(r,entry_status='listed') for r in ROSTER])), patch.object(pilot,'motor_top2',return_value={}), patch.object(pilot,'parse_active_beforeinfo',return_value=dict(status='PENDING',data=None,context=ctx['beforeinfo'])), patch.object(pilot,'capture_before_context',return_value=ctx,create=True), patch.object(pilot,'supplemental_contexts',{},create=True), patch.object(pilot,'collect_pitreport',return_value=None,create=True) as comments, patch.object(pilot,'collect_entry_history',return_value=None) as history:
             result=pilot.make_pair(date(2030,4,1),dict(race_id=RID,cutoff_at=CUTOFF))
             self.assertIsNone(result[1])
             self.assertEqual(pilot.supplemental_contexts.get(RID),ctx,'weather observations disappeared with pending exhibition')
-            comments.assert_called_once_with(ctx,date(2030,4,1))
+            self.assertEqual(result[0]['state'],'EXHIBITION_NOT_FULLY_PUBLISHED')
+            self.assertIsNotNone(result[0]['source_wait'])
+            comments.assert_not_called()
+            history.assert_not_called()
 
     def test_optional_comments_do_not_get_after_source_wait(self):
         ctx=context()

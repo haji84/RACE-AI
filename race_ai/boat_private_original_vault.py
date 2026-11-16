@@ -161,7 +161,8 @@ class VaultGitRepository(GitStateRepository):
                 '-c','remote.origin.partialclonefilter=blob:none','-c','protocol.version=2',*args],body=body,env=env)
         except ValueError as error:
             if str(error) in {'STATE_GIT_FETCH_TIMEOUT','STATE_GIT_REMOTE_LOOKUP_TIMEOUT',
-                             'STATE_GIT_PUSH_TIMEOUT','STATE_GIT_OPERATION_TIMEOUT'}:
+                             'STATE_GIT_PUSH_TIMEOUT','STATE_GIT_OPERATION_TIMEOUT'} or re.fullmatch(
+                    r'STATE_GIT_OPERATION_FAILED_(?:REMOTE_LOOKUP|FETCH|PUSH|LOCAL)_(?:HTTP_[45][0-9]{2}|UNKNOWN)',str(error)):
                 raise ValueError(str(error).replace('STATE_','VAULT_',1)) from None
             raise
 

@@ -298,9 +298,9 @@ class ArtifactRecovery:
     closure was selected. Call this before live pagination. ``provenance`` maps
     artifact IDs and served archived endpoints to their explicit scope.
     """
-    def __init__(self,get,repo,key=None,transport=None):
+    def __init__(self,get,repo,key=None,transport=None,known_locators=None):
         self.mac_key=_key(key);self.repo=repo;self.key=key;self.git=V._transport(repo,transport)
-        self.artifacts=V.VaultArtifactReader(get,repo,key=key,transport=self.git)
+        self.artifacts=V.VaultArtifactReader(get,repo,key=key,transport=self.git,known_locators=known_locators)
         self.closures={};self.descriptors={};self.provenance={}
 
     def closed_run_descriptor(self,run):

@@ -92,6 +92,7 @@ def _evidence(value, raw, roster):
     size = [raw['tracking']['width'], raw['tracking']['height']]
     for comparison in value['comparisons'].values():
         _passage(comparison, size)
+        _need(set(comparison['lanes']) <= set(map(str,roster)))
     return deepcopy(value), identities
 
 
@@ -179,7 +180,7 @@ def _common(value, cutoff, instant):
 
 
 def _participants(value, target):
-    participants = {lane:dict(lane=lane, registration_number=target[lane], feature_cells={}) for lane in range(1,7)}
+    participants = {lane:dict(lane=lane, registration_number=target[lane], feature_cells={}) for lane in sorted(target)}
     common = _common(value, _time(value['cutoff_at']), _time(value['as_of']))
     for feature, phase, metric, unit in FEATURE_SCHEMA:
         comparison = value['comparisons'].get(phase); cells = []
@@ -311,7 +312,7 @@ def validate_sequential_video_context(context, *, race_id, cutoff_at, roster, as
                                                     'INDEPENDENT_HUMAN_HELDOUT_VALIDATION_MISSING']))
         kinds, lanes = value['identity_reviewer_kinds'],value['identity_supported_lanes']
         _need(type(kinds) is list and kinds == sorted(set(kinds)) and all(k in ('HUMAN_MANUAL','AGENT','AUTOMATED_DETECTOR') for k in kinds))
-        _need(type(lanes) is list and lanes == sorted(set(lanes)) and all(type(n) is int and 1<=n<=6 for n in lanes) and bool(lanes)==bool(kinds))
+        _need(type(lanes) is list and lanes == sorted(set(lanes)) and all(type(n) is int and n in target for n in lanes) and bool(lanes)==bool(kinds))
         _need((value['evidence_created_at'] is None) == (value['evidence_sha256'] is None))
         if value['evidence_created_at'] is not None: _time(value['evidence_created_at'])
         _need(value['dataset_status'] in ('REAL_REPORTED','SYNTHETIC_ONLY') and _finite(value['media_duration_seconds']) and
@@ -321,6 +322,7 @@ def validate_sequential_video_context(context, *, race_id, cutoff_at, roster, as
         comparisons = value['comparisons']; _need(type(comparisons) is dict and set(comparisons) <= {r[1] for r in FEATURE_SCHEMA})
         for comparison in comparisons.values():
             _passage(comparison,size,proof=True)
+            _need(set(comparison['lanes']) <= set(map(str,target)))
             for part in comparison['lanes'].values():
                 _window(part,comparison,value['camera_evidence_sha256'],size,value['media_duration_seconds'])
         expected = _participants(value,target)

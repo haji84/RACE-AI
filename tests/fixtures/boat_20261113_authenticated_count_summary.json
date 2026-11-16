@@ -1,0 +1,42 @@
+{
+  "all_models_complete_proven": false,
+  "authenticated_p1_artifacts": 3,
+  "baseline_p0_races": 136,
+  "baseline_p0_unique_model_slots": 272,
+  "baseline_p1_races": 9,
+  "baseline_p1_unique_model_slots": 45,
+  "day_jst": "2026-11-13",
+  "evidence_type": "RETAINED_COUNT_SUMMARY_NOT_INDEPENDENT_AUDIT",
+  "exact_aes_originals_included": false,
+  "live_recovery_to_new_p1_proven": false,
+  "missing_p1_last_observation": {
+    "ALREADY_CLOSED_BEFORE_SCHEDULE_CAPTURE": 21,
+    "NO_RETAINED_OBSERVATION": 126
+  },
+  "new_forecasts": 0,
+  "official_program_verified": true,
+  "official_source_requests": 0,
+  "originals_changed": false,
+  "owner_run_id": 43348227701,
+  "p0_models": {
+    "boat-observed-pairwise-factor-v1": 136,
+    "boat-observed-pairwise-start-v1": 136
+  },
+  "p1_eligibility_unknown": 147,
+  "p1_models": {
+    "boat-course-motor-shadow-v0.1-UNTRAINED": 9,
+    "boat-display-rating-PL-reference-v1-UNVALIDATED": 9,
+    "boat-local-start-course-shadow-v0.1-UNTRAINED": 9,
+    "boat-observed-pairwise-factor-v1": 9,
+    "boat-observed-pairwise-start-v1": 9
+  },
+  "p1_schedule_cutoff_conflict_races": 1,
+  "scheduled_races": 156,
+  "scheduled_venues": 13,
+  "scheduled_without_baseline_p1": 147,
+  "schema": "RACE_AI_OWNER_ORIGINAL_EVIDENCE_AUDIT_V1",
+  "source_artifact_name": "boat-owner-evidence-audit-43482296813.zip",
+  "source_json_sha256": "64922c4d6b5355e30b8d2316558d2b4e9beb73ee7e93c805291298b4b99bee53",
+  "verified_video_prediction_races": 0,
+  "verified_video_prediction_rows": 0
+}

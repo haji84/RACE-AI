@@ -1,0 +1,163 @@
+# BOAT 全国P1・展示映像研究ゲート（本番影響なし）
+
+基準日：2026-11-14（JST）。このブランチは本番ではない。production/mainのref、既存スケジュール、GitHub Actionsの公式GET、鍵、モデル、採点器、原本には変更を加えない。PRはレビュー用のDraftで維持する。
+
+## 実測の分母と今回の作業
+
+2026-11-13の既存監査では、公式開催は13場156レース。P0原本が136レース、P1原本が9レースで、公式分母でP1未確認は147レース。これは「147レースが全部生成できたはず」との意味ではない。展示公開・時刻・中止・取得可否・適格モデル構成の独立照合が必要。
+
+今回の新規純粋関数：`race_ai/boat_national_video_research_gate.py`
+
+- ソースGET、動画取得、Git保存、シークレット読み取り、モデル変更なし。日付・race ID・締切・外部保存時刻・同一race/model原本の重複矛盾を点検し、全開催を分母としてP0件数、P1の何らかの原本、モデル群の揃ったP1、未確認理由、会場別の件数を区別する。
+- 依頼側が「ソース認証済み」を宣言するだけでは証拠にならないので、この関数だけでは`nationwide_p1_complete_proven`をtrueにしない。すべて存在する場合でも、独立検証へ進む候補と判定する。
+- 既存の`boat_video_connection.connect_report`が生成する`CONNECTED_EXPERIMENTAL`を、実際の既存2研究モデルの予測関数で合成実行し、モデルID・SHA・予想時刻・保存receipt属性と非本番フラグの整合を検査。現実の展示動画や著作権・使用許諾、実艇番ラベル、独立runnerの現物読戻しをこのテストから証明しない。
+- 事後保存、型の不一致、締切変更、原本重複矛盾、モデル不足、動画receipt改ざん、本番昇格フラグを拒否する。
+
+## 実行ゲート
+
+source-freeローカル回帰：`python -m unittest tests.test_boat_video_connection tests.test_boat_video_evaluation tests.test_boat_video_model_context tests.test_boat_national_video_research_gate -q`。初回は新モジュール未実装でRED、実装後67件成功。GitHub Actionsの既存PR専用`main_entry_contract`に同じ研究テストを追加し、source-ownerの実GET jobはpull_requestで無効のまま維持。
+
+**本番リリースゲートは未達。** 上記は実P1生成、全国156件達成、展示動画入力、独立SHA読戻しを実証しない。
+
+## 次の本命の実装
+
+1. 公式プログラム由来のrace IDと締切原本、P0/P1暗号原本を同じ実行の別readerで復旧し、モデル別の欠損をrace単位で実測。合成シミュレーションでなく本番プログラムのどの区間が未達かを調べる。
+2. 地域/会場ごとのP1表示ページ公開時刻と締切を確認し、正当な候補を漏らさず次の取得タイミングを実装。公式サイトの403/429とRetry-Afterは厳守。
+3. 実日中に新しいP1の生成→AES保存→別runner一致を実証し、モデル別・全race ID分母を計算。事後予想の補完は禁止。
+4. 展示映像の利用許諾を検証し、権利処理が明確な実素材を非公開で受領する。既存のローカルFFmpeg/OpenCV評価、番号識別、比較根拠、凍結済み学習器、動画receipt、実予想結果を同じ締切前の時間軸に結合し、実レースの独立検証を合格するまで`LEARNED_VIDEO_EXPERIMENTAL`として隔離。
+5. 本番候補が揃った時点で、作成元のSHA・ソースアクセス・権限・原本不変性・全CIを本人が承認した上で初めてリリースを検討する。
+
+本PRは作業の基準を作る研究PRであり、実データの自動取得や本番導入を無断で行うものではない。
+
+
+## ローカル実動画デコード経路の追加確認（合成映像）
+
+公式映像・所有者の実撮影素材は使わず、FFmpegで3秒間・320×240・12fpsの単純な色付き矩形を含む合成MP4を生成した。既存`scripts/boat_video_analyze.py`の**実FFmpeg/実OpenCV経路**で解析し、`save_evaluation`による非公開0600レポートを`read_evaluations`で再読込した。
+
+- 合成MP4 SHA256：`cb40c7b950c014d4d63ed0536aed5c785e1929a99afc9689bdf83e1db745705f`
+- 生成レポート SHA256：`4f998ef16c78737c5e2e4be36e42f98c18ef416f6820f1d073dee468e80fa03b`
+- 実ファイル読込・映像デコード・封印レポート：成功
+- 六艇候補の表示：6、実際に数値測定できたphase：0
+- `dataset_status=SYNTHETIC_ONLY`、`validation_status=UNVALIDATED`、`model_eligible=False`
+
+**このテストは展示映像の艇番識別・実測性能・予想生成を証明しない。** 初回、作業ディレクトリのsetgid許可ビットが0600/0700制約を満たさず拒否された。所有者専用の正しい0700へ修正すると成功した。本番保護のため、この権限検査は弱めていない。合成メディアも非公開の試験領域から本番・Public Gitへコピーしていない。
+
+## 実原本の件数証拠（本番へ影響なし）
+
+11月13日の保存済みowner原本を読んで作った、公開可能な**件数だけの抜粋**を`tests/fixtures/boat_20261113_authenticated_count_summary.json`に追加した。元のGitHub Actions検証ジョブ番号は`43482296813`、そのZIP内のJSON原本SHA256は`64922c4d6b5355e30b8d2316558d2b4e9beb73ee7e93c805291298b4b99bee53`。これは元の監査時点での証拠への参照であって、今回のCIがAESを再復号したことは意味しない。
+
+確認事項：公式掲載156、P0 136（2モデル272レコード）、P1 9（5モデル45レコード）、P1未確認147。内訳は締切後に取得された記録が21、試行記録なし126。1レースは公式締切とP1原本締切が不一致。展示映像を使った予想の原本は確認対象0。欠落147すべてがP1生成可能だったという証拠もない。これらの個別原因を「展示がなかった」と補完しない。
+
+## 当時の権利検証案（旧仕様。現在は2026-11-15の記述を優先）
+
+2026-11-14に個別書面許諾を毎回要求する研究入口を試作した。当時の対象はレースID・締切・実動画SHA・取得時刻と書面証拠だった。これは11月15日に過剰制限として変更済み。文面を自称するだけではHOLDし、条件が揃っても`READY_PRIVATE_RESEARCH_INPUT_ONLY`という**入力準備**しか認めない。映像DL／展示映像AI完成／本番公開／予想的中は認定しない。
+
+2026-11-14時点の確認済み一次情報：
+- BOATCAST公式サイトポリシー：https://boatcast.jp/static/sitepolicy/index.html （著作権者の許諾や法定例外を超える無断利用・大量アクセスの制約）。
+- ボートレース下関FAQ：https://www.boatrace-shimonoseki.jp/sp/index.php?page=other-faq （公式以外でのレース映像使用を認めない旨）。
+- ボートレース福岡FAQ：https://boatrace-fukuoka.com/modules/other/?page=index_faq （動画コンテンツ材料としての使用を案内。ただし自動DL・AI研究やモデル学習への包括許諾とは読めない）。
+- ボートレースまるがめFAQ：https://www1.marugameboat.jp/faq.htm （リプレイ映像等は非営利目的に限って一定の利用を案内し、他会場の許諾範囲とは区別）。
+- ボートレース多摩川：https://www.boatrace-tamagawa.com/sp/entry/?page=other-racevideo （オンラインでのレース映像公開について届出・回答が必要）。
+
+いずれのFAQも全国24場の自動取得・機械解析・AI学習・再配信をまとめて許可する根拠ではない。素材の権利・利用条件を確認できないものは、ユーザーが望む研究モードでも無条件で取り込まない。独立許諾確認コールバックの試験用モックを使った成功は**実際の利用許諾を得た証拠ではない**。
+
+本番への昇格条件は従来どおり、実映像＋許諾→実艇番照合→追跡精度・動作測定→締切前の保存済みP1原本→別runner SHA検証→将来結果PDCAまで、すべて本物の再現証拠が必要。
+
+
+## 当時の許諾ゲート（旧仕様。現在は繰り返し確認を要求しない）
+
+研究用モジュール `race_ai/boat_video_rights_admission.py` に2段階を追加した。
+
+1. `review` は同日race ID／締切前取得／動画SHA／明示的な「非公開複製・機械的フレーム解析・研究予想への派生」の許諾／外部確認済みの許諾原本が揃った場合だけ、`READY_PRIVATE_RESEARCH_INPUT_ONLY` を返す。権限確認のないFAQ表示だけではHOLDする。レース当日以外の録画、別レースの締切、後から追加された許可日付も拒否する。
+2. `enqueue_licensed_capture` は実際の取得原本に対する許諾・権利確認の判定を通過した場合だけ、既存の `boat_video_capture_bridge.enqueue_export` に渡す。この既存経路が非公開で保存した映像の実SHAを確認し、改変できない研究入力に封印する。許諾なし・合成素材の本物へのすり替え・改変・バイト不一致なら取込を停止。どちらの処理もレース予想を自動生成しない。
+
+研究上の模擬許諾コールバック（テスト専用）は現実の権利者の許諾ではない。実展示映像は今なお未接続。Driveの「展示」「ボート」「boat」に関する限定的なファイル名検索でも、権利確認できる実展示動画は特定できなかった。全Driveに存在しないとまでは結論付けない。
+
+CI： https://github.com/haji84/RACE-AI/actions/runs/43539105295 。既存の暗号予想・結果回帰テスト304件と、研究用件数・動画モデル・許諾チェック（前回の研究ゲートに追加）はsource-freeで合格。実source取得・P1生成のActions jobはスキップされ、本番成功とは解釈しない。2026-11-14のmainとproductionの参照SHAは一切変更していない。
+
+**未達の完成条件:** 実日開催の全race ID、展示公開時計、締切前全国P1の暗号原本・別runner読戻しと、実映像からの艇番追跡精度・動作測定・研究予想・独立検証。合成映像だけでは完成扱いにしない。
+
+
+## 2026-11-14 新規：競輪方式の画面録画・実動画解析研究（本番未接続）
+
+競輪側の既存 `scripts/keirin_winticket_historical_batch_capture.py`（HEAD `c26ac0927647f317acf855e0c42cd1703232c19b`）は Playwright `record_video_dir` とHTML5プレーヤーの再生終了検証、RSA/AES封印を用いていた。同じ**画面録画の技術**を、BOAT独立研究 `race_ai/boat_screen_record_research.py` に移植した。競輪の既存実装は**結果公開後**の録画であり、ボートP1では必ず締切**前**に完了させる。
+
+今回のブラウザ研究は、既に閲覧できる画面の表示をChromiumで普通に録画する。URL/APIから動画の生ストリームを抜き出さず、DRM解除・ログイン回避・無制限自動アクセスもしない。現在の `REPLAY` は自然な再生終了、`LIVE_WINDOW` は再生時刻が実際に進んだ短い画面窓を要求し、両者を混同しない。動画は録画後にAES-256-GCMで暗号化し、対応するレースID/画面URLのSHA/録画時刻/生メディアSHAをAADで結び付け、復号読戻しで認証する。暗号キーなし・ソース権限不足・実レースDOM識別不足・過去日時・締切前余裕不足・不完全再生はHOLDとなる。
+
+`race_ai/boat_screen_model_bridge.py` では、保存済みWebMを別の研究ステップでAES復号し、既存の`boat_video_evaluation.analyze_video`（実FFmpeg/OpenCV/六艇候補トラッキング）へ通し、結果を`boat_video_model_context.prepare_video_context`で検証する。合成映像は必ず`SYNTHETIC_ONLY`、`model_eligible=False`、`production_video_forecast_proven=False`で、予想本体の正式買い目へ自動昇格させない。艇番1・2の無彩色識別、カメラ移動補正、画角・艇番の独立正解ラベル・真の速度換算には実映像と根拠が必要。合成ブラウザ録画の成功を「実展示映像で正確に6艇を識別できた」と言い換えない。
+
+source-free GitHub CI：`.github/workflows/boat-screen-recording-offline.yml`。ユーザーが許可していないサイトにはアクセスせず、Playwright/ChromiumでローカルHTML5の合成映像のみ再生し、録画・暗号化・SHA読戻し、実OpenCV解析の非本番HOLD、メディア不備の拒否を検証。**実ボート展示映像の録画原本はまだ0件**。
+
+公開のBOATCAST公式発表（2025-09-22）では「展示リプレイ」ボタンの追加が明示されている：
+https://www.boatrace.jp/owpc/pc/site/news/2025/09/45466/
+一方BOATCASTサイトポリシーは著作権・不正アクセス・大量アクセスに関する利用制約あり：
+https://boatcast.jp/static/sitepolicy/index.html
+文化庁は著作権法30条の4で一定の非享受目的情報解析が許諾不要となり得ると説明している：
+https://www.bunka.go.jp/seisaku/bunka_gyosei/kibankyoka/faq/index.html
+画面録画であるだけで配信サイトの規約・映像権利を無条件にクリアしたことにはしない。実サイトへの録画は取得根拠を確認するまで未起動。
+
+## 全国P1の朝の起動欠落：実GitHub Actionsからの再現
+
+2026-11-14 JST：
+- main source-free owner launcherのSchedule run `43506341665` は **05:57**に実行され、`HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW`で予想起動を許可しなかった（この時間帯のレースソースGETは0）。
+- 次に確認できた同日 BOAT main schedule run `43540821007` は **10:28**、`READY_EXISTING_OWNER_WORKFLOW_ONLY`で本番ownerを発火。
+- 本番owner run `43540834582` は **10:28**に開始し、実P0と`boat-national-cutoff-43540834582` P1成果物のGitHubアップロード記録が観測された。ただし原本AES別runner確認・全156件完了の証明は未確認。前述の156件は**11/13**の分母であり11/14のレース数とは決めつけない。
+- 06:20～10:28のギャップに対応する BOAT main schedule run は取得済み履歴で確認できなかった。根本原因がGitHubプラットフォームの遅延・スキップかどうかまでは断定しない。
+
+研究用のDraft PR https://github.com/haji84/RACE-AI/pull/289 は、既存のsource-free gateをJST 05:30から受け付けて、05:57の既存runを無意味なHOLDにしない候補。前日のrun再使用、深夜の誤起動、原本二重生成、403/429通過は不可。PR用CIは実source GETを行わない。**本番mainへ未統合**なので日次全件の解決証明ではない。
+
+## 依然として外部入力が不可欠な合格ゲート
+
+1. 公式開催資料のその日の全race IDとモデル適格分母、展示公開時計、締切とP1原本SHA/保存時刻を実日で照合。
+2. 起動欠落が解消し、朝最初のレースより前にP0→展示後P1→AES永続保存→別runner SHAが確認できることを実証。
+3. 実展示リプレイを通常の可視操作で取得できるか実証（権利・サイトの許容範囲とレースIDのDOM上の独立確認が必須）。
+4. 実際に出走する3～6艇の艇番の検出・追跡誤差、カメラ補正、動作特徴を人間または独立正解ラベルで検証。欠場艇は予想入力に入れない。
+5. 事前に凍結した研究モデルで未来P1を生成・暗号保存、別runner検証して公式結果PDCAまでつなぐ。合成テストは本番の的中証明に加算しない。
+
+本番へ無断反映しない。mainとproductionの固定SHAを最初に取り直し、研究PRを誤ってmergeしない。
+
+## 2026-11-15: ユーザーからの以前の許可を適用し、毎回の確認を廃止
+
+ユーザーは個人利用・非公開の研究を以前に認めている。従って、別途 `personal_use_acknowledged=True` を渡す必要があった旧確認経路と `READY_OWNER_ATTESTED_*` は**廃止した**。毎回書面を提出する仕組みや許可フォームも要求しない。これは研究用の既定動作の修正であり、法律・サイト規約への適合を独立認証したとの主張ではない。
+
+現在のコードの使用方法：
+
+1. 本人管理の録画原本は `boat_video_rights_admission.review(source,now=...)` で非公開研究入力へ進める。実体のレースID、当日、締切前取得時刻、動画SHAを検証する。対象が異なる原本や事後撮影を勝手に正式予想に変えない。
+2. 画面録画は `boat_screen_record_research.preflight(source,now=...)` と `record_screen(browser,source,now=...,aes_key=...)` で開始できる。余計な個人研究の許可引数は不要。元のHTTPS正規ホスト、画面で確認できるレースID、録画の再生状態、締切前の余裕、AES暗号化はそのまま維持する。
+3. オプションで権利者の独立確認資料が提供されたときは `grant + verify_grant` も使えるが、個人研究の必須入力にはしない。発行元が不明な外部動画を本人録画原本として装うことはしない。
+4. 暗号化済み画面録画を `boat_screen_model_bridge.evaluate_encrypted_screen` から既存FFmpeg/OpenCVへ渡す際も、二度目の「許可確認」を必須としない。別の原本検証器がある場合は利用するが、なくても**非公開・未検証の研究用数値**までは処理できる。原本が本物であると証明されたことや、本番予想が完成したことにはしない。
+
+引き続き公開への動画再配信、ログイン・DRM回避、公式サイトの取得拒否を無視した動作、P1の発走後生成、正式原本の上書き、暗号の検証省略は行わない。これらは許可を再要求する手続きではなく、システムの安全性・予想の真正性に関わる条件。
+
+BOATCASTサイトポリシー：https://boatcast.jp/static/sitepolicy/index.html
+文化庁の著作権情報：https://www.bunka.go.jp/seisaku/bunka_gyosei/kibankyoka/faq/index.html
+
+本番/mainは未変更。研究用PR #288で最新の実録画と全国P1原本の評価を進める。実ボート展示映像で3～6艇の出走艇番号識別に成功した件数、全国実レースP1原本が揃った件数、独立SHA完走数はいずれもまだ合格証拠が必要。
+
+
+## 2026-11-15：欠場・出走取消で6艇揃わない場合のP1・映像解析
+
+ユーザーの追加要望：6艇フル出走を条件にしない。公式の出走艇だけをrace ID・枠番（艇番）・登録番号で扱う。枠番を詰め直さない。3号艇欠場なら1・2・4・5・6をそのまま解析し、3号艇を予想候補に含めない。
+
+- 5艇（例：1,2,4,5,6）、4艇（1,3,5,6）、3艇（2,4,6）の合成正解例で、実FFmpeg/OpenCVの追跡を確認。従来6艇も継続。
+- boat_video_tracking / boat_video_evaluation：実出走rosterに厳密一致する艇番のみ追跡・計測。重複、取り違え、除外した艇を使った原本は拒否。色のみから未認識を捏造しない。
+- boat_video_model_context / boat_video_sequential_context / boat_video_physical_context / boat_video_calibration：旋回、直線、助走、画角補正、誤差、欠損を出走艇数に合わせて計算。
+- boat_video_learning：実際のactive艇数で映像特徴量・支持数を計算。研究用動画モデルの三連単候補数はactive艇の順列数と整合。候補に出走取消艇を混ぜない。
+- 公式展示データの既存A/B P1は元から3～6艇のactive rosterに対応済み。本変更は映像側に残った6艇固定の解消であり、本番モデルや暗号原本は変更しない。
+- 2艇以下は三連単に必要な3艇に満たず、架空艇を足さずにHOLDする。
+
+CI：PR #288、検証コードSHA 0267f2a770749b0601920c08b34fe89d2c4518fb
+https://github.com/haji84/RACE-AI/actions/runs/43626165525 ：PR専用のChromium合成画面録画、AES/WebM復号、実OpenCV、従来6艇と3/4/5艇のモデル研究予想116件＋別の動画・証拠検証16件成功。
+https://github.com/haji84/RACE-AI/actions/runs/43626165601 ：既存のsource-free BOAT回帰CI成功。正式ソース取得・実レース予想のPR jobはSKIP。
+
+合格範囲：研究コードでの3～6艇対応とsource-freeテスト。実欠場レース映像の艇番識別精度、締切前の実P1暗号原本、別ランナーSHA、一日の全国完走は未実証。PRはDraftで、本番main・productionは未変更。
+
+## 2026-11-16: 既存CIへの統合と実データゲート
+
+今回のrelease候補は、上記proposalの独立screen workflowを追加しない。
+録画・3〜6艇・AES・cache回帰を既存owner workflowのPR専用main_entry_contract jobへ統合し、
+本番b491との比較でworkflow/job/cron/権限の追加は0。
+native生成時計は入力as_ofと分離し、新しい推論呼出しの実開始・終了時刻だけをsource・出力hashへ結合する。
+旧原本に実時計がない場合はHOLDのまま保持する。
+実公式プレーヤーの403、6艇継続識別・物理的強さ・前向き精度の未達は維持し、
+合成Chromium画面や開発用oracleの一致を実受入の代用にはしない。

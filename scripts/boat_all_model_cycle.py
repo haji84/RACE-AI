@@ -500,7 +500,15 @@ def _error_diagnostic(exc):
             frames.append([path, trace.tb_lineno])
             frames = frames[-4:]
         trace = trace.tb_next
-    return dict(error_class=kind, error_frames=frames)
+    report = dict(error_class=kind, error_frames=frames)
+    # The transport already reduces CLI stderr to fixed public status codes.
+    # Keep that cause through the optional-family wrapper; never copy arbitrary
+    # exceptions, URLs, identifiers, tokens, or caller-supplied text to logs.
+    reason = str(exc)
+    if type(exc) is RuntimeError and re.fullmatch(
+            r"GITHUB_API_(?:READ_HTTP_[45][0-9]{2}|TIMEOUT)_HALT", reason):
+        report['upstream_reason'] = reason
+    return report
 
 
 def main(argv=None):

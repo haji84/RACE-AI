@@ -42,6 +42,77 @@ def source_identity_conflict(reason):
 
 _ORIGINAL_READER=None
 
+def _current_original_identity():
+    run=os.environ.get('GITHUB_RUN_ID','');head=os.environ.get('GITHUB_SHA','')
+    need(os.environ.get('GITHUB_ACTIONS')=='true' and os.environ.get('GITHUB_REPOSITORY')=='haji84/RACE-AI'
+         and re.fullmatch('[1-9][0-9]{0,19}',run) and re.fullmatch('[a-f0-9]{40}',head),
+         'CURRENT_ORIGINAL_OWNER_CONTEXT_REQUIRED')
+    return int(run),head
+
+def _current_original_locators():
+    """Private capture reports are hints; the existing vault still authenticates every byte."""
+    import stat
+    from race_ai import boat_private_original_vault as vault
+    value=os.environ.get('RUNNER_TEMP')
+    if value is None:return {}
+    root=Path(value).absolute()
+    need('..' not in root.parts and not any(p.is_symlink() for p in (root,*root.parents))
+         and not root.is_relative_to(ROOT.resolve())
+         and not any((p/'.git').exists() for p in (root,*root.parents)), 'CURRENT_ORIGINAL_REPORT_PATH_INVALID')
+    if not root.exists():return {}
+    info=root.stat()
+    need(stat.S_ISDIR(info.st_mode) and info.st_uid==os.getuid() and not info.st_mode&0o022,
+         'CURRENT_ORIGINAL_REPORT_DIRECTORY_INVALID')
+    pattern=re.compile(r'boat-(baseline|model|result)-original-vault-([1-9][0-9]{0,5})\.json')
+    names=sorted(item.name for item in root.iterdir() if pattern.fullmatch(item.name))
+    if not names:return {}
+    _current_original_identity()
+    allowed={'baseline':{'P0','P1'},'model':{'ALL_MODEL'},'result':{'RESULT'}}
+    known={}
+    for name in names:
+        path=root/name;kind=pattern.fullmatch(name)[1]
+        try:
+            need(not path.is_symlink(),'CURRENT_ORIGINAL_REPORT_PRIVATE_REQUIRED')
+            fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+            with os.fdopen(fd,'rb') as stream:
+                before=os.fstat(stream.fileno())
+                need(stat.S_ISREG(before.st_mode) and stat.S_IMODE(before.st_mode)==0o600
+                     and before.st_uid==os.getuid() and before.st_nlink==1
+                     and 0<before.st_size<=128*1024,'CURRENT_ORIGINAL_REPORT_PRIVATE_REQUIRED')
+                raw=stream.read(128*1024+1);after=os.fstat(stream.fileno());current=path.lstat()
+            fields=('st_dev','st_ino','st_mode','st_uid','st_nlink','st_size','st_mtime_ns','st_ctime_ns')
+            need(len(raw)==before.st_size and all(getattr(before,k)==getattr(after,k)==getattr(current,k) for k in fields),
+                 'CURRENT_ORIGINAL_REPORT_CHANGED')
+        except OSError:
+            raise ValueError('CURRENT_ORIGINAL_REPORT_INPUT_INVALID') from None
+        report=vault._json(raw,128*1024)
+        need(type(report) is dict and set(report)=={'status','source_commit','retained_originals','locators',
+             'independent_git_readback_verified','plaintext_published'} and report['status'] in
+             ('EXACT_ORIGINAL_VAULT_RETAINED','EXACT_ORIGINAL_VAULT_UNCHANGED')
+             and report['independent_git_readback_verified'] is True and report['plaintext_published'] is False
+             and type(report['locators']) is list and 0<len(report['locators'])<=vault.MAX_BATCH
+             and type(report['retained_originals']) is int and report['retained_originals']==len(report['locators']),
+             'CURRENT_ORIGINAL_REPORT_INVALID')
+        vault._hex(report['source_commit'],vault._HEAD)
+        for locator in report['locators']:
+            vault._validate_locator(locator)
+            need(locator['source_commit']==report['source_commit'] and locator['kind'] in allowed[kind],
+                 'CURRENT_ORIGINAL_REPORT_LOCATOR_MISMATCH')
+            ident=vault._id(locator['artifact_id'])
+            need(ident not in known or known[ident]==locator,'CURRENT_ORIGINAL_LOCATOR_CONFLICT')
+            known[ident]=locator
+    return known
+
+def _validate_current_original(reader,ident):
+    known=getattr(reader,'_current_locators',{})
+    if ident not in known:return
+    restored=reader.artifacts.cache.get(ident)
+    need(restored is not None and reader.artifacts.selected.get(ident)==known[ident],
+         'CURRENT_ORIGINAL_OWNER_ARCHIVE_REQUIRED')
+    run=restored['metadata']['workflow_run'];expected_run,expected_head=reader._current_identity
+    need(type(run.get('id')) is int and run['id']==expected_run and run.get('head_sha')==expected_head,
+         'CURRENT_ORIGINAL_OWNER_MISMATCH')
+
 def original_reader():
     """Opt-in owner-key archive selection; never starts a source session."""
     if os.environ.get('RACE_AI_ORIGINAL_VAULT_ENABLED')!='true':return None
@@ -49,21 +120,35 @@ def original_reader():
     if _ORIGINAL_READER is None:
         from scripts.boat_saved_view_feed import git_auth
         from race_ai.boat_original_recovery import ArtifactRecovery
+        known=_current_original_locators()
         git_auth()
-        _ORIGINAL_READER=ArtifactRecovery(_live_gh,ROOT)
+        reader=ArtifactRecovery(_live_gh,ROOT,known_locators=known)
+        reader._current_locators=known
+        reader._current_identity=_current_original_identity() if known else None
+        _ORIGINAL_READER=reader
     return _ORIGINAL_READER
 
 def gh(path):
     reader=original_reader()
-    return reader(path) if reader is not None else _live_gh(path)
+    if reader is None:return _live_gh(path)
+    raw=reader(path)
+    matched=re.fullmatch(r'actions/artifacts/([1-9][0-9]{0,19})(?:/zip)?',path)
+    if matched:_validate_current_original(reader,int(matched[1]))
+    return raw
 
 def _archived_pages(run):
     reader=original_reader()
-    return reader.archived_artifact_pages(run) if reader is not None else None
+    if reader is None:return None
+    rows=reader.archived_artifact_pages(run)
+    for row in rows or []:_validate_current_original(reader,row['id'])
+    return rows
 
 def _is_archived(ident):
     reader=original_reader()
-    return reader is not None and reader.is_archived(ident)
+    if reader is None:return False
+    archived=reader.is_archived(ident)
+    if archived:_validate_current_original(reader,ident)
+    return archived
 
 gh.archived_artifact_pages=_archived_pages
 gh.is_archived=_is_archived
@@ -150,7 +235,7 @@ def restore(day,*,video_context_artifacts=(),video_reader=None):
 def _venue_research_preload(*,round_no,clock=None):
     """Optional private I/O finishes before fresh official P1 capture begins."""
     config=ROOT/'audit/state/boat-venue-learning-context-input.json'
-    if not config.is_file():return None,None
+    if not config.is_file() and os.environ.get('RACE_AI_CANDIDATE_RESTORE_REQUIRED')!='true':return None,None
     import tempfile,shutil
     folder=None
     try:
@@ -160,8 +245,9 @@ def _venue_research_preload(*,round_no,clock=None):
         private_base=private_base.resolve()
         need(private_base!=ROOT.resolve() and ROOT.resolve() not in private_base.parents,
              'VENUE_RESEARCH_PRIVATE_ROOT_REQUIRED')
+        from race_ai.boat_venue_research_runtime import preload_venue_research,select_learning_context
+        config=select_learning_context(config,private_base,env=os.environ,now=clock() if clock else None)
         folder=Path(tempfile.mkdtemp(prefix='boat-venue-preload-',dir=private_base))
-        from race_ai.boat_venue_research_runtime import preload_venue_research
         runtime=preload_venue_research(config,ROOT/'audit/state/boat-venue-dataset-input.json',
             folder,ROOT,gh=gh,clock=clock)
         runtime['preload_folder']=folder

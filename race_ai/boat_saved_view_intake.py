@@ -7,7 +7,7 @@ from .boat_history_store import instant
 from .saved_view_feed import forecast_anchor,ensure_append_only
 from .private_cycle_projection import project_state
 
-def hydrate_saved_originals(view,get,*,key=None,max_archives=128):
+def hydrate_saved_originals(view,get,*,key=None,max_archives=128,official_schedule=None,now=None):
     """Read missing native evidence once, retaining every sealed prediction."""
     import json
     from .actions_contract import digest
@@ -17,11 +17,14 @@ def hydrate_saved_originals(view,get,*,key=None,max_archives=128):
     missing=set()
     for row in view['records']:
         known=row.get('saved_prediction_evidence',{})
+        coverage=row.get('saved_prediction_coverage',{})
         for prediction in _predictions(row):
             identity=digest([row['race_id'],saved_prediction_identity(prediction)])
             ident=prediction.get('artifact_id')
-            if identity not in known and type(ident) is int and ident>0 and any(
-                    prediction.get(field) is None for field in ('generated_at','input_sha256','model_version')):
+            metadata_missing=(identity not in known and any(prediction.get(field) is None
+                              for field in ('generated_at','input_sha256','model_version')))
+            coverage_missing=official_schedule is not None and identity not in coverage
+            if type(ident) is int and ident>0 and (metadata_missing or coverage_missing):
                 missing.add(ident)
     archives=[];unsupported=0
     for ident in sorted(missing)[:max_archives]:
@@ -33,7 +36,7 @@ def hydrate_saved_originals(view,get,*,key=None,max_archives=128):
         if not isinstance(name,str) or not name.startswith(('boat-p0-existing-','boat-national-cutoff-')):
             unsupported+=1;continue
         archives.append((get(f'actions/artifacts/{ident}/zip'),metadata))
-    output,counts=hydrate_prediction_evidence(view,archives,key=key)
+    output,counts=hydrate_prediction_evidence(view,archives,key=key,official_schedule=official_schedule,now=now)
     counts.update(deferred_archives=max(0,len(missing)-max_archives),unsupported_archives=unsupported)
     return output,counts
 
