@@ -7,6 +7,9 @@ on:
       - scripts/boat_main_dispatch_gate.py
       - tests/test_boat_main_dispatch_gate.py
       - tests/test_boat_early_start_gate.py
+      - tests/test_boat_dispatch_concurrency.py
+      - scripts/boat_native_safari_acceptance.py
+      - tests/test_boat_native_safari_acceptance.py
   push:
     branches: [main]
     paths: [docs/evidence/racer-daily-refresh-trigger.txt, docs/evidence/racer-intraday-refresh-trigger.txt, docs/evidence/owner-pdca-main-trigger.txt]
@@ -48,8 +51,10 @@ on:
 permissions:
   contents: read
 concurrency:
-  # PR-only offline CI must never queue the real intraday result collector.
-  group: ${{ github.event_name == 'pull_request' && 'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics' }}
+  # GitHub retains only one pending run per group. A result refresh must not
+  # replace the completed owner's successor admission before its gate can run.
+  # The launcher's existing job mutex and fresh history still enforce one writer.
+  group: "${{ github.event_name == 'pull_request' && 'boat-mirror-sourcefree-pr-ci' || (github.event_name == 'workflow_run' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111'))) && 'boat-owner-completion-dispatch' || 'boat-racer-daily-statistics' }}"
   cancel-in-progress: false
 jobs:
   fast_result_source_unit:
@@ -109,7 +114,7 @@ jobs:
           ref: '${{ github.event.pull_request.head.sha }}'
           persist-credentials: false
       - name: Run real existing main dispatcher and recovery unit tests
-        run: python -m unittest tests.test_boat_main_dispatch_gate tests.test_boat_early_start_gate tests.test_boat_owner_completion_trigger tests.test_boat_first_p0_recovery_gate -v
+        run: python -m unittest tests.test_boat_main_dispatch_gate tests.test_boat_early_start_gate tests.test_boat_owner_completion_trigger tests.test_boat_first_p0_recovery_gate tests.test_boat_dispatch_concurrency tests.test_boat_native_safari_acceptance -v
       - name: Verify pinned exact DOM proof and absence of provider GET in PR
         run: |
           python - <<'PY'
@@ -787,7 +792,8 @@ jobs:
         github.event.workflow_run.name == 'BOAT nationwide cutoff-ordered A/B research (no Vercel)' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        github.event.workflow_run.head_sha == 'b491fb21ce58ba085dd8f54bb7326442b840d8f4' &&
+        (github.event.workflow_run.head_sha == 'b491fb21ce58ba085dd8f54bb7326442b840d8f4' ||
+         contains(fromJSON('["b491fb21ce58ba085dd8f54bb7326442b840d8f4","84128e0ec8bd9fe3da64ad49f74b8511b07e72be"]'), github.event.workflow_run.head_sha)) &&
         (github.event.workflow_run.conclusion == 'success' ||
          github.event.workflow_run.conclusion == 'failure')) ||
        (github.event_name == 'push' &&

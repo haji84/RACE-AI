@@ -99,7 +99,8 @@ def calculate(report,model_ids,*,independent_original_reader=False,allow_pending
         no_forecast_generation=True)
 
 
-def saved_view_coverage(view, *, day, model_ids, scheduled_races, now):
+def saved_view_coverage(view, *, day, model_ids, scheduled_races, now,
+                        native_coverage_reader=None,official_schedule=None):
     """Read-only P1 projection count from an already AES-authenticated view.
 
     A caller's boolean receipt flag is not proof of its GitHub ZIP. The
@@ -119,6 +120,19 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now):
     expected=set(model_ids);seen_races=set();qualified=set()
     excluded=Counter();extra=set();observed_p1=set();conflicts=0
     clock=now.astimezone(timezone.utc)
+    official=None
+    if official_schedule is not None:
+        _need(type(official_schedule) is list and len(official_schedule)==scheduled_races)
+        official={}
+        for row in official_schedule:
+            _need(type(row) is dict and set(row)=={'race_id','cutoff_at','schedule_captured_at','source_sha256'})
+            rid=row['race_id'];cutoff=_clock(row['cutoff_at']);captured=_clock(row['schedule_captured_at'])
+            _need(type(rid) is str and re.fullmatch(r'[0-9]{8}-(?:0[1-9]|1[0-9]|2[0-4])-(?:0[1-9]|1[0-2])',rid)
+                  and rid.startswith(day.replace('-','')) and rid not in official and captured<=clock
+                  and captured.astimezone(timezone(timedelta(hours=9))).date().isoformat()==day
+                  and cutoff.astimezone(timezone(timedelta(hours=9))).date().isoformat()==day
+                  and type(row['source_sha256']) is str and re.fullmatch('[a-f0-9]{64}',row['source_sha256']))
+            official[rid]=cutoff
     for row in view['records']:
         if row.get('sport')!='boat' or row.get('event_date_jst')!=day:
             continue
@@ -138,6 +152,10 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now):
         if cutoff.astimezone(timezone(timedelta(hours=9))).date().isoformat()!=day:
             excluded['ROW_OFFICIAL_CUTOFF_OUTSIDE_DAY']+=1
             continue
+        if official is not None and official.get(rid)!=cutoff:
+            conflicts+=1
+            excluded['INDEPENDENT_OFFICIAL_CUTOFF_CONFLICT']+=1
+            continue
         preds=[row.get('prediction'),*(row.get('comparison_predictions') or [])]
         _need(len(preds)<=128)
         for p in preds:
@@ -148,6 +166,24 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now):
                 extra.add(mid)
                 continue
             slot=(rid,mid);observed_p1.add(slot)
+            if row.get('saved_prediction_coverage'):
+                try:
+                    reader=native_coverage_reader
+                    if reader is None:
+                        from race_ai.boat_saved_prediction_evidence import native_coverage_evidence
+                        reader=native_coverage_evidence
+                    native=reader(row,p,now=clock)
+                except (ImportError,ValueError,KeyError,TypeError,AttributeError):
+                    excluded['NATIVE_COVERAGE_EVIDENCE_UNAVAILABLE_OR_INVALID']+=1
+                    continue
+                if native is not None:
+                    if native['status']!='QUALIFIED_PRE_CUTOFF':
+                        excluded['NATIVE_'+native['reason']]+=1
+                        continue
+                    # Audit-local projection only: retain the exact saved body.
+                    p=dict(p,as_of=native['as_of'],generated_at=native['generated_at'],
+                           server_saved_at=native['server_saved_at'],cutoff_at=native['cutoff_at'],
+                           external_receipt_verified=True,eligible_pre_cutoff=True)
             if (p.get('external_receipt_verified') is not True or
                 p.get('eligible_pre_cutoff') is not True or
                 type(p.get('artifact_id')) is not int or p['artifact_id']<=0 or
@@ -178,11 +214,21 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now):
                    missing_races=scheduled_races-sum(k[1]==mid for k in qualified))
               for mid in sorted(expected)]
     present=len(qualified);total=scheduled_races*len(expected)
+    missing_by_time={'NOT_DUE':0,'PRE_CUTOFF_PENDING':0,'DEADLINE_MISSED':0}
+    if official is not None:
+        for rid,cutoff in official.items():
+            missing=sum((rid,mid) not in qualified for mid in expected)
+            state=('NOT_DUE' if clock<cutoff-timedelta(minutes=15) else
+                   'PRE_CUTOFF_PENDING' if clock<cutoff else 'DEADLINE_MISSED')
+            missing_by_time[state]+=missing
+    else:
+        missing_by_time={'OFFICIAL_SCHEDULE_NOT_SUPPLIED':total-present}
     return dict(schema='RACE_AI_BOAT_AES_SAVED_VIEW_P1_COUNTS_V1',day_jst=day,
         scheduled_races=scheduled_races,saved_view_race_rows=len(seen_races),
         expected_model_count=len(expected),expected_model_slots=total,
         p1_qualified_unique_slots=present,missing_p1_model_slots=total-present,
         p1_seen_unqualified_slots=len(observed_p1-qualified),
+        missing_by_time=missing_by_time,
         unsupported_or_extra_models=len(extra),
         cutoff_conflicts=conflicts,excluded_reasons=dict(sorted(excluded.items())),
         by_model=by_model,independently_authenticated_source_zip_claim=False,

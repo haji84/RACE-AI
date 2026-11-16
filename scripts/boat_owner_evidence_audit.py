@@ -5,6 +5,7 @@ Pure aggregation never authenticates inputs by itself. Only aggregate counts
 are exported; predictions, rosters, media and owner keys remain private.
 """
 from collections import Counter
+from copy import deepcopy
 from datetime import datetime, timezone, timedelta
 import argparse
 import json
@@ -250,7 +251,42 @@ def inspect_failed_checkpoint(*,get,run_id,now,key=None):
         official_source_requests=0,new_forecasts=0,original_forecasts_changed=False)
 
 
-def inspect_run(repo,run_id,*,now):
+def native_official_schedule(document,receipt,program,*,now):
+    """Derive only the exact first-P0 ledger authenticated against raw B bytes."""
+    from race_ai.boat_seller_inputs import official_b_cards_source,OFFICIAL_B_SCHEMA
+    need(type(program) is dict and program.get('schema')==OFFICIAL_B_SCHEMA,
+         'NATIVE_OFFICIAL_B_SOURCE_REQUIRED')
+    # Reuse the actual source parser: a boolean, a forecast cutoff, or a typed
+    # dictionary without the retained B bytes cannot manufacture this ledger.
+    checked=official_b_cards_source(program.get('raw'),document,receipt,
+        day=document.get('day_jst'),as_of=now)
+    need(checked==program,'NATIVE_OFFICIAL_B_BINDING_CHANGED')
+    return [dict(race_id=row['race_id'],cutoff_at=row['cutoff_at'],
+                 schedule_captured_at=document['captured_at'],source_sha256=document['source_sha256'])
+            for row in document['schedule']]
+
+
+def hydrate_native_matrix_view(view,context,*,now):
+    """Consume the inspector's private AES readback without altering forecasts."""
+    if type(context) is not dict or context.get('status')!='AUTHENTICATED_OWNER_NATIVE_CONTEXT':
+        return deepcopy(view),dict(status='HOLD_NATIVE_OFFICIAL_CONTEXT',native_pre_cutoff_qualified=0)
+    try:
+        from race_ai.boat_saved_prediction_evidence import hydrate_prediction_evidence,native_coverage_evidence
+    except ImportError:
+        return deepcopy(view),dict(status='HOLD_NATIVE_READER_UNAVAILABLE',native_pre_cutoff_qualified=0)
+    from race_ai.saved_view_feed import forecast_inventory
+    ledger=native_official_schedule(context['first_p0_document'],context['first_p0_receipt'],
+                                   context['official_program'],now=now)
+    need(ledger==context['official_schedule'],'NATIVE_OFFICIAL_LEDGER_CHANGED')
+    before=forecast_inventory(view)
+    output,counts=hydrate_prediction_evidence(view,context['p1_originals'],
+        official_schedule=ledger,now=now)
+    need(forecast_inventory(output)==before and counts['originals_unchanged'] is True,
+         'NATIVE_ORIGINALS_CHANGED')
+    return output,dict(counts,status='AUTHENTICATED_NATIVE_COVERAGE')
+
+
+def inspect_run(repo,run_id,*,now,private_native=None):
     """Use original cryptographic readers with the real audit clock, never backdate."""
     from scripts.boat_private_original_vault import _environment
     from scripts.github_existing_cycle import gh
@@ -265,6 +301,8 @@ def inspect_run(repo,run_id,*,now):
     from race_ai.boat_program_source import load_program_source
     from race_ai.boat_video_archive import VideoContextArchiveReader,read_optional_video_shadows
     from race_ai.repeated_cycle import artifact_name
+    need(private_native is None or (type(private_native) is dict and not private_native),
+         'FRESH_PRIVATE_NATIVE_CONTEXT_REQUIRED')
     _environment(repo)
     run=json.loads(gh(f'actions/runs/{run_id}'))
     need(authenticated_live_owner_run(run) and run.get('id')==run_id and
@@ -325,6 +363,18 @@ def inspect_run(repo,run_id,*,now):
             result['pending_pair']=dict(status='PENDING_PAIR_UNVERIFIED',verified=False,
                 reason=reason if re.fullmatch('OWNER_AUDIT_[A-Z_]{1,80}',reason) else 'ORIGINAL_BINDING_UNAVAILABLE',
                 successor_dispatch_allowed=False)
+    if private_native is not None:
+        # This object stays in this job's memory. It is deliberately absent
+        # from the returned public count report and all uploaded artifacts.
+        if program is None:
+            private_native.update(status='HOLD_OFFICIAL_B_SOURCE_UNAVAILABLE')
+        else:
+            ledger=native_official_schedule(document,normalized,program,now=now)
+            private_native.update(status='AUTHENTICATED_OWNER_NATIVE_CONTEXT',
+                owner_run_id=run_id,owner_head_sha=run['head_sha'],day_jst=day,
+                first_p0_document=document,first_p0_receipt=normalized,official_program=program,
+                official_schedule=ledger,p1_originals=list(p1_originals.values()),attempts=attempts,
+                source_control=deepcopy(result['source_control']))
     return result
 
 
