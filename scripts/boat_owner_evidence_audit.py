@@ -286,6 +286,167 @@ def hydrate_native_matrix_view(view,context,*,now):
     return output,dict(counts,status='AUTHENTICATED_NATIVE_COVERAGE')
 
 
+def reopen_matrix_view(view,get,*,selected_owner,day,now,key=None):
+    """Fresh readback of all owners cited by this day's immutable originals.
+
+    Only the audit copy loses derived caches. Exact GitHub responses and the
+    existing AES readers establish scope; saved receipt booleans establish none.
+    The returned private context must never be serialized to public output.
+    """
+    from hashlib import sha256
+    from race_ai import boat_all_model_recovery as R
+    from race_ai.actions_contract import digest
+    from race_ai.boat_pdca_state import state_key
+    from race_ai.saved_view_feed import forecast_inventory
+    from race_ai.boat_saved_view_intake import _native_key
+    from race_ai.boat_source_control import _metadata
+    from race_ai.boat_saved_prediction_evidence import _read_archive
+    need(type(selected_owner) is int and selected_owner>0 and callable(get), 'MATRIX_OWNER_REQUIRED')
+    R._day(day);before=forecast_inventory(view)
+    class Reads:
+        def __init__(self):self.responses={}
+        def __call__(self,path):
+            raw=get(path)
+            need(type(raw) is bytes,'MATRIX_RESPONSE_BYTES_REQUIRED')
+            self.responses[path]=raw
+            return raw
+        def is_archived(self,ident):
+            capability=R._declared_capability(get,'is_archived')
+            return capability is not None and capability(ident) is True
+    reads=Reads();runs={};metadata={}
+    def owner(ident):
+        if ident not in runs:
+            raw=reads(f'actions/runs/{ident}')
+            run=R._run(raw,ident,max(now,R._observed_clock()))
+            need(stamp(run['created_at']).astimezone(JST).date().isoformat()==day,
+                 'MATRIX_OWNER_DAY_CONFLICT')
+            runs[ident]=run
+        return runs[ident]
+    def artifact(ident):
+        if ident not in metadata:
+            raw=reads(f'actions/artifacts/{ident}')
+            meta=R._json(raw,128*1024)
+            need(type(meta) is dict and meta.get('id')==ident,'MATRIX_ARTIFACT_ID_CONFLICT')
+            run=owner(meta.get('workflow_run',{}).get('id'))
+            observed=max(now,R._observed_clock())
+            need(stamp(run['created_at'])<=stamp(meta['created_at'])<=observed,
+                 'MATRIX_ARTIFACT_OWNER_CLOCK_CONFLICT')
+            metadata[ident]=R._metadata(raw,meta,run,observed,reads)[0]
+        return metadata[ident]
+    def predictions(value):
+        return [(row,p) for row in value['records'] if row.get('event_date_jst')==day
+                for p in [row.get('prediction'),*row.get('comparison_predictions',[])]
+                if p is not None and p.get('stage')=='P1']
+    def discover(value):
+        for row,p in predictions(value):
+            ident=p.get('artifact_id')
+            if type(ident) is not int or ident<=0:continue
+            meta=artifact(ident);run=meta['workflow_run']
+            need((p.get('source_code_commit') is None or p['source_code_commit']==run['head_sha']) and
+                 (p.get('receipt_run_id') is None or str(p['receipt_run_id'])==str(run['id'])),
+                 'MATRIX_ORIGINAL_OWNER_CONFLICT')
+            need(all(p.get(field) is None or stamp(p[field])==stamp(meta['created_at'])
+                     for field in ('server_saved_at','persisted_at')), 'MATRIX_PHYSICAL_CLOCK_CONFLICT')
+    owner(selected_owner);discover(view)
+    need(len(runs)<=R.MAX_RUNS,'MATRIX_LINEAGE_BOUND')
+    audit_view=deepcopy(view)
+    for row in audit_view['records']:
+        for field in (R.EVIDENCE_FIELD,'saved_prediction_evidence','saved_prediction_coverage'):
+            row.pop(field,None)
+    replayed,counts=R.recover_saved_models(audit_view,reads,run_ids=sorted(runs),day=day,
+                                         key=key,max_artifacts=R.MAX_ARTIFACTS)
+    discover(replayed)
+    actual_key=state_key('production',key)
+    coverage=R._read_coverage(replayed,R._coverage_key(actual_key),max(now,R._observed_clock())).get(day,{})
+    verified={};opened={};native=[]
+    def descriptor(meta):
+        ident=meta['id'];meta_raw=reads.responses[f'actions/artifacts/{ident}']
+        raw=reads.responses[f'actions/artifacts/{ident}/zip']
+        need(meta['digest']=='sha256:'+sha256(raw).hexdigest() and meta['size_in_bytes']==len(raw),
+             'MATRIX_READBACK_HASH_CONFLICT')
+        need(stamp(owner(meta['workflow_run']['id'])['created_at'])<=stamp(meta['created_at'])<=max(now,R._observed_clock()),
+             'MATRIX_ARTIFACT_OWNER_CLOCK_CONFLICT')
+        return dict(artifact_id=ident,run_id=meta['workflow_run']['id'],head_sha=meta['workflow_run']['head_sha'],
+                    metadata_sha256=sha256(meta_raw).hexdigest(),zip_sha256=sha256(raw).hexdigest(),
+                    created_at=meta['created_at'])
+    for entry in coverage.values():
+        state=entry['state'];ident=state['artifact']['id']
+        need(f'actions/artifacts/{ident}/zip' in reads.responses,'MATRIX_CACHE_IS_NOT_FRESH_READBACK')
+        meta=R._json(reads.responses[f'actions/artifacts/{ident}'],128*1024)
+        desc=descriptor(meta)
+        need(desc['metadata_sha256']==state['artifact']['metadata_sha256'] and
+             desc['run_id']==state['run_id'] and desc['head_sha']==state['head_sha'],
+             'MATRIX_ARCHIVE_SCOPE_CONFLICT')
+        run=owner(state['run_id'])
+        fresh,_,_=R._project(reads.responses[f'actions/artifacts/{ident}/zip'],meta,run,state['round_no'],key)
+        genuine={_native_key(row['race_id'],p):p for row,p in predictions(fresh) if p.get('artifact_id')==ident}
+        for row,p in predictions(replayed):
+            if p.get('artifact_id')!=ident:continue
+            original=genuine.get(_native_key(row['race_id'],p))
+            need(original is not None and all(p.get(field)==original.get(field)
+                 for field in ('generated_at','as_of','cutoff_at','server_saved_at','original_json_sha256')),
+                 'MATRIX_PROJECTED_CLOCK_OR_HASH_CONFLICT')
+        opened[ident]=dict(desc,kind='ALL_MODEL')
+        # Reused native outputs cite a different physical artifact. They need
+        # their own native AES readback below, even when this MAC also names them.
+        own={digest([row['race_id'],R.saved_prediction_identity(p)]):digest(p)
+             for row,p in predictions(replayed) if p.get('artifact_id')==ident}
+        need(all(state['scoped_inventory'].get(k)==v for k,v in own.items()),'MATRIX_INVENTORY_CONFLICT')
+        verified.update(own)
+    for ident,meta in sorted(metadata.items()):
+        if not re.fullmatch(r'boat-national-cutoff-'+str(meta['workflow_run']['id'])+r'(?:-cycle-[0-9]{2,})?',meta['name']):
+            continue
+        raw=reads(f'actions/artifacts/{ident}/zip')
+        _metadata(raw,meta,name=meta['name'],run_id=meta['workflow_run']['id'],head_sha=meta['workflow_run']['head_sha'])
+        from race_ai.boat_private_original_archive import _checked_zip,CIPHER_MEMBER
+        with _checked_zip(raw,max_zip_bytes=R.MAX_ZIP_BYTES,max_expanded=R.MAX_ZIP_BYTES) as z:
+            need(z.namelist()==[CIPHER_MEMBER],'MATRIX_NATIVE_AES_REQUIRED')
+        _read_archive(raw,meta,key)
+        opened[ident]=dict(descriptor(meta),kind='P1');native.append((raw,meta))
+    after=forecast_inventory(replayed)
+    need(all(after.get(k)==v for k,v in before.items()),'MATRIX_ORIGINAL_INVENTORY_CHANGED')
+    context=dict(schema='BOAT_PRIVATE_FRESH_MATRIX_READBACK_V1',day_jst=day,
+        checked_at=max(now,R._observed_clock()).isoformat(),
+        run_ids=sorted(runs),inventory=verified,artifacts=opened,native_originals=native)
+    context['context_sha256']=digest({k:v for k,v in context.items() if k not in ('native_originals','context_sha256')})
+    return replayed,counts,context
+
+
+def matrix_readback_scope(view,context,*,now):
+    """Bind freshly reopened native/ALL_MODEL outputs to preserved dictionaries."""
+    from race_ai.actions_contract import digest
+    from race_ai.boat_saved_model_view import saved_prediction_identity
+    from race_ai.saved_view_feed import forecast_inventory
+    need(type(context) is dict and context.get('schema')=='BOAT_PRIVATE_FRESH_MATRIX_READBACK_V1' and
+         stamp(context['checked_at'])<=now and context['context_sha256']==digest({k:v for k,v in context.items()
+             if k not in ('native_originals','context_sha256')}),'MATRIX_FRESH_CONTEXT_REQUIRED')
+    current=forecast_inventory(view);verified=dict(context['inventory'])
+    need(all(current.get(k)==v for k,v in verified.items()),'MATRIX_READBACK_ORIGINAL_CHANGED')
+    try:
+        from race_ai.boat_saved_prediction_evidence import native_coverage_evidence
+    except ImportError:
+        native_coverage_evidence=None
+    for row in view['records']:
+        if row.get('event_date_jst')!=context['day_jst']:continue
+        for p in [row.get('prediction'),*row.get('comparison_predictions',[])]:
+            if p is None or p.get('stage')!='P1':continue
+            artifact=context['artifacts'].get(p.get('artifact_id'))
+            if artifact is None or artifact['kind']!='P1' or native_coverage_evidence is None:continue
+            proof=native_coverage_evidence(row,p,now=now)
+            if proof is None:continue
+            need(proof['artifact_id']==artifact['artifact_id'] and stamp(proof['server_saved_at'])==stamp(artifact['created_at']),
+                 'MATRIX_NATIVE_RECEIPT_CONFLICT')
+            verified[digest([row['race_id'],saved_prediction_identity(p)])]=digest(p)
+    artifacts=context['artifacts']
+    scope=dict(schema='BOAT_INDEPENDENT_ORIGINAL_READBACK_SCOPE_V1',day_jst=context['day_jst'],
+        checked_at=context['checked_at'],run_ids=context['run_ids'],inventory=verified,
+        archives_reopened=len(artifacts),all_model_archives_reopened=sum(v['kind']=='ALL_MODEL' for v in artifacts.values()),
+        native_archives_reopened=sum(v['kind']=='P1' for v in artifacts.values()),
+        artifacts=deepcopy(artifacts))
+    scope['scope_sha256']=digest(scope)
+    return scope
+
+
 def inspect_run(repo,run_id,*,now,private_native=None):
     """Use original cryptographic readers with the real audit clock, never backdate."""
     from scripts.boat_private_original_vault import _environment

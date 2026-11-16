@@ -100,7 +100,7 @@ def calculate(report,model_ids,*,independent_original_reader=False,allow_pending
 
 
 def saved_view_coverage(view, *, day, model_ids, scheduled_races, now,
-                        native_coverage_reader=None,official_schedule=None):
+                        native_coverage_reader=None,official_schedule=None,independent_scope=None):
     """Read-only P1 projection count from an already AES-authenticated view.
 
     A caller's boolean receipt flag is not proof of its GitHub ZIP. The
@@ -117,7 +117,7 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now,
     _need(type(model_ids) in (list,tuple) and len(model_ids)>0 and
           len(model_ids)==len(set(model_ids)) and
           all(type(m) is str and MODEL.fullmatch(m) for m in model_ids))
-    expected=set(model_ids);seen_races=set();qualified=set()
+    expected=set(model_ids);seen_races=set();qualified=set();counted_originals=[]
     excluded=Counter();extra=set();observed_p1=set();conflicts=0
     clock=now.astimezone(timezone.utc)
     official=None
@@ -166,6 +166,7 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now,
                 extra.add(mid)
                 continue
             slot=(rid,mid);observed_p1.add(slot)
+            original=p
             native=None
             if row.get('saved_prediction_coverage'):
                 try:
@@ -219,6 +220,7 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now,
                 excluded['P1_NOT_PHYSICALLY_BEFORE_CUTOFF']+=1
                 continue
             qualified.add(slot)
+            counted_originals.append((rid,original))
     _need(len(seen_races)<=scheduled_races)
     by_model=[dict(model_id=mid,p1_saved_races=sum(k[1]==mid for k in qualified),
                    missing_races=scheduled_races-sum(k[1]==mid for k in qualified))
@@ -233,6 +235,7 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now,
             missing_by_time[state]+=missing
     else:
         missing_by_time={'OFFICIAL_SCHEDULE_NOT_SUPPLIED':total-present}
+    scope=_readback_scope_counts(independent_scope,counted_originals,day=day,now=clock)
     return dict(schema='RACE_AI_BOAT_AES_SAVED_VIEW_P1_COUNTS_V1',day_jst=day,
         scheduled_races=scheduled_races,saved_view_race_rows=len(seen_races),
         expected_model_count=len(expected),expected_model_slots=total,
@@ -241,8 +244,74 @@ def saved_view_coverage(view, *, day, model_ids, scheduled_races, now,
         missing_by_time=missing_by_time,
         unsupported_or_extra_models=len(extra),
         cutoff_conflicts=conflicts,excluded_reasons=dict(sorted(excluded.items())),
-        by_model=by_model,independently_authenticated_source_zip_claim=False,
+        by_model=by_model,independent_scope=scope,
+        independently_authenticated_source_zip_claim=scope['whole_counted_scope_reopened'],
         original_forecasts_changed=False,official_source_gets=0)
+
+
+def _readback_scope_counts(scope,counted,*,day,now):
+    """The proof is supplied privately by this audit, never read from the view."""
+    result=dict(status='PARTIAL_SCOPE_NOT_REOPENED',qualified_originals=len(counted),
+                reopened_qualified_originals=0,unreopened_qualified_originals=len(counted),
+                archives_reopened=0,owner_lineages_reopened=0,owner_lineages_verified=0,
+                whole_counted_scope_reopened=False)
+    if scope is None:return result
+    try:
+        from race_ai.actions_contract import digest
+        from race_ai.boat_saved_model_view import saved_prediction_identity
+        _need(type(scope) is dict and scope.get('schema')=='BOAT_INDEPENDENT_ORIGINAL_READBACK_SCOPE_V1'
+              and scope.get('day_jst')==day and _clock(scope['checked_at'])<=now
+              and scope.get('scope_sha256')==digest({k:v for k,v in scope.items() if k!='scope_sha256'}))
+        inventory=scope['inventory'];artifacts=scope['artifacts'];runs=scope['run_ids']
+        _need(type(inventory) is dict and type(artifacts) is dict and type(runs) is list
+              and runs==sorted(set(runs)) and all(type(r) is int and r>0 for r in runs)
+              and type(scope['archives_reopened']) is int and scope['archives_reopened']==len(artifacts))
+        _need(all(type(k) is str and re.fullmatch('[a-f0-9]{64}',k) and type(v) is str and
+                  re.fullmatch('[a-f0-9]{64}',v) for k,v in inventory.items()))
+        for ident,artifact in artifacts.items():
+            _need(type(ident) is int and ident>0 and type(artifact) is dict and artifact['artifact_id']==ident
+                  and type(artifact['run_id']) is int and artifact['run_id'] in runs
+                  and artifact['kind'] in ('ALL_MODEL','P1') and re.fullmatch('[a-f0-9]{40}',artifact['head_sha'])
+                  and _clock(artifact['created_at'])<=_clock(scope['checked_at'])
+                  and all(type(artifact[k]) is str and re.fullmatch('[a-f0-9]{64}',artifact[k])
+                          for k in ('metadata_sha256','zip_sha256')))
+        originals={}
+        for rid,p in counted:
+            identity=digest([rid,saved_prediction_identity(p)]);body=digest(p)
+            _need(identity not in originals or originals[identity]==body)
+            artifact=artifacts.get(p.get('artifact_id'))
+            if inventory.get(identity)==body:
+                _need(artifact is not None and
+                      (p.get('source_code_commit') is None or p['source_code_commit']==artifact['head_sha']) and
+                      (p.get('receipt_run_id') is None or str(p['receipt_run_id'])==str(artifact['run_id'])) and
+                      (p.get('server_saved_at') is None or _clock(p['server_saved_at'])==_clock(artifact['created_at'])))
+            originals[identity]=body
+        reopened=sum(inventory.get(k)==v for k,v in originals.items())
+        complete=bool(originals) and scope['archives_reopened']>0 and reopened==len(originals)
+        return dict(status='ALL_COUNTED_ORIGINALS_REOPENED' if complete else 'PARTIAL_SCOPE_NOT_REOPENED',
+            qualified_originals=len(originals),reopened_qualified_originals=reopened,
+            unreopened_qualified_originals=len(originals)-reopened,
+            archives_reopened=scope['archives_reopened'],
+            owner_lineages_reopened=len({a['run_id'] for a in artifacts.values()}),owner_lineages_verified=len(runs),
+            whole_counted_scope_reopened=complete)
+    except (ImportError,ValueError,KeyError,TypeError,AttributeError):
+        return dict(result,status='HOLD_READBACK_SCOPE_INVALID')
+
+
+def vault_complete(after,recovery,native,baseline):
+    """Whole-day completion also requires this audit's whole counted scope."""
+    return (recovery.get('status')=='SAVED_MODEL_RECOVERY_COMPLETE' and
+            recovery.get('deferred_artifacts')==0 and recovery.get('deferred_runs')==0 and
+            recovery.get('unrepresented_scoped_forecasts')==0 and
+            after.get('missing_p1_model_slots')==0 and after.get('cutoff_conflicts')==0 and
+            after.get('unsupported_or_extra_models')==0 and
+            after.get('independently_authenticated_source_zip_claim') is True and
+            after.get('independent_scope',{}).get('whole_counted_scope_reopened') is True and
+            native.get('status')=='AUTHENTICATED_NATIVE_COVERAGE' and
+            baseline.get('source_owner_conclusion')=='success' and
+            type(baseline.get('observed_source_control')) is dict and
+            'prepared_round' in baseline['observed_source_control'] and
+            baseline['observed_source_control']['prepared_round'] is None)
 
 def _clock(text):
     from datetime import datetime

@@ -61,7 +61,7 @@ jobs:
       - name: Install exact pinned owner reader dependencies for source-free test
         run: python -m pip install --disable-pip-version-check -r owner-source/requirements-history.txt
       - name: Pure model matrix and forced original ZIP AES source-free contract
-        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake -v
+        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope -v
       - name: Prove source-owner and private key are only ever read on trusted main events
         run: |
           python - <<'PY'
@@ -91,7 +91,10 @@ jobs:
           source=Path('.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
           stage=source.split("python - <<'PY_ALL_MODEL'\n",1)[1].split("\n          PY_ALL_MODEL",1)[0]
           ast.parse(textwrap.dedent(stage),filename='real_independent_all_model_gate')
-          assert "recover_saved_models(raw,gh,run_ids=(ident,),day=day,max_artifacts=128)" in stage
+          assert "audit.reopen_matrix_view(raw,gh,selected_owner=ident" in stage
+          assert "audit.matrix_readback_scope(hydrated,readback" in stage
+          assert "independent_scope=readback_scope" in stage
+          assert "mod.vault_complete(after,counts,native_counts,baseline)" in stage
           assert "RACE_AI_STATE_KEY" in source
           assert "source_originals_modified=False" in stage
           assert "provider_gets=0" in stage
@@ -269,7 +272,6 @@ jobs:
           from scripts.github_existing_cycle import gh
           from race_ai.racer_result_bridge import SavedResultBridge
           from race_ai import saved_view_feed as F
-          from race_ai.boat_all_model_recovery import recover_saved_models
           from race_ai.existing_model_coverage import active_catalog
           root=Path('.').resolve()
           main=Path('..').resolve()
@@ -296,21 +298,19 @@ jobs:
               official=native_context.get('official_schedule')
               before=mod.saved_view_coverage(raw,day=day,model_ids=models,
                          scheduled_races=scheduled,now=datetime.now(timezone.utc),official_schedule=official)
-              replayed,counts=recover_saved_models(raw,gh,run_ids=(ident,),day=day,max_artifacts=128)
+              replayed,counts,readback=audit.reopen_matrix_view(raw,gh,selected_owner=ident,
+                  day=day,now=datetime.now(timezone.utc))
+              native_context=dict(native_context,p1_originals=readback['native_originals'])
               hydrated,native_counts=audit.hydrate_native_matrix_view(replayed,native_context,
                   now=datetime.now(timezone.utc))
+              readback_scope=audit.matrix_readback_scope(hydrated,readback,now=datetime.now(timezone.utc))
               after=mod.saved_view_coverage(hydrated,day=day,model_ids=models,
-                         scheduled_races=scheduled,now=datetime.now(timezone.utc),official_schedule=official)
+                         scheduled_races=scheduled,now=datetime.now(timezone.utc),official_schedule=official,
+                         independent_scope=readback_scope)
               assert (counts['originals_unchanged'] is True and
                       counts['official_source_requests']==0 and
                       after['p1_qualified_unique_slots']>=before['p1_qualified_unique_slots'])
-              complete=(counts['status']=='SAVED_MODEL_RECOVERY_COMPLETE' and
-                        counts['deferred_artifacts']==0 and counts['deferred_runs']==0 and
-                        after['missing_p1_model_slots']==0 and after['cutoff_conflicts']==0 and
-                        after['unsupported_or_extra_models']==0 and
-                        native_counts['status']=='AUTHENTICATED_NATIVE_COVERAGE' and
-                        baseline['source_owner_conclusion']=='success' and
-                        baseline['observed_source_control'].get('prepared_round') is None)
+              complete=mod.vault_complete(after,counts,native_counts,baseline)
               out=dict(schema='BOAT_INDEPENDENT_ALL_MODEL_VAULT_P1_AUDIT_V1',
                        status='ALL_MODEL_P1_VAULT_COMPLETE' if complete else 'HOLD_ALL_MODEL_P1_COVERAGE',
                        day_jst=day,owner_run_id=ident,
@@ -323,7 +323,8 @@ jobs:
                        restored_p1_model_rows=counts['appended_p1_forecasts'],
                        deferred_artifacts=counts['deferred_artifacts'],
                        unrepresented_scoped_forecasts=counts['unrepresented_scoped_forecasts'],
-                       independent_readback=True,
+                       independent_readback=after['independently_authenticated_source_zip_claim'],
+                       readback_scope=after['independent_scope'],
                        all_model_p1_present=complete,real_video_identity_verified=False,
                        website_e2e_verified=False,
                        provider_gets=0,source_originals_modified=False)
