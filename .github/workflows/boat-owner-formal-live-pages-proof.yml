@@ -12,6 +12,12 @@ on:
     workflows: ['pages build and deployment']
     types: [completed]
   workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Keep the existing HTTP proof, or additionally verify native desktop Safari (not an iPhone)'
+        type: choice
+        options: [current-http, native-safari]
+        default: current-http
 permissions:
   contents: read
 concurrency:
@@ -25,8 +31,9 @@ jobs:
        (github.event.workflow_run.conclusion == 'success' &&
         github.event.workflow_run.head_branch == 'gh-pages' &&
         github.event.workflow_run.head_repository.full_name == github.repository))
-    runs-on: ubuntu-24.04
-    timeout-minutes: 6
+    # Standard macOS compute is free in this public repo. No matrix or extra job.
+    runs-on: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari' && 'macos-15-intel' || 'ubuntu-24.04' }}
+    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari' && 20 || 6 }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -70,3 +77,41 @@ jobs:
               'original_encrypted_forecasts_unchanged':True,
               'official_racing_provider_gets':0},sort_keys=True))
           PY
+      - name: Checkout the exact proposed Safari acceptance adapter and tests
+        if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari')
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: .native-safari-tools
+          persist-credentials: false
+      - name: Exercise source-free Safari privacy and identity boundaries
+        if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari')
+        working-directory: .native-safari-tools
+        run: python3 -m unittest discover -s tests -p 'test_boat_native_safari_acceptance.py' -v
+      - name: Use the existing supported Python for authenticated saved-view reads
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Checkout the immutable read-only P1 context code
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: b491fb21ce58ba085dd8f54bb7326442b840d8f4
+          path: .native-safari-source
+          persist-credentials: false
+      - name: Install only existing pinned saved-view AES dependencies
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
+        run: python3 -m pip install --disable-pip-version-check -r .native-safari-source/requirements-history.txt
+      - name: Verify real desktop Safari with authenticated originals and private loopback transport
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          # Read-only context code installs its own repository-scoped credential.
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: http.https://github.com/.extraheader
+          GIT_CONFIG_VALUE_0: ''
+        run: |
+          python3 .native-safari-tools/scripts/boat_native_safari_acceptance.py \
+            --source-root .native-safari-source --public-root .

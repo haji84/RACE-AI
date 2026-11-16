@@ -67,13 +67,15 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
         self.assertTrue(self.trusted())
 
     def test_reviewed_previous_release_completion_is_bound_to_the_actual_history(self):
-        previous='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
-        actual=dict(self.run,head_sha=previous)
-        history=dict(total_count=1,workflow_runs=[actual])
-        with patch.object(base,'RELEASE_SHA','e'*40):
-            self.assertTrue(self.trusted(event(actual),hist=history))
-            actual=dict(actual,head_sha='f'*40)
-            self.assertFalse(self.trusted(event(actual),hist=dict(total_count=1,workflow_runs=[actual])))
+        for previous in ('84128e0ec8bd9fe3da64ad49f74b8511b07e72be',
+                         'b491fb21ce58ba085dd8f54bb7326442b840d8f4'):
+            with self.subTest(previous=previous):
+                actual=dict(self.run,head_sha=previous)
+                history=dict(total_count=1,workflow_runs=[actual])
+                with patch.object(base,'RELEASE_SHA','e'*40):
+                    self.assertTrue(self.trusted(event(actual),hist=history))
+                    actual=dict(actual,head_sha='f'*40)
+                    self.assertFalse(self.trusted(event(actual),hist=dict(total_count=1,workflow_runs=[actual])))
 
     def test_existing_release_push_context_is_genuine_and_bound_to_actual_main_sha(self):
         sha='e'*40

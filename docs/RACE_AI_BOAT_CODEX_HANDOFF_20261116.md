@@ -1,4 +1,11 @@
 # RACE-AI BOAT Codex最終完成引継ぎ
+最新の追加確認（2026-11-16 07:55 UTC）: 既存PR288を本人承認に基づき通常merge。
+production実HEADはc123b8538006b3189181195bbc91d8f28d216ba5で、レビュー済みd798acd9とtree完全一致。
+旧b491のowner43818666068は24巡success、07:54:09 UTC自然終了、累積GET12770。
+実行中のproducerの停止・差替えは0。main PR69で実merge SHAへ固定参照を同期し、
+真正release pushゲート→次worker新原本→別runner AES監査→native Safariを続ける。
+全日充足・実機iPhone・映像3項目・前向き改善をまだ合格としない。
+この追記はコードの統合確認であり、新sourceの実予想保存やSafari実操作の成功報告ではない。
 最新の実確認は [最新状況](RACE_AI_LATEST_STATUS.md) 冒頭を優先する。
 PR302/289/286統合、新P1の6 ZIP独立AES照合後、次owner43782543906がARTIFACT_METADATA404で7巡目に失敗。
 真正なcallback43784862364も復旧helperのTRUSTED_SCHEDULE_REQUIREDで拒否された。

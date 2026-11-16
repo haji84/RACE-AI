@@ -119,6 +119,41 @@ class ActualReaderMatrixTests(unittest.TestCase):
 
 
 class SealedViewCoverageTests(unittest.TestCase):
+    def test_actual_completion_proof_counts_without_inventing_generated_at(self):
+        view,source=self.example()
+        source['generated_at']=None
+        view['records'][0]['saved_prediction_coverage']={'authenticated-native-fixture':{}}
+        original=deepcopy(view)
+        # The pure calculator receives an already authenticated reader result.
+        proof=dict(status='QUALIFIED_PRE_CUTOFF',as_of=source['as_of'],generated_at=None,
+            computation_completed_at='2030-04-01T11:40:03+09:00',
+            clock_proof_kind='ACTUAL_NATIVE_CALL_COMPLETION',
+            server_saved_at=source['server_saved_at'],cutoff_at=source['cutoff_at'])
+        result=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],scheduled_races=1,now=NOW,
+                                  native_coverage_reader=lambda *a,**k:proof)
+        self.assertEqual(result['p1_qualified_unique_slots'],1)
+        self.assertEqual(view,original)
+        view['records'][0].pop('saved_prediction_coverage')
+        source.update(computation_completed_at=proof['computation_completed_at'],
+                      clock_proof_kind=proof['clock_proof_kind'])
+        unproven=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],scheduled_races=1,now=NOW)
+        self.assertEqual(unproven['p1_qualified_unique_slots'],0)
+        source.update(computation_completed_at=proof['computation_completed_at'],
+                      clock_proof_kind=proof['clock_proof_kind'])
+        result=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],scheduled_races=1,now=NOW)
+        self.assertEqual(result['p1_qualified_unique_slots'],0,'unattested clock fields became proof')
+
+    def test_legacy_reused_asof_is_not_generation_proof(self):
+        for mid in ('boat-local-start-course-shadow-v0.1-UNTRAINED',
+                    'boat-observed-pairwise-factor-v1','boat-observed-pairwise-start-v1'):
+            with self.subTest(model=mid):
+                view,source=self.example()
+                source.update(model_id=mid,dispatch_status='ORIGINAL_REUSED',generated_at=source['as_of'])
+                original=deepcopy(view)
+                result=saved_view_coverage(view,day=DAY,model_ids=[mid],scheduled_races=1,now=NOW)
+                self.assertEqual(result['p1_qualified_unique_slots'],0)
+                self.assertEqual(view,original)
+
     def example(self):
         cutoff='2030-04-01T12:00:00+09:00'
         original=dict(stage='P1',model_id='boat-A',cutoff_at=cutoff,
@@ -203,6 +238,54 @@ class SealedViewCoverageTests(unittest.TestCase):
         self.assertEqual(result['unsupported_or_extra_models'],1)
         self.assertEqual(result['p1_qualified_unique_slots'],1)
         self.assertNotIn('20300401-01-01',json.dumps(result))
+
+    def test_native_sidecar_counts_are_audit_local_and_legacy_clock_stays_hold(self):
+        view, source=self.example()
+        source.pop('generated_at');source.pop('eligible_pre_cutoff')
+        view['records'][0]['saved_prediction_coverage']={'native-proof':{}}
+        original=deepcopy(view)
+        proof=dict(status='QUALIFIED_PRE_CUTOFF',as_of=source['as_of'],
+                   generated_at='2030-04-01T11:40:03+09:00',
+                   server_saved_at=source['server_saved_at'],cutoff_at=source['cutoff_at'])
+        result=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],scheduled_races=1,now=NOW,
+                                  native_coverage_reader=lambda *_args,**_kw:proof)
+        self.assertEqual(result['p1_qualified_unique_slots'],1)
+        self.assertEqual(view,original)
+        proof.update(status='HOLD',reason='NATIVE_GENERATED_AT_MISSING',generated_at=None)
+        result=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],scheduled_races=1,now=NOW,
+                                  native_coverage_reader=lambda *_args,**_kw:proof)
+        self.assertEqual(result['p1_qualified_unique_slots'],0)
+        self.assertEqual(result['excluded_reasons'],{'NATIVE_NATIVE_GENERATED_AT_MISSING':1})
+        self.assertEqual(view,original)
+
+    def test_missing_slots_separate_future_pending_and_past_without_changing_denominator(self):
+        view,source=self.example()
+        now=datetime.fromisoformat('2030-04-01T11:50:00+09:00')
+        ledger=[dict(race_id=f'20300401-01-{n:02}',cutoff_at=at,
+                     schedule_captured_at='2030-04-01T08:00:00+09:00',source_sha256='c'*64)
+                for n,at in ((1,'2030-04-01T12:00:00+09:00'),
+                             (2,'2030-04-01T12:30:00+09:00'),
+                             (3,'2030-04-01T11:49:00+09:00'))]
+        ledger[2]['schedule_captured_at']='2030-04-01T11:50:00+09:00'
+        before=deepcopy((view,ledger))
+        report=saved_view_coverage(view,day=DAY,model_ids=['boat-A','boat-B'],scheduled_races=3,
+                                   now=now,official_schedule=ledger)
+        self.assertEqual(report['expected_model_slots'],6)
+        self.assertEqual(report['p1_qualified_unique_slots'],1)
+        self.assertEqual(report['missing_p1_model_slots'],5)
+        self.assertEqual(report['missing_by_time'],{'NOT_DUE':2,'PRE_CUTOFF_PENDING':1,'DEADLINE_MISSED':2})
+        self.assertEqual((view,ledger),before)
+        self.assertNotIn('20300401-01-03',json.dumps(report))
+
+    def test_official_ledger_disagreement_cannot_promote_a_native_claim(self):
+        view,source=self.example()
+        ledger=[dict(race_id='20300401-01-01',cutoff_at='2030-04-01T11:59:00+09:00',
+                     schedule_captured_at='2030-04-01T08:00:00+09:00',source_sha256='c'*64)]
+        report=saved_view_coverage(view,day=DAY,model_ids=['boat-A'],scheduled_races=1,
+                                   now=NOW,official_schedule=ledger)
+        self.assertEqual(report['p1_qualified_unique_slots'],0)
+        self.assertEqual(report['missing_by_time'],{'NOT_DUE':0,'PRE_CUTOFF_PENDING':0,'DEADLINE_MISSED':1})
+        self.assertEqual(report['cutoff_conflicts'],1)
 
 
 if __name__=='__main__':

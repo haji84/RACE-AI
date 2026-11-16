@@ -1,3 +1,75 @@
+<!-- BOAT approved source release 2026-11-16T07:55Z -->
+## 2026-11-16: 原本保全の修正版をproductionへ統合
+
+本人承認に基づき既存PR288を通常mergeし、実productionは
+`c123b8538006b3189181195bbc91d8f28d216ba5`（07:55:20 UTC）。
+reviewed `d798acd9` のtree `3888e6d7` と完全一致をGitHub/Gitで読戻した。
+旧owner43818666068は07:54:09 UTCに24巡successで自然終了、累積GET12770。
+稼働中のproducerは停止・差替えず、P1/RESULT/continuity/controlは保全した。
+
+修正版は必須展示入力優先、真正native計算event、旧as_of生成時計の拒否、既知の不変原本locator、
+同じtraining SHA42117035の暗号学習入力復元、透明playerの誤検出拒否を含む。
+sourceのexact HEAD CI3系統と独立レビューが合格。関連Python群3/12/468/38/123/46件は重複を含む。
+新しい実runでの生成・学習入力復元はこの記録時点では未実施。
+
+mainは旧0c7d1b76。既存PR69で実production SHAへdispatch/reader/auditを同期する。
+旧b491は既存原本のread-only検証とSafariの不変readerに保持し、古いsourceへのdispatch許可はしない。
+原本全本文・全ownerのfresh AES再読戻しを合格条件へ追加して検証中。
+Safariは同一公開資産と認証済み原本を実Mac Safariで確認する経路を準備済みで、本番実行はmain統合後。
+全日1680slot、実機iPhone、映像3項目、前向き改善・98%の実証は未合格。
+
+以下は過去の記録。最新実SHA・値はこの節と後続の実証記録を優先する。
+
+<!-- BOAT completion continued 2026-11-16 -->
+## 2026-11-16: 全件監査・Safari・映像・実学習の継続検証
+
+この節は候補コードの検証時点の記録。main `0c7d1b76`、production `b491fb21` は継続中。
+新しいPR・remote branch・workflow・job・cron・サービス・課金・モデル系統・投票は追加していない。
+
+**実運転**：owner43803973248が24巡を成功終了（累積GET12236、WORKER_HANDOFF）。
+定期run43812709551が原本回復ゲートを再検証し、後継43813602799を自動起動した。
+結果更新と同じconcurrency groupで待っていた手動gate再試行は定期実行に置換・cancelされた。
+候補コードでowner完了通知／正規release pushを結果更新の待ち行列から分けた。
+既存のjob mutex、実履歴・原本・counter・source拒否の検査は維持する。
+新しい後継の全ZIP独立AES監査と複数日の全件完走は未確認。
+
+**07時頃UTCの追加確認**：後続43813602799は9巡目repeat_completeで停止。
+暗号保管庫のmutable参照先を調べるGit ls-remoteの非zeroまで特定し、stderr未保存のため下位原因は未確定。
+完了8／準備9、P1 14202239943とRESULT 14203116284の両原本を保全。
+真正な定期run43812709551の既存gateを手動で再実行し、別runner133134392902が両原本をAES検証した後に
+READY_VERIFIED_RECOVERED_OWNER_CONTINUATION、後継43818666068を起動した。
+この再試行は手動介入であり、無人連続復旧の合格にはしない。
+既知の不変commitを直接読戻す候補修正を進め、未知のGit/HTTP拒否を無条件に再試行しない。
+
+**全レース×14モデル**：独立P0と生の公式Bからだけ台帳を作り、実generated・取得・物理保存時刻を
+予想本文を変えないsidecarへ結合。未到来／締切前待ち／締切超過を分け、120×14=1680の名目分母を保持。
+既存3モデルに真正生成時計と入力SHAが欠け、新しい日も最大11/14へ留まる経路を特定した。
+さらにALL_MODEL再利用時に入力as_ofをgenerated_atへ投影する旧経路があり、監査の合格には使えない。
+新しい推論呼出しの実開始・終了eventを保存する修正を候補へ実装。生成欄へ入力時刻を流用しない。
+新原本でlegacy5/5適格、旧原本の3モデルHOLD、旧AES/cacheと予想inventory不変を116Python・7Nodeで確認し、
+独立レビューも合格。main側は20試験合格。本番の新しい実レース適用は未確認。過去へ時計を後付けしない。
+
+**Safari**：既存単一HTTP proof jobへstandard無料macOS runnerのnative Safari検証を実装し、
+15件の境界試験と独立レビューが合格。同一公開JS/CSSとAES認証済み原本のTop8を操作比較する。
+実Safari run、実機iPhone/iPad、8参考画面すべての視覚比較は、この記録時点では未実施。
+
+**映像3項目**：公式の展示日・1Rを通常画面で選択。プレーヤーdocumentは200だが再生APIが403を返し、
+「この動画の視聴は許可されていません。」と表示。実映像の取得0バイトで、拒否の個別条件は未特定。
+公式が案内したYouTubeチャンネルの通常UIもERR_TUNNEL_CONNECTION_FAILED。迂回・再配信はしていない。
+既存RGB rider候補を再学習せず既知の開発用oracle18例へ実推論し、9一致、6艇全正解0/3フレーム。
+これは独立した人間正解や自動全画面追跡の精度ではない。6艇継続識別、物理的強さ、動画の未来改善は未達。
+録画／3〜6艇／原本等143件の合成回帰は成功したが、実映像の受入へ加算しない。
+
+**実学習**：既存2系統を1回だけfit。真正な過去133レース（train100／内部holdout33）、
+最新保存日2026-11-06のP0/P1混合156レースを隔離し、312 RAWを封印後に採点した。
+正常確定127レースで相性32→34的中、ST重視33→36的中。残29レースは異常／未確定／時刻不一致の台帳を維持。
+両系統のHolm補正p=0.75で、改善・前向き効果・98%は未実証。本番weights切替は0。
+別途、404の旧学習artifactと同じtraining SHA42117035の暗号原本を復元し、新receiptで検証する候補を実装。
+復旧失敗時は研究候補をHOLDとし、既存baseline予想は継続する。
+
+完成／未完成／外部条件と実証値は [機械可読記録](evidence/boat-completion-validation-20261116.json) に保存。
+下の過去記録は当時の状態として保全する。
+
 <!-- BOAT real recovery 2026-11-16 -->
 ## 2026-11-16: 実原本の復旧と自動P1保存が成功
 
