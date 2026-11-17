@@ -1,0 +1,13 @@
+{
+  "schema": "RACE_AI_KEIRIN_AVAILABLE_AB_COHORT_V1",
+  "race_ids": [
+    "202611182601"
+  ],
+  "registered_at": "2026-11-18T06:50:43+09:00",
+  "race_cutoffs": {
+    "202611182601": "2026-11-18T10:45:00+09:00"
+  },
+  "baseline_label": "KEIRIN HEX prior-day marks 2026-11-17 19:20; deterministic 3ren rank A; actual 6 phase B; optional C",
+  "four_model_baseline_required": false,
+  "cohort_sha256": "6305a4b97dfadc0e58d1206358754a8b500c459f487f9e34f7dd0a85a6600d9f"
+}
