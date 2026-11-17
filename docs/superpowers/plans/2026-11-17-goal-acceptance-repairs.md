@@ -100,3 +100,11 @@ All remote integration and real acceptance boxes above remain open until their a
 - Existing PR192 merged normally atmain3da1453b after16 completed checks and exact-tree verification. Genuine read-only audit44060568619 re-authenticated failed438292 checkpoint, then refused the active exact-model prerequisite: the immutable program vault lacks the November17 index (404; parent directory200). A dedicated active-only raw-authentication report now records this absence, with zero qualified cutoff slots/null denominator; default exact audit still refuses. Actual repaired report remains pending.
 - Existing PR160 merged normally atmain2408a833 after24 completed checks and exact-tree verification. Genuine Mac44061190244 failed one unit fixture before browser launch because macOS /var is a symlink. The trusted test fixture now resolves its own temporary directory; a regression proves production still refuses unresolved symlinks.40 focused and91 related tests passed. Actual browser AES remains pending.
 - Source candidate includes exact eff checkpoint readback compatibility for the next release, without giving an old checkout/proof dispatch authority. Existing source CI selection is extended in the same job; no additional jobs are introduced.
+
+## Verified real snapshot and physical handoff (10:39 UTC)
+
+- Existing audit44063726374 passed onmainb0a61b8b:38 rawAES originals,13ALL_MODEL ZIP/replays,252 newP1 rows,216 saved-view matches/36 absent. Official cutoff qualification remains0/null/unavailable; partial scope1–12 only.
+- Owner44019591352 ended naturally with13 physical P1/RESULT rounds.14–24 step labels were no-op completions, not generated rounds. Final public control13/485/lifetime13503/daybase13017/WORKER_HANDOFF requires genuine final AES gate before successor.
+- Source f43bde4c merged PR107 with5 checks/tree verification. Main future pin candidate keeps current eff audit/Safari/receipts distinct from new dispatch authority.
+- Actual Mac44063729583 passed40 unit tests then failed new session; no browserAES acceptance. Bounded public protocol diagnostics and finite JSON checks are under review.
+- Genuine saved-view failures are same-source/data/finish reason-only conflicts. A separate conservative sidecar union repair is being tested locally; no settlement conflict relaxation or source forgery.

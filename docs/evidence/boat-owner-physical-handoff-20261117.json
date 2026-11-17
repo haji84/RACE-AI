@@ -1,0 +1,220 @@
+{
+  "schema": "RACE_AI_PHYSICAL_OWNER_HANDOFF_EVIDENCE_V1",
+  "owner_run_id": 44019591352,
+  "owner_head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+  "owner_conclusion": "success",
+  "owner_updated_at": "2026-11-17T10:28:18Z",
+  "job_id": 133825616165,
+  "physical_rounds_completed": 13,
+  "later_round_steps_are_not_actual_generation": true,
+  "artifact_count": 93,
+  "original_archives": {
+    "P1": [
+      {
+        "round": 1,
+        "artifact_id": 14300807230
+      },
+      {
+        "round": 2,
+        "artifact_id": 14300454636
+      },
+      {
+        "round": 3,
+        "artifact_id": 14302595650
+      },
+      {
+        "round": 4,
+        "artifact_id": 14302837955
+      },
+      {
+        "round": 5,
+        "artifact_id": 14304201535
+      },
+      {
+        "round": 6,
+        "artifact_id": 14304414845
+      },
+      {
+        "round": 7,
+        "artifact_id": 14306232470
+      },
+      {
+        "round": 8,
+        "artifact_id": 14308166194
+      },
+      {
+        "round": 9,
+        "artifact_id": 14309017656
+      },
+      {
+        "round": 10,
+        "artifact_id": 14310324267
+      },
+      {
+        "round": 11,
+        "artifact_id": 14312648698
+      },
+      {
+        "round": 12,
+        "artifact_id": 14314658045
+      },
+      {
+        "round": 13,
+        "artifact_id": 14316368701
+      }
+    ],
+    "RESULT": [
+      {
+        "round": 1,
+        "artifact_id": 14300863214
+      },
+      {
+        "round": 2,
+        "artifact_id": 14302411045
+      },
+      {
+        "round": 3,
+        "artifact_id": 14302373702
+      },
+      {
+        "round": 4,
+        "artifact_id": 14303942208
+      },
+      {
+        "round": 5,
+        "artifact_id": 14305056194
+      },
+      {
+        "round": 6,
+        "artifact_id": 14306471332
+      },
+      {
+        "round": 7,
+        "artifact_id": 14307907227
+      },
+      {
+        "round": 8,
+        "artifact_id": 14309032089
+      },
+      {
+        "round": 9,
+        "artifact_id": 14310967436
+      },
+      {
+        "round": 10,
+        "artifact_id": 14313275907
+      },
+      {
+        "round": 11,
+        "artifact_id": 14314144541
+      },
+      {
+        "round": 12,
+        "artifact_id": 14317775741
+      },
+      {
+        "round": 13,
+        "artifact_id": 14320171482
+      }
+    ],
+    "ALL_MODEL": [
+      {
+        "round": 0,
+        "artifact_id": 14300856240
+      },
+      {
+        "round": 1,
+        "artifact_id": 14301166184
+      },
+      {
+        "round": 2,
+        "artifact_id": 14301650290
+      },
+      {
+        "round": 3,
+        "artifact_id": 14302590643
+      },
+      {
+        "round": 4,
+        "artifact_id": 14302862930
+      },
+      {
+        "round": 5,
+        "artifact_id": 14303493120
+      },
+      {
+        "round": 6,
+        "artifact_id": 14305830300
+      },
+      {
+        "round": 7,
+        "artifact_id": 14306880694
+      },
+      {
+        "round": 8,
+        "artifact_id": 14307094891
+      },
+      {
+        "round": 9,
+        "artifact_id": 14308708337
+      },
+      {
+        "round": 10,
+        "artifact_id": 14310318896
+      },
+      {
+        "round": 11,
+        "artifact_id": 14312218850
+      },
+      {
+        "round": 12,
+        "artifact_id": 14314398371
+      },
+      {
+        "round": 13,
+        "artifact_id": 14317436705
+      }
+    ]
+  },
+  "source_control_artifact_id": 14319004507,
+  "source_control_zip_bytes": 506,
+  "source_control_zip_sha256": "46a2474cc6eaab713f7af829e1a327e3c856c8a352f0d9b3ef7db34e85a3f369",
+  "source_control_download_size_sha_verified": true,
+  "final_public_control": {
+    "continuity_cipher_sha256": "2f849bbd0df4eb90a1af50b68a90e688ccf4aae35ca305fdf00c25ce7496875b",
+    "control": {
+      "completed_round": 13,
+      "day_start_lifetime_requests": 13017,
+      "lifetime_completed_rounds": 720,
+      "lifetime_requests": 13503,
+      "prepared_round": null,
+      "requests_used": 485,
+      "source_wait": null,
+      "stop_reason": "WORKER_HANDOFF"
+    },
+    "day_jst": "2026-11-17",
+    "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+    "repository": "haji84/RACE-AI",
+    "repository_id": 1416489937,
+    "run_id": 44019591352,
+    "schema": "RACE_AI_BOAT_PUBLIC_SOURCE_CONTROL_V1"
+  },
+  "final_public_control_AES_authenticated_locally": false,
+  "independent_AES_snapshot_rounds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "next_owner_dispatch_verified": false,
+  "full_day_coverage": false,
+  "new_official_source_requests_by_this_reader": 0
+}

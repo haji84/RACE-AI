@@ -1,0 +1,460 @@
+{
+  "schema": "RACE_AI_VERIFIED_ACTIONS_ACTIVE_SNAPSHOT_EVIDENCE_V1",
+  "auditor_run_id": 44063726374,
+  "auditor_job_id": 133971901973,
+  "auditor_main_sha": "b0a61b8b28bb98c1ad63babc7f8594cbd693d808",
+  "artifact_id": 14319890592,
+  "artifact_size_in_bytes": 2038,
+  "artifact_zip_sha256": "9ac95d2013f25f0c753b7c747ac4a9d2fce312a9d7f5ecca758dee740f628191",
+  "downloaded_zip_size_and_sha_verified": true,
+  "actual_run_completed_success": true,
+  "proof": {
+    "all_model_zip_readback": {
+      "active_completed_round_scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "actual_listed_archives": 13,
+      "aes_originals_independently_decrypted": 13,
+      "authentic_official_P0_schedule_races": null,
+      "cutoff_qualification_blocker": "OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE",
+      "day_jst": "2026-11-17",
+      "duplicate_eligible_model_slots": 0,
+      "full_day_coverage": false,
+      "github_zip_sha256_independently_verified": 13,
+      "latest_live_counters_audited": false,
+      "official_cutoff_qualification": false,
+      "official_program_source_authenticated": false,
+      "official_schedule_crosschecked_pre_cutoff_model_slots": 0,
+      "original_content_projection_verified": 13,
+      "original_predictions_matched_saved_AES_view": 216,
+      "original_predictions_missing_from_saved_AES_view": 36,
+      "owner_run_id": 44019591352,
+      "owner_source_commit": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "p1_forecast_rows_reopened": 252,
+      "per_model_official_schedule_crosschecked": {},
+      "per_model_physically_pre_cutoff": {},
+      "physical_pre_cutoff_distinct_model_slots": 0,
+      "prediction_generation_performed": false,
+      "previously_archived_coverages_skipped_without_zip_read": 0,
+      "production_predictions_modified": false,
+      "racing_provider_gets": 0,
+      "referenced_existing_baseline_p1_rows_not_recounted": 140,
+      "round_evidence": [
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 0,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 0,
+          "round": 0,
+          "saved_view_originals_matched": 0,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 27,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 15,
+          "round": 1,
+          "saved_view_originals_matched": 27,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 36,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 20,
+          "round": 2,
+          "saved_view_originals_matched": 36,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 27,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 15,
+          "round": 3,
+          "saved_view_originals_matched": 27,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 18,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 10,
+          "round": 4,
+          "saved_view_originals_matched": 18,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 18,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 10,
+          "round": 5,
+          "saved_view_originals_matched": 18,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 36,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 20,
+          "round": 6,
+          "saved_view_originals_matched": 36,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 27,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 15,
+          "round": 7,
+          "saved_view_originals_matched": 27,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 9,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 5,
+          "round": 8,
+          "saved_view_originals_matched": 9,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 18,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 10,
+          "round": 9,
+          "saved_view_originals_matched": 18,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 18,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 10,
+          "round": 10,
+          "saved_view_originals_matched": 0,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 9,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 5,
+          "round": 11,
+          "saved_view_originals_matched": 0,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 9,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 5,
+          "round": 12,
+          "saved_view_originals_matched": 0,
+          "source_archive_zip_sha_verified": true
+        }
+      ],
+      "scheduled_view_model_slot_upper_bound": null,
+      "schema": "RACE_AI_BOAT_EXACT_ALL_MODEL_ZIP_READBACK_V1",
+      "source_cutoff_conflict_diagnostics": [],
+      "status": "AES_ZIP_REPLAY_VERIFIED_OFFICIAL_PROGRAM_UNAVAILABLE",
+      "successor_dispatch_allowed": false,
+      "unqualified_original_reasons": {
+        "OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE": 252
+      },
+      "website_end_to_end_proven": false
+    },
+    "captured_at": "2026-11-17T10:19:34.585504+00:00",
+    "completed_rounds_audited": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "cutoff_qualification_blocker": "OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE",
+    "full_day_coverage": false,
+    "inventory_sha256": "0e3eb748b23f42bab88a3beaadcf8280038103129ee314ff3d8b3ef860a7f9a1",
+    "latest_live_counters_audited": false,
+    "new_forecasts": 0,
+    "official_cutoff_qualification": false,
+    "official_source_requests": 0,
+    "original_forecasts_changed": false,
+    "owner_run_id": 44019591352,
+    "owner_source_commit": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+    "owner_status_at_snapshot": "in_progress",
+    "p0_artifact_id": 14282568112,
+    "p0_origin_run_id": 43978567937,
+    "p0_supplements_verified": 0,
+    "raw_aes_archives_verified": 38,
+    "round_evidence": [
+      {
+        "p1_artifact_id": 14300807230,
+        "result_artifact_id": 14300863214,
+        "round": 1,
+        "sealed_precompletion_counters": {
+          "completed_round": 0,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 707,
+          "lifetime_completed_rounds_base": 707,
+          "lifetime_requests": 13113,
+          "lifetime_requests_base": 13018,
+          "prepared_round": 1,
+          "requests_used": 95,
+          "run_id": 44019591352,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14300454636,
+        "result_artifact_id": 14302411045,
+        "round": 2,
+        "sealed_precompletion_counters": {
+          "completed_round": 1,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 708,
+          "lifetime_completed_rounds_base": 707,
+          "lifetime_requests": 13151,
+          "lifetime_requests_base": 13018,
+          "prepared_round": 2,
+          "requests_used": 133,
+          "run_id": 44019591352,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14302595650,
+        "result_artifact_id": 14302373702,
+        "round": 3,
+        "sealed_precompletion_counters": {
+          "completed_round": 2,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 709,
+          "lifetime_completed_rounds_base": 707,
+          "lifetime_requests": 13187,
+          "lifetime_requests_base": 13018,
+          "prepared_round": 3,
+          "requests_used": 169,
+          "run_id": 44019591352,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14302837955,
+        "result_artifact_id": 14303942208,
+        "round": 4,
+        "sealed_precompletion_counters": {
+          "completed_round": 3,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 710,
+          "lifetime_completed_rounds_base": 707,
+          "lifetime_requests": 13219,
+          "lifetime_requests_base": 13018,
+          "prepared_round": 4,
+          "requests_used": 201,
+          "run_id": 44019591352,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14304201535,
+        "result_artifact_id": 14305056194,
+        "round": 5,
+        "sealed_precompletion_counters": {
+          "completed_round": 4,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 711,
+          "lifetime_completed_rounds_base": 707,
+          "lifetime_requests": 13250,
+          "lifetime_requests_base": 13018,
+          "prepared_round": 5,
+          "requests_used": 232,
+          "run_id": 44019591352,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14304414845,
+        "result_artifact_id": 14306471332,
+        "round": 6,
+        "sealed_precompletion_counters": {
+          "completed_round": 5,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 712,
+          "lifetime_completed_rounds_base": 707,
+          "lifetime_requests": 13290,
+          "lifetime_requests_base": 13018,
+          "prepared_round": 6,
+          "requests_used": 272,
+          "run_id": 44019591352,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14306232470,
+        "result_artifact_id": 14307907227,
+        "round": 7,
+        "sealed_precompletion_counters": {
+          "completed_round": 6,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 713,
+          "lifetime_completed_rounds_base": 707,
+          "lifetime_requests": 13330,
+          "lifetime_requests_base": 13018,
+          "prepared_round": 7,
+          "requests_used": 312,
+          "run_id": 44019591352,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14308166194,
+        "result_artifact_id": 14309032089,
+        "round": 8,
+        "sealed_precompletion_counters": {
+          "completed_round": 7,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 714,
+          "lifetime_completed_rounds_base": 707,
+          "lifetime_requests": 13363,
+          "lifetime_requests_base": 13018,
+          "prepared_round": 8,
+          "requests_used": 345,
+          "run_id": 44019591352,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14309017656,
+        "result_artifact_id": 14310967436,
+        "round": 9,
+        "sealed_precompletion_counters": {
+          "completed_round": 8,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 715,
+          "lifetime_completed_rounds_base": 707,
+          "lifetime_requests": 13391,
+          "lifetime_requests_base": 13018,
+          "prepared_round": 9,
+          "requests_used": 373,
+          "run_id": 44019591352,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14310324267,
+        "result_artifact_id": 14313275907,
+        "round": 10,
+        "sealed_precompletion_counters": {
+          "completed_round": 9,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 716,
+          "lifetime_completed_rounds_base": 707,
+          "lifetime_requests": 13421,
+          "lifetime_requests_base": 13018,
+          "prepared_round": 10,
+          "requests_used": 403,
+          "run_id": 44019591352,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14312648698,
+        "result_artifact_id": 14314144541,
+        "round": 11,
+        "sealed_precompletion_counters": {
+          "completed_round": 10,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 717,
+          "lifetime_completed_rounds_base": 707,
+          "lifetime_requests": 13447,
+          "lifetime_requests_base": 13018,
+          "prepared_round": 11,
+          "requests_used": 429,
+          "run_id": 44019591352,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14314658045,
+        "result_artifact_id": 14317775741,
+        "round": 12,
+        "sealed_precompletion_counters": {
+          "completed_round": 11,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 718,
+          "lifetime_completed_rounds_base": 707,
+          "lifetime_requests": 13473,
+          "lifetime_requests_base": 13018,
+          "prepared_round": 12,
+          "requests_used": 455,
+          "run_id": 44019591352,
+          "source_wait": null
+        }
+      }
+    ],
+    "schema": "RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1",
+    "status": "ACTIVE_COMPLETED_RECEIPTS_AES_VERIFIED_PARTIAL_SCOPE",
+    "successor_dispatch_allowed": false
+  }
+}
