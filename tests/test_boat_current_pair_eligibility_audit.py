@@ -376,5 +376,17 @@ class CurrentPairWorkflowTests(unittest.TestCase):
         self.assertIn("output.write('active_snapshot='+('true' if active_snapshot else 'false')", text)
 
 
+
+ATOMIC_SOURCE='a74f1e940e7fc0852e63938f8138bdb58bd93163'
+
+
+class AtomicCurrentPairEligibilityTests(CurrentPairEligibilityTests):
+    """Run the unchanged genuine AES/refusal cases at the protected atomic source."""
+    def setUp(self):
+        source=patch.object(sys.modules[__name__],'SOURCE',ATOMIC_SOURCE)
+        source.start();self.addCleanup(source.stop)
+        super().setUp()
+
+
 if __name__ == '__main__':
     unittest.main()

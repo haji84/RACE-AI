@@ -1,3 +1,29 @@
+## 2026-11-17 23:00:36 UTC: 実Mac Safariと候補28枚の確認成功、次source接続の33追加試験を検証へ（GOAL未達）
+
+実Mac44191905231/job134423216474は22:43:21 UTCに全体success。119件/52.155秒OK、Safari26.6の私有保存view/AES/元予想比較/cleanupに成功し、候補598の7page×4幅=28枚を保存した。幅320/390/1440/1920、高さ948。合成PNGだけを含むartifact14377542031(8,472,624B)のAPI SHA256とlocal全ZIP実bytes・CRCが一致。過去HTTP500は今回再現せず、原因確定や恒久修正の証拠とはしない。私有PNG/trace/owner keyは持ち出していない。本人login/current V5/物理iPhoneはfalse。
+
+元の8参考JPGと対応する8枚のSafari合成PNGを全て目視比較し、8件すべてPARTIALと記録。写真/校正した評価・期待値/PC詳細8tab/全内容の構成は未完成で、合成の完了race1件fixtureは全4競技の未来レース一覧を実証しない。競輪/オートの同一記号は候補PR62で小修正を準備中。公開UI f603と候補598の従来証拠は維持する。
+
+実sourcea74/treeec6の837件＋別178件GREEN・通常merge、main4934/treec609の119件GREEN・通常mergeは確定。次の正規workerに向け、既存PR45でmainの固定source pinと過去BB/M2/F553/EFF原本来歴を同期する。最初のHEADはTESTS ONLYで、元の試験/固定BB660件helper/optional stdout step/M2対象/native実装を維持した33追加caseの実REDを確認してからruntimeを変更する。環境切替で補助作業が中断したため再開し、6試験blobをGitHubへ明示保存している。稼働中のBBワーカーはそのまま維持する。
+
+追加P0の132contexts/660生成・投影/保持264/展示待ち924は別Actionsで暗号照合済み。全24round/全日/全4競技、実iPhone/全8参考の受入、6艇の独立GT・校正・強さ接続、登録済み将来比較による改善は未達。未push2commitはUNRESTORED。新PR/モデル/権限/job/input/cron/runner/課金/投票/公開UI/本番weights切替なし。
+
+詳細: [実Safari成功](evidence/boat-native-safari-actual-success-20261117.json) / [8参考の目視差分](evidence/boat-ui-eight-reference-safari-review-20261117.json) / [次sourceのtest-first](evidence/boat-main-a74-source-pin-tests-first-20261117.json)。
+
+## 2026-11-17 22:43:04 UTC: 実暗号読戻しで追加660予想を確認、原本保管837試験の通常merge完了（GOAL未達）
+
+固定r0原本14367093570を、別Actions44190597556/job134418652671で既存vault HMAC/chunk AES・全ZIP/CRC・inner AES・native replayまで照合した。day2026-11-18/132contexts、追加generated/projected660、reused0、既存feedに保持する264枠、展示待ち924枠を確認。applicable1848のうち非生成1188はこの保持264＋展示待ち924で、失われた原本や完了予想とは混同しない。元first-P0公開receiptの132レース/264予想は別の証拠で、このhelperがfirst-P0 ZIPまで独立復号したとはしない。full-day/all-model operation/G8/efficacy/promotion/dispatch/site acceptanceは全てfalseを維持。
+
+既存PR51を通常保護mergeし、実source a74f1e94/treeec6cdf2は837件/195.595秒試験済み2bf7a6eとtree一致。別178件/34.774秒、既存3/12/38/165/46件もOK、6checks3success/3skip。P1/Bの受信原bytesを解析前に保存し、途中失敗で既存原本を壊さず、BBの歴史原本を新checkout/proof固定で認証読戻しする。稼働中BB/run44170869325は維持し、新a74 producerの実運転はまだない。main側の新source pin・原本来歴をtests-firstで同期する。
+
+既存PR46も通常mergeし、main4934a184/treec6092b0は119件/17.618秒試験済み330f7516と一致、23checks11success/12skip。正規認証の既存workflowへ1回だけPOSTし22:37:46 UTCに空204、実Mac44191905231/job134423216474が22:39:30から私有原本確認を実行中。原因確定/候補CF guard合格/物理iPhone合格は未証明。公開assetf603・候補598・owner key・既存操作/受入/AES/cleanupを保全している。
+
+既存PR45の元head/base/本文と祖先判定を保存し、新PRを作らずrelease pin同期に再利用する。固定BB660件helper/optional stdout step/M2対象/EFF旧reader/archived helper900003は変更しない。別競輪PRの実行a95fc880を観測したため、その作業には触れない。公開一覧のtotalと返却数は一致せず、全実行を列挙できたとはしない。
+
+全4競技の全レース×全適用model/T15〜10/結果照合、実iPhone/全8参考、服色6艇の独立GT/校正/強さ接続、未来studyに固定した元モデル対学習版の精度改善は未達。旧100/5/10やtraining MIN8を新native比較の有効分母へ流用しない。元未push2commitはUNRESTORED。原本/本番weights/既存変更を保全、新権限/job/input/cron/runner/課金/投票/公開は追加しない。
+
+詳細: [実暗号P0件数](evidence/boat-fixed-bootstrap-p0-actual-counts-20261117.json) / [PR45保全と保護merge記録](evidence/boat-pr45-source51-main46-handoff-20261117.json)。
+
 ## 2026-11-17 22:31:44 UTC: 固定P0件数readerを通常merge、Safariの診断修正は119件のfresh検証へ（GOAL未達）
 
 既存PR47を通常保護mergeし、main e619ef93のtree0e307f54は試験済み700ab1ceのtreeと一致。179件/132.547秒OK、9 Python block compile/秘密境界も成功、全15 checksは8success/7skip。実件数読戻し44190597556はActions内で進行中で、追加P0件数はまだUNKNOWN。既存owner gate44190597537/job134418653207はHOLD_ACTIVE_OWNER_WORKFLOW、recovery false/公式GET0。稼働BBを重複起動していない。

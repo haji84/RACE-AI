@@ -62,4 +62,10 @@ class GitHubCLI:
         self.assertIn('ref: '+base.RELEASE_SHA+', path: boat-owner-reader',gate_job)
         self.assertIn('ref: '+audit.OWNER_SHA+', path: boat-owner-reader',audit_job)
 
+
+    def test_reviewed_bb_origin_never_substitutes_for_current_reader_checkout(self):
+        self._assert_historical_checkout_refused(
+            'bb49215034b779ea1493b35dd91e5c3ebfc04032')
+
+
 if __name__=='__main__':unittest.main()
