@@ -1,7 +1,7 @@
 {
   "schema": "RACE_AI_P0_STORAGE_RECOVERY_20261117",
   "phase": "LIVE_P0_AND_3_ROUNDS_SUCCEEDED_SAFARI_DETAIL_HOLD",
-  "main_sha": "fb938e5b8690b8d525056e875d1178e94e988c02",
+  "main_sha": "1242ccc97a483d50a3f77cbe9d655952f4ed773d",
   "production_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
   "storage_candidate_sha": "67200ef25161a48b49a63d04450b1f11656add5b",
   "unrestored_commits": [
@@ -155,7 +155,7 @@
     "bootstrap_owner_regression": 179,
     "main_gate_audit_safari": 101,
     "main_independent_reader": 64,
-    "safari_boundaries": 23,
+    "safari_boundaries": 26,
     "enriched_recovery": 60,
     "independent_enriched_recovery": 55,
     "existing_video_boundaries": 120
@@ -208,7 +208,7 @@
     "status": "failure",
     "reason": "INDEPENDENT_ALL_MODEL_REPLAY_NOT_AVAILABLE"
   },
-  "observed_at": "2026-11-17T05:43:28.181909+00:00",
+  "observed_at": "2026-11-17T05:58:06.652830+00:00",
   "live_recovery": {
     "gate_run_id": 44019424267,
     "gate_job_id": 133825071851,
@@ -528,17 +528,20 @@
     }
   ],
   "native_safari_live": {
-    "run_id": 44024956057,
-    "job_id": 133842950712,
-    "main_sha": "fb938e5b8690b8d525056e875d1178e94e988c02",
+    "run_id": 44026515882,
+    "job_id": 133848050105,
+    "main_sha": "1242ccc97a483d50a3f77cbe9d655952f4ed773d",
     "runner_os": "macos-15-intel",
     "status": "failure",
     "reason": "APP_UI_CHECK_FAILED",
     "checker_function": "app_checks",
-    "checker_line": 559,
-    "failed_operation": "DETAIL_OUTLOOK_ELEMENT_LOOKUP",
-    "failed_viewport_known": false,
-    "budget_fix_actual_scope_confirmed": false,
+    "checker_line": 598,
+    "ui_page_errors": 0,
+    "ui_error_module": null,
+    "ui_error_line": null,
+    "ui_visible_page": "page-races",
+    "ui_viewport_width": 390,
+    "requested_viewport_or_iteration_known": false,
     "desktop_acceptance_verified": false,
     "physical_iphone_verified": false,
     "final_private_boundary_verified": false
@@ -604,6 +607,22 @@
       "desktop_acceptance_verified": false,
       "physical_iphone_verified": false,
       "final_private_boundary_verified": false
+    },
+    {
+      "run_id": 44024956057,
+      "job_id": 133842950712,
+      "main_sha": "fb938e5b8690b8d525056e875d1178e94e988c02",
+      "runner_os": "macos-15-intel",
+      "status": "failure",
+      "reason": "APP_UI_CHECK_FAILED",
+      "checker_function": "app_checks",
+      "checker_line": 559,
+      "failed_operation": "DETAIL_OUTLOOK_ELEMENT_LOOKUP",
+      "failed_viewport_known": false,
+      "budget_fix_actual_scope_confirmed": false,
+      "desktop_acceptance_verified": false,
+      "physical_iphone_verified": false,
+      "final_private_boundary_verified": false
     }
   ],
   "historical_result_retention_pin": {
@@ -644,6 +663,23 @@
     "tests": 23,
     "independent_tests": 23,
     "actual_mac_verified": false,
-    "private_dom_or_exception_output": false
+    "private_dom_or_exception_output": false,
+    "candidate_sha": "3f5f2356e810640db2e1e6d188bd83c51a60945a",
+    "merged_main_sha": "1242ccc97a483d50a3f77cbe9d655952f4ed773d",
+    "exact_head_checks": 23,
+    "checks_success": 10,
+    "checks_skipped": 13,
+    "reviewed_tree_matches": true
+  },
+  "native_safari_hit_target_candidate": {
+    "existing_pr": 64,
+    "tests": 26,
+    "independent_tests": 26,
+    "actual_mac_verified": false,
+    "native_click_retained": true,
+    "js_click_or_state_assignment": false,
+    "occluded_target_click_allowed": false,
+    "immutable_parser_sha": "761247bee0209e37b1af6b8885e92cad3e9260a5",
+    "mutable_parser_branch_runtime_references": 0
   }
 }
