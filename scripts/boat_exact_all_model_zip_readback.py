@@ -17,6 +17,8 @@ import re
 
 OWNER_SHA='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
 M2_OWNER_SHA='86b029ae5bddd5d4956497d8b32b2c92b8eec521'
+PROFILE_OWNER_SHA='f55351dce855177a51330f72c37d6238ba2c9e3e'
+PARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA)
 # Read-only replay of already sealed originals. This is not a dispatcher pin.
 PREVIOUS_OWNER_SHA='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
 REVIEWED_PREVIOUS_OWNER_SHA='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
@@ -40,7 +42,7 @@ def need(ok):
 
 
 def _owner_head(value):
-    need(type(value) is str and value in (OWNER_SHA,M2_OWNER_SHA,PREVIOUS_OWNER_SHA,REVIEWED_PREVIOUS_OWNER_SHA,RETAINED_OWNER_SHA,PRE_STORAGE_REPAIR_SHA))
+    need(type(value) is str and value in (OWNER_SHA,*PARTIAL_RECEIPT_OWNER_SHAS,PREVIOUS_OWNER_SHA,REVIEWED_PREVIOUS_OWNER_SHA,RETAINED_OWNER_SHA,PRE_STORAGE_REPAIR_SHA))
     return value
 
 
@@ -94,7 +96,7 @@ def _verified_reused_baseline(get,reader,payload,projection,run,*,saved_at,now,k
             if p is not None and p.get('dispatch_status')=='ORIGINAL_REUSED']
     if not reused:return set(),set()
     baseline=payload.get('baseline');need(type(baseline) is dict and set(baseline)=={'document_sha256','receipt'})
-    proof=baseline.get('receipt');need(type(proof) is dict and proof.get('head_sha') in (OWNER_SHA,M2_OWNER_SHA))
+    proof=baseline.get('receipt');need(type(proof) is dict and proof.get('head_sha') in (OWNER_SHA,*PARTIAL_RECEIPT_OWNER_SHAS))
     ident=proof.get('artifact_id');need(type(ident) is int and ident>0)
     meta_raw=reader.read(f'actions/artifacts/{ident}',128*1024)
     meta=json.loads(meta_raw);origin_ref=meta.get('workflow_run') or {}
@@ -442,12 +444,12 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
     reader=R._MetadataReader(get)
     run=R._run(reader.read(f'actions/runs/{run_id}',1024*1024),run_id,now)
     owner_head=_owner_head(run.get('head_sha'))
-    if owner_head==M2_OWNER_SHA:need(active_scope is not None and expected_owner_sha==M2_OWNER_SHA)
+    if owner_head in PARTIAL_RECEIPT_OWNER_SHAS:need(active_scope is not None and expected_owner_sha==owner_head)
     need(type(allow_completed_receipts) is bool and (not allow_completed_receipts or
-         active_scope is not None and expected_owner_sha==M2_OWNER_SHA))
+         active_scope is not None and expected_owner_sha in PARTIAL_RECEIPT_OWNER_SHAS))
     if expected_owner_sha is not None:
-        need(expected_owner_sha in (OWNER_SHA,M2_OWNER_SHA) and owner_head==expected_owner_sha)
-    else:need(owner_head!=M2_OWNER_SHA)
+        need(expected_owner_sha in (OWNER_SHA,*PARTIAL_RECEIPT_OWNER_SHAS) and owner_head==expected_owner_sha)
+    else:need(owner_head not in PARTIAL_RECEIPT_OWNER_SHAS)
     need(run.get('head_branch')=='production/boat-p0-p1-20261111' and
          run.get('event')=='workflow_dispatch' and
          (run.get('status')=='completed' if active_scope is None else
@@ -461,7 +463,7 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         selected_rounds=validate_active_scope(active_scope,run,listed,now,get,
             expected_owner_sha=OWNER_SHA if expected_owner_sha is None else expected_owner_sha,
             allow_completed_receipts=allow_completed_receipts)
-    model_scope=(active_scope['all_model_archive_scope'] if owner_head==M2_OWNER_SHA else None)
+    model_scope=(active_scope['all_model_archive_scope'] if owner_head in PARTIAL_RECEIPT_OWNER_SHAS else None)
     missing_model_rounds=model_scope['missing_rounds'] if model_scope else []
     targets=[];unique_ids=set();unique_rounds=set()
     for item in listed:
@@ -523,7 +525,7 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
              receipt.get('artifact_id')==artifact_id and
              receipt.get('head_sha')==owner_head)
         verified_reused=None
-        if owner_head==M2_OWNER_SHA:
+        if owner_head in PARTIAL_RECEIPT_OWNER_SHAS:
             from race_ai import boat_all_model_store as store
             with R._checked_zip(raw,max_zip_bytes=R.MAX_ZIP_BYTES,max_expanded=store.MAX_WIRE) as z:
                 native_payload=store.open_forecasts(z.read('forecasts.enc'),key=key)

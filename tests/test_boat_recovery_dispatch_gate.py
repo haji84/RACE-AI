@@ -96,8 +96,10 @@ class RecoveryGateTests(unittest.TestCase):
     def test_exact_reviewed_previous_owner_can_recover_under_new_current_dispatch_release(self):
         from unittest.mock import patch
         previous_eff='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+        previous_m2='86b029ae5bddd5d4956497d8b32b2c92b8eec521'
         for previous,current in (('84128e0ec8bd9fe3da64ad49f74b8511b07e72be','e'*40),
-                                 (previous_eff,'e'*40),(previous_eff,base.RELEASE_SHA)):
+                                 (previous_eff,'e'*40),(previous_eff,base.RELEASE_SHA),
+                                 (previous_m2,'e'*40),(previous_m2,base.RELEASE_SHA)):
             with self.subTest(previous=previous,current=current):
                 args, proof = self.orphan()
                 args['history']['workflow_runs'][0]['head_sha']=previous

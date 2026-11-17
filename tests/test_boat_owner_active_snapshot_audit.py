@@ -773,4 +773,66 @@ class M2TargetSelectionTests(unittest.TestCase):
         self.assertIn(M2_HEAD,live)
 
 
+PROFILE_HEAD='f55351dce855177a51330f72c37d6238ba2c9e3e'
+
+
+class ProfileSnapshotTests(unittest.TestCase):
+    """Reuse genuine invented M2 contracts at the exact next reviewed source."""
+    @classmethod
+    def setUpClass(cls):M2SnapshotTests.setUpClass()
+
+    def setUp(self):
+        source=patch.object(sys.modules[__name__],'M2_HEAD',PROFILE_HEAD)
+        source.start();self.addCleanup(source.stop)
+        self.f=M2SnapshotTests();self.f.setUp();self.addCleanup(self.f.doCleanups)
+
+    def test_exact_profile_active_gap_has_unknown_generation_and_no_private_output(self):
+        self.f.test_two_native_rounds_with_only_r0_r1_models_authenticate_all_receipts_and_hold_unknown_r2()
+
+    def test_exact_profile_completed_control_is_aes_bound_and_partial(self):
+        self.f.test_completed_m2_uses_authenticated_final_round_not_twenty_four_success_labels()
+
+    def test_exact_profile_inventory_cannot_shorten_prefix_hide_archives_or_forge_exclusions(self):
+        self.f.test_missing_model_scope_cannot_shorten_native_prefix_hide_present_archives_or_forge_exclusions()
+
+    def test_exact_profile_missing_tampered_or_late_final_control_refuses(self):
+        self.f.test_completed_m2_selected_prefix_and_final_public_control_are_mandatory()
+
+    def test_exact_profile_does_not_enter_default_eff_or_unscoped_reader(self):
+        self.f.test_completed_partial_scope_cannot_enter_default_exact_or_old_owner_scope()
+
+    def test_exact_profile_own_native_reference_is_verified_without_double_counting(self):
+        self.f.test_current_selected_native_p1_reference_is_authenticated_without_double_counting_archive()
+
+    def test_exact_profile_reuses_old_eff_originals_without_reissuing_them(self):
+        self.f.test_crypto_old_eff_baseline_is_verified_but_never_counted_as_new_m2_output()
+
+    def test_exact_profile_requires_exact_source_and_rejects_dynamic_or_unknown_heads(self):
+        self.f.test_m2_requires_explicit_source_and_refuses_arbitrary_or_dynamic_source()
+
+
+class ProfileTargetSelectionTests(unittest.TestCase):
+    def test_completed_profile_callback_does_not_change_existing_m2_push_target(self):
+        event=M2TargetSelectionTests().event(PROFILE_HEAD)
+        out=active.select_audit_target('workflow_run',event)
+        self.assertEqual(out,dict(run_id=123,expected_owner_sha=PROFILE_HEAD,allow_completed_receipts=True))
+        target=json.loads((ROOT/'audit/state/boat-m2-independent-audit-target.json').read_text())
+        self.assertEqual(target,dict(schema='RACE_AI_M2_READONLY_AUDIT_TARGET_V1',run_id=44075021607,
+                                    source_commit=active.M2_OWNER_SHA))
+        push=dict(ref='refs/heads/main',repository={'full_name':'haji84/RACE-AI'})
+        self.assertEqual(active.select_audit_target('push',push,main_target=target),
+                         dict(run_id=44075021607,expected_owner_sha=active.M2_OWNER_SHA,allow_completed_receipts=True))
+        with self.assertRaises(ValueError):
+            active.select_audit_target('push',push,main_target=dict(target,source_commit=PROFILE_HEAD))
+
+    def test_matrix_event_and_selected_owner_guards_accept_only_explicit_profile(self):
+        text=(ROOT/'.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
+        live=text.split('\n  authenticated_original_matrix:\n',1)[1]
+        self.assertTrue("github.event.workflow_run.head_sha == '"+PROFILE_HEAD+"'" in live)
+        for tag in ('PY','PY_ARCHIVED_NATIVE'):
+            block=live.split("python - <<'"+tag+"'\n",1)[1].split('\n          '+tag,1)[0]
+            self.assertIn(PROFILE_HEAD,block)
+        self.assertNotIn('gh workflow run',live)
+
+
 if __name__=='__main__':unittest.main()

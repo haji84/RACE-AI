@@ -21,7 +21,8 @@ ROOT = Path(__file__).resolve().parents[1]
 OWNER = ROOT/'owner-source'
 MAIN_HELPER = ROOT/'race_ai/all_existing_model_archived_native.py'
 ALLOWED_OWNER_SHAS = ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
-                      '86b029ae5bddd5d4956497d8b32b2c92b8eec521')
+                      '86b029ae5bddd5d4956497d8b32b2c92b8eec521',
+                      'f55351dce855177a51330f72c37d6238ba2c9e3e')
 assert subprocess.check_output(['git','-C',str(OWNER),'rev-parse','HEAD'],
     timeout=10).decode().strip() in ALLOWED_OWNER_SHAS
 if str(OWNER) not in sys.path:sys.path.insert(0,str(OWNER))

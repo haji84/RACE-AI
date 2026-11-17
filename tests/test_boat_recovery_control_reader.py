@@ -39,7 +39,12 @@ class GitHubCLI:
             with self.assertRaises(ValueError):gate.read_pinned_control({'id':99},reader_root=self.root)
 
     def test_reviewed_eff_origin_never_substitutes_for_current_reader_checkout(self):
-        previous='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+        self._assert_historical_checkout_refused('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3')
+
+    def test_reviewed_m2_origin_never_substitutes_for_current_reader_checkout(self):
+        self._assert_historical_checkout_refused('86b029ae5bddd5d4956497d8b32b2c92b8eec521')
+
+    def _assert_historical_checkout_refused(self,previous):
         with patch.object(base,'RELEASE_SHA','e'*40), \
              patch.object(gate.subprocess,'check_output',return_value=previous.encode()), \
              patch.object(gate.subprocess,'run') as child:
