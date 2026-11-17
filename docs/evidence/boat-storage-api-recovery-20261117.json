@@ -1,0 +1,200 @@
+{
+  "schema": "RACE_AI_STORAGE_API_RECOVERY_RELEASE_EVIDENCE_V1",
+  "observed_at_utc": "2026-11-17T18:09:00Z",
+  "base_source_commit": "f55351dce855177a51330f72c37d6238ba2c9e3e",
+  "existing_pr": 55,
+  "original_pr_head_preserved": "58b3a6912040d37011c911529f324d15fd3e897d",
+  "source_code_file_count": 16,
+  "combined_exact_code_tree": "b4d730627072e53d1f57151601679f33d7947cf3",
+  "component_trees_fully_verified": true,
+  "original_source_and_test_bytes_transferred": true,
+  "reviewed_public_snapshots": [
+    {
+      "local_commit": "82c9b862a0ec2fb67c67e66328bd607f685463fd",
+      "public_snapshot_commit": "d4d7e8bf3fbff17ad69541a4f8ba32a13f9985de",
+      "exact_tree": "260c78d65000328d9ab534520163cf73e42d79f9"
+    },
+    {
+      "local_commit": "349480cd1228efc6290f335e51a70670176dd997",
+      "public_snapshot_commit": "39d5b1e73987387bdc1fa29377cf8134f7535cc9",
+      "exact_tree": "afcbc57bfbe166cf6a32a21e6bf3d6670e6eaaa6"
+    },
+    {
+      "local_commit": "640b7e929c03e563aeefe984860ac45dfacc8b35",
+      "public_snapshot_commit": "8cece6f7f7e91d6905157b4bdb37f44dd10255d5",
+      "exact_tree": "314bdbab502bc254faf9cc9e1b1aa964a6206b8d"
+    },
+    {
+      "local_commit": "6f8de877625596bbd283a9756909c0781cf57932",
+      "public_snapshot_commit": "453f419aee51f2b637e613a8e2f81ccb829d3df9",
+      "exact_tree": "f919f2c5afff760b81b140ba56274fd648d9ecbe"
+    }
+  ],
+  "source_files": [
+    {
+      "path": "scripts/boat_failed_recovery_contract.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3b455d4975ab9b689d13217c02cd3ba3de3f62cd"
+    },
+    {
+      "path": "tests/test_boat_orphan_p1_recovery.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e8fdc32ec09a1fc1e80d902850c4c6422fd7bbb1"
+    },
+    {
+      "path": "race_ai/boat_private_original_vault.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d04b521f76dbd2af6bdd638b8044fbf8ea13384d"
+    },
+    {
+      "path": "race_ai/boat_research_batch.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2f2cd3cde621ff051ca29cc6fa7d00b6be52c3f5"
+    },
+    {
+      "path": "tests/test_boat_venue_research_batch.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ceb537bc2d8750ac1aa3551b975eef7ea24273d1"
+    },
+    {
+      "path": "race_ai/boat_all_model_store.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4faeb315542b02c0a16ff5851b7803be099b24bb"
+    },
+    {
+      "path": "scripts/boat_all_model_cycle.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4c5a6edc820e83f56aa8fd027c0d8035eda0e770"
+    },
+    {
+      "path": "tests/test_boat_all_model_store.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9b7111c3a11303eee3e3291535264723cca8309e"
+    },
+    {
+      "path": "tests/test_boat_all_model_diagnostics.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5105a24d09e54b83c4b419650aa5f656b257285e"
+    },
+    {
+      "path": ".github/workflows/boat-nationwide-ab-one-shot.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "28425afeb4e0006ed28daf7a60167cc15800a39f"
+    },
+    {
+      "path": "race_ai/boat_source_capture_files.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d743d65f228115ebfa8ce33613e139cd31d3e53e"
+    },
+    {
+      "path": "race_ai/saved_view_feed.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d208d59b309f2ad01acd12509e62fd0ee79892b4"
+    },
+    {
+      "path": "scripts/boat_private_original_vault.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f17f8ff07e50d33a8e4444b4183aa35c723eea06"
+    },
+    {
+      "path": "scripts/boat_saved_view_feed.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c51a6e9da3f0c821c13722e5a6a92ffd890484a0"
+    },
+    {
+      "path": "tests/test_boat_source_capture_batching.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bb9ddbc7e50f611adc3bed76b0939e4749fa07bb"
+    },
+    {
+      "path": "tests/test_boat_source_capture_files.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "08430ff855914fbeb84c64655be13f70feb2bc7b"
+    }
+  ],
+  "local_verification": {
+    "selected_blob_prefetch_author_tests": 161,
+    "selected_blob_prefetch_independent_tests": 17,
+    "selected_blob_prefetch_independent_extra_probes": 2,
+    "profile_full_training_validations": 6,
+    "profile_generation_lineage_checks": 1440,
+    "profile_official_source_closures": 528,
+    "profile_native_opens": 3,
+    "profile_selected_fetches_before": 7,
+    "profile_selected_fetches_after": 1,
+    "profile_validation_counts_cipher_and_pointers_equal": true,
+    "all_model_store_author_tests": 93,
+    "all_model_store_independent_tests": 24,
+    "all_model_store_independent_probe_groups": 3,
+    "historical_origin_author_tests": 48,
+    "historical_origin_independent_tests": 18,
+    "capture_final_focused_tests": 38,
+    "capture_independent_focused_tests": 38,
+    "capture_independent_legacy_tests": 43,
+    "capture_independent_probes": 4,
+    "capture_pre_final_full_tests": 770,
+    "capture_final_full_test_count": 771,
+    "capture_final_full_status": "FAILED",
+    "capture_final_full_git_fixture_errors": 14,
+    "capture_final_full_failure_scope": "WORKSPACE_CANNOT_FORK_RESOURCE_TEMPORARILY_UNAVAILABLE",
+    "fresh_combined_github_ci_required": true
+  },
+  "preservation": {
+    "per_bundle_capture_pair_bound": 240,
+    "per_bundle_file_bound": 480,
+    "per_bundle_plain_bytes_bound": 335544320,
+    "existing_view_plain_bytes_bound": 67108864,
+    "folder_count_ceiling_removed": true,
+    "partial_verified_prefix_preserved": true,
+    "plural_restore_staged_before_exposure": true,
+    "original_raw_bytes_and_receive_clocks_unchanged": true,
+    "all_inherited_cipher_sha_header_and_size_checks_preserved": true,
+    "source_capture_url_policy_unchanged": true,
+    "p1_racelist_beforeinfo_raw_capture_gap_resolved": false,
+    "old_b17_archive_restored": false
+  },
+  "real_operation": {
+    "owner_44075021607_physical_rounds": 10,
+    "owner_final_gets": 304,
+    "owner_final_lifetime_gets": 13807,
+    "owner_final_stop": "DAY_HANDOFF",
+    "actual_bootstrap_60_second_tree_timeout_preserved": true,
+    "actual_worker_hydration_configuration_verified": false,
+    "actual_new_source_worker_run_verified": false,
+    "live_latency_improvement_proven": false,
+    "t15_to_t10_coverage_proven": false,
+    "full_four_sport_all_day_coverage_proven": false,
+    "calibrated_six_boat_tracking_proven": false,
+    "prospective_accuracy_improvement_proven": false
+  },
+  "missing_offline_commits": {
+    "b7380fe6a377e6ccf2b96331f2126c52549bbe17": "UNRESTORED",
+    "daae4c10167224b7730006d8ada5ade398aaa64b": "UNRESTORED"
+  },
+  "new_prs": 0,
+  "new_workflows": 0,
+  "new_jobs": 0,
+  "new_permissions": 0,
+  "new_model_families": 0,
+  "new_paid_plans": 0,
+  "production_weight_switches": 0,
+  "wagers": 0,
+  "product_ui_deployed": false,
+  "goal_complete": false
+}

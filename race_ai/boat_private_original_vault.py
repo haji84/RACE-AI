@@ -8,7 +8,7 @@ receipt and Git timestamps never supply an original save time.
 """
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
-from hashlib import sha256
+from hashlib import sha1, sha256
 import hmac
 import json
 import os
@@ -188,6 +188,81 @@ class VaultGitRepository(GitStateRepository):
         _need(raw.count(b'\0') == 1 and raw.endswith(b'\t'+path.encode('utf-8')+b'\0'),
               'GIT_PATH_IDENTITY_INVALID')
         return True
+
+    def prefetch_selected(self, commit, files, *, maximum_bytes):
+        """Fetch only selected immutable blobs; return a strictly local reader.
+
+        Expected Git OIDs bind the pinned regular-file paths to the already
+        authenticated bounded bodies. Object presence/type/size is checked
+        without lazy fetch both before and after the one selected-object fetch.
+        The returned reader still requires the caller's complete byte comparison.
+        """
+        _hex(commit, _HEAD)
+        _need(type(files) is dict and bool(files) and type(maximum_bytes) is int and maximum_bytes > 0,
+              'SELECTED_FILES_INVALID')
+        _need(all(type(path) is str and re.fullmatch(r'[A-Za-z0-9_./-]{1,1024}', path)
+                  and not any(part in ('', '.', '..') for part in path.split('/'))
+                  and type(raw) is bytes and 0 < len(raw) <= maximum_bytes for path, raw in files.items())
+              and sum(map(len, files.values())) <= maximum_bytes, 'SELECTED_FILES_BOUND_INVALID')
+        self._reject_rewrites()
+        fetch_url, push_url = self.fetch_url, self.push_url
+        self._check_remote()
+        _need((self.fetch_url, self.push_url) == (fetch_url, push_url), 'SELECTED_REMOTE_CHANGED')
+        local = lambda args, **options: self._run(['--no-lazy-fetch', *args], **options)
+        _need(local(['cat-file', '-t', commit]).strip() == b'commit', 'SELECTED_COMMIT_REQUIRED')
+        expected = {}; objects = {}
+        for path, raw in files.items():
+            blob = sha1(); blob.update(b'blob '+str(len(raw)).encode('ascii')+b'\0'); blob.update(raw)
+            oid = blob.hexdigest()
+            _need(oid not in objects or objects[oid] == len(raw), 'SELECTED_OBJECT_CONFLICT')
+            expected[path] = (oid, len(raw)); objects[oid] = len(raw)
+        paths = sorted(expected); position = 0
+        while position < len(paths):
+            chunk = []; size = 0
+            while position < len(paths) and len(chunk) < 128 and size + len(paths[position]) + 1 <= 16*1024:
+                path = paths[position]; chunk.append(path); size += len(path)+1; position += 1
+            raw = local(['ls-tree', '-z', commit, '--', *chunk])
+            _need(raw.endswith(b'\0') and len(raw) <= sum(len(path)+80 for path in chunk),
+                  'SELECTED_TREE_INVALID')
+            found = set(); wanted = {path.encode('ascii'): path for path in chunk}
+            for row in raw[:-1].split(b'\0'):
+                match = re.fullmatch(rb'100644 blob ([a-f0-9]{40})\t([^\0]+)', row)
+                _need(match is not None and match[2] in wanted, 'SELECTED_TREE_INVALID')
+                path = wanted[match[2]]
+                _need(path not in found and match[1].decode('ascii') == expected[path][0],
+                      'SELECTED_TREE_BINDING_INVALID')
+                found.add(path)
+            _need(found == set(chunk), 'SELECTED_TREE_BINDING_INVALID')
+
+        def missing_objects():
+            ordered = sorted(objects)
+            raw = local(['cat-file', '--batch-check=%(objectname) %(objecttype) %(objectsize)'],
+                        body=('\n'.join(ordered)+'\n').encode('ascii'))
+            rows = raw.splitlines(); _need(len(rows) == len(ordered), 'SELECTED_OBJECTS_INVALID')
+            missing = []
+            for oid, row in zip(ordered, rows):
+                if row == (oid+' missing').encode('ascii'):
+                    missing.append(oid); continue
+                _need(row == (oid+' blob '+str(objects[oid])).encode('ascii'), 'SELECTED_OBJECTS_INVALID')
+            return missing
+
+        missing = missing_objects()
+        if missing:
+            self._run(['-c', 'fetch.negotiationAlgorithm=noop', 'fetch', '--no-tags', '--no-write-fetch-head',
+                       '--recurse-submodules=no', '--filter=blob:none', '--stdin', fetch_url],
+                      body=('\n'.join(missing)+'\n').encode('ascii'))
+        _need(not missing_objects(), 'SELECTED_OBJECTS_MISSING')
+
+        def read_local(requested_commit, path, limit):
+            _need(requested_commit == commit and type(path) is str and path in expected
+                  and type(limit) is int and expected[path][1] <= limit <= maximum_bytes, 'SELECTED_READ_INVALID')
+            object_id = commit+':'+path
+            size = int(local(['cat-file', '-s', object_id]))
+            _need(size == expected[path][1], 'SELECTED_OBJECT_SIZE_CHANGED')
+            raw = local(['show', object_id])
+            _need(len(raw) == size, 'SELECTED_OBJECT_SIZE_CHANGED')
+            return raw
+        return read_local
 
 
 def _transport(repo, transport):

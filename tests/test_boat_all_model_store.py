@@ -57,6 +57,172 @@ class ForecastStoreTests(unittest.TestCase):
                 self.fetch_url = self.push_url = self._run(["remote", "get-url", "origin"]).decode().strip()
         return LocalGit(repo)
 
+    def partial_fixture(self):
+        from race_ai.boat_private_original_vault import VaultGitRepository
+        temporary = tempfile.TemporaryDirectory(); self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name); repo = repository(root); remote = root/'remote.git'
+        subprocess.run(['git','--git-dir',str(remote),'config','uploadpack.allowFilter','true'], check=True, capture_output=True)
+        # A filesystem-path promisor name begins with '/' and is invalid. A
+        # file:// URL exercises the same valid URL-remote bookkeeping as HTTPS.
+        subprocess.run(['git','-C',str(repo),'remote','set-url','origin',remote.as_uri()], check=True, capture_output=True)
+        writer = self.git(repo); parent = None; originals = []
+        for number in range(3):
+            payload = invented(); payload['revision'] = number
+            raw = self.seal(payload, round_no=number)
+            pointer = store.publish_forecasts(raw, repo, expected_parent=parent, transport=writer)
+            parent = pointer['source_commit']; originals.append((pointer['cipher_path'], raw))
+        class LocalVault(VaultGitRepository):
+            def _check_remote(self):
+                self.fetch_url = self.push_url = self._run(['remote','get-url','origin']).decode().strip()
+        vault = LocalVault(repo); seed = vault.commit({'fixture/retained.enc':b'fixture only'}, None)
+        vault.push(seed, None)
+        self.unrelated_oid = vault._run(['rev-parse',seed+':fixture/retained.enc']).decode().strip()
+        def fresh(name, mode='promised'):
+            folder = root/name
+            subprocess.run(['git','init',str(folder)], check=True, capture_output=True)
+            subprocess.run(['git','-C',str(folder),'remote','add','origin',remote.as_uri()], check=True, capture_output=True)
+            if mode != 'clean': LocalVault(folder).fetch(seed if mode == 'unrelated' else parent)
+            reader = self.git(folder); reader.fetch(parent)
+            return reader
+        return root, remote, writer, pointer, originals, fresh
+
+    def selected_fetches(self, trace):
+        if not trace.exists(): return 0
+        return sum(row.get('event') == 'start' and 'fetch' in row.get('argv', []) and '--stdin' in row['argv']
+                   for row in map(json.loads, trace.read_text().splitlines()))
+
+    def test_valid_url_partial_clones_batch_current_tree_and_keep_exact_idempotent_pointers(self):
+        root, remote, writer, pointer, originals, fresh = self.partial_fixture()
+        for mode in ('clean','unrelated','promised'):
+            reader = fresh(mode, mode); trace = root/(mode+'.jsonl')
+            with patch.dict(os.environ, GIT_TRACE2_EVENT=str(trace)), \
+                 patch.object(store,'forecast_header',wraps=store.forecast_header) as headers, \
+                 patch.object(store,'_sha',wraps=store._sha) as hashes:
+                again = store.publish_forecasts(originals[-1][1], reader.repo,
+                    expected_parent=pointer['source_commit'], transport=reader)
+            self.assertEqual(again, pointer)
+            self.assertEqual(self.selected_fetches(trace), 0 if mode == 'clean' else 1)
+            for path, raw in originals:
+                self.assertTrue(any(call.args == (raw,) for call in headers.call_args_list))
+                self.assertTrue(any(call.args == (raw,) for call in hashes.call_args_list))
+                self.assertEqual(reader.read(pointer['source_commit'], path, store.MAX_WIRE), raw)
+                self.assertEqual(store.open_forecasts(raw, key=KEY)['schema'], invented()['schema'])
+            self.assertNotEqual(subprocess.run(['git','--no-lazy-fetch','-C',str(reader.repo),
+                'cat-file','-e',self.unrelated_oid],capture_output=True).returncode,0)
+            self.assertEqual(writer.head(), pointer['source_commit'])
+        appended = store.publish_forecasts(self.seal(round_no=3),reader.repo,
+            expected_parent=pointer['source_commit'],transport=reader)
+        for path, raw in originals:
+            self.assertEqual(reader.read(appended['source_commit'],path,store.MAX_WIRE),raw)
+        self.assertEqual(store.restore_forecasts(pointer,reader.repo,key=KEY,transport=reader)['revision'],2)
+
+    def test_tree_metadata_rejections_precede_any_promised_blob_fetch(self):
+        root, remote, writer, pointer, originals, fresh = self.partial_fixture()
+        for case in ('unknown','mode','type','oid','duplicate','count','metadata_bound','framing'):
+            reader = fresh('metadata-'+case); original = reader._run; trace = root/(case+'.jsonl')
+            def altered(args, **options):
+                raw = original(args, **options)
+                if 'ls-tree' in args and '-rz' in args:
+                    if case == 'unknown': return raw+b'100644 blob '+b'a'*40+b'\tprivate.json\0'
+                    if case == 'mode': return raw.replace(b'100644 ', b'100755 ', 1)
+                    if case == 'type': return raw.replace(b' blob ', b' tree ', 1)
+                    if case == 'oid': return raw.replace(raw.split(b'\t')[0].split()[-1], b'not-an-oid', 1)
+                    if case == 'duplicate': return raw+raw.split(b'\0')[0]+b'\0'
+                    if case == 'metadata_bound': return b'x'*(4*1024*1024+1)
+                    if case == 'framing': return raw[:-1]
+                return raw
+            bound = patch.object(store,'MAX_TREE_ENTRIES',2) if case == 'count' else patch.dict(os.environ,{})
+            with self.subTest(case=case), bound, patch.dict(os.environ,GIT_TRACE2_EVENT=str(trace)), \
+                 patch.object(reader,'_run',side_effect=altered), self.assertRaises(ValueError):
+                store._tree(reader, pointer['source_commit'])
+            self.assertEqual(self.selected_fetches(trace), 0)
+
+    def test_incomplete_bulk_fetch_and_timeout_never_fall_back_to_lazy_reads(self):
+        root, remote, writer, pointer, originals, fresh = self.partial_fixture()
+        for partial in (False, True):
+            reader = fresh('incomplete-'+str(partial)); original = reader._run; trace = root/('incomplete-'+str(partial)+'.jsonl')
+            def suppressed(args, **options):
+                if 'fetch' in args and '--stdin' in args:
+                    if not partial: return b''
+                    options['body'] = options['body'].splitlines()[0]+b'\n'
+                return original(args, **options)
+            with self.subTest(partial=partial), patch.dict(os.environ,GIT_TRACE2_EVENT=str(trace)), \
+                 patch.object(reader,'_run',side_effect=suppressed), self.assertRaises(ValueError):
+                store._tree(reader, pointer['source_commit'])
+            self.assertEqual(self.selected_fetches(trace), int(partial))
+        reader = fresh('timeout'); original_run = subprocess.run
+        def timeout(args, **options):
+            if 'fetch' in args and '--stdin' in args: raise subprocess.TimeoutExpired(args,180)
+            return original_run(args, **options)
+        with patch('subprocess.run',side_effect=timeout), self.assertRaisesRegex(ValueError,'^STATE_GIT_FETCH_TIMEOUT$'):
+            store._tree(reader, pointer['source_commit'])
+        self.assertEqual(writer.head(), pointer['source_commit'])
+
+    def test_missing_or_corrupt_remote_objects_fail_and_restored_retry_keeps_pointers(self):
+        root, remote, writer, pointer, originals, fresh = self.partial_fixture()
+        commit = pointer['source_commit']; reader = fresh('wrong-object'); original = reader._run
+        def wrong_oid(args, **options):
+            raw = original(args, **options)
+            if 'ls-tree' in args and '-rz' in args:
+                raw = raw.replace(raw.split(b'\t')[0].split()[-1],b'f'*40,1)
+            return raw
+        with patch.object(reader,'_run',side_effect=wrong_oid), self.assertRaises(ValueError): store._tree(reader,commit)
+        oid = writer._run(['rev-parse',commit+':'+originals[0][0]]).decode().strip()
+        target = remote/'objects'/oid[:2]/oid[2:]
+        old = target.read_bytes() if target.exists() else None
+        mode = target.stat().st_mode & 0o777 if old is not None else None
+        target.parent.mkdir(exist_ok=True)
+        if old is not None: target.chmod(0o600)
+        target.write_bytes(b'corrupt fixture Git object')
+        try:
+            with self.assertRaises(ValueError): store._tree(fresh('corrupt-remote'),commit)
+        finally:
+            if old is None: target.unlink()
+            else: target.write_bytes(old); target.chmod(mode)
+        reader = fresh('restored-retry')
+        self.assertEqual(store.publish_forecasts(originals[-1][1],reader.repo,expected_parent=commit,transport=reader),pointer)
+        self.assertEqual(writer.head(),commit)
+
+    def test_prefetched_reader_is_limited_to_the_pinned_tree_and_role_bounds(self):
+        root, remote, writer, pointer, originals, fresh = self.partial_fixture()
+        reader = fresh('role-bounds'); commit = pointer['source_commit']; local = reader.prefetch_tree(commit)
+        for requested,path,limit in ((commit,originals[0][0],float(store.MAX_WIRE)),
+                                     (commit,'latest.json',store.MAX_WIRE),
+                                     ('f'*40,originals[0][0],store.MAX_WIRE),
+                                     (commit,'unknown.enc',store.MAX_WIRE)):
+            with self.subTest(path=path), self.assertRaises(ValueError): local.read(requested,path,limit)
+
+    def test_postprefetch_loss_corruption_and_wrong_remote_cannot_acknowledge(self):
+        root, remote, writer, pointer, originals, fresh = self.partial_fixture()
+        commit = pointer['source_commit']; reader = fresh('post-loss')
+        method = getattr(reader,'prefetch_tree',None)
+        self.assertTrue(callable(method),'current tree has no strict local prefetch reader')
+        local = method(commit)
+        path = originals[0][0]; oid = writer._run(['rev-parse',commit+':'+path]).decode().strip()
+        objects = reader.repo/'.git/objects'; loose = objects/oid[:2]/oid[2:]
+        if loose.exists(): loose.unlink()
+        else:
+            packs = [index for index in (objects/'pack').glob('*.idx')
+                     if any(row.startswith(oid.encode()+b' ') for row in reader._run(['verify-pack','-v',str(index)]).splitlines())]
+            self.assertEqual(len(packs),1)
+            for suffix in ('.pack','.idx','.promisor'): packs[0].with_suffix(suffix).unlink(missing_ok=True)
+        trace = root/'post-loss.jsonl'
+        with patch.dict(os.environ,GIT_TRACE2_EVENT=str(trace)), self.assertRaises(ValueError):
+            local.read(commit,path,store.MAX_WIRE)
+        self.assertEqual(self.selected_fetches(trace),0)
+        # A known Git object ID cannot substitute for the complete inherited
+        # cipher SHA/header validation after prefetch.
+        reader = fresh('corrupt-body'); original = reader._run
+        def changed(args, **options):
+            raw = original(args, **options)
+            return raw[:-1]+bytes([raw[-1]^1]) if 'show' in args and args[-1] == commit+':'+path else raw
+        with patch.object(reader,'_run',side_effect=changed), self.assertRaisesRegex(ValueError,'IMMUTABLE_CIPHER_HASH_INVALID'):
+            store._tree(reader,commit)
+        reader = fresh('wrong-remote')
+        subprocess.run(['git','-C',str(reader.repo),'remote','set-url','origin',(root/'wrong.git').as_uri()],check=True,capture_output=True)
+        with self.assertRaises(ValueError): store._tree(reader,commit)
+        self.assertEqual(writer.head(),commit)
+
     def test_roundtrip_exact_private_payload_and_authenticated_run_round(self):
         payload = invented()
         raw = self.seal(payload)
