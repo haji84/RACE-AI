@@ -1,7 +1,7 @@
 {
   "schema": "RACE_AI_P0_STORAGE_RECOVERY_20261117",
-  "phase": "LIVE_P0_AND_3_ROUNDS_SUCCEEDED_SAFARI_DETAIL_HOLD",
-  "main_sha": "1242ccc97a483d50a3f77cbe9d655952f4ed773d",
+  "phase": "LIVE_P0_4_ROUNDS_AND_NATIVE_MAC_PRIVATE_VIEW_SUCCEEDED_REMAINING_GATES_PENDING",
+  "main_sha": "36088f5d0d2513f88c3a71ae0a1f3e1d1d5a9649",
   "production_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
   "storage_candidate_sha": "67200ef25161a48b49a63d04450b1f11656add5b",
   "unrestored_commits": [
@@ -13,7 +13,15 @@
     "authenticated_login": "haji84",
     "api_claims_push": true,
     "actual_existing_pr_branch_push": true,
-    "branch_protection_read_http_status": 403
+    "branch_protection_read_http_status": 403,
+    "active_main_rules_http_status": 200,
+    "main_requires_pull_request": true,
+    "main_required_status_checks": [
+      "unit"
+    ],
+    "strict_required_status_checks": true,
+    "branch_protection_changed": false,
+    "admin_or_force_bypass_used": false
   },
   "storage_ci": [
     44015412009,
@@ -165,11 +173,11 @@
     "Local Git reproduces hydration at write-tree; same-mechanism historical attribution is not proven",
     "ZIP SHA/size verification is not AES authentication",
     "All-model current head ciphertexts still require complete validation",
-    "Four-sport whole-day coverage, physical Safari, video tracking/calibration/prediction, prospective improvement remain incomplete",
+    "Four-sport whole-day coverage, physical iPhone Safari, video tracking/calibration/prediction, prospective improvement remain incomplete",
     "New P0/P1/RESULT ZIP SHA matches do not prove separate-runner full AES/all-model coverage",
     "Official result long-term retention is HOLD; raw encrypted result artifact exists",
-    "Actual Mac Safari UI test failed; physical iPhone unavailable",
-    "Only 3 of24 rounds complete at observation; whole-day deadline/model coverage not proven"
+    "Only4 of24 rounds complete at observation; full deadline/model coverage and independent new-original AES pending",
+    "Native Mac success uses private loopback saved-view transport; browser AES/owner login, physical iPhone and all8 visual references remain unverified"
   ],
   "source_tree": "47b7a871afda4eddfd8a87d6e3caededaa81879e",
   "bootstrap_ci": [
@@ -208,7 +216,7 @@
     "status": "failure",
     "reason": "INDEPENDENT_ALL_MODEL_REPLAY_NOT_AVAILABLE"
   },
-  "observed_at": "2026-11-17T05:58:06.652830+00:00",
+  "observed_at": "2026-11-17T06:07:01.830560+00:00",
   "live_recovery": {
     "gate_run_id": 44019424267,
     "gate_job_id": 133825071851,
@@ -228,7 +236,7 @@
     "round02_conclusion": "success",
     "round02_completed_at": "2026-11-17T05:21:47Z",
     "round03_status": "completed",
-    "completed_rounds_at_observation": 3,
+    "completed_rounds_at_observation": 4,
     "observed_job_progress": {
       "id": 133825616165,
       "name": "Existing frozen P0, exhibition P1, separate official results and PDCA",
@@ -265,17 +273,17 @@
         {
           "number": 41,
           "name": "Deadline-ordered five-model round 04",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "started_at": "2026-11-17T05:40:01Z",
-          "completed_at": null
+          "completed_at": "2026-11-17T05:59:18Z"
         },
         {
           "number": 42,
           "name": "Deadline-ordered five-model round 05",
-          "status": "pending",
+          "status": "in_progress",
           "conclusion": null,
-          "started_at": null,
+          "started_at": "2026-11-17T05:59:18Z",
           "completed_at": null
         },
         {
@@ -445,7 +453,10 @@
     "required_new_p1_result_retention_paths_in_successful_rounds": true,
     "round03_conclusion": "success",
     "round03_completed_at": "2026-11-17T05:40:01Z",
-    "round04_status": "in_progress"
+    "round04_status": "completed",
+    "round04_conclusion": "success",
+    "round04_completed_at": "2026-11-17T05:59:18Z",
+    "round05_status": "in_progress"
   },
   "live_artifact_readbacks": [
     {
@@ -528,23 +539,31 @@
     }
   ],
   "native_safari_live": {
-    "run_id": 44026515882,
-    "job_id": 133848050105,
-    "main_sha": "1242ccc97a483d50a3f77cbe9d655952f4ed773d",
-    "runner_os": "macos-15-intel",
-    "status": "failure",
-    "reason": "APP_UI_CHECK_FAILED",
-    "checker_function": "app_checks",
-    "checker_line": 598,
-    "ui_page_errors": 0,
-    "ui_error_module": null,
-    "ui_error_line": null,
-    "ui_visible_page": "page-races",
-    "ui_viewport_width": 390,
-    "requested_viewport_or_iteration_known": false,
-    "desktop_acceptance_verified": false,
+    "run_id": 44028066179,
+    "job_id": 133853102653,
+    "main_sha": "36088f5d0d2513f88c3a71ae0a1f3e1d1d5a9649",
+    "status": "success",
+    "native_browser": {
+      "browserName": "Safari",
+      "browserVersion": "26.6",
+      "platformName": "macOS"
+    },
+    "verified_at": "2026-11-17T06:03:13.933594+00:00",
+    "desktop_private_saved_view_only": true,
     "physical_iphone_verified": false,
-    "final_private_boundary_verified": false
+    "browser_aes_and_owner_login_verified": false,
+    "all_eight_reference_screens_visually_verified": false,
+    "final_private_boundary_verified": true,
+    "actual_inner_widths": [
+      1440,
+      390
+    ],
+    "model_switch_original_comparisons": 4,
+    "native_p1_detail_views": 2,
+    "result_budget_views": 2,
+    "evidence_file": "docs/evidence/boat-native-safari-20261117.json",
+    "native_mac_private_view_verified": true,
+    "full_product_acceptance_verified": false
   },
   "result_retention_live": {
     "artifact_id": 14300389237,
@@ -623,6 +642,25 @@
       "desktop_acceptance_verified": false,
       "physical_iphone_verified": false,
       "final_private_boundary_verified": false
+    },
+    {
+      "run_id": 44026515882,
+      "job_id": 133848050105,
+      "main_sha": "1242ccc97a483d50a3f77cbe9d655952f4ed773d",
+      "runner_os": "macos-15-intel",
+      "status": "failure",
+      "reason": "APP_UI_CHECK_FAILED",
+      "checker_function": "app_checks",
+      "checker_line": 598,
+      "ui_page_errors": 0,
+      "ui_error_module": null,
+      "ui_error_line": null,
+      "ui_visible_page": "page-races",
+      "ui_viewport_width": 390,
+      "requested_viewport_or_iteration_known": false,
+      "desktop_acceptance_verified": false,
+      "physical_iphone_verified": false,
+      "final_private_boundary_verified": false
     }
   ],
   "historical_result_retention_pin": {
@@ -675,11 +713,32 @@
     "existing_pr": 64,
     "tests": 26,
     "independent_tests": 26,
-    "actual_mac_verified": false,
+    "actual_mac_verified": true,
     "native_click_retained": true,
     "js_click_or_state_assignment": false,
     "occluded_target_click_allowed": false,
     "immutable_parser_sha": "761247bee0209e37b1af6b8885e92cad3e9260a5",
-    "mutable_parser_branch_runtime_references": 0
+    "mutable_parser_branch_runtime_references": 0,
+    "candidate_sha": "38d2ed033bd2596c5eae595ad3a6a382bde94ddb",
+    "merged_main_sha": "36088f5d0d2513f88c3a71ae0a1f3e1d1d5a9649",
+    "reviewed_tree_matches": true,
+    "exact_head_checks": 23,
+    "checks_success": 10,
+    "checks_skipped": 13,
+    "real_mac_retry_run_id": 44028066179,
+    "real_mac_retry_status": "success"
+  },
+  "code_verified_main_sha": "36088f5d0d2513f88c3a71ae0a1f3e1d1d5a9649",
+  "initial_heads": {
+    "preserved_checkout": "b4206312594ef84a43c86695dc3d3ec16d1c5ae0",
+    "main": "058ba8c157722c1dc3565f8ca956567e29b95493",
+    "production": "c123b8538006b3189181195bbc91d8f28d216ba5"
+  },
+  "boat_logical_limit_contract": {
+    "MAX_ROUNDS": null,
+    "MAX_SECONDS": null,
+    "SOURCE_LIMIT": null,
+    "ROUND_SOURCE_LIMIT": null,
+    "whole_four_sport_delivery_proven": false
   }
 }

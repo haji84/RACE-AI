@@ -1,3 +1,15 @@
+## 2026-11-17 最新継続: P0復旧と4巡成功、実Mac私有表示操作が成功
+
+確認対象code main36088f5d0d2513f88c3a71ae0a1f3e1d1d5a9649、production eff296f6d54ad4be297d93e32f1ee0d4592ad9e3。
+真正復旧gate44019424267→owner44019591352。P0保管step33と巡回01〜04 success、05中。24巡/全日全件は未完了。
+旧43829249080原本は実別runner AES認証済み。新P0/P1/RESULTの別runner全本文AES/全モデル監査はまだ未確認。
+実Mac Safari44028066179がSafari26.6、実1440/390pxでP1詳細・元Top8比較・結果/予算・最終秘密境界を通過。
+同じ公開配信資産と認証済み原本の私有loopback表示であり、ブラウザAES/本人ログイン・物理iPhone・8画面視覚受入は未確認。
+count証拠はdocs/evidence/boat-native-safari-20261117.json。全4競技/実映像6艇/校正強さ/予想接続/未来改善は未合格。
+未push b7380fe6/daae4c10はUNRESTORED。元b420631 checkoutを保全し、公開原本/本番weights変更0。
+active main rulesはAPI200でPR+unit必須と確認、保護変更やforce/admin bypassなし。最終記録も既存PRを使う。
+最新状況の先頭と統合証拠JSONを優先し、下記の古い時点を現在と取り違えない。
+
 ## 2026-11-17 Safari実390px: JS error0、一覧のままで停止
 
 main1242cccの実Mac44026515882でinnerWidth390/page-races/JS error0、app_checks:598。
