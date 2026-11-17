@@ -127,3 +127,10 @@
 4. 独立した別Actions runnerの実SHA読戻し／認証済み本人閲覧HTML実画面の証拠がない。private HTMLのSHAだけで「公開反映成功」とはしない。
 
 **次の実行ゲート**: 保護mainへの統合を本人承認・CI審査の別工程として扱い、既存sourceの有効な実結果とprivate復号が揃った同一松山7Rで Run ID、source revision SHA、原本SHA、暗号世代/commit、別runnerのSHA、本人ブラウザ表示の全5工程を一連で証明してから71Rへ拡張。
+
+
+### 最新監査（暗号原本登録・実Actions配線・未完の扱い）
+- PR #291 実装 HEAD `de2716b1b48cf8495ba33a9d2c6ca590495ebb79`、既存[GitHub Actions Run #44022018439](https://github.com/haji84/RACE-AI/actions/runs/44022018439) は `synthetic-ci` **SUCCESS**。研究ブランチでの実原本**暗号文**バイト/SHA/非平文フラグ確認 + 合成秘密鍵による復号/改ざん拒否/非公開0600一時展開の10回帰が PASS。
+- 既存producerへの暗号RSA取り込みstepは**PR上で配線済み**。同Runでは `github-hosted-pr71-cycle`、`independent-cloud-readback`、`config_readiness` が **SKIPPED**。mainに入っていないコードに本番秘密鍵を渡す試みや、CI成功を本番復号完了と宣言することはない。
+- GitHub `state/keirin-encrypted-history` の `state/keirin/pr71-production/v1/latest.json` は現時点でNOT_FOUND。`state/keirin/v1/latest.json` にある世代は `mode=synthetic` であり、本物の予想/照合保存成功と扱わない。
+- **5工程実レース合格 0/5、HOLDを維持。** どの工程も同じ実Run IDと松山7R結果ソースの認証・正式締切・予想時点が結びついていないため、71Rへの展開禁止。優先順位は ①main適用の正規審査 ②本番RSA Secretの存在/鍵一致（本文不要） ③結果V3取り込みの出典・許可・取得Run確認 ④手動研究用の適切な暗号stateと別runner読戻しの設計/証明 ⑤本人向けHTML実画面。既存PR71の本番genesisを捏造しない。
