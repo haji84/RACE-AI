@@ -160,5 +160,57 @@ class RealPreRegisteredSeibuenCohort(unittest.TestCase):
         self.assertFalse(report["real_accuracy_uplift_proven"])
 
 
+class SignedObservedFollowBridge(unittest.TestCase):
+    """Fake signing callbacks are FOR CONTRACT TESTS ONLY, not real proof."""
+
+    def kwargs(self):
+        from tests.test_keirin_observed_follow_admission import fixture
+        return {
+            "context":stage_ctx(),
+            "original":snapshot(),
+            "plans":plans(),
+            "priors":priors(),
+            "athlete_ids_by_car":IDS,
+            "signed_tactical_packets":[fixture()],
+            "line_config":config(),
+            "computed_at":"2026-11-17T11:00:30+09:00",
+            "verify_pr71_original":lambda x:True,
+            "verify_rider_identity":lambda x:True,
+            "verify_owner_source_video":lambda x:True,
+            "verify_roster_id_mapping":lambda x:True,
+            "verify_independent_signed_reviewers":lambda x:True,
+        }
+
+    def test_verified_video_review_packet_connects_to_C_history_but_sparse_HOLD(self):
+        r=bridge.prepare_from_signed_tactical_packets(**self.kwargs())
+        self.assertEqual(r["signed_historical_packets_admitted"],1)
+        self.assertEqual(r["state"],"HOLD")
+        self.assertEqual(r["reason"],"HOLD_NO_ADMITTED_PAIR_WEIGHT_CHANGE")
+        self.assertFalse(r["can_freeze_three_arm"])
+
+    def test_refuse_synthetic_signature_without_external_validator(self):
+        args=self.kwargs()
+        args["verify_independent_signed_reviewers"]=None
+        r=bridge.prepare_from_signed_tactical_packets(**args)
+        self.assertEqual(r["state"],"HOLD")
+        self.assertEqual(
+            r["reason"],"HOLD_HISTORICAL_VIDEO_OR_SIGNED_REVIEW_NOT_VERIFIED")
+
+    def test_repeat_signed_packet_not_inflated_as_more_historical_events(self):
+        args=self.kwargs()
+        args["signed_tactical_packets"]*=2
+        r=bridge.prepare_from_signed_tactical_packets(**args)
+        self.assertEqual(r["reason"],"DUPLICATED_SIGNED_TACTICAL_HISTORY_LABEL")
+
+    def test_public_racecard_is_not_signed_real_follow_observation(self):
+        args=self.kwargs()
+        args["signed_tactical_packets"]=[{
+            "race_id":"202611098402","expected_line_cars":[5,3,6],
+            "tactical_follow_outcome":"HELD"}]
+        r=bridge.prepare_from_signed_tactical_packets(**args)
+        self.assertEqual(
+            r["reason"],"HOLD_HISTORICAL_VIDEO_OR_SIGNED_REVIEW_NOT_VERIFIED")
+
+
 if __name__=="__main__":
     unittest.main()
