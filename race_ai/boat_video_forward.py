@@ -191,7 +191,8 @@ def _verify_fit(pair, mapping):
                             if race in media_by_race}
         _need(not train_media & validation_media, 'TRAIN_VALIDATION_MEDIA_OVERLAP')
         _need(pair['models'] == _model_pins(control, challenger), 'MODEL_VERSION_PINS')
-        _need(all(control['models'][mid]['model_version'] == '0.2.0-FITTED-SHADOW' and
+        _need(all(control['models'][mid]['model_version'] in (
+                      '0.2.0-FITTED-SHADOW', '0.2.0-FITTED-SHADOW-ACTIVE-ROSTER') and
                   challenger['models'][mid]['model_version'] == video.MODEL_VERSION
                   for mid in native.MODEL_IDS), 'MODEL_VERSION')
     else:
@@ -216,7 +217,8 @@ def fit_matched(rows, observations, video_contexts, event_map_context, *, now,
     cutoffs = {row['race_id']: row['cutoff_at'] for row in rows}
     _need(set(video_contexts) <= set(cutoffs), 'FOREIGN_TRAINING_VIDEO')
     for row in rows:
-        _need(row['model_id'] in native.MODEL_IDS and len(row['roster']) == 6, 'SIX_BOAT_EXISTING_HISTORY')
+        _need(row['model_id'] in native.MODEL_IDS and 3 <= len(row['roster']) <= 6,
+              'ACTIVE_ROSTER_EXISTING_HISTORY')
     for outcome in observations:
         _need(outcome['race_id'] in cutoffs, 'FOREIGN_TRAINING_RESULT')
         _official_result(outcome, cutoffs[outcome['race_id']])
@@ -286,7 +288,7 @@ def _predictions(study, pair, snapshot, envelope, *, verifier, allow_source):
     native._validate(snapshot)
     race = official_id(snapshot['race_id'])
     _need(snapshot['stage'] == 'P1' and snapshot['scope'] == 'OPERATOR_SUPPLIED_RESEARCH' and
-          len(snapshot['participants']) == 6 and race in study['targets'], 'REGISTERED_SIX_BOAT_P1_REQUIRED')
+          race in study['targets'], 'REGISTERED_ACTIVE_ROSTER_P1_REQUIRED')
     target = study['targets'][race]
     roster = {str(p['lane']): p['registration_no'] for p in snapshot['participants']}
     _need(target['cutoff_at'] == snapshot['sales_cutoff_at'] and
@@ -339,7 +341,7 @@ def forecast(study_context, snapshot, video_context, *, record_reader,
 
 def _settlement_row(prediction, snapshot):
     ranked = [r['combination'] for r in prediction['candidates']]
-    rank_check(ranked, prediction['ordered_top8'])
+    rank_check(ranked, prediction['ordered_top8'], lanes=[p['lane'] for p in snapshot['participants']])
     return dict(race_id=prediction['race_id'], stage='P1', model_id=prediction['model_id'],
         cutoff_at=snapshot['sales_cutoff_at'], top8=prediction['ordered_top8'], ranked=ranked,
         roster={str(p['lane']): p['registration_no'] for p in snapshot['participants']})
