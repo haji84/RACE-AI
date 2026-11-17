@@ -69,6 +69,19 @@ def compare_three(*, original, line_study, round_receipt, line_receipt,
         return _hold(rid,"LINE_CONDITIONING_PROVENANCE_OR_LINEAGE_MISMATCH")
     if not _verified(verify_video_labels,line_study):
         return _hold(rid,"LINE_HISTORY_INDEPENDENT_READER_UNAVAILABLE")
+    # The model must have computed its line-conditioned weights BEFORE
+    # the sealed candidate receipt was persisted. A file SHA alone cannot
+    # authenticate inference timing; the trusted readback must confirm it.
+    try:
+        computed=stage._timestamp(m.get("computed_at"))
+        saved_line=stage._timestamp(line_receipt.get("saved_at"))
+        cutoff=stage._timestamp(event_context["official_cutoff_at"])
+        asof=stage._timestamp(event_context["as_of"])
+        if not (asof <= computed <= saved_line and
+                (cutoff-computed).total_seconds() >= 65):
+            return _hold(rid,"LINE_MODEL_COMPUTED_AFTER_FREEZE_OR_CUTOFF")
+    except (stage.RoundError,TypeError,ValueError,KeyError,AttributeError):
+        return _hold(rid,"LINE_MODEL_COMPUTED_TIME_MISSING")
     first=paired.compare(
         original=original,candidate=before,
         original_receipt=original_receipt,candidate_receipt=round_receipt,
