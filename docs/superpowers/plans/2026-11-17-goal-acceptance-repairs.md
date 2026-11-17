@@ -108,3 +108,9 @@ All remote integration and real acceptance boxes above remain open until their a
 - Source f43bde4c merged PR107 with5 checks/tree verification. Main future pin candidate keeps current eff audit/Safari/receipts distinct from new dispatch authority.
 - Actual Mac44063729583 passed40 unit tests then failed new session; no browserAES acceptance. Bounded public protocol diagnostics and finite JSON checks are under review.
 - Genuine saved-view failures are same-source/data/finish reason-only conflicts. A separate conservative sidecar union repair is being tested locally; no settlement conflict relaxation or source forgery.
+
+## Final review before next-source PR163 (2026-11-17)
+
+- Combined main source-pin and bounded Safari diagnostics selection:138 tests passed. Independent pin review:85 tests,29 actual workflow-expression cases,6 additional counter/proof/active-owner refusals. Source f43 contract was inspected directly; old eff is receipt provenance only.
+- Independent Safari review found JSON exponent overflow could become infinity. Author reproduced it through actual loopback HTTP; finite parse_float guard now refuses±1e400 direct/nested.50 focused tests and7 additional reviewer loopback probes passed, including ordinary finite sessions. Startup configuration is unchanged; actual Mac failure remains unknown.
+- Explicitly licensed Nesnad clip provenance is Commons CC BY-SA4.0. Additional Commons still references by cake6 (Amagasaki-kyotei-04.jpg and07.jpg, CC BY-SA3.0) show six boats/course features only as static reference candidates; no continuous tracking or surveyed metric evidence is inferred.
