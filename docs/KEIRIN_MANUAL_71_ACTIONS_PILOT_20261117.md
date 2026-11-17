@@ -51,3 +51,26 @@
 - 既存PR: https://github.com/haji84/RACE-AI/pull/291
 - Synthetic-ci run: https://github.com/haji84/RACE-AI/actions/runs/44013678282 （SUCCESS、実結果アクセスではない）
 - 既存業務に影響するcodeはDraft PR内。保護main・古い予想・4競技共通のモデル重み・Secrets・発注・自動投票を変更していない。
+
+## 2026-11-17 午後：オーナー再確定の5工程と実行証拠ゲート
+
+対象：**松山7R（202611177507 / manual 75-07）**。全71レースへ広げる前の受入条件は同一レースの **①実結果取得 → ②元予想との照合 → ③AES暗号保存 → ④別runnerで独立SHA読戻し → ⑤本人が閲覧できるHTML実画面反映**。5工程がすべて実Run ID・証拠SHA・実日時で揃うまでは **HOLD**。
+
+### 今回追加した既存Actions内の検査機能
+- `race_ai/keirin_manual71_live_evidence.py`：5段階の個別 PASS/HOLD と原因を記録する source-free ゲート。実結果ソースの真正性は別の信頼された認証関数の結果がなければ PASS にしない。単に第三者Webに結果が見えたこと、サマリーの `official=true`、SHAを入力したことでは認証しない。
+- `race_ai/keirin_manual_71_actions_bridge.py`：元V3予想SHA、認可済み結果改訂SHA、監査レコード集合のSHA、閲覧HTMLのSHAを**暗号化SQLite内の同一レース証拠列**として結ぶ。さらに別runner側が復号後の監査行集合とHTML SHAを再計算し、一致しなければ PASS にしない。
+- 既存 `.github/workflows/keirin-pr71-owner-autonomous.yml` の **新ジョブを作らず** 既存 producer ジョブの非機密メタデータを既存 independent-cloud-readback ジョブへ渡し、実読戻し後に5工程の PASS/HOLD を GITHUB_STEP_SUMMARY へ出す。原本の車番・購入額・払い戻し金額・HTML本文を公開出力しない。異なる job が実際に起動した事実と暗号世代・監査行集合SHAが一致する必要がある。
+- `tests/test_keirin_manual71_live_evidence.py`：合成データで「出所未確認」「異なるジョブでない」「異なる保存世代」「別レース結果」「別改訂」「別runnerで異なる行集合SHA」「ブラウザを開いたと書いただけ」では合格しないことを検査する。**合成fixtureの全条件PASSは実レースの合格証拠ではない。**
+- 本番ジョブは main 上でしか秘密鍵/実プロバイダー入力を使わない。PR #291 は Draftのまま。ブランチ上のCI成功は本番稼働を意味しない。
+
+### 現在HOLDの理由
+1. 私有V3/比較V2/分類HTML/元HTMLの4原本が Actions に**正当な非公開経路で入力された証拠なし**。手元ファイルSHAは既存本文記載のとおり。公開リポジトリへ平文をコミットしない。
+2. 認可された実V3結果提供で松山7Rの公式結果・同着/返還/改訂を自動取得した Actions Run ID がない。公開ページとのチャット照合は参考のみ。403/429回避や未許可の第二取得元を追加しない。
+3. 現行PR71 stateは真の4モデル事前予想を含むAES genesisがある前提。これが無い状態から手動71Rを理由にモデル原本を後付け作成しない。
+4. private HTML byte blobは暗号保存されるが、**認証済み本人向けサイトで開いて画面内容を独立確認した証拠がない**。SHAが一致しても表示成功とは呼ばない。
+5. `PILOT` ブランチ上の新コード・CIを main へ保護ルール無視で統合しない。新サービス/課金/Secrets/自動投票は追加しない。
+
+### 本番合格レポートに必ず残す項目
+同じレースID、当日の出走条件・締切原本、予想各版の作成/保存時刻、予想SHA、結果ソース/改訂SHAと取得Run ID、照合監査SHA、AES世代/commit/cipher SHA、**独立readerのjob IDと復号監査集合SHA**、実HTMLの認証閲覧記録/表示SHA/閲覧job ID、各工程のPASS/HOLD/FAILと理由。PASSは source とブラウザの独立照合含む全5条件一致時のみ。全71Rへの移行は合格後。
+
+**現時点の完了評価：検査器・証拠連鎖の実装は進展。ただし実レース1件の5工程完走は0件確認。**
