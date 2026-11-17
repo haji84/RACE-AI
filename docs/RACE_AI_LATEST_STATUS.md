@@ -1,3 +1,36 @@
+## 2026-11-17 最終継続記録: P0復旧後4巡成功、Mac Safari1440/390pxの私有表示操作が成功
+
+**確認対象code**: main36088f5d0d2513f88c3a71ae0a1f3e1d1d5a9649、production eff296f6d54ad4be297d93e32f1ee0d4592ad9e3。
+元checkout b420631/branch workはcleanのまま保全。公開GitHub readとhaji84の正規認証を別に確認し、
+既存branch実push/通常PR mergeも成功。旧protection API403とは別にactive rules API200でPR+unit必須を確認。
+保護設定変更・force/--admin・新PR・追加課金・投票・本番weights切替・公開配信asset変更は0。
+未push b7380fe6a377e6ccf2b96331f2126c52549bbe17 / daae4c10167224b7730006d8ada5ade398aaa64b は
+GitHub/ローカルobjectから取得できずUNRESTORED。元環境のローカル変更を移転/復元済みとはしない。
+
+**P0最優先**: 旧43829249080はP0保管failure/24巡skipの履歴を保持し、別runnerで原本AES/公開counter一致を認証済み。
+Gitの全履歴fetch・promised blob tree作成を修正し、保存済みbootstrapの同一原本sidecar照合も修正した。
+真正gate44019424267がGET0/新予想0で3原本を復旧し、後継44019591352を起動。
+後継の旧停止箇所step33と巡回01〜04がsuccess（04終了05:59:18 UTC）。巡回05実行中。
+新P0/P1/RESULTの暗号ZIPを取得しrun/head/サイズ/SHA照合。新原本の別runner全本文AES/全モデル分母監査は未確認。
+24巡完走、全レース締切15〜10分前充足、全4競技×適用可能全モデルの全日自動生成/結果照合は未合格。
+BOAT論理巡回・総GETの固定上限Noneは保持し、403/429や未検証sourceの拒否を緩めていない。
+
+**実Mac Safari**: run44028066179/job133853102653、Safari26.6/macOSで06:03:13 UTCにsuccess。
+実innerWidth1440/390の両方、保存Top8比較4回、P1詳細2画面、結果/予算2画面を通過。
+認証view generation409、当日結果49、native P1 groups9を使用。これらの数を全14モデル/全日達成の分母にはしない。
+鍵のURL/リクエスト/storage露出false、外部通信許可0、公式GET0、予想/結果変更false。
+公開f60308efの同一配信資産とPythonで認証済み原本を、私有loopback経路で確認した。
+ブラウザ内AES/本人ログイン・物理iPhone・8参考画面の全視覚受入はfalse/未確認。
+失敗したMac試験/候補機構も履歴に保全。26ローカル境界試験/独立26件と実Mac成功を区別する。
+[実Mac count証拠](evidence/boat-native-safari-20261117.json)。
+
+**残るgate**: 過去の固定native13559236491はAPI404で未復元、旧長期RESULT保管/前向きplanはHOLD。
+新巡回の必須P1/RESULT Vault経路の成功とは区別する。服色/追跡/校正/接続/学習の既存120件はsuccessだが、
+実映像で6艇を継続識別し、校正した強さを締切前予想へ接続した証拠、元モデルに対する未来改善は未実証。
+次は進行中ownerの自然終了と既存workflow_runの別runner原本/全モデル監査、実機iPhone/ブラウザAES/8画面、
+実映像校正/予想接続、前向き比較を実データで検証する。未確認を合格扱いしない。
+[保管・復旧・未達の統合証拠](evidence/boat-p0-storage-recovery-20261117.json)。以下は各時点の履歴として保全。
+
 ## 2026-11-17: Safari実390pxの一覧残留を確認、クリック対象の保護を追加
 
 実main 1242ccc97a483d50a3f77cbe9d655952f4ed773d（既存PR182、23 checks完了・tree一致）。

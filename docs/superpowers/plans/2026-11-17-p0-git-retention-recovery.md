@@ -20,7 +20,7 @@
 - [x] Apply the reviewed storage repair and synchronize exact live source pins through existing PR70, preserving its proposal history. Never bypass branch protection.
 - [ ] Verify a genuine successor, new encrypted P0/P1 receipts and independent AES readback. Record failures and unknowns separately; no retroactive forecast generation or counter reset.
 - [x] Re-run the existing native Safari proof if ready. Desktop Safari does not satisfy physical iPhone acceptance.
-- [ ] Prepend actual SHAs, runs, test evidence and remaining four-sport/video/prospective gates to the latest status and handoff.
+- [x] Prepend actual SHAs, runs, test evidence and remaining four-sport/video/prospective gates to the latest status and handoff.
 
 ## Review focus
 
@@ -59,3 +59,5 @@ Actual Mac44023534099 again failed at app_checks:564/budget. The embedded Comman
 Actual Mac44024956057 failed at app_checks:559/outlook element lookup, viewport unknown. It does not establish budget fix success or failure. PR182 adds bounded visibility wait and failure-only public module/line, page id, numeric viewport/error counts. Delayed-element RED then23 tests GREEN; corrected budget fixture's clock for the added lookup wait. Independent23 tests/no blockers. Source owner round03 succeeded05:40:01 UTC,04 active; no local owner key, new model, public asset deployment or producer restart.
 
 Actual Mac44026515882: innerWidth390, page-races, JS errors0, app_checks:598. Requested viewport/iteration is not in the old report, so do not infer desktop-loop/budget completion. Candidate visible-click helper scrolls to center and requires its clipped center hit-test to identify the actual element/descendant before native click; blocked targets get no click. Native options unchanged, budget/pagination share protection.26 tests and independent26 passed; real Mac pending. Existing PR64 reused with immutable761 parser ancestry preserved and no mutable runtime branch references. No public product assets, source pin or weights changed.
+
+Actual Mac44028066179/job133853102653 SUCCESS06:03:13Z on main36088f5d (reviewed38d2 tree match,23 CI checks complete). Safari26.6, actual1440/390 widths,4 model comparisons,2 P1/detail and2 result/budget views, final private boundary verified. Public assets unchanged; private loopback transport means browser AES/login, physical iPhone and8-screen visual acceptance remain false. Count-only report saved independently from authenticated job log. Owner rounds01〜04 success,05 active. Active main rules API200 confirms PR+unit required; classic protection endpoint403 retained as separate historical observation. Final status uses an existing docs PR, no new PR or guard bypass.
