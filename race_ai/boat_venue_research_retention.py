@@ -15,8 +15,9 @@ import re
 import stat
 
 from .boat_pdca_state import state_key
-from .boat_venue_learning_handoff import FILES, publish_learning_candidate
-from .boat_venue_history_handoff import GitStateRepository, PREFIX, TRANSFER_REF
+from .boat_venue_learning_handoff import FILES, publish_learning_candidates
+from .boat_venue_history_handoff import PREFIX, TRANSFER_REF
+from .boat_private_original_vault import VaultGitRepository as GitStateRepository
 from .boat_venue_dataset import _bytes, _sha
 from .boat_venue_research_receipt import MAX_ARCHIVE_BYTES, verify_private_p1_artifact
 from .all_existing_model_receipt import verify_private_pairs_artifact
@@ -34,6 +35,7 @@ def _need(ok, reason):
 
 ARCHIVE_FILES = {'archive.zip': MAX_ARCHIVE_BYTES, 'metadata.json': 32*1024}
 REMOTE_ARCHIVE_FILES = dict(ARCHIVE_FILES, **{'manifest.json': 32*1024})
+MAX_SOURCE_BATCH_BYTES = 128 * 1024 * 1024
 
 
 def _folders(values, *, files=FILES):
@@ -94,10 +96,8 @@ def retain_private_research(folders, repo, *, token=None):
     _need(type(token) is str and re.fullmatch('[A-Za-z0-9_.-]{20,512}', token),
           'GITHUB_TOKEN_REQUIRED')
     roots = _folders(folders)
-    pointers = []
     with _git_auth(token):
-        for root in roots:
-            pointers.append(publish_learning_candidate(root, repo))
+        pointers = publish_learning_candidates(roots, repo) if roots else []
     return dict(status='OWNER_PRIVATE_RESEARCH_RETENTION_VERIFIED',
                 requested_folders=len(folders), retained_folders=len(roots), pointers=pointers,
                 plaintext_published=False, production_promoted=False)
@@ -140,10 +140,11 @@ def _source_intake(root, now, key):
     # Keep descriptors rather than every archive's potentially 64 MiB bytes.
     # Each exact archive is read once more and hash-bound before publication.
     return dict(root=root, archive_sha256=_sha(raw), metadata_sha256=_sha(metadata_raw),
+                archive_size_bytes=len(raw), metadata_size_bytes=len(metadata_raw),
                 manifest=manifest, artifact_id=metadata['id'])
 
 
-def retain_private_source_archives(archives, repo, *, token=None, now=None):
+def retain_private_source_archives(archives, repo, *, token=None, now=None, readback_transport=None):
     """Append original ciphertext ZIPs and cached actual metadata on TRANSFER_REF.
 
     Cached metadata must be the caller's actual GitHub response. Every archive
@@ -158,40 +159,27 @@ def retain_private_source_archives(archives, repo, *, token=None, now=None):
     _need(type(now) is datetime and now.utcoffset() is not None, 'AWARE_CLOCK_REQUIRED')
     roots = _folders(archives, files=ARCHIVE_FILES)
     records = [_source_intake(root, now, key) for root in roots]
-    pointers = []
+    from .boat_research_batch import publish_immutable_items
+    items = []
+    for record in records:
+        prefix = PREFIX+'research-archives/'+record['archive_sha256']+'/'
+        items.append({
+            prefix+'archive.zip': (record['root']/'archive.zip', ARCHIVE_FILES['archive.zip'],
+                                  record['archive_size_bytes'], record['archive_sha256']),
+            prefix+'metadata.json': (record['root']/'metadata.json', ARCHIVE_FILES['metadata.json'],
+                                    record['metadata_size_bytes'], record['metadata_sha256']),
+            prefix+'manifest.json': record['manifest']})
     with _git_auth(token):
-        git = None
-        for record in records:
-            raw = _read(record['root']/'archive.zip', ARCHIVE_FILES['archive.zip'])
-            metadata_raw = _read(record['root']/'metadata.json', ARCHIVE_FILES['metadata.json'])
-            _need(_sha(raw) == record['archive_sha256'] and _sha(metadata_raw) == record['metadata_sha256'],
-                  'SOURCE_CHANGED_AFTER_AUTHENTICATION')
-            if git is None:
-                git = GitStateRepository(repo, ref=TRANSFER_REF)
-                _need(getattr(git, 'ref', None) == TRANSFER_REF, 'TRANSFER_REF_REQUIRED')
-            parent = git.head()
-            _need(type(parent) is str and re.fullmatch('[a-f0-9]{40}', parent), 'EXISTING_TRANSFER_REF_REQUIRED')
-            git.fetch(parent)
-            prefix = PREFIX+'research-archives/'+record['archive_sha256']+'/'
-            files = {'archive.zip': raw, 'metadata.json': metadata_raw, 'manifest.json': record['manifest']}
-            additions = {}
-            for name, body in files.items():
-                path = prefix+name
-                if git.exists(parent, path):
-                    _need(git.read(parent, path, REMOTE_ARCHIVE_FILES[name]) == body, 'SOURCE_IMMUTABLE_FILE_CHANGED')
-                else:
-                    additions[path] = body
-            commit = parent
-            if additions:
-                commit = git.commit(additions, parent)
-                _need(type(commit) is str and re.fullmatch('[a-f0-9]{40}', commit), 'SOURCE_COMMIT_INVALID')
-                git.push(commit, parent); git.fetch(commit)
-            for name, body in files.items():
-                _need(git.read(commit, prefix+name, REMOTE_ARCHIVE_FILES[name]) == body, 'SOURCE_REMOTE_READBACK_MISMATCH')
-            pointers.append(dict(schema='RACE_AI_PRIVATE_SOURCE_ARCHIVE_INPUT_V1', status='READY',
-                repository_id='1416489937', source_commit=commit, source_artifact_id=record['artifact_id'],
-                archive_path=prefix+'archive.zip', archive_sha256=record['archive_sha256'],
-                metadata_path=prefix+'metadata.json', metadata_sha256=record['metadata_sha256'],
-                manifest_path=prefix+'manifest.json', manifest_sha256=_sha(record['manifest'])))
+        git = GitStateRepository(repo, ref=TRANSFER_REF) if records else None
+        commits = publish_immutable_items(items, repo, maximum_bytes=MAX_SOURCE_BATCH_BYTES,
+            transport=git, readback_transport=readback_transport)
+    pointers = []
+    for record, commit in zip(records, commits):
+        prefix = PREFIX+'research-archives/'+record['archive_sha256']+'/'
+        pointers.append(dict(schema='RACE_AI_PRIVATE_SOURCE_ARCHIVE_INPUT_V1', status='READY',
+            repository_id='1416489937', source_commit=commit, source_artifact_id=record['artifact_id'],
+            archive_path=prefix+'archive.zip', archive_sha256=record['archive_sha256'],
+            metadata_path=prefix+'metadata.json', metadata_sha256=record['metadata_sha256'],
+            manifest_path=prefix+'manifest.json', manifest_sha256=_sha(record['manifest'])))
     return dict(status='OWNER_PRIVATE_SOURCE_ARCHIVES_RETENTION_VERIFIED', requested_archives=len(archives),
                 retained_archives=len(pointers), pointers=pointers, plaintext_published=False, production_promoted=False)
