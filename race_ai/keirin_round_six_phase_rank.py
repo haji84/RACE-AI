@@ -24,6 +24,10 @@ from . import keirin_round_motivation as round_context
 from .keirin_phase_overlay import STAGES, KNOWN_PR71
 
 SCHEMA = "RACE_AI_KEIRIN_ROUND_SIX_PHASE_SHADOW_V1"
+# Existing owner-generated forecasts can be a separate research parent.
+# This is NOT another PR71 model and never validates a PR71 four-model suite.
+CURRENT_GENERATED_SOURCE = "existing-generated-keirin-research-v3"
+ADMITTED_RESEARCH_ORIGINALS = KNOWN_PR71 | {CURRENT_GENERATED_SOURCE}
 WEIGHTS_SCHEMA = "RACE_AI_KEIRIN_PRE_CUTOFF_STAGE_BRANCH_MASS_V1"
 PHASES = tuple(stage for stage, _ in STAGES)
 ACTIONS = frozenset(("KAMASHI", "YIELD", "TSUPPARI", "FOLLOW_HELD",
@@ -73,11 +77,11 @@ def _lines(snapshot, ctx):
     }, "ORIGINAL_SNAPSHOT_FIELDS_INVALID")
     require(snapshot["race_id"] == ctx["race_id"] and
             snapshot["input_sha256"] == ctx["parent_input_sha256"] and
-            snapshot["baseline_model_id"] in KNOWN_PR71 and
+            snapshot["baseline_model_id"] in ADMITTED_RESEARCH_ORIGINALS and
             round_context._sha(snapshot["baseline_prediction_sha256"]) and
             snapshot["as_of"] == ctx["as_of"] and
             snapshot["official_cutoff_at"] == ctx["official_cutoff_at"],
-            "PR71_ORIGINAL_OR_TIME_NOT_BOUND")
+            "ORIGINAL_SOURCE_OR_TIME_NOT_BOUND")
     order = snapshot["starting_order"]
     require(type(order) is list and len(order) == ctx["race_size"] and
             all(_rider(x) for x in order) and len(set(order)) == len(order),
@@ -270,7 +274,7 @@ def _weights(src, *, goal, scenario_ids, context, snapshot):
 
 def forecast_shadow(*, context, snapshot, plans, priors,
                     independently_verified_parent=None):
-    """An actual six-phase/shadow 3-ren-tan ranking, NOT a formal PR71 forecast.
+    """An actual six-phase/shadow 3-ren-tan ranking, NOT a formal PR71 forecast.\n\n    Parent may be an independently verified owner-generated prediction instead\n    of a still-unavailable four-model suite. Both remain research-only.
 
     Existing before-cutoff original must be checked by a trusted caller;
     callback-based proof cannot independently certify official data by itself.
