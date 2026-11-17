@@ -34,12 +34,43 @@ let browser,server;
   assert.ok((await page.locator('[data-delete-ticket]').first().boundingBox()).height>=44);
   const combo=await page.locator('.ticket-row .combo').first().boundingBox(),amount=await page.locator('.ticket-amount').first().boundingBox();
   assert.ok(combo.x+combo.width<=amount.x,'ticket combination must not overlap the editable amount');
+  await page.locator('.ticket-amount').first().fill('10000000');await page.locator('.ticket-amount').first().press('Tab');
+  assert.equal(await page.locator('.ticket-amount').first().inputValue(),'10000000');
+  // Inspect native text bounds without screenshot, trace or DOM export. The
+  // outer input's scrollWidth does not reveal clipping inside its editor.
+  const nativeAmountBounds=async()=>{
+   const cdp=await context.newCDPSession(page);
+   try{
+    const element=await cdp.send('Runtime.evaluate',{expression:'document.querySelector(".ticket-amount")'});
+    const dom=await cdp.send('DOM.describeNode',{objectId:element.result.objectId,depth:-1,pierce:true});
+    const walk=n=>[n,...[...(n.children||[]),...(n.shadowRoots||[])].flatMap(walk)];
+    const viewport=walk(dom.node).find(n=>n.attributes?.some((v,i,a)=>i%2===0&&v==='id'&&a[i+1]==='editing-view-port'));
+    assert.ok(viewport,'native numeric editing viewport is inspected');
+    const editor=walk(viewport).find(n=>n.nodeName==='DIV'&&!n.attributes?.some((v,i,a)=>i%2===0&&v==='id'&&a[i+1]));
+    assert.ok(editor,'native numeric text editor exists within its viewport');
+    const remote=await cdp.send('DOM.resolveNode',{backendNodeId:editor.backendNodeId});
+    const native=await cdp.send('Runtime.callFunctionOn',{objectId:remote.object.objectId,functionDeclaration:'function(){return {client:this.clientWidth,scroll:this.scrollWidth}}',returnByValue:true});
+    assert.ok(native.result.value.scroll<=native.result.value.client,`${width}px maximum candidate amount clips: ${JSON.stringify(native.result.value)}`);
+    return native.result.value;
+   }finally{await cdp.detach();}
+  };
+  const maximumAmount=await nativeAmountBounds();
   await page.locator('.ticket-amount').first().fill('200');await page.locator('.ticket-amount').first().press('Tab');
   assert.match(await page.locator('#allocation-summary').innerText(),/1,900円/);await page.locator('#confirm-candidates').click();
   assert.match(await page.locator('#confirmation-state').innerText(),/候補確定済み.*実購入ではありません/);
   assert.equal(await page.locator('#record-purchase').isDisabled(),true);
   await page.locator('#reopen-candidates').click();assert.match(await page.locator('#confirmation-state').innerText(),/編集中/);
   await page.locator('[data-delete-ticket]').first().click();assert.equal(await page.locator('.ticket-row').count(),7);
+  await page.locator('[data-sport="horse"]').click();await page.locator('#race-budget').fill('10000000');await page.locator('#race-budget').press('Tab');
+  for(const [id,value] of [['#lane-first','18'],['#lane-second','17'],['#lane-third','16']])await page.locator(id).selectOption(value);
+  await page.locator('#ticket-amount').fill('10000000');await page.locator('#ticket-form button[type="submit"]').click();
+  assert.equal(await page.locator('.ticket-row').count(),1);assert.match(await page.locator('.ticket-row .tag').innerText(),/手入力/);
+  const manualCombo=await page.locator('.ticket-row .combo').boundingBox(),manualAmount=await page.locator('.ticket-amount').boundingBox();
+  assert.ok(manualCombo.x+manualCombo.width<=manualAmount.x,'two-digit manual combination remains separate from maximum amount');
+  const manualText=await page.locator('.ticket-row .combo').innerText();for(const value of ['18','17','16'])assert.ok(manualText.includes(value));
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await nativeAmountBounds();await page.locator('#confirm-candidates').click();assert.equal(await page.locator('#record-purchase').isDisabled(),true);
+  await page.locator('[data-sport="boat"]').click();await page.locator('#race-budget').fill('2000');await page.locator('#race-budget').press('Tab');
   await nav('results');const coverage=await page.locator('#result-coverage').boundingBox(),list=await page.locator('#saved-results-table').boundingBox(),metrics=await page.locator('#saved-result-metrics').boundingBox();
   assert.ok(coverage.y<list.y&&list.y<metrics.y,'trust coverage and individual results precede the full metric grid');
   assert.match(await page.locator('#result-coverage').innerText(),/原本の時刻は変更せず、公式成績には加算しません/);
@@ -69,6 +100,6 @@ let browser,server;
   assert.equal(await page.locator('.audit-codes').evaluate(e=>e.scrollHeight<=e.clientHeight+1&&e.scrollWidth<=e.clientWidth+1),true,'long missing reasons remain readable');
   await page.locator('[data-return-to-race]').click();assert.equal(await page.locator('#prediction-select').inputValue(),'1');
   assert.equal(JSON.stringify(long),original);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.deepEqual(errors,[]);
-  console.log('PASS allocation/results/long controls '+JSON.stringify({width,height,ticket_row_height:Math.round(row.height),trust_before_results:true,results_before_metrics:true}));await context.close();
+  console.log('PASS allocation/results/long controls '+JSON.stringify({width,height,ticket_row_height:Math.round(row.height),maximum_amount_native_bounds:maximumAmount,two_digit_manual_combo:true,trust_before_results:true,results_before_metrics:true}));await context.close();
  }
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(r=>server.close(r));});
