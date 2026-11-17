@@ -1,3 +1,14 @@
+## 2026-11-17 source候補: 結果理由の原本履歴と同期の保全（実view再確認待ち）
+
+既存PR201で同一source/time/status/dataのreason-only原本を追加履歴に保持する候補を検証中。
+着順/払戻/未知field等の相違、未知の新reason・偽sidecarは拒否し、全ての拒否理由がHOLDへ寄与する。
+レビューで見つかったknown alternate再生と後続capture時のanchor欠落を再現修正した。
+作者182Python/14webparser、親153Python/14Node、既存workflow15がsuccess。独立最終レビューと実Actionsは確認中。
+バッチ化で変わったdistinct readback契約に既存MemoryGit fixtureを対応し、3件の旧契約成功/新契約RED→6関連GREENを確認。
+本番の独立読戻しは緩めない。opt-in probe診断の既定/使用時packetは241実frameで元とbyte一致、精度/校正の証拠にはしない。
+次の正規workerでは真正AES/control/同日counter/一producerを再確認し、原本・本番weights・公開assetsを保全する。
+全日4競技/T15〜10、実view全件反映、6艇校正/強さ接続、前向き精度改善は未完了。以下は過去時点の記録として残す。
+
 ## 2026-11-17 実復旧失敗の修正: 学習sidecar付きの同一原本照合
 
 main PR70はCI13 success後に通常merge、実HEAD ba309f0227b2c73e9fd0d90ea4f260831d405358。
