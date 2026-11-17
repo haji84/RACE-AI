@@ -229,7 +229,7 @@ jobs:
           python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_variable.py" "$GITHUB_WORKSPACE/scripts/keirin_source_gap_plan.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_owner_inputs.py"
       - name: Owner-authored 71R result comparison and encrypted pilot bridge (no provider GET)
         run: |
-          python -m unittest -v tests.test_keirin_manual_result_sync tests.test_keirin_manual_71_actions_bridge
+          python -m unittest -v tests.test_keirin_manual_result_sync tests.test_keirin_manual_71_actions_bridge tests.test_keirin_manual71_live_evidence
           python -m py_compile race_ai/keirin_manual_71_actions_bridge.py scripts/keirin_cloud_pr71_state.py
       - name: Do not claim synthetic results as live
         run: echo 'Synthetic model and AES tests are not actual real-race prediction evidence.' >> "$GITHUB_STEP_SUMMARY"
@@ -392,6 +392,11 @@ jobs:
       contents: write
     outputs:
       committed: ${{ steps.archive.outputs.committed }}
+      pilot_generation: ${{ steps.archive.outputs.pilot_generation }}
+      pilot_cipher_sha: ${{ steps.archive.outputs.pilot_cipher_sha }}
+      pilot_state: ${{ steps.archive.outputs.pilot_state }}
+      pilot_new_audits: ${{ steps.archive.outputs.pilot_new_audits }}
+      pilot_commit_state: ${{ steps.archive.outputs.pilot_commit_state }}
     env:
       RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
       RACE_AI_KEIRIN_FEED_ENDPOINT: ${{ secrets.RACE_AI_KEIRIN_FEED_ENDPOINT }}
@@ -432,6 +437,23 @@ jobs:
           yes=r["state"]=="CLOUD_PR71_ENCRYPTED_GIT_HISTORY_READBACK_VERIFIED"
           with open(os.environ["GITHUB_OUTPUT"],"a") as f:
               f.write("committed="+("true" if yes else "false")+"\n")
+          # Public-safe metadata only. Nothing from private original or payouts.
+          with open(os.environ["GITHUB_OUTPUT"],"a") as f:
+              pilot=r.get("manual71_pilot") or {}
+              def safe_token(v):
+                  v=v if isinstance(v,str) else ""
+                  return (v if v.isascii() and len(v)<=120 and
+                          v.replace("_","").isalnum() else "UNKNOWN")
+              f.write("pilot_commit_state="+safe_token(r.get("state"))+"\n")
+              f.write("pilot_state="+safe_token(pilot.get("state"))+"\n")
+              generation=r.get("generation")
+              f.write("pilot_generation="+str(generation if type(generation) is int and generation>=1 else 0)+"\n")
+              audits=pilot.get("new_audits")
+              f.write("pilot_new_audits="+str(audits if type(audits) is int and 0<=audits<=100 else 0)+"\n")
+              cipher=r.get("cipher_sha256")
+              f.write("pilot_cipher_sha="+
+                      (cipher if isinstance(cipher,str) and len(cipher)==64 and
+                       all(c in "0123456789abcdef" for c in cipher) else "")+"\n")
           safe={k:r.get(k) for k in ("state","generation","source_state","new_forecast_stage_nonzero","existing_pdca_invoked","result_rows_appended","result_rows_held","four_model_variable_saved","four_model_variable_held","missing_source_config_keys","owner_source_acquisition","manual71_pilot","official_result_independently_authenticated")}
           print(json.dumps(safe,ensure_ascii=False,sort_keys=True))
           with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
@@ -485,6 +507,49 @@ jobs:
                   "15min_model_result_pairs_proven":live["model_result_pairs_proven"],
                   "15min_holds_by_reason":live["holds"]}
           print(json.dumps(public,sort_keys=True))
+          PY
+      - name: Evaluate actual 5-stage one-race evidence, never infer result or browser verification
+        shell: bash
+        env:
+          PILOT_COMMIT_STATE: ${{ needs.github-hosted-pr71-cycle.outputs.pilot_commit_state }}
+          PILOT_STATE: ${{ needs.github-hosted-pr71-cycle.outputs.pilot_state }}
+          PILOT_NEW_AUDITS: ${{ needs.github-hosted-pr71-cycle.outputs.pilot_new_audits }}
+          PILOT_GENERATION: ${{ needs.github-hosted-pr71-cycle.outputs.pilot_generation }}
+          PILOT_CIPHER_SHA: ${{ needs.github-hosted-pr71-cycle.outputs.pilot_cipher_sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import importlib.util,json,os
+          from pathlib import Path
+          root=Path(os.environ["GITHUB_WORKSPACE"])
+          code=root/"race_ai"/"keirin_manual71_live_evidence.py"
+          spec=importlib.util.spec_from_file_location("manual71_live_gate",code)
+          if not spec or not spec.loader:
+              raise SystemExit("MANUAL71_LIVE_GATE_MODULE_MISSING")
+          module=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          readback=module.load_report(Path(os.environ["RUNNER_TEMP"])/"pr71-readback.json")
+          producer={
+              "state":os.environ.get("PILOT_COMMIT_STATE"),
+              "generation":int(os.environ.get("PILOT_GENERATION") or 0),
+              "cipher_sha256":os.environ.get("PILOT_CIPHER_SHA"),
+              "manual71_pilot":{
+                  "state":os.environ.get("PILOT_STATE"),
+                  "new_audits":int(os.environ.get("PILOT_NEW_AUDITS") or 0),
+                  "official_results_authenticated":False}}
+          summary=module.examine(
+              producer=producer,readback=readback,
+              action_run_id=os.environ.get("GITHUB_RUN_ID"),
+              producer_job_id="github-hosted-pr71-cycle",
+              reader_job_id="independent-cloud-readback",
+              trusted_main=os.environ.get("GITHUB_REF")=="refs/heads/main")
+          print(json.dumps(summary,ensure_ascii=False,sort_keys=True))
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as out:
+              out.write("## Manual71 same-race 5-stage acceptance\n")
+              out.write("Run "+str(summary["production_run_id"])+" / "+summary["overall"]+"\n")
+              for name,state in summary["gates"].items():
+                  out.write(name+": "+state+"\n")
+              out.write("Private HTML SHA does not prove browser render. Source and user-viewer independent verification missing => HOLD.\n")
           PY
       - name: Reconcile all 78 races and four original PR71 models after independent encrypted-state readback
         shell: bash
