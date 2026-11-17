@@ -95,23 +95,32 @@ class RecoveryGateTests(unittest.TestCase):
 
     def test_exact_reviewed_previous_owner_can_recover_under_new_current_dispatch_release(self):
         from unittest.mock import patch
-        args, proof = self.orphan()
-        previous='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
-        args['history']['workflow_runs'][0]['head_sha']=previous
-        proof['repairs'][0]['original_head_sha']=previous
-        proof['history_sha256']=contract.history_digest(args['history']['workflow_runs'])
-        current='e'*40
-        proof['head_sha']=current
-        args['release']['object']['sha']=current
-        with patch.object(base,'RELEASE_SHA',current):
-            self.assertTrue(gate.decide(**args,recovery_proof=proof)['dispatch_allowed'])
-            args['release']['object']['sha']=previous
-            self.assertFalse(gate.decide(**args,recovery_proof=proof)['dispatch_allowed'])
-            args['release']['object']['sha']=current
-            args['history']['workflow_runs'][0]['head_sha']='d'*40
-            proof['repairs'][0]['original_head_sha']='d'*40
-            proof['history_sha256']=contract.history_digest(args['history']['workflow_runs'])
-            self.assertFalse(gate.decide(**args,recovery_proof=proof)['dispatch_allowed'])
+        previous_eff='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+        for previous,current in (('84128e0ec8bd9fe3da64ad49f74b8511b07e72be','e'*40),
+                                 (previous_eff,'e'*40),(previous_eff,base.RELEASE_SHA)):
+            with self.subTest(previous=previous,current=current):
+                args, proof = self.orphan()
+                args['history']['workflow_runs'][0]['head_sha']=previous
+                proof['repairs'][0]['original_head_sha']=previous
+                proof['history_sha256']=contract.history_digest(args['history']['workflow_runs'])
+                proof['head_sha']=current
+                args['release']['object']['sha']=current
+                before=deepcopy((args,proof))
+                with patch.object(base,'RELEASE_SHA',current):
+                    decision=gate.decide(**args,recovery_proof=proof)
+                    self.assertTrue(decision['dispatch_allowed'])
+                    self.assertEqual(decision['release_sha'],current)
+                    self.assertEqual((args,proof),before)
+                    old_proof=deepcopy(proof);old_proof['head_sha']=previous
+                    self.assertFalse(gate.decide(**args,recovery_proof=old_proof)['dispatch_allowed'])
+                    args['release']['object']['sha']=previous
+                    self.assertEqual(gate.decide(**args,recovery_proof=proof)['status'],
+                                     'HOLD_RELEASE_SHA_MISMATCH')
+                    args['release']['object']['sha']=current
+                    args['history']['workflow_runs'][0]['head_sha']='d'*40
+                    proof['repairs'][0]['original_head_sha']='d'*40
+                    proof['history_sha256']=contract.history_digest(args['history']['workflow_runs'])
+                    self.assertFalse(gate.decide(**args,recovery_proof=proof)['dispatch_allowed'])
 
     def test_zero_round_recovery_preserves_prior_same_day_owner_usage(self):
         original=self.proof['repairs'][0]['original_control']

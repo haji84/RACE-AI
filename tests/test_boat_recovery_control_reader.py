@@ -38,4 +38,20 @@ class GitHubCLI:
         with patch.object(base,'RELEASE_SHA','0'*40):
             with self.assertRaises(ValueError):gate.read_pinned_control({'id':99},reader_root=self.root)
 
+    def test_reviewed_eff_origin_never_substitutes_for_current_reader_checkout(self):
+        previous='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+        with patch.object(base,'RELEASE_SHA','e'*40), \
+             patch.object(gate.subprocess,'check_output',return_value=previous.encode()), \
+             patch.object(gate.subprocess,'run') as child:
+            with self.assertRaisesRegex(ValueError,'RECOVERY_PINNED_CONTROL_UNAVAILABLE'):
+                gate.read_pinned_control({'id':99,'head_sha':previous},reader_root=self.root)
+        child.assert_not_called()
+
+    def test_gate_ci_checks_exact_dispatch_reader_separately_from_audit_reader(self):
+        from scripts import boat_owner_evidence_audit as audit
+        source=(Path(__file__).resolve().parents[1]/'.github/workflows/boat-main-recovery-contract.yml').read_text()
+        gate_job,audit_job=source.split('\n  original_evidence:\n',1)
+        self.assertIn('ref: '+base.RELEASE_SHA+', path: boat-owner-reader',gate_job)
+        self.assertIn('ref: '+audit.OWNER_SHA+', path: boat-owner-reader',audit_job)
+
 if __name__=='__main__':unittest.main()

@@ -68,7 +68,8 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
 
     def test_reviewed_previous_release_completion_is_bound_to_the_actual_history(self):
         for previous in ('84128e0ec8bd9fe3da64ad49f74b8511b07e72be',
-                         'b491fb21ce58ba085dd8f54bb7326442b840d8f4'):
+                         'b491fb21ce58ba085dd8f54bb7326442b840d8f4',
+                         'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'):
             with self.subTest(previous=previous):
                 actual=dict(self.run,head_sha=previous)
                 history=dict(total_count=1,workflow_runs=[actual])
@@ -76,6 +77,31 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
                     self.assertTrue(self.trusted(event(actual),hist=history))
                     actual=dict(actual,head_sha='f'*40)
                     self.assertFalse(self.trusted(event(actual),hist=dict(total_count=1,workflow_runs=[actual])))
+
+    def test_exact_eff_completion_selects_new_release_without_rewriting_control(self):
+        previous='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+        current=base.RELEASE_SHA
+        self.assertNotEqual(current,previous)
+        run=dict(self.run,head_sha=previous)
+        original=deepcopy(self.control)
+        args=dict(now=NOW,release=dict(ref='refs/heads/'+base.RELEASE_REF,object=dict(sha=current)),
+            owner_doc=dict(encoding='base64',content=base64.b64encode(base.RELEASE_TOKEN.encode()).decode()),
+            history=dict(total_count=1,workflow_runs=[run]),continuation_proof=original)
+        before=deepcopy(args)
+        with patch.object(base,'RELEASE_SHA',current):
+            self.assertTrue(self.trusted(event(run),hist=args['history']))
+            result=launcher.decide(**args)
+            self.assertTrue(result['dispatch_allowed'])
+            self.assertEqual(result['release_sha'],current)
+            self.assertEqual(args,before)
+            for change in (
+                dict(release=dict(ref='refs/heads/'+base.RELEASE_REF,object=dict(sha=previous))),
+                dict(continuation_proof=None),
+                dict(history=dict(total_count=1,workflow_runs=[dict(run,status='in_progress')])),
+                dict(history=dict(total_count=1,workflow_runs=[dict(run,head_sha='f'*40)])),
+            ):
+                with self.subTest(change=change):
+                    self.assertFalse(launcher.decide(**dict(args,**change))['dispatch_allowed'])
 
     def test_existing_release_push_context_is_genuine_and_bound_to_actual_main_sha(self):
         sha='e'*40
@@ -197,6 +223,34 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
         self.assertIn("github.event.workflow_run.conclusion == 'success'",job)
         self.assertIn("--verify-source-handoff",job)
         self.assertIn("group: boat-main-launcher-source-free",job)
+        self.assertIn('ref: '+base.RELEASE_SHA+'\n          path: boat-owner-reader',job)
+        self.assertIn('--expected-head '+base.RELEASE_SHA,job)
+        dispatch=job.split('- name: Dispatch only the existing owner P0/P1 workflow',1)[1]
+        self.assertIn('--ref production/boat-p0-p1-20261111',dispatch)
+        self.assertNotIn('--ref '+base.RELEASE_SHA,dispatch)
+
+    def test_actual_completion_gates_preserve_exact_current_and_eff_sources(self):
+        import re
+        from types import SimpleNamespace as NS
+        source=(Path(__file__).resolve().parents[1]/'.github/workflows/boat-racer-daily.yml').read_text()
+        heads={base.RELEASE_SHA,'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'}
+        for job in ('original_retention','source_mirror','daily','owner_p0_p1_dispatch'):
+            section=source.split('\n  '+job+':\n',1)[1].split('    runs-on:',1)[0]
+            expression=' '.join(section.split('    if: >-\n',1)[1].split())
+            expression=expression.replace('&&',' and ').replace('||',' or ')
+            expression=re.sub(r'!(?!=)',' not ',expression).strip()
+            for head in sorted(heads|{'f'*40}):
+                github=NS(repository=base.REPO,ref='refs/heads/main',event_name='workflow_run',
+                    event=NS(workflow_run=NS(event='workflow_dispatch',name=base.WORKFLOW,
+                        head_repository=NS(full_name=base.REPO),head_branch=base.RELEASE_REF,
+                        head_sha=head,conclusion='success')))
+                needs=NS(original_readback=NS(result='success'),original_reconcile=NS(result='success'),
+                         source_mirror=NS(result='success'))
+                context=dict(github=github,needs=needs,cancelled=lambda:False,
+                    contains=lambda values,value:value in values,fromJSON=json.loads,
+                    startsWith=lambda value,prefix:value.startswith(prefix))
+                with self.subTest(job=job,head=head):
+                    self.assertEqual(bool(eval(expression,{'__builtins__':{}},context)),head in heads)
 
 
 if __name__=="__main__":
