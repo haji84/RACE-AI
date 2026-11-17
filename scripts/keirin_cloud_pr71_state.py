@@ -446,9 +446,38 @@ def cycle(repo,source_root):
                 if grants is not None else {
                     "results_appended":0,"results_already_present":0,
                     "results_held":0,"no_forecast_backfilled":True})
+            # Existing admitted V3 source, existing AES state, no new HTTP.
+            # User-authored manual 71R originals must be staged privately.
+            manual71={"state":"HOLD_MANUAL71_PRIVATE_ORIGINAL_NOT_PROVISIONED",
+                      "new_audits":0,"official_results_authenticated":False}
+            private_manual_dir=os.environ.get("RACE_AI_KEIRIN_MANUAL71_PRIVATE_DIR")
+            if grants is not None and private_manual_dir:
+                stage_dir=inbox/"licensed_result_rows"
+                if not stage_dir.is_dir():
+                    manual71={"state":"HOLD_NO_ADMITTED_PILOT_RESULT",
+                              "new_audits":0,
+                              "official_results_authenticated":False}
+                else:
+                    try:
+                        import importlib.util
+                        bridge_path=Path(repo)/"race_ai"/"keirin_manual_71_actions_bridge.py"
+                        spec=importlib.util.spec_from_file_location(
+                            "_owner_manual71_aes_bridge",bridge_path)
+                        need(spec is not None and spec.loader is not None,
+                             "MANUAL71_BRIDGE_UNAVAILABLE")
+                        bridge=importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(bridge)
+                        manual71=bridge.attempt_one_race(
+                            db=store.db,repo=repo,source_dir=private_manual_dir,
+                            result_dir=str(stage_dir),
+                            observed_at=store.clock().isoformat())
+                    except (OSError,ValueError,TypeError,KeyError,sqlite3.Error):
+                        manual71={"state":"HOLD_MANUAL71_INPUT_OR_RESULT_REJECTED",
+                                  "new_audits":0,
+                                  "official_results_authenticated":False}
             replay=FourModelRankLedger(store).replay_all()
         after=_pr71_inventory(db)
-        if before is not None and after==before:
+        if before is not None and after==before and manual71["new_audits"]==0:
             return {"state":"CLOUD_PR71_RESTORED_NO_CHANGED_MODEL_OR_RESULT",
                     "originals_preserved":True,"new_forecasts":0,
                     "source_state":status,"owner_source_acquisition":owner_source,
@@ -457,6 +486,7 @@ def cycle(repo,source_root):
                     "four_model_variable_held":variable["four_model_variable_held"],
                     "result_rows_appended":results["results_appended"],
                     "result_rows_held":results["results_held"],
+                    "manual71_pilot":manual71,
                     "official_result_independently_authenticated":False}
         if prior is None and frozen.get("private_four_model_predictions_saved",0)==0:
             return {"state":"HOLD_NOTHING_PRE_CUTOFF_TO_ARCHIVE",
@@ -472,6 +502,7 @@ def cycle(repo,source_root):
                 "four_model_variable_held":variable["four_model_variable_held"],
                 "result_rows_appended":results["results_appended"],
                 "result_rows_held":results["results_held"],
+                "manual71_pilot":manual71,
                 # A configured provider URL and a local licence manifest
                 # are not independently authenticated official results.
                 "official_result_independently_authenticated":False,
@@ -539,9 +570,22 @@ def main(argv=None):
                                       Path(tmp)/"readback.sqlite3")
                 need(head is not None and verified is not None,
                      "PRODUCTION_PR71_CHECKPOINT_NOT_YET_CREATED")
+                # Independently hash-check the private manual audit and HTML
+                # after AES/SQLite restoration on this fresh GitHub runner.
+                import importlib.util
+                bridge_path=Path(args.repo)/"race_ai"/"keirin_manual_71_actions_bridge.py"
+                spec=importlib.util.spec_from_file_location(
+                    "_keirin_manual71_fresh_reader",bridge_path)
+                need(spec is not None and spec.loader is not None,
+                     "MANUAL71_BRIDGE_UNAVAILABLE")
+                bridge=importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(bridge)
+                with sqlite3.connect(Path(tmp)/"readback.sqlite3") as private_db:
+                    manual_readback=bridge.verify_private_archive(private_db)
                 report={"state":"PR71_SEPARATE_GITHUB_RUNNER_AES_GCM_READBACK_OK",
                         "generation":head["generation"],
                         "four_models_and_private_sqlite_verified":True,
+                        "manual71_pilot_readback":manual_readback,
                         "live_15min":audit_prospective_window_from_independent_archive(
                             Path(tmp)/"readback.sqlite3", args.repo),
                         "plaintext_public":False}
