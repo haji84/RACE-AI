@@ -12,6 +12,7 @@ from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from datetime import datetime, timezone
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.client import HTTPException
 import io
 import json
 import mimetypes
@@ -42,6 +43,16 @@ SYNTHETIC_IDS = tuple('synthetic:2030-01-01:' + sport + ':1'
                       for sport in ('autorace', 'boat', 'horse', 'keirin'))
 VISUAL_PAGES = ('home', 'races', 'detail', 'picks', 'results', 'research', 'settings')
 VISUAL_WIDTHS = (320, 390, 1440, 1920)
+DRIVER_OPERATIONS = frozenset(('start_driver', 'wait_for_driver', 'new_session', 'delete_session',
+    'navigate', 'execute_script', 'get_window_rect', 'set_window_rect', 'element_click',
+    'element_send_keys', 'actions', 'screenshot', 'unknown_command'))
+W3C_ERRORS = frozenset(('session not created', 'invalid session id', 'unknown error', 'unknown command',
+    'unknown method', 'invalid argument', 'unsupported operation', 'timeout', 'script timeout',
+    'no such window', 'no such element', 'stale element reference', 'element click intercepted',
+    'element not interactable', 'javascript error', 'unexpected alert open', 'invalid selector',
+    'move target out of bounds', 'unable to capture screen', 'insecure certificate'))
+DRIVER_RESPONSE_LIMIT = 2 * 1024 * 1024
+DRIVER_ERROR_LIMIT = 64 * 1024
 REASONS = frozenset('''ASSET_HASH_MISMATCH ASSET_FILE_REJECTED ASSET_PATH_REJECTED
 ASSET_MANIFEST_INVALID ASSET_INDEX_INVALID LIVE_PAGES_BYTES_DIFFER NATIVE_MACOS_REQUIRED
 SAFARIDRIVER_REQUIRED SAFARIDRIVER_UNAVAILABLE SAFARI_CAPABILITIES_INVALID
@@ -54,6 +65,15 @@ SYNTHETIC_SCREENSHOT_REJECTED SYNTHETIC_OUTPUT_REJECTED'''.split())
 
 class SafariHold(ValueError):
     """A fixed public failure code, never a driver error or private value."""
+
+
+class DriverHold(SafariHold):
+    def __init__(self, reason='SAFARI_WEBDRIVER_FAILED', *, operation='unknown_command',
+                 http_status=None, w3c_error=None, remote_automation_disabled=False):
+        super().__init__(reason)
+        self.operation, self.http_status = operation, http_status
+        self.w3c_error = w3c_error
+        self.remote_automation_disabled = remote_automation_disabled
 
 
 class BudgetHold(SafariHold):
@@ -88,6 +108,15 @@ def sha(raw):
 def failure_report(error):
     reason = str(error) if isinstance(error, SafariHold) and str(error) in REASONS else 'SAFARI_OPERATION_FAILED'
     report={'status': 'NATIVE_SAFARI_ACCEPTANCE_HOLD', 'reason': reason}
+    if isinstance(error, DriverHold):
+        report.update(
+            webdriver_operation=error.operation if type(error.operation) is str and
+                error.operation in DRIVER_OPERATIONS else 'unknown_command',
+            webdriver_http_status=error.http_status if type(error.http_status) is int and
+                100 <= error.http_status <= 599 else None,
+            webdriver_error_code=error.w3c_error if type(error.w3c_error) is str and
+                error.w3c_error in W3C_ERRORS else None,
+            remote_automation_disabled_message_observed=error.remote_automation_disabled is True)
     if isinstance(error, AppHold):
         probe = error.probe if type(error.probe) is dict else {}
         def bounded(name, maximum):
@@ -117,7 +146,7 @@ def failure_report(error):
     for frame in traceback.extract_tb(error.__traceback__):
         if Path(frame.filename).resolve()==Path(__file__).resolve() and frame.name in {
             'main','read_authenticated_view','app_checks','budget','click','_click_visible_element',
-            'open_race','select_day','click_page',
+            'open_race','select_day','click_page','apple_driver','new_session','call','native_identity',
             'verify_model_choice','verify_private_boundary','load_public_assets','verify_live_assets'}:
             report.update(checker_function=frame.name,checker_line=frame.lineno)
     return report
@@ -542,6 +571,56 @@ def verify_live_assets(assets):
     return checked
 
 
+def driver_operation(method, path):
+    """Classify internal W3C routes without returning an ID, URL or parameter."""
+    if type(method) is not str or type(path) is not str:
+        return 'unknown_command'
+    if method == 'POST' and path == '/session':
+        return 'new_session'
+    match = re.fullmatch(r'/session/[A-Za-z0-9-]{1,100}(.*)', path)
+    if not match:
+        return 'unknown_command'
+    suffix = match[1]
+    known = {('DELETE', ''): 'delete_session', ('POST', '/url'): 'navigate',
+             ('POST', '/execute/sync'): 'execute_script', ('GET', '/window/rect'): 'get_window_rect',
+             ('POST', '/window/rect'): 'set_window_rect', ('POST', '/actions'): 'actions',
+             ('GET', '/screenshot'): 'screenshot'}
+    if method == 'POST' and re.fullmatch(r'/element/[A-Za-z0-9-]{1,160}/click', suffix):
+        return 'element_click'
+    if method == 'POST' and re.fullmatch(r'/element/[A-Za-z0-9-]{1,160}/value', suffix):
+        return 'element_send_keys'
+    return known.get((method, suffix), 'unknown_command')
+
+
+def driver_error(operation, http_status=None, value=None):
+    """Extract only public protocol enums and one exact public-message hint."""
+    code = value.get('error') if type(value) is dict else None
+    code = code if type(code) is str and code in W3C_ERRORS else None
+    message = value.get('message') if type(value) is dict else None
+    disabled = type(message) is str and (
+        "You must enable the 'Allow Remote Automation' option in Safari's Develop menu" in message)
+    return DriverHold(operation=operation, http_status=http_status, w3c_error=code,
+                      remote_automation_disabled=disabled)
+
+
+def driver_value(raw, limit):
+    if type(raw) is not bytes or len(raw) > limit:
+        raise ValueError('driver response bound')
+    def unique(pairs):
+        value = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError('driver response duplicate field')
+            value[key] = item
+        return value
+    def invalid_constant(_):
+        raise ValueError('driver response nonfinite number')
+    document = json.loads(raw.decode('utf-8'), object_pairs_hook=unique, parse_constant=invalid_constant)
+    if type(document) is not dict or set(document) != {'value'}:
+        raise ValueError('driver response schema')
+    return document['value']
+
+
 class WebDriver:
     """The Apple W3C endpoint is loopback only; response errors are never exposed."""
     def __init__(self, port):
@@ -551,29 +630,47 @@ class WebDriver:
         self.session = None
 
     def call(self, method, path, body=None):
-        need(isinstance(path, str) and path.startswith('/') and '?' not in path, 'SAFARI_WEBDRIVER_FAILED')
-        request = urllib.request.Request(self.base + path,
-            data=None if body is None else wire(body).encode(), method=method,
-            headers={'Content-Type': 'application/json'})
+        operation = driver_operation(method, path)
+        if not isinstance(path, str) or not path.startswith('/') or '?' in path:
+            raise DriverHold(operation=operation)
+        status = None
         try:
+            request = urllib.request.Request(self.base + path,
+                data=None if body is None else wire(body).encode(), method=method,
+                headers={'Content-Type': 'application/json'})
             with self.opener.open(request, timeout=60) as response:
-                raw = response.read(2 * 1024 * 1024 + 1)
-                need(len(raw) <= 2 * 1024 * 1024, 'SAFARI_WEBDRIVER_FAILED')
-                result = json.loads(raw)['value']
-                need(not isinstance(result, dict) or 'error' not in result, 'SAFARI_WEBDRIVER_FAILED')
-                return result
-        except (OSError, ValueError, KeyError, urllib.error.URLError) as error:
-            if isinstance(error, urllib.error.HTTPError):
+                status = response.status
+                raw = response.read(DRIVER_RESPONSE_LIMIT + 1)
+        except urllib.error.HTTPError as error:
+            status, value = error.code, None
+            try:
+                value = driver_value(error.read(DRIVER_ERROR_LIMIT + 1), DRIVER_ERROR_LIMIT)
+            except (OSError, ValueError, TypeError, HTTPException):
+                pass
+            finally:
                 error.close()
-            raise SafariHold('SAFARI_WEBDRIVER_FAILED') from None
+            raise driver_error(operation, status, value) from None
+        except (OSError, ValueError, TypeError, HTTPException):
+            raise DriverHold(operation=operation, http_status=status) from None
+        try:
+            result = driver_value(raw, DRIVER_RESPONSE_LIMIT)
+        except (ValueError, TypeError):
+            raise DriverHold(operation=operation, http_status=status) from None
+        if status != 200 or isinstance(result, dict) and 'error' in result:
+            raise driver_error(operation, status, result) from None
+        return result
 
     def new_session(self):
         result = self.call('POST', '/session', {'capabilities': {'alwaysMatch': {
             'browserName': 'Safari', 'platformName': 'macOS'}}})
-        need(isinstance(result, dict) and re.fullmatch('[A-Za-z0-9-]{1,100}', result.get('sessionId', '')),
-             'SAFARI_WEBDRIVER_FAILED')
+        if not isinstance(result, dict) or type(result.get('sessionId')) is not str or not re.fullmatch(
+                '[A-Za-z0-9-]{1,100}', result['sessionId']):
+            raise DriverHold(operation='new_session', http_status=200)
         self.session = result['sessionId']
-        return native_identity(result.get('capabilities'))
+        try:
+            return native_identity(result.get('capabilities'))
+        except SafariHold:
+            raise DriverHold('SAFARI_CAPABILITIES_INVALID', operation='new_session', http_status=200) from None
 
     def command(self, method, suffix, body=None):
         need(self.session is not None, 'SAFARI_WEBDRIVER_FAILED')
@@ -670,21 +767,26 @@ def apple_driver():
     with socket.socket() as reservation:
         reservation.bind(('127.0.0.1', 0))
         port = reservation.getsockname()[1]
-    process = subprocess.Popen(['/usr/bin/safaridriver', '--port', str(port)],
-        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        env=driver_environment(os.environ))
+    try:
+        process = subprocess.Popen(['/usr/bin/safaridriver', '--port', str(port)],
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            env=driver_environment(os.environ))
+    except OSError:
+        raise DriverHold('SAFARIDRIVER_UNAVAILABLE', operation='start_driver') from None
     driver = WebDriver(port)
     try:
         ready = False
         for _ in range(100):
-            need(process.poll() is None, 'SAFARIDRIVER_UNAVAILABLE')
+            if process.poll() is not None:
+                raise DriverHold('SAFARIDRIVER_UNAVAILABLE', operation='wait_for_driver')
             try:
                 with socket.create_connection(('127.0.0.1', port), timeout=0.2):
                     ready = True
                     break
             except OSError:
                 time.sleep(0.1)
-        need(ready, 'SAFARIDRIVER_UNAVAILABLE')
+        if not ready:
+            raise DriverHold('SAFARIDRIVER_UNAVAILABLE', operation='wait_for_driver')
         identity = driver.new_session()
         yield driver, identity
     finally:
