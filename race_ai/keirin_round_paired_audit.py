@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from collections import defaultdict
 from hashlib import sha256
+from pathlib import Path
+import os
 import json
 
 from . import keirin_round_motivation as round_context
@@ -163,25 +165,54 @@ def compare(*, original, candidate, original_receipt, candidate_receipt,
     }
 
 
-def make_cohort(*, race_ids, registered_at, candidate_model_version,
-                original_model_id):
+def make_cohort(*, race_ids, registered_at, race_cutoffs,
+                candidate_model_version, original_model_id):
     """Pre-register the entire future denominator BEFORE inspecting results."""
     require(type(race_ids) is list and 1<=len(race_ids)<=1000 and
             len(set(race_ids))==len(race_ids) and
             all(type(x) is str and round_context.ID.fullmatch(x) for x in race_ids),
             "COHORT_FUTURE_RACE_IDS_INVALID")
-    round_context._timestamp(registered_at)
+    when=round_context._timestamp(registered_at)
+    require(type(race_cutoffs) is dict and
+            set(race_cutoffs)==set(race_ids), "COHORT_OFFICIAL_CUTOFF_MANIFEST_REQUIRED")
+    for race_id, deadline in race_cutoffs.items():
+        cutoff=round_context._timestamp(deadline)
+        require((cutoff-when).total_seconds()>=65,
+                "COHORT_MUST_BE_REGISTERED_BEFORE_ALL_CUTOFFS")
     require(type(candidate_model_version) is str and
             1<=len(candidate_model_version)<=80 and
             original_model_id in rounds.KNOWN_PR71,
             "COHORT_MODEL_IDS_REQUIRED")
     value={"schema":COHORT_SCHEMA,"registered_at":registered_at,
            "race_ids":race_ids,
+           "race_cutoffs":race_cutoffs,
            "original_model_id":original_model_id,
            "candidate_model_version":candidate_model_version,
            "model_promotion_allowed":False}
     value["cohort_sha256"]=round_context.digest(value)
     return value
+
+
+def freeze_cohort_once(path, cohort):
+    """Create-only private roster; Git SHA/time witness is a separate live gate."""
+    require(type(cohort) is dict and cohort.get("schema")==COHORT_SCHEMA and
+            cohort.get("cohort_sha256")==round_context.digest({
+                k:v for k,v in cohort.items() if k!="cohort_sha256"
+            }),"COHORT_SHA_MISMATCH")
+    p=Path(path)
+    require(p.parent.is_dir() and not p.parent.is_symlink() and
+            p.parent.stat().st_mode & 0o077 == 0 and
+            not p.exists() and not p.is_symlink(),
+            "COHORT_PRIVATE_CREATE_ONCE_REQUIRED")
+    raw=round_context.canonical(cohort)+b"\n"
+    fd=os.open(p,os.O_WRONLY|os.O_CREAT|os.O_EXCL|
+               getattr(os,"O_NOFOLLOW",0),0o600)
+    with os.fdopen(fd,"wb") as dest:
+        dest.write(raw)
+        dest.flush()
+        os.fsync(dest.fileno())
+    require(p.read_bytes()==raw,"COHORT_PRIVATE_READBACK_CHANGED")
+    return sha256(raw).hexdigest()
 
 
 def summarize(cohort, reports):
@@ -236,6 +267,7 @@ def summarize(cohort, reports):
         "schema":"RACE_AI_KEIRIN_STAGE_PROSPECTIVE_COHORT_AUDIT_V1",
         "cohort_sha256":cohort["cohort_sha256"],
         **overall,
+        "future_cohort_registration_independently_attested":False,
         "real_race_improvement_proven":False,
         "actual_wagers_recorded":False,
     }
