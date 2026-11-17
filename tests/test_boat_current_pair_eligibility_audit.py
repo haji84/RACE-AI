@@ -38,6 +38,7 @@ from tests.test_frozen_day_cycle import observation
 from scripts import boat_owner_active_snapshot_audit as active
 
 SOURCE = active.M2_OWNER_SHA
+RETENTION_SOURCE = 'bb49215034b779ea1493b35dd91e5c3ebfc04032'
 KEY = bytes(range(32))
 FORECAST_NOW = pair_fixture.FORECAST_NOW
 NOW = datetime(2030, 4, 1, 9, 5, tzinfo=timezone.utc)
@@ -342,6 +343,14 @@ class CurrentPairEligibilityTests(unittest.TestCase):
         for options in (dict(run_id=True), dict(expected_owner_sha=True), dict(expected_owner_sha='f'*40)):
             arguments = dict(get=self.get, run_id=99, now=NOW, expected_owner_sha=SOURCE); arguments.update(options)
             with self.subTest(options=options), self.assertRaises(ValueError): audit.audit_current_pairs(**arguments)
+
+
+class RetentionCurrentPairEligibilityTests(CurrentPairEligibilityTests):
+    """The same authored crypto/refusal contracts at the new literal source."""
+    def setUp(self):
+        source=patch.object(sys.modules[__name__],'SOURCE',RETENTION_SOURCE)
+        source.start();self.addCleanup(source.stop)
+        super().setUp()
 
 
 class CurrentPairWorkflowTests(unittest.TestCase):

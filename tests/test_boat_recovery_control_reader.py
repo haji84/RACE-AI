@@ -44,6 +44,9 @@ class GitHubCLI:
     def test_reviewed_m2_origin_never_substitutes_for_current_reader_checkout(self):
         self._assert_historical_checkout_refused('86b029ae5bddd5d4956497d8b32b2c92b8eec521')
 
+    def test_reviewed_f553_origin_never_substitutes_for_current_reader_checkout(self):
+        self._assert_historical_checkout_refused('f55351dce855177a51330f72c37d6238ba2c9e3e')
+
     def _assert_historical_checkout_refused(self,previous):
         with patch.object(base,'RELEASE_SHA','e'*40), \
              patch.object(gate.subprocess,'check_output',return_value=previous.encode()), \

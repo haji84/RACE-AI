@@ -1,0 +1,75 @@
+{
+  "schema": "RACE_AI_MAIN52_FINAL_SCOPE_V2",
+  "observed_at": "2026-11-17T18:53:52Z",
+  "base_main": "6f77923a5d77712b9471f59fe7f3649fb9e3ca1e",
+  "source": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+  "source_tree": "8a97242da13235d3f55f127eb157f514a25d8eca",
+  "source_ci": {
+    "head": "15fc68755e60db3f4e578ef2b8415e4ed909c9eb",
+    "run": 44145608111,
+    "job": 134262269443,
+    "primary_tests": 791,
+    "seconds": 189.401,
+    "actual_merge_tree_equal": true
+  },
+  "final_runtime_scope": [
+    "Exact future owner/source pins with additive strictly scoped historical readback",
+    "Four-field projection before unchanged schedule audit 512000B/100-row guards"
+  ],
+  "native_acceptance_tests": {
+    "expected": 91,
+    "all_original_and_api_cases_preserved": true,
+    "runtime_guard_unchanged": true
+  },
+  "source_pin_independent_static_review": "CLEAR for exact 14-file packet",
+  "intermediate_ci": {
+    "head": "076497e9914a46c0888cfdbf1fa6d6d48536824a",
+    "all_completed": true,
+    "total": 41,
+    "success": 17,
+    "skipped": 24,
+    "failed": 0,
+    "scope_note": "This intermediate head also exercised a proposed automatic caller. That caller and its own tests are excluded from the final tree; intermediate commits and expected-RED evidence remain in ancestry."
+  },
+  "environment_recheck": {
+    "original_head": "b4206312594ef84a43c86695dc3d3ec16d1c5ae0",
+    "original_status_clean": true,
+    "small_commands_work": true,
+    "zombie_processes_observed": 32050,
+    "heavy_local_tests_not_run": true,
+    "authenticated_identity": "haji84",
+    "authenticated_identity_http": 200,
+    "authenticated_repo_http": 200,
+    "push_permission_reported": true,
+    "owner_key_present_locally": false,
+    "filesystem_preserved": true,
+    "functions_store_cleared_after_context_refresh": true
+  },
+  "native_existing_workflow_request": {
+    "workflow_id": 416758725,
+    "main_sha": "6f77923a5d77712b9471f59fe7f3649fb9e3ca1e",
+    "source_sha": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+    "requested_at": "2026-11-17T18:53:08.716639Z",
+    "ref": "main",
+    "browser": "native-safari",
+    "prior_head_runs": 0,
+    "http": 204,
+    "request_acknowledged": true,
+    "request_attempted": true,
+    "dispatch_requested": true,
+    "retries": 0,
+    "native_verification_proven": false
+  },
+  "automatic_native_caller_in_final_tree": false,
+  "original_source_ready_recovery_and_dispatch_conditions_unchanged": true,
+  "native_acceptance_workflow_unchanged": true,
+  "new_jobs": 0,
+  "new_permissions": 0,
+  "new_prs": 0,
+  "new_paid_services": 0,
+  "fresh_final_ci_required": true,
+  "actual_new_source_owner_operation_proven": false,
+  "physical_iphone_proven": false,
+  "all_sports_all_day_proven": false,
+  "goal_complete": false
+}

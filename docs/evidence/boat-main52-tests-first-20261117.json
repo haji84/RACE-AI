@@ -1,0 +1,31 @@
+{
+  "schema": "RACE_AI_MAIN52_TESTS_FIRST_CI_REQUEST_V1",
+  "base_main": "6f77923a5d77712b9471f59fe7f3649fb9e3ca1e",
+  "setup_head": "e1844ec8e0592ad361c4195ee327086e91fb9cb2",
+  "source_sha": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+  "source_tree": "8a97242da13235d3f55f127eb157f514a25d8eca",
+  "source_ci_run": 44145608111,
+  "source_primary_tests": 791,
+  "source_tree_equal": true,
+  "expected_red": [
+    "New native dispatch module absent; import error in registered unit",
+    "Old schedule history request has no jq projection; new bounded projection tests refuse it"
+  ],
+  "runtime_added_at_this_head": false,
+  "native_dispatch_performed": false,
+  "owner_key_read": false,
+  "official_provider_gets": 0,
+  "new_jobs": 0,
+  "new_prs": 0,
+  "prior_native_test_ids": 85,
+  "recovered_original_added_test_ids": 6,
+  "expected_native_acceptance_test_ids": 91,
+  "exact_original_native_component": {
+    "tree": "3e2a03438916f87250e605d733f05da2e08fa2f3",
+    "preserved_snapshot_commit": "2686b1630399280af99ce25953354a17bf417431",
+    "original_local_commit": "cf9bdafd9222f55dc4fa5bef84decdb03bf7e080",
+    "metadata_recreated": true
+  },
+  "workspace_processes_executed": 0,
+  "goal_complete": false
+}

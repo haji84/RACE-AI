@@ -528,6 +528,7 @@ jobs:
           GH_TOKEN: '${{ github.token }}'
         run: |
           gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-racer-daily.yml/runs?event=schedule&per_page=100" \
+            --jq 'if type == "object" and (.workflow_runs | type) == "array" and (.workflow_runs | length) <= 100 and all(.workflow_runs[]; type == "object") then {workflow_runs: [.workflow_runs[] | {id,name,event,created_at}]} else error("BOAT_GAP_RUNS_SCHEMA") end' \
             > "$RUNNER_TEMP/boat-schedule-runs.json"
       - name: Audit source-free recovery eligibility
         id: audit

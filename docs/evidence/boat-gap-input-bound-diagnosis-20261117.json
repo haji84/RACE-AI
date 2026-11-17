@@ -1,0 +1,79 @@
+{
+  "schema": "RACE_AI_BOAT_GAP_INPUT_BOUND_DIAGNOSIS_V1",
+  "observed_run": {
+    "id": 44145562084,
+    "job_id": 134259611249,
+    "source_commit": "6f77923a5d77712b9471f59fe7f3649fb9e3ca1e",
+    "event": "workflow_run",
+    "created_at": "2026-11-17T18:13:49Z",
+    "failed_at": "2026-11-17T18:14:05.2532199Z",
+    "completed_at": "2026-11-17T18:14:11Z",
+    "conclusion": "failure",
+    "phase": "Audit source-free recovery eligibility",
+    "exception": "ValueError",
+    "reason": "BOAT_GAP_INPUT_BOUND",
+    "exit_code": 1,
+    "source_file": "scripts/boat_result_gap_audit.py",
+    "source_frames": [
+      77,
+      67,
+      17
+    ],
+    "retained_replay_executed": false,
+    "owner_key_consumer_step_executed": false,
+    "official_provider_steps_executed": 0,
+    "forecast_worker_failure_proven": false
+  },
+  "matching_precursor": {
+    "run_id": 44145455462,
+    "name": "KEIRIN PR71 GitHub-only forecast and PDCA",
+    "source_commit": "6f77923a5d77712b9471f59fe7f3649fb9e3ca1e",
+    "event": "schedule",
+    "created_at": "2026-11-17T18:13:13Z",
+    "completed_at": "2026-11-17T18:13:46Z",
+    "conclusion": "success",
+    "resolution": "UNIQUE_QUALIFYING_SCHEDULE_RUN_IN_BOUNDED_INTERVAL",
+    "direct_event_payload_retained": false
+  },
+  "prior_failure": {
+    "run_id": 44096454881,
+    "job_id": 134084726950,
+    "source_commit": "0d8126ed7d3116f90e14d1fdc1f05c4590bb4bd3",
+    "event": "schedule",
+    "reason": "BOAT_GAP_INPUT_BOUND",
+    "failed_at": "2026-11-17T13:49:03.3878129Z"
+  },
+  "history_size": {
+    "history_total": 245,
+    "boat_count": 46,
+    "canonical_full_bytes": 541139,
+    "projected_bytes": 5924,
+    "limit_bytes": 512000,
+    "latest_scheduled_at": "2026-11-17T17:00:19.000Z",
+    "latest_age_seconds": 4426,
+    "window_active": false,
+    "expected_status": "SCHEDULE_WINDOW_INACTIVE",
+    "exact_failed_file_retained": false,
+    "source_gets": 0
+  },
+  "downstream": [
+    {
+      "run_id": 44145638090,
+      "conclusion": "skipped",
+      "name": "BOAT 142 race P0 and every-model coverage (AES only)"
+    },
+    {
+      "run_id": 44145638439,
+      "conclusion": "skipped",
+      "name": "BOAT owner-formal Pages verifier (source-free)"
+    }
+  ],
+  "warranted_change": "PROJECT_ONLY_FOUR_REQUIRED_FIELDS_BEFORE_BOUNDED_FILE",
+  "runtime_guard_changed": false,
+  "python_or_jq_tests_executed": false,
+  "provider_requests_by_investigation": 0,
+  "owner_key_retrieval": 0,
+  "source_candidate_or_branch_changed": false,
+  "actual_failed_tempfile_bytes_known": false,
+  "metadata_byte_size_is_current_equivalent_not_original": true
+}

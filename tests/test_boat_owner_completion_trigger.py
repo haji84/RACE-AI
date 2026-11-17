@@ -70,7 +70,8 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
         for previous in ('84128e0ec8bd9fe3da64ad49f74b8511b07e72be',
                          'b491fb21ce58ba085dd8f54bb7326442b840d8f4',
                          'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
-                         '86b029ae5bddd5d4956497d8b32b2c92b8eec521'):
+                         '86b029ae5bddd5d4956497d8b32b2c92b8eec521',
+                         'f55351dce855177a51330f72c37d6238ba2c9e3e'):
             with self.subTest(previous=previous):
                 actual=dict(self.run,head_sha=previous)
                 history=dict(total_count=1,workflow_runs=[actual])
@@ -84,6 +85,9 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
 
     def test_exact_m2_completion_selects_new_release_without_rewriting_control(self):
         self._assert_previous_completion_selects_current('86b029ae5bddd5d4956497d8b32b2c92b8eec521')
+
+    def test_exact_f553_completion_selects_new_release_without_rewriting_control(self):
+        self._assert_previous_completion_selects_current('f55351dce855177a51330f72c37d6238ba2c9e3e')
 
     def _assert_previous_completion_selects_current(self,previous):
         current=base.RELEASE_SHA
@@ -112,6 +116,30 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
             ):
                 with self.subTest(change=change):
                     self.assertFalse(launcher.decide(**dict(args,**change))['dispatch_allowed'])
+
+    def test_day_handoff_is_not_same_day_continuation_and_next_day_keeps_early_window(self):
+        run=dict(self.run,head_sha='86b029ae5bddd5d4956497d8b32b2c92b8eec521')
+        control=deepcopy(self.control)
+        control.update(completed_round=10,previous_session_requests=304,
+            lifetime_requests=13807,day_start_lifetime_requests=13017,
+            lifetime_completed_rounds=730,previous_stop_reason='DAY_HANDOFF')
+        args=dict(now=NOW,release=dict(ref='refs/heads/'+base.RELEASE_REF,object=dict(sha=base.RELEASE_SHA)),
+            owner_doc=dict(encoding='base64',content=base64.b64encode(base.RELEASE_TOKEN.encode()).decode()),
+            history=dict(total_count=1,workflow_runs=[run]),continuation_proof=control)
+        before=deepcopy(args)
+        out=launcher.decide(**args)
+        self.assertEqual(out['status'],'HOLD_ALREADY_DISPATCHED_FOR_JST_DAY')
+        self.assertFalse(out['dispatch_allowed'])
+        midnight=NOW.replace(hour=15,minute=15,second=0,microsecond=0)
+        out=launcher.decide(**dict(args,now=midnight))
+        self.assertEqual(out['status'],'HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW')
+        self.assertFalse(out['dispatch_allowed'])
+        active=dict(run,status='in_progress',conclusion=None)
+        out=launcher.decide(**dict(args,now=midnight,
+            history=dict(total_count=1,workflow_runs=[active])))
+        self.assertEqual(out['status'],'HOLD_ACTIVE_OWNER_WORKFLOW')
+        self.assertFalse(out['dispatch_allowed'])
+        self.assertEqual(args,before)
 
     def test_existing_release_push_context_is_genuine_and_bound_to_actual_main_sha(self):
         sha='e'*40
@@ -280,7 +308,8 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
         from types import SimpleNamespace as NS
         source=(Path(__file__).resolve().parents[1]/'.github/workflows/boat-racer-daily.yml').read_text()
         heads={base.RELEASE_SHA,'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
-               '86b029ae5bddd5d4956497d8b32b2c92b8eec521'}
+               '86b029ae5bddd5d4956497d8b32b2c92b8eec521',
+               'f55351dce855177a51330f72c37d6238ba2c9e3e'}
         for job in ('original_retention','source_mirror','daily','owner_p0_p1_dispatch'):
             section=source.split('\n  '+job+':\n',1)[1].split('    runs-on:',1)[0]
             expression=' '.join(section.split('    if: >-\n',1)[1].split())
