@@ -1,3 +1,13 @@
+## 2026-11-17 23:15:08 UTC: 次sourceの固定値と旧原本の限定読取りを実装、fresh CI待ち（GOAL未達）
+
+既存PR45の実REDはmain93件/0.156秒の追加4失敗/error0、national206件/145.542秒の追加2assertion失敗＋16error。新a74がまだ明示pinへ入っていないことによるSOURCE_NOT_PINNED等を再現し、元の試験は保持した。実sourcea74へ5箇所のcurrent pinを合わせ、過去BBだけを歴史原本/control来歴へ追加し、a74からM2/F553/BBのP0を読む方向だけを許可する。逆方向/未知source/旧checkout/proof/active workerの重複起動は拒否する。7 runtime/workflowファイルのstrict anchorを検証し、固定BB660件helperとoptional最終stepはbyte不変。M2対象/native/EFF/archived helper900003/job/permission/input/trigger/cron/runner/timeoutは変更しない。独立reviewとfresh93/206/既存CIは未完了。
+
+既存markerと既存release prefixだけを再利用し、稼働中BBを維持して次workerの正規gateへ接続する候補である。sourcea74の837＋178試験と通常merge、main4934の実Safari成功・追加660暗号読戻しは確定しているが、新a74の実producer/全round/全4競技の完成ではない。
+
+UI候補PR62は4競技の重複記号をinline SVGへ直したed904fe6/web5759ac3。旧598の実Safari28枚は新bytesの証拠ではなく、現時点checks0、Node実行・新browser描画は未確認。Draftを維持し、merge/配信なし。コマンド環境は利用不可でGitHub経由の作業を継続している。8参考は全てPARTIAL、物理iPhone/本人login/V5・6艇GT/校正・前向き改善は未達。元未push2commitはUNRESTORED。原本/本番weights/既存変更を保持する。
+
+詳細: [a74の限定runtime変更と実RED](evidence/boat-main-a74-runtime-review-20261117.json)。
+
 ## 2026-11-17 23:00:36 UTC: 実Mac Safariと候補28枚の確認成功、次source接続の33追加試験を検証へ（GOAL未達）
 
 実Mac44191905231/job134423216474は22:43:21 UTCに全体success。119件/52.155秒OK、Safari26.6の私有保存view/AES/元予想比較/cleanupに成功し、候補598の7page×4幅=28枚を保存した。幅320/390/1440/1920、高さ948。合成PNGだけを含むartifact14377542031(8,472,624B)のAPI SHA256とlocal全ZIP実bytes・CRCが一致。過去HTTP500は今回再現せず、原因確定や恒久修正の証拠とはしない。私有PNG/trace/owner keyは持ち出していない。本人login/current V5/物理iPhoneはfalse。

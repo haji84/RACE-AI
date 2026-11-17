@@ -250,6 +250,7 @@ jobs:
           assert "github.event.workflow_run.event == 'workflow_dispatch'" in mirror
           assert "github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111'" in mirror
           assert "github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032'" in mirror
+          assert "github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163'" in mirror
           assert "github.event.workflow_run.head_sha == 'f55351dce855177a51330f72c37d6238ba2c9e3e'" in mirror
           assert "github.event.workflow_run.head_sha == '86b029ae5bddd5d4956497d8b32b2c92b8eec521'" in mirror
           assert "github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'" in mirror
@@ -270,7 +271,8 @@ jobs:
         github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        (github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
+        (github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163' ||
+         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
          github.event.workflow_run.head_sha == 'f55351dce855177a51330f72c37d6238ba2c9e3e' ||
          github.event.workflow_run.head_sha == '86b029ae5bddd5d4956497d8b32b2c92b8eec521' ||
          github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3')) ||
@@ -461,7 +463,8 @@ jobs:
         github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        (github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
+        (github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163' ||
+         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
          github.event.workflow_run.head_sha == 'f55351dce855177a51330f72c37d6238ba2c9e3e' ||
          github.event.workflow_run.head_sha == '86b029ae5bddd5d4956497d8b32b2c92b8eec521' ||
          github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3') &&
@@ -523,7 +526,8 @@ jobs:
        (github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        (github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
+        (github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163' ||
+         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
          github.event.workflow_run.head_sha == 'f55351dce855177a51330f72c37d6238ba2c9e3e' ||
          github.event.workflow_run.head_sha == '86b029ae5bddd5d4956497d8b32b2c92b8eec521' ||
          github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3') &&
@@ -641,7 +645,7 @@ jobs:
         with:
           # Match the current P1 producer and expose only safe failure codes.
           # Keep the previously proven reader for the explicit historic P0 run.
-          ref: ${{ github.event_name == 'workflow_dispatch' && 'bb49215034b779ea1493b35dd91e5c3ebfc04032' || '0796b52c2804177976e4c2e5ab9b65f32589720b' }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'a74f1e940e7fc0852e63938f8138bdb58bd93163' || '0796b52c2804177976e4c2e5ab9b65f32589720b' }}
           persist-credentials: false
       - name: Restore pinned official parser for post-source site validation
         if: >-
@@ -806,7 +810,8 @@ jobs:
         github.event.workflow_run.name == 'BOAT nationwide cutoff-ordered A/B research (no Vercel)' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
-        (github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
+        (github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163' ||
+         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
          github.event.workflow_run.head_sha == 'f55351dce855177a51330f72c37d6238ba2c9e3e' ||
          github.event.workflow_run.head_sha == '86b029ae5bddd5d4956497d8b32b2c92b8eec521' ||
          github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3' ||
@@ -834,7 +839,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-          ref: bb49215034b779ea1493b35dd91e5c3ebfc04032
+          ref: a74f1e940e7fc0852e63938f8138bdb58bd93163
           path: boat-owner-reader
       - name: Verify registered owner release SHA, source-owner gate, existing runs
         id: owner_gate
@@ -900,7 +905,7 @@ jobs:
         run: >-
           python -m scripts.boat_recover_failed_owner
           --history "$RUNNER_TEMP/boat-owner-runs.json"
-          --expected-head bb49215034b779ea1493b35dd91e5c3ebfc04032
+          --expected-head a74f1e940e7fc0852e63938f8138bdb58bd93163
           --output "$RUNNER_TEMP/boat-owner-recovery-proof.json"
       - name: Recheck fresh owner history and recovered originals before successor admission
         id: recovered_gate
