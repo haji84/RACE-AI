@@ -1,7 +1,7 @@
 {
   "schema": "RACE_AI_P0_STORAGE_RECOVERY_20261117",
-  "phase": "LIVE_P0_AND_ROUND01_SUCCEEDED_SAFARI_UI_AND_RESULT_RETENTION_HOLD",
-  "main_sha": "cb3261d0ec66173313e12b74a02e45ac9404e399",
+  "phase": "LIVE_P0_ROUNDS01_02_SUCCEEDED_NATIVE_SAFARI_BUDGET_HOLD",
+  "main_sha": "acd7c767a454a78dd19499344935ccffd567e67d",
   "production_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
   "storage_candidate_sha": "67200ef25161a48b49a63d04450b1f11656add5b",
   "unrestored_commits": [
@@ -155,7 +155,7 @@
     "bootstrap_owner_regression": 179,
     "main_gate_audit_safari": 101,
     "main_independent_reader": 64,
-    "safari_boundaries": 20,
+    "safari_boundaries": 21,
     "enriched_recovery": 60,
     "independent_enriched_recovery": 55,
     "existing_video_boundaries": 120
@@ -166,7 +166,7 @@
     "ZIP SHA/size verification is not AES authentication",
     "All-model current head ciphertexts still require complete validation",
     "Four-sport whole-day coverage, physical Safari, video tracking/calibration/prediction, prospective improvement remain incomplete",
-    "Only round01 completed at observation; all24 rounds not yet proven",
+    "Only rounds01/02 completed at observation; all24 rounds not yet proven",
     "New P0/P1/RESULT ZIP SHA matches do not prove separate-runner full AES/all-model coverage",
     "Official result long-term retention is HOLD; raw encrypted result artifact exists",
     "Actual Mac Safari UI test failed; physical iPhone unavailable"
@@ -208,7 +208,7 @@
     "status": "failure",
     "reason": "INDEPENDENT_ALL_MODEL_REPLAY_NOT_AVAILABLE"
   },
-  "observed_at": "2026-11-17T05:19:07.751582+00:00",
+  "observed_at": "2026-11-17T05:30:37.210877+00:00",
   "live_recovery": {
     "gate_run_id": 44019424267,
     "gate_job_id": 133825071851,
@@ -222,9 +222,227 @@
     "additional_p0_vault_conclusion": "success",
     "round01_conclusion": "success",
     "round01_completed_at": "2026-11-17T05:05:53Z",
-    "round02_status": "in_progress",
+    "round02_status": "completed",
     "all_24_rounds_completed": false,
-    "new_originals_independent_runner_AES_verified": false
+    "new_originals_independent_runner_AES_verified": false,
+    "round02_conclusion": "success",
+    "round02_completed_at": "2026-11-17T05:21:47Z",
+    "round03_status": "in_progress",
+    "completed_rounds_at_observation": 2,
+    "observed_job_progress": {
+      "id": 133825616165,
+      "name": "Existing frozen P0, exhibition P1, separate official results and PDCA",
+      "status": "in_progress",
+      "conclusion": null,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "started_at": "2026-11-17T04:47:31Z",
+      "completed_at": null,
+      "rounds": [
+        {
+          "number": 38,
+          "name": "Deadline-ordered five-model round 01",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-17T04:54:59Z",
+          "completed_at": "2026-11-17T05:05:53Z"
+        },
+        {
+          "number": 39,
+          "name": "Deadline-ordered five-model round 02",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-17T05:05:53Z",
+          "completed_at": "2026-11-17T05:21:47Z"
+        },
+        {
+          "number": 40,
+          "name": "Deadline-ordered five-model round 03",
+          "status": "in_progress",
+          "conclusion": null,
+          "started_at": "2026-11-17T05:21:47Z",
+          "completed_at": null
+        },
+        {
+          "number": 41,
+          "name": "Deadline-ordered five-model round 04",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 42,
+          "name": "Deadline-ordered five-model round 05",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 43,
+          "name": "Deadline-ordered five-model round 06",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 44,
+          "name": "Deadline-ordered five-model round 07",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 45,
+          "name": "Deadline-ordered five-model round 08",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 46,
+          "name": "Deadline-ordered five-model round 09",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 47,
+          "name": "Deadline-ordered five-model round 10",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 48,
+          "name": "Deadline-ordered five-model round 11",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 49,
+          "name": "Deadline-ordered five-model round 12",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 50,
+          "name": "Deadline-ordered five-model round 13",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 51,
+          "name": "Deadline-ordered five-model round 14",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 52,
+          "name": "Deadline-ordered five-model round 15",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 53,
+          "name": "Deadline-ordered five-model round 16",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 54,
+          "name": "Deadline-ordered five-model round 17",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 55,
+          "name": "Deadline-ordered five-model round 18",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 56,
+          "name": "Deadline-ordered five-model round 19",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 57,
+          "name": "Deadline-ordered five-model round 20",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 58,
+          "name": "Deadline-ordered five-model round 21",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 59,
+          "name": "Deadline-ordered five-model round 22",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 60,
+          "name": "Deadline-ordered five-model round 23",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 61,
+          "name": "Deadline-ordered five-model round 24",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        }
+      ],
+      "p0_retention": [
+        {
+          "number": 33,
+          "name": "Retain exact additional P0 execution and physical save receipt beyond expiry",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-17T04:53:26Z",
+          "completed_at": "2026-11-17T04:53:40Z"
+        }
+      ]
+    },
+    "required_new_p1_result_retention_paths_in_successful_rounds": true
   },
   "live_artifact_readbacks": [
     {
@@ -307,24 +525,17 @@
     }
   ],
   "native_safari_live": {
-    "run_id": 44022519670,
-    "job_id": 133835055575,
-    "main_sha": "cb3261d0ec66173313e12b74a02e45ac9404e399",
+    "run_id": 44023534099,
+    "job_id": 133838349546,
+    "main_sha": "acd7c767a454a78dd19499344935ccffd567e67d",
     "runner_os": "macos-15-intel",
     "status": "failure",
     "reason": "APP_UI_CHECK_FAILED",
     "checker_function": "app_checks",
-    "checker_line": 560,
+    "checker_line": 564,
     "failed_operation": "NATIVE_BUDGET_INPUT",
     "desktop_acceptance_verified": false,
     "physical_iphone_verified": false,
-    "first_viewport_prior_checks_progressed": [
-      "saved_original_load",
-      "native_p1_detail",
-      "saved_model_top8_hash",
-      "research_return",
-      "result_groups_and_count"
-    ],
     "final_private_boundary_verified": false
   },
   "result_retention_live": {
@@ -353,6 +564,27 @@
       "desktop_acceptance_verified": false,
       "physical_iphone_verified": false,
       "public_checker_location_diagnostic_tests": 18
+    },
+    {
+      "run_id": 44022519670,
+      "job_id": 133835055575,
+      "main_sha": "cb3261d0ec66173313e12b74a02e45ac9404e399",
+      "runner_os": "macos-15-intel",
+      "status": "failure",
+      "reason": "APP_UI_CHECK_FAILED",
+      "checker_function": "app_checks",
+      "checker_line": 560,
+      "failed_operation": "NATIVE_BUDGET_INPUT",
+      "desktop_acceptance_verified": false,
+      "physical_iphone_verified": false,
+      "first_viewport_prior_checks_progressed": [
+        "saved_original_load",
+        "native_p1_detail",
+        "saved_model_top8_hash",
+        "research_return",
+        "result_groups_and_count"
+      ],
+      "final_private_boundary_verified": false
     }
   ],
   "historical_result_retention_pin": {
@@ -360,5 +592,26 @@
     "actual_metadata_http_status": 404,
     "manifest": "audit/state/official-result-retention-input.json",
     "retained_original_restored": false
+  },
+  "native_safari_budget_fix": {
+    "existing_pr": 203,
+    "candidate_sha": "9850f8d",
+    "merged_main_sha": "acd7c767a454a78dd19499344935ccffd567e67d",
+    "exact_head_checks": 23,
+    "checks_success": 10,
+    "checks_skipped": 13,
+    "reviewed_tree_matches": true,
+    "local_tests": 20,
+    "independent_review_tests": 20,
+    "real_mac_retry_run_id": 44023534099,
+    "real_mac_retry_status": "failure"
+  },
+  "native_safari_w3c_actions_candidate": {
+    "existing_pr": 194,
+    "tests": 21,
+    "independent_tests": 21,
+    "actual_mac_verified": false,
+    "numeric_failure_diagnostics_only": true,
+    "app_state_injection": false
   }
 }

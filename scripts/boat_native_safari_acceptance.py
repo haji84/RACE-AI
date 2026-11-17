@@ -39,11 +39,17 @@ ASSET_MANIFEST_INVALID ASSET_INDEX_INVALID LIVE_PAGES_BYTES_DIFFER NATIVE_MACOS_
 SAFARIDRIVER_REQUIRED SAFARIDRIVER_UNAVAILABLE SAFARI_CAPABILITIES_INVALID
 SAFARI_WEBDRIVER_FAILED SAFARI_OPERATION_FAILED SAVED_CONTEXT_INVALID
 MODEL_ORIGINAL_MISMATCH PRIVATE_NETWORK_BOUNDARY_FAILED SAVED_VIEW_UNAVAILABLE
-APP_UI_CHECK_FAILED SOURCE_REVISION_MISMATCH VIEWPORT_INVALID'''.split())
+APP_UI_CHECK_FAILED SOURCE_REVISION_MISMATCH VIEWPORT_INVALID NATIVE_BUDGET_INPUT_NOT_APPLIED'''.split())
 
 
 class SafariHold(ValueError):
     """A fixed public failure code, never a driver error or private value."""
+
+
+class BudgetHold(SafariHold):
+    def __init__(self, target, probe):
+        super().__init__('NATIVE_BUDGET_INPUT_NOT_APPLIED')
+        self.target, self.probe = target, probe
 
 
 def need(value, reason):
@@ -62,11 +68,21 @@ def sha(raw):
 def failure_report(error):
     reason = str(error) if isinstance(error, SafariHold) and str(error) in REASONS else 'SAFARI_OPERATION_FAILED'
     report={'status': 'NATIVE_SAFARI_ACCEPTANCE_HOLD', 'reason': reason}
+    if isinstance(error, BudgetHold):
+        probe = error.probe if type(error.probe) is dict else {}
+        observed = probe.get('value')
+        amount = (int(observed) if type(observed) is str and
+                  re.fullmatch(r'[0-9]{1,8}', observed) else None)
+        report.update(budget_target=error.target if type(error.target) is int and
+                      error.target in (5000, 10000) else None,
+                      budget_observed=amount if amount is not None and amount <= 10000000 else None,
+                      budget_field_focused=probe.get('focused') is True,
+                      budget_field_valid=probe.get('valid') is True)
     # A public checker line identifies the failing boundary without exporting
     # driver messages, DOM text, source records, owner URLs or credentials.
     for frame in traceback.extract_tb(error.__traceback__):
         if Path(frame.filename).resolve()==Path(__file__).resolve() and frame.name in {
-            'main','read_authenticated_view','app_checks','open_race','select_day','click_page',
+            'main','read_authenticated_view','app_checks','budget','open_race','select_day','click_page',
             'verify_model_choice','verify_private_boundary','load_public_assets','verify_live_assets'}:
             report.update(checker_function=frame.name,checker_line=frame.lineno)
     return report
@@ -398,13 +414,25 @@ class WebDriver:
 
     def budget(self, value):
         element = self.element('#simulation-budget')
-        # Element Clear can fire change while empty, causing the app to restore
-        # the previous valid budget. Replace the selection with native Mac keys
-        # before Tab commits the new value; never rewrite application state.
+        # Use explicit native key events, rather than embedding a modifier
+        # chord in Element Send Keys text. Never clear to an invalid empty
+        # value or rewrite application state through JavaScript.
         self.command('POST', '/element/' + element + '/click', {})
-        self.command('POST', '/element/' + element + '/value',
-                     {'text': '\ue03da\ue000' + str(value) + '\ue004'})
-        self.wait('return document.querySelector("#simulation-budget")?.value===arguments[0]', str(value))
+        actions = [{'type': 'keyDown', 'value': '\ue03d'},
+                   {'type': 'keyDown', 'value': 'a'}, {'type': 'keyUp', 'value': 'a'},
+                   {'type': 'keyUp', 'value': '\ue03d'}]
+        for key in str(value) + '\ue004':
+            actions.extend([{'type': 'keyDown', 'value': key}, {'type': 'keyUp', 'value': key}])
+        self.command('POST', '/actions', {'actions': [
+            {'type': 'key', 'id': 'native-budget-keyboard', 'actions': actions}]})
+        try:
+            self.wait('return document.querySelector("#simulation-budget")?.value===arguments[0]', str(value))
+        except SafariHold as error:
+            if str(error) != 'APP_UI_CHECK_FAILED':
+                raise
+            probe = self.script('''const e=document.querySelector('#simulation-budget');
+                return {value:e?.value,focused:document.activeElement===e,valid:e?.validity.valid===true};''')
+            raise BudgetHold(value, probe) from None
 
     def close(self):
         if self.session is not None:

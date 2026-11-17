@@ -1,3 +1,28 @@
+## 2026-11-17: Mac再試験も日予算でHOLD、ネイティブkey eventsを検証
+
+実Mac run44023534099/job133838349546（main acd7c76）はapp_checks:564のbudgetで再びHOLD。
+CMD+AをElement Send Keysのtextへ埋める修正は実Safari合格ではなかった。失敗を保全し、
+既存PR194でW3C /actionsのkeyDown/keyUpへ変更する。Commandを離してから数字とTabを送る。
+アプリの値/stateをJavaScriptで書き換えず、最終値・元買い目・結果・横幅・秘密境界の条件は維持する。
+さらに失敗時だけ、要求予算5000/10000・実欄の0〜10,000,000整数またはnull・focus/validの真偽を診断する。
+任意のDOM文字列、出典、URL、owner key、driver例外本文は報告しない。21件と独立21件success。
+このローカル成功を実Safari合格に置き換えない。main統合後に同じ既存Mac jobで再検証する。
+
+source eff296fのowner44019591352は巡回01/02 success、巡回03中。
+各巡回には新P1/RESULTの必須Vault保管と次巡許可前の原本確認を含むが、別runnerの全本文AES/全モデル監査とは区別する。
+公開配信asset・予想原本・model/weights・source pinは今回のSafari修正で変更していない。
+物理iPhoneの接続toolはこの環境では未検出。4競技全件・実機iPhone・実映像/校正/予想接続・未来改善は未完成。
+
+## 2026-11-17: 2巡目も実成功、Safari予算入力修正を通常統合
+
+実main acd7c767a454a78dd19499344935ccffd567e67d。既存PR203の23 checksが完了し、
+10 success/13 skipped、独立Safari20件success後の通常mergeでreviewed treeとの完全一致を確認。
+実Mac再試験44023534099を同HEADで開始した。まだ合格扱いにはしない。
+source eff296fは変更せず、単一owner44019591352は巡回02も05:21:47 UTCにsuccess、巡回03へ進んだ。
+原本からの実P0保管復旧と2巡連続の生成・保存進行を確認。24巡/全締切/全モデルの正式充足は未確認。
+初期checkout b420631/branch workはcleanのまま保全。競輪PR291の並行更新は触っていない。
+原本と未push2件UNRESTOREDの扱い、過去固定pin404、前向きHOLDは下記のとおり保全する。
+
 ## 2026-11-17: 実Safariの停止を日予算のネイティブ入力まで特定
 
 診断のみの既存PR208は23 checks完了（10 success、13 skipped）後に通常merge、

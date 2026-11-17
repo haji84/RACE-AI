@@ -158,17 +158,30 @@ class NativeSafariAcceptanceTests(unittest.TestCase):
                 state['text'] = ''
                 change()
                 return None
-            self.assertTrue(suffix.endswith('/value'))
-            for key in body['text']:
+            if suffix.endswith('/value'):
+                # Do not assume Element Send Keys interprets a modifier chord
+                # inside one text string; the real Mac retry still failed.
+                for key in body['text']:
+                    if key.isdigit():
+                        state['text'] += key
+                    elif key == '\ue004':
+                        change()
+                return None
+            self.assertEqual(suffix, '/actions')
+            keyboard, = body['actions']
+            self.assertEqual(keyboard['type'], 'key')
+            for event in keyboard['actions']:
+                key = event['value']
                 if key == '\ue03d':
-                    state['meta'] = True
-                elif key == '\ue000':
-                    state['meta'] = False
+                    state['meta'] = event['type'] == 'keyDown'
+                elif event['type'] == 'keyUp':
+                    continue
                 elif key == 'a' and state['meta']:
                     state['selected'] = True
                 elif key == '\ue004':
                     change()
                 else:
+                    self.assertFalse(state['meta'], 'release Command before typing the amount')
                     state['text'] = ('' if state['selected'] else state['text']) + key
                     state['selected'] = False
 
@@ -178,6 +191,25 @@ class NativeSafariAcceptanceTests(unittest.TestCase):
             driver.budget(5000)
         self.assertEqual((state['text'], state['budget']), ('5000', 5000))
         self.assertFalse(state['meta'])
+
+    def test_budget_failure_diagnostic_cannot_export_arbitrary_control_text(self):
+        error = S.BudgetHold(5000, {'value': 'private-owner-sentinel',
+                                  'focused': 'private-owner-sentinel', 'valid': True,
+                                  'private': 'secret-token-sentinel'})
+        report = S.failure_report(error)
+        self.assertEqual(report['reason'], 'NATIVE_BUDGET_INPUT_NOT_APPLIED')
+        self.assertEqual(report['budget_target'], 5000)
+        self.assertIsNone(report['budget_observed'])
+        self.assertFalse(report['budget_field_focused'])
+        self.assertTrue(report['budget_field_valid'])
+        self.assertNotIn('sentinel', json.dumps(report))
+        for observed, expected in [('5000', 5000), ('10000000', 10000000),
+                                   ('99999999', None), ('123456789', None), ('', None),
+                                   ('5e3', None), ('５０００', None), (5000, None)]:
+            with self.subTest(observed=observed):
+                safe = S.failure_report(S.BudgetHold(True, {'value': observed}))
+                self.assertIsNone(safe['budget_target'])
+                self.assertEqual(safe['budget_observed'], expected)
 
     def test_actual_ui_failure_reports_only_public_checker_location(self):
         class Driver:
