@@ -1,0 +1,189 @@
+{
+  "schema": "RACE_AI_EXISTING_PR46_PRESERVATION_NATIVE_PICKER_TESTS_FIRST_20261117_V1",
+  "repository": "haji84/RACE-AI",
+  "existing_pr_before_reuse": {
+    "url": "https://github.com/haji84/RACE-AI/pull/46",
+    "number": 46,
+    "state": "open",
+    "merged": false,
+    "mergeable": true,
+    "draft": true,
+    "body": "参考画像に合わせて大きな導入画面を廃止し、コンパクトなRACE AIヘッダー、当日レース枠、24会場への導線、スマホレイアウトを更新。通常画面から検証用JSON選択を隠す。フロントは /api/today を参照。Vercel Python API関数 web/api/today.py は環境変数 RACE_AI_FEED_APPROVED=1、当日付、再配信許可フラグ、証拠情報が揃う場合だけ200を返し、それ以外は503。\n\n未完了: 実公式データの許可済み収集・保存/DB・継続更新、Vercel関数の実行E2E、iPhone画面比較、予想/資金管理。静的デプロイへファイルが存在しない限りAPIは503。main/Production変更なし。",
+    "title": "feat: RACE AIホーム刷新と当日データAPI受け口",
+    "base": "feat/boat-mobile-venue-race-navigation",
+    "base_sha": "6481fdfe414300b711e3431a20d746fe79157122",
+    "head": "feat/boat-home-redesign-api-contract",
+    "head_sha": "09799811abb25aecc92fa6f51e0013451ed46534",
+    "head_repo_id": 1416489937,
+    "head_repo_full_name": "haji84/RACE-AI",
+    "merge_commit_sha": "6219f77c0baad8fe49f7125fb4abceee4dfef4de",
+    "user": {
+      "login": "haji84",
+      "name": "haji84",
+      "email": null,
+      "avatar_url": "https://avatars.githubusercontent.com/u/173585154?v=4",
+      "id": 173585154
+    },
+    "requested_reviewers": null,
+    "requested_team_reviewers": null,
+    "diff": null,
+    "comments": null,
+    "created_at": "2026-10-14T07:47:16Z",
+    "updated_at": "2026-10-14T07:50:52Z",
+    "closed_at": null,
+    "merged_at": null,
+    "commits": 6,
+    "changed_files": 6,
+    "additions": 129,
+    "deletions": 10,
+    "display_url": "https://github.com/haji84/RACE-AI/pull/46",
+    "display_title": "feat: RACE AIホーム刷新と当日データAPI受け口"
+  },
+  "preservation": {
+    "original_head": "09799811abb25aecc92fa6f51e0013451ed46534",
+    "ancestor_of_main": true,
+    "compare_main": "f2922ef150d08a6b7302c4fbd269d93747b04ff9",
+    "compare_ahead": 2213,
+    "compare_behind": 0,
+    "open_consumers": [],
+    "original_vendor_files_reintroduced": false,
+    "new_pr": false,
+    "force": false
+  },
+  "test_packet": "d949f132237c3b0e4206dc9da168a8a126f793ee",
+  "base_runtime": "79b1533bbde4e985e5a897dd1aaa06e788d17588",
+  "runtime_changed": false,
+  "test_methods": {
+    "original": 111,
+    "added": 8,
+    "total": 119
+  },
+  "root_byte_verification": "All original 111-test and fixture prefix bytes unchanged; the original __main__ runner line is moved unchanged to the end.",
+  "expected_red": {
+    "executed": false,
+    "failing_methods": 7,
+    "assertion_failures": 19,
+    "errors": 0
+  },
+  "actual_red": "PENDING",
+  "diagnostic_contract": {
+    "ui_click_control_matches_preflight": "strict bool comparing the initial preflight reference with the existing parent lookup; unknown elsewhere; never expose either ID",
+    "picker_open_supported": "strict bool for an actual CSS.supports(selector(:open)) result; unknown when absent or failing",
+    "picker_open": "strict bool only after supported :open read; unsupported/failing/spoofed reads remain null",
+    "ui_first_seed_comparison_initial_selected_target": "retain only the actual validated first seed ordinal initial preflight bool across context reset; fresh session remains unknown",
+    "new_webdriver_commands": 0,
+    "acceptance_changes": false,
+    "native_action_changes": false,
+    "retries": false,
+    "existing_private_fixtures_modified": false
+  },
+  "references": [
+    "https://github.com/WebKit/WebKit/blob/244229e1d57542c4f65b1a76ad85b94db705c447/Source/WebDriver/Session.cpp#L2086",
+    "https://github.com/WebKit/WebKit/blob/244229e1d57542c4f65b1a76ad85b94db705c447/Source/WebKit/WebProcess/Automation/WebAutomationSessionProxy.cpp#L1293",
+    "https://github.com/WebKit/WebKit/blob/244229e1d57542c4f65b1a76ad85b94db705c447/Source/WebCore/html/HTMLSelectElement.cpp#L351",
+    "https://github.com/WebKit/WebKit/blob/244229e1d57542c4f65b1a76ad85b94db705c447/Source/WebCore/html/HTMLSelectElement.cpp#L235",
+    "https://github.com/WebKit/WebKit/blob/244229e1d57542c4f65b1a76ad85b94db705c447/Source/WebCore/css/SelectorCheckerTestFunctions.h#L608",
+    "https://github.com/WebKit/WebKit/blob/244229e1d57542c4f65b1a76ad85b94db705c447/LayoutTests/accessibility/mac/select-appearance-switch.html#L59"
+  ],
+  "actual_native_failure": {
+    "run_id": 44183593596,
+    "job_id": 134394092565,
+    "head": "f2922ef150d08a6b7302c4fbd269d93747b04ff9",
+    "safe_report": {
+      "status": "NATIVE_SAFARI_ACCEPTANCE_HOLD",
+      "reason": "SAFARI_WEBDRIVER_FAILED",
+      "webdriver_operation": "element_click",
+      "webdriver_http_status": 500,
+      "webdriver_error_code": "unknown error",
+      "remote_automation_disabled_message_observed": false,
+      "webdriver_native_browser": {
+        "browserName": "Safari",
+        "browserVersion": "26.6",
+        "platformName": "macOS"
+      },
+      "ui_stage": "encrypted_seed_valid",
+      "ui_action": "select_seed_history",
+      "ui_verified_width": null,
+      "ui_click_path": "visible_element",
+      "ui_hit_target_verified": true,
+      "ui_select_phase": "initial",
+      "ui_select_preflight": {
+        "control_is_select": true,
+        "control_connected": true,
+        "control_enabled": true,
+        "control_visible": true,
+        "target_connected": true,
+        "target_enabled": true,
+        "target_visible": true,
+        "selected_target": false,
+        "control_in_view": true,
+        "hit_target": true,
+        "focused": true,
+        "same_control": null,
+        "control_count": 1,
+        "option_count": 13,
+        "target_count": 1,
+        "document_focused": true,
+        "document_visibility": "visible",
+        "viewport_width": 800,
+        "viewport_height": 628,
+        "page_errors": 0,
+        "error_module": null,
+        "error_line": null
+      },
+      "ui_seed_comparison_ordinal": 2,
+      "failure_boundary": "native_select_parent_click",
+      "checker_function": "call",
+      "checker_line": 913,
+      "checker_callers": [
+        {
+          "function": "main",
+          "line": 1553
+        },
+        {
+          "function": "encrypted_seed_checks",
+          "line": 1276
+        },
+        {
+          "function": "select",
+          "line": 1049
+        },
+        {
+          "function": "click",
+          "line": 978
+        },
+        {
+          "function": "_click_visible_element",
+          "line": 998
+        },
+        {
+          "function": "command",
+          "line": 940
+        },
+        {
+          "function": "call",
+          "line": 913
+        }
+      ]
+    },
+    "candidate_guard_reached": false,
+    "cf_runtime_validated": false,
+    "artifacts": 0
+  },
+  "root_cause": "UNKNOWN; preflight/click identity and already-open popup are hypotheses.",
+  "normal_local_auth": {
+    "observed_at": "2026-11-17T22:13:10Z",
+    "public_raw_source_http": 200,
+    "rest_without_explicit_auth_http": 401,
+    "rest_environment_auth_http": 401,
+    "response_message": "Bad credentials",
+    "standard_gh_hosts_file_present": false,
+    "connector_user": "haji84",
+    "connector_read_and_existing_branch_write_succeeded": true,
+    "normal_cli_thread_start": "pthread_create failed; resource temporarily unavailable",
+    "local_zombies": 32050,
+    "state_key_local_present": false,
+    "credential_values_exported": false
+  },
+  "goal_complete": false
+}
