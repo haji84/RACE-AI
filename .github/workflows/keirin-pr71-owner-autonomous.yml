@@ -45,6 +45,7 @@ on:
       - 'tests/test_keirin_manual71_owner_encrypted_intake.py'
       - 'tests/test_keirin_manual71_owner_intake_cli.py'
       - 'tests/test_keirin_manual71_matsuyama7_preflight.py'
+      - 'tests/test_keirin_manual71_workflow_isolation.py'
       - 'docs/evidence/2026-11-17/keirin_owner_manual71_20261117_sealed_v1.json'
   pull_request:
     paths:
@@ -74,6 +75,7 @@ on:
       - 'tests/test_keirin_manual71_owner_encrypted_intake.py'
       - 'tests/test_keirin_manual71_owner_intake_cli.py'
       - 'tests/test_keirin_manual71_matsuyama7_preflight.py'
+      - 'tests/test_keirin_manual71_workflow_isolation.py'
       - 'docs/evidence/2026-11-17/keirin_owner_manual71_20261117_sealed_v1.json'
 
 permissions:
@@ -133,7 +135,8 @@ jobs:
           python -m unittest -v \
             tests.test_keirin_manual71_owner_encrypted_intake \
             tests.test_keirin_manual71_owner_intake_cli \
-            tests.test_keirin_manual71_matsuyama7_preflight
+            tests.test_keirin_manual71_matsuyama7_preflight \
+            tests.test_keirin_manual71_workflow_isolation
           python -m py_compile \
             race_ai/keirin_manual71_owner_encrypted_intake.py \
             scripts/keirin_manual71_owner_intake_cli.py \
