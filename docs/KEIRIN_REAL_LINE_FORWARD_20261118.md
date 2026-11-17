@@ -110,3 +110,43 @@ OpenCVで実WebMを再デコードし、0/2/4/.../90秒の46フレームを固�
 | 公式結果による3方式比較 | 同一1Rの分母SHA固定・未報告HOLDテスト | NO（未来結果と3方式の事前原本なし） |
 
 PR #291はDraftのままでmain/正式重み/自動投票は変更せず、AI独立性・原本暗号・可用時刻を偽装しない。次の具体的な障害は**既存PR71の本番モデル入力が取れないこと（旧RunではHOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT）と、実追走の確定ラベルがないこと**。
+
+
+## 2026-11-18 実際の障害2件の再調査とC履歴直接接続
+
+### 障害1：認証済み追走履歴がない
+
+2026-11-09武雄2Rで、RSA/AES-GCMの保存済み元WebMのバイトSHAとフレーム画素SHA46/46の系譜は再現できた。しかし黄色5・赤3の見かけ上の前後関係、着順5-3-1やマーク決まり手、AIによる単一目視だけでは、正式なHELD/GAPPED/SWITCHEDの局面ラベルを新規認証したとは扱えない。**独立認証済み追走ラベルは0件。**
+
+今回は完成済みのレビュー結果をシステムに通せる入口を実装した：
+- `race_ai/keirin_observed_follow_admission.py`：少なくとも3つのフレーム、時間順と動画SHA、車番・登録ID・局面・先行戦術、実際の追走/離れ/切替が見えるフレーム、**別々に独立検証された2レビュー署名**がそろった時だけ既存`keirin_line_cohesion.make_label`の履歴に変換。出走前の予定ライン、着順、同色の画素、署名の自称は拒否。外部検証コールバックを実装していない環境ではHOLD。
+- `race_ai/keirin_real_three_arm_prospective_bridge.py::prepare_from_signed_tactical_packets`：上記をA元原本のSHAが一致する既存B/C研究計算へ直接つなぐ。元予想/履歴を上書きせず、履歴が不足する場合はHOLD。**実際の署名済みレビューはまだ存在せず、テストの架空人物/鍵を正解として数えない**。
+- `tests/test_keirin_observed_follow_admission.py`＋`tests/test_keirin_real_three_arm_prospective_bridge.py`：独立認証なし・同一署名・着順からの偽HELD・無効フレーム・参照元違い・履歴不足の拒否を合成検証。
+
+### 障害2：本番PR71の入力は予想処理より前の**当日一覧ページ**で停止
+
+既存の保護main実行ログの独立読み取り：
+- [main Run 44050344058](https://github.com/haji84/RACE-AI/actions/runs/44050344058)
+- [main Run 44063985261](https://github.com/haji84/RACE-AI/actions/runs/44063985261)
+- [main Run 44070303901](https://github.com/haji84/RACE-AI/actions/runs/44070303901)
+
+3件とも安全な出力に`HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT`、`public_page_requests=1`、`provider_denial_stopped_requests=true`、`new_pre_race_inputs=0`、`actual_four_model_forecast_saved=false`が含まれていた。初回の取得URLは固定済みPR71ソース`scripts/keirin_github_owner_future_intake.py`の`https://www.winticket.jp/keirin/odds/YYYYMMDD`。
+
+**重要**：取得元の内部実レスポンスのHTTP 403/429は、この公開安全ログからは識別不能。既存`keirin_owner_public_page_fetch.py`では403と429を同じ`PUBLIC_PAGE_BLOCKED_OR_RATE_LIMITED_NO_RETRY`として通知する。従って「確実に403」とは断定しない。ログが示すのは「初回1GETから拒否扱いになり追加GETを停止」まで。原本の記録：[3 Run診断JSON](https://github.com/haji84/RACE-AI/blob/research/keirin-six-phase-score-20261114/docs/evidence/2026-11-18/keirin_main_3runs_source_denial_verified_v1.json)。
+
+対処優先順位：
+1. **独立に利用可能なデータ供給元を正規に確保**するか、既存の公開ページが通常アクセスできる状態に回復したことを本番Runで証明する。403/429後のUA偽装・隠しAPI・アクセス制御回避や繰返しリトライはしない。
+2. 取得に成功しただけでは4モデル完走ではない。実出走表、選手登録番号、直近実績、ライン、観測利用可能時刻、各モデルの必須入力が充足し、同一締切前に原本SHAと予想4モデルすべてを保存できたか照合する。
+3. 既存の`RACE_AI_KEIRIN_FEED_*`正規JSON提供ルートはコード上すでに存在するが、今回の3 Runにはその完全データ受信・正式保存の証拠はない。別API用Secretを適当に捏造して設定しない。
+4. 公開資料では`keirin.yomisuji.jp`が二次利用・監査向けJSONを案内している一方、確認できた公開ページの最終生成は2026-11-08で、説明上9車中心。2026-11-18の全国7/9車の全必須入力を埋めた実例として扱わない。KEIRIN.JPの内部JSON APIを紹介する非公式第三者調査もあるが、公式の正式利用契約や当該レースでの入力網羅を証明しないため、**自動的な本番移行をしない**。
+
+### 現時点の判定
+
+- 映像原本SHAと保存フレーム：確認済み
+- 真正な追走・離れイベントラベル：0件、HOLD
+- 実ラベル→C研究モデルへの橋渡しコード：追加済み、独立ラベルの本番通過は0
+- PR71本番ソースの初回1GETアクセス停止：実行ログ3件で確認
+- 本物の新規4モデル正式予想、A/B/Cの未来同時暗号保存・別runner、公式結果比較：0件確認、HOLD
+- Draft PR #291にのみ追記。保護main・秘密鍵・新課金・自動投票・モデル重みは変更しない。
+
+**次の唯一の正式な前進条件**は、別経路認証つきの実走追走ラベルを受付へ通すこと、およびアクセス可能で必要項目を網羅する正規出走前データを1レース分取得し、同じ未来レースでA/B/C原本の独立保存を実証すること。
