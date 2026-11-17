@@ -1762,5 +1762,320 @@ class SyntheticEnvironmentDiagnosticTests(unittest.TestCase):
             site.assert_not_called();driver.assert_not_called()
 
 
+
+class NativeDiagnosticEndpoint:
+    """Invented wire responses; all Python driver and cleanup logic stays real."""
+    def __init__(self, driver):
+        self.driver, self.calls = driver, []
+        self.capabilities = {'browserName': 'Safari', 'platformName': 'macOS',
+            'browserVersion': '26.6', 'sessionId': 'private-session-sentinel',
+            'private': 'private-capability-sentinel'}
+
+    def snapshot(self):
+        return {'control': {'element-6066-11e4-a52e-4f735466cecf': 'invented-select'},
+            'control_count': 1, 'option_count': 13, 'target_count': 1,
+            'control_is_select': True, 'control_connected': True, 'control_enabled': True,
+            'control_visible': True, 'target_connected': True, 'target_enabled': True,
+            'target_visible': True, 'selected_target': False, 'control_in_view': True,
+            'hit_target': True, 'focused': True, 'document_focused': True,
+            'document_visibility': 'visible', 'viewport_width': 390, 'viewport_height': 1000,
+            'page_errors': 0, 'error_module': None, 'error_line': None,
+            'value': 'private-value-sentinel', 'url': 'https://private-url-sentinel.invalid/'}
+
+    def response(self, value):
+        response = io.BytesIO(json.dumps({'value': value}).encode())
+        response.status = 200
+        return response
+
+    def open(self, request, timeout):
+        method = request.get_method()
+        path = request.full_url[len(self.driver.base):]
+        self.calls.append((method, path))
+        if (method, path) == ('POST', '/session'):
+            return self.response({'sessionId': 'private-session-sentinel',
+                                  'capabilities': self.capabilities})
+        if path.endswith('/execute/sync'):
+            script = json.loads(request.data)['script']
+            if 'native-select-preflight' in script:
+                return self.response(self.snapshot())
+            if 'Array.from(document.querySelectorAll' in script:
+                return self.response({'element-6066-11e4-a52e-4f735466cecf': 'invented-select'})
+            if 'scrollIntoView' in script:
+                return self.response(None)
+            if 'elementFromPoint' in script:
+                return self.response(True)
+            raise AssertionError('unexpected browser command')
+        if method == 'POST' and path.endswith('/element/invented-select/click'):
+            raw = json.dumps({'value': {'error': 'unknown error',
+                'message': 'private-driver-message-sentinel',
+                'stacktrace': 'private-driver-stack-sentinel'}}).encode()
+            raise urllib.error.HTTPError(request.full_url, 500, 'private-http-sentinel',
+                                         {}, io.BytesIO(raw))
+        if method == 'DELETE' and path == '/session/private-session-sentinel':
+            return self.response(None)
+        raise AssertionError('an option click, retry or extra command is forbidden')
+
+
+class NativeFailureDiagnosticTests(unittest.TestCase):
+    def test_parent_http500_is_fatal_once_and_closes_with_safe_capabilities(self):
+        driver = S.WebDriver(1234)
+        endpoint = NativeDiagnosticEndpoint(driver)
+        process = unittest.mock.Mock()
+        process.poll.return_value = None
+        with patch.object(S.platform, 'system', return_value='Darwin'), \
+                patch.object(S.os.path, 'isfile', return_value=True), \
+                patch.object(S.os, 'access', return_value=True), \
+                patch.object(S.subprocess, 'Popen', return_value=process), \
+                patch.object(S, 'WebDriver', return_value=driver), \
+                patch.object(S.socket, 'create_connection'), \
+                patch.object(driver.opener, 'open', side_effect=endpoint.open):
+            try:
+                with S.apple_driver() as (active, _):
+                    S.ui_diagnostic(active, 'encrypted_seed_valid', 'select_seed_history')
+                    active.ui_context['seed_comparison_ordinal'] = 2
+                    active.select('#private-selector-sentinel', 'private-value-sentinel')
+            except S.DriverHold as error:
+                report = S.failure_report(error)
+            else:
+                self.fail('the parent HTTP500 must remain fatal')
+        self.assertEqual(report['status'], 'NATIVE_SAFARI_ACCEPTANCE_HOLD')
+        self.assertEqual(report['reason'], 'SAFARI_WEBDRIVER_FAILED')
+        self.assertEqual((report['webdriver_operation'], report['webdriver_http_status'],
+                          report['webdriver_error_code']), ('element_click', 500, 'unknown error'))
+        self.assertEqual(report.get('webdriver_native_browser'), {
+            'browserName': 'Safari', 'platformName': 'macOS', 'browserVersion': '26.6'})
+        self.assertEqual(report.get('ui_seed_comparison_ordinal'), 2)
+        self.assertEqual(report.get('failure_boundary'), 'native_select_parent_click')
+        self.assertEqual(report['ui_select_phase'], 'initial')
+        self.assertIsNone(report['ui_select_preflight']['same_control'])
+        self.assertIs(report['ui_select_preflight'].get('document_focused'), True)
+        self.assertEqual(report['ui_select_preflight'].get('viewport_width'), 390)
+        parent_commands = [path for method, path in endpoint.calls
+                           if method == 'POST' and '/element/' in path]
+        self.assertEqual(parent_commands, [
+            '/session/private-session-sentinel/element/invented-select/click'])
+        self.assertEqual(sum(path.endswith('/execute/sync') for _, path in endpoint.calls), 4)
+        self.assertEqual(endpoint.calls[-1], ('DELETE', '/session/private-session-sentinel'))
+        self.assertIsNone(driver.session)
+        process.terminate.assert_called_once()
+        process.wait.assert_called_once()
+        rendered = json.dumps(report)
+        self.assertNotIn('sentinel', rendered)
+        self.assertNotIn('sessionId', rendered)
+
+    def test_failure_capabilities_reject_malformed_spoofs_without_coercion(self):
+        class HostileDict(dict):
+            def get(self, *args):
+                raise AssertionError('private mapping must not be queried')
+        class HostileString(str):
+            def __str__(self):
+                raise AssertionError('private string must not be coerced')
+        valid = {'browserName': 'Safari', 'platformName': 'macOS', 'browserVersion': '26.6'}
+        invalid = [None, [], HostileDict(valid),
+            dict(valid, browserName='private-browser-sentinel'),
+            dict(valid, platformName='private-platform-sentinel'),
+            dict(valid, browserVersion='private-version-sentinel'),
+            dict(valid, browserVersion='26.private-version-sentinel'),
+            dict(valid, browserVersion=HostileString('26.6')),
+            dict(valid, browserVersion=True), dict(valid, browserVersion=26.6),
+            dict(valid, browserVersion='26.6\nprivate-version-sentinel'),
+            dict(valid, browserVersion='26.6.1.2.3')]
+        for capabilities in invalid:
+            with self.subTest(case=type(capabilities).__name__):
+                error = S.DriverHold(operation='element_click')
+                error.native_browser = capabilities
+                report = S.failure_report(error)
+                self.assertIsNone(report.get('webdriver_native_browser'))
+                self.assertNotIn('sentinel', json.dumps(report))
+        error = S.DriverHold(operation='element_click')
+        error.native_browser = dict(valid, sessionId='private-session-sentinel',
+                                    private='private-extra-sentinel')
+        self.assertEqual(S.failure_report(error).get('webdriver_native_browser'), valid)
+        self.assertIsNone(S.failure_report(S.DriverHold()).get('webdriver_native_browser'))
+
+    def test_failure_ordinal_accepts_only_fixed_integer_one_or_two(self):
+        for value in (True, False, 0, -1, 3, 1.0, '1', 'private-ordinal-sentinel', None):
+            error = S.DriverHold(operation='element_click')
+            error.ui_context = {'seed_comparison_ordinal': value}
+            report = S.failure_report(error)
+            self.assertIsNone(report.get('ui_seed_comparison_ordinal'))
+            self.assertNotIn('sentinel', json.dumps(report))
+        for value in (1, 2):
+            error = S.DriverHold(operation='element_click')
+            error.ui_context = {'seed_comparison_ordinal': value}
+            self.assertEqual(S.failure_report(error).get('ui_seed_comparison_ordinal'), value)
+        self.assertIsNone(S.failure_report(S.DriverHold()).get('ui_seed_comparison_ordinal'))
+
+    def test_encrypted_seed_failure_reports_the_actual_fixed_comparison_ordinal(self):
+        for stop, expected in ((1, [1]), (2, [1, 2])):
+            with self.subTest(stop=stop):
+                driver = S.WebDriver(1234)
+                seen = []
+                @contextmanager
+                def site(*args, **kwargs):
+                    yield type('Site', (), {'url': 'http://127.0.0.1:1234/', 'audit': {}})()
+                @contextmanager
+                def safari():
+                    yield driver, {'browserName': 'Safari', 'platformName': 'macOS',
+                                   'browserVersion': '26.6'}
+                def choose(selector, value):
+                    seen.append(driver.ui_context.get('seed_comparison_ordinal'))
+                    if len(seen) == stop:
+                        raise driver._diagnostic_error(S.DriverHold(operation='element_click',
+                            http_status=500, w3c_error='unknown error'))
+                def script(source, *args):
+                    if 'return {refused:' in source:
+                        return {'refused': True, 'forecast_panels': 0, 'race_cards': 0, 'aes_successes': 0}
+                    if 'const panel=' in source:
+                        return {'model_id': 'invented-one', 'index': '0', 'tickets': [[1, 2, 3]]}
+                    raise AssertionError('unexpected diagnostic browser command')
+                private = {'fragment': '#saved=' + 'a' * 64 + '.' + 'b' * 43,
+                    'context': {'day': '2030-04-01', 'probe': {'choices': [
+                        {'model_id': 'invented-one', 'index': 0,
+                         'tickets_sha256': hashlib.sha256(b'[[1,2,3]]').hexdigest()},
+                        {'model_id': 'invented-two', 'index': 1,
+                         'tickets_sha256': hashlib.sha256(b'[[1,2,3]]').hexdigest()}]}}}
+                with patch.object(S, 'LoopbackSite', side_effect=site), \
+                        patch.object(S, 'apple_driver', side_effect=safari), \
+                        patch.object(S, 'select_saved_day'), patch.object(S, 'open_saved_race'), \
+                        patch.object(S, 'browser_snapshot', return_value={}), \
+                        patch.object(S, 'verify_private_boundary'), \
+                        patch.object(driver, 'command', return_value=None), \
+                        patch.object(driver, 'wait', return_value=True), \
+                        patch.object(driver, 'click'), patch.object(driver, 'select', side_effect=choose), \
+                        patch.object(driver, 'script', side_effect=script):
+                    try:
+                        S.encrypted_seed_checks({}, {}, private, ())
+                    except S.DriverHold as error:
+                        report = S.failure_report(error)
+                    else:
+                        self.fail('the requested comparison must fail')
+                self.assertEqual(seen, expected)
+                self.assertEqual(report.get('ui_seed_comparison_ordinal'), stop)
+                self.assertEqual(report['ui_stage'], 'encrypted_seed_valid')
+                self.assertEqual(report['ui_action'], 'select_seed_history')
+
+    def test_probe_projection_is_strict_bounded_and_never_exports_values(self):
+        driver = S.WebDriver(1234)
+        probe = NativeDiagnosticEndpoint(driver).snapshot()
+        probe.update(error_module='app.js', error_line=1123, same_control=True)
+        report = S.select_diagnostic(probe)
+        self.assertEqual({key: report.get(key) for key in (
+            'document_focused', 'document_visibility', 'viewport_width', 'viewport_height',
+            'page_errors', 'error_module', 'error_line', 'same_control')}, {
+                'document_focused': True, 'document_visibility': 'visible',
+                'viewport_width': 390, 'viewport_height': 1000, 'page_errors': 0,
+                'error_module': 'app.js', 'error_line': 1123, 'same_control': True})
+        self.assertNotIn('sentinel', json.dumps(report))
+        self.assertNotIn('control', report)
+        self.assertNotIn('value', report)
+        self.assertNotIn('url', report)
+        for name, maximum, minimum in (('viewport_width', 16384, 1), ('viewport_height', 16384, 1),
+                ('page_errors', 1000000, 0), ('error_line', 99999, 0),
+                ('control_count', 10000, 0), ('option_count', 10000, 0), ('target_count', 10000, 0)):
+            for value in (True, False, minimum - 1, maximum + 1, 1.0, 'private-number-sentinel', None):
+                with self.subTest(name=name, case=type(value).__name__):
+                    changed = dict(probe, **{name: value})
+                    projected = S.select_diagnostic(changed)
+                    self.assertIsNone(projected.get(name))
+                    self.assertNotIn('sentinel', json.dumps(projected))
+            self.assertEqual(S.select_diagnostic(dict(probe, **{name: maximum})).get(name), maximum)
+        for name in ('document_focused', 'same_control'):
+            for value in (0, 1, 'private-boolean-sentinel', None):
+                self.assertIsNone(S.select_diagnostic(dict(probe, **{name: value})).get(name))
+        for value in ('private-visibility-sentinel', 'prerender', True, 0, None):
+            self.assertIsNone(S.select_diagnostic(dict(probe, document_visibility=value)).get('document_visibility'))
+        self.assertEqual(S.select_diagnostic(dict(probe, document_visibility='hidden')).get(
+            'document_visibility'), 'hidden')
+        for value in ('https://private-module-sentinel.invalid/app.js', 'private-module-sentinel', None):
+            projected = S.select_diagnostic(dict(probe, error_module=value))
+            self.assertIsNone(projected.get('error_module'))
+            self.assertIsNone(projected.get('error_line'))
+            self.assertNotIn('sentinel', json.dumps(projected))
+
+    def test_real_probe_javascript_reads_focus_visibility_and_viewport_without_actions(self):
+        driver = S.WebDriver(1234)
+        scripts = []
+        def capture(source, *args):
+            scripts.append(source)
+            return NativeDiagnosticEndpoint(driver).snapshot()
+        with patch.object(driver, 'script', side_effect=capture):
+            driver._select_probe('#invented-select', 'private-value-sentinel')
+        self.assertEqual(len(scripts), 1, 'diagnosis must use the existing read-only probe')
+        program = r'''
+const vm=require('node:vm'),fs=require('node:fs');
+const source=fs.readFileSync(0,'utf8');let focusReads=0,actions=0;
+const forbidden=()=>{actions++;throw Error('an action is forbidden in a read-only probe');};
+class Element {
+  constructor(){this.isConnected=true;this.parentElement=null;this.hidden=false;}
+  matches(){return false;}
+  focus(){forbidden();}
+  click(){forbidden();}
+  dispatchEvent(){forbidden();}
+  scrollIntoView(){forbidden();}
+}
+class HTMLSelectElement extends Element {}
+const e=new HTMLSelectElement(),target=new Element();
+target.value='private-value-sentinel';target.selected=false;target.parentElement=e;target.closest=()=>e;
+e.options=[target];e.getClientRects=()=>[{}];
+e.getBoundingClientRect=()=>({left:1,top:2,right:101,bottom:42,width:100,height:40});
+Object.defineProperty(e,'value',{get:()=>'',set:forbidden});
+const document={querySelectorAll:()=>[e],activeElement:e,elementFromPoint:()=>e,
+  hasFocus:()=>{focusReads++;return false;},visibilityState:'hidden'};
+const context={Element,HTMLSelectElement,document,innerWidth:390,innerHeight:1000,
+  getComputedStyle:()=>({display:'block',visibility:'visible',opacity:'1'}),
+  __raceSafariPrivacy:{page_errors:2,error_module:'app.js',error_line:1123}};
+const result=vm.runInNewContext('(function(){'+source+'}).apply(null,["#invented-select","private-value-sentinel"])',context);
+delete result.control;process.stdout.write(JSON.stringify({result,focusReads,actions}));
+'''
+        result = subprocess.run(['node', '-e', program], input=scripts[0], text=True,
+                                capture_output=True, check=True)
+        actual = json.loads(result.stdout)
+        self.assertEqual(actual['actions'], 0)
+        self.assertEqual(actual['focusReads'], 1)
+        self.assertEqual({key: actual['result'].get(key) for key in (
+            'document_focused', 'document_visibility', 'viewport_width', 'viewport_height',
+            'page_errors', 'error_module', 'error_line')}, {
+                'document_focused': False, 'document_visibility': 'hidden',
+                'viewport_width': 390, 'viewport_height': 1000, 'page_errors': 2,
+                'error_module': 'app.js', 'error_line': 1123})
+        self.assertNotIn('sentinel', json.dumps(actual))
+
+    def test_readback_reports_replaced_control_without_changing_native_selection(self):
+        fixture = NativeSelectFixture(selected=True)
+        fixture.after_option = lambda f:setattr(f, 'control_id', 'replacement-after-change')
+        with fixture.installed() as driver:
+            driver.select('#prediction-select', '0')
+        self.assertEqual(fixture.calls, ['parent_click', 'option_click'])
+        self.assertEqual(driver.ui_context['select_phase'], 'readback')
+        self.assertIs(driver.ui_context['select_preflight'].get('same_control'), False)
+
+    def test_missing_diagnostic_facts_stay_unknown_and_do_not_gate_native_selection(self):
+        fixture = NativeSelectFixture()
+        with fixture.installed() as driver:
+            driver.select('#prediction-select', '0')
+        self.assertEqual(fixture.calls, ['parent_click', 'option_click'])
+        projected = S.select_diagnostic({})
+        for name in ('document_focused', 'document_visibility', 'viewport_width', 'viewport_height',
+                     'page_errors', 'error_module', 'error_line', 'same_control'):
+            self.assertIsNone(projected.get(name), 'missing facts cannot become an invented zero or False')
+
+    def test_parent_boundary_is_typed_only_for_the_observed_protocol_and_context(self):
+        context = {'select_phase': 'initial', 'click_path': 'visible_element',
+                   'hit_target_verified': True, 'select_preflight': {'control_is_select': True}}
+        def report(operation='element_click', status=500, code='unknown error', **changes):
+            error = S.DriverHold(operation=operation, http_status=status, w3c_error=code)
+            error.ui_context = dict(context, **changes)
+            return S.failure_report(error)
+        self.assertEqual(report().get('failure_boundary'), 'native_select_parent_click')
+        for changed in (dict(operation='execute_script'), dict(status=400),
+                dict(code='invalid argument'), dict(select_phase='prepared'),
+                dict(click_path='native_option'), dict(hit_target_verified=False),
+                dict(select_preflight={}), dict(select_phase='private-phase-sentinel')):
+            projected = report(**changed)
+            self.assertIsNone(projected.get('failure_boundary'))
+            self.assertNotIn('sentinel', json.dumps(projected))
+
+
 if __name__ == '__main__':
     unittest.main()

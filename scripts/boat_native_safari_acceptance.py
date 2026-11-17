@@ -144,9 +144,31 @@ def sha(raw):
 
 def select_diagnostic(probe):
     probe = probe if type(probe) is dict else {}
+    def bounded(name, minimum, maximum):
+        value = probe.get(name)
+        return value if type(value) is int and minimum <= value <= maximum else None
+    module, visibility = probe.get('error_module'), probe.get('document_visibility')
+    module = module if type(module) is str and module in PUBLIC_UI_MODULES else None
     return {**{key: probe.get(key) if type(probe.get(key)) is bool else None for key in SELECT_BOOLEANS},
             **{key: probe.get(key) if type(probe.get(key)) is int and 0 <= probe[key] <= 10000 else None
-               for key in SELECT_COUNTS}}
+               for key in SELECT_COUNTS},
+            'document_focused': probe.get('document_focused') if type(probe.get('document_focused')) is bool else None,
+            'document_visibility': visibility if type(visibility) is str and visibility in ('visible', 'hidden') else None,
+            'viewport_width': bounded('viewport_width', 1, 16384),
+            'viewport_height': bounded('viewport_height', 1, 16384),
+            'page_errors': bounded('page_errors', 0, 1000000),
+            'error_module': module, 'error_line': bounded('error_line', 0, 99999) if module is not None else None}
+
+
+def failure_native_browser(capabilities):
+    """Project public numeric Safari identity only; never coerce driver values."""
+    if type(capabilities) is not dict:
+        return None
+    browser, version, system = (capabilities.get(key) for key in ('browserName', 'browserVersion', 'platformName'))
+    if not (type(browser) is str and browser == 'Safari' and type(system) is str and system == 'macOS'
+            and type(version) is str and re.fullmatch(r'[0-9]{1,3}(?:\.[0-9]{1,6}){0,3}', version)):
+        return None
+    return {'browserName': browser, 'browserVersion': version, 'platformName': system}
 
 
 def failure_report(error):
@@ -167,7 +189,8 @@ def failure_report(error):
                 100 <= error.http_status <= 599 else None,
             webdriver_error_code=error.w3c_error if type(error.w3c_error) is str and
                 error.w3c_error in W3C_ERRORS else None,
-            remote_automation_disabled_message_observed=error.remote_automation_disabled is True)
+            remote_automation_disabled_message_observed=error.remote_automation_disabled is True,
+            webdriver_native_browser=failure_native_browser(getattr(error, 'native_browser', None)))
     if isinstance(error, (DriverHold, SelectHold)):
         context = error.ui_context if type(getattr(error, 'ui_context', None)) is dict else {}
         stage, action, width, click_path = (context.get(k) for k in ('stage', 'action', 'width', 'click_path'))
@@ -181,6 +204,15 @@ def failure_report(error):
             report['ui_select_phase'] = phase
             report['ui_select_preflight'] = select_diagnostic(error.probe if isinstance(error, SelectHold)
                                                              else context.get('select_preflight'))
+        ordinal = context.get('seed_comparison_ordinal')
+        report['ui_seed_comparison_ordinal'] = ordinal if type(ordinal) is int and ordinal in (1, 2) else None
+        preflight = report.get('ui_select_preflight')
+        report['failure_boundary'] = ('native_select_parent_click'
+            if report.get('webdriver_operation') == 'element_click'
+            and report.get('webdriver_http_status') == 500 and report.get('webdriver_error_code') == 'unknown error'
+            and report.get('ui_select_phase') == 'initial' and report.get('ui_click_path') == 'visible_element'
+            and report.get('ui_hit_target_verified') is True and type(preflight) is dict
+            and preflight.get('control_is_select') is True else None)
     if isinstance(error, AppHold):
         probe = error.probe if type(error.probe) is dict else {}
         def bounded(name, maximum):
@@ -827,9 +859,11 @@ class WebDriver:
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
         self.session = None
         self.ui_context = {}
+        self.native_browser = None
 
     def _diagnostic_error(self, error):
         error.ui_context = dict(self.ui_context) if type(self.ui_context) is dict else {}
+        error.native_browser = failure_native_browser(self.native_browser)
         return error
 
     def call(self, method, path, body=None):
@@ -871,7 +905,9 @@ class WebDriver:
             raise DriverHold(operation='new_session', http_status=200)
         self.session = result['sessionId']
         try:
-            return native_identity(result.get('capabilities'))
+            identity = native_identity(result.get('capabilities'))
+            self.native_browser = dict(identity)
+            return identity
         except SafariHold:
             raise DriverHold('SAFARI_CAPABILITIES_INVALID', operation='new_session', http_status=200) from None
 
@@ -962,7 +998,12 @@ class WebDriver:
                 target_enabled:!!target&&!target.matches(':disabled')&&!!e&&!e.matches(':disabled'),
                 target_visible:targetVisible,
                 selected_target:!!target&&e.value===wanted&&target.selected,control_in_view:inView,
-                hit_target:!!hit&&(hit===e||e.contains(hit)),focused:!!e&&document.activeElement===e};''', selector, value)
+                hit_target:!!hit&&(hit===e||e.contains(hit)),focused:!!e&&document.activeElement===e,
+                document_focused:document.hasFocus(),document_visibility:document.visibilityState,
+                viewport_width:innerWidth,viewport_height:innerHeight,
+                page_errors:globalThis.__raceSafariPrivacy?.page_errors,
+                error_module:globalThis.__raceSafariPrivacy?.error_module,
+                error_line:globalThis.__raceSafariPrivacy?.error_line};''', selector, value)
         self.ui_context['select_preflight'] = select_diagnostic(probe)
         valid = type(probe) is dict and all(type(probe.get(key)) is bool for key in SELECT_BOOLEANS if key != 'same_control') \
             and all(type(probe.get(key)) is int and 0 <= probe[key] <= 10000 for key in SELECT_COUNTS)
@@ -991,7 +1032,9 @@ class WebDriver:
         self.click(selector + ' option[value=' + json.dumps(value) + ']', visible=False)
         self.ui_context['select_phase'] = 'readback'
         self.wait('return document.querySelector(arguments[0])?.value===arguments[1]', selector, value)
-        _, selected = self._select_probe(selector, value)
+        selected_ident, selected = self._select_probe(selector, value)
+        selected['same_control'] = selected_ident == ident
+        self.ui_context['select_preflight'] = select_diagnostic(selected)
         if not selected['selected_target']:
             raise self._diagnostic_error(SelectHold(selected))
 
@@ -1203,8 +1246,9 @@ def encrypted_seed_checks(assets, seed, private, secrets):
             open_saved_race(driver, context['probe'])
             ui_diagnostic(driver, 'encrypted_seed_valid', 'open_outlook')
             driver.click('[data-detail-tab="outlook"]')
-            for choice in context['probe']['choices']:
+            for ordinal, choice in enumerate(context['probe']['choices'], start=1):
                 ui_diagnostic(driver, 'encrypted_seed_valid', 'select_seed_history')
+                driver.ui_context['seed_comparison_ordinal'] = ordinal
                 driver.select('#prediction-select', choice['index'])
                 verify_model_choice(choice, seed_detail(driver))
             snapshot = browser_snapshot(driver)
