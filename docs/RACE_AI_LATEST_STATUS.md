@@ -1,3 +1,15 @@
+## 2026-11-17 22:21:45 UTC: P1/B原bytesの事前保管と部分失敗保全を実装、次版引継ぎ837試験を検証中（GOAL未達）
+
+既存PR51で、受信済みHTTP200のP1/B bytesをparserや日付admissionより前に既存opaque原本sinkへ保存する。既存flag/key/owner/source-review/private条件、実受信UTC、4MiB境界、typed B admission、GET/counter/返却時計は維持。書込み/flush/fsync/readback失敗はSOURCE_REVIEW_WAITにし、完了済みの原本を変更しない。private stagingとno-clobber publication、新規inodeだけのrollbackにより、実RED832件の追加atomic15失敗から、439760d/job134404670699で832件/192.969秒OKへ進んだ。既存3/12/38/165/46件も成功。SIGKILL/電源断での2ファイル同時commit保証とはしない。
+
+稼働中BB保存原本を次版で読み直す実837件/196.250秒REDで、追加BB originの4失敗/error0を確認。別178件も同じ4失敗。次版checkout/proofを厳密固定したまま、BBのP0/continuity/controlの歴史provenanceだけにexact SHAを追加した。実fixture AEAD/public-control/独立vault retention/元ZIP・metadata比較、旧checkout/proof・counter reset・未知source・再digestされたcipher改変を検証する。最終837 GREEN・通常保護merge・実次workerの確認は未完了。
+
+実production bb492150/run44170869325は変更せず、first-P0132レース/264予想の公開receipt、元ZIP読戻し/長期保管/reuseと追加P0保管が成功し、公式GETなしの展示窓待機中。追加P0の生成/再利用/HOLD件数はUNKNOWN、24roundはpending。mainの独立read-only件数helperは別の既存PR47で検証中。Safari実44183593596はprivate2件目parentクリックHTTP500、候補/CF guard未到達で、実iPhone合格はない。
+
+原本/過去revision/公開UI/本番weights・既存作業を保全。新PR/model/job/input/permission/runner/cron/課金/投票は追加しない。全4競技全race×全適用model/T15〜10/結果照合、実Safari受入、6艇校正/強さ接続、前向き改善は未達。未push2commitはUNRESTORED。
+
+詳細: [部分失敗保全](evidence/boat-raw-capture-atomic-storage-review-20261117.json) / [BB暗号原本の次版引継ぎ](evidence/boat-bb-release-interoperability-runtime-20261117.json)。
+
 ## 2026-11-17 source候補: 結果理由の原本履歴と同期の保全（実view再確認待ち）
 
 既存PR201で同一source/time/status/dataのreason-only原本を追加履歴に保持する候補を検証中。
