@@ -88,6 +88,10 @@ def collect(*, clock=lambda: datetime.now(timezone.utc), already_frozen=frozense
             if res.status != 200 or res.geturl() != url: raise ValueError('B_SOURCE_IDENTITY')
             raw = res.read(MAX_ARCHIVE_BYTES + 1)
         network_completed=True
+        if os.environ.get('RACE_AI_ORIGINAL_VAULT_ENABLED') == 'true':
+            from race_ai.boat_source_capture_files import capture_http200
+            capture_http200(raw, source_url=url, received_at=datetime.now(timezone.utc),
+                            source_guard=source_guard)
         capture = clock().isoformat(); meta = inspect_lzh(raw)
         status.update(source_sha256=meta['sha256'], captured_at=capture, source_requests=1)
         body = extract_daily_lzh(raw, f'B{day:%y%m%d}.TXT')

@@ -94,6 +94,112 @@ def _identity_url(url):
     return url
 
 
+def capture_http200(raw, *, source_url, received_at, source_guard=None):
+    """Preserve one accepted response privately, before any parser or day clock.
+
+    Only the existing vault opt-in and owner/source context enable this sink.
+    Opaque retention grants no typed program, forecast or artifact authority.
+    No request, caller admission clock, model input or source counter changes.
+    """
+    if os.environ.get('RACE_AI_ORIGINAL_VAULT_ENABLED') != 'true':
+        return
+    try:
+        from .boat_pdca_state import state_key
+        from .boat_owner_source_identity import owner_run_origin
+        state_key('production')
+        V._need(os.environ.get('GITHUB_ACTIONS') == 'true'
+                and os.environ.get('GITHUB_REPOSITORY') == 'haji84/RACE-AI'
+                and owner_run_origin(os.environ.get('GITHUB_REF_NAME'),
+                                     os.environ.get('GITHUB_EVENT_NAME')),
+                'ACTIONS_OWNER_CONTEXT_REQUIRED')
+        parsed = urlsplit(source_url)
+        p1 = parsed.netloc == 'www.boatrace.jp' and parsed.path in (
+            '/owpc/pc/race/racelist', '/owpc/pc/race/beforeinfo')
+        program = parsed.netloc == 'www1.mbrace.or.jp' and parsed.path.startswith('/od2/B/')
+        V._need((p1 or program) and V._capture_url(source_url), 'CAPTURE_SOURCE_INVALID')
+        V._need(os.environ.get('RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED') == 'true' if p1 else
+                os.environ.get('RACE_AI_SAVED_PROGRAM_CAPTURE') == 'true', 'SOURCE_SCOPE_REQUIRED')
+        V._need(type(raw) is bytes and 0 < len(raw) <= MAX_CAPTURE, 'CAPTURE_BOUND_INVALID')
+        V._need(type(received_at) is datetime and received_at.utcoffset() is not None,
+                'AWARE_CLOCK_REQUIRED')
+        receipt = dict(source_url=source_url, source_sha256=sha256(raw).hexdigest(),
+            captured_at=received_at.astimezone(timezone.utc).isoformat(timespec='microseconds'),
+            http_status=200)
+        encoded = V._wire(receipt)+b'\n'
+        repo = Path(__file__).resolve().parents[1]
+        runner = Path(os.environ['RUNNER_TEMP'])
+
+        def check_runner():
+            # Match the existing typed program capture's runner-parent rule.
+            # Only the secret child needs 0700; an owned 0755 parent is safe.
+            V._need(runner.is_absolute() and '..' not in runner.parts
+                    and not any(p.is_symlink() for p in (runner, *runner.parents))
+                    and not any((p/'.git').exists() for p in (runner, *runner.parents))
+                    and not runner.is_relative_to(repo.resolve()), 'PRIVATE_OUTSIDE_GIT_REQUIRED')
+            info = runner.lstat()
+            V._need(stat.S_ISDIR(info.st_mode) and info.st_uid == os.geteuid()
+                    and not info.st_mode & 0o022, 'PRIVATE_RUNNER_TEMP_REQUIRED')
+            return _signature(info)[:4]
+
+        runner_identity = check_runner()
+        root = runner/'boat-saved-view-captures'
+        try:root.mkdir(mode=0o700)
+        except FileExistsError:pass
+        _private_root(root, repo)
+        descriptor = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        try:
+            identity = _signature(os.fstat(descriptor))[:5]
+
+            def check_root():
+                V._need(check_runner() == runner_identity, 'PRIVATE_INPUT_CHANGED')
+                _private_root(root, repo)
+                V._need(_signature(root.lstat())[:5] == identity
+                        and _signature(os.fstat(descriptor))[:5] == identity,
+                        'PRIVATE_INPUT_CHANGED')
+
+            def keep(name, body, limit):
+                check_root()
+                try:
+                    output = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                                     0o600, dir_fd=descriptor)
+                except FileExistsError:
+                    pass
+                else:
+                    with os.fdopen(output, 'wb') as stream:
+                        V._need(stream.write(body) == len(body), 'PRIVATE_WRITE_INCOMPLETE')
+                        stream.flush(); os.fsync(stream.fileno())
+                actual, _, _ = _read_at(descriptor, name, limit, collect=True)
+                V._need(actual == body, 'EXISTING_CAPTURE_CONFLICT')
+                check_root()
+
+            check_root()
+            bodies = []
+            for suffix in ('.html', '.raw'):
+                name = receipt['source_sha256']+suffix
+                try:os.stat(name, dir_fd=descriptor, follow_symlinks=False)
+                except FileNotFoundError:continue
+                bodies.append(name)
+            V._need(len(bodies) <= 1, 'CAPTURE_BODY_REQUIRED')
+            # The existing result-feed inventory consumes .html files. This is
+            # an opaque filename convention, including for exact binary B;
+            # source URL and the unchanged typed B checks retain authority.
+            keep(bodies[0] if bodies else receipt['source_sha256']+'.html', raw, MAX_CAPTURE)
+            keep(V._sha(V._wire(receipt))+'.json', encoded, 16384)
+            os.fsync(descriptor)
+            check_root()
+        finally:
+            os.close(descriptor)
+    except Exception:
+        # Reuse the existing durable review latch; even a latch write failure
+        # must leave this invocation in the same fixed, non-retryable HOLD.
+        if source_guard is not None:
+            try:source_guard.verification_failure('SOURCE_CAPTURE_UNAVAILABLE')
+            except Exception:pass
+        from .source_retry_policy import SourceWait
+        raise SourceWait('SOURCE_CAPTURE_UNAVAILABLE', retry_at=None,
+                         state='SOURCE_REVIEW_WAIT') from None
+
+
 @dataclass(frozen=True)
 class _Capture:
     # File paths, source URLs and receipts must not leak through a debug repr.

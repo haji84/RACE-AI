@@ -233,9 +233,19 @@ class OpaqueRawSinkTests(RawFixture):
                   environment=dict(self.env, RACE_AI_SAVED_PROGRAM_CAPTURE='false'))
         self.assertEqual(len(self.captures()), 2)
 
+    def test_owned_0755_runner_parent_stays_unchanged_and_keeps_capture_children_private(self):
+        self.root.chmod(0o755)
+        raw = b'invented raw response under the existing safe runner parent contract'
+        self.sink(raw)
+        self.assertEqual(self.root.stat().st_mode & 0o777, 0o755)
+        self.assert_capture(raw, P1_URL, NOW)
+        self.assertEqual(self.folder.stat().st_mode & 0o777, 0o700)
+        self.assertTrue(all(p.stat().st_mode & 0o777 == 0o600 for p in self.folder.iterdir()))
+        self.assertEqual(list(self.repo.iterdir()), [])
+
     def test_untrusted_runner_locations_and_permissions_hold_without_raw_exception(self):
         bad_locations = []
-        public = self.root/'public'; public.mkdir(mode=0o755); bad_locations.append(public)
+        public = self.root/'public'; public.mkdir(mode=0o775); public.chmod(0o775); bad_locations.append(public)
         link = self.root/'symlink'; link.symlink_to(self.root, target_is_directory=True); bad_locations.append(link)
         checkout = self.root/'checkout'; checkout.mkdir(mode=0o700); (checkout/'.git').mkdir()
         child = checkout/'runner'; child.mkdir(mode=0o700); bad_locations.append(child)
@@ -574,6 +584,178 @@ class BRawCaptureTests(RawFixture):
             self.assertFalse((self.root/'boat-program-source').exists())
 
 
+class RawAtomicPublicationTests(RawFixture):
+    def atomic_fault(self, target, point, *, shared=False):
+        # Each case starts with a complete, real HTTP-200 capture, not a hand-
+        # written receipt, and the same durable guard used by the failed GET.
+        import stat
+        with tempfile.TemporaryDirectory(dir=self.root, prefix='atomic-fixture-') as temp:
+            runner = Path(temp); folder = runner/'boat-saved-view-captures'
+            env = dict(self.env, RUNNER_TEMP=str(runner))
+            path = runner/'session.json'
+            cycle.start(path, day='2030-04-01', run_id=4242, now=NOW)
+            guard = cycle.SourceGuard(path, clock=lambda:FixedClock.current)
+            old = b'invented previous exact raw original that must remain immutable'
+            attempted = old if shared else b'invented new raw original whose capture must fail atomically'
+            receipt = dict(source_url=PREVIEW_URL, source_sha256=sha256(attempted).hexdigest(),
+                captured_at=NOW.isoformat(timespec='microseconds'), http_status=200)
+            encoded = V._wire(receipt)+b'\n'
+            transport = Transport({P1_URL:old, PREVIEW_URL:attempted})
+            fired = []; writers = {}
+            real_fdopen = C.os.fdopen; real_fsync = C.os.fsync
+
+            def kind(body):
+                return 'body' if body == attempted else 'receipt' if body == encoded else None
+
+            def reject(where, operation):
+                if not fired and where == target and operation == point:
+                    fired.append((where, operation))
+                    raise OSError('invented private atomic capture failure')
+
+            class FaultStream:
+                def __init__(self, stream, mode):
+                    self.stream = stream; self.mode = mode; self.kind = None
+                def __getattr__(self, name):
+                    return getattr(self.stream, name)
+                def __enter__(self):
+                    self.stream.__enter__(); return self
+                def __exit__(self, *args):
+                    return self.stream.__exit__(*args)
+                def write(self, body):
+                    self.kind = kind(body)
+                    writers[self.stream.fileno()] = self.kind
+                    if not fired and self.kind == target and point == 'partial-write':
+                        self.stream.write(body[:max(1,len(body)//2)])
+                        reject(self.kind, 'partial-write')
+                    return self.stream.write(body)
+                def flush(self):
+                    reject(self.kind, 'flush')
+                    return self.stream.flush()
+                def read(self, *args):
+                    body = self.stream.read(*args)
+                    reject(kind(body), 'readback')
+                    return body
+
+            def fdopen(fd, mode='r', *args, **kwargs):
+                stream = real_fdopen(fd, mode, *args, **kwargs)
+                return FaultStream(stream, mode) if mode in ('wb','rb') else stream
+
+            def fsync(fd):
+                if point == 'file-fsync':
+                    reject(writers.get(fd), 'file-fsync')
+                elif point == 'directory-fsync':
+                    info = os.fstat(fd); expected = folder.stat()
+                    if stat.S_ISDIR(info.st_mode) and (info.st_dev,info.st_ino) == (
+                            expected.st_dev,expected.st_ino):
+                        reject('directory', 'directory-fsync')
+                return real_fsync(fd)
+
+            def immutable_files():
+                return {p.name:(p.read_bytes(),p.stat().st_dev,p.stat().st_ino,
+                                p.stat().st_mode,p.stat().st_uid,p.stat().st_nlink,
+                                p.stat().st_mtime_ns,p.stat().st_ctime_ns)
+                        for p in folder.iterdir()}
+
+            def nonstate_files():
+                return {p.relative_to(runner).as_posix():p.read_bytes()
+                        for p in runner.rglob('*') if p.is_file() and p != path}
+
+            with self.p1(transport,guard=guard,environment=env):
+                pilot.get(P1_URL,day=DAY)
+                with C.CaptureInventory(folder,repo=self.repo,now=NOW) as inventory:
+                    prefix = [pair for group in inventory.groups() for pair in inventory.materialize(group)]
+                self.assertEqual(len(prefix),1)
+                self.assertEqual(prefix[0][0],old)
+                before = cycle.load(path)
+                protected = immutable_files(); all_private_files = nonstate_files()
+                with patch.object(C.os,'fdopen',side_effect=fdopen), \
+                     patch.object(C.os,'fsync',side_effect=fsync):
+                    with self.assertRaises(SourceWait) as held:
+                        pilot.get(PREVIEW_URL,day=DAY)
+                self.assert_hold(held.exception)
+                self.assertEqual(fired,[(target,point)],'the intended post-open failure must actually run')
+                # No subsequent source request is allowed after the same fixed
+                # durable latch, including when temporary writes had begun.
+                with self.assertRaises(SourceWait) as waiting:
+                    pilot.get(PREVIEW_URL,day=DAY)
+                self.assert_hold(waiting.exception,suppressed=False)
+                self.assertEqual(pilot.requests_used,2)
+                self.assertEqual(transport.urls,[P1_URL,PREVIEW_URL])
+                after = cycle.load(path)
+                self.assertEqual(after['requests_used'],before['requests_used']+1)
+                self.assertEqual(after['lifetime_requests'],before['lifetime_requests']+1)
+                self.assertEqual(after['requests_by_kind']['forecast'],
+                                 before['requests_by_kind']['forecast']+1)
+                self.assertEqual(after['receipts'],before['receipts'])
+                self.assertEqual((after['source_wait']['reason'],after['source_wait']['retry_at'],
+                                  after['source_wait']['state']),
+                                 ('SOURCE_CAPTURE_UNAVAILABLE',None,'SOURCE_REVIEW_WAIT'))
+                self.assertEqual(immutable_files(),protected,
+                    'failed capture must leave no partial final body/receipt or change any preserved original')
+                self.assertEqual(nonstate_files(),all_private_files,
+                    'failed capture must remove only its new staging/final files, including outside the inventory')
+                with C.CaptureInventory(folder,repo=self.repo,now=NOW) as inventory:
+                    actual = [pair for group in inventory.groups() for pair in inventory.materialize(group)]
+                self.assertEqual(actual,prefix,'the verified old capture prefix must remain usable')
+
+    def test_partial_body_and_receipt_writes_preserve_the_verified_old_prefix(self):
+        for target in ('body','receipt'):
+            with self.subTest(target=target):self.atomic_fault(target,'partial-write')
+
+    def test_body_and_receipt_flush_failures_preserve_the_verified_old_prefix(self):
+        for target in ('body','receipt'):
+            with self.subTest(target=target):self.atomic_fault(target,'flush')
+
+    def test_body_and_receipt_file_fsync_failures_preserve_the_verified_old_prefix(self):
+        for target in ('body','receipt'):
+            with self.subTest(target=target):self.atomic_fault(target,'file-fsync')
+
+    def test_body_and_receipt_readback_failures_preserve_the_verified_old_prefix(self):
+        for target in ('body','receipt'):
+            with self.subTest(target=target):self.atomic_fault(target,'readback')
+
+    def test_capture_directory_fsync_failure_rolls_back_only_this_new_capture(self):
+        self.atomic_fault('directory','directory-fsync')
+
+    def test_receipt_failures_never_remove_or_mutate_a_preexisting_shared_body(self):
+        for point in ('partial-write','flush','file-fsync','readback','directory-fsync'):
+            target = 'directory' if point == 'directory-fsync' else 'receipt'
+            with self.subTest(point=point):self.atomic_fault(target,point,shared=True)
+
+    def test_busy_existing_capture_directory_is_a_nonblocking_fixed_hold(self):
+        import fcntl
+        transport = Transport({P1_URL:b'invented prior capture before directory contention',
+                               PREVIEW_URL:b'invented new capture while another raw writer holds the directory'})
+        guard = self.new_guard()
+        real_flock = fcntl.flock; attempts = []
+        with self.p1(transport,guard=guard):
+            pilot.get(P1_URL,day=DAY)
+            protected = {p.name:p.read_bytes() for p in self.folder.iterdir()}
+            descriptor = os.open(self.folder,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+            try:
+                real_flock(descriptor,fcntl.LOCK_EX|fcntl.LOCK_NB)
+                def no_block(fd, operation):
+                    attempts.append(operation)
+                    if operation & fcntl.LOCK_EX and not operation & fcntl.LOCK_NB:
+                        raise AssertionError('a raw writer must never block on directory ownership')
+                    return real_flock(fd,operation)
+                with patch.object(fcntl,'flock',side_effect=no_block):
+                    with self.assertRaises(SourceWait) as held:pilot.get(PREVIEW_URL,day=DAY)
+                self.assert_hold(held.exception)
+                self.assertTrue(any(op & fcntl.LOCK_EX for op in attempts))
+                self.assertTrue(all(not op & fcntl.LOCK_EX or op & fcntl.LOCK_NB for op in attempts))
+                with self.assertRaises(SourceWait) as waiting:pilot.get(PREVIEW_URL,day=DAY)
+                self.assert_hold(waiting.exception,suppressed=False)
+            finally:
+                real_flock(descriptor,fcntl.LOCK_UN); os.close(descriptor)
+            self.assertEqual(transport.urls,[P1_URL,PREVIEW_URL])
+            self.assertEqual(pilot.requests_used,2)
+            self.assertEqual({p.name:p.read_bytes() for p in self.folder.iterdir()},protected)
+            with C.CaptureInventory(self.folder,repo=self.repo,now=NOW) as inventory:
+                self.assertEqual(inventory.count,1)
+            self.assertEqual(cycle.load(guard.path)['source_wait']['reason'],'SOURCE_CAPTURE_UNAVAILABLE')
+
+
 class RawURLAdmissionTests(unittest.TestCase):
     def test_only_canonical_date_valid_p1_urls_extend_existing_vault_admission(self):
         for kind in ('racelist','beforeinfo'):
@@ -632,7 +814,7 @@ class MixedRawRetentionTests(RawFixture):
         for number,(raw,url) in enumerate(bodies):
             with patch.dict(os.environ,env,clear=True):
                 sink(raw,source_url=url,received_at=NOW-timedelta(hours=1)+timedelta(microseconds=500+number))
-        with C.CaptureInventory(f.folder,repo=f.repo,now=NOW) as inventory:
+        with C.CaptureInventory(f.folder,repo=f.repo,now=batch_fixtures.NOW) as inventory:
             original_pairs = [pair for group in inventory.groups() for pair in inventory.materialize(group)]
         self.assertEqual(len(original_pairs),241)
         code, report = self.fixture_command(f,f.retain)

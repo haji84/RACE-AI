@@ -3,7 +3,8 @@
 The authentic current-day nationwide index is verified using fixed PR64
 source parser, one official racecard per active venue supplies all 12 cutoffs.
 The existing strict PR64 beforeinfo parser validates each race independently.
-Source HTML is never persisted. Research scores are untrained/uncalibrated;
+Reviewed raw P1 responses may be retained in the existing private owner vault.
+Research scores are untrained/uncalibrated;
 external GitHub artifact created_at must still be checked before the cutoff.
 This batch adds no scheduling. Request counts have no fixed numeric cap;
 the existing source HTTP/identity guards and workload boundaries remain.
@@ -281,6 +282,12 @@ def get(url,*,day=None,not_yet_published=False,media='html'):
         plan=(SOURCE_GUARD.http_failure(None,headers=None)
               if SOURCE_GUARD is not None else plan_http_wait(None,{},now))
         raise SourceWait(plan['reason'],plan['retry_at'],state=plan['state']) from None
+    if (os.environ.get('RACE_AI_ORIGINAL_VAULT_ENABLED') == 'true' and media == 'html'
+            and url.startswith(('https://www.boatrace.jp/owpc/pc/race/racelist?',
+                                'https://www.boatrace.jp/owpc/pc/race/beforeinfo?'))):
+        from race_ai.boat_source_capture_files import capture_http200
+        capture_http200(body, source_url=url, received_at=datetime.now(timezone.utc),
+                        source_guard=SOURCE_GUARD)
     time.sleep(WAIT_SECONDS)
     captured=_clock(day)
     if SOURCE_GUARD is not None:SOURCE_GUARD.http_success()
