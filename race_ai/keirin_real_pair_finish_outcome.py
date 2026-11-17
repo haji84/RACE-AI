@@ -7,9 +7,8 @@ No source fetching, no model modification, no betting or production promotion.
 """
 from __future__ import annotations
 
-from collections import Counter
 from datetime import date
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qs
 
 from . import keirin_real_line_evidence as planned
 
@@ -93,6 +92,21 @@ def validate_results(doc):
                 valid=False
             require(valid,"RESULT_SOURCE_HOST_INVALID")
             hosts.add(u.hostname)
+            d, v, n = rid[:8], rid[8:10], rid[10:12]
+            if u.hostname == "www.keirin-mobile.jp":
+                identity = (u.path == "/top/result.php" and
+                            parse_qs(u.query) == {
+                                "date": [d], "jcode": [v], "race": [n]})
+            elif u.hostname == "keirinhex.jp":
+                identity = (u.path == "/races/" + d + "/" + n + v + d + "/"
+                            and not u.query)
+            elif u.hostname == "www.chariloto.com":
+                identity = (u.path == "/keirin/results/" + v + "/" +
+                            d[:4] + "-" + d[4:6] + "-" + d[6:] + "/"
+                            and not u.query)
+            else:  # netkeirin
+                identity = (parse_qs(u.query).get("race_id") == [rid])
+            require(identity, "RESULT_SOURCE_NOT_BOUND_TO_RACE_DATE_VENUE")
         require(len(hosts)>=2 and len(set(urls))==len(urls),
                 "INDEPENDENT_RESULT_HOSTS_REQUIRED")
         require(row["organizer_result_independently_attested"] is False and
@@ -107,7 +121,7 @@ def join_planned_and_finishes(planned_doc, result_doc, *, as_of):
     validate_results(result_doc)
     # When date-only sources were checked, do not retroactively claim they
     # were available earlier that day. Both source checks must be old enough.
-    at=planned._utc(as_of) if hasattr(planned, "_utc") else planned._utc(as_of)
+    at=planned._utc(as_of)
     available=at.date()>max(_date(planned_doc["checked_on_jst"]),
                             _date(result_doc["checked_on_jst"]))
     by_rid={row["race_id"]:row for row in result_doc["races"]}
