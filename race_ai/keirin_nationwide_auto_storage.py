@@ -46,8 +46,10 @@ def sha(value):
     return sha256(value).hexdigest()
 
 
-def checked_public_key(data, *, expected_spki_sha=PINNED_OWNER_SPKI_SHA256):
+def checked_public_key(data, *, expected_spki_sha=None):
     """An owner's existing RSA public key, not a new assistant-generated key."""
+    if expected_spki_sha is None:
+        expected_spki_sha = PINNED_OWNER_SPKI_SHA256
     need(type(data) is bytes and len(data) <= 20_000,
          "OWNER_RSA_PUBLIC_KEY_BYTES_REQUIRED")
     try:
@@ -143,7 +145,7 @@ def validate_cipher(envelope):
 
 
 def seal_once(*, snapshot, prediction, public_key_pem, path, sealed_at,
-              expected_spki_sha=PINNED_OWNER_SPKI_SHA256):
+              expected_spki_sha=None):
     """No overwrite. Only an already-existing, private 0700 destination."""
     model.validate_snapshot(snapshot, computed_at=prediction["generated_at"])
     need(prediction["schema"] == model.PREDICTION and
@@ -163,6 +165,8 @@ def seal_once(*, snapshot, prediction, public_key_pem, path, sealed_at,
          not dest.exists() and not dest.is_symlink() and
          not dest.name.startswith("."),
          "PRIVATE_CREATE_ONCE_DIRECTORY_REQUIRED")
+    if expected_spki_sha is None:
+        expected_spki_sha = PINNED_OWNER_SPKI_SHA256
     pub = checked_public_key(public_key_pem, expected_spki_sha=expected_spki_sha)
     # Research schema pins the existing owner fingerprint. Other keys may
     # be tested only by monkeypatching the pinned constant in source-free CI.
