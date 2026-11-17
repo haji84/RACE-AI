@@ -13,6 +13,8 @@ REVIEWED_PREVIOUS_OWNER_SHAS = frozenset({
     # Exact immutable worker retained through the next protected release.
     # This admits original/control readback, never dispatch of an old source.
     'b491fb21ce58ba085dd8f54bb7326442b840d8f4',
+    # Exact pre-storage-repair release: original readback only, never dispatch.
+    'c123b8538006b3189181195bbc91d8f28d216ba5',
 })
 
 
@@ -51,6 +53,7 @@ def _counts(control):
          and control.get('previous_stop_reason') is None, 'SOURCE_HOLD')
 
 IDLE_SCHEMA = 'RACE_AI_NO_PENDING_FAILED_OWNER_V1'
+BOOTSTRAP_SCHEMA = 'RACE_AI_SAVED_BOOTSTRAP_FAILED_OWNER_V1'
 ORPHAN_SCHEMA = 'RACE_AI_ORPHAN_P1_ABANDONMENT_V1'
 ORPHAN_EVIDENCE_FIELDS = frozenset(('schema','previous_run_id','round_no','verified_at',
     'original_control_receipt','original_control','p1_receipt','continuity_receipt',
@@ -108,19 +111,35 @@ def verify_dispatch_proof(proof, runs, fresh_control, expected_head, now):
                        'lifetime_completed_rounds','day_start_lifetime_requests')
                 need(all(type(original.get(k)) is int and original[k]>=0 for k in names)
                      and original['completed_round']==0
-                     and original['previous_session_requests']==0
+                     and original['previous_session_requests'] in (0,1)
+                     and original['previous_session_requests']<=original['lifetime_requests']-original['day_start_lifetime_requests']
                      and original['day_start_lifetime_requests']<=original['lifetime_requests']
                      and original.get('source_wait') is None
                      and original.get('previous_halted_reason') is None
                      and original.get('previous_stop_reason') is None, 'PROOF_IDLE_SOURCE_UNVERIFIED')
-                need(evidence.get('schema')==IDLE_SCHEMA
-                     and evidence.get('round_no') is None
-                     and evidence.get('source_attempts')==0
+                need(evidence.get('round_no') is None
                      and evidence.get('no_p1_or_result_artifacts_verified') is True
                      and evidence.get('no_future_forecast_generated') is True
-                     and evidence.get('originals_rewritten') is False
-                     and repair.get('original_artifact_ids') == []
-                     and repair.get('vault_commit') is None, 'PROOF_IDLE_MISMATCH')
+                     and evidence.get('originals_rewritten') is False,'PROOF_IDLE_MISMATCH')
+                if original['previous_session_requests']==0:
+                    need(evidence.get('schema')==IDLE_SCHEMA and evidence.get('source_attempts')==0
+                         and repair.get('original_artifact_ids')==[] and repair.get('vault_commit') is None,
+                         'PROOF_IDLE_MISMATCH')
+                else:
+                    need(evidence.get('schema')==BOOTSTRAP_SCHEMA and type(evidence.get('source_attempts')) is int
+                         and evidence['source_attempts']==1 and
+                         re.fullmatch('[a-f0-9]{40}',str(repair.get('vault_commit'))) and
+                         all(evidence.get(k) is True for k in ('checkpoint_AES_authenticated',
+                             'public_control_matches_AES','first_receipt_union_verified')),
+                         'PROOF_BOOTSTRAP_AUTHENTICATION_REQUIRED')
+                    references=[evidence['p0_receipt'],evidence['continuity_receipt'],evidence['source_control_receipt']]
+                    need(references[1]==original['receipt'] and references[2]==original['source_control_receipt'] and
+                         repair.get('original_artifact_ids')==[r['id'] for r in references] and
+                         len({r['id'] for r in references})==3 and all(type(r['id']) is int and r['id']>0 and
+                             re.fullmatch('sha256:[a-f0-9]{64}',str(r['digest'])) for r in references) and
+                         ts(run_details[repair['run_id']]['created_at'])<=ts(references[0]['created_at'])<=
+                             ts(references[1]['created_at'])<=ts(references[2]['created_at'])<=now,
+                         'PROOF_BOOTSTRAP_RECEIPTS_CHANGED')
                 expected['recovery']=evidence
             elif evidence.get('schema')==ORPHAN_SCHEMA:
                 _counts(original)

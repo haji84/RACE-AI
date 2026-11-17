@@ -130,12 +130,14 @@ def verify_pending_round(get, run, control, *, now):
 IDLE_SCHEMA = 'RACE_AI_NO_PENDING_FAILED_OWNER_V1'
 
 
-def verify_no_pending_failed_owner(get, run, control, *, now):
+def verify_no_pending_failed_owner(get, run, control, *, now, replayed_state=None):
     """Attest a failed pre-round P0 stage, without pretending a round was repaired.
 
     Requires actual independently decrypted final-control readback by the caller,
     a complete source-free replay of the first P0, zero failed-session requests
-    and absence of P1/RESULT artifacts. Anything uncertain remains hard HOLD.
+    and absence of P1/RESULT artifacts. One charged initial B capture requires
+    its exact saved P0, bootstrap AES and complete first-receipt replay instead.
+    Anything uncertain remains hard HOLD.
     No source GET, forecast regeneration, archive write or counter adjustment.
     """
     from .cycle_recovery import artifact_pages
@@ -155,7 +157,8 @@ def verify_no_pending_failed_owner(get, run, control, *, now):
            'lifetime_completed_rounds','day_start_lifetime_requests')
     need(all(type(control.get(k)) is int and control[k]>=0 for k in names)
          and control.get('prepared_round') is None
-         and control['completed_round']==0 and control['previous_session_requests']==0
+         and control['completed_round']==0 and (control['previous_session_requests']==0 or
+             control['previous_session_requests']==1 and replayed_state is not None)
          # Earlier owners can have spent requests on this same day. Only
          # this failed session must be source-free; retain the inherited total.
          and control['day_start_lifetime_requests']<=control['lifetime_requests']
@@ -186,6 +189,8 @@ def verify_no_pending_failed_owner(get, run, control, *, now):
                          r'(?:-cycle-[0-9]+)?\Z')
     need(not any(forbidden.fullmatch(name) for name in names),
          'IDLE_P1_OR_RESULT_ARTIFACT_PRESENT')
+    if control['previous_session_requests']==1:
+        return _verify_captured_bootstrap(get,run,control,items=listing,now=now,replayed_state=replayed_state)
     evidence=dict(schema=IDLE_SCHEMA, previous_run_id=ident, round_no=None,
                   verified_at=now.isoformat(), original_control_receipt=deepcopy(control['receipt']),
                   source_attempts=0, no_p1_or_result_artifacts_verified=True,
@@ -195,6 +200,80 @@ def verify_no_pending_failed_owner(get, run, control, *, now):
     return dict(schema=IDLE_SCHEMA,control=repaired,originals=[],
                 original_artifact_ids=[],replayed_p1_rows=0,
                 new_forecasts=0,official_source_requests=0)
+
+
+def _verify_captured_bootstrap(get,run,control,*,items,now,replayed_state):
+    """Authenticate the one B GET before P0 retention; never certify arbitrary usage."""
+    from datetime import date
+    from .boat_private_original_vault import MAX_ORIGINAL
+    from .boat_source_control import read_summary,build_summary
+    from .continuity_checkpoint import _control
+    from .frozen_day_cycle import read_p0
+    from .first_receipt_continuity import first_receipt_rows
+    from .official_archive_probe import official_url
+    from scripts.boat_failed_recovery_contract import BOOTSTRAP_SCHEMA
+    ident=run['id'];packets=[];start,end=ts(run['created_at']),ts(run['updated_at'])
+    for prefix in ('boat-p0-existing','race-cycle-continuity','race-source-control'):
+        matches=[m for m in items if m['name']==f'{prefix}-{ident}']
+        need(len(matches)==1,'BOOTSTRAP_ORIGINAL_MISSING_OR_DUPLICATE')
+        item=matches[0];meta_raw=get(f'actions/artifacts/{item["id"]}')
+        need(type(meta_raw) is bytes and 0<len(meta_raw)<=MAX_METADATA,'BOOTSTRAP_METADATA_BOUND')
+        meta=json.loads(meta_raw)
+        need(all(meta.get(k)==item.get(k) for k in ('id','name','digest','created_at','size_in_bytes','expired')),
+             'BOOTSTRAP_LISTING_CHANGED')
+        raw=get(f'actions/artifacts/{item["id"]}/zip')
+        need(type(raw) is bytes and 0<len(raw)<=MAX_ORIGINAL,'BOOTSTRAP_ORIGINAL_BOUND')
+        _metadata(raw,meta,name=f'{prefix}-{ident}',run_id=ident,head_sha=run['head_sha'])
+        need(start<=ts(meta['created_at'])<=end<=now<ts(meta['expires_at']),'BOOTSTRAP_ORIGINAL_CLOCK')
+        packets.append(dict(raw_zip=raw,metadata_raw=meta_raw,metadata=meta))
+    p0,checkpoint,public=packets
+    need(read_summary(public['raw_zip'],public['metadata'],checkpoint['raw_zip'],checkpoint['metadata'],
+        run_id=ident,head_sha=run['head_sha'])==control,'BOOTSTRAP_CONTROL_CHANGED')
+    # Rebuild the public summary from actual decrypted checkpoint bytes.
+    from . import boat_private_original_archive as archive
+    with archive._checked_zip(checkpoint['raw_zip'],max_zip_bytes=MAX_ORIGINAL) as z:
+        cipher=z.read(archive.CIPHER_MEMBER)
+    derived=build_summary(cipher,run_id=ident,head_sha=run['head_sha'])
+    with archive._checked_zip(public['raw_zip'],max_zip_bytes=MAX_ORIGINAL) as z:
+        need(json.loads(z.read('source-control.json'))==derived,'BOOTSTRAP_AES_PUBLIC_DISAGREE')
+    with open_original_zip(checkpoint['raw_zip'],checkpoint['metadata'],expected_kind='CONTINUITY',
+                           max_plain_zip_bytes=archive.MAX_PLAIN_ZIP) as z:
+        need('bootstrap-source-control.json' in z.namelist() and 'repeat-session.json' not in z.namelist(),
+             'BOOTSTRAP_CONTROL_MEMBER_REQUIRED')
+        need(z.getinfo('bootstrap-source-control.json').file_size<=1024*1024,'BOOTSTRAP_CONTROL_BOUND')
+        state=_control(z.read('bootstrap-source-control.json'),'bootstrap-source-control.json',ident)
+    need(state.get('day_jst')==control['day_jst'] and state.get('requests_used')==1 and
+         type(state.get('lifetime_requests_base')) is int and
+         state.get('lifetime_requests_base')+1==control['lifetime_requests'] and
+         control['day_start_lifetime_requests']<=control['lifetime_requests']-1,
+         'BOOTSTRAP_COUNTERS_INVALID')
+    document,rows=read_p0(p0['raw_zip'],p0['metadata'],expected_day=control['day_jst'])
+    need(type(document.get('source_requests')) is int and document['source_requests']==1 and
+         document.get('source_url')==official_url(date.fromisoformat(control['day_jst']),'B') and
+         document.get('code_sha')==run['head_sha'] and
+         re.fullmatch('[a-f0-9]{64}',str(document.get('source_sha256'))) and
+         start<=ts(document['captured_at'])<=ts(p0['metadata']['created_at'])<=ts(checkpoint['metadata']['created_at']) and rows,
+         'BOOTSTRAP_B_SOURCE_UNVERIFIED')
+    need(type(replayed_state) is dict and replayed_state.get('complete') is True and
+         replayed_state.get('day_jst')==control['day_jst'] and
+         type(replayed_state.get('rows')) is list and type(replayed_state.get('receipts')) is list,
+         'BOOTSTRAP_DAY_REPLAY_REQUIRED')
+    before,_=first_receipt_rows(replayed_state['rows'])
+    union,_=first_receipt_rows(replayed_state['rows']+rows)
+    need(before==union and any(m.get('id')==p0['metadata']['id'] and all(m.get(k)==p0['metadata'].get(k)
+         for k in ('digest','created_at','workflow_run')) for m in replayed_state['receipts']),
+         'BOOTSTRAP_FIRST_RECEIPT_MISSING')
+    receipt=lambda m:{k:deepcopy(m[k]) for k in ('id','digest','created_at')}
+    evidence=dict(schema=BOOTSTRAP_SCHEMA,previous_run_id=ident,round_no=None,verified_at=now.isoformat(),
+        original_control_receipt=deepcopy(control['receipt']),source_attempts=1,
+        p0_receipt=receipt(p0['metadata']),continuity_receipt=receipt(checkpoint['metadata']),
+        source_control_receipt=receipt(public['metadata']),checkpoint_AES_authenticated=True,
+        public_control_matches_AES=True,first_receipt_union_verified=True,
+        no_p1_or_result_artifacts_verified=True,no_future_forecast_generated=True,originals_rewritten=False)
+    fixed=deepcopy(control);fixed['recovery']=evidence
+    return dict(schema=BOOTSTRAP_SCHEMA,control=fixed,originals=packets,
+        original_artifact_ids=[p['metadata']['id'] for p in packets],replayed_p1_rows=0,
+        new_forecasts=0,official_source_requests=0)
 
 
 from scripts.boat_failed_recovery_contract import (PROOF_SCHEMA, ORPHAN_SCHEMA,

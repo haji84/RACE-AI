@@ -169,12 +169,16 @@ def recover_history(runs, *, get, load_control, replay_day, retain, now, expecte
         if control.get('prepared_round') is None:
             # A failed owner can stop during P0 retention BEFORE round 01.
             # The old pending-round-only recovery rejected this genuine state.
-            # Authenticate absent P1/RESULT artifacts, source budget == 0,
-            # and the already replayed P0 before allowing a successor gate.
-            checked = verify_no_pending_failed_owner(get, run, control, now=now)
+            # One charged B capture additionally requires its bootstrap AES,
+            # exact first P0 and permanent independent vault readback.
+            checked = verify_no_pending_failed_owner(get, run, control, now=now,replayed_state=state)
+            saved=retain(checked,run) if checked['originals'] else None
+            if saved is not None:
+                need(saved.get('independent_git_readback_verified') is True and
+                     re.fullmatch('[a-f0-9]{40}',str(saved.get('source_commit'))),'VAULT_READBACK_MISSING')
             repairs.append(dict(run_id=run['id'], original_control=deepcopy(control),
-                control=checked['control'], vault_commit=None,
-                original_artifact_ids=[]))
+                control=checked['control'], vault_commit=saved['source_commit'] if saved is not None else None,
+                original_artifact_ids=checked['original_artifact_ids']))
         else:
             checked = verify_recoverable_pending(get, run, control, now=now,replayed_state=state,
                                                  expected_head=expected_head)

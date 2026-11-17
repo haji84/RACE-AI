@@ -19,6 +19,12 @@ on:
       - .github/workflows/boat-nationwide-ab-one-shot.yml
       - scripts/boat_private_original_vault.py
       - tests/test_boat_private_original_vault_cli.py
+      - race_ai/boat_pdca_github_handoff.py
+      - race_ai/boat_private_original_vault.py
+      - race_ai/boat_all_model_store.py
+      - race_ai/saved_view_feed.py
+      - tests/test_boat_pdca_github_handoff.py
+      - tests/test_boat_private_original_vault_isolation.py
       - race_ai/boat_national_video_research_gate.py
       - tests/test_boat_national_video_research_gate.py
       - race_ai/boat_video_rights_admission.py
@@ -28,6 +34,7 @@ on:
       - tests/test_boat_unbounded_forecast_policy.py
       - tests/test_boat_mandatory_exhibition_priority.py
       - scripts/boat_nationwide_ab_pilot.py
+      - tests/test_boat_jst_day_handoff.py
       - race_ai/repeated_cycle.py
       - race_ai/cycle_recovery.py
       - scripts/github_existing_cycle.py
@@ -59,6 +66,7 @@ on:
       - scripts/boat_failed_recovery_contract.py
       - scripts/boat_recover_failed_owner.py
       - tests/test_boat_pending_round_recovery.py
+      - tests/test_boat_bootstrap_recovery.py
       - tests/test_repeated_cycle.py
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
@@ -104,6 +112,9 @@ jobs:
               race_ai.__path__.append(str(Path(folder,'race_ai').resolve()))
           names=['tests.test_first_p0_bootstrap','tests.test_first_receipt_continuity',
                  'tests.test_frozen_day_cycle','tests.test_boat_private_original_archive',
+                 'tests.test_boat_pdca_github_handoff','tests.test_boat_private_original_vault',
+                 'tests.test_boat_private_original_vault_isolation','tests.test_boat_all_model_store',
+                 'tests.test_saved_view_feed','tests.test_boat_shared_feed_writer_safety',
                  'tests.test_private_original_archive_readers','tests.test_boat_private_original_vault_cli',
                  'tests.test_boat_first_p0_readback','tests.test_boat_first_p0_reconcile',
                  'tests.test_boat_saved_result_recovery','tests.test_boat_source_control_mirror',
@@ -118,9 +129,10 @@ jobs:
                  'tests.test_boat_venue_research_runtime','tests.test_boat_venue_learning_handoff',
                  'tests.test_boat_venue_learning_context','tests.test_boat_venue_learning',
                  'tests.test_observed_weight_learning',
+                  'tests.test_boat_jst_day_handoff',
                  'tests.test_boat_source_control','tests.test_continuity_checkpoint',
                  'tests.test_boat_seller_official_source','tests.test_boat_program_source',
-                 'tests.test_boat_pending_round_recovery']
+                 'tests.test_boat_pending_round_recovery','tests.test_boat_bootstrap_recovery.BootstrapRecoveryTests']
           result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
           raise SystemExit(not result.wasSuccessful())
           PY_RECOVERY_TEST

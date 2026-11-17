@@ -1225,7 +1225,10 @@ def repeat_prepare(day,round_no):
             need(state['day_jst']==day,'WORKER_HANDOFF_DAY_MISMATCH')
             need(state['prepared_round'] is None,'WORKER_HANDOFF_UNCOMMITTED_ROUND')
             if state['halted_reason'] is None:
-                state['halted_reason']='WORKER_HANDOFF'
+                # A physical deadline reached after JST midnight ends the
+                # previous day's sealed session; never label it same-day work.
+                state['halted_reason']=('DAY_HANDOFF' if now.astimezone(JST).date().isoformat()!=day
+                                        else 'WORKER_HANDOFF')
                 write_state(path,state)
             return dict(active=False,wait_seconds=0,reason=state['halted_reason'])
         return prepare(path,round_no,now=now,next_action_at=next_action)

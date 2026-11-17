@@ -171,6 +171,14 @@ class VaultGitRepository(GitStateRepository):
         self._run(['fetch','--no-tags','--no-write-fetch-head','--depth=1','--filter=blob:none',
             self.fetch_url,commit+':refs/race-ai/pinned-state/'+commit])
 
+    def _write_tree(self,*,env):
+        # read-tree inherited exact OIDs from the fetched parent; new bytes were
+        # hash-object'ed locally. Normal write-tree fetches every promised blob
+        # just to check existence, hydrating the multi-GB historical vault.
+        # Preserve those same OIDs without that download. Selected originals
+        # still require independent remote SHA/AES/byte-exact readback.
+        return self._run(['write-tree','--missing-ok'],env=env).decode().strip()
+
     def exists(self,commit,path):
         _hex(commit,_HEAD)
         _need(type(path) is str and path and not any(char in path for char in ('\0','\n','\r','\t')),
