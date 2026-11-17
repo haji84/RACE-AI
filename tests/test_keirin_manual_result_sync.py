@@ -147,6 +147,8 @@ class Manual71SyncTest(unittest.TestCase):
         self.assertEqual(output.count('class="keirin-auto-result"'),71)
         self.assertEqual(output.count('<article'),71)
         self.assertIn('結果待ち',output)
+        self.assertIn('会場別の照合状況を見る',output)
+        self.assertIn('信頼度高め',output)
 
     def test_cli_offline_private_artifact(self):
         html='<html><head></head><body>'+''.join(
