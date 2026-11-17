@@ -1,3 +1,13 @@
+## 2026-11-17 18:54 UTC: 通常認証から既存Mac検証を要求、main候補はsource接続・回復入力修正へ限定（GOAL未達）
+
+実行環境のcontext更新後、小さなPythonと低thread Gitが動くことを実測。元workspace/各作業treeは実在し、元repo HEAD `b4206312594ef84a43c86695dc3d3ec16d1c5ae0` はclean。32,050 zombieは残るため、重いlocal試験の再開や完全復旧は宣言しない。tokenの値を表示せず、通常認証のGET /user=200/haji84、repo=200/push権限ありを確認した。local owner keyはない。context更新でfunctionsメモリstoreは消えたが、実ファイルとGitHub上の原本/commitは保全されていた。
+
+既存Mac workflow416758725/main/native-safariを、main6f779/source bb492一致と同HEAD既存run0を直前確認して18:53:08 UTCに通常認証で一度だけ要求し、空204を確認。これは受付であり実Mac合格ではない。環境guardの実診断を待つ。既存の呼出しが再び使えるため、追加予定だった自動callerとその専用テストは最終treeから除外し、作成済みcommit/RED証拠は親に保存する。既存Safari workflowのjob/権限/runner/input/clock/guard/公開assetに変更はない。
+
+main PR #52の最終runtimeは、実source `bb49215034b779ea1493b35dd91e5c3ebfc04032` へのfuture pin/厳密な過去原本読戻しと、回復一覧を必要4項目へ縮約する修正。元6ケースとAPI6ケースを両方保持したnative91試験も加える。中間HEAD076497eの41 checksは成功17/skip24で完了したが、最終scopeのHEADでfresh CIを通してから通常mergeする。追加の自動呼出し、job、権限、input、cron、新PR、課金、本番weights、投票、候補UI公開は行わない。
+
+source PR #55の主要791試験成功とmerge tree一致は確定。新sourceの実workerでのP0/bootstrap・全ラウンド・速度・T15〜10・全4競技全日は未証明。旧B17/P1原本欠落、物理iPhone/login/V5/全8参考、独立6艇GT/校正、元モデル対学習版の前向き改善、元環境の未push2commit未復元は継続課題。詳細: [最終scopeと通常認証確認](evidence/boat-main52-runtime-integration-20261117.json)。
+
 ## 2026-11-17 18:30 UTC: 保存修正を保護付きsourceへ統合、main接続と実運転は検証継続（GOAL未達）
 
 GitHub認証付きAPIでPR #55の最終HEAD `15fc68755e60db3f4e578ef2b8415e4ed909c9eb` のCIを確認し、通常mergeした。実source `bb49215034b779ea1493b35dd91e5c3ebfc04032` のtree `8a97242da13235d3f55f127eb157f514a25d8eca` はCI済みtreeと完全一致。観測mainは `6f77923a5d77712b9471f59fe7f3649fb9e3ca1e`。主要791件/189.401秒、および3・12・38・165・46件とNode検証が成功し、6 checksは成功3/意図したskip3。source16ファイルは元のテストを含め明示転送し、4組の全tree一致を確認してsnapshotの親を保全した。APIで作り直したcommit metadataは元local SHAの復元とは呼ばない。

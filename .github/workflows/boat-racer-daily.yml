@@ -10,8 +10,6 @@ on:
       - tests/test_boat_dispatch_concurrency.py
       - scripts/boat_native_safari_acceptance.py
       - tests/test_boat_native_safari_acceptance.py
-      - scripts/boat_native_safari_dispatch.py
-      - tests/test_boat_native_safari_dispatch.py
   push:
     branches: [main]
     paths: [docs/evidence/racer-daily-refresh-trigger.txt, docs/evidence/racer-intraday-refresh-trigger.txt, docs/evidence/owner-pdca-main-trigger.txt]
@@ -116,7 +114,7 @@ jobs:
           ref: '${{ github.event.pull_request.head.sha }}'
           persist-credentials: false
       - name: Run real existing main dispatcher and recovery unit tests
-        run: python -m unittest tests.test_boat_main_dispatch_gate tests.test_boat_early_start_gate tests.test_boat_owner_completion_trigger tests.test_boat_first_p0_recovery_gate tests.test_boat_dispatch_concurrency tests.test_boat_native_safari_acceptance tests.test_boat_native_safari_dispatch -v
+        run: python -m unittest tests.test_boat_main_dispatch_gate tests.test_boat_early_start_gate tests.test_boat_owner_completion_trigger tests.test_boat_first_p0_recovery_gate tests.test_boat_dispatch_concurrency tests.test_boat_native_safari_acceptance -v
       - name: Verify pinned exact DOM proof and absence of provider GET in PR
         run: |
           python - <<'PY'
@@ -927,13 +925,3 @@ jobs:
             --ref production/boat-p0-p1-20261111 \
             -f production_scope=existing-owner-p0-p1
           echo 'DISPATCH_REQUESTED_REAL_P0_P1_NOT_YET_PROVEN'
-      - name: Request native Safari acceptance once for the exact main head
-        if: >-
-          success() && steps.owner_gate.outcome == 'success' &&
-          github.event_name == 'push' && github.repository == 'haji84/RACE-AI' &&
-          github.ref == 'refs/heads/main' &&
-          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111')
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python -m scripts.boat_native_safari_dispatch

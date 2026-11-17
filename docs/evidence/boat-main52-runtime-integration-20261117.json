@@ -1,87 +1,75 @@
 {
-  "schema": "RACE_AI_MAIN52_RUNTIME_INTEGRATION_V1",
+  "schema": "RACE_AI_MAIN52_FINAL_SCOPE_V2",
+  "observed_at": "2026-11-17T18:53:52Z",
   "base_main": "6f77923a5d77712b9471f59fe7f3649fb9e3ca1e",
   "source": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
-  "actual_red": {
-    "head": "9bb6406d3fc06fa35d7961451f6ca9bd63ad5667",
-    "observed_at": "2026-11-17T18:40:28Z",
-    "native_caller": {
-      "run": 44150279429,
-      "job": 134276372335,
-      "tests": 150,
-      "seconds": 16.154,
-      "conclusion": "failure",
-      "errors": 1,
-      "error": "ImportError missing scripts.boat_native_safari_dispatch",
-      "expected": true
-    },
-    "projection": [
-      {
-        "run": 44150279098,
-        "job": 134276372557,
-        "tests": 10,
-        "seconds": 0.038,
-        "conclusion": "failure",
-        "subtest_failures": 21,
-        "error": "actual workflow has no --jq projection",
-        "expected": true
-      },
-      {
-        "job": 134276373281,
-        "tests": 40,
-        "seconds": 0.019,
-        "conclusion": "failure",
-        "subtest_failures": 21,
-        "error": "actual workflow has no --jq projection",
-        "expected": true
-      }
-    ],
-    "provider_gets": 0,
-    "dispatch_performed": false,
-    "runtime_present": false,
-    "all_checks": {
-      "total": 41,
-      "completed": true,
-      "success": 14,
-      "skipped": 24,
-      "failed": 3,
-      "unexpected_failures": 0
-    }
+  "source_tree": "8a97242da13235d3f55f127eb157f514a25d8eca",
+  "source_ci": {
+    "head": "15fc68755e60db3f4e578ef2b8415e4ed909c9eb",
+    "run": 44145608111,
+    "job": 134262269443,
+    "primary_tests": 791,
+    "seconds": 189.401,
+    "actual_merge_tree_equal": true
   },
-  "native_request_state_contract": {
-    "before_POST_or_dedup": {
-      "dispatch_requested": false,
-      "request_attempted": false,
-      "request_acknowledged": false
-    },
-    "strict_204_empty_ACK": {
-      "dispatch_requested": true,
-      "request_attempted": true,
-      "request_acknowledged": true
-    },
-    "uncertain_POST": {
-      "dispatch_requested": null,
-      "request_attempted": true,
-      "request_acknowledged": false
-    },
+  "final_runtime_scope": [
+    "Exact future owner/source pins with additive strictly scoped historical readback",
+    "Four-field projection before unchanged schedule audit 512000B/100-row guards"
+  ],
+  "native_acceptance_tests": {
+    "expected": 91,
+    "all_original_and_api_cases_preserved": true,
+    "runtime_guard_unchanged": true
+  },
+  "source_pin_independent_static_review": "CLEAR for exact 14-file packet",
+  "intermediate_ci": {
+    "head": "076497e9914a46c0888cfdbf1fa6d6d48536824a",
+    "all_completed": true,
+    "total": 41,
+    "success": 17,
+    "skipped": 24,
+    "failed": 0,
+    "scope_note": "This intermediate head also exercised a proposed automatic caller. That caller and its own tests are excluded from the final tree; intermediate commits and expected-RED evidence remain in ancestry."
+  },
+  "environment_recheck": {
+    "original_head": "b4206312594ef84a43c86695dc3d3ec16d1c5ae0",
+    "original_status_clean": true,
+    "small_commands_work": true,
+    "zombie_processes_observed": 32050,
+    "heavy_local_tests_not_run": true,
+    "authenticated_identity": "haji84",
+    "authenticated_identity_http": 200,
+    "authenticated_repo_http": 200,
+    "push_permission_reported": true,
+    "owner_key_present_locally": false,
+    "filesystem_preserved": true,
+    "functions_store_cleared_after_context_refresh": true
+  },
+  "native_existing_workflow_request": {
+    "workflow_id": 416758725,
+    "main_sha": "6f77923a5d77712b9471f59fe7f3649fb9e3ca1e",
+    "source_sha": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+    "requested_at": "2026-11-17T18:53:08.716639Z",
+    "ref": "main",
+    "browser": "native-safari",
+    "prior_head_runs": 0,
+    "http": 204,
+    "request_acknowledged": true,
+    "request_attempted": true,
+    "dispatch_requested": true,
+    "retries": 0,
     "native_verification_proven": false
   },
-  "native_limitations": [
-    "No atomic API compare-and-dispatch or idempotency key; fresh refs and complete prior-run lookup reduce duplicates but do not prove exact-once.",
-    "POST uncertainty has dispatch_requested:null/request_attempted:true/request_acknowledged:false and is never retried.",
-    "A strict empty204 acknowledges the request, not a started or passed Mac job.",
-    "Existing native acceptance workflow/pins/runner/inputs/permissions/jobs/schedule remain untouched.",
-    "Only the existing protected main release prefix+marker route may execute this caller. Owner source dispatch remains governed by its existing gate."
-  ],
-  "canonical_native_workflow": 416758725,
-  "official_history_contract_reference": "https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#list-workflow-runs-for-a-workflow",
-  "native_step": "Last step after original owner source dispatch; continue-on-error affects only this new step; exact trusted main push release prefix. No schedule/workflow_run/PR call.",
+  "automatic_native_caller_in_final_tree": false,
   "original_source_ready_recovery_and_dispatch_conditions_unchanged": true,
-  "source_pin_static_independent_review": "CLEAR: 14 exact source-pin files; strict original body/clock/AES/current-head/defaults preserved; all six changed test modules already registered",
-  "native_caller_independent_review": "PENDING",
-  "fresh_exact_green_ci": "REQUIRED_NOT_YET_EXECUTED",
-  "native_acceptance_or_live_owner_proven": false,
+  "native_acceptance_workflow_unchanged": true,
+  "new_jobs": 0,
+  "new_permissions": 0,
+  "new_prs": 0,
+  "new_paid_services": 0,
+  "fresh_final_ci_required": true,
+  "actual_new_source_owner_operation_proven": false,
   "physical_iphone_proven": false,
-  "goal_complete": false,
-  "workspace_processes": 0
+  "all_sports_all_day_proven": false,
+  "goal_complete": false
 }
