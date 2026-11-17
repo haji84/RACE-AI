@@ -1,8 +1,10 @@
 """Manual, source-free desktop Safari proof using existing authenticated saved views.
 
-Application assets are verified against the deployed Pages manifest. Only the
-HTML transport is changed to the app's existing private saved-view endpoint.
-Keys remain in Python; Safari sees no owner link, token or encryption key.
+Application assets are verified against the deployed Pages manifest. Latest-P1
+private transport and exact-original-seed browser AES are separate checks.
+Only the independent viewer capability enters Safari, in a private fragment;
+owner state keys and GitHub tokens remain in Actions. Screenshots are possible
+only in a separate synthetic-only invocation, after real sessions have closed.
 """
 import argparse
 import base64
@@ -34,12 +36,20 @@ CSP = ("default-src 'none';script-src 'self';style-src 'self';"
        "img-src 'self' data:;connect-src 'self';font-src 'none';"
        "form-action 'none';object-src 'none';base-uri 'none';frame-src 'none'")
 MAX_ASSET = 16 * 1024 * 1024
+SYNTHETIC_PATH = 'data/example-synthetic-forecast-audit.json'
+SYNTHETIC_SHA = 'b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a'
+SYNTHETIC_IDS = tuple('synthetic:2030-01-01:' + sport + ':1'
+                      for sport in ('autorace', 'boat', 'horse', 'keirin'))
+VISUAL_PAGES = ('home', 'races', 'detail', 'picks', 'results', 'research', 'settings')
+VISUAL_WIDTHS = (320, 390, 1440, 1920)
 REASONS = frozenset('''ASSET_HASH_MISMATCH ASSET_FILE_REJECTED ASSET_PATH_REJECTED
 ASSET_MANIFEST_INVALID ASSET_INDEX_INVALID LIVE_PAGES_BYTES_DIFFER NATIVE_MACOS_REQUIRED
 SAFARIDRIVER_REQUIRED SAFARIDRIVER_UNAVAILABLE SAFARI_CAPABILITIES_INVALID
 SAFARI_WEBDRIVER_FAILED SAFARI_OPERATION_FAILED SAVED_CONTEXT_INVALID
 MODEL_ORIGINAL_MISMATCH PRIVATE_NETWORK_BOUNDARY_FAILED SAVED_VIEW_UNAVAILABLE
-APP_UI_CHECK_FAILED SOURCE_REVISION_MISMATCH VIEWPORT_INVALID NATIVE_BUDGET_INPUT_NOT_APPLIED'''.split())
+APP_UI_CHECK_FAILED SOURCE_REVISION_MISMATCH VIEWPORT_INVALID NATIVE_BUDGET_INPUT_NOT_APPLIED
+ENCRYPTED_SEED_INVALID ENCRYPTED_SEED_REFUSAL_FAILED SYNTHETIC_FIXTURE_INVALID
+SYNTHETIC_SCREENSHOT_REJECTED SYNTHETIC_OUTPUT_REJECTED'''.split())
 
 
 class SafariHold(ValueError):
@@ -135,6 +145,12 @@ def viewport_evidence(requested, actual):
             'physical_iphone_verified': False}
 
 
+def require_viewport(requested, actual):
+    evidence = viewport_evidence(requested, actual)
+    need(evidence['requested_width_verified'], 'VIEWPORT_INVALID')
+    return evidence
+
+
 def validate_context(context):
     need(isinstance(context, dict) and context.get('schema') == 'RACE_AI_PRIVATE_LIVE_SITE_CHECK_CONTEXT_V1'
          and context.get('stage') == 'P1', 'SAVED_CONTEXT_INVALID')
@@ -162,15 +178,25 @@ def verify_model_choice(choice, detail):
          and sha(wire(detail['tickets']).encode()) == choice['tickets_sha256'], 'MODEL_ORIGINAL_MISMATCH')
 
 
-def verify_private_boundary(snapshot, audit, secrets):
+def verify_private_boundary(snapshot, audit, secrets, *, fragment=None, encrypted=False, require_read=True):
     need(isinstance(snapshot, dict) and isinstance(snapshot.get('privacy'), dict)
          and snapshot['privacy'].get('page_errors') == 0, 'PRIVATE_NETWORK_BOUNDARY_FAILED')
-    rendered = wire(snapshot)
+    url = urllib.parse.urlsplit(snapshot.get('url', ''))
+    checked = snapshot
+    if fragment is not None:
+        need(encrypted and isinstance(fragment, str) and (fragment == '' or
+             re.fullmatch(r'#saved=[a-f0-9]{64}\.[A-Za-z0-9_-]{43}', fragment))
+             and ('#' + url.fragment if url.fragment else '') == fragment,
+             'PRIVATE_NETWORK_BOUNDARY_FAILED')
+        # Only this exact authorized capability location is excepted. Secrets
+        # anywhere else in the snapshot, headers, requests or storage still fail.
+        checked = dict(snapshot, url=urllib.parse.urlunsplit(url._replace(fragment='')))
+    rendered = wire(checked)
     need(not any(value in rendered for value in secrets if isinstance(value, str) and len(value) >= 8),
          'PRIVATE_NETWORK_BOUNDARY_FAILED')
-    url = urllib.parse.urlsplit(snapshot.get('url', ''))
     need(url.scheme == 'http' and url.hostname == '127.0.0.1' and not url.username and not url.password
-         and not url.query and (not url.fragment or re.fullmatch('[a-z-]+', url.fragment))
+         and not url.query and url.path == '/'
+         and (fragment is not None or not url.fragment or re.fullmatch('[a-z-]+', url.fragment))
          and snapshot.get('session') == {} and snapshot.get('cookie') == '', 'PRIVATE_NETWORK_BOUNDARY_FAILED')
     local = snapshot.get('local')
     need(isinstance(local, dict) and set(local) <= {'race-ai-display-v1'}, 'PRIVATE_NETWORK_BOUNDARY_FAILED')
@@ -190,9 +216,86 @@ def verify_private_boundary(snapshot, audit, secrets):
                     need(type(value) is int and 0 < value <= 10_000_000, 'PRIVATE_NETWORK_BOUNDARY_FAILED')
         except (ValueError, TypeError):
             raise SafariHold('PRIVATE_NETWORK_BOUNDARY_FAILED') from None
-    need(audit.get('private_view_reads', 0) > 0 and audit.get('secret_in_request') is False
+    reads = audit.get('encrypted_seed_reads' if encrypted else 'private_view_reads', 0)
+    need((reads > 0 if require_read else reads == 0)
+         and (not encrypted or audit.get('private_view_reads') == 0)
+         and audit.get('secret_in_request') is False
          and audit.get('non_read_requests') == audit.get('outbound_requests_permitted') == 0,
          'PRIVATE_NETWORK_BOUNDARY_FAILED')
+
+
+def load_encrypted_seed(root):
+    """Read only the exact index-referenced original, bound to its manifest."""
+    try:
+        root = Path(root).resolve()
+        assets = load_public_assets(root)
+        index = assets['index.html'].decode('utf-8')
+        paths = re.findall(r'<meta name="race-ai-encrypted-saved-view" content="\./(views/[a-f0-9]{64}\.json)">', index)
+        anchors = re.findall(r'<meta name="race-ai-saved-view-forecast-sha" content="([a-f0-9]{64})">', index)
+        need(len(paths) == len(anchors) == 1, 'ENCRYPTED_SEED_INVALID')
+        path = root / paths[0]
+        need(path.is_file() and not any(p.is_symlink() for p in (path, *path.parents))
+             and 0 < path.stat().st_size <= 90 * 1024 * 1024, 'ASSET_FILE_REJECTED')
+        raw = path.read_bytes()
+        ident = path.stem
+        manifest = json.loads((root / 'site-build.json').read_bytes())
+        need(manifest.get('forecast_sha256') == anchors[0], 'ENCRYPTED_SEED_INVALID')
+        need(sha(raw) == ident and manifest['files'].get(paths[0]) ==
+             {'bytes': len(raw), 'sha256': ident}, 'ASSET_HASH_MISMATCH')
+        doc = json.loads(raw)
+        need(isinstance(doc, dict) and set(doc) == {'header', 'nonce', 'ciphertext'}
+             and isinstance(doc['header'], dict) and doc['header'].get('schema') in
+             ('RACE_AI_SAVED_WEB_VIEW_V1', 'RACE_AI_SAVED_WEB_VIEW_V2'), 'ENCRYPTED_SEED_INVALID')
+        return {'path': paths[0], 'raw': raw, 'cipher_sha256': ident,
+                'forecast_sha256': anchors[0], 'header': doc['header']}
+    except (OSError, ValueError, KeyError, UnicodeError) as error:
+        if isinstance(error, SafariHold):
+            raise
+        raise SafariHold('ENCRYPTED_SEED_INVALID') from None
+
+
+def build_seed_context(seed, bootstrap, view, forecast_anchor, *, retired=()):
+    """Expectations from the same independently AES-authenticated seed only."""
+    header = seed['header']
+    need(seed['forecast_sha256'] == bootstrap.get('forecast_sha256') == forecast_anchor
+         and (header.get('view_id') if header.get('schema') == 'RACE_AI_SAVED_WEB_VIEW_V2'
+              else seed['cipher_sha256']) == bootstrap.get('view_id')
+         and isinstance(view, dict) and view.get('schema') == 'RACE_AI_PRIVATE_CYCLE_VIEW_V1'
+         and isinstance(view.get('records'), list), 'ENCRYPTED_SEED_INVALID')
+    for row in view['records']:
+        if row.get('sport') != 'boat':
+            continue
+        predictions = [p for p in [row.get('prediction'), *row.get('comparison_predictions', [])]
+                       if p is not None and p.get('model_id') not in retired]
+        choices, seen = [], set()
+        for index, prediction in enumerate(predictions):
+            model, tickets = prediction.get('model_id'), prediction.get('ordered_top8')
+            if not isinstance(model, str) or not model or model in seen or not isinstance(tickets, list) or not 1 <= len(tickets) <= 8:
+                continue
+            need(all(isinstance(t, list) and len(t) == 3 and len(set(t)) == 3
+                 and all(type(n) is int and 1 <= n <= 6 for n in t) for t in tickets), 'ENCRYPTED_SEED_INVALID')
+            seen.add(model)
+            choices.append({'model_id': model, 'index': index, 'tickets_sha256': sha(wire(tickets).encode())})
+        if len(choices) >= 2:
+            need(re.fullmatch(r'\d{8}-\d{2}-\d{2}', row.get('race_id', ''))
+                 and re.fullmatch(r'\d{4}-\d{2}-\d{2}', row.get('event_date_jst', ''))
+                 and isinstance(row.get('cutoff_at'), str), 'ENCRYPTED_SEED_INVALID')
+            day = row['event_date_jst']
+            return {'seed_sha256': seed['cipher_sha256'], 'day': day,
+                    'day_races': sum(r.get('sport') == 'boat' and r.get('event_date_jst') == day for r in view['records']),
+                    'probe': {'race_id': row['race_id'], 'cutoff_at': row['cutoff_at'], 'choices': choices[:2]}}
+    raise SafariHold('ENCRYPTED_SEED_INVALID')
+
+
+def synthetic_fixture(assets):
+    raw = assets.get(SYNTHETIC_PATH)
+    need(isinstance(raw, bytes) and sha(raw) == SYNTHETIC_SHA, 'SYNTHETIC_FIXTURE_INVALID')
+    value = json.loads(raw)
+    need(value.get('schema') == 'RACE_AI_FORECAST_AUDIT_V1' and value.get('dataset_status') == 'SYNTHETIC_ONLY'
+         and tuple(sorted(row.get('race_id', '') for row in value['records'])) == SYNTHETIC_IDS
+         and all(row.get('source_provenance') == 'SYNTHETIC_ONLY' for row in value['records']),
+         'SYNTHETIC_FIXTURE_INVALID')
+    return value
 
 
 def load_public_assets(root):
@@ -226,10 +329,11 @@ def load_public_assets(root):
         raise SafariHold('ASSET_MANIFEST_INVALID') from None
 
 
-def private_index(index):
+def private_index(index, *, encrypted=False):
     try:
         text = index.decode('utf-8')
-        text, count = re.subn(r'<meta name="race-ai-encrypted-saved-view" content="\./views/[a-f0-9]{64}\.json">',
+        pattern = r'<meta name="race-ai-encrypted-saved-view" content="\./views/[a-f0-9]{64}\.json">'
+        text, count = re.subn(pattern, lambda match: match[0] if encrypted else
                              '<meta name="race-ai-private-saved-view" content="/api/forecast/saved">', text)
         need(count == 1 and text.count('<head>') == 1, 'ASSET_INDEX_INVALID')
         text = re.sub(r'<meta http-equiv="Content-Security-Policy" content="[^"]*">', '', text)
@@ -238,8 +342,8 @@ def private_index(index):
         raise SafariHold('ASSET_INDEX_INVALID') from None
 
 
-PRIVACY_SCRIPT = b'''"use strict";
-globalThis.__raceSafariPrivacy={external_blocked:0,csp_blocked:0,page_errors:0,error_module:null,error_line:null};
+PRIVACY_SCRIPT = rb'''"use strict";
+globalThis.__raceSafariPrivacy={external_blocked:0,csp_blocked:0,page_errors:0,error_module:null,error_line:null,aes_successes:0};
 addEventListener('securitypolicyviolation',()=>{__raceSafariPrivacy.csp_blocked++});
 addEventListener('error',e=>{if(e.target!==window)return;__raceSafariPrivacy.page_errors++;
  try {const u=new URL(e.filename,location.href),name=u.pathname.slice(1);
@@ -250,32 +354,87 @@ addEventListener('error',e=>{if(e.target!==window)return;__raceSafariPrivacy.pag
  }catch{}
 });
 const originalFetch=globalThis.fetch.bind(globalThis);
+const viewer=/^#saved=[a-f0-9]{64}\.([A-Za-z0-9_-]{43})$/.exec(location.hash||'')?.[1];
+function admitted(method,url,headers,body){
+ let decoded;try{decoded=decodeURIComponent(url.href);}catch{return false;}
+ const keyPresent=viewer&&(url.href+decoded+JSON.stringify(headers||{})+String(body||'')).includes(viewer);
+ return !keyPresent&&!url.hash&&body==null&&['GET','HEAD'].includes(String(method||'GET').toUpperCase())&&url.origin===location.origin;
+}
 globalThis.fetch=(input,options)=>{
  const url=new URL(typeof input==='string'||input instanceof URL?input:input.url,location.href);
- if(url.origin!==location.origin){__raceSafariPrivacy.external_blocked++;return Promise.reject(new TypeError('blocked'));}
+ const headers=options?.headers||input?.headers,serialized=typeof Headers!=='undefined'?Array.from(new Headers(headers)):headers;
+ if(!admitted(options?.method||input?.method,url,serialized,options?.body)){
+  __raceSafariPrivacy.external_blocked++;return Promise.reject(new TypeError('blocked'));}
  return originalFetch(input,options);
 };
 const originalOpen=XMLHttpRequest.prototype.open;
 XMLHttpRequest.prototype.open=function(method,url,...args){
- if(new URL(url,location.href).origin!==location.origin){__raceSafariPrivacy.external_blocked++;throw new TypeError('blocked');}
+ if(!admitted(method,new URL(url,location.href))){__raceSafariPrivacy.external_blocked++;throw new TypeError('blocked');}
  return originalOpen.call(this,method,url,...args);
 };
+const originalHeader=XMLHttpRequest.prototype.setRequestHeader,originalSend=XMLHttpRequest.prototype.send;
+XMLHttpRequest.prototype.setRequestHeader=function(name,value){
+ if(viewer&&(String(name)+String(value)).includes(viewer)){__raceSafariPrivacy.external_blocked++;throw new TypeError('blocked');}
+ return originalHeader.call(this,name,value);
+};
+XMLHttpRequest.prototype.send=function(body){if(body){__raceSafariPrivacy.external_blocked++;throw new TypeError('blocked');}return originalSend.call(this,body);};
 navigator.sendBeacon=()=>{__raceSafariPrivacy.external_blocked++;return false};
 globalThis.WebSocket=globalThis.EventSource=function(){__raceSafariPrivacy.external_blocked++;throw new TypeError('blocked')};
+if(globalThis.crypto?.subtle){const decrypt=crypto.subtle.decrypt.bind(crypto.subtle);
+ crypto.subtle.decrypt=async(...args)=>{const value=await decrypt(...args);__raceSafariPrivacy.aes_successes++;return value;};}
 '''
+
+
+def synthetic_guard(fixture):
+    """Observe the real parser output; never expose its source data in reports."""
+    return ('''\nconst expectedFixture=''' + wire(fixture) + ''';
+let product;
+Object.defineProperty(globalThis,'RaceProductData',{configurable:false,
+ get(){return product;},set(api){
+  product=Object.freeze({...api,parse(raw){
+   const valid=JSON.stringify(raw)===JSON.stringify(expectedFixture);
+   __raceSafariPrivacy.synthetic_fixture_verified=false;
+   if(!valid)throw new Error('synthetic fixture required');
+   const parsed=api.parse(raw),ids=parsed.records.map(r=>r.race_id).sort();
+   if(parsed.dataset_status!=='SYNTHETIC_ONLY'||parsed.records.some(r=>r.scope!=='synthetic')||
+      JSON.stringify(ids)!==JSON.stringify(expectedFixture.records.map(r=>r.race_id).sort()))
+     throw new Error('synthetic fixture required');
+   __raceSafariPrivacy.synthetic_fixture_verified=true;
+   __raceSafariPrivacy.synthetic_fixture_sha256=''' + wire(SYNTHETIC_SHA) + ''';
+   return parsed;
+  }});
+ }});
+''').encode()
 
 
 class LoopbackSite:
     """Known byte assets + one memory-only private route; no filesystem handler."""
-    def __init__(self, assets, view, *, secrets=()):
+    def __init__(self, assets, view, *, secrets=(), encrypted_seed=None, tamper_seed=False, synthetic=False):
         self.assets = dict(assets)
-        self.assets['index.html'] = private_index(assets['index.html'])
-        self.view = wire(view).encode()
+        self.assets['index.html'] = private_index(assets['index.html'], encrypted=encrypted_seed is not None)
+        need(encrypted_seed is None or view is None, 'ENCRYPTED_SEED_INVALID')
+        self.view = wire(view).encode() if view is not None else None
+        self.seed_path = encrypted_seed['path'] if encrypted_seed else None
+        self.synthetic_fixture_sha256 = None
+        self.privacy_script = PRIVACY_SCRIPT
+        if synthetic:
+            fixture = synthetic_fixture(assets)
+            need(encrypted_seed is None and wire(view) == wire(fixture), 'SYNTHETIC_FIXTURE_INVALID')
+            self.synthetic_fixture_sha256 = SYNTHETIC_SHA
+            self.privacy_script += synthetic_guard(fixture)
+        if encrypted_seed:
+            raw = encrypted_seed['raw']
+            if tamper_seed:
+                doc = json.loads(raw)
+                cipher = doc['ciphertext']
+                doc['ciphertext'] = ('A' if cipher[0] != 'A' else 'B') + cipher[1:]
+                raw = wire(doc).encode()
+            self.assets[self.seed_path] = raw
         self.secrets = tuple(value for value in secrets if isinstance(value, str) and len(value) >= 8)
-        need(not any(value.encode() in self.view or any(value.encode() in body for body in self.assets.values())
+        need(not any(value.encode() in (self.view or b'') or any(value.encode() in body for body in self.assets.values())
                      for value in self.secrets), 'PRIVATE_NETWORK_BOUNDARY_FAILED')
         self.audit = {'private_view_reads': 0, 'rejected_requests': 0, 'secret_in_request': False,
-                      'non_read_requests': 0, 'outbound_requests_permitted': 0}
+                      'encrypted_seed_reads': 0, 'non_read_requests': 0, 'outbound_requests_permitted': 0}
 
     def __enter__(self):
         site = self
@@ -313,14 +472,16 @@ class LoopbackSite:
                     status = 403
                 elif not query_ok or target.fragment or self.headers.get('Content-Length') not in (None, '0'):
                     status = 400
-                elif name == 'api/forecast/saved':
+                elif name == 'api/forecast/saved' and site.view is not None:
                     body, mime = site.view, 'application/json; charset=utf-8'
                     if not head:
                         site.audit['private_view_reads'] += 1
                 elif name == '_acceptance/privacy.js':
-                    body, mime = PRIVACY_SCRIPT, 'text/javascript; charset=utf-8'
+                    body, mime = site.privacy_script, 'text/javascript; charset=utf-8'
                 elif name in site.assets:
                     body = site.assets[name]
+                    if name == site.seed_path and not head:
+                        site.audit['encrypted_seed_reads'] += 1
                     mime = 'text/javascript' if name.endswith('.js') else mimetypes.guess_type(name)[0] or mime
                 elif name == 'favicon.ico':
                     status = 204
@@ -401,7 +562,9 @@ class WebDriver:
                 result = json.loads(raw)['value']
                 need(not isinstance(result, dict) or 'error' not in result, 'SAFARI_WEBDRIVER_FAILED')
                 return result
-        except (OSError, ValueError, KeyError, urllib.error.URLError):
+        except (OSError, ValueError, KeyError, urllib.error.URLError) as error:
+            if isinstance(error, urllib.error.HTTPError):
+                error.close()
             raise SafariHold('SAFARI_WEBDRIVER_FAILED') from None
 
     def new_session(self):
@@ -534,7 +697,7 @@ def apple_driver():
             process.wait(timeout=5)
 
 
-def read_authenticated_view(source_root):
+def read_authenticated_view(source_root, seed):
     """Existing read-only feed/AES/context code; no producer or model is invoked."""
     source_root = Path(source_root).resolve()
     result = subprocess.run(['git', '-C', str(source_root), 'rev-parse', 'HEAD'], capture_output=True, timeout=10)
@@ -559,7 +722,226 @@ def read_authenticated_view(source_root):
         # Preserve the independently derived context's counts/hashes while omitting its private URL.
         safe_context = validate_context(context)
         viewer_key = base64.urlsafe_b64encode(bootstrap['key']).decode().rstrip('=')
-    return safe_context, view, viewer_key
+        _, seed_view = feed.F.decrypt_view(seed['raw'], bootstrap['key'], view_id=bootstrap['view_id'])
+        retired = {p.get('model_id') for row in seed_view['records']
+            for p in [row.get('prediction'), *row.get('comparison_predictions', [])]
+            if p is not None and context_module.is_retired(p.get('model_id'))}
+        seed_context = build_seed_context(seed, bootstrap, seed_view, feed.F.forecast_anchor(seed_view), retired=retired)
+        fragment = '#saved=' + bootstrap['view_id'] + '.' + viewer_key
+    return safe_context, view, {'key': viewer_key, 'fragment': fragment, 'context': seed_context}
+
+
+def browser_snapshot(driver):
+    return driver.script('''return {url:location.href,local:{...localStorage},session:{...sessionStorage},
+        cookie:document.cookie,privacy:globalThis.__raceSafariPrivacy};''')
+
+
+def select_saved_day(driver, day):
+    driver.script('''const e=document.querySelector('#selected-date');e.value=arguments[0];
+        e.dispatchEvent(new Event('change',{bubbles:true}));''', day)
+    driver.wait('return document.querySelector("#display-day")?.textContent.includes(arguments[0])', day)
+
+
+def click_saved_page(driver, page):
+    driver.click('[data-page=' + json.dumps(page) + ']')
+    driver.wait('return !document.querySelector(arguments[0])?.hidden', '#page-' + page)
+
+
+def open_saved_race(driver, item):
+    click_saved_page(driver, 'races')
+    if driver.script('return !!document.querySelector("#all-venues")?.getClientRects().length'):
+        driver.click('#all-venues')
+    finished = (item.get('result') or {}).get('status') in ('final', 'void')
+    phase = 'upcoming' if not finished and datetime.now(timezone.utc).timestamp() < datetime.fromisoformat(
+        item['cutoff_at'].replace('Z', '+00:00')).timestamp() else 'results'
+    driver.click('[data-race-view=' + json.dumps(phase) + ']')
+    target = '#page-races [data-open-race=' + json.dumps(item['race_id']) + ']'
+    for _ in range(5):
+        if driver.script('return !!document.querySelector(arguments[0])', target):
+            driver.click(target)
+            return
+        button = driver.script('''return Array.from(document.querySelectorAll('#page-races button'))
+            .find(e=>e.textContent.includes('さらに60件表示')) || null;''')
+        need(isinstance(button, dict), 'APP_UI_CHECK_FAILED')
+        ident = button.get('element-6066-11e4-a52e-4f735466cecf')
+        need(isinstance(ident, str) and re.fullmatch('[A-Za-z0-9-]{1,160}', ident), 'APP_UI_CHECK_FAILED')
+        driver._click_visible_element(ident)
+    raise SafariHold('APP_UI_CHECK_FAILED')
+
+
+def seed_detail(driver):
+    return driver.script('''const panel=document.querySelector('#detail-tab-content .forecast-panel');
+        return {model_id:panel?.dataset.modelId,index:document.querySelector('#prediction-select')?.value,
+        tickets:Array.from(panel?.querySelectorAll('.saved-ticket .combo')||[],n=>
+        Array.from(n.querySelectorAll('.lane'),e=>Number(e.textContent)))};''')
+
+
+def verify_seed_outcome(kind, probe):
+    need(kind in ('missing-key', 'wrong-key', 'wrong-view', 'modified-cipher')
+         and isinstance(probe, dict) and probe.get('refused') is True
+         and all(type(probe.get(k)) is int and probe[k] == 0 for k in
+                 ('forecast_panels', 'race_cards', 'aes_successes')), 'ENCRYPTED_SEED_REFUSAL_FAILED')
+
+
+def encrypted_seed_checks(assets, seed, private, secrets):
+    """No screenshots/DOM exports. Each denial starts with a new origin/session."""
+    fragment = private['fragment']
+    view_id, key = fragment[7:].split('.')
+    wrong_key = ('A' if key[0] != 'A' else 'B') + key[1:]
+    wrong_view = ('0' if view_id[0] != '0' else '1') + view_id[1:]
+    cases = [('missing-key', '', False), ('wrong-key', '#saved=' + view_id + '.' + wrong_key, False),
+             ('wrong-view', '#saved=' + wrong_view + '.' + key, False),
+             ('modified-cipher', fragment, True)]
+    refusals = []
+    for kind, candidate, tamper in cases:
+        case_secrets = (*secrets, wrong_key)
+        with LoopbackSite(assets, None, encrypted_seed=seed, tamper_seed=tamper, secrets=case_secrets) as site:
+            with apple_driver() as (driver, _):
+                driver.command('POST', '/url', {'url': site.url + candidate})
+                driver.wait('''return /いつもの閲覧用リンク|レース情報を読み込めませんでした/.test(
+                    document.querySelector('#file-message')?.textContent||'');''', timeout=90)
+                probe = driver.script('''return {refused:/いつもの閲覧用リンク|レース情報を読み込めませんでした/.test(
+                    document.querySelector('#file-message')?.textContent||''),
+                    forecast_panels:document.querySelectorAll('.forecast-panel').length,
+                    race_cards:document.querySelectorAll('#all-races [data-open-race]').length,
+                    aes_successes:globalThis.__raceSafariPrivacy?.aes_successes};''')
+                verify_seed_outcome(kind, probe)
+                verify_private_boundary(browser_snapshot(driver), site.audit, case_secrets,
+                                        fragment=candidate, encrypted=True, require_read=kind != 'missing-key')
+        refusals.append(kind)
+    with LoopbackSite(assets, None, encrypted_seed=seed, secrets=secrets) as site:
+        with apple_driver() as (driver, _):
+            driver.command('POST', '/url', {'url': site.url + fragment})
+            driver.wait('return document.querySelector("#file-message")?.textContent.includes("保存済み予想")', timeout=90)
+            context = private['context']
+            select_saved_day(driver, context['day'])
+            open_saved_race(driver, context['probe'])
+            driver.click('[data-detail-tab="outlook"]')
+            for choice in context['probe']['choices']:
+                driver.select('#prediction-select', choice['index'])
+                verify_model_choice(choice, seed_detail(driver))
+            snapshot = browser_snapshot(driver)
+            need(type(snapshot['privacy'].get('aes_successes')) is int
+                 and snapshot['privacy']['aes_successes'] > 0, 'ENCRYPTED_SEED_INVALID')
+            verify_private_boundary(snapshot, site.audit, secrets, fragment=fragment, encrypted=True)
+    return {'browser_aes_verified': True, 'seed_sha256': seed['cipher_sha256'],
+            'same_seed_model_original_comparisons': 2, 'refusals_verified': refusals,
+            'viewer_capability_verified': True, 'viewer_key_in_fragment': True,
+            'viewer_key_in_requests_or_web_storage': False, 'owner_key_in_browser': False,
+            'account_login_verified': False, 'current_v5_live_continuation_verified': False,
+            'outbound_browser_requests_permitted': 0, 'real_screenshots_or_traces_exported': 0}
+
+
+def save_synthetic_screenshot(driver, site, folder, width, page):
+    need(site.synthetic_fixture_sha256 == SYNTHETIC_SHA and site.seed_path is None
+         and width in VISUAL_WIDTHS and page in VISUAL_PAGES, 'SYNTHETIC_SCREENSHOT_REJECTED')
+    probe = driver.script('''return {origin:location.origin,fragment:location.hash,
+        verified:globalThis.__raceSafariPrivacy?.synthetic_fixture_verified===true,
+        fixture_sha256:globalThis.__raceSafariPrivacy?.synthetic_fixture_sha256,
+        page_errors:globalThis.__raceSafariPrivacy?.page_errors,
+        visible_page:document.querySelector('.page:not([hidden])')?.id,
+        width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth,
+        encrypted:!!document.querySelector('meta[name="race-ai-encrypted-saved-view"]'),
+        synthetic_banner:document.querySelector('#source-state')?.textContent.includes('合成')};''')
+    need(isinstance(probe, dict) and probe.get('origin') == site.origin
+         and probe.get('fragment') in ('', '#' + page) and probe.get('verified') is True
+         and probe.get('fixture_sha256') == SYNTHETIC_SHA and probe.get('page_errors') == 0
+         and probe.get('visible_page') == 'page-' + page and probe.get('width') == width
+         and probe.get('overflow') is False and probe.get('encrypted') is False
+         and probe.get('synthetic_banner') is True, 'SYNTHETIC_SCREENSHOT_REJECTED')
+    verify_private_boundary(browser_snapshot(driver), site.audit, ())
+    encoded = driver.command('GET', '/screenshot')
+    need(isinstance(encoded, str) and len(encoded) <= 24 * 1024 * 1024, 'SYNTHETIC_SCREENSHOT_REJECTED')
+    try:
+        raw = base64.b64decode(encoded, validate=True)
+    except ValueError:
+        raise SafariHold('SYNTHETIC_SCREENSHOT_REJECTED') from None
+    need(raw.startswith(b'\x89PNG\r\n\x1a\n'), 'SYNTHETIC_SCREENSHOT_REJECTED')
+    path = Path(folder) / (str(width) + '-' + page + '.png')
+    with path.open('xb') as stream:
+        stream.write(raw)
+    return {'name': path.name, 'bytes': len(raw), 'sha256': sha(raw)}
+
+
+def synthetic_visual_checks(assets, folder):
+    """Fresh process, fresh origin/session, exact public fixture, screenshots only."""
+    need(not any(os.environ.get(k) for k in ('RACE_AI_STATE_KEY', 'GH_TOKEN', 'GITHUB_TOKEN')),
+         'SYNTHETIC_SCREENSHOT_REJECTED')
+    folder = Path(folder).absolute()
+    need(not folder.exists() and not any(p.is_symlink() for p in folder.parents), 'SYNTHETIC_OUTPUT_REJECTED')
+    fixture = synthetic_fixture(assets)
+    screenshots, widths = [], []
+    folder.mkdir(mode=0o700)
+    with LoopbackSite(assets, fixture, synthetic=True) as site:
+        with apple_driver() as (driver, identity):
+            driver.command('POST', '/url', {'url': site.url})
+            driver.wait('return globalThis.__raceSafariPrivacy?.synthetic_fixture_verified===true', timeout=90)
+            need(driver.script('return Object.keys(localStorage).length===0&&Object.keys(sessionStorage).length===0&&document.cookie===""'),
+                 'SYNTHETIC_SCREENSHOT_REJECTED')
+            select_saved_day(driver, fixture['event_date_jst'])
+            click_saved_page(driver, 'picks')
+            driver.click('#copy-top8')
+            driver.wait('return document.querySelectorAll(".ticket-row").length===8')
+            driver.click('#equal-allocate')
+            for width in VISUAL_WIDTHS:
+                driver.command('POST', '/window/rect', {'width': width, 'height': 1000})
+                widths.append(require_viewport(width, driver.script('return {width:innerWidth,height:innerHeight}')))
+                select_saved_day(driver, fixture['event_date_jst'])
+                for page in VISUAL_PAGES:
+                    if page == 'detail':
+                        open_saved_race(driver, fixture['records'][0])
+                    else:
+                        click_saved_page(driver, page)
+                    if page == 'races':
+                        driver.click('[data-race-view="results"]')
+                        driver.wait('return document.querySelectorAll("#all-races [data-open-race]").length>0')
+                    driver.script('window.scrollTo({top:0,left:0,behavior:"instant"});')
+                    screenshots.append(save_synthetic_screenshot(driver, site, folder, width, page))
+    report = {'schema': 'RACE_AI_SYNTHETIC_SAFARI_VISUAL_V1', 'dataset_status': 'SYNTHETIC_ONLY',
+              'public_fixture_sha256': SYNTHETIC_SHA, 'native_browser': identity,
+              'viewports': widths, 'screenshots': screenshots, 'real_data_context_used_for_capture': False,
+              'physical_iphone_verified': False, 'all_eight_reference_screens_visually_verified': False}
+    with (folder / 'synthetic-only.json').open('x') as stream:
+        stream.write(wire(report) + '\n')
+    verify_synthetic_artifacts(folder)
+    return report
+
+
+def verify_synthetic_artifacts(folder):
+    folder = Path(folder)
+    need(folder.is_dir() and not any(p.is_symlink() for p in (folder, *folder.parents)), 'SYNTHETIC_OUTPUT_REJECTED')
+    try:
+        manifest = folder / 'synthetic-only.json'
+        need(manifest.is_file() and not manifest.is_symlink() and manifest.stat().st_size < 32768,
+             'SYNTHETIC_OUTPUT_REJECTED')
+        report = json.loads(manifest.read_bytes())
+        names = {str(w) + '-' + p + '.png' for w in VISUAL_WIDTHS for p in VISUAL_PAGES}
+        need(report['schema'] == 'RACE_AI_SYNTHETIC_SAFARI_VISUAL_V1'
+             and report['dataset_status'] == 'SYNTHETIC_ONLY' and report['public_fixture_sha256'] == SYNTHETIC_SHA
+             and report.get('real_data_context_used_for_capture') is False
+             and report.get('physical_iphone_verified') is False
+             and report.get('all_eight_reference_screens_visually_verified') is False
+             and len(report['screenshots']) == len(names)
+             and {row['name'] for row in report['screenshots']} == names
+             and {p.name for p in folder.iterdir()} == names | {'synthetic-only.json'}, 'SYNTHETIC_OUTPUT_REJECTED')
+        viewports = report.get('viewports')
+        need(isinstance(viewports, list) and len(viewports) == len(VISUAL_WIDTHS), 'SYNTHETIC_OUTPUT_REJECTED')
+        for width, viewport in zip(VISUAL_WIDTHS, viewports):
+            need(isinstance(viewport, dict) and viewport.get('requested_width') == width
+                 and viewport.get('requested_width_verified') is True
+                 and viewport.get('physical_iphone_verified') is False, 'SYNTHETIC_OUTPUT_REJECTED')
+            require_viewport(width, {'width': viewport.get('actual_inner_width'),
+                                     'height': viewport.get('actual_inner_height')})
+        for row in report['screenshots']:
+            path = folder / row['name']
+            need(path.is_file() and not path.is_symlink() and 8 <= path.stat().st_size <= 16 * 1024 * 1024,
+                 'SYNTHETIC_OUTPUT_REJECTED')
+            raw = path.read_bytes()
+            need(raw.startswith(b'\x89PNG\r\n\x1a\n') and len(raw) == row['bytes'] and sha(raw) == row['sha256'],
+                 'SYNTHETIC_OUTPUT_REJECTED')
+    except (OSError, ValueError, KeyError, TypeError):
+        raise SafariHold('SYNTHETIC_OUTPUT_REJECTED') from None
+    return {'status': 'SYNTHETIC_SCREENSHOT_ARTIFACTS_VERIFIED', 'screenshots': len(names), 'dataset_status': 'SYNTHETIC_ONLY'}
 
 
 def app_checks(driver, site, context, secrets):
@@ -569,41 +951,18 @@ def app_checks(driver, site, context, secrets):
     probe = context['model_switch_probe']
 
     def click_page(page):
-        driver.click('[data-page=' + json.dumps(page) + ']')
-        driver.wait('return !document.querySelector(arguments[0])?.hidden', '#page-' + page)
+        click_saved_page(driver, page)
 
     def select_day():
-        driver.script('''const e=document.querySelector('#selected-date');e.value=arguments[0];
-                         e.dispatchEvent(new Event('change',{bubbles:true}));''', context['day'])
-        driver.wait('return document.querySelector("#display-day")?.textContent.includes(arguments[0])', context['day'])
+        select_saved_day(driver, context['day'])
 
     def open_race(item):
-        click_page('races')
-        if driver.script('return !!document.querySelector("#all-venues")?.getClientRects().length'):
-            driver.click('#all-venues')
-        phase = 'upcoming' if datetime.now(timezone.utc).timestamp() < datetime.fromisoformat(
-            item['cutoff_at'].replace('Z', '+00:00')).timestamp() else 'results'
-        driver.click('[data-race-view=' + json.dumps(phase) + ']')
-        target = '#page-races [data-open-race=' + json.dumps(item['race_id']) + ']'
-        for _ in range(5):
-            if driver.script('return !!document.querySelector(arguments[0])', target):
-                driver.click(target)
-                return
-            more = driver.script('''return Array.from(document.querySelectorAll('#page-races button'))
-                                  .find(e=>e.textContent.includes('さらに60件表示'))?.outerHTML || '';''')
-            need(more, 'APP_UI_CHECK_FAILED')
-            # Use the actual visible pagination button through native Element Click.
-            element = driver.script('''return Array.from(document.querySelectorAll('#page-races button'))
-                                   .find(e=>e.textContent.includes('さらに60件表示'));''')
-            ident = element.get('element-6066-11e4-a52e-4f735466cecf')
-            need(isinstance(ident, str) and re.fullmatch('[A-Za-z0-9-]{1,160}', ident), 'APP_UI_CHECK_FAILED')
-            driver._click_visible_element(ident)
-        raise SafariHold('APP_UI_CHECK_FAILED')
+        open_saved_race(driver, item)
 
     for width in (1440, 390):
         driver.command('POST', '/window/rect', {'width': width, 'height': 1000})
         actual = driver.script('return {width:innerWidth,height:innerHeight}')
-        viewport_results.append(viewport_evidence(width, actual))
+        viewport_results.append(require_viewport(width, actual))
         select_day()
         native = context['native_probe']
         open_race(native)
@@ -667,26 +1026,42 @@ def app_checks(driver, site, context, secrets):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--source-root', type=Path, required=True)
+    parser.add_argument('--source-root', type=Path)
     parser.add_argument('--public-root', type=Path, required=True)
+    parser.add_argument('--synthetic-only', action='store_true')
+    parser.add_argument('--output', type=Path)
+    parser.add_argument('--verify-synthetic-artifacts', type=Path)
     args = parser.parse_args(argv)
     try:
+        if args.verify_synthetic_artifacts is not None:
+            print(wire(verify_synthetic_artifacts(args.verify_synthetic_artifacts)))
+            return 0
         need(platform.system() == 'Darwin', 'NATIVE_MACOS_REQUIRED')
         assets = load_public_assets(args.public_root)
+        if args.synthetic_only:
+            need(args.output is not None and args.source_root is None, 'SYNTHETIC_OUTPUT_REJECTED')
+            report = synthetic_visual_checks(assets, args.output)
+            print(wire({key: value for key, value in report.items() if key != 'screenshots'} | {'screenshots': len(report['screenshots'])}))
+            return 0
+        need(args.source_root is not None and args.output is None, 'SAVED_CONTEXT_INVALID')
         hashes = verify_live_assets(assets)
-        context, view, viewer_key = read_authenticated_view(args.source_root)
-        secrets = tuple(value for value in (viewer_key, *(os.environ.get(k) for k in
+        seed = load_encrypted_seed(args.public_root)
+        context, view, private_seed = read_authenticated_view(args.source_root, seed)
+        secrets = tuple(value for value in (private_seed['key'], *(os.environ.get(k) for k in
             ('RACE_AI_STATE_KEY', 'GH_TOKEN', 'GITHUB_TOKEN'))) if value)
         with LoopbackSite(assets, view, secrets=secrets) as site:
             with apple_driver() as (driver, identity):
                 checks = app_checks(driver, site, context, secrets)
-        print(wire({'schema': 'RACE_AI_NATIVE_SAFARI_ACCEPTANCE_V1',
+        seed_checks = encrypted_seed_checks(assets, seed, private_seed, secrets)
+        print(wire({'schema': 'RACE_AI_NATIVE_SAFARI_ACCEPTANCE_V2',
             'status': 'NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED', 'native_browser': identity,
             'verified_at': datetime.now(timezone.utc).isoformat(), 'pages_sha': PAGES_SHA,
             'read_only_source_sha': SOURCE_SHA, 'live_asset_sha256': hashes,
             'saved_day': context['day'], 'authenticated_generation': context['generation'],
             'authenticated_results': context['minimum_results'], 'authenticated_native_p1_groups': context['native_group_count'],
-            **checks, 'transport': 'LOOPBACK_EXISTING_PRIVATE_SAVED_ENDPOINT',
+            'latest_p1_private_transport': {**checks, 'transport': 'LOOPBACK_EXISTING_PRIVATE_SAVED_ENDPOINT'},
+            'encrypted_seed': seed_checks, 'browser_aes_verified': True,
+            'account_login_verified': False, 'current_v5_live_continuation_verified': False,
             'browser_aes_and_owner_login_verified': False, 'physical_iphone_verified': False,
             'all_eight_reference_screens_visually_verified': False, 'plaintext_published': False,
             'forecast_or_result_mutation': False}))

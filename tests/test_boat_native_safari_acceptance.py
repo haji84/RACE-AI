@@ -1,5 +1,6 @@
 """Invented inputs exercise the Safari adapter's privacy and identity boundaries."""
 import copy
+import base64
 import hashlib
 import io
 import json
@@ -52,6 +53,244 @@ def context_fixture():
                      'tickets_sha256': '991b8297474b48ca3de040b694d02b2bb699f6ab83e0ae95e3724cdec5918cca'},
                     {'model_id': 'invented-two', 'index': 1,
                      'tickets_sha256': '2' * 64}]}}
+
+
+def seed_fixture(folder):
+    """Invented ciphertext and independently specified stored expectations."""
+    public_fixture(folder)
+    envelope = {'header': {'schema': 'RACE_AI_SAVED_WEB_VIEW_V2',
+        'view_id': 'a' * 64, 'source_content_sha256': 'c' * 64},
+        'nonce': 'AAAAAAAAAAAAAAAA', 'ciphertext': 'A' * 24}
+    raw = json.dumps(envelope).encode()
+    ident = hashlib.sha256(raw).hexdigest()
+    name = 'views/' + ident + '.json'
+    (folder / 'views').mkdir()
+    (folder / name).write_bytes(raw)
+    index = INDEX.replace(b'a' * 64, ident.encode()).replace(b'</head>',
+        b'<meta name="race-ai-saved-view-forecast-sha" content="' + b'c' * 64 + b'"></head>')
+    (folder / 'index.html').write_bytes(index)
+    manifest = json.loads((folder / 'site-build.json').read_bytes())
+    manifest['forecast_sha256'] = 'c' * 64
+    for path in ('index.html', name):
+        body = (folder / path).read_bytes()
+        manifest['files'][path] = {'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+    (folder / 'site-build.json').write_text(json.dumps(manifest))
+    view = {'schema': 'RACE_AI_PRIVATE_CYCLE_VIEW_V1', 'records': [{
+        'sport': 'boat', 'race_id': '20300401-01-01', 'event_date_jst': '2030-04-01',
+        'cutoff_at': '2030-04-01T01:00:00Z',
+        'prediction': {'model_id': 'invented-one', 'ordered_top8': [[1, 2, 3]]},
+        'comparison_predictions': [{'model_id': 'invented-two', 'ordered_top8': [[2, 1, 3]]}]}]}
+    bootstrap = {'view_id': 'a' * 64, 'key': bytes(range(32)), 'forecast_sha256': 'c' * 64}
+    return raw, view, bootstrap
+
+
+class EncryptedSeedBoundaryTests(unittest.TestCase):
+    def test_seed_must_match_referenced_path_manifest_and_forecast_anchor(self):
+        self.assertTrue(callable(getattr(S, 'load_encrypted_seed', None)), 'encrypted seed loader is missing')
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            raw, _, _ = seed_fixture(root)
+            seed = S.load_encrypted_seed(root)
+            self.assertEqual(seed['raw'], raw)
+            self.assertEqual(seed['cipher_sha256'], hashlib.sha256(raw).hexdigest())
+            (root / seed['path']).write_bytes(raw + b' ')
+            with self.assertRaisesRegex(S.SafariHold, 'ASSET_HASH_MISMATCH'):
+                S.load_encrypted_seed(root)
+
+    def test_same_seed_context_refuses_other_view_or_forecast_binding(self):
+        self.assertTrue(callable(getattr(S, 'build_seed_context', None)), 'same-seed binding is missing')
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            _, view, bootstrap = seed_fixture(root)
+            seed = S.load_encrypted_seed(root)
+            context = S.build_seed_context(seed, bootstrap, view, 'c' * 64)
+            self.assertEqual(context['probe']['choices'][0]['tickets_sha256'],
+                '918c7b1214a69daef0c4287154715aa5658f9daa5691f6987ba76ed2c55bb267')
+            self.assertEqual(context['day_races'], 1)
+            self.assertNotIn(base64.urlsafe_b64encode(bootstrap['key']).decode().rstrip('='), json.dumps(context))
+            for changed, anchor in [(dict(bootstrap, view_id='b' * 64), 'c' * 64),
+                                    (bootstrap, 'd' * 64)]:
+                with self.assertRaisesRegex(S.SafariHold, 'ENCRYPTED_SEED_INVALID'):
+                    S.build_seed_context(seed, changed, view, anchor)
+
+    def test_encrypted_loopback_never_serves_a_plaintext_forecast_endpoint(self):
+        self.assertTrue(callable(getattr(S, 'load_encrypted_seed', None)), 'encrypted transport is missing')
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            raw, _, _ = seed_fixture(root)
+            seed = S.load_encrypted_seed(root)
+            with S.LoopbackSite(S.load_public_assets(root), None, encrypted_seed=seed) as site:
+                with urllib.request.urlopen(site.url, timeout=3) as response:
+                    index = response.read()
+                    self.assertIn(b'race-ai-encrypted-saved-view', index)
+                    self.assertNotIn(b'race-ai-private-saved-view', index)
+                with urllib.request.urlopen(site.origin + '/' + seed['path'], timeout=3) as response:
+                    self.assertEqual(response.read(), raw)
+                with self.assertRaises(urllib.error.HTTPError) as denied:
+                    urllib.request.urlopen(site.origin + '/api/forecast/saved', timeout=3)
+                denied.exception.close()
+                self.assertEqual(site.audit['private_view_reads'], 0)
+                self.assertEqual(site.audit['encrypted_seed_reads'], 1)
+
+    def test_fragment_capability_is_allowed_only_in_exact_expected_location(self):
+        key = 'b' * 43
+        fragment = '#saved=' + 'a' * 64 + '.' + key
+        snapshot = {'url': 'http://127.0.0.1:1234/' + fragment, 'local': {}, 'session': {},
+                    'cookie': '', 'privacy': {'page_errors': 0}}
+        audit = {'private_view_reads': 0, 'encrypted_seed_reads': 1,
+            'secret_in_request': False, 'non_read_requests': 0, 'outbound_requests_permitted': 0}
+        try:
+            S.verify_private_boundary(snapshot, audit, (key, 'fixture-owner-secret'),
+                                     fragment=fragment, encrypted=True)
+        except TypeError:
+            self.fail('privacy boundary does not yet support the existing viewer fragment')
+        for changed in [dict(snapshot, url=snapshot['url'].replace('a' * 64, 'c' * 64)),
+                        dict(snapshot, cookie=key), dict(snapshot, session={'key': key}),
+                        dict(snapshot, url=snapshot['url'] + '?secret=fixture-owner-secret')]:
+            with self.assertRaises(S.SafariHold):
+                S.verify_private_boundary(changed, audit, (key, 'fixture-owner-secret'),
+                                         fragment=fragment, encrypted=True)
+        with self.assertRaises(S.SafariHold):
+            S.verify_private_boundary(snapshot, dict(audit, secret_in_request=True), (key,),
+                                     fragment=fragment, encrypted=True)
+
+    def test_synthetic_capture_requires_exact_public_fixture_not_just_a_synthetic_label(self):
+        self.assertTrue(callable(getattr(S, 'synthetic_fixture', None)), 'synthetic screenshot gate is missing')
+        invented = {'data/example-synthetic-forecast-audit.json': json.dumps({
+            'schema': 'RACE_AI_FORECAST_AUDIT_V1', 'dataset_status': 'SYNTHETIC_ONLY',
+            'records': [{'race_id': 'actual-private-record'}]}).encode()}
+        with self.assertRaisesRegex(S.SafariHold, 'SYNTHETIC_FIXTURE_INVALID'):
+            S.synthetic_fixture(invented)
+
+    def test_screenshot_export_requires_synthetic_server_and_matching_live_fixture_identity(self):
+        self.assertTrue(callable(getattr(S, 'save_synthetic_screenshot', None)), 'screenshot export gate is missing')
+        # A caller cannot turn a private browser into an exportable one by
+        # setting a flag or supplying a synthetic-looking filename.
+        with tempfile.TemporaryDirectory() as name:
+            with S.LoopbackSite({'index.html': INDEX}, {'records': []}) as site:
+                with self.assertRaisesRegex(S.SafariHold, 'SYNTHETIC_SCREENSHOT_REJECTED'):
+                    S.save_synthetic_screenshot(None, site, Path(name), 390, 'home')
+            self.assertEqual(list(Path(name).iterdir()), [])
+
+    def test_each_seed_refusal_fails_if_any_forecast_or_successful_decryption_appears(self):
+        self.assertTrue(callable(getattr(S, 'verify_seed_outcome', None)), 'encrypted refusal assertions are missing')
+        for kind in ('missing-key', 'wrong-key', 'wrong-view', 'modified-cipher'):
+            with self.subTest(kind=kind):
+                S.verify_seed_outcome(kind, {'refused': True, 'forecast_panels': 0,
+                                            'race_cards': 0, 'aes_successes': 0})
+                for changed in ({'refused': False}, {'forecast_panels': 1},
+                                {'race_cards': 1}, {'aes_successes': 1}):
+                    with self.assertRaises(S.SafariHold):
+                        S.verify_seed_outcome(kind,
+                            {**{'refused': True, 'forecast_panels': 0, 'race_cards': 0,
+                                'aes_successes': 0}, **changed})
+
+    def test_exact_requested_width_is_required_for_visual_evidence(self):
+        self.assertTrue(callable(getattr(S, 'require_viewport', None)), 'strict visual viewport gate is missing')
+        for requested in (320, 390, 1440, 1920):
+            self.assertTrue(S.require_viewport(requested, {'width': requested, 'height': 844})['requested_width_verified'])
+            with self.assertRaisesRegex(S.SafariHold, 'VIEWPORT_INVALID'):
+                S.require_viewport(requested, {'width': requested + 1, 'height': 844})
+
+    def test_viewer_credentials_are_blocked_before_same_origin_fetch_in_url_or_headers(self):
+        program = r'''
+const vm=require('node:vm'),fs=require('node:fs');let actual=0;
+class XHR{open(){actual++}setRequestHeader(){actual++}send(){actual++}}
+const key='b'.repeat(43),scope={URL,Headers,location:{href:'http://127.0.0.1:1234/',origin:'http://127.0.0.1:1234',hash:'#saved='+'a'.repeat(64)+'.'+key},
+ XMLHttpRequest:XHR,navigator:{},TypeError,Promise,addEventListener(){},fetch:async()=>{actual++;return {ok:true}}};
+scope.window=scope;vm.createContext(scope);vm.runInContext(fs.readFileSync(0,'utf8'),scope);
+(async()=>{
+ for(const [url,options] of [['/?key='+key,{}],['/?key='+'%62'.repeat(43),{}],['/',{headers:{Authorization:key}}],['/',{method:'POST',body:'x'}]])
+  try{await scope.fetch(url,options)}catch{}
+ await scope.fetch('/app.js');
+ process.stdout.write(JSON.stringify({actual,blocked:scope.__raceSafariPrivacy.external_blocked}));
+})().catch(()=>process.exitCode=2);
+'''
+        result = subprocess.run(['node', '-e', program], input=S.PRIVACY_SCRIPT,
+                                capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {'actual': 1, 'blocked': 4})
+
+    def test_driver_closes_http_error_response_without_exposing_its_private_message(self):
+        driver = S.WebDriver(1234)
+        body = io.BytesIO(b'private-owner-sentinel')
+        error = urllib.error.HTTPError('http://127.0.0.1:1234/session', 500,
+                                      'private-owner-sentinel', {}, body)
+        with patch.object(driver.opener, 'open', side_effect=error):
+            with self.assertRaisesRegex(S.SafariHold, '^SAFARI_WEBDRIVER_FAILED$'):
+                driver.call('POST', '/session', {})
+        self.assertTrue(body.closed, 'error responses must release their sockets too')
+
+    def test_synthetic_parser_guard_rejects_changed_input_and_real_scope_output(self):
+        fixture = {'schema': 'RACE_AI_FORECAST_AUDIT_V1', 'dataset_status': 'SYNTHETIC_ONLY',
+                   'records': [{'race_id': 'invented'}]}
+        program = r'''
+const vm=require('node:vm'),fs=require('node:fs');
+const scope={__raceSafariPrivacy:{},Object,JSON,Error};vm.createContext(scope);
+vm.runInContext(fs.readFileSync(0,'utf8'),scope);
+scope.RaceProductData={parse:raw=>({...raw,records:raw.records.map(r=>({...r,scope:'synthetic'}))})};
+const original={schema:'RACE_AI_FORECAST_AUDIT_V1',dataset_status:'SYNTHETIC_ONLY',records:[{race_id:'invented'}]};
+scope.RaceProductData.parse(original);const accepted=scope.__raceSafariPrivacy.synthetic_fixture_verified;
+let changed=false,real=false;
+try{scope.RaceProductData.parse({...original,records:[{race_id:'private-record'}]})}catch{changed=true}
+const afterChanged=scope.__raceSafariPrivacy.synthetic_fixture_verified;
+scope.RaceProductData={parse:raw=>({...raw,records:raw.records.map(r=>({...r,scope:'official'}))})};
+try{scope.RaceProductData.parse(original)}catch{real=true}
+process.stdout.write(JSON.stringify({accepted,changed,afterChanged,real,final:scope.__raceSafariPrivacy.synthetic_fixture_verified}));
+'''
+        result = subprocess.run(['node', '-e', program], input=S.synthetic_guard(fixture),
+                                capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {'accepted': True, 'changed': True,
+            'afterChanged': False, 'real': True, 'final': False})
+
+    def test_an_already_final_public_fixture_opens_results_even_with_a_future_cutoff(self):
+        self.assertTrue(callable(getattr(S, 'open_saved_race', None)))
+        clicked = []
+        class Driver:
+            def click(self, selector):
+                clicked.append(selector)
+            def wait(self, *args):
+                return True
+            def script(self, source, *args):
+                return True
+        S.open_saved_race(Driver(), {'race_id': 'synthetic:2030-01-01:boat:1',
+            'cutoff_at': '2030-01-01T10:00:00+09:00', 'result': {'status': 'final'}})
+        self.assertIn('[data-race-view="results"]', clicked)
+
+    def test_artifact_gate_requires_all_measured_widths_and_no_real_capture_context(self):
+        raw = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
+        with tempfile.TemporaryDirectory() as name:
+            folder = Path(name)
+            images = []
+            for width in (320, 390, 1440, 1920):
+                for page in ('home', 'races', 'detail', 'picks', 'results', 'research', 'settings'):
+                    path = folder / (str(width) + '-' + page + '.png')
+                    path.write_bytes(raw)
+                    images.append({'name': path.name, 'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()})
+            report = {'schema': 'RACE_AI_SYNTHETIC_SAFARI_VISUAL_V1', 'dataset_status': 'SYNTHETIC_ONLY',
+                'public_fixture_sha256': S.SYNTHETIC_SHA, 'screenshots': images,
+                'real_data_context_used_for_capture': False, 'physical_iphone_verified': False,
+                'all_eight_reference_screens_visually_verified': False,
+                'viewports': [{'requested_width': w, 'actual_inner_width': w, 'actual_inner_height': 844,
+                               'requested_width_verified': True, 'physical_iphone_verified': False}
+                              for w in (320, 390, 1440, 1920)]}
+            target = folder / 'synthetic-only.json'
+            target.write_text(json.dumps(report))
+            self.assertEqual(S.verify_synthetic_artifacts(folder)['screenshots'], 28)
+            for changed in [dict(report, viewports=[]), dict(report, real_data_context_used_for_capture=True),
+                            dict(report, viewports=[dict(v, actual_inner_width=500) for v in report['viewports']])]:
+                target.write_text(json.dumps(changed))
+                with self.assertRaisesRegex(S.SafariHold, 'SYNTHETIC_OUTPUT_REJECTED'):
+                    S.verify_synthetic_artifacts(folder)
+            target.write_text(json.dumps(report))
+            (folder / '390-home.png').write_bytes(raw + b'private-image-metadata')
+            with self.assertRaises(S.SafariHold):
+                S.verify_synthetic_artifacts(folder)
+            (folder / '390-home.png').write_bytes(raw)
+            (folder / 'extra.png').write_bytes(raw)
+            with self.assertRaises(S.SafariHold):
+                S.verify_synthetic_artifacts(folder)
 
 
 def acceptance_workflow_steps():

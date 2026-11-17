@@ -129,3 +129,21 @@ jobs:
         run: |
           python3 .native-safari-tools/scripts/boat_native_safari_acceptance.py \
             --source-root .native-safari-source --public-root .
+      # A separate process starts only after every real-data Safari context and
+      # loopback server above has closed. It has no owner credentials or URLs.
+      - name: Capture isolated public synthetic fixture in seven pages and four widths
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
+        run: |
+          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN \
+            python3 .native-safari-tools/scripts/boat_native_safari_acceptance.py \
+            --public-root . --synthetic-only --output "$RUNNER_TEMP/race-ai-synthetic-safari"
+          python3 .native-safari-tools/scripts/boat_native_safari_acceptance.py \
+            --public-root . --verify-synthetic-artifacts "$RUNNER_TEMP/race-ai-synthetic-safari"
+      - name: Retain only verified synthetic Safari screenshots
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: race-ai-synthetic-safari-${{ github.sha }}
+          path: ${{ runner.temp }}/race-ai-synthetic-safari/*.png
+          if-no-files-found: error
+          retention-days: 7
