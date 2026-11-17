@@ -1,3 +1,17 @@
+## 2026-11-17 18:30 UTC: 保存修正を保護付きsourceへ統合、main接続と実運転は検証継続（GOAL未達）
+
+GitHub認証付きAPIでPR #55の最終HEAD `15fc68755e60db3f4e578ef2b8415e4ed909c9eb` のCIを確認し、通常mergeした。実source `bb49215034b779ea1493b35dd91e5c3ebfc04032` のtree `8a97242da13235d3f55f127eb157f514a25d8eca` はCI済みtreeと完全一致。観測mainは `6f77923a5d77712b9471f59fe7f3649fb9e3ca1e`。主要791件/189.401秒、および3・12・38・165・46件とNode検証が成功し、6 checksは成功3/意図したskip3。source16ファイルは元のテストを含め明示転送し、4組の全tree一致を確認してsnapshotの親を保全した。APIで作り直したcommit metadataは元local SHAの復元とは呼ばない。
+
+変更は選択blobの一括取得、全cipherの局所検証、限定transport診断、240件を超えるsource captureの全件事前検査と分割保存/復元/feed接続。AES認証・SHA・時刻・原本全bytes・旧pointer・CAS・途中失敗時HOLDは維持する。localのcapture最終771試験はGit fixture準備14エラーのFAILEDを保存し、fresh CI791成功と区別する。実workerでのbootstrap timeout解消、速度改善、全ラウンド実行、T15〜10充足、4競技全日網羅はまだ証明していない。次の通常owner admissionを既存の窓/guardで検証する。
+
+**別の実失敗:** main6fの回復run44145562084/job134259611249は18:14:05 UTCに `BOAT_GAP_INPUT_BOUND` で停止した。GitHub実行一覧のJSONが512000Bの入力上限を超える経路で、元予想・復号・provider GETのstep前に失敗。現在同等の一覧を再構成した541139Bは失敗した一時fileそのもののbytes証拠ではない。必要4項目へ取得時に射影する修正を検証し、サイズ/件数上限・判断・停止境界を維持する。旧run44096454881にも同じ失敗があり、今回のsource修正が生んだ不具合ではない。
+
+**Safari:** 実Mac44124279358のprivate原本/AES確認成功と、候補598の環境guard停止によるjob全体失敗/artifact0は両方保存する。main6fにある診断はまだ実Macで未実行。現行85試験に復元した元6試験を追加して両方の全ケースを保持する準備を行った。候補UIの公開はせず、公開asset f603、Draft #62の候補598を保持する。物理iPhone・本人login・current V5・全8参考の受入は未確認。
+
+**引継ぎ保全:** PR70 `b7380fe6a377e6ccf2b96331f2126c52549bbe17`、PR292 `daae4c10167224b7730006d8ada5ade398aaa64b` は取得できず未復元。別環境の未push fileが自動移転したとは扱わない。映像6艇の独立GT/校正、適用可能全既存モデルの全レース網羅、独立した前向き改善の実証は未完了。実14 pairは1 race、qualified0/分母nullのまま。owner key・private原本は持ち出さず、新PR/課金/モデル系統/本番weights/投票は追加しない。実行環境のprocess不足を理由に他作業や原本をkill/resetしない。
+
+詳細: [source merge evidence](evidence/boat-source55-normal-merge-proof-20261117.json)。
+
 ## 2026-11-17 17:38 UTC: 実Safari私有原本/AES成功を保全、環境guard診断をAPIで復元（GOAL未達）
 
 観測main2641abcd/source f55351dc。実Mac44124279358/job134183698968は、Safari26.6で保存view generation422/results114/native P1 groups11を確認した。

@@ -270,7 +270,7 @@ class ActiveSnapshotTests(unittest.TestCase):
         from race_ai.boat_private_original_archive import open_original_zip
         with open_original_zip(self.raws[100],self.metas[100],expected_kind='P0',key=KEY) as z:
             doc=json.loads(z.read('forecasts.json'))
-        prior='c123b8538006b3189181195bbc91d8f28d216ba5';doc['code_sha']=prior
+        prior=getattr(self,'p0_origin_sha','c123b8538006b3189181195bbc91d8f28d216ba5');doc['code_sha']=prior
         raw=packed({'private-original.enc':seal_original_zip(packed({'forecasts.json':json.dumps(doc)}),
             run_id=88,head_sha=prior,kind='P0',key=KEY)})
         meta=deepcopy(self.metas.pop(100));meta.update(id=200,name='boat-p0-existing-88',
@@ -774,15 +774,17 @@ class M2TargetSelectionTests(unittest.TestCase):
 
 
 PROFILE_HEAD='f55351dce855177a51330f72c37d6238ba2c9e3e'
+RETENTION_HEAD='bb49215034b779ea1493b35dd91e5c3ebfc04032'
 
 
 class ProfileSnapshotTests(unittest.TestCase):
     """Reuse genuine invented M2 contracts at the exact next reviewed source."""
+    SOURCE_HEAD=PROFILE_HEAD
     @classmethod
     def setUpClass(cls):M2SnapshotTests.setUpClass()
 
     def setUp(self):
-        source=patch.object(sys.modules[__name__],'M2_HEAD',PROFILE_HEAD)
+        source=patch.object(sys.modules[__name__],'M2_HEAD',self.SOURCE_HEAD)
         source.start();self.addCleanup(source.stop)
         self.f=M2SnapshotTests();self.f.setUp();self.addCleanup(self.f.doCleanups)
 
@@ -812,10 +814,11 @@ class ProfileSnapshotTests(unittest.TestCase):
 
 
 class ProfileTargetSelectionTests(unittest.TestCase):
+    SOURCE_HEAD=PROFILE_HEAD
     def test_completed_profile_callback_does_not_change_existing_m2_push_target(self):
-        event=M2TargetSelectionTests().event(PROFILE_HEAD)
+        event=M2TargetSelectionTests().event(self.SOURCE_HEAD)
         out=active.select_audit_target('workflow_run',event)
-        self.assertEqual(out,dict(run_id=123,expected_owner_sha=PROFILE_HEAD,allow_completed_receipts=True))
+        self.assertEqual(out,dict(run_id=123,expected_owner_sha=self.SOURCE_HEAD,allow_completed_receipts=True))
         target=json.loads((ROOT/'audit/state/boat-m2-independent-audit-target.json').read_text())
         self.assertEqual(target,dict(schema='RACE_AI_M2_READONLY_AUDIT_TARGET_V1',run_id=44075021607,
                                     source_commit=active.M2_OWNER_SHA))
@@ -823,16 +826,44 @@ class ProfileTargetSelectionTests(unittest.TestCase):
         self.assertEqual(active.select_audit_target('push',push,main_target=target),
                          dict(run_id=44075021607,expected_owner_sha=active.M2_OWNER_SHA,allow_completed_receipts=True))
         with self.assertRaises(ValueError):
-            active.select_audit_target('push',push,main_target=dict(target,source_commit=PROFILE_HEAD))
+            active.select_audit_target('push',push,main_target=dict(target,source_commit=self.SOURCE_HEAD))
 
     def test_matrix_event_and_selected_owner_guards_accept_only_explicit_profile(self):
         text=(ROOT/'.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
         live=text.split('\n  authenticated_original_matrix:\n',1)[1]
-        self.assertTrue("github.event.workflow_run.head_sha == '"+PROFILE_HEAD+"'" in live)
+        self.assertTrue("github.event.workflow_run.head_sha == '"+self.SOURCE_HEAD+"'" in live)
         for tag in ('PY','PY_ARCHIVED_NATIVE'):
             block=live.split("python - <<'"+tag+"'\n",1)[1].split('\n          '+tag,1)[0]
-            self.assertIn(PROFILE_HEAD,block)
+            self.assertIn(self.SOURCE_HEAD,block)
         self.assertNotIn('gh workflow run',live)
+
+
+class RetentionSnapshotTests(ProfileSnapshotTests):
+    """Authored AES fixtures at the exact retention source, never a live run."""
+    SOURCE_HEAD=RETENTION_HEAD
+
+    def test_retention_key_receipt_counter_and_cipher_mismatches_stay_fatal(self):
+        self.f.test_m2_key_receipt_nested_counter_and_cipher_mismatches_stay_fatal()
+
+    def _inherited_p0(self,owner,origin):
+        with patch.object(sys.modules[__name__],'M2_HEAD',owner):
+            fixture=M2SnapshotTests();fixture.setUp();self.addCleanup(fixture.doCleanups)
+            fixture.f.p0_origin_sha=origin
+            original=fixture.f.audit
+            fixture.f.audit=lambda *args,**kwargs: original(*args,expected_owner_sha=owner,**kwargs)
+            fixture.f.test_inherited_p0_is_resolved_from_exact_registry_without_relabeling_active_run()
+
+    def test_retention_inherits_only_exact_reviewed_earlier_p0_origins(self):
+        for origin in (active.M2_OWNER_SHA,PROFILE_HEAD):
+            with self.subTest(origin=origin):
+                self._inherited_p0(RETENTION_HEAD,origin)
+        for owner,origin in ((RETENTION_HEAD,'f'*40),(PROFILE_HEAD,RETENTION_HEAD)):
+            with self.subTest(owner=owner,origin=origin),self.assertRaisesRegex(ValueError,'P0_ORIGIN_IDENTITY'):
+                self._inherited_p0(owner,origin)
+
+
+class RetentionTargetSelectionTests(ProfileTargetSelectionTests):
+    SOURCE_HEAD=RETENTION_HEAD
 
 
 if __name__=='__main__':unittest.main()

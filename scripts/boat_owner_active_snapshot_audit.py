@@ -14,7 +14,8 @@ from pathlib import Path
 OWNER_SHA='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
 M2_OWNER_SHA='86b029ae5bddd5d4956497d8b32b2c92b8eec521'
 PROFILE_OWNER_SHA='f55351dce855177a51330f72c37d6238ba2c9e3e'
-PARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA)
+RETENTION_OWNER_SHA='bb49215034b779ea1493b35dd91e5c3ebfc04032'
+PARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA)
 BRANCH='production/boat-p0-p1-20261111'
 JOB='Existing frozen P0, exhibition P1, separate official results and PDCA'
 SCHEMA='RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1'
@@ -237,7 +238,8 @@ def _canonical_p0(get,run,listing,now,*,expected_owner_sha=OWNER_SHA):
          origin['run_attempt']==1 and origin.get('head_branch')==BRANCH and
          origin.get('event')=='workflow_dispatch' and (_source_pinned(origin['id'],origin['head_sha']) or
              expected_owner_sha in PARTIAL_RECEIPT_OWNER_SHAS and origin['head_sha']==expected_owner_sha or
-             expected_owner_sha==PROFILE_OWNER_SHA and origin['head_sha']==M2_OWNER_SHA),
+             expected_owner_sha==PROFILE_OWNER_SHA and origin['head_sha']==M2_OWNER_SHA or
+             expected_owner_sha==RETENTION_OWNER_SHA and origin['head_sha'] in (M2_OWNER_SHA,PROFILE_OWNER_SHA)),
          'P0_ORIGIN_IDENTITY')
     originals=artifact_pages(get,origin['id'])
     matches=[x for x in originals if x.get('id')==receipt.get('artifact_id') and

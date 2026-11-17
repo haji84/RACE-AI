@@ -509,3 +509,35 @@ source/clock checks. Missing ALL_MODEL generation remains unknown, with no
 full-day/latest-counter/successor claim. Existing M2 target44075021607/86,
 EFF default/Safari/old-P0 readers and public assets remain unchanged. No model
 family/weight, provider, workflow/job/permission, fee or wager is introduced.
+
+2026-11-17 protected source release: selected-blob prefetch and bounded capture retention
+Future dispatch authority advances only to actual production merge
+bb49215034b779ea1493b35dd91e5c3ebfc04032, normally merged through existing source PR55.
+The actual source tree 8a97242da13235d3f55f127eb157f514a25d8eca equals reviewed candidate
+15fc68755e60db3f4e578ef2b8415e4ed909c9eb. Fresh existing Actions CI 44145608111,
+job 134262269443, passed 791 primary source-free tests plus the separately
+registered source contract, recovery, capture, and Node checks. This is code
+and fixture evidence; no new worker or real-operation success is claimed.
+
+The existing release trigger prefix remains exactly:
+boat-owner-release: single-real-session-20261111
+This append uses the existing owner-pdca-main-trigger.txt push path.
+Release/source dispatch readers select only the new exact SHA; f553, M2 and EFF
+remain historical readback origins, never alternative dispatch authority.
+M2 audit selection stays run 44075021607/source
+86b029ae5bddd5d4956497d8b32b2c92b8eec521; EFF defaults, old-P0 readers,
+Safari/native proof, public assets, and archived helper 900003 stay unchanged.
+The archived helper SHA256 remains
+6f78cb4325f477e1dc8ddf8d2b241ef357cec256d29b4d5a2a16a5827f9cf97e.
+
+Actual M2 completed naturally with DAY_HANDOFF: 10 physical rounds,
+304 session requests, 13807 lifetime requests, day base 13017, no prepared round
+and no source wait. Its later successful step labels are no-ops, not rounds.
+Existing 24-AES/14-pair evidence retains its stated partial/unqualified scope.
+No actual f553 or new-source worker is asserted. BOAT completion callback
+delivery remains unproved; passing code contracts do not prove that trigger.
+The existing schedule, early-window HOLD, fresh-history single-writer gate,
+encrypted continuity and source 403/429 refusals remain mandatory. Never reset
+counters, replace old originals, regenerate a saved forecast, or count a missing
+archive as zero issuance. No full-day, latest-counter, successor, qualification,
+accuracy, or native-iPhone acceptance is added by this source-pin transition.
