@@ -1,3 +1,36 @@
+## 2026-11-17 継続: 保存名の実照合失敗を1項目修正、次source f553へ正規引継ぎを準備
+
+実main0d8126ed/source f55351dce855177a51330f72c37d6238ba2c9e3e。source既存PR63は最終acf84c7b/5 checks後に通常merge、tree完全一致。
+registry再構築を検証1呼出し内で共有する変更で、model/weights/全検査は保持。local AES fixtureのPDCA30.4→15.2秒だが、
+稼働中M2は86b029aeの固定checkoutで継続しており、本番速度・T15〜10改善は未実証。
+
+**実原本監査44093714741は失敗を保存:** job134075234376のM2 phaseは1〜5巡を認証し、計13暗号原本、
+追加モデルP1新規9行の保存AES view一致9/欠落0を再確認。ALL_MODEL2〜5は欠落・生成件数null、公式B未認証・資格0/nullでHOLD。
+その後の期限切れ13559236491照合がARCHIVED_NATIVE_ORIGINAL_METADATA_REJECTEDとなり、job全体はfailure。
+3証拠ZIPを再取得し、サイズ/SHAと2つの同一M2 documentを検証。原本復元成功や全件完了とは扱わない。
+
+**実原因:** 正しい公式source-packetの保存名900003を、P0専用900001と取り違えていた。
+実行当時8cfのscript blob4f906153…を正規GitHub readで取得し、17,260bytes/Git SHAとSHA256を検証。
+ROUND900003とupload/readback名の流れを確認した。真正AES合成fixtureでも同じ拒否をRED再現し、
+期待名1literalだけを修正。ZIP/metadata/cipher/entry/source/clock/hash/type/pinの全guardは維持する。
+作者113件・独立13件と因果再現がsuccess。修正後の真正Actions実鍵結果はまだ未確認。
+
+**既存PR59の最終候補:** 実source f553をfuture dispatch/controlへ結合し、M2をexact原本originとして保全。
+現在のM2監査target44075021607/86、EFF既定/過去P0/Safari読取を保持。M2/EFF/新sourceの真正callbackと、
+新source完了時も同じ厳密なpartial原本監査を接続する。稼働中owner・source不一致・旧checkout/proof・最終controlなしはHOLD。
+既存markerへ追記し、正しいboat-owner-release: single-real-session-20261111 prefixで同じgateへ渡す。
+combined d47de020は123 matrix/archive・92 gate、独立122/84/18 profile暗号拒否/2実M2-origin fixture/13 archiveがsuccess。
+GitHub最終HEAD CI・通常main merge・実gate/修正済み原本AESは次工程で、前HEADの合格を流用しない。
+[実失敗・件数・source/修正SHA・未達](evidence/boat-profile-release-and-archive-fix-20261117.json)。
+
+**UIは配信せず保全:** 既存DraftPR62に598c80c8を保存。mainの不完全な5file移植は採用せず、既存86b UI runtime上で
+44 browser checkpoints/3 unit testsを再確認。全8参考はpartial、実native Safari/物理iPhone/本人login/実dataは未合格。
+公開assetsはf60308efのまま。次は同じ既存Mac jobで、秘密を除いた別sessionによる候補UIの合成検証を準備する。
+
+4競技の全日/全適用モデル/T15〜10、6艇継続/実距離時刻校正/強さ接続、前向き精度改善は未達。
+元work b420631 clean、未push b7380fe6/daae4c10 UNRESTORED、KEIRIN default-OFF/1レースの別作業を保全。
+新PR/新job/権限追加/課金設定/本番weights/投票/無断のUI配信変更0。以下は過去時点の記録として保持する。
+
 ## 2026-11-17 12:58 UTC: 実M2の9原本AES・追加モデルP1の9行表示一致、全件はHOLD
 
 実main88c3fc5e06e8ce9438391c02bbaec09d2a00f052。既存PR65は最終6b2accce/27 checks完了後に通常mergeし、tree完全一致。

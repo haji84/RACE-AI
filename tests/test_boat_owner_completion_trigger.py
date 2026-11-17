@@ -69,7 +69,8 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
     def test_reviewed_previous_release_completion_is_bound_to_the_actual_history(self):
         for previous in ('84128e0ec8bd9fe3da64ad49f74b8511b07e72be',
                          'b491fb21ce58ba085dd8f54bb7326442b840d8f4',
-                         'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'):
+                         'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
+                         '86b029ae5bddd5d4956497d8b32b2c92b8eec521'):
             with self.subTest(previous=previous):
                 actual=dict(self.run,head_sha=previous)
                 history=dict(total_count=1,workflow_runs=[actual])
@@ -79,7 +80,12 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
                     self.assertFalse(self.trusted(event(actual),hist=dict(total_count=1,workflow_runs=[actual])))
 
     def test_exact_eff_completion_selects_new_release_without_rewriting_control(self):
-        previous='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+        self._assert_previous_completion_selects_current('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3')
+
+    def test_exact_m2_completion_selects_new_release_without_rewriting_control(self):
+        self._assert_previous_completion_selects_current('86b029ae5bddd5d4956497d8b32b2c92b8eec521')
+
+    def _assert_previous_completion_selects_current(self,previous):
         current=base.RELEASE_SHA
         self.assertNotEqual(current,previous)
         run=dict(self.run,head_sha=previous)
@@ -273,7 +279,8 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
         import re
         from types import SimpleNamespace as NS
         source=(Path(__file__).resolve().parents[1]/'.github/workflows/boat-racer-daily.yml').read_text()
-        heads={base.RELEASE_SHA,'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'}
+        heads={base.RELEASE_SHA,'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
+               '86b029ae5bddd5d4956497d8b32b2c92b8eec521'}
         for job in ('original_retention','source_mirror','daily','owner_p0_p1_dispatch'):
             section=source.split('\n  '+job+':\n',1)[1].split('    runs-on:',1)[0]
             expression=' '.join(section.split('    if: >-\n',1)[1].split())

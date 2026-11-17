@@ -475,3 +475,37 @@ must restore authenticated originals and cumulative counters without reset;
 missing or mismatched evidence remains HOLD. Keep eff audit/Safari pins and
 historical receipts read-only. No manual source dispatch, forged event, new
 workflow/cron/permission, model/weight promotion, provider, fee or wager.
+
+2026-11-17: use the existing protected-main release route for exact source
+f55351dce855177a51330f72c37d6238ba2c9e3e, normally merged through existing PR63
+after all5 checks. Its tree exactly matches reviewed acf84c7b224f2eb4168cfc76c917388c7744d6b4.
+This append changes the existing push-filtered marker; the main merge subject
+must begin boat-owner-release: single-real-session-20261111.
+Only future workers use the new source. Active M2 owner44075021607 remains at
+86b029ae5bddd5d4956497d8b32b2c92b8eec521; current active history must HOLD
+any new dispatch. Its immutable local checkout, original receipts, clocks,
+source hashes, counters and source-wait/denial conditions are not rewritten.
+
+Existing independent audit44087732511/job134054474873 froze M2 native rounds1-3:
+9 AES originals and9 ALL_MODEL P1 rows matched9 saved-view originals. Missing
+ALL_MODEL archives2/3 remain unexplained with generationnull; missing official
+program evidence keeps qualified totals0 and denominatornull. Later native
+rounds are not added to this fixed proof. No full-day or all-model success is
+claimed. Historical failed checkpoint43829249080 was separately reauthenticated;
+the actual archived13559236491 metadata HOLD remains a separate diagnosis.
+
+The next source is admitted only after the existing gate independently verifies
+the actual protected release/event/head/history, no active producer, and genuine
+final continuity/control. Exact M2 is a reviewed readback origin, never an old
+checkout/proof dispatch authority. Restore cumulative counters and immutable
+first-receipt originals without reset; absent, pending, refused or mismatched
+evidence remains HOLD. The existing completion event or schedule considers
+one successor, with no direct source dispatch or manufactured final control.
+
+Only exact f55351dce855177a51330f72c37d6238ba2c9e3e joins M2's explicit read-only
+partial receipt audit contract. Every selected native P1/RESULT and present
+ALL_MODEL archive still requires exact inventory, SHA/AES/model replay and
+source/clock checks. Missing ALL_MODEL generation remains unknown, with no
+full-day/latest-counter/successor claim. Existing M2 target44075021607/86,
+EFF default/Safari/old-P0 readers and public assets remain unchanged. No model
+family/weight, provider, workflow/job/permission, fee or wager is introduced.

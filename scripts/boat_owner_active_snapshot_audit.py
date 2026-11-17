@@ -13,6 +13,8 @@ from pathlib import Path
 
 OWNER_SHA='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
 M2_OWNER_SHA='86b029ae5bddd5d4956497d8b32b2c92b8eec521'
+PROFILE_OWNER_SHA='f55351dce855177a51330f72c37d6238ba2c9e3e'
+PARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA)
 BRANCH='production/boat-p0-p1-20261111'
 JOB='Existing frozen P0, exhibition P1, separate official results and PDCA'
 SCHEMA='RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1'
@@ -44,7 +46,7 @@ def _time(value):
 
 
 def _expected_source(value):
-    need(type(value) is str and value in (OWNER_SHA,M2_OWNER_SHA),'SOURCE_NOT_PINNED')
+    need(type(value) is str and value in (OWNER_SHA,*PARTIAL_RECEIPT_OWNER_SHAS),'SOURCE_NOT_PINNED')
     return value
 
 
@@ -67,7 +69,7 @@ def select_audit_target(event_name,event,*,main_target=None):
                  main_target.get('source_commit')==M2_OWNER_SHA,'TARGET_CONFIG')
             ident,source=main_target['run_id'],M2_OWNER_SHA
     need(type(ident) is int and 0<ident<10**20,'TARGET_RUN_ID')
-    return dict(run_id=ident,expected_owner_sha=source,allow_completed_receipts=source==M2_OWNER_SHA)
+    return dict(run_id=ident,expected_owner_sha=source,allow_completed_receipts=source in PARTIAL_RECEIPT_OWNER_SHAS)
 
 
 def _final_control(get,run,listing,now):
@@ -166,7 +168,7 @@ def validate_active_scope(scope,run,listing,now,get,*,expected_owner_sha=OWNER_S
     """Bind the opt-in exact-ZIP path to the same actual job and inventory."""
     from race_ai.actions_contract import digest
     expected_owner_sha=_expected_source(expected_owner_sha)
-    need(type(allow_completed_receipts) is bool and (not allow_completed_receipts or expected_owner_sha==M2_OWNER_SHA),
+    need(type(allow_completed_receipts) is bool and (not allow_completed_receipts or expected_owner_sha in PARTIAL_RECEIPT_OWNER_SHAS),
          'COMPLETED_SCOPE_NOT_PINNED')
     need(type(scope) is dict and scope.get('schema')==SCHEMA and scope.get('run')==run
          and scope.get('inventory')==listing and scope.get('captured_at')==now.isoformat(),
@@ -184,7 +186,7 @@ def validate_active_scope(scope,run,listing,now,get,*,expected_owner_sha=OWNER_S
                       completed_round_limit=control['completed_round'] if control else None)
     need(scope.get('job')==job and scope.get('rounds')==rounds and
          scope.get('inventory_sha256')==digest(listing),'SNAPSHOT_CHANGED')
-    if expected_owner_sha==M2_OWNER_SHA:
+    if expected_owner_sha in PARTIAL_RECEIPT_OWNER_SHAS:
         derived=_model_archive_scope(listing,run['id'],rounds,now)
         declared=scope.get('all_model_archive_scope')
         need(type(declared) is dict and digest(declared)==digest(derived),'MODEL_ARCHIVE_SCOPE_CHANGED')
@@ -234,7 +236,8 @@ def _canonical_p0(get,run,listing,now,*,expected_owner_sha=OWNER_SHA):
     need(origin.get('status')=='completed' and type(origin.get('run_attempt')) is int and
          origin['run_attempt']==1 and origin.get('head_branch')==BRANCH and
          origin.get('event')=='workflow_dispatch' and (_source_pinned(origin['id'],origin['head_sha']) or
-             expected_owner_sha==M2_OWNER_SHA and origin['head_sha']==M2_OWNER_SHA),
+             expected_owner_sha in PARTIAL_RECEIPT_OWNER_SHAS and origin['head_sha']==expected_owner_sha or
+             expected_owner_sha==PROFILE_OWNER_SHA and origin['head_sha']==M2_OWNER_SHA),
          'P0_ORIGIN_IDENTITY')
     originals=artifact_pages(get,origin['id'])
     matches=[x for x in originals if x.get('id')==receipt.get('artifact_id') and
@@ -267,7 +270,7 @@ def audit_active_snapshot(repo,run_id,*,now,get,expected_owner_sha=OWNER_SHA,all
     from scripts import boat_exact_all_model_zip_readback as exact
     need(isinstance(now,datetime) and now.utcoffset() is not None,'AWARE_CLOCK_REQUIRED')
     expected_owner_sha=_expected_source(expected_owner_sha)
-    need(type(allow_completed_receipts) is bool and (not allow_completed_receipts or expected_owner_sha==M2_OWNER_SHA),
+    need(type(allow_completed_receipts) is bool and (not allow_completed_receipts or expected_owner_sha in PARTIAL_RECEIPT_OWNER_SHAS),
          'COMPLETED_SCOPE_NOT_PINNED')
     reads=_Reads(get);run=R._run(reads(f'actions/runs/{run_id}'),run_id,now)
     need(run.get('head_sha')==expected_owner_sha,'ACTIVE_OWNER_IDENTITY')
@@ -278,7 +281,7 @@ def audit_active_snapshot(repo,run_id,*,now,get,expected_owner_sha=OWNER_SHA,all
     scope=dict(schema=SCHEMA,run=run,job=job,rounds=rounds,inventory=listing,
                inventory_sha256=digest(listing),captured_at=now.isoformat(),
                expected_owner_sha=expected_owner_sha,allow_completed_receipts=allow_completed_receipts,final_control=control)
-    if expected_owner_sha==M2_OWNER_SHA:
+    if expected_owner_sha in PARTIAL_RECEIPT_OWNER_SHAS:
         scope['all_model_archive_scope']=_model_archive_scope(listing,run_id,rounds,now)
     validate_active_scope(scope,run,listing,now,reads,expected_owner_sha=expected_owner_sha,
                           allow_completed_receipts=allow_completed_receipts)

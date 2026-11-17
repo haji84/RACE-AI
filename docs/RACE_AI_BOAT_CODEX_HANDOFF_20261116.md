@@ -396,3 +396,15 @@ ALL_MODEL2/3欠落は原因未確認・件数nullでHOLD。当日公式B未認�
 速度改善469e06cdはlocal合成AESで約2倍、既存PR63のCIへ進めた段階で、現行workerの実遅延改善は未証明。
 期限切れ13559236491は暗号fileサイズ/SHAのみ復元。実鍵の元ZIP/metadata/native再読戻しは準備中。
 未来の精度改善、全4競技/T15〜10、校正した6艇映像、物理iPhone/全8画面は未達のまま継続する。
+
+## 継続: 実保存名の不一致修正とf553への次回引継ぎ
+
+source PR63を最終acf84c7b/5 checks後に通常mergeし、実f55351dce855177a51330f72c37d6238ba2c9e3eのtree一致を確認。
+現M2は86b固定のまま。新sourceの約2倍計測はlocal合成fixtureだけで、本番T15〜10の改善証拠ではない。
+main0d812の実監査44093714741はM2の1〜5巡/13暗号原本/追加P1の9行表示一致を確認したが、
+旧13559236491の保存名照合でfailure。正しいsource-packet900003をP0専用900001と取り違えた実原因を、
+当時8cfのGit blob4f906153…/17,260bytesと真正AES fixtureで確定。全hash/clock/pin guardを残して1literalだけ修正。
+既存PR59でfuture f553 pin・exact M2原本origin・真正callback・新source partial監査を結合。currentM2target/EFF歴史readerは保持。
+combined123件/92gateと独立reviewは成功、最終CI/main/実gate/修正済み実鍵照合は未確認として続ける。
+active owner・旧checkout/proof・未知origin・最終control欠測はHOLD、新workerを直接起動しない。
+[今回の実失敗と候補証拠](evidence/boat-profile-release-and-archive-fix-20261117.json)。
