@@ -5,6 +5,8 @@ from race_ai.keirin_manual71_live_evidence import examine
 CIPHER = "a"*64
 RESULT = "b"*64
 HTML = "c"*64
+ROWSET = "d"*64
+REV = "e"*64
 
 
 def simulated():
@@ -13,12 +15,17 @@ def simulated():
          "generation":3,"cipher_sha256":CIPHER,
          "manual71_pilot":{"state":"PRIVATE_MANUAL71_PILOT_RESEARCH_STORED",
                            "new_audits":1,
+                           "source_revision_sha256":REV,
+                           "audit_rowset_sha256":ROWSET,
+                           "latest_html_sha256":HTML,
                            "official_results_authenticated":False}},
         {"state":"PR71_SEPARATE_GITHUB_RUNNER_AES_GCM_READBACK_OK",
          "generation":3,
          "manual71_pilot_readback":{
             "state":"PRIVATE_MANUAL71_AUDIT_SHA_READBACK_VERIFIED",
-            "verified_rows":1, "official_results_authenticated":False}},
+            "verified_rows":1, "audit_rowset_sha256":ROWSET,
+            "latest_html_sha256":HTML,
+            "official_results_authenticated":False}},
     )
 
 
@@ -69,13 +76,13 @@ class PilotLiveGateTest(unittest.TestCase):
         v=examine(producer=p,readback=r,action_run_id="44013678282",
                   producer_job_id="cycle",reader_job_id="reader",trusted_main=True,
                   source_receipt={"race_id":"202611177506",
-                                  "result_revision_sha256":RESULT},
+                                  "result_revision_sha256":REV},
                   independently_verify_source=lambda x: True)
         self.assertEqual(v["gates"]["result_fetch"],"HOLD")
 
     def test_callbacks_are_required_and_are_not_replaced_by_boolean_flags(self):
         p,r=simulated()
-        src={"race_id":"202611177507","result_revision_sha256":RESULT,
+        src={"race_id":"202611177507","result_revision_sha256":REV,
              "official":True}
         v=examine(producer=p,readback=r,action_run_id="44013678282",
                   producer_job_id="cycle",reader_job_id="reader",trusted_main=True,
@@ -89,7 +96,7 @@ class PilotLiveGateTest(unittest.TestCase):
         v=examine(producer=p,readback=r,action_run_id="44013678282",
                   producer_job_id="cycle",reader_job_id="reader",trusted_main=True,
                   source_receipt={"race_id":"202611177507",
-                                  "result_revision_sha256":RESULT},
+                                  "result_revision_sha256":REV},
                   independently_verify_source=lambda x: True,
                   viewer_receipt={"race_id":"202611177507",
                                   "encrypted_generation":3,
@@ -97,6 +104,22 @@ class PilotLiveGateTest(unittest.TestCase):
                   independently_verify_browser=lambda x: True)
         self.assertEqual(v["overall"],"PASS")
         self.assertFalse(v["expanded_to_71"])
+
+    def test_wrong_result_revision_same_race_must_not_pass_source(self):
+        p,r=simulated()
+        v=examine(producer=p,readback=r,action_run_id="44013678282",
+                  producer_job_id="cycle",reader_job_id="reader",trusted_main=True,
+                  source_receipt={"race_id":"202611177507",
+                                  "result_revision_sha256":RESULT},
+                  independently_verify_source=lambda x: True)
+        self.assertEqual(v["gates"]["result_fetch"],"HOLD")
+
+    def test_archive_and_reader_rowset_must_match(self):
+        p,r=simulated()
+        r["manual71_pilot_readback"]["audit_rowset_sha256"]=RESULT
+        v=examine(producer=p,readback=r,action_run_id="44013678282",
+                  producer_job_id="cycle",reader_job_id="reader",trusted_main=True)
+        self.assertEqual(v["gates"]["fresh_runner_readback"],"HOLD")
 
 if __name__=="__main__":
     unittest.main()
