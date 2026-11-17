@@ -12,6 +12,7 @@ import re
 from pathlib import Path
 
 OWNER_SHA='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+M2_OWNER_SHA='86b029ae5bddd5d4956497d8b32b2c92b8eec521'
 BRANCH='production/boat-p0-p1-20261111'
 JOB='Existing frozen P0, exhibition P1, separate official results and PDCA'
 SCHEMA='RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1'
@@ -26,7 +27,8 @@ def failure_diagnostic(error):
     public=frozenset(('boat_owner_active_snapshot_audit.py','boat_exact_all_model_zip_readback.py',
                       'boat_owner_evidence_audit.py'))
     functions=frozenset(('audit_active_snapshot','audit','_official_cutoffs','_scan','_scan_unqualified_originals',
-        '_owner_head','validate_active_scope','_canonical_p0','_jobs','read','moment','cutoff_source_disagreement'))
+        '_owner_head','validate_active_scope','_canonical_p0','_jobs','read','moment','cutoff_source_disagreement',
+        '_verified_reused_baseline','_final_control','_expected_source'))
     output={};trace=error.__traceback__;folder=Path(__file__).resolve().parent
     while trace is not None:
         code=trace.tb_frame.f_code;path=Path(code.co_filename).resolve()
@@ -41,7 +43,67 @@ def _time(value):
     return moment(value)
 
 
-def _jobs(get,run,now):
+def _expected_source(value):
+    need(type(value) is str and value in (OWNER_SHA,M2_OWNER_SHA),'SOURCE_NOT_PINNED')
+    return value
+
+
+def select_audit_target(event_name,event,*,main_target=None):
+    """Choose read-only evidence scope; never select or authorize a dispatcher."""
+    need(type(event) is dict and type(event.get('repository')) is dict and
+         event['repository'].get('full_name')=='haji84/RACE-AI','TARGET_REPOSITORY')
+    if event_name=='workflow_run':
+        run=event.get('workflow_run');need(type(run) is dict,'TARGET_EVENT')
+        source=_expected_source(run.get('head_sha'));ident=run.get('id')
+        need(run.get('head_branch')==BRANCH and run.get('event')=='workflow_dispatch' and
+             type(run.get('head_repository')) is dict and run['head_repository'].get('full_name')=='haji84/RACE-AI' and
+             run.get('status')=='completed' and run.get('conclusion') in ('success','failure'),'TARGET_EVENT')
+    else:
+        need(event_name=='push' and event.get('ref')=='refs/heads/main','TARGET_EVENT')
+        if main_target is None:ident,source=44019591352,OWNER_SHA
+        else:
+            need(type(main_target) is dict and set(main_target)=={'schema','run_id','source_commit'} and
+                 main_target.get('schema')=='RACE_AI_M2_READONLY_AUDIT_TARGET_V1' and
+                 main_target.get('source_commit')==M2_OWNER_SHA,'TARGET_CONFIG')
+            ident,source=main_target['run_id'],M2_OWNER_SHA
+    need(type(ident) is int and 0<ident<10**20,'TARGET_RUN_ID')
+    return dict(run_id=ident,expected_owner_sha=source,allow_completed_receipts=source==M2_OWNER_SHA)
+
+
+def _final_control(get,run,listing,now):
+    """Authenticate the final AES session and its exact public companion."""
+    from race_ai import boat_all_model_recovery as R,boat_source_control as source
+    from race_ai import boat_private_original_archive as archive
+    from race_ai.boat_pending_round_recovery import read_final_control
+    packets=[]
+    for prefix,limit in (('race-cycle-continuity',source.MAX_CONTINUITY_ZIP),
+                         ('race-source-control',source.MAX_SUMMARY_ZIP)):
+        matches=[item for item in listing if item.get('name')==f'{prefix}-{run["id"]}']
+        need(len(matches)==1,'FINAL_CONTROL_MISSING_OR_DUPLICATE');item=matches[0]
+        meta_raw=get(f'actions/artifacts/{item["id"]}');meta=json.loads(meta_raw)
+        R._metadata(meta_raw,item,run,now,get)
+        need(_time(run['created_at'])<=_time(meta['created_at'])<=_time(run['updated_at']),
+             'FINAL_CONTROL_CLOCK')
+        raw=get(f'actions/artifacts/{item["id"]}/zip')
+        need(type(raw) is bytes and 0<len(raw)<=limit,'FINAL_CONTROL_BOUND')
+        packets.append((raw,meta))
+    control=read_final_control(get,run)
+    (continuity,meta),(public,public_meta)=packets
+    with archive._checked_zip(continuity,max_zip_bytes=source.MAX_CONTINUITY_ZIP) as z:
+        need(z.namelist()==[archive.CIPHER_MEMBER],'FINAL_CONTROL_AES_REQUIRED')
+        derived=source.build_summary(z.read(archive.CIPHER_MEMBER),run_id=run['id'],head_sha=run['head_sha'])
+    with archive._checked_zip(public,max_zip_bytes=source.MAX_SUMMARY_ZIP,max_expanded=source.MAX_SUMMARY) as z:
+        need(z.namelist()==[source.MEMBER] and source._json(z.read(source.MEMBER))==derived,
+             'FINAL_CONTROL_AES_PUBLIC_DISAGREE')
+    need(control==source.read_summary(public,public_meta,continuity,meta,
+         run_id=run['id'],head_sha=run['head_sha']),'FINAL_CONTROL_CHANGED')
+    need(type(control.get('completed_round')) is int and 1<=control['completed_round']<=24,
+         'NO_COMPLETED_ROUND')
+    return control
+
+
+def _jobs(get,run,now,*,expected_owner_sha=OWNER_SHA,completed_round_limit=None):
+    expected_owner_sha=_expected_source(expected_owner_sha)
     rows=[];total=None
     for page in range(1,12):
         suffix='' if page==1 else f'&page={page}'
@@ -55,7 +117,7 @@ def _jobs(get,run,now):
     need(len(rows)==total and len({r['id'] for r in rows})==len(rows),'JOBS_INCOMPLETE_OR_CHANGED')
     matches=[r for r in rows if r.get('name')==JOB]
     need(len(matches)==1,'OWNER_JOB_MISSING_OR_DUPLICATE');job=matches[0]
-    need(type(job.get('id')) is int and job['id']>0 and job.get('run_id')==run['id'] and job.get('head_sha')==OWNER_SHA and
+    need(type(job.get('id')) is int and job['id']>0 and job.get('run_id')==run['id'] and job.get('head_sha')==expected_owner_sha and
          type(job.get('run_attempt')) is int and job['run_attempt']==1,'OWNER_JOB_IDENTITY')
     steps=job.get('steps');need(type(steps) is list,'OWNER_STEPS_MISSING')
     rounds={}
@@ -66,25 +128,38 @@ def _jobs(get,run,now):
         rounds[number]=step
     selected=[]
     for number,step in sorted(rounds.items()):
+        if completed_round_limit is not None and number>completed_round_limit:continue
         if step.get('status')=='completed' and step.get('conclusion')=='success':
             need(number==len(selected)+1 and _time(run['created_at'])<=_time(step['started_at'])<=
                  _time(step['completed_at'])<=now,'ROUND_COMPLETION_CLOCK_OR_GAP')
             selected.append(number)
     need(selected,'NO_COMPLETED_ROUND')
+    if completed_round_limit is not None:
+        need(job.get('status')=='completed' and job.get('conclusion') in ('success','failure'),'FINAL_OWNER_JOB_STATUS')
+        need(selected==list(range(1,completed_round_limit+1)),'FINAL_COMPLETED_ROUND_PREFIX_MISSING')
     return job,selected
 
 
-def validate_active_scope(scope,run,listing,now,get):
+def validate_active_scope(scope,run,listing,now,get,*,expected_owner_sha=OWNER_SHA,allow_completed_receipts=False):
     """Bind the opt-in exact-ZIP path to the same actual job and inventory."""
     from race_ai.actions_contract import digest
+    expected_owner_sha=_expected_source(expected_owner_sha)
+    need(type(allow_completed_receipts) is bool and (not allow_completed_receipts or expected_owner_sha==M2_OWNER_SHA),
+         'COMPLETED_SCOPE_NOT_PINNED')
     need(type(scope) is dict and scope.get('schema')==SCHEMA and scope.get('run')==run
          and scope.get('inventory')==listing and scope.get('captured_at')==now.isoformat(),
          'SNAPSHOT_CHANGED')
-    need(run.get('head_sha')==OWNER_SHA and run.get('status')=='in_progress' and
-         run.get('conclusion') is None and type(run.get('run_attempt')) is int and
+    need(scope.get('expected_owner_sha',OWNER_SHA)==expected_owner_sha and
+         scope.get('allow_completed_receipts',False)==allow_completed_receipts,'SNAPSHOT_CHANGED')
+    active=run.get('status')=='in_progress' and run.get('conclusion') is None
+    completed=allow_completed_receipts and run.get('status')=='completed' and run.get('conclusion') in ('success','failure')
+    need(run.get('head_sha')==expected_owner_sha and (active or completed) and type(run.get('run_attempt')) is int and
          run['run_attempt']==1 and run.get('head_branch')==BRANCH and
          run.get('event')=='workflow_dispatch','ACTIVE_OWNER_IDENTITY')
-    job,rounds=_jobs(get,run,now)
+    control=_final_control(get,run,listing,now) if completed else None
+    need(scope.get('final_control')==control,'SNAPSHOT_CHANGED')
+    job,rounds=_jobs(get,run,now,expected_owner_sha=expected_owner_sha,
+                      completed_round_limit=control['completed_round'] if control else None)
     need(scope.get('job')==job and scope.get('rounds')==rounds and
          scope.get('inventory_sha256')==digest(listing),'SNAPSHOT_CHANGED')
     initial=any(row.get('name')==f'boat-all-model-forecasts-{run["id"]}-r0' for row in listing)
@@ -104,7 +179,7 @@ class _Reads:
         return self.cache[path]
 
 
-def _canonical_p0(get,run,listing,now):
+def _canonical_p0(get,run,listing,now,*,expected_owner_sha=OWNER_SHA):
     from race_ai import boat_all_model_recovery as R
     from race_ai.cycle_recovery import artifact_pages
     from scripts.boat_owner_evidence_audit import _source_pinned
@@ -131,7 +206,8 @@ def _canonical_p0(get,run,listing,now):
     origin=R._run(get(f'actions/runs/{receipt["run_id"]}'),receipt['run_id'],now)
     need(origin.get('status')=='completed' and type(origin.get('run_attempt')) is int and
          origin['run_attempt']==1 and origin.get('head_branch')==BRANCH and
-         origin.get('event')=='workflow_dispatch' and _source_pinned(origin['id'],origin['head_sha']),
+         origin.get('event')=='workflow_dispatch' and (_source_pinned(origin['id'],origin['head_sha']) or
+             expected_owner_sha==M2_OWNER_SHA and origin['head_sha']==M2_OWNER_SHA),
          'P0_ORIGIN_IDENTITY')
     originals=artifact_pages(get,origin['id'])
     matches=[x for x in originals if x.get('id')==receipt.get('artifact_id') and
@@ -151,7 +227,7 @@ def _saved_view(repo,now,day):
     return F.current_view(bridge.git,bridge.bootstrap,day=day)[3]
 
 
-def audit_active_snapshot(repo,run_id,*,now,get):
+def audit_active_snapshot(repo,run_id,*,now,get,expected_owner_sha=OWNER_SHA,allow_completed_receipts=False):
     from race_ai import boat_all_model_recovery as R
     from race_ai.cycle_recovery import artifact_pages,result_archive
     from race_ai.boat_private_original_archive import open_original_zip
@@ -163,13 +239,22 @@ def audit_active_snapshot(repo,run_id,*,now,get):
     from race_ai.existing_model_coverage import active_catalog
     from scripts import boat_exact_all_model_zip_readback as exact
     need(isinstance(now,datetime) and now.utcoffset() is not None,'AWARE_CLOCK_REQUIRED')
+    expected_owner_sha=_expected_source(expected_owner_sha)
+    need(type(allow_completed_receipts) is bool and (not allow_completed_receipts or expected_owner_sha==M2_OWNER_SHA),
+         'COMPLETED_SCOPE_NOT_PINNED')
     reads=_Reads(get);run=R._run(reads(f'actions/runs/{run_id}'),run_id,now)
-    job,rounds=_jobs(reads,run,now);listing=artifact_pages(reads,run_id)
+    need(run.get('head_sha')==expected_owner_sha,'ACTIVE_OWNER_IDENTITY')
+    listing=artifact_pages(reads,run_id)
+    control=_final_control(reads,run,listing,now) if allow_completed_receipts and run.get('status')=='completed' else None
+    job,rounds=_jobs(reads,run,now,expected_owner_sha=expected_owner_sha,
+                    completed_round_limit=control['completed_round'] if control else None)
     scope=dict(schema=SCHEMA,run=run,job=job,rounds=rounds,inventory=listing,
-               inventory_sha256=digest(listing),captured_at=now.isoformat())
-    validate_active_scope(scope,run,listing,now,reads)
+               inventory_sha256=digest(listing),captured_at=now.isoformat(),
+               expected_owner_sha=expected_owner_sha,allow_completed_receipts=allow_completed_receipts,final_control=control)
+    validate_active_scope(scope,run,listing,now,reads,expected_owner_sha=expected_owner_sha,
+                          allow_completed_receipts=allow_completed_receipts)
     day=_time(run['created_at']).astimezone(exact.JST).date().isoformat()
-    first,origin=_canonical_p0(reads,run,listing,now);scope['p0_original']=(first,origin)
+    first,origin=_canonical_p0(reads,run,listing,now,expected_owner_sha=expected_owner_sha);scope['p0_original']=(first,origin)
     def read(item,kind,owner=run):
         meta_raw=reads(f'actions/artifacts/{item["id"]}');meta=json.loads(meta_raw)
         R._metadata(meta_raw,item,owner,now,reads)
@@ -202,7 +287,7 @@ def audit_active_snapshot(repo,run_id,*,now,get):
             need(z.read('current-p1-original.zip')==p1,'NESTED_P1_CHANGED')
         need(report.get('report_sha256')==digest({k:v for k,v in report.items() if k!='report_sha256'})
              and report.get('round_no')==number and str(report.get('run_id'))==str(run_id)
-             and report.get('code_sha')==OWNER_SHA and report.get('day_jst')==day,'RESULT_SCOPE_OR_HASH')
+             and report.get('code_sha')==expected_owner_sha and report.get('day_jst')==day,'RESULT_SCOPE_OR_HASH')
         need(_time(pm['created_at'])<=_time(report['updated_at'])<=_time(rm['created_at']),
              'RESULT_REPORT_CLOCK')
         references=[r for r in report.get('first_forecast_artifacts',[]) if r.get('id')==pm['id']]
@@ -229,20 +314,35 @@ def audit_active_snapshot(repo,run_id,*,now,get):
         if additions:
             supplement,meta=read(additions[0],'P0')
             doc,_=read_p0(supplement,meta,expected_day=day)
-            need(doc.get('code_sha')==OWNER_SHA and _time(step['started_at'])<=_time(meta['created_at'])
+            need(doc.get('code_sha')==expected_owner_sha and _time(step['started_at'])<=_time(meta['created_at'])
                  <=_time(step['completed_at']),'P0_SUPPLEMENT_SCOPE')
             supplements+=1
+    if control:
+        need(control.get('day_jst')==day and control['previous_session_requests']>=previous['requests_used'] and
+             control['lifetime_requests']==previous['lifetime_requests_base']+control['previous_session_requests'] and
+             control['lifetime_completed_rounds']==previous['lifetime_completed_rounds_base']+len(rounds) and
+             control.get('day_start_lifetime_requests')==previous['day_start_lifetime_requests'] and
+             all(_time(rm['created_at'])<=_time(control[field]['created_at'])<=_time(run['updated_at'])
+                 for field in ('receipt','source_control_receipt')),'FINAL_COUNTERS_OR_RECEIPT_CHANGED')
     view=_saved_view(repo,now,day)
     models=[m['model_id'] for m in active_catalog() if 'boat' in m['applicable_sports']]
     proof=exact.audit(get=reads,repo=repo,run_id=run_id,day=day,expected_models=models,
-                     original_view=view,now=now,active_scope=scope)
-    return dict(schema=SCHEMA,status='ACTIVE_COMPLETED_RECEIPTS_AES_VERIFIED_PARTIAL_SCOPE',
-        owner_run_id=run_id,owner_source_commit=OWNER_SHA,owner_status_at_snapshot=run['status'],
+                     original_view=view,now=now,active_scope=scope,expected_owner_sha=expected_owner_sha,
+                     allow_completed_receipts=allow_completed_receipts)
+    excluded=[int(match[1]) for step in job['steps']
+              if (match:=re.fullmatch(r'Deadline-ordered five-model round ([0-9]{2})',str(step.get('name')))) and
+                 int(match[1]) not in rounds and step.get('status')=='completed' and step.get('conclusion')=='success']
+    return dict(schema=SCHEMA,status=('COMPLETED_OWNER_RECEIPTS_AES_VERIFIED_PARTIAL_SCOPE' if control else
+                                     'ACTIVE_COMPLETED_RECEIPTS_AES_VERIFIED_PARTIAL_SCOPE'),
+        owner_run_id=run_id,owner_source_commit=expected_owner_sha,owner_status_at_snapshot=run['status'],
         captured_at=now.isoformat(),inventory_sha256=scope['inventory_sha256'],
         completed_rounds_audited=rounds,round_evidence=evidence,
         p0_origin_run_id=origin['id'],p0_artifact_id=p0_meta['id'],
         p0_supplements_verified=supplements,
-        raw_aes_archives_verified=1+supplements+2*len(rounds)+proof['aes_originals_independently_decrypted'],
+        raw_aes_archives_verified=1+supplements+2*len(rounds)+proof['aes_originals_independently_decrypted']+
+                                 proof['additional_native_p1_archives_verified']+int(control is not None),
+        final_control=control,final_control_aes_authenticated=control is not None,
+        successful_round_steps_excluded=excluded,
         official_cutoff_qualification=proof['official_cutoff_qualification'],
         cutoff_qualification_blocker=proof['cutoff_qualification_blocker'],
         all_model_zip_readback=proof,full_day_coverage=False,successor_dispatch_allowed=False,

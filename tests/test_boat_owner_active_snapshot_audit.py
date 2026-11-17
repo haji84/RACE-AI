@@ -102,7 +102,7 @@ class ActiveSnapshotTests(unittest.TestCase):
             ident=int(route.split('/')[2]);return self.raws[ident] if route.endswith('/zip') else json.dumps(self.metas[ident]).encode()
         raise AssertionError('unexpected external route')
 
-    def audit(self,get=None,*,missing_program=False):
+    def audit(self,get=None,*,missing_program=False,**scope_options):
         self.assertIsNotNone(active,'active completed-receipt audit is missing')
         # Official B verification has separate raw-vault tests. This fixture
         # keeps every AES/ZIP/projection reader real and isolates that dependency.
@@ -112,7 +112,7 @@ class ActiveSnapshotTests(unittest.TestCase):
                       patch.object(exact,'_official_cutoffs',return_value=self.cutoffs))
         with cutoff_patch,\
              patch.object(active,'_saved_view',return_value=self.view):
-            return active.audit_active_snapshot(Path('unused'),99,now=NOW,get=get or self.get)
+            return active.audit_active_snapshot(Path('unused'),99,now=NOW,get=get or self.get,**scope_options)
 
     def test_absent_program_keeps_default_refusal_but_active_raw_aes_is_explicitly_unqualified(self):
         out=self.audit(missing_program=True)
@@ -306,9 +306,9 @@ class ActiveSnapshotTests(unittest.TestCase):
     def test_workflow_uses_current_push_target_and_keeps_completed_defaults(self):
         text=(ROOT/'.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
         self.assertNotIn("|| '43818666068'",text)
-        self.assertIn("|| '44019591352'",text)
         self.assertIn('audit_active_snapshot',text)
-        self.assertEqual(text.count("|| '44019591352'"),3)
+        self.assertEqual(text.count('OWNER_AUDIT_RUN_ID: ${{ steps.audit_target.outputs.run_id }}'),3)
+        self.assertEqual(active.select_audit_target('push',dict(ref='refs/heads/main',repository={'full_name':'haji84/RACE-AI'}))['run_id'],44019591352)
         self.assertEqual(text.count("if: success() && steps.original_audit.outputs.active_snapshot != 'true'"),2)
         self.assertNotIn('gh workflow run',text.split('\n  authenticated_original_matrix:\n',1)[1])
         self.assertNotIn('workflow_dispatch:',text.split('permissions:',1)[0])
@@ -332,5 +332,318 @@ class ActiveSnapshotTests(unittest.TestCase):
             changed=deepcopy(scope);changed[field]=value
             with self.subTest(field=field),self.assertRaises(ValueError):
                 active.validate_active_scope(changed,self.run,listing,NOW,reads)
+
+M2_HEAD='86b029ae5bddd5d4956497d8b32b2c92b8eec521'
+
+
+class M2SnapshotTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls): ActiveSnapshotTests.setUpClass()
+
+    def setUp(self):
+        source=patch.object(sys.modules[__name__],'HEAD',M2_HEAD);source.start();self.addCleanup(source.stop)
+        self.f=ActiveSnapshotTests();self.f.setUp();self.addCleanup(self.f.doCleanups)
+
+    def audit(self,**kwargs):
+        return self.f.audit(expected_owner_sha=M2_HEAD,**kwargs)
+
+    def mixed_baseline(self):
+        """Prepare genuine existing native outputs before the read-only audit."""
+        from race_ai import boat_all_model_cycle as engine,boat_all_model_store as store
+        native=M.model_fixture;fixture=native.AllModelCycleTests();fixture.setUp()
+        try:
+            context=native.source_context();document=native.native_baseline(context)
+            proof=native.receipt(document,artifact=201,saved='2030-04-01T09:00:01Z')
+            proof['run_id']='88'
+            payload=engine.forecast_round([context],fixture.runtime(),now=native.NOW,
+                baseline_document=document,baseline_receipt=proof)
+        finally:fixture.doCleanups()
+        old=active.OWNER_SHA
+        payload.update(run_id='99',source_code_commit=M2_HEAD)
+        payload['runtime_provenance']['source_code_commit']=M2_HEAD
+        payload['baseline']['receipt']['head_sha']=old
+        raw=packed({'private-original.enc':seal_original_zip(packed({'national.json':json.dumps(document)}),
+            run_id=88,head_sha=old,kind='P1',key=KEY)})
+        meta=dict(self.f.metas[101],id=201,name='boat-national-cutoff-88',created_at='2030-04-01T09:00:01Z',
+                  digest='sha256:'+sha256(raw).hexdigest(),size_in_bytes=len(raw))
+        meta['workflow_run']=dict(meta['workflow_run'],id=88,head_sha=old)
+        origin=dict(self.f.run,id=88,head_sha=old,status='completed',conclusion='success',
+                    created_at='2030-04-01T01:00:00Z',updated_at='2030-04-01T09:00:02Z')
+        self.f.extra.update({'actions/runs/88':json.dumps(origin).encode(),
+            'actions/runs/88/artifacts?per_page=100':json.dumps(dict(total_count=1,artifacts=[meta])).encode(),
+            'actions/artifacts/201':json.dumps(meta).encode(),'actions/artifacts/201/zip':raw})
+        self.mixed_payload=payload;self.native_document=document;self.prior_meta=meta
+        self.seal_mixed()
+        receipt=dict(repository_id='1416489937',repository='haji84/RACE-AI',run_id='99',head_sha=M2_HEAD,
+            artifact_id=103,created_at=self.f.metas[103]['created_at'],payload_sha256=digest(payload),independently_verified=True)
+        self.f.view=engine.project_round(payload,receipt)
+        self.f.cutoffs={r['race_id']:datetime.fromisoformat(r['cutoff_at'].replace('Z','+00:00')) for r in self.f.view['records']}
+        self.assertGreater(payload['summary']['reused_baseline_forecasts'],0)
+
+    def seal_mixed(self):
+        from race_ai import boat_all_model_store as store
+        self.f.add(103,'boat-all-model-forecasts-99-r1',None,
+            M.zipped(store.seal_forecasts(self.mixed_payload,run_id='99',round_no=1,key=KEY)),
+            '2030-04-01T09:00:20Z')
+
+    def test_crypto_old_eff_baseline_is_verified_but_never_counted_as_new_m2_output(self):
+        self.mixed_baseline();before=deepcopy((self.f.raws,self.f.extra,self.mixed_payload,self.f.view))
+        out=self.audit(missing_program=True);proof=out['all_model_zip_readback']
+        self.assertEqual(proof['referenced_existing_baseline_p1_rows_not_recounted'],
+                         self.mixed_payload['summary']['reused_baseline_forecasts'])
+        self.assertEqual(proof['p1_forecast_rows_reopened'],self.mixed_payload['summary']['generated_forecasts'])
+        self.assertEqual(proof['additional_native_p1_archives_verified'],1)
+        self.assertEqual(out['raw_aes_archives_verified'],5)
+        self.assertIn('actions/artifacts/201/zip',self.f.calls)
+        self.assertEqual(proof['physical_pre_cutoff_distinct_model_slots'],0)
+        self.assertEqual(proof['official_schedule_crosschecked_pre_cutoff_model_slots'],0)
+        self.assertEqual((self.f.raws,self.f.extra,self.mixed_payload,self.f.view),before)
+
+    def test_crypto_old_baseline_wrong_key_hash_head_id_run_clock_day_and_class_source_refuse(self):
+        self.mixed_baseline()
+        for case in ('key','hash','head','id','run','clock','document','day','class_source','native_context','unknown_slot','status'):
+            before=deepcopy((self.f.raws,self.f.metas,self.f.extra,self.mixed_payload))
+            if case=='key':
+                raw=packed({'private-original.enc':seal_original_zip(packed({'national.json':json.dumps(self.native_document)}),
+                    run_id=88,head_sha=active.OWNER_SHA,kind='P1',key=bytes(reversed(range(32))))})
+                meta=dict(self.prior_meta,digest='sha256:'+sha256(raw).hexdigest(),size_in_bytes=len(raw))
+                self.f.extra['actions/artifacts/201/zip']=raw
+                self.f.extra['actions/artifacts/201']=json.dumps(meta).encode()
+                self.f.extra['actions/runs/88/artifacts?per_page=100']=json.dumps(dict(total_count=1,artifacts=[meta])).encode()
+            elif case=='hash':self.f.extra['actions/artifacts/201/zip']+=b'changed'
+            elif case=='head':self.mixed_payload['baseline']['receipt']['head_sha']='f'*40
+            elif case=='id':
+                self.mixed_payload['baseline']['receipt']['artifact_id']=999
+                self.f.extra['actions/artifacts/999']=json.dumps(dict(self.prior_meta,id=999)).encode()
+            elif case=='run':self.mixed_payload['baseline']['receipt']['run_id']='87'
+            elif case=='clock':self.mixed_payload['baseline']['receipt']['created_at']='2030-04-01T09:00:02Z'
+            elif case=='document':self.mixed_payload['baseline']['document_sha256']='f'*64
+            elif case=='day':
+                origin=json.loads(self.f.extra['actions/runs/88']);origin['created_at']='2030-04-02T01:00:00Z'
+                self.f.extra['actions/runs/88']=json.dumps(origin).encode()
+            elif case=='class_source':self.mixed_payload['runtime_provenance']['source_code_commit']=active.OWNER_SHA
+            elif case=='status':
+                origin=json.loads(self.f.extra['actions/runs/88']);origin.update(status='completed',conclusion='cancelled')
+                self.f.extra['actions/runs/88']=json.dumps(origin).encode()
+            else:
+                report=self.mixed_payload['dispatch_reports'][0]
+                slot=next(slot for slot in report['slots'] if slot['status']=='ORIGINAL_REUSED')
+                original=next(item for item in report['retained_originals'] if
+                    all(item.get(k)==slot.get(k) for k in ('race_id','model_id','model_version')))
+                for item in (slot,original):
+                    if case=='native_context':item['native_context']['unknown']='FORGED'
+                    else:item['unknown']='FORGED'
+            self.seal_mixed()
+            with self.subTest(case=case),self.assertRaises(ValueError):self.audit(missing_program=True)
+            self.f.raws,self.f.metas,self.f.extra,self.mixed_payload=before
+
+    def test_authenticated_reference_cannot_exempt_a_changed_body_or_current_output_source(self):
+        from collections import Counter
+        from scripts import boat_exact_all_model_zip_readback as exact
+        from race_ai import boat_all_model_recovery as recovery
+        self.mixed_baseline()
+        verified,_=exact._verified_reused_baseline(self.f.get,recovery._MetadataReader(self.f.get),
+            self.mixed_payload,self.f.view,self.f.run,saved_at=self.f.metas[103]['created_at'],now=NOW,key=KEY,day=DAY)
+        models={p['model_id'] for row in self.f.view['records'] for p in
+                [row.get('prediction'),*row.get('comparison_predictions',[])] if p is not None}
+        for case in ('own_source','reference_body','reference_receipt'):
+            projection=deepcopy(self.f.view)
+            for row in projection['records']:
+                predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p is not None]
+                p=next(p for p in predictions if (p['artifact_id']==103)==(case=='own_source'))
+                if case=='own_source':p['source_code_commit']=active.OWNER_SHA
+                elif case=='reference_body':p['unknown']='FORGED'
+                else:p['receipt_run_id']='87'
+                break
+            for qualified in (False,True):
+                kwargs=dict(projection=projection,day=DAY,artifact_id=103,physical_saved_at=self.f.metas[103]['created_at'],
+                    expected=models,source_original_index=Counter(),expected_owner_sha=M2_HEAD,verified_reused_predictions=verified)
+                if qualified:kwargs.update(clock=NOW,official_cutoffs=self.f.cutoffs)
+                with self.subTest(case=case,qualified=qualified),self.assertRaises(ValueError):
+                    (exact._scan if qualified else exact._scan_unqualified_originals)(**kwargs)
+
+    def test_current_selected_native_p1_reference_is_authenticated_without_double_counting_archive(self):
+        from race_ai import boat_all_model_cycle as engine
+        self.mixed_baseline()
+        self.f.add(101,'boat-national-cutoff-99','P1',packed({'national.json':json.dumps(self.native_document)}),
+                   '2030-04-01T09:00:01Z')
+        self.f.report['first_forecast_artifacts']=[self.f.metas[101]];self.f.result()
+        self.mixed_payload['baseline']['receipt'].update(run_id='99',head_sha=M2_HEAD,artifact_id=101)
+        self.seal_mixed()
+        receipt=dict(repository_id='1416489937',repository='haji84/RACE-AI',run_id='99',head_sha=M2_HEAD,
+            artifact_id=103,created_at=self.f.metas[103]['created_at'],payload_sha256=digest(self.mixed_payload),independently_verified=True)
+        self.f.view=engine.project_round(self.mixed_payload,receipt)
+        out=self.audit(missing_program=True)
+        self.assertEqual(out['raw_aes_archives_verified'],4)
+        self.assertEqual(out['all_model_zip_readback']['referenced_native_p1_archives_independently_verified'],1)
+        self.assertEqual(out['all_model_zip_readback']['additional_native_p1_archives_verified'],0)
+
+    def complete(self,*,completed_round=1,prepared_round=None):
+        from race_ai import boat_source_control as control
+        state=deepcopy(self.f.state)
+        state.update(schema='RACE_AI_CONTINUOUS_REPEAT_V2',completed_round=completed_round,
+            prepared_round=prepared_round,lifetime_completed_rounds=7+completed_round)
+        state['session_sha256']=digest(state)
+        cipher=seal_original_zip(packed({'repeat-session.json':json.dumps(state)}),
+                                 run_id=99,head_sha=M2_HEAD,kind='CONTINUITY',key=KEY)
+        self.summary=control.build_summary(cipher,run_id=99,head_sha=M2_HEAD,key=KEY)
+        self.f.add(110,'race-cycle-continuity-99',None,packed({'private-original.enc':cipher}),
+                   '2030-04-01T09:03:00Z')
+        self.f.add(111,'race-source-control-99',None,packed({'source-control.json':json.dumps(self.summary)}),
+                   '2030-04-01T09:03:01Z')
+        self.f.run.update(status='completed',conclusion='success',updated_at='2030-04-01T09:04:00Z')
+        self.f.job.update(status='completed',conclusion='success')
+        self.f.job['steps']=self.f.job['steps'][:1]+[
+            dict(name=f'Deadline-ordered five-model round {number:02}',status='completed',conclusion='success',
+                 started_at='2030-04-01T09:02:01Z',completed_at='2030-04-01T09:02:02Z') for number in range(2,25)]
+
+    def test_explicit_m2_authenticates_own_aes_and_keeps_missing_cutoffs_unqualified(self):
+        out=self.audit(missing_program=True)
+        self.assertEqual(out['owner_source_commit'],M2_HEAD)
+        self.assertEqual(out['completed_rounds_audited'],[1])
+        self.assertEqual(out['raw_aes_archives_verified'],4)
+        self.assertFalse(out['official_cutoff_qualification'])
+        self.assertIsNone(out['all_model_zip_readback']['authentic_official_P0_schedule_races'])
+        self.assertEqual(out['round_evidence'][0]['sealed_precompletion_counters'],self.f.state)
+        self.assertGreater(out['all_model_zip_readback']['original_predictions_matched_saved_AES_view'],0)
+        for field in ('full_day_coverage','successor_dispatch_allowed','latest_live_counters_audited'):
+            self.assertIs(out[field],False)
+
+    def test_m2_requires_explicit_source_and_refuses_arbitrary_or_dynamic_source(self):
+        with self.assertRaises(ValueError):self.f.audit()
+        for source in (HEAD[:39]+'f', 'production/boat-p0-p1-20261111', 'refs/heads/main', None):
+            with self.subTest(source=source),self.assertRaises(ValueError):
+                self.f.audit(expected_owner_sha=source)
+        self.f.run['head_sha']='f'*40
+        with self.assertRaises(ValueError):self.audit()
+
+    def test_m2_key_receipt_nested_counter_and_cipher_mismatches_stay_fatal(self):
+        for case in ('key','receipt','nested','counter','cipher','report_source','job_source'):
+            before=deepcopy((self.f.raws,self.f.metas,self.f.report,self.f.job))
+            if case=='receipt':self.f.metas[103]['workflow_run']['head_sha']='f'*40
+            elif case=='nested':self.f.result(nested=b'changed')
+            elif case=='counter':self.f.state['lifetime_requests']+=1;self.f.result()
+            elif case=='cipher':self.f.raws[103]+=b'changed'
+            elif case=='report_source':self.f.report['code_sha']='f'*40;self.f.result()
+            elif case=='job_source':self.f.job['head_sha']='f'*40
+            with self.subTest(case=case),patch.dict(os.environ,RACE_AI_STATE_KEY=base64.b64encode(b'x'*32 if case=='key' else KEY).decode()),self.assertRaises(ValueError):
+                self.audit(missing_program=True)
+            self.f.raws,self.f.metas,self.f.report,self.f.job=before
+            self.f.state=self.f.report['bounded_repeat_session']
+
+    def test_m2_inherits_exact_old_p0_registry_without_reissuing_it(self):
+        original=self.f.audit
+        self.f.audit=lambda *args,**kwargs: original(*args,expected_owner_sha=M2_HEAD,**kwargs)
+        self.f.test_inherited_p0_is_resolved_from_exact_registry_without_relabeling_active_run()
+
+    def test_completed_m2_uses_authenticated_final_round_not_twenty_four_success_labels(self):
+        self.complete()
+        out=self.audit(missing_program=True,allow_completed_receipts=True)
+        self.assertEqual(out['completed_rounds_audited'],[1])
+        self.assertEqual(out['owner_status_at_snapshot'],'completed')
+        self.assertEqual(out['status'],'COMPLETED_OWNER_RECEIPTS_AES_VERIFIED_PARTIAL_SCOPE')
+        self.assertEqual(out['final_control']['completed_round'],1)
+        self.assertTrue(out['final_control_aes_authenticated'])
+        self.assertEqual(out['successful_round_steps_excluded'],list(range(2,25)))
+        self.assertEqual(out['raw_aes_archives_verified'],5)
+        for field in ('full_day_coverage','successor_dispatch_allowed','latest_live_counters_audited','official_cutoff_qualification'):
+            self.assertIs(out[field],False)
+        with self.assertRaises(ValueError):self.audit(missing_program=True)
+
+    def test_completed_m2_selected_prefix_and_final_public_control_are_mandatory(self):
+        for case in ('missing_selected','missing_control','wrong_control_source','tamper_public','tamper_cipher','expired_control','counter','missing_step'):
+            before=deepcopy((self.f.raws,self.f.metas,self.f.run,self.f.job,self.f.report))
+            self.complete(completed_round=2 if case=='missing_selected' else 1)
+            if case=='missing_control':self.f.metas.pop(110)
+            elif case=='wrong_control_source':self.f.metas[110]['workflow_run']['head_sha']='f'*40
+            elif case=='tamper_public':
+                self.summary['control']['lifetime_requests']+=1
+                self.f.add(111,'race-source-control-99',None,packed({'source-control.json':json.dumps(self.summary)}),'2030-04-01T09:03:01Z')
+            elif case=='tamper_cipher':self.f.raws[110]+=b'changed'
+            elif case=='expired_control':self.f.metas[110]['expired']=True
+            elif case=='counter':self.f.state['requests_used']+=1;self.f.state['lifetime_requests']+=1;self.f.result()
+            elif case=='missing_step':self.f.job['steps']=self.f.job['steps'][1:]
+            with self.subTest(case=case),self.assertRaises(ValueError):
+                self.audit(missing_program=True,allow_completed_receipts=True)
+            self.f.raws,self.f.metas,self.f.run,self.f.job,self.f.report=before
+            self.f.state=self.f.report['bounded_repeat_session']
+
+    def test_completed_partial_scope_cannot_enter_default_exact_or_old_owner_scope(self):
+        self.complete()
+        from scripts import boat_exact_all_model_zip_readback as exact
+        with self.assertRaises(ValueError):
+            exact.audit(get=self.f.get,repo='unused',run_id=99,day=DAY,expected_models=['boat-model-A'],
+                        original_view=self.f.view,now=NOW,owner_key=KEY)
+        with self.assertRaises(ValueError):self.f.audit(allow_completed_receipts=True)
+        # Official-B availability cannot bypass the M2 final-control scope.
+        with patch.object(exact,'_official_cutoffs',return_value=self.f.cutoffs) as cutoffs:
+            with self.assertRaises(ValueError):
+                exact.audit(get=self.f.get,repo='unused',run_id=99,day=DAY,expected_models=['boat-model-A'],
+                            original_view=self.f.view,now=NOW,owner_key=KEY,expected_owner_sha=M2_HEAD)
+            cutoffs.assert_not_called()
+
+    def test_completed_scope_excludes_extra_unfinished_archives_but_never_missing_selected_model_zip(self):
+        self.complete()
+        self.f.metas[104]=dict(self.f.metas[103],id=104,name='boat-all-model-forecasts-99-r2')
+        self.f.raws[104]=b'corrupt unfinished extra is never selected'
+        out=self.audit(missing_program=True,allow_completed_receipts=True)
+        self.assertEqual(out['all_model_zip_readback']['actual_listed_archives'],1)
+        self.assertNotIn('actions/artifacts/104/zip',self.f.calls)
+        self.f.metas.pop(103)
+        with self.assertRaises(ValueError):self.audit(missing_program=True,allow_completed_receipts=True)
+
+    def test_snapshot_run_and_final_job_status_must_be_truthful(self):
+        for status,conclusion in (('queued',None),('in_progress','failure'),('completed',None),('completed','cancelled')):
+            before=deepcopy(self.f.run);self.f.run.update(status=status,conclusion=conclusion)
+            with self.subTest(status=status,conclusion=conclusion),self.assertRaises(ValueError):self.audit()
+            self.f.run=before
+        self.complete();self.f.job['status']='in_progress'
+        with self.assertRaises(ValueError):self.audit(missing_program=True,allow_completed_receipts=True)
+
+
+class M2TargetSelectionTests(unittest.TestCase):
+    def event(self,source=M2_HEAD):
+        return dict(repository={'full_name':'haji84/RACE-AI'},workflow_run=dict(id=123,head_sha=source,
+            head_branch=active.BRANCH,event='workflow_dispatch',status='completed',conclusion='success',
+            head_repository={'full_name':'haji84/RACE-AI'}))
+
+    def test_actual_completion_event_and_explicit_main_target_are_source_fixed(self):
+        out=active.select_audit_target('workflow_run',self.event())
+        self.assertEqual(out,dict(run_id=123,expected_owner_sha=M2_HEAD,allow_completed_receipts=True))
+        push=dict(ref='refs/heads/main',repository={'full_name':'haji84/RACE-AI'})
+        target=dict(schema='RACE_AI_M2_READONLY_AUDIT_TARGET_V1',run_id=456,source_commit=M2_HEAD)
+        self.assertEqual(active.select_audit_target('push',push,main_target=target),
+                         dict(run_id=456,expected_owner_sha=M2_HEAD,allow_completed_receipts=True))
+        old=active.select_audit_target('push',push)
+        self.assertEqual(old,dict(run_id=44019591352,expected_owner_sha=active.OWNER_SHA,allow_completed_receipts=False))
+        callback=active.select_audit_target('workflow_run',self.event(active.OWNER_SHA))
+        self.assertEqual(callback['run_id'],123);self.assertFalse(callback['allow_completed_receipts'])
+
+    def test_untrusted_event_dynamic_head_or_config_never_selects_an_owner(self):
+        push=dict(ref='refs/heads/main',repository={'full_name':'haji84/RACE-AI'})
+        target=dict(schema='RACE_AI_M2_READONLY_AUDIT_TARGET_V1',run_id=456,source_commit=M2_HEAD)
+        for change in (dict(source_commit='f'*40),dict(source_commit='production/boat-p0-p1-20261111'),
+                       dict(run_id=True),dict(run_id=0),dict(source_commit=active.OWNER_SHA),dict(extra='unknown')):
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                active.select_audit_target('push',push,main_target=dict(target,**change))
+        for field,value in (('head_sha','f'*40),('head_branch','main'),('event','push'),('id',True),
+                            ('status','in_progress'),('conclusion','cancelled'),
+                            ('head_repository',{'full_name':'attacker/fork'})):
+            event=self.event();event['workflow_run'][field]=value
+            with self.subTest(field=field),self.assertRaises(ValueError):active.select_audit_target('workflow_run',event)
+        with self.assertRaises(ValueError):active.select_audit_target('pull_request',self.event())
+        with self.assertRaises(ValueError):active.select_audit_target('push',dict(push,ref='refs/heads/other'))
+
+    def test_workflow_keeps_eff_historical_reader_then_checks_exact_selected_parser_pins(self):
+        text=(ROOT/'.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
+        live=text.split('\n  authenticated_original_matrix:\n',1)[1]
+        self.assertLess(live.index('PY_CHECKPOINT'),live.index('id: audit_target'))
+        self.assertLess(live.index('id: audit_target'),live.index('ref: ${{ steps.audit_target.outputs.expected_owner_sha }}'))
+        self.assertIn('clean: false',live)
+        self.assertIn("audit/state/boat-m2-independent-audit-target.json",live)
+        self.assertIn("subprocess.check_output(['git','-C',str(target.parent),'rev-parse','HEAD']",live)
+        self.assertIn('allow_completed_receipts=',live)
+        self.assertIn(M2_HEAD,live)
+
 
 if __name__=='__main__':unittest.main()

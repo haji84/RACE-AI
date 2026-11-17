@@ -13,6 +13,7 @@ on:
       - scripts/boat_owner_evidence_audit.py
       - tests/test_boat_failed_checkpoint_audit.py
       - tests/test_boat_native_matrix_intake.py
+      - audit/state/boat-m2-independent-audit-target.json
   push:
     branches: [main]
     paths:
@@ -26,6 +27,7 @@ on:
       - scripts/boat_owner_evidence_audit.py
       - tests/test_boat_failed_checkpoint_audit.py
       - tests/test_boat_native_matrix_intake.py
+      - audit/state/boat-m2-independent-audit-target.json
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
     types: [completed]
@@ -120,7 +122,8 @@ jobs:
         github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
-        github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3' &&
+        (github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3' ||
+         github.event.workflow_run.head_sha == '86b029ae5bddd5d4956497d8b32b2c92b8eec521') &&
         (github.event.workflow_run.conclusion == 'success' ||
          github.event.workflow_run.conclusion == 'failure')))
     runs-on: ubuntu-24.04
@@ -201,6 +204,34 @@ jobs:
           path: ${{ runner.temp }}/boat-failed-checkpoint-aes-counts.json
           if-no-files-found: error
           retention-days: 30
+      - name: Select exact read-only receipt audit target after historical eff checkpoint
+        id: audit_target
+        run: |
+          python - <<'PY_TARGET'
+          import importlib.util,json,os
+          from pathlib import Path
+          path=Path('scripts/boat_owner_active_snapshot_audit.py').resolve()
+          spec=importlib.util.spec_from_file_location('main_readonly_audit_target',path)
+          active=importlib.util.module_from_spec(spec);spec.loader.exec_module(active)
+          config=Path('audit/state/boat-m2-independent-audit-target.json')
+          target=None
+          if os.environ['GITHUB_EVENT_NAME']=='push' and config.exists():
+              assert config.is_file() and not config.is_symlink() and 0<config.stat().st_size<=4096
+              target=json.loads(config.read_bytes())
+          event=json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_bytes())
+          selected=active.select_audit_target(os.environ['GITHUB_EVENT_NAME'],event,main_target=target)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('run_id='+str(selected['run_id'])+'\n')
+              output.write('expected_owner_sha='+selected['expected_owner_sha']+'\n')
+          PY_TARGET
+      - name: Read exact selected producer package after historical checkpoint
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ steps.audit_target.outputs.expected_owner_sha }}
+          path: owner-source
+          # Preserve the two separately pinned parser checkouts; verify their SHAs below.
+          clean: false
+          persist-credentials: false
       - name: Audit real GitHub sealed originals, no result/provider GET or plaintext exposure
         id: original_audit
         working-directory: owner-source
@@ -208,9 +239,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
-          # A trusted main push audits only saved completed-round receipts of this exact owner.
-          # Genuine completion events continue to select their own actual run.
-          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '44019591352' }}
+          OWNER_AUDIT_RUN_ID: ${{ steps.audit_target.outputs.run_id }}
+          OWNER_AUDIT_SOURCE_SHA: ${{ steps.audit_target.outputs.expected_owner_sha }}
         run: |
           python - <<'PY'
           import importlib.util,json,os,re,subprocess
@@ -218,11 +248,14 @@ jobs:
           from pathlib import Path
           import race_ai,scripts
           scripts.__path__=list(scripts.__path__)+[str(Path('..').resolve()/'scripts')]
-          owner='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+          owner=os.environ['OWNER_AUDIT_SOURCE_SHA']
+          assert owner in ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3','86b029ae5bddd5d4956497d8b32b2c92b8eec521')
           assert subprocess.check_output(['git','rev-parse','HEAD'],timeout=10).decode().strip()==owner
-          for folder in ('pr64-reference','pr72-reference'):
+          for folder,pin in (('pr64-reference','761247bee0209e37b1af6b8885e92cad3e9260a5'),
+                             ('pr72-reference','7a432e5acc4d3495a0e82bd79726929e2f8085fe')):
               target=Path(folder,'race_ai').resolve()
               assert target.is_dir()
+              assert subprocess.check_output(['git','-C',str(target.parent),'rev-parse','HEAD'],timeout=10).decode().strip()==pin
               race_ai.__path__.append(str(target))
           def from_exact_file(name,path):
               source=Path(path).resolve()
@@ -240,10 +273,15 @@ jobs:
               from scripts.github_existing_cycle import gh
               repo=Path('.').resolve();_environment(repo)
               run=json.loads(gh(f'actions/runs/{ident}'))
-              active_snapshot=os.environ['GITHUB_EVENT_NAME']=='push' and run.get('status')=='in_progress'
+              assert run.get('head_sha')==owner
+              m2_receipts=owner=='86b029ae5bddd5d4956497d8b32b2c92b8eec521'
+              # Keep the existing output name for downstream skip boundaries;
+              # the report truthfully distinguishes active and completed snapshots.
+              active_snapshot=m2_receipts or os.environ['GITHUB_EVENT_NAME']=='push' and run.get('status')=='in_progress'
               if active_snapshot:
                   active=from_exact_file('boat_active_snapshot_private','../scripts/boat_owner_active_snapshot_audit.py')
-                  report=active.audit_active_snapshot(repo,ident,now=datetime.now(timezone.utc),get=gh)
+                  report=active.audit_active_snapshot(repo,ident,now=datetime.now(timezone.utc),get=gh,
+                      expected_owner_sha=owner,allow_completed_receipts=m2_receipts)
                   assert (report['official_source_requests']==0 and report['full_day_coverage'] is False and
                           report['successor_dispatch_allowed'] is False and report['latest_live_counters_audited'] is False)
                   for name in ('boat-all-model-vault-counts.json','boat-exact-zip-aes-model-proof.json'):
@@ -280,7 +318,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
-          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '44019591352' }}
+          OWNER_AUDIT_RUN_ID: ${{ steps.audit_target.outputs.run_id }}
         run: |
           python - <<'PY_ALL_MODEL'
           import importlib.util,json,os,re
@@ -372,7 +410,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
-          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '44019591352' }}
+          OWNER_AUDIT_RUN_ID: ${{ steps.audit_target.outputs.run_id }}
         run: |
           python - <<'PY_EXACT'
           import importlib.util,json,os,re,subprocess
