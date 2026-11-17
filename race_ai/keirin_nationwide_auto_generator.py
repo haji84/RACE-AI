@@ -142,10 +142,13 @@ def validate_snapshot(snap, *, computed_at):
             "recent_form_score", "h_count", "b_count", "style"},
             "RIDER_FACTS_INCOMPLETE")
         car, athlete, mark = row["car"], row["athlete_id"], row["mark_rank"]
+        # A source usually publishes only a few ◎○▲△ marks. An explicitly
+        # unmarked rider is not an unobserved or invented numerical rank.
+        marked = type(mark) is int and 1 <= mark <= n
         need(type(car) is int and 1 <= car <= 9 and car not in seen_cars and
              type(athlete) is str and RID.fullmatch(athlete) is not None and
              athlete not in athlete_ids and
-             type(mark) is int and 1 <= mark <= n and mark not in seen_marks,
+             (marked and mark not in seen_marks or mark == "UNMARKED"),
              "CAR_MARK_OR_PERSISTENT_RIDER_ID_DUPLICATE")
         need(type(row["competition_points"]) in (int, float) and
              isfinite(row["competition_points"]) and
@@ -158,7 +161,8 @@ def validate_snapshot(snap, *, computed_at):
              row["style"] in STYLES,
              "RIDER_PRE_RACE_FEATURE_OUT_OF_BOUNDS")
         seen_cars.add(car)
-        seen_marks.add(mark)
+        if marked:
+            seen_marks.add(mark)
         athlete_ids.add(athlete)
     lines = snap["line_groups"]
     need(type(lines) is list and 1 <= len(lines) <= n and
@@ -184,7 +188,8 @@ def _strengths(riders):
     power = {}
     for r in riders:
         # Uncalibrated research score. No made-up missing source features.
-        mark = (n + 1 - r["mark_rank"]) / n
+        mark = ((n + 1 - r["mark_rank"]) / n
+                if type(r["mark_rank"]) is int else 0.10)
         points = (r["competition_points"] - lo) / span if span else 0.5
         hb = min(r["h_count"] + r["b_count"], 30) / 30
         power[r["car"]] = (
