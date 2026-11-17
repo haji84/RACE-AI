@@ -104,7 +104,7 @@ jobs:
           from pathlib import Path
           source=Path('.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
           blocks=re.findall(r"^          python - <<'([A-Z_]+)'\n(.*?)^          \1\s*$",source,re.M|re.S)
-          assert len(blocks)==8
+          assert len(blocks)==9
           for tag,body in blocks:
               compile(textwrap.dedent(body),tag,'exec')
           stage=source.split("python - <<'PY_ALL_MODEL'\n",1)[1].split("\n          PY_ALL_MODEL",1)[0]
@@ -132,6 +132,23 @@ jobs:
           assert 'report_written=true' in archived
           assert "steps.archived_native_readback.outputs.report_written == 'true'" in source
           assert 'gh workflow run' not in archived and 'www.boatrace.jp' not in archived
+          bootstrap=source.split('\n      - name: Count one fixed retained P0 original without changing the core audit\n',1)[1]
+          condition=bootstrap.split('\n        working-directory:',1)[0].split('if: >-\n',1)[1]
+          condition=' '.join(condition.split())
+          assert condition==("always() && github.repository == 'haji84/RACE-AI' && "
+              "github.event_name == 'push' && github.ref == 'refs/heads/main' && "
+              "startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') && "
+              "steps.audit_source.outcome == 'success'")
+          assert source.index('\n      - name: Count one fixed retained P0 original')>source.index(
+              'name: retained-native-13559236491-aes-counts-')
+          assert len(re.findall(r'^        uses: actions/upload-artifact@',source,re.M))==5
+          counts=dict(blocks)['PY_BOOTSTRAP_COUNTS']
+          ast.parse(textwrap.dedent(counts),filename='fixed_closed_bootstrap_original_counts')
+          assert 'mod.audit_fixed_bootstrap_p0(get=gh,repo=root,now=datetime.now(timezone.utc))' in counts
+          assert 'except Exception:\n' in textwrap.dedent(counts)
+          assert 'str(exc)' not in counts and 'except Exception as' not in counts
+          assert not any(word in counts for word in ('write_text(', 'write_bytes(', 'upload-artifact',
+              'GITHUB_OUTPUT', 'GITHUB_STEP_SUMMARY', 'www.boatrace.jp', 'workflow run'))
           print('BOAT_ALL_MODEL_READONLY_AUDIT_PATH_COMPILED')
           PY_CONTRACT
 
@@ -642,3 +659,70 @@ jobs:
           path: ${{ runner.temp }}/retained-native-13559236491-aes-counts.json
           if-no-files-found: error
           retention-days: 30
+      - name: Count one fixed retained P0 original without changing the core audit
+        if: >-
+          always() && github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.audit_source.outcome == 'success'
+        working-directory: owner-source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+          OWNER_AUDIT_SOURCE_SHA: ${{ steps.audit_target.outputs.expected_owner_sha }}
+        run: |
+          python - <<'PY_BOOTSTRAP_COUNTS'
+          import io,importlib.util,json,os,subprocess
+          from contextlib import redirect_stdout,redirect_stderr
+          from datetime import datetime,timezone
+          from pathlib import Path
+          report=dict(schema='RACE_AI_FIXED_BOOTSTRAP_P0_COUNTS_V1',
+              status='HOLD_FIXED_BOOTSTRAP_P0_COUNTS',authenticated_original=False,
+              failure_stage='PRECONDITION',counts_only=True,owner_run_id=44170869325,
+              owner_source_commit='bb49215034b779ea1493b35dd91e5c3ebfc04032',
+              artifact_id=14367093570,round_no=0,day_jst='2026-11-18',
+              vault_source_commit='d853f5d6db9089d91748add90560a0b9037b2a1f',
+              receipt_scope='ARCHIVED_GITHUB_ARTIFACT_RESPONSE',
+              current_artifact_status='NOT_QUERIED',github_artifact_receipt_created=False,
+              contexts=None,generated_forecasts=None,reused_forecasts=None,
+              projected_forecasts=None,applicable_slots=None,
+              non_generated_applicable_slots=None,waiting_exhibition_slots=None,
+              retained_original_slots=None,dispatch_status_counts=None,
+              official_source_requests=0,full_day_coverage=False,
+              all_models_operational=False,qualifying_g8_proven=False,efficacy_proven=False,
+              promotion_allowed=False,dispatch_authorized=False,
+              website_end_to_end_proven=False,source_originals_modified=False)
+          try:
+              with redirect_stdout(io.StringIO()),redirect_stderr(io.StringIO()):
+                  root=Path('.').resolve();main=root.parent
+                  owner=os.environ['OWNER_AUDIT_SOURCE_SHA']
+                  allowed=('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
+                           '86b029ae5bddd5d4956497d8b32b2c92b8eec521',
+                           'f55351dce855177a51330f72c37d6238ba2c9e3e',
+                           'bb49215034b779ea1493b35dd91e5c3ebfc04032')
+                  actual=subprocess.check_output(['git','rev-parse','HEAD'],timeout=10,
+                      stderr=subprocess.DEVNULL).decode().strip()
+                  assert root.name=='owner-source' and owner in allowed and actual==owner
+                  import race_ai
+                  assert Path(race_ai.__file__).resolve()==root/'race_ai/__init__.py'
+                  for folder,pin in (('pr64-reference','761247bee0209e37b1af6b8885e92cad3e9260a5'),
+                                     ('pr72-reference','7a432e5acc4d3495a0e82bd79726929e2f8085fe')):
+                      package=root/folder/'race_ai'
+                      parser=subprocess.check_output(['git','-C',str(package.parent),'rev-parse','HEAD'],
+                          timeout=10,stderr=subprocess.DEVNULL).decode().strip()
+                      assert package.is_dir() and parser==pin
+                      if str(package) not in race_ai.__path__:race_ai.__path__.append(str(package))
+                  source=main/'scripts/boat_exact_all_model_zip_readback.py'
+                  assert source.is_file() and not source.is_symlink() and source.parent.parent==main
+                  spec=importlib.util.spec_from_file_location('boat_fixed_bootstrap_counts_private',source)
+                  mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
+                  from scripts.boat_private_original_vault import _environment
+                  from scripts.github_existing_cycle import gh
+                  assert _environment(root)==root
+                  report=mod.audit_fixed_bootstrap_p0(get=gh,repo=root,now=datetime.now(timezone.utc))
+          except Exception:
+              pass
+          # Optional archived counts never change any earlier core/native conclusion.
+          print(json.dumps(report,sort_keys=True,allow_nan=False))
+          PY_BOOTSTRAP_COUNTS

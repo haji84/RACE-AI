@@ -330,4 +330,423 @@ class SourceFreeExactZipTests(unittest.TestCase):
         listing.assert_not_called()
 
 
+
+class FixedBootstrapP0CountTests(unittest.TestCase):
+    """Invented bytes exercise the real ZIP/AES/native readers for one fixed scope.
+
+    The fixture changes ONLY the private byte-pin tuple: invented ciphertext
+    cannot have the real retained ZIP's hash. Run, producer, workflow, repository,
+    artifact, round, day and vault commit remain the literal reviewed identities.
+    Git transport and owner-key resolution are the external boundaries replaced.
+    """
+    RUN=44170869325
+    ARTIFACT=14367093570
+    HEAD='bb49215034b779ea1493b35dd91e5c3ebfc04032'
+    VAULT='d853f5d6db9089d91748add90560a0b9037b2a1f'
+    DAY='2026-11-18'
+    SAVED='2026-11-17T20:38:49Z'
+    ARCHIVED='2026-11-17T20:39:15.465177+00:00'
+    CLOCK=datetime(2026,11,17,20,40,tzinfo=timezone.utc)
+    KEY=bytes(range(32))
+    COUNT_FIELDS=('contexts','generated_forecasts','reused_forecasts',
+        'projected_forecasts','applicable_slots','non_generated_applicable_slots',
+        'waiting_exhibition_slots','retained_original_slots','dispatch_status_counts')
+    STAGES={'PRECONDITION','RUN','VAULT_LOOKUP','VAULT_RESTORE',
+            'PIN_BINDING','PROJECT','SCOPE','COUNTS'}
+    FALSE_FIELDS=('full_day_coverage','all_models_operational','qualifying_g8_proven',
+                  'efficacy_proven','promotion_allowed','dispatch_authorized',
+                  'website_end_to_end_proven','source_originals_modified')
+
+    def setUp(self):
+        self.assertTrue(callable(getattr(exact,'audit_fixed_bootstrap_p0',None)),
+                        'the fixed retained P0 count-only reader is missing')
+
+    @staticmethod
+    def wire(value):
+        return json.dumps(value,ensure_ascii=False,sort_keys=True,
+                          separators=(',',':'),allow_nan=False).encode()
+
+    @staticmethod
+    def zipped(members):
+        import io,zipfile
+        target=io.BytesIO()
+        with zipfile.ZipFile(target,'w',compression=zipfile.ZIP_STORED) as archive:
+            for name,body in members:
+                archive.writestr(zipfile.ZipInfo(name,(1980,1,1,0,0,0)),body)
+        return target.getvalue()
+
+    def payload(self,*,zero=False,reused=False):
+        import tempfile
+        from race_ai import boat_all_model_cycle as engine
+        from race_ai.actions_contract import digest
+        from race_ai.boat_history_store import HistoryStore
+        from race_ai.boat_observed_pairwise_models import predict_pair
+        from race_ai.four_sport_model_suite import ALL_MODELS
+        from tests.test_boat_observed_pairwise_models import fixture
+        observed=json.loads(json.dumps(fixture(research=True)).replace('2030-04-01',self.DAY))
+        observed['as_of']=self.DAY+'T05:20:00+09:00'
+        observed['sources'][0].update(published_at=self.DAY+'T04:00:00+09:00',
+                                     captured_at=self.DAY+'T05:00:00+09:00')
+        suite=predict_pair(observed,allow_source=lambda *_:True)
+        document=dict(schema='RACE_AI_EXISTING_P0_DAY_V1',day_jst=self.DAY,
+            predictions=[suite],schedule=[dict(race_id='20261118-01-01',
+            cutoff_at=suite['sales_cutoff_at'])],race_count=1,model_forecast_count=2,
+            actual_purchases=False,skipped=[])
+        prior=dict(repository_id='1416489937',repository='haji84/RACE-AI',
+            run_id=str(self.RUN),head_sha=self.HEAD,artifact_id=14366264478,
+            created_at='2026-11-17T20:36:54Z',payload_sha256=digest(document),
+            independently_verified=True)
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);root.chmod(0o700)
+            history=root/'history.sqlite'
+            db=HistoryStore(history);db.close()
+            metadata=root/'metadata.json'
+            metadata.write_bytes(self.wire(dict(schema='FICTIONAL_RUNTIME',
+                                               source_code_commit=self.HEAD)))
+            metadata.chmod(0o600);history.chmod(0o600)
+            runtime={'history.sqlite':str(history),'metadata.json':str(metadata),
+                'verified_runtime':True,'history_identity_verified':True,
+                'owner_reviewed':True,'source_code_commit':self.HEAD,
+                'run_id':str(self.RUN)}
+            value=engine.forecast_saved_p0(document,prior,runtime,
+                now=exact.moment('2026-11-17T20:38:20Z'),
+                issued_models={'20261118-01-01':list(ALL_MODELS)} if zero else None)
+        if reused:
+            from race_ai.existing_model_dispatch import dispatch
+            base=deepcopy(value);report=value['dispatch_reports'][0]
+            original=deepcopy(next(s for s in report['slots']
+                                  if s['status']=='GENERATED_UNATTESTED'))
+            capsule=value['native_input_capsules'][0]
+            schedule=report['schedule'];rid=schedule[0]['race_id']
+            refs={tuple(pair) for pair in capsule['analysis_source_refs']}
+            replay=dispatch(schedule,{rid:{'P0':capsule['native_inputs']}},
+                now=exact.moment(value['generated_at']),
+                allow_source=lambda ref,rights,purpose:
+                    purpose=='analysis' and (ref,rights) in refs,
+                originals=[original])
+            replay['schedule']=deepcopy(schedule)
+            previous={s['model_id']:s for s in report['slots']}
+            for slot in replay['slots']:
+                old=previous[slot['model_id']]
+                if old['status'] not in ('GENERATED_UNATTESTED','ORIGINAL_REUSED'):
+                    slot.clear();slot.update(deepcopy(old))
+            replay['status_counts']=dict(Counter(s['status'] for s in replay['slots']))
+            value['dispatch_reports']=[engine._json_copy(replay)]
+            value['summary'].update(generated_forecasts=3,reused_baseline_forecasts=1)
+            body_hash=digest(base)
+            value['baseline']=dict(document_sha256=body_hash,receipt=dict(
+                repository_id='1416489937',repository='haji84/RACE-AI',
+                run_id=str(self.RUN),head_sha=self.HEAD,artifact_id=14367093569,
+                created_at='2026-11-17T20:38:30Z',
+                payload_sha256=body_hash,independently_verified=True))
+        return value
+
+    def fixture(self,*,payload=None,cipher_change=None,zip_change=None,meta_change=None):
+        from hashlib import sha256
+        from race_ai import boat_all_model_store as store,boat_private_original_vault as V
+        value=self.payload() if payload is None else deepcopy(payload)
+        cipher=store.seal_forecasts(value,run_id=str(self.RUN),round_no=0,key=self.KEY)
+        if cipher_change is not None:cipher=cipher_change(cipher)
+        raw=self.zipped([('forecasts.enc',cipher)])
+        if zip_change is not None:raw=zip_change(raw,cipher)
+        meta=dict(id=self.ARTIFACT,name=f'boat-all-model-forecasts-{self.RUN}-r0',
+            expired=False,size_in_bytes=len(raw),digest='sha256:'+sha256(raw).hexdigest(),
+            created_at=self.SAVED,updated_at=self.SAVED,expires_at='2026-11-24T20:38:47Z',
+            workflow_run=dict(id=self.RUN,repository_id=1416489937,
+                              head_repository_id=1416489937,head_sha=self.HEAD))
+        if meta_change is not None:meta_change(meta)
+        metadata=json.dumps(meta,ensure_ascii=False,indent=3).encode()+b'\n\n'
+        summary=dict(kind='ALL_MODEL',artifact_id=meta['id'],
+            run_id=meta['workflow_run']['id'],head_sha=meta['workflow_run']['head_sha'],
+            created_at=meta['created_at'],month='2026-11')
+        record=dict(files={'original.zip':raw,'metadata.json':metadata},summary=summary)
+        encryption,mac=V._keys(self.KEY)
+        entry,chunks=V._seal(record,exact.moment(self.ARCHIVED),encryption)
+        batch=V._signed(dict(schema=V.SCHEMA,repository_id='1416489937',entries=[entry]),mac)
+        batch_hash=sha256(batch).hexdigest()
+        batch_path=V.PREFIX+'2026-11/batches/'+batch_hash+'.json'
+        reference=V._reference(batch_path,batch_hash,entry)
+        lookup=V._signed(dict(schema=V.SCHEMA,repository_id='1416489937',
+            kind='lookup',bucket=self.ARTIFACT//V.LOOKUP_SPAN,
+            entries={str(self.ARTIFACT):reference}),mac)
+        files={**chunks,batch_path:batch,V._lookup_path(self.ARTIFACT):lookup}
+        fixed=self.VAULT
+        class MemoryGit:
+            ref='state/boat-private-originals'
+            repo=Path('/fictional-private-owner-package')
+            def __init__(self):
+                self.files=files;self.reads=[];self.fetches=[]
+            def fetch(self,commit):
+                if commit!=fixed:raise AssertionError('unreviewed vault commit')
+                self.fetches.append(commit)
+            def exists(self,commit,path):
+                if commit!=fixed:raise AssertionError('unreviewed vault commit')
+                return path in self.files
+            def read(self,commit,path,limit):
+                if commit!=fixed:raise AssertionError('unreviewed vault commit')
+                body=self.files[path]
+                if len(body)>limit:raise ValueError('fixture byte bound')
+                self.reads.append((commit,path,limit))
+                return body
+            def __getattr__(self,name):
+                raise AssertionError('private-write-or-unknown-operation-sentinel')
+        header=store.forecast_header(cipher)
+        pins=(('original_zip_sha256',sha256(raw).hexdigest()),
+              ('original_zip_bytes',len(raw)),('metadata_sha256',sha256(metadata).hexdigest()),
+              ('metadata_bytes',len(metadata)),('cipher_sha256',sha256(cipher).hexdigest()),
+              ('plain_sha256',header['plain_sha256']),('plain_bytes',header['plain_size']),
+              ('vault_batch_sha256',batch_hash),('vault_entry_sha256',reference['entry_sha256']))
+        return dict(value=value,git=MemoryGit(),pins=pins,raw=raw,metadata=metadata,
+                    meta=meta,cipher=cipher,lookup_path=V._lookup_path(self.ARTIFACT),
+                    chunk_paths=list(chunks))
+
+    def run_reader(self,fixture=None,*,run_change=None,get_error=None,now=None):
+        import io
+        from contextlib import redirect_stdout,redirect_stderr
+        from race_ai import boat_private_original_vault as V,boat_all_model_store as store
+        f=self.fixture() if fixture is None else fixture
+        run=dict(id=self.RUN,workflow_id=405276784,
+            head_branch='production/boat-p0-p1-20261111',event='workflow_dispatch',
+            head_sha=self.HEAD,status='in_progress',conclusion=None,
+            created_at='2026-11-17T20:35:16Z',updated_at='2026-11-17T20:35:20Z',
+            repository=dict(id=1416489937,full_name='haji84/RACE-AI'),
+            head_repository=dict(id=1416489937,full_name='haji84/RACE-AI'))
+        if run_change is not None:run_change(run)
+        calls=[];output=io.StringIO()
+        def get(endpoint):
+            calls.append(endpoint)
+            if endpoint!=f'actions/runs/{self.RUN}':
+                raise AssertionError('provider-or-unreviewed-route-sentinel')
+            if get_error is not None:raise get_error
+            return self.wire(run)
+        before=deepcopy(f['git'].files)
+        with patch.object(V,'_transport',return_value=f['git']), \
+             patch.object(V,'state_key',return_value=self.KEY), \
+             patch.object(store,'state_key',return_value=self.KEY), \
+             patch.object(exact,'_FIXED_BOOTSTRAP_P0_BYTE_PINS',f['pins']), \
+             redirect_stdout(output),redirect_stderr(output):
+            report=exact.audit_fixed_bootstrap_p0(get=get,repo=f['git'].repo,
+                                                now=self.CLOCK if now is None else now)
+        self.assertEqual(f['git'].files,before,'a readback must not rewrite retained evidence')
+        self.assertEqual(output.getvalue(),'','private validation must not print intermediate data')
+        self.assertTrue(all(c==f'actions/runs/{self.RUN}' for c in calls))
+        return report,f
+
+    def assert_safe(self,report):
+        self.assertIs(type(report),dict)
+        self.assertTrue(report['counts_only'])
+        self.assertEqual(report['official_source_requests'],0)
+        for name in self.FALSE_FIELDS:self.assertIs(report[name],False)
+        rendered=json.dumps(report,allow_nan=False,sort_keys=True)
+        for private in ('20261118-01-01','private-','example.test','synthetic://',
+                        'registration_no','participants','ordered_top8','native_inputs',
+                        'UNLISTED_OWNER_CREDENTIAL','validated_cf_value'):
+            self.assertNotIn(private,rendered)
+        self.assertFalse({'view','records','rows','roster','picks','tickets',
+                          'exception','message','key'}&set(report))
+
+    def assert_hold(self,report):
+        self.assert_safe(report)
+        self.assertEqual(report['status'],'HOLD_FIXED_BOOTSTRAP_P0_COUNTS')
+        self.assertIs(report['authenticated_original'],False)
+        self.assertIn(report['failure_stage'],self.STAGES)
+        for name in self.COUNT_FIELDS:self.assertIsNone(report[name],name)
+
+    def test_real_retained_zip_aes_and_native_replay_report_four_new_p0s(self):
+        report,f=self.run_reader()
+        self.assert_safe(report)
+        self.assertEqual(report['status'],'FIXED_BOOTSTRAP_P0_COUNTS_VERIFIED')
+        self.assertIs(report['authenticated_original'],True)
+        self.assertEqual(report['contexts'],1)
+        self.assertEqual(report['generated_forecasts'],4)
+        self.assertEqual(report['reused_forecasts'],0)
+        self.assertEqual(report['projected_forecasts'],4)
+        self.assertEqual(report['applicable_slots'],14)
+        self.assertEqual(report['non_generated_applicable_slots'],10)
+        self.assertEqual(report['waiting_exhibition_slots'],7)
+        self.assertEqual(report['retained_original_slots'],2)
+        self.assertEqual(report['dispatch_status_counts']['RULE_FILTERED'],9)
+        self.assertEqual(report['dispatch_status_counts']['GENERATED_UNATTESTED'],4)
+        self.assertEqual(sum(report['dispatch_status_counts'].values()),15)
+        self.assertTrue(f['git'].fetches)
+        self.assertEqual(set(f['git'].fetches),{self.VAULT})
+
+    def test_authenticated_zero_generated_payload_is_verified_zero_not_unknown_or_nonzero(self):
+        report,_=self.run_reader(self.fixture(payload=self.payload(zero=True)))
+        self.assert_safe(report)
+        self.assertEqual(report['status'],'FIXED_BOOTSTRAP_P0_COUNTS_VERIFIED')
+        self.assertEqual(report['generated_forecasts'],0)
+        self.assertEqual(report['reused_forecasts'],0)
+        self.assertEqual(report['projected_forecasts'],0)
+        self.assertEqual(report['applicable_slots'],14)
+        self.assertEqual(report['non_generated_applicable_slots'],14)
+        self.assertEqual(report['waiting_exhibition_slots'],7)
+        self.assertEqual(report['retained_original_slots'],6)
+
+    def test_reused_original_is_counted_separately_and_never_added_to_new_generation(self):
+        report,_=self.run_reader(self.fixture(payload=self.payload(reused=True)))
+        self.assert_safe(report)
+        self.assertEqual(report['generated_forecasts'],3)
+        self.assertEqual(report['reused_forecasts'],1)
+        self.assertEqual(report['projected_forecasts'],4)
+        self.assertEqual(report['applicable_slots'],14)
+        self.assertEqual(report['non_generated_applicable_slots'],10)
+        self.assertEqual(report['dispatch_status_counts']['ORIGINAL_REUSED'],1)
+
+    def test_other_run_source_workflow_branch_event_or_repository_cannot_use_the_fixed_archive(self):
+        changes=[lambda r:r.update(id=44170869326),lambda r:r.update(head_sha='f'*40),
+            lambda r:r.update(workflow_id=405276785),lambda r:r.update(event='pull_request'),
+            lambda r:r.update(event='push'),lambda r:r.update(head_branch='feat/four-sport-forecast-audit-view-20261022'),
+            lambda r:r['repository'].update(id=7),lambda r:r['head_repository'].update(full_name='foreign/private')]
+        for index,change in enumerate(changes):
+            with self.subTest(case=index):
+                report,f=self.run_reader(run_change=change)
+                self.assert_hold(report)
+                self.assertEqual(f['git'].fetches,[])
+
+    def test_missing_archive_and_bad_hmac_or_chunk_remain_hold_without_live_artifact_fallback(self):
+        for case in ('missing','lookup-mac','chunk'):
+            with self.subTest(case=case):
+                f=self.fixture()
+                if case=='missing':f['git'].files.pop(f['lookup_path'])
+                elif case=='lookup-mac':
+                    bad=json.loads(f['git'].files[f['lookup_path']]);bad['mac']='0'*64
+                    f['git'].files[f['lookup_path']]=self.wire(bad)+b'\n'
+                else:
+                    path=f['chunk_paths'][0];body=f['git'].files[path]
+                    f['git'].files[path]=body[:-1]+bytes([body[-1]^1])
+                report,_=self.run_reader(f)
+                self.assert_hold(report)
+
+    def test_full_zip_framing_crc_and_single_member_are_checked_after_pins_match(self):
+        def crc_break(raw,cipher):
+            offset=raw.index(cipher)
+            return raw[:offset]+bytes([raw[offset]^1])+raw[offset+1:]
+        cases=[lambda raw,cipher:raw+b'private-trailing-sentinel',
+               lambda raw,cipher:self.zipped([('forecasts.enc',cipher),('private-extra',b'private-sentinel')]),
+               crc_break]
+        for index,change in enumerate(cases):
+            with self.subTest(case=index):
+                report,_=self.run_reader(self.fixture(zip_change=change))
+                self.assert_hold(report)
+
+    def test_inner_aes_authentication_is_not_replaced_by_vault_or_zip_hashes(self):
+        report,_=self.run_reader(self.fixture(
+            cipher_change=lambda c:c[:-1]+bytes([c[-1]^1])))
+        self.assert_hold(report)
+
+    def test_authenticated_body_hash_and_canonical_encoding_are_rechecked(self):
+        import struct
+        from hashlib import sha256
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        from race_ai import boat_all_model_store as store
+        def change(cipher,canonical):
+            header,nonce,encrypted=store._split(cipher)
+            plain=AESGCM(store._key(self.KEY)).decrypt(nonce,encrypted,store._aad(header,nonce))
+            changed=plain+b' '
+            if canonical:header.update(plain_size=len(changed),plain_sha256=sha256(changed).hexdigest())
+            else:header.update(plain_size=len(changed))
+            encoded=store._wire(header)
+            encrypted=AESGCM(store._key(self.KEY)).encrypt(nonce,changed,store._aad(header,nonce))
+            return store.MAGIC+struct.pack('>I',len(encoded))+encoded+nonce+encrypted
+        for canonical in (False,True):
+            with self.subTest(canonical=canonical):
+                report,_=self.run_reader(self.fixture(
+                    cipher_change=lambda c:change(c,canonical)))
+                self.assert_hold(report)
+
+    def test_source_body_summary_and_context_counts_cannot_disagree_with_verified_slots(self):
+        cases=[lambda p:p.update(source_code_commit='f'*40),
+               lambda p:p['summary'].update(generated_forecasts=5),
+               lambda p:p['summary'].update(reused_baseline_forecasts=1),
+               lambda p:p['summary'].update(contexts=2),
+               lambda p:p.update(stage='P1')]
+        for index,change in enumerate(cases):
+            with self.subTest(case=index):
+                value=self.payload();change(value)
+                report,_=self.run_reader(self.fixture(payload=value))
+                self.assert_hold(report)
+
+    def test_native_roster_binding_and_capsule_context_day_are_not_waived(self):
+        from race_ai.actions_contract import digest
+        for case in ('roster','day'):
+            with self.subTest(case=case):
+                value=self.payload();capsule=value['native_input_capsules'][0]
+                if case=='roster':
+                    capsule['native_inputs']['shared']['snapshot']['participants'][0]['participant_id']='private-roster-sentinel'
+                else:
+                    value['dispatch_reports'][0]['schedule'][0]['race_id']='20261119-01-01'
+                    capsule['race_id']='20261119-01-01'
+                capsule['native_payload_sha256']={g:digest(v) for g,v in capsule['native_inputs'].items()}
+                capsule['capsule_sha256']=digest({k:v for k,v in capsule.items() if k!='capsule_sha256'})
+                report,_=self.run_reader(self.fixture(payload=value))
+                self.assert_hold(report)
+
+    def test_exact_archived_metadata_identity_clock_digest_and_size_are_required(self):
+        cases=[lambda m:m.update(id=14367093571),lambda m:m.update(name='private-unrecognized-sentinel'),
+               lambda m:m.update(created_at='2026-11-17T20:38:50Z'),
+               lambda m:m.update(expired=True),lambda m:m.update(digest='sha256:'+'0'*64),
+               lambda m:m.update(size_in_bytes=1),lambda m:m['workflow_run'].update(head_sha='f'*40),
+               lambda m:m['workflow_run'].update(repository_id=7)]
+        for index,change in enumerate(cases):
+            with self.subTest(case=index):
+                report,_=self.run_reader(self.fixture(meta_change=change))
+                self.assert_hold(report)
+
+    def test_unknown_private_fields_and_reasons_never_escape_safe_status_counts(self):
+        value=self.payload()
+        value['UNLISTED_OWNER_CREDENTIAL']='private-key-sentinel'
+        slot=next(s for s in value['dispatch_reports'][0]['slots']
+                  if s['status']=='TRAINED_ARTIFACT_MISSING')
+        slot['reason']='private-unknown-reason-sentinel https://private-owner.invalid/'
+        slot['UNLISTED_OWNER_CREDENTIAL']='private-slot-sentinel'
+        report,_=self.run_reader(self.fixture(payload=value))
+        self.assert_safe(report)
+        self.assertEqual(report['generated_forecasts'],4)
+        self.assertEqual(report['dispatch_status_counts']['TRAINED_ARTIFACT_MISSING'],1)
+
+    def test_unknown_status_and_private_error_messages_produce_only_static_hold_stage(self):
+        value=self.payload();report=value['dispatch_reports'][0]
+        slot=next(s for s in report['slots'] if s['status']=='TRAINED_ARTIFACT_MISSING')
+        slot['status']='private-status-sentinel'
+        report['status_counts']=dict(Counter(s['status'] for s in report['slots']))
+        rejected,_=self.run_reader(self.fixture(payload=value));self.assert_hold(rejected)
+        unavailable,_=self.run_reader(get_error=RuntimeError('private-exception-sentinel https://private.invalid/'))
+        self.assert_hold(unavailable)
+        self.assertEqual(unavailable['failure_stage'],'RUN')
+
+    def test_unaware_clock_is_hold_and_caller_cannot_select_another_scope_or_key(self):
+        import inspect
+        self.assertEqual(tuple(inspect.signature(exact.audit_fixed_bootstrap_p0).parameters),
+                         ('get','repo','now'))
+        report,f=self.run_reader(now=datetime(2026,11,17,20,40))
+        self.assert_hold(report)
+        self.assertEqual(f['git'].fetches,[])
+        for name,value in (('artifact_id',1),('run_id',1),('round_no',1),
+                           ('day','2030-04-01'),('owner_key',self.KEY),('target',{})):
+            with self.subTest(argument=name),self.assertRaises(TypeError):
+                exact.audit_fixed_bootstrap_p0(get=lambda _:b'',repo=Path('/not-used'),
+                                               now=self.CLOCK,**{name:value})
+
+    def test_new_closed_artifact_count_does_not_waive_existing_completed_round_guard(self):
+        from scripts import boat_owner_active_snapshot_audit as active
+        report,_=self.run_reader()
+        self.assertEqual(report['generated_forecasts'],4)
+        run=dict(id=self.RUN,head_sha=self.HEAD,created_at='2026-11-17T20:35:16Z')
+        job=dict(id=134349278782,run_id=self.RUN,head_sha=self.HEAD,run_attempt=1,
+            name='Existing frozen P0, exhibition P1, separate official results and PDCA',
+            status='in_progress',steps=[dict(name='Deadline-ordered five-model round 01',
+                                           status='pending',conclusion=None)])
+        with self.assertRaisesRegex(ValueError,'NO_COMPLETED_ROUND'):
+            active._jobs(lambda _:self.wire(dict(total_count=1,jobs=[job])),
+                         run,self.CLOCK,expected_owner_sha=self.HEAD)
+        event=dict(repository=dict(full_name='haji84/RACE-AI'),ref='refs/heads/main')
+        target=dict(schema='RACE_AI_M2_READONLY_AUDIT_TARGET_V1',run_id=44075021607,
+                    source_commit='86b029ae5bddd5d4956497d8b32b2c92b8eec521')
+        before=deepcopy(target)
+        selected=active.select_audit_target('push',event,main_target=target)
+        self.assertEqual(selected['run_id'],44075021607)
+        self.assertEqual(selected['expected_owner_sha'],'86b029ae5bddd5d4956497d8b32b2c92b8eec521')
+        self.assertEqual(target,before)
+
 if __name__=='__main__':unittest.main()

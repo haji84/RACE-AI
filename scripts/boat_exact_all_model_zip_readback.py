@@ -623,3 +623,154 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         active_completed_round_scope=selected_rounds,
         racing_provider_gets=0,prediction_generation_performed=False,
         production_predictions_modified=False,website_end_to_end_proven=False)
+
+
+# Fixed historical artifact bytes, never a caller-selected decryption target.
+# Tests substitute only this byte-pin tuple for invented encrypted fixtures.
+_FIXED_BOOTSTRAP_P0_BYTE_PINS=(
+    ('original_zip_sha256','3dd76e2edba393e51221215703e82756de2ae804ba4b5e063d4e91f44437c995'),
+    ('original_zip_bytes',18706128),
+    ('metadata_sha256','993c20d3d073d0004f44836a72ef5e30a5b10a8500c8ff81503e4d7bac0fe4a1'),
+    ('metadata_bytes',723),
+    ('cipher_sha256','e6980993b7d29f9898a50d3cd406c4abca71e75e7f4cc2b89859cfe30fa57026'),
+    ('plain_sha256','5f87d119d7c5b30103f1e05896c0dd3a7a3a531b0c68784eb8bd2147e742b347'),
+    ('plain_bytes',18699962),
+    ('vault_batch_sha256','1254b9a3953121cb8749a22476abfb2b715d18bb997f9b948b4f89583238a552'),
+    ('vault_entry_sha256','b43336fa76294275800872755f5fd8cacb217bc31d7789fd3a2290890d580a39'))
+
+
+def audit_fixed_bootstrap_p0(*,get,repo,now):
+    """Count one closed, immutable P0 artifact; never audit the active worker.
+
+    Existing vault and native projectors own all decryption and validation.
+    The result contains only aggregate counts or a static HOLD with null counts.
+    """
+    report=dict(schema='RACE_AI_FIXED_BOOTSTRAP_P0_COUNTS_V1',
+        status='HOLD_FIXED_BOOTSTRAP_P0_COUNTS',authenticated_original=False,
+        failure_stage='PRECONDITION',counts_only=True,owner_run_id=44170869325,
+        owner_source_commit='bb49215034b779ea1493b35dd91e5c3ebfc04032',
+        artifact_id=14367093570,round_no=0,day_jst='2026-11-18',
+        vault_source_commit='d853f5d6db9089d91748add90560a0b9037b2a1f',
+        receipt_scope='ARCHIVED_GITHUB_ARTIFACT_RESPONSE',
+        current_artifact_status='NOT_QUERIED',github_artifact_receipt_created=False,
+        contexts=None,generated_forecasts=None,reused_forecasts=None,
+        projected_forecasts=None,applicable_slots=None,
+        non_generated_applicable_slots=None,waiting_exhibition_slots=None,
+        retained_original_slots=None,dispatch_status_counts=None,
+        official_source_requests=0,full_day_coverage=False,
+        all_models_operational=False,qualifying_g8_proven=False,efficacy_proven=False,
+        promotion_allowed=False,dispatch_authorized=False,
+        website_end_to_end_proven=False,source_originals_modified=False)
+    stage='PRECONDITION'
+    try:
+        import io
+        from contextlib import redirect_stdout,redirect_stderr
+        from hashlib import sha256
+        from race_ai import boat_all_model_recovery as R,boat_private_original_vault as V
+        # No dependency diagnostic, source record or exception message may leave.
+        with redirect_stdout(io.StringIO()),redirect_stderr(io.StringIO()):
+            need(callable(get) and type(now) is datetime and now.utcoffset() is not None)
+            pins=dict(_FIXED_BOOTSTRAP_P0_BYTE_PINS)
+            stage='RUN'
+            run=R._run(get('actions/runs/44170869325'),44170869325,now)
+            need(run['head_sha']=='bb49215034b779ea1493b35dd91e5c3ebfc04032'
+                 and type(run.get('workflow_id')) is int and run['workflow_id']==405276784
+                 and run.get('head_branch')=='production/boat-p0-p1-20261111'
+                 and run.get('event')=='workflow_dispatch'
+                 and run.get('status') in ('in_progress','completed'))
+            stage='VAULT_LOOKUP'
+            locator=V.lookup_original(14367093570,repo,
+                source_commit='d853f5d6db9089d91748add90560a0b9037b2a1f')
+            need(type(locator) is dict and locator.get('artifact_id')==14367093570
+                 and locator.get('kind')=='ALL_MODEL'
+                 and locator.get('ref')=='state/boat-private-originals'
+                 and locator.get('source_commit')=='d853f5d6db9089d91748add90560a0b9037b2a1f'
+                 and locator.get('batch_sha256')==pins['vault_batch_sha256']
+                 and locator.get('entry_sha256')==pins['vault_entry_sha256'])
+            stage='VAULT_RESTORE'
+            restored=V.restore_original(locator,repo)
+            stage='PIN_BINDING'
+            raw,metadata_raw,meta=(restored[name] for name in ('raw_zip','metadata_raw','metadata'))
+            need(type(raw) is bytes and len(raw)==pins['original_zip_bytes']
+                 and sha256(raw).hexdigest()==pins['original_zip_sha256']
+                 and type(metadata_raw) is bytes and len(metadata_raw)==pins['metadata_bytes']
+                 and sha256(metadata_raw).hexdigest()==pins['metadata_sha256'])
+            origin=meta.get('workflow_run',{})
+            need(meta.get('id')==14367093570
+                 and meta.get('name')=='boat-all-model-forecasts-44170869325-r0'
+                 and meta.get('created_at')=='2026-11-17T20:38:49Z'
+                 and meta.get('expired') is False
+                 and meta.get('size_in_bytes')==pins['original_zip_bytes']
+                 and meta.get('digest')=='sha256:'+pins['original_zip_sha256']
+                 and origin.get('id')==44170869325
+                 and origin.get('head_sha')=='bb49215034b779ea1493b35dd91e5c3ebfc04032'
+                 and origin.get('repository_id')==1416489937
+                 and origin.get('head_repository_id')==1416489937)
+            provenance=restored['provenance']
+            need(provenance.get('receipt_scope')=='ARCHIVED_GITHUB_ARTIFACT_RESPONSE'
+                 and provenance.get('current_artifact_status')=='NOT_QUERIED'
+                 and provenance.get('github_artifact_receipt_created') is False
+                 and provenance.get('independent_git_readback_verified') is True
+                 and provenance.get('source_commit')=='d853f5d6db9089d91748add90560a0b9037b2a1f'
+                 and provenance.get('entry_sha256')==pins['vault_entry_sha256']
+                 and moment(meta['created_at'])<=moment(provenance['archived_at'])<=now)
+            with R._checked_zip(raw,max_zip_bytes=R.MAX_ZIP_BYTES,
+                                max_expanded=R.store.MAX_WIRE) as archive:
+                need(archive.namelist()==['forecasts.enc'])
+                cipher=archive.read('forecasts.enc')
+            header=R.store.forecast_header(cipher)
+            need(sha256(cipher).hexdigest()==pins['cipher_sha256']
+                 and header==dict(schema='RACE_AI_BOAT_ALL_MODEL_FORECAST_V1',
+                    purpose='boat-all-model-forecasts',repository_id='1416489937',
+                    run_id='44170869325',round_no=0,encoding='json-utf8',
+                    plain_size=pins['plain_bytes'],plain_sha256=pins['plain_sha256']))
+            stage='PROJECT'
+            projected,summary,receipt=R._project(raw,meta,run,0,None)
+            stage='SCOPE'
+            rows=projected.get('records')
+            need(projected.get('event_date_jst')=='2026-11-18'
+                 and type(rows) is list and 0<len(rows)<=288
+                 and all(type(row) is dict and row.get('sport')=='boat'
+                         and row.get('event_date_jst')=='2026-11-18'
+                         and row.get('scheduled_stages')==['P0'] for row in rows))
+            stage='COUNTS'
+            need(all(type(summary.get(name)) is int and summary[name]>=0
+                     for name in ('contexts','generated_forecasts','reused_baseline_forecasts'))
+                 and summary['contexts']==len(rows)
+                 and len({row['race_id'] for row in rows})==len(rows))
+            slots=[slot for row in rows for slot in row['dispatch_slots']]
+            states={'NOT_APPLICABLE','INPUT_MISSING','TRAINED_ARTIFACT_MISSING',
+                    'DEADLINE_PASSED','RULE_FILTERED','UNCONNECTED_NATIVE_RUNTIME',
+                    'SOURCE_NOT_AUTHORIZED','INPUT_REJECTED','EXECUTION_FAILED',
+                    'GENERATED_UNATTESTED','ORIGINAL_REUSED'}
+            saved={'GENERATED_UNATTESTED','ORIGINAL_REUSED'}
+            need(0<len(slots)<=288*128 and all(type(s) is dict
+                 and type(s.get('status')) is str and s['status'] in states
+                 and type(s.get('applicable')) is bool and s.get('stage')=='P0'
+                 and s['applicable']==(s['status']!='NOT_APPLICABLE') for s in slots))
+            counts=dict(Counter(s['status'] for s in slots))
+            # Projectors can add missing placeholders; do not call those actual slots.
+            need(counts==projected['dispatch_status_counts']
+                 and summary['generated_forecasts']==counts.get('GENERATED_UNATTESTED',0)
+                 and summary['reused_baseline_forecasts']==counts.get('ORIGINAL_REUSED',0))
+            applicable=[s for s in slots if s['applicable']]
+            predictions=[p for row in rows for p in
+                ([row['prediction']] if row['prediction'] is not None else [])+row['comparison_predictions']]
+            projected_count=sum(s.get('projection_status')=='PROJECTED' for s in slots)
+            need(projected_count==len(predictions) and
+                 projected_count<=summary['generated_forecasts']+summary['reused_baseline_forecasts']
+                 and all(p.get('stage')=='P0' for p in predictions))
+            report.update(status='FIXED_BOOTSTRAP_P0_COUNTS_VERIFIED',
+                authenticated_original=True,failure_stage=None,
+                contexts=summary['contexts'],generated_forecasts=summary['generated_forecasts'],
+                reused_forecasts=summary['reused_baseline_forecasts'],
+                projected_forecasts=projected_count,applicable_slots=len(applicable),
+                non_generated_applicable_slots=sum(s['status'] not in saved for s in applicable),
+                waiting_exhibition_slots=sum(s['status']=='RULE_FILTERED' and
+                    s.get('reason')=='WAITING_EXHIBITION' for s in applicable),
+                retained_original_slots=sum(s['status']=='RULE_FILTERED' and
+                    s.get('reason')=='SAVED_ORIGINAL_RETAINED_IN_OWNER_FEED' for s in applicable),
+                dispatch_status_counts=dict(sorted(counts.items())))
+    except Exception:
+        report['failure_stage']=stage
+    return report

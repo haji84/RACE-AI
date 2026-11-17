@@ -1,0 +1,72 @@
+{
+  "schema": "RACE_AI_FIXED_BOOTSTRAP_P0_REUSED_FIXTURE_NORMALIZATION_V1",
+  "base_commit": "e8c1b04bff5ec63c468ecdcde3904683518daa20",
+  "actual_failure": {
+    "run_id": 44189134723,
+    "job_id": 134413527954,
+    "tests": 179,
+    "seconds": 89.878,
+    "failures": 0,
+    "errors": 1,
+    "passed": 178,
+    "test": "FixedBootstrapP0CountTests.test_reused_original_is_counted_separately_and_never_added_to_new_generation",
+    "boundary": "fixture construction before audit_fixed_bootstrap_p0",
+    "reason": "store.seal_forecasts rejected non-JSON dictionary keys with ALL_MODEL_FORECAST_JSON_KEY_INVALID",
+    "evidence_supplied_by_root": true
+  },
+  "files": [
+    {
+      "path": "tests/test_boat_exact_all_model_zip_readback.py",
+      "base_blob": "7933ee38807c7cbbb4468d259942b89ff338c2ad",
+      "blob_sha": "c3a9c6f1aeac7d7f155e0f7684bc5434d7943ec5",
+      "utf8_bytes": 42552,
+      "added_lines": 1,
+      "removed_lines": 1,
+      "line": 434,
+      "old": "            value['dispatch_reports']=[replay]",
+      "new": "            value['dispatch_reports']=[engine._json_copy(replay)]",
+      "remote_readback_identical": true
+    }
+  ],
+  "root_cause": "The reused test inserts a raw dispatch report after production forecast_saved_p0 has already normalized its payload. Raw native physical-lane maps must pass the same producer JSON storage normalization before store.seal_forecasts.",
+  "producer_normalization": {
+    "source_commit": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "source_blob": "77bd938e255e85c4c19f01378e050e4efdb889b6",
+    "function": "race_ai.boat_all_model_cycle._json_copy",
+    "definition_lines": [
+      61,
+      64
+    ],
+    "production_storage_boundary_line": 813,
+    "implementation": "return json.loads(wire(value))"
+  },
+  "preservation": {
+    "runtime_helper_blob_unchanged": "7c2a925f5858838d0ca99599a89c8a48d7611e85",
+    "workflow_blob_unchanged": "3f82f8dbbe3252142657f391803bee30b4da0113",
+    "all_35_test_methods_unchanged": true,
+    "all_121_assertions_unchanged": true,
+    "new_test_methods_preserved": 15,
+    "original_test_methods_preserved": 20,
+    "reused_expectation_unchanged": {
+      "generated_forecasts": 3,
+      "reused_forecasts": 1,
+      "projected_forecasts": 4
+    },
+    "all_other_test_bytes_unchanged": true,
+    "real_vault_zip_aes_body_and_native_validation_unchanged": true,
+    "caller_scope_unchanged": true,
+    "no_runtime_weakening": true,
+    "no_refs_changed": true,
+    "no_processes_run": true,
+    "no_secrets_retrieved": true,
+    "no_provider_gets": true
+  },
+  "verification": {
+    "static_single_line_change_verified": true,
+    "remote_readback_identical": true,
+    "fresh_actual_green_pending": true,
+    "no_helper_green_claim": true
+  },
+  "root_validation": "Exact single producer-normalization replacement; all 35 test methods and 121 assertions unchanged. Runtime/workflow unchanged.",
+  "fresh_green": "PENDING"
+}

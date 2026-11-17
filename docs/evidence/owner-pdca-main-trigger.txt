@@ -541,3 +541,12 @@ encrypted continuity and source 403/429 refusals remain mandatory. Never reset
 counters, replace old originals, regenerate a saved forecast, or count a missing
 archive as zero issuance. No full-day, latest-counter, successor, qualification,
 accuracy, or native-iPhone acceptance is added by this source-pin transition.
+
+2026-11-17: count only the exact retained bootstrap P0 of run 44170869325, round 0,
+artifact 14367093570, source bb49215034b779ea1493b35dd91e5c3ebfc04032.
+The existing owner-release prefix/marker path and fresh-history single-writer
+gate are reused unchanged. A live owner must remain HOLD_ACTIVE_OWNER_WORKFLOW.
+The separate closed-artifact stdout counts do not change M2 target/core audit,
+artifact members, current input authority, model weights, or dispatch permission.
+Missing/unverified counts are null; zero is reported only after authenticated
+readback of the complete immutable ZIP. No source acquisition or new producer.
