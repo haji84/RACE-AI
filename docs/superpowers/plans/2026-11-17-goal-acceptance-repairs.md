@@ -121,3 +121,11 @@ All remote integration and real acceptance boxes above remain open until their a
 - ActualMac44068042347 passed browserWebCrypto/same-seedTop8 and4denials, plus28 separate syntheticcaptures with actual320/390/1440/1920 widths. Identity login/currentV5/iPhone/all8visualremainfalse; sourceeff andpublicf603remainfixed.
 - Main519 code pin alone did not execute owner gate: the existing trigger path was unchanged and its merge prefix did not match owner admission. Final existingPR171 changes the existing marker and uses exactboat-owner-release prefix;90tests include path/prefix/marker guards. Actual next gate/worker remains pending.
 - Local reference layout5992 has successful bounded visual/control review and28source-free screenshots, without publication. No whole-product acceptance claim.
+
+## Genuine M2 runtime and next independent proof (2026-11-17 12:29 UTC)
+
+- PR171 normally merged atfd92b531 with exact reviewed tree. Genuine gate44074681478 passed authenticated old-owner recovery and launched one M2 worker44075021607. No direct production dispatch. First two physical rounds succeeded in1519/1239seconds; T15-to-T10 latency remains unaccepted.
+- M2 read-only audit candidate2548ede8, integratedc6d6ed06, passed94 affected tests and7 workflow block compilation; independent mixed-source and completed-scope review passed. Strict oldeff default retained. Actual M2 row/view/deadline proof remains pending.
+- Immutable mirror privacy assertion falsely matched4001 within metadata_sha256. First failure and exact-head failed-job retry success retained. Proposed01ed8abe changes two tests only; full212 local tests and independent adversarial review passed. Pinning this revision must pass normal existing-PR CI.
+- Reuse existing inactive DraftPR65, preserve its original head ancestry/tree separately, retarget to main and apply only reviewed audit/CI/docs changes. Do not apply its historical controller or Cloudflare code. Actual CI/normal protected merge/live read-only evidence are the next gates.
+- Preserve current M2 producer and publicf60308. Profile repeated native training validation separately; no active-worker swap or unverifiable speed claim.

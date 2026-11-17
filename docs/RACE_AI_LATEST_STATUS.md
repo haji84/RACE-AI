@@ -1,3 +1,27 @@
+## 2026-11-17 12:29 UTC: 正規M2引継ぎで2実巡成功、締切遅延は未解消（GOAL未達）
+
+実main fd92b531b82f1365ce99e6917cc4812f8ce1ac42、source86b029ae5bddd5d4956497d8b32b2c92b8eec521。
+既存PR171は通常merge・reviewed tree一致。正しい既存release prefixとmarker変更で真正gate44074681478が実行され、
+job134009539055はsuccess。旧原本のAES/counter復旧後にREADY_VERIFIED_RECOVERED_OWNER_CONTINUATIONを確認し、
+既存worker44075021607を11:33:04 UTCに一writerで開始した。gate自身の公式GET0/新規予想0を、当日全体の0と混同しない。
+
+新workerは第1巡11:39:28→12:04:47（25分19秒）、第2巡12:04:47→12:25:26（20分39秒）がsuccess。
+P1/RESULTの実GitHub暗号artifactを各2巡分確認し、第3巡が稼働中。ALL_MODELは0/1のarchiveを確認。
+metadataだけで新規予想件数・表示一致・締切適格を認定しない。実M2の別runner AES/原本/既存モデル再演算監査を準備し、
+公式B欠落時は資格0/null・full_day=falseを維持する。25分超の実遅延から、バッチ化だけでT15〜10達成とはしない。
+稼働jobの完全ログは正規認証でもまだ404であり、実時間の内訳は未確認。ローカルで再現した重複検証を別に測定中。
+
+**CIの実失敗を修正:** run44072746303のmirror205件中1件は、valid metadata_sha256内の偶然の4001を
+個人名と誤検出した。完全reportを調べ、その文字列の出現は当該digestだけと確認。同じHEADのfailed-job-only再試行は成功したが、
+初回失敗を消さない。元immutable d5ede5fbを保存し、runtime無変更・test2ファイルだけの01ed8abeへ固定する候補を検証。
+既知field/path/typeの完全40/64hexのみを除外し、raw名・未知field・nested文字列・誤digestは拒否。親212件と独立adversarial検査success。
+既存PR65を再利用する読取専用M2監査/CI修正の最終CIは未実行で、合格済みとはしない。
+
+[真正gate・実ラウンド時間・artifact metadata・CI履歴](evidence/boat-m2-genuine-handoff-runtime-20261117.json)。
+物理iPhone、8参考画面の最終一致、全4競技の全日供給、映像校正/6艇継続、前向き精度改善は未完了。
+元work b420631 clean、未push2commitはUNRESTORED、KEIRIN default-OFF/1レースgateを保全。
+公開asset f60308ef/本番weights/新PR/追加課金設定/投票の変更0。以下は過去時点の記録として保持する。
+
 ## 2026-11-17 継続: 実Safari内AES/28合成画面が成功、結果理由履歴の修正をsourceへ統合
 
 実main519705524de274a6c73124746970615086ca237a、実source86b029ae5bddd5d4956497d8b32b2c92b8eec521。

@@ -1,0 +1,152 @@
+{
+  "schema": "RACE_AI_M2_GENUINE_HANDOFF_AND_PARTIAL_RUNTIME_EVIDENCE_V1",
+  "observed_at": "2026-11-17T12:29:07Z",
+  "main_sha": "fd92b531b82f1365ce99e6917cc4812f8ce1ac42",
+  "source_sha": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+  "main_pr": 171,
+  "source_pr": 201,
+  "genuine_gate": {
+    "run_id": 44074681478,
+    "job_id": 134009539055,
+    "event": "push",
+    "conclusion": "success",
+    "authenticated_log_statuses": [
+      {
+        "at": "2026-11-17T11:31:02.5988517Z",
+        "status": "HOLD_ALREADY_DISPATCHED_FOR_JST_DAY",
+        "dispatch_allowed": false,
+        "release_sha": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+        "official_source_requests": 0
+      },
+      {
+        "at": "2026-11-17T11:32:59.0715433Z",
+        "status": "FAILED_OWNER_ORIGINALS_RECOVERED",
+        "new_forecasts": 0,
+        "official_source_requests": 0,
+        "original_forecasts_changed": false
+      },
+      {
+        "at": "2026-11-17T11:33:02.8372480Z",
+        "status": "READY_VERIFIED_RECOVERED_OWNER_CONTINUATION",
+        "dispatch_allowed": true,
+        "release_sha": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+        "official_source_requests": 0
+      }
+    ],
+    "direct_production_dispatch_performed": false
+  },
+  "worker": {
+    "run_id": 44075021607,
+    "job_id": 134010708848,
+    "event": "workflow_dispatch",
+    "created_at": "2026-11-17T11:33:04Z",
+    "status_at_observation": "in_progress",
+    "physical_rounds_completed": 2,
+    "active_round": 3,
+    "completed_steps": [
+      {
+        "round": 1,
+        "started_at": "2026-11-17T11:39:28Z",
+        "completed_at": "2026-11-17T12:04:47Z",
+        "duration_seconds": 1519,
+        "conclusion": "success"
+      },
+      {
+        "round": 2,
+        "started_at": "2026-11-17T12:04:47Z",
+        "completed_at": "2026-11-17T12:25:26Z",
+        "duration_seconds": 1239,
+        "conclusion": "success"
+      }
+    ],
+    "independent_m2_aes_readback_pending": true,
+    "new_forecast_rows_independently_authenticated": null,
+    "saved_view_matches": null,
+    "saved_view_missing": null,
+    "official_cutoff_qualified_slots": null,
+    "full_day_coverage": false,
+    "t15_to_t10_latency_accepted": false,
+    "live_job_logs_available": false
+  },
+  "artifact_metadata": {
+    "provider": "GitHub authenticated REST; metadata only, not decryption",
+    "receipts": [
+      {
+        "id": 14324376661,
+        "phase": "ALL_MODEL",
+        "round": 0,
+        "bytes": 1261611,
+        "sha256": "2a03cac78f04468bed92c43d7b78ddc3beaeab3e07b400a30b74e5449e6b3907"
+      },
+      {
+        "id": 14323629323,
+        "phase": "P1",
+        "round": 1,
+        "bytes": 82201,
+        "sha256": "413548f83e117d1ccf0ea5e93daaf2ae300143b9ac5cc9ac63c36035003f270d"
+      },
+      {
+        "id": 14324666573,
+        "phase": "ALL_MODEL",
+        "round": 1,
+        "bytes": 1196185,
+        "sha256": "0a03de1e4348c1a8517659edd4ed71a83198b97463462b42b4ac577aae536a17"
+      },
+      {
+        "id": 14326611176,
+        "phase": "RESULT",
+        "round": 1,
+        "bytes": 1088248,
+        "sha256": "54270d66cc7ef9f631e3d656ca23ed1884b9656a501a728e2080d8dea7b9cc7f"
+      },
+      {
+        "id": 14326243693,
+        "phase": "P1",
+        "round": 2,
+        "bytes": 13670,
+        "sha256": "eaac749082359660cafbced36d89c70a7a424f9f18a676f68fe4835010cbfbfd"
+      },
+      {
+        "id": 14327433059,
+        "phase": "RESULT",
+        "round": 2,
+        "bytes": 1026181,
+        "sha256": "e3ff302e24c4c39a60728234675e442b1f6965f039f21321900760d5daedcac5"
+      }
+    ]
+  },
+  "immutable_ci_privacy_repair": {
+    "observed_run": 44072746303,
+    "observed_job": 134002813477,
+    "first_attempt": "failed",
+    "failure": "Plaintext-label assertion matched substring 4001 only inside a valid metadata_sha256",
+    "same_head_failed_job_rerun_attempt": 2,
+    "same_head_failed_job_rerun": "success",
+    "original_revision": "d5ede5fb1f336794e8a0217e9b42d559d8ab0cc4",
+    "test_only_revision": "01ed8abecfc38bdce43895d79e9136a53b26e71e",
+    "runtime_source_unchanged": true,
+    "local_full_mirror_tests": 212,
+    "independent_review": "passed",
+    "actual_new_revision_ci_pending": true
+  },
+  "preservation": {
+    "original_work_head": "b4206312594ef84a43c86695dc3d3ec16d1c5ae0",
+    "unrestored_commits": [
+      "b7380fe6a377e6ccf2b96331f2126c52549bbe17",
+      "daae4c10167224b7730006d8ada5ade398aaa64b"
+    ],
+    "new_prs": 0,
+    "production_weight_switches": 0,
+    "public_asset_changes": 0,
+    "additional_charge_settings": 0
+  },
+  "remaining": [
+    "Actual M2 independent raw AES/ZIP/model and saved-view match proof",
+    "Official program prerequisite and full-day deadline denominator",
+    "Four-sport all-race/all-applicable-existing-model daily operation",
+    "T15-to-T10 physical save receipts and latency",
+    "Physical iPhone / full eight-reference acceptance",
+    "Independent six-boat labels, measured calibration and actual forecast integration",
+    "Prospective original-versus-trained accuracy improvement"
+  ]
+}
