@@ -396,27 +396,76 @@ def _apply_names(row, named, race_names, registry, aliases=()):
             **{k:deepcopy(item[k]) for k in ("verified", "source_sha256", "source_url", "captured_at") if k in item})
 
 
+_OBSERVATION_REASON_VARIANTS = "saved_result_observation_reason_variants"
+_REJECTION_REASON_VARIANTS = "saved_result_rejection_reason_variants"
+
+
+def _reason_metadata(item, *, rejection=False):
+    value = item.get("reason")
+    return (not rejection and value is None) or (type(value) is str and
+        re.fullmatch(r"[A-Z][A-Z0-9_]{0,199}", value) is not None)
+
+
+def _same_except_reason(left, right, *, rejection=False):
+    # Text clocks, status, data, provenance and unknown fields all remain exact.
+    # A source hash is mandatory for this exception to the normal conflict rule.
+    source = left.get("source_sha256")
+    return (type(source) is str and _SHA.fullmatch(source) is not None and
+        _reason_metadata(left, rejection=rejection) and _reason_metadata(right, rejection=rejection) and
+        _wire({k:v for k,v in left.items() if k != "reason"}) ==
+        _wire({k:v for k,v in right.items() if k != "reason"}))
+
+
 def _observations(rows, field, *, rejection=False):
-    output, seen = [], {}
+    """Keep one active body per capture and every reason-only original privately.
+
+    Sidecars contain full, unmodified dictionaries, including the first body.
+    They are histories, never a replacement receipt or settlement authority.
+    Reread requires a matching active body and at least two distinct originals.
+    """
+    output, seen, groups = [], {}, {}
+    history_field = _REJECTION_REASON_VARIANTS if rejection else _OBSERVATION_REASON_VARIANTS
+
+    def identity(item, row):
+        _need(type(item) is dict, "result observation object")
+        captured = _clock(item.get("captured_at"))
+        if item.get("source_sha256") is not None: _sha(item["source_sha256"])
+        if not rejection: _need(item.get("race_id") == row["race_id"], "result race binding")
+        return (captured, item.get("source_sha256")) if rejection else captured
+
     for row in rows:
         values = row.get(field, [])
         _need(type(values) is list and len(values) <= 10000, "result observation count")
-        for item in values:
-            _need(type(item) is dict, "result observation object")
-            captured = _clock(item.get("captured_at"))
-            if item.get("source_sha256") is not None: _sha(item["source_sha256"])
-            if not rejection: _need(item.get("race_id") == row["race_id"], "result race binding")
-            key = (captured, item.get("source_sha256")) if rejection else captured
+        active = {}
+        for item in values: active.setdefault(identity(item, row), item)
+        history = row.get(history_field, [])
+        if history_field in row:
+            _need(type(history) is list and 2 <= len(history) <= 10000, "result reason variant count")
+            local = {}
+            for item in history:
+                key = identity(item, row)
+                _need(key in active and _same_except_reason(active[key], item, rejection=rejection),
+                      "result reason variant binding")
+                local.setdefault(key, []).append(_wire(item))
+            for key, wires in local.items():
+                _need(len(wires) == len(set(wires)) and len(wires) >= 2 and _wire(active[key]) in wires,
+                      "result reason variant originals")
+        for item in [*values, *history]:
+            key = identity(item, row)
             wire = _wire(item)
-            if key in seen and seen[key] != wire:
+            if key in seen and seen[key] != wire and not _same_except_reason(groups[key][0], item, rejection=rejection):
                 from .result_observation_conflict_diagnostics import result_conflict_counts
                 try:
                     _need(False, "conflicting result observation")
                 except SavedModelViewError as error:
                     error.conflict_counts = result_conflict_counts(json.loads(seen[key]), item)
                     raise
-            if key not in seen: output.append(deepcopy(item)); seen[key] = wire
-    return sorted(output, key=lambda item: _clock(item["captured_at"]))
+            if key not in seen:
+                output.append(deepcopy(item)); seen[key] = wire; groups[key] = []
+            if all(_wire(previous) != wire for previous in groups[key]): groups[key].append(deepcopy(item))
+    history = [item for group in groups.values() if len(group) > 1 for item in group]
+    _need(len(output) <= 10000 and len(history) <= 10000, "result observation count")
+    return sorted(output, key=lambda item: _clock(item["captured_at"])), history
 
 
 def validate_cutoff_reconciliation(row, result):
@@ -517,7 +566,10 @@ def _result(row, rows):
     if newest is None: return None
     options = _unique([r for r in results if _clock(r["observed_at"]) == newest])
     observations = [o for o in row["result_observations"] if _clock(o["captured_at"]) == newest]
-    rejected = [r for r in row["result_observation_rejections"] if _clock(r["captured_at"]) == newest]
+    # Every preserved rejection reason participates: selecting the first active
+    # body must never conceal another reason behind cutoff reconciliation.
+    rejected = [r for r in [*row["result_observation_rejections"], *row.get(_REJECTION_REASON_VARIANTS, [])]
+                if _clock(r["captured_at"]) == newest]
     ambiguous = bool(row.get("saved_observation_cutoff_variants")) or row.get("cutoff_at") is None and bool(row.get("saved_cutoff_variants") or row.get("saved_schedule_cutoff_variants"))
     reconciled = [r for r in options if validate_cutoff_reconciliation(row, r)]
     if reconciled and all(r["reason"] == "RESULT_AMBIGUOUS_FORECAST_CUTOFF" for r in rejected):
@@ -591,8 +643,10 @@ def _merge_record(rows, race_names, registry):
             row.update(withdrawn_lanes=withdrawn, withdrawn_participants=withdrawn_people, roster_status="OFFICIAL_ACTIVE")
         if aliases: row[ALIAS_FIELD] = aliases
         _apply_names(row, named, race_names, registry, aliases)
-    row["result_observations"] = _observations(rows, "result_observations")
-    row["result_observation_rejections"] = _observations(rows, "result_observation_rejections", rejection=True)
+    for field, history_field, rejection in (("result_observations", _OBSERVATION_REASON_VARIANTS, False),
+            ("result_observation_rejections", _REJECTION_REASON_VARIANTS, True)):
+        row[field], history = _observations(rows, field, rejection=rejection)
+        if history: row[history_field] = history
     for source in rows: _need(not source.get("result_revisions"), "official result revisions in private view")
     row["result_revisions"] = []
     row["result"] = _result(row, rows)

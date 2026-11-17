@@ -7,10 +7,14 @@ containment, nearest marks, color and appearance predictions cannot label a
 track. All defaults and existing boat/marker providers remain unchanged.
 """
 from collections import Counter, defaultdict
+from contextlib import contextmanager
 from copy import copy, deepcopy
 from fractions import Fraction
 from hashlib import sha256
 import json
+import os
+from pathlib import Path
+import stat
 
 from .boat_video_identity import _box, _finite, _intersects, _iou, _pixels
 from .boat_video_marker_flow import MarkerPixelFollower, PARAMETERS
@@ -21,6 +25,8 @@ _DETECTIONS = 'RACE_AI_RIDER_PART_DETECTIONS_V1'
 _PAIRS = 'RACE_AI_RIDER_NUMBER_PAIRS_V1'
 _PHYSICAL = 'DECLARED_PHYSICAL_RIDER_PRINT_PAIR'
 _BINDINGS = {_PHYSICAL, 'BBOX_CONTAINMENT', 'NEAREST_MARKER', 'UNBOUND'}
+_PROBE_SCHEMA = 'RACE_AI_RIDER_ASSOCIATION_PROBE_DIAGNOSTIC_V1'
+_PROBE_ERROR = 'BOAT_RIDER_PROBE_DIAGNOSTICS_REJECTED'
 
 
 def _need(condition):
@@ -38,6 +44,93 @@ def _hex(value):
 
 def _age(now, then):
     return Fraction(str(now))-Fraction(str(then))
+
+
+class PrivateRiderProbeSink:
+    """Opt-in evidence sidecars, separate from every tracker/prediction packet.
+
+    The caller supplies the original media hash and frame-to-source-PTS map;
+    these declarations are never clock, source or identity authentication.
+    Existing private storage is mandatory. Writes are create-only and a failed
+    write aborts the opted-in update before rider state commits. A saved probe
+    records an observation, not successful completion of an outer pipeline.
+    """
+    def __init__(self, directory, *, media_sha256, source_pts_by_frame):
+        try:
+            _need(_hex(media_sha256) and type(source_pts_by_frame) is dict and source_pts_by_frame)
+            _need(all(type(i) is int and i >= 0 and _finite(t)
+                      for i, t in source_pts_by_frame.items()))
+            stamps = [source_pts_by_frame[i] for i in sorted(source_pts_by_frame)]
+            _need(all(b > a for a, b in zip(stamps, stamps[1:])))
+            self._path = Path(directory)
+            self._media_sha256 = media_sha256
+            self._source_pts = dict(source_pts_by_frame)
+            self._directory_identity = None
+            with self._directory() as descriptor:
+                info = os.fstat(descriptor)
+                self._directory_identity = info.st_dev, info.st_ino
+        except (OSError, ValueError, TypeError, OverflowError):
+            raise ValueError(_PROBE_ERROR) from None
+
+    @contextmanager
+    def _directory(self):
+        from .private_cycle_capture import _parent_handle
+        with _parent_handle(self._path) as descriptor:
+            info = os.fstat(descriptor)
+            _need(info.st_uid == os.getuid() and stat.S_IMODE(info.st_mode) == 0o700)
+            identity = info.st_dev, info.st_ino
+            _need(self._directory_identity is None or identity == self._directory_identity)
+            yield descriptor
+            after = os.fstat(descriptor)
+            _need((after.st_dev, after.st_ino) == identity and after.st_uid == os.getuid()
+                  and stat.S_IMODE(after.st_mode) == 0o700)
+
+    def _require_frame(self, index):
+        if index not in self._source_pts:
+            raise ValueError(_PROBE_ERROR)
+
+    @staticmethod
+    def _existing(directory, name, raw):
+        descriptor = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+        with os.fdopen(descriptor, 'rb') as stream:
+            before = os.fstat(stream.fileno())
+            _need(stat.S_ISREG(before.st_mode) and before.st_uid == os.getuid()
+                  and stat.S_IMODE(before.st_mode) == 0o600 and before.st_nlink == 1
+                  and before.st_size == len(raw))
+            _need(stream.read(len(raw)+1) == raw)
+            after = os.fstat(stream.fileno())
+            current = os.stat(name, dir_fd=directory, follow_symlinks=False)
+            _need((before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns, before.st_ctime_ns)
+                  == (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns)
+                  == (current.st_dev, current.st_ino, current.st_size, current.st_mtime_ns, current.st_ctime_ns)
+                  and stat.S_IMODE(current.st_mode) == 0o600 and current.st_nlink == 1)
+
+    def _record(self, probe, prior_track_ids):
+        try:
+            from .boat_video_intake import _atomic
+            index = probe['frame_index']
+            self._require_frame(index)
+            record = dict(schema_version=_PROBE_SCHEMA, media_sha256=self._media_sha256,
+                frame_index=index, frame_sha256=probe['frame_sha256'],
+                source_pts_seconds=self._source_pts[index], tracker_t_seconds=probe['t'],
+                scene=probe['scene'], prior_track_ids=list(prior_track_ids), probe=deepcopy(probe),
+                record_scope='FIRST_ASSOCIATION_PROBE_NOT_FINAL_TRACKER_SUCCESS',
+                source_binding_authentication='CALLER_SUPPLIED_NOT_AUTHENTICATED',
+                source_pts_scope='CALLER_SUPPLIED_MEDIA_PTS_NOT_INDEPENDENT_CLOCK',
+                identity_validated=False, calibration_validated=False,
+                authority_established=False, model_eligible=False)
+            raw = (json.dumps(record, sort_keys=True, separators=(',', ':'), allow_nan=False)+'\n').encode()
+            name = sha256(raw).hexdigest()+'.json'
+            def write(stream):
+                os.fchmod(stream.fileno(), 0o600)
+                stream.write(raw)
+            with self._directory() as directory:
+                try:
+                    _atomic(directory, name, write)
+                except FileExistsError:
+                    self._existing(directory, name, raw)
+        except (OSError, ValueError, TypeError, KeyError, OverflowError):
+            raise ValueError(_PROBE_ERROR) from None
 
 
 def _detections(packet, width, height, digest):
@@ -186,10 +279,12 @@ def _pairs(packet, riders, width, height, *, digest, t, frame_index, scene):
 
 class RiderPartTracker:
     """Track current image evidence independently of optional numeric labels."""
-    def __init__(self, detector, *, number_provider=None, max_gap_seconds=.5):
+    def __init__(self, detector, *, number_provider=None, max_gap_seconds=.5, diagnostic_sink=None):
         _need(callable(detector) and (number_provider is None or callable(number_provider))
-            and _finite(max_gap_seconds) and 0 < max_gap_seconds <= .5)
+            and _finite(max_gap_seconds) and 0 < max_gap_seconds <= .5
+            and (diagnostic_sink is None or type(diagnostic_sink) is PrivateRiderProbeSink))
         self.detector, self.number_provider = detector, number_provider
+        self._diagnostic_sink = diagnostic_sink
         self.max_gap = float(max_gap_seconds)
         self._flow = MarkerPixelFollower(max_gap_seconds=max_gap_seconds)
         self._objects = {}
@@ -203,6 +298,8 @@ class RiderPartTracker:
             and type(scene) is int and 0 <= scene < 2**63)
         _need(self._time is None or t > self._time and frame_index > self._index)
         _need(self._scene is None or scene >= self._scene)
+        if self._diagnostic_sink is not None:
+            self._diagnostic_sink._require_frame(frame_index)
         image = frame.copy(); digest = _digest(image)
         callback_image = image.copy()
         packet = self.detector(callback_image)
@@ -388,6 +485,8 @@ class RiderPartTracker:
             detector_engine=engine,raw_detections=raw_detections,flow=flowed,quality_flags=sorted(flags),
             model_eligible=False,field_validation='NOT_ESTABLISHED',identity_validated=False,
             metric_positions_inferred=False,hull_positions_inferred=False,forced_six=False)
+        if self._diagnostic_sink is not None:
+            self._diagnostic_sink._record(measured, sorted(self._objects))
         self._flow,self._objects,self._next_id = flow,current,next_id
         self._time,self._index,self._scene,self._shape = float(t),frame_index,scene,(width,height)
         self._number_seen_pixels = seen
