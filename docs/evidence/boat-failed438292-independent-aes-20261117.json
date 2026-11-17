@@ -1,0 +1,22 @@
+{
+  "aes_authenticated": true,
+  "audit_at": "2026-11-17T04:30:17.867179+00:00",
+  "continuity_artifact_id": 14208902044,
+  "continuity_zip_digest": "sha256:3635842b40ed27a48d061d21d3af38c337a029941a621a8d4a7176783b8d1dde",
+  "day_jst": "2026-11-16",
+  "failed_session_requests": 0,
+  "inherited_same_day_requests": 1246,
+  "lifetime_completed_rounds": 695,
+  "lifetime_requests": 12770,
+  "live_recovery_to_new_p1_proven": false,
+  "new_forecasts": 0,
+  "official_source_requests": 0,
+  "original_forecasts_changed": false,
+  "owner_head_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
+  "owner_run_id": 43829249080,
+  "public_counters_match_AES": true,
+  "source_control_artifact_id": 14208782370,
+  "source_control_zip_digest": "sha256:a7ac637efc923b17aeb9331f0c2af6e36ee403525f7e7e4fdb5f063c6370f705",
+  "status": "FAILED_OWNER_CHECKPOINT_AES_VERIFIED_READONLY",
+  "successor_dispatch_allowed": false
+}

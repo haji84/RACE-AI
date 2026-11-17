@@ -97,7 +97,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 82cedd7b6054ef73664a57e6e17709be56fb12c4
+          ref: eff296f6d54ad4be297d93e32f1ee0d4592ad9e3
           path: .native-safari-source
           persist-credentials: false
       - name: Install only existing pinned saved-view AES dependencies

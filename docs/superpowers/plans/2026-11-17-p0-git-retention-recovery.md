@@ -42,3 +42,6 @@ A local verification command initially named a nonexistent test_boat_recovery_tr
 
 Task 1 source integrated: PR292 normally merged as82cedd7; reviewed d26b7ba tree matches. Bootstrap/owner179 passed; final exact-head CI3 suites success.
 Task 2 main wiring: actual82 pins synchronized, c123 retained only for old original/control readback, current failed438292 audit selected, Safari reader missing parser dependencies reproduced and repaired (17 boundary tests pass). Main gate/audit/Safari101 and pinned reader64 pass. First local reader command mixed main and owner packages (SCHEMA_SPARSE import error); rerun used the workflow's whole-owner-package layout and passed. Source failures were not suppressed.
+
+Task 2 live gate44017586294 failed safely; no successor and no vault write. Corrected the fixture to actual recover().attach_snapshots rows, reproduced receipt collision RED, applied the same immutable projection, and verified60 tests plus55 independent tests. Existing PR108 reused for this source fix; old44-factor proposal survives in ancestry but no coefficient/model change is applied. Existing PR100 will carry the next exact-main pin sync; no new PR.
+Actual independent AES proof for priority438292 succeeded in44017586249/artifact14298594525. Later all-model scope replay in that job failed independently and is NOT a coverage success.
