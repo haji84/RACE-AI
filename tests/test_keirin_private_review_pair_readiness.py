@@ -1,5 +1,9 @@
 """Source-free checks of the non-promoting owner-private review readiness gate."""
 import base64
+import re
+
+import cv2
+import numpy as np
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -14,15 +18,21 @@ RACE = "202611098402"
 
 
 def make_html(name, *, one_frame_changed=False):
-    png = b"\x89PNG\r\n\x1a\n" + b"fake-source-free-payload"
     frames = []
     for i in range(46):
-        image = png + (b"CHANGED" if one_frame_changed and i == 7 else b"")
+        original = np.zeros((8, 12, 3), dtype=np.uint8)
+        original[:, :] = (i + 1, (i * 3) % 255, (i * 5) % 255)
+        displayed = original.copy()
+        if one_frame_changed and i == 7:
+            displayed[2, 4, 0] = (int(displayed[2, 4, 0]) + 1) % 255
+        ok, png = cv2.imencode(".png", displayed)
+        if not ok:
+            raise AssertionError("synthetic PNG encode failed")
         frames.append({
-            "frame_sha256": f"{i+1:064x}",
+            "frame_sha256": sha256(original.tobytes()).hexdigest(),
             "recording_sec": i * 2,
             "image_data_url": "data:image/png;base64," +
-            base64.b64encode(image).decode("ascii"),
+            base64.b64encode(png.tobytes()).decode("ascii"),
         })
     payload = {
         "draft_schema": "RACE_AI_KEIRIN_PRIVATE_BLIND_ANNOTATION_DRAFT_V1",
@@ -56,6 +66,7 @@ class RealPrivatePacketGate(unittest.TestCase):
         r = self.run_check()
         self.assertEqual(r["displayed_frames_per_packet"], 46)
         self.assertEqual(r["frame_png_bytes_and_declared_frame_id_equal_pairs"], 46)
+        self.assertEqual(r["decoded_BGR_pixel_source_sha_matches_each_packet"], 46)
         self.assertEqual(r["independent_signed_reviews_present"], 0)
         self.assertEqual(r["actual_follow_outcome_labels_verified"], 0)
         self.assertIn("HOLD", r["state"])
@@ -71,7 +82,22 @@ class RealPrivatePacketGate(unittest.TestCase):
         self.b.write_text(make_html("reviewer_B_pending", one_frame_changed=True),
                           encoding="utf-8")
         with self.assertRaisesRegex(
-                gate.ReviewReadinessError, "VISIBLE_FRAME_BYTES_MISMATCH"):
+                gate.ReviewReadinessError, "PRIVATE_FRAME_SOURCE_BGR_SHA_MISMATCH"):
+            self.run_check()
+
+    def test_equal_png_but_forged_frame_sha_rejected(self):
+        text = self.b.read_text(encoding="utf-8")
+        match = re.search(
+            r'(<script id="payload" type="application/json">)(.*?)(</script>)',
+            text, re.DOTALL)
+        self.assertIsNotNone(match)
+        data = json.loads(match.group(2))
+        data["frames"][3]["frame_sha256"] = "f" * 64
+        self.b.write_text(
+            text[:match.start(2)] + json.dumps(data, separators=(",", ":")) +
+            text[match.end(2):], encoding="utf-8")
+        with self.assertRaisesRegex(
+                gate.ReviewReadinessError, "PRIVATE_FRAME_SOURCE_BGR_SHA_MISMATCH"):
             self.run_check()
 
     def test_review_a_cannot_impersonate_review_b(self):
