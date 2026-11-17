@@ -125,6 +125,7 @@ class OneRealRaceGate(unittest.TestCase):
             self.assertEqual(request[0][1]["route"],"legacy")
             self.assertEqual(out["private_decryption"],"REAL_ORIGINAL_SHA_RESTORED")
             self.assertEqual(out["source_check"],"THIRD_PARTY_PROVISIONAL_RESULT_JOINED")
+            self.assertEqual(out["third_party_source_sha256"],"a"*64)
             self.assertFalse(out["official_result_authenticated"])
             self.assertFalse(out["independent_A_E_S_readback"])
             self.assertFalse(out["owner_html_browser_verified"])
