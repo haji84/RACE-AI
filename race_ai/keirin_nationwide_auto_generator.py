@@ -297,9 +297,23 @@ def generate_A_B(snapshot, *, generated_at, max_tickets=12):
             # Distinct scenario paths; a branch score is not a probability.
             index = f"L{leader}_V{variant}"
             phase_steps = _scenario(snapshot, strengths, leader, challenger, variant)
-            mass = max(.01, strengths[leader] + .15) * (1.0 / (1.0 + pos)) * (
-                1.00 if variant == 0 else .77 if variant == 1 else
-                .56 if variant == 2 else .37)
+            mode_weight = (1.00, .77, .56, .37)[variant]
+            lead_style = next(r["style"] for r in snapshot["riders"]
+                              if r["car"] == leader)
+            if lead_style == "NIGE" and variant in (0, 3):
+                mode_weight *= 1.12
+            elif lead_style in ("MAKURI", "ALLROUND") and variant in (1, 2):
+                mode_weight *= 1.12
+            # Apply only source-evidenced objectives. UNKNOWN does not
+            # silently inherit a generic advancement rule.
+            rule = snapshot["round_rule"]
+            if rule is not None:
+                if rule["objective"] == "TITLE_WIN" and variant == 2:
+                    mode_weight *= 1.15
+                elif rule["objective"] in ("DIRECT_QUALIFY","ALL_ADVANCE") and variant == 0:
+                    mode_weight *= 1.15
+            mass = max(.01, strengths[leader] + .15) * (
+                1.0 / (1.0 + pos)) * mode_weight
             scenarios.append({
                 "scenario_id": index, "six_phases": phase_steps,
                 "projected_3ren_tan": phase_steps[-1]["projected_top3"],
