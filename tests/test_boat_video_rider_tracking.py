@@ -1,7 +1,13 @@
 """Controlled native-pixel rider parts, never a real six-boat accuracy claim."""
 import hashlib
 import importlib
+import json
+import os
+from pathlib import Path
+import stat
+import tempfile
 import unittest
+from unittest.mock import patch
 
 try:
     import cv2
@@ -71,6 +77,175 @@ class RiderTrackingTests(unittest.TestCase):
     def update(self, tracker, index, *, t=None, scene=0, frame=None):
         return tracker.update(self.frame(index) if frame is None else frame,
                               t=index/10 if t is None else t, frame_index=index, scene=scene)
+
+    def diagnostic_sink(self, directory, *, source_pts=None):
+        sink = getattr(module, 'PrivateRiderProbeSink', None)
+        self.assertIsNotNone(sink, 'private first-association-probe sidecar is missing')
+        return sink(directory, media_sha256='c'*64,
+                    source_pts_by_frame=source_pts or {i: 11.+i/10 for i in range(6)})
+
+    @staticmethod
+    def wire(value):
+        return json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
+
+    def test_first_probe_loss_sidecar_survives_final_flow_filter_without_packet_changes(self):
+        self.count = 1
+        frames = [self.frame(0)]
+        self.texture = np.random.default_rng(9874).integers(0, 256, (70, 60, 3), np.uint8)
+        frames.append(self.frame(1))
+        probes = []
+        original = module.MarkerPixelFollower.update
+        def observe(follower, *args, **kwargs):
+            result = original(follower, *args, **kwargs)
+            probes.append(result)
+            return result
+        baseline = self.tracker()
+        with patch.object(module.MarkerPixelFollower, 'update', observe):
+            expected = [self.update(baseline, i, frame=frame) for i, frame in enumerate(frames)]
+        self.assertEqual(probes[2]['loss_reasons'], {'R000001':'INSUFFICIENT_SPATIAL_SUPPORT'})
+        self.assertEqual(expected[1]['flow']['loss_reasons'], {})
+        # Recorded from the unchanged pre-repair tracker on this controlled
+        # seed/loss sequence, with no inferred floating-point trajectory.
+        self.assertEqual([hashlib.sha256(self.wire(r)).hexdigest() for r in expected], [
+            'fbf8a2c1c49e1bcea6623f91504757fdb8c855d94ddd52337784f9893c556ef7',
+            '53d087152ccfd452bc9698f33b696bdb709fb7f409be1f4f790bc5656fc09fe5'])
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); root.chmod(0o700)
+            sink = self.diagnostic_sink(root)
+            tracker = module.RiderPartTracker(self.detector, diagnostic_sink=sink)
+            actual = [self.update(tracker, i, frame=frame) for i, frame in enumerate(frames)]
+            self.assertEqual([self.wire(r) for r in actual], [self.wire(r) for r in expected])
+            records = [json.loads(p.read_bytes()) for p in root.glob('*.json')]
+            self.assertEqual(len(records), 2)
+            second = next(r for r in records if r['frame_index'] == 1)
+            self.assertEqual(second['schema_version'], 'RACE_AI_RIDER_ASSOCIATION_PROBE_DIAGNOSTIC_V1')
+            self.assertEqual(second['media_sha256'], 'c'*64)
+            self.assertEqual(second['source_pts_seconds'], 11.1)
+            self.assertEqual(second['tracker_t_seconds'], .1)
+            self.assertEqual(second['frame_sha256'], hashlib.sha256(frames[1].tobytes()).hexdigest())
+            self.assertEqual(second['probe']['loss_reasons'], probes[2]['loss_reasons'])
+            self.assertEqual(second['prior_track_ids'], ['R000001'])
+            self.assertEqual(second['record_scope'], 'FIRST_ASSOCIATION_PROBE_NOT_FINAL_TRACKER_SUCCESS')
+            self.assertEqual(second['source_binding_authentication'], 'CALLER_SUPPLIED_NOT_AUTHENTICATED')
+            for field in ('identity_validated', 'calibration_validated', 'authority_established', 'model_eligible'):
+                self.assertIs(second[field], False)
+            for path in root.iterdir():
+                self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
+                self.assertEqual(path.stat().st_nlink, 1)
+                self.assertEqual(path.name, hashlib.sha256(path.read_bytes()).hexdigest()+'.json')
+
+    def test_opt_in_sidecar_preserves_full_clothing_packets_and_identity_decisions(self):
+        from tests.test_boat_video_clothing_identity import ClothingIdentityTests
+        from race_ai.boat_video_clothing_identity import ClothingColorIdentityTracker
+        fixture = ClothingIdentityTests(); fixture.setUp()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); root.chmod(0o700)
+            sink = self.diagnostic_sink(root)
+            diagnosed = ClothingColorIdentityTracker(module.RiderPartTracker(fixture.detector, diagnostic_sink=sink))
+            for i in range(6):
+                frame = fixture.frame(i)
+                if i == 4:
+                    fixture.visible = False
+                if i == 5:
+                    fixture.visible = True
+                expected = fixture.tracker.update(frame, t=i/10, frame_index=i, scene=0)
+                actual = diagnosed.update(frame, t=i/10, frame_index=i, scene=0)
+                self.assertEqual(self.wire(actual), self.wire(expected))
+                if i == 2:
+                    self.assertEqual([r['number'] for r in actual['tracks']], [1,2,3,4,5,6])
+            self.assertEqual(len(list(root.glob('*.json'))), 6)
+
+    def test_diagnostic_sink_rejects_nonprivate_symlink_and_git_directories(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); root.chmod(0o700)
+            shared = root/'shared'; shared.mkdir(mode=0o755); shared.chmod(0o755)
+            linked = root/'linked'; linked.symlink_to(root, target_is_directory=True)
+            git = root/'checkout'; git.mkdir(mode=0o700); (git/'.git').mkdir()
+            for directory in (shared, linked, git):
+                with self.subTest(directory=directory.name), self.assertRaisesRegex(ValueError, 'BOAT_RIDER_PROBE_DIAGNOSTICS_REJECTED'):
+                    self.diagnostic_sink(directory)
+            with self.assertRaises(ValueError):
+                module.RiderPartTracker(self.detector, diagnostic_sink=lambda _: None)
+
+    def test_sink_binding_is_copied_and_missing_pts_never_advances_tracker(self):
+        self.count = 1
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); root.chmod(0o700)
+            timestamps = {0: 123., 1: 123.1}
+            sink = self.diagnostic_sink(root, source_pts=timestamps)
+            timestamps[0] = 999.
+            tracker = module.RiderPartTracker(self.detector, diagnostic_sink=sink)
+            self.update(tracker, 0)
+            first = json.loads(next(root.glob('*.json')).read_bytes())
+            self.assertEqual(first['source_pts_seconds'], 123.)
+            with self.assertRaisesRegex(ValueError, 'BOAT_RIDER_PROBE_DIAGNOSTICS_REJECTED'):
+                self.update(tracker, 2)
+            self.assertEqual(tracker._time, 0.)
+            self.assertEqual(len(list(root.glob('*.json'))), 1)
+
+    def test_sink_rejects_invalid_media_and_source_pts_bindings(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); root.chmod(0o700)
+            sink_type = type(self.diagnostic_sink(root))
+            for media, timestamps in [('', {0: 0.}), ('c'*64, {}), ('c'*64, {True: 0.}),
+                    ('c'*64, {0: float('nan')}), ('c'*64, {0: 2., 1: 1.})]:
+                with self.subTest(media_valid=bool(media), timestamps=repr(timestamps)), self.assertRaises(ValueError):
+                    sink_type(root, media_sha256=media, source_pts_by_frame=timestamps)
+
+    def test_private_directory_replacement_or_mode_change_refuses_before_commit(self):
+        self.count = 1
+        for change in ('mode', 'replace'):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as temp:
+                base = Path(temp); base.chmod(0o700)
+                root = base/'diagnostics'; root.mkdir(mode=0o700)
+                sink = self.diagnostic_sink(root)
+                tracker = module.RiderPartTracker(self.detector, diagnostic_sink=sink)
+                first = self.update(tracker, 0)
+                if change == 'mode':
+                    root.chmod(0o755)
+                else:
+                    root.rename(base/'preserved'); root.mkdir(mode=0o700)
+                with self.assertRaisesRegex(ValueError, 'BOAT_RIDER_PROBE_DIAGNOSTICS_REJECTED'):
+                    self.update(tracker, 1)
+                self.assertEqual(tracker._time, 0.)
+                self.assertEqual(set(tracker._objects), {r['track_id'] for r in first['tracks']})
+
+    def test_duplicate_sidecar_is_reused_but_tampered_linked_or_symlink_bytes_refuse(self):
+        self.count = 1
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); root.chmod(0o700)
+            sink = self.diagnostic_sink(root)
+            first = self.update(module.RiderPartTracker(self.detector, diagnostic_sink=sink), 0)
+            second = self.update(module.RiderPartTracker(self.detector, diagnostic_sink=sink), 0)
+            self.assertEqual(self.wire(first), self.wire(second))
+            self.assertEqual(len(list(root.glob('*.json'))), 1)
+            path = next(root.glob('*.json')); original = path.read_bytes()
+            path.write_bytes(b'tampered diagnostic bytes')
+            with self.assertRaises(ValueError):
+                self.update(module.RiderPartTracker(self.detector, diagnostic_sink=sink), 0)
+            self.assertEqual(path.read_bytes(), b'tampered diagnostic bytes')
+            path.write_bytes(original)
+            alias = root/'hardlink'; os.link(path, alias)
+            with self.assertRaises(ValueError):
+                self.update(module.RiderPartTracker(self.detector, diagnostic_sink=sink), 0)
+            alias.unlink(); path.unlink(); path.symlink_to(root/'target')
+            (root/'target').write_bytes(original); (root/'target').chmod(0o600)
+            with self.assertRaises(ValueError):
+                self.update(module.RiderPartTracker(self.detector, diagnostic_sink=sink), 0)
+            self.assertEqual((root/'target').read_bytes(), original)
+
+    def test_failed_atomic_sidecar_write_keeps_tracker_state_and_no_partial_record(self):
+        self.count = 1
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); root.chmod(0o700)
+            sink = self.diagnostic_sink(root)
+            tracker = module.RiderPartTracker(self.detector, diagnostic_sink=sink)
+            with patch('race_ai.boat_video_intake._rename_noreplace', side_effect=OSError('controlled publication failure')):
+                with self.assertRaisesRegex(ValueError, 'BOAT_RIDER_PROBE_DIAGNOSTICS_REJECTED'):
+                    self.update(tracker, 0)
+            self.assertIsNone(tracker._time)
+            self.assertEqual(list(root.iterdir()), [])
+            self.assertEqual(self.update(tracker, 0)['tracks'][0]['track_id'], 'R000001')
 
     def test_six_anonymous_parts_follow_actual_pixels_without_number_or_hull_claim(self):
         tracker = self.tracker()
