@@ -285,14 +285,16 @@ def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
 
 
 def _scan_unqualified_originals(projection,*,day,artifact_id,physical_saved_at,
-                               expected,source_original_index,expected_owner_sha,verified_reused_predictions=None):
+                               expected,source_original_index,expected_owner_sha,verified_reused_predictions=None,
+                               qualification_blocker='OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE'):
     """Count exact authenticated output bodies without qualifying any deadline.
 
-    Called only after a frozen active scope and real ZIP/AES/model replay, when
-    the independent official-B index is absent. It supplies no substitute
-    cutoff ledger and no physical/official eligible slots.
+    Called only after a frozen scope and real ZIP/AES/model replay, when the
+    official-B index is absent or the native prefix has an unexplained missing
+    model archive. It supplies no physical/official eligible slots.
     """
     owner=_owner_head(expected_owner_sha)
+    need(qualification_blocker in ('OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE','ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED'))
     need(type(projection) is dict and type(projection.get('records')) is list)
     rows=[];holds=Counter();missing=0;reused=0
     for row in projection['records']:
@@ -318,7 +320,7 @@ def _scan_unqualified_originals(projection,*,day,artifact_id,physical_saved_at,
             identity=_identity(rid,prediction);matched=source_original_index.get(identity,0)>0
             if matched:source_original_index[identity]-=1
             else:missing+=1
-            holds['OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE']+=1
+            holds[qualification_blocker]+=1
             rows.append((rid,model,False,matched,False))
     return rows,holds,missing,reused
 
@@ -459,6 +461,8 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         selected_rounds=validate_active_scope(active_scope,run,listed,now,get,
             expected_owner_sha=OWNER_SHA if expected_owner_sha is None else expected_owner_sha,
             allow_completed_receipts=allow_completed_receipts)
+    model_scope=(active_scope['all_model_archive_scope'] if owner_head==M2_OWNER_SHA else None)
+    missing_model_rounds=model_scope['missing_rounds'] if model_scope else []
     targets=[];unique_ids=set();unique_rounds=set()
     for item in listed:
         record=R._listed(item,run_id,now)
@@ -468,7 +472,7 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         need(artifact_id not in unique_ids and round_no not in unique_rounds)
         unique_ids.add(artifact_id);unique_rounds.add(round_no)
         targets.append((round_no,artifact_id,item))
-    need(0<len(targets)<=maximum_artifacts)
+    need(len(targets)<=maximum_artifacts and (targets or missing_model_rounds))
     if selected_rounds is not None:need(unique_rounds==set(selected_rounds))
     targets.sort()
     try:
@@ -493,7 +497,8 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
     duplicates=0;invalid=Counter();by_model=Counter();official_by_model=Counter()
     round_counts=[];baseline_reuses=0;cutoff_diagnostics=[];verified_native_ids=set()
     from race_ai.repeated_cycle import artifact_name
-    selected_native_names={artifact_name('boat-national-cutoff',run_id,n) for n in (selected_rounds or []) if n>0}
+    native_rounds=active_scope['rounds'] if active_scope is not None else (selected_rounds or [])
+    selected_native_names={artifact_name('boat-national-cutoff',run_id,n) for n in native_rounds if n>0}
     selected_native_ids={item['id'] for item in listed if item.get('name') in selected_native_names}
     all_archive_sha_verified=0;all_aes_authenticated=0
     for round_no,artifact_id,listed_item in targets:
@@ -526,10 +531,12 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
                 saved_at=meta['created_at'],now=now,key=key,day=day)
             verified_native_ids.update(native_ids)
         all_archive_sha_verified+=1;all_aes_authenticated+=1
-        if official_cutoffs is None:
+        if official_cutoffs is None or missing_model_rounds:
             rows,holds,missing,reused=_scan_unqualified_originals(projected,day=day,artifact_id=artifact_id,
                 physical_saved_at=meta['created_at'],expected=expected,source_original_index=source_index,
-                expected_owner_sha=owner_head,verified_reused_predictions=verified_reused)
+                expected_owner_sha=owner_head,verified_reused_predictions=verified_reused,
+                qualification_blocker='ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED' if missing_model_rounds else
+                                      'OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE')
         else:
             rows,holds,missing,reused=_scan(projected,day=day,artifact_id=artifact_id,
                                 physical_saved_at=meta['created_at'],
@@ -563,18 +570,24 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         invalid.update(holds);baseline_reuses+=reused
         round_counts.append(dict(round=round_no,source_archive_zip_sha_verified=True,
                                  aes_decrypted_and_projected=True,
+                                 generated_forecasts_reported=summary['generated_forecasts'],
                                  forecast_p1_rows=len(rows),reused_baseline_p1_rows=reused,
                                  physically_pre_cutoff=sum(row[2] for row in rows),
                                  independently_official_cutoff_verified=sum(row[4] for row in rows),
                                  saved_view_originals_matched=sum(row[3] for row in rows)))
-    need(0<all_archive_sha_verified==all_aes_authenticated==len(targets))
+    need(all_archive_sha_verified==all_aes_authenticated==len(targets))
     need(matched+absent==physical_forecasts and
          all(original_copy[key]>=source_index.get(key,0) for key in source_index))
     # Difference is diagnostic only. Missing, duplicated and late original
     # predictions never become a successful user-visible completion claim.
     official_total=len(expected)*len(official_cutoffs) if official_cutoffs is not None else None
-    return dict(schema=SCHEMA,status=('AES_ZIP_REPLAY_VERIFIED_P1_COVERAGE_INCOMPLETE' if official_cutoffs is not None else
-                                     'AES_ZIP_REPLAY_VERIFIED_OFFICIAL_PROGRAM_UNAVAILABLE'),
+    round_coverage=[dict(round=row['round'],state='AES_ARCHIVE_AUTHENTICATED',
+                        generated_forecasts=row['generated_forecasts_reported']) for row in round_counts]
+    round_coverage.extend(dict(round=number,state='ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED',generated_forecasts=None)
+                          for number in missing_model_rounds)
+    return dict(schema=SCHEMA,status=('HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED' if missing_model_rounds else
+                'AES_ZIP_REPLAY_VERIFIED_P1_COVERAGE_INCOMPLETE' if official_cutoffs is not None else
+                'AES_ZIP_REPLAY_VERIFIED_OFFICIAL_PROGRAM_UNAVAILABLE'),
         day_jst=day,owner_run_id=run_id,owner_source_commit=owner_head,
         actual_listed_archives=len(targets),github_zip_sha256_independently_verified=all_archive_sha_verified,
         aes_originals_independently_decrypted=all_aes_authenticated,
@@ -586,7 +599,8 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         physical_pre_cutoff_distinct_model_slots=len(eligible_slots),
         official_program_source_authenticated=official_cutoffs is not None,
         official_cutoff_qualification=official_cutoffs is not None and bool(official_slots) and not invalid,
-        cutoff_qualification_blocker='OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE' if official_cutoffs is None else None,
+        cutoff_qualification_blocker=('OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE' if official_cutoffs is None else
+                                      'ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED' if missing_model_rounds else None),
         authentic_official_P0_schedule_races=len(official_cutoffs) if official_cutoffs is not None else None,
         official_schedule_crosschecked_pre_cutoff_model_slots=len(official_slots),
         original_predictions_matched_saved_AES_view=matched,
@@ -597,6 +611,9 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         per_model_physically_pre_cutoff=dict(sorted(by_model.items())),
         per_model_official_schedule_crosschecked=dict(sorted(official_by_model.items())),
         round_evidence=round_counts,
+        all_model_round_coverage=sorted(round_coverage,key=lambda row:row['round']),
+        missing_all_model_rounds=missing_model_rounds,
+        excluded_all_model_rounds=model_scope['excluded_rounds'] if model_scope else [],
         source_cutoff_conflict_diagnostics=cutoff_diagnostics,
         previously_archived_coverages_skipped_without_zip_read=0,
         full_day_coverage=False,successor_dispatch_allowed=False,latest_live_counters_audited=False,

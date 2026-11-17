@@ -28,7 +28,7 @@ def failure_diagnostic(error):
                       'boat_owner_evidence_audit.py'))
     functions=frozenset(('audit_active_snapshot','audit','_official_cutoffs','_scan','_scan_unqualified_originals',
         '_owner_head','validate_active_scope','_canonical_p0','_jobs','read','moment','cutoff_source_disagreement',
-        '_verified_reused_baseline','_final_control','_expected_source'))
+        '_verified_reused_baseline','_final_control','_expected_source','_model_archive_scope'))
     output={};trace=error.__traceback__;folder=Path(__file__).resolve().parent
     while trace is not None:
         code=trace.tb_frame.f_code;path=Path(code.co_filename).resolve()
@@ -140,6 +140,28 @@ def _jobs(get,run,now,*,expected_owner_sha=OWNER_SHA,completed_round_limit=None)
     return job,selected
 
 
+def _model_archive_scope(listing,run_id,rounds,now):
+    """Names attest presence only; absent conditional uploads stay unexplained.
+
+    The producer can continue after generation/upload failure, so neither a
+    missing archive nor a successful native step attests zero model issuance.
+    """
+    from race_ai import boat_all_model_recovery as R
+    listed={};ids=set()
+    for item in listing:
+        record=R._listed(item,run_id,now)
+        if str(item.get('name','')).startswith(f'boat-all-model-forecasts-{run_id}-'):
+            need(record is not None,'MODEL_ARCHIVE_NAME_UNSUPPORTED')
+        if record is None:continue
+        ident,number=record
+        need(number not in listed and ident not in ids,'MODEL_ARCHIVE_DUPLICATE')
+        listed[number]=ident;ids.add(ident)
+    eligible={0,*rounds}
+    return dict(present_rounds=sorted(set(listed)&eligible),
+                missing_rounds=[number for number in rounds if number not in listed],
+                excluded_rounds=sorted(set(listed)-eligible))
+
+
 def validate_active_scope(scope,run,listing,now,get,*,expected_owner_sha=OWNER_SHA,allow_completed_receipts=False):
     """Bind the opt-in exact-ZIP path to the same actual job and inventory."""
     from race_ai.actions_contract import digest
@@ -162,6 +184,11 @@ def validate_active_scope(scope,run,listing,now,get,*,expected_owner_sha=OWNER_S
                       completed_round_limit=control['completed_round'] if control else None)
     need(scope.get('job')==job and scope.get('rounds')==rounds and
          scope.get('inventory_sha256')==digest(listing),'SNAPSHOT_CHANGED')
+    if expected_owner_sha==M2_OWNER_SHA:
+        derived=_model_archive_scope(listing,run['id'],rounds,now)
+        declared=scope.get('all_model_archive_scope')
+        need(type(declared) is dict and digest(declared)==digest(derived),'MODEL_ARCHIVE_SCOPE_CHANGED')
+        return derived['present_rounds']
     initial=any(row.get('name')==f'boat-all-model-forecasts-{run["id"]}-r0' for row in listing)
     return ([0] if initial else [])+rounds
 
@@ -251,6 +278,8 @@ def audit_active_snapshot(repo,run_id,*,now,get,expected_owner_sha=OWNER_SHA,all
     scope=dict(schema=SCHEMA,run=run,job=job,rounds=rounds,inventory=listing,
                inventory_sha256=digest(listing),captured_at=now.isoformat(),
                expected_owner_sha=expected_owner_sha,allow_completed_receipts=allow_completed_receipts,final_control=control)
+    if expected_owner_sha==M2_OWNER_SHA:
+        scope['all_model_archive_scope']=_model_archive_scope(listing,run_id,rounds,now)
     validate_active_scope(scope,run,listing,now,reads,expected_owner_sha=expected_owner_sha,
                           allow_completed_receipts=allow_completed_receipts)
     day=_time(run['created_at']).astimezone(exact.JST).date().isoformat()
@@ -332,8 +361,9 @@ def audit_active_snapshot(repo,run_id,*,now,get,expected_owner_sha=OWNER_SHA,all
     excluded=[int(match[1]) for step in job['steps']
               if (match:=re.fullmatch(r'Deadline-ordered five-model round ([0-9]{2})',str(step.get('name')))) and
                  int(match[1]) not in rounds and step.get('status')=='completed' and step.get('conclusion')=='success']
-    return dict(schema=SCHEMA,status=('COMPLETED_OWNER_RECEIPTS_AES_VERIFIED_PARTIAL_SCOPE' if control else
-                                     'ACTIVE_COMPLETED_RECEIPTS_AES_VERIFIED_PARTIAL_SCOPE'),
+    return dict(schema=SCHEMA,status=('HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED' if proof['missing_all_model_rounds'] else
+                'COMPLETED_OWNER_RECEIPTS_AES_VERIFIED_PARTIAL_SCOPE' if control else
+                'ACTIVE_COMPLETED_RECEIPTS_AES_VERIFIED_PARTIAL_SCOPE'),
         owner_run_id=run_id,owner_source_commit=expected_owner_sha,owner_status_at_snapshot=run['status'],
         captured_at=now.isoformat(),inventory_sha256=scope['inventory_sha256'],
         completed_rounds_audited=rounds,round_evidence=evidence,
@@ -345,6 +375,7 @@ def audit_active_snapshot(repo,run_id,*,now,get,expected_owner_sha=OWNER_SHA,all
         successful_round_steps_excluded=excluded,
         official_cutoff_qualification=proof['official_cutoff_qualification'],
         cutoff_qualification_blocker=proof['cutoff_qualification_blocker'],
+        missing_all_model_rounds=proof['missing_all_model_rounds'],
         all_model_zip_readback=proof,full_day_coverage=False,successor_dispatch_allowed=False,
         latest_live_counters_audited=False,official_source_requests=0,new_forecasts=0,
         original_forecasts_changed=False)

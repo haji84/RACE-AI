@@ -303,6 +303,10 @@ class ActiveSnapshotTests(unittest.TestCase):
             exact.audit(get=self.get,repo='unused',run_id=99,day=DAY,expected_models=['boat-model-A'],
                         original_view=self.view,now=NOW,owner_key=KEY)
 
+    def test_default_eff_still_refuses_a_missing_completed_round_model_archive(self):
+        self.metas.pop(103)
+        with self.assertRaises(ValueError):self.audit(missing_program=True)
+
     def test_workflow_uses_current_push_target_and_keeps_completed_defaults(self):
         text=(ROOT/'.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
         self.assertNotIn("|| '43818666068'",text)
@@ -385,6 +389,126 @@ class M2SnapshotTests(unittest.TestCase):
         self.f.add(103,'boat-all-model-forecasts-99-r1',None,
             M.zipped(store.seal_forecasts(self.mixed_payload,run_id='99',round_no=1,key=KEY)),
             '2030-04-01T09:00:20Z')
+
+    def two_native_rounds(self,*,initial_model=True):
+        """A completed second native round does not attest ALL_MODEL issuance."""
+        from race_ai.repeated_cycle import artifact_name
+        document=dict(schema='RACE_AI_NATIONWIDE_PRE_CUTOFF_AB_V1',paired_forecasts=[],
+            additional_official_feature_shadows=[],observed_pairwise_p1_bundles=[],candidate_attempts=[],
+            all_model_collection=dict(state='PREPARED_RUNTIME_ADMITTED'))
+        self.f.add(104,artifact_name('boat-national-cutoff',99,2),'P1',packed({'national.json':json.dumps(document)}),
+                   '2030-04-01T09:02:10Z')
+        state=dict(self.f.state,requests_used=21,lifetime_requests=109,completed_round=1,prepared_round=2,
+                   lifetime_completed_rounds=8)
+        report=dict(self.f.report,round_no=2,first_forecast_artifacts=[self.f.metas[104]],
+                    bounded_repeat_session=state,updated_at='2030-04-01T09:03:10Z')
+        report['report_sha256']=digest({k:v for k,v in report.items() if k!='report_sha256'})
+        self.f.add(105,artifact_name('race-existing-cycle',99,2),'RESULT',packed({'status.json':json.dumps(report),
+            'official-result-observations.json':'[]','current-p1-original.zip':self.f.raws[104]}),'2030-04-01T09:03:20Z')
+        self.f.job['steps'][1].update(status='completed',conclusion='success',completed_at='2030-04-01T09:04:00Z')
+        self.f.run['updated_at']='2030-04-01T09:04:30Z'
+        if initial_model:
+            from race_ai import boat_all_model_store as store
+            payload=deepcopy(M.ModelRecoveryTests.empty_payload)
+            payload.update(stage='P0',run_id='99',source_code_commit=M2_HEAD,generated_at='2030-04-01T01:39:00Z',
+                as_of='2030-04-01T01:39:00Z',dispatch_reports=[],native_input_capsules=[],current_inputs=[],
+                baseline=None,summary=dict(contexts=0,generated_forecasts=0,reused_baseline_forecasts=0))
+            payload['runtime_provenance']['source_code_commit']=M2_HEAD
+            self.f.add(106,'boat-all-model-forecasts-99-r0',None,
+                M.zipped(store.seal_forecasts(payload,run_id='99',round_no=0,key=KEY)),'2030-04-01T01:39:01Z')
+
+    def test_two_native_rounds_with_only_r0_r1_models_authenticate_all_receipts_and_hold_unknown_r2(self):
+        self.two_native_rounds();before=deepcopy((self.f.raws,self.f.metas,self.f.report,self.f.run,self.f.job,self.f.view))
+        for missing_program in (False,True):
+            out=self.audit(missing_program=missing_program);proof=out['all_model_zip_readback']
+            self.assertEqual(out['completed_rounds_audited'],[1,2])
+            self.assertEqual(proof['active_completed_round_scope'],[0,1])
+            self.assertEqual(proof['missing_all_model_rounds'],[2])
+            self.assertEqual(proof['excluded_all_model_rounds'],[])
+            self.assertEqual(proof['status'],'HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED')
+            self.assertEqual(proof['cutoff_qualification_blocker'],
+                'OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE' if missing_program else 'ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED')
+            self.assertEqual(proof['official_program_source_authenticated'],not missing_program)
+            unknown=next(row for row in proof['all_model_round_coverage'] if row['round']==2)
+            self.assertEqual(unknown['state'],'ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED')
+            self.assertIsNone(unknown['generated_forecasts'])
+            self.assertEqual(proof['actual_listed_archives'],2)
+            self.assertEqual(out['raw_aes_archives_verified'],7)
+            self.assertEqual(out['status'],'HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED')
+            for field in ('physical_pre_cutoff_distinct_model_slots','official_schedule_crosschecked_pre_cutoff_model_slots'):
+                self.assertEqual(proof[field],0)
+            for field in ('full_day_coverage','successor_dispatch_allowed','latest_live_counters_audited','official_cutoff_qualification'):
+                self.assertIs(out[field],False)
+            for ident in (104,105):self.assertIn(f'actions/artifacts/{ident}/zip',self.f.calls)
+            self.assertNotIn('PRIVATE_',json.dumps(out));self.assertNotIn('ordered_top8',json.dumps(out))
+        self.assertEqual((self.f.raws,self.f.metas,self.f.report,self.f.run,self.f.job,self.f.view),before)
+
+    def test_missing_model_scope_cannot_shorten_native_prefix_hide_present_archives_or_forge_exclusions(self):
+        self.two_native_rounds()
+        from race_ai.actions_contract import digest
+        listing=list(self.f.metas.values());reads=active._Reads(self.f.get)
+        scope=dict(schema=active.SCHEMA,run=self.f.run,job=self.f.job,rounds=[1,2],inventory=listing,
+            inventory_sha256=digest(listing),captured_at=NOW.isoformat(),expected_owner_sha=M2_HEAD,
+            allow_completed_receipts=False,final_control=None,
+            all_model_archive_scope=dict(present_rounds=[0,1],missing_rounds=[2],excluded_rounds=[]))
+        self.assertEqual(active.validate_active_scope(scope,self.f.run,listing,NOW,reads,expected_owner_sha=M2_HEAD),[0,1])
+        for field,value in (('present_rounds',[0]),('present_rounds',[False,True]),('missing_rounds',[]),('excluded_rounds',[1])):
+            changed=deepcopy(scope);changed['all_model_archive_scope'][field]=value
+            with self.subTest(field=field),self.assertRaises(ValueError):
+                active.validate_active_scope(changed,self.f.run,listing,NOW,reads,expected_owner_sha=M2_HEAD)
+        changed=dict(scope,rounds=[1])
+        with self.assertRaises(ValueError):active.validate_active_scope(changed,self.f.run,listing,NOW,reads,expected_owner_sha=M2_HEAD)
+
+    def test_present_model_and_every_selected_native_receipt_stay_mandatory_despite_other_model_gap(self):
+        self.two_native_rounds()
+        for case in ('all_missing_transport','all_corrupt','all_expired','all_key','p1_missing','result_missing','nested_corrupt'):
+            before=deepcopy((self.f.raws,self.f.metas));get=self.f.get
+            if case=='all_missing_transport':
+                def get(path):
+                    if path=='actions/artifacts/103/zip':raise ValueError('GITHUB_API_READ_HTTP_404_HALT')
+                    return self.f.get(path)
+            elif case=='all_corrupt':self.f.raws[103]+=b'changed'
+            elif case=='all_expired':self.f.metas[103]['expired']=True
+            elif case=='all_key':
+                from race_ai import boat_all_model_store as store
+                with __import__('zipfile').ZipFile(__import__('io').BytesIO(self.f.raws[103])) as z:
+                    payload=store.open_forecasts(z.read('forecasts.enc'),key=KEY)
+                self.f.add(103,'boat-all-model-forecasts-99-r1',None,M.zipped(store.seal_forecasts(payload,run_id='99',
+                    round_no=1,key=bytes(reversed(range(32))))),'2030-04-01T09:00:20Z')
+            elif case=='p1_missing':self.f.metas.pop(104)
+            elif case=='result_missing':self.f.metas.pop(105)
+            else:self.f.raws[105]+=b'changed'
+            with self.subTest(case=case),self.assertRaises(ValueError):self.audit(get=get,missing_program=True)
+            self.f.raws,self.f.metas=before
+
+    def test_zero_present_model_archives_are_unknown_not_zero_generation_or_a_reader_success(self):
+        self.two_native_rounds(initial_model=False);self.f.metas.pop(103)
+        out=self.audit(missing_program=True);proof=out['all_model_zip_readback']
+        self.assertEqual(out['completed_rounds_audited'],[1,2]);self.assertEqual(proof['missing_all_model_rounds'],[1,2])
+        self.assertEqual(proof['actual_listed_archives'],0);self.assertEqual(out['raw_aes_archives_verified'],5)
+        self.assertEqual(proof['status'],'HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED')
+        self.assertTrue(all(row['generated_forecasts'] is None for row in proof['all_model_round_coverage']))
+
+    def test_native_round_without_its_model_archive_is_not_counted_twice_when_later_packet_reuses_it(self):
+        # The readback protocol permits an authenticated prior-native receipt.
+        # Generation normally passes its current P1; this tests the accounting
+        # boundary for a supported older receipt, without assuming live usage.
+        from race_ai import boat_all_model_cycle as engine,boat_all_model_store as store
+        self.mixed_baseline();self.two_native_rounds()
+        self.f.add(101,'boat-national-cutoff-99','P1',packed({'national.json':json.dumps(self.native_document)}),
+                   '2030-04-01T09:00:01Z')
+        self.f.report['first_forecast_artifacts']=[self.f.metas[101]];self.f.result()
+        self.mixed_payload['baseline']['receipt'].update(run_id='99',head_sha=M2_HEAD,artifact_id=101)
+        self.f.add(103,'boat-all-model-forecasts-99-r2',None,
+            M.zipped(store.seal_forecasts(self.mixed_payload,run_id='99',round_no=2,key=KEY)),
+            '2030-04-01T09:03:30Z')
+        receipt=dict(repository_id='1416489937',repository='haji84/RACE-AI',run_id='99',head_sha=M2_HEAD,
+            artifact_id=103,created_at=self.f.metas[103]['created_at'],payload_sha256=digest(self.mixed_payload),independently_verified=True)
+        self.f.view=engine.project_round(self.mixed_payload,receipt)
+        out=self.audit(missing_program=True);proof=out['all_model_zip_readback']
+        self.assertEqual(out['completed_rounds_audited'],[1,2]);self.assertEqual(proof['missing_all_model_rounds'],[1])
+        self.assertEqual(proof['additional_native_p1_archives_verified'],0)
+        self.assertEqual(out['raw_aes_archives_verified'],7)
 
     def test_crypto_old_eff_baseline_is_verified_but_never_counted_as_new_m2_output(self):
         self.mixed_baseline();before=deepcopy((self.f.raws,self.f.extra,self.mixed_payload,self.f.view))
@@ -582,15 +706,18 @@ class M2SnapshotTests(unittest.TestCase):
                             original_view=self.f.view,now=NOW,owner_key=KEY,expected_owner_sha=M2_HEAD)
             cutoffs.assert_not_called()
 
-    def test_completed_scope_excludes_extra_unfinished_archives_but_never_missing_selected_model_zip(self):
+    def test_completed_scope_excludes_extra_unfinished_archives_and_keeps_missing_model_unknown(self):
         self.complete()
         self.f.metas[104]=dict(self.f.metas[103],id=104,name='boat-all-model-forecasts-99-r2')
         self.f.raws[104]=b'corrupt unfinished extra is never selected'
         out=self.audit(missing_program=True,allow_completed_receipts=True)
         self.assertEqual(out['all_model_zip_readback']['actual_listed_archives'],1)
+        self.assertEqual(out['all_model_zip_readback']['excluded_all_model_rounds'],[2])
         self.assertNotIn('actions/artifacts/104/zip',self.f.calls)
         self.f.metas.pop(103)
-        with self.assertRaises(ValueError):self.audit(missing_program=True,allow_completed_receipts=True)
+        held=self.audit(missing_program=True,allow_completed_receipts=True)
+        self.assertEqual(held['missing_all_model_rounds'],[1])
+        self.assertEqual(held['status'],'HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED')
 
     def test_snapshot_run_and_final_job_status_must_be_truthful(self):
         for status,conclusion in (('queued',None),('in_progress','failure'),('completed',None),('completed','cancelled')):
