@@ -1,7 +1,6 @@
 """Read-only verification of two owner-private Takeo 2R *draft* review packets.
 
-Verify actual file SHA256, payload binding, 46 displayed PNG bytes and A/B
-concordance. The declared source-video/frame SHA is not by itself a replay
+Verify actual file SHA256, payload binding, 46 decoded BGR-crop frame\nSHA256 values, displayed PNG bytes and A/B concordance. The declared source-video/frame SHA is not by itself a replay
 verification of the raw video, and two pending drafts are NOT two reviewers.
 No internet, no private pixels in output, no model/PDCA changes.
 """
@@ -13,6 +12,9 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import re
+
+import cv2
+import numpy as np
 
 SCHEMA = "RACE_AI_KEIRIN_REAL_TAKEO_REVIEW_READINESS_V1"
 HEX = re.compile(r"^[a-f0-9]{64}$")
@@ -91,6 +93,17 @@ def inspect_html(path, *, expected_sha, race_id, video_sha, proposal_sha,
             raise ReviewReadinessError("PRIVATE_FRAME_BASE64_INVALID") from None
         need(png_bytes.startswith(PNG) and len(png_bytes) >= 24,
              "PRIVATE_FRAME_PNG_INVALID")
+        # OpenCV encodes/decodes these owner-private source crops in BGR.
+        # Compare the actual decoded pixels against the frozen frame SHA,
+        # not merely equal PNG files that might share a forged frame ID.
+        pixels = cv2.imdecode(
+            np.frombuffer(png_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
+        need(pixels is not None and pixels.ndim == 3 and
+             pixels.shape[2] == 3 and
+             0 < pixels.shape[0] <= 2160 and 0 < pixels.shape[1] <= 3840,
+             "PRIVATE_FRAME_PNG_DECODE_OR_SHAPE_INVALID")
+        need(sha256(pixels.tobytes()).hexdigest() == frame["frame_sha256"],
+             "PRIVATE_FRAME_SOURCE_BGR_SHA_MISMATCH")
         checked.append((frame["frame_sha256"],
                         frame["recording_sec"],
                         sha256(png_bytes).hexdigest()))
@@ -132,6 +145,7 @@ def inspect_pair(a, b, *, expected_a_sha, expected_b_sha, race_id,
         "html_b_sha256_verified": second["file_sha256"],
         "distinct_packet_manifest_claims": True,
         "displayed_frames_per_packet": 46,
+        "decoded_BGR_pixel_source_sha_matches_each_packet": 46,
         "frame_png_bytes_and_declared_frame_id_equal_pairs": paired,
         "independent_signed_reviews_present": 0,
         "independent_reviewers_verified": 0,
