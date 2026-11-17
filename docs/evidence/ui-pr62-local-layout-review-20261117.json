@@ -1,0 +1,111 @@
+{
+  "schema": "RACE_AI_LOCAL_UI_PR62_CODE_REVIEW_EVIDENCE_V1",
+  "existing_draft_pr": 62,
+  "runtime_source_base": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+  "runtime_source_base_tree": "cfdf464974bfc24839808c69719cb6b002eb991b",
+  "legacy_pr_head_preserved": "a6bc73d97d56e0f6626450e1883000763feb0643",
+  "ancestry_merge_commit": "a6ff5a290a5e7fea3274a5129e8c6f8128735a2c",
+  "ancestry_merge_source_tree_unchanged": true,
+  "reviewed_ui_source": "a4a200f5cea40804762779ee7afbc7f871419107",
+  "cherry_picked_source_commits": [
+    "5992f11033fa6e8e7f737cc9b029341f0ed6baf1",
+    "50f97048c63258dfe0c0aa33662e406a44eabeec",
+    "a4a200f5cea40804762779ee7afbc7f871419107"
+  ],
+  "ui_transplant_head": "a99e9c39790e195d862b3ade5117096053551a6d",
+  "ui_transplant_tree": "b386825daeb8e388866d1fd2389f3a54c125a6fe",
+  "cherry_pick_commits": [
+    "2fc4cd493c4c9374ee84a0631ef24ca6a2016624",
+    "7fb7326df9226015c9cd19fbe2ec4abf94bf7f7b",
+    "a99e9c39790e195d862b3ade5117096053551a6d"
+  ],
+  "reviewed_changed_file_count": 5,
+  "reviewed_changed_files": [
+    {
+      "path": "web/app.js",
+      "sha256": "67742a37a42e46deb2e2de4dd65540f81227bbf8138e7606909e17c6c9104fa6",
+      "bytes": 199880
+    },
+    {
+      "path": "web/index.html",
+      "sha256": "676a3537bb97f5826d2f1e7c01154a488e310a3d18bd25e9c8a50c33d9666c39",
+      "bytes": 25457
+    },
+    {
+      "path": "web/style.css",
+      "sha256": "c2dd9f1841e83b1359517edd2082830504bf5e5a65fe501cf44346ad50d38400",
+      "bytes": 75632
+    },
+    {
+      "path": "tests/reference_layout_browser.test.cjs",
+      "sha256": "8d6a01221f055963fd0d90521040a73bd57c14cddb8eb17f2bdc771a6480a085",
+      "bytes": 5447
+    },
+    {
+      "path": "tests/reference_controls_browser.test.cjs",
+      "sha256": "8e49e89b8d32edd988258b243b34df46b91e7c787cd60395c62b6281764fe34e",
+      "bytes": 11816
+    }
+  ],
+  "entire_web_tree_equal_reviewed_ui": true,
+  "web_tree": "23bddbad96d303cdd9699615ecfa6f99f7f82f61",
+  "self_contained_runtime_source_browser_context": true,
+  "main_browser_acceptance_claimed": false,
+  "browser": "LOCAL_LINUX_CHROMIUM_ONLY",
+  "actual_viewports": [
+    [
+      320,
+      844
+    ],
+    [
+      390,
+      844
+    ],
+    [
+      1440,
+      1000
+    ],
+    [
+      1920,
+      1000
+    ]
+  ],
+  "fresh_browser_checkpoint_counts": {
+    "controls": 4,
+    "layout": 4,
+    "ui": 30,
+    "model": 3,
+    "result": 3
+  },
+  "fresh_unit_test_count": 3,
+  "syntax_and_diff_checks_passed": true,
+  "browser_exports_from_invented_interaction_probes": 0,
+  "exact_public_fixture_sha256": "b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a",
+  "private_reference_count": 8,
+  "private_exact_public_synthetic_png_count": 36,
+  "standard_seven_page_png_count": 28,
+  "extra_focus_subview_png_count": 8,
+  "private_portable_image_manifest_sha256": "b37cadb0b6d16d0dfee8f879493fdb05f725022b5218a4b84afb6c21484cbd97",
+  "no_reference_images_or_captures_checked_in": true,
+  "all_eight_reference_mappings": "PARTIAL",
+  "all_eight_reference_screens_visually_verified": false,
+  "native_safari_verified": false,
+  "physical_mac_verified": false,
+  "physical_iphone_verified": false,
+  "account_login_verified": false,
+  "v5_continuation_verified": false,
+  "real_data_verified": false,
+  "known_limits": [
+    "Closed unfocused native select labels still ellipsize; full selected text is accessible on focus in document flow and in native options.",
+    "Phone allocation summary still requires scrolling after all eight retained candidates and manual form.",
+    "References02/06 show upcoming lists, while the exact public fixture is finalized; an empty upcoming subview is documented.",
+    "Desktop reference07 has eight specialized tabs; the product has five and missing participants remain explicit.",
+    "Results, research and settings have no supplied reference JPG.",
+    "No actual native Safari, physical iPhone, account login, V5 continuation or real-data acceptance."
+  ],
+  "prepared_without_remote_mutations": true,
+  "product_publication_authorized": false,
+  "canonical_pins_changed": false,
+  "workflow_deployment_configuration_changed": false,
+  "deployed_public_assets_unchanged": "f60308ef7443ca13b5ca23c4896e15ffc67b0427"
+}
