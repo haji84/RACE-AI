@@ -1,3 +1,15 @@
+## 2026-11-17 20:47 UTC: 実新sourceのP0保管・新日付モデル生成まで成功、展示窓を待機（GOAL未達）
+
+既存main起動ガード44166778123のattempt2/job134349097028が、時間内に READY_EXISTING_OWNER_WORKFLOW_ONLY /dispatch=trueと判定し、実source bb49215034b779ea1493b35dd91e5c3ebfc04032 のrun **44170869325** /job134349278782を05:35 JSTに開始した。同じ原本/権限/重複チェックを通した。
+
+実stepで、最初のP0取得・暗号化・artifact保存・元ZIP/create-only receipt読戻し・長期保管・原本再利用・既存B原本保管が成功。さらに新日付P0 families生成(20:38:07〜20:38:47 UTC、40秒)、追加P0暗号化/検証/長期保管/実保存receipt保全、既存owner暗号view更新まで成功した。以前の「P0保管で失敗し全round skip」の経路は、この新実行で通過した。現在は Wait without source requests for the authenticated exhibition window の途中。run全体はin_progressで、モデル全件数/全24round/結果照合/締切15〜10分/全4競技全日/独立別runner AES/速度改善率はまだ確定しない。旧失敗と欠損は消さない。
+
+Safari診断100試験は、元91を保存し、テスト用2hashの不備を修正した。修正後の実RED(c50e8a18/job134350081891)は100件/18.653秒、診断未実装の9 subtest失敗・error0。追加runtime(+50/−6行)はroot/独立静的review CLEARで、能力/version・比較ordinal・既存read-only probeのfocus/visibility/viewport/same-controlだけを厳密型/範囲で報告する。選択/拒否/AES/原本照合/cleanup/main関数/workflow/pin/timeoutは維持し、追加WebDriver command/retryはない。実装HEADのfresh GREENと新実Macはこれからであり、HTTP500の内部原因や受入合格は未証明。
+
+source PR #51の解析前raw保存33試験もfixtureのscope/cleanupを直し、修正後824件/189.019秒は新module内66 assertion失敗・error0を確認した。hook/URL許可が未実装である期待REDで、source runtimeはまだbb492のまま。未検証を完了扱いしない。競輪のHTTP403/manifest欠落/PR71実HOLD、物理iPhone/login/V5/全8参考、6艇GT/校正、前向き改善、元環境の未push2commit未復元は継続する。
+
+詳細: [実P0経路とSafari診断RED](evidence/boat-native-diagnostic-real-p0-progress-20261117.json)。
+
 ## 2026-11-17 20:28 UTC: source/main通常merge・最終CI確定、実P0とSafari原因の確認を継続（GOAL未達）
 
 実main `c425f03918126f38c9bd13a589b58fc8bc97e7e1` はPR #52の通常merge。最終HEAD549de526/treebc2d804bとmerge treeは一致し、41 checksは成功17/skip24。149試験/16.610秒、164試験/98.207秒、回復JSON10試験/0.128秒が成功。sourceはPR #55通常merge `bb49215034b779ea1493b35dd91e5c3ebfc04032`、主要791試験成功のtree8a97242dと一致する。mainのfuture pinと旧原本の厳密な読戻しは接続済み。追加自動Safari callerは最終treeにない。
