@@ -35,7 +35,7 @@ class CloudOwnerSourceCycleTests(unittest.TestCase):
         with patch.dict(os.environ,{**self.env,'RACE_AI_OWNER_AUTO_SOURCE_PROFILE':PROFILE},clear=True), patch(
             'scripts.keirin_cloud_owner_inputs.collect_owner_inputs',return_value=self.safe) as collect:
             grant,stage,state=cloud._licensed_inputs(self.inbox,self.tmp.name)
-        collect.assert_called_once_with(self.inbox,owner_auto_confirmed=True)
+        collect.assert_called_once_with(self.inbox,owner_auto_confirmed=True,\n                                        single_race_pilot=False)
         self.assertIsNone(grant)
         self.assertEqual(stage['new_pre_race_inputs'],0)
         self.assertEqual(stage['owner_source_acquisition'],self.safe)
