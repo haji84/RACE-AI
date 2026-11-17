@@ -1,3 +1,14 @@
+## 2026-11-17 10:15 UTC 継続: 実監査/実Macの拒否を再現、修正版は既存PR205でCI
+
+最新実main2408a833（PR192/160、tree一致）、production eff296fとowner44019591352は停止せず、01〜12巡success/13中。
+実AES監査44060568619は旧438292 checkpoint再認証success後、11/17公式B保存indexなしでHOLD。
+固定active snapshotの暗号原本一致と公式締切資格を分ける修正候補を独立レビュー。資格0/分母null/全日false/後続false、既定検証は拒否のまま。
+実Mac44061190244はテストfixtureのmacOS symlink差分でbrowser前にHOLD。再現修正と40/91テストsuccess、実再試験はまだ未確認。
+source PR107はバッチ保管/疎なGit読戻し、動画3〜6艇coordinator、旧eff原本read-only互換を確認中。実次workerの速度/締切は未実証。
+復元Commons clipの241frameは六艇仮説0だが空水面/少数艇/遮蔽も含むため正解精度率にはしない。実校正/強さ接続/前向き改善は未達。
+新PR/課金/系統/投票/本番weights/公開配信asset変更0、未push2commit UNRESTORED、元work cleanと並行KEIRINを保全。
+詳細・実run・未達はRACE_AI_LATEST_STATUS.md先頭と当日資料欠落証拠JSONを参照。以下の旧記録を現在と混同しない。
+
 ## 2026-11-17 最新継続: P0復旧と4巡成功、実Mac私有表示操作が成功
 
 確認対象code main36088f5d0d2513f88c3a71ae0a1f3e1d1d5a9649、production eff296f6d54ad4be297d93e32f1ee0d4592ad9e3。
