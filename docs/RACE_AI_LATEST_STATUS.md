@@ -8,7 +8,9 @@ job134009539055はsuccess。旧原本のAES/counter復旧後にREADY_VERIFIED_RE
 新workerは第1巡11:39:28→12:04:47（25分19秒）、第2巡12:04:47→12:25:26（20分39秒）がsuccess。
 P1/RESULTの実GitHub暗号artifactを各2巡分確認し、第3巡が稼働中。ALL_MODELは0/1のarchiveを確認。
 第2巡のALL_MODEL archiveは一覧にない。producerは当該生成/保存にcontinue-on-errorを持つため、欠落だけで
-予想対象0や正常な処理なしと認定しない。全通常P1/RESULTを照合し、全モデル原本の欠落巡をUNKNOWN/HOLDで残す監査へ修正中。
+予想対象0や正常な処理なしと認定しない。全通常P1/RESULTを照合し、全モデル原本の欠落巡をUNKNOWN/HOLDで残す修正e3890bf9が完成。
+eff/実86bの両依存packageで各100件、独立100件＋追加3検査success。実Bがあっても欠落巡の適格件数0と明示blockerを維持し、
+callerのprefix短縮/偽除外/bool-int置換を拒否する。全通常原本・存在する全モデル原本の誤鍵/欠落/改ざん/expiryは引き続きfatal。
 metadataだけで新規予想件数・表示一致・締切適格を認定しない。実M2の別runner AES/原本/既存モデル再演算監査を準備し、
 公式B欠落時は資格0/null・full_day=falseを維持する。25分超の実遅延から、バッチ化だけでT15〜10達成とはしない。
 稼働jobの完全ログは正規認証でもまだ404であり、実時間の内訳は未確認。ローカルで再現した重複検証を別に測定中。
@@ -17,7 +19,8 @@ metadataだけで新規予想件数・表示一致・締切適格を認定しな
 個人名と誤検出した。完全reportを調べ、その文字列の出現は当該digestだけと確認。同じHEADのfailed-job-only再試行は成功したが、
 初回失敗を消さない。元immutable d5ede5fbを保存し、runtime無変更・test2ファイルだけの01ed8abeへ固定する候補を検証。
 既知field/path/typeの完全40/64hexのみを除外し、raw名・未知field・nested文字列・誤digestは拒否。親212件と独立adversarial検査success。
-既存PR65を再利用する読取専用M2監査/CI修正の最終CIは未実行で、合格済みとはしない。
+実GitHub run44085027353/job134045097361でも新revisionの212件＋32件がsuccess。同HEAD全27 checksが完了した。
+この後の欠落監査修正e3890bf9を含む最終HEADは別途CI/保護mergeを経て実M2原本を読み取り、前HEADの合格を流用しない。
 元PR65のtitle/body/headを私有localに保存し、旧head989ffff1を祖先に保持したままmainへretarget・review可能にした。
 旧controller/Cloudflareの実装treeは適用していない。新しい欠落監査の独立レビューと同HEAD CI前にmergeしない。
 実prospective artifact14328665148は6,381bytes/SHAを取得照合。対象は11月7日の旧凍結planでHOLD・改善証明falseであり、

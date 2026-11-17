@@ -377,6 +377,9 @@ READY_VERIFIED_RECOVERED_OWNER_CONTINUATION後にworker44075021607を一writer�
 新規原本行数・保存view一致・公式締切適格は別runnerのM2読取専用監査待ち。全日/T15〜10は未合格。
 既存PR65でexact M2 target/混在原本の厳密読戻しと、digest誤検出だけを直すtest-only CI pinを準備。
 94監査testsと7workflow block compile、CI privacy212件・独立reviewが合格。実GitHub新HEAD CI/実鍵監査は未確認。
+その後、実GitHub44085027353のprivacy212件＋32件がsuccess。欠落モデル原本のHOLD修正e3890bf9は
+eff/86bで各100件、独立100＋3検査が合格。全native巡を照合し、欠落ALL_MODELはgenerated=null・資格0で明示する。
+最終修正HEADのCIと実M2 AESは次工程であり、旧HEADのCIを流用しない。
 完全な稼働jobログは正規認証でもまだ404。ローカルの重複検証計測を実遅延原因確定と混同しない。
 物理iPhone/全8画面、6艇継続・実距離時刻校正、未来のモデル精度改善は未完了。
 未push b7380fe6/daae4c10はUNRESTORED。原本/元work/KEIRIN並行変更・公開f60308を保全。

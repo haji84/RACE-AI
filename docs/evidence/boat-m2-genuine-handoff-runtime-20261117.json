@@ -135,7 +135,18 @@
     "runtime_source_unchanged": true,
     "local_full_mirror_tests": 212,
     "independent_review": "passed",
-    "actual_new_revision_ci_pending": true
+    "actual_new_revision_ci_pending": false,
+    "actual_new_revision_ci": {
+      "head_sha": "92c8fc183af505a79381456c26ddce3cda473fbf",
+      "run_id": 44085027353,
+      "job_id": 134045097361,
+      "tests": [
+        212,
+        32
+      ],
+      "conclusion": "success",
+      "head_completed_checks": 27
+    }
   },
   "preservation": {
     "original_work_head": "b4206312594ef84a43c86695dc3d3ec16d1c5ae0",
@@ -166,5 +177,18 @@
     "status": "HOLD",
     "accuracy_improvement_proven": false,
     "current_day_forward_improvement_evidence": false
+  },
+  "m2_missing_archive_refinement": {
+    "reviewed_commit": "e3890bf94a0cf630e8debd7d8859aea0d0edf39d",
+    "author_tests_each_native_package": 100,
+    "independent_tests": 100,
+    "additional_independent_probes": 3,
+    "missing_round_generation": null,
+    "default_eff_strict": true,
+    "all_native_prefix_receipts_required": true,
+    "present_model_receipts_required": true,
+    "unexplained_missing_model_rounds_hold": true,
+    "final_head_ci_pending": true,
+    "actual_m2_aes_pending": true
   }
 }
