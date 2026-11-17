@@ -255,9 +255,9 @@ def finish_worker(path, *, now):
     An interrupted round or upstream wait is never converted into success.
     """
     state = load(path)
-    _need(now.utcoffset() is not None and
-          now.astimezone(JST).date().isoformat() == state['day_jst'],
-          'WORKER_HANDOFF_DAY_MISMATCH')
+    _need(now.utcoffset() is not None, 'WORKER_HANDOFF_CLOCK_UNAWARE')
+    # Midnight is a normal end of an already sealed JST-day worker, not an
+    # integrity error. No new requests or forecast writes are authorized here.
     _need(state['prepared_round'] is None, 'WORKER_HANDOFF_UNCOMMITTED_ROUND')
     wait = state.get('source_wait')
     if wait is not None:
@@ -265,8 +265,9 @@ def finish_worker(path, *, now):
         # supervisor; do not make it look like an authorized fresh request.
         return dict(reason='SOURCE_WAIT', completed_round=state['completed_round'],
                     lifetime_requests=state['lifetime_requests'])
+    day_changed = now.astimezone(JST).date().isoformat() != state['day_jst']
     if state['halted_reason'] is None:
-        state['halted_reason'] = 'WORKER_HANDOFF'
+        state['halted_reason'] = 'DAY_HANDOFF' if day_changed else 'WORKER_HANDOFF'
         state = write_state(path, state)
     _need(state['halted_reason'] in ('WORKER_HANDOFF','DAY_HANDOFF'),
           'WORKER_HANDOFF_PREVIOUS_STOP_UNVERIFIED')
