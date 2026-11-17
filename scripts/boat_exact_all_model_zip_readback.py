@@ -15,7 +15,7 @@ from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 import re
 
-OWNER_SHA='82cedd7b6054ef73664a57e6e17709be56fb12c4'
+OWNER_SHA='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
 # Read-only replay of already sealed originals. This is not a dispatcher pin.
 PREVIOUS_OWNER_SHA='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
 REVIEWED_PREVIOUS_OWNER_SHA='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'

@@ -45,7 +45,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 82cedd7b6054ef73664a57e6e17709be56fb12c4
+          ref: eff296f6d54ad4be297d93e32f1ee0d4592ad9e3
           path: owner-source
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -70,7 +70,7 @@ jobs:
           assert "if: github.event_name == 'pull_request'" in text
           live=text.split('\n  authenticated_original_matrix:\n',1)[1]
           assert "github.event_name == 'push'" in live and "github.event_name == 'workflow_run'" in live
-          assert "github.event.workflow_run.head_sha == '82cedd7b6054ef73664a57e6e17709be56fb12c4'" in live
+          assert "github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'" in live
           assert "github.event.workflow_run.event == 'workflow_dispatch'" in live
           assert "github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111'" in live
           secret_token = '$' + '{{ secrets.RACE_AI_STATE_KEY }}'
@@ -116,7 +116,7 @@ jobs:
         github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
-        github.event.workflow_run.head_sha == '82cedd7b6054ef73664a57e6e17709be56fb12c4' &&
+        github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3' &&
         (github.event.workflow_run.conclusion == 'success' ||
          github.event.workflow_run.conclusion == 'failure')))
     runs-on: ubuntu-24.04
@@ -131,7 +131,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 82cedd7b6054ef73664a57e6e17709be56fb12c4
+          ref: eff296f6d54ad4be297d93e32f1ee0d4592ad9e3
           path: owner-source
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -212,7 +212,7 @@ jobs:
           from datetime import datetime,timezone
           from pathlib import Path
           import race_ai
-          owner='82cedd7b6054ef73664a57e6e17709be56fb12c4'
+          owner='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
           assert subprocess.check_output(['git','rev-parse','HEAD'],timeout=10).decode().strip()==owner
           for folder in ('pr64-reference','pr72-reference'):
               target=Path(folder,'race_ai').resolve()
@@ -366,7 +366,7 @@ jobs:
           from race_ai import saved_view_feed as F
           from race_ai.existing_model_coverage import active_catalog
           root=Path('.').resolve()
-          assert subprocess.check_output(['git','rev-parse','HEAD'],timeout=10).decode().strip()=='82cedd7b6054ef73664a57e6e17709be56fb12c4'
+          assert subprocess.check_output(['git','rev-parse','HEAD'],timeout=10).decode().strip()=='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
           path=(Path('..')/'scripts/boat_exact_all_model_zip_readback.py').resolve()
           assert path.is_file() and path.parent.parent==Path('..').resolve()
           spec=importlib.util.spec_from_file_location('boat_exact_all_model_zip_readback_private',path)

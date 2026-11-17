@@ -1,8 +1,8 @@
 {
   "schema": "RACE_AI_P0_STORAGE_RECOVERY_20261117",
-  "phase": "SOURCE_MERGED_MAIN_PREPARATION",
+  "phase": "ENRICHED_REPLAY_SOURCE_MERGED_MAIN_PREPARATION",
   "main_sha": "058ba8c157722c1dc3565f8ca956567e29b95493",
-  "production_sha": "82cedd7b6054ef73664a57e6e17709be56fb12c4",
+  "production_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
   "storage_candidate_sha": "67200ef25161a48b49a63d04450b1f11656add5b",
   "unrestored_commits": [
     "b7380fe6a377e6ccf2b96331f2126c52549bbe17",
@@ -155,7 +155,9 @@
     "bootstrap_owner_regression": 179,
     "main_gate_audit_safari": 101,
     "main_independent_reader": 64,
-    "safari_boundaries": 17
+    "safari_boundaries": 17,
+    "enriched_recovery": 60,
+    "independent_enriched_recovery": 55
   },
   "limits": [
     "Old logs do not identify the exact timed-out Git subcommand",
@@ -173,5 +175,33 @@
   ],
   "native_safari_import_reproduced": true,
   "native_safari_import_with_fixed_parsers_passed": true,
-  "physical_iphone_verified": false
+  "physical_iphone_verified": false,
+  "projection_candidate_sha": "df3cc88b529f42c753a7246ab60f4775b0b1c27b",
+  "failed_checkpoint_aes_proof": {
+    "aes_authenticated": true,
+    "audit_at": "2026-11-17T04:30:17.867179+00:00",
+    "continuity_artifact_id": 14208902044,
+    "continuity_zip_digest": "sha256:3635842b40ed27a48d061d21d3af38c337a029941a621a8d4a7176783b8d1dde",
+    "day_jst": "2026-11-16",
+    "failed_session_requests": 0,
+    "inherited_same_day_requests": 1246,
+    "lifetime_completed_rounds": 695,
+    "lifetime_requests": 12770,
+    "live_recovery_to_new_p1_proven": false,
+    "new_forecasts": 0,
+    "official_source_requests": 0,
+    "original_forecasts_changed": false,
+    "owner_head_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
+    "owner_run_id": 43829249080,
+    "public_counters_match_AES": true,
+    "source_control_artifact_id": 14208782370,
+    "source_control_zip_digest": "sha256:a7ac637efc923b17aeb9331f0c2af6e36ee403525f7e7e4fdb5f063c6370f705",
+    "status": "FAILED_OWNER_CHECKPOINT_AES_VERIFIED_READONLY",
+    "successor_dispatch_allowed": false
+  },
+  "all_model_prior_audit": {
+    "run_id": 44017586249,
+    "status": "failure",
+    "reason": "INDEPENDENT_ALL_MODEL_REPLAY_NOT_AVAILABLE"
+  }
 }

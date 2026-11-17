@@ -1,3 +1,24 @@
+## 2026-11-17: 同一原本sidecar照合を修正し、実source同期を継続
+
+既存PR108のdf3cc88はsource-free ownerと復旧CIがsuccess、独立55件と関連60件成功。
+通常merge後のproduction実HEADはeff296f6d54ad4be297d93e32f1ee0d4592ad9e3でreviewed treeと完全一致。
+同HEADの重複owner CIも発生しているため、mainの実起動を切り替える前に最終状態を確認する。
+mainの既存PR100でlive pinを実eff296fへ同期する。旧提案の履歴は保全し、係数や別系統モデルを再投入しない。
+main実run44017586294は停止したまま、新P1の復旧成功はまだ証明していない。
+実復旧failureと、実別runnerによる438292原本AES合格・後段ALL_MODEL監査失敗を区別して保存した。
+
+## 2026-11-17: 実別runnerで43829249080のAES/checkpointを認証
+
+main実run44017586249のjob133819143803で、優先対象43829249080のcontinuity14208902044と
+source-control14208782370を別runnerが実AES復号し、公開counterの全項目一致を確認した。
+累積GET12770/日基点11524/worker0/巡回695を保全。公式GET0・新予想0・後継許可なし。
+count artifact14298594525（ZIP SHAe920646551ba8a58457d9eefd2ccbb06b6d6a25c8882465f934fed0c31313723）を
+この環境でも再取得し、metadataのSHA/サイズと照合した。
+この独立AES合格は、新worker起動や本日のP1生成成功の証拠ではない。
+同jobの後段ALL_MODEL再読戻しはINDEPENDENT_ALL_MODEL_REPLAY_NOT_AVAILABLEでfailure。
+過去11/16全14モデル1680slotの完成は認定しない。復旧gateのsidecar差異は別修正として継続。
+[実AESのcount証拠](evidence/boat-failed438292-independent-aes-20261117.json)。
+
 ## 2026-11-17 UTC: P0保管停止の修正を既存PR292へ統合、main接続を準備
 
 正規認証で公開read/本人haji84/API push権限を分離確認し、既存branchへの実pushも成功。

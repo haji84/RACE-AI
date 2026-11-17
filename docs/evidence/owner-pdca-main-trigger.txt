@@ -433,3 +433,10 @@ Use this exact release only for a new worker. Authenticate latest failed bootstr
 (P0 plus AES/public control and first receipt replay), retain/read back all3 originals,
 and preserve13018 lifetime/13017 day base/1 worker GET. Audit historical43829249080
 separately. No blind retry, counter reset, new model, weight switch, job, cron, permission or fee.
+
+2026-11-17: preserve source-free failed gate44017586294, no successor/no counter reset.
+Existing PR108 preserves the prior proposal ancestry and applies only the actual
+verified learning-sidecar projection before first-receipt comparison, plus safe
+code-location diagnostics. Actual productioneff296f6d54ad4be297d93e32f1ee0d4592ad9e3
+matches reviewed df3cc88 tree. Continue through the EXISTING trusted main release
+with source/wait/single-writer/AES/vault gates intact; no new PR/job/model/fee.
