@@ -217,5 +217,81 @@ class TestPriorLineCohesion(unittest.TestCase):
             self.assertFalse(output["formal_model_promoted"])
 
 
+class TestRealPublicPlannedPairIntake(unittest.TestCase):
+    """Real publicly transcribed rows; source verification is NOT performed in CI."""
+
+    def packet(self):
+        import json
+        from pathlib import Path
+        path = (Path(__file__).resolve().parents[1] / "docs" /
+                "evidence" / "2026-11-18" /
+                "keirin_takeo_public_planned_pairs_v1.json")
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def test_two_actual_public_source_rows_not_two_verified_follow_events(self):
+        from race_ai import keirin_real_line_evidence as real
+        packet = self.packet()
+        out = real.summarize_planned_pairs(
+            packet, as_of="2026-11-19T07:00:00+09:00")
+        self.assertEqual(out["candidate_planned_pair_rows"], 2)
+        self.assertEqual(out["by_athlete_pair"][0]["planned_pair_races"], 2)
+        self.assertEqual(
+            out["by_athlete_pair"][0]["planned_race_ids"],
+            ["202611098402", "202611108404"])
+        self.assertEqual(out["independent_source_archive_verified_count"], 0)
+        self.assertEqual(out["observed_follow_outcome_labels"], 0)
+        self.assertFalse(out["cohesion_model_training_eligible"])
+        self.assertFalse(out["forward_three_arm_accuracy_proven"])
+
+    def test_date_only_source_check_not_backdated_to_same_day(self):
+        from race_ai import keirin_real_line_evidence as real
+        out = real.summarize_planned_pairs(
+            self.packet(), as_of="2026-11-18T23:59:59+09:00")
+        self.assertEqual(out["candidate_planned_pair_rows"], 0)
+        self.assertTrue(out["unusable_until_next_jst_day"])
+
+    def test_even_independent_line_source_archive_is_not_follow_video_proof(self):
+        from race_ai import keirin_real_line_evidence as real
+        out = real.summarize_planned_pairs(
+            self.packet(), as_of="2026-11-19T08:00:00+09:00",
+            independently_archive_verified=lambda row: True)
+        # The lambda is a fictional test stub, NOT a real attestation.
+        self.assertEqual(out["independent_source_archive_verified_count"], 2)
+        self.assertEqual(out["observed_follow_outcome_labels"], 0)
+        self.assertFalse(out["cohesion_model_training_eligible"])
+
+    def test_tampered_follow_outcome_cannot_be_smuggled_from_expected_line(self):
+        from race_ai import keirin_real_line_evidence as real
+        packet = self.packet()
+        packet["records"][0]["tactical_follow_outcome"] = "HELD"
+        with self.assertRaisesRegex(real.PlannedPairError, "CANNOT_BE_FOLLOW_RESULT"):
+            real.validate_packet(packet)
+
+    def test_wrong_registration_profile_and_fake_source_rejected(self):
+        from race_ai import keirin_real_line_evidence as real
+        packet = self.packet()
+        packet["records"][1]["identity_source_urls"]["follower"] = (
+            "https://www.keirin.jp/pc/racerprofile?snum=015709")
+        with self.assertRaisesRegex(real.PlannedPairError, "PROFILE_MISMATCH"):
+            real.validate_packet(packet)
+        packet = self.packet()
+        packet["records"][0]["line_source_urls"][0] = (
+            "https://keirin.netkeiba.com.evil.example/test")
+        with self.assertRaisesRegex(real.PlannedPairError, "UNTRUSTED_SOURCE_HOST"):
+            real.validate_packet(packet)
+
+    def test_duplicates_and_unsupported_position_refused(self):
+        from race_ai import keirin_real_line_evidence as real
+        from copy import deepcopy
+        packet = self.packet()
+        packet["records"].append(deepcopy(packet["records"][0]))
+        with self.assertRaisesRegex(real.PlannedPairError, "DUPLICATE_RACE_PAIR"):
+            real.validate_packet(packet)
+        packet = self.packet()
+        packet["records"][1]["expected_line_cars"] = [7, 3, 4]
+        with self.assertRaisesRegex(real.PlannedPairError, "POSITION_OR_ROLE_INVALID"):
+            real.validate_packet(packet)
+
+
 if __name__=="__main__":
     unittest.main()
