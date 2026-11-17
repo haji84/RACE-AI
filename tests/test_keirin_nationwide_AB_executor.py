@@ -154,6 +154,55 @@ class NationwidePrivateABExecutor(unittest.TestCase):
                 self.assertEqual(out["A_generated"],1)
                 self.assertEqual(out["official_results_settled"],0)
 
+    def test_dynamic_tomorrow_with_seven_races_without_79_hardcode(self):
+        from race_ai import keirin_dynamic_nationwide_registry as daily
+        source={
+            "venue":"架空会場","venue_code":"01","grade":"F2",
+            "source_url":"https://example.org/public-calendar",
+            "source_bytes_sha256":"a"*64,
+            "source_available_at":"2026-11-19T06:00:00+09:00",
+            "race_numbers":[1,2,3,4,5,6,7],
+            "source_race_day":"2026-11-19",
+        }
+        verified=daily.create_day(
+            day_jst="2026-11-19",
+            registered_at="2026-11-19T06:30:00+09:00",
+            venue_snapshots=[source],
+            expected_venue_codes=["01"],
+            independently_verify_venue_snapshot=lambda x:True,
+            independently_verify_whole_day=lambda *args:True)
+        out=executor.execute_all(
+            registry=verified,source_by_race={},
+            inspected_at="2026-11-19T06:40:00+09:00")
+        self.assertEqual(out["cohort_race_count"],7)
+        self.assertTrue(out["national_source_universe_independently_verified"])
+        self.assertEqual(out["states"],{"HOLD_MISSING_RACE_INPUT":7})
+        self.assertFalse(out["old_four_models_required"])
+
+    def test_unverified_dynamic_venue_universe_cannot_claim_complete(self):
+        from race_ai import keirin_dynamic_nationwide_registry as daily
+        source={
+            "venue":"架空会場","venue_code":"01","grade":"F2",
+            "source_url":"https://example.org/public-calendar",
+            "source_bytes_sha256":"a"*64,
+            "source_available_at":"2026-11-19T06:00:00+09:00",
+            "race_numbers":[1,2],
+            "source_race_day":"2026-11-19",
+        }
+        unverified=daily.create_day(
+            day_jst="2026-11-19",
+            registered_at="2026-11-19T06:30:00+09:00",
+            venue_snapshots=[source],
+            expected_venue_codes=None,
+            independently_verify_venue_snapshot=lambda x:True,
+            independently_verify_whole_day=None)
+        out=executor.execute_all(
+            registry=unverified,source_by_race={},
+            inspected_at="2026-11-19T06:40:00+09:00")
+        self.assertEqual(out["cohort_race_count"],2)
+        self.assertTrue(out["national_universe_HOLD"])
+        self.assertFalse(out["national_source_universe_independently_verified"])
+
     def test_unknown_source_race_rejected_not_hidden(self):
         with self.assertRaisesRegex(national.NationwideABError,"OUTSIDE_COHORT"):
             do(source_by_race={"202611189901":live()})
