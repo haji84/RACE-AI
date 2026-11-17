@@ -1565,5 +1565,88 @@ class NativeSelectPreparationTests(unittest.TestCase):
         self.assertIsNone(report['ui_select_preflight']['target_count'])
 
 
+class ApiSyntheticEnvironmentRegressionTests(unittest.TestCase):
+    """API recovery keeps the original native suite and checks private boundaries."""
+    def test_all_original_allowed_environment_subsets_still_pass(self):
+        allowed = ('PATH', 'HOME', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TMPDIR')
+        self.assertEqual(S.SYNTHETIC_ENVIRONMENT_KEYS, frozenset(allowed))
+        for bits in range(1 << len(allowed)):
+            environment = {key: 'public-os-value' for i, key in enumerate(allowed) if bits & (1 << i)}
+            with self.subTest(bits=bits), patch.dict(os.environ, environment, clear=True):
+                self.assertIsNone(S.require_synthetic_environment())
+
+    def test_unknown_and_credential_keys_refuse_even_with_empty_values(self):
+        sentinel = 'https://owner-private-sentinel.invalid/secret'
+        for key in ('GH_TOKEN', 'GITHUB_TOKEN', 'RACE_AI_STATE_KEY', 'UNLISTED_VIEWER_CAPABILITY'):
+            for value in ('', sentinel):
+                with self.subTest(key=key, empty=value == ''), patch.dict(os.environ, {key:value}, clear=True):
+                    with self.assertRaises(S.SyntheticEnvironmentHold) as caught:
+                        S.require_synthetic_environment()
+                    report = S.failure_report(caught.exception)
+                    self.assertEqual(report['unexpected_environment_key_count'], 1)
+                    self.assertNotIn(key, json.dumps(report))
+                    self.assertNotIn(sentinel, json.dumps(report))
+
+    def test_known_os_presence_never_grants_permission_or_exposes_values(self):
+        sentinel = 'private-os-value-sentinel'
+        for key in S.SYNTHETIC_OS_ENVIRONMENT_KEYS:
+            with self.subTest(key=key), patch.dict(os.environ, {'PATH':'public', key:sentinel}, clear=True):
+                with self.assertRaises(S.SyntheticEnvironmentHold) as caught:
+                    S.require_synthetic_environment()
+                report = S.failure_report(caught.exception)
+                self.assertEqual(report['reason'], 'SYNTHETIC_SCREENSHOT_REJECTED')
+                self.assertEqual(report['environment_phase'], 'synthetic_environment_guard')
+                self.assertEqual(report['unexpected_environment_key_count'], 1)
+                flags = report['known_os_environment_key_present']
+                self.assertEqual(set(flags), set(S.SYNTHETIC_OS_ENVIRONMENT_KEYS))
+                self.assertTrue(flags[key])
+                self.assertTrue(all(type(value) is bool for value in flags.values()))
+                self.assertNotIn(sentinel, json.dumps(report))
+
+    def test_report_counts_are_strict_bounded_integers(self):
+        for value in (True, False, -1, 10001, 1.0, '1', None):
+            with self.subTest(value=value):
+                report = S.failure_report(S.SyntheticEnvironmentHold(value, {}))
+                self.assertIsNone(report['unexpected_environment_key_count'])
+        for value in (0, 1, 10000):
+            report = S.failure_report(S.SyntheticEnvironmentHold(value, {}))
+            self.assertEqual(report['unexpected_environment_key_count'], value)
+        report = S.failure_report(S.SyntheticEnvironmentHold(1,
+            {key:'private-flag-sentinel' for key in S.SYNTHETIC_OS_ENVIRONMENT_KEYS} |
+            {'UNLISTED_PRIVATE_NAME':'private-flag-sentinel'}))
+        self.assertNotIn('sentinel', json.dumps(report))
+        self.assertNotIn('UNLISTED_PRIVATE_NAME', json.dumps(report))
+        self.assertTrue(all(value is None for value in report['known_os_environment_key_present'].values()))
+
+    def test_hostile_diagnostic_objects_are_not_coerced(self):
+        class HostileInt(int):
+            def __int__(self):
+                raise AssertionError('private int must not be coerced')
+            def __str__(self):
+                raise AssertionError('private int must not be printed')
+        class HostileFlags(dict):
+            def get(self, *args):
+                raise AssertionError('untrusted mapping must not be queried')
+        report = S.failure_report(S.SyntheticEnvironmentHold(HostileInt(1), HostileFlags()))
+        self.assertIsNone(report['unexpected_environment_key_count'])
+        self.assertTrue(all(value is None for value in report['known_os_environment_key_present'].values()))
+
+    def test_candidate_unknown_environment_stops_before_assets_or_browser(self):
+        output = io.StringIO()
+        with patch.dict(os.environ, {'UNLISTED_PRIVATE_NAME':'private-value-sentinel'}, clear=True), \
+             patch.object(S, 'load_candidate_assets', side_effect=AssertionError('asset access forbidden')), \
+             patch.object(S, 'apple_driver', side_effect=AssertionError('browser start forbidden')), \
+             redirect_stdout(output):
+            code = S.main(['--candidate-ui', '--synthetic-only', '--public-root', '/not-read',
+                           '--output', '/not-created'])
+        self.assertEqual(code, 2)
+        report = json.loads(output.getvalue())
+        self.assertEqual(report['status'], 'NATIVE_SAFARI_ACCEPTANCE_HOLD')
+        self.assertEqual(report['reason'], 'SYNTHETIC_SCREENSHOT_REJECTED')
+        self.assertEqual(report['unexpected_environment_key_count'], 1)
+        self.assertNotIn('UNLISTED_PRIVATE_NAME', output.getvalue())
+        self.assertNotIn('private-value-sentinel', output.getvalue())
+
+
 if __name__ == '__main__':
     unittest.main()
