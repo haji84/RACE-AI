@@ -440,3 +440,38 @@ verified learning-sidecar projection before first-receipt comparison, plus safe
 code-location diagnostics. Actual productioneff296f6d54ad4be297d93e32f1ee0d4592ad9e3
 matches reviewed df3cc88 tree. Continue through the EXISTING trusted main release
 with source/wait/single-writer/AES/vault gates intact; no new PR/job/model/fee.
+
+2026-11-17: invoke the existing protected-main owner release route through PR171.
+Actual production 86b029ae5bddd5d4956497d8b32b2c92b8eec521 is the ordinary PR201
+merge, matching the reviewed source tree; source CI44070104091 passed all4 checks.
+This updates the EXISTING push-filtered marker. The main merge subject must begin
+boat-owner-release: single-real-session-20261111
+PR163/main519705524de274a6c73124746970615086ca237a did not change this marker
+and used a different prefix: gate-only run44068040299 did not start an M1 worker.
+No M1 or M2 live worker is claimed by this marker.
+
+The last actual owner44019591352 at eff296f6d54ad4be297d93e32f1ee0d4592ad9e3
+naturally completed13 rounds at2026-11-17T10:28:18Z; steps14-24 were no-ops.
+Its public final control reports requests485, lifetime13503, day base13017,
+lifetime completed rounds720, prepared=null and WORKER_HANDOFF. Preserve every
+original receipt, clock, source hash and counter; authenticate final continuity
+and public control independently before admitting one successor. Public control
+is not a claim that the final checkpoint AES has already been authenticated.
+
+Independent raw-AES audit44063726374/job133971901973 reopened38 originals for
+the frozen rounds1-12 snapshot, including13 ALL_MODEL ZIPs from rounds0-12.
+It reopened252 P1 rows:216 matched the saved view and36 were missing. Official
+cutoff qualification remained0 with unknown denominator; this is partial proof,
+not a final-round13 audit, full-day coverage, or permission for a successor.
+Native Mac proof44068042347/job133986892349 at main51970552 succeeded with
+Safari26.6: browser AES/history seed, unchanged Top8 and4 refusal cases;28
+synthetic captures verified actual widths320/390/1440/1920. Account login,
+physical iPhone and all8 reference-screen acceptance remain false. The earlier
+session failure cause remains unknown; startup configuration was unchanged.
+
+Use the exact new source only after the existing trusted event/release/history,
+single-producer, encrypted-original and source-wait gates all pass. The producer
+must restore authenticated originals and cumulative counters without reset;
+missing or mismatched evidence remains HOLD. Keep eff audit/Safari pins and
+historical receipts read-only. No manual source dispatch, forged event, new
+workflow/cron/permission, model/weight promotion, provider, fee or wager.
