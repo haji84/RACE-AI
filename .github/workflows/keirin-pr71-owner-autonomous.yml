@@ -32,6 +32,8 @@ on:
       - 'race_ai/live_15min_proof.py'
       - 'race_ai/keirin_phase_overlay.py'
       - 'tests/test_keirin_phase_overlay.py'
+      - 'race_ai/keirin_round_motivation.py'
+      - 'tests/test_keirin_round_motivation.py'
       - 'tests/test_keirin_phase_pr102_integration.py'
       - 'tests/test_keirin_phase_pr71_integration.py'
       - 'race_ai/keirin_frame_rider_identity_gate.py'
@@ -104,6 +106,8 @@ on:
       - 'race_ai/live_15min_proof.py'
       - 'race_ai/keirin_phase_overlay.py'
       - 'tests/test_keirin_phase_overlay.py'
+      - 'race_ai/keirin_round_motivation.py'
+      - 'tests/test_keirin_round_motivation.py'
       - 'tests/test_keirin_phase_pr102_integration.py'
       - 'tests/test_keirin_phase_pr71_integration.py'
       - 'race_ai/keirin_frame_rider_identity_gate.py'
@@ -243,6 +247,13 @@ jobs:
           python -m unittest -v tests.test_keirin_manual71_owner_encrypted_intake
           python -m unittest -v tests.test_keirin_manual71_owner_intake_cli
           python -m py_compile race_ai/keirin_manual_71_actions_bridge.py scripts/keirin_cloud_pr71_state.py
+      - name: Evidence-bound race grade and advancement tactics research regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_keirin_round_motivation
+          python -m py_compile race_ai/keirin_round_motivation.py
+          echo 'Round-stage research features are not calibrated PR71 forecasts.' >> "$GITHUB_STEP_SUMMARY"
       - name: Do not claim synthetic results as live
         run: echo 'Synthetic model and AES tests are not actual real-race prediction evidence.' >> "$GITHUB_STEP_SUMMARY"
       - name: Export only public research detector code for independent local replay
