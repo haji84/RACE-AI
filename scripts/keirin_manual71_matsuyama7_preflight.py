@@ -165,6 +165,11 @@ def execute(*, env, workspace, helper, runner_temp,
         except (MobileProbeError, OSError, TimeoutError):
             state,reference_hit = "SOURCE_GET_FAILED_NO_RETRY",False
         report["source_check"] = state
+        if (type(response) is dict and state ==
+                "THIRD_PARTY_PROVISIONAL_RESULT_JOINED"):
+            # Source SHA is safe metadata; its existence alone does NOT prove
+            # source rights, immutable official result, or final authenticity.
+            report["third_party_source_sha256"] = response["source_sha256"]
         report["private_reference_comparison_available"] = (
             state == "THIRD_PARTY_PROVISIONAL_RESULT_JOINED"
         )
