@@ -1,3 +1,13 @@
+## 2026-11-17 継続: 後継P0保管/巡回01成功と実Safari失敗
+
+main df1ee16、source eff296f。真正復旧gate44019424267がbootstrap3原本をGET0で復旧し、
+後継44019591352が旧失敗P0保管step33と巡回01をsuccess。巡回02以降と新原本の別runner AESは継続確認中。
+長期RESULT保管はALL_MODEL_OFFICIAL_RESULT_FREEZE_NATIVE_ARTIFACT_CLOCKでHOLD。
+前向き監査もHOLD、精度改善未証明。実Mac Safari44020668953はAPP_UI_CHECK_FAILEDで未合格、
+既存PR208で公開checker位置だけの安全な診断を追加する。物理iPhone・映像3項目・全競技全件は未完成。
+元未push b7380fe6/daae4c10はUNRESTORED。新PR/モデル系統/課金/本番weights切替/投票0。
+最新の実証・失敗はRACE_AI_LATEST_STATUS.md先頭とboat-p0-storage-recovery-20261117.jsonを参照。
+
 ## 2026-11-17 継続引継ぎ: P0保管とbootstrap復旧修正
 
 最新の実HEAD/CI/未達はRACE_AI_LATEST_STATUS.mdの先頭を参照。

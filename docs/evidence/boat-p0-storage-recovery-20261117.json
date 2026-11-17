@@ -1,7 +1,7 @@
 {
   "schema": "RACE_AI_P0_STORAGE_RECOVERY_20261117",
-  "phase": "ENRICHED_REPLAY_SOURCE_MERGED_MAIN_PREPARATION",
-  "main_sha": "058ba8c157722c1dc3565f8ca956567e29b95493",
+  "phase": "LIVE_P0_AND_ROUND01_SUCCEEDED_SAFARI_UI_AND_RESULT_RETENTION_HOLD",
+  "main_sha": "df1ee16ca9d2d5813880a9d4b8f6d62ed765fb76",
   "production_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
   "storage_candidate_sha": "67200ef25161a48b49a63d04450b1f11656add5b",
   "unrestored_commits": [
@@ -155,7 +155,7 @@
     "bootstrap_owner_regression": 179,
     "main_gate_audit_safari": 101,
     "main_independent_reader": 64,
-    "safari_boundaries": 17,
+    "safari_boundaries": 18,
     "enriched_recovery": 60,
     "independent_enriched_recovery": 55
   },
@@ -164,10 +164,13 @@
     "Local Git reproduces hydration at write-tree; same-mechanism historical attribution is not proven",
     "ZIP SHA/size verification is not AES authentication",
     "All-model current head ciphertexts still require complete validation",
-    "Live successor not yet proven",
-    "Four-sport whole-day coverage, physical Safari, video tracking/calibration/prediction, prospective improvement remain incomplete"
+    "Four-sport whole-day coverage, physical Safari, video tracking/calibration/prediction, prospective improvement remain incomplete",
+    "Only round01 completed at observation; all24 rounds not yet proven",
+    "New P0/P1/RESULT ZIP SHA matches do not prove separate-runner full AES/all-model coverage",
+    "Official result long-term retention is HOLD; raw encrypted result artifact exists",
+    "Actual Mac Safari UI test failed; physical iPhone unavailable"
   ],
-  "source_tree": "a28d90dbcd9c78617c2f6c24aac52502fdc80f3d",
+  "source_tree": "47b7a871afda4eddfd8a87d6e3caededaa81879e",
   "bootstrap_ci": [
     44016312344,
     44016312246,
@@ -203,5 +206,129 @@
     "run_id": 44017586249,
     "status": "failure",
     "reason": "INDEPENDENT_ALL_MODEL_REPLAY_NOT_AVAILABLE"
+  },
+  "observed_at": "2026-11-17T05:09:29.735651+00:00",
+  "live_recovery": {
+    "gate_run_id": 44019424267,
+    "gate_job_id": 133825071851,
+    "gate_success": true,
+    "recovered_originals": 3,
+    "official_source_requests": 0,
+    "new_forecasts": 0,
+    "owner_run_id": 44019591352,
+    "owner_head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+    "additional_p0_vault_step": 33,
+    "additional_p0_vault_conclusion": "success",
+    "round01_conclusion": "success",
+    "round01_completed_at": "2026-11-17T05:05:53Z",
+    "round02_status": "in_progress",
+    "all_24_rounds_completed": false,
+    "new_originals_independent_runner_AES_verified": false
+  },
+  "live_artifact_readbacks": [
+    {
+      "id": 14300856240,
+      "name": "boat-all-model-forecasts-44019591352-r0",
+      "bytes": 9976455,
+      "zip_sha256": "e777ecce89ff46aa2ec1f8440b8ddba8d5bae46e9291d690e02f0021ac513b50",
+      "github_digest_matches": true,
+      "run_id": 44019591352,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "created_at": "2026-11-17T04:52:19Z",
+      "members": [
+        "forecasts.enc"
+      ]
+    },
+    {
+      "id": 14300807230,
+      "name": "boat-national-cutoff-44019591352",
+      "bytes": 133411,
+      "zip_sha256": "2270fbc271dda98a86ddd82e36358bf41b86f46dc41c7b11a4c7d2f0361e8d20",
+      "github_digest_matches": true,
+      "run_id": 44019591352,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "created_at": "2026-11-17T04:56:06Z",
+      "members": [
+        "private-original.enc"
+      ]
+    },
+    {
+      "id": 14301166184,
+      "name": "boat-all-model-forecasts-44019591352-r1",
+      "bytes": 3578749,
+      "zip_sha256": "fd53bb28f71792ed4f346cb932745017696d82d29f35f2cd0efce2d1aeb9437a",
+      "github_digest_matches": true,
+      "run_id": 44019591352,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "created_at": "2026-11-17T04:56:29Z",
+      "members": [
+        "forecasts.enc"
+      ]
+    },
+    {
+      "id": 14300863214,
+      "name": "race-existing-cycle-44019591352",
+      "bytes": 989348,
+      "zip_sha256": "8e9c7c8091ec3ad5657b23ec9914af944233f00e30c73623c9edad1c554e5440",
+      "github_digest_matches": true,
+      "run_id": 44019591352,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "created_at": "2026-11-17T05:03:05Z",
+      "members": [
+        "private-original.enc"
+      ]
+    },
+    {
+      "id": 14300399647,
+      "name": "boat-prospective-evaluation-44019591352-r1",
+      "bytes": 6381,
+      "zip_sha256": "910ac307cf160d648a05b11beda241eab2b24e12e6724c206465d43f5ddd3047",
+      "github_digest_matches": true,
+      "run_id": 44019591352,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "created_at": "2026-11-17T05:05:53Z",
+      "members": [
+        "boat-prospective-audit-1.json"
+      ]
+    },
+    {
+      "id": 14300389237,
+      "name": "official-result-retention-44019591352-1",
+      "bytes": 413,
+      "zip_sha256": "dd6fc34b4d289f66dc7e6918a7d043f99b6dba85dc816349f7f961d7654efee2",
+      "github_digest_matches": true,
+      "run_id": 44019591352,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "created_at": "2026-11-17T05:03:36Z",
+      "members": [
+        "official-result-retention-status.json"
+      ]
+    }
+  ],
+  "native_safari_live": {
+    "run_id": 44020668953,
+    "job_id": 133829132065,
+    "main_sha": "df1ee16ca9d2d5813880a9d4b8f6d62ed765fb76",
+    "runner_os": "macos-15-intel",
+    "status": "failure",
+    "reason": "APP_UI_CHECK_FAILED",
+    "desktop_acceptance_verified": false,
+    "physical_iphone_verified": false,
+    "public_checker_location_diagnostic_tests": 18
+  },
+  "result_retention_live": {
+    "artifact_id": 14300389237,
+    "ready": false,
+    "state": "HOLD_OFFICIAL_RESULT_RETENTION",
+    "reason": "ALL_MODEL_OFFICIAL_RESULT_FREEZE_NATIVE_ARTIFACT_CLOCK",
+    "failure_phase": "RUNNER_PREFLIGHT"
+  },
+  "prospective_live": {
+    "artifact_id": 14300399647,
+    "status": "HOLD",
+    "reason": "FROZEN_INPUT_REVIEW_REQUIRED",
+    "accuracy_improvement_proven": false,
+    "independent_pre_cutoff_receipt_verified": false,
+    "promotion_allowed": false
   }
 }
