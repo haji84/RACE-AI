@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import base64
 import binascii
-from hashlib import sha256
+from hashlib import sha256, sha1
 import importlib.util
 import json
 import os
@@ -45,6 +45,11 @@ def pinned_helper(path):
     p = Path(path)
     need(p.is_file() and not p.is_symlink() and p.name ==
          "keirin_private_sealed_payload.py", "PINNED_RSA_HELPER_REQUIRED")
+    raw = p.read_bytes()
+    need(len(raw) <= 15000 and sha1(
+        b"blob " + str(len(raw)).encode("ascii") + b"\\0" + raw
+    ).hexdigest() == "2cf67ff4b297ad3711c1a8d03de9db966bf9096b",
+         "PINNED_RSA_HELPER_BLOB_SHA_CHANGED")
     spec = importlib.util.spec_from_file_location("_pr102_private_seal", str(p))
     need(spec is not None and spec.loader is not None,
          "PINNED_RSA_HELPER_UNAVAILABLE")
