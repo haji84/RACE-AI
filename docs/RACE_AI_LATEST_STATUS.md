@@ -1,3 +1,15 @@
+## 2026-11-17 22:20:36 UTC: 原本保管832試験GREEN、固定追加P0の件数読戻しを実装・検証中（GOAL未達）
+
+原本保管439760d/tree3a2e345の実CI44186600609/job134404670699で832件/192.969秒OK、別3/12/38/165/46件もOK。新41 raw試験を保全し、部分失敗時のstaging/新規inode rollbackを確認した。production bb492は未変更。次版がBBの暗号原本/継続/controlを読める5試験は別の実RED（178件/54.663秒、4失敗/error0）で不足を再現し、旧checkout/proofを許可せず限定修正を準備している。
+
+追加P0の独立件数はUNKNOWNのまま。実RED43c40fa/job134406065741で179件/86.951秒、追加15件だけmissing-helper失敗/error0を確認してから、固定44170869325/r0/artifact14367093570を既存vault・ZIP/AES・native projectorで照合する件数専用helperを追加した。元コード・M2対象・completed-round guardは維持。既存national job末尾の任意stepは既存trusted-main release prefixと成功checkoutだけで動き、stdout固定JSON以外を保存しない。確認不能はnull、認証済み0件なら0とする。既存全upload/member、trigger/job/input/permission/cron/runner/timeoutは不変。fresh179 GREEN・独立review・実Actions読戻しはまだ待ち。
+
+実source44170869325はfirst-P0132レース/264予想の公開receiptと保管step成功を確認し、公式GETなしの展示窓待機、24roundはpending。実Safari44183593596は2件目parentクリックHTTP500でprivate HOLD、candidate/CF guard未到達。119診断試験のREDを確認し、受入/操作を変えず同一性・picker開閉を記録する修正を準備している。通常local RESTは401 Bad credentials、公開rawコード取得200、GitHub connector本人haji84のread/既存branch writeは成功。鍵はlocal不在、値を取得していない。
+
+全4競技/全適用model/全日T15〜10/結果照合/実iPhone/6艇校正/前向き改善は未達。未push2commitはUNRESTORED、原本/公開UI/production weightsを保全する。
+
+詳細: [固定P0のread-only実装と境界](evidence/boat-fixed-bootstrap-p0-runtime-review-20261117.json)。
+
 ## 2026-11-17 22:05:00 UTC: CF限定修正は111試験GREEN、最新実Safariは2件目の選択クリックでHOLD（GOAL未達）
 
 既存PR48を通常保護mergeし、main f2922efのtreeは試験済み30902ee/tree7b0e9eと一致。111件/15.387秒が成功した。新Mac実行44183593596/job134394092565も111件/52.214秒は成功したが、Safari26.6の私有view確認で2件目のseed history選択時、native parent clickがHTTP500/unknown errorとなった。document focus/visibilityは正常、page error0。候補capture/CF guardには到達せずartifact0で、CFの実環境合格や物理iPhone合格を主張しない。要素参照とnative popupの証拠を調査し、同一codeの盲目的rerunはしない。
