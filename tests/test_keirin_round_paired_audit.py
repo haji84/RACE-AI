@@ -7,10 +7,17 @@ from hashlib import sha256
 import unittest
 
 from race_ai import keirin_round_paired_audit as a
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from race_ai import keirin_round_six_phase_rank as tactical
 from tests.test_keirin_round_six_phase_rank import (
     stage_ctx, snapshot, plans, priors, generate,
 )
+
+
+
+def cutoffs(*races):
+    return {rid:"2026-11-17T11:15:00+09:00" for rid in races}
 
 
 def bundle():
@@ -142,6 +149,7 @@ class TestPairedStageScore(unittest.TestCase):
         cohort=a.make_cohort(
             race_ids=["202611175004","202611175005"],
             registered_at="2026-11-17T10:45:00+09:00",
+            race_cutoffs=cutoffs("202611175004","202611175005"),
             candidate_model_version="round-tactics-shadow-v1",
             original_model_id="multisport-factor-interaction-v1")
         one=calc()
@@ -158,11 +166,13 @@ class TestPairedStageScore(unittest.TestCase):
     def test_non_enrolled_result_or_duplicate_rejected(self):
         cohort=a.make_cohort(
             race_ids=["202611175005"],registered_at="2026-11-17T10:45:00+09:00",
+            race_cutoffs=cutoffs("202611175005"),
             candidate_model_version="test",original_model_id="multisport-factor-interaction-v1")
         with self.assertRaisesRegex(a.PairedAuditError,"OUT_OF_COHORT"):
             a.summarize(cohort,[calc()])
         cohort2=a.make_cohort(
             race_ids=["202611175004"],registered_at="2026-11-17T10:45:00+09:00",
+            race_cutoffs=cutoffs("202611175004"),
             candidate_model_version="test",original_model_id="multisport-factor-interaction-v1")
         with self.assertRaisesRegex(a.PairedAuditError,"COHORT_REPORT_SIZE"):
             a.summarize(cohort2,[calc(),calc()])
@@ -170,10 +180,36 @@ class TestPairedStageScore(unittest.TestCase):
     def test_cohort_sha_tamper_fails(self):
         cohort=a.make_cohort(
             race_ids=["202611175004"],registered_at="2026-11-17T10:45:00+09:00",
+            race_cutoffs=cutoffs("202611175004"),
             candidate_model_version="test",original_model_id="multisport-factor-interaction-v1")
         cohort["model_promotion_allowed"]=True
         with self.assertRaisesRegex(a.PairedAuditError,"COHORT_SHA_MISMATCH"):
             a.summarize(cohort,[])
+
+
+    def test_cohort_after_any_cutoff_rejected_before_results(self):
+        with self.assertRaisesRegex(a.PairedAuditError,"MUST_BE_REGISTERED_BEFORE_ALL_CUTOFFS"):
+            a.make_cohort(
+                race_ids=["202611175004"],
+                registered_at="2026-11-17T11:14:30+09:00",
+                race_cutoffs=cutoffs("202611175004"),
+                candidate_model_version="test",
+                original_model_id="multisport-factor-interaction-v1")
+
+    def test_cohort_private_create_once_sha_readback(self):
+        cohort=a.make_cohort(
+            race_ids=["202611175004"],registered_at="2026-11-17T10:45:00+09:00",
+            race_cutoffs=cutoffs("202611175004"),
+            candidate_model_version="test",
+            original_model_id="multisport-factor-interaction-v1")
+        with TemporaryDirectory() as td:
+            folder=Path(td);folder.chmod(0o700)
+            p=folder/"cohort-frozen.json"
+            file_sha=a.freeze_cohort_once(p,cohort)
+            self.assertEqual(file_sha,sha256(p.read_bytes()).hexdigest())
+            self.assertEqual(p.stat().st_mode&0o777,0o600)
+            with self.assertRaisesRegex(a.PairedAuditError,"PRIVATE_CREATE_ONCE"):
+                a.freeze_cohort_once(p,cohort)
 
 
 if __name__=="__main__":
