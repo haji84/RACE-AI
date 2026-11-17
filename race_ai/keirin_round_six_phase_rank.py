@@ -340,6 +340,102 @@ def forecast_shadow(*, context, snapshot, plans, priors,
     }
 
 
+
+def snapshot_from_existing_pr71(saved, *, context, line_receipt,
+                                independently_verify_suite=None,
+                                independently_verify_lines=None):
+    """Adapt immutable PR71 full-rank model candidates without rebuilding them.
+
+    Starting order/line hypotheses are separately timed pre-race input, NOT
+    measured initial rider locations. Independent callbacks in a trusted
+    runner must authenticate sources and frozen model SHA, not just return
+    a synthetic true value. No historical race result is ever read.
+    """
+    round_context.checked_context(context)
+    require(callable(independently_verify_suite) and
+            independently_verify_suite(saved) is True,
+            "EXISTING_FOUR_MODEL_SUITE_NOT_INDEPENDENTLY_VERIFIED")
+    require(callable(independently_verify_lines) and
+            independently_verify_lines(line_receipt) is True,
+            "PRE_RACE_LINE_SOURCE_NOT_INDEPENDENTLY_VERIFIED")
+    require(type(saved) is dict and
+            type(saved.get("source")) is dict and
+            type(saved.get("suite")) is dict and
+            type(saved.get("persisted_at")) is str and
+            round_context._sha(saved.get("source_sha256")),
+            "ACTUAL_SAVED_PR71_SOURCE_REQUIRED")
+    source,suite=saved["source"],saved["suite"]
+    rider_ids=source.get("starters")
+    require(type(rider_ids) is list and len(rider_ids) in (7,9) and
+            all(_rider(x) for x in rider_ids) and
+            len(set(rider_ids))==len(rider_ids) and
+            source.get("race_id")==suite.get("race_id")==context["race_id"] and
+            source.get("official_cutoff_at")==suite.get("sales_cutoff_at")==
+                context["official_cutoff_at"] and
+            source.get("as_of")==suite.get("as_of")==context["as_of"] and
+            round_context._sha(suite.get("input_sha256")) and
+            suite["input_sha256"]==context["parent_input_sha256"] and
+            _clock(source["as_of"])<=_clock(saved["persisted_at"]) and
+            (_clock(source["official_cutoff_at"]) -
+             _clock(saved["persisted_at"])).total_seconds()>=65,
+            "ACTUAL_PR71_SOURCE_CUTOFF_OR_RID_MISMATCH")
+    require(type(line_receipt) is dict and set(line_receipt)=={
+        "race_id","source_input_sha256","observed_at",
+        "source_sha256","starting_order","line_groups"
+    } and line_receipt["race_id"]==context["race_id"] and
+            line_receipt["source_input_sha256"]==suite["input_sha256"] and
+            round_context._sha(line_receipt["source_sha256"]) and
+            _clock(line_receipt["observed_at"])<=_clock(source["as_of"]),
+            "LINE_HYPOTHESIS_AFTER_CUTOFF_OR_FROM_OTHER_INPUT")
+    require(type(suite.get("models")) is dict and
+            set(suite["models"])==set(KNOWN_PR71),
+            "EXISTING_FOUR_PR71_MODELS_REQUIRED")
+    # Adapt one existing model, never synthesize a new model identifier.
+    model_id="multisport-factor-interaction-v1"
+    model=suite["models"][model_id]
+    require(type(model) is dict and model.get("model_id")==model_id and
+            round_context._sha(model.get("prediction_sha256")) and
+            model.get("snapshot_sha256")==suite["input_sha256"] and
+            type(model.get("candidates")) is list and
+            len(model["candidates"])==len(rider_ids)*(len(rider_ids)-1)*(len(rider_ids)-2),
+            "EXISTING_PR71_MODEL_RANKS_NOT_VERIFIED")
+    ranks=[row.get("combination") if type(row) is dict else None
+           for row in model["candidates"][:12]]
+    require(all(_pair(ticket,set(rider_ids)) for ticket in ranks) and
+            len(set(tuple(x) for x in ranks))==len(ranks),
+            "PR71_ORIGINAL_TOP12_INVALID")
+    snapshot={
+        "race_id":context["race_id"],
+        "input_sha256":suite["input_sha256"],
+        "baseline_model_id":model_id,
+        "baseline_prediction_sha256":model["prediction_sha256"],
+        "as_of":source["as_of"],
+        "official_cutoff_at":source["official_cutoff_at"],
+        "starting_order":line_receipt["starting_order"],
+        "line_groups":line_receipt["line_groups"],
+        "baseline_top12":ranks,
+    }
+    _lines(snapshot,context)
+    require(set(snapshot["starting_order"])==set(rider_ids),
+            "LINE_RIDERS_DIFFER_FROM_FROZEN_PR71_SOURCE")
+    return snapshot
+
+
+def forecast_from_existing_pr71(*, saved, context, line_receipt,
+                                tactical_plans, stage_priors,
+                                independently_verify_suite,
+                                independently_verify_lines):
+    """Existing four-model saved row -> six phases -> research Top12 ranking."""
+    snap=snapshot_from_existing_pr71(
+        saved,context=context,line_receipt=line_receipt,
+        independently_verify_suite=independently_verify_suite,
+        independently_verify_lines=independently_verify_lines)
+    return forecast_shadow(
+        context=context,snapshot=snap,plans=tactical_plans,
+        priors=stage_priors,
+        independently_verified_parent=lambda accepted: accepted is snap)
+
+
 def freeze_private_once(path, forecast):
     """Private create-once SHA; independent Git AES storage is a separate gate."""
     require(type(forecast) is dict and
