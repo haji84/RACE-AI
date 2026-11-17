@@ -135,6 +135,20 @@ class NativeSafariAcceptanceTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(S, 'native Safari acceptance adapter is not implemented')
 
+    def test_actual_ui_failure_reports_only_public_checker_location(self):
+        class Driver:
+            def command(self,*args):pass
+            def wait(self,*args,**kwargs):raise S.SafariHold('APP_UI_CHECK_FAILED')
+        class Site:
+            url='http://127.0.0.1:1234/'
+        try:
+            S.app_checks(Driver(),Site(),{'private':'private-owner-sentinel'},('secret-token-sentinel',))
+        except S.SafariHold as error:
+            report=S.failure_report(error)
+        self.assertEqual(report.get('checker_function'),'app_checks')
+        self.assertIsInstance(report.get('checker_line'),int)
+        self.assertNotIn('sentinel',json.dumps(report))
+
     def test_native_workflow_pins_python_before_running_privacy_boundaries(self):
         steps = acceptance_workflow_steps()
         setup = [(index, step) for index, step in enumerate(steps)

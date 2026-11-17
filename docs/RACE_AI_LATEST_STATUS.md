@@ -1,3 +1,31 @@
+## 2026-11-17: 真正な後継でP0保管と巡回01が成功、Safariの実画面はHOLD
+
+main実HEAD df1ee16ca9d2d5813880a9d4b8f6d62ed765fb76（既存PR100通常merge）、
+production実HEAD eff296f6d54ad4be297d93e32f1ee0d4592ad9e3。両方reviewed treeとの一致を確認した。
+真正push run44019424267/job133825071851が、旧bootstrapの3原本を復旧して別reader照合し、
+GET0・新予想0・使用量不変でFAILED_OWNER_ORIGINALS_RECOVERED→後継許可になった。
+後継44019591352は04:47:27 UTC起動、P0表示復元/追加P0暗号化/保存がsuccess、
+旧障害箇所のstep33「Retain exact additional P0 execution and physical save receipt beyond expiry」もsuccess。
+巡回01は04:54:59〜05:05:53 UTCにsuccess、現在巡回02中。24巡完走はまだ未確認。
+新native P1 artifact14300807230、ALL_MODEL P0 artifact14300856240/P1 artifact14301166184、
+RESULT artifact14300863214をローカルで再取得し、実GitHub metadataのrun/head/ZIP SHA/サイズを照合した。
+このZIP照合は別runnerの新原本AES・全モデル分母監査の代わりではない。後段の独立監査は未確認。
+
+同巡回の公式結果長期保管count14300389237はHOLD_OFFICIAL_RESULT_RETENTION、
+理由ALL_MODEL_OFFICIAL_RESULT_FREEZE_NATIVE_ARTIFACT_CLOCK（RUNNER_PREFLIGHT）。
+結果暗号artifactの存在とは別に、全件長期保管の完成を認定しない。実失敗を保全して原因調査を継続する。
+前向き比較count14300399647はHOLD/FROZEN_INPUT_REVIEW_REQUIRED、accuracy_improvement_proven=false、
+independent_pre_cutoff_receipt_verified=false。元モデルに対する未来改善・本番昇格は未実証のまま。
+
+実Mac Safari run44020668953（macos-15-intel）は固定parser導入と原本読取を通過したが、
+画面操作でAPP_UI_CHECK_FAILED。実desktop Safari合格・物理iPhone合格とは呼ばない。
+既存PR208を履歴保全して再利用し、非公開データを出さず公開checker関数/行だけを報告する診断を追加。
+診断の回帰18件と独立review18件success。公開asset・原本・稼働中source・本番weightsは変更しない。
+
+指定未push2コミットは引き続きUNRESTORED。4競技全件、T15〜10優先充足、8参考画面/実機iPhone、
+服色6艇の継続識別・校正した強さ・予想接続、前向き改善は未完成。
+[実保管と後継の証拠](evidence/boat-p0-storage-recovery-20261117.json)。以下は各時点の履歴を保全。
+
 ## 2026-11-17: 同一原本sidecar照合を修正し、実source同期を継続
 
 既存PR108のdf3cc88はsource-free ownerと復旧CIがsuccess、独立55件と関連60件成功。

@@ -22,6 +22,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -60,7 +61,15 @@ def sha(raw):
 
 def failure_report(error):
     reason = str(error) if isinstance(error, SafariHold) and str(error) in REASONS else 'SAFARI_OPERATION_FAILED'
-    return {'status': 'NATIVE_SAFARI_ACCEPTANCE_HOLD', 'reason': reason}
+    report={'status': 'NATIVE_SAFARI_ACCEPTANCE_HOLD', 'reason': reason}
+    # A public checker line identifies the failing boundary without exporting
+    # driver messages, DOM text, source records, owner URLs or credentials.
+    for frame in traceback.extract_tb(error.__traceback__):
+        if Path(frame.filename).resolve()==Path(__file__).resolve() and frame.name in {
+            'main','read_authenticated_view','app_checks','open_race','select_day','click_page',
+            'verify_model_choice','verify_private_boundary','load_public_assets','verify_live_assets'}:
+            report.update(checker_function=frame.name,checker_line=frame.lineno)
+    return report
 
 
 def driver_environment(environment):
