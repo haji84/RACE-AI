@@ -1,3 +1,37 @@
+## 2026-11-17 継続: 実Safari内AES/28合成画面が成功、結果理由履歴の修正をsourceへ統合
+
+実main519705524de274a6c73124746970615086ca237a、実source86b029ae5bddd5d4956497d8b32b2c92b8eec521。
+sourceの既存PR201はexact d79a9a2c/CI44070104091 successと最終独立レビュー後に通常merge、tree完全一致。
+同一source/time/status/dataのreason-only原本は両方を保存し、後続結果syncでも履歴を維持する。
+着順/払戻/source/status/時刻/未知fieldの違い、偽履歴、未知の新reasonは拒否し、全拒否理由がHOLDに寄与する。
+作者182Python/14Node、親153Python/14Node/15workflow、独立83Python+26追加検査success。
+バッチ化で変わった独立reader契約へのfixture未対応もRED→6件GREENで修正し、本番readbackは緩めていない。
+実viewの36行差分の修復とM2の新予想は、次の正規workerで再確認する。
+
+**実Mac成功:** run44068042347/job133986892349、code51970552、Safari26.6/macOSでcompleted/success。
+保存私有view generation412/results102/native P1 groups9で実1440/390px、元Top8比較4、詳細2、結果/予算2を確認。
+別の元暗号seedをWebCrypto復号して同一原本比較2、鍵なし/誤鍵/別view/改ざんの4拒否を確認。
+viewer鍵は私有fragmentのみ、request/storageには含めず、owner keyはbrowserへ渡さない。公式GET/許可外部通信/実data screenshot exportは0。
+本人account loginとcurrent V5 live continuationはfalse。前のsession開始失敗は原因未特定で、起動設定は同じまま今回成功した。
+資格情報を除いた別sessionでsynthetic7画面×320/390/1440/1920px、実innerWidth一致の28PNGを撮影・検証。
+artifact14322350355/8,911,079bytes/SHA256を再取得照合した。[実Mac AES証拠](evidence/boat-native-safari-browser-aes-20261117.json)。
+
+**ローカル画面改善:** commit5992f110でhome/list/detailの主要内容を先にし、全control/状態表示を保持。
+320/390×844で最初の詳細ticket下端736/696pxは固定nav上端773pxより上。28合成画像と8参考画像を比較し、独立レビューもsuccess。
+公開配信f60308efには反映していない。[ローカル画面の比較値と未達](evidence/boat-local-reference-layout-20261117.json)。
+完全な8画面一致、長文/全データの密度、本人login、物理iPhoneは未合格。
+
+**正規引継ぎの最終確認待ち:** 旧44019591352は実13巡で自然終了。公開controlは13/GET485/lifetime13503/daybase13017/WORKER_HANDOFF。
+14〜24は処理なしで、24実巡とはしない。38原本のAES証拠はsnapshot1〜12だけで、公式締切資格0/nullと36未表示を保持する。
+PR163のpin更新だけでは既存push filter/専用prefixを満たさず、次workerはまだ起動していない。
+既存PR171で必須marker追記と正しいboat-owner-release prefixを揃え、実M2のみを既存gateへ渡す候補を検証中。
+最終controlの真正AES/counter/single-ownerが通った場合だけ既存source workflowを許可する。直接/盲目的な再起動やcounter resetはしない。
+
+4競技の日次全件/全適用モデル/T15〜10、6艇継続/実距離時刻校正/強さ接続、元モデル対学習版の前向き改善は未達。
+241映像frameでの既定/opt-in packet byte一致は診断の非干渉証拠であり、識別精度向上の証拠ではない。
+本番weights/新系統/新PR/追加課金設定/投票/無断の公開asset変更0。元work b420631 clean、未push2件UNRESTOREDを保全。
+以下は過去時点の記録として保持する。
+
 ## 2026-11-17 10:39 UTC: 13実巡で自然引継ぎ、38原本の独立AES証明と表示差分を確認（GOAL未達）
 
 実main b0a61b8b28bb98c1ad63babc7f8594cbd693d808、実production f43bde4c89cdc27728a112ad2a4b55769c7d3ec9。

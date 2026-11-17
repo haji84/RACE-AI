@@ -84,6 +84,8 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
         self.assertNotEqual(current,previous)
         run=dict(self.run,head_sha=previous)
         original=deepcopy(self.control)
+        original.update(completed_round=13,previous_session_requests=485,
+            lifetime_requests=13503,day_start_lifetime_requests=13017,lifetime_completed_rounds=720)
         args=dict(now=NOW,release=dict(ref='refs/heads/'+base.RELEASE_REF,object=dict(sha=current)),
             owner_doc=dict(encoding='base64',content=base64.b64encode(base.RELEASE_TOKEN.encode()).decode()),
             history=dict(total_count=1,workflow_runs=[run]),continuation_proof=original)
@@ -97,6 +99,8 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
             for change in (
                 dict(release=dict(ref='refs/heads/'+base.RELEASE_REF,object=dict(sha=previous))),
                 dict(continuation_proof=None),
+                dict(continuation_proof=dict(original,lifetime_requests=0)),
+                dict(continuation_proof=dict(original,day_start_lifetime_requests=13504)),
                 dict(history=dict(total_count=1,workflow_runs=[dict(run,status='in_progress')])),
                 dict(history=dict(total_count=1,workflow_runs=[dict(run,head_sha='f'*40)])),
             ):
@@ -119,6 +123,42 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
         document['head_commit']['message']='ordinary update'
         self.eventpath.write_text(json.dumps(document))
         self.assertFalse(launcher.trusted_release_push(env=env))
+
+    def test_owner_release_push_requires_both_real_path_filter_and_exact_prefix(self):
+        import fnmatch,re
+        from types import SimpleNamespace as NS
+        source=(Path(__file__).resolve().parents[1]/'.github/workflows/boat-racer-daily.yml').read_text()
+        header=source.split('\njobs:\n',1)[0]
+        push=header.split('\n  push:\n',1)[1].split('\n  workflow_run:\n',1)[0]
+        patterns=[value.strip() for value in re.search(r'paths:\s*\[([^]]+)\]',push)[1].split(',')]
+        self.assertIn('branches: [main]',push)
+        marker='docs/evidence/owner-pdca-main-trigger.txt'
+        self.assertIn(marker,patterns)
+        owner=source.split('\n  owner_p0_p1_dispatch:\n',1)[1].split('    runs-on:',1)[0]
+        expression=' '.join(owner.split('    if: >-\n',1)[1].split())
+        expression=expression.replace('&&',' and ').replace('||',' or ')
+        prefix='boat-owner-release: single-real-session-20261111'
+        for message,changed,branch,expected in (
+            (prefix+' | exact reviewed release',[marker],'main',True),
+            (prefix+' | exact reviewed release',['scripts/boat_main_dispatch_gate.py'],'main',False),
+            ('racer-intraday-refresh: stage-model-pdca authenticated source handoff',[marker],'main',False),
+            ('ordinary update',[marker],'main',False),
+            (prefix+' | exact reviewed release',[marker],'other',False),
+        ):
+            github=NS(repository=base.REPO,ref='refs/heads/'+branch,event_name='push',
+                event=NS(head_commit=NS(message=message)))
+            admitted=eval(expression,{'__builtins__':{}},
+                dict(github=github,startsWith=lambda value,start:value.startswith(start)))
+            push_matches=branch=='main' and any(fnmatch.fnmatchcase(path,pattern)
+                for path in changed for pattern in patterns)
+            with self.subTest(message=message,changed=changed,branch=branch):
+                self.assertEqual(bool(push_matches and admitted),expected)
+
+    def test_current_release_is_recorded_in_the_existing_push_trigger_marker(self):
+        marker=(Path(__file__).resolve().parents[1]/'docs/evidence/owner-pdca-main-trigger.txt').read_text()
+        self.assertTrue(base.RELEASE_SHA in marker,
+            'A source pin update must append the actual release to the existing push-filtered marker.')
+        self.assertIn('boat-owner-release: single-real-session-20261111',marker)
 
     def test_untrusted_pr_foreign_head_and_denials_remain_closed(self):
         for field,invalid in (
