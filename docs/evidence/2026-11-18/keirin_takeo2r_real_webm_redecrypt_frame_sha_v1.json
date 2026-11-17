@@ -1,0 +1,35 @@
+{
+  "schema": "RACE_AI_KEIRIN_TAKEO2R_REAL_WEBM_REDECRYPT_AND_CROP_REPLAY_V1",
+  "as_of_date_jst": "2026-11-18",
+  "race_id": "202611098402",
+  "source": "Existing owner-private 2026-11-09 encrypted browser capture in Library, not a newly downloaded stream",
+  "ciphertext_archive_sha256": "f9cb22db33145b85337df5c3dc0e66489d7d1e1d0fec6b99cb9250d3215860e9",
+  "ciphertext_sha256": "2b12476f944331099e6ca2a392fbeec3542d18f30921348f8b859c175998d905",
+  "decoded_webm_sha256": "4e389a46c223b7cb2eaa7c5c5bdc34ade229deedea8a3c795c8be987b57aa810",
+  "cryptographic_authentication": "Owner RSA private-key unwrap + AES-GCM authenticated decryption succeeded (key not published)",
+  "webm_seconds": 92.44,
+  "webm_fps": 25,
+  "webm_resolution": [
+    1280,
+    720
+  ],
+  "crop_window_fraction_of_screen": {
+    "y_start": 0.303,
+    "y_end": 0.709,
+    "x_start": 0.299,
+    "x_end": 0.701
+  },
+  "frame_sampling_seconds": "0,2,...,90",
+  "actual_frames_decoded_from_raw_video": 46,
+  "saved_reviewer_A_frame_sha_matches": 46,
+  "saved_reviewer_B_frame_sha_matches": 46,
+  "total_mismatches": 0,
+  "source_frame_sha_sequence_digest": "8b40c298b522c1a44f38b4f3c8a07b8854c89096d21cfbe4041ea790e075ec95",
+  "witness_note": "Browser capture and saved review frames are byte- and pixel-derived from the same owner-private encrypted WebM. This establishes footage/frame integrity, not rider/position recognition or independent human review.",
+  "public_video_or_frame_pixels_exported": false,
+  "reviewer_signature_count_accepted": 0,
+  "certified_actual_follow_outcome_labels": 0,
+  "eligible_for_real_C_model_training": false,
+  "eligible_for_formal_three_arm_scoring": false,
+  "protected_main_or_production_forecast_modified": false
+}
