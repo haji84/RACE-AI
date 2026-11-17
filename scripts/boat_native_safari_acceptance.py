@@ -398,8 +398,12 @@ class WebDriver:
 
     def budget(self, value):
         element = self.element('#simulation-budget')
-        self.command('POST', '/element/' + element + '/clear', {})
-        self.command('POST', '/element/' + element + '/value', {'text': str(value) + '\ue004'})
+        # Element Clear can fire change while empty, causing the app to restore
+        # the previous valid budget. Replace the selection with native Mac keys
+        # before Tab commits the new value; never rewrite application state.
+        self.command('POST', '/element/' + element + '/click', {})
+        self.command('POST', '/element/' + element + '/value',
+                     {'text': '\ue03da\ue000' + str(value) + '\ue004'})
         self.wait('return document.querySelector("#simulation-budget")?.value===arguments[0]', str(value))
 
     def close(self):
