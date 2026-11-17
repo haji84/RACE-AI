@@ -68,6 +68,10 @@ def _native_generation_evidence(row,*,now):
     input reader. This checks the reader's complete receipt/partition binding
     again. Legacy journal records have no partitions and keep their old clock.
     """
+    return _native_generation_evidence_for_registry(row,now=now,known=None)
+
+def _native_generation_evidence_for_registry(row,*,now,known):
+    """Replay every field using this validation's already bound cell roster."""
     if 'input_partitions' not in row:return None
     need(type(now) is datetime and now.utcoffset() is not None,'NATIVE_GENERATION_CLOCK_REQUIRED')
     parts=row['input_partitions'];receipt=row.get('input_receipt')
@@ -98,7 +102,8 @@ def _native_generation_evidence(row,*,now):
     need(ts(receipt['saved_at'])==ts(metadata['created_at'])==saved and saved<=now<ts(metadata['expires_at']) and
          saved+timedelta(seconds=1)<cutoff,'NATIVE_GENERATION_CLOCK_BINDING')
     hex64=lambda value:type(value) is str and re.fullmatch('[a-f0-9]{64}',value) is not None
-    clocks=[];known={cell['cell_key'] for cell in registry.cells()}
+    clocks=[]
+    if known is None:known=frozenset(cell['cell_key'] for cell in registry.cells())
     for part in parts:
         need(type(part) is dict and type(part.get('generated_at')) is str,'NATIVE_GENERATION_PARTITION_FIELDS')
         if private:
@@ -471,6 +476,7 @@ def verify_training(training):
         cells={cell['cell_key']:cell for cell in registry.cells()}
         need(training['registry_sha256']==registry.registry_sha256() and
              training['registered_model_ids']==sorted({c['model_id'] for c in cells.values()}),'REGISTRY_BINDING')
+        known_cell_keys=frozenset(cells)
         need(all(training[field] is False for field in ('auto_promoted','production_promoted',
              'accuracy_improvement_proven','provider_permission_confirmed')),'PROMOTION')
         need(training['scope'] in ('SYNTHETIC_ONLY','OPERATOR_SUPPLIED_RESEARCH') and
@@ -585,7 +591,7 @@ def verify_training(training):
                     replay=dict(model_id=mid,sport=sport,race_id=row['race_id'],input_sha256=row['input_sha256'],
                         as_of=row['as_of'],cutoff_at=row['cutoff_at'],input_saved_at=row['input_saved_at'],
                         stage=evidence['stage'],input_receipt=evidence['receipt'],input_partitions=evidence['partitions'])
-                    expected=_native_generation_evidence(replay,now=created)
+                    expected=_native_generation_evidence_for_registry(replay,now=created,known=known_cell_keys)
                     need(expected is not None and all(row[name]==expected[name] for name in generation_fields),
                          'NATIVE_GENERATION_LINEAGE_BINDING')
                 if any(name in row for name in ('input_derivation','input_derivation_sha256','input_save_semantics')):

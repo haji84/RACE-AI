@@ -11,6 +11,8 @@ from unittest.mock import patch
 
 from race_ai.actions_contract import digest
 from race_ai import cycle_recovery
+from race_ai import all_existing_model_learning as learning
+from race_ai import all_existing_model_registry as registry
 from race_ai import boat_venue_research_retention as retention
 from race_ai.all_existing_model_receipt import verify_private_pairs_artifact
 from race_ai.boat_venue_history_handoff import TRANSFER_REF
@@ -180,6 +182,94 @@ class AllModelSourceArchiveRetentionTests(unittest.TestCase):
         self.assertEqual(tree[pointer['metadata_path']], metadata_raw)
         manifest = json.loads(tree[pointer['manifest_path']])
         self.assertEqual(manifest['state']['source_admission_sha256'], digest(admission))
+
+
+class NativeGenerationRegistrySnapshotTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from tests.test_all_existing_model_common_eight_per_sport import common_records, FIXTURE_NOW
+        cls.clock = FIXTURE_NOW
+        cls.cell = next(cell['cell_key'] for cell in registry.cells()
+                        if cell['group'] == 'boat_observed')
+        rows = [row for row in common_records()
+                if registry.cell_key(row['sport'], row['model_id']) == cls.cell]
+        cls.training = learning.fit(rows, now=cls.clock, allow_order_only=True)
+
+    def test_full_validation_builds_registry_roster_once_before_checking_every_lineage(self):
+        original = deepcopy(self.training)
+        self.assertEqual(len(self.training['models'][self.cell]['source_lineage']), 8)
+        with patch.object(registry, 'cells', wraps=registry.cells) as cells:
+            self.assertIs(learning.verify_training(self.training), True)
+        # One bound roster and the existing independent registry digest. The
+        # complete registry must not be reconstructed for each lineage row.
+        self.assertEqual(cells.call_count, 2)
+        self.assertEqual(self.training, original)
+
+    def test_default_validation_reads_current_registry_on_every_call(self):
+        self.assertIs(learning.verify_training(self.training), True)
+        with patch.object(registry, 'registry_sha256', return_value='f' * 64):
+            with self.assertRaisesRegex(ValueError, 'REGISTRY_BINDING'):
+                learning.verify_training(self.training)
+        self.assertIs(learning.verify_training(self.training), True)
+
+    def test_last_lineage_mutations_still_fail_after_all_outer_hashes_are_resealed(self):
+        other_sport = next(cell['cell_key'] for cell in registry.cells() if cell['sport'] == 'horse')
+        changes = (
+            ('unknown_carrier', lambda proof: proof['partitions'][0].update(carrier_cell_key='boat/unknown')),
+            ('wrong_sport', lambda proof: proof['partitions'][0].update(carrier_cell_key=other_sport)),
+            ('unknown_field', lambda proof: proof['partitions'][0].update(verified=True)),
+            ('wrong_type', lambda proof: proof['partitions'][0].update(training_sha256=True)),
+            ('expired', lambda proof: proof['receipt']['artifact_metadata'].update(expired=True)),
+            ('wrong_repository', lambda proof: proof['receipt']['artifact_metadata']['workflow_run'].update(repository_id=1)),
+            ('boolean_id', lambda proof: proof['receipt'].update(artifact_id=True)),
+            ('missing_field', lambda proof: proof['partitions'][0].pop('generated_at')),
+        )
+        for name, mutate in changes:
+            bad = deepcopy(self.training)
+            line = bad['models'][self.cell]['source_lineage'][-1]
+            proof = line['native_generation_evidence']; mutate(proof)
+            line['native_generation_receipt_sha256'] = digest(proof['receipt'])
+            line['native_generation_partitions_sha256'] = digest(proof['partitions'])
+            self._reseal(bad)
+            before = deepcopy(bad)
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'NATIVE_GENERATION'):
+                learning.verify_training(bad)
+            self.assertEqual(bad, before)
+
+    def test_clock_and_container_subclasses_do_not_bypass_full_verification(self):
+        class Mapping(dict):
+            pass
+        class Sequence(list):
+            pass
+        changes = (
+            ('training_subclass', lambda body: Mapping(body)),
+            ('partition_subclass', lambda body: self._replace_parts(body, Sequence)),
+            ('late_partition', lambda body: self._late_partition(body)),
+        )
+        for name, mutate in changes:
+            bad = mutate(deepcopy(self.training)); self._reseal(bad)
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                learning.verify_training(bad)
+
+    def _reseal(self, body):
+        for model in body['models'].values():
+            model['model_sha256'] = digest({key: value for key, value in model.items() if key != 'model_sha256'})
+        body['training_sha256'] = digest({key: value for key, value in body.items() if key != 'training_sha256'})
+
+    def _replace_parts(self, body, constructor):
+        line = body['models'][self.cell]['source_lineage'][-1]
+        proof = line['native_generation_evidence']
+        proof['partitions'] = constructor(proof['partitions'])
+        line['native_generation_partitions_sha256'] = digest(proof['partitions'])
+        return body
+
+    def _late_partition(self, body):
+        line = body['models'][self.cell]['source_lineage'][-1]
+        proof = line['native_generation_evidence']
+        proof['partitions'][0]['generated_at'] = line['cutoff_at']
+        line['actual_native_generated_at'] = line['cutoff_at']
+        line['native_generation_partitions_sha256'] = digest(proof['partitions'])
+        return body
 
 
 if __name__ == '__main__':

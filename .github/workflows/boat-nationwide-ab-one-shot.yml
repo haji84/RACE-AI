@@ -84,6 +84,7 @@ on:
       - tests/test_boat_saved_model_view.py
       - tests/test_result_observation_conflict_diagnostics.py
       - tests/test_all_existing_model_artifact_retention.py
+      - race_ai/all_existing_model_learning.py
       - tests/test_boat_video_rider_tracking.py
       - tests/saved_model_union.test.cjs
   push:
