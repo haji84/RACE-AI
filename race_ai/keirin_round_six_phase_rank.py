@@ -81,7 +81,7 @@ def _lines(snapshot, ctx):
             round_context._sha(snapshot["baseline_prediction_sha256"]) and
             snapshot["as_of"] == ctx["as_of"] and
             snapshot["official_cutoff_at"] == ctx["official_cutoff_at"],
-            "ORIGINAL_SOURCE_OR_TIME_NOT_BOUND")
+            "ORIGINAL_OR_TIME_NOT_BOUND")
     order = snapshot["starting_order"]
     require(type(order) is list and len(order) == ctx["race_size"] and
             all(_rider(x) for x in order) and len(set(order)) == len(order),
