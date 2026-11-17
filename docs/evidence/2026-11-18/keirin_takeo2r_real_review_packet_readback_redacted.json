@@ -20,5 +20,22 @@
   "state": "HOLD_PENDING_TWO_INDEPENDENT_REVIEWS_AND_TACTICAL_LABELS",
   "real_video_byte_SHA_from_prior_run_not_reverified_now": true,
   "training_or_prospective_model_promotion": false,
-  "raw_pixels_or_screenshot_coordinates_published": false
+  "raw_pixels_or_screenshot_coordinates_published": false,
+  "decoded_source_crop_bgr_sha256_against_declared_frame_sha": {
+    "A": {
+      "frames": 46,
+      "matches": 46,
+      "mismatches": 0
+    },
+    "B": {
+      "frames": 46,
+      "matches": 46,
+      "mismatches": 0
+    }
+  },
+  "ordered_46_source_frame_sha256_digest": "8b40c298b522c1a44f38b4f3c8a07b8854c89096d21cfbe4041ea790e075ec95",
+  "checked_by_decoding_embedded_png_to_BGR_and_hashing_uncompressed_crop_bytes": true,
+  "raw_video_bytes_redecrypted_or_rehashed_this_session": false,
+  "frame_crop_hashes_match_prior_frozen_recorded_values_but_not_full_video_reverification": true,
+  "non_promoting_validation_only": true
 }
