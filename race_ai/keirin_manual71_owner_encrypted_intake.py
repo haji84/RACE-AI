@@ -8,6 +8,7 @@ authority, and does not grant result-provider rights. No network requests.
 from __future__ import annotations
 
 import base64
+import binascii
 from hashlib import sha256
 import importlib.util
 import json
@@ -88,7 +89,7 @@ def _unzlib_limited(encoded):
         data += stream.flush()
         need(len(data) <= MAX_FILE, "BUNDLE_DECOMPRESSION_BOUNDS")
         return data
-    except (ValueError, zlib.error):
+    except (binascii.Error, zlib.error):
         raise ManualBundleError("BUNDLE_COMPRESSION_INVALID") from None
 
 
