@@ -425,3 +425,11 @@ This marker invokes only the existing protected-main release gate. Verify
 actual release/head/history, original AES continuity/control and one writer
 before the next owner; preserve b491 original receipts, clocks and counters.
 No blind dispatch, forged event, new job/cron, weight promotion or wager.
+
+2026-11-17: continue the owner's requested P0 storage failure recovery using existing PR292/70.
+PR292 exact-head d26b7ba CI3 suites and independent review passed; the protected normal merge
+produced actual production82cedd7b6054ef73664a57e6e17709be56fb12c4 with identical reviewed tree.
+Use this exact release only for a new worker. Authenticate latest failed bootstrap43978567937
+(P0 plus AES/public control and first receipt replay), retain/read back all3 originals,
+and preserve13018 lifetime/13017 day base/1 worker GET. Audit historical43829249080
+separately. No blind retry, counter reset, new model, weight switch, job, cron, permission or fee.

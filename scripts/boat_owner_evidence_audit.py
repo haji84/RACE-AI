@@ -15,10 +15,11 @@ import re
 import subprocess
 import sys
 
-OWNER_SHA='c123b8538006b3189181195bbc91d8f28d216ba5'
+OWNER_SHA='82cedd7b6054ef73664a57e6e17709be56fb12c4'
 PREVIOUS_OWNER_SHA='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
 REVIEWED_PREVIOUS_OWNER_SHA='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
 RETAINED_OWNER_SHA='b491fb21ce58ba085dd8f54bb7326442b840d8f4'
+PRE_STORAGE_REPAIR_SHA='c123b8538006b3189181195bbc91d8f28d216ba5'
 HISTORIC_RUN=43348227701
 HISTORIC_SHA='0796b52c2804177976e4c2e5ab9b65f32589720b'
 JST=timezone(timedelta(hours=9))
@@ -33,7 +34,7 @@ def _source_pinned(run_id,head_sha):
     # Historical acceptance is confined to this read-only auditor. Dispatch
     # and the live reader checkout still use the single exact OWNER_SHA.
     return (type(run_id) is int and run_id>0 and type(head_sha) is str and
-            (head_sha in (OWNER_SHA,PREVIOUS_OWNER_SHA,REVIEWED_PREVIOUS_OWNER_SHA,RETAINED_OWNER_SHA) or
+            (head_sha in (OWNER_SHA,PREVIOUS_OWNER_SHA,REVIEWED_PREVIOUS_OWNER_SHA,RETAINED_OWNER_SHA,PRE_STORAGE_REPAIR_SHA) or
              (run_id==HISTORIC_RUN and head_sha==HISTORIC_SHA)))
 
 

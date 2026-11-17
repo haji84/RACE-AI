@@ -1,3 +1,41 @@
+## 2026-11-17 UTC: P0保管停止の修正を既存PR292へ統合、main接続を準備
+
+正規認証で公開read/本人haji84/API push権限を分離確認し、既存branchへの実pushも成功。
+branch protectionの読取APIは403で未確認。保護解除や--adminを使わず通常PR mergeを実施した。
+元checkout b420631/branch workは保全。指定UI文書は履歴c15e683から全文復元した。
+未push b7380fe6a377e6ccf2b96331f2126c52549bbe17 と daae4c10167224b7730006d8ada5ade398aaa64b は
+ローカルobject不在、GitHub fetchはnot our ref。UNRESTOREDであり、今回の修正を復元済みとは呼ばない。
+
+**実際に反映したsource**: PR292の候補d26b7ba47eae32152352c6204c6b2f373ce8dc45は
+CI44016312344/44016312246/44016312251の3系統success。独立reviewもblockingなし。
+通常merge後のproductionは82cedd7b6054ef73664a57e6e17709be56fb12c4、reviewed treeと完全一致。
+新しいproducerはこの記録時点では未起動。mainのlive pinをこの実merge SHAへ同期する。
+c123は過去原本の厳密なread-only originとして保全し、古いsourceへのdispatch許可にしない。
+
+**停止と修正**: run43829249080の追加P0保管で失敗し24巡すべてskipped、後続2件もfailure。
+ログには表示stateの180秒fetch timeout2回、all-model保管失敗、Vaultの60秒timeout2回。
+bare Gitでwrite-treeが無関係なpromised blobを全取得する機構を再現。Vault現treeは約2.77GB。
+Vaultだけmissing-ok tree作成にしてOID保全・選択原本の別reader SHA/AES/本文検証を維持。
+表示/全モデルfetchはexact SHAのdepth1へ。全モデル現tree約420MBの検証は省略していない。
+過去の実timeoutのGit subcommandは旧ログに無く、唯一の原因とまでは断定しない。
+最新43978567937のworker1回GET/P0保存済みを、専用のbootstrap AES/公開control/先行原本replayで
+認証後に3原本を保持・別reader検証する復旧を追加。累積13018/日基点13017/worker1/巡回707を保つ。
+任意の取得数、未保存P1、403/429、source waitを許可しない。復旧自体の公式GET・新予想は0。
+
+**検証**: storage101、owner159、bootstrap/owner179、独立storage75/復旧46件success（範囲重複）。
+6実ZIPのGitHub metadata/サイズ/SHA/run/head一致を確認。ローカルzip照合はAES監査の代わりではない。
+実Vault先端のtree維持もローカル0.024秒/git516KiBで成功。remote書込0、実予想成功とは別。
+mainの原本監査対象を実停止43829249080へ更新し、既存の真正release gateから最新bootstrapを復旧する。
+
+**Safari**: 旧実Mac試験43830256729はimport前後の汎用SAFARI_OPERATION_FAILED。
+固定readerにparser checkoutが無い状態でrace_ai.coreのModuleNotFoundErrorを再現、
+既存PR64/72 parserを揃えるとimport成功。既存jobへ2つの固定checkoutを追加し、17境界試験成功。
+readerも上記の検証済みstorage sourceへ同期。実Mac再試験・実機iPhoneはまだ未確認。
+
+全4競技×適用可能全モデルの全日生成/保存/結果照合、6艇服色の継続識別・校正強さ・予想接続、
+元モデル/学習版の未来改善は未合格。新PR/モデル系統/外部service/課金/権限変更/投票/本番weights切替0。
+[証拠](evidence/boat-p0-storage-recovery-20261117.json)。以下は各時点の履歴として保全する。
+
 <!-- BOAT main release and actual Safari attempt 2026-11-16T08:11Z -->
 ## 2026-11-16: 実source更新・自動後継起動、Mac試験の失敗修正
 
