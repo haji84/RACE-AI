@@ -1,3 +1,42 @@
+## 2026-11-17 10:15 UTC 継続: 12巡success、原本監査とMacの実失敗を修正中（GOAL未達）
+
+確認済みmain2408a833920b539e7f29fb9fde02ca290e4f5df0（既存PR192/160を通常merge、各reviewed tree一致）。
+同時進行KEIRIN PR308のdefault-OFF/1レースgateとPR291は保全。production eff296fと単一owner44019591352は継続中。
+GitHub実job133825616165で01〜12巡success、13巡中（09:49:21 UTC開始）。24巡、全日、全締切T15〜10、
+全4競技×適用可能全モデルの達成とはしない。後半は1巡30分超であり、遅延は未解消。
+
+**実監査の失敗と修正:** 既存run44060568619/job133961084410は旧43829249080のcheckpointを別runnerで再AES認証したが、
+現ownerの全モデル照合はHOLD。固定vault115c6aa3f0e07c0de3f668ffa4e75b68c01edf88の当日11/17公式B indexは404、
+親directoryは200（08/13/14/15/16のみ）。同条件の暗号fixtureで拒否を再現した。
+修正候補は固定したactive snapshot限定で原本ZIP/AES・元モデル再演算・保存view一致を調べ、公式締切資格と分離する。
+公式資格件数0、分母null、full_day=false、後続許可false。既定の完了run検証は引き続き拒否し、誤鍵/改ざん/別原本/一般例外はfatal。
+98作者テスト、独立78件+追加2拒否検査、統合118件がsuccess。修正版の実AES結果はまだ未確認。
+[当日資料欠落の実証](evidence/boat-active-cutoff-prerequisite-20261117.json)。
+
+**実Macの失敗と修正:** 既存run44061190244/job133963304442はbrowser開始前、39件中1つのsynthetic artifact fixtureでHOLD。
+macOSの/var→/private/var symlinkを再現し、信頼済み一時fixtureだけcanonical pathに修正した。
+productionのsymlink拒否は維持し、その拒否回帰を追加。40 focused/91関連テストsuccess。
+ブラウザWebCryptoによる同一seed復号、誤鍵/鍵なし/別view/改ざん拒否、資格情報を除いたsynthetic7画面×4幅撮影は実Mac再試験待ち。
+旧44028066179の1440/390操作成功とは区別し、本人login、物理iPhone、8参考画面の最終受入は未合格。
+公開配信f60308efのassetsは変更していない。
+
+**保存遅延と動画coordinator:** 不変研究ファイルをサイズ制限付きでまとめて追記し、別Git DBで全選択byteを再照合する候補を既存PR107でCI中。
+全件を処理し、総レース/GETの上限追加、原本削除、CAS緩和なし。実Git sparse取得で無関係な古いblobを取得しないことを確認。
+動画matched coordinatorの六艇固定を既存3〜6艇validatorへ接続し、欠場艇を買い目へ含めない。モデル/重み/系統は変更しない。
+統合199件、独立の実workflow recovery662件等success。将来releaseでのexact eff checkpoint読戻しも追加し、旧checkout/旧proofの起動権限は拒否する。
+稼働中workerは差替えず、実運転の速度改善と次workerは未確認。
+
+**実映像と残る外部証拠:** 許諾済みCommons映像を復元し、775frames/25.859秒・SHA256
+1ac1f0c27f58d8d64ebb1cfc13c2c4e9133cf7bbcce04052f23c28bf2e37f194を確認。事前固定した4区間241framesでsix-unique仮説frameは0。
+これは独立正解ラベル付き精度率ではない。後からの目視では、空水面、2〜3艇、遮蔽/画面外を含み、全241枚を六艇観測機会の分母にしない。
+歴史的な権利未確認61frame派生物とは別source。正しい6艇継続識別、距離/時刻校正、強さの予想接続、未来精度改善は未証明。
+AUTOの元parserは試走の総数のみで、各車の数値・source時刻・同race/rosterの結合が不足しB_POST_TRIALを維持。
+非BOATの日次全レース供給、既存モデル全適用、前向き比較の不足をsynthetic試験で埋めない。
+
+新PR、新モデル系統、追加課金、公開配信変更、投票、本番weights切替は0。元checkout b420631/workはcleanを維持。
+未push b7380fe6a377e6ccf2b96331f2126c52549bbe17 / daae4c10167224b7730006d8ada5ade398aaa64bはUNRESTOREDのまま。
+以下は各時点の履歴として保全し、この追記をGOAL完成報告とは扱わない。
+
 ## 2026-11-17 最終継続記録: P0復旧後4巡成功、Mac Safari1440/390pxの私有表示操作が成功
 
 **確認対象code**: main36088f5d0d2513f88c3a71ae0a1f3e1d1d5a9649、production eff296f6d54ad4be297d93e32f1ee0d4592ad9e3。

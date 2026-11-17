@@ -4,10 +4,14 @@ on:
     branches: [main]
     paths:
       - .github/workflows/boat-owner-formal-live-pages-proof.yml
+      - scripts/boat_native_safari_acceptance.py
+      - tests/test_boat_native_safari_acceptance.py
   push:
     branches: [main]
     paths:
       - .github/workflows/boat-owner-formal-live-pages-proof.yml
+      - scripts/boat_native_safari_acceptance.py
+      - tests/test_boat_native_safari_acceptance.py
   workflow_run:
     workflows: ['pages build and deployment']
     types: [completed]

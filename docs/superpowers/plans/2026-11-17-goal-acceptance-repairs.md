@@ -94,3 +94,9 @@
 - Task5 bounded batch publication, actual sparse Git fixture, tamper/refusal and independent readback tests passed;199 combined source tests passed after Task2 integration. Actual next-worker timing remains pending. No total race/GET truncation or original deletion was introduced.
 
 All remote integration and real acceptance boxes above remain open until their actual results are recorded.
+
+## Real integration findings (2026-11-17 10:12 UTC)
+
+- Existing PR192 merged normally atmain3da1453b after16 completed checks and exact-tree verification. Genuine read-only audit44060568619 re-authenticated failed438292 checkpoint, then refused the active exact-model prerequisite: the immutable program vault lacks the November17 index (404; parent directory200). A dedicated active-only raw-authentication report now records this absence, with zero qualified cutoff slots/null denominator; default exact audit still refuses. Actual repaired report remains pending.
+- Existing PR160 merged normally atmain2408a833 after24 completed checks and exact-tree verification. Genuine Mac44061190244 failed one unit fixture before browser launch because macOS /var is a symlink. The trusted test fixture now resolves its own temporary directory; a regression proves production still refuses unresolved symlinks.40 focused and91 related tests passed. Actual browser AES remains pending.
+- Source candidate includes exact eff checkpoint readback compatibility for the next release, without giving an old checkout/proof dispatch authority. Existing source CI selection is extended in the same job; no additional jobs are introduced.
