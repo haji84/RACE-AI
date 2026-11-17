@@ -227,6 +227,8 @@ jobs:
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_owner_inputs.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_owner_source_cycle.py' -v
           python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_variable.py" "$GITHUB_WORKSPACE/scripts/keirin_source_gap_plan.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_owner_inputs.py"
+      - name: Owner-authored 71R result comparison contract (no provider GET)
+        run: python -m unittest -v tests.test_keirin_manual_result_sync
       - name: Do not claim synthetic results as live
         run: echo 'Synthetic model and AES tests are not actual real-race prediction evidence.' >> "$GITHUB_STEP_SUMMARY"
       - name: Export only public research detector code for independent local replay
