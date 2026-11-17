@@ -317,5 +317,17 @@ class SourceFreeExactZipTests(unittest.TestCase):
                     now=NOW,owner_key=bytes(range(32)))
         listing.assert_not_called()
 
+    def test_active_run_is_not_admitted_by_the_default_completed_reader(self):
+        from race_ai import boat_all_model_recovery as R
+        from race_ai import cycle_recovery as C
+        run=dict(id=42,head_sha=exact.OWNER_SHA,head_branch='production/boat-p0-p1-20261111',
+                 event='workflow_dispatch',status='in_progress',created_at='2030-04-01T02:00:00Z')
+        with patch.object(R,'_run',return_value=run),patch.object(C,'artifact_pages') as listing:
+            with self.assertRaises(ValueError):
+                exact.audit(get=lambda _:b'fixture',repo='unused',run_id=42,day=DAY,
+                    expected_models=['boat-model-A'],original_view=dict(records=[original()]),
+                    now=NOW,owner_key=bytes(range(32)))
+        listing.assert_not_called()
+
 
 if __name__=='__main__':unittest.main()

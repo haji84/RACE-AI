@@ -77,7 +77,7 @@ def _canonical_p0(get,run,listing):
     return auditor.first_p0_original(get,run,listing)
 
 
-def _official_cutoffs(get, repo, run, listing, reader, *, day, now, key):
+def _official_cutoffs(get, repo, run, listing, reader, *, day, now, key, p0_original=None):
     """Re-open P0 ZIP and independently verify the original official B source.
 
     An ALL_MODEL P1 archive cannot certify its own sales cutoff. Every cutoff
@@ -90,7 +90,7 @@ def _official_cutoffs(get, repo, run, listing, reader, *, day, now, key):
     from race_ai.frozen_day_cycle import read_p0
     from race_ai.boat_program_source import load_program_source
     _owner_head(run.get('head_sha'))
-    item,origin=_canonical_p0(get,run,listing)
+    item,origin=_canonical_p0(get,run,listing) if p0_original is None else p0_original
     owner_head=_owner_head(origin.get('head_sha'))
     ident=item['id']
     meta_raw=reader.read(f'actions/artifacts/{ident}',128*1024)
@@ -296,7 +296,7 @@ def cutoff_source_disagreement(projection, payload, rows, *, artifact_id,
         racelist_captured_after_first_p0_saved_slots=later)
 
 def audit(*,get,repo,run_id,day,expected_models,original_view,now,
-          maximum_artifacts=64,owner_key=None):
+          maximum_artifacts=64,owner_key=None,active_scope=None):
     """Read all original ZIPs, ignoring any already-cached coverage shortcut.
 
     Caller must supply authentic saved day, pinned production source checkout
@@ -320,21 +320,28 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
     owner_head=_owner_head(run.get('head_sha'))
     need(run.get('head_branch')=='production/boat-p0-p1-20261111' and
          run.get('event')=='workflow_dispatch' and
-         run.get('status')=='completed')
+         (run.get('status')=='completed' if active_scope is None else run.get('status')=='in_progress'))
     day_from_run=moment(run['created_at']).astimezone(JST).date().isoformat()
     need(day_from_run==day)
     listed=artifact_pages(reader,run_id)
+    selected_rounds=None
+    if active_scope is not None:
+        from scripts.boat_owner_active_snapshot_audit import validate_active_scope
+        selected_rounds=validate_active_scope(active_scope,run,listed,now,get)
     targets=[];unique_ids=set();unique_rounds=set()
     for item in listed:
         record=R._listed(item,run_id,now)
         if record is None:continue
         artifact_id,round_no=record
+        if selected_rounds is not None and round_no not in selected_rounds:continue
         need(artifact_id not in unique_ids and round_no not in unique_rounds)
         unique_ids.add(artifact_id);unique_rounds.add(round_no)
         targets.append((round_no,artifact_id,item))
     need(0<len(targets)<=maximum_artifacts)
+    if selected_rounds is not None:need(unique_rounds==set(selected_rounds))
     targets.sort()
-    official_cutoffs=_official_cutoffs(get,repo,run,listed,reader,day=day,now=now,key=key)
+    official_cutoffs=_official_cutoffs(get,repo,run,listed,reader,day=day,now=now,key=key,
+        **({'p0_original':active_scope['p0_original']} if active_scope is not None else {}))
     day_rows={r['race_id'] for r in original_view['records']
               if r.get('sport')=='boat' and r.get('event_date_jst')==day}
     need(day_rows==set(official_cutoffs))
@@ -352,6 +359,15 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
     for round_no,artifact_id,listed_item in targets:
         meta_raw=reader.read(f'actions/artifacts/{artifact_id}',128*1024)
         meta,archived=R._metadata(meta_raw,listed_item,run,now,get)
+        if active_scope is not None:
+            if round_no==0:
+                first=next(s for s in active_scope['job']['steps']
+                           if s.get('name')=='Deadline-ordered five-model round 01')
+                need(moment(run['created_at'])<=moment(meta['created_at'])<=moment(first['started_at']))
+            else:
+                step=next(s for s in active_scope['job']['steps']
+                          if s.get('name')==f'Deadline-ordered five-model round {round_no:02}')
+                need(moment(step['started_at'])<=moment(meta['created_at'])<=moment(step['completed_at']))
         # GitHub metadata's physical created_at, ZIP digest and exact ciphertext
         # are all checked by the *existing* pinned source _project(). This is
         # never a cached HMAC-only coverage acknowledgment.
@@ -380,7 +396,7 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         # sealed P1 racecard/exhibition deadline from the first official P0 B
         # schedule. The 9 conflicting model slots remain HOLD; no re-scoring.
         if holds.get('INDEPENDENT_OFFICIAL_CUTOFF_CONFLICT',0):
-            p0,_=_canonical_p0(get,run,listed)
+            p0,_=_canonical_p0(get,run,listed) if active_scope is None else active_scope['p0_original']
             with R._checked_zip(raw,max_zip_bytes=R.MAX_ZIP_BYTES,
                                 max_expanded=R.store.MAX_WIRE) as archive:
                 need(archive.namelist()==['forecasts.enc'])
@@ -424,5 +440,7 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         round_evidence=round_counts,
         source_cutoff_conflict_diagnostics=cutoff_diagnostics,
         previously_archived_coverages_skipped_without_zip_read=0,
+        full_day_coverage=False,successor_dispatch_allowed=False,latest_live_counters_audited=False,
+        active_completed_round_scope=selected_rounds,
         racing_provider_gets=0,prediction_generation_performed=False,
         production_predictions_modified=False,website_end_to_end_proven=False)

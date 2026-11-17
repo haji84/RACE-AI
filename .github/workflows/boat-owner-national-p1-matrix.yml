@@ -8,6 +8,8 @@ on:
       - tests/test_boat_owner_national_p1_matrix.py
       - scripts/boat_exact_all_model_zip_readback.py
       - tests/test_boat_exact_all_model_zip_readback.py
+      - scripts/boat_owner_active_snapshot_audit.py
+      - tests/test_boat_owner_active_snapshot_audit.py
       - scripts/boat_owner_evidence_audit.py
       - tests/test_boat_failed_checkpoint_audit.py
       - tests/test_boat_native_matrix_intake.py
@@ -19,6 +21,8 @@ on:
       - tests/test_boat_owner_national_p1_matrix.py
       - scripts/boat_exact_all_model_zip_readback.py
       - tests/test_boat_exact_all_model_zip_readback.py
+      - scripts/boat_owner_active_snapshot_audit.py
+      - tests/test_boat_owner_active_snapshot_audit.py
       - scripts/boat_owner_evidence_audit.py
       - tests/test_boat_failed_checkpoint_audit.py
       - tests/test_boat_native_matrix_intake.py
@@ -61,7 +65,7 @@ jobs:
       - name: Install exact pinned owner reader dependencies for source-free test
         run: python -m pip install --disable-pip-version-check -r owner-source/requirements-history.txt
       - name: Pure model matrix and forced original ZIP AES source-free contract
-        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope -v
+        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit -v
       - name: Prove source-owner and private key are only ever read on trusted main events
         run: |
           python - <<'PY'
@@ -198,20 +202,22 @@ jobs:
           if-no-files-found: error
           retention-days: 30
       - name: Audit real GitHub sealed originals, no result/provider GET or plaintext exposure
+        id: original_audit
         working-directory: owner-source
         env:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
-          # Normal main push reopens the exact latest completed owner before this source release.
+          # A trusted main push audits only saved completed-round receipts of this exact owner.
           # Genuine completion events continue to select their own actual run.
-          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43818666068' }}
+          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '44019591352' }}
         run: |
           python - <<'PY'
           import importlib.util,json,os,re,subprocess
           from datetime import datetime,timezone
           from pathlib import Path
-          import race_ai
+          import race_ai,scripts
+          scripts.__path__=list(scripts.__path__)+[str(Path('..').resolve()/'scripts')]
           owner='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
           assert subprocess.check_output(['git','rev-parse','HEAD'],timeout=10).decode().strip()==owner
           for folder in ('pr64-reference','pr72-reference'):
@@ -230,12 +236,28 @@ jobs:
           try:
               ident=int(os.environ['OWNER_AUDIT_RUN_ID'])
               assert ident>0
-              result=audit.inspect_run(Path('.').resolve(),ident,now=datetime.now(timezone.utc))
-              from race_ai.existing_model_coverage import active_catalog
-              expected=[r['model_id'] for r in active_catalog()
-                        if 'boat' in r['applicable_sports']]
-              report=matrix.calculate(result,expected,independent_original_reader=True,allow_pending_audit=True)
-              assert report['racing_provider_gets']==0 and report['original_forecasts_unchanged']
+              from scripts.boat_private_original_vault import _environment
+              from scripts.github_existing_cycle import gh
+              repo=Path('.').resolve();_environment(repo)
+              run=json.loads(gh(f'actions/runs/{ident}'))
+              active_snapshot=os.environ['GITHUB_EVENT_NAME']=='push' and run.get('status')=='in_progress'
+              if active_snapshot:
+                  active=from_exact_file('boat_active_snapshot_private','../scripts/boat_owner_active_snapshot_audit.py')
+                  report=active.audit_active_snapshot(repo,ident,now=datetime.now(timezone.utc),get=gh)
+                  assert (report['official_source_requests']==0 and report['full_day_coverage'] is False and
+                          report['successor_dispatch_allowed'] is False and report['latest_live_counters_audited'] is False)
+                  for name in ('boat-all-model-vault-counts.json','boat-exact-zip-aes-model-proof.json'):
+                      target=Path(os.environ['RUNNER_TEMP'])/name
+                      assert not target.exists() and not target.is_symlink()
+                      target.write_text(json.dumps(report,sort_keys=True)+'\n',encoding='utf-8')
+              else:
+                  result=audit.inspect_run(repo,ident,now=datetime.now(timezone.utc))
+                  from race_ai.existing_model_coverage import active_catalog
+                  expected=[r['model_id'] for r in active_catalog() if 'boat' in r['applicable_sports']]
+                  report=matrix.calculate(result,expected,independent_original_reader=True,allow_pending_audit=True)
+                  assert report['racing_provider_gets']==0 and report['original_forecasts_unchanged']
+              with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+                  output.write('active_snapshot='+('true' if active_snapshot else 'false')+'\n')
               safe=Path(os.environ['RUNNER_TEMP'])/'boat-national-p1-counts.json'
               assert not safe.exists() and not safe.is_symlink()
               safe.write_text(json.dumps(report,sort_keys=True)+'\n',encoding='utf-8')
@@ -243,7 +265,7 @@ jobs:
           except Exception as exc:
               code=str(exc)
               reason=(code if type(code) is str and re.fullmatch(
-                  r'(?:OWNER_AUDIT|VAULT|BOAT_OWNER_NATIONAL_P1_MATRIX)_[A-Z0-9_]{1,100}',code)
+                  r'(?:OWNER_ACTIVE_AUDIT|OWNER_AUDIT|BOAT_EXACT_ZIP_READBACK|VAULT|BOAT_OWNER_NATIONAL_P1_MATRIX)_[A-Z0-9_]{1,100}',code)
                   else 'AUTHENTICATED_ORIGINALS_NOT_YET_AUDITABLE')
               print(json.dumps(dict(status='HOLD_NATIONAL_P1_INDEPENDENT_AUDIT',
                   reason=reason,owner_run_id=os.environ['OWNER_AUDIT_RUN_ID'],
@@ -251,13 +273,13 @@ jobs:
               raise SystemExit(2)
           PY
       - name: Reopen ALL_MODEL GitHub originals on independent runner and measure true model slots
-        if: success()
+        if: success() && steps.original_audit.outputs.active_snapshot != 'true'
         working-directory: owner-source
         env:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
-          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43818666068' }}
+          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '44019591352' }}
         run: |
           python - <<'PY_ALL_MODEL'
           import importlib.util,json,os,re
@@ -343,13 +365,13 @@ jobs:
               raise SystemExit(2)
           PY_ALL_MODEL
       - name: Independently reopen every original ALL_MODEL GitHub ZIP, AES and deadline
-        if: success()
+        if: success() && steps.original_audit.outputs.active_snapshot != 'true'
         working-directory: owner-source
         env:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
-          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '43818666068' }}
+          OWNER_AUDIT_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '44019591352' }}
         run: |
           python - <<'PY_EXACT'
           import importlib.util,json,os,re,subprocess
