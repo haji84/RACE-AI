@@ -71,7 +71,11 @@ class ThreeArmStudy(unittest.TestCase):
         self.assertFalse(r["round_stage_only"]["hit_at_1"])
         self.assertTrue(r["round_and_line"]["hit_at_1"])
         self.assertEqual(r["line_vs_round_hit1_delta"],1)
-        self.assertEqual(r["line_vs_round_all_delta"],1)
+        # Reordering the same two combinations improves Hit@1 here, but
+        # cannot improve Hit@all if both models already include the winner.
+        self.assertEqual(r["line_vs_round_all_delta"],0)
+        self.assertTrue(r["round_stage_only"]["hit_at_all"])
+        self.assertTrue(r["round_and_line"]["hit_at_all"])
         self.assertEqual(r["round_and_line"]["virtual_payout_yen"],40000)
         self.assertFalse(r["formal_uplift_proven"])
         self.assertFalse(r["actual_money_wagered"])
