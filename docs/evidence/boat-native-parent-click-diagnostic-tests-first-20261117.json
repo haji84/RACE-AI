@@ -1,0 +1,20 @@
+{
+  "schema": "RACE_AI_NATIVE_PARENT_CLICK_DIAGNOSTIC_TESTS_FIRST_V1",
+  "base_main": "c425f03918126f38c9bd13a589b58fc8bc97e7e1",
+  "unchanged_runtime_blob": "9ad8a6603ceab418b2ababe64f72d9fbd95b21f8",
+  "test_blob": "7f5a7f5ab16de2396727f2302b5881ad0519b404",
+  "original_tests": 91,
+  "added_tests": 9,
+  "total_tests": 100,
+  "expected_red_failures": 8,
+  "expected_existing_behavior_invariant_pass": 1,
+  "tests_executed": false,
+  "actual_failure_run": 44152622468,
+  "actual_failure_job": 134284779148,
+  "root_cause_proven": false,
+  "behavior_fix_claimed": false,
+  "new_webdriver_commands": 0,
+  "new_jobs": 0,
+  "new_permissions": 0,
+  "goal_complete": false
+}
