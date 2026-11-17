@@ -12,6 +12,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from tests.public_report_assertions import assert_public_reconcile_report, assert_public_report
 from unittest.mock import patch
 
 from race_ai import boat_private_original_vault as V
@@ -635,9 +636,7 @@ class FirstP0ReconcileTests(unittest.TestCase):
         self.assertEqual(self.feed.read(old_parent, 'views/'+old_cipher+'.json', F.MAX_WIRE), old_wire)
         self.assertEqual(self.intraday.head(), source['source_commit'])
         self.assertEqual(self.vault.head(), self.bundle['vault_commit'])
-        public = wire(report).decode()
-        for forbidden in ('top8', 'ranked', 'racername', '4001', '20300401-01-01', '架空', 'per_forecast'):
-            self.assertNotIn(forbidden, public)
+        assert_public_reconcile_report(report)
 
     def test_missing_results_publishes_exact_original_with_hold_and_replay_is_quiet(self):
         self.save_results()
@@ -790,6 +789,71 @@ class FirstP0ReconcileTests(unittest.TestCase):
         self.assertNotIn('fixture-not-a-credential', stdout.getvalue())
         self.assertNotIn('ordered_top8', stdout.getvalue())
 
+
+
+
+class ReportPrivacyGuardTests(unittest.TestCase):
+    OBSERVED_HASH = '0853aee5781d059c44905b6634472da265c972132cb540018cd3cdc12e9c69a8'
+    COMMIT = 'a' * 18 + '4001' + 'b' * 18
+
+    def test_observed_ci_metadata_digest_is_safe_at_its_exact_typed_path(self):
+        report = {'status': 'FIRST_P0_RECONCILED', 'metadata_sha256': self.OBSERVED_HASH,
+                  'source_sha': self.COMMIT, 'scored_forecasts': 2}
+        before = dict(report)
+        assert_public_reconcile_report(report)
+        self.assertEqual(report, before)
+
+    def test_reviewed_nested_model_and_p1_hash_paths_are_safe(self):
+        assert_public_reconcile_report({
+            'model_score_counts': [{'model_id_sha256': self.OBSERVED_HASH, 'scored': 2}],
+            'p1_readback': {'source_sha': self.COMMIT, 'artifacts': [
+                {'metadata_sha256': self.OBSERVED_HASH, 'json_sha256': None}]}})
+
+    def test_prefixed_digest_requires_its_explicit_reviewed_path_and_format(self):
+        policy = {('receipt', 'digest'): 'sha256-prefixed'}
+        assert_public_report({'receipt': {'digest': 'sha256:' + self.OBSERVED_HASH}}, hash_fields=policy)
+        for report in ({'raw': 'sha256:' + self.OBSERVED_HASH},
+                       {'receipt': {'digest': self.OBSERVED_HASH}},
+                       {'receipt': {'digest': 'SHA256:' + self.OBSERVED_HASH}},
+                       {'receipt': {'digest': 'sha256:4001'}}):
+            with self.subTest(case=tuple(report)):
+                with self.assertRaises(AssertionError):
+                    assert_public_report(report, hash_fields=policy)
+
+    def test_raw_or_unreviewed_hex_text_is_never_masked(self):
+        reports = [
+            {'racer_registration': '4001'}, {'raw': 4001}, {'raw_name': self.OBSERVED_HASH},
+            {'name': self.COMMIT}, {'raw': 'sha256:' + self.OBSERVED_HASH},
+            {'nested': {'text': self.OBSERVED_HASH}},
+            {'nested': {'metadata_sha256': self.OBSERVED_HASH}},
+            {'unreviewed_sha256': self.OBSERVED_HASH},
+            {'model_score_counts': {'0': {'model_id_sha256': self.OBSERVED_HASH}}},
+            {'model_score_counts': [{'raw_name': self.OBSERVED_HASH}]},
+            {'racer4001': 'safe'}, {'raw': ['4001']},
+        ]
+        for index, report in enumerate(reports):
+            with self.subTest(case=index), self.assertRaises(AssertionError):
+                assert_public_reconcile_report(report)
+
+    def test_known_hash_fields_reject_wrong_types_or_formats(self):
+        for index, value in enumerate((4001, True, [self.OBSERVED_HASH],
+                {'raw': self.OBSERVED_HASH}, '4001', 'sha256:' + self.OBSERVED_HASH,
+                self.OBSERVED_HASH + '0', self.OBSERVED_HASH.upper())):
+            with self.subTest(case=index), self.assertRaises(AssertionError):
+                assert_public_reconcile_report({'metadata_sha256': value})
+
+    def test_private_names_and_forecasts_still_fail_beside_valid_hashes(self):
+        for token in ('top8', 'ranked', 'racername', '4001', '20300401-01-01', '架空', 'per_forecast'):
+            with self.subTest(token=token), self.assertRaises(AssertionError):
+                assert_public_reconcile_report({'metadata_sha256': self.OBSERVED_HASH,
+                                                'nested': {'raw': token}})
+
+    def test_failure_diagnostics_never_echo_the_report(self):
+        sentinel = 'fixture-private-name-4001'
+        with self.assertRaises(AssertionError) as caught:
+            assert_public_reconcile_report({'raw_name': sentinel})
+        self.assertEqual(str(caught.exception), 'PUBLIC_REPORT_PRIVATE_TOKEN')
+        self.assertNotIn(sentinel, str(caught.exception))
 
 if __name__ == '__main__':
     unittest.main()
