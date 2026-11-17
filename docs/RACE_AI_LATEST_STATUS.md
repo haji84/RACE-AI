@@ -1,3 +1,35 @@
+## 2026-11-17 UTC: P0保管停止の再調査・既存PR292の修正候補
+
+main実HEAD058ba8c、production実HEADc123b85を認証済みGitHubで確認。
+run43829249080は追加P0保管失敗、24巡すべてskipped。後続43883120947/43978567937もfailure。
+最新の予想producerは非稼働。結果更新schedule44013772830は復旧gate/原本mirrorがfailure。
+後者の公式結果取得jobはsuccessであり、全処理停止と同義ではない。
+
+正規ActionsログではSTATE_GIT_FETCH_TIMEOUTが2回、ALL_MODEL保管失敗、
+VAULT_GIT_OPERATION_TIMEOUTが2回。ローカルbare Gitでwrite-treeの段階だけが
+無関係なpromised blobを取得することを再現。Vault先端は5,569 blob/2,769,411,242 bytes。
+Vaultだけwrite-tree --missing-okを使用し、元tree OIDを保ち、選択原本の別reader SHA/AES/本文照合は必須のまま。
+表示/全モデルのfetchはexact commitのdepth=1へ限定し、旧pinは明示取得で復元する。
+全モデルの現tree 420,086,395 bytesの全暗号検証は残る。全取得量上限の変更や歴史削除ではない。
+
+新bare-Git試験は修正前RED、修正後GREEN。関連storage101件とowner/recovery159件が合格。
+独立reviewも75件成功、blocking findingなし。CI・本番適用・実AES復旧はこの候補時点では未確認。
+最新失敗43978567937はrequests_used=1、completed_round=0のため現復旧器が
+ROUND_RECOVERY_IDLE_CONTROL_OR_SOURCE_HOLDで停止。zero-request規約を無検証で緩めない。
+
+run43829249080の追加P0/continuity/controlとrun43978567937のP0/continuity/controlの6 ZIPを
+正規GitHub connectorから取得し、metadata SHA/サイズ/run/headに一致。
+前者は累積12770/日基点11524/worker0/巡回695、後者は累積13018/日基点13017/worker1/巡回707。
+ZIP/SHA照合は独立AES復号の代用ではない。予想やcounterは変更していない。
+
+未push b7380fe6a377e6ccf2b96331f2126c52549bbe17、daae4c10167224b7730006d8ada5ade398aaa64bは
+GitHub fetchでnot our ref、ローカルobjectも不在のためUNRESTORED。
+既存PR292の公開済みJST日跨ぎ修正は最新productionへ履歴を保ったmergeで保全。
+新PR/モデル系統/外部service/課金/権限変更/投票/本番weights切替なし。
+全4競技coverage、実機iPhone Safari、服色6艇継続識別/強さ校正/予想接続、未来A/B改善は未合格。
+
+以下は過去記録。
+
 <!-- RACE_AI_BOAT_ZERO_ROUND_RECOVERY_20261116 -->
 # 2026-11-16 JST｜BOAT停止復旧の原因修正・本番更新の準備
 

@@ -79,6 +79,23 @@ class VaultIsolationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'VAULT_PARENT_REFRESH_ANCESTRY_UNVERIFIED'):
             V.refresh_parent(reader,self.f.parent)
 
+    def test_fresh_sparse_writer_appends_without_hydrating_unrelated_ciphertext(self):
+        writer,reader=self.isolated()
+        unrelated=writer._run(['rev-parse',self.f.parent+':unrelated/retained.enc']).strip()
+        fresh=self.f.git('fresh-sparse-writer',ref=NEW_REF)
+        fresh.fetch(self.f.parent)
+        def present():
+            return subprocess.run(['git','-C',str(fresh.repo),'cat-file','-e',unrelated.decode()],
+                env=dict(os.environ,GIT_NO_LAZY_FETCH='1'),capture_output=True).returncode==0
+        self.assertFalse(present())
+        locator=V.retain_original(*F.original(),fresh.repo,expected_parent=self.f.parent,key=F.KEY,
+            transport=fresh,readback_transport=reader,now=F.NOW)
+        self.assertFalse(present(),'append downloaded unrelated historical ciphertext')
+        retained=fresh._run(['rev-parse',locator['source_commit']+':unrelated/retained.enc']).strip()
+        self.assertEqual(retained,unrelated)
+        self.assertEqual(V.restore_original(locator,reader.repo,key=F.KEY,transport=reader)['raw_zip'],F.original()[0])
+        self.assertEqual(reader.read(locator['source_commit'],'unrelated/retained.enc',100),b'existing ciphertext')
+
 
 class VaultCaptureRefreshTests(unittest.TestCase):
     def setUp(self):

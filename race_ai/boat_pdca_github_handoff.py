@@ -76,12 +76,12 @@ class GitStateRepository:
         m=re.fullmatch(r'([a-f0-9]{40})\s+refs/heads/'+re.escape(self.ref),raw)
         need(m is not None,'STATE_REF_IDENTITY_INVALID');return m[1]
 
-    def fetch(self,commit):
+    def fetch(self,commit,*,shallow=False):
         need(type(commit) is str and re.fullmatch('[a-f0-9]{40}',commit),'STATE_COMMIT_INVALID')
         # Keep the exact object locally reachable so the next pinned dataset
         # fetch can negotiate its already-restored monthly ancestors. These
         # private local refs are never pushed or used as trusted remote heads.
-        self._run(['fetch','--no-tags','--no-write-fetch-head',self.fetch_url,
+        self._run(['fetch','--no-tags','--no-write-fetch-head',*(['--depth=1'] if shallow else []),self.fetch_url,
                    commit+':refs/race-ai/pinned-state/'+commit])
 
     def read(self,commit,path,limit):
@@ -102,11 +102,14 @@ class GitStateRepository:
             for path,raw in sorted(files.items()):
                 blob=self._run(['hash-object','-w','--stdin'],body=raw,env=env).decode().strip()
                 self._run(['update-index','--add','--cacheinfo','100644,'+blob+','+path],env=env)
-            tree=self._run(['write-tree'],env=env).decode().strip()
+            tree=self._write_tree(env=env)
             args=['-c','user.name=RACE-AI encrypted state','-c','user.email=race-ai-state@users.noreply.github.com',
                   '-c','commit.gpgSign=false','commit-tree',tree]
             if parent:args+=['-p',parent]
             return self._run(args,body=b'Retain authenticated encrypted BOAT state generation\n',env=env).decode().strip()
+
+    def _write_tree(self,*,env):
+        return self._run(['write-tree'],env=env).decode().strip()
 
     def push(self,commit,parent):
         need(self.head()==parent,'STATE_REF_CONCURRENT_UPDATE')

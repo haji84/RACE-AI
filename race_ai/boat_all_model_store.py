@@ -173,6 +173,11 @@ class GitForecastRepository(GitStateRepository):
         self._reject_rewrites()
         self._check_remote()
 
+    def fetch(self,commit):
+        # _tree still validates every ciphertext in this exact head; obsolete
+        # ancestor trees are not inputs and remain available via explicit pins.
+        super().fetch(commit,shallow=True)
+
 
 def _transport(repo, transport):
     git = transport if transport is not None else GitForecastRepository(repo)

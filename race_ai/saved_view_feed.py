@@ -191,6 +191,11 @@ class FeedRepository(GitStateRepository):
     def __init__(self,repo):
         super().__init__(repo);self.ref=REF
 
+    def fetch(self,commit):
+        # History catalogs explicitly pin any older snapshot they need.
+        # Fetching the small current router must not download all prior days.
+        super().fetch(commit,shallow=True)
+
     def commit_snapshot(self,files,parent):
         """Bound the head tree; staged originals stay reachable through parents."""
         import tempfile

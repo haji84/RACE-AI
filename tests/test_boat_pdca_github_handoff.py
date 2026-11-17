@@ -30,6 +30,45 @@ def invented_research_state(root):
 
 
 class GithubHandoffTests(unittest.TestCase):
+    def test_display_and_forecast_pins_skip_obsolete_ancestor_bytes_but_old_pins_restore(self):
+        from race_ai.saved_view_feed import FeedRepository
+        from race_ai.boat_all_model_store import GitForecastRepository
+        for base in (FeedRepository,GitForecastRepository):
+            with self.subTest(transport=base.__name__),tempfile.TemporaryDirectory() as d:
+                class LocalGit(base):
+                    def _check_remote(self):
+                        self.fetch_url=self.push_url=self._run(['remote','get-url','origin']).decode().strip()
+                root=Path(d);remote=root/'remote.git'
+                subprocess.run(['git','init','--bare',str(remote)],check=True,capture_output=True)
+                def repo(name):
+                    path=root/name
+                    subprocess.run(['git','init',str(path)],check=True,capture_output=True)
+                    subprocess.run(['git','-C',str(path),'remote','add','origin',str(remote)],check=True,capture_output=True)
+                    return LocalGit(path)
+                writer=repo('writer');reader=repo('reader')
+                old=writer.commit({'only-in-old.enc':b'obsolete snapshot'},None)
+                writer.push(old,None)
+                # Model an existing immutable generation no longer in the head tree.
+                writer._run(['read-tree','--empty'])
+                tree=writer._run(['write-tree']).decode().strip()
+                new=writer._run(['-c','user.name=fixture','-c','user.email=fixture@example.test',
+                    'commit-tree',tree,'-p',old],body=b'bounded snapshot\n').decode().strip()
+                writer.push(new,old)
+                reader.fetch(new)
+                oid=writer._run(['rev-parse',old+':only-in-old.enc']).decode().strip()
+                present=subprocess.run(['git','-C',str(reader.repo),'cat-file','-e',oid],
+                    env=dict(os.environ,GIT_NO_LAZY_FETCH='1'),capture_output=True)
+                self.assertNotEqual(present.returncode,0,'latest fetch downloaded obsolete historical snapshots')
+                appended=reader.commit({'current.enc':b'new snapshot'},new)
+                reader.push(appended,new)
+                independent=repo('independent')
+                independent.fetch(appended)
+                self.assertEqual(independent.read(appended,'current.enc',100),b'new snapshot')
+                self.assertEqual(independent.head(),appended)
+                reader.fetch(old)
+                self.assertEqual(reader.read(old,'only-in-old.enc',100),b'obsolete snapshot')
+                self.assertEqual(reader._run(['cat-file','-t',new]).strip(),b'commit')
+
     def test_pinned_fetches_remain_reachable_for_incremental_following_fetch(self):
         from race_ai.boat_pdca_github_handoff import GitStateRepository
         class LocalFixtureGit(GitStateRepository):
