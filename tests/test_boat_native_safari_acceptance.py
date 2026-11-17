@@ -1298,8 +1298,13 @@ class SafeClickDiagnosticTests(unittest.TestCase):
     def test_native_option_failure_retains_public_callers_and_fixed_context_only(self):
         driver, remote = self.driver({'value': {'error': 'invalid element state', 'message': 'private-sentinel'}})
         S.ui_diagnostic(driver, 'latest_p1_private_transport', 'select_native_history', 1440)
+        # Isolate the option HTTP failure; parent preparation and preconditions
+        # have their own native-action fixture below.
+        prepared = {'control_in_view': True, 'hit_target': True, 'focused': True}
         with patch.object(driver, 'element', return_value='invented-option'), \
                 patch.object(driver.opener, 'open', side_effect=remote) as request, \
+                patch.object(driver, '_select_probe', return_value=('invented-select', prepared)), \
+                patch.object(driver, '_click_visible_element'), \
                 patch.object(driver, 'script', side_effect=AssertionError('no native option rectangle')):
             try:
                 driver.select('#private-sentinel', 'private-sentinel')
@@ -1385,6 +1390,179 @@ class SafeClickDiagnosticTests(unittest.TestCase):
             external = S.failure_report(error)
         self.assertNotIn('checker_callers', external)
         self.assertNotIn('private-sentinel', json.dumps(external))
+
+
+class NativeSelectFixture:
+    """Standard interactability fixture using measured public f603 geometry.
+
+    The b496 fixture's parent is892.69–938.69 at1440×1000, but995.58–1041.58
+    at390×1000. Closed options have no rectangle at either width. This models
+    the checker precondition gap, not a claim about the private Safari error.
+    """
+    def __init__(self, width=390, selected=False):
+        self.driver = S.WebDriver(1234);self.driver.session = 'invented-session'
+        self.width, self.selected = width, selected
+        self.in_view, self.focused, self.hit = width == 1440, False, width == 1440
+        self.control_id, self.calls, self.probes = 'invented-select', [], 0
+        self.override, self.after_parent, self.option_error = {}, None, None
+        self.after_option = None
+        self.malformed = None
+
+    def snapshot(self):
+        self.probes += 1
+        if self.malformed is not None:
+            return self.malformed
+        return {'control': {'element-6066-11e4-a52e-4f735466cecf': self.control_id},
+            'control_count': 1, 'option_count': 3, 'target_count': 1,
+            'control_is_select': True, 'control_connected': True, 'control_enabled': True,
+            'control_visible': True, 'target_connected': True, 'target_enabled': True, 'target_visible': True,
+            'selected_target': self.selected, 'control_in_view': self.in_view,
+            'hit_target': self.hit, 'focused': self.focused, **self.override}
+
+    def element(self, selector, visible=True):
+        if ' option[' in selector:
+            assert visible is False
+            return 'invented-option'
+        assert visible is True
+        return self.control_id
+
+    def script(self, source, *args):
+        if 'native-select-preflight' in source:
+            return self.snapshot()
+        if 'scrollIntoView' in source:
+            self.in_view = self.hit = True
+            return None
+        raise AssertionError('selection must use read-only preflight and existing native preparation')
+
+    def wait(self, source, *args, **kwargs):
+        if 'elementFromPoint' in source:
+            if self.in_view and self.hit:
+                return True
+            raise S.AppHold({})
+        if '?.value===arguments[1]' in source:
+            if self.selected:
+                return True
+            raise S.AppHold({})
+        raise AssertionError('unexpected selection wait')
+
+    def command(self, method, suffix, body=None):
+        assert method == 'POST' and body == {}
+        if suffix == '/element/invented-select/click':
+            self.calls.append('parent_click')
+            assert self.in_view and self.hit
+            self.focused = True
+            if self.after_parent:
+                self.after_parent(self)
+            return None
+        assert suffix == '/element/invented-option/click'
+        self.calls.append('option_click')
+        if not self.in_view or self.option_error:
+            raise self.driver._diagnostic_error(S.DriverHold(operation='element_click', http_status=400))
+        self.selected = True
+        if self.after_option:
+            self.after_option(self)
+
+    @contextmanager
+    def installed(self):
+        with patch.object(self.driver, 'element', side_effect=self.element), \
+                patch.object(self.driver, 'script', side_effect=self.script), \
+                patch.object(self.driver, 'wait', side_effect=self.wait), \
+                patch.object(self.driver, 'command', side_effect=self.command):
+            yield self.driver
+
+
+class NativeSelectPreparationTests(unittest.TestCase):
+    def test_fixture_reproduces_the_unprepared_desktop_mobile_difference(self):
+        for width in (1440, 390):
+            fixture = NativeSelectFixture(width)
+            with fixture.installed() as driver:
+                if width == 1440:
+                    driver.click('#prediction-select option[value="0"]', visible=False)
+                    self.assertTrue(fixture.selected)
+                else:
+                    with self.assertRaises(S.DriverHold):
+                        driver.click('#prediction-select option[value="0"]', visible=False)
+
+    def test_selection_prepares_parent_and_keeps_requested_option_click_even_if_already_selected(self):
+        for width in (1440, 390):
+            for selected in (False, True):
+                with self.subTest(width=width, selected=selected):
+                    fixture = NativeSelectFixture(width, selected)
+                    with fixture.installed() as driver:
+                        driver.select('#prediction-select', '0')
+                    self.assertEqual(fixture.calls, ['parent_click', 'option_click'])
+                    self.assertTrue(fixture.selected)
+                    self.assertGreaterEqual(fixture.probes, 3)
+
+    def test_missing_ambiguous_hidden_disabled_or_disconnected_target_holds_before_clicks(self):
+        cases = [{'control_count': 0}, {'control_count': 2}, {'control_is_select': False},
+            {'control_connected': False}, {'control_enabled': False}, {'control_visible': False},
+            {'target_count': 0}, {'target_count': 2}, {'target_connected': False}, {'target_enabled': False}, {'target_visible': False},
+            {'target_count': True}, {'option_count': -1}]
+        for changed in cases:
+            with self.subTest(changed=tuple(changed)):
+                fixture = NativeSelectFixture();fixture.override = changed
+                with fixture.installed() as driver, self.assertRaises(S.SafariHold):
+                    driver.select('#prediction-select', '0')
+                self.assertEqual(fixture.calls, [])
+        for malformed in ([], {}, {'private': 'private-sentinel'}):
+            fixture = NativeSelectFixture();fixture.malformed = malformed
+            with fixture.installed() as driver, self.assertRaises(S.SafariHold):
+                driver.select('#prediction-select', '0')
+            self.assertEqual(fixture.calls, [])
+
+    def test_stale_unfocused_or_occluded_parent_holds_before_option_click(self):
+        def stale(f):
+            f.control_id = 'replacement-select'
+        def unfocused(f):
+            f.focused = False
+        def occluded(f):
+            f.hit = False
+        for change in (stale, unfocused, occluded):
+            fixture = NativeSelectFixture();fixture.after_parent = change
+            with fixture.installed() as driver, self.assertRaises(S.SafariHold):
+                driver.select('#prediction-select', '0')
+            self.assertEqual(fixture.calls, ['parent_click'])
+
+    def test_native_option_failure_is_fatal_once_with_only_safe_preflight_diagnostics(self):
+        fixture = NativeSelectFixture();fixture.option_error = True
+        with fixture.installed() as driver:
+            S.ui_diagnostic(driver, 'latest_p1_private_transport', 'select_native_history', 390)
+            try:
+                driver.select('#prediction-select', '0')
+            except S.DriverHold as error:
+                report = S.failure_report(error)
+            else:
+                self.fail('native failure cannot be retried or waived')
+        self.assertEqual(fixture.calls, ['parent_click', 'option_click'])
+        self.assertEqual(report['ui_select_phase'], 'prepared')
+        self.assertTrue(report['ui_select_preflight']['control_in_view'])
+        self.assertTrue(report['ui_select_preflight']['focused'])
+        self.assertTrue(report['ui_select_preflight']['same_control'])
+        self.assertNotIn('invented-', json.dumps(report))
+
+    def test_readback_cannot_be_waived_and_normal_change_rerender_is_allowed(self):
+        fixture = NativeSelectFixture()
+        fixture.after_option = lambda f:setattr(f, 'selected', False)
+        with fixture.installed() as driver, self.assertRaises(S.SafariHold):
+            driver.select('#prediction-select', '0')
+        self.assertEqual(fixture.calls, ['parent_click', 'option_click'])
+        rerender = NativeSelectFixture()
+        rerender.after_option = lambda f:setattr(f, 'control_id', 'new-select-after-change')
+        with rerender.installed() as driver:
+            driver.select('#prediction-select', '0')
+        self.assertEqual(rerender.calls, ['parent_click', 'option_click'])
+        self.assertTrue(rerender.selected)
+
+    def test_preflight_diagnostics_cannot_export_references_values_or_unknown_fields(self):
+        error = S.SelectHold({'control': {'element-6066-11e4-a52e-4f735466cecf': 'private-sentinel'},
+            'value': 'private-sentinel', 'selector': 'private-sentinel', 'option_count': True,
+            'target_count': 10001, 'target_enabled': 'private-sentinel'})
+        error.ui_context = {'select_phase': 'initial'}
+        report = S.failure_report(error)
+        self.assertNotIn('sentinel', json.dumps(report))
+        self.assertIsNone(report['ui_select_preflight']['option_count'])
+        self.assertIsNone(report['ui_select_preflight']['target_count'])
 
 
 if __name__ == '__main__':

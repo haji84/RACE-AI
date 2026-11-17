@@ -67,7 +67,8 @@ SAFARI_WEBDRIVER_FAILED SAFARI_OPERATION_FAILED SAVED_CONTEXT_INVALID
 MODEL_ORIGINAL_MISMATCH PRIVATE_NETWORK_BOUNDARY_FAILED SAVED_VIEW_UNAVAILABLE
 APP_UI_CHECK_FAILED SOURCE_REVISION_MISMATCH VIEWPORT_INVALID NATIVE_BUDGET_INPUT_NOT_APPLIED
 ENCRYPTED_SEED_INVALID ENCRYPTED_SEED_REFUSAL_FAILED SYNTHETIC_FIXTURE_INVALID
-SYNTHETIC_SCREENSHOT_REJECTED SYNTHETIC_OUTPUT_REJECTED SAFARI_SESSION_CLEANUP_FAILED'''.split())
+SYNTHETIC_SCREENSHOT_REJECTED SYNTHETIC_OUTPUT_REJECTED SAFARI_SESSION_CLEANUP_FAILED
+NATIVE_SELECT_PRECONDITION_FAILED'''.split())
 
 
 class SafariHold(ValueError):
@@ -95,6 +96,12 @@ class AppHold(SafariHold):
         self.probe = probe
 
 
+class SelectHold(SafariHold):
+    def __init__(self, probe):
+        super().__init__('NATIVE_SELECT_PRECONDITION_FAILED')
+        self.probe = select_diagnostic(probe)
+
+
 PUBLIC_UI_MODULES = frozenset(('app.js', 'product-data.js', 'ui-model.js',
     'saved-performance.js', 'forecast-audit-model.js', 'saved-view-crypto.js'))
 UI_STAGES = frozenset(('latest_p1_private_transport', 'encrypted_seed_refusal', 'encrypted_seed_valid'))
@@ -103,11 +110,14 @@ UI_ACTIONS = frozenset(('load_saved_view', 'set_viewport', 'select_saved_day', '
     'select_comparison_model', 'open_research', 'return_from_research', 'open_results',
     'set_simulation_budget', 'select_simulation_mode', 'load_missing_key', 'load_wrong_key',
     'load_wrong_view', 'load_modified_cipher', 'load_valid_seed', 'open_seed_probe', 'select_seed_history'))
-CHECKER_FUNCTIONS = frozenset(('main', 'read_authenticated_view', 'app_checks', 'budget', 'select',
+CHECKER_FUNCTIONS = frozenset(('main', 'read_authenticated_view', 'app_checks', 'budget', 'select', '_select_probe',
     'click', '_click_visible_element', 'element', 'wait', 'command', 'open_race', 'select_day', 'click_page',
     'open_saved_race', 'select_saved_day', 'click_saved_page', 'encrypted_seed_checks', 'synthetic_visual_checks',
     'apple_driver', 'new_session', 'call', 'native_identity', 'verify_model_choice', 'verify_private_boundary',
     'load_public_assets', 'verify_live_assets'))
+SELECT_BOOLEANS = ('control_is_select', 'control_connected', 'control_enabled', 'control_visible',
+    'target_connected', 'target_enabled', 'target_visible', 'selected_target', 'control_in_view', 'hit_target', 'focused', 'same_control')
+SELECT_COUNTS = ('control_count', 'option_count', 'target_count')
 
 
 def need(value, reason):
@@ -123,6 +133,13 @@ def sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
+def select_diagnostic(probe):
+    probe = probe if type(probe) is dict else {}
+    return {**{key: probe.get(key) if type(probe.get(key)) is bool else None for key in SELECT_BOOLEANS},
+            **{key: probe.get(key) if type(probe.get(key)) is int and 0 <= probe[key] <= 10000 else None
+               for key in SELECT_COUNTS}}
+
+
 def failure_report(error):
     reason = str(error) if isinstance(error, SafariHold) and str(error) in REASONS else 'SAFARI_OPERATION_FAILED'
     report={'status': 'NATIVE_SAFARI_ACCEPTANCE_HOLD', 'reason': reason}
@@ -135,6 +152,7 @@ def failure_report(error):
             webdriver_error_code=error.w3c_error if type(error.w3c_error) is str and
                 error.w3c_error in W3C_ERRORS else None,
             remote_automation_disabled_message_observed=error.remote_automation_disabled is True)
+    if isinstance(error, (DriverHold, SelectHold)):
         context = error.ui_context if type(getattr(error, 'ui_context', None)) is dict else {}
         stage, action, width, click_path = (context.get(k) for k in ('stage', 'action', 'width', 'click_path'))
         report.update(ui_stage=stage if type(stage) is str and stage in UI_STAGES else None,
@@ -142,6 +160,11 @@ def failure_report(error):
             ui_verified_width=width if type(width) is int and width in VISUAL_WIDTHS else None,
             ui_click_path=click_path if type(click_path) is str and click_path in ('visible_element', 'native_option') else None,
             ui_hit_target_verified=context.get('hit_target_verified') is True)
+        phase = context.get('select_phase')
+        if phase in ('initial', 'prepared', 'readback'):
+            report['ui_select_phase'] = phase
+            report['ui_select_preflight'] = select_diagnostic(error.probe if isinstance(error, SelectHold)
+                                                             else context.get('select_preflight'))
     if isinstance(error, AppHold):
         probe = error.probe if type(error.probe) is dict else {}
         def bounded(name, maximum):
@@ -896,9 +919,61 @@ class WebDriver:
         finally:
             self.ui_context = context
 
+    def _select_probe(self, selector, value):
+        probe = self.script('''/* native-select-preflight: read only */
+            const controls=Array.from(document.querySelectorAll(arguments[0])),e=controls[0],wanted=String(arguments[1]);
+            const isSelect=e instanceof HTMLSelectElement,options=isSelect?Array.from(e.options):[],
+                targets=options.filter(o=>o.value===wanted),target=targets[0];
+            let visible=!!e?.getClientRects().length;
+            for(let node=e;node instanceof Element;node=node.parentElement){
+                const s=getComputedStyle(node);
+                if(node.hidden||s.display==='none'||s.visibility!=='visible'||Number(s.opacity)===0)visible=false;
+            }
+            let targetVisible=!!target;
+            for(let node=target;node instanceof Element&&node!==e;node=node.parentElement){
+                const s=getComputedStyle(node);
+                if(node.hidden||s.display==='none'||s.visibility!=='visible'||Number(s.opacity)===0)targetVisible=false;
+            }
+            const r=e?.getBoundingClientRect(),inView=!!r&&r.width>0&&r.height>0&&r.left>=0&&r.top>=0&&r.right<=innerWidth&&r.bottom<=innerHeight,
+                hit=inView?document.elementFromPoint(r.left+r.width/2,r.top+r.height/2):null;
+            return {control:e||null,control_count:controls.length,option_count:options.length,target_count:targets.length,
+                control_is_select:isSelect,control_connected:!!e?.isConnected,control_enabled:!!e&&!e.matches(':disabled'),
+                control_visible:visible,target_connected:!!target?.isConnected&&target.closest('select')===e,
+                target_enabled:!!target&&!target.matches(':disabled')&&!!e&&!e.matches(':disabled'),
+                target_visible:targetVisible,
+                selected_target:!!target&&e.value===wanted&&target.selected,control_in_view:inView,
+                hit_target:!!hit&&(hit===e||e.contains(hit)),focused:!!e&&document.activeElement===e};''', selector, value)
+        self.ui_context['select_preflight'] = select_diagnostic(probe)
+        valid = type(probe) is dict and all(type(probe.get(key)) is bool for key in SELECT_BOOLEANS if key != 'same_control') \
+            and all(type(probe.get(key)) is int and 0 <= probe[key] <= 10000 for key in SELECT_COUNTS)
+        reference = probe.get('control') if type(probe) is dict else None
+        ident = reference.get('element-6066-11e4-a52e-4f735466cecf') if type(reference) is dict else None
+        if not (valid and probe['control_count'] == probe['target_count'] == 1 and probe['option_count'] >= 1
+                and all(probe[key] for key in ('control_is_select', 'control_connected', 'control_enabled',
+                    'control_visible', 'target_connected', 'target_enabled', 'target_visible'))
+                and isinstance(ident, str) and re.fullmatch('[A-Za-z0-9-]{1,160}', ident)):
+            raise self._diagnostic_error(SelectHold(probe))
+        return ident, probe
+
     def select(self, selector, value):
-        self.click(selector + ' option[value=' + json.dumps(str(value)) + ']', visible=False)
-        self.wait('return document.querySelector(arguments[0])?.value===arguments[1]', selector, str(value))
+        value = str(value)
+        self.ui_context['select_phase'] = 'initial'
+        ident, _ = self._select_probe(selector, value)
+        # A closed option has no rectangle. Prepare its parent through the
+        # existing scroll/hit/native-click path, even for an already selected target.
+        self.click(selector)
+        self.ui_context['select_phase'] = 'prepared'
+        prepared_ident, prepared = self._select_probe(selector, value)
+        prepared['same_control'] = prepared_ident == ident
+        self.ui_context['select_preflight'] = select_diagnostic(prepared)
+        if not all(prepared[key] for key in ('same_control', 'control_in_view', 'hit_target', 'focused')):
+            raise self._diagnostic_error(SelectHold(prepared))
+        self.click(selector + ' option[value=' + json.dumps(value) + ']', visible=False)
+        self.ui_context['select_phase'] = 'readback'
+        self.wait('return document.querySelector(arguments[0])?.value===arguments[1]', selector, value)
+        _, selected = self._select_probe(selector, value)
+        if not selected['selected_target']:
+            raise self._diagnostic_error(SelectHold(selected))
 
     def budget(self, value):
         element = self.element('#simulation-budget')
