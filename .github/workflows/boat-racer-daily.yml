@@ -139,7 +139,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: d5ede5fb1f336794e8a0217e9b42d559d8ab0cc4
+          ref: 01ed8abecfc38bdce43895d79e9136a53b26e71e
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
