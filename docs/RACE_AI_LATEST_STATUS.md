@@ -1,3 +1,21 @@
+## 2026-11-17: 実ownerは3巡success、Safariの詳細タブ停止を継続診断
+
+実main fb938e5b8690b8d525056e875d1178e94e988c02（既存PR194、23 checks完了・tree一致）、
+source eff296f6d54ad4be297d93e32f1ee0d4592ad9e3。
+単一owner44019591352はP0保管step33と巡回01/02/03がsuccess。巡回03終了05:40:01 UTC、巡回04中。
+24巡完走・全4競技全レース/全モデル・全締切T15〜10充足・別runnerの新原本AESはまだ未確認。
+
+実Mac44024956057/job133842950712はapp_checks:559の詳細タブclickでHOLD。
+どちらのviewportかは旧ログに無いため、予算変更をどこまで通過したかも未確定。W3C入力修正の実証にはしない。
+既存PR182で、要素の1回照会を同じ可視条件の45秒待機へ変更する。失敗時は画面ID/幅、公開JSのmodule/行、
+エラー件数のみを許可リストと整数上限で出す。任意DOM文字列、URL、例外本文、鍵、予想は出さない。
+遅延要素の回帰RED→Safari23件success、独立23件success。実Macでの原因/解消はまだ未証明。
+予想worker・公開配信asset・model/weights・原本はこの診断変更で動かさない。
+
+旧指定未push2コミットはUNRESTORED。元checkout b420631のclean状態、公開read/認証writeの区別を保全。
+Mac Safari全判定・物理iPhone・ブラウザ内AES/本人認証・8参考画面の視覚受入、実映像6艇/校正/予想接続、
+元モデル/学習版の未来改善は未合格。過去原本の固定pin404と旧前向きplan HOLDも保全している。
+
 ## 2026-11-17: Mac再試験も日予算でHOLD、ネイティブkey eventsを検証
 
 実Mac run44023534099/job133838349546（main acd7c76）はapp_checks:564のbudgetで再びHOLD。
