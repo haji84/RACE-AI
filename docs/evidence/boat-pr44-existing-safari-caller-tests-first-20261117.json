@@ -1,0 +1,137 @@
+{
+  "schema": "RACE_AI_PR44_PRESERVATION_EXISTING_NATIVE_CALLER_TESTS_FIRST_20261117_V1",
+  "repository": "haji84/RACE-AI",
+  "existing_pr_before_reuse": {
+    "url": "https://github.com/haji84/RACE-AI/pull/44",
+    "number": 44,
+    "state": "open",
+    "merged": false,
+    "mergeable": true,
+    "draft": true,
+    "body": "PR #43の結果パーサー＋照合に、実HTMLバイト・SHA-256・取得時刻・独立レビュー担当の入力を必須化する検証契約を追加。改変HTMLと欠測を拒否。合成fixtureの契約テスト付き。\n\n注意：公式サイトの実HTMLバイトはまだ取得できておらず、実レースE2Eは未成功。reviewed_by文字列だけではレビュー実在を保証できないため、外部の信頼できる証拠記録が必要。main/Production変更なし。",
+    "title": "test: 公式実HTMLのSHA証拠と6艇照合の検証契約",
+    "base": "feat/boat-result-parser-reconcile-bridge",
+    "base_sha": "6bc736ee79551bd22ea9fe1479726d768b709516",
+    "head": "test/boat-real-html-evidence-contract",
+    "head_sha": "b834511669d1135f08e560b73d79d8626b70a74c",
+    "head_repo_id": 1416489937,
+    "head_repo_full_name": "haji84/RACE-AI",
+    "merge_commit_sha": "c6933f8805663bd995cde47a934576c5deeae31d",
+    "user": {
+      "login": "haji84",
+      "name": "haji84",
+      "email": null,
+      "avatar_url": "https://avatars.githubusercontent.com/u/173585154?v=4",
+      "id": 173585154
+    },
+    "requested_reviewers": null,
+    "requested_team_reviewers": null,
+    "diff": null,
+    "comments": null,
+    "created_at": "2026-10-14T07:22:41Z",
+    "updated_at": "2026-10-14T07:22:50Z",
+    "closed_at": null,
+    "merged_at": null,
+    "commits": 2,
+    "changed_files": 2,
+    "additions": 72,
+    "deletions": 0,
+    "display_url": "https://github.com/haji84/RACE-AI/pull/44",
+    "display_title": "test: 公式実HTMLのSHA証拠と6艇照合の検証契約"
+  },
+  "original_preservation": {
+    "head": "b834511669d1135f08e560b73d79d8626b70a74c",
+    "ancestor_of_actual_main": "11fce968e977a6ff82eb4b72655c819e4b0e7517",
+    "compare_ahead": 2232,
+    "compare_behind": 0,
+    "open_consumers": [],
+    "force": false,
+    "new_pr": false
+  },
+  "protected_main45": {
+    "head": "11fce968e977a6ff82eb4b72655c819e4b0e7517",
+    "tree": "dbd74053640ef004a22dc6859eb32a967ab37113",
+    "tested_head": "1a40db8844b90a72a0fe58e1b9f05a8ee48db929",
+    "tree_equal": true,
+    "main_tests": 93,
+    "national_tests": 206,
+    "owner_tests": 181,
+    "mirror_test_counts": [
+      212,
+      32
+    ],
+    "late_completed_checks": {
+      "total": 27,
+      "success": 12,
+      "skipped": 15
+    },
+    "actual_owner_gate": {
+      "run_id": 44198715583,
+      "job_id": 134446902162,
+      "status": "HOLD_ACTIVE_OWNER_WORKFLOW",
+      "release_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+      "dispatch_allowed": false,
+      "recovery_required": false,
+      "official_source_requests": 0
+    }
+  },
+  "test_packet": "e618d530c55e62d5ffadace3c6744048eaf515c2",
+  "test_blob": "cbc2cd3c3c5074541f11ed7e815990f3cad4c829",
+  "test_methods": 26,
+  "historical_methods_retained": 12,
+  "assertion_adaptations": [
+    {
+      "before": "run: python -m scripts.boat_native_safari_dispatch",
+      "after": "Existing final optional step imports main and calls main([]) in Python heredoc with no SystemExit. Additional behavior test executes the extracted wrapper for main return 0 and 2 and preserves HOLD stdout."
+    },
+    {
+      "before": "scripts/boat_native_safari_dispatch.py appears in racer trigger header",
+      "after": "Restored helper path appears exactly once in existing boat-main-recovery-contract.yml pull_request paths and does not appear in racer trigger header."
+    },
+    {
+      "before": "tests/test_boat_native_safari_dispatch.py appears in racer trigger header",
+      "after": "Restored test path appears exactly once in existing boat-main-recovery-contract.yml pull_request paths and does not appear in racer trigger header."
+    },
+    {
+      "before": "Native acceptance/dispatch modules share the racer's old specific unit-command substring",
+      "after": "The new test module is registered in the recovery workflow's sole existing python -m unittest command, which still ends in -v."
+    }
+  ],
+  "approved_design": {
+    "reuse_historical_helper": true,
+    "target_workflow": 416758725,
+    "only_first_trusted_main_release_push": true,
+    "only_candidate_pin_changed_from_exact_first_parent": true,
+    "normalized_native_workflow_control_bytes_must_be_identical": true,
+    "same_existing_release_prefix_and_marker": true,
+    "same_head_existing_run_any_status_prevents_post": true,
+    "one_fixed_POST_at_most": true,
+    "ambiguous_POST_never_retried": true,
+    "source_core_runs_before_optional_step": true,
+    "optional_wrapper_preserves_prior_core_conclusion": true,
+    "public_repo_and_existing_active_workflow_required": true,
+    "default_network_proxy_policy_preserved": true,
+    "no_owner_key_or_provider_source_read": true
+  },
+  "coverage_change": {
+    "existing_recovery_job_only": true,
+    "restored_module_in_existing_unit_command": true,
+    "only_two_restored_paths_added_to_existing_recovery_pull_request_filter": true,
+    "other_existing_filters_entries_events_branches_jobs_permissions_inputs_crons_runners_timeouts_unchanged": true
+  },
+  "runtime_present": false,
+  "optional_caller_step_present": false,
+  "native_candidate_pin_changed": false,
+  "actual_RED": "PENDING",
+  "execution_environment": "UNAVAILABLE; connected GitHub tools and CI remain available",
+  "UI_candidate": {
+    "new_commit": "ed904fe62dad470a91ababce623c52c1fbde5861",
+    "new_web_tree": "5759ac3f0ab900cc9c6d0ac592a44c4ff4ce53d8",
+    "old_tested_commit": "598c80c89b5d6a1bca8dbbb16d091ef9e74bfb76",
+    "old_actual_mac_run": 44191905231,
+    "new_browser_proof": "PENDING",
+    "pr62_draft": true,
+    "merge_or_publish": false
+  },
+  "goal_complete": false
+}

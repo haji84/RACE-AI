@@ -1,3 +1,15 @@
+## 2026-11-17 23:40:12 UTC: a74接続の通常mergeとactive-owner停止を実証、既存Safari呼出しの復元をtests-firstで準備（GOAL未達）
+
+main11fce968のtreeは試験済み1a40db88/treedbd7405と一致。93/206/181件、別212＋32件、10/14件・9block compileが成功、最終27checksは12success/15skip。実owner gate44198715583/job134446902162はsourcea74を認識したうえでHOLD_ACTIVE_OWNER_WORKFLOW、dispatch false/recovery false/公式GET0。稼働中BBを維持し、次の正規引継ぎにa74を選ぶ。
+
+新UI候補ed904/web5759ac3は4競技SVGのみを修正したDraft62。旧598の実Mac成功・28合成PNGと新bytesは区別し、新描画は未確認。コマンド環境が利用不可で、接続GitHub toolにはworkflow_dispatchがないため、以前の履歴に残る限定callerを既存Actions jobで復元する。新たなjob/権限/input/cron/runner/timeout/releaseprefix/markerは作らない。既存owner処理の後の任意stepで、最初のtrusted-main release pushかつ現在commitの候補pinがfirst parentから変わり、正規の全run履歴に同headの既存呼出しがない場合だけ、既存416758725/main/native-safariへ1回POSTする。曖昧な受付は再送せず、元P0の結論を変えない。
+
+最初のPR44 HEADは26試験と既存recovery unitへの登録だけ。古い12 methodを保持し、4構造assertionだけを実際の配置/任意wrapperへ適合。候補以外のnative workflow bytes不変/public repo/first attempt/default proxy/完全履歴/固定POST/鍵非出力を検証する。復元helperとtestの2 pathを既存pull_request filterへ加える以外、既存filter entries/events/branchesは不変。runtimeとcaller stepは未追加、実REDを確認してから実装する。元PR44のhead/base/本文は祖先とevidenceで保全した。
+
+実追加P0 132contexts/660生成・保持264・展示待ち924は暗号照合済み。実sourcea74の新producer/全round/全4競技、物理iPhone/全8参考、6艇GT・校正/強さ接続、将来studyでの改善は未達。8参考は全件PARTIAL、未push2commitはUNRESTORED。原本/本番weights/公開UI/他作業は保全する。
+
+詳細: [PR44保全・既存callerの限定設計](evidence/boat-pr44-existing-safari-caller-tests-first-20261117.json)。
+
 ## 2026-11-17 23:15:08 UTC: 次sourceの固定値と旧原本の限定読取りを実装、fresh CI待ち（GOAL未達）
 
 既存PR45の実REDはmain93件/0.156秒の追加4失敗/error0、national206件/145.542秒の追加2assertion失敗＋16error。新a74がまだ明示pinへ入っていないことによるSOURCE_NOT_PINNED等を再現し、元の試験は保持した。実sourcea74へ5箇所のcurrent pinを合わせ、過去BBだけを歴史原本/control来歴へ追加し、a74からM2/F553/BBのP0を読む方向だけを許可する。逆方向/未知source/旧checkout/proof/active workerの重複起動は拒否する。7 runtime/workflowファイルのstrict anchorを検証し、固定BB660件helperとoptional最終stepはbyte不変。M2対象/native/EFF/archived helper900003/job/permission/input/trigger/cron/runner/timeoutは変更しない。独立reviewとfresh93/206/既存CIは未完了。
