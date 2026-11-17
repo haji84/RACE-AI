@@ -148,6 +148,11 @@ def capture_http200(raw, *, source_url, received_at, source_guard=None):
         _private_root(root, repo)
         descriptor = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_NONBLOCK)
         try:
+            import fcntl
+            # Serialize cooperating raw writers on the existing directory
+            # itself. A busy writer is a fixed HOLD, never a blocking wait or
+            # a new lockfile. Closing descriptor releases this invocation's lock.
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
             identity = _signature(os.fstat(descriptor))[:5]
 
             def check_root():
@@ -157,20 +162,9 @@ def capture_http200(raw, *, source_url, received_at, source_guard=None):
                         and _signature(os.fstat(descriptor))[:5] == identity,
                         'PRIVATE_INPUT_CHANGED')
 
-            def keep(name, body, limit):
-                check_root()
-                try:
-                    output = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
-                                     0o600, dir_fd=descriptor)
-                except FileExistsError:
-                    pass
-                else:
-                    with os.fdopen(output, 'wb') as stream:
-                        V._need(stream.write(body) == len(body), 'PRIVATE_WRITE_INCOMPLETE')
-                        stream.flush(); os.fsync(stream.fileno())
-                actual, _, _ = _read_at(descriptor, name, limit, collect=True)
+            def verify(fd, name, body, limit):
+                actual, _, _ = _read_at(fd, name, limit, collect=True)
                 V._need(actual == body, 'EXISTING_CAPTURE_CONFLICT')
-                check_root()
 
             check_root()
             bodies = []
@@ -180,13 +174,80 @@ def capture_http200(raw, *, source_url, received_at, source_guard=None):
                 except FileNotFoundError:continue
                 bodies.append(name)
             V._need(len(bodies) <= 1, 'CAPTURE_BODY_REQUIRED')
-            # The existing result-feed inventory consumes .html files. This is
-            # an opaque filename convention, including for exact binary B;
-            # source URL and the unchanged typed B checks retain authority.
-            keep(bodies[0] if bodies else receipt['source_sha256']+'.html', raw, MAX_CAPTURE)
-            keep(V._sha(V._wire(receipt))+'.json', encoded, 16384)
-            os.fsync(descriptor)
+            # Preserve the existing feed filename convention for opaque B too.
+            files = [(bodies[0] if bodies else receipt['source_sha256']+'.html', raw, MAX_CAPTURE),
+                     (V._sha(V._wire(receipt))+'.json', encoded, 16384)]
+            pending = []
+            for name, body, limit in files:
+                try:os.stat(name, dir_fd=descriptor, follow_symlinks=False)
+                except FileNotFoundError:pending.append((name, body, limit))
+                else:verify(descriptor, name, body, limit)
             check_root()
+            if not pending:return
+
+            created = []
+            try:
+                # No partial body or receipt is ever visible in the flat
+                # inventory. This invocation owns this entire private stage.
+                with tempfile.TemporaryDirectory(dir=runner, prefix='boat-source-capture-stage-') as temporary:
+                    stage = _private_root(temporary, repo)
+                    stage_fd = os.open(stage, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_NONBLOCK)
+                    try:
+                        stage_identity = _signature(os.fstat(stage_fd))[:5]
+
+                        def check_stage():
+                            check_root(); _private_root(stage, repo)
+                            V._need(_signature(stage.lstat())[:5] == stage_identity
+                                    and _signature(os.fstat(stage_fd))[:5] == stage_identity,
+                                    'PRIVATE_INPUT_CHANGED')
+
+                        # Prepare every needed file before publishing either.
+                        for name, body, limit in pending:
+                            check_stage()
+                            output = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                                             0o600, dir_fd=stage_fd)
+                            with os.fdopen(output, 'wb') as stream:
+                                V._need(stream.write(body) == len(body), 'PRIVATE_WRITE_INCOMPLETE')
+                                stream.flush(); os.fsync(stream.fileno())
+                            verify(stage_fd, name, body, limit)
+                            check_stage()
+
+                        for name, body, limit in pending:
+                            check_stage()
+                            info = os.stat(name, dir_fd=stage_fd, follow_symlinks=False)
+                            # The staged inode is newly owned by this invocation.
+                            # Track it before link, including an interrupted call.
+                            created.append((name, (info.st_dev, info.st_ino)))
+                            try:
+                                # link is atomic and refuses an existing final
+                                # name; no original can be replaced or truncated.
+                                os.link(name, name, src_dir_fd=stage_fd, dst_dir_fd=descriptor,
+                                        follow_symlinks=False)
+                            except FileExistsError:
+                                verify(descriptor, name, body, limit)
+                            else:
+                                os.unlink(name, dir_fd=stage_fd)
+                            check_stage()
+                    finally:
+                        os.close(stage_fd)
+                for name, body, limit in files:
+                    verify(descriptor, name, body, limit)
+                os.fsync(descriptor)
+                check_root()
+            except BaseException:
+                # Only final links created by this invocation are eligible
+                # for rollback. Preexisting/shared files are never touched.
+                for name, expected in reversed(created):
+                    try:
+                        info = os.stat(name, dir_fd=descriptor, follow_symlinks=False)
+                        if (info.st_dev, info.st_ino) == expected:
+                            os.unlink(name, dir_fd=descriptor)
+                    except OSError:
+                        pass
+                if created:
+                    try:os.fsync(descriptor)
+                    except OSError:pass
+                raise
         finally:
             os.close(descriptor)
     except Exception:
