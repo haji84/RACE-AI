@@ -15,6 +15,9 @@ REVIEWED_PREVIOUS_OWNER_SHAS = frozenset({
     'b491fb21ce58ba085dd8f54bb7326442b840d8f4',
     # Exact pre-storage-repair release: original readback only, never dispatch.
     'c123b8538006b3189181195bbc91d8f28d216ba5',
+    # Exact pre-batch/video release: checkpoint/original readback only.
+    # Recovery still executes and emits proofs bound to the new expected head.
+    'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
 })
 
 

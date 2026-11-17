@@ -4,6 +4,7 @@ from datetime import timedelta
 from hashlib import sha256
 import json
 import unittest
+from unittest.mock import patch
 
 from tests.test_boat_pending_round_recovery import fixture, encrypted, DAY, NOW
 from tests.test_boat_private_original_vault import packed, KEY, HEAD
@@ -69,6 +70,74 @@ class OrphanP1RecoveryTests(unittest.TestCase):
             with self.subTest(expected=expected),self.assertRaises(ValueError):
                 recovery.reconcile_restored_state(self.state,lambda route:self.replies[route],
                                                  now=NOW,expected_head=expected)
+
+    def test_new_release_recovers_only_exact_reviewed_eff_checkpoint(self):
+        from scripts.boat_recover_failed_owner import recover_history
+        from tests.test_frozen_day_cycle import sample
+        from race_ai.frozen_day_cycle import read_p0
+        previous='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+        expected='e'*40
+        for origin in (previous,'f'*40):
+            with self.subTest(origin=origin):
+                with patch(__name__+'.HEAD',origin), \
+                     patch('tests.test_boat_pending_round_recovery.HEAD',origin):
+                    run,control,replies,state=orphan_fixture()
+                before=deepcopy((run,control,replies,state))
+                get=lambda route:replies[route]
+                if origin!=previous:
+                    with self.assertRaisesRegex(ValueError,'ORPHAN_SOURCE_NOT_REVIEWED'):
+                        recovery.reconcile_restored_state(state,get,now=NOW,expected_head=expected)
+                    continue
+                _,raw,meta=sample();_,p0=read_p0(raw,meta,expected_day=DAY)
+                replay=deepcopy(state);replay['rows']=p0+replay['rows'];replay['receipts'].append(meta)
+                with patch('urllib.request.urlopen',side_effect=AssertionError('provider access')):
+                    restored,pending=recovery.reconcile_restored_state(
+                        state,get,now=NOW,expected_head=expected)
+                    proof=recover_history([run],get=get,load_control=lambda _:deepcopy(control),
+                        replay_day=lambda:replay,
+                        retain=lambda *_:dict(independent_git_readback_verified=True,source_commit='d'*40),
+                        now=NOW,expected_head=expected)
+                self.assertEqual(pending['run']['head_sha'],previous)
+                self.assertEqual((restored['source_control']['completed_round'],
+                                  restored['source_control']['prepared_round']),(6,None))
+                for name in ('previous_session_requests','lifetime_requests',
+                             'day_start_lifetime_requests','lifetime_completed_rounds'):
+                    self.assertEqual(restored['source_control'][name],control[name])
+                self.assertEqual(proof['head_sha'],expected)
+                self.assertEqual(proof['repairs'][0]['original_head_sha'],previous)
+                self.assertEqual(proof['repairs'][0]['original_artifact_ids'],[123,702,703])
+                self.assertIsNotNone(recovery.verify_dispatch_proof(proof,[run],control,expected,NOW))
+                old_authority=deepcopy(proof);old_authority['head_sha']=previous
+                self.assertIsNone(recovery.verify_dispatch_proof(old_authority,[run],control,expected,NOW))
+                self.assertEqual((run,control,replies,state),before)
+
+    def test_reviewed_eff_checkout_cannot_execute_new_release_recovery(self):
+        from contextlib import redirect_stdout
+        import io,os,tempfile
+        from pathlib import Path
+        from scripts import boat_recover_failed_owner as cli
+        from tests.test_boat_recovery_invocation import callback,MAIN,WORKFLOW_REF
+        previous='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+        document=callback();document['workflow_run']['head_sha']=previous
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);event=root/'event.json';event.write_text(json.dumps(document))
+            env=dict(GITHUB_EVENT_NAME='workflow_run',GITHUB_EVENT_PATH=str(event),
+                GITHUB_WORKFLOW_REF=WORKFLOW_REF,GITHUB_REF='refs/heads/main',GITHUB_SHA=MAIN)
+            out=io.StringIO()
+            with patch.dict(os.environ,env),patch.object(cli,'_packages'), \
+                 patch('scripts.boat_private_original_vault._environment',return_value=root), \
+                 patch.object(cli.subprocess,'check_output',return_value=previous.encode()), \
+                 patch('scripts.boat_private_original_vault._private_path') as output, \
+                 patch('scripts.github_existing_cycle.gh',side_effect=AssertionError('remote access')) as remote, \
+                 redirect_stdout(out):
+                code=cli.main(['--history',str(root/'history.json'),'--expected-head','e'*40,
+                               '--output',str(root/'proof.json')])
+            report=json.loads(out.getvalue())
+            self.assertEqual(code,2)
+            self.assertEqual(report['reason'],'ROUND_RECOVERY_CHECKOUT_RELEASE_CHANGED')
+            self.assertFalse(report['successor_dispatch_allowed'])
+            output.assert_not_called();remote.assert_not_called()
+            self.assertFalse((root/'proof.json').exists())
 
     def test_producer_restores_orphan_without_inventing_completed_round_or_result(self):
         before=deepcopy((self.control,self.replies,self.state))

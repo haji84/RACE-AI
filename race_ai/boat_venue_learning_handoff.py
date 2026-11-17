@@ -10,7 +10,8 @@ import tempfile
 
 from .boat_observed_pairwise_models import MODEL_IDS
 from .boat_venue_dataset import _bytes, _sha
-from .boat_venue_history_handoff import GitStateRepository, TRANSFER_REF, PREFIX
+from .boat_venue_history_handoff import TRANSFER_REF, PREFIX
+from .boat_private_original_vault import VaultGitRepository as GitStateRepository
 from .boat_venue_learning import read_candidate
 from .observed_weight_learning import verify_training
 from .teiai_history import need
@@ -21,6 +22,7 @@ FILES = {'learning.json': 1_000_000, 'learning.enc': 12 * 1024 * 1024,
          'summary.json': 1_000_000}
 POINTER_FIELDS = {'schema', 'status', 'repository_id', 'source_commit',
                   'manifest_path', 'manifest_sha256', 'training_sha256'}
+MAX_RESEARCH_BATCH_BYTES = 64 * 1024 * 1024
 
 
 def _path(value):
@@ -129,6 +131,27 @@ def publish_learning_candidate(folder, repo, *, transport=None):
         need(_bounded(git.read(commit, prefix + name, FILES[name]), FILES[name]) == raw,
              'VENUE_LEARNING_REMOTE_READBACK_MISMATCH')
     return _pointer(commit, identity, training_sha)
+
+
+def publish_learning_candidates(folders, repo, *, transport=None, readback_transport=None):
+    """Authenticate every original, then append bounded groups with fresh readback."""
+    need(_key_ready(), 'OWNER_STATE_KEY_REQUIRED')
+    need(type(folders) is list and len(folders) <= 10000, 'VENUE_LEARNING_FOLDER_LIST_REQUIRED')
+    from .boat_research_batch import file_snapshot, publish_immutable_items
+    snapshots, identities = [], []
+    for folder in folders:
+        root = _path(folder)
+        files = {name: _read(root / name, limit) for name, limit in FILES.items()}
+        training_sha, _ = _verified(files)
+        identity = _sha(files['learning.json'])
+        prefix = PREFIX + 'learning/' + identity + '/'
+        snapshots.append({prefix + name: file_snapshot(root / name, FILES[name], raw)
+                          for name, raw in files.items()})
+        identities.append((identity, training_sha))
+    commits = publish_immutable_items(snapshots, repo, maximum_bytes=MAX_RESEARCH_BATCH_BYTES,
+        transport=transport, readback_transport=readback_transport)
+    return [_pointer(commit, identity, training_sha)
+            for commit, (identity, training_sha) in zip(commits, identities)]
 
 
 def restore_learning_candidate(pointer, output, repo, *, transport=None):

@@ -6,6 +6,7 @@ field accuracy, licence, human reference or actual pre-cutoff receipt.
 from copy import deepcopy
 from datetime import timedelta
 import importlib
+from itertools import permutations
 import unittest
 
 from race_ai.actions_contract import digest
@@ -21,6 +22,19 @@ from tests.test_observed_weight_learning import NOW
 def seal(document, field):
     document[field] = digest({k: v for k, v in document.items() if k != field})
     return document
+
+
+def active_video_envelope(envelope, lanes):
+    """Restrict a fictional saved context, retaining the original lane numbers."""
+    context, receipt = envelope['video_context'], envelope['receipt']
+    context['participants'] = [p for p in context['participants'] if p['lane'] in lanes]
+    for comparison in context['comparisons'].values():
+        comparison['uncertainty_by_lane'] = {lane: error for lane, error in
+            comparison['uncertainty_by_lane'].items() if int(lane) in lanes}
+    reseal_context(context)
+    receipt['digest'] = 'sha256:' + digest({'saved_context': context})
+    return dict(context_sha256=context['context_sha256'], id=receipt['id'],
+                digest=receipt['digest'], created_at=receipt['created_at'])
 
 
 class SavedRecords:
@@ -93,15 +107,39 @@ class VideoForwardTests(unittest.TestCase):
         arguments.update(overrides)
         return self.module().fit_matched(**arguments)
 
-    def prepared(self):
-        if self.__class__.cached is None:
-            self.__class__.cached = self.fit()
-        training = deepcopy(self.__class__.cached)
+    def active_history(self, lanes):
+        proofs = {}
+        for index, row in enumerate(self.rows[::2]):
+            pair = self.rows[2*index:2*index+2]
+            snapshot = deepcopy(row['learning_snapshot'])
+            snapshot['participants'] = [p for p in snapshot['participants'] if p['lane'] in lanes]
+            roster = {str(p['lane']): p['registration_no'] for p in snapshot['participants']}
+            for member in pair:
+                member['roster'] = deepcopy(roster)
+            bind_training_snapshot(pair, snapshot)
+            winner = list(reversed(lanes))[:3]
+            self.outcomes[index]['data'] = observation(dict(pair[0], top8=[winner]))['data']
+            proof = active_video_envelope(self.contexts[row['race_id']], lanes)
+            proofs[proof['context_sha256']] = proof
+        self.video_verifier = lambda receipt, sha, at: deepcopy(proofs.get(sha))
+
+    def prepared(self, *, active=None, training=None):
+        if training is None:
+            if self.__class__.cached is None:
+                self.__class__.cached = self.fit()
+            training = self.__class__.cached
+        training = deepcopy(training)
         training_context = self.records.put(training, NOW+timedelta(seconds=2))
         _, _, inputs, verifier, instant = controlled_connection(training['challenger'])
         self.target = inputs['snapshot']
         self.target_video = dict(video_context=inputs['video_context'], receipt=inputs['video_receipt'])
         self.target_verifier = verifier
+        if active is not None:
+            self.target['participants'] = [p for p in self.target['participants'] if p['lane'] in active]
+            proof = active_video_envelope(self.target_video, active)
+            context, receipt = self.target_video['video_context'], self.target_video['receipt']
+            self.target_verifier = lambda raw, sha, at: deepcopy(proof) if (
+                raw == receipt and sha == context['context_sha256'] and at == self.target['as_of']) else None
         self.instant = instant
         targets = [dict(race_id='20300401-24-12', cutoff_at=self.target['sales_cutoff_at'],
                         roster_sha256=digest({str(p['lane']): p['registration_no']
@@ -144,6 +182,108 @@ class VideoForwardTests(unittest.TestCase):
                                 fitted['control']['models'][model]['base_weights'])
             self.assertTrue(any(w != 0 for w in fitted['challenger']['models'][model]['video_weights']))
         self.assertEqual((self.rows, self.outcomes, self.contexts), before)
+
+    def test_matched_fit_registration_forecast_and_score_keep_all_active_lane_sets(self):
+        cases = (((2, 4, 6), 6), ((1, 3, 5, 6), 24),
+                 ((1, 2, 4, 5, 6), 60), ((1, 2, 3, 4, 5, 6), 120))
+        for lanes, count in cases:
+            with self.subTest(lanes=lanes):
+                self.rows, self.outcomes, self.contexts, self.video_verifier = deepcopy(self.inputs)
+                self.active_history(lanes)
+                before = deepcopy((self.rows, self.outcomes, self.contexts))
+                try:
+                    fitted = self.fit()
+                    study = self.prepared(active=lanes, training=fitted)
+                    forecast = self.forecast(study)
+                    saved = self.records.put(forecast, self.instant+timedelta(seconds=2))
+                    outcome = self.records.put(self.result(list(reversed(lanes))[:3]),
+                                               NOW+timedelta(minutes=40))
+                    comparison = self.score(study, [saved], [outcome])
+                except ValueError as error:
+                    self.fail('valid active-roster matched pipeline was rejected: ' + str(error))
+                self.assertEqual((self.rows, self.outcomes, self.contexts), before)
+                self.assertEqual(fitted['state'], 'MATCHED_FITTED_RESEARCH')
+                self.assertEqual(fitted['control']['unique_races'], 16)
+                self.assertEqual(fitted['control']['train_race_ids'], fitted['challenger']['train_race_ids'])
+                self.assertEqual(fitted['control']['validation_race_ids'], fitted['challenger']['validation_race_ids'])
+                self.assertEqual(forecast['status'], 'PAIRED_RESEARCH')
+                self.assertEqual([p['lane'] for p in forecast['snapshot']['participants']], list(lanes))
+                universe = set(permutations(lanes, 3))
+                for role in ('control', 'challenger'):
+                    self.assertEqual({model['model_id'] for model in forecast[role]}, set(MODEL_IDS))
+                    for model in forecast[role]:
+                        self.assertEqual(model['candidate_count'], count)
+                        self.assertEqual(len(model['candidates']), count)
+                        self.assertEqual({tuple(c['combination']) for c in model['candidates']}, universe)
+                        self.assertEqual(model['ordered_top8'],
+                            [c['combination'] for c in model['candidates'][:8]])
+                        self.assertEqual(len(model['ordered_top8']), min(8, count))
+                self.assertEqual(comparison['declared_races'], 1)
+                self.assertEqual([m['paired_races'] for m in comparison['models']], [1, 1])
+                self.assertEqual([m['cases'][0]['state'] for m in comparison['models']], ['PAIRED', 'PAIRED'])
+                self.assertFalse(forecast['production_eligible'])
+                self.assertFalse(comparison['production_eligible'])
+                self.assertFalse(comparison['accuracy_improvement_proven'])
+
+    def test_active_target_rejects_withdrawn_duplicate_and_insufficient_lanes(self):
+        study = self.prepared(active=(1, 2, 4, 5, 6))
+        original = deepcopy(self.target)
+        withdrawn = deepcopy(fixture('P1', research=True)['participants'][2])
+        withdrawn['registration_no'] = '4203'
+        for change in ('withdrawn', 'duplicate', 'insufficient', 'renumbered', 'registration'):
+            self.target = deepcopy(original)
+            if change == 'withdrawn':
+                self.target['participants'].append(deepcopy(withdrawn))
+            elif change == 'duplicate':
+                self.target['participants'].append(deepcopy(self.target['participants'][0]))
+            elif change == 'insufficient':
+                self.target['participants'] = self.target['participants'][:2]
+            elif change == 'renumbered':
+                self.target['participants'][2]['lane'] = 3
+            else:
+                self.target['participants'][0]['registration_no'] = '9999'
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                self.forecast(study)
+
+    def test_active_history_rejects_mismatched_or_malformed_snapshot_rosters(self):
+        self.active_history((2, 4, 6))
+        for change in ('mismatched', 'duplicate', 'insufficient'):
+            rows = deepcopy(self.rows)
+            if change == 'mismatched':
+                rows[0]['roster']['1'] = '4201'
+            else:
+                snapshot = rows[0]['learning_snapshot']
+                if change == 'duplicate':
+                    snapshot['participants'].append(deepcopy(snapshot['participants'][0]))
+                else:
+                    snapshot['participants'] = snapshot['participants'][:2]
+                rows[0]['learning_snapshot_sha256'] = digest(snapshot)
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                self.fit(rows=rows)
+
+    def test_active_scoring_rejects_resealed_withdrawn_boat_predictions(self):
+        study = self.prepared(active=(1, 2, 4, 5, 6))
+        original = self.forecast(study)
+        for role in ('control', 'challenger'):
+            changed = deepcopy(original)
+            model = changed[role][0]
+            model['candidates'][0]['combination'] = [1, 2, 3]
+            model['ordered_top8'][0] = [1, 2, 3]
+            seal(model, 'prediction_sha256')
+            seal(changed, 'forecast_sha256')
+            saved = self.records.put(changed, self.instant+timedelta(seconds=2))
+            with self.subTest(role=role), self.assertRaisesRegex(ValueError, 'FROZEN_MODEL_REPLAY_CHANGED'):
+                self.score(study, [saved], [])
+
+    def test_active_training_rejects_unknown_resealed_control_version(self):
+        self.active_history((2, 4, 6))
+        fitted = self.fit()
+        fitted['control']['models'][MODEL_IDS[0]]['model_version'] = '0.2.0-FITTED-SHADOW-ACTIVE-ROSTER-BYPASS'
+        seal(fitted['control'], 'training_sha256')
+        fitted['models'] = self.module()._model_pins(fitted['control'], fitted['challenger'])
+        seal(fitted, 'training_pair_sha256')
+        with self.assertRaisesRegex(ValueError, 'MODEL_VERSION'):
+            self.prepared(active=(2, 4, 6), training=fitted)
 
     def test_no_authenticated_contexts_retains_zero_video_support(self):
         fitted = self.fit(video_contexts={}, video_receipt_verifier=None)

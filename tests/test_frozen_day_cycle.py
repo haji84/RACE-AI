@@ -71,9 +71,10 @@ class FrozenCycleTest(unittest.TestCase):
   with self.assertRaises(ValueError):cycle.evaluate(rows+rows,[])
 
 def observation(row):
- winner=list(row['top8'][0]);rest=[n for n in range(1,7) if n not in winner];order=winner+rest
+ lanes=sorted(int(n) for n in row['roster'])
+ winner=list(row['top8'][0]);rest=[n for n in lanes if n not in winner];order=winner+rest
  return {'race_id':row['race_id'],'status':'AVAILABLE','body_identity_verified':True,'closed_at':row['cutoff_at'],
   'captured_at':'2030-04-01T02:10:00Z','source_url':'https://www.boatrace.jp/owpc/pc/race/raceresult?rno=1&jcd=01&hd=20300401',
   'source_sha256':'b'*64,'data':{'status':'settled','confirmed':True,'finish_confirmed':True,'refund_boats':[],
-  'top3':winner,'results':[{'lane':n,'racer_registration_id':row['roster'][str(n)],'finish_status':'FINISHED','finish':order.index(n)+1} for n in range(1,7)],
+  'top3':winner,'results':[{'lane':n,'racer_registration_id':row['roster'][str(n)],'finish_status':'FINISHED','finish':order.index(n)+1} for n in lanes],
   'payouts':[{'bet_type':'trifecta','combination':winner,'payout_per_100_yen':1230}]}}

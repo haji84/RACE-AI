@@ -68,6 +68,16 @@ on:
       - tests/test_boat_pending_round_recovery.py
       - tests/test_boat_bootstrap_recovery.py
       - tests/test_repeated_cycle.py
+      - race_ai/boat_research_batch.py
+      - race_ai/boat_venue_learning_handoff.py
+      - race_ai/boat_venue_research_retention.py
+      - race_ai/boat_video_forward.py
+      - tests/test_boat_venue_research_batch.py
+      - tests/test_boat_venue_research_retention.py
+      - tests/test_boat_video_forward.py
+      - tests/test_frozen_day_cycle.py
+      - scripts/boat_failed_recovery_contract.py
+      - tests/test_boat_orphan_p1_recovery.py
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
     paths:
@@ -128,11 +138,15 @@ jobs:
                  'tests.test_boat_venue_candidate_restore','tests.test_boat_venue_cycle_connection',
                  'tests.test_boat_venue_research_runtime','tests.test_boat_venue_learning_handoff',
                  'tests.test_boat_venue_learning_context','tests.test_boat_venue_learning',
+                 'tests.test_boat_venue_research_batch','tests.test_boat_venue_research_retention',
+                 'tests.test_boat_venue_research_pdca','tests.test_boat_video_forward',
+                 'tests.test_boat_video_connection','tests.test_boat_video_learning',
                  'tests.test_observed_weight_learning',
                   'tests.test_boat_jst_day_handoff',
                  'tests.test_boat_source_control','tests.test_continuity_checkpoint',
                  'tests.test_boat_seller_official_source','tests.test_boat_program_source',
-                 'tests.test_boat_pending_round_recovery','tests.test_boat_bootstrap_recovery.BootstrapRecoveryTests']
+                 'tests.test_boat_pending_round_recovery','tests.test_boat_orphan_p1_recovery',
+                 'tests.test_boat_bootstrap_recovery.BootstrapRecoveryTests']
           result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
           raise SystemExit(not result.wasSuccessful())
           PY_RECOVERY_TEST
