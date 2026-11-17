@@ -1236,5 +1236,156 @@ class SessionCleanupTests(unittest.TestCase):
         self.assertNotIn('sentinel', output.getvalue())
 
 
+class SafeClickDiagnosticTests(unittest.TestCase):
+    def driver(self, document):
+        driver = S.WebDriver(1234)
+        driver.session = 'invented-session'
+        raw = document if isinstance(document, bytes) else json.dumps(document).encode()
+        error = urllib.error.HTTPError('http://127.0.0.1:1234/invented', 400, 'invented', {}, io.BytesIO(raw))
+        return driver, error
+
+    def test_standard_invalid_element_state_is_recovered_without_its_private_message(self):
+        driver, remote = self.driver({'value': {'error': 'invalid element state',
+            'message': 'private-sentinel https://private.invalid/', 'stacktrace': 'private-sentinel'}})
+        with patch.object(driver.opener, 'open', side_effect=remote):
+            with self.assertRaises(S.DriverHold) as caught:
+                driver.command('POST', '/element/invented-option/click', {})
+        report = S.failure_report(caught.exception)
+        self.assertEqual(report['webdriver_error_code'], 'invalid element state')
+        self.assertEqual(report['webdriver_http_status'], 400)
+        self.assertNotIn('sentinel', json.dumps(report))
+        self.assertNotIn('https:', json.dumps(report))
+
+    def test_error_only_projection_tolerates_metadata_but_success_schema_stays_strict(self):
+        document = {'value': {'error': 'invalid argument', 'message': 'private-sentinel'},
+                    'sessionId': 'private-sentinel', 'vendor': {'private-sentinel': [1, 2]}}
+        raw = json.dumps(document).encode()
+        driver, remote = self.driver(raw)
+        with patch.object(driver.opener, 'open', side_effect=remote):
+            with self.assertRaises(S.DriverHold) as caught:
+                driver.command('POST', '/element/invented-option/click', {})
+        report = S.failure_report(caught.exception)
+        self.assertEqual(report['webdriver_error_code'], 'invalid argument')
+        self.assertNotIn('sentinel', json.dumps(report))
+        with self.assertRaises(ValueError):
+            S.driver_value(raw, S.DRIVER_RESPONSE_LIMIT)
+        # The same body in a200 response remains a command failure; it cannot
+        # become a session or successful result through the error projection.
+        with driver_endpoint({}, session_reply=raw) as (port, _):
+            actual = S.WebDriver(port)
+            with self.assertRaises(S.DriverHold):
+                actual.new_session()
+            self.assertIsNone(actual.session)
+
+    def test_error_projection_rejects_malformed_duplicate_nonfinite_and_oversized_json(self):
+        bodies = [b'{', b'{"value":{"error":"unknown error","error":"invalid argument"}}',
+            b'{"value":{"error":"unknown error"},"private":{"n":NaN}}',
+            b'{"value":{"error":"unknown error"},"private":{"n":1e9999}}',
+            b'{"value":{"error":"unknown error"},"private":{"a":1,"a":2}}',
+            b'{"error":"unknown error","message":"private-sentinel"}',
+            b'{"value":{"error":"private-sentinel"}}',
+            b'{"value":{"error":"unknown error"},"private":"' + b'x' * S.DRIVER_ERROR_LIMIT + b'"}']
+        for body in bodies:
+            with self.subTest(size=len(body)):
+                driver, remote = self.driver(body)
+                with patch.object(driver.opener, 'open', side_effect=remote):
+                    with self.assertRaises(S.DriverHold) as caught:
+                        driver.command('POST', '/element/invented-option/click', {})
+                report = S.failure_report(caught.exception)
+                self.assertIsNone(report['webdriver_error_code'])
+                self.assertNotIn('sentinel', json.dumps(report))
+
+    def test_native_option_failure_retains_public_callers_and_fixed_context_only(self):
+        driver, remote = self.driver({'value': {'error': 'invalid element state', 'message': 'private-sentinel'}})
+        S.ui_diagnostic(driver, 'latest_p1_private_transport', 'select_native_history', 1440)
+        with patch.object(driver, 'element', return_value='invented-option'), \
+                patch.object(driver.opener, 'open', side_effect=remote) as request, \
+                patch.object(driver, 'script', side_effect=AssertionError('no native option rectangle')):
+            try:
+                driver.select('#private-sentinel', 'private-sentinel')
+            except S.DriverHold as error:
+                report = S.failure_report(error)
+            else:
+                self.fail('the HTTP400 command must fail')
+        self.assertEqual([frame['function'] for frame in report['checker_callers']], ['select', 'click', 'command', 'call'])
+        self.assertEqual(report['ui_stage'], 'latest_p1_private_transport')
+        self.assertEqual(report['ui_action'], 'select_native_history')
+        self.assertEqual(report['ui_verified_width'], 1440)
+        self.assertEqual(report['ui_click_path'], 'native_option')
+        self.assertIs(report['ui_hit_target_verified'], False)
+        self.assertNotIn('sentinel', json.dumps(report))
+        self.assertEqual(request.call_count, 1, 'diagnosis cannot retry the failed action')
+
+    def test_visible_click_failure_records_existing_hit_check_without_new_browser_actions(self):
+        driver, remote = self.driver({'value': {'error': 'invalid argument'}})
+        S.ui_diagnostic(driver, 'latest_p1_private_transport', 'open_native_race', 390)
+        with patch.object(driver, 'element', return_value='invented-button'), \
+                patch.object(driver, 'script', return_value=None) as script, patch.object(driver, 'wait', return_value=True) as wait, \
+                patch.object(driver.opener, 'open', side_effect=remote) as request:
+            with self.assertRaises(S.DriverHold) as caught:
+                driver.click('#private-sentinel')
+        report = S.failure_report(caught.exception)
+        self.assertEqual(report['ui_click_path'], 'visible_element')
+        self.assertIs(report['ui_hit_target_verified'], True)
+        self.assertEqual(report['ui_verified_width'], 390)
+        self.assertEqual((script.call_count, wait.call_count, request.call_count), (1, 1, 1))
+        self.assertNotIn('sentinel', json.dumps(report))
+
+    def test_private_transport_assigns_the_stage_and_verified_width_at_the_action(self):
+        driver, remote = self.driver({'value': {'error': 'invalid argument', 'message': 'private-sentinel'}})
+        command = driver.command
+        def response(method, suffix, body=None):
+            return command(method, suffix, body) if suffix.endswith('/click') else None
+        def script(source, *args):
+            return {'width': 1440, 'height': 1000} if 'width:innerWidth' in source else None
+        with patch.object(driver, 'command', side_effect=response), patch.object(driver, 'script', side_effect=script), \
+                patch.object(driver, 'wait', return_value=True), patch.object(driver, 'element', return_value='invented-button'), \
+                patch.object(S, 'select_saved_day'), patch.object(S, 'open_saved_race', side_effect=lambda d,r:d.click('#private-sentinel')), \
+                patch.object(driver.opener, 'open', side_effect=remote):
+            try:
+                S.app_checks(driver, type('Site', (), {'url': 'http://127.0.0.1:1234/'})(), context_fixture(), ())
+            except S.DriverHold as error:
+                report = S.failure_report(error)
+            else:
+                self.fail('the HTTP400 command must fail')
+        self.assertEqual(report['ui_stage'], 'latest_p1_private_transport')
+        self.assertEqual(report['ui_action'], 'open_native_race')
+        self.assertEqual(report['ui_verified_width'], 1440)
+        self.assertIn('app_checks', [frame['function'] for frame in report['checker_callers']])
+        self.assertNotIn('sentinel', json.dumps(report))
+
+    def test_spoofed_context_and_unknown_fields_are_filtered_before_reporting(self):
+        error = S.DriverHold(operation='element_click', http_status=400)
+        error.ui_context = {'stage': 'private-sentinel', 'action': 'private-sentinel', 'width': True,
+                            'click_path': 'private-sentinel', 'hit_target_verified': 'private-sentinel',
+                            'selector': '#private-sentinel', 'value': 'private-sentinel'}
+        report = S.failure_report(error)
+        self.assertIsNone(report['ui_stage']);self.assertIsNone(report['ui_action'])
+        self.assertIsNone(report['ui_verified_width']);self.assertIsNone(report['ui_click_path'])
+        self.assertIs(report['ui_hit_target_verified'], False)
+        self.assertNotIn('sentinel', json.dumps(report))
+
+    def test_trusted_caller_stack_is_bounded_and_external_names_cannot_spoof_it(self):
+        namespace = {'S': S}
+        exec(compile('def select(n):\n if n: return select(n-1)\n raise S.DriverHold(operation="element_click")\n',
+                     S.__file__, 'exec'), namespace)
+        try:
+            namespace['select'](40)
+        except S.DriverHold as error:
+            report = S.failure_report(error)
+        self.assertEqual(len(report['checker_callers']), 12)
+        self.assertTrue(all(frame['function'] == 'select' and type(frame['line']) is int and
+                            1 <= frame['line'] <= 99999 for frame in report['checker_callers']))
+        other = {'S': S}
+        exec(compile('def select():\n raise S.DriverHold(operation="element_click")\n',
+                     '/private-sentinel/select.py', 'exec'), other)
+        try:
+            other['select']()
+        except S.DriverHold as error:
+            external = S.failure_report(error)
+        self.assertNotIn('checker_callers', external)
+        self.assertNotIn('private-sentinel', json.dumps(external))
+
+
 if __name__ == '__main__':
     unittest.main()
