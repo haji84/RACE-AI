@@ -1,3 +1,11 @@
+## 2026-11-17 実Safari診断: 予算入力の停止、未合格を維持
+
+main cb3261dの実Mac run44022519670でapp_checks:560（driver.budget）まで到達。
+最初のviewportのP1/モデルhash/研究復帰/結果件数は通過、日予算変更はHOLD。
+既存PR203で通常のMac全選択・置換入力へ修正し、Safari20件を確認。実Mac再検証へ継続。
+source eff296f/owner44019591352は動かしたまま。旧保管manifest native13559236491はAPI404で未復元。
+服色等のローカル120件成功は実映像の合格とは別。最新状況の先頭と証拠JSONを優先する。
+
 ## 2026-11-17 継続: 後継P0保管/巡回01成功と実Safari失敗
 
 main df1ee16、source eff296f。真正復旧gate44019424267がbootstrap3原本をGET0で復旧し、

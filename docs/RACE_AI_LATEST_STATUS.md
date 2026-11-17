@@ -1,3 +1,20 @@
+## 2026-11-17: 実Safariの停止を日予算のネイティブ入力まで特定
+
+診断のみの既存PR208は23 checks完了（10 success、13 skipped）後に通常merge、
+実main cb3261d0ec66173313e12b74a02e45ac9404e399はreviewed treeと完全一致。
+実Mac再試験44022519670/job133835055575はapp_checks:560のdriver.budgetでHOLD。
+最初のviewportで原本読込・P1詳細・元Top8 hashでのモデル比較・研究からの復帰・結果件数は通過したが、
+予算変更・2つ目のviewport・最終privacy判定までの合格はまだ証明していない。
+Element Clear後の空値changeをアプリが拒否して元予算を戻す経路をローカルで再現し、同じAPP_UI_CHECK_FAILEDを確認。
+既存PR203で、ClearをMacの通常CMD+A→修飾キー解放→置換入力→Tabへ変更する。
+最終値wait・買い目hash・結果/横幅/秘密境界の全判定を維持。公開appや稼働source eff296fは変更しない。
+新回帰を含むSafari20件success、実Macの再検証は統合後。CI合格だけでSafari合格とはしない。
+
+服色/追跡/校正/接続/学習の既存ローカル120件もsuccessだが、実映像6艇・校正強さ・締切前予想接続の証拠にはしない。
+旧公式結果長期保管manifestが参照するnative13559236491は実API404。今回の新P1/RESULTとは別の過去固定pin。
+期限/認証を緩めず、過去原本の回収可否は未確認のまま残す。旧前向きplanのHOLDも保持する。
+未push2コミットUNRESTORED、全競技全件/物理iPhone/未来改善は未完成。
+
 ## 2026-11-17: 真正な後継でP0保管と巡回01が成功、Safariの実画面はHOLD
 
 main実HEAD df1ee16ca9d2d5813880a9d4b8f6d62ed765fb76（既存PR100通常merge）、

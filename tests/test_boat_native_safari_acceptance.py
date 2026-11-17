@@ -13,6 +13,7 @@ import unittest
 import urllib.error
 import urllib.request
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
+from unittest.mock import patch
 
 try:
     from scripts import boat_native_safari_acceptance as S
@@ -134,6 +135,49 @@ def driver_endpoint(capabilities):
 class NativeSafariAcceptanceTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(S, 'native Safari acceptance adapter is not implemented')
+
+    def test_native_budget_replacement_survives_app_rejecting_an_empty_change(self):
+        # The deployed app restores the previous budget when change sees an
+        # empty/invalid number. Native Element Clear can trigger that change.
+        state = {'text': '10000', 'budget': 10000, 'meta': False, 'selected': False}
+
+        def change():
+            value = int(state['text'] or '0')
+            if 100 <= value <= 10000000 and value % 100 == 0:
+                state['budget'] = value
+            state['text'] = str(state['budget'])
+
+        def command(method, suffix, body=None):
+            if suffix == '/execute/sync':
+                if 'querySelectorAll' in body['script']:
+                    return {'element-6066-11e4-a52e-4f735466cecf': 'budget-field'}
+                return state['text'] == body['args'][0]
+            if suffix.endswith('/click'):
+                return None
+            if suffix.endswith('/clear'):
+                state['text'] = ''
+                change()
+                return None
+            self.assertTrue(suffix.endswith('/value'))
+            for key in body['text']:
+                if key == '\ue03d':
+                    state['meta'] = True
+                elif key == '\ue000':
+                    state['meta'] = False
+                elif key == 'a' and state['meta']:
+                    state['selected'] = True
+                elif key == '\ue004':
+                    change()
+                else:
+                    state['text'] = ('' if state['selected'] else state['text']) + key
+                    state['selected'] = False
+
+        driver = S.WebDriver(1234)
+        with patch.object(driver, 'command', side_effect=command), \
+                patch.object(S.time, 'monotonic', side_effect=[0, 0, 46]):
+            driver.budget(5000)
+        self.assertEqual((state['text'], state['budget']), ('5000', 5000))
+        self.assertFalse(state['meta'])
 
     def test_actual_ui_failure_reports_only_public_checker_location(self):
         class Driver:
