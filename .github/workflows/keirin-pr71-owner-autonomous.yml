@@ -76,6 +76,11 @@ on:
       - 'scripts/keirin_private_shape_digit_holdout.py'
       - 'tests/test_keirin_shape_digit_candidate_research.py'
       - 'tests/test_live_15min_proof.py'
+      - 'race_ai/keirin_manual71_owner_encrypted_intake.py'
+      - 'scripts/keirin_manual71_owner_intake_cli.py'
+      - 'tests/test_keirin_manual71_owner_encrypted_intake.py'
+      - 'tests/test_keirin_manual71_owner_intake_cli.py'
+      - 'docs/evidence/2026-11-17/keirin_owner_manual71_20261117_sealed_v1.json'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
   pull_request:
@@ -143,6 +148,11 @@ on:
       - 'scripts/keirin_private_shape_digit_holdout.py'
       - 'tests/test_keirin_shape_digit_candidate_research.py'
       - 'tests/test_live_15min_proof.py'
+      - 'race_ai/keirin_manual71_owner_encrypted_intake.py'
+      - 'scripts/keirin_manual71_owner_intake_cli.py'
+      - 'tests/test_keirin_manual71_owner_encrypted_intake.py'
+      - 'tests/test_keirin_manual71_owner_intake_cli.py'
+      - 'docs/evidence/2026-11-17/keirin_owner_manual71_20261117_sealed_v1.json'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
 
