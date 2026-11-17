@@ -1,3 +1,27 @@
+## 2026-11-17 17:38 UTC: 実Safari私有原本/AES成功を保全、環境guard診断をAPIで復元（GOAL未達）
+
+観測main2641abcd/source f55351dc。実Mac44124279358/job134183698968は、Safari26.6で保存view generation422/results114/native P1 groups11を確認した。
+1440/390px、元予想4比較・native P1詳細2・結果/予算2、別seedのブラウザAES2比較と4拒否、private session/driver後片付けが成功。
+このprivate stepはsuccessだが、後続の候補598撮影stepがmain1442の環境guardで停止し、job全体failure/artifact0。
+候補UIのSafari受入、物理iPhone、本人account login、current V5継続、全8参考の合格とは扱わない。
+
+**診断のAPI復元:** 実行環境が32,049 zombie/PID1 tailの状態となり、Gitのfork/DNS threadと補助commandも失敗した。
+環境resetや他作業の停止は行わず、保存済みcommitを保全。GitHub APIから同じ基底ファイルを取得し、
+local cf9bdafdのruntime差分をblob9ad8a660として復元した。許可env6キーは維持し、未知キーは全てHOLD。
+診断は件数と固定6 OSキーの真偽だけで、未知キー名/値/パス/資格情報は出力しない。実際の未知キーは未特定。
+local作者85件・独立85件/76同値probeは通過済み。元の追加test原文は転送できていないため、
+公開側は既存79件を保持し、同じ拒否・秘匿条件を検証する6件を追加した。local全tree一致とは主張せず、公開側の最終HEAD CIで確認する。
+
+**source修正の保全:** 選択blob一括取得349480cd、全モデル保管640b7e92、複数capture bundle6f8de877、
+歴史origin互換82c9b862はlocal commitとして保存済みで、今回のAPI転送は未完了。
+captureのfinal local771件は14件のGit fixture準備エラーでNOT_GREEN。focused38・独立38+43+4とpre-final770の成功を区別する。
+現sourceはf553のまま。次workerの実速度、全4競技全日/全モデル/T15〜10、公式締切/G8・前向き改善は未合格。
+14比較pairは独立1レース、24原本AESは別の真正push監査であり、今回のMac/CIの合格数へ混ぜない。
+
+[実runとAPI復元の範囲](evidence/boat-native-private-success-candidate-env-hold-20261117.json)。
+公開f60308ef/本番weights/元work/KEIRIN default-OFF/原本を保持。新PR/モデル系統/課金/投票0。
+元環境のb7380fe6/daae4c10はUNRESTORED。以下は過去時点の記録として保持する。
+
 ## 2026-11-17 16:12 UTC: スマホ幅のnative select準備を修正、実Safari解消は確認待ち（GOAL未達）
 
 実main69ba791b/source f55351dcは保持。既存PR56へe6876403の2file修正を結合した。
