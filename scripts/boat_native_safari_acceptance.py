@@ -28,7 +28,7 @@ import urllib.request
 
 
 PAGES_SHA = 'f60308ef7443ca13b5ca23c4896e15ffc67b0427'
-SOURCE_SHA = 'b491fb21ce58ba085dd8f54bb7326442b840d8f4'
+SOURCE_SHA = '82cedd7b6054ef73664a57e6e17709be56fb12c4'
 CSP = ("default-src 'none';script-src 'self';style-src 'self';"
        "img-src 'self' data:;connect-src 'self';font-src 'none';"
        "form-action 'none';object-src 'none';base-uri 'none';frame-src 'none'")

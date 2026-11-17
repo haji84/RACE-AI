@@ -97,12 +97,26 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: b491fb21ce58ba085dd8f54bb7326442b840d8f4
+          ref: 82cedd7b6054ef73664a57e6e17709be56fb12c4
           path: .native-safari-source
           persist-credentials: false
       - name: Install only existing pinned saved-view AES dependencies
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
         run: python3 -m pip install --disable-pip-version-check -r .native-safari-source/requirements-history.txt
+      - name: Install the existing immutable parser used by the authenticated reader
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: .native-safari-source/pr64-reference
+          persist-credentials: false
+      - name: Install the existing immutable adapters used by the authenticated reader
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: .native-safari-source/pr72-reference
+          persist-credentials: false
       - name: Verify real desktop Safari with authenticated originals and private loopback transport
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
         env:

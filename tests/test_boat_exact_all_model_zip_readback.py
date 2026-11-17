@@ -121,6 +121,8 @@ class SourceFreeExactZipTests(unittest.TestCase):
         old='b491fb21ce58ba085dd8f54bb7326442b840d8f4'
         with patch.object(exact,'OWNER_SHA','e'*40):
             self.assertEqual(exact._owner_head(old),old)
+            previous='c123b8538006b3189181195bbc91d8f28d216ba5'
+            self.assertEqual(exact._owner_head(previous),previous)
             with self.assertRaises(ValueError):exact._owner_head('f'*40)
 
     def test_independent_official_cutoff_conflict_remains_hold(self):

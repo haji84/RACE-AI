@@ -64,15 +64,36 @@ def acceptance_workflow_steps():
             field = line[8:]
         elif current is not None and line.startswith('        ') and not line.startswith('         '):
             field = line[8:]
-        elif current is not None and line.startswith('          python-version:'):
-            current['python-version'] = line.split(':', 1)[1].strip().strip("'\"")
-            continue
+        elif current is not None and line.startswith('          ') and not line.startswith('           '):
+            field=line.strip()
+            if field.split(':',1)[0] not in ('python-version','ref','path','persist-credentials'):
+                continue
         else:
             continue
         if ':' in field:
             name, value = field.split(':', 1)
-            current[name] = value.strip()
+            value=value.strip()
+            if len(value)>=2 and value[0] in "'\"" and value[-1]==value[0]:
+                value=value[1:-1]
+            current[name] = value
     return steps
+
+
+class NativeReaderSetupTests(unittest.TestCase):
+    def test_authenticated_reader_has_pinned_parsers_before_private_context_import(self):
+        steps=acceptance_workflow_steps()
+        verify=next(i for i,s in enumerate(steps) if s.get('name')==
+            'Verify real desktop Safari with authenticated originals and private loopback transport')
+        expected={'.native-safari-source/pr64-reference':'761247bee0209e37b1af6b8885e92cad3e9260a5',
+                  '.native-safari-source/pr72-reference':'7a432e5acc4d3495a0e82bd79726929e2f8085fe'}
+        configured={}
+        # Checkout uses flow mappings for scalar with-fields elsewhere; these
+        # dependency steps deliberately use standard multiline with fields.
+        for step in steps[:verify]:
+            if step.get('path') in expected:
+                configured[step['path']]=step.get('ref')
+                self.assertEqual(step.get('persist-credentials'),'false')
+        self.assertEqual(configured,expected,'private reader cannot import core without its pinned parser checkouts')
 
 
 @contextmanager
