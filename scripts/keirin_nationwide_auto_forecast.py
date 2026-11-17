@@ -115,6 +115,8 @@ def run_cycle(*,registry, private_racecards_dir, raw_pages_dir,
                  "SOURCE_FILE_OVERSIZED")
             raw=source_file.read_bytes()
             snap=json.loads(raw.decode("utf-8"))
+            need(type(snap) is dict,
+                 "SOURCE_JSON_MUST_BE_RACE_FACTS_OBJECT")
             need(snap.get("race_id")==race_id,
                  "SOURCE_OTHER_RACE_OR_DATE")
             now=clock().astimezone(timezone.utc).isoformat()
