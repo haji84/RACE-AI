@@ -68,13 +68,22 @@ def execute_all(*,registry,source_by_race,inspected_at,
     Other reader-specific live facts stay in the callback's private context.
     A/B forecast bytes go directly to the private sealer, never to reports.
     """
-    country.checked_registry(registry)
+    if type(registry) is dict and registry.get("schema")==country.SCHEMA:
+        country.checked_registry(registry)
+        all_races=registry["records"]
+        nationwide_verified=True  # fixed 2026-11-18 8/79 sourced roster
+    else:
+        from . import keirin_dynamic_nationwide_registry as dynamic
+        dynamic.checked_day(registry)
+        all_races=registry["races"]
+        nationwide_verified=(
+            registry["nationwide_coverage_independently_verified"])
     country.require(type(source_by_race) is dict and
                     set(source_by_race).issubset(
-                      {r["race_id"] for r in registry["records"]}),
+                      {r["race_id"] for r in all_races}),
                     "NATIONWIDE_PRIVATE_SOURCE_OUTSIDE_COHORT")
     results=[]
-    for race in registry["records"]:
+    for race in all_races:
         rid=race["race_id"]
         x=source_by_race.get(rid)
         if type(x) is not dict:
@@ -146,9 +155,9 @@ def execute_all(*,registry,source_by_race,inspected_at,
         # Independently verified official settlement happens in a SEPARATE
         # postrace job, never inside this before-race preparation.
         results.append(out)
-    country.require(len(results)==79 and
-                    len({r["race_id"] for r in results})==79,
-                    "NATIONWIDE_EXECUTION_DID_NOT_COVER_ALL_RACES")
+    country.require(len(results)==len(all_races) and
+                    len({r["race_id"] for r in results})==len(all_races),
+                    "NATIONWIDE_EXECUTION_DID_NOT_COVER_ALL_REGISTERED_RACES")
     counts={}
     for row in results:
         state=row["state"]
@@ -156,7 +165,9 @@ def execute_all(*,registry,source_by_race,inspected_at,
     return {
         "schema":SCHEMA,
         "day_jst":registry["day_jst"],
-        "cohort_race_count":79,
+        "cohort_race_count":len(all_races),
+        "national_source_universe_independently_verified":nationwide_verified,
+        "national_universe_HOLD":not nationwide_verified,
         "A_generated":sum(r["A_generated"] for r in results),
         "B_generated":sum(r["B_generated"] for r in results),
         "cipher_created":sum(r["saved_cipher"] for r in results),
