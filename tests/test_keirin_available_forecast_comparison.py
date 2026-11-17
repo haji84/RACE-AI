@@ -81,7 +81,9 @@ def setup():
     result={
         "race_id":RID,"status":"FINAL_NORMAL","refund_status":"NONE",
         "winning_triples":[[2,4,1]],
-        "payouts_100yen":[{"triple":[2,4,1],"yen":40000}]}
+        "payouts_100yen":[{"triple":[2,4,1],"yen":40000}],
+        "source_published_at":"2026-11-17T11:30:00+09:00",
+        "observed_at":"2026-11-17T11:31:00+09:00"}
     return cohort,a,b,c,receipt(a),receipt(b),receipt(c),result
 
 
@@ -192,6 +194,22 @@ class ActiveAvailableAudit(unittest.TestCase):
         self.assertEqual(r["bc_hit_at_1_delta"],1)
         self.assertTrue(r["C_six_phase_plus_line"]["hit_at_1"])
         self.assertFalse(r["real_improvement_proven"])
+
+    def test_paired_B_and_C_denominators_are_identical(self):
+        cohort=setup()[0]
+        summary=audit.summarize(cohort,[compare(with_c=True)])
+        self.assertEqual(summary["B_on_the_same_C_eligible_races"]["n"],1)
+        self.assertEqual(summary["arms"]["C_six_phase_plus_line"]["n"],1)
+        self.assertTrue(
+            summary["C_comparison_uses_identical_race_subset_not_AB_full_denominator"])
+
+    def test_result_published_before_close_rejected_even_with_test_stub(self):
+        cohort,a,b,c,ra,rb,rc,result=setup()
+        result["source_published_at"]="2026-11-17T11:14:00+09:00"
+        report=compare(result=result)
+        self.assertFalse(report["ab_evaluable"])
+        self.assertEqual(report["reason"],
+                         "OFFICIAL_RESULT_PUBLICATION_CLOCK_UNVERIFIED")
 
     def test_line_missing_verified_history_does_not_block_AB(self):
         r=compare(with_c=True,verify_line_history=None)
