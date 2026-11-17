@@ -384,5 +384,44 @@ def render_html(report, forecast, *, template_text):
             "結果照合：公式結果の自動取得・認証は未接続。"
             "現在の表示は結果待ち／参考検証のみ（実購入の収支ではありません）。"
             "</div>")
-    html=html.replace("<body>","<body>"+banner,1)
+    summaries = report["summary"]
+    keys = ["all", "category:solid", "category:upset", "category:other"]
+    venues = sorted({r["venue"] for r in report["rows"]})
+    keys.extend(venues)
+    def short_row(key):
+        r = summaries.get(key,{})
+        comparable = r.get("paired",0)
+        label = {"all":"全71レース", "category:solid":"信頼度高め",
+                 "category:upset":"波乱警戒", "category:other":"その他"}.get(key,key)
+        first = (str(r.get("new_hit1",0))+"/"+str(comparable)
+                 if comparable else "未照合")
+        all_hit = (str(r.get("new_hitall",0))+"/"+str(comparable)
+                   if comparable else "未照合")
+        stake = r.get("new_stake",0)
+        roi = (("%.1f%%" % (100*r.get("new_payout",0)/stake))
+               if stake else "未算定")
+        return ("<tr><th>"+escape(label)+"</th><td>"+str(r.get("races",0))+"</td>"
+                "<td>"+first+"</td><td>"+all_hit+"</td><td>"+roi+"</td></tr>")
+    main_rows = "".join(short_row(k) for k in keys[:4])
+    venue_rows = "".join(short_row(k) for k in keys[4:])
+    header = "<thead><tr><th>区分</th><th>全R</th><th>第1候補</th><th>全候補</th><th>仮想回収率</th></tr></thead>"
+    panel = ("<section class=\"manual-audit-summary\" aria-label=\"自動照合状況\">"
+             "<h2>結果照合・暫定集計</h2><p>公式結果・正式締切の独立認証前です。"
+             "未照合は不的中に含めません。第1候補／全候補／100円均等仮想回収率を分離。</p>"
+             "<div class=\"manual-audit-table\"><table>"+header+
+             "<tbody>"+main_rows+"</tbody></table></div>"
+             "<details><summary>会場別の照合状況を見る</summary>"
+             "<div class=\"manual-audit-table\"><table>"+header+
+             "<tbody>"+venue_rows+"</tbody></table></div></details></section>")
+    extra_style = """<style>
+.manual-audit-summary{max-width:1080px;margin:12px auto;padding:15px;border-radius:12px;background:#fff;box-shadow:0 2px 10px #0001;color:#1a3245}
+.manual-audit-summary h2{font-size:19px;margin:0 0 6px}.manual-audit-summary p{font-size:12px;margin:0 0 12px;color:#5c6d78}
+.manual-audit-table{overflow-x:auto}.manual-audit-table table{border-collapse:collapse;width:100%;min-width:340px;font-size:12px}
+.manual-audit-table th,.manual-audit-table td{padding:7px 5px;text-align:center;border-bottom:1px solid #dbe3e8}
+.manual-audit-table th:first-child{text-align:left;white-space:nowrap}
+.manual-audit-table thead{background:#e8f0f4}
+.manual-audit-summary summary{cursor:pointer;padding:10px 0;color:#0a6257;font-weight:750}
+</style>"""
+    html=html.replace("</head>",extra_style+"</head>",1)
+    html=html.replace("<body>","<body>"+banner+panel,1)
     return html
