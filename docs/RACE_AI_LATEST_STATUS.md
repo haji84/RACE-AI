@@ -1,3 +1,32 @@
+## 2026-11-17 14:16 UTC: 修正原本の実鍵検証成功、二重起動HOLDを確認（GOAL未達）
+
+実main43704b2fbe5cf4e1d471737c6f47e639a611a12f/source f55351dce855177a51330f72c37d6238ba2c9e3e。
+既存PR59は最終f1457e89の27 checks後に通常mergeし、実treeとreviewed treeが完全一致。
+正しい既存prefix/markerから実gate44100425945/job134098647385が動き、HOLD_ACTIVE_OWNER_WORKFLOW・dispatch false・公式GET0。
+M2 owner44075021607は86b固定のまま継続し、追加workerを開始していない。次の版の実速度は未確認。
+
+**期限切れ原本の実AES成功:** 正式監査44100426069/job134098651254がsuccess。
+13559236491は元run42334526055/source8cfのZIP7,399,390bytesとmetadata740bytesのSHAが一致し、
+16記録/88 native入力片を当時の保持時刻で認証・再演算できた。元clock/bytes/原本は変更0。
+新model入力/現時点の入力許可/receipt/dispatchは作らず、owner keyはActions内だけで使った。
+初回44093714741のfailure/HOLDと誤期待名900001の原因を保全し、正しい900003への1literal修正が実証された。
+証拠artifact14335961767は1,120bytes、M2証拠14336036608は1,874bytes。両ZIPのサイズ/SHAを再取得照合した。
+
+**M2は部分証明のまま:** 同runで完了1〜7巡、P0/P1/RESULT/ALL_MODEL計17暗号原本を認証。
+追加モデルP1新規9行の保存AES view一致9/欠落0を維持。baseline再利用5行を新規へ足さず、旧36行の修復証明にしない。
+ALL_MODEL2〜7欠落は生成数null/HOLD、公式B未認証・締切資格0/null、全日/最新live counter/精度改善は未合格。
+[実gate・実AES・件数/hash・範囲の証拠](evidence/boat-actual-profile-gate-archive-aes-20261117.json)。
+
+**UI候補の実Safari準備:** 既存DraftPR62の598候補を公開配信せず、同じ既存Mac jobの合成撮影へ接続する3file変更をレビュー。
+64件＋独立64件、11拒否probe、実candidateの28 Chromium viewport/pageを確認。現在のf603実private/AES/P1を先に維持し、
+session削除応答/driver終了・資格情報除去・新origin/session確認後に候補を撮影する。既存PR58で最終CIへ進める。
+main pushはHTTPのみ。merge後、既存workflow416758725/ref main/browser=native-safariで実Macを1回確認する。
+候補の実Safari/物理iPhone/全8参考/本人login/V5継続/実dataはまだ未確認。新job/runner/権限/input/cron/課金は追加しない。
+
+4競技の全日/全適用モデル/T15〜10、校正した6艇継続/強さ接続、未来の精度改善は未達。
+未push2commitはUNRESTORED、元work/KEIRIN default-OFF/公開f60308ef/本番weights/投票禁止を保持する。
+以下は過去時点の記録として保持する。
+
 ## 2026-11-17 継続: 保存名の実照合失敗を1項目修正、次source f553へ正規引継ぎを準備
 
 実main0d8126ed/source f55351dce855177a51330f72c37d6238ba2c9e3e。source既存PR63は最終acf84c7b/5 checks後に通常merge、tree完全一致。
