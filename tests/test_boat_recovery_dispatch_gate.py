@@ -203,4 +203,34 @@ class RecoveryGateTests(unittest.TestCase):
         out=gate.decide(**args)
         self.assertTrue(out['dispatch_allowed']);self.assertFalse(out['recovery_required'])
 
+
+    def test_bb_original_recovery_requires_actual_a74_checkout_and_a74_bound_proof(self):
+        protected='a74f1e940e7fc0852e63938f8138bdb58bd93163'
+        previous='bb49215034b779ea1493b35dd91e5c3ebfc04032'
+        args,proof=self.orphan()
+        args['history']['workflow_runs'][0]['head_sha']=previous
+        proof['repairs'][0]['original_head_sha']=previous
+        proof['history_sha256']=contract.history_digest(args['history']['workflow_runs'])
+        proof['head_sha']=protected
+        args['release']['object']['sha']=protected
+        before=deepcopy((args,proof))
+        decision=gate.decide(**args,recovery_proof=proof)
+        self.assertTrue(decision['dispatch_allowed'])
+        self.assertEqual(decision['release_sha'],protected)
+        self.assertEqual(decision['official_source_requests'],0)
+        for change in (lambda p:p.update(head_sha=previous),
+                       lambda p:p['repairs'][0].update(original_head_sha=protected),
+                       lambda p:p['repairs'][0].update(original_head_sha='f'*40)):
+            invalid=deepcopy(proof);change(invalid)
+            with self.subTest(proof=invalid['head_sha']):
+                self.assertFalse(gate.decide(**args,recovery_proof=invalid)['dispatch_allowed'])
+        old=deepcopy(args);old['release']['object']['sha']=previous
+        self.assertEqual(gate.decide(**old,recovery_proof=proof)['status'],
+                         'HOLD_RELEASE_SHA_MISMATCH')
+        active=deepcopy(args)
+        active['history']['workflow_runs'][0].update(status='in_progress',conclusion=None)
+        self.assertFalse(gate.decide(**active,recovery_proof=proof)['dispatch_allowed'])
+        self.assertEqual((args,proof),before)
+
+
 if __name__=='__main__':unittest.main()

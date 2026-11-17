@@ -550,3 +550,16 @@ The separate closed-artifact stdout counts do not change M2 target/core audit,
 artifact members, current input authority, model weights, or dispatch permission.
 Missing/unverified counts are null; zero is reported only after authenticated
 readback of the complete immutable ZIP. No source acquisition or new producer.
+
+2026-11-17 exact protected source transition: a74f1e940e7fc0852e63938f8138bdb58bd93163
+Tree ec6cdf2fefe1a03e2ef68aeb3991de268fdbdd96 equals the source PR51 candidate
+that passed837 primary and178 independent recovery tests. Future source and
+checkout/proof pins select only this exact release. BB/M2/F553/EFF remain
+strictly reviewed historical originals, never alternate dispatch authority.
+An active BB worker must remain HOLD_ACTIVE_OWNER_WORKFLOW with no duplicate.
+The fixed BB r0 audit, all byte pins, its optional stdout step, M2 target,
+old P0/EFF/Safari readers, original forecasts and weights remain unchanged.
+Existing release prefix: boat-owner-release: single-real-session-20261111
+No new job, permission, input, schedule, runner, timeout, marker or prefix.
+Actual source a74 owner execution, all-day/all-sport coverage and G8 remain
+unproved; this marker does not replace fresh history, AES or source gates.

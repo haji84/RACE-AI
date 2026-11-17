@@ -164,7 +164,8 @@ jobs:
         (github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3' ||
          github.event.workflow_run.head_sha == '86b029ae5bddd5d4956497d8b32b2c92b8eec521' ||
          github.event.workflow_run.head_sha == 'f55351dce855177a51330f72c37d6238ba2c9e3e' ||
-         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032') &&
+         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
+         github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163') &&
         (github.event.workflow_run.conclusion == 'success' ||
          github.event.workflow_run.conclusion == 'failure')))
     runs-on: ubuntu-24.04
@@ -291,7 +292,7 @@ jobs:
           import race_ai,scripts
           scripts.__path__=list(scripts.__path__)+[str(Path('..').resolve()/'scripts')]
           owner=os.environ['OWNER_AUDIT_SOURCE_SHA']
-          assert owner in ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3','86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032')
+          assert owner in ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3','86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163')
           assert subprocess.check_output(['git','rev-parse','HEAD'],timeout=10).decode().strip()==owner
           for folder,pin in (('pr64-reference','761247bee0209e37b1af6b8885e92cad3e9260a5'),
                              ('pr72-reference','7a432e5acc4d3495a0e82bd79726929e2f8085fe')):
@@ -319,7 +320,7 @@ jobs:
               reads=active._Reads(gh)
               run=json.loads(reads(f'actions/runs/{ident}'))
               assert run.get('head_sha')==owner
-              m2_receipts=owner in ('86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032')
+              m2_receipts=owner in ('86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163')
               # Keep the existing output name for downstream skip boundaries;
               # the report truthfully distinguishes active and completed snapshots.
               active_snapshot=m2_receipts or os.environ['GITHUB_EVENT_NAME']=='push' and run.get('status')=='in_progress'
@@ -571,7 +572,8 @@ jobs:
               allowed_owners=('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
                               '86b029ae5bddd5d4956497d8b32b2c92b8eec521',
                               'f55351dce855177a51330f72c37d6238ba2c9e3e',
-                              'bb49215034b779ea1493b35dd91e5c3ebfc04032')
+                              'bb49215034b779ea1493b35dd91e5c3ebfc04032',
+                              'a74f1e940e7fc0852e63938f8138bdb58bd93163')
               actual=subprocess.check_output(['git','rev-parse','HEAD'],timeout=10,
                   stderr=subprocess.DEVNULL).decode().strip()
               if root.name!='owner-source' or owner not in allowed_owners or actual!=owner:

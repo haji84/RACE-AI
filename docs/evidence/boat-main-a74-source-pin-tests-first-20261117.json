@@ -1,0 +1,224 @@
+{
+  "schema": "RACE_AI_MAIN_A74_SOURCE_PIN_TESTS_FIRST_V1",
+  "base_main": "4934a1849d3b2b40c6edbd8aacfcced55244b98e",
+  "base_main_tree": "c6092b0cfdd4322c9eaac2afef66411e48d995f0",
+  "previous_pin_files_base": "e619ef93f16ebece85d1d659fd737a836910c167",
+  "source": {
+    "protected_merge": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "tree": "ec6cdf2fefe1a03e2ef68aeb3991de268fdbdd96",
+    "tree_matches_tested_candidate": true,
+    "primary_tests": 837,
+    "primary_seconds": 195.595,
+    "compatibility_tests": 178,
+    "compatibility_seconds": 34.774,
+    "additional_green_suites": [
+      3,
+      12,
+      38,
+      165,
+      46
+    ],
+    "checks": {
+      "success": 3,
+      "skipped": 3
+    },
+    "evidence_verified_and_supplied_by_root": true
+  },
+  "files": [
+    {
+      "path": "tests/test_all_existing_model_archived_native.py",
+      "base_blob": "314d98fcd2fee9962fb9552bc44ea43eff4a2b78",
+      "blob_sha": "93ca4f616d44ea0b29ccc0842c3703b30a69937d",
+      "utf8_bytes": 22687,
+      "added_lines": 1,
+      "removed_lines": 0,
+      "all_original_bytes_preserved": true,
+      "remote_readback_identical": true
+    },
+    {
+      "path": "tests/test_boat_current_pair_eligibility_audit.py",
+      "base_blob": "70af83665f7b4f2ca65d35a965333fc7ec19c07a",
+      "blob_sha": "7f3f6723bae70106d8a8a25e65457f566b5d7950",
+      "utf8_bytes": 23525,
+      "added_lines": 12,
+      "removed_lines": 0,
+      "all_original_bytes_preserved": true,
+      "remote_readback_identical": true
+    },
+    {
+      "path": "tests/test_boat_owner_active_snapshot_audit.py",
+      "base_blob": "a43b7014c2155d051eee5144cf655f2ed0e782d7",
+      "blob_sha": "8fd0c8c49e1ac9e7b9f87a7c086a081601077110",
+      "utf8_bytes": 61216,
+      "added_lines": 23,
+      "removed_lines": 0,
+      "all_original_bytes_preserved": true,
+      "remote_readback_identical": true
+    },
+    {
+      "path": "tests/test_boat_owner_completion_trigger.py",
+      "base_blob": "e1bf6edb4089a427d55edfa496e656bfae529042",
+      "blob_sha": "446a418cd67e42c614a43f54bc504cf424a5f2f3",
+      "utf8_bytes": 22146,
+      "added_lines": 48,
+      "removed_lines": 0,
+      "all_original_bytes_preserved": true,
+      "remote_readback_identical": true
+    },
+    {
+      "path": "tests/test_boat_recovery_control_reader.py",
+      "base_blob": "3cb2f184e79e7bf1bf9a7fc9fe9d3288d6b2228d",
+      "blob_sha": "fad95955ad1c3c53abcfb814a77c194d18247c6b",
+      "utf8_bytes": 3887,
+      "added_lines": 6,
+      "removed_lines": 0,
+      "all_original_bytes_preserved": true,
+      "remote_readback_identical": true
+    },
+    {
+      "path": "tests/test_boat_recovery_dispatch_gate.py",
+      "base_blob": "7aca388073b688f78c14653b5bb1e3dcdd9e2b52",
+      "blob_sha": "6eada495ec3f9a627469e9178e6a8bb90201f9e7",
+      "utf8_bytes": 14460,
+      "added_lines": 30,
+      "removed_lines": 0,
+      "all_original_bytes_preserved": true,
+      "remote_readback_identical": true
+    }
+  ],
+  "diff": {
+    "added_lines": 120,
+    "removed_lines": 0,
+    "all_original_test_bytes_preserved": true,
+    "all_original_assertions_and_cases_preserved": true,
+    "new_discovered_test_cases": 33
+  },
+  "test_discovery_static": [
+    {
+      "path": "tests/test_all_existing_model_archived_native.py",
+      "before": 13,
+      "after": 13,
+      "added": 0
+    },
+    {
+      "path": "tests/test_boat_current_pair_eligibility_audit.py",
+      "before": 29,
+      "after": 43,
+      "added": 14
+    },
+    {
+      "path": "tests/test_boat_owner_active_snapshot_audit.py",
+      "before": 57,
+      "after": 70,
+      "added": 13
+    },
+    {
+      "path": "tests/test_boat_owner_completion_trigger.py",
+      "before": 18,
+      "after": 22,
+      "added": 4
+    },
+    {
+      "path": "tests/test_boat_recovery_control_reader.py",
+      "before": 6,
+      "after": 7,
+      "added": 1
+    },
+    {
+      "path": "tests/test_boat_recovery_dispatch_gate.py",
+      "before": 11,
+      "after": 12,
+      "added": 1
+    }
+  ],
+  "coverage": {
+    "genuine_existing_aes_refusal_inheritance": [
+      {
+        "class": "AtomicCurrentPairEligibilityTests",
+        "base": "CurrentPairEligibilityTests",
+        "new_discovered_cases": 14,
+        "scope": "exact literal a74; original M2 and BB classes retained"
+      },
+      {
+        "class": "AtomicSnapshotTests",
+        "base": "RetentionSnapshotTests",
+        "new_discovered_cases": 11,
+        "scope": "exact literal a74, native/ALL_MODEL/full-ZIP/AES/control/receipt/counter/refusal tests; old retention cases retained"
+      },
+      {
+        "class": "AtomicTargetSelectionTests",
+        "base": "ProfileTargetSelectionTests",
+        "new_discovered_cases": 2,
+        "scope": "completed a74 callback accepted, existing M2 main-push target unchanged"
+      }
+    ],
+    "p0_origin_matrix": {
+      "new_expected_owner": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+      "accepted_exact_prior_origins": [
+        "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+        "f55351dce855177a51330f72c37d6238ba2c9e3e",
+        "bb49215034b779ea1493b35dd91e5c3ebfc04032"
+      ],
+      "rejected_reverse_owners": [
+        "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+        "f55351dce855177a51330f72c37d6238ba2c9e3e",
+        "bb49215034b779ea1493b35dd91e5c3ebfc04032"
+      ],
+      "unknown_origin_rejected": true
+    },
+    "current_release_behavior": [
+      "Only actual protected a74 release admits the existing genuine continuation fixture",
+      "Old BB or unknown release ref remains HOLD_RELEASE_SHA_MISMATCH",
+      "Active BB worker remains HOLD_ACTIVE_OWNER_WORKFLOW"
+    ],
+    "bb_preservation": [
+      "BB completion can select only current release without modifying counters/control",
+      "All four existing completion workflow job conditions continue accepting exact BB alongside older origins",
+      "BB historical origin never substitutes for current pinned reader checkout",
+      "BB-original repair proof must be bound to actual a74; BB proof head or wrong original-head binding is refused"
+    ]
+  },
+  "expected_red": {
+    "actual_red_pending": true,
+    "runtime_still_pinned_to_BB": true,
+    "new_a74_positive_AES_scope_cases": "Expected refusal by existing SOURCE_NOT_PINNED/owner scope guards until runtime accepts literal a74; no guessed failure/error count.",
+    "current_a74_positive_dispatch": "Expected HOLD_RELEASE_SHA_MISMATCH before RELEASE_SHA advances.",
+    "bb_completion_to_new_release": "Expected current-vs-previous equality failure while current pin is still BB.",
+    "bb_original_a74_recovery": "Expected refusal until current release is a74 and BB is retained as exact historical origin.",
+    "regression_cases_may_already_pass": [
+      "old-BB checkout refusal",
+      "existing BB workflow event gates",
+      "negative AES/refusal cases stopped by old pin guard"
+    ],
+    "original_cases": "All original cases/assertions unchanged; new test subclasses inherit genuine existing fixtures."
+  },
+  "unchanged": {
+    "runtime_prepared": false,
+    "workflow_prepared": false,
+    "current_RELEASE_SHA_not_changed": true,
+    "fixed_BB_count_helper": "scripts/boat_exact_all_model_zip_readback.py entire helper and byte-pin tuple unchanged",
+    "fixed_BB_tests": "tests/test_boat_exact_all_model_zip_readback.py unchanged",
+    "optional_fixed_BB_stdout_step": "entire optional workflow step unchanged",
+    "M2_target": {
+      "run_id": 44075021607,
+      "source_sha": "86b029ae5bddd5d4956497d8b32b2c92b8eec521"
+    },
+    "native_reader_helper_and_native_Safari_files_unchanged": true,
+    "EFF_defaults_and_parser_pins_unchanged": true,
+    "jobs_permissions_inputs_cron_prefix_marker_runner_timeouts_unchanged": true,
+    "source_runtime_unchanged": true,
+    "new_PRs": 0,
+    "refs_changed": false,
+    "processes_run": false,
+    "provider_gets": 0,
+    "key_reads": 0
+  },
+  "verification": {
+    "all_six_test_blob_readbacks_identical": true,
+    "all_six_pin_files_matched_e619_on_actual_4934": true,
+    "static_test_inheritance_counts_only": true,
+    "tests_not_run_here": true,
+    "no_GREEN_claim": true
+  },
+  "next": "Root preserves/reuses existing PR45, creates tests-only tree on actual main4934, and obtains actual authenticated RED before any runtime pin change."
+}

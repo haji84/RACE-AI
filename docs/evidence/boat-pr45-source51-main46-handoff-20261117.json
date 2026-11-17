@@ -1,0 +1,150 @@
+{
+  "schema": "RACE_AI_PR45_PRESERVATION_SOURCE51_MAIN46_ACTUAL_HANDOFF_20261117_V1",
+  "repository": "haji84/RACE-AI",
+  "observed_at": "2026-11-17 22:43:04 UTC",
+  "existing_pr_before_reuse": {
+    "url": "https://github.com/haji84/RACE-AI/pull/45",
+    "number": 45,
+    "state": "open",
+    "merged": false,
+    "mergeable": true,
+    "draft": true,
+    "body": "ユーザー提示のモバイル/PC画面を目標に、既存の検証済み当日JSONから24会場選択グリッド・会場別レースカード・詳細画面への遷移を実装。未取得の会場は無効化し、架空の選手・締切・予想を表示しない。競輪/競馬/オートはComing soonのまま。手動JSONは検証用として残す。main/Production変更なし。\n\n未完成: 実データの自動供給、予算/回収率の永続化、写真の権利、予想エンジン、実機表示検証。",
+    "title": "feat(ui): 24会場選択と当日レースカードのスマホ画面",
+    "base": "test/boat-real-html-evidence-contract",
+    "base_sha": "b834511669d1135f08e560b73d79d8626b70a74c",
+    "head": "feat/boat-mobile-venue-race-navigation",
+    "head_sha": "6481fdfe414300b711e3431a20d746fe79157122",
+    "head_repo_id": 1416489937,
+    "head_repo_full_name": "haji84/RACE-AI",
+    "merge_commit_sha": "c51327359a76b2a1b6050c1f334eef450044ccd8",
+    "user": {
+      "login": "haji84",
+      "name": "haji84",
+      "email": null,
+      "avatar_url": "https://avatars.githubusercontent.com/u/173585154?v=4",
+      "id": 173585154
+    },
+    "requested_reviewers": null,
+    "requested_team_reviewers": null,
+    "diff": null,
+    "comments": null,
+    "created_at": "2026-10-14T07:37:31Z",
+    "updated_at": "2026-10-14T07:37:41Z",
+    "closed_at": null,
+    "merged_at": null,
+    "commits": 3,
+    "changed_files": 3,
+    "additions": 73,
+    "deletions": 1,
+    "display_url": "https://github.com/haji84/RACE-AI/pull/45",
+    "display_title": "feat(ui): 24会場選択と当日レースカードのスマホ画面"
+  },
+  "preservation": {
+    "original_head": "6481fdfe414300b711e3431a20d746fe79157122",
+    "ancestor_of_main": "4934a1849d3b2b40c6edbd8aacfcced55244b98e",
+    "compare_ahead": 2226,
+    "compare_behind": 0,
+    "open_head_branch_consumers": [],
+    "force": false,
+    "new_pr": false,
+    "original_ui_work_retained_in_history": true
+  },
+  "source51": {
+    "protected_merge": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "source_tree": "ec6cdf2fefe1a03e2ef68aeb3991de268fdbdd96",
+    "tested_head": "2bf7a6e840f92e8a18aa43c7dd417868e3e14254",
+    "merge_tree_equal": true,
+    "primary_run": 44189320614,
+    "primary_job": 134414182289,
+    "tests": 837,
+    "seconds": 195.595,
+    "result": "OK",
+    "separate_recovery_job": 134414182209,
+    "separate_tests": 178,
+    "separate_seconds": 34.774,
+    "other_test_counts": [
+      3,
+      12,
+      38,
+      165,
+      46
+    ],
+    "checks": {
+      "total": 6,
+      "success": 3,
+      "skipped": 3
+    },
+    "actual_a74_producer_started": false,
+    "existing_live_producer_run": 44170869325,
+    "existing_live_producer_source": "bb49215034b779ea1493b35dd91e5c3ebfc04032"
+  },
+  "main46": {
+    "protected_merge": "4934a1849d3b2b40c6edbd8aacfcced55244b98e",
+    "tested_head": "330f7516d85d52eadf7b1e0b73d784c45e297304",
+    "tested_tree": "c6092b0cfdd4322c9eaac2afef66411e48d995f0",
+    "merge_tree_equal": true,
+    "native_test_job": 134419905792,
+    "native_tests": 119,
+    "native_seconds": 17.618,
+    "result": "OK",
+    "checks": {
+      "total": 23,
+      "success": 11,
+      "skipped": 12
+    }
+  },
+  "native_actual": {
+    "run_id": 44191905231,
+    "job_id": 134423216474,
+    "head": "4934a1849d3b2b40c6edbd8aacfcced55244b98e",
+    "normal_dispatch_at": "2026-11-17T22:37:46.188783+00:00",
+    "normal_dispatch_http": 204,
+    "retries": 0,
+    "real_mac_runner": "macos-15-intel",
+    "private_step_started_at": "2026-11-17T22:39:30Z",
+    "result": "IN_PROGRESS",
+    "acceptance_proven": false,
+    "root_cause_previous_run": "UNPROVED"
+  },
+  "fixed_p0_count_evidence": {
+    "path": "docs/evidence/boat-fixed-bootstrap-p0-actual-counts-20261117.json",
+    "blob": "55cceaf0cd4c7f44fceb184555c1e6bdc87c5e33",
+    "run_id": 44190597556,
+    "job_id": 134418652671,
+    "contexts": 132,
+    "generated_and_projected": 660,
+    "reused_forecasts": 0,
+    "retained_original_slots": 264,
+    "waiting_exhibition_slots": 924,
+    "non_generated_applicable_slots": 1188,
+    "authenticated_original": true,
+    "qualifying_g8_proven": false,
+    "full_day_coverage": false,
+    "all_models_operational": false
+  },
+  "next_scope": {
+    "tests_first": "Exact protected a74 current-source pins and additive reviewed original/control readback only",
+    "runtime_changes_prepared": false,
+    "old_bb_m2_profile_eff_origins_preserved": true,
+    "fixed_bb_count_helper_and_optional_step_byte_unchanged": true,
+    "existing_m2_target_run": 44075021607,
+    "existing_m2_target_sha": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "existing_marker_prefix_jobs_inputs_permissions_schedules_runners_timeouts_unchanged": true
+  },
+  "other_work_observed": {
+    "keirin_pull_request_run": 44192190965,
+    "branch": "research/keirin-six-phase-score-20261114",
+    "head": "a95fc8801ca0abb58627fe1ee91e590e35d5c05f",
+    "root_changed": false,
+    "active_list_total": 5,
+    "active_list_rows_returned": 3,
+    "active_inventory_complete": false,
+    "queued_total": 0
+  },
+  "unrestored_offline_commits": [
+    "b7380fe6a377e6ccf2b96331f2126c52549bbe17",
+    "daae4c10167224b7730006d8ada5ade398aaa64b"
+  ],
+  "goal_complete": false
+}

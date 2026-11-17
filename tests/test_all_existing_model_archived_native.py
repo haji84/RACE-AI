@@ -24,6 +24,7 @@ ALLOWED_OWNER_SHAS = ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
                       '86b029ae5bddd5d4956497d8b32b2c92b8eec521',
                       'f55351dce855177a51330f72c37d6238ba2c9e3e',
                       'bb49215034b779ea1493b35dd91e5c3ebfc04032')
+ALLOWED_OWNER_SHAS += ('a74f1e940e7fc0852e63938f8138bdb58bd93163',)
 assert subprocess.check_output(['git','-C',str(OWNER),'rev-parse','HEAD'],
     timeout=10).decode().strip() in ALLOWED_OWNER_SHAS
 if str(OWNER) not in sys.path:sys.path.insert(0,str(OWNER))

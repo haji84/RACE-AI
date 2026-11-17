@@ -1,0 +1,173 @@
+{
+  "schema": "RACE_AI_MAIN_A74_ROOT_RUNTIME_REVIEW_PACKET_V1",
+  "repository": "haji84/RACE-AI",
+  "base_commit": "a965bc8180f3ae8e15fb2e0d4009eb72895f6592",
+  "base_tree": "92207df383302a15f0ff1ec4e6d43cfbc6ff6eac",
+  "source_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+  "source_tree": "ec6cdf2fefe1a03e2ef68aeb3991de268fdbdd96",
+  "files": [
+    {
+      "path": ".github/workflows/boat-main-recovery-contract.yml",
+      "base_blob": "57ba87f1c004b4c52dc86e42894e5d1f669711b5",
+      "blob_sha": "6b910029f56af52a3cd8879cdfd18f31bc612ffa",
+      "edits": [
+        {
+          "match": "ref: bb49215034b779ea1493b35dd91e5c3ebfc04032, path: boat-owner-reader",
+          "replacement": "ref: a74f1e940e7fc0852e63938f8138bdb58bd93163, path: boat-owner-reader",
+          "expected_occurrences": 1
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/boat-owner-national-p1-matrix.yml",
+      "base_blob": "3f82f8dbbe3252142657f391803bee30b4da0113",
+      "blob_sha": "f5b839f51255194f1c0aabe864152d503ec9adea",
+      "edits": [
+        {
+          "match": "         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032') &&",
+          "replacement": "         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||\n         github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163') &&",
+          "expected_occurrences": 1
+        },
+        {
+          "match": "          assert owner in ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3','86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032')",
+          "replacement": "          assert owner in ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3','86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163')",
+          "expected_occurrences": 1
+        },
+        {
+          "match": "              m2_receipts=owner in ('86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032')",
+          "replacement": "              m2_receipts=owner in ('86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163')",
+          "expected_occurrences": 1
+        },
+        {
+          "match": "                              'bb49215034b779ea1493b35dd91e5c3ebfc04032')",
+          "replacement": "                              'bb49215034b779ea1493b35dd91e5c3ebfc04032',\n                              'a74f1e940e7fc0852e63938f8138bdb58bd93163')",
+          "expected_occurrences": 1
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/boat-racer-daily.yml",
+      "base_blob": "5d297c4024eaac0280030253a06c0fa884480a11",
+      "blob_sha": "760a72b797b0c644701818d7918421ec0f1dbd67",
+      "edits": [
+        {
+          "match": "(github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||",
+          "replacement": "(github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163' ||\n         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||",
+          "expected_occurrences": 4
+        },
+        {
+          "match": "github.event_name == 'workflow_dispatch' && 'bb49215034b779ea1493b35dd91e5c3ebfc04032' || '0796b52c2804177976e4c2e5ab9b65f32589720b'",
+          "replacement": "github.event_name == 'workflow_dispatch' && 'a74f1e940e7fc0852e63938f8138bdb58bd93163' || '0796b52c2804177976e4c2e5ab9b65f32589720b'",
+          "expected_occurrences": 1
+        },
+        {
+          "match": "          ref: bb49215034b779ea1493b35dd91e5c3ebfc04032",
+          "replacement": "          ref: a74f1e940e7fc0852e63938f8138bdb58bd93163",
+          "expected_occurrences": 1
+        },
+        {
+          "match": "          --expected-head bb49215034b779ea1493b35dd91e5c3ebfc04032",
+          "replacement": "          --expected-head a74f1e940e7fc0852e63938f8138bdb58bd93163",
+          "expected_occurrences": 1
+        },
+        {
+          "match": "          assert \"github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032'\" in mirror",
+          "replacement": "          assert \"github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032'\" in mirror\n          assert \"github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163'\" in mirror",
+          "expected_occurrences": 1
+        }
+      ]
+    },
+    {
+      "path": "scripts/boat_main_dispatch_gate.py",
+      "base_blob": "df1fa9dd00e051e899818673023f2036d1af8ce4",
+      "blob_sha": "6d4f93037f7ea8c23c21dda3d2a07e42c3166b1c",
+      "edits": [
+        {
+          "match": "RELEASE_SHA = 'bb49215034b779ea1493b35dd91e5c3ebfc04032'",
+          "replacement": "RELEASE_SHA = 'a74f1e940e7fc0852e63938f8138bdb58bd93163'",
+          "expected_occurrences": 1
+        }
+      ]
+    },
+    {
+      "path": "scripts/boat_failed_recovery_contract.py",
+      "base_blob": "3b455d4975ab9b689d13217c02cd3ba3de3f62cd",
+      "blob_sha": "1ea7522d4c4ce2566a081fa56c8bdbc649045542",
+      "edits": [
+        {
+          "match": "    'f55351dce855177a51330f72c37d6238ba2c9e3e',\n})",
+          "replacement": "    'f55351dce855177a51330f72c37d6238ba2c9e3e',\n    # Historical retention release only; checkout/proof still use current head.\n    'bb49215034b779ea1493b35dd91e5c3ebfc04032',\n})",
+          "expected_occurrences": 1
+        }
+      ]
+    },
+    {
+      "path": "scripts/boat_owner_active_snapshot_audit.py",
+      "base_blob": "bb20285728b4a1ce329d4f99534f8d6e3ae861a7",
+      "blob_sha": "e4a6f5bc20745b5ae8f3e0e957d24a5f5a9ac49a",
+      "edits": [
+        {
+          "match": "RETENTION_OWNER_SHA='bb49215034b779ea1493b35dd91e5c3ebfc04032'\nPARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA)",
+          "replacement": "RETENTION_OWNER_SHA='bb49215034b779ea1493b35dd91e5c3ebfc04032'\nATOMIC_OWNER_SHA='a74f1e940e7fc0852e63938f8138bdb58bd93163'\nPARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA,ATOMIC_OWNER_SHA)",
+          "expected_occurrences": 1
+        },
+        {
+          "match": "             expected_owner_sha==RETENTION_OWNER_SHA and origin['head_sha'] in (M2_OWNER_SHA,PROFILE_OWNER_SHA)),",
+          "replacement": "             expected_owner_sha==RETENTION_OWNER_SHA and origin['head_sha'] in (M2_OWNER_SHA,PROFILE_OWNER_SHA) or\n             expected_owner_sha==ATOMIC_OWNER_SHA and origin['head_sha'] in\n                 (M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA)),",
+          "expected_occurrences": 1
+        }
+      ]
+    },
+    {
+      "path": "scripts/boat_exact_all_model_zip_readback.py",
+      "base_blob": "7c2a925f5858838d0ca99599a89c8a48d7611e85",
+      "blob_sha": "d688e89af7d6125da0ca1cb9b2182a08f478c2f1",
+      "edits": [
+        {
+          "match": "RETENTION_OWNER_SHA='bb49215034b779ea1493b35dd91e5c3ebfc04032'\nPARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA)",
+          "replacement": "RETENTION_OWNER_SHA='bb49215034b779ea1493b35dd91e5c3ebfc04032'\nATOMIC_OWNER_SHA='a74f1e940e7fc0852e63938f8138bdb58bd93163'\nPARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA,ATOMIC_OWNER_SHA)",
+          "expected_occurrences": 1
+        }
+      ]
+    }
+  ],
+  "actual_red": {
+    "main": {
+      "run_id": 44195488832,
+      "job_id": 134435704263,
+      "tests": 93,
+      "seconds": 0.156,
+      "failures": 4,
+      "errors": 0
+    },
+    "national": {
+      "run_id": 44195488424,
+      "job_id": 134435704180,
+      "tests": 206,
+      "seconds": 145.542,
+      "failures": 2,
+      "errors": 16
+    },
+    "scope": "Only added a74 source/callback/proof cases; original93/206 parent cases unfailed. National errors are expected missing explicit owner-source admissions, not fixture failures."
+  },
+  "scope": {
+    "active_pin_sites": 5,
+    "reviewed_historical_bb_only": true,
+    "old_m2_profile_retention_p0_directions_only": true,
+    "all_four_completed_owner_gates_add_new_exact_sha_and_keep_bb": true,
+    "selected_archived_native_checkout_allowance_only": true,
+    "fixed_BB_helper_suffix_byte_identical": true,
+    "entire_optional_fixed_BB_step_byte_identical": true,
+    "all_six_tests_unchanged_after_RED": true,
+    "existing_M2_target_unchanged": true,
+    "native_browser_and_EFF_and_archived_helper900003_unchanged": true,
+    "job_permission_input_trigger_cron_runner_timeout_prefix_unchanged": true,
+    "remote_source_requests_or_writes_from_this_packet": 0
+  },
+  "review": {
+    "root": "CLEAR_EXACT_ANCHORS_AND_FIXED_BOUNDARIES",
+    "independent": "PENDING",
+    "fresh_green": "PENDING"
+  },
+  "refs_mutated": false
+}

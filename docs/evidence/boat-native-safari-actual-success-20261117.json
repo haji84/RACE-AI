@@ -1,0 +1,139 @@
+{
+  "schema": "RACE_AI_NATIVE_MACOS_SAFARI_ACTUAL_SUCCESS_20261117_V1",
+  "repository": "haji84/RACE-AI",
+  "run_id": 44191905231,
+  "job_id": 134423216474,
+  "head_sha": "4934a1849d3b2b40c6edbd8aacfcced55244b98e",
+  "workflow_id": 416758725,
+  "normal_dispatch_at": "2026-11-17T22:37:46.188783+00:00",
+  "normal_dispatch_http": 204,
+  "retries": 0,
+  "job_conclusion": "success",
+  "job_completed_at": "2026-11-17T22:43:21Z",
+  "native_unit_tests": 119,
+  "native_unit_seconds": 52.155,
+  "native_unit_result": "OK",
+  "private_and_candidate_reports": [
+    {
+      "schema": "RACE_AI_NATIVE_SAFARI_ACCEPTANCE_V2",
+      "status": "NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED",
+      "native_browser": {
+        "browserName": "Safari",
+        "browserVersion": "26.6",
+        "platformName": "macOS"
+      },
+      "verified_at": "2026-11-17T22:42:09.935219+00:00",
+      "pages_sha": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+      "read_only_source_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "live_asset_sha256": {
+        "app.js": "b7968390d2a942881e3a03494bb3a96760844ca1134532a940619a5a62bf3c9c",
+        "existing-model-catalog.js": "ff08efd5d08e2570198cecdbd0f6c1ef54c513d232c4ddd3a6ad6c6e83bbfc82",
+        "forecast-audit-model.js": "ae91d3f3a0684f81fded2662b164a76e8d2dd0ee3a1e8b337330256fc69ef487",
+        "index.html": "42de1bb10e809a32937ec132c84b562094af2a4afd572ec105e1fd22d805f38e",
+        "product-data.js": "f013981ae0384874fc5d8e4fe5feb8c99b16837e41a18b6d37aecf9db16f4437",
+        "racer-daily.js": "08187ac31a8a5d262530a45acdc06c07bedcbfd3ce4a1d5be126fdc270a0e167",
+        "racer-portraits-data.js": "6adecadb3070307b1478101e69748772197903a3a5626ae428acd1a82a31bcd2",
+        "racer-portraits.js": "2c15af470bb5394cadd70635b3478d0eab08764a2836641cc7731678d5563275",
+        "racer-profiles-data.js": "2f6cdf0e99ed84753b9be29e6c1a0704b86e19e8a86628b3454f30518730f68f",
+        "racer-profiles.js": "ab387b5b9958d75d8e7e781de53120b54dc92f7d19bf830f12e98d9083213113",
+        "saved-performance.js": "94a05ed6ee8d9a1287d10861e14f927b695b22d989f80395cf3e4d8bb3412213",
+        "saved-view-crypto.js": "60fb3f8f1668a14052d891a9c219c67de4b24d207b64c106a353fefe92cb13ce",
+        "style.css": "6b1d246bbc67057e946577a1f1b159dff81004b5575474fd195868a8f5592ade",
+        "ui-model.js": "b7dd4eb5d6326928f1eefd20f4eb5c6eea2274beb6bf931563659bfb63cad3d7"
+      },
+      "saved_day": "2026-11-17",
+      "authenticated_generation": 423,
+      "authenticated_results": 130,
+      "authenticated_native_p1_groups": 11,
+      "latest_p1_private_transport": {
+        "desktop_viewports": [
+          {
+            "requested_width": 1440,
+            "actual_inner_width": 1440,
+            "actual_inner_height": 948,
+            "requested_width_verified": true,
+            "physical_iphone_verified": false
+          },
+          {
+            "requested_width": 390,
+            "actual_inner_width": 390,
+            "actual_inner_height": 948,
+            "requested_width_verified": true,
+            "physical_iphone_verified": false
+          }
+        ],
+        "model_switch_original_comparisons": 4,
+        "native_p1_detail_views": 2,
+        "result_budget_views": 2,
+        "external_requests_blocked_before_network": 0,
+        "csp_violations_blocked": 0,
+        "private_view_reads": 1,
+        "key_in_requests_url_or_storage": false,
+        "outbound_browser_requests_permitted": 0,
+        "official_source_requests": 0,
+        "transport": "LOOPBACK_EXISTING_PRIVATE_SAVED_ENDPOINT"
+      },
+      "encrypted_seed": {
+        "browser_aes_verified": true,
+        "seed_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+        "same_seed_model_original_comparisons": 2,
+        "refusals_verified": [
+          "missing-key",
+          "wrong-key",
+          "wrong-view",
+          "modified-cipher"
+        ],
+        "viewer_capability_verified": true,
+        "viewer_key_in_fragment": true,
+        "viewer_key_in_requests_or_web_storage": false,
+        "owner_key_in_browser": false,
+        "account_login_verified": false,
+        "current_v5_live_continuation_verified": false,
+        "outbound_browser_requests_permitted": 0,
+        "real_screenshots_or_traces_exported": 0
+      },
+      "browser_aes_verified": true,
+      "private_sessions_cleanup_verified": true,
+      "account_login_verified": false,
+      "current_v5_live_continuation_verified": false,
+      "browser_aes_and_owner_login_verified": false,
+      "physical_iphone_verified": false,
+      "all_eight_reference_screens_visually_verified": false,
+      "plaintext_published": false,
+      "forecast_or_result_mutation": false
+    },
+    {
+      "status": "SYNTHETIC_SCREENSHOT_ARTIFACTS_VERIFIED",
+      "screenshots": 28,
+      "dataset_status": "SYNTHETIC_ONLY",
+      "candidate_source": {
+        "commit": "598c80c89b5d6a1bca8dbbb16d091ef9e74bfb76",
+        "web_tree": "23bddbad96d303cdd9699615ecfa6f99f7f82f61",
+        "asset_sha256": {
+          "index.html": "676a3537bb97f5826d2f1e7c01154a488e310a3d18bd25e9c8a50c33d9666c39",
+          "app.js": "67742a37a42e46deb2e2de4dd65540f81227bbf8138e7606909e17c6c9104fa6",
+          "style.css": "c2dd9f1841e83b1359517edd2082830504bf5e5a65fe501cf44346ad50d38400"
+        }
+      },
+      "physical_iphone_verified": false,
+      "all_eight_reference_screens_visually_verified": false
+    }
+  ],
+  "synthetic_artifact": {
+    "id": 14377542031,
+    "size_in_bytes": 8472624,
+    "sha256": "f5952f2367727f345f2f6f9583f1e18188c3eea5f0fd765842546a3b41f9f52a",
+    "created_at": "2026-11-17T22:43:13Z",
+    "dataset": "SYNTHETIC_ONLY",
+    "screenshots": 28
+  },
+  "cause_of_previous_http500": "UNPROVED; it did not recur in this exact run, and browser actions/predicates were unchanged",
+  "cf_guard": "This run passed the current synthetic environment guard and captured the pinned candidate; the actual special CF variable value was neither exported nor observed as diagnostic output.",
+  "scope_limits": [
+    "Native macOS Safari is not physical iPhone Safari.",
+    "Private saved-day 2026-11-17 is the saved P1 comparison context, not an independently audited global latest-day assertion.",
+    "Owner login, current V5 live continuation and visual acceptance of all eight user references remain false.",
+    "Private screenshots/traces exported=0; the retained 28 PNGs are synthetic candidate fixtures only.",
+    "No forecast/result mutation, plaintext publication, UI deployment, owner-key exposure or production weight switch."
+  ]
+}

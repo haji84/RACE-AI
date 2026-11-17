@@ -866,4 +866,27 @@ class RetentionTargetSelectionTests(ProfileTargetSelectionTests):
     SOURCE_HEAD=RETENTION_HEAD
 
 
+
+ATOMIC_HEAD='a74f1e940e7fc0852e63938f8138bdb58bd93163'
+
+
+class AtomicSnapshotTests(RetentionSnapshotTests):
+    """Keep every old source suite and reopen real fixture AES at protected a74."""
+    SOURCE_HEAD=ATOMIC_HEAD
+
+    def test_atomic_inherits_only_exact_reviewed_previous_p0_origins(self):
+        for origin in (active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD):
+            with self.subTest(origin=origin):
+                self._inherited_p0(ATOMIC_HEAD,origin)
+        for owner,origin in ((ATOMIC_HEAD,'f'*40),(RETENTION_HEAD,ATOMIC_HEAD),
+                             (PROFILE_HEAD,ATOMIC_HEAD),(active.M2_OWNER_SHA,ATOMIC_HEAD)):
+            with self.subTest(owner=owner,origin=origin),self.assertRaisesRegex(
+                    ValueError,'P0_ORIGIN_IDENTITY'):
+                self._inherited_p0(owner,origin)
+
+
+class AtomicTargetSelectionTests(ProfileTargetSelectionTests):
+    SOURCE_HEAD=ATOMIC_HEAD
+
+
 if __name__=='__main__':unittest.main()
