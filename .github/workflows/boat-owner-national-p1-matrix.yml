@@ -16,6 +16,8 @@ on:
       - race_ai/all_existing_model_archived_native.py
       - tests/test_all_existing_model_archived_native.py
       - audit/state/boat-m2-independent-audit-target.json
+      - scripts/boat_current_pair_eligibility_audit.py
+      - tests/test_boat_current_pair_eligibility_audit.py
   push:
     branches: [main]
     paths:
@@ -32,6 +34,8 @@ on:
       - race_ai/all_existing_model_archived_native.py
       - tests/test_all_existing_model_archived_native.py
       - audit/state/boat-m2-independent-audit-target.json
+      - scripts/boat_current_pair_eligibility_audit.py
+      - tests/test_boat_current_pair_eligibility_audit.py
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
     types: [completed]
@@ -71,7 +75,7 @@ jobs:
       - name: Install exact pinned owner reader dependencies for source-free test
         run: python -m pip install --disable-pip-version-check -r owner-source/requirements-history.txt
       - name: Pure model matrix and forced original ZIP AES source-free contract
-        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native -v
+        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit -v
       - name: Prove source-owner and private key are only ever read on trusted main events
         run: |
           python - <<'PY'
@@ -292,15 +296,17 @@ jobs:
               from scripts.boat_private_original_vault import _environment
               from scripts.github_existing_cycle import gh
               repo=Path('.').resolve();_environment(repo)
-              run=json.loads(gh(f'actions/runs/{ident}'))
+              active=from_exact_file('boat_active_snapshot_private','../scripts/boat_owner_active_snapshot_audit.py')
+              snapshot_clock=datetime.now(timezone.utc)
+              reads=active._Reads(gh)
+              run=json.loads(reads(f'actions/runs/{ident}'))
               assert run.get('head_sha')==owner
               m2_receipts=owner in ('86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e')
               # Keep the existing output name for downstream skip boundaries;
               # the report truthfully distinguishes active and completed snapshots.
               active_snapshot=m2_receipts or os.environ['GITHUB_EVENT_NAME']=='push' and run.get('status')=='in_progress'
               if active_snapshot:
-                  active=from_exact_file('boat_active_snapshot_private','../scripts/boat_owner_active_snapshot_audit.py')
-                  report=active.audit_active_snapshot(repo,ident,now=datetime.now(timezone.utc),get=gh,
+                  report=active.audit_active_snapshot(repo,ident,now=snapshot_clock,get=reads,
                       expected_owner_sha=owner,allow_completed_receipts=m2_receipts)
                   assert (report['official_source_requests']==0 and report['full_day_coverage'] is False and
                           report['successor_dispatch_allowed'] is False and report['latest_live_counters_audited'] is False)
@@ -308,6 +314,27 @@ jobs:
                       target=Path(os.environ['RUNNER_TEMP'])/name
                       assert not target.exists() and not target.is_symlink()
                       target.write_text(json.dumps(report,sort_keys=True)+'\n',encoding='utf-8')
+                  # CURRENT_PAIR_COUNTS_BEGIN
+                  try:
+                      pair_audit=from_exact_file('boat_current_pair_counts_private','../scripts/boat_current_pair_eligibility_audit.py')
+                      pair_counts=pair_audit.audit_current_pairs(get=reads,run_id=ident,now=snapshot_clock,
+                          expected_owner_sha=owner)
+                  except Exception:
+                      # Preserve verified core originals; failed pair reads attest no counts.
+                      pair_counts=dict(current_pair_audit_status='HOLD_PAIR_AUDIT_REJECTED',
+                          current_pair_authenticated=False,current_pair_archive_count=None,
+                          current_pair_forecast_record_count=None,current_pair_input_only_record_count=None,
+                          current_pair_first_forecast_record_count=None,current_pair_repeat_forecast_record_count=None,
+                          current_pair_distinct_race_count=None,current_pair_training_archive_count=None,
+                          current_pair_result_archive_count=None,current_pair_result_unique_revision_count=None,
+                          current_pair_result_duplicate_revision_count=None,
+                          current_pair_official_raw_verified=None,current_pair_official_cutoff_verified=None,
+                          current_pair_minimum_cohort=None,current_pair_qualifying_g8_count=0,
+                          current_pair_qualifying_g8_denominator=None,current_pair_accuracy_improvement_proven=False,
+                          current_pair_promotion_allowed=False,current_pair_full_day_coverage=False)
+                  assert not set(report).intersection(pair_counts)
+                  report.update(pair_counts)
+                  # CURRENT_PAIR_COUNTS_END
               else:
                   result=audit.inspect_run(repo,ident,now=datetime.now(timezone.utc))
                   from race_ai.existing_model_coverage import active_catalog
