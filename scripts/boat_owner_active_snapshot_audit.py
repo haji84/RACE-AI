@@ -9,6 +9,7 @@ from hashlib import sha1
 import base64
 import json
 import re
+from pathlib import Path
 
 OWNER_SHA='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
 BRANCH='production/boat-p0-p1-20261111'
@@ -18,6 +19,21 @@ SCHEMA='RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1'
 
 def need(ok,reason):
     if not ok:raise ValueError('OWNER_ACTIVE_AUDIT_'+reason)
+
+
+def failure_diagnostic(error):
+    """Static public call-site only; never exception text, values, URLs or locals."""
+    public=frozenset(('boat_owner_active_snapshot_audit.py','boat_exact_all_model_zip_readback.py',
+                      'boat_owner_evidence_audit.py'))
+    functions=frozenset(('audit_active_snapshot','audit','_official_cutoffs','_scan','_scan_unqualified_originals',
+        '_owner_head','validate_active_scope','_canonical_p0','_jobs','read','moment','cutoff_source_disagreement'))
+    output={};trace=error.__traceback__;folder=Path(__file__).resolve().parent
+    while trace is not None:
+        code=trace.tb_frame.f_code;path=Path(code.co_filename).resolve()
+        if path.parent==folder and path.name in public and code.co_name in functions:
+            output=dict(failure_at='scripts/'+path.name+':'+str(trace.tb_lineno),failure_function=code.co_name)
+        trace=trace.tb_next
+    return output
 
 
 def _time(value):
@@ -227,6 +243,8 @@ def audit_active_snapshot(repo,run_id,*,now,get):
         p0_origin_run_id=origin['id'],p0_artifact_id=p0_meta['id'],
         p0_supplements_verified=supplements,
         raw_aes_archives_verified=1+supplements+2*len(rounds)+proof['aes_originals_independently_decrypted'],
+        official_cutoff_qualification=proof['official_cutoff_qualification'],
+        cutoff_qualification_blocker=proof['cutoff_qualification_blocker'],
         all_model_zip_readback=proof,full_day_coverage=False,successor_dispatch_allowed=False,
         latest_live_counters_audited=False,official_source_requests=0,new_forecasts=0,
         original_forecasts_changed=False)

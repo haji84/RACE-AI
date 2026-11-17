@@ -269,7 +269,8 @@ jobs:
                   else 'AUTHENTICATED_ORIGINALS_NOT_YET_AUDITABLE')
               print(json.dumps(dict(status='HOLD_NATIONAL_P1_INDEPENDENT_AUDIT',
                   reason=reason,owner_run_id=os.environ['OWNER_AUDIT_RUN_ID'],
-                  race_provider_gets=0,source_originals_modified=False)))
+                  race_provider_gets=0,source_originals_modified=False,
+                  **(active.failure_diagnostic(exc) if 'active' in locals() else {}))))
               raise SystemExit(2)
           PY
       - name: Reopen ALL_MODEL GitHub originals on independent runner and measure true model slots

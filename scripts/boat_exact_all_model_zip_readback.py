@@ -28,6 +28,12 @@ RACE=re.compile(r'20[0-9]{6}-(?:0[1-9]|1[0-9]|2[0-4])-(?:0[1-9]|1[0-2])\Z')
 MODEL=re.compile(r'[A-Za-z0-9_.-]{1,128}\Z')
 
 
+class OfficialProgramUnavailable(ValueError):
+    """Only the program reader's explicit absent-index result creates this HOLD."""
+    def __init__(self):
+        super().__init__('BOAT_EXACT_ZIP_READBACK_OFFICIAL_PROGRAM_UNAVAILABLE')
+
+
 def need(ok):
     if not ok:raise ValueError('BOAT_EXACT_ZIP_READBACK_REJECTED')
 
@@ -104,7 +110,7 @@ def _official_cutoffs(get, repo, run, listing, reader, *, day, now, key, p0_orig
         artifact_id=ident,created_at=meta['created_at'],
         payload_sha256=digest(doc),independently_verified=True)
     verified=load_program_source(day,doc,receipt,repo,key=key,as_of=now.isoformat())
-    need(verified is not None)
+    if verified is None:raise OfficialProgramUnavailable()
     schedule=doc.get('schedule')
     need(type(schedule) is list and 0<len(schedule)<=288)
     ledger={}
@@ -199,6 +205,44 @@ def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
             official_eligible=eligible and official==verified_cutoff
             outputs.append((rid,mid,eligible,matched,official_eligible))
     return outputs,unqualified,missing_from_view,reused_baseline
+
+
+def _scan_unqualified_originals(projection,*,day,artifact_id,physical_saved_at,
+                               expected,source_original_index,expected_owner_sha):
+    """Count exact authenticated output bodies without qualifying any deadline.
+
+    Called only after a frozen active scope and real ZIP/AES/model replay, when
+    the independent official-B index is absent. It supplies no substitute
+    cutoff ledger and no physical/official eligible slots.
+    """
+    owner=_owner_head(expected_owner_sha)
+    need(type(projection) is dict and type(projection.get('records')) is list)
+    rows=[];holds=Counter();missing=0;reused=0
+    for row in projection['records']:
+        if row.get('sport')!='boat':continue
+        rid=row.get('race_id')
+        need(row.get('event_date_jst')==day and type(rid) is str and RACE.fullmatch(rid)
+             and rid[:8]==day.replace('-',''))
+        predictions=[row.get('prediction'),*(row.get('comparison_predictions') or [])]
+        need(len(predictions)<=128)
+        for prediction in predictions:
+            if prediction is None or prediction.get('stage')!='P1':continue
+            need(type(prediction) is dict and prediction.get('external_receipt_verified') is True
+                 and prediction.get('source_code_commit')==owner)
+            if prediction.get('artifact_id')!=artifact_id:
+                need(prediction.get('dispatch_status')=='ORIGINAL_REUSED');reused+=1;continue
+            need(prediction.get('dispatch_status')=='GENERATED_UNATTESTED'
+                 and prediction.get('server_saved_at')==physical_saved_at
+                 and type(prediction.get('original_json_sha256')) is str
+                 and SHA.fullmatch(prediction['original_json_sha256']))
+            model=prediction.get('model_id');need(type(model) is str and MODEL.fullmatch(model))
+            if model not in expected:holds['MODEL_NOT_IN_ACTIVE_CATALOG']+=1
+            identity=_identity(rid,prediction);matched=source_original_index.get(identity,0)>0
+            if matched:source_original_index[identity]-=1
+            else:missing+=1
+            holds['OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE']+=1
+            rows.append((rid,model,False,matched,False))
+    return rows,holds,missing,reused
 
 
 
@@ -340,11 +384,17 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
     need(0<len(targets)<=maximum_artifacts)
     if selected_rounds is not None:need(unique_rounds==set(selected_rounds))
     targets.sort()
-    official_cutoffs=_official_cutoffs(get,repo,run,listed,reader,day=day,now=now,key=key,
-        **({'p0_original':active_scope['p0_original']} if active_scope is not None else {}))
+    try:
+        official_cutoffs=_official_cutoffs(get,repo,run,listed,reader,day=day,now=now,key=key,
+            **({'p0_original':active_scope['p0_original']} if active_scope is not None else {}))
+    except OfficialProgramUnavailable:
+        if active_scope is None:raise
+        # Only explicit absence enters authenticity-only reporting. Corruption,
+        # wrong keys, source refusals and all other failures still propagate.
+        official_cutoffs=None
     day_rows={r['race_id'] for r in original_view['records']
               if r.get('sport')=='boat' and r.get('event_date_jst')==day}
-    need(day_rows==set(official_cutoffs))
+    if official_cutoffs is not None:need(day_rows==set(official_cutoffs))
     source_index=Counter()
     for row in original_view['records']:
         if row.get('sport')!='boat' or row.get('event_date_jst')!=day:continue
@@ -378,7 +428,12 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
              receipt.get('artifact_id')==artifact_id and
              receipt.get('head_sha')==owner_head)
         all_archive_sha_verified+=1;all_aes_authenticated+=1
-        rows,holds,missing,reused=_scan(projected,day=day,artifact_id=artifact_id,
+        if official_cutoffs is None:
+            rows,holds,missing,reused=_scan_unqualified_originals(projected,day=day,artifact_id=artifact_id,
+                physical_saved_at=meta['created_at'],expected=expected,source_original_index=source_index,
+                expected_owner_sha=owner_head)
+        else:
+            rows,holds,missing,reused=_scan(projected,day=day,artifact_id=artifact_id,
                                 physical_saved_at=meta['created_at'],
                                 expected=expected,clock=now,
                                 source_original_index=source_index,
@@ -419,8 +474,9 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
          all(original_copy[key]>=source_index.get(key,0) for key in source_index))
     # Difference is diagnostic only. Missing, duplicated and late original
     # predictions never become a successful user-visible completion claim.
-    official_total=len(expected)*len(official_cutoffs)
-    return dict(schema=SCHEMA,status='AES_ZIP_REPLAY_VERIFIED_P1_COVERAGE_INCOMPLETE',
+    official_total=len(expected)*len(official_cutoffs) if official_cutoffs is not None else None
+    return dict(schema=SCHEMA,status=('AES_ZIP_REPLAY_VERIFIED_P1_COVERAGE_INCOMPLETE' if official_cutoffs is not None else
+                                     'AES_ZIP_REPLAY_VERIFIED_OFFICIAL_PROGRAM_UNAVAILABLE'),
         day_jst=day,owner_run_id=run_id,owner_source_commit=owner_head,
         actual_listed_archives=len(targets),github_zip_sha256_independently_verified=all_archive_sha_verified,
         aes_originals_independently_decrypted=all_aes_authenticated,
@@ -428,7 +484,10 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         p1_forecast_rows_reopened=physical_forecasts,
         referenced_existing_baseline_p1_rows_not_recounted=baseline_reuses,
         physical_pre_cutoff_distinct_model_slots=len(eligible_slots),
-        authentic_official_P0_schedule_races=len(official_cutoffs),
+        official_program_source_authenticated=official_cutoffs is not None,
+        official_cutoff_qualification=official_cutoffs is not None and bool(official_slots) and not invalid,
+        cutoff_qualification_blocker='OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE' if official_cutoffs is None else None,
+        authentic_official_P0_schedule_races=len(official_cutoffs) if official_cutoffs is not None else None,
         official_schedule_crosschecked_pre_cutoff_model_slots=len(official_slots),
         original_predictions_matched_saved_AES_view=matched,
         original_predictions_missing_from_saved_AES_view=absent,

@@ -102,14 +102,93 @@ class ActiveSnapshotTests(unittest.TestCase):
             ident=int(route.split('/')[2]);return self.raws[ident] if route.endswith('/zip') else json.dumps(self.metas[ident]).encode()
         raise AssertionError('unexpected external route')
 
-    def audit(self,get=None):
+    def audit(self,get=None,*,missing_program=False):
         self.assertIsNotNone(active,'active completed-receipt audit is missing')
         # Official B verification has separate raw-vault tests. This fixture
         # keeps every AES/ZIP/projection reader real and isolates that dependency.
         from scripts import boat_exact_all_model_zip_readback as exact
-        with patch.object(exact,'_official_cutoffs',return_value=self.cutoffs),\
+        from race_ai import boat_program_source as program
+        cutoff_patch=(patch.object(program,'load_program_source',return_value=None) if missing_program else
+                      patch.object(exact,'_official_cutoffs',return_value=self.cutoffs))
+        with cutoff_patch,\
              patch.object(active,'_saved_view',return_value=self.view):
             return active.audit_active_snapshot(Path('unused'),99,now=NOW,get=get or self.get)
+
+    def test_absent_program_keeps_default_refusal_but_active_raw_aes_is_explicitly_unqualified(self):
+        out=self.audit(missing_program=True)
+        proof=out['all_model_zip_readback']
+        self.assertEqual(out['raw_aes_archives_verified'],4)
+        self.assertFalse(out['official_cutoff_qualification'])
+        self.assertEqual(out['cutoff_qualification_blocker'],'OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE')
+        self.assertEqual(proof['status'],'AES_ZIP_REPLAY_VERIFIED_OFFICIAL_PROGRAM_UNAVAILABLE')
+        self.assertEqual(proof['aes_originals_independently_decrypted'],1)
+        self.assertEqual(proof['original_content_projection_verified'],1)
+        self.assertGreater(proof['original_predictions_matched_saved_AES_view'],0)
+        self.assertEqual(proof['physical_pre_cutoff_distinct_model_slots'],0)
+        self.assertEqual(proof['official_schedule_crosschecked_pre_cutoff_model_slots'],0)
+        self.assertIsNone(proof['authentic_official_P0_schedule_races'])
+        self.assertIsNone(proof['scheduled_view_model_slot_upper_bound'])
+        self.assertEqual(proof['unqualified_original_reasons']['OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE'],
+                         proof['p1_forecast_rows_reopened'])
+        from scripts import boat_exact_all_model_zip_readback as exact
+        from race_ai import boat_program_source as program
+        self.run.update(status='completed',conclusion='success')
+        with patch.object(program,'load_program_source',return_value=None):
+            with self.assertRaisesRegex(ValueError,'^BOAT_EXACT_ZIP_READBACK_OFFICIAL_PROGRAM_UNAVAILABLE$'):
+                exact.audit(get=self.get,repo='unused',run_id=99,day=DAY,expected_models=['boat-model-A'],
+                            original_view=self.view,now=NOW,owner_key=KEY)
+
+    def test_absent_program_never_converts_key_hash_source_day_late_nested_or_refusal_to_success(self):
+        from race_ai import boat_program_source as program
+        for case in ('key','hash','source','day','late','nested','program_corrupt','spoofed_absence','denial'):
+            before=deepcopy((self.raws,self.metas,self.report,self.run))
+            with self.subTest(case=case):
+                if case=='hash':self.raws[103]+=b'changed'
+                elif case=='source':self.metas[103]['workflow_run']['head_sha']='f'*40
+                elif case=='day':self.report['day_jst']='2030-04-02';self.result()
+                elif case=='late':self.metas[103]['created_at']='2030-04-01T09:04:00Z'
+                elif case=='nested':self.result(nested=b'changed')
+                def get(path):
+                    if case=='denial' and path=='actions/artifacts/103/zip':
+                        raise ValueError('GITHUB_API_READ_HTTP_403_HALT')
+                    return self.get(path)
+                with patch.dict(os.environ,RACE_AI_STATE_KEY=base64.b64encode(b'x'*32 if case=='key' else KEY).decode()):
+                    if case in ('program_corrupt','spoofed_absence'):
+                        code=('BOAT_EXACT_ZIP_READBACK_OFFICIAL_PROGRAM_UNAVAILABLE' if case=='spoofed_absence'
+                              else 'PROGRAM_SOURCE_CATALOG_AUTHENTICATION_FAILED')
+                        with patch.object(program,'load_program_source',side_effect=ValueError(code)),\
+                             patch.object(active,'_saved_view',return_value=self.view),self.assertRaises(ValueError):
+                            active.audit_active_snapshot(Path('unused'),99,now=NOW,get=get)
+                    else:
+                        with self.assertRaises(ValueError):self.audit(get,missing_program=True)
+                self.raws,self.metas,self.report,self.run=before;self.state=self.report['bounded_repeat_session']
+
+    def test_failure_diagnostic_emits_only_static_public_code_location(self):
+        from scripts import boat_exact_all_model_zip_readback as exact
+        try:exact._owner_head('private-owner-token-sentinel')
+        except ValueError as error:report=active.failure_diagnostic(error)
+        self.assertIn('scripts/boat_exact_all_model_zip_readback.py:',report['failure_at'])
+        self.assertEqual(report['failure_function'],'_owner_head')
+        self.assertNotIn('sentinel',json.dumps(report))
+        self.assertEqual(active.failure_diagnostic(RuntimeError('private-exception-sentinel')), {})
+
+    def test_unqualified_scan_still_rejects_projection_day_head_and_receipt_changes(self):
+        from collections import Counter
+        from scripts import boat_exact_all_model_zip_readback as exact
+        models={p['model_id'] for row in self.view['records']
+                for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p is not None}
+        for field,value in (('event_date_jst','2030-04-02'),('source_code_commit','f'*40),
+                            ('external_receipt_verified',False),('server_saved_at','2030-04-01T09:01:00Z')):
+            view=deepcopy(self.view)
+            if field=='event_date_jst':view['records'][0][field]=value
+            else:
+                row=view['records'][0];prediction=next(p for p in [row.get('prediction'),*row.get('comparison_predictions',[])]
+                                                      if p is not None and p.get('artifact_id')==103)
+                prediction[field]=value
+            with self.subTest(field=field),self.assertRaises(ValueError):
+                exact._scan_unqualified_originals(view,day=DAY,artifact_id=103,
+                    physical_saved_at=self.metas[103]['created_at'],expected=models,
+                    source_original_index=Counter(),expected_owner_sha=HEAD)
 
     def test_completed_receipts_are_independently_decrypted_with_precomplete_counters(self):
         before=deepcopy((self.raws,self.metas,self.state,self.view))
