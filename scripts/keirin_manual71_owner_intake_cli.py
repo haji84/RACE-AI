@@ -22,7 +22,7 @@ CIPHER_FILE_SHA256 = "164bd98caf06deb2308626d0f6343c074db9e85b9517378ac60119af21
 CIPHER_PAYLOAD_SHA256 = "d04e070ef10e92a0276f3a3d1633ebf0fc4d075bf3c9d206c5f1fc9a76315a4f"
 # DER SubjectPublicKeyInfo of the existing PR102 RSA public key.
 # Evaluated separately from the secret; prevents unintended cross-key reuse.
-PUBLIC_SPKI_SHA256 = "REPLACE_WITH_AUTHENTICATED_PUBLIC_SPKI_SHA256"
+PUBLIC_SPKI_SHA256 = "1963d13558d115ce261f224b97d385bd09c65a70c91fb23237f91aa9840bb3a1"
 CIPHER_RELATIVE = Path("docs/evidence/2026-11-17/keirin_owner_manual71_20261117_sealed_v1.json")
 REPO = "haji84/RACE-AI"
 REPO_ID = "1416489937"
@@ -83,7 +83,7 @@ def restore_existing_owner_bundle(*, env, workspace, helper, private_dir,
     ws = Path(workspace).resolve()
     cipher = ws / CIPHER_RELATIVE
     if (not ws.is_absolute() or not cipher.is_file() or cipher.is_symlink() or
-            cipher.resolve() != (ws / CIPHER_RELATIVE).resolve()):
+            cipher.resolve() != ws / CIPHER_RELATIVE):
         raise ManualBundleError("SEALED_OWNER_BUNDLE_NOT_IN_REPOSITORY")
     raw = cipher.read_bytes()
     if not (0 < len(raw) <= 400000 and sha256(raw).hexdigest() == expected_file_sha):
