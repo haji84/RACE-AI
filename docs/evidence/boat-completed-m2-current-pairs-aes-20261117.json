@@ -45,6 +45,32 @@
     10
   ],
   "core_status": "HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED",
+  "current_native_select_candidate": {
+    "already_selected_click_skipped": false,
+    "author_base": "69ba791be0dfb2a07a33cd6e5acab2befb236d43",
+    "author_commit": "e6876403d1b02a6fe0d7ac8f42e48e2412a3b073",
+    "author_test_seconds": 14.197,
+    "author_tests": 79,
+    "author_tree": "bb6ba9bc442c46db55f3b59e91aa1b641547b857",
+    "candidate_private_mac_acceptance_proven": false,
+    "code_integration_head": "85af305070fac71eba47355337320bd0d623cd92",
+    "existing_pr": 56,
+    "four_original_comparisons_unchanged": true,
+    "independent_review": "CLEAR",
+    "independent_test_seconds": 13.946,
+    "independent_tests": 79,
+    "javascript_value_assignment_added": false,
+    "native_option_click_still_mandatory": true,
+    "native_value_readback_still_required": true,
+    "normal_merge_pending": true,
+    "parent_integration_test_seconds": 14.286,
+    "parent_integration_tests": 79,
+    "public_exact_fixture_offscreen_precondition_reproduced": true,
+    "public_exact_preflight_JS_desktop_mobile_verified": true,
+    "retry_added": false,
+    "same_head_final_ci_pending": true,
+    "success_parser_or_cleanup_or_workflow_changed": false
+  },
   "current_pair_counts": {
     "current_pair_accuracy_improvement_proven": false,
     "current_pair_archive_count": 1,
@@ -123,7 +149,7 @@
   "head_check_skipped": 14,
   "head_check_success": 12,
   "independent_owner_key_used_only_in_actions": true,
-  "last_updated_at_utc": "2026-11-17T15:58:00Z",
+  "last_updated_at_utc": "2026-11-17T16:12:00Z",
   "missing_all_model_rounds": [
     2,
     3,
@@ -216,6 +242,7 @@
       "final_capture_pairs": 171,
       "retention_reports": 11
     },
+    "source_kind_counts_not_decrypted": true,
     "status": "ACTUAL_RETENTION_PROVENANCE_AND_KEYLESS_CIPHER_BYTES_VERIFIED"
   },
   "reviewed_main_tree_equal": true,

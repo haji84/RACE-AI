@@ -1,3 +1,19 @@
+## 2026-11-17 16:12 UTC: スマホ幅のnative select準備を修正、実Safari解消は確認待ち（GOAL未達）
+
+実main69ba791b/source f55351dcは保持。既存PR56へe6876403の2file修正を結合した。
+公開f603/同一b496 fixtureで、1440×1000の履歴欄は画面内、390×1000では下端1042pxで画面外となる前提不備を再現。
+親selectとoptionの一意性・接続・有効性・表示を確認し、既存scroll/hit/native clickで親を準備した後、
+同一の親が画面内/hit/focusを満たす場合だけnative optionクリックへ進む。選択済みも省略しない。
+値の厳密読戻しと全4モデル/元予想比較、成功parser、private/AES/seed拒否、session削除・driver終了、workflowは維持する。
+JSによる値設定・change送出・retry・受入条件の緩和は追加していない。失敗診断は型検証済みの真偽・件数だけ。
+
+作者79件/14.197秒、独立79件/13.946秒、統合先79件/14.286秒がsuccess。独立レビューCLEAR。
+公開fixtureの正確な新JSでも1440/390のpreflightと操作後readbackを確認した。
+これは公開合成fixtureの前提不備への修正で、実44115451343のprivate側の原因確定・解消・候補UI実Safari合格とはまだ扱わない。
+最終HEAD CI→通常main merge→同HEADの既存native Macを1回実行して確認する。
+source pin/marker/owner起動は変えず、公開f60308ef/本番weights/原本/他作業を保全。新PR/job/権限/input/runner/cron/課金/投票0。
+[候補と実証範囲](evidence/boat-completed-m2-current-pairs-aes-20261117.json)。以下は過去時点の記録として保持する。
+
 ## 2026-11-17 15:58 UTC: M2最終controlを含む24原本と14比較pairの実AES成功（GOAL未達）
 
 実main69ba791be0dfb2a07a33cd6e5acab2befb236d43/source f55351dce855177a51330f72c37d6238ba2c9e3e。
@@ -27,7 +43,7 @@ producer名/path/production branch/イベントとdefault main上のactive recei
 実private側のdisabled/選択状態は未観測で、準備処理の修正と実Mac再検証はまだ未完了。候補UIのnative成功とは扱わない。
 公開f60308ef/本番weightsは保持。
 
-**実raw RESULTの保存来歴:** 正規jobログの11報告、全manifest/hash/commit祖先関係を再照合。
+**実raw source-captureの保存来歴（RESULT取得経路）:** 正規jobログの11報告、全manifest/hash/commit祖先関係を再照合。
 84→171組のraw/metadataは累積で、全旧組のhash/sizeを保持。最終cipher10,199,985bytes/SHA256は
 正規Git Commit→Tree→Blobで再取得一致。元archive clock15:12:49.431006 UTCは再保存時も維持した。
 この監査は鍵なしcipher照合で、ローカルMAC/AES/公式本文parse・RESULT journal結合は未実施。
