@@ -90,6 +90,85 @@ class ReasonVariantTests(unittest.TestCase):
         self.assertEqual(out['records'][0]['result_observations'], base['records'][0]['result_observations'])
         self.assertEqual(len(out['records'][0][OBS]), 2)
 
+    def test_later_result_sync_keeps_historical_rejection_anchors_through_aes_and_parser(self):
+        for status in ('PENDING', 'AVAILABLE'):
+            base, extra, field = pair(rejection=True)
+            united = append_views(base, [extra]); before = deepcopy(united)
+            incoming = deepcopy(united['records'][0]['result_observations'][0])
+            incoming.update(captured_at='2030-04-01T12:00:00+09:00', source_sha256='e'*64,
+                            status=status, body_identity_verified=status == 'PENDING')
+            updated = F.update_view(united, [incoming], synced_at='2030-04-01T13:00:00+09:00')
+            replayed = M.merge_saved_views(updated)
+            self.assertEqual(replayed['records'][0][REJ], before['records'][0][REJ])
+            self.assertEqual(replayed['records'][0][field][0], before['records'][0][field][0])
+            self.assertEqual(replayed['records'][0]['result']['status'], 'pending' if status == 'PENDING' else 'unsupported')
+            self.assertEqual(replayed['records'][0]['result']['observed_at'], incoming['captured_at'])
+            self.assertEqual(F.update_view(updated, [incoming], synced_at='2030-04-01T13:00:00+09:00'), updated)
+            raw = F.encrypt_view(replayed, b'k'*32, view_id='a'*64, source_sha='b'*64, generation=3, previous='c'*64)
+            _, decoded = F.decrypt_view(raw, b'k'*32, view_id='a'*64)
+            self.assertEqual(decoded['records'][0][REJ], before['records'][0][REJ])
+            F.ensure_append_only(united, decoded)
+            proc = subprocess.run(['node', '-e', "require('./web/product-data.js').parse(require('fs').readFileSync(0,'utf8'))"],
+                input=json.dumps(decoded), text=True, capture_output=True, cwd=Path(__file__).resolve().parents[1], timeout=20)
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertEqual(united, before)
+
+    def test_result_sync_replays_only_exact_already_validated_observation_alternates(self):
+        base, extra, field = pair(); united = append_views(base, [extra]); before = deepcopy(united)
+        incoming = extra['records'][0][field]
+        updated = F.update_view(united, incoming, synced_at='2030-04-01T13:00:00+09:00')
+        self.assertEqual(updated['records'][0][OBS], before['records'][0][OBS])
+        self.assertEqual(updated['records'][0][field], before['records'][0][field])
+        self.assertEqual(F.update_view(united, [*base['records'][0][field], *incoming], synced_at='2030-04-01T13:00:00+09:00'), updated)
+        self.assertEqual(M.merge_saved_views(updated), M.merge_saved_views(F.update_view(united, base['records'][0][field], synced_at='2030-04-01T13:00:00+09:00')))
+        for change in (dict(reason='NEW_UNKNOWN_REASON'), dict(data={}), dict(status='AVAILABLE'),
+                       dict(source_sha256='e'*64), dict(captured_at='2030-04-01T02:00:00Z'), dict(unknown=True)):
+            changed = deepcopy(incoming); changed[0].update(change)
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                F.update_view(united, changed, synced_at='2030-04-01T13:00:00+09:00')
+        self.assertEqual(united, before)
+
+    def test_later_settled_capture_is_not_blocked_by_historical_rejection_reasons(self):
+        base, extra, field = pair(rejection=True); united = append_views(base, [extra])
+        settled, _ = reconciled_views(); incoming = deepcopy(settled['records'][0]['result_observations'][0])
+        incoming.update(captured_at='2030-04-01T12:00:00+09:00', source_sha256='e'*64,
+                        closed_at=united['records'][0]['cutoff_at'])
+        updated = F.update_view(united, [incoming], synced_at='2030-04-01T13:00:00+09:00')
+        self.assertEqual(updated['records'][0]['result']['status'], 'final')
+        self.assertEqual(updated['records'][0][REJ], united['records'][0][REJ])
+        self.assertEqual(M.merge_saved_views(updated)['records'][0]['result'], updated['records'][0]['result'])
+        F.ensure_append_only(united, updated)
+
+    def test_same_capture_sync_cannot_promote_or_replace_a_preserved_rejection(self):
+        base, extra, field = pair(rejection=True)
+        # Both already-retained reasons are real HOLD codes; exact source and
+        # body remain unchanged, while this later projection can read pending.
+        for doc in (base, extra): doc['records'][0]['result_observations'][0]['body_identity_verified'] = True
+        united = append_views(base, [extra]); before = deepcopy(united)
+        updated = F.update_view(united, base['records'][0]['result_observations'], synced_at='2030-04-01T13:00:00+09:00')
+        self.assertEqual(updated['records'][0]['result']['status'], 'unsupported')
+        self.assertEqual(updated['records'][0][field], before['records'][0][field])
+        self.assertEqual(updated['records'][0][REJ], before['records'][0][REJ])
+        # A fresh different rejection under the same capture is not silently
+        # appended, normalized or discarded during projection.
+        original_base, original_extra, _ = pair(rejection=True)
+        original = append_views(original_base, [original_extra])
+        with self.assertRaisesRegex(ValueError, '^RESULT_CAPTURE_CONFLICT$'):
+            F.update_view(original, original['records'][0]['result_observations'], synced_at='2030-04-01T13:00:00+09:00')
+        self.assertEqual(united, before)
+
+    def test_result_sync_refuses_forged_or_orphan_variant_histories(self):
+        for rejection in (False, True):
+            base, extra, field = pair(rejection=rejection); united = append_views(base, [extra]); sidecar = REJ if rejection else OBS
+            incoming = deepcopy(base['records'][0]['result_observations'][0]); incoming['captured_at'] = '2030-04-01T12:00:00+09:00'
+            for change in ('orphan', 'unknown', 'empty'):
+                invalid = deepcopy(united)
+                if change == 'orphan': invalid['records'][0][field] = []
+                elif change == 'empty': invalid['records'][0][sidecar] = []
+                else: invalid['records'][0][sidecar][1]['unknown'] = 'SECRET'
+                with self.subTest(rejection=rejection, change=change), self.assertRaises(ValueError):
+                    F.update_view(invalid, [incoming], synced_at='2030-04-01T13:00:00+09:00')
+
     def test_rejection_variant_cannot_bypass_existing_cutoff_reconciliation(self):
         base, extra = reconciled_views()
         observation = deepcopy(base['records'][0]['result_observations'])
@@ -153,14 +232,14 @@ class ReasonVariantTests(unittest.TestCase):
 
     def test_cli_union_reaches_real_aes_without_plaintext_or_original_changes(self):
         from scripts import boat_saved_view_feed as cli
-        base, extra, field = pair(rejection=True)
+        base, extra, field = pair()
         key = b'k'*32; captured = {}; before = deepcopy((base, extra))
         def publish(git, bootstrap, candidate, **kwargs):
             F.ensure_append_only(base, candidate)
             raw = F.encrypt_view(candidate, key, view_id='a'*64, source_sha='b'*64, generation=2, previous='c'*64)
             _, decoded = F.decrypt_view(raw, key, view_id='a'*64)
             self.assertEqual(decoded, candidate)
-            self.assertEqual(decoded['records'][0][REJ], [base['records'][0][field][0], extra['records'][0][field][0]])
+            self.assertEqual(decoded['records'][0][OBS], [base['records'][0][field][0], extra['records'][0][field][0]])
             self.assertEqual(F.forecast_inventory(decoded), F.forecast_inventory(base))
             with self.assertRaises(ValueError): F.decrypt_view(raw, b'x'*32, view_id='a'*64)
             damaged = json.loads(raw); damaged['ciphertext'] = base64.b64encode(b'x'*32).decode()
@@ -177,7 +256,7 @@ class ReasonVariantTests(unittest.TestCase):
                  patch.object(cli.F, 'open_bootstrap', return_value={}), \
                  patch.object(cli.F, 'current_view', return_value=('d'*40, 'c'*64, 1, base)), \
                  patch.object(cli, 'intake_saved_models', side_effect=lambda old, **kw: append_views(old, [extra])), \
-                 patch.object(cli, 'observations', return_value=[]), patch.object(cli.F, 'publish_view', side_effect=publish), \
+                 patch.object(cli, 'observations', return_value=extra['records'][0][field]), patch.object(cli.F, 'publish_view', side_effect=publish), \
                  patch.dict(os.environ, {'RUNNER_TEMP':folder, 'RACE_AI_ORIGINAL_VAULT_ENABLED':'false'}), redirect_stdout(output):
                 self.assertEqual(cli.main([]), 0, output.getvalue())
             self.assertIn('SYNTHETIC_ENCRYPTED_VIEW_VERIFIED', output.getvalue())

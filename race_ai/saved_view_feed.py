@@ -129,6 +129,27 @@ def decrypt_view(raw,key,*,view_id):
 def update_view(view,observations,*,synced_at,captures=()):
     """Append observations; latest pending/rejected evidence never falls back."""
     instant(synced_at);pin=originals_sha(view);out=deepcopy(view)
+    from . import boat_saved_model_view as saved_union
+    reason_replays={};historical_rejections={}
+    for row in out['records']:
+        # A sidecar remains bound to its exact active original across result
+        # updates. Validate before using it, including on a no-op replay.
+        for field,history_field,rejection in (
+                ('result_observations',saved_union._OBSERVATION_REASON_VARIANTS,False),
+                ('result_observation_rejections',saved_union._REJECTION_REASON_VARIANTS,True)):
+            if history_field not in row:continue
+            active,history=saved_union._observations([row],field,rejection=rejection)
+            if rejection:
+                originals={wire(item) for item in history}
+                historical_rejections[row['race_id']]=[item for item in active if wire(item) in originals]
+            else:
+                anchors={instant(item['captured_at']):item for item in active}
+                for original in history:
+                    reason_replays[wire(original)]=anchors[instant(original['captured_at'])]
+    # Only an exact already-retained alternate can reuse its active anchor.
+    # The original alternate remains unchanged in the authenticated sidecar;
+    # unknown reasons and every non-reason mismatch still reach strict _merge.
+    observations=[reason_replays.get(wire(item),item) for item in observations]
     from datetime import date
     from .official_race_updates import endpoint
     rows={endpoint(date.fromisoformat(r['event_date_jst']),r['race_id'][9:11],int(r['race_id'][-2:]),'raceresult'):r for r in out['records']}
@@ -171,7 +192,7 @@ def update_view(view,observations,*,synced_at,captures=()):
            (row.get('cutoff_at') is not None or previous_result.get('cutoff_reconciliation')):
             continue
         need(instant(latest['captured_at'])<=instant(synced_at),'FEED_FUTURE_OBSERVATION')
-        row['result_observation_rejections']=[]
+        row['result_observation_rejections']=deepcopy(historical_rejections.get(row['race_id'],[]))
         row['missing_reasons']=[r for r in row['missing_reasons'] if r!='LATEST_RESULT_OBSERVATION_REJECTED']
         # Native observations keep their ST and other source fields. The raw
         # parser supplies this display projection only; next runners can replay
@@ -182,8 +203,20 @@ def update_view(view,observations,*,synced_at,captures=()):
             code=getattr(error,'reason_code',None) or str(error)
             reason=code if re.fullmatch('[A-Z][A-Z0-9_]{1,199}',code) else 'RESULT_OBSERVATION_INVALID'
             row['result']=dict(status='unsupported',winning_combinations=[],confirmed_at=None,observed_at=latest['captured_at'],official=False,source_sha256=latest.get('source_sha256'))
-            row['result_observation_rejections']=[dict(captured_at=latest['captured_at'],source_sha256=latest.get('source_sha256'),reason=reason)]
+            rejected=dict(captured_at=latest['captured_at'],source_sha256=latest.get('source_sha256'),reason=reason)
+            anchors=row['result_observation_rejections']
+            if any(instant(item['captured_at'])==instant(rejected['captured_at']) and
+                   item.get('source_sha256')==rejected.get('source_sha256') for item in anchors):
+                # Do not replace a preserved rejection or silently invent a
+                # new same-capture reason history during settlement projection.
+                need(wire(rejected) in {wire(item) for item in row[saved_union._REJECTION_REASON_VARIANTS]},
+                     'RESULT_CAPTURE_CONFLICT')
+            else:anchors.append(rejected)
             row['missing_reasons'].append('LATEST_RESULT_OBSERVATION_REJECTED')
+        if historical_rejections.get(row['race_id']):
+            # Historical anchors cannot block a newer capture. At the same
+            # capture every retained reason must still strengthen the hold.
+            row['result']=saved_union._result(row,[row])
     out['results_synced_at']=synced_at;need(originals_sha(out)==pin,'FEED_ORIGINAL_CHANGED');return out
 
 class FeedRepository(GitStateRepository):
