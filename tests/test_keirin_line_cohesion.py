@@ -68,7 +68,7 @@ def empirical_fixture():
 
 def run(*, history=None, idmap=None, cfg=None, verify_label=lambda r:True,
         verify_identity=lambda ids:True, verify_parent=lambda x:True,
-        computed_at="2026-11-17T10:59:30+09:00"):
+        computed_at="2026-11-17T11:00:30+09:00"):
     return line.forecast_with_pair_evidence(
         context=stage_ctx(),snapshot=snapshot(),plans=plans(),
         priors=priors(),history=empirical_fixture() if history is None else history,
@@ -177,8 +177,10 @@ class TestPriorLineCohesion(unittest.TestCase):
         conf["pair_shrinkage"]=2
         with self.assertRaisesRegex(line.LineHistoryError,"CONFIG_MODIFIED"):
             run(cfg=conf)
-        with self.assertRaisesRegex(line.LineHistoryError,"COMPUTED_AFTER_CUTOFF"):
-            run(computed_at="2026-11-17T11:00:01+09:00")
+        with self.assertRaisesRegex(line.LineHistoryError,"COMPUTED_OUTSIDE_PRE_CUTOFF_WINDOW"):
+            run(computed_at="2026-11-17T11:14:30+09:00")
+        with self.assertRaisesRegex(line.LineHistoryError,"COMPUTED_OUTSIDE_PRE_CUTOFF_WINDOW"):
+            run(computed_at="2026-11-17T10:59:30+09:00")
 
     def test_rider_ids_are_not_car_numbers_from_historical_races(self):
         wrong=dict(IDS)
