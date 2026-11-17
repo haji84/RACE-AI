@@ -231,6 +231,7 @@ jobs:
         run: |
           python -m unittest -v tests.test_keirin_manual_result_sync tests.test_keirin_manual_71_actions_bridge tests.test_keirin_manual71_live_evidence
           python -m unittest -v tests.test_keirin_manual71_owner_encrypted_intake
+          python -m unittest -v tests.test_keirin_manual71_owner_intake_cli
           python -m py_compile race_ai/keirin_manual_71_actions_bridge.py scripts/keirin_cloud_pr71_state.py
       - name: Do not claim synthetic results as live
         run: echo 'Synthetic model and AES tests are not actual real-race prediction evidence.' >> "$GITHUB_STEP_SUMMARY"
@@ -418,10 +419,38 @@ jobs:
           ref: fe7e5581263b2b31fbd45536ac6a611c2779fa65
           path: pr71-source
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: c52ff0216435b97a0209c43bbe5d0de589445736
+          path: pr102-crypto
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Decrypt approved 71R RSA/AES envelope with existing owner Secret in private runner temp
+        id: manual71
+        shell: bash
+        env:
+          RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${RACE_AI_KEIRIN_PRIVATE_RSA_PEM:-}" ]]; then
+            echo 'HOLD_EXISTING_RSA_SECRET_NOT_CONFIGURED' >> "$GITHUB_STEP_SUMMARY"
+            echo "staged=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48'
+          dir="$RUNNER_TEMP/owner-manual71-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          python -m scripts.keirin_manual71_owner_intake_cli \
+            --workspace "$GITHUB_WORKSPACE" \
+            --helper "$GITHUB_WORKSPACE/pr102-crypto/race_ai/keirin_private_sealed_payload.py" \
+            --private-dir "$dir"
+          echo "private_dir=$dir" >> "$GITHUB_OUTPUT"
+          echo "staged=true" >> "$GITHUB_OUTPUT"
+          echo 'Owner manual71 source SHA-verified in 0700 temp, no plaintext in public workspace.' >> "$GITHUB_STEP_SUMMARY"
       - name: Restore Git AES state, run existing four models, encrypt only verified changes
+        env:
+          RACE_AI_KEIRIN_MANUAL71_PRIVATE_DIR: ${{ steps.manual71.outputs.private_dir }}
         id: archive
         shell: bash
         run: |
@@ -471,6 +500,19 @@ jobs:
               f.write("Partial owner-source values do not authorize model promotion.\n")
               f.write("No source values, prediction tickets or private SQLite released.\n")
           PY
+      - name: Remove ephemeral decrypted owner 71R inputs after producer, including failures
+        if: always()
+        shell: bash
+        env:
+          MANUAL_PRIVATE_DIR: ${{ steps.manual71.outputs.private_dir }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${MANUAL_PRIVATE_DIR:-}" ]]; then
+            case "$MANUAL_PRIVATE_DIR" in
+              "$RUNNER_TEMP"/owner-manual71-*) rm -rf -- "$MANUAL_PRIVATE_DIR" ;;
+              *) echo 'PRIVATE_CLEANUP_PATH_NOT_EXPECTED' >&2; exit 2 ;;
+            esac
+          fi
 
   independent-cloud-readback:
     needs: github-hosted-pr71-cycle
