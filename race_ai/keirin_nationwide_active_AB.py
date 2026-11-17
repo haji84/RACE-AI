@@ -143,8 +143,13 @@ def register_source_ready_receipt(*,registry, race_id,
                                   independent_source_admission=None,
                                   independent_cutoff_admission=None):
     """Select verified source-ready live races. Never synthesize A or B."""
-    checked_registry(registry)
-    need_ids={row["race_id"] for row in registry["records"]}
+    if type(registry) is dict and registry.get("schema")==SCHEMA:
+        checked_registry(registry)
+        need_ids={row["race_id"] for row in registry["records"]}
+    else:
+        from . import keirin_dynamic_nationwide_registry as dynamic
+        dynamic.checked_day(registry)
+        need_ids={row["race_id"] for row in registry["races"]}
     require(race_id in need_ids,"SOURCE_RACE_OUTSIDE_FROZEN_COHORT")
     at=_time(inspected_at)
     summary={
