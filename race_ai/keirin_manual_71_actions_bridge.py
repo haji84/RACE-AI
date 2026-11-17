@@ -74,6 +74,7 @@ def verify_private_archive(db):
         return {"state":"NO_MANUAL71_AUDIT_IN_ARCHIVE",
                 "verified_rows":0}
     count = 0
+    linked = []
     for row in db.execute(f"""SELECT race_id,source_revision_sha256,
             forecast_sha256,report_sha256,html_sha256,report_json,private_html
             FROM {TABLE} ORDER BY race_id,source_revision_sha256"""):
@@ -95,8 +96,13 @@ def verify_private_archive(db):
               html.count(b'class="keirin-auto-result"') == 71,
               "INVALID_MANUAL71_PRIVATE_HTML_OR_RESULT")
         count += 1
+        linked.append([rid,revision,original,report_sha,html_sha])
+    # This digest is over the verified row set, not over public ticket data.
+    digest=_sha(json.dumps(linked,sort_keys=True,separators=(",",":")).encode())
     return {"state":"PRIVATE_MANUAL71_AUDIT_SHA_READBACK_VERIFIED",
             "verified_rows":count,
+            "audit_rowset_sha256":digest,
+            "latest_html_sha256":linked[-1][4] if linked else None,
             "official_results_authenticated":False}
 
 def attempt_one_race(*, db, repo, source_dir, result_dir, observed_at=None):
@@ -157,6 +163,9 @@ def attempt_one_race(*, db, repo, source_dir, result_dir, observed_at=None):
     # race-specific hit flags or payouts. Those remain in sealed SQLite.
     return {"state":"PRIVATE_MANUAL71_PILOT_RESEARCH_STORED",
             "new_audits":inserted, "verified_rows":result["verified_rows"],
+            "source_revision_sha256":revision,
+            "audit_rowset_sha256":result["audit_rowset_sha256"],
+            "latest_html_sha256":result["latest_html_sha256"],
             "official_results_authenticated":False,
             "official_cutoffs_verified":False,
             "public_html_published":False}
