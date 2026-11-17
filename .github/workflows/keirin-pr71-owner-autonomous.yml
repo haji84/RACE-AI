@@ -230,6 +230,7 @@ jobs:
       - name: Owner-authored 71R result comparison and encrypted pilot bridge (no provider GET)
         run: |
           python -m unittest -v tests.test_keirin_manual_result_sync tests.test_keirin_manual_71_actions_bridge tests.test_keirin_manual71_live_evidence
+          python -m unittest -v tests.test_keirin_manual71_owner_encrypted_intake
           python -m py_compile race_ai/keirin_manual_71_actions_bridge.py scripts/keirin_cloud_pr71_state.py
       - name: Do not claim synthetic results as live
         run: echo 'Synthetic model and AES tests are not actual real-race prediction evidence.' >> "$GITHUB_STEP_SUMMARY"
