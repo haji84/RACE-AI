@@ -1,3 +1,11 @@
+## 2026-11-17 Safari実390px: JS error0、一覧のままで停止
+
+main1242cccの実Mac44026515882でinnerWidth390/page-races/JS error0、app_checks:598。
+可視対象を中央へスクロールし、実hit-test後にnative clickする保護を既存PR64へ追加。26件と独立26件success。
+唯一原因の断定/実Mac成功はまだしない。固定761 parser原本・履歴保全、mutable PR64 branchを実行時参照しない。
+source eff296f/owner44019591352の巡回01〜03 success、04中。旧未push2件はUNRESTORED。
+全24巡/別runner新AES/全4競技/実機iPhone/8画面/実映像/前向き改善は未完成。最新状況と証拠JSONを優先。
+
 ## 2026-11-17 実状: 3巡連続success、Safariは詳細タブでHOLD
 
 main fb938e5、source eff296f。owner44019591352のP0保管・巡回01/02/03 success、04中。

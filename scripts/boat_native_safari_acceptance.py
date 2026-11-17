@@ -106,7 +106,8 @@ def failure_report(error):
     # driver messages, DOM text, source records, owner URLs or credentials.
     for frame in traceback.extract_tb(error.__traceback__):
         if Path(frame.filename).resolve()==Path(__file__).resolve() and frame.name in {
-            'main','read_authenticated_view','app_checks','budget','open_race','select_day','click_page',
+            'main','read_authenticated_view','app_checks','budget','click','_click_visible_element',
+            'open_race','select_day','click_page',
             'verify_model_choice','verify_private_boundary','load_public_assets','verify_live_assets'}:
             report.update(checker_function=frame.name,checker_line=frame.lineno)
     return report
@@ -445,7 +446,24 @@ class WebDriver:
         return ident
 
     def click(self, selector, visible=True):
-        self.command('POST', '/element/' + self.element(selector, visible) + '/click', {})
+        element = self.element(selector, visible)
+        if visible:
+            self._click_visible_element(element)
+        else:
+            # Native option selection has no rendered option rectangle while
+            # its select is closed; preserve WebDriver's option-click behavior.
+            self.command('POST', '/element/' + element + '/click', {})
+
+    def _click_visible_element(self, element):
+        reference = {'element-6066-11e4-a52e-4f735466cecf': element}
+        self.script('arguments[0].scrollIntoView({block:"center",inline:"center",behavior:"instant"});', reference)
+        self.wait('''const e=arguments[0],r=e.getBoundingClientRect();
+            const left=Math.max(0,r.left),right=Math.min(innerWidth,r.right),
+                  top=Math.max(0,r.top),bottom=Math.min(innerHeight,r.bottom);
+            if(left>=right||top>=bottom)return false;
+            const hit=document.elementFromPoint((left+right)/2,(top+bottom)/2);
+            return hit===e||e.contains(hit);''', reference)
+        self.command('POST', '/element/' + element + '/click', {})
 
     def select(self, selector, value):
         self.click(selector + ' option[value=' + json.dumps(str(value)) + ']', visible=False)
@@ -456,7 +474,7 @@ class WebDriver:
         # Use explicit native key events, rather than embedding a modifier
         # chord in Element Send Keys text. Never clear to an invalid empty
         # value or rewrite application state through JavaScript.
-        self.command('POST', '/element/' + element + '/click', {})
+        self._click_visible_element(element)
         actions = [{'type': 'keyDown', 'value': '\ue03d'},
                    {'type': 'keyDown', 'value': 'a'}, {'type': 'keyUp', 'value': 'a'},
                    {'type': 'keyUp', 'value': '\ue03d'}]
@@ -579,7 +597,7 @@ def app_checks(driver, site, context, secrets):
                                    .find(e=>e.textContent.includes('さらに60件表示'));''')
             ident = element.get('element-6066-11e4-a52e-4f735466cecf')
             need(isinstance(ident, str) and re.fullmatch('[A-Za-z0-9-]{1,160}', ident), 'APP_UI_CHECK_FAILED')
-            driver.command('POST', '/element/' + ident + '/click', {})
+            driver._click_visible_element(ident)
         raise SafariHold('APP_UI_CHECK_FAILED')
 
     for width in (1440, 390):

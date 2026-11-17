@@ -1,3 +1,19 @@
+## 2026-11-17: Safari実390pxの一覧残留を確認、クリック対象の保護を追加
+
+実main 1242ccc97a483d50a3f77cbe9d655952f4ed773d（既存PR182、23 checks完了・tree一致）。
+実Mac44026515882/job133848050105は実innerWidth390、page-racesのまま、JS error0でHOLD。
+停止はapp_checks:598の展望tab取得。直前のレース詳細clickが画面遷移として成立していない。
+requested幅/ループindexは旧ログに無いため、desktop予算を含めた通過範囲は断定しない。
+既存PR64を履歴保全して再利用し、可視対象を中央へスクロールし、実際のhit-testが対象/子要素であるまで待ってから
+ネイティブWebDriver clickする。固定ナビとの重なりは候補機構であり、実原因の唯一断定や合格認定にはしない。
+選択肢optionの既存native protocolは維持。JS click/state代入は使わず、予算/ページ送りも同じ可視クリックを使う。
+重なった対象へclickしない回帰を含む26件と独立26件success。実Macは統合後の次試験で確認する。
+固定parser761247bの原本/全既存履歴は保持し、main/sourceの実行コードにmutable PR64 branch参照が無いことも確認した。
+
+production source eff296f6d54ad4be297d93e32f1ee0d4592ad9e3の単一owner44019591352は巡回01/02/03 success、04中。
+旧P0保管失敗から新予想/保存の実進行を確認したが、24巡・全日全件・別runner新原本AES・4競技全モデルの正式充足は未確認。
+公開配信asset・予想原本・本番weightsは変更しない。未push2件UNRESTORED、iPhone/8画面/実映像/校正/未来改善も未完成。
+
 ## 2026-11-17: 実ownerは3巡success、Safariの詳細タブ停止を継続診断
 
 実main fb938e5b8690b8d525056e875d1178e94e988c02（既存PR194、23 checks完了・tree一致）、

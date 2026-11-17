@@ -143,6 +143,46 @@ class NativeSafariAcceptanceTests(unittest.TestCase):
             self.assertEqual(driver.element('[data-detail-tab="outlook"]'), 'visible-tab')
         self.assertEqual(query.call_count, 2)
 
+    def test_native_click_scrolls_and_checks_the_hit_target_before_clicking(self):
+        driver = S.WebDriver(1234)
+        state = {'centered': False, 'hit_checked': False, 'clicked': False}
+
+        def script(source, *args):
+            if 'querySelectorAll' in source:
+                return {'element-6066-11e4-a52e-4f735466cecf': 'race-button'}
+            if 'scrollIntoView' in source:
+                state['centered'] = True
+                return None
+            self.assertIn('elementFromPoint', source)
+            state['hit_checked'] = True
+            return state['centered']
+
+        def command(method, suffix, body):
+            self.assertTrue(state['centered'], 'a bottom-aligned click can hit the fixed mobile navigation')
+            self.assertTrue(state['hit_checked'])
+            self.assertEqual((method, suffix, body), ('POST', '/element/race-button/click', {}))
+            state['clicked'] = True
+
+        with patch.object(driver, 'script', side_effect=script), patch.object(driver, 'command', side_effect=command):
+            driver.click('[data-open-race="invented-race"]')
+        self.assertTrue(state['clicked'])
+
+    def test_native_option_click_keeps_the_existing_select_protocol(self):
+        driver = S.WebDriver(1234)
+        with patch.object(driver, 'element', return_value='native-option'), \
+                patch.object(driver, 'script', side_effect=AssertionError('closed native options have no hit rectangle')), \
+                patch.object(driver, 'command') as native:
+            driver.click('#prediction-select option[value="0"]', visible=False)
+        native.assert_called_once_with('POST', '/element/native-option/click', {})
+
+    def test_occluded_control_never_receives_a_native_click(self):
+        driver = S.WebDriver(1234)
+        with patch.object(driver, 'script'), patch.object(driver, 'wait', side_effect=S.AppHold({})), \
+                patch.object(driver, 'command') as native:
+            with self.assertRaises(S.AppHold):
+                driver._click_visible_element('covered-race-button')
+        native.assert_not_called()
+
     def test_ui_hold_reports_only_public_error_location_and_numeric_counts(self):
         report = S.failure_report(S.AppHold({'page_errors': 2, 'error_module': 'app.js',
             'error_line': 1234, 'visible_page': 'page-races', 'viewport_width': 500,
@@ -177,6 +217,10 @@ class NativeSafariAcceptanceTests(unittest.TestCase):
             if suffix == '/execute/sync':
                 if 'querySelectorAll' in body['script']:
                     return {'element-6066-11e4-a52e-4f735466cecf': 'budget-field'}
+                if 'scrollIntoView' in body['script']:
+                    return None
+                if 'elementFromPoint' in body['script']:
+                    return True
                 return state['text'] == body['args'][0]
             if suffix.endswith('/click'):
                 return None
@@ -213,7 +257,7 @@ class NativeSafariAcceptanceTests(unittest.TestCase):
 
         driver = S.WebDriver(1234)
         with patch.object(driver, 'command', side_effect=command), \
-                patch.object(S.time, 'monotonic', side_effect=[0, 0, 0, 0, 46]):
+                patch.object(S.time, 'monotonic', side_effect=[0, 0, 0, 0, 0, 0, 46]):
             driver.budget(5000)
         self.assertEqual((state['text'], state['budget']), ('5000', 5000))
         self.assertFalse(state['meta'])
