@@ -213,6 +213,63 @@ class RoundMotivationTest(unittest.TestCase):
             with self.assertRaisesRegex(s.RoundError,"PRIVATE_CREATE_ONCE"):
                 s.freeze_context_once(p,c)
 
+    def test_mutated_context_cannot_be_used_for_strategies_or_freeze(self):
+        c=context()
+        c["official_program_match_independently_authenticated"]=True
+        with self.assertRaisesRegex(s.RoundError,
+                                    "ROUND_CONTEXT_UNVERIFIED_OR_MODIFIED"):
+            s.conditions(c)
+        changed=context()
+        changed["advancement_rule"]["direct_through"]=4
+        changed["advancement_rule"]["conditional_ranks"]=[3]
+        with self.assertRaisesRegex(s.RoundError,
+                                    "RANK_ADVANCEMENT_RULE_INVALID"):
+            s.conditions(changed)
+
+    def test_round_context_attaches_to_verified_pr71_original_without_replacing(self):
+        saved={
+            "source":{
+                "race_id":"202611175004",
+                "official_cutoff_at":"2026-11-17T11:15:00+09:00",
+                "as_of":"2026-11-17T11:00:00+09:00",
+                "starters":[1,2,3,4,5,6,7],
+            },
+            "suite":{
+                "race_id":"202611175004",
+                "sales_cutoff_at":"2026-11-17T11:15:00+09:00",
+                "as_of":"2026-11-17T11:00:00+09:00",
+                "input_sha256":"c"*64
+            },
+            "persisted_at":"2026-11-17T11:02:00+09:00",
+        }
+        kw={
+            "competition":"A1_A2","stage":"SEMI_FINAL",
+            "label":"準決勝","event_program_code":"A3カ",
+            "program_pdf":deepcopy(FAKE),
+            "rule":{"kind":"RANK_AND_CROSS_RACE",
+                    "direct_through":2,
+                    "conditional_ranks":[3],"points_rule":None}
+        }
+        doc=s.build_from_existing_pr71_saved(
+            saved,verified_ledger_reader=lambda data: True,**kw)
+        self.assertEqual(doc["parent_input_sha256"],"c"*64)
+        self.assertEqual(doc["race_size"],7)
+        self.assertFalse(doc["formal_prediction_created"])
+        with self.assertRaisesRegex(s.RoundError,"INDEPENDENT_PR71_ORIGINAL_READBACK_REQUIRED"):
+            s.build_from_existing_pr71_saved(
+                saved,verified_ledger_reader=lambda data: False,**kw)
+        saved["source"]["race_id"]="202611175005"
+        with self.assertRaisesRegex(s.RoundError,
+                                    "PR71_SOURCE_OR_TIME_OR_IDENTITY_MISMATCH"):
+            s.build_from_existing_pr71_saved(
+                saved,verified_ledger_reader=lambda data: True,**kw)
+
+    def test_label_cannot_misclassify_challenge_or_girls(self):
+        with self.assertRaisesRegex(s.RoundError,"CHALLENGE_CLASS_REQUIRED"):
+            context(competition="A1_A2",label="チャレンジ準決勝")
+        with self.assertRaisesRegex(s.RoundError,"GIRLS_CLASS_REQUIRED"):
+            context(competition="A1_A2",label="ガールズ準決勝")
+
     def test_no_source_fetch_result_or_original_ranking_changes(self):
         p=s.conditions(context())
         self.assertIsNone(p["win_or_advancement_probability"])
