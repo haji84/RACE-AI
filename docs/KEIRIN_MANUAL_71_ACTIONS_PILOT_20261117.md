@@ -74,3 +74,30 @@
 同じレースID、当日の出走条件・締切原本、予想各版の作成/保存時刻、予想SHA、結果ソース/改訂SHAと取得Run ID、照合監査SHA、AES世代/commit/cipher SHA、**独立readerのjob IDと復号監査集合SHA**、実HTMLの認証閲覧記録/表示SHA/閲覧job ID、各工程のPASS/HOLD/FAILと理由。PASSは source とブラウザの独立照合含む全5条件一致時のみ。全71Rへの移行は合格後。
 
 **現時点の完了評価：検査器・証拠連鎖の実装は進展。ただし実レース1件の5工程完走は0件確認。**
+
+## 2026-11-17 追加：実予想原本の回収・本人公開鍵による封印
+
+この段階でも **本番5工程は HOLD**。コード合格やブラウザでの結果閲覧だけで「Actionsが本番自動完走」とは言わない。
+
+### 今回実際に確認できた原本
+- 過去会話で作成された `keirin_2026-11-17_71r_12point_expanded_v3.json` の**実バイトSHA** が、本Docと既存codeのPIN `4cd7e88d9ab7880702180bcbab248ebda2a8078a721fab5a08fe47323de21d68` に一致した。実データ71件、松山7R `75-07` の第7候補は `7-2-1`。この予想原本の元記録は `2026-11-17T09:06:03+09:00`。元の時刻・公式締切は独立した第三者witnessで照会・証明されていないため、参考照合のまま。
+- 実V2 JSON SHA `3bdb6930812cd00035f5591cc4a349aa171d49a1f1a709c44a2f2b990c233c59`、信頼度/波乱表示 HTML SHA `2c0ec7ed2f8b77b81e026ae162ba4b185abcc4d1983e624d08eef7e61c1cf11c`。4つのowner input roleは forecast_v3 / baseline_v2 / categories / template、最後2つは同一の元HTMLの実バイトを使う。
+- GitHubに既に置かれた既存PR102 RSA公開鍵の**Git blob SHA** `7717a321a66243118e1864c2136c88c4713ab19c` を元ファイルから確認。公開鍵を変えず、ユーザー手元ファイルを zlib後、同一JSONにまとめ、既存 `RACE_AI_PRIVATE_KEIRIN_ENCRYPTED_JSON_V1` RSA-OAEP/AES-256-GCM形式で封印した。
+- 作業用モデル実行環境で作成した暗号化パッケージ `RACE_AI_20261117_owner_71r_sealed.json` の**実バイトSHA-256** は `164bd98caf06deb2308626d0f6343c074db9e85b9517378ac60119af21b3375e`。暗号文SHA-256 `d04e070ef10e92a0276f3a3d1633ebf0fc4d075bf3c9d206c5f1fc9a76315a4f`。**この暗号ファイルは会話内の作業ファイルであり、GitHub main/state/Actionsには投入していない**。owner専用のRSA秘密鍵がこちらにあると主張しない。
+- ユーザーには平文をGitHub公開リポジトリに置くよう求めない。上記暗号化ファイルの提出先/復号鍵のジョブ共有権限は既存公開暗号保存同意と用途を照らして確認する必要がある。既存動画用RSA秘密鍵を別のworkflowに黙って渡さない。
+
+### GitHubに追加した再利用可能な取り込み処理
+- `race_ai/keirin_manual71_owner_encrypted_intake.py`：既存 PR102 の**固定SHAの RSA-OAEP/AES-256-GCMヘルパー**を使用してowner本人原本4ファイルを封印／復号。元SHAが違う、原本4個不足、base64改変、AESタグ不一致、解凍上限超過、公共GitHub workspace内の平文書込み、既存ファイル上書き等は拒否する。復元後も `RACE_AI_KEIRIN_MANUAL71_PRIVATE_DIR` の実入力がまだ必要。復元専用コードはDraftに存在するがmain producerへの実行配線は未承認。
+- `tests/test_keirin_manual71_owner_encrypted_intake.py`：**架空**originalと架空RSA 3072-bit keyで、本物のPR102 `keirin_private_sealed_payload.py` の seal/open を用いた8合成回帰を追加。
+- 既存 `.github/workflows/keirin-pr71-owner-autonomous.yml` の合成CIに追加。GitHub Actions [Run 44018540637](https://github.com/haji84/RACE-AI/actions/runs/44018540637) `synthetic-ci` **SUCCESS**、上記8件の暗号関連テストもPass。main-only `config_readiness`／`github-hosted-pr71-cycle`／`independent-cloud-readback` は **SKIPPED**。本番5工程・実レース自動照合の証拠ではない。
+
+### 結果確認の独立性
+- Webから2026-11-17松山7Rの `7-2-1`・100円当り390円が [netkeirin](https://keirin.netkeiba.com/race/result/?race_id=202611177507) で確認できた。楽天Kドリームスの同レース画面でも `7-2-1` の着順が掲載された。
+- ただし**両方とも主催者公式結果の独立した機械認証や取得権限・GitHub Actionsの実GETを保証しない**。前回のチャット・Web閲覧を自動取得Runの代替にしない。
+
+### 追加で確認した真のブロッカー
+- GitHub `state/keirin-encrypted-history` には `state/keirin/v1/latest.json`（mode=synthetic）が存在する一方、**`state/keirin/pr71-production/v1/latest.json`（本番genesis）は現時点で存在を確認できなかった**。実PR71 AES stateを「既に本番で作れた」と報告しない。
+- 既存 PR71 state `check_owner_cipher_consent()` は `allowed_material == AES-256-GCM-encrypted production forecast SQLite snapshots only` を要求する。**手動研究71Rを偽のPR71 production genesisとして保存しない**。ownerによる暗号保存用途・復号鍵アクセス範囲の追加承認なしに main workflow の Secrets 権限を拡張しない。
+- 残りの本番受入：Actionsが認可された松山7R公式結果をGETしたRun/ジョブ、private原本実復元、研究用AESの認可された正本と独立runner読戻し、owner向けの安全なHTML実表示。この4つのいずれも今回未達。
+
+**現在判定:** 実予想原本4ファイル = byte SHA回収済、暗号封印 = ローカル実原本で実施、暗号ローダ = ソースフリー CI 合格。GitHub Actionsの実結果取得 → 同じ原本との本番照合 → 暗号保存 → 別runner読戻し → HTML実画面の一巡 = **0件、NO-GO**。71Rへの拡大は保留。
