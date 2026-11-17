@@ -1,0 +1,71 @@
+{
+  "schema": "RACE_AI_KEIRIN_TAKEO2R_SINGLE_VISUAL_POSITION_PROPOSALS_V1",
+  "race_id": "202611098402",
+  "source_video_sha256": "4e389a46c223b7cb2eaa7c5c5bdc34ade229deedea8a3c795c8be987b57aa810",
+  "user_selected_observation": false,
+  "observer": "assistant_single_visual_inspection_not_an_independent_human_reviewer",
+  "observed_colors_from_on_screen_race_roster": {
+    "3": "RED",
+    "5": "YELLOW"
+  },
+  "predicted_line_context_only": [
+    5,
+    3,
+    6
+  ],
+  "uncertainty": "Only color-based approximate apparent order at widely spaced snapshots; no calibrated image positions, OCR, camera continuity or independent review",
+  "frames": [
+    {
+      "video_sec": 24,
+      "frame_crop_bgr_sha256": "87b2e52e83da3a001ef3de6788ff6a20b1fcf9fee0bf8bbcf2b5ba28adf77a42",
+      "rough_color_order_candidate": "YELLOW_5_BEFORE_RED_3",
+      "full_rider_identification_verified": false,
+      "phase": "UNKNOWN",
+      "actual_follow_outcome": "UNKNOWN"
+    },
+    {
+      "video_sec": 32,
+      "frame_crop_bgr_sha256": "0548ea4d8c339fe2d2c4ec29dd8c6557241046a3c4b522961b013840fa2a5f3a",
+      "rough_color_order_candidate": "YELLOW_5_BEFORE_RED_3",
+      "full_rider_identification_verified": false,
+      "phase": "UNKNOWN",
+      "actual_follow_outcome": "UNKNOWN"
+    },
+    {
+      "video_sec": 40,
+      "frame_crop_bgr_sha256": "b438e5aea263d231a77011d7158ba66048341b2dcdb278073acf1ce12e881c9c",
+      "rough_color_order_candidate": "YELLOW_5_BEFORE_RED_3",
+      "full_rider_identification_verified": false,
+      "phase": "UNKNOWN",
+      "actual_follow_outcome": "UNKNOWN"
+    },
+    {
+      "video_sec": 64,
+      "frame_crop_bgr_sha256": "416ff9be9dbd565446ceb5d8f342b69daad63b1c05b679c160491808ec61970c",
+      "rough_color_order_candidate": "YELLOW_5_BEFORE_RED_3",
+      "full_rider_identification_verified": false,
+      "phase": "UNKNOWN",
+      "actual_follow_outcome": "UNKNOWN"
+    },
+    {
+      "video_sec": 72,
+      "frame_crop_bgr_sha256": "62581a5c227961394f06c13d7a4694835bb3267f019eaaaf068f125abcb5187f",
+      "rough_color_order_candidate": "YELLOW_5_BEFORE_RED_3",
+      "full_rider_identification_verified": false,
+      "phase": "UNKNOWN",
+      "actual_follow_outcome": "UNKNOWN"
+    },
+    {
+      "video_sec": 80,
+      "frame_crop_bgr_sha256": "bbdfcca6017954cf7e5c0e18c960b3057930380e5e3366231f49f44f0f57fbac",
+      "rough_color_order_candidate": "YELLOW_5_BEFORE_RED_3",
+      "full_rider_identification_verified": false,
+      "phase": "UNKNOWN",
+      "actual_follow_outcome": "UNKNOWN"
+    }
+  ],
+  "does_not_assert_held_or_gapped": true,
+  "may_not_enter_C_training": true,
+  "requires_external_review_and_full_source_receipt": true,
+  "public_cropped_images_included": false
+}
