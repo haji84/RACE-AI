@@ -269,7 +269,7 @@ class NativeSafariDispatchTests(unittest.TestCase):
                 return self.raw[:limit]
         api = S.GitHubAPI('private-sentinel-token')
         for raw in (b'not-json-private-sentinel', b'{"x":1,"x":2}', b'{"x":NaN}',
-                    b'{"x":Infinity}', b'x' * (S.MAX_RESPONSE_BYTES + 1)):
+                    b'{"x":Infinity}', b'{"x":1e999}', b'x' * (S.MAX_RESPONSE_BYTES + 1)):
             with patch.object(api.opener, 'open', return_value=Response(raw)) as opened:
                 with self.assertRaises(S.DispatchHold):
                     api('GET', MAIN_PATH)
@@ -339,13 +339,15 @@ class NativeSafariDispatchTests(unittest.TestCase):
             self.assertNotIn(str(path), output.getvalue())
             self.assertEqual(len(api.posts()), 1)
 
-    def test_existing_workflow_registers_only_additive_trusted_push_step_after_owner_gate(self):
+    def test_existing_workflow_registers_only_additive_trusted_push_step_after_owner_dispatch(self):
         text = (Path(__file__).resolve().parents[1] / '.github/workflows/boat-racer-daily.yml').read_text()
         owner = text.split('\n  owner_p0_p1_dispatch:\n', 1)[1]
         name = 'Request native Safari acceptance once for the exact main head'
         self.assertEqual(owner.count(name), 1)
         before, native = owner.split('      - name: ' + name + '\n', 1)
-        native, after = native.split('      - name: Install original parser only when a failed owner needs recovery\n', 1)
+        self.assertIn('name: Dispatch only the existing owner P0/P1 workflow', before)
+        self.assertIn("echo 'DISPATCH_REQUESTED_REAL_P0_P1_NOT_YET_PROVEN'", before)
+        self.assertNotIn('\n      - name:', native)
         self.assertIn('id: owner_gate', before)
         self.assertIn("success() && steps.owner_gate.outcome == 'success'", native)
         for required in ("github.event_name == 'push'", "github.ref == 'refs/heads/main'",
@@ -358,8 +360,8 @@ class NativeSafariDispatchTests(unittest.TestCase):
         self.assertNotIn('RACE_AI_STATE_KEY', native)
         self.assertNotIn('steps.owner_gate.outputs.ready', native)
         self.assertNotIn('always()', native)
-        self.assertIn('recovery_required', after)
-        self.assertIn("if: steps.owner_gate.outputs.ready == 'true' || steps.recovered_gate.outputs.ready == 'true'", after)
+        self.assertIn('recovery_required', before)
+        self.assertIn("if: steps.owner_gate.outputs.ready == 'true' || steps.recovered_gate.outputs.ready == 'true'", before)
         self.assertIn('scripts/boat_native_safari_dispatch.py', text.split('\n  push:\n', 1)[0])
         self.assertIn('tests/test_boat_native_safari_dispatch.py', text.split('\n  push:\n', 1)[0])
         self.assertIn('tests.test_boat_native_safari_acceptance tests.test_boat_native_safari_dispatch -v', text)

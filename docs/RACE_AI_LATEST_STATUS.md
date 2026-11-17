@@ -12,6 +12,8 @@ GitHub認証付きAPIでPR #55の最終HEAD `15fc68755e60db3f4e578ef2b8415e4ed90
 
 詳細: [source merge evidence](evidence/boat-source55-normal-merge-proof-20261117.json)。
 
+**このmain候補の追加検証:** test-first HEAD9bb6406d3fc06fa35d7961451f6ca9bd63ad5667の41 checksは、期待した失敗3・成功14・skip24で完了。新native module欠如（150試験/error1）と未縮約JSON（10/40試験、同じ21 subtest失敗）を実CIで確認した。次に4項目射影と固定Safari callerを追加し、実装HEADの全CIを必須とする。callerは既存owner dispatchの最後に置き、UIの失敗や通信待ちがP0/P1復旧を遅らせない。callerの204受付は実Mac合格ではなく、POST不確実時はrequest=null/attempted=true/ack=falseのHOLDとし再送しない。元6ケースとAPI6ケースの両方を保持したnative91試験を実行する。詳細: [実RED](evidence/boat-main52-actual-red-20261117.json)、[実装検証](evidence/boat-main52-runtime-integration-20261117.json)。
+
 ## 2026-11-17 17:38 UTC: 実Safari私有原本/AES成功を保全、環境guard診断をAPIで復元（GOAL未達）
 
 観測main2641abcd/source f55351dc。実Mac44124279358/job134183698968は、Safari26.6で保存view generation422/results114/native P1 groups11を確認した。
