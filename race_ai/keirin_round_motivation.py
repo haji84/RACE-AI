@@ -95,6 +95,10 @@ def _class_and_label(competition, stage, label):
     if competition == "GIRLS":
         _need("ガールズ" in title or title.startswith("ガ"),
               "GIRLS_LABEL_DISAGREES")
+    if "チャレンジ" in title:
+        _need(competition == "CHALLENGE", "CHALLENGE_CLASS_REQUIRED")
+    if "ガールズ" in title or title.startswith("ガ予") or title.startswith("ガ決"):
+        _need(competition == "GIRLS", "GIRLS_CLASS_REQUIRED")
     token = {
         "PRELIMINARY":"予選", "PRELIMINARY_1":"予", "PRELIMINARY_2":"予",
         "SEMI_FINAL":"準決勝", "FINAL":"決勝", "INITIAL_SPECIAL":"初特選",
@@ -183,10 +187,67 @@ def build_context(*, race_id, competition, stage, label, race_size,
     }
 
 
+def checked_context(doc):
+    """Revalidate all fields before any strategy or private freeze operation."""
+    _need(type(doc) is dict and set(doc) == {
+        "schema","race_id","competition","round_stage",
+        "official_race_label","race_size","as_of","official_cutoff_at",
+        "parent_input_sha256","event_program_code","program_pdf",
+        "advancement_rule","official_program_match_independently_authenticated",
+        "predictive_probabilities_calibrated","formal_prediction_created"
+    } and doc.get("schema") == SCHEMA, "ROUND_CONTEXT_REQUIRED")
+    copy=build_context(
+        race_id=doc["race_id"],competition=doc["competition"],
+        stage=doc["round_stage"],label=doc["official_race_label"],
+        race_size=doc["race_size"],as_of=doc["as_of"],
+        official_cutoff_at=doc["official_cutoff_at"],
+        parent_input_sha256=doc["parent_input_sha256"],
+        event_program_code=doc["event_program_code"],
+        program_pdf=doc["program_pdf"],rule=doc["advancement_rule"])
+    _need(copy == doc, "ROUND_CONTEXT_UNVERIFIED_OR_MODIFIED")
+    return doc
+
+
+def build_from_existing_pr71_saved(saved, *, competition, stage, label,
+                                   event_program_code, program_pdf, rule,
+                                   verified_ledger_reader):
+    """Bind stage context to an independently SHA-verified, frozen PR71 suite.
+
+    A callback that merely returns true is not independently authoritative;
+    the runner MUST implement original/readback/source SHA verification.
+    """
+    try:
+        is_verified=(callable(verified_ledger_reader) and
+                     verified_ledger_reader(saved) is True)
+    except Exception:
+        is_verified=False
+    _need(is_verified,"INDEPENDENT_PR71_ORIGINAL_READBACK_REQUIRED")
+    _need(type(saved) is dict and type(saved.get("source")) is dict and
+          type(saved.get("suite")) is dict and
+          type(saved.get("persisted_at")) is str,
+          "ACTUAL_PR71_PARENT_REQUIRED")
+    source,suite=saved["source"],saved["suite"]
+    _need(source.get("race_id")==suite.get("race_id") and
+          source.get("official_cutoff_at")==suite.get("sales_cutoff_at") and
+          source.get("as_of")==suite.get("as_of") and
+          _sha(suite.get("input_sha256")) and
+          type(source.get("starters")) is list and
+          len(source["starters"]) in range(5,10) and
+          _timestamp(source["as_of"])<=_timestamp(saved["persisted_at"]) and
+          _timestamp(saved["persisted_at"])<_timestamp(source["official_cutoff_at"]),
+          "PR71_SOURCE_OR_TIME_OR_IDENTITY_MISMATCH")
+    return build_context(
+        race_id=source["race_id"],competition=competition,stage=stage,
+        label=label,race_size=len(source["starters"]),
+        as_of=source["as_of"],
+        official_cutoff_at=source["official_cutoff_at"],
+        parent_input_sha256=suite["input_sha256"],
+        event_program_code=event_program_code,program_pdf=program_pdf,rule=rule)
+
+
 def conditions(doc):
     """Stage-specific tactical OBJECTIVES, not rider-specific predictions."""
-    _need(type(doc) is dict and doc.get("schema") == SCHEMA,
-          "ROUND_CONTEXT_REQUIRED")
+    checked_context(doc)
     kind = doc["advancement_rule"]["kind"]
     direct = doc["advancement_rule"]["direct_through"]
     conditional = doc["advancement_rule"]["conditional_ranks"]
