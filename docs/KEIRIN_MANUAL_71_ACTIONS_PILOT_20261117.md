@@ -101,3 +101,29 @@
 - 残りの本番受入：Actionsが認可された松山7R公式結果をGETしたRun/ジョブ、private原本実復元、研究用AESの認可された正本と独立runner読戻し、owner向けの安全なHTML実表示。この4つのいずれも今回未達。
 
 **現在判定:** 実予想原本4ファイル = byte SHA回収済、暗号封印 = ローカル実原本で実施、暗号ローダ = ソースフリー CI 合格。GitHub Actionsの実結果取得 → 同じ原本との本番照合 → 暗号保存 → 別runner読戻し → HTML実画面の一巡 = **0件、NO-GO**。71Rへの拡大は保留。
+
+## 2026-11-17 所有者承認後：既存RSA鍵を手動71R暗号文の復号にも使う（本番適用前）
+
+オーナーから「既存RSA秘密鍵を71R予想復号にも利用・GitHubには暗号文のみ保存・既存PRで進める」と明示的に承認された。**秘密鍵の値自体は提供されておらず、Secretsの有無・本番復号の成功は未確認。** この追加承認は主催者結果データの使用権限、新しい外部課金、新しい保存先、既存PR71の予想本番権威、mainの無条件統合を許可したものではない。
+
+### 実バイトを保存・読戻しした事実
+- 71Rの手動 V3 予想 / V2原本 / 会場別分類HTML / 表示テンプレートの**元4ファイル SHA-256**が既存 `race_ai/keirin_manual71_owner_encrypted_intake.py::EXPECTED` と一致した。
+- 前工程でオーナー既存PR102の公開鍵（Git blob SHA `7717a321a66243118e1864c2136c88c4713ab19c`）を使ってRSA-OAEP/AES-256-GCM暗号化された**既存の封筒JSONを一切変更せず**、同じhaji84/RACE-AIの**研究ブランチだけ**に新規登録した：[`docs/evidence/2026-11-17/keirin_owner_manual71_20261117_sealed_v1.json`](../evidence/2026-11-17/keirin_owner_manual71_20261117_sealed_v1.json)。
+- 公開Git暗号ファイル185,773 bytes SHA-256 `164bd98caf06deb2308626d0f6343c074db9e85b9517378ac60119af21b3375e`、暗号文SHA-256 `d04e070ef10e92a0276f3a3d1633ebf0fc4d075bf3c9d206c5f1fc9a76315a4f`。GitHubのAPIで読戻し、長さ/暗号文SHA/非平文フラグ一致を確認。公開Gitには秘密鍵・4平文原本を登録しない。
+- 内容の真正性は、上記バイトSHAと所有者の元原本SHAを**本番秘密鍵で実復号するまで最終確認未了**。アップロード時点で5工程合格とはしない。
+
+### 実装：既存PR71 Actionsへ、秘密鍵の値を公開しないintakeを追加
+- `scripts/keirin_manual71_owner_intake_cli.py`： `GITHUB_ACTIONS`, repo, repo-id `1416489937`, `refs/heads/main`, schedule/dispatchを確認し、既存Secret `RACE_AI_KEIRIN_PRIVATE_RSA_PEM` を**本番ジョブの単一stepのみで**参照。対応する公開鍵のDER SPKI SHA-256 `1963d13558d115ce261f224b97d385bd09c65a70c91fb23237f91aa9840bb3a1` と照合。暗号ファイルのバイトSHA・暗号ペイロードSHA・AES認証タグ・原本4ファイルSHAを検証。新規Secretを作らない。
+- `race_ai/keirin_manual71_owner_encrypted_intake.py`：ヘルパーを既存PR102固定ソースGit blob SHA `2cf67ff4b297ad3711c1a8d03de9db966bf9096b` で検査してからインポート。元ファイルは `GITHUB_WORKSPACE` の外の `RUNNER_TEMP` 0700ディレクトリへ0600かつcreate-onlyで展開。既存ファイルがあれば拒否する。
+- 既存 `.github/workflows/keirin-pr71-owner-autonomous.yml` の**既存のproducerジョブにstepを追加**し、秘密鍵がない場合はHOLDとして従来処理を継続。鍵がある場合のみPINされたPR102ヘルパーで復号して `RACE_AI_KEIRIN_MANUAL71_PRIVATE_DIR` をarchiveサイクルへ渡し、job終了または失敗時に一時ファイルを削除。秘密鍵はarchive stepやActions public summaryへ渡さない。
+- 合成テスト `tests/test_keirin_manual71_owner_intake_cli.py` の9件で、架空鍵/架空4原本による本物のPR102ヘルパー復号、別鍵の拒否、SHA不一致拒否、ブランチ/secret未設定HOLD、0700/0600、二重取込み拒否を検証。
+- **CI証拠**: [GitHub Actions Run #44021609423](https://github.com/haji84/RACE-AI/actions/runs/44021609423)（コミット `50ee465d8bf706420e7096f48f06172dafa6b503`、`synthetic-ci` SUCCESS）。9件の新しい取り込み回帰もPASS。同Runのmain限定 `config_readiness`、実owner producer、独立readerは**SKIPPED**。青いチェックを本番5工程と混同しない。
+
+### 現在地と残る4つの根本障害
+**松山7Rの実レース5工程は依然 `0/5 = HOLD`**。暗号文の正本がGitHub PRに登録でき、復号処理のテストまで達したが、次を実証していない。
+1. 本番Secretsの存在・キー一致を実main-runで確認していない（キー本文はログ不要）。PRはDraft、mainに未適用。
+2. 認可済み提供元V3結果の同じレースID `202611177507` の自動取得がない。第三者サイト閲覧／ChatGPTの参考照合は別。
+3. 既存PR71 `state/keirin/pr71-production/v1/latest.json` の真正な本番genesisを確認できず、手動71Rを使って偽のモデル原本を作らない。実結果改訂を保存できる暗号系の本番実績もなし。
+4. 独立した別Actions runnerの実SHA読戻し／認証済み本人閲覧HTML実画面の証拠がない。private HTMLのSHAだけで「公開反映成功」とはしない。
+
+**次の実行ゲート**: 保護mainへの統合を本人承認・CI審査の別工程として扱い、既存sourceの有効な実結果とprivate復号が揃った同一松山7Rで Run ID、source revision SHA、原本SHA、暗号世代/commit、別runnerのSHA、本人ブラウザ表示の全5工程を一連で証明してから71Rへ拡張。
