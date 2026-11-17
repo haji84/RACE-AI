@@ -140,6 +140,34 @@ class ArchivedNativeOriginalTests(unittest.TestCase):
         self.assertFalse(hasattr(self.api, 'ArchivedNativeOriginal'))
         self.assertFalse(hasattr(self.api, 'ArchivedNativeCapsule'))
 
+    def test_fixed_source_packet_name_requires_genuine_source_packet_not_future_p0_metadata(self):
+        original_zip=self.raw
+        expected_round=self.api._FIXED_BINDING.artifact_name.rsplit('-',1)[1]
+        for ident,actual_round in ((802,'900003'),(803,'900001')):
+            # Construct captured fixture metadata before retention/AES. Never
+            # rewrite restored bytes or their hash to satisfy an expected name.
+            metadata=dict(self.metadata,id=ident,
+                name=f'all-existing-model-pairs-{self.pin["run_id"]}-{actual_round}')
+            captured=json.dumps(metadata,indent=3).encode()+b'\n\n'
+            parent=self.fixture.remote.current
+            locator=self.fixture.retain(original_zip,captured,expected_parent=parent)
+            self.locator=locator;self.metadata=metadata;self.metadata_raw=captured
+            binding=self.fixture_binding()
+            binding=replace(binding,artifact_name=f'all-existing-model-pairs-{self.pin["run_id"]}-{expected_round}')
+            self.pin=dict(self.pin,id=ident)
+            with self.subTest(captured_family=actual_round):
+                if actual_round=='900003':
+                    result=self.summary(binding=binding)
+                    self.assertTrue(result['archived_original_replay_verified'])
+                    self.assertEqual(result['original_metadata_sha256'],sha256(captured).hexdigest())
+                else:
+                    with self.assertRaisesRegex(ValueError,'^ARCHIVED_NATIVE_ORIGINAL_METADATA_REJECTED$'):
+                        self.summary(binding=binding)
+                restored=vault.restore_original(locator,self.fixture.reader.repo,
+                    key=KEY,transport=self.fixture.reader)
+                self.assertEqual(restored['raw_zip'],original_zip)
+                self.assertEqual(restored['metadata_raw'],captured)
+
     def test_all_exact_pin_fields_and_types_are_required_before_archive_access(self):
         changes = ({'id':self.pin['id']+1}, {'id':float(self.pin['id'])}, {'id':True},
             {'run_id':self.pin['run_id']+1}, {'run_id':float(self.pin['run_id'])},
@@ -314,7 +342,7 @@ class ArchivedNativeOriginalTests(unittest.TestCase):
         self.assertEqual((b.artifact_id,b.workflow_run_id,b.original_zip_size,b.metadata_size,
                           b.record_count,b.native_capsule_count),
                          (13559236491,42334526055,7399390,740,16,88))
-        self.assertEqual(b.artifact_name, 'all-existing-model-pairs-42334526055-900001')
+        self.assertEqual(b.artifact_name, 'all-existing-model-pairs-42334526055-900003')
         self.assertEqual(b.original_zip_sha256,
             '864d9e43e1ffbcc231a38fc8467648ee21179f402523680700ace75ef397a248')
         self.assertEqual(b.metadata_sha256,
