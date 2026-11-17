@@ -1,3 +1,18 @@
+## 2026-11-17 Safari実失敗の継続: 文字列chordからW3C key eventsへ
+
+実Mac44023534099（main acd7c76）もbudget入力でHOLD。前のローカル20件を実機合格としない。
+既存PR194でW3C /actionsの明示keyDown/keyUpと、予算整数/真偽のみの安全な失敗診断を追加。
+21件・独立21件success。実Macの次試験は統合後。source eff296fと動作中ownerは変更しない。
+owner巡回01/02 success、03中。別runner新原本AES/全日/全モデル/物理iPhone/映像/未来改善は未確認。
+
+## 2026-11-17 継続実運転: 2巡成功、Mac再検証中
+
+main acd7c76（既存PR203、23 checks完了・reviewed tree一致）、source eff296f。
+owner44019591352はP0保管step33と巡回01/02 success、巡回03へ進行。旧24巡全skip障害から実予想保存まで進んだ。
+Mac Safari44023534099は予算入力修正で再検証中。全日/全4競技/実機iPhone/実映像/未来改善は未完成。
+初期branch work b420631はcleanのまま、指定2未pushコミットはUNRESTORED。
+最新状況と証拠JSONに各実runと正確な境界を保全。
+
 ## 2026-11-17 実Safari診断: 予算入力の停止、未合格を維持
 
 main cb3261dの実Mac run44022519670でapp_checks:560（driver.budget）まで到達。
