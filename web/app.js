@@ -786,7 +786,7 @@
     const [eyebrow, title, description] = pageNames[page];
     $("page-eyebrow").textContent = eyebrow; $("page-title").textContent = title; $("page-description").textContent = description;
     const periodControls=document.querySelector(".view-controls");
-    if(page==="detail")$("page-detail").append(periodControls);else $("data-banner").after(periodControls);
+    if(["detail","picks"].includes(page))$("page-"+page).append(periodControls);else $("data-banner").after(periodControls);
     $("preference-strip").hidden = !["home", "races", "picks"].includes(page);
     if (!document.querySelector('meta[name="race-ai-encrypted-saved-view"]') && location.hash !== "#" + page) history.pushState(null, "", "#" + page);
     if (page === "detail") renderDetail();
@@ -891,6 +891,13 @@
     if (filtered.length > state.visible) content.push(button("さらに60件表示", "outline full", () => { state.visible += 60; renderRaces(); }));
     $("all-races").replaceChildren(...content); renderVenueExplorer(venueEntries()); $("candidate-count").replaceChildren(...candidateItems()); scheduleRaceBoundary(all,now);
   }
+  function readableSelection(select) {
+    const label=select.closest("label");if(!label)return;
+    const value=select.selectedOptions[0]?.textContent || "選択肢はありません";
+    label.classList.add("readable-select");select.title=value;
+    label.querySelector(":scope > .selected-option-text")?.remove();
+    const full=node("span","selected-option-text",value);full.setAttribute("aria-hidden","true");label.append(full);
+  }
   function predictionPicker(r, id = "prediction-select") {
     const wrapper = node("div", "prediction-controls"), label = node("label", "prediction-picker", "予想の時点・保存履歴"), select = node("select"); select.id = id;
     const list = predictions(r), chosen = prediction(r), modelId = selectedModelId(r);
@@ -911,7 +918,7 @@
       else delete state.modelBySport[r.sport];
       renderAll(); $(id)?.focus();
     });
-    label.append(select); wrapper.append(label); return wrapper;
+    label.append(select);readableSelection(select);wrapper.append(label); return wrapper;
   }
   function modelPicker(rows,sport,id,selected,allowDefault=false) {
     const label = node("label", "model-picker", "予想モデルを切り替える"), select = node("select"); select.id = id;
@@ -921,7 +928,7 @@
     if (selected && !options.some(item => item.model_id === selected)) select.append(new Option(modelName({model_id:selected}) + " · この一覧は未保存",selected));
     select.value = selected;select.disabled = sport === "all";
     select.addEventListener("change", () => chooseModel(sport,select.value,id));
-    label.append(select,node("small","muted small",allowDefault ? "保存件数はこの一覧の対象です。選んだモデルを同じ競技で引き継ぎます。" : "モデルを選ぶと買い目・根拠・照合表示が切り替わります。"));
+    label.append(select,node("small","muted small",allowDefault ? "保存件数はこの一覧の対象です。選んだモデルを同じ競技で引き継ぎます。" : "モデルを選ぶと買い目・根拠・照合表示が切り替わります。"));readableSelection(select);
     return label;
   }
   function forecastPanel(r, p) {
@@ -1061,6 +1068,7 @@
   function renderTickets() {
     const r = currentRace(), id = r?.race_id || "", p = prediction(r), ts = ticketsFor(id), total = ts.reduce((s, t) => s + t.amount, 0), invalid = U.validateDraft(ts, state.raceBudget, state.maxPicks, maxNumber(r));
     $("ticket-race").value = id; $("race-budget").value = state.raceBudget; $("max-picks").value = state.maxPicks;
+    readableSelection($("ticket-race"));
     $("copy-top8").disabled = !p || !r; $("allocation-source").textContent = p ? modelName(p) + " · " + stageName(p) + " · " + scopeName(r.scope) : "保存予想は未取得です。手動候補は予想原本と別に記録します。";
     $("copy-top8").textContent = p?.native_top8_available === false ? "保存" + p.ordered_top8.length + "点プランを候補へ" : "保存Top8を候補へ";
     const list = $("ticket-list"); list.replaceChildren();
@@ -1149,7 +1157,7 @@
   function renderSavedResults(rows) {
     const groups=M.modelGroups(rows).filter(activeModel),select=$("results-model");
     if (!groups.some(g=>g.key===state.resultGroupKey)) state.resultGroupKey=groups[0]?.key || "";
-    select.replaceChildren(...groups.map(g=>new Option(stageName(g)+" · "+modelName(g)+(g.ambiguous_originals?" · 複数原本 "+g.ambiguous_originals+"レース":""),g.key)));select.value=state.resultGroupKey;select.disabled=!groups.length;
+    select.replaceChildren(...groups.map(g=>new Option(stageName(g)+" · "+modelName(g)+(g.ambiguous_originals?" · 複数原本 "+g.ambiguous_originals+"レース":""),g.key)));select.value=state.resultGroupKey;select.disabled=!groups.length;readableSelection(select);
     $("simulation-budget").value=state.simulationBudget;
     $("simulation-budget").disabled=!groups.length;
     $("simulation-race-budget").value=String(state.simulationRaceBudget);$("simulation-race-budget").disabled=!groups.length;
