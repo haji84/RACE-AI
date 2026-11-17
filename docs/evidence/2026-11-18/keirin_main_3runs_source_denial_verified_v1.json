@@ -1,0 +1,30 @@
+{
+  "schema": "RACE_AI_KEIRIN_PR71_SOURCE_DENIAL_DIAGNOSIS_V1",
+  "analysis_date_jst": "2026-11-18",
+  "repository": "haji84/RACE-AI",
+  "main_run_ids": [
+    44050344058,
+    44063985261,
+    44070303901
+  ],
+  "source_code_pin": "fe7e5581263b2b31fbd45536ac6a611c2779fa65",
+  "source_entrypoint": "scripts/keirin_github_owner_future_intake.py:owner_future_public_intake",
+  "first_public_source_endpoint_template": "https://www.winticket.jp/keirin/odds/YYYYMMDD",
+  "observed_per_main_run": {
+    "state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT",
+    "source_state": "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED",
+    "source_capture_held": true,
+    "provider_denial_stopped_requests": true,
+    "public_page_requests": 1,
+    "source_day_schedule_race_count": null,
+    "new_pre_race_inputs": 0,
+    "actual_four_model_forecast_saved": false
+  },
+  "http_403_vs_429_not_distinguishable_from_sanitized_logs": true,
+  "error_adapter_maps_403_and_429_to_same_public_hold_reason": true,
+  "no_further_provider_requests_after_denial": true,
+  "no_claim_of_full_racecard_or_model_inputs": true,
+  "main_workflow_conclusion_success_does_not_mean_forecast_success": true,
+  "important_remediation_caveat": "Network access to source denied before any source-linked racecard parsing. Need successful separately authorized feed/normal public access, then prove all required PR71 features before formally predicting. No invented fields or provider-block circumvention.",
+  "claim_of_solved_problem": false
+}
