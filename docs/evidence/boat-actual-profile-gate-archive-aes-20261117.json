@@ -1,0 +1,370 @@
+{
+  "schema": "RACE_AI_ACTUAL_PROFILE_GATE_AND_ARCHIVE_AES_ACCEPTANCE_V1",
+  "main_sha": "43704b2fbe5cf4e1d471737c6f47e639a611a12f",
+  "source_sha": "f55351dce855177a51330f72c37d6238ba2c9e3e",
+  "existing_main_pr": 59,
+  "required_checks_completed": 27,
+  "merged_tree_equals_reviewed": true,
+  "actual_gate": {
+    "run_id": 44100425945,
+    "job_id": 134098647385,
+    "status": "HOLD_ACTIVE_OWNER_WORKFLOW",
+    "dispatch_allowed": false,
+    "official_source_requests": 0,
+    "duplicate_worker_started": false
+  },
+  "actual_audit": {
+    "run_id": 44100426069,
+    "job_id": 134098651254,
+    "conclusion": "success"
+  },
+  "verified_artifact_receipts": [
+    {
+      "id": 14335961767,
+      "bytes": 1120,
+      "zip_sha256": "bce91c450765cf5eec13ac05207a59cdfce4b9bbda763d3a124ec0c7ad58effe"
+    },
+    {
+      "id": 14336036608,
+      "bytes": 1874,
+      "zip_sha256": "6e525ecc232be5cb16399d5ea310deccfcf991c67ed2449301358d56a06d9c0f"
+    }
+  ],
+  "downloaded_size_and_sha_verified": true,
+  "archived_original_proof": {
+    "archived_capsules_sha256": "4ab4796d037e08b3c07668b4c8f9add7f6fbd7f11953af68a2525cbcd41d2979",
+    "archived_original_replay_verified": true,
+    "artifact_id": 13559236491,
+    "cipher_sha256": "0a9399823d8a543571a74d0d372f205a103b65226d55249477ec462fdfc8f93b",
+    "cipher_size_bytes": 7400747,
+    "current_artifact_status": "NOT_QUERIED",
+    "current_generation_authorized": false,
+    "current_native_admission_created": false,
+    "dispatch_authorized": false,
+    "github_artifact_receipt_created": false,
+    "head_sha": "8cf76d3d023591a4c67d04a0001465ac32b441c5",
+    "label_or_training_authorization_granted": false,
+    "main_helper_sha256": "6f78cb4325f477e1dc8ddf8d2b241ef357cec256d29b4d5a2a16a5827f9cf97e",
+    "native_capsule_count": 88,
+    "new_model_input_count": 0,
+    "original_metadata_sha256": "fe7ca01fabf94e33340bf60b24096081f5e05c98fa62600977c81398262a8bd3",
+    "original_metadata_size_bytes": 740,
+    "original_zip_sha256": "864d9e43e1ffbcc231a38fc8467648ee21179f402523680700ace75ef397a248",
+    "original_zip_size_bytes": 7399390,
+    "plaintext_published": false,
+    "provider_permission_granted": false,
+    "racing_provider_gets": 0,
+    "receipt_scope": "ARCHIVED_NATIVE_ORIGINAL_READBACK_ONLY",
+    "schema": "RACE_AI_ARCHIVED_NATIVE_ORIGINAL_READBACK_COUNTS_V1",
+    "selected_owner_sha": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "source_batch_sha256": "4d81eacb052090d6ba4954a01028ba314e3c63fd0e9fcd8a346ecd5956eba7b6",
+    "source_commit": "0490a9d5273d58ae4b50252542608dd40f932431",
+    "source_entry_sha256": "e43f9b465b177fb20b834bbdd07069b74437cd3ae057e0b7aaa5f50b38546699",
+    "source_originals_modified": false,
+    "source_record_count": 16,
+    "source_records_sha256": "0b0e63fec1a336982108f7c8b0d4acba4432a68119b07ae3c3a904c1ce62a4c2",
+    "status": "ARCHIVED_NATIVE_ORIGINAL_READBACK_VERIFIED",
+    "workflow_run_id": 42334526055
+  },
+  "M2_partial_proof": {
+    "all_model_zip_readback": {
+      "active_completed_round_scope": [
+        0,
+        1
+      ],
+      "actual_listed_archives": 2,
+      "additional_native_p1_archives_verified": 0,
+      "aes_originals_independently_decrypted": 2,
+      "all_model_round_coverage": [
+        {
+          "generated_forecasts": 0,
+          "round": 0,
+          "state": "AES_ARCHIVE_AUTHENTICATED"
+        },
+        {
+          "generated_forecasts": 9,
+          "round": 1,
+          "state": "AES_ARCHIVE_AUTHENTICATED"
+        },
+        {
+          "generated_forecasts": null,
+          "round": 2,
+          "state": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED"
+        },
+        {
+          "generated_forecasts": null,
+          "round": 3,
+          "state": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED"
+        },
+        {
+          "generated_forecasts": null,
+          "round": 4,
+          "state": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED"
+        },
+        {
+          "generated_forecasts": null,
+          "round": 5,
+          "state": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED"
+        },
+        {
+          "generated_forecasts": null,
+          "round": 6,
+          "state": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED"
+        },
+        {
+          "generated_forecasts": null,
+          "round": 7,
+          "state": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED"
+        }
+      ],
+      "authentic_official_P0_schedule_races": null,
+      "cutoff_qualification_blocker": "OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE",
+      "day_jst": "2026-11-17",
+      "duplicate_eligible_model_slots": 0,
+      "excluded_all_model_rounds": [],
+      "full_day_coverage": false,
+      "github_zip_sha256_independently_verified": 2,
+      "latest_live_counters_audited": false,
+      "missing_all_model_rounds": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "official_cutoff_qualification": false,
+      "official_program_source_authenticated": false,
+      "official_schedule_crosschecked_pre_cutoff_model_slots": 0,
+      "original_content_projection_verified": 2,
+      "original_predictions_matched_saved_AES_view": 9,
+      "original_predictions_missing_from_saved_AES_view": 0,
+      "owner_run_id": 44075021607,
+      "owner_source_commit": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+      "p1_forecast_rows_reopened": 9,
+      "per_model_official_schedule_crosschecked": {},
+      "per_model_physically_pre_cutoff": {},
+      "physical_pre_cutoff_distinct_model_slots": 0,
+      "prediction_generation_performed": false,
+      "previously_archived_coverages_skipped_without_zip_read": 0,
+      "production_predictions_modified": false,
+      "racing_provider_gets": 0,
+      "referenced_existing_baseline_p1_rows_not_recounted": 5,
+      "referenced_native_p1_archives_independently_verified": 1,
+      "round_evidence": [
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 0,
+          "generated_forecasts_reported": 0,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 0,
+          "round": 0,
+          "saved_view_originals_matched": 0,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 9,
+          "generated_forecasts_reported": 9,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 5,
+          "round": 1,
+          "saved_view_originals_matched": 9,
+          "source_archive_zip_sha_verified": true
+        }
+      ],
+      "scheduled_view_model_slot_upper_bound": null,
+      "schema": "RACE_AI_BOAT_EXACT_ALL_MODEL_ZIP_READBACK_V1",
+      "source_cutoff_conflict_diagnostics": [],
+      "status": "HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED",
+      "successor_dispatch_allowed": false,
+      "unqualified_original_reasons": {
+        "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED": 9
+      },
+      "website_end_to_end_proven": false
+    },
+    "captured_at": "2026-11-17T14:12:03.575514+00:00",
+    "completed_rounds_audited": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "cutoff_qualification_blocker": "OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE",
+    "final_control": null,
+    "final_control_aes_authenticated": false,
+    "full_day_coverage": false,
+    "inventory_sha256": "8f0bd7b0b86b843f35bc06eb1aea9940cf7008dbc8b737be5f98d4e926126c75",
+    "latest_live_counters_audited": false,
+    "missing_all_model_rounds": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "new_forecasts": 0,
+    "official_cutoff_qualification": false,
+    "official_source_requests": 0,
+    "original_forecasts_changed": false,
+    "owner_run_id": 44075021607,
+    "owner_source_commit": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "owner_status_at_snapshot": "in_progress",
+    "p0_artifact_id": 14282568112,
+    "p0_origin_run_id": 43978567937,
+    "p0_supplements_verified": 0,
+    "raw_aes_archives_verified": 17,
+    "round_evidence": [
+      {
+        "p1_artifact_id": 14323629323,
+        "result_artifact_id": 14326611176,
+        "round": 1,
+        "sealed_precompletion_counters": {
+          "completed_round": 0,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 720,
+          "lifetime_completed_rounds_base": 720,
+          "lifetime_requests": 13603,
+          "lifetime_requests_base": 13503,
+          "prepared_round": 1,
+          "requests_used": 100,
+          "run_id": 44075021607,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14326243693,
+        "result_artifact_id": 14327433059,
+        "round": 2,
+        "sealed_precompletion_counters": {
+          "completed_round": 1,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 721,
+          "lifetime_completed_rounds_base": 720,
+          "lifetime_requests": 13632,
+          "lifetime_requests_base": 13503,
+          "prepared_round": 2,
+          "requests_used": 129,
+          "run_id": 44075021607,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14327044818,
+        "result_artifact_id": 14328592591,
+        "round": 3,
+        "sealed_precompletion_counters": {
+          "completed_round": 2,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 722,
+          "lifetime_completed_rounds_base": 720,
+          "lifetime_requests": 13654,
+          "lifetime_requests_base": 13503,
+          "prepared_round": 3,
+          "requests_used": 151,
+          "run_id": 44075021607,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14330220312,
+        "result_artifact_id": 14331555662,
+        "round": 4,
+        "sealed_precompletion_counters": {
+          "completed_round": 3,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 723,
+          "lifetime_completed_rounds_base": 720,
+          "lifetime_requests": 13672,
+          "lifetime_requests_base": 13503,
+          "prepared_round": 4,
+          "requests_used": 169,
+          "run_id": 44075021607,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14331715737,
+        "result_artifact_id": 14331024006,
+        "round": 5,
+        "sealed_precompletion_counters": {
+          "completed_round": 4,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 724,
+          "lifetime_completed_rounds_base": 720,
+          "lifetime_requests": 13698,
+          "lifetime_requests_base": 13503,
+          "prepared_round": 5,
+          "requests_used": 195,
+          "run_id": 44075021607,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14332087655,
+        "result_artifact_id": 14334785273,
+        "round": 6,
+        "sealed_precompletion_counters": {
+          "completed_round": 5,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 725,
+          "lifetime_completed_rounds_base": 720,
+          "lifetime_requests": 13726,
+          "lifetime_requests_base": 13503,
+          "prepared_round": 6,
+          "requests_used": 223,
+          "run_id": 44075021607,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14334331402,
+        "result_artifact_id": 14336240838,
+        "round": 7,
+        "sealed_precompletion_counters": {
+          "completed_round": 6,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 726,
+          "lifetime_completed_rounds_base": 720,
+          "lifetime_requests": 13746,
+          "lifetime_requests_base": 13503,
+          "prepared_round": 7,
+          "requests_used": 243,
+          "run_id": 44075021607,
+          "source_wait": null
+        }
+      }
+    ],
+    "schema": "RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1",
+    "status": "HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED",
+    "successful_round_steps_excluded": [],
+    "successor_dispatch_allowed": false
+  },
+  "first_failed_attempt_preserved": 44093714741,
+  "historical_36_missing_view_rows_proved_repaired": false,
+  "actual_new_source_worker_started": false,
+  "actual_speed_improvement_proven": false,
+  "full_day_coverage_proven": false,
+  "future_accuracy_improvement_proven": false,
+  "physical_iPhone_verified": false
+}

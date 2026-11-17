@@ -34,6 +34,12 @@ import urllib.request
 
 PAGES_SHA = 'f60308ef7443ca13b5ca23c4896e15ffc67b0427'
 SOURCE_SHA = 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+CANDIDATE_SHA = '598c80c89b5d6a1bca8dbbb16d091ef9e74bfb76'
+CANDIDATE_WEB_TREE = '23bddbad96d303cdd9699615ecfa6f99f7f82f61'
+CANDIDATE_ASSET_SHA256 = {
+    'index.html': '676a3537bb97f5826d2f1e7c01154a488e310a3d18bd25e9c8a50c33d9666c39',
+    'app.js': '67742a37a42e46deb2e2de4dd65540f81227bbf8138e7606909e17c6c9104fa6',
+    'style.css': 'c2dd9f1841e83b1359517edd2082830504bf5e5a65fe501cf44346ad50d38400'}
 CSP = ("default-src 'none';script-src 'self';style-src 'self';"
        "img-src 'self' data:;connect-src 'self';font-src 'none';"
        "form-action 'none';object-src 'none';base-uri 'none';frame-src 'none'")
@@ -61,7 +67,7 @@ SAFARI_WEBDRIVER_FAILED SAFARI_OPERATION_FAILED SAVED_CONTEXT_INVALID
 MODEL_ORIGINAL_MISMATCH PRIVATE_NETWORK_BOUNDARY_FAILED SAVED_VIEW_UNAVAILABLE
 APP_UI_CHECK_FAILED SOURCE_REVISION_MISMATCH VIEWPORT_INVALID NATIVE_BUDGET_INPUT_NOT_APPLIED
 ENCRYPTED_SEED_INVALID ENCRYPTED_SEED_REFUSAL_FAILED SYNTHETIC_FIXTURE_INVALID
-SYNTHETIC_SCREENSHOT_REJECTED SYNTHETIC_OUTPUT_REJECTED'''.split())
+SYNTHETIC_SCREENSHOT_REJECTED SYNTHETIC_OUTPUT_REJECTED SAFARI_SESSION_CLEANUP_FAILED'''.split())
 
 
 class SafariHold(ValueError):
@@ -156,6 +162,27 @@ def failure_report(error):
 def driver_environment(environment):
     return {key: environment[key] for key in ('PATH', 'HOME', 'LANG', 'LC_ALL', 'TMPDIR')
             if key in environment}
+
+
+def require_synthetic_environment():
+    # The candidate checker and Safari driver receive only original OS values.
+    # Unknown owner/viewer credential variable names fail closed as well.
+    need(set(os.environ) <= {'PATH', 'HOME', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TMPDIR'},
+         'SYNTHETIC_SCREENSHOT_REJECTED')
+
+
+def candidate_identity():
+    return {'commit': CANDIDATE_SHA, 'web_tree': CANDIDATE_WEB_TREE,
+            'asset_sha256': dict(CANDIDATE_ASSET_SHA256)}
+
+
+def candidate_capture_assets(assets):
+    # Verify the whole reviewed source tree, but offer only the SPA and its
+    # static resources. No other forecast/registry JSON or viewer is an input.
+    return {name: raw for name, raw in assets.items()
+            if not name.startswith('views/') and
+            (Path(name).suffix != '.json' or name == SYNTHETIC_PATH) and
+            (Path(name).suffix != '.html' or name == 'index.html')}
 
 
 def native_identity(capabilities):
@@ -359,6 +386,76 @@ def load_public_assets(root):
         raise SafariHold('ASSET_MANIFEST_INVALID') from None
 
 
+def load_candidate_assets(root):
+    """Admit only the fixed reviewed checkout; never import its Python code."""
+    root = Path(root).absolute()
+    need(root.name == 'web' and root.is_dir() and root == root.resolve()
+         and not any(p.is_symlink() for p in (root, *root.parents)), 'ASSET_FILE_REJECTED')
+    checkout = root.parent
+
+    def git(*arguments):
+        try:
+            result = subprocess.run(['git', '-C', str(checkout), *arguments],
+                capture_output=True, timeout=15, env=driver_environment(os.environ))
+            need(result.returncode == 0 and len(result.stdout) <= 65536, 'SOURCE_REVISION_MISMATCH')
+            return result.stdout
+        except (OSError, subprocess.SubprocessError):
+            raise SafariHold('SOURCE_REVISION_MISMATCH') from None
+
+    need(git('rev-parse', '--show-toplevel').decode().strip() == str(checkout)
+         and git('rev-parse', 'HEAD').decode().strip() == CANDIDATE_SHA
+         and git('rev-parse', 'HEAD:web').decode().strip() == CANDIDATE_WEB_TREE,
+         'SOURCE_REVISION_MISMATCH')
+    need(not git('status', '--porcelain', '--untracked-files=all', '--', 'web').strip(),
+         'ASSET_HASH_MISMATCH')
+    assets = {}
+    try:
+        entries = git('ls-tree', '-rz', '--full-tree', CANDIDATE_SHA, '--', 'web/').split(b'\0')
+        for entry in filter(None, entries):
+            metadata, full_name = entry.split(b'\t', 1)
+            mode, kind, expected_blob = metadata.decode('ascii').split()
+            name = full_name.decode('ascii').removeprefix('web/')
+            need(full_name.startswith(b'web/') and re.fullmatch('[A-Za-z0-9_./-]{1,200}', name)
+                 and all(part not in ('', '.', '..') for part in name.split('/')),
+                 'ASSET_PATH_REJECTED')
+            need(mode == '100644' and kind == 'blob'
+                 and Path(name).suffix in ('.html', '.js', '.css', '.json', '.webp', '.png', '.svg'),
+                 'ASSET_FILE_REJECTED')
+            path = root / name
+            need(path.is_file() and not any(p.is_symlink() for p in (path, *path.parents)),
+                 'ASSET_FILE_REJECTED')
+            with path.open('rb') as stream:
+                body = stream.read(MAX_ASSET + 1)
+            need(len(body) <= MAX_ASSET and hashlib.sha1(
+                b'blob ' + str(len(body)).encode() + b'\0' + body).hexdigest() == expected_blob,
+                'ASSET_HASH_MISMATCH')
+            assets[name] = body
+        # Ignored additions must not become an alternate asset or key route.
+        need(all(not path.is_symlink() and (path.is_dir() or str(path.relative_to(root)) in assets)
+                 for path in root.rglob('*')), 'ASSET_FILE_REJECTED')
+        need(all(sha(assets.get(name, b'')) == digest for name, digest in CANDIDATE_ASSET_SHA256.items()),
+             'ASSET_HASH_MISMATCH')
+        synthetic_fixture(assets)
+        return candidate_capture_assets(assets)
+    except (OSError, ValueError, UnicodeError, KeyError) as error:
+        if isinstance(error, SafariHold):
+            raise
+        raise SafariHold('ASSET_FILE_REJECTED') from None
+
+
+def synthetic_candidate_index(index):
+    """Only the synthetic candidate gains an in-memory fixture bootstrap."""
+    need(isinstance(index, bytes) and sha(index) == CANDIDATE_ASSET_SHA256['index.html'],
+         'ASSET_INDEX_INVALID')
+    text = index.decode('utf-8')
+    need(text.count('<head>') == 1 and not re.search(
+        r'<meta\s+name=[\"\']race-ai-(?:encrypted-saved-view|private-saved-view|generation-api)', text),
+        'ASSET_INDEX_INVALID')
+    text = re.sub(r'<meta http-equiv="Content-Security-Policy" content="[^"]*">', '', text)
+    return text.replace('<head>', '<head><script src="/_acceptance/privacy.js"></script>'
+        '<meta name="race-ai-private-saved-view" content="/api/forecast/saved">', 1).encode()
+
+
 def private_index(index, *, encrypted=False):
     try:
         text = index.decode('utf-8')
@@ -439,9 +536,14 @@ Object.defineProperty(globalThis,'RaceProductData',{configurable:false,
 
 class LoopbackSite:
     """Known byte assets + one memory-only private route; no filesystem handler."""
-    def __init__(self, assets, view, *, secrets=(), encrypted_seed=None, tamper_seed=False, synthetic=False):
-        self.assets = dict(assets)
-        self.assets['index.html'] = private_index(assets['index.html'], encrypted=encrypted_seed is not None)
+    def __init__(self, assets, view, *, secrets=(), encrypted_seed=None, tamper_seed=False,
+                 synthetic=False, candidate_ui=False):
+        need(not candidate_ui or (synthetic and secrets == () and encrypted_seed is None),
+             'SYNTHETIC_SCREENSHOT_REJECTED')
+        self.candidate_ui = candidate_ui
+        self.assets = candidate_capture_assets(assets) if candidate_ui else dict(assets)
+        self.assets['index.html'] = (synthetic_candidate_index(assets['index.html']) if candidate_ui else
+                                    private_index(assets['index.html'], encrypted=encrypted_seed is not None))
         need(encrypted_seed is None or view is None, 'ENCRYPTED_SEED_INVALID')
         self.view = wire(view).encode() if view is not None else None
         self.seed_path = encrypted_seed['path'] if encrypted_seed else None
@@ -541,10 +643,13 @@ class LoopbackSite:
         return self
 
     def __exit__(self, *args):
-        self.server.shutdown()
-        self.server.server_close()
-        self.thread.join(timeout=3)
-        self.view = b''
+        try:
+            self.server.shutdown()
+            self.server.server_close()
+            self.thread.join(timeout=3)
+            need(not self.thread.is_alive(), 'SAFARI_SESSION_CLEANUP_FAILED')
+        finally:
+            self.view = b''
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -761,10 +866,13 @@ class WebDriver:
     def close(self):
         if self.session is not None:
             try:
-                self.command('DELETE', '')
+                if self.command('DELETE', '') is not None:
+                    return False
             except SafariHold:
-                pass
-            self.session = None
+                return False
+            finally:
+                self.session = None
+        return True
 
 
 @contextmanager
@@ -797,13 +905,21 @@ def apple_driver():
         identity = driver.new_session()
         yield driver, identity
     finally:
-        driver.close()
-        process.terminate()
         try:
-            process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait(timeout=5)
+            closed = driver.close()
+        except Exception:
+            closed = False
+        try:
+            if process.poll() is None:
+                process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=5)
+        except (OSError, subprocess.SubprocessError):
+            closed = False
+        need(closed is True, 'SAFARI_SESSION_CLEANUP_FAILED')
 
 
 def read_authenticated_view(source_root, seed):
@@ -958,7 +1074,11 @@ def save_synthetic_screenshot(driver, site, folder, width, page):
          and probe.get('visible_page') == 'page-' + page and probe.get('width') == width
          and probe.get('overflow') is False and probe.get('encrypted') is False
          and probe.get('synthetic_banner') is True, 'SYNTHETIC_SCREENSHOT_REJECTED')
-    verify_private_boundary(browser_snapshot(driver), site.audit, ())
+    snapshot = browser_snapshot(driver)
+    verify_private_boundary(snapshot, site.audit, ())
+    if site.candidate_ui:
+        need(snapshot.get('local') == {} and snapshot.get('session') == {} and snapshot.get('cookie') == '',
+             'SYNTHETIC_SCREENSHOT_REJECTED')
     encoded = driver.command('GET', '/screenshot')
     need(isinstance(encoded, str) and len(encoded) <= 24 * 1024 * 1024, 'SYNTHETIC_SCREENSHOT_REJECTED')
     try:
@@ -972,16 +1092,18 @@ def save_synthetic_screenshot(driver, site, folder, width, page):
     return {'name': path.name, 'bytes': len(raw), 'sha256': sha(raw)}
 
 
-def synthetic_visual_checks(assets, folder):
+def synthetic_visual_checks(assets, folder, *, candidate_ui=False):
     """Fresh process, fresh origin/session, exact public fixture, screenshots only."""
     need(not any(os.environ.get(k) for k in ('RACE_AI_STATE_KEY', 'GH_TOKEN', 'GITHUB_TOKEN')),
          'SYNTHETIC_SCREENSHOT_REJECTED')
+    if candidate_ui:
+        require_synthetic_environment()
     folder = Path(folder).absolute()
     need(not folder.exists() and not any(p.is_symlink() for p in folder.parents), 'SYNTHETIC_OUTPUT_REJECTED')
     fixture = synthetic_fixture(assets)
     screenshots, widths = [], []
     folder.mkdir(mode=0o700)
-    with LoopbackSite(assets, fixture, synthetic=True) as site:
+    with LoopbackSite(assets, fixture, synthetic=True, candidate_ui=candidate_ui) as site:
         with apple_driver() as (driver, identity):
             driver.command('POST', '/url', {'url': site.url})
             driver.wait('return globalThis.__raceSafariPrivacy?.synthetic_fixture_verified===true', timeout=90)
@@ -1010,13 +1132,17 @@ def synthetic_visual_checks(assets, folder):
               'public_fixture_sha256': SYNTHETIC_SHA, 'native_browser': identity,
               'viewports': widths, 'screenshots': screenshots, 'real_data_context_used_for_capture': False,
               'physical_iphone_verified': False, 'all_eight_reference_screens_visually_verified': False}
+    if candidate_ui:
+        report.update(schema='RACE_AI_SYNTHETIC_SAFARI_VISUAL_V2', candidate_source=candidate_identity(),
+            synthetic_session_cleanup_verified=True, account_login_verified=False,
+            current_v5_live_continuation_verified=False, real_data_verified=False)
     with (folder / 'synthetic-only.json').open('x') as stream:
         stream.write(wire(report) + '\n')
-    verify_synthetic_artifacts(folder)
+    verify_synthetic_artifacts(folder, candidate_ui=candidate_ui)
     return report
 
 
-def verify_synthetic_artifacts(folder):
+def verify_synthetic_artifacts(folder, *, candidate_ui=False):
     folder = Path(folder)
     need(folder.is_dir() and not any(p.is_symlink() for p in (folder, *folder.parents)), 'SYNTHETIC_OUTPUT_REJECTED')
     try:
@@ -1025,7 +1151,8 @@ def verify_synthetic_artifacts(folder):
              'SYNTHETIC_OUTPUT_REJECTED')
         report = json.loads(manifest.read_bytes())
         names = {str(w) + '-' + p + '.png' for w in VISUAL_WIDTHS for p in VISUAL_PAGES}
-        need(report['schema'] == 'RACE_AI_SYNTHETIC_SAFARI_VISUAL_V1'
+        need(report['schema'] == ('RACE_AI_SYNTHETIC_SAFARI_VISUAL_V2' if candidate_ui else
+                                  'RACE_AI_SYNTHETIC_SAFARI_VISUAL_V1')
              and report['dataset_status'] == 'SYNTHETIC_ONLY' and report['public_fixture_sha256'] == SYNTHETIC_SHA
              and report.get('real_data_context_used_for_capture') is False
              and report.get('physical_iphone_verified') is False
@@ -1033,6 +1160,13 @@ def verify_synthetic_artifacts(folder):
              and len(report['screenshots']) == len(names)
              and {row['name'] for row in report['screenshots']} == names
              and {p.name for p in folder.iterdir()} == names | {'synthetic-only.json'}, 'SYNTHETIC_OUTPUT_REJECTED')
+        if candidate_ui:
+            need(report.get('candidate_source') == candidate_identity()
+                 and report.get('synthetic_session_cleanup_verified') is True
+                 and all(report.get(key) is False for key in ('account_login_verified',
+                     'current_v5_live_continuation_verified', 'real_data_verified')),
+                 'SYNTHETIC_OUTPUT_REJECTED')
+            native_identity(report.get('native_browser'))
         viewports = report.get('viewports')
         need(isinstance(viewports, list) and len(viewports) == len(VISUAL_WIDTHS), 'SYNTHETIC_OUTPUT_REJECTED')
         for width, viewport in zip(VISUAL_WIDTHS, viewports):
@@ -1050,7 +1184,12 @@ def verify_synthetic_artifacts(folder):
                  'SYNTHETIC_OUTPUT_REJECTED')
     except (OSError, ValueError, KeyError, TypeError):
         raise SafariHold('SYNTHETIC_OUTPUT_REJECTED') from None
-    return {'status': 'SYNTHETIC_SCREENSHOT_ARTIFACTS_VERIFIED', 'screenshots': len(names), 'dataset_status': 'SYNTHETIC_ONLY'}
+    result = {'status': 'SYNTHETIC_SCREENSHOT_ARTIFACTS_VERIFIED', 'screenshots': len(names),
+              'dataset_status': 'SYNTHETIC_ONLY'}
+    if candidate_ui:
+        result.update(candidate_source=candidate_identity(), physical_iphone_verified=False,
+                      all_eight_reference_screens_visually_verified=False)
+    return result
 
 
 def app_checks(driver, site, context, secrets):
@@ -1138,18 +1277,24 @@ def main(argv=None):
     parser.add_argument('--source-root', type=Path)
     parser.add_argument('--public-root', type=Path, required=True)
     parser.add_argument('--synthetic-only', action='store_true')
+    parser.add_argument('--candidate-ui', action='store_true')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--verify-synthetic-artifacts', type=Path)
     args = parser.parse_args(argv)
     try:
+        if args.candidate_ui:
+            require_synthetic_environment()
+            need(args.source_root is None and ((args.synthetic_only and args.output is not None
+                 and args.verify_synthetic_artifacts is None) or (args.verify_synthetic_artifacts is not None
+                 and not args.synthetic_only and args.output is None)), 'SYNTHETIC_OUTPUT_REJECTED')
         if args.verify_synthetic_artifacts is not None:
-            print(wire(verify_synthetic_artifacts(args.verify_synthetic_artifacts)))
+            print(wire(verify_synthetic_artifacts(args.verify_synthetic_artifacts, candidate_ui=args.candidate_ui)))
             return 0
         need(platform.system() == 'Darwin', 'NATIVE_MACOS_REQUIRED')
-        assets = load_public_assets(args.public_root)
+        assets = load_candidate_assets(args.public_root) if args.candidate_ui else load_public_assets(args.public_root)
         if args.synthetic_only:
             need(args.output is not None and args.source_root is None, 'SYNTHETIC_OUTPUT_REJECTED')
-            report = synthetic_visual_checks(assets, args.output)
+            report = synthetic_visual_checks(assets, args.output, candidate_ui=args.candidate_ui)
             print(wire({key: value for key, value in report.items() if key != 'screenshots'} | {'screenshots': len(report['screenshots'])}))
             return 0
         need(args.source_root is not None and args.output is None, 'SAVED_CONTEXT_INVALID')
@@ -1170,6 +1315,7 @@ def main(argv=None):
             'authenticated_results': context['minimum_results'], 'authenticated_native_p1_groups': context['native_group_count'],
             'latest_p1_private_transport': {**checks, 'transport': 'LOOPBACK_EXISTING_PRIVATE_SAVED_ENDPOINT'},
             'encrypted_seed': seed_checks, 'browser_aes_verified': True,
+            'private_sessions_cleanup_verified': True,
             'account_login_verified': False, 'current_v5_live_continuation_verified': False,
             'browser_aes_and_owner_login_verified': False, 'physical_iphone_verified': False,
             'all_eight_reference_screens_visually_verified': False, 'plaintext_published': False,

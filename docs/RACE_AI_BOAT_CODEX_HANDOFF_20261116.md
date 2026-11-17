@@ -408,3 +408,14 @@ main0d812の実監査44093714741はM2の1〜5巡/13暗号原本/追加P1の9行�
 combined123件/92gateと独立reviewは成功、最終CI/main/実gate/修正済み実鍵照合は未確認として続ける。
 active owner・旧checkout/proof・未知origin・最終control欠測はHOLD、新workerを直接起動しない。
 [今回の実失敗と候補証拠](evidence/boat-profile-release-and-archive-fix-20261117.json)。
+
+## 14:16 UTC 継続: 実鍵の修正原本検証とactive-owner拒否を確認
+
+既存PR59は最終27 checks後にmain43704b2fへ通常merge/tree一致。source f553とfuture pinを結合。
+真正gate44100425945はHOLD_ACTIVE_OWNER_WORKFLOW、公式GET0/追加dispatchなし。現M2は86b固定。
+真正監査44100426069はsuccess。旧13559236491の元ZIP/metadataのサイズ/SHAと16記録/88入力片を実owner鍵で確認した。
+新入力/receipt/dispatch/原本変更は0、初回metadata-name失敗は保存。2証拠ZIPの再取得SHAも照合済み。
+M2部分監査は1〜7巡/17原本、追加P1の9行表示データ一致9/欠落0。ALL_MODEL2〜7欠落と公式B不足でHOLDを継続する。
+[実行と範囲](evidence/boat-actual-profile-gate-archive-aes-20261117.json)。
+次は候補UI598の実Mac受入。既存workflow416758725のbrowser=native-safariを使い、新job/配信を増やさない。
+64件/独立レビュー済み3fileを既存PR58へ保存。実Mac/iPhone/全8参考/実dataは実行まで未確認。

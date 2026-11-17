@@ -135,19 +135,29 @@ jobs:
             --source-root .native-safari-source --public-root .
       # A separate process starts only after every real-data Safari context and
       # loopback server above has closed. It has no owner credentials or URLs.
-      - name: Capture isolated public synthetic fixture in seven pages and four widths
+      - name: Checkout the exact reviewed UI candidate for synthetic capture only
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 598c80c89b5d6a1bca8dbbb16d091ef9e74bfb76
+          path: .native-safari-ui-candidate
+          persist-credentials: false
+      - name: Capture pinned UI candidate in seven pages and four widths
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
         run: |
-          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN \
+          env -i PATH="$PATH" HOME="$HOME" LANG="${LANG:-en_US.UTF-8}" TMPDIR="${TMPDIR:-/tmp}" \
             python3 .native-safari-tools/scripts/boat_native_safari_acceptance.py \
-            --public-root . --synthetic-only --output "$RUNNER_TEMP/race-ai-synthetic-safari"
-          python3 .native-safari-tools/scripts/boat_native_safari_acceptance.py \
-            --public-root . --verify-synthetic-artifacts "$RUNNER_TEMP/race-ai-synthetic-safari"
+            --public-root .native-safari-ui-candidate/web --synthetic-only --candidate-ui \
+            --output "$RUNNER_TEMP/race-ai-ui-candidate-safari"
+          env -i PATH="$PATH" HOME="$HOME" LANG="${LANG:-en_US.UTF-8}" TMPDIR="${TMPDIR:-/tmp}" \
+            python3 .native-safari-tools/scripts/boat_native_safari_acceptance.py \
+            --public-root .native-safari-ui-candidate/web --candidate-ui \
+            --verify-synthetic-artifacts "$RUNNER_TEMP/race-ai-ui-candidate-safari"
       - name: Retain only verified synthetic Safari screenshots
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: race-ai-synthetic-safari-${{ github.sha }}
-          path: ${{ runner.temp }}/race-ai-synthetic-safari/*.png
+          name: race-ai-ui-candidate-safari-598c80c8-${{ github.sha }}
+          path: ${{ runner.temp }}/race-ai-ui-candidate-safari/*.png
           if-no-files-found: error
           retention-days: 7
