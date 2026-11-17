@@ -102,6 +102,12 @@ class SelectHold(SafariHold):
         self.probe = select_diagnostic(probe)
 
 
+class SyntheticEnvironmentHold(SafariHold):
+    def __init__(self, unexpected_count, known_os_keys):
+        super().__init__('SYNTHETIC_SCREENSHOT_REJECTED')
+        self.unexpected_count, self.known_os_keys = unexpected_count, known_os_keys
+
+
 PUBLIC_UI_MODULES = frozenset(('app.js', 'product-data.js', 'ui-model.js',
     'saved-performance.js', 'forecast-audit-model.js', 'saved-view-crypto.js'))
 UI_STAGES = frozenset(('latest_p1_private_transport', 'encrypted_seed_refusal', 'encrypted_seed_valid'))
@@ -114,10 +120,13 @@ CHECKER_FUNCTIONS = frozenset(('main', 'read_authenticated_view', 'app_checks', 
     'click', '_click_visible_element', 'element', 'wait', 'command', 'open_race', 'select_day', 'click_page',
     'open_saved_race', 'select_saved_day', 'click_saved_page', 'encrypted_seed_checks', 'synthetic_visual_checks',
     'apple_driver', 'new_session', 'call', 'native_identity', 'verify_model_choice', 'verify_private_boundary',
-    'load_public_assets', 'verify_live_assets'))
+    'load_public_assets', 'verify_live_assets', 'require_synthetic_environment'))
 SELECT_BOOLEANS = ('control_is_select', 'control_connected', 'control_enabled', 'control_visible',
     'target_connected', 'target_enabled', 'target_visible', 'selected_target', 'control_in_view', 'hit_target', 'focused', 'same_control')
 SELECT_COUNTS = ('control_count', 'option_count', 'target_count')
+SYNTHETIC_ENVIRONMENT_KEYS = frozenset(('PATH', 'HOME', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TMPDIR'))
+SYNTHETIC_OS_ENVIRONMENT_KEYS = ('__CF_USER_TEXT_ENCODING', '__CFBundleIdentifier', '__PYVENV_LAUNCHER__',
+    'VERSIONER_PYTHON_VERSION', 'VERSIONER_PYTHON_PREFER_32_BIT', 'PYTHONEXECUTABLE')
 
 
 def need(value, reason):
@@ -143,6 +152,13 @@ def select_diagnostic(probe):
 def failure_report(error):
     reason = str(error) if isinstance(error, SafariHold) and str(error) in REASONS else 'SAFARI_OPERATION_FAILED'
     report={'status': 'NATIVE_SAFARI_ACCEPTANCE_HOLD', 'reason': reason}
+    if isinstance(error, SyntheticEnvironmentHold):
+        count = error.unexpected_count
+        present = error.known_os_keys if type(error.known_os_keys) is dict else {}
+        report.update(environment_phase='synthetic_environment_guard',
+            unexpected_environment_key_count=count if type(count) is int and 0 <= count <= 10000 else None,
+            known_os_environment_key_present={key: present.get(key) if type(present.get(key)) is bool else None
+                                               for key in SYNTHETIC_OS_ENVIRONMENT_KEYS})
     if isinstance(error, DriverHold):
         report.update(
             webdriver_operation=error.operation if type(error.operation) is str and
@@ -215,8 +231,12 @@ def driver_environment(environment):
 def require_synthetic_environment():
     # The candidate checker and Safari driver receive only original OS values.
     # Unknown owner/viewer credential variable names fail closed as well.
-    need(set(os.environ) <= {'PATH', 'HOME', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TMPDIR'},
-         'SYNTHETIC_SCREENSHOT_REJECTED')
+    unexpected = set(os.environ) - SYNTHETIC_ENVIRONMENT_KEYS
+    if unexpected:
+        # Count names in memory; export only fixed OS-key presence, never values
+        # or names from the unexpected set. Every unexpected key still refuses.
+        raise SyntheticEnvironmentHold(len(unexpected),
+            {key: key in os.environ for key in SYNTHETIC_OS_ENVIRONMENT_KEYS})
 
 
 def candidate_identity():

@@ -1565,5 +1565,119 @@ class NativeSelectPreparationTests(unittest.TestCase):
         self.assertIsNone(report['ui_select_preflight']['target_count'])
 
 
+class SyntheticEnvironmentDiagnosticTests(unittest.TestCase):
+    ALLOWED = frozenset(('PATH', 'HOME', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TMPDIR'))
+    KNOWN_OS = ('__CF_USER_TEXT_ENCODING', '__CFBundleIdentifier', '__PYVENV_LAUNCHER__',
+                'VERSIONER_PYTHON_VERSION', 'VERSIONER_PYTHON_PREFER_32_BIT', 'PYTHONEXECUTABLE')
+
+    def test_original_six_key_allowlist_and_all_subsets_still_pass_unchanged(self):
+        self.assertEqual(S.SYNTHETIC_ENVIRONMENT_KEYS, self.ALLOWED)
+        keys = sorted(self.ALLOWED)
+        for bits in range(1 << len(keys)):
+            environment = {key: 'invented-original-os-value' for i, key in enumerate(keys) if bits & (1 << i)}
+            with patch.dict(os.environ, environment, clear=True):
+                S.require_synthetic_environment()
+                self.assertEqual(dict(os.environ), environment)
+
+    def test_known_os_startup_keys_remain_refused_and_only_presence_is_reported(self):
+        self.assertEqual(S.SYNTHETIC_OS_ENVIRONMENT_KEYS, self.KNOWN_OS)
+        for key in self.KNOWN_OS:
+            environment = {'HOME': '/invented-private-path', key: 'private-sentinel-value'}
+            with self.subTest(key=key), patch.dict(os.environ, environment, clear=True):
+                try:
+                    S.require_synthetic_environment()
+                except S.SafariHold as error:
+                    report = S.failure_report(error)
+                else:
+                    self.fail('OS startup keys must not be allowed by diagnostic work')
+                self.assertEqual(dict(os.environ), environment)
+            self.assertEqual(report['reason'], 'SYNTHETIC_SCREENSHOT_REJECTED')
+            self.assertEqual(report['environment_phase'], 'synthetic_environment_guard')
+            self.assertEqual(report['unexpected_environment_key_count'], 1)
+            self.assertIs(type(report['unexpected_environment_key_count']), int)
+            self.assertEqual(report['known_os_environment_key_present'], {name: name == key for name in self.KNOWN_OS})
+            self.assertNotIn('private-sentinel', json.dumps(report))
+            self.assertNotIn('/invented-private-path', json.dumps(report))
+
+    def test_unknown_names_and_credentials_are_counted_without_exporting_names_or_values(self):
+        environments = [
+            {'GH_TOKEN': 'private-sentinel', 'RACE_AI_STATE_KEY': 'private-sentinel'},
+            {'PRIVATE_SENTINEL_UNKNOWN_NAME': 'private-sentinel', '__CF_USER_TEXT_ENCODING': ''},
+            {'RACE_AI_VIEWER_KEY': '', 'GIT_CONFIG_VALUE_0': 'private-sentinel', 'OWNER_PRIVATE_URL': 'private-sentinel'}]
+        for environment in environments:
+            with patch.dict(os.environ, environment, clear=True):
+                try:
+                    S.require_synthetic_environment()
+                except S.SafariHold as error:
+                    report = S.failure_report(error)
+                else:
+                    self.fail('every unexpected key, including empty credentials, must HOLD')
+                self.assertEqual(dict(os.environ), environment)
+            self.assertEqual(report['unexpected_environment_key_count'], len(environment))
+            rendered = json.dumps(report)
+            for name, value in environment.items():
+                if name not in self.KNOWN_OS:
+                    self.assertNotIn(name, rendered)
+                if value:
+                    self.assertNotIn(value, rendered)
+            self.assertEqual(report['known_os_environment_key_present'],
+                             {name: name in environment for name in self.KNOWN_OS})
+
+    def test_spoofed_count_flags_phase_and_extra_fields_cannot_escape_the_report(self):
+        for count in (True, -1, 10001, 1.5, 'private-sentinel', None):
+            error = S.SyntheticEnvironmentHold(1, {name: False for name in self.KNOWN_OS})
+            error.unexpected_count = count
+            error.known_os_keys = {name: 'private-sentinel' for name in self.KNOWN_OS}
+            error.known_os_keys['PRIVATE_SENTINEL_UNKNOWN_NAME'] = 'private-sentinel'
+            error.phase = 'private-sentinel'
+            report = S.failure_report(error)
+            self.assertIsNone(report['unexpected_environment_key_count'])
+            self.assertEqual(report['known_os_environment_key_present'], {name: None for name in self.KNOWN_OS})
+            self.assertEqual(report['environment_phase'], 'synthetic_environment_guard')
+            self.assertNotIn('sentinel', json.dumps(report))
+        for count in (0, 1, 10000):
+            error = S.SyntheticEnvironmentHold(count, [])
+            report = S.failure_report(error)
+            self.assertEqual(report['unexpected_environment_key_count'], count)
+            self.assertEqual(report['known_os_environment_key_present'], {name: None for name in self.KNOWN_OS})
+
+    def test_main_guard_holds_before_assets_browser_or_artifact_operations_in_both_modes(self):
+        commands = [
+            ['--public-root', '/private-sentinel/web', '--synthetic-only', '--candidate-ui', '--output', '/private-sentinel/output'],
+            ['--public-root', '/private-sentinel/web', '--candidate-ui', '--verify-synthetic-artifacts', '/private-sentinel/output']]
+        for arguments in commands:
+            output = io.StringIO()
+            with patch.dict(os.environ, {'PRIVATE_SENTINEL_UNKNOWN_NAME': 'private-sentinel'}, clear=True), \
+                    patch.object(S, 'load_candidate_assets') as assets, \
+                    patch.object(S, 'synthetic_visual_checks') as capture, \
+                    patch.object(S, 'verify_synthetic_artifacts') as artifacts, \
+                    patch.object(S, 'apple_driver') as driver, \
+                    patch.object(S, 'read_authenticated_view') as private, \
+                    redirect_stdout(output), redirect_stderr(output):
+                self.assertEqual(S.main(arguments), 2)
+            for operation in (assets, capture, artifacts, driver, private):
+                operation.assert_not_called()
+            report = json.loads(output.getvalue())
+            self.assertEqual(report['unexpected_environment_key_count'], 1)
+            self.assertEqual(report['checker_function'], 'require_synthetic_environment')
+            self.assertEqual([f['function'] for f in report['checker_callers']], ['main', 'require_synthetic_environment'])
+            self.assertNotIn('sentinel', output.getvalue())
+
+    def test_second_guard_precedes_output_folder_or_loopback_session(self):
+        with tempfile.TemporaryDirectory() as name:
+            output = Path(name) / 'must-not-exist'
+            with patch.dict(os.environ, {'PRIVATE_SENTINEL_UNKNOWN_NAME': ''}, clear=True), \
+                    patch.object(S, 'LoopbackSite') as site, patch.object(S, 'apple_driver') as driver:
+                try:
+                    S.synthetic_visual_checks({}, output, candidate_ui=True)
+                except S.SafariHold as error:
+                    report = S.failure_report(error)
+                else:
+                    self.fail('second environment check must refuse unexpected keys')
+            self.assertEqual(report['unexpected_environment_key_count'], 1)
+            self.assertFalse(output.exists())
+            site.assert_not_called();driver.assert_not_called()
+
+
 if __name__ == '__main__':
     unittest.main()
