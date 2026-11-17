@@ -5,6 +5,7 @@ counts, immutable Git locators and fixed diagnostic classes; private payloads
 and exact response bytes are written only to fresh private runner paths.
 """
 import argparse
+import ctypes
 from datetime import datetime, timezone
 import json
 import os
@@ -14,6 +15,7 @@ import selectors
 import stat
 import subprocess
 import sys
+import tempfile
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +23,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from race_ai import boat_private_original_vault as V
+from race_ai import boat_source_capture_files as C
 from race_ai.boat_owner_source_identity import authenticated_live_owner_run
 
 
@@ -370,6 +373,7 @@ def _file_records(manifest, repo):
 
 
 def _capture_files(folder, repo):
+    """Compatibility API for one bounded list; retention uses the inventory."""
     root = _private_path(folder, repo, directory=True)
     receipts = sorted(root.glob('*.json'))
     V._need(len(receipts) <= 240, 'CAPTURE_COUNT_INVALID')
@@ -382,6 +386,127 @@ def _capture_files(folder, repo):
         V._need(len(candidates) == 1, 'CAPTURE_BODY_REQUIRED')
         captures.append((_read_private(candidates[0], repo, 4*1024*1024), metadata_raw))
     return captures
+
+
+CAPTURE_SET = 'RACE_AI_SOURCE_CAPTURE_SET_V1'
+
+
+def _capture_set_report(locators, counts, hashes, total, *, complete):
+    return dict(schema=CAPTURE_SET,
+        status='SOURCE_CAPTURES_RETAINED' if complete else 'SOURCE_CAPTURES_RETENTION_HOLD',
+        complete=complete, source_commit=locators[-1]['source_commit'] if locators else None,
+        retained_captures=sum(counts), requested_captures=total, locators=locators,
+        bundle_capture_counts=counts, bundle_inventory_sha256=hashes,
+        capture_set_sha256=C.capture_set_hash(hashes), plaintext_published=False)
+
+
+def _safe_reason(exc):
+    return str(exc) if type(exc) is ValueError and re.fullmatch(r'VAULT_[A-Z0-9_]{1,100}',str(exc)) else 'VAULT_OPERATION_FAILED'
+
+
+def _retain_capture_files(folder, repo, requested_parent, git, readback, clock):
+    # No Git publication until every receipt, body, source URL, actual clock,
+    # global identity and private file has passed the disk-backed preflight.
+    with C.CaptureInventory(folder, repo=repo, now=clock) as inventory:
+        if not inventory.count:return dict(status='NO_SOURCE_CAPTURES_TO_RETAIN', retained_captures=0), 0
+        run = os.environ.get('GITHUB_RUN_ID'); V._need(run and run.isdecimal(), 'ACTIONS_RUN_REQUIRED')
+        V._id(int(run)); V._hex(os.environ.get('GITHUB_SHA'), V._HEAD)
+        parent = _parent(git, requested_parent); locators = []; counts = []; hashes = []
+        try:
+            for group in inventory.groups():
+                captures = inventory.materialize(group)
+                count = len(captures); digest = C.bundle_inventory(captures)
+                locator = V.retain_capture_bundle(captures, repo, run_id=int(run), head_sha=os.environ['GITHUB_SHA'],
+                    expected_parent=parent, transport=git, readback_transport=readback, now=clock)
+                del captures  # Never keep two raw-body groups alive.
+                locators.append(locator); counts.append(count); hashes.append(digest)
+                parent = locator['source_commit']
+        except Exception as exc:
+            # A commit may exist even when its independent readback failed.
+            # Only the verified prefix is acknowledged; retry never resets it.
+            report = _capture_set_report(locators, counts, hashes, inventory.count, complete=False)
+            report['reason'] = _safe_reason(exc)
+            return report, 2
+        if len(locators) == 1:
+            # Exact pre-batching report shape and file order for one bundle.
+            return dict(status='SOURCE_CAPTURES_RETAINED', source_commit=parent,
+                retained_captures=inventory.count, locator=locators[0], plaintext_published=False), 0
+        return _capture_set_report(locators, counts, hashes, inventory.count, complete=True), 0
+
+
+def _capture_set(value):
+    """Validate a plural acknowledgment, not a new cryptographic authority.
+
+    Every member is separately authenticated by the existing vault. The JSON
+    count/hash acknowledgment is not a substitute for a trusted report hash.
+    """
+    fields = {'schema','status','complete','source_commit','retained_captures','requested_captures',
+              'locators','bundle_capture_counts','bundle_inventory_sha256','capture_set_sha256','plaintext_published'}
+    V._need(type(value) is dict and set(value) == fields and value['schema'] == CAPTURE_SET
+            and value['status'] == 'SOURCE_CAPTURES_RETAINED' and value['complete'] is True
+            and value['plaintext_published'] is False, 'CAPTURE_SET_INCOMPLETE')
+    locators = value['locators']; counts = value['bundle_capture_counts']; hashes = value['bundle_inventory_sha256']
+    V._need(type(locators) is list and len(locators) > 1
+            and type(counts) is list and type(hashes) is list and len(locators) == len(counts) == len(hashes)
+            and all(type(n) is int and 0 < n <= C.MAX_CAPTURES for n in counts)
+            and type(value['retained_captures']) is int and type(value['requested_captures']) is int
+            and value['retained_captures'] == value['requested_captures'] == sum(counts), 'CAPTURE_SET_COUNT_INVALID')
+    V._hex(value['source_commit'], V._HEAD)
+    V._need(all(type(locator) is dict and locator.get('kind') == 'SOURCE_CAPTURES' for locator in locators)
+            and value['source_commit'] == locators[-1].get('source_commit'), 'CAPTURE_SET_LOCATOR_INVALID')
+    identities = [(locator.get('batch_path'), locator.get('entry_sha256')) for locator in locators]
+    V._need(len(set(identities)) == len(identities)
+            and C.capture_set_hash(hashes) == value['capture_set_sha256'], 'CAPTURE_SET_HASH_INVALID')
+    return locators, counts, hashes
+
+
+def _expose_private_directory(stage, folder, repo):
+    # Ubuntu Actions supports renameat2. Refuse on other platforms rather than
+    # use rename(), whose empty-directory replacement would hide a collision.
+    _private_path(folder, repo, exists=False)
+    libc = ctypes.CDLL(None, use_errno=True)
+    rename = getattr(libc, 'renameat2', None)
+    V._need(rename is not None, 'ATOMIC_PRIVATE_RESTORE_UNAVAILABLE')
+    rename.argtypes = (ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint)
+    rename.restype = ctypes.c_int
+    V._need(rename(-100, os.fsencode(stage), -100, os.fsencode(folder), 1) == 0,
+            'FRESH_PRIVATE_OUTPUT_REQUIRED')
+
+
+def _restore_captures(value, folder, repo, git, clock):
+    plural = type(value) is dict and value.get('schema') == CAPTURE_SET
+    if plural:
+        locators, counts, hashes = _capture_set(value)
+    else:
+        if type(value) is dict and 'locator' in value:value = value['locator']
+        elif type(value) is dict and 'locators' in value:
+            V._need(type(value['locators']) is list and len(value['locators']) == 1, 'ONE_LOCATOR_REQUIRED')
+            value = value['locators'][0]
+        locators = [value]; counts = hashes = None
+    # Sibling staging keeps one atomic no-replace rename on the same filesystem.
+    # Failure of any final bundle, count, hash or output check removes staging.
+    with tempfile.TemporaryDirectory(prefix='.boat-capture-restore-', dir=folder.parent) as name, \
+         C.CaptureReceiptIndex(repo=repo, now=clock) as identities:
+        stage = _private_path(name, repo, directory=True); provenance = []
+        for number, locator in enumerate(locators):
+            restored = V.restore_capture_bundle(locator, repo, transport=git)
+            pairs = restored['captures']
+            if plural:
+                V._need(len(pairs) == counts[number] and C.bundle_inventory(pairs) == hashes[number],
+                        'CAPTURE_SET_READBACK_MISMATCH')
+            identities.add(pairs)
+            target = stage/f'bundle-{number:06d}' if plural else stage
+            if plural:target.mkdir(mode=0o700)
+            for index, pair in enumerate(pairs):
+                for suffix, body in zip(('raw','json'), pair):_write(target/f'capture-{index:04d}.{suffix}', body)
+            provenance.append(restored['provenance'])
+            del pairs, restored
+        if plural:V._need(identities.count == value['retained_captures'], 'CAPTURE_SET_COUNT_INVALID')
+        report = dict(status='EXACT_SOURCE_CAPTURES_RESTORED', captures=identities.count,
+            provenance=provenance if plural else provenance[0], plaintext_published=False)
+        if plural:report.update(complete=True, capture_bundles=len(locators), capture_set_sha256=value['capture_set_sha256'])
+        _expose_private_directory(stage, folder, repo)
+    return report
 
 
 def _parser():
@@ -407,6 +532,7 @@ def _parser():
 def main(argv=None, *, transport=None, readback_transport=None, github_get=None, now=None):
     args = _parser().parse_args(argv)
     try:
+        code = 0
         repo = _environment(args.repo_root)
         output = _private_path(args.output, repo, exists=False) if args.output else None
         git = V._transport(repo, transport)
@@ -425,47 +551,33 @@ def main(argv=None, *, transport=None, readback_transport=None, github_get=None,
                 expected_parent=_parent(git,args.expected_parent), transport=git,
                 readback_transport=readback_transport, now=clock)
         elif args.command == 'retain-captures':
-            captures = _capture_files(args.capture_dir,repo)
-            if not captures:
-                report = dict(status='NO_SOURCE_CAPTURES_TO_RETAIN', retained_captures=0)
-            else:
-                run = os.environ.get('GITHUB_RUN_ID'); V._need(run and run.isdecimal(), 'ACTIONS_RUN_REQUIRED')
-                locator = V.retain_capture_bundle(captures, repo, run_id=int(run), head_sha=os.environ.get('GITHUB_SHA'),
-                    expected_parent=_parent(git,args.expected_parent), transport=git,
-                    readback_transport=readback_transport, now=clock)
-                report = dict(status='SOURCE_CAPTURES_RETAINED', source_commit=locator['source_commit'],
-                              retained_captures=len(captures), locator=locator, plaintext_published=False)
+            report, code = _retain_capture_files(args.capture_dir,repo,args.expected_parent,git,readback_transport,clock)
         elif args.command == 'lookup':
             V._need(len(args.artifact) == 1, 'ONE_LOOKUP_ID_REQUIRED')
             locator = V.lookup_original(args.artifact[0],repo,transport=git)
             report = dict(status='ARCHIVED_ORIGINAL_FOUND' if locator else 'ARCHIVED_ORIGINAL_NOT_FOUND', locator=locator)
         else:
-            locator = V._json(_read_private(args.locator,repo,16384),16384)
-            if type(locator) is dict and 'locator' in locator:
-                locator = locator['locator']
-            elif type(locator) is dict and 'locators' in locator:
-                V._need(type(locator['locators']) is list and len(locator['locators']) == 1,
-                        'ONE_LOCATOR_REQUIRED')
-                locator = locator['locators'][0]
+            locator = V._json(_read_private(args.locator,repo,V.MAX_INDEX),V.MAX_INDEX)
             folder = _private_path(args.output_dir,repo,exists=False)
-            if args.command == 'restore':
+            if args.command == 'restore-captures':
+                report = _restore_captures(locator,folder,repo,git,clock)
+            else:
+                # Original-artifact restore still requires a single locator.
+                if type(locator) is dict and 'locator' in locator:locator = locator['locator']
+                elif type(locator) is dict and 'locators' in locator:
+                    V._need(type(locator['locators']) is list and len(locator['locators']) == 1, 'ONE_LOCATOR_REQUIRED')
+                    locator = locator['locators'][0]
                 restored = V.restore_original(locator,repo,transport=git)
                 bodies = {'original.zip':restored['raw_zip'],'metadata.json':restored['metadata_raw']}
                 report = dict(status='EXACT_ORIGINAL_RESTORED', artifact_id=locator['artifact_id'],
                               provenance=restored['provenance'], plaintext_published=False)
-            else:
-                restored = V.restore_capture_bundle(locator,repo,transport=git)
-                bodies = {f'capture-{index:04d}.'+suffix:body for index,pair in enumerate(restored['captures'])
-                          for suffix,body in zip(('raw','json'),pair)}
-                report = dict(status='EXACT_SOURCE_CAPTURES_RESTORED', captures=len(restored['captures']),
-                              provenance=restored['provenance'], plaintext_published=False)
-            folder.mkdir(mode=0o700)
-            for name,body in bodies.items(): _write(path=folder/name, raw=body)
+                folder.mkdir(mode=0o700)
+                for name,body in bodies.items(): _write(path=folder/name, raw=body)
         if output: _write(output,V._wire(report)+b'\n')
         print(V._wire(report).decode('utf-8'))
-        return 0
+        return code
     except Exception as exc:
-        reason = str(exc) if type(exc) is ValueError and re.fullmatch(r'VAULT_[A-Z0-9_]{1,100}',str(exc)) else 'VAULT_OPERATION_FAILED'
+        reason = _safe_reason(exc)
         print(V._wire(dict(status='EXACT_ORIGINAL_VAULT_REJECTED',reason=reason)).decode('utf-8'))
         return 2
 

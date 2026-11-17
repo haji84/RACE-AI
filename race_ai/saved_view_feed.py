@@ -155,19 +155,25 @@ def update_view(view,observations,*,synced_at,captures=()):
     rows={endpoint(date.fromisoformat(r['event_date_jst']),r['race_id'][9:11],int(r['race_id'][-2:]),'raceresult'):r for r in out['records']}
     from .racer_intraday_source import result_url
     rows.update({result_url(r['event_date_jst'],r['race_id'][9:11],int(r['race_id'][-2:])):r for r in out['records'] if r.get('sport')=='boat'})
-    parsed=[]
+    parsed=[];parsed_size=0
     for raw,receipt in captures:
         need(receipt.get('http_status')==200 and sha(raw)==receipt.get('source_sha256'),'FEED_CAPTURE_HASH')
         row=rows.get(receipt.get('source_url'))
         if row is None:continue
         instant(receipt['captured_at'])
-        try:parsed.append(parse_capture(raw,receipt))
+        try:observation=parse_capture(raw,receipt)
         except Exception:
             # Source layouts are isolated per race, just like the native audit.
             # Keep the newer rejection visible rather than reuse an old final.
-            parsed.append(dict(race_id=row['race_id'],closed_at=row['cutoff_at'],captured_at=receipt['captured_at'],
+            observation=dict(race_id=row['race_id'],closed_at=row['cutoff_at'],captured_at=receipt['captured_at'],
                 source_sha256=receipt['source_sha256'],source_url=receipt['source_url'],body_identity_verified=False,
-                status='UNSUPPORTED',data=None,source_parse_rejected=True))
+                status='UNSUPPORTED',data=None,source_parse_rejected=True)
+        # These distinct receipt revisions must all fit the existing physical
+        # view bound. Stop during projection, before an unbounded parsed list
+        # could exhaust the runner ahead of the final encryption size check.
+        parsed_size+=len(wire(observation).encode('utf-8'))+1
+        need(parsed_size<=MAX_VIEW,'FEED_CAPTURE_OBSERVATIONS_BOUND')
+        parsed.append(observation)
     raw_ids={digest(o) for o in parsed}
     by_capture={(o['race_id'],instant(o['captured_at'])):o for o in _merge(parsed)}
     observations=_merge(observations);native={(o['race_id'],instant(o['captured_at'])):o for o in observations}
@@ -383,6 +389,7 @@ def retain_capture(folder,raw,receipt):
     save(root/(digest(receipt)+'.json'),(wire(receipt)+'\n').encode())
 
 def load_captures(folder):
+    """Legacy small-list API; production uses the disk-backed iterator below."""
     folder=Path(folder)
     if not folder.exists():return []
     root=private_root(folder);receipts=sorted(root.glob('*.json'));need(len(receipts)<=240,'FEED_CAPTURE_COUNT')
@@ -393,3 +400,8 @@ def load_captures(folder):
         raw=_read(root/(_hex(receipt['source_sha256'])+'.html'),4*1024*1024)
         need(sha(raw)==receipt['source_sha256'],'FEED_CAPTURE_HASH');out.append((raw,receipt))
     return out
+
+def capture_inventory(folder,*,repo=None,now=None):
+    from .boat_source_capture_files import CaptureInventory
+    return CaptureInventory(folder,repo=repo,now=now,metadata_limit=4096,
+                            suffixes=('.html',),missing_ok=True)

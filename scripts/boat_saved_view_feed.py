@@ -222,11 +222,15 @@ def main(argv=None):
                 capture_dir=Path(os.environ['RUNNER_TEMP'])/'boat-saved-view-captures'
                 from race_ai.official_race_updates import endpoint
                 urls={endpoint(date.fromisoformat(r['event_date_jst']),r['race_id'][9:11],int(r['race_id'][-2:]),'raceresult') for r in view['records']}
-                captures=[c for c in F.load_captures(capture_dir) if c[1]['source_url'] in urls]
-                if not items and not captures and not changed:
-                    if not activate_history:
-                        print(wire(dict(status='SAVED_DAY_UNCHANGED',generation=generation)));return 0
-                else:view=F.update_view(view,items,captures=captures,synced_at=datetime.now(timezone.utc).isoformat())
+                clock=datetime.now(timezone.utc)
+                # Validate the whole folder before any protection/feed write.
+                # Replay once in the legacy filename order, with only one raw
+                # response in memory, preserving every intermediate revision.
+                with F.capture_inventory(capture_dir,repo=ROOT,now=clock) as inventory:
+                    if not items and not inventory.count_urls(urls) and not changed:
+                        if not activate_history:
+                            print(wire(dict(status='SAVED_DAY_UNCHANGED',generation=generation)));return 0
+                    else:view=F.update_view(view,items,captures=inventory.iter_captures(urls=urls),synced_at=clock.isoformat())
         if os.environ.get('RACE_AI_ORIGINAL_VAULT_ENABLED')=='true':
             from scripts.boat_original_maintenance import protect_new_forecast_originals
             protection=protect_new_forecast_originals(previous_view,view,ROOT)
