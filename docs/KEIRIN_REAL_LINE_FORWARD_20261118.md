@@ -67,3 +67,46 @@ A = 既存PR71の保存済み従来モデル、B = 6局面/勝ち上がり条件
 2. 同一実レースの本物のPR71締切前入力とB/Cの6局面条件を揃え、Cを事前凍結。現時点の公開の「並び予想＋結果」のみではC正式補正をしない。
 3. 未来の未使用レースでA/B/C原本を事前登録→AES保存→別runner SHA→公式結果独立取得→`keirin_line_three_arm_audit.py`で同一母数のHit@1/全候補/仮想ROI/HOLD評価。
 4. mainでソース拒否・映像保存認証が続くと予想母数0のため、既存ワークフローの回復証拠を優先。エラー回避のための無許可大量アクセスは行わない。
+
+
+## 2026-11-18 JST 追加本番ゲート：動画全体からの再復号・未来レース母数凍結
+
+### 1. 実録画データのSHA連鎖を本物のWebMまでたどった
+
+所有者Libraryの既存RSA/AES-GCM暗号アーカイブから `202611098402` の実WebM 10,657,421 bytesを一時復号した。暗号アーカイブSHA `f9cb22db33145b85337df5c3dc0e66489d7d1e1d0fec6b99cb9250d3215860e9`、暗号ファイルSHA `2b12476f944331099e6ca2a392fbeec3542d18f30921348f8b859c175998d905`、認証復号WebM SHA `4e389a46c223b7cb2eaa7c5c5bdc34ade229deedea8a3c795c8be987b57aa810` が元マニフェストと一致。
+
+OpenCVで実WebMを再デコードし、0/2/4/.../90秒の46フレームを固定の画面プレイヤー領域（y=30.3〜70.9%、x=29.9〜70.1%）で再クロップ。**実WebM→46フレームBGR画素のSHAが全46件で当初のレビューA/BのフレームSHAに一致。0不一致。** 同じフレームID/画素を持つこともA/B 46/46で確認。これは暗号原本と画素系譜の証拠であり、競輪場主催者の映像権限、正式な車番/ライン・仕掛け・追走の認識精度は証明しない。
+
+- 赤字や元映像を含まない新証拠：`docs/evidence/2026-11-18/keirin_takeo2r_real_webm_redecrypt_frame_sha_v1.json`
+- 既存レビュー用PNGからデコードしたBGR source SHA 46×2の検証処理を `scripts/keirin_private_review_pair_readiness.py` に追加。別系統ソースの現実映像はCIへ含まず、合成PNGで判定を回帰。
+- 6か所の実フレームについて5番黄色と3番赤の見かけの前後を単一観察として記録：`docs/evidence/2026-11-18/keirin_takeo2r_single_visual_color_order_candidates_v1.json`。**観測者はAI単独。実追走のHELD/GAPPED/SWITCHEDラベルとして認証されていない。** 「映像フレーム一致」と「本人追走認証」を混同しない。
+
+### 2. Cを本当の連係履歴につなぐ受け口・B/C別Freeze処理
+
+`race_ai/keirin_real_three_arm_prospective_bridge.py` を追加。既存の `keirin_line_cohesion.forecast_with_pair_evidence` にしか入れない。既存PR71元原本・今回本人登録ID・過去真の映像ラベルの外部認証がある場合だけBとCを作る。想定並びの転記を渡すと拒否、履歴ゼロならBのみ研究表示、CはHOLD。証拠数が不足しCの重みが変わらなければ正式な三方式比較完走とは数えない。
+
+元のAを書き換えず、B/Cを別々の0600ファイルとして0700非公開ディレクトリへcreate-once保存・同ジョブのSHA読戻しするソースフリー処理を追加。**本物のAES跨ぎ保存・別runner読戻しではない**。この本番接続は引き続き未合格。
+
+### 3. 実際の未来レースを、発走前に選定して母数を固定
+
+**2026-11-18 西武園1R（race_id `202611182601`）**を前向き比較対象として登録。楽天Kドリームスと東スポ競輪の出走表上、発走10:50、掲載締切10:45 JST、A級予選7車。主催者の改訂/実際の発売終了時刻は独立認証待ち。
+
+- 初期登録コミット `56a2628affed56a5411edfb2240f153c513fb730` のGitHubコミット時刻：2026-11-17 17:09:31 UTC（JST 11/18 02:09:31）、出走表記載締切より前。
+- `docs/evidence/2026-11-18/keirin_seibuen1r_future_three_arm_pre_register_v1.json` を元登録とする。
+- 既存 `keirin_round_paired_audit.make_cohort` 形式のSHA凍結レース母数1件も `docs/evidence/2026-11-18/keirin_seibuen1r_3arm_cohort_frozen_v1.json` に記録。cohort SHA=`8cd2699a2c57431416f9dd97ebf930f98f19388acf34cf8d87747c2d7116dcf2`。
+- 出走前資料 https://keirin.kdreams.jp/seibuen/racedetail/2620261118010001/ と https://keirin.tokyo-sports.co.jp/list/race/20261117_30979 。締切変更や公式主催者裏付けが得られなければHOLD。GitHubコミット時刻は事前登録の証拠であって、**A/B/C予想を締切前に作成した証拠ではない**。
+
+### 4. 現在の前向き比較成績は未確定
+
+`keirin_line_three_arm_audit.summarize` の実選定1Rを、まだレポート0件で実行したときの正しい状態は planned_races=1、three_arm_paired_races=0、unpaired_holds={UNREPORTED:1}。不的中0件・的中0件として加算しない。将来の正規結果とA/B/C暗号原本が全部揃ったときだけ同一1レース母数を採点する。
+
+現在の**4工程状態**：
+
+| 工程 | 今回の進捗 | 本番正式合格 |
+| --- | --- | --- |
+| 映像から連係追走を認証 | RSA/AES WebM→46 BGR原本SHA 46/46、単一観察候補を記録 | NO（本人/追走の独立確定ラベル0） |
+| Cへ実履歴接続 | 真正ラベルだけ受ける新bridge、偽並び/無証拠をHOLD | NO（学習対象の真正追走ラベル0） |
+| 未来A/B/C同時保存 | 西武園1Rを事前登録、A原本保持とB/C私的Freezeの研究テスト | NO（本番AES+別runner未合格） |
+| 公式結果による3方式比較 | 同一1Rの分母SHA固定・未報告HOLDテスト | NO（未来結果と3方式の事前原本なし） |
+
+PR #291はDraftのままでmain/正式重み/自動投票は変更せず、AI独立性・原本暗号・可用時刻を偽装しない。次の具体的な障害は**既存PR71の本番モデル入力が取れないこと（旧RunではHOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT）と、実追走の確定ラベルがないこと**。
