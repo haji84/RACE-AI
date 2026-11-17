@@ -24,9 +24,10 @@ def fake_blocks():
         for v in registered["venues"]]
 
 
-def make(blocks=None,universe=None,venue=lambda x:True,day=lambda *args:True):
+def make(blocks=None,universe="FULL",venue=lambda x:True,day=lambda *args:True):
     x=blocks if blocks is not None else fake_blocks()
-    u=universe if universe is not None else [row["venue_code"] for row in x]
+    u=([row["venue_code"] for row in fake_blocks()]
+       if universe=="FULL" else universe)
     return dyn.create_day(
         day_jst=DAY,registered_at=STAMP,venue_snapshots=x,
         expected_venue_codes=u,
@@ -44,14 +45,14 @@ class DynamicNationwideCalendar(unittest.TestCase):
         self.assertTrue(v["source_free_and_private_values_not_published"])
         self.assertFalse(v["old_PR71_four_model_dependency"])
 
-    def test_absent_morning_or_midnight_is_never_silently_called_complete(self):
+    def test_absent_midnight_cannot_claim_complete_when_day_universe_known(self):
         sources=[s for s in fake_blocks() if s["venue_code"] not in ("24","74")]
-        v=make(blocks=sources)
+        with self.assertRaisesRegex(dyn.DynamicDayError,"MISSING_AN_EXPECTED"):
+            make(blocks=sources)
+        # If the day universe could not be independently verified, preserve
+        # the partial roster and label coverage unverified instead.
+        v=make(blocks=sources,universe=None,day=None)
         self.assertEqual(v["captured_race_count"],61)
-        self.assertTrue(v["nationwide_coverage_independently_verified"])
-        self.assertFalse(v["national_universe_unverified_hold"])
-        # A self-selected set of venues is NOT proof of the full universe.
-        v=make(blocks=sources,day=None)
         self.assertFalse(v["nationwide_coverage_independently_verified"])
         self.assertTrue(v["national_universe_unverified_hold"])
 
