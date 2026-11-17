@@ -63,6 +63,7 @@ def examine(*, producer, readback, action_run_id=None,
     if (trusted_runtime and type(source_receipt) is dict and
             source_receipt.get("race_id") == SOURCE_RACE and
             _sha(source_receipt.get("result_revision_sha256")) and
+            source_receipt["result_revision_sha256"] == man.get("source_revision_sha256") and
             callable(independently_verify_source) and
             independently_verify_source(source_receipt) is True):
         gates["result_fetch"] = "PASS"
@@ -74,7 +75,10 @@ def examine(*, producer, readback, action_run_id=None,
     # It may prove the comparison program operated, NOT a formally settled hit.
     audit_exists = (
         man.get("state") == AUDIT_STATE and
-        type(man.get("new_audits")) is int and man["new_audits"] >= 1
+        type(man.get("new_audits")) is int and man["new_audits"] >= 1 and
+        _sha(man.get("source_revision_sha256")) and
+        _sha(man.get("audit_rowset_sha256")) and
+        _sha(man.get("latest_html_sha256"))
     )
     if audit_exists and gates["result_fetch"] == "PASS":
         gates["result_match"] = "PASS"
@@ -102,6 +106,8 @@ def examine(*, producer, readback, action_run_id=None,
         archived and r.get("state") == STATE and
         r.get("generation") == p.get("generation") and
         again.get("state") == READBACK_STATE and
+        again.get("audit_rowset_sha256") == man.get("audit_rowset_sha256") and
+        again.get("latest_html_sha256") == man.get("latest_html_sha256") and
         type(again.get("verified_rows")) is int and again["verified_rows"] >= 1
     )
     if read_ok:
@@ -116,6 +122,7 @@ def examine(*, producer, readback, action_run_id=None,
             viewer_receipt.get("race_id") == SOURCE_RACE and
             viewer_receipt.get("encrypted_generation") == p.get("generation") and
             _sha(viewer_receipt.get("rendered_html_sha256")) and
+            viewer_receipt["rendered_html_sha256"] == again.get("latest_html_sha256") and
             callable(independently_verify_browser) and
             independently_verify_browser(viewer_receipt) is True):
         gates["html_display"] = "PASS"
