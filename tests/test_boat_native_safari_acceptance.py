@@ -1932,9 +1932,9 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
                 private = {'fragment': '#saved=' + 'a' * 64 + '.' + 'b' * 43,
                     'context': {'day': '2030-04-01', 'probe': {'choices': [
                         {'model_id': 'invented-one', 'index': 0,
-                         'tickets_sha256': '991b8297474b48ca3de040b694d02b2bb699f6ab83e0ae95e3724cdec5918cca'},
+                         'tickets_sha256': hashlib.sha256(b'[[1,2,3]]').hexdigest()},
                         {'model_id': 'invented-two', 'index': 1,
-                         'tickets_sha256': '991b8297474b48ca3de040b694d02b2bb699f6ab83e0ae95e3724cdec5918cca'}]}}}
+                         'tickets_sha256': hashlib.sha256(b'[[1,2,3]]').hexdigest()}]}}}
                 with patch.object(S, 'LoopbackSite', side_effect=site), \
                         patch.object(S, 'apple_driver', side_effect=safari), \
                         patch.object(S, 'select_saved_day'), patch.object(S, 'open_saved_race'), \
