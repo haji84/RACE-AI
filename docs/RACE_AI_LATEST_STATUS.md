@@ -1,3 +1,13 @@
+## 2026-11-17 21:37 UTC: CF guardの限定検証を実装、111試験のfresh GREEN待ち（GOAL未達）
+
+実RED 9d309aed/job134380772151は111件/15.405秒、追加CFケースだけ21 subtest失敗・error0。元100ケースを保全した。実装は24行追加だけで、AppleのcanonicalなH:0:0/H:H:H、Darwin、real/effective/encoded UIDの厳密uint32一致を検証する。環境は書換えず、他の未知key/不正値/identity API失敗はHOLD。元6key定数、driver env、guard位置、private/AES/cleanup、workflow/pin/timeoutは維持する。
+
+root/独立静的reviewはCLEAR。実装HEADのfresh111 GREENと新実Macはまだ実行待ちで、実runnerの値がこの限定形式に合うかは未観測。旧private PASS/候補guard HOLDを取り消さず、候補UIや物理iPhoneの合格を主張しない。
+
+原本保存PR51は未マージ案のfault経路を実CIで再現し、832件/270.043秒、追加RawAtomicPublicationTestsだけ15 subtest失敗・error0。以前の791件と基本capture34件はこの案で通った。atomic private staging/部分失敗の局所cleanupを加えてから最終GREENを求める。production bb492/run44170869325は変更していない。firstP0の132レース/264予想は公開receipt宣言、追加モデル件数はUNKNOWN、展示窓待機/全round未完了という区別を維持する。
+
+詳細: [CF検証の根拠とRED](evidence/boat-darwin-cf-runtime-review-20261117.json)。
+
 ## 2026-11-17 21:15 UTC: 実P0は132レース/264予想、実Safari私有確認成功・候補撮影はCF変数でHOLD（GOAL未達）
 
 実source44170869325の11月18日JST first-P0公開receiptを、immutable commit ae81ae3056860a85c3c29f289a74e39ab32416de/blobc5bb2349で確認。132レース/264 model_forecastsを宣言し、artifact14366264478のAPI digestとreceiptのZIP SHA256は一致する。producerの元ZIP/create-only receipt/長期保管/reuseも実step成功。独立のZIP再hash/MAC/owner keyによるlocal復号は行っていない。
