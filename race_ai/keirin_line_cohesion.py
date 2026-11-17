@@ -358,6 +358,9 @@ def forecast_with_pair_evidence(*, context, snapshot, plans, priors,
                                 independently_verify_original,
                                 computed_at):
     """Stage-only vs stage+line forecast without rewriting either parent."""
+    need(callable(independently_verify_original) and
+         independently_verify_original(snapshot) is True,
+         "CURRENT_FROZEN_ORIGINAL_UNVERIFIED")
     raw=six.forecast_shadow(
         context=context,snapshot=snapshot,plans=plans,priors=priors,
         independently_verified_parent=independently_verify_original)
