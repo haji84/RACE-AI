@@ -66,7 +66,7 @@ class Manual71OwnerActionsIntakeTest(unittest.TestCase):
                                  helper_path=HELPER, expected=self.hashes)
         raw = json.dumps(env,sort_keys=True,separators=(",",":")).encode()
         cipher=self.workspace/owner.CIPHER_RELATIVE
-        cipher.parent.mkdir(parents=True)
+        cipher.parent.mkdir(parents=True,exist_ok=True)
         cipher.write_bytes(raw)
         return env,raw
 
