@@ -15,6 +15,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from http.client import HTTPException
 import io
 import json
+import math
 import mimetypes
 import os
 from pathlib import Path
@@ -615,7 +616,13 @@ def driver_value(raw, limit):
         return value
     def invalid_constant(_):
         raise ValueError('driver response nonfinite number')
-    document = json.loads(raw.decode('utf-8'), object_pairs_hook=unique, parse_constant=invalid_constant)
+    def finite_float(token):
+        value = float(token)
+        if not math.isfinite(value):
+            raise ValueError('driver response nonfinite number')
+        return value
+    document = json.loads(raw.decode('utf-8'), object_pairs_hook=unique,
+                          parse_constant=invalid_constant, parse_float=finite_float)
     if type(document) is not dict or set(document) != {'value'}:
         raise ValueError('driver response schema')
     return document['value']

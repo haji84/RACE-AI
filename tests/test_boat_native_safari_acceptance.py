@@ -451,6 +451,27 @@ class NativeSafariAcceptanceTests(unittest.TestCase):
                 self.assertEqual(report.get('webdriver_http_status'), 200)
                 self.assertEqual(report.get('webdriver_operation'), 'new_session')
 
+    def test_float_overflow_anywhere_in_a_session_response_is_fatal(self):
+        value = {'sessionId': 'fixture-session', 'capabilities': {
+            'browserName': 'Safari', 'browserVersion': '26.6', 'platformName': 'macOS'}}
+        raw = json.dumps(value).encode()
+        for token in (b'1e400', b'-1e400', b'{"nested":[1e400]}', b'{"nested":[-1e400]}'):
+            with self.subTest(token=token):
+                reply = b'{"value":' + raw[:-1] + b',"unused":' + token + b'}}'
+                with driver_endpoint({}, session_reply=reply) as (port, _):
+                    with self.assertRaises(S.SafariHold) as caught:
+                        S.WebDriver(port).new_session()
+                report = S.failure_report(caught.exception)
+                self.assertEqual(report.get('webdriver_http_status'), 200)
+                self.assertEqual(report.get('webdriver_operation'), 'new_session')
+
+    def test_ordinary_finite_floats_in_a_session_response_remain_accepted(self):
+        capabilities = {'browserName': 'Safari', 'browserVersion': '26.6', 'platformName': 'macOS'}
+        reply = {'value': {'sessionId': 'fixture-session', 'capabilities': capabilities,
+                           'unused': {'nested': [1.25, -2.5, 1e300, -1e300, 1e-300, -1e-300, -0.0]}}}
+        with driver_endpoint({}, session_reply=reply) as (port, _):
+            self.assertEqual(S.WebDriver(port).new_session(), capabilities)
+
     def test_oversized_http_error_is_fatal_without_extracting_its_message(self):
         reply = {'value': {'error': 'session not created', 'message': 'private-key-' * 8000}}
         with driver_endpoint({}, session_reply=reply, session_status=500) as (port, _):
