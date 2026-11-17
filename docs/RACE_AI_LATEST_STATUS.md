@@ -1,3 +1,44 @@
+## 2026-11-17 15:58 UTC: M2最終controlを含む24原本と14比較pairの実AES成功（GOAL未達）
+
+実main69ba791be0dfb2a07a33cd6e5acab2befb236d43/source f55351dce855177a51330f72c37d6238ba2c9e3e。
+既存PR57は最終ea20bc2fの全26 checks（success12/skipped14）とlocal結合210件の後に通常merge、tree完全一致。
+GitHubのpair関連138件もsuccess。main push44115394347のHTTP確認はsuccess。
+
+**当日比較pairの実独立監査:** run44115395767/job134151946786がsuccess。training原本1、比較pair archive1の
+14初回保存model-cell組とRESULT journal10個を別runnerで認証した。元/学習版の組は独立1レースに対応し、
+journal確定結果とのjoin14、欠落/保留/重複pair0。14レースや勝率改善と数えない。
+294種類のRESULT revisionと重複観測2384は履歴の件数であり、独立レース数へ足さない。
+原公式source/公式締切はUNKNOWN_HOLD、当日評価最小標本はUNREGISTERED_HOLD。G8資格0/分母null・promotion falseを維持。
+全国件数artifact14342497406は2905bytes、ZIP SHA256を再取得照合した。owner keyはActions内だけで使用。
+
+**完了M2の最終controlもAES一致:** owner44075021607/86b029aeは実10巡・24暗号原本を認証。
+当該worker GET304、累積13807、当日基点13017、巡回累積730、prepared/source_waitはnull、stop=DAY_HANDOFF。
+11〜24の明示no-opを実巡へ足さない。ALL_MODEL2〜10は原本なし/null/HOLDを維持し、
+producerのcontexts0/generated0ログをAESゼロ件証拠へ変換しない。追加P1新規9行/再利用baseline5を区別し、旧未表示36行の修復とはしない。
+
+**真正callbackは未観測:** 15:53:06 UTCまで、daily/matrixとも完了後workflow_runのREST記録0。
+producer名/path/production branch/イベントとdefault main上のactive receiver/filterは一致し、原因は未確定。
+今回の44115395767はpush監査で、完了callback成功とは数えない。現時刻を使う純粋gateは時間外HOLDで、実callbackではない。
+既存05:30 JST scheduleを保持し、直接source再起動・clock/counter変更は行わない。
+
+**新しい診断付き実Mac:** 既存workflow416758725をmain69で1回実行し、44115451343/job134152150622がfailure。
+安全な診断はlatest_p1_private_transport/select_native_history・390px・native_option/HTTP400。
+1440px側は通過した。公開f603/同一合成fixtureでも、390pxの選択欄が画面外でhit不可となる前提不備を再現。
+実private側のdisabled/選択状態は未観測で、準備処理の修正と実Mac再検証はまだ未完了。候補UIのnative成功とは扱わない。
+公開f60308ef/本番weightsは保持。
+
+**実raw RESULTの保存来歴:** 正規jobログの11報告、全manifest/hash/commit祖先関係を再照合。
+84→171組のraw/metadataは累積で、全旧組のhash/sizeを保持。最終cipher10,199,985bytes/SHA256は
+正規Git Commit→Tree→Blobで再取得一致。元archive clock15:12:49.431006 UTCは再保存時も維持した。
+この監査は鍵なしcipher照合で、ローカルMAC/AES/公式本文parse・RESULT journal結合は未実施。
+B17欠落/P1 racelist・beforeinfo原文欠落は残る。folder240件超で停止する現行制限も判明し、
+1bundleの安全上限を保った複数bundle保存を検討中。取得総数制限の解消やraw公式資格成功とはまだ扱わない。
+[実AES・最終control・pair件数・限界](evidence/boat-completed-m2-current-pairs-aes-20261117.json)。
+
+4競技の全日/全モデル/T15〜10、物理iPhone/全8参考画面、校正した6艇継続/強さ接続、前向き精度改善は未達。
+元work/他作業/KEIRIN default-OFFを保全し、未push b7380fe6/daae4c10はUNRESTORED。新PR/モデル系統/課金/投票0。
+以下は過去時点の記録として保持する。
+
 ## 2026-11-17 15:28 UTC: 実Safari失敗を保全し診断を改善、当日比較pairの独立監査へ（GOAL未達）
 
 実main10a83499cdf3c200b15684f53044eebc1c320183/source f55351dce855177a51330f72c37d6238ba2c9e3e。
