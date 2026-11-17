@@ -1,4 +1,5 @@
 """No-provider unit tests for user-approved existing personal collector fallback."""
+import ast
 from contextlib import redirect_stdout
 import io
 import json
@@ -84,7 +85,17 @@ class PilotReadinessTest(TestCase):
         self.assertIn("RACE_AI_OWNER_AUTO_SOURCE_PROFILE: owner-approved-winticket-keirinjp-20261109",flow)
         self.assertIn("needs: config_readiness",flow)
         self.assertIn("needs.config_readiness.outputs.eligible == 'true'",flow)
-        self.assertIn("collect_owner_inputs(inbox,owner_auto_confirmed=True)",cloud)
+        # Check call semantics, not whitespace or an obsolete exact string.
+        calls=[node for node in ast.walk(ast.parse(cloud))
+               if isinstance(node,ast.Call) and
+               isinstance(node.func,ast.Name) and
+               node.func.id=="collect_owner_inputs"]
+        self.assertEqual(len(calls),1)
+        kwargs={kw.arg:kw.value for kw in calls[0].keywords}
+        self.assertIn("owner_auto_confirmed",kwargs)
+        self.assertIsInstance(kwargs["owner_auto_confirmed"],ast.Constant)
+        self.assertIs(kwargs["owner_auto_confirmed"].value,True)
+        self.assertIn("single_race_pilot",kwargs)
         self.assertIn("if missing_source_configuration(e):",cloud)
         self.assertIn("'provider_machine_rights_independently_verified':False",owner)
         self.assertIn("'actual_four_model_forecast_saved':False",owner)
