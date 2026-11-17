@@ -1,3 +1,13 @@
+## 2026-11-17 10:39 UTC: 13実巡で自然終了、38暗号原本を独立認証
+
+main b0a61b8b、production f43bde4c（PR107/5 checks/tree一致）。owner44019591352/effは自然終了し、実P1/RESULT各13。
+14〜24stepは処理なしのため24実巡とはしない。公開finalcontrol completed13/GET485/lifetime13503/daybase13017/WORKER_HANDOFF。
+最終controlのAES一致・次workerは真正gateで再確認待ち。PR163で実f43のみを次dispatchへ固定する候補を検証中、旧eff evidenceは保全。
+実独立監査44063726374はsnapshot1〜12の38AES原本・13ALL_MODEL ZIP再演算を認証。252新規P1行中216view一致/36未表示、再利用140は加算しない。
+公式B当日index欠落で締切資格0/分母null、全日false。実jobログで表示差分は同一source/data/finishのreason衝突と確認し、追加的union修正中。
+Mac44063729583は40テスト後のSafari新sessionでHOLD、原因未特定。公開enumだけの診断候補を検証し、browserAES/実機iPhone/8画面を未合格とする。
+証拠JSONと最新状況の先頭を優先。4競技/実映像校正/未来改善、未push2件UNRESTOREDを引き続き未達として保持する。
+
 ## 2026-11-17 10:15 UTC 継続: 実監査/実Macの拒否を再現、修正版は既存PR205でCI
 
 最新実main2408a833（PR192/160、tree一致）、production eff296fとowner44019591352は停止せず、01〜12巡success/13中。

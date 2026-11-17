@@ -173,14 +173,19 @@ class CurrentReleaseEvidenceWiringTests(unittest.TestCase):
                 with self.subTest(run=run,sha=sha):
                     self.assertFalse(audit._source_pinned(run,sha))
 
-    def test_owner_video_and_national_p1_evidence_is_bound_to_latest_release(self):
+    def test_owner_video_and_national_p1_audit_retains_immutable_source_after_dispatch_update(self):
         from pathlib import Path
-        from scripts.boat_main_dispatch_gate import RELEASE_SHA
+        from unittest.mock import patch
+        from scripts import boat_main_dispatch_gate as dispatch
         from scripts import boat_owner_evidence_audit as audit
-        self.assertEqual(audit.OWNER_SHA, RELEASE_SHA)
         source=(Path(__file__).resolve().parents[1]/
                 '.github/workflows/boat-main-recovery-contract.yml').read_text()
-        self.assertIn("github.event.workflow_run.head_sha == '"+RELEASE_SHA+"'",source)
+        original_evidence=source.split('\n  original_evidence:\n',1)[1]
+        with patch.object(dispatch,'RELEASE_SHA','e'*40):
+            self.assertEqual(audit.OWNER_SHA,'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3')
+            self.assertNotEqual(audit.OWNER_SHA,dispatch.RELEASE_SHA)
+            self.assertIn("github.event.workflow_run.head_sha == '"+audit.OWNER_SHA+"'",original_evidence)
+            self.assertIn('ref: '+audit.OWNER_SHA+', path: boat-owner-reader',original_evidence)
         self.assertIn("github.event.workflow_run.conclusion == 'failure'",source)
         self.assertIn("github.event.workflow_run.conclusion == 'success'",source)
         self.assertIn("boat-owner-evidence-audit-",source)

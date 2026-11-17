@@ -1,3 +1,35 @@
+## 2026-11-17 10:39 UTC: 13実巡で自然引継ぎ、38原本の独立AES証明と表示差分を確認（GOAL未達）
+
+実main b0a61b8b28bb98c1ad63babc7f8594cbd693d808、実production f43bde4c89cdc27728a112ad2a4b55769c7d3ec9。
+既存PR107は5 checks完了後に通常mergeし、reviewed300efc02のtreeと完全一致。保存バッチ/疎なGit転送、動画3〜6艇coordinator、
+旧eff原本read-only互換を含む。本番model/weights/系統/公開assetsは変更していない。次workerの速度と締切達成はまだ未確認。
+
+**旧worker自然終了:** owner44019591352（eff296f）は10:28:18 UTCにsuccess。実P1/RESULT各13archive、ALL_MODEL0〜13を確認。
+14〜24のstepは0〜1秒の処理なし終了であり、24実巡完走とはしない。公開final controlはcompleted13、requests485、
+lifetime13503、day base13017、stop=WORKER_HANDOFF。最終controlのAES一致と次worker許可は真正gateで再確認する。
+[物理引継ぎ証拠](evidence/boat-owner-physical-handoff-20261117.json)。既存PR163で次の正規dispatchを実f43へ固定する候補を確認中。
+旧effの実完了/原本は保持し、旧checkout/旧proofを現在の起動権限にしない。実snapshot/Safariのread-only pinはeffを維持する。
+
+**独立AESが実success:** 既存run44063726374/job133971901973、main b0a61b8bで38暗号原本を別runner復号。
+固定snapshotは巡回1〜12（10:19:34 UTC取得）、ALL_MODEL13 ZIPのSHA/AES/既存モデル再演算を照合。
+P1新規原本252行、保存view一致216/見つからない36（巡回10〜12）。基準P1再利用140行は新規件数に足さない。
+公式B当日保存indexなしのため公式締切資格0・分母null、全日/最新稼働counter/後続許可false。
+実artifact14319890592の2038bytesとSHA256も再取得照合済み。[実AES集計](evidence/boat-active-owner-aes-snapshot-20261117.json)。
+これは暗号原本一致の部分証明であり、全日/全14モデルの締切適格・画面全件反映の合格ではない。
+
+**表示差分の実原因:** 完了した実jobログはENCRYPTED_VIEW_REJECTEDを記録。直近は同一source bytes/同一data/同一finishで
+reasonだけが異なるSAVED_MODEL_VIEW_CONFLICTING_RESULT_OBSERVATION。両方の原本/拒否理由を保持する追加的union修正をローカルで検証中。
+着順/払戻/source/status/未知fieldの相違や誤鍵は引き続き拒否し、表示側から結果を捏造しない。まだ実view修復済みとはしない。
+
+**Macは引き続きHOLD:** run44063729583/job133972032065は40テスト成功後、Safari新sessionの境界でSAFARI_WEBDRIVER_FAILED。
+app/暗号seedの開始前であり、原因は未特定。秘密を含まないoperation/HTTP status/W3C enumのみの診断を追加する候補を検証中。
+Safari browser AES、synthetic28画像、本人login/実機iPhone/8画面の最終受入は未合格。旧実操作successとは分離する。
+UIの参照画像に基づく余白/順序の改善は別のローカルpreviewで検証し、無断の公開はしない。
+
+4競技の全日供給、締切T15〜10の実充足、6艇継続/校正/強さ接続、元モデル対学習版の未来改善は引き続き未達。
+未push2commitはUNRESTORED、元work b420631 cleanと並行KEIRINの変更を保全。新PR/追加課金/投票/本番weights切替0。
+以下は過去時点の記録として保存する。
+
 ## 2026-11-17 10:15 UTC 継続: 12巡success、原本監査とMacの実失敗を修正中（GOAL未達）
 
 確認済みmain2408a833920b539e7f29fb9fde02ca290e4f5df0（既存PR192/160を通常merge、各reviewed tree一致）。

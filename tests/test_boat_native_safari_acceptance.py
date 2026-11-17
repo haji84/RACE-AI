@@ -358,7 +358,7 @@ class NativeReaderSetupTests(unittest.TestCase):
 
 
 @contextmanager
-def driver_endpoint(capabilities):
+def driver_endpoint(capabilities, *, session_reply=None, session_status=200):
     """The Mac-only dependency is replaced at its actual W3C HTTP boundary."""
     requests = []
 
@@ -371,15 +371,19 @@ def driver_endpoint(capabilities):
             requests.append((self.path, body))
             if self.path == '/session':
                 value = {'sessionId': 'fixture-session', 'capabilities': capabilities}
-                status = 200
+                status = session_status
             else:
                 value = {'error': 'unknown error', 'message': 'fixture-secret-private-driver-error'}
                 status = 500
-            raw = json.dumps({'value': value}).encode()
+            reply = session_reply if self.path == '/session' and session_reply is not None else {'value': value}
+            raw = reply if isinstance(reply, bytes) else json.dumps(reply).encode()
             self.send_response(status)
             self.send_header('Content-Length', str(len(raw)))
             self.end_headers()
-            self.wfile.write(raw)
+            try:
+                self.wfile.write(raw)
+            except OSError:
+                pass  # A bounded client may close an intentionally oversized reply.
 
     server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -395,6 +399,143 @@ def driver_endpoint(capabilities):
 class NativeSafariAcceptanceTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(S, 'native Safari acceptance adapter is not implemented')
+
+    def test_session_creation_error_exposes_only_safe_protocol_fields(self):
+        secret = 'fixture-private-key-never-print'
+        private_url = 'https://private.invalid/#saved=' + secret
+        message = ("Could not create a session: You must enable the 'Allow Remote Automation' "
+                   "option in Safari's Develop menu to control Safari via WebDriver. " + private_url)
+        reply = {'value': {'error': 'session not created', 'message': message,
+                           'stacktrace': secret, 'private_params': {'key': secret}}}
+        with driver_endpoint({}, session_reply=reply, session_status=500) as (port, _):
+            try:
+                S.WebDriver(port).new_session()
+            except S.SafariHold as error:
+                report = S.failure_report(error)
+            else:
+                self.fail('an HTTP session-creation error cannot create a browser session')
+        self.assertEqual(report.get('webdriver_operation'), 'new_session')
+        self.assertEqual(report.get('webdriver_http_status'), 500)
+        self.assertEqual(report.get('webdriver_error_code'), 'session not created')
+        self.assertIs(report.get('remote_automation_disabled_message_observed'), True)
+        self.assertEqual(report.get('checker_function'), 'call')
+        self.assertNotIn(secret, json.dumps(report))
+        self.assertNotIn('private.invalid', json.dumps(report))
+        self.assertNotIn('message', {key for key in report if key != 'remote_automation_disabled_message_observed'})
+
+    def test_unknown_error_codes_and_private_message_text_are_never_exported(self):
+        for code, message in [('private-key-error', 'private-key-message'),
+                              ('unknown error', "You must enable the 'Allow Remote Automation' option in Safari's Develop menu")]:
+            with self.subTest(code=code):
+                with driver_endpoint({}, session_reply={'value': {'error': code, 'message': message}},
+                                     session_status=500) as (port, _):
+                    with self.assertRaises(S.SafariHold) as caught:
+                        S.WebDriver(port).new_session()
+                report = S.failure_report(caught.exception)
+                self.assertEqual(report.get('webdriver_http_status'), 500)
+                self.assertEqual(report.get('webdriver_error_code'), 'unknown error' if code == 'unknown error' else None)
+                self.assertIs(report.get('remote_automation_disabled_message_observed'), code == 'unknown error')
+                self.assertNotIn('private-key', json.dumps(report))
+
+    def test_duplicate_fields_and_nonfinite_json_cannot_create_a_session(self):
+        value = {'sessionId': 'fixture-session', 'capabilities': {
+            'browserName': 'Safari', 'browserVersion': '26.6', 'platformName': 'macOS'}}
+        raw = json.dumps(value).encode()
+        for reply in [b'{"value":' + raw + b',"value":' + raw + b'}',
+                      b'{"value":' + raw[:-1] + b',"unused":NaN}}']:
+            with self.subTest(reply_kind='duplicate' if reply.count(b'"value"') == 2 else 'nonfinite'):
+                with driver_endpoint({}, session_reply=reply) as (port, _):
+                    with self.assertRaises(S.SafariHold) as caught:
+                        S.WebDriver(port).new_session()
+                report = S.failure_report(caught.exception)
+                self.assertEqual(report.get('webdriver_http_status'), 200)
+                self.assertEqual(report.get('webdriver_operation'), 'new_session')
+
+    def test_float_overflow_anywhere_in_a_session_response_is_fatal(self):
+        value = {'sessionId': 'fixture-session', 'capabilities': {
+            'browserName': 'Safari', 'browserVersion': '26.6', 'platformName': 'macOS'}}
+        raw = json.dumps(value).encode()
+        for token in (b'1e400', b'-1e400', b'{"nested":[1e400]}', b'{"nested":[-1e400]}'):
+            with self.subTest(token=token):
+                reply = b'{"value":' + raw[:-1] + b',"unused":' + token + b'}}'
+                with driver_endpoint({}, session_reply=reply) as (port, _):
+                    with self.assertRaises(S.SafariHold) as caught:
+                        S.WebDriver(port).new_session()
+                report = S.failure_report(caught.exception)
+                self.assertEqual(report.get('webdriver_http_status'), 200)
+                self.assertEqual(report.get('webdriver_operation'), 'new_session')
+
+    def test_ordinary_finite_floats_in_a_session_response_remain_accepted(self):
+        capabilities = {'browserName': 'Safari', 'browserVersion': '26.6', 'platformName': 'macOS'}
+        reply = {'value': {'sessionId': 'fixture-session', 'capabilities': capabilities,
+                           'unused': {'nested': [1.25, -2.5, 1e300, -1e300, 1e-300, -1e-300, -0.0]}}}
+        with driver_endpoint({}, session_reply=reply) as (port, _):
+            self.assertEqual(S.WebDriver(port).new_session(), capabilities)
+
+    def test_oversized_http_error_is_fatal_without_extracting_its_message(self):
+        reply = {'value': {'error': 'session not created', 'message': 'private-key-' * 8000}}
+        with driver_endpoint({}, session_reply=reply, session_status=500) as (port, _):
+            with self.assertRaises(S.SafariHold) as caught:
+                S.WebDriver(port).new_session()
+        report = S.failure_report(caught.exception)
+        self.assertEqual(report.get('webdriver_http_status'), 500)
+        self.assertIsNone(report.get('webdriver_error_code'))
+        self.assertIs(report.get('remote_automation_disabled_message_observed'), False)
+        self.assertNotIn('private-key', json.dumps(report))
+
+    def test_malformed_oversized_and_error_success_responses_remain_fatal_and_private(self):
+        replies = [b'null', b'[]', b'\xffprivate-key', {'wrong': 'private-key'},
+            {'value': {'sessionId': 123, 'capabilities': {'private': 'private-key'}}},
+            {'value': {'error': 'unknown error', 'message': 'private-key'}},
+            b'{"value":"' + b'x' * (2 * 1024 * 1024) + b'private-key"}']
+        for reply in replies:
+            with self.subTest(kind=type(reply).__name__):
+                with driver_endpoint({}, session_reply=reply) as (port, _):
+                    with self.assertRaises(S.SafariHold) as caught:
+                        S.WebDriver(port).new_session()
+                report = S.failure_report(caught.exception)
+                self.assertEqual(report.get('webdriver_operation'), 'new_session')
+                self.assertEqual(report.get('webdriver_http_status'), 200)
+                self.assertNotIn('private-key', json.dumps(report))
+
+    def test_socket_failure_has_no_raw_exception_text_or_request_parameters(self):
+        driver = S.WebDriver(1234)
+        with patch.object(driver.opener, 'open', side_effect=urllib.error.URLError('https://private.invalid/private-key')):
+            with self.assertRaises(S.SafariHold) as caught:
+                driver.new_session()
+        report = S.failure_report(caught.exception)
+        self.assertEqual(report.get('webdriver_operation'), 'new_session')
+        self.assertIsNone(report.get('webdriver_http_status'))
+        self.assertIsNone(report.get('webdriver_error_code'))
+        self.assertNotIn('private', json.dumps(report))
+
+    def test_spoofed_diagnostic_fields_are_filtered_again_before_public_output(self):
+        self.assertTrue(callable(getattr(S, 'DriverHold', None)), 'typed driver diagnostics are missing')
+        error = S.DriverHold(operation='https://private.invalid/private-key', http_status=True,
+                             w3c_error='private-key', remote_automation_disabled='private-key')
+        report = S.failure_report(error)
+        self.assertEqual(report.get('webdriver_operation'), 'unknown_command')
+        self.assertIsNone(report.get('webdriver_http_status'))
+        self.assertIsNone(report.get('webdriver_error_code'))
+        self.assertIs(report.get('remote_automation_disabled_message_observed'), False)
+        self.assertNotIn('private', json.dumps(report))
+
+    def test_process_start_and_early_exit_report_only_the_startup_operation(self):
+        for stage in ('start_driver', 'wait_for_driver'):
+            with self.subTest(stage=stage), patch.object(S.platform, 'system', return_value='Darwin'), \
+                    patch.object(S.os.path, 'isfile', return_value=True), \
+                    patch.object(S.os, 'access', return_value=True), patch.object(S.subprocess, 'Popen') as start:
+                if stage == 'start_driver':
+                    start.side_effect = OSError('private-key https://private.invalid/')
+                else:
+                    start.return_value.poll.return_value = 1
+                with self.assertRaises(S.SafariHold) as caught:
+                    with S.apple_driver():
+                        self.fail('failed startup cannot create a browser session')
+                report = S.failure_report(caught.exception)
+                self.assertEqual(report.get('webdriver_operation'), stage)
+                self.assertEqual(report.get('reason'), 'SAFARIDRIVER_UNAVAILABLE')
+                self.assertNotIn('private', json.dumps(report))
 
     def test_element_waits_for_a_delayed_visible_detail_control(self):
         driver = S.WebDriver(1234)
