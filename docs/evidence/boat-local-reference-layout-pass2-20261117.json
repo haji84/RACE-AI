@@ -1,0 +1,98 @@
+{
+  "schema": "RACE_AI_LOCAL_REFERENCE_LAYOUT_PASS2_COUNTS_V1",
+  "reviewed_local_head": "a4a200f5cea40804762779ee7afbc7f871419107",
+  "preserved_prior_layout_heads": [
+    "5992f11033fa6e8e7f737cc9b029341f0ed6baf1",
+    "50f97048c63258dfe0c0aa33662e406a44eabeec"
+  ],
+  "scope": "LOCAL_BROWSER_REVIEW_ONLY_NOT_PUBLISHED",
+  "required_widths": [
+    320,
+    390,
+    1440,
+    1920
+  ],
+  "nearby_desktop_widths": [
+    1001,
+    1100,
+    1200,
+    1280
+  ],
+  "public_synthetic_fixture_sha256": "b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a",
+  "exact_public_synthetic_pngs_verified": 36,
+  "user_reference_images_published": 0,
+  "invented_long_data_screenshot_exports": 0,
+  "source_assets_verified": 3,
+  "allocation_row_height_px": {
+    "mobile": 71,
+    "desktop": 61
+  },
+  "phone_nav_top_px": 773,
+  "first_allocation_row_bounds_px": {
+    "320": [
+      647,
+      718
+    ],
+    "390": [
+      637,
+      707
+    ]
+  },
+  "first_individual_result_bounds_px": {
+    "320": [
+      571,
+      740
+    ],
+    "390": [
+      563,
+      714
+    ]
+  },
+  "native_amount_editor_maximum_value": 10000000,
+  "editor_client_scroll_widths_equal_px": {
+    "mobile": [
+      81,
+      81
+    ],
+    "desktop": [
+      87,
+      87
+    ]
+  },
+  "manual_numbers_verified": [
+    18,
+    17,
+    16
+  ],
+  "checks": {
+    "full_amount_readability": true,
+    "manual_combo_separation": true,
+    "unknown_money_and_HOLD_preserved": true,
+    "trust_coverage_before_results": true,
+    "original_forecast_and_result_values_preserved": true,
+    "synthetic_purchase_refused": true,
+    "no_horizontal_overflow_at_tested_widths": true,
+    "independent_final_review_passed": true
+  },
+  "reference_row_count": 8,
+  "fully_accepted_reference_rows": 0,
+  "all_eight_reference_matches": "PARTIAL",
+  "limitations": [
+    "Reference07 has8 specialized tabs; existing application has5",
+    "Results/research/settings lack matched supplied references",
+    "Closed unfocused native-select ellipsis remains",
+    "Phone allocation summary still scrolls after8 candidates and manual form",
+    "Native Safari on this candidate not run",
+    "Physical iPhone, account login and real-data acceptance unverified"
+  ],
+  "physical_iPhone_verified": false,
+  "candidate_native_safari_verified": false,
+  "real_data_verified": false,
+  "public_assets_changed": false,
+  "deployed_public_asset_sha": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+  "private_evidence_sha256": {
+    "comparison_evidence": "6cf93368156df710768656b7fc0064c04be8a60180bf659e3e67f33ba55730bf",
+    "independent_review": "4bbefe478e69bd81a5190a78b34807f687c698eac404b7ede736f1642b89cdcc",
+    "reference_matrix": "81e0aa43feee2524e8b49616aedadd710693544db4276491c065a45c1157dc61"
+  }
+}
