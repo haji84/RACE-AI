@@ -66,6 +66,7 @@ on:
       - scripts/boat_failed_recovery_contract.py
       - scripts/boat_recover_failed_owner.py
       - tests/test_boat_pending_round_recovery.py
+      - tests/test_boat_bootstrap_recovery.py
       - tests/test_repeated_cycle.py
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
@@ -131,7 +132,7 @@ jobs:
                   'tests.test_boat_jst_day_handoff',
                  'tests.test_boat_source_control','tests.test_continuity_checkpoint',
                  'tests.test_boat_seller_official_source','tests.test_boat_program_source',
-                 'tests.test_boat_pending_round_recovery']
+                 'tests.test_boat_pending_round_recovery','tests.test_boat_bootstrap_recovery.BootstrapRecoveryTests']
           result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
           raise SystemExit(not result.wasSuccessful())
           PY_RECOVERY_TEST

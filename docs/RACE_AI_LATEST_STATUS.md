@@ -1,3 +1,15 @@
+## 2026-11-17 追加: 1回取得済みbootstrap復旧を別条件で実装
+
+storage候補67200efは既存PR292へpush済み、exact-head CI3系統すべてsuccess。
+最新のworker43978567937はB取得1回/P0物理保存済みで、取得0回だけを認める既存復旧器では再開不能。
+新経路は同一run/head/dayのP0、bootstrap AES、公開control、最初の原本replayを照合し、
+3原本を既存vaultへ保持・別reader照合した後だけ引継ぎを認める。取得回数1・累積13018を保つ。
+任意のsource使用量や403/429/waitは許可しない。元zero-requestとP1/RESULT復旧は維持。
+別schemaの内部proofへ接続し、c123は明示された旧原本の読取だけへ追加。旧sourceへのdispatch許可ではない。
+独立レビュー46件と実bare-vaultで3原本/metadataの完全一致復元が成功。新経路の本番AES/後継はまだ未確認。
+実Vaultの現treeもローカルで0.024秒の保持に成功、git516KiB。remote書込なし、AES復号実証とは数えない。
+[機械可読証拠](evidence/boat-p0-storage-recovery-20261117.json)。
+
 ## 2026-11-17 UTC: P0保管停止の再調査・既存PR292の修正候補
 
 main実HEAD058ba8c、production実HEADc123b85を認証済みGitHubで確認。

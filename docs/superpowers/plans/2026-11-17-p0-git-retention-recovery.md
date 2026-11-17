@@ -35,3 +35,7 @@
 Initial evidence: run43829249080 shows two STATE_GIT_FETCH_TIMEOUT, one all-model storage failure, and two VAULT_GIT_OPERATION_TIMEOUT. Local Git reproduces inherited-blob hydration specifically at write-tree; read-tree does not hydrate it. This establishes a mechanism, not retrospective proof of the exact stalled subprocess, which old logs did not identify.
 
 PR292's published history was merged locally with current production; its JST tests and current production tests are both preserved. Unavailable b7380fe6/daae4c10 remain UNRESTORED.
+
+Task 1 storage: complete at67200ef; 101 focused tests,159 owner regressions,75 independent reviewer tests; exact-head GitHub3 suites success.
+Task 1 dependent recovery ruling: the latest actual failed bootstrap spent exactly1 B GET, so preserving the zero-request-only admission cannot fulfill live recovery. Add a separate AES/P0/first-receipt/vault-bound1-request schema; never relax generic idle recovery or reset usage. Independent reviewer46 tests and exact bare-vault3-original restore passed.
+A local verification command initially named a nonexistent test_boat_recovery_trusted_events module; it was corrected to the actual test_boat_recovery_invocation module. No product defect was hidden by that command correction.

@@ -11,6 +11,7 @@ on:
       - scripts/boat_recover_failed_owner.py
       - scripts/github_existing_cycle.py
       - tests/test_boat_pending_round*.py
+      - tests/test_boat_bootstrap_recovery.py
       - tests/test_boat_orphan_p1_recovery.py
       - tests/test_boat_recovery_invocation.py
       - tests/test_repeated_cycle.py
@@ -36,7 +37,8 @@ jobs:
           import race_ai,unittest
           for folder in ('pr64-reference','pr72-reference'):
               race_ai.__path__.append(str(Path(folder,'race_ai').resolve()))
-          names=['tests.test_boat_orphan_p1_recovery','tests.test_boat_recovery_invocation',
+          names=['tests.test_boat_bootstrap_recovery.BootstrapRecoveryTests',
+                 'tests.test_boat_orphan_p1_recovery','tests.test_boat_recovery_invocation',
                  'tests.test_boat_pending_round_recovery','tests.test_boat_pending_round_checkpoint',
                  'tests.test_private_original_archive_readers','tests.test_boat_private_original_vault_cli',
                  'tests.test_boat_private_original_vault','tests.test_cycle_recovery','tests.test_repeated_cycle',
