@@ -71,20 +71,22 @@ class OrphanP1RecoveryTests(unittest.TestCase):
                 recovery.reconcile_restored_state(self.state,lambda route:self.replies[route],
                                                  now=NOW,expected_head=expected)
 
-    def test_new_release_recovers_only_exact_reviewed_eff_checkpoint(self):
+    def test_new_release_recovers_only_exact_reviewed_checkpoints(self):
         from scripts.boat_recover_failed_owner import recover_history
         from tests.test_frozen_day_cycle import sample
         from race_ai.frozen_day_cycle import read_p0
-        previous='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+        reviewed=('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
+                  '86b029ae5bddd5d4956497d8b32b2c92b8eec521')
         expected='e'*40
-        for origin in (previous,'f'*40):
+        for origin in (*reviewed,'f'*40):
             with self.subTest(origin=origin):
+                previous=origin
                 with patch(__name__+'.HEAD',origin), \
                      patch('tests.test_boat_pending_round_recovery.HEAD',origin):
                     run,control,replies,state=orphan_fixture()
                 before=deepcopy((run,control,replies,state))
                 get=lambda route:replies[route]
-                if origin!=previous:
+                if origin not in reviewed:
                     with self.assertRaisesRegex(ValueError,'ORPHAN_SOURCE_NOT_REVIEWED'):
                         recovery.reconcile_restored_state(state,get,now=NOW,expected_head=expected)
                     continue
@@ -112,12 +114,17 @@ class OrphanP1RecoveryTests(unittest.TestCase):
                 self.assertEqual((run,control,replies,state),before)
 
     def test_reviewed_eff_checkout_cannot_execute_new_release_recovery(self):
+        self._assert_reviewed_checkout_refused('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3')
+
+    def test_reviewed_m2_checkout_cannot_execute_new_release_recovery(self):
+        self._assert_reviewed_checkout_refused('86b029ae5bddd5d4956497d8b32b2c92b8eec521')
+
+    def _assert_reviewed_checkout_refused(self,previous):
         from contextlib import redirect_stdout
         import io,os,tempfile
         from pathlib import Path
         from scripts import boat_recover_failed_owner as cli
         from tests.test_boat_recovery_invocation import callback,MAIN,WORKFLOW_REF
-        previous='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
         document=callback();document['workflow_run']['head_sha']=previous
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);event=root/'event.json';event.write_text(json.dumps(document))

@@ -84,8 +84,10 @@ on:
       - tests/test_boat_saved_model_view.py
       - tests/test_result_observation_conflict_diagnostics.py
       - tests/test_all_existing_model_artifact_retention.py
+      - race_ai/all_existing_model_learning.py
       - tests/test_boat_video_rider_tracking.py
       - tests/saved_model_union.test.cjs
+      - tests/test_all_existing_model_result_retention.py
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
     paths:
@@ -150,6 +152,7 @@ jobs:
                  'tests.test_boat_venue_research_pdca','tests.test_boat_video_forward',
                  'tests.test_boat_saved_model_view','tests.test_boat_saved_model_reason_variants',
                  'tests.test_result_observation_conflict_diagnostics','tests.test_all_existing_model_artifact_retention',
+                 'tests.test_all_existing_model_result_retention',
                  'tests.test_boat_video_connection','tests.test_boat_video_learning',
                  'tests.test_observed_weight_learning',
                   'tests.test_boat_jst_day_handoff',

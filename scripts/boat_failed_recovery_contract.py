@@ -18,6 +18,9 @@ REVIEWED_PREVIOUS_OWNER_SHAS = frozenset({
     # Exact pre-batch/video release: checkpoint/original readback only.
     # Recovery still executes and emits proofs bound to the new expected head.
     'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
+    # Actual M2 worker originals/control remain readable by the next release.
+    # Old checkout/proof never authorizes recovery or dispatch of that release.
+    '86b029ae5bddd5d4956497d8b32b2c92b8eec521',
 })
 
 
