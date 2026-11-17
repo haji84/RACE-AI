@@ -1,0 +1,54 @@
+{
+  "schema": "RACE_AI_RAW_CAPTURE_ATOMIC_STORAGE_REVIEW_20261117_V1",
+  "repository": "haji84/RACE-AI",
+  "source_production_unchanged": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+  "tested_red_head": "4d9231f15d9a288e4492e63f4770d1556689d1ff",
+  "tested_red_tree": "dde9ed99b257a378266a4a3323d70bae1a413c99",
+  "authenticated_red": {
+    "commit": "4d9231f15d9a288e4492e63f4770d1556689d1ff",
+    "job_id": 134381931399,
+    "finished_at": "2026-11-17T21:33:01Z",
+    "tests": 832,
+    "seconds": 270.043,
+    "assertion_subtest_failures": 15,
+    "errors": 0,
+    "all_failures_only_RawAtomicPublicationTests": true,
+    "authenticated_via_read_only_job_log": true,
+    "original_791_and_accepted_core_34_not_failed": true
+  },
+  "fix_packet": "8c56e4f070ef80a3857c113c956524523f65967a",
+  "runtime_path": "race_ai/boat_source_capture_files.py",
+  "base_blob": "8808bf9ca76b4ed838e5bdb4d4aa799d7917e0b9",
+  "base_sha256": "e3b23b461afbab06d359da4e99c2bb6b318a4bb48589bd8291cbfe16072e81d4",
+  "result_sha256": "3636808ef2309eefab1a3e8523a080d3a39739c5cd8245d02353b75961b71484",
+  "review": {
+    "root": "CLEAR_SINGLE_STORAGE_BLOCK_ONLY",
+    "independent": "CLEAR",
+    "independent_agent": "review_atomic_capture",
+    "independent_reconstructed_hash_verified": true
+  },
+  "implementation": [
+    "Acquire flock(LOCK_EX|LOCK_NB) on the already checked capture-directory fd; busy ownership raises the same fixed HOLD, and closing this fd releases only this invocation's lock. No lockfile or blocking wait.",
+    "Verify every preexisting final file without modifying it; stage only missing body/receipt files. Idempotent complete captures return after exact readback.",
+    "Use an invocation-owned 0700 TemporaryDirectory directly under the already approved runner parent, outside the flat capture inventory. Create 0600 stage files with O_EXCL/O_NOFOLLOW; fully write, flush, file-fsync and byte-readback all needed files before any final publication.",
+    "Publish with atomic os.link between pinned stage/root directory fds. An existing final name is never replaced or truncated and must independently match the complete expected bytes and private-file checks.",
+    "Track only newly staged inode identities before attempting a link, including an interrupted syscall. Remove each successful stage link so final files have nlink=1; independently byte-check both final files after private-stage cleanup and fsync the capture directory.",
+    "On failure, remove a candidate final only if its current dev/inode still matches this invocation's newly staged inode. Reverse order removes the receipt before its new body. Preexisting/shared files cannot match these new inode identities and are never unlinked, chmod'ed, relinked or rewritten. TemporaryDirectory cleanup removes invocation-owned staged files; rollback fsync is best effort, and any failure still follows the existing fixed SourceWait/latch."
+  ],
+  "unchanged": [
+    "All existing gates, flags, key validation, source URL/date admission, 4MiB bound, receipt fields and real receive clock.",
+    "Existing P1/B hook placement, returned admission clocks, model inputs, HTTP GET counts and durable SourceGuard counters.",
+    "C._private_root/_private_file/_read_at, bounded inventory/batch/restore behavior, typed B catalog/native capsule authority.",
+    "All 41 current tests, owner workflows, release interoperability, production code/ref, other parallel work."
+  ],
+  "test_methods_unchanged": 41,
+  "fresh_tests_required": 832,
+  "fresh_green": "PENDING",
+  "production_deployed": false,
+  "limits": [
+    "Directory flock serializes cooperating capture_http200 writers; legacy feed retain_capture does not take that lock. Existing shared-body identity checks remain mandatory.",
+    "Abrupt process termination/power-loss atomicity of the two-file body/receipt pair is not established by these exception/fault injection tests.",
+    "The raw preparse sink is not permission for source use or typed program/current model admission.",
+    "Current production worker and provider request behavior are unchanged."
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema": "RACE_AI_RAW_ATOMIC_FAULT_RED_PROPOSAL_V1",
+  "base_branch_head": "b1331c82b77cd6c2e15ffc0482e7d8053ac85dd0",
+  "production_source_unchanged": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+  "runtime_packet": "2774f8443ee6cae18697af2a28821977efafee7e",
+  "test_delta": "ea96b6ec0a1c5f33e22c11811e903635c8df2caf",
+  "atomic_fault_tests": "a2e17a860f6c0bd8d9760e1711a6783d1cdb9e7b",
+  "raw_tests": 41,
+  "expected_suite_tests": 832,
+  "known_unmerged_blocker": "Direct final-name write can poison valid inventory after partial write; execute fault regressions before atomic fix",
+  "expected_atomic_subtest_failures": 15,
+  "atomic_fix_included": false,
+  "merge_allowed": false,
+  "production_provider_gets_from_tests": 0,
+  "fixture_key_public": true,
+  "runner_parent_0755_unchanged": true,
+  "private_child_0700_files_0600": true,
+  "typed_b_authority_unchanged": true,
+  "goal_complete": false
+}

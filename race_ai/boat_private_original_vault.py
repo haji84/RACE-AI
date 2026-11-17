@@ -441,6 +441,12 @@ def _capture_url(url):
         return False
     if re.fullmatch(r'https://www\.boatrace\.jp/owpc/pc/race/raceresult\?rno=(?:[1-9]|1[0-2])&jcd=(?:0[1-9]|1[0-9]|2[0-4])&hd=[0-9]{8}', url):
         return True
+    p1 = re.fullmatch(r'https://www\.boatrace\.jp/owpc/pc/race/(?:racelist|beforeinfo)\?rno=(?:[1-9]|1[0-2])&jcd=(?:0[1-9]|1[0-9]|2[0-4])&hd=([0-9]{4})([0-9]{2})([0-9]{2})', url)
+    if p1:
+        from datetime import date
+        try:date(int(p1[1]), int(p1[2]), int(p1[3]))
+        except ValueError:return False
+        return True
     archive=re.fullmatch(r'https://www1\.mbrace\.or\.jp/od2/B/([0-9]{4})([0-9]{2})/b([0-9]{2})([0-9]{2})([0-9]{2})\.lzh',url)
     if archive:
         from datetime import date

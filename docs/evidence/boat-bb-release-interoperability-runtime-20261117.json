@@ -1,0 +1,42 @@
+{
+  "schema": "RACE_AI_BB_RELEASE_INTEROPERABILITY_RUNTIME_REVIEW_20261117_V1",
+  "repository": "haji84/RACE-AI",
+  "tests_first_head": "0882059419dccd7d246f8ed7700980f7cab893a2",
+  "tests_first_tree": "68d8189b481c13ca6d968a92f609e0daac205b68",
+  "source_production_unchanged": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+  "actual_red": [
+    {
+      "run_id": 44188193008,
+      "job_id": 134410217652,
+      "tests": 837,
+      "seconds": 196.25,
+      "failures": 4,
+      "errors": 0
+    },
+    {
+      "run_id": 44188192951,
+      "job_id": 134410216967,
+      "tests": 178,
+      "seconds": 54.663,
+      "failures": 4,
+      "errors": 0
+    }
+  ],
+  "failure_scope": "Only new exact BB origin readback/callback/deep-crypto reachability assertions; prior 832 tests pass.",
+  "runtime_path": "scripts/boat_failed_recovery_contract.py",
+  "runtime_change": "Add one exact immutable BB literal to historical originals/control provenance set. No dispatch/checkout/proof pin changes.",
+  "meaningful_positive": "Real fixture P0/continuity AEAD, authenticated public control, real memory-vault independent retention and exact ZIP/metadata restore, with preserved counters.",
+  "meaningful_negative": [
+    "Old BB checkout cannot write new S proof or read originals first.",
+    "Old/foreign/missing proof origin and counter reset are rejected.",
+    "Unreviewed owner-sealed source rejected before ZIP/retention access.",
+    "BB cipher tag and valid foreign-source capsule are refused after the real first-P0 ZIP is read even when outer digests are recomputed."
+  ],
+  "root_review": "CLEAR exact immutable historical provenance only",
+  "fresh_green": "PENDING",
+  "tests_assertions_unchanged": true,
+  "source_workflow_jobs_permissions_inputs_schedules_timeouts_unchanged": true,
+  "active_bb_worker_untouched": true,
+  "originals_and_keys_and_weights_unchanged": true,
+  "goal_complete": false
+}

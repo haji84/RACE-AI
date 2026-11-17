@@ -94,6 +94,173 @@ def _identity_url(url):
     return url
 
 
+def capture_http200(raw, *, source_url, received_at, source_guard=None):
+    """Preserve one accepted response privately, before any parser or day clock.
+
+    Only the existing vault opt-in and owner/source context enable this sink.
+    Opaque retention grants no typed program, forecast or artifact authority.
+    No request, caller admission clock, model input or source counter changes.
+    """
+    if os.environ.get('RACE_AI_ORIGINAL_VAULT_ENABLED') != 'true':
+        return
+    try:
+        from .boat_pdca_state import state_key
+        from .boat_owner_source_identity import owner_run_origin
+        state_key('production')
+        V._need(os.environ.get('GITHUB_ACTIONS') == 'true'
+                and os.environ.get('GITHUB_REPOSITORY') == 'haji84/RACE-AI'
+                and owner_run_origin(os.environ.get('GITHUB_REF_NAME'),
+                                     os.environ.get('GITHUB_EVENT_NAME')),
+                'ACTIONS_OWNER_CONTEXT_REQUIRED')
+        parsed = urlsplit(source_url)
+        p1 = parsed.netloc == 'www.boatrace.jp' and parsed.path in (
+            '/owpc/pc/race/racelist', '/owpc/pc/race/beforeinfo')
+        program = parsed.netloc == 'www1.mbrace.or.jp' and parsed.path.startswith('/od2/B/')
+        V._need((p1 or program) and V._capture_url(source_url), 'CAPTURE_SOURCE_INVALID')
+        V._need(os.environ.get('RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED') == 'true' if p1 else
+                os.environ.get('RACE_AI_SAVED_PROGRAM_CAPTURE') == 'true', 'SOURCE_SCOPE_REQUIRED')
+        V._need(type(raw) is bytes and 0 < len(raw) <= MAX_CAPTURE, 'CAPTURE_BOUND_INVALID')
+        V._need(type(received_at) is datetime and received_at.utcoffset() is not None,
+                'AWARE_CLOCK_REQUIRED')
+        receipt = dict(source_url=source_url, source_sha256=sha256(raw).hexdigest(),
+            captured_at=received_at.astimezone(timezone.utc).isoformat(timespec='microseconds'),
+            http_status=200)
+        encoded = V._wire(receipt)+b'\n'
+        repo = Path(__file__).resolve().parents[1]
+        runner = Path(os.environ['RUNNER_TEMP'])
+
+        def check_runner():
+            # Match the existing typed program capture's runner-parent rule.
+            # Only the secret child needs 0700; an owned 0755 parent is safe.
+            V._need(runner.is_absolute() and '..' not in runner.parts
+                    and not any(p.is_symlink() for p in (runner, *runner.parents))
+                    and not any((p/'.git').exists() for p in (runner, *runner.parents))
+                    and not runner.is_relative_to(repo.resolve()), 'PRIVATE_OUTSIDE_GIT_REQUIRED')
+            info = runner.lstat()
+            V._need(stat.S_ISDIR(info.st_mode) and info.st_uid == os.geteuid()
+                    and not info.st_mode & 0o022, 'PRIVATE_RUNNER_TEMP_REQUIRED')
+            return _signature(info)[:4]
+
+        runner_identity = check_runner()
+        root = runner/'boat-saved-view-captures'
+        try:root.mkdir(mode=0o700)
+        except FileExistsError:pass
+        _private_root(root, repo)
+        descriptor = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        try:
+            import fcntl
+            # Serialize cooperating raw writers on the existing directory
+            # itself. A busy writer is a fixed HOLD, never a blocking wait or
+            # a new lockfile. Closing descriptor releases this invocation's lock.
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            identity = _signature(os.fstat(descriptor))[:5]
+
+            def check_root():
+                V._need(check_runner() == runner_identity, 'PRIVATE_INPUT_CHANGED')
+                _private_root(root, repo)
+                V._need(_signature(root.lstat())[:5] == identity
+                        and _signature(os.fstat(descriptor))[:5] == identity,
+                        'PRIVATE_INPUT_CHANGED')
+
+            def verify(fd, name, body, limit):
+                actual, _, _ = _read_at(fd, name, limit, collect=True)
+                V._need(actual == body, 'EXISTING_CAPTURE_CONFLICT')
+
+            check_root()
+            bodies = []
+            for suffix in ('.html', '.raw'):
+                name = receipt['source_sha256']+suffix
+                try:os.stat(name, dir_fd=descriptor, follow_symlinks=False)
+                except FileNotFoundError:continue
+                bodies.append(name)
+            V._need(len(bodies) <= 1, 'CAPTURE_BODY_REQUIRED')
+            # Preserve the existing feed filename convention for opaque B too.
+            files = [(bodies[0] if bodies else receipt['source_sha256']+'.html', raw, MAX_CAPTURE),
+                     (V._sha(V._wire(receipt))+'.json', encoded, 16384)]
+            pending = []
+            for name, body, limit in files:
+                try:os.stat(name, dir_fd=descriptor, follow_symlinks=False)
+                except FileNotFoundError:pending.append((name, body, limit))
+                else:verify(descriptor, name, body, limit)
+            check_root()
+            if not pending:return
+
+            created = []
+            try:
+                # No partial body or receipt is ever visible in the flat
+                # inventory. This invocation owns this entire private stage.
+                with tempfile.TemporaryDirectory(dir=runner, prefix='boat-source-capture-stage-') as temporary:
+                    stage = _private_root(temporary, repo)
+                    stage_fd = os.open(stage, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_NONBLOCK)
+                    try:
+                        stage_identity = _signature(os.fstat(stage_fd))[:5]
+
+                        def check_stage():
+                            check_root(); _private_root(stage, repo)
+                            V._need(_signature(stage.lstat())[:5] == stage_identity
+                                    and _signature(os.fstat(stage_fd))[:5] == stage_identity,
+                                    'PRIVATE_INPUT_CHANGED')
+
+                        # Prepare every needed file before publishing either.
+                        for name, body, limit in pending:
+                            check_stage()
+                            output = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                                             0o600, dir_fd=stage_fd)
+                            with os.fdopen(output, 'wb') as stream:
+                                V._need(stream.write(body) == len(body), 'PRIVATE_WRITE_INCOMPLETE')
+                                stream.flush(); os.fsync(stream.fileno())
+                            verify(stage_fd, name, body, limit)
+                            check_stage()
+
+                        for name, body, limit in pending:
+                            check_stage()
+                            info = os.stat(name, dir_fd=stage_fd, follow_symlinks=False)
+                            # The staged inode is newly owned by this invocation.
+                            # Track it before link, including an interrupted call.
+                            created.append((name, (info.st_dev, info.st_ino)))
+                            try:
+                                # link is atomic and refuses an existing final
+                                # name; no original can be replaced or truncated.
+                                os.link(name, name, src_dir_fd=stage_fd, dst_dir_fd=descriptor,
+                                        follow_symlinks=False)
+                            except FileExistsError:
+                                verify(descriptor, name, body, limit)
+                            else:
+                                os.unlink(name, dir_fd=stage_fd)
+                            check_stage()
+                    finally:
+                        os.close(stage_fd)
+                for name, body, limit in files:
+                    verify(descriptor, name, body, limit)
+                os.fsync(descriptor)
+                check_root()
+            except BaseException:
+                # Only final links created by this invocation are eligible
+                # for rollback. Preexisting/shared files are never touched.
+                for name, expected in reversed(created):
+                    try:
+                        info = os.stat(name, dir_fd=descriptor, follow_symlinks=False)
+                        if (info.st_dev, info.st_ino) == expected:
+                            os.unlink(name, dir_fd=descriptor)
+                    except OSError:
+                        pass
+                if created:
+                    try:os.fsync(descriptor)
+                    except OSError:pass
+                raise
+        finally:
+            os.close(descriptor)
+    except Exception:
+        # Reuse the existing durable review latch; even a latch write failure
+        # must leave this invocation in the same fixed, non-retryable HOLD.
+        if source_guard is not None:
+            try:source_guard.verification_failure('SOURCE_CAPTURE_UNAVAILABLE')
+            except Exception:pass
+        from .source_retry_policy import SourceWait
+        raise SourceWait('SOURCE_CAPTURE_UNAVAILABLE', retry_at=None,
+                         state='SOURCE_REVIEW_WAIT') from None
+
+
 @dataclass(frozen=True)
 class _Capture:
     # File paths, source URLs and receipts must not leak through a debug repr.
