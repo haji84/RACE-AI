@@ -117,6 +117,8 @@ def _advancement(stage, race_size, rule):
     _need(type(rule) is dict and set(rule) == keys and
           rule.get("kind") in RULES, "PROGRAM_RULE_SCHEMA")
     kind = rule["kind"]
+    if stage == "FINAL":
+        _need(kind == "NO_ADVANCEMENT", "FINAL_MUST_NOT_PROMOTE")
     direct, maybe, point = rule["direct_through"],rule["conditional_ranks"],rule["points_rule"]
     _need(type(maybe) is list and
           all(type(i) is int and 1 <= i <= race_size for i in maybe) and
@@ -137,8 +139,6 @@ def _advancement(stage, race_size, rule):
     else:
         _need(direct is None and not maybe and point is None,
               "UNKNOWN_OR_NONE_RULE_MUST_NOT_INFER_RANK")
-    if stage == "FINAL":
-        _need(kind == "NO_ADVANCEMENT", "FINAL_MUST_NOT_PROMOTE")
     return rule
 
 
