@@ -74,6 +74,16 @@ class RealPairFinishResearch(unittest.TestCase):
             final.join_planned_and_finishes(
                 a,b,as_of="2026-11-19T08:00:00+09:00")
 
+    def test_well_known_host_but_wrong_race_is_not_evidence(self):
+        a,b=docs()
+        b["races"][0]["public_result_urls"][0]=(
+            "https://www.keirin-mobile.jp/top/result.php?"
+            "date=20261110&jcode=84&race=02")
+        with self.assertRaisesRegex(final.PairFinishError,
+                                    "SOURCE_NOT_BOUND_TO_RACE"):
+            final.join_planned_and_finishes(
+                a,b,as_of="2026-11-19T08:00:00+09:00")
+
     def test_duplicate_row_rejected(self):
         a,b=docs()
         b["races"].append(deepcopy(b["races"][0]))
