@@ -78,9 +78,14 @@ def publish_immutable_items(items, repo, *, maximum_bytes, transport=None, readb
                      'VENUE_RESEARCH_BATCH_COMMIT_INVALID')
                 writer.push(commit, parent)
             reader.fetch(commit)
+            read = reader.read
+            prefetch = getattr(reader, 'prefetch_selected', None)
+            if prefetch is not None:
+                selected = {path: body for item in group for path, body in item.items()}
+                read = prefetch(commit, selected, maximum_bytes=maximum_bytes)
             for item in group:
                 for path, body in item.items():
-                    need(reader.read(commit, path, maximum_bytes) == body,
+                    need(read(commit, path, maximum_bytes) == body,
                          'VENUE_RESEARCH_BATCH_INDEPENDENT_READBACK_MISMATCH')
                 commits.append(commit)
 
