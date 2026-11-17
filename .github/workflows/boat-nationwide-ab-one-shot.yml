@@ -18,7 +18,11 @@ on:
     paths:
       - .github/workflows/boat-nationwide-ab-one-shot.yml
       - scripts/boat_private_original_vault.py
+      - scripts/boat_saved_view_feed.py
       - tests/test_boat_private_original_vault_cli.py
+      - race_ai/boat_source_capture_files.py
+      - tests/test_boat_source_capture_files.py
+      - tests/test_boat_source_capture_batching.py
       - race_ai/boat_pdca_github_handoff.py
       - race_ai/boat_private_original_vault.py
       - race_ai/boat_all_model_store.py
@@ -136,6 +140,7 @@ jobs:
                  'tests.test_boat_private_original_vault_isolation','tests.test_boat_all_model_store',
                  'tests.test_saved_view_feed','tests.test_boat_shared_feed_writer_safety',
                  'tests.test_private_original_archive_readers','tests.test_boat_private_original_vault_cli',
+                 'tests.test_boat_source_capture_files','tests.test_boat_source_capture_batching',
                  'tests.test_boat_first_p0_readback','tests.test_boat_first_p0_reconcile',
                  'tests.test_boat_saved_result_recovery','tests.test_boat_source_control_mirror',
                  'tests.test_supervisor_durable_readback','tests.test_boat_saved_site_context',

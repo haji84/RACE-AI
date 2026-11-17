@@ -21,6 +21,9 @@ REVIEWED_PREVIOUS_OWNER_SHAS = frozenset({
     # Actual M2 worker originals/control remain readable by the next release.
     # Old checkout/proof never authorizes recovery or dispatch of that release.
     '86b029ae5bddd5d4956497d8b32b2c92b8eec521',
+    # Reviewed profile release: historical original/control readback only.
+    # Recovery checkout and its proof must still match the new expected head.
+    'f55351dce855177a51330f72c37d6238ba2c9e3e',
 })
 
 

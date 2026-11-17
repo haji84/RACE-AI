@@ -508,6 +508,10 @@ def _error_diagnostic(exc):
     if type(exc) is RuntimeError and re.fullmatch(
             r"GITHUB_API_(?:READ_HTTP_[45][0-9]{2}|TIMEOUT)_HALT", reason):
         report['upstream_reason'] = reason
+    if type(exc) is ValueError and re.fullmatch(
+            r"(?:STATE|VAULT)_GIT_(?:(?:FETCH|REMOTE_LOOKUP|PUSH|OPERATION)_TIMEOUT|"
+            r"OPERATION_FAILED_(?:REMOTE_LOOKUP|FETCH|PUSH|LOCAL)_(?:HTTP_[45][0-9]{2}|UNKNOWN))", reason):
+        report['upstream_reason'] = reason
     return report
 
 

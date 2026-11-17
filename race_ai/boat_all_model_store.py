@@ -178,6 +178,64 @@ class GitForecastRepository(GitStateRepository):
         # ancestor trees are not inputs and remain available via explicit pins.
         super().fetch(commit,shallow=True)
 
+    def prefetch_tree(self, commit):
+        """Hydrate only missing blobs in the exact validated current tree.
+
+        Metadata enumeration must not itself trigger one network fetch per
+        inherited cipher. Every original size/hash/header check still runs
+        afterward through the returned reader, with lazy fetching disabled.
+        """
+        _hex(commit, _HEAD)
+        self._reject_rewrites()
+        urls = self.fetch_url, self.push_url
+        self._check_remote()
+        _need((self.fetch_url, self.push_url) == urls, "TREE_REMOTE_CHANGED")
+        local = lambda args, **options: self._run(["--no-lazy-fetch", *args], **options)
+        _need(local(["cat-file", "-t", commit]).strip() == b"commit", "TREE_COMMIT_REQUIRED")
+        raw = local(["ls-tree", "-rz", "--full-tree", commit])
+        _need(len(raw) <= 4 * 1024 * 1024, "TREE_BOUND_INVALID")
+        _need(not raw or raw.endswith(b"\0"), "TREE_INVALID")
+        paths = {}
+        for row in raw.split(b"\0"):
+            if not row: continue
+            match = re.fullmatch(rb"100644 blob ([a-f0-9]{40})\t(latest\.json|forecasts/[a-f0-9]{64}\.enc)", row)
+            _need(match is not None, "TREE_ALLOWLIST_INVALID")
+            name = match[2].decode("ascii")
+            _need(name not in paths and len(paths) < MAX_TREE_ENTRIES, "TREE_TOTAL_BOUND_INVALID")
+            paths[name] = match[1].decode("ascii")
+        _need("latest.json" in paths and len(paths) >= 2, "INHERITED_LATEST_REQUIRED")
+        objects = sorted(set(paths.values()))
+        def missing_objects():
+            result = local(["cat-file", "--batch-check=%(objectname) %(objecttype) %(objectsize)"],
+                           body=("\n".join(objects)+"\n").encode("ascii"))
+            rows = result.splitlines()
+            _need(len(rows) == len(objects), "TREE_OBJECTS_INVALID")
+            missing = []
+            for oid, row in zip(objects, rows):
+                if row == (oid+" missing").encode("ascii"):
+                    missing.append(oid)
+                else:
+                    _need(re.fullmatch(oid.encode("ascii")+rb" blob [0-9]+", row) is not None,
+                          "TREE_OBJECTS_INVALID")
+            return missing
+        missing = missing_objects()
+        if missing:
+            self._run(["-c", "fetch.negotiationAlgorithm=noop", "fetch", "--no-tags", "--no-write-fetch-head",
+                       "--recurse-submodules=no", "--filter=blob:none", "--stdin", urls[0]],
+                      body=("\n".join(missing)+"\n").encode("ascii"))
+        _need(not missing_objects(), "TREE_OBJECTS_MISSING")
+        class LocalReader:
+            def _run(self, args, **options):
+                _need(args and args[0] in ("ls-tree", "cat-file", "show"), "TREE_LOCAL_COMMAND_REQUIRED")
+                return local(args, **options)
+            def read(self, requested_commit, path, limit):
+                _need(type(requested_commit) is str and requested_commit == commit and
+                      type(path) is str and path in paths, "TREE_LOCAL_READ_INVALID")
+                maximum = MAX_HEADER * 2 if path == "latest.json" else MAX_WIRE
+                _need(type(limit) is int and 0 < limit <= maximum, "TREE_LOCAL_READ_INVALID")
+                return GitStateRepository.read(self, requested_commit, path, limit)
+        return LocalReader()
+
 
 def _transport(repo, transport):
     git = transport if transport is not None else GitForecastRepository(repo)
@@ -197,6 +255,9 @@ def _latest(value):
 
 def _tree(git, commit):
     _hex(commit, _HEAD)
+    prefetch = getattr(git, "prefetch_tree", None)
+    if prefetch is not None:
+        git = prefetch(commit)
     raw = git._run(["ls-tree", "-rlz", "--full-tree", commit])
     _need(len(raw) <= 4 * 1024 * 1024, "TREE_BOUND_INVALID")
     paths = {}

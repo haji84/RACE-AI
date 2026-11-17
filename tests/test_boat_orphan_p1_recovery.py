@@ -76,7 +76,8 @@ class OrphanP1RecoveryTests(unittest.TestCase):
         from tests.test_frozen_day_cycle import sample
         from race_ai.frozen_day_cycle import read_p0
         reviewed=('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
-                  '86b029ae5bddd5d4956497d8b32b2c92b8eec521')
+                  '86b029ae5bddd5d4956497d8b32b2c92b8eec521',
+                  'f55351dce855177a51330f72c37d6238ba2c9e3e')
         expected='e'*40
         for origin in (*reviewed,'f'*40):
             with self.subTest(origin=origin):
@@ -118,6 +119,41 @@ class OrphanP1RecoveryTests(unittest.TestCase):
 
     def test_reviewed_m2_checkout_cannot_execute_new_release_recovery(self):
         self._assert_reviewed_checkout_refused('86b029ae5bddd5d4956497d8b32b2c92b8eec521')
+
+    def test_reviewed_f553_checkout_cannot_execute_new_release_recovery(self):
+        self._assert_reviewed_checkout_refused('f55351dce855177a51330f72c37d6238ba2c9e3e')
+
+    def test_reviewed_f553_origin_still_requires_exact_source_cipher_bytes(self):
+        import io,zipfile
+        origin='f55351dce855177a51330f72c37d6238ba2c9e3e'
+        with patch(__name__+'.HEAD',origin), \
+             patch('tests.test_boat_pending_round_recovery.HEAD',origin):
+            run,control,replies,state=orphan_fixture()
+        with zipfile.ZipFile(io.BytesIO(replies['actions/artifacts/123/zip'])) as z:
+            cipher=z.read('private-original.enc')
+        wrong_tag=packed({'private-original.enc':cipher[:-1]+bytes([cipher[-1]^1])})
+        for case,raw in (
+                ('other_source_cipher',self.replies['actions/artifacts/123/zip']),
+                ('unauthenticated_plaintext',packed({'forecasts.json':b'{}'})),
+                ('tampered_cipher',wrong_tag)):
+            changed=deepcopy(replies)
+            metadata=json.loads(changed['actions/artifacts/123'])
+            metadata.update(digest='sha256:'+sha256(raw).hexdigest(),size_in_bytes=len(raw))
+            changed['actions/artifacts/123']=json.dumps(metadata).encode()
+            changed['actions/artifacts/123/zip']=raw
+            route='actions/runs/99/artifacts?per_page=100';listing=json.loads(changed[route])
+            listing['artifacts']=[metadata if item['id']==123 else item for item in listing['artifacts']]
+            changed[route]=json.dumps(listing).encode()
+            before=deepcopy((run,control,changed,state));reads=[]
+            def get(route):
+                reads.append(route)
+                return changed[route]
+            with self.subTest(case=case), \
+                 patch('urllib.request.urlopen',side_effect=AssertionError('provider access')):
+                with self.assertRaises(ValueError):
+                    recovery.reconcile_restored_state(state,get,now=NOW,expected_head='e'*40)
+                self.assertIn('actions/artifacts/123/zip',reads)
+                self.assertEqual((run,control,changed,state),before)
 
     def _assert_reviewed_checkout_refused(self,previous):
         from contextlib import redirect_stdout
