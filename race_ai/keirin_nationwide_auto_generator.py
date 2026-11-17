@@ -134,7 +134,6 @@ def validate_snapshot(snap, *, computed_at):
          "FIVE_TO_NINE_STARTERS_REQUIRED")
     n = len(riders)
     seen_cars = set()
-    seen_marks = set()
     athlete_ids = set()
     for row in riders:
         need(type(row) is dict and set(row) == {
@@ -148,7 +147,7 @@ def validate_snapshot(snap, *, computed_at):
         need(type(car) is int and 1 <= car <= 9 and car not in seen_cars and
              type(athlete) is str and RID.fullmatch(athlete) is not None and
              athlete not in athlete_ids and
-             (marked and mark not in seen_marks or mark == "UNMARKED"),
+             (marked or mark == "UNMARKED"),
              "CAR_MARK_OR_PERSISTENT_RIDER_ID_DUPLICATE")
         need(type(row["competition_points"]) in (int, float) and
              isfinite(row["competition_points"]) and
@@ -161,8 +160,6 @@ def validate_snapshot(snap, *, computed_at):
              row["style"] in STYLES,
              "RIDER_PRE_RACE_FEATURE_OUT_OF_BOUNDS")
         seen_cars.add(car)
-        if marked:
-            seen_marks.add(mark)
         athlete_ids.add(athlete)
     lines = snap["line_groups"]
     need(type(lines) is list and 1 <= len(lines) <= n and
