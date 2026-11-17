@@ -125,6 +125,10 @@
     "workspace_reset_performed": false,
     "source_runtime_release_sha": "f55351dce855177a51330f72c37d6238ba2c9e3e",
     "local_source_fixes_transferred": false,
-    "goal_complete": false
+    "goal_complete": false,
+    "api_snapshot_commit": "26c79d352c1b27e80ff15c39014a13c9023770ae",
+    "api_snapshot_tree": "0e6ef4703beb09728ff3295407b3c165c55a1f85",
+    "snapshot_preserves_main_parent": "2641abcd2e6fbc8e7ff12a00ac95a63066c70b03",
+    "previous_pr_head_preserved_as_ancestor": "22cfdeebf0cdefa84feb79bb9374ddf416ec1ad0"
   }
 }
