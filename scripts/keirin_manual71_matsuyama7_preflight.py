@@ -158,6 +158,7 @@ def execute(*, env, workspace, helper, runner_temp,
         # One already-existing, manually opt-in research provider request.
         # Same race, no redirects, no retry, zero raw HTML retention.
         report["source_attempts"] = 1
+        response = None
         try:
             response = fetch_one(
                 "20261117",75,7,acknowledgement=ACK,route="legacy")
