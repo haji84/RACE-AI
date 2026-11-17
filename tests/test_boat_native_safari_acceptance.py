@@ -261,7 +261,9 @@ process.stdout.write(JSON.stringify({accepted,changed,afterChanged,real,final:sc
     def test_artifact_gate_requires_all_measured_widths_and_no_real_capture_context(self):
         raw = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
         with tempfile.TemporaryDirectory() as name:
-            folder = Path(name)
+            # macOS temp roots may use /var -> /private/var. Canonicalize
+            # this trusted fixture; production still rejects symlink paths.
+            folder = Path(name).resolve()
             images = []
             for width in (320, 390, 1440, 1920):
                 for page in ('home', 'races', 'detail', 'picks', 'results', 'research', 'settings'):
@@ -291,6 +293,25 @@ process.stdout.write(JSON.stringify({accepted,changed,afterChanged,real,final:sc
             (folder / 'extra.png').write_bytes(raw)
             with self.assertRaises(S.SafariHold):
                 S.verify_synthetic_artifacts(folder)
+
+    def test_artifact_fixture_handles_a_symlinked_temp_parent_without_relaxing_the_gate(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name).resolve()
+            real_parent = root / 'private-var'
+            real_parent.mkdir()
+            alias = root / 'var'
+            alias.symlink_to(real_parent, target_is_directory=True)
+            (real_parent / 'synthetic-only.json').write_text('{}')
+            # Production still refuses the unresolved alias before reading any
+            # artifact metadata. Only this test's trusted temp fixture resolves.
+            with patch.object(Path, 'read_bytes', side_effect=AssertionError('symlink metadata was read')):
+                with self.assertRaisesRegex(S.SafariHold, 'SYNTHETIC_OUTPUT_REJECTED'):
+                    S.verify_synthetic_artifacts(alias)
+            result = unittest.TestResult()
+            with patch.object(tempfile, 'tempdir', str(alias)):
+                EncryptedSeedBoundaryTests(
+                    'test_artifact_gate_requires_all_measured_widths_and_no_real_capture_context').run(result)
+            self.assertTrue(result.wasSuccessful(), str(result.errors + result.failures))
 
 
 def acceptance_workflow_steps():
