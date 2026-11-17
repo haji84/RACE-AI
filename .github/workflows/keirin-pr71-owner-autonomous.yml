@@ -227,8 +227,10 @@ jobs:
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_owner_inputs.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_owner_source_cycle.py' -v
           python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_variable.py" "$GITHUB_WORKSPACE/scripts/keirin_source_gap_plan.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_owner_inputs.py"
-      - name: Owner-authored 71R result comparison contract (no provider GET)
-        run: python -m unittest -v tests.test_keirin_manual_result_sync
+      - name: Owner-authored 71R result comparison and encrypted pilot bridge (no provider GET)
+        run: |
+          python -m unittest -v tests.test_keirin_manual_result_sync tests.test_keirin_manual_71_actions_bridge
+          python -m py_compile race_ai/keirin_manual_71_actions_bridge.py scripts/keirin_cloud_pr71_state.py
       - name: Do not claim synthetic results as live
         run: echo 'Synthetic model and AES tests are not actual real-race prediction evidence.' >> "$GITHUB_STEP_SUMMARY"
       - name: Export only public research detector code for independent local replay
@@ -430,7 +432,7 @@ jobs:
           yes=r["state"]=="CLOUD_PR71_ENCRYPTED_GIT_HISTORY_READBACK_VERIFIED"
           with open(os.environ["GITHUB_OUTPUT"],"a") as f:
               f.write("committed="+("true" if yes else "false")+"\n")
-          safe={k:r.get(k) for k in ("state","generation","source_state","new_forecast_stage_nonzero","existing_pdca_invoked","result_rows_appended","result_rows_held","four_model_variable_saved","four_model_variable_held","missing_source_config_keys","owner_source_acquisition","official_result_independently_authenticated")}
+          safe={k:r.get(k) for k in ("state","generation","source_state","new_forecast_stage_nonzero","existing_pdca_invoked","result_rows_appended","result_rows_held","four_model_variable_saved","four_model_variable_held","missing_source_config_keys","owner_source_acquisition","manual71_pilot","official_result_independently_authenticated")}
           print(json.dumps(safe,ensure_ascii=False,sort_keys=True))
           with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
               f.write("GitHub-hosted PR71 state: "+str(r["state"])+"\n")
@@ -479,6 +481,7 @@ jobs:
               raise SystemExit("LIVE_WINDOW_PROOF_COUNTER_MISSING")
           public={"state":r["state"],"generation":r["generation"],
                   "15min_proven_races":live["proven_races"],
+                  "manual71_audit_readback":r.get("manual71_pilot_readback",{}),
                   "15min_model_result_pairs_proven":live["model_result_pairs_proven"],
                   "15min_holds_by_reason":live["holds"]}
           print(json.dumps(public,sort_keys=True))
