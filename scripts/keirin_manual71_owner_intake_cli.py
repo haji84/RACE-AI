@@ -69,7 +69,8 @@ def _rsa_matching_public_key(private_pem, *, expected_public_sha=PUBLIC_SPKI_SHA
 def restore_existing_owner_bundle(*, env, workspace, helper, private_dir,
                                   expected_file_sha=CIPHER_FILE_SHA256,
                                   expected_cipher_sha=CIPHER_PAYLOAD_SHA256,
-                                  expected_public_sha=PUBLIC_SPKI_SHA256):
+                                  expected_public_sha=PUBLIC_SPKI_SHA256,
+                                  expected_originals=None):
     """Caller must run in trusted main; never create an unencrypted public file.
 
     No JSON/payout/rider data leaves this function. Absence of Secret => HOLD.
@@ -100,9 +101,11 @@ def restore_existing_owner_bundle(*, env, workspace, helper, private_dir,
     key = _rsa_matching_public_key(
         env["RACE_AI_KEIRIN_PRIVATE_RSA_PEM"],
         expected_public_sha=expected_public_sha)
-    decoded = open_envelope(envelope, private_key=key, helper_path=helper)
+    expected = EXPECTED if expected_originals is None else expected_originals
+    decoded = open_envelope(envelope, private_key=key, helper_path=helper,
+                            expected=expected)
     staged = stage_private(decoded, private_folder=private_dir,
-                           public_workspace=ws)
+                           public_workspace=ws, expected=expected)
     return {"state": "OWNER_MANUAL71_PRIVATE_SOURCE_STAGED",
             "source_files": staged["private_files"],
             "forecast_sha256": staged["forecast_sha256"],
