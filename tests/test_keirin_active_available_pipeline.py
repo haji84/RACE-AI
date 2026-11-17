@@ -65,7 +65,7 @@ class RealGeneratedResearchPath(unittest.TestCase):
         result=call(historical_line_labels=empirical_fixture(),
                     verify_historical_follow=None)
         self.assertEqual(result["state"],"A_B_RESEARCH_READY_C_HISTORY_HOLD")
-        self.assertEqual(result["C_hold"],"REAL_LINE_HISTORY_UNADMITTED_OR_C_CUTOFF_INVALID")
+        self.assertEqual(result["C_hold"],"HISTORICAL_IDENTITY_LABEL_OR_COMPUTE_WITNESS_MISSING")
         self.assertIsNotNone(result["B_six_phase"])
 
     def test_fake_prior_71R_lineup_never_enters_C(self):
