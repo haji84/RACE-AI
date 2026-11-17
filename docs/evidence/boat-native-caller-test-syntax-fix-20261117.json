@@ -1,0 +1,79 @@
+{
+  "kind": "TESTS_ONLY_SYNTAX_DELTA_HANDOFF",
+  "repository": "haji84/RACE-AI",
+  "supersedes": {
+    "test_blob": "cbc2cd3c3c5074541f11ed7e815990f3cad4c829",
+    "packet_blob": "e618d530c55e62d5ffadace3c6744048eaf515c2"
+  },
+  "base": {
+    "commit": "2da3e9b2703c9e3c6a564f72129b37719f984ab8",
+    "tree": "d6607feeca38fc33657fb8b6743e99d19d108ee1",
+    "test_blob": "cbc2cd3c3c5074541f11ed7e815990f3cad4c829"
+  },
+  "file": {
+    "path": "tests/test_boat_native_safari_dispatch.py",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "fcb7d83381f9d5b56fb2e4caeaf4e8eb09cd6d01",
+    "bytes": 44590,
+    "test_method_count": 26
+  },
+  "tree_elements": [
+    {
+      "path": "tests/test_boat_native_safari_dispatch.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fcb7d83381f9d5b56fb2e4caeaf4e8eb09cd6d01"
+    }
+  ],
+  "reported_ci_evidence": {
+    "source": "Root task report",
+    "run_id": 44201405908,
+    "job_id": 134456141510,
+    "outcome": "SyntaxError before test import/execution",
+    "line": 562,
+    "error": "unterminated string literal",
+    "missing_module_red": false,
+    "tests_ran": false
+  },
+  "root_cause": "The authored Python fixture text contained the JavaScript replacement metasequence dollar-plus-single-quote. Passing the entire appended test text as String.replace's replacement string expanded that metasequence to the suffix after the replacement match and inserted an actual newline plus unittest.main() inside a Python short string. Published bytes matched the erroneous authored bytes; exact blob readback alone was not Python syntax verification.",
+  "exact_delta": {
+    "before": "            valid.replace('          ref: ' + CANDIDATE, '          ref: \n    unittest.main()\n + '{{ github.sha }}'),",
+    "after": "            valid.replace('          ref: ' + CANDIDATE, '          ref: ' + chr(36) + '{{ github.sha }}'),",
+    "old_lines": 3,
+    "new_lines": 1,
+    "start_line": 562,
+    "intended_invalid_yaml_value": "          ref: ${{ github.sha }}",
+    "all_other_bytes_identical": true
+  },
+  "authoring_fix": "Applied the unique replacement via a callback, so JavaScript performs no replacement-string metasequence expansion. The fixture constructs the dollar with chr(36). Existing correctly escaped duplicate-YAML newline fixtures remain unchanged.",
+  "preservation": {
+    "all_26_test_method_names_and_order_identical": true,
+    "all_assertion_lines_identical": true,
+    "all_other_bytes_identical": true,
+    "all_12_historical_test_methods_retained": true,
+    "invalid_GitHub_expression_fixture_intent_preserved": true,
+    "new_runtime_code": false
+  },
+  "verification": {
+    "fixed_blob_exact_GitHub_readback": true,
+    "whole_file_V8_quoted_string_lexical_scan": true,
+    "invalid_actual_newlines_in_short_quoted_strings": 0,
+    "scanner_end_state": "code",
+    "unittest_main_occurrences": 1,
+    "python_parser_executed": false,
+    "tests_executed": false,
+    "proper_missing_module_red_observed": false,
+    "ci_total": "UNOBSERVED"
+  },
+  "required_next_action": "Root must install only this replacement test blob on the existing PR branch and run the existing CI. Observe a fresh proper missing-module RED before authoring any runtime. Do not treat the earlier SyntaxError run as TDD RED.",
+  "safety_scope": {
+    "github_connectors_and_V8_only": true,
+    "no_refs_moved": true,
+    "no_workflows_authored": true,
+    "no_runtime_authored": true,
+    "no_process_started": true,
+    "no_provider_get": true,
+    "no_key_read": true
+  }
+}

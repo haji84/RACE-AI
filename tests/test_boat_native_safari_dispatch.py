@@ -559,9 +559,7 @@ class NativeSafariDispatchTests(unittest.TestCase):
             valid.replace('          ref: ' + CANDIDATE, '          ref: main'),
             valid.replace('          ref: ' + CANDIDATE, '          ref: ' + CANDIDATE[:8]),
             valid.replace('          ref: ' + CANDIDATE, '          ref: ' + 'A' * 40),
-            valid.replace('          ref: ' + CANDIDATE, '          ref: 
-    unittest.main()
- + '{{ github.sha }}'),
+            valid.replace('          ref: ' + CANDIDATE, '          ref: ' + chr(36) + '{{ github.sha }}'),
             valid.replace('          ref: ' + CANDIDATE, '          ref: ' + CANDIDATE + '\n          ref: ' + OLD_CANDIDATE),
             valid.replace('          path: ' + CANDIDATE_PATH, '          path: ' + CANDIDATE_PATH + '\n          path: unrelated'),
             valid.replace('        uses: actions/checkout@v4', '        uses: foreign/private-sentinel@v4'),
