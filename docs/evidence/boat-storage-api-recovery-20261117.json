@@ -196,5 +196,8 @@
   "production_weight_switches": 0,
   "wagers": 0,
   "product_ui_deployed": false,
-  "goal_complete": false
+  "goal_complete": false,
+  "public_snapshot_commit": "034d1b30d8f6db20962b5f0f61404ce540e3c460",
+  "public_snapshot_tree": "eff37e258b043e4d7aa5f195fe1eaadf826b066e",
+  "fresh_exact_head_ci_status": "PENDING"
 }
