@@ -15,7 +15,7 @@
 ## 既存実装との接続
 - 残す：`race_ai/keirin_manual_result_sync.py`（71R原本SHA検証、V2/V3版・候補順位、同着/返還/未観測、Hit@1/全候補/仮想払戻、非公式な参考比較、プライベートHTML作成）。
 - 追加：`race_ai/keirin_manual_71_actions_bridge.py`。**既存のlicensed V3 source stage** の `licensed_result_rows` のみ読む。最初はレースID `202611177507` (= `75-07`) だけ。シナリオ予測や無許可の別GETはしない。
-- `scripts/keirin_cloud_pr71_state.py::cycle` が、既存のsource/grants確認後かつ所有者の非公開予想資料が明示的にある場合に研究用参考結果を照合。予想原本、61/71が欠落した部分や無い結果は補完しない。
+- `scripts/keirin_cloud_pr71_state.py::cycle` が、既存のsource/grants確認後かつ所有者の非公開予想資料が明示的にある場合に研究用参考結果を照合。予想原本や欠測した会場・レース・結果は、推測で補完しない。
 - `keirin_owner_manual_71_audits` テーブルに日付/レース/結果改訂SHA、予想原本SHA、監査JSON SHA、閲覧HTML SHAとprivate blobを保存。INSERT ONLY、同一結果改訂の二重保存なし、異なる内容に置換できない。**従来のPR71モデル予想テーブルは変更しない**。
 - 追加したtableは**既存PR71のAES-256-GCM暗号化SQLite Git履歴**に含ませる設計。別runnerの既存 `verify` がprivate blob SHAとレースID/本数/非認証フラグを独立読戻しチェックする。公開Actions logに予想車番・払戻やprivate HTMLを載せない。
 - 既存 `.github/workflows/keirin-pr71-owner-autonomous.yml` のsynthetic-ciに本研究サイドカーのsource-freeテストを追加。新しいworkflow/secret/課金/公開サーバを作らず、mainの保護を維持。
