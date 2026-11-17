@@ -145,27 +145,28 @@ def open_envelope(envelope, *, private_key, helper_path,
     return verify_payload(payload, expected=expected)
 
 
-def stage_private(raw_files, *, private_folder, public_workspace):
+def stage_private(raw_files, *, private_folder, public_workspace, expected=None):
     """Create four 0600 files atomically in a 0700 private temp directory.
 
     Caller MUST first verify its trusted main-runner context, and MUST supply
     an owner-private path outside GITHUB_WORKSPACE.
     """
+    expected = EXPECTED if expected is None else expected
     base = Path(private_folder)
     workspace = Path(public_workspace).resolve()
     need(base.is_absolute() and not base.exists() and not base.is_symlink() and
          workspace != base.resolve() and workspace not in base.resolve().parents,
          "PRIVATE_OUTPUT_NOT_ISOLATED")
-    need(type(raw_files) is dict and set(raw_files) == set(EXPECTED),
+    need(type(raw_files) is dict and set(raw_files) == set(expected),
          "BUNDLE_FILE_SET_INVALID")
     for key, raw in raw_files.items():
-        need(type(raw) is bytes and sha(raw) == EXPECTED[key],
+        need(type(raw) is bytes and sha(raw) == expected[key],
              "PREDICTION_ORIGINAL_SHA_MISMATCH")
     made = []
     try:
         base.mkdir(mode=0o700, parents=False)
         base.chmod(0o700)
-        for name in EXPECTED:
+        for name in expected:
             target = base / name
             flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
             if hasattr(os, "O_NOFOLLOW"):
@@ -178,7 +179,7 @@ def stage_private(raw_files, *, private_folder, public_workspace):
                 os.fsync(handle.fileno())
         return {"state": "OWNER_MANUAL71_PRIVATE_SOURCE_STAGED",
                 "private_files": 4,
-                "forecast_sha256": EXPECTED["forecast_v3.json"],
+                "forecast_sha256": expected["forecast_v3.json"],
                 "result_source_verified": False}
     except Exception:
         for target in made:
