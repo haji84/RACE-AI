@@ -1,7 +1,7 @@
 {
   "schema": "RACE_AI_P0_STORAGE_RECOVERY_20261117",
   "phase": "LIVE_P0_AND_ROUND01_SUCCEEDED_SAFARI_UI_AND_RESULT_RETENTION_HOLD",
-  "main_sha": "df1ee16ca9d2d5813880a9d4b8f6d62ed765fb76",
+  "main_sha": "cb3261d0ec66173313e12b74a02e45ac9404e399",
   "production_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
   "storage_candidate_sha": "67200ef25161a48b49a63d04450b1f11656add5b",
   "unrestored_commits": [
@@ -155,9 +155,10 @@
     "bootstrap_owner_regression": 179,
     "main_gate_audit_safari": 101,
     "main_independent_reader": 64,
-    "safari_boundaries": 18,
+    "safari_boundaries": 20,
     "enriched_recovery": 60,
-    "independent_enriched_recovery": 55
+    "independent_enriched_recovery": 55,
+    "existing_video_boundaries": 120
   },
   "limits": [
     "Old logs do not identify the exact timed-out Git subcommand",
@@ -207,7 +208,7 @@
     "status": "failure",
     "reason": "INDEPENDENT_ALL_MODEL_REPLAY_NOT_AVAILABLE"
   },
-  "observed_at": "2026-11-17T05:09:29.735651+00:00",
+  "observed_at": "2026-11-17T05:19:07.751582+00:00",
   "live_recovery": {
     "gate_run_id": 44019424267,
     "gate_job_id": 133825071851,
@@ -306,15 +307,25 @@
     }
   ],
   "native_safari_live": {
-    "run_id": 44020668953,
-    "job_id": 133829132065,
-    "main_sha": "df1ee16ca9d2d5813880a9d4b8f6d62ed765fb76",
+    "run_id": 44022519670,
+    "job_id": 133835055575,
+    "main_sha": "cb3261d0ec66173313e12b74a02e45ac9404e399",
     "runner_os": "macos-15-intel",
     "status": "failure",
     "reason": "APP_UI_CHECK_FAILED",
+    "checker_function": "app_checks",
+    "checker_line": 560,
+    "failed_operation": "NATIVE_BUDGET_INPUT",
     "desktop_acceptance_verified": false,
     "physical_iphone_verified": false,
-    "public_checker_location_diagnostic_tests": 18
+    "first_viewport_prior_checks_progressed": [
+      "saved_original_load",
+      "native_p1_detail",
+      "saved_model_top8_hash",
+      "research_return",
+      "result_groups_and_count"
+    ],
+    "final_private_boundary_verified": false
   },
   "result_retention_live": {
     "artifact_id": 14300389237,
@@ -330,5 +341,24 @@
     "accuracy_improvement_proven": false,
     "independent_pre_cutoff_receipt_verified": false,
     "promotion_allowed": false
+  },
+  "native_safari_attempts": [
+    {
+      "run_id": 44020668953,
+      "job_id": 133829132065,
+      "main_sha": "df1ee16ca9d2d5813880a9d4b8f6d62ed765fb76",
+      "runner_os": "macos-15-intel",
+      "status": "failure",
+      "reason": "APP_UI_CHECK_FAILED",
+      "desktop_acceptance_verified": false,
+      "physical_iphone_verified": false,
+      "public_checker_location_diagnostic_tests": 18
+    }
+  ],
+  "historical_result_retention_pin": {
+    "artifact_id": 13559236491,
+    "actual_metadata_http_status": 404,
+    "manifest": "audit/state/official-result-retention-input.json",
+    "retained_original_restored": false
   }
 }
