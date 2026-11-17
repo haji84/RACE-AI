@@ -115,6 +115,18 @@ class ThreeArmStudy(unittest.TestCase):
         self.assertEqual(r["reason"],
                          "COHESION_ARM_INDEPENDENT_ORIGINAL_AND_CANDIDATE_READBACK_REQUIRED")
 
+    def test_line_model_computation_cannot_follow_its_private_freeze(self):
+        late=fixture()
+        late["line_study"]["conditioning"]["computed_at"] = (
+            "2026-11-17T11:04:00+09:00")
+        self.assertEqual(
+            score(late)["reason"],"LINE_MODEL_COMPUTED_AFTER_FREEZE_OR_CUTOFF")
+        later=fixture()
+        later["line_study"]["conditioning"]["computed_at"] = (
+            "2026-11-17T11:14:30+09:00")
+        self.assertEqual(
+            score(later)["reason"],"LINE_MODEL_COMPUTED_AFTER_FREEZE_OR_CUTOFF")
+
     def test_refund_is_hold_for_all_three(self):
         b=fixture()
         b["result"]["refund_status"]="FULL"
