@@ -397,6 +397,9 @@ jobs:
       pilot_state: ${{ steps.archive.outputs.pilot_state }}
       pilot_new_audits: ${{ steps.archive.outputs.pilot_new_audits }}
       pilot_commit_state: ${{ steps.archive.outputs.pilot_commit_state }}
+      pilot_rowset_sha: ${{ steps.archive.outputs.pilot_rowset_sha }}
+      pilot_result_revision: ${{ steps.archive.outputs.pilot_result_revision }}
+      pilot_html_sha: ${{ steps.archive.outputs.pilot_html_sha }}
     env:
       RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
       RACE_AI_KEIRIN_FEED_ENDPOINT: ${{ secrets.RACE_AI_KEIRIN_FEED_ENDPOINT }}
@@ -450,6 +453,12 @@ jobs:
               f.write("pilot_generation="+str(generation if type(generation) is int and generation>=1 else 0)+"\n")
               audits=pilot.get("new_audits")
               f.write("pilot_new_audits="+str(audits if type(audits) is int and 0<=audits<=100 else 0)+"\n")
+              def verified_digest(v):
+                  return (v if isinstance(v,str) and len(v)==64 and
+                          all(c in "0123456789abcdef" for c in v) else "")
+              f.write("pilot_rowset_sha="+verified_digest(pilot.get("audit_rowset_sha256"))+"\n")
+              f.write("pilot_result_revision="+verified_digest(pilot.get("source_revision_sha256"))+"\n")
+              f.write("pilot_html_sha="+verified_digest(pilot.get("latest_html_sha256"))+"\n")
               cipher=r.get("cipher_sha256")
               f.write("pilot_cipher_sha="+
                       (cipher if isinstance(cipher,str) and len(cipher)==64 and
@@ -516,6 +525,9 @@ jobs:
           PILOT_NEW_AUDITS: ${{ needs.github-hosted-pr71-cycle.outputs.pilot_new_audits }}
           PILOT_GENERATION: ${{ needs.github-hosted-pr71-cycle.outputs.pilot_generation }}
           PILOT_CIPHER_SHA: ${{ needs.github-hosted-pr71-cycle.outputs.pilot_cipher_sha }}
+          PILOT_ROWSET_SHA: ${{ needs.github-hosted-pr71-cycle.outputs.pilot_rowset_sha }}
+          PILOT_RESULT_REVISION: ${{ needs.github-hosted-pr71-cycle.outputs.pilot_result_revision }}
+          PILOT_HTML_SHA: ${{ needs.github-hosted-pr71-cycle.outputs.pilot_html_sha }}
         run: |
           set -euo pipefail
           python - <<'PY'
@@ -536,6 +548,9 @@ jobs:
               "manual71_pilot":{
                   "state":os.environ.get("PILOT_STATE"),
                   "new_audits":int(os.environ.get("PILOT_NEW_AUDITS") or 0),
+                  "source_revision_sha256":os.environ.get("PILOT_RESULT_REVISION"),
+                  "audit_rowset_sha256":os.environ.get("PILOT_ROWSET_SHA"),
+                  "latest_html_sha256":os.environ.get("PILOT_HTML_SHA"),
                   "official_results_authenticated":False}}
           summary=module.examine(
               producer=producer,readback=readback,
