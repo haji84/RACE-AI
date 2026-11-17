@@ -1,0 +1,100 @@
+{
+  "schema": "RACE_AI_NATIVE_PICKER_RUNTIME_AND_MAIN47_MERGE_20261117_V1",
+  "repository": "haji84/RACE-AI",
+  "native_packet": "3d70d7710a5d8f556cd97a8e8a4377dfd2ebcc63",
+  "native_runtime": "f1a8c2820df5a12e7e38e0dbe246cf9641bd746a",
+  "native_base_runtime": "79b1533bbde4e985e5a897dd1aaa06e788d17588",
+  "runtime_sha256": "ce28e0c14673783e5b41d56e0cab9149bdd3d48defef9e9c81bae617774bc464",
+  "authenticated_red": {
+    "commit": "4351bcb057b0e3c551c6981c3b9bb736626e3b82",
+    "tree": "90962619937a14779d0888c832f9f3e971271880",
+    "run_id": 44188555523,
+    "job_id": 134411499326,
+    "tests": 119,
+    "seconds": 18.544,
+    "failures": 19,
+    "errors": 0,
+    "original_111_not_failed": true
+  },
+  "additional_main_unit_red": {
+    "job_id": 134411498518,
+    "tests": 177,
+    "seconds": 17.92,
+    "failures": 19,
+    "errors": 0
+  },
+  "runtime_diff": {
+    "added_lines": 44,
+    "removed_lines": 6
+  },
+  "scope": {
+    "new_public_values": "bool or null only",
+    "lookup_identity": "compare the initial preflight ID with the existing lookup ID; native target and all commands stay unchanged",
+    "picker_state": "feature-guarded read inside the existing select probe; absent/unsupported/failing reads remain unknown",
+    "first_seed_state": "initial selected_target bool only after validated first seed ordinal preflight; cleared before each new session; hidden in other contexts",
+    "new_webdriver_commands": 0,
+    "native_actions_unchanged": true,
+    "acceptance_predicates_unchanged": true,
+    "retries_added": false,
+    "waivers_added": false,
+    "cleanup_unchanged": true,
+    "driver_environment_and_cf_guard_unchanged": true,
+    "workflow_unchanged": true,
+    "tests_and_private_fixtures_unchanged": true
+  },
+  "independent_review": {
+    "agent": "review_atomic_capture",
+    "verdict": "CLEAR",
+    "hash_verified": true,
+    "extra_rpc": 0,
+    "actual_mac_root_cause_unproved": true
+  },
+  "main47": {
+    "pr": 47,
+    "tested_head": "700ab1ce6ee39c94a0964c8008e4a51a5c01e5a9",
+    "tested_tree": "0e307f54008defd0efe6e83b9afddcaa0a623b08",
+    "normal_protected_merge": "e619ef93f16ebece85d1d659fd737a836910c167",
+    "merge_tree_equal": true,
+    "run_id": 44189904023,
+    "job_id": 134416199121,
+    "tests": 179,
+    "seconds": 132.547,
+    "result": "OK",
+    "checks": {
+      "total": 15,
+      "success": 8,
+      "skipped": 7
+    },
+    "compile_heredocs": 9,
+    "actual_count_run": 44190597556,
+    "actual_counts": "PENDING",
+    "actual_existing_owner_gate": {
+      "run_id": 44190597537,
+      "job_id": 134418653207,
+      "status": "HOLD_ACTIVE_OWNER_WORKFLOW",
+      "recovery_required": false,
+      "official_source_requests": 0
+    }
+  },
+  "fresh_native_green": "PENDING",
+  "fresh_actual_mac": "NOT_DISPATCHED",
+  "normal_api_auth": {
+    "unavailable_401_at": "2026-11-17T22:13:10Z",
+    "restored_get_user_200_at": "2026-11-17T22:28:27.697045Z",
+    "login": "haji84",
+    "credential_values_exported": false,
+    "configuration_changed": false
+  },
+  "public_ui_sha": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+  "source_production": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+  "source_worker": 44170869325,
+  "references": [
+    "https://github.com/WebKit/WebKit/blob/244229e1d57542c4f65b1a76ad85b94db705c447/Source/WebDriver/Session.cpp#L2086",
+    "https://github.com/WebKit/WebKit/blob/244229e1d57542c4f65b1a76ad85b94db705c447/Source/WebKit/WebProcess/Automation/WebAutomationSessionProxy.cpp#L1293",
+    "https://github.com/WebKit/WebKit/blob/244229e1d57542c4f65b1a76ad85b94db705c447/Source/WebCore/html/HTMLSelectElement.cpp#L351",
+    "https://github.com/WebKit/WebKit/blob/244229e1d57542c4f65b1a76ad85b94db705c447/Source/WebCore/html/HTMLSelectElement.cpp#L235",
+    "https://github.com/WebKit/WebKit/blob/244229e1d57542c4f65b1a76ad85b94db705c447/Source/WebCore/css/SelectorCheckerTestFunctions.h#L608",
+    "https://github.com/WebKit/WebKit/blob/244229e1d57542c4f65b1a76ad85b94db705c447/LayoutTests/accessibility/mac/select-appearance-switch.html#L59"
+  ],
+  "goal_complete": false
+}

@@ -1,3 +1,15 @@
+## 2026-11-17 22:31:44 UTC: 固定P0件数readerを通常merge、Safariの診断修正は119件のfresh検証へ（GOAL未達）
+
+既存PR47を通常保護mergeし、main e619ef93のtree0e307f54は試験済み700ab1ceのtreeと一致。179件/132.547秒OK、9 Python block compile/秘密境界も成功、全15 checksは8success/7skip。実件数読戻し44190597556はActions内で進行中で、追加P0件数はまだUNKNOWN。既存owner gate44190597537/job134418653207はHOLD_ACTIVE_OWNER_WORKFLOW、recovery false/公式GET0。稼働BBを重複起動していない。
+
+Safari実44183593596の原因は未確定。既存PR46の119件/18.544秒・追加19assertion失敗/error0のRED後、44行追加/6行変更で診断だけを実装。既存lookup対象との同一性、既存probe内のfeature-guarded :open、最初のseed比較のselected boolを厳密bool/nullで記録する。RPC/親・option click/受入/AES/cleanup/CF guard/driver env/main/workflow/pinは維持。rootと独立reviewはCLEARで、fresh119 GREENと新実Macは未実施。通常APIは22:28 UTCの再確認でGET/user200 haji84に戻り、認証更新依頼への対応は不要。秘密値/設定は変更していない。
+
+原本保存PR51のatomic832件GREENは確定し、次版BB暗号原本の歴史読戻しだけを追加した837件候補2bf7a6eの最終CIは進行中。production bb492/run44170869325は展示窓待機中、first-P0132レース/264予想は公開receipt宣言、追加件数/24round全完了は未確認。前向き比較は同一native入力/保存pair/PDCAを再利用できるが、独立保存された将来studyとcohort/policy/原本hashのbindingが不足する。既存old100/5/10・training MIN8を新規studyの有効分母や改善条件へ流用しない。
+
+全4競技全race×全適用model/T15〜10/結果照合、実iPhone/全8参考、独立6艇GT/校正/強さ接続、前向き改善は未達。元未push2commitはUNRESTORED。原本/公開UI/本番weightsと既存作業を保全、新PR/モデル/課金/権限/cron/投票/公開なし。
+
+詳細: [Safari診断とmain47の検証記録](evidence/boat-native-picker-runtime-main47-proof-20261117.json)。
+
 ## 2026-11-17 22:20:36 UTC: 原本保管832試験GREEN、固定追加P0の件数読戻しを実装・検証中（GOAL未達）
 
 原本保管439760d/tree3a2e345の実CI44186600609/job134404670699で832件/192.969秒OK、別3/12/38/165/46件もOK。新41 raw試験を保全し、部分失敗時のstaging/新規inode rollbackを確認した。production bb492は未変更。次版がBBの暗号原本/継続/controlを読める5試験は別の実RED（178件/54.663秒、4失敗/error0）で不足を再現し、旧checkout/proofを許可せず限定修正を準備している。

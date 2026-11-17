@@ -2345,5 +2345,275 @@ class NativeCFEnvironmentValidationTests(unittest.TestCase):
                     self.assertEqual(environment['UNLISTED_OWNER_CREDENTIAL'], 'private-added-credential-sentinel')
 
 
+
+class NativePickerDiagnosticEndpoint(NativeDiagnosticEndpoint):
+    """The second lookup may see a replacement; every native action is retained."""
+    def __init__(self, driver, lookup_id):
+        super().__init__(driver)
+        self.lookup_id = lookup_id
+
+    def open(self, request, timeout):
+        method = request.get_method()
+        path = request.full_url[len(self.driver.base):]
+        if path.endswith('/execute/sync'):
+            script = json.loads(request.data)['script']
+            if 'native-select-preflight' not in script and 'Array.from(document.querySelectorAll' in script:
+                self.calls.append((method, path))
+                return self.response({'element-6066-11e4-a52e-4f735466cecf': self.lookup_id})
+        if method == 'POST' and '/element/' in path and path.endswith('/click'):
+            self.calls.append((method, path))
+            raw = json.dumps({'value': {'error': 'unknown error',
+                'message': 'private-picker-driver-sentinel'}}).encode()
+            raise urllib.error.HTTPError(request.full_url, 500, 'private-picker-http-sentinel',
+                                         {}, io.BytesIO(raw))
+        return super().open(request, timeout)
+
+
+class NativePickerIdentityDiagnosticTests(unittest.TestCase):
+    def seed_context(self, driver, ordinal=2):
+        S.ui_diagnostic(driver, 'encrypted_seed_valid', 'select_seed_history')
+        driver.ui_context['seed_comparison_ordinal'] = ordinal
+
+    def test_parent_failure_reports_actual_lookup_identity_without_changing_commands(self):
+        for case, lookup_id, expected in (
+                ('same', 'invented-select', True),
+                ('replacement', 'replacement-select', False)):
+            with self.subTest(case=case):
+                driver = S.WebDriver(1234)
+                endpoint = NativePickerDiagnosticEndpoint(driver, lookup_id)
+                with patch.object(driver.opener, 'open', side_effect=endpoint.open):
+                    driver.new_session()
+                    self.seed_context(driver)
+                    try:
+                        driver.select('#private-selector-sentinel', 'private-value-sentinel')
+                    except S.DriverHold as error:
+                        report = S.failure_report(error)
+                    else:
+                        self.fail('the single native parent failure must remain fatal')
+                    self.assertIs(driver.close(), True)
+                self.assertIs(report.get('ui_click_control_matches_preflight'), expected)
+                self.assertEqual(report['status'], 'NATIVE_SAFARI_ACCEPTANCE_HOLD')
+                self.assertEqual(report['reason'], 'SAFARI_WEBDRIVER_FAILED')
+                self.assertEqual((report['webdriver_operation'], report['webdriver_http_status'],
+                                  report['webdriver_error_code']), ('element_click', 500, 'unknown error'))
+                self.assertEqual(report['failure_boundary'], 'native_select_parent_click')
+                self.assertEqual(report['ui_select_phase'], 'initial')
+                self.assertIsNone(report['ui_select_preflight']['same_control'])
+                self.assertEqual([path for method, path in endpoint.calls
+                    if method == 'POST' and '/element/' in path],
+                    ['/session/private-session-sentinel/element/' + lookup_id + '/click'])
+                self.assertEqual(sum(path.endswith('/execute/sync') for _, path in endpoint.calls), 4)
+                self.assertEqual(len(endpoint.calls), 7, 'diagnosis must not add or skip an RPC')
+                self.assertIsNone(driver.session)
+                rendered = json.dumps(report)
+                self.assertNotIn('sentinel', rendered)
+                self.assertNotIn('invented-select', rendered)
+                self.assertNotIn('replacement-select', rendered)
+
+    def test_lookup_identity_projection_is_strict_and_only_labels_the_select_parent(self):
+        context = {'stage': 'encrypted_seed_valid', 'action': 'select_seed_history',
+                   'select_phase': 'initial', 'click_path': 'visible_element',
+                   'hit_target_verified': True, 'select_preflight': {'control_is_select': True}}
+        def report(value, **changes):
+            error = S.DriverHold(operation='element_click', http_status=500, w3c_error='unknown error')
+            error.ui_context = dict(context, click_control_matches_preflight=value,
+                preflight_control_id='private-preflight-id-sentinel',
+                actual_control_id='private-actual-id-sentinel', **changes)
+            return S.failure_report(error)
+        for value in (True, False):
+            with self.subTest(valid=value):
+                projected = report(value)
+                self.assertIs(projected.get('ui_click_control_matches_preflight'), value)
+                self.assertNotIn('sentinel', json.dumps(projected))
+        for case, value in enumerate((None, 0, 1, 1.0, 'private-identity-sentinel',
+                                      [], {'private-field-sentinel': True})):
+            with self.subTest(malformed=case):
+                projected = report(value)
+                self.assertIsNone(projected.get('ui_click_control_matches_preflight'))
+                self.assertNotIn('sentinel', json.dumps(projected))
+        for case, changes in enumerate(({'click_path': 'native_option'},
+                {'select_phase': 'prepared'}, {'select_phase': 'readback'},
+                {'select_preflight': {}}, {'select_preflight': {'control_is_select': False}})):
+            with self.subTest(outside_parent=case):
+                self.assertIsNone(report(True, **changes).get('ui_click_control_matches_preflight'))
+        self.assertIsNone(S.failure_report(S.DriverHold()).get('ui_click_control_matches_preflight'))
+
+    def test_picker_state_projection_preserves_unknown_and_rejects_spoofed_truthiness(self):
+        for opened in (True, False):
+            with self.subTest(opened=opened):
+                projected = S.select_diagnostic({'picker_open_supported': True, 'picker_open': opened})
+                self.assertIs(projected.get('picker_open_supported'), True)
+                self.assertIs(projected.get('picker_open'), opened)
+        projected = S.select_diagnostic({'picker_open_supported': False, 'picker_open': True})
+        self.assertIs(projected.get('picker_open_supported'), False)
+        self.assertIsNone(projected.get('picker_open'), 'unsupported cannot be reported as closed or open')
+        for case, support in enumerate((None, 0, 1, 1.0, 'private-support-sentinel', [])):
+            with self.subTest(support=case):
+                projected = S.select_diagnostic({'picker_open_supported': support, 'picker_open': True,
+                    'native_menu_text': 'private-menu-sentinel', 'value': 'private-value-sentinel'})
+                self.assertIsNone(projected.get('picker_open_supported'))
+                self.assertIsNone(projected.get('picker_open'))
+                self.assertNotIn('sentinel', json.dumps(projected))
+        for case, opened in enumerate((None, 0, 1, 1.0, 'private-open-sentinel', [])):
+            with self.subTest(state=case):
+                projected = S.select_diagnostic({'picker_open_supported': True, 'picker_open': opened})
+                self.assertIsNone(projected.get('picker_open'))
+                self.assertNotIn('sentinel', json.dumps(projected))
+        projected = S.select_diagnostic({})
+        self.assertIsNone(projected.get('picker_open_supported'))
+        self.assertIsNone(projected.get('picker_open'))
+
+    def test_existing_probe_javascript_reads_picker_state_only_after_a_supported_feature_check(self):
+        driver = S.WebDriver(1234)
+        scripts = []
+        def capture(source, *args):
+            scripts.append(source)
+            return NativeDiagnosticEndpoint(driver).snapshot()
+        with patch.object(driver, 'script', side_effect=capture):
+            driver._select_probe('#invented-select', 'invented-value')
+        self.assertEqual(len(scripts), 1, 'picker facts belong in the existing probe')
+        program = r'''
+const vm=require('node:vm'),fs=require('node:fs'),source=fs.readFileSync(0,'utf8');
+const modes=['open','closed','unsupported','missing','support-throws','state-throws','support-spoof','state-spoof'];
+const output=[];
+for(const mode of modes){
+ let actions=0,supportReads=0,stateReads=0;
+ const forbidden=()=>{actions++;throw Error('probe actions are forbidden');};
+ class Element {
+  constructor(){this.isConnected=true;this.parentElement=null;this.hidden=false;}
+  matches(selector){
+   if(selector!==':open')return false;
+   stateReads++;
+   if(mode==='state-throws')throw Error('private-state-error-sentinel');
+   return mode==='state-spoof'?'private-state-sentinel':mode==='open';
+  }
+  focus(){forbidden();}click(){forbidden();}dispatchEvent(){forbidden();}scrollIntoView(){forbidden();}
+ }
+ class HTMLSelectElement extends Element {}
+ const e=new HTMLSelectElement(),target=new Element();
+ target.value='invented-value';target.selected=false;target.parentElement=e;target.closest=()=>e;
+ e.options=[target];e.getClientRects=()=>[{}];
+ e.getBoundingClientRect=()=>({left:1,top:2,right:101,bottom:42,width:100,height:40});
+ Object.defineProperty(e,'value',{get:()=>'',set:forbidden});
+ const context={Element,HTMLSelectElement,innerWidth:800,innerHeight:628,
+  document:{querySelectorAll:()=>[e],activeElement:e,elementFromPoint:()=>e,
+   hasFocus:()=>true,visibilityState:'visible'},
+  getComputedStyle:()=>({display:'block',visibility:'visible',opacity:'1'}),
+  __raceSafariPrivacy:{page_errors:0,error_module:null,error_line:null}};
+ if(mode!=='missing')context.CSS={supports(query){
+  supportReads++;
+  if(query!=='selector(:open)')throw Error('an unexpected feature query');
+  if(mode==='support-throws')throw Error('private-support-error-sentinel');
+  return mode==='support-spoof'?'private-support-sentinel':mode!=='unsupported';
+ }};
+ const result=vm.runInNewContext('(function(){'+source+'}).apply(null,["#invented-select","invented-value"])',context);
+ delete result.control;output.push({mode,result,actions,supportReads,stateReads});
+}
+process.stdout.write(JSON.stringify(output));
+'''
+        result = subprocess.run(['node', '-e', program], input=scripts[0], text=True,
+                                capture_output=True, check=True)
+        actual = json.loads(result.stdout)
+        expected = {'open': (True, True, 1, 1), 'closed': (True, False, 1, 1),
+                    'unsupported': (False, None, 1, 0), 'missing': (None, None, 0, 0),
+                    'support-throws': (None, None, 1, 0), 'state-throws': (True, None, 1, 1),
+                    'support-spoof': (None, None, 1, 0), 'state-spoof': (True, None, 1, 1)}
+        for row in actual:
+            with self.subTest(mode=row['mode']):
+                supported, opened, support_reads, state_reads = expected[row['mode']]
+                self.assertIs(row['result'].get('picker_open_supported'), supported)
+                self.assertIs(row['result'].get('picker_open'), opened)
+                self.assertEqual(row['supportReads'], support_reads)
+                self.assertEqual(row['stateReads'], state_reads)
+                self.assertEqual(row['actions'], 0)
+                self.assertNotIn('sentinel', json.dumps(row))
+
+    def test_first_seed_initial_selection_survives_context_reset_without_extra_probes(self):
+        for initial_selected in (True, False):
+            with self.subTest(initial_selected=initial_selected):
+                fixture = NativeSelectFixture(selected=initial_selected)
+                with fixture.installed() as driver:
+                    self.seed_context(driver, 1)
+                    driver.select('#prediction-select', '0')
+                    fixture.selected = False
+                    def fail_parent(state):
+                        raise driver._diagnostic_error(S.DriverHold(operation='element_click',
+                            http_status=500, w3c_error='unknown error'))
+                    fixture.after_parent = fail_parent
+                    self.seed_context(driver, 2)
+                    try:
+                        driver.select('#prediction-select', '1')
+                    except S.DriverHold as error:
+                        report = S.failure_report(error)
+                    else:
+                        self.fail('the second native parent must remain fatal')
+                self.assertIs(report.get('ui_first_seed_comparison_initial_selected_target'), initial_selected)
+                self.assertIs(report['ui_select_preflight']['selected_target'], False)
+                self.assertEqual(fixture.calls, ['parent_click', 'option_click', 'parent_click'])
+                self.assertEqual(fixture.probes, 4, 'retaining a boolean cannot add another preflight')
+                self.assertNotIn('invented-select', json.dumps(report))
+
+    def test_first_seed_selection_stays_unknown_without_the_actual_first_seed_preflight(self):
+        cases = [('latest_p1_private_transport', 'select_native_history', 1),
+                 ('encrypted_seed_valid', 'select_saved_day', 1),
+                 ('encrypted_seed_valid', 'select_seed_history', 2),
+                 ('encrypted_seed_valid', 'select_seed_history', True)]
+        for case, (stage, action, ordinal) in enumerate(cases):
+            with self.subTest(case=case):
+                fixture = NativeSelectFixture(selected=True)
+                with fixture.installed() as driver:
+                    S.ui_diagnostic(driver, stage, action)
+                    driver.ui_context['seed_comparison_ordinal'] = ordinal
+                    driver.select('#prediction-select', '0')
+                    self.seed_context(driver, 2)
+                    error = driver._diagnostic_error(S.DriverHold(operation='element_click'))
+                    report = S.failure_report(error)
+                self.assertIsNone(report.get('ui_first_seed_comparison_initial_selected_target'))
+
+    def test_first_seed_selection_projection_is_strict_and_never_exports_raw_payload_fields(self):
+        def report(value, stage='encrypted_seed_valid', action='select_seed_history'):
+            error = S.DriverHold(operation='element_click')
+            error.first_seed_comparison_initial_selected_target = value
+            error.ui_context = {'stage': stage, 'action': action, 'seed_comparison_ordinal': 2,
+                'first_seed_index': 'private-index-sentinel', 'first_seed_model': 'private-model-sentinel',
+                'first_seed_tickets': 'private-tickets-sentinel'}
+            return S.failure_report(error)
+        for value in (True, False):
+            with self.subTest(valid=value):
+                self.assertIs(report(value).get('ui_first_seed_comparison_initial_selected_target'), value)
+        for case, value in enumerate((None, 0, 1, 1.0, 'private-first-selection-sentinel', [], {})):
+            with self.subTest(malformed=case):
+                projected = report(value)
+                self.assertIsNone(projected.get('ui_first_seed_comparison_initial_selected_target'))
+                self.assertNotIn('sentinel', json.dumps(projected))
+        for stage, action in (('latest_p1_private_transport', 'select_native_history'),
+                              ('encrypted_seed_valid', 'select_saved_day')):
+            self.assertIsNone(report(True, stage, action).get('ui_first_seed_comparison_initial_selected_target'))
+        self.assertIsNone(S.failure_report(S.DriverHold()).get('ui_first_seed_comparison_initial_selected_target'))
+
+    def test_first_seed_selection_diagnostic_does_not_survive_a_closed_session(self):
+        fixture = NativeSelectFixture(selected=True)
+        driver = fixture.driver
+        endpoint = NativePickerDiagnosticEndpoint(driver, 'invented-select')
+        with patch.object(driver.opener, 'open', side_effect=endpoint.open):
+            driver.new_session()
+            with fixture.installed():
+                self.seed_context(driver, 1)
+                driver.select('#prediction-select', '0')
+                report = S.failure_report(driver._diagnostic_error(S.DriverHold(operation='element_click')))
+                self.assertIs(report.get('ui_first_seed_comparison_initial_selected_target'), True)
+            self.assertIs(driver.close(), True)
+            driver.new_session()
+            self.seed_context(driver, 2)
+            try:
+                driver.select('#prediction-select', '1')
+            except S.DriverHold as error:
+                report = S.failure_report(error)
+            else:
+                self.fail('the new session parent failure must remain fatal')
+            self.assertIsNone(report.get('ui_first_seed_comparison_initial_selected_target'))
+            self.assertIs(driver.close(), True)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -149,6 +149,8 @@ def select_diagnostic(probe):
         return value if type(value) is int and minimum <= value <= maximum else None
     module, visibility = probe.get('error_module'), probe.get('document_visibility')
     module = module if type(module) is str and module in PUBLIC_UI_MODULES else None
+    supported, opened = probe.get('picker_open_supported'), probe.get('picker_open')
+    supported = supported if type(supported) is bool else None
     return {**{key: probe.get(key) if type(probe.get(key)) is bool else None for key in SELECT_BOOLEANS},
             **{key: probe.get(key) if type(probe.get(key)) is int and 0 <= probe[key] <= 10000 else None
                for key in SELECT_COUNTS},
@@ -157,7 +159,9 @@ def select_diagnostic(probe):
             'viewport_width': bounded('viewport_width', 1, 16384),
             'viewport_height': bounded('viewport_height', 1, 16384),
             'page_errors': bounded('page_errors', 0, 1000000),
-            'error_module': module, 'error_line': bounded('error_line', 0, 99999) if module is not None else None}
+            'error_module': module, 'error_line': bounded('error_line', 0, 99999) if module is not None else None,
+            'picker_open_supported': supported,
+            'picker_open': opened if supported is True and type(opened) is bool else None}
 
 
 def failure_native_browser(capabilities):
@@ -207,6 +211,16 @@ def failure_report(error):
         ordinal = context.get('seed_comparison_ordinal')
         report['ui_seed_comparison_ordinal'] = ordinal if type(ordinal) is int and ordinal in (1, 2) else None
         preflight = report.get('ui_select_preflight')
+        matches = context.get('click_control_matches_preflight')
+        report['ui_click_control_matches_preflight'] = (matches
+            if type(matches) is bool and report.get('ui_select_phase') == 'initial'
+            and report.get('ui_click_path') == 'visible_element' and type(preflight) is dict
+            and preflight.get('control_is_select') is True else None)
+        first = getattr(error, 'first_seed_comparison_initial_selected_target', None)
+        report['ui_first_seed_comparison_initial_selected_target'] = (first
+            if type(first) is bool and report.get('ui_stage') == 'encrypted_seed_valid'
+            and report.get('ui_action') == 'select_seed_history'
+            and report.get('ui_seed_comparison_ordinal') in (1, 2) else None)
         report['failure_boundary'] = ('native_select_parent_click'
             if report.get('webdriver_operation') == 'element_click'
             and report.get('webdriver_http_status') == 500 and report.get('webdriver_error_code') == 'unknown error'
@@ -884,10 +898,13 @@ class WebDriver:
         self.session = None
         self.ui_context = {}
         self.native_browser = None
+        self.first_seed_comparison_initial_selected_target = None
 
     def _diagnostic_error(self, error):
         error.ui_context = dict(self.ui_context) if type(self.ui_context) is dict else {}
         error.native_browser = failure_native_browser(self.native_browser)
+        first = self.first_seed_comparison_initial_selected_target
+        error.first_seed_comparison_initial_selected_target = first if type(first) is bool else None
         return error
 
     def call(self, method, path, body=None):
@@ -922,6 +939,7 @@ class WebDriver:
         return result
 
     def new_session(self):
+        self.first_seed_comparison_initial_selected_target = None
         result = self.call('POST', '/session', {'capabilities': {'alwaysMatch': {
             'browserName': 'Safari', 'platformName': 'macOS'}}})
         if not isinstance(result, dict) or type(result.get('sessionId')) is not str or not re.fullmatch(
@@ -968,13 +986,15 @@ class WebDriver:
         need(isinstance(ident, str) and re.fullmatch('[A-Za-z0-9-]{1,160}', ident), 'APP_UI_CHECK_FAILED')
         return ident
 
-    def click(self, selector, visible=True):
+    def click(self, selector, visible=True, *, preflight_control=None):
         context = self.ui_context
         self.ui_context = dict(context, click_path='visible_element' if visible else 'native_option',
-                               hit_target_verified=False)
+                               hit_target_verified=False, click_control_matches_preflight=None)
         try:
             element = self.element(selector, visible)
             if visible:
+                if type(preflight_control) is str:
+                    self.ui_context['click_control_matches_preflight'] = element == preflight_control
                 self._click_visible_element(element)
             else:
                 # Preserve the existing native option-click behavior.
@@ -1016,6 +1036,19 @@ class WebDriver:
             }
             const r=e?.getBoundingClientRect(),inView=!!r&&r.width>0&&r.height>0&&r.left>=0&&r.top>=0&&r.right<=innerWidth&&r.bottom<=innerHeight,
                 hit=inView?document.elementFromPoint(r.left+r.width/2,r.top+r.height/2):null;
+            let pickerOpenSupported=null,pickerOpen=null;
+            try {
+                if(typeof CSS!=='undefined'&&typeof CSS.supports==='function'){
+                    const supported=CSS.supports('selector(:open)');
+                    if(typeof supported==='boolean'){
+                        pickerOpenSupported=supported;
+                        if(supported&&isSelect){
+                            const opened=e.matches(':open');
+                            if(typeof opened==='boolean')pickerOpen=opened;
+                        }
+                    }
+                }
+            } catch {}
             return {control:e||null,control_count:controls.length,option_count:options.length,target_count:targets.length,
                 control_is_select:isSelect,control_connected:!!e?.isConnected,control_enabled:!!e&&!e.matches(':disabled'),
                 control_visible:visible,target_connected:!!target?.isConnected&&target.closest('select')===e,
@@ -1027,7 +1060,8 @@ class WebDriver:
                 viewport_width:innerWidth,viewport_height:innerHeight,
                 page_errors:globalThis.__raceSafariPrivacy?.page_errors,
                 error_module:globalThis.__raceSafariPrivacy?.error_module,
-                error_line:globalThis.__raceSafariPrivacy?.error_line};''', selector, value)
+                error_line:globalThis.__raceSafariPrivacy?.error_line,
+                picker_open_supported:pickerOpenSupported,picker_open:pickerOpen};''', selector, value)
         self.ui_context['select_preflight'] = select_diagnostic(probe)
         valid = type(probe) is dict and all(type(probe.get(key)) is bool for key in SELECT_BOOLEANS if key != 'same_control') \
             and all(type(probe.get(key)) is int and 0 <= probe[key] <= 10000 for key in SELECT_COUNTS)
@@ -1043,10 +1077,14 @@ class WebDriver:
     def select(self, selector, value):
         value = str(value)
         self.ui_context['select_phase'] = 'initial'
-        ident, _ = self._select_probe(selector, value)
+        ident, initial = self._select_probe(selector, value)
+        ordinal, stage, action = (self.ui_context.get(key) for key in ('seed_comparison_ordinal', 'stage', 'action'))
+        if (type(ordinal) is int and ordinal == 1 and type(stage) is str and stage == 'encrypted_seed_valid'
+                and type(action) is str and action == 'select_seed_history'):
+            self.first_seed_comparison_initial_selected_target = initial['selected_target']
         # A closed option has no rectangle. Prepare its parent through the
         # existing scroll/hit/native-click path, even for an already selected target.
-        self.click(selector)
+        self.click(selector, preflight_control=ident)
         self.ui_context['select_phase'] = 'prepared'
         prepared_ident, prepared = self._select_probe(selector, value)
         prepared['same_control'] = prepared_ident == ident
