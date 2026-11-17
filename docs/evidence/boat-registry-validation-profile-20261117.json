@@ -122,5 +122,27 @@
     "ancestry": "5fcc33474f853816167792fffe3db99688b2c344e80872dc9878778ee359bd2e",
     "benchmark": "396ab3ffad87f072536d193c9fa24f40f80d0ee3fe78b8cc19e48ac614da1f1f",
     "integration_tests": "2a8be2f78be34d443894d4b94d1db25054ca2f3bbd1098766626791095de5718"
-  }
+  },
+  "additional_reviewed_changes": {
+    "exact_m2_readback_origin": {
+      "reviewed_commit": "29ace94b54917e6ab84c39d734d6f4a0614235b6",
+      "runtime_literal_only": true,
+      "old_checkout_or_proof_dispatch_refused": true,
+      "author_tests": 60,
+      "independent_tests": 68
+    },
+    "post_M1_result_retention_fixture_protocol": {
+      "reviewed_commit": "3b29bc1a442efa9ce8af6bd441720ca3070b3a09",
+      "baseline_existing_tests": 3,
+      "baseline_errors": 2,
+      "target_tests": 7,
+      "related_tests": 57,
+      "independent_tests": 55,
+      "additional_probes": 2,
+      "production_retention_vault_batch_unchanged": true,
+      "independent_reader_stores_and_published_snapshot": true,
+      "new_jobs": 0
+    }
+  },
+  "final_combined_head_ci_pending": true
 }

@@ -31,3 +31,21 @@ Timings include cProfile overhead and apply only to this synthetic fixture.
 The live worker's 20-minute rounds, T15-to-T10 deadlines, all-day coverage and
 prospective accuracy remain unproved. Current M2 code and its single running
 worker are unchanged; this candidate requires its own normal CI and release.
+
+The final candidate also preserves exact M2 `86b029ae` checkpoint/control
+readback for a future release. Tests replay both old origins with unchanged
+counters; an old checkout or old proof still cannot authorize that release.
+The new M2 case reproduced `ORPHAN_SOURCE_NOT_REVIEWED` before the literal
+read-only origin addition. Sixty related tests and 68 independent tests passed.
+
+Existing RESULT-retention tests exposed the earlier batch publisher's stricter
+independent-reader contract: two legacy fixtures lacked an explicit separate
+reader. The test-only repair separates writer-local objects, published remote
+objects and the reader snapshot, asserts full archive/metadata/manifest bytes
+on first and repeated reads, and refuses unpublished or corrupted bytes.
+Retention/vault/batch runtime is unchanged. Seven target and 57 related tests,
+plus 55 independent tests and two extra probes, passed. The existing source CI
+job now includes that test module; no job or permissions were added.
+
+These additions require CI on the final combined head. Earlier CI success on
+the performance-only revision is retained as history, not reused as approval.
