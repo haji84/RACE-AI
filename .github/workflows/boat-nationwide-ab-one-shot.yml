@@ -78,6 +78,14 @@ on:
       - tests/test_frozen_day_cycle.py
       - scripts/boat_failed_recovery_contract.py
       - tests/test_boat_orphan_p1_recovery.py
+      - race_ai/boat_saved_model_view.py
+      - race_ai/boat_video_rider_tracking.py
+      - tests/test_boat_saved_model_reason_variants.py
+      - tests/test_boat_saved_model_view.py
+      - tests/test_result_observation_conflict_diagnostics.py
+      - tests/test_all_existing_model_artifact_retention.py
+      - tests/test_boat_video_rider_tracking.py
+      - tests/saved_model_union.test.cjs
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
     paths:
@@ -140,6 +148,8 @@ jobs:
                  'tests.test_boat_venue_learning_context','tests.test_boat_venue_learning',
                  'tests.test_boat_venue_research_batch','tests.test_boat_venue_research_retention',
                  'tests.test_boat_venue_research_pdca','tests.test_boat_video_forward',
+                 'tests.test_boat_saved_model_view','tests.test_boat_saved_model_reason_variants',
+                 'tests.test_result_observation_conflict_diagnostics','tests.test_all_existing_model_artifact_retention',
                  'tests.test_boat_video_connection','tests.test_boat_video_learning',
                  'tests.test_observed_weight_learning',
                   'tests.test_boat_jst_day_handoff',
@@ -168,11 +178,11 @@ jobs:
           tests.test_boat_short_field_video tests.test_boat_video_tracking
           tests.test_boat_video_sequential_context tests.test_boat_video_physical_context
           tests.test_boat_video_model_context tests.test_boat_video_evaluation
-          tests.test_boat_video_screen_queue -v
+          tests.test_boat_video_screen_queue tests.test_boat_video_rider_tracking -v
       - name: Verify dated official closing revisions and unchanged old-B authority without source GET
         run: python -m unittest tests.test_boat_official_program tests.test_boat_live_cutoff_revision tests.test_nationwide_get_policy -v
       - name: Verify existing Pages checker stage identity and private request boundary
-        run: node --test tests/saved_site_check.test.cjs
+        run: node --test tests/saved_site_check.test.cjs tests/saved_model_union.test.cjs
   saved_view_publication:
     name: Encrypted saved-model display and retained-input execution (no official source requests)
     if: github.repository == 'haji84/RACE-AI' && github.event_name == 'push' && startsWith(github.event.head_commit.message, 'saved-view:')
