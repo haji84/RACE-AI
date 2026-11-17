@@ -1,3 +1,13 @@
+## 2026-11-17 22:05:00 UTC: CF限定修正は111試験GREEN、最新実Safariは2件目の選択クリックでHOLD（GOAL未達）
+
+既存PR48を通常保護mergeし、main f2922efのtreeは試験済み30902ee/tree7b0e9eと一致。111件/15.387秒が成功した。新Mac実行44183593596/job134394092565も111件/52.214秒は成功したが、Safari26.6の私有view確認で2件目のseed history選択時、native parent clickがHTTP500/unknown errorとなった。document focus/visibilityは正常、page error0。候補capture/CF guardには到達せずartifact0で、CFの実環境合格や物理iPhone合格を主張しない。要素参照とnative popupの証拠を調査し、同一codeの盲目的rerunはしない。
+
+実source44170869325はfirst-P0の取得/元ZIP読戻し/長期保管/reuse、追加P0保管を通過し、公式GETなしの展示窓待機中。公開first receiptは132レース/264予想を宣言する。追加14367093570の生成・再利用・HOLD件数は未確認、24roundはpending。既存M2判定と分離した固定round0の暗号読戻し件数確認をtests-firstで準備する。原本保存PR51は832件の追加atomic faultケースだけ15 subtest失敗/error0で、未マージ修正をreview中。
+
+既存PR47の元head/本文/baseとancestor判定を保存し、既存PRを再利用する。新PR/モデル/課金/権限/cron/公開UI/投票/本番weights切替なし。未push2commitはUNRESTORED、全4競技/全日T15〜10/結果照合/6艇校正/前向き改善/実iPhoneは未達。
+
+詳細: [PR47保全と最新の実ログ診断](evidence/boat-pr47-before-reuse-native-outcome-20261117.json)。
+
 ## 2026-11-17 21:37 UTC: CF guardの限定検証を実装、111試験のfresh GREEN待ち（GOAL未達）
 
 実RED 9d309aed/job134380772151は111件/15.405秒、追加CFケースだけ21 subtest失敗・error0。元100ケースを保全した。実装は24行追加だけで、AppleのcanonicalなH:0:0/H:H:H、Darwin、real/effective/encoded UIDの厳密uint32一致を検証する。環境は書換えず、他の未知key/不正値/identity API失敗はHOLD。元6key定数、driver env、guard位置、private/AES/cleanup、workflow/pin/timeoutは維持する。

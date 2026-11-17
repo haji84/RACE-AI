@@ -1,0 +1,207 @@
+{
+  "schema": "RACE_AI_FIXED_BOOTSTRAP_P0_COUNTS_TESTS_FIRST_PACKET_V1",
+  "base_main": "0454aabb234e70714ebe4c7df691d59162488b2c",
+  "files": [
+    {
+      "path": "tests/test_boat_exact_all_model_zip_readback.py",
+      "base_blob": "db959df751bfa52e31b123a9cf66283531242003",
+      "blob_sha": "7933ee38807c7cbbb4468d259942b89ff338c2ad",
+      "utf8_bytes": 42533,
+      "original_test_methods": 20,
+      "added_test_methods": 15,
+      "total_test_methods": 35,
+      "original_bytes_preserved": true,
+      "remote_readback_identical": true
+    }
+  ],
+  "runtime_prepared": false,
+  "workflow_prepared": false,
+  "refs_changed": false,
+  "expected_red": {
+    "module": "tests.test_boat_exact_all_model_zip_readback",
+    "original_tests": 20,
+    "new_failures": 15,
+    "new_errors": 0,
+    "missing_feature_assertion": "the fixed retained P0 count-only reader is missing",
+    "actual_red_pending": true
+  },
+  "unit_registration": {
+    "workflow": ".github/workflows/boat-owner-national-p1-matrix.yml",
+    "job": "unit",
+    "step": "Pure model matrix and forced original ZIP AES source-free contract",
+    "already_registered_module": "tests.test_boat_exact_all_model_zip_readback",
+    "no_command_change_required": true
+  },
+  "public_helper_contract": {
+    "module": "scripts/boat_exact_all_model_zip_readback.py",
+    "function": "audit_fixed_bootstrap_p0",
+    "keyword_only_parameters": [
+      "get",
+      "repo",
+      "now"
+    ],
+    "caller_target_key_or_round_override": false,
+    "success_status": "FIXED_BOOTSTRAP_P0_COUNTS_VERIFIED",
+    "hold_status": "HOLD_FIXED_BOOTSTRAP_P0_COUNTS",
+    "count_fields": [
+      "contexts",
+      "generated_forecasts",
+      "reused_forecasts",
+      "projected_forecasts",
+      "applicable_slots",
+      "non_generated_applicable_slots",
+      "waiting_exhibition_slots",
+      "retained_original_slots",
+      "dispatch_status_counts"
+    ],
+    "hold_count_fields": null,
+    "failure_stage_enum": [
+      "PRECONDITION",
+      "RUN",
+      "VAULT_LOOKUP",
+      "VAULT_RESTORE",
+      "PIN_BINDING",
+      "PROJECT",
+      "SCOPE",
+      "COUNTS"
+    ],
+    "false_fields": [
+      "full_day_coverage",
+      "all_models_operational",
+      "qualifying_g8_proven",
+      "efficacy_proven",
+      "promotion_allowed",
+      "dispatch_authorized",
+      "website_end_to_end_proven",
+      "source_originals_modified"
+    ],
+    "test_only_byte_pin_variable": "_FIXED_BOOTSTRAP_P0_BYTE_PINS",
+    "test_only_byte_pin_keys": [
+      "original_zip_sha256",
+      "original_zip_bytes",
+      "metadata_sha256",
+      "metadata_bytes",
+      "cipher_sha256",
+      "plain_sha256",
+      "plain_bytes",
+      "vault_batch_sha256",
+      "vault_entry_sha256"
+    ]
+  },
+  "fixed_target": {
+    "run_id": 44170869325,
+    "source_sha": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+    "workflow_id": 405276784,
+    "repository_id": 1416489937,
+    "repository": "haji84/RACE-AI",
+    "branch": "production/boat-p0-p1-20261111",
+    "event": "workflow_dispatch",
+    "round_no": 0,
+    "day_jst": "2026-11-18",
+    "artifact_id": 14367093570,
+    "artifact_name": "boat-all-model-forecasts-44170869325-r0",
+    "server_created_at": "2026-11-17T20:38:49Z",
+    "vault_commit": "d853f5d6db9089d91748add90560a0b9037b2a1f",
+    "vault_ref": "state/boat-private-originals",
+    "zip_sha256": "3dd76e2edba393e51221215703e82756de2ae804ba4b5e063d4e91f44437c995",
+    "zip_bytes": 18706128,
+    "metadata_sha256": "993c20d3d073d0004f44836a72ef5e30a5b10a8500c8ff81503e4d7bac0fe4a1",
+    "metadata_bytes": 723,
+    "cipher_sha256": "e6980993b7d29f9898a50d3cd406c4abca71e75e7f4cc2b89859cfe30fa57026",
+    "plain_sha256": "5f87d119d7c5b30103f1e05896c0dd3a7a3a531b0c68784eb8bd2147e742b347",
+    "plain_bytes": 18699962,
+    "vault_batch_sha256": "1254b9a3953121cb8749a22476abfb2b715d18bb997f9b948b4f89583238a552",
+    "vault_entry_sha256": "b43336fa76294275800872755f5fd8cacb217bc31d7789fd3a2290890d580a39"
+  },
+  "fixture_policy": {
+    "invented_bytes": true,
+    "owner_key_ephemeral_fixture_only": true,
+    "patched_boundaries": [
+      "vault Git transport",
+      "owner-key resolution",
+      "private byte-pin tuple for fictional ciphertext"
+    ],
+    "real_validation": [
+      "vault lookup/index HMAC",
+      "vault chunk SHA and AES",
+      "exact metadata bytes",
+      "full ZIP framing/members/CRC",
+      "inner AES",
+      "inner body SHA and canonical JSON",
+      "source run/head/repository checks",
+      "native output/capsule replay",
+      "native roster/context bindings",
+      "generated/reused status reconciliation"
+    ],
+    "fixture_identity_scope_not_patched": true,
+    "no_test_processes_run": true
+  },
+  "workflow_proposal": {
+    "workflow": ".github/workflows/boat-owner-national-p1-matrix.yml",
+    "base_blob": "0075c4227ca940774e970f438b71b3239135c95e",
+    "job": "authenticated_original_matrix",
+    "new_jobs": 0,
+    "existing_owner_source_checkout_unchanged": true,
+    "m2_target_unchanged": {
+      "run_id": 44075021607,
+      "source_sha": "86b029ae5bddd5d4956497d8b32b2c92b8eec521"
+    },
+    "only_optional_step_after_existing_last_step": "Retain only fixed-original count proof or static HOLD reason",
+    "exact_condition": "always() && github.repository == 'haji84/RACE-AI' && github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') && steps.audit_source.outcome == 'success'",
+    "existing_push_marker": "docs/evidence/owner-pdca-main-trigger.txt",
+    "marker_write_by_root_only": true,
+    "existing_job_guard_unchanged": true,
+    "existing_permissions_runner_timeouts_schedules_inputs_unchanged": true,
+    "artifact_names_files_members_and_upload_steps_unchanged": true,
+    "output": "One separate safe JSON object on stdout only; no new artifact, file, or report member. Any exception becomes fixed-stage HOLD/null and a zero exit code, preserving prior core/native conclusion.",
+    "existing_unit_command_unchanged": true
+  },
+  "reader_compatibility": {
+    "checked_against_producer": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+    "existing_main_selected_package": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "existing_unit_package": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+    "identical_modules": {
+      "race_ai/boat_all_model_recovery.py": "653a3347ff05ce7726cbfdb2679f4e9b8138f548",
+      "race_ai/boat_all_model_cycle.py": "77bd938e255e85c4c19f01378e050e4efdb889b6"
+    },
+    "store_crypto_functions_identical": [
+      "_json",
+      "_wire",
+      "_payload",
+      "_header",
+      "_key",
+      "_aad",
+      "_split",
+      "forecast_header",
+      "open_forecasts"
+    ],
+    "vault_reader_functions_identical": [
+      "_keys",
+      "_kind",
+      "_artifact",
+      "_open",
+      "restore_original",
+      "lookup_original",
+      "VaultArtifactReader",
+      "_batch_entry",
+      "_entry",
+      "_validate_locator",
+      "_unsigned"
+    ],
+    "no_completed_round_guard_change": true
+  },
+  "remaining": [
+    "Parent authenticated RED for these tests",
+    "Runtime helper only after actual RED",
+    "Optional workflow wiring after RED",
+    "Fresh authenticated GREEN and independent security review",
+    "Actual trusted-main Actions-only count readback"
+  ],
+  "root_validation": {
+    "actual_main": "f2922ef150d08a6b7302c4fbd269d93747b04ff9",
+    "actual_base_test_blob": "db959df751bfa52e31b123a9cf66283531242003",
+    "original_20_test_and_fixture_bytes_unchanged": true,
+    "existing_main_runner_line": "Moved unchanged to the end, after the new test class; remaining original prefix is byte-identical.",
+    "runtime_and_workflow_unchanged": true
+  }
+}
