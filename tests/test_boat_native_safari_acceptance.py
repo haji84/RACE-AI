@@ -149,6 +149,16 @@ class NativeSafariAcceptanceTests(unittest.TestCase):
         self.assertIsInstance(report.get('checker_line'),int)
         self.assertNotIn('sentinel',json.dumps(report))
 
+    def test_external_failure_cannot_supply_a_checker_location_or_private_message(self):
+        external = compile("def app_checks():\n    raise ValueError('private-owner-sentinel')\napp_checks()",
+                           '/private-owner-sentinel/browser.py', 'exec')
+        try:
+            exec(external, {})
+        except ValueError as error:
+            report = S.failure_report(error)
+        self.assertEqual(report, {'status': 'NATIVE_SAFARI_ACCEPTANCE_HOLD',
+                                  'reason': 'SAFARI_OPERATION_FAILED'})
+
     def test_native_workflow_pins_python_before_running_privacy_boundaries(self):
         steps = acceptance_workflow_steps()
         setup = [(index, step) for index, step in enumerate(steps)
