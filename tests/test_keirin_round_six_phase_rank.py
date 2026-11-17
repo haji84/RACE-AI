@@ -6,6 +6,7 @@ probability, official event assignment, or real prediction is asserted.
 from __future__ import annotations
 
 from copy import deepcopy
+from itertools import permutations
 from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -254,6 +255,67 @@ class RoundSixPhaseTests(unittest.TestCase):
             self.assertEqual(path.stat().st_mode & 0o777,0o600)
             with self.assertRaisesRegex(s.TacticalRoundError,"PRIVATE_CREATE_ONCE"):
                 s.freeze_private_once(path,result)
+
+    def test_actual_existing_pr71_full_rank_ledger_adapts_into_six_phase_top12(self):
+        c=stage_ctx()
+        before=snapshot()
+        rider_ids=[1,2,3,4,5,6,7]
+        candidates=[{"combination":list(x),"score":0.0}
+                    for x in permutations(rider_ids,3)]
+        model_id="multisport-factor-interaction-v1"
+        models={mid:{"model_id":mid,"prediction_sha256":"d"*64,
+                     "snapshot_sha256":"a"*64,
+                     "candidates":deepcopy(candidates)}
+                for mid in s.KNOWN_PR71}
+        saved={
+            "source":{
+                "race_id":c["race_id"],
+                "starters":rider_ids,
+                "as_of":c["as_of"],
+                "official_cutoff_at":c["official_cutoff_at"],
+            },
+            "suite":{
+                "race_id":c["race_id"],
+                "sales_cutoff_at":c["official_cutoff_at"],
+                "as_of":c["as_of"],
+                "input_sha256":"a"*64,
+                "models":models,
+            },
+            "persisted_at":"2026-11-17T11:02:00+09:00",
+            "source_sha256":"f"*64
+        }
+        line={
+            "race_id":c["race_id"],
+            "source_input_sha256":"a"*64,
+            "observed_at":"2026-11-17T10:59:00+09:00",
+            "source_sha256":"e"*64,
+            "starting_order":before["starting_order"],
+            "line_groups":before["line_groups"],
+        }
+        result=s.forecast_from_existing_pr71(
+            saved=saved,context=c,line_receipt=line,
+            tactical_plans=plans(),stage_priors=priors(),
+            independently_verify_suite=lambda x: True,
+            independently_verify_lines=lambda x: True)
+        self.assertEqual(result["original_rank1"],[1,2,3])
+        self.assertEqual(result["ranked_top12"][0]["cars"],[6,3,1])
+        self.assertEqual(result["parent_prediction_sha256"],"d"*64)
+        self.assertFalse(result["formal_model_promoted"])
+        with self.assertRaisesRegex(s.TacticalRoundError,
+                                    "SOURCE_NOT_INDEPENDENTLY_VERIFIED"):
+            s.forecast_from_existing_pr71(
+                saved=saved,context=c,line_receipt=line,
+                tactical_plans=plans(),stage_priors=priors(),
+                independently_verify_suite=lambda x: True,
+                independently_verify_lines=lambda x: False)
+        line["observed_at"]="2026-11-17T11:01:00+09:00"
+        with self.assertRaisesRegex(s.TacticalRoundError,
+                                    "LINE_HYPOTHESIS_AFTER_CUTOFF"):
+            s.forecast_from_existing_pr71(
+                saved=saved,context=c,line_receipt=line,
+                tactical_plans=plans(),stage_priors=priors(),
+                independently_verify_suite=lambda x: True,
+                independently_verify_lines=lambda x: True)
 
     def test_context_modified_not_promoted(self):
         c=stage_ctx()
