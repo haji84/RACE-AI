@@ -7,6 +7,8 @@ job134009539055はsuccess。旧原本のAES/counter復旧後にREADY_VERIFIED_RE
 
 新workerは第1巡11:39:28→12:04:47（25分19秒）、第2巡12:04:47→12:25:26（20分39秒）がsuccess。
 P1/RESULTの実GitHub暗号artifactを各2巡分確認し、第3巡が稼働中。ALL_MODELは0/1のarchiveを確認。
+第2巡のALL_MODEL archiveは一覧にない。producerは当該生成/保存にcontinue-on-errorを持つため、欠落だけで
+予想対象0や正常な処理なしと認定しない。全通常P1/RESULTを照合し、全モデル原本の欠落巡をUNKNOWN/HOLDで残す監査へ修正中。
 metadataだけで新規予想件数・表示一致・締切適格を認定しない。実M2の別runner AES/原本/既存モデル再演算監査を準備し、
 公式B欠落時は資格0/null・full_day=falseを維持する。25分超の実遅延から、バッチ化だけでT15〜10達成とはしない。
 稼働jobの完全ログは正規認証でもまだ404であり、実時間の内訳は未確認。ローカルで再現した重複検証を別に測定中。
@@ -16,6 +18,10 @@ metadataだけで新規予想件数・表示一致・締切適格を認定しな
 初回失敗を消さない。元immutable d5ede5fbを保存し、runtime無変更・test2ファイルだけの01ed8abeへ固定する候補を検証。
 既知field/path/typeの完全40/64hexのみを除外し、raw名・未知field・nested文字列・誤digestは拒否。親212件と独立adversarial検査success。
 既存PR65を再利用する読取専用M2監査/CI修正の最終CIは未実行で、合格済みとはしない。
+元PR65のtitle/body/headを私有localに保存し、旧head989ffff1を祖先に保持したままmainへretarget・review可能にした。
+旧controller/Cloudflareの実装treeは適用していない。新しい欠落監査の独立レビューと同HEAD CI前にmergeしない。
+実prospective artifact14328665148は6,381bytes/SHAを取得照合。対象は11月7日の旧凍結planでHOLD・改善証明falseであり、
+11月17日の新しい前向き精度改善の証拠には数えない。
 
 [真正gate・実ラウンド時間・artifact metadata・CI履歴](evidence/boat-m2-genuine-handoff-runtime-20261117.json)。
 物理iPhone、8参考画面の最終一致、全4競技の全日供給、映像校正/6艇継続、前向き精度改善は未完了。

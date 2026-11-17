@@ -66,7 +66,15 @@
     "official_cutoff_qualified_slots": null,
     "full_day_coverage": false,
     "t15_to_t10_latency_accepted": false,
-    "live_job_logs_available": false
+    "live_job_logs_available": false,
+    "all_model_archive_rounds_listed_at_observation": [
+      0,
+      1
+    ],
+    "all_model_archive_missing_completed_rounds": [
+      2
+    ],
+    "missing_all_model_reason": "UNEXPLAINED; producer generation/upload continue-on-error; absence does not prove zero issuance"
   },
   "artifact_metadata": {
     "provider": "GitHub authenticated REST; metadata only, not decryption",
@@ -148,5 +156,15 @@
     "Physical iPhone / full eight-reference acceptance",
     "Independent six-boat labels, measured calibration and actual forecast integration",
     "Prospective original-versus-trained accuracy improvement"
-  ]
+  ],
+  "legacy_prospective_receipt": {
+    "artifact_id": 14328665148,
+    "size_in_bytes": 6381,
+    "zip_sha256": "de35d21c011aafad9f29d178bc8e9b56d17e793aac1c302f0d4a7b4d7d699b37",
+    "download_size_and_sha_verified": true,
+    "day": "2026-11-07",
+    "status": "HOLD",
+    "accuracy_improvement_proven": false,
+    "current_day_forward_improvement_evidence": false
+  }
 }
