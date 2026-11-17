@@ -1,0 +1,20 @@
+{
+  "schema": "RACE_AI_KEIRIN_HISTORICAL_RIDER_QUALITATIVE_FOLLOW_REPORT_V1",
+  "checked_on_jst": "2026-11-18",
+  "race_id_referred_to": "202611108404",
+  "racecard_for_date_jst": "2026-11-11",
+  "speaker_athlete_registration_id": "014525",
+  "speaker": "三ッ井武",
+  "line_leader_athlete_registration_id": "015709",
+  "line_leader": "神尾敬冬",
+  "source_url": "https://keirin.tokyo-sports.co.jp/list/race/20261110_32709",
+  "source_is_reporter_transcription_not_video": true,
+  "report_type": "SELF_REPORTED_PRIOR_RACE_FOLLOW_DIFFICULTY",
+  "paraphrase": "三ッ井選手は翌日の出走表コメントで、前日の神尾選手のダッシュが厳しく、初日とは異なったと述べた。",
+  "source_page_exact_publication_time_verified": false,
+  "independent_second_source_attested": false,
+  "on_track_phase_identified": false,
+  "observed_held_gapped_or_switched_label": "UNKNOWN",
+  "usable_as_direct_training_label": false,
+  "comment_not_usable_for_retroactive_pre_race_forecast": true
+}
