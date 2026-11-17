@@ -118,7 +118,8 @@ def summarize(*,registry,paired_reports,independently_verify_settled_report=None
         _add(venues[venue]["A"],a);_add(venues[venue]["B"],b)
         venues[venue]["scored_AB"]+=1
         states["AB_SCORED"]+=1
-        if r.get("abc_evaluable") is True:
+        if (r.get("abc_evaluable") is True and
+            r.get("state")=="A_B_C_RESEARCH_SETTLED"):
             _add(paired_B_with_C,b)
             _add(paired_C,r["C_six_phase_plus_line"])
             states["C_SCORED_ON_SAME_RACE"]+=1
