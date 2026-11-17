@@ -431,7 +431,7 @@ class FixedBootstrapP0CountTests(unittest.TestCase):
                 if old['status'] not in ('GENERATED_UNATTESTED','ORIGINAL_REUSED'):
                     slot.clear();slot.update(deepcopy(old))
             replay['status_counts']=dict(Counter(s['status'] for s in replay['slots']))
-            value['dispatch_reports']=[replay]
+            value['dispatch_reports']=[engine._json_copy(replay)]
             value['summary'].update(generated_forecasts=3,reused_baseline_forecasts=1)
             body_hash=digest(base)
             value['baseline']=dict(document_sha256=body_hash,receipt=dict(
