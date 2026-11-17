@@ -1,0 +1,18 @@
+{
+  "schema": "RACE_AI_RAW_CAPTURE_TESTS_FIRST_RED_V1",
+  "head": "77d94a1504c652fee50680ecfece8c8bce60caaa",
+  "job": 134344970205,
+  "finished_at": "2026-11-17T20:31:57Z",
+  "tests": 824,
+  "seconds": 196.411,
+  "failures": 43,
+  "errors": 6,
+  "all_failed_cases_in_new_33_test_module": true,
+  "runtime_unchanged": true,
+  "fixture_correction_only": true,
+  "scaffold_errors_retained": true,
+  "missing_hook_and_url_assertions_remain_red": true,
+  "artifact_time_authority_not_fabricated": true,
+  "provider_gets": 0,
+  "owner_key_read": false
+}

@@ -200,10 +200,11 @@ class OpaqueRawSinkTests(RawFixture):
             env = dict(self.env)
             if value is None:env.pop(name, None)
             else:env[name] = value
-            with self.subTest(field=name, value=value), self.assertRaises(SourceWait) as held:
-                self.sink(b'invented private raw body', environment=env)
-            self.assert_hold(held.exception)
-            self.assertFalse(self.folder.exists())
+            with self.subTest(field=name, value=value):
+                with self.assertRaises(SourceWait) as held:
+                    self.sink(b'invented private raw body', environment=env)
+                self.assert_hold(held.exception)
+                self.assertFalse(self.folder.exists())
 
     def test_existing_legacy_push_and_owner_dispatch_origin_rules_are_reused(self):
         raw = b'public fixture body for already permitted legacy origin'
@@ -219,10 +220,11 @@ class OpaqueRawSinkTests(RawFixture):
                 env = dict(self.env)
                 if value is None:env.pop(name)
                 else:env[name] = value
-                with self.subTest(flag=name, value=value), self.assertRaises(SourceWait) as held:
-                    self.sink(b'invented raw response', url=url, environment=env)
-                self.assert_hold(held.exception)
-                self.assertFalse(self.folder.exists())
+                with self.subTest(flag=name, value=value):
+                    with self.assertRaises(SourceWait) as held:
+                        self.sink(b'invented raw response', url=url, environment=env)
+                    self.assert_hold(held.exception)
+                    self.assertFalse(self.folder.exists())
 
     def test_unrelated_review_flag_is_not_a_new_cross_source_permission(self):
         self.sink(b'invented raw program', url=B_URL,
@@ -239,10 +241,11 @@ class OpaqueRawSinkTests(RawFixture):
         child = checkout/'runner'; child.mkdir(mode=0o700); bad_locations.append(child)
         missing = self.root/'missing'; bad_locations.append(missing)
         for path in bad_locations:
-            with self.subTest(defect=path.name), self.assertRaises(SourceWait) as held:
-                self.sink(b'invented secret body', environment=dict(self.env, RUNNER_TEMP=str(path)))
-            self.assert_hold(held.exception)
-            self.assertFalse((path/'boat-saved-view-captures').exists())
+            with self.subTest(defect=path.name):
+                with self.assertRaises(SourceWait) as held:
+                    self.sink(b'invented secret body', environment=dict(self.env, RUNNER_TEMP=str(path)))
+                self.assert_hold(held.exception)
+                self.assertFalse((path/'boat-saved-view-captures').exists())
         with patch.object(C.os, 'geteuid', return_value=os.geteuid()+1), self.assertRaises(SourceWait) as held:
             self.sink(b'invented owner mismatch')
         self.assert_hold(held.exception)
@@ -255,14 +258,16 @@ class OpaqueRawSinkTests(RawFixture):
         body = self.folder/(sha256(raw).hexdigest()+'.raw')
         for defect in ('symlink', 'hardlink', 'public', 'conflict'):
             with self.subTest(defect=defect):
-                if defect == 'symlink':body.symlink_to(target)
-                elif defect == 'hardlink':os.link(target, body)
-                else:
-                    body.write_bytes(raw if defect == 'public' else raw+b'changed')
-                    body.chmod(0o644 if defect == 'public' else 0o600)
-                with self.assertRaises(SourceWait) as held:self.sink(raw)
-                self.assert_hold(held.exception)
-                body.unlink()
+                try:
+                    if defect == 'symlink':body.symlink_to(target)
+                    elif defect == 'hardlink':os.link(target, body)
+                    else:
+                        body.write_bytes(raw if defect == 'public' else raw+b'changed')
+                        body.chmod(0o644 if defect == 'public' else 0o600)
+                    with self.assertRaises(SourceWait) as held:self.sink(raw)
+                    self.assert_hold(held.exception)
+                finally:
+                    body.unlink(missing_ok=True)
 
     def test_same_exact_body_can_share_legacy_html_without_an_ambiguous_raw_duplicate(self):
         raw = b'invented identical raw source bytes across two legitimate source URLs'
@@ -275,17 +280,19 @@ class OpaqueRawSinkTests(RawFixture):
 
     def test_capture_bound_holds_instead_of_truncating_or_marking_complete(self):
         for raw in (b'', b'x'*(4*1024*1024+1), bytearray(b'invented bytes')):
-            with self.subTest(size=len(raw)), self.assertRaises(SourceWait) as held:
-                self.sink(raw)
-            self.assert_hold(held.exception)
-            self.assertFalse(self.folder.exists())
+            with self.subTest(size=len(raw)):
+                with self.assertRaises(SourceWait) as held:
+                    self.sink(raw)
+                self.assert_hold(held.exception)
+                self.assertFalse(self.folder.exists())
 
     def test_naive_or_non_datetime_receive_clock_never_becomes_a_receipt(self):
         for at in (datetime(2030,4,1), NOW.isoformat(), None):
-            with self.subTest(clock=type(at).__name__), self.assertRaises(SourceWait) as held:
-                self.sink(b'invented body', received_at=at)
-            self.assert_hold(held.exception)
-            self.assertFalse(self.folder.exists())
+            with self.subTest(clock=type(at).__name__):
+                with self.assertRaises(SourceWait) as held:
+                    self.sink(b'invented body', received_at=at)
+                self.assert_hold(held.exception)
+                self.assertFalse(self.folder.exists())
 
 
 class P1RawCaptureTests(RawFixture):
@@ -440,6 +447,9 @@ class P1RawCaptureTests(RawFixture):
                 with patch.object(C.os,'open',side_effect=OSError('fictional private write failure')):
                     pilot.get(url, day=day)
             else:pilot.get(url, day=day)
+            # This generator boundary has no Actions artifact-time verifier.
+            # Keep the earlier pair pending that independent check; a later
+            # capture SourceWait must preserve it without claiming a receipt.
             return dict(race_id=row['race_id'],state='AB_GENERATED_NOT_YET_EXTERNAL_FROZEN'), \
                    dict(race_id=row['race_id']), None, None, None
         env = dict(self.env, RACE_AI_EVENT_DAY='2030-04-01')
@@ -449,9 +459,13 @@ class P1RawCaptureTests(RawFixture):
              patch.object(pilot,'make_pair',side_effect=candidate), \
              patch.object(pilot,'load_original_race_ids',return_value=frozenset()), redirect_stdout(output):
             result = pilot.run(schedule_snapshot=schedule_snapshot(3))
+        # On the unimplemented source, all three candidates run: fail first
+        # on that missing stop, not on the normal end-of-batch receipt warning.
+        self.assertEqual(calls, ['20300401-01-01','20300401-01-02'])
         self.assertEqual(result['reason'], 'SOURCE_CAPTURE_UNAVAILABLE')
         self.assertEqual([p['race_id'] for p in result['paired_forecasts']], ['20300401-01-01'])
-        self.assertEqual(calls, ['20300401-01-01','20300401-01-02'])
+        self.assertFalse(result['external_artifact_preclose_verified'])
+        self.assertEqual(result['candidate_attempts'][0]['state'], 'AB_GENERATED_NOT_YET_EXTERNAL_FROZEN')
         self.assertEqual(result['source_request_count'], 2)
         self.assertEqual(cycle.load(guard.path)['requests_used'], 2)
         self.assertEqual(len(transport.urls), 2)
