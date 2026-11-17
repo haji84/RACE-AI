@@ -71,3 +71,11 @@ race_ai/keirin_line_three_arm_audit.py。
 - 新コード：race_ai/keirin_line_cohesion.py / race_ai/keirin_line_three_arm_audit.py
 - 合成回帰：tests/test_keirin_line_cohesion.py / tests/test_keirin_line_three_arm_audit.py
 - GitHub Actions既存 .github/workflows/keirin-pr71-owner-autonomous.yml のsynthetic-ci（本番ジョブとは別）
+
+
+## 最新CI証拠（2026-11-18）
+
+- Stage context 18件、six-phase branch/Top12 15件、前向き旧新A/B 15件、連係経験14件、三方式A/B/C 13件、合計 **75件の合成テストがPASS**。
+- 正本の確認済Run: https://github.com/haji84/RACE-AI/actions/runs/44119870878 。PR71 workflowのsynthetic-ciがSUCCESS。既存の研究用ソース読み取り/映像系ワークフローの成功は、このRunの本番連係精度証明ではない。
+- 現在の実レース自動本番5工程、将来実レース3モデル前向き評価、同一ペアの本物の動画ラベル認証は **0件確認/HOLD**。synthetic-ciでの架空ラベルの数を実行件数へ算入しない。
+- 最新headの源泉・ソース・SHAはPR #291と同じブランチで読戻し、保護main/PR71モデル重みを変更していない。
