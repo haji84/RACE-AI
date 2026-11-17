@@ -108,7 +108,7 @@
 
 ### 実バイトを保存・読戻しした事実
 - 71Rの手動 V3 予想 / V2原本 / 会場別分類HTML / 表示テンプレートの**元4ファイル SHA-256**が既存 `race_ai/keirin_manual71_owner_encrypted_intake.py::EXPECTED` と一致した。
-- 前工程でオーナー既存PR102の公開鍵（Git blob SHA `7717a321a66243118e1864c2136c88c4713ab19c`）を使ってRSA-OAEP/AES-256-GCM暗号化された**既存の封筒JSONを一切変更せず**、同じhaji84/RACE-AIの**研究ブランチだけ**に新規登録した：[`docs/evidence/2026-11-17/keirin_owner_manual71_20261117_sealed_v1.json`](../evidence/2026-11-17/keirin_owner_manual71_20261117_sealed_v1.json)。
+- 前工程でオーナー既存PR102の公開鍵（Git blob SHA `7717a321a66243118e1864c2136c88c4713ab19c`）を使ってRSA-OAEP/AES-256-GCM暗号化された**既存の封筒JSONを一切変更せず**、同じhaji84/RACE-AIの**研究ブランチだけ**に新規登録した：[`docs/evidence/2026-11-17/keirin_owner_manual71_20261117_sealed_v1.json`](./evidence/2026-11-17/keirin_owner_manual71_20261117_sealed_v1.json)。
 - 公開Git暗号ファイル185,773 bytes SHA-256 `164bd98caf06deb2308626d0f6343c074db9e85b9517378ac60119af21b3375e`、暗号文SHA-256 `d04e070ef10e92a0276f3a3d1633ebf0fc4d075bf3c9d206c5f1fc9a76315a4f`。GitHubのAPIで読戻し、長さ/暗号文SHA/非平文フラグ一致を確認。公開Gitには秘密鍵・4平文原本を登録しない。
 - 内容の真正性は、上記バイトSHAと所有者の元原本SHAを**本番秘密鍵で実復号するまで最終確認未了**。アップロード時点で5工程合格とはしない。
 
