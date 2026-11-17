@@ -1,0 +1,63 @@
+{
+  "schema": "RACE_AI_KEIRIN_EXISTING_GENERATED_SOURCE_DISCOVERY_V1",
+  "audited_date_jst": "2026-11-18",
+  "dataset_day_jst": "2026-11-17",
+  "owner_saved_research_files": [
+    {
+      "role": "original_manual_71R",
+      "name": "keirin_2026-11-17_predictions.json",
+      "raw_sha256": "d11de6f34de83ec40a03b0fd80c8bbbe2c2f16f104c650d690e1dfe95a7bc3c9",
+      "generated_at": "2026-11-17T07:52:51+09:00",
+      "races": 71,
+      "automated_PR71_four_model": false
+    },
+    {
+      "role": "ranked_six_phase_hypotheses_v2",
+      "name": "keirin_2026-11-17_71r_tactical_ranked_v2.json",
+      "raw_sha256": "3bdb6930812cd00035f5591cc4a349aa171d49a1f1a709c44a2f2b990c233c59",
+      "generated_at": "2026-11-17T08:42:31+09:00",
+      "races": 71,
+      "ranked_candidates": 559,
+      "automated_PR71_four_model": false
+    },
+    {
+      "role": "existing_generated_comparison_A_v3",
+      "name": "keirin_2026-11-17_71r_12point_expanded_v3.json",
+      "raw_sha256": "4cd7e88d9ab7880702180bcbab248ebda2a8078a721fab5a08fe47323de21d68",
+      "generated_at": "2026-11-17T09:06:03+09:00",
+      "races": 71,
+      "ranked_candidates": 633,
+      "automated_PR71_four_model": false
+    }
+  ],
+  "race_venues": {
+    "松山": 7,
+    "富山": 12,
+    "小松島": 11,
+    "別府": 12,
+    "静岡": 11,
+    "高知": 9,
+    "宇都宮": 9
+  },
+  "v3_rank1_same_as_v2_count": 71,
+  "v3_added_candidates_vs_v2": 74,
+  "v3_candidate_count_by_race": {
+    "5": 1,
+    "7": 22,
+    "8": 15,
+    "9": 2,
+    "10": 18,
+    "12": 13
+  },
+  "v3_races_created_after_planned_start": 1,
+  "v3_post_start_race_ids": [
+    "202611177501"
+  ],
+  "official_sales_cutoff_independently_verified_races": 0,
+  "actual_video_position_labels_verified_by_dataset": 0,
+  "hypothesis_six_phase_text_not_video_scored": true,
+  "official_results_present_in_source": false,
+  "formal_prospective_accuracy_from_this_manifest": null,
+  "meaning": "These are real owner-saved ChatGPT research predictions. A future same-race A/B comparison must independently attest each original/cutoff and cannot retroactively promote the 71R dataset or unfinished PR71 four-model suite.",
+  "raw_prediction_tickets_committed_publicly": false
+}
