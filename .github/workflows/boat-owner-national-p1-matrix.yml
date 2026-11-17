@@ -13,6 +13,8 @@ on:
       - scripts/boat_owner_evidence_audit.py
       - tests/test_boat_failed_checkpoint_audit.py
       - tests/test_boat_native_matrix_intake.py
+      - race_ai/all_existing_model_archived_native.py
+      - tests/test_all_existing_model_archived_native.py
       - audit/state/boat-m2-independent-audit-target.json
   push:
     branches: [main]
@@ -27,6 +29,8 @@ on:
       - scripts/boat_owner_evidence_audit.py
       - tests/test_boat_failed_checkpoint_audit.py
       - tests/test_boat_native_matrix_intake.py
+      - race_ai/all_existing_model_archived_native.py
+      - tests/test_all_existing_model_archived_native.py
       - audit/state/boat-m2-independent-audit-target.json
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
@@ -67,7 +71,7 @@ jobs:
       - name: Install exact pinned owner reader dependencies for source-free test
         run: python -m pip install --disable-pip-version-check -r owner-source/requirements-history.txt
       - name: Pure model matrix and forced original ZIP AES source-free contract
-        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit -v
+        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native -v
       - name: Prove source-owner and private key are only ever read on trusted main events
         run: |
           python - <<'PY'
@@ -92,9 +96,13 @@ jobs:
       - name: Compile the independent ALL_MODEL AES reader and keep provider source outside
         run: |
           python - <<'PY_CONTRACT'
-          import ast,textwrap
+          import ast,re,textwrap
           from pathlib import Path
           source=Path('.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
+          blocks=re.findall(r"^          python - <<'([A-Z_]+)'\n(.*?)^          \1\s*$",source,re.M|re.S)
+          assert len(blocks)==8
+          for tag,body in blocks:
+              compile(textwrap.dedent(body),tag,'exec')
           stage=source.split("python - <<'PY_ALL_MODEL'\n",1)[1].split("\n          PY_ALL_MODEL",1)[0]
           ast.parse(textwrap.dedent(stage),filename='real_independent_all_model_gate')
           assert "audit.reopen_matrix_view(raw,gh,selected_owner=ident" in stage
@@ -110,6 +118,16 @@ jobs:
           ast.parse(textwrap.dedent(exact),filename='real_exact_zip_AES_readback')
           assert "audit(get=gh" in exact
           assert 'www.boatrace.jp' not in exact
+          archived=source.split("python - <<'PY_ARCHIVED_NATIVE'\n",1)[1].split("\n          PY_ARCHIVED_NATIVE",1)[0]
+          assert "mod.safe_summary(pin,root)" in archived
+          assert "OWNER_AUDIT_SOURCE_SHA" in archived
+          assert "source.parent.parent==main" in archived
+          assert 'except Exception as exc:' in archived
+          assert 'allowed_errors={' in archived
+          assert 'HOLD_ARCHIVED_NATIVE_ORIGINAL_READBACK' in archived
+          assert 'report_written=true' in archived
+          assert "steps.archived_native_readback.outputs.report_written == 'true'" in source
+          assert 'gh workflow run' not in archived and 'www.boatrace.jp' not in archived
           print('BOAT_ALL_MODEL_READONLY_AUDIT_PATH_COMPILED')
           PY_CONTRACT
 
@@ -225,6 +243,7 @@ jobs:
               output.write('expected_owner_sha='+selected['expected_owner_sha']+'\n')
           PY_TARGET
       - name: Read exact selected producer package after historical checkpoint
+        id: audit_source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ steps.audit_target.outputs.expected_owner_sha }}
@@ -484,5 +503,111 @@ jobs:
         with:
           name: boat-national-p1-model-coverage-${{ github.run_id }}
           path: ${{ runner.temp }}/boat-national-p1-counts.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Verify the fixed retained native original without admitting current inputs
+        id: archived_native_readback
+        if: always() && steps.audit_target.outcome == 'success' && steps.audit_source.outcome == 'success'
+        working-directory: owner-source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+          OWNER_AUDIT_SOURCE_SHA: ${{ steps.audit_target.outputs.expected_owner_sha }}
+        run: |
+          python - <<'PY_ARCHIVED_NATIVE'
+          import hashlib,importlib.util,json,os,subprocess,sys
+          from pathlib import Path
+          failed=False
+          try:
+              root=Path('.').resolve();main=root.parent
+              owner=os.environ['OWNER_AUDIT_SOURCE_SHA']
+              allowed_owners=('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
+                              '86b029ae5bddd5d4956497d8b32b2c92b8eec521')
+              actual=subprocess.check_output(['git','rev-parse','HEAD'],timeout=10,
+                  stderr=subprocess.DEVNULL).decode().strip()
+              if root.name!='owner-source' or owner not in allowed_owners or actual!=owner:
+                  raise ValueError('ARCHIVED_NATIVE_SELECTED_SOURCE_REQUIRED')
+              import race_ai
+              if Path(race_ai.__file__).resolve()!=root/'race_ai/__init__.py':
+                  raise ValueError('ARCHIVED_NATIVE_OWNER_DEPENDENCIES_REQUIRED')
+              for folder,pin in (('pr64-reference','761247bee0209e37b1af6b8885e92cad3e9260a5'),
+                                 ('pr72-reference','7a432e5acc4d3495a0e82bd79726929e2f8085fe')):
+                  package=root/folder/'race_ai'
+                  parser=subprocess.check_output(['git','-C',str(package.parent),'rev-parse','HEAD'],
+                      timeout=10,stderr=subprocess.DEVNULL).decode().strip()
+                  if not package.is_dir() or parser!=pin:
+                      raise ValueError('ARCHIVED_NATIVE_PARSER_PIN_REQUIRED')
+                  if str(package) not in race_ai.__path__:race_ai.__path__.append(str(package))
+              source=main/'race_ai/all_existing_model_archived_native.py'
+              if not (source.is_file() and not source.is_symlink() and source.parent.parent==main):
+                  raise ValueError('ARCHIVED_NATIVE_EXACT_MAIN_HELPER_REQUIRED')
+              name='race_ai.all_existing_model_archived_native'
+              if name in sys.modules and Path(sys.modules[name].__file__).resolve()!=source:
+                  raise ValueError('ARCHIVED_NATIVE_EXACT_MAIN_HELPER_REQUIRED')
+              spec=importlib.util.spec_from_file_location(name,source)
+              mod=importlib.util.module_from_spec(spec);sys.modules[name]=mod
+              spec.loader.exec_module(mod)
+              if Path(mod.__file__).resolve()!=source:
+                  raise ValueError('ARCHIVED_NATIVE_EXACT_MAIN_HELPER_REQUIRED')
+              from scripts.boat_private_original_vault import _environment
+              if _environment(root)!=root:
+                  raise ValueError('ARCHIVED_NATIVE_OWNER_DEPENDENCIES_REQUIRED')
+              pin=dict(id=13559236491,run_id=42334526055,
+                  head_sha='8cf76d3d023591a4c67d04a0001465ac32b441c5',
+                  digest='sha256:864d9e43e1ffbcc231a38fc8467648ee21179f402523680700ace75ef397a248')
+              result=mod.safe_summary(pin,root)
+              assert (result['archived_original_replay_verified'] is True and
+                      result['artifact_id']==13559236491 and result['source_record_count']==16 and
+                      result['native_capsule_count']==88 and result['new_model_input_count']==0 and
+                      result['current_generation_authorized'] is False and
+                      result['dispatch_authorized'] is False and
+                      result['github_artifact_receipt_created'] is False)
+              report=dict(result,status='ARCHIVED_NATIVE_ORIGINAL_READBACK_VERIFIED',
+                  selected_owner_sha=owner,main_helper_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
+                  racing_provider_gets=0,source_originals_modified=False)
+          except Exception as exc:
+              allowed_errors={
+                  'ARCHIVED_NATIVE_SELECTED_SOURCE_REQUIRED','ARCHIVED_NATIVE_OWNER_DEPENDENCIES_REQUIRED',
+                  'ARCHIVED_NATIVE_PARSER_PIN_REQUIRED','ARCHIVED_NATIVE_EXACT_MAIN_HELPER_REQUIRED',
+                  'ARCHIVED_NATIVE_EXACT_FIXED_PIN_REQUIRED','ARCHIVED_NATIVE_AWARE_CURRENT_CLOCK_REQUIRED',
+                  'ARCHIVED_NATIVE_FUTURE_ARCHIVED_ADMISSION','ARCHIVED_NATIVE_RESTORE_REJECTED',
+                  'ARCHIVED_NATIVE_PINNED_CIPHER_AND_FILE_INVENTORY','ARCHIVED_NATIVE_EXACT_RESTORED_ORIGINAL',
+                  'ARCHIVED_NATIVE_ORIGINAL_ZIP_BYTES','ARCHIVED_NATIVE_ORIGINAL_METADATA_BYTES',
+                  'ARCHIVED_NATIVE_AUTHENTICATED_ARCHIVE_PROVENANCE',
+                  'ARCHIVED_NATIVE_ORIGINAL_METADATA_REJECTED','ARCHIVED_NATIVE_HISTORICAL_REPLAY_REJECTED'}
+              code=str(exc)
+              reason=code if code in allowed_errors else 'ARCHIVED_NATIVE_ORIGINAL_NOT_VERIFIED'
+              report=dict(schema='RACE_AI_ARCHIVED_NATIVE_ORIGINAL_READBACK_COUNTS_V1',
+                  status='HOLD_ARCHIVED_NATIVE_ORIGINAL_READBACK',reason=reason,
+                  artifact_id=13559236491,workflow_run_id=42334526055,
+                  archived_original_replay_verified=False,new_model_input_count=0,
+                  github_artifact_receipt_created=False,current_native_admission_created=False,
+                  current_generation_authorized=False,dispatch_authorized=False,
+                  racing_provider_gets=0,source_originals_modified=False)
+              failed=True
+          target=Path(os.environ['RUNNER_TEMP'])/'retained-native-13559236491-aes-counts.json'
+          try:
+              fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+              with os.fdopen(fd,'w',encoding='utf-8') as output:
+                  json.dump(report,output,sort_keys=True,allow_nan=False);output.write('\n')
+                  output.flush();os.fsync(output.fileno())
+              # Only our fully written/closed safe report may become an artifact.
+              with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as flags:
+                  flags.write('report_written=true\n')
+          except Exception:
+              print(json.dumps(dict(status='HOLD_ARCHIVED_NATIVE_ORIGINAL_READBACK',
+                  reason='ARCHIVED_NATIVE_REPORT_NOT_RETAINED',archived_original_replay_verified=False,
+                  new_model_input_count=0,current_generation_authorized=False,dispatch_authorized=False)))
+              raise SystemExit(2)
+          print(json.dumps(report,sort_keys=True,allow_nan=False))
+          if failed:raise SystemExit(2)
+          PY_ARCHIVED_NATIVE
+      - name: Retain only fixed-original count proof or static HOLD reason
+        if: always() && steps.archived_native_readback.outputs.report_written == 'true' && (steps.archived_native_readback.outcome == 'success' || steps.archived_native_readback.outcome == 'failure')
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: retained-native-13559236491-aes-counts-${{ github.run_id }}
+          path: ${{ runner.temp }}/retained-native-13559236491-aes-counts.json
           if-no-files-found: error
           retention-days: 30
