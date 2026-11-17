@@ -121,9 +121,14 @@ class AutoSixPhaseGeneration(unittest.TestCase):
                                     "RACECARD_MARKS_AND_LINES_REQUIRED"):
             model.generate_A_B(snap,generated_at=AT)
 
-    def test_duplicate_cars_and_mark_ranks_are_rejected(self):
+    def test_duplicate_cars_or_rider_ids_are_rejected(self):
         snap=fixture()
-        snap["riders"][1]["mark_rank"]=1
+        snap["riders"][1]["car"]=1
+        with self.assertRaisesRegex(model.AutomaticForecastError,
+                                    "CAR_MARK_OR_PERSISTENT_RIDER_ID_DUPLICATE"):
+            model.generate_A_B(snap,generated_at=AT)
+        snap=fixture()
+        snap["riders"][1]["athlete_id"]=snap["riders"][0]["athlete_id"]
         with self.assertRaisesRegex(model.AutomaticForecastError,
                                     "CAR_MARK_OR_PERSISTENT_RIDER_ID_DUPLICATE"):
             model.generate_A_B(snap,generated_at=AT)
@@ -132,6 +137,13 @@ class AutoSixPhaseGeneration(unittest.TestCase):
         with self.assertRaisesRegex(model.AutomaticForecastError,
                                     "PREDICTED_LINE_GROUPS_REQUIRED"):
             model.generate_A_B(snap,generated_at=AT)
+
+    def test_published_mark_ties_are_not_invented_as_new_ranks(self):
+        snap=fixture()
+        snap["riders"][1]["mark_rank"]=snap["riders"][0]["mark_rank"]
+        result=model.generate_A_B(snap,generated_at=AT)
+        self.assertTrue(result["A"]["ranked_tickets"])
+        self.assertEqual(snap["riders"][1]["mark_rank"],1)
 
     def test_program_unknown_is_not_assumed(self):
         r=model.generate_A_B(fixture(),generated_at=AT)
