@@ -1,3 +1,17 @@
+## 2026-11-17 21:15 UTC: 実P0は132レース/264予想、実Safari私有確認成功・候補撮影はCF変数でHOLD（GOAL未達）
+
+実source44170869325の11月18日JST first-P0公開receiptを、immutable commit ae81ae3056860a85c3c29f289a74e39ab32416de/blobc5bb2349で確認。132レース/264 model_forecastsを宣言し、artifact14366264478のAPI digestとreceiptのZIP SHA256は一致する。producerの元ZIP/create-only receipt/長期保管/reuseも実step成功。独立のZIP再hash/MAC/owner keyによるlocal復号は行っていない。
+
+追加P0 artifact14367093570(18,706,128B)は存在するが、public headerに生成件数/day/statusはない。bootstrap-currentはsealed payloadでready=trueでもgenerated_forecasts=0を許すため、40秒のstep成功だけで追加モデルの非ゼロ生成・速度改善・全適用モデルを証明しない。追加件数/HOLD理由はUNKNOWNのまま。実runは展示窓で待機し、01〜24 roundはpending。全4競技/全日/T15〜10/結果照合/前向き改善は未合格。
+
+新Mac44174351132/job134361589571はSafari26.6で私有保存view/AES/cleanupに成功。saved_dayは2026-11-17、generation423/results130/nativeP1groups11、1440/390幅、元予想4比較/P1詳細2/結果予算2/seed2比較を確認した。これはcurrent V5/login/物理iPhone/全8参考の合格ではない。旧parent HTTP500の内部原因も確定しない。
+
+候補598の撮影は21:00:07 UTCにsynthetic entry guardで停止。unexpected1件は固定OS診断で __CF_USER_TEXT_ENCODING だけがpresent、他5 OS候補はfalseだった。値は読まず/表示せず、artifact0。Apple公式producerはUID:script:regionを生成するため、Darwin・canonicalな上位hex形式・encoded/real/effective UID一致だけを検証する狭い例外のテスト(100保持+11=111)を先行させる。元6許可keys/他の未知key拒否/guard位置/driver env/workflow/pinは維持し、環境は書換えない。実値が形式に合うかはまだ未観測で、合わなければHOLDを保つ。
+
+原本保存PR #51の未マージ案には、途中I/O失敗で部分receiptが以前のvalid原本の保管も止める問題があり、fault再現と原子的private stagingを検証中。production bb492は変更しない。競輪403/HOLD、6艇GT/校正、未push2commit未復元も継続する。
+
+詳細: [実P0件数とCF guard HOLD](evidence/boat-cf-environment-live-p0-proof-20261117.json)。
+
 ## 2026-11-17 20:47 UTC: 実新sourceのP0保管・新日付モデル生成まで成功、展示窓を待機（GOAL未達）
 
 既存main起動ガード44166778123のattempt2/job134349097028が、時間内に READY_EXISTING_OWNER_WORKFLOW_ONLY /dispatch=trueと判定し、実source bb49215034b779ea1493b35dd91e5c3ebfc04032 のrun **44170869325** /job134349278782を05:35 JSTに開始した。同じ原本/権限/重複チェックを通した。
