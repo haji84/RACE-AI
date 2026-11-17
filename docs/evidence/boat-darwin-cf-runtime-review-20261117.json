@@ -1,0 +1,62 @@
+{
+  "schema": "RACE_AI_DARWIN_CF_RUNTIME_REVIEW_AND_RED_V1",
+  "base_main": "0454aabb234e70714ebe4c7df691d59162488b2c",
+  "integration_red_head": "9d309aedcc46d847549606648242a3dd3248f798",
+  "runtime_blob": "79b1533bbde4e985e5a897dd1aaa06e788d17588",
+  "runtime_packet": "7ba6b06f24d960bb54fa7dab5d7d86309c475db1",
+  "test_blob": "b011c802f85f973210d5c8b48ca63f68aa7cce3e",
+  "tests": 111,
+  "original_100_preserved": true,
+  "actual_red": {
+    "job": 134380772151,
+    "finished_at": "2026-11-17T21:26:48Z",
+    "seconds": 15.405,
+    "subtest_failures": 21,
+    "errors": 0,
+    "only_new_cf_tests_failed": true
+  },
+  "diff": {
+    "added": 24,
+    "removed": 0
+  },
+  "root_static_review": "CLEAR",
+  "independent_static_review": "CLEAR",
+  "policy": {
+    "forms": [
+      "H:0:0",
+      "H:H:H"
+    ],
+    "H": "0x(?:0|[1-9A-F][0-9A-F]{0,7})",
+    "max_ascii_characters": 32,
+    "platform": "Darwin",
+    "uid_binding": "encoded UID == real UID == effective UID, strict uint32 integers",
+    "identity_api_errors": "HOLD",
+    "unknown_names": "HOLD",
+    "environment_mutation": false,
+    "unknown_value_reads": false,
+    "new_report_values": false,
+    "original_six_keys_unchanged": true,
+    "driver_environment_unchanged": true,
+    "guard_positions_unchanged": true,
+    "actual_runner_value_unobserved": true
+  },
+  "official_references": [
+    "https://github.com/apple-oss-distributions/CF/blob/dc54c6bb1c1e5e0b9486c1d26dd5bef110b20bf3/CFStringEncodings.c#L895",
+    "https://github.com/apple-oss-distributions/CF/blob/dc54c6bb1c1e5e0b9486c1d26dd5bef110b20bf3/CFStringEncodings.c#L1026",
+    "https://github.com/swiftlang/swift-corelibs-foundation/blob/7926d06941951bd3c1dd1ac523e3429391ca1322/Sources/CoreFoundation/CFStringEncodings.c#L1110",
+    "https://github.com/swiftlang/swift-corelibs-foundation/blob/7926d06941951bd3c1dd1ac523e3429391ca1322/Sources/CoreFoundation/CFUtilities.c#L675",
+    "https://github.com/apple-oss-distributions/Libc/blob/71bbe350ab79eef58113991d817ccc6165061a64/stdlib/FreeBSD/strtol.c#L61",
+    "https://github.com/apple-oss-distributions/xnu/blob/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/sys/_types.h#L98"
+  ],
+  "fresh_green_pending": true,
+  "new_actual_mac_pending": true,
+  "actual_environment_value_unobserved": true,
+  "environment_mutated": false,
+  "source_production_changed": false,
+  "private_key_retrieved": false,
+  "new_prs": 0,
+  "new_jobs": 0,
+  "new_permissions": 0,
+  "new_paid_services": 0,
+  "goal_complete": false
+}

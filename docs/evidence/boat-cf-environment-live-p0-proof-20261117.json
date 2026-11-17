@@ -1,0 +1,111 @@
+{
+  "schema": "RACE_AI_CF_ENVIRONMENT_AND_LIVE_P0_PROOF_V1",
+  "observed_at": "2026-11-17T21:15:18Z",
+  "main": "0454aabb234e70714ebe4c7df691d59162488b2c",
+  "source": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+  "native": {
+    "run": 44174351132,
+    "job": 134361589571,
+    "private_status": "NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED",
+    "verified_at": "2026-11-17T20:59:44.427799Z",
+    "saved_day": "2026-11-17",
+    "browser": {
+      "browserName": "Safari",
+      "browserVersion": "26.6",
+      "platformName": "macOS"
+    },
+    "authenticated_generation": 423,
+    "authenticated_results": 130,
+    "authenticated_native_p1_groups": 11,
+    "widths": [
+      1440,
+      390
+    ],
+    "model_original_comparisons": 4,
+    "native_p1_detail": 2,
+    "result_budget": 2,
+    "seed_original_comparisons": 2,
+    "browser_aes_verified": true,
+    "private_cleanup_verified": true,
+    "account_login": false,
+    "current_v5": false,
+    "physical_iphone": false,
+    "all_eight_references": false,
+    "plaintext_published": false,
+    "forecast_mutated": false
+  },
+  "candidate_hold": {
+    "at": "2026-11-17T21:00:07.853644Z",
+    "reason": "SYNTHETIC_SCREENSHOT_REJECTED",
+    "phase": "synthetic_environment_guard",
+    "unexpected_count": 1,
+    "known_os_key_present": {
+      "__CF_USER_TEXT_ENCODING": true,
+      "__CFBundleIdentifier": false,
+      "__PYVENV_LAUNCHER__": false,
+      "VERSIONER_PYTHON_VERSION": false,
+      "VERSIONER_PYTHON_PREFER_32_BIT": false,
+      "PYTHONEXECUTABLE": false
+    },
+    "actual_value_observed": false,
+    "candidate_captured": false,
+    "artifacts": 0
+  },
+  "planned_guard_contract": {
+    "stage": "TESTS_FIRST",
+    "runtime_unchanged": true,
+    "original_keys": 6,
+    "darwin_only": true,
+    "canonical_apple_forms": [
+      "H:0:0",
+      "H:H:H"
+    ],
+    "H": "0x(?:0|[1-9A-F][0-9A-F]{0,7})",
+    "uid": "encoded == real == effective; strict uint32 ints; API failure/ambiguity HOLD",
+    "every_other_unknown_key": "HOLD",
+    "environment_rewritten": false,
+    "actual_runner_value_validated": false,
+    "original_tests": 100,
+    "new_tests": 11,
+    "total_tests": 111
+  },
+  "first_p0": {
+    "run": 44170869325,
+    "job": 134349278782,
+    "day_jst": "2026-11-18",
+    "receipt_commit": "ae81ae3056860a85c3c29f289a74e39ab32416de",
+    "receipt_blob": "c5bb234960a7e99370bf5211534a6737660e4076",
+    "race_count_declared": 132,
+    "model_forecast_count_declared": 264,
+    "artifact_id": 14366264478,
+    "server_created_at": "2026-11-17T20:36:54Z",
+    "declared_zip_sha256": "64633ae9a9c0100bcfb8c9e09c857abcd1681274169ff141035537f53dc02926",
+    "declared_document_sha256": "13e220b231b617ddb6e9f4de91999291ff375d9f0671760e64ec39e002f745be",
+    "producer_readback_and_long_retention_steps": "success",
+    "independent_archive_rehash": false,
+    "local_owner_key_access": false
+  },
+  "additional_model_p0": {
+    "artifact_id": 14367093570,
+    "size": 18706128,
+    "declared_digest": "3dd76e2edba393e51221215703e82756de2ae804ba4b5e063d4e91f44437c995",
+    "created_at": "2026-11-17T20:38:49Z",
+    "public_header_commit": "c22b5e5fb04af1d4fc0433be8e1951acbf961b27",
+    "generated_forecasts": null,
+    "hold_reasons": null,
+    "bootstrap_ready_can_mean_zero_generated": true,
+    "speedup_proven": false,
+    "all_applicable_models_verified": false
+  },
+  "source_run": {
+    "status": "in_progress",
+    "wait_step": "Wait without source requests for the authenticated exhibition window",
+    "rounds_01_to24": "pending"
+  },
+  "source51": {
+    "phase": "UNMERGED_PROPOSAL_REVIEW",
+    "atomic_write_blocker": "Partial final receipt can poison previous valid inventory; fault regressions and atomic staging required",
+    "production_changed": false
+  },
+  "goal_complete": false
+}

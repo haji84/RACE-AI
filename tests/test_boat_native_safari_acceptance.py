@@ -2077,5 +2077,273 @@ delete result.control;process.stdout.write(JSON.stringify({result,focusReads,act
             self.assertNotIn('sentinel', json.dumps(projected))
 
 
+
+class NativeCFEnvironmentValidationTests(unittest.TestCase):
+    """Invented CF fixtures use only the documented producer forms.
+
+    Apple CF dc54c6bb1c1e5e0b9486c1d26dd5bef110b20bf3:
+    CFStringEncodings.c939/949/1026 produces UID:script:region.
+    Swift CoreFoundation 7926d06941951bd3c1dd1ac523e3429391ca1322:
+    CFStringEncodings.c1112 and CFUtilities.c675-710 resolve effective UID.
+    This checker intentionally accepts a strict subset of the base-0 parser.
+    No fixture below describes the unobserved value from the actual runner.
+    """
+    CF_KEY = '__CF_USER_TEXT_ENCODING'
+    ORIGINAL_KEYS = frozenset(('PATH', 'HOME', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TMPDIR'))
+
+    def guard_report(self, value, *, uid=501, euid=501, system='Darwin',
+                     uid_error=None, euid_error=None, extra=None):
+        environment = {self.CF_KEY: value, **(extra or {})}
+        with patch.object(S.os, 'environ', environment), \
+                patch.object(S.platform, 'system', return_value=system), \
+                patch.object(S.os, 'getuid', return_value=uid, side_effect=uid_error), \
+                patch.object(S.os, 'geteuid', return_value=euid, side_effect=euid_error):
+            try:
+                S.require_synthetic_environment()
+            except S.SafariHold as error:
+                report = S.failure_report(error)
+            else:
+                report = None
+        return report, environment
+
+    def assert_private_hold(self, report, *, count=1):
+        self.assertIsInstance(report, dict, 'the environment must refuse')
+        self.assertEqual(report['status'], 'NATIVE_SAFARI_ACCEPTANCE_HOLD')
+        self.assertEqual(report['reason'], 'SYNTHETIC_SCREENSHOT_REJECTED')
+        self.assertEqual(report['environment_phase'], 'synthetic_environment_guard')
+        self.assertEqual(report['unexpected_environment_key_count'], count)
+        self.assertIs(type(report['unexpected_environment_key_count']), int)
+        self.assertIs(report['known_os_environment_key_present'][self.CF_KEY], True)
+        self.assertLessEqual(set(report), {'status', 'reason', 'environment_phase',
+            'unexpected_environment_key_count', 'known_os_environment_key_present',
+            'checker_function', 'checker_line', 'checker_callers'})
+        rendered = json.dumps(report)
+        self.assertNotIn('sentinel', rendered)
+        self.assertNotIn('0x1F5', rendered)
+        for name in ('uid', 'euid', 'script', 'region', 'value', 'validated_cf_value'):
+            self.assertNotIn(name, report)
+
+    def test_documented_cf_producer_forms_accept_only_for_the_bound_darwin_uid(self):
+        cases = [(501, '0x1F5:0:0'), (501, '0x1F5:0x0:0x0'),
+                 (501, '0x1F5:0x1:0x2'), (501, '0x1F5:0xFFFFFFFF:0xFFFFFFFF'),
+                 (0, '0x0:0:0'), (0, '0x0:0x0:0x0'),
+                 (4294967295, '0xFFFFFFFF:0:0'),
+                 (4294967295, '0xFFFFFFFF:0xFFFFFFFF:0xFFFFFFFF')]
+        for case, (uid, value) in enumerate(cases):
+            with self.subTest(case=case):
+                report, environment = self.guard_report(value, uid=uid, euid=uid)
+                self.assertIsNone(report, 'a documented, bounded and UID-bound producer form must pass')
+                self.assertEqual(environment, {self.CF_KEY: value}, 'validation cannot wash the environment')
+
+    def test_original_six_keys_and_driver_filter_stay_unchanged_with_valid_cf_metadata(self):
+        original = {'PATH': '/invented/bin', 'HOME': '/invented/home', 'LANG': 'en_US.UTF-8',
+                    'LC_ALL': 'C', 'LC_CTYPE': 'UTF-8', 'TMPDIR': '/invented/tmp'}
+        self.assertEqual(S.SYNTHETIC_ENVIRONMENT_KEYS, self.ORIGINAL_KEYS)
+        with patch.object(S.os, 'environ', original), \
+                patch.object(S.platform, 'system', side_effect=AssertionError('original keys need no OS probe')), \
+                patch.object(S.os, 'getuid', side_effect=AssertionError('original keys need no UID probe')), \
+                patch.object(S.os, 'geteuid', side_effect=AssertionError('original keys need no UID probe')):
+            self.assertIsNone(S.require_synthetic_environment())
+        report, environment = self.guard_report('0x1F5:0:0', extra=original)
+        self.assertIsNone(report)
+        self.assertEqual(environment, dict(original, **{self.CF_KEY: '0x1F5:0:0'}))
+        self.assertEqual(S.driver_environment(environment), {
+            'PATH': '/invented/bin', 'HOME': '/invented/home', 'LANG': 'en_US.UTF-8',
+            'LC_ALL': 'C', 'TMPDIR': '/invented/tmp'})
+
+    def test_cf_metadata_on_non_darwin_holds_without_querying_user_identity(self):
+        for system in ('Linux', 'Windows', 'iOS', '', None, True):
+            with self.subTest(case=type(system).__name__):
+                environment = {self.CF_KEY: '0x1F5:0:0'}
+                with patch.object(S.os, 'environ', environment), \
+                        patch.object(S.platform, 'system', return_value=system), \
+                        patch.object(S.os, 'getuid') as uid, patch.object(S.os, 'geteuid') as euid:
+                    try:
+                        S.require_synthetic_environment()
+                    except S.SafariHold as error:
+                        report = S.failure_report(error)
+                    else:
+                        self.fail('CF metadata on another platform must refuse')
+                self.assert_private_hold(report)
+                uid.assert_not_called()
+                euid.assert_not_called()
+
+    def test_cf_uid_binding_rejects_wrong_ambiguous_non_integer_or_out_of_range_ids(self):
+        class HostileInt(int):
+            def __int__(self):
+                raise AssertionError('UID subclasses must not be coerced')
+            def __str__(self):
+                raise AssertionError('UID subclasses must not be printed')
+        ids = [(502, 501), (501, 502), (502, 502), (True, 501), (501, False),
+               ('private-uid-sentinel', 501), (501, 'private-euid-sentinel'),
+               (501.0, 501), (501, float('nan')), (float('inf'), 501),
+               (-1, 501), (501, -1), (4294967296, 501), (501, 4294967296),
+               (HostileInt(501), 501), (501, HostileInt(501)), (None, 501), (501, None)]
+        for case, (uid, euid) in enumerate(ids):
+            with self.subTest(case=case):
+                report, environment = self.guard_report('0x1F5:0:0', uid=uid, euid=euid)
+                self.assert_private_hold(report)
+                self.assertEqual(environment, {self.CF_KEY: '0x1F5:0:0'})
+
+    def test_cf_identity_api_errors_fail_closed_without_exposing_exception_messages(self):
+        for case, errors in enumerate((
+                {'uid_error': OSError('private-real-uid-sentinel')},
+                {'euid_error': OSError('private-effective-uid-sentinel')},
+                {'uid_error': AttributeError('private-unavailable-uid-sentinel')},
+                {'euid_error': AttributeError('private-unavailable-euid-sentinel')})):
+            with self.subTest(case=case):
+                report, _ = self.guard_report('0x1F5:0:0', **errors)
+                self.assert_private_hold(report)
+
+    def test_noncanonical_partial_overlong_and_credential_like_cf_strings_still_hold(self):
+        values = ['', 'private-value-sentinel', 'sk-proj-private-key-sentinel',
+            'ghp_private-token-sentinel', 'https://private-owner-sentinel.invalid/',
+            '0x1F5', '0x1F5:0', '0x1F5:0:0:0', '0x1F5::0',
+            '501:0:0', '0765:0:0', '0X1F5:0:0', '0x1f5:0:0', '0x01F5:0:0',
+            '0x1F5:00:0', '0x1F5:0x00:0x0', '0x1F5:0:0x0', '0x1F5:0x0:0',
+            '0x1F5:1:2', '0x1F5:0x100000000:0x0', '0x1F5:0x0:0x100000000',
+            '0x100000000:0:0', '0x1F5:-1:0', '+0x1F5:0:0', '-0x1F5:0:0',
+            ' 0x1F5:0:0', '0x1F5:0:0 ', '0x1F5:0:0\n', '0x1F5:\t0:0',
+            '0x1F5:0:0\r\nprivate-tail-sentinel', '0x1F5:0:0\0private-tail-sentinel',
+            '0x1F5:NaN:0', '0x1F5:Infinity:0', '0x1F5:1e10:0',
+            '0x1F5:0x' + 'A' * 64 + ':0x0', '0x1F5:0:0' + 'x' * 10000,
+            '0x１F5:0:0', '0x1F5:０:0']
+        for case, value in enumerate(values):
+            with self.subTest(case=case):
+                report, environment = self.guard_report(value)
+                self.assert_private_hold(report)
+                self.assertEqual(environment, {self.CF_KEY: value})
+
+    def test_cf_value_types_are_not_coerced_or_formatted(self):
+        class HostileString(str):
+            def __str__(self):
+                raise AssertionError('private CF strings must not be coerced')
+            def __len__(self):
+                raise AssertionError('CF string subclasses must not be queried')
+        class HostileValue:
+            def __str__(self):
+                raise AssertionError('private CF values must not be coerced')
+        values = [None, True, False, 501, 501.0, float('nan'), float('inf'),
+                  b'0x1F5:0:0', [], {'private-name-sentinel': 'private-value-sentinel'},
+                  HostileString('0x1F5:0:0'), HostileValue()]
+        for case, value in enumerate(values):
+            with self.subTest(case=case):
+                report, environment = self.guard_report(value)
+                self.assert_private_hold(report)
+                self.assertIs(environment[self.CF_KEY], value)
+
+    def test_valid_cf_metadata_never_allows_other_unknown_names_or_reads_their_values(self):
+        key = self.CF_KEY
+        class LockedEnvironment(dict):
+            def get(self, name, *args):
+                if name != key:
+                    raise AssertionError('unknown environment values must not be read')
+                return super().get(name, *args)
+            def __getitem__(self, name):
+                if name != key:
+                    raise AssertionError('unknown environment values must not be read')
+                return super().__getitem__(name)
+        names = ('GH_TOKEN', 'GITHUB_TOKEN', 'RACE_AI_STATE_KEY', 'UNLISTED_OWNER_CREDENTIAL',
+                 '__CFBundleIdentifier', '__PYVENV_LAUNCHER__', 'VERSIONER_PYTHON_VERSION',
+                 'VERSIONER_PYTHON_PREFER_32_BIT', 'PYTHONEXECUTABLE')
+        for case, name in enumerate(names):
+            with self.subTest(case=case):
+                environment = LockedEnvironment({key: '0x1F5:0:0', name: 'private-credential-sentinel'})
+                with patch.object(S.os, 'environ', environment), \
+                        patch.object(S.platform, 'system', return_value='Darwin'), \
+                        patch.object(S.os, 'getuid', return_value=501), \
+                        patch.object(S.os, 'geteuid', return_value=501):
+                    try:
+                        S.require_synthetic_environment()
+                    except S.SafariHold as error:
+                        report = S.failure_report(error)
+                    else:
+                        self.fail('another unknown name must still refuse')
+                self.assert_private_hold(report)
+                if name not in S.SYNTHETIC_OS_ENVIRONMENT_KEYS:
+                    self.assertNotIn(name, json.dumps(report))
+                self.assertEqual(set(environment), {key, name})
+        report, _ = self.guard_report('private-cf-value-sentinel',
+                                     extra={'UNLISTED_OWNER_CREDENTIAL': 'private-credential-sentinel'})
+        self.assert_private_hold(report, count=2)
+
+    def test_bound_cf_metadata_can_reach_existing_artifact_verification_without_exporting_it(self):
+        output = io.StringIO()
+        environment = {self.CF_KEY: '0x1F5:0:0'}
+        with patch.object(S.os, 'environ', environment), \
+                patch.object(S.platform, 'system', return_value='Darwin'), \
+                patch.object(S.os, 'getuid', return_value=501), \
+                patch.object(S.os, 'geteuid', return_value=501), \
+                patch.object(S, 'verify_synthetic_artifacts', return_value={'screenshots': 28}) as verify, \
+                patch.object(S, 'load_candidate_assets', side_effect=AssertionError('verification needs no assets')), \
+                patch.object(S, 'apple_driver', side_effect=AssertionError('verification needs no browser')), \
+                redirect_stdout(output), redirect_stderr(output):
+            code = S.main(['--public-root', '/not-read', '--candidate-ui',
+                           '--verify-synthetic-artifacts', '/invented-artifacts'])
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads(output.getvalue()), {'screenshots': 28})
+        verify.assert_called_once_with(Path('/invented-artifacts'), candidate_ui=True)
+        self.assertEqual(environment, {self.CF_KEY: '0x1F5:0:0'})
+
+    def test_invalid_cf_metadata_stops_both_entry_modes_before_assets_browser_or_private_reads(self):
+        modes = [['--synthetic-only', '--output', '/not-created'],
+                 ['--verify-synthetic-artifacts', '/not-read']]
+        for case, mode in enumerate(modes):
+            with self.subTest(case=case):
+                output = io.StringIO()
+                with patch.object(S.os, 'environ', {self.CF_KEY: 'private-cf-value-sentinel'}), \
+                        patch.object(S.platform, 'system', return_value='Darwin'), \
+                        patch.object(S.os, 'getuid', return_value=501), \
+                        patch.object(S.os, 'geteuid', return_value=501), \
+                        patch.object(S, 'load_candidate_assets') as assets, \
+                        patch.object(S, 'verify_synthetic_artifacts') as artifacts, \
+                        patch.object(S, 'synthetic_visual_checks') as capture, \
+                        patch.object(S, 'apple_driver') as browser, \
+                        patch.object(S, 'read_authenticated_view') as private, \
+                        redirect_stdout(output), redirect_stderr(output):
+                    code = S.main(['--public-root', '/not-read', '--candidate-ui', *mode])
+                self.assertEqual(code, 2)
+                self.assert_private_hold(json.loads(output.getvalue()))
+                for operation in (assets, artifacts, capture, browser, private):
+                    operation.assert_not_called()
+
+    def test_second_guard_revalidates_cf_and_unknown_names_before_output_or_browser_work(self):
+        for case in ('changed-cf', 'new-credential'):
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as name:
+                environment = {self.CF_KEY: '0x1F5:0:0'}
+                events, output = [], io.StringIO()
+                destination = Path(name) / 'must-not-exist'
+                def assets(root):
+                    events.append('assets')
+                    if case == 'changed-cf':
+                        environment[self.CF_KEY] = 'private-changed-cf-sentinel'
+                    else:
+                        environment['UNLISTED_OWNER_CREDENTIAL'] = 'private-added-credential-sentinel'
+                    return {}
+                with patch.object(S.os, 'environ', environment), \
+                        patch.object(S.platform, 'system', return_value='Darwin'), \
+                        patch.object(S.os, 'getuid', return_value=501), \
+                        patch.object(S.os, 'geteuid', return_value=501), \
+                        patch.object(S, 'load_candidate_assets', side_effect=assets), \
+                        patch.object(S, 'synthetic_fixture', side_effect=AssertionError('second guard must precede fixture')), \
+                        patch.object(S, 'LoopbackSite') as site, patch.object(S, 'apple_driver') as browser, \
+                        redirect_stdout(output), redirect_stderr(output):
+                    code = S.main(['--public-root', '/not-read', '--candidate-ui',
+                                   '--synthetic-only', '--output', str(destination)])
+                self.assertEqual(code, 2)
+                self.assertEqual(events, ['assets'], 'entry must validate the original bound CF metadata')
+                report = json.loads(output.getvalue())
+                self.assert_private_hold(report)
+                self.assertEqual([frame['function'] for frame in report['checker_callers']],
+                                 ['main', 'synthetic_visual_checks', 'require_synthetic_environment'])
+                self.assertFalse(destination.exists())
+                site.assert_not_called()
+                browser.assert_not_called()
+                if case == 'changed-cf':
+                    self.assertEqual(environment[self.CF_KEY], 'private-changed-cf-sentinel')
+                else:
+                    self.assertEqual(environment['UNLISTED_OWNER_CREDENTIAL'], 'private-added-credential-sentinel')
+
+
 if __name__ == '__main__':
     unittest.main()

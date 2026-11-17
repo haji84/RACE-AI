@@ -1,0 +1,20 @@
+{
+  "schema": "RACE_AI_DARWIN_CF_TESTS_FIRST_V1",
+  "base_main": "0454aabb234e70714ebe4c7df691d59162488b2c",
+  "runtime_unchanged": "930fc0f829289f14a5e65e3a10513a8ce90e44a3",
+  "test_blob": "b011c802f85f973210d5c8b48ca63f68aa7cce3e",
+  "original_tests": 100,
+  "new_tests": 11,
+  "total_tests": 111,
+  "tests_executed": false,
+  "expected_subtest_failures": 21,
+  "expected_errors": 0,
+  "actual_mac_value_unobserved": true,
+  "actual_hold_run": 44174351132,
+  "actual_hold_job": 134361589571,
+  "exception_scope": "Darwin only; canonical Apple producer forms; UID strict uint32 == real == effective; every other unexpected key HOLD; no environment mutation",
+  "official_source_packet": "eb0b834fc40fd1cd2f64c84b8eb5991b2e367678",
+  "new_jobs": 0,
+  "new_permissions": 0,
+  "goal_complete": false
+}

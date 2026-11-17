@@ -260,10 +260,34 @@ def driver_environment(environment):
             if key in environment}
 
 
+def valid_native_cf_user_text_encoding(value):
+    """A bounded Apple producer form with unambiguous current-user binding."""
+    # CFStringEncodings.c emits 0x%X:0:0, or 0x%X plus saved 0x%X:0x%X.
+    # Its base-0 parser accepts more spellings; this guard accepts only these.
+    if type(value) is not str or not 1 <= len(value) <= 32 or not value.isascii():
+        return False
+    atom = r'0x(?:0|[1-9A-F][0-9A-F]{0,7})'
+    if re.fullmatch(atom + r':(?:0:0|' + atom + ':' + atom + ')', value) is None:
+        return False
+    try:
+        system = platform.system()
+        if type(system) is not str or system != 'Darwin':
+            return False
+        uid, euid = os.getuid(), os.geteuid()
+    except (AttributeError, OSError):
+        return False
+    return (type(uid) is int and type(euid) is int
+        and 0 <= uid <= 0xffffffff and 0 <= euid <= 0xffffffff
+        and int(value.partition(':')[0], 16) == uid == euid)
+
+
 def require_synthetic_environment():
     # The candidate checker and Safari driver receive only original OS values.
     # Unknown owner/viewer credential variable names fail closed as well.
     unexpected = set(os.environ) - SYNTHETIC_ENVIRONMENT_KEYS
+    if '__CF_USER_TEXT_ENCODING' in unexpected and valid_native_cf_user_text_encoding(
+            os.environ.get('__CF_USER_TEXT_ENCODING')):
+        unexpected.remove('__CF_USER_TEXT_ENCODING')
     if unexpected:
         # Count names in memory; export only fixed OS-key presence, never values
         # or names from the unexpected set. Every unexpected key still refuses.
