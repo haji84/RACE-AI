@@ -164,3 +164,65 @@ def score_after_independent_archive_readback(*, frozen_original, line_study,
         verify_original=verify_original, verify_round=verify_round,
         verify_line=verify_line, verify_video_labels=verify_video_labels,
         verify_result=verify_result)
+
+
+def prepare_from_signed_tactical_packets(*, context, original, plans, priors,
+                                        athlete_ids_by_car, signed_tactical_packets,
+                                        line_config, computed_at,
+                                        verify_pr71_original=None,
+                                        verify_rider_identity=None,
+                                        verify_owner_source_video=None,
+                                        verify_roster_id_mapping=None,
+                                        verify_independent_signed_reviewers=None):
+    """Research-only end-to-end path: signed real video -> C history -> B/C.
+
+    No unsigned or inferred data can be silently promoted. Each trusted
+    verifier is a private owner-controlled implementation, never an
+    application-supplied "independent=True" flag or AI-created test key.
+    """
+    from . import keirin_observed_follow_admission as intake
+    rid=context.get("race_id") if type(context) is dict else None
+    if type(signed_tactical_packets) is not list:
+        return _hold(rid,"SIGNED_TACTICAL_PACKET_BATCH_REQUIRED")
+    if not signed_tactical_packets:
+        return prepare(
+            context=context,original=original,plans=plans,priors=priors,
+            athlete_ids_by_car=athlete_ids_by_car,
+            real_reviewed_line_history=[],line_config=line_config,
+            computed_at=computed_at,
+            verify_pr71_original=verify_pr71_original,
+            verify_rider_identity=verify_rider_identity)
+    approved=[]
+    try:
+        for packet in signed_tactical_packets:
+            item=intake.admit_for_C(
+                packet=packet,
+                verify_owner_source_video=verify_owner_source_video,
+                verify_roster_id_mapping=verify_roster_id_mapping,
+                verify_independent_signed_reviewers=verify_independent_signed_reviewers)
+            approved.append(item["private_historical_label"])
+    except (intake.FollowAdmissionError, KeyError, ValueError, TypeError):
+        return _hold(rid,"HOLD_HISTORICAL_VIDEO_OR_SIGNED_REVIEW_NOT_VERIFIED")
+    by_sha={row["label_sha256"]:row for row in approved}
+    if len(by_sha)!=len(approved):
+        return _hold(rid,"DUPLICATED_SIGNED_TACTICAL_HISTORY_LABEL")
+    def trusted_admitted_label(row):
+        try:
+            # Matching the exact admitted SHA prevents a different row from
+            # inheriting a previously verified receipt.
+            line.validate_label(row)
+            return (by_sha.get(row["label_sha256"])==row)
+        except (line.LineHistoryError,KeyError,TypeError):
+            return False
+    result=prepare(
+        context=context,original=original,plans=plans,priors=priors,
+        athlete_ids_by_car=athlete_ids_by_car,
+        real_reviewed_line_history=approved,line_config=line_config,
+        computed_at=computed_at,
+        verify_pr71_original=verify_pr71_original,
+        verify_rider_identity=verify_rider_identity,
+        verify_historical_video_label=trusted_admitted_label)
+    result["signed_historical_packets_admitted"]=len(approved)
+    result["historical_video_sha_verification_delegated_to_private_runner"]=True
+    result["independent_human_label_claim_without_external_review"]=False
+    return result
