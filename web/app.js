@@ -4,7 +4,7 @@
   const $ = id => document.getElementById(id);
   const U = globalThis.RaceUI, M = globalThis.RaceProductData, A = globalThis.RaceAuditModel, C = globalThis.RaceExistingModelCatalog, P = globalThis.RaceSavedPerformance;
   const sports = {boat: "ボートレース", keirin: "競輪", autorace: "オートレース", horse: "競馬"};
-  const icons = {boat: "◒", keirin: "♧", autorace: "♧", horse: "♞"};
+  const sportIconIds = {boat: "sport-pictogram-boat", keirin: "sport-pictogram-keirin", autorace: "sport-pictogram-autorace", horse: "sport-pictogram-horse"};
   const pageNames = {
     home: ["YOUR RACE DASHBOARD", "今日のレースを、確かなデータで。", "保存済みの予想・結果と、あなたの買い目候補をひとつに。"],
     races: ["RACES & RESULTS", "レース", "締切前の予想と、会場別のレース結果を確認。"],
@@ -58,6 +58,19 @@
   };
   const time = value => value && Number.isFinite(Date.parse(value)) ? new Intl.DateTimeFormat("ja-JP", {timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit", hour12: false}).format(new Date(value)) : "未取得";
   const node = (tag, cls, content) => { const n = document.createElement(tag); if (cls) n.className = cls; if (content !== undefined) n.textContent = String(content); return n; };
+  const sportIcon = sport => {
+    const namespace = "http://www.w3.org/2000/svg", svg = document.createElementNS(namespace, "svg");
+    svg.setAttribute("class", "sport-pictogram");
+    svg.setAttribute("viewBox", "0 0 32 24");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    if (Object.hasOwn(sportIconIds, sport)) {
+      const use = document.createElementNS(namespace, "use");
+      use.setAttribute("href", "#" + sportIconIds[sport]);
+      svg.append(use);
+    }
+    return svg;
+  };
   const button = (content, cls, handler) => { const n = node("button", cls, content); n.type = "button"; n.addEventListener("click", handler); return n; };
   const append = (parent, ...children) => { parent.append(...children); return parent; };
   const empty = (title, description, importAction = false) => {
@@ -760,7 +773,7 @@
     const p = prediction(r), card = node("article", "race-card" + (featured ? " featured" : ""));
     card.dataset.raceId = r.race_id; card.dataset.racePhase = U.racePhase(r); card.dataset.cutoffAt = U.raceDeadline(r) || "";
     const head = node("div", "race-card-head"), title = node("div"), meta = node("div", "race-time");
-    title.append(node("span", "sport-tag", icons[r.sport] + " " + sports[r.sport]), node("h3", "", raceName(r)));
+    title.append(append(node("span", "sport-tag"), sportIcon(r.sport), document.createTextNode(sports[r.sport])), node("h3", "", raceName(r)));
     meta.append(node("span", "", r.event_date_jst || "日付 未取得"), node("strong", "", "締切 " + time(U.raceDeadline(r))));
     head.append(title, meta); card.append(head);
     const tags = node("div", "race-tags"); tags.append(node("span", "tag scope-" + r.scope, scopeName(r.scope)), node("span", "tag", forecastStatus(r, p)), node("span", "tag", stageName(p))); card.append(tags);

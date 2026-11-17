@@ -1,0 +1,72 @@
+{
+  "schema": "RACE_AI_FOUR_SPORT_PICTOGRAM_CANDIDATE_REVIEW_20261117_V1",
+  "source_packet": "cd67cec841cb5d1ad3fb0582e6362616e1bb765c",
+  "base_candidate": "598c80c89b5d6a1bca8dbbb16d091ef9e74bfb76",
+  "plan": "Replace only sport identity artwork with four original inline SVG silhouettes: a racing powerboat, pedal bicycle with rider, motorbike with rider and solid body, and running horse with rider. Shared in-document symbols serve the existing navigation spans and race-card labels; currentColor preserves the existing brand and active colors. Existing text labels, aria-hidden decoration, responsive span rules and all handlers stay in place. Only web/index.html, web/app.js and web/style.css change; no external resources, dependencies, product data or navigation behavior change. These new bytes require fresh candidate verification and are not covered by the previous 598c80c8 Safari proof.",
+  "files": [
+    {
+      "path": "web/index.html",
+      "base_blob": "e442b41e480465af6e745424c4d5afab3c0e87e3",
+      "blob_sha": "95665df7857762450924629798866ea41005a1eb",
+      "sha256": "fb942083b431d20a5e53407dabd460ffe291cc8cb776c448c5950ee0bd370741",
+      "diff": {
+        "added_lines": 21,
+        "removed_lines": 4
+      }
+    },
+    {
+      "path": "web/app.js",
+      "base_blob": "bbfb203d664201d9477e6f2540629061a57efff0",
+      "blob_sha": "519001a2a0fe50e032366dfc4a11f18c999bba46",
+      "sha256": "926187708d1b8d35bbfa21ba7361c86fc51578039cbc1b29f17415f34d132778",
+      "diff": {
+        "added_lines": 15,
+        "removed_lines": 2
+      }
+    },
+    {
+      "path": "web/style.css",
+      "base_blob": "3c8dae25a273f43346c75b66ecb53b25e91cedc3",
+      "blob_sha": "39eee40816dc0d65a6f25d9a3ac1b6949a9a50d4",
+      "sha256": "8d6c35ec822aab974bad0564692780c26f8cd28859cefea5d143e4aa2e463e3f",
+      "diff": {
+        "added_lines": 6,
+        "removed_lines": 0
+      }
+    }
+  ],
+  "review": {
+    "root": "CLEAR: only fixed internal SVG symbol IDs, Object.hasOwn mapping, createElementNS and safe text labels; no raw HTML from race data; decorative aria-hidden/focusable=false; currentColor and wrapper sizing preserved",
+    "app_syntax": "V8_PARSE_OK",
+    "all_exact_anchors_and_result_bodies_verified": true,
+    "unrelated_product_data_unchanged": {
+      "path": "web/product-data.js",
+      "blob_sha": "ebd6e8fbf3b21ba13cc6fbde036e5ea63195c9fb"
+    }
+  },
+  "unchanged": {
+    "forecast_sources_and_models": true,
+    "handlers_and_navigation": true,
+    "real_pictures_and_licensing_authority": true,
+    "external_resources_or_dependencies_added": false,
+    "production_source_or_weights_changed": false
+  },
+  "old_candidate_proof": {
+    "candidate": "598c80c89b5d6a1bca8dbbb16d091ef9e74bfb76",
+    "run_id": 44191905231,
+    "status": "PASS_OLD_BYTES_ONLY",
+    "screenshots": 28
+  },
+  "new_candidate_proof": {
+    "existing_CI": "PENDING",
+    "Node_runtime": "NOT_RUN_HERE",
+    "native_browser_rendering": "PENDING",
+    "all_eight_visual_acceptance": false,
+    "physical_iPhone": false
+  },
+  "execution_environment": "UNAVAILABLE; GitHub-only static review and CI continue",
+  "existing_pr": 62,
+  "keep_draft": true,
+  "merge_or_deploy_authorized_by_this_change": false,
+  "fees_or_new_model_family": false
+}
