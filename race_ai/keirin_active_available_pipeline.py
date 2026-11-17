@@ -94,29 +94,35 @@ def prepare(*, saved_generated_race, context, official_line_receipt,
             type(c_generated_at) is str):
         output["C_hold"]="HISTORICAL_IDENTITY_LABEL_OR_COMPUTE_WITNESS_MISSING"
         return output
-    study=line.forecast_with_pair_evidence(
-        context=context,snapshot=snap,plans=tactical_plans,priors=stage_priors,
-        history=historical_line_labels,
-        athlete_ids_by_car=rider_ids_by_car,
-        config=line_config,
-        independently_verify_label=verify_historical_follow,
-        independently_verify_identity=verify_rider_id_mapping,
-        independently_verify_original=lambda x:x is snap,
-        computed_at=line_computed_at)
-    if study.get("state")!="RESEARCH_STAGE_PLUS_LINE":
-        output["C_hold"]="INSUFFICIENT_REVIEWED_PAIR_CONDITIONING"
+    try:
+        study=line.forecast_with_pair_evidence(
+            context=context,snapshot=snap,plans=tactical_plans,priors=stage_priors,
+            history=historical_line_labels,
+            athlete_ids_by_car=rider_ids_by_car,
+            config=line_config,
+            independently_verify_label=verify_historical_follow,
+            independently_verify_identity=verify_rider_id_mapping,
+            independently_verify_original=lambda x:x is snap,
+            computed_at=line_computed_at)
+        if study.get("state")!="RESEARCH_STAGE_PLUS_LINE":
+            output["C_hold"]="INSUFFICIENT_REVIEWED_PAIR_CONDITIONING"
+            return output
+        adjusted=study["stage_plus_line"]
+        c=audit.make_arm(
+            race_id=rid,arm="SIX_PHASE_PLUS_LINE",
+            source_document_sha256=six.digest(adjusted),
+            common_input_sha256=snap["input_sha256"],
+            generated_at=c_generated_at,
+            official_cutoff_at=context["official_cutoff_at"],
+            observed_as_of=context["as_of"],
+            ranked_tickets=[x["cars"] for x in adjusted["ranked_top12"]],
+            phase_hypotheses=_phase_text(adjusted),
+            historical_follow_history_sha256=study["conditioning"]["private_history_sha256"])
+    except (line.LineHistoryError,six.TacticalRoundError,
+            audit.ActiveForecastError,KeyError,ValueError,TypeError):
+        output["C_hold"]="REAL_LINE_HISTORY_UNADMITTED_OR_C_CUTOFF_INVALID"
         return output
-    adjusted=study["stage_plus_line"]
-    output["C_six_phase_plus_line"]=audit.make_arm(
-        race_id=rid,arm="SIX_PHASE_PLUS_LINE",
-        source_document_sha256=six.digest(adjusted),
-        common_input_sha256=snap["input_sha256"],
-        generated_at=c_generated_at,
-        official_cutoff_at=context["official_cutoff_at"],
-        observed_as_of=context["as_of"],
-        ranked_tickets=[x["cars"] for x in adjusted["ranked_top12"]],
-        phase_hypotheses=_phase_text(adjusted),
-        historical_follow_history_sha256=study["conditioning"]["private_history_sha256"])
+    output["C_six_phase_plus_line"]=c
     output["state"]="A_B_C_RESEARCH_READY_FOR_PRIVATE_FREEZE"
     output["C_hold"]=None
     output["C_history_sha256"]=study["conditioning"]["private_history_sha256"]
