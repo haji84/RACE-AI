@@ -83,6 +83,25 @@ class Manual71OwnerActionsIntakeTest(unittest.TestCase):
             expected_originals=self.hashes,
         )
 
+    def test_registered_real_ciphertext_has_exact_sha_and_no_plaintext(self):
+        # Reads only ciphertext metadata; never decrypts owner predictions.
+        import base64
+        f = ROOT / owner.CIPHER_RELATIVE
+        self.assertTrue(f.is_file() and not f.is_symlink())
+        data = f.read_bytes()
+        self.assertEqual(len(data),185773)
+        self.assertEqual(sha256(data).hexdigest(),owner.CIPHER_FILE_SHA256)
+        env=json.loads(data)
+        self.assertEqual(env["schema"],"RACE_AI_PRIVATE_KEIRIN_ENCRYPTED_JSON_V1")
+        self.assertEqual(env["context"],pack.AAD)
+        self.assertIs(env["plaintext_embedded"],False)
+        self.assertIs(env["source_is_private"],True)
+        self.assertEqual(env["ciphertext_sha256"],owner.CIPHER_PAYLOAD_SHA256)
+        ciphertext=base64.b64decode(env["ciphertext_b64"],validate=True)
+        self.assertEqual(sha256(ciphertext).hexdigest(),owner.CIPHER_PAYLOAD_SHA256)
+        self.assertEqual(len(base64.b64decode(env["nonce_b64"],validate=True)),12)
+        self.assertEqual(len(base64.b64decode(env["wrapped_key_b64"],validate=True)),384)
+
     def test_real_race_claims_require_trusted_main_run(self):
         env=dict(self.env,GITHUB_REF="refs/heads/research/test")
         result=owner.restore_existing_owner_bundle(
