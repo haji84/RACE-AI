@@ -54,7 +54,7 @@ DRIVER_OPERATIONS = frozenset(('start_driver', 'wait_for_driver', 'new_session',
     'navigate', 'execute_script', 'get_window_rect', 'set_window_rect', 'element_click',
     'element_send_keys', 'actions', 'screenshot', 'unknown_command'))
 W3C_ERRORS = frozenset(('session not created', 'invalid session id', 'unknown error', 'unknown command',
-    'unknown method', 'invalid argument', 'unsupported operation', 'timeout', 'script timeout',
+    'unknown method', 'invalid argument', 'invalid element state', 'unsupported operation', 'timeout', 'script timeout',
     'no such window', 'no such element', 'stale element reference', 'element click intercepted',
     'element not interactable', 'javascript error', 'unexpected alert open', 'invalid selector',
     'move target out of bounds', 'unable to capture screen', 'insecure certificate'))
@@ -97,6 +97,17 @@ class AppHold(SafariHold):
 
 PUBLIC_UI_MODULES = frozenset(('app.js', 'product-data.js', 'ui-model.js',
     'saved-performance.js', 'forecast-audit-model.js', 'saved-view-crypto.js'))
+UI_STAGES = frozenset(('latest_p1_private_transport', 'encrypted_seed_refusal', 'encrypted_seed_valid'))
+UI_ACTIONS = frozenset(('load_saved_view', 'set_viewport', 'select_saved_day', 'open_native_race',
+    'select_native_history', 'open_comparison_race', 'open_outlook', 'select_comparison_history',
+    'select_comparison_model', 'open_research', 'return_from_research', 'open_results',
+    'set_simulation_budget', 'select_simulation_mode', 'load_missing_key', 'load_wrong_key',
+    'load_wrong_view', 'load_modified_cipher', 'load_valid_seed', 'open_seed_probe', 'select_seed_history'))
+CHECKER_FUNCTIONS = frozenset(('main', 'read_authenticated_view', 'app_checks', 'budget', 'select',
+    'click', '_click_visible_element', 'element', 'wait', 'command', 'open_race', 'select_day', 'click_page',
+    'open_saved_race', 'select_saved_day', 'click_saved_page', 'encrypted_seed_checks', 'synthetic_visual_checks',
+    'apple_driver', 'new_session', 'call', 'native_identity', 'verify_model_choice', 'verify_private_boundary',
+    'load_public_assets', 'verify_live_assets'))
 
 
 def need(value, reason):
@@ -124,6 +135,13 @@ def failure_report(error):
             webdriver_error_code=error.w3c_error if type(error.w3c_error) is str and
                 error.w3c_error in W3C_ERRORS else None,
             remote_automation_disabled_message_observed=error.remote_automation_disabled is True)
+        context = error.ui_context if type(getattr(error, 'ui_context', None)) is dict else {}
+        stage, action, width, click_path = (context.get(k) for k in ('stage', 'action', 'width', 'click_path'))
+        report.update(ui_stage=stage if type(stage) is str and stage in UI_STAGES else None,
+            ui_action=action if type(action) is str and action in UI_ACTIONS else None,
+            ui_verified_width=width if type(width) is int and width in VISUAL_WIDTHS else None,
+            ui_click_path=click_path if type(click_path) is str and click_path in ('visible_element', 'native_option') else None,
+            ui_hit_target_verified=context.get('hit_target_verified') is True)
     if isinstance(error, AppHold):
         probe = error.probe if type(error.probe) is dict else {}
         def bounded(name, maximum):
@@ -150,13 +168,20 @@ def failure_report(error):
                       budget_field_valid=probe.get('valid') is True)
     # A public checker line identifies the failing boundary without exporting
     # driver messages, DOM text, source records, owner URLs or credentials.
+    callers = []
     for frame in traceback.extract_tb(error.__traceback__):
-        if Path(frame.filename).resolve()==Path(__file__).resolve() and frame.name in {
-            'main','read_authenticated_view','app_checks','budget','click','_click_visible_element',
-            'open_race','select_day','click_page','apple_driver','new_session','call','native_identity',
-            'verify_model_choice','verify_private_boundary','load_public_assets','verify_live_assets'}:
+        if Path(frame.filename).resolve() == Path(__file__).resolve() and frame.name in CHECKER_FUNCTIONS \
+                and type(frame.lineno) is int and 1 <= frame.lineno <= 99999:
             report.update(checker_function=frame.name,checker_line=frame.lineno)
+            callers.append({'function': frame.name, 'line': frame.lineno})
+    if callers:
+        report['checker_callers'] = callers[-12:]
     return report
+
+
+def ui_diagnostic(driver, stage, action, width=None):
+    """Fixed labels and an already verified public width; no UI values."""
+    driver.ui_context = {'stage': stage, 'action': action, 'width': width}
 
 
 def driver_environment(environment):
@@ -709,7 +734,7 @@ def driver_error(operation, http_status=None, value=None):
                       remote_automation_disabled=disabled)
 
 
-def driver_value(raw, limit):
+def driver_document(raw, limit):
     if type(raw) is not bytes or len(raw) > limit:
         raise ValueError('driver response bound')
     def unique(pairs):
@@ -726,11 +751,29 @@ def driver_value(raw, limit):
         if not math.isfinite(value):
             raise ValueError('driver response nonfinite number')
         return value
-    document = json.loads(raw.decode('utf-8'), object_pairs_hook=unique,
-                          parse_constant=invalid_constant, parse_float=finite_float)
+    return json.loads(raw.decode('utf-8'), object_pairs_hook=unique,
+                      parse_constant=invalid_constant, parse_float=finite_float)
+
+
+def driver_value(raw, limit):
+    document = driver_document(raw, limit)
     if type(document) is not dict or set(document) != {'value'}:
         raise ValueError('driver response schema')
     return document['value']
+
+
+def driver_error_response(operation, status, raw):
+    """HTTP errors stay fatal; retain only the known W3C enum/public hint.
+
+    Extra error-envelope metadata never enters reports. The success-response
+    schema remains the strict driver_value contract, without this projection.
+    """
+    try:
+        document = driver_document(raw, DRIVER_ERROR_LIMIT)
+    except (ValueError, TypeError, RecursionError):
+        return driver_error(operation, status)
+    value = document.get('value') if type(document) is dict else None
+    return driver_error(operation, status, value)
 
 
 class WebDriver:
@@ -740,11 +783,16 @@ class WebDriver:
         self.base = 'http://127.0.0.1:' + str(port)
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
         self.session = None
+        self.ui_context = {}
+
+    def _diagnostic_error(self, error):
+        error.ui_context = dict(self.ui_context) if type(self.ui_context) is dict else {}
+        return error
 
     def call(self, method, path, body=None):
         operation = driver_operation(method, path)
         if not isinstance(path, str) or not path.startswith('/') or '?' in path:
-            raise DriverHold(operation=operation)
+            raise self._diagnostic_error(DriverHold(operation=operation))
         status = None
         try:
             request = urllib.request.Request(self.base + path,
@@ -754,22 +802,22 @@ class WebDriver:
                 status = response.status
                 raw = response.read(DRIVER_RESPONSE_LIMIT + 1)
         except urllib.error.HTTPError as error:
-            status, value = error.code, None
+            status, failure = error.code, driver_error(operation, error.code)
             try:
-                value = driver_value(error.read(DRIVER_ERROR_LIMIT + 1), DRIVER_ERROR_LIMIT)
+                failure = driver_error_response(operation, status, error.read(DRIVER_ERROR_LIMIT + 1))
             except (OSError, ValueError, TypeError, HTTPException):
                 pass
             finally:
                 error.close()
-            raise driver_error(operation, status, value) from None
+            raise self._diagnostic_error(failure) from None
         except (OSError, ValueError, TypeError, HTTPException):
-            raise DriverHold(operation=operation, http_status=status) from None
+            raise self._diagnostic_error(DriverHold(operation=operation, http_status=status)) from None
         try:
             result = driver_value(raw, DRIVER_RESPONSE_LIMIT)
         except (ValueError, TypeError):
-            raise DriverHold(operation=operation, http_status=status) from None
+            raise self._diagnostic_error(DriverHold(operation=operation, http_status=status)) from None
         if status != 200 or isinstance(result, dict) and 'error' in result:
-            raise driver_error(operation, status, result) from None
+            raise self._diagnostic_error(driver_error(operation, status, result)) from None
         return result
 
     def new_session(self):
@@ -818,24 +866,35 @@ class WebDriver:
         return ident
 
     def click(self, selector, visible=True):
-        element = self.element(selector, visible)
-        if visible:
-            self._click_visible_element(element)
-        else:
-            # Native option selection has no rendered option rectangle while
-            # its select is closed; preserve WebDriver's option-click behavior.
-            self.command('POST', '/element/' + element + '/click', {})
+        context = self.ui_context
+        self.ui_context = dict(context, click_path='visible_element' if visible else 'native_option',
+                               hit_target_verified=False)
+        try:
+            element = self.element(selector, visible)
+            if visible:
+                self._click_visible_element(element)
+            else:
+                # Preserve the existing native option-click behavior.
+                self.command('POST', '/element/' + element + '/click', {})
+        finally:
+            self.ui_context = context
 
     def _click_visible_element(self, element):
-        reference = {'element-6066-11e4-a52e-4f735466cecf': element}
-        self.script('arguments[0].scrollIntoView({block:"center",inline:"center",behavior:"instant"});', reference)
-        self.wait('''const e=arguments[0],r=e.getBoundingClientRect();
+        context = self.ui_context
+        self.ui_context = dict(context, click_path='visible_element', hit_target_verified=False)
+        try:
+            reference = {'element-6066-11e4-a52e-4f735466cecf': element}
+            self.script('arguments[0].scrollIntoView({block:"center",inline:"center",behavior:"instant"});', reference)
+            self.wait('''const e=arguments[0],r=e.getBoundingClientRect();
             const left=Math.max(0,r.left),right=Math.min(innerWidth,r.right),
                   top=Math.max(0,r.top),bottom=Math.min(innerHeight,r.bottom);
             if(left>=right||top>=bottom)return false;
             const hit=document.elementFromPoint((left+right)/2,(top+bottom)/2);
             return hit===e||e.contains(hit);''', reference)
-        self.command('POST', '/element/' + element + '/click', {})
+            self.ui_context['hit_target_verified'] = True
+            self.command('POST', '/element/' + element + '/click', {})
+        finally:
+            self.ui_context = context
 
     def select(self, selector, value):
         self.click(selector + ' option[value=' + json.dumps(str(value)) + ']', visible=False)
@@ -1022,6 +1081,9 @@ def encrypted_seed_checks(assets, seed, private, secrets):
         case_secrets = (*secrets, wrong_key)
         with LoopbackSite(assets, None, encrypted_seed=seed, tamper_seed=tamper, secrets=case_secrets) as site:
             with apple_driver() as (driver, _):
+                ui_diagnostic(driver, 'encrypted_seed_refusal', {
+                    'missing-key': 'load_missing_key', 'wrong-key': 'load_wrong_key',
+                    'wrong-view': 'load_wrong_view', 'modified-cipher': 'load_modified_cipher'}[kind])
                 driver.command('POST', '/url', {'url': site.url + candidate})
                 driver.wait('''return /いつもの閲覧用リンク|レース情報を読み込めませんでした/.test(
                     document.querySelector('#file-message')?.textContent||'');''', timeout=90)
@@ -1036,13 +1098,18 @@ def encrypted_seed_checks(assets, seed, private, secrets):
         refusals.append(kind)
     with LoopbackSite(assets, None, encrypted_seed=seed, secrets=secrets) as site:
         with apple_driver() as (driver, _):
+            ui_diagnostic(driver, 'encrypted_seed_valid', 'load_valid_seed')
             driver.command('POST', '/url', {'url': site.url + fragment})
             driver.wait('return document.querySelector("#file-message")?.textContent.includes("保存済み予想")', timeout=90)
             context = private['context']
+            ui_diagnostic(driver, 'encrypted_seed_valid', 'select_saved_day')
             select_saved_day(driver, context['day'])
+            ui_diagnostic(driver, 'encrypted_seed_valid', 'open_seed_probe')
             open_saved_race(driver, context['probe'])
+            ui_diagnostic(driver, 'encrypted_seed_valid', 'open_outlook')
             driver.click('[data-detail-tab="outlook"]')
             for choice in context['probe']['choices']:
+                ui_diagnostic(driver, 'encrypted_seed_valid', 'select_seed_history')
                 driver.select('#prediction-select', choice['index'])
                 verify_model_choice(choice, seed_detail(driver))
             snapshot = browser_snapshot(driver)
@@ -1193,6 +1260,7 @@ def verify_synthetic_artifacts(folder, *, candidate_ui=False):
 
 
 def app_checks(driver, site, context, secrets):
+    ui_diagnostic(driver, 'latest_p1_private_transport', 'load_saved_view')
     driver.command('POST', '/url', {'url': site.url})
     driver.wait('return document.querySelector("#file-message")?.textContent.includes("保存済み予想")', timeout=90)
     viewport_results, comparisons, native_views, result_views = [], 0, 0, 0
@@ -1208,22 +1276,30 @@ def app_checks(driver, site, context, secrets):
         open_saved_race(driver, item)
 
     for width in (1440, 390):
+        ui_diagnostic(driver, 'latest_p1_private_transport', 'set_viewport')
         driver.command('POST', '/window/rect', {'width': width, 'height': 1000})
         actual = driver.script('return {width:innerWidth,height:innerHeight}')
         viewport_results.append(require_viewport(width, actual))
+        ui_diagnostic(driver, 'latest_p1_private_transport', 'select_saved_day', width)
         select_day()
         native = context['native_probe']
+        ui_diagnostic(driver, 'latest_p1_private_transport', 'open_native_race', width)
         open_race(native)
+        ui_diagnostic(driver, 'latest_p1_private_transport', 'select_native_history', width)
         driver.select('#prediction-select', native['index'])
         need(driver.script('''return document.querySelector('#prediction-select').selectedOptions[0].textContent.startsWith('P1 ')
             && document.querySelector('#detail-tab-content .forecast-panel')?.dataset.nativeDispatch==='true';'''),
              'APP_UI_CHECK_FAILED')
         native_views += 1
+        ui_diagnostic(driver, 'latest_p1_private_transport', 'open_comparison_race', width)
         open_race(probe)
+        ui_diagnostic(driver, 'latest_p1_private_transport', 'open_outlook', width)
         driver.click('[data-detail-tab="outlook"]')
         for choice in probe['choices']:
+            ui_diagnostic(driver, 'latest_p1_private_transport', 'select_comparison_history', width)
             driver.select('#prediction-select', choice['index'])
         for choice in probe['choices']:
+            ui_diagnostic(driver, 'latest_p1_private_transport', 'select_comparison_model', width)
             driver.select('#detail-model-select', choice['model_id'])
             detail = driver.script('''const panel=document.querySelector('#detail-tab-content .forecast-panel');
                 return {model_id:panel?.dataset.modelId,index:document.querySelector('#prediction-select')?.value,
@@ -1231,12 +1307,15 @@ def app_checks(driver, site, context, secrets):
                 Array.from(n.querySelectorAll('.lane'),e=>Number(e.textContent)))};''')
             verify_model_choice(choice, detail)
             comparisons += 1
+        ui_diagnostic(driver, 'latest_p1_private_transport', 'open_research', width)
         click_page('research')
         need(driver.script('return document.querySelector("#research-model-select")?.value===arguments[0]',
                            probe['choices'][1]['model_id']), 'APP_UI_CHECK_FAILED')
+        ui_diagnostic(driver, 'latest_p1_private_transport', 'return_from_research', width)
         driver.click('#research-race-audit [data-return-to-race]')
         need(driver.script('return document.querySelector("#detail-model-select")?.value===arguments[0]',
                            probe['choices'][1]['model_id']), 'APP_UI_CHECK_FAILED')
+        ui_diagnostic(driver, 'latest_p1_private_transport', 'open_results', width)
         click_page('results')
         values = driver.script('return Array.from(document.querySelectorAll("#results-model option"),e=>e.value)')
         groups = set()
@@ -1253,7 +1332,9 @@ def app_checks(driver, site, context, secrets):
         need(count and int(count[1]) >= context['minimum_results'] and
              all(label in metrics for label in ('的中', '不的中', '結果待ち')), 'APP_UI_CHECK_FAILED')
         for budget in (10000, 5000):
+            ui_diagnostic(driver, 'latest_p1_private_transport', 'set_simulation_budget', width)
             driver.budget(budget)
+            ui_diagnostic(driver, 'latest_p1_private_transport', 'select_simulation_mode', width)
             driver.select('#simulation-race-budget', '1000')
             simulation = driver.script('return document.querySelector("#simulation-metrics")?.textContent')
             need(isinstance(simulation, str) and all(label in simulation for label in

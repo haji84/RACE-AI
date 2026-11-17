@@ -1,3 +1,33 @@
+## 2026-11-17 15:28 UTC: 実Safari失敗を保全し診断を改善、当日比較pairの独立監査へ（GOAL未達）
+
+実main10a83499cdf3c200b15684f53044eebc1c320183/source f55351dce855177a51330f72c37d6238ba2c9e3e。
+PR58は最終2309298fの24 checks後に通常mergeし、reviewed treeと一致。main push44105507295のHTTP確認はsuccess。
+続く実Mac run44105597091/job134116978337は、候補UI撮影の前にSAFARI_WEBDRIVER_FAILEDでfailure。
+element_click/HTTP400まで確認できたが、従来のreportは呼出し元を失い標準error種別も不足していた。
+artifactは0で、候補UIの実Safari受入成功とは扱わない。以前の44068042347の実private AES成功も保全する。
+
+**既存PR57の診断変更:** 固定の段階・操作・実幅・クリック経路・hit-test真偽とallowlist内の呼出し元を残す。
+失敗応答から許された標準errorだけを抽出し、本文・DOM・selector・値・URL・私有予想は出力しない。
+成功parser、native操作、retry回数、session削除・driver終了条件は保持。作者72件・独立72件、153 parser比較・
+10操作trace・9 loopback拒否probeが合格。結合treeの72件も合格。実クリック失敗の原因修正完了とはしない。
+
+**当日比較pair:** M2 owner44075021607/86b029aeは15:14:53 UTCにsuccessで終了し、正規認証で完全jobログを取得できた。
+producerの保存確認は第1巡の14 model-cell組、元予想14/学習版14、独立レースは1。14レースや精度改善とは数えない。
+後続9巡のgenerate報告はcontexts0/generated0である。24実巡や全日coverageとは認定しない。
+既存の独立AES監査にtraining原本・pair初回保存版・RESULT journal revisionの件数確認を追加する。
+関連138件・独立100件と5追加probeが合格。真正Actionsでのpair読戻しはまだ未実行。
+原公式資料/公式締切はUNKNOWN_HOLD、当日評価用の最小標本はUNREGISTERED_HOLDで、資格0/分母null・切替不可を維持する。
+producerの申告を独立AES照合済みと混同しない。pair照合失敗でも既存core原本証拠を保持し、件数をnull/HOLDとして報告する。
+
+PR57の旧head cca045bbc5db45cc1f799e6ce89fb0ddabdc44c9とmetadataを保全し、旧Blob実装treeは適用していない。
+同HEADの必須CI、通常main merge、当日pairの実AES監査、改善した診断付き実Mac確認へ進む。
+稼働終了後の公開control/真正callbackは別に確認する。sourceを直接再起動せず、時計やcounterを変更しない。
+[実失敗・producer件数・検証範囲](evidence/boat-native-click-current-pairs-20261117.json)。
+
+全4競技の全日/全適用モデル/T15〜10、物理iPhone/8参考画面、校正した6艇継続/強さ接続、前向き精度改善は未達。
+未push b7380fe6/daae4c10はUNRESTORED。元work/KEIRIN default-OFF/公開f60308ef/本番weights/投票禁止を保持する。
+新PR/新job/権限/input/runner/cron/課金設定は追加しない。以下は過去時点の記録として保持する。
+
 ## 2026-11-17 14:16 UTC: 修正原本の実鍵検証成功、二重起動HOLDを確認（GOAL未達）
 
 実main43704b2fbe5cf4e1d471737c6f47e639a611a12f/source f55351dce855177a51330f72c37d6238ba2c9e3e。
