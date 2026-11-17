@@ -231,7 +231,10 @@ def condition_stage_priors(*, context, snapshot, plans, priors, history,
     """
     stage.checked_context(context)
     at=_time(context["as_of"])
-    need(_time(computed_at)<=at,"LINE_FORECAST_COMPUTED_AFTER_CUTOFF")
+    made=_time(computed_at)
+    cutoff=_time(context["official_cutoff_at"])
+    need(at<=made and (cutoff-made).total_seconds()>=65,
+         "LINE_FORECAST_COMPUTED_OUTSIDE_PRE_CUTOFF_WINDOW")
     _check_config(config,at)
     need(callable(independently_verify_identity) and
          independently_verify_identity(athlete_ids_by_car) is True,
@@ -328,7 +331,9 @@ def condition_stage_priors(*, context, snapshot, plans, priors, history,
         "current_rider_id_mapping_sha256":digest(athlete_ids_by_car),
         "computed_at":computed_at,
     })
-    new_priors["observed_at"]=computed_at
+    # Input observations never move forward after the parent as_of.
+    # The actual prediction computation timestamp is a SEPARATE receipt.
+    new_priors["observed_at"]=context["as_of"]
     counts={
         "schema":REPORT_SCHEMA,
         "race_id":context["race_id"],"history_state":state,
@@ -344,6 +349,7 @@ def condition_stage_priors(*, context, snapshot, plans, priors, history,
         "private_history_sha256":digest(all_rows),
         "config_sha256":config["config_sha256"],
         "context_sha256":stage.digest(context),
+        "computed_at":computed_at,
         "prior_model_sha256":six.digest(priors),
         "adjusted_model_sha256":six.digest(new_priors),
         "per_scenario":detail,
