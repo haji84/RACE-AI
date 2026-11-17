@@ -209,9 +209,6 @@ def compare(*,cohort,original,stage_forecast,line_forecast=None,
         need(original["common_input_sha256"]==
              stage_forecast["common_input_sha256"],
              "A_B_DIFFERENT_INPUT_ORIGINALS")
-        need((when(original["generated_at"])>=when(cohort["registered_at"]) or
-              when(original["generated_at"])<when(cohort["registered_at"])),
-             "SAME_REGISTERED_SOURCE_CLOCK_INVALID")
     except (ActiveForecastError,KeyError,TypeError):
         return _hold(rid,"A_B_INPUT_OR_ARM_INVALID")
     # Timestamp and byte SHA must be verified against actual separately saved
@@ -237,6 +234,13 @@ def compare(*,cohort,original,stage_forecast,line_forecast=None,
         result.get("refund_status")!="NONE" or
         not _accepted(verify_result,result)):
         return _hold(rid,"OFFICIAL_RESULT_NOT_INDEPENDENTLY_ATTESTED_OR_SETTLED")
+    try:
+        need(when(result["source_published_at"]) >
+             when(cohort["race_cutoffs"][rid]) and
+             when(result["observed_at"]) >= when(result["source_published_at"]),
+             "OFFICIAL_RESULT_REVIEWED_BEFORE_CUTOFF_OR_PUBLICATION")
+    except (KeyError,TypeError,ActiveForecastError):
+        return _hold(rid,"OFFICIAL_RESULT_PUBLICATION_CLOCK_UNVERIFIED")
     try:
         paid={}
         entries=result["payouts_100yen"]; wins=result["winning_triples"]
@@ -316,6 +320,7 @@ def summarize(cohort,reports):
               "stake_yen":0,"payout_yen":0}
            for k in ("A_existing","B_six_phase","C_six_phase_plus_line")}
     ab_n=abc_n=0
+    bc_paired_b={"n":0,"hit_at_1":0,"hit_at_all":0,"stake_yen":0,"payout_yen":0}
     for rid in cohort["race_ids"]:
         item=seen.get(rid)
         if item is None or not item.get("ab_evaluable"):
@@ -329,13 +334,19 @@ def summarize(cohort,reports):
             z["stake_yen"]+=x["stake_yen"];z["payout_yen"]+=x["payout_yen"]
         if item.get("abc_evaluable"):
             abc_n+=1
+            x_b=item["B_six_phase"]
+            bc_paired_b["n"]+=1
+            bc_paired_b["hit_at_1"]+=int(x_b["hit_at_1"])
+            bc_paired_b["hit_at_all"]+=int(x_b["hit_at_all"])
+            bc_paired_b["stake_yen"]+=x_b["stake_yen"]
+            bc_paired_b["payout_yen"]+=x_b["payout_yen"]
             z=score["C_six_phase_plus_line"];x=item["C_six_phase_plus_line"]
             z["n"]+=1;z["hit_at_1"]+=int(x["hit_at_1"])
             z["hit_at_all"]+=int(x["hit_at_all"])
             z["stake_yen"]+=x["stake_yen"];z["payout_yen"]+=x["payout_yen"]
         else:
             c_hold[item.get("C_state","HOLD_UNREPORTED")]+=1
-    for x in score.values():
+    for x in (*score.values(), bc_paired_b):
         x["hit_1_rate"]=x["hit_at_1"]/x["n"] if x["n"] else None
         x["hit_all_rate"]=x["hit_at_all"]/x["n"] if x["n"] else None
         x["virtual_roi"]=x["payout_yen"]/x["stake_yen"] if x["stake_yen"] else None
@@ -347,6 +358,8 @@ def summarize(cohort,reports):
             "ab_holds":dict(sorted(holds.items())),
             "c_only_holds":dict(sorted(c_hold.items())),
             "arms":score,
+            "B_on_the_same_C_eligible_races":bc_paired_b,
+            "C_comparison_uses_identical_race_subset_not_AB_full_denominator":True,
             "four_model_dependency_removed":True,
             "real_uplift_proven":False,
             "actual_wagers_placed":False}
