@@ -1,0 +1,53 @@
+{
+  "schema": "RACE_AI_KEIRIN_PUBLIC_PLANNED_PAIR_RESEARCH_V1",
+  "checked_on_jst": "2026-11-18",
+  "notes": "Two publicly corroborated historical PRE-RACE predicted line formations for the same athlete-registration-ID pair. Not source-byte SHA attestation, not independent video review, not actual follow HELD/GAPPED/SWITCHED. Can be considered by a future race only after conservative next-day availability. The checked date is a date-only provenance marker, not a fabricated observation timestamp.",
+  "records": [
+    {
+      "race_id": "202611098402",
+      "leader_athlete_id": "015709",
+      "follower_athlete_id": "014525",
+      "leader_car": 5,
+      "follower_car": 3,
+      "expected_line_cars": [
+        5,
+        3,
+        6
+      ],
+      "role": "SECOND_WHEEL",
+      "line_evidence": "PRE_RACE_PREDICTED_LINE_ONLY",
+      "tactical_follow_outcome": "UNKNOWN",
+      "line_source_urls": [
+        "https://keirin.tokyo-sports.co.jp/list/race/20261108_30916",
+        "https://keirin.netkeiba.com/race/entry/?race_id=202611098402"
+      ],
+      "identity_source_urls": {
+        "leader": "https://www.keirin.jp/pc/racerprofile?snum=015709",
+        "follower": "https://keirin.jp/pc/racerprofile?snum=014525"
+      }
+    },
+    {
+      "race_id": "202611108404",
+      "leader_athlete_id": "015709",
+      "follower_athlete_id": "014525",
+      "leader_car": 7,
+      "follower_car": 4,
+      "expected_line_cars": [
+        7,
+        4,
+        3
+      ],
+      "role": "SECOND_WHEEL",
+      "line_evidence": "PRE_RACE_PREDICTED_LINE_ONLY",
+      "tactical_follow_outcome": "UNKNOWN",
+      "line_source_urls": [
+        "https://keirin.kdreams.jp/takeo/racedetail/8420261109020004/?pageType=yoso",
+        "https://keirin.tokyo-sports.co.jp/list/race/20261109_32344"
+      ],
+      "identity_source_urls": {
+        "leader": "https://www.keirin.jp/pc/racerprofile?snum=015709",
+        "follower": "https://keirin.jp/pc/racerprofile?snum=014525"
+      }
+    }
+  ]
+}
