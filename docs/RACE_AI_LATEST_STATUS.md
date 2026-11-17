@@ -1,3 +1,17 @@
+## 2026-11-17 実復旧失敗の修正: 学習sidecar付きの同一原本照合
+
+main PR70はCI13 success後に通常merge、実HEAD ba309f0227b2c73e9fd0d90ea4f260831d405358。
+source82cedd7のtree不変、正規push run44017586294の復旧job133819144112は
+RECOVERY_VERIFICATION_OR_STORAGE_UNAVAILABLEでfailure。新workerは未起動、vault headも不変。
+実runnerがrecover()で付与するlearning_snapshot付きP0行と、bootstrap verifierが再読込した
+付与前のP0行を同一receipt比較するとconflicting contentになる不具合を、実readerの変換で再現した。
+先のfixtureはこのsidecarを欠いていた。今回fixtureを本当のreader出力へ直しREDを確認。
+同じ検証済みattach_snapshotsを再読込側へ適用してGREEN。予想本文/元SHA/取得数/正解/学習weightsは不変。
+sidecar改変は引き続きHOLD。秘密の例外本文を出さず、公開code file:lineと固定exception classだけを診断に追加。
+関連60件成功。新しい実runner再検証はまだ未実施で、これだけでは実障害の根本原因確定・復旧成功としない。
+既存PR108をproduction向けに再利用し、旧44要因提案は履歴で保全して再投入しない。
+既存PR100も同じ方法でmain現treeを保全し、新PR/モデル/job/cron/課金は増やさない。
+
 ## 2026-11-17 追加: 1回取得済みbootstrap復旧を別条件で実装
 
 storage候補67200efは既存PR292へpush済み、exact-head CI3系統すべてsuccess。

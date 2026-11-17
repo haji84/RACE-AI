@@ -14,6 +14,22 @@ from tests.test_frozen_day_cycle import sample
 
 
 class BootstrapRecoveryTests(unittest.TestCase):
+    def test_cli_failure_reports_public_code_location_without_private_exception_text(self):
+        from scripts import boat_recover_failed_owner as cli
+        from unittest.mock import patch
+        from contextlib import redirect_stdout
+        import io
+        out=io.StringIO()
+        with patch.object(cli,'_packages'),patch.object(cli,'_invocation_context',
+            side_effect=RuntimeError('private-owner-payload-sentinel')),redirect_stdout(out):
+            code=cli.main(['--history','private-history-path','--expected-head',HEAD,'--output','private-output-path'])
+        report=json.loads(out.getvalue())
+        self.assertEqual(code,2)
+        self.assertEqual(report.get('failure_class'),'RuntimeError')
+        self.assertIn('scripts/boat_recover_failed_owner.py:',report.get('failure_at',''))
+        self.assertNotIn('sentinel',out.getvalue())
+        self.assertNotIn('private-history-path',out.getvalue())
+
     def setUp(self):
         f=ZeroRoundFailedOwnerTests();f.setUp();self.addCleanup(f.doCleanups)
         self.run=deepcopy(f.run_meta)
@@ -48,6 +64,10 @@ class BootstrapRecoveryTests(unittest.TestCase):
             self.responses[f'actions/artifacts/{meta["id"]}']=json.dumps(meta).encode()
             self.responses[f'actions/artifacts/{meta["id"]}/zip']=raw
         _,rows=read_p0(self.p0,self.p0meta,expected_day=DAY)
+        # Use the actual recovery reader's output, including its verified
+        # learning sidecar; raw read_p0 rows alone missed the live mismatch.
+        from race_ai.observed_weight_learning import attach_snapshots
+        rows=attach_snapshots(self.doc,rows)
         self.replay=dict(complete=True,day_jst=DAY,rows=rows,receipts=[self.p0meta])
 
     def verify(self):
@@ -72,6 +92,13 @@ class BootstrapRecoveryTests(unittest.TestCase):
                 self.rebuild()
         self.control['previous_session_requests']=2
         with self.assertRaises(ValueError):self.verify()
+
+    def test_changed_learning_sidecar_is_rejected_without_rewriting_replay(self):
+        self.replay['rows'][0]['learning_snapshot_sha256']='f'*64
+        original=deepcopy(self.replay)
+        with self.assertRaisesRegex(ValueError,'ROUND_RECOVERY_BOOTSTRAP_FIRST_RECEIPT_CONFLICT'):
+            self.verify()
+        self.assertEqual(self.replay,original)
 
     def test_wrong_key_corrupt_zip_changed_source_and_source_wait_fail_closed(self):
         from unittest.mock import patch

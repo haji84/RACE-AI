@@ -241,8 +241,20 @@ def main(argv=None):
     except Exception as exc:
         # Never log raw decoded owner payloads, subprocess output or keys.
         reason = str(exc) if re.fullmatch(r'(?:ROUND_RECOVERY_|VAULT_|SAFE_SOURCE_CONTROL_)[A-Z0-9_]{1,100}',str(exc)) else 'RECOVERY_VERIFICATION_OR_STORAGE_UNAVAILABLE'
+        failure_at=None;trace=exc.__traceback__
+        while trace is not None:
+            try:relative=Path(trace.tb_frame.f_code.co_filename).resolve().relative_to(ROOT).as_posix()
+            except ValueError:relative=''
+            if re.fullmatch(r'(?:scripts|race_ai)/[A-Za-z0-9_]+\.py',relative):
+                failure_at=relative+':'+str(trace.tb_lineno)
+            trace=trace.tb_next
+        kind=type(exc).__name__
+        if kind not in ('ValueError','RuntimeError','KeyError','TypeError','OSError',
+                        'TimeoutExpired','CalledProcessError','AssertionError'):
+            kind='UnexpectedError'
         print(json.dumps(dict(status='HOLD_FAILED_OWNER_RECOVERY',reason=reason,official_source_requests=0,
-                              new_forecasts=0,successor_dispatch_allowed=False)))
+                              new_forecasts=0,successor_dispatch_allowed=False,
+                              failure_class=kind,failure_at=failure_at)))
         return 2
 
 if __name__=='__main__':

@@ -1,7 +1,7 @@
 {
   "schema": "RACE_AI_P0_STORAGE_RECOVERY_20261117",
-  "phase": "CANDIDATE_NOT_LIVE_VERIFIED",
-  "main_sha": "058ba8c157722c1dc3565f8ca956567e29b95493",
+  "phase": "FIRST_LIVE_GATE_FAILED_FIXING_REPLAY_SIDECAR",
+  "main_sha": "ba309f0227b2c73e9fd0d90ea4f260831d405358",
   "production_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
   "storage_candidate_sha": "67200ef25161a48b49a63d04450b1f11656add5b",
   "unrestored_commits": [
@@ -152,7 +152,8 @@
     "independent_storage": 75,
     "independent_bootstrap": 46,
     "overlapping_scopes": true,
-    "bootstrap_owner_regression": 179
+    "bootstrap_owner_regression": 179,
+    "enriched_bootstrap_recovery": 60
   },
   "limits": [
     "Old logs do not identify the exact timed-out Git subcommand",
@@ -161,5 +162,15 @@
     "All-model current head ciphertexts still require complete validation",
     "Live successor not yet proven",
     "Four-sport whole-day coverage, physical Safari, video tracking/calibration/prediction, prospective improvement remain incomplete"
-  ]
+  ],
+  "first_live_gate": {
+    "run_id": 44017586294,
+    "job_id": 133819144112,
+    "status": "failure",
+    "reason": "RECOVERY_VERIFICATION_OR_STORAGE_UNAVAILABLE",
+    "successor_started": false,
+    "vault_head_unchanged": true
+  },
+  "replay_sidecar_reproduction": "raw P0 vs recover().attach_snapshots P0 conflicts at first_receipt_rows; enriched regression RED then GREEN",
+  "safe_failure_diagnostics": true
 }

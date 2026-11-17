@@ -210,6 +210,7 @@ def _verify_captured_bootstrap(get,run,control,*,items,now,replayed_state):
     from .continuity_checkpoint import _control
     from .frozen_day_cycle import read_p0
     from .first_receipt_continuity import first_receipt_rows
+    from .observed_weight_learning import attach_snapshots
     from .official_archive_probe import official_url
     from scripts.boat_failed_recovery_contract import BOOTSTRAP_SCHEMA
     ident=run['id'];packets=[];start,end=ts(run['created_at']),ts(run['updated_at'])
@@ -258,8 +259,15 @@ def _verify_captured_bootstrap(get,run,control,*,items,now,replayed_state):
          replayed_state.get('day_jst')==control['day_jst'] and
          type(replayed_state.get('rows')) is list and type(replayed_state.get('receipts')) is list,
          'BOOTSTRAP_DAY_REPLAY_REQUIRED')
-    before,_=first_receipt_rows(replayed_state['rows'])
-    union,_=first_receipt_rows(replayed_state['rows']+rows)
+    # recover() enriches every verified P0 with its learning snapshot. Compare
+    # the same projection; bare read_p0 rows conflict with their own enriched
+    # receipt even though the frozen forecast and its source are identical.
+    rows=attach_snapshots(document,rows)
+    try:
+        before,_=first_receipt_rows(replayed_state['rows'])
+        union,_=first_receipt_rows(replayed_state['rows']+rows)
+    except ValueError:
+        raise ValueError('ROUND_RECOVERY_BOOTSTRAP_FIRST_RECEIPT_CONFLICT') from None
     need(before==union and any(m.get('id')==p0['metadata']['id'] and all(m.get(k)==p0['metadata'].get(k)
          for k in ('digest','created_at','workflow_run')) for m in replayed_state['receipts']),
          'BOOTSTRAP_FIRST_RECEIPT_MISSING')
