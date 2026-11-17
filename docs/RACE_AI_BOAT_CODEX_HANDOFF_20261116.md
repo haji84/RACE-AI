@@ -384,3 +384,15 @@ eff/86bで各100件、独立100＋3検査が合格。全native巡を照合し、
 物理iPhone/全8画面、6艇継続・実距離時刻校正、未来のモデル精度改善は未完了。
 未push b7380fe6/daae4c10はUNRESTORED。原本/元work/KEIRIN並行変更・公開f60308を保全。
 [今回の件数・SHA・未達証拠](evidence/boat-m2-genuine-handoff-runtime-20261117.json)。
+
+## 2026-11-17 12:58 UTC: 実M2の独立AES/保存画面一致と欠落を確認
+
+PR65を通常mergeしたmain88c3fc5e（最終6b2accce/27 checks/tree一致）で、真正監査44087732511がsuccess。
+owner44075021607/source86bの完了1〜3巡を固定し、P0/P1/RESULT/ALL_MODEL計9原本をAES認証。
+追加モデルP1新規9行は保存viewの9行と一致、欠落0。native baseline再利用5行は新規へ足さず、旧eff未表示36の修復証明にしない。
+ALL_MODEL2/3欠落は原因未確認・件数nullでHOLD。当日公式B未認証のため公式締切資格0/null、全日/後続許可false。
+2証拠ZIPのサイズ/SHAを再取得照合済み。[実M2部分証拠](evidence/boat-m2-independent-aes-snapshot-20261117.json)。
+同監査で旧43829249080のcheckpointも再AES認証し、公開counterと累積12770/695巡の一致を保全。
+速度改善469e06cdはlocal合成AESで約2倍、既存PR63のCIへ進めた段階で、現行workerの実遅延改善は未証明。
+期限切れ13559236491は暗号fileサイズ/SHAのみ復元。実鍵の元ZIP/metadata/native再読戻しは準備中。
+未来の精度改善、全4競技/T15〜10、校正した6艇映像、物理iPhone/全8画面は未達のまま継続する。

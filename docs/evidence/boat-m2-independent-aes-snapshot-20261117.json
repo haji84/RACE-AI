@@ -1,0 +1,221 @@
+{
+  "schema": "RACE_AI_VERIFIED_ACTIONS_M2_PARTIAL_SNAPSHOT_EVIDENCE_V1",
+  "auditor_run_id": 44087732511,
+  "auditor_job_id": 134054474873,
+  "auditor_main_sha": "88c3fc5e06e8ce9438391c02bbaec09d2a00f052",
+  "merged_existing_pr": 65,
+  "reviewed_head_sha": "6b2accce6584d169afbcadfb0905d381b606b2e3",
+  "reviewed_tree_matches_main": true,
+  "required_checks_completed": 27,
+  "actual_readonly_job_conclusion": "success",
+  "actual_model_coverage_status": "HOLD",
+  "receipt_downloads": [
+    {
+      "artifact_id": 14330127306,
+      "bytes": 1696,
+      "zip_sha256": "26189288aa95cfa8c433b5787cd34026344f687283ae5ada452b85114d8dde7a"
+    },
+    {
+      "artifact_id": 14329728104,
+      "bytes": 1682,
+      "zip_sha256": "2f322a72ab4af39ccb38735007ef8d99de23cc4e2c922762f54ed8ee7db8a78d"
+    }
+  ],
+  "both_zip_size_and_sha256_verified": true,
+  "both_proof_documents_equal": true,
+  "proof": {
+    "all_model_zip_readback": {
+      "active_completed_round_scope": [
+        0,
+        1
+      ],
+      "actual_listed_archives": 2,
+      "additional_native_p1_archives_verified": 0,
+      "aes_originals_independently_decrypted": 2,
+      "all_model_round_coverage": [
+        {
+          "generated_forecasts": 0,
+          "round": 0,
+          "state": "AES_ARCHIVE_AUTHENTICATED"
+        },
+        {
+          "generated_forecasts": 9,
+          "round": 1,
+          "state": "AES_ARCHIVE_AUTHENTICATED"
+        },
+        {
+          "generated_forecasts": null,
+          "round": 2,
+          "state": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED"
+        },
+        {
+          "generated_forecasts": null,
+          "round": 3,
+          "state": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED"
+        }
+      ],
+      "authentic_official_P0_schedule_races": null,
+      "cutoff_qualification_blocker": "OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE",
+      "day_jst": "2026-11-17",
+      "duplicate_eligible_model_slots": 0,
+      "excluded_all_model_rounds": [],
+      "full_day_coverage": false,
+      "github_zip_sha256_independently_verified": 2,
+      "latest_live_counters_audited": false,
+      "missing_all_model_rounds": [
+        2,
+        3
+      ],
+      "official_cutoff_qualification": false,
+      "official_program_source_authenticated": false,
+      "official_schedule_crosschecked_pre_cutoff_model_slots": 0,
+      "original_content_projection_verified": 2,
+      "original_predictions_matched_saved_AES_view": 9,
+      "original_predictions_missing_from_saved_AES_view": 0,
+      "owner_run_id": 44075021607,
+      "owner_source_commit": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+      "p1_forecast_rows_reopened": 9,
+      "per_model_official_schedule_crosschecked": {},
+      "per_model_physically_pre_cutoff": {},
+      "physical_pre_cutoff_distinct_model_slots": 0,
+      "prediction_generation_performed": false,
+      "previously_archived_coverages_skipped_without_zip_read": 0,
+      "production_predictions_modified": false,
+      "racing_provider_gets": 0,
+      "referenced_existing_baseline_p1_rows_not_recounted": 5,
+      "referenced_native_p1_archives_independently_verified": 1,
+      "round_evidence": [
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 0,
+          "generated_forecasts_reported": 0,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 0,
+          "round": 0,
+          "saved_view_originals_matched": 0,
+          "source_archive_zip_sha_verified": true
+        },
+        {
+          "aes_decrypted_and_projected": true,
+          "forecast_p1_rows": 9,
+          "generated_forecasts_reported": 9,
+          "independently_official_cutoff_verified": 0,
+          "physically_pre_cutoff": 0,
+          "reused_baseline_p1_rows": 5,
+          "round": 1,
+          "saved_view_originals_matched": 9,
+          "source_archive_zip_sha_verified": true
+        }
+      ],
+      "scheduled_view_model_slot_upper_bound": null,
+      "schema": "RACE_AI_BOAT_EXACT_ALL_MODEL_ZIP_READBACK_V1",
+      "source_cutoff_conflict_diagnostics": [],
+      "status": "HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED",
+      "successor_dispatch_allowed": false,
+      "unqualified_original_reasons": {
+        "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED": 9
+      },
+      "website_end_to_end_proven": false
+    },
+    "captured_at": "2026-11-17T12:56:23.991151+00:00",
+    "completed_rounds_audited": [
+      1,
+      2,
+      3
+    ],
+    "cutoff_qualification_blocker": "OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE",
+    "final_control": null,
+    "final_control_aes_authenticated": false,
+    "full_day_coverage": false,
+    "inventory_sha256": "95b65684713af742e845162d1d5e5fbff1c6c1686ce5a72edc4119cede4d569a",
+    "latest_live_counters_audited": false,
+    "missing_all_model_rounds": [
+      2,
+      3
+    ],
+    "new_forecasts": 0,
+    "official_cutoff_qualification": false,
+    "official_source_requests": 0,
+    "original_forecasts_changed": false,
+    "owner_run_id": 44075021607,
+    "owner_source_commit": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "owner_status_at_snapshot": "in_progress",
+    "p0_artifact_id": 14282568112,
+    "p0_origin_run_id": 43978567937,
+    "p0_supplements_verified": 0,
+    "raw_aes_archives_verified": 9,
+    "round_evidence": [
+      {
+        "p1_artifact_id": 14323629323,
+        "result_artifact_id": 14326611176,
+        "round": 1,
+        "sealed_precompletion_counters": {
+          "completed_round": 0,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 720,
+          "lifetime_completed_rounds_base": 720,
+          "lifetime_requests": 13603,
+          "lifetime_requests_base": 13503,
+          "prepared_round": 1,
+          "requests_used": 100,
+          "run_id": 44075021607,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14326243693,
+        "result_artifact_id": 14327433059,
+        "round": 2,
+        "sealed_precompletion_counters": {
+          "completed_round": 1,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 721,
+          "lifetime_completed_rounds_base": 720,
+          "lifetime_requests": 13632,
+          "lifetime_requests_base": 13503,
+          "prepared_round": 2,
+          "requests_used": 129,
+          "run_id": 44075021607,
+          "source_wait": null
+        }
+      },
+      {
+        "p1_artifact_id": 14327044818,
+        "result_artifact_id": 14328592591,
+        "round": 3,
+        "sealed_precompletion_counters": {
+          "completed_round": 2,
+          "day_jst": "2026-11-17",
+          "day_start_lifetime_requests": 13017,
+          "halted_reason": null,
+          "lifetime_completed_rounds": 722,
+          "lifetime_completed_rounds_base": 720,
+          "lifetime_requests": 13654,
+          "lifetime_requests_base": 13503,
+          "prepared_round": 3,
+          "requests_used": 151,
+          "run_id": 44075021607,
+          "source_wait": null
+        }
+      }
+    ],
+    "schema": "RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1",
+    "status": "HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED",
+    "successful_round_steps_excluded": [],
+    "successor_dispatch_allowed": false
+  },
+  "scope_limits": [
+    "Snapshot native rounds1-3 only; source86b; all-model archives0/1 only",
+    "Missing ALL_MODEL2/3 remain unexplained with null generation counts",
+    "No official program authentication; cutoff eligibility0 and denominatornull",
+    "Nine newly generated additional-model P1 rows match9 current saved-view originals; five baseline references excluded from new counts",
+    "No assertion that historical oldeff36 missing-view rows were repaired",
+    "No all-day/future accuracy/latest-live-counters/successor admission claim",
+    "Audit providerGET0/newforecast0 is separate from producer totals"
+  ]
+}

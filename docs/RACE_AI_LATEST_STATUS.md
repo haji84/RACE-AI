@@ -1,3 +1,40 @@
+## 2026-11-17 12:58 UTC: 実M2の9原本AES・追加モデルP1の9行表示一致、全件はHOLD
+
+実main88c3fc5e06e8ce9438391c02bbaec09d2a00f052。既存PR65は最終6b2accce/27 checks完了後に通常mergeし、tree完全一致。
+真正pushの既存監査44087732511/job134054474873がsuccess。公式GET/予想生成/原本改変0の別runnerで、
+M2 owner44075021607/source86b029aeの完了巡1〜3を12:56:23 UTCで固定して照合した。
+P0原本1・P1/RESULT各3・ALL_MODEL0/1の計9暗号原本を認証。ALL_MODELの2 ZIPはGitHub SHA/AES/既存モデル再演算が一致し、
+追加モデルP1新規9行は保存AES viewの9行すべてと一致、見つからない行0。再利用native baseline5行を新規件数へ足さない。
+これは旧eff snapshotの未表示36行の修復証明ではない。
+
+**HOLD継続:** 第2・3巡のALL_MODEL原本は一覧にないため生成件数null・原因未確認で残す。当日公式B保存資料も未認証で、
+公式締切適格0・分母null。監査job successを全モデル/全日/T15〜10合格と混同しない。
+第1巡25分19秒、第2巡20分39秒、第3巡21分が実success。第4巡中で、実処理時間の内訳は完全jobログ待ち。
+13:27 UTCの再取得では第4巡も21分27秒でsuccess、第5巡中。独立AES/表示照合は上の固定1〜3巡だけで、後の巡へ加算しない。
+確認済み2証拠ZIP（14330127306/14329728104）のサイズ/SHAを再取得照合し、同一の件数documentであることを確認した。
+[実M2の原本・表示・欠落・scope証拠](evidence/boat-m2-independent-aes-snapshot-20261117.json)。
+
+最優先の旧43829249080も同じ別runnerで再AES認証し、公開counter一致・worker GET0/累積12770/巡回累積695を保全。
+この過去checkpoint単体は新P1証明や後続dispatch許可ではない。新M2の9行実証は上の別証拠で示す。
+[旧P0失敗checkpoint再認証](evidence/boat-failed-p0-reauthed-20261117.json)。
+
+**次の修正候補:** registry再構築を検証1呼出し内で再利用する469e06cdを独立レビューし、既存PR63で通常CIへ進めた。
+実AES合成fixtureのPDCA30.4→15.2秒、全検査回数・予想/判定一致。現行86b workerは差替えず、本番遅延解消とは認定しない。
+期限切れ原本13559236491の保存暗号file7,400,747bytes/SHA一致は確認。Actions実鍵の原本再認証は未実行で、
+元のmetadata/保存時刻を保持する件数/hash専用helperを準備中。古いinputを現在の生成許可へ変換しない。
+helperのmain接続63f9d01cは112件・独立112件・8workflow block・6失敗/privacy検査を通過。排他作成/fsync/close済みの
+自分の件数JSONだけをuploadし、既存file/symlink/書込失敗時はuploadしない。既存PR60の最終CI/真正実鍵検証は未実行。
+
+実Mac Safari/WebCrypto・28合成画面は以前の実runで合格。local UIは改善継続だが全8参考一致/実機iPhoneは未合格。
+local UI a4a200f5で金額10000000の末尾切れをRED→修正し、320/390/1440/1920pxと近隣PC幅を独立再確認。
+最初の個別結果/配分行をスマホnav上へ収め、HOLD/unknown金額/原本/手入力・削除/購入拒否を保持。36合成PNGのhash/実寸を照合。
+8参考は全てpartial、参考07の8tab対現行5tab、閉じたselectのellipsis、配分summaryのscroll等を未達として残す。
+mainにはweb runtime一式がなく、3assetsだけの移植はself-containedではないことも確認。実UI source86b上のreview candidateへ分離し、
+不足moduleをmainへ暗黙に追加しない。公開assetはf60308efのまま。[local画面の値・限界](evidence/boat-local-reference-layout-pass2-20261117.json)。
+全4競技の全日/全適用モデル/T15〜10、6艇継続・実距離時刻校正・強さ接続、未来の精度改善は未達。
+原本・元work b420631 clean・KEIRIN default-OFF/1レースを保全。未push b7380fe6/daae4c10はUNRESTORED。
+新PR/本番weights/公開assets/追加課金設定/投票の変更0。以下は過去時点の記録として保持する。
+
 ## 2026-11-17 12:29 UTC: 正規M2引継ぎで2実巡成功、締切遅延は未解消（GOAL未達）
 
 実main fd92b531b82f1365ce99e6917cc4812f8ce1ac42、source86b029ae5bddd5d4956497d8b32b2c92b8eec521。
