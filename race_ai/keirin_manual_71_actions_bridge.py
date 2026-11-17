@@ -153,11 +153,10 @@ def attempt_one_race(*, db, repo, source_dir, result_dir, observed_at=None):
             inserted = 1
     result = verify_private_archive(db)
     _need(result["verified_rows"] > 0, "PRIVATE_SQLITE_READBACK_FAILED")
-    selected = pilot["reference_comparison"]["expanded"]
+    # Public Actions logs must not disclose the private forecast tickets,
+    # race-specific hit flags or payouts. Those remain in sealed SQLite.
     return {"state":"PRIVATE_MANUAL71_PILOT_RESEARCH_STORED",
             "new_audits":inserted, "verified_rows":result["verified_rows"],
             "official_results_authenticated":False,
             "official_cutoffs_verified":False,
-            "public_html_published":False,
-            "pilot_research_hit_any":selected["hit_any"],
-            "pilot_research_hit1":selected["rank1_hit"]}
+            "public_html_published":False}
