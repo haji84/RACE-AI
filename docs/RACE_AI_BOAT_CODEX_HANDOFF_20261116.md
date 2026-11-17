@@ -1,3 +1,13 @@
+## 2026-11-17 継続: Safari browserAESが実成功、M2の正規引継ぎを再確認する
+
+main51970552、source86b029ae（既存PR201/exact CI44070104091/tree一致/独立承認）。reason履歴と後続結果syncを原本保全のまま修正。
+実Mac44068042347はSafari26.6で元seed WebCrypto/同一Top8/4拒否、資格情報なし別session28合成画面/実4幅に成功。
+本人login/current V5 live continuation/物理iPhone/8参考画面の最終受入はfalse。公開assetsf60308は不変、local UI5992だけを比較保存。
+旧worker44019591352は13実巡で自然終了、公開control485/lifetime13503/daybase13017/WORKER_HANDOFF。最終AESは真正gateで確認待ち。
+PR163では既存trigger marker/prefixが揃わず後継未起動。PR171候補は実M2pin・marker追記・正しいreleaseprefixを揃え、1producer/counter/原本を再認証する。
+新worker/view差分36件/締切資格はまだ未確認。全4競技・6艇校正/強さ/未来改善、未push2commit未復元を完成扱いしない。
+最新状況と新Mac/local UI証拠JSONを参照し、以下の旧記録を現在と混同しない。
+
 ## 2026-11-17 10:39 UTC: 13実巡で自然終了、38暗号原本を独立認証
 
 main b0a61b8b、production f43bde4c（PR107/5 checks/tree一致）。owner44019591352/effは自然終了し、実P1/RESULT各13。

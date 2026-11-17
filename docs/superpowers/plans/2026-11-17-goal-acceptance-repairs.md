@@ -114,3 +114,10 @@ All remote integration and real acceptance boxes above remain open until their a
 - Combined main source-pin and bounded Safari diagnostics selection:138 tests passed. Independent pin review:85 tests,29 actual workflow-expression cases,6 additional counter/proof/active-owner refusals. Source f43 contract was inspected directly; old eff is receipt provenance only.
 - Independent Safari review found JSON exponent overflow could become infinity. Author reproduced it through actual loopback HTTP; finite parse_float guard now refuses±1e400 direct/nested.50 focused tests and7 additional reviewer loopback probes passed, including ordinary finite sessions. Startup configuration is unchanged; actual Mac failure remains unknown.
 - Explicitly licensed Nesnad clip provenance is Commons CC BY-SA4.0. Additional Commons still references by cake6 (Amagasaki-kyotei-04.jpg and07.jpg, CC BY-SA3.0) show six boats/course features only as static reference candidates; no continuous tracking or surveyed metric evidence is inferred.
+
+## Final M2 handoff candidate and genuine Mac browser proof
+
+- Actualsource86b029ae ordinarymerged PR201, treeequalreviewedd79, exactCI44070104091success. Both saved-view lifecycle blockers independently rechecked. New reason sidecars preserve originals, never settle a conflicting result. Probe opt-in is non-authoritative and default241packetbytesunchanged.
+- ActualMac44068042347 passed browserWebCrypto/same-seedTop8 and4denials, plus28 separate syntheticcaptures with actual320/390/1440/1920 widths. Identity login/currentV5/iPhone/all8visualremainfalse; sourceeff andpublicf603remainfixed.
+- Main519 code pin alone did not execute owner gate: the existing trigger path was unchanged and its merge prefix did not match owner admission. Final existingPR171 changes the existing marker and uses exactboat-owner-release prefix;90tests include path/prefix/marker guards. Actual next gate/worker remains pending.
+- Local reference layout5992 has successful bounded visual/control review and28source-free screenshots, without publication. No whole-product acceptance claim.
