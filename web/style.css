@@ -165,3 +165,82 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
 #all-races .race-result-card{display:block;padding:16px}#all-races .race-result-card .race-card-head{display:flex;flex-wrap:wrap;align-items:flex-start}#all-races .race-result-card .race-card-head>div{flex:1 1 150px;min-width:0}#all-races .race-result-card .saved-outcome{max-width:100%}
 
 .outcome-upcoming{background:#e8f5fc;color:#2c6687}.outcome-time_unknown{background:#edf1f5;color:#526b87}
+
+/* Keep the reference screens' primary race content ahead of support tools. */
+.topbar{min-height:64px;padding-top:8px;padding-bottom:8px}
+.global-search input[type=search]{margin:0;padding:0;border:0;min-height:30px}
+.page-heading{margin-bottom:12px}
+.page-heading h1{font-size:clamp(22px,2vw,29px)}
+.dataset-banner{padding:8px 12px;margin-bottom:8px}
+.view-controls{margin:8px 0 14px}
+#home-metrics{margin-bottom:18px}
+.home-venue-panel .section-heading{flex-wrap:wrap;gap:8px}
+.right-rail .home-venue-panel{grid-column:1/-1}
+.right-rail .home-venue-panel h2{font-size:18px}
+.right-rail .home-venues{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.right-rail .home-venue-panel>p{line-height:1.6;margin-bottom:12px}
+.race-browse-controls{min-width:0;grid-column:1/-1;scroll-margin-top:84px}
+.race-list-heading{flex-wrap:wrap;gap:8px}
+.race-list-heading #race-count{flex:1 1 170px;font-size:11px}
+.race-list-heading button{font-size:11px;min-height:44px}
+.race-browse-controls .venue-explorer{padding:14px}
+.race-browse-controls .selected-venue{flex-wrap:wrap}
+.race-browse-controls .selected-venue h2{font-size:20px}
+.detail-model-help{display:block;margin:10px 0 0;font-size:10px;line-height:1.5;color:var(--muted)}
+.race-detail-focused{max-width:none}
+.detail-schedule{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;margin:4px 0 8px}
+.race-detail-focused .detail-schedule p{margin:0}
+.race-detail-focused .prediction-controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+.race-detail-focused .prediction-controls select{
+  appearance:none;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;padding-right:26px;
+  background-image:linear-gradient(45deg,transparent 50%,#526b87 50%),linear-gradient(135deg,#526b87 50%,transparent 50%);
+  background-size:4px 4px;background-position:calc(100% - 14px) 50%,calc(100% - 10px) 50%;background-repeat:no-repeat
+}
+.race-detail-focused .model-picker small{font-size:10px;line-height:1.5}
+.race-detail-focused .detail-tabs{margin-top:4px}
+.race-detail-focused .race-result-summary{padding:12px;margin:10px 0}
+.race-result-summary .section-heading{margin-bottom:4px}
+.race-result-summary .result-block{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px}
+.race-result-summary .result-block .combo{margin:4px 0}
+.race-result-summary .result-block p{margin:0;font-size:12px}
+.race-result-summary .result-refresh-row{margin-top:4px;align-items:center;gap:8px}
+.race-detail-focused .same-venue-races{border-top:1px solid var(--border);margin:20px 0 0;padding:16px 0 0}
+@media(min-width:1001px){
+  .race-detail-focused .detail-panel{display:grid;grid-template-columns:minmax(0,1fr) 270px;column-gap:24px;align-items:start}
+  .detail-panel>.detail-title,.detail-panel>.detail-schedule,
+  .detail-panel>.prediction-controls,.detail-panel>.detail-tabs,#detail-tab-content{grid-column:1}
+  .detail-panel>.race-result-summary{grid-column:2;grid-row:1 / span 4;margin:0}
+  .detail-panel>.same-venue-races,.detail-panel>.race-official-links,.detail-panel>.detail-model-help{grid-column:1/-1}
+}
+@media(max-width:640px){
+  .topbar{padding-top:6px;padding-bottom:6px;gap:6px}
+  .topbar .mobile-brand{min-height:40px}
+  main{padding-top:12px}
+  .page-heading{margin-bottom:8px}
+  .dataset-banner{padding:8px 10px;line-height:1.5}
+  .view-controls{margin:6px 0 10px}
+  main:has(#page-detail:not([hidden])){position:relative}
+  main:has(#page-detail:not([hidden])) .page-heading{padding-right:124px}
+  #page-detail .back-button{position:absolute;top:4px;right:12px;margin:0;min-height:44px}
+  #home-metrics{gap:6px;margin-bottom:14px}
+  #home-metrics .metric{padding:8px 7px}
+  #home-races .racer-grid:not(.portrait-gallery){grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+  #home-races .racer-avatar{min-height:44px}
+  #home-races .avatar-silhouette{width:32px;height:32px}
+  #home-races .avatar-silhouette:before{left:11px;top:5px;width:11px;height:11px}
+  #home-races .avatar-silhouette:after{left:6px;width:22px;height:22px}
+  #home-races .racer-name{font-size:10px}
+  #home-races .placeholder-entrants .racer-name{font-size:9px}
+  #home-races .racer-card small{font-size:9px}
+  .right-rail .home-venues{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .race-detail-focused .prediction-controls{gap:8px;margin:6px 0}
+  .race-detail-focused .model-picker,.race-detail-focused .prediction-picker{font-size:10px}
+  .race-detail-focused .model-picker select,.race-detail-focused .prediction-picker select{min-height:44px;font-size:12px;padding:8px 26px 8px 8px}
+  .race-detail-focused .detail-title h2{font-size:23px}
+  .race-detail-focused .detail-cutoff{font-size:17px}
+  .race-detail-focused .race-result-summary{padding:10px;margin:8px 0}
+  .race-result-summary .result-block p{font-size:11px}
+}
+@media(max-width:360px){
+  #home-metrics .metric:nth-child(-n+3) strong{font-size:18px}
+}

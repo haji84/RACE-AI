@@ -785,6 +785,8 @@
     });
     const [eyebrow, title, description] = pageNames[page];
     $("page-eyebrow").textContent = eyebrow; $("page-title").textContent = title; $("page-description").textContent = description;
+    const periodControls=document.querySelector(".view-controls");
+    if(page==="detail")$("page-detail").append(periodControls);else $("data-banner").after(periodControls);
     $("preference-strip").hidden = !["home", "races", "picks"].includes(page);
     if (!document.querySelector('meta[name="race-ai-encrypted-saved-view"]') && location.hash !== "#" + page) history.pushState(null, "", "#" + page);
     if (page === "detail") renderDetail();
@@ -857,7 +859,7 @@
     if (state.raceView === "unknown" && !lists.unknown.length) state.raceView = "upcoming";
     const phase = state.raceView, status = state.statusFilter === "PREDICTION_UNVERIFIED" ? "REVIEW" : state.statusFilter;
     let modelControls = $("race-model-controls");
-    if (!modelControls) { modelControls = node("section", "model-switch-bar"); modelControls.id = "race-model-controls"; $("page-races").querySelector(".race-view-tabs").before(modelControls); }
+    if (!modelControls) { modelControls = node("section", "model-switch-bar"); modelControls.id = "race-model-controls"; $("race-browse-controls").prepend(modelControls); }
     modelControls.replaceChildren(modelPicker(lists[phase],state.sport,"race-model-select",state.modelBySport[state.sport] || "",true));
     let filtered = phase === "results" && status !== "all" ? lists.results.filter(r => P.compare(r,prediction(r)).status === status) : lists[phase];
     if (state.sort !== "time") { const ids = new Map(matches.map((r,i)=>[r.race_id,i])); filtered = [...filtered].sort((a,b)=>ids.get(a.race_id)-ids.get(b.race_id)); }
@@ -976,15 +978,19 @@
     const p = prediction(r), layout = node("div", "detail-layout race-detail-focused"), main = node("div");
     const raceNavigation = sameVenueRaces(r);
     const panel = node("section", "panel detail-panel"), title = node("div", "detail-title");
-    title.append(node("span", "sport-tag", sports[r.sport]), node("h2", "", raceName(r)), node("span", "tag scope-" + r.scope, scopeName(r.scope)));
+    title.append(node("span", "sport-tag", sports[r.sport]), node("h2", "", raceName(r)));
     const reference=r.result?.cutoff_reference;
-    panel.append(title, node("p", "detail-cutoff", "締切 " + time(reference?.result_schedule_cutoff_at || p?.cutoff_at || r.cutoff_at) + (reference?"（変更あり）":"") + (r.start_at ? " · 発走 " + time(r.start_at) : "")), node("p", "muted small", text(r.event_date_jst) + " JST"));
+    const schedule=node("div","detail-schedule");
+    schedule.append(node("p", "detail-cutoff", "締切 " + time(reference?.result_schedule_cutoff_at || p?.cutoff_at || r.cutoff_at) + (reference?"（変更あり）":"") + (r.start_at ? " · 発走 " + time(r.start_at) : "")), node("p", "muted small detail-date", text(r.event_date_jst) + " JST"),node("span", "tag scope-" + r.scope, scopeName(r.scope)));
+    panel.append(title,schedule);
     const resultSummary=node("section","race-result-summary");resultSummary.setAttribute("aria-label","このレースの結果");
     resultSummary.append(append(node("div","section-heading"),node("h3","","結果"),outcomeBadge(r,p)),resultView(r,{showBadge:false}));
     const caption=node("p","muted small",resultSyncCaption());caption.dataset.resultSyncCaption="";
     resultSummary.append(append(node("div","result-refresh-row"),caption,resultRefreshButton()));panel.append(resultSummary);
-    if(raceNavigation)panel.append(raceNavigation);panel.append(predictionPicker(r));
-    const links=node("details","race-official-links");links.append(node("summary","","公式情報を開く"),officialRaceLinks(r));panel.append(links);
+    const modelControls=predictionPicker(r),modelHelp=modelControls.querySelector(".model-picker small");
+    if(modelHelp){modelHelp.remove();modelHelp.classList.add("detail-model-help");}
+    panel.append(modelControls);
+    const links=node("details","race-official-links");links.append(node("summary","","公式情報を開く"),officialRaceLinks(r));
     const tabs = node("nav", "detail-tabs"); tabs.setAttribute("aria-label", "レース詳細タブ"); tabs.setAttribute("role", "tablist");
     for (const [key, label] of [["outlook", "レース展望"], ["participants", "出走表"], ["preview", "直前情報"], ["analysis", "データ分析"], ["history", "過去レース"]]) {
       const b = button(label, key === state.detailTab ? "active" : "", () => { state.detailTab = key; renderDetail(); $("detail-tab-" + key)?.focus(); }); b.id = "detail-tab-" + key; b.dataset.detailTab = key; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(key === state.detailTab)); b.setAttribute("aria-controls", "detail-tab-content"); b.tabIndex = key === state.detailTab ? 0 : -1; tabs.append(b);
@@ -1032,6 +1038,9 @@
       content.append(node("h2", "", "過去レース"), Array.isArray(past) && past.length ? facts(past.map((value, i) => [String(i + 1), sourceText(value)])) : node("p", "muted", "過去レースの個別原本は未取得です。"));
     }
     panel.append(content);
+    if(modelHelp)panel.append(modelHelp);
+    if(raceNavigation)panel.append(raceNavigation);
+    panel.append(links);
     main.append(panel);
     layout.append(main); target.append(layout);
   }
@@ -1747,6 +1756,10 @@
   $("venue-filter").addEventListener("change", e => { state.venue = e.target.value; renderRaces(); });
   $("all-venues").addEventListener("click", () => chooseVenue(""));
   $("home-all-venues").addEventListener("click", () => chooseVenue(""));
+  $("race-browse-options").addEventListener("click",()=>{
+    $("race-browse-controls").scrollIntoView({block:"start"});
+    $("race-model-select")?.focus({preventScroll:true});
+  });
   $("pin-venue").addEventListener("click", () => {
     if (!state.venue) return;
     const key = state.sport + ":" + state.venue;
