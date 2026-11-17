@@ -1,3 +1,37 @@
+## 2026-11-17 22:31:44 UTC: 固定P0件数readerを通常merge、Safariの診断修正は119件のfresh検証へ（GOAL未達）
+
+既存PR47を通常保護mergeし、main e619ef93のtree0e307f54は試験済み700ab1ceのtreeと一致。179件/132.547秒OK、9 Python block compile/秘密境界も成功、全15 checksは8success/7skip。実件数読戻し44190597556はActions内で進行中で、追加P0件数はまだUNKNOWN。既存owner gate44190597537/job134418653207はHOLD_ACTIVE_OWNER_WORKFLOW、recovery false/公式GET0。稼働BBを重複起動していない。
+
+Safari実44183593596の原因は未確定。既存PR46の119件/18.544秒・追加19assertion失敗/error0のRED後、44行追加/6行変更で診断だけを実装。既存lookup対象との同一性、既存probe内のfeature-guarded :open、最初のseed比較のselected boolを厳密bool/nullで記録する。RPC/親・option click/受入/AES/cleanup/CF guard/driver env/main/workflow/pinは維持。rootと独立reviewはCLEARで、fresh119 GREENと新実Macは未実施。通常APIは22:28 UTCの再確認でGET/user200 haji84に戻り、認証更新依頼への対応は不要。秘密値/設定は変更していない。
+
+原本保存PR51のatomic832件GREENは確定し、次版BB暗号原本の歴史読戻しだけを追加した837件候補2bf7a6eの最終CIは進行中。production bb492/run44170869325は展示窓待機中、first-P0132レース/264予想は公開receipt宣言、追加件数/24round全完了は未確認。前向き比較は同一native入力/保存pair/PDCAを再利用できるが、独立保存された将来studyとcohort/policy/原本hashのbindingが不足する。既存old100/5/10・training MIN8を新規studyの有効分母や改善条件へ流用しない。
+
+全4競技全race×全適用model/T15〜10/結果照合、実iPhone/全8参考、独立6艇GT/校正/強さ接続、前向き改善は未達。元未push2commitはUNRESTORED。原本/公開UI/本番weightsと既存作業を保全、新PR/モデル/課金/権限/cron/投票/公開なし。
+
+詳細: [Safari診断とmain47の検証記録](evidence/boat-native-picker-runtime-main47-proof-20261117.json)。
+
+## 2026-11-17 22:20:36 UTC: 原本保管832試験GREEN、固定追加P0の件数読戻しを実装・検証中（GOAL未達）
+
+原本保管439760d/tree3a2e345の実CI44186600609/job134404670699で832件/192.969秒OK、別3/12/38/165/46件もOK。新41 raw試験を保全し、部分失敗時のstaging/新規inode rollbackを確認した。production bb492は未変更。次版がBBの暗号原本/継続/controlを読める5試験は別の実RED（178件/54.663秒、4失敗/error0）で不足を再現し、旧checkout/proofを許可せず限定修正を準備している。
+
+追加P0の独立件数はUNKNOWNのまま。実RED43c40fa/job134406065741で179件/86.951秒、追加15件だけmissing-helper失敗/error0を確認してから、固定44170869325/r0/artifact14367093570を既存vault・ZIP/AES・native projectorで照合する件数専用helperを追加した。元コード・M2対象・completed-round guardは維持。既存national job末尾の任意stepは既存trusted-main release prefixと成功checkoutだけで動き、stdout固定JSON以外を保存しない。確認不能はnull、認証済み0件なら0とする。既存全upload/member、trigger/job/input/permission/cron/runner/timeoutは不変。fresh179 GREEN・独立review・実Actions読戻しはまだ待ち。
+
+実source44170869325はfirst-P0132レース/264予想の公開receiptと保管step成功を確認し、公式GETなしの展示窓待機、24roundはpending。実Safari44183593596は2件目parentクリックHTTP500でprivate HOLD、candidate/CF guard未到達。119診断試験のREDを確認し、受入/操作を変えず同一性・picker開閉を記録する修正を準備している。通常local RESTは401 Bad credentials、公開rawコード取得200、GitHub connector本人haji84のread/既存branch writeは成功。鍵はlocal不在、値を取得していない。
+
+全4競技/全適用model/全日T15〜10/結果照合/実iPhone/6艇校正/前向き改善は未達。未push2commitはUNRESTORED、原本/公開UI/production weightsを保全する。
+
+詳細: [固定P0のread-only実装と境界](evidence/boat-fixed-bootstrap-p0-runtime-review-20261117.json)。
+
+## 2026-11-17 22:05:00 UTC: CF限定修正は111試験GREEN、最新実Safariは2件目の選択クリックでHOLD（GOAL未達）
+
+既存PR48を通常保護mergeし、main f2922efのtreeは試験済み30902ee/tree7b0e9eと一致。111件/15.387秒が成功した。新Mac実行44183593596/job134394092565も111件/52.214秒は成功したが、Safari26.6の私有view確認で2件目のseed history選択時、native parent clickがHTTP500/unknown errorとなった。document focus/visibilityは正常、page error0。候補capture/CF guardには到達せずartifact0で、CFの実環境合格や物理iPhone合格を主張しない。要素参照とnative popupの証拠を調査し、同一codeの盲目的rerunはしない。
+
+実source44170869325はfirst-P0の取得/元ZIP読戻し/長期保管/reuse、追加P0保管を通過し、公式GETなしの展示窓待機中。公開first receiptは132レース/264予想を宣言する。追加14367093570の生成・再利用・HOLD件数は未確認、24roundはpending。既存M2判定と分離した固定round0の暗号読戻し件数確認をtests-firstで準備する。原本保存PR51は832件の追加atomic faultケースだけ15 subtest失敗/error0で、未マージ修正をreview中。
+
+既存PR47の元head/本文/baseとancestor判定を保存し、既存PRを再利用する。新PR/モデル/課金/権限/cron/公開UI/投票/本番weights切替なし。未push2commitはUNRESTORED、全4競技/全日T15〜10/結果照合/6艇校正/前向き改善/実iPhoneは未達。
+
+詳細: [PR47保全と最新の実ログ診断](evidence/boat-pr47-before-reuse-native-outcome-20261117.json)。
+
 ## 2026-11-17 21:37 UTC: CF guardの限定検証を実装、111試験のfresh GREEN待ち（GOAL未達）
 
 実RED 9d309aed/job134380772151は111件/15.405秒、追加CFケースだけ21 subtest失敗・error0。元100ケースを保全した。実装は24行追加だけで、AppleのcanonicalなH:0:0/H:H:H、Darwin、real/effective/encoded UIDの厳密uint32一致を検証する。環境は書換えず、他の未知key/不正値/identity API失敗はHOLD。元6key定数、driver env、guard位置、private/AES/cleanup、workflow/pin/timeoutは維持する。

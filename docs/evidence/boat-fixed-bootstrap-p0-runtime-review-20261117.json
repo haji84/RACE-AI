@@ -1,0 +1,196 @@
+{
+  "schema": "RACE_AI_FIXED_BOOTSTRAP_P0_COUNTS_RUNTIME_PACKET_V1",
+  "base_pr_head": "43c40fa9593a2bc325bb56097dea3ecc21ff5162",
+  "base_pr_tree": "8ce1121a1f83262939171f9915a825807b63a715",
+  "tests_first_packet": "28bfe95da3d7d548ef83b6778070da1236532df8",
+  "tests_blob_unchanged": "7933ee38807c7cbbb4468d259942b89ff338c2ad",
+  "authenticated_red": {
+    "run_id": 44186998685,
+    "job_id": 134406065741,
+    "commit": "43c40fa9593a2bc325bb56097dea3ecc21ff5162",
+    "tests": 179,
+    "seconds": 86.951,
+    "failures": 15,
+    "errors": 0,
+    "all_new_failures": "new FixedBootstrapP0CountTests.setUp assertion: the fixed retained P0 count-only reader is missing",
+    "original_20_and_remaining_144_success": true,
+    "evidence_supplied_by_root": true
+  },
+  "files": [
+    {
+      "path": "scripts/boat_exact_all_model_zip_readback.py",
+      "base_blob": "906081b55989c25f60185351c4123dc8b75cc65b",
+      "blob_sha": "7c2a925f5858838d0ca99599a89c8a48d7611e85",
+      "utf8_bytes": 47678,
+      "added_lines": 151,
+      "removed_lines": 0,
+      "all_original_bytes_preserved": true,
+      "remote_readback_identical": true
+    },
+    {
+      "path": ".github/workflows/boat-owner-national-p1-matrix.yml",
+      "base_blob": "0075c4227ca940774e970f438b71b3239135c95e",
+      "blob_sha": "3f82f8dbbe3252142657f391803bee30b4da0113",
+      "utf8_bytes": 46585,
+      "added_lines": 85,
+      "removed_lines": 1,
+      "only_existing_line_replacement": "assert len(blocks)==8 -> assert len(blocks)==9",
+      "remote_readback_identical": true
+    }
+  ],
+  "implementation": {
+    "public_helper": "audit_fixed_bootstrap_p0(*,get,repo,now)",
+    "caller_target_key_or_round_override": false,
+    "retained_source_only": true,
+    "live_artifact_fallback": false,
+    "retained_receipt_scope": "ARCHIVED_GITHUB_ARTIFACT_RESPONSE",
+    "current_artifact_status": "NOT_QUERIED",
+    "reader_chain": [
+      "R._run on one fixed GitHub run endpoint",
+      "V.lookup_original at the fixed vault commit",
+      "V.restore_original with existing index/HMAC/chunk/AES/ZIP/native verification",
+      "exact immutable ZIP and metadata hashes/lengths plus inner ciphertext/header pins",
+      "R._project with existing full ZIP/body/AES/native-capsule replay and generated/reused reconciliation",
+      "strict P0/day scope plus projected-slot/actual-slot/context reconciliation",
+      "fixed safe aggregate counts or fixed-stage HOLD/null"
+    ],
+    "no_new_decryptor": true,
+    "no_source_requests": true,
+    "no_remote_writes": true,
+    "no_prediction_publication": true
+  },
+  "fixed_target": {
+    "run_id": 44170869325,
+    "source_sha": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+    "workflow_id": 405276784,
+    "repository_id": 1416489937,
+    "repository": "haji84/RACE-AI",
+    "branch": "production/boat-p0-p1-20261111",
+    "event": "workflow_dispatch",
+    "round_no": 0,
+    "day_jst": "2026-11-18",
+    "artifact_id": 14367093570,
+    "artifact_name": "boat-all-model-forecasts-44170869325-r0",
+    "server_created_at": "2026-11-17T20:38:49Z",
+    "vault_commit": "d853f5d6db9089d91748add90560a0b9037b2a1f",
+    "vault_ref": "state/boat-private-originals",
+    "zip_sha256": "3dd76e2edba393e51221215703e82756de2ae804ba4b5e063d4e91f44437c995",
+    "zip_bytes": 18706128,
+    "metadata_sha256": "993c20d3d073d0004f44836a72ef5e30a5b10a8500c8ff81503e4d7bac0fe4a1",
+    "metadata_bytes": 723,
+    "cipher_sha256": "e6980993b7d29f9898a50d3cd406c4abca71e75e7f4cc2b89859cfe30fa57026",
+    "plain_sha256": "5f87d119d7c5b30103f1e05896c0dd3a7a3a531b0c68784eb8bd2147e742b347",
+    "plain_bytes": 18699962,
+    "vault_batch_sha256": "1254b9a3953121cb8749a22476abfb2b715d18bb997f9b948b4f89583238a552",
+    "vault_entry_sha256": "b43336fa76294275800872755f5fd8cacb217bc31d7789fd3a2290890d580a39"
+  },
+  "workflow": {
+    "job": "authenticated_original_matrix",
+    "append_after_existing_final_upload": true,
+    "exact_step_condition": "always() && github.repository == 'haji84/RACE-AI' && github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') && steps.audit_source.outcome == 'success'",
+    "stdout_only": true,
+    "optional_hold_exit_code": 0,
+    "trigger_filters_all_byte_identical": true,
+    "marker_paths_not_added": true,
+    "parent_job_condition_byte_identical": true,
+    "existing_owner_source_checkout_and_M2_target_unchanged": true,
+    "new_jobs": 0,
+    "new_permissions": 0,
+    "new_runners": 0,
+    "new_timeouts": 0,
+    "new_schedules": 0,
+    "new_inputs": 0,
+    "new_artifact_names": 0,
+    "new_artifact_members": 0,
+    "actual_upload_steps_before": 5,
+    "actual_upload_steps_after": 5,
+    "all_original_upload_stanzas_byte_identical": true,
+    "all_original_private_core_native_heredocs_byte_identical": true,
+    "compile_gate_blocks_before": 8,
+    "compile_gate_blocks_after": 9,
+    "static_contract_checks": [
+      "exact trusted-main release-prefix and successful-checkout condition",
+      "optional step follows final existing artifact upload",
+      "five unchanged actual upload steps",
+      "all nine Python heredocs compile in existing unit job",
+      "count step calls only fixed helper API",
+      "optional wrapper has no raw exception text or report/artifact writes"
+    ],
+    "existing_unit_command_unchanged": true
+  },
+  "scope_proof": {
+    "original_runtime_bytes_preserved": true,
+    "workflow_base_reconstructs_exactly_after_removing_only_optional_step_compile_assertions_and_reversing_8_to_9": true,
+    "core_NO_COMPLETED_ROUND_guard_unchanged": true,
+    "M2_target": {
+      "run_id": 44075021607,
+      "source_sha": "86b029ae5bddd5d4956497d8b32b2c92b8eec521"
+    },
+    "test_files_unmodified_after_actual_red": true,
+    "source_atomic_fix_not_touched": true,
+    "refs_changed": false,
+    "processes_run": false,
+    "secrets_retrieved": false,
+    "provider_gets": 0,
+    "model_weights_changed": false
+  },
+  "reader_compatibility": {
+    "checked_against_producer": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+    "existing_main_selected_package": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "existing_unit_package": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+    "identical_modules": {
+      "race_ai/boat_all_model_recovery.py": "653a3347ff05ce7726cbfdb2679f4e9b8138f548",
+      "race_ai/boat_all_model_cycle.py": "77bd938e255e85c4c19f01378e050e4efdb889b6"
+    },
+    "store_crypto_functions_identical": [
+      "_json",
+      "_wire",
+      "_payload",
+      "_header",
+      "_key",
+      "_aad",
+      "_split",
+      "forecast_header",
+      "open_forecasts"
+    ],
+    "vault_reader_functions_identical": [
+      "_keys",
+      "_kind",
+      "_artifact",
+      "_open",
+      "restore_original",
+      "lookup_original",
+      "VaultArtifactReader",
+      "_batch_entry",
+      "_entry",
+      "_validate_locator",
+      "_unsigned"
+    ],
+    "no_completed_round_guard_change": true
+  },
+  "verification": {
+    "remote_blob_readbacks_identical": true,
+    "static_V8_structural_checks_passed": true,
+    "python_compile_not_run_here": true,
+    "actual_green_pending": true,
+    "actual_owner_count_readback_pending": true,
+    "additional_P0_actual_counts_remain_unknown": true
+  },
+  "remaining": [
+    "Root independent review",
+    "Fresh authenticated existing 179-test unit GREEN and nine-block compile/static workflow gate",
+    "Protected integration preserving authorized existing main marker route",
+    "Existing trusted-main optional Actions-only readback and safe stdout inspection"
+  ],
+  "root_review": {
+    "helper_original_source_prefix_unchanged": true,
+    "workflow_reconstructed_exact_base": true,
+    "existing_upload_stanzas_equal": 5,
+    "existing_m2_target_unchanged": true,
+    "public_target_or_key_override": false,
+    "counts_do_not_confer_coverage_or_dispatch": true
+  },
+  "independent_review": "PENDING",
+  "actual_green": "PENDING",
+  "actual_counts": "UNKNOWN"
+}
