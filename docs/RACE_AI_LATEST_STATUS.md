@@ -1,3 +1,17 @@
+## 2026-11-17 20:28 UTC: source/main通常merge・最終CI確定、実P0とSafari原因の確認を継続（GOAL未達）
+
+実main `c425f03918126f38c9bd13a589b58fc8bc97e7e1` はPR #52の通常merge。最終HEAD549de526/treebc2d804bとmerge treeは一致し、41 checksは成功17/skip24。149試験/16.610秒、164試験/98.207秒、回復JSON10試験/0.128秒が成功。sourceはPR #55通常merge `bb49215034b779ea1493b35dd91e5c3ebfc04032`、主要791試験成功のtree8a97242dと一致する。mainのfuture pinと旧原本の厳密な読戻しは接続済み。追加自動Safari callerは最終treeにない。
+
+main release44166778123/job134334838900は実source bb492を確認して `HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW`、dispatch=false/recovery=falseで終了した。通常05:30 JST(20:30 UTC)の起動を待つ観測時点であり、新sourceの実worker/P0保管/速度/T15〜10/全日網羅はまだ未証明。clock/guardを迂回しない。
+
+**実Macは新しい別の失敗:** 通常認証で一度要求した44152622468/job134284779148は85試験成功後、18:57:32 UTCにencrypted seedの履歴parent selectクリックでWebDriver HTTP500/unknown errorとなりprivate step失敗。候補UIのcheckout/撮影/uploadはskip、artifact0。controlはconnected/enabled/visible/in-view/hit/focusを満たすが、native option操作前に停止した。旧44124279358のprivate原本/AES成功は保全し、新失敗とは分ける。driver class・seed処理・UI assets・macOS imageは旧成功時と同じで、内部原因は未特定。受入の合格・OS原因・修正済みとは扱わない。既存の選択/拒否を維持したまま診断9試験(91→100)を先に作成中で、runtime未変更/実試験未実行。
+
+**原本保存の追補:** 既存PR #51に解析前P1/B opaque原bytes保全の33回帰試験だけを追加しfresh CIを開始した。source runtimeはbb492のまま。typed B catalog/native capsule、返却/admission時計、GET/counter、4MiB上限、既存の分割保存/旧原本を維持し、未保存を固定HOLDとする予定。旧B17/P1欠落は後取得で復元扱いしない。
+
+**競輪の実状態:** capture44150074907は前日verified manifest欠落でcollector前に停止、artifact0。以前のdaily44054130480/hourly44091605829は最初のindexでHTTP403だった。PR71の緑44156498718/44162156064も `HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT`、新入力0/4モデル予想未保存であり、全raceやPDCA完了の証拠ではない。source権利/現在日catalogは未確認。既存default-OFF pilotは変更しない。
+
+物理iPhone/login/current V5/全8参考、独立6艇GT/校正、元モデル対学習版の前向き改善、全4競技全race網羅、未push2commit未復元は継続課題。新PR/job/権限/input/cron/runner/課金/モデル系統/weights/投票/候補UI公開は増やさない。詳細: [main mergeと新Mac HOLD](evidence/boat-main52-merge-native-hold-20261117.json)。
+
 ## 2026-11-17 18:54 UTC: 通常認証から既存Mac検証を要求、main候補はsource接続・回復入力修正へ限定（GOAL未達）
 
 実行環境のcontext更新後、小さなPythonと低thread Gitが動くことを実測。元workspace/各作業treeは実在し、元repo HEAD `b4206312594ef84a43c86695dc3d3ec16d1c5ae0` はclean。32,050 zombieは残るため、重いlocal試験の再開や完全復旧は宣言しない。tokenの値を表示せず、通常認証のGET /user=200/haji84、repo=200/push権限ありを確認した。local owner keyはない。context更新でfunctionsメモリstoreは消えたが、実ファイルとGitHub上の原本/commitは保全されていた。
