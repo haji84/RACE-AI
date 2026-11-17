@@ -16,6 +16,7 @@ from datetime import date, datetime, timedelta, timezone
 import re
 
 OWNER_SHA='eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
+M2_OWNER_SHA='86b029ae5bddd5d4956497d8b32b2c92b8eec521'
 # Read-only replay of already sealed originals. This is not a dispatcher pin.
 PREVIOUS_OWNER_SHA='5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4'
 REVIEWED_PREVIOUS_OWNER_SHA='84128e0ec8bd9fe3da64ad49f74b8511b07e72be'
@@ -39,7 +40,7 @@ def need(ok):
 
 
 def _owner_head(value):
-    need(type(value) is str and value in (OWNER_SHA,PREVIOUS_OWNER_SHA,REVIEWED_PREVIOUS_OWNER_SHA,RETAINED_OWNER_SHA,PRE_STORAGE_REPAIR_SHA))
+    need(type(value) is str and value in (OWNER_SHA,M2_OWNER_SHA,PREVIOUS_OWNER_SHA,REVIEWED_PREVIOUS_OWNER_SHA,RETAINED_OWNER_SHA,PRE_STORAGE_REPAIR_SHA))
     return value
 
 
@@ -71,6 +72,81 @@ def _identity(race_id,prediction):
             p.get('server_saved_at'),p.get('cutoff_at')]
     return sha256(json.dumps(values,sort_keys=True,separators=(',',':'),
         ensure_ascii=False,allow_nan=False).encode()).hexdigest()
+
+
+def _reused_body(race_id,prediction):
+    from race_ai.actions_contract import digest
+    return digest([race_id,prediction])
+
+
+def _verified_reused_baseline(get,reader,payload,projection,run,*,saved_at,now,key,day):
+    """Bind skipped M2 references to genuine native P1 ZIP/AES, not a boolean."""
+    import json
+    from race_ai import boat_all_model_recovery as R,boat_all_model_cycle as engine
+    from race_ai import boat_private_original_archive as archive
+    from race_ai.boat_private_original_vault import _artifact
+    from race_ai.boat_source_control import _metadata
+    from race_ai.cycle_recovery import artifact_pages
+    from race_ai.frozen_day_cycle import read_p1
+    from race_ai.actions_contract import digest
+    reused=[(row['race_id'],p) for row in projection['records'] for p in
+            [row.get('prediction'),*(row.get('comparison_predictions') or [])]
+            if p is not None and p.get('dispatch_status')=='ORIGINAL_REUSED']
+    if not reused:return set(),set()
+    baseline=payload.get('baseline');need(type(baseline) is dict and set(baseline)=={'document_sha256','receipt'})
+    proof=baseline.get('receipt');need(type(proof) is dict and proof.get('head_sha') in (OWNER_SHA,M2_OWNER_SHA))
+    ident=proof.get('artifact_id');need(type(ident) is int and ident>0)
+    meta_raw=reader.read(f'actions/artifacts/{ident}',128*1024)
+    meta=json.loads(meta_raw);origin_ref=meta.get('workflow_run') or {}
+    need(type(origin_ref.get('id')) is int and origin_ref['id']>0 and
+         str(origin_ref['id'])==str(proof.get('run_id')) and origin_ref.get('head_sha')==proof['head_sha'])
+    origin=R._run(reader.read(f'actions/runs/{origin_ref["id"]}',1024*1024),origin_ref['id'],now)
+    need(origin.get('head_sha')==proof['head_sha'] and origin.get('head_branch')=='production/boat-p0-p1-20261111' and
+         origin.get('event')=='workflow_dispatch' and type(origin.get('run_attempt')) is int and origin['run_attempt']==1 and
+         (origin.get('status')=='in_progress' and origin.get('conclusion') is None or
+          origin.get('status')=='completed' and origin.get('conclusion') in ('success','failure')))
+    listing=artifact_pages(reader,origin['id']);matches=[item for item in listing if item.get('id')==ident]
+    need(len(matches)==1 and sum(item.get('name')==meta.get('name') for item in listing)==1 and
+         re.fullmatch(r'boat-national-cutoff-'+str(origin['id'])+r'(?:-cycle-(?:0[2-9]|1[0-9]|2[0-4]))?',str(meta.get('name'))))
+    R._metadata(meta_raw,matches[0],origin,now,get)
+    need(proof.get('artifact_id')==meta.get('id') and proof.get('created_at')==meta.get('created_at') and
+         moment(origin['created_at'])<=moment(meta['created_at'])<=moment(saved_at)<=now)
+    if origin['status']=='completed':need(moment(meta['created_at'])<=moment(origin['updated_at']))
+    raw=get(f'actions/artifacts/{ident}/zip')
+    _metadata(raw,meta,name=meta['name'],run_id=origin['id'],head_sha=origin['head_sha'])
+    _artifact(raw,meta_raw,key=key,now=now,expected_kind='P1')
+    with archive._checked_zip(raw,max_zip_bytes=32*1024*1024) as z:
+        need(z.namelist()==[archive.CIPHER_MEMBER])
+    document,rows=read_p1(raw,meta)
+    need(rows and all(row['race_id'].startswith(day.replace('-','')+'-') and
+         moment(row['cutoff_at']).astimezone(JST).date().isoformat()==day for row in rows))
+    need(proof.get('payload_sha256')==baseline['document_sha256']==digest(document))
+    contexts={item['program']['race_id']:item for item in payload['current_inputs']}
+    originals,reconstructed=engine._originals(document,proof,contexts,origin['head_sha'],moment(saved_at))
+    need(digest(reconstructed)==digest(baseline))
+    by_key={}
+    for original in originals:
+        key_id=tuple(original.get(k) for k in ('race_id','model_id','model_version'))
+        need(key_id not in by_key);by_key[key_id]=original
+    slots={}
+    for report in payload['dispatch_reports']:
+        for slot in report['slots']:
+            if slot.get('status')!='ORIGINAL_REUSED':continue
+            key_id=tuple(slot.get(k) for k in ('race_id','model_id','model_version'))
+            need(key_id not in slots and key_id in by_key and
+                 slot.get('reason')=='SAVED_NATIVE_CONTENT_RETAINED_NOT_REISSUED' and
+                 digest({k:v for k,v in slot.items() if k not in ('status','reason')})==digest(by_key[key_id]))
+            slots[key_id]=slot
+    verified=set()
+    for rid,prediction in reused:
+        need((rid,prediction.get('model_id'),prediction.get('model_version')) in slots and
+             prediction.get('source_code_commit')==origin['head_sha'] and prediction.get('artifact_id')==ident and
+             prediction.get('receipt_run_id')==str(origin['id']) and
+             prediction.get('original_json_sha256')==digest(document) and
+             prediction.get('server_saved_at')==prediction.get('persisted_at')==meta['created_at'])
+        verified.add(_reused_body(rid,prediction))
+    need(len(verified)==len(slots)==len(reused))
+    return verified,{ident}
 
 
 def _canonical_p0(get,run,listing):
@@ -126,7 +202,7 @@ def _official_cutoffs(get, repo, run, listing, reader, *, day, now, key, p0_orig
 
 
 def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
-          source_original_index,official_cutoffs,expected_owner_sha=None):
+          source_original_index,official_cutoffs,expected_owner_sha=None,verified_reused_predictions=None):
     owner_head=_owner_head(OWNER_SHA if expected_owner_sha is None else expected_owner_sha)
     need(type(projection) is dict and type(projection.get('records')) is list and
          type(official_cutoffs) is dict and official_cutoffs)
@@ -145,16 +221,17 @@ def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
         need(len(predictions)<=128)
         for p in predictions:
             if p is None or p.get('stage')!='P1':continue
-            need(type(p) is dict and p.get('external_receipt_verified') is True and
-                 p.get('source_code_commit')==owner_head)
+            need(type(p) is dict and p.get('external_receipt_verified') is True)
             # The sealed ALL_MODEL packet can also reference exact baseline A/B
             # P1 originals. Their independent source ZIP must be verified via
             # its own P1 pathway; this ZIP authenticates only its new predictions.
             if p.get('artifact_id')!=artifact_id:
-                need(p.get('dispatch_status')=='ORIGINAL_REUSED')
+                need(p.get('dispatch_status')=='ORIGINAL_REUSED' and
+                     (p.get('source_code_commit')==owner_head if verified_reused_predictions is None else
+                      _reused_body(rid,p) in verified_reused_predictions))
                 reused_baseline+=1
                 continue
-            need(p.get('dispatch_status')=='GENERATED_UNATTESTED' and
+            need(p.get('source_code_commit')==owner_head and p.get('dispatch_status')=='GENERATED_UNATTESTED' and
                  p.get('server_saved_at')==physical_saved_at and
                  type(p.get('original_json_sha256')) is str and
                  SHA.fullmatch(p['original_json_sha256']) is not None)
@@ -208,14 +285,16 @@ def _scan(projection, *, day, artifact_id, physical_saved_at, expected, clock,
 
 
 def _scan_unqualified_originals(projection,*,day,artifact_id,physical_saved_at,
-                               expected,source_original_index,expected_owner_sha):
+                               expected,source_original_index,expected_owner_sha,verified_reused_predictions=None,
+                               qualification_blocker='OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE'):
     """Count exact authenticated output bodies without qualifying any deadline.
 
-    Called only after a frozen active scope and real ZIP/AES/model replay, when
-    the independent official-B index is absent. It supplies no substitute
-    cutoff ledger and no physical/official eligible slots.
+    Called only after a frozen scope and real ZIP/AES/model replay, when the
+    official-B index is absent or the native prefix has an unexplained missing
+    model archive. It supplies no physical/official eligible slots.
     """
     owner=_owner_head(expected_owner_sha)
+    need(qualification_blocker in ('OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE','ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED'))
     need(type(projection) is dict and type(projection.get('records')) is list)
     rows=[];holds=Counter();missing=0;reused=0
     for row in projection['records']:
@@ -227,11 +306,12 @@ def _scan_unqualified_originals(projection,*,day,artifact_id,physical_saved_at,
         need(len(predictions)<=128)
         for prediction in predictions:
             if prediction is None or prediction.get('stage')!='P1':continue
-            need(type(prediction) is dict and prediction.get('external_receipt_verified') is True
-                 and prediction.get('source_code_commit')==owner)
+            need(type(prediction) is dict and prediction.get('external_receipt_verified') is True)
             if prediction.get('artifact_id')!=artifact_id:
-                need(prediction.get('dispatch_status')=='ORIGINAL_REUSED');reused+=1;continue
-            need(prediction.get('dispatch_status')=='GENERATED_UNATTESTED'
+                need(prediction.get('dispatch_status')=='ORIGINAL_REUSED' and
+                     (prediction.get('source_code_commit')==owner if verified_reused_predictions is None else
+                      _reused_body(rid,prediction) in verified_reused_predictions));reused+=1;continue
+            need(prediction.get('source_code_commit')==owner and prediction.get('dispatch_status')=='GENERATED_UNATTESTED'
                  and prediction.get('server_saved_at')==physical_saved_at
                  and type(prediction.get('original_json_sha256')) is str
                  and SHA.fullmatch(prediction['original_json_sha256']))
@@ -240,7 +320,7 @@ def _scan_unqualified_originals(projection,*,day,artifact_id,physical_saved_at,
             identity=_identity(rid,prediction);matched=source_original_index.get(identity,0)>0
             if matched:source_original_index[identity]-=1
             else:missing+=1
-            holds['OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE']+=1
+            holds[qualification_blocker]+=1
             rows.append((rid,model,False,matched,False))
     return rows,holds,missing,reused
 
@@ -340,7 +420,7 @@ def cutoff_source_disagreement(projection, payload, rows, *, artifact_id,
         racelist_captured_after_first_p0_saved_slots=later)
 
 def audit(*,get,repo,run_id,day,expected_models,original_view,now,
-          maximum_artifacts=64,owner_key=None,active_scope=None):
+          maximum_artifacts=64,owner_key=None,active_scope=None,expected_owner_sha=None,allow_completed_receipts=False):
     """Read all original ZIPs, ignoring any already-cached coverage shortcut.
 
     Caller must supply authentic saved day, pinned production source checkout
@@ -362,16 +442,27 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
     reader=R._MetadataReader(get)
     run=R._run(reader.read(f'actions/runs/{run_id}',1024*1024),run_id,now)
     owner_head=_owner_head(run.get('head_sha'))
+    if owner_head==M2_OWNER_SHA:need(active_scope is not None and expected_owner_sha==M2_OWNER_SHA)
+    need(type(allow_completed_receipts) is bool and (not allow_completed_receipts or
+         active_scope is not None and expected_owner_sha==M2_OWNER_SHA))
+    if expected_owner_sha is not None:
+        need(expected_owner_sha in (OWNER_SHA,M2_OWNER_SHA) and owner_head==expected_owner_sha)
+    else:need(owner_head!=M2_OWNER_SHA)
     need(run.get('head_branch')=='production/boat-p0-p1-20261111' and
          run.get('event')=='workflow_dispatch' and
-         (run.get('status')=='completed' if active_scope is None else run.get('status')=='in_progress'))
+         (run.get('status')=='completed' if active_scope is None else
+          run.get('status')=='in_progress' or allow_completed_receipts and run.get('status')=='completed'))
     day_from_run=moment(run['created_at']).astimezone(JST).date().isoformat()
     need(day_from_run==day)
     listed=artifact_pages(reader,run_id)
     selected_rounds=None
     if active_scope is not None:
         from scripts.boat_owner_active_snapshot_audit import validate_active_scope
-        selected_rounds=validate_active_scope(active_scope,run,listed,now,get)
+        selected_rounds=validate_active_scope(active_scope,run,listed,now,get,
+            expected_owner_sha=OWNER_SHA if expected_owner_sha is None else expected_owner_sha,
+            allow_completed_receipts=allow_completed_receipts)
+    model_scope=(active_scope['all_model_archive_scope'] if owner_head==M2_OWNER_SHA else None)
+    missing_model_rounds=model_scope['missing_rounds'] if model_scope else []
     targets=[];unique_ids=set();unique_rounds=set()
     for item in listed:
         record=R._listed(item,run_id,now)
@@ -381,7 +472,7 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         need(artifact_id not in unique_ids and round_no not in unique_rounds)
         unique_ids.add(artifact_id);unique_rounds.add(round_no)
         targets.append((round_no,artifact_id,item))
-    need(0<len(targets)<=maximum_artifacts)
+    need(len(targets)<=maximum_artifacts and (targets or missing_model_rounds))
     if selected_rounds is not None:need(unique_rounds==set(selected_rounds))
     targets.sort()
     try:
@@ -404,7 +495,11 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
     original_copy=Counter(source_index)
     physical_forecasts=0;matched=0;absent=0;eligible_slots=set();official_slots=set()
     duplicates=0;invalid=Counter();by_model=Counter();official_by_model=Counter()
-    round_counts=[];baseline_reuses=0;cutoff_diagnostics=[]
+    round_counts=[];baseline_reuses=0;cutoff_diagnostics=[];verified_native_ids=set()
+    from race_ai.repeated_cycle import artifact_name
+    native_rounds=active_scope['rounds'] if active_scope is not None else (selected_rounds or [])
+    selected_native_names={artifact_name('boat-national-cutoff',run_id,n) for n in native_rounds if n>0}
+    selected_native_ids={item['id'] for item in listed if item.get('name') in selected_native_names}
     all_archive_sha_verified=0;all_aes_authenticated=0
     for round_no,artifact_id,listed_item in targets:
         meta_raw=reader.read(f'actions/artifacts/{artifact_id}',128*1024)
@@ -427,18 +522,28 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
              receipt.get('created_at')==meta['created_at'] and
              receipt.get('artifact_id')==artifact_id and
              receipt.get('head_sha')==owner_head)
+        verified_reused=None
+        if owner_head==M2_OWNER_SHA:
+            from race_ai import boat_all_model_store as store
+            with R._checked_zip(raw,max_zip_bytes=R.MAX_ZIP_BYTES,max_expanded=store.MAX_WIRE) as z:
+                native_payload=store.open_forecasts(z.read('forecasts.enc'),key=key)
+            verified_reused,native_ids=_verified_reused_baseline(get,reader,native_payload,projected,run,
+                saved_at=meta['created_at'],now=now,key=key,day=day)
+            verified_native_ids.update(native_ids)
         all_archive_sha_verified+=1;all_aes_authenticated+=1
-        if official_cutoffs is None:
+        if official_cutoffs is None or missing_model_rounds:
             rows,holds,missing,reused=_scan_unqualified_originals(projected,day=day,artifact_id=artifact_id,
                 physical_saved_at=meta['created_at'],expected=expected,source_original_index=source_index,
-                expected_owner_sha=owner_head)
+                expected_owner_sha=owner_head,verified_reused_predictions=verified_reused,
+                qualification_blocker='ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED' if missing_model_rounds else
+                                      'OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE')
         else:
             rows,holds,missing,reused=_scan(projected,day=day,artifact_id=artifact_id,
                                 physical_saved_at=meta['created_at'],
                                 expected=expected,clock=now,
                                 source_original_index=source_index,
                                 official_cutoffs=official_cutoffs,
-                                expected_owner_sha=owner_head)
+                                expected_owner_sha=owner_head,verified_reused_predictions=verified_reused)
         for rid,mid,eligible,equal,officially_valid in rows:
             physical_forecasts+=1;matched+=int(equal);absent+=int(not equal)
             slot=(rid,mid)
@@ -465,28 +570,37 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         invalid.update(holds);baseline_reuses+=reused
         round_counts.append(dict(round=round_no,source_archive_zip_sha_verified=True,
                                  aes_decrypted_and_projected=True,
+                                 generated_forecasts_reported=summary['generated_forecasts'],
                                  forecast_p1_rows=len(rows),reused_baseline_p1_rows=reused,
                                  physically_pre_cutoff=sum(row[2] for row in rows),
                                  independently_official_cutoff_verified=sum(row[4] for row in rows),
                                  saved_view_originals_matched=sum(row[3] for row in rows)))
-    need(0<all_archive_sha_verified==all_aes_authenticated==len(targets))
+    need(all_archive_sha_verified==all_aes_authenticated==len(targets))
     need(matched+absent==physical_forecasts and
          all(original_copy[key]>=source_index.get(key,0) for key in source_index))
     # Difference is diagnostic only. Missing, duplicated and late original
     # predictions never become a successful user-visible completion claim.
     official_total=len(expected)*len(official_cutoffs) if official_cutoffs is not None else None
-    return dict(schema=SCHEMA,status=('AES_ZIP_REPLAY_VERIFIED_P1_COVERAGE_INCOMPLETE' if official_cutoffs is not None else
-                                     'AES_ZIP_REPLAY_VERIFIED_OFFICIAL_PROGRAM_UNAVAILABLE'),
+    round_coverage=[dict(round=row['round'],state='AES_ARCHIVE_AUTHENTICATED',
+                        generated_forecasts=row['generated_forecasts_reported']) for row in round_counts]
+    round_coverage.extend(dict(round=number,state='ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED',generated_forecasts=None)
+                          for number in missing_model_rounds)
+    return dict(schema=SCHEMA,status=('HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED' if missing_model_rounds else
+                'AES_ZIP_REPLAY_VERIFIED_P1_COVERAGE_INCOMPLETE' if official_cutoffs is not None else
+                'AES_ZIP_REPLAY_VERIFIED_OFFICIAL_PROGRAM_UNAVAILABLE'),
         day_jst=day,owner_run_id=run_id,owner_source_commit=owner_head,
         actual_listed_archives=len(targets),github_zip_sha256_independently_verified=all_archive_sha_verified,
         aes_originals_independently_decrypted=all_aes_authenticated,
         original_content_projection_verified=all_aes_authenticated,
         p1_forecast_rows_reopened=physical_forecasts,
         referenced_existing_baseline_p1_rows_not_recounted=baseline_reuses,
+        referenced_native_p1_archives_independently_verified=len(verified_native_ids),
+        additional_native_p1_archives_verified=len(verified_native_ids-selected_native_ids),
         physical_pre_cutoff_distinct_model_slots=len(eligible_slots),
         official_program_source_authenticated=official_cutoffs is not None,
         official_cutoff_qualification=official_cutoffs is not None and bool(official_slots) and not invalid,
-        cutoff_qualification_blocker='OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE' if official_cutoffs is None else None,
+        cutoff_qualification_blocker=('OFFICIAL_PROGRAM_SOURCE_UNAVAILABLE' if official_cutoffs is None else
+                                      'ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED' if missing_model_rounds else None),
         authentic_official_P0_schedule_races=len(official_cutoffs) if official_cutoffs is not None else None,
         official_schedule_crosschecked_pre_cutoff_model_slots=len(official_slots),
         original_predictions_matched_saved_AES_view=matched,
@@ -497,6 +611,9 @@ def audit(*,get,repo,run_id,day,expected_models,original_view,now,
         per_model_physically_pre_cutoff=dict(sorted(by_model.items())),
         per_model_official_schedule_crosschecked=dict(sorted(official_by_model.items())),
         round_evidence=round_counts,
+        all_model_round_coverage=sorted(round_coverage,key=lambda row:row['round']),
+        missing_all_model_rounds=missing_model_rounds,
+        excluded_all_model_rounds=model_scope['excluded_rounds'] if model_scope else [],
         source_cutoff_conflict_diagnostics=cutoff_diagnostics,
         previously_archived_coverages_skipped_without_zip_read=0,
         full_day_coverage=False,successor_dispatch_allowed=False,latest_live_counters_audited=False,

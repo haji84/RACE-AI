@@ -368,3 +368,19 @@ prepared印だけを解除する。6巡を7巡にせず、RESULTを生成せず�
 PR164はCI・独立レビュー後に通常保護merge済み。実sourceはb491fb21ce58ba085dd8f54bb7326442b840d8f4。
 main174の23live pinをこの実SHAへ同期した。source607件と独立193件、main120件は合格。
 実orphan AESと新P1の受入は続けて確認する。未確認を合格に数えない。
+
+## 2026-11-17 12:29 UTC 継続: 正規M2引継ぎと実遅延
+
+最新main fd92b531/source86b029ae。真正main push gate44074681478が旧ownerの原本/AES/counterを復旧し、
+READY_VERIFIED_RECOVERED_OWNER_CONTINUATION後にworker44075021607を一writerで開始した。
+実第1巡25分19秒、第2巡20分39秒でsuccess、第3巡中。P1/RESULT各2暗号archiveのmetadataを確認したが、
+新規原本行数・保存view一致・公式締切適格は別runnerのM2読取専用監査待ち。全日/T15〜10は未合格。
+既存PR65でexact M2 target/混在原本の厳密読戻しと、digest誤検出だけを直すtest-only CI pinを準備。
+94監査testsと7workflow block compile、CI privacy212件・独立reviewが合格。実GitHub新HEAD CI/実鍵監査は未確認。
+その後、実GitHub44085027353のprivacy212件＋32件がsuccess。欠落モデル原本のHOLD修正e3890bf9は
+eff/86bで各100件、独立100＋3検査が合格。全native巡を照合し、欠落ALL_MODELはgenerated=null・資格0で明示する。
+最終修正HEADのCIと実M2 AESは次工程であり、旧HEADのCIを流用しない。
+完全な稼働jobログは正規認証でもまだ404。ローカルの重複検証計測を実遅延原因確定と混同しない。
+物理iPhone/全8画面、6艇継続・実距離時刻校正、未来のモデル精度改善は未完了。
+未push b7380fe6/daae4c10はUNRESTORED。原本/元work/KEIRIN並行変更・公開f60308を保全。
+[今回の件数・SHA・未達証拠](evidence/boat-m2-genuine-handoff-runtime-20261117.json)。
