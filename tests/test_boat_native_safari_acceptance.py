@@ -136,6 +136,32 @@ class NativeSafariAcceptanceTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(S, 'native Safari acceptance adapter is not implemented')
 
+    def test_element_waits_for_a_delayed_visible_detail_control(self):
+        driver = S.WebDriver(1234)
+        ready = {'element-6066-11e4-a52e-4f735466cecf': 'visible-tab'}
+        with patch.object(driver, 'script', side_effect=[None, ready]) as query:
+            self.assertEqual(driver.element('[data-detail-tab="outlook"]'), 'visible-tab')
+        self.assertEqual(query.call_count, 2)
+
+    def test_ui_hold_reports_only_public_error_location_and_numeric_counts(self):
+        report = S.failure_report(S.AppHold({'page_errors': 2, 'error_module': 'app.js',
+            'error_line': 1234, 'visible_page': 'page-races', 'viewport_width': 500,
+            'private': 'private-owner-sentinel', 'url': 'https://private-owner-sentinel/'}))
+        self.assertEqual(report['reason'], 'APP_UI_CHECK_FAILED')
+        self.assertEqual(report['ui_page_errors'], 2)
+        self.assertEqual(report['ui_error_module'], 'app.js')
+        self.assertEqual(report['ui_error_line'], 1234)
+        self.assertEqual(report['ui_visible_page'], 'page-races')
+        self.assertEqual(report['ui_viewport_width'], 500)
+        self.assertNotIn('sentinel', json.dumps(report))
+        other = S.failure_report(S.AppHold({'page_errors': True,
+            'error_module': 'private-owner-sentinel', 'error_line': 'private-owner-sentinel',
+            'visible_page': 'private-owner-sentinel', 'viewport_width': 10**20}))
+        self.assertIsNone(other['ui_error_module'])
+        self.assertIsNone(other['ui_visible_page'])
+        self.assertIsNone(other['ui_viewport_width'])
+        self.assertNotIn('sentinel', json.dumps(other))
+
     def test_native_budget_replacement_survives_app_rejecting_an_empty_change(self):
         # The deployed app restores the previous budget when change sees an
         # empty/invalid number. Native Element Clear can trigger that change.
@@ -187,7 +213,7 @@ class NativeSafariAcceptanceTests(unittest.TestCase):
 
         driver = S.WebDriver(1234)
         with patch.object(driver, 'command', side_effect=command), \
-                patch.object(S.time, 'monotonic', side_effect=[0, 0, 46]):
+                patch.object(S.time, 'monotonic', side_effect=[0, 0, 0, 0, 46]):
             driver.budget(5000)
         self.assertEqual((state['text'], state['budget']), ('5000', 5000))
         self.assertFalse(state['meta'])

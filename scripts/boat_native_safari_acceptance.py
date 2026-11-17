@@ -52,6 +52,16 @@ class BudgetHold(SafariHold):
         self.target, self.probe = target, probe
 
 
+class AppHold(SafariHold):
+    def __init__(self, probe):
+        super().__init__('APP_UI_CHECK_FAILED')
+        self.probe = probe
+
+
+PUBLIC_UI_MODULES = frozenset(('app.js', 'product-data.js', 'ui-model.js',
+    'saved-performance.js', 'forecast-audit-model.js', 'saved-view-crypto.js'))
+
+
 def need(value, reason):
     if not value:
         raise SafariHold(reason)
@@ -68,6 +78,20 @@ def sha(raw):
 def failure_report(error):
     reason = str(error) if isinstance(error, SafariHold) and str(error) in REASONS else 'SAFARI_OPERATION_FAILED'
     report={'status': 'NATIVE_SAFARI_ACCEPTANCE_HOLD', 'reason': reason}
+    if isinstance(error, AppHold):
+        probe = error.probe if type(error.probe) is dict else {}
+        def bounded(name, maximum):
+            value = probe.get(name)
+            return value if type(value) is int and 0 <= value <= maximum else None
+        module = probe.get('error_module')
+        report.update(ui_page_errors=bounded('page_errors', 1000000),
+                      ui_error_module=module if type(module) is str and module in PUBLIC_UI_MODULES else None,
+                      ui_error_line=bounded('error_line', 99999) if type(module) is str and
+                      module in PUBLIC_UI_MODULES else None,
+                      ui_visible_page=probe.get('visible_page') if probe.get('visible_page') in (
+                          'page-home', 'page-races', 'page-detail', 'page-picks',
+                          'page-results', 'page-research', 'page-settings') else None,
+                      ui_viewport_width=bounded('viewport_width', 16384))
     if isinstance(error, BudgetHold):
         probe = error.probe if type(error.probe) is dict else {}
         observed = probe.get('value')
@@ -214,9 +238,16 @@ def private_index(index):
 
 
 PRIVACY_SCRIPT = b'''"use strict";
-globalThis.__raceSafariPrivacy={external_blocked:0,csp_blocked:0,page_errors:0};
+globalThis.__raceSafariPrivacy={external_blocked:0,csp_blocked:0,page_errors:0,error_module:null,error_line:null};
 addEventListener('securitypolicyviolation',()=>{__raceSafariPrivacy.csp_blocked++});
-addEventListener('error',e=>{if(e.target===window)__raceSafariPrivacy.page_errors++});
+addEventListener('error',e=>{if(e.target!==window)return;__raceSafariPrivacy.page_errors++;
+ try {const u=new URL(e.filename,location.href),name=u.pathname.slice(1);
+  if(u.origin===location.origin&&['app.js','product-data.js','ui-model.js','saved-performance.js',
+   'forecast-audit-model.js','saved-view-crypto.js'].includes(name)){
+   __raceSafariPrivacy.error_module=name;__raceSafariPrivacy.error_line=e.lineno;
+  }
+ }catch{}
+});
 const originalFetch=globalThis.fetch.bind(globalThis);
 globalThis.fetch=(input,options)=>{
  const url=new URL(typeof input==='string'||input instanceof URL?input:input.url,location.href);
@@ -394,10 +425,18 @@ class WebDriver:
             if value:
                 return value
             time.sleep(0.15)
-        raise SafariHold('APP_UI_CHECK_FAILED')
+        try:
+            probe = self.script('''return {page_errors:globalThis.__raceSafariPrivacy?.page_errors,
+                error_module:globalThis.__raceSafariPrivacy?.error_module,
+                error_line:globalThis.__raceSafariPrivacy?.error_line,
+                visible_page:document.querySelector('.page:not([hidden])')?.id,
+                viewport_width:innerWidth};''')
+        except SafariHold:
+            probe = {}
+        raise AppHold(probe)
 
     def element(self, selector, visible=True):
-        element = self.script('''return Array.from(document.querySelectorAll(arguments[0])).find(e=>
+        element = self.wait('''return Array.from(document.querySelectorAll(arguments[0])).find(e=>
             !arguments[1] || (e.getClientRects().length && getComputedStyle(e).visibility!=='hidden')) || null;''',
                               selector, visible)
         need(isinstance(element, dict), 'APP_UI_CHECK_FAILED')

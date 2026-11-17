@@ -1,3 +1,12 @@
+## 2026-11-17 実状: 3巡連続success、Safariは詳細タブでHOLD
+
+main fb938e5、source eff296f。owner44019591352のP0保管・巡回01/02/03 success、04中。
+Mac44024956057はapp_checks:559。viewport未記録なので予算変更の実通過範囲も未確定。
+既存PR182で可視要素の待機と、許可済み画面/公開JS/数値だけの診断を追加。23件・独立23件success。
+全24巡、新原本の別runner AES、全4競技/実機iPhone/8画面/実映像/未来改善は未完成。
+この環境のgh binary/log取得にはexit0でも0byteの例があり、取得成功と数えない。
+GitHub connectorで実ZIP/log bytesを取得し、metadataのサイズ・SHA/run/headを照合する。owner keyはローカルへ取得しない。
+
 ## 2026-11-17 Safari実失敗の継続: 文字列chordからW3C key eventsへ
 
 実Mac44023534099（main acd7c76）もbudget入力でHOLD。前のローカル20件を実機合格としない。

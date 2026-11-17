@@ -8,18 +8,18 @@
 
 ## Task 1: Repair storage boundaries (inline execution)
 
-- [ ] Add local bare-Git regressions: a fresh partial vault writer must append without downloading an unrelated inherited blob, retain its exact tree ID, and let an independent reader restore it.
-- [ ] Observe RED; use a vault-only tree writer with promised objects permitted. Keep the normal state writer strict, SHA/AES readback and fast-forward CAS intact.
-- [ ] Add regressions for display/all-model fetch: obsolete ancestor-only bytes stay remote while exact old and new commits can both be restored on demand.
-- [ ] Observe RED; make only display/all-model pinned fetches shallow. Keep every explicit immutable pin reachable locally.
-- [ ] Run the existing vault, state, feed, model-store, source-refusal, continuity and JST handoff regressions. Review diff, publish only to existing PR292, check exact-head CI.
+- [x] Add local bare-Git regressions: a fresh partial vault writer must append without downloading an unrelated inherited blob, retain its exact tree ID, and let an independent reader restore it.
+- [x] Observe RED; use a vault-only tree writer with promised objects permitted. Keep the normal state writer strict, SHA/AES readback and fast-forward CAS intact.
+- [x] Add regressions for display/all-model fetch: obsolete ancestor-only bytes stay remote while exact old and new commits can both be restored on demand.
+- [x] Observe RED; make only display/all-model pinned fetches shallow. Keep every explicit immutable pin reachable locally.
+- [x] Run the existing vault, state, feed, model-store, source-refusal, continuity and JST handoff regressions. Review diff, publish only to existing PR292, check exact-head CI.
 
 ## Task 2: Verify actual operation and record limits
 
-- [ ] Recheck concurrent writers before any restart; read and authenticate failed continuity/source-control with the existing independent Actions gate.
-- [ ] Apply the reviewed storage repair and synchronize exact live source pins through existing PR70, preserving its proposal history. Never bypass branch protection.
+- [x] Recheck concurrent writers before any restart; read and authenticate failed continuity/source-control with the existing independent Actions gate.
+- [x] Apply the reviewed storage repair and synchronize exact live source pins through existing PR70, preserving its proposal history. Never bypass branch protection.
 - [ ] Verify a genuine successor, new encrypted P0/P1 receipts and independent AES readback. Record failures and unknowns separately; no retroactive forecast generation or counter reset.
-- [ ] Re-run the existing native Safari proof if ready. Desktop Safari does not satisfy physical iPhone acceptance.
+- [x] Re-run the existing native Safari proof if ready. Desktop Safari does not satisfy physical iPhone acceptance.
 - [ ] Prepend actual SHAs, runs, test evidence and remaining four-sport/video/prospective gates to the latest status and handoff.
 
 ## Review focus
@@ -55,3 +55,5 @@ Task 2 Safari diagnosis: PR208 normal merge cb3261d after23 exact-head checks (1
 Safari budget fix: independent20 tests/no blockers; PR203 exact23 checks complete (10 success/13 skipped), normally merged acd7c76 with tree equality. Actual retry44023534099 is pending. Owner round02 success05:21:47 UTC, round03 in progress; no new source pin or additional producer.
 
 Actual Mac44023534099 again failed at app_checks:564/budget. The embedded Command chord was NOT a real Safari fix. Tightened the fixture to avoid assuming modifier semantics in Element Send Keys text, observed RED, then changed to standard /actions keyDown/up;21 tests and independent21 passed. Added failure-only allowlisted numeric budget/focus/valid fields, no DOM/secret/exception strings. Reusing PR194 for source-free Safari continuation, no producer/model changes.
+
+Actual Mac44024956057 failed at app_checks:559/outlook element lookup, viewport unknown. It does not establish budget fix success or failure. PR182 adds bounded visibility wait and failure-only public module/line, page id, numeric viewport/error counts. Delayed-element RED then23 tests GREEN; corrected budget fixture's clock for the added lookup wait. Independent23 tests/no blockers. Source owner round03 succeeded05:40:01 UTC,04 active; no local owner key, new model, public asset deployment or producer restart.
