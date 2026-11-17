@@ -49,3 +49,14 @@ A=実際に事前生成した既存方式の予想、B=初周→打鐘→最終H
 - **正式な全国無人本番はまだ完成していない**。今回のコード追加はDraft PR #291のみ、保護mainへ未統合。A/B予想生成・秘密鍵付与・結果取得を無断で本番スケジュールへ昇格しない。
 
 **最優先の次のゲート**：2026-11-18の残り78レースについて、レースごとに公開済みの真正な出走前情報を入れ、少なくとも追加1レースで締切前A/B暗号原本の作成から別runner読戻しまで実証する。その後、毎日の全レースへ適用率100%を目指す。未生成は水増ししない。
+
+
+## 11/18 07:44 JST 追加：毎日変動する開催母数と全国結果スコアボードの検証
+
+- `race_ai/keirin_dynamic_nationwide_registry.py` は **2026-11-19以降の日付も動的に受付**。79という固定数を将来も使い回さず、独立した公開開催場一覧を優先して入場。未確認会場を全国全件と発表しない。翌日コホートが7Rしかないという架空ケースも合成で検証。
+- `race_ai/keirin_nationwide_AB_executor.py` は実79件と将来の可変件数の両方に対応。出走前情報・締切・本物のA/B生成・所有者AES create-only保存・独立暗号文SHAがそれぞれ欠けたレースはHOLD。**当日79件に予想を自動生成したという意味ではない。**
+- `race_ai/keirin_nationwide_AB_results.py` は会場別に固定母数、予想済み、正式に照合できたレース、HOLD、Hit@1/全買い目、100円均等仮想回収率を集計。第三者検証がない自己申告の的中レポートはHOLD。A/Bは同じ実レースのみで比較、CはCがある同一分母に限定。
+- 合成テスト3群 `tests/test_keirin_nationwide_active_AB.py`、`tests/test_keirin_nationwide_AB_executor.py`、`tests/test_keirin_dynamic_nationwide_registry.py` と結果採点 `tests/test_keirin_nationwide_AB_results.py` を既存研究CIへ追加。**[GitHub Actions Run 44192752948](https://github.com/haji84/RACE-AI/actions/runs/44192752948)で研究サブセット202件PASS**。PRの本番main限定ジョブはSKIPPED。合成テストにおける実際の予想/払戻・架空提供元コールバックを本番79件に加算しない。
+- PR #291タイトルを「nationwide all-race A generated vs B six-phase, optional line C」に更新、旧4モデル前提と新方針の違いをPR説明先頭にも明記。
+
+**対象登録の完了 ≠ 79件予想の自動生成完了 ≠ 79件結果照合完了**。2026-11-18の未完78Rは、個別に真の出走表・ライン・締切を取得してBを作りAESで不変保存しない限り完成にならない。現時点で自動無人本番達成は未確認。
