@@ -188,7 +188,7 @@ def register_source_ready_receipt(*,registry, race_id,
     return summary
 
 
-def summarize_all(*,registry, verified_receipts):
+def summarize_all(*,registry, verified_receipts, independent_receipt_reader=None):
     """All 79 are present even when 78 haven't generated predictions."""
     checked_registry(registry)
     require(type(verified_receipts) is list and len(verified_receipts)<=79,
@@ -209,12 +209,19 @@ def summarize_all(*,registry, verified_receipts):
             final["HOLD_UNREPORTED"]+=1
         else:
             state=indexed[id]["state"]
-            if state=="VERIFIED_SOURCE_READY_FOR_NEW_A_AND_B":
-                final["VERIFIED_SOURCE_READY_A_B_NOT_YET_GENERATED"]+=1
-            elif state in STATE:
-                final[state]+=1
-            else:
+            if state!="VERIFIED_SOURCE_READY_FOR_NEW_A_AND_B" and state not in STATE:
                 raise NationwideABError("UNADMITTED_NATIONWIDE_RESULT_STATE")
+            # A job reporting itself successful is NOT independent proof.
+            # The owner-controlled verifier must read original receipts and
+            # source/cipher/official-result evidence from another trust path.
+            if (state=="VERIFIED_SOURCE_READY_FOR_NEW_A_AND_B" or
+                state.startswith("A_B_")) and not _trusted(
+                    independent_receipt_reader,indexed[id]):
+                final["HOLD_RECEIPT_NOT_INDEPENDENTLY_VERIFIED"]+=1
+            elif state=="VERIFIED_SOURCE_READY_FOR_NEW_A_AND_B":
+                final["VERIFIED_SOURCE_READY_A_B_NOT_YET_GENERATED"]+=1
+            else:
+                final[state]+=1
     return {
         "schema":SUMMARY_SCHEMA,
         "cohort_race_count":79,
