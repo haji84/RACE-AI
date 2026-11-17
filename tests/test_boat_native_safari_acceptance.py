@@ -4,6 +4,7 @@ import base64
 import hashlib
 import io
 import json
+import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import tempfile
@@ -922,6 +923,317 @@ vm.createContext(scope);vm.runInContext(fs.readFileSync(0,'utf8'),scope);
                          'MODEL_ORIGINAL_MISMATCH')
         self.assertEqual(S.failure_report(S.SafariHold('private secret'))['reason'],
                          'SAFARI_OPERATION_FAILED')
+
+
+@contextmanager
+def candidate_fixture():
+    """A local invented Git checkout exercises the real pin/byte admission."""
+    with tempfile.TemporaryDirectory() as name:
+        root = Path(name).resolve() / 'checkout'
+        web = root / 'web'
+        (web / 'data').mkdir(parents=True)
+        fixture = {'schema': 'RACE_AI_FORECAST_AUDIT_V1', 'dataset_status': 'SYNTHETIC_ONLY',
+            'event_date_jst': '2030-01-01', 'records': [
+                {'race_id': ident, 'source_provenance': 'SYNTHETIC_ONLY'} for ident in S.SYNTHETIC_IDS]}
+        assets = {'index.html': b'<html><head><script defer src="./app.js"></script></head><body></body></html>',
+                  'app.js': b'/* invented public script */', 'style.css': b'body{}',
+                  'other.html': b'<html>outside the seven-page capture</html>',
+                  'data/other-forecast.json': b'{"records":["never a capture input"]}',
+                  S.SYNTHETIC_PATH: json.dumps(fixture).encode()}
+        for path, raw in assets.items():
+            (web / path).write_bytes(raw)
+        def git(*args):
+            result = subprocess.run(['git', '-C', str(root), *args], capture_output=True, check=True)
+            return result.stdout.decode().strip()
+        git('init', '-q')
+        git('add', 'web')
+        git('-c', 'user.name=Invented fixture', '-c', 'user.email=fixture@example.invalid',
+            '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'fixture')
+        with patch.multiple(S, CANDIDATE_SHA=git('rev-parse', 'HEAD'),
+                CANDIDATE_WEB_TREE=git('rev-parse', 'HEAD:web'),
+                CANDIDATE_ASSET_SHA256={path: hashlib.sha256(assets[path]).hexdigest()
+                                      for path in ('index.html', 'app.js', 'style.css')},
+                SYNTHETIC_SHA=hashlib.sha256(assets[S.SYNTHETIC_PATH]).hexdigest()):
+            yield root, assets, fixture
+
+
+class CandidateSyntheticTests(unittest.TestCase):
+    def test_candidate_pin_is_exact_reviewed_ui_not_a_runtime_or_model_pin(self):
+        self.assertEqual(getattr(S, 'CANDIDATE_SHA', None), '598c80c89b5d6a1bca8dbbb16d091ef9e74bfb76')
+        self.assertEqual(S.CANDIDATE_WEB_TREE, '23bddbad96d303cdd9699615ecfa6f99f7f82f61')
+        self.assertEqual(S.CANDIDATE_ASSET_SHA256, {
+            'index.html': '676a3537bb97f5826d2f1e7c01154a488e310a3d18bd25e9c8a50c33d9666c39',
+            'app.js': '67742a37a42e46deb2e2de4dd65540f81227bbf8138e7606909e17c6c9104fa6',
+            'style.css': 'c2dd9f1841e83b1359517edd2082830504bf5e5a65fe501cf44346ad50d38400'})
+        self.assertEqual(S.PAGES_SHA, 'f60308ef7443ca13b5ca23c4896e15ffc67b0427')
+        self.assertEqual(S.SOURCE_SHA, 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3')
+
+    def test_candidate_loader_requires_pinned_clean_git_bytes_and_no_symlinks(self):
+        self.assertTrue(callable(getattr(S, 'load_candidate_assets', None)))
+        with candidate_fixture() as (root, assets, _):
+            self.assertEqual(S.load_candidate_assets(root / 'web'),
+                {key: value for key, value in assets.items() if key not in ('other.html', 'data/other-forecast.json')})
+            with patch.object(S, 'CANDIDATE_SHA', '0' * 40):
+                with self.assertRaises(S.SafariHold):
+                    S.load_candidate_assets(root / 'web')
+            with patch.object(S, 'CANDIDATE_WEB_TREE', '0' * 40):
+                with self.assertRaises(S.SafariHold):
+                    S.load_candidate_assets(root / 'web')
+            (root / 'web/app.js').write_bytes(b'changed')
+            with self.assertRaises(S.SafariHold):
+                S.load_candidate_assets(root / 'web')
+            (root / 'web/app.js').write_bytes(assets['app.js'])
+            (root / 'web/unexpected.json').write_bytes(b'private-sentinel')
+            with self.assertRaises(S.SafariHold):
+                S.load_candidate_assets(root / 'web')
+            (root / 'web/unexpected.json').unlink()
+            (root / 'web/app.js').unlink()
+            (root / 'web/app.js').symlink_to(root / 'web/style.css')
+            with self.assertRaises(S.SafariHold):
+                S.load_candidate_assets(root / 'web')
+
+    def test_candidate_fixture_cannot_be_replaced_by_another_synthetic_dataset(self):
+        with candidate_fixture() as (root, _, _):
+            with patch.object(S, 'SYNTHETIC_SHA', '0' * 64):
+                with self.assertRaisesRegex(S.SafariHold, 'SYNTHETIC_FIXTURE_INVALID'):
+                    S.load_candidate_assets(root / 'web')
+
+    def test_candidate_plain_index_adapter_only_serves_the_exact_public_fixture(self):
+        with candidate_fixture() as (root, assets, fixture):
+            loaded = S.load_candidate_assets(root / 'web')
+            with S.LoopbackSite(loaded, fixture, synthetic=True, candidate_ui=True) as site:
+                with urllib.request.urlopen(site.url, timeout=3) as response:
+                    index = response.read()
+                    self.assertIn(b'/_acceptance/privacy.js', index)
+                    self.assertIn(b'race-ai-private-saved-view', index)
+                    self.assertNotIn(b'race-ai-encrypted-saved-view', index)
+                with urllib.request.urlopen(site.origin + '/api/forecast/saved', timeout=3) as response:
+                    self.assertEqual(json.load(response), fixture)
+                for blocked in ('other.html', 'data/other-forecast.json'):
+                    with self.assertRaises(urllib.error.HTTPError) as denied:
+                        urllib.request.urlopen(site.origin + '/' + blocked, timeout=3)
+                    denied.exception.close()
+            for options in ({'synthetic': False}, {'synthetic': True, 'secrets': ('private-sentinel',)}):
+                with self.assertRaises(S.SafariHold):
+                    S.LoopbackSite(assets, fixture, candidate_ui=True, **options)
+            with self.assertRaises(S.SafariHold):
+                S.LoopbackSite(assets, {'records': []}, synthetic=True, candidate_ui=True)
+            with self.assertRaises(S.SafariHold):
+                S.synthetic_candidate_index(INDEX)
+
+    def test_candidate_mode_never_enters_any_authenticated_or_live_asset_loader(self):
+        report = {'schema': 'fixture-only', 'screenshots': []}
+        output = io.StringIO()
+        with patch.dict(os.environ, {}, clear=True), patch.object(S.platform, 'system', return_value='Darwin'), \
+                patch.object(S, 'load_candidate_assets', return_value={}) as candidate, \
+                patch.object(S, 'synthetic_visual_checks', return_value=report) as visual, \
+                patch.object(S, 'load_public_assets', side_effect=AssertionError('private path')), \
+                patch.object(S, 'verify_live_assets', side_effect=AssertionError('live path')), \
+                patch.object(S, 'load_encrypted_seed', side_effect=AssertionError('cipher path')), \
+                patch.object(S, 'read_authenticated_view', side_effect=AssertionError('owner path')), \
+                redirect_stdout(output), redirect_stderr(output):
+            self.assertEqual(S.main(['--public-root', '/candidate/web', '--synthetic-only',
+                                     '--candidate-ui', '--output', '/new-output']), 0)
+        candidate.assert_called_once_with(Path('/candidate/web'))
+        self.assertTrue(visual.call_args.kwargs['candidate_ui'])
+        self.assertNotIn('/candidate/', output.getvalue())
+
+    def test_candidate_process_refuses_all_extra_environment_and_private_arguments(self):
+        for environment in ({'GH_TOKEN': 'private-sentinel'}, {'RACE_AI_STATE_KEY': 'private-sentinel'},
+                            {'RACE_AI_VIEWER_KEY': 'private-sentinel'}, {'OWNER_URL': 'private-sentinel'}):
+            output = io.StringIO()
+            with self.subTest(environment=tuple(environment)), patch.dict(os.environ, environment, clear=True), \
+                    patch.object(S, 'load_candidate_assets') as candidate, redirect_stdout(output), redirect_stderr(output):
+                self.assertEqual(S.main(['--public-root', '/candidate/web', '--synthetic-only',
+                                         '--candidate-ui', '--output', '/new-output']), 2)
+            candidate.assert_not_called()
+            self.assertNotIn('sentinel', output.getvalue())
+        with patch.dict(os.environ, {}, clear=True), patch.object(S, 'load_candidate_assets') as candidate, \
+                redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            for extra in ([], ['--synthetic-only', '--source-root', '/private-sentinel']):
+                self.assertEqual(S.main(['--public-root', '/candidate/web', '--candidate-ui',
+                                         '--output', '/new-output', *extra]), 2)
+        candidate.assert_not_called()
+
+    def test_candidate_screenshot_refuses_fragments_and_even_allowed_preference_storage(self):
+        class Site:
+            synthetic_fixture_sha256 = S.SYNTHETIC_SHA
+            seed_path, candidate_ui, origin = None, True, 'http://127.0.0.1:1234'
+            audit = {'private_view_reads': 1, 'secret_in_request': False,
+                     'non_read_requests': 0, 'outbound_requests_permitted': 0}
+        probe = {'origin': Site.origin, 'fragment': '#home', 'verified': True,
+                 'fixture_sha256': S.SYNTHETIC_SHA, 'page_errors': 0, 'visible_page': 'page-home',
+                 'width': 390, 'overflow': False, 'encrypted': False, 'synthetic_banner': True}
+        snapshot = {'url': Site.origin + '/#home', 'local': {}, 'session': {}, 'cookie': '',
+                    'privacy': {'page_errors': 0}}
+        cases = [(dict(probe, fragment='#saved=' + 'a' * 64 + '.' + 'b' * 43), snapshot),
+                 (probe, dict(snapshot, local={'race-ai-display-v1': '{"budget":10000}'})),
+                 (probe, dict(snapshot, session={'viewer': 'private-sentinel'}))]
+        with tempfile.TemporaryDirectory() as name:
+            for first, second in cases:
+                driver = unittest.mock.Mock()
+                driver.script.side_effect = [first, second]
+                with self.assertRaises(S.SafariHold):
+                    S.save_synthetic_screenshot(driver, Site(), Path(name), 390, 'home')
+                driver.command.assert_not_called()
+            self.assertEqual(list(Path(name).iterdir()), [])
+
+    def test_candidate_artifacts_require_exact_context_cleanup_identity_and_false_acceptance(self):
+        raw = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
+        with tempfile.TemporaryDirectory() as name:
+            folder = Path(name).resolve()
+            images = []
+            for width in S.VISUAL_WIDTHS:
+                for page in S.VISUAL_PAGES:
+                    path = folder / (str(width) + '-' + page + '.png');path.write_bytes(raw)
+                    images.append({'name': path.name, 'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()})
+            report = {'schema': 'RACE_AI_SYNTHETIC_SAFARI_VISUAL_V2', 'dataset_status': 'SYNTHETIC_ONLY',
+                'public_fixture_sha256': S.SYNTHETIC_SHA, 'screenshots': images,
+                'candidate_source': S.candidate_identity(), 'synthetic_session_cleanup_verified': True,
+                'native_browser': {'browserName': 'Safari', 'platformName': 'macOS', 'browserVersion': '26.1'},
+                'real_data_context_used_for_capture': False, 'physical_iphone_verified': False,
+                'all_eight_reference_screens_visually_verified': False, 'account_login_verified': False,
+                'current_v5_live_continuation_verified': False, 'real_data_verified': False,
+                'viewports': [S.require_viewport(w, {'width': w, 'height': 844}) for w in S.VISUAL_WIDTHS]}
+            target = folder / 'synthetic-only.json'
+            target.write_text(json.dumps(report))
+            self.assertEqual(S.verify_synthetic_artifacts(folder, candidate_ui=True)['screenshots'], 28)
+            for changed in [dict(report, candidate_source={}), dict(report, synthetic_session_cleanup_verified=False),
+                    dict(report, account_login_verified=True), dict(report, current_v5_live_continuation_verified=True),
+                    dict(report, real_data_verified=True), dict(report, physical_iphone_verified=True),
+                    dict(report, native_browser={'browserName': 'webkit'}),
+                    dict(report, viewports=[dict(v, actual_inner_width=500) for v in report['viewports']])]:
+                target.write_text(json.dumps(changed))
+                with self.assertRaises(S.SafariHold):
+                    S.verify_synthetic_artifacts(folder, candidate_ui=True)
+            target.write_text(json.dumps(report))
+            (folder / 'private.html').write_bytes(b'private-sentinel')
+            with self.assertRaises(S.SafariHold):
+                S.verify_synthetic_artifacts(folder, candidate_ui=True)
+
+    def test_candidate_report_is_written_only_after_its_fresh_session_closes(self):
+        events = []
+        class Driver:
+            width = 320
+            def command(self, method, suffix, body):
+                if suffix == '/window/rect':
+                    self.width = body['width']
+            def wait(self, *args, **kwargs):
+                return True
+            def click(self, *args):
+                pass
+            def script(self, source):
+                if 'Object.keys(localStorage)' in source:
+                    return True
+                if 'width:innerWidth' in source:
+                    return {'width': self.width, 'height': 844}
+        @contextmanager
+        def browser():
+            events.append('fresh_session')
+            yield Driver(), {'browserName': 'Safari', 'platformName': 'macOS', 'browserVersion': '26.1'}
+            events.append('closed_session')
+        with candidate_fixture() as (root, assets, _), patch.dict(os.environ, {}, clear=True), \
+                patch.object(S, 'apple_driver', side_effect=browser), \
+                patch.object(S, 'select_saved_day'), patch.object(S, 'click_saved_page'), patch.object(S, 'open_saved_race'), \
+                patch.object(S, 'save_synthetic_screenshot', side_effect=lambda d,s,f,w,p:
+                    {'name': str(w)+'-'+p+'.png', 'bytes': 0, 'sha256': '0'*64}), \
+                patch.object(S, 'verify_synthetic_artifacts') as verify:
+            report = S.synthetic_visual_checks(assets, root.parent / 'output', candidate_ui=True)
+            self.assertEqual(events, ['fresh_session', 'closed_session'])
+            self.assertTrue((root.parent / 'output/synthetic-only.json').is_file())
+            self.assertEqual(len(report['screenshots']), 28)
+            self.assertEqual(report['candidate_source'], S.candidate_identity())
+            self.assertIs(report['synthetic_session_cleanup_verified'], True)
+            for key in ('account_login_verified', 'current_v5_live_continuation_verified', 'real_data_verified',
+                        'physical_iphone_verified', 'all_eight_reference_screens_visually_verified'):
+                self.assertIs(report[key], False)
+            verify.assert_called_once_with(root.parent / 'output', candidate_ui=True)
+
+    def test_existing_job_keeps_private_pins_and_captures_candidate_only_after_success(self):
+        text = (Path(__file__).resolve().parents[1] / '.github/workflows/boat-owner-formal-live-pages-proof.yml').read_text()
+        steps = acceptance_workflow_steps()
+        private = next(i for i, step in enumerate(steps) if step.get('name') ==
+            'Verify real desktop Safari with authenticated originals and private loopback transport')
+        checkout = next(i for i, step in enumerate(steps) if step.get('path') == '.native-safari-ui-candidate')
+        self.assertGreater(checkout, private)
+        self.assertEqual(steps[checkout]['ref'], S.CANDIDATE_SHA)
+        self.assertEqual(steps[checkout]['persist-credentials'], 'false')
+        capture = text[text.index('      - name: Capture pinned UI candidate'):text.index('      - name: Retain only verified synthetic')]
+        self.assertEqual(capture.count('env -i '), 2)
+        self.assertIn('HOME="$HOME"', capture)
+        self.assertNotIn('CODEX_HOME', capture)
+        self.assertEqual(capture.count('--candidate-ui'), 2)
+        self.assertNotIn('always()', capture)
+        self.assertNotIn('        env:', capture)
+        self.assertNotIn('GH_TOKEN', capture)
+        self.assertIn('options: [current-http, native-safari]', text)
+        self.assertIn('permissions:\n  contents: read', text)
+        self.assertIn('&& 20 || 6', text)
+        jobs = text.split('jobs:\n', 1)[1]
+        self.assertEqual(len(__import__('re').findall(r'^  [A-Za-z_][A-Za-z_0-9]*:', jobs, __import__('re').M)), 1)
+        self.assertIn('path: ${{ runner.temp }}/race-ai-ui-candidate-safari/*.png', text)
+        self.assertNotIn('synthetic-only.json\n', text)
+
+
+class SessionCleanupTests(unittest.TestCase):
+    def test_session_close_requires_the_delete_acknowledgement(self):
+        driver = S.WebDriver(1234);driver.session = 'invented-session'
+        with patch.object(driver, 'command', return_value=None) as command:
+            self.assertIs(driver.close(), True)
+        command.assert_called_once_with('DELETE', '')
+        driver.session = 'invented-session'
+        with patch.object(driver, 'command', side_effect=S.DriverHold(operation='delete_session')):
+            self.assertIs(driver.close(), False)
+        driver.session = 'invented-session'
+        with patch.object(driver, 'command', return_value={'unrecognized': 'private-owner-sentinel'}):
+            self.assertIs(driver.close(), False)
+
+    def test_failed_session_delete_still_reaps_driver_and_prevents_a_successful_context(self):
+        process, driver = unittest.mock.Mock(), unittest.mock.Mock()
+        process.poll.return_value = None;driver.close.return_value = False
+        driver.new_session.return_value = {'browserName': 'Safari', 'platformName': 'macOS', 'browserVersion': '26.1'}
+        with patch.object(S.platform, 'system', return_value='Darwin'), \
+                patch.object(S.os.path, 'isfile', return_value=True), patch.object(S.os, 'access', return_value=True), \
+                patch.object(S.subprocess, 'Popen', return_value=process), patch.object(S, 'WebDriver', return_value=driver), \
+                patch.object(S.socket, 'create_connection'):
+            with self.assertRaisesRegex(S.SafariHold, 'SAFARI_SESSION_CLEANUP_FAILED'):
+                with S.apple_driver():
+                    pass
+        process.terminate.assert_called_once();process.wait.assert_called_once()
+
+    def test_unexpected_close_failure_is_private_and_still_reaps_the_driver(self):
+        process, driver = unittest.mock.Mock(), unittest.mock.Mock()
+        process.poll.return_value = None
+        driver.close.side_effect = RuntimeError('private-owner-sentinel')
+        with patch.object(S.platform, 'system', return_value='Darwin'), \
+                patch.object(S.os.path, 'isfile', return_value=True), patch.object(S.os, 'access', return_value=True), \
+                patch.object(S.subprocess, 'Popen', return_value=process), patch.object(S, 'WebDriver', return_value=driver), \
+                patch.object(S.socket, 'create_connection'):
+            with self.assertRaisesRegex(S.SafariHold, 'SAFARI_SESSION_CLEANUP_FAILED'):
+                with S.apple_driver():
+                    pass
+        process.terminate.assert_called_once();process.wait.assert_called_once()
+
+    def test_private_cleanup_failure_cannot_report_success_or_start_capture(self):
+        @contextmanager
+        def failing_driver():
+            yield object(), {}
+            raise S.SafariHold('SAFARI_SESSION_CLEANUP_FAILED')
+        @contextmanager
+        def site(*args, **kwargs):
+            yield object()
+        output = io.StringIO()
+        with patch.object(S.platform, 'system', return_value='Darwin'), \
+                patch.object(S, 'load_public_assets', return_value={}), patch.object(S, 'verify_live_assets'), \
+                patch.object(S, 'load_encrypted_seed'), patch.object(S, 'read_authenticated_view',
+                    return_value=({}, {}, {'key': 'private-owner-sentinel'})), \
+                patch.object(S, 'LoopbackSite', side_effect=site), patch.object(S, 'apple_driver', side_effect=failing_driver), \
+                patch.object(S, 'app_checks'), patch.object(S, 'encrypted_seed_checks') as encrypted, \
+                patch.object(S, 'synthetic_visual_checks') as visual, redirect_stdout(output), redirect_stderr(output):
+            self.assertEqual(S.main(['--public-root', '/public', '--source-root', '/reader']), 2)
+        encrypted.assert_not_called();visual.assert_not_called()
+        self.assertEqual(json.loads(output.getvalue())['reason'], 'SAFARI_SESSION_CLEANUP_FAILED')
+        self.assertNotIn('sentinel', output.getvalue())
 
 
 if __name__ == '__main__':
