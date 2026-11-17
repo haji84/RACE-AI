@@ -102,6 +102,10 @@ class AllModelSourceArchiveRetentionTests(unittest.TestCase):
         environment = patch.dict(os.environ, GH_TOKEN=TOKEN, GIT_CONFIG_COUNT='0')
         environment.start(); self.addCleanup(environment.stop)
         self.git = MemoryGit(); self.git.ref = TRANSFER_REF
+        self.git.repo = fixture.root/'writer'
+        self.reader = MemoryGit(); self.reader.ref = TRANSFER_REF
+        self.reader.repo = fixture.root/'independent-reader'
+        self.reader.trees = self.git.trees  # Shared simulated remote; distinct reader object/path.
         self.now = pair_tests.FORECAST_NOW+timedelta(hours=1)
 
     def write_archive(self, raw, metadata_raw):
@@ -110,17 +114,23 @@ class AllModelSourceArchiveRetentionTests(unittest.TestCase):
 
     def retain(self):
         with patch.object(retention, 'GitStateRepository', return_value=self.git):
-            return retention.retain_private_source_archives([self.root], self.fixture.root, now=self.now)
+            return retention.retain_private_source_archives([self.root], self.fixture.root, now=self.now,
+                readback_transport=self.reader)
 
     def test_actual_new_pair_admission_retains_exact_source_bytes_and_is_idempotent(self):
         before = dict(os.environ)
         with patch.object(retention, 'verify_private_pairs_artifact', wraps=verify_private_pairs_artifact) as verify, \
-             patch.object(retention, 'verify_private_p1_artifact', side_effect=AssertionError('new prefix must use new verifier')):
+             patch.object(retention, 'verify_private_p1_artifact', side_effect=AssertionError('new prefix must use new verifier')), \
+             patch.object(self.reader, 'read', wraps=self.reader.read) as independent_read:
             result = self.retain()
         verify.assert_called_once_with(self.raw, self.metadata, now=self.now,
                                        expected_run_id=99, expected_head_sha=pair_tests.HEAD)
         self.assertEqual(dict(os.environ), before)
         pointer = result['pointers'][0]; tree = self.git.trees[pointer['source_commit']]
+        self.assertIsNot(self.git, self.reader)
+        self.assertNotEqual(self.git.repo, self.reader.repo)
+        selected = {pointer[name] for name in ('archive_path', 'metadata_path', 'manifest_path')}
+        self.assertEqual({call.args[1] for call in independent_read.call_args_list}, selected)
         self.assertEqual(tree[pointer['archive_path']], self.raw)
         self.assertEqual(tree[pointer['metadata_path']], self.metadata_raw)
         self.assertEqual(tree['unrelated.enc'], b'preserve')
