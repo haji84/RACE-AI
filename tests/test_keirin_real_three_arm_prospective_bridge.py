@@ -126,5 +126,39 @@ class ThreeArmProspectiveBridgeContract(unittest.TestCase):
         self.assertFalse(r["formal_uplift_proven"])
 
 
+class RealPreRegisteredSeibuenCohort(unittest.TestCase):
+    """Real 2026-11-18 race identified prospectively; outcomes not fabricated."""
+
+    def cohort(self):
+        import json
+        from pathlib import Path
+        path = (Path(__file__).resolve().parents[1] / "docs" /
+                "evidence" / "2026-11-18" /
+                "keirin_seibuen1r_3arm_cohort_frozen_v1.json")
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def test_actual_race_pre_registration_contract_and_sha(self):
+        from race_ai import keirin_round_paired_audit as paired
+        c = self.cohort()
+        expected = paired.make_cohort(
+            race_ids=["202611182601"],
+            registered_at="2026-11-18T02:09:31+09:00",
+            race_cutoffs={"202611182601":"2026-11-18T10:45:00+09:00"},
+            candidate_model_version="stage-line-shrinkage-shadow-v1",
+            original_model_id="multisport-factor-interaction-v1")
+        self.assertEqual(c, expected)
+        self.assertEqual(
+            c["cohort_sha256"],
+            "8cd2699a2c57431416f9dd97ebf930f98f19388acf34cf8d87747c2d7116dcf2")
+
+    def test_missing_A_B_C_remains_hold_not_a_miss(self):
+        from race_ai import keirin_line_three_arm_audit as actual
+        report = actual.summarize(self.cohort(), [])
+        self.assertEqual(report["planned_races"], 1)
+        self.assertEqual(report["three_arm_paired_races"], 0)
+        self.assertEqual(report["unpaired_holds"], {"UNREPORTED":1})
+        self.assertFalse(report["real_accuracy_uplift_proven"])
+
+
 if __name__=="__main__":
     unittest.main()
