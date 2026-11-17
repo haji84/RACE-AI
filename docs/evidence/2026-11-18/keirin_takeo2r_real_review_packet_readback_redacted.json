@@ -1,0 +1,24 @@
+{
+  "schema": "RACE_AI_KEIRIN_TAKEO2R_PRIVATE_REVIEW_PACKET_REAL_READBACK_V1",
+  "date_jst": "2026-11-18",
+  "race_id": "202611098402",
+  "recording_sha256_claim_from_prior_research_report": "4e389a46c223b7cb2eaa7c5c5bdc34ade229deedea8a3c795c8be987b57aa810",
+  "raw_recording_replayed_in_this_audit": false,
+  "proposal_sha256_claim_from_prior_research_report": "b207ec30d3fb368b9d9e64b494aa8e9e3657aac388023226c798da8ba8a98bae",
+  "owner_private_html_A_byte_sha_verified": "4bfab49ce7c1beba6840fab40856aaaf9843afdff9077acd2fa723831ccc6469",
+  "owner_private_html_B_byte_sha_verified": "95d6bd402dbce180486952da643584860c76f7ca1669ab459409b39e7ac845eb",
+  "distinct_packet_manifest_claims": true,
+  "review_packet_html_source_filenames_kept_private": true,
+  "paired_frame_declared_source_sha_order_same": 46,
+  "paired_embedded_display_png_bytes_same": 46,
+  "frame_counts": {
+    "A": 46,
+    "B": 46
+  },
+  "human_signed_reviews_in_input": 0,
+  "independent_visual_tactical_labels": 0,
+  "state": "HOLD_PENDING_TWO_INDEPENDENT_REVIEWS_AND_TACTICAL_LABELS",
+  "real_video_byte_SHA_from_prior_run_not_reverified_now": true,
+  "training_or_prospective_model_promotion": false,
+  "raw_pixels_or_screenshot_coordinates_published": false
+}
