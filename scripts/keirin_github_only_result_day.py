@@ -146,6 +146,8 @@ def run_day(*, day, repo, private_raw_dir, max_races=MAX_RACES, clock=None):
     registry, manifest, source_status = registration.register_day(
         day_jst=day,private_raw_dir=raw,clock=clock,
         fetch=guarded_fetch)
+    live.require(source_status.get("stopped_after_provider_error") is not True,
+                 "HOLD_PROVIDER_DENIED_BEFORE_RESULT_GET_NO_RETRY")
     linked = {r["race_id"] for r in manifest["races"]}
     head = archive._refresh(repo)
     eligible = []
