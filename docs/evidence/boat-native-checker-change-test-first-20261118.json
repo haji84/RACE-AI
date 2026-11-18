@@ -1,0 +1,23 @@
+{
+  "schema": "RACE_AI_NATIVE_CHECKER_CHANGE_TEST_FIRST_EVIDENCE_V1",
+  "head_sha": "815b9df9d6dc748e047ad033fdef803daa498886",
+  "tree_sha": "faa78f33c42b77902a3f7156d1d901a648d33c73",
+  "test_blob": "8dcba6458a026bdd0dba7292270e74c16ff6f701",
+  "contract_blob": "233572c4c74017bbd01ba1641742cbf57556b6f2",
+  "original_methods_retained": 26,
+  "new_methods": 12,
+  "original_candidate_changed_call_sequence_preserved": true,
+  "run_id": 44242760121,
+  "job_id": 134594340853,
+  "timestamp_utc": "2026-11-18T05:13:50.9067963Z",
+  "tests": 131,
+  "seconds": 0.39,
+  "failures": 13,
+  "errors": 0,
+  "missing_predicate_failures": 12,
+  "updated_unchanged_candidate_sequence_failure": 1,
+  "syntax_errors": 0,
+  "workflow_changed": false,
+  "ui_pin_changed": false,
+  "live_dispatch_performed": false
+}

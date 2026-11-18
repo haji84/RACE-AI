@@ -2615,5 +2615,539 @@ process.stdout.write(JSON.stringify(output));
             self.assertIs(driver.close(), True)
 
 
+
+def current_v5_fixture():
+    """Invented envelope bytes test transport admission; no authentication claim."""
+    context = context_fixture()
+    context.pop('owner_url')
+    tickets = [[[1, 2, 3], [2, 1, 3]], [[2, 1, 3], [1, 2, 3]]]
+    for choice, original in zip(context['model_switch_probe']['choices'], tickets):
+        choice['tickets_sha256'] = hashlib.sha256(
+            json.dumps(original, separators=(',', ':')).encode()).hexdigest()
+    context['model_switch_probe']['choices'][0]['model_id'] = 'private-current-model-one'
+    context['model_switch_probe']['choices'][1]['model_id'] = 'private-current-model-two'
+    view_id, anchor = 'a' * 64, 'c' * 64
+    header = {'schema': 'RACE_AI_SAVED_WEB_HISTORY_V5', 'view_id': view_id,
+              'forecast_sha256': anchor, 'source_content_sha256': 'd' * 64,
+              'generation': context['generation'], 'previous_cipher_sha256': 'e' * 64,
+              'history_index_sha256': 'f' * 64}
+    def envelope(header):
+        return json.dumps({'header': header, 'nonce': 'AAAAAAAAAAAAAAAA',
+                           'ciphertext': 'A' * 24}, sort_keys=True, separators=(',', ':')).encode()
+    router = envelope(header)
+    router_sha = hashlib.sha256(router).hexdigest()
+    base = 'https://raw.githubusercontent.com/haji84/RACE-AI/'
+    router_url = base + 'state/boat-saved-view/views/' + router_sha + '.json'
+    catalog = envelope({'schema': 'RACE_AI_SAVED_WEB_HISTORY_CATALOG_V1',
+                        'view_id': view_id, 'forecast_sha256': anchor,
+                        'history_index_sha256': 'b' * 64})
+    day = envelope({'schema': 'RACE_AI_SAVED_WEB_HISTORY_DAY_V1',
+                    'view_id': view_id, 'forecast_sha256': anchor, 'day': context['day'],
+                    'part': 0, 'forecast_inventory_sha256': 'b' * 64})
+    catalog_url = base + '1' * 40 + '/views/' + hashlib.sha256(catalog).hexdigest() + '.json'
+    day_url = base + '2' * 40 + '/views/' + hashlib.sha256(day).hexdigest() + '.json'
+    latest = json.dumps({'header': header, 'cipher_sha256': router_sha},
+                        sort_keys=True, separators=(',', ':')).encode()
+    return {'snapshot_sha': '3' * 40, 'latest_raw': latest,
+            'ciphertexts': {router_url: router, catalog_url: catalog, day_url: day},
+            'context': context, 'view_id': view_id, 'forecast_sha256': anchor,
+            'secrets': ('K' * 43, 'private-owner-key-sentinel'),
+            'now': S.datetime(2030, 3, 31, 15, 0, tzinfo=S.timezone.utc)}, tickets
+
+
+def current_v5_probe(arguments, tickets):
+    context = arguments['context']
+    latest = json.loads(arguments['latest_raw'])
+    return {'schema': 'RACE_AI_SAVED_WEB_HISTORY_V5',
+            'generation': context['generation'], 'cipher_sha256': latest['cipher_sha256'],
+            'history_day': context['day'], 'selected_day': context['day'], 'source_day': context['day'],
+            'v5_read_live_successes': 1, 'aes_successes': 3,
+            'results': context['minimum_results'], 'native_p1_groups': context['native_group_count'],
+            'model_choices': [
+                {'model_id': choice['model_id'], 'index': str(choice['index']), 'tickets': original}
+                for choice, original in zip(context['model_switch_probe']['choices'], tickets)]}
+
+
+def current_v5_audit():
+    return {'private_view_reads': 0, 'encrypted_seed_reads': 1,
+            'current_v5_manifest_reads': 1, 'current_v5_cipher_reads': 3,
+            'secret_in_request': False, 'non_read_requests': 0, 'outbound_requests_permitted': 0}
+
+
+class CurrentV5SafariBoundaryTests(unittest.TestCase):
+    """One real-data proof must come from V5 AES, not the old seed/plaintext check."""
+    def setUp(self):
+        for name in ('build_current_v5_replay', 'current_v5_replay_route',
+                     'current_v5_replay_script', 'verify_current_v5_evidence',
+                     'current_v5_checks', 'read_current_v5_replay'):
+            self.assertTrue(callable(getattr(S, name, None)), name + ' is not implemented')
+
+    def replay(self, arguments=None):
+        arguments = current_v5_fixture()[0] if arguments is None else arguments
+        return S.build_current_v5_replay(**arguments)
+
+    def test_bundle_binds_v5_manifest_cipher_context_and_is_detached_and_opaque(self):
+        arguments, tickets = current_v5_fixture()
+        original = copy.deepcopy(arguments)
+        replay = self.replay(arguments)
+        self.assertEqual(replay.snapshot_sha, arguments['snapshot_sha'])
+        self.assertEqual(replay.cipher_sha256, json.loads(arguments['latest_raw'])['cipher_sha256'])
+        self.assertEqual(arguments, original)
+        arguments['context']['generation'] = 999
+        arguments['ciphertexts'].clear()
+        report = S.verify_current_v5_evidence(
+            replay, current_v5_probe(original, tickets), current_v5_audit())
+        self.assertEqual(report['authenticated_generation'], original['context']['generation'])
+        self.assertNotIn('private-', repr(replay))
+        self.assertNotIn('K' * 43, repr(replay))
+        with self.assertRaises(TypeError):
+            json.dumps(replay)
+
+    def test_current_day_is_actual_jst_today_and_existing_p1_requirements_still_apply(self):
+        arguments, _ = current_v5_fixture()
+        self.replay(arguments)  # UTC March31 15:00 is April1 JST.
+        cases = [
+            ('before-jst-midnight', lambda a: a.update(now=S.datetime(
+                2030, 3, 31, 14, 59, tzinfo=S.timezone.utc))),
+            ('yesterday', lambda a: a['context'].update(day='2030-03-31')),
+            ('future-context-clock', lambda a: a['context'].update(current_day='2030-04-02')),
+            ('p0-only', lambda a: a['context'].update(stage='P0')),
+            ('no-results', lambda a: a['context'].update(minimum_results=0)),
+            ('no-native-p1', lambda a: a['context'].update(native_group_count=0)),
+            ('one-model', lambda a: a['context']['model_switch_probe'].update(choices=[
+                a['context']['model_switch_probe']['choices'][0]])),
+        ]
+        for kind, change in cases:
+            bad = copy.deepcopy(arguments);change(bad)
+            with self.subTest(case=kind), self.assertRaises(S.SafariHold):
+                self.replay(bad)
+
+    def test_manifest_header_and_each_cipher_url_hash_must_match_exactly(self):
+        arguments, _ = current_v5_fixture()
+        cases = []
+        for field, value in [('schema', 'RACE_AI_SAVED_WEB_VIEW_V4'), ('generation', 13),
+                             ('view_id', '0' * 64), ('forecast_sha256', '0' * 64)]:
+            bad = copy.deepcopy(arguments)
+            latest = json.loads(bad['latest_raw']);latest['header'][field] = value
+            bad['latest_raw'] = json.dumps(latest).encode();cases.append((field, bad))
+        bad = copy.deepcopy(arguments);bad['snapshot_sha'] = 'HEAD';cases.append(('mutable-snapshot', bad))
+        bad = copy.deepcopy(arguments)
+        url = next(iter(bad['ciphertexts']));bad['ciphertexts'][url] += b' '
+        cases.append(('cipher-sha-mismatch', bad))
+        bad = copy.deepcopy(arguments);bad['ciphertexts'].pop(next(iter(bad['ciphertexts'])))
+        cases.append(('missing-current-router', bad))
+        bad = copy.deepcopy(arguments)
+        latest = json.loads(bad['latest_raw']);latest['unused'] = 'private-metadata'
+        bad['latest_raw'] = json.dumps(latest).encode();cases.append(('extra-manifest-field', bad))
+        for kind, bad in cases:
+            with self.subTest(case=kind), self.assertRaises(S.SafariHold):
+                self.replay(bad)
+
+    def test_replay_admission_refuses_plaintext_duplicate_nonfinite_and_foreign_inputs(self):
+        arguments, _ = current_v5_fixture()
+        base = 'https://raw.githubusercontent.com/haji84/RACE-AI/'
+        examples = [
+            ('plaintext', base + '4' * 40 + '/views/' + '0' * 64 + '.json',
+             b'{"records":["private-original-sentinel"]}'),
+            ('foreign-repository', 'https://raw.githubusercontent.com/other/repo/' +
+             '4' * 40 + '/views/' + '0' * 64 + '.json', next(iter(arguments['ciphertexts'].values()))),
+            ('extra-query', next(iter(arguments['ciphertexts'])) + '?token=private',
+             next(iter(arguments['ciphertexts'].values()))),
+        ]
+        for kind, url, raw in examples:
+            bad = copy.deepcopy(arguments);bad['ciphertexts'][url] = raw
+            with self.subTest(case=kind), self.assertRaises(S.SafariHold):
+                self.replay(bad)
+        latest = arguments['latest_raw']
+        for raw in (b'{"header":{},"header":{},"cipher_sha256":"' + b'0' * 64 + b'"}',
+                    latest[:-1] + b',"unexpected":NaN}',
+                    latest[:-1] + b',"unexpected":1e999}'):
+            with self.subTest(case='strict-json'), self.assertRaises(S.SafariHold):
+                self.replay(dict(arguments, latest_raw=raw))
+        for name, value in [('view_id', True), ('ciphertexts', []), ('latest_raw', '{}')]:
+            with self.subTest(field=name), self.assertRaises(S.SafariHold):
+                self.replay(dict(arguments, **{name: value}))
+
+    def test_ciphertext_count_and_aggregate_byte_bounds_hold_before_replay(self):
+        arguments, _ = current_v5_fixture()
+        self.assertEqual(S.MAX_CURRENT_V5_FILES, 512)
+        self.assertEqual(S.MAX_CURRENT_V5_BYTES, 256 * 1024 * 1024)
+        with patch.object(S, 'MAX_CURRENT_V5_FILES', len(arguments['ciphertexts']) - 1):
+            with self.assertRaises(S.SafariHold):
+                self.replay(arguments)
+        total = len(arguments['latest_raw']) + sum(map(len, arguments['ciphertexts'].values()))
+        with patch.object(S, 'MAX_CURRENT_V5_BYTES', total - 1):
+            with self.assertRaises(S.SafariHold):
+                self.replay(arguments)
+        with patch.object(S, 'MAX_CURRENT_V5_BYTES', total):
+            self.replay(arguments)
+
+    def test_routes_are_exact_fixed_cipher_urls_and_one_bounded_latest_query(self):
+        arguments, _ = current_v5_fixture();replay = self.replay(arguments)
+        latest = 'https://raw.githubusercontent.com/haji84/RACE-AI/state/boat-saved-view/latest.json'
+        plain = S.current_v5_replay_route(replay, latest)
+        self.assertTrue(plain.startswith('/_acceptance/current-v5/'))
+        self.assertEqual(plain, S.current_v5_replay_route(replay, latest + '?check=1700000000000'))
+        routes = {S.current_v5_replay_route(replay, url) for url in arguments['ciphertexts']}
+        self.assertEqual(len(routes), len(arguments['ciphertexts']))
+        self.assertNotIn(plain, routes)
+        router = next(iter(arguments['ciphertexts']))
+        rejected = [latest + '?check=', latest + '?check=-1', latest + '?check=1&check=2',
+                    latest + '?check=1&token=x', latest + '?check=' + '1' * 21,
+                    latest + '?check=%31', latest + '#fragment', router + '?check=1',
+                    router.replace('https:', 'http:'), router.replace('/views/', '/views/%2e%2e/'),
+                    router.replace('raw.githubusercontent.com', 'raw.githubusercontent.com.evil.invalid'),
+                    router.replace('https://', 'https://private@'), latest.replace('/state/', '/main/')]
+        for url in rejected:
+            with self.subTest(case=rejected.index(url)), self.assertRaises(S.SafariHold):
+                S.current_v5_replay_route(replay, url)
+
+    def test_loopback_serves_only_exact_ciphertext_and_keeps_public_js_bytes(self):
+        arguments, _ = current_v5_fixture();replay = self.replay(arguments)
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name);seed_fixture(root)
+            assets = S.load_public_assets(root);seed = S.load_encrypted_seed(root)
+            with S.LoopbackSite(assets, None, encrypted_seed=seed, current_v5=replay,
+                                secrets=arguments['secrets']) as site:
+                with urllib.request.urlopen(site.url, timeout=3) as response:
+                    index = response.read()
+                    self.assertIn(b'race-ai-encrypted-saved-view', index)
+                    self.assertNotIn(b'race-ai-private-saved-view', index)
+                for logical, raw in arguments['ciphertexts'].items():
+                    path = S.current_v5_replay_route(replay, logical)
+                    with urllib.request.urlopen(site.origin + path, timeout=3) as response:
+                        self.assertEqual(response.read(), raw)
+                latest = 'https://raw.githubusercontent.com/haji84/RACE-AI/state/boat-saved-view/latest.json'
+                with urllib.request.urlopen(site.origin + S.current_v5_replay_route(replay, latest), timeout=3) as response:
+                    self.assertEqual(response.read(), arguments['latest_raw'])
+                with urllib.request.urlopen(site.origin + '/app.js', timeout=3) as response:
+                    self.assertEqual(response.read(), assets['app.js'])
+                for path in ('/api/forecast/saved', '/api/forecast/status',
+                             '/_acceptance/current-v5/unknown', '/latest.json'):
+                    with self.assertRaises(urllib.error.HTTPError) as caught:
+                        urllib.request.urlopen(site.origin + path, timeout=3)
+                    caught.exception.close()
+                self.assertEqual(site.audit['private_view_reads'], 0)
+                self.assertEqual(site.audit['current_v5_manifest_reads'], 1)
+                self.assertEqual(site.audit['current_v5_cipher_reads'], len(arguments['ciphertexts']))
+                self.assertEqual(site.audit['outbound_requests_permitted'], 0)
+                for private in ('private-current-model', 'private-owner-key-sentinel', 'K' * 43):
+                    self.assertNotIn(private.encode(), site.privacy_script)
+                self.assertEqual(assets['app.js'], b'x')
+            with self.assertRaises(S.SafariHold):
+                S.LoopbackSite(assets, {'records': []}, encrypted_seed=seed, current_v5=replay)
+            with self.assertRaises(S.SafariHold):
+                S.LoopbackSite(assets, None, encrypted_seed=seed, current_v5=replay, synthetic=True)
+
+    def test_browser_replay_preserves_logical_response_url_but_only_fetches_local_ciphertext(self):
+        arguments, _ = current_v5_fixture();replay = self.replay(arguments)
+        logical = 'https://raw.githubusercontent.com/haji84/RACE-AI/state/boat-saved-view/latest.json?check=123'
+        program = r'''
+const vm=require('node:vm'),fs=require('node:fs'),p=JSON.parse(fs.readFileSync(0,'utf8')),calls=[];
+class XHR{open(){calls.push({xhr:true})}setRequestHeader(){}send(){}}
+const scope={URL,Headers,Request,Response,Uint8Array,TextEncoder,TextDecoder,
+ location:{href:'http://127.0.0.1:1234/#saved='+'a'.repeat(64)+'.'+'K'.repeat(43),
+ origin:'http://127.0.0.1:1234',hash:'#saved='+'a'.repeat(64)+'.'+'K'.repeat(43)},
+ navigator:{},XMLHttpRequest:XHR,addEventListener(){},TypeError,Promise,
+ fetch:async(input,options)=>{const u=new URL(typeof input==='string'||input instanceof URL?input:input.url,scope.location.href);
+ calls.push({url:u.href,method:options?.method||input?.method||'GET',headers:[...new Headers(options?.headers||input?.headers)]});
+ return new Response('ciphertext-only',{status:200,headers:{'Content-Type':'application/json'}});}};
+scope.window=scope;vm.createContext(scope);vm.runInContext(p.script,scope);
+(async()=>{
+ const response=await scope.fetch(p.logical,{credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer'});
+ const clone=response.clone();const text=await response.text(),cloneText=await clone.text();
+ const router=await scope.fetch(new Request(p.router,{credentials:'omit',redirect:'error',referrerPolicy:'no-referrer'}));
+ let currentResult={header:{schema:'RACE_AI_SAVED_WEB_VIEW_V4',generation:11},cipherSha:p.cipher,history:{day:p.day},view:{records:['private-decrypted-row-sentinel']}};
+ const api=Object.freeze({read:async()=>({}),readLive:async()=>currentResult,readDay:async()=>currentResult});
+ scope.SavedViewCrypto=api;
+ await scope.SavedViewCrypto.readLive();
+ const beforeV5=scope.__raceSafariPrivacy.current_v5?.v5_read_live_successes||0;
+ currentResult={...currentResult,header:{schema:'RACE_AI_SAVED_WEB_HISTORY_V5',generation:12}};
+ const adopted=await scope.SavedViewCrypto.readLive();
+ const returnedUnchanged=adopted===currentResult;
+ const crumb=scope.__raceSafariPrivacy.current_v5;
+ const crumbSafe=!JSON.stringify(scope.__raceSafariPrivacy).includes('private-decrypted-row-sentinel');
+ let blocked=0;
+ for(const [input,options] of [
+  [p.logical+'&token=x'],[p.logical.replace('https:','http:')],['https://foreign.invalid/private'],
+  [p.router+'?extra=1'],[new Request(p.router,{method:'POST',body:'private-body'})],
+  [p.router,{headers:new Headers({'x-viewer':'K'.repeat(43)})}],
+  [p.router,{headers:{Authorization:'Bearer private-owner-key-sentinel'}}],
+  [p.router,{method:'GET',body:'private-body'}]]) {
+  try{await scope.fetch(input,options)}catch{blocked++;}
+ }
+ try{new scope.XMLHttpRequest().open('GET',p.router)}catch{blocked++;}
+ scope.navigator.sendBeacon(p.router,'private-body');
+ try{new scope.WebSocket('wss://foreign.invalid')}catch{blocked++;}
+ const safe=calls.every(c=>!c.xhr&&c.url.startsWith('http://127.0.0.1:1234/_acceptance/current-v5/')&&!JSON.stringify(c).includes('private-')&&!JSON.stringify(c).includes('K'.repeat(43)));
+ process.stdout.write(JSON.stringify({calls:calls.length,safe,blocked,text,cloneText,url:response.url,cloneUrl:clone.url,routerUrl:router.url,redirected:response.redirected,beforeV5,returnedUnchanged,crumbSafe,crumb}));
+})().catch(()=>process.exitCode=2);
+'''
+        payload = {'script': S.current_v5_replay_script(replay).decode(),
+                   'logical': logical, 'router': next(iter(arguments['ciphertexts'])),
+                   'cipher': json.loads(arguments['latest_raw'])['cipher_sha256'],
+                   'day': arguments['context']['day']}
+        result = subprocess.run(['node', '-e', program], input=json.dumps(payload).encode(),
+                                capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 0, 'replay JavaScript must execute without private diagnostics')
+        value = json.loads(result.stdout)
+        self.assertEqual(value, {'calls': 2, 'safe': True, 'blocked': 10,
+            'text': 'ciphertext-only', 'cloneText': 'ciphertext-only', 'url': logical,
+            'cloneUrl': logical, 'routerUrl': payload['router'], 'redirected': False,
+            'beforeV5': 0, 'returnedUnchanged': True, 'crumbSafe': True,
+            'crumb': {'schema': 'RACE_AI_SAVED_WEB_HISTORY_V5', 'generation': 12,
+                      'cipher_sha256': payload['cipher'], 'history_day': payload['day'],
+                      'v5_read_live_successes': 1}})
+
+    def test_success_requires_v5_browser_probe_and_reports_only_bound_counts_hashes_and_flags(self):
+        arguments, tickets = current_v5_fixture();replay = self.replay(arguments)
+        probe, audit = current_v5_probe(arguments, tickets), current_v5_audit()
+        before = copy.deepcopy((probe, audit))
+        report = S.verify_current_v5_evidence(replay, probe, audit)
+        self.assertEqual(set(report), {'status', 'transport', 'current_v5_live_continuation_verified',
+            'current_day_verified', 'browser_aes_verified', 'snapshot_sha', 'cipher_sha256',
+            'authenticated_generation', 'saved_day', 'authenticated_results',
+            'authenticated_native_p1_groups', 'same_current_model_original_comparisons',
+            'ciphertext_files', 'ciphertext_bytes', 'plaintext_endpoint_reads',
+            'outbound_browser_requests_permitted', 'real_screenshots_or_traces_exported',
+            'account_login_verified', 'physical_iphone_verified'})
+        self.assertEqual(report['status'], 'ENCRYPTED_CURRENT_V5_SAFARI_VERIFIED')
+        self.assertEqual(report['transport'], 'LOOPBACK_IMMUTABLE_V5_CIPHERTEXT_REPLAY')
+        for flag in ('current_v5_live_continuation_verified', 'current_day_verified', 'browser_aes_verified'):
+            self.assertIs(report[flag], True)
+        self.assertEqual(report['snapshot_sha'], arguments['snapshot_sha'])
+        self.assertEqual(report['cipher_sha256'], json.loads(arguments['latest_raw'])['cipher_sha256'])
+        self.assertEqual(report['authenticated_generation'], 12)
+        self.assertEqual(report['saved_day'], arguments['context']['day'])
+        self.assertEqual(report['authenticated_results'], arguments['context']['minimum_results'])
+        self.assertEqual(report['authenticated_native_p1_groups'], arguments['context']['native_group_count'])
+        self.assertEqual(report['same_current_model_original_comparisons'], 2)
+        self.assertEqual(report['ciphertext_files'], len(arguments['ciphertexts']))
+        self.assertEqual(report['ciphertext_bytes'], len(arguments['latest_raw']) +
+                         sum(map(len, arguments['ciphertexts'].values())))
+        for flag in ('account_login_verified', 'physical_iphone_verified'):
+            self.assertIs(report[flag], False)
+        for count in ('plaintext_endpoint_reads', 'outbound_browser_requests_permitted',
+                      'real_screenshots_or_traces_exported'):
+            self.assertEqual(report[count], 0)
+        for private in ('private-current-model', 'private-owner-key-sentinel', 'K' * 43,
+                        '20300401-01-01', 'raw.githubusercontent.com'):
+            self.assertNotIn(private, json.dumps(report))
+        self.assertEqual((probe, audit), before)
+
+    def test_seed_only_stale_or_mismatched_browser_evidence_and_private_reads_cannot_pass(self):
+        arguments, tickets = current_v5_fixture();replay = self.replay(arguments)
+        good = current_v5_probe(arguments, tickets)
+        for field, value in [('schema', 'RACE_AI_SAVED_WEB_VIEW_V2'), ('generation', 11),
+                             ('cipher_sha256', '0' * 64), ('history_day', '2030-03-31'),
+                             ('selected_day', '2030-03-31'), ('source_day', '2030-03-31'),
+                             ('v5_read_live_successes', 0), ('v5_read_live_successes', True),
+                             ('aes_successes', 0), ('aes_successes', True), ('results', 0),
+                             ('results', True), ('native_p1_groups', 0), ('native_p1_groups', True)]:
+            bad = copy.deepcopy(good);bad[field] = value
+            with self.subTest(field=field, kind=type(value).__name__), self.assertRaises(S.SafariHold):
+                S.verify_current_v5_evidence(replay, bad, current_v5_audit())
+        for mutation in ('tickets', 'model', 'index', 'extra'):
+            bad = copy.deepcopy(good)
+            if mutation == 'tickets':bad['model_choices'][1]['tickets'][0] = [3, 2, 1]
+            elif mutation == 'model':bad['model_choices'][1]['model_id'] = 'private-replacement-model'
+            elif mutation == 'index':bad['model_choices'][1]['index'] = '999'
+            else:bad['debug'] = 'private-key-and-url-sentinel'
+            with self.subTest(case=mutation), self.assertRaises(S.SafariHold) as caught:
+                S.verify_current_v5_evidence(replay, bad, current_v5_audit())
+            self.assertNotIn('private-', json.dumps(S.failure_report(caught.exception)))
+        for field, value in [('private_view_reads', 1), ('current_v5_manifest_reads', 0),
+                             ('current_v5_cipher_reads', 0), ('secret_in_request', True),
+                             ('non_read_requests', 1), ('outbound_requests_permitted', 1)]:
+            with self.subTest(audit=field), self.assertRaises(S.SafariHold):
+                S.verify_current_v5_evidence(replay, good, dict(current_v5_audit(), **{field: value}))
+
+    def test_snapshot_reader_freezes_head_and_rejects_mutable_or_non_cipher_reads(self):
+        self.assertTrue(callable(getattr(S, '_CurrentV5SnapshotReader', None)),
+                        'one immutable authenticated snapshot must own every replay read')
+        arguments, _ = current_v5_fixture()
+        router_url = next(iter(arguments['ciphertexts']))
+        router_sha = json.loads(arguments['latest_raw'])['cipher_sha256']
+        class Repository:
+            def __init__(self):self.head_calls = 0;self.reads = [];self.writes = []
+            def head(self):self.head_calls += 1;return '9' * 40
+            def read(self, commit, path, limit):
+                self.reads.append((commit, path))
+                if path == 'latest.json':return arguments['latest_raw']
+                return arguments['ciphertexts'][router_url]
+            def fetch(self, commit):return None
+            def exists(self, commit, path):return True
+            def validate_tree(self, commit):return None
+        repository = Repository()
+        reader = S._CurrentV5SnapshotReader(repository, arguments['snapshot_sha'])
+        self.assertEqual(reader.head(), arguments['snapshot_sha'])
+        self.assertEqual(reader.head(), arguments['snapshot_sha'])
+        self.assertEqual(repository.head_calls, 0)
+        self.assertEqual(reader.read(reader.head(), 'latest.json', 4096), arguments['latest_raw'])
+        self.assertEqual(reader.read(reader.head(), 'views/' + router_sha + '.json', 4096),
+                         arguments['ciphertexts'][router_url])
+        for commit, path in [('state', 'latest.json'), ('9' * 40, 'latest.json'),
+                             (arguments['snapshot_sha'], '../latest.json'),
+                             (arguments['snapshot_sha'], 'views/private.json'),
+                             (arguments['snapshot_sha'], 'current-view.json')]:
+            count = len(repository.reads)
+            with self.subTest(path=path), self.assertRaises(S.SafariHold):
+                reader.read(commit, path, 4096)
+            self.assertEqual(len(repository.reads), count)
+        with patch.object(S, 'MAX_CURRENT_V5_FILES', 1):
+            bounded = S._CurrentV5SnapshotReader(repository, arguments['snapshot_sha'])
+            bounded.read(arguments['snapshot_sha'], 'latest.json', 4096)
+            with self.assertRaises(S.SafariHold):
+                bounded.read(arguments['snapshot_sha'], 'views/' + router_sha + '.json', 4096)
+        with patch.object(S, 'MAX_CURRENT_V5_BYTES', len(arguments['latest_raw']) - 1):
+            bounded = S._CurrentV5SnapshotReader(repository, arguments['snapshot_sha'])
+            with self.assertRaises(S.SafariHold):
+                bounded.read(arguments['snapshot_sha'], 'latest.json', 4096)
+        for writer in ('publish_view', 'commit_snapshot', 'compare_and_swap', 'push', 'write'):
+            self.assertFalse(callable(getattr(reader, writer, None)), writer + ' must not be exposed')
+
+    def test_main_runs_current_v5_after_seed_and_derives_only_real_data_acceptance_flag(self):
+        arguments, tickets = current_v5_fixture();replay = self.replay(arguments)
+        verified = S.verify_current_v5_evidence(
+            replay, current_v5_probe(arguments, tickets), current_v5_audit())
+        events = []
+        @contextmanager
+        def site(*args, **kwargs):
+            yield object()
+        @contextmanager
+        def browser():
+            yield object(), {'browserName': 'Safari', 'platformName': 'macOS', 'browserVersion': '26.6'}
+        def seed_check(*args):
+            events.append('seed');return {'browser_aes_verified': True,
+                'current_v5_live_continuation_verified': False}
+        def load(*args):
+            events.append('current-read');return replay
+        def check(*args):
+            events.append('current-browser')
+            self.assertIs(args[3], replay)
+            return verified
+        private = {'key': 'K' * 43, 'fragment': '#saved=' + 'a' * 64 + '.' + 'K' * 43}
+        output = io.StringIO()
+        with patch.object(S.platform, 'system', return_value='Darwin'), \
+                patch.object(S, 'load_public_assets', return_value={}), patch.object(S, 'verify_live_assets', return_value={}), \
+                patch.object(S, 'load_encrypted_seed', return_value={}), patch.object(S, 'read_authenticated_view',
+                    return_value=(arguments['context'], {}, private)), \
+                patch.object(S, 'LoopbackSite', side_effect=site), patch.object(S, 'apple_driver', side_effect=browser), \
+                patch.object(S, 'app_checks', side_effect=lambda *a: events.append('plaintext') or {}), \
+                patch.object(S, 'encrypted_seed_checks', side_effect=seed_check), \
+                patch.object(S, 'read_current_v5_replay', side_effect=load), \
+                patch.object(S, 'current_v5_checks', side_effect=check), \
+                patch.object(S, 'synthetic_visual_checks') as synthetic, \
+                redirect_stdout(output), redirect_stderr(output):
+            self.assertEqual(S.main(['--public-root', '/public', '--source-root', '/reader']), 0)
+        self.assertEqual(events, ['plaintext', 'seed', 'current-read', 'current-browser'])
+        synthetic.assert_not_called()
+        report = json.loads(output.getvalue())
+        self.assertEqual(report['encrypted_current_v5'], verified)
+        self.assertIs(report['current_v5_live_continuation_verified'], True)
+        self.assertIs(report['current_day_verified'], True)
+        self.assertIs(report['encrypted_seed']['current_v5_live_continuation_verified'], False)
+        for flag in ('account_login_verified', 'browser_aes_and_owner_login_verified',
+                     'physical_iphone_verified', 'all_eight_reference_screens_visually_verified'):
+            self.assertIs(report[flag], False)
+        self.assertNotIn('K' * 43, output.getvalue())
+
+
+class CurrentV5SourceDayAndReportTests(unittest.TestCase):
+    def test_live_metadata_probe_uses_actual_source_day_and_refuses_multiple_source_dates(self):
+        self.assertTrue(callable(getattr(S, 'current_v5_probe_script', None)),
+                        'actual browser source-day metadata probe is missing')
+        source = S.current_v5_probe_script()
+        self.assertIs(type(source), str)
+        arguments, tickets = current_v5_fixture()
+        replay = S.build_current_v5_replay(**arguments)
+        program = r'''
+const vm=require('node:vm'),fs=require('node:fs'),p=JSON.parse(fs.readFileSync(0,'utf8')),output=[];
+for(const sourceText of ['対象日：2030-04-01','対象日：2030-03-31',
+ '対象日：2030-03-31〜2030-04-01','対象日：未取得',null]){
+ const nodes={'#display-day':{textContent:'2030-04-01 JST / ボート'},
+  '#selected-date':{value:'2030-04-01'},'#source-date':sourceText===null?null:{textContent:sourceText}};
+ const scope={document:{querySelector:selector=>nodes[selector]??null},
+  __raceSafariPrivacy:{current_v5:{schema:'RACE_AI_SAVED_WEB_HISTORY_V5',generation:12,
+   cipher_sha256:p.cipher,history_day:'2030-04-01',v5_read_live_successes:1},aes_successes:3}};
+ vm.createContext(scope);
+ const result=vm.runInContext('(function(){'+p.script+'\n})()',scope);
+ output.push(result);
+}
+process.stdout.write(JSON.stringify(output));
+'''
+        payload = {'script': source, 'cipher': json.loads(arguments['latest_raw'])['cipher_sha256']}
+        result = subprocess.run(['node', '-e', program], input=json.dumps(payload).encode(),
+                                capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 0, 'source-day probe must execute without private diagnostics')
+        probes = json.loads(result.stdout)
+        self.assertEqual([probe.get('source_day') for probe in probes],
+                         ['2030-04-01', '2030-03-31', None, None, None])
+        for index, observed in enumerate(probes):
+            probe = current_v5_probe(arguments, tickets)
+            probe.update(observed)
+            self.assertEqual(probe['selected_day'], '2030-04-01')
+            self.assertEqual(probe['history_day'], '2030-04-01')
+            if index == 0:
+                self.assertIs(S.verify_current_v5_evidence(
+                    replay, probe, current_v5_audit())['current_day_verified'], True)
+            else:
+                with self.subTest(case=index), self.assertRaises(S.SafariHold):
+                    S.verify_current_v5_evidence(replay, probe, current_v5_audit())
+
+    def test_top_level_snapshot_metadata_describes_current_v5_and_labels_older_plaintext_context(self):
+        arguments, tickets = current_v5_fixture()
+        replay = S.build_current_v5_replay(**arguments)
+        current = S.verify_current_v5_evidence(
+            replay, current_v5_probe(arguments, tickets), current_v5_audit())
+        legacy = copy.deepcopy(arguments['context'])
+        legacy.update(day='2030-03-31', generation=11, minimum_results=2,
+                      native_group_count=2, day_races=2)
+        legacy['native_probe']['race_id'] = '20300331-01-01'
+        legacy['model_switch_probe']['race_id'] = '20300331-01-01'
+        legacy['native_groups'].append(['invented-older-extra', 'v1', None, None])
+        S.validate_context(legacy)
+        @contextmanager
+        def site(*args, **kwargs):
+            yield object()
+        @contextmanager
+        def browser():
+            yield object(), {'browserName': 'Safari', 'platformName': 'macOS', 'browserVersion': '26.6'}
+        private = {'key': 'K' * 43, 'fragment': '#saved=' + 'a' * 64 + '.' + 'K' * 43}
+        output = io.StringIO()
+        with patch.object(S.platform, 'system', return_value='Darwin'), \
+                patch.object(S, 'load_public_assets', return_value={}), \
+                patch.object(S, 'verify_live_assets', return_value={}), \
+                patch.object(S, 'load_encrypted_seed', return_value={}), \
+                patch.object(S, 'read_authenticated_view', return_value=(legacy, {}, private)), \
+                patch.object(S, 'LoopbackSite', side_effect=site), \
+                patch.object(S, 'apple_driver', side_effect=browser), \
+                patch.object(S, 'app_checks', return_value={'private_view_reads': 1}), \
+                patch.object(S, 'encrypted_seed_checks', return_value={
+                    'browser_aes_verified': True, 'current_v5_live_continuation_verified': False}), \
+                patch.object(S, 'read_current_v5_replay', return_value=replay), \
+                patch.object(S, 'current_v5_checks', return_value=current), \
+                redirect_stdout(output), redirect_stderr(output):
+            self.assertEqual(S.main(['--public-root', '/public', '--source-root', '/reader']), 0)
+        report = json.loads(output.getvalue())
+        self.assertEqual(report['encrypted_current_v5'], current)
+        for field in ('saved_day', 'authenticated_generation', 'authenticated_results',
+                      'authenticated_native_p1_groups'):
+            self.assertEqual(report[field], current[field], field + ' must describe current V5')
+        expected_legacy = {'saved_day': legacy['day'],
+            'authenticated_generation': legacy['generation'],
+            'authenticated_results': legacy['minimum_results'],
+            'authenticated_native_p1_groups': legacy['native_group_count']}
+        for field, value in expected_legacy.items():
+            self.assertEqual(report['latest_p1_private_transport'][field], value)
+        self.assertEqual(report['latest_p1_private_transport']['private_view_reads'], 1)
+        self.assertEqual(report['latest_p1_private_transport']['transport'],
+                         'LOOPBACK_EXISTING_PRIVATE_SAVED_ENDPOINT')
+        self.assertIs(report['current_day_verified'], True)
+        for field in ('account_login_verified', 'browser_aes_and_owner_login_verified',
+                      'physical_iphone_verified', 'all_eight_reference_screens_visually_verified'):
+            self.assertIs(report[field], False)
+        self.assertNotIn('K' * 43, output.getvalue())
+
 if __name__ == '__main__':
     unittest.main()

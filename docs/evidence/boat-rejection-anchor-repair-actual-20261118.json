@@ -1,0 +1,293 @@
+{
+  "schema": "RACE_AI_REJECTION_ANCHOR_REPAIR_ACTUAL_EVIDENCE_V1",
+  "recorded_at_utc": "2026-11-18T05:02:00Z",
+  "repository": "haji84/RACE-AI",
+  "ci": {
+    "tested_head": "9125ffcc22316e3edae05f9be85483872820e445",
+    "tested_tree": "9608d6d347f76719d37c4e523356da7425f53406",
+    "normal_merge_sha": "a836835f49ebd6292f6601413c661a8dad2d44b8",
+    "merge_tree": "9608d6d347f76719d37c4e523356da7425f53406",
+    "national_tests": {
+      "run_id": 44237640777,
+      "job_id": 134577536802,
+      "tests": 333,
+      "seconds": 107.101,
+      "status": "passed",
+      "compiled_heredocs": 10
+    },
+    "checks": {
+      "total": 26,
+      "success": 12,
+      "skipped": 14,
+      "failed": 0
+    },
+    "checks_metadata": [
+      {
+        "id": 134577635404,
+        "name": "restore_on_other_runner",
+        "conclusion": "success",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640698/job/134577635404"
+      },
+      {
+        "id": 134577615511,
+        "name": "Authenticated original schedule P1 video and pending-round evidence",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640719/job/134577615511"
+      },
+      {
+        "id": 134577589390,
+        "name": "fallback_scheduling_gate",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640804/job/134577589390"
+      },
+      {
+        "id": 134577541426,
+        "name": "Reconcile authenticated first P0 with retained official results",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237641097/job/134577541426"
+      },
+      {
+        "id": 134577541414,
+        "name": "daily",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237641097/job/134577541414"
+      },
+      {
+        "id": 134577541165,
+        "name": "Reconcile authenticated completed BOAT source (no provider GET)",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237641097/job/134577541165"
+      },
+      {
+        "id": 134577540151,
+        "name": "Gate-and-dispatch original BOAT owner P0/P1 (no scorer duplication)",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237641097/job/134577540151"
+      },
+      {
+        "id": 134577540069,
+        "name": "Retain exact first P0 and companions without source acquisition",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237641097/job/134577540069"
+      },
+      {
+        "id": 134577539922,
+        "name": "Read first P0 on a separate runner at the exact vault commit",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237641097/job/134577539922"
+      },
+      {
+        "id": 134577539082,
+        "name": "Independently reopen sealed national P0/P1 original matrix",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640777/job/134577539082"
+      },
+      {
+        "id": 134577539069,
+        "name": "fallback_nationwide_capture",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640804/job/134577539069"
+      },
+      {
+        "id": 134577538792,
+        "name": "BOAT mirror source-free PR regression",
+        "conclusion": "success",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237641097/job/134577538792"
+      },
+      {
+        "id": 134577538680,
+        "name": "BOAT exact fast-result source tests (no provider GET)",
+        "conclusion": "success",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237641097/job/134577538680"
+      },
+      {
+        "id": 134577538617,
+        "name": "personal_hourly",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640804/job/134577538617"
+      },
+      {
+        "id": 134577538569,
+        "name": "daily_live_once",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640839/job/134577538569"
+      },
+      {
+        "id": 134577538425,
+        "name": "archive_fixture_from_main",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640705/job/134577538425"
+      },
+      {
+        "id": 134577538404,
+        "name": "unit",
+        "conclusion": "success",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237641097/job/134577538404"
+      },
+      {
+        "id": 134577537860,
+        "name": "production_key_readiness",
+        "conclusion": "skipped",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640698/job/134577537860"
+      },
+      {
+        "id": 134577537696,
+        "name": "keirin_core",
+        "conclusion": "success",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640730/job/134577537696"
+      },
+      {
+        "id": 134577537369,
+        "name": "discovery_tests",
+        "conclusion": "success",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640839/job/134577537369"
+      },
+      {
+        "id": 134577537359,
+        "name": "unit",
+        "conclusion": "success",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640804/job/134577537359"
+      },
+      {
+        "id": 134577536802,
+        "name": "unit",
+        "conclusion": "success",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640777/job/134577536802"
+      },
+      {
+        "id": 134577536604,
+        "name": "archive_tests",
+        "conclusion": "success",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640705/job/134577536604"
+      },
+      {
+        "id": 134577536585,
+        "name": "unit",
+        "conclusion": "success",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640719/job/134577536585"
+      },
+      {
+        "id": 134577536486,
+        "name": "produce",
+        "conclusion": "success",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640698/job/134577536486"
+      },
+      {
+        "id": 134577536471,
+        "name": "private_two_race_cycle",
+        "conclusion": "success",
+        "html_url": "https://github.com/haji84/RACE-AI/actions/runs/44237640766/job/134577536471"
+      }
+    ]
+  },
+  "one_shot_execution": {
+    "run_id": 44238203546,
+    "job_id": 134579371548,
+    "records": [
+      {
+        "timestamp_utc": "2026-11-18T04:34:52.4022045Z",
+        "report": {
+          "broader_goals_proven": false,
+          "candidate_view_sha256": "39d8c83c8808a24027d2206d6ca0656e559cb63b97ef28998b8f3a99b8b0c6df",
+          "counts": {
+            "candidate_active_rejections": 14,
+            "current_active_rejections": 2,
+            "orphan_groups": 12,
+            "restored_active_originals": 12,
+            "retained_history_originals": 24,
+            "rows_changed": 3,
+            "snapshots_checked": 3
+          },
+          "current_view_sha256": "a4f29f4298fcabda106c3f24d40fc5c3f8147584564c615c820d5be0a03cefb7",
+          "forecast_generated": false,
+          "observations_reconciled": 0,
+          "originals_changed": false,
+          "publication_attempted": true,
+          "publication_performed": true,
+          "published_cipher_sha256": "2b6971baf4181371ed613e6cf0f850b0e66ff857ee34f8e4b2dd1b07cd6682f4",
+          "published_generation": 425,
+          "published_snapshot_sha": "df7b4b319ece651c53979974c97f88e9b66ef4b4",
+          "readback_verified": true,
+          "schema": "RACE_AI_REJECTION_ANCHOR_REPAIR_V1",
+          "source_requests": 0,
+          "status": "PUBLISHED_VERIFIED"
+        }
+      }
+    ]
+  },
+  "independent_readback": {
+    "run_id": 44238203521,
+    "job_id": 134579371091,
+    "records": [
+      {
+        "timestamp_utc": "2026-11-18T04:36:29.0864101Z",
+        "report": {
+          "authenticated_base": true,
+          "broader_goals_proven": false,
+          "counts": {
+            "observation": {
+              "active_count": 600,
+              "clock_text_mismatch": 0,
+              "compared_active_history_pairs": 0,
+              "history_count": 0,
+              "invalid_active_reason_metadata": 0,
+              "invalid_history_reason_metadata": 0,
+              "missing_active_anchor": 0,
+              "non_reason_body_mismatch": 0,
+              "other_guard_failures": 0,
+              "source_sha_absent_active": 0,
+              "source_sha_absent_history": 0,
+              "source_sha_different": 0
+            },
+            "rejection": {
+              "active_count": 14,
+              "clock_text_mismatch": 0,
+              "compared_active_history_pairs": 24,
+              "history_count": 24,
+              "invalid_active_reason_metadata": 0,
+              "invalid_history_reason_metadata": 0,
+              "missing_active_anchor": 0,
+              "non_reason_body_mismatch": 0,
+              "other_guard_failures": 0,
+              "source_sha_absent_active": 0,
+              "source_sha_absent_history": 0,
+              "source_sha_different": 0
+            }
+          },
+          "forecast_generated": false,
+          "generation": 425,
+          "observations_reconciled": 0,
+          "origin": "AES_BASE",
+          "originals_changed": false,
+          "publication_performed": false,
+          "schema": "RACE_AI_SAVED_REASON_BINDING_COUNTS_V1",
+          "snapshot_sha": "df7b4b319ece651c53979974c97f88e9b66ef4b4",
+          "source_requests": 0,
+          "status": "NO_BINDING_INCONSISTENCY_IN_THIS_VIEW"
+        }
+      }
+    ]
+  },
+  "interpretation": {
+    "restored_groups": 12,
+    "rows_changed": 3,
+    "groups_are_not_race_count": true,
+    "original_forecasts_results_observations_history_and_clock_text_preserved": true,
+    "proof_came_from_exact_older_authenticated_active_bodies": true,
+    "current_day_ordinary_publication_not_yet_proven": true,
+    "safari_current_v5_not_yet_proven": true,
+    "physical_iphone_not_yet_proven": true,
+    "all_four_sport_all_model_goal_complete": false,
+    "efficacy_improvement_proven": false
+  },
+  "original_offline_commits": {
+    "status": "UNRESTORED",
+    "checks_at_utc": "2026-11-18T02:51:34Z",
+    "method": "Authenticated GitHub connector commit GET",
+    "current_response": "422 No commit found for SHA",
+    "shas": [
+      "b7380fe6a377e6ccf2b96331f2126c52549bbe17",
+      "daae4c10167224b7730006d8ada5ade398aaa64b"
+    ]
+  }
+}

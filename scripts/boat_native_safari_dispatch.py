@@ -30,6 +30,8 @@ WORKFLOW_PATH = '/repos/haji84/RACE-AI/actions/workflows/416758725'
 COMMITS_PATH = '/repos/haji84/RACE-AI/commits/'
 NATIVE_WORKFLOW = '.github/workflows/boat-owner-formal-live-pages-proof.yml'
 CONTENTS_PATH = '/repos/haji84/RACE-AI/contents/' + NATIVE_WORKFLOW
+CHECKER_PATH = 'scripts/boat_native_safari_acceptance.py'
+CHECKER_CONTENTS_PATH = '/repos/haji84/RACE-AI/contents/' + CHECKER_PATH
 CANDIDATE_STEP = 'Checkout the exact reviewed UI candidate for synthetic capture only'
 CANDIDATE_PATH = '.native-safari-ui-candidate'
 PAYLOAD = {'ref': 'main', 'inputs': {'browser': 'native-safari'}}
@@ -98,7 +100,8 @@ class GitHubAPI:
         metadata = type(path) is str and (
             path in (MAIN_PATH, SOURCE_PATH, REPOSITORY_PATH, WORKFLOW_PATH)
             or re.fullmatch(re.escape(COMMITS_PATH) + r'[a-f0-9]{40}', path)
-            or re.fullmatch(re.escape(CONTENTS_PATH) + r'\?ref=[a-f0-9]{40}', path))
+            or re.fullmatch(re.escape(CONTENTS_PATH) + r'\?ref=[a-f0-9]{40}', path)
+            or re.fullmatch(re.escape(CHECKER_CONTENTS_PATH) + r'\?ref=[a-f0-9]{40}', path))
         valid = type(method) is str and type(path) is str and (
             method == 'GET' and body is None and (metadata or history)
             or method == 'POST' and path == POST_PATH and type(body) is dict and body == PAYLOAD)
@@ -268,7 +271,7 @@ def workflow_candidate(value):
     return candidate, '\n'.join(normalized)
 
 
-def candidate_changed(request, head):
+def _candidate_change_proof(request, head):
     require(repository(read(request, REPOSITORY_PATH)), 'EXISTING_NATIVE_WORKFLOW_REQUIRED')
     workflow = read(request, WORKFLOW_PATH)
     require(type(workflow) is dict and type(workflow.get('id')) is int
@@ -287,6 +290,46 @@ def candidate_changed(request, head):
     current, current_body = workflow_candidate(read(request, CONTENTS_PATH + '?ref=' + head))
     previous, previous_body = workflow_candidate(read(request, CONTENTS_PATH + '?ref=' + parents[0]))
     require(current_body == previous_body, reason)
+    return current != previous, parents[0]
+
+
+def candidate_changed(request, head):
+    return _candidate_change_proof(request, head)[0]
+
+
+def _checker_body(value):
+    """Bind complete immutable checker bytes without evaluating their contents."""
+    reason = 'CANDIDATE_CHANGE_PROOF_INVALID'
+    require(type(value) is dict and value.get('type') == 'file'
+        and value.get('path') == CHECKER_PATH and value.get('encoding') == 'base64'
+        and type(value.get('size')) is int and 0 < value['size'] <= MAX_RESPONSE_BYTES
+        and type(value.get('sha')) is str and re.fullmatch('[a-f0-9]{40}', value['sha'])
+        and type(value.get('content')) is str and 0 < len(value['content']) <= 2 * MAX_RESPONSE_BYTES,
+        reason)
+    try:
+        encoded = value['content']
+        require(re.fullmatch(r'[A-Za-z0-9+/=\n]+', encoded), reason)
+        compact = encoded.replace('\n', '')
+        raw = base64.b64decode(compact, validate=True)
+        require(len(raw) == value['size'] and base64.b64encode(raw).decode('ascii') == compact
+            and hashlib.sha1(b'blob ' + str(len(raw)).encode('ascii') + b'\0' + raw).hexdigest() == value['sha'],
+            reason)
+        text = raw.decode('utf-8')
+        require('\0' not in text and '\r' not in text, reason)
+        return raw
+    except DispatchHold:
+        raise
+    except Exception:
+        raise DispatchHold(reason) from None
+
+
+def checker_changed(request, head, first_parent):
+    """One exact checker path at two distinct immutable, authenticated refs."""
+    require(type(head) is str and re.fullmatch('[a-f0-9]{40}', head)
+        and type(first_parent) is str and re.fullmatch('[a-f0-9]{40}', first_parent)
+        and head != first_parent, 'CANDIDATE_CHANGE_PROOF_INVALID')
+    current = _checker_body(read(request, CHECKER_CONTENTS_PATH + '?ref=' + head))
+    previous = _checker_body(read(request, CHECKER_CONTENTS_PATH + '?ref=' + first_parent))
     return current != previous
 
 
@@ -322,7 +365,8 @@ def existing_count(request, head):
 def execute(environment, event, *, request):
     head = trusted_head(environment, event)
     current_refs(request, head)
-    if not candidate_changed(request, head):
+    candidate_delta, first_parent = _candidate_change_proof(request, head)
+    if not candidate_delta and not checker_changed(request, head, first_parent):
         return {'status': 'NATIVE_SAFARI_CANDIDATE_UNCHANGED', 'dispatch_requested': False,
             'request_attempted': False, 'request_acknowledged': False, 'existing_runs_count': None,
             'native_verification_proven': False, 'official_provider_gets': 0, 'owner_key_read': False}

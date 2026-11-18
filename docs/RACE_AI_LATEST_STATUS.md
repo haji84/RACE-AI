@@ -1,3 +1,27 @@
+## 2026-11-18 05:41 UTC: 実修復を保全し、再取得削減と現行V5 Safariを最終CIへ（GOAL未達）
+
+欠落12groupのgen425実修復と別runによるmissing0は下の05:02記録・実証拠のとおり。後続の公開manifestは04:48:24 UTCにgen426へ進み、previous-cipherが修復425と一致し、同じanchor/Git祖先で接続した。公開metadataだけでは当日本文・REJ件数・source ACKを確認できない。実A74の正規joblogは03:19:07で停止したsnapshotだったため、その先の失敗/成功を推測しない。
+
+PR39は元head0b8ca7b7/metadata/祖先/consumer0を保全してsource A74上で再利用。研究PDCA/保管が最初11巡の追加時間2538秒を占めたが、network部分の割合は未測定。暗号ZIPは毎回の新metadataと完全size/SHA一致でのみ再利用し、認証/native replay/結果/時計/scoreは毎回実行する。source-archive保管だけへ独立private bare ODBを渡し、全intake・remote commit fetch・両DB本文照合を省略しない。learning/retention/batch/vault/round actionはbyte不変。22追加検査は実成功、全859件の残る既存fixture1件は正しいGitHub応答とZIP hashを補い再CI中。全13元method/assertionsは不変、production guardの緩和なし。時間短縮の実運転は未確認。
+
+PR38は元head58244fc8/metadata/祖先/consumer0を保全。公開f603/EFF reader/ed904候補/既存native workflowを変えず、1つの認証済みimmutable snapshotの暗号文だけをloopbackで再生し、未改変の配信JSによるV5 browser AES/当日/原本2model/結果/P1を検証する。これは明示的な暗号文replayで、公開HTTPの最新到達性の証明ではない。既存119＋12件は実131件/16.880秒成功したが、独立レビューで元データ日付の選択label重複と旧plaintext世代の報告残りを発見。131件を保ち2件を追加し、実133件/18.695秒でその2件だけが失敗した。元データ日付の独立labelと唯一日付、current V5由来のtop metadataへ修正し最終CIへ進む。実Safari/当日受入・本人login・物理iPhoneはまだ未確認。
+
+Safari起動は実checker bytesの変更も正規main/不変workflow/first-parentのGit SHA照合で認め、元candidate変更経路と同じ履歴・直前ref再確認・固定POST1回・曖昧応答再試行なしを維持。実131件/0.332秒と独立レビュー成功。候補の偽pin変更や新job/input/cron/runner/timeout/課金/モデル系統/公開UI/本番重み変更は行わない。稼働中A74は停止・hotswapしない。
+
+4競技全レース×全適用モデル・締切15〜10分前・実iPhone・6艇の服色継続識別/校正/予想接続・前向き精度改善は未達。元offline2commitは未復元のまま。以下は各時点の証拠を保つ。
+
+## 2026-11-18 05:02 UTC: 欠落12groupを実保存・独立復号でmissing0を確認（GOAL未達）
+
+通常merge a836835f/tree9608d6d3は最終tested head9125ffccと同じtree。national実CI44237640777/job134577536802は333件/107.101秒、全10block compileが成功し、26checksは12success/14skip/failed0だった。
+
+既存owner run44238203546/job134579371548の04:34:52.4022045 UTCにPUBLISHED_VERIFIED。gen425/snapshot df7b4b319ece651c53979974c97f88e9b66ef4b4、cipher SHA256 2b6971baf4181371ed613e6cf0f850b0e66ff857ee34f8e4b2dd1b07cd6682f4を既存V5 writerで1回保存し、暗号化再読取りまで成功した。認証済み旧ACTIVE原本12groupを3rowへ復元し、active2→14/history24を保持。12groupは12レースを意味しない。元forecast/result/OBS/history/unknown fields/時計文字列を変更せず、source GET0・予想生成0。
+
+別のnational run44238203521/job134579371091は04:36:29.0864101 UTCに同じgen425を独立認証し、NO_BINDING_INCONSISTENCY_IN_THIS_VIEW。REJ active14/history24/比較24/missing0、OBS600/history0、その他不整合0を確認した。修復の再実行はしない。後続の通常保存・当日公開・Safariの現行V5 browser AESは別途確認中であり、4競技全モデル/締切15〜10分前/実iPhone/6艇校正/前向き精度改善を完了扱いしない。
+
+原環境の未push2commitは02:51:34 UTCの正規接続GETで両方422 No commit found for SHA、引き続き未復元。ZIPや別環境のローカルファイルの移転を仮定しない。既存PR39を原本保全してsource研究アーカイブの再転送削減に使用し、この既存PR38は原本を保全して実成功証拠とSafari受入改善へ再利用する。稼働中A74、新PR/job/input/cron/runner/timeout/料金/モデル系統/本番重み/公開UIは変更しない。
+
+[実保存・独立確認・最終CI](evidence/boat-rejection-anchor-repair-actual-20261118.json)。以下は各時点の履歴。
+
 ## 2026-11-18 04:26:09 UTC: 復元333件は実成功、修復HOLDをjob失敗で可視化し最終CIへ（GOAL未達・実書換え前）
 
 PR40 head2c3e5ddd/treea481efbdのnational実CI44236915982/job134575161840は333件/106.696秒・全10 block compile・source/key境界が成功した。新20methodを含むruntime931b0c64は不変。別の既存recovery119件では、owner jobのcontinue-on-error:trueが新CAS分で2個になったことを検出するassert1箇所だけが失敗した。
