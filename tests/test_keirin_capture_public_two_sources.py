@@ -107,6 +107,27 @@ class TwoPublicSourcesToAutoAB(unittest.TestCase):
         self.assertEqual(out["states"]["HOLD_PROVIDER_DENIED_OR_RATE_LIMITED_STOP"],1)
         self.assertFalse((self.cards/(RID+".json")).exists())
 
+    def test_provider_denial_is_persisted_for_future_reruns(self):
+        attempts=[]
+        def deny(url):
+            attempts.append(url)
+            raise collector.SourceCaptureError(
+                "PROVIDER_DENIED_OR_RATE_LIMITED_STOP")
+        first=self.collect(fetch=deny)
+        self.assertEqual(first["GET_pair_attempts"],1)
+        self.assertTrue((self.raw/"provider-denial-stop.json").exists())
+        second=self.collect(fetch=deny)
+        self.assertEqual(second["GET_pair_attempts"],0)
+        self.assertEqual(len(attempts),1)
+        self.assertEqual(
+            second["states"]["HOLD_PROVIDER_PREVIOUS_DENIAL_NO_RETRY"],1)
+
+    def test_early_midnight_JST_clock_not_wrong_UTC_day(self):
+        x=manifest()
+        x["races"][0]["cutoff_hint"]="2026-11-18T00:15:00+09:00"
+        collector.manifest_check(x,registered_ids=[
+            row["race_id"] for row in self.reg["records"]])
+
     def test_wrong_race_or_offsite_page_rejected_before_network(self):
         x=manifest()
         x["races"][0]["netkeirin_url"]="https://example.com/race?race_id="+RID
