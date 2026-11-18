@@ -1,0 +1,184 @@
+{
+  "schema": "RACE_AI_HTTP_RECEIVE_CLOCK_SOURCE_MAIN_SYNC_V1",
+  "source": {
+    "merge": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+    "tree": "c3968e028da7b4c68a422582bddac6d81232add9",
+    "pr": 26,
+    "tested_head": "e4386739a76971f5e3920e786cef9566693a9b72",
+    "tested_tree_matches": true,
+    "pilot_path": "scripts/boat_nationwide_ab_pilot.py",
+    "base_pilot": "df16490e7ce2137f4ec366927579e3fa5a865622",
+    "fixed_pilot": "ccba5b130c31384118ee788ed547431651064fe7",
+    "runtime_literal_edits": 3,
+    "red": {
+      "head": "ab6884d24f57819257df41943d0f8b2ca42400d5",
+      "run": 44302333725,
+      "job": 134794958962,
+      "primary_tests": 880,
+      "primary_seconds": 192.364,
+      "expected_assertion_failures": 2,
+      "errors": 0
+    },
+    "green": {
+      "run": 44303457292,
+      "job": 134798829893,
+      "primary_tests": 880,
+      "primary_seconds": 219.105,
+      "other_test_counts": [
+        3,
+        12,
+        38,
+        165,
+        46
+      ],
+      "all_pass": true
+    },
+    "contract_blob": "e3fa8ae48db7c2de3a9c2ed880bad43c8020cec6",
+    "tests_patch_blob": "f1ca99da7fd8e7b2f44615897fb88e88023f1138",
+    "runtime_patch_blob": "ff1451d73ea4a0fd88ca31012b0d2f93df5771c7",
+    "workflow_blob_unchanged": "268ab052c2b5148cbf555a26f2d4405a52b6c35b"
+  },
+  "main": {
+    "merge": "7003a0375721d64514419eafd8a0030f2888061a",
+    "tree": "8ad8629cd8f501e5853a27c5df859e65b78c8a09",
+    "pr": 25,
+    "tested_head": "097e667ef72b32da65f4a6e49f36e9f4c64948c4",
+    "tested_tree_matches": true,
+    "runtime_patch_blob": "56173c8ffb15a7a555cd19246158e93fa52b3170",
+    "test_patch_blob": "ed8fdfa7375e5730aa7c104d8e9edcd08a8311f8",
+    "runtime_files": 6,
+    "literal_rules": 18,
+    "replacement_occurrences": 21,
+    "independent_static_review": "CLEAR",
+    "red": {
+      "head": "26749168246415e4bc3d2a2fdf38529eac309345",
+      "recovery": {
+        "run": 44306003811,
+        "job": 134807623553,
+        "tests": 138,
+        "seconds": 0.477,
+        "expected_assertion_failures": 5,
+        "errors": 0
+      },
+      "national": {
+        "run": 44305997279,
+        "job": 134807603450,
+        "tests": 368,
+        "seconds": 138.587,
+        "expected_assertion_failures": 12,
+        "errors": 0
+      }
+    },
+    "first_green_candidate_failure": {
+      "head": "8ed00f85f7d6d8a48002e84820976b8f59143a2e",
+      "run": 44308440339,
+      "job": 134815990226,
+      "tests": 138,
+      "seconds": 0.406,
+      "assertion_failures": 1,
+      "errors": 0,
+      "reason": "Existing source-release marker lacked the actual995 SHA; appended only the existing marker, no test/runtime relaxation.",
+      "national_tests": 368,
+      "national_seconds": 144.855,
+      "raw_tests": 7,
+      "raw_seconds": 13.957,
+      "national_all_pass": true
+    },
+    "final_green": {
+      "recovery": {
+        "run": 44309440574,
+        "job": 134819433998,
+        "tests": 138,
+        "seconds": 0.368,
+        "all_pass": true
+      },
+      "national": {
+        "run": 44309440607,
+        "job": 134819435010,
+        "tests": 368,
+        "seconds": 184.69,
+        "raw_tests": 7,
+        "raw_seconds": 30.051,
+        "all_pass": true
+      },
+      "mirror": {
+        "run": 44309440912,
+        "job": 134819436581,
+        "tests": 212,
+        "seconds": 101.412,
+        "other_tests": 32,
+        "other_seconds": 0.039,
+        "all_pass": true
+      },
+      "checks": 26,
+      "success": 12,
+      "skipped": 14,
+      "failed": 0
+    },
+    "marker_path": "docs/evidence/owner-pdca-main-trigger.txt",
+    "marker_blob": "7806df8a231a14fdad1e62a6495880bed00ed17a",
+    "prefix": "boat-owner-release: single-real-session-20261111"
+  },
+  "invariants": {
+    "same_actual_receive_object_shared_only_for_existing_raw_html_on_predicate": true,
+    "off_legacy_behavior": true,
+    "two_second_pacing_unchanged": true,
+    "post_pacing_day_refusal_unchanged": true,
+    "later_generation_and_server_save_clocks_unchanged": true,
+    "past_originals_and_clocks_changed": false,
+    "models_or_weights_changed": false,
+    "failed_main_contract": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
+    "failed_source_contract": "be56af54f71d4c3a7d303823b056e4964150db49",
+    "four_other_source_p0_parents": [
+      "M2",
+      "profile",
+      "BB",
+      "A74"
+    ],
+    "new_source_accepts_c979_or_f1_p0": false,
+    "older_partial_sources_accept_new_p0": false,
+    "evidence_reader": "014fc9ddbbd24c501b7784eeae50be315644669f",
+    "pair_reader": "3e1f414a4e164f5400f7f7a1533977b8678d80c4",
+    "raw_reader": "daef1d09ce55dde149defda0a15e6459ac511f73",
+    "native_ui_and_off_pilots_unchanged": true,
+    "new_job_permission_input_schedule_runner_timeout_prefix_marker_name": false,
+    "ui_published": false,
+    "wager": false,
+    "paid_service": false
+  },
+  "operational": {
+    "observed_at": "2026-11-18T13:08:00Z",
+    "launcher": {
+      "run_id": 44310274907,
+      "job_id": 134822293251,
+      "main_sha": "7003a0375721d64514419eafd8a0030f2888061a",
+      "conclusion": "success",
+      "logged_at": "2026-11-18T13:06:27.0603589Z",
+      "status": "READY_VERIFIED_SAME_DAY_CONTINUATION",
+      "dispatch_allowed": true,
+      "recovery_required": false,
+      "release_sha": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+      "official_source_requests": 0,
+      "actual_dispatch_logged_at": "2026-11-18T13:06:28.9261327Z"
+    },
+    "successor": {
+      "run_id": 44310358995,
+      "head_sha": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+      "event": "workflow_dispatch",
+      "created_at": "2026-11-18T13:06:28Z",
+      "status": "in_progress",
+      "receive_clock_equality_proven": false,
+      "p0_retention_completed": null,
+      "positive_new_forecast_count": null
+    },
+    "meaning": [
+      "The unchanged final-control/continuation/source-wait/fresh-history gate admitted a same-day successor; root did not directly dispatch a source worker.",
+      "READY does not reveal missing numeric lifetime round/baseline fields, independently reopen every raw AES body, prove new receive-clock equality, or establish full coverage/GOAL."
+    ],
+    "manual_duplicate_dispatch": false,
+    "old_worker_cancelled": false,
+    "source_budgets_reset": false,
+    "new_source_worker_receive_clock_proof": "PENDING_ACTUAL_OBSERVATION",
+    "goal_complete": false
+  }
+}

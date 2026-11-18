@@ -1,0 +1,53 @@
+{
+  "schema": "RACE_AI_PROGRAM_CAPTURE_CLOCK_BINDING_ACTUAL_V1",
+  "main_commit": "2fe6a09a968b7219ad46ba7319dcd0d64baaba1e",
+  "main_tree": "45b4367b001993a5bf0e4e869fdd1a22eb4bb3dd",
+  "run_id": 44304417349,
+  "job_id": 134802152640,
+  "job_conclusion": "success",
+  "logged_at": "2026-11-18T12:37:27.3428616Z",
+  "strict_report": {
+    "broader_goals_proven": false,
+    "comparison_count": 4,
+    "grid_clock_disagreed_side_count": 0,
+    "inspector_rejected_side_count": 0,
+    "missing_raw_side_count": 4,
+    "originals_changed": false,
+    "program_grid_match_count": 0,
+    "reason": "PROGRAM_CAPTURE_CLOCK_BINDING_UNVERIFIED",
+    "result_grid_match_count": 4,
+    "schema": "RACE_AI_A74_SAVED_GRID_INSPECTION_COUNTS_V1",
+    "source_requests": 0,
+    "status": "HOLD"
+  },
+  "meaning": [
+    "All expected PROGRAM bindings in the fixed comparison have owner-authenticated raw SHA and validated exact/query-free URL evidence, but no exact expected capture instant.",
+    "The immutable qualifier requires complete26header authentication, candidate AES/receipt checks and the unchanged strict `(n,0,n,n,0,0)` count shape.",
+    "This is not a clock tolerance, an alternate-clock PROGRAM inspection, a source-clock repair, or a formal forecast/result admission.",
+    "Four comparisons cover two races and must not be treated as four unique bodies or a qualified cohort."
+  ],
+  "preserved": {
+    "aes_archives": 73,
+    "all_model_zip_archives": 23,
+    "p1_rows_matched_saved_aes_view": 513,
+    "missing_all_model_rounds": [
+      4,
+      19
+    ],
+    "pair_first_records": 672,
+    "qualifying_g8_denominator": null,
+    "source_requests": 0,
+    "originals_changed": false,
+    "weights_changed": false
+  },
+  "future_source_fix": {
+    "source": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+    "tree": "c3968e028da7b4c68a422582bddac6d81232add9",
+    "pilot": "ccba5b130c31384118ee788ed547431651064fe7",
+    "source_tests": 880,
+    "source_test_seconds": 219.105,
+    "normal_merge_pr": 26,
+    "source_actual_worker_receive_clock_proof": "PENDING",
+    "old_forecast_clocks_repaired": false
+  }
+}

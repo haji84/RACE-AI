@@ -72,5 +72,39 @@
     "source_static_review": "CLEAR",
     "caller_review_pending_flushed_reordering": true,
     "fresh_ci": "UNCONFIRMED"
+  },
+  "recorded_stage_fields_preserved": true,
+  "final_completion": {
+    "normal_main_merge": "77687373961b5a8c2027f289911c4c77b2734d5e",
+    "merged_tested_tree": "0532ad1ed4d42ce2f47334b63e087b7e1d003250",
+    "old_tests": 364,
+    "new_tests": 7,
+    "all_pass": true,
+    "source_review": "CLEAR",
+    "caller_review": "CLEAR",
+    "initial_actual_run": 44295973484,
+    "initial_actual_job": 134772973124,
+    "initial_strict_reason": "RAW_CAPTURE_MISSING",
+    "subsequent_clock_reason_main": "2fe6a09a968b7219ad46ba7319dcd0d64baaba1e",
+    "subsequent_run": 44304417349,
+    "subsequent_job": 134802152640,
+    "subsequent_strict_report": {
+      "broader_goals_proven": false,
+      "comparison_count": 4,
+      "grid_clock_disagreed_side_count": 0,
+      "inspector_rejected_side_count": 0,
+      "missing_raw_side_count": 4,
+      "originals_changed": false,
+      "program_grid_match_count": 0,
+      "reason": "PROGRAM_CAPTURE_CLOCK_BINDING_UNVERIFIED",
+      "result_grid_match_count": 4,
+      "schema": "RACE_AI_A74_SAVED_GRID_INSPECTION_COUNTS_V1",
+      "source_requests": 0,
+      "status": "HOLD"
+    },
+    "goal_complete": false,
+    "source_requests": 0,
+    "originals_changed": false,
+    "stage_status_note": "Earlier UNCONFIRMED/IN_PROGRESS fields preserve the evidence at that recorded stage; this additive final_completion contains the subsequently observed outcome."
   }
 }
