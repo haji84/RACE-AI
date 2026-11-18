@@ -1,0 +1,10 @@
+{
+  "schema": "RACE_AI_A74_SAVED_GRID_INSPECTION_DEDUP_ADDENDUM_V1",
+  "base_contract": "b7e4e47596951f48c038038c6ab6fb43e357c9b5",
+  "no_schema_API_or_enum_change": true,
+  "missing_side": "When a selected receipt is absent, use deterministic private identity (fixed role,authenticated race,expected rawSHA,expected source_ref/url_form,expected captured aware instant,MISSING sentinel). Include BOTH expected saved aware cutoff instants in the comparison key. Never invent receipt URL/time and never include a cell index to inflate copies.",
+  "duplicate_test": "Two cells with identical first/latest source/clock expectations and a missing raw side count as ONE comparison, with ONE missing side.",
+  "selected_conflict_scope": "Only selected wanted bindings matter. Header-negative unrelated bodies are not decrypted to seek forks. Unknown/private receipt extras or JSON byte spelling do not create new authority: equal rawSHA,exact URL/race,aware captured instant and HTTP200 deduplicate. Ambiguous competing native PROGRAM proofs/clocks return unsupported/HOLD. Do not invent conflicting valid crypto fixtures solely from an added private metadata field.",
+  "privacy": "All dedup values and private receipts remain in Actions memory. Public exact12field schema and original rejection/clock/hash semantics remain unchanged.",
+  "status": "Root accepted clarification before test freeze; runtime remains unimplemented."
+}

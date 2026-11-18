@@ -390,7 +390,7 @@ def _scope(get, run_id, now, source):
     return active, reads, scope
 
 
-def _audit(get, run_id, now, source, _diagnostic=None):
+def _audit(get, run_id, now, source, _diagnostic=None, _raw_cutoff_sink=None):
     diagnostic = {} if _diagnostic is None else _diagnostic
     diagnostic['phase'] = 'PAIR_PREFLIGHT'
     from race_ai.actions_contract import canonical, digest
@@ -503,6 +503,14 @@ def _audit(get, run_id, now, source, _diagnostic=None):
                 _need(active._time(original['cutoff_at']) == active._time(descriptor['cutoff_at'])
                       and canonical(original['info']) == canonical(descriptor['info']))
             else:
+                if _raw_cutoff_sink is not None:
+                    try:
+                        from scripts import boat_cutoff_raw_replay_audit as raw_cutoff
+                        from race_ai import all_existing_model_registry as raw_registry
+                        descriptor['_raw_program_ref'] = raw_cutoff._program_ref_for_pair(
+                            payload, info=descriptor['info'], registry=raw_registry, parse_time=active._time)
+                    except Exception:
+                        descriptor['_raw_program_ref'] = None
                 first[identity] = descriptor
         del records, context, raw, learning_raw
 
@@ -564,6 +572,11 @@ def _audit(get, run_id, now, source, _diagnostic=None):
                     diagnostic['cutoff_inventory'] = _current_pair_cutoff_projection(inventory)
                 except Exception:
                     diagnostic['cutoff_inventory'] = _current_pair_cutoff_unavailable()
+                if _raw_cutoff_sink is not None:
+                    try:
+                        _raw_cutoff_sink(first, latest)
+                    except Exception:
+                        pass
             raise
         result.update(current_pair_result_archive_count=len(rounds),
             current_pair_result_scope='PRODUCER_JOURNAL_ONLY_UNQUALIFIED',
