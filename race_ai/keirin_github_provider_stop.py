@@ -32,8 +32,12 @@ def must(ok, reason):
 
 
 def _path(day):
-    must(type(day) is str and date.fromisoformat(day).isoformat() == day,
-         "STOP_DAY_INVALID")
+    must(type(day) is str, "STOP_DAY_INVALID")
+    try:
+        must(date.fromisoformat(day).isoformat() == day,
+             "STOP_DAY_INVALID")
+    except ValueError:
+        raise ProviderStopError("STOP_DAY_INVALID") from None
     return f"{ROOT}/{day}.json"
 
 
