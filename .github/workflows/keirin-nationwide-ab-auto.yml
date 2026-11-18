@@ -5,6 +5,8 @@ on:
     paths:
       - 'race_ai/keirin_nationwide_auto_*.py'
       - 'scripts/keirin_nationwide_auto_forecast.py'
+      - 'scripts/keirin_register_public_day.py'
+      - 'tests/test_keirin_register_public_day.py'
       - 'scripts/keirin_nationwide_independent_cipher_readback.py'
       - 'tests/test_keirin_nationwide_auto_*.py'
       - '.github/workflows/keirin-nationwide-ab-auto.yml'
@@ -51,7 +53,8 @@ jobs:
             tests.test_keirin_capture_public_two_sources \
             tests.test_keirin_utsunomiya1r_real_auto_cipher_freeze \
             tests.test_keirin_evening_national_real_AB_20261118 \
-            tests.test_keirin_discover_public_race_links
+            tests.test_keirin_discover_public_race_links \
+            tests.test_keirin_register_public_day
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_nationwide_auto_storage.py \
@@ -62,6 +65,7 @@ jobs:
             race_ai/keirin_public_two_source_normalizer.py \
             scripts/keirin_capture_public_two_sources.py \
             scripts/keirin_discover_public_race_links.py \
+            scripts/keirin_register_public_day.py \
             scripts/keirin_real_nationwide_day_link_smoke.py \
             scripts/keirin_real_source_to_aes_one_run.py \
             scripts/keirin_evening_national_real_AB_20261118.py \
