@@ -142,6 +142,7 @@ let browser,server,dailyData=null;
       await page.locator('#pin-venue').click();assert.equal(await page.locator('#pin-venue').getAttribute('aria-pressed'),'true');
       await page.locator('#race-search').fill('白井');
       const second=page.locator('#all-races .race-card').filter({has:page.locator('[data-open-race="20300101-03-02"]')});
+      await second.locator('.race-list-more>summary').click();
       await second.locator('[data-race-tab="preview"]').click();
       assert.equal(await page.locator('#detail-tab-preview').getAttribute('aria-selected'),'true');
       await page.locator('#same-venue-races [data-race-number="1"]').click();

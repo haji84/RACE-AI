@@ -57,6 +57,13 @@ build_site(p,r/'updated-public',r/'updated-private',expected_source_sha256=pin,v
  await page.locator('#page-settings a[href="#research"]').click();assert.equal(new URL(page.url()).hash,'#'+fragment);
  await page.locator('.brand').filter({visible:true}).first().click();assert.equal(new URL(page.url()).hash,'#'+fragment);
  await page.locator('.skip-link').focus();await page.keyboard.press('Enter');assert.equal(new URL(page.url()).hash,'#'+fragment);
+ await page.locator('[data-page="picks"]').filter({visible:true}).first().click();await page.locator('#copy-top8').click();await page.locator('#equal-allocate').click();
+ const reviewCandidates=await page.locator('#ticket-list').innerText();await page.setViewportSize({width:640,height:360});await page.locator('#review-allocation').click();
+ const reviewConfirm=await page.locator('#confirm-candidates').boundingBox(),reviewNav=await page.locator('.bottom-nav').boundingBox();
+ await page.mouse.click(reviewConfirm.x+reviewConfirm.width/2,reviewConfirm.y+reviewConfirm.height/2);
+ assert.match(await page.locator('#confirmation-state').innerText(),/候補確定済み/);assert.ok(reviewConfirm.y+reviewConfirm.height<=reviewNav.y-8);
+ assert.equal(new URL(page.url()).hash,'#'+fragment,'short-window review preserves the encrypted capability fragment');assert.equal(await page.locator('#ticket-list').innerText(),reviewCandidates);assert.equal(await page.locator('#record-purchase').isDisabled(),true);
+ await page.setViewportSize({width:390,height:844});
  await page.reload();await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
  assert.equal(await page.locator('#selected-date').inputValue(),'2026-11-06','reload restores the latest saved prediction day when today is empty');
  await openPastDay();

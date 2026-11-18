@@ -788,6 +788,24 @@
     if (featured) card.append(node("p", "muted small card-rationale", U.forecastExplanation(r,p)?.rationale || r.no_forecast_reason || "保存予想の読み込みを待っています。"));
     return card;
   }
+  function compactRaceCard(r) {
+    const card=raceCard(r),p=prediction(r),head=card.querySelector(":scope>.race-card-head"),tags=card.querySelector(":scope>.race-tags"),
+      people=card.querySelector(":scope>.racer-grid,:scope>.empty-state"),information=card.querySelector(":scope>.race-information"),
+      foot=card.querySelector(":scope>.race-card-footer"),caption=foot.querySelector(".model-caption"),open=foot.querySelector("[data-open-race]");
+    const extra=[...card.children].filter(child=>![head,tags,people,information,foot].includes(child));
+    card.classList.add("race-list-card");
+    open.className="race-title-button";open.textContent=raceName(r);open.setAttribute("aria-label",raceName(r)+"のレース詳細を開く");
+    head.querySelector("h3").replaceChildren(open);
+    foot.querySelector(".saved-tickets").replaceWith(ticketPreview(p,1));
+    const more=node("details","race-list-more");more.append(node("summary","","出走表・直前情報・保存状態"),tags,caption,...extra);
+    if(!p&&r.no_forecast_reason)more.append(node("p","muted small",r.no_forecast_reason));
+    more.append(information);
+    const roster=knownParticipants(r).length?people:node("p","race-list-roster-empty","出走メンバーは未取得です");
+    if(roster!==people)more.append(people);
+    const status=node("p","race-list-status",p?stageName(p)+" · "+forecastStatus(r,p):scopeName(r.scope)+" · 未予想");
+    card.replaceChildren(head,status,roster,foot,more);
+    return card;
+  }
   function showPage(page, moveFocus = false) {
     if (!Object.hasOwn(pageNames, page)) page = "home";
     state.page = page;
@@ -886,7 +904,7 @@
     $("race-count").textContent = {upcoming:"締切前 ",results:"レース結果 ",unknown:"締切未確認 "}[phase] + filtered.length + "件 / 選択期間の対象 " + all.length + "件";
     const coverage = U.modelCoverage(displayRows(all), C.models, {sport: state.sport});
     $("all-race-model-scope").textContent = sports[state.sport] + " · 適用 " + coverage.applicable_models + " / 登録 " + C.models.length + "モデル · 対象台帳 " + coverage.target_races + "レース（保存予想なし " + all.filter(r => !predictions(r).length).length + "レースを含む） · " + coverage.display_stages.map(stage=>stageName({stage}) + " " + coverage.models.reduce((sum,m)=>sum+(m.stages[stage].target_races||0),0) + "対象枠").join(" / ");
-    const content = filtered.slice(0,state.visible).map(r => phase === "results" ? raceResultCard(r) : raceCard(r));
+    const content = filtered.slice(0,state.visible).map(r => phase === "results" ? raceResultCard(r) : compactRaceCard(r));
     if (!filtered.length) {
       const unloaded = state.venue && !all.some(r => U.venueName(r) === state.venue), title = unloaded ? state.venue + "のレースデータは未取得です" : phase === "upcoming" && all.length ? (lists.unknown.length ? "締切前と確認できるレースはありません" : "締切前のレースはありません") : phase === "results" && all.length && !lists.results.length ? "レース結果はまだありません" : all.length ? "条件に一致するレースがありません" : sports[state.sport] + "のレースは未取得です";
       const message = empty(title,unloaded || !all.length ? "未取得は開催なしを意味しません。対象日や保存情報を確認してください。" : "会場・検索条件を変更するか、レース結果を確認できます。");
@@ -1816,7 +1834,11 @@
   $("reopen-candidates").addEventListener("click", () => { invalidateConfirmation(state.selectedId); renderTickets(); });
   $("review-allocation").addEventListener("click", () => {
     $("allocation-review").focus({preventScroll:true});
-    $("allocation-review").scrollIntoView({block:"center",behavior:"instant"});
+    const confirm=$("confirm-candidates"),navigation=document.querySelector(".bottom-nav");
+    confirm.scrollIntoView({block:"center",behavior:"instant"});
+    const bottom=Math.min(innerHeight,navigation?.getClientRects().length?navigation.getBoundingClientRect().top:innerHeight);
+    const covered=confirm.getBoundingClientRect().bottom+12-bottom;
+    if(covered>0)window.scrollBy({top:covered,behavior:"instant"});
   });
   $("purchase-ack").addEventListener("change", renderTickets);
   $("record-purchase").addEventListener("click", () => {

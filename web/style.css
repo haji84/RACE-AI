@@ -293,3 +293,46 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
 .sport-pictogram{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.2em;fill:currentColor;flex-shrink:0}
 .sports .sport-pictogram{display:block;width:1em;height:1em}
 .sport-tag .sport-pictogram{margin-right:.3em}
+
+/* List cards reuse the full detail actions inside a native disclosure. */
+#all-races .race-list-card{display:grid;grid-template-columns:160px minmax(0,1fr) 170px;gap:4px 12px;padding:10px}
+#all-races .race-list-card>.race-card-head{grid-column:1;grid-row:1;display:block;min-width:0}
+#all-races .race-list-card h3{font-size:20px;line-height:1.2;margin:0}
+#all-races .race-list-card .race-title-button{display:block;width:100%;min-height:44px;padding:0;background:transparent;color:var(--navy);font:inherit;font-weight:800;text-align:left;overflow-wrap:anywhere}
+#all-races .race-list-card .sport-tag{font-size:10px}
+#all-races .race-list-card .race-time{display:flex;flex-wrap:wrap;gap:4px;align-items:center;text-align:left}
+#all-races .race-list-card .race-time>span{font-size:10px}
+#all-races .race-list-card .race-time strong{font-size:12px}
+#all-races .race-list-card>.race-list-status{grid-column:1;grid-row:2;margin:0;font-size:10px;line-height:1.5;color:#526b87;overflow-wrap:anywhere}
+#all-races .race-list-card>.racer-grid{grid-column:2;grid-row:1/3;align-self:center;display:flex;gap:0;overflow-x:auto;min-width:0;padding-bottom:2px}
+#all-races .race-list-card .racer-card{flex:1 0 44px;min-width:44px;padding:3px 0}
+#all-races .race-list-card .racer-avatar{min-height:32px;margin-bottom:2px;border-bottom:0}
+#all-races .race-list-card .avatar-silhouette{width:28px;height:28px}
+#all-races .race-list-card .avatar-silhouette:before{left:10px;top:4px;width:9px;height:9px}
+#all-races .race-list-card .avatar-silhouette:after{left:5px;width:19px;height:19px}
+#all-races .race-list-card .racer-portrait{width:32px;height:32px}
+#all-races .race-list-card .racer-name{font-size:10px;line-height:1.2}
+#all-races .race-list-card .racer-card small{display:none}
+#all-races .race-list-card>.race-list-roster-empty{grid-column:2;grid-row:1/3;align-self:center;margin:0;font-size:12px;color:#718399}
+#all-races .race-list-card>.race-card-footer{grid-column:3;grid-row:1/3;align-self:center;display:block;margin:0;padding:0;border:0}
+#all-races .race-list-card .card-prediction>strong{font-size:11px}
+#all-races .race-list-card .saved-tickets{display:flex;flex-direction:row;margin-top:5px}
+#all-races .race-list-card .saved-ticket{padding:3px 4px}
+#all-races .race-list-card .saved-ticket .lane{width:22px;height:22px;font-size:15px}
+#all-races .race-list-card>.race-list-more{grid-column:1/-1;margin:0;border-top:1px solid var(--border)}
+#all-races .race-list-card>.race-list-more>summary{min-height:44px;padding:8px 0;font-size:12px;line-height:28px;color:#176c8b;font-weight:700;cursor:pointer}
+#all-races .race-list-card .race-list-more .race-tags{display:flex;margin:8px 0}
+#all-races .race-list-card .race-list-more .race-information{margin-top:8px}
+#all-races .race-list-card .race-list-more .information-button{min-width:44px;min-height:44px}
+#all-races .race-list-card .race-list-more .model-caption{margin:8px 0}
+@media(max-width:1399px){
+  #all-races .race-list-card{grid-template-columns:minmax(0,1fr);padding:7px;gap:4px}
+  #all-races .race-list-card>.race-card-head{grid-column:1;grid-row:1;display:flex;justify-content:space-between;gap:8px}
+  #all-races .race-list-card>.race-card-head>div:first-child{min-width:0}
+  #all-races .race-list-card .race-time{flex-direction:column;align-items:flex-end;flex-shrink:0}
+  #all-races .race-list-card>.race-list-status{grid-column:1;grid-row:2}
+  #all-races .race-list-card>.racer-grid,#all-races .race-list-card>.race-list-roster-empty{grid-column:1;grid-row:3}
+  #all-races .race-list-card>.race-card-footer{grid-column:1;grid-row:4}
+  #all-races .race-list-card .card-prediction{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  #all-races .race-list-card .saved-tickets{margin:0}
+}
