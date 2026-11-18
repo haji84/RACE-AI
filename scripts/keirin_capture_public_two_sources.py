@@ -230,10 +230,13 @@ def capture_cycle(*,day_manifest,registered_ids,private_cards_dir,
         except (SourceCaptureError,PublicPageNormalizeError,
                 AutomaticForecastError,KeyError,ValueError,TypeError,OSError) as exc:
             reason=str(exc)
-            if reason not in (
-                "PROVIDER_DENIED_OR_RATE_LIMITED_STOP",
-                "PUBLIC_PROVIDER_HTTP_ERROR_STOP",
-                "PUBLIC_PROVIDER_UNAVAILABLE_STOP"):
+            # The source parser emits fixed uppercase error codes.
+            # Preserve only those identifiers, never source HTML, personal
+            # names, URLs or exception text from provider libraries.
+            if (not reason.isascii() or
+                not reason.replace("_","").isalnum() or
+                not reason.replace("_","").isupper() or
+                len(reason)>90):
                 reason="SOURCE_PAGE_PARSING_OR_PROVENANCE_HOLD"
             rows.append({"race_id":rid,"state":"HOLD_"+reason})
             if reason=="PROVIDER_DENIED_OR_RATE_LIMITED_STOP":
