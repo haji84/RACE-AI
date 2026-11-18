@@ -68,7 +68,7 @@ MODEL_ORIGINAL_MISMATCH PRIVATE_NETWORK_BOUNDARY_FAILED SAVED_VIEW_UNAVAILABLE
 APP_UI_CHECK_FAILED SOURCE_REVISION_MISMATCH VIEWPORT_INVALID NATIVE_BUDGET_INPUT_NOT_APPLIED
 ENCRYPTED_SEED_INVALID ENCRYPTED_SEED_REFUSAL_FAILED SYNTHETIC_FIXTURE_INVALID
 SYNTHETIC_SCREENSHOT_REJECTED SYNTHETIC_OUTPUT_REJECTED SAFARI_SESSION_CLEANUP_FAILED
-NATIVE_SELECT_PRECONDITION_FAILED'''.split())
+NATIVE_SELECT_PRECONDITION_FAILED CURRENT_V5_REPLAY_INVALID CURRENT_V5_EVIDENCE_INVALID'''.split())
 
 
 class SafariHold(ValueError):
@@ -675,7 +675,10 @@ Object.defineProperty(globalThis,'RaceProductData',{configurable:false,
 class LoopbackSite:
     """Known byte assets + one memory-only private route; no filesystem handler."""
     def __init__(self, assets, view, *, secrets=(), encrypted_seed=None, tamper_seed=False,
-                 synthetic=False, candidate_ui=False):
+                 synthetic=False, candidate_ui=False, current_v5=None):
+        need(current_v5 is None or (view is None and encrypted_seed is not None
+             and not synthetic and not candidate_ui), 'CURRENT_V5_REPLAY_INVALID')
+        self.current_v5 = current_v5
         need(not candidate_ui or (synthetic and secrets == () and encrypted_seed is None),
              'SYNTHETIC_SCREENSHOT_REJECTED')
         self.candidate_ui = candidate_ui
@@ -687,6 +690,8 @@ class LoopbackSite:
         self.seed_path = encrypted_seed['path'] if encrypted_seed else None
         self.synthetic_fixture_sha256 = None
         self.privacy_script = PRIVACY_SCRIPT
+        if current_v5 is not None:
+            self.privacy_script += current_v5_replay_script(current_v5)
         if synthetic:
             fixture = synthetic_fixture(assets)
             need(encrypted_seed is None and wire(view) == wire(fixture), 'SYNTHETIC_FIXTURE_INVALID')
@@ -705,6 +710,8 @@ class LoopbackSite:
                      for value in self.secrets), 'PRIVATE_NETWORK_BOUNDARY_FAILED')
         self.audit = {'private_view_reads': 0, 'rejected_requests': 0, 'secret_in_request': False,
                       'encrypted_seed_reads': 0, 'non_read_requests': 0, 'outbound_requests_permitted': 0}
+        if current_v5 is not None:
+            self.audit.update(current_v5_manifest_reads=0, current_v5_cipher_reads=0)
 
     def __enter__(self):
         site = self
@@ -748,6 +755,16 @@ class LoopbackSite:
                         site.audit['private_view_reads'] += 1
                 elif name == '_acceptance/privacy.js':
                     body, mime = site.privacy_script, 'text/javascript; charset=utf-8'
+                elif site.current_v5 is not None and name.startswith('_acceptance/current-v5/'):
+                    payload = _current_v5_helpers().current_v5_payload(site.current_v5, '/' + name)
+                    if payload is None:
+                        status = 404
+                    else:
+                        body, kind = payload
+                        mime = 'application/json; charset=utf-8'
+                        if not head:
+                            site.audit['current_v5_manifest_reads' if kind == 'manifest'
+                                       else 'current_v5_cipher_reads'] += 1
                 elif name in site.assets:
                     body = site.assets[name]
                     if name == site.seed_path and not head:
@@ -788,6 +805,7 @@ class LoopbackSite:
             need(not self.thread.is_alive(), 'SAFARI_SESSION_CLEANUP_FAILED')
         finally:
             self.view = b''
+            self.current_v5 = None
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -1589,6 +1607,8 @@ def main(argv=None):
             with apple_driver() as (driver, identity):
                 checks = app_checks(driver, site, context, secrets)
         seed_checks = encrypted_seed_checks(assets, seed, private_seed, secrets)
+        replay = read_current_v5_replay(args.source_root, seed)
+        current = current_v5_checks(assets, seed, private_seed, replay, secrets)
         print(wire({'schema': 'RACE_AI_NATIVE_SAFARI_ACCEPTANCE_V2',
             'status': 'NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED', 'native_browser': identity,
             'verified_at': datetime.now(timezone.utc).isoformat(), 'pages_sha': PAGES_SHA,
@@ -1596,9 +1616,11 @@ def main(argv=None):
             'saved_day': context['day'], 'authenticated_generation': context['generation'],
             'authenticated_results': context['minimum_results'], 'authenticated_native_p1_groups': context['native_group_count'],
             'latest_p1_private_transport': {**checks, 'transport': 'LOOPBACK_EXISTING_PRIVATE_SAVED_ENDPOINT'},
-            'encrypted_seed': seed_checks, 'browser_aes_verified': True,
+            'encrypted_seed': seed_checks, 'encrypted_current_v5': current,
+            'browser_aes_verified': seed_checks.get('browser_aes_verified') is True and current.get('browser_aes_verified') is True,
             'private_sessions_cleanup_verified': True,
-            'account_login_verified': False, 'current_v5_live_continuation_verified': False,
+            'account_login_verified': False, 'current_v5_live_continuation_verified': current['current_v5_live_continuation_verified'],
+            'current_day_verified': current['current_day_verified'],
             'browser_aes_and_owner_login_verified': False, 'physical_iphone_verified': False,
             'all_eight_reference_screens_visually_verified': False, 'plaintext_published': False,
             'forecast_or_result_mutation': False}))
@@ -1606,6 +1628,86 @@ def main(argv=None):
     except Exception as error:
         print(wire(failure_report(error)))
         return 2
+
+
+MAX_CURRENT_V5_FILES = 512
+MAX_CURRENT_V5_BYTES = 256 * 1024 * 1024
+_CURRENT_V5_HELPERS = None
+
+
+class _CurrentV5API:
+    def __getattr__(self, name):
+        try:
+            return globals()[name]
+        except KeyError:
+            raise AttributeError(name) from None
+
+
+_CURRENT_V5_API = _CurrentV5API()
+
+
+def _current_v5_helpers():
+    global _CURRENT_V5_HELPERS
+    if _CURRENT_V5_HELPERS is None:
+        import importlib.util
+        source = Path(__file__).resolve().with_name('boat_native_safari_current_v5.py')
+        need(source.is_file() and not source.is_symlink(), 'CURRENT_V5_REPLAY_INVALID')
+        spec = importlib.util.spec_from_file_location('native_safari_current_v5', source)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _CURRENT_V5_HELPERS = module
+        globals()['CurrentV5Replay'] = module.CurrentV5Replay
+    return _CURRENT_V5_HELPERS
+
+
+def build_current_v5_replay(*, snapshot_sha, latest_raw, ciphertexts, context,
+        view_id, forecast_sha256, secrets=(), now=None):
+    return _current_v5_helpers().build_current_v5_replay(
+        snapshot_sha=snapshot_sha, latest_raw=latest_raw, ciphertexts=ciphertexts,
+        context=context, view_id=view_id, forecast_sha256=forecast_sha256,
+        secrets=secrets, now=now, _api=_CURRENT_V5_API)
+
+
+def current_v5_replay_route(replay, logical_url):
+    return _current_v5_helpers().current_v5_replay_route(replay, logical_url, _api=_CURRENT_V5_API)
+
+
+def current_v5_replay_script(replay):
+    return _current_v5_helpers().current_v5_replay_script(replay, _api=_CURRENT_V5_API)
+
+
+def verify_current_v5_evidence(replay, probe, audit):
+    return _current_v5_helpers().verify_current_v5_evidence(replay, probe, audit, _api=_CURRENT_V5_API)
+
+
+def read_current_v5_replay(source_root, seed):
+    return _current_v5_helpers().read_current_v5_replay(source_root, seed, _api=_CURRENT_V5_API)
+
+
+def current_v5_checks(assets, seed, private, replay, secrets):
+    return _current_v5_helpers().current_v5_checks(assets, seed, private, replay, secrets, _api=_CURRENT_V5_API)
+
+
+class _CurrentV5SnapshotReader:
+    """Narrow public seam; no writer methods or general delegation."""
+    def __init__(self, git, snapshot_sha):
+        self._reader = _current_v5_helpers()._CurrentV5SnapshotReader(
+            git, snapshot_sha, _api=_CURRENT_V5_API)
+
+    def head(self):
+        return self._reader.head()
+
+    def read(self, commit, path, limit):
+        return self._reader.read(commit, path, limit)
+
+    def fetch(self, commit):
+        return self._reader.fetch(commit)
+
+    def exists(self, commit, path):
+        return self._reader.exists(commit, path)
+
+    def validate_tree(self, commit):
+        return self._reader.validate_tree(commit)
 
 
 if __name__ == '__main__':

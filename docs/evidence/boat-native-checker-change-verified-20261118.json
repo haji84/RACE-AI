@@ -1,0 +1,32 @@
+{
+  "schema": "RACE_AI_NATIVE_CHECKER_CHANGE_VERIFICATION_V1",
+  "implementation_blob": "014645d875874e8cc49b28d9bc280ade9ecf6ac4",
+  "head_sha": "0a72a6537fbcefea1354aebd3b25b8b9c1b5a318",
+  "tree_sha": "c349c51c44f95527da66633bbee6b7d2d36166d7",
+  "test_blob": "8dcba6458a026bdd0dba7292270e74c16ff6f701",
+  "green": {
+    "run_id": 44243054327,
+    "job_id": 134595275311,
+    "timestamp_utc": "2026-11-18T05:16:18.7979701Z",
+    "tests": 131,
+    "seconds": 0.332,
+    "failures": 0,
+    "errors": 0
+  },
+  "independent_static_review": {
+    "status": "CLEAR",
+    "actual_python_execution_by_reviewer": false,
+    "scope": "Full A836 diff, frozen 38 dispatcher methods and contract233572c4",
+    "observations": [
+      "Checker-only changes add exactly two immutable SHA-bound GETs after the unchanged native workflow and candidate proof.",
+      "History, final ref rechecks, one fixed POST, ambiguous-POST handling unchanged.",
+      "Candidate-changed call sequence unchanged. Native workflow, source and UI pins unchanged."
+    ]
+  },
+  "limitations": {
+    "new_current_v5_browser_checks_still_unimplemented": true,
+    "live_dispatch_performed": false,
+    "native_acceptance_proven": false,
+    "goal_complete": false
+  }
+}
