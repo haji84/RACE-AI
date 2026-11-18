@@ -1,0 +1,105 @@
+{
+  "schema": "RACE_AI_KEIRIN_PRE_FROZEN_AB_SECONDARY_PROVIDER_SETTLEMENT_V1",
+  "audited_day_jst": "2026-11-18",
+  "race_id": "202611182601",
+  "venue": "西武園",
+  "race_no": 1,
+  "result": {
+    "state": "CONFIRMED_THREE_INDEPENDENT_SECONDARY_PROVIDER_PAGES",
+    "winning_trifecta": [
+      7,
+      3,
+      4
+    ],
+    "trifecta_payout_per_100yen_yen": 5590,
+    "posted_result": "FINAL_ON_SECONDARY_SITES",
+    "organizer_KEIRIN_JP_primary_result_bytes_verified": false,
+    "actual_sales_close_instant_independently_verified": false,
+    "provider_sources": [
+      {
+        "provider": "Rakuten Kdreams",
+        "url": "https://keirin.kdreams.jp/harailist/",
+        "winning_trifecta": [
+          7,
+          3,
+          4
+        ],
+        "payout_100yen_yen": 5590
+      },
+      {
+        "provider": "Chariloto",
+        "url": "https://www.chariloto.com/keirin/results/26/2026-11-18",
+        "winning_trifecta": [
+          7,
+          3,
+          4
+        ],
+        "payout_100yen_yen": 5590
+      },
+      {
+        "provider": "netkeirin",
+        "url": "https://keirin.netkeiba.com/race/result/?race_id=202611182601",
+        "winning_trifecta": [
+          7,
+          3,
+          4
+        ],
+        "payout_100yen_yen": 5590
+      }
+    ],
+    "checked_public_web_on_2026_11_18": true,
+    "raw_provider_page_bytes_sha256_capture_available": false,
+    "published_at_exact_timestamp_verified": false
+  },
+  "prediction_original": {
+    "source": "immutable pre-race owner A/B ciphertext",
+    "race_id": "202611182601",
+    "encrypted_path": "docs/evidence/2026-11-18/keirin_seibuen1r_AB_sealed_cipher_v1.json",
+    "encrypted_file_sha256": "8f9d79a4879353fd863d070535e7c4e0d7e171d1529d08d3813de38fd687be01",
+    "github_pre_cutoff_commit_sha": "5b4abe91cacfc13a876648e51b8f90fb9b086dc6",
+    "github_pre_cutoff_commit_time_jst": "2026-11-18T06:55:57+09:00",
+    "printed_sales_cutoff_jst": "2026-11-18T10:45:00+09:00",
+    "purchase_not_executed": true,
+    "raw_private_forecast_plaintexts_are_not_republished": true,
+    "ticket_selection_was_frozen_before_result": true
+  },
+  "score": {
+    "A_existing": {
+      "number_of_tickets": 8,
+      "first_choice": [
+        3,
+        5,
+        1
+      ],
+      "winning_triple_present": false,
+      "hit_at_rank_1": false,
+      "hit_at_all": false,
+      "virtual_stake_yen": 800,
+      "virtual_payout_yen": 0,
+      "virtual_net_profit_yen": -800,
+      "virtual_roi": 0
+    },
+    "B_six_phase": {
+      "number_of_tickets": 8,
+      "first_choice": [
+        3,
+        5,
+        1
+      ],
+      "winning_triple_present": false,
+      "hit_at_rank_1": false,
+      "hit_at_all": false,
+      "virtual_stake_yen": 800,
+      "virtual_payout_yen": 0,
+      "virtual_net_profit_yen": -800,
+      "virtual_roi": 0
+    },
+    "B_minus_A_virtual_profit_yen": 0,
+    "C": "HOLD_NO_INDEPENDENT_HISTORICAL_FOLLOW_LABEL"
+  },
+  "current_status": "SECONDARY_THREE_PROVIDER_CONSENSUS_RESEARCH_SCORED_OFFICIAL_PRIMARY_GATE_HOLD",
+  "not_official_organizer_authenticated": true,
+  "not_model_uplift_proven": true,
+  "no_other_78_races_backfilled": true,
+  "next_required": "Independent organizer result primary source & exact sales close attestation, or retain secondary-only provisional status"
+}
