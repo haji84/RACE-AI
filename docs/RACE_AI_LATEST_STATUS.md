@@ -1,3 +1,15 @@
+## 2026-11-18 03:51:38 UTC: 過去ACTIVE原本を実発見、欠落12group全ての復元根拠を3世代で認証（GOAL未達・書換え0）
+
+通常merge09b65329/tree0187b6a1はtested3f7bbbfdと完全一致。最終CIは313件/104.311秒・119/181/212+32/48/72/40+10と認証応答検査、全39checks(16success/23skip)が通過した。四つの現在legacy writer経路の保存前guardも統合済み。古い固定0da3回復手順への普遍的保護とは扱わない。
+
+main実run44232934955/job134562106410の03:50:20.5314002 UTCログでALL_ORPHAN_ANCHORS_PROVENを確認した。snapshotは424/6eea8632(cipher3ebea79d)、423/71c1b06f(cipherc6e3242c)、422/86f0f312(cipher2ae7379d)の3世代。current active2/history24、orphan12/proved12/planned12、older ACTIVE checked29。全12groupで旧ACTIVE本文と現在の履歴原本が完全一致し、認証済み前cipher/世代/同一保存日/forecast anchorも検証した。24件の履歴を保ち、12件の実在原本をACTIVEへ戻す根拠が得られた。12レースという意味ではなくgroup数である。
+
+この読取りではsource GET0・原本変更0・公開/復元0。現世代424のmissing24はまだそのままで、実表示修復成功ではない。次に既存PR40を原head7e01a369/元metadata/祖先関係とopen base consumer0を保全して再利用し、CAS・1回だけの既存V5 publisher・厳格ACK・暗号化再読取りを12 I/O testと別CLI境界testで検証する。鍵はActions内のみ、曖昧な書込みの自動再試行はしない。
+
+03:47:44 UTC時点a74実run44218343091は14巡回success・15実行中・failed0。稼働中workerを再起動／hotswapせず、全4競技/締切15〜10分前/全既存model/実iPhone/6艇校正/前向き精度改善は未確認のまま保持する。新PR/job/権限/input/cron/runner/timeout/prefix/marker/モデル/追加料金/公開UI/重み切替は増やさない。元offline2commitも未復元。
+
+[最終CIと通常merge](evidence/boat-anchor-safety-final-ci-and-merge-20261118.json)、[実3世代・全12group原本一致](evidence/boat-older-active-all-groups-proven-actual-20261118.json)。以下は各時点の履歴。
+
 ## 2026-11-18 03:40:40 UTC: 共通読取り経路の予算停止も独立レビューCLEAR、同じ全CIで最終検証（GOAL未達）
 
 runtime9030da13は、親metadata読取り後だけでなく、前世代manifestで予算が0になった場合の既存F.current_view/history loaderのfetch/existsも委譲前に停止する。31b3との差は4行だけで独立レビューCLEAR。純粋prefix・F/H認証・既存source pins・87新method・モデル/GET budgetは不変。実313件成功後に指摘された厳密な停止条件で、同じ最終CIを再実行する。旧ACTIVE発見・復元・当日表示・GOAL達成はまだ確認していない。
