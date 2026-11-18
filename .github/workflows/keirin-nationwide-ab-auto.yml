@@ -67,6 +67,7 @@ jobs:
     outputs:
       ready: ${{ steps.ingest.outputs.ready }}
     env:
+      PUBLIC_CAPTURE_ENABLED: ${{ vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED }}
       AWS_ACCESS_KEY_ID: ${{ secrets.RACE_AI_AB_SOURCE_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.RACE_AI_AB_SOURCE_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ${{ vars.RACE_AI_AB_SOURCE_REGION }}
@@ -87,8 +88,8 @@ jobs:
           set -euo pipefail
           day="$(TZ=Asia/Tokyo date +%F)"
           root="$RUNNER_TEMP/keirin-nationwide-ab-$GITHUB_RUN_ID"
-          mkdir -m 700 -p "$root" "$root/cards" "$root/raw" "$root/sealed" "$root/registry"
-          chmod 700 "$root" "$root/cards" "$root/raw" "$root/sealed" "$root/registry"
+          mkdir -m 700 -p "$root" "$root/cards" "$root/raw" "$root/sealed" "$root/registry" "$root/manifests"
+          chmod 700 "$root" "$root/cards" "$root/raw" "$root/sealed" "$root/registry" "$root/manifests"
           echo "day=$day" >> "$GITHUB_OUTPUT"
           echo "root=$root" >> "$GITHUB_OUTPUT"
       - name: Read already-owner-approved private pre-race source bundle
@@ -114,6 +115,9 @@ jobs:
           aws s3 sync "$SOURCE_S3_PREFIX/$day/cards/" "$root/cards/" --only-show-errors --no-progress
           aws s3 sync "$SOURCE_S3_PREFIX/$day/raw/" "$root/raw/" --only-show-errors --no-progress
           aws s3 sync "$SOURCE_S3_PREFIX/$day/registry/" "$root/registry/" --only-show-errors --no-progress
+          if [ "$PUBLIC_CAPTURE_ENABLED" = 'true' ]; then
+            aws s3 sync "$SOURCE_S3_PREFIX/$day/manifests/" "$root/manifests/" --only-show-errors --no-progress
+          fi
           python - <<'PY'
           import os,base64
           from pathlib import Path
@@ -126,6 +130,35 @@ jobs:
           with os.fdopen(fd,"wb") as h:h.write(data)
           PY
           echo "ready=true" >> "$GITHUB_OUTPUT"
+      - name: Capture approved ordinary public racecards and automatically normalize all available data
+        if: steps.ingest.outputs.ready == 'true' && vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="${{ steps.storage.outputs.root }}"
+          day="${{ steps.storage.outputs.day }}"
+          if [ "$day" = '2026-11-18' ]; then
+            registry="$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_all79_nationwide_AB_registered_v1.json"
+          else
+            registry="$root/registry/$day.json"
+          fi
+          manifest="$root/manifests/day.json"
+          if [ ! -f "$manifest" ]; then
+            echo "HOLD_NO_APPROVED_DAY_URL_MANIFEST: no website GETs made" >> "$GITHUB_STEP_SUMMARY"
+          else
+            python -m scripts.keirin_capture_public_two_sources \
+              --day-manifest "$manifest" \
+              --registry "$registry" \
+              --private-cards-dir "$root/cards" \
+              --private-raw-dir "$root/raw" \
+              --max-races 8 \
+              --report "$root/capture-summary.json" > "$RUNNER_TEMP/capture-safe-counts.json"
+            cat "$RUNNER_TEMP/capture-safe-counts.json" >> "$GITHUB_STEP_SUMMARY"
+            # Owner-only private persistent source cache across 10-min jobs.
+            # No source or rider content is copied to a public artifact.
+            aws s3 sync "$root/raw/" "$SOURCE_S3_PREFIX/$day/raw/" --only-show-errors --no-progress
+            aws s3 sync "$root/cards/" "$SOURCE_S3_PREFIX/$day/cards/" --only-show-errors --no-progress
+          fi
       - name: Automatically generate A/B for every available race and seal with owner RSA/AES
         if: steps.ingest.outputs.ready == 'true'
         shell: bash
