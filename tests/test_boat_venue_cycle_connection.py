@@ -155,7 +155,13 @@ class PrivateVenueCycleTests(unittest.TestCase):
 
     def test_official_result_revisit_prepares_private_archive_for_retention(self):
         from scripts import github_existing_cycle as runner
-        ref=dict(artifact_id=123,run_id=99,head_sha='a'*40,digest='sha256:'+'b'*64)
+        raw=b'fixture-cipher-zip'
+        ref=dict(artifact_id=123,run_id=99,head_sha='a'*40,
+                 digest='sha256:'+hashlib.sha256(raw).hexdigest())
+        metadata=dict(id=123,name='boat-venue-research-p1-99-2',expired=False,
+            created_at='2030-04-01T01:00:00Z',expires_at='2030-04-08T01:00:00Z',
+            digest=ref['digest'],size_in_bytes=len(raw),workflow_run=dict(id=99,
+                head_sha=ref['head_sha'],repository_id=1416489937,head_repository_id=1416489937))
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);(root/'existing_cycle_output').mkdir()
             (root/'existing_cycle_output/official-result-observations.json').write_text('[]')
@@ -163,7 +169,7 @@ class PrivateVenueCycleTests(unittest.TestCase):
                  patch.object(runner,'load_state',return_value={'venue_research_artifact_refs':[ref]}), \
                  patch.dict(os.environ,RACE_AI_STATE_KEY=base64.b64encode(bytes(range(32))).decode(),
                             RUNNER_TEMP=str(root)), \
-                 patch.object(runner,'gh',side_effect=[json.dumps({'digest':ref['digest']}).encode(),b'fixture-cipher-zip']), \
+                 patch.object(runner,'gh',side_effect=[json.dumps(metadata).encode(),raw]), \
                  patch('race_ai.boat_venue_research_pdca.score_private_p1_artifact',return_value={'paired_forecasts':0}), \
                  contextlib.redirect_stdout(io.StringIO()):
                 summary=runner.venue_research_pdca('2030-04-01',2)
