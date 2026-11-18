@@ -526,6 +526,85 @@ class CutoffRawReplayTests(SavedGridFixture):
             'HOLD','RAW_CAPTURE_MISSING',comparison_count=1,missing_raw_side_count=2))
         self.assertFalse(any(call[0]=='read' and '/chunks/' in call[2] for call in calls2))
         self.assertEqual(writer2.head(),locator2['source_commit'])
+        # Available authenticated PROGRAM bytes do not establish the native proof clock.
+        early_meta = json.loads(captures[0][1])
+        early_meta['captured_at'] = '2026-11-18T17:59:58+09:00'
+        early_captures = ((captures[0][0],wire(early_meta)),captures[1])
+        expected_missing = self.known('HOLD','RAW_CAPTURE_MISSING',comparison_count=1,
+                                     result_grid_match_count=1,missing_raw_side_count=1)
+        self.assertEqual(self.pure(first,latest,early_captures),expected_missing)
+        def adapter_reason_clock(value):
+            raise replay._Stop('PROGRAM_CAPTURE_CLOCK_BINDING_UNVERIFIED')
+        pure_guard = replay.diagnose_saved_cutoff_raw_replay(
+            first,latest,early_captures,parsers=self.parsers,parse_time=adapter_reason_clock)
+        self.assert_safe(pure_guard)
+        self.assertEqual(pure_guard,self.held('UNEXPECTED_GRID_INSPECTION_FAILURE'))
+        _,early_writer,early_reader,early_locator = self.local_vault(early_captures)
+        early_alias,_ = self.alias_reader(early_reader,early_locator['source_commit'])
+        before = deepcopy((first,latest,early_captures))
+        with patch.object(program,'parse_program',side_effect=AssertionError(
+                'a different capture clock must not be selected for inspection')):
+            report = self.fixed_adapter(first,latest,early_alias)
+        self.assertEqual(report,self.known('HOLD','PROGRAM_CAPTURE_CLOCK_BINDING_UNVERIFIED',
+            comparison_count=1,result_grid_match_count=1,missing_raw_side_count=1))
+        self.assertEqual((first,latest,early_captures),before)
+        self.assertEqual(early_writer.head(),early_locator['source_commit'])
+        all_unbound = deepcopy(first)
+        second_unbound = deepcopy(next(iter(first.values())))
+        second_unbound['_raw_program_ref']['captured_at'] = '2026-11-18T18:00:01+09:00'
+        all_unbound[('boat','20261118-18-01','P1','also-unbound')] = second_unbound
+        self.assertEqual(self.fixed_adapter(all_unbound,latest,early_alias),self.known(
+            'HOLD','PROGRAM_CAPTURE_CLOCK_BINDING_UNVERIFIED',comparison_count=2,
+            result_grid_match_count=2,missing_raw_side_count=2))
+        # One exact PROGRAM binding excludes the all-unbound diagnostic.
+        exact = deepcopy(first)
+        next(iter(exact.values()))['_raw_program_ref']['captured_at'] = early_meta['captured_at']
+        self.assertEqual(self.fixed_adapter(exact,latest,early_alias),self.known(
+            'SAVED_CLOCKS_MATCH_INSPECTED_GRIDS',comparison_count=1,
+            program_grid_match_count=1,result_grid_match_count=1))
+        one_exact = deepcopy(first)
+        next(iter(one_exact.values()))['_raw_program_ref']['captured_at'] = early_meta['captured_at']
+        one_exact[('boat','20261118-18-01','P1','second')] = deepcopy(next(iter(first.values())))
+        self.assertEqual(self.fixed_adapter(one_exact,latest,early_alias),self.known(
+            'HOLD','RAW_CAPTURE_MISSING',comparison_count=2,
+            program_grid_match_count=1,result_grid_match_count=2,missing_raw_side_count=1))
+        # A genuinely absent PROGRAM hash in any target excludes the new reason.
+        mixed = deepcopy(first)
+        missing_descriptor = deepcopy(next(iter(first.values())))
+        missing_descriptor['_raw_program_ref']['source_sha256'] = sha256(b'not retained program bytes').hexdigest()
+        mixed[('boat','20261118-18-01','P1','missing-hash')] = missing_descriptor
+        self.assertEqual(self.fixed_adapter(mixed,latest,early_alias),self.known(
+            'HOLD','RAW_CAPTURE_MISSING',comparison_count=2,
+            result_grid_match_count=2,missing_raw_side_count=2))
+        # A wanted body hash with another race URL is not matching PROGRAM provenance.
+        wrong_url_meta = dict(early_meta,source_url=early_meta['source_url'].replace('rno=1','rno=2'))
+        _,url_writer,url_reader,url_locator = self.local_vault(
+            ((captures[0][0],wire(wrong_url_meta)),captures[1]))
+        url_alias,_ = self.alias_reader(url_reader,url_locator['source_commit'])
+        self.assertEqual(self.fixed_adapter(first,latest,url_alias),expected_missing)
+        self.assertEqual(url_writer.head(),url_locator['source_commit'])
+        # An exact-clock body rejected by the fixed inspector keeps its own reason.
+        bad_program = b'<html>PRIVATE_SENTINEL unsupported saved program</html>'
+        bad_meta = json.loads(captures[0][1]);bad_meta['source_sha256'] = sha256(bad_program).hexdigest()
+        bad_first = deepcopy(first)
+        next(iter(bad_first.values()))['_raw_program_ref']['source_sha256'] = bad_meta['source_sha256']
+        _,bad_writer,bad_reader,bad_locator = self.local_vault(((bad_program,wire(bad_meta)),captures[1]))
+        bad_alias,_ = self.alias_reader(bad_reader,bad_locator['source_commit'])
+        self.assertEqual(self.fixed_adapter(bad_first,latest,bad_alias),self.known(
+            'HOLD','GRID_INSPECTOR_REJECTED',comparison_count=1,
+            result_grid_match_count=1,inspector_rejected_side_count=1))
+        self.assertEqual(bad_writer.head(),bad_locator['source_commit'])
+        # No clock diagnosis can precede authentication of every later capture header.
+        _,late_writer,late_reader,late_locator = self.local_vault(early_captures,later_head='c'*40)
+        late_alias,_ = self.alias_reader(late_reader,late_locator['source_commit'])
+        real_list = vault.list_originals
+        def early_binding_first(*args,**kwargs):
+            values = real_list(*args,**kwargs)
+            return sorted(values,key=lambda item:item['entry_sha256'] != late_locator['entry_sha256'])
+        with patch.object(vault,'list_originals',side_effect=early_binding_first):
+            self.assertEqual(self.fixed_adapter(first,latest,late_alias),
+                             self.held('CAPTURE_AUTHENTICATION_UNAVAILABLE'))
+        self.assertEqual(late_writer.head(),late_locator['source_commit'])
 
     def test_authentication_scope_and_complete_inventory_failures_never_become_missing(self):
         first,latest,captures = self.data()

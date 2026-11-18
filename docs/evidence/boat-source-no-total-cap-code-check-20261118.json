@@ -1,0 +1,13 @@
+{
+  "source_c979": "c979aeb678538d99e277f26726047dccbdc982af",
+  "active_source_a74": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+  "path": "race_ai/repeated_cycle.py",
+  "source_bodies_byte_equal": true,
+  "source_limit_none": true,
+  "round_limit_none": true,
+  "elapsed_limit_none": true,
+  "round_source_limit_none": true,
+  "lifetime_and_day_baselines_preserved": true,
+  "provider_waits_preserved": true,
+  "full_day_coverage_proven": false
+}
