@@ -443,5 +443,268 @@ class VenueDiagnosticCurrentPairRoleTests(unittest.TestCase):
                     fixture.doCleanups()
 
 
+
+
+class CurrentPairFailureDiagnosticTests(unittest.TestCase):
+    """Fixed diagnostic codes explain refusals without exposing private evidence."""
+    def setUp(self):
+        self.assertIsNotNone(audit, 'current-day native pair counts audit is missing')
+        self.assertTrue(callable(getattr(audit, 'current_pair_failure_diagnostic', None)),
+                        'safe current-pair failure projector is missing')
+
+    def fixture(self):
+        source = patch.object(sys.modules[__name__], 'SOURCE', ATOMIC_SOURCE)
+        source.start(); self.addCleanup(source.stop)
+        CurrentPairEligibilityTests.setUpClass()
+        fixture = CurrentPairEligibilityTests()
+        self.addCleanup(fixture.doCleanups)
+        fixture.setUp()
+        return fixture
+
+    def rejected(self, call):
+        with self.assertRaises(ValueError) as caught:
+            call()
+        error = caught.exception
+        self.assertIs(type(error), ValueError)
+        self.assertEqual(error.args, ('CURRENT_PAIR_AUDIT_REJECTED',))
+        self.assertIsNone(error.__cause__)
+        self.assertTrue(error.__suppress_context__)
+        diagnostic = audit.current_pair_failure_diagnostic(error)
+        self.assertIs(type(diagnostic), dict)
+        self.assertEqual(set(diagnostic),
+                         {'current_pair_failure_phase', 'current_pair_failure_reason'})
+        self.assertTrue(all(type(value) is str for value in diagnostic.values()))
+        return error, diagnostic
+
+    def test_real_receipt_training_result_and_scope_failures_keep_their_safe_boundary(self):
+        fixture = self.fixture()
+        cases = (
+            ('scope', audit, '_scope', 'PAIR_SCOPE',
+             'OWNER_ACTIVE_AUDIT_SOURCE_NOT_PINNED'),
+            ('pair receipt', 'race_ai.all_existing_model_receipt',
+             '_verified_private_pairs_artifact', 'PAIR_RECEIPT',
+             'ALL_MODEL_PAIR_RECEIPT_ARTIFACT_BYTES_INVALID'),
+            ('training receipt', 'race_ai.boat_venue_learning_context',
+             'context_from_encrypted_artifact', 'PAIR_TRAINING',
+             'VENUE_LEARNING_CONTEXT_ARTIFACT_BYTES_INVALID'),
+            ('result receipt', 'race_ai.all_existing_model_result_intake',
+             'observations_from_result_artifact', 'PAIR_RESULT_RECEIPT',
+             'ALL_MODEL_RESULT_INTAKE_ARTIFACT_BYTES_INVALID'),
+        )
+        for label, module, name, phase, reason in cases:
+            target = patch.object(module, name, side_effect=ValueError(reason)) if module is audit else patch(
+                module+'.'+name, side_effect=ValueError(reason))
+            with self.subTest(boundary=label), target:
+                error, diagnostic = self.rejected(fixture.audit)
+            self.assertEqual(diagnostic, dict(current_pair_failure_phase=phase,
+                                              current_pair_failure_reason=reason))
+            self.assertEqual(vars(error), {'_current_pair_diagnostic': diagnostic})
+            self.assertNotIn('PRIVATE_RESULT_SENTINEL', json.dumps(diagnostic))
+
+    def test_wrapper_classifies_only_exact_typed_finite_codes_and_owned_phases(self):
+        touched = []
+        class PrivateText(str):
+            def __str__(self): touched.append('str'); raise AssertionError('private text inspected')
+            def __repr__(self): touched.append('repr'); raise AssertionError('private text inspected')
+            def __eq__(self, other): touched.append('eq'); raise AssertionError('private text inspected')
+            def __hash__(self): touched.append('hash'); raise AssertionError('private text inspected')
+        class ValueSubclass(ValueError):
+            def __getattribute__(self, name):
+                touched.append('value subclass attribute')
+                raise AssertionError('exception property inspected')
+            def __str__(self):
+                touched.append('value subclass str')
+                raise AssertionError('exception text inspected')
+            def __repr__(self):
+                touched.append('value subclass repr')
+                raise AssertionError('exception text inspected')
+        class RuntimeSubclass(RuntimeError):
+            pass
+        phases = (
+            'PAIR_PREFLIGHT', 'PAIR_SCOPE', 'PAIR_INVENTORY', 'PAIR_RECEIPT',
+            'PAIR_TRAINING', 'PAIR_RECORD_BINDING', 'PAIR_RECORD_FINALIZE',
+            'PAIR_RESULT_INVENTORY', 'PAIR_RESULT_RECEIPT', 'PAIR_RESULT_JOURNAL',
+            'PAIR_RESULT_REVISIONS', 'PAIR_RESULT_JOIN', 'PAIR_FINALIZE',
+        )
+        cases = [
+            ('value code', ValueError('CURRENT_PAIR_AUDIT_REJECTED'),
+             'PAIR_SCOPE', 'PAIR_SCOPE', 'CURRENT_PAIR_AUDIT_REJECTED'),
+            ('runtime code', RuntimeError('GITHUB_API_READ_HTTP_403_HALT'),
+             'PAIR_RECEIPT', 'PAIR_RECEIPT', 'GITHUB_API_READ_HTTP_403_HALT'),
+            ('runtime timeout', RuntimeError('GITHUB_API_TIMEOUT_HALT'),
+             'PAIR_TRAINING', 'PAIR_TRAINING', 'GITHUB_API_TIMEOUT_HALT'),
+            ('wrong value family', ValueError('GITHUB_API_READ_HTTP_403_HALT'),
+             'PAIR_SCOPE', 'PAIR_SCOPE', 'UNCLASSIFIED_EXCEPTION'),
+            ('wrong runtime family', RuntimeError('CURRENT_PAIR_AUDIT_REJECTED'),
+             'PAIR_SCOPE', 'PAIR_SCOPE', 'UNCLASSIFIED_EXCEPTION'),
+            ('value subclass', ValueSubclass('CURRENT_PAIR_AUDIT_REJECTED'),
+             'PAIR_SCOPE', 'PAIR_SCOPE', 'UNCLASSIFIED_EXCEPTION'),
+            ('runtime subclass', RuntimeSubclass('GITHUB_API_TIMEOUT_HALT'),
+             'PAIR_SCOPE', 'PAIR_SCOPE', 'UNCLASSIFIED_EXCEPTION'),
+            ('prefixed text', ValueError('PRIVATE_TOKEN CURRENT_PAIR_AUDIT_REJECTED'),
+             'PAIR_SCOPE', 'PAIR_SCOPE', 'UNCLASSIFIED_EXCEPTION'),
+            ('suffixed text', ValueError('CURRENT_PAIR_AUDIT_REJECTED https://private.invalid/token'),
+             'PAIR_SCOPE', 'PAIR_SCOPE', 'UNCLASSIFIED_EXCEPTION'),
+            ('multiple args', ValueError('CURRENT_PAIR_AUDIT_REJECTED', 'PRIVATE_TOKEN'),
+             'PAIR_SCOPE', 'PAIR_SCOPE', 'UNCLASSIFIED_EXCEPTION'),
+            ('non-string arg', ValueError({'private': 'PRIVATE_TOKEN'}),
+             'PAIR_SCOPE', 'PAIR_SCOPE', 'UNCLASSIFIED_EXCEPTION'),
+            ('string subclass arg', ValueError(PrivateText('CURRENT_PAIR_AUDIT_REJECTED')),
+             'PAIR_SCOPE', 'PAIR_SCOPE', 'UNCLASSIFIED_EXCEPTION'),
+            ('unlisted HTTP', RuntimeError('GITHUB_API_READ_HTTP_399_HALT'),
+             'PAIR_SCOPE', 'PAIR_SCOPE', 'UNCLASSIFIED_EXCEPTION'),
+            ('boolean phase', ValueError('CURRENT_PAIR_AUDIT_REJECTED'),
+             True, 'UNKNOWN_PHASE', 'CURRENT_PAIR_AUDIT_REJECTED'),
+            ('private phase', ValueError('CURRENT_PAIR_AUDIT_REJECTED'),
+             'PAIR_SCOPE PRIVATE_TOKEN', 'UNKNOWN_PHASE', 'CURRENT_PAIR_AUDIT_REJECTED'),
+            ('string subclass phase', ValueError('CURRENT_PAIR_AUDIT_REJECTED'),
+             PrivateText('PAIR_SCOPE'), 'UNKNOWN_PHASE', 'CURRENT_PAIR_AUDIT_REJECTED'),
+        ]
+        cases += [('fixed phase '+phase, ValueError('CURRENT_PAIR_AUDIT_REJECTED'),
+                   phase, phase, 'CURRENT_PAIR_AUDIT_REJECTED') for phase in phases]
+        getter = object(); contexts = []
+        for label, original, phase, expected_phase, expected_reason in cases:
+            def fail(get, run_id, now, source, _diagnostic=None):
+                self.assertIs(get, getter)
+                self.assertEqual((run_id, now, source), (99, NOW, SOURCE))
+                self.assertIs(type(_diagnostic), dict)
+                self.assertEqual(_diagnostic, {'phase': 'PAIR_PREFLIGHT'})
+                contexts.append(_diagnostic)
+                _diagnostic['phase'] = phase
+                raise original
+            with self.subTest(case=label), patch.object(audit, '_audit', side_effect=fail):
+                error, diagnostic = self.rejected(lambda:audit.audit_current_pairs(
+                    get=getter, run_id=99, now=NOW, expected_owner_sha=SOURCE))
+            self.assertEqual(diagnostic, dict(current_pair_failure_phase=expected_phase,
+                                              current_pair_failure_reason=expected_reason))
+            self.assertEqual(vars(error), {'_current_pair_diagnostic': diagnostic})
+            self.assertNotIn('PRIVATE_TOKEN', json.dumps(diagnostic))
+            self.assertNotIn('https://', json.dumps(diagnostic))
+        self.assertEqual(len({id(context) for context in contexts}), len(cases))
+        self.assertEqual(touched, [])
+
+    def test_projector_never_inspects_hostile_errors_or_nonplain_attached_maps(self):
+        touched = []
+        class HostileValueError(ValueError):
+            def __getattribute__(self, name):
+                touched.append('exception attribute')
+                raise AssertionError('exception property inspected')
+            def __str__(self):
+                touched.append('exception str')
+                raise AssertionError('exception text inspected')
+            def __repr__(self):
+                touched.append('exception repr')
+                raise AssertionError('exception text inspected')
+        class HostileMap(dict):
+            def get(self, *args): touched.append('map get'); raise AssertionError('map inspected')
+            def __getitem__(self, key): touched.append('map item'); raise AssertionError('map inspected')
+            def __iter__(self): touched.append('map iter'); raise AssertionError('map inspected')
+            def items(self): touched.append('map items'); raise AssertionError('map inspected')
+        unsupported = (
+            HostileValueError('CURRENT_PAIR_AUDIT_REJECTED'),
+            RuntimeError('GITHUB_API_READ_HTTP_403_HALT'),
+            ValueError('CURRENT_PAIR_AUDIT_REJECTED'),
+            object(),
+        )
+        default = dict(current_pair_failure_phase='UNKNOWN_PHASE',
+                       current_pair_failure_reason='UNCLASSIFIED_EXCEPTION')
+        for index, error in enumerate(unsupported):
+            with self.subTest(case=index):
+                self.assertEqual(audit.current_pair_failure_diagnostic(error), default)
+        error = ValueError('CURRENT_PAIR_AUDIT_REJECTED')
+        error._current_pair_diagnostic = HostileMap(
+            current_pair_failure_phase='PAIR_SCOPE',
+            current_pair_failure_reason='CURRENT_PAIR_AUDIT_REJECTED')
+        self.assertEqual(audit.current_pair_failure_diagnostic(error), default)
+        self.assertEqual(touched, [])
+
+    def test_projector_is_detached_two_field_projection_with_per_field_defaults(self):
+        touched = []
+        class PrivateValue:
+            def __str__(self): touched.append('str'); raise AssertionError('private value inspected')
+            def __repr__(self): touched.append('repr'); raise AssertionError('private value inspected')
+            def __bool__(self): touched.append('bool'); raise AssertionError('private value inspected')
+            def __hash__(self): touched.append('hash'); raise AssertionError('private value inspected')
+            def __eq__(self, other): touched.append('eq'); raise AssertionError('private value inspected')
+        good = dict(current_pair_failure_phase='PAIR_RESULT_RECEIPT',
+                    current_pair_failure_reason='ALL_MODEL_RESULT_INTAKE_ARCHIVE_INVALID')
+        default = dict(current_pair_failure_phase='UNKNOWN_PHASE',
+                       current_pair_failure_reason='UNCLASSIFIED_EXCEPTION')
+        cases = (
+            (dict(good, private_payload=PrivateValue()), good),
+            (dict(good, current_pair_failure_phase=True),
+             dict(good, current_pair_failure_phase='UNKNOWN_PHASE')),
+            (dict(good, current_pair_failure_phase=PrivateValue()),
+             dict(good, current_pair_failure_phase='UNKNOWN_PHASE')),
+            (dict(good, current_pair_failure_phase='PAIR_SCOPE PRIVATE_TOKEN'),
+             dict(good, current_pair_failure_phase='UNKNOWN_PHASE')),
+            (dict(good, current_pair_failure_reason=False),
+             dict(good, current_pair_failure_reason='UNCLASSIFIED_EXCEPTION')),
+            (dict(good, current_pair_failure_reason=PrivateValue()),
+             dict(good, current_pair_failure_reason='UNCLASSIFIED_EXCEPTION')),
+            (dict(good, current_pair_failure_reason='ALL_MODEL_RESULT_INTAKE_ARCHIVE_INVALID PRIVATE_TOKEN'),
+             dict(good, current_pair_failure_reason='UNCLASSIFIED_EXCEPTION')),
+            ([], default),
+            (None, default),
+        )
+        for index, (attached, expected) in enumerate(cases):
+            error = ValueError('CURRENT_PAIR_AUDIT_REJECTED')
+            error._current_pair_diagnostic = attached
+            with self.subTest(case=index):
+                result = audit.current_pair_failure_diagnostic(error)
+                self.assertEqual(result, expected)
+                self.assertIs(type(result), dict)
+                self.assertEqual(set(result), set(default))
+                result['current_pair_failure_phase'] = 'PRIVATE_TOKEN'
+                self.assertEqual(audit.current_pair_failure_diagnostic(error), expected)
+        for error in (ValueError('OTHER_PRIVATE_TOKEN'),
+                      ValueError('CURRENT_PAIR_AUDIT_REJECTED', 'PRIVATE_TOKEN')):
+            error._current_pair_diagnostic = dict(good)
+            self.assertEqual(audit.current_pair_failure_diagnostic(error), default)
+        self.assertEqual(touched, [])
+
+    def test_both_normal_hold_returns_remain_unannotated_private_and_unqualified(self):
+        fixture = self.fixture()
+        for absent in (False, True):
+            if absent:
+                del fixture.metas[800]
+            with self.subTest(absent=absent):
+                before = audit._audit(fixture.get, 99, NOW, SOURCE)
+                result = fixture.audit()
+                self.assertEqual(result, before)
+                self.assertEqual(result['current_pair_audit_status'],
+                                 'HOLD_NO_PAIR_ARCHIVES' if absent else 'HOLD_G8_UNQUALIFIED')
+                self.assertIs(result['current_pair_authenticated'], not absent)
+                self.assertEqual(result['current_pair_forecast_record_count'], None if absent else 1)
+                self.assertEqual(result['current_pair_qualifying_g8_count'], 0)
+                self.assertIsNone(result['current_pair_qualifying_g8_denominator'])
+                for suffix in ('accuracy_improvement_proven', 'promotion_allowed', 'full_day_coverage'):
+                    self.assertIs(result['current_pair_'+suffix], False)
+                for key in result:
+                    self.assertFalse(key.startswith('current_pair_failure_'))
+                self.assertNotIn('PRIVATE_RESULT_SENTINEL', json.dumps(result))
+                self.assertNotIn('https://', json.dumps(result))
+
+    def test_bad_source_owner_and_result_round_still_refuse_without_partial_counts(self):
+        fixture = self.fixture()
+        saved = deepcopy((fixture.raws, fixture.metas, fixture.job))
+        for case in ('source', 'owner', 'round'):
+            fixture.raws, fixture.metas, fixture.job = deepcopy(saved)
+            if case == 'owner':
+                fixture.job['head_sha'] = 'f'*40
+            elif case == 'round':
+                fixture.results(2, [], mutate_report=lambda report:report.update(round_no=True))
+            def call():
+                return audit.audit_current_pairs(get=fixture.get, run_id=99, now=NOW,
+                    expected_owner_sha='f'*40 if case == 'source' else SOURCE)
+            with self.subTest(case=case):
+                error, diagnostic = self.rejected(call)
+                self.assertEqual(diagnostic['current_pair_failure_phase'],
+                                 'PAIR_RESULT_JOURNAL' if case == 'round' else 'PAIR_SCOPE')
+                self.assertNotEqual(diagnostic['current_pair_failure_reason'], 'UNCLASSIFIED_EXCEPTION')
+                self.assertEqual(set(vars(error)), {'_current_pair_diagnostic'})
+                self.assertFalse(any('count' in key or 'authenticated' in key for key in diagnostic))
+                self.assertNotIn('PRIVATE_RESULT_SENTINEL', json.dumps(diagnostic))
+
 if __name__ == '__main__':
     unittest.main()
