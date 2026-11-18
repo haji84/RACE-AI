@@ -181,8 +181,7 @@ def parse_netkeirin(*,raw,source_url,race_id,captured_at):
         except PublicPageNormalizeError:
             # If it resembles a rider row but is malformed, reject page.
             raise
-        need(car not in found,"NETKEIRIN_DUPLICATE_CAR")
-        found[car]={
+        normalized={
             "car":car,
             "athlete_id":None,  # provider-local ID is not official registration.
             "mark_rank":mark,
@@ -191,6 +190,13 @@ def parse_netkeirin(*,raw,source_url,race_id,captured_at):
             # It is NOT an inference about the last two appearances.
             "recent_form_score":win,
             "h_count":home,"b_count":back,"style":_style(parts[6])}
+        if car in found:
+            # Responsive desktop/mobile pages often repeat the exact same
+            # racecard table. Admit strictly identical duplicate rows only.
+            # Different identity/points/mark/H/B is NOT merged or averaged.
+            need(found[car]==normalized,"NETKEIRIN_CONFLICTING_CAR_ROWS")
+            continue
+        found[car]=normalized
     need(5<=len(found)<=9 and
          set(found)==set(range(1,len(found)+1)),
          "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING")
