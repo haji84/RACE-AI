@@ -78,9 +78,16 @@ def main(argv=None):
                          sort_keys=True))
         return 0
     except (ValueError,KeyError,TypeError,OSError,
-            consensus.ResultConsensusError,source.SourceCaptureError):
-        print('{"state":"HOLD_RESULT_NOT_INDEPENDENTLY_CONFIRMED",'
-              '"official_primary_result_authenticated":false}')
+            consensus.ResultConsensusError,source.SourceCaptureError) as exc:
+        code=str(exc)
+        if (not code.isascii() or len(code)>90 or
+            not code.replace("_","").isalnum() or
+            not code.replace("_","").isupper()):
+            code="UNVERIFIED_RESULT_OR_PROVIDER_FAILURE"
+        print(json.dumps({"state":"HOLD_RESULT_NOT_INDEPENDENTLY_CONFIRMED",
+                          "reason":code,
+                          "official_primary_result_authenticated":False},
+                         sort_keys=True))
         return 2
 
 
