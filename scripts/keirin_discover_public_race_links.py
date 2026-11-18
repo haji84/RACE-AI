@@ -65,9 +65,12 @@ def linked_racecards(html,*,base_url,day):
         if _day_id(begin,index)!=day.replace("-",""):
             continue
         # Racecard URLs are taken from a REAL calendar href, never guessed.
-        if code in cards and cards[code]!=href:
+        # Same visible meeting link can carry different UI tracking query
+        # parameters. Compare actual documented path, not click-tracker.
+        canonical=f"https://keirin.kdreams.jp{url.path}"
+        if code in cards and cards[code]!=canonical:
             raise DayLinksError("CONFLICTING_MEETING_CODES_FOR_SAME_VENUE")
-        cards[code]=href
+        cards[code]=canonical
     return cards
 
 
@@ -87,9 +90,10 @@ def linked_details(html,*,base_url,day,venue):
         if code!=venue or _day_id(begin,index)!=day.replace("-",""):
             continue
         rid=day.replace("-","")+code+number
-        if rid in urls and urls[rid]!=href:
+        canonical=f"https://keirin.kdreams.jp{u.path}"
+        if rid in urls and urls[rid]!=canonical:
             raise DayLinksError("CONFLICTING_DETAIL_LINKS")
-        urls[rid]=href
+        urls[rid]=canonical
     return urls
 
 
