@@ -16,6 +16,7 @@ import os
 import re
 
 from race_ai import keirin_nationwide_cipher_history as archive
+from race_ai import keirin_github_provider_stop as provider_stop
 from race_ai import keirin_nationwide_auto_storage as seal
 from race_ai import keirin_nationwide_auto_generator as model
 from scripts import keirin_github_only_ab_day as live
@@ -132,8 +133,19 @@ def run_day(*, day, repo, private_raw_dir, max_races=MAX_RACES, clock=None):
         return {"schema":SCHEMA,"day_jst":day,"previous_forecasts":0,
                 "result_candidates":0,"research_matches_persisted":0,
                 "officially_scored":0,"states":{"NO_FROZEN_FORECAST":1}}
+    def guarded_fetch(url):
+        try:
+            return capture.fetch_once(url)
+        except capture.SourceCaptureError as exc:
+            if str(exc) in provider_stop.CODES:
+                provider_stop.append_once(
+                    repo=repo, day=day, code=str(exc),
+                    observed_at=clock().astimezone(timezone.utc).isoformat())
+            raise
+
     registry, manifest, source_status = registration.register_day(
-        day_jst=day,private_raw_dir=raw,clock=clock)
+        day_jst=day,private_raw_dir=raw,clock=clock,
+        fetch=guarded_fetch)
     linked = {r["race_id"] for r in manifest["races"]}
     head = archive._refresh(repo)
     eligible = []
@@ -155,7 +167,8 @@ def run_day(*, day, repo, private_raw_dir, max_races=MAX_RACES, clock=None):
     for rid in eligible[:max_races]:
         attempted+=1
         try:
-            observed=result_poll.poll(manifest=manifest,race_id=rid,clock=clock)
+            observed=result_poll.poll(manifest=manifest,race_id=rid,
+                                      clock=clock,fetch=guarded_fetch)
             if observed["state"] == "SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL":
                 state = _archive_result(repo,observed)
                 new_matches += (state == "RESEARCH_REVISION_GIT_CREATE_ONCE_READBACK")
@@ -207,6 +220,7 @@ def main(argv=None):
         return 0
     except (ValueError,KeyError,TypeError,OSError,
             archive.GitCipherArchiveError,
+            provider_stop.ProviderStopError,
             capture.SourceCaptureError,
             registration.DayPublicRegistrationError):
         print('{"state":"HOLD_GITHUB_ONLY_RESULT_INTAKE_UNVERIFIED",'
