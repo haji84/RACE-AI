@@ -223,7 +223,8 @@ jobs:
          github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
          github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163' ||
          github.event.workflow_run.head_sha == 'f1f8ed4ffb2a29e6b702685f49de63918610479d' ||
-         github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af') &&
+         github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af' ||
+         github.event.workflow_run.head_sha == '995ef00a2ffb98a0161e1875d7d2a33145367b40') &&
         (github.event.workflow_run.conclusion == 'success' ||
          github.event.workflow_run.conclusion == 'failure')))
     runs-on: ubuntu-24.04
@@ -350,7 +351,7 @@ jobs:
           import race_ai,scripts
           scripts.__path__=list(scripts.__path__)+[str(Path('..').resolve()/'scripts')]
           owner=os.environ['OWNER_AUDIT_SOURCE_SHA']
-          assert owner in ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3','86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163','f1f8ed4ffb2a29e6b702685f49de63918610479d','c979aeb678538d99e277f26726047dccbdc982af')
+          assert owner in ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3','86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163','f1f8ed4ffb2a29e6b702685f49de63918610479d','c979aeb678538d99e277f26726047dccbdc982af','995ef00a2ffb98a0161e1875d7d2a33145367b40')
           assert subprocess.check_output(['git','rev-parse','HEAD'],timeout=10).decode().strip()==owner
           for folder,pin in (('pr64-reference','761247bee0209e37b1af6b8885e92cad3e9260a5'),
                              ('pr72-reference','7a432e5acc4d3495a0e82bd79726929e2f8085fe')):
@@ -378,7 +379,7 @@ jobs:
               reads=active._Reads(gh)
               run=json.loads(reads(f'actions/runs/{ident}'))
               assert run.get('head_sha')==owner
-              m2_receipts=owner in ('86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163','f1f8ed4ffb2a29e6b702685f49de63918610479d','c979aeb678538d99e277f26726047dccbdc982af')
+              m2_receipts=owner in ('86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163','f1f8ed4ffb2a29e6b702685f49de63918610479d','c979aeb678538d99e277f26726047dccbdc982af','995ef00a2ffb98a0161e1875d7d2a33145367b40')
               # Keep the existing output name for downstream skip boundaries;
               # the report truthfully distinguishes active and completed snapshots.
               active_snapshot=m2_receipts or os.environ['GITHUB_EVENT_NAME']=='push' and run.get('status')=='in_progress'
@@ -633,7 +634,8 @@ jobs:
                               'bb49215034b779ea1493b35dd91e5c3ebfc04032',
                               'a74f1e940e7fc0852e63938f8138bdb58bd93163',
                               'f1f8ed4ffb2a29e6b702685f49de63918610479d',
-                              'c979aeb678538d99e277f26726047dccbdc982af')
+                              'c979aeb678538d99e277f26726047dccbdc982af',
+                              '995ef00a2ffb98a0161e1875d7d2a33145367b40')
               actual=subprocess.check_output(['git','rev-parse','HEAD'],timeout=10,
                   stderr=subprocess.DEVNULL).decode().strip()
               if root.name!='owner-source' or owner not in allowed_owners or actual!=owner:
@@ -946,8 +948,8 @@ jobs:
                   checked=[]
                   for short,pin in (
                       ('boat_owner_evidence_audit','014fc9ddbbd24c501b7784eeae50be315644669f'),
-                      ('boat_exact_all_model_zip_readback','10307aa5e45f17b1a7a0d64f409d8cb6a6481e54'),
-                      ('boat_owner_active_snapshot_audit','a3c7d36ee586e977225267b51548850c62b9161c'),
+                      ('boat_exact_all_model_zip_readback','4a8fb36ed426f74d06399062bc0ecf4befb7551b'),
+                      ('boat_owner_active_snapshot_audit','2624b2eb903b2c945a1fbc68542fecc4a3d09e68'),
                       ('boat_current_pair_eligibility_audit','3e1f414a4e164f5400f7f7a1533977b8678d80c4')):
                       source=main/'scripts'/(short+'.py')
                       assert source.is_file() and not source.is_symlink() and source.resolve()==source
