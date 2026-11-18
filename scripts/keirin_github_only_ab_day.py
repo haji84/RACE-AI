@@ -124,6 +124,8 @@ def run_day(*, day, workspace, private_dir_path, owner_public_pem,
     registry, manifest, day_status = registration.register_day(
         day_jst=day, private_raw_dir=root / "raw", clock=clock,
         fetch=guarded_fetch)
+    require(day_status.get("stopped_after_provider_error") is not True,
+            "HOLD_PROVIDER_DENIED_BEFORE_RACECARD_GET_NO_RETRY")
     eligible, remaining = select_unfrozen(
         manifest, previous, max_races=max_races)
     if eligible["races"]:
