@@ -1,0 +1,56 @@
+{
+  "schema": "RACE_AI_A74_CONTINUATION_FINAL_COUNTS_V1",
+  "run_id": 44252479726,
+  "job_id": 134626233551,
+  "source_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+  "finalized_at": "2026-11-18T12:15:41Z",
+  "physical_step_success": 24,
+  "physical_step_failures": 0,
+  "prepared_completed_control_rounds": 14,
+  "handoff_noop_rounds": [
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24
+  ],
+  "additional_generation": {
+    "positive_rounds": 8,
+    "zero_rounds": 6,
+    "reported_contexts": 10,
+    "reported_new_forecasts": 100,
+    "reported_reused_baseline_forecasts": 40,
+    "matching_readback_reports": 8,
+    "independent_union_audit": false
+  },
+  "source_requests": {
+    "session": 494,
+    "lifetime": 15368,
+    "lifetime_completed_rounds": null
+  },
+  "reported_raw_retention": {
+    "requested": 466,
+    "retained": 466,
+    "complete": true,
+    "independent_per_body_aes_audit": false
+  },
+  "final_control": {
+    "producer_prepared_round": null,
+    "producer_source_wait": null,
+    "sealed_at": "2026-11-18T12:15:43Z",
+    "producer_ready": true,
+    "independently_authenticated_by_this_report": false
+  },
+  "unchanged": {
+    "interrupted": false,
+    "hotswapped": false,
+    "counters_reset": false,
+    "original_forecasts_rewritten": false
+  },
+  "scope": "Completed source job logs and pinned successful finish_worker branch. Not an authenticated final companion ZIP, qualified cohort, complete union, T15-10 or G8 proof."
+}

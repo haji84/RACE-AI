@@ -1,6 +1,6 @@
 # Saved Cutoff Raw Replay Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Determine whether unequal saved PROGRAM and RESULT closing clocks match fixed independent inspectors applied to their own authenticated retained source bytes, without changing any original or admitting rejected results.
 
@@ -36,9 +36,9 @@
 
 **Interfaces:** Tests consume the two exact functions in the frozen contract. Fresh-process bootstrapping loads A74 `race_ai`/producer modules, existing pr64/pr72 parser paths, and the exact main audit modules; it never patches an old capture allowlist.
 
-- [ ] Write 5–7 focused methods using existing synthetic HTML and actual A74 LocalGit AES/HMAC fixtures. Cover both different clocks reproducing; one-side disagreement; missing versus failed authentication; declared versus unexpected parser errors; supported/unknown refs, duplicates and original/API preservation.
-- [ ] Add one fixed A74 checkout and one separate fresh `python -m unittest tests.test_boat_cutoff_raw_replay_audit -v` command inside the existing unit job. Preserve its old 364 tests and source-free protections.
-- [ ] Push tests-only to existing PR30 with an expected-head fast-forward lease. Confirm proper completed logs show only missing-module/API assertion failures and zero import/fixture errors.
+- [x] Write 5–7 focused methods using existing synthetic HTML and actual A74 LocalGit AES/HMAC fixtures. Cover both different clocks reproducing; one-side disagreement; missing versus failed authentication; declared versus unexpected parser errors; supported/unknown refs, duplicates and original/API preservation.
+- [x] Add one fixed A74 checkout and one separate fresh `python -m unittest tests.test_boat_cutoff_raw_replay_audit -v` command inside the existing unit job. Preserve its old 364 tests and source-free protections.
+- [x] Push tests-only to existing PR30 with an expected-head fast-forward lease. Confirm proper completed logs show only missing-module/API assertion failures and zero import/fixture errors.
 
 ## Task 2: Pure comparison and private admission seam
 
@@ -46,10 +46,10 @@
 
 **Interfaces:** `diagnose_saved_cutoff_raw_replay(first, latest, captures, *, parsers, parse_time) -> safe_dict`. Existing public `audit_current_pairs` remains byte-compatible in signature, normal output and original rejection.
 
-- [ ] After actual RED, implement the exact twelve fields, fixed reason precedence and six-counter reconciliation from the contract.
-- [ ] Bind source refs only through the eight explicit recipe paths; retain them outside existing identity/info/hash inputs. Compare only actual unequal first-original/latest clocks, deduplicated across model cells.
-- [ ] Inspect PROGRAM only with fixed A74_PROGRAM and RESULT only with fixed PR64_RESULT (explicit kind='raceresult'). These inspectors are not asserted to be the original producer algorithms. Use the exact restored receipt URL/clock and supported native proof. Unsupported refs or unexpected failures return HOLD/null.
-- [ ] Exercise the unchanged old tests and the new pure controls. Verify original source objects and prior summary hashes remain identical.
+- [x] After actual RED, implement the exact twelve fields, fixed reason precedence and six-counter reconciliation from the contract.
+- [x] Bind source refs only through the eight explicit recipe paths; retain them outside existing identity/info/hash inputs. Compare only actual unequal first-original/latest clocks, deduplicated across model cells.
+- [x] Inspect PROGRAM only with fixed A74_PROGRAM and RESULT only with fixed PR64_RESULT (explicit kind='raceresult'). These inspectors are not asserted to be the original producer algorithms. Use the exact restored receipt URL/clock and supported native proof. Unsupported refs or unexpected failures return HOLD/null.
+- [x] Exercise the unchanged old tests and the new pure controls. Verify original source objects and prior summary hashes remain identical.
 
 ## Task 3: Existing vault adapter and actual readback
 
@@ -57,7 +57,13 @@
 
 **Interfaces:** `audit_fixed_a74_cutoff_raw_replay(*, get, repo, now) -> safe_dict`. It invokes the existing private admission path with a local sink and the same frozen read/clock.
 
-- [ ] Enumerate the fixed authenticated month/run index using unchanged A74 `list_originals`. For every locator pass exactly the five-key reference to `_batch_entry` with `_keys(None)[1]`; authenticate exact numbered raw/json header pairs before negative filtering. Check every later header even after a match.
-- [ ] Restore candidate bundles through unchanged `restore_capture_bundle`, one at a time. Keep only wanted bodies, deduplicate exact captures and reject conflicts. Conclusive missing requires complete authenticated enumeration.
-- [ ] Run fresh existing/new CI, independent review and normal protected merge with the already established release prefix. Preserve the original marker filename.
-- [ ] In the existing Actions job, obtain actual authenticated readback and save only the twelve-field count evidence. Report unavailable data as HOLD; do not repair clocks, regenerate forecasts, select a favorable revision or promote weights.
+- [x] Enumerate the fixed authenticated month/run index using unchanged A74 `list_originals`. For every locator pass exactly the five-key reference to `_batch_entry` with `_keys(None)[1]`; authenticate exact numbered raw/json header pairs before negative filtering. Check every later header even after a match.
+- [x] Restore candidate bundles through unchanged `restore_capture_bundle`, one at a time. Keep only wanted bodies, deduplicate exact captures and reject conflicts. Conclusive missing requires complete authenticated enumeration.
+- [x] Run fresh existing/new CI, independent review and normal protected merge with the already established release prefix. Preserve the original marker filename.
+- [x] In the existing Actions job, obtain actual authenticated readback and save only the twelve-field count evidence. Report unavailable data as HOLD; do not repair clocks, regenerate forecasts, select a favorable revision or promote weights.
+
+## Actual outcome recorded 2026-11-18
+
+Implementation, source-free fixtures, independent review, protected merge and actual readback are complete; the scientific diagnosis remains HOLD. Actual job44304417349/134802152640 returned PROGRAM_CAPTURE_CLOCK_BINDING_UNVERIFIED with comparison4, PROGRAMmatch0, RESULTmatch4, missingbinding4 and rejected/disagreed0. All expected PROGRAM SHA+URL bodies exist in the authenticated fixed scope, but their expected source clocks do not bind. No alternate-clock inspection, old-clock rewrite or qualified-pair promotion occurred. These checked tasks signify completed implementation and honest HOLD reporting, not GOAL completion.
+
+Future source995 shares the actual receive clock while preserving pacing, generation clocks and post-pacing day refusal. Its tested code is separate from retrospective A74 authentication. See [actual clock evidence](../../evidence/boat-current-pair-program-clock-binding-actual-20261118.json) and [source/main synchronization](../../evidence/boat-http-receive-clock-source-main-sync-20261118.json). Actual new-worker receive-clock proof is separately pending until observed in the legitimate execution.

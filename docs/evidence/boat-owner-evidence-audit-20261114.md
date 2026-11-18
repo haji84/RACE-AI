@@ -94,3 +94,27 @@ producer内のAES/vaultとRESULT AES/report読戻しは必須stepを通過。
 公式GET212で保存済み2日分の結果sync276レース、changed42・confirmed194・held12・pending70、
 新観測35を記録。予想入力・原本を変更せず、private原本や鍵を公開していない。
 実機Safari、8画面の完全視覚比較、新P1別runner AESと全1680slot・映像・精度改善は未達。
+
+## 2026-11-18: 保管修正後の実運転と受信時計の修正
+
+この節以前は記録当時の証拠として保持する。現在の要約は
+[最新状況](../RACE_AI_LATEST_STATUS.md)を参照する。P0保管失敗43829249080は
+履歴のまま残し、後続A74の24巡/73 AES原本/23 ALL_MODEL ZIP/P1 513行照合を
+[独立監査](boat-main-sync-closed-a74-actual-20261118.json)で区別する。
+
+直近A74 worker44252479726は自然完了したが、24成功stepの実control巡は14、
+追加生成が正数なのは8巡である。[完了scope](boat-a74-continuation-final-20261118.json)。
+保存PROGRAM原文のSHA/URLは存在し、要求された取得時計だけ結合しないため
+厳密HOLDを維持する。[実時計結合](boat-current-pair-program-clock-binding-actual-20261118.json)。
+
+将来分の修正source995は880件等の実回帰成功後に通常mergeされ、main7003は
+368+7件等の実回帰成功・独立review後にそのexact SHAへ同期した。原本・生成時計・
+2秒待機・日付guard・counterは保全した。13:06:27Z、既存launcher44310274907/
+job134822293251がREADY_VERIFIED_SAME_DAY_CONTINUATIONを記録し、既存経路で
+source995の実worker44310358995が起動した。[修正と継続の証拠](boat-http-receive-clock-source-main-sync-20261118.json)。
+新workerの実受信時計結合・新予想保存は未確認。起動成功を全原本再認証、
+全レース/4競技/T15-10完遂・実機iPhone・6艇精度・前向き改善と呼ばない。
+
+この追記は従来のowner監査証拠を最新の実証へ接続する。既存source-free unitの
+対象文書であり、job/input/cron/権限/runner/timeout/marker/prefixを追加しない。
+中立的なdocs mergeで追加owner起動、provider GET、UI公開や重み切替を要求しない。

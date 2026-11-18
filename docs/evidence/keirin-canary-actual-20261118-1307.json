@@ -1,0 +1,36 @@
+{
+  "schema": "RACE_AI_KEIRIN_CANARY_ACTUAL_BLOCKER_V1",
+  "observed_at": "2026-11-18T13:08:52Z",
+  "run_id": 44310295802,
+  "event": "schedule",
+  "head_sha": "7003a0375721d64514419eafd8a0030f2888061a",
+  "personal_job": {
+    "id": 134822362008,
+    "conclusion": "success",
+    "logged_at": "2026-11-18T13:06:11.5626728Z",
+    "date": "2026-11-03",
+    "eligible": 0,
+    "get_attempts": 0,
+    "state": "NO_CURRENT_DAY_MANIFEST"
+  },
+  "fallback_job": {
+    "id": 134822438215,
+    "conclusion": "failure",
+    "logged_at": "2026-11-18T13:07:21.7396366Z",
+    "provider_failure": "DAILY_INDEX_HTTP_403",
+    "final_guard": "NO_VERIFIED_DAILY_CATALOG_OR_REPLAY",
+    "guard_logged_at": "2026-11-18T13:07:22.0543932Z"
+  },
+  "verified_forecast_count": null,
+  "verified_result_count": null,
+  "verified_complete_daily_catalog": false,
+  "provider_requests_made_by_this_audit": 0,
+  "source_approval_profile_unchanged": true,
+  "alternative_provider_authorized": false,
+  "goal_complete": false,
+  "limits": [
+    "Scheduled actual run evidence; no newly introduced code exception proved.",
+    "Successful personal job contains no current-day manifest and does not prove forecasts.",
+    "HTTP403 is not bypassed. Approved WINTICKET/KEIRIN.JP permissioned data or valid current configuration is still required; Kdreams is not approved."
+  ]
+}
