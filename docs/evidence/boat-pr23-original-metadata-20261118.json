@@ -1,0 +1,24 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_ORIGINAL_METADATA_V1",
+  "recorded_at": "2026-11-18T13:21:30Z",
+  "number": 23,
+  "title": "feat: 公式Bのオフライン正規化と許可付きPreview配信準備を接続",
+  "body": "公式B抽出済みテキスト→parse_b→Webスナップショット→rights-gated atomic publisherをオフラインで連結。許可がなければSAFE_STOP、Previewファイルを作らない。合成fixtureの許可あり/なし回帰テストを追加。\n\n未完成: 実公式B原本のE2E、配信許諾の実在確認、定期取得Worker、Vercelストレージ/配信API、iPhone実機。main/Productionには変更なし。",
+  "head": {
+    "ref": "feat/boat-preview-feed-pipeline",
+    "sha": "745a3cc83403d8260e666c7b0061a8aecb549798"
+  },
+  "base": {
+    "ref": "fix/boat-b-without-motor",
+    "sha": "957f537f85624bacba26aae0f35a4023fa2b92e0"
+  },
+  "draft": true,
+  "state": "open",
+  "html_url": "https://github.com/haji84/RACE-AI/pull/23",
+  "ancestry": {
+    "merge_base": "745a3cc83403d8260e666c7b0061a8aecb549798",
+    "behind_by": 0,
+    "ahead_by": 2340
+  },
+  "scope": "Original ancestor-only draft metadata preserved before a final documentation follow-up; no original code is discarded and no new PR is created."
+}

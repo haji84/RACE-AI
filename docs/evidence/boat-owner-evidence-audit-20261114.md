@@ -118,3 +118,13 @@ source995の実worker44310358995が起動した。[修正と継続の証拠](boa
 この追記は従来のowner監査証拠を最新の実証へ接続する。既存source-free unitの
 対象文書であり、job/input/cron/権限/runner/timeout/marker/prefixを追加しない。
 中立的なdocs mergeで追加owner起動、provider GET、UI公開や重み切替を要求しない。
+
+### 2026-11-18 13:22 UTC: 反映後の再監査と第1巡への到達
+
+main7003の既存監査44310274869/job134822293517が実完了success。固定旧A74の
+73AES/23ZIP/513一致・4/19欠落と、13:16:36Zの厳密PROGRAM時計結合HOLDを再確認した。
+source995後続44310358995は13:22:01Zに30step成功/失敗0、第1巡実行中へ進んだ。
+追加P0の封印/読戻し保管/保存receipt長期保管等のstep成功はmetadata証拠であり、
+件数・新規capture時計一致・第1巡保存完了はまだ不明。
+[時刻付きの実証と限定](boat-source995-post-merge-actual-20261118.json)を保持する。
+過去原本・予想・時計・counter・HOLD・本番重み・公開UIを変更しない。
