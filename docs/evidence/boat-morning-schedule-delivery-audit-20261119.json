@@ -1,0 +1,257 @@
+{
+  "schema": "RACE_AI_BOAT_MORNING_SCHEDULE_DELIVERY_AUDIT_V1",
+  "status": "MORNING_LAUNCHER_EVENT_UNOBSERVED",
+  "snapshot_at_utc": "2026-11-18T21:57:07Z",
+  "snapshot_at_jst": "2026-11-19T06:57:07+09:00",
+  "repository": "haji84/RACE-AI",
+  "main_sha": "7c09c3ead6b7e44449fb36055927d3a57a1537d2",
+  "protected_source_sha": "fbc743be548bfd123e46cdbfe290515a59e5e0d3",
+  "collection": {
+    "authenticated_cli_login": "haji84",
+    "authenticated_read_succeeded": true,
+    "authenticated_write_test_performed": false,
+    "status_filter_used": false,
+    "workflow_identity_from_prior_run_id": 44355714905,
+    "workflow_registry_first_page_absence_used": false,
+    "logs_source": "OFFICIAL_WHOLE_RUN_ZIP_CAPTURED_IN_MEMORY",
+    "empty_gh_job_output_used_as_evidence": false,
+    "raw_api_payloads_saved": false,
+    "raw_logs_saved": false,
+    "signed_urls_saved": false,
+    "private_urls_saved": false,
+    "raw_prediction_or_result_documents_saved": false
+  },
+  "launcher_history": {
+    "workflow_id": 410194475,
+    "workflow_path": ".github/workflows/boat-racer-daily.yml",
+    "workflow_state": "active",
+    "reported_total_count": 359,
+    "page_returned_counts": [100, 100, 100, 59],
+    "returned_run_count": 359,
+    "noncompleted_run_count": 0,
+    "morning_schedule_run_count_observed": 0,
+    "latest_run_id_confirmed_at_snapshot": 44355714905,
+    "latest_push_run_id": 44355714905,
+    "latest_schedule_run_id": 44342828376,
+    "latest_workflow_run_event_run_id": 43784862364
+  },
+  "canonical_owner_history": {
+    "observed_at_utc": "2026-11-18T21:55:42Z",
+    "workflow_id": 405276784,
+    "workflow_path": ".github/workflows/boat-nationwide-ab-one-shot.yml",
+    "workflow_state": "active",
+    "reported_total_count": 356,
+    "page_reported_total_counts": [356, 356, 356, 356],
+    "page_returned_counts": [100, 100, 100, 56],
+    "returned_run_count": 356,
+    "unique_run_id_count": 356,
+    "noncompleted_run_count": 0,
+    "event_counts": {
+      "pull_request": 205,
+      "workflow_dispatch": 22,
+      "push": 129
+    },
+    "protected_source_dispatch_run_count": 0,
+    "production_branch_history": {
+      "branch": "production/boat-p0-p1-20261111",
+      "reported_total_count": 34,
+      "returned_run_count": 34,
+      "noncompleted_run_count": 0,
+      "event_counts": {
+        "workflow_dispatch": 22,
+        "pull_request": 12
+      }
+    },
+    "latest_real_worker": {
+      "run_id": 44310358995,
+      "event": "workflow_dispatch",
+      "head_sha": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+      "head_branch": "production/boat-p0-p1-20261111",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at_utc": "2026-11-18T13:06:28Z",
+      "updated_at_utc": "2026-11-18T15:26:13Z"
+    }
+  },
+  "latest_event_completed_log_evidence": [
+    {
+      "event": "push",
+      "run_id": 44355714905,
+      "head_sha": "bc40906cf2246ba12ad698bb71e6fec492ab7675",
+      "created_at_utc": "2026-11-18T17:10:49Z",
+      "run_status": "completed",
+      "run_conclusion": "success",
+      "owner_job_id": 134983145756,
+      "owner_job_conclusion": "success",
+      "whole_run_log_zip_bytes": 6906,
+      "whole_run_log_zip_entry_count": 2,
+      "gate_log_at_utc": "2026-11-18T17:11:06.5699116Z",
+      "gate_status": "HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW",
+      "dispatch_allowed": false,
+      "recovery_required": false,
+      "owner_gate_official_source_requests": 0
+    },
+    {
+      "event": "schedule",
+      "run_id": 44342828376,
+      "head_sha": "7584fc3d9d60aa2a548a43281041f66cf0ce9681",
+      "created_at_utc": "2026-11-18T16:03:55Z",
+      "run_status": "completed",
+      "run_conclusion": "failure",
+      "owner_job_id": 134937146486,
+      "owner_job_conclusion": "success",
+      "whole_run_log_zip_bytes": 18049,
+      "whole_run_log_zip_entry_count": 4,
+      "gate_log_at_utc": "2026-11-18T16:04:05.2406360Z",
+      "gate_status": "HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW",
+      "dispatch_allowed": false,
+      "recovery_required": false,
+      "owner_gate_official_source_requests": 0,
+      "separate_failed_daily_job": {
+        "job_id": 134937149640,
+        "failed_step_number": 11,
+        "safe_log_status": "SOURCE_WAIT",
+        "safe_log_at_utc": "2026-11-18T16:07:27.2112827Z",
+        "safe_log_source_requests": 0,
+        "is_owner_gate_failure": false
+      }
+    },
+    {
+      "event": "workflow_run",
+      "run_id": 43784862364,
+      "head_sha": "65743d1322acf9d5ddeb87662a0d21ef7c52929b",
+      "created_at_utc": "2026-11-16T01:12:18Z",
+      "run_status": "completed",
+      "run_conclusion": "failure",
+      "owner_job_id": 133030118846,
+      "owner_job_conclusion": "failure",
+      "whole_run_log_zip_bytes": 15379,
+      "whole_run_log_zip_entry_count": 4,
+      "gate_log_at_utc": "2026-11-16T01:12:29.4436705Z",
+      "gate_status": "HOLD_ALREADY_DISPATCHED_FOR_JST_DAY",
+      "dispatch_allowed": false,
+      "recovery_required": true,
+      "owner_gate_official_source_requests": 0,
+      "failed_recovery_step_number": 8,
+      "recovery_log_at_utc": "2026-11-16T01:12:35.8415192Z",
+      "recovery_status": "HOLD_FAILED_OWNER_RECOVERY",
+      "recovery_official_source_requests": 0
+    }
+  ],
+  "current_metadata_only_reevaluation": {
+    "observed_at_utc": "2026-11-18T21:55:42Z",
+    "implementation": "scripts.boat_recovery_dispatch_gate.decide",
+    "implementation_sha": "7c09c3ead6b7e44449fb36055927d3a57a1537d2",
+    "input_source": "AUTHENTICATED_LIVE_RELEASE_REF_OWNER_DOCUMENT_AND_COMPLETE_PRODUCTION_HISTORY",
+    "status": "READY_EXISTING_OWNER_WORKFLOW_ONLY",
+    "dispatch_allowed": true,
+    "recovery_required": false,
+    "official_source_requests": 0,
+    "actually_ran_on_actions": false,
+    "artifact_control_read_performed": false,
+    "dispatch_performed": false,
+    "future_real_forecast_proven": false,
+    "official_results_reconciled": false
+  },
+  "manual_launcher_reachability": {
+    "workflow_dispatch_defined": true,
+    "existing_mode_choices": ["intraday", "daily"],
+    "existing_mode_default": "intraday",
+    "existing_other_inputs": [
+      "verify_site",
+      "check_current_day",
+      "check_beforeinfo",
+      "probe_race_id"
+    ],
+    "owner_job_reached": false,
+    "same_owner_gate_or_source_free_dispatch_alternative": false,
+    "static_job_condition_evaluation": {
+      "workflow_dispatch": {
+        "original_retention": false,
+        "source_mirror": false,
+        "daily": true,
+        "owner_p0_p1_dispatch": false
+      },
+      "matching_release_prefix_push": {
+        "original_retention": false,
+        "source_mirror": false,
+        "daily": false,
+        "owner_p0_p1_dispatch": true
+      }
+    },
+    "static_evaluation_is_actions_execution": false,
+    "manual_daily_collector_provider_step_is_eligible": true,
+    "trusted_source_gate_event_includes_manual": false,
+    "evidence_lines": [
+      {
+        "path": ".github/workflows/boat-racer-daily.yml",
+        "first_line": 28,
+        "last_line": 50,
+        "fact": "EXISTING_MANUAL_INPUTS_ARE_RESULT_AND_SITE_OPTIONS"
+      },
+      {
+        "path": ".github/workflows/boat-racer-daily.yml",
+        "first_line": 834,
+        "last_line": 861,
+        "fact": "OWNER_JOB_ALLOWS_SCHEDULE_COMPLETION_AND_RELEASE_PUSH_BUT_NO_MANUAL_EVENT"
+      },
+      {
+        "path": ".github/workflows/boat-racer-daily.yml",
+        "first_line": 529,
+        "last_line": 556,
+        "fact": "MANUAL_EVENT_IS_ELIGIBLE_FOR_DAILY_JOB"
+      },
+      {
+        "path": ".github/workflows/boat-racer-daily.yml",
+        "first_line": 645,
+        "last_line": 667,
+        "fact": "MANUAL_EVENT_CAN_REACH_EXISTING_RESULT_AND_BEFOREINFO_COLLECTOR"
+      },
+      {
+        "path": "scripts/boat_recovery_dispatch_gate.py",
+        "first_line": 212,
+        "last_line": 228,
+        "fact": "TRUSTED_HANDOFF_AND_RECOVERY_EVENT_SET_EXCLUDES_MANUAL_EVENT"
+      },
+      {
+        "path": ".github/workflows/boat-racer-daily.yml",
+        "first_line": 13,
+        "last_line": 15,
+        "fact": "RELEASE_PUSH_ALSO_REQUIRES_EXISTING_PUSH_PATH_FILTER"
+      }
+    ]
+  },
+  "schedule_delivery": {
+    "morning_due_at_jst": [
+      "2026-11-19T05:30:00+09:00",
+      "2026-11-19T06:20:00+09:00"
+    ],
+    "morning_launcher_event_observed": false,
+    "morning_actions_gate_decision_observed": false,
+    "cron_delivery_root_cause": "UNKNOWN",
+    "missed_delivery_proven": false,
+    "new_morning_hold_proven": false,
+    "existing_next_cron_due_at_jst": "2026-11-19T07:02:00+09:00",
+    "cron_delivery_is_guaranteed": false
+  },
+  "audit_operations": {
+    "workflow_dispatches": 0,
+    "direct_source_dispatches": 0,
+    "reruns": 0,
+    "cancellations": 0,
+    "provider_get_requests": 0,
+    "state_key_accesses": 0,
+    "workflow_job_input_cron_runner_or_permission_changes": 0,
+    "counter_resets": 0,
+    "model_or_weight_changes": 0,
+    "public_ui_publications": 0,
+    "prediction_original_changes": 0,
+    "legacy_offline_pr70_pr292_restored": false
+  },
+  "limits": [
+    "METADATA_REEVALUATION_IS_NOT_AN_ACTUAL_MORNING_ACTIONS_GATE_RUN",
+    "NO_NEW_PROTECTED_SOURCE_REAL_WORKER_OR_FORECAST_IS_PROVEN",
+    "COMPLETE_ALL_DAY_COVERAGE_AND_T15_TO_T10_ACCEPTANCE_REMAIN_UNPROVEN",
+    "PROVIDER_DENIALS_HISTORY_AUTHENTICATION_COUNTERS_AND_EXISTING_HOLDS_ARE_NOT_BYPASSED"
+  ]
+}
