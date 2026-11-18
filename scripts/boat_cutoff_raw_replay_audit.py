@@ -423,8 +423,80 @@ def _pinned(module, expected):
         raise _Stop('INPUT_OR_SCOPE_INVALID') from None
 
 
-def _retained_captures(targets, repo, vault, program_locator):
+def _program_binding(target):
+    source = target['program']
+    return (target['race'], source['sha'], source['form'], source['ref'], source['captured'])
+
+
+def _observe_program_evidence(evidence, digest, metadata, at, program_locator):
+    """Record private provenance only; never select a different receipt clock."""
+    if evidence is None:
+        return
+    try:
+        if evidence['valid'] is not True:
+            return
+        for binding, state in evidence['bindings'].items():
+            race, wanted, form, ref, expected_at = binding
+            if digest != wanted:
+                continue
+            state['sha_present'] = True
+            url = metadata['source_url']
+            try:
+                actual = program_locator(url, 'racelist', race)
+            except ValueError:
+                continue
+            expected_ref = _bare_url('racelist') if form == 'EXACT' else ref
+            if type(actual) is not str or actual != expected_ref:
+                continue
+            if form == 'EXACT' and url != ref:
+                continue
+            state['url_present'] = True
+            if at == expected_at:
+                state['exact_clock_present'] = True
+    except Exception:
+        if type(evidence) is dict:
+            evidence['valid'] = False
+
+
+def _program_clock_report(report, targets, evidence):
+    """Refine only the authenticated all-PROGRAM wrong-clock missing shape."""
+    try:
+        if type(report) is not dict:
+            return report
+        count = report.get('comparison_count')
+        if type(count) is not int or count <= 0:
+            return report
+        expected = _known('HOLD', 'RAW_CAPTURE_MISSING',
+                          dict(zip(COUNTERS, (count, 0, count, count, 0, 0))))
+        if (set(report) != set(expected) or any(
+                type(report[name]) is not type(value) or report[name] != value
+                for name, value in expected.items())):
+            return report
+        if (type(evidence) is not dict or
+                set(evidence) != {'complete', 'valid', 'bindings'} or
+                evidence['complete'] is not True or evidence['valid'] is not True):
+            return report
+        bindings = evidence['bindings']
+        wanted = {_program_binding(target) for target in targets}
+        if type(bindings) is not dict or not wanted or set(bindings) != wanted:
+            return report
+        for state in bindings.values():
+            if (type(state) is not dict or
+                    set(state) != {'sha_present', 'url_present', 'exact_clock_present'} or
+                    state['sha_present'] is not True or state['url_present'] is not True or
+                    state['exact_clock_present'] is not False):
+                return report
+        refined = dict(report)
+        refined['reason'] = 'PROGRAM_CAPTURE_CLOCK_BINDING_UNVERIFIED'
+        return refined
+    except Exception:
+        return report
+
+
+def _retained_captures(targets, repo, vault, program_locator, *, _program_evidence=None):
     """Use unchanged signed-header and AEAD readers on one fixed vault snapshot."""
+    if type(_program_evidence) is dict:
+        _program_evidence['complete'] = False
     reason = 'CAPTURE_AUTHENTICATION_UNAVAILABLE'
     wanted = {target[role]['sha'] for target in targets for role in ('program', 'result')}
     _need(len(wanted) <= _MAX_SIDES, 'RESOURCE_BOUND_EXCEEDED')
@@ -479,6 +551,7 @@ def _retained_captures(targets, repo, vault, program_locator):
                     continue
                 metadata = vault._json(metadata_raw, _META_LIMIT)
                 at = vault._time(metadata['captured_at']).astimezone(timezone.utc)
+                _observe_program_evidence(_program_evidence, digest, metadata, at, program_locator)
                 matched = False
                 for target in targets:
                     for role in ('program', 'result'):
@@ -508,6 +581,8 @@ def _retained_captures(targets, repo, vault, program_locator):
                       'RESOURCE_BOUND_EXCEEDED')
                 captures.append((bodies[digest], metadata_raw))
             del restored
+        if type(_program_evidence) is dict:
+            _program_evidence['complete'] = True
         return tuple(captures)
     except _Stop:
         raise
@@ -540,9 +615,15 @@ def audit_fixed_a74_cutoff_raw_replay(*, get, repo, now):
                 if not targets:
                     report = _known('NO_MISMATCH_TARGETS')
                     return
-                captures = _retained_captures(targets, repo, vault, observed.locator)
+                program_evidence = dict(complete=False, valid=True, bindings={
+                    _program_binding(target): dict(sha_present=False, url_present=False,
+                                                   exact_clock_present=False)
+                    for target in targets})
+                captures = _retained_captures(targets, repo, vault, observed.locator,
+                                              _program_evidence=program_evidence)
                 report = diagnose_saved_cutoff_raw_replay(
                     first, latest, captures, parsers=parsers, parse_time=intake._time)
+                report = _program_clock_report(report, targets, program_evidence)
             except _Stop as error:
                 report = _hold(error.reason if type(error) is _Stop else None)
             except Exception:

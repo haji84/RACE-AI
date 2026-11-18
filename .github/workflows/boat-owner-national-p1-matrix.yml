@@ -1053,7 +1053,7 @@ jobs:
                       assert source.is_file() and not source.is_symlink() and source.resolve()==source
                       raw=source.read_bytes()
                       assert 0<len(raw)<=128*1024
-                      assert hashlib.sha1(b'blob '+str(len(raw)).encode('ascii')+b'\0'+raw).hexdigest()=='3b6cde1fb4af0e71ec23a3037f7a2339a1cdf285'
+                      assert hashlib.sha1(b'blob '+str(len(raw)).encode('ascii')+b'\0'+raw).hexdigest()=='daef1d09ce55dde149defda0a15e6459ac511f73'
                       name='scripts.'+short
                       spec=importlib.util.spec_from_file_location(name,source)
                       module=importlib.util.module_from_spec(spec)
@@ -1083,17 +1083,21 @@ jobs:
                               'CAPTURE_AUTHENTICATION_UNAVAILABLE','RESOURCE_BOUND_EXCEEDED',
                               'RAW_CAPTURE_MISSING','GRID_INSPECTOR_REJECTED',
                               'SAVED_CLOCK_DIFFERS_FROM_INSPECTED_GRID',
-                              'UNEXPECTED_GRID_INSPECTION_FAILURE')
+                              'UNEXPECTED_GRID_INSPECTION_FAILURE',
+                              'PROGRAM_CAPTURE_CLOCK_BINDING_UNVERIFIED')
                           if reason in ('INPUT_OR_SCOPE_INVALID','UNSUPPORTED_SOURCE_REF',
                                   'CAPTURE_AUTHENTICATION_UNAVAILABLE','RESOURCE_BOUND_EXCEEDED',
                                   'UNEXPECTED_GRID_INSPECTION_FAILURE'):
                               assert all(value is None for value in counts)
                           else:
                               assert all(type(value) is int and 0<=value<=56 for value in counts)
-                              expected_reason=('RAW_CAPTURE_MISSING' if counts[3]>0 else
-                                  'GRID_INSPECTOR_REJECTED' if counts[4]>0 else
-                                  'SAVED_CLOCK_DIFFERS_FROM_INSPECTED_GRID' if counts[5]>0 else None)
-                              assert reason==expected_reason
+                              if reason=='PROGRAM_CAPTURE_CLOCK_BINDING_UNVERIFIED':
+                                  assert counts[0]>0 and counts==(counts[0],0,counts[0],counts[0],0,0)
+                              else:
+                                  expected_reason=('RAW_CAPTURE_MISSING' if counts[3]>0 else
+                                      'GRID_INSPECTOR_REJECTED' if counts[4]>0 else
+                                      'SAVED_CLOCK_DIFFERS_FROM_INSPECTED_GRID' if counts[5]>0 else None)
+                                  assert reason==expected_reason
                       else:
                           assert reason is None and all(type(value) is int and 0<=value<=56 for value in counts)
                       if counts[0] is not None:
