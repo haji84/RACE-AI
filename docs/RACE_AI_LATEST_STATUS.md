@@ -1,3 +1,15 @@
+## 2026-11-18 08:24 UTC: source診断版の通常merge成功、main同期と閉じた24巡の追加監査を検証
+
+source PR34は通常merge c979aeb678538d99e277f26726047dccbdc982af/tree766b8a3ea5d9d3b85e0f399523ede2eb8f1b688b。tested e803f654とtree一致、実CI44264409691/job134665251090で877件/293.128秒、38件/3.250秒、165件/43.278秒、46件/0.395秒、既存3/12契約がすべて成功した。二つのHOLD catchに13固定phaseと有限の型別理由だけを追加し、秘密の例外本文・URL・path・key・動的class名を出さない。元のstatus/field値/成功出力/受入/暗号/4xx非再試行/例外scopeはbyte比較で保全。以前の保管HOLD原因は未復元で、既定値0をwrite0証明にしない。F1 cache/retention/batch/vaultも不変。[実source統合と検査](evidence/boat-source-venue-diagnostic-actual-20261118.json)。
+
+main a925d898はまだ旧F1参照。既存PR35で実保護先端c979へcurrent roleだけを同期するテストを先行し、F1の既存読取role/P0規則・A74過去原本・固定M2/BB/EFF/0796 reader・native tailを残す。F1のworkflow_dispatchは08:11 UTCの正規APIで0であり、架空F1原本やfailed-origin履歴を追加しない。F2のP0継承は実発行済みM2/profile/BB/A74だけ。追加4role methodとcurrent期待値更新の実RED/最終CIはこれから確認する。
+
+閉じたA74 run44218343091の166 artifactsを2ページで全件確認。ALL_MODELは23個（r0を含む）、4/19が欠落で既存HOLDを維持。追加のsource-free監査は別の固定A74 checkoutとそのtraining validatorを使い、mainの4監査moduleだけを正規名へ束縛する。固定M2監査と5uploadを残し、既存job末尾の2stepでP1原本の代表集合・未適格native first/repeat/journal結合件数をstdoutだけへ出す候補。新heredoc1個に合わせcompile期待数10→11、旧blockも全てcompileする。まだ本番Actionsで追加監査していない。[inventoryと既存方針](evidence/boat-completed-a74-inventory-policy-20261118.json)。
+
+11月3日02:16:08 UTCのcommit07846f5d27f8967ed7548861fdeef96f32a2a4e3に比較方針073379c12648064305a8b7e03dfc172d2b448f73が存在し、source86/A74にも同じblobを確認した。「事前登録そのものがない」とは断言しない。native readerのUNREGISTERED_HOLDはこの方針を読まない未判定placeholder。固定2arm・独立結果監査・receipt・公式ledgerと100 matched/5日/10会場日条件の、今回のnativeセルへの適用は別確認。単日A74や574 PDCA pairsを適格分母へ換算せず、事後登録や新分母は作らない。完全P0/P1 unionも今回のP1中心readerだけでは証明しない。
+
+08:17:51 UTCの実metadataでは後続A74 run44252479726は1〜3巡success/4巡実行中/failed0。止めず、cache/診断版の実効果は次の正規workerで確認する。実Mac Safariの当日gen433/結果79/native9/AES成功は下の証拠どおり保持。物理iPhone・全8画面目視・4競技全レース×全適用model/締切T15〜10全件・6艇の校正/接続・前向き改善は未達。元offline2commit未復元、実行環境failed、キーActionsのみ、新PR/job/input/cron/runner/timeout/権限/marker名/モデル系統/課金/公開UI/投票/本番weights切替なし。以下は各時点の履歴。
+
 ## 2026-11-18 07:33 UTC: 実Mac Safariの当日V5照合成功、内部HOLDとGOAL未達は維持
 
 既存PR36を通常mergeし、main a925d898275fe812ceaa31eb9de579ce54b128ac/tree0cd65378e8d24e074917dba678674101c3a54a55がtested head4c74c28eと完全一致。全27checkは13success/14skip/failed0、native140件/17.063秒、racer206件/17.253秒、national346件/120.713秒、mirror212件/59.637秒+32件/0.025秒が成功した。初回のfixture衝突を隠さず保存し、runtime/140method/受入schemaは維持した。

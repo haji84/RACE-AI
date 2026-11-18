@@ -148,7 +148,7 @@ jobs:
           from pathlib import Path
           source=Path('.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
           blocks=re.findall(r"^          python - <<'([A-Z_]+)'\n(.*?)^          \1\s*$",source,re.M|re.S)
-          assert len(blocks)==10
+          assert len(blocks)==11
           for tag,body in blocks:
               compile(textwrap.dedent(body),tag,'exec')
           stage=source.split("python - <<'PY_ALL_MODEL'\n",1)[1].split("\n          PY_ALL_MODEL",1)[0]
@@ -822,3 +822,199 @@ jobs:
           anchor=importlib.util.module_from_spec(spec);spec.loader.exec_module(anchor)
           anchor.main([])
           PY_REASON_COUNTS
+      - name: Read the fixed closed A74 source separately from the M2 audit
+        if: >-
+          always() && github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.audit_source.outcome == 'success'
+        continue-on-error: true
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: a74f1e940e7fc0852e63938f8138bdb58bd93163
+          path: closed-a74-source
+          persist-credentials: false
+      - name: Count fixed closed A74 represented P1 and unqualified native originals
+        if: >-
+          always() && github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.audit_source.outcome == 'success'
+        continue-on-error: true
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+        run: |
+          if [[ ! -d closed-a74-source || -L closed-a74-source ]]; then
+            echo '{"schema":"RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1","status":"HOLD_NATIONAL_P1_INDEPENDENT_AUDIT","reason":"ADDITIONAL_CLOSED_A74_AUDIT_UNAVAILABLE","failure_stage":"SOURCE_LAYOUT","owner_run_id":44218343091,"owner_source_commit":"a74f1e940e7fc0852e63938f8138bdb58bd93163","completed_rounds_audited":null,"raw_aes_archives_verified":null,"all_model_zip_readback":null,"additional_audit_scope":"EXACT_CLOSED_A74_REPRESENTED_P1_ONLY","p0_union_audited":false,"qualifying_g8_proven":false,"promotion_allowed":false,"official_source_requests":0,"new_forecasts":0,"original_forecasts_changed":false}'
+            echo '{"current_pair_audit_schema":"RACE_AI_CURRENT_NATIVE_PAIR_ELIGIBILITY_COUNTS_V1","current_pair_audit_status":"HOLD_PAIR_AUDIT_REJECTED","failure_stage":"SOURCE_LAYOUT","current_pair_authenticated":false,"current_pair_owner_run_id":44218343091,"current_pair_owner_source_commit":"a74f1e940e7fc0852e63938f8138bdb58bd93163","current_pair_archive_count":null,"current_pair_forecast_record_count":null,"current_pair_first_forecast_record_count":null,"current_pair_qualifying_g8_count":0,"current_pair_qualifying_g8_denominator":null,"current_pair_promotion_allowed":false,"current_pair_source_requests":0,"additional_audit_scope":"EXACT_CLOSED_A74_NATIVE_UNION_UNQUALIFIED","p0_union_audited":false,"policy_applicability_audited":false}'
+            exit 0
+          fi
+          cd closed-a74-source
+          python - <<'PY_CLOSED_OWNER_COUNTS'
+          import hashlib,importlib.util,json,os,re,subprocess,sys
+          from contextlib import redirect_stdout,redirect_stderr
+          from datetime import datetime,timezone
+          from pathlib import Path
+
+          owner='a74f1e940e7fc0852e63938f8138bdb58bd93163'
+          ident=44218343091
+          stage='SOURCE_LAYOUT'
+          core=dict(schema='RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1',
+              status='HOLD_NATIONAL_P1_INDEPENDENT_AUDIT',
+              reason='ADDITIONAL_CLOSED_A74_AUDIT_UNAVAILABLE',failure_stage=stage,
+              owner_run_id=ident,owner_source_commit=owner,
+              completed_rounds_audited=None,raw_aes_archives_verified=None,
+              final_control_aes_authenticated=False,missing_all_model_rounds=None,
+              official_cutoff_qualification=None,all_model_zip_readback=None,
+              full_day_coverage=False,successor_dispatch_allowed=False,
+              official_source_requests=0,new_forecasts=0,original_forecasts_changed=False)
+          pair=dict(current_pair_audit_schema='RACE_AI_CURRENT_NATIVE_PAIR_ELIGIBILITY_COUNTS_V1',
+              current_pair_audit_status='HOLD_PAIR_AUDIT_REJECTED',
+              current_pair_authenticated=False,current_pair_owner_run_id=ident,
+              current_pair_owner_source_commit=owner,current_pair_qualifying_g8_count=0,
+              current_pair_qualifying_g8_denominator=None,
+              current_pair_accuracy_improvement_proven=False,current_pair_promotion_allowed=False,
+              current_pair_full_day_coverage=False,current_pair_new_forecasts=0,
+              current_pair_source_requests=0,failure_stage=stage)
+          for name in ('completed_round_count','archive_count','missing_archive_round_count',
+                  'forecast_record_count','input_only_record_count','first_forecast_record_count',
+                  'repeat_forecast_record_count','distinct_race_count','input_only_distinct_race_count',
+                  'training_archive_count','result_archive_count','result_unique_revision_count',
+                  'result_duplicate_revision_count','producer_journal_settled_join_count',
+                  'producer_journal_pending_join_count','producer_journal_special_join_count',
+                  'producer_journal_missing_join_count','producer_journal_joined_race_count',
+                  'official_raw_verified','official_cutoff_verified','minimum_cohort'):
+              pair['current_pair_'+name]=None
+
+          class Quiet:
+              def write(self,value):return len(value)
+              def flush(self):pass
+              def isatty(self):return False
+
+          def git_head(folder):
+              return subprocess.check_output(['git','-C',str(folder),'rev-parse','HEAD'],
+                  timeout=10,stderr=subprocess.DEVNULL).decode().strip()
+
+          try:
+              with redirect_stdout(Quiet()),redirect_stderr(Quiet()):
+                  root=Path('.').resolve();main=root.parent
+                  assert (root.name=='closed-a74-source'
+                      and main==Path(os.environ['GITHUB_WORKSPACE']).resolve()
+                      and git_head(root)==owner)
+                  main_sha=os.environ['GITHUB_SHA']
+                  assert re.fullmatch('[a-f0-9]{40}',main_sha) and git_head(main)==main_sha
+                  import race_ai,scripts
+                  assert Path(race_ai.__file__).resolve()==root/'race_ai/__init__.py'
+                  assert list(scripts.__path__) and all(
+                      Path(path).resolve()==root/'scripts' for path in scripts.__path__)
+
+                  stage='PARSER_PINS'
+                  for folder,pin in (('pr64-reference','761247bee0209e37b1af6b8885e92cad3e9260a5'),
+                                     ('pr72-reference','7a432e5acc4d3495a0e82bd79726929e2f8085fe')):
+                      package=main/'owner-source'/folder/'race_ai'
+                      assert package.is_dir() and not package.is_symlink() and git_head(package.parent)==pin
+                      if str(package) not in race_ai.__path__:race_ai.__path__.append(str(package))
+
+                  stage='MAIN_AUDITOR_PINS'
+                  checked=[]
+                  for short,pin in (
+                      ('boat_owner_evidence_audit','014fc9ddbbd24c501b7784eeae50be315644669f'),
+                      ('boat_exact_all_model_zip_readback','f0c18cab03c246979e3ac4496bfc7097da031c61'),
+                      ('boat_owner_active_snapshot_audit','4a58f9bf3b3f5772a74d5c592d3b8dc21d069aaa'),
+                      ('boat_current_pair_eligibility_audit','bbdc031ae3c6a772e4a986d416f73367dd0fdf3b')):
+                      source=main/'scripts'/(short+'.py')
+                      assert source.is_file() and not source.is_symlink() and source.resolve()==source
+                      raw=source.read_bytes()
+                      assert 0<len(raw)<=128*1024
+                      assert hashlib.sha1(b'blob '+str(len(raw)).encode('ascii')+b'\0'+raw).hexdigest()==pin
+                      checked.append((short,source,raw))
+                  for short,source,raw in checked:
+                      name='scripts.'+short
+                      spec=importlib.util.spec_from_file_location(name,source)
+                      module=importlib.util.module_from_spec(spec)
+                      sys.modules[name]=module;setattr(scripts,short,module)
+                      exec(compile(raw,str(source),'exec'),module.__dict__)
+                      assert Path(module.__file__).resolve()==source
+                  active=sys.modules['scripts.boat_owner_active_snapshot_audit']
+                  pairs=sys.modules['scripts.boat_current_pair_eligibility_audit']
+                  assert all(Path(path).resolve()==root/'scripts' for path in scripts.__path__)
+
+                  stage='ACTIONS_CONTEXT'
+                  from scripts import boat_private_original_vault as vault_cli
+                  from scripts import github_existing_cycle as producer
+                  assert (Path(vault_cli.__file__).resolve()==root/'scripts/boat_private_original_vault.py'
+                      and Path(producer.__file__).resolve()==root/'scripts/github_existing_cycle.py')
+                  assert vault_cli._environment(root)==root
+                  reads=active._Reads(producer.gh)
+                  clock=datetime.now(timezone.utc)
+
+                  stage='CORE_AUDIT'
+                  try:
+                      result=active.audit_active_snapshot(root,ident,now=clock,get=reads,
+                          expected_owner_sha=owner,allow_completed_receipts=True)
+                      assert (result['owner_run_id']==ident and result['owner_source_commit']==owner
+                          and result['owner_status_at_snapshot']=='completed'
+                          and result['completed_rounds_audited']==list(range(1,25))
+                          and result['final_control_aes_authenticated'] is True
+                          and result['official_source_requests']==0 and result['new_forecasts']==0
+                          and result['full_day_coverage'] is False
+                          and result['successor_dispatch_allowed'] is False
+                          and result['original_forecasts_changed'] is False)
+                      safe_core={key:result[key] for key in (
+                          'schema','status','owner_run_id','owner_source_commit','owner_status_at_snapshot',
+                          'captured_at','inventory_sha256','completed_rounds_audited','p0_supplements_verified',
+                          'raw_aes_archives_verified','final_control_aes_authenticated',
+                          'successful_round_steps_excluded','official_cutoff_qualification',
+                          'cutoff_qualification_blocker','missing_all_model_rounds','full_day_coverage',
+                          'successor_dispatch_allowed','latest_live_counters_audited',
+                          'official_source_requests','new_forecasts','original_forecasts_changed')}
+                      exact=result['all_model_zip_readback']
+                      assert exact['day_jst']=='2026-11-18'
+                      safe_core['all_model_zip_readback']={key:exact[key] for key in (
+                          'schema','status','day_jst','owner_run_id','owner_source_commit','actual_listed_archives',
+                          'github_zip_sha256_independently_verified','aes_originals_independently_decrypted',
+                          'original_content_projection_verified','p1_forecast_rows_reopened',
+                          'referenced_existing_baseline_p1_rows_not_recounted',
+                          'referenced_native_p1_archives_independently_verified','additional_native_p1_archives_verified',
+                          'physical_pre_cutoff_distinct_model_slots','official_program_source_authenticated',
+                          'official_cutoff_qualification','cutoff_qualification_blocker',
+                          'authentic_official_P0_schedule_races','official_schedule_crosschecked_pre_cutoff_model_slots',
+                          'original_predictions_matched_saved_AES_view','original_predictions_missing_from_saved_AES_view',
+                          'duplicate_eligible_model_slots','unqualified_original_reasons','all_model_round_coverage',
+                          'missing_all_model_rounds','excluded_all_model_rounds',
+                          'previously_archived_coverages_skipped_without_zip_read','full_day_coverage',
+                          'successor_dispatch_allowed','latest_live_counters_audited','active_completed_round_scope',
+                          'racing_provider_gets','prediction_generation_performed',
+                          'production_predictions_modified','website_end_to_end_proven')}
+                      core=safe_core
+                  except (Exception,SystemExit):
+                      core['failure_stage']=stage
+
+                  stage='PAIR_AUDIT'
+                  try:
+                      result=pairs.audit_current_pairs(get=reads,run_id=ident,now=clock,expected_owner_sha=owner)
+                      assert (result['current_pair_owner_run_id']==ident
+                          and result['current_pair_owner_source_commit']==owner
+                          and result['current_pair_completed_round_count']==24
+                          and result['current_pair_qualifying_g8_count']==0
+                          and result['current_pair_qualifying_g8_denominator'] is None
+                          and result['current_pair_accuracy_improvement_proven'] is False
+                          and result['current_pair_promotion_allowed'] is False
+                          and result['current_pair_full_day_coverage'] is False
+                          and result['current_pair_source_requests']==0 and result['current_pair_new_forecasts']==0)
+                      pair=result
+                  except (Exception,SystemExit):
+                      pair['failure_stage']=stage
+          except (Exception,SystemExit):
+              core['failure_stage']=stage;pair['failure_stage']=stage
+
+          core.update(additional_audit_scope='EXACT_CLOSED_A74_REPRESENTED_P1_ONLY',
+              p0_union_audited=False,qualifying_g8_proven=False,promotion_allowed=False)
+          pair.update(additional_audit_scope='EXACT_CLOSED_A74_NATIVE_UNION_UNQUALIFIED',
+              p0_union_audited=False,policy_applicability_audited=False)
+          print(json.dumps(core,sort_keys=True,allow_nan=False))
+          print(json.dumps(pair,sort_keys=True,allow_nan=False))
+          PY_CLOSED_OWNER_COUNTS

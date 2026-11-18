@@ -236,7 +236,7 @@ class RecoveryGateTests(unittest.TestCase):
 
 
     def test_a74_original_recovery_requires_research_cache_checkout_and_new_bound_proof(self):
-        protected='f1f8ed4ffb2a29e6b702685f49de63918610479d'
+        protected='c979aeb678538d99e277f26726047dccbdc982af'
         previous='a74f1e940e7fc0852e63938f8138bdb58bd93163'
         args,proof=self.orphan()
         args['history']['workflow_runs'][0]['head_sha']=previous
@@ -250,6 +250,7 @@ class RecoveryGateTests(unittest.TestCase):
         self.assertEqual(decision['release_sha'],protected)
         self.assertEqual(decision['official_source_requests'],0)
         for change in (lambda p:p.update(head_sha=previous),
+                       lambda p:p.update(head_sha='f1f8ed4ffb2a29e6b702685f49de63918610479d'),
                        lambda p:p['repairs'][0].update(original_head_sha=protected),
                        lambda p:p['repairs'][0].update(original_head_sha='f'*40)):
             invalid=deepcopy(proof);change(invalid)
@@ -264,7 +265,7 @@ class RecoveryGateTests(unittest.TestCase):
         self.assertEqual((args,proof),before)
 
     def test_bb_original_recovery_requires_research_cache_checkout_and_new_bound_proof(self):
-        protected='f1f8ed4ffb2a29e6b702685f49de63918610479d'
+        protected='c979aeb678538d99e277f26726047dccbdc982af'
         previous='bb49215034b779ea1493b35dd91e5c3ebfc04032'
         args,proof=self.orphan()
         args['history']['workflow_runs'][0]['head_sha']=previous
@@ -278,6 +279,7 @@ class RecoveryGateTests(unittest.TestCase):
         self.assertEqual(decision['release_sha'],protected)
         self.assertEqual(decision['official_source_requests'],0)
         for change in (lambda p:p.update(head_sha=previous),
+                       lambda p:p.update(head_sha='f1f8ed4ffb2a29e6b702685f49de63918610479d'),
                        lambda p:p['repairs'][0].update(original_head_sha=protected),
                        lambda p:p['repairs'][0].update(original_head_sha='f'*40)):
             invalid=deepcopy(proof);change(invalid)

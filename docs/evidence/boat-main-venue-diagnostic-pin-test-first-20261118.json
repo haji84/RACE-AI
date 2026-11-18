@@ -1,0 +1,28 @@
+{
+  "schema": "RACE_AI_MAIN_VENUE_DIAGNOSTIC_PIN_TEST_FIRST_V1",
+  "recorded_at": "2026-11-18T08:24:00Z",
+  "actual_source_sha": "c979aeb678538d99e277f26726047dccbdc982af",
+  "actual_source_tree": "766b8a3ea5d9d3b85e0f399523ede2eb8f1b688b",
+  "tests_packet": "cdc8dc144ec701d6f7684730fb3bbbe6f67a5e96",
+  "new_role_methods": 4,
+  "exact_test_patches_verified": true,
+  "runtime_role_pin_changes": false,
+  "actual_red": "PENDING",
+  "separate_closed_a74_caller": {
+    "candidate": "f12395c823183db6a0030c6df2b7adc5014e357c",
+    "packet": "4d136bb1b1930b926d01d5b970c3f349eca08355",
+    "source_fixed": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "owner_run": 44218343091,
+    "existing_api_glue_only": true,
+    "old_workflow_prefix_preserved_before_compile_update": true,
+    "compile_expected_blocks_before": 10,
+    "compile_expected_blocks_after": 11,
+    "upload_count": 5,
+    "independent_review": "PENDING",
+    "actual_actions": "PENDING"
+  },
+  "failed_origin_contracts_unchanged": true,
+  "f1_dispatch_count_observed": 0,
+  "provider_gets": 0,
+  "keys_accessed_locally": 0
+}
