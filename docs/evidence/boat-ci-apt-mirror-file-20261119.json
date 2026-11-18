@@ -1,0 +1,56 @@
+{
+  "schema": "RACE_AI_CI_APT_MIRROR_FILE_REPAIR_V1",
+  "recorded_at_jst": "2026-11-19T01:31:26.894348+09:00",
+  "base_source_sha": "36fc97048803d9f3d997faaa7019fed1365c86cd",
+  "failure_reported_by_parent": {
+    "run_id": 44343871094,
+    "job_id": 134940885557,
+    "conclusion": "18-minute job timeout cancellation",
+    "phase": "Existing recorder dependency ffmpeg apt installation",
+    "observed_transport": "file:/etc/apt/apt-mirrors.txt selected the EC2 Ubuntu mirror; the existing rewrite did not enumerate that file.",
+    "earlier_tests_passed": [
+      882,
+      38,
+      3,
+      12
+    ]
+  },
+  "root_cause": "The embedded PY_CI_MIRROR enumerated sources.list and sources.list.d entries but omitted the apt-mirrors.txt file actually referenced by mirror+file sources.",
+  "change": "Add only Path(/etc/apt/apt-mirrors.txt) to the existing PY_CI_MIRROR paths list.",
+  "regression": "Execute the actual embedded Python against temporary legacy and Deb822 mirror+file sources plus an apt-mirrors.txt containing HTTP and HTTPS EC2 URLs. Only the absolute filesystem boundary is redirected; the host apt configuration is untouched.",
+  "verification": {
+    "red": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "cause": "Actual mirror file remained on EC2."
+    },
+    "green": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_seconds": 0.066
+    },
+    "yaml_parse": true,
+    "existing_dependency_step_bash_syntax": true,
+    "exact_workflow_diff_is_only_path_addition": true,
+    "remote_ci_reexecution": null
+  },
+  "preserved": [
+    "Ubuntu archive HTTPS replacement and existing HTTP/HTTPS source matching",
+    "Existing Signed-By value, mirror+file source URIs and Ubuntu security source",
+    "Existing regular-file and symlink guards",
+    "All jobs, inputs, runners, timeout, permissions, skip/retry/production guards and production code"
+  ],
+  "file_sha256": {
+    ".github/workflows/boat-nationwide-ab-one-shot.yml": "152d7a36af94e2c3acd3189a7ebe78b8c3e4a85b95bfc41d3e6eac497b4d35d9",
+    "tests/test_cycle_workflow_references.py": "65bd56d70dfca0c8f0999bd98d19fb6619ad1aa0c4e93385007435ff47a7a740"
+  },
+  "local_log_sha256": {
+    "mirror-red.log": "bbf3d66a36faf0b00c4757e63a8a073094a68a6d431db4009bf442cc8da59e12",
+    "mirror-green.log": "f111e440566f89440160939ba48efe2d711a3c205a943868c58e103318048f4f"
+  },
+  "network_calls_or_apt_execution_in_local_validation": false,
+  "production_changes": false,
+  "new_pr_push_or_dispatch": false
+}

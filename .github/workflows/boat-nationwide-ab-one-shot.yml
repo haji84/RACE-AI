@@ -205,7 +205,7 @@ jobs:
             sudo python - <<'PY_CI_MIRROR'
           from pathlib import Path
           directory=Path('/etc/apt/sources.list.d')
-          paths=[Path('/etc/apt/sources.list'),*directory.glob('*.list'),*directory.glob('*.sources')]
+          paths=[Path('/etc/apt/sources.list'),Path('/etc/apt/apt-mirrors.txt'),*directory.glob('*.list'),*directory.glob('*.sources')]
           for path in paths:
               if path.is_file() and not path.is_symlink():
                   original=path.read_text()
