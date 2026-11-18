@@ -197,14 +197,14 @@ def parse_netkeirin(*,raw,source_url,race_id,captured_at):
     return [found[n] for n in sorted(found)]
 
 
-def parse_kdreams(*,raw,source_url,race_id,captured_at):
-    """Visible bracket-style line only, no inferred groups from flattened cars."""
+def parse_kdreams(*,raw,source_url,race_id,captured_at,
+                  starter_cars=None):
+    """Visible bracket-style line, or evidenced L-class solo research groups."""
     _url_role(source_url,"k",race_id)
     _time(captured_at)
     _,text,_rows=_text(raw)
     # Separate the actual race header from site navigation / result pages.
-    need("並び予想" in text and
-         ("投票締切" in text or "締切" in text),
+    need("投票締切" in text or "締切" in text,
          "KDREAMS_VISIBLE_LINE_OR_CUTOFF_MISSING")
     cutoff_area=re.search(
         r"(?:投票締切|締切)\s*([0-9]{1,2}:[0-9]{2})",text)
@@ -215,11 +215,26 @@ def parse_kdreams(*,raw,source_url,race_id,captured_at):
     cutoff=f"{race_id[:4]}-{race_id[4:6]}-{race_id[6:8]}T{end_hour:02d}:{end_minute:02d}:00+09:00"
     # Markup is often "← 3先行 5追込 6追込 4押え先 1追込 7押え先 2追込".
     # Start a group ONLY at an explicit "先行 / 押え先 / 自在".
-    section=text.split("並び予想",1)[1]
-    section=section.split("レース評",1)[0].split("予想担当",1)[0]
-    section=section.replace("←"," ")
-    matches=list(TOKENS.finditer(section))
-    groups=[]
+    grade_text=normalize("NFKC",text.split("並び予想",1)[0])
+    # Girls racing has no fixed pre-race line. Kdreams may not show a
+    # "並び予想" section at all. Do not fabricate temporary cooperation.
+    solo_girls=("ガールズ" in grade_text or "L級" in grade_text)
+    if "並び予想" not in text and solo_girls:
+        need(type(starter_cars) is list and
+             5<=len(starter_cars)<=9 and
+             len(set(starter_cars))==len(starter_cars),
+             "GIRLS_ROSTER_REQUIRED_FOR_SOLO_RESEARCH")
+        groups=[[car] for car in starter_cars]
+        section=""
+        matches=[]
+    else:
+        need("並び予想" in text,
+             "KDREAMS_EXPLICIT_LINE_GROUPS_MISSING")
+        section=text.split("並び予想",1)[1]
+        section=section.split("レース評",1)[0].split("予想担当",1)[0]
+        section=section.replace("←"," ")
+        matches=list(TOKENS.finditer(section))
+        groups=[]
     if matches:
         covered=GAP.sub("",section[:matches[0].start()])
         need(covered in ("","：",":"),"KDREAMS_LINE_PREFIX_AMBIGUOUS")
@@ -231,7 +246,7 @@ def parse_kdreams(*,raw,source_url,race_id,captured_at):
             else:
                 need(bool(groups),"KDREAMS_FOLLOWER_WITHOUT_LEADER")
                 groups[-1].append(car)
-    else:
+    elif not (solo_girls and groups):
         # Alternative explicit slash form e.g. "並び予想は 3-5-6／4-1／7-2"
         seq=FORM.search("並び予想"+section)
         need(seq is not None,"KDREAMS_EXPLICIT_LINE_GROUPS_MISSING")
@@ -244,7 +259,6 @@ def parse_kdreams(*,raw,source_url,race_id,captured_at):
          set(all_cars)==set(range(1,len(all_cars)+1)) and
          len(set(all_cars))==len(all_cars),
          "KDREAMS_LINE_NOT_ALL_REAL_CARS")
-    grade_text=normalize("NFKC",text[:text.index("並び予想")])
     # Extract visible race class/stage; never synthesize a program rule.
     if "ガールズ" in grade_text or "L級" in grade_text:
         competition="GIRLS"
@@ -283,7 +297,8 @@ def merge_pre_race_pages(*,race_id,netkeirin_raw,netkeirin_url,
     riders=parse_netkeirin(raw=netkeirin_raw,source_url=netkeirin_url,
                           race_id=race_id,captured_at=netkeirin_captured_at)
     bracket=parse_kdreams(raw=kdreams_raw,source_url=kdreams_url,
-                          race_id=race_id,captured_at=kdreams_captured_at)
+                          race_id=race_id,captured_at=kdreams_captured_at,
+                          starter_cars=[r["car"] for r in riders])
     now=_time(created_at)
     seen_net=_time(netkeirin_captured_at)
     seen_kd=_time(kdreams_captured_at)
