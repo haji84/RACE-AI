@@ -1,4 +1,4 @@
-# RACE-AI 最新状況 — 2026-11-18 13:09 UTC
+# RACE-AI 最新状況 — 2026-11-18 13:22 UTC
 
 **GOALは未達。** 原本・既存変更・重み・元の判定を保全して継続中。従来全文は[履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261118_0928.md)へ同一Git blobのまま保全した。
 
@@ -18,7 +18,9 @@ ALL_MODELのr4/19は欠落HOLDを維持。正規ログではr4はcontexts0/gener
 
 後続A74 run44252479726は12:15:41Zに自然完了。**24成功stepのうち実際のcontrol完了は14巡**、15〜24はWORKER_HANDOFFのno-op。追加生成は8巡で正数/6巡で0。producer報告の合計は10 contexts・100新規forecast・40 baseline再利用、対応8 readbackでverified=true。session requests494/lifetime15368、最終raw retention466/466もproducer報告であり、別runnerによる最終全原本認証や固有レース集計ではない。停止・hotswap・counter resetはしていない。[完了scope](evidence/boat-a74-continuation-final-20261118.json)。
 
-13:06:27Z、main7003の既存launcher44310274907/job134822293251は **READY_VERIFIED_SAME_DAY_CONTINUATION**（dispatch_allowed=true/recovery_required=false/source GET0）を記録した。既存final_control・継続counter・fresh history・source wait条件を通り、13:06:28Zにsource995の実run44310358995が起動。現在実行中で、新workerのP0保管・追加予想件数・受信時計一致はまだ未確認。READYから未表示のlifetime round/baseline数を補わず、全raw AESの別runner再認証とも区別する。[実継続ゲート](evidence/boat-http-receive-clock-source-main-sync-20261118.json)。
+13:06:27Z、main7003の既存launcher44310274907/job134822293251は **READY_VERIFIED_SAME_DAY_CONTINUATION**（dispatch_allowed=true/recovery_required=false/source GET0）を記録した。既存final_control・継続counter・fresh history・source wait条件を通り、13:06:28Zにsource995の実run44310358995が起動。[実継続ゲート](evidence/boat-http-receive-clock-source-main-sync-20261118.json)。
+
+13:22:01Z、後続job134822591655は**30 step成功/失敗0・第1巡実行中**。既存first原本の再利用、追加P0の実行/封印/読戻し保管/保存receipt長期保管、既存暗号化owner view、前worker mirror、window、source-session初期化が各step成功。これはmetadataによる工程証拠で、予想件数・原本行数・新規取得clock一致・第1巡保存完了は未確認。READYから未表示のlifetime round/baselineを補わず、全raw AESの別runner認証とも区別する。[反映後の実確認](evidence/boat-source995-post-merge-actual-20261118.json)。
 
 現行sourceと旧A74のrepeated_cycleは同一bytesで、論理round・取得総数・session時間・round取得数の固定上限はNone。提供元wait・identity・JST日・物理worker handoffと累積counterを保持する。無上限のコードは全日網羅/T15〜10達成の実証ではない。[コード再確認](evidence/boat-source-no-total-cap-code-check-20261118.json)。
 
@@ -26,7 +28,7 @@ ALL_MODELのr4/19は欠落HOLDを維持。正規ログではr4はcontexts0/gener
 
 締切診断の固定scopeはfirst-original **48レース/672モデルrecord**。42レース588件は一致、2レース28件は結果側予定締切が後、4レース56件は結果観測なし。前倒し/締切未記録0。正式ペア数・G8分母はnullで、元のPAIR_RESULT_JOIN/ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCHを維持。[件数](evidence/boat-current-pair-cutoff-inventory-actual-20261118.json)。
 
-保存本文の独立認証44304417349/job134802152640（12:37:27Z）はjob successでも診断は**HOLD/PROGRAM_CAPTURE_CLOCK_BINDING_UNVERIFIED**。2レースに対する4比較でRESULT4一致・PROGRAM0一致・未結合4・inspector拒否0/時計相違0。固定26header/MACと候補AES/receiptの全検査を通り、必要なPROGRAMのSHA+URLに対応する原文は存在するが、予想入力が要求する取得時刻とは一致しない。4比較は4固有原本ではない。時計を緩めず別時刻の本文を採用しないため、PROGRAM予定表そのものの検証・公式改定の正当性・実発売終了・G8は依然未証明。[実原本の時計結合証拠](evidence/boat-current-pair-program-clock-binding-actual-20261118.json)。
+保存本文の独立認証44304417349/job134802152640（12:37:27Z）はjob successでも診断は**HOLD/PROGRAM_CAPTURE_CLOCK_BINDING_UNVERIFIED**。2レースに対する4比較でRESULT4一致・PROGRAM0一致・未結合4・inspector拒否0/時計相違0。固定26header/MACと候補AES/receiptの全検査を通り、必要なPROGRAMのSHA+URLに対応する原文は存在するが、予想入力が要求する取得時刻とは一致しない。4比較は4固有原本ではない。時計を緩めず別時刻の本文を採用しないため、PROGRAM予定表そのものの検証・公式改定の正当性・実発売終了・G8は依然未証明。[実原本の時計結合証拠](evidence/boat-current-pair-program-clock-binding-actual-20261118.json)。 main7003反映後も44310274869/job134822293517が実完了successし、13:16:36Zに同じstrict4比較HOLDと73AES/23ZIP/513一致・欠落4/19を再確認した。これは旧A74の再認証で、新source995の新規取得原本の証明ではない。[反映後再監査](evidence/boat-source995-post-merge-actual-20261118.json)。
 
 旧sourceの静的追跡では、raw原本が受信直後の時計を保存し、予想入力へは2秒pacing後の別時計を返す不整合を確認。将来995はONの対象HTMLだけ同じ受信clockを共有し、OFFの振舞い・2秒待機・待機後の日付拒否・後で採る実生成時計を維持した。過去時計/本文/予想/結果は変更0。sourceのテスト先行REDは880件中想定2assert失敗/errors0、修正GREENは880件/219.105秒と既存3/12/38/165/46件が全成功。
 
