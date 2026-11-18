@@ -608,6 +608,24 @@ jobs:
           startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
           startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112')
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Read reviewed display-only publication safety without replacing the collector
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.sha }}'
+          path: legacy-publish-safety
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/boat_legacy_reason_anchor_guard.py
+            scripts/boat_legacy_reason_anchor_entry.py
+          sparse-checkout-cone-mode: false
+      - name: Read the exact current reason guard separately from legacy runtime imports
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 86b029ae5bddd5d4956497d8b32b2c92b8eec521
+          path: reason-binding-source
+          persist-credentials: false
+          sparse-checkout: race_ai/boat_saved_model_view.py
+          sparse-checkout-cone-mode: false
       - name: Reflect confirmed races and retain encrypted incremental source packets
         # Only the exact already-approved result-repair event may run provider
         # reads from main; other push modes remain source-free.
@@ -628,9 +646,9 @@ jobs:
           if [[ "$RESULT_ONLY" == 'true' ]]; then
             # Favor the published result's 12-GET bounded intake over optional
             # beforeinfo; official-source denials and time gates still hold.
-            python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results "${args[@]}"
+            python "$GITHUB_WORKSPACE/legacy-publish-safety/scripts/boat_legacy_reason_anchor_entry.py" scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results "${args[@]}"
           else
-            python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results --sync-beforeinfo "${args[@]}"
+            python "$GITHUB_WORKSPACE/legacy-publish-safety/scripts/boat_legacy_reason_anchor_entry.py" scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results --sync-beforeinfo "${args[@]}"
           fi
       # Only after the bounded official result source step completes, use
       # the existing P0-aware reader for browser checks. Keep source acquisition

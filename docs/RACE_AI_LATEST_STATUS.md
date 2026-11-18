@@ -1,3 +1,17 @@
+## 2026-11-18 03:30:00 UTC: 旧参照消失の保存前ガード23件は実成功、履歴検索・呼出し境界・復元候補を結合してfresh CIへ（GOAL未達）
+
+既存PR41 testheadfa050161の真正CI44229198738/job134549775998は304件/164.484秒。既存255＋保存前ガード23は全て成功し、残る25失敗（履歴17・復元候補8）とentry import error1は未実装だけだった。構文エラーなし。この固定テストを変更せず、3runtimeを実装した。最終Python全成功と実旧ACTIVE発見はまだ未確認で、現在世代424/423の真正照合結果は引き続きACTIVE_PROOF_MISSING/HOLD。
+
+履歴runtimec8db7fc1は旧純粋prefix075452dをbyte同一で保ち、raw Git親headerの型/サイズを読取り前に検査し、同一manifest重複だけをskip。最初の異なるmanifestが世代-1と認証済みprevious-cipherに一致しなければ停止する。全読取り256MiB/32snapshot/親128hop/commit64KiBを共通で制限し、同一保存日を既存F/Hで復号する。key/source/cryptoは不変、source GET0。境界・予算HOLDは件数nullで、部分証明を出さない。
+
+entryd2f8c7bfはmain-safetyのHEADと旧F/e6/b438の正確なsource bytesを実行前に照合し、旧CWDの実Fにのみ保存前ガードを入れて元CLI・引数・認証・GET budgetを維持する。現在の4live writer呼出しだけへ接続し、readonly bridge/旧P0 verifier/PDCAは変更しない。古い0da3固定回復手順への普遍的保護とは扱わない。workflow差分とentryの独立static reviewはCLEAR。
+
+復元候補254aa942は同じ実proof moduleで再照合し、全groupの旧ACTIVE完全一致が揃った時だけ私的コピーにその辞書を追加する。元予想/結果/OBS/history/unknown fields/時計文字列は不変、全rowで元OBS/REJ guardを再検証し、repr/JSONで本文を出さない。未知項目へのalias伝播もcanonical copyで防止した。独立static reviewはCLEAR。これは未公開candidateだけで、実encrypted writer/CASはまだ接続していない。
+
+03:27:23 UTCの正規GitHub取得ではmain32b18c96、実行中workflowはa74 run44218343091の1件。12巡回success・13実行中・failed0。main42 launcher実ログはHOLD_ACTIVE_OWNER_WORKFLOW/source GET0で重複起動を抑止し、同一Safari候補もNATIVE_SAFARI_CANDIDATE_UNCHANGEDだった。追加source予算・新PR/job/権限/input/cron/runner/timeout/prefix/marker/モデル/課金/公開UI/重みを増やさない。全4競技・実iPhone・6艇校正・前向き精度改善は未達。
+
+[実REDと結合runtime境界](evidence/boat-anchor-safety-combined-runtime-20261118.json)。以下は各時点の履歴。
+
 ## 2026-11-18 03:02:14 UTC: 255件成功で通常merge、真正旧ACTIVE照合は不足HOLD、さらに古い認証履歴へ（GOAL未達）
 
 PR42はhead9434bc7b/tree00c03689で255件/111.033秒・10 block compile・source/key契約・15checks(8success/7skip)と独立レビューを通過し、通常merge32b18c96のtreeも完全一致した。main実読取り44227138026/job134542962921はsuccess。現AES世代424はREJ active2/history24/missing24のまま、新しい424→423同一保存日照合はHOLD/ACTIVE_PROOF_MISSINGだった。件数null・snapshots空を保持し、原本・結果・履歴・表示を一切変更していない。直前世代だけでは全参照先の証明が足りないという意味で、過去原本の全域不存在を意味しない。

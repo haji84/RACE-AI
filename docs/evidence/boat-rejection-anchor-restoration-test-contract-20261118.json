@@ -1,0 +1,133 @@
+{
+  "schema": "RACE_AI_REJECTION_ANCHOR_RESTORATION_TESTS_FIRST_V1",
+  "base_main": "32b18c967279e9003fdd686707d6c3c86c74e6cd",
+  "files": [
+    {
+      "path": "tests/test_boat_rejection_anchor_restoration.py",
+      "blob_sha": "6fa321d6e62791a0ad351facaa0a101f85862771",
+      "utf8_bytes": 15777,
+      "test_methods": 8,
+      "remote_readback_identical": true,
+      "new_file": true
+    }
+  ],
+  "superseded_uncommitted_pre_red_test_blob": "74685598a2452f5e62621a0f177e768d1b7785f2",
+  "pre_red_fixture_corrections": [
+    "Use existing test_boat_saved_rejection_anchor_proof module name",
+    "Remove HISTORY on sidecar-free rows instead of supplying forbidden empty HISTORY lists"
+  ],
+  "existing_proof": {
+    "module": "scripts/boat_saved_rejection_anchor_audit.py",
+    "blob": "379c9f85917a82340cd8dc543d06b6dd2d3a27ac",
+    "tests_module": "tests/test_boat_saved_rejection_anchor_proof.py",
+    "tests_blob": "0eafce05bf6bb4c31dc774aee7b6a6415e6793c4",
+    "unchanged": true
+  },
+  "actual_evidence_limit": {
+    "run_id": 44227138026,
+    "job_id": 134542962921,
+    "current_generation": 424,
+    "current_snapshot_prefix": "6ee",
+    "current_active_rejections": 2,
+    "current_rejection_history_originals": 24,
+    "missing_active": 24,
+    "older_generation": 423,
+    "older_snapshot_prefix": "71c",
+    "older_AES_authenticated": true,
+    "proof_status": "HOLD",
+    "proof_reason": "ACTIVE_PROOF_MISSING",
+    "no_actual_restoration_authorized_by_this_evidence": true,
+    "evidence_supplied_by_root": true
+  },
+  "api": {
+    "module": "scripts.boat_rejection_anchor_restoration",
+    "function": "build_rejection_anchor_restoration",
+    "parameters": [
+      "current",
+      "older_chain"
+    ],
+    "keyword_only": [
+      "guard",
+      "proof"
+    ],
+    "returns": "(candidate, safe_summary)",
+    "proof_argument": "Actual existing pinned audit module object; caller binds namespace/identity at future trusted I/O boundary.",
+    "matcher": "proof.match_rejection_anchor_proofs(current, older_chain, guard=guard)",
+    "no_cached_decision_or_authentication_flag_input": true,
+    "no_import_or_reload_of_proof_module": true,
+    "candidate": "Absent for HOLD/NO_CHANGE. Otherwise opaque private object, rejected by json.dumps, redacted repr, not a VerifiedSnapshot, with _copy_view() returning a fresh deep copy."
+  },
+  "summary": {
+    "schema": "RACE_AI_REJECTION_ANCHOR_RESTORATION_V1",
+    "statuses": [
+      "READY",
+      "NO_CHANGE",
+      "HOLD"
+    ],
+    "count_fields": [
+      "snapshots_checked",
+      "orphan_groups",
+      "current_active_rejections",
+      "candidate_active_rejections",
+      "retained_history_originals",
+      "restored_active_originals",
+      "rows_changed"
+    ],
+    "hash_fields": [
+      "current_view_sha256",
+      "candidate_view_sha256"
+    ],
+    "hash_basis": "Canonical JSON from unchanged frozen proof fixtures: sorted keys, compact separators, UTF-8, no NaN.",
+    "HOLD": "candidate=None, counts=None, both hashes=None; fixed underlying matcher reason preserved. Final unchanged OBS/REJ guard failure reason CANDIDATE_GUARD_REJECTED.",
+    "NO_CHANGE": "candidate=None, no restoration, current view SHA256, candidate SHA256=None, exact nonnegative integer counts with rows_changed/restored_active_originals/orphan_groups=0.",
+    "READY": "Opaque candidate only after ALL_ORPHAN_ANCHORS_PROVEN and every resulting row passes both unchanged observation and rejection guards.",
+    "effects": {
+      "originals_changed": false,
+      "observations_reconciled": 0,
+      "source_requests": 0,
+      "publication_performed": false,
+      "forecast_generated": false,
+      "broader_goals_proven": false
+    },
+    "unknown_fields_or_private_data_never_exported": true
+  },
+  "tests": [
+    "Exact older ACTIVE bodies appended only to matching current REJ lists; unchanged OBS/REJ guards pass; every other view byte preserved; original still fails.",
+    "Complete multi-row, multi-snapshot proof restores all race-specific orphan groups without cross-race authority.",
+    "Partial, sidecar-only, missing and wrong-race evidence yield fixed HOLD with no candidate or partial plan.",
+    "Conflicting older bodies, deeper conflicts, non-reason body differences and clock text are never repaired or normalized.",
+    "Fresh receipt validation rejects post-decision body/header/cipher tampering, cached decisions, authentication flags and invalid proof objects; exact keyword-only API.",
+    "Both unchanged OBS and REJ validations must run for every candidate row; injected final failures, including an unrelated row, discard candidate and redact private errors.",
+    "Healthy and empty views yield NO_CHANGE with no candidate.",
+    "Candidate remains opaque/non-serializable; private copies are detached; public summary and repr leak no identifiers, bodies, clocks or secrets."
+  ],
+  "expected_red": {
+    "actual_red_pending": true,
+    "module_absent": true,
+    "expected_failures": 8,
+    "expected_errors": 0,
+    "assertion": "pure rejection-anchor restoration module is missing",
+    "no_runtime_authored": true
+  },
+  "scope": {
+    "only_new_test_blob_and_this_contract": true,
+    "frozen_proof_29_tests_unchanged": true,
+    "legacy_guard_23_tests_unchanged": true,
+    "no_production_changes": true,
+    "no_refs": true,
+    "no_workflow_changes": true,
+    "no_dispatch": true,
+    "no_actual_view_or_original_write": true,
+    "no_decryption_or_keys": true,
+    "no_provider_requests": true,
+    "no_fees_models_weights_or_UI_publication": true,
+    "no_processes_run": true
+  },
+  "future_boundary": "Any actual publication, CAS, decryption or existing writer integration is separate and requires actual complete older proof, unchanged current-base authentication and fresh reviewed operational evidence. This pure candidate grants none of that.",
+  "verification": {
+    "test_blob_readback_identical": true,
+    "tests_not_executed_here": true,
+    "actual_RED_required_before_implementation": true,
+    "no_GREEN_or_actual_repair_claim": true
+  }
+}

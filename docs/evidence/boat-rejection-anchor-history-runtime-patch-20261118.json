@@ -1,0 +1,81 @@
+{
+  "schema": "RACE_AI_BOUNDED_ACTIVE_ANCESTRY_PATCH_PACKET_V1",
+  "repository": "haji84/RACE-AI",
+  "path": "scripts/boat_saved_rejection_anchor_audit.py",
+  "base_blob": "379c9f85917a82340cd8dc543d06b6dd2d3a27ac",
+  "new_blob": "c8db7fc1b0632f19a6c2e77eafc9ea98c196370d",
+  "pure_prefix_blob": "075452d516140c43ad0fac6c5304f131457058ed",
+  "pure_prefix_byte_identical": true,
+  "existing_io_tests_blob": "0d5bbcf93ec93f56c5ba9fe45f0d940aaf16fddf",
+  "existing_pure_tests_blob": "0eafce05bf6bb4c31dc774aee7b6a6415e6793c4",
+  "history_tests_blob": "62ab30da645bfe0326a99f497854cddd0a06c83a",
+  "api_contract_blob": "4a1878947fc8092dc5ac0d142974eab4c253c9c2",
+  "actual_red": {
+    "run_id": 44229198738,
+    "job_id": 134549775998,
+    "tests": 304,
+    "seconds": 164.484,
+    "existing_and_guard_tests_passed": 278,
+    "history_tests_missing_helpers": 17,
+    "restoration_tests_missing_module": 8,
+    "entry_module_import_errors": 1,
+    "syntax_error": false,
+    "source": "Parent-provided actual CI evidence; not rerun locally."
+  },
+  "edits": [
+    {
+      "name": "add_fixed_ancestry_failure_and_shared_hop_budget",
+      "match": "class ReadBudget:\n    \"\"\"One aggregate byte budget shared by all selected reads.\"\"\"\n    __slots__ = ('_remaining', '_snapshots', '_snapshot_limit')\n\n    def __init__(self, limit=256 * 1024 * 1024, snapshot_limit=32):\n        _io_require(type(limit) is int and 0 < limit <= 256 * 1024 * 1024\n            and type(snapshot_limit) is int and 0 < snapshot_limit <= 32)\n        self._remaining = limit\n        self._snapshot_limit = snapshot_limit\n        self._snapshots = set()\n\n    @property\n    def remaining(self):\n        return self._remaining\n\n    def consume(self, raw):\n        _io_require(type(raw) is bytes and 0 < len(raw) <= self._remaining)\n        self._remaining -= len(raw)\n\n    def enter(self, snapshot_sha):\n        _io_commit(snapshot_sha)\n        _io_require(snapshot_sha not in self._snapshots\n            and len(self._snapshots) < self._snapshot_limit)\n        self._snapshots.add(snapshot_sha)\n\n\n",
+      "replacement": "class AncestryHold(ValueError):\n    \"\"\"Fixed public ancestry failure class; no private detail is retained.\"\"\"\n    __slots__ = ('reason',)\n\n    def __init__(self, reason):\n        self.reason = (reason if type(reason) is str and reason in\n            ('BOUND_EXCEEDED', 'INPUT_OR_CHAIN_INVALID') else 'INPUT_OR_CHAIN_INVALID')\n        super().__init__(self.reason)\n\n\nclass ReadBudget:\n    \"\"\"One aggregate byte/snapshot/parent-hop budget shared by selected reads.\"\"\"\n    __slots__ = ('_remaining', '_snapshots', '_snapshot_limit', '_remaining_hops')\n\n    def __init__(self, limit=256 * 1024 * 1024, snapshot_limit=32, hop_limit=128):\n        _io_require(type(limit) is int and 0 < limit <= 256 * 1024 * 1024\n            and type(snapshot_limit) is int and 0 < snapshot_limit <= 32\n            and type(hop_limit) is int and 0 < hop_limit <= 128)\n        self._remaining = limit\n        self._snapshot_limit = snapshot_limit\n        self._snapshots = set()\n        self._remaining_hops = hop_limit\n\n    @property\n    def remaining(self):\n        return self._remaining\n\n    @property\n    def remaining_hops(self):\n        return self._remaining_hops\n\n    def consume(self, raw):\n        _io_require(type(raw) is bytes and bool(raw))\n        if len(raw) > self._remaining:\n            raise AncestryHold('BOUND_EXCEEDED')\n        self._remaining -= len(raw)\n\n    def enter(self, snapshot_sha):\n        _io_commit(snapshot_sha)\n        _io_require(snapshot_sha not in self._snapshots)\n        if len(self._snapshots) >= self._snapshot_limit:\n            raise AncestryHold('BOUND_EXCEEDED')\n        self._snapshots.add(snapshot_sha)\n\n    def hop(self):\n        if self._remaining_hops <= 0:\n            raise AncestryHold('BOUND_EXCEEDED')\n        self._remaining_hops -= 1\n\n\n",
+      "expected_occurrences": 1
+    },
+    {
+      "name": "surface_fixed_selected_read_bounds",
+      "match": "    def read(self, commit, path, limit):\n        _io_commit(commit)\n        _io_require(type(limit) is int and limit > 0 and self._budget.remaining > 0)\n        maximum = min(limit, self._budget.remaining, _SELECTED_WIRE_LIMIT)\n        raw = self._repository.read(commit, path, maximum)\n        _io_require(type(raw) is bytes and 0 < len(raw) <= maximum)\n        self._budget.consume(raw)\n        return raw\n",
+      "replacement": "    def read(self, commit, path, limit):\n        _io_commit(commit)\n        _io_require(type(limit) is int and limit > 0)\n        if self._budget.remaining <= 0:\n            raise AncestryHold('BOUND_EXCEEDED')\n        maximum = min(limit, self._budget.remaining, _SELECTED_WIRE_LIMIT)\n        try:\n            raw = self._repository.read(commit, path, maximum)\n        except ValueError as error:\n            # The unchanged Git reader reports this fixed size-bound class.\n            # Never expose or classify arbitrary exception text.\n            if type(error) is ValueError and error.args == ('STATE_GIT_BLOB_BOUND_EXCEEDED',):\n                raise AncestryHold('BOUND_EXCEEDED') from None\n            raise\n        _io_require(type(raw) is bytes and 0 < len(raw) <= maximum)\n        self._budget.consume(raw)\n        return raw\n",
+      "expected_occurrences": 1
+    },
+    {
+      "name": "sanitize_only_ancestry_holds_before_generic_reader_errors",
+      "match": "    except Exception:\n        return _io_hold('AUTHENTICATED_PAIR_UNAVAILABLE')\n    try:\n",
+      "replacement": "    except AncestryHold as error:\n        return _io_hold(error.reason)\n    except Exception:\n        return _io_hold('AUTHENTICATED_PAIR_UNAVAILABLE')\n    try:\n",
+      "expected_occurrences": 1
+    },
+    {
+      "name": "extend_after_the_same_unchanged_initial_424_423_pair",
+      "match": "    _io_require(older._header['schema'] == 'RACE_AI_SAVED_WEB_HISTORY_V5'\n        and older._header['generation'] == 423)\n    return current, (older,), guard\n",
+      "replacement": "    _io_require(older._header['schema'] == 'RACE_AI_SAVED_WEB_HISTORY_V5'\n        and older._header['generation'] == 423)\n    older_chain = _extend_authenticated_chain(repository, bootstrap, current, (older,),\n        feed=feed, guard=guard, budget=budget)\n    return current, older_chain, guard\n",
+      "expected_occurrences": 1
+    },
+    {
+      "name": "append_bounded_helpers_before_the_unchanged_main_footer",
+      "match": "\nif __name__ == '__main__':\n    raise SystemExit(main())\n",
+      "replacement": "\ndef _ancestry_require(condition):\n    if not condition:\n        raise AncestryHold('INPUT_OR_CHAIN_INVALID')\n\n\ndef _ancestry_parent_header(raw):\n    \"\"\"Read only the Git header section; message/signature text is not ancestry.\"\"\"\n    _ancestry_require(type(raw) is bytes and bool(raw) and b'\\0' not in raw and b'\\r' not in raw)\n    head, separator, _ = raw.partition(b'\\n\\n')\n    _ancestry_require(bool(separator) and bool(head))\n    lines = head.split(b'\\n')\n    _ancestry_require(_io_re.fullmatch(rb'tree [a-f0-9]{40}', lines[0]) is not None)\n    seen = {b'tree'}\n    parent = None\n    previous = b'tree'\n    for line in lines[1:]:\n        if line.startswith(b' '):\n            _ancestry_require(previous not in (b'tree', b'parent', b'author', b'committer', b'encoding')\n                and len(line) > 1)\n            continue\n        key, space, value = line.partition(b' ')\n        _ancestry_require(bool(space) and bool(value)\n            and _io_re.fullmatch(rb'[a-z][a-z0-9-]{0,63}', key) is not None\n            and key not in seen)\n        if key == b'parent':\n            _ancestry_require(b'author' not in seen and b'committer' not in seen\n                and _io_re.fullmatch(rb'[a-f0-9]{40}', value) is not None)\n            parent = value.decode('ascii')\n        elif key in (b'author', b'committer'):\n            _ancestry_require(parent is not None\n                and _io_re.fullmatch(rb'.+ <[^<>\\n]+> -?[0-9]+ [+-][0-9]{4}', value) is not None)\n            if key == b'committer':\n                _ancestry_require(b'author' in seen)\n            else:\n                _ancestry_require(b'committer' not in seen)\n        seen.add(key)\n        previous = key\n    _ancestry_require(parent is not None and {b'tree', b'parent', b'author', b'committer'} <= seen)\n    return parent\n\n\ndef _ancestry_parent(repository, commit, budget):\n    \"\"\"Size before payload, including when Git marks the commit shallow.\"\"\"\n    _io_commit(commit)\n    # Reserve bounded type/size metadata before asking Git for a payload.\n    if budget.remaining < 40:\n        raise AncestryHold('BOUND_EXCEEDED')\n    kind = repository._run(['cat-file', '-t', commit])\n    _ancestry_require(type(kind) is bytes and 0 < len(kind) <= 8)\n    budget.consume(kind)\n    _ancestry_require(kind == b'commit\\n')\n    size_raw = repository._run(['cat-file', '-s', commit])\n    _ancestry_require(type(size_raw) is bytes and 0 < len(size_raw) <= 32)\n    budget.consume(size_raw)\n    _ancestry_require(_io_re.fullmatch(rb'[1-9][0-9]{0,19}\\n?', size_raw) is not None)\n    size = int(size_raw)\n    if size > 64 * 1024 or size > budget.remaining:\n        raise AncestryHold('BOUND_EXCEEDED')\n    raw = repository._run(['cat-file', '-p', commit])\n    _ancestry_require(type(raw) is bytes and len(raw) == size)\n    budget.consume(raw)\n    return _ancestry_parent_header(raw)\n\n\ndef _find_predecessor_commit(repository, newerReceipt, *, feed, budget, max_hops=128):\n    \"\"\"Select the first distinct immediate-ancestry manifest, never a side branch.\"\"\"\n    try:\n        _ancestry_require(type(max_hops) is int and 1 <= max_hops <= 128\n            and type(budget) is ReadBudget)\n        _proof_verify_receipt(newerReceipt)\n        _ancestry_require(newerReceipt._header['generation'] > 1)\n        cursor = newerReceipt._snapshot_sha\n        visited = {cursor}\n        local_hops = 0\n        while True:\n            if local_hops >= max_hops or budget.remaining_hops <= 0:\n                raise AncestryHold('BOUND_EXCEEDED')\n            parent = _ancestry_parent(repository, cursor, budget)\n            _ancestry_require(parent not in visited)\n            # Charge the transition before any fetch of its parent.\n            budget.hop()\n            local_hops += 1\n            repository.fetch(parent)\n            selected = _SelectedSnapshotReader(repository, parent, feed=feed, budget=budget)\n            selected._selected_mode(parent, 'latest.json')\n            manifest = feed._json(selected.read(parent, 'latest.json', 4096), 4096)\n            _ancestry_require(type(manifest) is dict and set(manifest) == {'header', 'cipher_sha256'})\n            candidate_header = feed._header(manifest['header'])\n            _proof_header(candidate_header)\n            cipher = manifest['cipher_sha256']\n            _ancestry_require(_proof_sha(cipher))\n            if (candidate_header == newerReceipt._header\n                    and cipher == newerReceipt._cipher_sha256):\n                visited.add(parent)\n                cursor = parent\n                continue\n            _ancestry_require(candidate_header['generation'] == newerReceipt._header['generation'] - 1\n                and cipher == newerReceipt._header['previous_cipher_sha256'])\n            return parent\n    except AncestryHold:\n        raise\n    except Exception:\n        raise AncestryHold('INPUT_OR_CHAIN_INVALID') from None\n\n\ndef _extend_authenticated_chain(repository, bootstrap, current, older_chain, *, feed, guard, budget):\n    \"\"\"Extend only an explicitly missing proof, using the unchanged authenticated reader.\"\"\"\n    try:\n        _ancestry_require(type(current) is VerifiedSnapshot and type(older_chain) is tuple\n            and bool(older_chain) and all(type(item) is VerifiedSnapshot for item in older_chain)\n            and type(budget) is ReadBudget)\n        chain = older_chain\n        day = None\n        while True:\n            # The existing matcher checks receipt count/byte bounds before\n            # hashing bodies. Non-missing decisions never start an ancestry read.\n            decision = match_rejection_anchor_proofs(current, chain, guard=guard)\n            summary = _io_safe_summary(decision.public_summary())\n            if summary['status'] != 'HOLD' or summary['reason'] != 'ACTIVE_PROOF_MISSING':\n                return chain\n            if day is None:\n                day = current._view.get('event_date_jst')\n                guard._day(day)\n            for receipt in (current, *chain):\n                _ancestry_require(receipt._view.get('event_date_jst') == day\n                    and all(type(row) is dict and row.get('event_date_jst') == day\n                            for row in receipt._view['records']))\n            if (1 + len(chain) >= MAX_SNAPSHOTS\n                    or budget.remaining <= 0 or budget.remaining_hops <= 0):\n                raise AncestryHold('BOUND_EXCEEDED')\n            candidate = _find_predecessor_commit(repository, chain[-1],\n                feed=feed, budget=budget, max_hops=128)\n            _ancestry_require(candidate not in {item._snapshot_sha for item in (current, *chain)})\n            older = _read_verified_snapshot(repository, bootstrap, candidate,\n                feed=feed, guard=guard, budget=budget, day=day)\n            chain = (*chain, older)\n    except AncestryHold:\n        raise\n    except Exception:\n        raise AncestryHold('INPUT_OR_CHAIN_INVALID') from None\n\n\nif __name__ == '__main__':\n    raise SystemExit(main())\n",
+      "expected_occurrences": 1
+    }
+  ],
+  "scope": {
+    "initial_pair_unchanged": true,
+    "existing_crypto_authentication_unchanged": true,
+    "trust_boundary_and_source_pins_unchanged": true,
+    "public_sanitizer_unchanged": true,
+    "selected_manifest_mode_check_unchanged": true,
+    "main_footer_last": true,
+    "workflow_changed": false,
+    "tests_changed": false,
+    "refs_changed": false,
+    "source_gets": 0,
+    "publish_or_dispatch_calls": 0,
+    "new_source_key_read_paths": 0,
+    "python_executed_locally": false,
+    "green_verified": false
+  },
+  "notes": [
+    "Ancestry parent metadata uses fixed immutable cat-file type/size/payload reads, selected latest.json only, and shared actual-byte and global/local hop budgets.",
+    "Only exact header+cipher duplicate manifests are skipped. First distinct mismatch holds; no side branch or later-ancestor cherry pick.",
+    "Existing authenticated F/H reader loads each older receipt on the same current day. The original matcher rechecks all groups after each extension.",
+    "All bound failures surface as fixed null-count HOLD through AncestryHold; ordinary unexpected load errors retain AUTHENTICATED_PAIR_UNAVAILABLE."
+  ],
+  "supersedes_draft_blob": "5978c59913a2192b7b51cacc9e7849a6384d2e17",
+  "static_refinement": "Existing matcher checks input receipt/ciphertext bounds and all non-missing decisions before extension-only day validation or ancestry work."
+}
