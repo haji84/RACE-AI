@@ -117,6 +117,21 @@ class EveningProspectiveContracts(unittest.TestCase):
         self.assertEqual(again["new_A_B_same_job_encrypted"],0)
         self.assertEqual(target.read_bytes(),original)
 
+    def test_supplement_admits_prior_cipher_only_after_exact_sha_readback(self):
+        first=self.execute()
+        target=self.root/"sealed"/(RID+".sealed.json")
+        first_sha=sha256(target.read_bytes()).hexdigest()
+        prior=self.root/"prior"/"sealed"
+        prior.mkdir(parents=True,mode=0o700)
+        prior.chmod(0o700)
+        (prior/(RID+".sealed.json")).write_bytes(target.read_bytes())
+        second=self.execute(prior_sealed_sha_by_race={RID:first_sha})
+        self.assertEqual(second["previously_sealed_A_B_do_not_recreate"],3)
+        self.assertEqual(second["new_A_B_same_job_encrypted"],0)
+        self.assertEqual(target.read_bytes(),(prior/(RID+".sealed.json")).read_bytes())
+        with self.assertRaises(Exception):
+            self.execute(prior_sealed_sha_by_race={RID:"0"*64})
+
     def test_provider_denial_stops_all_races_without_retry(self):
         def blocked(url):
             self.calls.append(url)
