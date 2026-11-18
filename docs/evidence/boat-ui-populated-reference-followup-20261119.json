@@ -1,0 +1,672 @@
+{
+  "schema": "RACE_AI_COMPACT_REFERENCE_ACCEPTANCE_LOCAL_V1",
+  "recorded_at_jst": "2026-11-19T01:12:30.903266+09:00",
+  "status": "INDEPENDENT_CODE_REVIEW_CLEAR_LOCAL_UI_VERIFIED_NATIVE_AND_OWNER_ACCEPTANCE_PENDING",
+  "existing_draft_pr": 62,
+  "base_source_commit": "4da600f2c85ed569d62251d7b7232b3e2902e17d",
+  "local_code_commit": "7e6743dc08cc940af0c9fcdf4787ba82ea679407",
+  "web_tree": "82118c8bbe853eff07f461d1c3a6da43ec138bd7",
+  "preserved_source_chain": [
+    "4da600f2c85ed569d62251d7b7232b3e2902e17d",
+    "5b60fa111725c1ba05aee50a79214f022ba2d4b6",
+    "b224bba49adf86640c40a40d9a06585edc0a29a1",
+    "7e6743dc08cc940af0c9fcdf4787ba82ea679407"
+  ],
+  "pushed_merged_or_published_by_this_task": false,
+  "owner_device_context": {
+    "model": "iPhone 13 Pro",
+    "chat_client": "ChatGPT app",
+    "user_reported_safari_opens_WINTICKET_normally": true,
+    "storage_choice": "GitHub",
+    "direct_device_connector_available": false,
+    "this_application_physically_verified_in_safari": false,
+    "additional_technical_device_question_sent": false
+  },
+  "approved_scoped_behavior": [
+    "Compact only upcoming/unknown list cards. Reuse the original title/detail action, source/status nodes, participant controls, saved-ticket preview and information actions.",
+    "Keep one original ticket preview and the saved count visible. Keep all saved eight tickets and the existing motor/ST, preview/comment/weather and result sections accessible through unchanged detail views.",
+    "Move secondary source/missing states and all four existing information actions into a native disclosure. Keep meaningful controls at least 44px.",
+    "Expose confirmation above measured fixed navigation in short mobile viewports. Review does not confirm, purchase, rewrite forecasts or change the encrypted capability fragment.",
+    "Preserve disclosure/focus and horizontal roster position on an unchanged boundary refresh. Remove races that leave the active phase without transferring their state."
+  ],
+  "test_first_evidence": [
+    {
+      "issue": "Important: short-viewport confirmation was covered by fixed navigation.",
+      "red": {
+        "viewport": [
+          640,
+          360
+        ],
+        "confirmation_top_px": 276.4375,
+        "confirmation_bottom_px": 324.4375,
+        "navigation_top_px": 289,
+        "coordinate_hit": "navigation",
+        "confirmed": false,
+        "log_sha256": "7eff79ce44ebed9fffab3b12cc0d2e016e3181935d9330e11788df414aa5912c"
+      },
+      "green": "Five actual coordinate clicks confirm candidates with full navigation clearance; encrypted Pages additionally checks the 640x360 case with fragment/candidate preservation."
+    },
+    {
+      "issue": "Normal six-person cards were not compact.",
+      "red": {
+        "viewport_width": 320,
+        "normal_card_height_px": 494,
+        "maximum_px": 280,
+        "log_sha256": "c1d77a37744cbd05d6354a77e364d85c0978c55094ef4111c182eb7035501366"
+      },
+      "green_card_heights_px": {
+        "320": 257,
+        "390": 257,
+        "1440": 181,
+        "1920": 181
+      },
+      "mobile_maximum_px": 280,
+      "desktop_maximum_px": 220
+    },
+    {
+      "issue": "Compact participant padding reduced a touch target below 44px.",
+      "red": {
+        "smallest_width_px": 42.65625,
+        "minimum_px": 44,
+        "log_sha256": "5b1eda2c01a0720e88f4a5b5da847a7cf0c8ce192e357affcb0ec037415a633a"
+      },
+      "green": "Every participant identity, title, disclosure and information action stays at least 44px, including a 15px classic scrollbar gutter."
+    },
+    {
+      "issue": "Minor: the minute refresh closed disclosure and dropped focus.",
+      "red": {
+        "actual_open": false,
+        "expected_open": true,
+        "log_sha256": "10e5fe7c425677e56b68679ec65e64d9900dbe4e952bd025f7fb038adeb8752b"
+      },
+      "green": "At all four widths, a 60001ms unchanged refresh preserves open/participants focus; a cutoff removes the race without state transfer."
+    },
+    {
+      "issue": "Minor: the minute refresh clipped the focused twelfth participant.",
+      "red": {
+        "viewport_width": 320,
+        "before_scroll_left_px": 248,
+        "after_scroll_left_px": 0,
+        "log_sha256": "eecf00e5af676b87eb4b81beb6cfc472ab273043283539a333cf8b017cccbe11"
+      },
+      "green": {
+        "scroll_left_px": 248,
+        "focused_target_x_px": [
+          256,
+          300
+        ],
+        "roster_clip_x_px": [
+          20,
+          300
+        ],
+        "restored_before_focus": true
+      }
+    }
+  ],
+  "independent_review": {
+    "reviewer": "existing /root/review_ui_resume",
+    "final_delta": "b224bba49adf86640c40a40d9a06585edc0a29a1 to 7e6743dc08cc940af0c9fcdf4787ba82ea679407",
+    "status": "CLEAR",
+    "remaining_critical": 0,
+    "remaining_important": 0,
+    "remaining_minor": 0,
+    "independent_observation": {
+      "320px_horse_entrant12_after_60001ms_scroll_left": 248,
+      "focused_target_x": [
+        256,
+        300
+      ],
+      "roster_clip_x": [
+        20,
+        300
+      ],
+      "url_unchanged": true,
+      "page_errors": 0,
+      "external_requests": 0
+    },
+    "previous_independent_checks": "Reviewer reran all five short-window coordinate cases on 5b60fa11 and the four-width richer/cutoff/short suite on b224bba4; the final small delta was separately rerun and cleared.",
+    "reviewer_mutated_checkout_index_or_refs": false
+  },
+  "fixture_and_capture_scope": {
+    "source": "Existing public example fixture plus invented participant counts/stages, motor/ST, preview/comment/weather and upcoming/no-forecast fields already exercised by existing UI/lifecycle/explorer tests.",
+    "builder": "tests/reference_scenarios_browser.cjs",
+    "original_public_fixture_changed": false,
+    "original_public_fixture_sha256": "b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a",
+    "derived_in_memory_fixture_sha256": "ef3a81f4c026267063a96d37333c9708a0049342e9a094c8061a11b92bb7feea",
+    "synthetic_records": 5,
+    "participant_counts_by_sport": [
+      6,
+      7,
+      8,
+      12
+    ],
+    "normal_display_labels": "Short invented venue/name labels. Long-label probes preserve complete text and page bounds and export no screenshots.",
+    "browser": "Chromium",
+    "platform": "linux",
+    "version": "155.0.8059.79",
+    "actual_widths": [
+      320,
+      390,
+      1440,
+      1920
+    ],
+    "mobile_viewport_height": 844,
+    "desktop_viewport_height": 1000,
+    "synthetic_png_count": 32,
+    "format": "Full-page captures except the two mobile review viewport captures.",
+    "checked_before_capture": [
+      "Explicit synthetic source state and banner",
+      "No visible portrait image",
+      "No encrypted/private viewer meta",
+      "No horizontal page overflow",
+      "No JavaScript error",
+      "Browser requests confined to the local test origin",
+      "Top-of-page synthetic warning visibly unobscured for top-of-page captures; the two scrolled review viewports retain explicit synthetic source and purchase-refusal state."
+    ],
+    "asset_hashes_match_the_final_code_commit": true,
+    "asset_sha256": {
+      "index.html": "ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2",
+      "app.js": "c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5",
+      "style.css": "06414329229c6c7919b67408ca567c859b064d7f2b0d7abab7ddc203ab407e82"
+    },
+    "canonical_native_checker_changed_or_relaxed": false,
+    "images_or_reference_originals_committed_or_published": 0,
+    "real_private_context_used": false,
+    "geometry": [
+      {
+        "width": 320,
+        "height": 844,
+        "sports": [
+          {
+            "sport": "boat",
+            "entrants": 6,
+            "upcoming": 2
+          },
+          {
+            "sport": "keirin",
+            "entrants": 7,
+            "upcoming": 1
+          },
+          {
+            "sport": "autorace",
+            "entrants": 8,
+            "upcoming": 1
+          },
+          {
+            "sport": "horse",
+            "entrants": 12,
+            "upcoming": 1
+          }
+        ],
+        "boat_upcoming_card_height_px": 257,
+        "minute_refresh_state_preserved": true,
+        "closed_phase_row_not_restored": true,
+        "horizontal_roster_focus_retained": true,
+        "summary_before_jump": {
+          "x": 12,
+          "y": 1583.65625,
+          "width": 296,
+          "height": 399.0625
+        },
+        "summary_shortcut": {
+          "x": 28,
+          "y": 553.15625,
+          "width": 264,
+          "height": 44
+        },
+        "confirm_after_jump": {
+          "x": 26,
+          "y": 398.125,
+          "width": 268,
+          "height": 48
+        }
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "sports": [
+          {
+            "sport": "boat",
+            "entrants": 6,
+            "upcoming": 2
+          },
+          {
+            "sport": "keirin",
+            "entrants": 7,
+            "upcoming": 1
+          },
+          {
+            "sport": "autorace",
+            "entrants": 8,
+            "upcoming": 1
+          },
+          {
+            "sport": "horse",
+            "entrants": 12,
+            "upcoming": 1
+          }
+        ],
+        "boat_upcoming_card_height_px": 257,
+        "minute_refresh_state_preserved": true,
+        "closed_phase_row_not_restored": true,
+        "summary_before_jump": {
+          "x": 12,
+          "y": 1504.46875,
+          "width": 366,
+          "height": 399.0625
+        },
+        "summary_shortcut": {
+          "x": 28,
+          "y": 540.96875,
+          "width": 334,
+          "height": 44
+        },
+        "confirm_after_jump": {
+          "x": 26,
+          "y": 397.9375,
+          "width": 338,
+          "height": 48
+        }
+      },
+      {
+        "width": 1440,
+        "height": 1000,
+        "sports": [
+          {
+            "sport": "boat",
+            "entrants": 6,
+            "upcoming": 2
+          },
+          {
+            "sport": "keirin",
+            "entrants": 7,
+            "upcoming": 1
+          },
+          {
+            "sport": "autorace",
+            "entrants": 8,
+            "upcoming": 1
+          },
+          {
+            "sport": "horse",
+            "entrants": 12,
+            "upcoming": 1
+          }
+        ],
+        "boat_upcoming_card_height_px": 181,
+        "minute_refresh_state_preserved": true,
+        "closed_phase_row_not_restored": true,
+        "summary_before_jump": {
+          "x": 1116,
+          "y": 239.3125,
+          "width": 300,
+          "height": 424.96875
+        }
+      },
+      {
+        "width": 1920,
+        "height": 1000,
+        "sports": [
+          {
+            "sport": "boat",
+            "entrants": 6,
+            "upcoming": 2
+          },
+          {
+            "sport": "keirin",
+            "entrants": 7,
+            "upcoming": 1
+          },
+          {
+            "sport": "autorace",
+            "entrants": 8,
+            "upcoming": 1
+          },
+          {
+            "sport": "horse",
+            "entrants": 12,
+            "upcoming": 1
+          }
+        ],
+        "boat_upcoming_card_height_px": 181,
+        "minute_refresh_state_preserved": true,
+        "closed_phase_row_not_restored": true,
+        "summary_before_jump": {
+          "x": 1513,
+          "y": 239.578125,
+          "width": 320,
+          "height": 424.96875
+        }
+      }
+    ],
+    "short_viewport_geometry": [
+      {
+        "width": 640,
+        "height": 360,
+        "confirm": {
+          "x": 26,
+          "y": 156.4375,
+          "width": 588,
+          "height": 48
+        },
+        "nav_top": 289,
+        "coordinate_click_confirmed": true,
+        "fragment_and_candidates_preserved": true
+      },
+      {
+        "width": 640,
+        "height": 390,
+        "confirm": {
+          "x": 26,
+          "y": 171.4375,
+          "width": 588,
+          "height": 48
+        },
+        "nav_top": 319,
+        "coordinate_click_confirmed": true,
+        "fragment_and_candidates_preserved": true
+      },
+      {
+        "width": 760,
+        "height": 390,
+        "confirm": {
+          "x": 28,
+          "y": 171.328125,
+          "width": 333,
+          "height": 48
+        },
+        "nav_top": 321.3125,
+        "coordinate_click_confirmed": true,
+        "fragment_and_candidates_preserved": true
+      },
+      {
+        "width": 390,
+        "height": 320,
+        "confirm": {
+          "x": 26,
+          "y": 135.9375,
+          "width": 338,
+          "height": 48
+        },
+        "nav_top": 249,
+        "coordinate_click_confirmed": true,
+        "fragment_and_candidates_preserved": true
+      },
+      {
+        "width": 320,
+        "height": 568,
+        "confirm": {
+          "x": 26,
+          "y": 260.125,
+          "width": 268,
+          "height": 48
+        },
+        "nav_top": 497,
+        "coordinate_click_confirmed": true,
+        "fragment_and_candidates_preserved": true
+      }
+    ],
+    "png_manifest": [
+      {
+        "name": "rich-320-races.png",
+        "bytes": 181084,
+        "sha256": "95185465e286868bd3cc364fd659e81e8959ee92e558f083afdcc73d09b4b51d"
+      },
+      {
+        "name": "rich-320-home.png",
+        "bytes": 270896,
+        "sha256": "0347221023e771706b2d8486ec97ba833c93244dc3b3541db7fb36be442f68b2"
+      },
+      {
+        "name": "rich-320-detail.png",
+        "bytes": 208408,
+        "sha256": "2b46c1208abd19491c9bf7de14a159ea86cb5e0eaa52a6e68c6e13d711897b93"
+      },
+      {
+        "name": "rich-320-participants.png",
+        "bytes": 145031,
+        "sha256": "e730978c56d0de2b28217640a50ad6abbdc55b24c8a7fe6b03eac78066fdc1a5"
+      },
+      {
+        "name": "rich-320-preview.png",
+        "bytes": 176775,
+        "sha256": "8ba729f810648db87440fe644f31cc4ba6db74dbb9db2e2f6c7be96361bf98ac"
+      },
+      {
+        "name": "rich-320-picks.png",
+        "bytes": 218247,
+        "sha256": "cc64e2414415f6e8bef9048d63f6930145fce1fb7522955754f9aa653d398932"
+      },
+      {
+        "name": "rich-320-review.png",
+        "bytes": 62118,
+        "sha256": "04c31ffc52cf794759eaa23d2e2f1dc020a3c8c54f199145f0814cf45902ad43"
+      },
+      {
+        "name": "rich-390-keirin-upcoming.png",
+        "bytes": 178100,
+        "sha256": "c90caad5e39e6e5bc6efdcd8304514bcb9befe812b53bc01777e72f49c1fea46"
+      },
+      {
+        "name": "rich-390-autorace-upcoming.png",
+        "bytes": 175458,
+        "sha256": "95c210c08f13f13d8bfb770fe5be281d44d84260dfb8cec89312426a97f89449"
+      },
+      {
+        "name": "rich-390-horse-upcoming.png",
+        "bytes": 178808,
+        "sha256": "569a83147680693ec07dd356da57ccb6375952b3272f7591ee850c355cfc6e94"
+      },
+      {
+        "name": "rich-390-races.png",
+        "bytes": 196077,
+        "sha256": "e33f3ee9cd1a518c6a4c284230938b490bb5a1563896e1e7cd9244ec61d5836b"
+      },
+      {
+        "name": "rich-390-home.png",
+        "bytes": 281262,
+        "sha256": "0a8075e30be706b79c2b89c4228909ec1c099044f2a97ef5fe03469bcf904b72"
+      },
+      {
+        "name": "rich-390-detail.png",
+        "bytes": 207177,
+        "sha256": "b3411deb1dae3431799fddf8496cb1cc6e4171c54bd46265c3ffc5ba399d454e"
+      },
+      {
+        "name": "rich-390-participants.png",
+        "bytes": 147697,
+        "sha256": "a63a299fce069821a552be4159c1d74673165064875d149613916c1d32582fff"
+      },
+      {
+        "name": "rich-390-preview.png",
+        "bytes": 170735,
+        "sha256": "9e37cb41c146de013cb034c33d47332fce6950a421985b6f29172e36a27fa54e"
+      },
+      {
+        "name": "rich-390-picks.png",
+        "bytes": 233187,
+        "sha256": "ac673263f6d6c9491d17df4bdd6a3f40e99a68246ab0823cb6d70b24fcba82c3"
+      },
+      {
+        "name": "rich-390-review.png",
+        "bytes": 67232,
+        "sha256": "01701fd4ff71ae38b5a18eb4f087f8e60078d8c8bb70623c59224fb4390994d7"
+      },
+      {
+        "name": "rich-1440-keirin-upcoming.png",
+        "bytes": 287747,
+        "sha256": "61bd62f672e615bbe570c336daf1c8bd0f1e7e29242ecf82865dab4e2ea5cca9"
+      },
+      {
+        "name": "rich-1440-autorace-upcoming.png",
+        "bytes": 287208,
+        "sha256": "ecedf84db6a1abd51f5e266016eb6fd78b11045fd894690c7c7e2cd17869f2e1"
+      },
+      {
+        "name": "rich-1440-horse-upcoming.png",
+        "bytes": 285334,
+        "sha256": "47dd18ad68f48c51ebdd11eab9230c599f4605d02eac10229e0451ca85c9da80"
+      },
+      {
+        "name": "rich-1440-races.png",
+        "bytes": 304858,
+        "sha256": "b3b7a53c8798d20140ed45a414bd9f038fa1098c3e2e9490a88c141c2fa8f6d6"
+      },
+      {
+        "name": "rich-1440-home.png",
+        "bytes": 454957,
+        "sha256": "a6c0ed7d4bdb3a330769ba4d2cb0ce1864c3e6988c54375d5b4360475cd9c196"
+      },
+      {
+        "name": "rich-1440-detail.png",
+        "bytes": 351557,
+        "sha256": "ae550446ac55879463dacfef6bcfc9b305972f3c18979b0ed76c53c333f3acfe"
+      },
+      {
+        "name": "rich-1440-participants.png",
+        "bytes": 275348,
+        "sha256": "2145dc1e7714eddaa27313b8d69d445a255e28943356c7155118a4952b0bd097"
+      },
+      {
+        "name": "rich-1440-preview.png",
+        "bytes": 274429,
+        "sha256": "6a2471c4b0d14f13c9c8827f2af54ee50b3ba9ec2d479d5c27748c32370c6339"
+      },
+      {
+        "name": "rich-1440-picks.png",
+        "bytes": 345444,
+        "sha256": "cee746aa74f2675afddd4b988019be57a34c1e1a0baacb2bae8d13da7adf1ef4"
+      },
+      {
+        "name": "rich-1920-races.png",
+        "bytes": 312015,
+        "sha256": "449a8e85dc614d7e63f52e29c4db92cbef78a419e8ecadd3a5b7d51fa138a570"
+      },
+      {
+        "name": "rich-1920-home.png",
+        "bytes": 452243,
+        "sha256": "62b10ba559d6b64ffa892e87371ac332cd0ca8326d4646eec4b37936aebf6eff"
+      },
+      {
+        "name": "rich-1920-detail.png",
+        "bytes": 359998,
+        "sha256": "bbf84c7d46247b309507278adbe0749f413413f2c305fac6ab54bcba72e8ff69"
+      },
+      {
+        "name": "rich-1920-participants.png",
+        "bytes": 277980,
+        "sha256": "91222aa3829e9eaacbb2200a7f49a068bc6147f09c4c850ba45ab7c8436f2922"
+      },
+      {
+        "name": "rich-1920-preview.png",
+        "bytes": 280673,
+        "sha256": "e5f6b23b2bc0cfafc88f0e4bba39040645cfe024005d4d49244a80ad0d9e1d7a"
+      },
+      {
+        "name": "rich-1920-picks.png",
+        "bytes": 352410,
+        "sha256": "4227715d8454a7dc6f67b8f14042f0fd615b00e52776954e47c6fe84c31296b5"
+      }
+    ]
+  },
+  "verification": {
+    "final_source": {
+      "code_commit": "7e6743dc08cc940af0c9fcdf4787ba82ea679407",
+      "command": "node tests/ui_browser.test.js",
+      "existing_checkpoints": 30,
+      "richer_width_scenarios": 4,
+      "short_coordinate_click_scenarios": 5,
+      "unchanged_disclosure_and_cutoff_scenarios": 4,
+      "focused_twelfth_participant_scroll_scenario": 1,
+      "page_errors": 0,
+      "external_source_requests": 0,
+      "optional_journal_private_cycle_dispatch_exports_supplied": false,
+      "report_sha256": "a5c8d8ea5150eae27e733a9529fb378fd5150d80b9e912a429c11e0372be9fd1",
+      "log_sha256": "4eaa613bad4c9e0c1c3189fedfcdf2995859fbfa31b732a409e41b531f9ebed5"
+    },
+    "additional_passing_suites": [
+      {
+        "command": "node tests/reference_layout_browser.test.cjs",
+        "width_checkpoints": 4,
+        "source": "5b60fa11; CSS unchanged in subsequent timer-only deltas"
+      },
+      {
+        "command": "node tests/reference_controls_browser.test.cjs",
+        "width_checkpoints": 4,
+        "source": "5b60fa11; CSS unchanged in subsequent timer-only deltas"
+      },
+      {
+        "command": "node tests/model_switcher_browser.test.cjs",
+        "width_checkpoints": 3,
+        "source": "5b60fa11"
+      },
+      {
+        "command": "node tests/ui_model.test.js",
+        "source": "5b60fa11"
+      },
+      {
+        "command": "EXPLORER_SECTION=navigation node tests/race_explorer_browser.test.cjs",
+        "width_checkpoints": 3,
+        "source": "5b60fa11"
+      },
+      {
+        "command": "node tests/race_lifecycle_browser.test.cjs",
+        "width_checkpoints": 3,
+        "source": "b224bba4"
+      },
+      {
+        "command": "node tests/saved_pages_browser.test.js",
+        "source": "b224bba4",
+        "actual_synthetic_webcrypto": true,
+        "short_640x360_coordinate_click": true,
+        "capability_fragment_and_candidates_preserved": true,
+        "wrong_missing_tampered_key_refusals": true,
+        "purchase_refused": true
+      }
+    ],
+    "python_test_dependencies": "Previously verified PR64/PR72 source-module paths; used only by the synthetic encrypted-Pages test process.",
+    "node_syntax_and_git_diff_check": "PASS"
+  },
+  "eight_reference_status": {
+    "original_images_inspected_and_compared": 8,
+    "earlier_native_pngs_inspected": 28,
+    "original_reference_evidence": "docs/evidence/boat-ui-reference-keyboard-acceptance-resume-20261118.json",
+    "all_eight_screens_finally_accepted": false,
+    "closed_local_gaps": [
+      "Upcoming short-card density at the approved normal-six bounds",
+      "Motor/ST/preview/comment/weather fixture coverage",
+      "Short-mobile confirmation hit target",
+      "Minute-refresh disclosure/focus and horizontal roster state"
+    ],
+    "remaining": [
+      "Actual owner iPhone 13 Pro Safari session and login for this application",
+      "Native Safari rerun against this exact source",
+      "Direct GitHub ciphertext delivery into the owner browser",
+      "Final owner acceptance of all eight supplied visual compositions"
+    ],
+    "out_of_this_scoped_change": [
+      "Simultaneous mixed-sport list logic",
+      "Home/detail redesign",
+      "Fabricated odds, probabilities, grades, expected values, risk gauges or portraits"
+    ],
+    "actual_native_safari_verified_on_this_source": false,
+    "actual_physical_iphone_verified": false,
+    "actual_owner_login_verified": false,
+    "direct_github_ciphertext_delivery_verified": false
+  },
+  "preserved": {
+    "web_files_changed_after_4da600f2": [
+      "web/app.js",
+      "web/style.css"
+    ],
+    "crypto_adapters_models_source_inputs_originals_and_production_weights_changed": false,
+    "public_asset_origin": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+    "public_assets_written_by_this_task": false,
+    "owner_state_key_read_locally": false,
+    "real_private_screenshots_traces_forecasts_or_urls_exported": false,
+    "new_pr_model_family_paid_service_or_wager": false,
+    "new_workflow_job_input_cron_runner_timeout_permission_marker_or_prefix": false,
+    "active_source_producer_cancelled_modified_or_restarted": false
+  },
+  "previous_prepared_4da_evidence_sha256": "133dbd3594ef030f585392ee81d9a855013420cf0c45425ce02748508e00ccd0"
+}
