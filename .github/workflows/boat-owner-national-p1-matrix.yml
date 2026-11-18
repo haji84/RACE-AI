@@ -26,6 +26,11 @@ on:
       - tests/test_boat_saved_rejection_anchor_io.py
       - scripts/boat_legacy_reason_anchor_guard.py
       - tests/test_boat_legacy_reason_anchor_guard.py
+      - scripts/boat_legacy_reason_anchor_entry.py
+      - tests/test_boat_legacy_reason_anchor_entry.py
+      - tests/test_boat_saved_rejection_anchor_history.py
+      - scripts/boat_rejection_anchor_restoration.py
+      - tests/test_boat_rejection_anchor_restoration.py
       - tests/fixtures/legacy_saved_view_feed_ffb_update.py
       - tests/fixtures/legacy_saved_view_feed_3295_update.py
   push:
@@ -54,6 +59,11 @@ on:
       - tests/test_boat_saved_rejection_anchor_io.py
       - scripts/boat_legacy_reason_anchor_guard.py
       - tests/test_boat_legacy_reason_anchor_guard.py
+      - scripts/boat_legacy_reason_anchor_entry.py
+      - tests/test_boat_legacy_reason_anchor_entry.py
+      - tests/test_boat_saved_rejection_anchor_history.py
+      - scripts/boat_rejection_anchor_restoration.py
+      - tests/test_boat_rejection_anchor_restoration.py
       - tests/fixtures/legacy_saved_view_feed_ffb_update.py
       - tests/fixtures/legacy_saved_view_feed_3295_update.py
   workflow_run:
@@ -103,7 +113,7 @@ jobs:
           sparse-checkout: race_ai/boat_saved_model_view.py
           sparse-checkout-cone-mode: false
       - name: Pure model matrix and forced original ZIP AES source-free contract
-        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit tests.test_boat_saved_reason_binding_audit tests.test_boat_saved_reason_binding_io tests.test_boat_saved_rejection_anchor_proof tests.test_boat_saved_rejection_anchor_io tests.test_boat_legacy_reason_anchor_guard -v
+        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit tests.test_boat_saved_reason_binding_audit tests.test_boat_saved_reason_binding_io tests.test_boat_saved_rejection_anchor_proof tests.test_boat_saved_rejection_anchor_io tests.test_boat_legacy_reason_anchor_guard tests.test_boat_saved_rejection_anchor_history tests.test_boat_legacy_reason_anchor_entry tests.test_boat_rejection_anchor_restoration -v
       - name: Prove source-owner and private key are only ever read on trusted main events
         run: |
           python - <<'PY'

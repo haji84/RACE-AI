@@ -1,0 +1,141 @@
+{
+  "kind": "TESTS_ONLY_LEGACY_PUBLICATION_GUARD_INVOCATION_BOUNDARY",
+  "repository": "haji84/RACE-AI",
+  "file": {
+    "path": "tests/test_boat_legacy_reason_anchor_entry.py",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "244660c6b9e4eb91e52ba5151ed6f9a0bc002c78",
+    "bytes": 15819,
+    "test_methods": 10
+  },
+  "tree_elements": [
+    {
+      "path": "tests/test_boat_legacy_reason_anchor_entry.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "244660c6b9e4eb91e52ba5151ed6f9a0bc002c78"
+    }
+  ],
+  "supersedes_authoring_blobs": [
+    "695372d11fb8fb919a5f8950fcd0b5f33c20abc4",
+    "bbd91592ed1ecd29994705ebb5c1c24acba8d53e"
+  ],
+  "existing_guard_tests": {
+    "packet": "6dc9a1cddce4d801a375ae4854ca17d668c3b070",
+    "test_blob": "ba0f94702096cd4e43f7d682bb4b6346bdca6e4d",
+    "methods": 23,
+    "unchanged": true
+  },
+  "new_runtime_module": "scripts/boat_legacy_reason_anchor_entry.py",
+  "api": {
+    "prepare_legacy_feed": "prepare_legacy_feed() -> identical actual legacy race_ai.saved_view_feed module; sanitize failures to static ValueError('LEGACY_REASON_ANCHOR_ENTRY_HOLD') from None with no stdout/stderr.",
+    "main": "main(argv=None) -> integer exit code. argv is [allowed_module,*unchanged_target_argv]. Install before importing/running the target as __main__, forward arguments exactly with normal -m argv[0], preserve numeric SystemExit codes, restore caller sys.argv, and preserve normal target output.",
+    "allowed_modules_constant": "ALLOWED_MODULES = frozenset(('scripts.racer_intraday_refresh',))",
+    "failure_report": {
+      "status": "HOLD",
+      "reason": "LEGACY_REASON_ANCHOR_ENTRY_HOLD"
+    },
+    "failure_exit_code": 2,
+    "cli": "python \"$GITHUB_WORKSPACE/legacy-publish-safety/scripts/boat_legacy_reason_anchor_entry.py\" scripts.racer_intraday_refresh <all existing argv unchanged>",
+    "inline": "Load this same entry script by its anchored absolute filename without running __main__; call prepare_legacy_feed() before the existing target import/main call."
+  },
+  "layout_and_pins": {
+    "safety_root": "GITHUB_WORKSPACE/legacy-publish-safety; own __file__ must resolve there; detached .git/HEAD must equal strict GITHUB_SHA.",
+    "adapter": "legacy-publish-safety/scripts/boat_legacy_reason_anchor_guard.py",
+    "_ADAPTER_BLOB_SHA": "b438b6ec63b5f8048755081ba1ce074a2d7a0823",
+    "guard": "GITHUB_WORKSPACE/reason-binding-source/race_ai/boat_saved_model_view.py",
+    "_GUARD_BLOB_SHA": "e6db8d720aa151940e01f377831a5884eb4b2ba9",
+    "guard_checkout": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "legacy_runtime": "Actual old collector CWD; expected race_ai/saved_view_feed.py must be checked before importing it and its loaded __file__ must resolve to this same file.",
+    "_LEGACY_FEED_BLOBS": [
+      "ffb39325d9d045b962e379e53be4577fc014bd20",
+      "3295add3abdacb88ee23e38875c6af47e8f33979"
+    ],
+    "source_hash_algorithm": "Canonical Git blob SHA1 over exact file bytes, checked before exec/import.",
+    "path_rule": "May insert only the verified old CWD into sys.path to reproduce -m execution. Never insert the main-safety root or any newer race_ai/parser package. Existing inline pr64/pr72 namespace additions stay unchanged.",
+    "install_rule": "Load the main adapter and exact e6 guard by anchored file paths, call install_guard(actual_old_feed, guard=current_guard), and return the same feed. Repeated prepare keeps wrappers/guard identity and rechecks byte pins."
+  },
+  "workflow_investigation": {
+    "base": "32b18c967279e9003fdd686707d6c3c86c74e6cd",
+    "racer_workflow_blob": "1297cd3780ab88f7385d92281594e5b8e91f229e",
+    "gap_workflow_blob": "2bfe6ad55edb0731978b625d094079c1a5ec665d",
+    "writer_calls": [
+      {
+        "file": ".github/workflows/boat-racer-daily.yml",
+        "lines": [
+          631,
+          633
+        ],
+        "existing": "python -m scripts.racer_intraday_refresh",
+        "integration": "Replace only this invocation prefix with the anchored entry CLI; preserve both argv branches."
+      },
+      {
+        "file": ".github/workflows/boat-result-gap-recovery.yml",
+        "lines": [
+          555,
+          566
+        ],
+        "existing": "source-reader inline main --replay-retained-results",
+        "integration": "Add anchored prepare before existing target import/main; preserve parser path additions and argv."
+      },
+      {
+        "file": ".github/workflows/boat-result-gap-recovery.yml",
+        "lines": [
+          755,
+          765
+        ],
+        "existing": "source-reader inline main --sync-results",
+        "integration": "Same prepare prelude; preserve all existing admission/budget/authority environment and argv."
+      }
+    ],
+    "read_only_exclusions": "Other SavedResultBridge blocks only read rows, check scope/inventory or verify saved P0/site contexts. Do not wrap or change them.",
+    "unchanged": "Old collector pins b9a/bfcb/6327/0da3/0796, parsers pr64/pr72, scorers, source GET caps, legacy event/permission guards, readers and site-verifier pins."
+  },
+  "test_design": [
+    "Fixed policy validates the one actual collector module, two approved legacy feed blobs, current guard blob and now-known stable adapter blob.",
+    "Absolute script located outside CWD must import the real old feed, install before target import, preserve all target argv exactly and keep new safety package roots out of sys.path.",
+    "Inline prepare returns the identical old feed and preserves current_view/open_bootstrap/decrypt_view/FeedRepository/parser/scorer identities.",
+    "Repeated prepare is idempotent and still rejects a changed guard source after the first successful installation.",
+    "Unapproved/missing module refuses before importing the old runtime.",
+    "Cached foreign feed path and wrong safety HEAD/location refuse before target execution.",
+    "Changed feed/guard/adapter source carries a marker side effect; its absence proves byte checks happen before execution.",
+    "Target numeric exit codes/normal output are preserved. Private SystemExit/error payloads become the fixed safe HOLD only.",
+    "Guarded environment forbids key reads and enumeration; fake readers, network and subprocess traps prohibit extra I/O or GET-budget use.",
+    "Inline install failures are static ValueError with no visible exception chaining or stdout/stderr."
+  ],
+  "fixture_policy": "Tests use only public pinned e6 source plus temporary synthetic old-runtime/adapter/target files. They patch adapter/feed blob constants only to admit these explicit fixtures. Production constants are asserted exactly outside the fixture context.",
+  "test_methods": [
+    "test_fixed_policy_allows_only_actual_collector_and_two_existing_feed_blobs",
+    "test_absolute_script_outside_cwd_installs_before_target_import_and_preserves_argv",
+    "test_inline_prepare_returns_identical_old_feed_and_preserves_every_reader",
+    "test_repeated_prepare_is_idempotent_and_rechecks_pinned_guard_bytes",
+    "test_unapproved_module_and_missing_module_fail_before_runtime_import",
+    "test_wrong_or_cached_foreign_feed_path_is_rejected_before_install_or_target",
+    "test_wrong_safety_head_or_location_never_runs_the_old_target",
+    "test_all_three_source_byte_pins_are_checked_before_executing_changed_source",
+    "test_target_exit_codes_are_preserved_and_private_exception_payloads_are_not_printed",
+    "test_no_wrapper_key_network_reader_parser_or_budget_access_and_safe_install_failure"
+  ],
+  "verification": {
+    "published_test_blob_exact_readback": true,
+    "whole_file_short_string_scan": {
+      "invalid": [],
+      "endState": "code",
+      "lines": 327
+    },
+    "python_parse_executed": false,
+    "tests_executed": false,
+    "proper_missing_module_red_observed": false
+  },
+  "scope": {
+    "tests_only": true,
+    "runtime_authored": false,
+    "workflow_or_ref_or_PR_mutation": false,
+    "no_dispatch": true,
+    "no_key_or_private_data_read": true,
+    "no_provider_GET": true,
+    "no_process_started": true
+  },
+  "next_action": "Root stages this final boundary test blob beside the unchanged 23 guard tests in existing PR41, observes actual missing-entry-module RED, and only then authors the entry runtime. Root owns all workflow integration."
+}
