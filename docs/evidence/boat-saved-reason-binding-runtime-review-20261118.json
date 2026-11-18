@@ -1,0 +1,92 @@
+{
+  "schema": "RACE_AI_SAVED_REASON_BINDING_RUNTIME_REVIEW_20261118_V1",
+  "recorded_at_utc": "2026-11-18 01:31:55 UTC",
+  "base_head": "a350a1b3420c7abd194cd671a34c797faee710e1",
+  "base_tree": "3aa57da67af953c35cf3049056b49cae74e9bda8",
+  "proper_RED": {
+    "run_id": 44214541265,
+    "job_id": 134500961933,
+    "total": 215,
+    "existing_passed": 206,
+    "failures": 8,
+    "errors": 1,
+    "seconds": 102.186,
+    "cause": "Missing diagnostic module only; pure loader ImportError and eight controlled I/O setUp assertions.",
+    "syntax_error": false,
+    "fixture_checkout_success": true
+  },
+  "files": [
+    {
+      "path": "scripts/boat_saved_reason_binding_audit.py",
+      "sha": "307e83bd20f19cb473323dbef003d2abd518fcf4"
+    },
+    {
+      "path": ".github/workflows/boat-owner-national-p1-matrix.yml",
+      "sha": "5fd35be7433ea84e1b91660e834151520b0f7762"
+    }
+  ],
+  "pure_runtime": {
+    "blob": "88eaf4f0c29296280c38fd7efc9f0abe2d249a0e",
+    "handoff": "df6c17063b22f2bccac3550e2cccacb481e26408",
+    "prefix_byte_identical": true
+  },
+  "immutable_tests": [
+    {
+      "path": "tests/test_boat_saved_reason_binding_audit.py",
+      "sha": "6ea5cd4071628d91c3a5658396f6d37c9dd960e2",
+      "methods": 12
+    },
+    {
+      "path": "tests/test_boat_saved_reason_binding_io.py",
+      "sha": "541345ac2d4cfd43246fcf5acfece64b57c4bb41",
+      "methods": 8
+    }
+  ],
+  "independent_review": {
+    "reviewer": "/root/review_a74_pins",
+    "status": "CLEAR",
+    "workflow_V8_conditions": 8,
+    "blockers_fixed": [
+      "exact environment repository ID string before private callback",
+      "tracked source/code compared against HEAD to include staged and unstaged differences"
+    ],
+    "Python_execution_claimed": false
+  },
+  "authenticated_reader": {
+    "fixed_existing_checkout": "owner-source",
+    "source_sha": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "guard_blob": "e6db8d720aa151940e01f377831a5884eb4b2ba9",
+    "feed_blob": "9bb3bf0d1e48c9b3e3ba8e42030d5a05b681f900",
+    "same_existing_parser_pins": true,
+    "normal_process_scoped_GitHub_auth": true,
+    "key_location": "Actions only",
+    "remote_commit_and_push_methods_blocked": true,
+    "outputs": "Fixed origin/status/effect flags, generation/snapshot metadata and 12 counts per side. No row, hash value, time value, URL, key or exception output."
+  },
+  "workflow_scope": {
+    "old_tests_only_workflow_entire_body_exact_prefix": true,
+    "final_optional_stdout_step_added": 1,
+    "old_fixed_r0_step_bytes_unchanged": true,
+    "new_job_definitions": 0,
+    "new_workflow_inputs": 0,
+    "new_permissions": 0,
+    "new_runners": 0,
+    "new_timeouts": 0,
+    "new_schedules": 0,
+    "new_prefix_or_marker_paths": 0,
+    "new_artifact_uploads": 0,
+    "core_conclusion_changed": false
+  },
+  "side_effects": {
+    "source_GET": 0,
+    "forecasts_generated": 0,
+    "observations_reconciled": 0,
+    "originals_modified": false,
+    "publication": false,
+    "model_or_weight_change": false
+  },
+  "actual_private_diagnostic_counts": null,
+  "fresh_CI": "PENDING",
+  "actual_binding_repair_proven": false,
+  "goal_complete": false
+}

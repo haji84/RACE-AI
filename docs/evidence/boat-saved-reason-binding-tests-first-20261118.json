@@ -1,0 +1,58 @@
+{
+  "schema": "RACE_AI_SAVED_REASON_BINDING_TESTS_FIRST_PLAN_20261118_V1",
+  "created_at_utc": "2026-11-18 01:15:49 UTC",
+  "base_main": "e1c55723bcffb3941b7c6cef370cc42b1f4dcfb6",
+  "base_tree": "60cf2ae48a6bd6c04536a40c612a8de59abe97f3",
+  "existing_pr": 43,
+  "test_files": [
+    {
+      "path": "tests/test_boat_saved_reason_binding_audit.py",
+      "blob": "6ea5cd4071628d91c3a5658396f6d37c9dd960e2",
+      "methods": 12,
+      "original_blob": "2c652533c4aa18d173ec2b3f8fa5d9b2b5d77037",
+      "exact_delta": "One loader path owner-source -> reason-binding-source before initial RED; expected guard fingerprint and every method/assertion unchanged."
+    },
+    {
+      "path": "tests/test_boat_saved_reason_binding_io.py",
+      "blob": "541345ac2d4cfd43246fcf5acfece64b57c4bb41",
+      "methods": 8
+    }
+  ],
+  "pure_contract_packet": "cfcf994595b441e46eda160030193edc9ce2c812",
+  "workflow_tests_only_blob": "2efcc9860db3dc035a49078f9725579609ed0f32",
+  "existing_EFF_fixture_unchanged": true,
+  "new_unit_fixture": {
+    "ref": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "path": "reason-binding-source",
+    "sparse_file": "race_ai/boat_saved_model_view.py",
+    "blob": "e6db8d720aa151940e01f377831a5884eb4b2ba9",
+    "public_code_only": true
+  },
+  "intended_runtime": "Main-only fixed-context read of the existing AES base through pinned F.current_view, then immutable count diagnosis. No private plaintext output/disk artifact; no model/runtime preparation, source GET, forecast, commit or push.",
+  "intended_optional_step": "Append stdout-only optional step to existing national job after byte-unchanged fixed-r0 step; same existing trusted-main release prefix and audit_source-success guard. No artifact membership or core conclusion change.",
+  "reader": {
+    "existing_push_source": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "guard_blob": "e6db8d720aa151940e01f377831a5884eb4b2ba9",
+    "feed_reader_blob": "9bb3bf0d1e48c9b3e3ba8e42030d5a05b681f900",
+    "key_location": "Actions only"
+  },
+  "unchanged": [
+    "workflow job definitions",
+    "workflow-dispatch inputs",
+    "permissions",
+    "runners",
+    "timeouts",
+    "schedules",
+    "release prefix/marker paths",
+    "fixed M2 target",
+    "fixed r0 helper and step bytes",
+    "EFF/default and Safari source pins",
+    "production guard",
+    "all originals and model weights"
+  ],
+  "runtime_present": false,
+  "private_execution_step_present": false,
+  "proper_RED": "PENDING",
+  "actual_private_base_counts": null,
+  "goal_complete": false
+}

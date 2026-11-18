@@ -1,0 +1,51 @@
+{
+  "schema": "RACE_AI_BB_COMPLETED_OWNER_WITH_VIEW_REJECTION_20261118_V1",
+  "repository": "haji84/RACE-AI",
+  "workflow_run_id": 44170869325,
+  "job_id": 134349278782,
+  "source_sha": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+  "job_conclusion": "success",
+  "job_updated_at": "2026-11-18T00:46:06Z",
+  "producer_logged_finalization": {
+    "logged_at": "2026-11-18T00:45:44.0503996Z",
+    "state": "WORKER_FINALIZED_SOURCE_FREE",
+    "completed_round": 24,
+    "reason": "WORKER_HANDOFF"
+  },
+  "producer_logged_control": {
+    "logged_at": "2026-11-18T00:45:45.7429995Z",
+    "requests_used": 304,
+    "completed_round": 24
+  },
+  "independent_final_AES_verified": false,
+  "all_model_or_cutoff_counts_from_success_labels_inferred": false,
+  "encrypted_view_rejections": {
+    "count": 26,
+    "reason": "SAVED_MODEL_VIEW_RESULT_REASON_VARIANT_BINDING",
+    "first_at": "2026-11-17T20:36:36.6093856Z",
+    "last_at": "2026-11-18T00:45:32.1629014Z",
+    "publication_success_inferred_from_job_green": false
+  },
+  "observed_browser": {
+    "run_id": 44209527528,
+    "saved_day": "2026-11-17",
+    "generation": 423,
+    "Nov18_display_verified": false
+  },
+  "static_trace": {
+    "guard_blob": "e6db8d720aa151940e01f377831a5884eb4b2ba9",
+    "function": "boat_saved_model_view._observations",
+    "lines": [
+      447,
+      448
+    ],
+    "proven": "An input row's own result/rejection reason sidecar fails its active binding before cross-row union.",
+    "actual_stream_or_field_identified": false,
+    "current_transformer_corruption_proven": false
+  },
+  "next_action": "Count-only authenticated AES-base diagnostic in existing Actions; no guard relaxation, history deletion, source acquisition, forecast regeneration or private data export.",
+  "full_day_coverage": false,
+  "all_four_sports": false,
+  "efficacy_proven": false,
+  "goal_complete": false
+}
