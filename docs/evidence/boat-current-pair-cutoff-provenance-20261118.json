@@ -1,0 +1,254 @@
+{
+  "schema": "RACE_AI_A74_CURRENT_PAIR_CUTOFF_SOURCE_PROVENANCE_V1",
+  "repository": "haji84/RACE-AI",
+  "audit_mode": "READ_ONLY_IMMUTABLE_CODE",
+  "source_commit": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+  "closed_owner_run_id": 44218343091,
+  "trigger": {
+    "provenance": "Parent-reported authenticated completed job log; not refetched in this code-only task",
+    "run_id": 44280659186,
+    "job_id": 134720142693,
+    "main_commit": "39fec2df5ab68920d7cd4f0388307b07925409c5",
+    "phase": "PAIR_RESULT_JOIN",
+    "reason": "ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH"
+  },
+  "dependency_resolution": {
+    "workflow": {
+      "path": ".github/workflows/boat-nationwide-ab-one-shot.yml",
+      "blob": "7e130ad6862df7005ec5f15b9595f72fd9972491"
+    },
+    "pr64_commit": "761247bee0209e37b1af6b8885e92cad3e9260a5",
+    "pr72_commit": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+    "fact": "The A74 tree has no official_race_updates.py or official_racelist_adapter.py. Source gh runner appends pr64-reference; current-input module appends pr64 then pr72. Both named parsers exist in pinned pr64 and resolve there under this static namespace order.",
+    "runtime_import_executed": false
+  },
+  "source_flow": [
+    {
+      "path": "race_ai/boat_official_program.py",
+      "blob": "1cfed75add647d77f76936f24be33db0776266c4",
+      "functions": [
+        "_schedule",
+        "parse_program"
+      ],
+      "lines": [
+        82,
+        105,
+        372,
+        382
+      ],
+      "fact": "Selects the dated racelist '締切予定時刻' cell for the requested race; constructs closed_at as day+HH:MM:00+09:00. This is a printed planned closing clock, not observed actual voting close or race start."
+    },
+    {
+      "path": "race_ai/boat_all_model_inputs.py",
+      "blob": "1c1d379ea13d2f191e1360b18f9f003f6ff4e3ae",
+      "functions": [
+        "build_native_inputs"
+      ],
+      "lines": [
+        318,
+        321,
+        405,
+        417
+      ],
+      "fact": "Copies authenticated program.closed_at into native cutoff_at/sales_cutoff_at; requires preview cutoff consistency."
+    },
+    {
+      "path": "race_ai/boat_all_model_cycle.py",
+      "blob": "77bd938e255e85c4c19f01378e050e4efdb889b6",
+      "functions": [
+        "_context",
+        "_schedule"
+      ],
+      "lines": [
+        77,
+        87,
+        343,
+        345
+      ],
+      "fact": "Requires matching program, beforeinfo and context cutoffs; schedule retains program.closed_at."
+    },
+    {
+      "path": "race_ai/all_existing_model_registry.py",
+      "blob": "36010c9f7753d273e763ab7ece6b57c8dc48aaaf",
+      "functions": [
+        "identity"
+      ],
+      "lines": [
+        115,
+        150
+      ],
+      "fact": "P1 boat groups derive race_cutoff_at from native source.cutoff_at or snapshot race.sales_cutoff_at. The separate seller/P0 operational freeze path does not show a P1 cutoff substitution."
+    },
+    {
+      "path": "race_ai/all_existing_model_learning.py",
+      "blob": "15e0eeb1f0ea15de3ccef49e0c60b6f8139d14e4",
+      "functions": [
+        "forecast_pair"
+      ],
+      "lines": [
+        700,
+        719
+      ],
+      "fact": "Copies identity.cutoff_at and identity.race_cutoff_at separately into the sealed pair."
+    },
+    {
+      "path": "race_ai/all_existing_model_pairs.py",
+      "blob": "697bb9807c617d23da50f9d9d88e4c59f8316679",
+      "functions": [
+        "_verify_captured_inputs",
+        "verify_private_pair"
+      ],
+      "lines": [
+        174,
+        183,
+        262,
+        273
+      ],
+      "fact": "Verifies captured native info.race_cutoff_at equals pair.race_cutoff_at and replays the pair. Source code does not support declaring the auditor fallback a proven cause."
+    },
+    {
+      "path": "scripts/github_existing_cycle.py",
+      "blob": "5050704a1ca3a087154b59ccaecbc07b20739d18",
+      "functions": [
+        "observe_due_results",
+        "audit"
+      ],
+      "lines": [
+        827,
+        855,
+        909,
+        910
+      ],
+      "fact": "Result capture calls pinned parse_update(kind='raceresult', entries=None); afterward adds source_url/source_sha256 only. It does not overwrite observation.closed_at with a frozen forecast cutoff. All distinct result captures remain in the journal; latest-per-race is projected separately."
+    },
+    {
+      "path": "race_ai/first_receipt_continuity.py",
+      "blob": "f0fc11e862c6a18f48247b26f6763d3860ba6039",
+      "functions": [
+        "latest_result_observations"
+      ],
+      "fact": "Sorts by aware captured_at and race_id, preserves distinct captures, and projects newest capture per race regardless of pending/settled status. It does not alter closed_at."
+    },
+    {
+      "path": "race_ai/all_existing_model_intake.py",
+      "blob": "56f7310f8a30c72aa223641f35605948bd6e9208",
+      "functions": [
+        "_time",
+        "_legacy_boat",
+        "_ordinary_result"
+      ],
+      "lines": [
+        26,
+        33,
+        40,
+        48,
+        109,
+        123
+      ],
+      "fact": "Legacy conversion copies observation.closed_at. Ordinary join compares its aware instant against info.race_cutoff_at before order-only, pending or special branches; exact mismatch code is ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH."
+    }
+  ],
+  "result_parser": {
+    "commit": "761247bee0209e37b1af6b8885e92cad3e9260a5",
+    "path": "race_ai/official_race_updates.py",
+    "blob": "06ec8fba76767b6a56cd9d26dd7e568fc4b0f0e2",
+    "functions": [
+      "context",
+      "parse_update"
+    ],
+    "lines": [
+      66,
+      97,
+      403,
+      421
+    ],
+    "fact": "Context validates dated links/selected race, reads times[race_no] from the displayed '締切予定時刻' grid and constructs closed_at with explicit +09:00. Framed pending/postponed/no-result outputs retain that grid clock; truly frameless no-data output can lack it. No observed start or voting-close clock is injected."
+  },
+  "equality_and_failure_order": {
+    "comparison": "datetime.fromisoformat of two timezone-aware clocks; exact instant equality",
+    "implications": [
+      "Offset spelling or formatting alone cannot cause this rejection when the instants are equal.",
+      "This reason identifies unequal parsed aware instants with non-null result closed_at at at least one compared join.",
+      "A framed pending or special result can trigger the same mismatch because the cutoff comparison occurs before status branching.",
+      "The reason alone does not reveal the failing race, number of mismatches, result status, time delta, official revision, or parser bug."
+    ],
+    "no_private_clock_values_observed": true
+  },
+  "potential_check_gap": {
+    "status": "UNPROVEN_NOT_CAUSE",
+    "path": "race_ai/official_race_updates.py",
+    "blob": "06ec8fba76767b6a56cd9d26dd7e568fc4b0f0e2",
+    "line": 93,
+    "fact": "Result context checks 13 cells and selected-cell HH:MM but does not explicitly require times[0] text to equal '締切予定時刻'. Pinned racelist parser and A74 program/context parsers do require that label. No retained raw body was inspected, so no actual cell misselection or parsing defect is established.",
+    "comparators": [
+      {
+        "path": "race_ai/official_racelist_adapter.py",
+        "commit": "761247bee0209e37b1af6b8885e92cad3e9260a5",
+        "blob": "329adf1e9b2fd5c822f18e8db51668f3c933d7c9",
+        "line": 163
+      },
+      {
+        "path": "race_ai/boat_official_program.py",
+        "commit": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+        "blob": "1cfed75add647d77f76936f24be33db0776266c4",
+        "line": 100
+      },
+      {
+        "path": "race_ai/boat_observation_context.py",
+        "commit": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+        "blob": "730f18136756d5359e3f24c490919b1d7b5b2f60",
+        "line": 186
+      }
+    ],
+    "parser_change_recommended_as_root_cause": false
+  },
+  "raw_capture_provenance": {
+    "availability": "UNKNOWN_FOR_REQUIRED_MATCHING_BODIES",
+    "composite": {
+      "path": ".github/actions/existing-model-round/action.yml",
+      "blob": "efd9df155bd27db4eaf3da01d4638a3199a78538",
+      "enable_line": 174,
+      "retain_line": 227
+    },
+    "capture": {
+      "path": "race_ai/saved_view_feed.py",
+      "blob": "d208d59b309f2ad01acd12509e62fd0ee79892b4",
+      "function": "retain_capture",
+      "lines": [
+        385,
+        389
+      ]
+    },
+    "facts": [
+      "The composite enables RACE_AI_SAVED_VIEW_CAPTURE for result collection.",
+      "Existing code attempts to privately retain successful response bytes and a hash-bound receipt before result parsing; existing retain-captures then attempts encrypted vault retention.",
+      "Configuration and attempts do not prove the particular original program/beforeinfo/result HTML bodies are available in the immutable authenticated archive. Missing matching bodies remain UNKNOWN."
+    ],
+    "raw_HTML_or_private_payload_read": false
+  },
+  "next_evidence_boundary": {
+    "mode": "Separate Actions-only aggregate diagnostic; implementation owned by other agents",
+    "permitted_evidence": "Authenticated exact saved pair/native cutoff bindings, latest-result status and mismatch counts; replay matching retained raw captures only if their authenticated hashes/receipts are available. Report fixed aggregate counts and safe codes only.",
+    "interpretation": "If persisted clocks reproduce the dated selected cells but the independently retained grids differ, report different captured planned grids; do not infer observed actual close or an authorized pre-close revision. If a saved clock fails exact raw replay/structural binding, report a producer/parser binding inconsistency. Missing raw evidence cannot distinguish these causes.",
+    "must_not_change": [
+      "source acceptance predicates",
+      "original forecast/result clocks or bodies",
+      "pending/special/settled semantics",
+      "existing mismatch refusal",
+      "cohort or qualification authority"
+    ]
+  },
+  "limits": {
+    "actual_root_cause": "UNKNOWN",
+    "official_schedule_revision_proven": false,
+    "parser_bug_proven": false,
+    "clock_repair_performed": false,
+    "promotion_allowed": false,
+    "qualification_proven": false,
+    "owner_keys_read": false,
+    "private_values_exported": false,
+    "refs_changed": false,
+    "runtime_changed": false,
+    "new_source_provider_HTTP_requests": 0
+  }
+}

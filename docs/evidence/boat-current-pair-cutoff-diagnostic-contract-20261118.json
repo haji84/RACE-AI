@@ -1,0 +1,84 @@
+{
+  "schema": "RACE_AI_CURRENT_PAIR_LATEST_CUTOFF_AGGREGATE_CONTRACT_V1",
+  "repository": "haji84/RACE-AI",
+  "base": {
+    "main": "39fec2df5ab68920d7cd4f0388307b07925409c5",
+    "pair_blob": "52124f828ee2e7f759ea704f1836a110279449c3",
+    "tests_blob": "4e95e59b43d6b044c91e9c7e7f522db199f5a933"
+  },
+  "actual_failure": {
+    "run_id": 44280659186,
+    "job_id": 134720142693,
+    "logged_at": "2026-11-18T10:04:45.4404086Z",
+    "phase": "PAIR_RESULT_JOIN",
+    "reason": "ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH",
+    "specific_original_or_direction": "UNKNOWN"
+  },
+  "api": {
+    "new_public": "current_pair_cutoff_diagnostic(error) -> fresh plain FLAT dictionary with exact12 keys below.",
+    "private_helper": "_current_pair_cutoff_counts(first, latest, *, parse_time) -> complete flat12 inventory or raises; parse_time is the existing A74 all_existing_model_intake._time used by _ordinary_result.",
+    "public_fields": [
+      "current_pair_cutoff_status",
+      "current_pair_cutoff_total_record_count",
+      "current_pair_cutoff_total_race_count",
+      "current_pair_cutoff_equal_record_count",
+      "current_pair_cutoff_earlier_record_count",
+      "current_pair_cutoff_later_record_count",
+      "current_pair_cutoff_missing_observation_record_count",
+      "current_pair_cutoff_no_closed_at_record_count",
+      "current_pair_cutoff_equal_race_count",
+      "current_pair_cutoff_earlier_race_count",
+      "current_pair_cutoff_later_race_count",
+      "current_pair_cutoff_uncomparable_race_count"
+    ],
+    "available_status": "LATEST_PRODUCER_JOURNAL_CUTOFF_COUNTS_UNQUALIFIED",
+    "unavailable_status": "UNAVAILABLE",
+    "default": "UNAVAILABLE plus all11count fields None. No schema field or other public output keys.",
+    "counter_type_bound": "Every available count is exact int, notbool,0..1_000_000.",
+    "carrier": "Keep exactly the existing exception attribute _current_pair_diagnostic. On only the actual exact-cutoff join failure, add its safe nested key cutoff_inventory containing SAME flat12 map. No second exception attribute,raw first/latest,clocks,IDs,rows,keys,originalerror or callbacks are attached.",
+    "projector_gate": "Before reading cutoff_inventory require type(error) is ValueError; exacttuple args length1 with exactstr CURRENT_PAIR_AUDIT_REJECTED; attached diagnostic exactdict; exactstr phase PAIR_RESULT_JOIN and exactstr reason ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH. Noncarrier/subclass/foreignfailure/unattached cases return default without inspecting private properties/values.",
+    "projection": "Only exactdict inventory with exact12 string keys and recognized exactstr status is eligible. Extra/missing/dynamic keys,dict subclasses,malformed/negative/too-large/bool/float/nonfinite counts or incoherence ->entiredefault. UNAVAILABLE input must have11None. No str/repr/arbitrary class names,trace/cause/context/notes/rawvalue conversion. Detached copies only.",
+    "coherence": [
+      "Available total_record_count equals sum equal/earlier/later/missing_observation/no_closed_at record counts.",
+      "0<=total_race_count<=total_record_count; total_record_count is0 iff total_race_count is0.",
+      "Each directional race count is<=corresponding record count and<=total_race_count; it is0 iff that record category is0.",
+      "uncomparable_race_count<=missing_observation_record_count+no_closed_at_record_count and<=total_race_count; it is0 iff that combined record category is0.",
+      "Directional race sets may overlap when multiple model originals for one race retain different cutoffs. Do NOT require race-count sum==total_race_count.",
+      "Every race belongs to at least one category: total_race_count<=sum three directional race counts+uncomparable_race_count. Each directional race count<=total_race_count-uncomparable_race_count.",
+      "Coherent empty inventory returns available zero counts; mismatch_count>0 is NOT required by this diagnostic projector. It is an inventory, not an admission test."
+    ]
+  },
+  "counting_semantics": {
+    "first": "Existing unique (sport,race,stage,cell) first-original descriptors, already admitted via native AES/receipts. Count len(first) records; dedup descriptor['race'] for races. Archive repetitions are already collapsed.",
+    "expected_cutoff": "descriptor['info']['race_cutoff_at'], exactly the unchanged _ordinary_result comparison. descriptor['cutoff_at'] is model/input cutoff and must NOT substitute.",
+    "observation": "Existing selected latest producer-journal observation for that race after all original result receipts,journals,revision checks. No new reads or older-row selection.",
+    "clocks": "Use exactly the existing frozen A74 parser on original expected cutoff and non-null result observation.closed_at. Awareness/validity failure makes wholeinventory unavailable. Equal aware instants with different textual timezone spellings count equal.",
+    "direction": "Earlier/later means observation.closed_at < or > the original info.race_cutoff_at. Export no times,dates,offsets,elapsed values,min/max or dynamic buckets.",
+    "categories": "Missing observation ->missing_observation_record_count. Present observation with missing/None closed_at ->no_closed_at_record_count. Otherwise equal/earlier/later. Each record counts once; race categories are sets. uncomparable races are union of missing/no_closed.",
+    "provenance": "Status explicitly means latest authenticated producer-journal cutoff comparison, UNQUALIFIED. Existing revisions retain only digests and latest rows; no older-cutoff/revision history proof or source-causation claim is invented."
+  },
+  "integration": {
+    "computation_gate": "Inside _audit ONLY when the original JOIN loop raises exact builtin ValueError with exacttuple singleexactstr ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH. All pair and RESULT crypto,receipt,clock/journal/revision validation must have completed first. Other exceptions do not compute inventory.",
+    "implementation_shape": "Wrap only the existing original join loop in a catch that,for exact cutoff failure, computes aggregate from unchanged fully validated first/latest, catches diagnostic-helper exceptions to defaultUNAVAILABLE, then bare-reraises the original. _ordinary_result and _legacy_boat admission calls/guards remain unmodified; count all descriptors in a separate diagnostic pass despite first-abort.",
+    "owned_context": "Only sanitized flat12 inventory is placed under existing private _diagnostic context cutoff_inventory and copied/projected into existing failure carrier under the same key. It must not affect phase/reason classification.",
+    "unchanged_public": "audit_current_pairs signature, exact builtin ValueError('CURRENT_PAIR_AUDIT_REJECTED') args/str/fromNone, existing current_pair_failure_diagnostic exact2fields and CODE BYTE IDENTITY, all normal HOLD success-output dictionaries,counts/qualification flags remain unchanged.",
+    "helper_failure": "Diagnostic parsing/counting errors must never replace,hide,qualify or retry the original cutoff rejection. Return UNAVAILABLE/11null, not partial orzero counts.",
+    "caller_scope": "Root owns only pair hash rebind plus one additional new projector update in existing caller; no new job/inputs/perms/timeouts/schedules/providerreads/artifacts/sourcecodec changes."
+  },
+  "tdd": {
+    "independent_author": "native_driver_500",
+    "expected_tests": "Append5meaningful methods preserving all29existing methods/fixtures. Real AES2model/1race failure; direct allcategory/clockequivalence/differentoriginalcutoff cases; hostilecarrier/map/type/coherence projection; helper failure retainsoriginalrejection; normal/noncutoff no computation and byte-identical outputs.",
+    "runtime_before_root_actual_red": false
+  },
+  "restrictions": [
+    "No result roster/cutoff/status/source/clock guard relaxation",
+    "No new qualification,denominator,settlement fallback,earlier-revision selection,source/model/weight/original repair",
+    "No IDs,raw maps,clocks,URLs,keys,Top8,source bodies or private exceptionmessages in outputs",
+    "No remote refs/workflow/source mutation by author before root integration"
+  ],
+  "status": "Contract only; waiting independent tests and root-confirmed actual RED before runtime.",
+  "code_changed": false,
+  "refs_changed": false,
+  "provider_requests": 0,
+  "key_access": false
+}
