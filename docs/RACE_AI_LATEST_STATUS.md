@@ -1,10 +1,10 @@
-# RACE-AI 最新状況 — 2026-11-18 10:12 UTC
+# RACE-AI 最新状況 — 2026-11-18 10:51 UTC
 
 **GOALは未達。** この文書は現在の事実だけをまとめる。従来の全文は[履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261118_0928.md)へ、同じGit blobのまま保全した。実予想原本・モデル重み・元の判定を変更しない。
 
 ## 実行環境・HEAD・保全
 
-- main実装: `39fec2df5ab68920d7cd4f0388307b07925409c5`、tree `927eafc67fbe3ebc4290518c4879c1085fa8e193`。既存PR32の通常mergeでtested tree一致。359件/127.452秒、15checks＝8success/7skip/失敗0。
+- main実装: `653ec7544410e36e4c6002be077f1addf7d950d3`、tree `b67a5d42b596d2edf1c51f7e4ac571d0a5e7ad79`。既存PR31の通常mergeでtested tree一致。364件/199.335秒、15checks＝8success/7skip/失敗0、独立review CLEAR。
 - source: `c979aeb678538d99e277f26726047dccbdc982af`、tree `766b8a3ea5d9d3b85e0f399523ede2eb8f1b688b`。PR34の通常mergeでtested tree一致。877/38/165/46件等が成功。mainの現行参照は同期済み。
 - 選択実行環境はfailed。実コマンド再試行も利用不可。公開WebのSign in表示ページからrepo/READMEのread成功（cacheでありHEAD証明には使わない）。別にGitHub管理接続の認証済みread・write・通常保護mergeは実成功しており、ローカルCLI認証の検証とは区別する。キーはActions内だけ。
 - 元offline変更PR70 `b7380fe6a377e6ccf2b96331f2126c52549bbe17`、PR292 `daae4c10167224b7730006d8ada5ade398aaa64b`は、08:40:39 UTC正規APIが両方422 No commit foundで**未復元**。別環境のファイル移転を仮定しない。
@@ -16,15 +16,15 @@
 
 round4/19のALL_MODEL ZIPが欠けるため `HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED`。締切適格数0は全体HOLDの監査結果であり、全行が締切後という証拠ではない。旧実行の正規完了ログではr4はcontexts=0/generated=0の明示分岐、r19は保持locator未選択のartifact metadata/ZIP読取404だった。r4の入力網羅性、r19の対象・404根因は不明で、HOLDを解除しない。[各巡の固定証拠](evidence/boat-a74-round04-round19-source-facts-20261118.json)。以前のr0=660、A74 r0=585、reused285、retained264/waiting924などは対象が異なり、単純合算しない。[実独立監査](evidence/boat-main-sync-closed-a74-actual-20261118.json)。
 
-10:17 UTC現在、後続run44252479726は旧A74のまま1〜7巡success/8巡実行中/failed0。停止・hotswap・counter resetをしていない。cacheと固定理由診断は次の正規source workerからで、実速度改善・T15〜10全件充足は未確認。
+10:52 UTC現在、後続run44252479726は旧A74のまま1〜9巡success/10巡実行中/failed0。停止・hotswap・counter resetをしていない。cacheと固定理由診断は次の正規source workerからで、実速度改善・T15〜10全件充足は未確認。
 
 ## ペア監査の実際の拒否理由
 
-固定理由一覧に不足していた12定数を補い、359件の実CIを再通過した。実再監査44280659186/job134720142693はsuccess、認証済み原本との結合で **`PAIR_RESULT_JOIN / ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH`** を確認した。予想に保存した締切と結果journalの`closed_at`が一致しない。coreの23ZIP/513行一致と4/19欠落HOLDは維持される。ペア件数・適格分母はnullのまま。[正規ログの固定理由証拠](evidence/boat-current-pair-cutoff-rejection-20261118.json)。
+固定理由の補完後、現行の拒否と全受入条件を維持した12項目の締切診断をPR31で反映した。tests-only REDは364件/128.768秒・想定5assert失敗/errors0、実装後は364件/199.335秒すべて成功。通常merge後の実再監査44287428057/job134743588631はsuccess。
 
-コード追跡では、両方とも公式ページの「締切予定時刻」を入力としている。結果の後の予定時刻改定か読取不具合か、実原因はまだ未確定。予想締切・結果原本を書き換えず、既に認証したメモリ上のレコードから不一致件数/方向だけを診断する変更を既存PR31で実装した。先行364件/128.768秒は未実装APIの想定5assert失敗/errors0、既存359件と新正常系は成功。新実装の最終CI・実原本での追加件数は未確認。現行の拒否、正常HOLD、cutoff/roster/結果/保存時刻の全条件は維持する。[固定契約](evidence/boat-current-pair-cutoff-diagnostic-contract-20261118.json)。
+正規完了ログ10:48:10 UTCでは、診断対象のfirst-originalは **48レース/672モデルrecord**。42レース588件は締切一致、2レース28件は結果側の予定締切が後、4レース56件は結果観測なし。前倒し0・締切未記録0。これは全132レースの網羅・saved-view P1の513行・適格分母と異なるscopeで、合算しない。元の `PAIR_RESULT_JOIN / ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH` とcoreの4/19欠落HOLDは維持。正式ペア件数/G8分母はnull。[実件数証拠](evidence/boat-current-pair-cutoff-inventory-actual-20261118.json)。
 
-固定vault indexには当該runのSOURCE_CAPTURES参照26件があるが、必要なraw本文の認証済み存在はUNKNOWN。A74の既存reader・対応8groupのraw source SHA参照・元parserを使う[再解析の読取手順](evidence/boat-current-pair-raw-replay-recipe-20261118.json)を保存した。metadataの宣言値・重複captureを実原本件数や再現成功にしない。
+次は2レースの保存本文から予定時刻表を調べる。当時のproducer parserはデータ形状だけでは断定できないため、固定A74 PROGRAM inspectorと固定pr64 RESULT inspectorを文書の役割ごとに使う。保存時計と固定検査器の一致/相違だけを報告し、当時のparser不具合・公式改定の正当性・実際の発売終了を断定しない。既存A74 vault readerで原本を認証し、本文が未取得か認証できなければHOLD。[読取手順](evidence/boat-current-pair-raw-replay-recipe-20261118.json)。参照26件・185MBのmetadata宣言は認証済み本文の存在証明ではない。新raw実装・実認証はまだ未確認。
 
 ## 画面・4競技・映像・精度
 
