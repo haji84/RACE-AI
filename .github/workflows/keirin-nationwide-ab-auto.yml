@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5'
+          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5' 'cryptography>=44,<48'
           python -m scripts.keirin_real_public_source_smoke > "$RUNNER_TEMP/keirin-real-source-safe.json"
           cat "$RUNNER_TEMP/keirin-real-source-safe.json" >> "$GITHUB_STEP_SUMMARY"
 
