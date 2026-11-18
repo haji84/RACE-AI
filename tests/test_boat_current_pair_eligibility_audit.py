@@ -837,5 +837,229 @@ class CurrentPairJoinReasonCatalogTests(unittest.TestCase):
         self.assertEqual(result['current_pair_qualifying_g8_count'], 0)
         self.assertIsNone(result['current_pair_qualifying_g8_denominator'])
 
+
+class CurrentPairCutoffDiagnosticTests(unittest.TestCase):
+    """Cutoff-only counts explain an existing rejection without accepting it."""
+    FIELDS=(
+        'current_pair_cutoff_status','current_pair_cutoff_total_record_count',
+        'current_pair_cutoff_total_race_count','current_pair_cutoff_equal_record_count',
+        'current_pair_cutoff_earlier_record_count','current_pair_cutoff_later_record_count',
+        'current_pair_cutoff_missing_observation_record_count','current_pair_cutoff_no_closed_at_record_count',
+        'current_pair_cutoff_equal_race_count','current_pair_cutoff_earlier_race_count',
+        'current_pair_cutoff_later_race_count','current_pair_cutoff_uncomparable_race_count')
+
+    def projector(self):
+        function=getattr(audit,'current_pair_cutoff_diagnostic',None)
+        self.assertTrue(callable(function),'safe cutoff-only projector is missing')
+        return function
+
+    def counter(self):
+        function=getattr(audit,'_current_pair_cutoff_counts',None)
+        self.assertTrue(callable(function),'private cutoff-only aggregate helper is missing')
+        return function
+
+    def unavailable(self):
+        return {key:('UNAVAILABLE' if key==self.FIELDS[0] else None) for key in self.FIELDS}
+
+    def available(self,**values):
+        result={key:0 for key in self.FIELDS}
+        result[self.FIELDS[0]]='LATEST_PRODUCER_JOURNAL_CUTOFF_COUNTS_UNQUALIFIED'
+        result.update({'current_pair_cutoff_'+key:value for key,value in values.items()})
+        return result
+
+    def carrier(self,inventory,*,phase='PAIR_RESULT_JOIN',
+                reason='ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH'):
+        error=ValueError('CURRENT_PAIR_AUDIT_REJECTED')
+        error._current_pair_diagnostic=dict(current_pair_failure_phase=phase,
+            current_pair_failure_reason=reason,cutoff_inventory=inventory)
+        return error
+
+    def test_actual_aes_two_models_one_race_cutoff_rejection_has_only_safe_counts(self):
+        from race_ai.all_existing_model_learning import fit
+        for direction in ('earlier','later'):
+            with self.subTest(direction=direction):
+                fixture=CurrentPairFailureDiagnosticTests.fixture(self)
+                fixture.set_training(fit(observed_records(synthetic=False),now=TRAIN_NOW,
+                    allow_source=lambda *_:True,allow_training=lambda *_:True))
+                fixture.pairs(1,both_models=True)
+                pending=fixture.result_observation(pending=True)
+                settled=fixture.result_observation()
+                sign=-1 if direction=='earlier' else 1
+                settled['closed_at']=(datetime.fromisoformat(settled['closed_at'])+
+                                      timedelta(seconds=sign)).isoformat()
+                fixture.results(1,[pending]);fixture.results(2,[pending,settled])
+                originals=deepcopy((fixture.raws[700],fixture.raws[800],fixture.metas[700],fixture.metas[800]))
+                fixture.calls.clear()
+                error,old=CurrentPairFailureDiagnosticTests.rejected(self,fixture.audit)
+                self.assertEqual(old,dict(current_pair_failure_phase='PAIR_RESULT_JOIN',
+                    current_pair_failure_reason='ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH'))
+                self.assertEqual(set(vars(error)),{'_current_pair_diagnostic'})
+                self.assertEqual(str(error),'CURRENT_PAIR_AUDIT_REJECTED')
+                report=self.projector()(error)
+                expected=self.available(total_record_count=2,total_race_count=1,
+                    **{direction+'_record_count':2,direction+'_race_count':1})
+                self.assertEqual(report,expected)
+                self.assertEqual(error._current_pair_diagnostic['cutoff_inventory'],expected)
+                self.assertEqual(audit.current_pair_failure_diagnostic(error),old)
+                self.assertEqual((fixture.raws[700],fixture.raws[800],fixture.metas[700],fixture.metas[800]),originals)
+                self.assertEqual(len(fixture.calls),len(set(fixture.calls)))
+                self.assertEqual(sorted(route for route in fixture.calls if route.endswith('/zip')),
+                    ['actions/artifacts/700/zip','actions/artifacts/800/zip',
+                     'actions/artifacts/900/zip','actions/artifacts/901/zip'])
+                public=json.dumps(report)
+                for private in ('2030-04-01','20300401-24-01','PRIVATE_RESULT_SENTINEL',
+                                'https://','roster','ordered_top3'):
+                    self.assertNotIn(private,public)
+
+    def test_direct_inventory_counts_instants_records_and_overlapping_race_sets(self):
+        from race_ai.all_existing_model_intake import _time
+        counter=self.counter()
+        first={}
+        def record(race,cell,cutoff):
+            first[('boat',race,'P1',cell)]=dict(race=('boat',race),
+                record_sha256='d'*64,artifact_id=800,cutoff_at='2030-04-01T09:45:00Z',
+                info=dict(race_id=race,race_cutoff_at=cutoff,roster={str(n):str(n) for n in range(1,7)}))
+        record('20300401-24-01','one','2030-04-01T10:00:00Z')
+        record('20300401-24-01','two','2030-04-01T10:01:00Z')
+        record('20300401-24-02','one','2030-04-01T10:00:00Z')
+        record('20300401-24-03','one','2030-04-01T10:00:00Z')
+        record('20300401-24-04','one','2030-04-01T10:00:00Z')
+        record('20300401-24-05','one','2030-04-01T10:00:00Z')
+        latest={
+            '20300401-24-01':dict(closed_at='2030-04-01T10:00:00Z'),
+            '20300401-24-02':dict(closed_at='2030-04-01T19:00:00+09:00'),
+            '20300401-24-03':dict(closed_at='2030-04-01T10:01:00Z'),
+            '20300401-24-05':dict(closed_at=None),
+            '20300401-24-12':dict(closed_at='PRIVATE_UNRELATED_RESULT')}
+        before=deepcopy((first,latest))
+        expected=self.available(total_record_count=6,total_race_count=5,
+            equal_record_count=2,earlier_record_count=1,later_record_count=1,
+            missing_observation_record_count=1,no_closed_at_record_count=1,
+            equal_race_count=2,earlier_race_count=1,later_race_count=1,uncomparable_race_count=2)
+        result=counter(first,latest,parse_time=_time)
+        self.assertEqual(result,expected)
+        self.assertEqual((first,latest),before)
+        self.assertEqual(self.projector()(self.carrier(result)),expected)
+        self.assertGreater(result['current_pair_cutoff_equal_race_count']+
+            result['current_pair_cutoff_earlier_race_count']+
+            result['current_pair_cutoff_later_race_count']+
+            result['current_pair_cutoff_uncomparable_race_count'],
+            result['current_pair_cutoff_total_race_count'])
+        latest['20300401-24-05']={}
+        self.assertEqual(counter(first,latest,parse_time=_time),expected)
+        empty=self.available()
+        self.assertEqual(counter({}, {},parse_time=_time),empty)
+        self.assertEqual(self.projector()(self.carrier(empty)),empty)
+
+    def test_projector_rejects_unsafe_or_incoherent_attachments_without_private_values(self):
+        project=self.projector()
+        good=self.available(total_record_count=2,total_race_count=1,later_record_count=2,later_race_count=1)
+        error=self.carrier(deepcopy(good))
+        first=project(error);self.assertEqual(first,good)
+        first['current_pair_cutoff_later_record_count']=999
+        self.assertEqual(project(error),good)
+        self.assertIsNot(project(error),project(error))
+        self.assertEqual(set(project(error)),set(self.FIELDS))
+        touched=[]
+        class PrivateCount:
+            def __str__(self):touched.append('str');raise AssertionError('private count read')
+            def __repr__(self):touched.append('repr');raise AssertionError('private count read')
+            def __bool__(self):touched.append('bool');raise AssertionError('private count read')
+            def __int__(self):touched.append('int');raise AssertionError('private count read')
+        class MapSubclass(dict):pass
+        class ErrorSubclass(ValueError):pass
+        variants=[
+            dict(good,current_pair_cutoff_total_record_count=True),
+            dict(good,current_pair_cutoff_total_record_count=-1),
+            dict(good,current_pair_cutoff_total_record_count=1_000_001),
+            dict(good,current_pair_cutoff_total_record_count=2.0),
+            dict(good,current_pair_cutoff_total_record_count=float('nan')),
+            dict(good,current_pair_cutoff_total_record_count=PrivateCount()),
+            dict(good,current_pair_cutoff_status='PRIVATE_STATUS'),
+            dict(good,current_pair_cutoff_equal_record_count=1),
+            dict(good,current_pair_cutoff_total_race_count=3),
+            dict(good,current_pair_cutoff_later_race_count=0),
+            dict(good,current_pair_cutoff_later_race_count=2),
+            dict(good,current_pair_cutoff_uncomparable_race_count=1),
+            dict(good,PRIVATE_PAYLOAD=PrivateCount()),MapSubclass(good),None,[],
+        ]
+        missing=dict(good);missing.pop('current_pair_cutoff_total_race_count');variants.append(missing)
+        bad_unavailable=self.unavailable();bad_unavailable['current_pair_cutoff_equal_record_count']=0
+        variants.append(bad_unavailable)
+        for index,inventory in enumerate(variants):
+            with self.subTest(inventory=index):
+                self.assertEqual(project(self.carrier(inventory)),self.unavailable())
+        for index,foreign in enumerate((
+                self.carrier(good,phase='PAIR_SCOPE'),
+                self.carrier(good,reason='CURRENT_PAIR_AUDIT_REJECTED'),
+                ValueError('CURRENT_PAIR_AUDIT_REJECTED'),RuntimeError('CURRENT_PAIR_AUDIT_REJECTED'),
+                ErrorSubclass('CURRENT_PAIR_AUDIT_REJECTED'))):
+            with self.subTest(carrier=index):
+                self.assertEqual(project(foreign),self.unavailable())
+        self.assertEqual(project(self.carrier(self.unavailable())),self.unavailable())
+        self.assertEqual(touched,[])
+        self.assertNotIn('PRIVATE',json.dumps(project(self.carrier(good))))
+
+    def test_inventory_is_lazy_and_helper_failure_preserves_original_cutoff_rejection(self):
+        self.counter();project=self.projector()
+        fixture=CurrentPairFailureDiagnosticTests.fixture(self)
+        with patch.object(audit,'_current_pair_cutoff_counts',
+                side_effect=AssertionError('normal output must not compute diagnostics')) as counter:
+            ordinary=fixture.audit()
+        counter.assert_not_called()
+        self.assertEqual(ordinary['current_pair_audit_status'],'HOLD_G8_UNQUALIFIED')
+        roster=deepcopy(fixture.settled)
+        rows=roster['data']['results']
+        rows[0]['racer_registration_id'],rows[1]['racer_registration_id']=(
+            rows[1]['racer_registration_id'],rows[0]['racer_registration_id'])
+        fixture.results(2,[fixture.pending,roster])
+        with patch.object(audit,'_current_pair_cutoff_counts',
+                side_effect=AssertionError('other refusal must not compute diagnostics')) as counter:
+            error,reason=CurrentPairFailureDiagnosticTests.rejected(self,fixture.audit)
+        counter.assert_not_called()
+        self.assertEqual(reason['current_pair_failure_reason'],'ALL_MODEL_INTAKE_RESULT_REGISTERED_ROSTER_MISMATCH')
+        self.assertEqual(project(error),self.unavailable())
+        cutoff=deepcopy(fixture.settled)
+        cutoff['closed_at']=(datetime.fromisoformat(cutoff['closed_at'])+timedelta(seconds=1)).isoformat()
+        fixture.results(2,[fixture.pending,cutoff])
+        with patch.object(audit,'_current_pair_cutoff_counts',
+                side_effect=RuntimeError('PRIVATE_HELPER_FAILURE https://private.invalid/key')) as counter:
+            error,reason=CurrentPairFailureDiagnosticTests.rejected(self,fixture.audit)
+        self.assertEqual(counter.call_count,1)
+        self.assertEqual(reason,dict(current_pair_failure_phase='PAIR_RESULT_JOIN',
+            current_pair_failure_reason='ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH'))
+        self.assertEqual(project(error),self.unavailable())
+        self.assertEqual(str(error),'CURRENT_PAIR_AUDIT_REJECTED')
+        self.assertEqual(set(vars(error)),{'_current_pair_diagnostic'})
+        self.assertNotIn('PRIVATE_HELPER_FAILURE',json.dumps(error._current_pair_diagnostic))
+
+    def test_normal_pending_special_settled_input_only_and_absent_outputs_stay_unannotated(self):
+        fixture=CurrentPairFailureDiagnosticTests.fixture(self)
+        special=deepcopy(fixture.settled);special['data']['status']='special'
+        for state,row in (('pending',fixture.pending),('special',special),('settled',fixture.settled)):
+            with self.subTest(state=state):
+                fixture.results(2,[row])
+                result=fixture.audit()
+                self.assertEqual(result['current_pair_audit_status'],'HOLD_G8_UNQUALIFIED')
+                self.assertEqual(result['current_pair_forecast_record_count'],1)
+                self.assertEqual(result['current_pair_producer_journal_'+state+'_join_count'],1)
+                self.assertEqual(result['current_pair_qualifying_g8_count'],0)
+                self.assertIsNone(result['current_pair_qualifying_g8_denominator'])
+                self.assertFalse(any(key.startswith('current_pair_cutoff_') for key in result))
+                self.assertFalse(any(key.startswith('current_pair_failure_') for key in result))
+                for name in ('accuracy_improvement_proven','promotion_allowed','full_day_coverage'):
+                    self.assertIs(result['current_pair_'+name],False)
+        fixture.pairs(1,input_only=True)
+        result=fixture.audit()
+        self.assertEqual(result['current_pair_forecast_record_count'],0)
+        self.assertEqual(result['current_pair_input_only_record_count'],1)
+        self.assertFalse(any(key.startswith('current_pair_cutoff_') for key in result))
+        del fixture.metas[800]
+        result=fixture.audit()
+        self.assertEqual(result['current_pair_audit_status'],'HOLD_NO_PAIR_ARCHIVES')
+        self.assertIsNone(result['current_pair_forecast_record_count'])
+        self.assertFalse(any(key.startswith('current_pair_cutoff_') for key in result))
+
+
 if __name__ == '__main__':
     unittest.main()
