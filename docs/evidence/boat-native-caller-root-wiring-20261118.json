@@ -1,0 +1,180 @@
+{
+  "schema": "RACE_AI_PR44_BOUNDED_EXISTING_NATIVE_CALLER_ROOT_WIRING_20261117_V1",
+  "repository": "haji84/RACE-AI",
+  "base_head": "9c4bfcbdb81a1ca3f3c4445fbfe01ca95d6e1bc0",
+  "base_tree": "f72bb85e3583c65653e1898c98161ada20417b27",
+  "caller_test_red": {
+    "head": "7cd45e7daafa233f31c657f325ee28e8b741d0d1",
+    "run_id": 44202590718,
+    "job_id": 134460225492,
+    "test_loader_count": 94,
+    "existing_tests_passed": 93,
+    "duration_seconds": 0.151,
+    "failures": 0,
+    "errors": 1,
+    "error": "ImportError: cannot import name boat_native_safari_dispatch",
+    "syntax_error": false,
+    "prior_syntax_failure": {
+      "run_id": 44201405908,
+      "job_id": 134456141510,
+      "counts_as_proper_red": false,
+      "correction_blob": "fcb7d83381f9d5b56fb2e4caeaf4e8eb09cd6d01"
+    }
+  },
+  "candidate_pin_red": {
+    "head": "9c4bfcbdb81a1ca3f3c4445fbfe01ca95d6e1bc0",
+    "run_id": 44203325461,
+    "job_id": 134462770132,
+    "total": 119,
+    "passed": 118,
+    "failures": 1,
+    "errors": 0,
+    "duration_seconds": 15.58,
+    "test": "test_candidate_pin_is_exact_reviewed_ui_not_a_runtime_or_model_pin",
+    "cause": "Expected exact unpublished ed904 candidate; runtime still selected old598"
+  },
+  "files": [
+    {
+      "name": "racer",
+      "path": ".github/workflows/boat-racer-daily.yml",
+      "sha": "1297cd3780ab88f7385d92281594e5b8e91f229e"
+    },
+    {
+      "name": "native",
+      "path": ".github/workflows/boat-owner-formal-live-pages-proof.yml",
+      "sha": "f0b390d14a916d66448a76d00efa0c032848335a"
+    },
+    {
+      "name": "acceptance",
+      "path": "scripts/boat_native_safari_acceptance.py",
+      "sha": "59b0796a971fcdf961b5dffe28d9c58f51e881f3"
+    }
+  ],
+  "exact_delta": {
+    "racer": "Append one optional final step after the original dispatch step, trusted main release push and first attempt only; all preceding bytes unchanged.",
+    "native_workflow": "Only one immutable candidate checkout SHA and its eight-character upload artifact prefix change. All other workflow bytes are identical.",
+    "acceptance_runtime": "Only five candidate-pin/hash literals change. PAGES_SHA, SOURCE_SHA, synthetic fixture, actions, privacy, crypto, cleanup and checks unchanged.",
+    "native_tests": "Only the same five expected literal values change. All119 test methods and assertions remain.",
+    "dispatcher_tests": "26 methods from corrected blob fcb7d83381f9d5b56fb2e4caeaf4e8eb09cd6d01 unchanged after proper RED."
+  },
+  "new_candidate": {
+    "sha": "ed904fe62dad470a91ababce623c52c1fbde5861",
+    "web_tree": "5759ac3f0ab900cc9c6d0ac592a44c4ff4ce53d8",
+    "hashes": {
+      "index.html": "fb942083b431d20a5e53407dabd460ffe291cc8cb776c448c5950ee0bd370741",
+      "app.js": "926187708d1b8d35bbfa21ba7361c86fc51578039cbc1b29f17415f34d132778",
+      "style.css": "8d6c35ec822aab974bad0564692780c26f8cd28859cefea5d143e4aa2e463e3f"
+    },
+    "draft_pr": 62,
+    "browser_verified": false,
+    "published": false
+  },
+  "optional_wrapper": "Calls main([]) without SystemExit. A HOLD report and return2 do not alter successful source-core conclusion; continue-on-error retains the historical optional-step boundary. Green job is not dispatch or native verification proof.",
+  "routing": "Existing416758725/main/native-safari only; root still waits helper implementation, review and fresh CI. This packet makes no actualPOST/native proof claim.",
+  "proof_limits": [
+    "The GitHub dispatch API offers no atomic compare-and-dispatch. Fresh refs, existing mutex, first attempt and complete same-head history reduce duplicates but do not prove atomic exclusion with an external concurrent caller.",
+    "No ambiguous POST is retried; only a new actual workflow run and native job logs may establish browser proof.",
+    "Physical iPhone, login, all eight reference screens and four-sport/full-day efficacy remain unverified."
+  ],
+  "root_static_verification": {
+    "strict_unique_anchors": true,
+    "exact_blob_readback": true,
+    "native_normalized_whole_body_equal": true,
+    "local_python_executed": false,
+    "goal_complete": false
+  },
+  "changes_in_guarded_areas": {
+    "new_workflow_job_definitions": false,
+    "workflow_inputs": false,
+    "schedules": false,
+    "permissions": false,
+    "runners": false,
+    "timeouts": false,
+    "release_prefix": false,
+    "marker_path": false,
+    "source_gate_core": false,
+    "model_families": false,
+    "weights": false,
+    "fees": false,
+    "public_assets": false,
+    "owner_key_read_or_export": false,
+    "official_source_gets": 0
+  },
+  "additional_pin_red": {
+    "run_id": 44203325545,
+    "job_id": 134462770882,
+    "total": 181,
+    "duration_seconds": 15.236,
+    "failures": 1,
+    "errors": 0,
+    "cause": "The same native candidate expected-value guard; not a separate runtime fault"
+  },
+  "corrected_counts_caption": {
+    "path": "docs/evidence/boat-fixed-bootstrap-p0-actual-counts-20261117.json",
+    "sha": "344637099249072a87d9b366b1d7f5e43d2e0fbf",
+    "only_claim_limits_index_2_changed": true,
+    "numeric_or_authentication_fields_changed": false
+  },
+  "live_step_timing_evidence": {
+    "blob": "7e72257df7ab701ee13c9bab52e98159cd985cd2",
+    "source_run_id": 44170869325,
+    "completed_steps": 15,
+    "physical_rounds_inferred": false
+  },
+  "independent_root_wiring_review": {
+    "reviewer": "/root/review_a74_pins",
+    "status": "PARTIAL_CLEAR",
+    "helper_review_pending": true,
+    "exact_blob_and_candidate_asset_hashes_verified": true,
+    "checks_in_V8": 10,
+    "python_or_dispatch_claimed": false
+  },
+  "helper": {
+    "path": "scripts/boat_native_safari_dispatch.py",
+    "sha": "74f49fab8050431c52c0ad4b04d7b1f77452574d",
+    "bytes": 18216,
+    "packet": "2a34ed65da0a6bd1e23263b4dc5fbaadfb918193",
+    "historical_diff": {
+      "hunks": 8,
+      "additions": 151,
+      "deletions": 8
+    },
+    "exact_blob_readback": true
+  },
+  "independent_full_review": {
+    "reviewer": "/root/review_a74_pins",
+    "status": "CLEAR",
+    "root_predicate_checks_V8": 10,
+    "helper_unrelated_change_refusals_V8": 8,
+    "actual_native_current_parent_bodies_compatible": true,
+    "python_executed": false,
+    "dispatch_or_browser_success_claimed": false
+  },
+  "execution_environment": {
+    "status": "FAILED",
+    "failure": "exec-server connection timed out recovering environment readiness from ERS",
+    "local_execution_available": false,
+    "GitHub_connector_available": true
+  },
+  "existing_completed_BB_audit_path": {
+    "workflow": ".github/workflows/boat-owner-national-p1-matrix.yml",
+    "workflow_run_selects_actual_event": true,
+    "fixed_M2_target_only_used_on_push": true,
+    "existing_apis": [
+      "audit_active_snapshot",
+      "audit_current_pairs"
+    ],
+    "requirements": [
+      "completed producer",
+      "authenticated final continuity and exact public control",
+      "exact completed round prefix",
+      "P1/RESULT/ALL_MODEL ZIP SHA/AES/native replay",
+      "pair identity and clocks"
+    ],
+    "changes_required": false,
+    "closed_run_proof_claimed": false
+  },
+  "fresh_CI": "PENDING",
+  "actual_POST": "NOT_ATTEMPTED",
+  "native_new_candidate_proof": "PENDING"
+}
