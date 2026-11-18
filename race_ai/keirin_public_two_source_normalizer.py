@@ -266,7 +266,14 @@ def parse_kdreams(*,raw,source_url,race_id,captured_at,
          len(set(all_cars))==len(all_cars),
          "KDREAMS_LINE_NOT_ALL_REAL_CARS")
     # Extract visible race class/stage; never synthesize a program rule.
-    if "ガールズ" in grade_text or "L級" in grade_text:
+    # Navigation may mention unrelated "L級" or "ガールズ". A visible
+    # challenge round label paired with a non-solo wheel formation is more
+    # specific evidence than a site-wide navbar category.
+    challenge_round=bool(re.search(
+        r"チャレンジ(?:予選|一般|準決|決勝|選抜|特選)", grade_text))
+    if challenge_round and any(len(g)>1 for g in groups):
+        competition="CHALLENGE"
+    elif "ガールズ" in grade_text or "L級" in grade_text:
         competition="GIRLS"
     elif "チャレンジ" in grade_text:
         competition="CHALLENGE"
