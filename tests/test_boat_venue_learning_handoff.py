@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -41,6 +42,44 @@ class LearningHandoffTests(unittest.TestCase):
         except ModuleNotFoundError:
             self.fail('encrypted learning candidates have no pinned Git persistence')
         return publish_learning_candidate, restore_learning_candidate
+
+    def test_each_retention_snapshot_runs_one_complete_training_validation(self):
+        from race_ai import boat_venue_learning_handoff as handoff
+        from race_ai.observed_weight_learning import verify_training
+        files = {name: (self.candidate/name).read_bytes() for name in handoff.FILES}
+        validations = []
+        previous = sys.getprofile()
+        def profile(frame, event, argument):
+            if event == 'call' and frame.f_code is verify_training.__code__:
+                validations.append(frame.f_locals['training'])
+        try:
+            sys.setprofile(profile)
+            first = handoff._verified(files)
+            second = handoff._verified(files)
+        finally:
+            sys.setprofile(previous)
+        self.assertEqual(first, (self.payload['training']['training_sha256'], 2))
+        self.assertEqual(second, first)
+        # Each new ciphertext snapshot must still authenticate and validate its
+        # complete training; revalidating that same decoded object adds no proof.
+        self.assertEqual(len(validations), 2)
+        self.assertIsNot(validations[0], validations[1])
+        self.assertEqual(files, {name: (self.candidate/name).read_bytes() for name in handoff.FILES})
+
+    def test_authenticated_invalid_training_still_fails_before_git(self):
+        from race_ai import boat_venue_learning_handoff as handoff
+        from race_ai.observed_weight_learning import seal
+        bad = deepcopy(self.payload)
+        model = next(iter(bad['training']['models'].values()))
+        model['base_weights'][0] += 1
+        seal(bad['training'], 'training_sha256')
+        # Construct an owner-authenticated but semantically invalid fixture.
+        # Only fixture creation bypasses validation; retention uses real crypto.
+        with patch('race_ai.boat_venue_learning.verify_training'):
+            seal_candidate(bad, self.root/'invalid')
+        with patch.object(handoff, 'GitStateRepository', side_effect=AssertionError('no Git on invalid training')):
+            with self.assertRaisesRegex(ValueError, 'invalid fitted parameters'):
+                handoff.publish_learning_candidate(self.root/'invalid', self.root)
 
     def test_publish_restore_preserves_only_the_three_candidate_files_and_other_state(self):
         publish, restore = self.apis()
