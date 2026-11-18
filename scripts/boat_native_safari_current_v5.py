@@ -267,12 +267,92 @@ if(initial)saved=observed(initial);
     return script.replace('__ROUTES__', mapping).encode('utf-8')
 
 
+
+_CURRENT_V5_DIAGNOSTIC_BOOLS = (
+    'native_p1_verified', 'native_groups_match', 'result_metrics_parsed',
+    'probe_fields_match', 'schema_matches', 'generation_matches', 'cipher_matches',
+    'history_day_matches', 'selected_day_matches', 'source_day_matches',
+    'model_choices_match', 'secret_in_request')
+_CURRENT_V5_DIAGNOSTIC_COUNTS = {
+    'expected_results': 288, 'observed_results': 288,
+    'expected_native_p1_groups': 32768, 'observed_native_p1_groups': 32768,
+    'expected_model_choices': 32768, 'observed_model_choices': 32768,
+    'v5_read_live_successes': 1000000, 'aes_successes': 1000000,
+    'private_view_reads': 1000000, 'encrypted_seed_reads': 1000000,
+    'current_v5_manifest_reads': 1000000, 'current_v5_cipher_reads': 1000000,
+    'non_read_requests': 1000000, 'outbound_requests_permitted': 1000000}
+
+
+def current_v5_diagnostic(value):
+    """Project only known strict primitive facts; absence is never zero/false."""
+    source = value if type(value) is dict else {}
+    result = {name: source.get(name) if type(source.get(name)) is bool else None
+              for name in _CURRENT_V5_DIAGNOSTIC_BOOLS}
+    for name, maximum in _CURRENT_V5_DIAGNOSTIC_COUNTS.items():
+        observed = source.get(name)
+        result[name] = (observed if type(observed) is int
+                        and 0 <= observed <= maximum else None)
+    return result
+
+
+def _current_v5_facts(context, probe, audit, api):
+    expected = context if type(context) is dict else {}
+    observed = probe if type(probe) is dict else {}
+    counters = audit if type(audit) is dict else {}
+    choices = (expected.get('model_switch_probe') or {}).get('choices')
+    details = observed.get('model_choices')
+    fields = {'schema', 'generation', 'cipher_sha256', 'history_day', 'selected_day',
+        'source_day', 'v5_read_live_successes', 'aes_successes', 'results',
+        'native_p1_groups', 'model_choices'}
+    values = dict(expected_results=expected.get('minimum_results'),
+        observed_results=observed.get('results'),
+        expected_native_p1_groups=expected.get('native_group_count'),
+        observed_native_p1_groups=observed.get('native_p1_groups'),
+        expected_model_choices=len(choices) if type(choices) is list else None,
+        observed_model_choices=len(details) if type(details) is list else None,
+        v5_read_live_successes=observed.get('v5_read_live_successes'),
+        aes_successes=observed.get('aes_successes'),
+        probe_fields_match=set(observed) == fields if type(probe) is dict else None,
+        schema_matches=observed['schema'] == _V5 if type(observed.get('schema')) is str else None,
+        generation_matches=observed['generation'] == expected.get('generation')
+            if type(observed.get('generation')) is int else None)
+    for name in ('history_day', 'selected_day', 'source_day'):
+        raw = observed.get(name)
+        values[name + '_matches'] = (raw == expected.get('day')
+            if type(raw) is str and re.fullmatch(r'\d{4}-\d\d-\d\d', raw) is not None else None)
+    expected_groups, observed_groups = expected.get('native_group_count'), observed.get('native_p1_groups')
+    if type(expected_groups) is int and type(observed_groups) is int:
+        values['native_groups_match'] = expected_groups == observed_groups
+    if type(details) is list and type(choices) is list:
+        matched = len(details) == len(choices) == 2
+        if matched:
+            try:
+                for choice, detail in zip(choices, details):
+                    if type(detail) is not dict or set(detail) != {'model_id', 'index', 'tickets'}:
+                        matched = False
+                        break
+                    api.verify_model_choice(choice, detail)
+            except Exception:
+                matched = False
+        values['model_choices_match'] = matched
+    for name in ('private_view_reads', 'encrypted_seed_reads', 'current_v5_manifest_reads',
+                 'current_v5_cipher_reads', 'non_read_requests', 'outbound_requests_permitted',
+                 'secret_in_request'):
+        values[name] = counters.get(name)
+    return current_v5_diagnostic(values)
+
+
 def verify_current_v5_evidence(replay, probe, audit, *, _api):
     a = _api
+    phase = 'verify_probe'
+    diagnostic = current_v5_diagnostic(None)
     try:
         _need(type(replay) is CurrentV5Replay and type(probe) is dict and type(audit) is dict, a,
             'CURRENT_V5_EVIDENCE_INVALID')
-        context = _json(replay._context, 4 * 1024 * 1024, a)
+        context = _json(replay._context, 4 * 1024 * 1024, a) if type(replay) is CurrentV5Replay else {}
+        diagnostic = _current_v5_facts(context, probe, audit, a)
+        if type(probe) is dict and _hex(probe.get('cipher_sha256')):
+            diagnostic['cipher_matches'] = probe['cipher_sha256'] == replay.cipher_sha256
         fields = {'schema', 'generation', 'cipher_sha256', 'history_day', 'selected_day',
             'source_day', 'v5_read_live_successes', 'aes_successes', 'results',
             'native_p1_groups', 'model_choices'}
@@ -285,12 +365,14 @@ def verify_current_v5_evidence(replay, probe, audit, *, _api):
             ('v5_read_live_successes', 'aes_successes', 'results', 'native_p1_groups'))
             and probe['results'] == context['minimum_results']
             and probe['native_p1_groups'] == context['native_group_count'], a, 'CURRENT_V5_EVIDENCE_INVALID')
+        phase = 'comparison_originals'
         details = probe['model_choices']
         _need(type(details) is list and len(details) == 2, a, 'CURRENT_V5_EVIDENCE_INVALID')
         for choice, detail in zip(context['model_switch_probe']['choices'], details):
             _need(type(detail) is dict and set(detail) == {'model_id', 'index', 'tickets'}, a,
                 'CURRENT_V5_EVIDENCE_INVALID')
             a.verify_model_choice(choice, detail)
+        phase = 'private_boundary'
         _need(all(type(audit.get(name)) is int and audit[name] > 0 for name in
             ('encrypted_seed_reads', 'current_v5_manifest_reads', 'current_v5_cipher_reads'))
             and all(type(audit.get(name)) is int and audit[name] == 0 for name in
@@ -307,10 +389,14 @@ def verify_current_v5_evidence(replay, probe, audit, *, _api):
             ciphertext_bytes=replay._total, plaintext_endpoint_reads=0,
             outbound_browser_requests_permitted=0, real_screenshots_or_traces_exported=0,
             account_login_verified=False, physical_iphone_verified=False)
-    except a.SafariHold:
+    except a.CurrentV5EvidenceHold:
+        raise
+    except a.SafariHold as error:
+        if str(error) == 'CURRENT_V5_EVIDENCE_INVALID':
+            raise a.CurrentV5EvidenceHold(phase, diagnostic) from None
         raise
     except Exception:
-        raise a.SafariHold('CURRENT_V5_EVIDENCE_INVALID') from None
+        raise a.CurrentV5EvidenceHold(phase, diagnostic) from None
 
 
 class _CurrentV5SnapshotReader:
@@ -486,51 +572,99 @@ def current_v5_checks(assets, seed, private, replay, secrets, *, _api):
     _need(type(fragment) is str and re.fullmatch(
         r'#saved=' + re.escape(replay._view_id) + r'\.[A-Za-z0-9_-]{43}', fragment) is not None, a)
     context = _json(replay._context, 4 * 1024 * 1024, a)
-    with a.LoopbackSite(assets, None, encrypted_seed=seed, current_v5=replay, secrets=secrets) as site:
-        with a.apple_driver() as (driver, identity):
-            a.native_identity(identity)
-            driver.command('POST', '/url', {'url': site.url + fragment})
-            driver.wait('''return globalThis.__raceSafariPrivacy?.current_v5?.v5_read_live_successes>0
-                && globalThis.__raceSafariPrivacy.current_v5.history_day===arguments[0]
-                && document.querySelector('#saved-view-sync')?.dataset.historyDay===arguments[0]
-                && document.querySelector('#selected-date')?.value===arguments[0];''',
-                context['day'], timeout=90)
-            native = context['native_probe']
-            a.open_saved_race(driver, native)
-            driver.select('#prediction-select', native['index'])
-            _need(driver.script('''return document.querySelector('#prediction-select')?.selectedOptions[0]?.textContent.startsWith('P1 ')
-                && document.querySelector('#detail-tab-content .forecast-panel')?.dataset.nativeDispatch==='true';'''),
-                a, 'CURRENT_V5_EVIDENCE_INVALID')
-            a.open_saved_race(driver, context['model_switch_probe'])
-            driver.click('[data-detail-tab="outlook"]')
-            choices = []
-            for choice in context['model_switch_probe']['choices']:
-                driver.select('#prediction-select', choice['index'])
-                driver.select('#detail-model-select', choice['model_id'])
-                detail = a.seed_detail(driver)
-                a.verify_model_choice(choice, detail)
-                choices.append(detail)
-            a.click_saved_page(driver, 'results')
-            values = driver.script('return Array.from(document.querySelectorAll("#results-model option"),e=>e.value)')
-            groups = set()
-            for value in values:
-                try:
-                    fields = json.loads(value)
-                    if type(fields) is list and len(fields) >= 6 and fields[1:3] == ['boat', 'P1']:
-                        groups.add(a.wire((fields[3:7] + [None])[:4]))
-                except (TypeError, ValueError):
-                    pass
-            _need(all(a.wire(group) in groups for group in context['native_groups']), a,
-                'CURRENT_V5_EVIDENCE_INVALID')
-            metrics = driver.script('return document.querySelector("#saved-result-metrics")?.textContent')
-            result_count = re.search(r'取得結果\s*(\d+)レース', metrics or '')
-            _need(result_count is not None, a, 'CURRENT_V5_EVIDENCE_INVALID')
-            observed = driver.script(a.current_v5_probe_script())
-            _need(type(observed) is dict, a, 'CURRENT_V5_EVIDENCE_INVALID')
-            observed.update(results=int(result_count[1]), native_p1_groups=len(groups), model_choices=choices)
-            snapshot = a.browser_snapshot(driver)
-            a.verify_private_boundary(snapshot, site.audit, secrets, fragment=fragment, encrypted=True)
-            report = verify_current_v5_evidence(replay, observed, site.audit, _api=a)
-    _need(datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=9))).date().isoformat()
-        == context['day'], a, 'CURRENT_V5_EVIDENCE_INVALID')
-    return report
+    diagnostic = _current_v5_facts(context, None, None, a)
+    phase = 'native_p1_detail'
+    site = None
+
+    def final_diagnostic(value):
+        # Called only after both context managers have completed their cleanup.
+        try:
+            final_audit = current_v5_diagnostic(site.audit)
+        except Exception:
+            final_audit = current_v5_diagnostic(None)
+        result = current_v5_diagnostic(value)
+        for name in ('private_view_reads', 'encrypted_seed_reads',
+                     'current_v5_manifest_reads', 'current_v5_cipher_reads',
+                     'non_read_requests', 'outbound_requests_permitted',
+                     'secret_in_request'):
+            result[name] = final_audit[name]
+        return result
+
+    try:
+        with a.LoopbackSite(assets, None, encrypted_seed=seed, current_v5=replay, secrets=secrets) as site:
+            diagnostic.update({name: value for name, value in
+                _current_v5_facts(context, None, site.audit, a).items() if value is not None})
+            with a.apple_driver() as (driver, identity):
+                a.native_identity(identity)
+                driver.command('POST', '/url', {'url': site.url + fragment})
+                driver.wait('''return globalThis.__raceSafariPrivacy?.current_v5?.v5_read_live_successes>0
+                    && globalThis.__raceSafariPrivacy.current_v5.history_day===arguments[0]
+                    && document.querySelector('#saved-view-sync')?.dataset.historyDay===arguments[0]
+                    && document.querySelector('#selected-date')?.value===arguments[0];''',
+                    context['day'], timeout=90)
+                native = context['native_probe']
+                a.open_saved_race(driver, native)
+                driver.select('#prediction-select', native['index'])
+                native_verified = driver.script('''return document.querySelector('#prediction-select')?.selectedOptions[0]?.textContent.startsWith('P1 ')
+                    && document.querySelector('#detail-tab-content .forecast-panel')?.dataset.nativeDispatch==='true';''')
+                diagnostic['native_p1_verified'] = native_verified if type(native_verified) is bool else None
+                _need(native_verified, a, 'CURRENT_V5_EVIDENCE_INVALID')
+                phase = 'comparison_originals'
+                a.open_saved_race(driver, context['model_switch_probe'])
+                driver.click('[data-detail-tab="outlook"]')
+                choices = []
+                for choice in context['model_switch_probe']['choices']:
+                    driver.select('#prediction-select', choice['index'])
+                    driver.select('#detail-model-select', choice['model_id'])
+                    detail = a.seed_detail(driver)
+                    choices.append(detail)
+                    diagnostic['observed_model_choices'] = len(choices)
+                    diagnostic['model_choices_match'] = False
+                    a.verify_model_choice(choice, detail)
+                diagnostic['model_choices_match'] = True
+                phase = 'result_groups'
+                a.click_saved_page(driver, 'results')
+                values = driver.script('return Array.from(document.querySelectorAll("#results-model option"),e=>e.value)')
+                groups = set()
+                for value in values:
+                    try:
+                        fields = json.loads(value)
+                        if type(fields) is list and len(fields) >= 6 and fields[1:3] == ['boat', 'P1']:
+                            groups.add(a.wire((fields[3:7] + [None])[:4]))
+                    except (TypeError, ValueError):
+                        pass
+                groups_match = all(a.wire(group) in groups for group in context['native_groups'])
+                diagnostic.update(observed_native_p1_groups=len(groups), native_groups_match=groups_match)
+                _need(groups_match, a, 'CURRENT_V5_EVIDENCE_INVALID')
+                phase = 'result_metrics'
+                metrics = driver.script('return document.querySelector("#saved-result-metrics")?.textContent')
+                result_count = re.search(r'取得結果\s*(\d+)レース', metrics or '')
+                diagnostic['result_metrics_parsed'] = result_count is not None
+                diagnostic['observed_results'] = int(result_count[1]) if result_count is not None else None
+                _need(result_count is not None, a, 'CURRENT_V5_EVIDENCE_INVALID')
+                phase = 'verify_probe'
+                observed = driver.script(a.current_v5_probe_script())
+                _need(type(observed) is dict, a, 'CURRENT_V5_EVIDENCE_INVALID')
+                observed.update(results=int(result_count[1]), native_p1_groups=len(groups), model_choices=choices)
+                diagnostic.update({name: value for name, value in
+                    _current_v5_facts(context, observed, site.audit, a).items() if value is not None})
+                if _hex(observed.get('cipher_sha256')):
+                    diagnostic['cipher_matches'] = observed['cipher_sha256'] == replay.cipher_sha256
+                phase = 'private_boundary'
+                snapshot = a.browser_snapshot(driver)
+                a.verify_private_boundary(snapshot, site.audit, secrets, fragment=fragment, encrypted=True)
+                phase = 'verify_probe'
+                report = verify_current_v5_evidence(replay, observed, site.audit, _api=a)
+        phase = 'current_day_recheck'
+        _need(datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=9))).date().isoformat()
+            == context['day'], a, 'CURRENT_V5_EVIDENCE_INVALID')
+        return report
+    except a.CurrentV5EvidenceHold as error:
+        combined = dict(diagnostic)
+        combined.update({name: value for name, value in
+            current_v5_diagnostic(error.diagnostic).items() if value is not None})
+        raise a.CurrentV5EvidenceHold(error.phase, final_diagnostic(combined)) from None
+    except a.SafariHold as error:
+        if str(error) == 'CURRENT_V5_EVIDENCE_INVALID':
+            raise a.CurrentV5EvidenceHold(phase, final_diagnostic(diagnostic)) from None
+        raise

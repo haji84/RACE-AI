@@ -178,6 +178,10 @@ def failure_native_browser(capabilities):
 def failure_report(error):
     reason = str(error) if isinstance(error, SafariHold) and str(error) in REASONS else 'SAFARI_OPERATION_FAILED'
     report={'status': 'NATIVE_SAFARI_ACCEPTANCE_HOLD', 'reason': reason}
+    if isinstance(error, CurrentV5EvidenceHold):
+        phase = getattr(error, 'phase', None)
+        report.update(current_v5_phase=phase if type(phase) is str and phase in CURRENT_V5_EVIDENCE_PHASES else None,
+            current_v5_diagnostic=current_v5_diagnostic(getattr(error, 'diagnostic', None)))
     if isinstance(error, SyntheticEnvironmentHold):
         count = error.unexpected_count
         present = error.known_os_keys if type(error.known_os_keys) is dict else {}
@@ -1639,6 +1643,18 @@ MAX_CURRENT_V5_BYTES = 256 * 1024 * 1024
 _CURRENT_V5_HELPERS = None
 
 
+CURRENT_V5_EVIDENCE_PHASES = frozenset((
+    'native_p1_detail', 'comparison_originals', 'result_groups', 'result_metrics',
+    'verify_probe', 'private_boundary', 'current_day_recheck'))
+
+
+class CurrentV5EvidenceHold(SafariHold):
+    def __init__(self, phase, diagnostic):
+        super().__init__('CURRENT_V5_EVIDENCE_INVALID')
+        self.phase = phase if type(phase) is str and phase in CURRENT_V5_EVIDENCE_PHASES else None
+        self.diagnostic = current_v5_diagnostic(diagnostic)
+
+
 class _CurrentV5API:
     def __getattr__(self, name):
         try:
@@ -1682,6 +1698,10 @@ def current_v5_replay_script(replay):
 
 def current_v5_probe_script():
     return _current_v5_helpers().current_v5_probe_script()
+
+
+def current_v5_diagnostic(value):
+    return _current_v5_helpers().current_v5_diagnostic(value)
 
 
 def verify_current_v5_evidence(replay, probe, audit):

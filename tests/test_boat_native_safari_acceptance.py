@@ -3149,5 +3149,255 @@ process.stdout.write(JSON.stringify(output));
             self.assertIs(report[field], False)
         self.assertNotIn('K' * 43, output.getvalue())
 
+
+CURRENT_V5_DIAGNOSTIC_BOOLS = (
+    'native_p1_verified', 'native_groups_match', 'result_metrics_parsed',
+    'probe_fields_match', 'schema_matches', 'generation_matches', 'cipher_matches',
+    'history_day_matches', 'selected_day_matches', 'source_day_matches',
+    'model_choices_match', 'secret_in_request')
+CURRENT_V5_DIAGNOSTIC_COUNTS = {
+    'expected_results': 288, 'observed_results': 288,
+    'expected_native_p1_groups': 32768, 'observed_native_p1_groups': 32768,
+    'expected_model_choices': 32768, 'observed_model_choices': 32768,
+    'v5_read_live_successes': 1000000, 'aes_successes': 1000000,
+    'private_view_reads': 1000000, 'encrypted_seed_reads': 1000000,
+    'current_v5_manifest_reads': 1000000, 'current_v5_cipher_reads': 1000000,
+    'non_read_requests': 1000000, 'outbound_requests_permitted': 1000000}
+
+
+class CurrentV5EvidenceDiagnosticTests(unittest.TestCase):
+    """Counts locate a real failed boundary without disclosing saved originals."""
+    def setUp(self):
+        self.assertTrue(callable(getattr(S, 'CurrentV5EvidenceHold', None)),
+                        'fixed-phase V5 evidence failure is not implemented')
+        self.assertTrue(callable(getattr(S, 'current_v5_diagnostic', None)),
+                        'bounded V5 diagnostic projection is not implemented')
+
+    def assert_safe(self, report):
+        self.assertEqual(report['status'], 'NATIVE_SAFARI_ACCEPTANCE_HOLD')
+        self.assertEqual(report['reason'], 'CURRENT_V5_EVIDENCE_INVALID')
+        self.assertIsNot(report.get('current_v5_live_continuation_verified'), True)
+        self.assertIsNot(report.get('current_day_verified'), True)
+        self.assertEqual(set(report['current_v5_diagnostic']),
+                         set(CURRENT_V5_DIAGNOSTIC_BOOLS) | set(CURRENT_V5_DIAGNOSTIC_COUNTS))
+        raw = json.dumps(report, sort_keys=True, allow_nan=False)
+        for private in ('private-', 'https://', '20300401-01-01', 'K' * 43,
+                        '2030-04-01T01:00:00Z', 'ordered_top8', 'ciphertext', 'records'):
+            self.assertNotIn(private, raw)
+        return report['current_v5_diagnostic']
+
+    def test_real_native_group_and_metrics_failures_expose_only_measured_phase_and_counts(self):
+        arguments, tickets = current_v5_fixture()
+        replay = S.build_current_v5_replay(**arguments)
+        private = {'key': 'K' * 43, 'fragment': '#saved=' + 'a' * 64 + '.' + 'K' * 43}
+        for scenario, phase in (('native', 'native_p1_detail'),
+                                ('groups', 'result_groups'), ('metrics', 'result_metrics')):
+            events = []
+            class Driver:
+                def command(self, *args, **kwargs):pass
+                def wait(self, *args, **kwargs):pass
+                def select(self, *args, **kwargs):pass
+                def click(self, *args, **kwargs):pass
+                def script(self, source, *args):
+                    if 'selectedOptions' in source:
+                        return scenario != 'native'
+                    if '#results-model option' in source:
+                        if scenario == 'groups':return []
+                        return [json.dumps(['2030-04-01', 'boat', 'P1', *group])
+                                for group in arguments['context']['native_groups']]
+                    if '#saved-result-metrics' in source:return None
+                    raise AssertionError('unexpected private-driver-script-sentinel')
+            @contextmanager
+            def browser():
+                try:
+                    yield Driver(), {'browserName': 'Safari', 'platformName': 'macOS',
+                                     'browserVersion': '26.6'}
+                finally:
+                    events.append('browser-closed')
+            @contextmanager
+            def site(*args, **kwargs):
+                class Site:
+                    url = 'http://127.0.0.1:1234/'
+                    audit = current_v5_audit()
+                try:
+                    yield Site()
+                finally:
+                    events.append('site-closed')
+            details = current_v5_probe(arguments, tickets)['model_choices']
+            with self.subTest(scenario=scenario), \
+                    patch.object(S, 'LoopbackSite', side_effect=site), \
+                    patch.object(S, 'apple_driver', side_effect=browser), \
+                    patch.object(S, 'open_saved_race'), patch.object(S, 'click_saved_page'), \
+                    patch.object(S, 'seed_detail', side_effect=copy.deepcopy(details)), \
+                    self.assertRaises(S.SafariHold) as caught:
+                S.current_v5_checks({}, {}, private, replay, arguments['secrets'])
+            report = S.failure_report(caught.exception)
+            diagnostic = self.assert_safe(report)
+            self.assertEqual(report['current_v5_phase'], phase)
+            self.assertEqual(diagnostic['expected_results'], arguments['context']['minimum_results'])
+            self.assertEqual(diagnostic['expected_native_p1_groups'],
+                             arguments['context']['native_group_count'])
+            self.assertEqual(diagnostic['expected_model_choices'], 2)
+            self.assertIsNone(diagnostic['observed_results'], 'unparsed metrics are unknown, not zero')
+            self.assertIsNone(diagnostic['source_day_matches'], 'the browser source probe has not run')
+            if scenario == 'native':
+                self.assertIs(diagnostic['native_p1_verified'], False)
+                self.assertIsNone(diagnostic['observed_native_p1_groups'])
+            elif scenario == 'groups':
+                self.assertIs(diagnostic['native_groups_match'], False)
+                self.assertEqual(diagnostic['observed_native_p1_groups'], 0)
+            else:
+                self.assertIs(diagnostic['result_metrics_parsed'], False)
+                self.assertEqual(diagnostic['observed_native_p1_groups'], 1)
+            self.assertEqual(events, ['browser-closed', 'site-closed'])
+
+    def test_real_verify_failures_report_independent_match_flags_and_unknown_as_null(self):
+        arguments, tickets = current_v5_fixture()
+        replay = S.build_current_v5_replay(**arguments)
+        good = current_v5_probe(arguments, tickets)
+        cases = [
+            ('schema', 'RACE_AI_SAVED_WEB_VIEW_V4', 'schema_matches'),
+            ('generation', 11, 'generation_matches'),
+            ('cipher_sha256', '0' * 64, 'cipher_matches'),
+            ('history_day', '2030-03-31', 'history_day_matches'),
+            ('selected_day', '2030-03-31', 'selected_day_matches'),
+            ('source_day', '2030-03-31', 'source_day_matches'),
+        ]
+        for field, value, match in cases:
+            bad = copy.deepcopy(good);bad[field] = value
+            with self.subTest(field=field), self.assertRaises(S.SafariHold) as caught:
+                S.verify_current_v5_evidence(replay, bad, current_v5_audit())
+            report = S.failure_report(caught.exception)
+            diagnostic = self.assert_safe(report)
+            self.assertEqual(report['current_v5_phase'], 'verify_probe')
+            self.assertIs(diagnostic[match], False)
+            self.assertEqual(diagnostic['expected_results'], 1)
+            self.assertEqual(diagnostic['observed_results'], 1)
+            self.assertEqual(diagnostic['expected_native_p1_groups'], 1)
+            self.assertEqual(diagnostic['observed_native_p1_groups'], 1)
+            self.assertEqual(diagnostic['v5_read_live_successes'], 1)
+            self.assertEqual(diagnostic['aes_successes'], 3)
+            self.assertIs(diagnostic['probe_fields_match'], True)
+            if field != 'source_day':
+                self.assertIs(diagnostic['source_day_matches'], True)
+        for field, observed, diagnostic_name in (
+                ('results', 0, 'observed_results'),
+                ('native_p1_groups', 0, 'observed_native_p1_groups'),
+                ('v5_read_live_successes', 0, 'v5_read_live_successes'),
+                ('aes_successes', 0, 'aes_successes'),
+                ('model_choices', [], 'observed_model_choices')):
+            bad = copy.deepcopy(good);bad[field] = observed
+            with self.subTest(field=field), self.assertRaises(S.SafariHold) as caught:
+                S.verify_current_v5_evidence(replay, bad, current_v5_audit())
+            diagnostic = self.assert_safe(S.failure_report(caught.exception))
+            self.assertEqual(diagnostic[diagnostic_name], 0)
+        for missing, unknown in (('generation', 'generation_matches'),
+                                 ('aes_successes', 'aes_successes')):
+            bad = copy.deepcopy(good);bad.pop(missing)
+            with self.subTest(missing=missing), self.assertRaises(S.SafariHold) as caught:
+                S.verify_current_v5_evidence(replay, bad, current_v5_audit())
+            report = S.failure_report(caught.exception)
+            diagnostic = self.assert_safe(report)
+            self.assertEqual(report['current_v5_phase'], 'verify_probe')
+            self.assertIs(diagnostic['probe_fields_match'], False)
+            self.assertIsNone(diagnostic[unknown])
+
+    def test_projection_rejects_private_unknown_fields_false_counts_and_malicious_shapes(self):
+        names = set(CURRENT_V5_DIAGNOSTIC_BOOLS) | set(CURRENT_V5_DIAGNOSTIC_COUNTS)
+        empty = {name: None for name in names}
+        valid = {name: False for name in CURRENT_V5_DIAGNOSTIC_BOOLS}
+        valid.update({name: maximum for name, maximum in CURRENT_V5_DIAGNOSTIC_COUNTS.items()})
+        self.assertEqual(S.current_v5_diagnostic(valid), valid)
+        for name in CURRENT_V5_DIAGNOSTIC_BOOLS:
+            for value in (0, 1, -1, 1.0, 'private-bool-sentinel', [], {}, None):
+                with self.subTest(field=name, value_type=type(value).__name__):
+                    self.assertIsNone(S.current_v5_diagnostic({name: value})[name])
+        for name, maximum in CURRENT_V5_DIAGNOSTIC_COUNTS.items():
+            for value in (True, False, -1, maximum + 1, 1.0, float('nan'), float('inf'),
+                          'private-count-sentinel', [], {}, None):
+                with self.subTest(field=name, value_type=type(value).__name__):
+                    self.assertIsNone(S.current_v5_diagnostic({name: value})[name])
+            self.assertEqual(S.current_v5_diagnostic({name: 0})[name], 0)
+        class Malicious(dict):
+            def get(self, *args):raise RuntimeError('private-malicious-get-sentinel')
+            def items(self):raise RuntimeError('private-malicious-items-sentinel')
+        for value in (None, [], 'private-shape-sentinel', Malicious()):
+            self.assertEqual(S.current_v5_diagnostic(value), empty)
+        malicious = dict(valid, **{
+            'owner_url': 'https://private.invalid/#saved=' + 'K' * 43,
+            'model_id': 'private-model-sentinel', 'race_id': '20300401-01-01',
+            'key': 'private-owner-key-sentinel', 'records': [{'ordered_top8': [[1, 2, 3]]}],
+            'raw_error': 'private-driver-error-sentinel'})
+        before = copy.deepcopy(malicious)
+        for phase in ('private-phase-sentinel', 'https://private.invalid/', 1, True, None, []):
+            report = S.failure_report(S.CurrentV5EvidenceHold(phase, malicious))
+            self.assertIsNone(report['current_v5_phase'])
+            self.assertEqual(self.assert_safe(report), valid)
+        for phase in ('native_p1_detail', 'comparison_originals', 'result_groups',
+                      'result_metrics', 'verify_probe', 'private_boundary', 'current_day_recheck'):
+            report = S.failure_report(S.CurrentV5EvidenceHold(phase, malicious))
+            self.assertEqual(report['current_v5_phase'], phase)
+            self.assertEqual(self.assert_safe(report), valid)
+        self.assertEqual(malicious, before)
+
+    def test_early_failure_samples_latest_audit_after_both_cleanup_steps(self):
+        arguments, _ = current_v5_fixture()
+        replay = S.build_current_v5_replay(**arguments)
+        private = {'key': 'K' * 43, 'fragment': '#saved=' + 'a' * 64 + '.' + 'K' * 43}
+        audit = {'private_view_reads': 0, 'encrypted_seed_reads': 0,
+                 'current_v5_manifest_reads': 0, 'current_v5_cipher_reads': 0,
+                 'non_read_requests': 0, 'outbound_requests_permitted': 0,
+                 'secret_in_request': False}
+        events = []
+        class Driver:
+            def command(self, *args, **kwargs):pass
+            def wait(self, *args, **kwargs):
+                audit.update(encrypted_seed_reads=1, current_v5_manifest_reads=2,
+                             current_v5_cipher_reads=7, secret_in_request=True)
+                events.append('browser-read')
+            def select(self, *args, **kwargs):pass
+            def script(self, source, *args):
+                if 'selectedOptions' in source:return False
+                raise AssertionError('unexpected private-driver-script-sentinel')
+        @contextmanager
+        def browser():
+            try:
+                yield Driver(), {'browserName': 'Safari', 'platformName': 'macOS',
+                                 'browserVersion': '26.6'}
+            finally:
+                audit['current_v5_cipher_reads'] = 8
+                events.append('browser-closed')
+        @contextmanager
+        def site(*args, **kwargs):
+            class Site:
+                url = 'http://127.0.0.1:1234/'
+            active = Site();active.audit = audit
+            try:
+                yield active
+            finally:
+                audit.update(encrypted_seed_reads=2, current_v5_manifest_reads=3,
+                             current_v5_cipher_reads=9)
+                audit.pop('non_read_requests')
+                events.append('site-closed')
+        with patch.object(S, 'LoopbackSite', side_effect=site), \
+                patch.object(S, 'apple_driver', side_effect=browser), \
+                patch.object(S, 'open_saved_race'), self.assertRaises(S.SafariHold) as caught:
+            S.current_v5_checks({}, {}, private, replay, arguments['secrets'])
+        self.assertEqual(events, ['browser-read', 'browser-closed', 'site-closed'])
+        report = S.failure_report(caught.exception)
+        diagnostic = self.assert_safe(report)
+        self.assertEqual(report['current_v5_phase'], 'native_p1_detail')
+        self.assertEqual(diagnostic['encrypted_seed_reads'], 2)
+        self.assertEqual(diagnostic['current_v5_manifest_reads'], 3)
+        self.assertEqual(diagnostic['current_v5_cipher_reads'], 9)
+        self.assertEqual(diagnostic['private_view_reads'], 0)
+        self.assertEqual(diagnostic['outbound_requests_permitted'], 0)
+        self.assertIs(diagnostic['secret_in_request'], True)
+        self.assertIsNone(diagnostic['non_read_requests'], 'a missing final fact must not retain entry zero')
+        self.assertIs(diagnostic['native_p1_verified'], False)
+        self.assertIsNone(diagnostic['observed_results'])
+        self.assertIsNone(diagnostic['source_day_matches'])
+
+
 if __name__ == '__main__':
     unittest.main()
