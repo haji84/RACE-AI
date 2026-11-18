@@ -103,7 +103,11 @@ def run_once(manifest, *, now, allow_get, fetch=probe_one):
         p=fetch(selected["date"].replace("-",""),
                 selected["venue"],selected["race"],
                 acknowledgement=ACK,route="legacy")
-    except (MobileProbeError,OSError,TimeoutError):
+    except (MobileProbeError,OSError,TimeoutError) as exc:
+        if isinstance(exc, MobileProbeError) and str(exc) == "SOURCE_NOT_IN_OWNER_PROFILE":
+            return {"state":"SOURCE_NOT_IN_OWNER_PROFILE",
+                    "date":selected["date"],"race_id":selected["race_id"],
+                    "get_attempts":0,"confirmed_official_result":False}
         return {"state":"PROVIDER_ONE_GET_FAILED_NO_RETRY",
                 "date":selected["date"],"race_id":selected["race_id"],
                 "get_attempts":1,"confirmed_official_result":False}
@@ -136,7 +140,8 @@ def main(argv=None):
                         allow_get=args.allow_one_get)
         print(json.dumps(result,ensure_ascii=False,sort_keys=True))
         return 0 if result["state"] not in {
-            "PROVIDER_ONE_GET_FAILED_NO_RETRY","INVALID_PROVIDER_RESPONSE"} else 2
+            "PROVIDER_ONE_GET_FAILED_NO_RETRY","INVALID_PROVIDER_RESPONSE",
+            "SOURCE_NOT_IN_OWNER_PROFILE"} else 2
     except (MonitorError,ValueError,OSError):
         print('{"state":"MONITOR_CONFIGURATION_REJECTED","get_attempts":0}')
         return 2

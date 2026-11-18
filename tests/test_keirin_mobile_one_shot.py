@@ -3,7 +3,7 @@ import unittest
 from datetime import datetime,timezone
 from urllib.error import HTTPError
 from race_ai.keirin_mobile_one_shot import (
-    ACK, MobileProbeError, page_url, probe_one, MAX_BODY
+    ACK, MobileProbeError, page_url, probe_one, parse_saved_page, MAX_BODY
 )
 
 class _Response:
@@ -25,6 +25,16 @@ class _Client:
 GOOD="2026年10月22日 小田原 2R 結果 3連単 1-6-7 2,670円 払戻".encode("utf-8")
 
 class FormatTests(unittest.TestCase):
+    def test_mobile_routes_outside_owner_profile_never_fetch(self):
+        for route in ("new", "legacy"):
+            with self.subTest(route=route):
+                client = _Client(GOOD)
+                with self.assertRaisesRegex(MobileProbeError,
+                                            "SOURCE_NOT_IN_OWNER_PROFILE"):
+                    probe_one("20261022", 36, 2, acknowledgement=ACK,
+                              opener=client, route=route)
+                self.assertEqual(client.calls, 0)
+
     def test_canonical_path(self):
         self.assertEqual(page_url("20261022",36,2),
           "https://www.keirin-mobile.jp/New/races/20261022/36/02/")
@@ -32,9 +42,7 @@ class FormatTests(unittest.TestCase):
         from race_ai.keirin_mobile_one_shot import legacy_page_url
         self.assertEqual(legacy_page_url("20261103",36,1),
             "https://www.keirin-mobile.jp/top/result.php?date=20261103&jcode=36&race=01")
-        client=_Client(GOOD)
-        report=probe_one("20261022",36,2,acknowledgement=ACK,
-                         opener=client,route="legacy")
+        report=parse_saved_page("20261022",36,2,raw=GOOD,route="legacy")
         self.assertIn("/top/result.php?",report["source_url"])
         self.assertFalse(report["result_officially_authenticated"])
 
@@ -55,10 +63,8 @@ class FormatTests(unittest.TestCase):
             probe_one("20261022",36,2,acknowledgement="",opener=client)
         self.assertEqual(client.calls,0)
     def test_marker_only_not_verified_official(self):
-        client=_Client(GOOD)
-        report=probe_one("20261022",36,2,acknowledgement=ACK,opener=client,
+        report=parse_saved_page("20261022",36,2,raw=GOOD,
                           observed_at=datetime(2026,10,23,tzinfo=timezone.utc))
-        self.assertEqual(client.calls,1)
         self.assertTrue(report["page_date_marker"])
         self.assertTrue(report["page_race_marker"])
         self.assertTrue(report["trifecta_label_present"])
@@ -73,8 +79,8 @@ class FormatTests(unittest.TestCase):
         self.assertEqual(got["triple"],[1,6,7])
         self.assertEqual(got["payout_100yen"],2670)
         self.assertEqual(got["state"],"ONE_UNVERIFIED_PROVIDER_CANDIDATE")
-        self.assertFalse(probe_one("20261022",36,2,acknowledgement=ACK,
-                                   opener=_Client(GOOD))["result_officially_authenticated"])
+        self.assertFalse(parse_saved_page("20261022",36,2,
+                         raw=GOOD)["result_officially_authenticated"])
 
     def test_conflicting_payout_refused(self):
         from race_ai.keirin_mobile_one_shot import extract_trifecta_candidate
@@ -88,29 +94,36 @@ class FormatTests(unittest.TestCase):
         self.assertIsNone(got["payout_100yen"])
 
     def test_no_result_is_not_final(self):
-        p=probe_one("20261022",36,2,acknowledgement=ACK,
-          opener=_Client(b"<p>not published yet</p>"))
+        p=parse_saved_page("20261022",36,2,
+                          raw=b"<p>not published yet</p>")
         self.assertFalse(p["trifecta_label_present"])
         self.assertFalse(p["result_officially_authenticated"])
-    def test_http_error_preserved_only_status(self):
+    def test_unapproved_source_stops_before_sensitive_http_error(self):
         class _Refusing:
+            calls=0
             def open(self,request,timeout):
+                self.calls+=1
                 raise HTTPError(request.full_url,403,"sensitive details",None,None)
-        with self.assertRaisesRegex(MobileProbeError,"PROVIDER_HTTP_403") as ctx:
-            probe_one("20261022",36,2,acknowledgement=ACK,opener=_Refusing())
+        client=_Refusing()
+        with self.assertRaisesRegex(MobileProbeError,"SOURCE_NOT_IN_OWNER_PROFILE") as ctx:
+            probe_one("20261022",36,2,acknowledgement=ACK,opener=client)
+        self.assertEqual(client.calls,0)
         self.assertNotIn("sensitive",str(ctx.exception))
-    def test_wrong_mime_and_redirect_blocked(self):
+    def test_unapproved_source_stops_before_mime_or_redirect(self):
         for cl in (_Client(GOOD,redirect=True),_Client(GOOD,mime="application/json")):
-            with self.assertRaises(MobileProbeError):
+            with self.assertRaisesRegex(MobileProbeError,"SOURCE_NOT_IN_OWNER_PROFILE"):
                 probe_one("20261022",36,2,acknowledgement=ACK,opener=cl)
+            self.assertEqual(cl.calls,0)
+    def test_saved_page_wrong_mime_is_rejected_offline(self):
+        with self.assertRaisesRegex(MobileProbeError,"BAD_PROVIDER_CONTENT_TYPE"):
+            parse_saved_page("20261022",36,2,raw=GOOD,
+                             content_type="application/json")
     def test_body_size_limit(self):
         with self.assertRaisesRegex(MobileProbeError,"PROVIDER_BODY_SIZE_REJECTED"):
-            probe_one("20261022",36,2,acknowledgement=ACK,
-                      opener=_Client(b"X"*(MAX_BODY+1)))
+            parse_saved_page("20261022",36,2,raw=b"X"*(MAX_BODY+1))
     def test_cp932(self):
         raw='<html><meta charset="Shift_JIS">2026年10月22日 2R 結果</html>'.encode("cp932")
-        p=probe_one("20261022",36,2,acknowledgement=ACK,
-                    opener=_Client(raw,mime="text/html"))
+        p=parse_saved_page("20261022",36,2,raw=raw,content_type="text/html")
         self.assertTrue(p["page_date_marker"])
         self.assertTrue(p["page_race_marker"])
 

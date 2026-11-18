@@ -4,6 +4,9 @@ Identity discovery only; not model authorization, a betting cutoff, or a
 confirmed source licence. Extract only linked race identity. Each 16-digit
 link: JJ YYYYMMDD DD RRRR (venue, meeting-start, meeting-day, race number).
 Strictly map the meeting-day segment to the requested JST date.
+
+The legacy Kdreams parser is retained for historical, offline evidence only.
+The owner's WINTICKET/KEIRIN.JP profile excludes its live source.
 """
 from __future__ import annotations
 from datetime import datetime, date, timedelta, timezone
@@ -121,6 +124,10 @@ def discover_from_html(body, *, event_day, source_url):
 def get_single_day(event_day, *, opener=None):
     """One GET per invocation; no retry, redirect, raw page archive or loop."""
     url=index_url(event_day)
+    # Enforce the owner's exclusion before even constructing a transport.
+    # Keeping a historical parser does not authorize scheduled acquisition.
+    if urlsplit(url).hostname == "keirin.kdreams.jp":
+        raise DiscoveryError("RAKUTEN_SOURCE_EXCLUDED_BY_OWNER")
     opener=opener or build_opener(NoRedirect(), HTTPSHandler())
     request=Request(url,method="GET",headers={
         "Accept":"text/html",

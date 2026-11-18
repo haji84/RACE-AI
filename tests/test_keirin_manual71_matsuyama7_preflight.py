@@ -148,6 +148,24 @@ class OneRealRaceGate(unittest.TestCase):
             self.assertEqual(out["source_attempts"],1)
             self.assertFalse(out["all_five_stages_passed"])
 
+    def test_default_unapproved_source_is_held_before_any_get(self):
+        from tests.test_keirin_mobile_one_shot import _Client, GOOD
+
+        client = _Client(GOOD)
+        with TemporaryDirectory() as td:
+            with patch.object(m,"restore_existing_owner_bundle",
+                              return_value={"state":"OWNER_MANUAL71_PRIVATE_SOURCE_STAGED",
+                                            "source_files":4}),patch.object(
+                              m,"parse_forecast",return_value={(7,2,1)}),patch(
+                              "race_ai.keirin_mobile_one_shot.build_opener",
+                              return_value=client):
+                out=m.execute(env=trusted(),workspace=td,helper=td,
+                              runner_temp=td)
+        self.assertEqual(out["source_check"],"SOURCE_NOT_IN_OWNER_PROFILE")
+        self.assertEqual(out["source_attempts"],0)
+        self.assertEqual(client.calls,0)
+        self.assertFalse(out["all_five_stages_passed"])
+
 
 if __name__=="__main__":
     unittest.main()
