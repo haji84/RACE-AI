@@ -269,6 +269,7 @@ def main(argv=None):
     p.add_argument("--safe-report",required=True)
     args=p.parse_args(argv)
     try:
+        root=Path(args.private_root)
         reg=json.loads(Path(args.registry).read_text(encoding="utf-8"))
         report=run(
             registry=reg,private_root=args.private_root,
