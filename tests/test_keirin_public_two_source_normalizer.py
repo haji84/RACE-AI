@@ -126,9 +126,10 @@ class ActualSourceShapeAdapter(unittest.TestCase):
 
     def test_unrecognized_standalone_line_not_merged_by_visual_proximity(self):
         a,b=pages()
-        b=b.replace(b"2\xe8\xbf\xbd\xe4\xb8\x8a",b"2\xe8\xbf\xbd\xe8\xbe\xbc")
-        # An unsupported new lineup role must be explicitly audited.
-        with self.assertRaises(adapter.PublicPageNormalizeError):
+        b=b.replace("2追上".encode(), "2未分類".encode())
+        # A new unsupported lineup role must not be silently joined.
+        with self.assertRaisesRegex(adapter.PublicPageNormalizeError,
+                                    "KDREAMS_LINE_NOT_ALL_REAL_CARS"):
             build(kdreams=b)
 
     def test_ties_and_unmarked_riders_preserve_published_mark_metadata(self):
