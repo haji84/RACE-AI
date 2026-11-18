@@ -100,6 +100,31 @@ class ActualSourceShapeAdapter(unittest.TestCase):
         forecast=auto.generate_A_B(snap,generated_at=NOW)
         self.assertFalse(forecast["all_six_phase_orders_are_hypotheses_not_video_truth"] is False)
 
+    def test_identical_desktop_mobile_rows_may_repeat_without_duplicate_car(self):
+        a,b=pages()
+        from bs4 import BeautifulSoup
+        soup=BeautifulSoup(a.decode("utf-8"),"html.parser")
+        table=soup.find("table")
+        self.assertIsNotNone(table)
+        copy=BeautifulSoup(str(table),"html.parser")
+        soup.body.append(copy)
+        out=build(net=str(soup).encode())["source_packet"]
+        self.assertEqual(len(out["riders"]),6)
+
+    def test_conflicting_desktop_mobile_rider_stat_is_hold_not_merge(self):
+        a,b=pages()
+        from bs4 import BeautifulSoup
+        soup=BeautifulSoup(a.decode("utf-8"),"html.parser")
+        table=soup.find("table")
+        copy=BeautifulSoup(str(table),"html.parser")
+        # Mutate one visible duplicate metric while retaining same car.
+        cells=copy.find_all("tr")[1].find_all("td")
+        cells[5].string="66.99"
+        soup.body.append(copy)
+        with self.assertRaisesRegex(adapter.PublicPageNormalizeError,
+                                    "NETKEIRIN_CONFLICTING_CAR_ROWS"):
+            build(net=str(soup).encode())
+
     def test_wrong_meeting_start_day_or_race_rejected(self):
         with self.assertRaisesRegex(adapter.PublicPageNormalizeError,
                                     "KDREAMS_RACE_DETAIL_ID_MISMATCH"):
