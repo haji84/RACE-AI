@@ -1095,6 +1095,7 @@
       row.append(node("span", "ticket-rank", String(index + 1)), combo(t.lanes), node("span", "tag", t.origin === "saved" ? "保存券からの候補" : "手入力"), label, del); list.append(row);
     });
     $("allocation-summary").replaceChildren(metric("合計候補額", yen(total), ts.length + "点 / 未購入", "▤"), metric("未使用予算", yen(state.raceBudget - total), "1レース予算との差額", "▣"), node("p", "muted small", "想定払戻・期待値・リスク：未検証"));
+    $("review-allocation").textContent = "合計 " + yen(total) + " · 配分を確認 ↓";
     $("confirm-candidates").disabled = !r || !!invalid;
     $("equal-allocate").disabled = !ts.length; $("clear-tickets").disabled = !ts.length;
     const confirmed = state.confirmed.has(id);
@@ -1813,6 +1814,10 @@
   $("clear-tickets").addEventListener("click", () => { state.candidates = state.candidates.filter(t => t.raceId !== state.selectedId); invalidateConfirmation(state.selectedId); renderAll(); });
   $("confirm-candidates").addEventListener("click", () => { const r = currentRace(), error = U.validateDraft(ticketsFor(state.selectedId), state.raceBudget, state.maxPicks, maxNumber(r)); if (!r || error) { $("ticket-message").textContent = error || "レースを選択してください。"; return; } state.confirmed.add(r.race_id); renderAll(); $("ticket-message").textContent = "配分を候補として確定しました。実購入・使用額には含みません。"; });
   $("reopen-candidates").addEventListener("click", () => { invalidateConfirmation(state.selectedId); renderTickets(); });
+  $("review-allocation").addEventListener("click", () => {
+    $("allocation-review").focus({preventScroll:true});
+    $("allocation-review").scrollIntoView({block:"center",behavior:"instant"});
+  });
   $("purchase-ack").addEventListener("change", renderTickets);
   $("record-purchase").addEventListener("click", () => {
     const r = currentRace(), ts = ticketsFor(state.selectedId), error = U.validateDraft(ts, state.raceBudget, state.maxPicks, maxNumber(r));

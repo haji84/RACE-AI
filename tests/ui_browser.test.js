@@ -626,9 +626,10 @@ async function main() {
     mark(`${width}: continuous delivery, measured T15-T10 boundary, source wait/late input,60s active/180s idle GET polling, immutable drafts/imports and rejected claims`);
     await context.close();
   }
+  const referenceScenarios=process.env.UI_GENERATION_ONLY||process.env.UI_AUTO_ONLY?null:await require('./reference_scenarios_browser.cjs').check({browser,base,output});
   assert.deepEqual(errors,[],'no page errors');
   assert.ok(requests.every(url=>url.startsWith(base)),'no external source requests');
-  fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({scope:'SYNTHETIC_ONLY',checks,errors,source_requests:0,widths:process.env.UI_GENERATION_ONLY||process.env.UI_AUTO_ONLY?[]:[320,390,1440,1920],dispatch_fixture_widths:process.env.UI_DISPATCH_VIEWS && !process.env.UI_AUTO_ONLY && !process.env.UI_GENERATION_ONLY?[390,1440]:[],generation_fixture_widths:process.env.UI_AUTO_ONLY?[]:[390,1440],automatic_fixture_widths:[390,1440],generation_native_execution_proven:false},null,2));
+  fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({scope:'SYNTHETIC_ONLY',checks,errors,source_requests:0,widths:process.env.UI_GENERATION_ONLY||process.env.UI_AUTO_ONLY?[]:[320,390,1440,1920],dispatch_fixture_widths:process.env.UI_DISPATCH_VIEWS && !process.env.UI_AUTO_ONLY && !process.env.UI_GENERATION_ONLY?[390,1440]:[],generation_fixture_widths:process.env.UI_AUTO_ONLY?[]:[390,1440],automatic_fixture_widths:[390,1440],generation_native_execution_proven:false,reference_scenarios:referenceScenarios},null,2));
   await browser.close();browser=null;await new Promise(resolve=>server.close(resolve));server=null;
 }
 main().catch(async error=>{console.error(error);if(browser)await browser.close();if(server)server.close();process.exitCode=1;});
