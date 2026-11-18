@@ -1,0 +1,94 @@
+{
+  "schema": "RACE_AI_LOCAL_RUNTIME_RESUME_NATIVE_ROSTER_V1",
+  "recorded_at_jst": "2026-11-19 00:09 JST",
+  "verified_main_base": "f6fda5128bf2ebd3fd526835248e9f55128978d5",
+  "verified_source": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+  "environment": {
+    "state": "RUNNING",
+    "observations_current": true,
+    "shell_pwd": "/workspace",
+    "network": "UNRESTRICTED_ENFORCED",
+    "local_public_repository_read": true,
+    "cli_authenticated_login": "haji84",
+    "repository_permission_push_reported": true,
+    "actual_cli_write_verified": {
+      "branch": "feat/reference-responsive-ui",
+      "before": "ed904fe62dad470a91ababce623c52c1fbde5861",
+      "after": "6f551d3f3bf43a8a99db180cd985a0e31e6a54ab",
+      "force": false
+    },
+    "owner_state_key_retrieved": false,
+    "local_safaridriver_available": false,
+    "physical_iphone_connector_available": false
+  },
+  "preservation": {
+    "preexisting_checkouts_inventoried": 37,
+    "preexisting_linked_worktrees_inventoried": 36,
+    "inventory_file": "/workspace/scratch/race-ai-resume-20261118-1435-inventory.json",
+    "original_checkout_reset": false,
+    "existing_edits_discarded": false,
+    "unique_local_git_object_stores_checked": 1,
+    "offline_commits": [
+      {
+        "sha": "b7380fe6a377e6ccf2b96331f2126c52549bbe17",
+        "status": "UNRESTORED"
+      },
+      {
+        "sha": "daae4c10167224b7730006d8ada5ade398aaa64b",
+        "status": "UNRESTORED"
+      }
+    ]
+  },
+  "native_roster": {
+    "active_families": 15,
+    "active_applicable_cells": 30,
+    "by_sport": {
+      "boat": 14,
+      "keirin": 5,
+      "autorace": 6,
+      "horse": 5
+    },
+    "retired_seller_excluded_by_existing_owner_selection": true,
+    "models_added": 0,
+    "real_daily_schedule_denominator": null,
+    "jra_nar_applicability_proven": false,
+    "real_full_race_coverage_proven": false
+  },
+  "local_verification": {
+    "main_recovery_baseline": {
+      "tests": 138,
+      "seconds": 0.406,
+      "all_pass": true
+    },
+    "four_sport_native_future_batch_clock_coverage": {
+      "tests": 38,
+      "seconds": 308.633,
+      "all_pass": true,
+      "scope": "Existing synthetic native model, candidate, ciphertext, source/clock binding and coverage contracts. Not real prospective improvement or operational timing.",
+      "source_reference_bootstrap": {
+        "pr64": "761247bee0209e37b1af6b8885e92cad3e9260a5",
+        "pr72": "7a432e5acc4d3495a0e82bd79726929e2f8085fe"
+      },
+      "resolved_initial_setup_error": "Missing fixed race_ai.core reference in a main-only namespace; restored exact immutable references without test changes."
+    },
+    "integrated_keirin_boundary_subset": {
+      "tests": 40,
+      "seconds": 0.012,
+      "all_pass": true,
+      "network_blocked_or_fixture_only": true
+    }
+  },
+  "live_owner_snapshot": {
+    "observed_at_jst": "2026-11-19 00:04:54 JST",
+    "run_id": 44310358995,
+    "head_sha": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+    "status": "in_progress",
+    "successful_steps": 33,
+    "failed_steps": 0,
+    "current_step": "Deadline-ordered five-model round 04",
+    "source_rounds_saved_and_readback_independently_proven": null,
+    "new_receive_clock_binding_proven": false,
+    "source_cancelled": false
+  },
+  "goal_complete": false
+}

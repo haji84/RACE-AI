@@ -1,0 +1,22 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_ORIGINAL_METADATA_V1",
+  "number": 22,
+  "title": "fix: 公式Bのモーター未取得を欠測として安全に扱う",
+  "body": "公式Bにモーター番号が存在しない場合でも、開催場・レース・6艇の出走データを失わず、motor_no=null（未取得）で表現する。Python publisherとWeb検証の契約を揃え、回帰テストを更新。モーター番号を捏造しない。\n\n未完成: 許可済み公式B原本の取得とPreview配信、iPhone E2E。main/Production未変更。",
+  "head": {
+    "ref": "fix/boat-b-without-motor",
+    "sha": "957f537f85624bacba26aae0f35a4023fa2b92e0"
+  },
+  "base": {
+    "ref": "feat/boat-official-b-snapshot-adapter",
+    "sha": "0b4a8d3379822365197d597c9a9b9444b1edbc0a"
+  },
+  "draft": true,
+  "state": "open",
+  "html_url": "https://github.com/haji84/RACE-AI/pull/22",
+  "ancestry": {
+    "head_is_ancestor_of_main": "f6fda5128bf2ebd3fd526835248e9f55128978d5",
+    "verified": true
+  },
+  "recorded_at_jst": "2026-11-19 00:09 JST"
+}
