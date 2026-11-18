@@ -3052,5 +3052,102 @@ scope.window=scope;vm.createContext(scope);vm.runInContext(p.script,scope);
             self.assertIs(report[flag], False)
         self.assertNotIn('K' * 43, output.getvalue())
 
+
+class CurrentV5SourceDayAndReportTests(unittest.TestCase):
+    def test_live_metadata_probe_uses_actual_source_day_and_refuses_multiple_source_dates(self):
+        self.assertTrue(callable(getattr(S, 'current_v5_probe_script', None)),
+                        'actual browser source-day metadata probe is missing')
+        source = S.current_v5_probe_script()
+        self.assertIs(type(source), str)
+        arguments, tickets = current_v5_fixture()
+        replay = S.build_current_v5_replay(**arguments)
+        program = r'''
+const vm=require('node:vm'),fs=require('node:fs'),p=JSON.parse(fs.readFileSync(0,'utf8')),output=[];
+for(const sourceText of ['対象日：2030-04-01','対象日：2030-03-31',
+ '対象日：2030-03-31〜2030-04-01','対象日：未取得',null]){
+ const nodes={'#display-day':{textContent:'2030-04-01 JST / ボート'},
+  '#selected-date':{value:'2030-04-01'},'#source-date':sourceText===null?null:{textContent:sourceText}};
+ const scope={document:{querySelector:selector=>nodes[selector]??null},
+  __raceSafariPrivacy:{current_v5:{schema:'RACE_AI_SAVED_WEB_HISTORY_V5',generation:12,
+   cipher_sha256:p.cipher,history_day:'2030-04-01',v5_read_live_successes:1},aes_successes:3}};
+ vm.createContext(scope);
+ const result=vm.runInContext('(function(){'+p.script+'\n})()',scope);
+ output.push(result);
+}
+process.stdout.write(JSON.stringify(output));
+'''
+        payload = {'script': source, 'cipher': json.loads(arguments['latest_raw'])['cipher_sha256']}
+        result = subprocess.run(['node', '-e', program], input=json.dumps(payload).encode(),
+                                capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 0, 'source-day probe must execute without private diagnostics')
+        probes = json.loads(result.stdout)
+        self.assertEqual([probe.get('source_day') for probe in probes],
+                         ['2030-04-01', '2030-03-31', None, None, None])
+        for index, observed in enumerate(probes):
+            probe = current_v5_probe(arguments, tickets)
+            probe.update(observed)
+            self.assertEqual(probe['selected_day'], '2030-04-01')
+            self.assertEqual(probe['history_day'], '2030-04-01')
+            if index == 0:
+                self.assertIs(S.verify_current_v5_evidence(
+                    replay, probe, current_v5_audit())['current_day_verified'], True)
+            else:
+                with self.subTest(case=index), self.assertRaises(S.SafariHold):
+                    S.verify_current_v5_evidence(replay, probe, current_v5_audit())
+
+    def test_top_level_snapshot_metadata_describes_current_v5_and_labels_older_plaintext_context(self):
+        arguments, tickets = current_v5_fixture()
+        replay = S.build_current_v5_replay(**arguments)
+        current = S.verify_current_v5_evidence(
+            replay, current_v5_probe(arguments, tickets), current_v5_audit())
+        legacy = copy.deepcopy(arguments['context'])
+        legacy.update(day='2030-03-31', generation=11, minimum_results=2,
+                      native_group_count=2, day_races=2)
+        legacy['native_probe']['race_id'] = '20300331-01-01'
+        legacy['model_switch_probe']['race_id'] = '20300331-01-01'
+        legacy['native_groups'].append(['invented-older-extra', 'v1', None, None])
+        S.validate_context(legacy)
+        @contextmanager
+        def site(*args, **kwargs):
+            yield object()
+        @contextmanager
+        def browser():
+            yield object(), {'browserName': 'Safari', 'platformName': 'macOS', 'browserVersion': '26.6'}
+        private = {'key': 'K' * 43, 'fragment': '#saved=' + 'a' * 64 + '.' + 'K' * 43}
+        output = io.StringIO()
+        with patch.object(S.platform, 'system', return_value='Darwin'), \
+                patch.object(S, 'load_public_assets', return_value={}), \
+                patch.object(S, 'verify_live_assets', return_value={}), \
+                patch.object(S, 'load_encrypted_seed', return_value={}), \
+                patch.object(S, 'read_authenticated_view', return_value=(legacy, {}, private)), \
+                patch.object(S, 'LoopbackSite', side_effect=site), \
+                patch.object(S, 'apple_driver', side_effect=browser), \
+                patch.object(S, 'app_checks', return_value={'private_view_reads': 1}), \
+                patch.object(S, 'encrypted_seed_checks', return_value={
+                    'browser_aes_verified': True, 'current_v5_live_continuation_verified': False}), \
+                patch.object(S, 'read_current_v5_replay', return_value=replay), \
+                patch.object(S, 'current_v5_checks', return_value=current), \
+                redirect_stdout(output), redirect_stderr(output):
+            self.assertEqual(S.main(['--public-root', '/public', '--source-root', '/reader']), 0)
+        report = json.loads(output.getvalue())
+        self.assertEqual(report['encrypted_current_v5'], current)
+        for field in ('saved_day', 'authenticated_generation', 'authenticated_results',
+                      'authenticated_native_p1_groups'):
+            self.assertEqual(report[field], current[field], field + ' must describe current V5')
+        expected_legacy = {'saved_day': legacy['day'],
+            'authenticated_generation': legacy['generation'],
+            'authenticated_results': legacy['minimum_results'],
+            'authenticated_native_p1_groups': legacy['native_group_count']}
+        for field, value in expected_legacy.items():
+            self.assertEqual(report['latest_p1_private_transport'][field], value)
+        self.assertEqual(report['latest_p1_private_transport']['private_view_reads'], 1)
+        self.assertEqual(report['latest_p1_private_transport']['transport'],
+                         'LOOPBACK_EXISTING_PRIVATE_SAVED_ENDPOINT')
+        self.assertIs(report['current_day_verified'], True)
+        for field in ('account_login_verified', 'browser_aes_and_owner_login_verified',
+                      'physical_iphone_verified', 'all_eight_reference_screens_visually_verified'):
+            self.assertIs(report[field], False)
+        self.assertNotIn('K' * 43, output.getvalue())
+
 if __name__ == '__main__':
     unittest.main()
