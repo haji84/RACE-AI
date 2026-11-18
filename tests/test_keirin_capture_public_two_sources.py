@@ -140,7 +140,7 @@ class TwoPublicSourcesToAutoAB(unittest.TestCase):
         self.kd=self.kd.replace(b"20:45",b"")
         outcome=self.collect()
         self.assertEqual(outcome["normalized_private_cards"],0)
-        self.assertIn("HOLD_SOURCE_PAGE_PARSING_OR_PROVENANCE_HOLD",outcome["states"])
+        self.assertIn("HOLD_KDREAMS_PUBLISHED_CUTOFF_CLOCK_MISSING",outcome["states"])
         self.assertFalse((self.cards/(RID+".json")).exists())
 
     def test_no_extra_races_beyond_budget(self):
