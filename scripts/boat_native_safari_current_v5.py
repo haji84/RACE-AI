@@ -466,6 +466,18 @@ def read_current_v5_replay(source_root, seed, *, _api):
         raise a.SafariHold('CURRENT_V5_REPLAY_INVALID') from None
 
 
+def current_v5_probe_script():
+    """Observe selected state and the independent authenticated source-day label."""
+    return r'''const crumb=globalThis.__raceSafariPrivacy?.current_v5;
+        const text=document.querySelector('#source-date')?.textContent||'';
+        const days=Array.from(new Set(text.match(/\d{4}-\d\d-\d\d/g)||[]));
+        return {schema:crumb?.schema,generation:crumb?.generation,cipher_sha256:crumb?.cipher_sha256,
+            history_day:crumb?.history_day,selected_day:document.querySelector('#selected-date')?.value,
+            source_day:days.length===1?days[0]:null,
+            v5_read_live_successes:crumb?.v5_read_live_successes,
+            aes_successes:globalThis.__raceSafariPrivacy?.aes_successes};'''
+
+
 def current_v5_checks(assets, seed, private, replay, secrets, *, _api):
     """Report only after actual native Safari AES/day/model probes and cleanup."""
     a = _api
@@ -480,9 +492,9 @@ def current_v5_checks(assets, seed, private, replay, secrets, *, _api):
             driver.command('POST', '/url', {'url': site.url + fragment})
             driver.wait('''return globalThis.__raceSafariPrivacy?.current_v5?.v5_read_live_successes>0
                 && globalThis.__raceSafariPrivacy.current_v5.history_day===arguments[0]
-                && document.querySelector('#saved-view-sync')?.dataset.historyDay===arguments[0];''',
+                && document.querySelector('#saved-view-sync')?.dataset.historyDay===arguments[0]
+                && document.querySelector('#selected-date')?.value===arguments[0];''',
                 context['day'], timeout=90)
-            a.select_saved_day(driver, context['day'])
             native = context['native_probe']
             a.open_saved_race(driver, native)
             driver.select('#prediction-select', native['index'])
@@ -513,12 +525,7 @@ def current_v5_checks(assets, seed, private, replay, secrets, *, _api):
             metrics = driver.script('return document.querySelector("#saved-result-metrics")?.textContent')
             result_count = re.search(r'取得結果\s*(\d+)レース', metrics or '')
             _need(result_count is not None, a, 'CURRENT_V5_EVIDENCE_INVALID')
-            observed = driver.script('''const crumb=globalThis.__raceSafariPrivacy?.current_v5;
-                const displayed=document.querySelector('#display-day')?.textContent.match(/\\d{4}-\\d\\d-\\d\\d/)?.[0];
-                return {schema:crumb?.schema,generation:crumb?.generation,cipher_sha256:crumb?.cipher_sha256,
-                    history_day:crumb?.history_day,selected_day:document.querySelector('#selected-date')?.value,
-                    source_day:displayed,v5_read_live_successes:crumb?.v5_read_live_successes,
-                    aes_successes:globalThis.__raceSafariPrivacy?.aes_successes};''')
+            observed = driver.script(a.current_v5_probe_script())
             _need(type(observed) is dict, a, 'CURRENT_V5_EVIDENCE_INVALID')
             observed.update(results=int(result_count[1]), native_p1_groups=len(groups), model_choices=choices)
             snapshot = a.browser_snapshot(driver)

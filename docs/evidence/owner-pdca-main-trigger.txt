@@ -635,3 +635,5 @@ parent is09b65329692389fe260e4aa0430e94f341b255dc. Later pushes and job reruns
 must not retry an ambiguous write. No new release prefix or marker is created.
 Current a74 worker44218343091 continues. No source GET/budget reset/model fit/
 weight switch/new job/permissions/input/cron/runner/timeout/fee/UI deployment.
+
+2026-11-18 current encrypted V5 native acceptance: retain the actual gen425 repair and independent missing0 evidence. Verify the revised native checker against the unchanged deployed f603 assets, EFF reader and ed904 candidate through the existing native workflow. Bind one immutable authenticated snapshot, require actual browser AES and today's source/history/selected day; retain false login/iPhone/goal flags until separately demonstrated. Use the unchanged existing owner gate, preserve the running A74 worker and all original budgets; no forced dispatch, source reset, new workflow job/input/runner/timeout, public UI publication, model or weight switch. A checker-byte change is the concrete reviewed reason for one exact-main native request; an uncertain request is never retried.

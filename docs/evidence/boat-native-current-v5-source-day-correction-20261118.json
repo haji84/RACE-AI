@@ -1,0 +1,44 @@
+{
+  "schema": "RACE_AI_NATIVE_CURRENT_V5_SOURCE_DAY_CORRECTION_V1",
+  "first_runtime": {
+    "head": "5285ba94874a638c7cc375e054a22dbaf2e493c0",
+    "test_run_id": 44244660562,
+    "job_id": 134600618418,
+    "tests": 131,
+    "seconds": 16.88,
+    "failures": 0
+  },
+  "independent_findings": [
+    "The original probe read selection label #display-day rather than independent dataset dates #source-date.",
+    "Top-level snapshot metadata still described an earlier plaintext phase if the saved view changed between phases."
+  ],
+  "additive_regressions": {
+    "test_blob": "7f931b9c16b445c2ed8077848b427f3e9dae3df9",
+    "contract_delta": "ca2ce3ed807461fde4c139f424d1bee8ece0707f",
+    "prior_131_methods_byte_preserved": true,
+    "new_methods": 2,
+    "head": "9cd60f3f9ca81f00e0b26011ec828a6b9e5632ea",
+    "run_id": 44245476128,
+    "job_id": 134603264409,
+    "tests": 133,
+    "seconds": 18.695,
+    "failures": 2,
+    "errors": 0,
+    "reason": "Missing actual-source-day probe API and old March31 top-level metadata instead of current April1."
+  },
+  "correction": {
+    "helper": "8c0903751030da0e99dadc1fd085387a6492176c",
+    "checker": "71aed0d1746d611f307b4cd577798d9e2d1ef7af",
+    "status": "CI_PENDING",
+    "uses_actual_source_date_label_and_unique_day": true,
+    "top_fields_bound_to_verified_v5": true,
+    "legacy_fields_labelled": true,
+    "omits_redundant_async_day_selection_after_readiness": true
+  },
+  "effects": {
+    "workflow_pins_assets_changed": false,
+    "live_native_acceptance_proven": false,
+    "physical_iphone_proven": false,
+    "goal_complete": false
+  }
+}

@@ -1613,9 +1613,13 @@ def main(argv=None):
             'status': 'NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED', 'native_browser': identity,
             'verified_at': datetime.now(timezone.utc).isoformat(), 'pages_sha': PAGES_SHA,
             'read_only_source_sha': SOURCE_SHA, 'live_asset_sha256': hashes,
-            'saved_day': context['day'], 'authenticated_generation': context['generation'],
-            'authenticated_results': context['minimum_results'], 'authenticated_native_p1_groups': context['native_group_count'],
-            'latest_p1_private_transport': {**checks, 'transport': 'LOOPBACK_EXISTING_PRIVATE_SAVED_ENDPOINT'},
+            'saved_day': current['saved_day'], 'authenticated_generation': current['authenticated_generation'],
+            'authenticated_results': current['authenticated_results'],
+            'authenticated_native_p1_groups': current['authenticated_native_p1_groups'],
+            'latest_p1_private_transport': {**checks, 'transport': 'LOOPBACK_EXISTING_PRIVATE_SAVED_ENDPOINT',
+                'saved_day': context['day'], 'authenticated_generation': context['generation'],
+                'authenticated_results': context['minimum_results'],
+                'authenticated_native_p1_groups': context['native_group_count']},
             'encrypted_seed': seed_checks, 'encrypted_current_v5': current,
             'browser_aes_verified': seed_checks.get('browser_aes_verified') is True and current.get('browser_aes_verified') is True,
             'private_sessions_cleanup_verified': True,
@@ -1674,6 +1678,10 @@ def current_v5_replay_route(replay, logical_url):
 
 def current_v5_replay_script(replay):
     return _current_v5_helpers().current_v5_replay_script(replay, _api=_CURRENT_V5_API)
+
+
+def current_v5_probe_script():
+    return _current_v5_helpers().current_v5_probe_script()
 
 
 def verify_current_v5_evidence(replay, probe, audit):

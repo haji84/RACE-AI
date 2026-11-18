@@ -1,3 +1,15 @@
+## 2026-11-18 05:41 UTC: 実修復を保全し、再取得削減と現行V5 Safariを最終CIへ（GOAL未達）
+
+欠落12groupのgen425実修復と別runによるmissing0は下の05:02記録・実証拠のとおり。後続の公開manifestは04:48:24 UTCにgen426へ進み、previous-cipherが修復425と一致し、同じanchor/Git祖先で接続した。公開metadataだけでは当日本文・REJ件数・source ACKを確認できない。実A74の正規joblogは03:19:07で停止したsnapshotだったため、その先の失敗/成功を推測しない。
+
+PR39は元head0b8ca7b7/metadata/祖先/consumer0を保全してsource A74上で再利用。研究PDCA/保管が最初11巡の追加時間2538秒を占めたが、network部分の割合は未測定。暗号ZIPは毎回の新metadataと完全size/SHA一致でのみ再利用し、認証/native replay/結果/時計/scoreは毎回実行する。source-archive保管だけへ独立private bare ODBを渡し、全intake・remote commit fetch・両DB本文照合を省略しない。learning/retention/batch/vault/round actionはbyte不変。22追加検査は実成功、全859件の残る既存fixture1件は正しいGitHub応答とZIP hashを補い再CI中。全13元method/assertionsは不変、production guardの緩和なし。時間短縮の実運転は未確認。
+
+PR38は元head58244fc8/metadata/祖先/consumer0を保全。公開f603/EFF reader/ed904候補/既存native workflowを変えず、1つの認証済みimmutable snapshotの暗号文だけをloopbackで再生し、未改変の配信JSによるV5 browser AES/当日/原本2model/結果/P1を検証する。これは明示的な暗号文replayで、公開HTTPの最新到達性の証明ではない。既存119＋12件は実131件/16.880秒成功したが、独立レビューで元データ日付の選択label重複と旧plaintext世代の報告残りを発見。131件を保ち2件を追加し、実133件/18.695秒でその2件だけが失敗した。元データ日付の独立labelと唯一日付、current V5由来のtop metadataへ修正し最終CIへ進む。実Safari/当日受入・本人login・物理iPhoneはまだ未確認。
+
+Safari起動は実checker bytesの変更も正規main/不変workflow/first-parentのGit SHA照合で認め、元candidate変更経路と同じ履歴・直前ref再確認・固定POST1回・曖昧応答再試行なしを維持。実131件/0.332秒と独立レビュー成功。候補の偽pin変更や新job/input/cron/runner/timeout/課金/モデル系統/公開UI/本番重み変更は行わない。稼働中A74は停止・hotswapしない。
+
+4競技全レース×全適用モデル・締切15〜10分前・実iPhone・6艇の服色継続識別/校正/予想接続・前向き精度改善は未達。元offline2commitは未復元のまま。以下は各時点の証拠を保つ。
+
 ## 2026-11-18 05:02 UTC: 欠落12groupを実保存・独立復号でmissing0を確認（GOAL未達）
 
 通常merge a836835f/tree9608d6d3は最終tested head9125ffccと同じtree。national実CI44237640777/job134577536802は333件/107.101秒、全10block compileが成功し、26checksは12success/14skip/failed0だった。
