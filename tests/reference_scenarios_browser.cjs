@@ -124,6 +124,15 @@ async function check({browser,base,output}){
     await action.click();assert.equal(await page.locator('[data-detail-tab="'+key+'"]').getAttribute('aria-selected'),'true');await page.locator('#page-detail .back-button').click();
    }
    const missing=page.locator('#all-races [data-race-id="'+view.records[4].race_id+'"]');await missing.locator('.race-list-more>summary').click();assert.match(await missing.innerText(),/保存予想・出走表は未取得/);await missing.locator('.race-list-more>summary').click();
+   await card().locator('.race-list-more>summary').click();await card().locator('[data-race-tab="participants"]').focus();
+   await page.clock.fastForward(60001);
+   assert.equal(await card().locator('.race-list-more').evaluate(e=>e.open),true,'an unchanged-row minute refresh preserves the open information disclosure');
+   assert.equal(await page.evaluate(()=>document.activeElement.dataset.raceTab),'participants','an unchanged-row refresh preserves the focused information action');
+   await page.clock.fastForward(29*60000);
+   assert.equal(await card().count(),0,'a race that has closed leaves the upcoming view');
+   assert.equal(await page.locator('#all-races .race-list-more[open]').count(),0,'removed disclosure state must not transfer to another race');
+   geometry.minute_refresh_state_preserved=true;geometry.closed_phase_row_not_restored=true;
+   await page.clock.setFixedTime(new Date('2030-01-01T00:30:00Z'));await nav('races');
    await page.locator('#race-search').fill('架空6');assert.equal(await page.locator('#all-races .race-card').count(),1);await page.locator('#race-search').fill('');
    await page.locator('#race-filters>summary').click();await page.locator('#prediction-filter').check();assert.equal(await page.locator('#all-races .race-card').count(),1);await page.locator('#prediction-filter').uncheck();
    await page.locator('#race-sort').selectOption('venue');assert.equal(await page.locator('#all-races .race-card').first().getAttribute('data-race-id'),view.records[4].race_id);

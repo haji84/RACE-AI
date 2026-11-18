@@ -882,9 +882,14 @@
     if (state.page !== "races" || document.hidden) return;
     const lists = U.raceLists(all,{now}); if (!lists.upcoming.length && !lists.unknown.length) return;
     const next = lists.upcoming[0], delay = next ? Math.max(25,Math.min(60000,Date.parse(U.raceDeadline(next))-now+25)) : 60000;
-    raceBoundaryTimer = setTimeout(() => { raceBoundaryTimer = null; if (state.page === "races") renderRaces(); },delay);
+    raceBoundaryTimer = setTimeout(() => { raceBoundaryTimer = null; if (state.page === "races") renderRaces({preserveInteraction:true}); },delay);
   }
-  function renderRaces() {
+  function renderRaces({preserveInteraction=false}={}) {
+    const interactions=new Map();
+    if(preserveInteraction)$("all-races").querySelectorAll(":scope>.race-list-card").forEach(card=>{
+      interactions.set(card.dataset.raceId,{phase:card.dataset.racePhase,open:card.querySelector(".race-list-more").open,
+        focus:[...card.querySelectorAll("button,summary")].indexOf(document.activeElement)});
+    });
     const now = Date.now(), all = scoped(), baseMatches = U.filterRaces(displayRows(races()), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, query: state.query, venue: state.venue, sort: state.sort, candidatesOnly: state.candidatesOnly, candidateRaceIds: state.candidates.map(t => t.raceId)});
     const matches = state.forecastOnly ? baseMatches.filter(r => prediction(r)) : baseMatches, lists = U.raceLists(matches,{now});
     if (state.raceView === "unknown" && !lists.unknown.length) state.raceView = "upcoming";
@@ -921,6 +926,12 @@
     }
     if (filtered.length > state.visible) content.push(button("さらに60件表示", "outline full", () => { state.visible += 60; renderRaces(); }));
     $("all-races").replaceChildren(...content); renderVenueExplorer(venueEntries()); $("candidate-count").replaceChildren(...candidateItems()); scheduleRaceBoundary(all,now);
+    if(preserveInteraction)$("all-races").querySelectorAll(":scope>.race-list-card").forEach(card=>{
+      const previous=interactions.get(card.dataset.raceId);if(!previous||previous.phase!==card.dataset.racePhase)return;
+      card.querySelector(".race-list-more").open=previous.open;
+      const target=previous.focus<0?null:card.querySelectorAll("button,summary")[previous.focus];
+      if(target?.getClientRects().length)target.focus({preventScroll:true});
+    });
   }
   function readableSelection(select) {
     const label=select.closest("label");if(!label)return;
