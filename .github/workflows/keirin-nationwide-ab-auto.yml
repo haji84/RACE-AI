@@ -987,16 +987,23 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
-          root="$RUNNER_TEMP/keirin-results-$GITHUB_RUN_ID"
-          mkdir -m 700 -p "$root"
-          chmod 700 "$root"
-          trap 'rm -rf -- "$root"' EXIT
-          day="$(TZ=Asia/Tokyo date +%F)"
-          python -m scripts.keirin_github_only_result_day \
-            --day "$day" \
-            --repo "$GITHUB_WORKSPACE" \
-            --private-raw "$root" \
-            --out "$RUNNER_TEMP/keirin-result-safe.json" \
-            > "$RUNNER_TEMP/keirin-result-counts.json"
-          cat "$RUNNER_TEMP/keirin-result-counts.json" >> "$GITHUB_STEP_SUMMARY"
+          # Midnight races can finish after JST date changes. The producer
+          # never backdates forecasts; this job checks outcomes only.
+          for day in "$(TZ=Asia/Tokyo date +%F)" \
+                     "$(TZ=Asia/Tokyo date -d yesterday +%F)"; do
+            root="$RUNNER_TEMP/keirin-results-$GITHUB_RUN_ID-$day"
+            mkdir -m 700 -p "$root"
+            chmod 700 "$root"
+            if python -m scripts.keirin_github_only_result_day \
+               --day "$day" \
+               --repo "$GITHUB_WORKSPACE" \
+               --private-raw "$root" \
+               --out "$RUNNER_TEMP/keirin-result-$day-safe.json" \
+               > "$RUNNER_TEMP/keirin-result-$day-counts.json"; then
+              cat "$RUNNER_TEMP/keirin-result-$day-counts.json" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "HOLD_RESULT_DAY_SOURCE_OR_PROVENANCE_UNAVAILABLE $day" >> "$GITHUB_STEP_SUMMARY"
+            fi
+            rm -rf -- "$root"
+          done
           echo "SECONDARY_RESEARCH_ONLY_OFFICIAL_PRIMARY_PENDING" >> "$GITHUB_STEP_SUMMARY"
