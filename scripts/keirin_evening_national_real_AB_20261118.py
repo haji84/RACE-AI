@@ -112,6 +112,7 @@ def run(*,registry, private_root,owner_public_key_pem,
             records[rid]=safe_record(rid,"NO_FORECAST_PUBLISHED_CUTOFF_ALREADY_PASSED")
     required_codes={rid[8:10] for rid,*_ in before}
     available_urls={}
+    source_structure=[]
     count_meeting_GET=0
     for code in sorted(required_codes):
         day_url=SCHEDULE[code][1]
@@ -120,6 +121,25 @@ def run(*,registry, private_root,owner_public_key_pem,
             count_meeting_GET+=1
             candidates=links.linked_details(blob,base_url=day_url,
                                              day=DAY,venue=code)
+            from bs4 import BeautifulSoup
+            from urllib.parse import urlsplit,urljoin
+            soup=BeautifulSoup(blob,"html.parser")
+            anchors=soup.find_all("a",href=True)
+            path_templates={}
+            for a in anchors:
+                p=urlsplit(urljoin(day_url,a["href"])).path
+                if "racedetail" in p.lower() or "racecard" in p.lower():
+                    import re
+                    masked=re.sub(r"[0-9]","D",p)
+                    path_templates[masked]=path_templates.get(masked,0)+1
+            source_structure.append({
+                "venue_code":code,
+                "total_hrefs":len(anchors),
+                "detail_links_validated":len(candidates),
+                "detail_route_templates":dict(sorted(path_templates.items())),
+                "contains_racedetail_literal_in_html":
+                    b"racedetail" in blob.lower(),
+            })
             for rid,url in candidates.items():
                 if rid in registered:
                     available_urls[rid]=url
@@ -129,7 +149,7 @@ def run(*,registry, private_root,owner_public_key_pem,
                 for rid,*_ in before:
                     records[rid]=safe_record(rid,
                        "HOLD_PUBLIC_PROVIDER_DENIED_OR_UNAVAILABLE_STOP")
-                return _summary(records,count_meeting_GET,0,0,True)
+                return _summary(records,count_meeting_GET,0,0,True,source_structure)
             # Missing venue links keeps its races on HOLD.
     attempt_pairs=0
     saved=0
@@ -208,10 +228,10 @@ def run(*,registry, private_root,owner_public_key_pem,
                   reason.replace("_","").isupper())
             records[rid]=safe_record(
                 rid,"HOLD_"+(reason if safe else "UNVERIFIED_SOURCE_OR_CIPHER"))
-    return _summary(records,count_meeting_GET,attempt_pairs,saved,abort)
+    return _summary(records,count_meeting_GET,attempt_pairs,saved,abort,source_structure)
 
 
-def _summary(records,meeting_gets,attempts,saved,blocked):
+def _summary(records,meeting_gets,attempts,saved,blocked,source_structure):
     states=Counter(v["state"] for v in records.values())
     require(len(records)==79,"FROZEN_NATIONAL_COHORT_NOT_79")
     return {
@@ -222,6 +242,7 @@ def _summary(records,meeting_gets,attempts,saved,blocked):
        "venue_index_public_GETs":meeting_gets,
        "race_source_pair_attempts":attempts,
        "provider_abort":blocked,
+       "source_meeting_link_structure":source_structure,
        "official_result_scored":0,
        "organizer_actual_sales_close_independently_verified":False,
        "source_html_and_plain_predictions_not_in_this_report":True,
