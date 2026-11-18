@@ -1,0 +1,416 @@
+{
+  "schema": "RACE_AI_PUBLISHED_UI_CONTRACT_PRESERVATION_COUNTS_V1",
+  "recorded_at_jst": "2026-11-19T02:05:06.727695+09:00",
+  "status": "LOCAL_REGRESSIONS_FIXED_EXISTING_BROWSER_SUITES_PASS_REVIEW_AND_NATIVE_ACCEPTANCE_SEPARATE",
+  "existing_draft_pr": 62,
+  "base_source_commit": "7082e1214e6797806c00e1b60e088792c857672d",
+  "local_code_commit": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+  "web_tree": "d905215e2f886b0bcc4f2e58323ceee465b03c38",
+  "original_legacy_pr62_ancestry_preserved": true,
+  "pushed_merged_or_published_by_this_agent": false,
+  "change_scope": {
+    "product_files": [
+      "web/product-data.js",
+      "web/saved-view-crypto.js"
+    ],
+    "existing_test_files": [
+      "tests/product_data.test.cjs",
+      "tests/test_saved_view_history.py"
+    ],
+    "workflow_checker_source_model_weight_changes": 0
+  },
+  "provenance": {
+    "published_asset_commit": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+    "public_product_data_blob": "56a966767a03ba8a5f5ffd6c355812397a4772f7",
+    "public_saved_crypto_blob": "52e0e02d2cc05858c7a1a2b73e1e6f82699097e6",
+    "copied_public_name_evidence_kinds": [
+      "SAME_RACE_RESULT",
+      "SAME_DAY_OFFICIAL_RESULT",
+      "VERIFIED_OFFICIAL_PROFILE"
+    ],
+    "crypto_bytes_exactly_match_public_f603": true,
+    "product_data_only_difference_from_public": "Preserve the candidate existing EXECUTION_FAILED dispatch status",
+    "whole_public_or_candidate_module_replacement": false,
+    "unrelated_candidate_module_bytes_preserved": true
+  },
+  "test_first": {
+    "product_data_red": {
+      "tests": 46,
+      "passed": 43,
+      "failed": 3,
+      "errors": 0,
+      "reason": "All three already-published strictly bound name evidence kinds rejected at candidate admission"
+    },
+    "history_red": {
+      "tests": 1,
+      "failed_subcases": 3,
+      "errors": 0,
+      "cases": [
+        "first router transition",
+        "future preferred date",
+        "unchanged generation"
+      ],
+      "reason": "A newer results-only day replaced the last saved forecast date"
+    },
+    "green": {
+      "product_data_tests": 46,
+      "history_tests": 12,
+      "product_admission_mutation_cases": 42,
+      "history_behavior_cases": [
+        "last forecast day retained on initial router update",
+        "future preferred day retains last forecast day",
+        "same generation does not switch to a zero-forecast day",
+        "explicit results-only day selection remains available",
+        "results-only day contains zero forecasts",
+        "new forecasts become selectable when published"
+      ]
+    },
+    "candidate_only_behavior_retained": "Existing dispatch-slot test now also verifies EXECUTION_FAILED without accepting invented verified statuses"
+  },
+  "verification": {
+    "pure_adapter_evidence_union_checker_tests": 82,
+    "pure_adapter_evidence_union_checker_failures": 0,
+    "history_python_tests": 12,
+    "history_python_failures": 0,
+    "pages_builder_publication_guard_tests": 11,
+    "pages_builder_publication_guard_failures": 0,
+    "native_guard_and_dispatch_tests": {
+      "tests": 178,
+      "failures": 0,
+      "source_commit": "e43730b2908a5540a438e15ddd4e5120cec0570c",
+      "qualification": "Pure existing safety suite at the previous 7082 native pin. The root agent separately updates the immutable candidate identity and runs main CI; this is not a Safari browser run."
+    },
+    "ui": {
+      "existing_checkpoints": 30,
+      "richer_width_scenarios": 4,
+      "short_coordinate_click_scenarios": 5,
+      "unchanged_disclosure_and_cutoff_scenarios": 4,
+      "focused_twelfth_participant_scroll_scenarios": 1,
+      "page_errors": 0,
+      "source_requests": 0,
+      "external_requests": 0,
+      "widths": [
+        320,
+        390,
+        1440,
+        1920
+      ],
+      "source_fixture_sha256": "b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a",
+      "richer_fixture_sha256": "ef3a81f4c026267063a96d37333c9708a0049342e9a094c8061a11b92bb7feea",
+      "card_heights_px": {
+        "320": 257,
+        "390": 257,
+        "1440": 181,
+        "1920": 181
+      }
+    },
+    "existing_controls_browser_widths": 4,
+    "existing_encrypted_browser_suites": [
+      "saved_pages_browser.test.js",
+      "saved_view_feed_browser.test.js",
+      "saved_view_history_browser.test.js"
+    ],
+    "encrypted_browsers_actual_synthetic_webcrypto": true,
+    "encrypted_browsers_real_network_or_owner_key": false,
+    "helper_dependencies": {
+      "PR64": "761247bee0209e37b1af6b8885e92cad3e9260a5",
+      "PR72": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "note": "Previously verified exact source-module paths supplied locally, matching existing CI. An initial combined pure run without those dependencies failed import race_ai.core; no product change was made to resolve the environment."
+    },
+    "node_syntax_and_git_diff_check": "PASS",
+    "logs": {
+      "green-controls.log": {
+        "bytes": 1211,
+        "sha256": "f5cff8256ab375379aa8b3da144fff3d69b0e07006fd76eb3143350aaad71654"
+      },
+      "green-feed-browser.log": {
+        "bytes": 129,
+        "sha256": "7e173a2965344ab28a9c1e4b7052b1b1767db68f5526c53612875160e95133b7"
+      },
+      "green-history-browser.log": {
+        "bytes": 194,
+        "sha256": "f5df63606da33b631ec5b626c95bef4adb2be3457963baa9f51bab63ece01f63"
+      },
+      "green-history.log": {
+        "bytes": 111,
+        "sha256": "dbf03ce21dab4f5f9d2fc37e6c971204ffacde0cd4833842aa93becdb1fb615b"
+      },
+      "green-native-178.log": {
+        "bytes": 279,
+        "sha256": "0122b3f3d03d0c312417e7e8138c929df910b77b66e551a735a8dc02dfdcfb1f"
+      },
+      "green-pages-browser.log": {
+        "bytes": 139,
+        "sha256": "26cd21131de9c6a3ce2f51888da702056798dee741ee7f04f7e3cf005597d2a1"
+      },
+      "green-pages-builder.log": {
+        "bytes": 111,
+        "sha256": "63bfc20716290eacf9bd4f39db7930dbed12e39287fb6d56fc7bc74fd318df8b"
+      },
+      "green-product-data.log": {
+        "bytes": 4607,
+        "sha256": "549d48a1ee14c3666d9853b7e9c3685a5ef991517203e8ee3d8d841a784ae0cb"
+      },
+      "green-pure-combined.log": {
+        "bytes": 8157,
+        "sha256": "8a5acf24bd83de873c6dfc192e0927eefe4f3c4ad2193361cdaf16d33c99f509"
+      },
+      "green-ui.log": {
+        "bytes": 2779,
+        "sha256": "4eaa613bad4c9e0c1c3189fedfcdf2995859fbfa31b732a409e41b531f9ebed5"
+      },
+      "red-history.log": {
+        "bytes": 3453,
+        "sha256": "e3de58594a21f9f78eab8787d0f2ff290e0329e98500c58bdeef26406c96c39e"
+      },
+      "red-product-data.log": {
+        "bytes": 7667,
+        "sha256": "c8bd70dd4a6b27978160464611d218b92d1b7633a508e409c4bb13ae18dc37b3"
+      }
+    },
+    "ui_report_sha256": "28ece660ba60d72e188f9bbe1a6dedcffe5dfa5b13c75d8ac5905efafa35e94a"
+  },
+  "asset_sha256": {
+    "index.html": "ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2",
+    "app.js": "c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5",
+    "style.css": "06414329229c6c7919b67408ca567c859b064d7f2b0d7abab7ddc203ab407e82",
+    "product-data.js": "93be67103050bd5c355efc6221436e13f90e5fd80ea18a7189dbe756cfbe0b16",
+    "saved-view-crypto.js": "60fb3f8f1668a14052d891a9c219c67de4b24d207b64c106a353fefe92cb13ce"
+  },
+  "original_three_visual_assets_byte_identical_to_7082": true,
+  "captures": {
+    "scope": "SYNTHETIC_ONLY",
+    "browser": "Chromium",
+    "platform": "Linux",
+    "version": "155.0.8059.79",
+    "screenshots": 32,
+    "matches_prior_7082_preview_bytes": 26,
+    "changed_preview_names": [
+      "rich-320-picks.png",
+      "rich-390-keirin-upcoming.png",
+      "rich-390-autorace-upcoming.png",
+      "rich-390-horse-upcoming.png",
+      "rich-390-races.png",
+      "rich-390-picks.png"
+    ],
+    "changed_pixels_restricted_to_existing_header_controls_y_below_79": true,
+    "new_changed_races_and_allocation_images_opened_for_visual_inspection": 2,
+    "geometry_and_all_lower_page_pixels_unchanged": true,
+    "png_manifest": [
+      {
+        "name": "rich-320-races.png",
+        "bytes": 181084,
+        "sha256": "95185465e286868bd3cc364fd659e81e8959ee92e558f083afdcc73d09b4b51d"
+      },
+      {
+        "name": "rich-320-home.png",
+        "bytes": 270896,
+        "sha256": "0347221023e771706b2d8486ec97ba833c93244dc3b3541db7fb36be442f68b2"
+      },
+      {
+        "name": "rich-320-detail.png",
+        "bytes": 208408,
+        "sha256": "2b46c1208abd19491c9bf7de14a159ea86cb5e0eaa52a6e68c6e13d711897b93"
+      },
+      {
+        "name": "rich-320-participants.png",
+        "bytes": 145031,
+        "sha256": "e730978c56d0de2b28217640a50ad6abbdc55b24c8a7fe6b03eac78066fdc1a5"
+      },
+      {
+        "name": "rich-320-preview.png",
+        "bytes": 176775,
+        "sha256": "8ba729f810648db87440fe644f31cc4ba6db74dbb9db2e2f6c7be96361bf98ac"
+      },
+      {
+        "name": "rich-320-picks.png",
+        "bytes": 218246,
+        "sha256": "7eac30ac4f8e67e6784050ed84920f3f23627e10110f5aa8e0a3c29d7c171457"
+      },
+      {
+        "name": "rich-320-review.png",
+        "bytes": 62118,
+        "sha256": "04c31ffc52cf794759eaa23d2e2f1dc020a3c8c54f199145f0814cf45902ad43"
+      },
+      {
+        "name": "rich-390-keirin-upcoming.png",
+        "bytes": 178103,
+        "sha256": "5eb297bf5a4f930c50a7db5a117048f37b9be8a2b9ce54bd98b36606d568eb00"
+      },
+      {
+        "name": "rich-390-autorace-upcoming.png",
+        "bytes": 175454,
+        "sha256": "ce5ff975d25cea91357fbbaac25ba62d6a16a4acea8628c45683cb1bb5fa9821"
+      },
+      {
+        "name": "rich-390-horse-upcoming.png",
+        "bytes": 178817,
+        "sha256": "12edea8e5314c7bbb49b9c89e8d5db076b8ae7a077e1a0a962d68f0b3a11bc43"
+      },
+      {
+        "name": "rich-390-races.png",
+        "bytes": 196073,
+        "sha256": "362f8785bed346feaeb0cc4fc656de885ef8141fad136737e450156833751d79"
+      },
+      {
+        "name": "rich-390-home.png",
+        "bytes": 281262,
+        "sha256": "0a8075e30be706b79c2b89c4228909ec1c099044f2a97ef5fe03469bcf904b72"
+      },
+      {
+        "name": "rich-390-detail.png",
+        "bytes": 207177,
+        "sha256": "b3411deb1dae3431799fddf8496cb1cc6e4171c54bd46265c3ffc5ba399d454e"
+      },
+      {
+        "name": "rich-390-participants.png",
+        "bytes": 147697,
+        "sha256": "a63a299fce069821a552be4159c1d74673165064875d149613916c1d32582fff"
+      },
+      {
+        "name": "rich-390-preview.png",
+        "bytes": 170735,
+        "sha256": "9e37cb41c146de013cb034c33d47332fce6950a421985b6f29172e36a27fa54e"
+      },
+      {
+        "name": "rich-390-picks.png",
+        "bytes": 233191,
+        "sha256": "601b0be350f8e16b47187fad0eacbd158197c4e2fd7120f5ee622924dad1b26b"
+      },
+      {
+        "name": "rich-390-review.png",
+        "bytes": 67232,
+        "sha256": "01701fd4ff71ae38b5a18eb4f087f8e60078d8c8bb70623c59224fb4390994d7"
+      },
+      {
+        "name": "rich-1440-keirin-upcoming.png",
+        "bytes": 287747,
+        "sha256": "61bd62f672e615bbe570c336daf1c8bd0f1e7e29242ecf82865dab4e2ea5cca9"
+      },
+      {
+        "name": "rich-1440-autorace-upcoming.png",
+        "bytes": 287208,
+        "sha256": "ecedf84db6a1abd51f5e266016eb6fd78b11045fd894690c7c7e2cd17869f2e1"
+      },
+      {
+        "name": "rich-1440-horse-upcoming.png",
+        "bytes": 285334,
+        "sha256": "47dd18ad68f48c51ebdd11eab9230c599f4605d02eac10229e0451ca85c9da80"
+      },
+      {
+        "name": "rich-1440-races.png",
+        "bytes": 304858,
+        "sha256": "b3b7a53c8798d20140ed45a414bd9f038fa1098c3e2e9490a88c141c2fa8f6d6"
+      },
+      {
+        "name": "rich-1440-home.png",
+        "bytes": 454957,
+        "sha256": "a6c0ed7d4bdb3a330769ba4d2cb0ce1864c3e6988c54375d5b4360475cd9c196"
+      },
+      {
+        "name": "rich-1440-detail.png",
+        "bytes": 351557,
+        "sha256": "ae550446ac55879463dacfef6bcfc9b305972f3c18979b0ed76c53c333f3acfe"
+      },
+      {
+        "name": "rich-1440-participants.png",
+        "bytes": 275348,
+        "sha256": "2145dc1e7714eddaa27313b8d69d445a255e28943356c7155118a4952b0bd097"
+      },
+      {
+        "name": "rich-1440-preview.png",
+        "bytes": 274429,
+        "sha256": "6a2471c4b0d14f13c9c8827f2af54ee50b3ba9ec2d479d5c27748c32370c6339"
+      },
+      {
+        "name": "rich-1440-picks.png",
+        "bytes": 345444,
+        "sha256": "cee746aa74f2675afddd4b988019be57a34c1e1a0baacb2bae8d13da7adf1ef4"
+      },
+      {
+        "name": "rich-1920-races.png",
+        "bytes": 312015,
+        "sha256": "449a8e85dc614d7e63f52e29c4db92cbef78a419e8ecadd3a5b7d51fa138a570"
+      },
+      {
+        "name": "rich-1920-home.png",
+        "bytes": 452243,
+        "sha256": "62b10ba559d6b64ffa892e87371ac332cd0ca8326d4646eec4b37936aebf6eff"
+      },
+      {
+        "name": "rich-1920-detail.png",
+        "bytes": 359998,
+        "sha256": "bbf84c7d46247b309507278adbe0749f413413f2c305fac6ab54bcba72e8ff69"
+      },
+      {
+        "name": "rich-1920-participants.png",
+        "bytes": 277980,
+        "sha256": "91222aa3829e9eaacbb2200a7f49a068bc6147f09c4c850ba45ab7c8436f2922"
+      },
+      {
+        "name": "rich-1920-preview.png",
+        "bytes": 280673,
+        "sha256": "e5f6b23b2bc0cfafc88f0e4bba39040645cfe024005d4d49244a80ad0d9e1d7a"
+      },
+      {
+        "name": "rich-1920-picks.png",
+        "bytes": 352410,
+        "sha256": "4227715d8454a7dc6f67b8f14042f0fd615b00e52776954e47c6fe84c31296b5"
+      }
+    ],
+    "warning_and_no_portrait_capture_gates_retained": true,
+    "all_eight_reference_screens_accepted": false
+  },
+  "local_packaging": {
+    "code_commit": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+    "web_tree": "d905215e2f886b0bcc4f2e58323ceee465b03c38",
+    "synthetic_files": 74,
+    "synthetic_bytes": 40585157,
+    "invented_fixture_races": 1,
+    "invented_fixture_predictions": 4,
+    "archive": {
+      "name": "RACE-AI-f723f0e8-synthetic-review-only.tar.gz",
+      "bytes": 34999726,
+      "sha256": "d387fdf5902acb5fbd81d2bd566f3a7d112977f8ac8bca8cc15d0ca9f83f018d"
+    },
+    "manifest_sha256": "de40dde4bdeb1099312f4d8fd7d52bbc66246a8b9a75e5a721192392f356ee96",
+    "packaging_only_not_a_human_acceptance_demo": true,
+    "projected_fixture_dataset_status": "REAL_REPORTED",
+    "unchanged_builder_requires_production_mode_even_for_invented_fixture": true,
+    "fixture_key_or_owner_url_in_archive": false,
+    "contains_unchanged_existing_public_portrait_profile_assets": true,
+    "portraits_rendered_in_previews": false,
+    "presentation_only_proposal_changed_paths": [
+      "style.css",
+      "app.js",
+      "product-data.js",
+      "index.html",
+      "site-build.json"
+    ],
+    "original_forecast_digest_cipher_view_id_and_counts_metadata_preserved": true,
+    "new_pages_commit": null,
+    "ui_published": false
+  },
+  "preserved": {
+    "original_public_fixture": true,
+    "owner_key_in_actions_only": true,
+    "owner_key_read": false,
+    "real_forecast_or_cipher_read": false,
+    "source_gets": 0,
+    "new_github_gets_since_fix_authorization": 0,
+    "dispatches": 0,
+    "remote_writes_by_this_agent": 0,
+    "original_predictions_results_revisions_source_models_weights_unchanged": true,
+    "published_f603_assets_unchanged": true,
+    "new_jobs_inputs_permissions_runner_timeouts_cron_markers_prefixes_services_charges": 0
+  },
+  "remaining_acceptance": {
+    "independent_review": "Root requested against frozen f723 code; result not incorporated yet",
+    "updated_candidate_native_safari": false,
+    "owner_iphone13pro_safari": false,
+    "owner_login": false,
+    "direct_github_ciphertext_delivery": false,
+    "final_eight_reference_visual_acceptance": false,
+    "publication_requires_owner_confirmation": true
+  }
+}
