@@ -52,7 +52,8 @@ def probe():
         if response["normalized_private_cards"]!=1:
             return {"state":"HOLD_REAL_PUBLIC_SOURCE_OR_PARSER",
                     "source_HOLD_states":response["states"],
-                    "real_source_pages_checked":response["GET_pair_attempts"]*2,
+                    "maximum_public_GETs_in_probe":2,
+                    "confirmed_complete_source_pair":False,
                     "real_AB_generated":0}
         snap=json.loads((cards/(RACE+".json")).read_text())
         output=auto.generate_A_B(
