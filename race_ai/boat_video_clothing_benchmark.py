@@ -59,6 +59,7 @@ def _observations(rows, ref):
               and pipeline.get('identity_validated') is False and pipeline.get('model_eligible') is False)
         packet = pipeline.get('rider_part_tracking')
         observation = dict(frame_index=index, t=pts, scene=None, regions=None, quality_flags=[],
+                           unresolved_current_proposal_reasons=[],
                            decoded_frame_sha256=row['decoded_bgr_sha256'])
         if packet is not None:
             _need(type(packet) is dict and packet.get('schema_version') == 'RACE_AI_RIDER_PART_TRACKS_V1'
@@ -75,6 +76,14 @@ def _observations(rows, ref):
                   all(type(flag) is str and _LABEL.fullmatch(flag) for flag in flags))
             tracks = packet.get('tracks')
             _need(type(tracks) is list and len(tracks) <= 64)
+            unresolved = packet.get('unknown_detections')
+            _need(type(unresolved) is list and len(unresolved) <= 2000)
+            reasons = []
+            for proposal in unresolved:
+                _need(type(proposal) is dict and type(proposal.get('reason')) is str
+                      and _LABEL.fullmatch(proposal['reason']))
+                _box(proposal.get('box'), ref['width'], ref['height'])
+                reasons.append(proposal['reason'])
             regions, ids = [], set()
             for track in tracks:
                 _need(type(track) is dict and track.get('semantic_type') == 'RIDER_PART_TYPED'
@@ -93,7 +102,8 @@ def _observations(rows, ref):
                     _need(evidence is None)
                 regions.append(dict(box=deepcopy(track['rider_box']), lane=number,
                                     track_id=key, clothing_evidence=evidence))
-            observation.update(scene=scene, regions=regions, quality_flags=list(flags))
+            observation.update(scene=scene, regions=regions, quality_flags=list(flags),
+                               unresolved_current_proposal_reasons=reasons)
         observations.append(observation)
         previous_index, previous_pts = index, pts
     return observations
@@ -123,7 +133,9 @@ def benchmark_clothing_identity(journal, reference, *, configuration=None):
                 metrics.update(matched_rider_parts=0, false_positive_rider_parts=0,
                     missed_reference_rider_parts=0, rider_predictions_scored=0,
                     unknown_clothing_matches=0, current_color_correct_matches=0,
-                    carried_color_correct_matches=0, whole_six_current_color_correct_frames=0)
+                    carried_color_correct_matches=0, whole_six_current_color_correct_frames=0,
+                    unresolved_current_proposal_count=0, frames_with_unresolved_current_proposals=0,
+                    unresolved_current_proposal_reason_counts={})
         state, previous = {}, None
         for observation in observations:
             index = observation['frame_index']
@@ -137,10 +149,16 @@ def benchmark_clothing_identity(journal, reference, *, configuration=None):
                 state, previous = {}, None
                 continue
             continuity = (frame['continuity_group'], frame['partition'], observation['scene'])
+            unresolved_reasons = observation['unresolved_current_proposal_reasons']
             if (previous is None or previous[0] + 1 != position or previous[1] != continuity
-                or index != previous[3] + 1 or frame['t'] - previous[2] > gap):
+                or index != previous[3] + 1 or frame['t'] - previous[2] > gap or unresolved_reasons):
                 state = {}
             metrics = partitions[frame['partition']]
+            metrics['unresolved_current_proposal_count'] += len(unresolved_reasons)
+            metrics['frames_with_unresolved_current_proposals'] += int(bool(unresolved_reasons))
+            counts = Counter(metrics['unresolved_current_proposal_reason_counts'])
+            counts.update(unresolved_reasons)
+            metrics['unresolved_current_proposal_reason_counts'] = dict(sorted(counts.items()))
             regions, targets = observation['regions'], frame['riders']
             pairs = _matches(regions, targets, threshold)
             metrics['matched_rider_parts'] += len(pairs)
@@ -160,9 +178,10 @@ def benchmark_clothing_identity(journal, reference, *, configuration=None):
             identity_pairs = [(remap[i], j) for i, j in pairs if i in remap]
             previous_six = metrics['whole_six_correct_frames']
             known = _score_frame(metrics, list(numbered.values()), dict(frame, boats=targets), identity_pairs)
-            if len(regions) != 6:
+            if len(regions) != 6 or unresolved_reasons:
                 # The identity arithmetic sees numbered parts only; an extra
-                # unknown proposal must still prevent perfect-frame acceptance.
+                # unknown track or unresolved current proposal must still
+                # prevent perfect-frame acceptance without losing a denominator.
                 metrics['whole_six_correct_frames'] = previous_six
             current_correct = 0
             for lane, row in known.items():
@@ -171,7 +190,8 @@ def benchmark_clothing_identity(journal, reference, *, configuration=None):
                     metrics[field] += 1
                     current_correct += int(row['clothing_evidence'] == _CURRENT)
             if frame['exhaustive'] and {r['lane'] for r in targets} == set(range(1, 7)):
-                metrics['whole_six_current_color_correct_frames'] += int(len(regions) == current_correct == 6)
+                metrics['whole_six_current_color_correct_frames'] += int(
+                    len(regions) == current_correct == 6 and not unresolved_reasons)
             current = {}
             for target in targets:
                 lane = target['lane']
@@ -190,6 +210,10 @@ def benchmark_clothing_identity(journal, reference, *, configuration=None):
                 else:
                     current[lane] = (seen, None)
             state, previous = current, (position, continuity, frame['t'], index)
+            if unresolved_reasons:
+                # A current owner conflict cannot establish a continuity edge
+                # into this frame or be the source of the next frame's edge.
+                state, previous = {}, None
         for metrics in (partitions or {}).values():
             _finish(metrics)
             metrics['reference_visible_rider_parts'] = metrics.pop('reference_visible_boats')
@@ -217,7 +241,12 @@ def benchmark_clothing_identity(journal, reference, *, configuration=None):
             physical_calibration_established=False, strength_established=False,
             prediction_eligible=False, production_eligible=False, accuracy_improvement_proven=False,
             source_clock_authentication='NOT_ESTABLISHED', engine_metadata_authenticated=False,
-            continuous_unlabeled_tracking_established=False)
+            continuous_unlabeled_tracking_established=False,
+            rider_part_metrics_scope='EMITTED_TRACKS_ONLY_UNRESOLVED_PROPOSALS_SEPARATE',
+            unresolved_current_proposal_count=sum(len(r['unresolved_current_proposal_reasons']) for r in observations),
+            frames_with_unresolved_current_proposals=sum(bool(r['unresolved_current_proposal_reasons']) for r in observations),
+            unresolved_current_proposal_reason_counts=dict(sorted(Counter(reason for r in observations
+                for reason in r['unresolved_current_proposal_reasons']).items())))
         report['benchmark_sha256'] = digest(report)
         return report
     except (KeyError, TypeError, ValueError, OverflowError, RecursionError):

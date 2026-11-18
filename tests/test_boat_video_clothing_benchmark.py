@@ -39,7 +39,8 @@ def journal(ref, predictions=None):
         packet = dict(schema_version='RACE_AI_RIDER_PART_TRACKS_V1', frame_index=frame['frame_index'],
             t=frame['t'] - 9., scene=0, frame_sha256=frame['decoded_frame_sha256'],
             coordinate_space='IMAGE_PX', semantic_type='RIDER_PART_TYPED', identity_validated=False, model_eligible=False,
-            tracks=deepcopy(predictions[i] if predictions is not None else [proposal(1)]), quality_flags=[])
+            tracks=deepcopy(predictions[i] if predictions is not None else [proposal(1)]),
+            unknown_detections=[], quality_flags=[])
         pipeline = dict(frame_index=packet['frame_index'], t=packet['t'], scene=0,
             frame_sha256=packet['frame_sha256'], identity_validated=False, model_eligible=False,
             rider_part_tracking=packet)
@@ -159,6 +160,21 @@ class ClothingBenchmarkTests(unittest.TestCase):
         report = self.score(rows, ref)
         self.assertEqual(report['status'], 'UNAVAILABLE')
         self.assertIsNone(report['partitions'])
+
+    def test_unresolved_proposals_cannot_be_missing_or_malformed(self):
+        ref=reference()
+        for unresolved in (None,'unknown',[{'reason':'UNBOUND_EXISTING_CURRENT_POINT_OWNER'}],
+                           [{'box':[10,10,10,10],'reason':'not a stable reason'}],
+                           [{'box':[200,10,10,10],'reason':'UNBOUND_EXISTING_CURRENT_POINT_OWNER'}]):
+            with self.subTest(unresolved=unresolved):
+                rows=journal(ref)
+                packet=rows[0]['pipeline_result']['rider_part_tracking']
+                if unresolved is None:
+                    packet.pop('unknown_detections')
+                else:
+                    packet['unknown_detections']=unresolved
+                with self.assertRaisesRegex(ValueError,'^BOAT_CLOTHING_BENCHMARK_REJECTED$'):
+                    self.score(rows,ref)
 
     def test_relative_clock_drift_and_duplicate_track_ids_are_rejected(self):
         ref = reference(2)
