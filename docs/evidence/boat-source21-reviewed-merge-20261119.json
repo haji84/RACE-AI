@@ -104,7 +104,7 @@
     "calibrated_strength_or_real_forecast_improvement_proven": false,
     "live_t15_10_performance_proven": false,
     "new_worker_started_by_this_source_merge": false,
-    "main_exact_source_synchronization": "PENDING_EXISTING_PR19",
+    "main_exact_source_synchronization": "COMPLETE_NORMAL_PR19_MERGE_BC40906C",
     "goal_complete": false
   }
 }

@@ -145,3 +145,9 @@ WINTICKET403・真の全日生成・実iPhone・実6艇校正・前向き改善�
 既存PR21の通常merge fbc743be548bfd123e46cdbfe290515a59e5e0d3 はtested tree1068d5a0d1225e0638a31528f8031a5b8e9fc584と一致。既存CI44348357932は882/223件等とNode29件が全成功し、実apt-mirrors.txt漏れの修正後は公式HTTPS62.8MBを25秒で取得した。
 [main実SHA同期](boat-main-exact-clothing-source-sync-20261119.json)は138/372件、統合206件、独立145件が成功。旧role・固定recovery契約・3reader・M2 target・全日guard・原本を保持する。既存prefixとmarkerのみを使い、通常main merge後の実ゲート判定まで起動を成功扱いしない。
 995の実完了は69stepだが4巡/追加生成0。競輪は[実44342598507](keirin-main758-actual-source-hold-44342598507-20261119.json)で拒否/制限停止、fe7のexact403単独は不明。[未公開候補の固定検証](boat-native-reviewed-candidate-pin-20261119.json)は実Safari/iPhone合格ではない。公開UI・本番重み・投票・元原本変更0。
+
+### 2026-11-19 02:23 JST: 通常main merge後の実判定
+
+[実ゲート証拠](boat-main19-actual-gate-and-native-hold-20261119.json)はmain bc40906c/source fbc743beのtested tree一致、28checks失敗0、正規run ZIPのHOLD_OUTSIDE_OWNER_DAYTIME_WINDOW/dispatch=false/source GET0を保持する。native受付1回ACK=trueの実44355781785はCURRENT_V5_REPLAY_INVALIDで保留、内側の拒否条件は未特定。guard/時計を緩めず、更新候補/物理iPhoneを未合格とする。
+
+この文書更新は既存PR18 metadata・祖先を保全し、owner/native追加起動、UI公開、本番weights切替を要求しない。合成8PNGは既存PR62へ保存し、実4競技/T15・競輪取得・6艇実校正・前向き改善・offline2commit復元を未完了のまま記録する。
