@@ -11,10 +11,12 @@ import tempfile
 import subprocess
 import shlex
 import threading
+import types
 import unittest
 import urllib.error
 import urllib.request
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
+from datetime import timedelta
 from unittest.mock import patch
 
 try:
@@ -3148,6 +3150,179 @@ process.stdout.write(JSON.stringify(output));
                       'physical_iphone_verified', 'all_eight_reference_screens_visually_verified'):
             self.assertIs(report[field], False)
         self.assertNotIn('K' * 43, output.getvalue())
+
+
+@contextmanager
+def current_v5_read_fixture(*, current_view_error=None, history_error=None, read_probe=None,
+        repository_error=None):
+    """Only the unavailable pinned source/network boundary is replaced."""
+    import scripts
+    import race_ai
+    with tempfile.TemporaryDirectory() as name:
+        root = Path(name).resolve()
+        bootstrap_raw = b'public-synthetic-bootstrap-only'
+        config = root / 'audit/state/boat-saved-view-input.json'
+        config.parent.mkdir(parents=True)
+        config.write_text(json.dumps(dict(schema='RACE_AI_SAVED_VIEW_INPUT_V1',
+            bootstrap=base64.b64encode(bootstrap_raw).decode(),
+            bootstrap_sha256=hashlib.sha256(bootstrap_raw).hexdigest(),
+            catchup_artifact_id=1, catchup_sha256='c' * 64)))
+        modules = {}
+        for module_name, relative in (
+                ('scripts.boat_saved_site_context', 'scripts/boat_saved_site_context.py'),
+                ('scripts.boat_saved_view_feed', 'scripts/boat_saved_view_feed.py'),
+                ('scripts.boat_private_original_vault', 'scripts/boat_private_original_vault.py'),
+                ('race_ai.saved_view_history', 'race_ai/saved_view_history.py'),
+                ('race_ai.racer_daily_handoff', 'race_ai/racer_daily_handoff.py')):
+            module = types.ModuleType(module_name)
+            module.__file__ = str(root / relative)
+            modules[module_name] = module
+        contexts, publisher, vault, history, daily = modules.values()
+        daily._DailyFilteredFetch = type('_DailyFilteredFetch', (),
+            {'__module__': 'race_ai.racer_daily_handoff'})
+        class Repository:
+            def __init__(self, folder):pass
+            def head(self):return '4' * 40
+            def read(self, commit, path, limit):
+                if repository_error is not None:raise repository_error
+                return b'synthetic-cipher'
+        bootstrap = dict(key=bytes(32), view_id='a' * 64, forecast_sha256='b' * 64)
+        def current_view(reader, value, *, day):
+            if read_probe is not None:read_probe(reader)
+            if current_view_error is not None:raise current_view_error
+            reader._saved_history_context = {'index': {'days': {day: {}}}}
+            return '4' * 40, 'e' * 64, 7, dict(event_date_jst=day,
+                records=[{'event_date_jst': day}])
+        def build_context(*args, now, event_day):
+            value = context_fixture()
+            value.update(day=event_day, current_day=event_day)
+            value['model_switch_probe']['race_id'] = event_day.replace('-', '') + '-01-01'
+            return value
+        def decrypt_day(*args, **kwargs):
+            if history_error is not None:raise history_error
+            return {}
+        contexts.JST = S.timezone(timedelta(hours=9))
+        contexts.build_context = build_context
+        publisher.F = types.SimpleNamespace(FeedRepository=Repository,
+            open_bootstrap=lambda raw: bootstrap, current_view=current_view,
+            _history_reader=lambda reader: lambda locator: b'synthetic-cipher',
+            decrypt_view=lambda *args, **kwargs: ({}, {}),
+            forecast_anchor=lambda value: 'b' * 64)
+        publisher._json = lambda raw, maximum: json.loads(raw)
+        publisher.sha = lambda raw: hashlib.sha256(raw).hexdigest()
+        publisher.git_auth = lambda: None
+        vault._environment = lambda folder: folder
+        history._indexes = lambda index, catalog: iter((index,))
+        history.decrypt_day_chunks = decrypt_day
+        history.decrypt_catalog = lambda *args, **kwargs: {}
+        with patch.dict(S.sys.modules, modules), \
+                patch.object(S.sys, 'path', list(S.sys.path)), \
+                patch.object(scripts, 'boat_saved_site_context', contexts, create=True), \
+                patch.object(scripts, 'boat_saved_view_feed', publisher, create=True), \
+                patch.object(scripts, 'boat_private_original_vault', vault, create=True), \
+                patch.object(race_ai, 'saved_view_history', history, create=True), \
+                patch.object(S.subprocess, 'check_output', return_value=S.SOURCE_SHA.encode()), \
+                patch.object(S.subprocess, 'run', return_value=None):
+            yield root, {'raw': b'synthetic-seed'}
+
+
+class CurrentV5ReplayDiagnosticTests(unittest.TestCase):
+    """Different real rejection boundaries must not collapse into a guess."""
+    def rejected(self, **fixture):
+        with current_v5_read_fixture(**fixture) as (root, seed):
+            with self.assertRaises(S.SafariHold) as caught:
+                S.read_current_v5_replay(root, seed)
+        report = S.failure_report(caught.exception)
+        self.assertEqual(report['reason'], 'CURRENT_V5_REPLAY_INVALID')
+        self.assertIsNot(report.get('current_day_verified'), True)
+        return report
+
+    def test_missing_current_day_retains_only_fixed_phase_and_upstream_code(self):
+        report = self.rejected(current_view_error=ValueError('HISTORY_DAY_UNAVAILABLE'))
+        self.assertEqual(report.get('current_v5_replay_phase'), 'current_day_authentication')
+        self.assertEqual(report.get('current_v5_replay_upstream_reason'), 'HISTORY_DAY_UNAVAILABLE')
+        self.assertEqual(report.get('current_v5_replay_counts'), {
+            'files': 0, 'budget_used_bytes': 0, 'budget_remaining_bytes': 268435456})
+
+    def test_retained_history_authentication_is_distinct_from_current_day_lookup(self):
+        report = self.rejected(history_error=ValueError('HISTORY_AUTH_FAILED'))
+        self.assertEqual(report.get('current_v5_replay_phase'), 'retained_history_authentication')
+        self.assertEqual(report.get('current_v5_replay_upstream_reason'), 'HISTORY_AUTH_FAILED')
+
+    def test_wrapped_byte_exhaustion_keeps_actual_read_boundary_and_budget_counts(self):
+        body = b'synthetic-cipher'
+        path = 'views/' + hashlib.sha256(body).hexdigest() + '.json'
+        def probe(reader):
+            reader.read('4' * 40, path, 4096)
+            reader.read('4' * 40, path, 4096)
+            try:reader.read('4' * 40, path, 4096)
+            except S.SafariHold:
+                # The unchanged H reader hides transport failures this way.
+                raise ValueError('HISTORY_CHUNK_MISSING') from None
+        with patch.object(S, 'MAX_CURRENT_V5_BYTES', len(body) * 2):
+            report = self.rejected(read_probe=probe)
+        self.assertEqual(report.get('current_v5_replay_phase'), 'snapshot_read_bounds')
+        self.assertEqual(report.get('current_v5_replay_upstream_reason'), 'HISTORY_CHUNK_MISSING')
+        self.assertEqual(report.get('current_v5_replay_counts'), {
+            'files': 1, 'budget_used_bytes': 32, 'budget_remaining_bytes': 0})
+
+    def test_bad_cipher_hash_is_a_binding_failure_without_consuming_the_budget(self):
+        def probe(reader):
+            reader.read('4' * 40, 'views/' + '0' * 64 + '.json', 4096)
+        report = self.rejected(read_probe=probe)
+        self.assertEqual(report.get('current_v5_replay_phase'), 'snapshot_cipher_binding')
+        self.assertIsNone(report.get('current_v5_replay_upstream_reason'))
+        self.assertEqual(report.get('current_v5_replay_counts'), {
+            'files': 0, 'budget_used_bytes': 0, 'budget_remaining_bytes': 268435456})
+
+    def test_git_blob_bound_failure_exposes_only_the_actual_transport_reason(self):
+        def probe(reader):
+            reader.read('4' * 40, 'views/' + '0' * 64 + '.json', 4096)
+        report = self.rejected(read_probe=probe,
+            repository_error=ValueError('STATE_GIT_BLOB_BOUND_EXCEEDED'))
+        self.assertEqual(report.get('current_v5_replay_phase'), 'snapshot_read')
+        self.assertEqual(report.get('current_v5_replay_upstream_reason'),
+                         'STATE_GIT_BLOB_BOUND_EXCEEDED')
+        self.assertEqual(report.get('current_v5_replay_counts'), {
+            'files': 0, 'budget_used_bytes': 0, 'budget_remaining_bytes': 268435456})
+
+    def test_unknown_exception_text_and_string_coercion_never_enter_diagnostics(self):
+        class SecretError(ValueError):
+            def __str__(self):raise AssertionError('private-message-coercion')
+        for error in (ValueError('private-key https://private.invalid/#saved=private-seed'),
+                      SecretError('HISTORY_DAY_UNAVAILABLE'), ValueError('HISTORY_NEW_PRIVATE_CODE')):
+            with self.subTest(kind=type(error).__name__):
+                report = self.rejected(current_view_error=error)
+                self.assertEqual(report.get('current_v5_replay_phase'), 'current_day_authentication')
+                self.assertIsNone(report.get('current_v5_replay_upstream_reason'))
+                rendered = json.dumps(report, allow_nan=False)
+                for secret in ('private-', 'https://', '#saved=', 'HISTORY_NEW_PRIVATE_CODE'):
+                    self.assertNotIn(secret, rendered)
+
+    def test_failure_report_revalidates_forged_phase_code_and_count_fields(self):
+        hold = getattr(S, 'CurrentV5ReplayHold', None)
+        self.assertTrue(callable(hold), 'fixed replay diagnostics are absent')
+        error = hold('current_day_authentication', 'HISTORY_DAY_UNAVAILABLE', {})
+        error.phase = 'private-phase'
+        error.upstream_reason = 'HISTORY_PRIVATE_SEED'
+        error.counts = {'files': True, 'budget_used_bytes': 268435457,
+                        'budget_remaining_bytes': -1, 'owner_url': 'https://private.invalid/'}
+        report = S.failure_report(error)
+        self.assertIsNone(report['current_v5_replay_phase'])
+        self.assertIsNone(report['current_v5_replay_upstream_reason'])
+        self.assertEqual(report['current_v5_replay_counts'], {
+            'files': None, 'budget_used_bytes': None, 'budget_remaining_bytes': None})
+        self.assertNotIn('private', json.dumps(report))
+
+    def test_existing_non_replay_context_hold_keeps_its_original_reason(self):
+        report = None
+        with current_v5_read_fixture() as (root, seed), \
+                patch.object(S, 'validate_context', side_effect=S.SafariHold('SAVED_CONTEXT_INVALID')):
+            with self.assertRaises(S.SafariHold) as caught:
+                S.read_current_v5_replay(root, seed)
+            report = S.failure_report(caught.exception)
+        self.assertEqual(report['reason'], 'SAVED_CONTEXT_INVALID')
+        self.assertNotIn('current_v5_replay_phase', report)
 
 
 CURRENT_V5_DIAGNOSTIC_BOOLS = (

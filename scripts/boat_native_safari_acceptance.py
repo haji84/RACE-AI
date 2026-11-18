@@ -178,6 +178,17 @@ def failure_native_browser(capabilities):
 def failure_report(error):
     reason = str(error) if isinstance(error, SafariHold) and str(error) in REASONS else 'SAFARI_OPERATION_FAILED'
     report={'status': 'NATIVE_SAFARI_ACCEPTANCE_HOLD', 'reason': reason}
+    if isinstance(error, CurrentV5ReplayHold):
+        phase, upstream = getattr(error, 'phase', None), getattr(error, 'upstream_reason', None)
+        counts = error.counts if type(getattr(error, 'counts', None)) is dict else {}
+        report.update(
+            current_v5_replay_phase=phase if type(phase) is str and phase in CURRENT_V5_REPLAY_PHASES else None,
+            current_v5_replay_upstream_reason=upstream if type(upstream) is str
+                and upstream in CURRENT_V5_REPLAY_UPSTREAM_REASONS else None,
+            current_v5_replay_counts={name: counts[name] if type(counts.get(name)) is int
+                and 0 <= counts[name] <= maximum else None for name, maximum in (
+                    ('files', 512), ('budget_used_bytes', 256 * 1024 * 1024),
+                    ('budget_remaining_bytes', 256 * 1024 * 1024))})
     if isinstance(error, CurrentV5EvidenceHold):
         phase = getattr(error, 'phase', None)
         report.update(current_v5_phase=phase if type(phase) is str and phase in CURRENT_V5_EVIDENCE_PHASES else None,
@@ -1641,6 +1652,30 @@ def main(argv=None):
 MAX_CURRENT_V5_FILES = 512
 MAX_CURRENT_V5_BYTES = 256 * 1024 * 1024
 _CURRENT_V5_HELPERS = None
+
+
+CURRENT_V5_REPLAY_PHASES = frozenset((
+    'source_revision', 'module_binding', 'source_environment', 'input_binding',
+    'bootstrap_authentication', 'snapshot_lookup', 'current_day_authentication',
+    'context_binding', 'retained_history_authentication', 'seed_authentication',
+    'replay_binding', 'snapshot_path_binding', 'snapshot_read_bounds',
+    'snapshot_read', 'snapshot_cipher_binding'))
+CURRENT_V5_REPLAY_UPSTREAM_REASONS = frozenset((
+    'HISTORY_DAY_UNAVAILABLE', 'HISTORY_CHUNK_MISSING', 'HISTORY_CHUNK_HASH',
+    'HISTORY_AUTH_FAILED', 'HISTORY_DAY_INVENTORY_MISMATCH',
+    'HISTORY_CATALOG_UNAVAILABLE', 'HISTORY_INDEX_MISMATCH',
+    'FEED_CIPHER_HASH', 'FEED_MANIFEST_MISMATCH', 'FEED_ORIGINAL_CHANGED',
+    'STATE_GIT_BLOB_BOUND_EXCEEDED', 'FEED_GITHUB_TOKEN_REQUIRED'))
+
+
+class CurrentV5ReplayHold(SafariHold):
+    """Fixed replay failure facts; arbitrary exception text is never projected."""
+    def __init__(self, phase, upstream_reason, counts):
+        super().__init__('CURRENT_V5_REPLAY_INVALID')
+        self.phase = phase if type(phase) is str and phase in CURRENT_V5_REPLAY_PHASES else None
+        self.upstream_reason = upstream_reason if type(upstream_reason) is str \
+            and upstream_reason in CURRENT_V5_REPLAY_UPSTREAM_REASONS else None
+        self.counts = counts
 
 
 CURRENT_V5_EVIDENCE_PHASES = frozenset((

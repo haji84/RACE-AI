@@ -1,0 +1,86 @@
+{
+  "schema": "RACE_AI_NATIVE_REPLAY_DIAGNOSTIC_TEST_FIRST_COUNTS_V1",
+  "recorded_at_utc": "2026-11-18T22:08:38.341087+00:00",
+  "base_main": "7c09c3ead6b7e44449fb36055927d3a57a1537d2",
+  "immutable_native_reader_source": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+  "existing_native_hold": {
+    "run": 44355781785,
+    "job": 134983398274,
+    "reason": "CURRENT_V5_REPLAY_INVALID",
+    "inner_rejection_proven": false,
+    "counts_only_diagnostic_available_in_that_run": false
+  },
+  "change": {
+    "reason_preserved": "CURRENT_V5_REPLAY_INVALID",
+    "fixed_phase_count": 15,
+    "explicit_upstream_reason_count": 12,
+    "bounded_count_fields": 3,
+    "arbitrary_exception_text_exported": false,
+    "unallowlisted_values_reported_as_null": true,
+    "current_day_requirement_relaxed": false,
+    "budget_limits_relaxed": false
+  },
+  "test_first": {
+    "baseline_native_tests": 140,
+    "baseline_seconds": 15.673,
+    "initial_new_methods": 7,
+    "initial_red_assertion_failures": 8,
+    "initial_red_errors": 0,
+    "additional_git_blob_bound_red_failures": 1,
+    "additional_git_blob_bound_red_errors": 0,
+    "new_test_methods": 8,
+    "final_tests": 186,
+    "final_seconds": 15.846,
+    "final_failures": 0,
+    "final_errors": 0,
+    "final_native_tests": 148,
+    "final_dispatch_tests": 38,
+    "command": "python -m unittest discover -s tests -p test_boat_native_safari*.py -v",
+    "per_class_counts": {
+      "test_boat_native_safari_acceptance.ApiSyntheticEnvironmentRegressionTests": 6,
+      "test_boat_native_safari_acceptance.CandidateSyntheticTests": 10,
+      "test_boat_native_safari_acceptance.CurrentV5EvidenceDiagnosticTests": 4,
+      "test_boat_native_safari_acceptance.CurrentV5NativeGroupCountTests": 3,
+      "test_boat_native_safari_acceptance.CurrentV5ReplayDiagnosticTests": 8,
+      "test_boat_native_safari_acceptance.CurrentV5SafariBoundaryTests": 12,
+      "test_boat_native_safari_acceptance.CurrentV5SourceDayAndReportTests": 2,
+      "test_boat_native_safari_acceptance.EncryptedSeedBoundaryTests": 14,
+      "test_boat_native_safari_acceptance.NativeCFEnvironmentValidationTests": 11,
+      "test_boat_native_safari_acceptance.NativeFailureDiagnosticTests": 9,
+      "test_boat_native_safari_acceptance.NativePickerIdentityDiagnosticTests": 8,
+      "test_boat_native_safari_acceptance.NativeReaderSetupTests": 1,
+      "test_boat_native_safari_acceptance.NativeSafariAcceptanceTests": 35,
+      "test_boat_native_safari_acceptance.NativeSelectPreparationTests": 7,
+      "test_boat_native_safari_acceptance.SafeClickDiagnosticTests": 8,
+      "test_boat_native_safari_acceptance.SessionCleanupTests": 4,
+      "test_boat_native_safari_acceptance.SyntheticEnvironmentDiagnosticTests": 6,
+      "test_boat_native_safari_dispatch.NativeSafariCheckerChangeTests": 12,
+      "test_boat_native_safari_dispatch.NativeSafariDispatchTests": 26
+    }
+  },
+  "preservation": {
+    "existing_native_test_methods_unchanged": 140,
+    "all_original_success_path_statements_unchanged": true,
+    "all_original_guard_predicates_unchanged": true,
+    "all_original_clock_calls_unchanged": true,
+    "frozen_source_parser_and_m2_reader_changed": false,
+    "workflow_bytes_changed": false,
+    "ui_assets_changed": false,
+    "forecast_or_result_changed": false
+  },
+  "tested_file_sha256": {
+    "scripts/boat_native_safari_acceptance.py": "bab2b16a352ccf8acd3302630ae0db0d2ce52409c645200fa0c0a63056db9df2",
+    "scripts/boat_native_safari_current_v5.py": "b2f465065db3a5dfb6111ef032f3258300bd06e219cb5a7a4ce518abd1f6d4d2",
+    "tests/test_boat_native_safari_acceptance.py": "03c11df57b2546209e7a1d4c4741f82d680b33a1fa4033676cab8a5c206b61d1"
+  },
+  "effects": {
+    "provider_source_requests": 0,
+    "actions_state_keys_fetched_locally": 0,
+    "dispatches_or_reruns": 0,
+    "public_ui_or_pages_writes": 0,
+    "push_or_merge_performed": false,
+    "actual_native_reacceptance_proven": false,
+    "physical_iphone_proven": false,
+    "goal_complete": false
+  }
+}

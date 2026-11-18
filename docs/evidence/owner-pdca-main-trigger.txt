@@ -731,3 +731,20 @@ four-sport/all-race/all-model coverage or prospective improvement.
 Use only boat-owner-release: single-real-session-20261111 and this existing
 marker path. No new job/input/cron/runner/timeout/permission, direct dispatch,
 model family, production weight, paid service, UI publication or wager is added.
+
+2026-11-19 personal-use native replay rejection diagnostics.
+Actual reviewed code b5f907c4bdcbebc0734f3d172d9aa86bcb21133f
+adds fixed phase/allowlisted reason/bounded read counts to the existing
+CURRENT_V5_REPLAY_INVALID report without changing its admission predicate.
+Integrated checker blob 3d43773123747717444d0172f5eeffdf3b251c28 and
+helper blob 4aeb73f49aef54cf5d4b65fb8c3e238b83c6218c retain all source/day/
+crypto/byte guards and unchanged EFF reader/workflow/UI assets.
+The protected owner source stays fbc743be548bfd123e46cdbfe290515a59e5e0d3.
+Use only boat-owner-release: single-real-session-20261111 and this existing
+marker for the real reviewed implementation change. The unchanged fresh-history
+owner gate alone may admit a worker; no direct source dispatch, counter reset,
+new entry/job/input/cron/runner/timeout/permission/model/paid service is added.
+The owner clarified personal-use development rather than general publication.
+No Pages asset publication or production weight/wager action is introduced.
+Morning delivery audit is metadata evidence, and pure READY is not an actual
+Actions launch. Record the next real gate/worker/native results independently.

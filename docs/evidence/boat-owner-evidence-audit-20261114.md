@@ -151,3 +151,8 @@ WINTICKET403・真の全日生成・実iPhone・実6艇校正・前向き改善�
 [実ゲート証拠](boat-main19-actual-gate-and-native-hold-20261119.json)はmain bc40906c/source fbc743beのtested tree一致、28checks失敗0、正規run ZIPのHOLD_OUTSIDE_OWNER_DAYTIME_WINDOW/dispatch=false/source GET0を保持する。native受付1回ACK=trueの実44355781785はCURRENT_V5_REPLAY_INVALIDで保留、内側の拒否条件は未特定。guard/時計を緩めず、更新候補/物理iPhoneを未合格とする。
 
 この文書更新は既存PR18 metadata・祖先を保全し、owner/native追加起動、UI公開、本番weights切替を要求しない。合成8PNGは既存PR62へ保存し、実4競技/T15・競輪取得・6艇実校正・前向き改善・offline2commit復元を未完了のまま記録する。
+
+### 2026-11-19 07:12 JST: 本人用開発と拒否の段階診断
+
+ユーザーの「公開するわけやないよ」に従い、一般公開を開発・受入の前提にしない。公開画面・原本・暗号化・重みは保全する。
+[朝イベント全頁監査](boat-morning-schedule-delivery-audit-20261119.json)は未観測と実HOLDを区別し、[private replay段階診断](boat-native-replay-diagnostic-test-first-20261119.json)は186件/独立29境界probeを保持。新診断は既存の拒否を維持し、実run原因は未確定。実コード修正と既存marker/prefixで通常releaseを行い、現実のowner gate/native判定まで成功扱いしない。
