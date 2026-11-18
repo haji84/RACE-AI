@@ -149,6 +149,59 @@ def intake_saved_models(view,*,hydrate=False,day=None,since_day=None,recover_run
         print(wire(dict(status='SAVED_ORIGINAL_EVIDENCE_VERIFIED',**counts)))
     return output
 
+def recover_bootstrap_model_view(view,run,state,*,get,now,key=None,clock=None):
+    """Reuse native first-P0 and exact saved r0 readers; no inference or I/O writes."""
+    from scripts.boat_bootstrap_recovery_adapter import bootstrap_model_artifact
+    from scripts import boat_all_model_cycle as cli
+    from race_ai import boat_all_model_recovery as recovery
+    from race_ai.cycle_recovery import artifact_pages
+    from race_ai.frozen_day_cycle import read_p0
+    from race_ai.boat_source_control import _metadata
+    from race_ai.actions_contract import digest
+    observed=clock or (lambda:now)
+    day=state.get('day_jst');artifact=bootstrap_model_artifact(run['id'],run['head_sha'],day)
+    need(artifact is not None and state.get('complete') is True and state.get('rows'),
+         'ROUND_RECOVERY_BOOTSTRAP_MODELS_REQUIRED')
+    listed=artifact_pages(get,run['id'])
+    model=[m for m in listed if m.get('name')==f'boat-all-model-forecasts-{run["id"]}-r0']
+    first=[m for m in listed if m.get('name')==f'boat-p0-existing-{run["id"]}']
+    need(len(model)==len(first)==1 and model[0]['id']==artifact,
+         'ROUND_RECOVERY_BOOTSTRAP_MODEL_ORIGINAL_MISSING')
+    p0=first[0];meta_raw=get(f'actions/artifacts/{p0["id"]}');meta=_json(meta_raw,128*1024)
+    need(all(meta.get(k)==p0.get(k) for k in ('id','name','digest','created_at','size_in_bytes','expired')),
+         'ROUND_RECOVERY_BOOTSTRAP_FIRST_P0_METADATA_CHANGED')
+    raw=get(f'actions/artifacts/{p0["id"]}/zip')
+    _metadata(raw,meta,name=p0['name'],run_id=run['id'],head_sha=run['head_sha'])
+    document,_=read_p0(raw,meta,expected_day=day)
+    receipt=cli._receipt(meta,document)
+    before=append_views(view,[project_native_state(state)])
+    output,counts=recovery.recover_saved_models(before,get,run_ids=[run['id']],day=day,key=key)
+    need(counts.get('status')=='SAVED_MODEL_RECOVERY_COMPLETE' and
+         counts.get('matched_model_artifacts')==1 and counts.get('unrepresented_scoped_forecasts')==0,
+         'ROUND_RECOVERY_BOOTSTRAP_MODEL_REPLAY_INCOMPLETE')
+    # Reopen the exact original even when a previous coverage entry was complete.
+    # Existing native authentication, projection and cutoff checks remain in use.
+    actual=recovery._run(get(f'actions/runs/{run["id"]}'),run['id'],observed())
+    need(actual['head_sha']==run['head_sha'],'ROUND_RECOVERY_BOOTSTRAP_MODEL_RUN_CHANGED')
+    model_meta_raw=get(f'actions/artifacts/{artifact}')
+    model_meta,unused=recovery._metadata(model_meta_raw,model[0],actual,observed(),get)
+    model_raw=get(f'actions/artifacts/{artifact}/zip')
+    projected,summary,unused=recovery._project(model_raw,model_meta,actual,0,key)
+    need(summary['generated_forecasts']>0 and summary['reused_baseline_forecasts']==0 and
+         all(p.get('stage')=='P0' for r in projected['records'] for p in
+             [r.get('prediction'),*r.get('comparison_predictions',[])] if p),
+         'ROUND_RECOVERY_BOOTSTRAP_MODEL_STAGE_CHANGED')
+    expected=recovery._preserved_scope(projected,output,day,artifact)
+    need(len(expected)==summary['generated_forecasts'],'ROUND_RECOVERY_BOOTSTRAP_MODEL_INVENTORY_MISSING')
+    maps={'P0':{},'P1':{}};cli._inventory(output,maps)
+    checked=cli.require_saved_bootstrap_models(document,receipt,maps['P0'],output,key=key,now=observed())
+    need(checked is not None and checked['forecast_inventory_sha256']==digest(expected),
+         'ROUND_RECOVERY_BOOTSTRAP_MODEL_INVENTORY_CHANGED')
+    originals=[dict(raw_zip=raw,metadata_raw=meta_raw,metadata=meta),
+               dict(raw_zip=model_raw,metadata_raw=model_meta_raw,metadata=model_meta)]
+    return output,document,receipt,checked,originals
+
+
 def git_auth():
     token=os.environ.get('GH_TOKEN');need(token and '\n' not in token and '\r' not in token,'FEED_GITHUB_TOKEN_REQUIRED')
     # One process-scoped, repository-specific credential; never saved to Git.

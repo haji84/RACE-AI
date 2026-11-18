@@ -22,7 +22,8 @@ RELEASE_PREFIX='boat-owner-release: single-real-session-20261111'
 
 def trusted_main_invocation(event, document, *, workflow_ref, ref, sha, expected_source_head):
     """Match existing main job events; never relabel a callback as a schedule."""
-    from scripts.boat_failed_recovery_contract import need,reviewed_recovery_origin
+    from scripts.boat_failed_recovery_contract import need
+    from scripts.boat_bootstrap_recovery_adapter import current_recovery_origin
     need(workflow_ref==MAIN_WORKFLOW_REF and ref=='refs/heads/main' and
          type(sha) is str and re.fullmatch('[a-f0-9]{40}',sha) and
          type(document) is dict,'TRUSTED_MAIN_EVENT_REQUIRED')
@@ -43,7 +44,7 @@ def trusted_main_invocation(event, document, *, workflow_ref, ref, sha, expected
              run.get('event')=='workflow_dispatch' and run.get('status')=='completed' and
              run.get('conclusion') in ('failure','success') and
              type(run.get('run_attempt')) is int and run['run_attempt']==1 and
-             reviewed_recovery_origin(run.get('head_sha'),expected_source_head) and
+             current_recovery_origin(run,expected_source_head) and
              type(head) is dict and type(head.get('id')) is int and head['id']==1416489937 and
              head.get('full_name')=='haji84/RACE-AI','TRUSTED_CALLBACK_REQUIRED')
     elif event=='push':
@@ -118,7 +119,7 @@ def today_owners(history, *, now, expected_head):
     from race_ai.boat_pending_round_recovery import JST, need
     from race_ai.frozen_day_cycle import ts
     from race_ai.boat_owner_source_identity import OWNER_BRANCH
-    from scripts.boat_failed_recovery_contract import reviewed_recovery_origin
+    from scripts.boat_bootstrap_recovery_adapter import current_recovery_origin
     rows, total = history.get('workflow_runs'), history.get('total_count')
     need(type(rows) is list and type(total) is int and 0 <= len(rows) <= 100 and total >= len(rows),
          'HISTORY_INCOMPLETE')
@@ -133,25 +134,83 @@ def today_owners(history, *, now, expected_head):
     need(not any(r.get('status') != 'completed' for r in owners), 'ACTIVE_OWNER')
     today = [r for r in owners if ts(r['created_at']).astimezone(JST).date() == day]
     need(1 <= len(today) <= 24 and len({r['id'] for r in today}) == len(today), 'HISTORY_BOUND')
-    need(all(reviewed_recovery_origin(r.get('head_sha'),expected_head) and
+    need(all(current_recovery_origin(r,expected_head,now) and
              r.get('conclusion') in ('failure','success') for r in today),
          'HISTORY_OWNER_RELEASE')
     need(any(r['conclusion'] == 'failure' for r in today), 'NO_FAILED_OWNER')
     return today
 
 
-def recover_history(runs, *, get, load_control, replay_day, retain, now, expected_head):
+def restore_failed_bootstrap_models(run,state,repo,*,now,expected_head,get,
+        bootstrap=None,transport=None,readback_transport=None,
+        protection_transport=None,protection_readback_transport=None,clock=None):
+    """Preserve the known saved r0 through existing AES/feed/vault readers."""
+    import base64
+    from scripts import boat_saved_view_feed as publisher,boat_all_model_cycle as models
+    from scripts.boat_original_maintenance import protect_new_forecast_originals
+    from scripts.boat_failed_recovery_contract import need
+    F=publisher.F;observed=clock or (lambda:now)
+    if bootstrap is None:
+        config=publisher._json(publisher._read(Path(repo)/'audit/state/boat-saved-view-input.json',8192),8192)
+        need(type(config) is dict and set(config)=={'schema','bootstrap','bootstrap_sha256',
+             'catchup_artifact_id','catchup_sha256'} and config['schema']=='RACE_AI_SAVED_VIEW_INPUT_V1',
+             'BOOTSTRAP_MODEL_FEED_CONFIG_INVALID')
+        raw=base64.b64decode(config['bootstrap'],validate=True)
+        need(publisher.sha(raw)==config['bootstrap_sha256'],'BOOTSTRAP_MODEL_FEED_CONFIG_CHANGED')
+        bootstrap=F.open_bootstrap(raw)
+    publisher.git_auth()
+    git=transport or F.FeedRepository(repo)
+    parent,previous,generation,before=F.current_view(git,bootstrap)
+    need(type(getattr(git,'_saved_history_context',None)) is dict,
+         'BOOTSTRAP_MODEL_HISTORY_CURRENT_REQUIRED')
+    output,document,receipt,checked,originals=publisher.recover_bootstrap_model_view(
+        before,run,state,get=get,now=observed(),clock=observed)
+    protected=protect_new_forecast_originals(before,output,repo,github_get=get,
+        transport=protection_transport,readback_transport=protection_readback_transport,now=observed())
+    need(protected.get('complete') is True,'BOOTSTRAP_MODEL_VAULT_INCOMPLETE')
+    # A previously visible prediction is not proof its archive still exists.
+    # Check exact locators and independently reopen both actual archives even
+    # when the new-positive-artifact protection pass had nothing to append.
+    from scripts import boat_private_original_vault as vault
+    vault_git=vault.V._transport(repo,protection_transport)
+    for original in originals:
+        locator=vault.V.lookup_original(original['metadata']['id'],repo,
+            source_commit=protected['source_commit'],transport=vault_git)
+        need(locator is not None,'BOOTSTRAP_MODEL_VAULT_ORIGINAL_MISSING')
+    retained=retain_verified_pair(dict(originals=originals,
+        original_artifact_ids=[o['metadata']['id'] for o in originals]),run,repo,now=observed(),
+        transport=protection_transport,readback_transport=protection_readback_transport)
+    published=F.publish_view(git,bootstrap,output,parent=parent,previous=previous,generation=generation)
+    reader=readback_transport or F.FeedRepository(repo)
+    commit,unused,unused,current=F.current_view(reader,bootstrap,day=state['day_jst'])
+    need(commit==published['commit'],'BOOTSTRAP_MODEL_FEED_READBACK_CHANGED')
+    issued={'P0':{},'P1':{}};models._inventory(current,issued)
+    actual=models.require_saved_bootstrap_models(document,receipt,issued['P0'],current,now=observed())
+    need(actual is not None and all(actual[k]==checked[k] for k in
+         ('forecast_inventory_sha256','baseline_inventory_sha256','issued_models_sha256')),
+         'BOOTSTRAP_MODEL_FEED_INVENTORY_CHANGED')
+    return dict(checked,head_sha=expected_head,verified_at=observed().isoformat(),
+        vault_commit=retained['source_commit'],view_commit=commit,
+        restored_inventory_sha256=actual['restored_inventory_sha256'],
+        restored_baseline_inventory_sha256=actual['baseline_inventory_sha256'],
+        included_issued_models_sha256=actual['included_issued_models_sha256'])
+
+
+def recover_history(runs, *, get, load_control, replay_day, retain, now, expected_head,
+                    restore_bootstrap_models=None,clock=None):
     from race_ai.boat_pending_round_recovery import (PROOF_SCHEMA, JST, need,
         verify_recoverable_pending, verify_no_pending_failed_owner, history_digest, verify_dispatch_proof)
     from race_ai.boat_owner_source_identity import authenticated_live_owner_run
-    from scripts.boat_failed_recovery_contract import reviewed_recovery_origin
+    from scripts.boat_bootstrap_recovery_adapter import (bootstrap_model_artifact,current_recovery_origin,
+        build_current_recovery_proof,verify_current_recovery_proof)
+    observed=clock or (lambda:now)
     snapshots = []
     controls = {}
     for row in runs:
         actual = json.loads(get(f'actions/runs/{row["id"]}'))
         need(authenticated_live_owner_run(actual) and history_digest([actual]) == history_digest([row])
              and actual.get('run_attempt',1) == 1 and
-             reviewed_recovery_origin(actual['head_sha'],expected_head), 'RUN_CHANGED')
+             current_recovery_origin(actual,expected_head,now), 'RUN_CHANGED')
         snapshots.append(actual)
         controls[actual['id']] = load_control(actual)
     # Existing readers replay every saved day original, including original
@@ -192,10 +251,34 @@ def recover_history(runs, *, get, load_control, replay_day, retain, now, expecte
         if run['id'] == latest['id']:
             latest_control = checked['control']
         repairs[-1]['original_head_sha']=run['head_sha']
-    proof = dict(schema=PROOF_SCHEMA, head_sha=expected_head, day_jst=now.astimezone(JST).date().isoformat(),
-                 verified_at=now.isoformat(), history_sha256=history_digest(runs),
-                 latest_control=latest_control, repairs=repairs)
-    need(verify_dispatch_proof(proof,runs,controls[latest['id']],expected_head,now) is not None,
+        if bootstrap_model_artifact(run['id'],run['head_sha'],control['day_jst']) is not None:
+            need(callable(restore_bootstrap_models),'BOOTSTRAP_MODELS_REQUIRED')
+            repairs[-1]['bootstrap_models']=restore_bootstrap_models(run,state)
+    if clock is not None:
+        # Retention can be expensive. Re-authenticate immutable facts at the
+        # actual completion clock rather than freshening an old assertion.
+        for run in snapshots:
+            fresh=json.loads(get(f'actions/runs/{run["id"]}'))
+            need(history_digest([fresh])==history_digest([run]) and fresh.get('run_attempt',1)==1 and
+                 current_recovery_origin(fresh,expected_head,observed()),'RUN_CHANGED_DURING_RECOVERY')
+            need(load_control(fresh)==controls[run['id']],'CONTROL_CHANGED_DURING_RECOVERY')
+        for repair in repairs:
+            run=next(r for r in snapshots if r['id']==repair['run_id'])
+            original=controls[run['id']]
+            if original.get('prepared_round') is None:
+                fresh=verify_no_pending_failed_owner(get,run,original,now=observed(),replayed_state=state)
+            else:
+                fresh=verify_recoverable_pending(get,run,original,now=observed(),replayed_state=state,
+                                                 expected_head=expected_head)
+            old=repair['control'];new=fresh['control']
+            need({k:v for k,v in old.items() if k!='recovery'}=={k:v for k,v in new.items() if k!='recovery'} and
+                 {k:v for k,v in old['recovery'].items() if k!='verified_at'}==
+                 {k:v for k,v in new['recovery'].items() if k!='verified_at'} and
+                 repair['original_artifact_ids']==fresh['original_artifact_ids'],'ORIGINAL_CHANGED_DURING_RECOVERY')
+            repair['control']=new
+    finished=observed()
+    proof=build_current_recovery_proof(runs,repairs,controls,now=finished,expected_head=expected_head)
+    need(verify_current_recovery_proof(proof,runs,controls[latest['id']],expected_head,finished) is not None,
          'FINAL_PROOF_REJECTED')
     return proof
 
@@ -231,7 +314,9 @@ def main(argv=None):
                     current_run=int(os.environ['GITHUB_RUN_ID']),out=Path(folder)/'originals',clock=lambda:now)
             proof = recover_history(runs,get=gh,load_control=lambda r:read_final_control(gh,r),
                 replay_day=replay,retain=lambda c,r:retain_verified_pair(c,r,repo,now=now),
-                now=now,expected_head=args.expected_head)
+                now=now,expected_head=args.expected_head,clock=lambda:datetime.now(timezone.utc),
+                restore_bootstrap_models=lambda r,s:restore_failed_bootstrap_models(r,s,repo,
+                    now=now,expected_head=args.expected_head,get=gh,clock=lambda:datetime.now(timezone.utc)))
         # Fresh history is independently rechecked by the main gate as well.
         vault._write(output,json.dumps(proof,sort_keys=True).encode()+b'\n')
         print(json.dumps(dict(status='FAILED_OWNER_ORIGINALS_RECOVERED',
