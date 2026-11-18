@@ -434,6 +434,31 @@ def verify_current_v5_evidence(replay, probe, audit, *, _api):
         raise a.CurrentV5EvidenceHold(phase, diagnostic) from None
 
 
+def _replay_hold(error, phase, reader, api):
+    """Project only fixed facts from this exception, including wrapped reads."""
+    upstream, read_phase, seen = None, None, set()
+    for _ in range(8):
+        if not isinstance(error, BaseException) or id(error) in seen:
+            break
+        seen.add(id(error))
+        if type(error) is ValueError and len(error.args) == 1 and type(error.args[0]) is str \
+                and error.args[0] in api.CURRENT_V5_REPLAY_UPSTREAM_REASONS and upstream is None:
+            upstream = error.args[0]
+        if isinstance(error, api.CurrentV5ReplayHold):
+            if read_phase is None and type(error.phase) is str and error.phase in api.CURRENT_V5_REPLAY_PHASES:
+                read_phase = error.phase
+            if upstream is None and type(error.upstream_reason) is str \
+                    and error.upstream_reason in api.CURRENT_V5_REPLAY_UPSTREAM_REASONS:
+                upstream = error.upstream_reason
+        error = error.__context__
+    counts = None
+    if type(reader) is _CurrentV5SnapshotReader:
+        counts = dict(files=len(reader._records),
+            budget_used_bytes=api.MAX_CURRENT_V5_BYTES - reader._remaining,
+            budget_remaining_bytes=reader._remaining)
+    return api.CurrentV5ReplayHold(read_phase or phase, upstream, counts)
+
+
 class _CurrentV5SnapshotReader:
     def __init__(self, git, snapshot_sha, *, _api):
         self._api = _api
@@ -465,19 +490,31 @@ class _CurrentV5SnapshotReader:
         return self._git.exists(commit, path)
 
     def read(self, commit, path, limit):
-        self._path(commit, path)
-        key = (commit, path)
-        _need(type(limit) is int and limit > 0 and self._remaining > 0
-            and (key in self._records or len(self._records) < self._files), self._api)
-        maximum = min(limit, self._remaining, 4096 if path == 'latest.json' else 12 * 1024 * 1024)
-        raw = self._git.read(commit, path, maximum)
-        _need(type(raw) is bytes and 0 < len(raw) <= maximum, self._api)
-        if path != 'latest.json':
-            _need(hashlib.sha256(raw).hexdigest() == path[6:-5], self._api)
-        _need(key not in self._records or self._records[key] == raw, self._api)
-        self._remaining -= len(raw)
-        self._records[key] = raw
-        return raw
+        phase = 'snapshot_path_binding'
+        try:
+            self._path(commit, path)
+            key = (commit, path)
+            phase = 'snapshot_read_bounds'
+            _need(type(limit) is int and limit > 0 and self._remaining > 0
+                and (key in self._records or len(self._records) < self._files), self._api)
+            maximum = min(limit, self._remaining, 4096 if path == 'latest.json' else 12 * 1024 * 1024)
+            phase = 'snapshot_read'
+            raw = self._git.read(commit, path, maximum)
+            phase = 'snapshot_read_bounds'
+            _need(type(raw) is bytes and 0 < len(raw) <= maximum, self._api)
+            phase = 'snapshot_cipher_binding'
+            if path != 'latest.json':
+                _need(hashlib.sha256(raw).hexdigest() == path[6:-5], self._api)
+            _need(key not in self._records or self._records[key] == raw, self._api)
+            self._remaining -= len(raw)
+            self._records[key] = raw
+            return raw
+        except self._api.SafariHold as error:
+            if error.args != ('CURRENT_V5_REPLAY_INVALID',):
+                raise
+            raise _replay_hold(error, phase, self, self._api) from None
+        except Exception as error:
+            raise _replay_hold(error, phase, self, self._api) from None
 
     def validate_tree(self, commit):
         _need(commit == self._snapshot, self._api)
@@ -495,6 +532,7 @@ class _CurrentV5SnapshotReader:
 def read_current_v5_replay(source_root, seed, *, _api):
     """Freeze one head and use only the existing pinned source F/H authentication."""
     a = _api
+    phase, reader = 'source_revision', None
     try:
         source_root = Path(source_root).resolve()
         actual = a.subprocess.check_output(['git', '-C', str(source_root), 'rev-parse', 'HEAD'],
@@ -504,6 +542,7 @@ def read_current_v5_replay(source_root, seed, *, _api):
             'race_ai', 'scripts', 'audit/state/boat-saved-view-input.json'],
             check=True, timeout=10, stdout=a.subprocess.DEVNULL, stderr=a.subprocess.DEVNULL)
         a.sys.path.insert(0, str(source_root))
+        phase = 'module_binding'
         with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
             from scripts import boat_saved_site_context as contexts
             from scripts import boat_saved_view_feed as publisher
@@ -516,8 +555,10 @@ def read_current_v5_replay(source_root, seed, *, _api):
                     (history, 'race_ai/saved_view_history.py')):
                 _need(Path(module.__file__).resolve() == source_root / relative, a)
             _need(_DailyFilteredFetch.__module__ == 'race_ai.racer_daily_handoff', a)
+            phase = 'source_environment'
             root = vault._environment(source_root)
             _need(root == source_root, a)
+            phase = 'input_binding'
             config_path = source_root / 'audit/state/boat-saved-view-input.json'
             _need(config_path.is_file() and not config_path.is_symlink()
                 and 0 < config_path.stat().st_size <= 8192, a)
@@ -527,6 +568,7 @@ def read_current_v5_replay(source_root, seed, *, _api):
                 and config['schema'] == 'RACE_AI_SAVED_VIEW_INPUT_V1', a)
             raw = base64.b64decode(config['bootstrap'], validate=True)
             _need(publisher.sha(raw) == config['bootstrap_sha256'], a)
+            phase = 'bootstrap_authentication'
             publisher.git_auth()
             bootstrap = publisher.F.open_bootstrap(raw)
             class ReadOnlyGit(_DailyFilteredFetch, publisher.F.FeedRepository):
@@ -536,21 +578,25 @@ def read_current_v5_replay(source_root, seed, *, _api):
                     raise a.SafariHold('CURRENT_V5_REPLAY_INVALID')
                 def push(self, *args, **kwargs):
                     raise a.SafariHold('CURRENT_V5_REPLAY_INVALID')
+            phase = 'snapshot_lookup'
             git = ReadOnlyGit(root)
             snapshot = git.head()
             _need(_hex(snapshot, 40), a)
             reader = _CurrentV5SnapshotReader(git, snapshot, _api=a)
             now = datetime.now(timezone.utc)
             today = now.astimezone(contexts.JST).date().isoformat()
+            phase = 'current_day_authentication'
             parent, ident, generation, current_view = publisher.F.current_view(
                 reader, bootstrap, day=today)
             _need(parent == snapshot and current_view.get('event_date_jst') == today
                 and all(row.get('event_date_jst') == today for row in current_view['records']), a)
+            phase = 'context_binding'
             context = a.validate_context(contexts.build_context(
                 bootstrap, current_view, generation, now=now, event_day=today))
             # Existing browser continuation compares retained seed originals.
             # Authenticate each required catalog/day with unchanged H routines,
             # retaining only its encrypted read bytes, never exporting plaintext.
+            phase = 'retained_history_authentication'
             retained = reader._saved_history_context
             _need(type(retained) is dict and type(retained.get('index')) is dict, a)
             read = publisher.F._history_reader(reader)
@@ -561,9 +607,11 @@ def read_current_v5_replay(source_root, seed, *, _api):
                 for descriptor in index['days'].values():
                     history.decrypt_day_chunks(descriptor, read, bootstrap['key'],
                         view_id=bootstrap['view_id'], forecast_sha256=bootstrap['forecast_sha256'])
+            phase = 'seed_authentication'
             _, original_seed = publisher.F.decrypt_view(seed['raw'], bootstrap['key'],
                 view_id=bootstrap['view_id'])
             _need(publisher.F.forecast_anchor(original_seed) == bootstrap['forecast_sha256'], a)
+            phase = 'replay_binding'
             latest = reader._records.get((snapshot, 'latest.json'))
             _need(type(latest) is bytes, a)
             manifest = _json(latest, 4096, a)
@@ -581,10 +629,12 @@ def read_current_v5_replay(source_root, seed, *, _api):
                 ciphertexts=ciphertexts, context=context, view_id=bootstrap['view_id'],
                 forecast_sha256=bootstrap['forecast_sha256'], secrets=secrets, now=now, _api=a)
         return replay
-    except a.SafariHold:
-        raise
-    except Exception:
-        raise a.SafariHold('CURRENT_V5_REPLAY_INVALID') from None
+    except a.SafariHold as error:
+        if error.args != ('CURRENT_V5_REPLAY_INVALID',):
+            raise
+        raise _replay_hold(error, phase, reader, a) from None
+    except Exception as error:
+        raise _replay_hold(error, phase, reader, a) from None
 
 
 def current_v5_probe_script():
