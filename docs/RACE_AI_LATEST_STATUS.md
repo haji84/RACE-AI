@@ -1,4 +1,4 @@
-# RACE-AI 最新状況 — 2026-11-18 10:51 UTC
+# RACE-AI 最新状況 — 2026-11-18 11:18 UTC
 
 **GOALは未達。** この文書は現在の事実だけをまとめる。従来の全文は[履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261118_0928.md)へ、同じGit blobのまま保全した。実予想原本・モデル重み・元の判定を変更しない。
 
@@ -16,7 +16,7 @@
 
 round4/19のALL_MODEL ZIPが欠けるため `HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED`。締切適格数0は全体HOLDの監査結果であり、全行が締切後という証拠ではない。旧実行の正規完了ログではr4はcontexts=0/generated=0の明示分岐、r19は保持locator未選択のartifact metadata/ZIP読取404だった。r4の入力網羅性、r19の対象・404根因は不明で、HOLDを解除しない。[各巡の固定証拠](evidence/boat-a74-round04-round19-source-facts-20261118.json)。以前のr0=660、A74 r0=585、reused285、retained264/waiting924などは対象が異なり、単純合算しない。[実独立監査](evidence/boat-main-sync-closed-a74-actual-20261118.json)。
 
-10:52 UTC現在、後続run44252479726は旧A74のまま1〜9巡success/10巡実行中/failed0。停止・hotswap・counter resetをしていない。cacheと固定理由診断は次の正規source workerからで、実速度改善・T15〜10全件充足は未確認。
+11:18 UTC現在、後続run44252479726は旧A74のまま1〜10巡success/11巡実行中/failed0。停止・hotswap・counter resetをしていない。cacheと固定理由診断は次の正規source workerからで、実速度改善・T15〜10全件充足は未確認。
 
 ## ペア監査の実際の拒否理由
 
@@ -24,7 +24,7 @@ round4/19のALL_MODEL ZIPが欠けるため `HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXP
 
 正規完了ログ10:48:10 UTCでは、診断対象のfirst-originalは **48レース/672モデルrecord**。42レース588件は締切一致、2レース28件は結果側の予定締切が後、4レース56件は結果観測なし。前倒し0・締切未記録0。これは全132レースの網羅・saved-view P1の513行・適格分母と異なるscopeで、合算しない。元の `PAIR_RESULT_JOIN / ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH` とcoreの4/19欠落HOLDは維持。正式ペア件数/G8分母はnull。[実件数証拠](evidence/boat-current-pair-cutoff-inventory-actual-20261118.json)。
 
-次は2レースの保存本文から予定時刻表を調べる。当時のproducer parserはデータ形状だけでは断定できないため、固定A74 PROGRAM inspectorと固定pr64 RESULT inspectorを文書の役割ごとに使う。保存時計と固定検査器の一致/相違だけを報告し、当時のparser不具合・公式改定の正当性・実際の発売終了を断定しない。既存A74 vault readerで原本を認証し、本文が未取得か認証できなければHOLD。[読取手順](evidence/boat-current-pair-raw-replay-recipe-20261118.json)。参照26件・185MBのmetadata宣言は認証済み本文の存在証明ではない。新raw実装・実認証はまだ未確認。
+次は2レースの保存本文から予定時刻表を調べる。当時のproducer parserはデータ形状だけでは断定できないため、固定A74 PROGRAM inspectorと固定pr64 RESULT inspectorを文書の役割ごとに使う。保存時計と固定検査器の一致/相違だけを報告し、当時のparser不具合・公式改定の正当性・実際の発売終了を断定しない。既存A74 vault readerで原本を認証し、本文が未取得か認証できなければHOLD。[読取手順](evidence/boat-current-pair-raw-replay-recipe-20261118.json)。参照26件・185MBのmetadata宣言は認証済み本文の存在証明ではない。既存PR30で固定inspector＋既存A74 reader adapterを実装中。先行CI44291210552/job134756589726では旧364件/128.608秒が全成功、新7件/0.965秒は実AES/HMAC26束の対照1件が成功・未実装モジュールの想定6assert失敗/errors0。呼出側は既存core/pairの後で独立し、認証失敗の件数はnullのまま。新raw最終CI・実原本認証はまだ未確認。[実装計画](superpowers/plans/2026-11-18-saved-cutoff-raw-replay.md)、[先行CI証拠](evidence/boat-current-pair-saved-grid-tdd-20261118.json)。
 
 ## 画面・4競技・映像・精度
 

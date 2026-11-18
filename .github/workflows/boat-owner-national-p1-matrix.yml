@@ -864,6 +864,7 @@ jobs:
           if [[ ! -d closed-a74-source || -L closed-a74-source ]]; then
             echo '{"schema":"RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1","status":"HOLD_NATIONAL_P1_INDEPENDENT_AUDIT","reason":"ADDITIONAL_CLOSED_A74_AUDIT_UNAVAILABLE","failure_stage":"SOURCE_LAYOUT","owner_run_id":44218343091,"owner_source_commit":"a74f1e940e7fc0852e63938f8138bdb58bd93163","completed_rounds_audited":null,"raw_aes_archives_verified":null,"all_model_zip_readback":null,"additional_audit_scope":"EXACT_CLOSED_A74_REPRESENTED_P1_ONLY","p0_union_audited":false,"qualifying_g8_proven":false,"promotion_allowed":false,"official_source_requests":0,"new_forecasts":0,"original_forecasts_changed":false}'
             echo '{"current_pair_audit_schema":"RACE_AI_CURRENT_NATIVE_PAIR_ELIGIBILITY_COUNTS_V1","current_pair_audit_status":"HOLD_PAIR_AUDIT_REJECTED","failure_stage":"SOURCE_LAYOUT","current_pair_authenticated":false,"current_pair_owner_run_id":44218343091,"current_pair_owner_source_commit":"a74f1e940e7fc0852e63938f8138bdb58bd93163","current_pair_archive_count":null,"current_pair_forecast_record_count":null,"current_pair_first_forecast_record_count":null,"current_pair_qualifying_g8_count":0,"current_pair_qualifying_g8_denominator":null,"current_pair_promotion_allowed":false,"current_pair_source_requests":0,"additional_audit_scope":"EXACT_CLOSED_A74_NATIVE_UNION_UNQUALIFIED","p0_union_audited":false,"policy_applicability_audited":false}'
+            echo '{"schema":"RACE_AI_A74_SAVED_GRID_INSPECTION_COUNTS_V1","status":"HOLD","reason":"INPUT_OR_SCOPE_INVALID","comparison_count":null,"program_grid_match_count":null,"result_grid_match_count":null,"missing_raw_side_count":null,"inspector_rejected_side_count":null,"grid_clock_disagreed_side_count":null,"source_requests":0,"originals_changed":false,"broader_goals_proven":false}'
             exit 0
           fi
           cd closed-a74-source
@@ -903,6 +904,13 @@ jobs:
                   'official_raw_verified','official_cutoff_verified','minimum_cohort'):
               pair['current_pair_'+name]=None
 
+          grid=dict(schema='RACE_AI_A74_SAVED_GRID_INSPECTION_COUNTS_V1',
+              status='HOLD',reason='INPUT_OR_SCOPE_INVALID',comparison_count=None,
+              program_grid_match_count=None,result_grid_match_count=None,
+              missing_raw_side_count=None,inspector_rejected_side_count=None,
+              grid_clock_disagreed_side_count=None,source_requests=0,
+              originals_changed=False,broader_goals_proven=False)
+
           class Quiet:
               def write(self,value):return len(value)
               def flush(self):pass
@@ -938,7 +946,7 @@ jobs:
                       ('boat_owner_evidence_audit','014fc9ddbbd24c501b7784eeae50be315644669f'),
                       ('boat_exact_all_model_zip_readback','10307aa5e45f17b1a7a0d64f409d8cb6a6481e54'),
                       ('boat_owner_active_snapshot_audit','a3c7d36ee586e977225267b51548850c62b9161c'),
-                      ('boat_current_pair_eligibility_audit','9ec3d8589146ab310c634fb5731ab2c8824b9acd')):
+                      ('boat_current_pair_eligibility_audit','3e1f414a4e164f5400f7f7a1533977b8678d80c4')):
                       source=main/'scripts'/(short+'.py')
                       assert source.is_file() and not source.is_symlink() and source.resolve()==source
                       raw=source.read_bytes()
@@ -1025,6 +1033,66 @@ jobs:
                       pair['failure_stage']=stage
                       pair.update(pairs.current_pair_failure_diagnostic(error))
                       pair.update(pairs.current_pair_cutoff_diagnostic(error))
+
+                  try:
+                      short='boat_cutoff_raw_replay_audit'
+                      source=main/'scripts'/(short+'.py')
+                      assert source.is_file() and not source.is_symlink() and source.resolve()==source
+                      raw=source.read_bytes()
+                      assert 0<len(raw)<=128*1024
+                      assert hashlib.sha1(b'blob '+str(len(raw)).encode('ascii')+b'\0'+raw).hexdigest()=='8fabfe88e1d8d71f80b9228e3b08acf6cfaff480'
+                      name='scripts.'+short
+                      spec=importlib.util.spec_from_file_location(name,source)
+                      module=importlib.util.module_from_spec(spec)
+                      sys.modules[name]=module;setattr(scripts,short,module)
+                      exec(compile(raw,str(source),'exec'),module.__dict__)
+                      assert Path(module.__file__).resolve()==source
+                      assert all(Path(path).resolve()==root/'scripts' for path in scripts.__path__)
+                      grid['reason']='UNEXPECTED_GRID_INSPECTION_FAILURE'
+                      inspected=module.audit_fixed_a74_cutoff_raw_replay(get=reads,repo=root,now=clock)
+                      assert type(inspected) is dict and all(type(key) is str for key in inspected)
+                      assert set(inspected)==set(grid)
+                      assert (type(inspected['schema']) is str
+                          and inspected['schema']=='RACE_AI_A74_SAVED_GRID_INSPECTION_COUNTS_V1')
+                      assert type(inspected['status']) is str and inspected['status'] in (
+                          'HOLD','SAVED_CLOCKS_MATCH_INSPECTED_GRIDS','NO_MISMATCH_TARGETS')
+                      assert (type(inspected['source_requests']) is int and inspected['source_requests']==0
+                          and inspected['originals_changed'] is False
+                          and inspected['broader_goals_proven'] is False)
+                      counts=tuple(inspected[key] for key in (
+                          'comparison_count','program_grid_match_count','result_grid_match_count',
+                          'missing_raw_side_count','inspector_rejected_side_count',
+                          'grid_clock_disagreed_side_count'))
+                      reason=inspected['reason']
+                      if inspected['status']=='HOLD':
+                          assert type(reason) is str and reason in (
+                              'INPUT_OR_SCOPE_INVALID','UNSUPPORTED_SOURCE_REF',
+                              'CAPTURE_AUTHENTICATION_UNAVAILABLE','RESOURCE_BOUND_EXCEEDED',
+                              'RAW_CAPTURE_MISSING','GRID_INSPECTOR_REJECTED',
+                              'SAVED_CLOCK_DIFFERS_FROM_INSPECTED_GRID',
+                              'UNEXPECTED_GRID_INSPECTION_FAILURE')
+                          if reason in ('INPUT_OR_SCOPE_INVALID','UNSUPPORTED_SOURCE_REF',
+                                  'CAPTURE_AUTHENTICATION_UNAVAILABLE','RESOURCE_BOUND_EXCEEDED',
+                                  'UNEXPECTED_GRID_INSPECTION_FAILURE'):
+                              assert all(value is None for value in counts)
+                          else:
+                              assert all(type(value) is int and 0<=value<=56 for value in counts)
+                              expected_reason=('RAW_CAPTURE_MISSING' if counts[3]>0 else
+                                  'GRID_INSPECTOR_REJECTED' if counts[4]>0 else
+                                  'SAVED_CLOCK_DIFFERS_FROM_INSPECTED_GRID' if counts[5]>0 else None)
+                              assert reason==expected_reason
+                      else:
+                          assert reason is None and all(type(value) is int and 0<=value<=56 for value in counts)
+                      if counts[0] is not None:
+                          assert counts[0]<=28 and sum(counts[1:])==2*counts[0]
+                          assert counts[1]<=counts[0] and counts[2]<=counts[0]
+                      if inspected['status']=='NO_MISMATCH_TARGETS':
+                          assert counts==(0,0,0,0,0,0)
+                      if inspected['status']=='SAVED_CLOCKS_MATCH_INSPECTED_GRIDS':
+                          assert counts[0]>0 and counts[1]==counts[2]==counts[0] and counts[3:]==(0,0,0)
+                      grid=dict(inspected)
+                  except (Exception,SystemExit):
+                      pass
           except (Exception,SystemExit):
               core['failure_stage']=stage;pair['failure_stage']=stage
 
@@ -1034,4 +1102,5 @@ jobs:
               p0_union_audited=False,policy_applicability_audited=False)
           print(json.dumps(core,sort_keys=True,allow_nan=False))
           print(json.dumps(pair,sort_keys=True,allow_nan=False))
+          print(json.dumps(grid,sort_keys=True,allow_nan=False))
           PY_CLOSED_OWNER_COUNTS
