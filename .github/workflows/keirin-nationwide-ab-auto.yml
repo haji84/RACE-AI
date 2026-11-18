@@ -9,6 +9,8 @@ on:
       - 'scripts/keirin_github_only_ab_*.py'
       - 'tests/test_keirin_github_only_ab_day.py'
       - 'race_ai/keirin_github_provider_stop.py'
+      - 'race_ai/keirin_github_capture_selection.py'
+      - 'tests/test_keirin_github_capture_selection.py'
       - 'tests/test_keirin_github_provider_stop.py'
       - 'race_ai/keirin_secondary_result_consensus.py'
       - 'scripts/keirin_secondary_result_poll.py'
@@ -18,6 +20,17 @@ on:
       - 'tests/test_keirin_register_public_day.py'
       - 'scripts/keirin_nationwide_independent_cipher_readback.py'
       - 'tests/test_keirin_nationwide_auto_*.py'
+      - 'race_ai/keirin_official_*.py'
+      - 'race_ai/keirin_github_evidence_client.py'
+      - 'race_ai/keirin_github_origin_evidence.py'
+      - 'race_ai/keirin_nationwide_cipher_history.py'
+      - 'race_ai/keirin_dynamic_nationwide_registry.py'
+      - 'scripts/keirin_official_*.py'
+      - 'tests/test_keirin_official_*.py'
+      - 'tests/test_keirin_github_evidence_client.py'
+      - 'tests/test_keirin_github_origin_evidence.py'
+      - 'tests/test_keirin_nationwide_cipher_history.py'
+      - 'tests/test_keirin_dynamic_nationwide_registry.py'
       - '.github/workflows/keirin-nationwide-ab-auto.yml'
   workflow_dispatch:
     inputs:
@@ -34,7 +47,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: keirin-nationwide-ab-${{ github.ref }}-${{ github.event_name }}
+  group: keirin-nationwide-ab-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -67,8 +80,22 @@ jobs:
             tests.test_keirin_nationwide_auto_day_registry_workflow \
             tests.test_keirin_github_only_ab_day \
             tests.test_keirin_github_provider_stop \
+            tests.test_keirin_github_capture_selection \
             tests.test_keirin_secondary_result_consensus \
-            tests.test_keirin_github_only_result_day
+            tests.test_keirin_github_only_result_day \
+            tests.test_keirin_dynamic_nationwide_registry \
+            tests.test_keirin_github_evidence_client \
+            tests.test_keirin_github_origin_evidence \
+            tests.test_keirin_official_public_source \
+            tests.test_keirin_official_cohort \
+            tests.test_keirin_official_poll_progress \
+            tests.test_keirin_official_run_history \
+            tests.test_keirin_official_day_pipeline \
+            tests.test_keirin_official_runtime_integration \
+            tests.test_keirin_official_backlog_days \
+            tests.test_keirin_official_owner_report \
+            tests.test_keirin_official_owner_view \
+            tests.test_keirin_official_workflow
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_nationwide_auto_storage.py \
@@ -82,6 +109,7 @@ jobs:
             scripts/keirin_register_public_day.py \
             scripts/keirin_github_only_ab_day.py \
             race_ai/keirin_github_provider_stop.py \
+            race_ai/keirin_github_capture_selection.py \
             scripts/keirin_github_only_ab_readback.py \
             race_ai/keirin_secondary_result_consensus.py \
             scripts/keirin_secondary_result_poll.py \
@@ -91,11 +119,16 @@ jobs:
             scripts/keirin_evening_national_real_AB_20261118.py \
             scripts/keirin_kochi5r_line_source_diagnostic.py \
             scripts/keirin_real_public_source_smoke.py
+          python -m py_compile race_ai/keirin_official_*.py \
+            race_ai/keirin_github_evidence_client.py \
+            race_ai/keirin_github_origin_evidence.py \
+            scripts/keirin_official_*.py
 
   real-public-utsunomiya1r-smoke:
     # This is a one-day, two-GET read-only check of a published future race.
     # Never a claim that the nationwide collector or AES stage is live.
-    if: github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
     runs-on: ubuntu-24.04
     timeout-minutes: 4
     permissions:
@@ -119,7 +152,8 @@ jobs:
   real-public-national-day-links-smoke:
     # At most one day calendar + eight linked public racecard GETs.
     # Only safe counts, no URLs or rider values are logged.
-    if: github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -145,7 +179,8 @@ jobs:
     # A single real unpublished race, not a synthetic prediction test.
     # Guard prior GitHub ciphertext artifact to prevent replay/duplicate
     # forecast variants in later PR runs. Never puts source HTML in artifact.
-    if: github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     permissions:
@@ -265,7 +300,8 @@ jobs:
 
   real-remaining-evening-batch:
     # One real 2026-11-18 future night cohort. No retroactive forecasts.
-    if: github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     permissions:
@@ -392,7 +428,8 @@ jobs:
   real-night-after-previous-7-supplement:
     # Copy historical ciphertext across runners, verify SHA and skip 7
     # frozen forecasts. Only remaining future midnight races may be added.
-    if: github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
     runs-on: ubuntu-24.04
     timeout-minutes: 11
     permissions:
@@ -523,7 +560,8 @@ jobs:
           retention-days: 21
 
   real-kochi5r-source-line-diagnostic:
-    if: github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -545,7 +583,10 @@ jobs:
           cat "$RUNNER_TEMP/kochi5-nonpii-shape.json" >> "$GITHUB_STEP_SUMMARY"
 
   owner-auto-generate:
+    # Retained historical external-store implementation. GitHub-only is the
+    # selected deployment; this job must not reactivate an S3 path.
     if: >-
+      false &&
       github.repository == 'haji84/RACE-AI' &&
       github.ref == 'refs/heads/main' &&
       vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
@@ -820,6 +861,7 @@ jobs:
       contents: write
     env:
       RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+      RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED: ${{ vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED }}
     outputs:
       archived: ${{ steps.run.outputs.archived }}
     steps:
@@ -835,7 +877,7 @@ jobs:
         run: |
           set -euo pipefail
           root="$RUNNER_TEMP/keirin-git-only-$GITHUB_RUN_ID"
-          mkdir -m 700 -p "$root"
+          mkdir -m 700 -p "$root/safe"
           chmod 700 "$root"
           echo "root=$root" >> "$GITHUB_OUTPUT"
           echo "day=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_OUTPUT"
@@ -845,9 +887,9 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
-          python -m scripts.keirin_github_only_ab_day \
+          python -m scripts.keirin_official_day_pipeline capture \
             --day "${{ steps.private.outputs.day }}" \
-            --workspace "$GITHUB_WORKSPACE" \
+            --repo "$GITHUB_WORKSPACE" \
             --private-root "${{ steps.private.outputs.root }}" \
             --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
             --report "${{ steps.private.outputs.root }}/safe/summary.json" \
@@ -913,7 +955,8 @@ jobs:
 
   real-secondary-result-20261118-smoke:
     # Historic known race: source page parsing only, no model replay.
-    if: github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -957,9 +1000,11 @@ jobs:
 
 
   github-only-research-results:
-    # A/B immutable encrypted originals must already exist in Git.
-    # Two secondary result pages are NOT official organizer confirmation.
+    # Run after this poll's independent readback. A failed/no-new capture
+    # does not prevent rechecking older immutable originals.
+    needs: [github-only-owner-capture, github-only-independent-archive-readback]
     if: >-
+      always() &&
       github.repository == 'haji84/RACE-AI' &&
       github.ref == 'refs/heads/main' &&
       vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
@@ -969,11 +1014,13 @@ jobs:
       (github.event_name == 'schedule' ||
        (github.event_name == 'workflow_dispatch' && inputs.mode == 'run'))
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 15
     permissions:
       contents: write
+      actions: read
     env:
       RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+      RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED: ${{ vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -982,28 +1029,52 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.11'
-      - name: Poll only previously sealed post-cutoff races; retain secondary revisions
+      - name: Join official results, preserve revisions and encrypt the owner view
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
-          # Midnight races can finish after JST date changes. The producer
-          # never backdates forecasts; this job checks outcomes only.
-          for day in "$(TZ=Asia/Tokyo date +%F)" \
-                     "$(TZ=Asia/Tokyo date -d yesterday +%F)"; do
-            root="$RUNNER_TEMP/keirin-results-$GITHUB_RUN_ID-$day"
-            mkdir -m 700 -p "$root"
-            chmod 700 "$root"
-            if python -m scripts.keirin_github_only_result_day \
-               --day "$day" \
-               --repo "$GITHUB_WORKSPACE" \
-               --private-raw "$root" \
-               --out "$RUNNER_TEMP/keirin-result-$day-safe.json" \
-               > "$RUNNER_TEMP/keirin-result-$day-counts.json"; then
-              cat "$RUNNER_TEMP/keirin-result-$day-counts.json" >> "$GITHUB_STEP_SUMMARY"
-            else
-              echo "HOLD_RESULT_DAY_SOURCE_OR_PROVENANCE_UNAVAILABLE $day" >> "$GITHUB_STEP_SUMMARY"
-            fi
+          root="$RUNNER_TEMP/keirin-official-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root"
+          chmod 700 "$root"
+          # One process shares denial latches across current/yesterday/backlog.
+          # Per-day persisted cursors keep older result/correction polling fair.
+          status=0
+          python -m scripts.keirin_official_day_pipeline settle-days \
+            --day auto \
+            --repo "$GITHUB_WORKSPACE" \
+            --private-root "$root" \
+            --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --report "$root/batch-safe.json" \
+            --max-races 8 > "$root/counts.json" || status=$?
+          cat "$root/counts.json" >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+      - name: Preserve only safe official settlement receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-official-result-receipts-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/keirin-official-${{ github.run_id }}/*/safe.json
+            ${{ runner.temp }}/keirin-official-${{ github.run_id }}/batch-safe.json
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Preserve only RSA encrypted owner views
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-official-owner-views-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-official-${{ github.run_id }}/*/owner-view.sealed.json
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Destroy ephemeral plaintext owner reports and source bytes
+        if: always()
+        shell: bash
+        run: |
+          root="$RUNNER_TEMP/keirin-official-$GITHUB_RUN_ID"
+          if [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-official-* ]]; then
             rm -rf -- "$root"
-          done
-          echo "SECONDARY_RESEARCH_ONLY_OFFICIAL_PRIMARY_PENDING" >> "$GITHUB_STEP_SUMMARY"
+          fi

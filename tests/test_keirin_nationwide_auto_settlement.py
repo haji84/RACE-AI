@@ -102,6 +102,22 @@ class NationwideEncryptedABSettlement(unittest.TestCase):
         self.assertNotIn("athlete_id", json.dumps(result))
         self.assertFalse(result["formal_accuracy_proven"])
 
+    def test_replay_preserves_the_authenticated_original_ticket_limit(self):
+        for limit in (1, 8, 12):
+            with self.subTest(limit=limit):
+                original = model.generate_A_B(
+                    self.snap, generated_at=AT, max_tickets=limit)
+                target = self.root / f"limited-{limit}.sealed.json"
+                receipt = storage.seal_once(
+                    snapshot=self.snap, prediction=original,
+                    public_key_pem=self.pub, path=target,
+                    sealed_at="2026-11-18T09:01:05+09:00")
+                result = self.check(data=target.read_bytes(),
+                                    digest=receipt["cipher_sha256"])
+                self.assertEqual(result["paired_A_B_scored"], 1)
+                self.assertEqual(result["scorecard"]["A_existing"]["stake_yen"],
+                                 limit * 100)
+
     def test_every_independent_attestation_gate_is_required(self):
         for disabled in ("origin", "cutoff", "final"):
             with self.subTest(disabled=disabled):
@@ -124,6 +140,50 @@ class NationwideEncryptedABSettlement(unittest.TestCase):
         self.assertEqual(out["scorecard"]["A_existing"]["hit_at_all_rate"], None)
         self.assertTrue(all(x["state"] == "HOLD_NO_PRE_CUTOFF_FORECAST"
                             for x in out["statuses"]))
+
+    def test_verified_cancellation_and_full_refund_are_neutral_not_misses(self):
+        canceled = deepcopy(self.result)
+        canceled.update(status="CANCELLED", refund_status="FULL",
+                        winning_triples=[], payouts_100yen=[],
+                        source_published_at="2026-11-18T11:00:00+09:00")
+        report = self.check(result=canceled)
+        self.assertEqual(report["registered_races"], 79)
+        self.assertEqual(report["paired_A_B_scored"], 0)
+        self.assertEqual(report.get("confirmed_cancelled_full_refund_races"), 1)
+        self.assertEqual(report["scorecard"]["A_existing"]["eligible"], 0)
+        self.assertEqual(report["scorecard"]["A_existing"]["stake_yen"], 0)
+        self.assertIsNone(report["scorecard"]["A_existing"]["hit_at_all_rate"])
+        receipt = report["result_receipts"][0]
+        self.assertEqual(receipt["state"], "CANCELLED_FULL_REFUND_NO_MODEL_SCORE")
+        self.assertIsNone(receipt["A_existing"])
+        self.assertIsNone(receipt["B_six_phase"])
+
+    def test_revision_receipts_bind_source_and_keep_rereads_out_of_revision_identity(self):
+        initial = self.check()
+        self.assertTrue("result_receipts" in initial)
+        first = initial["result_receipts"][0]
+        self.assertEqual(first["cipher_file_sha256"], self.receipt["cipher_sha256"])
+        self.assertEqual(first["source_sha256"], "a" * 64)
+        reread = deepcopy(self.result)
+        reread["observed_at"] = "2026-11-18T12:35:00+09:00"
+        second = self.check(result=reread)["result_receipts"][0]
+        self.assertEqual(first["result_revision_sha256"],
+                         second["result_revision_sha256"])
+        corrected = deepcopy(reread)
+        corrected["payouts_100yen"][0]["yen"] = 6800
+        corrected["source_sha256"] = "b" * 64
+        corrected["provider_revision_ref"] = "test-only-correction-v2"
+        revised = self.check(result=corrected)
+        third = revised["result_receipts"][0]
+        self.assertNotEqual(first["result_revision_sha256"],
+                            third["result_revision_sha256"])
+        self.assertEqual(revised["paired_A_B_scored"], 1)
+        self.assertEqual(revised["scorecard"]["A_existing"]["payout_yen"], 6800)
+        self.assertEqual(initial["scorecard"]["A_existing"]["payout_yen"], 6700)
+        serialized = json.dumps(revised["result_receipts"])
+        self.assertNotIn("ranked_tickets", serialized)
+        self.assertNotIn("athlete_id", serialized)
+        self.assertNotIn("PRIVATE KEY", serialized)
 
     def test_wrong_key_or_tampered_cipher_is_HOLD_not_a_result(self):
         other = rsa.generate_private_key(public_exponent=65537, key_size=3072)

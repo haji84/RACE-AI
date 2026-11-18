@@ -90,6 +90,48 @@ class DynamicNationwideCalendar(unittest.TestCase):
         self.assertTrue(r["national_universe_unverified_hold"])
         self.assertEqual(r["captured_race_count"],79)
 
+    def test_explicit_independently_verified_empty_day_is_a_zero_race_cohort(self):
+        calls=[]
+        def verify(day,codes,sources):
+            calls.append((day,codes,sources))
+            return day==DAY and codes==[] and sources==[]
+        doc=make(blocks=[],universe=[],venue=None,day=verify)
+        self.assertEqual(calls,[(DAY,[],[])])
+        self.assertEqual(doc["captured_venue_count"],0)
+        self.assertEqual(doc["captured_race_count"],0)
+        self.assertEqual(doc["races"],[])
+        self.assertEqual(doc["source_venues"],[])
+        self.assertEqual(doc["expected_venue_codes"],[])
+        self.assertTrue(doc["nationwide_coverage_independently_verified"])
+        self.assertFalse(doc["national_universe_unverified_hold"])
+        self.assertEqual(dyn.checked_day(doc),doc)
+
+    def test_missing_calendar_or_unverified_empty_list_cannot_claim_no_meetings(self):
+        for universe,verifier in ((None,None),(None,lambda *args:True),
+                                  ([],None),([],lambda *args:False)):
+            with self.subTest(universe=universe,verifier=verifier):
+                with self.assertRaisesRegex(dyn.DynamicDayError,
+                                            "EMPTY_DAY_REQUIRES_VERIFIED_EMPTY_UNIVERSE"):
+                    make(blocks=[],universe=universe,venue=None,day=verifier)
+        with self.assertRaisesRegex(dyn.DynamicDayError,"MISSING_AN_EXPECTED"):
+            make(blocks=[],universe=["26"])
+
+    def test_checked_empty_registry_requires_the_explicit_verified_day_contract(self):
+        doc=make(blocks=[],universe=[],venue=None,day=lambda *args:True)
+        for mutate in (
+            lambda d:d.update(expected_venue_codes=None),
+            lambda d:d.update(captured_venue_count=1),
+            lambda d:d.update(nationwide_coverage_independently_verified=False),
+            lambda d:d.update(national_universe_unverified_hold=True),
+        ):
+            invalid=deepcopy(doc)
+            mutate(invalid)
+            invalid["registry_sha256"]=dyn.digest({
+                k:v for k,v in invalid.items() if k!="registry_sha256"})
+            with self.assertRaisesRegex(dyn.DynamicDayError,
+                                        "EMPTY_DAY_REQUIRES_VERIFIED_EMPTY_UNIVERSE"):
+                dyn.checked_day(invalid)
+
     def test_source_not_available_at_registration_refused(self):
         b=fake_blocks()
         b[0]["source_available_at"]="2026-11-18T07:31:00+09:00"

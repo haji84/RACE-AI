@@ -142,7 +142,17 @@ def decrypt_original_pair(*, raw_cipher, expected_cipher_sha256,
          snap["published_cutoff_at"] == manifest["published_cutoff_at"] and
          model.when(manifest["generated_at"]) <=
          model.when(manifest["sealed_at"]), "ORIGINAL_RACE_OR_CUTOFF_DRIFT")
-    replay = model.generate_A_B(snap, generated_at=manifest["generated_at"])
+    # V1 stores the authenticated arms but not the generator's ticket cap.
+    # A enumerates every ordered triple for 5-9 riders, so its stored length
+    # recovers that cap exactly; B can legitimately contain fewer branches.
+    a_original = originals["A"]["prediction"]
+    need(type(a_original) is dict and
+         type(a_original.get("ranked_tickets")) is list and
+         1 <= len(a_original["ranked_tickets"]) <= 12,
+         "ORIGINAL_TICKET_LIMIT_INVALID")
+    replay = model.generate_A_B(
+        snap, generated_at=manifest["generated_at"],
+        max_tickets=len(a_original["ranked_tickets"]))
     for role in ("A", "B"):
         need(originals[role]["prediction_sha256"] ==
                  replay["prediction_sha256"] and
@@ -190,16 +200,24 @@ def _checked_result(result, manifest, starters):
          type(result["provider_revision_ref"]) is str and
          1 <= len(result["provider_revision_ref"]) <= 256,
          "RESULT_OFFICIAL_URL_OR_SOURCE_RECEIPT_MISSING")
-    need(result["status"] == "FINAL_NORMAL" and
-         result["refund_status"] == "NONE", "RESULT_UNSETTLED_OR_REFUNDED")
     cutoff = model.when(result["official_cutoff_at"])
     need((cutoff-model.when(manifest["sealed_at"])).total_seconds() >= 65 and
-         model.when(result["source_published_at"]) > cutoff and
          model.when(result["observed_at"]) >=
              model.when(result["source_published_at"]),
          "OFFICIAL_CUTOFF_OR_RESULT_PUBLICATION_ORDER_INVALID")
     winners = result["winning_triples"]
     payouts = result["payouts_100yen"]
+    if result["status"] == "CANCELLED" and result["refund_status"] == "FULL":
+        # Cancellation can be announced before the scheduled cutoff. A
+        # separately authenticated full refund is neutral, never a miss or
+        # an invented win/ROI. Partial refunds need actual affected tickets.
+        need(winners == [] and payouts == [],
+             "CANCELLED_FULL_REFUND_CANNOT_HAVE_WINNERS")
+        return None
+    need(result["status"] == "FINAL_NORMAL" and
+         result["refund_status"] == "NONE", "RESULT_UNSETTLED_OR_REFUNDED")
+    need(model.when(result["source_published_at"]) > cutoff,
+         "OFFICIAL_CUTOFF_OR_RESULT_PUBLICATION_ORDER_INVALID")
     need(type(winners) is list and type(payouts) is list and
          1 <= len(winners) <= 20 and len(winners) == len(payouts),
          "RESULT_WINNERS_OR_PAYOUTS_INVALID")
@@ -247,6 +265,8 @@ def settle_day(*, registry, sealed_by_race, expected_sha_by_race,
     statuses = []
     paired = []
     accepted = {}
+    result_receipts = []
+    neutral = 0
     for rid in ids:
         state = "HOLD_NO_PRE_CUTOFF_FORECAST"
         if rid in sealed_by_race and rid in expected_sha_by_race:
@@ -272,18 +292,32 @@ def settle_day(*, registry, sealed_by_race, expected_sha_by_race,
                                    rid, result),
                          "OFFICIAL_FINAL_RESULT_NOT_INDEPENDENTLY_VERIFIED")
                     paid = _checked_result(result, manifest, starters)
-                    a = _score(forecast["A"]["ranked_tickets"], paid)
-                    b = _score(forecast["B"]["ranked_tickets"], paid)
-                    report = {
-                        "schema": audit.AUDIT_SCHEMA, "race_id": rid,
-                        "state": "A_B_RESEARCH_SETTLED", "ab_evaluable": True,
-                        "abc_evaluable": False,
+                    a = b = None
+                    if paid is None:
+                        state = "CANCELLED_FULL_REFUND_NO_MODEL_SCORE"
+                        neutral += 1
+                    else:
+                        a = _score(forecast["A"]["ranked_tickets"], paid)
+                        b = _score(forecast["B"]["ranked_tickets"], paid)
+                        report = {
+                            "schema": audit.AUDIT_SCHEMA, "race_id": rid,
+                            "state": "A_B_RESEARCH_SETTLED", "ab_evaluable": True,
+                            "abc_evaluable": False,
+                            "A_existing": a, "B_six_phase": b,
+                            "C_six_phase_plus_line": None,
+                        }
+                        paired.append(report)
+                        accepted[rid] = report
+                        state = "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+                    result_receipts.append({
+                        "race_id": rid, "state": state,
+                        "cipher_file_sha256": expected,
+                        "result_revision_sha256": model.digest({
+                            key: value for key, value in result.items()
+                            if key != "observed_at"}),
+                        "source_sha256": result["source_sha256"],
                         "A_existing": a, "B_six_phase": b,
-                        "C_six_phase_plus_line": None,
-                    }
-                    paired.append(report)
-                    accepted[rid] = report
-                    state = "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+                    })
                 except (AutoSettlementError, storage.AutoSealError,
                         model.AutomaticForecastError, ValueError, KeyError,
                         TypeError, InvalidTag):
@@ -297,10 +331,12 @@ def settle_day(*, registry, sealed_by_race, expected_sha_by_race,
         "schema": SCHEMA, "day_jst": registry["day_jst"],
         "registered_races": len(ids),
         "paired_A_B_scored": summary["ab_independently_scored_races"],
+        "confirmed_cancelled_full_refund_races": neutral,
         "formal_accuracy_proven": False,
         "official_source_rights_not_established_by_this_code": True,
         "C_optional_not_blocking_A_B": True,
         "predictions_never_rewritten": True,
         "statuses": statuses,
+        "result_receipts": result_receipts,
         "scorecard": summary,
     }

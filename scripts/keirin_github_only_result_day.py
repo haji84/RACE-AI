@@ -128,20 +128,12 @@ def run_day(*, day, repo, private_raw_dir, max_races=MAX_RACES, clock=None):
                  "RESULT_POLL_BUDGET_INVALID")
     raw = capture.private_dir(private_raw_dir)
     repo = archive._remote(repo, synthetic_local=False)
-    frozen = live.archived_day(repo,day)
+    frozen = live.archived_day(repo, day, provider_day=today.isoformat())
     if not frozen:
         return {"schema":SCHEMA,"day_jst":day,"previous_forecasts":0,
                 "result_candidates":0,"research_matches_persisted":0,
                 "officially_scored":0,"states":{"NO_FROZEN_FORECAST":1}}
-    def guarded_fetch(url):
-        try:
-            return capture.fetch_once(url)
-        except capture.SourceCaptureError as exc:
-            if str(exc) in provider_stop.CODES:
-                provider_stop.append_once(
-                    repo=repo, day=day, code=str(exc),
-                    observed_at=clock().astimezone(timezone.utc).isoformat())
-            raise
+    guarded_fetch = live.guarded_provider_fetch(repo, clock)
 
     registry, manifest, source_status = registration.register_day(
         day_jst=day,private_raw_dir=raw,clock=clock,
@@ -166,7 +158,16 @@ def run_day(*, day, repo, private_raw_dir, max_races=MAX_RACES, clock=None):
     states={}
     new_matches=0
     attempted=0
-    for rid in eligible[:max_races]:
+    # A missing/disputed early result must not occupy the same bounded slots
+    # forever. Successful matches leave this queue via _prior_research.
+    candidates = eligible
+    if candidates:
+        local = now.astimezone(JST)
+        slot = (local.hour * 60 + local.minute) // 10
+        batches = (len(candidates) + max_races - 1) // max_races
+        offset = (slot % batches) * max_races
+        candidates = candidates[offset:] + candidates[:offset]
+    for rid in candidates[:max_races]:
         attempted+=1
         try:
             observed=result_poll.poll(manifest=manifest,race_id=rid,
@@ -223,6 +224,7 @@ def main(argv=None):
     except (ValueError,KeyError,TypeError,OSError,
             archive.GitCipherArchiveError,
             provider_stop.ProviderStopError,
+            provider_stop.ProviderStopPersistenceError,
             capture.SourceCaptureError,
             registration.DayPublicRegistrationError):
         print('{"state":"HOLD_GITHUB_ONLY_RESULT_INTAKE_UNVERIFIED",'

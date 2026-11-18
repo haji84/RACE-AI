@@ -16,6 +16,7 @@ import re
 
 from race_ai import keirin_nationwide_cipher_history as archive
 from race_ai import keirin_github_provider_stop as provider_stop
+from race_ai import keirin_github_capture_selection as selection_history
 from scripts import keirin_register_public_day as registration
 from scripts import keirin_capture_public_two_sources as collector
 from scripts import keirin_nationwide_auto_forecast as generator
@@ -45,11 +46,12 @@ def private_root(path):
     return root
 
 
-def archived_day(repo, day):
+def archived_day(repo, day, *, provider_day=None):
     """Read and authenticate prior Git-only encrypted originals BEFORE GETs."""
     repo = archive._remote(repo, synthetic_local=False)
     head = archive._refresh(repo)
-    if provider_stop.read(repo=repo, day=day, head=head) is not None:
+    if provider_stop.read_for_observed_day(
+            repo=repo, day=provider_day or day, head=head) is not None:
         raise GitHubOnlyDayError("HOLD_PROVIDER_PREVIOUS_DAY_DENIAL_NO_RETRY")
     prefix = f"{archive.ROOT}/{day}/"
     _, paths = archive._cmd(repo, "ls-tree", "-r", "--name-only",
@@ -83,25 +85,105 @@ def archived_day(repo, day):
     return found
 
 
-def select_unfrozen(manifest, already, max_races=MAX_RACES):
-    """Do not request a previously frozen race, even on a later runner."""
+def guarded_provider_fetch(repo, clock):
+    """Latch a refusal before persistence, even if a downstream parser catches it."""
+    stopped = None
+
+    def fetch(url):
+        nonlocal stopped
+        if stopped is not None:
+            raise stopped
+        try:
+            return collector.fetch_once(url)
+        except collector.SourceCaptureError as exc:
+            if str(exc) in provider_stop.CODES:
+                stopped = exc
+                provider_stop.record_denial(
+                    repo=repo, code=str(exc),
+                    observed_at=clock().astimezone(timezone.utc).isoformat())
+            raise
+
+    return fetch
+
+
+def select_unfrozen(manifest, already, max_races=MAX_RACES, *, now=None,
+                    selection_counts=None):
+    """Bound GETs without letting expired/failed early race IDs starve the rest.
+
+    Published hints only prioritize capture; source bytes and the actual save
+    clock still determine whether a forecast can be created. Within ten minutes
+    of the earliest eligible hint, fewer past selections take priority so a
+    repeatedly failing prefix cannot block nearby races. Later deadline cohorts
+    fill unused budget in order. Unknown clocks retain their bounded rotation.
+    """
     require(type(manifest) is dict and type(manifest.get("races")) is list,
             "CURRENT_DAY_MANIFEST_REQUIRED")
-    require(type(already) is dict and 1 <= max_races <= MAX_RACES,
+    require(type(already) is dict and type(max_races) is int and
+            1 <= max_races <= MAX_RACES,
             "ARCHIVE_FILTER_OR_BUDGET_INVALID")
+    selection_counts = {} if selection_counts is None else selection_counts
+    require(type(selection_counts) is dict and all(
+        type(rid) is str and RID.fullmatch(rid) and
+        rid[:8] == manifest.get("day_jst", "").replace("-", "") and
+        type(count) is int and 0 <= count <= selection_history.MAX_EVENTS
+        for rid, count in selection_counts.items()), "CAPTURE_SELECTION_COUNTS_INVALID")
+    require(now is None or (isinstance(now, datetime) and
+            now.utcoffset() is not None and
+            now.astimezone(JST).date().isoformat() == manifest.get("day_jst")),
+            "CAPTURE_SELECTION_CURRENT_DAY_CLOCK_REQUIRED")
     remaining = [r for r in manifest["races"] if r["race_id"] not in already]
+    timed = []
+    unknown = []
+    for row in remaining:
+        hint = row.get("cutoff_hint")
+        if hint is None:
+            unknown.append(row)
+            continue
+        cutoff = collector.when(hint)
+        require(cutoff.astimezone(JST).date().isoformat() == manifest["day_jst"],
+                "CUTOFF_SORT_HINT_MISSING_DAY_BINDING")
+        if now is not None and cutoff < now + timedelta(seconds=65):
+            continue
+        timed.append((cutoff, row))
+    timed.sort(key=lambda item: (item[0], item[1]["race_id"]))
+    ordered_timed = []
+    offset = 0
+    while offset < len(timed):
+        end = offset + 1
+        horizon = timed[offset][0] + timedelta(minutes=10)
+        while end < len(timed) and timed[end][0] <= horizon:
+            end += 1
+        cohort = sorted(timed[offset:end], key=lambda item: (
+            selection_counts.get(item[1]["race_id"], 0), item[0], item[1]["race_id"]))
+        ordered_timed.extend(row for _, row in cohort)
+        offset = end
+    unknown.sort(key=lambda row: row["race_id"])
+    if now is not None and unknown:
+        local = now.astimezone(JST)
+        slot = (local.hour * 60 + local.minute) // 10
+        batches = (len(unknown) + max_races - 1) // max_races
+        offset = (slot % batches) * max_races
+        unknown = unknown[offset:] + unknown[:offset]
     # This limits pair GETs, not registry population or forecast denominators.
-    return dict(manifest, races=remaining[:max_races]), len(remaining)
+    selected = ordered_timed + unknown
+    return dict(manifest, races=selected[:max_races]), len(remaining)
 
 
 def run_day(*, day, workspace, private_dir_path, owner_public_pem,
-            max_races=MAX_RACES, clock=None):
+            max_races=MAX_RACES, clock=None, registration_data=None, fetch=None):
+    """Capture either newly registered links or an already verified day cohort.
+
+    An orchestrator supplying registration_data must also reuse its existing
+    guarded_provider_fetch callable as fetch so refusal state spans both phases.
+    The supplied registry digest, date and manifest are checked again here.
+    """
     clock = clock or (lambda: datetime.now(timezone.utc))
     now = clock()
     require(now.utcoffset() is not None and
             now.astimezone(JST).date().isoformat() == day,
             "NO_RETROSPECTIVE_OR_FUTURE_DAY_FORECAST")
     require(1 <= max_races <= MAX_RACES, "RACE_PROVIDER_BUDGET_INVALID")
+    require(fetch is None or callable(fetch), "CAPTURE_FETCH_CALLABLE_REQUIRED")
     root = private_root(private_dir_path)
     repo = Path(workspace).resolve()
     key_path = Path(owner_public_pem)
@@ -111,33 +193,51 @@ def run_day(*, day, workspace, private_dir_path, owner_public_pem,
     # Preflight the Git state branch; never silently start a new empty archive.
     previous = archived_day(repo, day)
 
-    def guarded_fetch(url):
-        try:
-            return collector.fetch_once(url)
-        except collector.SourceCaptureError as exc:
-            if str(exc) in provider_stop.CODES:
-                provider_stop.append_once(
-                    repo=repo, day=day, code=str(exc),
-                    observed_at=clock().astimezone(timezone.utc).isoformat())
-            raise
+    guarded_fetch = fetch if fetch is not None else guarded_provider_fetch(repo, clock)
 
-    registry, manifest, day_status = registration.register_day(
-        day_jst=day, private_raw_dir=root / "raw", clock=clock,
-        fetch=guarded_fetch)
+    if registration_data is None:
+        registry, manifest, day_status = registration.register_day(
+            day_jst=day, private_raw_dir=root / "raw", clock=clock,
+            fetch=guarded_fetch)
+    else:
+        require(type(registration_data) in (tuple, list) and
+                len(registration_data) == 3 and
+                all(type(part) is dict for part in registration_data),
+                "PREPARED_DAY_REGISTRATION_REQUIRED")
+        registry, manifest, day_status = registration_data
+        require(all(doc.get("day_jst") == day
+                    for doc in (registry, manifest, day_status)),
+                "PREPARED_REGISTRATION_CURRENT_DAY_REQUIRED")
+        registered_ids = generator.registered_race_ids(registry)
+        require(all(rid[:8] == day.replace("-", "") for rid in registered_ids),
+                "PREPARED_REGISTRY_RACE_DAY_MISMATCH")
+        collector.manifest_check(manifest, registered_ids=registered_ids)
     require(day_status.get("stopped_after_provider_error") is not True,
             "HOLD_PROVIDER_DENIED_BEFORE_RACECARD_GET_NO_RETRY")
+    prior_selections = selection_history.read_day(repo=repo, day=day)
     eligible, remaining = select_unfrozen(
-        manifest, previous, max_races=max_races)
+        manifest, previous, max_races=max_races, now=clock(),
+        selection_counts=prior_selections)
     if eligible["races"]:
+        # Persist selections, not GET claims: a stop/error below may prevent
+        # some or all selected races from reaching the provider in this run.
+        selection_history.append_selected(
+            repo=repo, day=day,
+            selected_race_ids=[row["race_id"] for row in eligible["races"]],
+            selected_at=clock().astimezone(timezone.utc).isoformat(),
+            producer_run_id=os.environ["GITHUB_RUN_ID"],
+            producer_run_attempt=os.environ.get("GITHUB_RUN_ATTEMPT", "1"))
         capture_status = collector.capture_cycle(
             day_manifest=eligible,
             registered_ids=generator.registered_race_ids(registry),
             private_cards_dir=root / "cards", private_raw_dir=root / "raw",
             clock=clock, fetch=guarded_fetch, max_races=max_races)
     else:
+        state = ("ALL_LINKED_RACES_ALREADY_FROZEN" if not remaining else
+                 "NO_UNFROZEN_RACE_WITH_FUTURE_OR_UNKNOWN_CUTOFF_HINT")
         capture_status = {"normalized_private_cards": 0,
                           "GET_pair_attempts": 0,
-                          "states": {"ALL_LINKED_RACES_ALREADY_FROZEN": 1}}
+                          "states": {state: 1}}
     prediction = generator.run_cycle(
         registry=registry, private_racecards_dir=root / "cards",
         raw_pages_dir=root / "raw", private_cipher_dir=root / "sealed",
@@ -175,6 +275,11 @@ def run_day(*, day, workspace, private_dir_path, owner_public_pem,
         "observed_races": prediction["registered_races"],
         "already_frozen_prior": len(previous),
         "unfrozen_linked_races_before_budget": remaining,
+        "capture_selection_policy": "PERSISTED_LEAST_SELECTED_WITHIN_EARLIEST_10_MINUTES",
+        "racecard_pairs_selected": len(eligible["races"]),
+        "selection_record_is_not_get_evidence": True,
+        "selected_unknown_cutoff_races": sum(
+            row.get("cutoff_hint") is None for row in eligible["races"]),
         "racecard_pairs_attempted": capture_status["GET_pair_attempts"],
         "normalized_cards": capture_status["normalized_private_cards"],
         "new_A_B_sealed": len(newly),
@@ -217,6 +322,7 @@ def main(argv=None):
     except (ValueError, KeyError, TypeError, OSError,
             archive.GitCipherArchiveError,
             provider_stop.ProviderStopError,
+            provider_stop.ProviderStopPersistenceError,
             collector.SourceCaptureError,
             registration.DayPublicRegistrationError):
         print('{"state":"HOLD_GITHUB_ONLY_LIVE_FORECAST_UNVERIFIED",'

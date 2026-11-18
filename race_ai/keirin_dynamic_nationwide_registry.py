@@ -9,6 +9,8 @@ A separate independently checked day-wide universe certificate is REQUIRED
 to call nationwide_coverage_verified=True. Otherwise discovered entries are
 kept with explicit HOLD for any potentially missing venues. Every year/day
 is an independent cohort; no retrospective 'pre-cutoff' timestamp is invented.
+An empty day is admitted only with an explicitly empty expected universe and
+a successful independent whole-day verification, never from missing records.
 """
 from __future__ import annotations
 
@@ -73,7 +75,7 @@ def create_day(*,day_jst,registered_at,
         raise DynamicDayError("DYNAMIC_DAY_INVALID_CALENDAR_DATE") from None
     registration=_as_aware(registered_at)
     need(type(venue_snapshots) is list and
-         1<=len(venue_snapshots)<=43,
+         len(venue_snapshots)<=43,
          "DYNAMIC_VENUE_RECORDS_REQUIRED")
     need(expected_venue_codes is None or
          (type(expected_venue_codes) is list and
@@ -133,6 +135,9 @@ def create_day(*,day_jst,registered_at,
     nationwide = (expected_venue_codes is not None and
                   _verified(independently_verify_whole_day,
                             day_jst,sorted(seen),sources))
+    if not venue_snapshots:
+        need(expected_venue_codes==[] and nationwide,
+             "EMPTY_DAY_REQUIRES_VERIFIED_EMPTY_UNIVERSE")
     document={
         "schema":SCHEMA,"day_jst":day_jst,
         "registered_at":registered_at,
@@ -168,4 +173,11 @@ def checked_day(doc):
          all(type(row) is dict and RACE.fullmatch(row["race_id"])
              for row in doc["races"]),
          "DYNAMIC_DAY_RACE_COVERAGE_CHANGED")
+    if not doc["races"]:
+        need(doc.get("expected_venue_codes")==[] and
+             type(doc.get("captured_venue_count")) is int and
+             doc["captured_venue_count"]==0 and doc.get("source_venues")==[] and
+             doc.get("nationwide_coverage_independently_verified") is True and
+             doc.get("national_universe_unverified_hold") is False,
+             "EMPTY_DAY_REQUIRES_VERIFIED_EMPTY_UNIVERSE")
     return doc

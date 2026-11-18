@@ -48,6 +48,40 @@ class ProviderStopGuard(unittest.TestCase):
                          "PROVIDER_DENIED_OR_RATE_LIMITED_STOP")
         self.assertNotIn("html",json.dumps(marker).lower())
 
+    def test_legacy_previous_race_key_still_blocks_same_observation_day(self):
+        marker = {
+            "schema": stop.SCHEMA, "day_jst": "2026-11-18",
+            "code": "PROVIDER_DENIED_OR_RATE_LIMITED_STOP",
+            "observed_at": "2026-11-19T00:05:00+09:00",
+        }
+
+        def show(repo, head, path):
+            return ((0, json.dumps(marker)) if path ==
+                    f"{stop.ROOT}/2026-11-18.json" else None)
+
+        with TemporaryDirectory() as temp:
+            repo = Path(temp)
+            with patch.object(live.archive, "_remote", return_value=repo), \
+                 patch.object(live.archive, "_refresh", return_value="f" * 40), \
+                 patch.object(live.archive, "_show", side_effect=show), \
+                 patch.object(live.archive, "_cmd", return_value=(0, "")):
+                with self.assertRaisesRegex(live.GitHubOnlyDayError,
+                                            "DENIAL_NO_RETRY"):
+                    live.archived_day(repo, "2026-11-19")
+
+    def test_new_stop_write_cannot_use_race_day_instead_of_observed_day(self):
+        with TemporaryDirectory() as temp:
+            repo = Path(temp)
+            with patch.object(stop.archive, "_remote", return_value=repo), \
+                 patch.object(stop.archive, "_refresh", return_value="f" * 40), \
+                 patch.object(stop, "read", return_value={"already": "stopped"}):
+                with self.assertRaisesRegex(stop.ProviderStopError,
+                                            "OBSERVED_DAY_MISMATCH"):
+                    stop.append_once(
+                        repo=repo, day="2026-11-18",
+                        code="PROVIDER_DENIED_OR_RATE_LIMITED_STOP",
+                        observed_at="2026-11-19T00:05:00+09:00")
+
 
 if __name__=="__main__":
     unittest.main()

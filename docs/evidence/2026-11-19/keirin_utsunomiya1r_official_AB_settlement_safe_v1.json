@@ -1,0 +1,64 @@
+{
+  "schema": "RACE_AI_KEIRIN_ACTUAL_OFFICIAL_SETTLEMENT_ACCEPTANCE_V1",
+  "verified_at": "2026-11-18T22:30:11.696164+00:00",
+  "race_id": "202611182401",
+  "cohort_day_jst": "2026-11-18",
+  "official_registered_races": 79,
+  "loaded_original_pairs": 1,
+  "officially_scored_pairs": 1,
+  "original_pairs_not_loaded_in_this_audit": 78,
+  "authenticated_RSA_AES_decryption": true,
+  "original_A_B_model_replay_equal": true,
+  "official_saved_response_bytes_reparsed": true,
+  "actual_official_cutoff_at": "2026-11-18T20:47:00+09:00",
+  "result_source_sha256": "35668930ebee9cccc28b0aea8c951c6859669f38ecbdfdfc990d9d4dee14973b",
+  "source_page_update_at": "2026-11-18T23:56:00+09:00",
+  "source_update_is_not_first_publication_proof": true,
+  "result_receipts": [
+    {
+      "race_id": "202611182401",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS",
+      "cipher_file_sha256": "dffc7303bfb722f75671751cee9a6356258263ec59b630f9dbdc6fc7953b5dfb",
+      "result_revision_sha256": "49003e9b36320d470e8e27c3d523b0c412270989894a14261e7fd392c6c65d27",
+      "source_sha256": "35668930ebee9cccc28b0aea8c951c6859669f38ecbdfdfc990d9d4dee14973b",
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "stake_yen": 1200,
+        "payout_yen": 0
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "stake_yen": 800,
+        "payout_yen": 0
+      }
+    }
+  ],
+  "origin_proof": {
+    "schema": "RACE_AI_KEIRIN_GITHUB_SERVER_ORIGIN_EVIDENCE_V1",
+    "state": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "race_id": "202611182401",
+    "cipher_sha256": "dffc7303bfb722f75671751cee9a6356258263ec59b630f9dbdc6fc7953b5dfb",
+    "official_cutoff_at": "2026-11-18T20:47:00+09:00",
+    "latest_server_evidence_at": "2026-11-18T04:05:09+00:00",
+    "minimum_margin_seconds": 65,
+    "RSA_decryption_verified": false,
+    "official_result_verified": false,
+    "producer_run_id": 44234778255,
+    "producer_commit": "0251b92e9947a6257fbd110c162665d5e4186ee8",
+    "producer_job_id": 134568159169,
+    "producer_artifact_id": 14396164775,
+    "producer_archive_sha256": "d1af44fa9945fa72a035de074c7fd9e5043cceab5e58c8894f858c729ba3b229",
+    "readback_run_id": 44234778255,
+    "readback_commit": "0251b92e9947a6257fbd110c162665d5e4186ee8",
+    "readback_job_id": 134568309504,
+    "readback_artifact_id": 14396547442,
+    "readback_archive_sha256": "2516938ed9b8bcc2602cd8615fc5875b7c3d0459774f0869c0ffdc9e1bfc852f",
+    "evidence_sha256": "a2d49818ad4814de4101acfb0f4d83624828fe47bdbd9f9a90a86cac91864be7"
+  },
+  "new_provider_GETs_during_this_replay": 0,
+  "future_nationwide_live_acceptance_completed": false,
+  "private_plaintext_or_source_documents_in_this_receipt": false,
+  "six_phase_video_accuracy_verified": false
+}

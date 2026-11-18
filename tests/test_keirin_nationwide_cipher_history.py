@@ -132,6 +132,47 @@ class SyntheticGitHubOnlyCipherHistory(unittest.TestCase):
                 repo=self.worker2,race_id="202611182601",
                 expected_cipher_sha256="0"*64,synthetic_local=True)
 
+    def test_exact_cipher_bytes_survive_whitespace_and_second_runner_readback(self):
+        rid = "202611182601"
+        canonical, _ = self.sealed(rid)
+        original = b"\n" + canonical + b"\n \t"
+        digest = sha256(original).hexdigest()
+        try:
+            stored = self.put(self.worker1, rid, original, digest)
+        except ledger.GitCipherArchiveError as exc:
+            self.fail("Valid exact ciphertext bytes were not preserved: " + str(exc))
+        readback = ledger.read_original(
+            repo=self.worker2, race_id=rid,
+            expected_cipher_sha256=digest, synthetic_local=True)
+        self.assertEqual(readback["cipher_sha256"], digest)
+        self.assertEqual(ledger.read_blob_bytes(
+            self.worker2, readback["observed_branch_head"], ledger._refs(rid)[0]),
+            original)
+        second = self.put(self.worker2, rid, original, digest)
+        self.assertEqual(second["state"], "IDENTICAL_ORIGINAL_ALREADY_FROZEN_NO_NEW_WRITE")
+        self.assertEqual(second["readback_head"], stored["write_commit"])
+
+    def test_binary_blob_reader_bounds_existing_data_and_returns_none_for_missing(self):
+        oversized = self.worker1 / "oversized.sealed.json"
+        oversized.write_bytes(b"x" * ledger.MAX_BYTES)
+        git(self.worker1, "add", oversized.name)
+        git(self.worker1, "commit", "-m", "synthetic oversized input")
+        head = git(self.worker1, "rev-parse", "HEAD")
+        self.assertTrue(hasattr(ledger, "read_blob_bytes"))
+        with self.assertRaisesRegex(ledger.GitCipherArchiveError, "BLOB_SIZE"):
+            ledger.read_blob_bytes(self.worker1, head, oversized.name)
+        self.assertEqual(len(ledger.read_blob_bytes(
+            self.worker1, head, oversized.name, max_bytes=ledger.MAX_BYTES + 1)),
+            ledger.MAX_BYTES)
+        for invalid in (0, -1, True, 32 * 1024 * 1024 + 1):
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(ledger.GitCipherArchiveError,
+                                            "BLOB_READ_LIMIT"):
+                    ledger.read_blob_bytes(self.worker1, head, oversized.name,
+                                           max_bytes=invalid)
+        self.assertIsNone(ledger.read_blob_bytes(
+            self.worker1, head, "missing.sealed.json"))
+
 
 if __name__=="__main__":
     unittest.main()

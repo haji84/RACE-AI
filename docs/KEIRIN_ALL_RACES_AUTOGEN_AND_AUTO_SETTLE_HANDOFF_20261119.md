@@ -59,3 +59,13 @@ G6. **本番受入れ**：次の未来実開催日の全国全Rで、台帳登�
 - tests/test_keirin_nationwide_cipher_history.py では外部ではなく一時ディレクトリの**実Git bare remote**と2つの独立cloneを使って、A/B実AES暗号の作成→最初の追記→別clone読戻し→同一レース重複拒否→異なるレース追加→欠損branch拒否を検査。
 - GitHub Actions [run 44341396868](https://github.com/haji84/RACE-AI/actions/runs/44341396868) のsource-free-testsで **計84件PASS（新Git保存5件＋既存のA/B/結果照合79件）**。これはローカル合成Git remoteのテストであり、本番GitHub stateへの新規保存や独立RSA復号成功件数ではない。
 - 以前のG3の表現を「GitHub-only追記と競合拒否の基礎コード/合成回帰は実装済み。ただし真の複数main Actionsでの安全な保存・起動連携・停止復旧・正規署名・プライバシー検証は未達」と更新する。G1/G2/G4/G5/G6は引き続き未完成。
+
+## 2026-11-19 後続実装：最新の参照先
+
+以降の変更・実証・未達条件の正本は `docs/KEIRIN_OFFICIAL_AUTOMATION_COMPLETION_AUDIT_20261119.md`。上記の各節は、その時点の履歴として保全している。
+
+- 公式日程・通常結果・同着・通常訂正、各版の実race IDを残す累積母数、GitHub artifactと別job完了時刻の原本証明、既存RSA/AES原本再現、暗号化結果履歴、所有者用HTML、オフライン復元CLIを接続した。
+- 既存の実宇都宮1Rを公式結果まで照合した。A12点/B8点は両方不的中。全国79Rのうち今回原本を読み込んだ1組の実証であり、残り78Rを外れと数えない。
+- 実再生は新たな提供元GETをせず、保存済みの公式bytes・実GitHub metadataとZIP・既存鍵を使用した。
+- 無変更pollが暗号revisionを増やさないよう巡回metadataを分離した。過去日・原本証拠・取得候補の巡回偏り、保留後の訂正巻き戻り、日付をまたぐ取得拒否、Git bytes読戻しの問題を修正した。
+- 新しいworkflowはまだ正規mainで本番受入れしていない。公式定期取得の利用条件、提供元拒否、返還等の未確認形式、既存Secret・保護main統合、未来の全国全R一巡、独立映像ラベルは完了扱いにしない。

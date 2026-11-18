@@ -32,6 +32,7 @@ SHA = re.compile(r"^[0-9a-f]{64}$")
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
 RUN = re.compile(r"^[1-9][0-9]{0,16}$")
 MAX_BYTES = storage.MAX_CIPHER_BYTES
+MAX_BLOB_READ_BYTES = 32 * 1024 * 1024
 
 
 class GitCipherArchiveError(ValueError):
@@ -140,15 +141,54 @@ def _show(repo, ref, path):
     return done if done[0]==0 else None
 
 
+def read_blob_bytes(repo, ref, path, *, max_bytes=MAX_BYTES):
+    """Read an exact immutable Git blob without stripping or transcoding bytes.
+
+    Text helpers remain appropriate for JSON metadata, but cannot prove a
+    ciphertext file's byte SHA. Pin a full commit, check object type/size first,
+    and disable replace objects and text conversion for this bounded read.
+    max_bytes is an exclusive bound, at most 32 MiB. The default retains the
+    existing ciphertext limit; encrypted source-history callers may opt larger.
+    """
+    need(type(max_bytes) is int and 1 <= max_bytes <= MAX_BLOB_READ_BYTES,
+         "ARCHIVE_BLOB_READ_LIMIT_INVALID")
+    need(type(ref) is str and COMMIT.fullmatch(ref) and
+         type(path) is str and 0 < len(path) <= 2048 and
+         not path.startswith("/") and ":" not in path and
+         not any(char in path for char in ("\0", "\r", "\n", "\\")) and
+         all(part not in ("", ".", "..") for part in path.split("/")),
+         "IMMUTABLE_BLOB_COMMIT_AND_PATH_REQUIRED")
+    target = f"{ref}:{path}"
+    status, kind = _cmd(repo, "--no-replace-objects", "cat-file", "-t",
+                        target, okay=True)
+    if status != 0:
+        return None
+    need(kind == "blob", "ARCHIVE_BLOB_OBJECT_REQUIRED")
+    _, length = _cmd(repo, "--no-replace-objects", "cat-file", "-s", target)
+    need(length.isascii() and length.isdecimal() and len(length) <= 18 and
+         0 <= int(length) < max_bytes, "ARCHIVE_BLOB_SIZE_INVALID")
+    try:
+        done = subprocess.run(
+            ["git", "--no-replace-objects", "show", "--no-textconv", target],
+            cwd=repo, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            timeout=35, env=dict(os.environ, GIT_TERMINAL_PROMPT="0"),
+            check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        raise GitCipherArchiveError("ARCHIVE_BLOB_READ_UNAVAILABLE") from None
+    need(done.returncode == 0 and len(done.stdout) == int(length),
+         "ARCHIVE_BLOB_BYTE_LENGTH_MISMATCH")
+    return done.stdout
+
+
 def _read_at(repo, ref, race_id, expected_sha):
     cipher_path, receipt_path = _refs(race_id)
-    stored=_show(repo,ref,cipher_path)
+    stored=read_blob_bytes(repo,ref,cipher_path)
     metadata=_show(repo,ref,receipt_path)
     need((stored is None)==(metadata is None),
          "ARCHIVE_ORIGINAL_OR_RECEIPT_MISSING")
     if stored is None:
         return None
-    raw=(stored[1]+"\n").encode("utf-8")
+    raw=stored
     try:
         receipt=json.loads(metadata[1])
     except (ValueError,TypeError):
@@ -203,12 +243,12 @@ def append_once(*,repo,raw_cipher,expected_cipher_sha256,
     # Ensure parent does not get invented: a missing or force-lost branch holds.
     for attempt in range(3):
         head=_refresh(repo)
-        prior_cipher=_show(repo,head,cipher_path)
+        prior_cipher=read_blob_bytes(repo,head,cipher_path)
         prior_receipt=_show(repo,head,receipt_path)
         need((prior_cipher is None)==(prior_receipt is None),
              "EXISTING_ARCHIVE_PAIR_INCOMPLETE")
         if prior_cipher is not None:
-            if sha256((prior_cipher[1]+"\n").encode("utf-8")).hexdigest() != expected_cipher_sha256:
+            if sha256(prior_cipher).hexdigest() != expected_cipher_sha256:
                 raise GitCipherArchiveError("FORECAST_ORIGINAL_ALREADY_EXISTS_DIFFERENT_CIPHER")
             _read_at(repo,head,rid,expected_cipher_sha256)
             return {"state":"IDENTICAL_ORIGINAL_ALREADY_FROZEN_NO_NEW_WRITE",

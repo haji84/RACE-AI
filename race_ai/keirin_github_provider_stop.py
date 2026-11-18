@@ -6,7 +6,7 @@ Never clear a marker or retry a denied provider the same JST day.
 """
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import json
@@ -15,6 +15,7 @@ from . import keirin_nationwide_cipher_history as archive
 
 ROOT = "state/keirin/ab/provider-stop/v1"
 SCHEMA = "RACE_AI_KEIRIN_GITHUB_PROVIDER_DAY_STOP_V1"
+JST = timezone(timedelta(hours=9))
 CODES = frozenset({
     "PROVIDER_DENIED_OR_RATE_LIMITED_STOP",
     "PUBLIC_PROVIDER_HTTP_ERROR_STOP",
@@ -24,6 +25,10 @@ CODES = frozenset({
 
 class ProviderStopError(ValueError):
     pass
+
+
+class ProviderStopPersistenceError(RuntimeError):
+    """Fatal: parser handlers for ValueError/OSError must not resume GETs."""
 
 
 def must(ok, reason):
@@ -47,13 +52,18 @@ def _check(value, day):
          value["schema"] == SCHEMA and value["day_jst"] == day and
          value["code"] in CODES and type(value["observed_at"]) is str,
          "STOP_MARKER_UNTRUSTED")
+    _observed_day(value["observed_at"])
+    return value
+
+
+def _observed_day(observed_at):
+    must(type(observed_at) is str, "STOP_MARKER_CLOCK_INVALID")
     try:
-        at = datetime.fromisoformat(
-            value["observed_at"].replace("Z", "+00:00"))
+        at = datetime.fromisoformat(observed_at.replace("Z", "+00:00"))
         must(at.utcoffset() is not None, "STOP_MARKER_CLOCK_UNVERIFIED")
     except ValueError:
         raise ProviderStopError("STOP_MARKER_CLOCK_INVALID") from None
-    return value
+    return at.astimezone(JST).date().isoformat()
 
 
 def read(*, repo, day, head=None):
@@ -69,11 +79,42 @@ def read(*, repo, day, head=None):
     return _check(doc, day)
 
 
-def append_once(*, repo, day, code, observed_at):
+def read_for_observed_day(*, repo, day, head=None):
+    """Stop by request wall day, including legacy previous-race-day keys.
+
+    The earlier result job wrote yesterday's result denial under yesterday
+    even when it happened today. Those immutable records remain effective
+    for their actual observation day; a genuinely old denial does not leak
+    into the next day.
+    """
+    _path(day)
     repo = archive._remote(repo, synthetic_local=False)
+    ref = head or archive._refresh(repo)
+    previous = (date.fromisoformat(day) - timedelta(days=1)).isoformat()
+    for stored_day in (day, previous):
+        record = read(repo=repo, day=stored_day, head=ref)
+        if record is not None and _observed_day(record["observed_at"]) == day:
+            return record
+    return None
+
+
+def record_denial(*, repo, code, observed_at):
+    """Record the real JST observation day; failure must terminate intake."""
+    try:
+        return append_once(repo=repo, day=_observed_day(observed_at),
+                           code=code, observed_at=observed_at)
+    except (ValueError, TypeError, KeyError, OSError):
+        raise ProviderStopPersistenceError(
+            "PROVIDER_STOP_PERSISTENCE_FAILED_NO_RETRY") from None
+
+
+def append_once(*, repo, day, code, observed_at):
     doc = _check({"schema":SCHEMA, "day_jst":day,"code":code,
                   "observed_at":observed_at},day)
     path = _path(day)
+    must(_observed_day(observed_at) == day,
+         "STOP_MARKER_OBSERVED_DAY_MISMATCH")
+    repo = archive._remote(repo, synthetic_local=False)
     payload = json.dumps(
         doc, sort_keys=True, ensure_ascii=False,
         separators=(",",":")) + "\n"
