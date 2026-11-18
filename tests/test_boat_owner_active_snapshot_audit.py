@@ -953,4 +953,55 @@ class ResearchCacheTargetSelectionTests(ProfileTargetSelectionTests):
             self.fail('Exact research-cache callback target was refused: '+str(error))
 
 
+
+VENUE_DIAGNOSTIC_HEAD='c979aeb678538d99e277f26726047dccbdc982af'
+
+
+class VenueDiagnosticOwnerRoleTests(unittest.TestCase):
+    """Only the actual diagnostic release gets the new partial-reader role."""
+    @classmethod
+    def setUpClass(cls):M2SnapshotTests.setUpClass()
+
+    def test_diagnostic_source_keeps_active_and_completed_aes_partial_scopes(self):
+        for method in (
+                'test_two_native_rounds_with_only_r0_r1_models_authenticate_all_receipts_and_hold_unknown_r2',
+                'test_completed_m2_uses_authenticated_final_round_not_twenty_four_success_labels'):
+            with self.subTest(method=method),patch.object(sys.modules[__name__],'M2_HEAD',VENUE_DIAGNOSTIC_HEAD):
+                fixture=M2SnapshotTests();fixture.setUp()
+                try:
+                    getattr(fixture,method)()
+                except ValueError as error:
+                    self.fail('Exact diagnostic-source partial receipts were refused: '+str(error))
+                finally:
+                    fixture.doCleanups()
+
+    def test_diagnostic_p0_direction_excludes_unissued_f1_unknown_and_reverse_origins(self):
+        for origin in (active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,ATOMIC_HEAD):
+            with self.subTest(origin=origin):
+                try:
+                    RetentionSnapshotTests._inherited_p0(self,VENUE_DIAGNOSTIC_HEAD,origin)
+                except ValueError as error:
+                    self.fail('Exact reviewed P0 cannot enter diagnostic source: '+str(error))
+        for owner,origin in ((VENUE_DIAGNOSTIC_HEAD,RESEARCH_CACHE_HEAD),
+                             (VENUE_DIAGNOSTIC_HEAD,'f'*40),
+                             (RESEARCH_CACHE_HEAD,VENUE_DIAGNOSTIC_HEAD),
+                             (ATOMIC_HEAD,VENUE_DIAGNOSTIC_HEAD),
+                             (RETENTION_HEAD,VENUE_DIAGNOSTIC_HEAD),
+                             (PROFILE_HEAD,VENUE_DIAGNOSTIC_HEAD),
+                             (active.M2_OWNER_SHA,VENUE_DIAGNOSTIC_HEAD)):
+            with self.subTest(owner=owner,origin=origin),self.assertRaisesRegex(
+                    ValueError,'P0_ORIGIN_IDENTITY'):
+                RetentionSnapshotTests._inherited_p0(self,owner,origin)
+
+    def test_diagnostic_callback_target_and_workflow_roles_keep_fixed_m2_push_target(self):
+        fixture=ProfileTargetSelectionTests();fixture.SOURCE_HEAD=VENUE_DIAGNOSTIC_HEAD
+        for method in ('test_completed_profile_callback_does_not_change_existing_m2_push_target',
+                       'test_matrix_event_and_selected_owner_guards_accept_only_explicit_profile'):
+            with self.subTest(method=method):
+                try:
+                    getattr(fixture,method)()
+                except ValueError as error:
+                    self.fail('Exact diagnostic-source callback role was refused: '+str(error))
+
+
 if __name__=='__main__':unittest.main()

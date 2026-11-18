@@ -1,0 +1,75 @@
+{
+  "schema": "RACE_AI_MAIN_ACTUAL_VENUE_DIAGNOSTIC_PIN_RUNTIME_V1",
+  "recorded_at": "2026-11-18T08:31:00Z",
+  "source_protected_sha": "c979aeb678538d99e277f26726047dccbdc982af",
+  "source_tested_tree": "766b8a3ea5d9d3b85e0f399523ede2eb8f1b688b",
+  "actual_clean_red": {
+    "head": "8376ea5889162fd69ca07dd612256820344b7d1f",
+    "recovery": {
+      "run_id": 44266865043,
+      "job_id": 134673445548,
+      "tests": 138,
+      "seconds": 0.346,
+      "failures": 5,
+      "errors": 0
+    },
+    "national": {
+      "run_id": 44266865092,
+      "job_id": 134673447634,
+      "tests": 350,
+      "seconds": 144.69,
+      "failures": 12,
+      "errors": 0
+    },
+    "total_expected_assertion_failures": 17,
+    "unexpected_failures": 0
+  },
+  "plan_packet": "cdc8dc144ec701d6f7684730fb3bbbe6f67a5e96",
+  "runtime_blobs": [
+    {
+      "path": "scripts/boat_main_dispatch_gate.py",
+      "sha": "b0e2f2b413835d41616678971f9650b89f434e8d"
+    },
+    {
+      "path": "scripts/boat_owner_active_snapshot_audit.py",
+      "sha": "a3c7d36ee586e977225267b51548850c62b9161c"
+    },
+    {
+      "path": "scripts/boat_exact_all_model_zip_readback.py",
+      "sha": "10307aa5e45f17b1a7a0d64f409d8cb6a6481e54"
+    },
+    {
+      "path": ".github/workflows/boat-racer-daily.yml",
+      "sha": "ef1e433a921b7641a5e8ba3df8059448ffe70906"
+    },
+    {
+      "path": ".github/workflows/boat-main-recovery-contract.yml",
+      "sha": "ba262da9d111a26b45def8e7eb22a995fb5214d0"
+    },
+    {
+      "path": ".github/workflows/boat-owner-national-p1-matrix.yml",
+      "sha": "623a7afbf53a7f5f5d08299b6650ef8424c959fd"
+    }
+  ],
+  "a74_final_main_module_bindings": [
+    [
+      "boat_owner_active_snapshot_audit",
+      "4a58f9bf3b3f5772a74d5c592d3b8dc21d069aaa",
+      "a3c7d36ee586e977225267b51548850c62b9161c"
+    ],
+    [
+      "boat_exact_all_model_zip_readback",
+      "f0c18cab03c246979e3ac4496bfc7097da031c61",
+      "10307aa5e45f17b1a7a0d64f409d8cb6a6481e54"
+    ]
+  ],
+  "source_failed_contract_unchanged": true,
+  "main_failed_contract_unchanged": true,
+  "f1_historical_original_created": false,
+  "a74_caller_static_review_before_final_hash_rebind": "CLEAR",
+  "a74_final_hash_rebind_review": "PENDING",
+  "fresh_ci": "PENDING",
+  "active_owner_interrupted": false,
+  "source_requests_by_pin": 0,
+  "goal_complete": false
+}

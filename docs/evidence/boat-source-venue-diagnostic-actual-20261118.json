@@ -1,0 +1,85 @@
+{
+  "schema": "RACE_AI_ACTUAL_SOURCE_HOLD_DIAGNOSTIC_MERGE_V1",
+  "recorded_at": "2026-11-18T08:16:08Z",
+  "repository": "haji84/RACE-AI",
+  "pr_number": 34,
+  "source_protected_sha": "c979aeb678538d99e277f26726047dccbdc982af",
+  "source_protected_tree": "766b8a3ea5d9d3b85e0f399523ede2eb8f1b688b",
+  "tested_head": "e803f654dcff39d6addc43e0120061f1eec7a17f",
+  "tested_tree": "766b8a3ea5d9d3b85e0f399523ede2eb8f1b688b",
+  "normal_merge": true,
+  "exact_tested_tree": true,
+  "parents": [
+    "f1f8ed4ffb2a29e6b702685f49de63918610479d",
+    "e803f654dcff39d6addc43e0120061f1eec7a17f"
+  ],
+  "checks": {
+    "success": 2,
+    "skipped": 2,
+    "failed": 0,
+    "run_id": 44264409691,
+    "job_id": 134665251090,
+    "suites": [
+      {
+        "tests": 3,
+        "seconds": 0.001
+      },
+      {
+        "tests": 12,
+        "seconds": 0.054
+      },
+      {
+        "tests": 877,
+        "seconds": 293.128
+      },
+      {
+        "tests": 38,
+        "seconds": 3.25
+      },
+      {
+        "tests": 165,
+        "seconds": 43.278
+      },
+      {
+        "tests": 46,
+        "seconds": 0.395
+      }
+    ]
+  },
+  "actual_clean_red": {
+    "head": "c398694b43a51571b0f9b35b7840cf68dd52e40d",
+    "run_id": 44262509801,
+    "job_id": 134659008545,
+    "tests": 877,
+    "seconds": 253.406,
+    "failures": 24,
+    "errors": 0,
+    "all_failures_new_diagnostics": true,
+    "old865_and_new_success_controls_passed": true
+  },
+  "implementation": {
+    "cycle_blob": "3a69233593fe638f85bca8651a55ec58020b6e42",
+    "packet": "a9dd89a03de5d5c52ed634b95d1b58ccbc8dac98",
+    "contract": "557e86a37b95e61efe5dd1513f2e002737783225",
+    "independent_static_reviews": "CLEAR",
+    "whole_base_reconstructed": true,
+    "source_retention_batch_vault_cache_unchanged": true,
+    "live_gh_retry_policy_unchanged": true
+  },
+  "scope": {
+    "future_only_for_running_a74": true,
+    "active_worker_interrupted": false,
+    "past_hold_causes": "UNKNOWN",
+    "hold_write_effect": "UNKNOWN",
+    "live_diagnostic_occurrence": "NOT_YET_OBSERVED",
+    "live_cache_speedup": "NOT_YET_OBSERVED",
+    "goal_completed": false,
+    "new_provider_requests_by_fix": 0
+  },
+  "f1_original_history": {
+    "authenticated_workflow_dispatch_count_at_081138_utc": 0,
+    "f1_historical_original_added": false,
+    "source_failed_recovery_contract_changed": false,
+    "main_failed_recovery_contract_changed": false
+  }
+}

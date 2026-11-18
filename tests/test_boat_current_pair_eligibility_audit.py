@@ -421,5 +421,27 @@ class ResearchCacheCurrentPairEligibilityTests(unittest.TestCase):
         self.f.test_api_bool_ids_and_unapproved_sources_are_not_trusted_flags()
 
 
+
+VENUE_DIAGNOSTIC_SOURCE='c979aeb678538d99e277f26726047dccbdc982af'
+
+
+class VenueDiagnosticCurrentPairRoleTests(unittest.TestCase):
+    """The exact new source keeps native counts private and revisions current."""
+    @classmethod
+    def setUpClass(cls):CurrentPairEligibilityTests.setUpClass()
+
+    def test_diagnostic_current_pairs_keep_private_unqualified_counts_and_pending_revision(self):
+        for method in ('test_real_crypto_counts_are_flat_private_and_still_unqualified',
+                       'test_latest_pending_correction_does_not_fall_back_to_an_older_settlement'):
+            with self.subTest(method=method),patch.object(sys.modules[__name__],'SOURCE',VENUE_DIAGNOSTIC_SOURCE):
+                fixture=CurrentPairEligibilityTests();fixture.setUp()
+                try:
+                    getattr(fixture,method)()
+                except ValueError as error:
+                    self.fail('Exact diagnostic-source current pairs were refused: '+str(error))
+                finally:
+                    fixture.doCleanups()
+
+
 if __name__ == '__main__':
     unittest.main()

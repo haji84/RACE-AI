@@ -1,0 +1,72 @@
+{
+  "schema": "RACE_AI_COMPLETED_A74_PUBLIC_INVENTORY_AND_EXISTING_POLICY_V1",
+  "recorded_at": "2026-11-18T08:14:00Z",
+  "run_id": 44218343091,
+  "expected_source_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+  "metadata_only": {
+    "pages": 2,
+    "reported_total": 166,
+    "returned_unique": 166,
+    "all_model_artifact_count": 23,
+    "all_model_rounds_present": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      20,
+      21,
+      22,
+      23,
+      24
+    ],
+    "missing_rounds": [
+      4,
+      19
+    ],
+    "expired_all_model_artifacts": 0,
+    "actual_aes_zip_body_verified_by_this_record": false,
+    "all_model_absence_waived": false,
+    "expected_existing_audit_hold": "HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED"
+  },
+  "existing_protocol": {
+    "blob_sha": "073379c12648064305a8b7e03dfc172d2b448f73",
+    "commit_sha": "07846f5d27f8967ed7548861fdeef96f32a2a4e3",
+    "authored_and_committed_utc": "2026-11-03T02:16:08Z",
+    "same_blob_present_in_reviewed_source86_and_a74": true,
+    "minimum_matched_races": 100,
+    "minimum_days": 5,
+    "minimum_venue_day_blocks": 10,
+    "scope": "Two fixed registered arms with independent result audit, receipt and official ledger; arbitrary native cells are not automatically covered.",
+    "new_study_denominator_created": false,
+    "blanket_preregistration_absence_claim": false,
+    "native_reader_unregistered_hold_meaning": "Unassessed placeholder; that reader does not load the Nov3 policy.",
+    "today_single_day_meets_five_day_minimum": false
+  },
+  "next_additional_audit": {
+    "fixed_owner_run_id": 44218343091,
+    "fixed_owner_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "separate_source_checkout_required": true,
+    "source86_full_training_validator_compatibility_not_assumed": true,
+    "existing_m2_target_unchanged": true,
+    "scope": "Represented P1 exact originals/slots and unqualified native first/repeat/journal-join counts. No complete P0/P1 union, G8 qualification, promotion or denominator.",
+    "actual_actions_result": "PENDING",
+    "provider_requests": 0,
+    "new_jobs": 0,
+    "new_inputs": 0,
+    "new_uploads": 0
+  }
+}

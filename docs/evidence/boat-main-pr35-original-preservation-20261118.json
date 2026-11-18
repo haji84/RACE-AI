@@ -1,0 +1,31 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_ORIGINAL_PRESERVATION_V1",
+  "repository": "haji84/RACE-AI",
+  "pr_number": 35,
+  "recorded_at": "2026-11-18T07:22:00Z",
+  "original": {
+    "title": "feat: B/K非依存の徳山公式レース一覧アダプター",
+    "body": "当日出走表をB/K原本だけに依存させないため、徳山公式レース一覧HTMLのオフライン解析アダプターを追加。日付・ドメイン・ページ種別を厳格に照合し、1〜12Rの6艇と選手名を抽出。登録番号/モーター/締切は未取得として扱い捏造しない。欠損・重複・日付不一致をテスト。実サイトのHTML構造はWeb調査で確認したが、コードによる実HTML E2Eは未検証。無許可の自動収集・保存・一般再配信は実施しない。main/Production変更なし。",
+    "head_sha": "fa7e599370abc0ee8543904e3fd226a311ea6f46",
+    "head_branch": "feat/boat-venue-first-adapter",
+    "base_branch": "test/boat-k-b-real-source-e2e",
+    "base_sha": "50177f7015f4d5721f1877790ee457befca10711",
+    "draft": true
+  },
+  "ancestry": {
+    "compared_main": "b1c8de6b794e0cae61ecdb25593a4d3a11b63e58",
+    "status": "ahead",
+    "ahead_by": 2288,
+    "behind_by": 0,
+    "merge_base_sha": "fa7e599370abc0ee8543904e3fd226a311ea6f46",
+    "subsequent_verified_main": "a925d898275fe812ceaa31eb9de579ce54b128ac",
+    "subsequent_main_first_parent": "b1c8de6b794e0cae61ecdb25593a4d3a11b63e58"
+  },
+  "open_base_consumers": {
+    "collection_count": 37,
+    "first_page_size": 100,
+    "complete": true,
+    "consumers": []
+  },
+  "preservation": "Fast-forward only from the existing branch; the original head is already an ancestor of verified main. Retain all original bytes and metadata here. No ref moved by this evidence object."
+}

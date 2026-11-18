@@ -69,14 +69,15 @@ class GitHubCLI:
 
 
     def test_historical_a74_checkout_cannot_read_control_for_actual_research_cache_release(self):
-        with patch.object(base,'RELEASE_SHA','f1f8ed4ffb2a29e6b702685f49de63918610479d'), \
-             patch.object(gate.subprocess,'check_output',return_value=b'a74f1e940e7fc0852e63938f8138bdb58bd93163'), \
-             patch.object(gate.subprocess,'run') as child:
-            with self.assertRaisesRegex(ValueError,'RECOVERY_PINNED_CONTROL_UNAVAILABLE'):
-                gate.read_pinned_control(
-                    {'id':99,'head_sha':'a74f1e940e7fc0852e63938f8138bdb58bd93163'},
-                    reader_root=self.root)
-        child.assert_not_called()
+        for previous in ('a74f1e940e7fc0852e63938f8138bdb58bd93163',
+                         'f1f8ed4ffb2a29e6b702685f49de63918610479d'):
+            with self.subTest(previous=previous), \
+                 patch.object(base,'RELEASE_SHA','c979aeb678538d99e277f26726047dccbdc982af'), \
+                 patch.object(gate.subprocess,'check_output',return_value=previous.encode()), \
+                 patch.object(gate.subprocess,'run') as child:
+                with self.assertRaisesRegex(ValueError,'RECOVERY_PINNED_CONTROL_UNAVAILABLE'):
+                    gate.read_pinned_control({'id':99,'head_sha':previous},reader_root=self.root)
+            child.assert_not_called()
 
 
 if __name__=='__main__':unittest.main()
