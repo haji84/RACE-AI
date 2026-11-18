@@ -1,0 +1,40 @@
+{
+  "schema": "RACE_AI_SAVED_REJECTION_ANCHOR_PROOF_CI_V1",
+  "observed_at_utc": "2026-11-18T03:00:27Z",
+  "pr_number": 42,
+  "head": "9434bc7b784068e70401f417883d86f826523ea1",
+  "tree": "00c036894903d20e8396761430b4f8eec64e404a",
+  "ci": {
+    "run_id": 44226764155,
+    "job_id": 134541701200,
+    "tests": 255,
+    "duration_seconds": 111.033,
+    "conclusion": "success",
+    "compiled_heredocs": 10,
+    "source_key_contract": "passed",
+    "checks": {
+      "success": 8,
+      "skipped": 7,
+      "total": 15
+    }
+  },
+  "independent_review": {
+    "runtime": "379c9f85917a82340cd8dc543d06b6dd2d3a27ac",
+    "workflow": "868ce596b2cbeabeea19fbcf4300ecfbf67a29b9",
+    "status": "CLEAR"
+  },
+  "normal_merge": {
+    "commit": "32b18c967279e9003fdd686707d6c3c86c74e6cd",
+    "actual_tree": "00c036894903d20e8396761430b4f8eec64e404a",
+    "tree_equals_tested": true,
+    "force_or_admin": false
+  },
+  "actual_private_audit": {
+    "run_id": 44227138026,
+    "status": "in_progress",
+    "proof_result_known": false
+  },
+  "restoration_performed": false,
+  "publication_performed": false,
+  "all_models_or_goal_complete": false
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_PRESERVATION_V1",
+  "observed_at_utc": "2026-11-18T02:59:11Z",
+  "repository": "haji84/RACE-AI",
+  "pr_number": 41,
+  "original": {
+    "title": "feat: 徳山公式レース結果一覧の3連単・2連単と払戻の解析",
+    "body": "徳山公式の実際の結果一覧ページで確認した `page=index_resultlist&resultday=YYYYMMDD` と、レース/3連単組番/払戻/2連単組番/払戻/備考/リプレイの表構造をもとに、保存済みHTMLのオフライン解析コードと合成HTMLテストを追加。組番整合、日付、重複、未更新状態を検査。\n\n注意: 組番は3着までの艇番であり、6艇全員の着順や実進入コースを表さない。これをPR #40の6艇結果と同一視しない。公式ページのHTMLバイトはDNS制限で未取得のため実HTML E2E未成功。許諾未確認のデータを公開しない。main/Production変更なし。",
+    "head_sha": "7eb796ca685e1c1b3819481391f6820d3076b3eb",
+    "head_ref": "feat/tokuyama-result-list-parser",
+    "base_ref": "feat/tokuyama-result-reconciliation",
+    "draft": true,
+    "state": "open"
+  },
+  "ancestry": {
+    "base": "7eb796ca685e1c1b3819481391f6820d3076b3eb",
+    "head": "32b18c967279e9003fdd686707d6c3c86c74e6cd",
+    "status": "ahead",
+    "ahead_by": 2251,
+    "behind_by": 0,
+    "merge_base": "7eb796ca685e1c1b3819481391f6820d3076b3eb",
+    "open_base_consumers": 0
+  },
+  "new_pr_created": false,
+  "force_update": false
+}
