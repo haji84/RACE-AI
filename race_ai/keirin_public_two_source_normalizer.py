@@ -221,7 +221,7 @@ def parse_kdreams(*,raw,source_url,race_id,captured_at,
     cutoff=f"{race_id[:4]}-{race_id[4:6]}-{race_id[6:8]}T{end_hour:02d}:{end_minute:02d}:00+09:00"
     # Markup is often "← 3先行 5追込 6追込 4押え先 1追込 7押え先 2追込".
     # Start a group ONLY at an explicit "先行 / 押え先 / 自在".
-    grade_text=normalize("NFKC",text.split("並び予想",1)[0])
+    grade_text=normalize("NFKC",text.rsplit("並び予想",1)[0])
     # Girls racing has no fixed pre-race line. Kdreams may not show a
     # "並び予想" section at all. Do not fabricate temporary cooperation.
     solo_girls=("ガールズ" in grade_text or "L級" in grade_text)
@@ -236,14 +236,19 @@ def parse_kdreams(*,raw,source_url,race_id,captured_at,
     else:
         need("並び予想" in text,
              "KDREAMS_EXPLICIT_LINE_GROUPS_MISSING")
-        section=text.split("並び予想",1)[1]
+        # The site navigation may contain an earlier "並び予想" anchor;
+        # use the final race-detail section, not the first global menu hit.
+        section=text.rsplit("並び予想",1)[1]
         section=section.split("レース評",1)[0].split("予想担当",1)[0]
         section=section.replace("←"," ")
         matches=list(TOKENS.finditer(section))
         groups=[]
     if matches:
-        covered=GAP.sub("",section[:matches[0].start()])
-        need(covered in ("","：",":"),"KDREAMS_LINE_PREFIX_AMBIGUOUS")
+        covered=normalize("NFKC",section[:matches[0].start()]).strip()
+        # Plain non-numeric labels or punctuation are harmless; a prefix
+        # containing car numbers may be a second, conflicting lineup.
+        need(len(covered)<=60 and not any(c.isdigit() for c in covered),
+             "KDREAMS_LINE_PREFIX_AMBIGUOUS")
         for match in matches:
             car=int(match.group(1))
             role=match.group(2)
@@ -271,8 +276,16 @@ def parse_kdreams(*,raw,source_url,race_id,captured_at,
     # specific evidence than a site-wide navbar category.
     challenge_round=bool(re.search(
         r"チャレンジ(?:予選|一般|準決|決勝|選抜|特選)", grade_text))
+    a_round=bool(re.search(
+        r"A級(?:特一般|特選|準決勝?|決勝|一般|予選|特予)",grade_text))
+    s_round=bool(re.search(
+        r"S級(?:準決勝?|決勝|特選|一般|選抜|一次予選)",grade_text))
     if challenge_round and any(len(g)>1 for g in groups):
         competition="CHALLENGE"
+    elif a_round and any(len(g)>1 for g in groups):
+        competition="A1_A2"
+    elif s_round and any(len(g)>1 for g in groups):
+        competition="S"
     elif "ガールズ" in grade_text or "L級" in grade_text:
         competition="GIRLS"
     elif "チャレンジ" in grade_text:
