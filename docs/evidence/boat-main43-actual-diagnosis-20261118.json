@@ -1,0 +1,85 @@
+{
+  "schema": "RACE_AI_MAIN43_ACTUAL_READONLY_DIAGNOSIS_V1",
+  "recorded_at_utc": "2026-11-18T02:35:49Z",
+  "main_sha": "6aae91a164a1839d206a38c8b1b6a9bf0b8e2c6b",
+  "diagnostic": {
+    "run_id": 44218307647,
+    "job_id": 134513584616,
+    "observed_at": "2026-11-18T01:48:17.0498785Z",
+    "status": "BINDING_INCONSISTENCY_FOUND",
+    "authenticated_base": true,
+    "generation": 424,
+    "snapshot_sha": "6eea8632c5d9a5504092c7b7c45ba57f3e7d6ddb",
+    "observation": {
+      "active_count": 600,
+      "history_count": 0,
+      "missing_active_anchor": 0
+    },
+    "rejection": {
+      "active_count": 2,
+      "history_count": 24,
+      "missing_active_anchor": 24
+    },
+    "all_other_binding_counters": 0
+  },
+  "snapshot_public_metadata": {
+    "schema": "RACE_AI_SAVED_WEB_HISTORY_V5",
+    "cipher_sha256": "3ebea79d29ab4d0cdf84226428077574e10f3ea16f2fde6df56e83a6e7c5d89a",
+    "committed_at": "2026-11-18T01:44:28Z",
+    "parent": "90d92ad826acd788d7198769e8b8225ad271e1fc",
+    "older_router": "71c1b06f36c4b6c01fcca6432c64ff5f4a18b8b9",
+    "older_generation": 423,
+    "older_aes_authenticated": false,
+    "older_active_bodies_read": false,
+    "previous_cipher_public_header_matches": true,
+    "coverage": "public header linkage only; selected day not reported by original diagnostic"
+  },
+  "source_gate": {
+    "run_id": 44218307646,
+    "job_id": 134513584862,
+    "status": "READY_VERIFIED_SAME_DAY_CONTINUATION",
+    "actual_started_run": 44218343091,
+    "source_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "native_safari_status": "NATIVE_SAFARI_CANDIDATE_UNCHANGED"
+  },
+  "workflow_metadata": {
+    "authenticated_gets": true,
+    "observed_at": "2026-11-18T01:48:17.0503631Z",
+    "owner": {
+      "workflow_id": 405276784,
+      "state": "active"
+    },
+    "launcher": {
+      "workflow_id": 410194475,
+      "state": "active"
+    },
+    "independent_audit": {
+      "workflow_id": 418875114,
+      "state": "active"
+    },
+    "delivery_proven": false,
+    "settings_changed": false
+  },
+  "legacy_writer_findings": {
+    "code_recurrence_risk_confirmed": true,
+    "legacy_feed_blobs": [
+      "3295add3abdacb88ee23e38875c6af47e8f33979",
+      "ffb39325d9d045b962e379e53be4577fc014bd20"
+    ],
+    "effect": "Clears active rejection list while deep-copied reason sidecar remains.",
+    "timestamp_candidate": {
+      "run_id": 44217595507,
+      "job_id": 134511790846,
+      "provider_gets": 12,
+      "final_status": "BOAT_NO_NEW_FORMAL_FINAL_HOLD",
+      "exact_snapshot_writer_attribution_proven": false
+    }
+  },
+  "source_requests_by_diagnostic": 0,
+  "originals_changed": false,
+  "restoration_performed": false,
+  "publication_performed": false,
+  "full_day_all_model_coverage_proven": false,
+  "physical_iphone_acceptance_proven": false,
+  "goal_complete": false
+}

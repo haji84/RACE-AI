@@ -1,0 +1,64 @@
+{
+  "schema": "RACE_AI_SAVED_REJECTION_ANCHOR_RUNTIME_REVIEW_V1",
+  "recorded_at_utc": "2026-11-18T02:53:57Z",
+  "existing_pr": 42,
+  "tests_first": {
+    "head": "d15a5c256dcc7f3b8ba0df8fe56ae996cc61499e",
+    "tree": "b835682069bb733e07fe66defe4542c690b74f69",
+    "run_id": 44225538918,
+    "job_id": 134537680916,
+    "tests_run": 246,
+    "duration_seconds": 109.154,
+    "existing_tests_passed": 226,
+    "failures": 19,
+    "errors": 1,
+    "failure_scope": "19 new I/O setUp assertions plus one new pure-test import error: implementation missing",
+    "syntax_error": false,
+    "pure_test_blob": "0eafce05bf6bb4c31dc774aee7b6a6415e6793c4",
+    "io_test_blob": "0d5bbcf93ec93f56c5ba9fe45f0d940aaf16fddf",
+    "test_methods_when_imports_resolve": 29,
+    "tests_changed_after_red": false
+  },
+  "runtime": {
+    "path": "scripts/boat_saved_rejection_anchor_audit.py",
+    "blob": "379c9f85917a82340cd8dc543d06b6dd2d3a27ac",
+    "pure_prefix": "075452d516140c43ad0fac6c5304f131457058ed",
+    "io_suffix": "5fb63861143fa00af812511c5193da3ea49d424e",
+    "io_static_review": "CLEAR",
+    "pure_and_final_workflow_independent_review": "PENDING",
+    "python_ci": "PENDING"
+  },
+  "scope": {
+    "snapshots": [
+      {
+        "snapshot_sha": "6eea8632c5d9a5504092c7b7c45ba57f3e7d6ddb",
+        "generation": 424
+      },
+      {
+        "snapshot_sha": "71c1b06f36c4b6c01fcca6432c64ff5f4a18b8b9",
+        "generation": 423
+      }
+    ],
+    "protocol": "RACE_AI_SAVED_WEB_HISTORY_V5",
+    "same_selected_day_required": true,
+    "coverage": "selected snapshot/day; not whole-tree or full history",
+    "max_snapshots": 32,
+    "max_aggregate_read_bytes": 268435456,
+    "max_individual_read_bytes": 12582912,
+    "key_boundary": "existing Actions-only bootstrap/F/H",
+    "past_active_exact_match_required": true,
+    "sidecar_alone_authorizes_restoration": false,
+    "all_orphan_groups_required": true
+  },
+  "effects": {
+    "originals_changed": false,
+    "source_requests": 0,
+    "publication_performed": false,
+    "restoration_implemented": false,
+    "model_or_weights_changed": false,
+    "new_workflow_job_or_input": false,
+    "new_pr": false,
+    "public_ui_changed": false,
+    "broader_goals_proven": false
+  }
+}

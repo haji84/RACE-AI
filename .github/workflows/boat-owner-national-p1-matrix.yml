@@ -21,6 +21,9 @@ on:
       - scripts/boat_saved_reason_binding_audit.py
       - tests/test_boat_saved_reason_binding_audit.py
       - tests/test_boat_saved_reason_binding_io.py
+      - scripts/boat_saved_rejection_anchor_audit.py
+      - tests/test_boat_saved_rejection_anchor_proof.py
+      - tests/test_boat_saved_rejection_anchor_io.py
   push:
     branches: [main]
     paths:
@@ -42,6 +45,9 @@ on:
       - scripts/boat_saved_reason_binding_audit.py
       - tests/test_boat_saved_reason_binding_audit.py
       - tests/test_boat_saved_reason_binding_io.py
+      - scripts/boat_saved_rejection_anchor_audit.py
+      - tests/test_boat_saved_rejection_anchor_proof.py
+      - tests/test_boat_saved_rejection_anchor_io.py
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
     types: [completed]
@@ -89,7 +95,7 @@ jobs:
           sparse-checkout: race_ai/boat_saved_model_view.py
           sparse-checkout-cone-mode: false
       - name: Pure model matrix and forced original ZIP AES source-free contract
-        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit tests.test_boat_saved_reason_binding_audit tests.test_boat_saved_reason_binding_io -v
+        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit tests.test_boat_saved_reason_binding_audit tests.test_boat_saved_reason_binding_io tests.test_boat_saved_rejection_anchor_proof tests.test_boat_saved_rejection_anchor_io -v
       - name: Prove source-owner and private key are only ever read on trusted main events
         run: |
           python - <<'PY'
@@ -742,7 +748,7 @@ jobs:
           # Optional archived counts never change any earlier core/native conclusion.
           print(json.dumps(report,sort_keys=True,allow_nan=False))
           PY_BOOTSTRAP_COUNTS
-      - name: Diagnose the authenticated saved AES base using counts only
+      - name: Diagnose the saved AES base and exact older ACTIVE originals using counts only
         if: >-
           always() && github.repository == 'haji84/RACE-AI' &&
           github.event_name == 'push' && github.ref == 'refs/heads/main' &&
@@ -784,4 +790,9 @@ jobs:
           except Exception:
               pass
           print(json.dumps(report,sort_keys=True,allow_nan=False))
+          source=(Path('..')/'scripts/boat_saved_rejection_anchor_audit.py').resolve()
+          assert source.is_file() and not source.is_symlink() and source.parent.parent==Path('..').resolve()
+          spec=importlib.util.spec_from_file_location('main_saved_rejection_anchor_proof',source)
+          anchor=importlib.util.module_from_spec(spec);spec.loader.exec_module(anchor)
+          anchor.main([])
           PY_REASON_COUNTS
