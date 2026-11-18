@@ -78,7 +78,8 @@ def _is_private(path):
 
 
 def run(*,registry, private_root,owner_public_key_pem,
-        clock=None,fetch=None,max_new_races=17):
+        clock=None,fetch=None,max_new_races=17,
+        prior_sealed_sha_by_race=None):
     """One owner-private actual batch with only code-grounded 17 possible RIDs."""
     registered=set(registered_race_ids(registry))
     require(type(max_new_races) is int and 1<=max_new_races<=17,
@@ -88,11 +89,26 @@ def run(*,registry, private_root,owner_public_key_pem,
     for sub in ("cards","raw","sealed"):
         require(_is_private(root/sub),"OWNER_PRIVATE_0700_SUBDIR_REQUIRED")
     storage.checked_public_key(owner_public_key_pem)
+    previous=dict(PREVIOUSLY_SEALED)
+    if prior_sealed_sha_by_race is not None:
+        require(type(prior_sealed_sha_by_race) is dict and
+                len(prior_sealed_sha_by_race)<=17,
+                "PRIOR_SEALED_SOURCE_RECEIPTS_INVALID")
+        for rid,expected_sha in prior_sealed_sha_by_race.items():
+            require(rid in registered and rid not in previous and
+                    type(expected_sha) is str and len(expected_sha)==64 and
+                    all(ch in "0123456789abcdef" for ch in expected_sha),
+                    "PRIOR_SEALED_SOURCE_ID_OR_SHA_INVALID")
+            file=root/"prior"/"sealed"/(rid+".sealed.json")
+            verified=storage.readback_file(file,expected_sha=expected_sha)
+            require(verified["race_id"]==rid,
+                    "PRIOR_SEALED_RACE_SOURCE_MISMATCH")
+            previous[rid]=expected_sha
     clock=clock or (lambda:datetime.now(timezone.utc))
     fetch=fetch or cap.fetch_once
     records={rid:safe_record(rid,"NO_FORECAST_NO_VALID_PRE_RACE_INPUT")
              for rid in sorted(registered)}
-    for rid in PREVIOUSLY_SEALED:
+    for rid in previous:
         require(rid in registered,"OLD_SAVED_CASE_NOT_IN_REGISTERED_COHORT")
         records[rid]=safe_record(rid,"PREVIOUS_IMMUTABLE_FORECAST_NOT_RECREATED")
     cutoff_candidates=[]
@@ -100,7 +116,7 @@ def run(*,registry, private_root,owner_public_key_pem,
         for i in range(1,10):
             rid="20261118"+code+f"{i:02d}"
             require(rid in registered,"NIGHT_RACE_NOT_IN_FROZEN_COHORT")
-            if rid in PREVIOUSLY_SEALED:
+            if rid in previous:
                 continue
             cutoff_candidates.append((rid,_cutoff(code,i),code,i))
     cutoff_candidates.sort(key=lambda item:_time(item[1]))
@@ -156,7 +172,7 @@ def run(*,registry, private_root,owner_public_key_pem,
                 for rid,*_ in before:
                     records[rid]=safe_record(rid,
                        "HOLD_PUBLIC_PROVIDER_DENIED_OR_UNAVAILABLE_STOP")
-                return _summary(records,count_meeting_GET,0,0,True,source_structure)
+                return _summary(records,count_meeting_GET,0,0,True,source_structure,len(previous))
             # Missing venue links keeps its races on HOLD.
     attempt_pairs=0
     saved=0
@@ -235,16 +251,16 @@ def run(*,registry, private_root,owner_public_key_pem,
                   reason.replace("_","").isupper())
             records[rid]=safe_record(
                 rid,"HOLD_"+(reason if safe else "UNVERIFIED_SOURCE_OR_CIPHER"))
-    return _summary(records,count_meeting_GET,attempt_pairs,saved,abort,source_structure)
+    return _summary(records,count_meeting_GET,attempt_pairs,saved,abort,source_structure,len(previous))
 
 
-def _summary(records,meeting_gets,attempts,saved,blocked,source_structure):
+def _summary(records,meeting_gets,attempts,saved,blocked,source_structure,prior_count):
     states=Counter(v["state"] for v in records.values())
     require(len(records)==79,"FROZEN_NATIONAL_COHORT_NOT_79")
     return {
        "schema":SCHEMA,"day_jst":DAY,
        "registered_races":79,
-       "previously_sealed_A_B_do_not_recreate":2,
+       "previously_sealed_A_B_do_not_recreate":prior_count,
        "new_A_B_same_job_encrypted":saved,
        "venue_index_public_GETs":meeting_gets,
        "race_source_pair_attempts":attempts,
@@ -267,13 +283,30 @@ def main(argv=None):
     p.add_argument("--private-root",required=True)
     p.add_argument("--owner-public-key",required=True)
     p.add_argument("--safe-report",required=True)
+    p.add_argument("--prior-artifact-dir")
     args=p.parse_args(argv)
     try:
         root=Path(args.private_root)
         reg=json.loads(Path(args.registry).read_text(encoding="utf-8"))
+        prior=None
+        if args.prior_artifact_dir:
+            prior_dir=Path(args.prior_artifact_dir)
+            legacy=json.loads((prior_dir/"producer-summary.json").read_text(
+                encoding="utf-8"))
+            require(legacy.get("schema")==
+                    "RACE_AI_KEIRIN_NATIONWIDE_AUTO_GENERATION_CYCLE_V1" and
+                    legacy.get("registered_races")==79 and
+                    type(legacy.get("records")) is list and
+                    len(legacy["records"])==79,
+                    "PRIOR_ARTIFACT_PRODUCER_RECEIPT_INVALID")
+            prior={x["race_id"]:x["cipher_file_sha256"]
+                   for x in legacy["records"]
+                   if x.get("ciphertext_local_created") is True}
+            require(len(prior)>0,"PRIOR_ARTIFACT_HAS_NO_REAL_CIPHERS")
         report=run(
             registry=reg,private_root=args.private_root,
-            owner_public_key_pem=Path(args.owner_public_key).read_bytes())
+            owner_public_key_pem=Path(args.owner_public_key).read_bytes(),
+            prior_sealed_sha_by_race=prior)
         dest=Path(args.safe_report)
         require(not dest.exists() and not dest.is_symlink(),
                 "REPORT_NO_OVERWRITE")
