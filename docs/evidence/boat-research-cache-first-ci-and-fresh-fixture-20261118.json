@@ -1,0 +1,26 @@
+{
+  "schema": "RACE_AI_RESEARCH_CACHE_FIRST_GREEN_AND_FIXTURE_V1",
+  "head": "0635c052f2de522d5ad582085f79fccd89a45d3d",
+  "tree": "deb5056c16395942cc9a66294ced8039e1aca2db",
+  "run_id": 44244623743,
+  "job_id": 134600494805,
+  "tests": 859,
+  "seconds": 191.286,
+  "new_cache_tests_passed": 22,
+  "total_failures": 1,
+  "total_errors": 0,
+  "failing_test": "tests.test_boat_venue_cycle_connection.PrivateVenueCycleTests.test_official_result_revisit_prepares_private_archive_for_retention",
+  "cause": "Existing stub supplied only a digest and fictional raw ZIP with a mismatched hash; fresh identity/size verification correctly refused it.",
+  "correction": {
+    "test_blob": "3f757bd024d13644403af4dc9d3c1688c5a2fa71",
+    "all_13_methods_and_every_assertion_line_preserved": true,
+    "accurate_fresh_metadata_and_raw_zip_digest": true,
+    "production_helper_unchanged": true,
+    "independent_static_review": "CLEAR"
+  },
+  "helper_review": {
+    "status": "CLEAR",
+    "actual_execution_by_reviewer": false,
+    "scope": "Helper ee1655f and two cycle hooks 99dba527; no admission/score/pointer cache, separate read-only ODB, unchanged full verifiers and learning"
+  }
+}

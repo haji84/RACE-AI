@@ -1,0 +1,30 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_PRESERVATION_V1",
+  "recorded_at_utc": "2026-11-18T05:00:00Z",
+  "repository": "haji84/RACE-AI",
+  "pr": 39,
+  "original": {
+    "state": "open",
+    "draft": true,
+    "title": "feat: 徳山公式HTMLの開催節期間抽出と照合根拠",
+    "body": "徳山公式のモーター抽選表・出場予定選手一覧に実際に表示される「2026/10/10（土）～2026/10/14（水）」形式を対象に、開催節開始日・終了日とmeet_idを抽出するオフライン処理を追加。日付外・複数候補は拒否。identity_verified=Falseを維持し、外部で原本/取得時刻/出典を検証するまで承認扱いしない。\n\n公式ページ掲載情報を確認したが、実HTMLバイトを取得してコードに通すE2Eは未実施。レース一覧のHTMLに同形式の期間があることも未保証。72艇固定は欠場/番組変更の現実に合わせ別途要修正。main/Production変更なし。",
+    "head_ref": "feat/tokuyama-meet-html-evidence",
+    "head_sha": "0b8ca7b73586d00d61feb08475df8f144302ac7f",
+    "base_ref": "feat/tokuyama-meet-identity-gate",
+    "base_sha": "58244fc83bcc5cad9801a7321689a9b86d9f27b1"
+  },
+  "ancestry": {
+    "destination_ref": "production/boat-p0-p1-20261111",
+    "destination_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "merge_base_sha": "0b8ca7b73586d00d61feb08475df8f144302ac7f",
+    "behind_by": 0,
+    "ahead_by": 1938,
+    "original_head_is_ancestor": true
+  },
+  "open_base_consumers": {
+    "collection_count": 40,
+    "per_page": 100,
+    "matching_prs": []
+  },
+  "scope": "Reuse existing PR for research transport-cache changes on the current source tree. Original commits and metadata retained. No new PR, force update, running-worker interruption, UI publication, wager, model family, weight switch or new workflow job."
+}

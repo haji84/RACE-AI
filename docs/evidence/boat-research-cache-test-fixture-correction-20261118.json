@@ -1,0 +1,27 @@
+{
+  "schema": "RACE_AI_RESEARCH_CACHE_TEST_FIXTURE_CORRECTION_V1",
+  "first_head": "cfca207edf93a20720bf2ee801f392e17f30724c",
+  "run_id": 44242722702,
+  "job_id": 134594221643,
+  "total_tests": 859,
+  "seconds": 187.881,
+  "failures": 20,
+  "errors": 1,
+  "production_runtime_written": false,
+  "fixture_defects": [
+    "PDCA function fixture omitted Path from its synthetic execution namespace, causing outer HOLD before network reads.",
+    "Synthetic archives parent was created with default mode755 and correctly rejected by the unchanged production privacy guard."
+  ],
+  "correction": {
+    "head": "e09bb5e323a3b87afd0084f5b7f55c752f99cc24",
+    "tests_blob": "80069bfc98e264c3295d8444c73e2de7b9836512",
+    "add_Path_to_namespace": true,
+    "create_private_archives_parent": true,
+    "assertions_changed": false,
+    "test_methods": 22,
+    "genuine_function_fixture_unchanged": "8e63856c2ed2f42d2ad74e2c6ec6a0c18fa14f65",
+    "production_guards_changed": false
+  },
+  "clean_red_confirmed": false,
+  "goal_complete": false
+}

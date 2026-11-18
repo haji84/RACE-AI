@@ -78,6 +78,9 @@ on:
       - race_ai/boat_research_batch.py
       - race_ai/boat_venue_learning_handoff.py
       - race_ai/boat_venue_research_retention.py
+      - race_ai/boat_venue_research_cache.py
+      - tests/test_boat_venue_research_cache.py
+      - tests/fixtures/boat_venue_research_repeated_work.py
       - race_ai/boat_video_forward.py
       - tests/test_boat_venue_research_batch.py
       - tests/test_boat_venue_research_retention.py
@@ -158,6 +161,7 @@ jobs:
                  'tests.test_boat_venue_research_runtime','tests.test_boat_venue_learning_handoff',
                  'tests.test_boat_venue_learning_context','tests.test_boat_venue_learning',
                  'tests.test_boat_venue_research_batch','tests.test_boat_venue_research_retention',
+                 'tests.test_boat_venue_research_cache',
                  'tests.test_boat_venue_research_pdca','tests.test_boat_video_forward',
                  'tests.test_boat_saved_model_view','tests.test_boat_saved_model_reason_variants',
                  'tests.test_result_observation_conflict_diagnostics','tests.test_all_existing_model_artifact_retention',
@@ -177,8 +181,40 @@ jobs:
       - name: Install existing research recorder dependencies inside the same offline CI job
         run: |
           python -m pip install --disable-pip-version-check playwright==1.56.0
-          python -m playwright install --with-deps chromium
+          python -m playwright install chromium
+          # Keep the same pinned browser and all tests. Install system packages
+          # only if the real local browser probe demonstrates they are missing.
+          if ! python - <<'PY_CI_BROWSER'
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as playwright:
+              browser=playwright.chromium.launch()
+              try:
+                  page=browser.new_page()
+                  page.set_content('<title>local dependency probe</title>')
+                  assert page.title()=='local dependency probe'
+              finally:
+                  browser.close()
+          PY_CI_BROWSER
+          then
+            python -m playwright install-deps chromium
+          fi
           if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            # The observed EC2 mirror stalled twice. Keep Ubuntu's signed
+            # repositories and package verification on its official HTTPS mirror.
+            sudo python - <<'PY_CI_MIRROR'
+          from pathlib import Path
+          directory=Path('/etc/apt/sources.list.d')
+          paths=[Path('/etc/apt/sources.list'),*directory.glob('*.list'),*directory.glob('*.sources')]
+          for path in paths:
+              if path.is_file() and not path.is_symlink():
+                  original=path.read_text()
+                  updated=original
+                  for scheme in ('http','https'):
+                      updated=updated.replace(scheme+'://us-east-2.ec2.archive.ubuntu.com/ubuntu',
+                          'https://archive.ubuntu.com/ubuntu')
+                  if updated!=original:
+                      path.write_text(updated)
+          PY_CI_MIRROR
             sudo apt-get update -qq
             sudo apt-get install --no-install-recommends -y ffmpeg
           fi

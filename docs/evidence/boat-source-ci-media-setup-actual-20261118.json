@@ -1,0 +1,48 @@
+{
+  "schema": "RACE_AI_SOURCE_CI_MEDIA_SETUP_ACTUAL_V1",
+  "head": "fe61cab6d0760d3c59a61884e5b35cb1b9255dc6",
+  "run_id": 44245450314,
+  "job_id": 134603175622,
+  "tests_before_media": {
+    "primary": 859,
+    "primary_seconds": 191.967,
+    "primary_status": "passed",
+    "video_gap": 38,
+    "video_gap_seconds": 2.614,
+    "video_gap_status": "passed"
+  },
+  "job_result": "cancelled",
+  "cancelled_at_utc": "2026-11-18T05:54:58.8688205Z",
+  "existing_timeout_minutes": 18,
+  "dependency_transfer": {
+    "playwright_system_packages": {
+      "bytes_mb": 32.1,
+      "seconds": 357,
+      "kilobytes_per_second": 89.7
+    },
+    "ffmpeg_packages": {
+      "bytes_mb": 62.8,
+      "seconds": 436,
+      "kilobytes_per_second": 144
+    },
+    "chromium_pinned_binary_download_seconds": 6
+  },
+  "all_media_tests_completed": false,
+  "change": {
+    "workflow_blob": "a2eca2a5a5727f376ed70df3a1f90c11d7bbc58a",
+    "same_pinned_playwright_version": "1.56.0",
+    "same_chromium_binary": true,
+    "real_local_launch_probe_before_conditional_system_dependency_install": true,
+    "all_existing_tests_retained": true,
+    "ffmpeg_and_ffprobe_requirement_retained": true,
+    "jobs_inputs_runners_timeouts_unchanged": true
+  },
+  "source_a74_recovery": {
+    "tests_blob": "155dc1af4225dc3e19e83b83d287a93d67b45a14",
+    "contract_blob": "7f9cb045e32633ea830e5f97a3062ff952305b99",
+    "original_prefix_and_13_methods_unchanged": true,
+    "new_methods": 6,
+    "runtime_written": false
+  },
+  "goal_complete": false
+}

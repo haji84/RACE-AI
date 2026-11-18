@@ -543,7 +543,8 @@ def venue_research_readback(artifact_id):
 def venue_research_pdca(day,round_no):
     """Revisit all retained private handles using already-observed official results."""
     import tempfile
-    from race_ai.boat_venue_research_receipt import validate_research_refs
+    from race_ai.boat_venue_research_receipt import validate_research_refs, MAX_ARCHIVE_BYTES
+    from race_ai.boat_venue_research_cache import read_research_archive
     from race_ai.boat_venue_research_pdca import score_private_p1_artifact
     from race_ai.boat_pdca_state import state_key
     result=dict(status='PRIVATE_VENUE_PDCA_NOT_RUN',archives_processed=0,paired_forecasts=0,rejected_archives=0,
@@ -562,9 +563,10 @@ def venue_research_pdca(day,round_no):
             private_root(root)
             for reference in references:
                 try:
-                    ident=reference['artifact_id'];meta=json.loads(gh(f'actions/artifacts/{ident}'))
+                    ident=reference['artifact_id']
+                    raw,meta=read_research_archive(reference,gh=gh,
+                        cache_root=private_base/'boat-venue-research-archives',maximum_bytes=MAX_ARCHIVE_BYTES)
                     need(meta['digest']==reference['digest'],'VENUE_RESEARCH_ORIGINAL_DIGEST_CHANGED')
-                    raw=gh(f'actions/artifacts/{ident}/zip')
                     archive_base=private_root(private_base/'boat-venue-research-archives')
                     archive=private_root(archive_base/str(ident))
                     from scripts.boat_history_collect import save
@@ -612,7 +614,9 @@ def venue_research_retain(round_no):
         archives=[p.parent for p in (base/'boat-venue-research-archives').glob('*/archive.zip')]
         if archives:
             from race_ai.boat_venue_research_retention import retain_private_source_archives
-            result['source_archives']=retain_private_source_archives(archives,ROOT)
+            from race_ai.boat_venue_research_cache import research_readback_transport
+            reader=research_readback_transport(ROOT,cache_root=base/'boat-venue-research-source-readback.git')
+            result['source_archives']=retain_private_source_archives(archives,ROOT,readback_transport=reader)
     except Exception:
         result=dict(status='HOLD_PRIVATE_VENUE_RETENTION',retained_candidates=0,
                     production_promoted=False,plaintext_published=False)
