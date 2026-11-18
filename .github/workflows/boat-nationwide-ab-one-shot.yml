@@ -199,6 +199,22 @@ jobs:
             python -m playwright install-deps chromium
           fi
           if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            # The observed EC2 mirror stalled twice. Keep Ubuntu's signed
+            # repositories and package verification on its official HTTPS mirror.
+            sudo python - <<'PY_CI_MIRROR'
+          from pathlib import Path
+          directory=Path('/etc/apt/sources.list.d')
+          paths=[Path('/etc/apt/sources.list'),*directory.glob('*.list'),*directory.glob('*.sources')]
+          for path in paths:
+              if path.is_file() and not path.is_symlink():
+                  original=path.read_text()
+                  updated=original
+                  for scheme in ('http','https'):
+                      updated=updated.replace(scheme+'://us-east-2.ec2.archive.ubuntu.com/ubuntu',
+                          'https://archive.ubuntu.com/ubuntu')
+                  if updated!=original:
+                      path.write_text(updated)
+          PY_CI_MIRROR
             sudo apt-get update -qq
             sudo apt-get install --no-install-recommends -y ffmpeg
           fi

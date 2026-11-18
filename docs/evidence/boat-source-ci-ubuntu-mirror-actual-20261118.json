@@ -1,0 +1,28 @@
+{
+  "schema": "RACE_AI_SOURCE_CI_UBUNTU_MIRROR_ACTUAL_V1",
+  "head": "bf042b6b559fbe22e3186e6a8bb28107efebde22",
+  "run_id": 44249235315,
+  "job_id": 134615566420,
+  "tests": {
+    "primary": 865,
+    "primary_seconds": 189.804,
+    "primary_status": "passed",
+    "video_gate": 38,
+    "video_gate_seconds": 2.586,
+    "video_gate_status": "passed",
+    "same_pinned_chromium_launch_probe": "passed"
+  },
+  "job_result": "cancelled",
+  "ffmpeg_download": {
+    "needed_mb": 62.8,
+    "started_at_utc": "2026-11-18T06:14:04.6243368Z",
+    "cancelled_at_utc": "2026-11-18T06:27:33.3035697Z",
+    "completed": false,
+    "mirror": "http://us-east-2.ec2.archive.ubuntu.com/ubuntu"
+  },
+  "change": "Only replace the observed EC2 Ubuntu mirror URI with https://archive.ubuntu.com/ubuntu in ephemeral CI standard source files before the existing ffmpeg installation. Preserve distro/suites/components/signing keys and normal apt verification, package/test requirements, runner, jobs, permissions and18minute timeout.",
+  "runtime_source_unchanged": true,
+  "all_ci_green": false,
+  "live_speedup_proven": false,
+  "goal_complete": false
+}
