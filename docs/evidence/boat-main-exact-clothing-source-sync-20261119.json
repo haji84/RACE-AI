@@ -123,5 +123,41 @@
       "additional_seconds": 14.051
     },
     "merge_deferred_for_actual_candidate_regressions_found_before_publication": true
-  }
+  },
+  "final_github_ci": {
+    "checks": 28,
+    "success": 13,
+    "skipped": 15,
+    "failures": 0,
+    "recovery": {
+      "run": 44354636669,
+      "job": 134979300830,
+      "tests": 138,
+      "seconds": 0.521
+    },
+    "matrix": {
+      "run": 44354636493,
+      "job": 134979299075,
+      "tests": 372,
+      "seconds": 152.917,
+      "additional_tests": 7,
+      "additional_seconds": 13.974
+    },
+    "native_checker_source_free": {
+      "run": 44354636418,
+      "job": 134979298998,
+      "tests": 140,
+      "seconds": 18.319,
+      "public_f603_four_assets_match": true
+    }
+  },
+  "actual_main_merge": {
+    "merge": "bc40906cf2246ba12ad698bb71e6fec492ab7675",
+    "tree": "48fafe1fb44083e47f910db9b85c1ae429840e62",
+    "pr": 19,
+    "tested_head": "d48eee4d7437b6d3711db062ad71d51d4739394e",
+    "tested_tree_matches": true,
+    "normal_protected_merge": true
+  },
+  "actual_launcher_and_native_evidence": "boat-main19-actual-gate-and-native-hold-20261119.json"
 }

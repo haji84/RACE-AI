@@ -1,0 +1,1 @@
+{"base":"feat/boat-auto-feed-contract","body":"PR #16で導入した同一オリジンのtoday.json取得に合わせ、旧仕様の完全通信禁止テストを変更。外部URLへの直接fetchは禁止したまま。CI成功・独立レビューまでDraft、main/Production未変更。","draft":true,"head":"e9281b37c149f88e03ac06a55f466043500c2a8d","head_ref":"fix/boat-feed-ci-contract","number":18,"title":"test: 自動取得のsame-origin安全条件にCIを更新"}
