@@ -125,6 +125,30 @@ class ActualSourceShapeAdapter(unittest.TestCase):
                                     "NETKEIRIN_CONFLICTING_CAR_ROWS"):
             build(net=str(soup).encode())
 
+    def test_A_class_ordinary_race_not_girls_because_navigation_mentions_L_class(self):
+        a,b=pages()
+        b=b.replace("チャレンジ一般".encode(),"A級特一般".encode())
+        b=b.replace(b"<body>", "<body><nav>L級ガールズ</nav>".encode())
+        packet=build(kdreams=b)["source_packet"]
+        self.assertEqual(packet["competition"],"A1_A2")
+        self.assertEqual(packet["line_groups"],[[1,5],[2],[4,3,6]])
+
+    def test_last_race_lineup_section_not_site_navigation_anchor(self):
+        a,b=pages()
+        b=b.replace(
+            "<h2>並び予想</h2>".encode(),
+            "<nav>並び予想</nav><h2>並び予想</h2>".encode())
+        packet=build(kdreams=b)["source_packet"]
+        self.assertEqual(packet["line_groups"],[[1,5],[2],[4,3,6]])
+
+    def test_line_prefix_rejects_other_car_numbers(self):
+        a,b=pages()
+        b=b.replace("← 1先行".encode(),
+                    "3-5-6 ← 1先行".encode())
+        with self.assertRaisesRegex(adapter.PublicPageNormalizeError,
+                                    "KDREAMS_LINE_PREFIX_AMBIGUOUS"):
+            build(kdreams=b)
+
     def test_wrong_meeting_start_day_or_race_rejected(self):
         with self.assertRaisesRegex(adapter.PublicPageNormalizeError,
                                     "KDREAMS_RACE_DETAIL_ID_MISMATCH"):
