@@ -21,6 +21,11 @@ TRIFECTA = re.compile(
     r"(?:3連単|三連単)\s*(?:払戻|結果)?\s*"
     r"([1-9])\s*(?:>|-|→|ー|－)\s*([1-9])\s*(?:>|-|→|ー|－)\s*([1-9])"
     r"\s*(?:的中|配当|払戻|:|：)?\s*([1-9][0-9,]{0,11})\s*円")
+# Kdreams payout grid separates '3連単' and the winning trio into
+# distant cells. An odds listing has no 円 amount; require a paid triple.
+KD_TRIFECTA_PAYOUT = re.compile(
+    r"(?<!\\d)([1-9])\\s*[-－→>]\\s*([1-9])\\s*[-－→>]\\s*([1-9])"
+    r"\\s+([1-9][0-9,]{0,11})\\s*円")
 MAX_BYTES = 6_000_000
 
 
@@ -104,7 +109,12 @@ def parse_observation(*, raw, provider, source_url, race_id, observed_at):
     if any(k in text for k in ("レース中止", "発売中止", "返還", "同着")):
         raise ResultConsensusError("SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL")
     matches = []
-    for a,b,c,yen in TRIFECTA.findall(text):
+    apparent = TRIFECTA.findall(text)
+    if provider == "Kdreams":
+        # The actual grid sometimes emits '... 単 7-3-4 5,590円'
+        # while the 3連単 label is in a different column.
+        apparent += KD_TRIFECTA_PAYOUT.findall(text)
+    for a,b,c,yen in apparent:
         order = [int(a),int(b),int(c)]
         if len(set(order)) != 3:
             continue
