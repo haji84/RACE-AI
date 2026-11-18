@@ -1083,5 +1083,26 @@ class HTTPCaptureClockCurrentPairRoleTests(unittest.TestCase):
                     fixture.doCleanups()
 
 
+CLOTHING_BENCHMARK_SOURCE='fbc743be548bfd123e46cdbfe290515a59e5e0d3'
+
+
+class ClothingBenchmarkCurrentPairRoleTests(unittest.TestCase):
+    """The new exact role retains authenticated counts and pending revisions."""
+    @classmethod
+    def setUpClass(cls):CurrentPairEligibilityTests.setUpClass()
+
+    def test_clothing_benchmark_pairs_keep_private_unqualified_counts_and_latest_pending(self):
+        for method in ('test_real_crypto_counts_are_flat_private_and_still_unqualified',
+                       'test_latest_pending_correction_does_not_fall_back_to_an_older_settlement'):
+            with self.subTest(method=method),patch.object(sys.modules[__name__],'SOURCE',CLOTHING_BENCHMARK_SOURCE):
+                fixture=CurrentPairEligibilityTests();fixture.setUp()
+                try:
+                    getattr(fixture,method)()
+                except ValueError as error:
+                    self.fail('Exact clothing-benchmark current pairs were refused: '+str(error))
+                finally:
+                    fixture.doCleanups()
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -714,3 +714,20 @@ timeout, native candidate/checker, UI publication, model family, paid service,
 wager or production weight change is introduced. Physical iPhone, full-race/
 all-model/four-sport coverage, T15-10 timeliness and prospective efficacy remain
 unverified. Source995 actual worker/capture-clock proof requires actual logs.
+
+2026-11-19 protected clothing benchmark and retention-validation source synchronization.
+Normally merged source PR21 is fbc743be548bfd123e46cdbfe290515a59e5e0d3,
+tree 1068d5a0d1225e0638a31528f8031a5b8e9fc584, identical to its tested source tree.
+Advance only the existing current dispatch/reader/callback roles to this exact
+source. Preserve 995/C979/F1 and all issued historical audit/callback roles.
+New-source P0 inheritance remains same-source or M2/profile/BB/A74 only;
+The new role refuses 995/C979/F1/unknown P0. Every older role continues to
+refuse P0 originating from this new source.
+Frozen failed-origin contracts, closed M2/BB/EFF/A74 readers and the fixed M2
+read-only target are unchanged. Retain original AES readback, source clocks,
+cutoffs, receipts, counter continuity, fresh history and the existing source waits.
+The synthetic clothing and retention checks do not prove live T15-10 operation,
+four-sport/all-race/all-model coverage or prospective improvement.
+Use only boat-owner-release: single-real-session-20261111 and this existing
+marker path. No new job/input/cron/runner/timeout/permission, direct dispatch,
+model family, production weight, paid service, UI publication or wager is added.
