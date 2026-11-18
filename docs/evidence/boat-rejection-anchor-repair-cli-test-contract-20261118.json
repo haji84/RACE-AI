@@ -1,0 +1,164 @@
+{
+  "kind": "TESTS_ONLY_REJECTION_ANCHOR_REPAIR_CLI_BOUNDARY",
+  "repository": "haji84/RACE-AI",
+  "file": {
+    "path": "tests/test_boat_rejection_anchor_repair_cli.py",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "9aef7adda684ce9fbeb240bb7b35a628ec1b5148",
+    "bytes": 17412,
+    "test_methods": 8
+  },
+  "tree_elements": [
+    {
+      "path": "tests/test_boat_rejection_anchor_repair_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9aef7adda684ce9fbeb240bb7b35a628ec1b5148"
+    }
+  ],
+  "supersedes": "2ee4a4785c07f2450adc6ff160fef4a47d445340",
+  "superseding_delta": "Invalid UTF-8 is inside an otherwise syntactically valid JSON string, making strict decoding necessary rather than relying on malformed-JSON rejection.",
+  "runtime_module": "scripts/boat_rejection_anchor_repair.py",
+  "orchestrator_tests": {
+    "blob": "e8465a7a73692f71f034b6c5c8222310b5d99a18",
+    "methods": 12,
+    "packet": "8d3c2e5870f37d8e8990a5327eef37a7cb4bc8ea",
+    "unchanged_by_this_agent": true,
+    "pre_freeze_phase_correction": "P0 removed only the obsolete no-main assertion; all twelve methods/security checks remain."
+  },
+  "api": {
+    "main": "main(argv=None) -> 2 for HOLD, 0 for NO_CHANGE or PUBLISHED_VERIFIED",
+    "sole_callback": "_load_repair_context",
+    "orchestrator_call": "run_repair(os.environ, parsed_event, load_context=_load_repair_context)",
+    "private_setup": "Root owns the actual trusted reader/writer context. CLI tests mock this one seam and do not model or authorize private setup."
+  },
+  "ordering": [
+    "Reject every supplied argument, including --help and all key/snapshot/source flags, before any environment, event or private-context access.",
+    "Read only GITHUB_EVENT_PATH for the strict event parser before orchestration. Require a nonempty regular nonsymlink file at most 1MiB.",
+    "Strict UTF-8 JSON object parsing rejects duplicate keys at every depth, NaN/Infinity/-Infinity and finite-exponent overflow (1e999/-1e999).",
+    "Pass the exact existing environment and parsed event to run_repair with only the fixed _load_repair_context callback.",
+    "The real orchestrator must reject untrusted contexts, non-main pushes, wrong owner job, repository mismatch and every later/noncanonical run attempt before invoking the private loader or reading keys.",
+    "Capture private orchestration/context noise, validate the complete returned public report, then emit exactly one safe JSON line and no stderr."
+  ],
+  "schema": "RACE_AI_REJECTION_ANCHOR_REPAIR_V1",
+  "statuses": [
+    "HOLD",
+    "NO_CHANGE",
+    "PUBLISHED_VERIFIED"
+  ],
+  "normal_report_fields": [
+    "schema",
+    "status",
+    "counts",
+    "current_view_sha256",
+    "candidate_view_sha256",
+    "published_snapshot_sha",
+    "published_cipher_sha256",
+    "published_generation",
+    "publication_attempted",
+    "publication_performed",
+    "readback_verified",
+    "originals_changed",
+    "observations_reconciled",
+    "source_requests",
+    "forecast_generated",
+    "broader_goals_proven"
+  ],
+  "hold_additional_field": "reason",
+  "count_fields": [
+    "snapshots_checked",
+    "orphan_groups",
+    "current_active_rejections",
+    "candidate_active_rejections",
+    "retained_history_originals",
+    "restored_active_originals",
+    "rows_changed"
+  ],
+  "static_effects": {
+    "originals_changed": false,
+    "observations_reconciled": 0,
+    "source_requests": 0,
+    "forecast_generated": false,
+    "broader_goals_proven": false
+  },
+  "failure_states": {
+    "argv_rejected": {
+      "reason": "CLI_ARGUMENTS_REJECTED",
+      "publication_attempted": false,
+      "publication_performed": false,
+      "readback_verified": false
+    },
+    "invalid_event": {
+      "reason": "INPUT_OR_CHAIN_INVALID",
+      "publication_attempted": false,
+      "publication_performed": false,
+      "readback_verified": false
+    },
+    "valid_orchestrator_hold": "Preserve its exact false/null/true publication_performed state and all other safe fields, returning exit2.",
+    "unexpected_or_invalid_after_orchestration_entry": {
+      "reason": "PUBLICATION_OUTCOME_UNKNOWN",
+      "publication_attempted": true,
+      "publication_performed": null,
+      "readback_verified": false
+    },
+    "hold_fields": "counts and all five hash/generation fields null; no partial report or private error values. Never retry orchestration/publication."
+  },
+  "reason_allowlist": [
+    "CLI_ARGUMENTS_REJECTED",
+    "TRUSTED_MAIN_REQUIRED",
+    "AUTHENTICATED_CONTEXT_UNAVAILABLE",
+    "V5_CURRENT_REQUIRED",
+    "INPUT_OR_CHAIN_INVALID",
+    "BOUND_EXCEEDED",
+    "CURRENT_HISTORY_INVALID",
+    "ACTIVE_PROOF_CONFLICT",
+    "ACTIVE_PROOF_MISSING",
+    "CANDIDATE_GUARD_REJECTED",
+    "PUBLIC_CANDIDATE_INVALID",
+    "PREDECESSOR_CHANGED",
+    "PUBLICATION_OUTCOME_UNKNOWN",
+    "AUTHENTICATED_READBACK_UNAVAILABLE",
+    "READBACK_MISMATCH"
+  ],
+  "coverage": [
+    "Arguments-before-environment using a Mapping that forbids all access.",
+    "Exact environment/event/fixed callback seam and noisy orchestration suppression.",
+    "Duplicate, nonfinite, malformed, invalid UTF-8 and nonobject event rejection before orchestration.",
+    "Missing/directory/symlink/empty/oversized event paths reject without loading context.",
+    "Real orchestrator trust rejection covers non-push event/refs/job/repository/attempt/head/fork fields with a guarded environment that prohibits key reads and enumeration.",
+    "Valid HOLD publication false/unknown/true states pass through exactly.",
+    "Private exceptions/noise and invalid schema/keys/effects/counts/hashes/status metadata become one conservative unknown-outcome report with one orchestrator call.",
+    "NO_CHANGE and PUBLISHED_VERIFIED output exactly one safe report and return0, including argv=None behavior."
+  ],
+  "methods": [
+    "test_any_argument_is_rejected_before_environment_event_or_private_context",
+    "test_valid_event_passes_exact_environment_and_only_the_fixed_loader_callback",
+    "test_duplicate_nonfinite_malformed_and_nonobject_events_never_reach_orchestration",
+    "test_event_path_requires_bounded_nonempty_regular_file_without_symlinks",
+    "test_real_orchestrator_refuses_untrusted_first_attempt_context_before_private_loader",
+    "test_valid_hold_reports_preserve_false_unknown_and_acknowledged_publication_states",
+    "test_private_exceptions_noise_or_invalid_results_remain_unknown_without_retry",
+    "test_no_change_and_verified_publication_emit_one_exact_safe_json_and_exit_zero"
+  ],
+  "scope": {
+    "tests_only": true,
+    "no_runtime_authored": true,
+    "no_workflow_or_ref_or_PR_mutation": true,
+    "no_private_data_or_key_read": true,
+    "no_source_provider_GET": true,
+    "no_process_started": true
+  },
+  "verification": {
+    "published_test_blob_exact_readback": true,
+    "whole_file_short_string_scan": {
+      "invalid": [],
+      "endState": "code",
+      "lines": 335
+    },
+    "python_parse_executed": false,
+    "tests_executed": false,
+    "actual_missing_module_RED_observed": false
+  },
+  "next_action": "Root integrates this final8-test CLI blob with P0's final12 orchestrator tests on preserved existing PR40 and observes actual proper RED before any repair runtime implementation. Current positive older proof is not itself a publication claim."
+}
