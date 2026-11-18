@@ -1,0 +1,30 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_PRESERVATION_V1",
+  "recorded_at_utc": "2026-11-18T06:43:00Z",
+  "repository": "haji84/RACE-AI",
+  "pr": 36,
+  "original": {
+    "state": "open",
+    "draft": true,
+    "title": "feat: 徳山の選手登録番号・モーター情報を証拠照合で統合",
+    "body": "徳山公式レース一覧で得た6艇の選手名に対して、別途独立検証された登録番号/モーター番号を同日・同レース・同艇番・選手名で照合するオフライン結合処理を追加。欠損・重複・選手名相違・未検証ソースはSAFE_STOP。合成fixtureテストあり。\n\n実公式HTMLからの詳細抽出・実データE2Eは未実施。verified_sourceフラグは許諾の証明ではなく、出典の真偽確認も外部プロセスが必要。一般公開許可なし。main/Production変更なし。",
+    "head_ref": "feat/boat-venue-racer-motor-join",
+    "head_sha": "bc213373adcb94703a837ea05e4ee618c8b0ba30",
+    "base_ref": "feat/boat-venue-first-adapter",
+    "base_sha": "fa7e599370abc0ee8543904e3fd226a311ea6f46"
+  },
+  "ancestry": {
+    "destination_ref": "main",
+    "destination_sha": "b1c8de6b794e0cae61ecdb25593a4d3a11b63e58",
+    "merge_base_sha": "bc213373adcb94703a837ea05e4ee618c8b0ba30",
+    "behind_by": 0,
+    "ahead_by": 2286,
+    "original_head_is_ancestor": true
+  },
+  "open_base_consumers": {
+    "collection_count": 38,
+    "per_page": 100,
+    "matching_prs": []
+  },
+  "scope": "Synchronize only the actual normally merged source f1f8ed4... and correct the native-reference/UI-all-P1 count mismatch with failing tests first. Preserve original PR and every historical owner/read path; no new PR."
+}

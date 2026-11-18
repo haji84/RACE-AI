@@ -268,6 +268,41 @@ if(initial)saved=observed(initial);
 
 
 
+def count_current_v5_native_groups(reference_groups, UI_option_values, *, _api):
+    """Count exact authenticated references separately from all UI P1 groups."""
+    a = _api
+    reason = 'CURRENT_V5_EVIDENCE_INVALID'
+    _need(type(reference_groups) is list and len(reference_groups) <= 32768
+        and type(UI_option_values) is list and len(UI_option_values) <= 32768, a, reason)
+    references = set()
+    all_groups = set()
+    total_chars = 0
+
+    def identity(group):
+        _need(type(group) is list and len(group) == 4
+            and all(value is None or type(value) is str and len(value) <= 4096
+                    for value in group), a, reason)
+        return a.wire(group)
+
+    for group in reference_groups:
+        key = identity(group)
+        total_chars += len(key)
+        _need(total_chars <= 4 * 1024 * 1024, a, reason)
+        references.add(key)
+    for value in UI_option_values:
+        _need(type(value) is str and len(value) <= 32768, a, reason)
+        total_chars += len(value)
+        _need(total_chars <= 4 * 1024 * 1024, a, reason)
+        try:
+            fields = json.loads(value)
+        except (ValueError, TypeError, RecursionError):
+            continue
+        if type(fields) is list and len(fields) >= 6 and fields[1:3] == ['boat', 'P1']:
+            all_groups.add(identity((fields[3:7] + [None])[:4]))
+    return dict(all_references_present=references <= all_groups,
+        matched_count=len(references & all_groups), all_count=len(all_groups))
+
+
 _CURRENT_V5_DIAGNOSTIC_BOOLS = (
     'native_p1_verified', 'native_groups_match', 'result_metrics_parsed',
     'probe_fields_match', 'schema_matches', 'generation_matches', 'cipher_matches',
@@ -625,16 +660,10 @@ def current_v5_checks(assets, seed, private, replay, secrets, *, _api):
                 phase = 'result_groups'
                 a.click_saved_page(driver, 'results')
                 values = driver.script('return Array.from(document.querySelectorAll("#results-model option"),e=>e.value)')
-                groups = set()
-                for value in values:
-                    try:
-                        fields = json.loads(value)
-                        if type(fields) is list and len(fields) >= 6 and fields[1:3] == ['boat', 'P1']:
-                            groups.add(a.wire((fields[3:7] + [None])[:4]))
-                    except (TypeError, ValueError):
-                        pass
-                groups_match = all(a.wire(group) in groups for group in context['native_groups'])
-                diagnostic.update(observed_native_p1_groups=len(groups), native_groups_match=groups_match)
+                counted = a.count_current_v5_native_groups(context['native_groups'], values)
+                matched_groups = counted['matched_count']
+                groups_match = counted['all_references_present']
+                diagnostic.update(observed_native_p1_groups=matched_groups, native_groups_match=groups_match)
                 _need(groups_match, a, 'CURRENT_V5_EVIDENCE_INVALID')
                 phase = 'result_metrics'
                 metrics = driver.script('return document.querySelector("#saved-result-metrics")?.textContent')
@@ -645,7 +674,7 @@ def current_v5_checks(assets, seed, private, replay, secrets, *, _api):
                 phase = 'verify_probe'
                 observed = driver.script(a.current_v5_probe_script())
                 _need(type(observed) is dict, a, 'CURRENT_V5_EVIDENCE_INVALID')
-                observed.update(results=int(result_count[1]), native_p1_groups=len(groups), model_choices=choices)
+                observed.update(results=int(result_count[1]), native_p1_groups=matched_groups, model_choices=choices)
                 diagnostic.update({name: value for name, value in
                     _current_v5_facts(context, observed, site.audit, a).items() if value is not None})
                 if _hex(observed.get('cipher_sha256')):

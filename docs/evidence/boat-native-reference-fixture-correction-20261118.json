@@ -1,0 +1,58 @@
+{
+  "schema": "RACE_AI_NATIVE_REFERENCE_FIXTURE_CORRECTION_V1",
+  "recorded_at": "2026-11-18T07:15:00Z",
+  "initial_combined_head": "abd713b385b9090610ebf52d3e1a195cd8b39f9c",
+  "runtime_unchanged": true,
+  "actual_ci": {
+    "national": {
+      "job_id": 134640818966,
+      "tests": 346,
+      "seconds": 107.867,
+      "status": "SUCCESS"
+    },
+    "recovery": {
+      "job_id": 134640818414,
+      "tests": 138,
+      "seconds": 0.686,
+      "status": "SUCCESS"
+    },
+    "mirror": {
+      "job_id": 134640819588,
+      "tests": [
+        212,
+        32
+      ],
+      "seconds": [
+        60.334,
+        0.026
+      ],
+      "status": "SUCCESS"
+    },
+    "native": {
+      "job_id": 134640819183,
+      "tests": 140,
+      "seconds": 18.828,
+      "failures": 2,
+      "errors": 0
+    },
+    "racer": {
+      "job_id": 134640819134,
+      "tests": 206,
+      "seconds": 16.803,
+      "failures": 2,
+      "errors": 0
+    }
+  },
+  "reason": "New privacy helper rejected broad substring ciphertext, which also occurs in required public field names ciphertext_bytes and ciphertext_files. Initial missing API RED had masked this fixture problem.",
+  "correction": {
+    "tests_before": "e8c1524f21946a4d03054d21ada89bd74ee59f86",
+    "tests_after": "9b2c039e4c6950191e03a561f44d7a70a5032e4c",
+    "only_privacy_helper_changed": true,
+    "all_140_test_methods_byte_unchanged": true,
+    "existing_shared_fixtures_byte_unchanged": true,
+    "actual_ciphertext_values_and_recursive_exact_payload_key_rejected": true,
+    "existing_id_url_key_top8_and_records_assertions_retained": true
+  },
+  "fresh_ci_after_correction": "PENDING",
+  "actual_mac_after_correction": "PENDING"
+}

@@ -1,3 +1,23 @@
+## 2026-11-18 07:15 UTC: 実CIのfixture衝突を訂正し再試験、24巡の内部HOLDを別計上
+
+PR36 runtime abd713b385b9090610ebf52d3e1a195cd8b39f9cの実CIで、national346件/107.867秒、recovery138件/0.686秒、mirror212件/60.334秒+32件/0.026秒は成功。native140件/18.828秒とracer206件/16.803秒はそれぞれ2失敗/errors0。集計・欠落拒否の検査は通ったが、新privacy helperが汎用語ciphertextを秘密文字列とみなし、既存公開field ciphertext_bytes/filesにも一致するfixtureの誤りだった。初期API未実装REDではこの衝突まで到達していなかった。runtime/19field/26field/140test methodは変えず、暗号文の実際の値と再帰的な秘密payload keyの不出力を検証するhelperだけへ訂正し、ID/URL/key/Top8/records拒否も維持して再CIする。
+
+完了A74の正規ログが06:27:48 UTCまで得られた。24 step successの内部には研究PDCA summary24、研究保管verified22/HOLD2、P1 readback HOLD1、ALL_MODEL_PATH_REJECTED1も記録されている。これらを成功へ換算せず、原因と対象round・後続回復の有無を追加調査する。新A74 continuation44252479726は旧コードのまま動作中で停止しない。cacheF1の実効果や全日/GOAL成功は未実証。
+
+## 2026-11-18 07:10 UTC: 24巡成功・次worker継続、キャッシュ版の参照同期とSafari集計修正を検証（GOAL未達）
+
+元の失敗run43829249080はP0保管で失敗・24巡skipとして保全する。後継の実A74 run44218343091/job134513710675は06:27:51 UTCにSUCCESSで終了し、24巡すべてsuccess・skip0・failed0を正規metadataで確認した。これだけで全国全レース・全モデルや締切15〜10分前の充足とはしない。main owner44252445746/job134626113134は06:35:35 UTCにREADY_VERIFIED_SAME_DAY_CONTINUATIONとなり、次のA74 run44252479726を既存経路で起動した。稼働中のworkerを停止・hotswapせず、原本と累積取得量を引き継ぐ。
+
+source PR39はtested bcb3eb40811ec117001649bb27b7343ba79e62a2/tree33a715b8293b25ac4d55bf1761899f44b46f6e1cから通常mergeし、実保護先端f1f8ed4ffb2a29e6b702685f49de63918610479dとtree一致。最終CI44251996070/job134624652994は865件/293.162秒、38件/3.225秒、165件/43.925秒、46件/0.325秒等を含み成功。真正metadata/ZIP SHAを毎回確認する暗号アーカイブ転送キャッシュと、writerと分離した読戻しGit物理キャッシュを実装した。codec/scorer/毎回のcommit fetch・内容比較は保持。成功VMはAzure apt mirrorを使用したためEC2 mirror置換の実効果は未検証。既に動作中のA74にはこの変更が入っておらず、実運転の高速化は未実証。
+
+mainは通常merge b1c8de6b794e0cae61ecdb25593a4d3a11b63e58。実Mac44252487186/job134626256360は137件/53.890秒成功後、06:42:41 UTCにCURRENT_V5_EVIDENCE_INVALID/verify_probeでHOLDした。原本native全9groupのUI内存在は検証済みだったが、最後に別用途のP1も含む全21groupをnative9と比較する集計対象の不一致を実測。日付・schema/generation/cipher・結果72/72・model2/2・browser AES・秘密/外部書込境界の他の診断は一致した。HOLDを成功に書き換えない。
+
+既存PR36のテスト先行head dee69af954b4ce1ac1145b3b22c23fe15002a8dbでは140件/16.540秒中3件が未実装counter APIだけで失敗（errors0、従来137件成功）。当該回帰は実current_v5_checksを通し、追加/重複/日付違いのP1を余分にnativeへ加算せず、欠落・source_code差異は拒否する。修正は認証済みreferenceと一致したunique groupのみを数え、全reference必須と最後の厳密等号を維持する。公開f603・EFF reader・ed904候補・native workflow・19成功field/26診断fieldは保持。新しい実Mac結果はまだ確認前。
+
+同PRの実sourceF1 pin更新もテスト先行とし、recovery138件/0.345秒中6失敗、racer206件/19.249秒中7失敗（4pin+3counter）、national346件/137.021秒中13失敗、全てerrors0。過去A74原本読取を残し、F1を既存役割にだけ追加する7 runtime fileの17編集を独立レビューした。最終修正後CI・通常main merge・既存main gateからの次のnative要求をこれから確認する。active A74があればsourceはHOLDを守る。ジョブ・入力・cron・runner・timeout・権限・prefix・marker名は増やさない。
+
+gen425の欠落12group実修復と別runner missing0、および公開429までの連続性は別証拠として保全。最新私的世代の全件数は公開manifestから推定しない。4競技全レース×全適用既存model、締切15〜10分前の全件保存/照合、実iPhone Safari、6艇服色継続識別/校正/予想接続、前向き精度改善は未達。元offlineのPR70 b7380fe6a377e6ccf2b96331f2126c52549bbe17・PR292 daae4c10167224b7730006d8ada5ade398aaa64bは02:51:34 UTC正規APIが両方422 No commit foundで、未復元を維持する。選択された実行環境はfailedのまま。GitHub管理接続の実read/write/通常mergeと、ローカルshell利用可否は分けて扱う。新PR/モデル系統/課金/公開UI/投票/本番重み切替なし。以下は時点ごとの履歴。
+
 ## 2026-11-18 06:22 UTC: Macの真正V5照合HOLDを記録し、実測値だけの診断を検証（GOAL未達）
 
 main f2819a0084c8947fe266de015b3436619effc900はPR38 tested68516f8d/tree1d2846e2と同じtreeの通常merge。最終133件/15.922秒・195件/19.624秒・131件/0.471秒、25checks(12success/13skip/failed0)は実成功した。元原本・公開f603/EFF reader/ed904候補・native workflowは保持した。

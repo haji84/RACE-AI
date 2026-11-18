@@ -1700,6 +1700,11 @@ def current_v5_probe_script():
     return _current_v5_helpers().current_v5_probe_script()
 
 
+def count_current_v5_native_groups(reference_groups, UI_option_values):
+    return _current_v5_helpers().count_current_v5_native_groups(
+        reference_groups, UI_option_values, _api=_CURRENT_V5_API)
+
+
 def current_v5_diagnostic(value):
     return _current_v5_helpers().current_v5_diagnostic(value)
 

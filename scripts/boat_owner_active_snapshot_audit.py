@@ -16,7 +16,8 @@ M2_OWNER_SHA='86b029ae5bddd5d4956497d8b32b2c92b8eec521'
 PROFILE_OWNER_SHA='f55351dce855177a51330f72c37d6238ba2c9e3e'
 RETENTION_OWNER_SHA='bb49215034b779ea1493b35dd91e5c3ebfc04032'
 ATOMIC_OWNER_SHA='a74f1e940e7fc0852e63938f8138bdb58bd93163'
-PARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA,ATOMIC_OWNER_SHA)
+RESEARCH_CACHE_OWNER_SHA='f1f8ed4ffb2a29e6b702685f49de63918610479d'
+PARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA,ATOMIC_OWNER_SHA,RESEARCH_CACHE_OWNER_SHA)
 BRANCH='production/boat-p0-p1-20261111'
 JOB='Existing frozen P0, exhibition P1, separate official results and PDCA'
 SCHEMA='RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1'
@@ -242,7 +243,9 @@ def _canonical_p0(get,run,listing,now,*,expected_owner_sha=OWNER_SHA):
              expected_owner_sha==PROFILE_OWNER_SHA and origin['head_sha']==M2_OWNER_SHA or
              expected_owner_sha==RETENTION_OWNER_SHA and origin['head_sha'] in (M2_OWNER_SHA,PROFILE_OWNER_SHA) or
              expected_owner_sha==ATOMIC_OWNER_SHA and origin['head_sha'] in
-                 (M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA)),
+                 (M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA) or
+             expected_owner_sha==RESEARCH_CACHE_OWNER_SHA and origin['head_sha'] in
+                 (M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA,ATOMIC_OWNER_SHA)),
          'P0_ORIGIN_IDENTITY')
     originals=artifact_pages(get,origin['id'])
     matches=[x for x in originals if x.get('id')==receipt.get('artifact_id') and
