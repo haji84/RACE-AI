@@ -3340,5 +3340,64 @@ class CurrentV5EvidenceDiagnosticTests(unittest.TestCase):
             self.assertEqual(self.assert_safe(report), valid)
         self.assertEqual(malicious, before)
 
+    def test_early_failure_samples_latest_audit_after_both_cleanup_steps(self):
+        arguments, _ = current_v5_fixture()
+        replay = S.build_current_v5_replay(**arguments)
+        private = {'key': 'K' * 43, 'fragment': '#saved=' + 'a' * 64 + '.' + 'K' * 43}
+        audit = {'private_view_reads': 0, 'encrypted_seed_reads': 0,
+                 'current_v5_manifest_reads': 0, 'current_v5_cipher_reads': 0,
+                 'non_read_requests': 0, 'outbound_requests_permitted': 0,
+                 'secret_in_request': False}
+        events = []
+        class Driver:
+            def command(self, *args, **kwargs):pass
+            def wait(self, *args, **kwargs):
+                audit.update(encrypted_seed_reads=1, current_v5_manifest_reads=2,
+                             current_v5_cipher_reads=7, secret_in_request=True)
+                events.append('browser-read')
+            def select(self, *args, **kwargs):pass
+            def script(self, source, *args):
+                if 'selectedOptions' in source:return False
+                raise AssertionError('unexpected private-driver-script-sentinel')
+        @contextmanager
+        def browser():
+            try:
+                yield Driver(), {'browserName': 'Safari', 'platformName': 'macOS',
+                                 'browserVersion': '26.6'}
+            finally:
+                audit['current_v5_cipher_reads'] = 8
+                events.append('browser-closed')
+        @contextmanager
+        def site(*args, **kwargs):
+            class Site:
+                url = 'http://127.0.0.1:1234/'
+            active = Site();active.audit = audit
+            try:
+                yield active
+            finally:
+                audit.update(encrypted_seed_reads=2, current_v5_manifest_reads=3,
+                             current_v5_cipher_reads=9)
+                audit.pop('non_read_requests')
+                events.append('site-closed')
+        with patch.object(S, 'LoopbackSite', side_effect=site), \
+                patch.object(S, 'apple_driver', side_effect=browser), \
+                patch.object(S, 'open_saved_race'), self.assertRaises(S.SafariHold) as caught:
+            S.current_v5_checks({}, {}, private, replay, arguments['secrets'])
+        self.assertEqual(events, ['browser-read', 'browser-closed', 'site-closed'])
+        report = S.failure_report(caught.exception)
+        diagnostic = self.assert_safe(report)
+        self.assertEqual(report['current_v5_phase'], 'native_p1_detail')
+        self.assertEqual(diagnostic['encrypted_seed_reads'], 2)
+        self.assertEqual(diagnostic['current_v5_manifest_reads'], 3)
+        self.assertEqual(diagnostic['current_v5_cipher_reads'], 9)
+        self.assertEqual(diagnostic['private_view_reads'], 0)
+        self.assertEqual(diagnostic['outbound_requests_permitted'], 0)
+        self.assertIs(diagnostic['secret_in_request'], True)
+        self.assertIsNone(diagnostic['non_read_requests'], 'a missing final fact must not retain entry zero')
+        self.assertIs(diagnostic['native_p1_verified'], False)
+        self.assertIsNone(diagnostic['observed_results'])
+        self.assertIsNone(diagnostic['source_day_matches'])
+
+
 if __name__ == '__main__':
     unittest.main()
