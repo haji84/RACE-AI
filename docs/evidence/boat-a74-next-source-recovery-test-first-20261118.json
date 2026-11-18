@@ -1,0 +1,39 @@
+{
+  "schema": "RACE_AI_A74_NEXT_SOURCE_RECOVERY_TEST_FIRST_V1",
+  "tests_blob": "155dc1af4225dc3e19e83b83d287a93d67b45a14",
+  "contract_blob": "7f9cb045e32633ea830e5f97a3062ff952305b99",
+  "base_contract": "6f2b02823528fd77ce4cfeeb9d61b103ef2bb56e",
+  "original_test_prefix_preserved": true,
+  "original_methods": 13,
+  "additive_methods": 6,
+  "red": {
+    "head": "a7658484e418fef9fa7986db10cea582c8100325",
+    "fast": {
+      "run_id": 44248485990,
+      "job_id": 134613120254,
+      "tests": 184,
+      "seconds": 37.367,
+      "assertion_failures": 6,
+      "errors": 0
+    },
+    "full": {
+      "run_id": 44248486006,
+      "job_id": 134613120807,
+      "tests": 865,
+      "seconds": 227.057,
+      "assertion_failures": 6,
+      "errors": 0,
+      "original_859_passed": true
+    }
+  },
+  "scope": "Real AES, independent in-memory vault readback, callback, today_owners, proof, old-checkout refusal and tamper/source mismatch. Fictional new expected head is only test context, never a production pin.",
+  "implementation": {
+    "contract_blob": "be56af54f71d4c3a7d303823b056e4964150db49",
+    "changes": "Append exact A74 to historical recovery origins, with comment; every function and old entry byte-preserved.",
+    "dispatch_of_old_source_authorized": false,
+    "current_checkout_and_proof_binding_unchanged": true,
+    "acceptance_not_relaxed": true
+  },
+  "live_speedup_proven": false,
+  "broader_goal_complete": false
+}

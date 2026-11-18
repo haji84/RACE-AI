@@ -27,6 +27,9 @@ REVIEWED_PREVIOUS_OWNER_SHAS = frozenset({
     # Exact retention release originals/control only; next checkout and proof
     # remain bound to the current expected source, never this historical SHA.
     'bb49215034b779ea1493b35dd91e5c3ebfc04032',
+    # Exact pre-transport-cache owner: historical AES/control readback only.
+    # The recovery checkout and emitted proof still require the new head.
+    'a74f1e940e7fc0852e63938f8138bdb58bd93163',
 })
 
 
