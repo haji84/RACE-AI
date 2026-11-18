@@ -13,6 +13,12 @@
 - 01:25 JSTの通常 `git fetch --no-write-fetch-head origin <SHA>` でも両commitは `upload-pack: not our ref`。公開read成功・認証成功・既存branchへの実FF push成功とは別に、元offline変更は未復元のまま。
 - 新PR・モデル系統・課金・job/input/cron/runner/timeout/権限・marker名を増やしていない。UI公開・投票・本番重み切替0。OFF pilot/PR290/291/main308、legacy KEIRIN-AIを維持。
 
+## 本人利用の範囲と朝の起動確認
+
+ユーザーの「公開するわけやないよ」に従い、一般公開を前提にした許可待ちは取り下げる。本人用画面の開発・private loopback/合成受入を継続し、公開Pagesの資産は変更しない。
+
+06:57〜07:02 JSTの正規metadataではlauncher359件、canonical owner356件とproduction限定34件を全ページ確認し、非completed0。新しい朝イベントは未観測で、新しい朝ゲートがHOLDしたという証拠はない。現在のref/owner doc/historyを既存pure decideで再評価するとREADY_EXISTING_OWNER_WORKFLOW_ONLYだが、Actionsの実起動判定とは区別する。既存manualはowner判定を通らずdaily collectorへ進むため、直接source起動の代替にしない。[全頁監査](evidence/boat-morning-schedule-delivery-audit-20261119.json)。
+
 ## P0保管の修正と実運転
 
 元run43829249080のP0保管失敗・24巡skipを履歴として残す。Gitの不足blob取得が約2.77GBへ膨張する原因を再現し、選択blob取得と既存保管処理を修正した。修正後A74 run44218343091では24巡が実行され、別runnerの認証で24巡最終control・73 AES原本・ALL_MODEL 23 ZIP、saved AES viewと一致するP1 **513行/欠落0**を確認した。公式P0 scheduleは132レース。513行は固有レース数・完全P0/P1 union・適格分母ではない。[独立監査](evidence/boat-main-sync-closed-a74-actual-20261118.json)。
@@ -61,7 +67,7 @@ main参照同期もテスト先行RED（recovery138件中5失敗、national368�
 
 f723のnative Safari検証用SHA/treeとworkflow候補2tokenを一致させた。三つの見た目資産は7082と同byte。テスト先行RED1件→GREEN178件、独立178件も成功。旧7082の厳格loader検証を保全し、実f723も74資産/37,568,588byteを検証した。固定更新後の178件も全成功。checkerの関数・guard・時計・環境・公開f603/EFF/privateV5・job/権限は変更0。更新後の実native実行は上記CURRENT_V5_REPLAY_INVALIDで保留。[候補固定の証拠](evidence/boat-native-reviewed-candidate-pin-20261119.json)。
 
-修正後の合成[8画面previewをGitHubへ保管](https://github.com/haji84/RACE-AI/blob/1e97e66031c3a48467029587bd29f2f6ab669df2/docs/evidence/boat-ui-f723-preview-20261119/README.md)した。Chromium/架空入力/portrait表示0・provider GET0で全8判定PARTIAL。元参考JPEG・実原本・鍵・owner URLを含めない。実機向けの公開反映案は既存GitHub Pagesのapp.js/style.css/product-data.js/派生index.html/site-build.jsonの5ファイル。既存refresh_site_assetsの直前parent CAS/全views/forecast digest/view_id/件数を保ち、cryptoは現公開版と同byte。新Pages SHAは未確定で、元指示「無断公開禁止」に基づく確認が必要。公開操作は未実行。
+修正後の合成[8画面previewをGitHubへ保管](https://github.com/haji84/RACE-AI/blob/1e97e66031c3a48467029587bd29f2f6ab669df2/docs/evidence/boat-ui-f723-preview-20261119/README.md)した。Chromium/架空入力/portrait表示0・provider GET0で全8判定PARTIAL。元参考JPEG・実原本・鍵・owner URLを含めない。ユーザーは「公開するわけやないよ」と明示した。本人用UIの開発・受入確認が作業範囲で、一般公開やPagesへの配備を完成条件にしない。公開許可を開発・ローカル検証の開始条件にしない。以前の5ファイル配布案は参考として保全し、実行していない。公開範囲・暗号化・原本・モデル重みを保持して検証を続ける。
 
 服色journal評価の実装はsource fbcへ反映した。実trackerのunknown_detectionsを無視すると6frame/36targetのうち不明検出のあるframeまで完全6艇成功に数える不具合を修正し、完全成功3frame・不明検出1・clean区間の継続6と区分した。rider部位を船体/物理位置へ転用せず、欠測frameも明示する。focused100・source223・独立112件などが成功しreview CLEAR。実6艇映像/独立GT/距離時刻校正/強さ評価の合格とはしない。[評価と再現](https://github.com/haji84/RACE-AI/blob/fbc743be548bfd123e46cdbfe290515a59e5e0d3/docs/evidence/boat-clothing-benchmark-resume-20261118.json)。
 
