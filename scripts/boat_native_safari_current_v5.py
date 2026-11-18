@@ -574,6 +574,22 @@ def current_v5_checks(assets, seed, private, replay, secrets, *, _api):
     context = _json(replay._context, 4 * 1024 * 1024, a)
     diagnostic = _current_v5_facts(context, None, None, a)
     phase = 'native_p1_detail'
+    site = None
+
+    def final_diagnostic(value):
+        # Called only after both context managers have completed their cleanup.
+        try:
+            final_audit = current_v5_diagnostic(site.audit)
+        except Exception:
+            final_audit = current_v5_diagnostic(None)
+        result = current_v5_diagnostic(value)
+        for name in ('private_view_reads', 'encrypted_seed_reads',
+                     'current_v5_manifest_reads', 'current_v5_cipher_reads',
+                     'non_read_requests', 'outbound_requests_permitted',
+                     'secret_in_request'):
+            result[name] = final_audit[name]
+        return result
+
     try:
         with a.LoopbackSite(assets, None, encrypted_seed=seed, current_v5=replay, secrets=secrets) as site:
             diagnostic.update({name: value for name, value in
@@ -647,8 +663,8 @@ def current_v5_checks(assets, seed, private, replay, secrets, *, _api):
         combined = dict(diagnostic)
         combined.update({name: value for name, value in
             current_v5_diagnostic(error.diagnostic).items() if value is not None})
-        raise a.CurrentV5EvidenceHold(error.phase, combined) from None
+        raise a.CurrentV5EvidenceHold(error.phase, final_diagnostic(combined)) from None
     except a.SafariHold as error:
         if str(error) == 'CURRENT_V5_EVIDENCE_INVALID':
-            raise a.CurrentV5EvidenceHold(phase, diagnostic) from None
+            raise a.CurrentV5EvidenceHold(phase, final_diagnostic(diagnostic)) from None
         raise

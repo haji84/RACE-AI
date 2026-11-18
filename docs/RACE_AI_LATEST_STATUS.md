@@ -1,3 +1,17 @@
+## 2026-11-18 06:22 UTC: Macの真正V5照合HOLDを記録し、実測値だけの診断を検証（GOAL未達）
+
+main f2819a0084c8947fe266de015b3436619effc900はPR38 tested68516f8d/tree1d2846e2と同じtreeの通常merge。最終133件/15.922秒・195件/19.624秒・131件/0.471秒、25checks(12success/13skip/failed0)は実成功した。元原本・公開f603/EFF reader/ed904候補・native workflowは保持した。
+
+正規main owner44246588266/job134606895185は05:46:57 UTCにHOLD_ACTIVE_OWNER_WORKFLOW/公式GET0で重複sourceを止め、05:47:01 UTCに既存native要求1回のACKを得た。実Mac44246632536/job134607045564は133件/51.908秒成功後、05:52:51 UTCにCURRENT_V5_EVIDENCE_INVALIDでHOLD。現在のsanitized reportはmain1611までで失敗predicateを識別できない。V5当日・browser AES・実Safari受入を成功扱いしない。
+
+受入条件を変えず、固定phaseと26個のbool/上限付きcountだけを診断する3テストを追加。既存133件を保ち、実136件/17.962秒で新3件の未実装だけが失敗した。独立レビューで、site入口の監査counterを失敗時まで使うと新たな通信を0と報告する不備も発見し、136件を保つ1検査を追加。実137件/21.129秒で古い0と後片付け後の2の不一致だけが失敗、他136件成功。6counterとsecretのboolだけを終了後の実測で再取得し、未観測はnullとする。秘密URL/鍵/レースID/model名/Top8/本文は診断へ出さず、元の全受入predicate・異なる拒否理由・cleanupを保持する。最終CIと次の実Macは確認前。
+
+source PR39の再転送削減では22追加検査・全859件/191.967秒＋38件/2.614秒は成功したが、32.1MB/357秒と62.8MB/436秒のapt取得後、18分制限の検査中にcancelledとなった。制限時間やrunnerを変えず、同じpinned browserの実起動probeでsystem depsの必要性を確認してから補う。全既存検査とffmpeg/ffprobeは維持し再CI中。次版からA74原本を復旧するsource-local contractの不足も、元13methodを保つ6検査で実865件/227.057秒の6assert失敗として再現。A74を過去原本読取りにだけ追加した最小修正は184件/56.951秒成功、全体CIは進行中。mainの現在pinはA74のまま、PR headを保護先端と扱わず、通常mergeの実SHAが得られるまで次pinを書かない。
+
+06:16:20 UTCの実metadataではA74 run44218343091/job134513710675は23巡success/24巡実行中/failed0。停止・hotswapしない。gen425の欠落12group実修復・独立missing0と公開manifest429までのchainは別の証拠として保持し、後世代の私的本文や全日完成を推測しない。
+
+4競技の全レース×全適用既存model・締切15〜10分前・実iPhone・6艇服色継続識別/校正/予想接続・前向き精度改善は未達。元offline2commitは未復元。新PR/モデル系統/課金/公開UI/本番重みを増やさず、原本と実失敗を保存する。以下は各時点の履歴。
+
 ## 2026-11-18 05:41 UTC: 実修復を保全し、再取得削減と現行V5 Safariを最終CIへ（GOAL未達）
 
 欠落12groupのgen425実修復と別runによるmissing0は下の05:02記録・実証拠のとおり。後続の公開manifestは04:48:24 UTCにgen426へ進み、previous-cipherが修復425と一致し、同じanchor/Git祖先で接続した。公開metadataだけでは当日本文・REJ件数・source ACKを確認できない。実A74の正規joblogは03:19:07で停止したsnapshotだったため、その先の失敗/成功を推測しない。

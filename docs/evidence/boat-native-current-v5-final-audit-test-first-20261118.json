@@ -1,0 +1,33 @@
+{
+  "schema": "RACE_AI_NATIVE_CURRENT_V5_FINAL_AUDIT_TEST_FIRST_V1",
+  "draft_helper": "17557f5cd57655e34e6d284a7d216513488f75e7",
+  "checker_unchanged": "29d20363286ff9484a6cbc1dc8c19a25905ae9be",
+  "tests": "ac96a28afbdb2e2a6bbe83694539da28337cf0df",
+  "contract": "7c9332feab91ecb2cffff17e0ac3bc44cd6eda17",
+  "original_136_prefix_and_footer_preserved": true,
+  "additive_methods": 1,
+  "red": {
+    "head": "51d968efa99f29b9f49bc7f8e9959bbb01fbb513",
+    "tree": "6fef53e2dc6e300def96c750ed4011b3e439ad9c",
+    "run_id": 44250692076,
+    "job_id": 134620356574,
+    "tests": 137,
+    "seconds": 21.129,
+    "failures": 1,
+    "errors": 0,
+    "other_136_passed": true,
+    "failed_case": "test_early_failure_samples_latest_audit_after_both_cleanup_steps",
+    "observed_problem": "entry0 did not reflect final2 after cleanup"
+  },
+  "correction": {
+    "helper": "5884146f22f5ab1db48bc1393eb1bed080b4d3bd",
+    "patch_packet": "77461f84d46485b0a3af33fbf3dfb459b95efd83",
+    "only_final_six_audit_counts_and_secret_boolean_refreshed": true,
+    "unknown_overwrites_stale_with_null": true,
+    "acceptance_predicates_and_other_refusal_reasons_unchanged": true,
+    "keys_private_values_or_view_bodies_exported": false
+  },
+  "fresh_green_pending": true,
+  "native_acceptance_proven": false,
+  "goal_complete": false
+}
