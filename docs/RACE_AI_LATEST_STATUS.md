@@ -1,3 +1,19 @@
+## 2026-11-18 09:05 UTC: 閉じた24巡の独立AES/P1照合が成功、欠落とペア監査HOLDを分けて記録（GOAL未達）
+
+main PR35は通常merge7e540c831b8a25f51581e5edee014c3c1a9576d5/tree219a6ed10a81a0d7b9b58922d9ee7b17708afdd8で、testedabc9a7f1と完全一致。最終26checkは12success/14skip/failed0、350件/126.510秒・206件/16.980秒・138件/0.512秒・mirror212件/57.342秒+32件/0.025秒が実成功。実gate44268654064/job134679404877は08:38:09 UTCにsourcec979を確認してHOLD_ACTIVE_OWNER_WORKFLOW/公式GET0。nativeはCANDIDATE_UNCHANGEDでrequest_attempted=false。旧A74 workerは停止していない。
+
+追加した別runner監査44268654165/job134679404317は08:43:46 UTCに、閉じたA74 run44218343091の24巡・最終controlと73AES archiveを認証した。ALL_MODEL 23 ZIPはGitHub SHA/ZIP/AES/元projectionが一致し、P1の513行がsaved AES viewと一致、欠落0。原本の公式P0 scheduleは132レースとして認証した。r0のgenerated585はP1行513と同じ値ではなく、他runの660やbaseline285へ無条件に足さない。513行を固有レース数・全model union・適格分母へ換算しない。[通常mergeと実独立監査](evidence/boat-main-sync-closed-a74-actual-20261118.json)。
+
+round4/19のALL_MODEL ZIPがなくHOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINEDを維持。physical_pre_cutoff_distinct_model_slots=0/official_cutoff_qualification=falseは、この全体HOLDによる監査結果で、513行すべてが締切後だった証拠ではない。P0/P1完全union・全日充足・G8は未実証。元モデル/学習版の別API集計はPAIR_AUDITでHOLD/null。原因は公開APIが全例外をValueError(CURRENT_PAIR_AUDIT_REJECTED)へ置換しcallerも捨てるため未特定であり、受入を緩めず固定phase/型別理由だけの診断をテスト先行で追加する。正常なHOLD_NO_PAIR_ARCHIVES/HOLD_G8_UNQUALIFIED出力は維持する。
+
+同じ実jobで現世代436/snapshotc35487b569bc367ee877060acc08e9961e5d7d6dを独立AES認証し、reason bindingはNO_BINDING_INCONSISTENCY_IN_THIS_VIEW。対象view OBS292/history0、REJ12/history12/比較12/missing0。元のgen425修復原本とMac/gen433の成功は別の証拠として保全する。後世代の件数差を全保存日削除や全体完成と推定しない。
+
+競輪を最新の実4runで再確認。[実証記録](evidence/keirin-current-automatic-blockers-20261118.json)。44236121551は日次indexHTTP403でFAIL、真正取得件数null・artifactなし。44222760913は11/18のlive Kdreams79リンク/8会場のDISCOVERED_ONLYで、cutoff/入力/結果/予想は未検証。44219285700のSUCCESSはnightly分岐でcapture/復号/学習/uploadがskip、44217530016のSUCCESSもPR71入力不完備HOLDで実予想保存なし・件数null。SUCCESSだけで競輪稼働と扱わない。
+
+PR71承認profile5728/文書3e128はWINTICKET/KEIRIN.JPのみで「楽天/Kドリームスは従来のユーザー方針により利用しない」「HTTP429/403など提供元の制限は尊重する」と明記。Kdreams HTTP200のidentity ledgerを予想入力へ転用せず、approved raw/JSON/CSV原本・7/9人roster/修正履歴/公式締切・347/437項目/critical input・目的別grantを要求する。既存stage_permissioned_deliveriesのoffline取込経路はあるが、許可済み原本の場所は未確認。場所・設定名だけを本人へ質問済みで、鍵はチャットへ要求しない。新host/proxy/403再試行/既定OFFpilot/legacy KEIRIN-AIは変更しない。
+
+元offline2commitは08:40:39 UTCの正規APIでも両方422 No commit foundで未復元。別環境fileの自動移転は仮定しない。実行環境failed、鍵Actionsのみ。4競技全レース×全適用model/T15〜10全件・物理iPhone・8画面目視・6艇校正/接続・前向き改善は未達。新PR/job/input/cron/runner/timeout/権限/marker名/モデル系統/課金/公開UI/投票/本番weight切替なし。以下は時点ごとの履歴。
+
 ## 2026-11-18 08:31 UTC: 実source pinのRED17件を確認、最小同期と追加A74監査を最終CIへ
 
 既存PR35 head8376ea5889162fd69ca07dd612256820344b7d1fで実REDを確認した。recovery44266865043/job134673445548は138件/0.346秒の5失敗、national44266865092/job134673447634は350件/144.690秒の12失敗、errors0。全てcurrent source/新partial roleの未同期による期待したassertionで、既存346件と4追加role methodの境界を保全。sourceの実保護先端c979aeb678538d99e277f26726047dccbdc982afへ、6 runtime/workflowファイルの16規則19箇所だけを合わせた。RESEARCH_CACHE_OWNER_SHA=F1と旧P0規則、failed契約2個、固定M2/BB/EFF/0796 reader、native tailは維持する。
