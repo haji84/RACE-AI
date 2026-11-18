@@ -24,8 +24,8 @@ TRIFECTA = re.compile(
 # Kdreams payout grid separates '3連単' and the winning trio into
 # distant cells. An odds listing has no 円 amount; require a paid triple.
 KD_TRIFECTA_PAYOUT = re.compile(
-    r"(?<!\\d)([1-9])\\s*[-－→>]\\s*([1-9])\\s*[-－→>]\\s*([1-9])"
-    r"\\s+([1-9][0-9,]{0,11})\\s*円")
+    r"(?<!\d)([1-9])\s*[-－→>]\s*([1-9])\s*[-－→>]\s*([1-9])"
+    r"\s+([1-9][0-9,]{0,11})\s*円")
 MAX_BYTES = 6_000_000
 
 
