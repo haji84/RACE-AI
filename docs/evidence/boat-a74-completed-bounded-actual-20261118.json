@@ -1,0 +1,133 @@
+{
+  "schema": "RACE_AI_A74_COMPLETED_WORKER_BOUNDED_ACTUAL_FACTS_V1",
+  "recorded_at": "2026-11-18T07:22:00Z",
+  "basis": {
+    "run_id": 44218343091,
+    "job_id": 134513710675,
+    "source_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "proper_authenticated_decoded_logs_through": "2026-11-18T06:27:48Z",
+    "run_completed_at": "2026-11-18T06:27:51Z"
+  },
+  "step_results": {
+    "round_success": 24,
+    "round_skipped": 0,
+    "round_failed": 0,
+    "whole_goal_proven": false
+  },
+  "producer_reported_final_counters": {
+    "completed_round": 24,
+    "requests_used": 763,
+    "lifetime_requests": 14874,
+    "baseline_forecast_count": 594,
+    "baseline_scored_forecasts": 433,
+    "baseline_distinct_races": 132,
+    "independent_final_aes_of_these_counters": false
+  },
+  "extra_native_readback_report_fields": {
+    "verified_events": 23,
+    "generated_forecasts_sum": 1098,
+    "bootstrap_generated_field": 585,
+    "nonzero_round_generated_field_sum": 513,
+    "reused_baseline_field_sum": 285,
+    "reused_included_as_new": false,
+    "distinct_forecast_union_not_derived": true,
+    "all_day_all_model_cutoff_acceptance_proven": false,
+    "round4": {
+      "ready": false,
+      "contexts": 0,
+      "generated": 0
+    },
+    "round19_successful_extra_generation_report": false
+  },
+  "actual_internal_outcomes": {
+    "research_pdca_summaries": 24,
+    "research_retention_verified": 22,
+    "research_retention_holds": [
+      {
+        "round": 10,
+        "at": "2026-11-18T02:57:56.646Z",
+        "reason": "UNKNOWN_BROAD_EXCEPTION_CATCH",
+        "write_effect": "UNKNOWN",
+        "later_different_round_verified": 11,
+        "same_item_recovery_proven": false
+      },
+      {
+        "round": 24,
+        "at": "2026-11-18T06:24:57.492Z",
+        "reason": "UNKNOWN_BROAD_EXCEPTION_CATCH",
+        "write_effect": "UNKNOWN",
+        "later_verified": false
+      }
+    ],
+    "p1_readback_holds": [
+      {
+        "round": 18,
+        "at": "2026-11-18T04:30:25.336Z",
+        "reason": "UNKNOWN_BROAD_EXCEPTION_CATCH",
+        "later_different_round_verified": 20,
+        "same_artifact_recovery_proven": false
+      }
+    ],
+    "all_model_path_rejected": [
+      {
+        "round": 19,
+        "at": "2026-11-18T04:49:41.487Z",
+        "error_class": "RuntimeError",
+        "reason": "ALL_MODEL_CLI_OPERATION_FAILED",
+        "upstream": "GITHUB_API_READ_HTTP_404_HALT",
+        "which_api_resource": "UNKNOWN",
+        "four_xx_retry": false,
+        "same_item_recovery_proven": false
+      }
+    ],
+    "last_pdca": {
+      "processed_archives": 22,
+      "paired_forecasts": 574,
+      "rejected_archives": 2,
+      "prospective_efficacy_denominator": false
+    }
+  },
+  "measured_whole_phase_seconds": {
+    "pdca_total": 4630.3,
+    "retention_total": 6617.61,
+    "combined": 11247.91,
+    "pdca_first": 66.92,
+    "pdca_last": 342.53,
+    "last_verified_retention_round": 23,
+    "last_verified_retention": 533.72,
+    "last_verified_folders": 630,
+    "last_verified_source_archives": 23,
+    "round24_retention_hold_duration": 149.72,
+    "hold_is_speedup_or_zero_writes": false,
+    "internal_network_attribution_measured": false
+  },
+  "postrepair_existing_publisher_acks": {
+    "scope": "Proper source-job ACKs; no independently decrypted later view here",
+    "generations": [
+      426,
+      427,
+      428,
+      429,
+      430,
+      431,
+      432
+    ],
+    "last_commit": "094432491c6cae2fe90c3d27e18b3ec93c842146",
+    "private_saved_days_and_counts": "NOT_VERIFIED_BY_THIS_RECORD"
+  },
+  "continuation": {
+    "run_id": 44252479726,
+    "job_id": 134626233551,
+    "source_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "round1_started": "2026-11-18T06:43:29Z",
+    "round1_completed": "2026-11-18T07:13:45Z",
+    "round1_seconds": 1816,
+    "as_of": "2026-11-18T07:19:34Z",
+    "round2_status": "IN_PROGRESS",
+    "proper_job_logs": "HTTP404_NO_DECODED_LOG",
+    "protected_source_current": "f1f8ed4ffb2a29e6b702685f49de63918610479d",
+    "cache_applies_to_this_running_worker": false,
+    "interrupted": false,
+    "live_cache_speedup": "UNKNOWN"
+  }
+}

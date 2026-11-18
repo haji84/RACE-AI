@@ -1,3 +1,17 @@
+## 2026-11-18 07:33 UTC: 実Mac Safariの当日V5照合成功、内部HOLDとGOAL未達は維持
+
+既存PR36を通常mergeし、main a925d898275fe812ceaa31eb9de579ce54b128ac/tree0cd65378e8d24e074917dba678674101c3a54a55がtested head4c74c28eと完全一致。全27checkは13success/14skip/failed0、native140件/17.063秒、racer206件/17.253秒、national346件/120.713秒、mirror212件/59.637秒+32件/0.025秒が成功した。初回のfixture衝突を隠さず保存し、runtime/140method/受入schemaは維持した。
+
+実main gate44258053653/job134644409762は07:20:25 UTCにHOLD_ACTIVE_OWNER_WORKFLOW/公式GET0で既存A74 continuationを保全し、07:20:29 UTCに改訂checkerの既存native要求1回だけのACKを得た。実Mac44258108084/job134644585588はSafari26.6で140件/55.679秒を通過し、07:28:48 UTCにNATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED。認証済み当日2026-11-18/世代433/snapshot f1cb6b6f95cfff307bd5b4b43473fc10d07bb86f、結果79/native P1原本9group/2modelの原本比較、browser AESと当日一致が成功した。暗号文28file/216585307byteを固定loopbackで再生し、同経路のplaintext endpoint reads0/許可外部通信0/実画面export0。別のlegacy私有loopback経路はprivate_view_reads1であり、暗号経路の0と混同しない。公開f603 assetの実HTTP hash一致は別検査。暗号文replayはGitHubからSafariへの現行暗号feed直接配送の実証ではない。
+
+同runはed904/web5759ac3の合成28PNGを320/390/1440/1920幅で生成・artifact検証した。実データ画像ではなく、ローカルdownload/全PNG目視は実行環境failedで未実施。物理iPhone・本人login・全8参考画面の目視受入は全てfalseを維持。公開UI/原本/本番weightsの変更なし。[実Macと通常mergeの証拠](evidence/boat-native-v5-actual-acceptance-20261118.json)。
+
+別runnerのmain national44258053627/job134644410070も当該世代433を独立AES認証し、NO_BINDING_INCONSISTENCY_IN_THIS_VIEW。対象viewのOBS245/history0、REJ14/history12/比較12/missing0、その他不整合0。世代425の実修復とは別の後続検査であり、件数差を全保存日削除や全体完成と推定しない。固定M2監査対象44075021607は14予想/固有1レース/G8qualified0/分母nullでHOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINEDのまま。job成功を全モデルや精度改善合格にしない。
+
+完了A74 run44218343091の24step成功には研究保管verified22/HOLD2、P1読戻しHOLD1、追加model HTTP404拒否1が含まれる。累積値とwhole-phase実測、回復未証明を[限定した実証記録](evidence/boat-a74-completed-bounded-actual-20261118.json)へ保存。HOLDのretained_candidates既定値0はwrite0証明ではない。F1キャッシュは現在のA74 workerには適用されず、次の正規workerでの速度・T15〜10達成は未確認。原因を失う二つのcatchについて、既存返り値/ゲート/4xx非再試行を変えず、固定phaseと有限理由だけを返す診断をテスト先行で準備する。
+
+4競技全レース×全適用既存model、締切優先の全件保存/結果照合、物理iPhone、6艇服色継続識別/校正/予想接続、前向き精度改善は未達。元offline2commitは未復元、鍵はActionsのみ、実行環境failed。新PR/job/input/cron/runner/timeout/権限/marker名/モデル系統/課金/公開UI/投票/本番重み切替を増やさない。以下は各時点の履歴。
+
 ## 2026-11-18 07:15 UTC: 実CIのfixture衝突を訂正し再試験、24巡の内部HOLDを別計上
 
 PR36 runtime abd713b385b9090610ebf52d3e1a195cd8b39f9cの実CIで、national346件/107.867秒、recovery138件/0.686秒、mirror212件/60.334秒+32件/0.026秒は成功。native140件/18.828秒とracer206件/16.803秒はそれぞれ2失敗/errors0。集計・欠落拒否の検査は通ったが、新privacy helperが汎用語ciphertextを秘密文字列とみなし、既存公開field ciphertext_bytes/filesにも一致するfixtureの誤りだった。初期API未実装REDではこの衝突まで到達していなかった。runtime/19field/26field/140test methodは変えず、暗号文の実際の値と再帰的な秘密payload keyの不出力を検証するhelperだけへ訂正し、ID/URL/key/Top8/records拒否も維持して再CIする。

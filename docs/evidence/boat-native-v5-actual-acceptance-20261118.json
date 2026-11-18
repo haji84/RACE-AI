@@ -1,0 +1,283 @@
+{
+  "schema": "RACE_AI_ACTUAL_NATIVE_V5_FIX_AND_SOURCE_PIN_MERGE_V1",
+  "recorded_at": "2026-11-18T07:30:00Z",
+  "repository": "haji84/RACE-AI",
+  "pr_number": 36,
+  "tested": {
+    "head": "4c74c28e4f0c2d4b3a98d59d0937d57033a1c6b0",
+    "tree": "0cd65378e8d24e074917dba678674101c3a54a55",
+    "checks": 27,
+    "success": 13,
+    "skipped": 14,
+    "failed": 0,
+    "native_tests": {
+      "job_id": 134642828167,
+      "count": 140,
+      "seconds": 17.063
+    },
+    "racer_tests": {
+      "job_id": 134642827234,
+      "count": 206,
+      "seconds": 17.253
+    },
+    "national_tests": {
+      "job_id": 134642826953,
+      "count": 346,
+      "seconds": 120.713
+    }
+  },
+  "normal_merge": {
+    "sha": "a925d898275fe812ceaa31eb9de579ce54b128ac",
+    "tree": "0cd65378e8d24e074917dba678674101c3a54a55",
+    "exact_tested_tree": true,
+    "source_protected_sha": "f1f8ed4ffb2a29e6b702685f49de63918610479d",
+    "source_protected_tree": "33a715b8293b25ac4d55bf1761899f44b46f6e1c"
+  },
+  "owner_gate": {
+    "run_id": 44258053653,
+    "job_id": 134644409762,
+    "at": "2026-11-18T07:20:25.3397996Z",
+    "status": "HOLD_ACTIVE_OWNER_WORKFLOW",
+    "official_source_requests": 0,
+    "active_owner_interrupted": false,
+    "native_request_ack_at": "2026-11-18T07:20:29.9937126Z",
+    "native_request_count": 1
+  },
+  "actual_native": {
+    "run_id": 44258108084,
+    "job_id": 134644585588,
+    "status": "SUCCESS",
+    "boundary_tests": 140,
+    "boundary_test_seconds": 55.679,
+    "report": {
+      "schema": "RACE_AI_NATIVE_SAFARI_ACCEPTANCE_V2",
+      "status": "NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED",
+      "native_browser": {
+        "browserName": "Safari",
+        "browserVersion": "26.6",
+        "platformName": "macOS"
+      },
+      "verified_at": "2026-11-18T07:28:47.992251+00:00",
+      "pages_sha": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+      "read_only_source_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "live_asset_sha256": {
+        "app.js": "b7968390d2a942881e3a03494bb3a96760844ca1134532a940619a5a62bf3c9c",
+        "existing-model-catalog.js": "ff08efd5d08e2570198cecdbd0f6c1ef54c513d232c4ddd3a6ad6c6e83bbfc82",
+        "forecast-audit-model.js": "ae91d3f3a0684f81fded2662b164a76e8d2dd0ee3a1e8b337330256fc69ef487",
+        "index.html": "42de1bb10e809a32937ec132c84b562094af2a4afd572ec105e1fd22d805f38e",
+        "product-data.js": "f013981ae0384874fc5d8e4fe5feb8c99b16837e41a18b6d37aecf9db16f4437",
+        "racer-daily.js": "08187ac31a8a5d262530a45acdc06c07bedcbfd3ce4a1d5be126fdc270a0e167",
+        "racer-portraits-data.js": "6adecadb3070307b1478101e69748772197903a3a5626ae428acd1a82a31bcd2",
+        "racer-portraits.js": "2c15af470bb5394cadd70635b3478d0eab08764a2836641cc7731678d5563275",
+        "racer-profiles-data.js": "2f6cdf0e99ed84753b9be29e6c1a0704b86e19e8a86628b3454f30518730f68f",
+        "racer-profiles.js": "ab387b5b9958d75d8e7e781de53120b54dc92f7d19bf830f12e98d9083213113",
+        "saved-performance.js": "94a05ed6ee8d9a1287d10861e14f927b695b22d989f80395cf3e4d8bb3412213",
+        "saved-view-crypto.js": "60fb3f8f1668a14052d891a9c219c67de4b24d207b64c106a353fefe92cb13ce",
+        "style.css": "6b1d246bbc67057e946577a1f1b159dff81004b5575474fd195868a8f5592ade",
+        "ui-model.js": "b7dd4eb5d6326928f1eefd20f4eb5c6eea2274beb6bf931563659bfb63cad3d7"
+      },
+      "saved_day": "2026-11-18",
+      "authenticated_generation": 433,
+      "authenticated_results": 79,
+      "authenticated_native_p1_groups": 9,
+      "latest_p1_private_transport": {
+        "desktop_viewports": [
+          {
+            "requested_width": 1440,
+            "actual_inner_width": 1440,
+            "actual_inner_height": 948,
+            "requested_width_verified": true,
+            "physical_iphone_verified": false
+          },
+          {
+            "requested_width": 390,
+            "actual_inner_width": 390,
+            "actual_inner_height": 948,
+            "requested_width_verified": true,
+            "physical_iphone_verified": false
+          }
+        ],
+        "model_switch_original_comparisons": 4,
+        "native_p1_detail_views": 2,
+        "result_budget_views": 2,
+        "external_requests_blocked_before_network": 0,
+        "csp_violations_blocked": 0,
+        "private_view_reads": 1,
+        "key_in_requests_url_or_storage": false,
+        "outbound_browser_requests_permitted": 0,
+        "official_source_requests": 0,
+        "transport": "LOOPBACK_EXISTING_PRIVATE_SAVED_ENDPOINT",
+        "saved_day": "2026-11-18",
+        "authenticated_generation": 433,
+        "authenticated_results": 79,
+        "authenticated_native_p1_groups": 9
+      },
+      "encrypted_seed": {
+        "browser_aes_verified": true,
+        "seed_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+        "same_seed_model_original_comparisons": 2,
+        "refusals_verified": [
+          "missing-key",
+          "wrong-key",
+          "wrong-view",
+          "modified-cipher"
+        ],
+        "viewer_capability_verified": true,
+        "viewer_key_in_fragment": true,
+        "viewer_key_in_requests_or_web_storage": false,
+        "owner_key_in_browser": false,
+        "account_login_verified": false,
+        "current_v5_live_continuation_verified": false,
+        "outbound_browser_requests_permitted": 0,
+        "real_screenshots_or_traces_exported": 0
+      },
+      "encrypted_current_v5": {
+        "status": "ENCRYPTED_CURRENT_V5_SAFARI_VERIFIED",
+        "transport": "LOOPBACK_IMMUTABLE_V5_CIPHERTEXT_REPLAY",
+        "current_v5_live_continuation_verified": true,
+        "current_day_verified": true,
+        "browser_aes_verified": true,
+        "snapshot_sha": "f1cb6b6f95cfff307bd5b4b43473fc10d07bb86f",
+        "cipher_sha256": "8046b3a4c05e4c0e7f5393d40e66b275e812e962c39ed9e49bab0a92b99594dc",
+        "authenticated_generation": 433,
+        "saved_day": "2026-11-18",
+        "authenticated_results": 79,
+        "authenticated_native_p1_groups": 9,
+        "same_current_model_original_comparisons": 2,
+        "ciphertext_files": 28,
+        "ciphertext_bytes": 216585307,
+        "plaintext_endpoint_reads": 0,
+        "outbound_browser_requests_permitted": 0,
+        "real_screenshots_or_traces_exported": 0,
+        "account_login_verified": false,
+        "physical_iphone_verified": false
+      },
+      "browser_aes_verified": true,
+      "private_sessions_cleanup_verified": true,
+      "account_login_verified": false,
+      "current_v5_live_continuation_verified": true,
+      "current_day_verified": true,
+      "browser_aes_and_owner_login_verified": false,
+      "physical_iphone_verified": false,
+      "all_eight_reference_screens_visually_verified": false,
+      "plaintext_published": false,
+      "forecast_or_result_mutation": false
+    }
+  },
+  "actual_independent_reason_binding": {
+    "run_id": 44258053627,
+    "job_id": 134644410070,
+    "report": {
+      "authenticated_base": true,
+      "broader_goals_proven": false,
+      "counts": {
+        "observation": {
+          "active_count": 245,
+          "clock_text_mismatch": 0,
+          "compared_active_history_pairs": 0,
+          "history_count": 0,
+          "invalid_active_reason_metadata": 0,
+          "invalid_history_reason_metadata": 0,
+          "missing_active_anchor": 0,
+          "non_reason_body_mismatch": 0,
+          "other_guard_failures": 0,
+          "source_sha_absent_active": 0,
+          "source_sha_absent_history": 0,
+          "source_sha_different": 0
+        },
+        "rejection": {
+          "active_count": 14,
+          "clock_text_mismatch": 0,
+          "compared_active_history_pairs": 12,
+          "history_count": 12,
+          "invalid_active_reason_metadata": 0,
+          "invalid_history_reason_metadata": 0,
+          "missing_active_anchor": 0,
+          "non_reason_body_mismatch": 0,
+          "other_guard_failures": 0,
+          "source_sha_absent_active": 0,
+          "source_sha_absent_history": 0,
+          "source_sha_different": 0
+        }
+      },
+      "forecast_generated": false,
+      "generation": 433,
+      "observations_reconciled": 0,
+      "origin": "AES_BASE",
+      "originals_changed": false,
+      "publication_performed": false,
+      "schema": "RACE_AI_SAVED_REASON_BINDING_COUNTS_V1",
+      "snapshot_sha": "f1cb6b6f95cfff307bd5b4b43473fc10d07bb86f",
+      "source_requests": 0,
+      "status": "NO_BINDING_INCONSISTENCY_IN_THIS_VIEW"
+    }
+  },
+  "synthetic_visual": {
+    "run_id": 44258108084,
+    "job_id": 134644585588,
+    "report": {
+      "schema": "RACE_AI_SYNTHETIC_SAFARI_VISUAL_V2",
+      "dataset_status": "SYNTHETIC_ONLY",
+      "public_fixture_sha256": "b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a",
+      "native_browser": {
+        "browserName": "Safari",
+        "browserVersion": "26.6",
+        "platformName": "macOS"
+      },
+      "viewports": [
+        {
+          "requested_width": 320,
+          "actual_inner_width": 320,
+          "actual_inner_height": 948,
+          "requested_width_verified": true,
+          "physical_iphone_verified": false
+        },
+        {
+          "requested_width": 390,
+          "actual_inner_width": 390,
+          "actual_inner_height": 948,
+          "requested_width_verified": true,
+          "physical_iphone_verified": false
+        },
+        {
+          "requested_width": 1440,
+          "actual_inner_width": 1440,
+          "actual_inner_height": 948,
+          "requested_width_verified": true,
+          "physical_iphone_verified": false
+        },
+        {
+          "requested_width": 1920,
+          "actual_inner_width": 1920,
+          "actual_inner_height": 948,
+          "requested_width_verified": true,
+          "physical_iphone_verified": false
+        }
+      ],
+      "real_data_context_used_for_capture": false,
+      "physical_iphone_verified": false,
+      "all_eight_reference_screens_visually_verified": false,
+      "candidate_source": {
+        "commit": "ed904fe62dad470a91ababce623c52c1fbde5861",
+        "web_tree": "5759ac3f0ab900cc9c6d0ac592a44c4ff4ce53d8",
+        "asset_sha256": {
+          "index.html": "fb942083b431d20a5e53407dabd460ffe291cc8cb776c448c5950ee0bd370741",
+          "app.js": "926187708d1b8d35bbfa21ba7361c86fc51578039cbc1b29f17415f34d132778",
+          "style.css": "8d6c35ec822aab974bad0564692780c26f8cd28859cefea5d143e4aa2e463e3f"
+        }
+      },
+      "synthetic_session_cleanup_verified": true,
+      "account_login_verified": false,
+      "current_v5_live_continuation_verified": false,
+      "real_data_verified": false,
+      "screenshots": 28
+    },
+    "locally_downloaded_or_visually_reviewed": false
+  },
+  "limits": [
+    "Current V5 uses explicit immutable ciphertext loopback replay; it is not proof of live encrypted-data delivery from GitHub directly into Safari.",
+    "The separate live HTTP asset hash match does verify unchanged deployed f603 asset bytes.",
+    "Physical iPhone, account login, all eight visual references, all four sports/races/models/deadlines, six-boat calibrated tracking and prospective efficacy remain unverified.",
+    "No public UI deployment, new PR/model family/paid service/wager or production weight switch."
+  ]
+}
