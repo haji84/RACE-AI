@@ -40,16 +40,18 @@ jobs:
           python-version: '3.11'
       - name: Verify executable prediction and real ephemeral AES/RSA safety
         run: |
-          python -m pip install --disable-pip-version-check 'cryptography>=44,<48'
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
           python -m unittest -v \
             tests.test_keirin_nationwide_auto_generator \
             tests.test_keirin_nationwide_auto_storage \
-            tests.test_keirin_nationwide_auto_runner
+            tests.test_keirin_nationwide_auto_runner \
+            tests.test_keirin_public_two_source_normalizer
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_nationwide_auto_storage.py \
             scripts/keirin_nationwide_auto_forecast.py \
-            scripts/keirin_nationwide_independent_cipher_readback.py
+            scripts/keirin_nationwide_independent_cipher_readback.py \
+            race_ai/keirin_public_two_source_normalizer.py
 
   owner-auto-generate:
     if: >-
@@ -103,7 +105,7 @@ jobs:
             s3://*) ;;
             *) echo "HOLD: source must be an owner-controlled S3 URI"; exit 1 ;;
           esac
-          python -m pip install --disable-pip-version-check awscli 'cryptography>=44,<48'
+          python -m pip install --disable-pip-version-check awscli 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
           day="${{ steps.storage.outputs.day }}"
           root="${{ steps.storage.outputs.root }}"
           # Source pages, line hypotheses, rider data remain private.
@@ -183,7 +185,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check 'cryptography>=44,<48'
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
           root="$RUNNER_TEMP/keirin-ab-independent"
           python -m scripts.keirin_nationwide_independent_cipher_readback \
             --producer-report "$root/producer-summary.json" \
