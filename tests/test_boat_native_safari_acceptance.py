@@ -959,8 +959,8 @@ def candidate_fixture():
 
 class CandidateSyntheticTests(unittest.TestCase):
     def test_candidate_pin_is_exact_reviewed_ui_not_a_runtime_or_model_pin(self):
-        self.assertEqual(getattr(S, 'CANDIDATE_SHA', None), '7082e1214e6797806c00e1b60e088792c857672d')
-        self.assertEqual(S.CANDIDATE_WEB_TREE, '82118c8bbe853eff07f461d1c3a6da43ec138bd7')
+        self.assertEqual(getattr(S, 'CANDIDATE_SHA', None), 'f723f0e8b94a87a6d6a7b414b1bb30954541925e')
+        self.assertEqual(S.CANDIDATE_WEB_TREE, 'd905215e2f886b0bcc4f2e58323ceee465b03c38')
         self.assertEqual(S.CANDIDATE_ASSET_SHA256, {
             'index.html': 'ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2',
             'app.js': 'c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5',

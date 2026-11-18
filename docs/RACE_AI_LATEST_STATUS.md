@@ -1,4 +1,4 @@
-# RACE-AI 最新状況 — 2026-11-19 01:49 JST
+# RACE-AI 最新状況 — 2026-11-19 02:04 JST
 
 **GOALは未達。** 原本・既存変更・重み・元の判定を保全して継続中。従来全文は[履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261118_0928.md)へ同一Git blobのまま保全した。
 
@@ -47,15 +47,17 @@ main参照同期もテスト先行RED（recovery138件中5失敗、national368�
 
 旧日次discoveryの除外済みKdreams接続と旧mobile callerの承認外host接続は、transport前拒否に修正し既存PR22の通常mergeでmain `7584fc3d9d60aa2a548a43281041f66cf0ce9681` へ反映。旧HTML解析はpure offline helperに保全し、拒否時source attempts=0。ローカル138件/skip0・独立48件と既存CI21 checks（9成功/12skip/失敗0）を確認。これは競輪の403解消や当日予想生成の証拠ではない。[診断と修正](evidence/keirin-approved-source-local-diagnosis-20261118.json)、[main検証](evidence/keirin-source-guard-main-verification-20261119.json)。
 
-既存PR62の最終候補は `7082e1214e6797806c00e1b60e088792c857672d`、実装 `7e6743dc08cc940af0c9fcdf4787ba82ea679407`、web tree `82118c8bbe853eff07f461d1c3a6da43ec138bd7`。元ed904を祖先に保ち通常FF push済み。本文移動・320px買い目隠れ・短い横画面の確認button隠れ・60秒更新による展開/focus/12頭横scroll消失を修正した。全4競技タブの実件数を持つ合成fixtureで6/7/8/12出走を確認し、一覧カードは通常6艇257px mobile/181px PCへ収め、詳細情報と8買い目へ進める。既存30 checkpoint、追加4幅・短画面5条件・refresh/keyboard/WebCrypto等が成功し独立review CLEAR。固定8参考画像と元候補のnative PNG28枚の比較を保存。更新候補の実Safari・物理iPhone・login・GitHub暗号化feed直接配送は未確認。公開UI f603は変更0。[最終候補の追加証拠](https://github.com/haji84/RACE-AI/blob/7082e1214e6797806c00e1b60e088792c857672d/docs/evidence/boat-ui-populated-reference-followup-20261119.json)。
+既存PR62の候補コードは `f723f0e8b94a87a6d6a7b414b1bb30954541925e`、web tree `d905215e2f886b0bcc4f2e58323ceee465b03c38`。見た目の修正7e6743dcと旧候補7082を祖先に保つ。元ed904を祖先に保ち通常FF push済み。本文移動・320px買い目隠れ・短い横画面の確認button隠れ・60秒更新による展開/focus/12頭横scroll消失を修正した。全4競技タブの複数レースを含む合成fixtureで6/7/8/12出走を確認し、一覧カードは通常6艇257px mobile/181px PCへ収め、詳細情報と8買い目へ進める。既存30 checkpoint、追加4幅・短画面5条件・refresh/keyboard/WebCrypto等が成功し独立review CLEAR。固定8参考画像と元候補のnative PNG28枚の比較を保存。更新候補の実Safari・物理iPhone・login・GitHub暗号化feed直接配送は未確認。公開UI f603は変更0。[最終候補の追加証拠](https://github.com/haji84/RACE-AI/blob/7082e1214e6797806c00e1b60e088792c857672d/docs/evidence/boat-ui-populated-reference-followup-20261119.json)。
 
-未公開候補のnative Safari検証用SHA/tree/三資産hashとworkflowの候補2tokenを一致させた。テスト先行RED1件→GREEN178件、独立178件も成功。実7082の厳格loaderは74資産/37,563,754byte・元合成4recordを検証した。checkerの関数・guard・時計・環境・公開f603/EFF/privateV5・job/権限は変更0。当日private gateと実Safari本体の成功は別に確認する。[候補固定の証拠](evidence/boat-native-reviewed-candidate-pin-20261119.json)。
+公開前の全資産比較で、旧7082に公開f603の選手名出典3種と最後のforecast日を保つ処理が欠ける退行を再現し、f723へ最小mergeした。候補既存EXECUTION_FAILEDの扱いも保持。product46/history12件は独立reviewでも全成功。元Python AESをNode WebCryptoで読む回帰、既存UI30・rich4幅・short5・refresh/roster/controls・合成WebCrypto等も成功。これは公開前に直した差分で、実予想/モデルを変更しない。
+
+f723のnative Safari検証用SHA/treeとworkflow候補2tokenを一致させた。三つの見た目資産は7082と同byte。テスト先行RED1件→GREEN178件、独立178件も成功。旧7082の厳格loader検証を保全し、実f723も74資産/37,568,588byteを検証した。固定更新後の178件も全成功。checkerの関数・guard・時計・環境・公開f603/EFF/privateV5・job/権限は変更0。当日private gateと実Safari本体の成功は別に確認する。[候補固定の証拠](evidence/boat-native-reviewed-candidate-pin-20261119.json)。
 
 服色journal評価の実装はsource fbcへ反映した。実trackerのunknown_detectionsを無視すると6frame/36targetのうち不明検出のあるframeまで完全6艇成功に数える不具合を修正し、完全成功3frame・不明検出1・clean区間の継続6と区分した。rider部位を船体/物理位置へ転用せず、欠測frameも明示する。focused100・source223・独立112件などが成功しreview CLEAR。実6艇映像/独立GT/距離時刻校正/強さ評価の合格とはしない。[評価と再現](https://github.com/haji84/RACE-AI/blob/fbc743be548bfd123e46cdbfe290515a59e5e0d3/docs/evidence/boat-clothing-benchmark-resume-20261118.json)。
 
 | 完成条件 | 実確認と残件 |
 | --- | --- |
-| スマホ/PC・Safari | 実Mac Safari26.6/run44258108084で11/18世代433・結果79/native原本9group・2model比較・browser AES成功。固定暗号文loopback再生で、GitHub feed直接配送の証明ではない。物理iPhone・本人login・全8画面の最終受入はfalse。元候補ed904の28PNGは合成。未公開最新候補7082/公開f603を維持。本人端末は13 Proだが接続された実機操作環境は無い。[実受入](evidence/boat-native-v5-actual-acceptance-20261118.json)。 |
+| スマホ/PC・Safari | 実Mac Safari26.6/run44258108084で11/18世代433・結果79/native原本9group・2model比較・browser AES成功。固定暗号文loopback再生で、GitHub feed直接配送の証明ではない。物理iPhone・本人login・全8画面の最終受入はfalse。元候補ed904の28PNGは合成。未公開候補f723/公開f603を維持。本人端末は13 Proだが接続された実機操作環境は無い。[実受入](evidence/boat-native-v5-actual-acceptance-20261118.json)。 |
 | 全レース×全適用既存model | BOATは上記の部分証拠のみ。完全union/全日/T15〜10/日跨ぎは未証明。AUTOの個車入力、JRA/NARの適用区別、4競技全日の独立証明も未完。 |
 | 競輪 | 最新日次capture44283995717/job134731792136は10:42に日次index HTTP403で停止。最新PR71 44273370761/job134695450969も9:10に不完全入力HOLD。最新canary44310295802は13:06に旧11/3 manifest/GET0で当日入力なし、fallback134822438215は13:07に実HTTP403とNO_VERIFIED_DAILY_CATALOG_OR_REPLAYで停止。[直近canary](evidence/keirin-canary-actual-20261118-1307.json)。discovery44222760913の79リンク/8会場はidentity-only。job成功を予想生成とせず未認証件数はnull。[直前30件の範囲](evidence/keirin-latest-scheduled-goal-blockers-20261118.json)。 |
 | 6艇の継続識別・校正・予想接続 | 同時6艇の独立GT・承認済み映像・実race結合が未確認。既知Commons映像は2〜3艇で、6艇精度や強さの校正を証明しない。 |

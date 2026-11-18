@@ -57,5 +57,23 @@
     "seconds": 15.609,
     "same_12_identity_values_only": true,
     "actual_candidate_strict_load_pass": true
+  },
+  "fixed_candidate_after_public_asset_comparison": {
+    "commit": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+    "web_tree": "d905215e2f886b0bcc4f2e58323ceee465b03c38",
+    "asset_files": 74,
+    "asset_bytes": 37568588,
+    "three_visual_assets_same_as_7082": true,
+    "crypto_same_bytes_as_public_f603": true,
+    "product_data_public_f603_plus_existing_execution_failed_support": true,
+    "independent_regression_review": "CLEAR",
+    "independent_product_tests": 46,
+    "independent_history_tests": 12,
+    "final_native_guard_tests": 178,
+    "final_native_guard_seconds": 15.84,
+    "actual_fixed_candidate_strict_loader_pass": true,
+    "other_bytes_preserved_after_reversing_six_new_identity_changes": true,
+    "external_requests_or_keys_or_publication": false,
+    "physical_or_native_safari_execution_proven": false
   }
 }

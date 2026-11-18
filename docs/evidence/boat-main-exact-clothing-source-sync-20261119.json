@@ -85,5 +85,43 @@
     "ui_published": false
   },
   "live_next_day_worker_and_native_acceptance_proven": false,
-  "goal_complete": false
+  "goal_complete": false,
+  "first_github_ci": {
+    "head": "f0ad365c1f7c6dfbeec624ecc1b356158f409260",
+    "tree": "e8d05ba4a587e2461d61c911c5db41379f6955fd",
+    "checks": 27,
+    "success": 13,
+    "skipped": 14,
+    "failures": 0,
+    "recovery": {
+      "run": 44351617781,
+      "job": 134968496392,
+      "tests": 138,
+      "seconds": 0.491,
+      "isolated_public_reader_import_verified": true
+    },
+    "racer": {
+      "run": 44351617763,
+      "job": 134968495032,
+      "tests": 206,
+      "seconds": 16.682
+    },
+    "native_checker_source_free": {
+      "run": 44351618469,
+      "job": 134968496533,
+      "tests": 140,
+      "seconds": 16.998,
+      "live_pages_f603_four_assets_match": true,
+      "physical_or_native_browser_acceptance": false
+    },
+    "matrix": {
+      "run": 44351617760,
+      "job": 134968494634,
+      "tests": 372,
+      "seconds": 152.168,
+      "additional_tests": 7,
+      "additional_seconds": 14.051
+    },
+    "merge_deferred_for_actual_candidate_regressions_found_before_publication": true
+  }
 }
