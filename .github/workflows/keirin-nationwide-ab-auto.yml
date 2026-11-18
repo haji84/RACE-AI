@@ -949,6 +949,7 @@ jobs:
           else
             echo "HOLD_PUBLIC_SECONDARY_RESULT_SOURCE_UNAVAILABLE_NOT_OFFICIAL" >> "$GITHUB_STEP_SUMMARY"
           fi
+          cat "$RUNNER_TEMP/keirin-two-provider-safe.json"
 
 
   github-only-research-results:
