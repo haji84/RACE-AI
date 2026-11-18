@@ -1,0 +1,131 @@
+{
+  "kind": "RESTORED_FIXED_NATIVE_SAFARI_HELPER_RUNTIME_HANDOFF",
+  "repository": "haji84/RACE-AI",
+  "file": {
+    "path": "scripts/boat_native_safari_dispatch.py",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "74f49fab8050431c52c0ad4b04d7b1f77452574d",
+    "bytes": 18216
+  },
+  "tree_elements": [
+    {
+      "path": "scripts/boat_native_safari_dispatch.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "74f49fab8050431c52c0ad4b04d7b1f77452574d"
+    }
+  ],
+  "historical_source": {
+    "commit": "076497e9914a46c0888cfdbf1fa6d6d48536824a",
+    "blob": "6ab33c822968ed11c2cea5218b4972b961436a20",
+    "bytes": 10692
+  },
+  "immutable_tests": {
+    "path": "tests/test_boat_native_safari_dispatch.py",
+    "blob": "fcb7d83381f9d5b56fb2e4caeaf4e8eb09cd6d01",
+    "test_methods": 26,
+    "modified": false
+  },
+  "proper_red_evidence": {
+    "provenance": "Root supplied actual CI results before runtime authoring",
+    "run_id": 44202590718,
+    "job_id": 134460225492,
+    "head": "7cd45e7daafa233f31c657f325ee28e8b741d0d1",
+    "tests": 94,
+    "passed_existing": 93,
+    "errors": 1,
+    "error": "missing scripts.boat_native_safari_dispatch import",
+    "syntax_error": false
+  },
+  "exact_diff": "--- a/scripts/boat_native_safari_dispatch.py\n+++ b/scripts/boat_native_safari_dispatch.py\n@@ -3,7 +3,9 @@\n Metadata-only GitHub reads and one fixed dispatch. This is neither forecast\n authority nor acceptance proof. An uncertain POST is never retried.\n \"\"\"\n+import base64\n from collections.abc import Mapping\n+import hashlib\n import json\n import math\n import os\n@@ -23,12 +25,20 @@\n SOURCE_PATH = '/repos/haji84/RACE-AI/git/ref/heads/production/boat-p0-p1-20261111'\n RUNS_PATH = '/repos/haji84/RACE-AI/actions/workflows/416758725/runs'\n POST_PATH = '/repos/haji84/RACE-AI/actions/workflows/416758725/dispatches'\n+REPOSITORY_PATH = '/repos/haji84/RACE-AI'\n+WORKFLOW_PATH = '/repos/haji84/RACE-AI/actions/workflows/416758725'\n+COMMITS_PATH = '/repos/haji84/RACE-AI/commits/'\n+NATIVE_WORKFLOW = '.github/workflows/boat-owner-formal-live-pages-proof.yml'\n+CONTENTS_PATH = '/repos/haji84/RACE-AI/contents/' + NATIVE_WORKFLOW\n+CANDIDATE_STEP = 'Checkout the exact reviewed UI candidate for synthetic capture only'\n+CANDIDATE_PATH = '.native-safari-ui-candidate'\n PAYLOAD = {'ref': 'main', 'inputs': {'browser': 'native-safari'}}\n MAX_RESPONSE_BYTES = 2 * 1024 * 1024\n REASONS = frozenset(('TRUSTED_RELEASE_PUSH_REQUIRED', 'CURRENT_MAIN_MISMATCH',\n     'SOURCE_RELEASE_MISMATCH', 'RUN_HISTORY_INVALID', 'GITHUB_READ_FAILED',\n     'GITHUB_RESPONSE_INVALID', 'DISPATCH_ACK_UNCERTAIN', 'INPUT_INVALID',\n-    'GITHUB_CREDENTIAL_UNAVAILABLE', 'SAFARI_DISPATCH_FAILED'))\n+    'GITHUB_CREDENTIAL_UNAVAILABLE', 'SAFARI_DISPATCH_FAILED',\n+    'CANDIDATE_CHANGE_PROOF_INVALID', 'EXISTING_NATIVE_WORKFLOW_REQUIRED'))\n \n \n class DispatchHold(ValueError):\n@@ -80,13 +90,18 @@\n         require(type(token) is str and 0 < len(token) <= 8192 and '\\n' not in token and '\\r' not in token,\n                 'GITHUB_CREDENTIAL_UNAVAILABLE')\n         self.token = token\n-        self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())\n+        self.opener = urllib.request.build_opener(NoRedirect())\n \n     def __call__(self, method, path, body=None):\n         history = type(path) is str and re.fullmatch(re.escape(RUNS_PATH) +\n             r'\\?branch=main&event=workflow_dispatch&head_sha=[a-f0-9]{40}&per_page=100&page=(?:[1-9]|10)', path)\n-        valid = (method == 'GET' and body is None and (path in (MAIN_PATH, SOURCE_PATH) or history)) or (\n-            method == 'POST' and path == POST_PATH and type(body) is dict and body == PAYLOAD)\n+        metadata = type(path) is str and (\n+            path in (MAIN_PATH, SOURCE_PATH, REPOSITORY_PATH, WORKFLOW_PATH)\n+            or re.fullmatch(re.escape(COMMITS_PATH) + r'[a-f0-9]{40}', path)\n+            or re.fullmatch(re.escape(CONTENTS_PATH) + r'\\?ref=[a-f0-9]{40}', path))\n+        valid = type(method) is str and type(path) is str and (\n+            method == 'GET' and body is None and (metadata or history)\n+            or method == 'POST' and path == POST_PATH and type(body) is dict and body == PAYLOAD)\n         require(valid, 'INPUT_INVALID')\n         try:\n             request = urllib.request.Request('https://api.github.com' + path,\n@@ -102,9 +117,11 @@\n                 require(response.status == 200, 'GITHUB_RESPONSE_INVALID')\n                 return strict_json(raw)\n         except urllib.error.HTTPError as error:\n-            error.close()\n-            raise DispatchHold('DISPATCH_ACK_UNCERTAIN' if method == 'POST' else 'GITHUB_READ_FAILED',\n-                               request_attempted=method == 'POST') from None\n+            try:\n+                error.close()\n+            finally:\n+                raise DispatchHold('DISPATCH_ACK_UNCERTAIN' if method == 'POST' else 'GITHUB_READ_FAILED',\n+                                   request_attempted=method == 'POST') from None\n         except Exception as error:\n             if isinstance(error, DispatchHold) and method == 'GET':\n                 raise\n@@ -114,7 +131,7 @@\n \n def repository(value):\n     return (type(value) is dict and type(value.get('id')) is int and value['id'] == REPO_ID\n-            and value.get('full_name') == REPO)\n+            and value.get('full_name') == REPO and value.get('private') is False)\n \n \n def trusted_head(environment, event):\n@@ -123,6 +140,7 @@\n     commit = event.get('head_commit')\n     require(type(head) is str and re.fullmatch('[a-f0-9]{40}', head)\n         and environment.get('GITHUB_ACTIONS') == 'true' and environment.get('GITHUB_EVENT_NAME') == 'push'\n+        and environment.get('GITHUB_RUN_ATTEMPT') == '1'\n         and environment.get('GITHUB_REPOSITORY') == REPO and environment.get('GITHUB_REF') == 'refs/heads/main'\n         and environment.get('GITHUB_WORKFLOW_REF') == REPO + '/.github/workflows/boat-racer-daily.yml@refs/heads/main'\n         and repository(event.get('repository')) and event.get('ref') == 'refs/heads/main'\n@@ -151,6 +169,127 @@\n                 and value['object'].get('sha') == expected, reason)\n \n \n+def step_end(lines, start):\n+    for index in range(start + 1, len(lines)):\n+        line = lines[index]\n+        if line.startswith('      - ') or line.strip() and not line.startswith('      '):\n+            return index\n+    return len(lines)\n+\n+\n+def workflow_candidate(value):\n+    reason = 'CANDIDATE_CHANGE_PROOF_INVALID'\n+    require(type(value) is dict and value.get('type') == 'file'\n+        and value.get('path') == NATIVE_WORKFLOW and value.get('encoding') == 'base64'\n+        and type(value.get('size')) is int and 0 < value['size'] <= MAX_RESPONSE_BYTES\n+        and type(value.get('sha')) is str and re.fullmatch('[a-f0-9]{40}', value['sha'])\n+        and type(value.get('content')) is str and 0 < len(value['content']) <= 2 * MAX_RESPONSE_BYTES,\n+        reason)\n+    try:\n+        encoded = value['content']\n+        require(re.fullmatch(r'[A-Za-z0-9+/=\\n]+', encoded), reason)\n+        compact = encoded.replace('\\n', '')\n+        raw = base64.b64decode(compact, validate=True)\n+        require(len(raw) == value['size'] and base64.b64encode(raw).decode('ascii') == compact\n+            and hashlib.sha1(b'blob ' + str(len(raw)).encode('ascii') + b'\\0' + raw).hexdigest() == value['sha'],\n+            reason)\n+        body = raw.decode('utf-8')\n+    except DispatchHold:\n+        raise\n+    except Exception:\n+        raise DispatchHold(reason) from None\n+    require('\\0' not in body and '\\r' not in body, reason)\n+    lines = body.split('\\n')\n+    label = '      - name: ' + CANDIDATE_STEP\n+    starts = [index for index, line in enumerate(lines) if line == label]\n+    require(len(starts) == 1 and body.count(CANDIDATE_STEP) == 1, reason)\n+    start = starts[0]\n+    end = step_end(lines, start)\n+    block = lines[start:end]\n+    position = 1\n+    if position < len(block) and block[position].startswith('        if: '):\n+        position += 1\n+    require(position + 1 < len(block)\n+        and re.fullmatch(r'        uses: actions/checkout@(?:[a-f0-9]{40}|v[1-9][0-9]*)', block[position])\n+        and block[position + 1] == '        with:', reason)\n+    inputs = {}\n+    input_lines = {}\n+    for offset in range(position + 2, len(block)):\n+        line = block[offset]\n+        if not line.strip() or line.lstrip().startswith('#'):\n+            continue\n+        match = re.fullmatch(r'          (ref|path|persist-credentials): (.+)', line)\n+        require(match is not None and match[1] not in inputs, reason)\n+        inputs[match[1]] = match[2]\n+        input_lines[match[1]] = start + offset\n+    candidate = inputs.get('ref')\n+    require(type(candidate) is str and re.fullmatch('[a-f0-9]{40}', candidate)\n+        and inputs.get('path') == CANDIDATE_PATH\n+        and ('persist-credentials' not in inputs or inputs['persist-credentials'] == 'false'), reason)\n+\n+    # The only second changing token is the candidate prefix in the existing\n+    # upload step's artifact name. Other occurrences remain byte-for-byte.\n+    uploads = [index for index, line in enumerate(lines)\n+               if line.startswith('        uses: actions/upload-artifact@')]\n+    require(len(uploads) == 1 and re.fullmatch(\n+        r'        uses: actions/upload-artifact@(?:[a-f0-9]{40}|v[1-9][0-9]*)', lines[uploads[0]]), reason)\n+    upload_index = uploads[0]\n+    upload_starts = [index for index in range(upload_index) if lines[index].startswith('      - ')]\n+    require(bool(upload_starts), reason)\n+    upload_start = upload_starts[-1]\n+    upload_end = step_end(lines, upload_start)\n+    require(upload_start != start and upload_index < upload_end, reason)\n+    uses_lines = [index for index in range(upload_start + 1, upload_end)\n+                  if re.match(r'\\s*uses:', lines[index])]\n+    with_lines = [index for index in range(upload_start + 1, upload_end)\n+                  if lines[index] == '        with:']\n+    require(uses_lines == [upload_index] and len(with_lines) == 1\n+        and with_lines[0] > upload_index, reason)\n+    with_end = upload_end\n+    for index in range(with_lines[0] + 1, upload_end):\n+        line = lines[index]\n+        if line.strip() and not line.lstrip().startswith('#') and not line.startswith('          '):\n+            with_end = index\n+            break\n+    name_lines = [index for index in range(with_lines[0] + 1, with_end)\n+                  if re.match(r'\\s*name:', lines[index])]\n+    require(len(name_lines) == 1, reason)\n+    artifact_index = name_lines[0]\n+    name_match = re.fullmatch(r'          name: (.+)', lines[artifact_index])\n+    require(name_match is not None, reason)\n+    name = name_match[1]\n+    prefix = candidate[:8]\n+    tokens = list(re.finditer(r'(?<![A-Za-z0-9_])' + re.escape(prefix) + r'(?![A-Za-z0-9_])', name))\n+    require(name.count(prefix) == 1 and len(tokens) == 1, reason)\n+    token = tokens[0]\n+    normalized = list(lines)\n+    normalized[input_lines['ref']] = '          ref: \\0CANDIDATE_40\\0'\n+    normalized[artifact_index] = '          name: ' + name[:token.start()] + '\\0CANDIDATE_8\\0' + name[token.end():]\n+    return candidate, '\\n'.join(normalized)\n+\n+\n+def candidate_changed(request, head):\n+    require(repository(read(request, REPOSITORY_PATH)), 'EXISTING_NATIVE_WORKFLOW_REQUIRED')\n+    workflow = read(request, WORKFLOW_PATH)\n+    require(type(workflow) is dict and type(workflow.get('id')) is int\n+        and workflow['id'] == 416758725 and workflow.get('path') == NATIVE_WORKFLOW\n+        and workflow.get('state') == 'active', 'EXISTING_NATIVE_WORKFLOW_REQUIRED')\n+    commit = read(request, COMMITS_PATH + head)\n+    reason = 'CANDIDATE_CHANGE_PROOF_INVALID'\n+    require(type(commit) is dict and commit.get('sha') == head\n+        and type(commit.get('parents')) is list and 1 <= len(commit['parents']) <= 2, reason)\n+    parents = []\n+    for parent in commit['parents']:\n+        require(type(parent) is dict and type(parent.get('sha')) is str\n+            and re.fullmatch('[a-f0-9]{40}', parent['sha'])\n+            and parent['sha'] != head and parent['sha'] not in parents, reason)\n+        parents.append(parent['sha'])\n+    current, current_body = workflow_candidate(read(request, CONTENTS_PATH + '?ref=' + head))\n+    previous, previous_body = workflow_candidate(read(request, CONTENTS_PATH + '?ref=' + parents[0]))\n+    require(current_body == previous_body, reason)\n+    return current != previous\n+\n+\n def existing_count(request, head):\n     total, seen, page = None, set(), 1\n     while True:\n@@ -183,6 +322,10 @@\n def execute(environment, event, *, request):\n     head = trusted_head(environment, event)\n     current_refs(request, head)\n+    if not candidate_changed(request, head):\n+        return {'status': 'NATIVE_SAFARI_CANDIDATE_UNCHANGED', 'dispatch_requested': False,\n+            'request_attempted': False, 'request_acknowledged': False, 'existing_runs_count': None,\n+            'native_verification_proven': False, 'official_provider_gets': 0, 'owner_key_read': False}\n     count = existing_count(request, head)\n     if count:\n         return {'status': 'NATIVE_SAFARI_ALREADY_REQUESTED_FOR_HEAD', 'dispatch_requested': False,\n",
+  "exact_diff_reconstruction_verified": true,
+  "unchanged_historical_function_blocks": [
+    {
+      "name": "failure_report",
+      "unchanged": true
+    },
+    {
+      "name": "strict_json",
+      "unchanged": true
+    },
+    {
+      "name": "read",
+      "unchanged": true
+    },
+    {
+      "name": "current_refs",
+      "unchanged": true
+    },
+    {
+      "name": "existing_count",
+      "unchanged": true
+    },
+    {
+      "name": "main",
+      "unchanged": true
+    }
+  ],
+  "rationale": [
+    "Restore only the missing historical fixed dispatcher helper. Existing release prefix, canonical RELEASE_SHA import, fixed native workflow ID and exact POST payload remain unchanged.",
+    "Require GITHUB_RUN_ATTEMPT exactly string '1' in the trusted existing main-push context. Invalid context still refuses before any metadata request.",
+    "Require strict public repository identity for event/run metadata and a fresh authenticated fixed repository metadata GET, plus existing fixed workflow id/path/active metadata.",
+    "Admit only five additional fixed authenticated GETs: repository, workflow metadata, strict SHA commit metadata, and fixed workflow contents at trusted head and exact first parent. Arbitrary repo/workflow/content path/ref/query overrides remain forbidden.",
+    "Validate exact current commit SHA and one or two strict distinct lowercase 40-SHA parents; reject parent self-reference and select only the first parent.",
+    "Validate fixed contents file type/path/base64 encoding/integer size and canonical Git blob SHA. Bound content, validate canonical base64 after LF-only wrapping removal, decode UTF-8, and reject CR/NUL bodies.",
+    "Parse exactly one fixed candidate step label at the existing indentation, fixed actions/checkout repository, exact with/ref 40-SHA and fixed checkout path. Duplicate/unknown candidate input keys, mutable refs, foreign checkout actions and credential persistence true all HOLD.",
+    "Normalize only the single parsed candidate ref line and one bounded candidate-8 token in the sole actions/upload-artifact step's with:name value. Preserve every other byte including runner, permissions, action versions, commands, comments, input definitions and any other candidate-prefix occurrence.",
+    "Compare the normalized current/first-parent bodies before inspecting pin equality. Any unrelated body difference HOLDs. A valid unchanged pin yields the exact static NATIVE_SAFARI_CANDIDATE_UNCHANGED report with null unqueried history count and no history GET or POST.",
+    "Retain historical all-status/all-conclusion history validation, complete bounded pagination up to 1000 runs/10 pages, duplicate/type/repository/head checks, same-head run skip, and immediate fresh main/source ref rechecks before the one fixed POST.",
+    "Use urllib's default proxy policy by building the opener with NoRedirect only; remove the historical empty ProxyHandler bypass. Authentication, fixed GitHub API origin, read bounds, five-second timeout and no redirect/no retry behavior remain.",
+    "Close HTTPError resources in try/finally so even a close exception cannot erase an attempted POST; all ambiguous response/read/status/exit failures remain acknowledged false with attempted true and are never retried.",
+    "Retain historical safe reports and main entry point without reading owner keys, exporting raw errors/body/URLs, introducing runtime CLI overrides, adding uploads or performing provider reads. Root owns the optional main([]) wrapper wiring."
+  ],
+  "expected_fresh_call_sequence": [
+    "GET fixed main ref",
+    "GET fixed source ref",
+    "GET fixed repository metadata",
+    "GET fixed workflow metadata",
+    "GET current exact SHA commit metadata",
+    "GET fixed native workflow contents at current SHA",
+    "GET same contents at exact first parent SHA",
+    "GET same-main-head all-state native workflow_dispatch history",
+    "GET fixed main ref",
+    "GET fixed source ref",
+    "POST existing workflow 416758725 dispatches with {ref:main,inputs:{browser:native-safari}}"
+  ],
+  "static_inspection": {
+    "whole_file_quoted_string_scan": {
+      "invalid": [],
+      "endState": "code",
+      "lines": 365
+    },
+    "no_owner_key_identifier": true,
+    "no_empty_proxy_handler": true,
+    "no_whole_body_candidate_replacement": true,
+    "historical_safe_function_blocks_byte_identical": true,
+    "only_approved_two_hold_reasons_added": true
+  },
+  "verification": {
+    "helper_blob_exact_GitHub_readback": true,
+    "exact_diff_target_reconstructed_in_V8": true,
+    "python_parse_executed": false,
+    "unit_tests_executed": false,
+    "ci_green_observed": false,
+    "native_safari_acceptance_proven": false
+  },
+  "required_next_action": "Root may install this helper blob together with its separately reviewed existing-workflow wiring and pin packet on PR44, then run fresh existing CI against the immutable 26-test blob. Review CI before making any passing/completion claim. No runtime dispatch was issued by this agent.",
+  "scope": {
+    "only_helper_blob_and_handoff_packet_published": true,
+    "tests_changed": false,
+    "workflows_changed": false,
+    "refs_moved": false,
+    "pr_created_or_modified": false,
+    "dispatch_post": false,
+    "merge": false,
+    "process_started": false,
+    "source_provider_get": false,
+    "owner_key_read": false,
+    "new_jobs_permissions_inputs_crons_runners_timeouts_markers": false
+  }
+}

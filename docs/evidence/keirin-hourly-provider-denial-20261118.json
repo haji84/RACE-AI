@@ -1,0 +1,52 @@
+{
+  "schema": "RACE_AI_KEIRIN_LATEST_SCHEDULE_PROVIDER_DENIAL_AUDIT_20261118_V1",
+  "repository": "haji84/RACE-AI",
+  "auditor": "/root/p0_live_counts",
+  "workflow_run_id": 44188826856,
+  "job_id": 134412623705,
+  "failure_at_utc": "2026-11-17T22:20:48Z",
+  "source_sha": "c26ac0927647f317acf855e0c42cd1703232c19b",
+  "source_failure": {
+    "code": "DAILY_INDEX_HTTP_403",
+    "location": "scripts/keirin_daily_public_discovery.py:25",
+    "caller_lines": [
+      48
+    ],
+    "collector_lines": [
+      40,
+      231
+    ],
+    "stage": "first public racecard-index page.goto"
+  },
+  "capture_step_continue_on_error": true,
+  "capture_success_label_proves_capture": false,
+  "final_guard": "NO_VERIFIED_DAILY_CATALOG_OR_REPLAY",
+  "artifact_api_items": 0,
+  "report_available": false,
+  "forecast_count": null,
+  "catalog_count": null,
+  "observed_main": "11fce968e977a6ff82eb4b72655c819e4b0e7517",
+  "unchanged_autonomous_workflow_blob": "92b4fa5e10cfc30f645db6626e31a218b91f779d",
+  "existing_c26_fix_scope": "Verified previous-day catalog recovery; does not repair a current-day provider HTTP403.",
+  "latest_schedule_search": {
+    "scope": "latest100 scheduled RACE-AI workflow runs",
+    "observed_utc_minute": "2026-11-18T00:33Z",
+    "newer_keirin_schedule_found": false,
+    "global_absence_claimed": false
+  },
+  "proof_limits": {
+    "zero_forecasts_inferred_from_missing_report": false,
+    "newer_capture_success_proven": false,
+    "pr71_green_used_as_real_capture_proof": false,
+    "all_four_sports_complete": false
+  },
+  "audit_actions": {
+    "normal_authenticated_GitHub_logs": true,
+    "new_provider_requests": 0,
+    "retries": 0,
+    "dispatches": 0,
+    "refs_changed": 0,
+    "key_reads": 0
+  },
+  "goal_complete": false
+}

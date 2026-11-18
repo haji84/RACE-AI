@@ -1,3 +1,33 @@
+## 2026-11-18 00:33:47 UTC: 既存Safari呼出しを候補変更時の一回に限定して復元、fresh CI待ち（GOAL未達）
+
+実行環境はexec-server接続の回復timeoutで起動失敗した。ローカルファイルの移転・新しいコマンド実行成功は認定しない。接続GitHubで公開readと認証付きblob/既存branchへのFF書込は実際に成功し、main11fce968・production a74f1e94を再確認した。新PR/force/保護設定変更はない。
+
+実owner44170869325/sourceBBは2026-11-18 00:29:48 UTCの再取得で20ステップsuccess・21回目in_progress・失敗0。P0保管/独立readbackは通過し、固定追加r0の132contexts/660生成・投影を別Actions runnerでAES/native照合済み。264 retained-original枠と924 WAITING_EXHIBITION枠は別状態であり、後続P1生成や全日分母へ足さない。説明文の「P1枠」を固定P0 payload内の待機状態へ修正し、数値/認証記録は不変。全24実巡回/締切T15–10/最新P1/全4競技の完成は未確認。実行中BBを差替えず、次workerだけ既存真正gateがa74を選ぶ。
+
+既存PR44のcallerを復元する。既存owner jobの最終任意stepで、最初のtrusted-main既存release push、現在main/source一致、public repo/固定既存416758725 active、現在commitとfirst parentの真正workflow内容を確認する。候補40SHAのref行と既存artifact名内8prefixだけを正規化し、それ以外の全文bytesが違えばHOLD。候補不変は静的SKIP、同headの全状態履歴に既存呼出しがあればSKIP。最後にmain/sourceを再確認し、固定main/native-safariへ一回だけPOSTする。曖昧な受付・読取り・close失敗は再送しない。既存job/権限/input/cron/runner/timeout/releaseprefix/markerは増やさず、default proxyとredirect拒否を保つ。owner keyや公式sourceは読まない。任意wrapperのHOLD return2は元P0の結論を変えず、緑jobだけをPOST/実Safariの証拠にしない。
+
+修正後のtests-only REDは44202590718/job134460225492で既存93成功＋missing moduleの1error（計94/0.151秒）。先のSyntaxErrorはREDに数えず、fixture構文だけを訂正した。新候補pinの実REDは44203325461/job134462770132で119件/15.580秒・1assertion失敗/error0（別181件も同じpin不一致のみ）。26caller methodと119native methodを保持し、native側は候補SHA/web tree/3asset hashの5期待値のみ変更。root wiringとhelper本体の独立レビューはCLEAR。真正contents/first-parent/限定2token差分、10条件検査・8拒否vectorをV8で確認し、fresh Python CIは待ち。
+
+Draft62の新候補ed904fe6/web5759ac3は4競技のSVG識別のみを修正した未公開候補。mainのsynthetic検証pinもこの候補へ一致させる。旧598の実Mac44191905231の成功・28合成PNGは旧bytesの証拠であり、新候補のブラウザ成功を意味しない。全8参考はPARTIAL、実機iPhone/login/V5受入も未確認。6艇GT/校正・強さの予想接続と前向き改善の実証、未push2commitの復元も未達のまま維持する。
+
+実15ステップの観測所要は中央値158秒/最大337秒、5分超2件。終了ステップ数を実巡回/生成件数に変換しない。所要内訳と締切適格は完了ログ/真正原本で追加監査する。
+詳細: [限定callerとREDの証拠](evidence/boat-native-caller-root-wiring-20261118.json)、[実step時刻snapshot](evidence/boat-real-owner-step-timing-snapshot-20261118.json)。
+
+以下を追加確認した。既存national workflow_runは実完了eventのBBを選び、固定M2はpush時だけに適用する。final continuity/controlの認証後に既存audit_active_snapshotとaudit_current_pairsで原本/比較を読戻す経路があり、新job/対象file置換は不要。閉じたBBの実認証結果はまだない。KEIRIN実44188826856/job134412623705は最初の公開racecard indexでDAILY_INDEX_HTTP_403、最終NO_VERIFIED_DAILY_CATALOG_OR_REPLAYでfailure・artifactなし。continue-on-errorの成功ラベルは取得成功ではなく、件数はnull。latest100 scheduleの範囲では00:33 UTCに後続KEIRINなし。既存previous-day修正は現403を解消しない。[KEIRIN実失敗証拠](evidence/keirin-hourly-provider-denial-20261118.json)。
+
+
+## 2026-11-17 23:40:12 UTC: a74接続の通常mergeとactive-owner停止を実証、既存Safari呼出しの復元をtests-firstで準備（GOAL未達）
+
+main11fce968のtreeは試験済み1a40db88/treedbd7405と一致。93/206/181件、別212＋32件、10/14件・9block compileが成功、最終27checksは12success/15skip。実owner gate44198715583/job134446902162はsourcea74を認識したうえでHOLD_ACTIVE_OWNER_WORKFLOW、dispatch false/recovery false/公式GET0。稼働中BBを維持し、次の正規引継ぎにa74を選ぶ。
+
+新UI候補ed904/web5759ac3は4競技SVGのみを修正したDraft62。旧598の実Mac成功・28合成PNGと新bytesは区別し、新描画は未確認。コマンド環境が利用不可で、接続GitHub toolにはworkflow_dispatchがないため、以前の履歴に残る限定callerを既存Actions jobで復元する。新たなjob/権限/input/cron/runner/timeout/releaseprefix/markerは作らない。既存owner処理の後の任意stepで、最初のtrusted-main release pushかつ現在commitの候補pinがfirst parentから変わり、正規の全run履歴に同headの既存呼出しがない場合だけ、既存416758725/main/native-safariへ1回POSTする。曖昧な受付は再送せず、元P0の結論を変えない。
+
+最初のPR44 HEADは26試験と既存recovery unitへの登録だけ。古い12 methodを保持し、4構造assertionだけを実際の配置/任意wrapperへ適合。候補以外のnative workflow bytes不変/public repo/first attempt/default proxy/完全履歴/固定POST/鍵非出力を検証する。復元helperとtestの2 pathを既存pull_request filterへ加える以外、既存filter entries/events/branchesは不変。runtimeとcaller stepは未追加、実REDを確認してから実装する。元PR44のhead/base/本文は祖先とevidenceで保全した。
+
+実追加P0 132contexts/660生成・保持264・展示待ち924は暗号照合済み。実sourcea74の新producer/全round/全4競技、物理iPhone/全8参考、6艇GT・校正/強さ接続、将来studyでの改善は未達。8参考は全件PARTIAL、未push2commitはUNRESTORED。原本/本番weights/公開UI/他作業は保全する。
+
+詳細: [PR44保全・既存callerの限定設計](evidence/boat-pr44-existing-safari-caller-tests-first-20261117.json)。
+
 ## 2026-11-17 23:15:08 UTC: 次sourceの固定値と旧原本の限定読取りを実装、fresh CI待ち（GOAL未達）
 
 既存PR45の実REDはmain93件/0.156秒の追加4失敗/error0、national206件/145.542秒の追加2assertion失敗＋16error。新a74がまだ明示pinへ入っていないことによるSOURCE_NOT_PINNED等を再現し、元の試験は保持した。実sourcea74へ5箇所のcurrent pinを合わせ、過去BBだけを歴史原本/control来歴へ追加し、a74からM2/F553/BBのP0を読む方向だけを許可する。逆方向/未知source/旧checkout/proof/active workerの重複起動は拒否する。7 runtime/workflowファイルのstrict anchorを検証し、固定BB660件helperとoptional最終stepはbyte不変。M2対象/native/EFF/archived helper900003/job/permission/input/trigger/cron/runner/timeoutは変更しない。独立reviewとfresh93/206/既存CIは未完了。

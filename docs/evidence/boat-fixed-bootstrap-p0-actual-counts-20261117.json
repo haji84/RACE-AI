@@ -64,7 +64,7 @@
   "claim_limits": [
     "132 contexts and 660 generated/projected forecasts apply only to the fixed additional r0 artifact.",
     "264 retained-original slots are distinct from zero ORIGINAL_REUSED forecasts in this payload.",
-    "924 applicable P1 slots remain WAITING_EXHIBITION; the helper retains full_day/all_models/G8/efficacy/promotion/dispatch/site acceptance as false.",
+    "924 applicable slots are WAITING_EXHIBITION in this fixed P0 payload; this does not prove later P1 generation. The helper retains full_day/all_models/G8/efficacy/promotion/dispatch/site acceptance as false.",
     "This is not an independent complete-day source catalog or evidence of completed live rounds/results/all four sports."
   ]
 }
