@@ -49,3 +49,13 @@ G6. **本番受入れ**：次の未来実開催日の全国全Rで、台帳登�
 - ownerの既存Secrets、repository visibility、保護main、投票、公式公開、モデル重みの重大変更を無断実施しない。
 - PR #291はDraftのまま。今回は既存研究ブランチの実コード＋合成実行証拠＋引継ぎを更新したのみで、mainへの統合・本番無人稼働・全R正式結果照合は**まだ達成していない**。
 - 次チャット/開発者は AGENTS.md、本書、最新mainとPR#291 HEAD、実Actions、暗号保存原本の順で確認してG1〜G6を実装・実証する。新たな説明文追加だけで終了しない。
+
+
+## 2026-11-19 同日追加：GitHub-only跨ぎrunの暗号原本保存研究実装
+
+- race_ai/keirin_nationwide_cipher_history.py を既存の same-repo Git暗号履歴ブランチ state/keirin-encrypted-history 向けに追加。既存PR71のSQLite latest.jsonは変更しない。A/B専用パスのみ追加する。
+- race_idごとにRSA/AES暗号文のみとSHA・出典producer run/commitの最小レシートをGitに create-once 追記。Gitの通常fast-forward pushが競合した場合は新しいHEADを再取得し、同じレースが先に保存されたら異なる暗号原本は拒否し、同一原本なら再追記せず既存を返す。branch不在ならゼロから作らない。別Git cloneで原本SHAをreadbackする。
+- **本番書込みはRACE_AI_KEIRIN_AB_GIT_STORE_ENABLED=trueという明示opt-inがなければ拒否**。GitHub Actions本番時には正規repo・ID・mainを要求する。これはGitHub保存の基礎部品であり、mainへの統合・実データ保存・完全な永続バックアップを承認/実証したものではない。公開repositoryの暗号文の長さと時刻が可視である点は残る。
+- tests/test_keirin_nationwide_cipher_history.py では外部ではなく一時ディレクトリの**実Git bare remote**と2つの独立cloneを使って、A/B実AES暗号の作成→最初の追記→別clone読戻し→同一レース重複拒否→異なるレース追加→欠損branch拒否を検査。
+- GitHub Actions [run 44341396868](https://github.com/haji84/RACE-AI/actions/runs/44341396868) のsource-free-testsで **計84件PASS（新Git保存5件＋既存のA/B/結果照合79件）**。これはローカル合成Git remoteのテストであり、本番GitHub stateへの新規保存や独立RSA復号成功件数ではない。
+- 以前のG3の表現を「GitHub-only追記と競合拒否の基礎コード/合成回帰は実装済み。ただし真の複数main Actionsでの安全な保存・起動連携・停止復旧・正規署名・プライバシー検証は未達」と更新する。G1/G2/G4/G5/G6は引き続き未完成。
