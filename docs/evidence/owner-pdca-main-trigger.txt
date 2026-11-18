@@ -748,3 +748,10 @@ The owner clarified personal-use development rather than general publication.
 No Pages asset publication or production weight/wager action is introduced.
 Morning delivery audit is metadata evidence, and pure READY is not an actual
 Actions launch. Record the next real gate/worker/native results independently.
+
+2026-11-19 JST: reviewed exact bootstrap P0 recovery implementation.
+Protected source 1dbb47b68d487fc6def0bd4b10b1423f0a2145f6 (PR15; tested tree fac54c8e4fd3ceeb8177e408487ca80e9b1e76d4).
+Bind the current checkout to the real failed fbc owner 44409798061 without relabeling history.
+Authenticate and retain the original r0 14475644448, restore V5/issued maps, and forbid regeneration.
+Preserve all counters, original clocks, fixed contracts and the existing single-writer gate.
+Use only boat-owner-release: single-real-session-20261111 and this existing marker.

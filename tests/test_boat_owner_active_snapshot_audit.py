@@ -1021,7 +1021,8 @@ class HTTPCaptureClockOwnerRoleTests(unittest.TestCase):
             self.assertEqual(module.RESEARCH_CACHE_OWNER_SHA,RESEARCH_CACHE_HEAD)
             self.assertEqual(module.PARTIAL_RECEIPT_OWNER_SHAS,(
                 active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,ATOMIC_HEAD,
-                RESEARCH_CACHE_HEAD,VENUE_DIAGNOSTIC_HEAD,HTTP_CAPTURE_CLOCK_HEAD,CLOTHING_BENCHMARK_HEAD))
+                RESEARCH_CACHE_HEAD,VENUE_DIAGNOSTIC_HEAD,HTTP_CAPTURE_CLOCK_HEAD,CLOTHING_BENCHMARK_HEAD,
+                P0_VISIBILITY_HEAD))
         for method in (
                 'test_two_native_rounds_with_only_r0_r1_models_authenticate_all_receipts_and_hold_unknown_r2',
                 'test_completed_m2_uses_authenticated_final_round_not_twenty_four_success_labels',
@@ -1081,7 +1082,8 @@ class ClothingBenchmarkOwnerRoleTests(unittest.TestCase):
             self.assertEqual(module.RESEARCH_CACHE_OWNER_SHA,RESEARCH_CACHE_HEAD)
             self.assertEqual(module.PARTIAL_RECEIPT_OWNER_SHAS,(
                 active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,ATOMIC_HEAD,
-                RESEARCH_CACHE_HEAD,VENUE_DIAGNOSTIC_HEAD,HTTP_CAPTURE_CLOCK_HEAD,CLOTHING_BENCHMARK_HEAD))
+                RESEARCH_CACHE_HEAD,VENUE_DIAGNOSTIC_HEAD,HTTP_CAPTURE_CLOCK_HEAD,CLOTHING_BENCHMARK_HEAD,
+                P0_VISIBILITY_HEAD))
         for method in (
                 'test_two_native_rounds_with_only_r0_r1_models_authenticate_all_receipts_and_hold_unknown_r2',
                 'test_completed_m2_uses_authenticated_final_round_not_twenty_four_success_labels',
@@ -1121,6 +1123,68 @@ class ClothingBenchmarkOwnerRoleTests(unittest.TestCase):
                     getattr(fixture,method)()
                 except ValueError as error:
                     self.fail('Exact clothing-benchmark callback role was refused: '+str(error))
+
+
+P0_VISIBILITY_HEAD='1dbb47b68d487fc6def0bd4b10b1423f0a2145f6'
+
+
+class P0VisibilityOwnerRoleTests(unittest.TestCase):
+    """Exact current-upload release roles preserve AES and issued P0 ancestry."""
+    @classmethod
+    def setUpClass(cls):M2SnapshotTests.setUpClass()
+
+    def test_p0_visibility_source_keeps_frozen_roles_and_aes_partial_scopes(self):
+        from scripts import boat_exact_all_model_zip_readback as exact
+        for module in (active,exact):
+            self.assertEqual(getattr(module,'P0_VISIBILITY_OWNER_SHA',None),P0_VISIBILITY_HEAD)
+            self.assertEqual(module.CLOTHING_BENCHMARK_OWNER_SHA,CLOTHING_BENCHMARK_HEAD)
+            self.assertEqual(module.HTTP_CAPTURE_CLOCK_OWNER_SHA,HTTP_CAPTURE_CLOCK_HEAD)
+            self.assertEqual(module.VENUE_DIAGNOSTIC_OWNER_SHA,VENUE_DIAGNOSTIC_HEAD)
+            self.assertEqual(module.RESEARCH_CACHE_OWNER_SHA,RESEARCH_CACHE_HEAD)
+            self.assertEqual(module.PARTIAL_RECEIPT_OWNER_SHAS,(
+                active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,ATOMIC_HEAD,
+                RESEARCH_CACHE_HEAD,VENUE_DIAGNOSTIC_HEAD,HTTP_CAPTURE_CLOCK_HEAD,
+                CLOTHING_BENCHMARK_HEAD,P0_VISIBILITY_HEAD))
+        for method in (
+                'test_two_native_rounds_with_only_r0_r1_models_authenticate_all_receipts_and_hold_unknown_r2',
+                'test_completed_m2_uses_authenticated_final_round_not_twenty_four_success_labels',
+                'test_m2_key_receipt_nested_counter_and_cipher_mismatches_stay_fatal'):
+            with self.subTest(method=method),patch.object(sys.modules[__name__],'M2_HEAD',P0_VISIBILITY_HEAD):
+                fixture=M2SnapshotTests();fixture.setUp()
+                try:
+                    getattr(fixture,method)()
+                except ValueError as error:
+                    self.fail('Exact P0 visibility source was refused: '+str(error))
+                finally:
+                    fixture.doCleanups()
+
+    def test_p0_visibility_accepts_same_four_parents_and_issued_fbc_but_no_995_c979_f1_unknown_or_reverse(self):
+        for origin in (P0_VISIBILITY_HEAD,active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,
+                       ATOMIC_HEAD,CLOTHING_BENCHMARK_HEAD):
+            with self.subTest(origin=origin):
+                try:
+                    RetentionSnapshotTests._inherited_p0(self,P0_VISIBILITY_HEAD,origin)
+                except ValueError as error:
+                    self.fail('Exact issued P0 cannot enter P0 visibility source: '+str(error))
+        denied=tuple((P0_VISIBILITY_HEAD,origin) for origin in (
+            HTTP_CAPTURE_CLOCK_HEAD,VENUE_DIAGNOSTIC_HEAD,RESEARCH_CACHE_HEAD,'f'*40))
+        reverse=tuple((owner,P0_VISIBILITY_HEAD) for owner in (
+            active.OWNER_SHA,active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,ATOMIC_HEAD,
+            RESEARCH_CACHE_HEAD,VENUE_DIAGNOSTIC_HEAD,HTTP_CAPTURE_CLOCK_HEAD,CLOTHING_BENCHMARK_HEAD))
+        for owner,origin in denied+reverse:
+            with self.subTest(owner=owner,origin=origin),self.assertRaisesRegex(
+                    ValueError,'P0_ORIGIN_IDENTITY'):
+                RetentionSnapshotTests._inherited_p0(self,owner,origin)
+
+    def test_p0_visibility_callback_and_workflow_keep_fixed_m2_push_target(self):
+        fixture=ProfileTargetSelectionTests();fixture.SOURCE_HEAD=P0_VISIBILITY_HEAD
+        for method in ('test_completed_profile_callback_does_not_change_existing_m2_push_target',
+                       'test_matrix_event_and_selected_owner_guards_accept_only_explicit_profile'):
+            with self.subTest(method=method):
+                try:
+                    getattr(fixture,method)()
+                except ValueError as error:
+                    self.fail('Exact P0 visibility callback role was refused: '+str(error))
 
 
 if __name__=='__main__':unittest.main()

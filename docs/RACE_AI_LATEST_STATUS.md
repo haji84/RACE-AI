@@ -1,12 +1,13 @@
-# RACE-AI 最新状況 — 2026-11-19 08:13 JST
+# RACE-AI 最新状況 — 2026-11-19 08:54 JST
 
 **GOALは未達。** 原本・既存変更・重み・元の判定を保全して継続中。従来全文は[履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261118_0928.md)へ同一Git blobのまま保全した。
 
 ## 接続・HEAD・未復元
 
-- 現在のmainは既存PR16の通常merge `4f6efd5207316a5f1ba3ab0255728224f00dcc53`、tree `314ec3c6e305ae13326daefe94a75de5e41d9687`。最終候補6af654のtested treeと一致し、12成功/13skip/失敗0を確認。protected sourceは下記fbcのまま。公開Pages `083739d080ac1fa88714bae0b5cca2bfe7712c8b`・公開資産f603は変更していない。
+- 現在のmainは既存PR16の通常merge `4f6efd5207316a5f1ba3ab0255728224f00dcc53`、tree `314ec3c6e305ae13326daefe94a75de5e41d9687`。最終候補6af654のtested treeと一致し、12成功/13skip/失敗0を確認。公開Pages `083739d080ac1fa88714bae0b5cca2bfe7712c8b`・公開資産f603は変更していない。
+- protected sourceは既存PR15の通常merge **`1dbb47b68d487fc6def0bd4b10b1423f0a2145f6`**、tree `fac54c8e4fd3ceeb8177e408487ca80e9b1e76d4`。最終候補72012372のtested treeと一致。GitHub44422863984の913件/223件/既存3・13・38・46件とNode29件、別44422863924の復旧198件が全成功。main PR13でこの実Sと現在の呼出側proofを結合中。main未反映時の旧fbc pinはSHA不一致でHOLDすべきであり、新sourceの実運転成功をまだ主張しない。[source/main復旧review](evidence/boat-r0-source-main-recovery-review-20261119.json)。
 - 今回のmain作業基点は `7584fc3d9d60aa2a548a43281041f66cf0ce9681`（既存PR22通常merge）。旧BOAT clock参照同期7003/PR25の証拠も保全し、既存PR19で新protected sourceへの正確な参照同期を進める。
-- protected sourceは既存PR21の通常merge `fbc743be548bfd123e46cdbfe290515a59e5e0d3`、tree `1068d5a0d1225e0638a31528f8031a5b8e9fc584`。最終候補9f3/既存CI44348357932のtreeと一致。旧source995等の歴史role・原本・recovery契約を保つ。[sourceの実merge/CI](evidence/boat-source21-reviewed-merge-20261119.json)。
+- 修正前sourceは既存PR21の通常merge `fbc743be548bfd123e46cdbfe290515a59e5e0d3`、tree `1068d5a0d1225e0638a31528f8031a5b8e9fc584`。最終候補9f3/既存CI44348357932のtreeと一致。今朝の実原本originとして保全し、995等の歴史role・原本・固定recovery契約も保つ。[sourceの実merge/CI](evidence/boat-source21-reviewed-merge-20261119.json)。
 - mainのruntime実装は既存PR19の通常merge `bc40906cf2246ba12ad698bb71e6fec492ab7675`、tree `48fafe1fb44083e47f910db9b85c1ae429840e62`。最終候補d48のtested treeと一致し、28 checks（13成功/15skip/失敗0）。復旧138件/0.521秒、matrix372件/152.917秒＋7件/13.974秒、native検証コード140件/18.319秒が成功。新P0はsame＋M2/profile/BB/A74のみ、995/F1/C979/unknownと逆方向を拒否。旧role・fixed reader/recovery契約を保全した。文書更新もこの実装を継承する。[同期の検証](evidence/boat-main-exact-clothing-source-sync-20261119.json)。
 - 選択実行環境は11/18 23:34 JSTに実コマンドが復旧し、管理statusもrunning/currentを確認。公開repoのgit readと最新HEAD一致、CLIのhaji84認証、既存PR62 branchへの通常FF pushが実成功。管理接続の保護された通常merge実績とは別にCLI書込も確認した。既存36 linked worktreesと元checkoutの変更を保全し、最新HEADを分離して作業。秘密鍵はActions内だけ。[環境・現行登録・ローカル検証](evidence/race-ai-local-runtime-resume-and-native-roster-20261119.json)。
 - 元offline変更PR70 `b7380fe6a377e6ccf2b96331f2126c52549bbe17`、PR292 `daae4c10167224b7730006d8ada5ade398aaa64b` は08:40:39 UTCの正規APIが両方422 No commit foundで**未復元**。別環境のファイル移転を仮定しない。
@@ -28,7 +29,9 @@
 
 08:08 JSTの正規認証では、r0 artifact14475644448/18,707,982 bytes/SHA256 e6c87d8ecacfc075b8b3e1ea1b9df51adec5cd2ad056a4b187df50601bea50d7 と最初のP0・continuity・source-controlが同run/head・期限内で存在する。metadata404の根因を反映遅延だけと断定しない。原660件を保全し、再生成前にAES・全inventory・vault・保存view・発行済みmapを再認証する復旧候補を作成中。[再取得したmetadata](evidence/boat-current-p0-retention-incident-metadata-20261119.json)。
 
-既存PR15には、current-run upload receiptに一致するmetadata404だけの既存3回/60秒retryを追加P0の二つのconsumerへ結線した候補a88e6ca6を通常FF pushした。GitHub44414554254は899件・別223件ほか全成功。これは保管経路のCI証明で、未復旧の660原本を読み戻した証明ではない。固定検証器main blob c1621c/source blob be56afは変更せず、exact失敗実行の履歴認証と新checkoutへの復旧証明を分ける追加候補を独立review中。新protected source/main参照同期・実復旧・後続の新予想保存は未確認。
+既存PR15で、current-run upload receiptに一致するmetadata404だけの既存3回/60秒retryを追加P0の二つのconsumerへ結線した。さらに、上記exact失敗実行の原P0＋r0をAES・全inventoryで認証し、再復旧時もvaultから独立読戻し、既存V5へ追記して発行済みmapを検証する。元の固定検証器main blob c1621c/source blob be56afは変更0。歴史fbc proofはfbcとして認証し、新checkout・全履歴・全controlへ結合する。中間のcounter減少、原本/view/issuedmap欠落、未登録V5昇格はHOLD。mandatory restoreのpreflightで、任意bootstrapの失敗後に巡回へ進むことも防ぐ。
+
+復旧author68e0b3a7をtransportへ合成した72012372は独立191件・実clock oracle・root focused50件を通り、上記の現HEAD CI後にsource1dbbへ通常mergeした。main PR13は実S pin・既存markerを合わせ、149 gate件/0.395秒が成功。新しいmain HEADでのCI・通常merge・実660原本読戻し・後続の新予想保存は未確認。CI成功を実復旧・全日達成へ置き換えない。
 
 ## P0保管の修正と実運転
 
