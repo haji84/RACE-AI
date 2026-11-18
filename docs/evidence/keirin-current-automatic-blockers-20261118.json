@@ -1,0 +1,218 @@
+{
+  "schema": "RACE_AI_KEIRIN_FOUR_CANONICAL_RUN_READONLY_AUDIT_V1",
+  "observed_at_utc": "2026-11-18 08:47:04 UTC",
+  "repository": "haji84/RACE-AI",
+  "scope": "Exactly four specified completed schedule runs and their authenticated job logs/artifact metadata; canonical repository only.",
+  "runs": [
+    {
+      "run_id": 44236121551,
+      "workflow": ".github/workflows/keirin-personal-hourly-canary.yml",
+      "event": "schedule",
+      "head_sha": "09b65329692389fe260e4aa0430e94f341b255dc",
+      "created_at": "2026-11-18T04:15:58Z",
+      "conclusion": "failure",
+      "jobs": {
+        "personal": {
+          "id": 134572547724,
+          "conclusion": "success",
+          "actual_output_at": "2026-11-18T04:16:07.4094160Z",
+          "state": "NO_CURRENT_DAY_MANIFEST",
+          "configured_manifest_day": "2026-11-03",
+          "eligible_reported": 0,
+          "get_attempts_reported": 0
+        },
+        "fallback_gate": {
+          "id": 134572548016,
+          "conclusion": "success",
+          "backup_capture_admitted": true,
+          "permanent_storage_verified": false,
+          "recorded_video_verified": false
+        },
+        "capture": {
+          "id": 134572593899,
+          "conclusion": "failure",
+          "checked_out_repository": "haji84/RACE-AI",
+          "checked_out_source_sha": "c26ac0927647f317acf855e0c42cd1703232c19b",
+          "target_day": "2026-11-18",
+          "actual_non_echo_diagnostics": [
+            {
+              "at": "2026-11-18T04:17:22.5590215Z",
+              "error_class": "RuntimeError",
+              "reason": "DAILY_INDEX_HTTP_403"
+            },
+            {
+              "at": "2026-11-18T04:17:22.8623358Z",
+              "reason": "NO_VERIFIED_DAILY_CATALOG_OR_REPLAY",
+              "exit_code": 1
+            }
+          ],
+          "valid_collector_report": false,
+          "real_capture_count": null,
+          "real_scene_count": null,
+          "real_forecast_count": null,
+          "official_result_count": null,
+          "summary_default_zeros_are_not_actual_counts": true
+        }
+      },
+      "api_listed_artifact_count": 0,
+      "source_http_status": 403,
+      "fixable_code_failure_proven": false
+    },
+    {
+      "run_id": 44222760913,
+      "workflow": ".github/workflows/keirin-daily-discovery.yml",
+      "event": "schedule",
+      "head_sha": "6aae91a164a1839d206a38c8b1b6a9bf0b8e2c6b",
+      "created_at": "2026-11-18T02:22:22Z",
+      "conclusion": "success",
+      "job": {
+        "id": 134528423988,
+        "conclusion": "success",
+        "actual_output_at": "2026-11-18T02:22:32.5122634Z"
+      },
+      "day": "2026-11-18",
+      "schema_reported": "RACE_AI_KEIRIN_ALL_DISCOVERED_RACES_LEDGER_V1",
+      "discovered_links": 79,
+      "venue_count": 8,
+      "source_sha256_reported": "e7be4e88c073d1a15bc3a5a60fafab122edeb917059c13837cc220427c6374fc",
+      "source_http_status": 200,
+      "http_status_evidence": "Successful default live fetch path requires HTTP200, exact dated URL, no redirect and accepted MIME; raw headers were not separately logged.",
+      "record_scope": "DISCOVERED_ONLY",
+      "official_cutoff_verified": false,
+      "forecast_status": "NOT_GENERATED_INPUTS_UNVERIFIED",
+      "result_status": "NOT_FETCHED",
+      "forecast_generated_reported": 0,
+      "real_capture_count": null,
+      "real_forecast_saved_count": null,
+      "official_result_count": null,
+      "official_hit8": null,
+      "raw_source_saved": false,
+      "national_coverage_verified": false,
+      "api_listed_artifacts": [
+        {
+          "id": 14391427236,
+          "name": "keirin-public-day-roster-44222760913",
+          "size_in_bytes_declared": 1280,
+          "created_at": "2026-11-18T02:22:33Z",
+          "expired": false,
+          "api_declared_digest": "sha256:5ac290066cb04f0e2dc9e299ce01d5c7fb0d7031b1cbe31060780fe78328d88a",
+          "artifact_zip_downloaded_or_rehashed": false
+        }
+      ],
+      "source_code": {
+        "ledger_blob": "b77d5d3c7038f7d7f1dfe26b105996288b9cf34c",
+        "discovery_blob": "9b523409821e884e5f001130bdda4875d698ba8d",
+        "fixture_used": false
+      }
+    },
+    {
+      "run_id": 44219285700,
+      "workflow": ".github/workflows/keirin-github-autonomous.yml",
+      "event": "schedule",
+      "head_sha": "6aae91a164a1839d206a38c8b1b6a9bf0b8e2c6b",
+      "created_at": "2026-11-18T01:54:06Z",
+      "conclusion": "success",
+      "job": {
+        "id": 134516844681,
+        "name": "nightly-unattended-owner-research",
+        "conclusion": "success",
+        "checked_out_repository": "haji84/RACE-AI",
+        "checked_out_source_sha": "c26ac0927647f317acf855e0c42cd1703232c19b"
+      },
+      "source_day": "2026-11-17",
+      "mode": "archive",
+      "temporary_github_unique_races_reported": 0,
+      "completed_wave_runs_reported": 0,
+      "durable_retention_attested": false,
+      "real_rider_tactics_labeled": false,
+      "capture_job": "skipped",
+      "decrypt_analyze_and_fit_step": "skipped",
+      "sealed_study_upload_step": "skipped",
+      "real_capture_count": null,
+      "real_study_count": null,
+      "real_forecast_saved_count": null,
+      "official_result_count": null,
+      "api_listed_artifact_count": 0
+    },
+    {
+      "run_id": 44217530016,
+      "workflow": ".github/workflows/keirin-pr71-owner-autonomous.yml",
+      "event": "schedule",
+      "head_sha": "e1c55723bcffb3941b7c6cef370cc42b1f4dcfb6",
+      "created_at": "2026-11-18T01:39:59Z",
+      "conclusion": "success",
+      "readiness": {
+        "job_id": 134510986751,
+        "status": "OWNER_APPROVED_PUBLIC_RESEARCH_CANDIDATE_COLLECTION_ONLY",
+        "eligible_to_attempt_existing_owner_admission": true,
+        "owner_profile_attested_by_existing_configuration": true,
+        "source_rights_verified": false,
+        "complete_model_inputs_verified": false,
+        "official_result_authenticated": false,
+        "provider_requests_by_readiness": 0
+      },
+      "cycle": {
+        "job_id": 134511037910,
+        "conclusion": "success",
+        "checked_out_repository": "haji84/RACE-AI",
+        "pinned_pr71_source_sha": "fe7e5581263b2b31fbd45536ac6a611c2779fa65",
+        "actual_output_at": "2026-11-18T01:40:20.6969951Z",
+        "state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT",
+        "source_state": "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED",
+        "acquisition": {
+          "day": "2026-11-18",
+          "state": "OWNER_ATTESTED_SOURCE_ACQUISITION_ONLY",
+          "public_page_requests": 1,
+          "provider_denial_stopped_requests": true,
+          "source_capture_held": true,
+          "new_pre_race_inputs": 0,
+          "source_day_schedule_race_count": null,
+          "actual_four_model_forecast_saved": false,
+          "provider_machine_rights_independently_verified": false,
+          "permanent_encrypted_storage_claimed": false
+        },
+        "four_model_variable_saved": null,
+        "four_model_variable_held": null,
+        "generation": null,
+        "new_forecast_stage_nonzero": null,
+        "result_rows_appended": null,
+        "result_rows_held": null,
+        "existing_pdca_invoked": null,
+        "official_result_independently_authenticated": null,
+        "source_http_status": null
+      },
+      "independent_cloud_readback_job": "skipped",
+      "api_listed_artifact_count": 0
+    }
+  ],
+  "interpretation": {
+    "catalog_links_are_not_verified_real_forecasts_or_results": true,
+    "job_success_does_not_override_hold_or_skips": true,
+    "new_fixable_code_failure_proven": false,
+    "observed_capture_block": "HTTP403 at source daily index, followed by intended missing-report failure guard.",
+    "pr71_block": "Owner-attested partial acquisition with no complete model input; exact source HTTP status not emitted.",
+    "separate_source_endpoints": "Successful catalog discovery does not establish recording endpoint availability or model input completeness.",
+    "additional_policy_or_configuration_changes_performed": false
+  },
+  "provenance": {
+    "authenticated_logs": true,
+    "all_seven_selected_job_logs_completed": true,
+    "canary_workflow_blob": "807994d614d9d0af02a559c8b3442fa4afbedcd0",
+    "discovery_workflow_blob": "acea33c3834b89160f4b836ad097b285c7f62836",
+    "shared_capture_workflow_blob": "92b4fa5e10cfc30f645db6626e31a218b91f779d",
+    "canary_and_nightly_capture_workflow_identical": true,
+    "pr71_workflow_blob": "438313a181599e8e42452088783e63fe97eab625",
+    "echoed_run_source_was_excluded_from_actual_diagnostics": true,
+    "previous_day_missing_manifest_code_was_only_echoed_not_actual_failure": true
+  },
+  "safety": {
+    "provider_requests_by_this_audit": 0,
+    "keys_retrieved": 0,
+    "raw_source_or_private_payload_exported": false,
+    "private_urls_exported": false,
+    "external_repository_queries": 0,
+    "dispatches": 0,
+    "retries": 0,
+    "refs_or_code_or_permissions_changed": false
+  }
+}

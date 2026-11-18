@@ -1,0 +1,26 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_ORIGINAL_PRESERVATION_V1",
+  "repository": "haji84/RACE-AI",
+  "pr_number": 33,
+  "original": {
+    "head_sha": "ca6c2e7f70f10a966a06631945b13e3cd5cc0556",
+    "head_branch": "fix/boat-history-utc-fixture",
+    "base_branch": "feat/boat-racer-sqlite-history-bridge",
+    "base_sha": "e1a780ab2662dd0d2a728717f6cded1bcb2e785d",
+    "title": "test: K履歴ブリッジのUTCテストデータを修正",
+    "body": "PR #32 unit failure 38514261220: fixtureに+09:00文字列を直接SQLite保存し、UTC正規化された比較時刻との辞書順比較で除外された。実際のimport_officialはutc()で保存するため、fixtureをUTC正規形に修正。実装コード・権限・main/Productionは変更なし。",
+    "draft": true
+  },
+  "ancestry": {
+    "main": "7e540c831b8a25f51581e5edee014c3c1a9576d5",
+    "ahead_by": 2300,
+    "behind_by": 0,
+    "merge_base": "ca6c2e7f70f10a966a06631945b13e3cd5cc0556"
+  },
+  "base_consumers": {
+    "complete_open_collection": true,
+    "collection_count": 35,
+    "consumers": []
+  },
+  "policy": "Only a fast-forward descendant preserves the original; no force update or code deletion."
+}
