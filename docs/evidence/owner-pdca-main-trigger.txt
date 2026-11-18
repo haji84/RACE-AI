@@ -623,3 +623,15 @@ pre-publication guard; their collectors/readers/argv/GET gates remain unchanged.
 A pure restoration candidate has no writer/CAS/publication connection here.
 No repair is claimed, no source request is added, no new job/input/cron/runner/
 timeout/permission/prefix/marker/model/fee/UI deployment/weight switch is added.
+
+2026-11-18 one-shot authenticated rejection-anchor restoration
+The existing main41 Actions audit authenticated all12 orphan groups using
+three snapshots424/423/422; no sidecar alone supplies authority. Preserve every
+forecast/result/OBS/history/unknown field/clock and add only the proven old
+ACTIVE originals. Use only source86's unchanged V5 CAS publisher once, then
+reopen the returned immutable ciphertext and require complete candidate equality.
+Activation is the first trusted original-prefix main push whose before/first
+parent is09b65329692389fe260e4aa0430e94f341b255dc. Later pushes and job reruns
+must not retry an ambiguous write. No new release prefix or marker is created.
+Current a74 worker44218343091 continues. No source GET/budget reset/model fit/
+weight switch/new job/permissions/input/cron/runner/timeout/fee/UI deployment.

@@ -948,6 +948,77 @@ jobs:
             --ref production/boat-p0-p1-20261111 \
             -f production_scope=existing-owner-p0-p1
           echo 'DISPATCH_REQUESTED_REAL_P0_P1_NOT_YET_PROVEN'
+      - name: Read the existing feed source only for the reviewed one-shot anchor repair
+        if: >-
+          github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          github.run_attempt == '1' &&
+          github.event.before == '09b65329692389fe260e4aa0430e94f341b255dc' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.owner_gate.outcome == 'success'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 86b029ae5bddd5d4956497d8b32b2c92b8eec521
+          path: owner-source
+          persist-credentials: false
+      - name: Read the original parser separately for the same one-shot repair
+        if: >-
+          github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          github.run_attempt == '1' &&
+          github.event.before == '09b65329692389fe260e4aa0430e94f341b255dc' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.owner_gate.outcome == 'success'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: owner-source/pr64-reference
+          persist-credentials: false
+      - name: Read the original adapter separately for the same one-shot repair
+        if: >-
+          github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          github.run_attempt == '1' &&
+          github.event.before == '09b65329692389fe260e4aa0430e94f341b255dc' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.owner_gate.outcome == 'success'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: owner-source/pr72-reference
+          persist-credentials: false
+      - name: Install the existing authenticated feed dependencies for the one-shot repair
+        if: >-
+          github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          github.run_attempt == '1' &&
+          github.event.before == '09b65329692389fe260e4aa0430e94f341b255dc' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.owner_gate.outcome == 'success'
+        run: python -m pip install --disable-pip-version-check -r owner-source/requirements-history.txt
+      - name: Restore only authenticated older ACTIVE originals through the unchanged CAS publisher
+        if: >-
+          github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          github.run_attempt == '1' &&
+          github.event.before == '09b65329692389fe260e4aa0430e94f341b255dc' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.owner_gate.outcome == 'success'
+        working-directory: owner-source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: |
+          python - <<'PY_REPAIR'
+          import importlib.util
+          from pathlib import Path
+          source=(Path('..')/'scripts/boat_rejection_anchor_repair.py').resolve()
+          assert source.is_file() and not source.is_symlink() and source.parent.parent==Path('..').resolve()
+          spec=importlib.util.spec_from_file_location('main_one_shot_anchor_repair',source)
+          repair=importlib.util.module_from_spec(spec);spec.loader.exec_module(repair)
+          raise SystemExit(repair.main([]))
+          PY_REPAIR
+
       - name: Request native Safari acceptance once for the exact main head
         if: >-
           success() && steps.owner_gate.outcome == 'success' &&

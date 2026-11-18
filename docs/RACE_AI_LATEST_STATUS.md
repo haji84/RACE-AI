@@ -1,3 +1,39 @@
+## 2026-11-18 04:26:09 UTC: 復元333件は実成功、修復HOLDをjob失敗で可視化し最終CIへ（GOAL未達・実書換え前）
+
+PR40 head2c3e5ddd/treea481efbdのnational実CI44236915982/job134575161840は333件/106.696秒・全10 block compile・source/key境界が成功した。新20methodを含むruntime931b0c64は不変。別の既存recovery119件では、owner jobのcontinue-on-error:trueが新CAS分で2個になったことを検出するassert1箇所だけが失敗した。
+
+テストを変えず、新CAS stepのcontinue-on-error:trueだけを除く。修復HOLD/曖昧結果/再読取り不成立はこのjobをfailureにし、既存最後のSafariは元のsuccess条件でskipされる。別実行中のa74 source workerは停止しない。旧native tail/元optional flag、全gates/role/input/cron/runner/timeoutはbyte不変で、workflow28231e84は独立レビューCLEAR。全20新methodも既存assertも変更せず、同じ最終CIを再実行する。
+
+04:26:09 UTC実取得ではa74 run44218343091は16巡回success・17実行中・failed0。現時点の実書換えは0。原本一致12groupは実認証済みだが、保存と復号確認が成立するまで表示修復・GOAL完了とは扱わない。
+
+[実333件と最小修正](evidence/boat-repair-ci-optionality-correction-20261118.json)。以下は各時点の履歴。
+
+## 2026-11-18 04:13:55 UTC: 復元I/Oの実REDを確認、1回CAS保存＋暗号化再読取りを結合してfresh CIへ（GOAL未達・実復元前）
+
+PR40 testheada76fb255の真正CI44234598851/job134567572417は326件/117.798秒。既存313件は成功し、新repair未実装の12assertion失敗＋CLI import error1だけ、SyntaxErrorなし。12 I/O＋8 CLI methodを変更せず、333件として解決するruntime931b0c64を実装した。実装後のPython全成功・実書込みはまだ未確認。
+
+runtimeはfirst-attempt/main push/既存repo ID/owner job/workflow ref/既存release prefixを鍵やcontext読取り前に検証。既存source86/F9bb/H3587/e6/transport497/publisher87、main proof903/candidate254/foundation307、parser76/7aの正確なbytes・HEAD・作業差分を確認し、既存bootstrapだけで現在headと同一日旧原本を認証する。呼出し元mainのraw first-parent09bも必須で、浅いcheckoutでも親情報を読む。
+
+現在の保存元が変われば書込み前HOLD。候補は元forecast/result/OBS/history/unknown fields/clockを保持し、既存F.publish_viewを最大1回だけ呼ぶ。V5の厳格6field ACK後に返却commitを既存認証readerで再読取りし、候補全wire・前cipher・世代・view/source/forecast anchor・両row guardを確認して初めてPUBLISHED_VERIFIEDとする。例外/不正ACKならpublication_performed=null、ACK後の再読取り不成功ならtrueのHOLDで、曖昧な書込みを未実行扱い／自動再試行しない。
+
+既存owner job内へ5stepを追加する。既存prefix＋main push＋初回＋event.before09b＋owner_gate successに限定し、後続pushは自動実行しない。既存最後のSafari callerはbyte不変で鍵を渡さず、元source gates/GET budget/job定義/権限/input/cron/runner/timeoutを変えない。sourceworkerは継続し、模型重み・学習・公開UIは変更しない。独立loader reviewはCLEAR、結合I/Oとworkflowはreview/CI待ち。
+
+実3世代で全12groupの旧ACTIVE一致は認証済みだが、まだ新候補を実保存していない。新PR/モデル系統/課金を増やさず、GOALの残る4競技・実機・6艇校正・前向き精度改善を完成扱いしない。
+
+[実RED・結合runtime・1回起動境界](evidence/boat-one-shot-rejection-anchor-repair-runtime-20261118.json)。以下は各時点の履歴。
+
+## 2026-11-18 03:51:38 UTC: 過去ACTIVE原本を実発見、欠落12group全ての復元根拠を3世代で認証（GOAL未達・書換え0）
+
+通常merge09b65329/tree0187b6a1はtested3f7bbbfdと完全一致。最終CIは313件/104.311秒・119/181/212+32/48/72/40+10と認証応答検査、全39checks(16success/23skip)が通過した。四つの現在legacy writer経路の保存前guardも統合済み。古い固定0da3回復手順への普遍的保護とは扱わない。
+
+main実run44232934955/job134562106410の03:50:20.5314002 UTCログでALL_ORPHAN_ANCHORS_PROVENを確認した。snapshotは424/6eea8632(cipher3ebea79d)、423/71c1b06f(cipherc6e3242c)、422/86f0f312(cipher2ae7379d)の3世代。current active2/history24、orphan12/proved12/planned12、older ACTIVE checked29。全12groupで旧ACTIVE本文と現在の履歴原本が完全一致し、認証済み前cipher/世代/同一保存日/forecast anchorも検証した。24件の履歴を保ち、12件の実在原本をACTIVEへ戻す根拠が得られた。12レースという意味ではなくgroup数である。
+
+この読取りではsource GET0・原本変更0・公開/復元0。現世代424のmissing24はまだそのままで、実表示修復成功ではない。次に既存PR40を原head7e01a369/元metadata/祖先関係とopen base consumer0を保全して再利用し、CAS・1回だけの既存V5 publisher・厳格ACK・暗号化再読取りを12 I/O testと別CLI境界testで検証する。鍵はActions内のみ、曖昧な書込みの自動再試行はしない。
+
+03:47:44 UTC時点a74実run44218343091は14巡回success・15実行中・failed0。稼働中workerを再起動／hotswapせず、全4競技/締切15〜10分前/全既存model/実iPhone/6艇校正/前向き精度改善は未確認のまま保持する。新PR/job/権限/input/cron/runner/timeout/prefix/marker/モデル/追加料金/公開UI/重み切替は増やさない。元offline2commitも未復元。
+
+[最終CIと通常merge](evidence/boat-anchor-safety-final-ci-and-merge-20261118.json)、[実3世代・全12group原本一致](evidence/boat-older-active-all-groups-proven-actual-20261118.json)。以下は各時点の履歴。
+
 ## 2026-11-18 03:40:40 UTC: 共通読取り経路の予算停止も独立レビューCLEAR、同じ全CIで最終検証（GOAL未達）
 
 runtime9030da13は、親metadata読取り後だけでなく、前世代manifestで予算が0になった場合の既存F.current_view/history loaderのfetch/existsも委譲前に停止する。31b3との差は4行だけで独立レビューCLEAR。純粋prefix・F/H認証・既存source pins・87新method・モデル/GET budgetは不変。実313件成功後に指摘された厳密な停止条件で、同じ最終CIを再実行する。旧ACTIVE発見・復元・当日表示・GOAL達成はまだ確認していない。

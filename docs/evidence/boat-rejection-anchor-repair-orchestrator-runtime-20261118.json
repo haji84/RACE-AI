@@ -1,0 +1,78 @@
+{
+  "kind": "RUNTIME_ORCHESTRATOR_PREFIX_AFTER_AUTHENTICATED_ACTUAL_RED",
+  "repository": "haji84/RACE-AI",
+  "file": {
+    "path": "scripts/boat_rejection_anchor_repair.py",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "960a91a1ea6714fd641b3eadc6a24ae5a101aaad",
+    "bytes": 19998,
+    "lines": 374,
+    "composition": "PREFIX ONLY; root appends separate reviewed CLI and private loader suffixes, then final footer."
+  },
+  "supersedes_prefix": "38c0f62dc32f794231f2b209ec942fcfcd69b34b",
+  "frozen_tests": "e8465a7a73692f71f034b6c5c8222310b5d99a18",
+  "approved_contract": "8d3c2e5870f37d8e8990a5327eef37a7cb4bc8ea",
+  "cli_tests": "9aef7adda684ce9fbeb240bb7b35a628ec1b5148",
+  "actual_red": {
+    "head": "a76fb255155d63235a4499a7fb8e5df2c85bcc55",
+    "run": 44234598851,
+    "job": 134567572417,
+    "time_utc": "2026-11-18T04:06:00Z",
+    "tests": 326,
+    "elapsed_seconds": 117.798,
+    "existing_passed": 313,
+    "new_missing_module_failures": 12,
+    "cli_missing_module_import_errors": 1,
+    "syntax_errors": 0,
+    "evidence": "Parent authenticated Actions log",
+    "green_claim": false
+  },
+  "shared": {
+    "SCHEMA": "RACE_AI_REJECTION_ANCHOR_REPAIR_V1",
+    "COUNTS": "Exact tuple7 approved restoration counts",
+    "EFFECTS": "Exact dict5 approved false/zero effects",
+    "HASHES": "Exact tuple5 approved view/published hashes and generation",
+    "_hold": "_hold(reason, *, attempted=False, performed=False) -> safe null-count/hash HOLD; fixed reason allowlist includes CLI_ARGUMENTS_REJECTED",
+    "_safe_report": "_safe_report(report) -> validated detached safe report; fixed ValueError for invalid schema/types/keys/effects/counts/hashes/state.",
+    "namespace": "Remaining names _repair_* / _RepairModule / _RepairSilentStream; no CLI/shared helper redefinition required."
+  },
+  "context_keys": [
+    "proof",
+    "candidate",
+    "guard",
+    "feed",
+    "repository",
+    "bootstrap",
+    "current",
+    "older_chain"
+  ],
+  "context_rules": "Exact module objects/classes from trusted fixed loader, no cached decisions or auth booleans. Current receipt reverified through supplied actual proof, V5 required, one authenticated day, bootstrap exact bytes32 key and matching anchors. No bootstrap opening/decryption/key environment access in prefix.",
+  "flow": "Trusted first-attempt existing main owner push before callback; recompute actual candidate once and validate exact summary/opaque type; retain full non-ACTIVE fields and existing ACTIVE bodies; HOLD/NO_CHANGE no writes. READY checks predecessor then calls unchanged publisher once with detached private copy, no flags, retries, raw Git or protocol activation. Require strict existing6fieldV5 ACK and immutable authenticated selected-day readback matching canonical authorized candidate and all header bindings.",
+  "publication_states": "false before attempted call; null on publisher exception or malformed ACK; true after valid ACK even when later readback is HOLD. readback_verified only after exact proof receipt/body/header/guard checks. All HOLD counts/hashes null.",
+  "privacy": "Redirects all private loader/builder/guard/publisher/reader stdout/stderr to discard stream; fixed stage/proof reason enums only. No private fields, exception strings, repr, keys, clocks, URLs or bodies exported.",
+  "source_reuse": {
+    "proof": "9030da131741eca9dbb86ad977ad5aec476095bb",
+    "candidate": "254aa942559c5c04efd79e2a1e0dbac8bda69b04",
+    "guard": "e6db8d720aa151940e01f377831a5884eb4b2ba9",
+    "feed": "9bb3bf0d1e48c9b3e3ba8e42030d5a05b681f900",
+    "history": "3587debeeb4024dc768cac69f1a8aca9014d6f3e",
+    "source_checkout": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "reader_call": "proof._read_verified_snapshot(repository,bootstrap,ack.commit,feed=feed,guard=guard,budget=proof.ReadBudget(),day=day)"
+  },
+  "actual_older_proof": "Parent authenticated run44232934955/job134562106410 proved all12 orphan groups across3 snapshots; prefix itself performs no actual write and is not connected to live handles here.",
+  "verification": {
+    "exact_connector_readback": true,
+    "lexical_scan": {
+      "state": "code",
+      "unclosed_delimiters": [],
+      "errors": []
+    },
+    "publisher_call_sites": 1,
+    "direct_io_or_runtime_import_scan": false,
+    "python_parse_executed": false,
+    "tests_executed": false,
+    "fresh_combined_ci_required": true
+  },
+  "scope": "One runtime prefix blob only. Tests/refs/workflows/main/footer/private loader unchanged and no process, key retrieval, source request, dispatch or real publication. Root owns final composition, independent review and fresh required CI before any protected main integration/actual operation."
+}

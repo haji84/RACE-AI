@@ -1,0 +1,26 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_PRESERVATION_V1",
+  "observed_at_utc": "2026-11-18T03:50:30Z",
+  "repository": "haji84/RACE-AI",
+  "pr_number": 40,
+  "original": {
+    "title": "feat: 徳山の出走表・モーター・競走結果を艇番と登録番号で照合",
+    "body": "同一日・会場・レースID・艇番・選手登録番号をキーに、独立検証済みの競走結果（着順・実進入）を出走情報と結合するオフライン処理を追加。選手不一致、未検証結果、欠測をSAFE_STOP。合成fixtureテスト追加。\n\n実HTMLの取得・結果ページ解析・原本との照合は未実施。verified_officialフラグは実証の代わりにならない。実レースの着順や決まり手は一切生成していない。main/Production変更なし。",
+    "head_sha": "7e01a36917fc344371bde03a664ffb148c52f22d",
+    "head_ref": "feat/tokuyama-result-reconciliation",
+    "base_ref": "feat/tokuyama-meet-html-evidence",
+    "draft": true,
+    "state": "open"
+  },
+  "ancestry": {
+    "base": "7e01a36917fc344371bde03a664ffb148c52f22d",
+    "head": "09b65329692389fe260e4aa0430e94f341b255dc",
+    "status": "ahead",
+    "ahead_by": 2260,
+    "behind_by": 0,
+    "merge_base": "7e01a36917fc344371bde03a664ffb148c52f22d",
+    "open_base_consumers": 0
+  },
+  "new_pr_created": false,
+  "force_update": false
+}
