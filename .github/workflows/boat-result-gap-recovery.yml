@@ -510,6 +510,24 @@ jobs:
           ref: 6327bc5675aee2da94ac13397f1f86f39b27d8fd
           path: source-reader
           persist-credentials: false
+      - name: Read reviewed display-only publication safety without replacing the collector
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.sha }}'
+          path: legacy-publish-safety
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/boat_legacy_reason_anchor_guard.py
+            scripts/boat_legacy_reason_anchor_entry.py
+          sparse-checkout-cone-mode: false
+      - name: Read the exact current reason guard separately from legacy runtime imports
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 86b029ae5bddd5d4956497d8b32b2c92b8eec521
+          path: reason-binding-source
+          persist-credentials: false
+          sparse-checkout: race_ai/boat_saved_model_view.py
+          sparse-checkout-cone-mode: false
       - name: Install immutable original official parser separately
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -560,6 +578,12 @@ jobs:
               package=Path(folder, 'race_ai').resolve()
               assert package.is_dir(), 'PINNED_OFFICIAL_ADAPTER_MISSING'
               race_ai.__path__.append(str(package))
+          import importlib.util
+          safety=Path(os.environ['GITHUB_WORKSPACE'])/'legacy-publish-safety/scripts/boat_legacy_reason_anchor_entry.py'
+          assert safety.is_file() and not safety.is_symlink()
+          spec=importlib.util.spec_from_file_location('reviewed_legacy_reason_anchor_entry',safety)
+          entry=importlib.util.module_from_spec(spec);spec.loader.exec_module(entry)
+          entry.prepare_legacy_feed()
           from scripts.racer_intraday_refresh import main
           raise SystemExit(main(['--private-dir',
               os.path.join(os.environ['RUNNER_TEMP'],'boat-gap-sourcefree'),
@@ -649,6 +673,24 @@ jobs:
           ref: bfcb3bf60d78e9be7d7a6c1a1ee34e1651eedd85
           path: source-reader
           persist-credentials: false
+      - name: Read reviewed display-only publication safety without replacing the collector
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.sha }}'
+          path: legacy-publish-safety
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/boat_legacy_reason_anchor_guard.py
+            scripts/boat_legacy_reason_anchor_entry.py
+          sparse-checkout-cone-mode: false
+      - name: Read the exact current reason guard separately from legacy runtime imports
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 86b029ae5bddd5d4956497d8b32b2c92b8eec521
+          path: reason-binding-source
+          persist-credentials: false
+          sparse-checkout: race_ai/boat_saved_model_view.py
+          sparse-checkout-cone-mode: false
       - name: Install immutable original official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -759,6 +801,12 @@ jobs:
               package=Path(folder,'race_ai').resolve()
               assert package.is_dir(), 'PINNED_OFFICIAL_ADAPTER_MISSING'
               race_ai.__path__.append(str(package))
+          import importlib.util
+          safety=Path(os.environ['GITHUB_WORKSPACE'])/'legacy-publish-safety/scripts/boat_legacy_reason_anchor_entry.py'
+          assert safety.is_file() and not safety.is_symlink()
+          spec=importlib.util.spec_from_file_location('reviewed_legacy_reason_anchor_entry',safety)
+          entry=importlib.util.module_from_spec(spec);spec.loader.exec_module(entry)
+          entry.prepare_legacy_feed()
           from scripts.racer_intraday_refresh import main
           raise SystemExit(main(['--private-dir',
               os.path.join(os.environ['RUNNER_TEMP'],'boat-gap-fresh'),

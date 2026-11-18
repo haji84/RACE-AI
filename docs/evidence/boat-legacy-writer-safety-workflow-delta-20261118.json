@@ -1,0 +1,32 @@
+{
+  "schema": "RACE_AI_LEGACY_WRITER_SAFETY_WORKFLOW_DELTA_V1",
+  "observed_at_utc": "2026-11-18T03:21:56Z",
+  "workflows": [
+    {
+      "path": ".github/workflows/boat-racer-daily.yml",
+      "blob": "644562a2883784ab00b16b715ee378d0793c6d78",
+      "writer_calls": 2
+    },
+    {
+      "path": ".github/workflows/boat-result-gap-recovery.yml",
+      "blob": "2cab06a2b416489652ef3880a4f8347a56aa1352",
+      "writer_calls": 2
+    }
+  ],
+  "execution_policy_lines_unchanged": true,
+  "existing_job_definitions_unchanged": true,
+  "source_release_pins_unchanged": true,
+  "source_request_flags_and_budgets_unchanged": true,
+  "readonly_old_p0_and_pdca_paths_unchanged": true,
+  "additional_steps": "Public sparse checkout of this exact main code and separate exact e6 guard only; no new job.",
+  "runtime_legacy_feed_blobs": [
+    "ffb39325d9d045b962e379e53be4577fc014bd20",
+    "3295add3abdacb88ee23e38875c6af47e8f33979"
+  ],
+  "pure_guard_blob": "b438b6ec63b5f8048755081ba1ce074a2d7a0823",
+  "independent_workflow_review": "CLEAR",
+  "new_workflow_job_or_inputs": false,
+  "new_provider_gets": 0,
+  "public_ui_or_model_changes": false,
+  "review_scope": "Four current live calls only; exact historical 0da3 recovery route remains unchanged and outside these two workflows."
+}

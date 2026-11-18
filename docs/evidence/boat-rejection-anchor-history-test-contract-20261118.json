@@ -1,0 +1,47 @@
+{
+  "schema": "RACE_AI_REJECTION_ANCHOR_BOUNDED_HISTORY_TEST_CONTRACT_V1",
+  "tests_path": "tests/test_boat_saved_rejection_anchor_history.py",
+  "frozen_existing_tests_unchanged": 29,
+  "api": {
+    "AncestryHold": {
+      "base": "ValueError",
+      "reason": [
+        "BOUND_EXCEEDED",
+        "INPUT_OR_CHAIN_INVALID"
+      ],
+      "message": "Fixed enum only; invalid reasons reject with a fixed message or normalize to a safe enum."
+    },
+    "ReadBudget": {
+      "constructor": "ReadBudget(limit=256*1024*1024, snapshot_limit=32, hop_limit=128)",
+      "new_property": "remaining_hops",
+      "new_method": "hop() reduces the shared parent-hop balance; exhaustion raises AncestryHold('BOUND_EXCEEDED').",
+      "bounds": "Strict positive integer limits, rejecting bool and limits above hard maxima. Byte/snapshot exhaustion is also fixed BOUND_EXCEEDED."
+    },
+    "_find_predecessor_commit": {
+      "signature": "_find_predecessor_commit(repository, newerReceipt, *, feed, budget, max_hops=128) -> str",
+      "receipt": "Existing bound VerifiedSnapshot from authenticated reader; verify its binding.",
+      "metadata": "Read raw cat-file -p immutable commit headers, including at shallow boundaries. Bound commit object at 64 KiB and remaining bytes before payload read (cat-file -s preferred). Require one valid tree header and exactly one valid parent header before the blank-line separator. Valid signed continuation lines and message parent words are not parents. Reject malformed/merge/root/self/cyclic parents.",
+      "selection": "Charge the shared parent hop before fetch. Fetch only the immediate parent through existing filtered repository. Validate only latest.json as 100644/blob/exact path. Read its selected bounded manifest through the same actual-byte budget. The only skip is full header plus cipher equality to the starting receipt's manifest. First distinct manifest must have generation exactly newer-1 and cipher exactly newer.header.previous_cipher_sha256. Any distinct mismatch is INPUT_OR_CHAIN_INVALID; never search past it.",
+      "local_and_global_bounds": "max_hops is a strict integer1..128 local cap, additionally bounded by shared ReadBudget.hop. Exhaustion is BOUND_EXCEEDED, not proof absence.",
+      "no_authority": "No mutable head/ref lookup, graph walks via rev-list/log, full historical tree scan, REST, source HTTP, writes, proof minting, or decryption."
+    },
+    "_extend_authenticated_chain": {
+      "signature": "_extend_authenticated_chain(repository, bootstrap, current, older_chain, *, feed, guard, budget) -> tuple[VerifiedSnapshot,...]",
+      "control": "Run the existing real matcher before searching and after every appended authenticated receipt. Search only on HOLD/ACTIVE_PROOF_MISSING. Return the current older tuple on ALL_ORPHAN_ANCHORS_PROVEN, NO_ORPHAN_ANCHORS, or any other matcher HOLD. Never mutate current/initial older chain or return a partial proof decision.",
+      "reader": "Call _find_predecessor_commit on the last older receipt, then existing _read_verified_snapshot for that candidate with day=current._view.event_date_jst. Preserve the same feed/guard/bootstrap/repository/shared budget. Existing F/H owns AEAD.",
+      "bound_failures": "Propagate only the fixed AncestryHold; a failed/uncertain extension yields no successful partial chain to the public caller."
+    },
+    "run_audit": {
+      "addition": "Catch AncestryHold from load_pair before generic exceptions and emit fixed HOLD with that approved reason, counts=null, snapshots=[] and all six effect flags unchanged. Continue mapping ordinary unexpected reader exceptions to AUTHENTICATED_PAIR_UNAVAILABLE. Capture noisy output and never leak raw errors or private values."
+    }
+  },
+  "fixed_initial_pair_unchanged": [
+    "6eea8632c5d9a5504092c7b7c45ba57f3e7d6ddb",
+    "71c1b06f36c4b6c01fcca6432c64ff5f4a18b8b9"
+  ],
+  "snapshot_limit": 32,
+  "total_actual_read_bytes": 268435456,
+  "shared_parent_hops": 128,
+  "source_and_publication_actions": 0,
+  "tests_local_execution": false
+}

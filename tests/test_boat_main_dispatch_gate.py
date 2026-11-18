@@ -351,7 +351,18 @@ class BoatOwnerLauncherGateTests(unittest.TestCase):
         self.assertIn('zip_sha256=\'5a3287ac9cb45be6907be6c7d370c04addf3216d6e70184bda20e05502c80c6d\'',daily)
         self.assertIn('artifact_id=13905925953,race_count=142,model_forecast_count=284',daily)
         result_only=daily.split("if [[ \"$RESULT_ONLY\" == 'true' ]]; then",1)[1].split('else',1)[0]
-        self.assertIn('python -m scripts.racer_intraday_refresh',result_only)
+        guarded = ('python "$GITHUB_WORKSPACE/legacy-publish-safety/scripts/'
+                   'boat_legacy_reason_anchor_entry.py" scripts.racer_intraday_refresh')
+        self.assertIn(guarded, result_only)
+        self.assertIn('--private-dir "$RUNNER_TEMP/racer-intraday" --verify-public '
+                      '--sync-results "${args[@]}"', result_only)
+        safety = daily.split('name: Read reviewed display-only publication safety',1)[1].split(
+            'name: Reflect confirmed races and retain encrypted incremental source packets',1)[0]
+        self.assertIn("ref: '${{ github.sha }}'", safety)
+        self.assertIn('path: legacy-publish-safety', safety)
+        self.assertIn('scripts/boat_legacy_reason_anchor_guard.py', safety)
+        self.assertIn('ref: 86b029ae5bddd5d4956497d8b32b2c92b8eec521', safety)
+        self.assertIn('path: reason-binding-source', safety)
         self.assertIn('--verify-public --sync-results',result_only)
         # The website checker validates the existing P0 forecast and its
         # official results even though no genuine P1 has yet been generated.

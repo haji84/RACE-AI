@@ -1,0 +1,16 @@
+{
+  "schema": "RACE_AI_SELECTED_READER_PREFETCH_BOUND_REVIEW_V1",
+  "observed_at_utc": "2026-11-18T03:40:40Z",
+  "base_runtime": "31b3a94a41ec03403c1c35467a6cea2a557f9b3f",
+  "new_runtime": "9030da131741eca9dbb86ad977ad5aec476095bb",
+  "exact_delta": "Only four lines: stop with fixed BOUND_EXCEEDED before delegated selected-reader fetch and exists when shared remaining bytes are zero.",
+  "prior_direct_parent_prefetch_guard_retained": true,
+  "pure_prefix_unchanged": true,
+  "private_authentication_unchanged": true,
+  "all_87_new_tests_unchanged": true,
+  "independent_static_review": "CLEAR",
+  "python_final_ci": "PENDING",
+  "publication_or_repair": false,
+  "source_requests": 0,
+  "broader_goals_proven": false
+}

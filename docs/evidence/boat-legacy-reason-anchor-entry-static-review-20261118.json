@@ -1,0 +1,34 @@
+{
+  "kind": "INDEPENDENT_STATIC_LEGACY_REASON_ANCHOR_ENTRY_REVIEW",
+  "repository": "haji84/RACE-AI",
+  "reviewed_entry_blob": "d2f8c7bf9e1733543eb832fc059ed8b4bf536a04",
+  "test_blob": "244660c6b9e4eb91e52ba5151ed6f9a0bc002c78",
+  "contract_blob": "d543a34606e1786720485a17f7952dcb32afa495",
+  "adapter_blob": "b438b6ec63b5f8048755081ba1ce074a2d7a0823",
+  "guard_blob": "e6db8d720aa151940e01f377831a5884eb4b2ba9",
+  "allowed_legacy_feed_blobs": [
+    "ffb39325d9d045b962e379e53be4577fc014bd20",
+    "3295add3abdacb88ee23e38875c6af47e8f33979"
+  ],
+  "decision": "CLEAR_STATIC",
+  "blocking_findings": [],
+  "checks": {
+    "layout": "Entry path fixed inside legacy-publish-safety; detached safety HEAD must equal lowercase40 GITHUB_SHA. Runtime CWD must remain inside workspace and outside safety root.",
+    "byte_pins": "Feed, adapter, and e6 guard source bytes must all pass canonical Git-blob SHA before preparation imports or pinned-source execution. Cached adapter/guard keyed by absolute path plus digest; pins rechecked each call.",
+    "legacy_namespace": "Actual race_ai and saved_view_feed loaded from old CWD, module __file__ paths verified; only old CWD may be inserted in sys.path. No safety-root or newer parser package insertion.",
+    "installer": "Runs exact b438 adapter against identical old feed and exact e6 guard before target import. Old feed reader, parser, decryption, repository and transport functions are not called by entry.",
+    "cli": "Only scripts.racer_intraday_refresh allowed. Target origin fixed to old CWD script. Passes arguments without shell parsing, runpy supplies normal module execution argv[0], restores caller sys.argv, preserves normal target output and numeric SystemExit codes.",
+    "privacy": "Preparation stdout/stderr discarded. Exceptions and nonnumeric exits yield fixed HOLD JSON/2; inline preparation raises fixed ValueError outside private exception handler, without visible chained private exception.",
+    "io_scope": "Entry reads only public source files and checkout metadata, GITHUB_WORKSPACE, GITHUB_SHA. No direct source provider, network, subprocess, key enumeration/access, saved view read, bootstrap open, decryption, write/publication call.",
+    "tests": "Ten independent invocation tests cover the fixed constants, real old CWD import, argv/install ordering, identical readers, idempotence and recheck, refusals before import/exec, numeric exits, privacy, and guarded I/O traps."
+  },
+  "verification": {
+    "static_source_review": true,
+    "exact_blob_readback": true,
+    "local_execution": false,
+    "tests_executed": false,
+    "ci_green_claim": false,
+    "fresh_combined_ci_required": true
+  },
+  "scope": "Entry review only. Workflow integration reviewed separately by parent team. No runtime, tests, refs, workflow, dispatch or publication mutation performed."
+}

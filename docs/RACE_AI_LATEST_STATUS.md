@@ -1,3 +1,45 @@
+## 2026-11-18 03:40:40 UTC: 共通読取り経路の予算停止も独立レビューCLEAR、同じ全CIで最終検証（GOAL未達）
+
+runtime9030da13は、親metadata読取り後だけでなく、前世代manifestで予算が0になった場合の既存F.current_view/history loaderのfetch/existsも委譲前に停止する。31b3との差は4行だけで独立レビューCLEAR。純粋prefix・F/H認証・既存source pins・87新method・モデル/GET budgetは不変。実313件成功後に指摘された厳密な停止条件で、同じ最終CIを再実行する。旧ACTIVE発見・復元・当日表示・GOAL達成はまだ確認していない。
+
+[共通読取り境界の正確な最終差分](evidence/boat-selected-reader-prefetch-bound-review-20261118.json)。以下は各時点の記録。
+
+## 2026-11-18 03:37:29 UTC: 新313件は実成功、旧command文字列の検査を強化更新し全CIを再検証（GOAL未達）
+
+PR41 head132b3513/treea3c2dfddのnational実CI44231303007/job134556745907は313件/127.572秒・全10 block compile・source/key境界が成功した。main-recovery119件、racer181件、mirror212＋32件のうち失敗は、3jobで共通の旧`python -m scripts.racer_intraday_refresh`文字列assert1箇所だけ。元のcollector/P0/source gateの検査は他で通り、新entryの固定source/引数保持10件も通った。
+
+旧文字列assertを、新しい絶対entry path＋同じlegacy module＋全元引数の厳格assertに更新し、main-safetyのgithub.sha・固定e6 checkoutも必須にする。旧collector SHA/旧P0 receipt/GET制限/readonly verifier/PDCAの既存assertは削除しない。新87method（29純粋IO＋23guard＋17履歴＋10entry＋8候補）は不変。全jobをスキップせず、同じ保護CIで再検証する。
+
+独立レビューで確認された境界をさらに厳密にし、runtime31b3a94aは親metadataで合計byte予算がちょうど0になった場合も、追加fetch前にBOUND_EXCEEDEDへ停止する。元F/H・暗号鍵・純粋prefix・snapshot/親hop上限は不変。履歴snapshotの署名header空continuationには保守的HOLDが残るが、既存生成state commitはunsignedで、全域不存在や修復済みとは扱わない。
+
+旧ACTIVEの実発見・復元・当日表示成功・4競技全モデル・実iPhone・6艇校正・前向き精度改善は引き続き未達。現在のsource workerを再起動／リセットせず、source予算・モデル・料金・公開UI・重みを増やさない。
+
+[実CIと正確な契約更新](evidence/boat-anchor-safety-ci-contract-correction-20261118.json)。以下は各時点の履歴。
+
+## 2026-11-18 03:30:00 UTC: 旧参照消失の保存前ガード23件は実成功、履歴検索・呼出し境界・復元候補を結合してfresh CIへ（GOAL未達）
+
+既存PR41 testheadfa050161の真正CI44229198738/job134549775998は304件/164.484秒。既存255＋保存前ガード23は全て成功し、残る25失敗（履歴17・復元候補8）とentry import error1は未実装だけだった。構文エラーなし。この固定テストを変更せず、3runtimeを実装した。最終Python全成功と実旧ACTIVE発見はまだ未確認で、現在世代424/423の真正照合結果は引き続きACTIVE_PROOF_MISSING/HOLD。
+
+履歴runtimec8db7fc1は旧純粋prefix075452dをbyte同一で保ち、raw Git親headerの型/サイズを読取り前に検査し、同一manifest重複だけをskip。最初の異なるmanifestが世代-1と認証済みprevious-cipherに一致しなければ停止する。全読取り256MiB/32snapshot/親128hop/commit64KiBを共通で制限し、同一保存日を既存F/Hで復号する。key/source/cryptoは不変、source GET0。境界・予算HOLDは件数nullで、部分証明を出さない。
+
+entryd2f8c7bfはmain-safetyのHEADと旧F/e6/b438の正確なsource bytesを実行前に照合し、旧CWDの実Fにのみ保存前ガードを入れて元CLI・引数・認証・GET budgetを維持する。現在の4live writer呼出しだけへ接続し、readonly bridge/旧P0 verifier/PDCAは変更しない。古い0da3固定回復手順への普遍的保護とは扱わない。workflow差分とentryの独立static reviewはCLEAR。
+
+復元候補254aa942は同じ実proof moduleで再照合し、全groupの旧ACTIVE完全一致が揃った時だけ私的コピーにその辞書を追加する。元予想/結果/OBS/history/unknown fields/時計文字列は不変、全rowで元OBS/REJ guardを再検証し、repr/JSONで本文を出さない。未知項目へのalias伝播もcanonical copyで防止した。独立static reviewはCLEAR。これは未公開candidateだけで、実encrypted writer/CASはまだ接続していない。
+
+03:27:23 UTCの正規GitHub取得ではmain32b18c96、実行中workflowはa74 run44218343091の1件。12巡回success・13実行中・failed0。main42 launcher実ログはHOLD_ACTIVE_OWNER_WORKFLOW/source GET0で重複起動を抑止し、同一Safari候補もNATIVE_SAFARI_CANDIDATE_UNCHANGEDだった。追加source予算・新PR/job/権限/input/cron/runner/timeout/prefix/marker/モデル/課金/公開UI/重みを増やさない。全4競技・実iPhone・6艇校正・前向き精度改善は未達。
+
+[実REDと結合runtime境界](evidence/boat-anchor-safety-combined-runtime-20261118.json)。以下は各時点の履歴。
+
+## 2026-11-18 03:02:14 UTC: 255件成功で通常merge、真正旧ACTIVE照合は不足HOLD、さらに古い認証履歴へ（GOAL未達）
+
+PR42はhead9434bc7b/tree00c03689で255件/111.033秒・10 block compile・source/key契約・15checks(8success/7skip)と独立レビューを通過し、通常merge32b18c96のtreeも完全一致した。main実読取り44227138026/job134542962921はsuccess。現AES世代424はREJ active2/history24/missing24のまま、新しい424→423同一保存日照合はHOLD/ACTIVE_PROOF_MISSINGだった。件数null・snapshots空を保持し、原本・結果・履歴・表示を一切変更していない。直前世代だけでは全参照先の証明が足りないという意味で、過去原本の全域不存在を意味しない。
+
+さらに古いGit親履歴を既存filtered read-only transportで辿り、重複staging manifestを別世代に数えず、認証済みprevious-cipher/generation-1に一致するselected snapshotだけを既存F/Hで読むテストを準備する。同じ日を保持し、32snapshot/256MiB/親hop境界でHOLD。sidecarだけからの復元やACTIVEの推測は引き続き禁止する。
+
+既存PR41は原head7eb796ca/元metadata/祖先関係とopen base consumer0を保全して再利用する。旧Fの2実関数fixtureと23回帰methodを追加し、2つの旧参照消失対照と、保存前ガードの未実装REDを検証する。まだ旧writer再発防止・復元・当日表示成功は未達。新PR/job/権限/input/cron/runner/timeout/prefix/marker/モデル/料金/公開UI/重みは増やさない。
+
+[通常merge・CI](evidence/boat-saved-rejection-anchor-proof-ci-20261118.json)、[正規Actions実照合HOLD](evidence/boat-selected-rejection-anchor-proof-actual-20261118.json)。以下は各時点の記録。
+
 ## 2026-11-18 02:53:57 UTC: 既存226件成功・新処理欠落のみのREDを確認、過去ACTIVE照合を実装して実CIへ（GOAL未達）
 
 既存PR42を通常fast-forwardで再利用し、原head87623032と元metadataを保全した。test-only headd15a5c25の真正CI44225538918/job134537680916は246件/109.154秒、既存226件は成功、新処理未実装による19 I/O setUp失敗＋純粋test import error1だけで、SyntaxErrorなし。10純粋＋19 I/O methodを変更せず、同じテストを満たす処理を実装した。実装後のPython成功・実AES照合はまだ未確認。

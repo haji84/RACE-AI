@@ -1,0 +1,67 @@
+{
+  "schema": "RACE_AI_ANCHOR_SAFETY_CI_CONTRACT_CORRECTION_V1",
+  "recorded_at_utc": "2026-11-18T03:37:29Z",
+  "existing_pr": 41,
+  "head": "132b3513c4ca196b742b5eb34a4f5152568a9b85",
+  "tree": "a3c2dfdd71749fdb6672e80753a04240617d4cca",
+  "national": {
+    "run_id": 44231303007,
+    "job_id": 134556745907,
+    "tests": 313,
+    "duration_seconds": 127.572,
+    "conclusion": "success",
+    "compiled_heredocs": 10,
+    "source_key_contract": "passed"
+  },
+  "other_jobs": {
+    "main_recovery": {
+      "run_id": 44231302980,
+      "job_id": 134556745258,
+      "tests": 119,
+      "duration_seconds": 0.59,
+      "failures": 1
+    },
+    "racer_unit": {
+      "run_id": 44231303019,
+      "job_id": 134556745883,
+      "tests": 181,
+      "duration_seconds": 18.076,
+      "failures": 1
+    },
+    "racer_mirror": {
+      "job_id": 134556746161,
+      "legacy_tests": 212,
+      "legacy_seconds": 62.589,
+      "legacy_conclusion": "success",
+      "gate_tests": 32,
+      "gate_seconds": 0.028,
+      "failures": 1
+    }
+  },
+  "single_shared_failure": {
+    "method": "test_verified_result_only_push_uses_pinned_collector_not_forecast_owner",
+    "path": "tests/test_boat_main_dispatch_gate.py",
+    "line": 354,
+    "old_expectation": "python -m scripts.racer_intraday_refresh",
+    "cause": "Same pinned target is now invoked through the exact source-byte-pinned publication guard entry."
+  },
+  "correction": {
+    "test_blob": "c12fafcd2cc7104fdb96b1bb963354c7072d7633",
+    "requires_exact_guarded_command": true,
+    "requires_original_argv": true,
+    "requires_main_safety_and_e6_pins": true,
+    "existing_collector_p0_and_budget_assertions_preserved": true,
+    "new_87_tests_unchanged": true,
+    "checks_skipped_or_weakened": false
+  },
+  "prefetch_edge": {
+    "base_runtime": "c8db7fc1b0632f19a6c2e77eafc9ea98c196370d",
+    "new_runtime": "31b3a94a41ec03403c1c35467a6cea2a557f9b3f",
+    "change": "Stop with BOUND_EXCEEDED before hop/fetch if commit metadata exactly exhausts shared bytes.",
+    "private_payload_budget_never_exceeded": true
+  },
+  "fresh_final_ci": "PENDING",
+  "real_older_active_proof": "not yet obtained",
+  "publication_performed": false,
+  "goal_complete": false
+}

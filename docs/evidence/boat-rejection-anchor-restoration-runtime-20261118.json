@@ -1,0 +1,77 @@
+{
+  "kind": "PURE_REJECTION_ANCHOR_RESTORATION_RUNTIME_AFTER_ACTUAL_RED",
+  "repository": "haji84/RACE-AI",
+  "file": {
+    "path": "scripts/boat_rejection_anchor_restoration.py",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "254aa942559c5c04efd79e2a1e0dbac8bda69b04",
+    "bytes": 6972,
+    "lines": 158
+  },
+  "tree_elements": [
+    {
+      "path": "scripts/boat_rejection_anchor_restoration.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "254aa942559c5c04efd79e2a1e0dbac8bda69b04"
+    }
+  ],
+  "superseding_delta": "After fresh proof and original bound digest check, JSON-clone candidate_view via json.loads(_wire(original)) to detach all synthetic aliases including unknown-field aliases to records rows. Also detach target ACTIVE lists before exact-body insertion. All guard/proof/tests/report logic unchanged.",
+  "frozen_test_blob": "6fa321d6e62791a0ad351facaa0a101f85862771",
+  "approved_contract_blob": "5994fe22ca8e621e4b70c6630aff3fca7cd0f684",
+  "unchanged_proof_blob": "379c9f85917a82340cd8dc543d06b6dd2d3a27ac",
+  "actual_red": {
+    "head": "fa050161d4066385b45d4e899fc31e28b77a10f6",
+    "run": 44229198738,
+    "job": 134549775998,
+    "tests": 304,
+    "elapsed_seconds": 164.484,
+    "passed": 278,
+    "failures": 25,
+    "errors": 1,
+    "new_candidate_missing_module_failures": 8,
+    "source": "Parent authenticated Actions log",
+    "implementation_green_claim": false
+  },
+  "api": {
+    "signature": "build_rejection_anchor_restoration(current, older_chain, *, guard, proof) -> (candidate_or_none, safe_summary)",
+    "proof": "Explicit exact module object at caller trust boundary; no proof-module import/reload. Recompute match_rejection_anchor_proofs once, then require its exact AnchorProofDecision class.",
+    "ready": "Fresh ALL_ORPHAN_ANCHORS_PROVEN only. Add every exact planned older ACTIVE body to its matching current REJ list, then validate OBS and REJ on every candidate row.",
+    "no_change": "Fresh NO_ORPHAN_ANCHORS only, validated candidate identical to original, return None with canonical original hash and verified zero restoration counts.",
+    "hold": "No candidate; counts and hashes null; fixed proof reasons retained. Any final candidate guard failure is CANDIDATE_GUARD_REJECTED.",
+    "candidate": "Opaque nonreceipt object, redacted repr, default JSON serialization fails, _copy_view returns a detached deep copy."
+  },
+  "preserved": [
+    "Original inputs and their failing unchanged guard behavior",
+    "Forecasts/results/OBS/history/unknown fields/clock text",
+    "Exact current receipt and chain verification delegated unchanged to supplied proof",
+    "All eight frozen test methods and all prior tests"
+  ],
+  "privacy": "Summary exports only fixed schema/status/reason, aggregate counts, canonical view hashes and fixed false/zero effect flags; no IDs, bodies, clocks, exception strings, keys or URLs. No I/O/logging/filesystem/network/process/key/decryption/publication code.",
+  "validation": {
+    "connector_readback_exact": true,
+    "static_only": true,
+    "local_execution": false,
+    "fresh_ci_required": true
+  },
+  "scope": "Pure unpublished candidate only. No actual older ACTIVE proof exists at gen423; current actual ACTIVE_PROOF_MISSING remains HOLD. No writer/CAS/re-encryption or publication authorization is produced.",
+  "changes_excluded": [
+    "tests",
+    "refs",
+    "workflows",
+    "jobs",
+    "permissions",
+    "inputs",
+    "timers",
+    "provider requests",
+    "keys",
+    "runtime originals",
+    "publication"
+  ],
+  "supersedes_runtime_blobs": [
+    "4539ddeaad107fd1de04a3d4bc7f6e527c535c62",
+    "87013efa7895dcba2d9e6710fbb07076b4ed7346"
+  ],
+  "supersedes_packet": "e71480f8b751478a2f7d49d2ff1282d15cf0272c"
+}

@@ -612,3 +612,14 @@ No repair, source GET, publication or model promotion is performed by this audit
 Current a74 run44218343091 must continue; active-owner admission remains HOLD.
 Reuse this original marker and original release prefix; no new job/permission/
 input/cron/runner/timeout/marker/model family/UI deployment/fee/wager is added.
+
+2026-11-18 bounded older ACTIVE proof and four legacy publication guards
+Keep current a74 worker44218343091 running. Fixed424-to423 proof returned
+ACTIVE_PROOF_MISSING; follow only authenticated same-day previous-cipher and
+generation links within32 snapshots/256MiB/128 parent hops. Never rebuild
+ACTIVE evidence from sidecars, choose reasons or reset any source budget.
+Existing four live legacy publication calls receive a source-byte-pinned
+pre-publication guard; their collectors/readers/argv/GET gates remain unchanged.
+A pure restoration candidate has no writer/CAS/publication connection here.
+No repair is claimed, no source request is added, no new job/input/cron/runner/
+timeout/permission/prefix/marker/model/fee/UI deployment/weight switch is added.
