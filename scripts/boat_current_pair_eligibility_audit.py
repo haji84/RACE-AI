@@ -10,6 +10,140 @@ import json
 import re
 
 
+_PAIR_CUTOFF_AVAILABLE = 'LATEST_PRODUCER_JOURNAL_CUTOFF_COUNTS_UNQUALIFIED'
+_PAIR_CUTOFF_SUFFIXES = (
+    'total_record_count', 'total_race_count',
+    'equal_record_count', 'earlier_record_count', 'later_record_count',
+    'missing_observation_record_count', 'no_closed_at_record_count',
+    'equal_race_count', 'earlier_race_count', 'later_race_count',
+    'uncomparable_race_count')
+_PAIR_CUTOFF_FIELDS = tuple('current_pair_cutoff_' + name for name in _PAIR_CUTOFF_SUFFIXES)
+
+
+def _current_pair_cutoff_unavailable():
+    result = {'current_pair_cutoff_status': 'UNAVAILABLE'}
+    result.update({name: None for name in _PAIR_CUTOFF_FIELDS})
+    return result
+
+
+def _current_pair_exact_cutoff_error(error):
+    if type(error) is not ValueError:
+        return False
+    arguments = error.args
+    return (type(arguments) is tuple and len(arguments) == 1 and type(arguments[0]) is str
+            and arguments[0] == 'ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH')
+
+
+def _current_pair_cutoff_projection(value):
+    default = _current_pair_cutoff_unavailable()
+    if type(value) is not dict or not all(type(name) is str for name in value):
+        return default
+    if set(value) != set(default):
+        return default
+    status = value['current_pair_cutoff_status']
+    if type(status) is not str:
+        return default
+    if status == 'UNAVAILABLE':
+        return default
+    if status != _PAIR_CUTOFF_AVAILABLE:
+        return default
+    counts = {}
+    for suffix in _PAIR_CUTOFF_SUFFIXES:
+        observed = value['current_pair_cutoff_' + suffix]
+        if type(observed) is not int or not 0 <= observed <= 1_000_000:
+            return default
+        counts[suffix] = observed
+    records, races = counts['total_record_count'], counts['total_race_count']
+    categories = ('equal', 'earlier', 'later', 'missing_observation', 'no_closed_at')
+    if (sum(counts[name + '_record_count'] for name in categories) != records
+            or races > records or (records == 0) != (races == 0)):
+        return default
+    uncomparable = counts['uncomparable_race_count']
+    uncomparable_records = counts['missing_observation_record_count'] + counts['no_closed_at_record_count']
+    if (uncomparable > races or uncomparable > uncomparable_records
+            or (uncomparable == 0) != (uncomparable_records == 0)):
+        return default
+    for name in ('equal', 'earlier', 'later'):
+        record_count, race_count = counts[name + '_record_count'], counts[name + '_race_count']
+        if (race_count > record_count or race_count > races - uncomparable
+                or (record_count == 0) != (race_count == 0)):
+            return default
+    if races > uncomparable + sum(counts[name + '_race_count'] for name in ('equal', 'earlier', 'later')):
+        return default
+    result = {'current_pair_cutoff_status': _PAIR_CUTOFF_AVAILABLE}
+    result.update({'current_pair_cutoff_' + name: counts[name] for name in _PAIR_CUTOFF_SUFFIXES})
+    return result
+
+
+def _current_pair_cutoff_counts(first, latest, *, parse_time):
+    """Inventory only the already authenticated first originals and latest journal."""
+    if (type(first) is not dict or type(latest) is not dict
+            or len(first) > 1_000_000 or not callable(parse_time)):
+        raise ValueError('CURRENT_PAIR_CUTOFF_DIAGNOSTIC_UNAVAILABLE')
+    counts = {name: 0 for name in _PAIR_CUTOFF_SUFFIXES}
+    races = set()
+    directions = {name: set() for name in ('equal', 'earlier', 'later')}
+    uncomparable = set()
+    for descriptor in first.values():
+        if type(descriptor) is not dict:
+            raise ValueError('CURRENT_PAIR_CUTOFF_DIAGNOSTIC_UNAVAILABLE')
+        race = descriptor.get('race')
+        info = descriptor.get('info')
+        if (type(race) is not tuple or len(race) != 2
+                or not all(type(part) is str for part in race) or type(info) is not dict):
+            raise ValueError('CURRENT_PAIR_CUTOFF_DIAGNOSTIC_UNAVAILABLE')
+        expected = parse_time(info['race_cutoff_at'])
+        if type(expected) is not datetime or expected.utcoffset() is None:
+            raise ValueError('CURRENT_PAIR_CUTOFF_DIAGNOSTIC_UNAVAILABLE')
+        races.add(race)
+        counts['total_record_count'] += 1
+        if race[1] not in latest:
+            counts['missing_observation_record_count'] += 1
+            uncomparable.add(race)
+            continue
+        observation = latest[race[1]]
+        if type(observation) is not dict:
+            raise ValueError('CURRENT_PAIR_CUTOFF_DIAGNOSTIC_UNAVAILABLE')
+        closed = observation.get('closed_at')
+        if closed is None:
+            counts['no_closed_at_record_count'] += 1
+            uncomparable.add(race)
+            continue
+        actual = parse_time(closed)
+        if type(actual) is not datetime or actual.utcoffset() is None:
+            raise ValueError('CURRENT_PAIR_CUTOFF_DIAGNOSTIC_UNAVAILABLE')
+        direction = 'equal' if actual == expected else 'earlier' if actual < expected else 'later'
+        counts[direction + '_record_count'] += 1
+        directions[direction].add(race)
+    counts['total_race_count'] = len(races)
+    for name in directions:
+        counts[name + '_race_count'] = len(directions[name])
+    counts['uncomparable_race_count'] = len(uncomparable)
+    result = {'current_pair_cutoff_status': _PAIR_CUTOFF_AVAILABLE}
+    result.update({'current_pair_cutoff_' + name: counts[name] for name in _PAIR_CUTOFF_SUFFIXES})
+    return _current_pair_cutoff_projection(result)
+
+
+def current_pair_cutoff_diagnostic(error):
+    """Expose only an exact cutoff rejection's bounded, unqualified inventory."""
+    default = _current_pair_cutoff_unavailable()
+    if type(error) is not ValueError:
+        return default
+    arguments = error.args
+    if (type(arguments) is not tuple or len(arguments) != 1 or type(arguments[0]) is not str
+            or arguments[0] != 'CURRENT_PAIR_AUDIT_REJECTED'):
+        return default
+    attached = getattr(error, '_current_pair_diagnostic', None)
+    if type(attached) is not dict:
+        return default
+    phase = attached.get('current_pair_failure_phase')
+    reason = attached.get('current_pair_failure_reason')
+    if (type(phase) is not str or phase != 'PAIR_RESULT_JOIN' or type(reason) is not str
+            or reason != 'ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH'):
+        return default
+    return _current_pair_cutoff_projection(attached.get('cutoff_inventory'))
+
+
 def _need(value):
     if not value:
         raise ValueError('CURRENT_PAIR_AUDIT_REJECTED')
@@ -386,7 +520,7 @@ def _audit(get, run_id, now, source, _diagnostic=None):
         from race_ai.all_existing_model_result_intake import observations_from_result_artifact, MAX_ARCHIVE_BYTES as RESULT_LIMIT, _json
         from race_ai.boat_private_original_archive import open_original_zip
         from race_ai.first_receipt_continuity import latest_result_observations
-        from race_ai.all_existing_model_intake import _legacy_boat, _ordinary_result
+        from race_ai.all_existing_model_intake import _legacy_boat, _ordinary_result, _time as cutoff_time
         from race_ai.repeated_cycle import artifact_name
         revisions = {}; latest = {}; observation_count = 0
         for number in rounds:
@@ -415,13 +549,22 @@ def _audit(get, run_id, now, source, _diagnostic=None):
             latest = {row['race_id']:row for row in combined}
         diagnostic['phase'] = 'PAIR_RESULT_JOIN'
         joins = dict(settled=0, pending=0, special=0, missing=0); joined_races = set()
-        for descriptor in first.values():
-            sport, race = descriptor['race']; observation = latest.get(race)
-            if observation is None:
-                joins['missing'] += 1; continue
-            value = _legacy_boat(observation)
-            _, reason = _ordinary_result(value, descriptor['info'], now)
-            joins[reason or 'settled'] += 1; joined_races.add((sport, race))
+        try:
+            for descriptor in first.values():
+                sport, race = descriptor['race']; observation = latest.get(race)
+                if observation is None:
+                    joins['missing'] += 1; continue
+                value = _legacy_boat(observation)
+                _, reason = _ordinary_result(value, descriptor['info'], now)
+                joins[reason or 'settled'] += 1; joined_races.add((sport, race))
+        except Exception as error:
+            if _current_pair_exact_cutoff_error(error):
+                try:
+                    inventory = _current_pair_cutoff_counts(first, latest, parse_time=cutoff_time)
+                    diagnostic['cutoff_inventory'] = _current_pair_cutoff_projection(inventory)
+                except Exception:
+                    diagnostic['cutoff_inventory'] = _current_pair_cutoff_unavailable()
+            raise
         result.update(current_pair_result_archive_count=len(rounds),
             current_pair_result_scope='PRODUCER_JOURNAL_ONLY_UNQUALIFIED',
             current_pair_result_unique_revision_count=len(revisions),
@@ -444,4 +587,9 @@ def audit_current_pairs(*, get, run_id, now, expected_owner_sha):
         # emits static UNKNOWN/HOLD fields. Never echo private exception values.
         failure = ValueError('CURRENT_PAIR_AUDIT_REJECTED')
         failure._current_pair_diagnostic = _current_pair_failure_values(error, diagnostic['phase'])
+        if (_current_pair_exact_cutoff_error(error)
+                and type(diagnostic.get('phase')) is str and diagnostic['phase'] == 'PAIR_RESULT_JOIN'
+                and 'cutoff_inventory' in diagnostic):
+            failure._current_pair_diagnostic['cutoff_inventory'] = _current_pair_cutoff_projection(
+                diagnostic['cutoff_inventory'])
         raise failure from None

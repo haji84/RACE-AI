@@ -96,5 +96,18 @@
     "managed_github_write_and_protected_merge_actually_succeeded": true,
     "local_command_execution": "UNAVAILABLE_FAILED_ENVIRONMENT",
     "no_local_cli_or_ssh_auth_claim": true
+  },
+  "additive_cutoff_tdd": {
+    "red_head": "b65dfa2bd9040111ad7648f0aade9a35bbb732a9",
+    "red_run": 44285065587,
+    "red_job": 134735493200,
+    "tests": 364,
+    "seconds": 128.768,
+    "assertion_failures": 5,
+    "errors": 0,
+    "reason": "Only the two missing safe diagnostic APIs; old359 and new normal-output control pass.",
+    "runtime_implementation_at_red": false,
+    "cutoff_tests_blob": "13360b8e2c2e3e336ac53265560f21693b2e6fec",
+    "frozen_contract_blob": "36779cc40471bc8ccb39f7025d04b01ca4b35d22"
   }
 }

@@ -22,7 +22,9 @@ round4/19のALL_MODEL ZIPが欠けるため `HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXP
 
 固定理由一覧に不足していた12定数を補い、359件の実CIを再通過した。実再監査44280659186/job134720142693はsuccess、認証済み原本との結合で **`PAIR_RESULT_JOIN / ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH`** を確認した。予想に保存した締切と結果journalの`closed_at`が一致しない。coreの23ZIP/513行一致と4/19欠落HOLDは維持される。ペア件数・適格分母はnullのまま。[正規ログの固定理由証拠](evidence/boat-current-pair-cutoff-rejection-20261118.json)。
 
-コード追跡では、両方とも公式ページの「締切予定時刻」を入力としている。結果の後の予定時刻改定か読取不具合か、実原因はまだ未確定。予想締切・結果原本を書き換えず、既に認証したメモリ上のレコードから不一致件数/方向だけを診断する変更を既存PRで準備する。現行の拒否、正常HOLD、cutoff/roster/結果/保存時刻の全条件は維持する。
+コード追跡では、両方とも公式ページの「締切予定時刻」を入力としている。結果の後の予定時刻改定か読取不具合か、実原因はまだ未確定。予想締切・結果原本を書き換えず、既に認証したメモリ上のレコードから不一致件数/方向だけを診断する変更を既存PR31で実装した。先行364件/128.768秒は未実装APIの想定5assert失敗/errors0、既存359件と新正常系は成功。新実装の最終CI・実原本での追加件数は未確認。現行の拒否、正常HOLD、cutoff/roster/結果/保存時刻の全条件は維持する。[固定契約](evidence/boat-current-pair-cutoff-diagnostic-contract-20261118.json)。
+
+固定vault indexには当該runのSOURCE_CAPTURES参照26件があるが、必要なraw本文の認証済み存在はUNKNOWN。A74の既存reader・対応8groupのraw source SHA参照・元parserを使う[再解析の読取手順](evidence/boat-current-pair-raw-replay-recipe-20261118.json)を保存した。metadataの宣言値・重複captureを実原本件数や再現成功にしない。
 
 ## 画面・4競技・映像・精度
 

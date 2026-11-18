@@ -1,0 +1,277 @@
+{
+  "schema": "RACE_AI_A74_RAW_CAPTURE_REPLAY_FEASIBILITY_V1",
+  "repository": "haji84/RACE-AI",
+  "status": "FEASIBLE_WITH_EXISTING_A74_READER_AUTHENTICATION_PENDING",
+  "observed_at_utc": "2026-11-18 10:29:12 UTC",
+  "fixed_scope": {
+    "owner_run_id": 44218343091,
+    "owner_code_commit": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "month": "2026-11",
+    "vault_storage_commit": "a1c2c4ae588b5b31b3e653d14fcf41bc3fc0dabe",
+    "ref": "state/boat-private-originals",
+    "note": "Locator.source_commit denotes the immutable vault STORAGE commit; header.summary.head_sha denotes the SOURCE producer code. These are different bindings."
+  },
+  "public_indexes": {
+    "month_path": "state/boat-private-originals/v1/2026-11/month.json",
+    "run_path": "state/boat-private-originals/v1/2026-11/runs/44218343091.json",
+    "declared_run_entries": 99,
+    "declared_SOURCE_CAPTURES_locators": 26,
+    "declared_total_cipher_bytes": 185328217,
+    "declared_capture_occurrences": 3103,
+    "declared_max_bundle_plain_bytes": 14436006,
+    "declared_batch_metadata_bytes": 704683,
+    "readable_matching_batch_descriptors": 26,
+    "authority": "PUBLIC_GITHUB_METADATA_ONLY; owner MAC, chunk hashes and AES were NOT verified here. Occurrences include duplicate retained snapshots; no unique-capture or required-body availability claim.",
+    "locator_example": {
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "status": "READY",
+      "repository_id": "1416489937",
+      "ref": "state/boat-private-originals",
+      "source_commit": "a1c2c4ae588b5b31b3e653d14fcf41bc3fc0dabe",
+      "artifact_id": null,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/48fb61bfef83064c31fc48347f06f3efd7e0de334358dd1f7d1f6025e77744b5.json",
+      "batch_sha256": "48fb61bfef83064c31fc48347f06f3efd7e0de334358dd1f7d1f6025e77744b5",
+      "entry_sha256": "4aa6f7264e835ac1278ffe573039b773ae62edbdb343e4cff26b2eef00dd0179",
+      "kind": "SOURCE_CAPTURES"
+    },
+    "example_status": "UNAUTHENTICATED_CANDIDATE_NOT_EVIDENCE_OF_MATCHING_SOURCE_BODY"
+  },
+  "existing_reader": {
+    "path": "race_ai/boat_private_original_vault.py",
+    "commit": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "blob": "582dd4933f81d3ef0c76dc5f5479c9617f57a902",
+    "APIs": [
+      "VaultGitRepository(repo, *, ref=VAULT_REF)",
+      "list_originals(month, repo, *, source_commit=None, run_id=None, key=None, transport=None)",
+      "restore_capture_bundle(locator, repo, *, key=None, transport=None)"
+    ],
+    "private_existing_hooks_for_header_prefilter": [
+      "_keys(None): existing Actions-local key derivation only; no key export",
+      "_batch_entry(git, storage_commit, reference, mac_key): authenticates bounded signed batch/header and exact entry binding"
+    ],
+    "no_direct_source_SHA_lookup": "lookup_original requires a numeric Actions artifact ID; SOURCE_CAPTURES have artifact_id null. Enumerate only the fixed authenticated month/run descriptors.",
+    "validation": [
+      "Canonical signed month index; run-index SHA and MAC; reference bounds",
+      "Signed batch SHA/MAC, entry SHA, header repository/purpose/scope; explicitly assert summary run_id and head_sha equal fixed owner",
+      "Selected chunk length/SHA; complete cipher length/SHA/header identity; existing AES-GCM authentication",
+      "Complete member framing and SHA; capture raw/receipt revalidation for every pair, including HTTP200, body SHA, allowed URL, clock and duplicate identity"
+    ],
+    "M2_compatibility": {
+      "M2_commit": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+      "M2_blob": "7374e4817eb060dcd309e5d2c22ec932ee7630b9",
+      "public_read_functions_and_AEAD_helpers_byte_identical": true,
+      "whole_module_byte_identical": false,
+      "blocking_difference": "M2 _capture_url lacks racelist/beforeinfo. A mixed bundle containing those correctly fails complete capture revalidation. Use pinned A74 module, not a patched M2 guard."
+    }
+  },
+  "read_recipe": [
+    "Reuse the existing fresh closed-a74-source Python namespace and verified pr64 reference directory; do not modify the fixed M2 process/target.",
+    "Construct A74 V.VaultGitRepository(repo, ref=V.VAULT_REF). Call V.list_originals('2026-11', repo, source_commit=VAULT_STORAGE_COMMIT, run_id=44218343091, transport=git); filter kind SOURCE_CAPTURES.",
+    "Authenticate each selected batch/header with the existing _batch_entry helper and existing Actions-local MAC derivation. Require summary run_id=44218343091 and head_sha=A74. Headers contain each capture-NNNN.raw member SHA256, permitting a hash-only candidate prefilter before downloading ciphertext chunks.",
+    "Call unchanged V.restore_capture_bundle(locator, repo, transport=git) for candidate bundles. It returns {'captures':[(raw_bytes,metadata_raw_bytes),...], 'provenance':...}; bytes remain private in Actions memory.",
+    "Match each restored receipt/body to the already-authenticated wanted source SHA and private same-race URL identity. For a direct exact native URL require equality; for a known observed query-free locator require existing locator(receipt.source_url,'racelist',authenticated_race)==stored_locator, never reconstruct a URL. Compare aware captured_at when supplied. Repeated identical matches across snapshots deduplicate; missing clocks are not inferred and conflicting matches HOLD.",
+    "Replay only the fixed original parsers using matched original bytes and their authenticated receipt fields. Compare program parse closed_at to unchanged descriptor.info.race_cutoff_at, and result parse closed_at to authenticated latest observation.closed_at. Emit aggregate reproducibility/missing/unsupported counts only.",
+    "Do not call any retain/publish/write API, provider URL or model prediction/learning API. Failed index/batch/chunk/AES/receipt reads produce separate HOLD/null, not verified missing or zero."
+  ],
+  "source_ref_binding": {
+    "relative_root": "P is the admitted forecast partition payload; N=P['native_payload']; I=unchanged descriptor['info']; group=existing registry.group for its cell. Only forecast pairs contributing existing first-version descriptors are targets.",
+    "common_direct_proof": "For groups with direct evidence, N['source_evidence'][*] carries source_ref/source_sha256/captured_at. Select only an exact same-race racelist request accepted by existing locator(...,'racelist',race); do not recursively search arbitrary objects. Identical duplicate proofs deduplicate; absent/ambiguous/conflicting direct proofs HOLD except the explicitly supported observed query-free form below.",
+    "paths": [
+      {
+        "groups": [
+          "boat_ab",
+          "boat_tactical"
+        ],
+        "cutoff": "N['source']['cutoff_at']",
+        "raw_program_sha": "N['source']['program_source_sha256']",
+        "raw_ref": "matching N['source_evidence'][*]['source_ref']",
+        "clock": "matching direct proof ['captured_at']"
+      },
+      {
+        "groups": [
+          "boat_clite"
+        ],
+        "cutoff": "N['base_source']['cutoff_at']",
+        "raw_program_sha": "N['base_source']['program_source_sha256']",
+        "raw_ref": "matching N['source_evidence'][*]['source_ref']",
+        "clock": "matching direct proof ['captured_at']"
+      },
+      {
+        "groups": [
+          "boat_observed"
+        ],
+        "cutoff": "N['snapshot']['sales_cutoff_at']",
+        "raw_program_sha": "N['snapshot']['sources'][j]['source_sha256'], where source_id equals snapshot.race_source_id; source_url is the known query-free racelist locator",
+        "raw_ref": "Stored source ['source_url'] is deliberately QUERY-FREE, not a full request URL. Obtain the exact URL only from authenticated matching N/source original source_evidence when present or from the restored capture receipt; require existing locator(receipt_url,'racelist',authenticated_race)==stored query-free locator.",
+        "clock": "that source ['captured_at']",
+        "old_original_wrapper": "If the already-admitted observed N carries original_native_payload/original_input_sha256, use the explicitly validated original copy for original-source refs; keep existing digest/race/cutoff/roster guards. Baseline originals can also retain exact request source_evidence. Additional all-model observed inputs can be snapshot-only; their query-free source+SHA+clock binds a restored receipt via the existing locator function. No generic recursive unwrapping or URL construction."
+      },
+      {
+        "groups": [
+          "shared",
+          "shared_learned"
+        ],
+        "cutoff": "N['snapshot']['race']['sales_cutoff_at']",
+        "raw_program_sha": "unique direct same-race racelist N['source_evidence'][*]['source_sha256']",
+        "raw_ref": "that proof ['source_ref']",
+        "clock": "that proof ['captured_at']"
+      },
+      {
+        "groups": [
+          "boat_full"
+        ],
+        "cutoff": "N['snapshot']['sales_cutoff_at']",
+        "raw_program_sha": "unique direct same-race racelist N['source_evidence'][*]['source_sha256']",
+        "raw_ref": "that proof ['source_ref']",
+        "clock": "that proof ['captured_at']"
+      },
+      {
+        "groups": [
+          "boat_pdca"
+        ],
+        "cutoff": "N['facts']['cutoff_at']",
+        "raw_program_sha": "N['facts']['program_sha256']",
+        "raw_ref": "matching direct same-race racelist N['source_evidence'][*]['source_ref']",
+        "clock": "matching direct proof ['captured_at']",
+        "do_not_use": "facts.source_url is beforeinfo, not program"
+      }
+    ],
+    "unsupported": "Seller/P0 B-LZH, non-BOAT, unknown groups/schema variants, absent or ambiguous direct refs remain separately HOLD/unsupported; no guessed program URL or blanket field fallback.",
+    "never_raw_body_SHA": [
+      "P['source_sha256'] and pair.input_sha256 are hashes of the native JSON payload",
+      "descriptor.record_sha256 is the complete private record hash",
+      "extra.source_sha256 and urn/composite source hashes are derived evidence, not raw program HTML"
+    ],
+    "query_free_source_note": "observed_p1_connection.locator validates a full dated request but RETURNS only scheme/host/path. The receipt supplies the exact request. Matching hashes alone never invent missing race/query/capture metadata.",
+    "link_to_descriptor": "Before lookup, retain unchanged existing native/pair admission and require the supported native cutoff path to equal I['race_cutoff_at'] as an aware instant. Existing captured-input verification binds native race_cutoff_at to pair.race_cutoff_at. Refs only explain that same frozen original; they never replace I or the pair clock."
+  },
+  "native_path_pins": [
+    {
+      "path": "race_ai/all_existing_model_inputs.py",
+      "blob": "9fd8a1b1514b22d8f0c83b740d7d62e144bfd010",
+      "functions": [
+        "_direct",
+        "_evidence",
+        "_request_identity",
+        "build_current_requests"
+      ],
+      "lines": [
+        42,
+        98,
+        245,
+        270
+      ]
+    },
+    {
+      "path": "race_ai/boat_all_model_inputs.py",
+      "blob": "1c1d379ea13d2f191e1360b18f9f003f6ff4e3ae",
+      "functions": [
+        "_source",
+        "build_native_inputs",
+        "pdca_payload_from_history"
+      ],
+      "lines": [
+        265,
+        302,
+        318,
+        346,
+        405,
+        477
+      ]
+    },
+    {
+      "path": "race_ai/observed_p1_connection.py",
+      "blob": "d37ce58025e358fee6189b632938ed088cf1c5a2",
+      "functions": [
+        "locator",
+        "build_bundle"
+      ],
+      "lines": [
+        22,
+        29,
+        43,
+        49,
+        82,
+        85
+      ]
+    },
+    {
+      "path": "race_ai/all_existing_model_runtime.py",
+      "blob": "9901a1374fe22ade77eefd18797be0a522c2f9d3",
+      "functions": [
+        "generate_current_pairs"
+      ],
+      "lines": [
+        189,
+        207,
+        213,
+        220
+      ]
+    },
+    {
+      "path": "race_ai/all_existing_model_registry.py",
+      "blob": "36010c9f7753d273e763ab7ece6b57c8dc48aaaf",
+      "functions": [
+        "identity",
+        "validate_payload"
+      ],
+      "lines": [
+        116,
+        150,
+        155,
+        163
+      ]
+    }
+  ],
+  "original_parser_pins": [
+    {
+      "path": "race_ai/boat_official_program.py",
+      "commit": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+      "blob": "1cfed75add647d77f76936f24be33db0776266c4",
+      "API": "parse_program(raw, *, day, venue, race_no, source_url, captured_at)",
+      "role": "A74 owned-current all-model program path"
+    },
+    {
+      "path": "race_ai/official_racelist_adapter.py",
+      "commit": "761247bee0209e37b1af6b8885e92cad3e9260a5",
+      "blob": "329adf1e9b2fd5c822f18e8db51668f3c933d7c9",
+      "API": "parse_official_racelist(raw, *, day, venue, race_no, source_url, captured_at)",
+      "role": "Baseline current_requests program path; do not swap parser success as acceptance authority"
+    },
+    {
+      "path": "race_ai/official_race_updates.py",
+      "commit": "761247bee0209e37b1af6b8885e92cad3e9260a5",
+      "blob": "06ec8fba76767b6a56cd9d26dd7e568fc4b0f0e2",
+      "API": "parse_update(raw, *, kind='raceresult', day, venue, race_no, source_url, captured_at, entries=None)",
+      "role": "Exact producer result journal parser arguments"
+    }
+  ],
+  "private_descriptor_aux_proposal": {
+    "status": "DESIGN_ONLY_NO_IMPLEMENTATION",
+    "placement": "While the existing admitted payload/native input is still alive, after record_sha256 and info are established and before del records/context/raw. Attach only a private _cutoff_replay_refs field to the first-version descriptor, or equivalent separate private map.",
+    "invariants": [
+      "Never modify P, N, pair, I, race/cell identity, cutoff_at, record_sha256 or artifact_id.",
+      "Do not replace first-version refs with a repeated later pair's refs.",
+      "Existing repeated-original info checks remain identical.",
+      "Existing first_versions hash explicitly covers identity/record_sha256/artifact_id, so auxiliary refs stay outside it; all existing scope/artifact/training hashes and normal report keys stay unchanged.",
+      "Aux refs, private URLs, source hashes, timestamps, row IDs and bodies are never included in public JSON/stdout/artifacts. Only fixed aggregate counters leave Actions."
+    ]
+  },
+  "availability": {
+    "required_program_raw_body": "UNKNOWN_UNTIL_EXISTING_A74_RESTORE_RETURNS_AND_MATCHES",
+    "required_result_raw_body": "UNKNOWN_UNTIL_EXISTING_A74_RESTORE_RETURNS_AND_MATCHES",
+    "owner_MAC_or_AES_checked_here": false,
+    "owner_keys_read_here": false,
+    "resource_note": "185MB ciphertext is a public declared upper sum across all26 indexed bundles, not measured transfer/runtime. Authenticated header prefilter avoids unnecessary bundle downloads; job-time fit is unmeasured."
+  },
+  "boundaries": {
+    "no_implementation": true,
+    "no_refs": true,
+    "no_new_jobs_inputs_uploads_permissions_timeouts": true,
+    "fixed_M2_and_core_reports_unchanged": true,
+    "new_source_provider_GETs": 0,
+    "no_clock_or_result_repairs": true,
+    "formal_qualification_or_promotion": false,
+    "actual_cutoff_root_cause": "UNKNOWN"
+  }
+}
