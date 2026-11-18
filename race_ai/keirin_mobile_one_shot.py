@@ -2,6 +2,8 @@
 
 Distinct from KEIRIN.JP; NOT an organizer-authorized machine data feed.
 No result rows are persisted, no automated polling, no forecasts inferred.
+The current owner profile excludes this historical third-party source.
+Saved-page parsing remains available offline; a date change is no new grant.
 """
 from __future__ import annotations
 
@@ -10,6 +12,7 @@ from hashlib import sha256
 from html.parser import HTMLParser
 from urllib.request import Request, build_opener, HTTPSHandler, HTTPRedirectHandler
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlsplit
 from unicodedata import normalize
 import re
 
@@ -128,6 +131,9 @@ def probe_one(ymd, venue_code, race_no, *, acknowledgement, opener=None,
         raise MobileProbeError('UNKNOWN_SOURCE_ROUTE')
     url = (page_url(ymd, venue_code, race_no) if route == 'new' else
            legacy_page_url(ymd, venue_code, race_no))
+    if urlsplit(url).hostname not in {
+            "winticket.jp", "www.winticket.jp", "keirin.jp", "www.keirin.jp"}:
+        raise MobileProbeError("SOURCE_NOT_IN_OWNER_PROFILE")
     client = opener or build_opener(_NoRedirect(), HTTPSHandler())
     request = Request(url, method="GET",
                       headers={"Accept":"text/html",
@@ -147,10 +153,25 @@ def probe_one(ymd, venue_code, race_no, *, acknowledgement, opener=None,
         raise MobileProbeError(f"PROVIDER_HTTP_{exc.code}") from None
     except (URLError, OSError, TimeoutError) as exc:
         raise MobileProbeError("PROVIDER_UNAVAILABLE_"+type(exc).__name__) from None
-    if not (0 < len(raw) <= MAX_BODY):
+    return parse_saved_page(
+        ymd, venue_code, race_no, raw=raw, content_type=ctype,
+        observed_at=observed_at, route=route)
+
+
+def parse_saved_page(ymd, venue_code, race_no, *, raw,
+                     content_type="text/html", observed_at=None, route="new"):
+    """Inspect historical supplied bytes offline, without source authorization."""
+    if route not in ("new", "legacy"):
+        raise MobileProbeError("UNKNOWN_SOURCE_ROUTE")
+    url = (page_url(ymd, venue_code, race_no) if route == "new" else
+           legacy_page_url(ymd, venue_code, race_no))
+    if content_type.split(";", 1)[0].lower().strip() not in {
+            "text/html", "application/xhtml+xml"}:
+        raise MobileProbeError("BAD_PROVIDER_CONTENT_TYPE")
+    if type(raw) is not bytes or not (0 < len(raw) <= MAX_BODY):
         raise MobileProbeError("PROVIDER_BODY_SIZE_REJECTED")
     page = _Visible()
-    page.feed(_decode(raw, ctype))
+    page.feed(_decode(raw, content_type))
     txt = normalize("NFKC"," ".join(page.parts))
     y,mo,d=ymd[:4],int(ymd[4:6]),int(ymd[6:])
     date_markers = (f"{y}年{mo:02d}月{d:02d}日",

@@ -163,8 +163,12 @@ def execute(*, env, workspace, helper, runner_temp,
             response = fetch_one(
                 "20261117",75,7,acknowledgement=ACK,route="legacy")
             state, reference_hit = classify_one_result(response, picks)
-        except (MobileProbeError, OSError, TimeoutError):
-            state,reference_hit = "SOURCE_GET_FAILED_NO_RETRY",False
+        except (MobileProbeError, OSError, TimeoutError) as exc:
+            if isinstance(exc, MobileProbeError) and str(exc) == "SOURCE_NOT_IN_OWNER_PROFILE":
+                report["source_attempts"] = 0
+                state,reference_hit = "SOURCE_NOT_IN_OWNER_PROFILE",False
+            else:
+                state,reference_hit = "SOURCE_GET_FAILED_NO_RETRY",False
         report["source_check"] = state
         if (type(response) is dict and state ==
                 "THIRD_PARTY_PROVISIONAL_RESULT_JOINED"):
