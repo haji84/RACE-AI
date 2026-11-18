@@ -1,3 +1,13 @@
+## 2026-11-18 03:02:14 UTC: 255件成功で通常merge、真正旧ACTIVE照合は不足HOLD、さらに古い認証履歴へ（GOAL未達）
+
+PR42はhead9434bc7b/tree00c03689で255件/111.033秒・10 block compile・source/key契約・15checks(8success/7skip)と独立レビューを通過し、通常merge32b18c96のtreeも完全一致した。main実読取り44227138026/job134542962921はsuccess。現AES世代424はREJ active2/history24/missing24のまま、新しい424→423同一保存日照合はHOLD/ACTIVE_PROOF_MISSINGだった。件数null・snapshots空を保持し、原本・結果・履歴・表示を一切変更していない。直前世代だけでは全参照先の証明が足りないという意味で、過去原本の全域不存在を意味しない。
+
+さらに古いGit親履歴を既存filtered read-only transportで辿り、重複staging manifestを別世代に数えず、認証済みprevious-cipher/generation-1に一致するselected snapshotだけを既存F/Hで読むテストを準備する。同じ日を保持し、32snapshot/256MiB/親hop境界でHOLD。sidecarだけからの復元やACTIVEの推測は引き続き禁止する。
+
+既存PR41は原head7eb796ca/元metadata/祖先関係とopen base consumer0を保全して再利用する。旧Fの2実関数fixtureと23回帰methodを追加し、2つの旧参照消失対照と、保存前ガードの未実装REDを検証する。まだ旧writer再発防止・復元・当日表示成功は未達。新PR/job/権限/input/cron/runner/timeout/prefix/marker/モデル/料金/公開UI/重みは増やさない。
+
+[通常merge・CI](evidence/boat-saved-rejection-anchor-proof-ci-20261118.json)、[正規Actions実照合HOLD](evidence/boat-selected-rejection-anchor-proof-actual-20261118.json)。以下は各時点の記録。
+
 ## 2026-11-18 02:53:57 UTC: 既存226件成功・新処理欠落のみのREDを確認、過去ACTIVE照合を実装して実CIへ（GOAL未達）
 
 既存PR42を通常fast-forwardで再利用し、原head87623032と元metadataを保全した。test-only headd15a5c25の真正CI44225538918/job134537680916は246件/109.154秒、既存226件は成功、新処理未実装による19 I/O setUp失敗＋純粋test import error1だけで、SyntaxErrorなし。10純粋＋19 I/O methodを変更せず、同じテストを満たす処理を実装した。実装後のPython成功・実AES照合はまだ未確認。
