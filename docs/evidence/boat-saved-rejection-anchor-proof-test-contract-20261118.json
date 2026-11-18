@@ -1,0 +1,161 @@
+{
+  "kind": "TESTS_ONLY_REJECTION_ACTIVE_ANCHOR_PROOF",
+  "repository": "haji84/RACE-AI",
+  "file": {
+    "path": "tests/test_boat_saved_rejection_anchor_proof.py",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "0eafce05bf6bb4c31dc774aee7b6a6415e6793c4",
+    "bytes": 18330,
+    "test_methods": 10
+  },
+  "tree_elements": [
+    {
+      "path": "tests/test_boat_saved_rejection_anchor_proof.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0eafce05bf6bb4c31dc774aee7b6a6415e6793c4"
+    }
+  ],
+  "module": "scripts.boat_saved_rejection_anchor_audit",
+  "pure_api": "match_rejection_anchor_proofs(current, older_chain, *, guard) -> opaque AnchorProofDecision",
+  "factory_api": "_verified_snapshot(view, *, header, manifest_cipher_sha256, snapshot_sha, ciphertext) -> opaque VerifiedSnapshot",
+  "public_policy_constant": {
+    "MAX_CIPHERTEXT_BYTES": 268435456,
+    "MAX_SNAPSHOTS": 32
+  },
+  "production_scope": {
+    "current": {
+      "generation": 424,
+      "snapshot_sha": "6eea8632c5d9a5504092c7b7c45ba57f3e7d6ddb"
+    },
+    "predecessor": {
+      "generation": 423,
+      "snapshot_sha": "71c1b06f36c4b6c01fcca6432c64ff5f4a18b8b9"
+    },
+    "staging_parent_is_not_an_independent_proof": "90d92 staging duplicate",
+    "reader": "Root-owned fixed read-only selected-snapshot transport, unchanged F.current_view/decryptors; predecessor selected for the authenticated current receipt's same event day.",
+    "arbitrary_snapshot_or_key_input": false
+  },
+  "guard": {
+    "fixture_loader": "tests.test_boat_saved_reason_binding_audit.load_guard",
+    "existing_path": "reason-binding-source/race_ai/boat_saved_model_view.py",
+    "required_blob": "e6db8d720aa151940e01f377831a5884eb4b2ba9",
+    "unchanged": true
+  },
+  "receipt_contract": [
+    "VerifiedSnapshot is opaque and not JSON serializable; no dictionary or boolean authentication flag may substitute for it.",
+    "Retain private _view, _header and _ciphertext. The factory binds the canonical view and header digests, manifest cipher SHA256 matching the actual ciphertext bytes, and strict snapshot SHA.",
+    "The matcher revalidates these bindings before inspecting evidence, detecting nested view/header mutation or changed ciphertext. Factory inputs and matcher inputs remain unchanged.",
+    "The underscored factory itself does not decrypt or claim production authentication. Synthetic tests use it with clearly synthetic envelope bytes. Only the existing trusted reader may call it in production after its existing AEAD/manifest/cipher/forecast checks.",
+    "Every adjacent supplied receipt must link current.previous_cipher_sha256 to older actual cipher SHA and decrement generation by exactly one with the same view identity. A verified finite prefix need not reach generation one.",
+    "Pure matcher bounds supplied receipts to 32 and ciphertext byte total to 256MiB. The separate reader budgets actual reads independently. Hitting either bound is BOUND_EXCEEDED, never evidence that no older proof exists."
+  ],
+  "minimum_synthetic_header": {
+    "schema": "RACE_AI_SAVED_WEB_VIEW_V4",
+    "source_content_sha256": "lowercase64sha",
+    "view_id": "lowercase64sha",
+    "forecast_sha256": "lowercase64sha",
+    "forecast_inventory_sha256": "lowercase64sha",
+    "generation": "strict positive integer",
+    "previous_cipher_sha256": "actual predecessor envelope sha256"
+  },
+  "group_and_authority_contract": [
+    "Target only current saved_result_rejection_reason_variants groups keyed by parent race, parsed capture instant and source SHA. retained_history_originals counts the entire current rejection history.",
+    "Each group requires at least two distinct full original dictionaries, valid rejection reason metadata, mandatory valid source SHA, and exact equality of every field except reason, including clock text, unknown fields and provenance.",
+    "An existing current ACTIVE body must be an exact history member for its group; preserve it. Never replace or normalize it from older data.",
+    "An orphan has no current ACTIVE rejection at its exact parent/key. Its only proof is an older ACTIVE rejection dictionary with that same parent/key whose complete canonical wire equals a current retained original.",
+    "Older sidecar dictionaries alone never provide recovery authority; another race with the same capture/hash never provides authority.",
+    "Inspect all provided older ACTIVE occurrences at a target key. Any differing body at that key, including a different reason-only history member, is ACTIVE_PROOF_CONFLICT even if a nearer snapshot also matches. Identical repeats are permitted.",
+    "Every orphan group needs proof. One absent group means ACTIVE_PROOF_MISSING and no partial private plan. No view, observation, result, prediction or history is repaired or published by this API."
+  ],
+  "decision_contract": {
+    "public_method": "public_summary() returns a fresh independent safe dictionary",
+    "private_plan": "_plan is None on HOLD; otherwise tuple((race_id, deepcopy(exact older ACTIVE body)), ...) in current history group order. Empty tuple for no orphans. No public plan getter, implicit JSON serialization or plaintext representation.",
+    "schema": "RACE_AI_SAVED_REJECTION_ANCHOR_PROOF_V1",
+    "statuses": [
+      "ALL_ORPHAN_ANCHORS_PROVEN",
+      "NO_ORPHAN_ANCHORS",
+      "HOLD"
+    ],
+    "normal_fields": [
+      "schema",
+      "status",
+      "counts",
+      "snapshots",
+      "originals_changed",
+      "observations_reconciled",
+      "source_requests",
+      "publication_performed",
+      "forecast_generated",
+      "broader_goals_proven"
+    ],
+    "count_fields": {
+      "snapshots_checked": "Number of current+older receipts validated.",
+      "current_active_rejections": "Total dictionaries in the current active rejection arrays.",
+      "retained_history_originals": "Total current rejection sidecar originals, not only orphan entries.",
+      "orphan_groups": "Unique current parent/capture/source groups missing their active anchor.",
+      "proved_groups": "Orphan groups with exact older ACTIVE authority.",
+      "older_active_bodies_checked": "Older ACTIVE rejection dictionaries inspected for proof, including identical repeats.",
+      "planned_active_originals": "Number of exact bodies in the private plan; zero is not a restoration claim."
+    },
+    "snapshots": "List of {snapshot_sha:40hex,cipher_sha256:64hex} in current→older order; no other header or view fields.",
+    "hold": "Adds only fixed reason; counts=null, snapshots=[], _plan=None.",
+    "hold_reasons": [
+      "INPUT_OR_CHAIN_INVALID",
+      "BOUND_EXCEEDED",
+      "CURRENT_HISTORY_INVALID",
+      "ACTIVE_PROOF_CONFLICT",
+      "ACTIVE_PROOF_MISSING"
+    ],
+    "effects": {
+      "originals_changed": false,
+      "observations_reconciled": 0,
+      "source_requests": 0,
+      "publication_performed": false,
+      "forecast_generated": false,
+      "broader_goals_proven": false
+    }
+  },
+  "tests": [
+    "test_all_groups_need_exact_older_active_originals_without_changing_current_data",
+    "test_other_parent_race_and_sidecars_alone_never_supply_active_authority",
+    "test_any_conflicting_older_body_holds_even_when_a_nearer_original_matches",
+    "test_one_missing_group_discards_every_partial_plan",
+    "test_current_history_groups_keep_reason_only_full_body_and_original_rules",
+    "test_already_bound_current_groups_are_preserved_without_recovery",
+    "test_receipts_reject_authentication_flags_and_detect_bound_body_tampering",
+    "test_header_cipher_links_generations_and_view_identity_must_be_contiguous",
+    "test_snapshot_and_ciphertext_bounds_hold_without_claiming_proof_absence",
+    "test_public_summaries_and_opaque_plans_never_leak_or_serialize_private_bodies"
+  ],
+  "important_test_details": [
+    "First valid older ACTIVE body intentionally equals the second current history original; prevents choosing or reconstructing the first sidecar body.",
+    "Only a disposable synthetic copy is appended in a test; the unchanged guard must validate those proved bodies, while the real current input must still reject before and after matching.",
+    "Unknown original fields carry private sentinels and must survive exact private-plan copies without appearing in summary or repr.",
+    "Checks a deeper conflicting ACTIVE even when nearest matches, same-capture reason-only conflicts, atomic missing-group failure, receipt/body tampering and wrong generation/cipher/view links.",
+    "Snapshot boundary uses 32/33 small receipts. Ciphertext-bound branch patches MAX_CIPHERTEXT_BYTES to the small fixture's measured byte size, testing the exact off-by-one without allocating 256MiB.",
+    "Decision/receipt JSON serialization must fail; summary mutations must not modify future summaries or the private plan."
+  ],
+  "verification": {
+    "published_test_blob_exact_readback": true,
+    "whole_file_short_string_scan": {
+      "invalid": [],
+      "endState": "code",
+      "lines": 339
+    },
+    "python_parse_executed": false,
+    "tests_executed": false,
+    "proper_missing_module_RED_observed": false
+  },
+  "scope": {
+    "tests_only": true,
+    "no_runtime_authored": true,
+    "no_guard_or_publisher_change": true,
+    "no_git_ref_or_PR_or_workflow_mutation": true,
+    "no_source_provider_GET": true,
+    "no_key_or_private_data_read": true,
+    "no_process_started": true
+  },
+  "next_action": "Root stages this tests-only blob and the separately authored reader/I/O tests on existing PR42, then observes actual missing-module RED before implementation. Contract proof-only status never authorizes a recovery write."
+}
