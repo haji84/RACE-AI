@@ -6,6 +6,8 @@ on:
       - 'race_ai/keirin_nationwide_auto_*.py'
       - 'scripts/keirin_nationwide_auto_forecast.py'
       - 'scripts/keirin_register_public_day.py'
+      - 'scripts/keirin_github_only_ab_*.py'
+      - 'tests/test_keirin_github_only_ab_day.py'
       - 'tests/test_keirin_register_public_day.py'
       - 'scripts/keirin_nationwide_independent_cipher_readback.py'
       - 'tests/test_keirin_nationwide_auto_*.py'
@@ -55,7 +57,8 @@ jobs:
             tests.test_keirin_evening_national_real_AB_20261118 \
             tests.test_keirin_discover_public_race_links \
             tests.test_keirin_register_public_day \
-            tests.test_keirin_nationwide_auto_day_registry_workflow
+            tests.test_keirin_nationwide_auto_day_registry_workflow \
+            tests.test_keirin_github_only_ab_day
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_nationwide_auto_storage.py \
@@ -67,6 +70,8 @@ jobs:
             scripts/keirin_capture_public_two_sources.py \
             scripts/keirin_discover_public_race_links.py \
             scripts/keirin_register_public_day.py \
+            scripts/keirin_github_only_ab_day.py \
+            scripts/keirin_github_only_ab_readback.py \
             scripts/keirin_real_nationwide_day_link_smoke.py \
             scripts/keirin_real_source_to_aes_one_run.py \
             scripts/keirin_evening_national_real_AB_20261118.py \
@@ -781,3 +786,112 @@ jobs:
           path: ${{ runner.temp }}/independent-readback.json
           retention-days: 21
           if-no-files-found: error
+
+
+  github-only-owner-capture:
+    # Opt-in, existing GitHub ONLY; never requires or silently creates S3.
+    # Mutually exclusive with the older externally sourced owner-auto-generate.
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.ref == 'refs/heads/main' &&
+      vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+      vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
+      vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+      vars.RACE_AI_AB_SOURCE_S3_PREFIX == '' &&
+      (github.event_name == 'schedule' ||
+       (github.event_name == 'workflow_dispatch' && inputs.mode == 'run'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+    outputs:
+      archived: ${{ steps.run.outputs.archived }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Prepare private ephemeral workspace
+        id: private
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/keirin-git-only-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root"
+          chmod 700 "$root"
+          echo "root=$root" >> "$GITHUB_OUTPUT"
+          echo "day=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_OUTPUT"
+      - name: Collect current JST roster, capture real cards and append sealed A/B to existing Git branch
+        id: run
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          python -m scripts.keirin_github_only_ab_day \
+            --day "${{ steps.private.outputs.day }}" \
+            --workspace "$GITHUB_WORKSPACE" \
+            --private-root "${{ steps.private.outputs.root }}" \
+            --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --report "${{ steps.private.outputs.root }}/safe/summary.json" \
+            --max-races 8 \
+            > "$RUNNER_TEMP/keirin-live-safe.json"
+          cat "$RUNNER_TEMP/keirin-live-safe.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "archived=true" >> "$GITHUB_OUTPUT"
+      - name: Keep only safe SHA/status receipt for second GitHub runner
+        if: steps.run.outputs.archived == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-github-only-ab-receipt-${{ github.run_id }}
+          path: ${{ steps.private.outputs.root }}/safe/summary.json
+          retention-days: 21
+          if-no-files-found: error
+      - name: Destroy private source HTML and raw cards
+        if: always()
+        shell: bash
+        run: |
+          root="${{ steps.private.outputs.root }}"
+          if [ -n "$root" ] && [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-git-only-* ]]; then
+            rm -rf -- "$root"
+          fi
+
+  github-only-independent-archive-readback:
+    needs: github-only-owner-capture
+    if: needs.github-only-owner-capture.result == 'success' && needs.github-only-owner-capture.outputs.archived == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-github-only-ab-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-ab-independent
+      - name: Verify actual committed Git ciphertext on separate runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48'
+          python -m scripts.keirin_github_only_ab_readback \
+            --report "$RUNNER_TEMP/keirin-ab-independent/summary.json" \
+            --repo "$GITHUB_WORKSPACE" \
+            --out "$RUNNER_TEMP/keirin-git-independent.json" \
+            > "$RUNNER_TEMP/keirin-git-independent-safe.json"
+          cat "$RUNNER_TEMP/keirin-git-independent-safe.json" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-github-only-ab-readback-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-git-independent.json
+          if-no-files-found: error
+          retention-days: 21
