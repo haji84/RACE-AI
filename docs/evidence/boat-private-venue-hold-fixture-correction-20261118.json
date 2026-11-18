@@ -1,0 +1,27 @@
+{
+  "schema": "RACE_AI_PRIVATE_VENUE_TEST_PATHLIKE_FIXTURE_CORRECTION_V1",
+  "recorded_at": "2026-11-18T07:54:00Z",
+  "actual_red_before_fixture_fix": {
+    "head": "8d69461a69ef2faff93dfd4f75e57eb5c9005b1b",
+    "run_id": 44261599909,
+    "job_id": 134656007543,
+    "tests": 877,
+    "seconds": 195.118,
+    "failures": 26,
+    "errors": 0,
+    "expected_missing_diagnostics": 24,
+    "unexpected_fixture_failures": 2,
+    "original865_failures": 0
+  },
+  "fixture_correction": {
+    "before": "704dc44cc780ad5f1ed52095602c3e205e32307a",
+    "after": "0f18680b5729a6dbb15defc3c043eda184278019",
+    "reason": "The invented Scan Path wrapper was passed as cache_root to the fake reader. It lacked PathLike conversion; actual production Path behavior was correct. Add __fspath__ to the wrapper and normalize only the fake captured path to Path(cache_root).",
+    "all25_test_methods_retained": true,
+    "all_assertion_lines_retained": true,
+    "exact_expected_cache_path_assertion_unchanged": true,
+    "original13_bytes_unchanged": true
+  },
+  "runtime_changed": false,
+  "fresh_red_after_fixture_fix": "PENDING"
+}

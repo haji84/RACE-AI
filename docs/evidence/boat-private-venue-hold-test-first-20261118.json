@@ -1,0 +1,19 @@
+{
+  "schema": "RACE_AI_PRIVATE_VENUE_HOLD_TEST_FIRST_V1",
+  "recorded_at": "2026-11-18T07:44:00Z",
+  "base_source_sha": "f1f8ed4ffb2a29e6b702685f49de63918610479d",
+  "base_source_tree": "33a715b8293b25ac4d55bf1761899f44b46f6e1c",
+  "actual_failure_evidence_blob": "beebb3710038635c2d3ba172caced5912395f064",
+  "contract_blob": "557e86a37b95e61efe5dd1513f2e002737783225",
+  "test_file": "tests/test_boat_venue_cycle_connection.py",
+  "test_before": "3f757bd024d13644403af4dc9d3c1688c5a2fa71",
+  "test_after": "704dc44cc780ad5f1ed52095602c3e205e32307a",
+  "original13_exact_bytes_preserved": true,
+  "additional_test_methods": 12,
+  "total_methods": 25,
+  "runtime_changed": false,
+  "actual_red": "PENDING",
+  "provider_requests": 0,
+  "keys_accessed": 0,
+  "new_jobs": 0
+}

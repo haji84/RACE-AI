@@ -510,33 +510,230 @@ def _all_model_research_generate(runtime,round_no):
     return summary
 
 
+def _venue_research_diagnostic(exception, phase):
+    """Return only a fixed boundary and recognized typed code; never raw errors."""
+    phases = (
+        'READBACK_PREFLIGHT',
+        'READBACK_METADATA',
+        'READBACK_ZIP',
+        'READBACK_VERIFY',
+        'READBACK_CONTINUITY_LOAD',
+        'READBACK_CONTINUITY_REFS',
+        'READBACK_CONTINUITY_WRITE',
+        'RETAIN_PREFLIGHT',
+        'RETAIN_CANDIDATE_SCAN',
+        'RETAIN_CANDIDATES',
+        'RETAIN_ARCHIVE_SCAN',
+        'RETAIN_ARCHIVE_READER',
+        'RETAIN_ARCHIVES',
+    )
+    phase_map = {name: name for name in phases}
+    result = dict(diagnostic_phase=phase_map.get(phase, 'UNKNOWN_PHASE')
+        if type(phase) is str else 'UNKNOWN_PHASE',
+        diagnostic_reason='UNCLASSIFIED_EXCEPTION')
+    kind = type(exception)
+    if kind is not ValueError and kind is not RuntimeError:
+        return result
+    arguments = exception.args
+    if type(arguments) is not tuple or len(arguments) != 1 or type(arguments[0]) is not str:
+        return result
+    if kind is ValueError:
+        fixed = (
+            'ALL_MODEL_PAIR_RECEIPT_ARCHIVE_REJECTED',
+            'ALL_MODEL_PAIR_RECEIPT_ARTIFACT_BYTES_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_ARTIFACT_CLOCK_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_ARTIFACT_IDENTITY_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_ARTIFACT_NAME_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_ARTIFACT_RUN_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_AWARE_CLOCK_REQUIRED',
+            'ALL_MODEL_PAIR_RECEIPT_AWARE_TIME_REQUIRED',
+            'ALL_MODEL_PAIR_RECEIPT_CAPTURED_INPUT_PRE_CUTOFF_CLOCK_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_DUPLICATE_CELL_RACE',
+            'ALL_MODEL_PAIR_RECEIPT_EXPECTED_RUN_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_MIXED_CANDIDATE_CONTEXTS_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_PAYLOAD_DIRECTORY_MISMATCH',
+            'ALL_MODEL_PAIR_RECEIPT_PAYLOAD_REPLAY_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_PAYLOAD_SCHEMA_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_PRE_CUTOFF_CLOCK_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_PUBLIC_SUMMARY_BINDING_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_ZIP_CONTENT_BOUND_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_ZIP_MEMBERS_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_ZIP_MEMBER_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_ZIP_MEMBER_SIZE_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_ZIP_PATH_INVALID',
+            'ALL_MODEL_PAIR_RECEIPT_ZIP_SIZE_INVALID',
+            'OWNER_STATE_KEY_REQUIRED',
+            'OWNER_STATE_KEY_REQUIRED_NOT_PUBLIC_FIXTURE',
+            'RESEARCH_CACHE_ARCHIVE_BOUND_INVALID',
+            'RESEARCH_CACHE_ARCHIVE_BYTES_INVALID',
+            'RESEARCH_CACHE_ARCHIVE_CHANGED_DURING_READ',
+            'RESEARCH_CACHE_FRESH_IDENTITY_MISMATCH',
+            'RESEARCH_CACHE_FRESH_METADATA_REQUIRED',
+            'RESEARCH_CACHE_GIT_INITIALIZATION_FAILED',
+            'RESEARCH_CACHE_GIT_LAYOUT_INVALID',
+            'RESEARCH_CACHE_GIT_STORAGE_OVERRIDE_REJECTED',
+            'RESEARCH_CACHE_INDEPENDENT_BARE_READER_REQUIRED',
+            'RESEARCH_CACHE_INDEPENDENT_READER_REQUIRED',
+            'RESEARCH_CACHE_INPUT_INVALID',
+            'RESEARCH_CACHE_METADATA_BOUND_INVALID',
+            'RESEARCH_CACHE_METADATA_INVALID',
+            'RESEARCH_CACHE_ORIGIN_CHANGED',
+            'RESEARCH_CACHE_PATH_REJECTED',
+            'RESEARCH_CACHE_PRIVATE_ARCHIVE_REQUIRED',
+            'RESEARCH_CACHE_PRIVATE_DIRECTORY_REQUIRED',
+            'RESEARCH_CACHE_READER_IDENTITY_CHANGED',
+            'RESEARCH_CACHE_READ_ONLY_REPOSITORY',
+            'RESEARCH_CACHE_REFERENCE_INVALID',
+            'RESEARCH_CACHE_SHARED_OBJECTS_REJECTED',
+            'RESEARCH_CACHE_WORKTREE_REJECTED',
+            'RESEARCH_CACHE_ZIP_READ_FAILED',
+            'STATE_AUTHENTICATION_OR_COMPRESSION_FAILED',
+            'STATE_COMMIT_INVALID',
+            'STATE_GIT_BLOB_BOUND_EXCEEDED',
+            'STATE_GIT_BLOB_SIZE_CHANGED',
+            'STATE_GIT_CONFIG_INSPECTION_FAILED',
+            'STATE_GIT_REPOSITORY_REJECTED',
+            'STATE_GIT_URL_REWRITES_REJECTED',
+            'STATE_REF_CONCURRENT_UPDATE',
+            'STATE_REF_IDENTITY_INVALID',
+            'STATE_REMOTE_COMMIT_NOT_VERIFIED',
+            'VAULT_GIT_PATH_IDENTITY_INVALID',
+            'VAULT_GIT_PATH_INVALID',
+            'VAULT_IDENTITY_INVALID',
+            'VAULT_INDEPENDENT_GIT_READER_REQUIRED',
+            'VAULT_READBACK_REPOSITORY_FAILED',
+            'VAULT_REF_REQUIRED',
+            'VAULT_SELECTED_COMMIT_REQUIRED',
+            'VAULT_SELECTED_FILES_BOUND_INVALID',
+            'VAULT_SELECTED_FILES_INVALID',
+            'VAULT_SELECTED_OBJECTS_INVALID',
+            'VAULT_SELECTED_OBJECTS_MISSING',
+            'VAULT_SELECTED_OBJECT_CONFLICT',
+            'VAULT_SELECTED_OBJECT_SIZE_CHANGED',
+            'VAULT_SELECTED_READ_INVALID',
+            'VAULT_SELECTED_REMOTE_CHANGED',
+            'VAULT_SELECTED_TREE_BINDING_INVALID',
+            'VAULT_SELECTED_TREE_INVALID',
+            'VENUE_EXISTING_TRANSFER_REF_REQUIRED',
+            'VENUE_LEARNING_COMMIT_INVALID',
+            'VENUE_LEARNING_FILE_SIZE_INVALID',
+            'VENUE_LEARNING_FITTED_REGISTRY_MEMBERS_REQUIRED',
+            'VENUE_LEARNING_FITTED_TRAINING_REQUIRED',
+            'VENUE_LEARNING_FITTED_TWO_FAMILIES_REQUIRED',
+            'VENUE_LEARNING_FOLDER_LIST_REQUIRED',
+            'VENUE_LEARNING_IMMUTABLE_FILE_CHANGED',
+            'VENUE_LEARNING_PATH_INVALID',
+            'VENUE_LEARNING_REMOTE_READBACK_MISMATCH',
+            'VENUE_LEARNING_SUMMARY_INVALID',
+            'VENUE_LEARNING_SUMMARY_MISMATCH',
+            'VENUE_LEARNING_TRANSFER_REF_REQUIRED',
+            'VENUE_PRIVATE_P1_RECEIPT_ARCHIVE_REJECTED',
+            'VENUE_PRIVATE_P1_RECEIPT_ARTIFACT_BYTES_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_ARTIFACT_CLOCK_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_ARTIFACT_IDENTITY_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_ARTIFACT_NAME_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_ARTIFACT_RUN_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_AWARE_CLOCK_REQUIRED',
+            'VENUE_PRIVATE_P1_RECEIPT_AWARE_TIME_REQUIRED',
+            'VENUE_PRIVATE_P1_RECEIPT_EXPECTED_RUN_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_MIXED_CANDIDATE_CONTEXTS_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_PAYLOAD_RACE_DIRECTORY_MISMATCH',
+            'VENUE_PRIVATE_P1_RECEIPT_PAYLOAD_REPLAY_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_PAYLOAD_SCHEMA_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_PRE_CUTOFF_CLOCK_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_PUBLIC_SUMMARY_BINDING_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_REFERENCES_BOUND_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_REFERENCE_ID_CONFLICT',
+            'VENUE_PRIVATE_P1_RECEIPT_REFERENCE_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_TRAINING_RECEIPT_CLOCK_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_TRAINING_RECEIPT_EXPIRED_AT_INPUT',
+            'VENUE_PRIVATE_P1_RECEIPT_TRAINING_RECEIPT_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_ZIP_CONTENT_BOUND_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_ZIP_MEMBERS_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_ZIP_MEMBER_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_ZIP_MEMBER_SIZE_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_ZIP_PATH_INVALID',
+            'VENUE_PRIVATE_P1_RECEIPT_ZIP_SIZE_INVALID',
+            'VENUE_RESEARCH_ARTIFACT_REQUIRED',
+            'VENUE_RESEARCH_BATCH_COMMIT_INVALID',
+            'VENUE_RESEARCH_BATCH_IMMUTABLE_FILE_CHANGED',
+            'VENUE_RESEARCH_BATCH_INDEPENDENT_READBACK_MISMATCH',
+            'VENUE_RESEARCH_BATCH_INPUT_INVALID',
+            'VENUE_RESEARCH_BATCH_ITEM_BOUND',
+            'VENUE_RESEARCH_BATCH_NAMESPACE_INVALID',
+            'VENUE_RESEARCH_BATCH_SOURCE_CHANGED',
+            'VENUE_RESEARCH_BATCH_SOURCE_PATH_INVALID',
+            'VENUE_RESEARCH_BATCH_TRANSFER_REF_REQUIRED',
+            'VENUE_RESEARCH_RETENTION_AWARE_CLOCK_REQUIRED',
+            'VENUE_RESEARCH_RETENTION_BOUNDED_FOLDER_LIST_REQUIRED',
+            'VENUE_RESEARCH_RETENTION_GITHUB_TOKEN_REQUIRED',
+            'VENUE_RESEARCH_RETENTION_GIT_ENVIRONMENT_INVALID',
+            'VENUE_RESEARCH_RETENTION_PRIVATE_FILES_REQUIRED',
+            'VENUE_RESEARCH_RETENTION_PRIVATE_FOLDER_REQUIRED',
+            'VENUE_RESEARCH_RETENTION_SOURCE_METADATA_INVALID',
+            'VENUE_RESEARCH_RETENTION_SOURCE_ZIP_ENVELOPE_INVALID',
+            'VENUE_RESEARCH_ROUND_REQUIRED',
+        )
+        reasons = {code: code for code in fixed}
+        for prefix in ('STATE_GIT_', 'VAULT_GIT_'):
+            for operation in ('FETCH', 'REMOTE_LOOKUP', 'PUSH', 'OPERATION'):
+                code = prefix + operation + '_TIMEOUT'
+                reasons[code] = code
+            for operation in ('FETCH', 'REMOTE_LOOKUP', 'PUSH', 'LOCAL'):
+                code = prefix + 'OPERATION_FAILED_' + operation + '_UNKNOWN'
+                reasons[code] = code
+                for status in range(400, 600):
+                    code = f'{prefix}OPERATION_FAILED_{operation}_HTTP_{status}'
+                    reasons[code] = code
+    else:
+        fixed = (
+            'GITHUB_API_READ_ATTEMPTS_EXHAUSTED_HALT',
+            'GITHUB_API_READ_UNCLASSIFIED_CLI_ERROR_HALT',
+            'GITHUB_API_TIMEOUT_HALT',
+        )
+        reasons = {code: code for code in fixed}
+        for status in range(400, 600):
+            code = f'GITHUB_API_READ_HTTP_{status}_HALT'
+            reasons[code] = code
+    result['diagnostic_reason'] = reasons.get(arguments[0], 'UNCLASSIFIED_EXCEPTION')
+    return result
+
+
 def venue_research_readback(artifact_id):
     """Admit only ciphertext independently saved before every race cutoff."""
     from race_ai.boat_venue_research_receipt import verify_private_p1_artifact
     from race_ai.boat_pdca_state import state_key
+    phase='READBACK_PREFLIGHT'
     try:
         state_key('production')
         need(type(artifact_id) is int and artifact_id>0,'VENUE_RESEARCH_ARTIFACT_REQUIRED')
+        phase='READBACK_METADATA'
         metadata=json.loads(gh(f'actions/artifacts/{artifact_id}'))
+        phase='READBACK_ZIP'
         raw=gh(f'actions/artifacts/{artifact_id}/zip')
+        phase='READBACK_VERIFY'
         if metadata.get('name','').startswith('all-existing-model-pairs-'):
             from race_ai.all_existing_model_receipt import verify_private_pairs_artifact
             verifier=verify_private_pairs_artifact
         else:verifier=verify_private_p1_artifact
         report=verifier(raw,metadata,now=datetime.now(timezone.utc),
             expected_run_id=int(os.environ['GITHUB_RUN_ID']),expected_head_sha=os.environ['GITHUB_SHA'])
+        phase='READBACK_CONTINUITY_LOAD'
         from race_ai.boat_venue_research_receipt import validate_research_refs
         from race_ai.repeated_cycle import write_state
         path=ROOT/'cycle_recovery_output/continuity.json'
         continuity=load_state(path,event_day())
+        phase='READBACK_CONTINUITY_REFS'
         reference=dict(artifact_id=artifact_id,run_id=metadata['workflow_run']['id'],
             head_sha=metadata['workflow_run']['head_sha'],digest=metadata['digest'])
         continuity['venue_research_artifact_refs']=validate_research_refs(
             continuity.get('venue_research_artifact_refs',[])+[reference])
+        phase='READBACK_CONTINUITY_WRITE'
         write_state(path,continuity,key='state_sha256')
-    except Exception:
+    except Exception as error:
         report=dict(status='HOLD_PRIVATE_VENUE_P1_READBACK',
             independent_pre_cutoff_receipt_verified=False,production_promoted=False,plaintext_published=False)
+        report.update(_venue_research_diagnostic(error,phase))
     print(json.dumps(report,sort_keys=True));return report
 
 
@@ -604,22 +801,29 @@ def venue_research_retain(round_no):
     from race_ai.boat_venue_research_retention import retain_private_research
     result=dict(status='PRIVATE_VENUE_RETENTION_NOT_NEEDED',retained_candidates=0,
                 production_promoted=False,plaintext_published=False)
+    phase='RETAIN_PREFLIGHT'
     try:
         need(type(round_no) is int and round_no>0,'VENUE_RESEARCH_ROUND_REQUIRED')
         base=Path(os.environ.get('RUNNER_TEMP',tempfile.gettempdir()))
+        phase='RETAIN_CANDIDATE_SCAN'
         folders=[]
         for kind in ('boat-venue-research-p1','boat-venue-research-pdca'):
             folders.extend(p.parent for p in (base/kind/f'cycle-{round_no}').rglob('learning.json'))
+        phase='RETAIN_CANDIDATES'
         if folders:result=retain_private_research(folders,ROOT)
+        phase='RETAIN_ARCHIVE_SCAN'
         archives=[p.parent for p in (base/'boat-venue-research-archives').glob('*/archive.zip')]
         if archives:
+            phase='RETAIN_ARCHIVE_READER'
             from race_ai.boat_venue_research_retention import retain_private_source_archives
             from race_ai.boat_venue_research_cache import research_readback_transport
             reader=research_readback_transport(ROOT,cache_root=base/'boat-venue-research-source-readback.git')
+            phase='RETAIN_ARCHIVES'
             result['source_archives']=retain_private_source_archives(archives,ROOT,readback_transport=reader)
-    except Exception:
+    except Exception as error:
         result=dict(status='HOLD_PRIVATE_VENUE_RETENTION',retained_candidates=0,
                     production_promoted=False,plaintext_published=False)
+        result.update(_venue_research_diagnostic(error,phase))
     out=ROOT/'existing_cycle_output';out.mkdir(exist_ok=True)
     # Pointers and aggregate status only; all source/prediction bytes stay encrypted.
     (out/'venue-research-retention.json').write_text(json.dumps(result,sort_keys=True))

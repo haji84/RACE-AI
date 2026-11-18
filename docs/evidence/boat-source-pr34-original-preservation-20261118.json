@@ -1,0 +1,32 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_ORIGINAL_PRESERVATION_V1",
+  "repository": "haji84/RACE-AI",
+  "pr_number": 34,
+  "recorded_at": "2026-11-18T07:34:00Z",
+  "original": {
+    "title": "test: 公式B/K原本の同日構造監査を一括実行するCLI",
+    "body": "同日公式B/Kの取得・メモリ内LZH展開・構造解析結果を、開催場/レース/艇数・取得時刻・SHAだけで比較する監査CLIを追加。実行は権利と頻度を確認した環境で手動。合成モックの回帰テスト付き。\n\n**未実施:** 実通信E2E。公開用データの保存・再配信やVercelデプロイは行わない。main/Production変更なし。",
+    "head_sha": "50177f7015f4d5721f1877790ee457befca10711",
+    "head_branch": "test/boat-k-b-real-source-e2e",
+    "base_branch": "fix/boat-history-utc-fixture",
+    "base_sha": "ca6c2e7f70f10a966a06631945b13e3cd5cc0556",
+    "draft": true
+  },
+  "ancestry": {
+    "target_source": "f1f8ed4ffb2a29e6b702685f49de63918610479d",
+    "target_tree": "33a715b8293b25ac4d55bf1761899f44b46f6e1c",
+    "status": "ahead",
+    "ahead_by": 1957,
+    "behind_by": 0,
+    "merge_base": "50177f7015f4d5721f1877790ee457befca10711"
+  },
+  "base_consumers": {
+    "complete_open_collection": true,
+    "count": 36,
+    "remaining_consumers": [],
+    "original_consumer_pr35_preservation": "08d967d22b095d6722dd72bc137aef19c104d85b",
+    "consumer_pr35_current_base": "main",
+    "consumer_pr35_original_head_preserved": true
+  },
+  "policy": "Fast-forward only from the preserved original head to a descendant of exact protected source; no force or original-content deletion. Existing source dependency/workflow/gate boundaries stay intact."
+}
