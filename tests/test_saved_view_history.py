@@ -1,7 +1,10 @@
 """Fictional originals: bounded encrypted dates retain their complete inventory."""
 from copy import deepcopy
+import base64
 import importlib
+import json
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 
@@ -75,6 +78,78 @@ class HistoryTests(unittest.TestCase):
             self.assertEqual(restored['records'][0]['saved_prediction_evidence'], source['records'][0]['saved_prediction_evidence'])
         self.assertEqual(union, F.forecast_inventory(source))
         self.assertEqual(source, before)
+
+    def test_webcrypto_prefers_saved_forecasts_over_a_newer_results_only_day(self):
+        """Run the real reader with fixture AES bytes and an in-memory fetch."""
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        seed_header = dict(schema='RACE_AI_SAVED_WEB_VIEW_V1', source_content_sha256='d' * 64)
+        nonce = b's' * 12  # Public fixture key and nonce, never production data.
+        cipher = AESGCM(self.key).encrypt(nonce, wire(self.seed).encode(), wire(seed_header).encode())
+        seed_raw = (wire(dict(header=seed_header, nonce=base64.b64encode(nonce).decode(),
+                              ciphertext=base64.b64encode(cipher).decode())) + '\n').encode()
+        self.view_id = sha(seed_raw)
+        source = self.add_day(self.seed, '2026-11-07')
+        source['records'][1].update(prediction=None, comparison_predictions=[])
+        index = self.index(self.store_days(source))
+        self.assertEqual(index['days']['2026-11-07']['forecasts'], 0)
+        first = self.H.encrypt_history_router(index, self.key, view_id=self.view_id,
+            source_sha='d' * 64, generation=1, previous=sha(seed_raw))
+        published = self.index(self.store_days(self.add_day(self.seed, '2026-11-07'), commit='c' * 40))
+        second = self.H.encrypt_history_router(published, self.key, view_id=self.view_id,
+            source_sha='d' * 64, generation=2, previous=sha(first))
+        paths = {'http://fixture.invalid/views/' + sha(seed_raw) + '.json': seed_raw}
+        base = 'https://raw.githubusercontent.com/haji84/RACE-AI/'
+        for (commit, path), body in self.files.items():
+            paths[base + commit + '/' + path] = body
+        for body in (first, second):
+            paths[base + 'state/boat-saved-view/views/' + sha(body) + '.json'] = body
+        payload = dict(paths={url: base64.b64encode(body).decode() for url, body in paths.items()},
+            latest=[dict(header=json.loads(body)['header'], cipher_sha256=sha(body)) for body in (first, second)],
+            seed=sha(seed_raw), anchor=self.anchor,
+            fragment='#saved=' + self.view_id + '.' + base64.urlsafe_b64encode(self.key).decode().rstrip('='))
+        program = r'''
+const fs=require('node:fs'),vm=require('node:vm'),{webcrypto}=require('node:crypto');
+const input=JSON.parse(fs.readFileSync(0,'utf8')),source=fs.readFileSync(process.argv[1],'utf8');
+(async()=>{
+  let generation=0,requests=0;
+  const context={URL,TextEncoder,TextDecoder,Uint8Array,atob,btoa,AbortController,setTimeout,clearTimeout,
+    crypto:webcrypto,window:{},location:{href:'http://fixture.invalid/',origin:'http://fixture.invalid'},
+    document:{querySelector:()=>({content:input.anchor})},fetch:async url=>{
+      requests++;const text=url.href;
+      const body=text.startsWith('https://raw.githubusercontent.com/haji84/RACE-AI/state/boat-saved-view/latest.json?')
+        ?Buffer.from(JSON.stringify(input.latest[generation])):Buffer.from(input.paths[text]||'','base64');
+      if(!body.length)throw new Error('UNEXPECTED_FIXTURE_REQUEST');
+      const response=new Response(body,{headers:{'content-length':String(body.length)}});
+      Object.defineProperty(response,'url',{value:text});return response;
+    }};
+  vm.runInNewContext(source,context);const api=context.window.SavedViewCrypto;
+  await api.read('./views/'+input.seed+'.json',input.fragment);
+  const prior={cipherSha:input.seed,forecastSha:input.anchor,generation:0};
+  const first=await api.readLive(input.fragment,prior,{preferredDay:'2026-11-07',day:'2026-11-06'});
+  const future=await api.readLive(input.fragment,prior,{preferredDay:'2026-11-08',day:'2026-11-06'});
+  const current={cipherSha:first.cipherSha,forecastSha:input.anchor,generation:1};
+  const unchanged=await api.readLive(input.fragment,current,{preferredDay:'2026-11-07',day:'2026-11-06'});
+  const manual=await api.readDay(input.fragment,current,'2026-11-07');
+  generation=1;
+  const newer=await api.readLive(input.fragment,current,{preferredDay:'2026-11-07',day:'2026-11-06'});
+  console.log(JSON.stringify({first:first.history.day,future:future.history.day,
+    same_generation:unchanged===null?null:unchanged.history.day,manual:manual.history.day,
+    manual_forecasts:manual.view.records.reduce((n,r)=>n+(r.prediction?1:0)+(r.comparison_predictions||[]).length,0),
+    newly_published:newer.history.day,requests,external_requests:0}));
+})().catch(()=>{console.error('OFFLINE_WEBCRYPTO_FIXTURE_FAILED');process.exitCode=1;});
+'''
+        reader = Path(__file__).resolve().parents[1] / 'web' / 'saved-view-crypto.js'
+        result = subprocess.run(['node', '-e', program, str(reader)], input=wire(payload),
+                                text=True, capture_output=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        observed = json.loads(result.stdout)
+        expected = dict(first='2026-11-06', future='2026-11-06', same_generation=None,
+                        manual='2026-11-07', manual_forecasts=0, newly_published='2026-11-07')
+        for case, value in expected.items():
+            with self.subTest(case=case):
+                self.assertEqual(observed[case], value)
+        self.assertGreater(observed['requests'], 0)
+        self.assertEqual(observed['external_requests'], 0)
 
     def test_chunk_bound_splits_only_between_complete_race_records(self):
         source = deepcopy(self.seed)

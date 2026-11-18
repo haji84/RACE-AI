@@ -267,6 +267,44 @@ function privateCycle(extra = {}) {
         confirmed_at:null, observed_at:observation.captured_at, source_sha256:RESULT},
       result_observations:[observation], result_revisions:[], missing_reasons:["INDEPENDENT_RECEIPT_NOT_VERIFIED"]}], ...extra};
 }
+for (const kind of ["SAME_RACE_RESULT","SAME_DAY_OFFICIAL_RESULT","VERIFIED_OFFICIAL_PROFILE"]) {
+  test("private names retain strictly bound published evidence: " + kind, () => {
+    const raw=privateCycle({dataset_status:"SYNTHETIC_ONLY"}), r=raw.records[0];
+    const source={kind,registration_no:"9999",race_id:r.race_id,source_sha256:RESULT,
+      captured_at:"2030-01-01T10:20:00+09:00"};
+    if(kind==="SAME_RACE_RESULT")source.source_url="https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=1";
+    if(kind==="SAME_DAY_OFFICIAL_RESULT")Object.assign(source,{source_race_id:"20300101-01-02",
+      source_url:"https://www.boatrace.jp/owsp/sp/spdata?type=raceresult&hd=20300101&jcd=01&rno=2"});
+    if(kind==="VERIFIED_OFFICIAL_PROFILE")Object.assign(source,{verified_current:true,
+      source_url:"https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=9999"});
+    r.participants=[{number:1,name:"架空検証一",registration_no:"9999",name_source:source}];
+    const before=JSON.stringify(raw), parsed=M.parse(raw).records[0];
+    assert.deepEqual(parsed.participants,r.participants);
+    assert.equal(parsed.scope,"synthetic");assert.equal(M.eligibleResult(parsed),false);
+    assert.equal(M.summary([parsed]).overall.hit8,null);assert.equal(JSON.stringify(raw),before);
+    assert.ok(Object.isFrozen(parsed.participants[0].name_source));
+    const mutations=[
+      s=>{s.registration_no="9998";}, s=>{s.source_sha256="invalid";},
+      s=>{s.captured_at="2029-12-31T23:59:59+09:00";}, s=>{s.captured_at="invalid";},
+      s=>{s.source_url=s.source_url.replace("https:","http:");},
+      s=>{s.source_url=s.source_url.replace("www.boatrace.jp","example.invalid");},
+      s=>{s.source_url+="#fragment";}, s=>{s.source_url+="&extra=1";},
+      s=>{s.source_url=s.source_url.replace("https://","https://user@");}
+    ];
+    if(kind==="VERIFIED_OFFICIAL_PROFILE")mutations.push(
+      s=>{s.verified_current=false;}, s=>{s.source_url=s.source_url.replace("9999","9998");},
+      s=>{s.source_url+="&toban=9999";});
+    else mutations.push(
+      s=>{s.race_id="20300101-02-01";},
+      s=>{s.source_url=s.source_url.replace("hd=20300101","hd=20300102");},
+      s=>{s.source_url=s.source_url.replace("jcd=01","jcd=02");},
+      s=>{s.source_url=s.source_url.replace(/rno=\d+/,"rno=3");}, s=>{s.source_url+="&rno=1";});
+    if(kind==="SAME_DAY_OFFICIAL_RESULT")mutations.push(
+      s=>{s.source_race_id=r.race_id;}, s=>{s.source_race_id="20300102-01-02";});
+    for(const mutate of mutations){const bad=structuredClone(raw);mutate(bad.records[0].participants[0].name_source);assert.throws(()=>M.parse(bad),kind);}
+  });
+}
+
 test("private cycle projection admits exact saved partial metadata without fake time/hash/version", () => {
   const raw=privateCycle(), before=JSON.stringify(raw), parsed=M.parse(raw), r=parsed.records[0], p=r.prediction;
   assert.equal(JSON.stringify(raw),before);
@@ -362,7 +400,10 @@ test("dispatch views retain unknown venue and race number without inventing sche
 test("private dispatch slot status is bounded and cannot change its model/stage identity", () => {
   const raw=privateCycle(),r=raw.records[0];r.native_dispatch_view=true;
   r.dispatch_slots=[{stage:"P1",model_id:"boat-observed-pairwise-factor-v1",model_version:null,status:"INPUT_MISSING",reason:"NO_NATIVE_INPUT_SUPPLIED",applicable:true,projection_status:"NOT_PROJECTED",projection_reason:null,output_sha256:null,prediction_sha256:null}];
-  assert.equal(M.parse(raw).records[0].dispatch_slots[0].status,"INPUT_MISSING");
+  for(const status of ["INPUT_MISSING","EXECUTION_FAILED"]){
+    const saved=structuredClone(raw);saved.records[0].dispatch_slots[0].status=status;
+    assert.equal(M.parse(saved).records[0].dispatch_slots[0].status,status);
+  }
   for(const change of [{stage:"B_POST_TRIAL"},{status:"VERIFIED_LIVE_SUCCESS"},{model_id:""},{output_sha256:"fake"}]) {
     const bad=structuredClone(raw);Object.assign(bad.records[0].dispatch_slots[0],change);assert.throws(()=>M.parse(bad));
   }
