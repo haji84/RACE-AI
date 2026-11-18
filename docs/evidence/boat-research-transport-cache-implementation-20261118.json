@@ -1,0 +1,48 @@
+{
+  "schema": "RACE_AI_RESEARCH_TRANSPORT_CACHE_IMPLEMENTATION_V1",
+  "repository": "haji84/RACE-AI",
+  "base_source": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+  "tests_blob": "80069bfc98e264c3295d8444c73e2de7b9836512",
+  "genuine_control_fixture": "8e63856c2ed2f42d2ad74e2c6ec6a0c18fa14f65",
+  "contract_blob": "57bc856138b3872e315c5f3bde35e4206ab91dd7",
+  "clean_red": {
+    "head": "e09bb5e323a3b87afd0084f5b7f55c752f99cc24",
+    "run_id": 44243620880,
+    "job_id": 134597147444,
+    "timestamp_utc": "2026-11-18T05:24:27.5277869Z",
+    "tests": 859,
+    "seconds": 190.39,
+    "failures": 19,
+    "errors": 0,
+    "missing_helper": 17,
+    "missing_hooks": 2,
+    "original_837_tests_passed": true,
+    "controls_and_pin_checks_passed": 3
+  },
+  "implementation": {
+    "helper": "ee1655f3a55d1d11e1e5822196620c2a3631b716",
+    "cycle": "99dba5277dcaf105a9d99c3887a761e81669f45f",
+    "changes": [
+      "Every archive use gets fresh full metadata; exact cached encrypted ZIP may replace only the duplicate ZIP download after full identity/size/SHA checks.",
+      "Existing full AEAD/native verifier/scorer executes every round with fresh labels and clocks, including expiry/pending/revisions.",
+      "Source-archive retention only receives a separate private bare read-only persistent ODB. Existing unconditional remote commit fetch, selected-object verification and both database byte comparisons remain.",
+      "Learning retainer, source intakes, batch publisher, base Vault and round action byte-unchanged. No authority or scores memoized."
+    ]
+  },
+  "measured_problem": {
+    "bb_first11_seconds": 2045.596,
+    "a74_first11_seconds": 4723.539,
+    "additional_pdca_retention_seconds": 2538.054,
+    "network_fraction_unmeasured": true,
+    "live_improvement_not_yet_measured": true
+  },
+  "effects": {
+    "running_worker_interrupted": false,
+    "source_requests_for_this_change": 0,
+    "new_model_family": false,
+    "production_weights_changed": false,
+    "ui_published": false,
+    "workflow_jobs_inputs_runners_timeouts_added": false,
+    "goal_complete": false
+  }
+}
