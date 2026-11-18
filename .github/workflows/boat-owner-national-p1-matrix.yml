@@ -748,7 +748,7 @@ jobs:
           # Optional archived counts never change any earlier core/native conclusion.
           print(json.dumps(report,sort_keys=True,allow_nan=False))
           PY_BOOTSTRAP_COUNTS
-      - name: Diagnose the authenticated saved AES base using counts only
+      - name: Diagnose the saved AES base and exact older ACTIVE originals using counts only
         if: >-
           always() && github.repository == 'haji84/RACE-AI' &&
           github.event_name == 'push' && github.ref == 'refs/heads/main' &&
@@ -790,4 +790,9 @@ jobs:
           except Exception:
               pass
           print(json.dumps(report,sort_keys=True,allow_nan=False))
+          source=(Path('..')/'scripts/boat_saved_rejection_anchor_audit.py').resolve()
+          assert source.is_file() and not source.is_symlink() and source.parent.parent==Path('..').resolve()
+          spec=importlib.util.spec_from_file_location('main_saved_rejection_anchor_proof',source)
+          anchor=importlib.util.module_from_spec(spec);spec.loader.exec_module(anchor)
+          anchor.main([])
           PY_REASON_COUNTS

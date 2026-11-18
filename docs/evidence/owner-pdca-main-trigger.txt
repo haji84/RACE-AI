@@ -602,3 +602,13 @@ The diagnostic makes no source GET, repair, publication or model promotion.
 Native same-ed904 pin is unchanged and must SKIP another automatic Mac request.
 No new job definition/permission/dispatch input/cron/runner/timeout/prefix/marker,
 artifact membership, model family, public UI, fee or wager is introduced.
+
+2026-11-18 selected-snapshot rejection anchor proof (read-only)
+Authenticate immutable saved-view424/6eea8632 and same-day423/71c1b06f using
+existing Actions-only F/H readers and filtered read-only Git transport. Output
+only fixed statuses/counts/public snapshot+cipher hashes. Sidecars alone never
+authorize restoration; every orphan needs a byte-equal older ACTIVE original.
+No repair, source GET, publication or model promotion is performed by this audit.
+Current a74 run44218343091 must continue; active-owner admission remains HOLD.
+Reuse this original marker and original release prefix; no new job/permission/
+input/cron/runner/timeout/marker/model family/UI deployment/fee/wager is added.

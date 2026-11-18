@@ -1,3 +1,15 @@
+## 2026-11-18 02:53:57 UTC: 既存226件成功・新処理欠落のみのREDを確認、過去ACTIVE照合を実装して実CIへ（GOAL未達）
+
+既存PR42を通常fast-forwardで再利用し、原head87623032と元metadataを保全した。test-only headd15a5c25の真正CI44225538918/job134537680916は246件/109.154秒、既存226件は成功、新処理未実装による19 I/O setUp失敗＋純粋test import error1だけで、SyntaxErrorなし。10純粋＋19 I/O methodを変更せず、同じテストを満たす処理を実装した。実装後のPython成功・実AES照合はまだ未確認。
+
+runtime379c9f85は世代424/6eea・423/71c1の固定V5 pairを、既存F/H/AES/forecast anchor検査で同一保存日に限定して読む。partial clone設定はcommand scoped、合計256MiB/32 snapshots、1読取り12MiB以内で、読んだ実byteを共通budgetから差し引く。coverageはselected snapshot/dayで、全tree/全履歴検査を名乗らない。鍵はActions内のみ、commit/commit_snapshot/push禁止、任意CLI引数禁止、例外・本文・URLは出さない。I/O独立static reviewはCLEARで、純粋処理と最終workflowの独立レビュー・CIは待ち。
+
+全missing groupに同一parent race/capture/sourceの旧ACTIVE本文と履歴原本の完全一致を必要とし、一つでも欠ける／矛盾すればHOLD。sidecarだけでは証明しない。出力は固定schema/status/countsと公開snapshot/cipher hash、効果false/0のみ。照合成功も復元・表示公開・精度改善成功を意味しない。既存nationalの最後の任意blockへ読取りだけを追加し、固定M2/r0、job/権限/input/cron/runner/timeout/5 uploadsを保全する。既存owner marker/prefixだけを使い、稼働中a74への割込みや同一Safari候補再呼出しはしない。
+
+02:51:34 UTC再照会でも元offlineのb7380fe6(PR70)/daae4c10(PR292)はいずれも正規GitHub commit GET422/No commit foundで未復元。過去の404/not our refは過去記録として残す。選択実行環境failedでlocal command再検証不能。別環境fileの移転を仮定しない。同時点a74 run44218343091は9巡回success・10実行中・failed0。最初の7巡回301〜459秒で、全T15〜10 coverageは未証明。表示修復・4競技全モデル・physical iPhone・6艇校正・前向き精度改善は未達。
+
+[RED・実装境界とレビュー状態](evidence/boat-saved-rejection-anchor-runtime-review-20261118.json)、[未復元commit再照会](evidence/boat-offline-commit-recheck-20261118.json)。以下は各時点の履歴。
+
 ## 2026-11-18 02:40:22 UTC: main43の実認証で棄却履歴24件の参照欠落を特定、旧原本の読取り専用照合を準備（GOAL未達）
 
 通常PR43 mergeのmainは6aae91a1/tree6949a841で、最終CI44217586985/job134511172743の226件/104.063秒OKと全10 Python block compileを通ったtested treeと一致。真正診断44218307647/job134513584616は01:48:17 UTCにAES base世代424/snapshot6eea8632を認証し、OBS active600/history0は整合、REJ active2/history24の24件すべてでACTIVE参照先欠落を確認した。他の診断異常カウンタは0。診断によるsource GET・書換え・公開は0で、修復完了ではない。

@@ -1,0 +1,28 @@
+{
+  "schema": "RACE_AI_OFFLINE_COMMIT_RECHECK_V1",
+  "observed_at_utc": "2026-11-18T02:51:34Z",
+  "repository": "haji84/RACE-AI",
+  "method": "authenticated GitHub connector GET /repos/haji84/RACE-AI/commits/{sha}",
+  "checks": [
+    {
+      "pr_number": 70,
+      "sha": "b7380fe6a377e6ccf2b96331f2126c52549bbe17",
+      "http_status": 422,
+      "github_message_class": "NO_COMMIT_FOUND_FOR_SHA",
+      "restored": false
+    },
+    {
+      "pr_number": 292,
+      "sha": "daae4c10167224b7730006d8ada5ade398aaa64b",
+      "http_status": 422,
+      "github_message_class": "NO_COMMIT_FOUND_FOR_SHA",
+      "restored": false
+    }
+  ],
+  "status": "UNRESTORED",
+  "earlier_rest_404_and_git_not_our_ref_are_historical": true,
+  "local_command_recheck_available": false,
+  "selected_execution_environment": "failed",
+  "local_files_auto_transfer_assumed": false,
+  "global_absence_proven": false
+}
