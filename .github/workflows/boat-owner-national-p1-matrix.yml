@@ -18,6 +18,9 @@ on:
       - audit/state/boat-m2-independent-audit-target.json
       - scripts/boat_current_pair_eligibility_audit.py
       - tests/test_boat_current_pair_eligibility_audit.py
+      - scripts/boat_saved_reason_binding_audit.py
+      - tests/test_boat_saved_reason_binding_audit.py
+      - tests/test_boat_saved_reason_binding_io.py
   push:
     branches: [main]
     paths:
@@ -36,6 +39,9 @@ on:
       - audit/state/boat-m2-independent-audit-target.json
       - scripts/boat_current_pair_eligibility_audit.py
       - tests/test_boat_current_pair_eligibility_audit.py
+      - scripts/boat_saved_reason_binding_audit.py
+      - tests/test_boat_saved_reason_binding_audit.py
+      - tests/test_boat_saved_reason_binding_io.py
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
     types: [completed]
@@ -74,8 +80,16 @@ jobs:
           persist-credentials: false
       - name: Install exact pinned owner reader dependencies for source-free test
         run: python -m pip install --disable-pip-version-check -r owner-source/requirements-history.txt
+      - name: Read the exact guard only for invented reason-binding fixtures
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 86b029ae5bddd5d4956497d8b32b2c92b8eec521
+          path: reason-binding-source
+          persist-credentials: false
+          sparse-checkout: race_ai/boat_saved_model_view.py
+          sparse-checkout-cone-mode: false
       - name: Pure model matrix and forced original ZIP AES source-free contract
-        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit -v
+        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit tests.test_boat_saved_reason_binding_audit tests.test_boat_saved_reason_binding_io -v
       - name: Prove source-owner and private key are only ever read on trusted main events
         run: |
           python - <<'PY'

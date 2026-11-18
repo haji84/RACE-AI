@@ -1,0 +1,40 @@
+{
+  "schema": "RACE_AI_PR43_ORIGINAL_PRESERVATION_FOR_STATUS_EVIDENCE_20261118_V1",
+  "repository": "haji84/RACE-AI",
+  "original": {
+    "url": "https://github.com/haji84/RACE-AI/pull/43",
+    "number": 43,
+    "state": "open",
+    "merged": false,
+    "draft": true,
+    "title": "feat: 個別結果HTML解析と6艇登録番号照合の接続",
+    "body": "PR #42の個別結果パーサーをPR #40のrace/lane/racer_registration_id照合に接続。独立検証されたソースのみ許容、6艇一致、異なる選手登録番号は拒否。実進入は未取得のまま。合成fixtureで統合テスト。\n\n未完成: 実HTML列対応表の確定、実レースE2E、欠場/返還/結果訂正、STの統合出力、許諾済み一般公開。independently_verifiedフラグだけでは証拠の真偽を保証しない。main/Production変更なし。",
+    "base": "feat/boat-individual-result-parser",
+    "base_sha": "87623032c09b9613f69c52132179a909608ff1c4",
+    "head": "feat/boat-result-parser-reconcile-bridge",
+    "head_sha": "6bc736ee79551bd22ea9fe1479726d768b709516",
+    "head_repo_id": 1416489937,
+    "head_repo_full_name": "haji84/RACE-AI",
+    "merge_commit_sha": "66a19f329d0d6adf83910c6b8293ecb80f0ed278",
+    "created_at": "2026-10-14T07:20:58Z",
+    "updated_at": "2026-10-14T07:21:09Z",
+    "commits": 2,
+    "changed_files": 2,
+    "additions": 68,
+    "deletions": 0
+  },
+  "ancestry": {
+    "actual_main": "e1c55723bcffb3941b7c6cef370cc42b1f4dcfb6",
+    "original_head": "6bc736ee79551bd22ea9fe1479726d768b709516",
+    "status": "ahead",
+    "ahead": 2239,
+    "behind": 0,
+    "original_head_is_ancestor": true
+  },
+  "open_base_consumers": [],
+  "intended_scope": "Tests-first main-only authenticated AES-base binding diagnostic plus actual-evidence/status. Production guard, original observations, saved forecasts and source authority remain unchanged.",
+  "new_pr": false,
+  "force": false,
+  "refs_changed_by_this_packet": false,
+  "ui_pr62_remains_draft": true
+}

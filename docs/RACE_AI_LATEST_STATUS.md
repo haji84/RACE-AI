@@ -1,3 +1,17 @@
+## 2026-11-18 01:15:49 UTC: 実24巡回と新候補Mac成功を確認、当日表示の26回拒否を発見して診断をtests-firstで準備（GOAL未達）
+
+main e1c55723は通常PR44 mergeでtested8cf333bd/tree60cf2ae4と一致。25checksは12success/13skip、119件×2/181件/212＋32件/固定source48件がすべてOK。真正owner gate44209496026/job134483919235はa74のactive-owner HOLDで新producerを拒否し、その後の固定Safari POSTは00:38:52 UTCにACK成功。同headの既存run0、曖昧な再送なし。新しいjob/権限/input/cron/runner/timeout/prefix/markerはない。
+
+実Mac44209527528/job134484042240は119件/52.300秒OK、Safari26.6/macOSで保存原本UI/AES/cleanupが成功。未公開ed904/web5759ac3の7ページ×4幅（320/390/1440/1920）28合成PNGも確認・保管した。artifact14386015956/8,474,736bytes/SHA4b6a3907。実データ撮影なし。ブラウザの保存日は11/17・generation423・results130・P1groups11であり、11/18表示は証明していない。環境は再起動失敗後に再びstartingとなったが、現在必要な診断はGitHub/既存Actionsで進める。新PNGのローカルCRC/目視、実機iPhone/login/V5/全8参考の完全受入は未確認。UIはDraft62のまま、公開assetはf603のまま保つ。
+
+実owner44170869325/sourceBBは24ステップsuccess、実ログ00:45:44にcompleted_round24/WORKER_HANDOFF、制御ログworker GET304を記録し、ジョブもsuccessで終了。しかし全ログにENCRYPTED_VIEW_REJECTED/SAVED_MODEL_VIEW_RESULT_REASON_VARIANT_BINDINGが26回（初回20:36:36〜最終00:45:32）ある。当日原本保存と画面反映は別で、当日予想が画面に出たとは認定しない。final continuity/controlの独立AES・全モデル/締切資格は別途未確認。固定追加P0の132contexts/660生成だけが独立確認済みで、264保持枠・924待機枠から後続P1を推定しない。
+
+ガード443–452行の追跡で、個々の入力行のactive観測と既存reason sidecarが統合前から不整合なことは判明した。現在の変換が原因とはまだ証明できず、OBS/REJ/anchor欠落/source差/時計表記/理由metadataのどれかも未特定。ガードや履歴を緩めず、既存AES baseをActions内だけで認証・読取りし、固定語彙の件数だけを出すmain限定診断を作る。現在は12純粋テスト＋8境界テストと既存national unitへの登録のみ。実未実装REDを得てからruntimeを加える。既存EFF fixtureは保持し、正しい固定ガードの1ファイルだけを別fixtureへ取得する。固定M2/r0/helper900003、原本、予想、本番重みは変更しない。
+
+KEIRINの実HTTP403・全4競技の全日証明、6艇GT/校正強さ/予想接続、前向き精度改善、未push2commitの復元も未達。callback経路の対応設定だけを配信成功とは扱わない。
+
+[新候補の実Mac証拠](evidence/boat-native-safari-ed904-actual-success-20261118.json)・[24巡回と表示拒否](evidence/boat-bb-closed-worker-view-rejection-20261118.json)・[診断計画とテスト](evidence/boat-saved-reason-binding-tests-first-20261118.json)・[既存PR43の保全](evidence/boat-pr43-original-preservation-20261118.json)。
+
 ## 2026-11-18 00:33:47 UTC: 既存Safari呼出しを候補変更時の一回に限定して復元、fresh CI待ち（GOAL未達）
 
 実行環境はexec-server接続の回復timeoutで起動失敗した。ローカルファイルの移転・新しいコマンド実行成功は認定しない。接続GitHubで公開readと認証付きblob/既存branchへのFF書込は実際に成功し、main11fce968・production a74f1e94を再確認した。新PR/force/保護設定変更はない。
