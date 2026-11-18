@@ -282,14 +282,17 @@ def get(url,*,day=None,not_yet_published=False,media='html'):
         plan=(SOURCE_GUARD.http_failure(None,headers=None)
               if SOURCE_GUARD is not None else plan_http_wait(None,{},now))
         raise SourceWait(plan['reason'],plan['retry_at'],state=plan['state']) from None
+    received_at=None
     if (os.environ.get('RACE_AI_ORIGINAL_VAULT_ENABLED') == 'true' and media == 'html'
             and url.startswith(('https://www.boatrace.jp/owpc/pc/race/racelist?',
                                 'https://www.boatrace.jp/owpc/pc/race/beforeinfo?'))):
         from race_ai.boat_source_capture_files import capture_http200
-        capture_http200(body, source_url=url, received_at=datetime.now(timezone.utc),
+        received_at=datetime.now(timezone.utc)
+        capture_http200(body, source_url=url, received_at=received_at,
                         source_guard=SOURCE_GUARD)
     time.sleep(WAIT_SECONDS)
     captured=_clock(day)
+    if received_at is not None:captured=received_at
     if SOURCE_GUARD is not None:SOURCE_GUARD.http_success()
     return body,captured,hashlib.sha256(body).hexdigest()
 

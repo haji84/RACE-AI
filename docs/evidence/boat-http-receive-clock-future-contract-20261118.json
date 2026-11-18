@@ -1,0 +1,169 @@
+{
+  "schema": "RACE_AI_C979_FUTURE_HTTP_CAPTURE_CLOCK_FIX_CONTRACT_V1",
+  "status": "TESTS_ONLY_NO_SOURCE_IMPLEMENTATION",
+  "source": {
+    "commit": "c979aeb678538d99e277f26726047dccbdc982af",
+    "tree": "766b8a3ea5d9d3b85e0f399523ede2eb8f1b688b",
+    "pilot_path": "scripts/boat_nationwide_ab_pilot.py",
+    "pilot_blob": "df16490e7ce2137f4ec366927579e3fa5a865622",
+    "test_path": "tests/test_boat_raw_original_capture.py",
+    "base_test_blob": "331c7a49e7e46f1328d6bd659740279d5daa7359",
+    "workflow_path": ".github/workflows/boat-nationwide-ab-one-shot.yml",
+    "workflow_blob": "268ab052c2b5148cbf555a26f2d4405a52b6c35b",
+    "composite_blob": "efd9df155bd27db4eaf3da01d4638a3199a78538"
+  },
+  "problem": "In owner raw-capture mode, get records its real accepted-HTTP receive clock before two-second pacing, then returns a second post-pacing clock to native source metadata. Exact historical SHA/URL/capture-clock matching can therefore report missing despite retained body bytes. This future fix changes only new source metadata in the existing ON mode; past originals/receipts/clocks are never edited.",
+  "runtime_future_contract": {
+    "owner": "Root implements only after authenticated actual RED for these frozen tests.",
+    "function": "scripts.boat_nationwide_ab_pilot.get(url,*,day=None,not_yet_published=False,media='html')",
+    "on_predicate": "Exactly the EXISTING condition: RACE_AI_ORIGINAL_VAULT_ENABLED=='true' AND media=='html' AND url starts with the existing racelist? or beforeinfo? canonical prefixes. No new flag/URL/media permission.",
+    "on_sequence": [
+      "Keep initial _clock(day), charge, GET, HTTP status/URL/type/size checks and all error policy unchanged.",
+      "After valid accepted bytes and before retention/pacing, sample one actual aware datetime.now(timezone.utc) receive timestamp.",
+      "Pass that same sampled object to existing capture_http200 with unchanged raw bytes, source_url and SOURCE_GUARD.",
+      "Keep time.sleep(WAIT_SECONDS), WAIT_SECONDS=2.0, and ALWAYS execute the existing post-pacing _clock(day) day/handoff check.",
+      "Keep SOURCE_GUARD.http_success() in its existing position AFTER that day check.",
+      "Return the same body/SHA tuple shape, with that sampled receive timestamp as source capture time."
+    ],
+    "off_sequence": "For every OFF/noncapturable media/URL path preserve the exact legacy post-pacing return clock, no new receive-clock sample, no capture/key/context/file call. Post-pacing _clock(day) remains mandatory in both modes.",
+    "scope": "Future source receive metadata only. Do not replace forecast generated_at, computation start/completion, dispatcher now, actual server-created/persisted_at, eligibility/cutoff clocks, source rights, prior ciphertext, models, weights or scores.",
+    "no_implementation_in_packet": true
+  },
+  "generation_clock_proof": [
+    {
+      "path": "scripts/boat_nationwide_ab_pilot.py",
+      "blob": "df16490e7ce2137f4ec366927579e3fa5a865622",
+      "lines": [
+        186,
+        508,
+        526,
+        551,
+        552
+      ],
+      "proof": "observed_timestamp uses actual datetime.now UTC; make_pair samples generated after both paced source gets, then passes it to existing native building/A-B model. It does not use returned source capture time as generated."
+    },
+    {
+      "path": "scripts/boat_nationwide_ab_pilot.py",
+      "blob": "df16490e7ce2137f4ec366927579e3fa5a865622",
+      "lines": [
+        578,
+        580,
+        581,
+        593,
+        598,
+        599,
+        621
+      ],
+      "proof": "Existing C-lite/observed computation event clocks and priced-tail generation use separate actual observations around/after model calls. All stay unchanged."
+    },
+    {
+      "path": "race_ai/boat_ab_shadow.py",
+      "blob": "0a6ca0bde2592d74d4f59af56baa21d3747750eb",
+      "lines": [
+        48,
+        50,
+        54,
+        115,
+        120,
+        140,
+        142
+      ],
+      "proof": "Existing validation requires source captured<=actual generated<cutoff with safety margin; output generated_at is its explicit generated argument, distinct from source_captured_at."
+    },
+    {
+      "path": "race_ai/boat_all_model_cycle.py",
+      "blob": "77bd938e255e85c4c19f01378e050e4efdb889b6",
+      "lines": [
+        113,
+        116,
+        119,
+        124,
+        466,
+        469,
+        494,
+        513,
+        518,
+        520
+      ],
+      "proof": "Retained context.as_of is not a physical save attestation; engine forecast_round uses caller's actual now for dispatch/capsule/payload generated_at and refuses actual clock>=cutoff."
+    },
+    {
+      "path": "scripts/boat_all_model_cycle.py",
+      "blob": "4c5a6edc820e83f56aa8fd027c0d8035eda0e770",
+      "lines": [
+        301,
+        313,
+        314,
+        315,
+        367
+      ],
+      "proof": "Caller continues to use actual utc_now for generation then normal cipher seal/save; no source timestamp is substituted for dispatch or physical save."
+    },
+    {
+      "path": "race_ai/boat_all_model_cycle.py",
+      "blob": "77bd938e255e85c4c19f01378e050e4efdb889b6",
+      "lines": [
+        553,
+        557,
+        558,
+        578,
+        604,
+        607,
+        608,
+        609,
+        610
+      ],
+      "proof": "Independent actual artifact receipt.created_at remains the server-save clock. Eligibility uses max(as_of, generation/completion clock, server save)<cutoff; never captured_at as a save proxy."
+    }
+  ],
+  "test_plan": {
+    "file": "tests/test_boat_raw_original_capture.py",
+    "old_methods": 41,
+    "new_methods": [
+      {
+        "name": "test_raw_mode_off_preserves_legacy_postpace_source_clock",
+        "behavior": "Actual get with OFF opt-in, moving receive/post-pace clocks and real SourceGuard. Returns legacy20s, performs exactly one GET/charge/sleep, never calls raw sink or creates capture files."
+      },
+      {
+        "name": "test_receive_clock_binding_keeps_native_generation_after_pacing",
+        "behavior": "Actual get+make_pair+pinned PROGRAM/BEFOREINFO inspectors+real A/B/C-lite/observed generation and real retain_current_input. Program/preview receive times5s/20s survive into raw receipts and private context; actual A/B generated_at/context.as_of22s after pacing, computation event clocks not earlier; same three GETs/charges/sleeps. No copied model or mocked forecast authority."
+      },
+      {
+        "name": "test_postpace_day_check_halts_even_with_prior_day_received_clock",
+        "behavior": "Accepted response received before JST midnight; sleep moves real fixture clock past midnight. Raw receive receipt survives; postpace DAY_HANDOFF still raises before HTTP-success/return, one GET/charge/sleep, no fallback or another GET."
+      }
+    ],
+    "intentional_semantic_replacement": {
+      "old_method": "test_raw_is_saved_before_pacing_and_returned_admission_clock_is_unchanged",
+      "new_method": "test_raw_is_saved_before_pacing_and_returned_source_clock_matches_received",
+      "one_old_assertion_change": "The ON result's at changes from the paced fixture20s to the same real received5s recorded in its receipt.",
+      "preserved": "All remaining old method bytes/assertions and all other old test methods remain exact; raw saved before sleep, exact body/hash/URL/private modes, one request and receive-clock receipt assertions remain."
+    },
+    "expected_red": {
+      "unchanged_C979_runtime": true,
+      "intended_assertion_failures": 2,
+      "expected_errors": 0,
+      "failures": "Updated ON get test returns paced20 instead of received5; new real native-context test sees returned/postpace program7 instead of raw received5. New OFF/day controls and old unrelated methods should pass; root must observe actual results rather than trust prediction."
+    },
+    "execution": "Existing SOURCE unit step Verify repaired native receipts, provenance and source-free recovery already includes tests.test_boat_raw_original_capture in its names list at workflow line151. No workflow, path filter, job, input, runner, permission or timeout change is needed.",
+    "focused_source_free_command": "Use the same existing source-unit Python bootstrap: append pr64-reference/race_ai and pr72-reference/race_ai to race_ai.__path__, load unittest names=['tests.test_boat_raw_original_capture'], and fail on wasSuccessful()==False.",
+    "additional_unchanged_control": "Existing tests/test_boat_all_model_cycle.py::AllModelCycleTests.test_late_generation_is_skipped_and_late_external_save_is_never_backdated remains unchanged; its clock/cutoff implementation dependencies remain frozen."
+  },
+  "invariants": [
+    "No provider/GitHub network in tests; existing fictional Transport/public synthetic KEY only, network explicitly forbidden.",
+    "No source implementation, refs, workflow or dispatch in this packet.",
+    "Keep all HTTP/source guard/day handoff/4xx429 nonretry/integrity failure/raw retention refusal semantics unchanged.",
+    "No clock repair/relabeling of any past original/capture/journal; no old proof can become an exact new binding.",
+    "Do not move or reduce WAIT, use receive clock to bypass postpace day checks, advance eligibility, or backdate model generation/server save.",
+    "ON and OFF stay governed by the existing opt-in; OFF legacy return/asof behavior preserved.",
+    "Existing model/weight/prediction functions and independent receipt/cutoff checks remain byte-identical; future source metadata hashes can legitimately differ because the new capture timestamp is corrected.",
+    "The actual old A74 missing4 PROGRAM bindings remain strict HOLD; future producer correction does not authenticate or rewrite them."
+  ],
+  "verification": {
+    "static_reverse_reconstructs_base": true,
+    "source_api_and_actual_callers_reviewed": true,
+    "local_python_executed": false,
+    "actual_red_observed": false,
+    "runtime_authored": false
+  }
+}

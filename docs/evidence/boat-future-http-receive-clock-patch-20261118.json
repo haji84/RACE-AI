@@ -1,0 +1,46 @@
+{
+  "schema": "RACE_AI_FUTURE_HTTP_RECEIVE_CLOCK_LITERAL_PATCH_V1",
+  "base_source": "c979aeb678538d99e277f26726047dccbdc982af",
+  "path": "scripts/boat_nationwide_ab_pilot.py",
+  "base_blob": "df16490e7ce2137f4ec366927579e3fa5a865622",
+  "new_blob": "ccba5b130c31384118ee788ed547431651064fe7",
+  "contract_blob": "e3fa8ae48db7c2de3a9c2ed880bad43c8020cec6",
+  "tests_blob": "3c17e070e8bc1298b3978274303ed077f4dcffe4",
+  "actual_red": {
+    "run": 44302333725,
+    "job": 134794958962,
+    "source_head": "ab6884d24f57819257df41943d0f8b2ca42400d5",
+    "tests": 880,
+    "seconds": 192.364,
+    "expected_assertion_failures": 2,
+    "errors": 0,
+    "other_commands_pass": [
+      3,
+      12
+    ]
+  },
+  "edits": [
+    {
+      "before": "    if (os.environ.get('RACE_AI_ORIGINAL_VAULT_ENABLED') == 'true' and media == 'html'\n",
+      "after": "    received_at=None\n    if (os.environ.get('RACE_AI_ORIGINAL_VAULT_ENABLED') == 'true' and media == 'html'\n"
+    },
+    {
+      "before": "        capture_http200(body, source_url=url, received_at=datetime.now(timezone.utc),\n",
+      "after": "        received_at=datetime.now(timezone.utc)\n        capture_http200(body, source_url=url, received_at=received_at,\n"
+    },
+    {
+      "before": "    captured=_clock(day)\n    if SOURCE_GUARD is not None:SOURCE_GUARD.http_success()\n",
+      "after": "    captured=_clock(day)\n    if received_at is not None:captured=received_at\n    if SOURCE_GUARD is not None:SOURCE_GUARD.http_success()\n"
+    }
+  ],
+  "reversal": "exact",
+  "unchanged": [
+    "OFF/noncapturable return timestamp and no extra clock read",
+    "2-second pacing and post-pacing _clock(day)",
+    "SOURCE_GUARD order,counters,http_success,waits",
+    "forecast generation and physical save clocks",
+    "past originals and weights",
+    "workflow jobs/inputs/timeouts/runners/permissions/source GET count"
+  ],
+  "fresh_ci": "UNCONFIRMED"
+}
