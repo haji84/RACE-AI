@@ -45,6 +45,7 @@ jobs:
             tests.test_keirin_nationwide_auto_generator \
             tests.test_keirin_nationwide_auto_storage \
             tests.test_keirin_nationwide_auto_runner \
+            tests.test_keirin_nationwide_auto_settlement \
             tests.test_keirin_public_two_source_normalizer \
             tests.test_keirin_capture_public_two_sources \
             tests.test_keirin_utsunomiya1r_real_auto_cipher_freeze \
@@ -53,6 +54,7 @@ jobs:
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_nationwide_auto_storage.py \
+            race_ai/keirin_nationwide_auto_settlement.py \
             scripts/keirin_nationwide_auto_forecast.py \
             scripts/keirin_nationwide_independent_cipher_readback.py \
             race_ai/keirin_public_two_source_normalizer.py \
