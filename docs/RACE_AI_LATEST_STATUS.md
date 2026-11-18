@@ -1,4 +1,4 @@
-# RACE-AI 最新状況 — 2026-11-18 09:46 UTC
+# RACE-AI 最新状況 — 2026-11-18 09:52 UTC
 
 **GOALは未達。** この文書は現在の事実だけをまとめる。従来の全文は[履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261118_0928.md)へ、同じGit blobのまま保全した。実予想原本・モデル重み・元の判定を変更しない。
 
@@ -22,7 +22,7 @@ round4/19のALL_MODEL ZIPが欠けるため `HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXP
 
 公開APIの拒否・正常HOLD・全受入条件を保った診断をPR33で反映。実再監査44276148160/job134704673336で `PAIR_API_CALL → PAIR_RESULT_JOIN / UNCLASSIFIED_EXCEPTION` を確認した。coreの23ZIP/513行一致は維持される。ペア件数・G8はHOLD/null。
 
-結果結合のsource関数が使う12固定 `ALL_MODEL_INTAKE_*` 理由が診断一覧から漏れていた。既存PR32で3テストを先行し、有限一覧だけを補う。KeyError分類・締切/roster/結果の受入変更は行わない。実際にどの条件が拒否したかはまだ未特定。[実診断と不足コード](evidence/boat-current-pair-actual-diagnostic-20261118.json)。
+結果結合のsource関数が使う12固定 `ALL_MODEL_INTAKE_*` 理由が診断一覧から漏れていた。既存PR32の359件/131.414秒で12個の期待したassert失敗・errors0、既存356件と新正常系の成功を確認した。12定数だけを一覧へ加え、pair hashを結び直して最終CI中。KeyError分類・締切/roster/結果の受入変更は行わない。実際にどの条件が拒否したかはまだ未特定。[実診断と不足コード](evidence/boat-current-pair-actual-diagnostic-20261118.json)。
 
 ## 画面・4競技・映像・精度
 
