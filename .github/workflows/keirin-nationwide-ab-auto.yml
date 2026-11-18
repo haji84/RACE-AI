@@ -54,7 +54,8 @@ jobs:
             tests.test_keirin_utsunomiya1r_real_auto_cipher_freeze \
             tests.test_keirin_evening_national_real_AB_20261118 \
             tests.test_keirin_discover_public_race_links \
-            tests.test_keirin_register_public_day
+            tests.test_keirin_register_public_day \
+            tests.test_keirin_nationwide_auto_day_registry_workflow
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_nationwide_auto_storage.py \
