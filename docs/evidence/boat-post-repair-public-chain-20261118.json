@@ -1,0 +1,37 @@
+{
+  "schema": "RACE_AI_POST_REPAIR_PUBLIC_CHAIN_METADATA_V1",
+  "observed_at_utc": "2026-11-18T04:59:46Z",
+  "repository": "haji84/RACE-AI",
+  "repaired": {
+    "generation": 425,
+    "snapshot_sha": "df7b4b319ece651c53979974c97f88e9b66ef4b4",
+    "cipher_sha256": "2b6971baf4181371ed613e6cf0f850b0e66ff857ee34f8e4b2dd1b07cd6682f4"
+  },
+  "successor": {
+    "generation": 426,
+    "snapshot_sha": "79210e5b0df5265b9bf55171f7c5cb277f9c4fc5",
+    "cipher_sha256": "63cc2d94192a0b313506d6c8d0bd86320b5ff57d86e5defeadfbb83d20bb932d",
+    "previous_cipher_sha256": "2b6971baf4181371ed613e6cf0f850b0e66ff857ee34f8e4b2dd1b07cd6682f4",
+    "staging_commit_sha": "ff937dc704453a93a0325837a28efcfc91ae4c81",
+    "staging_at_utc": "2026-11-18T04:48:22Z",
+    "published_at_utc": "2026-11-18T04:48:24Z",
+    "same_view_forecast_source_anchors": true,
+    "git_descends_from_repaired_snapshot": true
+  },
+  "limitations": {
+    "private_body_read": false,
+    "current_day_verified": false,
+    "anchor_counts_verified": false,
+    "source_writer_ack_observed": false,
+    "source_job_log_last_timestamp_utc": "2026-11-18T03:19:07.3295351Z",
+    "stale_log_not_a_failure_proof": true,
+    "goal_complete": false
+  },
+  "live_source_metadata": {
+    "run_id": 44218343091,
+    "job_id": 134513710675,
+    "head_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "completed_successful_rounds": 18,
+    "active_round": 19
+  }
+}
