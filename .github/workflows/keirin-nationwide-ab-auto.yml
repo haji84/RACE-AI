@@ -11,6 +11,8 @@ on:
       - 'race_ai/keirin_secondary_result_consensus.py'
       - 'scripts/keirin_secondary_result_poll.py'
       - 'tests/test_keirin_secondary_result_consensus.py'
+      - 'scripts/keirin_github_only_result_day.py'
+      - 'tests/test_keirin_github_only_result_day.py'
       - 'tests/test_keirin_register_public_day.py'
       - 'scripts/keirin_nationwide_independent_cipher_readback.py'
       - 'tests/test_keirin_nationwide_auto_*.py'
@@ -62,7 +64,8 @@ jobs:
             tests.test_keirin_register_public_day \
             tests.test_keirin_nationwide_auto_day_registry_workflow \
             tests.test_keirin_github_only_ab_day \
-            tests.test_keirin_secondary_result_consensus
+            tests.test_keirin_secondary_result_consensus \
+            tests.test_keirin_github_only_result_day
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_nationwide_auto_storage.py \
@@ -78,6 +81,7 @@ jobs:
             scripts/keirin_github_only_ab_readback.py \
             race_ai/keirin_secondary_result_consensus.py \
             scripts/keirin_secondary_result_poll.py \
+            scripts/keirin_github_only_result_day.py \
             scripts/keirin_real_nationwide_day_link_smoke.py \
             scripts/keirin_real_source_to_aes_one_run.py \
             scripts/keirin_evening_national_real_AB_20261118.py \
@@ -945,3 +949,49 @@ jobs:
           else
             echo "HOLD_PUBLIC_SECONDARY_RESULT_SOURCE_UNAVAILABLE_NOT_OFFICIAL" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+
+  github-only-research-results:
+    # A/B immutable encrypted originals must already exist in Git.
+    # Two secondary result pages are NOT official organizer confirmation.
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.ref == 'refs/heads/main' &&
+      vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+      vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
+      vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+      vars.RACE_AI_AB_SOURCE_S3_PREFIX == '' &&
+      (github.event_name == 'schedule' ||
+       (github.event_name == 'workflow_dispatch' && inputs.mode == 'run'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: write
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Poll only previously sealed post-cutoff races; retain secondary revisions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="$RUNNER_TEMP/keirin-results-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root"
+          chmod 700 "$root"
+          trap 'rm -rf -- "$root"' EXIT
+          day="$(TZ=Asia/Tokyo date +%F)"
+          python -m scripts.keirin_github_only_result_day \
+            --day "$day" \
+            --repo "$GITHUB_WORKSPACE" \
+            --private-raw "$root" \
+            --out "$RUNNER_TEMP/keirin-result-safe.json" \
+            > "$RUNNER_TEMP/keirin-result-counts.json"
+          cat "$RUNNER_TEMP/keirin-result-counts.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "SECONDARY_RESEARCH_ONLY_OFFICIAL_PRIMARY_PENDING" >> "$GITHUB_STEP_SUMMARY"
