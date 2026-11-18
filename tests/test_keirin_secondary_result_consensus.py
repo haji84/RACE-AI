@@ -33,6 +33,20 @@ class TwoSourceResearchResult(unittest.TestCase):
         self.assertFalse(comparison["qualifies_for_formal_settlement"])
         self.assertEqual(len(comparison["provider_receipts"]),2)
 
+
+    def test_kdreams_separated_payout_grid_without_adjacent_trifecta_label(self):
+        # Real pages have '3 連 勝 複' and distant '単 7-3-4 5,590円'.
+        kd_grid = ('''<html><title>西武園 2026年11月18日 1R 結果</title>
+        <h2>1R 結果・払戻金</h2>
+        <table><tr><td>3</td><td>連</td><td>単</td></tr>
+        <tr><td>単</td><td>7-3-4</td><td>5,590円(24)</td></tr>
+        </table></html>''').encode()
+        obs = result.parse_observation(raw=kd_grid,provider="Kdreams",
+             source_url=KD,race_id=RID,observed_at=AT)
+        self.assertEqual(obs["winning_triple"], [7,3,4])
+        self.assertEqual(obs["payout_per_100yen"], 5590)
+        self.assertFalse(obs["official_organizer_result"])
+
     def test_wrong_date_or_race_hold_before_accepting_money(self):
         for bad in (HTML.replace(b"1R",b"2R"),
                     HTML.replace(b"2026",b"2025")):
