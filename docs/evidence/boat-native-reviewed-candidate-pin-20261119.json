@@ -1,0 +1,54 @@
+{
+  "schema": "RACE_AI_NATIVE_CANDIDATE_IDENTITY_PIN_LOCAL_V1",
+  "commit": "e43730b2908a5540a438e15ddd4e5120cec0570c",
+  "base": "7584fc3d9d60aa2a548a43281041f66cf0ce9681",
+  "changed_files": [
+    ".github/workflows/boat-owner-formal-live-pages-proof.yml",
+    "scripts/boat_native_safari_acceptance.py",
+    "tests/test_boat_native_safari_acceptance.py"
+  ],
+  "identity_only_value_changes": 12,
+  "test_first_red": {
+    "native_tests": 140,
+    "failures": 1,
+    "errors": 0,
+    "seconds": 15.728,
+    "log_sha256": "c7206a3c5854393006b9cedc38dfeb0fb3b30212c7ec0de7f3223ebd3ab82b58"
+  },
+  "green": {
+    "native_tests": 140,
+    "dispatch_helper_tests": 38,
+    "total": 178,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 15.978,
+    "log_sha256": "8f8fe4b81d9ce92e7d1646800b2099cda1c7eda5667ce18d2e54def4070f0e22"
+  },
+  "actual_local_candidate": {
+    "status": "PASS_ACTUAL_REVIEWED_CANDIDATE_ADMITTED",
+    "candidate_source": {
+      "commit": "7082e1214e6797806c00e1b60e088792c857672d",
+      "web_tree": "82118c8bbe853eff07f461d1c3a6da43ec138bd7",
+      "asset_sha256": {
+        "index.html": "ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2",
+        "app.js": "c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5",
+        "style.css": "06414329229c6c7919b67408ca567c859b064d7f2b0d7abab7ddc203ab407e82"
+      }
+    },
+    "asset_files": 74,
+    "asset_bytes": 37563754,
+    "fixture_sha256": "b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a",
+    "fixture_records": 4,
+    "dataset_status": "SYNTHETIC_ONLY",
+    "PAGES_SHA": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+    "SOURCE_SHA": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+    "owner_key_used": false,
+    "external_requests": 0,
+    "browser_or_dispatch_started": false
+  },
+  "all_other_bytes_equal_base_after_reversing_exact_allowed_values": true,
+  "dispatch_helper_changed": false,
+  "external_gets_dispatch_browser_start_publication": 0,
+  "actual_native_or_iphone_acceptance_claimed": false,
+  "jst0125_gate_touched": false
+}
