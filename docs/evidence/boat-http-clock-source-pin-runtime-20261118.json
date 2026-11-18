@@ -1,0 +1,355 @@
+{
+  "schema": "RACE_AI_MAIN_HTTP_CAPTURE_CLOCK_PIN_RUNTIME_V1",
+  "repository": "haji84/RACE-AI",
+  "main_base": "2fe6a09a968b7219ad46ba7319dcd0d64baaba1e",
+  "main_base_tree": "45b4367b001993a5bf0e4e869fdd1a22eb4bb3dd",
+  "tests_first_packet": "ed8fdfa7375e5730aa7c104d8e9edcd08a8311f8",
+  "frozen_tests": [
+    {
+      "path": "tests/test_boat_owner_completion_trigger.py",
+      "blob": "3ed53e1058f030a35a1ad8c9b34f2f2ef329f72c"
+    },
+    {
+      "path": "tests/test_boat_recovery_dispatch_gate.py",
+      "blob": "fb3745c0cbf479d7ab33952d6450adf83160437c"
+    },
+    {
+      "path": "tests/test_boat_recovery_control_reader.py",
+      "blob": "1803b5528ae5dbd34f0186b2531d1ce3a50c7b86"
+    },
+    {
+      "path": "tests/test_boat_owner_active_snapshot_audit.py",
+      "blob": "33884897d5fac7ade66ede885d863cda1113e4b1"
+    },
+    {
+      "path": "tests/test_boat_current_pair_eligibility_audit.py",
+      "blob": "a009d364bd4965b53501f66e23555a0ffdd13050"
+    },
+    {
+      "path": "tests/test_all_existing_model_archived_native.py",
+      "blob": "2b63be4950af8601a8b9131226ebb8c6c7e2b773"
+    }
+  ],
+  "source": {
+    "merged_sha": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+    "tested_tree": "c3968e028da7b4c68a422582bddac6d81232add9",
+    "merge_parents": [
+      "c979aeb678538d99e277f26726047dccbdc982af",
+      "e4386739a76971f5e3920e786cef9566693a9b72"
+    ],
+    "exact_commit_metadata_independently_verified": true,
+    "source_ci_parent_verified": {
+      "run": 44303457292,
+      "job": 134798829893,
+      "passed_suites": [
+        3,
+        12,
+        880,
+        38,
+        165,
+        46
+      ],
+      "suite_880_seconds": 219.105
+    }
+  },
+  "actual_clean_RED": {
+    "head": "26749168246415e4bc3d2a2fdf38529eac309345",
+    "tree": "aa6a893bb069d8eeb3854bd9a83247288d30562f",
+    "recovery": {
+      "run": 44306003811,
+      "job": 134807623553,
+      "tests": 138,
+      "seconds": 0.477,
+      "failures": 5,
+      "errors": 0
+    },
+    "national": {
+      "run": 44305997279,
+      "job": 134807603450,
+      "tests": 368,
+      "seconds": 138.587,
+      "failures": 12,
+      "errors": 0
+    },
+    "evidence_source": "Parent decoded actual Actions logs before authorizing this runtime.",
+    "all_other_controls_passed": true
+  },
+  "files": [
+    {
+      "path": "scripts/boat_main_dispatch_gate.py",
+      "base_blob": "b0e2f2b413835d41616678971f9650b89f434e8d",
+      "blob": "8ce0d373005b1991a8c08d9b0aa1bed30d491438",
+      "bytes": 23040,
+      "strict_edits": [
+        {
+          "before": "RELEASE_SHA = 'c979aeb678538d99e277f26726047dccbdc982af'",
+          "replacement": "RELEASE_SHA = '995ef00a2ffb98a0161e1875d7d2a33145367b40'",
+          "occurrences": 1
+        }
+      ],
+      "reverse_reconstructs_exact_base": true,
+      "V8_lexical": {
+        "ok": true,
+        "line": 436
+      }
+    },
+    {
+      "path": "scripts/boat_owner_active_snapshot_audit.py",
+      "base_blob": "a3c7d36ee586e977225267b51548850c62b9161c",
+      "blob": "2624b2eb903b2c945a1fbc68542fecc4a3d09e68",
+      "bytes": 26071,
+      "strict_edits": [
+        {
+          "before": "VENUE_DIAGNOSTIC_OWNER_SHA='c979aeb678538d99e277f26726047dccbdc982af'\n",
+          "replacement": "VENUE_DIAGNOSTIC_OWNER_SHA='c979aeb678538d99e277f26726047dccbdc982af'\nHTTP_CAPTURE_CLOCK_OWNER_SHA='995ef00a2ffb98a0161e1875d7d2a33145367b40'\n",
+          "occurrences": 1
+        },
+        {
+          "before": "PARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA,ATOMIC_OWNER_SHA,RESEARCH_CACHE_OWNER_SHA,VENUE_DIAGNOSTIC_OWNER_SHA)",
+          "replacement": "PARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA,ATOMIC_OWNER_SHA,RESEARCH_CACHE_OWNER_SHA,VENUE_DIAGNOSTIC_OWNER_SHA,HTTP_CAPTURE_CLOCK_OWNER_SHA)",
+          "occurrences": 1
+        },
+        {
+          "before": "             expected_owner_sha==VENUE_DIAGNOSTIC_OWNER_SHA and origin['head_sha'] in",
+          "replacement": "             expected_owner_sha==HTTP_CAPTURE_CLOCK_OWNER_SHA and origin['head_sha'] in\n                 (M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA,ATOMIC_OWNER_SHA) or\n             expected_owner_sha==VENUE_DIAGNOSTIC_OWNER_SHA and origin['head_sha'] in",
+          "occurrences": 1
+        }
+      ],
+      "reverse_reconstructs_exact_base": true,
+      "V8_lexical": {
+        "ok": true,
+        "line": 399
+      }
+    },
+    {
+      "path": "scripts/boat_exact_all_model_zip_readback.py",
+      "base_blob": "10307aa5e45f17b1a7a0d64f409d8cb6a6481e54",
+      "blob": "4a8fb36ed426f74d06399062bc0ecf4befb7551b",
+      "bytes": 48046,
+      "strict_edits": [
+        {
+          "before": "VENUE_DIAGNOSTIC_OWNER_SHA='c979aeb678538d99e277f26726047dccbdc982af'\n",
+          "replacement": "VENUE_DIAGNOSTIC_OWNER_SHA='c979aeb678538d99e277f26726047dccbdc982af'\nHTTP_CAPTURE_CLOCK_OWNER_SHA='995ef00a2ffb98a0161e1875d7d2a33145367b40'\n",
+          "occurrences": 1
+        },
+        {
+          "before": "PARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA,ATOMIC_OWNER_SHA,RESEARCH_CACHE_OWNER_SHA,VENUE_DIAGNOSTIC_OWNER_SHA)",
+          "replacement": "PARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA,ATOMIC_OWNER_SHA,RESEARCH_CACHE_OWNER_SHA,VENUE_DIAGNOSTIC_OWNER_SHA,HTTP_CAPTURE_CLOCK_OWNER_SHA)",
+          "occurrences": 1
+        }
+      ],
+      "reverse_reconstructs_exact_base": true,
+      "V8_lexical": {
+        "ok": true,
+        "line": 781
+      }
+    },
+    {
+      "path": ".github/workflows/boat-racer-daily.yml",
+      "base_blob": "ef1e433a921b7641a5e8ba3df8059448ffe70906",
+      "blob": "5d2317fb7eb47d29ac08ed3c56f3a00d856fc3c1",
+      "bytes": 64566,
+      "strict_edits": [
+        {
+          "before": "        (github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af' ||\n",
+          "replacement": "        (github.event.workflow_run.head_sha == '995ef00a2ffb98a0161e1875d7d2a33145367b40' ||\n         github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af' ||\n",
+          "occurrences": 4
+        },
+        {
+          "before": "          assert \"github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af'\" in mirror\n",
+          "replacement": "          assert \"github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af'\" in mirror\n          assert \"github.event.workflow_run.head_sha == '995ef00a2ffb98a0161e1875d7d2a33145367b40'\" in mirror\n",
+          "occurrences": 1
+        },
+        {
+          "before": "github.event_name == 'workflow_dispatch' && 'c979aeb678538d99e277f26726047dccbdc982af' || '0796b52c2804177976e4c2e5ab9b65f32589720b'",
+          "replacement": "github.event_name == 'workflow_dispatch' && '995ef00a2ffb98a0161e1875d7d2a33145367b40' || '0796b52c2804177976e4c2e5ab9b65f32589720b'",
+          "occurrences": 1
+        },
+        {
+          "before": "          ref: c979aeb678538d99e277f26726047dccbdc982af\n          path: boat-owner-reader",
+          "replacement": "          ref: 995ef00a2ffb98a0161e1875d7d2a33145367b40\n          path: boat-owner-reader",
+          "occurrences": 1
+        },
+        {
+          "before": "          --expected-head c979aeb678538d99e277f26726047dccbdc982af",
+          "replacement": "          --expected-head 995ef00a2ffb98a0161e1875d7d2a33145367b40",
+          "occurrences": 1
+        }
+      ],
+      "reverse_reconstructs_exact_base": true
+    },
+    {
+      "path": ".github/workflows/boat-main-recovery-contract.yml",
+      "base_blob": "ba262da9d111a26b45def8e7eb22a995fb5214d0",
+      "blob": "66381535f23479e28fac42d9e9940471403f6d91",
+      "bytes": 4948,
+      "strict_edits": [
+        {
+          "before": "with: {persist-credentials: false, ref: c979aeb678538d99e277f26726047dccbdc982af, path: boat-owner-reader}",
+          "replacement": "with: {persist-credentials: false, ref: 995ef00a2ffb98a0161e1875d7d2a33145367b40, path: boat-owner-reader}",
+          "occurrences": 1
+        }
+      ],
+      "reverse_reconstructs_exact_base": true
+    },
+    {
+      "path": ".github/workflows/boat-owner-national-p1-matrix.yml",
+      "base_blob": "41c149856ab152951c0f0acc426103aac7f3be7b",
+      "blob": "c59fae182eaa2a6b81a45d11c6bbe63c3e3c2def",
+      "bytes": 74465,
+      "strict_edits": [
+        {
+          "before": "         github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af') &&",
+          "replacement": "         github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af' ||\n         github.event.workflow_run.head_sha == '995ef00a2ffb98a0161e1875d7d2a33145367b40') &&",
+          "occurrences": 1
+        },
+        {
+          "before": "          assert owner in ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3','86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163','f1f8ed4ffb2a29e6b702685f49de63918610479d','c979aeb678538d99e277f26726047dccbdc982af')",
+          "replacement": "          assert owner in ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3','86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163','f1f8ed4ffb2a29e6b702685f49de63918610479d','c979aeb678538d99e277f26726047dccbdc982af','995ef00a2ffb98a0161e1875d7d2a33145367b40')",
+          "occurrences": 1
+        },
+        {
+          "before": "              m2_receipts=owner in ('86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163','f1f8ed4ffb2a29e6b702685f49de63918610479d','c979aeb678538d99e277f26726047dccbdc982af')",
+          "replacement": "              m2_receipts=owner in ('86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163','f1f8ed4ffb2a29e6b702685f49de63918610479d','c979aeb678538d99e277f26726047dccbdc982af','995ef00a2ffb98a0161e1875d7d2a33145367b40')",
+          "occurrences": 1
+        },
+        {
+          "before": "                              'c979aeb678538d99e277f26726047dccbdc982af')",
+          "replacement": "                              'c979aeb678538d99e277f26726047dccbdc982af',\n                              '995ef00a2ffb98a0161e1875d7d2a33145367b40')",
+          "occurrences": 1
+        },
+        {
+          "before": "('boat_exact_all_model_zip_readback','10307aa5e45f17b1a7a0d64f409d8cb6a6481e54')",
+          "replacement": "('boat_exact_all_model_zip_readback','4a8fb36ed426f74d06399062bc0ecf4befb7551b')",
+          "occurrences": 1
+        },
+        {
+          "before": "('boat_owner_active_snapshot_audit','a3c7d36ee586e977225267b51548850c62b9161c')",
+          "replacement": "('boat_owner_active_snapshot_audit','2624b2eb903b2c945a1fbc68542fecc4a3d09e68')",
+          "occurrences": 1
+        }
+      ],
+      "reverse_reconstructs_exact_base": true
+    }
+  ],
+  "rule_count": 18,
+  "replacement_occurrences": 21,
+  "role_contract": {
+    "new_role_constant": "HTTP_CAPTURE_CLOCK_OWNER_SHA",
+    "new_source": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+    "current_dispatch_release": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+    "frozen_venue_diagnostic_source": "c979aeb678538d99e277f26726047dccbdc982af",
+    "frozen_research_cache_source": "f1f8ed4ffb2a29e6b702685f49de63918610479d",
+    "explicit_new_P0_additional_parents": [
+      "M2_OWNER_SHA",
+      "PROFILE_OWNER_SHA",
+      "RETENTION_OWNER_SHA",
+      "ATOMIC_OWNER_SHA"
+    ],
+    "new_source_P0_denied_parents": [
+      "VENUE_DIAGNOSTIC_OWNER_SHA",
+      "RESEARCH_CACHE_OWNER_SHA",
+      "unknown"
+    ],
+    "all_older_partial_roles_to_new_P0_origin_denied": true,
+    "common_historical_EFF_original_acceptance_predicate_unchanged": true,
+    "old_P0_condition_clauses_byte_preserved": true,
+    "all_old_source_role_constants_and_default_modes_preserved": true,
+    "new_model_family": false,
+    "crypto_or_receipt_decoder_changes": false
+  },
+  "bindings": {
+    "main_national_base_after_PR28": "41c149856ab152951c0f0acc426103aac7f3be7b",
+    "raw_inspector_path": "scripts/boat_cutoff_raw_replay_audit.py",
+    "raw_inspector_blob_preserved": "daef1d09ce55dde149defda0a15e6459ac511f73",
+    "main_four_modules": [
+      {
+        "module": "boat_owner_evidence_audit",
+        "blob": "014fc9ddbbd24c501b7784eeae50be315644669f",
+        "changed": false
+      },
+      {
+        "module": "boat_exact_all_model_zip_readback",
+        "before": "10307aa5e45f17b1a7a0d64f409d8cb6a6481e54",
+        "blob": "4a8fb36ed426f74d06399062bc0ecf4befb7551b",
+        "changed": true
+      },
+      {
+        "module": "boat_owner_active_snapshot_audit",
+        "before": "a3c7d36ee586e977225267b51548850c62b9161c",
+        "blob": "2624b2eb903b2c945a1fbc68542fecc4a3d09e68",
+        "changed": true
+      },
+      {
+        "module": "boat_current_pair_eligibility_audit",
+        "blob": "3e1f414a4e164f5400f7f7a1533977b8678d80c4",
+        "changed": false
+      }
+    ],
+    "checked_against_published_module_readbacks": true
+  },
+  "unchanged": {
+    "PR28_A74_optional_body_except_two_authorized_main_module_hash_rebindings": true,
+    "EFF_original_evidence_job_byte_equal": true,
+    "native_dispatch_tail_byte_equal": true,
+    "workflow_job_step_names_runner_timeout_permissions_and_crons_equal": {
+      "racer": true,
+      "recovery": true,
+      "national": true
+    },
+    "all_six_instantiated_test_blobs": true,
+    "main_failed_origin_contract": {
+      "path": "scripts/boat_failed_recovery_contract.py",
+      "blob": "c1621c4184b1841f07eddfbccdc28c1b367a15a8"
+    },
+    "source_failed_origin_contract_blob": "be56af54f71d4c3a7d303823b056e4964150db49",
+    "fixed_M2_push_target_and_checkout": true,
+    "BB_partial_orphan_and_helpers": true,
+    "EFF_native_reader_and_original_evidence_module": true,
+    "old_0796_P0_default": true,
+    "source_A74_closed_run_and_codec": true,
+    "source_parsers_scorers_models_weights_and_GET_controls": true,
+    "native_checker_candidate_workflow_and_assets": true,
+    "inputs_marker_names_release_prefixes_new_jobs_and_off_pilots": true
+  },
+  "verification": {
+    "exact_six_runtime_blob_readbacks": true,
+    "all_18_literal_rules_reverse_to_exact_six_bases": true,
+    "V8_python_lexical_scan_three_modules": true,
+    "initial_whole_optional_step_tail_check_included_authorized_hash_deltas": "Corrected the static comparison to undo only those two intended bindings; runtime did not change.",
+    "python_executed": false,
+    "local_test_pass_claimed": false,
+    "actual_new_GREEN": "PENDING_PARENT_ACTIONS",
+    "independent_runtime_review": "PENDING"
+  },
+  "operational": {
+    "source_dispatch_observations_parent_verified_only": [
+      {
+        "source": "c979aeb678538d99e277f26726047dccbdc982af",
+        "at_utc": "2026-11-18T12:21:00Z",
+        "total": 0
+      },
+      {
+        "source": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+        "at_utc": "2026-11-18T12:33:00Z",
+        "total": 0
+      }
+    ],
+    "refresh_existing_complete_owner_history_before_final_merge": true,
+    "old_A74_run": 44252479726,
+    "old_A74_24_steps_success_parent_observed": true,
+    "old_A74_restarted_or_cancelled": false,
+    "new_native_request_implied_by_source_pin": false,
+    "source_pin_update_itself_provider_requests": 0,
+    "raw_replay_or_result_acceptance_qualified": false
+  },
+  "mutations": {
+    "six_runtime_blobs_created": true,
+    "refs": false,
+    "tests": false,
+    "provider_requests": 0,
+    "keys_accessed": 0,
+    "dispatches": 0,
+    "visibility_or_permissions_changes": false
+  }
+}
