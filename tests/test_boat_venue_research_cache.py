@@ -156,7 +156,7 @@ def pdca_environment(*, production=False, labels=('pending', 'final', 'revised')
                 status='pending' if current['label'] == 'pending' else 'final',
                 revision=2 if current['label'] == 'revised' else 1)}}, []))
         module('race_ai.existing_model_dispatch', _race_key=lambda rid, sport: rid)
-        namespace = dict(ROOT=root, os=os, json=json, need=need, gh=gh,
+        namespace = dict(ROOT=root, Path=Path, os=os, json=json, need=need, gh=gh,
             load_state=lambda path, day: {'venue_research_artifact_refs': [reference]},
             latest_result_observations=lambda observations: ([], []),
             datetime=type('FixedClock', (), {'now': staticmethod(lambda zone: NOW)}),
@@ -240,7 +240,7 @@ class LocalGit:
 
     def source(self, ident=101):
         raw, metadata, _ = artifact(ident)
-        folder = private_root(self.root / 'archives' / str(ident))
+        folder = private_root(private_root(self.root / 'archives') / str(ident))
         save(folder / 'archive.zip', raw)
         save(folder / 'metadata.json', wire(metadata))
         return folder
