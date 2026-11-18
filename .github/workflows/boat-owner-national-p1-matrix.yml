@@ -926,7 +926,7 @@ jobs:
                       ('boat_owner_evidence_audit','014fc9ddbbd24c501b7784eeae50be315644669f'),
                       ('boat_exact_all_model_zip_readback','10307aa5e45f17b1a7a0d64f409d8cb6a6481e54'),
                       ('boat_owner_active_snapshot_audit','a3c7d36ee586e977225267b51548850c62b9161c'),
-                      ('boat_current_pair_eligibility_audit','a7fc02a6efcf144ad303b480abf09459ff8c6b7a')):
+                      ('boat_current_pair_eligibility_audit','52124f828ee2e7f759ea704f1836a110279449c3')):
                       source=main/'scripts'/(short+'.py')
                       assert source.is_file() and not source.is_symlink() and source.resolve()==source
                       raw=source.read_bytes()

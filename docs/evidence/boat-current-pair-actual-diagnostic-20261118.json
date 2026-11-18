@@ -1,0 +1,318 @@
+{
+  "schema": "RACE_AI_ACTUAL_CURRENT_PAIR_DIAGNOSTIC_RESULT_V1",
+  "merge": {
+    "sha": "f114fc74dcddce89aaa42dc812379f2cf6da906f",
+    "tested_head": "da8e34a0846191955b9faab21355cedb7a809ea9",
+    "tree": "32721224e8ae91b091ed8ba403ad89ffcb332cf5",
+    "exact_tree_verified": true,
+    "checks_success": 8,
+    "checks_skip": 7,
+    "checks_failed": 0,
+    "tests": 356,
+    "test_seconds": 126.483,
+    "test_job": 134702158339
+  },
+  "actual": {
+    "run_id": 44276148160,
+    "job_id": 134704673336,
+    "core": {
+      "at": "2026-11-18T09:33:30.6454924Z",
+      "report": {
+        "additional_audit_scope": "EXACT_CLOSED_A74_REPRESENTED_P1_ONLY",
+        "all_model_zip_readback": {
+          "active_completed_round_scope": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            23,
+            24
+          ],
+          "actual_listed_archives": 23,
+          "additional_native_p1_archives_verified": 0,
+          "aes_originals_independently_decrypted": 23,
+          "all_model_round_coverage": [
+            {
+              "generated_forecasts": 585,
+              "round": 0,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 36,
+              "round": 1,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 18,
+              "round": 2,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 18,
+              "round": 3,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": null,
+              "round": 4,
+              "state": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED"
+            },
+            {
+              "generated_forecasts": 9,
+              "round": 5,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 27,
+              "round": 6,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 18,
+              "round": 7,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 18,
+              "round": 8,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 18,
+              "round": 9,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 18,
+              "round": 10,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 27,
+              "round": 11,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 27,
+              "round": 12,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 18,
+              "round": 13,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 27,
+              "round": 14,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 27,
+              "round": 15,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 27,
+              "round": 16,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 27,
+              "round": 17,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 27,
+              "round": 18,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": null,
+              "round": 19,
+              "state": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED"
+            },
+            {
+              "generated_forecasts": 9,
+              "round": 20,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 45,
+              "round": 21,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 9,
+              "round": 22,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 27,
+              "round": 23,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            },
+            {
+              "generated_forecasts": 36,
+              "round": 24,
+              "state": "AES_ARCHIVE_AUTHENTICATED"
+            }
+          ],
+          "authentic_official_P0_schedule_races": 132,
+          "cutoff_qualification_blocker": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED",
+          "day_jst": "2026-11-18",
+          "duplicate_eligible_model_slots": 0,
+          "excluded_all_model_rounds": [],
+          "full_day_coverage": false,
+          "github_zip_sha256_independently_verified": 23,
+          "latest_live_counters_audited": false,
+          "missing_all_model_rounds": [
+            4,
+            19
+          ],
+          "official_cutoff_qualification": false,
+          "official_program_source_authenticated": true,
+          "official_schedule_crosschecked_pre_cutoff_model_slots": 0,
+          "original_content_projection_verified": 23,
+          "original_predictions_matched_saved_AES_view": 513,
+          "original_predictions_missing_from_saved_AES_view": 0,
+          "owner_run_id": 44218343091,
+          "owner_source_commit": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+          "p1_forecast_rows_reopened": 513,
+          "physical_pre_cutoff_distinct_model_slots": 0,
+          "prediction_generation_performed": false,
+          "previously_archived_coverages_skipped_without_zip_read": 0,
+          "production_predictions_modified": false,
+          "racing_provider_gets": 0,
+          "referenced_existing_baseline_p1_rows_not_recounted": 285,
+          "referenced_native_p1_archives_independently_verified": 22,
+          "schema": "RACE_AI_BOAT_EXACT_ALL_MODEL_ZIP_READBACK_V1",
+          "status": "HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED",
+          "successor_dispatch_allowed": false,
+          "unqualified_original_reasons": {
+            "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED": 513
+          },
+          "website_end_to_end_proven": false
+        },
+        "captured_at": "2026-11-18T09:29:34.359395+00:00",
+        "completed_rounds_audited": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "cutoff_qualification_blocker": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED",
+        "final_control_aes_authenticated": true,
+        "full_day_coverage": false,
+        "inventory_sha256": "782e23a7390d3144c28a5d898c5707ced05d097db4c6244295e2bc6a131b9333",
+        "latest_live_counters_audited": false,
+        "missing_all_model_rounds": [
+          4,
+          19
+        ],
+        "new_forecasts": 0,
+        "official_cutoff_qualification": false,
+        "official_source_requests": 0,
+        "original_forecasts_changed": false,
+        "owner_run_id": 44218343091,
+        "owner_source_commit": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+        "owner_status_at_snapshot": "completed",
+        "p0_supplements_verified": 0,
+        "p0_union_audited": false,
+        "promotion_allowed": false,
+        "qualifying_g8_proven": false,
+        "raw_aes_archives_verified": 73,
+        "schema": "RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1",
+        "status": "HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED",
+        "successful_round_steps_excluded": [],
+        "successor_dispatch_allowed": false
+      }
+    },
+    "pair": {
+      "at": "2026-11-18T09:33:30.6472289Z",
+      "report": {
+        "additional_audit_scope": "EXACT_CLOSED_A74_NATIVE_UNION_UNQUALIFIED",
+        "current_pair_accuracy_improvement_proven": false,
+        "current_pair_archive_count": null,
+        "current_pair_audit_schema": "RACE_AI_CURRENT_NATIVE_PAIR_ELIGIBILITY_COUNTS_V1",
+        "current_pair_audit_status": "HOLD_PAIR_AUDIT_REJECTED",
+        "current_pair_authenticated": false,
+        "current_pair_completed_round_count": null,
+        "current_pair_distinct_race_count": null,
+        "current_pair_failure_phase": "PAIR_RESULT_JOIN",
+        "current_pair_failure_reason": "UNCLASSIFIED_EXCEPTION",
+        "current_pair_first_forecast_record_count": null,
+        "current_pair_forecast_record_count": null,
+        "current_pair_full_day_coverage": false,
+        "current_pair_input_only_distinct_race_count": null,
+        "current_pair_input_only_record_count": null,
+        "current_pair_minimum_cohort": null,
+        "current_pair_missing_archive_round_count": null,
+        "current_pair_new_forecasts": 0,
+        "current_pair_official_cutoff_verified": null,
+        "current_pair_official_raw_verified": null,
+        "current_pair_owner_run_id": 44218343091,
+        "current_pair_owner_source_commit": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+        "current_pair_producer_journal_joined_race_count": null,
+        "current_pair_producer_journal_missing_join_count": null,
+        "current_pair_producer_journal_pending_join_count": null,
+        "current_pair_producer_journal_settled_join_count": null,
+        "current_pair_producer_journal_special_join_count": null,
+        "current_pair_promotion_allowed": false,
+        "current_pair_qualifying_g8_count": 0,
+        "current_pair_qualifying_g8_denominator": null,
+        "current_pair_repeat_forecast_record_count": null,
+        "current_pair_result_archive_count": null,
+        "current_pair_result_duplicate_revision_count": null,
+        "current_pair_result_unique_revision_count": null,
+        "current_pair_source_requests": 0,
+        "current_pair_training_archive_count": null,
+        "failure_stage": "PAIR_API_CALL",
+        "p0_union_audited": false,
+        "policy_applicability_audited": false
+      }
+    }
+  },
+  "finding": "PAIR_RESULT_JOIN / UNCLASSIFIED_EXCEPTION. Source A74 join helpers raise 12 fixed ALL_MODEL_INTAKE ValueError codes not present in the diagnostic catalog. This proves a diagnostic omission, not a specific roster/cutoff defect.",
+  "catalog_delta": "efa0388595f7d88665a0933e740433f65b10fb67",
+  "key_error_category": "DEFERRED",
+  "underlying_cause": "UNKNOWN_PENDING_EXACT_SAFE_REASON",
+  "original_forecasts_or_qualification_changed": false
+}
