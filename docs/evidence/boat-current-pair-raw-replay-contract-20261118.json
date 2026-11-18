@@ -1,0 +1,163 @@
+{
+  "schema": "RACE_AI_A74_CUTOFF_RAW_REPLAY_DESIGN_CONTRACT_V2",
+  "status": "DESIGN_AND_TEST_CONTRACT_ONLY_NO_RUNTIME",
+  "module": "scripts/boat_cutoff_raw_replay_audit.py",
+  "base_pair_module_blob": "9ec3d8589146ab310c634fb5731ab2c8824b9acd",
+  "provenance_recipe_blob": "f76e8802eac9990a9bab372d9afe909bc012db7a",
+  "functions": {
+    "pure": {
+      "signature": "diagnose_saved_cutoff_raw_replay(first, latest, captures, *, parsers, parse_time) -> safe_dict",
+      "contract": "Pure comparison only: no producer-module imports, filesystem/network/key/environment reads, loader callbacks, mutation or writes. Use supplied actual fixed inspector modules and existing aware clock parser. Recompute mismatches from first/latest; no cached mismatch/authentication flag.",
+      "inputs": "first/latest are existing fully admitted private maps; descriptor.info unchanged. captures is an exact tuple of (raw_bytes,metadata_raw_bytes) from unchanged A74 vault restore, with count/byte bounds below. Actual inspector/receipt functions are supplied by the pinned adapter; no private data is serialized.",
+      "parsers": "Exact dict keys A74_PROGRAM, PR64_RESULT, receipt_json. Values are actual A74 boat_official_program module; actual pr64 official_race_updates module; actual A74 V._json function. Call receipt_json(metadata_raw,16384). No PR64_RACELIST key, origin tag or inspector choice.",
+      "comparison": "Inspect PROGRAM with A74_PROGRAM.parse_program(raw,day=...,venue=...,race_no=...,source_url=matched_receipt_url,captured_at=matched_receipt_clock). Inspect RESULT with PR64_RESULT.parse_update(raw,kind='raceresult',day=...,venue=...,race_no=...,source_url=matched_receipt_url,captured_at=matched_receipt_clock,entries=None). Compare returned aware closed_at with unchanged descriptor.info.race_cutoff_at and latest.closed_at respectively. This compares saved clocks to fixed independently inspected saved-grid cells.",
+      "scope": "Only represented first-original/latest pairs with valid unequal clocks. Input-only, missing latest and equal clocks remain covered by the existing count audit, not silently added as raw-replay targets."
+    },
+    "adapter": {
+      "signature": "audit_fixed_a74_cutoff_raw_replay(*, get, repo, now) -> safe_dict",
+      "fixed_scope": {
+        "run_id": 44218343091,
+        "owner_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+        "month": "2026-11",
+        "vault_commit": "a1c2c4ae588b5b31b3e653d14fcf41bc3fc0dabe"
+      },
+      "contract": "Existing trusted national main-step guard and fresh closed-a74-source namespace only. No target/key/parser/pin overrides or CLI. Reuse existing private _audit admission with the same frozen get/clock; no copied archive loader. No authentication booleans/cached plans grant authority.",
+      "private_seam": "Optional private _raw_cutoff_sink=None on _audit. Public audit_current_pairs signature/ValueError/normal returns unchanged. ONLY when the adapter supplies its local sink, lazyimport the new raw module and retain _raw_program_ref before payload deletion. At the existing fully admitted exact cutoff-rejection seam call sink(first,latest) with two positional arguments, then retain the original rejection/current diagnostic unchanged. Sink errors affect only its fixed HOLD report.",
+      "reader_calls": [
+        "A74 V.VaultGitRepository(repo,ref=V.VAULT_REF)",
+        "V.list_originals('2026-11',repo,source_commit=FIXED_VAULT_COMMIT,run_id=44218343091,transport=git); require fixed SOURCE_CAPTURES locator scope",
+        "For each locator extract EXACT reference={name:locator[name] for name in ('batch_path','batch_sha256','entry_sha256','artifact_id','kind')}; pass V._batch_entry(git,FIXED_VAULT_COMMIT,reference,V._keys(None)[1]). The full10-key locator is NOT a valid _batch_entry reference.",
+        "Authenticate every capture header, including later/negative candidates; validate complete raw/json inventory below BEFORE concluding no wanted SHA is present.",
+        "V.restore_capture_bundle(locator,repo,transport=git) on candidates. No retain/publish/write APIs."
+      ],
+      "completeness": "All26 fixed capture locators and every header authenticate and bind run/head/ref/storage commit. A candidate missing/inaccessible/invalid chunk/AES/receipt is HOLD/null, never raw missing. Negative prefilter is conclusive only after the exact complete capture inventory is validated. No early stop after matches or count/byte truncation. Empty/absent month/run is never verified missing: require the fixed run's authenticated index and exactly26 SOURCE_CAPTURES locators, otherwise CAPTURE_AUTHENTICATION_UNAVAILABLE/null.",
+      "resources": "Fixed run/index only; existing vault bounds apply, stream one bundle at a time and keep only wanted bodies. Public metadata declares26 bundles/185328217 cipher bytes with duplicates; no runtime or authentic-availability claim."
+    }
+  },
+  "report_exact_12_fields": {
+    "schema": "RACE_AI_A74_SAVED_GRID_INSPECTION_COUNTS_V1",
+    "status": "HOLD | SAVED_CLOCKS_MATCH_INSPECTED_GRIDS | NO_MISMATCH_TARGETS",
+    "reason": "null or fixed reason enum",
+    "comparison_count": "exact nonnegative int or null",
+    "program_grid_match_count": "exact nonnegative int or null",
+    "result_grid_match_count": "exact nonnegative int or null",
+    "missing_raw_side_count": "exact nonnegative int or null",
+    "inspector_rejected_side_count": "exact nonnegative int or null",
+    "grid_clock_disagreed_side_count": "exact nonnegative int or null",
+    "source_requests": 0,
+    "originals_changed": false,
+    "broader_goals_proven": false
+  },
+  "report_rules": {
+    "fixed_reasons": [
+      "INPUT_OR_SCOPE_INVALID",
+      "UNSUPPORTED_SOURCE_REF",
+      "CAPTURE_AUTHENTICATION_UNAVAILABLE",
+      "RESOURCE_BOUND_EXCEEDED",
+      "RAW_CAPTURE_MISSING",
+      "GRID_INSPECTOR_REJECTED",
+      "SAVED_CLOCK_DIFFERS_FROM_INSPECTED_GRID",
+      "UNEXPECTED_GRID_INSPECTION_FAILURE"
+    ],
+    "null_counts": "All six counters null on input/scope,unsupported refs,auth/access/inventory/selected-binding conflict,resource excess or unexpected execution/return. Never export exception text/repr/properties/classname or private source fields.",
+    "known_counts": "After complete authenticated selection, each PROGRAM/RESULT side is exactly grid-match,conclusively missing,declared inspector rejection,or parsed clock disagreement. HOLD precedence RAW_CAPTURE_MISSING,then GRID_INSPECTOR_REJECTED,then SAVED_CLOCK_DIFFERS_FROM_INSPECTED_GRID.",
+    "declared_errors": "ONLY exact A74_PROGRAM.BoatProgramError and exact PR64_RESULT.SourceError count as declared rejection. Arbitrary ValueError/RuntimeError/hostile exceptions are unexpected/null.",
+    "returns": "Unexpected inspector return shape or missing/non-aware closed_at is UNEXPECTED_GRID_INSPECTION_FAILURE/null; never rawmissing or silently disagreed.",
+    "equation": "program_grid_match_count+result_grid_match_count+missing_raw_side_count+inspector_rejected_side_count+grid_clock_disagreed_side_count==2*comparison_count",
+    "zero": "No represented mismatch targets=>NO_MISMATCH_TARGETS,reason null,six zeros,no vault call.",
+    "interpretation": "SAVED_CLOCKS_MATCH_INSPECTED_GRIDS means each unequal saved clock matches that role's one fixed inspector on its retained source. No original-producer-parser,parser-bug,authorized schedule revision,actual-close,qualification or promotion claim. Existing pair rejection/G8 null/core/missing4/19 remain unchanged."
+  },
+  "private_refs": {
+    "selector": "Only eight explicit BOAT group paths in f76 recipe; unknown/missing/ambiguous fields HOLD. Observed query-free locators bind restored receipt URLs through existing locator(...,'racelist',authenticated_race), never URL construction. Original-native wrappers are used only after existing digest/cutoff/roster validation.",
+    "preservation": "Private _raw_program_ref is outside descriptor.info, identity, record_sha256, artifact_id and all existing report/hash inputs; never overwrite first refs with later repeats. Do not mutate payload/native/pair/latest or manufacture clocks.",
+    "excluded_hashes": "Native JSON, record, extra/composite and urn hashes are not raw PROGRAM body hashes."
+  },
+  "test_seed": {
+    "file": "tests/test_boat_cutoff_raw_replay_audit.py",
+    "actual_first_red": "Missing module asserted in setUp (not import error); runtime only after root sees actual RED. Existing364 tests/fixtures preserved.",
+    "fixtures": [
+      "A74 tests/test_boat_official_program.py: page/program_table/source_url",
+      "pr64 tests/test_official_race_updates.py: page(kind,body,day), results(), pending/no-result body",
+      "A74 tests/test_boat_private_original_vault.py: LocalGit/VaultTests real AES/HMAC capture fixture; public synthetic32-byte key only",
+      "Existing current-pair fixtures/admission cases for unchanged public rejection and normal HOLD controls"
+    ],
+    "dependency": "Fresh source namespace ROOT/closed-a74-source; references ROOT/owner-source/pr64-reference and pr72-reference. Separate raw unittest process after unchanged old364 command; no old EFF/M2 guard patch.",
+    "meaningful_cases": [
+      "One actual fixed-inspector+real A74 AES/HMAC vault control passes before helper exists; six feature methods assert missing module in setUp for controlled RED.",
+      "Both unequal stored clocks match fixed inspected raw grids; offsets normalize and full private original/summary hashes remain unchanged; strict dedup.",
+      "PROGRAM/RESULT stored-clock disagreement and conclusive missing-side table; no source clock editing.",
+      "Exact declared inspector error vs hostile unexpected error/return/missing-clock; all privacy/null rules.",
+      "Eight explicit native-ref paths, validated original wrapper/query-free URL, unsupported/ambiguous refs and native cutoff binding through new private selector.",
+      "Actual A74 vault list/batch/_keys/restore/AES: exact5key reference,complete raw/json inventory,all later headers,corrupt/candidate access failure,resource excess and selected-only conflict.",
+      "Fixed adapter/no-target skips vault; real private _audit sink keeps current public API/rejection/counts/hashes. Adapter admission seam may be injected only explicitly, never presented as admission proof."
+    ],
+    "fixture_inspection": "Use A74 tests.test_boat_official_program page/program_table and pr64 tests.test_official_race_updates page/results; pr64 racelist inspector is not part of v2."
+  },
+  "implementation_plan_max_3_tasks": [
+    "Freeze meaningful pure/adapter tests in existing unit job, keep all old tests, obtain authenticated actual RED.",
+    "After approval/RED, implement the one pure comparator and optional private refs/sink seam; prove existing public audit predicates, signatures, counts, hashes and original objects unchanged.",
+    "Add the fixed A74 existing-reader adapter and stdout-only glue inside the existing trusted national step; fresh CI/review/protected integration before actual Actions authentication, no new job/input/upload/provider GET/decoder."
+  ],
+  "current_evidence_limit": "Root authenticated current-cutoff inventory run44287428057/job134743588631 completed:48 races/672 first records;42 races588 equal,2 races28 result-grid-later,4 races56 missing observations,0earlier/0no-closed. This is not raw capture availability/authentication.",
+  "supersedes_contract_blob": "143c5e0c80ccb8deab62e86e70226e76d3f095d7",
+  "purpose": "Fixed independent inspection of retained PROGRAM and RESULT grids. No claim that either inspector was the original producer parser; no parser-by-success fallback or parser-bug/authorized-revision causation authority.",
+  "header_prefilter": {
+    "reference_keys": [
+      "batch_path",
+      "batch_sha256",
+      "entry_sha256",
+      "artifact_id",
+      "kind"
+    ],
+    "mac_key": "V._keys(None)[1], existing Actions-local derivation only",
+    "scope": "locator.ref==V.VAULT_REF; locator.source_commit==fixed storage commit; authenticated header.summary.kind=='SOURCE_CAPTURES',run_id==44218343091,head_sha==A74; artifact_id null; require summary.month==fixed '2026-11' and equals header.archived_at converted to JST month",
+    "complete_inventory": "c=header.summary.capture_count exact int1..240. header.files keys must equal {capture-{i:04d}.raw,capture-{i:04d}.json for i in range(c)} EXACTLY, len==2*c. Raw member sizes1..4MiB; metadata member sizes1..16384. Keep every existing V._entry hash/size/chunk/header check. Missing/json-only/raw-only/extra/wrong-number inventory is HOLD/null even when no wanted SHA appears.",
+    "negative": "Only after complete authenticated inventory may raw-member SHA absence exclude that bundle. Headers are hints before owner MAC verification and are never proof of required body availability."
+  },
+  "private_ref_exact_shape": {
+    "helper_location": "NEW scripts/boat_cutoff_raw_replay_audit.py",
+    "helper_signature": "_program_ref_for_pair(payload, *, info, registry, parse_time) -> private_dict_or_None",
+    "keys": [
+      "source_sha256",
+      "source_ref",
+      "captured_at",
+      "url_form",
+      "proof_path"
+    ],
+    "source_sha256": "exact lowercase64-hex raw PROGRAM body hash from the supported admitted native path",
+    "source_ref": "exact request URL or the known observed query-free locator; private",
+    "captured_at": "actual supported source-proof aware string; no inferred/max/edited clock",
+    "url_form": [
+      "EXACT",
+      "QUERY_FREE"
+    ],
+    "proof_path": [
+      "SOURCE_EVIDENCE",
+      "OBSERVED_RACE_SOURCE",
+      "ORIGINAL_SOURCE_EVIDENCE",
+      "ORIGINAL_OBSERVED_RACE_SOURCE"
+    ],
+    "unsupported": "None means fixed UNSUPPORTED_SOURCE_REF/all six counters null for mismatching targets. Do not invent parser_kind/origin or recursively discover arbitrary source objects.",
+    "binding": "Use the eight exact f76 BOAT native paths, matching group-specific raw program SHA where present; native identity cutoff/race/roster must match unchanged info. Observed query-free source matches restored exact receipt URL only through existing locator(receipt_url,'racelist',authenticated_race). Supported original-native wrappers require existing hash/identity/cutoff/roster validation."
+  },
+  "deduplication": {
+    "selected_scope": "Match wanted source SHA, private exact/query-free URL/race binding and expected captured instant first. Conflict checks apply to selected wanted bindings, not unrelated captures returned from a candidate bundle.",
+    "receipt_binding": "Role,raw SHA,authenticated exact receipt URL,aware receipt captured_at and selected metadata/body binding. Identical snapshot copies deduplicate; selected logical identity with conflicting raw/receipt binding is HOLD/null.",
+    "comparison_key": "Fixed inspector identity (A74 PROGRAM blob1cfed75...;pr64 RESULT blob06ec8f...), canonical private race, BOTH expected saved aware clock instants, and BOTH selected PROGRAM/RESULT receipt bindings. Never collapse only by SHA/race/cell or ignore expected clocks. Canonicalize clock spelling to its aware instant. proof_path is provenance, not a reason to inflate identical bound comparisons.",
+    "authority": "No identities, digests, URLs, clocks, rows or bodies from these keys enter public JSON."
+  },
+  "resource_bounds": {
+    "scope": "Diagnostic resource guards only, never producer/model/source caps; exceed=>HOLD/null, no truncation.",
+    "mismatch_races_max": 2,
+    "mismatch_first_records_max": 28,
+    "wanted_raw_sides_max": 56,
+    "capture_locators_exact": 26,
+    "capture_occurrences_max": 6240,
+    "pure_raw_plus_metadata_bytes_max": 185328217,
+    "candidate_cipher_bytes_max": 185328217,
+    "per_raw_bytes_max": 4194304,
+    "per_metadata_bytes_max": 16384,
+    "existing_V_bounds": "Also retain V.MAX_INDEX=4MiB,V.MAX_PLAIN=320MiB,capture_count<=240,MAX_RUN_ENTRIES and all existing codec limits.",
+    "basis": "Fixed closed-run inventory: root-authenticated actual44287428057 reports2 mismatched races/28 first records. Fixed vault snapshot publicly declares26 capture bundles/185328217 ciphertext bytes; header MAC/AES still must authenticate. Existing V._seal concatenates plaintext without compression, so this ciphertext sum bounds raw+receipt bytes."
+  }
+}

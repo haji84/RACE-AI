@@ -18,6 +18,8 @@ on:
       - audit/state/boat-m2-independent-audit-target.json
       - scripts/boat_current_pair_eligibility_audit.py
       - tests/test_boat_current_pair_eligibility_audit.py
+      - scripts/boat_cutoff_raw_replay_audit.py
+      - tests/test_boat_cutoff_raw_replay_audit.py
       - scripts/boat_saved_reason_binding_audit.py
       - tests/test_boat_saved_reason_binding_audit.py
       - tests/test_boat_saved_reason_binding_io.py
@@ -54,6 +56,8 @@ on:
       - audit/state/boat-m2-independent-audit-target.json
       - scripts/boat_current_pair_eligibility_audit.py
       - tests/test_boat_current_pair_eligibility_audit.py
+      - scripts/boat_cutoff_raw_replay_audit.py
+      - tests/test_boat_cutoff_raw_replay_audit.py
       - scripts/boat_saved_reason_binding_audit.py
       - tests/test_boat_saved_reason_binding_audit.py
       - tests/test_boat_saved_reason_binding_io.py
@@ -195,6 +199,14 @@ jobs:
               'GITHUB_OUTPUT', 'GITHUB_STEP_SUMMARY', 'www.boatrace.jp', 'workflow run'))
           print('BOAT_ALL_MODEL_READONLY_AUDIT_PATH_COMPILED')
           PY_CONTRACT
+      - name: Read fixed A74 only for synthetic saved cutoff replay tests
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: a74f1e940e7fc0852e63938f8138bdb58bd93163
+          path: closed-a74-source
+          persist-credentials: false
+      - name: Test saved cutoff replay with separate A74 source namespace
+        run: python -m unittest tests.test_boat_cutoff_raw_replay_audit -v
 
   authenticated_original_matrix:
     name: Independently reopen sealed national P0/P1 original matrix
