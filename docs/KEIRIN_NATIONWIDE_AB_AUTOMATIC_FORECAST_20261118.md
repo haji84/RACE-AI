@@ -1,3 +1,5 @@
+> **2026-11-18 13:04 JST 本番実証で進捗更新**：宇都宮1Rの実際のnetkeirin/Kドリームス出走前公開HTMLをGitHub Actionsで取得→本人の既存RSA3072公開鍵を使い**同じジョブでA12点/B8点(6局面シナリオ12)を自動生成しAES-256-GCM暗号保存**。実Run [44234778255](https://github.com/haji84/RACE-AI/actions/runs/44234778255)、2番目のGitHub runnerで暗号文SHA一致、所有者秘密鍵による別環境でのRSA/AES復号・平文SHA一致も確認。**[永久暗号原本](./evidence/2026-11-18/keirin_utsunomiya1r_real_auto_AB_sealed_v1.json)**は元Actionsファイルとgit blob SHAまで完全一致し、[赤字なし実証レシート](./evidence/2026-11-18/keirin_utsunomiya1r_real_auto_AB_source_to_aes_readback_v1.json)を追記。以下の旧「実レース新自動A/B生成0件」はこの実証より前の記録であり、**最新の実自動実績は1件**。掲載締切20:45の独立主催者認証・公式結果照合・全国79件全自動完走は未合格。
+
 # 競輪全国A/B自動予想の実装と本番引継ぎ（2026-11-18）
 
 ## 最上位指示
