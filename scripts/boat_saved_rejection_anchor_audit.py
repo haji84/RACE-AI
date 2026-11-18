@@ -762,6 +762,9 @@ def _find_predecessor_commit(repository, newerReceipt, *, feed, budget, max_hops
                 raise AncestryHold('BOUND_EXCEEDED')
             parent = _ancestry_parent(repository, cursor, budget)
             _ancestry_require(parent not in visited)
+            # No fetch is useful after metadata exhausts the shared bytes.
+            if budget.remaining <= 0:
+                raise AncestryHold('BOUND_EXCEEDED')
             # Charge the transition before any fetch of its parent.
             budget.hop()
             local_hops += 1

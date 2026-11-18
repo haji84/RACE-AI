@@ -1,3 +1,15 @@
+## 2026-11-18 03:37:29 UTC: 新313件は実成功、旧command文字列の検査を強化更新し全CIを再検証（GOAL未達）
+
+PR41 head132b3513/treea3c2dfddのnational実CI44231303007/job134556745907は313件/127.572秒・全10 block compile・source/key境界が成功した。main-recovery119件、racer181件、mirror212＋32件のうち失敗は、3jobで共通の旧`python -m scripts.racer_intraday_refresh`文字列assert1箇所だけ。元のcollector/P0/source gateの検査は他で通り、新entryの固定source/引数保持10件も通った。
+
+旧文字列assertを、新しい絶対entry path＋同じlegacy module＋全元引数の厳格assertに更新し、main-safetyのgithub.sha・固定e6 checkoutも必須にする。旧collector SHA/旧P0 receipt/GET制限/readonly verifier/PDCAの既存assertは削除しない。新87method（29純粋IO＋23guard＋17履歴＋10entry＋8候補）は不変。全jobをスキップせず、同じ保護CIで再検証する。
+
+独立レビューで確認された境界をさらに厳密にし、runtime31b3a94aは親metadataで合計byte予算がちょうど0になった場合も、追加fetch前にBOUND_EXCEEDEDへ停止する。元F/H・暗号鍵・純粋prefix・snapshot/親hop上限は不変。履歴snapshotの署名header空continuationには保守的HOLDが残るが、既存生成state commitはunsignedで、全域不存在や修復済みとは扱わない。
+
+旧ACTIVEの実発見・復元・当日表示成功・4競技全モデル・実iPhone・6艇校正・前向き精度改善は引き続き未達。現在のsource workerを再起動／リセットせず、source予算・モデル・料金・公開UI・重みを増やさない。
+
+[実CIと正確な契約更新](evidence/boat-anchor-safety-ci-contract-correction-20261118.json)。以下は各時点の履歴。
+
 ## 2026-11-18 03:30:00 UTC: 旧参照消失の保存前ガード23件は実成功、履歴検索・呼出し境界・復元候補を結合してfresh CIへ（GOAL未達）
 
 既存PR41 testheadfa050161の真正CI44229198738/job134549775998は304件/164.484秒。既存255＋保存前ガード23は全て成功し、残る25失敗（履歴17・復元候補8）とentry import error1は未実装だけだった。構文エラーなし。この固定テストを変更せず、3runtimeを実装した。最終Python全成功と実旧ACTIVE発見はまだ未確認で、現在世代424/423の真正照合結果は引き続きACTIVE_PROOF_MISSING/HOLD。
