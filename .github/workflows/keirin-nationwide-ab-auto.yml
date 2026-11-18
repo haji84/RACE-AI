@@ -45,13 +45,15 @@ jobs:
             tests.test_keirin_nationwide_auto_generator \
             tests.test_keirin_nationwide_auto_storage \
             tests.test_keirin_nationwide_auto_runner \
-            tests.test_keirin_public_two_source_normalizer
+            tests.test_keirin_public_two_source_normalizer \
+            tests.test_keirin_capture_public_two_sources
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_nationwide_auto_storage.py \
             scripts/keirin_nationwide_auto_forecast.py \
             scripts/keirin_nationwide_independent_cipher_readback.py \
-            race_ai/keirin_public_two_source_normalizer.py
+            race_ai/keirin_public_two_source_normalizer.py \
+            scripts/keirin_capture_public_two_sources.py
 
   owner-auto-generate:
     if: >-
