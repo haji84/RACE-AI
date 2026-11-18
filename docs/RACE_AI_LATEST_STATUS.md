@@ -1,11 +1,11 @@
-# RACE-AI 最新状況 — 2026-11-19 01:26 JST
+# RACE-AI 最新状況 — 2026-11-19 01:40 JST
 
 **GOALは未達。** 原本・既存変更・重み・元の判定を保全して継続中。従来全文は[履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261118_0928.md)へ同一Git blobのまま保全した。
 
 ## 接続・HEAD・未復元
 
-- mainのBOAT dispatch/読戻し実装基点は `7003a0375721d64514419eafd8a0030f2888061a`、tree `8ad8629cd8f501e5853a27c5df859e65b78c8a09`。既存PR25を通常mergeし、最終CIのtreeと一致。今回の作業開始mainは `f6fda5128bf2ebd3fd526835248e9f55128978d5`。現在のsource参照は `995ef00a2ffb98a0161e1875d7d2a33145367b40`。
-- protected sourceも上記995、tree `c3968e028da7b4c68a422582bddac6d81232add9`。既存PR26の通常mergeでtested tree一致。
+- 今回のmain作業基点は `7584fc3d9d60aa2a548a43281041f66cf0ce9681`（既存PR22通常merge）。旧BOAT clock参照同期7003/PR25の証拠も保全し、既存PR19で新protected sourceへの正確な参照同期を進める。
+- protected sourceは既存PR21の通常merge `fbc743be548bfd123e46cdbfe290515a59e5e0d3`、tree `1068d5a0d1225e0638a31528f8031a5b8e9fc584`。最終候補9f3/既存CI44348357932のtreeと一致。旧source995等の歴史role・原本・recovery契約を保つ。[sourceの実merge/CI](evidence/boat-source21-reviewed-merge-20261119.json)。
 - 選択実行環境は11/18 23:34 JSTに実コマンドが復旧し、管理statusもrunning/currentを確認。公開repoのgit readと最新HEAD一致、CLIのhaji84認証、既存PR62 branchへの通常FF pushが実成功。管理接続の保護された通常merge実績とは別にCLI書込も確認した。既存36 linked worktreesと元checkoutの変更を保全し、最新HEADを分離して作業。秘密鍵はActions内だけ。[環境・現行登録・ローカル検証](evidence/race-ai-local-runtime-resume-and-native-roster-20261119.json)。
 - 元offline変更PR70 `b7380fe6a377e6ccf2b96331f2126c52549bbe17`、PR292 `daae4c10167224b7730006d8ada5ade398aaa64b` は08:40:39 UTCの正規APIが両方422 No commit foundで**未復元**。別環境のファイル移転を仮定しない。
 - 復旧したfilesystemの唯一のGit object storeでも2commitは不在。古いcheckout・attachmentの実在は確認したが、元offline変更が移転したとは扱わない。
@@ -26,7 +26,7 @@ ALL_MODELのr4/19は欠落HOLDを維持。正規ログではr4はcontexts0/gener
 
 現行sourceと旧A74のrepeated_cycleは同一bytesで、論理round・取得総数・session時間・round取得数の固定上限はNone。提供元wait・identity・JST日・物理worker handoffと累積counterを保持する。無上限のコードは全日網羅/T15〜10達成の実証ではない。[コード再確認](evidence/boat-source-no-total-cap-code-check-20261118.json)。
 
-停止/hotswap/再起動・counter resetはしていない。夜間の4巡成功を全日網羅・T15〜10の実証にしない。最初の追加生成13:21:23Zからprivate retention検証13:49:23Zまで時間がかかることを確認し、同じ復号objectへの二重検証を除く小さな修正を既存PR21で検証中。合成保存比較の改善率を実運転の締切達成へ換算しない。
+停止/hotswap/再起動・counter resetはしていない。夜間の4巡成功を全日網羅・T15〜10の実証にしない。最初の追加生成13:21:23Zからprivate retention検証13:49:23Zまで時間がかかることを確認し、同じ復号objectへの二重検証だけを除く修正を既存PR21で取り込んだ。別snapshotごとの完全認証と保存全byte照合を保持。合成30セル/240lineageの境界中央値29.3%、全12候補保存の中央値18.26%短縮は実GitHub transportや締切達成の測定ではない。[source保存修正](https://github.com/haji84/RACE-AI/blob/fbc743be548bfd123e46cdbfe290515a59e5e0d3/docs/evidence/boat-retention-validation-throughput-20261119.json)。
 
 ## 原本時計の原因と将来分修正
 
@@ -47,6 +47,10 @@ main参照同期もテスト先行RED（recovery138件中5失敗、national368�
 旧日次discoveryの除外済みKdreams接続と旧mobile callerの承認外host接続は、transport前拒否に修正し既存PR22の通常mergeでmain `7584fc3d9d60aa2a548a43281041f66cf0ce9681` へ反映。旧HTML解析はpure offline helperに保全し、拒否時source attempts=0。ローカル138件/skip0・独立48件と既存CI21 checks（9成功/12skip/失敗0）を確認。これは競輪の403解消や当日予想生成の証拠ではない。[診断と修正](evidence/keirin-approved-source-local-diagnosis-20261118.json)、[main検証](evidence/keirin-source-guard-main-verification-20261119.json)。
 
 既存PR62の最終候補は `7082e1214e6797806c00e1b60e088792c857672d`、実装 `7e6743dc08cc940af0c9fcdf4787ba82ea679407`、web tree `82118c8bbe853eff07f461d1c3a6da43ec138bd7`。元ed904を祖先に保ち通常FF push済み。本文移動・320px買い目隠れ・短い横画面の確認button隠れ・60秒更新による展開/focus/12頭横scroll消失を修正した。全4競技タブの実件数を持つ合成fixtureで6/7/8/12出走を確認し、一覧カードは通常6艇257px mobile/181px PCへ収め、詳細情報と8買い目へ進める。既存30 checkpoint、追加4幅・短画面5条件・refresh/keyboard/WebCrypto等が成功し独立review CLEAR。固定8参考画像と元候補のnative PNG28枚の比較を保存。更新候補の実Safari・物理iPhone・login・GitHub暗号化feed直接配送は未確認。公開UI f603は変更0。[最終候補の追加証拠](https://github.com/haji84/RACE-AI/blob/7082e1214e6797806c00e1b60e088792c857672d/docs/evidence/boat-ui-populated-reference-followup-20261119.json)。
+
+未公開候補のnative Safari検証用SHA/tree/三資産hashとworkflowの候補2tokenを一致させた。テスト先行RED1件→GREEN178件、独立178件も成功。実7082の厳格loaderは74資産/37,563,754byte・元合成4recordを検証した。checkerの関数・guard・時計・環境・公開f603/EFF/privateV5・job/権限は変更0。当日private gateと実Safari本体の成功は別に確認する。[候補固定の証拠](evidence/boat-native-reviewed-candidate-pin-20261119.json)。
+
+服色journal評価の実装はsource fbcへ反映した。実trackerのunknown_detectionsを無視すると6frame/36targetのうち不明検出のあるframeまで完全6艇成功に数える不具合を修正し、完全成功3frame・不明検出1・clean区間の継続6と区分した。rider部位を船体/物理位置へ転用せず、欠測frameも明示する。focused100・source223・独立112件などが成功しreview CLEAR。実6艇映像/独立GT/距離時刻校正/強さ評価の合格とはしない。[評価と再現](https://github.com/haji84/RACE-AI/blob/fbc743be548bfd123e46cdbfe290515a59e5e0d3/docs/evidence/boat-clothing-benchmark-resume-20261118.json)。
 
 | 完成条件 | 実確認と残件 |
 | --- | --- |
