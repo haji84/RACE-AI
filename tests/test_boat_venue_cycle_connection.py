@@ -419,6 +419,7 @@ class VenueResearchDiagnosticTests(unittest.TestCase):
             if cut==stage:raise failure
         class Scan:
             def __init__(self,path):self.path=path
+            def __fspath__(self):return os.fspath(self.path)
             def __truediv__(self,part):return Scan(self.path/part)
             def rglob(self,pattern):
                 events.append('candidate_scan');stop('candidate_scan')
@@ -431,7 +432,7 @@ class VenueResearchDiagnosticTests(unittest.TestCase):
             writes.append('candidate_commit_completed')
             return candidate_result
         def readback_transport(repo,*,cache_root):
-            events.append('archive_reader');calls['reader']=(repo,cache_root);stop('reader')
+            events.append('archive_reader');calls['reader']=(repo,Path(cache_root));stop('reader')
             return reader
         def retain_archives(folders,repo,*,readback_transport):
             events.append('retain_archives');calls['archives']=(list(folders),repo,readback_transport)
