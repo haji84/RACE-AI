@@ -3469,8 +3469,20 @@ class CurrentV5NativeGroupCountTests(unittest.TestCase):
     def assert_private(self, value):
         raw = json.dumps(value, sort_keys=True, allow_nan=False)
         for private in ('private-', 'https://', '20300401-01-01', 'K' * 43,
-                        'ordered_top8', 'records', 'ciphertext'):
+                        'ordered_top8', 'records'):
             self.assertNotIn(private, raw)
+        fixture, _ = current_v5_fixture()
+        for private_ciphertext in {json.loads(body)['ciphertext']
+                                   for body in fixture['ciphertexts'].values()}:
+            self.assertNotIn(private_ciphertext, raw)
+        pending = [value]
+        while pending:
+            node = pending.pop()
+            if type(node) is dict:
+                self.assertNotIn('ciphertext', node, 'raw encrypted envelope must not be exported')
+                pending.extend(node.values())
+            elif type(node) is list:
+                pending.extend(node)
 
     def test_all_authenticated_native_groups_and_extra_p1_groups_pass_actual_current_checks(self):
         arguments, tickets, replay, references, options, _ = self.fixture()

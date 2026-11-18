@@ -1,3 +1,9 @@
+## 2026-11-18 07:15 UTC: 実CIのfixture衝突を訂正し再試験、24巡の内部HOLDを別計上
+
+PR36 runtime abd713b385b9090610ebf52d3e1a195cd8b39f9cの実CIで、national346件/107.867秒、recovery138件/0.686秒、mirror212件/60.334秒+32件/0.026秒は成功。native140件/18.828秒とracer206件/16.803秒はそれぞれ2失敗/errors0。集計・欠落拒否の検査は通ったが、新privacy helperが汎用語ciphertextを秘密文字列とみなし、既存公開field ciphertext_bytes/filesにも一致するfixtureの誤りだった。初期API未実装REDではこの衝突まで到達していなかった。runtime/19field/26field/140test methodは変えず、暗号文の実際の値と再帰的な秘密payload keyの不出力を検証するhelperだけへ訂正し、ID/URL/key/Top8/records拒否も維持して再CIする。
+
+完了A74の正規ログが06:27:48 UTCまで得られた。24 step successの内部には研究PDCA summary24、研究保管verified22/HOLD2、P1 readback HOLD1、ALL_MODEL_PATH_REJECTED1も記録されている。これらを成功へ換算せず、原因と対象round・後続回復の有無を追加調査する。新A74 continuation44252479726は旧コードのまま動作中で停止しない。cacheF1の実効果や全日/GOAL成功は未実証。
+
 ## 2026-11-18 07:10 UTC: 24巡成功・次worker継続、キャッシュ版の参照同期とSafari集計修正を検証（GOAL未達）
 
 元の失敗run43829249080はP0保管で失敗・24巡skipとして保全する。後継の実A74 run44218343091/job134513710675は06:27:51 UTCにSUCCESSで終了し、24巡すべてsuccess・skip0・failed0を正規metadataで確認した。これだけで全国全レース・全モデルや締切15〜10分前の充足とはしない。main owner44252445746/job134626113134は06:35:35 UTCにREADY_VERIFIED_SAME_DAY_CONTINUATIONとなり、次のA74 run44252479726を既存経路で起動した。稼働中のworkerを停止・hotswapせず、原本と累積取得量を引き継ぐ。
