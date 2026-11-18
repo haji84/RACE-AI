@@ -889,4 +889,68 @@ class AtomicTargetSelectionTests(ProfileTargetSelectionTests):
     SOURCE_HEAD=ATOMIC_HEAD
 
 
+RESEARCH_CACHE_HEAD='f1f8ed4ffb2a29e6b702685f49de63918610479d'
+
+
+class ResearchCacheSnapshotTests(unittest.TestCase):
+    """The selected actual merge reuses the same genuine AES and refusal fixtures."""
+    @classmethod
+    def setUpClass(cls):M2SnapshotTests.setUpClass()
+
+    def setUp(self):
+        source=patch.object(sys.modules[__name__],'M2_HEAD',RESEARCH_CACHE_HEAD)
+        source.start();self.addCleanup(source.stop)
+        self.f=M2SnapshotTests();self.f.setUp();self.addCleanup(self.f.doCleanups)
+
+    def checked(self,method_name):
+        try:
+            getattr(self.f,method_name)()
+        except ValueError as error:
+            self.fail('Exact research-cache source receipt was refused: '+str(error))
+
+    def test_research_cache_active_gap_keeps_missing_model_unknown(self):
+        self.checked('test_two_native_rounds_with_only_r0_r1_models_authenticate_all_receipts_and_hold_unknown_r2')
+
+    def test_research_cache_completed_control_is_aes_authenticated_and_partial(self):
+        self.checked('test_completed_m2_uses_authenticated_final_round_not_twenty_four_success_labels')
+
+    def test_research_cache_native_reference_is_reopened_without_double_counting(self):
+        self.checked('test_current_selected_native_p1_reference_is_authenticated_without_double_counting_archive')
+
+    def test_research_cache_requires_explicit_scope_and_refuses_unknown_heads(self):
+        self.f.test_m2_requires_explicit_source_and_refuses_arbitrary_or_dynamic_source()
+
+    def test_research_cache_crypto_receipt_counter_and_final_control_refusals_remain_fatal(self):
+        self.f.test_m2_key_receipt_nested_counter_and_cipher_mismatches_stay_fatal()
+
+    def test_research_cache_missing_tampered_or_late_final_control_is_fatal(self):
+        self.f.test_completed_m2_selected_prefix_and_final_public_control_are_mandatory()
+
+    def test_research_cache_inherits_exact_older_p0_but_no_reverse_or_unknown_origin(self):
+        for origin in (active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,ATOMIC_HEAD):
+            with self.subTest(origin=origin):
+                try:
+                    RetentionSnapshotTests._inherited_p0(self,RESEARCH_CACHE_HEAD,origin)
+                except ValueError as error:
+                    self.fail('Exact older P0 cannot enter research-cache source: '+str(error))
+        for owner,origin in ((RESEARCH_CACHE_HEAD,'f'*40),
+                             (ATOMIC_HEAD,RESEARCH_CACHE_HEAD),
+                             (RETENTION_HEAD,RESEARCH_CACHE_HEAD),
+                             (PROFILE_HEAD,RESEARCH_CACHE_HEAD),
+                             (active.M2_OWNER_SHA,RESEARCH_CACHE_HEAD)):
+            with self.subTest(owner=owner,origin=origin),self.assertRaisesRegex(
+                    ValueError,'P0_ORIGIN_IDENTITY'):
+                RetentionSnapshotTests._inherited_p0(self,owner,origin)
+
+
+class ResearchCacheTargetSelectionTests(ProfileTargetSelectionTests):
+    SOURCE_HEAD=RESEARCH_CACHE_HEAD
+
+    def test_completed_profile_callback_does_not_change_existing_m2_push_target(self):
+        try:
+            super().test_completed_profile_callback_does_not_change_existing_m2_push_target()
+        except ValueError as error:
+            self.fail('Exact research-cache callback target was refused: '+str(error))
+
+
 if __name__=='__main__':unittest.main()

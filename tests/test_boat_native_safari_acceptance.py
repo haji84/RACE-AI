@@ -3399,5 +3399,146 @@ class CurrentV5EvidenceDiagnosticTests(unittest.TestCase):
         self.assertIsNone(diagnostic['source_day_matches'])
 
 
+
+class CurrentV5NativeGroupCountTests(unittest.TestCase):
+    def setUp(self):
+        self.assertTrue(callable(getattr(S, 'count_current_v5_native_groups', None)),
+                        'authenticated native-reference group counter is not implemented')
+
+    def fixture(self):
+        arguments, tickets = current_v5_fixture()
+        references = [
+            ['private-native-one', 'v1', 'alpha', None],
+            ['private-native-two', None, 'beta', '4' * 40]]
+        arguments['context']['native_groups'] = copy.deepcopy(references)
+        arguments['context']['native_group_count'] = len(references)
+        extras = [
+            ['private-other-p1-one', 'v2', None, None],
+            ['private-other-p1-two', None, 'gamma', '5' * 40]]
+        def option(group, *, day='2030-04-01', sport='boat', stage='P1'):
+            return json.dumps([day, sport, stage, *group], separators=(',', ':'))
+        options = [option(group) for group in references + extras]
+        options += ['all', '', option(references[0], stage='P0'),
+                    option(references[1], sport='horse')]
+        replay = S.build_current_v5_replay(**arguments)
+        return arguments, tickets, replay, references, options, option
+
+    def run_current(self, arguments, tickets, replay, options):
+        helper = S._current_v5_helpers()
+        clock = arguments['now']
+        class FixedClock(S.datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return clock.astimezone(tz or S.timezone.utc)
+        private = {'key': 'K' * 43, 'fragment': '#saved=' + 'a' * 64 + '.' + 'K' * 43}
+        class Driver:
+            def command(self, *args, **kwargs):pass
+            def wait(self, *args, **kwargs):pass
+            def select(self, *args, **kwargs):pass
+            def click(self, *args, **kwargs):pass
+            def script(self, source, *args):
+                if 'selectedOptions' in source:return True
+                if '#results-model option' in source:return options
+                if '#saved-result-metrics' in source:
+                    return '取得結果 1レース 的中 不的中 結果待ち'
+                if 'const crumb=' in source:
+                    return current_v5_probe(arguments, tickets)
+                raise AssertionError('unexpected private-driver-script-sentinel')
+        @contextmanager
+        def browser():
+            yield Driver(), {'browserName': 'Safari', 'platformName': 'macOS',
+                             'browserVersion': '26.6'}
+        @contextmanager
+        def site(*args, **kwargs):
+            class Site:
+                url = 'http://127.0.0.1:1234/'
+                audit = current_v5_audit()
+            yield Site()
+        snapshot = {'url': 'http://127.0.0.1:1234/' + private['fragment'],
+                    'local': {}, 'session': {}, 'cookie': '',
+                    'privacy': {'page_errors': 0, 'aes_successes': 3}}
+        with patch.object(helper, 'datetime', FixedClock), \
+                patch.object(S, 'LoopbackSite', side_effect=site), \
+                patch.object(S, 'apple_driver', side_effect=browser), \
+                patch.object(S, 'open_saved_race'), patch.object(S, 'click_saved_page'), \
+                patch.object(S, 'seed_detail', side_effect=copy.deepcopy(
+                    current_v5_probe(arguments, tickets)['model_choices'])), \
+                patch.object(S, 'browser_snapshot', return_value=snapshot):
+            return S.current_v5_checks({}, {}, private, replay, arguments['secrets'])
+
+    def assert_private(self, value):
+        raw = json.dumps(value, sort_keys=True, allow_nan=False)
+        for private in ('private-', 'https://', '20300401-01-01', 'K' * 43,
+                        'ordered_top8', 'records', 'ciphertext'):
+            self.assertNotIn(private, raw)
+
+    def test_all_authenticated_native_groups_and_extra_p1_groups_pass_actual_current_checks(self):
+        arguments, tickets, replay, references, options, _ = self.fixture()
+        before = copy.deepcopy((references, options))
+        counted = S.count_current_v5_native_groups(references, options)
+        self.assertEqual(counted, {'all_references_present': True, 'matched_count': 2, 'all_count': 4})
+        self.assertIs(type(counted['all_references_present']), bool)
+        self.assertIs(type(counted['matched_count']), int)
+        self.assertIs(type(counted['all_count']), int)
+        self.assert_private(counted)
+        with patch.object(S, 'count_current_v5_native_groups',
+                          wraps=S.count_current_v5_native_groups) as counter:
+            report = self.run_current(arguments, tickets, replay, options)
+        counter.assert_called_once_with(arguments['context']['native_groups'], options)
+        self.assertEqual(report['authenticated_native_p1_groups'], 2)
+        self.assertIs(report['current_v5_live_continuation_verified'], True)
+        self.assertIs(report['current_day_verified'], True)
+        self.assertEqual(len(report), 19, 'the existing success schema is unchanged')
+        self.assertNotIn('all_count', report)
+        self.assert_private(report)
+        self.assertEqual((references, options), before)
+
+    def test_duplicate_p1_options_across_dates_do_not_inflate_matched_or_all_counts(self):
+        arguments, tickets, replay, references, options, option = self.fixture()
+        options += [options[0], options[0], options[1], options[2],
+                    option(references[0], day='2030-03-31'),
+                    json.dumps(['2030-04-01', 'boat', 'P1', *references[0][:3]])]
+        before = copy.deepcopy((references, options))
+        self.assertEqual(S.count_current_v5_native_groups(references, options),
+                         {'all_references_present': True, 'matched_count': 2, 'all_count': 4})
+        with patch.object(S, 'count_current_v5_native_groups',
+                          wraps=S.count_current_v5_native_groups) as counter:
+            report = self.run_current(arguments, tickets, replay, options)
+        counter.assert_called_once_with(arguments['context']['native_groups'], options)
+        self.assertEqual(report['authenticated_native_p1_groups'], 2)
+        self.assertIs(report['current_v5_live_continuation_verified'], True)
+        self.assertEqual(len(report), 19)
+        self.assert_private(report)
+        self.assertEqual((references, options), before)
+
+    def test_missing_or_replaced_authenticated_native_group_still_holds_actual_current_checks(self):
+        for scenario in ('missing', 'replaced-source'):
+            arguments, tickets, replay, references, options, option = self.fixture()
+            options.remove(option(references[1]))
+            if scenario == 'replaced-source':
+                replacement = copy.deepcopy(references[1]);replacement[3] = '0' * 40
+                options.append(option(replacement))
+            before = copy.deepcopy((references, options))
+            with self.subTest(scenario=scenario):
+                self.assertEqual(S.count_current_v5_native_groups(references, options),
+                    {'all_references_present': False, 'matched_count': 1,
+                     'all_count': 3 if scenario == 'missing' else 4})
+                with patch.object(S, 'count_current_v5_native_groups',
+                                  wraps=S.count_current_v5_native_groups) as counter, \
+                        self.assertRaises(S.SafariHold) as caught:
+                    self.run_current(arguments, tickets, replay, options)
+                counter.assert_called_once_with(arguments['context']['native_groups'], options)
+                report = S.failure_report(caught.exception)
+                diagnostic = CurrentV5EvidenceDiagnosticTests.assert_safe(self, report)
+                self.assertEqual(report['current_v5_phase'], 'result_groups')
+                self.assertEqual(diagnostic['expected_native_p1_groups'], 2)
+                self.assertEqual(diagnostic['observed_native_p1_groups'], 1,
+                                 'only authenticated native matches are counted')
+                self.assertIs(diagnostic['native_groups_match'], False)
+                self.assertIsNone(diagnostic['observed_results'])
+                self.assertIsNot(report.get('current_v5_live_continuation_verified'), True)
+                self.assertEqual((references, options), before)
+
+
 if __name__ == '__main__':
     unittest.main()

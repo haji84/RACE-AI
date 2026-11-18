@@ -330,6 +330,7 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
 
 
 
+    @patch.object(base,'RELEASE_SHA','a74f1e940e7fc0852e63938f8138bdb58bd93163')
     def test_actual_protected_a74_is_the_only_current_dispatch_release(self):
         protected='a74f1e940e7fc0852e63938f8138bdb58bd93163'
         run=dict(self.run,head_sha=protected)
@@ -358,6 +359,7 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
         self._assert_previous_completion_selects_current(
             'bb49215034b779ea1493b35dd91e5c3ebfc04032')
 
+    @patch.object(base,'RELEASE_SHA','a74f1e940e7fc0852e63938f8138bdb58bd93163')
     def test_actual_a74_does_not_bypass_an_active_bb_owner(self):
         run=dict(self.run,head_sha='bb49215034b779ea1493b35dd91e5c3ebfc04032',
                  status='in_progress',conclusion=None)
@@ -374,6 +376,53 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
 
     def test_all_existing_completion_gates_keep_exact_bb_after_the_new_release(self):
         with patch.object(base,'RELEASE_SHA','bb49215034b779ea1493b35dd91e5c3ebfc04032'):
+            self.test_actual_completion_gates_preserve_exact_current_and_eff_sources()
+
+    def test_actual_research_cache_merge_is_the_only_current_dispatch_release(self):
+        protected='f1f8ed4ffb2a29e6b702685f49de63918610479d'
+        run=dict(self.run,head_sha=protected)
+        control=deepcopy(self.control)
+        control.update(completed_round=13,previous_session_requests=485,
+            lifetime_requests=13503,day_start_lifetime_requests=13017,
+            lifetime_completed_rounds=720)
+        args=dict(now=NOW,release=dict(ref='refs/heads/'+base.RELEASE_REF,
+            object=dict(sha=protected)),
+            owner_doc=dict(encoding='base64',content=base64.b64encode(
+                base.RELEASE_TOKEN.encode()).decode()),
+            history=dict(total_count=1,workflow_runs=[run]),continuation_proof=control)
+        before=deepcopy(args)
+        decision=launcher.decide(**args)
+        self.assertTrue(decision['dispatch_allowed'])
+        self.assertEqual(decision['release_sha'],protected)
+        self.assertEqual(args,before)
+        for previous in ('a74f1e940e7fc0852e63938f8138bdb58bd93163','bb49215034b779ea1493b35dd91e5c3ebfc04032','f'*40):
+            with self.subTest(release=previous):
+                refused=launcher.decide(**dict(args,release=dict(
+                    ref='refs/heads/'+base.RELEASE_REF,object=dict(sha=previous))))
+                self.assertFalse(refused['dispatch_allowed'])
+                self.assertEqual(refused['status'],'HOLD_RELEASE_SHA_MISMATCH')
+
+    def test_exact_a74_completion_selects_research_cache_release_without_rewriting_control(self):
+        self._assert_previous_completion_selects_current('a74f1e940e7fc0852e63938f8138bdb58bd93163')
+
+    def test_research_cache_release_keeps_active_a74_and_bb_owners_closed(self):
+        for owner in ('a74f1e940e7fc0852e63938f8138bdb58bd93163',
+                      'bb49215034b779ea1493b35dd91e5c3ebfc04032'):
+            with self.subTest(owner=owner):
+                run=dict(self.run,head_sha=owner,status='in_progress',conclusion=None)
+                args=dict(now=NOW,release=dict(ref='refs/heads/'+base.RELEASE_REF,
+                    object=dict(sha='f1f8ed4ffb2a29e6b702685f49de63918610479d')),
+                    owner_doc=dict(encoding='base64',content=base64.b64encode(
+                        base.RELEASE_TOKEN.encode()).decode()),
+                    history=dict(total_count=1,workflow_runs=[run]),continuation_proof=None)
+                before=deepcopy(args)
+                decision=launcher.decide(**args)
+                self.assertFalse(decision['dispatch_allowed'])
+                self.assertEqual(decision['status'],'HOLD_ACTIVE_OWNER_WORKFLOW')
+                self.assertEqual(args,before)
+
+    def test_all_existing_completion_gates_keep_exact_a74_after_research_cache_release(self):
+        with patch.object(base,'RELEASE_SHA','a74f1e940e7fc0852e63938f8138bdb58bd93163'):
             self.test_actual_completion_gates_preserve_exact_current_and_eff_sources()
 
 

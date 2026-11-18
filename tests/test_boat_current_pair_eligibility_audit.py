@@ -388,5 +388,38 @@ class AtomicCurrentPairEligibilityTests(CurrentPairEligibilityTests):
         super().setUp()
 
 
+RESEARCH_CACHE_SOURCE='f1f8ed4ffb2a29e6b702685f49de63918610479d'
+
+
+class ResearchCacheCurrentPairEligibilityTests(unittest.TestCase):
+    """Keep real crypto, pending revisions and privacy at the exact new source."""
+    @classmethod
+    def setUpClass(cls):CurrentPairEligibilityTests.setUpClass()
+
+    def setUp(self):
+        source=patch.object(sys.modules[__name__],'SOURCE',RESEARCH_CACHE_SOURCE)
+        source.start();self.addCleanup(source.stop)
+        self.f=CurrentPairEligibilityTests();self.f.setUp();self.addCleanup(self.f.doCleanups)
+
+    def checked(self,method_name):
+        try:
+            getattr(self.f,method_name)()
+        except ValueError as error:
+            self.fail('Exact research-cache current-pair source was refused: '+str(error))
+
+    def test_research_cache_native_counts_remain_private_and_unqualified(self):
+        self.checked('test_real_crypto_counts_are_flat_private_and_still_unqualified')
+
+    def test_research_cache_input_only_cannot_create_predictions_or_open_results(self):
+        self.checked('test_input_only_never_generates_forecasts_or_opens_result_bodies')
+
+    def test_research_cache_pending_revision_never_falls_back_to_older_settlement(self):
+        self.checked('test_latest_pending_correction_does_not_fall_back_to_an_older_settlement')
+
+    def test_research_cache_selected_source_metadata_and_cipher_changes_are_fatal(self):
+        self.f.test_selected_bytes_metadata_keys_and_source_mutations_fail_closed()
+        self.f.test_api_bool_ids_and_unapproved_sources_are_not_trusted_flags()
+
+
 if __name__ == '__main__':
     unittest.main()

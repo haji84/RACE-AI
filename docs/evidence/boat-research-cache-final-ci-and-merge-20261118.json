@@ -1,0 +1,56 @@
+{
+  "schema": "RACE_AI_RESEARCH_CACHE_FINAL_CI_AND_NORMAL_MERGE_V1",
+  "tested_head": "bcb3eb40811ec117001649bb27b7343ba79e62a2",
+  "tested_tree": "33a715b8293b25ac4d55bf1761899f44b46f6e1c",
+  "protected_source_sha": "f1f8ed4ffb2a29e6b702685f49de63918610479d",
+  "merge_tree": "33a715b8293b25ac4d55bf1761899f44b46f6e1c",
+  "parents": [
+    "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "bcb3eb40811ec117001649bb27b7343ba79e62a2"
+  ],
+  "ci": {
+    "run_id": 44251996070,
+    "job_id": 134624652994,
+    "groups": [
+      {
+        "tests": 3,
+        "seconds": 0.001
+      },
+      {
+        "tests": 12,
+        "seconds": 0.054
+      },
+      {
+        "tests": 865,
+        "seconds": 293.162
+      },
+      {
+        "tests": 38,
+        "seconds": 3.225
+      },
+      {
+        "tests": 165,
+        "seconds": 43.925
+      },
+      {
+        "tests": 46,
+        "seconds": 0.325
+      }
+    ],
+    "all_passed": true,
+    "all_checks": {
+      "success": 2,
+      "skipped": 2,
+      "failed": 0
+    },
+    "actual_apt_mirror": "http://azure.archive.ubuntu.com/ubuntu",
+    "ffmpeg_mb": 62.8,
+    "ffmpeg_seconds": 3,
+    "ec2_to_official_https_fallback_not_exercised_on_this_azure_runner": true
+  },
+  "independent_static_reviews": "CLEAR transport helper/cycle, source A74 historical recovery, conditional browser dependencies and literal Ubuntu mirror fallback",
+  "running_a74_interrupted": false,
+  "live_cache_speedup_proven": false,
+  "next_main_pin_must_be_actual_protected_sha": true,
+  "goal_complete": false
+}
