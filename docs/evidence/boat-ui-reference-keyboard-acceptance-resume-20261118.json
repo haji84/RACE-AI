@@ -1,0 +1,511 @@
+{
+  "schema": "RACE_AI_UI_REFERENCE_ACCEPTANCE_RESUME_COUNTS_V1",
+  "recorded_at_jst": "2026-11-18T23:57:52.105860+09:00",
+  "status": "LOCAL_DEFECT_FIXES_VERIFIED_PRODUCT_ACCEPTANCE_PARTIAL",
+  "repository": "haji84/RACE-AI",
+  "existing_draft_pr": 62,
+  "baseline_source": {
+    "commit": "ed904fe62dad470a91ababce623c52c1fbde5861",
+    "web_tree": "5759ac3f0ab900cc9c6d0ac592a44c4ff4ce53d8"
+  },
+  "local_fix_source": {
+    "commit": "82dfe519451a9bb80e0b5c7363f77d6ecf7967ce",
+    "web_tree": "b494f1fa4d6803edfb1171b570407546a4d24c4e",
+    "asset_sha256": {
+      "index.html": "229213c7f14cb09531f5bfc1f1d5ff4a69385f044b8962815e21743bbe0f5001",
+      "app.js": "0d021f62117cf9c0515c1ee6e697549fba3f3db46b33ce91d023e75258645b34",
+      "style.css": "60a9ada48c30711f332d2ada958639b74dc8a45a55426190b5a6193a413328e5"
+    }
+  },
+  "local_code_commit_pushed": false,
+  "ui_published": false,
+  "reference_pack": {
+    "zip": {
+      "name": "RACE_AI_UI_reference_8screens_20261104.zip",
+      "bytes": 3560194,
+      "sha256": "a5fe91802cc32a6a745f5181387a44f3dc525406760ef5c02445e5214fa7bcaf"
+    },
+    "zip_crc_verified": true,
+    "originals_opened_and_compared": 8,
+    "images_committed_or_published": 0,
+    "files": [
+      {
+        "name": "01_mobile_home.jpg",
+        "bytes": 418922,
+        "sha256": "9790989528472d82b4cc75c2b0be528946f3ecc5598e4d019cfaaad1cc03cd35",
+        "pixels": [
+          864,
+          1536
+        ]
+      },
+      {
+        "name": "02_mobile_races.jpg",
+        "bytes": 460642,
+        "sha256": "82f57c8e76b8bc53fc634f6df63b17f2ec9b232c9e693392e98f70b7471827a2",
+        "pixels": [
+          864,
+          1536
+        ]
+      },
+      {
+        "name": "03_mobile_detail.jpg",
+        "bytes": 437220,
+        "sha256": "04b1a889d37cabe564fd30fdd8809ee10fe58b5be97bf5818f4803a3b6c30709",
+        "pixels": [
+          864,
+          1536
+        ]
+      },
+      {
+        "name": "04_mobile_allocation.jpg",
+        "bytes": 380003,
+        "sha256": "0ccf8e93c4642136be09598006b416704659bda4aa8a1ec4f8c2e872639f1e19",
+        "pixels": [
+          864,
+          1536
+        ]
+      },
+      {
+        "name": "05_desktop_home.jpg",
+        "bytes": 474474,
+        "sha256": "6241d04cb6866ac6e9e5ff426fff601781a82a5b2c8ac6d1344f2c0e9e06ba5a",
+        "pixels": [
+          1536,
+          864
+        ]
+      },
+      {
+        "name": "06_desktop_races.jpg",
+        "bytes": 458826,
+        "sha256": "818c5a4291f1d4d11718b428f487cc420b5762d00c1c2ce668d79f10e7eef0cf",
+        "pixels": [
+          1536,
+          864
+        ]
+      },
+      {
+        "name": "07_desktop_detail.jpg",
+        "bytes": 552089,
+        "sha256": "f8636974adb210fb5460aa1d62824ca851489fab39cabbf4a54a8259139e20e8",
+        "pixels": [
+          1536,
+          864
+        ]
+      },
+      {
+        "name": "08_desktop_allocation.jpg",
+        "bytes": 405226,
+        "sha256": "f4ca2d4cc60c93ffc87a44e338da56411f07ff05d0d8c578598d18e14eba253c",
+        "pixels": [
+          1536,
+          864
+        ]
+      }
+    ]
+  },
+  "native_baseline": {
+    "run_id": 44258108084,
+    "job_id": 134644585588,
+    "artifact_id": 14407301861,
+    "artifact": {
+      "name": "ed904-native-safari.zip",
+      "bytes": 8474719,
+      "sha256": "7b58753b86a7487997a4492a88f8e2c41baa3ac5ef1ba9721f40901ef20cf070"
+    },
+    "artifact_sha256_matches_authenticated_github_metadata": true,
+    "zip_crc_verified": true,
+    "browser": {
+      "browserName": "Safari",
+      "browserVersion": "26.6",
+      "platformName": "macOS"
+    },
+    "exact_candidate_source_from_existing_report": true,
+    "canonical_evidence_commit": "f6fda5128bf2ebd3fd526835248e9f55128978d5",
+    "canonical_evidence_path": "docs/evidence/boat-native-v5-actual-acceptance-20261118.json",
+    "screenshots": 28,
+    "screenshots_opened_for_visual_review": 28,
+    "actual_widths": [
+      320,
+      390,
+      1440,
+      1920
+    ],
+    "actual_height": 948,
+    "fixture_sha256": "b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a",
+    "physical_iphone_verified": false,
+    "png_manifest": [
+      {
+        "name": "1440-detail.png",
+        "bytes": 443574,
+        "sha256": "e08c037a128d317ed30be7384737b54897bd111a799d663cfceb9e8d33f01e20"
+      },
+      {
+        "name": "1440-home.png",
+        "bytes": 594889,
+        "sha256": "fb5a54897fd646a8d99d9f6bf79d975d4a2a5963a11ded41ba85f61728854778"
+      },
+      {
+        "name": "1440-picks.png",
+        "bytes": 507321,
+        "sha256": "7e6589ccbe0823b52e13389cbe25cc1ee2f3fbc72d4db44b94f6dc20c6892137"
+      },
+      {
+        "name": "1440-races.png",
+        "bytes": 481535,
+        "sha256": "0570c1fb4264fbcdc34215be8e3a4c67bff9a208f0b73baf9e7624cc011c13d0"
+      },
+      {
+        "name": "1440-research.png",
+        "bytes": 417501,
+        "sha256": "d6b0ebba330c58d8d3ec07e9a6183e24624a2001b3db8edf0917a623be14bc8c"
+      },
+      {
+        "name": "1440-results.png",
+        "bytes": 447702,
+        "sha256": "67807ae4e6e0acbe2e95d5770710056dd2def191cab1892e055a631225fb534c"
+      },
+      {
+        "name": "1440-settings.png",
+        "bytes": 461951,
+        "sha256": "5a5507b0bb4ae074c619c66d0b0e8d8374b7734130b933c126dc58c577d74afb"
+      },
+      {
+        "name": "1920-detail.png",
+        "bytes": 457195,
+        "sha256": "18519b5cf70ae77323b0e9d4310d6a4b4b5c855c871338e16790543e35af6c6a"
+      },
+      {
+        "name": "1920-home.png",
+        "bytes": 656342,
+        "sha256": "3cd7066a8d28926be3f4cc36fb83359b924eaf92db6d4f07b830c3d2c57e4d25"
+      },
+      {
+        "name": "1920-picks.png",
+        "bytes": 525280,
+        "sha256": "193ebe286fc669bfce2a48e018ce06fd0dbd2156bedb010267c24ca9aded949d"
+      },
+      {
+        "name": "1920-races.png",
+        "bytes": 503140,
+        "sha256": "d74a09b3e7aa01d9db32dc9ff25f9e13c1c5c7092552ea6dd08c815ac13dec0e"
+      },
+      {
+        "name": "1920-research.png",
+        "bytes": 431500,
+        "sha256": "48b6020d75097a64391ed60183c91c017a44ec36e10b2b8741a593cdbd59f484"
+      },
+      {
+        "name": "1920-results.png",
+        "bytes": 463589,
+        "sha256": "2d68e34394d3e652144abd4dd2937dd12ce8b249b195e373d63bfb5d2f2cc811"
+      },
+      {
+        "name": "1920-settings.png",
+        "bytes": 477584,
+        "sha256": "f085e072739674867f49a8025722bc685b553239994029d3e127999ca562f42f"
+      },
+      {
+        "name": "320-detail.png",
+        "bytes": 123318,
+        "sha256": "a6fbaf7a5a3bcbadce82b3e277ef33feef83b2c414bc3fcaf223df655c2b6107"
+      },
+      {
+        "name": "320-home.png",
+        "bytes": 165614,
+        "sha256": "670b440bf2f8eb6208ee01f6177893e55dea1a24ae03e6f8271fdbb7c7403efc"
+      },
+      {
+        "name": "320-picks.png",
+        "bytes": 127961,
+        "sha256": "402170725b4f28576c2f7bda9cbf47b6b3bb49234aced0b7ef946bf60213ed95"
+      },
+      {
+        "name": "320-races.png",
+        "bytes": 109912,
+        "sha256": "e4dbb2e7b9664bc30321bb62a62a11be75bc9d1db563437512acf302c5ecd2dc"
+      },
+      {
+        "name": "320-research.png",
+        "bytes": 118689,
+        "sha256": "2e63e946be99747f6758de63bf40f974c0ae8e0a98f4ed52e9cfbf60ff3790ce"
+      },
+      {
+        "name": "320-results.png",
+        "bytes": 133790,
+        "sha256": "0fc50fcd481c9657dcb9b5ee6f59aed851509a4878fc3f617024b2831d964545"
+      },
+      {
+        "name": "320-settings.png",
+        "bytes": 118726,
+        "sha256": "3ec8f981cdd68549d24dbc96ff2588ac08ceed176062dc97742f9d8548bc8c8f"
+      },
+      {
+        "name": "390-detail.png",
+        "bytes": 146283,
+        "sha256": "9c7932e7a70cf686f32f169401b70790080f4d5263d670d441e94cd7425274d9"
+      },
+      {
+        "name": "390-home.png",
+        "bytes": 201626,
+        "sha256": "14831231f06217b04b7083a864dcb2640ed5941e97bdf321099eedab36884709"
+      },
+      {
+        "name": "390-picks.png",
+        "bytes": 144891,
+        "sha256": "ebd993e84b62075335356320c964a93e811865b82b8be07e189b3fb365905e99"
+      },
+      {
+        "name": "390-races.png",
+        "bytes": 130359,
+        "sha256": "89ef06090ed06a9127c040a3368e49a4020c2177e17bf671240b355986cf09a2"
+      },
+      {
+        "name": "390-research.png",
+        "bytes": 138053,
+        "sha256": "9634cd1bc7fcfd0e520ca41f29f1c74b50374b858d2d12d7edc6930e00ddf786"
+      },
+      {
+        "name": "390-results.png",
+        "bytes": 148337,
+        "sha256": "7abde828f24f664e2694b744dca8c20eaae75699e2b7bbb312e21e3000dff9b6"
+      },
+      {
+        "name": "390-settings.png",
+        "bytes": 133041,
+        "sha256": "b7d7a4a9883ec7355fa372af696d1cb7d5b7284abb474c5ddaf41c148eb73531"
+      }
+    ],
+    "artifact_contains_original_capture_manifest": false,
+    "scope": "The downloaded artifact contains only the 28 synthetic PNGs. Browser/source identity is bound by the authenticated artifact metadata and existing native report; no missing capture manifest was invented."
+  },
+  "reference_comparison": {
+    "comparison_performed_against_all_eight_originals": true,
+    "all_eight_reference_screens_accepted": false,
+    "fully_accepted_rows": 0,
+    "matrix": [
+      {
+        "reference": "01_mobile_home.jpg",
+        "native_baseline_png": "390-home.png",
+        "status": "PARTIAL",
+        "finding": "Header, budget cards, sport tabs, race card, neutral participant slots and fixed navigation are present. The first viewport has a taller content hierarchy than the supplied reference and does not demonstrate several upcoming featured races."
+      },
+      {
+        "reference": "02_mobile_races.jpg",
+        "native_baseline_png": "390-races.png",
+        "status": "PARTIAL",
+        "finding": "Search, filters and race-view controls are present. The exact native fixture contains one settled BOAT race, so the upcoming ranked multi-sport list in the reference is not demonstrated."
+      },
+      {
+        "reference": "03_mobile_detail.jpg",
+        "native_baseline_png": "390-detail.png",
+        "status": "PARTIAL",
+        "finding": "Saved tickets, model/history selectors, result status and the five required detail tabs are present. This fixture does not demonstrate populated participant, weather, motor or commentary sections."
+      },
+      {
+        "reference": "04_mobile_allocation.jpg",
+        "native_baseline_png": "390-picks.png",
+        "status": "PARTIAL",
+        "finding": "Eight saved candidates, amount editors and budget controls are present. The summary and confirmation require scrolling beyond the retained eight candidates and manual-entry form. A concrete 320px ticket-number overlap was found and corrected only in the local follow-up."
+      },
+      {
+        "reference": "05_desktop_home.jpg",
+        "native_baseline_png": "1440-home.png",
+        "status": "PARTIAL",
+        "finding": "Sidebar, top controls, five budget/status cards and a right budget/candidate rail are present. The supplied reference has a denser featured-race composition; the exact fixture does not exercise several upcoming featured races."
+      },
+      {
+        "reference": "06_desktop_races.jpg",
+        "native_baseline_png": "1440-races.png",
+        "status": "PARTIAL",
+        "finding": "Sidebar, search/filter controls and right candidate/venue panels are present. The exact native fixture exercises a settled result card rather than the reference upcoming compact row list."
+      },
+      {
+        "reference": "07_desktop_detail.jpg",
+        "native_baseline_png": "1440-detail.png",
+        "status": "PARTIAL",
+        "finding": "The saved original tickets, model/history selectors and result side panel are visible. The fixture does not demonstrate the populated participant grid and specialized motor/water/commentary sections in the reference; the five product-spec tabs remain functional."
+      },
+      {
+        "reference": "08_desktop_allocation.jpg",
+        "native_baseline_png": "1440-picks.png",
+        "status": "PARTIAL",
+        "finding": "The candidate editor and right summary are present. Editable amounts and the separation of candidate confirmation from purchase are exercised locally. The layout remains a qualitative partial match; final native acceptance of the follow-up source has not run."
+      }
+    ],
+    "illustrative_reference_values_not_used_as_facts": true,
+    "uncalibrated_odds_probability_EV_risk_and_AI_ratings_not_invented": true,
+    "unlicensed_reference_portraits_not_copied": true,
+    "pixel_similarity_score_claimed": false
+  },
+  "test_first_fixes": [
+    {
+      "defect": "Keyboard skip-to-content link routes race browsing back to Home.",
+      "red": {
+        "before_fragment": "#races",
+        "after_fragment": "#home",
+        "assertion": "skipping the header must preserve the selected product page",
+        "log_sha256": "37ba59ad75a9a17641232caa1a999b97339862cefd5d49448477ed91b6e3e340"
+      },
+      "fix": "Handle in-document anchors without changing the SPA route or encrypted capability fragment; make main content programmatically focusable.",
+      "green": "Existing UI browser test passes at all four widths; encrypted Pages WebCrypto/fragment/refusal test also passes."
+    },
+    {
+      "defect": "At a 320px native Safari window the third ticket number paints underneath the amount input.",
+      "native_synthetic_png": "320-picks.png",
+      "red_proxy": {
+        "browser": "Linux Chromium",
+        "reserved_scrollbar_gutter_px": 15,
+        "last_lane_right_px": 145.125,
+        "amount_editor_left_px": 134,
+        "overlap_px": 11.125,
+        "log_sha256": "9c43876172331ac9eb28e4161217d75470031c702d964e87f3872b38293d6037"
+      },
+      "fix": "Below 361px, reclaim the decorative row-rank column for the three ticket numbers; keep the amount editor 110px wide and 44px tall.",
+      "green_proxy": {
+        "browser": "Linux Chromium",
+        "reserved_scrollbar_gutter_px": 15,
+        "minimum_lane_to_editor_gap_px": 6.875,
+        "smallest_lane_width_px": 24,
+        "maximum_amount_tested": 10000000,
+        "manual_ticket_numbers": [
+          18,
+          17,
+          16
+        ]
+      },
+      "actual_safari_retest_of_local_fix": false
+    }
+  ],
+  "fresh_verification": {
+    "ui_browser": {
+      "command": "node tests/ui_browser.test.js",
+      "checkpoints": 30,
+      "errors": 0,
+      "external_source_requests": 0,
+      "widths": [
+        320,
+        390,
+        1440,
+        1920
+      ],
+      "optional_journal_private_cycle_dispatch_exports_supplied": false,
+      "report_sha256": "1ec645a8a2c619b1804bcfe160cb20d4b31bccfead6441dc50b3d628e20708f2",
+      "log_sha256": "2afa16afb7afcea8b7384676e06cb1ab2f88c34f7580e71534d7f96c84780172"
+    },
+    "layout_browser": {
+      "command": "node tests/reference_layout_browser.test.cjs",
+      "width_checkpoints": 4,
+      "status": "PASS"
+    },
+    "controls_browser": {
+      "command": "node tests/reference_controls_browser.test.cjs",
+      "width_checkpoints": 4,
+      "status": "PASS",
+      "gutter_px": 15,
+      "native_maximum_amount_text_clipping": false,
+      "log_sha256": "f5cff8256ab375379aa8b3da144fff3d69b0e07006fd76eb3143350aaad71654"
+    },
+    "model_switcher_browser": {
+      "command": "node tests/model_switcher_browser.test.cjs",
+      "width_checkpoints": 3,
+      "status": "PASS"
+    },
+    "ui_model": {
+      "command": "node tests/ui_model.test.js",
+      "status": "PASS"
+    },
+    "encrypted_pages_browser": {
+      "command": "node tests/saved_pages_browser.test.js",
+      "status": "PASS",
+      "synthetic_only": true,
+      "webcrypto": true,
+      "owner_key_used": false,
+      "actual_account_login_verified": false,
+      "initial_attempt": "BLOCKED_MISSING_CI_PARSER_DEPENDENCY_RACE_AI_CORE",
+      "resolution": "All Python module blobs in the workflow-pinned PR64 and PR72 source paths were verified, then supplied only to the synthetic test process.",
+      "verified_dependency_pins": [
+        {
+          "sha": "761247bee0209e37b1af6b8885e92cad3e9260a5",
+          "python_modules": 77
+        },
+        {
+          "sha": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+          "python_modules": 73
+        }
+      ],
+      "log_sha256": "26cd21131de9c6a3ce2f51888da702056798dee741ee7f04f7e3cf005597d2a1"
+    },
+    "node_syntax_and_git_diff_check": "PASS"
+  },
+  "local_fix_screenshots": {
+    "browser": "Linux Chromium",
+    "version": "155.0.8059.79",
+    "screenshots": 28,
+    "widths": [
+      320,
+      390,
+      1440,
+      1920
+    ],
+    "height": 948,
+    "exact_public_fixture_sha256": "b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a",
+    "checker_original_sha256": "c28ef770332e9f3041f2e09e6639fb81d6fdaa1097d64be110df94153164f696",
+    "original_synthetic_gate_used": true,
+    "local_only_expected_source_pin_override": true,
+    "canonical_native_checker_changed": false,
+    "immutable_web_blobs_verified": true,
+    "supplemental_classic_scrollbar_proxy_screenshots": 1,
+    "supplemental_proxy": {
+      "browser": "Linux Chromium",
+      "physical_iphone_verified": false,
+      "native_safari_verified": false,
+      "reserved_gutter_px": 15,
+      "screenshot": {
+        "name": "320-picks.png",
+        "bytes": 89210,
+        "sha256": "85166eded0a8a1a77929ec1f50d0940aefef696327dbb44132eb2454cf1ba9b6"
+      }
+    },
+    "capture_report_sha256": "bc28be9c6a45d27d090c5b346c652321628ef5abb2856556081c6963ed025e85",
+    "no_external_browser_requests_permitted": true,
+    "real_data_context_used_for_capture": false,
+    "owner_key_read": false,
+    "real_private_screenshots_or_traces_exported": 0,
+    "session_cleanup_verified": true,
+    "physical_iphone_verified": false,
+    "native_safari_verified": false,
+    "account_login_verified": false
+  },
+  "device_capability": {
+    "local_system": "Linux",
+    "local_safaridriver_available": false,
+    "environment_remote_desktop_enabled": true,
+    "environment_remote_desktop_state": "unknown",
+    "offered_desktop_browser_or_viewer_interaction_tools": 0,
+    "offered_physical_iphone_control_tools": 0,
+    "physical_iphone_verified": false,
+    "interpretation": "The reported on-demand Linux desktop capability and prior macOS Safari run do not provide or prove a physical iPhone Safari session. Previously asked device/account information has not been answered; no repeated question was sent."
+  },
+  "remaining_acceptance_gaps": [
+    "82dfe519 has local Chromium verification only; actual native Safari must rerun against this exact updated source before a native fix claim.",
+    "Physical iPhone Safari on the owner device and actual account login remain unverified.",
+    "The previous real-data V5 Safari test is immutable-ciphertext loopback replay; direct GitHub ciphertext delivery into the owner browser remains unverified.",
+    "All eight original references have now been inspected and compared, but all eight mappings remain partial and are not final visual acceptance.",
+    "Upcoming multi-sport compact lists and fully populated participant/weather/motor/commentary sections are not demonstrated by the exact native synthetic fixture.",
+    "Mobile allocation summary and confirmation remain below the retained eight candidates and manual-entry form.",
+    "No complete four-sport real-data, all-race/all-model/deadline or prospective efficacy proof is produced by this UI work."
+  ],
+  "preserved_boundaries": {
+    "public_asset_origin": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+    "public_assets_written": false,
+    "original_workspaces_modified": false,
+    "new_prs": 0,
+    "new_jobs_workflows_inputs_cron_runner_timeouts_permissions_markers_or_prefixes": 0,
+    "source_producer_changed_cancelled_or_restarted": false,
+    "active_owner_run_untouched": 44310358995,
+    "owner_state_key_requested_or_read_locally": false,
+    "new_model_family_paid_service_or_wager": false,
+    "production_weights_changed": false,
+    "real_forecast_result_or_private_url_exported": false
+  }
+}
