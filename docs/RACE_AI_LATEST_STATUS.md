@@ -1,3 +1,9 @@
+## 2026-11-18 09:21 UTC: ペア監査の実RED6件を確認、拒否条件を保った診断を最終CIへ
+
+既存PR33の実CI44273278882/job134694964099は356件/189.578秒、projector未実装の6assert失敗/errors0、既存350件成功。独立staticレビューはCLEARで、main pair moduleの16編集を逆転すると元のscope/判定/件数処理をbyte復元できる。公開signature、ValueErrorの型/args/文字列/fromNone、正常な2つのHOLD出力と全flagsを維持し、13固定phase/型別334固定理由の2項目だけを診断に使う。callerはAPI呼出しと返却後assertを区別し、pair module hashだけを新blobへ結び直した。
+
+同HEADの最終CIと真正main実行は未確認。24巡/73AES/23ZIP/P1 513行一致・欠落4/19HOLDのcore実証は維持し、ペアの実原因・件数・G8は未確認のまま。source codec/原本/重み/collector/締切/権限/job/入力/cron/runner/timeout/marker名は変更しない。以下は各時点の履歴。
+
 ## 2026-11-18 09:05 UTC: 閉じた24巡の独立AES/P1照合が成功、欠落とペア監査HOLDを分けて記録（GOAL未達）
 
 main PR35は通常merge7e540c831b8a25f51581e5edee014c3c1a9576d5/tree219a6ed10a81a0d7b9b58922d9ee7b17708afdd8で、testedabc9a7f1と完全一致。最終26checkは12success/14skip/failed0、350件/126.510秒・206件/16.980秒・138件/0.512秒・mirror212件/57.342秒+32件/0.025秒が実成功。実gate44268654064/job134679404877は08:38:09 UTCにsourcec979を確認してHOLD_ACTIVE_OWNER_WORKFLOW/公式GET0。nativeはCANDIDATE_UNCHANGEDでrequest_attempted=false。旧A74 workerは停止していない。
