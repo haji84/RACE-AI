@@ -1,4 +1,4 @@
-# RACE-AI 最新状況 — 2026-11-19 02:23 JST
+# RACE-AI 最新状況 — 2026-11-19 07:11 JST
 
 **GOALは未達。** 原本・既存変更・重み・元の判定を保全して継続中。従来全文は[履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261118_0928.md)へ同一Git blobのまま保全した。
 
@@ -34,6 +34,12 @@ ALL_MODELのr4/19は欠落HOLDを維持。正規ログではr4はcontexts0/gener
 現行sourceと旧A74のrepeated_cycleは同一bytesで、論理round・取得総数・session時間・round取得数の固定上限はNone。提供元wait・identity・JST日・物理worker handoffと累積counterを保持する。無上限のコードは全日網羅/T15〜10達成の実証ではない。[コード再確認](evidence/boat-source-no-total-cap-code-check-20261118.json)。
 
 停止/hotswap/再起動・counter resetはしていない。夜間の4巡成功を全日網羅・T15〜10の実証にしない。最初の追加生成13:21:23Zからprivate retention検証13:49:23Zまで時間がかかることを確認し、同じ復号objectへの二重検証だけを除く修正を既存PR21で取り込んだ。別snapshotごとの完全認証と保存全byte照合を保持。合成30セル/240lineageの境界中央値29.3%、全12候補保存の中央値18.26%短縮は実GitHub transportや締切達成の測定ではない。[source保存修正](https://github.com/haji84/RACE-AI/blob/fbc743be548bfd123e46cdbfe290515a59e5e0d3/docs/evidence/boat-retention-validation-throughput-20261119.json)。
+
+## 本人用Safariの拒否診断修正
+
+既存PR16で、実runのCURRENT_V5_REPLAY_INVALIDを固定phase・明示allowlist上流reason・bounded読込件数へ区分する診断修正を進める。author b5f907c4、統合9c69d1c9。RED→GREENを確認し、最終native148＋dispatch38＝186件が成功。独立186件/15.301秒と29境界probe/外部接続0も成功しreview CLEAR。元140テストと成功経路はAST同一、日付/clock/512files/256MiB/cipher/固定EFF/全workflow/UIは不変。例外文やURLを出さず、型/固定集合/件数を再検証する。実runの内部原因は今も未確定で、診断修正を実受入成功にはしない。[テスト先行と限定](evidence/boat-native-replay-diagnostic-test-first-20261119.json)。
+
+一般公開・新しい配備先・公開許可待ちは前提にしない。正当な実装変更を既存prefix/markerを使う通常mergeへ進め、既存ゲートによるsource/native判定を別に確認する。直接source dispatchや予算resetは行わない。
 
 ## main反映後の実ゲートとSafari
 
