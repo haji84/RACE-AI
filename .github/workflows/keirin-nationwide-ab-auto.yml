@@ -48,6 +48,7 @@ jobs:
             tests.test_keirin_public_two_source_normalizer \
             tests.test_keirin_capture_public_two_sources \
             tests.test_keirin_utsunomiya1r_real_auto_cipher_freeze \
+            tests.test_keirin_evening_national_real_AB_20261118 \
             tests.test_keirin_discover_public_race_links
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
