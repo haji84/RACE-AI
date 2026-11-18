@@ -15,6 +15,7 @@ import os
 import re
 
 from race_ai import keirin_nationwide_cipher_history as archive
+from race_ai import keirin_github_provider_stop as provider_stop
 from scripts import keirin_register_public_day as registration
 from scripts import keirin_capture_public_two_sources as collector
 from scripts import keirin_nationwide_auto_forecast as generator
@@ -48,6 +49,8 @@ def archived_day(repo, day):
     """Read and authenticate prior Git-only encrypted originals BEFORE GETs."""
     repo = archive._remote(repo, synthetic_local=False)
     head = archive._refresh(repo)
+    if provider_stop.read(repo=repo, day=day, head=head) is not None:
+        raise GitHubOnlyDayError("HOLD_PROVIDER_PREVIOUS_DAY_DENIAL_NO_RETRY")
     prefix = f"{archive.ROOT}/{day}/"
     _, paths = archive._cmd(repo, "ls-tree", "-r", "--name-only",
                             head, "--", prefix)
@@ -107,8 +110,20 @@ def run_day(*, day, workspace, private_dir_path, owner_public_pem,
 
     # Preflight the Git state branch; never silently start a new empty archive.
     previous = archived_day(repo, day)
+
+    def guarded_fetch(url):
+        try:
+            return collector.fetch_once(url)
+        except collector.SourceCaptureError as exc:
+            if str(exc) in provider_stop.CODES:
+                provider_stop.append_once(
+                    repo=repo, day=day, code=str(exc),
+                    observed_at=clock().astimezone(timezone.utc).isoformat())
+            raise
+
     registry, manifest, day_status = registration.register_day(
-        day_jst=day, private_raw_dir=root / "raw", clock=clock)
+        day_jst=day, private_raw_dir=root / "raw", clock=clock,
+        fetch=guarded_fetch)
     eligible, remaining = select_unfrozen(
         manifest, previous, max_races=max_races)
     if eligible["races"]:
@@ -116,7 +131,7 @@ def run_day(*, day, workspace, private_dir_path, owner_public_pem,
             day_manifest=eligible,
             registered_ids=generator.registered_race_ids(registry),
             private_cards_dir=root / "cards", private_raw_dir=root / "raw",
-            clock=clock, max_races=max_races)
+            clock=clock, fetch=guarded_fetch, max_races=max_races)
     else:
         capture_status = {"normalized_private_cards": 0,
                           "GET_pair_attempts": 0,
@@ -199,6 +214,7 @@ def main(argv=None):
         return 0
     except (ValueError, KeyError, TypeError, OSError,
             archive.GitCipherArchiveError,
+            provider_stop.ProviderStopError,
             collector.SourceCaptureError,
             registration.DayPublicRegistrationError):
         print('{"state":"HOLD_GITHUB_ONLY_LIVE_FORECAST_UNVERIFIED",'
