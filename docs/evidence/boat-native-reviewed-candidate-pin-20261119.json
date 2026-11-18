@@ -50,5 +50,12 @@
   "dispatch_helper_changed": false,
   "external_gets_dispatch_browser_start_publication": 0,
   "actual_native_or_iphone_acceptance_claimed": false,
-  "jst0125_gate_touched": false
+  "jst0125_gate_touched": false,
+  "independent_review": {
+    "status": "CLEAR",
+    "tests": 178,
+    "seconds": 15.609,
+    "same_12_identity_values_only": true,
+    "actual_candidate_strict_load_pass": true
+  }
 }
