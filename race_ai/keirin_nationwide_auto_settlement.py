@@ -148,7 +148,7 @@ def decrypt_original_pair(*, raw_cipher, expected_cipher_sha256,
                  replay["prediction_sha256"] and
              originals[role]["prediction"] == replay[role],
              "A_B_DECRYPTED_PREDICTION_NOT_REPRODUCIBLE")
-    return manifest, replay
+    return manifest, replay, {r["car"] for r in snap["riders"]}
 
 
 def _verified(verifier, *args):
@@ -260,7 +260,7 @@ def settle_day(*, registry, sealed_by_race, expected_sha_by_race,
                     need(_verified(independently_verify_immutable_origin,
                                    rid, expected, raw),
                          "IMMUTABLE_GITHUB_ORIGIN_NOT_INDEPENDENTLY_VERIFIED")
-                    manifest, forecast = decrypt_original_pair(
+                    manifest, forecast, starters = decrypt_original_pair(
                         raw_cipher=raw,
                         expected_cipher_sha256=expected,
                         owner_private_pem=owner_private_pem)
@@ -271,19 +271,7 @@ def settle_day(*, registry, sealed_by_race, expected_sha_by_race,
                     need(_verified(independently_verify_final_result,
                                    rid, result),
                          "OFFICIAL_FINAL_RESULT_NOT_INDEPENDENTLY_VERIFIED")
-                    starters = {x["car"] for x in
-                                _json(base64.b64decode("e30=")).values()} if False else None
-                    # Decrypt returns the original prediction and its
-                    # authenticated source. The original starter set is
-                    # checked by replaying model input from the encrypted arm.
-                    # Extracted source car IDs are necessary for refunds /
-                    # ties and must never appear in the public summary.
-                    need(type(result) is dict, "RESULT_OBJECT_REQUIRED")
-                    # The correct starters are the actual pre-race registered
-                    # entries, not an inferred 1..9 default or winning IDs.
-                    starter_count = forecast.get("starter_cars")
-                    need(starter_count is not None, "REPLAY_STARTERS_REQUIRED")
-                    paid = _checked_result(result, manifest, set(starter_count))
+                    paid = _checked_result(result, manifest, starters)
                     a = _score(forecast["A"]["ranked_tickets"], paid)
                     b = _score(forecast["B"]["ranked_tickets"], paid)
                     report = {
