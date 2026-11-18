@@ -1,0 +1,247 @@
+{
+  "schema": "RACE_AI_CLOTHING_BENCHMARK_INTERFACE_EVIDENCE_V1",
+  "recorded_at_jst": "2026-11-18T23:58:37.669078+09:00",
+  "base_source_sha": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+  "scope": "LOCAL_OFFLINE_EVALUATION_INTERFACE_ONLY_NOT_REAL_SIX_BOAT_ACCEPTANCE",
+  "root_cause": "Existing clothing-only CLI rider-part journals had no compatible existing benchmark entry point; the older APIs accept numbered hull-region tracking, not rider-part observations.",
+  "interface": "race_ai.boat_video_benchmark.benchmark_clothing_identity(journal, reference, configuration=None)",
+  "reference_schema": "RACE_AI_RIDER_PART_REFERENCE_V1",
+  "semantic_type": "RIDER_PART_TYPED",
+  "reused_math": [
+    "existing maximum-cardinality then IoU geometry matcher",
+    "existing identity confusion/precision/coverage and six-frame arithmetic"
+  ],
+  "behavior": [
+    "Match all rider tracks before scoring known clothing IDs; unknown parts remain explicit identity misses.",
+    "Count current and carried-color agreement separately.",
+    "Extra unknown/equipment tracks prevent perfect whole-six frame acceptance.",
+    "Keep absolute source PTS separate from tracker-relative time and bind original media/BGR/frame metadata.",
+    "Do not bridge missing/unlabeled frames, camera scenes, source-time gaps or reference group/partition boundaries."
+  ],
+  "references": {
+    "pr64": "761247bee0209e37b1af6b8885e92cad3e9260a5",
+    "pr72": "7a432e5acc4d3495a0e82bd79726929e2f8085fe"
+  },
+  "verification": {
+    "baseline_focused": {
+      "tests": 138,
+      "failed": 0,
+      "errors": 0
+    },
+    "initial_red": {
+      "tests": 8,
+      "failures": 8,
+      "errors": 0
+    },
+    "extra_part_red": {
+      "tests": 13,
+      "failures": 1,
+      "errors": 0
+    },
+    "typed_bindings_red": {
+      "tests": 1,
+      "subtest_failures": 2,
+      "errors": 0
+    },
+    "focused_green": {
+      "tests": 56,
+      "failures": 0,
+      "errors": 0,
+      "verified_commit": "deb841851ec111d0df102efb35a08e07828b3847"
+    },
+    "video_regression_bootstrapped": {
+      "tests": 955,
+      "elapsed_seconds": 104.09,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "verified_commit": "deb841851ec111d0df102efb35a08e07828b3847"
+    },
+    "existing_source_unit_step": {
+      "tests": 221,
+      "elapsed_seconds": 48.719,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "browser": "Playwright 1.62.0 stock Chromium headless-shell 151.0.7922.34 revision 1234 in isolated local cache",
+      "verified_commit": "deb841851ec111d0df102efb35a08e07828b3847"
+    },
+    "workflow_reference_tests": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0
+    },
+    "earlier_environment_failures": {
+      "unbootstrapped_video": {
+        "tests": 955,
+        "failures": 14,
+        "errors": 14,
+        "reason": "Missing existing immutable parser/adapter paths; not a key acquisition issue."
+      },
+      "source_unit_before_browser_install": {
+        "tests": 221,
+        "errors": 6,
+        "reason": "Existing real-browser fixture tests required missing Playwright headless-shell 1234."
+      }
+    },
+    "remote_ci_run": null
+  },
+  "asset_inventory": {
+    "attachment_inventory": [
+      {
+        "name": "RACE_AI_UI_reference_8screens_20261104.zip",
+        "bytes": 3560194,
+        "member_count": 10,
+        "media_members": 0,
+        "annotation_named_members": 0
+      },
+      {
+        "name": "continuity-44075021607.zip",
+        "bytes": 1008292,
+        "member_count": 1,
+        "media_members": 0,
+        "annotation_named_members": 0
+      },
+      {
+        "name": "control-44075021607.zip",
+        "bytes": 503,
+        "member_count": 1,
+        "media_members": 0,
+        "annotation_named_members": 0
+      }
+    ],
+    "restored_known_commons": {
+      "bytes": 14206138,
+      "sha256": "1ac1f0c27f58d8d64ebb1cfc13c2c4e9133cf7bbcce04052f23c28bf2e37f194",
+      "decode_metadata": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "width": 1920,
+            "height": 1080,
+            "nb_read_frames": "775"
+          }
+        ],
+        "format": {
+          "duration": "25.859000"
+        }
+      },
+      "license_provenance": "Existing exact-byte restoration record: Nesnad, CC BY-SA 4.0. No new clip approval or independent annotation is inferred."
+    },
+    "new_six_boat_media_or_independent_annotations_found": false,
+    "scope": "Visible /workspace/attachments and scoped task video files, not global absence",
+    "real_six_boat_accuracy": null,
+    "strength_calibration": false
+  },
+  "missing_real_evidence": [
+    "Approved original six-boat clip and independent blind rider/hull identity annotations, including visibility, occlusion and crossings.",
+    "Authenticated video/race/active-roster/registration/cutoff association.",
+    "Surveyed water-plane fit controls and disjoint check landmarks bound to original frames and independently supported timing/error evidence.",
+    "Independently held-out calibrated measurements and forward result comparisons before any strength or forecast-improvement claim."
+  ],
+  "preservation": {
+    "legacy_hull_benchmark_behavior": "Unchanged; all 25 legacy benchmark tests pass.",
+    "existing_physical_context_connection": "Already implemented; unchanged.",
+    "new_model_family": false,
+    "new_jobs_inputs_triggers_permissions_or_markers": false,
+    "workflow_change": "Existing offline unit test command only adds the new benchmark, clothing integration and legacy benchmark modules.",
+    "production_weights_changed": false,
+    "forecast_originals_modified": false,
+    "active_owner_or_source_switched": false,
+    "private_keys_retrieved": false,
+    "private_media_or_forecasts_published": false,
+    "real_six_boat_accuracy": null,
+    "strength_established": false,
+    "physical_calibration_established": false,
+    "production_eligible": false
+  },
+  "file_sha256": {
+    ".github/workflows/boat-nationwide-ab-one-shot.yml": "ef0e1a19596fa2ff8d10abe3bd3783fc7d8c641483e4f59cfd92f5a4b2d1c077",
+    "docs/BOAT_VIDEO_MEASUREMENTS.md": "c4eb842c3bb470ba0a392b56f6eccd5f63a2a46cd39ddd31e308f445dba3d903",
+    "docs/superpowers/plans/2026-11-18-clothing-journal-benchmark.md": "4d39a1bbfe2042f13ae48d76651638e8f26d72e844ab13f79999ea003df108db",
+    "race_ai/boat_video_benchmark.py": "13056f35a585c638753cd30d9fe134607d60ad1d241a4aff7cd5678389030618",
+    "race_ai/boat_video_clothing_benchmark.py": "87fd4ba369336cd1419f4838499cf3a0208d0e507e28537fe35225adf03c196c",
+    "tests/test_boat_video_clothing_identity.py": "91521903ea8877d42b271af44b3fd56e0d05a7b4d993196853082d97032b26eb",
+    "tests/test_boat_video_clothing_benchmark.py": "d8f6a8664dde284e9c09cee14289420562691bae703da067acb838381e64bceb"
+  },
+  "local_log_sha256": {
+    "clothing-red.log": "48b2825b51e85afa9d852f034fcc44a761f7a0e2bcfb71b6e51670ce9526df09",
+    "clothing-extra-part-red.log": "74a61d122b2b06f36c051e48793ff5cceeec836de0cfabbac003b67e3d5ec589",
+    "clothing-typed-binding-red.log": "7bde8d928fd096356e7816bdbd08c95ade963efdb84ba1f2a1c464a366d698d9",
+    "clothing-focused-green.log": "053edb506e506f84d429c279cca77590df3fc535aabc1c618add9b3abc3892e4",
+    "video-regression.log": "e3c2bd1da696097fed33f99f85d0ad58907b6cdae9155106f7086a4963f50a22",
+    "video-regression-bootstrapped.log": "87863585f47ec05c5a2b4506dd611e4d2ad27a2b3b406102f62e0d2f53607a75",
+    "existing-source-unit-step.log": "89eb44acec22d27ba91241ce100cbb3a82e89d42d171468553fe4122f1654d00",
+    "existing-source-unit-step-stock-browser.log": "8360d7843cb695342d8a75f79cd827a23051542711de38403af9767c6509475b",
+    "workflow-reference-regression.log": "a5be5162cba385a6a989d3e91a52b76e470268dba227d7c7dc8ebb3b100db068",
+    "clothing-unresolved-actual-packet-red.log": "2e6ca2567f07a57f9a06c8259a9cec2a739a7369bcb7926b5e8be8aa5026ddf5",
+    "clothing-unresolved-actual-packet-green.log": "0266d51aa8da5dd0634ea8635a6952ce3948d7f62925ee864a69fe52cd1fdff5",
+    "clothing-review-focused-green.log": "4b8f001904d7426fd29284a87ce8e7d888d8c00522cb725571bed3ba831829a0",
+    "existing-source-unit-review-fix-green.log": "404a2f38717d54946f77c7d883b2f6e80c70c773dfb8f466ca68230cf427b039",
+    "workflow-review-fix-green.log": "1ef556a49363e6e6e50a61ac5cbfa598696fa90504fa5029721ec366b546bfca"
+  },
+  "review_followup": {
+    "reviewed_commit": "deb841851ec111d0df102efb35a08e07828b3847",
+    "recorded_at_jst": "2026-11-19T00:45:54.635363+09:00",
+    "finding": "The scorer omitted actual tracker unknown_detections, allowing six emitted correct tracks plus an unresolved current PERSON proposal to count as a perfect-six frame and establish continuity.",
+    "actual_producer_regression": "Real ClothingColorIdentityTracker/RiderPartTracker six-color fixture, frames0-5; append .9 PERSON box[11,40,70,100] beside [10,40,70,100] only at frame3. Actual unknown_detections has UNBOUND_EXISTING_CURRENT_POINT_OWNER with existing point_owner_track_ids; no seventh physical track is fabricated.",
+    "changes": [
+      "Require and validate unknown_detections rather than assuming omitted unresolved observations are empty.",
+      "Expose unresolved current proposal counts, frame counts and reasons separately from conditional emitted-track geometry/color metrics.",
+      "Retain every observed frame and reference target in evaluation denominators; unresolved proposals prevent perfect-six acceptance.",
+      "Reset continuity before and after unresolved-current frames without fabricating track IDs or false-positive GT."
+    ],
+    "red": {
+      "tests": 2,
+      "failures_including_subtests": 6,
+      "errors": 0,
+      "actual_packet_failure": "whole_six_correct_frames was4 instead of3"
+    },
+    "green": {
+      "actual_packet_and_validation_tests": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      "focused_clothing_legacy_benchmark_and_rider_tracking": {
+        "tests": 100,
+        "elapsed_seconds": 3.069,
+        "failures": 0,
+        "errors": 0
+      },
+      "existing_registered_source_unit_step": {
+        "tests": 223,
+        "elapsed_seconds": 53.323,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "workflow_reference_tests": {
+        "tests": 12,
+        "failures": 0,
+        "errors": 0
+      }
+    },
+    "actual_packet_assertions": {
+      "evaluated_frames": 6,
+      "reference_visible_rider_parts": 36,
+      "whole_six_eligible_frames": 6,
+      "whole_six_correct_frames": 3,
+      "whole_six_current_color_correct_frames": 3,
+      "matched_identity_transitions": 6,
+      "unresolved_current_proposal_count": 1,
+      "frames_with_unresolved_current_proposals": 1,
+      "unresolved_current_proposal_reason_counts": {
+        "UNBOUND_EXISTING_CURRENT_POINT_OWNER": 1
+      },
+      "conditional_current_color_correct_matches": 24,
+      "reference_frames_without_predictions": 0
+    },
+    "conditional_metric_scope": "EMITTED_TRACKS_ONLY_UNRESOLVED_PROPOSALS_SEPARATE",
+    "full_955_suite": "The initial955-test green belongs to deb84185. This review-only child was verified by the focused100-test suite, full existing223-test source-unit command and12 workflow invariants; unrelated setup was not broadened.",
+    "production_weights_changed": false,
+    "forecast_originals_modified": false,
+    "physical_or_strength_proof": false
+  }
+}

@@ -37,6 +37,12 @@ def _need(condition):
         raise ValueError(_ERROR)
 
 
+def benchmark_clothing_identity(journal, reference, *, configuration=None):
+    """Score clothing-only CLI journals against explicit rider-part references."""
+    from .boat_video_clothing_benchmark import benchmark_clothing_identity as score
+    return score(journal, reference, configuration=configuration)
+
+
 def _finite(value):
     try:
         return type(value) in (int, float) and math.isfinite(value)

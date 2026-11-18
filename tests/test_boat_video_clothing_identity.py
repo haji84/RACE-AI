@@ -67,6 +67,72 @@ class ClothingIdentityTests(unittest.TestCase):
         self.assertFalse(result['identity_validated'])
         self.assertFalse(result['model_eligible'])
 
+    def test_existing_benchmark_consumes_actual_clothing_tracker_packets(self):
+        from race_ai import boat_video_benchmark
+        from tests.test_boat_video_clothing_benchmark import reference
+        score=getattr(boat_video_benchmark,'benchmark_clothing_identity',None)
+        self.assertTrue(callable(score),'clothing tracker output has no benchmark interface')
+        ref=reference(3,riders=[dict(box=list(box),lane=n,readability='READABLE')
+            for n,box in enumerate(self.boxes,1)])
+        ref.update(width=640,height=180)
+        rows=[]
+        for i in range(3):
+            result=self.update(i)
+            ref['frames'][i]['decoded_frame_sha256']=result['frame_sha256']
+            rows.append(dict(schema_version='RACE_AI_BOAT_MARKER_FRAME_JOURNAL_V1',
+                media_sha256=ref['media_sha256'],frame_index=i,source_pts=9.+i/10,t=i/10,
+                decoded_bgr_sha256=result['frame_sha256'],pipeline_result=dict(
+                    frame_index=i,t=i/10,scene=0,frame_sha256=result['frame_sha256'],
+                    identity_validated=False,model_eligible=False,rider_part_tracking=result)))
+        metrics=score(rows,ref)['partitions']['DEVELOPMENT']
+        self.assertEqual(metrics['whole_six_eligible_frames'],3)
+        self.assertEqual(metrics['whole_six_correct_frames'],1)
+        self.assertEqual(metrics['unknown_clothing_matches'],12)
+        self.assertEqual(metrics['current_color_correct_matches'],6)
+
+    def test_unresolved_actual_person_proposal_blocks_perfect_six_and_continuity(self):
+        from race_ai.boat_video_benchmark import benchmark_clothing_identity
+        from tests.test_boat_video_clothing_benchmark import reference
+        boxes=deepcopy(self.boxes)
+        ref=reference(6,riders=[dict(box=list(box),lane=n,readability='READABLE')
+            for n,box in enumerate(boxes,1)])
+        ref.update(width=640,height=180)
+        rows=[]
+        for i in range(6):
+            self.boxes=boxes+[[11,40,70,100]] if i==3 else boxes
+            result=self.update(i)
+            if i==3:
+                self.assertEqual([r['number'] for r in result['tracks']],[1,2,3,4,5,6])
+                self.assertEqual(len(result['unknown_detections']),1)
+                self.assertEqual(result['unknown_detections'][0]['reason'],'UNBOUND_EXISTING_CURRENT_POINT_OWNER')
+                self.assertEqual(result['unknown_detections'][0]['point_owner_track_ids'],['R000001'])
+            ref['frames'][i]['decoded_frame_sha256']=result['frame_sha256']
+            rows.append(dict(schema_version='RACE_AI_BOAT_MARKER_FRAME_JOURNAL_V1',
+                media_sha256=ref['media_sha256'],frame_index=i,source_pts=9.+i/10,t=i/10,
+                decoded_bgr_sha256=result['frame_sha256'],pipeline_result=dict(
+                    frame_index=i,t=i/10,scene=0,frame_sha256=result['frame_sha256'],
+                    identity_validated=False,model_eligible=False,rider_part_tracking=result)))
+        before=deepcopy((rows,ref))
+        report=benchmark_clothing_identity(rows,ref)
+        metrics=report['partitions']['DEVELOPMENT']
+        self.assertEqual(metrics['whole_six_eligible_frames'],6)
+        self.assertEqual(metrics['evaluated_frames'],6)
+        self.assertEqual(metrics['reference_visible_rider_parts'],36)
+        self.assertEqual(metrics['whole_six_correct_frames'],3)
+        self.assertEqual(metrics['whole_six_current_color_correct_frames'],3)
+        self.assertEqual(metrics['matched_identity_transitions'],6)
+        self.assertEqual(metrics['unresolved_current_proposal_count'],1)
+        self.assertEqual(metrics['frames_with_unresolved_current_proposals'],1)
+        self.assertEqual(metrics['unresolved_current_proposal_reason_counts'],
+            {'UNBOUND_EXISTING_CURRENT_POINT_OWNER':1})
+        self.assertEqual(report['unresolved_current_proposal_count'],1)
+        self.assertEqual(report['rider_part_metrics_scope'],
+            'EMITTED_TRACKS_ONLY_UNRESOLVED_PROPOSALS_SEPARATE')
+        self.assertEqual(report['status'],'SCORED')
+        self.assertEqual(report['reference_frames_without_predictions'],0)
+        self.assertEqual(metrics['current_color_correct_matches'],24)
+        self.assertEqual((rows,ref),before)
+
     def test_pale_green_is_not_white_and_helmet_color_is_not_used(self):
         result=self.establish()
         self.assertEqual(result['tracks'][5]['clothing_color']['color'],'GREEN')

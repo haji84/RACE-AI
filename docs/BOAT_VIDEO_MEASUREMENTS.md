@@ -92,6 +92,12 @@ T−15〜T−10を優先し、1件ごとに新着と現在の締切を見直す�
 
 `race_ai.boat_video_benchmark` は追跡・計測・予想とは別の、読取専用の照合である。`benchmark_identity(tracking, reference)` は数字付き候補領域、`benchmark_hulls(tracking, reference)` は数字を読む前の生の艇候補領域だけを評価する。後者を艇番の識別精度と呼ばない。
 
+服色CLIの保存出力は`benchmark_clothing_identity(journal, reference)`で独立に照合する。`journal`は既存`RACE_AI_BOAT_MARKER_FRAME_JOURNAL_V1`のJSONL行を読み込んだlistで、`pipeline_result.rider_part_tracking`をそのまま使う。参照は`RACE_AI_RIDER_PART_REFERENCE_V1`、`semantic_type=RIDER_PART_TYPED`と明記し、既存参照の出典・分割項目と、各frameの`riders:[{box,lane,readability}]`を持つ。参照の`t`は**元の`source_pts`**に一致させ、追跡器の相対`t`と混同しない。元media/BGR/PTS・参照・全journal行の別々のhashを保持し、rider boxを艇体や水面座標へ変換しない。
+
+未知番号を含む全rider trackのboxを先に対応付け、服色番号の正誤・欠測と、partの検出範囲を別々に集計する。現在の服色根拠と過去服色の画素追跡による保持も分ける。余分な未知partがあるframeを全6艇正解へ数えず、欠測frame・場面切替・未注釈区間・分割境界を越えて連続識別を主張しない。これは**rider part上の服色候補の照合**で、独立の人間GT認証・実6艇継続精度・実距離時刻校正・強さ・予想改善の合格ではない。検証済みの実参照が無い場合の数値はcontrolled fixtureの試験結果に限る。構造例は`tests/test_boat_video_clothing_benchmark.py`、実追跡器との接続試験は`tests/test_boat_video_clothing_identity.py`を参照する。
+
+追跡器の`unknown_detections`も必須で読み込み、未解決の現在候補の件数・frame数・理由を別に残す。`rider_part_metrics_scope=EMITTED_TRACKS_ONLY_UNRESOLVED_PROPOSALS_SEPARATE`の検出precision/coverageと服色一致件数は、出力済みtrackに限る条件付き集計である。未解決候補に架空のtrack IDや正誤GTを与えず、そのframeを全6艇正解へ加算しない。曖昧なframeの前後へ連続対応をつなげず、frame・参照targetの分母は維持する。
+
 参照は `RACE_AI_BOAT_VIDEO_REFERENCE_V1` とし、元映像SHA、寸法、表示フレーム番号、相対PTS、復号したBGR24画素バイトのSHA、領域、可読な艇番または不明、網羅/部分注釈、分割条件を記録する。PNG/JPEGファイルのSHAは画素SHAと別である。読めない番号を色や期待艇数から補わない。画素/時刻が異なる参照は拒否する。抽出されなかったフレームと、観測したが候補が空だったフレームを分け、前者を自動的な不的中や成功へ変換しない。
 
 位置の一対一対応を番号より先に決め、誤番号、取りこぼし、誤検出、ID切替、分母を分離する。推論エラーを持つフレームも、可視の注釈があれば欠測として分母に残す。分母0の率はnull。全6艇を可読に注釈できたフレームがないとき、全6艇成功率は算出しない。AI目視、申告された人の注釈、合成データを別記し、JSONに人と書くだけで認証しない。同一映像内のフレーム分割は未知映像の検証ではない。

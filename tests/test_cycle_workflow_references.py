@@ -6,6 +6,7 @@ import tempfile
 import json
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / '.github/workflows/boat-nationwide-ab-one-shot.yml'
@@ -18,6 +19,42 @@ RETENTION_NAMES = (
 
 
 class WorkflowReferencesTest(unittest.TestCase):
+    def test_recorder_dependency_mirror_rewrite_updates_actual_mirror_file(self):
+        block=WORKFLOW.read_text().split("<<'PY_CI_MIRROR'\n",1)[1].split('\n          PY_CI_MIRROR',1)[0]
+        script='\n'.join(line[10:] for line in block.splitlines())
+        with tempfile.TemporaryDirectory() as folder:
+            apt=Path(folder)/'etc/apt'
+            directory=apt/'sources.list.d'
+            directory.mkdir(parents=True)
+            legacy=apt/'sources.list'
+            legacy_original='deb mirror+file:/etc/apt/apt-mirrors.txt noble main\n'
+            legacy.write_text(legacy_original)
+            source=directory/'ubuntu.sources'
+            source_original=('Types: deb\nURIs: mirror+file:/etc/apt/apt-mirrors.txt\n'
+                'Suites: noble noble-updates\nComponents: main restricted universe multiverse\n'
+                'Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n')
+            source.write_text(source_original)
+            mirror=apt/'apt-mirrors.txt'
+            mirror.write_text('http://us-east-2.ec2.archive.ubuntu.com/ubuntu\n'
+                              'https://us-east-2.ec2.archive.ubuntu.com/ubuntu\n')
+            direct=directory/'direct.list'
+            direct.write_text('deb http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble main\n'
+                              'deb http://security.ubuntu.com/ubuntu noble-security main\n')
+            def fixture_path(value):
+                self.assertTrue(value.startswith('/etc/apt/'))
+                return apt/value.removeprefix('/etc/apt/')
+            # Execute the actual embedded implementation; redirect its absolute
+            # filesystem boundary so the host's apt configuration is untouched.
+            with patch('pathlib.Path',side_effect=fixture_path):
+                exec(compile(script,str(WORKFLOW)+'::PY_CI_MIRROR','exec'),{})
+            self.assertEqual(mirror.read_text(),
+                'https://archive.ubuntu.com/ubuntu\nhttps://archive.ubuntu.com/ubuntu\n')
+            self.assertEqual(legacy.read_text(),legacy_original)
+            self.assertEqual(source.read_text(),source_original)
+            self.assertEqual(direct.read_text(),
+                'deb https://archive.ubuntu.com/ubuntu noble main\n'
+                'deb http://security.ubuntu.com/ubuntu noble-security main\n')
+
     def test_viewer_checks_out_both_real_pinned_dependencies(self):
         text = (ROOT / '.github/workflows/forecast-audit-ui.yml').read_text().split('  viewer_contract:', 1)[1]
         for ref, path in [

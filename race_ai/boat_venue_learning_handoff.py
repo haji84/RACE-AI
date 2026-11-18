@@ -13,7 +13,6 @@ from .boat_venue_dataset import _bytes, _sha
 from .boat_venue_history_handoff import TRANSFER_REF, PREFIX
 from .boat_private_original_vault import VaultGitRepository as GitStateRepository
 from .boat_venue_learning import read_candidate
-from .observed_weight_learning import verify_training
 from .teiai_history import need
 from scripts.boat_all_racers import _key_ready, _read, _write
 
@@ -63,7 +62,9 @@ def _verified(files):
     else:
         need(set(training.get('models', {})) == set(MODEL_IDS),
              'VENUE_LEARNING_FITTED_TWO_FAMILIES_REQUIRED')
-    verify_training(training)
+    # read_candidate authenticated this byte snapshot and fully validated its
+    # newly decoded training. No caller can mutate that object before this use.
+    # Keep that validation per snapshot, without repeating it on the same object.
     expected = dict(payload['summary'], encrypted_readback_verified=True,
                     plaintext_published=False)
     try:

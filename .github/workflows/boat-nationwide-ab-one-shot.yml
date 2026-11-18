@@ -205,7 +205,7 @@ jobs:
             sudo python - <<'PY_CI_MIRROR'
           from pathlib import Path
           directory=Path('/etc/apt/sources.list.d')
-          paths=[Path('/etc/apt/sources.list'),*directory.glob('*.list'),*directory.glob('*.sources')]
+          paths=[Path('/etc/apt/sources.list'),Path('/etc/apt/apt-mirrors.txt'),*directory.glob('*.list'),*directory.glob('*.sources')]
           for path in paths:
               if path.is_file() and not path.is_symlink():
                   original=path.read_text()
@@ -227,7 +227,9 @@ jobs:
           tests.test_boat_short_field_video tests.test_boat_video_tracking
           tests.test_boat_video_sequential_context tests.test_boat_video_physical_context
           tests.test_boat_video_model_context tests.test_boat_video_evaluation
-          tests.test_boat_video_screen_queue tests.test_boat_video_rider_tracking -v
+          tests.test_boat_video_screen_queue tests.test_boat_video_rider_tracking
+          tests.test_boat_video_benchmark tests.test_boat_video_clothing_benchmark
+          tests.test_boat_video_clothing_identity -v
       - name: Verify dated official closing revisions and unchanged old-B authority without source GET
         run: python -m unittest tests.test_boat_official_program tests.test_boat_live_cutoff_revision tests.test_nationwide_get_policy -v
       - name: Verify existing Pages checker stage identity and private request boundary
