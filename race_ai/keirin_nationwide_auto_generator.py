@@ -144,9 +144,13 @@ def validate_snapshot(snap, *, computed_at):
         # A source usually publishes only a few ◎○▲△ marks. An explicitly
         # unmarked rider is not an unobserved or invented numerical rank.
         marked = type(mark) is int and 1 <= mark <= n
+        # A/B uses car numbers, not athlete-registration identities.
+        # Some sources publish only provider-local player IDs. Never
+        # manufacture an official ID. C keeps its independent ID gate.
+        identity_known = type(athlete) is str and RID.fullmatch(athlete) is not None
         need(type(car) is int and 1 <= car <= 9 and car not in seen_cars and
-             type(athlete) is str and RID.fullmatch(athlete) is not None and
-             athlete not in athlete_ids and
+             (athlete is None or identity_known) and
+             (not identity_known or athlete not in athlete_ids) and
              (marked or mark == "UNMARKED"),
              "CAR_MARK_OR_PERSISTENT_RIDER_ID_DUPLICATE")
         need(type(row["competition_points"]) in (int, float) and
@@ -160,7 +164,8 @@ def validate_snapshot(snap, *, computed_at):
              row["style"] in STYLES,
              "RIDER_PRE_RACE_FEATURE_OUT_OF_BOUNDS")
         seen_cars.add(car)
-        athlete_ids.add(athlete)
+        if identity_known:
+            athlete_ids.add(athlete)
     lines = snap["line_groups"]
     need(type(lines) is list and 1 <= len(lines) <= n and
          all(type(g) is list and bool(g) and
