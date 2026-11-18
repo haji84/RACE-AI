@@ -80,6 +80,7 @@ on:
       - race_ai/boat_venue_research_retention.py
       - race_ai/boat_venue_research_cache.py
       - tests/test_boat_venue_research_cache.py
+      - tests/test_boat_venue_cycle_connection.py
       - tests/fixtures/boat_venue_research_repeated_work.py
       - race_ai/boat_video_forward.py
       - tests/test_boat_venue_research_batch.py
