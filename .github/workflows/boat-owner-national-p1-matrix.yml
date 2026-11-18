@@ -911,6 +911,8 @@ jobs:
               grid_clock_disagreed_side_count=None,source_requests=0,
               originals_changed=False,broader_goals_proven=False)
 
+          raw_ready=False
+
           class Quiet:
               def write(self,value):return len(value)
               def flush(self):pass
@@ -972,6 +974,7 @@ jobs:
                   assert vault_cli._environment(root)==root
                   reads=active._Reads(producer.gh)
                   clock=datetime.now(timezone.utc)
+                  raw_ready=True
 
                   stage='CORE_AUDIT'
                   try:
@@ -1033,14 +1036,24 @@ jobs:
                       pair['failure_stage']=stage
                       pair.update(pairs.current_pair_failure_diagnostic(error))
                       pair.update(pairs.current_pair_cutoff_diagnostic(error))
+          except (Exception,SystemExit):
+              core['failure_stage']=stage;pair['failure_stage']=stage
 
-                  try:
+          core.update(additional_audit_scope='EXACT_CLOSED_A74_REPRESENTED_P1_ONLY',
+              p0_union_audited=False,qualifying_g8_proven=False,promotion_allowed=False)
+          pair.update(additional_audit_scope='EXACT_CLOSED_A74_NATIVE_UNION_UNQUALIFIED',
+              p0_union_audited=False,policy_applicability_audited=False)
+          print(json.dumps(core,sort_keys=True,allow_nan=False),flush=True)
+          print(json.dumps(pair,sort_keys=True,allow_nan=False),flush=True)
+          if raw_ready:
+              try:
+                  with redirect_stdout(Quiet()),redirect_stderr(Quiet()):
                       short='boat_cutoff_raw_replay_audit'
                       source=main/'scripts'/(short+'.py')
                       assert source.is_file() and not source.is_symlink() and source.resolve()==source
                       raw=source.read_bytes()
                       assert 0<len(raw)<=128*1024
-                      assert hashlib.sha1(b'blob '+str(len(raw)).encode('ascii')+b'\0'+raw).hexdigest()=='8fabfe88e1d8d71f80b9228e3b08acf6cfaff480'
+                      assert hashlib.sha1(b'blob '+str(len(raw)).encode('ascii')+b'\0'+raw).hexdigest()=='3b6cde1fb4af0e71ec23a3037f7a2339a1cdf285'
                       name='scripts.'+short
                       spec=importlib.util.spec_from_file_location(name,source)
                       module=importlib.util.module_from_spec(spec)
@@ -1091,16 +1104,7 @@ jobs:
                       if inspected['status']=='SAVED_CLOCKS_MATCH_INSPECTED_GRIDS':
                           assert counts[0]>0 and counts[1]==counts[2]==counts[0] and counts[3:]==(0,0,0)
                       grid=dict(inspected)
-                  except (Exception,SystemExit):
-                      pass
-          except (Exception,SystemExit):
-              core['failure_stage']=stage;pair['failure_stage']=stage
-
-          core.update(additional_audit_scope='EXACT_CLOSED_A74_REPRESENTED_P1_ONLY',
-              p0_union_audited=False,qualifying_g8_proven=False,promotion_allowed=False)
-          pair.update(additional_audit_scope='EXACT_CLOSED_A74_NATIVE_UNION_UNQUALIFIED',
-              p0_union_audited=False,policy_applicability_audited=False)
-          print(json.dumps(core,sort_keys=True,allow_nan=False))
-          print(json.dumps(pair,sort_keys=True,allow_nan=False))
-          print(json.dumps(grid,sort_keys=True,allow_nan=False))
+              except (Exception,SystemExit):
+                  pass
+          print(json.dumps(grid,sort_keys=True,allow_nan=False),flush=True)
           PY_CLOSED_OWNER_COUNTS

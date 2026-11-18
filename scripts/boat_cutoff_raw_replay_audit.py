@@ -404,7 +404,7 @@ def diagnose_saved_cutoff_raw_replay(first, latest, captures, *, parsers, parse_
             return _known('HOLD', 'SAVED_CLOCK_DIFFERS_FROM_INSPECTED_GRID', counts)
         return _known('SAVED_CLOCKS_MATCH_INSPECTED_GRIDS', counts=counts)
     except _Stop as error:
-        return _hold(error.reason)
+        return _hold(error.reason if type(error) is _Stop else None)
     except Exception:
         return _hold('UNEXPECTED_GRID_INSPECTION_FAILURE')
 
@@ -544,7 +544,7 @@ def audit_fixed_a74_cutoff_raw_replay(*, get, repo, now):
                 report = diagnose_saved_cutoff_raw_replay(
                     first, latest, captures, parsers=parsers, parse_time=intake._time)
             except _Stop as error:
-                report = _hold(error.reason)
+                report = _hold(error.reason if type(error) is _Stop else None)
             except Exception:
                 report = _hold('UNEXPECTED_GRID_INSPECTION_FAILURE')
 
@@ -556,6 +556,6 @@ def audit_fixed_a74_cutoff_raw_replay(*, get, repo, now):
             return _hold('INPUT_OR_SCOPE_INVALID')
         return _known('NO_MISMATCH_TARGETS') if report is None else _hold('INPUT_OR_SCOPE_INVALID')
     except _Stop as error:
-        return _hold(error.reason)
+        return _hold(error.reason if type(error) is _Stop else None)
     except Exception:
         return _hold('INPUT_OR_SCOPE_INVALID')

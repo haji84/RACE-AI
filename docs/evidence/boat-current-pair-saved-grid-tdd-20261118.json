@@ -25,5 +25,27 @@
     "Synthetic public-key cipher control is not production raw-data availability or owner-key proof.",
     "Existing original cutoff rejection, stored clocks, G8 denominator, core23ZIP/513 proof and full-day HOLD remain unchanged.",
     "Future actual report uses fixed independent inspector comparisons only; no original-producer-parser or authorized-revision claim."
-  ]
+  ],
+  "first_implementation": {
+    "head": "b4d79c90a556fb02232314d611174e2e07549e84",
+    "tree": "379164c6ea3521e796531aae7a65ce158bbb720b",
+    "run_id": 44294074596,
+    "job_id": 134766413577,
+    "old_tests": 364,
+    "old_seconds": 201.855,
+    "new_tests": 7,
+    "new_seconds": 16.7,
+    "both_commands_pass": true,
+    "raw_module": "8fabfe88e1d8d71f80b9228e3b08acf6cfaff480",
+    "pair_module": "3e1f414a4e164f5400f7f7a1533977b8678d80c4",
+    "final_guarded_source_requires_fresh_ci": true
+  },
+  "final_candidate": {
+    "raw_module": "3b6cde1fb4af0e71ec23a3037f7a2339a1cdf285",
+    "pair_module": "3e1f414a4e164f5400f7f7a1533977b8678d80c4",
+    "test_blob": "0a7386f34ed0d71413e2c4326bacb1fe60700c5a",
+    "source_static_review": "CLEAR",
+    "caller_review_pending_flushed_reordering": true,
+    "fresh_ci": "UNCONFIRMED"
+  }
 }

@@ -475,6 +475,26 @@ class CutoffRawReplayTests(SavedGridFixture):
         with patch.object(program,'parse_program',side_effect=HostileError('PRIVATE_SENTINEL https://private.invalid')):
             self.assertEqual(self.pure(first,latest,captures),self.held('UNEXPECTED_GRID_INSPECTION_FAILURE'))
         self.assertEqual(touched,[])
+        stop_touched = []
+        class HostileStop(replay._Stop):
+            def __getattribute__(self,name):
+                if name == 'reason':
+                    stop_touched.append('reason')
+                    raise AssertionError('PRIVATE_SENTINEL reason property')
+                return super().__getattribute__(name)
+            def __str__(self):
+                stop_touched.append('str')
+                raise AssertionError('PRIVATE_SENTINEL str')
+            def __repr__(self):
+                stop_touched.append('repr')
+                raise AssertionError('PRIVATE_SENTINEL repr')
+        def hostile_clock(value):
+            raise HostileStop('PRIVATE_SENTINEL')
+        report = replay.diagnose_saved_cutoff_raw_replay(
+            first,latest,captures,parsers=self.parsers,parse_time=hostile_clock)
+        self.assert_safe(report)
+        self.assertEqual(report,self.held('UNEXPECTED_GRID_INSPECTION_FAILURE'))
+        self.assertEqual(stop_touched,[])
         class BorrowedProgramError(program.BoatProgramError):
             pass
         with patch.object(program,'parse_program',side_effect=BorrowedProgramError('PRIVATE_SENTINEL')):
