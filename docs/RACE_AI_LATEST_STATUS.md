@@ -1,3 +1,17 @@
+## 2026-11-18 04:13:55 UTC: 復元I/Oの実REDを確認、1回CAS保存＋暗号化再読取りを結合してfresh CIへ（GOAL未達・実復元前）
+
+PR40 testheada76fb255の真正CI44234598851/job134567572417は326件/117.798秒。既存313件は成功し、新repair未実装の12assertion失敗＋CLI import error1だけ、SyntaxErrorなし。12 I/O＋8 CLI methodを変更せず、333件として解決するruntime931b0c64を実装した。実装後のPython全成功・実書込みはまだ未確認。
+
+runtimeはfirst-attempt/main push/既存repo ID/owner job/workflow ref/既存release prefixを鍵やcontext読取り前に検証。既存source86/F9bb/H3587/e6/transport497/publisher87、main proof903/candidate254/foundation307、parser76/7aの正確なbytes・HEAD・作業差分を確認し、既存bootstrapだけで現在headと同一日旧原本を認証する。呼出し元mainのraw first-parent09bも必須で、浅いcheckoutでも親情報を読む。
+
+現在の保存元が変われば書込み前HOLD。候補は元forecast/result/OBS/history/unknown fields/clockを保持し、既存F.publish_viewを最大1回だけ呼ぶ。V5の厳格6field ACK後に返却commitを既存認証readerで再読取りし、候補全wire・前cipher・世代・view/source/forecast anchor・両row guardを確認して初めてPUBLISHED_VERIFIEDとする。例外/不正ACKならpublication_performed=null、ACK後の再読取り不成功ならtrueのHOLDで、曖昧な書込みを未実行扱い／自動再試行しない。
+
+既存owner job内へ5stepを追加する。既存prefix＋main push＋初回＋event.before09b＋owner_gate successに限定し、後続pushは自動実行しない。既存最後のSafari callerはbyte不変で鍵を渡さず、元source gates/GET budget/job定義/権限/input/cron/runner/timeoutを変えない。sourceworkerは継続し、模型重み・学習・公開UIは変更しない。独立loader reviewはCLEAR、結合I/Oとworkflowはreview/CI待ち。
+
+実3世代で全12groupの旧ACTIVE一致は認証済みだが、まだ新候補を実保存していない。新PR/モデル系統/課金を増やさず、GOALの残る4競技・実機・6艇校正・前向き精度改善を完成扱いしない。
+
+[実RED・結合runtime・1回起動境界](evidence/boat-one-shot-rejection-anchor-repair-runtime-20261118.json)。以下は各時点の履歴。
+
 ## 2026-11-18 03:51:38 UTC: 過去ACTIVE原本を実発見、欠落12group全ての復元根拠を3世代で認証（GOAL未達・書換え0）
 
 通常merge09b65329/tree0187b6a1はtested3f7bbbfdと完全一致。最終CIは313件/104.311秒・119/181/212+32/48/72/40+10と認証応答検査、全39checks(16success/23skip)が通過した。四つの現在legacy writer経路の保存前guardも統合済み。古い固定0da3回復手順への普遍的保護とは扱わない。
