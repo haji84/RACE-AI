@@ -1,3 +1,9 @@
+## 2026-11-18 03:40:40 UTC: 共通読取り経路の予算停止も独立レビューCLEAR、同じ全CIで最終検証（GOAL未達）
+
+runtime9030da13は、親metadata読取り後だけでなく、前世代manifestで予算が0になった場合の既存F.current_view/history loaderのfetch/existsも委譲前に停止する。31b3との差は4行だけで独立レビューCLEAR。純粋prefix・F/H認証・既存source pins・87新method・モデル/GET budgetは不変。実313件成功後に指摘された厳密な停止条件で、同じ最終CIを再実行する。旧ACTIVE発見・復元・当日表示・GOAL達成はまだ確認していない。
+
+[共通読取り境界の正確な最終差分](evidence/boat-selected-reader-prefetch-bound-review-20261118.json)。以下は各時点の記録。
+
 ## 2026-11-18 03:37:29 UTC: 新313件は実成功、旧command文字列の検査を強化更新し全CIを再検証（GOAL未達）
 
 PR41 head132b3513/treea3c2dfddのnational実CI44231303007/job134556745907は313件/127.572秒・全10 block compile・source/key境界が成功した。main-recovery119件、racer181件、mirror212＋32件のうち失敗は、3jobで共通の旧`python -m scripts.racer_intraday_refresh`文字列assert1箇所だけ。元のcollector/P0/source gateの検査は他で通り、新entryの固定source/引数保持10件も通った。

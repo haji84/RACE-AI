@@ -395,9 +395,13 @@ class _SelectedSnapshotReader:
         return self._snapshot
 
     def fetch(self, commit):
+        if self._budget.remaining <= 0:
+            raise AncestryHold('BOUND_EXCEEDED')
         return self._repository.fetch(_io_commit(commit))
 
     def exists(self, commit, path):
+        if self._budget.remaining <= 0:
+            raise AncestryHold('BOUND_EXCEEDED')
         return self._repository.exists(_io_commit(commit), path)
 
     def read(self, commit, path, limit):
