@@ -95,10 +95,9 @@ class NationwideEncryptedABSettlement(unittest.TestCase):
         self.assertEqual(result["scorecard"]["A_existing"]["hit_at_1"], 1)
         self.assertEqual(result["scorecard"]["A_existing"]["payout_yen"], 6700)
         self.assertEqual(result["scorecard"]["C_optional"]["eligible"], 0)
-        self.assertEqual(result["statuses"][0]["state"],
-                         "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS" if
-                         result["statuses"][0]["race_id"] == RID else
-                         result["statuses"][0]["state"])
+        status = next(x for x in result["statuses"] if x["race_id"] == RID)
+        self.assertEqual(status["state"],
+                         "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS")
         self.assertNotIn("ranked_tickets", json.dumps(result))
         self.assertNotIn("athlete_id", json.dumps(result))
         self.assertFalse(result["formal_accuracy_proven"])
