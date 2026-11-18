@@ -1,0 +1,145 @@
+{
+  "schema": "RACE_AI_KNOWN_BOOTSTRAP_R0_RECOVERY_TEST_FIRST_V1",
+  "base_source_head": "fbc743be548bfd123e46cdbfe290515a59e5e0d3",
+  "scope": {
+    "run_id": 44409798061,
+    "source_head_sha": "fbc743be548bfd123e46cdbfe290515a59e5e0d3",
+    "day_jst": "2026-11-19",
+    "r0_artifact_id": 14475644448,
+    "run_attempt": 1
+  },
+  "proof_schema": "RACE_AI_SAVED_BOOTSTRAP_CURRENT_CALLER_PROOF_V1",
+  "frozen_contract_blobs": {
+    "source": "be56af54f71d4c3a7d303823b056e4964150db49",
+    "main": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
+    "bytes_unchanged": true
+  },
+  "test_first_red": [
+    {
+      "phase": "saved_model_recovery",
+      "tests": 6,
+      "failures": 6,
+      "errors": 0
+    },
+    {
+      "phase": "current_caller_adapter",
+      "tests": 3,
+      "failures": 3,
+      "errors": 0
+    },
+    {
+      "phase": "idempotent_vault_readback",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0
+    },
+    {
+      "phase": "all_control_ledger",
+      "tests": 1,
+      "subtest_failures": 4,
+      "errors": 0
+    },
+    {
+      "phase": "history_activation_guard",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0
+    },
+    {
+      "phase": "mandatory_restore_preflight",
+      "tests": 2,
+      "failures": 2,
+      "errors": 0
+    },
+    {
+      "phase": "actual_completion_clock",
+      "tests": 2,
+      "failures": 2,
+      "errors": 0
+    }
+  ],
+  "verification": {
+    "original_focused_baseline": {
+      "tests": 81,
+      "failures": 0,
+      "errors": 0,
+      "unittest_seconds": 31.011
+    },
+    "freeze_new_regressions": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "seconds": 13.374,
+      "external_network_attempts": 0,
+      "file_hashes_match_independent_review": true
+    },
+    "author_related": {
+      "passed_tests": 161,
+      "failures": 0,
+      "loader_errors": 1,
+      "loader_error": "mistyped tests.test_boat_saved_view_intake; correct module rerun below"
+    },
+    "corrected_saved_view_intake": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 1.059,
+      "module": "tests.test_saved_view_intake"
+    },
+    "independent": {
+      "tests": 191,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "seconds": 103.716,
+      "external_network_attempts": 0,
+      "files_stable_during_test_run": true
+    },
+    "independent_modules": [
+      "tests.test_boat_bootstrap_recovery.BootstrapRecoveryTests",
+      "tests.test_boat_pending_round_recovery",
+      "tests.test_boat_orphan_p1_recovery",
+      "tests.test_boat_recovery_invocation",
+      "tests.test_boat_all_model_cycle_cli",
+      "tests.test_boat_all_model_recovery",
+      "tests.test_saved_view_feed",
+      "tests.test_saved_view_history",
+      "tests.test_boat_original_maintenance"
+    ],
+    "tested_file_sha256": {
+      "scripts/boat_bootstrap_recovery_adapter.py": "e6e7bf9592adaa55d1c76bb11d43db05d86a24fbf536a1c959a89c4567db0481",
+      "scripts/boat_recover_failed_owner.py": "5854079492e74d00ce249f4dc374235db492215345bee3e0b29fcd626eb1bbc7",
+      "scripts/boat_all_model_cycle.py": "d2f1eb98eaeb501bd62b5896f69003a1c5b28c0877e7134d7eefb13ee7226908",
+      "scripts/boat_saved_view_feed.py": "ce80aba585f4f3466aaf2b3adebfdda96d8470d8b22f9aecbc4e25f9476b6861",
+      "scripts/github_existing_cycle.py": "766de7976b2263fa91c6c2409676d1f5f4104d8b9727208f0c3ae49b2ec9c3d8",
+      "tests/test_boat_bootstrap_recovery.py": "b1ab337cedb30f4c3f183e7ba3f2fb52694afba59b342fd5347db28afabc1e9a"
+    }
+  },
+  "preservation": {
+    "historical_head_and_history_relabeling": 0,
+    "frozen_global_monkeypatches": 0,
+    "engine_crypto_models_workflow_ui_job_input_environment_permission_changes": 0,
+    "old_checkout_and_old_proof_authority_extensions": 0,
+    "authenticated_original_clock_and_counter_rewrites": 0,
+    "synthetic_recovery_forecast_generation_calls": 0,
+    "actual_issued_count_is_derived_from_authenticated_summary_and_inventory": true,
+    "all_raw_history_and_each_authenticated_control_are_bound": true,
+    "p0_and_r0_vault_bytes_independently_read_back_on_every_recovery": true,
+    "exact_canonical_first_p0_restore_preflight_is_fatal": true,
+    "other_day_and_other_owner_preflight_loads_no_runtime_or_key": true,
+    "existing_active_v5_context_required": true,
+    "verified_at_uses_actual_finish_clock_without_altering_original_clocks": true
+  },
+  "boundaries": {
+    "official_source_gets": 0,
+    "local_real_key_reads": 0,
+    "local_real_forecast_reads": 0,
+    "pushes": 0,
+    "merges": 0,
+    "dispatches": 0,
+    "real_actions_recovery_proven": false,
+    "real_forecast_inventory_count_proven_locally": null,
+    "final_source_head_ci": "pending existing PR15 final HEAD"
+  }
+}

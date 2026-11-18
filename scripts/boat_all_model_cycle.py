@@ -423,6 +423,72 @@ def _seller_sources(marker,document,receipt,clock):
     return dict(cards=cards,waku10=waku)
 
 
+def require_saved_bootstrap_models(document, receipt, issued, view, *, key=None, now=None):
+    """Only the known failed issuer's already-saved P0 must precede generation."""
+    from scripts.boat_bootstrap_recovery_adapter import BOOTSTRAP_MODEL_ORIGINALS,bootstrap_model_artifact
+    from scripts.boat_failed_recovery_contract import JST
+    from race_ai import boat_all_model_recovery as recovery
+    from race_ai.saved_view_feed import forecast_inventory
+    clock=now or utc_now()
+    ident=receipt.get('run_id')
+    ident=int(ident) if type(ident) is str and re.fullmatch('[1-9][0-9]{0,19}',ident) else ident
+    scope=BOOTSTRAP_MODEL_ORIGINALS.get(ident)
+    if scope is None or clock.astimezone(JST).date().isoformat()!=scope[1]:return None
+    artifact=bootstrap_model_artifact(ident,receipt.get('head_sha'),document.get('day_jst'))
+    need(document.get('code_sha')==scope[0],'BOOTSTRAP_MODEL_FIRST_P0_SOURCE_CHANGED')
+    coverage=recovery._read_coverage(view,recovery._coverage_key(state_key('production',key)),clock)
+    entry=coverage.get(scope[1],{}).get(str(artifact))
+    need(type(entry) is dict,'BOOTSTRAP_MODEL_COVERAGE_REQUIRED')
+    state=entry['state'];inventory=state['scoped_inventory']
+    need(state['run_id']==ident and state['head_sha']==scope[0] and state['round_no']==0 and
+         inventory,'BOOTSTRAP_MODEL_COVERAGE_SCOPE')
+    actual=forecast_inventory(view)
+    need(all(actual.get(k)==v for k,v in inventory.items()),'BOOTSTRAP_MODEL_ORIGINAL_MISSING')
+    selected=[];baseline=[]
+    for row in view['records']:
+        predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p]
+        for target,original in ((selected,artifact),(baseline,receipt.get('artifact_id'))):
+            keep=[p for p in predictions if p.get('artifact_id')==original and p.get('stage')=='P0']
+            if keep:target.append(dict(row,prediction=keep[0],comparison_predictions=keep[1:]))
+    expected={(official_id(s['race_id']),mid):p for s in document['predictions'] for mid,p in s['models'].items()}
+    baseline_rows={(row['race_id'],p['model_id']):p for row in baseline
+        for p in [row['prediction'],*row['comparison_predictions']]
+        if p.get('prediction_sha256')==expected.get((row['race_id'],p['model_id']),{}).get('prediction_sha256')}
+    need(expected and len(expected)==document.get('model_forecast_count') and set(baseline_rows)==set(expected) and
+         all(baseline_rows[k].get('prediction_sha256')==p['prediction_sha256'] and
+             baseline_rows[k].get('ordered_top8')==p['ordered_top8'] and
+             baseline_rows[k].get('as_of')==p['as_of'] and
+             baseline_rows[k].get('cutoff_at')==p['sales_cutoff_at'] for k,p in expected.items()),
+         'BOOTSTRAP_MODEL_FIRST_P0_MISSING')
+    maps={'P0':{},'P1':{}};_inventory(dict(view,records=selected),maps)
+    need(maps['P0'] and type(issued) is dict and all(set(mids)<=set(issued.get(rid,()))
+         for rid,mids in maps['P0'].items()),'BOOTSTRAP_MODELS_ISSUED_MAP_MISSING')
+    wanted={rid:sorted(mids) for rid,mids in maps['P0'].items()}
+    included={rid:sorted(set(issued.get(rid,()))&set(mids)) for rid,mids in wanted.items()}
+    return dict(run_id=ident,source_head_sha=scope[0],day_jst=scope[1],forecasts=len(inventory),
+        baseline_forecasts=len(expected),baseline_inventory_sha256=digest(forecast_inventory(dict(view,records=baseline))),
+        forecast_inventory_sha256=digest(inventory),restored_inventory_sha256=digest({k:actual[k] for k in inventory}),
+        issued_models_sha256=digest(wanted),included_issued_models_sha256=digest(included),new_forecasts=0,
+        artifact_receipt={k:state['artifact'][k] for k in ('id','digest','created_at')})
+
+
+def preflight_saved_bootstrap_models(document,metadata,*,now=None):
+    """Fatal original-restore preflight for this canonical issuer and day only."""
+    from scripts.boat_bootstrap_recovery_adapter import BOOTSTRAP_MODEL_ORIGINALS
+    from scripts.boat_failed_recovery_contract import JST
+    clock=now or utc_now();run=metadata.get('workflow_run',{})
+    scope=BOOTSTRAP_MODEL_ORIGINALS.get(run.get('id'))
+    # Other owners/days do not load runtime, an owner key, or a saved view.
+    if scope is None or clock.astimezone(JST).date().isoformat()!=scope[1]:return None
+    need(run.get('head_sha')==scope[0] and document.get('day_jst')==scope[1],
+         'BOOTSTRAP_MODEL_CANONICAL_SCOPE_CHANGED')
+    marker=prepare_runtime(round_no=0)
+    issued=_json(_read(marker['issued_p0_models_path'],1024*1024,private=True),1024*1024)
+    view=_existing_view(_owner())
+    return require_saved_bootstrap_models(document,_receipt(metadata,document),issued,view,
+        now=now or utc_now())
+
+
 def bootstrap_current(round_no=0):
     marker = prepare_runtime(round_no=round_no); env = _environment()
     local = ROOT/"boat_all_day_output/forecasts.json"; local_receipt = ROOT/"boat_all_day_output/first-receipt.json"
@@ -441,6 +507,11 @@ def bootstrap_current(round_no=0):
     else:
         return dict(ready=False, contexts=0, generated_forecasts=0)
     issued = _json(_read(marker["issued_p0_models_path"], 1024*1024, private=True), 1024*1024)
+    from scripts.boat_bootstrap_recovery_adapter import BOOTSTRAP_MODEL_ORIGINALS
+    from scripts.boat_failed_recovery_contract import JST
+    prior=BOOTSTRAP_MODEL_ORIGINALS.get(int(receipt['run_id']))
+    if prior is not None and utc_now().astimezone(JST).date().isoformat()==prior[1]:
+        require_saved_bootstrap_models(document,receipt,issued,_existing_view(_owner()))
     clock=utc_now();seller_sources=_seller_sources(marker,document,receipt,clock)
     binding=dict(document=document,receipt=receipt)
     if seller_sources is not None:binding['seller_source_metadata_sha256']=marker['metadata_sha256']

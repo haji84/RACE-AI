@@ -536,3 +536,372 @@ class BootstrapRecoveryTests(unittest.TestCase):
             with self.subTest(expected_head=malformed):
                 self.assertFalse(reviewed_recovery_origin(
                     'a74f1e940e7fc0852e63938f8138bdb58bd93163',malformed))
+
+    def test_fbc_outside_the_exact_saved_bootstrap_instance_never_admits_a_release(self):
+        fbc='fbc743be548bfd123e46cdbfe290515a59e5e0d3';next_head='e'*40
+        self._release_origin_fixture(fbc)
+        before=deepcopy(self.control)
+        with self.assertRaisesRegex(ValueError,'RUN_CHANGED'):self._release_proof(next_head)
+        self.assertEqual(self.control,before)
+        self.assertEqual(self.release_retained,[])
+
+    def _bootstrap_models_fixture(self):
+        import os
+        from pathlib import Path
+        from unittest.mock import patch
+        from race_ai import boat_all_model_cycle as engine,boat_all_model_store as store,saved_view_feed as feed
+        from race_ai.boat_saved_view_intake import project_native_state
+        from scripts import boat_bootstrap_recovery_adapter as contract
+        from tests.test_boat_all_model_cycle import AllModelCycleTests
+        from tests.test_boat_all_model_recovery import zipped
+        from tests.test_saved_view_feed import ProjectionTests
+        from tests.test_boat_private_original_vault_private_pairs import MemoryRemote,MemoryVault
+        from race_ai.actions_contract import digest
+        fixture=AllModelCycleTests();fixture.setUp();self.addCleanup(fixture.doCleanups)
+        if not hasattr(AllModelCycleTests,'fitted'):AllModelCycleTests.setUpClass()
+        files=fixture.runtime(fitted=True)
+        old=ProjectionTests();old.setUp();self.addCleanup(old.doCleanups)
+        base=deepcopy(old.view)
+        fbc='fbc743be548bfd123e46cdbfe290515a59e5e0d3'
+        self._release_origin_fixture(fbc)
+        private=self.release_root/'runtime-temp';private.mkdir(mode=0o700)
+        context=patch.dict(os.environ,GITHUB_ACTIONS='true',GITHUB_REPOSITORY='haji84/RACE-AI',
+            GITHUB_REPOSITORY_ID='1416489937',GITHUB_RUN_ID='100',GITHUB_SHA='e'*40,
+            RUNNER_TEMP=str(private),GH_TOKEN='synthetic-github-token-only')
+        context.start();self.addCleanup(context.stop)
+        from race_ai import boat_all_model_recovery as model_recovery
+        observed_clock=patch.object(model_recovery,'_now',return_value=NOW)
+        observed_clock.start();self.addCleanup(observed_clock.stop)
+        self.assertTrue(hasattr(contract,'BOOTSTRAP_MODEL_ORIGINALS'), 'known saved bootstrap model scope is absent')
+        scope=patch.object(contract,'BOOTSTRAP_MODEL_ORIGINALS',{99:(fbc,DAY,708)})
+        scope.start();self.addCleanup(scope.stop)
+        files.update(source_code_commit=fbc,run_id='99')
+        receipt=dict(repository_id='1416489937',repository='haji84/RACE-AI',run_id='99',head_sha=fbc,
+            artifact_id=701,created_at=self.p0meta['created_at'],payload_sha256=digest(self.doc),independently_verified=True)
+        self.models_payload=engine.forecast_saved_p0(self.doc,receipt,files,
+            now=NOW.replace(hour=1,minute=44,second=0,microsecond=0))
+        self.models_payload['source_code_commit']=fbc
+        raw=zipped(store.seal_forecasts(self.models_payload,run_id='99',round_no=0,key=KEY))
+        self.models_meta=dict(id=708,name='boat-all-model-forecasts-99-r0',expired=False,
+            digest='sha256:'+sha256(raw).hexdigest(),size_in_bytes=len(raw),created_at='2030-04-01T01:44:01Z',
+            expires_at='2030-04-08T02:35:00Z',workflow_run=deepcopy(self.p0meta['workflow_run']))
+        self.responses['actions/artifacts/708']=json.dumps(self.models_meta).encode()
+        self.responses['actions/artifacts/708/zip']=raw
+        self._set_model_listing()
+        self.replay.update(schema='RACE_AI_RECOVERED_FIRST_RECEIPTS_V1',observations=[])
+        self.replay['state_sha256']=digest(self.replay)
+        base['forecast_base_sha256']=feed.originals_sha(base)
+        self.feed_bootstrap=dict(key=b'x'*32,view_id='b'*64,cipher_sha256='c'*64,
+            forecast_sha256=feed.forecast_anchor(base),pages_commit='d'*40)
+        class Feed(MemoryVault):
+            def __init__(self,remote,repo):
+                super().__init__(remote,repo);self.ref=feed.REF;self._saved_history_context=None
+            def validate_tree(self,commit):pass
+            def exists(self,commit,path):return commit in self.objects and path in self.objects[commit]
+            def commit_snapshot(self,files,parent):
+                value=sha256(parent.encode()+b''.join(p.encode()+v for p,v in sorted(files.items()))).hexdigest()[:40]
+                self.objects[value]=dict(files);return value
+            def push(self,commit,parent):
+                if self.remote.current!=parent:raise ValueError('STATE_REF_CONCURRENT_UPDATE')
+                self.remote.objects.update(deepcopy(self.objects));self.remote.current=commit
+        remote=MemoryRemote();self.feed_writer=Feed(remote,self.release_writer.repo)
+        self.feed_reader=Feed(remote,self.release_reader.repo)
+        self.feed_writer.fetch(remote.current)
+        raw=feed.encrypt_view(base,self.feed_bootstrap['key'],view_id='b'*64,source_sha='c'*64,
+            generation=1,previous='c'*64)
+        header=json.loads(raw)['header'];ident=sha256(raw).hexdigest()
+        first=self.feed_writer.commit_snapshot({'views/'+ident+'.json':raw,
+            'latest.json':json.dumps(dict(header=header,cipher_sha256=ident)).encode()},remote.current)
+        self.feed_writer.push(first,remote.current);self.feed_nonhistory=first
+        published=feed.publish_view(self.feed_writer,self.feed_bootstrap,base,parent=first,
+            previous=ident,generation=1,history=True)
+        self.feed_initial=published['commit']
+        self.bootstrap_model_options=dict(now=NOW,expected_head='e'*40,get=self._release_get,
+            bootstrap=self.feed_bootstrap,transport=self.feed_writer,readback_transport=self.feed_reader,
+            protection_transport=self.release_writer,protection_readback_transport=self.release_reader)
+
+    def _set_model_listing(self):
+        self.responses['actions/runs/99/artifacts?per_page=100']=json.dumps(dict(total_count=4,
+            artifacts=[self.p0meta,self.contmeta,self.publicmeta,self.models_meta])).encode()
+
+    def _restore_bootstrap_models(self):
+        from scripts import boat_recover_failed_owner as cli
+        return cli.restore_failed_bootstrap_models(self.run,self.replay,self.release_writer.repo,
+            **self.bootstrap_model_options)
+
+    def _current_bootstrap_proof(self,runs=None,clock=None):
+        from scripts import boat_recover_failed_owner as cli
+        def retain(checked,run):
+            return cli.retain_verified_pair(checked,run,self.release_writer.repo,now=NOW,
+                transport=self.release_writer,readback_transport=self.release_reader)
+        options={} if clock is None else {'clock':clock}
+        return cli.recover_history(runs or [self.run],get=self._release_get,
+            load_control=lambda run:recovery.read_final_control(self._release_get,run),
+            replay_day=lambda:deepcopy(self.replay),retain=retain,now=NOW,expected_head='e'*40,
+            restore_bootstrap_models=lambda *_:cli.restore_failed_bootstrap_models(self.run,self.replay,
+                self.release_writer.repo,**dict(self.bootstrap_model_options,**options)),**options)
+
+    def _successful_successor(self,ident=100,total=93,used=4,day_base=88,rounds=8,offset=0):
+        from race_ai.boat_private_original_archive import seal_original_zip
+        from tests.test_continuity_checkpoint import session
+        created=NOW.replace(minute=33,second=offset,microsecond=0)
+        saved=NOW.replace(minute=34,second=offset,microsecond=0)
+        successor=dict(self.run,id=ident,head_sha='e'*40,conclusion='success',
+            created_at=created.isoformat(),updated_at=saved.replace(second=offset+2).isoformat())
+        body=session(run_id=ident,requests_used=used,completed_round=1,prepared_round=None,
+            lifetime_requests_base=total-used,lifetime_requests=total,day_start_lifetime_requests=day_base,
+            lifetime_completed_rounds_base=rounds-1,lifetime_completed_rounds=rounds,
+            halted_reason='WORKER_HANDOFF',source_wait=None)
+        cipher=seal_original_zip(packed({'repeat-session.json':body}),run_id=ident,head_sha='e'*40,kind='CONTINUITY',key=KEY)
+        continuity=packed({'private-original.enc':cipher})
+        summary=packed({'source-control.json':json.dumps(build_summary(cipher,run_id=ident,head_sha='e'*40,key=KEY)).encode()})
+        metas=[]
+        for number,name,raw,second in ((802+(ident-100)*10,'race-cycle-continuity',continuity,offset),
+                                     (803+(ident-100)*10,'race-source-control',summary,offset+1)):
+            meta=dict(self.contmeta,id=number,name=f'{name}-{ident}',size_in_bytes=len(raw),digest='sha256:'+sha256(raw).hexdigest(),
+                created_at=saved.replace(second=second).isoformat(),workflow_run=dict(self.contmeta['workflow_run'],id=ident,head_sha='e'*40))
+            metas.append(meta);self.responses[f'actions/artifacts/{number}']=json.dumps(meta).encode()
+            self.responses[f'actions/artifacts/{number}/zip']=raw
+        self.responses[f'actions/runs/{ident}']=json.dumps(successor).encode()
+        self.responses[f'actions/runs/{ident}/artifacts?per_page=100']=json.dumps(dict(total_count=2,artifacts=metas)).encode()
+        return successor
+
+    def test_known_saved_bootstrap_cannot_emit_proof_without_its_model_recovery_hook(self):
+        from scripts import boat_bootstrap_recovery_adapter as contract
+        from unittest.mock import patch
+        self.assertTrue(hasattr(contract,'BOOTSTRAP_MODEL_ORIGINALS'),'required r0 recovery is absent')
+        fbc='fbc743be548bfd123e46cdbfe290515a59e5e0d3';self._release_origin_fixture(fbc)
+        with patch.object(contract,'BOOTSTRAP_MODEL_ORIGINALS',{99:(fbc,DAY,708)}), \
+             self.assertRaisesRegex(ValueError,'BOOTSTRAP_MODELS_REQUIRED'):
+            self._release_proof('e'*40)
+
+    def test_saved_r0_is_authenticated_retained_and_independently_projected_without_generating(self):
+        from scripts import boat_recover_failed_owner as cli
+        from race_ai import boat_all_model_cycle as engine,saved_view_feed as feed,boat_private_original_vault as vault
+        from unittest.mock import patch
+        self.assertTrue(callable(getattr(cli,'restore_failed_bootstrap_models',None)),'saved r0 restore hook is absent')
+        self._bootstrap_models_fixture();before=deepcopy((self.control,self.models_payload,self.responses))
+        with patch.object(engine,'forecast_saved_p0',side_effect=AssertionError('recovery generated a forecast')):
+            proof=self._restore_bootstrap_models()
+        self.assertEqual(proof['forecasts'],5)
+        self.assertEqual(proof['new_forecasts'],0)
+        self.assertEqual(proof['forecast_inventory_sha256'],proof['restored_inventory_sha256'])
+        self.assertEqual(proof['issued_models_sha256'],proof['included_issued_models_sha256'])
+        current=feed.current_view(self.feed_reader,self.feed_bootstrap,day=DAY)[3]
+        predictions=[p for row in current['records'] for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p]
+        self.assertEqual(sum(p.get('artifact_id')==708 for p in predictions),5)
+        self.assertTrue(any(p.get('artifact_id')==701 for p in predictions))
+        locator=vault.lookup_original(708,self.release_reader.repo,transport=self.release_reader)
+        original=vault.restore_original(locator,self.release_reader.repo,key=KEY,transport=self.release_reader)
+        self.assertEqual(original['raw_zip'],self.responses['actions/artifacts/708/zip'])
+        self.assertEqual((self.control,self.models_payload,self.responses),before)
+        again=self._restore_bootstrap_models()
+        self.assertEqual(again['forecast_inventory_sha256'],proof['forecast_inventory_sha256'])
+        self.assertEqual(again['new_forecasts'],0)
+
+    def test_missing_or_changed_r0_and_lost_readback_never_authorize_continuation(self):
+        from scripts import boat_recover_failed_owner as cli
+        from unittest.mock import patch
+        self.assertTrue(callable(getattr(cli,'restore_failed_bootstrap_models',None)),'saved r0 restore hook is absent')
+        self._bootstrap_models_fixture()
+        original=deepcopy(self.responses)
+        for defect in ('missing','metadata','cipher','first_p0'):
+            self.responses=deepcopy(original)
+            if defect=='missing':
+                self.responses['actions/runs/99/artifacts?per_page=100']=json.dumps(dict(total_count=3,
+                    artifacts=[self.p0meta,self.contmeta,self.publicmeta])).encode()
+            elif defect=='metadata':
+                changed=dict(self.models_meta,digest='sha256:'+'f'*64)
+                self.responses['actions/artifacts/708']=json.dumps(changed).encode()
+            elif defect=='cipher':
+                raw=self.responses['actions/artifacts/708/zip']
+                self.responses['actions/artifacts/708/zip']=raw[:-1]+bytes([raw[-1]^1])
+            else:
+                self.replay['rows']=[]
+            with self.subTest(defect=defect),self.assertRaises(ValueError):self._restore_bootstrap_models()
+            self.assertEqual(self.feed_writer.head(),self.feed_initial)
+        self.responses=original
+
+    def test_issued_map_must_include_every_authenticated_saved_r0_slot(self):
+        from scripts import boat_all_model_cycle as cli,boat_recover_failed_owner as recovery_cli
+        from race_ai import saved_view_feed as feed
+        self.assertTrue(callable(getattr(recovery_cli,'restore_failed_bootstrap_models',None)),'saved r0 restore hook is absent')
+        self.assertTrue(callable(getattr(cli,'require_saved_bootstrap_models',None)),'issued-map guard is absent')
+        self._bootstrap_models_fixture();self._restore_bootstrap_models()
+        view=feed.current_view(self.feed_reader,self.feed_bootstrap,day=DAY)[3]
+        maps={'P0':{},'P1':{}};cli._inventory(view,maps)
+        receipt=dict(run_id='99',head_sha=self.run['head_sha'],artifact_id=701)
+        checked=cli.require_saved_bootstrap_models(self.doc,receipt,maps['P0'],view,key=KEY,now=NOW)
+        self.assertEqual(checked['forecasts'],5)
+        for defect in ('missing_model','missing_view','changed_original'):
+            issued=deepcopy(maps['P0']);damaged=deepcopy(view)
+            if defect=='missing_model':
+                row=next(row for row in view['records'] if any(p and p.get('artifact_id')==708
+                    for p in [row.get('prediction'),*row.get('comparison_predictions',[])]))
+                model=next(p['model_id'] for p in [row.get('prediction'),*row.get('comparison_predictions',[])]
+                    if p and p.get('artifact_id')==708)
+                issued[row['race_id']].remove(model)
+            elif defect=='missing_view':damaged['records']=[]
+            else:
+                p=next(p for row in damaged['records'] for p in row['comparison_predictions'] if p.get('artifact_id')==708)
+                p['generated_at']='2030-04-01T01:44:00.000001Z'
+            with self.subTest(defect=defect),self.assertRaises(ValueError):
+                cli.require_saved_bootstrap_models(self.doc,receipt,issued,damaged,key=KEY,now=NOW)
+        self.assertIsNone(cli.require_saved_bootstrap_models(self.doc,receipt,{}, {'records':[]},
+            key=KEY,now=NOW.replace(day=2)))
+        self.assertIsNone(cli.require_saved_bootstrap_models(self.doc,dict(receipt,run_id='100'),{},
+            {'records':[]},key=KEY,now=NOW))
+
+    def test_existing_saved_r0_still_requires_its_actual_vault_locator_and_authenticated_bytes(self):
+        from scripts import boat_recover_failed_owner as cli
+        from race_ai import boat_private_original_vault as vault
+        self._bootstrap_models_fixture()
+        saved=cli.retain_verified_pair(self.verify(),self.run,self.release_writer.repo,now=NOW,
+            transport=self.release_writer,readback_transport=self.release_reader)
+        core_commit=saved['source_commit']
+        self._restore_bootstrap_models()
+        model_commit=self.release_remote.current
+        locator=vault.lookup_original(708,self.release_writer.repo,transport=self.release_writer)
+        self.release_remote.current=core_commit
+        with self.assertRaisesRegex(ValueError,'BOOTSTRAP_MODEL_VAULT_ORIGINAL_MISSING'):
+            self._restore_bootstrap_models()
+        self.release_remote.current=model_commit
+        path=locator['batch_path'];body=self.release_remote.objects[model_commit][path]
+        self.release_remote.objects[model_commit][path]=body[:-1]+bytes([body[-1]^1])
+        with self.assertRaises(ValueError):self._restore_bootstrap_models()
+
+    def test_bootstrap_recovery_cannot_activate_history_for_a_non_history_feed(self):
+        self._bootstrap_models_fixture()
+        self.feed_writer.remote.current=self.feed_nonhistory
+        with self.assertRaisesRegex(ValueError,'BOOTSTRAP_MODEL_HISTORY_CURRENT_REQUIRED'):
+            self._restore_bootstrap_models()
+
+    def test_bootstrap_model_restore_is_required_in_the_new_head_bound_dispatch_proof(self):
+        from scripts import boat_recover_failed_owner as cli
+        from scripts import boat_bootstrap_recovery_adapter as adapter
+        from unittest.mock import patch
+        self.assertTrue(callable(getattr(cli,'restore_failed_bootstrap_models',None)),'saved r0 restore hook is absent')
+        self.assertTrue(callable(getattr(adapter,'verify_current_recovery_proof',None)),'current caller adapter is absent')
+        self._bootstrap_models_fixture()
+        proof=self._current_bootstrap_proof()
+        self.assertIsNotNone(adapter.verify_current_recovery_proof(proof,[self.run],self.control,'e'*40,NOW))
+        self.assertIsNone(recovery.verify_dispatch_proof(proof,[self.run],self.control,'e'*40,NOW))
+        self.assertIsNone(adapter.verify_current_recovery_proof(proof['historical_proof'],
+            [self.run],self.control,'e'*40,NOW))
+        for defect in ('missing','old_head','missing_inventory','missing_issued','missing_vault'):
+            changed=deepcopy(proof);model=changed['repairs'][0]['bootstrap_models']
+            if defect=='missing':changed['repairs'][0].pop('bootstrap_models')
+            elif defect=='old_head':changed['head_sha']=self.run['head_sha']
+            elif defect=='missing_inventory':model['restored_inventory_sha256']='f'*64
+            elif defect=='missing_issued':model['included_issued_models_sha256']='f'*64
+            else:model['vault_commit']=None
+            with self.subTest(defect=defect):
+                self.assertIsNone(adapter.verify_current_recovery_proof(changed,[self.run],self.control,'e'*40,NOW))
+
+    def test_successful_successor_keeps_failed_fbc_history_and_inherits_its_one_request(self):
+        from scripts import boat_bootstrap_recovery_adapter as adapter
+        from race_ai.boat_private_original_archive import seal_original_zip
+        from tests.test_continuity_checkpoint import session
+        self.assertTrue(callable(getattr(adapter,'verify_current_recovery_proof',None)),'current caller adapter is absent')
+        self._bootstrap_models_fixture()
+        successor=self._successful_successor()
+        runs=[successor,self.run];before=deepcopy(runs)
+        proof=self._current_bootstrap_proof(runs)
+        fresh=recovery.read_final_control(self._release_get,successor)
+        checked=adapter.verify_current_recovery_proof(proof,runs,fresh,'e'*40,NOW)
+        self.assertIsNotNone(checked)
+        self.assertEqual(checked['lifetime_requests'],93)
+        self.assertEqual(checked['day_start_lifetime_requests'],88)
+        self.assertEqual(runs,before)
+        for defect in ('lost_history','renamed_head','active','wait','prepared','reset_lifetime','reset_day_base'):
+            changed=deepcopy(proof);history=deepcopy(runs);control=deepcopy(fresh)
+            if defect=='lost_history':history.pop()
+            elif defect=='renamed_head':history[1]['head_sha']='e'*40
+            elif defect=='active':history[0].update(status='in_progress',conclusion=None)
+            elif defect=='wait':control['source_wait']={'state':'SOURCE_REVIEW_WAIT'}
+            elif defect=='prepared':control['prepared_round']=2
+            elif defect=='reset_lifetime':control['lifetime_requests']=88
+            else:control['day_start_lifetime_requests']=89
+            if defect in ('wait','prepared','reset_lifetime','reset_day_base'):
+                changed['current_control']=control;changed['latest_control']=control
+            with self.subTest(defect=defect):
+                self.assertIsNone(adapter.verify_current_recovery_proof(changed,history,control,'e'*40,NOW))
+
+    def test_every_authenticated_successor_control_keeps_counters_and_day_baseline(self):
+        self._bootstrap_models_fixture()
+        for defect in ('requests','day_base','rounds','round_base'):
+            middle=self._successful_successor(total=100,used=11,
+                day_base=89 if defect=='day_base' else 88,rounds=12 if defect=='rounds' else 8)
+            latest=self._successful_successor(101,total=93 if defect=='requests' else 104,used=4,
+                rounds=8 if defect in ('rounds','round_base') else 9,offset=10)
+            with self.subTest(defect=defect),self.assertRaisesRegex(ValueError,'FINAL_PROOF_REJECTED'):
+                self._current_bootstrap_proof([latest,middle,self.run])
+
+    def test_other_day_or_other_canonical_owner_preflight_loads_no_runtime_or_key(self):
+        from scripts import boat_all_model_cycle as cli,boat_bootstrap_recovery_adapter as adapter
+        from unittest.mock import patch
+        self.assertTrue(callable(getattr(cli,'preflight_saved_bootstrap_models',None)),'fatal original-restore preflight is absent')
+        fbc='fbc743be548bfd123e46cdbfe290515a59e5e0d3';self._release_origin_fixture(fbc)
+        with patch.object(adapter,'BOOTSTRAP_MODEL_ORIGINALS',{99:(fbc,DAY,708)}), \
+             patch.object(cli,'prepare_runtime',side_effect=AssertionError('unrelated owner runtime was loaded')), \
+             patch.object(cli,'_owner',side_effect=AssertionError('unrelated owner key was loaded')):
+            self.assertIsNone(cli.preflight_saved_bootstrap_models(self.doc,self.p0meta,now=NOW.replace(day=2)))
+            changed=deepcopy(self.p0meta);changed['workflow_run']['id']=100
+            self.assertIsNone(cli.preflight_saved_bootstrap_models(self.doc,changed,now=NOW))
+
+    def test_canonical_first_owner_missing_view_fails_original_restore_before_resume(self):
+        import os,io
+        from types import SimpleNamespace
+        from contextlib import redirect_stdout
+        from unittest.mock import patch
+        from scripts import boat_all_model_cycle as cli,github_existing_cycle as worker
+        from race_ai import saved_view_feed as feed,boat_all_model_cycle as engine
+        self.assertTrue(callable(getattr(cli,'preflight_saved_bootstrap_models',None)),'fatal original-restore preflight is absent')
+        self._bootstrap_models_fixture()
+        issued=self.release_root/'issued.json';issued.write_text('{}');issued.chmod(0o600)
+        before=feed.current_view(self.feed_reader,self.feed_bootstrap)[3]
+        output=io.StringIO()
+        with patch.object(worker,'ROOT',self.release_writer.repo), \
+             patch.object(worker,'original',return_value=(self.doc,self.replay['rows'],self.p0meta,self.p0)), \
+             patch.object(worker,'_video_sources',return_value=(SimpleNamespace(verify=None,artifact_ids=[]),None)), \
+             patch.object(worker,'recover',return_value=deepcopy(self.replay)), \
+             patch.object(cli,'prepare_runtime',return_value={'issued_p0_models_path':str(issued)}), \
+             patch.object(cli,'_existing_view',return_value=before),patch.object(cli,'utc_now',return_value=NOW), \
+             patch.object(engine,'forecast_saved_p0',side_effect=AssertionError('restore generated a replacement')), \
+             redirect_stdout(output),self.assertRaisesRegex(ValueError,'BOOTSTRAP_MODEL_COVERAGE_REQUIRED'):
+            worker.restore(DAY)
+        self.assertNotIn('ORIGINAL_REUSED_NO_REGENERATION',output.getvalue())
+
+    def test_completed_validation_uses_actual_finish_clock_without_rewriting_original_clocks(self):
+        import inspect
+        from datetime import timedelta
+        from unittest.mock import patch
+        from scripts import boat_recover_failed_owner as cli,boat_bootstrap_recovery_adapter as adapter
+        self.assertIn('clock',inspect.signature(cli.recover_history).parameters,'completion clock is absent')
+        self._bootstrap_models_fixture();completed=[False];later=NOW+timedelta(seconds=601)
+        original=cli.retain_verified_pair;before=deepcopy((self.doc,self.control,self.models_payload))
+        def retained(checked,*args,**kwargs):
+            result=original(checked,*args,**kwargs)
+            if 708 in checked['original_artifact_ids']:completed[0]=True
+            return result
+        with patch.object(cli,'retain_verified_pair',side_effect=retained):
+            proof=self._current_bootstrap_proof(clock=lambda:later if completed[0] else NOW)
+        self.assertEqual(proof['verified_at'],later.isoformat())
+        self.assertEqual(proof['historical_proof']['repairs'][0]['control']['recovery']['verified_at'],later.isoformat())
+        self.assertEqual((self.doc,self.control,self.models_payload),before)
+        self.assertIsNotNone(adapter.verify_current_recovery_proof(proof,[self.run],self.control,'e'*40,later))
+        self.assertIsNone(adapter.verify_current_recovery_proof(proof,[self.run],self.control,'e'*40,
+            later+timedelta(seconds=601)))
+
+    def test_day_crossing_during_model_retention_never_emits_current_day_permission(self):
+        import inspect
+        from unittest.mock import patch
+        from scripts import boat_recover_failed_owner as cli
+        self.assertIn('clock',inspect.signature(cli.recover_history).parameters,'completion clock is absent')
+        self._bootstrap_models_fixture();completed=[False];original=cli.retain_verified_pair
+        def retained(checked,*args,**kwargs):
+            result=original(checked,*args,**kwargs)
+            if 708 in checked['original_artifact_ids']:completed[0]=True
+            return result
+        with patch.object(cli,'retain_verified_pair',side_effect=retained),self.assertRaises(ValueError):
+            self._current_bootstrap_proof(clock=lambda:NOW.replace(day=2) if completed[0] else NOW)

@@ -237,6 +237,10 @@ def restore(day,*,video_context_artifacts=(),video_reader=None):
         if error:
             state.setdefault('video_context_rejections',[]).append({'reason':error})
         write_state(ROOT/'cycle_recovery_output/continuity.json',state,key='state_sha256')
+    # A known physically saved bootstrap cannot be replaced after a view loss.
+    # This mandatory restore phase fails before optional model/source steps.
+    from scripts.boat_all_model_cycle import preflight_saved_bootstrap_models
+    preflight_saved_bootstrap_models(doc,meta)
     print(json.dumps(dict(state='ORIGINAL_REUSED_NO_REGENERATION',races=doc['race_count'],forecasts=len(rows),artifact_id=meta['id'])))
 
 def _venue_research_preload(*,round_no,clock=None):
