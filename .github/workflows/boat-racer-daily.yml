@@ -1004,7 +1004,6 @@ jobs:
           github.event.before == '09b65329692389fe260e4aa0430e94f341b255dc' &&
           startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
           steps.owner_gate.outcome == 'success'
-        continue-on-error: true
         working-directory: owner-source
         env:
           GH_TOKEN: ${{ github.token }}
