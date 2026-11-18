@@ -8,6 +8,9 @@ on:
       - 'scripts/keirin_register_public_day.py'
       - 'scripts/keirin_github_only_ab_*.py'
       - 'tests/test_keirin_github_only_ab_day.py'
+      - 'race_ai/keirin_secondary_result_consensus.py'
+      - 'scripts/keirin_secondary_result_poll.py'
+      - 'tests/test_keirin_secondary_result_consensus.py'
       - 'tests/test_keirin_register_public_day.py'
       - 'scripts/keirin_nationwide_independent_cipher_readback.py'
       - 'tests/test_keirin_nationwide_auto_*.py'
@@ -58,7 +61,8 @@ jobs:
             tests.test_keirin_discover_public_race_links \
             tests.test_keirin_register_public_day \
             tests.test_keirin_nationwide_auto_day_registry_workflow \
-            tests.test_keirin_github_only_ab_day
+            tests.test_keirin_github_only_ab_day \
+            tests.test_keirin_secondary_result_consensus
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_nationwide_auto_storage.py \
@@ -72,6 +76,8 @@ jobs:
             scripts/keirin_register_public_day.py \
             scripts/keirin_github_only_ab_day.py \
             scripts/keirin_github_only_ab_readback.py \
+            race_ai/keirin_secondary_result_consensus.py \
+            scripts/keirin_secondary_result_poll.py \
             scripts/keirin_real_nationwide_day_link_smoke.py \
             scripts/keirin_real_source_to_aes_one_run.py \
             scripts/keirin_evening_national_real_AB_20261118.py \
@@ -895,3 +901,47 @@ jobs:
           path: ${{ runner.temp }}/keirin-git-independent.json
           if-no-files-found: error
           retention-days: 21
+
+
+  real-secondary-result-20261118-smoke:
+    # Historic known race: source page parsing only, no model replay.
+    if: github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: One existing public Kdreams and netkeirin result pair, never official
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5'
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from scripts.keirin_capture_public_two_sources import SCHEMA
+          rid="202611182601"
+          doc={"schema":SCHEMA,"day_jst":"2026-11-18",
+               "source_use_scope":"OWNER_PERSONAL_RESEARCH_ONLY",
+               "races":[{"race_id":rid,
+                 "netkeirin_url":"https://keirin.netkeiba.com/race/entry/?race_id="+rid,
+                 "kdreams_url":"https://keirin.kdreams.jp/seibuen/racedetail/2620261118010001/",
+                 "cutoff_hint":None}]}
+          path=Path(os.environ["RUNNER_TEMP"])/"keirin-test-result-manifest.json"
+          path.write_text(json.dumps(doc),encoding="utf-8")
+          PY
+          if python -m scripts.keirin_secondary_result_poll \
+             --manifest "$RUNNER_TEMP/keirin-test-result-manifest.json" \
+             --race-id 202611182601 \
+             --report "$RUNNER_TEMP/keirin-test-result-secondary.json" \
+             > "$RUNNER_TEMP/keirin-two-provider-safe.json"; then
+            cat "$RUNNER_TEMP/keirin-two-provider-safe.json" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "HOLD_PUBLIC_SECONDARY_RESULT_SOURCE_UNAVAILABLE_NOT_OFFICIAL" >> "$GITHUB_STEP_SUMMARY"
+          fi
