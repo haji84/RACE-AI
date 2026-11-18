@@ -34,12 +34,12 @@ import urllib.request
 
 PAGES_SHA = 'f60308ef7443ca13b5ca23c4896e15ffc67b0427'
 SOURCE_SHA = 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'
-CANDIDATE_SHA = 'ed904fe62dad470a91ababce623c52c1fbde5861'
-CANDIDATE_WEB_TREE = '5759ac3f0ab900cc9c6d0ac592a44c4ff4ce53d8'
+CANDIDATE_SHA = 'f723f0e8b94a87a6d6a7b414b1bb30954541925e'
+CANDIDATE_WEB_TREE = 'd905215e2f886b0bcc4f2e58323ceee465b03c38'
 CANDIDATE_ASSET_SHA256 = {
-    'index.html': 'fb942083b431d20a5e53407dabd460ffe291cc8cb776c448c5950ee0bd370741',
-    'app.js': '926187708d1b8d35bbfa21ba7361c86fc51578039cbc1b29f17415f34d132778',
-    'style.css': '8d6c35ec822aab974bad0564692780c26f8cd28859cefea5d143e4aa2e463e3f'}
+    'index.html': 'ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2',
+    'app.js': 'c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5',
+    'style.css': '06414329229c6c7919b67408ca567c859b064d7f2b0d7abab7ddc203ab407e82'}
 CSP = ("default-src 'none';script-src 'self';style-src 'self';"
        "img-src 'self' data:;connect-src 'self';font-src 'none';"
        "form-action 'none';object-src 'none';base-uri 'none';frame-src 'none'")

@@ -1,0 +1,13 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_METADATA_PRESERVATION_V1",
+  "recorded_at_utc": "2026-11-18T16:26:00Z",
+  "number": 19,
+  "url": "https://github.com/haji84/RACE-AI/pull/19",
+  "title": "feat: 権利確認済み当日データの安全なスナップショット生成",
+  "body": "当日JST日付、出典URL、SHA、取得時刻、開催場/レース/艇整合性、権利確認記録を検査し、許可済み正規化JSONをatomic replaceで保存するpublisherと回帰テストを追加。古い日付・許可なし・重複艇はSAFE_STOP。権利確認記録の真偽はコード単体では検証できず、信頼できる承認プロセスが別途必要。\n\n未完成：公式/会場サイトからの許諾済み取得、実スナップショット生成、Vercel配信、iPhone E2E。main/Production未変更。",
+  "base": "fix/boat-feed-ci-contract",
+  "head_ref": "feat/boat-day-snapshot-publisher",
+  "head_sha": "a46edc0a5e2816a201e72005cfb9c6b6661957a5",
+  "draft": true,
+  "preserve_ancestry": true
+}

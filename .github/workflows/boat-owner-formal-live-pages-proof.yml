@@ -139,7 +139,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ed904fe62dad470a91ababce623c52c1fbde5861
+          ref: f723f0e8b94a87a6d6a7b414b1bb30954541925e
           path: .native-safari-ui-candidate
           persist-credentials: false
       - name: Capture pinned UI candidate in seven pages and four widths
@@ -157,7 +157,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: race-ai-ui-candidate-safari-ed904fe6-${{ github.sha }}
+          name: race-ai-ui-candidate-safari-f723f0e8-${{ github.sha }}
           path: ${{ runner.temp }}/race-ai-ui-candidate-safari/*.png
           if-no-files-found: error
           retention-days: 7

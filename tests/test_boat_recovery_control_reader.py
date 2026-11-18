@@ -71,9 +71,10 @@ class GitHubCLI:
     def test_historical_a74_checkout_cannot_read_control_for_actual_research_cache_release(self):
         for previous in ('a74f1e940e7fc0852e63938f8138bdb58bd93163',
                          'f1f8ed4ffb2a29e6b702685f49de63918610479d',
-                         'c979aeb678538d99e277f26726047dccbdc982af'):
+                         'c979aeb678538d99e277f26726047dccbdc982af',
+                         '995ef00a2ffb98a0161e1875d7d2a33145367b40'):
             with self.subTest(previous=previous), \
-                 patch.object(base,'RELEASE_SHA','995ef00a2ffb98a0161e1875d7d2a33145367b40'), \
+                 patch.object(base,'RELEASE_SHA','fbc743be548bfd123e46cdbfe290515a59e5e0d3'), \
                  patch.object(gate.subprocess,'check_output',return_value=previous.encode()), \
                  patch.object(gate.subprocess,'run') as child:
                 with self.assertRaisesRegex(ValueError,'RECOVERY_PINNED_CONTROL_UNAVAILABLE'):

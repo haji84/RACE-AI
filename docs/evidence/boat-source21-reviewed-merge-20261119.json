@@ -1,0 +1,110 @@
+{
+  "schema": "RACE_AI_SOURCE21_REVIEWED_MERGE_AND_CI_RECOVERY_V1",
+  "recorded_at_utc": "2026-11-18T16:40:00Z",
+  "pr": 21,
+  "base": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+  "tested_head": "9f3da06ed287954a9e9724724fecba637a275299",
+  "protected_merge": "fbc743be548bfd123e46cdbfe290515a59e5e0d3",
+  "tested_tree": "1068d5a0d1225e0638a31528f8031a5b8e9fc584",
+  "protected_tree": "1068d5a0d1225e0638a31528f8031a5b8e9fc584",
+  "verified_with": [
+    "Authenticated GitHub commit API",
+    "git ls-remote protected source",
+    "git fetch FETCH_HEAD and its tree"
+  ],
+  "remote_tracking_note": "Origin fetch refspec tracks main only. The stale origin/production local ref was not used as current HEAD.",
+  "merge_method": "normal protected merge",
+  "first_ci": {
+    "run": 44343871094,
+    "job": 134940885557,
+    "head": "36fc97048803d9f3d997faaa7019fed1365c86cd",
+    "conclusion": "cancelled",
+    "tests_before_dependency_timeout": [
+      3,
+      12,
+      882,
+      38
+    ],
+    "cause": "Recorder ffmpeg apt installation exhausted the unchanged 18-minute job timeout. The actual apt-mirrors.txt path selected EC2 and was omitted from the existing mirror rewriter."
+  },
+  "final_ci": {
+    "run": 44348357932,
+    "job": 134956846067,
+    "conclusion": "success",
+    "python": [
+      {
+        "tests": 3,
+        "seconds": 0.001
+      },
+      {
+        "tests": 13,
+        "seconds": 0.05
+      },
+      {
+        "tests": 882,
+        "seconds": 195.043
+      },
+      {
+        "tests": 38,
+        "seconds": 2.583
+      },
+      {
+        "tests": 223,
+        "seconds": 40.534
+      },
+      {
+        "tests": 46,
+        "seconds": 0.299
+      }
+    ],
+    "node": {
+      "tests": 29,
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0
+    },
+    "apt": {
+      "mirror_file_used": true,
+      "archive_host": "archive.ubuntu.com",
+      "scheme": "https",
+      "download_mb": 62.8,
+      "download_seconds": 25
+    },
+    "checks": {
+      "success": 1,
+      "skipped": 3,
+      "failure": 0
+    }
+  },
+  "independent_reviews": {
+    "clothing_unknown_detections": "CLEAR",
+    "duplicate_decoded_candidate_validation": "CLEAR",
+    "apt_mirror_file_path": "CLEAR"
+  },
+  "scope": [
+    "Evaluate the existing clothing journal with explicit rider-part references; do not turn rider detections into hull/physical tracks.",
+    "Keep actual unknown detections in all-target denominators and exclude ambiguous frames from perfect-six/continuity success.",
+    "Remove only a repeated full validation of the same untouched decoded training candidate.",
+    "Add the actual apt mirror-file path to existing dependency setup without changing job settings."
+  ],
+  "preserved": {
+    "original_ciphertexts_and_forecasts": true,
+    "models_and_production_weights": true,
+    "official_source_capture_clock_and_day_guards": true,
+    "source_pacing_and_waits": true,
+    "old_worker_natural_completion": true,
+    "source_budget_counters": true,
+    "job_input_cron_runner_timeout_permissions": true,
+    "pages_f603_unchanged": true,
+    "manual_source_dispatch": false,
+    "new_pr": false
+  },
+  "limits": {
+    "real_six_boat_ground_truth_proven": false,
+    "calibrated_strength_or_real_forecast_improvement_proven": false,
+    "live_t15_10_performance_proven": false,
+    "new_worker_started_by_this_source_merge": false,
+    "main_exact_source_synchronization": "PENDING_EXISTING_PR19",
+    "goal_complete": false
+  }
+}

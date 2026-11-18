@@ -1,0 +1,127 @@
+{
+  "schema": "RACE_AI_MAIN_EXACT_CLOTHING_SOURCE_PIN_SYNC_V1",
+  "recorded_at_utc": "2026-11-18T16:47:32Z",
+  "base_main": "7584fc3d9d60aa2a548a43281041f66cf0ce9681",
+  "author_commit": "daa975eb39f58c92f4170a6d7ed259fd28a2aef4",
+  "integrated_patch_commit": "a67e75bd",
+  "source": "fbc743be548bfd123e46cdbfe290515a59e5e0d3",
+  "source_tree": "1068d5a0d1225e0638a31528f8031a5b8e9fc584",
+  "source_protected_merge_verified": true,
+  "runtime_files": 6,
+  "existing_test_files": 6,
+  "existing_marker": "docs/evidence/owner-pdca-main-trigger.txt",
+  "prefix": "boat-owner-release: single-real-session-20261111",
+  "new_role": "CLOTHING_BENCHMARK_OWNER_SHA",
+  "p0_admission": {
+    "allow": [
+      "SAME_SOURCE",
+      "M2",
+      "PROFILE",
+      "BB",
+      "A74"
+    ],
+    "deny": [
+      "995",
+      "C979",
+      "F1",
+      "UNKNOWN"
+    ],
+    "old_roles_accept_new_source": false,
+    "historical_995_role_preserved": true
+  },
+  "actual_auditor_git_blobs": {
+    "active": "9dc8551769ee73ee5a823d257bb34c9932feec18",
+    "exact": "c1be89974f6926383eaedc431e4004bf8827c4d8"
+  },
+  "verification": {
+    "tests_first_red": {
+      "tests": 7,
+      "assertion_failures": 17,
+      "errors": 0
+    },
+    "actual_source_green": {
+      "recovery_gate": {
+        "tests": 138,
+        "seconds": 0.421
+      },
+      "matrix": {
+        "tests": 372,
+        "seconds": 207.061
+      }
+    },
+    "root_combined_racer_gate_and_native_candidate": {
+      "tests": 206,
+      "seconds": 14.724,
+      "pass": true
+    },
+    "six_runtime_changes_reverse_to_exact_base_bytes": true,
+    "yaml_workflows": 3,
+    "embedded_python_blocks": 22,
+    "syntax_pass": true,
+    "ci_required_before_merge": true,
+    "independent_review": {
+      "status": "CLEAR",
+      "reviewed_commit": "daa975eb39f58c92f4170a6d7ed259fd28a2aef4",
+      "tests": 145,
+      "seconds": 23.549,
+      "full_372_independently_repeated": false
+    }
+  },
+  "frozen_pins": {
+    "failed_main": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
+    "failed_source": "be56af54f71d4c3a7d303823b056e4964150db49",
+    "evidence_reader": "014fc9ddbbd24c501b7784eeae50be315644669f",
+    "pair_reader": "3e1f414a4e164f5400f7f7a1533977b8678d80c4",
+    "raw_reader": "daef1d09ce55dde149defda0a15e6459ac511f73",
+    "recovery_origins_unchanged": true,
+    "fixed_m2_push_target_unchanged": true
+  },
+  "invariants": {
+    "new_job_input_cron_runner_timeout_permissions": false,
+    "new_model_or_weights": false,
+    "new_marker_name": false,
+    "native_and_owner_day_guards_changed": false,
+    "manual_source_dispatch": false,
+    "ui_published": false
+  },
+  "live_next_day_worker_and_native_acceptance_proven": false,
+  "goal_complete": false,
+  "first_github_ci": {
+    "head": "f0ad365c1f7c6dfbeec624ecc1b356158f409260",
+    "tree": "e8d05ba4a587e2461d61c911c5db41379f6955fd",
+    "checks": 27,
+    "success": 13,
+    "skipped": 14,
+    "failures": 0,
+    "recovery": {
+      "run": 44351617781,
+      "job": 134968496392,
+      "tests": 138,
+      "seconds": 0.491,
+      "isolated_public_reader_import_verified": true
+    },
+    "racer": {
+      "run": 44351617763,
+      "job": 134968495032,
+      "tests": 206,
+      "seconds": 16.682
+    },
+    "native_checker_source_free": {
+      "run": 44351618469,
+      "job": 134968496533,
+      "tests": 140,
+      "seconds": 16.998,
+      "live_pages_f603_four_assets_match": true,
+      "physical_or_native_browser_acceptance": false
+    },
+    "matrix": {
+      "run": 44351617760,
+      "job": 134968494634,
+      "tests": 372,
+      "seconds": 152.168,
+      "additional_tests": 7,
+      "additional_seconds": 14.051
+    },
+    "merge_deferred_for_actual_candidate_regressions_found_before_publication": true
+  }
+}

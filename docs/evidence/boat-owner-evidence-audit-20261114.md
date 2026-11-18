@@ -139,3 +139,9 @@ WINTICKET403・真の全日生成・実iPhone・実6艇校正・前向き改善�
 この中立的な修正/文書mergeはowner起動、UI公開や本番重み変更を要求しない。
 
 [main統合テストの固定記録](keirin-source-guard-main-verification-20261119.json)は、既存PR22の同一runtimeに対する40件・起動138件・独立review48件の成功を保持する。source拒否を実取得成功へ置き換えていない。
+
+### 2026-11-19 01:49 JST: 実source mergeとmain参照の同期
+
+既存PR21の通常merge fbc743be548bfd123e46cdbfe290515a59e5e0d3 はtested tree1068d5a0d1225e0638a31528f8031a5b8e9fc584と一致。既存CI44348357932は882/223件等とNode29件が全成功し、実apt-mirrors.txt漏れの修正後は公式HTTPS62.8MBを25秒で取得した。
+[main実SHA同期](boat-main-exact-clothing-source-sync-20261119.json)は138/372件、統合206件、独立145件が成功。旧role・固定recovery契約・3reader・M2 target・全日guard・原本を保持する。既存prefixとmarkerのみを使い、通常main merge後の実ゲート判定まで起動を成功扱いしない。
+995の実完了は69stepだが4巡/追加生成0。競輪は[実44342598507](keirin-main758-actual-source-hold-44342598507-20261119.json)で拒否/制限停止、fe7のexact403単独は不明。[未公開候補の固定検証](boat-native-reviewed-candidate-pin-20261119.json)は実Safari/iPhone合格ではない。公開UI・本番重み・投票・元原本変更0。
