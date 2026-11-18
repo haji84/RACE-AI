@@ -19,8 +19,33 @@
     "control_logged_at": "2026-11-18T11:06:23.8385572Z",
     "runtime_written_before_red": false
   },
-  "green": "UNCONFIRMED",
-  "actual_retained_owner_raw_authentication": "UNCONFIRMED",
+  "green": {
+    "head": "6bde7f62aecf0336b6add7a5e025a2310062882a",
+    "tree": "0532ad1ed4d42ce2f47334b63e087b7e1d003250",
+    "run_id": 44295345263,
+    "job_id": 134770831664,
+    "old_tests": 364,
+    "old_seconds": 129.251,
+    "new_tests": 7,
+    "new_seconds": 10.391,
+    "raw_method_passes": 7,
+    "both_commands_pass": true,
+    "checks_success": 8,
+    "checks_skipped": 7,
+    "checks_failed": 0,
+    "source_review": "CLEAR",
+    "caller_review": "CLEAR",
+    "old_assertions_preserved": true,
+    "one_hostile_stop_subcase_added": true,
+    "normal_merge_pr": 30,
+    "main_merge": "77687373961b5a8c2027f289911c4c77b2734d5e",
+    "merged_tree_equals_tested": true
+  },
+  "actual_retained_owner_raw_authentication": {
+    "run_id": 44295973484,
+    "job_id": 134772973124,
+    "status": "IN_PROGRESS_UNCONFIRMED"
+  },
   "limits": [
     "Synthetic public-key cipher control is not production raw-data availability or owner-key proof.",
     "Existing original cutoff rejection, stored clocks, G8 denominator, core23ZIP/513 proof and full-day HOLD remain unchanged.",

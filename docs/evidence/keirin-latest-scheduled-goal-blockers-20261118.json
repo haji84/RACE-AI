@@ -1,0 +1,188 @@
+{
+  "schema": "RACE_AI_LATEST_SCHEDULE_SOURCE_BLOCKERS_READONLY_V1",
+  "observed_at_utc": "2026-11-18 11:42:45 UTC",
+  "repository": "haji84/RACE-AI",
+  "baseline_main_examined": "77687373961b5a8c2027f289911c4c77b2734d5e",
+  "scope": {
+    "endpoint": "GitHub Actions schedule runs, first page, per_page=30",
+    "api_total_count": 267,
+    "returned_run_count": 30,
+    "newest_listed_run_id": 44283995717,
+    "oldest_listed_run_id": 44050344058,
+    "event_filter": "schedule",
+    "global_absence_claimed": false,
+    "non_schedule_runs_excluded": true,
+    "older_pages_not_reviewed": true,
+    "two_selected_jobs_decoded_in_full": true,
+    "latest_canary_in_page": 44236121551,
+    "latest_discovery_in_page": 44222760913
+  },
+  "latest_per_workflow_in_page": [
+    {
+      "workflow": ".github/workflows/keirin-github-autonomous.yml",
+      "run_id": 44283995717,
+      "created_at": "2026-11-18T10:17:33Z",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "workflow": ".github/workflows/keirin-pr71-watchdog.yml",
+      "run_id": 44278731782,
+      "created_at": "2026-11-18T09:44:20Z",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "workflow": ".github/workflows/keirin-pr71-owner-autonomous.yml",
+      "run_id": 44273370761,
+      "created_at": "2026-11-18T09:10:04Z",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "workflow": ".github/workflows/boat-racer-daily.yml",
+      "run_id": 44254439010,
+      "created_at": "2026-11-18T06:51:28Z",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "workflow": ".github/workflows/keirin-personal-hourly-canary.yml",
+      "run_id": 44236121551,
+      "created_at": "2026-11-18T04:15:58Z",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "workflow": ".github/workflows/boat-result-gap-recovery.yml",
+      "run_id": 44231954678,
+      "created_at": "2026-11-18T03:39:31Z",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "workflow": ".github/workflows/keirin-daily-discovery.yml",
+      "run_id": 44222760913,
+      "created_at": "2026-11-18T02:22:22Z",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "workflow": ".github/workflows/boat-owner-formal-pages-proof.yml",
+      "run_id": 44196367259,
+      "created_at": "2026-11-17T23:06:29Z",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "runs": [
+    {
+      "run_id": 44283995717,
+      "workflow": ".github/workflows/keirin-github-autonomous.yml",
+      "event": "schedule",
+      "head_sha": "39fec2df5ab68920d7cd4f0388307b07925409c5",
+      "created_at": "2026-11-18T10:17:33Z",
+      "conclusion": "failure",
+      "job_id": 134731792136,
+      "job_conclusion": "failure",
+      "source_checkout_sha": "c26ac0927647f317acf855e0c42cd1703232c19b",
+      "actual_non_echo_diagnostics": [
+        {
+          "at": "2026-11-18T10:42:44.0316198Z",
+          "error_class": "RuntimeError",
+          "reason": "DAILY_INDEX_HTTP_403"
+        },
+        {
+          "at": "2026-11-18T10:42:44.2605189Z",
+          "reason": "NO_VERIFIED_DAILY_CATALOG_OR_REPLAY"
+        }
+      ],
+      "source_http_status": 403,
+      "emitted_metadata_summary": {
+        "at": "2026-11-18T10:42:29.5591379Z",
+        "date_jst": "2026-11-18",
+        "temporary_github_unique_races": 0,
+        "completed_wave_runs": 0,
+        "mode": "index",
+        "durable_retention_attested": false,
+        "real_rider_tactics_labeled": false
+      },
+      "valid_collector_report": false,
+      "real_capture_count": null,
+      "real_scene_count": null,
+      "real_forecast_saved_count": null,
+      "official_result_count": null,
+      "default_summary_zeros_are_not_actual_capture_counts": true,
+      "failure_semantics": "Collector source denial, followed by existing visible missing-report guard; no new code exception proven."
+    },
+    {
+      "run_id": 44273370761,
+      "workflow": ".github/workflows/keirin-pr71-owner-autonomous.yml",
+      "event": "schedule",
+      "head_sha": "7e540c831b8a25f51581e5edee014c3c1a9576d5",
+      "created_at": "2026-11-18T09:10:04Z",
+      "conclusion": "success",
+      "job_id": 134695450969,
+      "job_conclusion": "success",
+      "source_checkout_sha": "fe7e5581263b2b31fbd45536ac6a611c2779fa65",
+      "actual_output_at": "2026-11-18T09:10:32.1227398Z",
+      "report": {
+        "state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT",
+        "source_state": "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED",
+        "four_model_variable_saved": null,
+        "four_model_variable_held": null,
+        "generation": null,
+        "new_forecast_stage_nonzero": null,
+        "result_rows_appended": null,
+        "result_rows_held": null,
+        "existing_pdca_invoked": null,
+        "official_result_independently_authenticated": null
+      },
+      "acquisition": {
+        "state": "OWNER_ATTESTED_SOURCE_ACQUISITION_ONLY",
+        "public_page_requests": 1,
+        "provider_denial_stopped_requests": true,
+        "source_capture_held": true,
+        "new_pre_race_inputs": 0,
+        "source_day_schedule_race_count": null,
+        "actual_four_model_forecast_saved": false,
+        "provider_machine_rights_independently_verified": false,
+        "permanent_encrypted_storage_claimed": false
+      },
+      "source_http_status": null,
+      "interpretation": "A successful job retained its intended incomplete-source HOLD; no forecasts, authenticated results, state generation or PDCA completion are inferred."
+    }
+  ],
+  "preserved_evidence": [
+    {
+      "path": "docs/evidence/keirin-current-automatic-blockers-20261118.json",
+      "blob": "9d6d0d94e2856a52a2f108d83c9a5c7d7c8b8937",
+      "use": "Prior four-run evidence remains unchanged; the latest canary/discovery IDs in the queried page are the same."
+    },
+    {
+      "path": "docs/evidence/boat-native-v5-actual-acceptance-20261118.json",
+      "blob": "84f743e2aca52dea7e99b6214f6f9fee3130a919",
+      "use": "Actual Mac/current V5 success has separately recorded limitations; this schedule audit adds no device, login, direct-feed or efficacy claim."
+    }
+  ],
+  "interpretation": {
+    "latest_two_selected_runs_retain_source_or_input_blockers": true,
+    "new_fixable_code_failure_proven": false,
+    "observed_scope_only": true,
+    "calendar_link_success_is_not_complete_model_input": true,
+    "source_403_not_bypassed_or_retried": true,
+    "missing_device_video_and_future_outcome_evidence_not_waived": true,
+    "goal_completion_claimed": false
+  },
+  "safety": {
+    "provider_requests_by_this_audit": 0,
+    "keys_read": 0,
+    "private_bodies_or_urls_exported": false,
+    "dispatches": 0,
+    "retries": 0,
+    "refs_changed": false,
+    "code_changed": false,
+    "permissions_changed": false,
+    "off_pilots_and_pr290_pr291_main308_and_legacy_keirin_preserved": true
+  }
+}

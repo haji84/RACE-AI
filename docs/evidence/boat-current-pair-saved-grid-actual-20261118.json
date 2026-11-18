@@ -1,0 +1,64 @@
+{
+  "schema": "RACE_AI_A74_SAVED_GRID_ACTUAL_EVIDENCE_V1",
+  "main_commit": "77687373961b5a8c2027f289911c4c77b2734d5e",
+  "main_tree": "0532ad1ed4d42ce2f47334b63e087b7e1d003250",
+  "run_id": 44295973484,
+  "job_id": 134772973124,
+  "job_conclusion": "success",
+  "logged_at": "2026-11-18T11:46:03.4511246Z",
+  "strict_grid_report": {
+    "broader_goals_proven": false,
+    "comparison_count": 4,
+    "grid_clock_disagreed_side_count": 0,
+    "inspector_rejected_side_count": 0,
+    "missing_raw_side_count": 4,
+    "originals_changed": false,
+    "program_grid_match_count": 0,
+    "reason": "RAW_CAPTURE_MISSING",
+    "result_grid_match_count": 4,
+    "schema": "RACE_AI_A74_SAVED_GRID_INSPECTION_COUNTS_V1",
+    "source_requests": 0,
+    "status": "HOLD"
+  },
+  "preserved_core": {
+    "authenticated_aes_archives": 73,
+    "all_model_zip_archives": 23,
+    "p1_saved_view_original_rows_matched": 513,
+    "missing_all_model_rounds": [
+      4,
+      19
+    ],
+    "full_day_coverage": false,
+    "p0_union_audited": false
+  },
+  "preserved_pair": {
+    "cutoff_total_races": 48,
+    "cutoff_total_records": 672,
+    "later_races": 2,
+    "later_records": 28,
+    "equal_races": 42,
+    "equal_records": 588,
+    "missing_observation_races": 4,
+    "missing_observation_records": 56,
+    "status": "HOLD_PAIR_AUDIT_REJECTED",
+    "g8_denominator": null
+  },
+  "interpretation": [
+    "Four comparison bindings concern two represented races; four RESULT matches are not a claim of four unique raw documents.",
+    "The known-count path requires all26 fixed-run capture headers authenticated and complete plus unchanged candidate bundle AES/receipt checks.",
+    "PROGRAM references have no exact SHA/URL/captured-instant match in the fixed selected scope. This does not prove the raw body is absent globally, or absent under a different capture clock.",
+    "Both original clocks and strict admission remain unchanged; no alternate-clock PROGRAM inspection or favorable revision was selected."
+  ],
+  "static_followup": {
+    "source_pilot_blob": "df16490e7ce2137f4ec366927579e3fa5a865622",
+    "source_commits": [
+      "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+      "c979aeb678538d99e277f26726047dccbdc982af"
+    ],
+    "path": "scripts/boat_nationwide_ab_pilot.py",
+    "fact": "Owner capture mode stores an actual receive clock, then waits2seconds and samples a separate later source clock for native proofs. This is a binding design gap; actual four missing bindings still need authenticated SHA/URL/clock differentiation.",
+    "future_fix_deployed": false,
+    "old_clocks_repaired": false
+  },
+  "broader_goals_proven": false
+}
