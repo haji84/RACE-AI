@@ -42,6 +42,13 @@ CANDIDATE_PATH = '.native-safari-ui-candidate'
 COMMIT_PATH = '/repos/haji84/RACE-AI/commits/' + HEAD
 CURRENT_CONTENTS_PATH = '/repos/haji84/RACE-AI/contents/' + NATIVE_WORKFLOW + '?ref=' + HEAD
 PARENT_CONTENTS_PATH = '/repos/haji84/RACE-AI/contents/' + NATIVE_WORKFLOW + '?ref=' + PARENT
+CHECKER_PATH = 'scripts/boat_native_safari_acceptance.py'
+CURRENT_CHECKER_CONTENTS_PATH = '/repos/haji84/RACE-AI/contents/' + CHECKER_PATH + '?ref=' + HEAD
+PARENT_CHECKER_CONTENTS_PATH = '/repos/haji84/RACE-AI/contents/' + CHECKER_PATH + '?ref=' + PARENT
+CHECKER_READS = [
+    ('GET', CURRENT_CHECKER_CONTENTS_PATH, None),
+    ('GET', PARENT_CHECKER_CONTENTS_PATH, None),
+]
 FIRST_HISTORY_PATH = RUNS_PATH + '?branch=main&event=workflow_dispatch&head_sha=' + HEAD + '&per_page=100&page=1'
 FRESH_CALLS = (
     ('GET', MAIN_PATH, None), ('GET', SOURCE_PATH, None),
@@ -85,6 +92,12 @@ def contents_document(text):
         content='\n'.join(textwrap.wrap(base64.b64encode(raw).decode('ascii'), 60)) + '\n')
 
 
+def checker_contents_document(text):
+    result = contents_document(text)
+    result['path'] = CHECKER_PATH
+    return result
+
+
 def trusted():
     environment = dict(GITHUB_ACTIONS='true', GITHUB_EVENT_NAME='push',
         GITHUB_REPOSITORY=REPO, GITHUB_REF='refs/heads/main', GITHUB_SHA=HEAD,
@@ -121,6 +134,8 @@ class MetadataAPI:
         self.commit_metadata = dict(sha=HEAD, parents=[{'sha': PARENT}, {'sha': OTHER}])
         self.current_contents = contents_document(candidate_workflow())
         self.parent_contents = contents_document(candidate_workflow(OLD_CANDIDATE))
+        self.current_checker_contents = checker_contents_document('# invented identical checker\n')
+        self.parent_checker_contents = checker_contents_document('# invented identical checker\n')
         self.post_result = None
 
     def __call__(self, method, path, body=None):
@@ -138,10 +153,13 @@ class MetadataAPI:
                 return dict(self.source_ref, object={'sha': OTHER})
             return copy.deepcopy(self.source_ref)
         if method == 'GET' and path in (REPOSITORY_PATH, WORKFLOW_PATH, COMMIT_PATH,
-                                        CURRENT_CONTENTS_PATH, PARENT_CONTENTS_PATH):
+                                        CURRENT_CONTENTS_PATH, PARENT_CONTENTS_PATH,
+                                        CURRENT_CHECKER_CONTENTS_PATH, PARENT_CHECKER_CONTENTS_PATH):
             field = {REPOSITORY_PATH: 'repository_metadata', WORKFLOW_PATH: 'workflow_metadata',
                 COMMIT_PATH: 'commit_metadata', CURRENT_CONTENTS_PATH: 'current_contents',
-                PARENT_CONTENTS_PATH: 'parent_contents'}[path]
+                PARENT_CONTENTS_PATH: 'parent_contents',
+                CURRENT_CHECKER_CONTENTS_PATH: 'current_checker_contents',
+                PARENT_CHECKER_CONTENTS_PATH: 'parent_checker_contents'}[path]
             return copy.deepcopy(getattr(self, field))
         if method == 'GET' and path.startswith(RUNS_PATH + '?'):
             query = parse_qs(urlsplit(path).query, strict_parsing=True)
@@ -606,7 +624,7 @@ class NativeSafariDispatchTests(unittest.TestCase):
             'request_acknowledged': False, 'existing_runs_count': None,
             'native_verification_proven': False, 'official_provider_gets': 0,
             'owner_key_read': False})
-        self.assertEqual(api.calls, list(FRESH_CALLS[:7]))
+        self.assertEqual(api.calls, list(FRESH_CALLS[:7]) + CHECKER_READS)
         self.assertEqual(api.posts(), [])
 
     def test_unchanged_candidate_cannot_hide_invalid_metadata_or_other_workflow_changes(self):
@@ -787,6 +805,209 @@ class NativeSafariDispatchTests(unittest.TestCase):
         self.assertFalse(report['request_attempted'])
         self.assertFalse(report['request_acknowledged'])
         self.assertNotIn('sentinel', output.getvalue())
+
+
+class NativeSafariCheckerChangeTests(unittest.TestCase):
+    """Invented immutable checker bytes; the original native workflow stays fixed."""
+    def setUp(self):
+        self.assertTrue(callable(getattr(S, 'checker_changed', None)),
+            'authenticated immutable Safari checker comparison is missing')
+
+    def api(self, *, changed=True, rows=()):
+        api = MetadataAPI(rows)
+        api.parent_contents = contents_document(candidate_workflow())
+        api.current_checker_contents = checker_contents_document(
+            '# invented checker\nRESULT = "new private-checker-body-sentinel"\n')
+        api.parent_checker_contents = checker_contents_document(
+            '# invented checker\nRESULT = "old private-checker-body-sentinel"\n'
+            if changed else '# invented checker\nRESULT = "new private-checker-body-sentinel"\n')
+        return api
+
+    def run_caller(self, api, *, environment=None, event=None):
+        original_environment, original_event = trusted()
+        return S.execute(original_environment if environment is None else environment,
+            original_event if event is None else event, request=api)
+
+    def assert_hold(self, api, *, attempted=False, environment=None, event=None):
+        with self.assertRaises(S.DispatchHold) as caught:
+            self.run_caller(api, environment=environment, event=event)
+        report = S.failure_report(caught.exception)
+        self.assertIs(report['dispatch_requested'], None if attempted else False)
+        self.assertIs(report['request_attempted'], attempted)
+        self.assertFalse(report['request_acknowledged'])
+        self.assertFalse(report['native_verification_proven'])
+        self.assertFalse(report['owner_key_read'])
+        self.assertEqual(report['official_provider_gets'], 0)
+        rendered = json.dumps(report, sort_keys=True)
+        for private in ('private-', 'https://', CHECKER_PATH, 'Traceback'):
+            self.assertNotIn(private, rendered)
+        return report
+
+    def test_checker_only_change_uses_the_same_existing_head_history_and_one_fixed_post(self):
+        api = self.api()
+        report = self.run_caller(api)
+        self.assertEqual(api.calls, list(FRESH_CALLS[:7]) + CHECKER_READS + list(FRESH_CALLS[7:]))
+        self.assertEqual(api.posts(), [('POST', POST_PATH, PAYLOAD)])
+        self.assertEqual(report['status'], 'NATIVE_SAFARI_DISPATCH_REQUESTED')
+        self.assertTrue(report['request_attempted'])
+        self.assertTrue(report['request_acknowledged'])
+        self.assertFalse(report['native_verification_proven'])
+        self.assertFalse(report['owner_key_read'])
+        self.assertEqual(report['official_provider_gets'], 0)
+        self.assertNotIn('private-', json.dumps(report))
+        self.assertNotIn(('GET', '/repos/haji84/RACE-AI/contents/' + CHECKER_PATH + '?ref=' + OTHER, None),
+            api.calls)
+
+    def test_unchanged_checker_keeps_the_original_no_dispatch_skip_without_reading_history(self):
+        api = self.api(changed=False)
+        report = self.run_caller(api)
+        self.assertEqual(report, {
+            'status': 'NATIVE_SAFARI_CANDIDATE_UNCHANGED',
+            'dispatch_requested': False, 'request_attempted': False,
+            'request_acknowledged': False, 'existing_runs_count': None,
+            'native_verification_proven': False, 'official_provider_gets': 0,
+            'owner_key_read': False})
+        self.assertEqual(api.calls, list(FRESH_CALLS[:7]) + CHECKER_READS)
+        self.assertEqual(api.posts(), [])
+
+    def test_original_candidate_change_never_requires_or_reads_checker_metadata(self):
+        api = MetadataAPI()
+        api.current_checker_contents = {'private-payload': 'must-not-be-read'}
+        api.parent_checker_contents = None
+        self.assertTrue(self.run_caller(api)['request_acknowledged'])
+        self.assertEqual(api.calls, list(FRESH_CALLS))
+        self.assertFalse(any(path in (CURRENT_CHECKER_CONTENTS_PATH, PARENT_CHECKER_CONTENTS_PATH)
+            for method, path, _ in api.calls))
+
+    def test_changed_checker_cannot_bypass_the_unchanged_native_workflow_proof(self):
+        for change in (
+                lambda text: text.replace('runs-on: macos-latest', 'runs-on: macos-14'),
+                lambda text: text.replace('jobs:\n', 'permissions:\n  actions: write\njobs:\n'),
+                lambda text: text.replace('default: native-safari', 'default: chromium'),
+                lambda text: text + '# private-unrelated-native-setting\n'):
+            api = self.api()
+            api.current_contents = contents_document(change(candidate_workflow()))
+            self.assert_hold(api)
+            self.assertEqual(api.posts(), [])
+            self.assertFalse(any(path in (CURRENT_CHECKER_CONTENTS_PATH, PARENT_CHECKER_CONTENTS_PATH)
+                for method, path, _ in api.calls))
+
+    def test_invalid_head_or_first_parent_proof_never_reads_checker_contents(self):
+        for metadata in (
+                dict(sha=OTHER, parents=[{'sha': PARENT}]),
+                dict(sha=HEAD, parents=[]),
+                dict(sha=HEAD, parents=[{'sha': PARENT}, {'sha': PARENT}]),
+                dict(sha=HEAD, parents=[{'sha': PARENT}, {'sha': OTHER}, {'sha': '6' * 40}]),
+                dict(sha=HEAD, parents=[{'sha': HEAD}])):
+            api = self.api(); api.commit_metadata = metadata
+            self.assert_hold(api)
+            self.assertFalse(any(path in (CURRENT_CHECKER_CONTENTS_PATH, PARENT_CHECKER_CONTENTS_PATH)
+                for method, path, _ in api.calls))
+            self.assertEqual(api.posts(), [])
+
+    def test_checker_contents_require_exact_file_path_size_encoding_and_complete_git_sha_binding(self):
+        original = checker_contents_document('# invented valid UTF-8 checker\n')
+        documents = [{}, [], dict(original, type='symlink'),
+            dict(original, path='scripts/other.py'), dict(original, encoding='utf-8'),
+            dict(original, sha='0' * 40), dict(original, sha=True),
+            dict(original, size=True), dict(original, size=original['size'] + 1),
+            dict(original, content='!!!!'), dict(original, content=''),
+            dict(original, content=123)]
+        for field in ('type', 'path', 'encoding', 'content', 'sha', 'size'):
+            missing = dict(original); missing.pop(field); documents.append(missing)
+        for field in ('current_checker_contents', 'parent_checker_contents'):
+            for index, document in enumerate(documents):
+                api = self.api(); setattr(api, field, document)
+                with self.subTest(field=field, case=index):
+                    self.assert_hold(api)
+                    self.assertEqual(api.posts(), [])
+                    self.assertFalse(any(path.startswith(RUNS_PATH + '?')
+                        for method, path, _ in api.calls))
+
+    def test_empty_non_utf8_and_oversized_checker_bodies_never_request_native_safari(self):
+        for raw in (b'', b'\xff', b'x' * (S.MAX_RESPONSE_BYTES + 1)):
+            document = dict(type='file', path=CHECKER_PATH, encoding='base64', size=len(raw),
+                sha=hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest(),
+                content=base64.b64encode(raw).decode('ascii'))
+            for field in ('current_checker_contents', 'parent_checker_contents'):
+                api = self.api(); setattr(api, field, document)
+                with self.subTest(field=field, size=len(raw)):
+                    self.assert_hold(api)
+                    self.assertEqual(api.posts(), [])
+
+    def test_checker_only_change_still_blocks_any_existing_run_for_the_same_head(self):
+        for status, conclusion in (('queued', None), ('in_progress', None),
+                                   ('completed', 'failure'), ('completed', 'success')):
+            api = self.api(rows=[row(status=status, conclusion=conclusion)])
+            report = self.run_caller(api)
+            self.assertEqual(report['status'], 'NATIVE_SAFARI_ALREADY_REQUESTED_FOR_HEAD')
+            self.assertEqual(report['existing_runs_count'], 1)
+            self.assertFalse(report['request_attempted'])
+            self.assertFalse(report['request_acknowledged'])
+            self.assertEqual(api.posts(), [])
+
+    def test_checker_only_change_rechecks_main_source_and_first_attempt_before_dispatch(self):
+        for field in ('stale_main', 'stale_source'):
+            api = self.api(); setattr(api, field, True)
+            with self.subTest(stale=field):
+                self.assert_hold(api)
+                self.assertEqual(api.posts(), [])
+        environment, event = trusted(); environment['GITHUB_RUN_ATTEMPT'] = '2'
+        api = self.api()
+        self.assert_hold(api, environment=environment, event=event)
+        self.assertEqual(api.calls, [])
+
+    def test_checker_get_failure_and_ambiguous_post_never_retry_or_claim_acknowledgment(self):
+        expected = list(FRESH_CALLS[:7]) + CHECKER_READS + list(FRESH_CALLS[7:])
+        for failure in (8, 9, len(expected)):
+            api = self.api(); api.fail_at = failure
+            with self.subTest(failure=failure):
+                self.assert_hold(api, attempted=failure == len(expected))
+                self.assertEqual(len(api.calls), failure)
+                self.assertLessEqual(len(api.posts()), 1)
+
+    def test_http_allowlist_adds_only_the_exact_checker_path_at_an_immutable_ref(self):
+        class Response:
+            status = 200
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+            def read(self, limit):
+                return b'{}'
+        api = S.GitHubAPI('private-test-token-sentinel')
+        for path in (CURRENT_CHECKER_CONTENTS_PATH, PARENT_CHECKER_CONTENTS_PATH):
+            with patch.object(api.opener, 'open', return_value=Response()) as opened:
+                self.assertEqual(api('GET', path), {})
+            request = opened.call_args.args[0]
+            self.assertEqual(request.full_url, 'https://api.github.com' + path)
+            self.assertEqual(request.method, 'GET')
+            self.assertEqual(request.get_header('Authorization'), 'Bearer private-test-token-sentinel')
+            self.assertIsNone(request.data)
+            self.assertEqual(opened.call_count, 1)
+            self.assertEqual(opened.call_args.kwargs, {'timeout': 5})
+        for path in (
+                '/repos/foreign/repo/contents/' + CHECKER_PATH + '?ref=' + HEAD,
+                '/repos/haji84/RACE-AI/contents/scripts/other.py?ref=' + HEAD,
+                '/repos/haji84/RACE-AI/contents/' + CHECKER_PATH + '?ref=main',
+                CURRENT_CHECKER_CONTENTS_PATH + '&ref=' + PARENT,
+                CURRENT_CHECKER_CONTENTS_PATH + '&download=1',
+                CURRENT_CHECKER_CONTENTS_PATH.replace(HEAD, 'A' * 40)):
+            with self.subTest(path=path), patch.object(api.opener, 'open') as opened, \
+                    self.assertRaises(S.DispatchHold):
+                api('GET', path)
+            opened.assert_not_called()
+
+    def test_direct_checker_comparison_accepts_only_distinct_immutable_head_parent_refs(self):
+        for head, parent in (('main', PARENT), (HEAD, 'main'), (HEAD, HEAD),
+                             ('A' * 40, PARENT), (HEAD, True)):
+            calls = []
+            def forbidden(*args):
+                calls.append(args)
+                raise AssertionError('private-forbidden-read-sentinel')
+            with self.subTest(head_type=type(head).__name__), self.assertRaises(S.DispatchHold):
+                S.checker_changed(forbidden, head, parent)
+            self.assertEqual(calls, [])
 
 
 if __name__ == '__main__':
