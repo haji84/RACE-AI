@@ -1,0 +1,1080 @@
+name: KEIRIN nationwide automated A and B research
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_nationwide_auto_*.py'
+      - 'scripts/keirin_nationwide_auto_forecast.py'
+      - 'scripts/keirin_register_public_day.py'
+      - 'scripts/keirin_github_only_ab_*.py'
+      - 'tests/test_keirin_github_only_ab_day.py'
+      - 'race_ai/keirin_github_provider_stop.py'
+      - 'race_ai/keirin_github_capture_selection.py'
+      - 'tests/test_keirin_github_capture_selection.py'
+      - 'tests/test_keirin_github_provider_stop.py'
+      - 'race_ai/keirin_secondary_result_consensus.py'
+      - 'scripts/keirin_secondary_result_poll.py'
+      - 'tests/test_keirin_secondary_result_consensus.py'
+      - 'scripts/keirin_github_only_result_day.py'
+      - 'tests/test_keirin_github_only_result_day.py'
+      - 'tests/test_keirin_register_public_day.py'
+      - 'scripts/keirin_nationwide_independent_cipher_readback.py'
+      - 'tests/test_keirin_nationwide_auto_*.py'
+      - 'race_ai/keirin_official_*.py'
+      - 'race_ai/keirin_github_evidence_client.py'
+      - 'race_ai/keirin_github_origin_evidence.py'
+      - 'race_ai/keirin_nationwide_cipher_history.py'
+      - 'race_ai/keirin_dynamic_nationwide_registry.py'
+      - 'scripts/keirin_official_*.py'
+      - 'tests/test_keirin_official_*.py'
+      - 'tests/test_keirin_github_evidence_client.py'
+      - 'tests/test_keirin_github_origin_evidence.py'
+      - 'tests/test_keirin_nationwide_cipher_history.py'
+      - 'tests/test_keirin_dynamic_nationwide_registry.py'
+      - '.github/workflows/keirin-nationwide-ab-auto.yml'
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        required: true
+        default: test
+        options: [test, run]
+  schedule:
+    # Can be delayed, so published cutoff is checked again at actual save.
+    - cron: '*/10 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keirin-nationwide-ab-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  source-free-tests:
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'test')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Verify executable prediction and real ephemeral AES/RSA safety
+        run: |
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          python -m unittest -v \
+            tests.test_keirin_nationwide_auto_generator \
+            tests.test_keirin_nationwide_auto_storage \
+            tests.test_keirin_nationwide_auto_runner \
+            tests.test_keirin_nationwide_auto_settlement \
+            tests.test_keirin_nationwide_cipher_history \
+            tests.test_keirin_public_two_source_normalizer \
+            tests.test_keirin_capture_public_two_sources \
+            tests.test_keirin_utsunomiya1r_real_auto_cipher_freeze \
+            tests.test_keirin_evening_national_real_AB_20261118 \
+            tests.test_keirin_discover_public_race_links \
+            tests.test_keirin_register_public_day \
+            tests.test_keirin_nationwide_auto_day_registry_workflow \
+            tests.test_keirin_github_only_ab_day \
+            tests.test_keirin_github_provider_stop \
+            tests.test_keirin_github_capture_selection \
+            tests.test_keirin_secondary_result_consensus \
+            tests.test_keirin_github_only_result_day \
+            tests.test_keirin_dynamic_nationwide_registry \
+            tests.test_keirin_github_evidence_client \
+            tests.test_keirin_github_origin_evidence \
+            tests.test_keirin_official_public_source \
+            tests.test_keirin_official_cohort \
+            tests.test_keirin_official_poll_progress \
+            tests.test_keirin_official_run_history \
+            tests.test_keirin_official_day_pipeline \
+            tests.test_keirin_official_runtime_integration \
+            tests.test_keirin_official_backlog_days \
+            tests.test_keirin_official_owner_report \
+            tests.test_keirin_official_owner_view \
+            tests.test_keirin_official_workflow
+          python -m py_compile \
+            race_ai/keirin_nationwide_auto_generator.py \
+            race_ai/keirin_nationwide_auto_storage.py \
+            race_ai/keirin_nationwide_auto_settlement.py \
+            race_ai/keirin_nationwide_cipher_history.py \
+            scripts/keirin_nationwide_auto_forecast.py \
+            scripts/keirin_nationwide_independent_cipher_readback.py \
+            race_ai/keirin_public_two_source_normalizer.py \
+            scripts/keirin_capture_public_two_sources.py \
+            scripts/keirin_discover_public_race_links.py \
+            scripts/keirin_register_public_day.py \
+            scripts/keirin_github_only_ab_day.py \
+            race_ai/keirin_github_provider_stop.py \
+            race_ai/keirin_github_capture_selection.py \
+            scripts/keirin_github_only_ab_readback.py \
+            race_ai/keirin_secondary_result_consensus.py \
+            scripts/keirin_secondary_result_poll.py \
+            scripts/keirin_github_only_result_day.py \
+            scripts/keirin_real_nationwide_day_link_smoke.py \
+            scripts/keirin_real_source_to_aes_one_run.py \
+            scripts/keirin_evening_national_real_AB_20261118.py \
+            scripts/keirin_kochi5r_line_source_diagnostic.py \
+            scripts/keirin_real_public_source_smoke.py
+          python -m py_compile race_ai/keirin_official_*.py \
+            race_ai/keirin_github_evidence_client.py \
+            race_ai/keirin_github_origin_evidence.py \
+            scripts/keirin_official_*.py
+
+  real-public-utsunomiya1r-smoke:
+    # This is a one-day, two-GET read-only check of a published future race.
+    # Never a claim that the nationwide collector or AES stage is live.
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Attempt only two ordinary public URLs; report safe HOLD if blocked
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5' 'cryptography>=44,<48'
+          python -m scripts.keirin_real_public_source_smoke > "$RUNNER_TEMP/keirin-real-source-safe.json"
+          cat "$RUNNER_TEMP/keirin-real-source-safe.json"
+          cat "$RUNNER_TEMP/keirin-real-source-safe.json" >> "$GITHUB_STEP_SUMMARY"
+
+  real-public-national-day-links-smoke:
+    # At most one day calendar + eight linked public racecard GETs.
+    # Only safe counts, no URLs or rider values are logged.
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Source-only linked Kdreams meeting inventory (no invented race URLs)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5' 'cryptography>=44,<48'
+          python -m scripts.keirin_real_nationwide_day_link_smoke > "$RUNNER_TEMP/national-day-links-safe.json"
+          cat "$RUNNER_TEMP/national-day-links-safe.json"
+          cat "$RUNNER_TEMP/national-day-links-safe.json" >> "$GITHUB_STEP_SUMMARY"
+
+
+  real-source-to-owner-aes-one-run:
+    # A single real unpublished race, not a synthetic prediction test.
+    # Guard prior GitHub ciphertext artifact to prevent replay/duplicate
+    # forecast variants in later PR runs. Never puts source HTML in artifact.
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      sealed: ${{ steps.run.outputs.sealed }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Refuse second prediction if genuine race cipher already exists as GitHub artifact
+        id: prior
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          existing="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=keirin-real-202611182401-source-AB-AES-20261118&per_page=100" \
+            --jq '[.artifacts[] | select(.expired == false)] | length')"
+          if [ "$existing" -gt 0 ]; then
+            echo "prior=true" >> "$GITHUB_OUTPUT"
+            echo "HOLD_ALREADY_FROZEN_RACE_CIPHER: no second A/B prediction created" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "prior=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create owner-private 0700 source and ciphertext folders
+        if: steps.prior.outputs.prior == 'false'
+        id: private
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/keirin-real-aes-202611182401"
+          mkdir -m 700 -p "$root" "$root/cards" "$root/raw" "$root/sealed"
+          chmod 700 "$root" "$root/cards" "$root/raw" "$root/sealed"
+          echo "root=$root" >> "$GITHUB_OUTPUT"
+      - name: Real two-source GET, six-phase A/B generation and owner RSA/AES authenticated seal in SAME RUN
+        if: steps.prior.outputs.prior == 'false'
+        id: run
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="${{ steps.private.outputs.root }}"
+          python -m scripts.keirin_real_source_to_aes_one_run \
+            --root "$root" \
+            --registry "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_all79_nationwide_AB_registered_v1.json" \
+            --rsa-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            > "$RUNNER_TEMP/one-real-safe-status.json"
+          cat "$RUNNER_TEMP/one-real-safe-status.json" >> "$GITHUB_STEP_SUMMARY"
+          actual="$(python -c 'import json,sys;print(json.load(open(sys.argv[1]))["state"])' "$RUNNER_TEMP/one-real-safe-status.json")"
+          if [ "$actual" = 'REAL_ONE_RUN_A_B_AES_CREATED' ]; then
+            echo "sealed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "sealed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Retain ciphertext only and cross-checkable A/B receipts in GitHub
+        if: steps.run.outputs.sealed == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-real-202611182401-source-AB-AES-20261118
+          path: |
+            ${{ steps.private.outputs.root }}/sealed/*.sealed.json
+            ${{ steps.private.outputs.root }}/producer-summary.json
+            ${{ steps.private.outputs.root }}/one-run-safe-summary.json
+          if-no-files-found: error
+          retention-days: 21
+      - name: Remove private source HTML and unencrypted temporary cards
+        if: always()
+        shell: bash
+        run: |
+          root="${{ steps.private.outputs.root }}"
+          if [ -n "$root" ] && [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-real-aes-* ]]; then
+            rm -rf -- "$root"
+          fi
+
+  real-source-cipher-independent-runner:
+    needs: real-source-to-owner-aes-one-run
+    if: needs.real-source-to-owner-aes-one-run.result == 'success' && needs.real-source-to-owner-aes-one-run.outputs.sealed == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-real-202611182401-source-AB-AES-20261118
+          path: ${{ runner.temp }}/keirin-real-aes-second-runner
+      - name: Independent runner actual A/B ciphertext byte SHA and race lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48'
+          root="$RUNNER_TEMP/keirin-real-aes-second-runner"
+          python -m scripts.keirin_nationwide_independent_cipher_readback \
+            --producer-report "$root/producer-summary.json" \
+            --cipher-dir "$root/sealed" \
+            --report "$RUNNER_TEMP/keirin-real-independent-readback.json" \
+            > "$RUNNER_TEMP/keirin-real-readback-safe.json"
+          cat "$RUNNER_TEMP/keirin-real-readback-safe.json" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-real-202611182401-independent-A-B-SHA
+          path: ${{ runner.temp }}/keirin-real-independent-readback.json
+          if-no-files-found: error
+          retention-days: 21
+
+
+  real-remaining-evening-batch:
+    # One real 2026-11-18 future night cohort. No retroactive forecasts.
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      sealed: ${{ steps.forecast.outputs.sealed }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Check date, immutable old A/B and previously sealed evening batch
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$(TZ=Asia/Tokyo date +%F)" != '2026-11-18' ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "HOLD_WRONG_DAY_NO_RETROSPECTIVE_FORECASTS" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          count="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=keirin-real-evening-20261118-AB-AES&per_page=100" \
+            --jq '[.artifacts[] | select(.expired == false)] | length')"
+          if [ "$count" -gt 0 ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "HOLD_EVENING_BATCH_ALREADY_SEALED_AND_CANNOT_RECREATE" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Private source-only workspace
+        if: steps.gate.outputs.ready == 'true'
+        id: private
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/keirin-20261118-real-night-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root" "$root/cards" "$root/raw" "$root/sealed"
+          chmod 700 "$root" "$root/cards" "$root/raw" "$root/sealed"
+          echo "root=$root" >> "$GITHUB_OUTPUT"
+      - name: Actual Kdreams venue link discovery, published netkeirin entries, A/B six-phase and owner RSA/AES in ONE job
+        if: steps.gate.outputs.ready == 'true'
+        id: forecast
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="${{ steps.private.outputs.root }}"
+          python -m scripts.keirin_evening_national_real_AB_20261118 \
+            --registry "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_all79_nationwide_AB_registered_v1.json" \
+            --private-root "$root" \
+            --owner-public-key "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --safe-report "$root/night-batch-safe-report.json" \
+            > "$RUNNER_TEMP/keirin-night-safe-counts.json"
+          cat "$RUNNER_TEMP/keirin-night-safe-counts.json"
+          cat "$RUNNER_TEMP/keirin-night-safe-counts.json" >> "$GITHUB_STEP_SUMMARY"
+          count="$(python -c 'import json,sys;print(json.load(open(sys.argv[1]))["new_A_B_same_job_encrypted"])' "$root/night-batch-safe-report.json")"
+          if [ "$count" -gt 0 ]; then
+            echo "sealed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "sealed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Retain only actual pre-cutoff encrypted A/B originals
+        if: steps.forecast.outputs.sealed == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-real-evening-20261118-AB-AES
+          path: |
+            ${{ steps.private.outputs.root }}/sealed/*.sealed.json
+            ${{ steps.private.outputs.root }}/producer-summary.json
+            ${{ steps.private.outputs.root }}/night-batch-safe-report.json
+          if-no-files-found: error
+          retention-days: 21
+      - name: Destroy private source HTML and plain predictions
+        if: always()
+        shell: bash
+        run: |
+          root="${{ steps.private.outputs.root }}"
+          if [ -n "$root" ] && [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-20261118-real-night-* ]]; then
+            rm -rf -- "$root"
+          fi
+
+  real-evening-independent-cipher-runner:
+    needs: real-remaining-evening-batch
+    if: needs.real-remaining-evening-batch.result == 'success' && needs.real-remaining-evening-batch.outputs.sealed == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-real-evening-20261118-AB-AES
+          path: ${{ runner.temp }}/keirin-evening-independent
+      - name: Verify each genuine race ciphertext bytes on separate GitHub runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48'
+          root="$RUNNER_TEMP/keirin-evening-independent"
+          python -m scripts.keirin_nationwide_independent_cipher_readback \
+            --producer-report "$root/producer-summary.json" \
+            --cipher-dir "$root/sealed" \
+            --report "$RUNNER_TEMP/keirin-evening-independent-receipt.json" \
+            > "$RUNNER_TEMP/keirin-evening-independent-safe.json"
+          cat "$RUNNER_TEMP/keirin-evening-independent-safe.json" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-real-evening-20261118-A-B-independent-SHA
+          path: ${{ runner.temp }}/keirin-evening-independent-receipt.json
+          retention-days: 21
+
+
+  real-night-after-previous-7-supplement:
+    # Copy historical ciphertext across runners, verify SHA and skip 7
+    # frozen forecasts. Only remaining future midnight races may be added.
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    runs-on: ubuntu-24.04
+    timeout-minutes: 11
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      sealed: ${{ steps.run.outputs.sealed }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Gate by actual JST date and prior supplemental artifact
+        id: gate
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "$(TZ=Asia/Tokyo date +%F)" != "2026-11-18" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          count="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=keirin-real-evening-20261118-supplement-AB-AES&per_page=100" \
+            --jq '[.artifacts[] | select(.expired == false)] | length')"
+          if [ "$count" -gt 0 ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "HOLD_SUPPLEMENT_ALREADY_FROZEN_NO_RETROSPECTIVE_REGEN" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Prepare isolated private 0700 directories
+        if: steps.gate.outputs.ready == 'true'
+        id: private
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/keirin-night-supplement-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root" "$root/cards" "$root/raw" "$root/sealed" "$root/prior"
+          chmod 700 "$root" "$root/cards" "$root/raw" "$root/sealed" "$root/prior"
+          echo "root=$root" >> "$GITHUB_OUTPUT"
+      - name: Download original real 7-cipher artifact from prior run
+        if: steps.gate.outputs.ready == 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-real-evening-20261118-AB-AES
+          run-id: 44290470874
+          github-token: ${{ github.token }}
+          path: ${{ steps.private.outputs.root }}/prior
+      - name: Verify prior 7 SHA and auto-forecast only previously HOLD future races
+        if: steps.gate.outputs.ready == 'true'
+        id: run
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="${{ steps.private.outputs.root }}"
+          python -m scripts.keirin_evening_national_real_AB_20261118 \
+            --registry "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_all79_nationwide_AB_registered_v1.json" \
+            --private-root "$root" \
+            --prior-artifact-dir "$root/prior" \
+            --owner-public-key "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --safe-report "$root/supplement-safe-report.json" \
+            > "$RUNNER_TEMP/keirin-supplement-counts.json"
+          cat "$RUNNER_TEMP/keirin-supplement-counts.json" >> "$GITHUB_STEP_SUMMARY"
+          count="$(python -c 'import json,sys;print(json.load(open(sys.argv[1]))["new_A_B_same_job_encrypted"])' "$root/supplement-safe-report.json")"
+          if [ "$count" -gt 0 ]; then
+            echo "sealed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "sealed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload only newly generated encrypted originals and SHA receipts
+        if: steps.run.outputs.sealed == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-real-evening-20261118-supplement-AB-AES
+          path: |
+            ${{ steps.private.outputs.root }}/sealed/*.sealed.json
+            ${{ steps.private.outputs.root }}/producer-summary.json
+            ${{ steps.private.outputs.root }}/supplement-safe-report.json
+          if-no-files-found: error
+          retention-days: 21
+      - name: Remove private source, prior archive and cache
+        if: always()
+        shell: bash
+        run: |
+          root="${{ steps.private.outputs.root }}"
+          if [ -n "$root" ] && [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-night-supplement-* ]]; then
+            rm -rf -- "$root"
+          fi
+
+  real-night-supplement-independent-readback:
+    needs: real-night-after-previous-7-supplement
+    if: needs.real-night-after-previous-7-supplement.result == 'success' && needs.real-night-after-previous-7-supplement.outputs.sealed == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-real-evening-20261118-supplement-AB-AES
+          path: ${{ runner.temp }}/keirin-night-supplement-second-runner
+      - name: Independently confirm A/B ciphertext SHA for every new race
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48'
+          root="$RUNNER_TEMP/keirin-night-supplement-second-runner"
+          python -m scripts.keirin_nationwide_independent_cipher_readback \
+            --producer-report "$root/producer-summary.json" \
+            --cipher-dir "$root/sealed" \
+            --report "$RUNNER_TEMP/keirin-night-supplement-sha.json" \
+            > "$RUNNER_TEMP/keirin-night-supplement-sha-safe.json"
+          cat "$RUNNER_TEMP/keirin-night-supplement-sha-safe.json" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-real-evening-20261118-supplement-independent-SHA
+          path: ${{ runner.temp }}/keirin-night-supplement-sha.json
+          retention-days: 21
+
+  real-kochi5r-source-line-diagnostic:
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: One ordinary HTML GET; only non-PII parser-shape counts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5' 'cryptography>=44,<48'
+          python -m scripts.keirin_kochi5r_line_source_diagnostic > "$RUNNER_TEMP/kochi5-nonpii-shape.json"
+          cat "$RUNNER_TEMP/kochi5-nonpii-shape.json"
+          cat "$RUNNER_TEMP/kochi5-nonpii-shape.json" >> "$GITHUB_STEP_SUMMARY"
+
+  owner-auto-generate:
+    # Retained historical external-store implementation. GitHub-only is the
+    # selected deployment; this job must not reactivate an S3 path.
+    if: >-
+      false &&
+      github.repository == 'haji84/RACE-AI' &&
+      github.ref == 'refs/heads/main' &&
+      vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+      (github.event_name == 'schedule' ||
+       (github.event_name == 'workflow_dispatch' && inputs.mode == 'run'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    outputs:
+      ready: ${{ steps.registry_gate.outputs.ready }}
+    env:
+      PUBLIC_CAPTURE_ENABLED: ${{ vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.RACE_AI_AB_SOURCE_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.RACE_AI_AB_SOURCE_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ vars.RACE_AI_AB_SOURCE_REGION }}
+      AWS_ENDPOINT_URL: ${{ vars.RACE_AI_AB_SOURCE_ENDPOINT }}
+      SOURCE_S3_PREFIX: ${{ vars.RACE_AI_AB_SOURCE_S3_PREFIX }}
+      OWNER_RSA_PUBLIC_PEM_B64: ${{ vars.RACE_AI_AB_RSA_PUBLIC_PEM_B64 }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Prepare source and ciphertext only in runner private storage
+        id: storage
+        shell: bash
+        run: |
+          set -euo pipefail
+          day="$(TZ=Asia/Tokyo date +%F)"
+          root="$RUNNER_TEMP/keirin-nationwide-ab-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root" "$root/cards" "$root/raw" "$root/sealed" "$root/registry" "$root/manifests"
+          chmod 700 "$root" "$root/cards" "$root/raw" "$root/sealed" "$root/registry" "$root/manifests"
+          echo "day=$day" >> "$GITHUB_OUTPUT"
+          echo "root=$root" >> "$GITHUB_OUTPUT"
+      - name: Read already-owner-approved private pre-race source bundle
+        id: ingest
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$SOURCE_S3_PREFIX" ] || [ -z "$AWS_ACCESS_KEY_ID" ] || \
+             [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_DEFAULT_REGION" ] || \
+             [ -z "$OWNER_RSA_PUBLIC_PEM_B64" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "HOLD: private source feed or existing owner public RSA key is not configured" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          case "$SOURCE_S3_PREFIX" in
+            s3://*) ;;
+            *) echo "HOLD: source must be an owner-controlled S3 URI"; exit 1 ;;
+          esac
+          python -m pip install --disable-pip-version-check awscli 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          day="${{ steps.storage.outputs.day }}"
+          root="${{ steps.storage.outputs.root }}"
+          # Source pages, line hypotheses, rider data remain private.
+          aws s3 sync "$SOURCE_S3_PREFIX/$day/cards/" "$root/cards/" --only-show-errors --no-progress
+          aws s3 sync "$SOURCE_S3_PREFIX/$day/raw/" "$root/raw/" --only-show-errors --no-progress
+          aws s3 sync "$SOURCE_S3_PREFIX/$day/registry/" "$root/registry/" --only-show-errors --no-progress
+          if [ "$PUBLIC_CAPTURE_ENABLED" = 'true' ]; then
+            aws s3 sync "$SOURCE_S3_PREFIX/$day/manifests/" "$root/manifests/" --only-show-errors --no-progress
+          fi
+          python - <<'PY'
+          import os,base64
+          from pathlib import Path
+          from race_ai.keirin_nationwide_auto_storage import checked_public_key
+          root=Path(os.environ["RUNNER_TEMP"])/("keirin-nationwide-ab-"+os.environ["GITHUB_RUN_ID"])
+          data=base64.b64decode(os.environ["OWNER_RSA_PUBLIC_PEM_B64"],validate=True)
+          checked_public_key(data)
+          dest=root/"owner-public.pem"
+          fd=os.open(dest,os.O_CREAT|os.O_EXCL|os.O_WRONLY|getattr(os,"O_NOFOLLOW",0),0o600)
+          with os.fdopen(fd,"wb") as h:h.write(data)
+          PY
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+      - name: Register current JST day from observed public links when owner registry is absent
+        if: steps.ingest.outputs.ready == 'true' && vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="${{ steps.storage.outputs.root }}"
+          day="${{ steps.storage.outputs.day }}"
+          if [ "$day" != '2026-11-18' ] && [ ! -s "$root/registry/$day.json" ]; then
+            # Only observed calendar -> meeting -> race anchors can enter this
+            # roster. A partial provider list remains UNVERIFIED, not national.
+            if python -m scripts.keirin_register_public_day \
+              --day "$day" \
+              --private-raw-dir "$root/raw" \
+              --registry "$root/registry/$day.json" \
+              --manifest "$root/manifests/day.json" \
+              --safe-report "$root/registry-safe-report.json" \
+              > "$RUNNER_TEMP/registry-safe-counts.json"; then
+              cat "$RUNNER_TEMP/registry-safe-counts.json" >> "$GITHUB_STEP_SUMMARY"
+              aws s3 cp "$root/registry/$day.json" "$SOURCE_S3_PREFIX/$day/registry/$day.json" --only-show-errors
+              aws s3 cp "$root/manifests/day.json" "$SOURCE_S3_PREFIX/$day/manifests/day.json" --only-show-errors
+              aws s3 sync "$root/raw/" "$SOURCE_S3_PREFIX/$day/raw/" --only-show-errors --no-progress
+              echo "REGISTRY_PARTIAL_PUBLIC_LINKS_NATIONAL_UNIVERSE_UNVERIFIED" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "HOLD_NEW_DAY_REGISTRY_SOURCE_UNAVAILABLE" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+      - name: Verify real current-day registry before creating any forecast
+        if: steps.ingest.outputs.ready == 'true'
+        id: registry_gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="${{ steps.storage.outputs.root }}"
+          day="${{ steps.storage.outputs.day }}"
+          if [ "$day" = '2026-11-18' ]; then
+            registry="$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_all79_nationwide_AB_registered_v1.json"
+          else
+            registry="$root/registry/$day.json"
+          fi
+          if [ ! -s "$registry" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "HOLD_CURRENT_JST_DAY_REGISTRY_MISSING" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if python - "$registry" "$day" <<'PY'
+          import json,sys
+          from scripts.keirin_nationwide_auto_forecast import registered_race_ids
+          path,day=sys.argv[1:]
+          with open(path,encoding="utf-8") as stream:
+              doc=json.load(stream)
+          if doc.get("day_jst")!=day:
+              raise ValueError("REGISTRY_DAY_NOT_CURRENT_JST_DAY")
+          ids=registered_race_ids(doc)
+          if not ids:
+              raise ValueError("DAY_NO_REGISTERED_RACES")
+          if doc.get("national_universe_unverified_hold"):
+              print("PARTIAL_ROSTER_NATIONAL_COVERAGE_UNVERIFIED")
+          else:
+              print("ROSTER_INPUT_CHECKED_NOT_A_LIVE_FORECAST_PROOF")
+          PY
+          then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "HOLD_CURRENT_DAY_REGISTRY_INVALID" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Capture approved ordinary public racecards and automatically normalize all available data
+        if: steps.registry_gate.outputs.ready == 'true' && vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="${{ steps.storage.outputs.root }}"
+          day="${{ steps.storage.outputs.day }}"
+          if [ "$day" = '2026-11-18' ]; then
+            registry="$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_all79_nationwide_AB_registered_v1.json"
+          else
+            registry="$root/registry/$day.json"
+          fi
+          manifest="$root/manifests/day.json"
+          if [ ! -f "$manifest" ]; then
+            # Kdreams public calendar and meeting HTML anchors, not fabricated
+            # direct URLs. If the ordinary GET is denied, leave HOLD.
+            if python -m scripts.keirin_discover_public_race_links \
+              --day "$day" \
+              --registry "$registry" \
+              --manifest "$manifest" \
+              --safe-report "$root/day-link-discovery.json" > "$RUNNER_TEMP/day-link-safe.json"; then
+              cat "$RUNNER_TEMP/day-link-safe.json" >> "$GITHUB_STEP_SUMMARY"
+              aws s3 cp "$manifest" "$SOURCE_S3_PREFIX/$day/manifests/day.json" --only-show-errors
+            else
+              echo "HOLD_DAY_RACE_DETAIL_URLS_NOT_LINKED_OR_ACCESS_DENIED" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+          if [ -f "$manifest" ]; then
+            python -m scripts.keirin_capture_public_two_sources \
+              --day-manifest "$manifest" \
+              --registry "$registry" \
+              --private-cards-dir "$root/cards" \
+              --private-raw-dir "$root/raw" \
+              --max-races 8 \
+              --report "$root/capture-summary.json" > "$RUNNER_TEMP/capture-safe-counts.json"
+            cat "$RUNNER_TEMP/capture-safe-counts.json" >> "$GITHUB_STEP_SUMMARY"
+            # Owner-only private persistent source cache across 10-min jobs.
+            # No source or rider content is copied to a public artifact.
+            aws s3 sync "$root/raw/" "$SOURCE_S3_PREFIX/$day/raw/" --only-show-errors --no-progress
+            aws s3 sync "$root/cards/" "$SOURCE_S3_PREFIX/$day/cards/" --only-show-errors --no-progress
+          fi
+      - name: Automatically generate A/B for every available race and seal with owner RSA/AES
+        if: steps.registry_gate.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="${{ steps.storage.outputs.root }}"
+          day="${{ steps.storage.outputs.day }}"
+          if [ "$day" = '2026-11-18' ]; then
+            registry="$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_all79_nationwide_AB_registered_v1.json"
+          else
+            registry="$root/registry/$day.json"
+          fi
+          python -m scripts.keirin_nationwide_auto_forecast \
+            --registry "$registry" \
+            --private-racecards-dir "$root/cards" \
+            --raw-pages-dir "$root/raw" \
+            --private-output-dir "$root/sealed" \
+            --owner-rsa-public-pem "$root/owner-public.pem" \
+            --safe-summary "$root/producer-summary.json" > "$RUNNER_TEMP/ab-safe-counts.json"
+          cat "$RUNNER_TEMP/ab-safe-counts.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload encrypted ONLY, plus safe readback receipts
+        if: steps.registry_gate.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-auto-ab-cipher-${{ github.run_id }}
+          path: |
+            ${{ steps.storage.outputs.root }}/sealed/*.sealed.json
+            ${{ steps.storage.outputs.root }}/producer-summary.json
+          if-no-files-found: error
+          retention-days: 21
+      - name: Remove private racecard and owner source from temporary disk
+        if: always()
+        shell: bash
+        run: |
+          root="${{ steps.storage.outputs.root }}"
+          if [ -n "$root" ] && [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-nationwide-ab-* ]]; then
+            rm -rf -- "$root"
+          fi
+
+  independent-cipher-readback:
+    needs: owner-auto-generate
+    if: needs.owner-auto-generate.result == 'success' && needs.owner-auto-generate.outputs.ready == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-auto-ab-cipher-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-ab-independent
+      - name: Second runner validates all ciphertext bytes and A/B SHA without RSA private key
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="$RUNNER_TEMP/keirin-ab-independent"
+          python -m scripts.keirin_nationwide_independent_cipher_readback \
+            --producer-report "$root/producer-summary.json" \
+            --cipher-dir "$root/sealed" \
+            --report "$RUNNER_TEMP/independent-readback.json" > "$RUNNER_TEMP/ab-safe-readback.json"
+          cat "$RUNNER_TEMP/ab-safe-readback.json" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-auto-ab-independent-readback-${{ github.run_id }}
+          path: ${{ runner.temp }}/independent-readback.json
+          retention-days: 21
+          if-no-files-found: error
+
+
+  github-only-owner-capture:
+    # Opt-in, existing GitHub ONLY; never requires or silently creates S3.
+    # Mutually exclusive with the older externally sourced owner-auto-generate.
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.ref == 'refs/heads/main' &&
+      vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+      vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
+      vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+      vars.RACE_AI_AB_SOURCE_S3_PREFIX == '' &&
+      (github.event_name == 'schedule' ||
+       (github.event_name == 'workflow_dispatch' && inputs.mode == 'run'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+      RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED: ${{ vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED }}
+    outputs:
+      archived: ${{ steps.run.outputs.archived }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Prepare private ephemeral workspace
+        id: private
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/keirin-git-only-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root/safe"
+          chmod 700 "$root"
+          echo "root=$root" >> "$GITHUB_OUTPUT"
+          echo "day=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_OUTPUT"
+      - name: Collect current JST roster, capture real cards and append sealed A/B to existing Git branch
+        id: run
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          python -m scripts.keirin_official_day_pipeline capture \
+            --day "${{ steps.private.outputs.day }}" \
+            --repo "$GITHUB_WORKSPACE" \
+            --private-root "${{ steps.private.outputs.root }}" \
+            --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --report "${{ steps.private.outputs.root }}/safe/summary.json" \
+            --max-races 8 \
+            > "$RUNNER_TEMP/keirin-live-safe.json"
+          cat "$RUNNER_TEMP/keirin-live-safe.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "archived=true" >> "$GITHUB_OUTPUT"
+      - name: Keep only safe SHA/status receipt for second GitHub runner
+        if: steps.run.outputs.archived == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-github-only-ab-receipt-${{ github.run_id }}
+          path: ${{ steps.private.outputs.root }}/safe/summary.json
+          retention-days: 21
+          if-no-files-found: error
+      - name: Destroy private source HTML and raw cards
+        if: always()
+        shell: bash
+        run: |
+          root="${{ steps.private.outputs.root }}"
+          if [ -n "$root" ] && [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-git-only-* ]]; then
+            rm -rf -- "$root"
+          fi
+
+  github-only-independent-archive-readback:
+    needs: github-only-owner-capture
+    if: needs.github-only-owner-capture.result == 'success' && needs.github-only-owner-capture.outputs.archived == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-github-only-ab-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-ab-independent
+      - name: Verify actual committed Git ciphertext on separate runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48'
+          python -m scripts.keirin_github_only_ab_readback \
+            --report "$RUNNER_TEMP/keirin-ab-independent/summary.json" \
+            --repo "$GITHUB_WORKSPACE" \
+            --out "$RUNNER_TEMP/keirin-git-independent.json" \
+            > "$RUNNER_TEMP/keirin-git-independent-safe.json"
+          cat "$RUNNER_TEMP/keirin-git-independent-safe.json" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-github-only-ab-readback-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-git-independent.json
+          if-no-files-found: error
+          retention-days: 21
+
+
+  real-secondary-result-20261118-smoke:
+    # Historic known race: source page parsing only, no model replay.
+    # Historical receipts are retained; a code push must not repeat provider GETs.
+    if: false && github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: One existing public Kdreams and netkeirin result pair, never official
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5'
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from scripts.keirin_capture_public_two_sources import SCHEMA
+          rid="202611182601"
+          doc={"schema":SCHEMA,"day_jst":"2026-11-18",
+               "source_use_scope":"OWNER_PERSONAL_RESEARCH_ONLY",
+               "races":[{"race_id":rid,
+                 "netkeirin_url":"https://keirin.netkeiba.com/race/entry/?race_id="+rid,
+                 "kdreams_url":"https://keirin.kdreams.jp/seibuen/racedetail/2620261118010001/",
+                 "cutoff_hint":None}]}
+          path=Path(os.environ["RUNNER_TEMP"])/"keirin-test-result-manifest.json"
+          path.write_text(json.dumps(doc),encoding="utf-8")
+          PY
+          if python -m scripts.keirin_secondary_result_poll \
+             --manifest "$RUNNER_TEMP/keirin-test-result-manifest.json" \
+             --race-id 202611182601 \
+             --report "$RUNNER_TEMP/keirin-test-result-secondary.json" \
+             > "$RUNNER_TEMP/keirin-two-provider-safe.json"; then
+            cat "$RUNNER_TEMP/keirin-two-provider-safe.json" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "HOLD_PUBLIC_SECONDARY_RESULT_SOURCE_UNAVAILABLE_NOT_OFFICIAL" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          cat "$RUNNER_TEMP/keirin-two-provider-safe.json"
+
+
+  github-only-research-results:
+    # Run after this poll's independent readback. A failed/no-new capture
+    # does not prevent rechecking older immutable originals.
+    needs: [github-only-owner-capture, github-only-independent-archive-readback]
+    if: >-
+      always() &&
+      github.repository == 'haji84/RACE-AI' &&
+      github.ref == 'refs/heads/main' &&
+      vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+      vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
+      vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+      vars.RACE_AI_AB_SOURCE_S3_PREFIX == '' &&
+      (github.event_name == 'schedule' ||
+       (github.event_name == 'workflow_dispatch' && inputs.mode == 'run'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+      RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED: ${{ vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Join official results, preserve revisions and encrypt the owner view
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="$RUNNER_TEMP/keirin-official-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root"
+          chmod 700 "$root"
+          # One process shares denial latches across current/yesterday/backlog.
+          # Per-day persisted cursors keep older result/correction polling fair.
+          status=0
+          python -m scripts.keirin_official_day_pipeline settle-days \
+            --day auto \
+            --repo "$GITHUB_WORKSPACE" \
+            --private-root "$root" \
+            --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --report "$root/batch-safe.json" \
+            --max-races 8 > "$root/counts.json" || status=$?
+          cat "$root/counts.json" >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+      - name: Preserve only safe official settlement receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-official-result-receipts-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/keirin-official-${{ github.run_id }}/*/safe.json
+            ${{ runner.temp }}/keirin-official-${{ github.run_id }}/batch-safe.json
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Preserve only RSA encrypted owner views
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-official-owner-views-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-official-${{ github.run_id }}/*/owner-view.sealed.json
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Destroy ephemeral plaintext owner reports and source bytes
+        if: always()
+        shell: bash
+        run: |
+          root="$RUNNER_TEMP/keirin-official-$GITHUB_RUN_ID"
+          if [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-official-* ]]; then
+            rm -rf -- "$root"
+          fi
