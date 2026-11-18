@@ -46,14 +46,16 @@ jobs:
             tests.test_keirin_nationwide_auto_storage \
             tests.test_keirin_nationwide_auto_runner \
             tests.test_keirin_public_two_source_normalizer \
-            tests.test_keirin_capture_public_two_sources
+            tests.test_keirin_capture_public_two_sources \
+            tests.test_keirin_discover_public_race_links
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_nationwide_auto_storage.py \
             scripts/keirin_nationwide_auto_forecast.py \
             scripts/keirin_nationwide_independent_cipher_readback.py \
             race_ai/keirin_public_two_source_normalizer.py \
-            scripts/keirin_capture_public_two_sources.py
+            scripts/keirin_capture_public_two_sources.py \
+            scripts/keirin_discover_public_race_links.py
 
   owner-auto-generate:
     if: >-
@@ -144,8 +146,20 @@ jobs:
           fi
           manifest="$root/manifests/day.json"
           if [ ! -f "$manifest" ]; then
-            echo "HOLD_NO_APPROVED_DAY_URL_MANIFEST: no website GETs made" >> "$GITHUB_STEP_SUMMARY"
-          else
+            # Kdreams public calendar and meeting HTML anchors, not fabricated
+            # direct URLs. If the ordinary GET is denied, leave HOLD.
+            if python -m scripts.keirin_discover_public_race_links \
+              --day "$day" \
+              --registry "$registry" \
+              --manifest "$manifest" \
+              --safe-report "$root/day-link-discovery.json" > "$RUNNER_TEMP/day-link-safe.json"; then
+              cat "$RUNNER_TEMP/day-link-safe.json" >> "$GITHUB_STEP_SUMMARY"
+              aws s3 cp "$manifest" "$SOURCE_S3_PREFIX/$day/manifests/day.json" --only-show-errors
+            else
+              echo "HOLD_DAY_RACE_DETAIL_URLS_NOT_LINKED_OR_ACCESS_DENIED" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+          if [ -f "$manifest" ]; then
             python -m scripts.keirin_capture_public_two_sources \
               --day-manifest "$manifest" \
               --registry "$registry" \
