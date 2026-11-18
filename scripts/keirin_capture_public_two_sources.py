@@ -47,7 +47,7 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 def _allow_url(url,kind,rid):
-    from .keirin_public_two_source_normalizer import _url_role
+    from race_ai.keirin_public_two_source_normalizer import _url_role
     try:
         _url_role(url,"net" if kind=="net" else "k",rid)
     except (PublicPageNormalizeError,AutomaticForecastError,TypeError):
