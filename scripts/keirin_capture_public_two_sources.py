@@ -22,9 +22,9 @@ import os
 import stat
 import argparse
 
-from .keirin_public_two_source_normalizer import (
+from race_ai.keirin_public_two_source_normalizer import (
     merge_pre_race_pages, PublicPageNormalizeError)
-from .keirin_nationwide_auto_generator import (
+from race_ai.keirin_nationwide_auto_generator import (
     AutomaticForecastError,VENUE,canonical,when)
 
 SCHEMA="RACE_AI_KEIRIN_APPROVED_PUBLIC_TWO_SOURCE_DAY_URLS_V1"
@@ -235,7 +235,7 @@ def capture_cycle(*,day_manifest,registered_ids,private_cards_dir,
 
 
 def main(argv=None):
-    from .keirin_nationwide_auto_forecast import registered_race_ids
+    from scripts.keirin_nationwide_auto_forecast import registered_race_ids
     p=argparse.ArgumentParser()
     p.add_argument("--day-manifest",required=True)
     p.add_argument("--registry",required=True)
