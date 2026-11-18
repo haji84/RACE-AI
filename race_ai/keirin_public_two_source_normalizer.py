@@ -87,12 +87,25 @@ def _url_role(url,who,rid):
              parse_qs(u.query).get("race_id")==[rid],
              "NETKEIRIN_ORDINARY_RACECARD_RACE_ID_MISMATCH")
     else:
-        need(u.hostname=="keirin.kdreams.jp" and
-             u.path.startswith("/") and "/racedetail/" in u.path and
-             u.path.endswith("/") and
-             rid[:8] in u.path and rid[8:10] in u.path and
-             u.path[-3:-1]==rid[10:12],
-             "KDREAMS_RACE_DETAIL_ID_MISMATCH")
+        # Kdreams detail IDs encode MEETING start and DAY INDEX, not
+        # necessarily the race's own date (day two/three would fail a
+        # naïve YYYYMMDD-in-URL check).
+        item=re.fullmatch(
+            r"/[a-z0-9-]+/racedetail/([0-9]{2})(20[0-9]{6})([0-9]{2})00([0-9]{2})/",
+            u.path)
+        try:
+            if item is None:
+                raise ValueError("details")
+            code,begin,index,number=item.groups()
+            day=datetime.strptime(begin,"%Y%m%d").date()+timedelta(
+                days=int(index)-1)
+            correct=(u.hostname=="keirin.kdreams.jp" and
+                     1<=int(index)<=7 and code==rid[8:10] and
+                     f"{day:%Y%m%d}"==rid[:8] and
+                     number==rid[10:12])
+        except (ValueError,OverflowError):
+            correct=False
+        need(correct,"KDREAMS_RACE_DETAIL_ID_MISMATCH")
 
 
 def _mark(raw,n):
