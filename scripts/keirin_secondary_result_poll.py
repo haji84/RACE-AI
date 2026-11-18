@@ -20,7 +20,8 @@ SCHEMA = "RACE_AI_KEIRIN_TWO_SOURCE_POSTRACE_POLL_V1"
 
 
 def verified_pair_urls(manifest, race_id):
-    source.manifest_check(manifest,registered_ids=[race_id])
+    source.manifest_check(
+        manifest,registered_ids=[r["race_id"] for r in manifest.get("races",[])])
     candidates = [r for r in manifest["races"] if r["race_id"] == race_id]
     consensus.require(len(candidates) == 1,
                       "RESULT_RACE_NOT_IN_CURRENT_MANIFEST")
