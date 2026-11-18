@@ -8,6 +8,8 @@ on:
       - 'scripts/keirin_register_public_day.py'
       - 'scripts/keirin_github_only_ab_*.py'
       - 'tests/test_keirin_github_only_ab_day.py'
+      - 'race_ai/keirin_github_provider_stop.py'
+      - 'tests/test_keirin_github_provider_stop.py'
       - 'race_ai/keirin_secondary_result_consensus.py'
       - 'scripts/keirin_secondary_result_poll.py'
       - 'tests/test_keirin_secondary_result_consensus.py'
@@ -64,6 +66,7 @@ jobs:
             tests.test_keirin_register_public_day \
             tests.test_keirin_nationwide_auto_day_registry_workflow \
             tests.test_keirin_github_only_ab_day \
+            tests.test_keirin_github_provider_stop \
             tests.test_keirin_secondary_result_consensus \
             tests.test_keirin_github_only_result_day
           python -m py_compile \
@@ -78,6 +81,7 @@ jobs:
             scripts/keirin_discover_public_race_links.py \
             scripts/keirin_register_public_day.py \
             scripts/keirin_github_only_ab_day.py \
+            race_ai/keirin_github_provider_stop.py \
             scripts/keirin_github_only_ab_readback.py \
             race_ai/keirin_secondary_result_consensus.py \
             scripts/keirin_secondary_result_poll.py \
