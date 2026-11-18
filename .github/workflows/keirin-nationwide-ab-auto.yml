@@ -534,7 +534,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     outputs:
-      ready: ${{ steps.ingest.outputs.ready }}
+      ready: ${{ steps.registry_gate.outputs.ready }}
     env:
       PUBLIC_CAPTURE_ENABLED: ${{ vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED }}
       AWS_ACCESS_KEY_ID: ${{ secrets.RACE_AI_AB_SOURCE_ACCESS_KEY_ID }}
@@ -599,8 +599,74 @@ jobs:
           with os.fdopen(fd,"wb") as h:h.write(data)
           PY
           echo "ready=true" >> "$GITHUB_OUTPUT"
-      - name: Capture approved ordinary public racecards and automatically normalize all available data
+      - name: Register current JST day from observed public links when owner registry is absent
         if: steps.ingest.outputs.ready == 'true' && vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="${{ steps.storage.outputs.root }}"
+          day="${{ steps.storage.outputs.day }}"
+          if [ "$day" != '2026-11-18' ] && [ ! -s "$root/registry/$day.json" ]; then
+            # Only observed calendar -> meeting -> race anchors can enter this
+            # roster. A partial provider list remains UNVERIFIED, not national.
+            if python -m scripts.keirin_register_public_day \
+              --day "$day" \
+              --private-raw-dir "$root/raw" \
+              --registry "$root/registry/$day.json" \
+              --manifest "$root/manifests/day.json" \
+              --safe-report "$root/registry-safe-report.json" \
+              > "$RUNNER_TEMP/registry-safe-counts.json"; then
+              cat "$RUNNER_TEMP/registry-safe-counts.json" >> "$GITHUB_STEP_SUMMARY"
+              aws s3 cp "$root/registry/$day.json" "$SOURCE_S3_PREFIX/$day/registry/$day.json" --only-show-errors
+              aws s3 cp "$root/manifests/day.json" "$SOURCE_S3_PREFIX/$day/manifests/day.json" --only-show-errors
+              aws s3 sync "$root/raw/" "$SOURCE_S3_PREFIX/$day/raw/" --only-show-errors --no-progress
+              echo "REGISTRY_PARTIAL_PUBLIC_LINKS_NATIONAL_UNIVERSE_UNVERIFIED" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "HOLD_NEW_DAY_REGISTRY_SOURCE_UNAVAILABLE" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+      - name: Verify real current-day registry before creating any forecast
+        if: steps.ingest.outputs.ready == 'true'
+        id: registry_gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="${{ steps.storage.outputs.root }}"
+          day="${{ steps.storage.outputs.day }}"
+          if [ "$day" = '2026-11-18' ]; then
+            registry="$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_all79_nationwide_AB_registered_v1.json"
+          else
+            registry="$root/registry/$day.json"
+          fi
+          if [ ! -s "$registry" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "HOLD_CURRENT_JST_DAY_REGISTRY_MISSING" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if python - "$registry" "$day" <<'PY'
+          import json,sys
+          from scripts.keirin_nationwide_auto_forecast import registered_race_ids
+          path,day=sys.argv[1:]
+          with open(path,encoding="utf-8") as stream:
+              doc=json.load(stream)
+          if doc.get("day_jst")!=day:
+              raise ValueError("REGISTRY_DAY_NOT_CURRENT_JST_DAY")
+          ids=registered_race_ids(doc)
+          if not ids:
+              raise ValueError("DAY_NO_REGISTERED_RACES")
+          if doc.get("national_universe_unverified_hold"):
+              print("PARTIAL_ROSTER_NATIONAL_COVERAGE_UNVERIFIED")
+          else:
+              print("ROSTER_INPUT_CHECKED_NOT_A_LIVE_FORECAST_PROOF")
+          PY
+          then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "HOLD_CURRENT_DAY_REGISTRY_INVALID" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Capture approved ordinary public racecards and automatically normalize all available data
+        if: steps.registry_gate.outputs.ready == 'true' && vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -641,7 +707,7 @@ jobs:
             aws s3 sync "$root/cards/" "$SOURCE_S3_PREFIX/$day/cards/" --only-show-errors --no-progress
           fi
       - name: Automatically generate A/B for every available race and seal with owner RSA/AES
-        if: steps.ingest.outputs.ready == 'true'
+        if: steps.registry_gate.outputs.ready == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -661,7 +727,7 @@ jobs:
             --safe-summary "$root/producer-summary.json" > "$RUNNER_TEMP/ab-safe-counts.json"
           cat "$RUNNER_TEMP/ab-safe-counts.json" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload encrypted ONLY, plus safe readback receipts
-        if: steps.ingest.outputs.ready == 'true'
+        if: steps.registry_gate.outputs.ready == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: keirin-auto-ab-cipher-${{ github.run_id }}
