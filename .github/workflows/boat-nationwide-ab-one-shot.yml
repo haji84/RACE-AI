@@ -78,6 +78,9 @@ on:
       - race_ai/boat_research_batch.py
       - race_ai/boat_venue_learning_handoff.py
       - race_ai/boat_venue_research_retention.py
+      - race_ai/boat_venue_research_cache.py
+      - tests/test_boat_venue_research_cache.py
+      - tests/fixtures/boat_venue_research_repeated_work.py
       - race_ai/boat_video_forward.py
       - tests/test_boat_venue_research_batch.py
       - tests/test_boat_venue_research_retention.py
@@ -158,6 +161,7 @@ jobs:
                  'tests.test_boat_venue_research_runtime','tests.test_boat_venue_learning_handoff',
                  'tests.test_boat_venue_learning_context','tests.test_boat_venue_learning',
                  'tests.test_boat_venue_research_batch','tests.test_boat_venue_research_retention',
+                 'tests.test_boat_venue_research_cache',
                  'tests.test_boat_venue_research_pdca','tests.test_boat_video_forward',
                  'tests.test_boat_saved_model_view','tests.test_boat_saved_model_reason_variants',
                  'tests.test_result_observation_conflict_diagnostics','tests.test_all_existing_model_artifact_retention',
