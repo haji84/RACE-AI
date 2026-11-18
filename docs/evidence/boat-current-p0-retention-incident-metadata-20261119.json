@@ -1,0 +1,106 @@
+{
+  "observed_at": "2026-11-18T23:08:53.116085+00:00",
+  "schema": "RACE_AI_CURRENT_P0_RETENTION_INCIDENT_METADATA_V1",
+  "authentication": "existing haji84 gh authentication; key not read locally",
+  "run": {
+    "id": 44409798061,
+    "head_sha": "fbc743be548bfd123e46cdbfe290515a59e5e0d3",
+    "head_branch": "production/boat-p0-p1-20261111",
+    "status": "completed",
+    "conclusion": "failure",
+    "created_at": "2026-11-18T22:15:26Z",
+    "updated_at": "2026-11-18T22:20:24Z",
+    "run_attempt": 1
+  },
+  "artifacts_total_count": 6,
+  "artifacts": [
+    {
+      "id": 14477267485,
+      "name": "existing-cycle-source-44409798061",
+      "size_in_bytes": 40474977,
+      "digest": "sha256:48489e80b12d3cdcd0225055da2c40281a23e2bb78b4844c46446e95c9a737e7",
+      "expired": false,
+      "created_at": "2026-11-18T22:20:19Z"
+    },
+    {
+      "id": 14477077813,
+      "name": "race-cycle-continuity-44409798061",
+      "size_in_bytes": 270901,
+      "digest": "sha256:d917e9c941956c2ec73569739d02266104abfada90dc30f44a8de188f1933d09",
+      "expired": false,
+      "created_at": "2026-11-18T22:19:58Z"
+    },
+    {
+      "id": 14476473232,
+      "name": "race-source-control-44409798061",
+      "size_in_bytes": 488,
+      "digest": "sha256:64919a2d2aba28dd416f6a18f322821651f707dfafd74b91d6eb168a3758a486",
+      "expired": false,
+      "created_at": "2026-11-18T22:19:59Z"
+    },
+    {
+      "id": 14476177998,
+      "name": "boat-venue-learning-44409798061-1",
+      "size_in_bytes": 310945,
+      "digest": "sha256:1dd15cb6f69ff0de3bc2be805bff47a6e7d479fd55c45c7e10f8f1c1b77be58e",
+      "expired": false,
+      "created_at": "2026-11-18T22:16:22Z"
+    },
+    {
+      "id": 14476113256,
+      "name": "boat-p0-existing-44409798061",
+      "size_in_bytes": 762539,
+      "digest": "sha256:1be295bd729fb74dbd0929491464807018c25ffa65921037d4fe98de0d767b19",
+      "expired": false,
+      "created_at": "2026-11-18T22:18:29Z"
+    },
+    {
+      "id": 14475644448,
+      "name": "boat-all-model-forecasts-44409798061-r0",
+      "size_in_bytes": 18707982,
+      "digest": "sha256:e6c87d8ecacfc075b8b3e1ea1b9df51adec5cd2ad056a4b187df50601bea50d7",
+      "expired": false,
+      "created_at": "2026-11-18T22:19:54Z"
+    }
+  ],
+  "jobs": [
+    {
+      "id": 135174569110,
+      "status": "completed",
+      "conclusion": "failure",
+      "failed_steps": [
+        {
+          "name": "Retain exact additional P0 execution and physical save receipt beyond expiry",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "id": 135174571641,
+      "status": "completed",
+      "conclusion": "skipped",
+      "failed_steps": []
+    },
+    {
+      "id": 135174571820,
+      "status": "completed",
+      "conclusion": "skipped",
+      "failed_steps": []
+    }
+  ],
+  "native_run": {
+    "id": 44409808616,
+    "head_sha": "4f6efd5207316a5f1ba3ab0255728224f00dcc53",
+    "status": "completed",
+    "conclusion": "failure",
+    "created_at": "2026-11-18T22:15:30Z"
+  },
+  "scope": {
+    "metadata_only": true,
+    "ciphertext_downloaded": false,
+    "source_gets": 0,
+    "dispatches": 0,
+    "forecast_regenerated": false,
+    "all_day_or_deadline_coverage_proven": false
+  }
+}

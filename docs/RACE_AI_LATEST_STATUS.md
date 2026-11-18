@@ -1,9 +1,10 @@
-# RACE-AI 最新状況 — 2026-11-19 07:11 JST
+# RACE-AI 最新状況 — 2026-11-19 08:13 JST
 
 **GOALは未達。** 原本・既存変更・重み・元の判定を保全して継続中。従来全文は[履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261118_0928.md)へ同一Git blobのまま保全した。
 
 ## 接続・HEAD・未復元
 
+- 現在のmainは既存PR16の通常merge `4f6efd5207316a5f1ba3ab0255728224f00dcc53`、tree `314ec3c6e305ae13326daefe94a75de5e41d9687`。最終候補6af654のtested treeと一致し、12成功/13skip/失敗0を確認。protected sourceは下記fbcのまま。公開Pages `083739d080ac1fa88714bae0b5cca2bfe7712c8b`・公開資産f603は変更していない。
 - 今回のmain作業基点は `7584fc3d9d60aa2a548a43281041f66cf0ce9681`（既存PR22通常merge）。旧BOAT clock参照同期7003/PR25の証拠も保全し、既存PR19で新protected sourceへの正確な参照同期を進める。
 - protected sourceは既存PR21の通常merge `fbc743be548bfd123e46cdbfe290515a59e5e0d3`、tree `1068d5a0d1225e0638a31528f8031a5b8e9fc584`。最終候補9f3/既存CI44348357932のtreeと一致。旧source995等の歴史role・原本・recovery契約を保つ。[sourceの実merge/CI](evidence/boat-source21-reviewed-merge-20261119.json)。
 - mainのruntime実装は既存PR19の通常merge `bc40906cf2246ba12ad698bb71e6fec492ab7675`、tree `48fafe1fb44083e47f910db9b85c1ae429840e62`。最終候補d48のtested treeと一致し、28 checks（13成功/15skip/失敗0）。復旧138件/0.521秒、matrix372件/152.917秒＋7件/13.974秒、native検証コード140件/18.319秒が成功。新P0はsame＋M2/profile/BB/A74のみ、995/F1/C979/unknownと逆方向を拒否。旧role・fixed reader/recovery契約を保全した。文書更新もこの実装を継承する。[同期の検証](evidence/boat-main-exact-clothing-source-sync-20261119.json)。
@@ -18,6 +19,16 @@
 ユーザーの「公開するわけやないよ」に従い、一般公開を前提にした許可待ちは取り下げる。本人用画面の開発・private loopback/合成受入を継続し、公開Pagesの資産は変更しない。
 
 06:57〜07:02 JSTの正規metadataではlauncher359件、canonical owner356件とproduction限定34件を全ページ確認し、非completed0。新しい朝イベントは未観測で、新しい朝ゲートがHOLDしたという証拠はない。現在のref/owner doc/historyを既存pure decideで再評価するとREADY_EXISTING_OWNER_WORKFLOW_ONLYだが、Actionsの実起動判定とは区別する。既存manualはowner判定を通らずdaily collectorへ進むため、直接source起動の代替にしない。[全頁監査](evidence/boat-morning-schedule-delivery-audit-20261119.json)。
+
+通常merge後、07:15 JSTの実launcher44409740547/job135174365706がREADY_EXISTING_OWNER_WORKFLOW_ONLY/dispatch_allowed=true/source GET0を記録し、既存gate経由でsource fbcのrun44409798061が起動した。直接source dispatch・旧runの再実行・counter resetはしていない。
+
+## 今朝の追加P0保存失敗と原本保全
+
+実run44409798061/job135174569110は07:20 JSTに失敗。最初のP0の暗号保存・create-only first receipt・期限後vault保管はsuccess/独立Git読戻しtrue。次のproducerは132 contexts/追加660 forecastを生成したが、r0 upload直後のmetadata404でreadbackと追加P0恒久保管に失敗し、その後の巡回は全skip。実controlはcompleted_round0/requests_used1で、660件を実巡回成功や独立認証済み件数へ加算しない。[完了ログの件数](evidence/boat-current-p0-and-native-actual-failure-counts-20261119.json)。
+
+08:08 JSTの正規認証では、r0 artifact14475644448/18,707,982 bytes/SHA256 e6c87d8ecacfc075b8b3e1ea1b9df51adec5cd2ad056a4b187df50601bea50d7 と最初のP0・continuity・source-controlが同run/head・期限内で存在する。metadata404の根因を反映遅延だけと断定しない。原660件を保全し、再生成前にAES・全inventory・vault・保存view・発行済みmapを再認証する復旧候補を作成中。[再取得したmetadata](evidence/boat-current-p0-retention-incident-metadata-20261119.json)。
+
+既存PR15には、current-run upload receiptに一致するmetadata404だけの既存3回/60秒retryを追加P0の二つのconsumerへ結線した候補a88e6ca6を通常FF pushした。GitHub44414554254は899件・別223件ほか全成功。これは保管経路のCI証明で、未復旧の660原本を読み戻した証明ではない。固定検証器main blob c1621c/source blob be56afは変更せず、exact失敗実行の履歴認証と新checkoutへの復旧証明を分ける追加候補を独立review中。新protected source/main参照同期・実復旧・後続の新予想保存は未確認。
 
 ## P0保管の修正と実運転
 
@@ -37,7 +48,9 @@ ALL_MODELのr4/19は欠落HOLDを維持。正規ログではr4はcontexts0/gener
 
 ## 本人用Safariの拒否診断修正
 
-既存PR16で、実runのCURRENT_V5_REPLAY_INVALIDを固定phase・明示allowlist上流reason・bounded読込件数へ区分する診断修正を進める。author b5f907c4、統合9c69d1c9。RED→GREENを確認し、最終native148＋dispatch38＝186件が成功。独立186件/15.301秒と29境界probe/外部接続0も成功しreview CLEAR。元140テストと成功経路はAST同一、日付/clock/512files/256MiB/cipher/固定EFF/全workflow/UIは不変。例外文やURLを出さず、型/固定集合/件数を再検証する。実runの内部原因は今も未確定で、診断修正を実受入成功にはしない。[テスト先行と限定](evidence/boat-native-replay-diagnostic-test-first-20261119.json)。
+既存PR16で、実runのCURRENT_V5_REPLAY_INVALIDを固定phase・明示allowlist上流reason・bounded読込件数へ区分する診断修正を通常mergeした。author b5f907c4、統合9c69d1c9。RED→GREENを確認し、最終native148＋dispatch38＝186件が成功。独立186件/15.301秒と29境界probe/外部接続0も成功しreview CLEAR。元140テストと成功経路はAST同一、日付/clock/512files/256MiB/cipher/固定EFF/全workflow/UIは不変。例外文やURLを出さず、型/固定集合/件数を再検証する。旧runの内部原因は未確定だったが、反映後runでは次段落の拒否理由を実確認した。診断修正を実受入成功にはしない。[テスト先行と限定](evidence/boat-native-replay-diagnostic-test-first-20261119.json)。
+
+PR16反映後の実Mac44409808616/job135174602639は148 unit成功・公開4資産一致後、current_day_authentication/HISTORY_DAY_UNAVAILABLEでHOLD。読込2 files/10,932 bytes、残budget268,424,524 bytesであり、今回の拒否を容量超過とはしない。当日の保存履歴不足を緩和・過去日付へ差替えず、P0原本とfeedを先に復旧する。更新候補f723の実capture・物理iPhone・直接feed配送は未合格。[実診断の件数](evidence/boat-current-p0-and-native-actual-failure-counts-20261119.json)。
 
 一般公開・新しい配備先・公開許可待ちは前提にしない。正当な実装変更を既存prefix/markerを使う通常mergeへ進め、既存ゲートによるsource/native判定を別に確認する。直接source dispatchや予算resetは行わない。
 
