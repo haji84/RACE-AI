@@ -273,6 +273,13 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
   #saved-result-metrics .metric-label{font-size:10px}
   #saved-result-metrics .metric strong{font-size:18px}
 }
+@media(max-width:360px){
+  #page-picks .ticket-row{grid-template-columns:minmax(98px,1fr) 110px 34px}
+  #page-picks .ticket-row>.ticket-rank{display:none}
+  #page-picks .ticket-row>.combo,#page-picks .ticket-row>.tag{grid-column:1}
+  #page-picks .ticket-edit{grid-column:2}
+  #page-picks .ticket-row>.text-button{grid-column:3}
+}
 
 /* Sport artwork inherits the existing text/active colors and responsive icon spans. */
 .sport-pictogram-defs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}

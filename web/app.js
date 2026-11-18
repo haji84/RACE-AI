@@ -1754,10 +1754,11 @@
     showPage(location.hash.slice(1));
   });
   document.addEventListener("click", event => {
-    if (!document.querySelector('meta[name="race-ai-encrypted-saved-view"]')) return;
     const anchor = event.target.closest?.('a[href^="#"]');if (!anchor) return;
     const target = anchor.getAttribute("href").slice(1);
-    if (Object.hasOwn(pageNames,target)) { event.preventDefault();showPage(target,true); }
+    if (Object.hasOwn(pageNames,target)) {
+      if (document.querySelector('meta[name="race-ai-encrypted-saved-view"]')) { event.preventDefault();showPage(target,true); }
+    }
     else { const element = document.getElementById(target);if (element) { event.preventDefault();element.focus();element.scrollIntoView(); } }
   });
   $("selected-date").addEventListener("change", () => { if (!$("selected-date").value) { $("selected-date").value = state.day; return; } state.raceView = $("selected-date").value < A.jstToday() ? "results" : "upcoming"; if(savedHistory?.version===importVersion){if(savedHistory.active){savedHistory.selectDay($("selected-date").value);return;}savedHistory.noteDayChange($("selected-date").value);} state.day = $("selected-date").value; state.followsToday = false; state.allDates = false; state.period = "day"; state.visible = 60; refreshSelects(); renderAll(); });

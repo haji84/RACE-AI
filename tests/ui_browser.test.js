@@ -157,6 +157,14 @@ async function main() {
     assert.equal(await page.locator('#result-metrics .metric').filter({has:page.getByText('公式・評価可能',{exact:true})}).locator('strong').textContent(),'0件','synthetic matches never enter official evaluation');
     await page.locator('#status-filter').selectOption('all');
     await page.locator('#period-filter').selectOption('day');
+    const beforeSkip = page.url();
+    await page.locator('.skip-link').focus();
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(()=>location.hash !== '#main-content');
+    assert.equal(page.url(),beforeSkip,'skipping the header must preserve the selected product page');
+    assert.equal(await page.locator('#page-races').isVisible(),true,'the content skip link must not send race browsing back to Home');
+    assert.equal(await page.evaluate(()=>document.activeElement.id),'main-content','keyboard users must land in the main content');
+    assert.equal(await page.locator('#page-races .race-card').count(),1,'skipping navigation retains the imported race and filter state');
     mark(`${width}: local import, four sports and search`);
     for (const name of ['home','races','detail','picks','results','research','settings']) {
       if (name==='detail') {
@@ -191,6 +199,12 @@ async function main() {
     await page.locator('#race-budget').fill('2000');
     await page.locator('#ticket-form button[type="submit"]').click();
     assert.ok(await page.locator('.ticket-row').count()>0,'manual candidate added');
+    await page.evaluate(()=>document.documentElement.style.scrollbarGutter='stable');
+    const editorLeft=(await page.locator('.ticket-amount').first().boundingBox()).x;
+    const ticketNumberRights=await page.locator('.ticket-row .combo').first().locator('.lane').evaluateAll(lanes=>lanes.map(e=>e.getBoundingClientRect().right));
+    assert.equal(ticketNumberRights.length,3);
+    assert.ok(ticketNumberRights.every(right=>right<=editorLeft-2),`${width}px every ticket number stays clear of the amount editor with a native scrollbar gutter`);
+    await page.evaluate(()=>document.documentElement.style.removeProperty('scrollbar-gutter'));
     await page.locator('.ticket-amount').first().fill('200');
     await page.locator('.ticket-amount').first().dispatchEvent('change');
     await page.locator('#confirm-candidates').click();

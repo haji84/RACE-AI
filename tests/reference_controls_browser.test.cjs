@@ -56,6 +56,18 @@ let browser,server;
   };
   const maximumAmount=await nativeAmountBounds();
   await page.locator('.ticket-amount').first().fill('200');await page.locator('.ticket-amount').first().press('Tab');
+  // Native macOS Safari keeps a scrollbar gutter even at a 320px window.
+  // Inspect visible lane descendants: the grid item's own box can be narrow
+  // while its third lane still paints underneath the amount editor.
+  await page.evaluate(()=>document.documentElement.style.scrollbarGutter='stable');
+  const gutterPixels=await page.evaluate(()=>innerWidth-document.documentElement.getBoundingClientRect().width);
+  assert.ok(gutterPixels>0,'the narrow-window check must reserve an actual native scrollbar gutter');
+  const visibleLanes=await page.locator('.ticket-row .combo').first().locator('.lane').evaluateAll(lanes=>lanes.map(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};}));
+  const amountWithGutter=await page.locator('.ticket-amount').first().boundingBox();
+  assert.equal(visibleLanes.length,3);
+  assert.ok(visibleLanes.every(lane=>lane.right<=amountWithGutter.x-2),`${width}px visible ticket numbers overlap the amount editor with a native scrollbar: ${JSON.stringify({visibleLanes,amountWithGutter})}`);
+  assert.ok(visibleLanes.every(lane=>lane.width>=22),'all three ticket numbers remain legible');
+  await page.evaluate(()=>document.documentElement.style.removeProperty('scrollbar-gutter'));
   assert.match(await page.locator('#allocation-summary').innerText(),/1,900円/);await page.locator('#confirm-candidates').click();
   assert.match(await page.locator('#confirmation-state').innerText(),/候補確定済み.*実購入ではありません/);
   assert.equal(await page.locator('#record-purchase').isDisabled(),true);
@@ -100,6 +112,6 @@ let browser,server;
   assert.equal(await page.locator('.audit-codes').evaluate(e=>e.scrollHeight<=e.clientHeight+1&&e.scrollWidth<=e.clientWidth+1),true,'long missing reasons remain readable');
   await page.locator('[data-return-to-race]').click();assert.equal(await page.locator('#prediction-select').inputValue(),'1');
   assert.equal(JSON.stringify(long),original);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.deepEqual(errors,[]);
-  console.log('PASS allocation/results/long controls '+JSON.stringify({width,height,ticket_row_height:Math.round(row.height),maximum_amount_native_bounds:maximumAmount,two_digit_manual_combo:true,trust_before_results:true,results_before_metrics:true}));await context.close();
+  console.log('PASS allocation/results/long controls '+JSON.stringify({width,height,ticket_row_height:Math.round(row.height),maximum_amount_native_bounds:maximumAmount,native_scrollbar_gutter_px:gutterPixels,minimum_ticket_lane_gap_px:Math.min(...visibleLanes.map(lane=>amountWithGutter.x-lane.right)),two_digit_manual_combo:true,trust_before_results:true,results_before_metrics:true}));await context.close();
  }
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(r=>server.close(r));});
