@@ -118,7 +118,7 @@ jobs:
           from pathlib import Path
           source=Path('.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
           blocks=re.findall(r"^          python - <<'([A-Z_]+)'\n(.*?)^          \1\s*$",source,re.M|re.S)
-          assert len(blocks)==9
+          assert len(blocks)==10
           for tag,body in blocks:
               compile(textwrap.dedent(body),tag,'exec')
           stage=source.split("python - <<'PY_ALL_MODEL'\n",1)[1].split("\n          PY_ALL_MODEL",1)[0]
@@ -761,4 +761,27 @@ jobs:
           spec=importlib.util.spec_from_file_location('main_saved_reason_binding_counts',source)
           mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
           mod.main([])
+          import json,subprocess
+          report=dict(schema='RACE_AI_EXISTING_WORKFLOW_STATE_COUNTS_V1',
+              status='HOLD_EXISTING_WORKFLOW_STATE_READ',workflow_states=None,
+              official_source_requests=0,workflow_settings_changed=False)
+          try:
+              states={}
+              allowed={'active','deleted','disabled_fork','disabled_inactivity','disabled_manually'}
+              for label,ident,path in (
+                      ('owner',405276784,'.github/workflows/boat-nationwide-ab-one-shot.yml'),
+                      ('launcher',410194475,'.github/workflows/boat-racer-daily.yml'),
+                      ('independent_audit',418875114,'.github/workflows/boat-owner-national-p1-matrix.yml')):
+                  result=subprocess.run(['gh','api','--hostname','github.com','--method','GET',
+                      'repos/haji84/RACE-AI/actions/workflows/'+str(ident)],
+                      check=False,capture_output=True,timeout=10)
+                  assert result.returncode==0 and 0<len(result.stdout)<=65536
+                  value=json.loads(result.stdout)
+                  assert (type(value) is dict and type(value.get('id')) is int and
+                      value['id']==ident and value.get('path')==path and value.get('state') in allowed)
+                  states[label]=dict(workflow_id=ident,state=value['state'])
+              report.update(status='EXISTING_WORKFLOW_STATES_VERIFIED',workflow_states=states)
+          except Exception:
+              pass
+          print(json.dumps(report,sort_keys=True,allow_nan=False))
           PY_REASON_COUNTS

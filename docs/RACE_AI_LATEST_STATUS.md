@@ -1,3 +1,13 @@
+## 2026-11-18 01:40:12 UTC: 診断226件は成功、ブロック数検査を修正し既存後継gateの再検証を準備（GOAL未達）
+
+実CI44216538283/job134507653080は226件/102.835秒がすべてOK。後続compile契約だけが、新しい1 block追加後も期待値9のままでfailureだった。10へ合わせ、全10 blockのcompileと旧9 block・r0 bytesの検証を維持する。20診断methodとruntime307e83bdは不変。独立レビューで見つけたrepo ID/HEAD差分の不足は修正済みで、実データへの診断はまだ実行していない。
+
+同じ新診断block内に、固定した既存3workflowの状態を正規Actions GH_TOKENでGETし、ID/path/状態enumだけを検証して出す処理を加える。未確認はnull/HOLD、設定変更0、raw応答/例外は出力しない。完了callbackや既存cronの配信が未確認なため、その状態を切り分ける。
+
+01:37:45 UTCの実取得ではa74のworkflow_dispatchは0。既存owner markerと既存release prefixで、閉じたBB（実ログ24巡回/worker GET304）の真正continuity/control・累積値を既存gateに再認証させ、現在a74の後継を判断させる。active/source wait/不一致/欠測はHOLD。原本やcounterをリセットせず、実BBのrerunもしない。同一ed904 UI pinは不変なので、自動Mac呼出しはSKIPされる。新job/権限/input/cron/runner/timeout/prefix/marker/モデル/料金/公開UIは増やさない。新source実運転・表示修復・全4競技/精度改善はまだ未達。
+
+[CI失敗と正確な修正](evidence/boat-saved-reason-binding-ci-compile-correction-20261118.json)。以下は各時点の履歴。
+
 ## 2026-11-18 01:31:55 UTC: 表示拒否の件数診断を実装、独立レビューを通過しfresh CI待ち（GOAL未達）
 
 既存PR43の実REDは44214541265/job134500961933で215件/102.186秒。既存206件は成功し、未実装モジュールによる8失敗＋1errorだけだった。構文エラーなし、別fixtureの固定guard checkoutも成功した。12純粋＋8境界methodをそのまま保持してmain限定診断を実装する。
