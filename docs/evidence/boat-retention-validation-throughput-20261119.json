@@ -1,0 +1,63 @@
+{
+  "schema": "RACE_AI_RETENTION_DUPLICATE_VALIDATION_FIX_V1",
+  "base_source": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+  "author_commit": "38e4e6df63c92856dd9ff48f01c8896d1dd3bab0",
+  "integration_commit": "40e201df",
+  "scope": "Remove the second complete validation of the same newly decoded candidate. No cross-record/batch admission cache.",
+  "actual_owner_observation": {
+    "run_id": 44310358995,
+    "job_id": 134822591655,
+    "first_round_generated_at": "2026-11-18T13:21:23.5380583Z",
+    "pdca_cipher_prepared_at": "2026-11-18T13:31:50.4305675Z",
+    "research_retention_verified_at": "2026-11-18T13:49:23.3284367Z",
+    "round_saved_at": "2026-11-18T13:50:20.2552593Z",
+    "whole_delay_explained_by_this_fix": false
+  },
+  "verification": {
+    "red": "Two separately decoded ciphertext snapshots performed four complete verifications; expected two.",
+    "author_focused_tests": 96,
+    "all_author_focused_tests_pass": true,
+    "independent_review": "CLEAR",
+    "independent_legacy_and_registry_invalid_cipher_tests_pass": true,
+    "independent_broader_suite": {
+      "passed": 69,
+      "total": 71,
+      "unchanged_setup_failures": 2,
+      "reason": "Parent-only race_ai.core path injection does not reach the CLI subprocess; frozen review checkout lacks pr64-reference. No checkout mutation or code weakening used."
+    },
+    "source_ci_required_before_merge": true
+  },
+  "synthetic_benchmark": {
+    "fitted_cells": 30,
+    "lineage_rows": 240,
+    "boundary_trials_per_version": 9,
+    "boundary_median_seconds": {
+      "before": 0.18841,
+      "after": 0.13321
+    },
+    "boundary_percent_reduction": 29.3,
+    "complete_retention_candidates": 12,
+    "complete_retention_trials_per_version": 3,
+    "complete_retention_median_seconds": {
+      "before": 2.71545,
+      "after": 2.21962
+    },
+    "complete_retention_percent_reduction": 18.26,
+    "complete_committed_trees_and_pointers_equal": true,
+    "input_ciphertexts_unchanged": true,
+    "independent_memory_git_readback_retained": true,
+    "real_github_transport_included": false
+  },
+  "invariants": {
+    "fresh_decode_and_full_validation_each_snapshot": true,
+    "owner_auth_crypto_required": true,
+    "invalid_training_rejected_before_git": true,
+    "source_rights_expiry_cutoff_checks_unchanged": true,
+    "original_full_byte_readback_unchanged": true,
+    "source_fetches_added": 0,
+    "models_or_weights_changed": false
+  },
+  "live_t15_10_completion_proven": false,
+  "accuracy_improvement_proven": false,
+  "goal_complete": false
+}
