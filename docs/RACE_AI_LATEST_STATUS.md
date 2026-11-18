@@ -1,3 +1,11 @@
+## 2026-11-18 08:31 UTC: 実source pinのRED17件を確認、最小同期と追加A74監査を最終CIへ
+
+既存PR35 head8376ea5889162fd69ca07dd612256820344b7d1fで実REDを確認した。recovery44266865043/job134673445548は138件/0.346秒の5失敗、national44266865092/job134673447634は350件/144.690秒の12失敗、errors0。全てcurrent source/新partial roleの未同期による期待したassertionで、既存346件と4追加role methodの境界を保全。sourceの実保護先端c979aeb678538d99e277f26726047dccbdc982afへ、6 runtime/workflowファイルの16規則19箇所だけを合わせた。RESEARCH_CACHE_OWNER_SHA=F1と旧P0規則、failed契約2個、固定M2/BB/EFF/0796 reader、native tailは維持する。
+
+閉じたA74の追加2stepは独立static CLEAR。sourceA74 package/codecを使い、main4監査moduleのみを正規import名へ束縛する。同期で変わったactive/exact moduleは新しい実blob hashに結び直し、evidence/pair hashは保持。旧main codeを誤ってsource codecとして選ばず、source checkout失敗や途中例外は固定HOLD/nullへ落とす。M2出力・5upload・既存guardは不変。新block1個に合わせcompile期待値を11へ変更し旧blockもcompileする。sourceモデル・暗号・collector・学習・時計・結果処理を変更していない。
+
+最終同HEAD CIと通常main merge、追加A74の真正Actions結果はこれから確認する。active A74は停止しない。F2 cache/診断の実運転効果、4競技全日・T15〜10・全model、物理iPhone・8画面目視・6艇校正・前向き改善は未証明。新PR/job/input/cron/runner/timeout/権限/marker名/モデル系統/課金/公開UI/投票/本番weight切替なし。以下は各時点の履歴。
+
 ## 2026-11-18 08:24 UTC: source診断版の通常merge成功、main同期と閉じた24巡の追加監査を検証
 
 source PR34は通常merge c979aeb678538d99e277f26726047dccbdc982af/tree766b8a3ea5d9d3b85e0f399523ede2eb8f1b688b。tested e803f654とtree一致、実CI44264409691/job134665251090で877件/293.128秒、38件/3.250秒、165件/43.278秒、46件/0.395秒、既存3/12契約がすべて成功した。二つのHOLD catchに13固定phaseと有限の型別理由だけを追加し、秘密の例外本文・URL・path・key・動的class名を出さない。元のstatus/field値/成功出力/受入/暗号/4xx非再試行/例外scopeはbyte比較で保全。以前の保管HOLD原因は未復元で、既定値0をwrite0証明にしない。F1 cache/retention/batch/vaultも不変。[実source統合と検査](evidence/boat-source-venue-diagnostic-actual-20261118.json)。

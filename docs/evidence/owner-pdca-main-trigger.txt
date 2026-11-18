@@ -662,3 +662,26 @@ Use the unchanged prefix boat-owner-release: single-real-session-20261111,
 this same marker, workflow/job/input/cron/runner/timeout/permissions and release
 gates. No key export, private forecast output, UI publication, wager, model
 family, weight switch, new PR, paid service or receipt/clock rewrite.
+
+2026-11-18 protected venue-diagnostic source synchronization.
+Normally merged source PR34 is c979aeb678538d99e277f26726047dccbdc982af,
+tested tree766b8a3ea5d9d3b85e0f399523ede2eb8f1b688b (candidatee803f654).
+Actual source CI877/38/165/46 plus3/12 contracts passed; raw exception text,
+private identifiers and arbitrary class names remain excluded from diagnostics.
+Advance only current main dispatch/reader/callback roles to this actual SHA.
+Retain F1 read roles and prior P0 rules, both failed-origin contracts and all
+fixed M2/BB/EFF/0796 readers. There was no F1 workflow_dispatch, so no F1
+original/control provenance is invented. New F2 P0 inheritance is restricted
+to the same four reviewed issued origins (M2/profile/BB/A74), never F1/unknown.
+Preserve active A74 continuation44252479726 and its original counters; no
+interruption, hotswap, source budget reset or extra owner dispatch is requested.
+Run the separate existing-job read-only count audit of closed A74
+44218343091 with its exact sourceA74 codec and SHA-bound main count readers.
+Keep missing ALL_MODEL rounds4/19 HOLD; this P1/unqualified-native audit is
+not a complete P0/P1 union, new G8 denominator or prospective efficacy proof.
+Use the existing marker/prefix/jobs/inputs/permissions/cron/runners/timeouts.
+The native checker/candidate bytes are unchanged; preserve actual Nov18
+Mac/gen433/79results/9native success and physical-iPhone/login/8-reference
+visual false flags. Do not request another unchanged native run.
+No key export, private payload or real screenshot output, UI deployment,
+wager, model family, paid service, production weight or original clock rewrite.
