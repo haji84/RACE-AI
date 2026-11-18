@@ -1,0 +1,107 @@
+{
+  "schema": "RACE_AI_PAIR_RESULT_JOIN_FIXED_REASON_CATALOG_DELTA_V1",
+  "repository": "haji84/RACE-AI",
+  "base_runtime": "a7fc02a6efcf144ad303b480abf09459ff8c6b7a",
+  "base_contract": "9da4ee6c04f427676999d3a17c4134a54d84b159",
+  "frozen_test_base": "5e5ef55a511f3bc005e9aefa6333e3bdbeabb493",
+  "actual_failure": {
+    "run_id": 44276148160,
+    "job_id": 134704673336,
+    "at": "2026-11-18T09:33:30.6472289Z",
+    "stage": "PAIR_API_CALL",
+    "phase": "PAIR_RESULT_JOIN",
+    "reason": "UNCLASSIFIED_EXCEPTION",
+    "specific_cause": "UNKNOWN"
+  },
+  "codec_source": {
+    "commit": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "path": "race_ai/all_existing_model_intake.py"
+  },
+  "add_to_exact_ValueError_map": {
+    "ALL_MODEL_INTAKE_AWARE_RESULT_CLOCK_REQUIRED": "ALL_MODEL_INTAKE_AWARE_RESULT_CLOCK_REQUIRED",
+    "ALL_MODEL_INTAKE_BOAT_ACTUAL_CUTOFF_REQUIRED": "ALL_MODEL_INTAKE_BOAT_ACTUAL_CUTOFF_REQUIRED",
+    "ALL_MODEL_INTAKE_BOAT_REGISTERED_ROSTER_INVALID": "ALL_MODEL_INTAKE_BOAT_REGISTERED_ROSTER_INVALID",
+    "ALL_MODEL_INTAKE_BOAT_RESULT_PAYOUT_MISMATCH": "ALL_MODEL_INTAKE_BOAT_RESULT_PAYOUT_MISMATCH",
+    "ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH": "ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH",
+    "ALL_MODEL_INTAKE_RESULT_CAPTURE_CLOCK_INVALID": "ALL_MODEL_INTAKE_RESULT_CAPTURE_CLOCK_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_ORDER_INVALID": "ALL_MODEL_INTAKE_RESULT_ORDER_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_PUBLICATION_CLOCK_INVALID": "ALL_MODEL_INTAKE_RESULT_PUBLICATION_CLOCK_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_REGISTERED_ROSTER_MISMATCH": "ALL_MODEL_INTAKE_RESULT_REGISTERED_ROSTER_MISMATCH",
+    "ALL_MODEL_INTAKE_RESULT_SETTLEMENT_INVALID": "ALL_MODEL_INTAKE_RESULT_SETTLEMENT_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_SOURCE_HASH_INVALID": "ALL_MODEL_INTAKE_RESULT_SOURCE_HASH_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_SOURCE_REQUIRED": "ALL_MODEL_INTAKE_RESULT_SOURCE_REQUIRED"
+  },
+  "resulting_reason_counts": {
+    "ValueError": 143,
+    "RuntimeError": 203,
+    "total": 346
+  },
+  "existing_API_phase_projector_carrier_signature_unchanged": true,
+  "source_boundary_map": [
+    {
+      "function": "_time",
+      "lines": [
+        26,
+        33
+      ],
+      "codes": [
+        "ALL_MODEL_INTAKE_AWARE_RESULT_CLOCK_REQUIRED"
+      ]
+    },
+    {
+      "function": "_legacy_boat",
+      "lines": [
+        40,
+        82
+      ],
+      "codes": [
+        "ALL_MODEL_INTAKE_BOAT_ACTUAL_CUTOFF_REQUIRED",
+        "ALL_MODEL_INTAKE_BOAT_REGISTERED_ROSTER_INVALID",
+        "ALL_MODEL_INTAKE_BOAT_RESULT_PAYOUT_MISMATCH"
+      ]
+    },
+    {
+      "function": "_ordinary_result",
+      "lines": [
+        109,
+        148
+      ],
+      "codes": [
+        "ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH",
+        "ALL_MODEL_INTAKE_RESULT_CAPTURE_CLOCK_INVALID",
+        "ALL_MODEL_INTAKE_RESULT_ORDER_INVALID",
+        "ALL_MODEL_INTAKE_RESULT_PUBLICATION_CLOCK_INVALID",
+        "ALL_MODEL_INTAKE_RESULT_REGISTERED_ROSTER_MISMATCH",
+        "ALL_MODEL_INTAKE_RESULT_SETTLEMENT_INVALID",
+        "ALL_MODEL_INTAKE_RESULT_SOURCE_HASH_INVALID",
+        "ALL_MODEL_INTAKE_RESULT_SOURCE_REQUIRED"
+      ]
+    }
+  ],
+  "facts": [
+    "All12 exact codes occur in the actually called _time/_legacy_boat/_ordinary_result functions and are absent from the current131 ValueError map.",
+    "_ordinary_result returns only (result,None),(None,pending),(None,special). All map to existing settled/pending/special buckets; no unsupported returned join reason is evidenced.",
+    "_legacy_boat creates only pending/special/settled status and no order-only marker fields; the order-only validator is not reached by this caller's transformed value, so unrelated order-only codes are not added.",
+    "PAIR_RESULT_JOIN also spans descriptor/observation/info key access and final join-count/hash construction. A structural KeyError/TypeError is possible in principle, but the actual type and specific failing condition remain unknown."
+  ],
+  "tests_first_plan": [
+    "Real A74 synthetic AES receipt/result pipeline with independently admitted result that fails an existing saved-forecast cutoff or roster join guard: public API must still reject with exact builtin ValueError CURRENT_PAIR_AUDIT_REJECTED, now exposing the fixed ALL_MODEL_INTAKE code atPAIR_RESULT_JOIN.",
+    "Real _legacy_boat/_time rejection cases through public wrapper plus exacttype/wrongfamily/privateprefix/suffix/subclass controls; no raw keys/IDs/URLs/clock/roster bodies exported.",
+    "Pending/special/settled normal unqualified HOLD controls retain all existing outputs and refusal boundaries. No result guard is bypassed or accepted."
+  ],
+  "structural_KeyError_proposal": {
+    "part_of_frozen_twelve_code_delta": false,
+    "requires_root_freeze_before_tests": true,
+    "suggested_fixed_reason": "PAIR_STRUCTURAL_KEY_ERROR",
+    "eligibility": "Only type(error) is KeyError; return constant reason without reading args/keys. Subclasses remain UNCLASSIFIED. Projector would allow only the fixed value on the existing safe carrier.",
+    "rationale": "If root elects this one additional fixed category, next Actions can distinguish a structural missing-key exception from omitted semantic ValueError codes without disclosing any key. No actual KeyError is claimed."
+  },
+  "scope": "Diagnostic catalog only. No runtime until fresh failing tests. Do not modify source codec, receipt/cutoff/roster/status/order/result guards, public rejection, normal HOLD returns, counts, source gates, qualifier/denominator or core73AES/23ZIP/missing4,19 proof.",
+  "mutations": {
+    "contract_blob_only": true,
+    "runtime": false,
+    "refs": false,
+    "provider_requests": 0,
+    "key_access": false
+  }
+}

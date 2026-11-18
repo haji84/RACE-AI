@@ -1,0 +1,112 @@
+{
+  "schema": "RACE_AI_CURRENT_PAIR_JOIN_REASON_CATALOG_TESTS_PACKET_V1",
+  "repository": "haji84/RACE-AI",
+  "contract_blob": "efa0388595f7d88665a0933e740433f65b10fb67",
+  "change": {
+    "path": "tests/test_boat_current_pair_eligibility_audit.py",
+    "base_blob": "5e5ef55a511f3bc005e9aefa6333e3bdbeabb493",
+    "new_blob": "4e95e59b43d6b044c91e9c7e7f522db199f5a933",
+    "mode": "100644",
+    "insertion": "One independent TestCase with three methods before unchanged __main__ runner; removing insertion recreates every original byte",
+    "old_direct_method_definitions": 26,
+    "new_direct_method_definitions": 3
+  },
+  "runtime": {
+    "base_blob": "a7fc02a6efcf144ad303b480abf09459ff8c6b7a",
+    "changed": false,
+    "source_commit": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "module": "race_ai/all_existing_model_intake.py",
+    "source86_M2_module_byte_identical_to_A74": true
+  },
+  "tests": [
+    {
+      "method": "test_authenticated_result_original_mismatches_keep_the_actual_join_reason",
+      "contract": "Real existing A74 AES pair/training/RESULT receipt pipeline admits each invented official result independently, then preserves actual ordinary-join cutoff or registered-roster refusal through fixed public ValueError carrier/projector at PAIR_RESULT_JOIN",
+      "mutations": [
+        "Result closed_at one second earlier than saved original cutoff; original forecasts unchanged",
+        "Swap two already-valid unique official registration identities between lanes; saved original roster unchanged"
+      ],
+      "expected_reasons": [
+        "ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH",
+        "ALL_MODEL_INTAKE_RESULT_REGISTERED_ROSTER_MISMATCH"
+      ],
+      "authority": "Both are synthetic semantic examples; neither is asserted to be the actual live failure"
+    },
+    {
+      "method": "test_source_guard_rejections_are_typed_exact_codes_without_private_lookalikes",
+      "contract": "Real A74/M2-byte-identical _legacy_boat/_ordinary_result/_time generate the other ten exact ValueError reasons inside a narrow real-public-wrapper seam; no mocked crypto or blanket accepted authority",
+      "source_cases": 10,
+      "privacy_cases": 6,
+      "privacy": "Suffix/prefix private lookalikes, multiarg, str subclass, ValueError subclass, RuntimeError of ValueError code remain UNCLASSIFIED_EXCEPTION; no text/hash/equality coercion",
+      "phase": "PAIR_RESULT_JOIN"
+    },
+    {
+      "method": "test_pending_special_settled_and_absent_pair_holds_keep_their_existing_counts",
+      "contract": "Real existing A74 encrypted fixtures return ordinary HOLD_G8_UNQUALIFIED with exactly one pending/special/settled join respectively and no failure diagnostics; absent selected pairs returns existing HOLD_NO_PAIR_ARCHIVES with unknown forecast/result counts; qualification/promotion/efficacy/full-day claims stay false or null",
+      "control_expected": "PASS before runtime delta"
+    }
+  ],
+  "finite_delta": [
+    "ALL_MODEL_INTAKE_AWARE_RESULT_CLOCK_REQUIRED",
+    "ALL_MODEL_INTAKE_BOAT_ACTUAL_CUTOFF_REQUIRED",
+    "ALL_MODEL_INTAKE_BOAT_REGISTERED_ROSTER_INVALID",
+    "ALL_MODEL_INTAKE_BOAT_RESULT_PAYOUT_MISMATCH",
+    "ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH",
+    "ALL_MODEL_INTAKE_RESULT_CAPTURE_CLOCK_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_ORDER_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_PUBLICATION_CLOCK_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_REGISTERED_ROSTER_MISMATCH",
+    "ALL_MODEL_INTAKE_RESULT_SETTLEMENT_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_SOURCE_HASH_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_SOURCE_REQUIRED"
+  ],
+  "expected_red": {
+    "observed": false,
+    "base_runtime": "a7fc02a6efcf144ad303b480abf09459ff8c6b7a",
+    "failing_new_methods": 2,
+    "failing_new_subtests": 12,
+    "passing_new_control_methods": 1,
+    "expected_mismatch": "current_pair_failure_reason remains UNCLASSIFIED_EXCEPTION instead of each approved ALL_MODEL_INTAKE code",
+    "expected_import_errors": 0,
+    "all_old_methods_and_fixtures_unchanged": true,
+    "implementation_requires_root_authenticated_actual_red": true
+  },
+  "verification": {
+    "exact_readback": true,
+    "old_base_reconstructed": true,
+    "old_direct_method_definitions": 26,
+    "new_methods": [
+      "test_authenticated_result_original_mismatches_keep_the_actual_join_reason",
+      "test_source_guard_rejections_are_typed_exact_codes_without_private_lookalikes",
+      "test_pending_special_settled_and_absent_pair_holds_keep_their_existing_counts"
+    ],
+    "new_source_codes": [
+      "ALL_MODEL_INTAKE_AWARE_RESULT_CLOCK_REQUIRED",
+      "ALL_MODEL_INTAKE_BOAT_ACTUAL_CUTOFF_REQUIRED",
+      "ALL_MODEL_INTAKE_BOAT_REGISTERED_ROSTER_INVALID",
+      "ALL_MODEL_INTAKE_BOAT_RESULT_PAYOUT_MISMATCH",
+      "ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH",
+      "ALL_MODEL_INTAKE_RESULT_CAPTURE_CLOCK_INVALID",
+      "ALL_MODEL_INTAKE_RESULT_ORDER_INVALID",
+      "ALL_MODEL_INTAKE_RESULT_PUBLICATION_CLOCK_INVALID",
+      "ALL_MODEL_INTAKE_RESULT_REGISTERED_ROSTER_MISMATCH",
+      "ALL_MODEL_INTAKE_RESULT_SETTLEMENT_INVALID",
+      "ALL_MODEL_INTAKE_RESULT_SOURCE_HASH_INVALID",
+      "ALL_MODEL_INTAKE_RESULT_SOURCE_REQUIRED"
+    ],
+    "source_86_A74_intake_byte_identical": true,
+    "executed": false,
+    "static_delimiters_balanced": true,
+    "reason_delta_matches_frozen_contract": true
+  },
+  "fixed_scope": {
+    "only_12_ValueError_codes": true,
+    "KeyError_category_deferred": true,
+    "no_new_runtime_classes_or_categories": true,
+    "API_phase_carrier_projector_signatures_unchanged": true,
+    "no_acceptance_algorithm_cutoff_roster_source_guard_change": true,
+    "no_runtime_workflow_refs_dispatch_provider_requests_owner_keys": true,
+    "no_new_jobs_inputs_permissions_uploads": true
+  },
+  "actual_limit": "The observed live PAIR_RESULT_JOIN/UNCLASSIFIED_EXCEPTION cause remains unknown. Catalog tests do not prove that this twelve-code delta will classify it, and do not remediate a join failure or establish qualified comparisons."
+}

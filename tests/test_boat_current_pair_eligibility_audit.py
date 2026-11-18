@@ -706,5 +706,136 @@ class CurrentPairFailureDiagnosticTests(unittest.TestCase):
                 self.assertFalse(any('count' in key or 'authenticated' in key for key in diagnostic))
                 self.assertNotIn('PRIVATE_RESULT_SENTINEL', json.dumps(diagnostic))
 
+
+
+class CurrentPairJoinReasonCatalogTests(unittest.TestCase):
+    """Expose exact source join guard codes without changing accepted evidence."""
+    def setUp(self):
+        self.assertIsNotNone(audit, 'current-day native pair counts audit is missing')
+        self.assertTrue(callable(getattr(audit, 'current_pair_failure_diagnostic', None)),
+                        'safe current-pair failure projector is missing')
+
+    def test_authenticated_result_original_mismatches_keep_the_actual_join_reason(self):
+        fixture = CurrentPairFailureDiagnosticTests.fixture(self)
+        for case, reason in (
+            ('cutoff', 'ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH'),
+            ('roster', 'ALL_MODEL_INTAKE_RESULT_REGISTERED_ROSTER_MISMATCH'),
+        ):
+            row = deepcopy(fixture.settled)
+            if case == 'cutoff':
+                row['closed_at'] = (datetime.fromisoformat(row['closed_at'])-timedelta(seconds=1)).isoformat()
+            else:
+                rows = row['data']['results']
+                rows[0]['racer_registration_id'], rows[1]['racer_registration_id'] = (
+                    rows[1]['racer_registration_id'], rows[0]['racer_registration_id'])
+            fixture.results(2, [fixture.pending, row])
+            with self.subTest(case=case):
+                error, diagnostic = CurrentPairFailureDiagnosticTests.rejected(self, fixture.audit)
+                self.assertEqual(diagnostic, dict(current_pair_failure_phase='PAIR_RESULT_JOIN',
+                                                  current_pair_failure_reason=reason))
+                self.assertEqual(set(vars(error)), {'_current_pair_diagnostic'})
+                self.assertNotIn('PRIVATE_RESULT_SENTINEL', json.dumps(diagnostic))
+
+    def test_source_guard_rejections_are_typed_exact_codes_without_private_lookalikes(self):
+        from race_ai import all_existing_model_intake as intake
+        fixture = CurrentPairFailureDiagnosticTests.fixture(self)
+        value = intake._legacy_boat(fixture.settled)
+        info = dict(race_id=fixture.settled['race_id'], race_cutoff_at=fixture.settled['closed_at'],
+                    roster=deepcopy(value['roster']))
+        cutoff = datetime.fromisoformat(info['race_cutoff_at'])
+        source_cases = (
+            ('legacy roster', lambda:intake._legacy_boat(dict(fixture.settled,
+                data=dict(fixture.settled['data'], results=[]))),
+             'ALL_MODEL_INTAKE_BOAT_REGISTERED_ROSTER_INVALID'),
+            ('legacy payout', lambda:intake._legacy_boat(dict(fixture.settled,
+                data=dict(fixture.settled['data'], top3=list(reversed(fixture.settled['data']['top3']))))),
+             'ALL_MODEL_INTAKE_BOAT_RESULT_PAYOUT_MISMATCH'),
+            ('legacy cutoff', lambda:intake._legacy_boat(dict(fixture.settled, closed_at=None)),
+             'ALL_MODEL_INTAKE_BOAT_ACTUAL_CUTOFF_REQUIRED'),
+            ('aware clock', lambda:intake._ordinary_result(value, dict(info, race_cutoff_at=True), NOW),
+             'ALL_MODEL_INTAKE_AWARE_RESULT_CLOCK_REQUIRED'),
+            ('capture clock', lambda:intake._ordinary_result(dict(value,
+                captured_at=(cutoff-timedelta(seconds=1)).isoformat()), info, NOW),
+             'ALL_MODEL_INTAKE_RESULT_CAPTURE_CLOCK_INVALID'),
+            ('publication clock', lambda:intake._ordinary_result(dict(value,
+                published_at=info['race_cutoff_at']), info, NOW),
+             'ALL_MODEL_INTAKE_RESULT_PUBLICATION_CLOCK_INVALID'),
+            ('source hash', lambda:intake._ordinary_result(dict(value, source_sha256='invalid'), info, NOW),
+             'ALL_MODEL_INTAKE_RESULT_SOURCE_HASH_INVALID'),
+            ('source reference', lambda:intake._ordinary_result(dict(value, source_ref=''), info, NOW),
+             'ALL_MODEL_INTAKE_RESULT_SOURCE_REQUIRED'),
+            ('result order', lambda:intake._ordinary_result(dict(value, ordered_top3=[1, 1, 2]), info, NOW),
+             'ALL_MODEL_INTAKE_RESULT_ORDER_INVALID'),
+            ('settlement', lambda:intake._ordinary_result(dict(value, payout_per_100_yen=-1), info, NOW),
+             'ALL_MODEL_INTAKE_RESULT_SETTLEMENT_INVALID'),
+        )
+        for label, action, reason in source_cases:
+            def source_join(get, run_id, now, source, _diagnostic=None):
+                _diagnostic['phase'] = 'PAIR_RESULT_JOIN'
+                return action()
+            with self.subTest(guard=label), patch.object(audit, '_audit', side_effect=source_join):
+                _, diagnostic = CurrentPairFailureDiagnosticTests.rejected(self, fixture.audit)
+                self.assertEqual(diagnostic, dict(current_pair_failure_phase='PAIR_RESULT_JOIN',
+                                                  current_pair_failure_reason=reason))
+        touched = []
+        class PrivateText(str):
+            def __str__(self): touched.append('str'); raise AssertionError('private text inspected')
+            def __repr__(self): touched.append('repr'); raise AssertionError('private text inspected')
+            def __hash__(self): touched.append('hash'); raise AssertionError('private text inspected')
+            def __eq__(self, other): touched.append('eq'); raise AssertionError('private text inspected')
+        class ValueSubclass(ValueError):
+            pass
+        code = 'ALL_MODEL_INTAKE_RESULT_REGISTERED_ROSTER_MISMATCH'
+        errors = (
+            ValueError(code+' PRIVATE_RESULT_SENTINEL https://private.invalid/token'),
+            ValueError('PRIVATE_RESULT_SENTINEL '+code),
+            ValueError(code, 'PRIVATE_RESULT_SENTINEL'),
+            ValueError(PrivateText(code)),
+            ValueSubclass(code),
+            RuntimeError(code),
+        )
+        for index, original in enumerate(errors):
+            def rejected_join(get, run_id, now, source, _diagnostic=None):
+                _diagnostic['phase'] = 'PAIR_RESULT_JOIN'
+                raise original
+            with self.subTest(lookalike=index), patch.object(audit, '_audit', side_effect=rejected_join):
+                _, diagnostic = CurrentPairFailureDiagnosticTests.rejected(self, fixture.audit)
+                self.assertEqual(diagnostic, dict(current_pair_failure_phase='PAIR_RESULT_JOIN',
+                                                  current_pair_failure_reason='UNCLASSIFIED_EXCEPTION'))
+                self.assertNotIn('PRIVATE_RESULT_SENTINEL', json.dumps(diagnostic))
+                self.assertNotIn('https://', json.dumps(diagnostic))
+        self.assertEqual(touched, [])
+
+    def test_pending_special_settled_and_absent_pair_holds_keep_their_existing_counts(self):
+        fixture = CurrentPairFailureDiagnosticTests.fixture(self)
+        special = deepcopy(fixture.settled)
+        special['data']['status'] = 'special'
+        for state, row in (('pending', fixture.pending), ('special', special), ('settled', fixture.settled)):
+            fixture.results(2, [row])
+            with self.subTest(state=state):
+                result = fixture.audit()
+                self.assertEqual(result['current_pair_audit_status'], 'HOLD_G8_UNQUALIFIED')
+                self.assertIs(result['current_pair_authenticated'], True)
+                self.assertEqual(result['current_pair_forecast_record_count'], 1)
+                self.assertEqual(result['current_pair_producer_journal_joined_race_count'], 1)
+                self.assertEqual(result['current_pair_producer_journal_missing_join_count'], 0)
+                for name in ('pending', 'special', 'settled'):
+                    self.assertEqual(result['current_pair_producer_journal_'+name+'_join_count'],
+                                     1 if name == state else 0)
+                self.assertEqual(result['current_pair_qualifying_g8_count'], 0)
+                self.assertIsNone(result['current_pair_qualifying_g8_denominator'])
+                for suffix in ('accuracy_improvement_proven', 'promotion_allowed', 'full_day_coverage'):
+                    self.assertIs(result['current_pair_'+suffix], False)
+                self.assertFalse(any(key.startswith('current_pair_failure_') for key in result))
+                self.assertNotIn('PRIVATE_RESULT_SENTINEL', json.dumps(result))
+        del fixture.metas[800]
+        result = fixture.audit()
+        self.assertEqual(result['current_pair_audit_status'], 'HOLD_NO_PAIR_ARCHIVES')
+        self.assertIs(result['current_pair_authenticated'], False)
+        self.assertIsNone(result['current_pair_forecast_record_count'])
+        self.assertIsNone(result['current_pair_result_archive_count'])
+        self.assertEqual(result['current_pair_qualifying_g8_count'], 0)
+        self.assertIsNone(result['current_pair_qualifying_g8_denominator'])
+
 if __name__ == '__main__':
     unittest.main()
