@@ -299,4 +299,426 @@ class PrivateVenueWorkerRecoveryTests(unittest.TestCase):
                 self.assertEqual(state['observations'],[outcome])
 
 
+
+class VenueResearchDiagnosticTests(unittest.TestCase):
+    """AST-isolated real orchestration, with invented boundaries and no keys."""
+    PHASES=(
+        'READBACK_PREFLIGHT','READBACK_METADATA','READBACK_ZIP','READBACK_VERIFY',
+        'READBACK_CONTINUITY_LOAD','READBACK_CONTINUITY_REFS','READBACK_CONTINUITY_WRITE',
+        'RETAIN_PREFLIGHT','RETAIN_CANDIDATE_SCAN','RETAIN_CANDIDATES',
+        'RETAIN_ARCHIVE_SCAN','RETAIN_ARCHIVE_READER','RETAIN_ARCHIVES')
+
+    def isolated(self,root,*,require_helper=False,**boundaries):
+        import ast
+        from datetime import datetime,timezone
+        source=Path(__file__).resolve().parents[1]/'scripts/github_existing_cycle.py'
+        tree=ast.parse(source.read_text())
+        functions={node.name:node for node in tree.body if isinstance(node,ast.FunctionDef)}
+        names=('venue_research_readback','venue_research_retain')
+        for name in names:self.assertIn(name,functions,'Existing venue function is missing')
+        if require_helper:
+            self.assertIn('_venue_research_diagnostic',functions,
+                'The fixed typed venue diagnostic helper is missing')
+        selected=([functions['_venue_research_diagnostic']] if '_venue_research_diagnostic' in functions else [])
+        selected.extend(functions[name] for name in names)
+        def need(ok,reason):
+            if not ok:raise ValueError(reason)
+        namespace=dict(ROOT=root,Path=Path,json=json,os=os,datetime=datetime,timezone=timezone,need=need)
+        namespace.update(boundaries)
+        exec(compile(ast.Module(body=selected,type_ignores=[]),str(source),'exec'),namespace)
+        return namespace
+
+    def modules(self,definitions):
+        from types import ModuleType
+        result={}
+        for name,attributes in definitions.items():
+            module=ModuleType(name)
+            for key,value in attributes.items():setattr(module,key,value)
+            result[name]=module
+        return result
+
+    def run_readback(self,*,cut=None,error=None,pairs=False,artifact_id=123,outer_import=False):
+        import sys
+        from types import SimpleNamespace
+        events=[];routes=[];writes=[];verified=[]
+        raw=b'invented-private-cipher-archive'
+        metadata=dict(id=123,name=('all-existing-model-pairs-99-1' if pairs else 'boat-venue-research-p1-99-1'),
+            digest='sha256:'+hashlib.sha256(raw).hexdigest(),size_in_bytes=len(raw),expired=False,
+            created_at='2030-04-01T01:00:00Z',expires_at='2030-04-08T01:00:00Z',
+            workflow_run=dict(id=99,head_sha='a'*40,repository_id=1416489937,head_repository_id=1416489937))
+        prior=dict(artifact_id=122,run_id=98,head_sha='b'*40,digest='sha256:'+'c'*64)
+        continuity=dict(schema='RACE_AI_RECOVERED_FIRST_RECEIPTS_V1',day_jst='2030-04-01',
+                        complete=True,venue_research_artifact_refs=[prior])
+        admitted=dict(status='INVENTED_EXISTING_RECEIPT_VERIFIED',
+            independent_pre_cutoff_receipt_verified=True,production_promoted=False,plaintext_published=False)
+        failure=error if error is not None else ValueError('VENUE_PRIVATE_P1_RECEIPT_ARTIFACT_BYTES_INVALID')
+        def stop(stage):
+            if cut==stage:raise failure
+        def state_key(mode):
+            self.assertEqual(mode,'production');events.append('preflight');stop('preflight')
+            return None
+        def gh(route):
+            routes.append(route)
+            if route=='actions/artifacts/123':
+                events.append('metadata');stop('metadata')
+                return json.dumps(metadata).encode()
+            if route=='actions/artifacts/123/zip':
+                events.append('zip');stop('zip');return raw
+            raise AssertionError('Unexpected synthetic readback route')
+        def verifier(kind):
+            def verify(data,meta,**options):
+                events.append('verify_'+kind);stop('verify')
+                verified.append((data,deepcopy(meta),options))
+                return admitted
+            return verify
+        def load_state(path,day):
+            events.append('continuity_load');stop('continuity_load')
+            self.assertEqual(day,'2030-04-01')
+            self.assertEqual(path,root/'cycle_recovery_output/continuity.json')
+            return deepcopy(continuity)
+        def validate(refs):
+            events.append('continuity_refs');stop('continuity_refs')
+            return deepcopy(refs)
+        def write_state(path,state,*,key):
+            events.append('continuity_write');stop('continuity_write')
+            self.assertEqual(key,'state_sha256')
+            writes.append(deepcopy(state))
+            if cut=='continuity_write_after_commit':raise failure
+        definitions={
+            'race_ai.boat_venue_research_receipt':dict(
+                verify_private_p1_artifact=verifier('venue'),validate_research_refs=validate),
+            'race_ai.boat_pdca_state':dict(state_key=state_key),
+            'race_ai.all_existing_model_receipt':dict(verify_private_pairs_artifact=verifier('pairs')),
+            'race_ai.repeated_cycle':dict(write_state=write_state)}
+        if outer_import:definitions['race_ai.boat_venue_research_receipt'].pop('verify_private_p1_artifact')
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary)
+            namespace=self.isolated(root,gh=gh,load_state=load_state,event_day=lambda:'2030-04-01',
+                datetime=SimpleNamespace(now=lambda tz:NOW))
+            stream=io.StringIO()
+            with patch.dict(sys.modules,self.modules(definitions)), \
+                 patch.dict(os.environ,{'GITHUB_RUN_ID':'99','GITHUB_SHA':'a'*40},clear=True), \
+                 patch('urllib.request.OpenerDirector.open',side_effect=AssertionError('Network forbidden')), \
+                 patch('subprocess.Popen',side_effect=AssertionError('Processes forbidden')), \
+                 contextlib.redirect_stdout(stream):
+                report=namespace['venue_research_readback'](artifact_id)
+        return dict(report=report,printed=stream.getvalue(),events=events,routes=routes,writes=writes,
+                    verified=verified,admitted=admitted,metadata=metadata,raw=raw,prior=prior)
+
+    def run_retention(self,*,cut=None,error=None,candidates=True,archives=True,round_no=2,
+                      archive_write_before_error=False,outer_import=False,blocked_output=False):
+        import sys
+        events=[];writes=[];calls={}
+        failure=error if error is not None else ValueError('VENUE_RESEARCH_BATCH_INDEPENDENT_READBACK_MISMATCH')
+        candidate_result=dict(status='INVENTED_EXISTING_CANDIDATES_RETAINED',retained_candidates=2,
+            production_promoted=False,plaintext_published=False,
+            pointers=[dict(source_commit='c'*40,artifact_id=123)])
+        archive_result=dict(status='INVENTED_EXISTING_SOURCE_ARCHIVES_RETAINED',retained_archives=1)
+        reader=object()
+        def stop(stage):
+            if cut==stage:raise failure
+        class Scan:
+            def __init__(self,path):self.path=path
+            def __truediv__(self,part):return Scan(self.path/part)
+            def rglob(self,pattern):
+                events.append('candidate_scan');stop('candidate_scan')
+                return self.path.rglob(pattern)
+            def glob(self,pattern):
+                events.append('archive_scan');stop('archive_scan')
+                return self.path.glob(pattern)
+        def retain_candidates(folders,repo):
+            events.append('retain_candidates');calls['candidates']=(list(folders),repo);stop('candidates')
+            writes.append('candidate_commit_completed')
+            return candidate_result
+        def readback_transport(repo,*,cache_root):
+            events.append('archive_reader');calls['reader']=(repo,cache_root);stop('reader')
+            return reader
+        def retain_archives(folders,repo,*,readback_transport):
+            events.append('retain_archives');calls['archives']=(list(folders),repo,readback_transport)
+            if cut=='archives':
+                if archive_write_before_error:writes.append('source_push_completed')
+                raise failure
+            writes.append('source_commit_completed')
+            return archive_result
+        definitions={
+            'race_ai.boat_venue_research_retention':dict(
+                retain_private_research=retain_candidates,retain_private_source_archives=retain_archives),
+            'race_ai.boat_venue_research_cache':dict(research_readback_transport=readback_transport)}
+        if outer_import:definitions['race_ai.boat_venue_research_retention'].pop('retain_private_research')
+        with tempfile.TemporaryDirectory() as temporary:
+            parent=Path(temporary);root=parent/'repo';root.mkdir(mode=0o700)
+            private=parent/'private';private.mkdir(mode=0o700)
+            expected_candidates=[]
+            if candidates:
+                for kind in ('boat-venue-research-p1','boat-venue-research-pdca'):
+                    folder=private/kind/'cycle-2'/'one';folder.mkdir(parents=True,mode=0o700)
+                    (folder/'learning.json').write_bytes(b'invented-cipher-metadata')
+                    expected_candidates.append(folder)
+            expected_archives=[]
+            if archives:
+                folder=private/'boat-venue-research-archives'/'123';folder.mkdir(parents=True,mode=0o700)
+                (folder/'archive.zip').write_bytes(b'invented-cipher-archive')
+                expected_archives.append(folder)
+            if blocked_output:(root/'existing_cycle_output').write_bytes(b'public-fixture-obstruction')
+            def path(value):
+                self.assertEqual(value,str(private))
+                return Scan(private)
+            namespace=self.isolated(root,Path=path)
+            stream=io.StringIO()
+            with patch.dict(sys.modules,self.modules(definitions)), \
+                 patch.dict(os.environ,{'RUNNER_TEMP':str(private)},clear=True), \
+                 patch('urllib.request.OpenerDirector.open',side_effect=AssertionError('Network forbidden')), \
+                 patch('subprocess.Popen',side_effect=AssertionError('Processes forbidden')), \
+                 contextlib.redirect_stdout(stream):
+                report=namespace['venue_research_retain'](round_no)
+            persisted=json.loads((root/'existing_cycle_output/venue-research-retention.json').read_text())
+            if 'candidates' in calls:
+                self.assertEqual(calls['candidates'],(expected_candidates,root))
+            if 'reader' in calls:
+                self.assertEqual(calls['reader'],(root,private/'boat-venue-research-source-readback.git'))
+            if 'archives' in calls:
+                self.assertEqual(calls['archives'],(expected_archives,root,reader))
+        return dict(report=report,printed=stream.getvalue(),persisted=persisted,events=events,writes=writes,
+                    candidate_result=candidate_result,archive_result=archive_result,calls=calls)
+
+    def assert_hold(self,out,phase,reason,*,retention=False):
+        expected=dict(status=('HOLD_PRIVATE_VENUE_RETENTION' if retention else 'HOLD_PRIVATE_VENUE_P1_READBACK'),
+                      production_promoted=False,plaintext_published=False)
+        expected['retained_candidates' if retention else 'independent_pre_cutoff_receipt_verified']=0 if retention else False
+        expected.update(diagnostic_phase=phase,diagnostic_reason=reason)
+        self.assertEqual(out['report'],expected)
+        self.assertEqual(json.loads(out['printed']),expected)
+        if retention:self.assertEqual(out['persisted'],expected)
+        self.assertIs(type(out['report']),dict)
+        for key in ('diagnostic_phase','diagnostic_reason'):self.assertIs(type(out['report'][key]),str)
+
+    def helper(self):
+        namespace=self.isolated(Path('.'),require_helper=True)
+        class NoIO:
+            def __getattribute__(self,name):raise AssertionError('Diagnostic helper attempted I/O')
+        def forbidden(*args,**kwargs):raise AssertionError('Diagnostic helper attempted a side effect')
+        namespace.update(os=NoIO(),Path=forbidden,open=forbidden,gh=forbidden,print=forbidden)
+        return namespace['_venue_research_diagnostic']
+
+    def test_helper_exact_builtin_codes_and_all_thirteen_phases(self):
+        diagnostic=self.helper()
+        known=(
+            (ValueError,'OWNER_STATE_KEY_REQUIRED'),
+            (ValueError,'VENUE_RESEARCH_ARTIFACT_REQUIRED'),
+            (ValueError,'VENUE_PRIVATE_P1_RECEIPT_ARTIFACT_BYTES_INVALID'),
+            (ValueError,'ALL_MODEL_PAIR_RECEIPT_PAYLOAD_REPLAY_INVALID'),
+            (ValueError,'VENUE_LEARNING_REMOTE_READBACK_MISMATCH'),
+            (ValueError,'VENUE_RESEARCH_BATCH_INDEPENDENT_READBACK_MISMATCH'),
+            (ValueError,'RESEARCH_CACHE_ORIGIN_CHANGED'),
+            (ValueError,'STATE_GIT_OPERATION_FAILED_FETCH_HTTP_400'),
+            (ValueError,'STATE_GIT_OPERATION_FAILED_FETCH_HTTP_599'),
+            (RuntimeError,'GITHUB_API_READ_HTTP_400_HALT'),
+            (RuntimeError,'GITHUB_API_READ_HTTP_404_HALT'),
+            (RuntimeError,'GITHUB_API_READ_HTTP_429_HALT'),
+            (RuntimeError,'GITHUB_API_READ_HTTP_500_HALT'),
+            (RuntimeError,'GITHUB_API_READ_HTTP_599_HALT'),
+            (RuntimeError,'GITHUB_API_TIMEOUT_HALT'))
+        for phase in self.PHASES:
+            for kind,code in known:
+                with self.subTest(phase=phase,code=code):
+                    result=diagnostic(kind(code),phase)
+                    self.assertEqual(result,dict(diagnostic_phase=phase,diagnostic_reason=code))
+                    self.assertIs(type(result),dict)
+                    self.assertTrue(all(type(value) is str for value in result.values()))
+        first=diagnostic(ValueError('OWNER_STATE_KEY_REQUIRED'),'READBACK_PREFLIGHT')
+        second=diagnostic(ValueError('OWNER_STATE_KEY_REQUIRED'),'READBACK_PREFLIGHT')
+        self.assertIsNot(first,second)
+
+    def test_helper_refuses_private_lookalikes_and_hostile_inputs_without_inspection(self):
+        diagnostic=self.helper()
+        class DerivedValueError(ValueError):pass
+        class DerivedRuntimeError(RuntimeError):pass
+        known='OWNER_STATE_KEY_REQUIRED'
+        variants=(Exception(known),KeyError(known),DerivedValueError(known),
+            DerivedRuntimeError('GITHUB_API_READ_HTTP_404_HALT'),ValueError(),ValueError(known,'PRIVATE_PAYLOAD'),
+            ValueError(b'OWNER_STATE_KEY_REQUIRED'),ValueError(None),ValueError(123),
+            ValueError(known+' PRIVATE_KEY https://private.invalid/token'),
+            ValueError('PRIVATE_PATH/'+known),ValueError('owner_state_key_required'),
+            RuntimeError(known),ValueError('GITHUB_API_READ_HTTP_404_HALT'),
+            RuntimeError('GITHUB_API_READ_HTTP_399_HALT'),RuntimeError('GITHUB_API_READ_HTTP_600_HALT'),
+            RuntimeError('GITHUB_API_READ_HTTP_0404_HALT'),RuntimeError('GITHUB_API_READ_HTTP_404_HALT_PRIVATE'))
+        for index,error in enumerate(variants):
+            with self.subTest(case=index):
+                self.assertEqual(diagnostic(error,'READBACK_METADATA'),
+                    dict(diagnostic_phase='READBACK_METADATA',diagnostic_reason='UNCLASSIFIED_EXCEPTION'))
+        diagnostic=self.helper()
+        class Hostile:
+            def __getattribute__(self,name):raise AssertionError('private property inspected')
+            def __str__(self):raise AssertionError('private str inspected')
+            def __repr__(self):raise AssertionError('private repr inspected')
+        class PRIVATE_HOSTILE_ERROR(ValueError):
+            def __getattribute__(self,name):raise AssertionError('private exception property inspected')
+            def __str__(self):raise AssertionError('private exception str inspected')
+            def __repr__(self):raise AssertionError('private exception repr inspected')
+        class HostileString(str):
+            def __hash__(self):raise AssertionError('private phase hash inspected')
+            def __eq__(self,other):raise AssertionError('private phase equality inspected')
+            def __str__(self):raise AssertionError('private phase str inspected')
+            def __repr__(self):raise AssertionError('private phase repr inspected')
+        known=ValueError('OWNER_STATE_KEY_REQUIRED')
+        known.__cause__=PRIVATE_HOSTILE_ERROR('PRIVATE_CAUSE')
+        known.__context__=PRIVATE_HOSTILE_ERROR('PRIVATE_CONTEXT')
+        known.__notes__=[Hostile()]
+        self.assertEqual(diagnostic(known,'READBACK_PREFLIGHT'),
+            dict(diagnostic_phase='READBACK_PREFLIGHT',diagnostic_reason='OWNER_STATE_KEY_REQUIRED'))
+        for index,error in enumerate((Hostile(),PRIVATE_HOSTILE_ERROR('PRIVATE_ARGS'),
+                                      ValueError(Hostile()),ValueError(HostileString('OWNER_STATE_KEY_REQUIRED')))):
+            with self.subTest(exception_case=index):
+                self.assertEqual(diagnostic(error,'READBACK_VERIFY'),
+                    dict(diagnostic_phase='READBACK_VERIFY',diagnostic_reason='UNCLASSIFIED_EXCEPTION'))
+        for index,phase in enumerate((None,True,1,float('nan'),float('inf'),b'READBACK_METADATA','READBACK_METADATA PRIVATE_URL',
+                                      Hostile(),HostileString('READBACK_METADATA'))):
+            with self.subTest(phase_case=index):
+                self.assertEqual(diagnostic(RuntimeError('GITHUB_API_READ_HTTP_404_HALT'),phase),
+                    dict(diagnostic_phase='UNKNOWN_PHASE',diagnostic_reason='GITHUB_API_READ_HTTP_404_HALT'))
+
+
+    def test_actual_readback_metadata_404_and_zip_429_stop_without_retry(self):
+        for cut,phase,reason,events,routes in (
+            ('metadata','READBACK_METADATA','GITHUB_API_READ_HTTP_404_HALT',
+             ['preflight','metadata'],['actions/artifacts/123']),
+            ('zip','READBACK_ZIP','GITHUB_API_READ_HTTP_429_HALT',
+             ['preflight','metadata','zip'],['actions/artifacts/123','actions/artifacts/123/zip'])):
+            with self.subTest(cut=cut):
+                out=self.run_readback(cut=cut,error=RuntimeError(reason))
+                self.assert_hold(out,phase,reason)
+                self.assertEqual(out['events'],events)
+                self.assertEqual(out['routes'],routes)
+                self.assertEqual((out['verified'],out['writes']),([],[]))
+
+
+    def test_actual_readback_both_verifiers_keep_fatal_hold_without_continuity(self):
+        for pairs in (False,True):
+            with self.subTest(pairs=pairs):
+                out=self.run_readback(cut='verify',pairs=pairs,
+                    error=ValueError('VENUE_PRIVATE_P1_RECEIPT_ARTIFACT_BYTES_INVALID'))
+                self.assert_hold(out,'READBACK_VERIFY','VENUE_PRIVATE_P1_RECEIPT_ARTIFACT_BYTES_INVALID')
+                self.assertEqual(out['events'],['preflight','metadata','zip','verify_'+('pairs' if pairs else 'venue')])
+                self.assertEqual(len(out['routes']),2)
+                self.assertEqual(out['writes'],[])
+
+    def test_actual_readback_continuity_boundaries_preserve_completed_verification(self):
+        prefix=['preflight','metadata','zip','verify_venue','continuity_load','continuity_refs','continuity_write']
+        for cut,phase,count in (('continuity_load','READBACK_CONTINUITY_LOAD',5),
+                                ('continuity_refs','READBACK_CONTINUITY_REFS',6),
+                                ('continuity_write','READBACK_CONTINUITY_WRITE',7),
+                                ('continuity_write_after_commit','READBACK_CONTINUITY_WRITE',7)):
+            with self.subTest(cut=cut):
+                out=self.run_readback(cut=cut,error=ValueError('VENUE_PRIVATE_P1_RECEIPT_REFERENCE_INVALID'))
+                self.assert_hold(out,phase,'VENUE_PRIVATE_P1_RECEIPT_REFERENCE_INVALID')
+                self.assertEqual(out['events'],prefix[:count])
+                self.assertEqual(len(out['verified']),1)
+                self.assertTrue(out['admitted']['independent_pre_cutoff_receipt_verified'])
+                self.assertEqual(len(out['writes']),int(cut=='continuity_write_after_commit'))
+                self.assertEqual(len(out['routes']),2)
+
+    def test_actual_preflight_gates_hold_before_metadata_or_retention_scan(self):
+        for argument,error,cut,reason in ((True,None,None,'VENUE_RESEARCH_ARTIFACT_REQUIRED'),
+                (0,None,None,'VENUE_RESEARCH_ARTIFACT_REQUIRED'),
+                (123,ValueError('OWNER_STATE_KEY_REQUIRED'),'preflight','OWNER_STATE_KEY_REQUIRED')):
+            with self.subTest(argument=argument,cut=cut):
+                out=self.run_readback(artifact_id=argument,error=error,cut=cut)
+                self.assert_hold(out,'READBACK_PREFLIGHT',reason)
+                self.assertEqual(out['events'],['preflight'])
+                self.assertEqual((out['routes'],out['verified'],out['writes']),([],[],[]))
+        for round_no in (True,0,-1):
+            with self.subTest(round_no=round_no):
+                out=self.run_retention(round_no=round_no)
+                self.assert_hold(out,'RETAIN_PREFLIGHT','VENUE_RESEARCH_ROUND_REQUIRED',retention=True)
+                self.assertEqual((out['events'],out['writes']),([],[]))
+
+    def test_actual_success_and_not_needed_schemas_arguments_and_continuity_stay_unchanged(self):
+        for pairs in (False,True):
+            with self.subTest(pairs=pairs):
+                out=self.run_readback(pairs=pairs)
+                self.assertIs(out['report'],out['admitted'])
+                self.assertEqual(json.loads(out['printed']),out['admitted'])
+                self.assertNotIn('diagnostic_phase',out['report'])
+                self.assertNotIn('diagnostic_reason',out['report'])
+                self.assertEqual(out['events'],['preflight','metadata','zip',
+                    'verify_'+('pairs' if pairs else 'venue'),'continuity_load','continuity_refs','continuity_write'])
+                self.assertEqual(out['routes'],['actions/artifacts/123','actions/artifacts/123/zip'])
+                self.assertEqual(out['verified'],[(out['raw'],out['metadata'],
+                    dict(now=NOW,expected_run_id=99,expected_head_sha='a'*40))])
+                reference=dict(artifact_id=123,run_id=99,head_sha='a'*40,digest=out['metadata']['digest'])
+                self.assertEqual(out['writes'][0]['venue_research_artifact_refs'],[out['prior'],reference])
+        for candidates,archives in ((False,False),(True,False),(False,True),(True,True)):
+            with self.subTest(candidates=candidates,archives=archives):
+                out=self.run_retention(candidates=candidates,archives=archives)
+                if candidates:
+                    self.assertIs(out['report'],out['candidate_result'])
+                else:
+                    expected=dict(status='PRIVATE_VENUE_RETENTION_NOT_NEEDED',retained_candidates=0,
+                                  production_promoted=False,plaintext_published=False)
+                    if archives:expected['source_archives']=out['archive_result']
+                    self.assertEqual(out['report'],expected)
+                if archives:self.assertIs(out['report']['source_archives'],out['archive_result'])
+                self.assertNotIn('diagnostic_phase',out['report'])
+                self.assertNotIn('diagnostic_reason',out['report'])
+                self.assertEqual(out['persisted'],out['report'])
+                self.assertEqual(json.loads(out['printed']),{k:v for k,v in out['report'].items() if k!='pointers'})
+                self.assertEqual(out['events'].count('retain_candidates'),int(candidates))
+                self.assertEqual(out['events'].count('archive_reader'),int(archives))
+                self.assertEqual(out['events'].count('retain_archives'),int(archives))
+
+    def test_actual_retention_scan_failures_keep_the_exact_failed_boundary(self):
+        for cut,phase,events,writes in (
+                ('candidate_scan','RETAIN_CANDIDATE_SCAN',['candidate_scan'],[]),
+                ('archive_scan','RETAIN_ARCHIVE_SCAN',
+                    ['candidate_scan','candidate_scan','retain_candidates','archive_scan'],['candidate_commit_completed'])):
+            with self.subTest(cut=cut):
+                out=self.run_retention(cut=cut,error=OSError('PRIVATE_PATH https://private.invalid/key'))
+                self.assert_hold(out,phase,'UNCLASSIFIED_EXCEPTION',retention=True)
+                self.assertEqual(out['events'],events)
+                self.assertEqual(out['writes'],writes)
+
+    def test_actual_retention_publisher_reader_and_archive_failures_do_not_retry(self):
+        prefix=['candidate_scan','candidate_scan','retain_candidates','archive_scan','archive_reader','retain_archives']
+        cases=(('candidates','RETAIN_CANDIDATES',3,'VENUE_LEARNING_REMOTE_READBACK_MISMATCH',[]),
+               ('reader','RETAIN_ARCHIVE_READER',5,'RESEARCH_CACHE_ORIGIN_CHANGED',['candidate_commit_completed']),
+               ('archives','RETAIN_ARCHIVES',6,'VENUE_RESEARCH_BATCH_INDEPENDENT_READBACK_MISMATCH',['candidate_commit_completed']))
+        for cut,phase,count,reason,writes in cases:
+            with self.subTest(cut=cut):
+                out=self.run_retention(cut=cut,error=ValueError(reason))
+                self.assert_hold(out,phase,reason,retention=True)
+                self.assertEqual(out['events'],prefix[:count])
+                self.assertEqual(out['writes'],writes)
+
+    def test_actual_retention_hold_does_not_erase_prior_commit_or_claim_rollback(self):
+        out=self.run_retention(cut='archives',archive_write_before_error=True,
+            error=ValueError('VENUE_RESEARCH_BATCH_INDEPENDENT_READBACK_MISMATCH'))
+        self.assert_hold(out,'RETAIN_ARCHIVES','VENUE_RESEARCH_BATCH_INDEPENDENT_READBACK_MISMATCH',retention=True)
+        self.assertEqual(out['writes'],['candidate_commit_completed','source_push_completed'])
+        self.assertEqual(out['events'].count('retain_candidates'),1)
+        self.assertEqual(out['events'].count('retain_archives'),1)
+        self.assertEqual(out['candidate_result']['pointers'],[dict(source_commit='c'*40,artifact_id=123)])
+        self.assertEqual(out['report']['retained_candidates'],0)
+        for key in ('write_performed','publication_performed','rollback_performed','source_requests'):
+            self.assertNotIn(key,out['report'])
+
+
+    def test_actual_unknown_exceptions_never_export_private_messages_or_class_names(self):
+        class PRIVATE_SENTINEL_CLASS(ValueError):pass
+        for index,error in enumerate((ValueError('PRIVATE_PATH https://private.invalid/PRIVATE_KEY'),
+                                      PRIVATE_SENTINEL_CLASS('OWNER_STATE_KEY_REQUIRED'))):
+            with self.subTest(case=index):
+                readback=self.run_readback(cut='metadata',error=error)
+                retained=self.run_retention(cut='archives',error=error)
+                self.assert_hold(readback,'READBACK_METADATA','UNCLASSIFIED_EXCEPTION')
+                self.assert_hold(retained,'RETAIN_ARCHIVES','UNCLASSIFIED_EXCEPTION',retention=True)
+                for text in (readback['printed'],retained['printed'],json.dumps(retained['persisted'])):
+                    for sentinel in ('PRIVATE_PATH','private.invalid','PRIVATE_KEY','PRIVATE_SENTINEL_CLASS'):
+                        self.assertNotIn(sentinel,text)
+
+    def test_original_outer_import_and_output_errors_are_not_moved_inside_catches(self):
+        with self.assertRaises(ImportError):self.run_readback(outer_import=True)
+        with self.assertRaises(ImportError):self.run_retention(outer_import=True)
+        with self.assertRaises(FileExistsError):self.run_retention(blocked_output=True)
+
+
 if __name__=='__main__':unittest.main()
