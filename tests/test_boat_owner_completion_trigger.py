@@ -310,7 +310,8 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
         heads={base.RELEASE_SHA,'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3',
                '86b029ae5bddd5d4956497d8b32b2c92b8eec521',
                'f55351dce855177a51330f72c37d6238ba2c9e3e',
-               'f1f8ed4ffb2a29e6b702685f49de63918610479d'}
+               'f1f8ed4ffb2a29e6b702685f49de63918610479d',
+               'c979aeb678538d99e277f26726047dccbdc982af'}
         for job in ('original_retention','source_mirror','daily','owner_p0_p1_dispatch'):
             section=source.split('\n  '+job+':\n',1)[1].split('    runs-on:',1)[0]
             expression=' '.join(section.split('    if: >-\n',1)[1].split())
@@ -380,7 +381,7 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
             self.test_actual_completion_gates_preserve_exact_current_and_eff_sources()
 
     def test_actual_research_cache_merge_is_the_only_current_dispatch_release(self):
-        protected='c979aeb678538d99e277f26726047dccbdc982af'
+        protected='995ef00a2ffb98a0161e1875d7d2a33145367b40'
         run=dict(self.run,head_sha=protected)
         control=deepcopy(self.control)
         control.update(completed_round=13,previous_session_requests=485,
@@ -396,7 +397,7 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
         self.assertTrue(decision['dispatch_allowed'])
         self.assertEqual(decision['release_sha'],protected)
         self.assertEqual(args,before)
-        for previous in ('f1f8ed4ffb2a29e6b702685f49de63918610479d','a74f1e940e7fc0852e63938f8138bdb58bd93163','bb49215034b779ea1493b35dd91e5c3ebfc04032','f'*40):
+        for previous in ('c979aeb678538d99e277f26726047dccbdc982af','f1f8ed4ffb2a29e6b702685f49de63918610479d','a74f1e940e7fc0852e63938f8138bdb58bd93163','bb49215034b779ea1493b35dd91e5c3ebfc04032','f'*40):
             with self.subTest(release=previous):
                 refused=launcher.decide(**dict(args,release=dict(
                     ref='refs/heads/'+base.RELEASE_REF,object=dict(sha=previous))))
@@ -412,7 +413,7 @@ class OwnerCompletionTriggerTests(unittest.TestCase):
             with self.subTest(owner=owner):
                 run=dict(self.run,head_sha=owner,status='in_progress',conclusion=None)
                 args=dict(now=NOW,release=dict(ref='refs/heads/'+base.RELEASE_REF,
-                    object=dict(sha='c979aeb678538d99e277f26726047dccbdc982af')),
+                    object=dict(sha='995ef00a2ffb98a0161e1875d7d2a33145367b40')),
                     owner_doc=dict(encoding='base64',content=base64.b64encode(
                         base.RELEASE_TOKEN.encode()).decode()),
                     history=dict(total_count=1,workflow_runs=[run]),continuation_proof=None)

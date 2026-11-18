@@ -1004,4 +1004,64 @@ class VenueDiagnosticOwnerRoleTests(unittest.TestCase):
                     self.fail('Exact diagnostic-source callback role was refused: '+str(error))
 
 
+
+HTTP_CAPTURE_CLOCK_HEAD='995ef00a2ffb98a0161e1875d7d2a33145367b40'
+
+
+class HTTPCaptureClockOwnerRoleTests(unittest.TestCase):
+    """The exact HTTP receipt-clock release is a source role, never a model."""
+    @classmethod
+    def setUpClass(cls):M2SnapshotTests.setUpClass()
+
+    def test_http_capture_clock_source_keeps_exact_frozen_roles_and_aes_partial_scopes(self):
+        from scripts import boat_exact_all_model_zip_readback as exact
+        for module in (active,exact):
+            self.assertEqual(getattr(module,'HTTP_CAPTURE_CLOCK_OWNER_SHA',None),HTTP_CAPTURE_CLOCK_HEAD)
+            self.assertEqual(module.VENUE_DIAGNOSTIC_OWNER_SHA,VENUE_DIAGNOSTIC_HEAD)
+            self.assertEqual(module.RESEARCH_CACHE_OWNER_SHA,RESEARCH_CACHE_HEAD)
+            self.assertEqual(module.PARTIAL_RECEIPT_OWNER_SHAS,(
+                active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,ATOMIC_HEAD,
+                RESEARCH_CACHE_HEAD,VENUE_DIAGNOSTIC_HEAD,HTTP_CAPTURE_CLOCK_HEAD))
+        for method in (
+                'test_two_native_rounds_with_only_r0_r1_models_authenticate_all_receipts_and_hold_unknown_r2',
+                'test_completed_m2_uses_authenticated_final_round_not_twenty_four_success_labels',
+                'test_m2_key_receipt_nested_counter_and_cipher_mismatches_stay_fatal'):
+            with self.subTest(method=method),patch.object(sys.modules[__name__],'M2_HEAD',HTTP_CAPTURE_CLOCK_HEAD):
+                fixture=M2SnapshotTests();fixture.setUp()
+                try:
+                    getattr(fixture,method)()
+                except ValueError as error:
+                    self.fail('Exact HTTP receipt-clock source was refused: '+str(error))
+                finally:
+                    fixture.doCleanups()
+
+    def test_http_capture_clock_p0_direction_keeps_four_parents_and_refuses_c979_f1_unknown_or_reverse(self):
+        for origin in (active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,ATOMIC_HEAD):
+            with self.subTest(origin=origin):
+                try:
+                    RetentionSnapshotTests._inherited_p0(self,HTTP_CAPTURE_CLOCK_HEAD,origin)
+                except ValueError as error:
+                    self.fail('Exact reviewed P0 cannot enter HTTP receipt-clock source: '+str(error))
+        denied=((HTTP_CAPTURE_CLOCK_HEAD,VENUE_DIAGNOSTIC_HEAD),
+                (HTTP_CAPTURE_CLOCK_HEAD,RESEARCH_CACHE_HEAD),
+                (HTTP_CAPTURE_CLOCK_HEAD,'f'*40))
+        reverse=tuple((owner,HTTP_CAPTURE_CLOCK_HEAD) for owner in (
+            active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,ATOMIC_HEAD,
+            RESEARCH_CACHE_HEAD,VENUE_DIAGNOSTIC_HEAD))
+        for owner,origin in denied+reverse:
+            with self.subTest(owner=owner,origin=origin),self.assertRaisesRegex(
+                    ValueError,'P0_ORIGIN_IDENTITY'):
+                RetentionSnapshotTests._inherited_p0(self,owner,origin)
+
+    def test_http_capture_clock_callback_and_workflow_roles_preserve_fixed_m2_push_target(self):
+        fixture=ProfileTargetSelectionTests();fixture.SOURCE_HEAD=HTTP_CAPTURE_CLOCK_HEAD
+        for method in ('test_completed_profile_callback_does_not_change_existing_m2_push_target',
+                       'test_matrix_event_and_selected_owner_guards_accept_only_explicit_profile'):
+            with self.subTest(method=method):
+                try:
+                    getattr(fixture,method)()
+                except ValueError as error:
+                    self.fail('Exact HTTP receipt-clock callback role was refused: '+str(error))
+
+
 if __name__=='__main__':unittest.main()

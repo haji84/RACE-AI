@@ -1061,5 +1061,27 @@ class CurrentPairCutoffDiagnosticTests(unittest.TestCase):
         self.assertFalse(any(key.startswith('current_pair_cutoff_') for key in result))
 
 
+
+HTTP_CAPTURE_CLOCK_SOURCE='995ef00a2ffb98a0161e1875d7d2a33145367b40'
+
+
+class HTTPCaptureClockCurrentPairRoleTests(unittest.TestCase):
+    """The exact source role preserves authenticated counts and pending revisions."""
+    @classmethod
+    def setUpClass(cls):CurrentPairEligibilityTests.setUpClass()
+
+    def test_http_capture_clock_current_pairs_keep_private_unqualified_counts_and_latest_pending(self):
+        for method in ('test_real_crypto_counts_are_flat_private_and_still_unqualified',
+                       'test_latest_pending_correction_does_not_fall_back_to_an_older_settlement'):
+            with self.subTest(method=method),patch.object(sys.modules[__name__],'SOURCE',HTTP_CAPTURE_CLOCK_SOURCE):
+                fixture=CurrentPairEligibilityTests();fixture.setUp()
+                try:
+                    getattr(fixture,method)()
+                except ValueError as error:
+                    self.fail('Exact HTTP receipt-clock current pairs were refused: '+str(error))
+                finally:
+                    fixture.doCleanups()
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,374 @@
+{
+  "schema": "RACE_AI_MAIN_HTTP_CAPTURE_CLOCK_PIN_TEST_FIRST_V1",
+  "repository": "haji84/RACE-AI",
+  "template_packet": "615e4e665eb2cef22ac2a14556c2592c54e89bbd",
+  "main_base": "2fe6a09a968b7219ad46ba7319dcd0d64baaba1e",
+  "main_base_tree": "45b4367b001993a5bf0e4e869fdd1a22eb4bb3dd",
+  "main_commit_metadata_and_six_test_base_blobs_independently_verified": true,
+  "actual_source_merge": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+  "actual_source_tree": "c3968e028da7b4c68a422582bddac6d81232add9",
+  "actual_source_merge_parents": [
+    "c979aeb678538d99e277f26726047dccbdc982af",
+    "e4386739a76971f5e3920e786cef9566693a9b72"
+  ],
+  "source_commit_metadata_independently_verified": true,
+  "source_protected_ref_and_tested_tree_verification": "Parent verified protected merge and ref readback; this packet independently fetched immutable commit metadata.",
+  "source_ci_parent_verified": {
+    "run_id": 44303457292,
+    "job_id": 134798829893,
+    "passed_suites": [
+      3,
+      12,
+      880,
+      38,
+      165,
+      46
+    ],
+    "suite_880_seconds": 219.105,
+    "actual_GREEN": true
+  },
+  "tests": [
+    {
+      "path": "tests/test_boat_owner_completion_trigger.py",
+      "base_blob": "4b8d4918ef8155791ea3065bb8a0f0a11b04a03a",
+      "strict_edits": [
+        {
+          "before": "        protected='c979aeb678538d99e277f26726047dccbdc982af'",
+          "replacement": "        protected='995ef00a2ffb98a0161e1875d7d2a33145367b40'",
+          "occurrences": 1
+        },
+        {
+          "before": "                    object=dict(sha='c979aeb678538d99e277f26726047dccbdc982af'))",
+          "replacement": "                    object=dict(sha='995ef00a2ffb98a0161e1875d7d2a33145367b40'))",
+          "occurrences": 1
+        },
+        {
+          "before": "        for previous in ('f1f8ed4ffb2a29e6b702685f49de63918610479d','a74f1e940e7fc0852e63938f8138bdb58bd93163','bb49215034b779ea1493b35dd91e5c3ebfc04032','f'*40):",
+          "replacement": "        for previous in ('c979aeb678538d99e277f26726047dccbdc982af','f1f8ed4ffb2a29e6b702685f49de63918610479d','a74f1e940e7fc0852e63938f8138bdb58bd93163','bb49215034b779ea1493b35dd91e5c3ebfc04032','f'*40):",
+          "occurrences": 1
+        },
+        {
+          "before": "               'f1f8ed4ffb2a29e6b702685f49de63918610479d'}",
+          "replacement": "               'f1f8ed4ffb2a29e6b702685f49de63918610479d',\n               'c979aeb678538d99e277f26726047dccbdc982af'}",
+          "occurrences": 1
+        }
+      ],
+      "original_method_count": 26,
+      "template_method_count": 26,
+      "all_original_method_names_retained": true,
+      "reverse_reconstructs_base": true,
+      "blob": "3ed53e1058f030a35a1ad8c9b34f2f2ef329f72c",
+      "bytes": 25443
+    },
+    {
+      "path": "tests/test_boat_recovery_dispatch_gate.py",
+      "base_blob": "c0ea0f8ddf6894618cca2347b509c04475909be1",
+      "strict_edits": [
+        {
+          "before": "        protected='c979aeb678538d99e277f26726047dccbdc982af'",
+          "replacement": "        protected='995ef00a2ffb98a0161e1875d7d2a33145367b40'",
+          "occurrences": 2
+        },
+        {
+          "before": "                       lambda p:p.update(head_sha='f1f8ed4ffb2a29e6b702685f49de63918610479d'),",
+          "replacement": "                       lambda p:p.update(head_sha='c979aeb678538d99e277f26726047dccbdc982af'),\n                       lambda p:p.update(head_sha='f1f8ed4ffb2a29e6b702685f49de63918610479d'),",
+          "occurrences": 2
+        }
+      ],
+      "original_method_count": 14,
+      "template_method_count": 14,
+      "all_original_method_names_retained": true,
+      "reverse_reconstructs_base": true,
+      "blob": "fb3745c0cbf479d7ab33952d6450adf83160437c",
+      "bytes": 18383
+    },
+    {
+      "path": "tests/test_boat_recovery_control_reader.py",
+      "base_blob": "b1087cae7b124fa7f47c090cc54aaa4b5d665a33",
+      "strict_edits": [
+        {
+          "before": "                         'f1f8ed4ffb2a29e6b702685f49de63918610479d'):\n            with self.subTest(previous=previous), \\\n                 patch.object(base,'RELEASE_SHA','c979aeb678538d99e277f26726047dccbdc982af'), \\",
+          "replacement": "                         'f1f8ed4ffb2a29e6b702685f49de63918610479d',\n                         'c979aeb678538d99e277f26726047dccbdc982af'):\n            with self.subTest(previous=previous), \\\n                 patch.object(base,'RELEASE_SHA','995ef00a2ffb98a0161e1875d7d2a33145367b40'), \\",
+          "occurrences": 1
+        }
+      ],
+      "original_method_count": 8,
+      "template_method_count": 8,
+      "all_original_method_names_retained": true,
+      "reverse_reconstructs_base": true,
+      "blob": "1803b5528ae5dbd34f0186b2531d1ce3a50c7b86",
+      "bytes": 4733
+    },
+    {
+      "path": "tests/test_boat_owner_active_snapshot_audit.py",
+      "base_blob": "6026ebb2b373f8c3ac319a8c8d87cfbd01bd5415",
+      "strict_edits": [
+        {
+          "before": "\nif __name__",
+          "replacement": "\n\nHTTP_CAPTURE_CLOCK_HEAD='995ef00a2ffb98a0161e1875d7d2a33145367b40'\n\n\nclass HTTPCaptureClockOwnerRoleTests(unittest.TestCase):\n    \"\"\"The exact HTTP receipt-clock release is a source role, never a model.\"\"\"\n    @classmethod\n    def setUpClass(cls):M2SnapshotTests.setUpClass()\n\n    def test_http_capture_clock_source_keeps_exact_frozen_roles_and_aes_partial_scopes(self):\n        from scripts import boat_exact_all_model_zip_readback as exact\n        for module in (active,exact):\n            self.assertEqual(getattr(module,'HTTP_CAPTURE_CLOCK_OWNER_SHA',None),HTTP_CAPTURE_CLOCK_HEAD)\n            self.assertEqual(module.VENUE_DIAGNOSTIC_OWNER_SHA,VENUE_DIAGNOSTIC_HEAD)\n            self.assertEqual(module.RESEARCH_CACHE_OWNER_SHA,RESEARCH_CACHE_HEAD)\n            self.assertEqual(module.PARTIAL_RECEIPT_OWNER_SHAS,(\n                active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,ATOMIC_HEAD,\n                RESEARCH_CACHE_HEAD,VENUE_DIAGNOSTIC_HEAD,HTTP_CAPTURE_CLOCK_HEAD))\n        for method in (\n                'test_two_native_rounds_with_only_r0_r1_models_authenticate_all_receipts_and_hold_unknown_r2',\n                'test_completed_m2_uses_authenticated_final_round_not_twenty_four_success_labels',\n                'test_m2_key_receipt_nested_counter_and_cipher_mismatches_stay_fatal'):\n            with self.subTest(method=method),patch.object(sys.modules[__name__],'M2_HEAD',HTTP_CAPTURE_CLOCK_HEAD):\n                fixture=M2SnapshotTests();fixture.setUp()\n                try:\n                    getattr(fixture,method)()\n                except ValueError as error:\n                    self.fail('Exact HTTP receipt-clock source was refused: '+str(error))\n                finally:\n                    fixture.doCleanups()\n\n    def test_http_capture_clock_p0_direction_keeps_four_parents_and_refuses_c979_f1_unknown_or_reverse(self):\n        for origin in (active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,ATOMIC_HEAD):\n            with self.subTest(origin=origin):\n                try:\n                    RetentionSnapshotTests._inherited_p0(self,HTTP_CAPTURE_CLOCK_HEAD,origin)\n                except ValueError as error:\n                    self.fail('Exact reviewed P0 cannot enter HTTP receipt-clock source: '+str(error))\n        denied=((HTTP_CAPTURE_CLOCK_HEAD,VENUE_DIAGNOSTIC_HEAD),\n                (HTTP_CAPTURE_CLOCK_HEAD,RESEARCH_CACHE_HEAD),\n                (HTTP_CAPTURE_CLOCK_HEAD,'f'*40))\n        reverse=tuple((owner,HTTP_CAPTURE_CLOCK_HEAD) for owner in (\n            active.M2_OWNER_SHA,PROFILE_HEAD,RETENTION_HEAD,ATOMIC_HEAD,\n            RESEARCH_CACHE_HEAD,VENUE_DIAGNOSTIC_HEAD))\n        for owner,origin in denied+reverse:\n            with self.subTest(owner=owner,origin=origin),self.assertRaisesRegex(\n                    ValueError,'P0_ORIGIN_IDENTITY'):\n                RetentionSnapshotTests._inherited_p0(self,owner,origin)\n\n    def test_http_capture_clock_callback_and_workflow_roles_preserve_fixed_m2_push_target(self):\n        fixture=ProfileTargetSelectionTests();fixture.SOURCE_HEAD=HTTP_CAPTURE_CLOCK_HEAD\n        for method in ('test_completed_profile_callback_does_not_change_existing_m2_push_target',\n                       'test_matrix_event_and_selected_owner_guards_accept_only_explicit_profile'):\n            with self.subTest(method=method):\n                try:\n                    getattr(fixture,method)()\n                except ValueError as error:\n                    self.fail('Exact HTTP receipt-clock callback role was refused: '+str(error))\n\n\nif __name__",
+          "occurrences": 1
+        }
+      ],
+      "original_method_count": 59,
+      "template_method_count": 62,
+      "all_original_method_names_retained": true,
+      "reverse_reconstructs_base": true,
+      "blob": "33884897d5fac7ade66ede885d863cda1113e4b1",
+      "bytes": 70862
+    },
+    {
+      "path": "tests/test_boat_current_pair_eligibility_audit.py",
+      "base_blob": "13360b8e2c2e3e336ac53265560f21693b2e6fec",
+      "strict_edits": [
+        {
+          "before": "\nif __name__",
+          "replacement": "\n\nHTTP_CAPTURE_CLOCK_SOURCE='995ef00a2ffb98a0161e1875d7d2a33145367b40'\n\n\nclass HTTPCaptureClockCurrentPairRoleTests(unittest.TestCase):\n    \"\"\"The exact source role preserves authenticated counts and pending revisions.\"\"\"\n    @classmethod\n    def setUpClass(cls):CurrentPairEligibilityTests.setUpClass()\n\n    def test_http_capture_clock_current_pairs_keep_private_unqualified_counts_and_latest_pending(self):\n        for method in ('test_real_crypto_counts_are_flat_private_and_still_unqualified',\n                       'test_latest_pending_correction_does_not_fall_back_to_an_older_settlement'):\n            with self.subTest(method=method),patch.object(sys.modules[__name__],'SOURCE',HTTP_CAPTURE_CLOCK_SOURCE):\n                fixture=CurrentPairEligibilityTests();fixture.setUp()\n                try:\n                    getattr(fixture,method)()\n                except ValueError as error:\n                    self.fail('Exact HTTP receipt-clock current pairs were refused: '+str(error))\n                finally:\n                    fixture.doCleanups()\n\n\nif __name__",
+          "occurrences": 1
+        }
+      ],
+      "original_method_count": 34,
+      "template_method_count": 35,
+      "all_original_method_names_retained": true,
+      "reverse_reconstructs_base": true,
+      "blob": "a009d364bd4965b53501f66e23555a0ffdd13050",
+      "bytes": 66112
+    },
+    {
+      "path": "tests/test_all_existing_model_archived_native.py",
+      "base_blob": "03589995f2349deee8d58f7e0e362932979f753c",
+      "strict_edits": [
+        {
+          "before": "ALLOWED_OWNER_SHAS += ('c979aeb678538d99e277f26726047dccbdc982af',)\n",
+          "replacement": "ALLOWED_OWNER_SHAS += ('c979aeb678538d99e277f26726047dccbdc982af',)\nALLOWED_OWNER_SHAS += ('995ef00a2ffb98a0161e1875d7d2a33145367b40',)\n",
+          "occurrences": 1
+        }
+      ],
+      "original_method_count": 13,
+      "template_method_count": 13,
+      "all_original_method_names_retained": true,
+      "reverse_reconstructs_base": true,
+      "blob": "2b63be4950af8601a8b9131226ebb8c6c7e2b773",
+      "bytes": 22891
+    }
+  ],
+  "test_scope": {
+    "existing_test_modules_only": true,
+    "new_methods": 4,
+    "new_method_names": [
+      "HTTPCaptureClockOwnerRoleTests.test_http_capture_clock_source_keeps_exact_frozen_roles_and_aes_partial_scopes",
+      "HTTPCaptureClockOwnerRoleTests.test_http_capture_clock_p0_direction_keeps_four_parents_and_refuses_c979_f1_unknown_or_reverse",
+      "HTTPCaptureClockOwnerRoleTests.test_http_capture_clock_callback_and_workflow_roles_preserve_fixed_m2_push_target",
+      "HTTPCaptureClockCurrentPairRoleTests.test_http_capture_clock_current_pairs_keep_private_unqualified_counts_and_latest_pending"
+    ],
+    "role_constant": "HTTP_CAPTURE_CLOCK_OWNER_SHA",
+    "old_venue_diagnostic_role": "c979aeb678538d99e277f26726047dccbdc982af",
+    "old_research_cache_role": "f1f8ed4ffb2a29e6b702685f49de63918610479d",
+    "p0_allow_from_new_role": [
+      "M2_OWNER_SHA",
+      "PROFILE_OWNER_SHA",
+      "RETENTION_OWNER_SHA",
+      "ATOMIC_OWNER_SHA"
+    ],
+    "p0_deny_from_new_role": [
+      "VENUE_DIAGNOSTIC_OWNER_SHA",
+      "RESEARCH_CACHE_OWNER_SHA",
+      "unknown"
+    ],
+    "all_older_roles_to_new_origin_denied": true,
+    "preserve_all_old_method_names": true,
+    "intentional_old_body_adaptations": [
+      "Current-release expectation literals advance from C979 to verified new source.",
+      "C979 is added to stale release/proof/checkout negative controls.",
+      "Workflow historical-head set retains C979 independently of the current dispatch release."
+    ],
+    "all_other_old_method_bodies_and_frozen_A74_F1_C979_fixture_classes_preserved": true,
+    "archived_fixture_only_exact_checkout_allowlist_addition": true,
+    "no_actual_source_keys_or_provider_requests_used": true
+  },
+  "mapped_files": {
+    "six_future_editable_runtime_paths": [
+      {
+        "path": "scripts/boat_main_dispatch_gate.py",
+        "base_blob": "b0e2f2b413835d41616678971f9650b89f434e8d",
+        "design": "Advance RELEASE_SHA only to verified new merged source."
+      },
+      {
+        "path": "scripts/boat_owner_active_snapshot_audit.py",
+        "base_blob": "a3c7d36ee586e977225267b51548850c62b9161c",
+        "design": "Add exact HTTP_CAPTURE_CLOCK_OWNER_SHA to explicit partial roles and its four-parent P0 branch; freeze C979/F1 and every old clause."
+      },
+      {
+        "path": "scripts/boat_exact_all_model_zip_readback.py",
+        "base_blob": "10307aa5e45f17b1a7a0d64f409d8cb6a6481e54",
+        "design": "Add the same exact new source role to explicit partial roles; existing admission, missing models and null qualification unchanged."
+      },
+      {
+        "path": ".github/workflows/boat-racer-daily.yml",
+        "base_blob": "ef1e433a921b7641a5e8ba3df8059448ffe70906",
+        "design": "Add new head to four existing callback guards and their existing assertion; advance only current dispatch reader checkout/expected-head and manual current-source selection, preserving C979 historical admission and0796 default."
+      },
+      {
+        "path": ".github/workflows/boat-main-recovery-contract.yml",
+        "base_blob": "ba262da9d111a26b45def8e7eb22a995fb5214d0",
+        "design": "Advance only existing isolated dispatch-control reader checkout; EFF original evidence checkout remains fixed."
+      },
+      {
+        "path": ".github/workflows/boat-owner-national-p1-matrix.yml",
+        "design": "Preserve merged PR28 body. Add new source to existing callback/owner/partial/archive guards; rebind only actual changed main active/exact blob hashes in the existing four-module binding. Preserve raw and closed-A74 optional body bytes otherwise.",
+        "base_blob": "41c149856ab152951c0f0acc426103aac7f3be7b"
+      }
+    ],
+    "reviewed_frozen_evidence_module": {
+      "path": "scripts/boat_owner_evidence_audit.py",
+      "blob": "014fc9ddbbd24c501b7784eeae50be315644669f",
+      "owner_reader": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "change": false
+    },
+    "unrelated_gap_recovery_workflow": {
+      "path": ".github/workflows/boat-result-gap-recovery.yml",
+      "blob": "2cab06a2b416489652ef3880a4f8347a56aa1352",
+      "change": false
+    },
+    "main_failed_origin_contract": {
+      "path": "scripts/boat_failed_recovery_contract.py",
+      "blob": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
+      "change": false
+    },
+    "source_failed_origin_contract": {
+      "blob": "be56af54f71d4c3a7d303823b056e4964150db49",
+      "change": false
+    }
+  },
+  "existing_ci_containers": [
+    {
+      "workflow": ".github/workflows/boat-main-recovery-contract.yml",
+      "job": "gate / unit",
+      "registered_modules": [
+        "tests.test_boat_recovery_control_reader",
+        "tests.test_boat_recovery_dispatch_gate",
+        "tests.test_boat_owner_completion_trigger",
+        "tests.test_boat_main_dispatch_gate",
+        "tests.test_boat_first_p0_recovery_gate",
+        "tests.test_boat_owner_evidence_audit",
+        "tests.test_boat_native_safari_dispatch"
+      ],
+      "command_change": false
+    },
+    {
+      "workflow": ".github/workflows/boat-owner-national-p1-matrix.yml",
+      "job": "existing unit",
+      "registered_modules_covering_new_role": [
+        "tests.test_boat_owner_active_snapshot_audit",
+        "tests.test_boat_current_pair_eligibility_audit",
+        "tests.test_all_existing_model_archived_native",
+        "tests.test_boat_exact_all_model_zip_readback"
+      ],
+      "command_change": false
+    }
+  ],
+  "PR28_preserved": {
+    "raw_path": "scripts/boat_cutoff_raw_replay_audit.py",
+    "raw_blob": "daef1d09ce55dde149defda0a15e6459ac511f73",
+    "national_workflow_blob": "41c149856ab152951c0f0acc426103aac7f3be7b",
+    "both_entries_independently_verified_in_main_tree": true,
+    "neither_file_changed_by_this_packet": true
+  },
+  "history_observations_parent_verified_only": [
+    {
+      "source": "c979aeb678538d99e277f26726047dccbdc982af",
+      "at_utc": "2026-11-18T12:21:00Z",
+      "total": 0
+    },
+    {
+      "source": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+      "at_utc": "2026-11-18T12:33:00Z",
+      "total": 0
+    }
+  ],
+  "operational_boundaries": {
+    "current_A74_worker_untouched": true,
+    "C979_no_dispatch_observation_parent_supplied_only": {
+      "reported_at_utc": "2026-11-18T12:21:00Z",
+      "total": 0,
+      "independently_refetched_by_this_packet": false,
+      "must_refresh_before_final_merge": true
+    },
+    "maintain_complete_existing_history_and_single_owner_gate": true,
+    "no_native_candidate_or_checker_bytes_changed": true,
+    "no_native_dispatch_implied_by_pin_only_change": true,
+    "no_new_jobs_permissions_inputs_runners_timeouts_crons_markers_prefixes_models_fees_or_publication": true
+  },
+  "expected_RED": {
+    "actual_CI_required": true,
+    "actual_observed": false,
+    "predicted_totals_claimed": false,
+    "scope": "Current release still C979 and HTTP_CAPTURE_CLOCK_OWNER_SHA does not yet exist. Existing current-release assertions and new exact-role checks must fail before runtime changes; controls remain fail-closed.",
+    "runtime_authoring_requires_parent_actual_clean_RED": true
+  },
+  "verification": {
+    "six_published_test_blob_readbacks_exact": true,
+    "strict_reversals": [
+      {
+        "path": "tests/test_boat_owner_completion_trigger.py",
+        "reverse_exact": true,
+        "old_methods": 26,
+        "new_methods": 0
+      },
+      {
+        "path": "tests/test_boat_recovery_dispatch_gate.py",
+        "reverse_exact": true,
+        "old_methods": 14,
+        "new_methods": 0
+      },
+      {
+        "path": "tests/test_boat_recovery_control_reader.py",
+        "reverse_exact": true,
+        "old_methods": 8,
+        "new_methods": 0
+      },
+      {
+        "path": "tests/test_boat_owner_active_snapshot_audit.py",
+        "reverse_exact": true,
+        "old_methods": 59,
+        "new_methods": 3
+      },
+      {
+        "path": "tests/test_boat_current_pair_eligibility_audit.py",
+        "reverse_exact": true,
+        "old_methods": 34,
+        "new_methods": 1
+      },
+      {
+        "path": "tests/test_all_existing_model_archived_native.py",
+        "reverse_exact": true,
+        "old_methods": 13,
+        "new_methods": 0
+      }
+    ],
+    "placeholder_removed": true,
+    "whole_template_lexical_checks_passed": true,
+    "python_executed": false,
+    "no_local_test_pass_claim": true
+  },
+  "preserve": {
+    "current_A74_worker_untouched": true,
+    "C979_no_dispatch_observation_parent_supplied_only": {
+      "reported_at_utc": "2026-11-18T12:21:00Z",
+      "total": 0,
+      "independently_refetched_by_this_packet": false,
+      "must_refresh_before_final_merge": true
+    },
+    "maintain_complete_existing_history_and_single_owner_gate": true,
+    "no_native_candidate_or_checker_bytes_changed": true,
+    "no_native_dispatch_implied_by_pin_only_change": true,
+    "no_new_jobs_permissions_inputs_runners_timeouts_crons_markers_prefixes_models_fees_or_publication": true
+  },
+  "mutations": {
+    "six_tests_only_blobs_created": true,
+    "refs": false,
+    "runtime": false,
+    "workflows": false,
+    "provider_requests": 0,
+    "keys_accessed": 0
+  }
+}
