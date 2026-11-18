@@ -67,6 +67,29 @@ class ClothingIdentityTests(unittest.TestCase):
         self.assertFalse(result['identity_validated'])
         self.assertFalse(result['model_eligible'])
 
+    def test_existing_benchmark_consumes_actual_clothing_tracker_packets(self):
+        from race_ai import boat_video_benchmark
+        from tests.test_boat_video_clothing_benchmark import reference
+        score=getattr(boat_video_benchmark,'benchmark_clothing_identity',None)
+        self.assertTrue(callable(score),'clothing tracker output has no benchmark interface')
+        ref=reference(3,riders=[dict(box=list(box),lane=n,readability='READABLE')
+            for n,box in enumerate(self.boxes,1)])
+        ref.update(width=640,height=180)
+        rows=[]
+        for i in range(3):
+            result=self.update(i)
+            ref['frames'][i]['decoded_frame_sha256']=result['frame_sha256']
+            rows.append(dict(schema_version='RACE_AI_BOAT_MARKER_FRAME_JOURNAL_V1',
+                media_sha256=ref['media_sha256'],frame_index=i,source_pts=9.+i/10,t=i/10,
+                decoded_bgr_sha256=result['frame_sha256'],pipeline_result=dict(
+                    frame_index=i,t=i/10,scene=0,frame_sha256=result['frame_sha256'],
+                    identity_validated=False,model_eligible=False,rider_part_tracking=result)))
+        metrics=score(rows,ref)['partitions']['DEVELOPMENT']
+        self.assertEqual(metrics['whole_six_eligible_frames'],3)
+        self.assertEqual(metrics['whole_six_correct_frames'],1)
+        self.assertEqual(metrics['unknown_clothing_matches'],12)
+        self.assertEqual(metrics['current_color_correct_matches'],6)
+
     def test_pale_green_is_not_white_and_helmet_color_is_not_used(self):
         result=self.establish()
         self.assertEqual(result['tracks'][5]['clothing_color']['color'],'GREEN')
