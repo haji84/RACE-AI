@@ -1,0 +1,90 @@
+{
+  "schema": "RACE_AI_ACTUAL_RESEARCH_CACHE_MAIN_PIN_TEST_FIRST_V1",
+  "base_main": "b1c8de6b794e0cae61ecdb25593a4d3a11b63e58",
+  "source": "f1f8ed4ffb2a29e6b702685f49de63918610479d",
+  "source_is_normal_protected_merge": true,
+  "packet": "283841de59c2547c716a27edd798e45c368733ac",
+  "test_only_head": "dee69af954b4ce1ac1145b3b22c23fe15002a8db",
+  "test_only_tree": "3e3324b445e062df873837ae0da1270c2d8a3459",
+  "source_tests_added_effective": 20,
+  "original_historical_methods_and_assertions_preserved": true,
+  "red": [
+    {
+      "run_id": 44254795568,
+      "job_id": 134633776781,
+      "tests": 138,
+      "seconds": 0.345,
+      "failures": 6,
+      "errors": 0
+    },
+    {
+      "run_id": 44254795670,
+      "job_id": 134633775089,
+      "tests": 346,
+      "seconds": 137.021,
+      "failures": 13,
+      "errors": 0,
+      "old_333_passed": true
+    },
+    {
+      "run_id": 44254795601,
+      "job_id": 134633775221,
+      "tests": 206,
+      "seconds": 19.249,
+      "failures": 7,
+      "errors": 0,
+      "pin_failures": 4,
+      "counter_missing_api_failures": 3
+    }
+  ],
+  "implementation_blobs": [
+    {
+      "path": "scripts/boat_main_dispatch_gate.py",
+      "sha": "a80e6a3c40db66da5779744c6556c64fe3b2843d",
+      "base_blob": "6d4f93037f7ea8c23c21dda3d2a07e42c3166b1c",
+      "edits": 1
+    },
+    {
+      "path": "scripts/boat_failed_recovery_contract.py",
+      "sha": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
+      "base_blob": "1ea7522d4c4ce2566a081fa56c8bdbc649045542",
+      "edits": 1
+    },
+    {
+      "path": "scripts/boat_owner_active_snapshot_audit.py",
+      "sha": "4a58f9bf3b3f5772a74d5c592d3b8dc21d069aaa",
+      "base_blob": "e4a6f5bc20745b5ae8f3e0e957d24a5f5a9ac49a",
+      "edits": 3
+    },
+    {
+      "path": "scripts/boat_exact_all_model_zip_readback.py",
+      "sha": "f0c18cab03c246979e3ac4496bfc7097da031c61",
+      "base_blob": "d688e89af7d6125da0ca1cb9b2182a08f478c2f1",
+      "edits": 2
+    },
+    {
+      "path": ".github/workflows/boat-racer-daily.yml",
+      "sha": "707efa1b44f0e4529451f063f412f56daecd179e",
+      "base_blob": "28231e84c67bc0206cd9c6c5ed5e02d93fc0e7c5",
+      "edits": 8
+    },
+    {
+      "path": ".github/workflows/boat-main-recovery-contract.yml",
+      "sha": "6d78f7c8a2fdea6b2077a157f5be81cbb188d073",
+      "base_blob": "aae9cad52e438314f50dcf3ae624ef215222f281",
+      "edits": 1
+    },
+    {
+      "path": ".github/workflows/boat-owner-national-p1-matrix.yml",
+      "sha": "ad7351ed79dcca993abd9e3a35043e39d882a7b6",
+      "base_blob": "0e05dd07989f4b0c609984e041884658236f939b",
+      "edits": 4
+    }
+  ],
+  "allowed_scope": "Actual current source pin plus additive read-only partial owner and older-P0 direction; retain every A74/BB/M2/profile/old-reader branch, source clocks/counters/wait/denials, exact current checkout/proof, and default-off broader scopes.",
+  "new_job_input_cron_runner_timeout_permission_added": false,
+  "promoted_weights": false,
+  "ui_published": false,
+  "live_speedup_proven": false,
+  "goal_complete": false
+}
