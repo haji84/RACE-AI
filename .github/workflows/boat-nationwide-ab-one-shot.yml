@@ -147,6 +147,8 @@ jobs:
                  'tests.test_boat_private_original_vault_isolation','tests.test_boat_all_model_store',
                  'tests.test_saved_view_feed','tests.test_boat_shared_feed_writer_safety',
                  'tests.test_private_original_archive_readers','tests.test_boat_private_original_vault_cli',
+                 'tests.test_boat_private_original_vault_live_artifact_retry',
+                 'tests.test_boat_new_day_upload_visibility',
                  'tests.test_boat_source_capture_files','tests.test_boat_source_capture_batching',
                  'tests.test_boat_raw_original_capture',
                  'tests.test_boat_first_p0_readback','tests.test_boat_first_p0_reconcile',
@@ -642,12 +644,18 @@ jobs:
       - name: Verify and retain additional new-day P0 originals
         if: steps.new_day_models_freeze.outputs.artifact-id != ''
         continue-on-error: true
-        env: {GH_TOKEN: '${{ github.token }}'}
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_FRESH_UPLOAD_RECEIPTS: >-
+            [{"artifact_id":"${{ steps.new_day_models_freeze.outputs.artifact-id }}","name":"boat-all-model-forecasts-${{ github.run_id }}-r0","digest":"${{ steps.new_day_models_freeze.outputs.artifact-digest }}"}]
         run: python -m scripts.boat_all_model_cycle readback --round 0 --artifact '${{ steps.new_day_models_freeze.outputs.artifact-id }}'
       - name: Retain exact additional P0 execution and physical save receipt beyond expiry
         if: steps.new_day_models_freeze.outputs.artifact-id != ''
-        env: {GH_TOKEN: '${{ github.token }}'}
-        run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.new_day_models_freeze.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-new-day-original-vault.json'
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_FRESH_UPLOAD_RECEIPTS: >-
+            [{"artifact_id":"${{ steps.new_day_models_freeze.outputs.artifact-id }}","name":"boat-all-model-forecasts-${{ github.run_id }}-r0","digest":"${{ steps.new_day_models_freeze.outputs.artifact-digest }}"}]
+        run: python -m scripts.boat_private_original_vault capture --fresh-upload --artifact '${{ steps.new_day_models_freeze.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-new-day-original-vault.json'
       - name: Publish authenticated new-day originals with the existing owner view
         if: steps.restore.conclusion == 'success' && env.RACE_AI_FORWARD_REQUEST == ''
         continue-on-error: true

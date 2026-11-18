@@ -154,12 +154,19 @@ gh.archived_artifact_pages=_archived_pages
 gh.is_archived=_is_archived
 
 def _live_gh(path):
-    """Read GitHub receipt; retry *only explicit 5xx or transport timeout*.
+    """Read GitHub receipt; retain strict defaults and the existing upload proof.
 
-    Never retry 4xx/429, unknown CLI failures or integrity mismatches. Raw
-    CLI stderr may contain private identifiers, so expose only a status class.
-    Independent callers must still verify server digest and original ZIP bytes.
+    Only an exact current upload receipt opts into the vault's existing bounded
+    metadata visibility retry. Other 4xx/429, unknown CLI failures and integrity
+    mismatches stop. Archive selection still happens before this live fallback.
+    Raw CLI stderr stays private; callers still verify digest and ZIP bytes.
     """
+    fresh = re.fullmatch(r'actions/artifacts/([1-9][0-9]{0,19})', path)
+    if fresh and os.environ.get('RACE_AI_FRESH_UPLOAD_RECEIPTS'):
+        from scripts import boat_private_original_vault as vault
+        context = vault._fresh_upload_context([int(fresh[1])], ROOT, _live_gh,
+                                              datetime.now(timezone.utc))
+        return vault._gh(path, fresh_uploads=context)
     command=['gh','api',f'repos/{REPO}/'+path]
     for attempt in range(3):
         try:

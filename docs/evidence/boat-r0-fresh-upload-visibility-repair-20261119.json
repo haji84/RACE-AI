@@ -1,0 +1,180 @@
+{
+  "schema": "RACE_AI_BOAT_R0_FRESH_UPLOAD_VISIBILITY_REPAIR_V1",
+  "base_source_sha": "fbc743be548bfd123e46cdbfe290515a59e5e0d3",
+  "actual_failed_run": {
+    "run_id": 44409798061,
+    "job_id": 135174569110,
+    "head_sha": "fbc743be548bfd123e46cdbfe290515a59e5e0d3",
+    "status": "completed",
+    "conclusion": "failure",
+    "created_at_utc": "2026-11-18T22:15:26Z",
+    "updated_at_utc": "2026-11-18T22:20:24Z"
+  },
+  "preserved_first_p0": {
+    "artifact_id": 14476113256,
+    "created_at_utc": "2026-11-18T22:18:29Z",
+    "zip_bytes": 762539,
+    "digest": "sha256:1be295bd729fb74dbd0929491464807018c25ffa65921037d4fe98de0d767b19",
+    "retention_source_commit": "bdaad899beeed549c694144f4a3ed9a7bee6d9d8",
+    "create_only_first_receipt_and_long_term_retention_succeeded": true,
+    "original_or_receipt_reset_performed": false
+  },
+  "additional_r0": {
+    "artifact_id": 14475644448,
+    "created_at_utc": "2026-11-18T22:19:54Z",
+    "zip_bytes": 18707982,
+    "digest": "sha256:e6c87d8ecacfc075b8b3e1ea1b9df51adec5cd2ad056a4b187df50601bea50d7",
+    "producer_reported_contexts": 132,
+    "producer_reported_generated_forecasts": 660,
+    "producer_reported_ready": true,
+    "independent_original_readback_succeeded_in_failed_run": false,
+    "regenerated_by_this_change": false
+  },
+  "completed_log_evidence": {
+    "source": "OFFICIAL_WHOLE_RUN_LOG_ZIP",
+    "zip_bytes": 99932,
+    "entry_count": 48,
+    "readback_at_utc": "2026-11-18T22:19:55.6216721Z",
+    "readback_status": "ALL_MODEL_PATH_REJECTED",
+    "readback_upstream_reason": "GITHUB_API_READ_HTTP_404_HALT",
+    "capture_at_utc": "2026-11-18T22:19:56.5162761Z",
+    "capture_endpoint_kind": "ARTIFACT_METADATA",
+    "capture_reason": "VAULT_GITHUB_HTTP_404",
+    "capture_attempt": 1,
+    "capture_max_attempts": 3,
+    "actions_token_permissions": {
+      "actions": "read",
+      "contents": "write",
+      "metadata": "read"
+    },
+    "raw_logs_saved": false,
+    "signed_or_private_urls_saved": false
+  },
+  "later_authenticated_metadata_observation": {
+    "observed_at_utc": "2026-11-18T22:23:54Z",
+    "cli_login": "haji84",
+    "run_artifact_total_count": 6,
+    "both_artifact_metadata_reads_succeeded": true,
+    "r0_id_name_run_branch_head_size_digest_and_created_at_match_list": true,
+    "r0_expired": false,
+    "same_credentials_as_failed_actions_token_proven": false,
+    "write_test_performed": false
+  },
+  "diagnosis": {
+    "code_level_failure": "EXISTING_FRESH_UPLOAD_OPT_IN_NOT_WIRED_FOR_OWNER_NEW_DAY_R0",
+    "existing_helper_present_in_base": true,
+    "wrong_current_artifact_id_or_namespace_supported": false,
+    "expired_current_artifact_supported": false,
+    "old_self_head_binding_as_observed_failure_supported": false,
+    "failure_preceded_model_identity_and_cipher_authentication": true,
+    "platform_visibility_or_permission_root_cause": "UNRESOLVED",
+    "eventual_visibility_is_consistent_with_evidence_but_not_independently_proven": true
+  },
+  "repair": {
+    "runtime_location": "scripts/github_existing_cycle.py:_live_gh",
+    "archive_selection_precedes_live_fallback": true,
+    "fresh_metadata_uses_existing_vault_context_and_reader": true,
+    "fresh_receipt_fields": [
+      "artifact_id",
+      "name",
+      "digest"
+    ],
+    "receipt_source": "EXISTING_UPLOAD_ARTIFACT_STEP_OUTPUTS",
+    "existing_current_run_checkout_head_branch_attempt_and_run_authentication_preserved": true,
+    "max_attempts": 3,
+    "context_deadline_seconds": 60,
+    "existing_retry_helper_bytes_changed": false,
+    "readback_zip_run_identity_digest_local_cipher_and_aes_checks_changed": false,
+    "default_live_transport_statements_changed": false,
+    "existing_steps_bound": [
+      "Verify and retain additional new-day P0 originals",
+      "Retain exact additional P0 execution and physical save receipt beyond expiry"
+    ],
+    "capture_uses_existing_fresh_upload_flag": true,
+    "existing_required_unit_step_extended_with_related_regressions": true,
+    "new_jobs_inputs_crons_runners_timeouts_permissions_or_marker_names": 0
+  },
+  "tests": {
+    "initial_red": {
+      "methods": 8,
+      "assertion_failures": 6,
+      "errors": 0
+    },
+    "first_focused_green": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 0.285
+    },
+    "related_regression": {
+      "stage": "RELATED_REGRESSION_WITH_PINNED_REFERENCES",
+      "tests": 104,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 12.246,
+      "external_network_attempts": 0,
+      "failure_ids": [],
+      "error_ids": []
+    },
+    "required_source_unit_job": {
+      "stage": "EXISTING_REQUIRED_SOURCE_UNIT_JOB",
+      "module_count": 60,
+      "tests": 899,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 289.039,
+      "external_network_attempts": 0,
+      "failure_ids": [
+        "tests.test_boat_venue_research_cache.ResearchReadbackReuseTests.test_tampered_cached_blob_never_passes_full_byte_comparison"
+      ],
+      "error_ids": []
+    },
+    "initial_unconfigured_reference_run": {
+      "tests": 104,
+      "failures": 0,
+      "errors": 4,
+      "cause": "PINNED_OFFICIAL_DAY_SOURCE_REQUIRED",
+      "resolution": "CONNECTED_EXISTING_IMMUTABLE_LOCAL_PR64_PR72_REFERENCES",
+      "production_code_changed_for_setup": false
+    },
+    "unchanged_baseline_failure_reproduction": {
+      "baseline_head": "9f3da06ed287954a9e9724724fecba637a275299",
+      "baseline_tree": "1068d5a0d1225e0638a31528f8031a5b8e9fc584",
+      "tree_matches_protected_fbc": true,
+      "isolated_test": 1,
+      "failures": 1,
+      "errors": 0,
+      "fixed_failure_class": "EXPECTED_VALUE_ERROR_NOT_RAISED"
+    },
+    "required_source_unit_all_passed": false,
+    "baseline_cache_failure_not_introduced_by_r0_change": true,
+    "related_repair_regressions_all_passed": true
+  },
+  "preservation": {
+    "first_p0_receipt_and_catalog_unchanged": true,
+    "existing_r0_cipher_and_forecast_unchanged": true,
+    "permanent_404_other_artifact_old_run_403_429_and_integrity_failures_remain_hold": true,
+    "state_counters_or_model_weights_changed": false,
+    "workflow_header_job_count_step_count_conditions_runners_timeouts_permissions_unchanged": true,
+    "all_other_runtime_functions_ast_unchanged": true,
+    "ui_or_crypto_files_changed": false
+  },
+  "effects": {
+    "provider_source_gets": 0,
+    "local_production_state_key_accesses": 0,
+    "dispatches_reruns_cancellations": 0,
+    "pushes_merges_or_publications": 0,
+    "actual_future_retry_recovery_proven": false,
+    "actual_failed_r0_independently_reauthenticated_by_this_local_change": false,
+    "all_day_coverage_and_t15_to_t10_proven": false,
+    "goal_complete": false
+  },
+  "tested_file_sha256": {
+    "scripts/github_existing_cycle.py": "390785ea035bc84f9c115cdb8898c7554df704964c6869a635e23ce31363f4cb",
+    ".github/workflows/boat-nationwide-ab-one-shot.yml": "ffef69435bee6e592aa95cf78ea8c37c84f3e38920ab91db938d794fc22cf608",
+    "tests/test_boat_new_day_upload_visibility.py": "e0d9b7e6be1afecdec269e6030b00143ff40458a2ca006ffcd722965e2a8dd18"
+  },
+  "recorded_at_utc": "2026-11-18T22:43:37.114326+00:00"
+}
