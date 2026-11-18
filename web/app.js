@@ -888,6 +888,7 @@
     const interactions=new Map();
     if(preserveInteraction)$("all-races").querySelectorAll(":scope>.race-list-card").forEach(card=>{
       interactions.set(card.dataset.raceId,{phase:card.dataset.racePhase,open:card.querySelector(".race-list-more").open,
+        rosterScroll:card.querySelector(":scope>.racer-grid")?.scrollLeft||0,
         focus:[...card.querySelectorAll("button,summary")].indexOf(document.activeElement)});
     });
     const now = Date.now(), all = scoped(), baseMatches = U.filterRaces(displayRows(races()), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, query: state.query, venue: state.venue, sort: state.sort, candidatesOnly: state.candidatesOnly, candidateRaceIds: state.candidates.map(t => t.raceId)});
@@ -929,6 +930,7 @@
     if(preserveInteraction)$("all-races").querySelectorAll(":scope>.race-list-card").forEach(card=>{
       const previous=interactions.get(card.dataset.raceId);if(!previous||previous.phase!==card.dataset.racePhase)return;
       card.querySelector(".race-list-more").open=previous.open;
+      const roster=card.querySelector(":scope>.racer-grid");if(roster)roster.scrollLeft=previous.rosterScroll;
       const target=previous.focus<0?null:card.querySelectorAll("button,summary")[previous.focus];
       if(target?.getClientRects().length)target.focus({preventScroll:true});
     });

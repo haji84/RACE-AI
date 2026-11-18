@@ -133,6 +133,17 @@ async function check({browser,base,output}){
    assert.equal(await page.locator('#all-races .race-list-more[open]').count(),0,'removed disclosure state must not transfer to another race');
    geometry.minute_refresh_state_preserved=true;geometry.closed_phase_row_not_restored=true;
    await page.clock.setFixedTime(new Date('2030-01-01T00:30:00Z'));await nav('races');
+   if(width===320){
+    await page.locator('[data-sport="horse"]').click();await nav('races');
+    const horse=page.locator('#all-races [data-race-id="'+view.records[3].race_id+'"]'),roster=horse.locator(':scope>.racer-grid');
+    await roster.locator('.racer-identity').last().focus();const previousScroll=await roster.evaluate(e=>e.scrollLeft);assert.ok(previousScroll>0);
+    await page.clock.fastForward(60001);
+    assert.equal(await roster.evaluate(e=>e.scrollLeft),previousScroll,'the minute refresh preserves a horizontally scrolled roster');
+    const focus=await roster.evaluate(e=>{const clip=e.getBoundingClientRect(),target=document.activeElement,r=target.getBoundingClientRect();return {inside:e.contains(target),left:r.left,right:r.right,clipLeft:clip.left,clipRight:clip.right};});
+    assert.ok(focus.inside&&focus.left>=focus.clipLeft&&focus.right<=focus.clipRight,'the focused twelfth participant remains visible inside the roster');
+    geometry.horizontal_roster_focus_retained=true;
+    await page.clock.setFixedTime(new Date('2030-01-01T00:30:00Z'));await page.locator('[data-sport="boat"]').click();await nav('races');
+   }
    await page.locator('#race-search').fill('架空6');assert.equal(await page.locator('#all-races .race-card').count(),1);await page.locator('#race-search').fill('');
    await page.locator('#race-filters>summary').click();await page.locator('#prediction-filter').check();assert.equal(await page.locator('#all-races .race-card').count(),1);await page.locator('#prediction-filter').uncheck();
    await page.locator('#race-sort').selectOption('venue');assert.equal(await page.locator('#all-races .race-card').first().getAttribute('data-race-id'),view.records[4].race_id);
