@@ -304,7 +304,7 @@ def main(argv=None):
         print(json.dumps({k:report[k] for k in (
             "registered_races","new_A_B_same_job_encrypted",
             "race_source_pair_attempts","venue_index_public_GETs",
-            "provider_abort","statuses")},sort_keys=True))
+            "provider_abort","statuses","source_meeting_link_structure")},sort_keys=True))
         return 0
     except (OSError,ValueError,KeyError,TypeError,
             storage.AutoSealError):
