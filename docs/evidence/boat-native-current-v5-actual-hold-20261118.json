@@ -1,0 +1,36 @@
+{
+  "schema": "RACE_AI_NATIVE_CURRENT_V5_ACTUAL_HOLD_V1",
+  "run_id": 44246632536,
+  "job_id": 134607045564,
+  "head_sha": "f2819a0084c8947fe266de015b3436619effc900",
+  "native_boundary_tests": {
+    "tests": 133,
+    "seconds": 51.908,
+    "status": "passed",
+    "timestamp_utc": "2026-11-18T05:48:11.0144820Z"
+  },
+  "actual_records": [
+    {
+      "timestamp": "2026-11-18T05:52:51.5926660Z",
+      "report": {
+        "status": "NATIVE_SAFARI_ACCEPTANCE_HOLD",
+        "reason": "CURRENT_V5_EVIDENCE_INVALID",
+        "checker_function": "main",
+        "checker_line": 1611,
+        "checker_callers": [
+          {
+            "function": "main",
+            "line": 1611
+          }
+        ]
+      }
+    }
+  ],
+  "classification": "CURRENT_V5_EVIDENCE_INVALID: exact failed boundary not exposed by the current sanitized report. No acceptance success claimed.",
+  "next_step": "Add only fixed-phase and bounded boolean/count failure diagnostics, with unknown values null; preserve acceptance predicates and privacy.",
+  "diagnostic_tests_blob": "14a6f767d4c990a512ed86766e1bc04d7e4a995b",
+  "diagnostic_contract_blob": "e864a52d6ed0c452bf62d687f1618efd5cf85953",
+  "new_methods": 3,
+  "prior_133_methods_preserved": true,
+  "goal_complete": false
+}
