@@ -11,7 +11,7 @@ cutoff, race result or calendar completeness. Unknown/missing data stays HOLD.
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from hashlib import sha256
 from pathlib import Path
 from urllib.request import Request, build_opener, HTTPRedirectHandler
@@ -128,11 +128,11 @@ def manifest_check(doc,*,registered_ids):
                 t=when(hint)
             except (AutomaticForecastError,TypeError):
                 raise SourceCaptureError("CUTOFF_SORT_HINT_CLOCK_INVALID") from None
-            need(t.date().isoformat() in (
-                doc["day_jst"],
-                # JST and UTC may span a date boundary; compare JST only.
-                (t.astimezone(timezone.utc)).date().isoformat()),
-                "CUTOFF_SORT_HINT_MISSING_DAY_BINDING")
+            # An after-midnight published cutoff belongs to its JST date,
+            # even if UTC is still on the preceding calendar day.
+            need(t.astimezone(timezone(timedelta(hours=9))).date().isoformat()
+                 == doc["day_jst"],
+                 "CUTOFF_SORT_HINT_MISSING_DAY_BINDING")
     return doc
 
 
@@ -165,6 +165,29 @@ def capture_cycle(*,day_manifest,registered_ids,private_cards_dir,
     fetch=fetch or fetch_once
     need(callable(clock) and callable(fetch),
          "SOURCE_COLLECTOR_CLOCK_OR_FETCH_REQUIRED")
+    # An actual 403/429 is a day-wide stop certificate. Restored from
+    # owner-private S3 on later 10-minute runs to avoid repeated denied GETs.
+    blocker=raw/"provider-denial-stop.json"
+    if blocker.exists():
+        try:
+            status=json.loads(blocker.read_text(encoding="utf-8"))
+        except (ValueError,UnicodeError):
+            status={}
+        if status.get("day_jst")==day_manifest["day_jst"] and status.get(
+                "state")=="HOLD_PROVIDER_DENIED_OR_RATE_LIMITED_STOP":
+            return {
+                "schema":REPORT,"day_jst":day_manifest["day_jst"],
+                "source_manifest_races":len(day_manifest["races"]),
+                "GET_pair_attempts":0,
+                "normalized_private_cards":0,
+                "unlisted_races_are_unregistered_not_forecasted":True,
+                "official_cutoff_independently_certified":False,
+                "provider_rights_independently_certified":False,
+                "no_official_results_used":True,
+                "no_plaintext_rider_data_in_report":True,
+                "states":{"HOLD_PROVIDER_PREVIOUS_DENIAL_NO_RETRY":
+                          len(day_manifest["races"])},
+                "records":[]}
     visited=0
     rows=[]
     # Prefer actual published close timestamps from venue-day manifests, but
@@ -213,6 +236,13 @@ def capture_cycle(*,day_manifest,registered_ids,private_cards_dir,
                 "PUBLIC_PROVIDER_UNAVAILABLE_STOP"):
                 reason="SOURCE_PAGE_PARSING_OR_PROVENANCE_HOLD"
             rows.append({"race_id":rid,"state":"HOLD_"+reason})
+            if reason=="PROVIDER_DENIED_OR_RATE_LIMITED_STOP":
+                _write_once(blocker,canonical({
+                    "schema":"RACE_AI_KEIRIN_PROVIDER_DENIAL_STOP_V1",
+                    "state":"HOLD_PROVIDER_DENIED_OR_RATE_LIMITED_STOP",
+                    "day_jst":day_manifest["day_jst"],
+                    "recorded_at":clock().astimezone(timezone.utc).isoformat(),
+                })+b"\n")
             if reason in (
                 "PROVIDER_DENIED_OR_RATE_LIMITED_STOP",
                 "PUBLIC_PROVIDER_HTTP_ERROR_STOP",
