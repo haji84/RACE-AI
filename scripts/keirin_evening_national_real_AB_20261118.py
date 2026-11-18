@@ -255,6 +255,31 @@ def main(argv=None):
             f.write(raw)
             f.flush()
             os.fsync(f.fileno())
+        if report["new_A_B_same_job_encrypted"]>0:
+            # For a DIFFERENT independent GitHub runner. No plaintext cards,
+            # no winner/score and no organizer-result claim.
+            producer={
+                "schema":"RACE_AI_KEIRIN_NATIONWIDE_AUTO_GENERATION_CYCLE_V1",
+                "day_jst":DAY,
+                "registered_races":79,
+                "records":[]}
+            for row in report["records"]:
+                entry={"race_id":row["race_id"],
+                       "ciphertext_local_created":row["state"]==
+                           "REAL_A_B_RSA_AES_SEALED_SAME_JOB"}
+                if entry["ciphertext_local_created"]:
+                    entry["cipher_file_sha256"]=row["ciphertext_file_sha256"]
+                    entry["A_cipher_sha256"]=row["A_cipher_sha256"]
+                    entry["B_cipher_sha256"]=row["B_cipher_sha256"]
+                producer["records"].append(entry)
+            path=root/"producer-summary.json"
+            require(not path.exists(),"PRODUCER_NO_OVERWRITE")
+            fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL|
+                       getattr(os,"O_NOFOLLOW",0),0o600)
+            with os.fdopen(fd,"wb") as f:
+                f.write(model.canonical(producer)+b"\n")
+                f.flush()
+                os.fsync(f.fileno())
         print(json.dumps({k:report[k] for k in (
             "registered_races","new_A_B_same_job_encrypted",
             "race_source_pair_attempts","venue_index_public_GETs",
