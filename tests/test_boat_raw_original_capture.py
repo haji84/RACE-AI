@@ -306,7 +306,7 @@ class OpaqueRawSinkTests(RawFixture):
 
 
 class P1RawCaptureTests(RawFixture):
-    def test_raw_is_saved_before_pacing_and_returned_admission_clock_is_unchanged(self):
+    def test_raw_is_saved_before_pacing_and_returned_source_clock_matches_received(self):
         raw = b'invented accepted raw HTML'
         received = NOW+timedelta(seconds=5)
         returned = NOW+timedelta(seconds=20)
@@ -318,8 +318,111 @@ class P1RawCaptureTests(RawFixture):
         with self.p1(transport), patch.object(pilot.time, 'sleep', side_effect=pace):
             body, at, identity = pilot.get(P1_URL, day=DAY)
             self.assertEqual(pilot.requests_used, 1)
+        self.assertEqual((body, at, identity), (raw, received, sha256(raw).hexdigest()))
+        self.assertEqual(transport.urls, [P1_URL])
+        self.assert_capture(raw, P1_URL, received)
+
+    def test_raw_mode_off_preserves_legacy_postpace_source_clock(self):
+        raw = b'invented accepted HTML without raw mode'
+        received = NOW+timedelta(seconds=5)
+        returned = NOW+timedelta(seconds=20)
+        transport = Transport({P1_URL:raw},
+            response_options={'after_read':lambda:setattr(FixedClock, 'current', received)})
+        guard = self.new_guard()
+        environment = dict(self.env, RACE_AI_ORIGINAL_VAULT_ENABLED='false')
+        def pace(seconds):
+            self.assertEqual(seconds, pilot.WAIT_SECONDS)
+            FixedClock.current = returned
+        with self.p1(transport, guard=guard, environment=environment), \
+                patch.object(pilot.time, 'sleep', side_effect=pace) as sleep, \
+                patch.object(C, 'capture_http200', side_effect=AssertionError('disabled raw sink called')):
+            body, at, identity = pilot.get(P1_URL, day=DAY)
+            self.assertEqual(pilot.requests_used, 1)
         self.assertEqual((body, at, identity), (raw, returned, sha256(raw).hexdigest()))
         self.assertEqual(transport.urls, [P1_URL])
+        sleep.assert_called_once_with(pilot.WAIT_SECONDS)
+        self.assertFalse(self.folder.exists())
+        state = cycle.load(guard.path)
+        self.assertEqual(state['requests_used'], 1)
+        self.assertEqual(state['requests_by_kind']['forecast'], 1)
+
+    def test_receive_clock_binding_keeps_native_generation_after_pacing(self):
+        from race_ai.boat_all_model_cycle import retain_current_input
+        program = page(row_options={lane:dict(name=f'選手 {lane}') for lane in range(1,7)})
+        preview = frame(before_table(display='6.82',tilt='-0.5')+
+                        starts(populated=True)+weather())
+        received = [NOW+timedelta(seconds=value) for value in (5,20,35)]
+        remaining = iter(received)
+        def after_read():
+            FixedClock.current = next(remaining)
+        transport = Transport({P1_URL:program, PREVIEW_URL:preview},
+                              response_options={'after_read':after_read})
+        guard = self.new_guard()
+        private_inputs = self.root/'received-source-native-inputs'
+        def retain(card, before, as_of):
+            return retain_current_input(card, before, as_of, private_inputs)
+        def pace(seconds):
+            self.assertEqual(seconds, pilot.WAIT_SECONDS)
+            FixedClock.current += timedelta(seconds=seconds)
+        with self.p1(transport, guard=guard), \
+                patch.object(pilot.time, 'sleep', side_effect=pace) as sleep, \
+                patch.object(pilot, 'MODEL_INPUT_SINK', retain), \
+                patch.object(pilot, 'NATIVE_INPUT_SINK', None), \
+                patch.object(pilot, 'OBSERVED_HISTORY_CONTEXT', None), \
+                patch.object(pilot, 'collect_pitreport', return_value=None), \
+                patch.object(pilot, 'collect_entry_history', return_value=None):
+            status, pair, _, _, _ = pilot.make_pair(DAY, RACE)
+            self.assertEqual(pilot.requests_used, 3)
+        self.assertEqual(status['state'], 'AB_GENERATED_NOT_YET_EXTERNAL_FROZEN')
+        self.assertEqual(status['additional_model_input']['state'], 'SOURCE_INPUT_RETAINED')
+        generated = NOW+timedelta(seconds=20+pilot.WAIT_SECONDS)
+        self.assertEqual(datetime.fromisoformat(status['generated_at']), generated)
+        self.assertEqual(pair['generated_at'], status['generated_at'])
+        self.assertGreater(generated, received[1])
+        self.assertLess(generated, datetime.fromisoformat(RACE['cutoff_at']))
+        self.assertTrue(status['native_generation_events'])
+        for event in status['native_generation_events']:
+            self.assertGreaterEqual(datetime.fromisoformat(event['computation_started_at']), generated)
+            self.assertGreaterEqual(datetime.fromisoformat(event['computation_completed_at']),
+                                    datetime.fromisoformat(event['computation_started_at']))
+        saved = json.loads((private_inputs/(RACE['race_id']+'.json')).read_text())
+        self.assertEqual(datetime.fromisoformat(saved['as_of']), generated)
+        self.assertIs(saved['physical_save_time_attested'], False)
+        self.assertEqual(datetime.fromisoformat(saved['program']['captured_at']), received[0])
+        self.assertEqual(datetime.fromisoformat(saved['program']['source']['captured_at']), received[0])
+        self.assertEqual(datetime.fromisoformat(saved['beforeinfo']['captured_at']), received[1])
+        self.assertEqual(datetime.fromisoformat(pair['source_captured_at']), received[1])
+        self.assertEqual(transport.urls, [P1_URL, PREVIEW_URL, source_url(kind='odds3t')])
+        self.assertEqual([entry.args for entry in sleep.call_args_list],
+                         [(pilot.WAIT_SECONDS,)]*3)
+        self.assertEqual(cycle.load(guard.path)['requests_used'], 3)
+        self.assert_capture(program, P1_URL, received[0])
+        self.assert_capture(preview, PREVIEW_URL, received[1])
+
+    def test_postpace_day_check_halts_even_with_prior_day_received_clock(self):
+        initial = datetime(2030,4,1,14,59,58,tzinfo=timezone.utc)
+        received = datetime(2030,4,1,14,59,59,tzinfo=timezone.utc)
+        paced = datetime(2030,4,1,15,0,1,tzinfo=timezone.utc)
+        FixedClock.current = initial
+        raw = b'invented HTTP200 received before pacing crosses JST midnight'
+        transport = Transport({P1_URL:raw},
+            response_options={'after_read':lambda:setattr(FixedClock,'current',received)})
+        guard = self.new_guard(initial)
+        environment = dict(self.env, RACE_AI_EVENT_DAY=DAY.isoformat())
+        def pace(seconds):
+            self.assertEqual(seconds, pilot.WAIT_SECONDS)
+            self.assert_capture(raw, P1_URL, received)
+            FixedClock.current = paced
+        with self.p1(transport, guard=guard, environment=environment), \
+                patch.object(pilot.time, 'sleep', side_effect=pace) as sleep, \
+                patch.object(guard, 'http_success', wraps=guard.http_success) as success:
+            with self.assertRaisesRegex(ValueError, 'DAY_HANDOFF'):
+                pilot.get(P1_URL, day=DAY)
+            self.assertEqual(pilot.requests_used, 1)
+        sleep.assert_called_once_with(pilot.WAIT_SECONDS)
+        success.assert_not_called()
+        self.assertEqual(transport.urls, [P1_URL])
+        self.assertEqual(cycle.load(guard.path)['requests_used'], 1)
         self.assert_capture(raw, P1_URL, received)
 
     def test_program_parse_rejection_preserves_exact_malformed_http200_body(self):
