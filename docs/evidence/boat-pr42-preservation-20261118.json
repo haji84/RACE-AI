@@ -1,0 +1,26 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_PRESERVATION_V1",
+  "observed_at_utc": "2026-11-18T02:32:00Z",
+  "repository": "haji84/RACE-AI",
+  "pr_number": 42,
+  "original": {
+    "title": "feat: 個別競走結果の6艇・登録番号・STを厳格解析",
+    "body": "個別結果HTMLの事前検証済み列対応表を入力として、開催日/徳山18/レース番号をURLで固定し、6艇の艇番・登録番号・着順・STを抽出するオフラインパーサと合成HTMLテストを追加。実進入はスタート展示/進入情報が独立に検証されるまでnull。欠場等は着順null。実DOM列順は未確認なのでtable_index/column_mapを外部入力として必須化し、実HTML E2E成功とは報告しない。\n\n未完成: 公式HTMLバイトの取得・列対応表の実物確認・PR #40結果照合への接続・出走表/モーター/結果の実レース一致。main/Production未変更。",
+    "head_sha": "87623032c09b9613f69c52132179a909608ff1c4",
+    "head_ref": "feat/boat-individual-result-parser",
+    "base_ref": "feat/tokuyama-result-list-parser",
+    "draft": true,
+    "state": "open"
+  },
+  "ancestry": {
+    "base": "87623032c09b9613f69c52132179a909608ff1c4",
+    "head": "6aae91a164a1839d206a38c8b1b6a9bf0b8e2c6b",
+    "status": "ahead",
+    "ahead_by": 2245,
+    "behind_by": 0,
+    "merge_base": "87623032c09b9613f69c52132179a909608ff1c4",
+    "open_base_consumers": 0
+  },
+  "preservation": "Original head remains an ancestor; no force update. Reuse this existing Draft PR for read-only authenticated rejection-anchor proof.",
+  "new_pr_created": false
+}
