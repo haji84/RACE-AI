@@ -1,0 +1,57 @@
+{
+  "schema": "RACE_AI_SYNTHETIC_UI_PREVIEW_MANIFEST_V1",
+  "source_code_commit": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+  "web_tree": "d905215e2f886b0bcc4f2e58323ceee465b03c38",
+  "source_evidence": "../boat-ui-published-contract-preservation-20261119.json",
+  "dataset_status": "SYNTHETIC_ONLY",
+  "browser": "Chromium",
+  "platform": "Linux",
+  "portraits_visible": false,
+  "provider_gets": 0,
+  "physical_iphone_verified": false,
+  "all_eight_reference_status": "PARTIAL",
+  "reference_original_jpegs_included": false,
+  "files": [
+    {
+      "name": "rich-390-home.png",
+      "bytes": 281262,
+      "sha256": "0a8075e30be706b79c2b89c4228909ec1c099044f2a97ef5fe03469bcf904b72"
+    },
+    {
+      "name": "rich-390-races.png",
+      "bytes": 196073,
+      "sha256": "362f8785bed346feaeb0cc4fc656de885ef8141fad136737e450156833751d79"
+    },
+    {
+      "name": "rich-390-detail.png",
+      "bytes": 207177,
+      "sha256": "b3411deb1dae3431799fddf8496cb1cc6e4171c54bd46265c3ffc5ba399d454e"
+    },
+    {
+      "name": "rich-390-picks.png",
+      "bytes": 233191,
+      "sha256": "601b0be350f8e16b47187fad0eacbd158197c4e2fd7120f5ee622924dad1b26b"
+    },
+    {
+      "name": "rich-1440-home.png",
+      "bytes": 454957,
+      "sha256": "a6c0ed7d4bdb3a330769ba4d2cb0ce1864c3e6988c54375d5b4360475cd9c196"
+    },
+    {
+      "name": "rich-1440-races.png",
+      "bytes": 304858,
+      "sha256": "b3b7a53c8798d20140ed45a414bd9f038fa1098c3e2e9490a88c141c2fa8f6d6"
+    },
+    {
+      "name": "rich-1440-detail.png",
+      "bytes": 351557,
+      "sha256": "ae550446ac55879463dacfef6bcfc9b305972f3c18979b0ed76c53c333f3acfe"
+    },
+    {
+      "name": "rich-1440-picks.png",
+      "bytes": 345444,
+      "sha256": "cee746aa74f2675afddd4b988019be57a34c1e1a0baacb2bae8d13da7adf1ef4"
+    }
+  ],
+  "total_png_bytes": 2374519
+}
