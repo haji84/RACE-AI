@@ -359,6 +359,140 @@ jobs:
           path: ${{ runner.temp }}/keirin-evening-independent-receipt.json
           retention-days: 21
 
+
+  real-night-after-previous-7-supplement:
+    # Copy historical ciphertext across runners, verify SHA and skip 7
+    # frozen forecasts. Only remaining future midnight races may be added.
+    if: github.event_name == 'pull_request' && github.event.pull_request.number == 291
+    runs-on: ubuntu-24.04
+    timeout-minutes: 11
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      sealed: ${{ steps.run.outputs.sealed }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Gate by actual JST date and prior supplemental artifact
+        id: gate
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "$(TZ=Asia/Tokyo date +%F)" != "2026-11-18" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          count="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=keirin-real-evening-20261118-supplement-AB-AES&per_page=100" \
+            --jq '[.artifacts[] | select(.expired == false)] | length')"
+          if [ "$count" -gt 0 ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "HOLD_SUPPLEMENT_ALREADY_FROZEN_NO_RETROSPECTIVE_REGEN" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Prepare isolated private 0700 directories
+        if: steps.gate.outputs.ready == 'true'
+        id: private
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/keirin-night-supplement-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root" "$root/cards" "$root/raw" "$root/sealed" "$root/prior"
+          chmod 700 "$root" "$root/cards" "$root/raw" "$root/sealed" "$root/prior"
+          echo "root=$root" >> "$GITHUB_OUTPUT"
+      - name: Download original real 7-cipher artifact from prior run
+        if: steps.gate.outputs.ready == 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-real-evening-20261118-AB-AES
+          run-id: 44290470874
+          github-token: ${{ github.token }}
+          path: ${{ steps.private.outputs.root }}/prior
+      - name: Verify prior 7 SHA and auto-forecast only previously HOLD future races
+        if: steps.gate.outputs.ready == 'true'
+        id: run
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="${{ steps.private.outputs.root }}"
+          python -m scripts.keirin_evening_national_real_AB_20261118 \
+            --registry "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_all79_nationwide_AB_registered_v1.json" \
+            --private-root "$root" \
+            --prior-artifact-dir "$root/prior" \
+            --owner-public-key "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --safe-report "$root/supplement-safe-report.json" \
+            > "$RUNNER_TEMP/keirin-supplement-counts.json"
+          cat "$RUNNER_TEMP/keirin-supplement-counts.json" >> "$GITHUB_STEP_SUMMARY"
+          count="$(python -c 'import json,sys;print(json.load(open(sys.argv[1]))["new_A_B_same_job_encrypted"])' "$root/supplement-safe-report.json")"
+          if [ "$count" -gt 0 ]; then
+            echo "sealed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "sealed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload only newly generated encrypted originals and SHA receipts
+        if: steps.run.outputs.sealed == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-real-evening-20261118-supplement-AB-AES
+          path: |
+            ${{ steps.private.outputs.root }}/sealed/*.sealed.json
+            ${{ steps.private.outputs.root }}/producer-summary.json
+            ${{ steps.private.outputs.root }}/supplement-safe-report.json
+          if-no-files-found: error
+          retention-days: 21
+      - name: Remove private source, prior archive and cache
+        if: always()
+        shell: bash
+        run: |
+          root="${{ steps.private.outputs.root }}"
+          if [ -n "$root" ] && [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-night-supplement-* ]]; then
+            rm -rf -- "$root"
+          fi
+
+  real-night-supplement-independent-readback:
+    needs: real-night-after-previous-7-supplement
+    if: needs.real-night-after-previous-7-supplement.result == 'success' && needs.real-night-after-previous-7-supplement.outputs.sealed == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-real-evening-20261118-supplement-AB-AES
+          path: ${{ runner.temp }}/keirin-night-supplement-second-runner
+      - name: Independently confirm A/B ciphertext SHA for every new race
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48'
+          root="$RUNNER_TEMP/keirin-night-supplement-second-runner"
+          python -m scripts.keirin_nationwide_independent_cipher_readback \
+            --producer-report "$root/producer-summary.json" \
+            --cipher-dir "$root/sealed" \
+            --report "$RUNNER_TEMP/keirin-night-supplement-sha.json" \
+            > "$RUNNER_TEMP/keirin-night-supplement-sha-safe.json"
+          cat "$RUNNER_TEMP/keirin-night-supplement-sha-safe.json" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-real-evening-20261118-supplement-independent-SHA
+          path: ${{ runner.temp }}/keirin-night-supplement-sha.json
+          retention-days: 21
+
   owner-auto-generate:
     if: >-
       github.repository == 'haji84/RACE-AI' &&
