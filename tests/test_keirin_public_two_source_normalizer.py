@@ -85,6 +85,21 @@ class ActualSourceShapeAdapter(unittest.TestCase):
         self.assertEqual(preds["C"]["state"],
                          "HOLD_NO_INDEPENDENT_HISTORICAL_FOLLOW_LABELS")
 
+    def test_girls_without_explicit_lineup_is_solo_research_only(self):
+        a,b=pages()
+        title="宇都宮競輪 レース詳細 チャレンジ一般".encode()
+        b=b.replace(title,"宇都宮競輪 レース詳細 L級 ガールズ予選".encode())
+        b=b.replace(
+            "<h2>並び予想</h2>".encode()+
+            "<p>← 1先行 5追込 2追上 4押え先 3追込 6追込</p>".encode(),
+            b"")
+        out=build(kdreams=b)
+        snap=out["source_packet"]
+        self.assertEqual(snap["competition"],"GIRLS")
+        self.assertEqual(snap["line_groups"],[[1],[2],[3],[4],[5],[6]])
+        forecast=auto.generate_A_B(snap,generated_at=NOW)
+        self.assertFalse(forecast["all_six_phase_orders_are_hypotheses_not_video_truth"] is False)
+
     def test_wrong_meeting_start_day_or_race_rejected(self):
         with self.assertRaisesRegex(adapter.PublicPageNormalizeError,
                                     "KDREAMS_RACE_DETAIL_ID_MISMATCH"):
