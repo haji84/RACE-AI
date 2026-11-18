@@ -1,0 +1,31 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_PRESERVATION_V1",
+  "recorded_at_utc": "2026-11-18T05:02:00Z",
+  "repository": "haji84/RACE-AI",
+  "pr": 38,
+  "original": {
+    "state": "open",
+    "draft": true,
+    "title": "feat: 徳山の同一開催節・12R72艇の厳格照合",
+    "body": "同一開催節IDと開催日範囲、出走表・モーター抽選表の一致、12R/72艇、艇番・選手名・登録番号・モーター番号の構造照合を追加。欠場・変更は最新の検証済み出走表を得るまでSAFE_STOP。合成fixtureテストあり。\n\n注意: identity_verifiedフラグは実際の公式サイトによる確認を証明しない。実HTMLと開催節情報の抽出、利用許可、iPhone実機は未完了。main/Production未変更。",
+    "head_ref": "feat/tokuyama-meet-identity-gate",
+    "head_sha": "58244fc83bcc5cad9801a7321689a9b86d9f27b1",
+    "base_ref": "feat/tokuyama-real-layout-motor-parser",
+    "base_sha": "0324a43387b131f224f4676e51a8c2809cd3e44e"
+  },
+  "ancestry": {
+    "destination_ref": "main",
+    "destination_sha": "a836835f49ebd6292f6601413c661a8dad2d44b8",
+    "merge_base_sha": "58244fc83bcc5cad9801a7321689a9b86d9f27b1",
+    "behind_by": 0,
+    "ahead_by": 2269,
+    "original_head_is_ancestor": true
+  },
+  "open_base_consumers": {
+    "collection_count": 40,
+    "per_page": 100,
+    "matching_prs": [],
+    "pr39_retargeted_before_reuse": true
+  },
+  "scope": "Preserve original history, document actual repair and continue encrypted native Safari acceptance in existing PR. No new PR or force update."
+}

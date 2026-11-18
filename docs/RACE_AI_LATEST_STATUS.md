@@ -1,3 +1,15 @@
+## 2026-11-18 05:02 UTC: 欠落12groupを実保存・独立復号でmissing0を確認（GOAL未達）
+
+通常merge a836835f/tree9608d6d3は最終tested head9125ffccと同じtree。national実CI44237640777/job134577536802は333件/107.101秒、全10block compileが成功し、26checksは12success/14skip/failed0だった。
+
+既存owner run44238203546/job134579371548の04:34:52.4022045 UTCにPUBLISHED_VERIFIED。gen425/snapshot df7b4b319ece651c53979974c97f88e9b66ef4b4、cipher SHA256 2b6971baf4181371ed613e6cf0f850b0e66ff857ee34f8e4b2dd1b07cd6682f4を既存V5 writerで1回保存し、暗号化再読取りまで成功した。認証済み旧ACTIVE原本12groupを3rowへ復元し、active2→14/history24を保持。12groupは12レースを意味しない。元forecast/result/OBS/history/unknown fields/時計文字列を変更せず、source GET0・予想生成0。
+
+別のnational run44238203521/job134579371091は04:36:29.0864101 UTCに同じgen425を独立認証し、NO_BINDING_INCONSISTENCY_IN_THIS_VIEW。REJ active14/history24/比較24/missing0、OBS600/history0、その他不整合0を確認した。修復の再実行はしない。後続の通常保存・当日公開・Safariの現行V5 browser AESは別途確認中であり、4競技全モデル/締切15〜10分前/実iPhone/6艇校正/前向き精度改善を完了扱いしない。
+
+原環境の未push2commitは02:51:34 UTCの正規接続GETで両方422 No commit found for SHA、引き続き未復元。ZIPや別環境のローカルファイルの移転を仮定しない。既存PR39を原本保全してsource研究アーカイブの再転送削減に使用し、この既存PR38は原本を保全して実成功証拠とSafari受入改善へ再利用する。稼働中A74、新PR/job/input/cron/runner/timeout/料金/モデル系統/本番重み/公開UIは変更しない。
+
+[実保存・独立確認・最終CI](evidence/boat-rejection-anchor-repair-actual-20261118.json)。以下は各時点の履歴。
+
 ## 2026-11-18 04:26:09 UTC: 復元333件は実成功、修復HOLDをjob失敗で可視化し最終CIへ（GOAL未達・実書換え前）
 
 PR40 head2c3e5ddd/treea481efbdのnational実CI44236915982/job134575161840は333件/106.696秒・全10 block compile・source/key境界が成功した。新20methodを含むruntime931b0c64は不変。別の既存recovery119件では、owner jobのcontinue-on-error:trueが新CAS分で2個になったことを検出するassert1箇所だけが失敗した。
