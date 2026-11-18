@@ -145,6 +145,13 @@ def run(*,registry, private_root,owner_public_key_pem,
                     available_urls[rid]=url
         except (cap.SourceCaptureError,links.DayLinksError,
                 OSError,TypeError,ValueError) as exc:
+            msg=str(exc)
+            safe=(msg.isascii() and msg.isupper() and
+                  msg.replace("_","").isalnum() and len(msg)<90)
+            source_structure.append({
+                "venue_code":code,
+                "source_fetch_or_link_error":msg if safe else "UNVERIFIED_LINK_STRUCTURE",
+            })
             if _get_error(exc):
                 for rid,*_ in before:
                     records[rid]=safe_record(rid,
