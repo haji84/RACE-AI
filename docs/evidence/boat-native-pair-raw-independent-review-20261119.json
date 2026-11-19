@@ -1,0 +1,27 @@
+{
+  "schema": "RACE_AI_NATIVE_PAIR_RAW_FACADE_ROOT_REVIEW_V1",
+  "recorded_at": "2026-11-19T01:32:33.072957+00:00",
+  "author_commit": "b368fce6622ccb245a4c9cb1cc9209f1291b2c37",
+  "result": "CLEAR",
+  "root_read_runtime_all_347_lines": true,
+  "independent_tests": 16,
+  "independent_seconds": 51.13,
+  "failures": 0,
+  "errors": 0,
+  "warning_mode": "error",
+  "inherited_os_socket_prohibition": true,
+  "whole_run_headers_authenticated_before_selected_ciphertext": true,
+  "source_and_result_whole_body_replay_invented_fixtures_passed": true,
+  "ordinary_equal_cutoff_pairs_supported": true,
+  "latest_result_derived_snapshot_has_separate_observation_and_receipts": true,
+  "published_at_and_actual_close_still_null": true,
+  "formal_qualified_fixed_false": true,
+  "source_S_real_raw_decryption_proven": false,
+  "new_provider_requests": 0,
+  "real_keys_read": 0,
+  "root_files_edited_by_review": false,
+  "reviewed_file_sha256": {
+    "scripts/boat_native_pair_raw_evidence.py": "d202bea7eaccf68f8ea41f8d64fc7c280a50d8b911b6cc5b8978c0a9be629af5",
+    "tests/test_boat_native_pair_raw_evidence.py": "05f50e45089a588d45261c22b5fe93dc29be93e6dcf0aa45f5756e2ebb57b856"
+  }
+}

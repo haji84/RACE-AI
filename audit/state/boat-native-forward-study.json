@@ -38,7 +38,7 @@
     "production_promoted": false
   },
   "receipt_precision_seconds": 1,
-  "registration_parent_main_commit": "a6ec09072db385a7bba54deb5793cd5a68ad8b60",
+  "registration_parent_main_commit": "a277a692a2791c77ee89a2e9af71582f5c98d458",
   "registry_sha256": "4de65a98854f59f8860811affeecb3b29a7182faf54b29add2494c1d7859456b",
   "runtime_pointer_sha256": "a08f133ac133ffa75a69b44c5ea044e0ee7cae82c6124858a69a169df45b94b6",
   "schema": "RACE_AI_NATIVE_FORWARD_STUDY_SPEC_V1",

@@ -436,6 +436,20 @@ jobs:
                   expected=[r['model_id'] for r in active_catalog() if 'boat' in r['applicable_sports']]
                   report=matrix.calculate(result,expected,independent_original_reader=True,allow_pending_audit=True)
                   assert report['racing_provider_gets']==0 and report['original_forecasts_unchanged']
+              # NATIVE_PAIR_RAW_SAMPLES_BEGIN
+              try:
+                  raw_samples=from_exact_file('boat_native_pair_raw_samples_private','../scripts/boat_native_pair_raw_evidence.py')
+                  report['native_pair_raw_samples']=raw_samples.audit_native_pair_raw_sample(
+                      get=reads,repo=repo,packet=pair_private[0] if active_snapshot and len(pair_private)==1 else None,
+                      now=datetime.now(timezone.utc))
+              except Exception:
+                  report['native_pair_raw_samples']=dict(schema='RACE_AI_NATIVE_PAIR_RAW_SAMPLE_COUNTS_V1',
+                      scope='BOAT_TWO_CELL_P1_RAW_SAMPLES_ONLY',status='HOLD',reason='WORKFLOW_HOOK_UNAVAILABLE',
+                      selected_sample_count=None,attempted_sample_count=None,raw_match_count=None,
+                      formal_status='HOLD_UNPROVEN_PUBLICATION_AND_ACTUAL_CLOSE',formal_qualified=False,
+                      qualifying_g8_count=0,qualifying_g8_denominator=None,promotion_allowed=False,
+                      all_records_verified=False,source_requests=0)
+              # NATIVE_PAIR_RAW_SAMPLES_END
               # NATIVE_FORWARD_STUDY_BEGIN
               try:
                   native_study=from_exact_file('boat_native_forward_study_private','../scripts/boat_native_forward_study_audit.py')

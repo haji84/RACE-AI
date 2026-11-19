@@ -1,0 +1,100 @@
+{
+  "schema": "RACE_AI_SYNTHETIC_CAPTURE_SETTLEMENT_REVIEW_V1",
+  "observed_at": "2026-11-19T02:20:26.898102+00:00",
+  "base": "a277a692a2791c77ee89a2e9af71582f5c98d458",
+  "tests_first_commit": "0a7c5c8fbb4fe9892ebac9f0cd5bf2c04dd3f26d",
+  "fix_commit": "42d0e5ad084261bed2cc7f53cc2aa4728a8a3007",
+  "worktree": "/workspace/RACE-AI-native-capture-settle-20261119",
+  "candidate": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+  "baseline_tests": {
+    "count": 155,
+    "seconds": 16.389,
+    "failures": 0,
+    "errors": 0
+  },
+  "actual_red": {
+    "new_tests": 4,
+    "assertion_failures": 6,
+    "errors": 0,
+    "legacy_control_passed": true
+  },
+  "actual_green": {
+    "count": 159,
+    "seconds": 16.437,
+    "failures": 0,
+    "errors": 0
+  },
+  "local_browser": {
+    "name": "Linux Chromium",
+    "version": "155.0.8059.79",
+    "screenshots": 28,
+    "external_requests": 0,
+    "page_errors": 0,
+    "environment_gate_exercised": true,
+    "detail_semantics": [
+      {
+        "width": 320,
+        "requested_page": "detail",
+        "page": "page-detail",
+        "hash": "#detail",
+        "x": 0,
+        "y": 0,
+        "tabs": 5,
+        "tickets": 8
+      },
+      {
+        "width": 390,
+        "requested_page": "detail",
+        "page": "page-detail",
+        "hash": "#detail",
+        "x": 0,
+        "y": 0,
+        "tabs": 5,
+        "tickets": 8
+      },
+      {
+        "width": 1440,
+        "requested_page": "detail",
+        "page": "page-detail",
+        "hash": "#detail",
+        "x": 0,
+        "y": 0,
+        "tabs": 5,
+        "tickets": 8
+      },
+      {
+        "width": 1920,
+        "requested_page": "detail",
+        "page": "page-detail",
+        "hash": "#detail",
+        "x": 0,
+        "y": 0,
+        "tabs": 5,
+        "tickets": 8
+      }
+    ],
+    "formerly_wrong_widths_visually_inspected": [
+      390,
+      1920
+    ],
+    "report": "/workspace/scratch/native-capture-settle-20261119/chromium/local-report.json"
+  },
+  "independent_review": "CLEAR; four new tests independently passed and390/1920detail images inspected",
+  "scope": {
+    "candidate_capture_only": true,
+    "private_reader_and_driver_unchanged": true,
+    "legacy_synthetic_unchanged": true,
+    "ui_assets_changed": false,
+    "workflow_or_limits_changed": false,
+    "live_or_private_keys_used": 0,
+    "mac_dispatches": 0,
+    "provider_requests": 0
+  },
+  "limitations": {
+    "native_safari_after_patch_verified": false,
+    "underlying_safari_compositor_cause_proven": false,
+    "physical_iphone_verified": false,
+    "all_eight_reference_screens_visually_verified": false
+  },
+  "mechanism": "Original synchronous DOM/privacy probe allowed a screenshot before any explicit animation-frame synchronization. Candidate capture now waits for stable route/semantics/zero-scroll/geometry across consecutive rAF callbacks and repeats unchanged privacy/storage gates before pixels."
+}

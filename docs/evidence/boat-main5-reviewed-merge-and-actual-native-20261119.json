@@ -1,0 +1,53 @@
+{
+  "schema": "RACE_AI_MAIN5_REVIEWED_MERGE_ACTUAL_NATIVE_V1",
+  "recorded_at": "2026-11-19T01:59:46.411964+00:00",
+  "main": "a277a692a2791c77ee89a2e9af71582f5c98d458",
+  "tested_head": "cae4afcd7a498d5a280fe0b9b18baab519f6ed65",
+  "identical_git_tree": "357e70139e5452ddc46f102ae16171ea37c3b6c3",
+  "normal_protected_merge": true,
+  "existing_pr": 5,
+  "final_checks": {
+    "total": 23,
+    "success": 11,
+    "skipped": 12,
+    "failure": 0
+  },
+  "actual_ci": [
+    {
+      "run": 44438750703,
+      "job": 135274071743,
+      "tests": 155,
+      "seconds": 19.951
+    },
+    {
+      "run": 44438750610,
+      "job": 135274072576,
+      "tests": 232,
+      "seconds": 20.023
+    }
+  ],
+  "actual_native_run": 44439338949,
+  "actual_native_job": 135275991793,
+  "actual_native_conclusion": "success",
+  "actual_native_evidence": "boat-native-rich-mac-actual-20261119.json",
+  "new_synthetic_screenshots": 28,
+  "synthetic_artifact": {
+    "id": 14490472805,
+    "bytes": 9151195,
+    "zip_sha256": "d5ec34e7fc199ccf12762cb07c7d1f4b1a675bd459a7bd9251708a0a9457f082",
+    "all_28_png_hashes_verified": true
+  },
+  "latest_remote_refs": {
+    "refs/heads/gh-pages": "083739d080ac1fa88714bae0b5cca2bfe7712c8b",
+    "refs/heads/main": "a277a692a2791c77ee89a2e9af71582f5c98d458",
+    "refs/heads/production/boat-p0-p1-20261111": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6"
+  },
+  "native_launch_source": "EXISTING_MAIN_HELPER_AFTER_CHANGED_CHECKER",
+  "root_direct_native_dispatch_this_change": false,
+  "source_worker_not_interrupted": true,
+  "physical_iphone_verified": false,
+  "all_eight_reference_screens_visually_verified": false,
+  "ui_deployed": false,
+  "owner_key_read_locally": false,
+  "production_weights_changed": false
+}

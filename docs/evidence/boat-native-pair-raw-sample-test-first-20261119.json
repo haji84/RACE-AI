@@ -1,0 +1,123 @@
+{
+  "schema": "RACE_AI_NATIVE_PAIR_RAW_SAMPLE_LOCAL_VERIFICATION_V1",
+  "worktree": "/workspace/RACE-AI-native-pair-raw-sample-20261119",
+  "base": "b368fce6622ccb245a4c9cb1cc9209f1291b2c37",
+  "frozen_commit": "528f5b98942bacbcfd37aa23976f3404a566133a",
+  "files": {
+    "scripts/boat_native_pair_raw_evidence.py": {
+      "bytes": 28761,
+      "sha256": "c36941d2d7a2ee78fe7131d6c141125fd454c7de9ec64b649f9b8349d09ecaf9"
+    },
+    "tests/test_boat_native_pair_raw_evidence.py": {
+      "bytes": 34558,
+      "sha256": "ee5dac01b0242c3611e2058a359fc0d8ab7a553f0b6196bff144c2a25beed0ff"
+    }
+  },
+  "api": "audit_native_pair_raw_sample(*, get, repo, packet, now, key=None, transport=None, vault_snapshot_commit=None)",
+  "changes": {
+    "runtime_append_lines": 137,
+    "test_append_lines": 194,
+    "base_b368_runtime_byte_prefix_preserved": true,
+    "base_b368_test_bodies_preserved": true,
+    "source_workflow_parser_crypto_model_changes": 0
+  },
+  "tdd": [
+    {
+      "stage": "WRAPPER_MISSING_RED",
+      "tests": 8,
+      "failures": 8,
+      "errors": 0,
+      "seconds": 18.911
+    },
+    {
+      "stage": "INITIAL_WRAPPER_GREEN",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 23.571
+    },
+    {
+      "stage": "BAD_HEAD_PRIVACY_RED",
+      "tests": 2,
+      "failures": 1,
+      "errors": 0,
+      "seconds": 4.986
+    },
+    {
+      "stage": "FULL_FACADE_AND_WRAPPER_GREEN",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 79.031
+    }
+  ],
+  "regressions": [
+    {
+      "stage": "A74_FROZEN_RAW",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 25.667
+    },
+    {
+      "stage": "MAIN_MATRIX_STANDARD_UNIT_COMMAND",
+      "tests": 376,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 229.722
+    }
+  ],
+  "pending": [],
+  "test_mode": {
+    "OS_socket_creation_connect_send_denied": true,
+    "warnings_as_errors": true,
+    "public_fixtures_only": true,
+    "production_key_accesses": 0,
+    "real_archives_opened": 0
+  },
+  "commands": {
+    "harness": "/tmp/race-ai-main-p0-pin-prep-tests.py",
+    "new": "python -W error /tmp/race-ai-main-p0-pin-prep-tests.py tests.test_boat_native_pair_raw_evidence",
+    "matrix": "python -W error /tmp/race-ai-main-p0-pin-prep-tests.py matrix",
+    "raw": "python -W error /tmp/race-ai-main-p0-pin-prep-tests.py tests.test_boat_cutoff_raw_replay_audit"
+  },
+  "behavior": {
+    "maximum_calls": 2,
+    "per_existing_cell": 1,
+    "sort": [
+      "canonical race",
+      "original record SHA256",
+      "artifact ID tie-break"
+    ],
+    "caller_latest_result_not_used_to_select": true,
+    "missing_cell_is_HOLD": true,
+    "production_context_before_Git_or_key": true,
+    "production_vault_head_reads": 1,
+    "same_immutable_snapshot_for_both_calls": true,
+    "explicit_fixture_key_transport_snapshot_supported": true,
+    "output": "flat fixed public counts/enum/hash only",
+    "selection_and_observation_hashes_separate": true,
+    "private_source_or_key_output": false,
+    "all_records_verified": false,
+    "formal_qualified": false,
+    "qualifying_g8_count": 0,
+    "promotion_allowed": false
+  },
+  "effects": {
+    "provider_GETs": 0,
+    "dispatches": 0,
+    "external_pushes": 0,
+    "source_changes": 0,
+    "workflow_changes": 0,
+    "real_key_accesses": 0,
+    "model_or_weight_changes": 0
+  },
+  "final_verification_test_count": 409,
+  "frozen_commit_matches_tested_file_hashes": true,
+  "tracked_worktree_clean": true,
+  "untracked_local_fixtures": [
+    "owner-source/",
+    "closed-a74-source/",
+    "reason-binding-source/"
+  ]
+}
