@@ -4167,5 +4167,157 @@ class NativeSessionStartupDiagnosticTests(unittest.TestCase):
         driver.close.assert_called_once_with()
 
 
+class NativeCleanupFailureDiagnosticTests(unittest.TestCase):
+    def expected(self, **values):
+        result = dict(close_result='not_true', delete_outcome=None, delete_http_status=None,
+            delete_error_code=None, process_result='wait_returned', terminate_attempted=True,
+            kill_attempted=False, primary_failure_preserved=False)
+        result.update(values)
+        return result
+
+    def test_primary_exception_identity_survives_failed_session_cleanup(self):
+        for primary in (S.DriverHold(operation='execute_script', http_status=500, w3c_error='javascript error'),
+                        S.SafariHold('SYNTHETIC_SCREENSHOT_REJECTED'),
+                        RuntimeError('private-primary-message'), KeyboardInterrupt('private-primary-message')):
+            with self.subTest(kind=type(primary).__name__):
+                process, driver = unittest.mock.Mock(), unittest.mock.Mock()
+                process.poll.return_value = None;driver.close.return_value = False
+                driver.ui_context = {'stage':'synthetic_capture','action':'capture_synthetic_page','width':390,'page':'detail'}
+                try:
+                    with NativeSessionStartupDiagnosticTests().fake_apple(process, driver):
+                        with S.apple_driver():
+                            raise primary
+                except BaseException as error:
+                    self.assertIs(error, primary)
+                    report = S.failure_report(error)
+                else:self.fail('a primary failure must remain fatal')
+                self.assertEqual(report.get('session_cleanup'), self.expected(primary_failure_preserved=True))
+                self.assertEqual(report.get('ui_stage'), 'synthetic_capture')
+                self.assertEqual(report.get('ui_verified_width'), 390)
+                self.assertEqual(report.get('ui_capture_page'), 'detail')
+                self.assertNotIn('private', json.dumps(report))
+                driver.close.assert_called_once_with();process.terminate.assert_called_once_with()
+                process.wait.assert_called_once_with(timeout=5)
+
+    def test_cleanup_only_failure_keeps_hold_and_existing_process_call_order(self):
+        for failure in ('close', 'close_exception', 'poll', 'terminate', 'wait', 'kill', 'wait_after_kill', 'none'):
+            with self.subTest(failure=failure):
+                calls=[];process,driver=unittest.mock.Mock(),unittest.mock.Mock();polls=0;waits=0
+                def poll():
+                    nonlocal polls
+                    polls+=1;calls.append('poll')
+                    if polls>1 and failure=='poll':raise OSError('private-poll')
+                    return None
+                def close():
+                    calls.append('close')
+                    if failure=='close_exception':raise RuntimeError('private-close')
+                    return failure!='close'
+                def terminate():
+                    calls.append('terminate')
+                    if failure=='terminate':raise OSError('private-terminate')
+                def wait(*,timeout):
+                    nonlocal waits
+                    self.assertEqual(timeout,5);waits+=1;calls.append('wait')
+                    if waits==1 and failure in ('kill','wait_after_kill'):raise subprocess.TimeoutExpired('private-command',5)
+                    if failure in ('wait','wait_after_kill'):raise OSError('private-wait')
+                    return 0
+                def kill():
+                    calls.append('kill')
+                    if failure=='kill':raise OSError('private-kill')
+                process.poll.side_effect=poll;process.terminate.side_effect=terminate
+                process.wait.side_effect=wait;process.kill.side_effect=kill;driver.close.side_effect=close
+                driver.ui_context={}
+                caught=None
+                with NativeSessionStartupDiagnosticTests().fake_apple(process,driver):
+                    try:
+                        with S.apple_driver():calls.append('body')
+                    except S.SafariHold as error:caught=error
+                expected_calls=['poll','body','close','poll']
+                if failure!='poll':expected_calls+=['terminate']
+                if failure not in ('poll','terminate'):expected_calls+=['wait']
+                if failure in ('kill','wait_after_kill'):expected_calls+=['kill']
+                if failure=='wait_after_kill':expected_calls+=['wait']
+                self.assertEqual(calls,expected_calls)
+                driver.new_session.assert_called_once_with();driver.close.assert_called_once_with()
+                if failure=='none':
+                    self.assertIsNone(caught);continue
+                self.assertIsNotNone(caught)
+                report=S.failure_report(caught)
+                self.assertEqual(report['reason'],'SAFARI_SESSION_CLEANUP_FAILED')
+                process_result={'poll':'poll_failed','terminate':'terminate_failed','wait':'wait_failed',
+                    'kill':'kill_failed','wait_after_kill':'wait_after_kill_failed'}.get(failure,'wait_returned')
+                self.assertEqual(report.get('session_cleanup'),self.expected(
+                    close_result='exception' if failure=='close_exception' else 'not_true' if failure=='close' else 'true',
+                    process_result=process_result,terminate_attempted=failure!='poll',
+                    kill_attempted=failure in ('kill','wait_after_kill')))
+                self.assertNotIn('private',json.dumps(report))
+
+    def test_delete_acknowledgement_keeps_typed_error_without_values_or_extra_commands(self):
+        driver=S.WebDriver(1234)
+        cases=[(None,None,True,'acknowledged',None,None),
+               ({'private':'private-delete-value'},None,False,'unexpected_response',None,None),
+               (None,S.DriverHold(operation='delete_session',http_status=500,w3c_error='unknown error'),
+                False,'webdriver_error',500,'unknown error')]
+        for reply,error,success,outcome,status,code in cases:
+            with self.subTest(outcome=outcome):
+                driver.session='invented-session'
+                with patch.object(driver,'command',return_value=reply,side_effect=error) as command:
+                    self.assertIs(driver.close(),success)
+                command.assert_called_once_with('DELETE','')
+                self.assertIsNone(driver.session)
+                self.assertEqual(getattr(driver,'close_observation',None),dict(
+                    delete_outcome=outcome,delete_http_status=status,delete_error_code=code))
+        with patch.object(driver,'command') as command:self.assertIs(driver.close(),True)
+        command.assert_not_called()
+        self.assertEqual(getattr(driver,'close_observation',None),dict(delete_outcome='not_required',delete_http_status=None,delete_error_code=None))
+
+    def test_cleanup_projection_rejects_spoofed_values_and_private_objects(self):
+        class Private:
+            def __str__(self):raise AssertionError('private-str-called')
+            def __repr__(self):raise AssertionError('private-repr-called')
+        error=S.SafariHold('SAFARI_SESSION_CLEANUP_FAILED')
+        error.session_cleanup=dict(close_result=Private(),delete_outcome='private-outcome',
+            delete_http_status=True,delete_error_code='private-code',process_result='private-process',
+            terminate_attempted=1,kill_attempted='private',primary_failure_preserved=[],extra=Private())
+        report=S.failure_report(error)
+        self.assertEqual(report.get('session_cleanup'),{name:None for name in self.expected()})
+        self.assertNotIn('private',json.dumps(report))
+        error.session_cleanup='private';self.assertNotIn('session_cleanup',S.failure_report(error))
+
+    def test_synthetic_open_and_capture_boundaries_survive_primary_and_cleanup_failures(self):
+        fixture={'event_date_jst':'2030-01-01','records':[{'race_id':'invented'}]}
+        @contextmanager
+        def site(*args,**kwargs):yield types.SimpleNamespace(url='http://127.0.0.1:1234/')
+        for boundary in ('open','capture'):
+            for close_success in (False,True):
+                with self.subTest(boundary=boundary,close_success=close_success),tempfile.TemporaryDirectory() as name:
+                    process,driver=unittest.mock.Mock(),unittest.mock.Mock()
+                    process.poll.return_value=None;driver.close.return_value=close_success;driver.ui_context={}
+                    driver.script.side_effect=lambda source,*args: {'width':390,'height':948} if 'innerWidth' in source else True
+                    primary=S.SafariHold('SYNTHETIC_SCREENSHOT_REJECTED')
+                    with NativeSessionStartupDiagnosticTests().fake_apple(process,driver), \
+                            patch.dict(S.os.environ,{},clear=True), \
+                            patch.object(S,'synthetic_capture_fixture',return_value=fixture), \
+                            patch.object(S,'LoopbackSite',side_effect=site), \
+                            patch.object(S,'select_saved_day'),patch.object(S,'click_saved_page'), \
+                            patch.object(S,'open_saved_race',side_effect=primary if boundary=='open' else None), \
+                            patch.object(S,'save_synthetic_screenshot',side_effect=primary) as capture, \
+                            patch.object(S,'VISUAL_WIDTHS',(390,)),patch.object(S,'VISUAL_PAGES',('detail',)):
+                        with self.assertRaises(S.SafariHold) as caught:
+                            S.synthetic_visual_checks({},Path(name)/'synthetic-only')
+                        report=S.failure_report(caught.exception)
+                    self.assertIs(caught.exception,primary)
+                    self.assertEqual(report['reason'],'SYNTHETIC_SCREENSHOT_REJECTED')
+                    self.assertEqual(report.get('ui_stage'),'synthetic_capture')
+                    self.assertEqual(report.get('ui_action'),'open_synthetic_page' if boundary=='open' else 'capture_synthetic_page')
+                    self.assertEqual(report.get('ui_verified_width'),390)
+                    self.assertEqual(report.get('ui_capture_page'),'detail')
+                    if close_success:self.assertNotIn('session_cleanup',report)
+                    else:self.assertIs(report['session_cleanup']['primary_failure_preserved'],True)
+                    self.assertEqual(capture.call_count,int(boundary=='capture'))
+                    self.assertFalse((Path(name)/'synthetic-only'/'synthetic-only.json').exists())
+                    driver.new_session.assert_called_once_with();driver.close.assert_called_once_with()
+
+
 if __name__ == '__main__':
     unittest.main()
