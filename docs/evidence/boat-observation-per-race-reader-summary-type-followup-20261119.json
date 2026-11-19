@@ -1,0 +1,89 @@
+{
+  "schema": "RACE_AI_PRIVATE_VENUE_RETENTION_SUMMARY_TYPE_FIX_V1",
+  "commit": "fed60bb7a2c2cedb1c36a6c9fdffa3bbf8c94a33",
+  "tree": "738da6329a6ebdf77fe8799e4ebbdb184f94482d",
+  "parent": "705667843f62bd608d4b809e4d328d8a0d1a3ca7",
+  "source_commit": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "files_sha256": {
+    "scripts/boat_private_venue_retention_audit.py": "f81b067c1194d06a4bcb8fdc0298247157eadef89cdd34b43b36685caa81c148",
+    "tests/test_boat_private_venue_retention_audit.py": "58d51cd6aa66ce267221400670891ccbc451f8897a3f55b807873ddd7afde4e4"
+  },
+  "runtime_change": "CANONICAL_TYPE_PRESERVING_WIRE_SUMMARY_COMPARISON",
+  "changed_existing_functions": [
+    "_candidates"
+  ],
+  "new_functions": [],
+  "previous_freeze_evidence_sha256": "69cbe3e175b8cbc4cb2c6aaf757e48f8fdc072118d04bcbca3bb77004450e8f4",
+  "tests": {
+    "baseline": {
+      "tests": 3,
+      "failures": 10,
+      "errors": 0,
+      "skips": 0,
+      "seconds": 12.0,
+      "external_network_attempts": 0,
+      "real_keys_read": 0,
+      "actual_zip_reads": 0,
+      "runtime_under_test_sha256": "0418d0830f8628d0ba61a6033dff1d0b9bd65f019918f335845c361f6f33976f"
+    },
+    "focused": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "seconds": 12.083,
+      "external_network_attempts": 0,
+      "real_keys_read": 0,
+      "actual_zip_reads": 0,
+      "runtime_under_test_sha256": "f81b067c1194d06a4bcb8fdc0298247157eadef89cdd34b43b36685caa81c148"
+    },
+    "related": {
+      "tests": 102,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "seconds": 115.555,
+      "external_network_attempts": 0,
+      "real_keys_read": 0,
+      "actual_zip_reads": 0,
+      "runtime_under_test_sha256": "f81b067c1194d06a4bcb8fdc0298247157eadef89cdd34b43b36685caa81c148"
+    }
+  },
+  "related_module_counts": {
+    "current_pair": 65,
+    "private_venue_reader": 37
+  },
+  "rejected_type_challenges": [
+    "NONZERO_COUNT_BOOLEAN_TRUE",
+    "NONZERO_COUNT_FLOAT_ONE",
+    "ZERO_COUNT_BOOLEAN_FALSE",
+    "ZERO_COUNT_FLOAT_ZERO",
+    "READBACK_BOOLEAN_AS_INTEGER",
+    "READBACK_BOOLEAN_AS_FLOAT",
+    "FALSE_PROMOTED_FLAG_AS_INTEGER",
+    "FALSE_ACCURACY_FLAG_AS_FLOAT",
+    "PARTITION_COUNT_AS_FLOAT",
+    "NESTED_TICKET_COUNT_AS_FLOAT"
+  ],
+  "legitimate_normal_producer_summary_accepted": true,
+  "legitimate_summary_key_order_and_whitespace_accepted": true,
+  "warnings_as_errors": true,
+  "os_socket_connections_denied": true,
+  "tracked_diff_files": 0,
+  "source_diff_files": 0,
+  "source_producer_summary_or_crypto_changed": false,
+  "original_ciphertext_changed": false,
+  "source_weights_or_models_changed": false,
+  "workflow_or_gate_changed": false,
+  "api_or_failure_codes_changed": false,
+  "frozen_main_contract_blob": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
+  "frozen_source_contract_blob": "be56af54f71d4c3a7d303823b056e4964150db49",
+  "real_owner_key_reads": 0,
+  "actual_artifact_reads": 0,
+  "provider_requests": 0,
+  "remote_writes": 0,
+  "actual_retention_verdict": "PENDING_ACTIONS_OWNER_AUTHENTICATED_READBACK",
+  "production_promoted": false,
+  "plaintext_published": false,
+  "official_or_g8_claimed": false
+}
