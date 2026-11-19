@@ -175,6 +175,95 @@ class OwnerRaceReport(unittest.TestCase):
         self.assertIsNone(notice.find("img"))
         self.assertEqual(soup.select_one('#coverage [data-metric="paired_A_B_scored"]').text, "1")
 
+    def test_abc_all_three_models_visible_without_c_original(self):
+        report, rows = examples()
+        soup = BeautifulSoup(view.render_private_report(report, rows), "html.parser")
+        card = soup.select_one('article[data-race-id="202611192601"]')
+        self.assertEqual([p.get("data-model") for p in card.select(".arm")],
+                         ["A", "B", "C"])
+        self.assertEqual([p.text for p in card.select(".pick-count strong")],
+                         ["2点", "2点", "0点"])
+        self.assertEqual([x.text for x in card.select(".outcome")],
+                         ["的中", "不的中"])
+        self.assertEqual(card.select_one('[data-model="C"] .c-outcome').text, "未生成")
+        self.assertEqual(len(card.select('[data-model="A"] .ticket')), 2)
+        self.assertEqual(len(card.select('[data-model="B"] .ticket')), 2)
+        self.assertEqual(len(card.select('[data-model="C"] .ticket')), 0)
+        self.assertIn("A/B", soup.select_one(".coverage-note").text)
+
+    def test_unverified_c_payload_does_not_leak_or_block_a_b(self):
+        report, rows = examples()
+        rows[0]["C"] = {"ranked_tickets": [[1, 3, 2]],
+                        "secret_token": "PRIVATE_C_RAW_SENTINEL"}
+        soup = BeautifulSoup(view.render_private_report(report, rows), "html.parser")
+        card = soup.select_one('article[data-race-id="202611192601"]')
+        self.assertEqual(card.select_one('[data-model="A"] .outcome').text, "的中")
+        self.assertEqual(card.select_one('[data-model="B"] .outcome').text, "不的中")
+        self.assertEqual(card.select_one('[data-model="C"] .c-outcome').text, "認証待ち")
+        self.assertEqual(card.select('[data-model="C"] .ticket'), [])
+        self.assertNotIn("PRIVATE_C_RAW_SENTINEL", str(soup))
+
+    def test_optional_c_only_after_trusted_external_verifier(self):
+        report, rows = examples()
+        rows[0]["C"] = {"ranked_tickets": [[1, 2, 3], [1, 3, 2]],
+                        "owner_private_key": "PRIVATE_KEY_MUST_NOT_RENDER"}
+        # A toy callback is used only in this invented offline test; real code
+        # must verify authenticated C origin / cutoff / follow-label evidence.
+        verifier = lambda row: row["race_id"] == "202611192601"
+        soup = BeautifulSoup(
+            view.render_private_report(report, rows, verify_optional_c=verifier),
+            "html.parser")
+        card = soup.select_one('article[data-race-id="202611192601"]')
+        self.assertEqual(card.select_one('[data-model="C"] .c-outcome').text, "的中")
+        self.assertEqual(len(card.select('[data-model="C"] .ticket')), 2)
+        self.assertEqual(len(card.select('[data-model="A"] .ticket')), 2)
+        self.assertEqual(len(card.select('[data-model="B"] .ticket')), 2)
+        self.assertNotIn("PRIVATE_KEY_MUST_NOT_RENDER", str(soup))
+        self.assertEqual(soup.select_one('#comparison [data-model="A"] [data-metric="hit_at_all"]').text, "1件")
+
+    def test_invalid_c_is_held_without_hiding_valid_a_b(self):
+        report, rows = examples()
+        rows[0]["C"] = {"ranked_tickets": [[1, 2, 3], [1, 2, 3]]}
+        soup = BeautifulSoup(view.render_private_report(
+            report, rows, verify_optional_c=lambda row: True), "html.parser")
+        card = soup.select_one('article[data-race-id="202611192601"]')
+        self.assertEqual(card.select_one('[data-model="C"] .c-outcome').text, "認証待ち")
+        self.assertEqual(len(card.select('[data-model="C"] .ticket')), 0)
+        self.assertEqual(len(card.select('[data-model="A"] .ticket')), 2)
+
+    def test_b_six_phases_explicitly_hypothetical_and_all_picks_visible(self):
+        report, rows = examples()
+        rows[0]["A"]["ranked_tickets"] = [
+            [1, 2, 3], [2, 1, 3], [1, 3, 2], [3, 1, 2],
+            [2, 3, 1], [3, 2, 1], [4, 1, 2], [4, 2, 1],
+            [4, 3, 1], [4, 1, 3], [1, 4, 2], [2, 4, 1],
+        ]
+        phases = ["INITIAL", "BELL", "FINAL_HOME", "FINAL_BACK",
+                  "FOURTH_CORNER", "GOAL"]
+        rows[0]["B"]["six_phase_scenarios"] = [{
+            "scenario_id": "L1_V0",
+            "six_phases": [{"phase": p, "projected_top3": [3, 2, 1]}
+                           for p in phases],
+        }]
+        soup = BeautifulSoup(view.render_private_report(report, rows), "html.parser")
+        card = soup.select_one('article[data-race-id="202611192601"]')
+        self.assertEqual(len(card.select('[data-model="A"] .ticket')), 12)
+        self.assertEqual(card.select_one('[data-model="A"] .pick-count strong').text, "12点")
+        self.assertEqual(len(card.select('[data-model="B"] .phase-steps li')), 6)
+        self.assertEqual(len(card.select('[data-model="B"] .ticket')), 2)
+        self.assertIn("実映像で確認した着順・確率ではありません", card.text)
+
+    def test_bad_six_phase_is_not_claimed_as_verified_tactical_detail(self):
+        report, rows = examples()
+        rows[0]["B"]["six_phase_scenarios"] = [{
+            "six_phases": [{"phase": "GOAL", "projected_top3": [1, 2, 3]}]
+        }]
+        soup = BeautifulSoup(view.render_private_report(report, rows), "html.parser")
+        card = soup.select_one('article[data-race-id="202611192601"]')
+        self.assertEqual(len(card.select('[data-model="B"] .ticket')), 2)
+        self.assertEqual(len(card.select('[data-model="B"] .phase-steps li')), 0)
+        self.assertIn("6局面の順序を検証できません", card.text)
+
 
 if __name__ == "__main__":
     unittest.main()
