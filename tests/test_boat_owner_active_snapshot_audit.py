@@ -819,9 +819,8 @@ class ProfileTargetSelectionTests(unittest.TestCase):
         event=M2TargetSelectionTests().event(self.SOURCE_HEAD)
         out=active.select_audit_target('workflow_run',event)
         self.assertEqual(out,dict(run_id=123,expected_owner_sha=self.SOURCE_HEAD,allow_completed_receipts=True))
-        target=json.loads((ROOT/'audit/state/boat-m2-independent-audit-target.json').read_text())
-        self.assertEqual(target,dict(schema='RACE_AI_M2_READONLY_AUDIT_TARGET_V1',run_id=44075021607,
-                                    source_commit=active.M2_OWNER_SHA))
+        target=dict(schema='RACE_AI_M2_READONLY_AUDIT_TARGET_V1',run_id=44075021607,
+                    source_commit=active.M2_OWNER_SHA)
         push=dict(ref='refs/heads/main',repository={'full_name':'haji84/RACE-AI'})
         self.assertEqual(active.select_audit_target('push',push,main_target=target),
                          dict(run_id=44075021607,expected_owner_sha=active.M2_OWNER_SHA,allow_completed_receipts=True))
@@ -1185,6 +1184,302 @@ class P0VisibilityOwnerRoleTests(unittest.TestCase):
                     getattr(fixture,method)()
                 except ValueError as error:
                     self.fail('Exact P0 visibility callback role was refused: '+str(error))
+
+
+class ClosedCurrentSnapshotTests(unittest.TestCase):
+    """A fixed read-only prefix never stands in for the continuing writer."""
+    SOURCE='1dbb47b68d487fc6def0bd4b10b1423f0a2145f6'
+    RUN=44426169530
+
+    def target(self):
+        return dict(schema='RACE_AI_CLOSED_READONLY_AUDIT_TARGET_V1',run_id=self.RUN,
+                    source_commit=self.SOURCE,closed_round=2)
+
+    def test_exact_push_target_keeps_legacy_selection_and_rejects_aliases(self):
+        push=dict(ref='refs/heads/main',repository={'full_name':'haji84/RACE-AI'})
+        error=None
+        try: selected=active.select_audit_target('push',push,main_target=self.target())
+        except ValueError as exc: error=exc
+        self.assertIsNone(error,'the exact closed current-source target is missing')
+        self.assertEqual(selected,dict(run_id=self.RUN,expected_owner_sha=self.SOURCE,
+                                      allow_completed_receipts=True,closed_round=2))
+        self.assertEqual(json.loads((ROOT/'audit/state/boat-m2-independent-audit-target.json').read_text()),self.target())
+        legacy=dict(schema='RACE_AI_M2_READONLY_AUDIT_TARGET_V1',run_id=44075021607,
+                    source_commit=active.M2_OWNER_SHA)
+        self.assertEqual(active.select_audit_target('push',push,main_target=legacy),
+            dict(run_id=44075021607,expected_owner_sha=active.M2_OWNER_SHA,allow_completed_receipts=True))
+        for change in (dict(run_id=self.RUN+1),dict(run_id=True),dict(source_commit='f'*40),
+                       dict(source_commit=active.CLOTHING_BENCHMARK_OWNER_SHA),
+                       dict(closed_round=True),dict(closed_round=1),dict(closed_round=3),
+                       dict(schema='RACE_AI_M2_READONLY_AUDIT_TARGET_V1'),dict(extra=0)):
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                active.select_audit_target('push',push,main_target=dict(self.target(),**change))
+
+    def test_fixed_receipt_inventory_rejects_replacement_and_keeps_missing_r1_unknown(self):
+        fn=getattr(active,'_closed_inventory',None)
+        self.assertTrue(callable(fn),'exact closed receipt admission is missing')
+        evidence=json.loads((ROOT/'docs/evidence/boat-current-s-closed-snapshot2-readonly-audit-20261119.json').read_text())
+        selected=deepcopy(evidence['selected_receipt_metadata'])
+        run=dict(id=self.RUN,head_sha=self.SOURCE,run_attempt=1)
+        before=deepcopy(selected);proof=fn(selected,run,2)
+        self.assertEqual(proof['pinned_receipts'],7)
+        self.assertEqual(proof['missing_all_model_rounds_at_fixed_snapshot'],[1])
+        self.assertIsNone(proof['missing_round_generated_forecasts'])
+        self.assertEqual(selected,before)
+        for change in ('id','digest','created','size','head','attempt','missing','duplicate','late_r1'):
+            items=deepcopy(selected);owner=dict(run)
+            if change=='id':items[0]['id']+=1
+            elif change=='digest':items[0]['digest']='sha256:'+'f'*64
+            elif change=='created':items[0]['created_at']='2026-11-19T00:15:00Z'
+            elif change=='size':items[0]['size_in_bytes']+=1
+            elif change=='head':items[0]['workflow_run']['head_sha']='f'*40
+            elif change=='attempt':owner['run_attempt']=2
+            elif change=='missing':items.pop()
+            elif change=='duplicate':items.append(deepcopy(items[0]))
+            else:items.append(dict(items[0],id=14480000000,name=f'boat-all-model-forecasts-{self.RUN}-r1'))
+            with self.subTest(change=change),self.assertRaises(ValueError):fn(items,owner,2)
+
+    def fixture(self):
+        run=dict(id=self.RUN,head_sha=self.SOURCE,head_branch=active.BRANCH,event='workflow_dispatch',
+                 status='in_progress',conclusion=None,run_attempt=1,created_at='2030-04-01T01:00:00Z')
+        steps=[dict(name=f'Deadline-ordered five-model round {n:02}',status='completed',conclusion='success',
+                    started_at=f'2030-04-01T0{n}:00:00Z',completed_at=f'2030-04-01T0{n}:01:00Z')
+               for n in (1,2,3)]
+        job=dict(id=777,run_id=self.RUN,head_sha=self.SOURCE,run_attempt=1,status='in_progress',
+                 conclusion=None,name=active.JOB,steps=steps)
+        def get(path):
+            if path==f'actions/runs/{self.RUN}':return json.dumps(run).encode()
+            self.assertEqual(path,f'actions/runs/{self.RUN}/jobs?per_page=100')
+            return json.dumps(dict(total_count=1,jobs=[job])).encode()
+        return run,job,get
+
+    def test_closed_prefix_keeps_raw_jobs_and_reports_later_round_exclusions(self):
+        import inspect
+        self.assertIn('closed_round',inspect.signature(active._jobs).parameters)
+        run,job,get=self.fixture();before=deepcopy((run,job))
+        actual,rounds=active._jobs(get,run,NOW,expected_owner_sha=self.SOURCE,closed_round=2)
+        self.assertEqual(actual,job);self.assertEqual(rounds,[1,2]);self.assertEqual((run,job),before)
+        self.assertEqual(active._jobs(get,run,NOW,expected_owner_sha=self.SOURCE)[1],[1,2,3])
+        scope=dict(schema=active.SCHEMA,run=run,job=job,rounds=rounds,inventory=[],
+            inventory_sha256=digest([]),captured_at=NOW.isoformat(),expected_owner_sha=self.SOURCE,
+            allow_completed_receipts=True,final_control=None,closed_round=2,
+            all_model_archive_scope=dict(present_rounds=[],missing_rounds=[1,2],excluded_rounds=[]))
+        synthetic_pins=patch.object(active,'_closed_inventory',return_value={'synthetic_scope':True})
+        synthetic_pins.start();self.addCleanup(synthetic_pins.stop)
+        self.assertEqual(active.validate_active_scope(scope,run,[],NOW,get,expected_owner_sha=self.SOURCE,
+                                                     allow_completed_receipts=True),[])
+        for change in (dict(rounds=[1]),dict(closed_round=1),dict(closed_round=3),
+                       dict(job=dict(job,status='completed')),dict(inventory_sha256='f'*64)):
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                active.validate_active_scope(dict(scope,**change),run,[],NOW,get,
+                    expected_owner_sha=self.SOURCE,allow_completed_receipts=True)
+        # Real AES native/model receipts still keep a missing selected r2
+        # unknown, while a now-successful r3 remains outside the fixed prefix.
+        M2SnapshotTests.setUpClass()
+        with patch.object(sys.modules[__name__],'M2_HEAD',self.SOURCE):
+            fixture=M2SnapshotTests();fixture.setUp();self.addCleanup(fixture.doCleanups)
+            fixture.two_native_rounds()
+        fixture.f.job['steps'].append(dict(name='Deadline-ordered five-model round 03',status='completed',
+            conclusion='success',started_at='2030-04-01T09:04:00Z',completed_at='2030-04-01T09:04:30Z'))
+        fixture.f.add(107,'boat-all-model-forecasts-99-r3',None,b'excluded unopened ciphertext','2030-04-01T09:04:10Z')
+        from scripts import boat_owner_active_snapshot_audit as canonical
+        observed=dict(commit='a'*40,observed_at='2030-04-01T09:06:00Z',view_at_closed_prefix_time_proven=False)
+        with patch.object(active,'CLOSED_SNAPSHOT_RUN_ID',99),patch.object(canonical,'CLOSED_SNAPSHOT_RUN_ID',99),\
+             patch.object(canonical,'_closed_inventory',return_value={'synthetic_scope':True}),\
+             patch.object(active,'_saved_view_snapshot',return_value=(fixture.f.view,observed)),\
+             patch.object(active,'_closed_bootstrap_inventory',return_value={'separate_scope':True}),\
+             patch.object(sys.modules[__name__],'M2_HEAD',self.SOURCE):
+            out=fixture.audit(closed_round=2)
+        self.assertEqual(out['completed_rounds_audited'],[1,2])
+        self.assertEqual(out['all_model_zip_readback']['excluded_all_model_rounds'],[3])
+        self.assertEqual(out['missing_all_model_rounds'],[2])
+        self.assertEqual(out['status'],'HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED')
+        self.assertEqual(out['excluded_round_steps'],[dict(round=3,reason='AFTER_FIXED_CLOSED_PREFIX',
+            completed_successfully=True,metadata_sha256=digest(fixture.f.job['steps'][-1]))])
+        self.assertEqual(out['excluded_artifacts'],[dict(artifact_id=107,round=3,
+            reason='AFTER_FIXED_CLOSED_PREFIX',metadata_sha256=digest(fixture.f.metas[107]))])
+        self.assertEqual(out['saved_view_observation'],observed)
+        self.assertEqual(out['job_metadata_sha256'],digest(fixture.f.job))
+        self.assertIsNone(out['final_control']);self.assertFalse(out['latest_live_counters_audited'])
+        self.assertNotIn('actions/artifacts/107/zip',fixture.f.calls)
+
+    def test_closed_prefix_refuses_unknown_attempt_unfinished_round_and_clock_regression(self):
+        import inspect
+        self.assertIn('closed_round',inspect.signature(active._jobs).parameters)
+        run,job,get=self.fixture()
+        for change in ('tuple','head','attempt','job_attempt','unfinished','clock','gap'):
+            before=deepcopy((run,job))
+            if change=='tuple':run['id']+=1
+            elif change=='head':run['head_sha']='f'*40
+            elif change=='attempt':run['run_attempt']=2
+            elif change=='job_attempt':job['run_attempt']=2
+            elif change=='unfinished':job['steps'][1].update(status='in_progress',conclusion=None,completed_at=None)
+            elif change=='clock':job['steps'][1]['completed_at']='2030-04-01T01:59:00Z'
+            else:job['steps'][0]['conclusion']='failure'
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                active._jobs(get,run,NOW,expected_owner_sha=self.SOURCE,closed_round=2)
+            run.clear();run.update(before[0]);job.clear();job.update(before[1])
+
+    def test_existing_workflow_routes_one_closed_prefix_and_keeps_old_scopes(self):
+        text=(ROOT/'.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
+        live=text.split('\n  authenticated_original_matrix:\n',1)[1]
+        self.assertIn("selected.get('closed_round')",live)
+        self.assertIn('OWNER_AUDIT_CLOSED_ROUND: ${{ steps.audit_target.outputs.closed_round }}',live)
+        self.assertIn('allow_completed_receipts=m2_receipts,closed_round=closed_round)',live)
+        self.assertIn('expected_owner_sha=owner,closed_round=closed_round)',live)
+        self.assertIn('EXACT_CLOSED_A74_REPRESENTED_P1_ONLY',live)
+        self.assertIn('latest_live_counters_audited',live)
+
+    def test_current_pairs_uses_same_closed_prefix_and_keeps_raw_inventory(self):
+        from scripts import boat_current_pair_eligibility_audit as pairs
+        import inspect
+        self.assertIn('closed_round',inspect.signature(pairs.audit_current_pairs).parameters)
+        run,job,get=self.fixture()
+        from race_ai import boat_all_model_recovery as recovery
+        from scripts import boat_owner_active_snapshot_audit as canonical
+        with patch.object(recovery,'_run',return_value=run),\
+             patch.object(canonical,'_closed_inventory',return_value={'synthetic_scope':True}),\
+             patch('race_ai.cycle_recovery.artifact_pages',return_value=[]):
+            unused,reads,scope=pairs._scope(get,self.RUN,NOW,self.SOURCE,closed_round=2)
+        self.assertEqual(scope['rounds'],[1,2]);self.assertEqual(scope['job'],job)
+        self.assertEqual(scope['inventory'],[]);self.assertIsNone(scope['final_control'])
+        self.assertEqual(scope['closed_round'],2)
+
+
+class ClosedBootstrapOriginalTests(unittest.TestCase):
+    """Real invented P0/native seals; no generation by the audit under test."""
+    def fixture(self):
+        from tests.test_boat_bootstrap_recovery import BootstrapRecoveryTests
+        from tests.test_boat_all_model_cycle import AllModelCycleTests
+        from tests.test_boat_pending_round_recovery import NOW as clock,DAY as day
+        from race_ai import boat_all_model_cycle as engine,boat_all_model_store as store,saved_view_feed as feed
+        if not hasattr(AllModelCycleTests,'fitted'):AllModelCycleTests.setUpClass()
+        runtime=AllModelCycleTests();runtime.setUp();self.addCleanup(runtime.doCleanups)
+        files=runtime.runtime(fitted=True)
+        f=BootstrapRecoveryTests();f.setUp();self.addCleanup(f.doCleanups)
+        f._bootstrap_models_fixture();f._restore_bootstrap_models()
+        view=feed.current_view(f.feed_reader,f.feed_bootstrap,day=day)[3]
+        cli=__import__('scripts.boat_all_model_cycle',fromlist=['_inventory'])
+        maps={'P0':{},'P1':{}};cli._inventory(view,maps)
+        files.update(source_code_commit=ClosedCurrentSnapshotTests.SOURCE,run_id='100')
+        receipt=cli._receipt(f.p0meta,f.doc)
+        payload=engine.forecast_saved_p0(f.doc,receipt,files,now=clock.replace(minute=30),issued_models=maps['P0'])
+        self.assertEqual(payload['summary']['generated_forecasts'],0)
+        raw=M.zipped(store.seal_forecasts(payload,run_id='100',round_no=0,key=KEY))
+        run=dict(f.run,id=100,head_sha=ClosedCurrentSnapshotTests.SOURCE,status='in_progress',conclusion=None,
+                 created_at='2030-04-01T02:20:00Z',updated_at='2030-04-01T02:35:00Z')
+        meta=dict(f.models_meta,id=709,name='boat-all-model-forecasts-100-r0',digest='sha256:'+sha256(raw).hexdigest(),
+                  size_in_bytes=len(raw),created_at='2030-04-01T02:31:00Z',
+                  workflow_run=dict(f.models_meta['workflow_run'],id=100,head_sha=run['head_sha']))
+        responses=dict(f.responses)
+        responses.update({'actions/artifacts/709':json.dumps(meta).encode(),'actions/artifacts/709/zip':raw})
+        original_count=f.models_payload['summary']['generated_forecasts']
+        context=patch.multiple(active,CLOSED_SNAPSHOT_RUN_ID=100,CLOSED_P0_MODEL_ARTIFACT=709,CLOSED_BOOTSTRAP_P0_ARTIFACT=701,
+            CLOSED_BOOTSTRAP_ORIGINAL=(99,active.CLOTHING_BENCHMARK_OWNER_SHA,day,708,original_count))
+        context.start();self.addCleanup(context.stop)
+        return f,run,meta,payload,view,responses,clock,day
+
+    def test_both_r0_seals_saved_inventory_and_retained_slots_are_independent_and_unchanged(self):
+        fn=getattr(active,'_closed_bootstrap_inventory',None)
+        self.assertTrue(callable(fn),'independent original-r0 inventory audit is missing')
+        f,run,meta,payload,view,responses,clock,day=self.fixture();before=deepcopy((view,responses,payload))
+        from race_ai import boat_all_model_cycle as engine
+        with patch.object(engine,'forecast_saved_p0',side_effect=AssertionError('audit must never generate')):
+            out=fn(responses.__getitem__,run,[meta],view,f.doc,f.p0meta,f.run,now=clock,day=day)
+        count=f.models_payload['summary']['generated_forecasts']
+        self.assertEqual(out['original_forecasts_authenticated'],count)
+        self.assertEqual(out['current_r0_generated_forecasts'],0)
+        self.assertEqual(out['current_r0_reused_baseline_forecasts'],0)
+        self.assertEqual(out['current_r0_original_slots_retained_without_reissue'],count)
+        self.assertEqual(out['original_run_id'],99);self.assertEqual(out['current_run_id'],100)
+        self.assertTrue(out['original_inventory_unchanged']);self.assertTrue(out['issued_models_verified'])
+        self.assertEqual(out['issued_models_scope'],'RECONSTRUCTED_FROM_AUTHENTICATED_SAVED_VIEW')
+        self.assertFalse(out['runtime_issued_file_independently_read'])
+        self.assertNotIn('ordered_top8',json.dumps(out));self.assertEqual((view,responses,payload),before)
+        from types import SimpleNamespace
+        from datetime import timedelta
+        class Clock(datetime):
+            reads=0
+            @classmethod
+            def now(cls,tz=None):
+                cls.reads+=1
+                return clock+timedelta(microseconds=cls.reads)
+        with patch.object(active,'datetime',Clock),patch('race_ai.racer_result_bridge.SavedResultBridge',
+                return_value=SimpleNamespace(git=f.feed_reader,bootstrap=f.feed_bootstrap)):
+            observed_view,observation=active._saved_view_snapshot('unused',day)
+        self.assertEqual(observed_view,view);self.assertGreater(datetime.fromisoformat(observation['observed_at']),clock)
+        self.assertEqual(observation['commit'],f.feed_reader.remote.current)
+        self.assertFalse(observation['view_at_closed_prefix_time_proven'])
+        with patch.dict(os.environ,RACE_AI_STATE_KEY=base64.b64encode(bytes(reversed(range(32)))).decode()),self.assertRaises(ValueError):
+            fn(responses.__getitem__,run,[meta],view,f.doc,f.p0meta,f.run,now=clock,day=day)
+        with self.assertRaises(ValueError):
+            fn(responses.__getitem__,run,[meta],view,f.doc,f.p0meta,f.run,now=clock-timedelta(microseconds=1),day=day)
+
+    def test_missing_or_changed_old_inventory_and_new_r0_never_claim_no_regeneration(self):
+        fn=getattr(active,'_closed_bootstrap_inventory',None)
+        self.assertTrue(callable(fn),'independent original-r0 inventory audit is missing')
+        f,run,meta,payload,view,responses,clock,day=self.fixture()
+        for case in ('old_zip','current_zip','missing_original','coverage','wrong_origin','current_alias'):
+            original=deepcopy((view,responses,run));origin=f.run
+            if case=='old_zip':responses['actions/artifacts/708/zip']+=b'changed'
+            elif case=='current_zip':responses['actions/artifacts/709/zip']+=b'changed'
+            elif case=='missing_original':
+                for row in view['records']:
+                    if (row.get('prediction') or {}).get('artifact_id')==708:row['prediction']=None
+                    row['comparison_predictions']=[p for p in row.get('comparison_predictions',[]) if p.get('artifact_id')!=708]
+            elif case=='coverage':
+                for row in view['records']:row.pop('saved_model_archive_evidence',None)
+            elif case=='wrong_origin':origin=dict(f.run,head_sha='f'*40)
+            else:run['head_sha']='f'*40
+            with self.subTest(case=case),self.assertRaises((ValueError,KeyError)):
+                fn(responses.__getitem__,run,[meta],view,f.doc,f.p0meta,origin,now=clock,day=day)
+            view.clear();view.update(original[0]);responses.clear();responses.update(original[1]);run.clear();run.update(original[2])
+
+    def test_historical_readonly_audit_uses_actual_later_clock_and_rejects_future_coverage(self):
+        from datetime import timedelta
+        from race_ai import boat_all_model_recovery as recovery
+        from scripts import boat_all_model_cycle as cli,boat_bootstrap_recovery_adapter as adapter
+        f,run,meta,payload,view,responses,clock,day=self.fixture()
+        later=clock+timedelta(days=1);before=deepcopy((view,responses,payload))
+        maps={'P0':{},'P1':{}};cli._inventory(view,maps)
+        self.assertIsNone(cli.require_saved_bootstrap_models(f.doc,cli._receipt(f.p0meta,f.doc),maps['P0'],view,now=later))
+        self.assertFalse(adapter._exact_instance(f.run,later));self.assertTrue(adapter._exact_instance(f.run))
+        error=None
+        try:checked=active._closed_bootstrap_inventory(responses.__getitem__,run,[meta],view,
+                    f.doc,f.p0meta,f.run,now=later,day=day)
+        except ValueError as exc:error=exc
+        self.assertIsNone(error,'an authentic prior-day original must remain auditable at the actual clock')
+        self.assertEqual(checked['original_forecasts_authenticated'],f.models_payload['summary']['generated_forecasts'])
+        self.assertEqual(checked['current_r0_generated_forecasts'],0)
+        self.assertEqual((view,responses,payload),before)
+        projected,unused,receipt=recovery._project(responses[f'actions/artifacts/{f.models_meta["id"]}/zip'],
+                                                  f.models_meta,f.run,0,KEY)
+        inventory=recovery._preserved_scope(projected,view,day,f.models_meta['id'])
+        issued=deepcopy(maps['P0'])
+        row=next(row for row in projected['records'] if row.get('prediction') or row.get('comparison_predictions'))
+        prediction=row.get('prediction') or row['comparison_predictions'][0]
+        issued[row['race_id']].remove(prediction['model_id'])
+        with self.assertRaisesRegex(ValueError,'BOOTSTRAP_READONLY_ISSUED_MAP_MISSING'):
+            active._readonly_saved_bootstrap_models(f.doc,f.p0meta,view,inventory,f.models_meta,f.run,
+                model_receipt=receipt,issued=issued,key=KEY,now=later)
+        missing=deepcopy(view)
+        for row in missing['records']:
+            if (row.get('prediction') or {}).get('artifact_id')==f.p0meta['id']:row['prediction']=None
+            row['comparison_predictions']=[p for p in row.get('comparison_predictions',[]) if p.get('artifact_id')!=f.p0meta['id']]
+        with self.assertRaisesRegex(ValueError,'BOOTSTRAP_READONLY_FIRST_P0_MISSING'):
+            active._closed_bootstrap_inventory(responses.__getitem__,run,[meta],missing,
+                f.doc,f.p0meta,f.run,now=later,day=day)
+        future=deepcopy(view)
+        for row in future['records']:
+            for ident,entry in list(row.get(recovery.EVIDENCE_FIELD,{}).items()):
+                state=deepcopy(entry['state']);state['verified_at']=(later+timedelta(microseconds=1)).isoformat()
+                row[recovery.EVIDENCE_FIELD][ident]=recovery._signed_coverage(state,recovery._coverage_key(KEY))
+        with self.assertRaisesRegex(ValueError,'COVERAGE_IDENTITY_INVALID'):
+            active._closed_bootstrap_inventory(responses.__getitem__,run,[meta],future,
+                f.doc,f.p0meta,f.run,now=later,day=day)
+        with self.assertRaises(ValueError):
+            active._closed_bootstrap_inventory(responses.__getitem__,run,[meta],view,
+                f.doc,f.p0meta,f.run,now=clock.replace(hour=1,minute=0),day=day)
 
 
 if __name__=='__main__':unittest.main()

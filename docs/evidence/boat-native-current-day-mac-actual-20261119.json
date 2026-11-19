@@ -1,0 +1,80 @@
+{
+  "schema": "RACE_AI_NATIVE_CURRENT_DAY_MAC_ACCEPTANCE_ACTUAL_V1",
+  "run": 44428187504,
+  "job": 135238405624,
+  "main": "a6ec09072db385a7bba54deb5793cd5a68ad8b60",
+  "source_worker": 44426169530,
+  "dispatch": {
+    "existing_workflow": 416758725,
+    "browser": "native-safari",
+    "single_post_acknowledged": true,
+    "independent_run_metadata_confirmed": true,
+    "forecast_source_dispatch": false
+  },
+  "unit_tests": 148,
+  "unit_seconds": 51.338,
+  "status": "NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED",
+  "verified_at": "2026-11-19T00:28:25.134850+00:00",
+  "native_browser": {
+    "browserName": "Safari",
+    "browserVersion": "26.6",
+    "platformName": "macOS"
+  },
+  "saved_day": "2026-11-19",
+  "authenticated_feed_generation": 455,
+  "generation_is_feed_revision_not_forecast_count": true,
+  "authenticated_results": 3,
+  "authenticated_native_p1_groups": 9,
+  "loopback_ui": {
+    "desktop_viewports": [
+      {
+        "requested_width": 1440,
+        "actual_inner_width": 1440,
+        "actual_inner_height": 948,
+        "requested_width_verified": true,
+        "physical_iphone_verified": false
+      },
+      {
+        "requested_width": 390,
+        "actual_inner_width": 390,
+        "actual_inner_height": 948,
+        "requested_width_verified": true,
+        "physical_iphone_verified": false
+      }
+    ],
+    "model_switch_original_comparisons": 4,
+    "native_p1_detail_views": 2,
+    "result_budget_views": 2,
+    "key_in_requests_url_or_storage": false,
+    "outbound_browser_requests_permitted": 0,
+    "official_source_requests": 0
+  },
+  "current_v5": {
+    "status": "ENCRYPTED_CURRENT_V5_SAFARI_VERIFIED",
+    "current_day_verified": true,
+    "current_v5_live_continuation_verified": true,
+    "browser_aes_verified": true,
+    "same_current_model_original_comparisons": 2,
+    "ciphertext_files": 30,
+    "ciphertext_bytes": 235283873,
+    "plaintext_endpoint_reads": 0,
+    "real_screenshots_or_traces_exported": 0
+  },
+  "synthetic_screenshots": 28,
+  "candidate_source": {
+    "commit": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+    "web_tree": "d905215e2f886b0bcc4f2e58323ceee465b03c38",
+    "asset_sha256": {
+      "index.html": "ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2",
+      "app.js": "c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5",
+      "style.css": "06414329229c6c7919b67408ca567c859b064d7f2b0d7abab7ddc203ab407e82"
+    }
+  },
+  "physical_iphone_verified": false,
+  "account_login_verified": false,
+  "all_eight_reference_screens_visually_verified": false,
+  "plaintext_published": false,
+  "forecast_or_result_mutation": false,
+  "browser_direct_github_feed_delivery_proven": false,
+  "ui_deployed": false
+}

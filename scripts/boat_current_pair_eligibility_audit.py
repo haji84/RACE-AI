@@ -367,22 +367,24 @@ def current_pair_failure_diagnostic(error):
     return result
 
 
-def _scope(get, run_id, now, source):
+def _scope(get, run_id, now, source, *, closed_round=None):
     from scripts import boat_owner_active_snapshot_audit as active
     from race_ai import boat_all_model_recovery as recovery
     from race_ai.cycle_recovery import artifact_pages
     from race_ai.actions_contract import digest
     source = active._expected_source(source)
+    closed_round = active._closed_round(run_id, source, closed_round)
     reads = active._Reads(get)
     run = recovery._run(reads(f'actions/runs/{run_id}'), run_id, now)
     listing = artifact_pages(reads, run_id)
     allow_completed = source in active.PARTIAL_RECEIPT_OWNER_SHAS
-    control = active._final_control(reads, run, listing, now) if allow_completed and run['status'] == 'completed' else None
+    control = active._final_control(reads, run, listing, now) if allow_completed and run['status'] == 'completed' and closed_round is None else None
     job, rounds = active._jobs(reads, run, now, expected_owner_sha=source,
-        completed_round_limit=control['completed_round'] if control else None)
+        completed_round_limit=control['completed_round'] if control else None,closed_round=closed_round)
     scope = dict(schema=active.SCHEMA, run=run, job=job, rounds=rounds, inventory=listing,
         inventory_sha256=digest(listing), captured_at=now.isoformat(), expected_owner_sha=source,
         allow_completed_receipts=allow_completed, final_control=control)
+    if closed_round is not None:scope['closed_round']=closed_round
     if allow_completed:
         scope['all_model_archive_scope'] = active._model_archive_scope(listing, run_id, rounds, now)
     active.validate_active_scope(scope, run, listing, now, reads, expected_owner_sha=source,
@@ -390,7 +392,7 @@ def _scope(get, run_id, now, source):
     return active, reads, scope
 
 
-def _audit(get, run_id, now, source, _diagnostic=None, _raw_cutoff_sink=None):
+def _audit(get, run_id, now, source, _diagnostic=None, _raw_cutoff_sink=None, *, closed_round=None):
     diagnostic = {} if _diagnostic is None else _diagnostic
     diagnostic['phase'] = 'PAIR_PREFLIGHT'
     from race_ai.actions_contract import canonical, digest
@@ -403,7 +405,7 @@ def _audit(get, run_id, now, source, _diagnostic=None, _raw_cutoff_sink=None):
     _need(type(run_id) is int and 0 < run_id < 10**20 and type(now) is datetime and now.utcoffset() is not None)
     state_key('production')
     diagnostic['phase'] = 'PAIR_SCOPE'
-    active, reads, scope = _scope(get, run_id, now, source)
+    active, reads, scope = _scope(get, run_id, now, source,closed_round=closed_round)
     run, job, rounds, listing = (scope[key] for key in ('run', 'job', 'rounds', 'inventory'))
     day = active._time(run['created_at']).astimezone(timezone(timedelta(hours=9))).date().isoformat()
     items = {item['id']: item for item in listing}
@@ -590,11 +592,12 @@ def _audit(get, run_id, now, source, _diagnostic=None, _raw_cutoff_sink=None):
     return result
 
 
-def audit_current_pairs(*, get, run_id, now, expected_owner_sha):
+def audit_current_pairs(*, get, run_id, now, expected_owner_sha, closed_round=None):
     """Raise on selected bad/missing evidence; return only flat unqualified counts."""
     diagnostic = {'phase': 'PAIR_PREFLIGHT'}
     try:
-        return _audit(get, run_id, now, expected_owner_sha, _diagnostic=diagnostic)
+        options={} if closed_round is None else dict(closed_round=closed_round)
+        return _audit(get, run_id, now, expected_owner_sha, _diagnostic=diagnostic,**options)
     except Exception as error:
         # The trusted workflow preserves its prior independent core proof and
         # emits static UNKNOWN/HOLD fields. Never echo private exception values.

@@ -1,0 +1,19 @@
+{
+  "schema": "RACE_AI_ACTIVE_OWNER_STEP_METADATA_OBSERVATION_V1",
+  "observed_at": "2026-11-19T01:13:38Z",
+  "main": "a6ec09072db385a7bba54deb5793cd5a68ad8b60",
+  "source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "run": 44426169530,
+  "job": 135231474660,
+  "status": "in_progress",
+  "conclusion": null,
+  "active_step": "Deadline-ordered five-model round 17",
+  "previously_failed_retention_step_33": "success",
+  "actual_completed_control_rounds": null,
+  "independently_decrypted_forecast_count": null,
+  "all_race_all_model_completion_verified": false,
+  "cutoff_t15_t10_completion_verified": false,
+  "metadata_is_not_control_or_original_readback": true,
+  "forecast_source_dispatches_by_this_observation": 0,
+  "originals_or_weights_changed": false
+}

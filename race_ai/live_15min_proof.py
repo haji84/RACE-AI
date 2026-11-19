@@ -12,7 +12,7 @@ from hashlib import sha256
 import json
 import re
 
-SPORTS = frozenset(("boat", "keirin", "autorace"))
+SPORTS = frozenset(("boat", "keirin", "autorace", "horse"))
 HEX = re.compile(r"^[0-9a-f]{64}$")
 MODEL_LIMIT = 40
 MIN_SECONDS = 600
