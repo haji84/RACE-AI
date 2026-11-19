@@ -32,21 +32,21 @@
 **Modify:** `race_ai/keirin_official_sp_browser.py`.
 **Test:** `tests/test_keirin_official_sp_browser.py` and an actual-browser local synthetic projection control if needed.
 
-- [ ] Add a failing regression demonstrating that the unchanged calendar/list/detail checks exhaust a bounded protocol cost and prevent full synthetic day coverage.
-- [ ] Use fixed read-only `evaluate_all` projections for repeated table attributes and current-day rendered rows, reading current input properties.
-- [ ] Retain the exact original Python validations and fresh post-settlement scope; add mutations for duplicate/missing/order/value changes.
-- [ ] Run related unittest modules and independently review guard equivalence. No changes to HTTP/resource lifecycle or budget values.
+- [x] Add a failing regression demonstrating that the unchanged calendar/list/detail checks exhaust a bounded protocol cost and prevent full synthetic day coverage.
+- [x] Use fixed read-only `evaluate_all` projections for repeated table attributes and current-day rendered rows, reading current input properties.
+- [x] Retain the exact original Python validations and fresh post-settlement scope; add mutations for duplicate/missing/order/value changes.
+- [x] Run related unittest modules and independently review guard equivalence. No changes to HTTP/resource lifecycle or budget values.
 
 ## Task 2: Reverify real coverage through the existing runtime
 
-- [ ] Review and preserve original reused PR history/tree without applying unrelated work; normal FF and required protected merge only.
+- [x] Review and preserve original reused PR history/tree without applying unrelated work; normal FF and required protected merge only.
 - [ ] Verify exact candidate checks and tested tree before integration.
 - [ ] Run the existing KEIRIN normal runtime once, non-pilot, at the merged main; inspect authenticated completed logs only.
 - [ ] Record actual day identities, details/riders, status/unknown/denial/budget counts, full model input state and saved forecasts separately. Never substitute a split local diagnostic for one full runtime.
 
 ## Task 3: WINTICKET denial and prediction-input gaps
 
-- [ ] Independently trace completed WINTICKET HTTP403 to the first request and compare the existing normal access implementations without new provider requests.
-- [ ] Identify an actual client defect before changing code or making another provider request; otherwise record that an operator-side denial remains unresolved.
-- [ ] List exact missing existing-model source families with their provenance; do not fabricate values, relax admission or claim source capture is prediction generation.
-- [ ] Save aggregate/hash evidence and latest status to an existing development branch, preserving UI and encrypted original data.
+- [x] Independently trace completed WINTICKET HTTP403 to the first request and compare the existing normal access implementations without new provider requests.
+- [x] Identify an actual client defect before changing code or making another provider request; otherwise record that an operator-side denial remains unresolved.
+- [x] List exact missing existing-model source families with their provenance; do not fabricate values, relax admission or claim source capture is prediction generation.
+- [x] Save aggregate/hash evidence and latest status to an existing development branch, preserving UI and encrypted original data.

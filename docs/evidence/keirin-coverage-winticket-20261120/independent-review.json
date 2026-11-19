@@ -1,0 +1,105 @@
+{
+  "base_sha": "49e63d2ec63f4602fc855fc5b5a960023c9d46c0",
+  "blocking_findings": [],
+  "constraints_read": [
+    "AGENTS.md",
+    "docs/superpowers/plans/2026-11-20-keirin-complete-coverage.md"
+  ],
+  "created_at_utc": "2026-11-19T22:09:58.493522+00:00",
+  "history_preserved_sha": "53b4dd531a115603cdddaede797f779254c1f770",
+  "history_preserved_tree_equal": true,
+  "limitations": [
+    "This is a read-only source performance and guard review using invented offline fixtures and default Chromium local documents.",
+    "No live provider network, credentials, workflows, dispatches, source originals, or production state were accessed or changed by this review.",
+    "Actual current-day acquisition completion must be read from the existing merged-main runtime; this review makes no live coverage claim.",
+    "Acquisition counts do not demonstrate model-input completeness, saved forecasts, accuracy, or permanent encrypted retention.",
+    "WINTICKET HTTP403 diagnosis and access remain outside this DOM batching review; no unblock is claimed.",
+    "Root evidence/status documentation changes after the reviewed tree are outside this review; code and test files were read back byte-identical before receipt creation."
+  ],
+  "nonblocking_findings": [],
+  "review_checks": {
+    "changed_collector_methods_only": [
+      "calendar_target",
+      "open_detail",
+      "open_meeting",
+      "verify_list_dom"
+    ],
+    "count_order_value_checks_preserved": true,
+    "duplicate_missing_reordered_nested_controls_reject": true,
+    "fresh_scope_revalidated_after_request_settlement": true,
+    "full_acquisition_does_not_admit_model_or_create_archive": true,
+    "input_projection_reads_live_value_property": true,
+    "open_shadow_roots_conservatively_hold": true,
+    "private_create_only_inbox_and_aggregate_only_output_unchanged": true,
+    "remaining_work_budget_checks_and_values_unchanged": true,
+    "transport_navigation_body_denial_status_accounting_unchanged": true
+  },
+  "reviewed_candidate_sha": "97a773b1b2193ef5c71aee885c3a7a75d9b1ef1a",
+  "reviewed_file_sha256": {
+    "docs/superpowers/plans/2026-11-20-keirin-complete-coverage.md": "f42a88eff55487e8dc7c39c83f87677722ea9f34e464ef2f497c2aaea504b4c6",
+    "race_ai/keirin_official_sp_browser.py": "906d1f418fff2b6209aac33fe88a5577b0f2fdb17cac056a471058839f8471cf",
+    "tests/test_keirin_cloud_owner_source_cycle.py": "13dbb015be9da4305670901c923feb2bb6f8a7cf4629e4c2e5e433488d6d6024",
+    "tests/test_keirin_official_sp_browser.py": "86950a1942e31436d176790121935321a5ad479d142ac9283f2ccbc47da7514d"
+  },
+  "reviewed_tree": "7296c760a312b2f9b0da5a20284e30dfb650ede6",
+  "schema": "RACE_AI_KEIRIN_DOM_BATCH_INDEPENDENT_REVIEW_V1",
+  "source_author_sha": "54db5ccc7fdeaa108590c83287a9da96f4fcad9c",
+  "verdict": "CLEAR",
+  "verification": {
+    "chromium": "141.0.7390.37",
+    "diff_check": "PASS",
+    "independent_native_differential": {
+      "baseline": "49e63d2ec63f4602fc855fc5b5a960023c9d46c0",
+      "calendar_tables": 73,
+      "conservative_shadow_hold_cases": 3,
+      "equivalent_cases": 23,
+      "onclick_vector_equivalence_cases": 2,
+      "outbound_requests": 0,
+      "result": "PASS"
+    },
+    "playwright": "1.56.0",
+    "python": "/workspace/scratch/race-ai-playwright156-20261120/bin/python",
+    "source_cycle_full_capture_guard": {
+      "commit_not_called": true,
+      "day_races": 3,
+      "model_input_admission": false,
+      "new_forecasts": 0,
+      "new_pre_race_inputs": 0,
+      "source_admission": false,
+      "state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT",
+      "verified_details": 3,
+      "verified_riders": 21
+    },
+    "unittest_errors": 0,
+    "unittest_failures": 0,
+    "unittest_runs": [
+      {
+        "command": "python -m unittest discover -s tests -p test_keirin_official_sp_browser.py -v",
+        "cwd": "/workspace/RACE-AI-keirin-settle-navigation-20261120",
+        "includes_native_controls": 2,
+        "result": "PASS",
+        "skipped": 0,
+        "tests": 50
+      },
+      {
+        "command": "python -m unittest tests.test_keirin_official_schedule tests.test_keirin_official_sp_receipt tests.test_keirin_cloud_owner_inputs",
+        "cwd": "/workspace/RACE-AI-keirin-settle-navigation-20261120",
+        "result": "PASS",
+        "skipped": 0,
+        "tests": 67
+      },
+      {
+        "command": "PYTHONPATH=pinned:pinned/tests:root:root/tests python -m unittest discover -s root/tests -p test_keirin_cloud_owner_source_cycle.py -v",
+        "cwd": "/workspace/RACE-AI-keirin-403-resume-20261118/owner-source",
+        "pinned_model_sha": "fe7e5581263b2b31fbd45536ac6a611c2779fa65",
+        "result": "PASS",
+        "skipped": 0,
+        "tests": 7
+      }
+    ],
+    "unittest_skips": 0,
+    "unittest_total": 124
+  },
+  "workflow_tree": "9f87dbaedfd5b89de64524e3b9b9b2742e5e491c",
+  "workflow_tree_equal_to_base": true
+}
