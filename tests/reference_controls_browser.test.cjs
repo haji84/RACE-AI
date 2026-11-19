@@ -54,6 +54,7 @@ const allocationDensity=[];
   assert.equal(await page.locator('.ticket-row .tag').first().isVisible(),true,'saved/manual candidate origin remains visible');
   assert.ok((await page.locator('.ticket-amount').first().boundingBox()).height>=44,'amount remains a usable touch target');
   assert.ok((await page.locator('[data-delete-ticket]').first().boundingBox()).height>=44);
+  assert.ok((await page.locator('[data-delete-ticket]').first().boundingBox()).width>=44,'delete keeps a complete 44px-wide touch target');
   const combo=await page.locator('.ticket-row .combo').first().boundingBox(),amount=await page.locator('.ticket-amount').first().boundingBox();
   assert.ok(combo.x+combo.width<=amount.x,'ticket combination must not overlap the editable amount');
   await page.locator('.ticket-amount').first().fill('10000000');await page.locator('.ticket-amount').first().press('Tab');
