@@ -4027,12 +4027,20 @@ class NativeSessionStartupDiagnosticTests(unittest.TestCase):
 
     @contextmanager
     def fake_apple(self, process, driver, *, connect_error=None, start_error=None):
+        real_connect = S.socket.create_connection
+        def connect_socket(address, *args, **kwargs):
+            if connect_error is not None:
+                raise connect_error
+            base = driver.base
+            if type(base) is str and address == ('127.0.0.1', S.urllib.parse.urlsplit(base).port):
+                return real_connect(address, *args, **kwargs)
+            return unittest.mock.MagicMock()
         with patch.object(S.platform, 'system', return_value='Darwin'), \
                 patch.object(S.os.path, 'isfile', return_value=True), \
                 patch.object(S.os, 'access', return_value=True), \
                 patch.object(S.subprocess, 'Popen', return_value=process, side_effect=start_error), \
                 patch.object(S, 'WebDriver', return_value=driver), \
-                patch.object(S.socket, 'create_connection', side_effect=connect_error) as connect, \
+                patch.object(S.socket, 'create_connection', side_effect=connect_socket) as connect, \
                 patch.object(S.time, 'sleep'):
             yield connect
 
@@ -4083,7 +4091,7 @@ class NativeSessionStartupDiagnosticTests(unittest.TestCase):
                     response_session_id_field_present=False, response_capabilities_field_present=False))
                 self.assertEqual(report['webdriver_http_status'], 500)
                 self.assertEqual([path for path, _ in requests], ['/session'])
-                self.assertEqual(connect.call_count, 1)
+                self.assertEqual(connect.call_count, 2)  # Readiness plus the single real HTTP POST.
                 self.assertEqual(process.poll.call_count, 3)
                 self.assertEqual(process.terminate.call_count, int(returncode is None))
                 process.wait.assert_called_once_with(timeout=5)
