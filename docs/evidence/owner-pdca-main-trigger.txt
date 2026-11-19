@@ -838,3 +838,14 @@ cleanup failure remains HOLD. Do not add retries, RPCs or timeout changes.
 Reuse the existing original-receipt PR and preserve its historical SHA file;
 that receipt does not recover its absent ZIP or establish current predictions.
 No direct source dispatch, reset, model promotion or UI deployment is added.
+
+2026-11-19 canonicalize only test-owned temporary output roots after actual
+M121 macOS source-free tests stopped in six subcases before Safari use.
+Keep the production symlink guard, original test methods and every source/
+crypto/model/UI pin unchanged; no retry, RPC or timeout is added.
+The exact real-directory-alias reproduction now reaches resize/open/capture
+boundaries and all 172 tests pass under both normal and linked temp roots.
+Use the existing main gate for native acceptance; no direct source dispatch.
+Original PR106 data stays reachable at immutable5b0f7ef; only its hash-only
+32-race receipt enters the current tree. Historical hash records do not
+restore missing originals or enter the current/prospective denominator.

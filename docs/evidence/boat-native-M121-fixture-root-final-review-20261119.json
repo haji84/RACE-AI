@@ -1,0 +1,27 @@
+{
+  "schema": "RACE_AI_NATIVE_FIXTURE_ROOT_FINAL_REVIEW_V1",
+  "author_commit": "b5c1e5cf88be0e7a8d63dc32b848a5ecc9f8d496",
+  "root_code_commit": "9445fdb888334e75ccdb9d9a345fcd3df0d186f1",
+  "reviewed_full_diff": true,
+  "canonicalized_test_fixture_roots": 2,
+  "strengthened_boundary_assertions": 4,
+  "runtime_guard_changed": false,
+  "test_skips_added": 0,
+  "original_172_method_names_preserved": true,
+  "root_regression": {
+    "tests": 210,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "seconds": 20.105,
+    "external_attempts": 0,
+    "modules": [
+      "tests.test_boat_native_safari_acceptance",
+      "tests.test_boat_native_safari_dispatch"
+    ]
+  },
+  "actual_Mac_after_fix_verified": false,
+  "source_provider_requests": 0,
+  "local_owner_key_reads": 0,
+  "UI_workflow_source_or_models_changed": false
+}

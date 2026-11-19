@@ -1,0 +1,268 @@
+{
+  "schema": "RACE_AI_MAIN121_MERGE_AND_CI_V1",
+  "merge_commit": "147d0558dc8c8718af673310b324b63babc90d59",
+  "parents": [
+    "8d67210cb1ab72dfcf51619714d4c923f902fef6",
+    "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb"
+  ],
+  "tested_tree": "b0627bcfdf671fe49beb14b0610b04f2140aa52d",
+  "merge_tree_equals_tested": true,
+  "merge_at": "2026-11-19T05:49:27Z",
+  "exact_head_checks": {
+    "check_runs": [
+      {
+        "completed_at": "2026-11-19T05:45:01Z",
+        "conclusion": "skipped",
+        "details_url": "https://coderabbit.ai?utm_source=cr_app&utm_medium=github",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135368013688,
+        "name": "CodeRabbit",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:42:25Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937479/job/135367021821",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135367021821,
+        "name": "restore_on_other_runner",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937509/job/135366890694",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366890694,
+        "name": "daily",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937509/job/135366889987",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366889987,
+        "name": "Reconcile authenticated first P0 with retained official results",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937509/job/135366889832",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366889832,
+        "name": "Reconcile authenticated completed BOAT source (no provider GET)",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937470/job/135366889665",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366889665,
+        "name": "fallback_nationwide_capture",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937470/job/135366889608",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366889608,
+        "name": "fallback_scheduling_gate",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937509/job/135366889506",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366889506,
+        "name": "Gate-and-dispatch original BOAT owner P0/P1 (no scorer duplication)",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937509/job/135366889365",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366889365,
+        "name": "Read first P0 on a separate runner at the exact vault commit",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937509/job/135366889299",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366889299,
+        "name": "Retain exact first P0 and companions without source acquisition",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937447/job/135366889260",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366889260,
+        "name": "archive_fixture_from_main",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937479/job/135366889216",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366889216,
+        "name": "production_key_readiness",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937378/job/135366889019",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366889019,
+        "name": "Independently reopen sealed national P0/P1 original matrix",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937373/job/135366888941",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366888941,
+        "name": "daily_live_once",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:41:55Z",
+        "conclusion": "skipped",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937470/job/135366888705",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366888705,
+        "name": "personal_hourly",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:42:21Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937509/job/135366888210",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366888210,
+        "name": "unit",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:43:35Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937509/job/135366887993",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366887993,
+        "name": "BOAT mirror source-free PR regression",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:42:05Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937447/job/135366887799",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366887799,
+        "name": "archive_tests",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:42:17Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937479/job/135366887655",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366887655,
+        "name": "produce",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:42:27Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937509/job/135366887640",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366887640,
+        "name": "BOAT exact fast-result source tests (no provider GET)",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:42:01Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937470/job/135366887530",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366887530,
+        "name": "unit",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:42:09Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937373/job/135366887343",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366887343,
+        "name": "discovery_tests",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:48:25Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937378/job/135366887322",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366887322,
+        "name": "unit",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:42:24Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937382/job/135366887245",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366887245,
+        "name": "verify_live_http",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:42:11Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937496/job/135366887133",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366887133,
+        "name": "keirin_core",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-11-19T05:42:10Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/haji84/RACE-AI/actions/runs/44466937462/job/135366887111",
+        "head_sha": "eeb3c5a430fc39710c6c62775ae8f7fbe6dd6deb",
+        "id": 135366887111,
+        "name": "private_two_race_cycle",
+        "status": "completed"
+      }
+    ],
+    "total_count": 26
+  },
+  "completed_matrix_tests": {
+    "tests": 472,
+    "seconds": 343.745,
+    "failures": 0,
+    "errors": 0
+  },
+  "completed_A74_raw_tests": {
+    "tests": 7,
+    "seconds": 20.255,
+    "failures": 0,
+    "errors": 0
+  },
+  "completed_Safari_PR_tests": {
+    "tests": 172,
+    "seconds": 20.289,
+    "failures": 0,
+    "errors": 0
+  }
+}

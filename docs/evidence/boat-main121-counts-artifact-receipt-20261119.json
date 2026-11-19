@@ -1,0 +1,16 @@
+{
+  "schema": "RACE_AI_M121_COUNTS_ARTIFACT_RECEIPT_V1",
+  "main": "147d0558dc8c8718af673310b324b63babc90d59",
+  "run_id": 44467797701,
+  "job_id": 135369676262,
+  "artifact_id": 14503356965,
+  "artifact_bytes": 8818,
+  "artifact_sha256": "83f4d8a7b717805354e083cfc5aa5081788b5ea3a4dae8dee129c37a8f7a2fa9",
+  "single_member": true,
+  "ZIP_CRC_verified": true,
+  "report_sha256": "f9a0489268b0881cf431c2c5a0309b13c690d031ebae300d0f7e7eb156ad9ca6",
+  "service_metadata_and_upload_clock_verified_by_independent_reader": true,
+  "root_container_reverified": true,
+  "local_owner_key_reads": 0,
+  "real_plaintext_source_reads": 0
+}
