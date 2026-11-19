@@ -58,6 +58,114 @@ Its success state is `CONFIGURATION_READY_LIVE_ACCEPTANCE_PENDING`, never a
 claim of completed live capture. Actual main run evidence is recorded after
 normal protected integration; candidate tests do not substitute for it.
 
+### Actual integration and first main result
+
+[PR #309](https://github.com/haji84/RACE-AI/pull/309) was merged normally at
+`9520104c65c88b3c9c92685ba865d21ad577ced8` after all 11 exact-candidate workflows
+passed at `92190f7fef6edb96c08abd2b128ab2965b39ab69`. PR #310 was included and is
+also recorded as merged. No protected-main bypass was used.
+
+The actual main [run 44453751790](https://github.com/haji84/RACE-AI/actions/runs/44453751790)
+passed the 375 source-free tests, then stopped readiness with
+`HOLD_EXISTING_OWNER_PRIVATE_SECRET_NOT_CONFIGURED`. The existing RSA Secret
+was unavailable to that job; this does not prove that no similarly named
+secret exists in another environment or account. The three A/B opt-ins and
+the official-source opt-in were not `true`, and the external source prefix
+was empty. Provider requests and state writes were both **0**.
+
+The key check ran before the origin, checkout and state-branch checks, so
+their false values mean **not reached**, not a diagnosed Git failure.
+An independent read-only remote check found the existing state branch at
+`2c0f9edfe069ce8a190a348c4497c4ed906bd30a`.
+
+The linked GitHub connector does not expose repository Secret/variable
+configuration. A settings-browser authentication attempt did not complete;
+a fresh target-page check still showed signed-out GitHub. No Secret,
+repository variable, or authentication credential was changed.
+
+The concurrent old video-storage [run 44453751820](https://github.com/haji84/RACE-AI/actions/runs/44453751820)
+also failed on existing gates: `DURABLE_PRIVATE_STORAGE_NOT_CONFIGURED` and
+`PREVIOUS_DAY_SOURCE_STILL_UNPROVEN`. The former was already observed in
+[run 42717253158](https://github.com/haji84/RACE-AI/actions/runs/42717253158).
+The latter executed fixed historical commit
+`c26ac0927647f317acf855e0c42cd1703232c19b`, not the newly merged implementation,
+and found no eligible November 18 source-recovery waves. This is not grounds
+to introduce an external storage service or call the failed gate successful.
+
+### Live input prerequisites remain separate
+
+The current capture uses KEIRIN.JP `JSJ057`/`JSJ017` for the official roster
+and cutoffs, then Kdreams discovery plus Kdreams/netkeirin racecards for model
+inputs. The official schedule alone does not provide the existing model's
+marks, line composition, competition score, H/B counts, riding style, or
+the normalized four-month win rate used as `recent_form_score`.
+
+The source flag is an opt-in, not evidence of source-use permission or input
+coverage. A working, permitted route for the complete existing model inputs
+must be established before starting nationwide collection. A known provider
+refusal must not be treated as resolved merely because the JST date changes.
+The reviewed historical PDFs and two refund notices are not unattended
+adapters for arbitrary future races and are not wired into live polling.
+
+Concurrent main commit `f4a42cda749e6d52f90610b519df5cd7c896fac5` added an
+approved-host transport guard: the existing WINTICKET and KEIRIN.JP host
+profile is retained, while secondary-provider requests are rejected before
+transport. This follow-up preserves that guard and all other concurrent main
+changes. The legacy secondary parsers remain usable for already-saved inputs;
+turning on a flag does not make the blocked live input route available.
+
+An explicit saved-only verification mode can inspect the existing encrypted
+history without those live opt-ins. It must not fetch a provider or append
+state, and missing saved evidence must remain HOLD rather than turn into a
+successful empty run. This mode does not replace the future-day acceptance.
+
+The nationwide workflow now accepts `mode=saved-only` on explicit dispatch
+from this repository's `main`, after its source-free tests pass. The dedicated
+entry point checks the repository ID, run identity, checkout, canonical remote
+and existing owner-key pin, then reads one fixed existing state commit. It
+uses only saved original-proof bundles: missing evidence does not cause a
+provider request or a GitHub evidence refill. It requires only `contents: read`.
+The three live A/B opt-ins and official-source opt-in can remain off.
+
+Only a fully verified saved cohort, including explicit full cancellations,
+returns `SAVED_ONLY_REPLAYED_LIVE_ACCEPTANCE_PENDING`. Missing originals,
+results, origin bundles, or official days return a nonzero HOLD. Its artifacts
+contain safe counts/statuses and owner-key-encrypted views only. The existing
+`settle-days --saved-only` command is intentionally not the job entry point,
+because that live command can still append revisions and polling progress.
+
+Provider-denial lookup now keeps unresolved 403/429 markers effective across
+dates. A later same-day denial is appended separately if a transient failure
+already occupies the daily marker, preserving both records. Other transport
+failures retain their observation-day scope. No marker deletion, automatic
+release, or new provider access is introduced.
+
+### Actual encrypted owner-review preservation
+
+The state branch initially contained one old synthetic snapshot and no new
+A/B originals, official-result deltas, or provider-stop markers. That is why
+live-history restore cannot be accepted from it yet.
+
+The existing 17-race encrypted owner-review snapshot was subsequently added
+unchanged to the same state branch in commit
+`687bdc834a37b841c36a56162a75cb8a1bc3128f`, under the separate
+`state/keirin/owner-review/v1/2026-11-18/` namespace. Only the ciphertext and
+an allowlisted storage receipt were added. The old files and history remain
+unchanged, and the update used a normal fast-forward with an expected-head
+check. No private key or plaintext source/prediction was published.
+
+A separate local Git checkout fetched the actual remote bytes, checked the
+commit ancestry, regular-file mode, Git blob identity and SHA256, and then
+authenticated the ciphertext with the existing owner key. Its restored
+report contains 17 scored races out of 79. The ciphertext is 8,710,658 bytes,
+SHA256 `5634aa14e7286ca2d576ebf5e1862d004b06d0c2f9a989e0c3aac105e074f757`.
+
+The readback workflow independently checks these same remote encrypted bytes
+on GitHub Actions without any private key, provider request, or state write.
+Its completion must be confirmed from the actual run. This is after-the-fact
+preservation of a historical review; it is not a new pre-cutoff save or a
+live-pipeline delta, and it does not make missing automated history appear.
+
 ## Historical replay and result provenance
 
 Two original GitHub batches contain the additional 16 originals:
@@ -160,6 +268,17 @@ raw result documents are not published in Git.
 - Independent review: the two concrete defects above were reproduced, fixed,
   and rechecked. No further integration blocker was found in its reviewed scope.
 
+Follow-up saved-only and persistent-denial changes passed the updated complete
+source-free command: **36 modules / 404 tests**, 58.366 seconds locally.
+The saved-only task group passed 52 tests and provider/caller group passed 77;
+they overlap with the 404 and are not added to it. The independent reviewer
+also reproduced two denial-history defects (corrupt ancestor directories and
+duplicate JSON fields), confirmed their fixes, and found no further blocker.
+The exact encrypted-archive workflow step was also executed against a fresh
+actual remote checkout and returned the expected hash-verified safe receipt.
+After preserving concurrent main `f4a42cda` and its six transport-admission
+tests, the combined source-free command passed **410 tests in 58.755 seconds**.
+
 A bare repository-wide unittest discovery is not a meaningful green gate in
 this repository: workflows deliberately check out several pinned historical
 source trees and run them in isolated import contexts. That exploratory run
@@ -178,6 +297,8 @@ resume still need actual receipts. Unknown partial-refund formats remain HOLD.
 - [17-race settlement](evidence/2026-11-19/keirin_17race_official_AB_settlement_safe_v1.json)
 - [Refund source support](evidence/2026-11-19/keirin_refund_notice_source_support_safe_v1.json)
 - [Seibuen original/model HOLD](evidence/2026-11-19/keirin_seibuen1r_original_model_hold_safe_v1.json)
+- [Actual main integration and readiness](evidence/2026-11-19/keirin_main_readiness_safe_v1.json)
+- [Actual encrypted owner-review Git readback](evidence/2026-11-19/keirin_owner_review_git_readback_safe_v1.json)
 
 The encrypted full evidence and updated owner HTML are retained as new
 versions of the existing owner deliverables, preserving the previous revision.
