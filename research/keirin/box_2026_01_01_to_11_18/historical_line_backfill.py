@@ -56,7 +56,7 @@ def run(root,out,max_pages,delay):
     rows=load_rows(root);male=[r for r in rows if r["gender"]=="男子"]
     if len(male)!=22245:raise ValueError("MALE_DENOMINATOR_CHANGED")
     out.mkdir(parents=True,exist_ok=True)
-    log=out/"source_fetch_audit.jsonl";store=out/"lineups_collected.jsonl"
+    log=out/"source_fetch_audit.jsonl";store=out/"lineups_collected.jsonl";store.touch(exist_ok=True)
     seen_urls={r["source_url"] for r in read_jsonl(log) if r.get("status") in ("OK","NO_PAGE","NO_VALID_LINES")}
     known={r["race_key"]:r for r in read_jsonl(root/"published_lineup_pilot_20261118.jsonl")}
     for r in read_jsonl(store):
