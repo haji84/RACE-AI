@@ -4,6 +4,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {chromium}=require('playwright'),root=path.resolve(__dirname,'../web');
 const raw=fs.readFileSync(path.join(root,'data/example-synthetic-forecast-audit.json')),fixture=JSON.parse(raw);
 let browser,server;
+const allocationDensity=[];
 (async()=>{
  server=http.createServer((req,res)=>{
   const name=new URL(req.url,'http://local').pathname,file=path.resolve(root,'.'+(name==='/'?'/index.html':name));
@@ -28,6 +29,27 @@ let browser,server;
   };
   await load(fixture);await nav('picks');await page.locator('#copy-top8').click();await page.locator('#equal-allocate').click();
   assert.equal(await page.locator('.ticket-row').count(),8);
+  if(width<600){
+   for(const densityHeight of [844,948]){
+    await page.setViewportSize({width,height:densityHeight});await page.evaluate(()=>scrollTo({top:0,left:0,behavior:'instant'}));
+    const measured=await page.evaluate(()=>{
+     const box=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom};};
+     const nav=box(document.querySelector('.bottom-nav')),rows=[...document.querySelectorAll('.ticket-row')].map(box);
+     const actions=['copy-top8','review-allocation'].map(id=>({id,...box(document.getElementById(id))}));
+     const required=[...document.querySelectorAll('.allocation-controls>.section-heading,.allocation-controls>p,.allocation-settings label')];
+     return {width:innerWidth,height:innerHeight,settings:box(document.querySelector('.allocation-controls')),rows,nav_top:nav.y,
+      complete_rows:rows.filter(r=>r.y>=0&&r.bottom<=nav.y-1).length,actions,
+      descriptions_and_fields_in_flow:required.length===6&&required.every(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(e).visibility!=='hidden';}),
+      horizontal_overflow:document.documentElement.scrollWidth>innerWidth};
+    });
+    assert.equal(measured.rows.length,8,'density must retain every ticket');
+    assert.ok(measured.descriptions_and_fields_in_flow,'all descriptions, lineage and native fields stay in normal flow');
+    assert.ok(measured.actions.every(action=>action.height>=44&&action.width>=44),'copy and review remain usable touch targets');
+    assert.equal(measured.horizontal_overflow,false);
+    allocationDensity.push({...measured,minimum_complete_rows:densityHeight===948?3:2});
+   }
+   await page.setViewportSize({width,height});await page.evaluate(()=>scrollTo({top:0,left:0,behavior:'instant'}));
+  }
   const row=await page.locator('.ticket-row').first().boundingBox();assert.ok(row.height<=82,`${width}px ticket editor row is unnecessarily tall: ${row.height}`);
   assert.equal(await page.locator('.ticket-row .tag').first().isVisible(),true,'saved/manual candidate origin remains visible');
   assert.ok((await page.locator('.ticket-amount').first().boundingBox()).height>=44,'amount remains a usable touch target');
@@ -114,4 +136,7 @@ let browser,server;
   assert.equal(JSON.stringify(long),original);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.deepEqual(errors,[]);
   console.log('PASS allocation/results/long controls '+JSON.stringify({width,height,ticket_row_height:Math.round(row.height),maximum_amount_native_bounds:maximumAmount,native_scrollbar_gutter_px:gutterPixels,minimum_ticket_lane_gap_px:Math.min(...visibleLanes.map(lane=>amountWithGutter.x-lane.right)),two_digit_manual_combo:true,trust_before_results:true,results_before_metrics:true}));await context.close();
  }
+ console.log('Allocation initial viewport geometry '+JSON.stringify(allocationDensity));
+ assert.ok(allocationDensity.every(result=>result.complete_rows>=result.minimum_complete_rows),
+  'mobile allocation must expose at least one more complete row than f9e2 (844px:1->2,948px:2->3): '+JSON.stringify(allocationDensity));
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(r=>server.close(r));});
