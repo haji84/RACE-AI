@@ -1,5 +1,6 @@
 """No real network: existing cloud cycle must keep private owner-source limits."""
 from pathlib import Path
+from datetime import datetime, timezone
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 import os
@@ -95,6 +96,45 @@ class CloudOwnerSourceCycleTests(unittest.TestCase):
         self.assertEqual(cloud.missing_source_configuration(
             source_state='OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED'),[])
         self.assertEqual(len(cloud.missing_source_configuration(self.env)),4)
+        commit.assert_not_called()
+
+    def test_full_official_day_capture_is_not_complete_model_input_or_archive_genesis(self):
+        from scripts import keirin_cloud_owner_inputs as inputs
+        import tests as fixtures
+        collect_official_sp = inputs._official_collector()
+        with patch.object(fixtures, '__path__', list(fixtures.__path__) + [str(Path(__file__).parent)]):
+            from tests.test_keirin_official_sp_browser import Browser
+        browser = Browser(venues=(98,))
+        original_collect = inputs.collect_owner_inputs
+        def capture(inbox, **kwargs):
+            return collect_official_sp(inbox, browser_factory=lambda: browser, **kwargs)
+        def collect(inbox, **kwargs):
+            return original_collect(inbox, **kwargs, official_capture=capture,
+                clock=lambda: datetime(2030, 1, 15, 2, tzinfo=timezone.utc),
+                monotonic=lambda: 0)
+        env = {**self.env, 'RACE_AI_OWNER_AUTO_SOURCE_PROFILE': PROFILE,
+               'RACE_AI_STATE_KEY': 'public-invented-nonkey-fixture'}
+        with patch.dict(os.environ, env, clear=True), patch.object(
+            cloud, 'check_owner_cipher_consent', return_value=True), patch.object(
+            cloud, 'restore', return_value=(None, None)), patch(
+            'scripts.keirin_cloud_owner_inputs.collect_owner_inputs', side_effect=collect), patch.object(
+            cloud, 'commit') as commit:
+            report = cloud.cycle(self.tmp.name, self.tmp.name)
+        acquired = report['owner_source_acquisition']
+        details = acquired['official_sp_acquisition']
+        self.assertEqual(details['day_race_count'], 3)
+        self.assertEqual(details['details_verified'], details['day_race_count'])
+        self.assertEqual(details['riders_verified'], 21)
+        self.assertEqual(details['unknown_transmitted_status_count'], 0)
+        self.assertFalse(details['budget_exhausted'])
+        self.assertEqual(acquired['public_page_requests'], len(browser.sent))
+        self.assertFalse(acquired['source_capture_held'])
+        self.assertEqual(report['state'], 'HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT')
+        self.assertEqual(report['new_forecasts'], 0)
+        self.assertEqual(acquired['new_pre_race_inputs'], 0)
+        self.assertIs(acquired['actual_four_model_forecast_saved'], False)
+        self.assertIs(details['source_admission'], False)
+        self.assertIs(details['model_input_admission'], False)
         commit.assert_not_called()
 
 if __name__=='__main__':
