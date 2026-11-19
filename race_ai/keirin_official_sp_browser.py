@@ -39,6 +39,23 @@ _CHALLENGE = re.compile(r'captcha|turnstile|challenge-platform|just a moment|'
                         r'browser[ ._-]?check|verify (?:you are|your browser)', re.I)
 _PRIVATE_PATH = re.compile(r'(?:^|/)(?:login|signin|authentication|captcha|challenge|'
                            r'vote|voting|touhyou)(?:/|$)', re.I)
+# Fixed read-only projections keep every rendered control check without one
+# browser protocol round trip per attribute or cell. Input values are live DOM
+# properties, matching Locator.input_value(), rather than markup attributes.
+_ONCLICK_VALUES = "nodes => nodes.map(node => node.getAttribute('onclick') || '')"
+_RACE_BUTTON_VALUE = """button => ({
+    has_shadow_root: Boolean(button.parentElement.shadowRoot) ||
+        Array.from(button.parentElement.querySelectorAll('*')).some(node => node.shadowRoot),
+    number_texts: Array.from(button.querySelectorAll('.raceEveNamewid'), node => node.textContent),
+    parent_button_count: button.parentElement.querySelectorAll('button').length,
+    input_values: Array.from(button.parentElement.querySelectorAll('input[type="hidden"]'), input => input.value)
+})"""
+_RACE_BUTTON_VALUES = 'buttons => buttons.map(' + _RACE_BUTTON_VALUE + ')'
+_RACE_GROUP_VALUES = """groups => groups.map(group => ({
+    has_shadow_root: Boolean(group.shadowRoot) ||
+        Array.from(group.querySelectorAll('*')).some(node => node.shadowRoot),
+    label_texts: Array.from(group.querySelectorAll('.divRaceNitiji'), node => node.textContent),
+    rows: Array.from(group.querySelectorAll('button'), """ + _RACE_BUTTON_VALUE + ')}))'
 
 
 class _Stop(Exception):
@@ -427,8 +444,8 @@ class _Collector:
         _need([m for m in fresh_calendar['meetings']
                if m['navigation_reference_sha256'] == digest] == [candidate])
         tables = self.page.locator('table.race_tbl')
-        locators = [tables.nth(i) for i in range(tables.count()) if
-                    _hash((tables.nth(i).get_attribute('onclick') or '').encode()) == digest]
+        locators = [tables.nth(i) for i, value in enumerate(tables.evaluate_all(_ONCLICK_VALUES))
+                    if _hash(value.encode()) == digest]
         _need(len(locators) == 1)
         return node, locators[0], token[1]
 
@@ -451,8 +468,8 @@ class _Collector:
             _need(len(controls) == 1)
             handler = calendar._attribute(controls[0], 'onclick')
             expanders = self.page.locator('div.accordion_menu')
-            exact = [expanders.nth(i) for i in range(expanders.count())
-                     if expanders.nth(i).get_attribute('onclick') == handler]
+            exact = [expanders.nth(i) for i, value in enumerate(expanders.evaluate_all(_ONCLICK_VALUES))
+                     if value == handler]
             _need(len(exact) == 1)
             exact[0].click(timeout=self.timeout())
             # Locators are live; reacquire to also support rendered replacement.
@@ -481,18 +498,20 @@ class _Collector:
         data = receipt._embedded(_document(doc['raw']))
         header = data['SC0201']['C0201data']
         for identifier, field in (('hhJoName', 'joName'), ('hhKaisaihi', 'txtEventDate')):
-            visible_header = self.page.locator('#' + identifier)
-            _need(visible_header.count() == 1 and
-                  receipt._norm(visible_header.text_content() or '') == receipt._norm(header[field]))
+            texts = self.page.locator('#' + identifier).all_text_contents()
+            _need(len(texts) == 1 and
+                  receipt._norm(texts[0] or '') == receipt._norm(header[field]))
         groups = data['SJ0301']['kaisaiDayList']
-        rendered = self.page.locator('#setRaceProgram > div')
-        _need(rendered.count() == len(groups))
+        rendered = self.page.locator('#setRaceProgram > div').evaluate_all(_RACE_GROUP_VALUES)
+        _need(len(rendered) == len(groups))
         selected = None
         day = datetime.fromisoformat(self.day)
         for i, group in enumerate(groups):
-            dom = rendered.nth(i)
-            label = dom.locator('.divRaceNitiji')
-            _need(label.count() == 1 and receipt._norm(label.text_content() or '') ==
+            # querySelectorAll does not pierce shadow roots as Locators do.
+            # Unreviewed roots must never hide additional rendered controls.
+            _need(not rendered[i]['has_shadow_root'])
+            labels = rendered[i]['label_texts']
+            _need(len(labels) == 1 and receipt._norm(labels[0] or '') ==
                   receipt._norm(group['strKaisaiNitijName']))
             label_match = re.fullmatch(r'(?:初日|最終日|[2-9]日目)\(([0-9]{1,2})/([0-9]{1,2})\)',
                                       receipt._norm(group['strKaisaiNitijName']))
@@ -503,18 +522,17 @@ class _Collector:
         _need(selected is not None)
         # Unselected days can contain published placeholders without link fields.
         # Only the uniquely bound current day's rows can supply detail controls.
-        buttons = rendered.nth(selected).locator('button')
+        buttons = rendered[selected]['rows']
         rows = groups[selected]['raceProgramList']
-        _need(buttons.count() == len(rows))
+        _need(len(buttons) == len(rows))
         for j, record in enumerate(rows):
-            button = buttons.nth(j)
-            number = button.locator('.raceEveNamewid')
-            _need(number.count() == 1 and receipt._norm(number.text_content() or '') ==
+            button = buttons[j]
+            numbers = button['number_texts']
+            _need(len(numbers) == 1 and receipt._norm(numbers[0] or '') ==
                   receipt._norm(record['strRaceNo']))
-            parent = button.locator('..')
-            inputs = parent.locator('input[type="hidden"]')
-            _need(parent.locator('button').count() == 1 and inputs.count() == 3
-                  and [inputs.nth(k).input_value() for k in range(3)] ==
+            inputs = button['input_values']
+            _need(button['parent_button_count'] == 1 and len(inputs) == 3
+                  and inputs ==
                   [record['strRaceLnk'], record['strRaceLnkPrm'], record['strRaceLnkKbn']])
         return selected
 
@@ -527,21 +545,23 @@ class _Collector:
         _need(type(group_id) is str and re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,79}', group_id))
         handler = "location.href='#" + group_id + "'"
         buttons = self.page.locator('button')
-        date_buttons = [buttons.nth(i) for i in range(buttons.count())
-                        if buttons.nth(i).get_attribute('onclick') == handler]
+        date_buttons = [buttons.nth(i) for i, value in enumerate(buttons.evaluate_all(_ONCLICK_VALUES))
+                        if value == handler]
         _need(len(date_buttons) == 1 and date_buttons[0].is_visible())
         date_buttons[0].click(timeout=self.timeout())
         self.check()
         def selected_button():
             index = self.verify_list_dom(parsed, doc, bound)
             rows = self.page.locator('#setRaceProgram > div').nth(index).locator('button')
-            exact = [rows.nth(i) for i in range(rows.count()) if
-                receipt._norm(rows.nth(i).locator('.raceEveNamewid').text_content() or '') == str(number)]
-            _need(len(exact) == 1 and exact[0].is_visible())
-            inputs = exact[0].locator('..').locator('input[type="hidden"]')
-            _need(inputs.count() == 3 and [inputs.nth(k).input_value() for k in range(3)] ==
+            values = rows.evaluate_all(_RACE_BUTTON_VALUES)
+            _need(all(not row['has_shadow_root'] and len(row['number_texts']) == 1 for row in values))
+            exact = [(rows.nth(i), row) for i, row in enumerate(values) if
+                     receipt._norm(row['number_texts'][0] or '') == str(number)]
+            _need(len(exact) == 1 and exact[0][0].is_visible())
+            inputs = exact[0][1]['input_values']
+            _need(len(inputs) == 3 and inputs ==
                   ['/sp/race', reference['opaque_reference'], '1'])
-            return exact[0]
+            return exact[0][0]
         button = selected_button()
         detail = self.navigate('/sp/race', 'POST', lambda: button.click(timeout=self.timeout()),
                               reference['opaque_reference'], selected_button)
