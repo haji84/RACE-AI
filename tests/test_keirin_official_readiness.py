@@ -180,6 +180,21 @@ class OfficialReadiness(unittest.TestCase):
                 self.assertFalse(report["live_acceptance_completed"])
                 self.assertNotIn("private-prefix-sentinel", json.dumps(report))
 
+    def test_official_results_configuration_is_independent_from_new_capture(self):
+        report = self.assess(changes={
+            "RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED": "false",
+            "RACE_AI_AB_PUBLIC_CAPTURE_ENABLED": "false",
+        })
+        self.assertEqual(report["state"], "HOLD_NATIONWIDE_AB_NOT_SELECTED")
+        self.assertTrue(report["independent_result_route_configured"])
+        self.assertFalse(report["live_acceptance_completed"])
+        self.assertEqual(report["provider_requests"], 0)
+        self.assertEqual(report["state_writes"], 0)
+        self.assertFalse(self.assess(changes={
+            "RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED": "false",
+            "RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED": "",
+        })["independent_result_route_configured"])
+
     def test_cli_missing_secret_emits_only_fixed_json_and_failure_exit(self):
         readiness = self.implementation()
         output = StringIO()
