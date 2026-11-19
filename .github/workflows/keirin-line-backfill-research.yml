@@ -1,0 +1,65 @@
+name: Keirin historical line backfill (bounded research)
+on:
+  push:
+    branches:
+      - research/keirin-box-line-2026-11-19
+    paths:
+      - .github/workflows/keirin-line-backfill-research.yml
+  workflow_dispatch:
+    inputs:
+      max_pages:
+        description: 'Maximum historical day/venue pages (1-100)'
+        required: false
+        default: '12'
+permissions:
+  contents: write
+concurrency:
+  group: keirin-line-research-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  backfill:
+    if: github.ref == 'refs/heads/research/keirin-box-line-2026-11-19'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/keirin-box-line-2026-11-19
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Offline regression tests
+        run: |
+          set -euo pipefail
+          ROOT=research/keirin/box_2026_01_01_to_11_18
+          python -m py_compile "$ROOT/historical_line_backfill.py" "$ROOT/line_classifier.py"
+          python -m unittest discover -s "$ROOT" -p 'test*line*.py' -v
+      - name: Bounded public lineup collection and verifiable counts
+        env:
+          MAX_PAGES: ${{ inputs.max_pages || '12' }}
+        run: |
+          set -euo pipefail
+          ROOT=research/keirin/box_2026_01_01_to_11_18
+          python "$ROOT/historical_line_backfill.py" --root "$ROOT" --out "$ROOT/line_backfill" --max-pages "$MAX_PAGES" --delay 2.0
+      - name: Upload audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-lines-${{ github.run_id }}
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            research/keirin/box_2026_01_01_to_11_18/line_backfill/*.json
+            research/keirin/box_2026_01_01_to_11_18/line_backfill/*.jsonl
+      - name: Checkpoint source evidence and coverage on the research branch
+        run: |
+          set -euo pipefail
+          ROOT=research/keirin/box_2026_01_01_to_11_18
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$ROOT/line_backfill/lineups_collected.jsonl" "$ROOT/line_backfill/source_fetch_audit.jsonl" "$ROOT/line_backfill/line_coverage.json" "$ROOT/line_backfill/batch_result.json" || true
+          if ! git diff --cached --quiet; then
+            git commit -m 'data(keirin): add verified published-lineup research batch'
+            git push origin HEAD:refs/heads/research/keirin-box-line-2026-11-19
+          fi
