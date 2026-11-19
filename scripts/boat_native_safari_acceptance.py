@@ -182,6 +182,25 @@ def failure_native_browser(capabilities):
     return {'browserName': browser, 'browserVersion': version, 'platformName': system}
 
 
+def startup_diagnostic(operation, observed):
+    """Project startup structure only; neither driver text nor session values."""
+    phases = {'start_driver': 'process_launch', 'wait_for_driver': 'tcp_connect',
+              'new_session': 'new_session'}
+    if type(operation) is not str or operation not in phases:
+        return None
+    observed = observed if type(observed) is dict else {}
+    result = {'phase': phases[operation]}
+    for name in ('tcp_connected', 'process_running_before_connect', 'process_running_after_failure',
+                 'response_session_id_field_present', 'response_capabilities_field_present'):
+        value = observed.get(name)
+        result[name] = value if type(value) is bool else None
+    code, message = observed.get('process_exit_code_after_failure'), observed.get('response_message_state')
+    result['process_exit_code_after_failure'] = code if type(code) is int and -255 <= code <= 255 else None
+    result['response_message_state'] = message if type(message) is str and message in (
+        'absent', 'empty_string', 'nonempty_string', 'non_string') else None
+    return result
+
+
 def failure_report(error):
     reason = str(error) if isinstance(error, SafariHold) and str(error) in REASONS else 'SAFARI_OPERATION_FAILED'
     report={'status': 'NATIVE_SAFARI_ACCEPTANCE_HOLD', 'reason': reason}
@@ -217,6 +236,9 @@ def failure_report(error):
                 error.w3c_error in W3C_ERRORS else None,
             remote_automation_disabled_message_observed=error.remote_automation_disabled is True,
             webdriver_native_browser=failure_native_browser(getattr(error, 'native_browser', None)))
+        startup = startup_diagnostic(report['webdriver_operation'], getattr(error, 'startup', None))
+        if startup is not None:
+            report['webdriver_startup'] = startup
     if isinstance(error, (DriverHold, SelectHold)):
         context = error.ui_context if type(getattr(error, 'ui_context', None)) is dict else {}
         stage, action, width, click_path = (context.get(k) for k in ('stage', 'action', 'width', 'click_path'))
@@ -915,8 +937,16 @@ def driver_error(operation, http_status=None, value=None):
     message = value.get('message') if type(value) is dict else None
     disabled = type(message) is str and (
         "You must enable the 'Allow Remote Automation' option in Safari's Develop menu" in message)
-    return DriverHold(operation=operation, http_status=http_status, w3c_error=code,
-                      remote_automation_disabled=disabled)
+    error = DriverHold(operation=operation, http_status=http_status, w3c_error=code,
+                       remote_automation_disabled=disabled)
+    if operation == 'new_session' and type(value) is dict:
+        error.startup = {
+            'response_message_state': ('absent' if 'message' not in value else
+                'non_string' if type(message) is not str else
+                'nonempty_string' if message else 'empty_string'),
+            'response_session_id_field_present': 'sessionId' in value,
+            'response_capabilities_field_present': 'capabilities' in value}
+    return error
 
 
 def driver_document(raw, limit):
@@ -1220,20 +1250,40 @@ def apple_driver():
     except OSError:
         raise DriverHold('SAFARIDRIVER_UNAVAILABLE', operation='start_driver') from None
     driver = WebDriver(port)
+    startup = {'tcp_connected': None, 'process_running_before_connect': None}
     try:
-        ready = False
-        for _ in range(100):
-            if process.poll() is not None:
+        try:
+            ready = False
+            for _ in range(100):
+                code = process.poll()
+                startup['process_running_before_connect'] = (True if code is None else
+                    False if type(code) is int else None)
+                if code is not None:
+                    raise DriverHold('SAFARIDRIVER_UNAVAILABLE', operation='wait_for_driver')
+                try:
+                    with socket.create_connection(('127.0.0.1', port), timeout=0.2):
+                        startup['tcp_connected'] = True
+                        ready = True
+                        break
+                except OSError:
+                    startup['tcp_connected'] = False
+                    time.sleep(0.1)
+            if not ready:
                 raise DriverHold('SAFARIDRIVER_UNAVAILABLE', operation='wait_for_driver')
+            identity = driver.new_session()
+        except DriverHold as error:
+            observed = getattr(error, 'startup', None)
+            observed = dict(observed) if type(observed) is dict else {}
+            observed.update(startup)
             try:
-                with socket.create_connection(('127.0.0.1', port), timeout=0.2):
-                    ready = True
-                    break
-            except OSError:
-                time.sleep(0.1)
-        if not ready:
-            raise DriverHold('SAFARIDRIVER_UNAVAILABLE', operation='wait_for_driver')
-        identity = driver.new_session()
+                code = process.poll()
+                observed['process_running_after_failure'] = (True if code is None else
+                    False if type(code) is int else None)
+                observed['process_exit_code_after_failure'] = code if type(code) is int else None
+            except Exception:
+                pass  # Diagnostic sampling must preserve the original startup failure.
+            error.startup = observed
+            raise
         yield driver, identity
     finally:
         try:
