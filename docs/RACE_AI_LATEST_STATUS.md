@@ -1,3 +1,17 @@
+# 2026-11-20 JST｜公式競輪25レースの実取得を確認（GOAL未達）
+
+本人用の開発を継続する。一般公開の承認待ちは設けず、UI新規公開・投票・本番重み切替は行っていない。以下を最新の実測として優先し、下段を履歴として保持する。
+
+- main **49e63d2ec63f4602fc855fc5b5a960023c9d46c0** は既存PR72の通常保護merge。tested head7ea2c4b0とtree **265921571898a00b58452896797b2b62ae9a1e1d** が一致。新PR0、元331変更pathをGit履歴へ保全し、元treeを適用していない。workflow全byte/元モデル/weights/source pins/flagsは維持した。
+- 認証済み完了log **44570218869/job135726669330/attempt1** で、当日の6会場・57レースIDと **25レース・延べ183選手** を実検証した。送信/受信 **5,292件が全てHTTP200、403/429・未確認・blockは0**。通常遷移でpending画像/フォントが中断されて止まる問題を修正した後、後続レースまで進めた。[実取得の件数・hash](evidence/keirin-403-official-actual-20261120/actual-main-source.json)。
+- 終了状態は **HOLD_OFFICIAL_SP_BUDGET / budget_exhausted=true**。既存120秒の範囲で取得したprefixであり、全57レース/全既存モデルの完成ではない。全25件は公式締切前として検証されたが、締切15〜10分前の生成・保存・照合を証明したものでもない。新予想0、source/model admissionはfalseのまま。
+- 関連165件、元モデル優先環境25件、独立94件/同一ブラウザ版のnative6controlが成功。GitHub check62件は11成功/51skip/失敗0。拒否・未確認・期限切れを保持し、例外ログは固定分類とlocal関数/行だけ。[実装・独立review・保全](evidence/keirin-403-official-actual-20261120/implementation-and-validation.json)。
+- 先行した通常運転が自然終了してから上記検証が実行された。BOATのcancel/retry/reset/hotswapやcron/runner/timeout/permissionの変更は0。続いて、既存の通常運転経路 **workflow_dispatch/非pilot** で57件全体の読取り範囲を確認中。鍵はActions内だけで扱い、実完了前の内容は未確認とする。
+- WINTICKET自身/映像collectorの403解除は未確認。公式KEIRIN.JPの入力取得が進んだことと、そのサーバ側の解除を同一視しない。Cookie持込・UA/headers偽装・proxyや、拒否後の再試行は行っていない。
+- UI/証拠PR62はDraft・baseproductionのまま。82 web blobs/tree **5cbbfe05a2971485b5c32a84a8ddf7b2539604cc** を保持する。物理iPhone13Pro、6艇連続識別/校正/予想接続、全4競技全日×全既存モデルの締切前運転、前向き精度改善は未達。原本336候補/1,008fileの全byte復旧、実Mac Safari172件、元offline未push2commitのUNRESTOREDを継承する。
+
+以下は以前の確認記録。
+
 # 2026-11-20 JST｜競輪公式入力の実取得と残る通信停止（GOAL未達）
 
 本人用の開発を継続する。UI新規公開・投票・本番重み切替は行っていない。以下を最新の確認とし、下段の過去記録を保持する。

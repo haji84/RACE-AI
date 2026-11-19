@@ -1,19 +1,20 @@
 {
   "schema": "RACE_AI_KEIRIN_OFFICIAL_INTEGRATION_VALIDATION_V1",
-  "recorded_at_utc": "2026-11-19T15:58:22.869425+00:00",
+  "recorded_at_utc": "2026-11-19T17:12:44.972849+00:00",
   "repository": "haji84/RACE-AI",
-  "main": "bfd8de04b8e6bb7fefc6a910f1d2aae2f536e40f",
-  "tested_head": "dc687aec3dbee3a781a1b073156e493d6efd7b84",
-  "tested_tree": "ca53ead098241c43f1822f9f76a40ed7a9a9b657",
+  "main": "49e63d2ec63f4602fc855fc5b5a960023c9d46c0",
+  "tested_head": "7ea2c4b07bac7971322ee720290551e3b2233a3b",
+  "tested_tree": "265921571898a00b58452896797b2b62ae9a1e1d",
   "normal_protected_merge": true,
-  "existing_pr": 103,
+  "existing_pr": 72,
   "previous_existing_prs": [
     101,
-    102
+    102,
+    103
   ],
   "new_pr_count": 0,
   "original_pr103_head": "9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330",
-  "original_paths_preserved": 132,
+  "original_paths_preserved": 331,
   "original_tree_replayed": false,
   "workflow_tree_unchanged": "9f87dbaedfd5b89de64524e3b9b9b2742e5e491c",
   "ui_deployment": false,
@@ -24,8 +25,9 @@
   "new_forecasts": 0,
   "review": {
     "verdict": "CLEAR",
-    "sha256": "dd834823e46332b7783e30fdc9988742a993838932c8dd51ca091e882b91c175",
-    "independent_tests": 84,
+    "sha256": "b420f4c3127494b5bbe251ebf82af3b64e77e383722f6c931a7b904e80d0e508",
+    "independent_tests": 94,
+    "native_controls": 6,
     "provider_calls": 0
   },
   "github_checks": {
@@ -35,44 +37,66 @@
     "failed": 0
   },
   "local_verification": {
-    "schema": "RACE_AI_KEIRIN_CURRENT_DAY_LOCAL_VERIFICATION_V1",
-    "recorded_at_utc": "2026-11-19T15:51:08.634953+00:00",
-    "base_main": "6306a6fd59f9a7b2df46eb8640d9ad5966c6a59e",
-    "code_commit": "cd057491ea7573310aca7ae7de2e25715e3c6181",
-    "author_commits": [
-      "56b2ebcb1497e9edcfcdaaabaac03178c2cf644e",
-      "ef8ab2511b7713099341673557e1233e587c10e7"
-    ],
+    "schema": "RACE_AI_KEIRIN_REQUEST_SETTLEMENT_VERIFICATION_V1",
+    "recorded_at_utc": "2026-11-19T16:40:45.510813+00:00",
+    "base_main": "bfd8de04b8e6bb7fefc6a910f1d2aae2f536e40f",
+    "author_commit": "f979eb814b7ef4f58709c8f458f94706f7e7b145",
+    "runtime": "Playwright 1.56.0 / default bundled Chromium 141.0.7390.37",
     "suites": [
       {
-        "tests": 155,
+        "tests": 165,
         "failures": 0,
         "errors": 0,
         "skips": 0,
-        "sha256": "50e2ae82ea387da53e033d65641b333cf5000a8ada86f8b1080b741ac6d88854"
+        "sha256": "4ee4620744840267aa6370f2d03a05f92e77fed447b9cb3ccd9ec7d0b039e329"
       },
       {
         "tests": 25,
         "failures": 0,
         "errors": 0,
         "skips": 0,
-        "sha256": "ccef43c75e1f87c40a7c419950aff1a9ba3bbdde4c85bfa2828032aca19733d7"
+        "sha256": "7114250ab40634321b5c077f523183531bbc79602e1681f14c830bdc6798b213"
       }
     ],
-    "source_code_sha256": {
-      "race_ai/keirin_official_sp_browser.py": "127c743d7a2ebf1ac328c90b509543de9875ed333d672d6de78d82d1c0b7fae0",
-      "race_ai/keirin_official_sp_receipt.py": "525a6bc2bc9f7763b03ea62d6b179dc4566a1e55a8002a531cc79a1a00bfa2eb",
-      "tests/test_keirin_cloud_owner_inputs.py": "dfc12fe762cfb90372574a50f5e667d6b3d7fd481279b6a06eaa2511bff10fb9",
-      "tests/test_keirin_official_sp_receipt.py": "8a6c28baca5d1f19775284f0aa8478286d223cacf5e8b65565afdf062cf4f7e8",
-      "tests/test_keirin_official_sp_browser.py": "7c6911c05aae233e82ce6e4410cce77e0aed44446e10be803c88a730333047c5"
-    },
-    "workflow_byte_identical_to_base_main": true,
+    "provider_calls_in_tests": 0,
     "source_admission": false,
     "model_input_admission": false,
-    "new_forecasts": 0
+    "new_forecasts": 0,
+    "source_sha256": {
+      "race_ai/keirin_official_sp_browser.py": "586521f573dd8d23c395ab7645f7c255a8f718cf23fa5ed823bfa425a2d2713d",
+      "tests/test_keirin_official_sp_browser.py": "c8f733a68121b6b273916489cfa93be8f34deb5229b1abfa8c5fe6190ae5b269",
+      "tests/test_keirin_cloud_owner_inputs.py": "f668063e6e40f32edb9bd40b2d30808aab41b7523f9d269260634c9f0fb94904"
+    },
+    "workflow_tree": "9f87dbaedfd5b89de64524e3b9b9b2742e5e491c",
+    "native_controls": {
+      "old_pending_image_and_font": {
+        "details": 0,
+        "unknown": 1,
+        "state": "HOLD_OFFICIAL_SP_TRANSPORT",
+        "failure": "net::ERR_ABORTED"
+      },
+      "settled_image_and_font": {
+        "details": 3,
+        "riders": 21,
+        "http200": 12,
+        "unknown": 0
+      },
+      "late_denial": {
+        "post_requests": 0,
+        "http403": 1
+      },
+      "never_headers": {
+        "state": "HOLD_OFFICIAL_SP_BUDGET",
+        "unknown": 1,
+        "elapsed_seconds": 1.073
+      }
+    },
+    "new_trusted_main_acquisition": "NOT_YET_VERIFIED"
   },
-  "actual_source_run": 44560531226,
-  "actual_source_result": "PARTIAL_REAL_INPUT_WITH_TRANSPORT_HOLD",
+  "actual_source_run": 44570218869,
+  "actual_source_result": "PARTIAL_REAL_INPUT_WITH_BUDGET_HOLD",
   "original_model_code_and_weights_unchanged": true,
-  "actual_source_report": "actual-main-source.json"
+  "actual_source_report": "actual-main-source.json",
+  "original_pr72_head": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+  "ui_evidence_draft_head_unchanged": "86d832bdb8377055f9e84df15e62680396e2eebb"
 }

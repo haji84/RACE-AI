@@ -1,6 +1,6 @@
 {
   "schema": "RACE_AI_KEIRIN_OFFICIAL_COMPLETED_ACTUAL_SOURCE_V1",
-  "recorded_at_utc": "2026-11-19T16:17:11.377082+00:00",
+  "recorded_at_utc": "2026-11-19T17:12:44.966268+00:00",
   "event_day_jst": "2026-11-20",
   "attempts": [
     {
@@ -104,12 +104,63 @@
         "source_provider": "KEIRIN_JP_PUBLIC_SP",
         "winticket_requests": 0
       }
+    },
+    {
+      "run_id": 44570218869,
+      "run_attempt": 1,
+      "job_id": 135726669330,
+      "completed_at_utc": "2026-11-19T16:57:58Z",
+      "workflow_head": "49e63d2ec63f4602fc855fc5b5a960023c9d46c0",
+      "completed_authenticated_log": true,
+      "decoded_log_bytes": 155514,
+      "decoded_log_sha256": "ad84ef1f9b550770f1ea9a0c04bf5bd7a593fe7ae5189c56d5b7a418e5350262",
+      "report": {
+        "actual_four_model_forecast_saved": false,
+        "new_pre_race_inputs": 0,
+        "official_sp_acquisition": {
+          "blocked_before_send": 0,
+          "budget_exhausted": true,
+          "calendar_meetings_observed": 73,
+          "day_race_count": 57,
+          "day_venue_count": 6,
+          "details_verified": 25,
+          "expired_detail_count": 0,
+          "future_detail_count": 25,
+          "http_status_counts": {
+            "200": 5292
+          },
+          "model_input_admission": false,
+          "navigation_request_count": 89,
+          "new_forecasts": 0,
+          "private_source_files_saved": 249,
+          "provider_denial_http_status_counts": {
+            "HTTP_403": 0,
+            "HTTP_429": 0,
+            "UNKNOWN": 0
+          },
+          "provider_denied": false,
+          "race_lists_verified": 6,
+          "resource_request_count": 5203,
+          "riders_verified": 183,
+          "source_admission": false,
+          "state": "HOLD_OFFICIAL_SP_BUDGET",
+          "unknown_transmitted_status_count": 0,
+          "winticket_requests": 0
+        },
+        "provider_machine_rights_independently_verified": false,
+        "public_page_requests": 5292,
+        "schema": "RACE_AI_KEIRIN_CLOUD_OWNER_SOURCE_CONNECTION_V1",
+        "source_capture_held": true,
+        "source_day_schedule_race_count": 57,
+        "source_provider": "KEIRIN_JP_PUBLIC_SP",
+        "winticket_requests": 0
+      }
     }
   ],
   "actual_four_model_forecasts": 0,
   "full_model_and_t15_acceptance": false,
   "winticket_side_unblock": "UNVERIFIED",
-  "actual_status": "PARTIAL_REAL_INPUT_WITH_TRANSPORT_HOLD",
-  "remaining": "Follow-on browser operation stops; unknown transmitted outcomes remain four. Do not infer complete source capture from job success.",
+  "actual_status": "PARTIAL_REAL_INPUT_WITH_BUDGET_HOLD",
+  "remaining": "25 of57 detail records verified within the existing120-second source job. All5292 received statuses200, unknown0, no denial. All-model/T15 generation and WINTICKET-side unblock remain unverified.",
   "raw_source_documents_public": false
 }
