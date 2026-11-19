@@ -242,7 +242,8 @@ class OwnerRaceReport(unittest.TestCase):
                   "FOURTH_CORNER", "GOAL"]
         rows[0]["B"]["six_phase_scenarios"] = [{
             "scenario_id": "L1_V0",
-            "six_phases": [{"phase": p, "projected_top3": [3, 2, 1]}
+            "six_phases": [{"phase": p, "projected_top3": [3, 2, 1],
+                            "hypothesis_actions": ["CHALLENGER_MAKURI"]}
                            for p in phases],
         }]
         soup = BeautifulSoup(view.render_private_report(report, rows), "html.parser")
@@ -252,6 +253,7 @@ class OwnerRaceReport(unittest.TestCase):
         self.assertEqual(len(card.select('[data-model="B"] .phase-steps li')), 6)
         self.assertEqual(len(card.select('[data-model="B"] .ticket')), 2)
         self.assertIn("実映像で確認した着順・確率ではありません", card.text)
+        self.assertIn("別線の捲り", card.text)
 
     def test_bad_six_phase_is_not_claimed_as_verified_tactical_detail(self):
         report, rows = examples()
