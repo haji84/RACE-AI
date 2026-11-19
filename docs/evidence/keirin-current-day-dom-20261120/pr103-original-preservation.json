@@ -1,0 +1,1072 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_ORIGINAL_PRESERVATION_V1",
+  "recorded_at_utc": "2026-11-19T15:44:28.613524+00:00",
+  "pr": 103,
+  "repository": "haji84/RACE-AI",
+  "original_head": "9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330",
+  "original_base": "db7daecd5e2f564d8d3ef30a3d0867c518848a68",
+  "original_base_ref": "feat/keirin-preflight-all-factors-20261108",
+  "original_title": "競輪：可変0〜12点・期待値選定・仮想回収率の検証（研究用）",
+  "original_draft": true,
+  "original_body_sha256": "528754b1887f9c2dabb1f4cdf3164fd28a18ddfc3aff840a24047237c243dae4",
+  "original_changed_paths": 132,
+  "preservation": "Original head will remain in ancestry; no original EV/model source tree is replayed. All original mode/type/blob entries remain reachable through immutable URLs.",
+  "entries": [
+    {
+      "path": ".github/workflows/keirin-variable-picks-research.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bb4b5f55403b772cae3fc7ed64fa306de536ecbf",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/.github/workflows/keirin-variable-picks-research.yml"
+    },
+    {
+      "path": "AGENTS.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d941a5ddb184d01dcdd449f4f83571d9bcac2480",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/AGENTS.md"
+    },
+    {
+      "path": "docs/KEIRIN_HISTORICAL_PR71_RECONSTRUCTION_20261109.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "1d4432358f55f946e6443868d85a97d5607ccf36",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/KEIRIN_HISTORICAL_PR71_RECONSTRUCTION_20261109.md"
+    },
+    {
+      "path": "docs/KEIRIN_LIVE_SOURCE_CIPHERTEXT_OWNER_GATE_20261109.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "62299ae3aef2376350a244071156edb9f31267f1",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/KEIRIN_LIVE_SOURCE_CIPHERTEXT_OWNER_GATE_20261109.md"
+    },
+    {
+      "path": "docs/KEIRIN_OBSERVED_INPUT_CONNECTION_20261110.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5b24019120688a0556b5fb103c150a785ab49b28",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/KEIRIN_OBSERVED_INPUT_CONNECTION_20261110.md"
+    },
+    {
+      "path": "docs/KEIRIN_PR71_HISTORICAL_SIGNAL_INPUT_CONTRACT_20261109.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f0558f6f43734856f71a53c2df638e9c43f5e0dd",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/KEIRIN_PR71_HISTORICAL_SIGNAL_INPUT_CONTRACT_20261109.md"
+    },
+    {
+      "path": "docs/KEIRIN_TRUSTED_GITHUB_PRODUCTION_20261109.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b62a05b46aaaa98da9f4454cf9cbb2dc9f6e6d51",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/KEIRIN_TRUSTED_GITHUB_PRODUCTION_20261109.md"
+    },
+    {
+      "path": "docs/KEIRIN_VARIABLE_SELECTION_RESEARCH_20261108.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a958fa0b54b79ba29e98ab49e05559590222fee7",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/KEIRIN_VARIABLE_SELECTION_RESEARCH_20261108.md"
+    },
+    {
+      "path": "docs/KEIRIN_WINTICKET_KEIRINJP_OWNER_SOURCE_APPROVAL_20261109.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3e128cab6fbc33f64a314171f2f70b484059b7d2",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/KEIRIN_WINTICKET_KEIRINJP_OWNER_SOURCE_APPROVAL_20261109.md"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/aomori3r_winticket_real_full210_observed_0855.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "8616636309caf83d7358b1b07d40ac5f6a1b251c",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/aomori3r_winticket_real_full210_observed_0855.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/aomori4r-precutoff-reference-hash-anchor.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0f5f3ccd4f4000a31f15cd55402efae38316773a",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/aomori4r-precutoff-reference-hash-anchor.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin-aomori2r-manual-reference-precutoff-sha-anchor.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f07a9e039088891747e8cd6cab8cefb7765b1c37",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin-aomori2r-manual-reference-precutoff-sha-anchor.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin-aomori5r-ai-assisted-reference-precutoff-sha.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "60a7f54d3226a144ad818762daaf46aa1b5ccc35",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin-aomori5r-ai-assisted-reference-precutoff-sha.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin-historical-matsuyama-2r7r-feature-probe-safe.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "4d7c5a5c5c13bcd5ff0bce782fa4a4bc2b739d48",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin-historical-matsuyama-2r7r-feature-probe-safe.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin-historical-racecard-weather-video-triage.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "081126470a099f07d720ef7c69c89a52c8494236",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin-historical-racecard-weather-video-triage.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin-historical-replay-aggregate-reference.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d891cfa9a6b1425799b2982d1f183e10481c2887",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin-historical-replay-aggregate-reference.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin-pr71-historical-asof-recovery-gate.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ed4bad3ab027a4319f495566757ef9d157b0331d",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin-pr71-historical-asof-recovery-gate.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin-prior-16-history-release-licence-gate.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3a9710c4d820bd25f4a17f9d715484a4b5b16189",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin-prior-16-history-release-licence-gate.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin_83r_reference_20_published_results_sha_anchor.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "624fb228ffafb73e551440bfdf4a342d200ab92e",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin_83r_reference_20_published_results_sha_anchor.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin_83r_reference_7results_pdca_safe_sha.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "dd93f421c5857b348e32407a10eb2430919cb610",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin_83r_reference_7results_pdca_safe_sha.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin_existing_archive_restore_verified.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "2d372253e4ab2ca2aa319eb048e41fda3d56d83c",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin_existing_archive_restore_verified.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin_licensed_feed_production_archive_ci_gate.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "fc72af68f1bdbf58266705897b1cc65c1182350f",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin_licensed_feed_production_archive_ci_gate.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin_matsudo8r_1802_real_347_model_input_coverage_safe.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "081bb4235189980245760ebfd27f66ee4b1154d5",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin_matsudo8r_1802_real_347_model_input_coverage_safe.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin_nationwide_83R_external_reference_1036_sha_anchor.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "04b8a2512711fb40e96dd2049abfec664bd555cd",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin_nationwide_83R_external_reference_1036_sha_anchor.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin_owner_confirmed_automatic_fetch_ci_v1.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5b9967af83fe9c04d110ef7f3cf949819b4bb5b4",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin_owner_confirmed_automatic_fetch_ci_v1.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin_public_ciphertext_owner_consent_v1.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "40ce73a3281746b49371c3d9580fcdd7524bdcad",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin_public_ciphertext_owner_consent_v1.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin_real_winticket_210_to_private_intake_gate_v1.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9717b47b80cb2242e8cc45d78b48634a5a3357da",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin_real_winticket_210_to_private_intake_gate_v1.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-09/keirin_trusted_key_prod_archive_gate_0208_jst.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "1eeb953d276a3f8a7bd5543c0a3f72914b26d578",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-09/keirin_trusted_key_prod_archive_gate_0208_jst.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-10/keirin_aomori3r_actual_source_0005_preflight_sha_gate.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f2dc2ad3222fcb35838bdef8769b971c165c5c4c",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-10/keirin_aomori3r_actual_source_0005_preflight_sha_gate.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-10/keirin_aomori3r_connected_inputs_ex_prior_weather_0816_jst.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bab82a4529b583ab79a9ca2eccb490c776580f04",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-10/keirin_aomori3r_connected_inputs_ex_prior_weather_0816_jst.json"
+    },
+    {
+      "path": "docs/evidence/2026-11-10/keirin_aomori3r_prior_private_ephemeral_sha_replay_0723_jst.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a3b864a62fc0207a2869f63d5a027804f3a0fbf2",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/evidence/2026-11-10/keirin_aomori3r_prior_private_ephemeral_sha_replay_0723_jst.json"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-10-keirin-real-prior-input.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5f412abce55c18652f0ad0241e321b3e8a7f6222",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/docs/superpowers/plans/2026-11-10-keirin-real-prior-input.md"
+    },
+    {
+      "path": "race_ai/keirin_83_reference_pdca_bridge.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b24440e87383d3e8d9b3e6d7af0637a3e2e771d5",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_83_reference_pdca_bridge.py"
+    },
+    {
+      "path": "race_ai/keirin_allowed_delivery.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "27dc692c255a11bd2ec42ac188724ce38699107d",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_allowed_delivery.py"
+    },
+    {
+      "path": "race_ai/keirin_existing_asset_reuse.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "1fd09110494321831a1df65d23e1996becfde932",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_existing_asset_reuse.py"
+    },
+    {
+      "path": "race_ai/keirin_historical_archive_inventory.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f61524a084a8a44f8833ddb2db90aecc1fd3bd6a",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_historical_archive_inventory.py"
+    },
+    {
+      "path": "race_ai/keirin_historical_asof_replay.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5dffcb10c3cf9df09db4abeda6f2e51d3f2c432d",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_historical_asof_replay.py"
+    },
+    {
+      "path": "race_ai/keirin_historical_context_gates.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "991b84de76d7f40ac35fa9b355f85b00b12db93e",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_historical_context_gates.py"
+    },
+    {
+      "path": "race_ai/keirin_historical_prior_signal_rules.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "787ed434fb3a97c2c4ecee7111f7ef63539f6220",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_historical_prior_signal_rules.py"
+    },
+    {
+      "path": "race_ai/keirin_historical_sparse_feature_probe.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c9638954cd1c189d1a45ce95805b804e5a84a4d8",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_historical_sparse_feature_probe.py"
+    },
+    {
+      "path": "race_ai/keirin_licensed_api_ingest.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "54df0946f2f49910930aec7d77a10742e5b829a1",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_licensed_api_ingest.py"
+    },
+    {
+      "path": "race_ai/keirin_licensed_odds_export.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0701422c0ed963278529c0cbc878b6e374d68aeb",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_licensed_odds_export.py"
+    },
+    {
+      "path": "race_ai/keirin_licensed_result_stage.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "1bfd3f4c0b723b4c57dadf5b96d193e3f73f2366",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_licensed_result_stage.py"
+    },
+    {
+      "path": "race_ai/keirin_mansha_rank_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e389c8225210ece028c55c148dec1238d3eeaa26",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_mansha_rank_audit.py"
+    },
+    {
+      "path": "race_ai/keirin_non_rakuten_sources.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9db8da9eb76082c212fd902e651213c4d43e2afb",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_non_rakuten_sources.py"
+    },
+    {
+      "path": "race_ai/keirin_owner_approved_sources.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5728c4f46f26b43afcb8a2e4128f3f1a8082ee8e",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_owner_approved_sources.py"
+    },
+    {
+      "path": "race_ai/keirin_owner_auto_sources.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "826afa00ff55fc3278e3dc9686a3e1b2da55a26f",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_owner_auto_sources.py"
+    },
+    {
+      "path": "race_ai/keirin_owner_captured_ssr_intake.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "8432743371a53dcbbf0cd879c16697b92f599124",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_owner_captured_ssr_intake.py"
+    },
+    {
+      "path": "race_ai/keirin_owner_odds_csv.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c06307226c0343baefd99b1751490c458920d272",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_owner_odds_csv.py"
+    },
+    {
+      "path": "race_ai/keirin_owner_public_page_fetch.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7a269ce75b01e23fe6ff60034b850992a91ac4e0",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_owner_public_page_fetch.py"
+    },
+    {
+      "path": "race_ai/keirin_permissioned_owner.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "fae10fcf98c0568665feda9aac1f17aea96661d8",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_permissioned_owner.py"
+    },
+    {
+      "path": "race_ai/keirin_pr71_four_model_rank.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c4f1477fee06f092dd6580ca8ff7de3e1a4728e4",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_pr71_four_model_rank.py"
+    },
+    {
+      "path": "race_ai/keirin_pr71_source_ab_stage.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "25c0bab030e0bc4af93f93b66a8a98022c119a96",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_pr71_source_ab_stage.py"
+    },
+    {
+      "path": "race_ai/keirin_prior_input_connection.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "33675230aca3fa7a1a507fb5a25f86715fbebee5",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_prior_input_connection.py"
+    },
+    {
+      "path": "race_ai/keirin_prior_private_stage.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "014380e60c191d147a1d859573a85df300524215",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_prior_private_stage.py"
+    },
+    {
+      "path": "race_ai/keirin_private_spool.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3f598b1c7e6a196508a83e35ba706d9fe5f04090",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_private_spool.py"
+    },
+    {
+      "path": "race_ai/keirin_public_ciphertext_consent.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ad72c5ffca1f9e0ce1705d3376d4c30b0f34e362",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_public_ciphertext_consent.py"
+    },
+    {
+      "path": "race_ai/keirin_real_rider_shadow.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b3473897329f24f6ef0ff35e2787c440aa61f86b",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_real_rider_shadow.py"
+    },
+    {
+      "path": "race_ai/keirin_real_shadow_intake.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e9052eef5f1fdfb594782ce00a5c8eaef0220faf",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_real_shadow_intake.py"
+    },
+    {
+      "path": "race_ai/keirin_real_source_gap_report.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "1c30ca3d3317b3832ebdad92a65cd228fc012503",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_real_source_gap_report.py"
+    },
+    {
+      "path": "race_ai/keirin_reference_history_recheck.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "cb84eefd0480d52babd1f9c9bbe5dcfd0b6f5c98",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_reference_history_recheck.py"
+    },
+    {
+      "path": "race_ai/keirin_shadow_variable_intake.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c63c293f131341af5ac5ce22792c374020039adb",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_shadow_variable_intake.py"
+    },
+    {
+      "path": "race_ai/keirin_shadow_variable_pair.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e0cd5abea7cc273dfe7b55bbc92695b9425bce83",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_shadow_variable_pair.py"
+    },
+    {
+      "path": "race_ai/keirin_variable_integration.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "306ee0ada57715989ef6a90cba6f7d21d81e0345",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_variable_integration.py"
+    },
+    {
+      "path": "race_ai/keirin_variable_selection.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "11f1388fdb36c71576c14e2c541c33e02d9b310f",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_variable_selection.py"
+    },
+    {
+      "path": "race_ai/keirin_weather_input_connection.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "cf22339dd811980922d9fdbbbb218b1f8aa8e498",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_weather_input_connection.py"
+    },
+    {
+      "path": "race_ai/keirin_winticket_day_index.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a9115505d7f2bca59cc563e503a0ff737aa9552f",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_winticket_day_index.py"
+    },
+    {
+      "path": "race_ai/keirin_winticket_embedded_odds.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "88f71e4793809af2da6edd1378d272e129ce3131",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_winticket_embedded_odds.py"
+    },
+    {
+      "path": "race_ai/keirin_winticket_embedded_racecard.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a3f3ffd9bfc90079fdb904d84736676022b391ba",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_winticket_embedded_racecard.py"
+    },
+    {
+      "path": "race_ai/keirin_winticket_ex_connection.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c4830d19d7fd28822fddb1bc3e2c98bc189779e7",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_winticket_ex_connection.py"
+    },
+    {
+      "path": "race_ai/keirin_winticket_prior_events.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "86308e7df98a20300fdb1f004f2396c06601f4f5",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/race_ai/keirin_winticket_prior_events.py"
+    },
+    {
+      "path": "scripts/keirin_83_reference_pdca.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "69d5810090c9df853c3d15a6e901e086048a2955",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_83_reference_pdca.py"
+    },
+    {
+      "path": "scripts/keirin_existing_archive_verify.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e179cf73e37792047a5bc3559d614970997c4d77",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_existing_archive_verify.py"
+    },
+    {
+      "path": "scripts/keirin_existing_asset_preflight.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e3589d226716eb6021f73b2fc7f956b53df4c736",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_existing_asset_preflight.py"
+    },
+    {
+      "path": "scripts/keirin_future_day_index_probe.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b023700a80a4f9fcea02729154b8157093aae559",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_future_day_index_probe.py"
+    },
+    {
+      "path": "scripts/keirin_future_public_ssr_probe.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9249c2d354502f828995c5baf7c4fc38f8649806",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_future_public_ssr_probe.py"
+    },
+    {
+      "path": "scripts/keirin_github_checkpoint_fixture.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "be9bd054b7a352d0210d09f36f98e235c05f7241",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_github_checkpoint_fixture.py"
+    },
+    {
+      "path": "scripts/keirin_github_owner_future_intake.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7450040d211a413075c906090ca968c8b5b592f9",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_github_owner_future_intake.py"
+    },
+    {
+      "path": "scripts/keirin_github_production_archive.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "cdfb90f6653b9ac3f73cc734fa60f95d58a71c4c",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_github_production_archive.py"
+    },
+    {
+      "path": "scripts/keirin_github_production_bundle.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "52acd3a796b3f4828177884e93b3ff0d37183054",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_github_production_bundle.py"
+    },
+    {
+      "path": "scripts/keirin_historical_archive_inventory.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0d3b0f98c3a8f8fd674de67d4713dba75bc2af8e",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_historical_archive_inventory.py"
+    },
+    {
+      "path": "scripts/keirin_historical_prior_signal_probe.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c55abfab4ccff6185ba7000f473bcc2e3f0ae8b4",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_historical_prior_signal_probe.py"
+    },
+    {
+      "path": "scripts/keirin_historical_sparse_probe.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "37153d764a11089e678997c049d62acf7d1b4da5",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_historical_sparse_probe.py"
+    },
+    {
+      "path": "scripts/keirin_next_published_race_probe.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9d4c2a1f064408259a85b11e6c482f4e63848620",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_next_published_race_probe.py"
+    },
+    {
+      "path": "scripts/keirin_permissioned_owner_agent.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d9dfd9cecb769bea58c4d574ed855e7a8ecabb96",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_permissioned_owner_agent.py"
+    },
+    {
+      "path": "scripts/keirin_prior_real_input_probe.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3347dd12e79984ad308260da18e04ec2301f5812",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_prior_real_input_probe.py"
+    },
+    {
+      "path": "scripts/keirin_private_agent.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5cd8e50314ccb6ea00fd1b4f35c0bea04baf36d7",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_private_agent.py"
+    },
+    {
+      "path": "scripts/keirin_public_source_smoke.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "225695562107ba1a9ae92343823acc385c89d4b0",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_public_source_smoke.py"
+    },
+    {
+      "path": "scripts/keirin_reference_history_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "88747d0715618ef6225eb5a17f5d4fab379c9cca",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_reference_history_audit.py"
+    },
+    {
+      "path": "scripts/keirin_saved_historical_replay.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "42031f218e8021769de377ffa2fb0f212dbf4681",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_saved_historical_replay.py"
+    },
+    {
+      "path": "scripts/keirin_variable_reconcile_private.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7a34e4e61bb2bec8a7e4fd369e9cea21c2bb0436",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_variable_reconcile_private.py"
+    },
+    {
+      "path": "scripts/keirin_winticket_day_index_diagnostic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d87d569749370d6069b5c5e602975015cf560cfc",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/scripts/keirin_winticket_day_index_diagnostic.py"
+    },
+    {
+      "path": "tests/test_keirin_83_reference_pdca_bridge.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "69696ff7446abaa41d897f4a7f54776011b37ac7",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_83_reference_pdca_bridge.py"
+    },
+    {
+      "path": "tests/test_keirin_83_reference_pdca_runner.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "30d378bcf6462ad85b9ff60a5eca747a0d18332b",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_83_reference_pdca_runner.py"
+    },
+    {
+      "path": "tests/test_keirin_allowed_delivery.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e31e0cd0206682bd685590e0bdacfb47760b54ca",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_allowed_delivery.py"
+    },
+    {
+      "path": "tests/test_keirin_existing_asset_reuse.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "07a04b5fa1a67da64d529c6b84cef52339d5d605",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_existing_asset_reuse.py"
+    },
+    {
+      "path": "tests/test_keirin_future_public_ssr_probe.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5df28ff90b8bcfb3837fc31320e23a3288507a92",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_future_public_ssr_probe.py"
+    },
+    {
+      "path": "tests/test_keirin_github_four_model_encrypted_handoff.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "72b5be81de9c332608be9efa268daedf8909f900",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_github_four_model_encrypted_handoff.py"
+    },
+    {
+      "path": "tests/test_keirin_github_owner_future_intake.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ed02a3bb92d8c0379afaf4b01385c3201873e869",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_github_owner_future_intake.py"
+    },
+    {
+      "path": "tests/test_keirin_github_production_archive.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0f1543c6ef831c403a871c9b7e37c57563b4895d",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_github_production_archive.py"
+    },
+    {
+      "path": "tests/test_keirin_historical_archive_inventory.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "42a55480562e5f4707663a08942535fb157b00ed",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_historical_archive_inventory.py"
+    },
+    {
+      "path": "tests/test_keirin_historical_asof_replay.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "18f731eee92205ef0ad7957507cdcb7ac62f9e91",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_historical_asof_replay.py"
+    },
+    {
+      "path": "tests/test_keirin_historical_context_gates.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f28e47c7d10a2ac6e86d0d4f8b30430cd7eafc81",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_historical_context_gates.py"
+    },
+    {
+      "path": "tests/test_keirin_historical_prior_signal_rules.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "409b28e29ddf0644115b7954b4e47ad107ddfa91",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_historical_prior_signal_rules.py"
+    },
+    {
+      "path": "tests/test_keirin_historical_sparse_feature_probe.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9617387a078315020c3606dfa2b660fe78daf94b",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_historical_sparse_feature_probe.py"
+    },
+    {
+      "path": "tests/test_keirin_license_api_ingest.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "8ea997a80397ce055a410c22943bd11a14156142",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_license_api_ingest.py"
+    },
+    {
+      "path": "tests/test_keirin_licensed_result_stage.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9ef4ff2714c2c4cad12488fe9c1b0ee06775809d",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_licensed_result_stage.py"
+    },
+    {
+      "path": "tests/test_keirin_mansha_rank_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d2d67fad48b889bf8f58523d1e47ccf81792f19e",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_mansha_rank_audit.py"
+    },
+    {
+      "path": "tests/test_keirin_next_published_race_probe.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "014b453c000fa24f9cc57149894911a49d8d9151",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_next_published_race_probe.py"
+    },
+    {
+      "path": "tests/test_keirin_non_rakuten_sources.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "2b5420c3db87e1581d23ca336a8222c30e5ab178",
+      "original_status": "modified",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_non_rakuten_sources.py"
+    },
+    {
+      "path": "tests/test_keirin_owner_approved_sources.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "27826537a17df9b137bf301fd1044045e2189141",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_owner_approved_sources.py"
+    },
+    {
+      "path": "tests/test_keirin_owner_captured_ssr_intake.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bab252e57b13268697eb9aa121cd50cafc69be61",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_owner_captured_ssr_intake.py"
+    },
+    {
+      "path": "tests/test_keirin_owner_odds_csv.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a7e5ac29fe31a95ae8b485040444189205372d94",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_owner_odds_csv.py"
+    },
+    {
+      "path": "tests/test_keirin_owner_public_page_fetch.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "fbb6f394e143106eb71d643e94c56605d975e80d",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_owner_public_page_fetch.py"
+    },
+    {
+      "path": "tests/test_keirin_pr71_four_model_rank.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "cd48c4a5065a43ae7016c4b7587ceafcf41914a2",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_pr71_four_model_rank.py"
+    },
+    {
+      "path": "tests/test_keirin_pr71_source_ab_stage.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b4f9e5a3768adceb94280607857cc68203a0516f",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_pr71_source_ab_stage.py"
+    },
+    {
+      "path": "tests/test_keirin_prior_private_stage.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "160e41706f301cbca677979518478a6e219665df",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_prior_private_stage.py"
+    },
+    {
+      "path": "tests/test_keirin_prior_selection.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "249d08f7f47b47f98dd135e28477177fc14d8287",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_prior_selection.py"
+    },
+    {
+      "path": "tests/test_keirin_public_ciphertext_consent.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "af40510f22b5152592d426d7293d750170324d84",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_public_ciphertext_consent.py"
+    },
+    {
+      "path": "tests/test_keirin_public_source_smoke.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c4e8c0fbe36f6746467b39050237e36efa3882df",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_public_source_smoke.py"
+    },
+    {
+      "path": "tests/test_keirin_real_source_gap_report.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "dfc0c2d60b92ab7a31c1d636195061974d2da30e",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_real_source_gap_report.py"
+    },
+    {
+      "path": "tests/test_keirin_reference_history_recheck.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "8e1b5e0a0a04581fc0d390fec6d5cd1c02ab8bec",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_reference_history_recheck.py"
+    },
+    {
+      "path": "tests/test_keirin_saved_original_reference.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "78dad51dbe28f241edb42c62dd38914d3383de47",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_saved_original_reference.py"
+    },
+    {
+      "path": "tests/test_keirin_shadow_variable_pair.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "dd7d2e1fb3191d2648c18dd399070859fa3199ed",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_shadow_variable_pair.py"
+    },
+    {
+      "path": "tests/test_keirin_variable_integration.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ad825f0ce1815354c00c14643eb04d3ca6dcbcf3",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_variable_integration.py"
+    },
+    {
+      "path": "tests/test_keirin_variable_selection.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e7c73b63071e1aff90c7251c42a1d34dfd4cee92",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_variable_selection.py"
+    },
+    {
+      "path": "tests/test_keirin_weather_input_connection.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bf27e58a9001e9ed754ad2db9262471ca366d2fb",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_weather_input_connection.py"
+    },
+    {
+      "path": "tests/test_keirin_winticket_day_index.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ab7d89efcedc21d4eec3f714e5ae40b95984fbe1",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_winticket_day_index.py"
+    },
+    {
+      "path": "tests/test_keirin_winticket_embedded_odds.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a5bf9ed1544e766247ca0e6685f9866c56e5470d",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_winticket_embedded_odds.py"
+    },
+    {
+      "path": "tests/test_keirin_winticket_embedded_racecard.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "2057a13a7024c28d87cb382ea13acb8cf08ef6be",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_winticket_embedded_racecard.py"
+    },
+    {
+      "path": "tests/test_keirin_winticket_ex_connection.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5e948c6eea550831eb4f43c1ccbdf9269329fdd6",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_winticket_ex_connection.py"
+    },
+    {
+      "path": "tests/test_keirin_winticket_prior_events.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e1270254991a0a29d3c80ed8a7d3bee5b80c8279",
+      "original_status": "added",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/9b875cf9c1d48f8bd31e95fd407a24cf3dcdb330/tests/test_keirin_winticket_prior_events.py"
+    }
+  ]
+}
