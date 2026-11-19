@@ -285,7 +285,7 @@ def failure_report(error):
             page = context.get('page')
             report['ui_capture_page'] = page if type(page) is str and page in VISUAL_PAGES else None
         phase = context.get('select_phase')
-        if phase in ('initial', 'prepared', 'readback'):
+        if type(phase) is str and phase in ('initial', 'prepared', 'readback'):
             report['ui_select_phase'] = phase
             report['ui_select_preflight'] = select_diagnostic(error.probe if isinstance(error, SelectHold)
                                                              else context.get('select_preflight'))
@@ -297,7 +297,10 @@ def failure_report(error):
             if type(matches) is bool and report.get('ui_select_phase') == 'initial'
             and report.get('ui_click_path') == 'visible_element' and type(preflight) is dict
             and preflight.get('control_is_select') is True else None)
-        first = getattr(error, 'first_seed_comparison_initial_selected_target', None)
+        first = None
+        if (report.get('ui_stage') == 'encrypted_seed_valid' and report.get('ui_action') == 'select_seed_history'
+                and report.get('ui_seed_comparison_ordinal') in (1, 2)):
+            first = getattr(error, 'first_seed_comparison_initial_selected_target', None)
         report['ui_first_seed_comparison_initial_selected_target'] = (first
             if type(first) is bool and report.get('ui_stage') == 'encrypted_seed_valid'
             and report.get('ui_action') == 'select_seed_history'
@@ -1266,6 +1269,7 @@ class WebDriver:
     def close(self):
         self.close_observation = dict(delete_outcome='not_required', delete_http_status=None, delete_error_code=None)
         if self.session is not None:
+            self.close_observation['delete_outcome'] = 'other_failure'
             try:
                 if self.command('DELETE', '') is not None:
                     self.close_observation['delete_outcome'] = 'unexpected_response'
@@ -1670,9 +1674,10 @@ def synthetic_visual_checks(assets, folder, *, candidate_ui=False):
             driver.wait('return document.querySelectorAll(".ticket-row").length===8')
             driver.click('#equal-allocate')
             for width in VISUAL_WIDTHS:
-                ui_diagnostic(driver, 'synthetic_capture', 'set_viewport', width)
+                ui_diagnostic(driver, 'synthetic_capture', 'set_viewport')
                 driver.command('POST', '/window/rect', {'width': width, 'height': 1000})
                 widths.append(require_viewport(width, driver.script('return {width:innerWidth,height:innerHeight}')))
+                ui_diagnostic(driver, 'synthetic_capture', 'select_saved_day', width)
                 select_saved_day(driver, fixture['event_date_jst'])
                 if candidate_ui:
                     ui_diagnostic(driver, 'synthetic_capture', 'verify_synthetic_sports', width)
