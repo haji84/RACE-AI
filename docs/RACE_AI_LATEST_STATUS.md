@@ -1,10 +1,11 @@
-# RACE-AI 最新状況 — 2026-11-19 12:47 JST
+# RACE-AI 最新状況 — 2026-11-19 12:58 JST
 
 **GOALは未達。** 原本・既存変更・重み・元の判定を保全して継続中。従来全文は[履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261118_0928.md)へ同一Git blobのまま保全した。
 
 ## 接続・HEAD・未復元
 
-- 現在のmainは既存PR4の通常merge **`ed336daae7b78ec4c8a8b90cebfaaf713ff70260`**、tree `fac0e479d9f67e5d2732e5a0e641620a77ff02ae`。tested head 6f2a85f9と同一tree、25 checks（12成功/13skip/失敗0）、実435件/339.836秒＋旧A74 raw7件/23.605秒が成功。first parentは下記M5。sourceS・公開UI・本番重みは不変。[通常mergeとCI](evidence/boat-main4-reviewed-merge-and-ci-20261119.json)。
+- 並行して別作業の既存PR309が12:46:20 JSTに通常mergeされ、実mainは **`9520104c65c88b3c9c92685ba865d21ad577ced8`**、tree `7ad863064d2edb202e8a05bc8dcbe184ba499f45` へ進んだ。既存PR3にも通常mergeで取り込み、incoming102 pathsと当方18 pathsの重複0・mode/type/blob完全保全を確認。原studyのM4/run44449743664/元receiptとspec親M5は変更せず、current mainへ再登録しない。sourceSと既存Secrets/flagsは当方では変更していない。[並行更新の保全](evidence/boat-pr3-concurrent-main309-preservation-20261119.json)。
+- 今回BOAT検証基点のmainは既存PR4の通常merge **`ed336daae7b78ec4c8a8b90cebfaaf713ff70260`**、tree `fac0e479d9f67e5d2732e5a0e641620a77ff02ae`。tested head 6f2a85f9と同一tree、25 checks（12成功/13skip/失敗0）、実435件/339.836秒＋旧A74 raw7件/23.605秒が成功。first parentは下記M5。sourceS・公開UI・本番重みは不変。[通常mergeとCI](evidence/boat-main4-reviewed-merge-and-ci-20261119.json)。
 - 反映後の実原本監査44449743664/job135310481381は12:25:32 JSTに完了success。二つのnativeセル各1代表についてPROGRAM・RESULTの原文照合が2/2一致、hold/欠落0。実candidateのmodel-map/bindings hashもActionsで解決し、最初の登録reportをartifact14495645723へ保存した。8,403 bytes・SHA256・ZIP構造/CRC・fresh metadata・全workflow履歴1件・初親/原specを照合済み。既存PR3でその原receiptへBOUNDする候補を準備し、登録開始12:15:30 JST/終了11月24日12:15:30を固定した。BOUND後の実Actions再認証はまだ未確認。代表2件の一致を全件/実発売終了/G8へ広げない。[実原本と原登録証拠](evidence/boat-main4-original-witness-and-actual-raw-samples-20261119.json)。
 - 同じM4から既存helperが起動した実Mac44449770907/job135310576599はfailure。159件/55.148秒のunit成功後、Safari new_sessionでHTTP500/session not createdとなり、候補captureへ到達していない。remote automation無効を示す固定文言は検出falseで、原因の特定やcapture修正合格とはしない。[実失敗](evidence/boat-main4-actual-native-new-session-failure-20261119.json)。
 - 前段mainの既存PR5通常merge **`a277a692a2791c77ee89a2e9af71582f5c98d458`**、tree `357e70139e5452ddc46f102ae16171ea37c3b6c3` はtested head cae4afcdと同一tree、23 checks（11成功/12skip/失敗0）、実155件/19.951秒・232件/20.023秒が成功。実Mac44439338949はsuccess、合成PNG28枚のZIP/hashを独立確認した。2幅のdetail画像が一覧のまま残る不一致と全8見た目受入PARTIALを保全し、合成capture同期の修正をM4へ反映した。[前段mergeと実Mac](evidence/boat-main5-reviewed-merge-and-actual-native-20261119.json)。
@@ -18,7 +19,7 @@
 - 元offline変更PR70 `b7380fe6a377e6ccf2b96331f2126c52549bbe17`、PR292 `daae4c10167224b7730006d8ada5ade398aaa64b` は08:40:39 UTCの正規APIが両方422 No commit foundで**未復元**。別環境のファイル移転を仮定しない。
 - 復旧したfilesystemの唯一のGit object storeでも2commitは不在。古いcheckout・attachmentの実在は確認したが、元offline変更が移転したとは扱わない。
 - 01:25 JSTの通常 `git fetch --no-write-fetch-head origin <SHA>` でも両commitは `upload-pack: not our ref`。公開read成功・認証成功・既存branchへの実FF push成功とは別に、元offline変更は未復元のまま。
-- 新PR・モデル系統・課金・job/input/cron/runner/timeout/権限・marker名を増やしていない。UI公開・投票・本番重み切替0。OFF pilot/PR290/291/main308、legacy KEIRIN-AIを維持。
+- このBOAT作業では新PR・モデル系統・課金・job/input/cron/runner/timeout/権限・marker名を増やしていない。UI公開・投票・本番重み切替0。OFF pilot/PR290/291/main308、legacy KEIRIN-AIは当方で変更していない。並行PR309の既存main更新は上記のとおり保全する。
 
 ## 本人利用の範囲と朝の起動確認
 
@@ -111,6 +112,8 @@ main参照同期もテスト先行RED（recovery138件中5失敗、national368�
 このmain変更は既存のreadonly締切前検証へhorseを1語追加し、4競技の正例・競馬の窓外・既存拒否条件の35件を確認した。既存の開始予定T15〜10/締切margin65秒の検証で、ユーザーの締切前優先処理・競馬実生成・JRA/NAR全5モデル適用の実証ではない。[検証範囲](evidence/horse-existing-prospective-gate-verification-20261119.json)。
 
 追加の競輪原因調査ではWINTICKET追加GET0。既存の許可済みKEIRIN.JP SP予定ページは通常GET1回で200/116,872bytesだが、個レース数は未検証null・新入力0。既存profileでは許可される一方、generic captureの/pc/限定と不整合があり、日付付き予定→公式個レース→347/437 status入力の自動接続も未実装だった。これはWINTICKETの403原因・解消や完全入力取得の証明ではない。[根拠と欠落経路](evidence/keirin-approved-primary-readonly-findings-20261119.json)。
+
+並行PR309の文書は、別の11月18日79レースcohortのうち17歴史原本の結果検証と限定的A/B比較、旧形式1件のmodel replay HOLD、当日の全国live intake未確立を報告している。当方のfe7で403が出た実probeや新しいSP calendar調査とは別scopeで、17件を当日の全件取得・前向き改善へ加算しない。原本/PDFを当方が独立再認証したとの主張もしない。[並行作業の正確な範囲](KEIRIN_OFFICIAL_PRODUCTION_CLOSURE_20261119.md)。
 
 AUTOも切分けた。sourceS adapterは公開fixtureで8車IDと8試走値が揃っても既存personal Bを作らず、shared P0 5セルだけを返す。既存B scorer/registryは正しいB1入力を受理するため変換側の欠落。PR72 HTML parserは件数集計だけで個車値mapを返さない。既知primary URLの通常GET1回は200/126,190bytesだが、認識grid数値0で実8値は未確認、上流欠落とは断定しない。sourceSやstudy固定cohortは変更していない。[実readとfixtureの区分](evidence/autorace-primary-b-count-only-audit-20261119.json)。
 
