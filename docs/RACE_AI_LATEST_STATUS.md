@@ -1,3 +1,17 @@
+# 2026-11-20 JST｜競輪公式入力の実取得と残る通信停止（GOAL未達）
+
+本人用の開発を継続する。UI新規公開・投票・本番重み切替は行っていない。以下を最新の確認とし、下段の過去記録を保持する。
+
+- 確認済みmain **bfd8de04b8e6bb7fefc6a910f1d2aae2f536e40f**。既存PR101/102/103を通常保護mergeで継続し、新PR0。BOAT source **1dbb47b68d487fc6def0bd4b10b1423f0a2145f6**、元モデル・映像sourceのpin、workflow全byte、Secrets/flagsは維持している。元PR103の132変更pathもmode/type/blobとimmutable履歴に保全し、元EV/model treeは適用していない。
+- 実Actions **44560531226/job135688249533（attempt1）** は当日の **6会場・57レースID** まで検証。送信714のうちHTTP200が710、未確認4、403/429は0。詳細検証は0でHOLD_TRANSPORTだった。
+- 同じ競輪取得jobの正規再実行 **attempt2/job135697504034** は **1レース・7選手** を実検証した。送信796、HTTP200が792、未確認4、403/429は0。後続へ進む処理は **HOLD_TRANSPORT**。未確認を0へ変更せず、job successを全件取得成功に数えない。[認証済み完了logの集計・hash](evidence/keirin-403-official-actual-20261120/actual-main-source.json)。
+- 同じPlaywright1.56/既定Chromium141のlocal通常取得では **14レース・延べ102選手** を確認。確認済み3,177応答は全てHTTP200、未確認1。約120秒でnavigation timeoutとなったが、既存reportのbudget_exhaustedはfalse/TRANSPORTのまま。この分類の限界と、GitHub側の早い停止は分けて記録する。GitHubで14件読めたとの置換はしない。
+- 今日だけの確定リンク検証、7車/9車の表示項目の読分け、未完了本文の既存budget内待機、終了時の未検査本文HOLDを修正した。関連155件・元モデル優先環境25件・独立84件が成功。Github check62件は11成功/51skip/失敗0。[実装と保全の証拠](evidence/keirin-403-official-actual-20261120/implementation-and-validation.json)。
+- 新しい読取り項目は表示用画像・枠番号・CSSであり、校正済み強さやモデル入力へ変換しない。source/model admissionはfalse、新予想0。全既存モデルの締切15〜10分前生成・保存・照合、WINTICKET自身/映像collectorの403解除、安定した後続取得は未達。拒否後の再試行、UA/headers偽装、cookie持込、proxyは行っていない。
+- 物理iPhone13Pro、6艇の連続識別/校正/予想接続、登録済み前向き比較の精度改善も未確認。原暗号文336候補/1,008file/375,640,877bytesの全byte復旧、実Mac Safari172検査、元offline未push2commitのUNRESTOREDは下段の確定証拠を継承する。別環境ファイルの自動移転や実機受入を仮定しない。
+
+以下は以前の確認記録。
+
 # 2026-11-19 UTC｜保管復旧・実Safari・公式競輪の実確認（GOAL未達）
 
 本人用の継続開発として進めている。一般公開の承認待ちではない。既存PR62へ原本の件数・ハッシュと合成画面証拠を保存し、新しいUI公開・投票・本番重み切替は実施していない。以下の新しい実測を優先し、下段の過去記録は履歴として保持する。
