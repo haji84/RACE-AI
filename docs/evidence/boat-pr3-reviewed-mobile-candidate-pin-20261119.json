@@ -1,0 +1,46 @@
+{
+  "assets": {
+    "actual_asset_bytes": 37569381,
+    "actual_asset_count": 74,
+    "candidate": {
+      "asset_sha256": {
+        "app.js": "c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5",
+        "index.html": "ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2",
+        "style.css": "cf67f3e93763bb816be5c2a4aeeddbd35b5a6e8b50c9d3e4a3331e1e7e599d08"
+      },
+      "commit": "b55242230e93ec3975a5a49bf3dd5f46632ff794",
+      "web_tree": "5cbbfe05a2971485b5c32a84a8ddf7b2539604cc"
+    },
+    "independently_loaded_from_exact_clean_git_tree": true
+  },
+  "functions_and_classes_AST_unchanged": true,
+  "new_candidate_native_safari_accepted": false,
+  "physical_iphone_accepted": false,
+  "prior_candidate": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+  "production_weights_changed": false,
+  "real_pages_source_and_crypto_pins_unchanged": true,
+  "recorded_at": "2026-11-19T04:28:59.208000+00:00",
+  "regressions": {
+    "errors": 0,
+    "external_attempts": 0,
+    "failures": 0,
+    "modules": [
+      "tests.test_boat_native_safari_acceptance",
+      "tests.test_boat_native_safari_dispatch"
+    ],
+    "seconds": 19.972,
+    "skips": 0,
+    "tests": 202
+  },
+  "schema": "RACE_AI_PR3_REVIEWED_MOBILE_CANDIDATE_PIN_LOCAL_V1",
+  "test_first_red": {
+    "errors": 0,
+    "failures": 1,
+    "tests": 1
+  },
+  "ui_branch_evidence_head": "8f916340f9287ae5d0379c15bf8791ff67313daf",
+  "ui_published": false,
+  "ui_synthetic_evidence_url": "https://github.com/haji84/RACE-AI/blob/8f916340f9287ae5d0379c15bf8791ff67313daf/docs/evidence/boat-ui-mobile-allocation-density-20261119/README.md",
+  "ui_synthetic_pngs": 32,
+  "workflow_only_two_candidate_tokens_changed": true
+}

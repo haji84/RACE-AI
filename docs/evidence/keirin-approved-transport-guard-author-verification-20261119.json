@@ -1,0 +1,195 @@
+{
+  "TDD": {
+    "empty_userinfo_followup_red": {
+      "assertion_failures": 2,
+      "errors": 0,
+      "external_network_attempts": 0,
+      "methods": 1,
+      "new_empty_userinfo_cases": 2,
+      "seconds": 0.046,
+      "skips": 0
+    },
+    "fake_active_entry": {
+      "Request_constructions_after_fix": 0,
+      "opener_constructions_after_fix": 0,
+      "real_models_generated": 0,
+      "real_official_JSON_parser_documents": 2,
+      "real_register_day_and_shared_default_fetch_called": true,
+      "verified_official_fixture_races": 2
+    },
+    "final_boundary_methods_green": 6,
+    "initial_red": {
+      "assertion_failures": 19,
+      "errors": 0,
+      "external_network_attempts": 0,
+      "methods": 6,
+      "runtime_implementation_changed": false,
+      "seconds": 0.18,
+      "skips": 0
+    }
+  },
+  "base_main": "9520104c65c88b3c9c92685ba865d21ad577ced8",
+  "development_environment": {
+    "dependencies": {
+      "beautifulsoup4": "4.15.0",
+      "cryptography": "46.0.3",
+      "runtime": "3.12.14"
+    },
+    "install_returncode": 0,
+    "private_venv": "/workspace/scratch/keirin-kdreams-transport-audit-20261119-j1n5qqda/test-venv",
+    "provider_requests": 0,
+    "root_or_global_packages_changed": false,
+    "seconds": 3.928
+  },
+  "files_sha256": {
+    "scripts/keirin_capture_public_two_sources.py": "7625a1fdb4eed3f28cbedbdb7dad2031ecd53c9c65cdef63f9972ff3513db6fb",
+    "tests/test_keirin_capture_public_two_sources.py": "b4ebaf183699f73dc1f489ef69c5687f69369ed017ee97540a2ff8e59d9f8805"
+  },
+  "final_current_main_matrix": {
+    "errors": 0,
+    "failures": 0,
+    "files_stable": true,
+    "methods": 381,
+    "module_count": 35,
+    "seconds": 51.669,
+    "skips": 0,
+    "socket_or_DNS_attempts": 0,
+    "successful_methods_by_group": {
+      "new_transport_boundaries": 6,
+      "original_explicit_collector": 10,
+      "other_current_main_PR309": 365
+    }
+  },
+  "finding": {
+    "active_reachability_is_conditional_not_actual_provider_GET_evidence": true,
+    "actual_run_or_flags_inspected": false,
+    "entry_requires_existing_opt_ins_valid_key_state_and_nonempty_official_schedule": true,
+    "new_shared_transport_previously_lacked_owner_host_admission": true,
+    "old7584_live_Kdreams_refusal_unchanged": true,
+    "reachable_active_call_chain": [
+      "scripts.keirin_official_day_pipeline.run_capture",
+      "scripts.keirin_github_only_ab_day.guarded_provider_fetch",
+      "scripts.keirin_register_public_day.register_day",
+      "scripts.keirin_capture_public_two_sources.fetch_once"
+    ]
+  },
+  "frozen_commit": "c89becaacd31c6b7ed292e8b420f6c48202ccb02",
+  "frozen_tree": "16375d61dc3973efad63afbd367805ec46c70440",
+  "legacy_approved_admission_regression": {
+    "errors": 0,
+    "failures": 0,
+    "methods": 47,
+    "modules": [
+      "tests.test_keirin_cloud_owner_inputs",
+      "tests.test_keirin_discovery",
+      "tests.test_keirin_mobile_one_shot"
+    ],
+    "seconds": 0.049,
+    "skips": 0,
+    "socket_or_DNS_attempts": 0
+  },
+  "preservation": {
+    "403_availability_or_complete_live_source_claimed_fixed": false,
+    "GitHub_API_requests_this_task": 0,
+    "Git_remote_writes": 0,
+    "current_workflow_bytes_unchanged": true,
+    "fe7_changes": 0,
+    "flags_Secrets_or_real_keys_used_or_changed": 0,
+    "forecast_original_or_cipher_changes": 0,
+    "injected_offline_fixture_API_unchanged": true,
+    "models_weights_or_counters_changes": 0,
+    "new_workflows_jobs_steps_inputs_cron_runner_timeout_permissions": 0,
+    "offline_HTML_URL_normalizers_and_manifest_schemas_unchanged": true,
+    "only_shared_default_real_transport_restricted": true,
+    "provider_GET_POST_this_task": 0,
+    "separate_SP500_evidence_unchanged": true,
+    "source_S_changes": 0
+  },
+  "preserved_code": {
+    "current_workflow_bytes_unchanged": true,
+    "fetch_body_AST_unchanged_after_removing_only_new_admission": true,
+    "four_host_set_matches_existing_SourceSession": true,
+    "legacy_Kdreams_live_rejection_bytes_unchanged_from7584": true,
+    "old_functions_classes_AST_unchanged": {
+      "NoRedirect": true,
+      "SourceCaptureError": true,
+      "_allow_url": true,
+      "_write_once": true,
+      "capture_cycle": true,
+      "main": true,
+      "manifest_check": true,
+      "need": true,
+      "private_dir": true
+    }
+  },
+  "recorded_at": "2026-11-19T04:17:57.885395+00:00",
+  "runtime_patch": {
+    "admission_before_Request_and_opener": true,
+    "approved_host_count": 4,
+    "arbitrary_URL_or_exception_text_disclosed": false,
+    "existing_profile": "owner-approved-winticket-keirinjp-20261109",
+    "https_required": true,
+    "lines_added": 13,
+    "new_approval_authority": false,
+    "ports_allowed": [
+      null,
+      443
+    ],
+    "userinfo_must_be_absent_even_if_empty": true
+  },
+  "schema": "RACE_AI_KEIRIN_EXISTING_OWNER_APPROVED_TRANSPORT_GUARD_FROZEN_EVIDENCE_V1",
+  "separate_non_runtime_verification_attempts": {
+    "final_test_process_umask": "022",
+    "inherited_umask_fixture": {
+      "cause": "UMASK_077_REDUCES_SYNTHETIC_PUBLIC_MKDIR_0755_TO_0700",
+      "counts_file": "current-main-matrix-v4-counts.json",
+      "errors": 0,
+      "failures": 1,
+      "methods": 381,
+      "unchanged_base_oracle": {
+        "base": "9520104c65c88b3c9c92685ba865d21ad577ced8",
+        "cases": [
+          {
+            "errors": 0,
+            "failures": 1,
+            "methods": 1,
+            "network_attempts": 0,
+            "umask": "0o77"
+          },
+          {
+            "errors": 0,
+            "failures": 0,
+            "methods": 1,
+            "network_attempts": 0,
+            "umask": "0o22"
+          }
+        ],
+        "runtime_changes": 0,
+        "unchanged_fixture_only": true
+      }
+    },
+    "initial_runner_test_package_path": {
+      "cause": "HARNESS_TEST_PACKAGE_IMPORT_PATH",
+      "errors": 35,
+      "methods": 35,
+      "raw_log_preserved": "current-main-matrix.log",
+      "runtime_assertion_failures": 0
+    },
+    "missing_workflow_dependency": {
+      "assertion_failures": 0,
+      "cause": "LOCAL_BS4_NOT_INSTALLED",
+      "counts_file": "current-main-matrix-v3-counts.json",
+      "errors": 45,
+      "methods": 355
+    },
+    "root_or_global_umask_changed": false
+  },
+  "tracked_file_count": 2,
+  "workflow_bytecompile": {
+    "compile_errors": 0,
+    "network_attempts": 0,
+    "source_files_modified": 0,
+    "workflow_exact_compile_paths": 25
+  },
+  "worktree_clean": true
+}

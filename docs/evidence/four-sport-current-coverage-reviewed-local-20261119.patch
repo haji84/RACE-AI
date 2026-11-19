@@ -1,0 +1,182 @@
+diff --git a/race_ai/existing_model_coverage.py b/race_ai/existing_model_coverage.py
+index ecf8b2ad..41974ffb 100644
+--- a/race_ai/existing_model_coverage.py
++++ b/race_ai/existing_model_coverage.py
+@@ -47 +47,12 @@ def coverage(rows,scheduled,*,active_only=False):
+-    if active_only:rows=[row for row in rows if not is_retired(row['model_id'])]
++    """Count supplied originals; current sport counts may remain unknown.
++
++    The historical default stays unchanged. The current projection separates
++    registered sport/model cells, without certifying phase or jurisdiction
++    applicability, schedule completeness, source rights or receipt authority.
++    Omitted/null sport counts are unknown; an explicit integer zero stays zero.
++    """
++    if active_only:
++        _need(type(scheduled) is dict and set(scheduled)<=set(ALL) and
++              all(value is None or type(value) is int and value>=0 for value in scheduled.values()),
++              'current schedule requires known sports and nonnegative integer counts or null')
++        rows=[row for row in rows if not is_retired(row['model_id'])]
+@@ -48,0 +60,5 @@ def coverage(rows,scheduled,*,active_only=False):
++    if active_only:
++        by_model={spec['model_id']:spec for spec in specs}
++        _need(all(row['model_id'] not in by_model or row.get('sport') in
++                  by_model[row['model_id']]['applicable_sports'] for row in rows),
++              'current forecast model/sport mismatch')
+@@ -50 +66 @@ def coverage(rows,scheduled,*,active_only=False):
+-    models=[]
++    models=[];sport_cells=[]
+@@ -53 +69,2 @@ def coverage(rows,scheduled,*,active_only=False):
+-        models.append(dict(**spec,saved_forecasts=len(subset),
++        missing=sorted(s for s in spec['applicable_sports'] if scheduled.get(s) is None) if active_only else []
++        model=dict(**spec,saved_forecasts=len(subset),
+@@ -56,2 +73,15 @@ def coverage(rows,scheduled,*,active_only=False):
+-            target_races=sum(scheduled.get(s,0) for s in spec['applicable_sports']),
+-            state='SOME_FROZEN_FORECASTS' if subset else 'NO_FROZEN_FORECAST_INPUT_OR_WINDOW_INCOMPLETE'))
++            target_races=None if missing else sum(scheduled.get(s,0) for s in spec['applicable_sports']),
++            state='SOME_FROZEN_FORECASTS' if subset else 'NO_FROZEN_FORECAST_INPUT_OR_WINDOW_INCOMPLETE')
++        if active_only:
++            model['missing_schedule_sports']=missing
++            for sport in spec['applicable_sports']:
++                own=[row for row in subset if row['sport']==sport]
++                target=scheduled.get(sport)
++                sport_cells.append(dict(cell_key=sport+'/'+spec['model_id'],sport=sport,
++                    model_id=spec['model_id'],required_input=spec['required_input'],
++                    target_races=target,schedule_denominator_status=(
++                        'SCHEDULE_COUNT_UNKNOWN' if target is None else 'SUPPLIED_COUNT_NOT_ATTESTED'),
++                    saved_forecasts=len(own),distinct_races=len({row['race_id'] for row in own}),
++                    by_phase=dict(Counter(row['stage'] for row in own)),
++                    state='SOME_SAVED_FORECAST_ROWS' if own else 'NO_SAVED_FORECAST_ROWS'))
++        models.append(model)
+@@ -59 +89 @@ def coverage(rows,scheduled,*,active_only=False):
+-    return dict(schema='RACE_AI_EXISTING_MODEL_COVERAGE_V1',model_family_count=len(models),
++    report=dict(schema='RACE_AI_EXISTING_MODEL_COVERAGE_V1',model_family_count=len(models),
+@@ -65,0 +96,6 @@ def coverage(rows,scheduled,*,active_only=False):
++    if active_only:
++        report.update(current_sport_model_cell_count=len(sport_cells),sport_model_cells=sport_cells,
++            missing_schedule_sports=sorted(s for s in ALL if scheduled.get(s) is None),
++            sport_model_cell_scope='ACTIVE_REGISTERED_SPORTS_ONLY_PHASE_AND_JURISDICTION_UNVERIFIED',
++            independent_receipts_verified=False)
++    return report
+diff --git a/tests/test_existing_model_coverage.py b/tests/test_existing_model_coverage.py
+index 2eb431b8..f500a1c7 100644
+--- a/tests/test_existing_model_coverage.py
++++ b/tests/test_existing_model_coverage.py
+@@ -1,0 +2 @@ import copy
++from collections import Counter
+@@ -2,0 +4,2 @@ from datetime import datetime, timezone
++from hashlib import sha256
++import json
+@@ -27,0 +31,113 @@ class CoverageTests(unittest.TestCase):
++class CurrentCoverageTests(unittest.TestCase):
++    def cell(self, report, sport, model):
++        return next(row for row in report['sport_model_cells']
++                    if row['sport'] == sport and row['model_id'] == model)
++
++    def test_current_projection_keeps_all_thirty_registered_sport_model_cells(self):
++        from race_ai.all_existing_model_registry import active_cells
++        report = coverage([], {}, active_only=True)
++        self.assertEqual(report['model_family_count'], 15)
++        self.assertEqual(report['current_sport_model_cell_count'], 30)
++        self.assertEqual(Counter(row['sport'] for row in report['sport_model_cells']),
++                         {'boat': 14, 'keirin': 5, 'autorace': 6, 'horse': 5})
++        self.assertEqual({row['cell_key'] for row in report['sport_model_cells']},
++                         {row['cell_key'] for row in active_cells()})
++        self.assertEqual(report['missing_schedule_sports'], sorted(module.ALL))
++        self.assertTrue(all(row['target_races'] is None for row in report['sport_model_cells']))
++        self.assertTrue(all(row['target_races'] is None for row in report['models']))
++        self.assertEqual(report['sport_model_cell_scope'],
++                         'ACTIVE_REGISTERED_SPORTS_ONLY_PHASE_AND_JURISDICTION_UNVERIFIED')
++        self.assertFalse(report['independent_receipts_verified'])
++        self.assertFalse(report['schedule_completeness_proven'])
++        self.assertFalse(report['all_models_operational'])
++
++    def test_partial_current_schedule_distinguishes_null_omission_and_explicit_zero(self):
++        schedule = {'boat': 132, 'keirin': 0, 'horse': None}
++        before = copy.deepcopy(schedule)
++        report = coverage([], schedule, active_only=True)
++        for cell in report['sport_model_cells']:
++            known = cell['sport'] in ('boat', 'keirin')
++            self.assertEqual(cell['target_races'], schedule.get(cell['sport']))
++            self.assertEqual(cell['schedule_denominator_status'],
++                             'SUPPLIED_COUNT_NOT_ATTESTED' if known else 'SCHEDULE_COUNT_UNKNOWN')
++        self.assertEqual(report['missing_schedule_sports'], ['autorace', 'horse'])
++        shared = next(row for row in report['models'] if len(row['applicable_sports']) == 4)
++        self.assertIsNone(shared['target_races'])
++        self.assertEqual(shared['missing_schedule_sports'], ['autorace', 'horse'])
++        auto = next(row for row in report['models'] if row['applicable_sports'] == ['autorace'])
++        self.assertIsNone(auto['target_races'])
++        self.assertEqual(schedule, before)
++        decoded = json.loads(json.dumps(report))
++        self.assertIsNone(self.cell(decoded, 'horse', shared['model_id'])['target_races'])
++        self.assertEqual(self.cell(decoded, 'keirin', shared['model_id'])['target_races'], 0)
++
++    def test_complete_supplied_current_counts_do_not_attest_the_daily_universe(self):
++        report = coverage([], {'boat': 2, 'keirin': 3, 'autorace': 4, 'horse': 5}, active_only=True)
++        self.assertEqual(sum(row['target_races'] for row in report['sport_model_cells']),
++                         14*2 + 5*3 + 6*4 + 5*5)
++        self.assertEqual(report['missing_schedule_sports'], [])
++        shared = next(row for row in report['models'] if len(row['applicable_sports']) == 4)
++        self.assertEqual(shared['target_races'], 14)
++        self.assertTrue(report['counts_only'])
++        self.assertFalse(report['independent_receipts_verified'])
++        self.assertFalse(report['schedule_completeness_proven'])
++        self.assertFalse(report['all_models_operational'])
++
++    def test_current_cells_separate_sport_and_observed_phase_without_copying_private_fields(self):
++        shared = next(row['model_id'] for row in module.active_catalog()
++                      if len(row['applicable_sports']) == 4)
++        personal = 'autorace-personal-observed-baseline-v1'
++        rows = [dict(sport=sport, race_id=race, stage=stage, model_id=model,
++                     source_url='private-source-must-not-leave', top8=['private-ticket-must-not-leave'])
++                for sport, race, stage, model in (
++                    ('boat', 'fictional-boat', 'P0', shared),
++                    ('boat', 'fictional-boat', 'P1', shared),
++                    ('horse', 'fictional-horse', 'P0', shared),
++                    ('autorace', 'fictional-auto', 'A_PRE_TRIAL', personal),
++                    ('autorace', 'fictional-auto', 'B_POST_TRIAL', personal),
++                    ('boat', 'fictional-retired', 'P0', 'seller-shadow-v1-20261104'),
++                    ('horse', 'fictional-extra', 'P0', 'unregistered-history-model'))]
++        before = copy.deepcopy(rows)
++        report = coverage(rows, {'boat': 1}, active_only=True)
++        boat = self.cell(report, 'boat', shared)
++        self.assertEqual((boat['saved_forecasts'], boat['distinct_races'], boat['by_phase']),
++                         (2, 1, {'P0': 1, 'P1': 1}))
++        horse = self.cell(report, 'horse', shared)
++        self.assertEqual((horse['saved_forecasts'], horse['distinct_races'], horse['by_phase']),
++                         (1, 1, {'P0': 1}))
++        self.assertIsNone(horse['target_races'])
++        self.assertEqual(self.cell(report, 'keirin', shared)['saved_forecasts'], 0)
++        self.assertEqual(self.cell(report, 'autorace', personal)['by_phase'],
++                         {'A_PRE_TRIAL': 1, 'B_POST_TRIAL': 1})
++        self.assertEqual(report['additional_model_ids'], ['unregistered-history-model'])
++        encoded = json.dumps(report)
++        for private in ('private-source-must-not-leave', 'private-ticket-must-not-leave', 'fictional-'):
++            self.assertNotIn(private, encoded)
++        self.assertNotIn('seller-shadow-v1-20261104', encoded)
++        self.assertEqual(rows, before)
++
++    def test_current_counts_reject_malformed_denominators_and_wrong_sport_rows(self):
++        for counts in ({'boat': True}, {'boat': -1}, {'boat': 1.0}, {'horse': '2'},
++                       {'horse': float('inf')}, {'unknown': 0}, []):
++            with self.subTest(counts=counts), self.assertRaisesRegex(ValueError, 'current schedule'):
++                coverage([], counts, active_only=True)
++        row = dict(sport='horse', race_id='fictional', stage='P0',
++                   model_id='autorace-personal-observed-baseline-v1')
++        with self.assertRaisesRegex(ValueError, 'current forecast model/sport'):
++            coverage([row], {}, active_only=True)
++
++    def test_historical_catalog_default_report_and_matrix_bytes_stay_exact(self):
++        from race_ai.all_existing_model_registry import registry_sha256
++        schedule = [dict(race_id=f'{sport}:2030-04-01:fictional:1', sport=sport,
++                         cutoff_at='2030-04-01T10:00:00+09:00', stage='P1') for sport in module.ALL]
++        cases = (
++            (catalog(), '4109f41982661a6af50ec73d0b86ed7f2a77d39f6986560d23d5cd14a6072444'),
++            (coverage([], {'boat': 132}), 'b9d8e426ed603559436df5e00d87fb6d20e92dbf977189fcc418776234e02df8'),
++            (module.coverage_matrix(schedule, [], stages=('P1',), now='2030-04-01T00:00:00Z'),
++             '5a630b4bda5ea0d330b99cac81bda3246bf01b1ac842c7f8b9e6ab5a7f6c04f7'))
++        for value, expected in cases:
++            self.assertEqual(sha256(json.dumps(value, sort_keys=True, separators=(',', ':'),
++                                               ensure_ascii=False).encode()).hexdigest(), expected)
++        self.assertEqual(registry_sha256(), '07da538c97be334845f268a10fb0d7676d3b2cdcd7a3a922b0f7d7d798aaf3f6')
++
++

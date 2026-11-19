@@ -1,4 +1,4 @@
-# RACE-AI 最新状況 — 2026-11-19 12:58 JST
+# RACE-AI 最新状況 — 2026-11-19 13:32 JST
 
 **GOALは未達。** 原本・既存変更・重み・元の判定を保全して継続中。従来全文は[履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261118_0928.md)へ同一Git blobのまま保全した。
 
@@ -19,6 +19,7 @@
 - 元offline変更PR70 `b7380fe6a377e6ccf2b96331f2126c52549bbe17`、PR292 `daae4c10167224b7730006d8ada5ade398aaa64b` は08:40:39 UTCの正規APIが両方422 No commit foundで**未復元**。別環境のファイル移転を仮定しない。
 - 復旧したfilesystemの唯一のGit object storeでも2commitは不在。古いcheckout・attachmentの実在は確認したが、元offline変更が移転したとは扱わない。
 - 01:25 JSTの通常 `git fetch --no-write-fetch-head origin <SHA>` でも両commitは `upload-pack: not our ref`。公開read成功・認証成功・既存branchへの実FF push成功とは別に、元offline変更は未復元のまま。
+- 13:09:32 JSTの再確認は、Authorizationを付けない公開APIがHTTP200、正規CLIはhaji84認証・push権限true、既存PR3 branchへの通常FF push実績あり。匿名/認証のmainは同じ9520だった。linked worktree144件を保全し、元offline2commitは正規APIで再び両方422・local objectなし。[公開read・認証・write・未復元の別判定](evidence/race-ai-public-auth-write-offline-recheck-20261119.json)。
 - このBOAT作業では新PR・モデル系統・課金・job/input/cron/runner/timeout/権限・marker名を増やしていない。UI公開・投票・本番重み切替0。OFF pilot/PR290/291/main308、legacy KEIRIN-AIは当方で変更していない。並行PR309の既存main更新は上記のとおり保全する。
 
 ## 本人利用の範囲と朝の起動確認
@@ -115,11 +116,15 @@ main参照同期もテスト先行RED（recovery138件中5失敗、national368�
 
 並行PR309の文書は、別の11月18日79レースcohortのうち17歴史原本の結果検証と限定的A/B比較、旧形式1件のmodel replay HOLD、当日の全国live intake未確立を報告している。当方のfe7で403が出た実probeや新しいSP calendar調査とは別scopeで、17件を当日の全件取得・前向き改善へ加算しない。原本/PDFを当方が独立再認証したとの主張もしない。[並行作業の正確な範囲](KEIRIN_OFFICIAL_PRODUCTION_CLOSURE_20261119.md)。
 
+新mainの実入口をfake sourceで追うと、公式JSON成功後のsecondary登録から除外済みKdreamsへ進めた。既存shared collectorのRequest/open前に、WINTICKET/KEIRIN.JPの既存4host・https・userinfoなし・443だけを認める最小guardを加え、保存済みHTML parserとNoRedirect等は保全した。新6methodsはRED19assertからGREEN、空userinfoも追加REDを経て拒否。作者381件・別legacy47件、独立381件＋禁止81/承認24 cases、root16件が成功し、実provider要求/flags/Secrets/workflow変更0。これは禁止transportの修正で、403解消や予想取得成功ではない。[作者検証](evidence/keirin-approved-transport-guard-author-verification-20261119.json)、[独立review](evidence/keirin-approved-transport-guard-independent-review-20261119.json)。
+
+許可済みSP calendarの保存本文では73開催期間・42明示会場見出し・11月19日の期間内候補8を確認したが、個レース数/締切/rosterはnull。既掲載の2 JavaScriptを通常GETして正規formのmethod/fieldsを確かめ、掲載opaque値を無加工で1回だけPOSTしたところ**12:51:54 JSTにHTTP500**で停止した。500本文/SHAはprobeのerror経路で保存できておらず、原因を断定しない。追加retry/redirect/WT要求0。本文・opaque値は非公開、count/hashだけ保管する。[正規navigationの実停止](evidence/keirin-calendar-normal-navigation-actual-stop-20261119.json)。
+
 AUTOも切分けた。sourceS adapterは公開fixtureで8車IDと8試走値が揃っても既存personal Bを作らず、shared P0 5セルだけを返す。既存B scorer/registryは正しいB1入力を受理するため変換側の欠落。PR72 HTML parserは件数集計だけで個車値mapを返さない。既知primary URLの通常GET1回は200/126,190bytesだが、認識grid数値0で実8値は未確認、上流欠落とは断定しない。sourceSやstudy固定cohortは変更していない。[実readとfixtureの区分](evidence/autorace-primary-b-count-only-audit-20261119.json)。
 
 旧日次discoveryの除外済みKdreams接続と旧mobile callerの承認外host接続は、transport前拒否に修正し既存PR22の通常mergeでmain `7584fc3d9d60aa2a548a43281041f66cf0ce9681` へ反映。旧HTML解析はpure offline helperに保全し、拒否時source attempts=0。ローカル138件/skip0・独立48件と既存CI21 checks（9成功/12skip/失敗0）を確認。これは競輪の403解消や当日予想生成の証拠ではない。[診断と修正](evidence/keirin-approved-source-local-diagnosis-20261118.json)、[main検証](evidence/keirin-source-guard-main-verification-20261119.json)。
 
-既存PR62の候補コードは `f723f0e8b94a87a6d6a7b414b1bb30954541925e`、web tree `d905215e2f886b0bcc4f2e58323ceee465b03c38`。見た目の修正7e6743dcと旧候補7082を祖先に保つ。元ed904を祖先に保ち通常FF push済み。本文移動・320px買い目隠れ・短い横画面の確認button隠れ・60秒更新による展開/focus/12頭横scroll消失を修正した。全4競技タブの複数レースを含む合成fixtureで6/7/8/12出走を確認し、一覧カードは通常6艇257px mobile/181px PCへ収め、詳細情報と8買い目へ進める。既存30 checkpoint、追加4幅・短画面5条件・refresh/keyboard/WebCrypto等が成功し独立review CLEAR。固定8参考画像と元候補のnative PNG28枚の比較を保存。更新候補の実Safari・物理iPhone・login・GitHub暗号化feed直接配送は未確認。公開UI f603は変更0。[最終候補の追加証拠](https://github.com/haji84/RACE-AI/blob/7082e1214e6797806c00e1b60e088792c857672d/docs/evidence/boat-ui-populated-reference-followup-20261119.json)。
+前段の既存PR62候補は `f723f0e8b94a87a6d6a7b414b1bb30954541925e`、web tree `d905215e2f886b0bcc4f2e58323ceee465b03c38`。見た目の修正7e6743dcと旧候補7082を祖先に保つ。元ed904を祖先に保ち通常FF push済み。本文移動・320px買い目隠れ・短い横画面の確認button隠れ・60秒更新による展開/focus/12頭横scroll消失を修正した。全4競技タブの複数レースを含む合成fixtureで6/7/8/12出走を確認し、一覧カードは通常6艇257px mobile/181px PCへ収め、詳細情報と8買い目へ進める。既存30 checkpoint、追加4幅・短画面5条件・refresh/keyboard/WebCrypto等が成功し独立review CLEAR。固定8参考画像と元候補のnative PNG28枚の比較を保存。更新候補の実Safari・物理iPhone・login・GitHub暗号化feed直接配送は未確認。公開UI f603は変更0。[前段候補の追加証拠](https://github.com/haji84/RACE-AI/blob/7082e1214e6797806c00e1b60e088792c857672d/docs/evidence/boat-ui-populated-reference-followup-20261119.json)。
 
 公開前の全資産比較で、旧7082に公開f603の選手名出典3種と最後のforecast日を保つ処理が欠ける退行を再現し、f723へ最小mergeした。候補既存EXECUTION_FAILEDの扱いも保持。product46/history12件は独立reviewでも全成功。元Python AESをNode WebCryptoで読む回帰、既存UI30・rich4幅・short5・refresh/roster/controls・合成WebCrypto等も成功。これは公開前に直した差分で、実予想/モデルを変更しない。
 
@@ -129,7 +134,9 @@ f723のnative Safari検証用SHA/treeとworkflow候補2tokenを一致させた�
 
 服色journal評価の実装はsource fbcへ反映した。実trackerのunknown_detectionsを無視すると6frame/36targetのうち不明検出のあるframeまで完全6艇成功に数える不具合を修正し、完全成功3frame・不明検出1・clean区間の継続6と区分した。rider部位を船体/物理位置へ転用せず、欠測frameも明示する。focused100・source223・独立112件などが成功しreview CLEAR。実6艇映像/独立GT/距離時刻校正/強さ評価の合格とはしない。[評価と再現](https://github.com/haji84/RACE-AI/blob/fbc743be548bfd123e46cdbfe290515a59e5e0d3/docs/evidence/boat-clothing-benchmark-resume-20261118.json)。
 
-追加映像調査では既存CC BY-SA 4.0 clipのhashを再確認したが、新しい6艇連続映像は得られなかった。通常metadataの最初の1要求がHTTP403/126 bytesで停止し、その後の外部要求0・新video download0・tracker実行0・独立GT0。既知clip全体を今回再decodeしたという証拠や、世界中に適した映像が無いという主張はしない。[件数のみの調査記録](evidence/six-boat-licensed-media-count-only-audit-20261119.json)。
+前段の外部映像調査では通常metadataの最初の1要求がHTTP403/126 bytesで停止し、その後の外部要求0・新video download0・tracker実行0だった。当時、既知clip全体の再decodeや6艇不在を証明したものではない。[先行調査記録](evidence/six-boat-licensed-media-count-only-audit-20261119.json)。
+
+その後、既存のNesnad/CC BY-SA 4.0動画を全長から局所確認し、frame310–316/10.344–10.544秒に6艇上人物が同時に見えることを二つのAI目視で確認した。予測の個別出力を見る前に42の頭部/上衣参照を固定し、実Sの既存CLIを元動画775frameへ1回、同モデル・設定で実行して完了success（1,442.523秒）。7frameだけの診断は幾何match15/42・miss27、84出力part中非対応69、matched UNKNOWN13、服色indexのcurrent正解2、6色同時正解0/7。実番号は4既知/38unknownで、服色indexと別扱い。ID遷移分母0なのでswitch0を安定性にしない。manual ROIはtrackerに渡さず採点だけに使用。選定後の短いAI参照でhuman GT/前向き精度ではなく、全clip shot/cut・世界距離/速度・強さ・予想適格もfalse。[実CLIと失敗を含む件数](evidence/boat-six-visible-rider-actual-cli-diagnostic-20261119.json)。raw frame/journal/参照座標はprivateに保持した。
 
 既存PR4からmainへ反映した前向きstudyは、native二セルの元モデル/学習版を固定sourceS・registry・runtime pointer・実candidate hashへ束縛する。1 nonce、サーバartifact createdAtに基づく開始、固定5日、100matched/5開催日/10会場日＋3指標と不確実性、期間終了前の支持判定Noneを守る。旧574 pairsや登録前予想は新分母に流用しない。実model mapは上記M4 Actionsで解決済み。既存PR3のBOUND候補は最初のM4原receiptへ固定し、spec/nonce/初親M5を変更しない。BOUND後の実Actions再認証・将来cohort・改善は未確認。[先行試験](evidence/boat-native-forward-study-test-first-20261119.json)。
 
@@ -141,14 +148,20 @@ AUTO personal Bは別のsourceS基点ローカルcommit963054/1e331で入力変�
 
 実Safariの合成28PNGは[既存UI branchへ同一bytesで保管](https://github.com/haji84/RACE-AI/blob/f9e2dbbf0150d929898d3f260d32e206b7ece4a3/docs/evidence/boat-native-rich-safari-20261119/README.md)した。参考8画像は全PARTIALで、誤ったdetail2枚も修正前証拠として保全。元参考JPEG・実データ画面・鍵は含めない。
 
+現候補コードは **`b55242230e93ec3975a5a49bf3dd5f46632ff794`**、webtree `5cbbfe05a2971485b5c32a84a8ddf7b2539604cc`。mobile配分設定を69px短縮し、320/390pxの完全表示券行を844高で1→2、948高で2→3にした。削除buttonも34→44px幅へ直し、番号の320px間隔6.875px・最大金額81px・確認focus/scroll・短画面5条件・説明/lineageを保全。変更はCSSと既存geometry testのみ、3 browser suites×4幅が成功。既存PR62へ通常FF pushした証拠head8f916はコードb552の直後で、新Linux合成PNG32枚を同一byte保存している。[新合成証拠](https://github.com/haji84/RACE-AI/blob/8f916340f9287ae5d0379c15bf8791ff67313daf/docs/evidence/boat-ui-mobile-allocation-density-20261119/README.md)。実Mac/実機/全8参考合格ではない。
+
+新PRを増やさず既存PR3で同candidate pinを同期する候補を用意した。checkerは3constants・workflowは既存2tokens・testは3期待値だけを変更し、全runtime関数/classとprivate source/Pages pinsは不変。test-first RED1→root202件/19.972秒成功、実clean candidateの全Git bytesを検証しcapture用74資産/37,569,381 bytesを確認。UI新規公開や本番重み切替は0、実Actionsでの新candidate Safariはこれから。[pinの局所検証](evidence/boat-pr3-reviewed-mobile-candidate-pin-20261119.json)。
+
+sourceSを固定する期間も、current分母と空原本の欠落をローカルで修正した。current30 sport/modelセルは未提供をnull・明示0を0と区別し、familyの既知部分和を全分母にしない。空contextは既存AES/seal/readbackへ通し、空原本への後からの入力差替え・不正file/FIFO/symlinkはHOLD。独立reviewのparent-file欠陥を追補で修正し、作者66件とroot CLI21件を確認した。公式calendarのpure parserも54件/CLEARだが個race manifestはNone。3つともexact baseへ適用checkした[review済みlocal patch](evidence/race-ai-reviewed-local-future-patches-20261119.json)を保管し、稼働S/study/過去HOLDへ適用していない。
+
 実Macのnew_session失敗は、前成功とOS・image・workflow・起動定義が同一だった。原因を推測して設定変更や再試行を足さず、既存起動の固定8項目だけを診断へ加えた。元159 testsとWebDriver/cleanupを保持し、新164件と独立79 probesが成功。root統合は **457件/360.491秒＋native202件/18.711秒＋旧A74 raw7件/24.336秒** が全成功、外部接続0。既存PR3の最終HEAD CI・BOUND登録再認証・実保存確認・新しい実Macはこれからで、起動原因の修正や実機合格は主張しない。[診断根拠](evidence/boat-native-session-start-diagnostic-local-20261119.json)、[独立review](evidence/boat-native-startup-diagnostic-independent-review-20261119.json)、[統合検証](evidence/boat-pr3-witness-retention-native-integration-20261119.json)。
 
 | 完成条件 | 実確認と残件 |
 | --- | --- |
-| スマホ/PC・Safari | 当日の実Mac Safari26.6/run44428187504で保存日11/19・feed revision455・結果3/native P1 9group・browser AES成功。private loopback再生で、GitHub feed直接配送の証明ではない。物理iPhone・本人login・全8画面の最終受入はfalse。候補f723の28PNGは合成で入力充実化を検証中。公開f603は維持。本人端末は13 Proだが接続された実機操作環境は無い。[当日の実受入](evidence/boat-native-current-day-mac-actual-20261119.json)。 |
+| スマホ/PC・Safari | 当日の旧実Mac Safari26.6でprivate loopback/保存view/AESは成功。M4はnew_session500で停止。新b552はmobile表示券行+1/44px targetを合成検証し32PNG保管、実Actions受入待ち。物理iPhone13Pro・login・直接GitHub feed・全8参考はfalse。公開f603は維持。[局所pin証拠](evidence/boat-pr3-reviewed-mobile-candidate-pin-20261119.json)。 |
 | 全レース×全適用既存model | BOATは上記の部分証拠のみ。完全union/全日/T15〜10/日跨ぎは未証明。AUTOの個車入力、JRA/NARの適用区別、4競技全日の独立証明も未完。 |
 | 競輪 | 最新の実44437961180（11/19 10:35 JST）はindex未取得、HTTP403が1request、429/UNKNOWN0、新入力0で停止。403自体は確定したが原因と解消は未確認。local通常index200/SSR75・本人Safari開催一覧表示とは別の接続環境。全347/437入力/全券/当日予想は未実証。[実ログ件数](evidence/boat-main9-reviewed-merge-and-real-keirin403-20261119.json)。 |
-| 6艇の継続識別・校正・予想接続 | 同時6艇の独立GT・承認済み映像・実race結合が未確認。既知Commons映像は2〜3艇で、6艇精度や強さの校正を証明しない。 |
+| 6艇の継続識別・校正・予想接続 | 実775frame推論と同時6人物7frame/42参照の診断まで進んだが、服色current正解2・6色同時0/7。短いAI参照はhuman GT/全race連続IDではない。実race/番号/世界距離・速度/強さ校正/予想接続は未証明。[実診断](evidence/boat-six-visible-rider-actual-cli-diagnostic-20261119.json)。 |
 | 前向き精度改善 | 11/3事前方針のGit blob073379は旧A/B向けで、自動的に新nativeセルを登録しない。専用studyをmainへ反映し、実candidateと最初のサーバreceiptを確認。既存PR3で原receiptへ固定する候補を用意したが、BOUND後の実再認証と将来集計は未確認。100matched/5日/10会場日を保ち、過去574 pairsを新分母へ流用しない。改善・98%は未実証、重み変更0。 |
 
 競輪の承認は[WINTICKET/KEIRIN.JP限定](https://github.com/haji84/RACE-AI/blob/fe7e5581263b2b31fbd45536ac6a611c2779fa65/docs/KEIRIN_WINTICKET_KEIRINJP_OWNER_SOURCE_APPROVAL_20261109.md)でKdreamsは除外。本人は「利用はいいと書いていた」、追加の技術設定/許諾済み入力bundleは持っていない、iPhone 13 Pro、保管先GitHubと回答した。既存の本人使用・通常自動取得の指示を尊重し、設定名や許諾書を繰返し要求しない。完全347/437入力・全券・公式締切を創作せず、提供元403/429は尊重する。鍵/passwordは不要。既存公開RACE-AIでの3タブ切替確認も質問したが未回答で、Safari開催一覧表示をRACE-AI画面の実機受入に置き換えない。

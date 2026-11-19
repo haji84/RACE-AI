@@ -961,12 +961,12 @@ def candidate_fixture():
 
 class CandidateSyntheticTests(unittest.TestCase):
     def test_candidate_pin_is_exact_reviewed_ui_not_a_runtime_or_model_pin(self):
-        self.assertEqual(getattr(S, 'CANDIDATE_SHA', None), 'f723f0e8b94a87a6d6a7b414b1bb30954541925e')
-        self.assertEqual(S.CANDIDATE_WEB_TREE, 'd905215e2f886b0bcc4f2e58323ceee465b03c38')
+        self.assertEqual(getattr(S, 'CANDIDATE_SHA', None), 'b55242230e93ec3975a5a49bf3dd5f46632ff794')
+        self.assertEqual(S.CANDIDATE_WEB_TREE, '5cbbfe05a2971485b5c32a84a8ddf7b2539604cc')
         self.assertEqual(S.CANDIDATE_ASSET_SHA256, {
             'index.html': 'ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2',
             'app.js': 'c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5',
-            'style.css': '06414329229c6c7919b67408ca567c859b064d7f2b0d7abab7ddc203ab407e82'})
+            'style.css': 'cf67f3e93763bb816be5c2a4aeeddbd35b5a6e8b50c9d3e4a3331e1e7e599d08'})
         self.assertEqual(S.PAGES_SHA, 'f60308ef7443ca13b5ca23c4896e15ffc67b0427')
         self.assertEqual(S.SOURCE_SHA, 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3')
 

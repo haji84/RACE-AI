@@ -1,0 +1,76 @@
+{
+  "actual_author_counts_inspected": {
+    "actual_four_model_forecast_saved": false,
+    "calendar_meeting_candidates": 8,
+    "calendar_meetings_observed": 73,
+    "calendar_venue_candidates": 8,
+    "calendar_venue_headers_observed": 42,
+    "day_roster_manifest_ready": false,
+    "full_347_437_audit_verified": false,
+    "individual_race_count": null,
+    "new_pre_race_inputs": 0,
+    "official_cutoffs_verified": false,
+    "provider_http_requests": 0,
+    "schema": "RACE_AI_KEIRIN_OFFICIAL_CALENDAR_COUNTS_V1",
+    "source_sha256": "ba4fba46da2f2d98812fe3aca09ac238cb73055c20460d9a24f2818556c59546",
+    "state": "HOLD_CALENDAR_ONLY_NO_INDIVIDUAL_RACE_IDENTITIES"
+  },
+  "actual_raw_independently_reread": false,
+  "base": "ed336daae7b78ec4c8a8b90cebfaaf713ff70260",
+  "boundary_checks": {
+    "January_cross_year_projection_correct": true,
+    "actual_key_reads": 0,
+    "calendar_projection_not_accepted_as_zero_race_ledger": true,
+    "commit": "c0feb1becb8ff70834b87d9a3f901b5c954bccc5",
+    "explicit_wrong_weekday_rejected_without_separator_change": true,
+    "hostile_private_fields_never_represented": true,
+    "incomplete_meeting_table_rejected": true,
+    "overlong_period_rejected": true,
+    "provider_requests": 0,
+    "raw_source_reads": 0,
+    "summary_fixed_14_keys": true,
+    "synthetic_only": true,
+    "unknown_period_markup_rejected": true,
+    "zero_venue_rejected": true
+  },
+  "commit": "c0feb1becb8ff70834b87d9a3f901b5c954bccc5",
+  "effects": {
+    "actual_key_reads": 0,
+    "actual_source_raw_reads": 0,
+    "author_or_root_files_edited": 0,
+    "dispatches": 0,
+    "existing_source_S_fe7_or_models_changed": 0,
+    "provider_requests": 0,
+    "remote_writes": 0
+  },
+  "fixed_commit_bytes_before_after_unchanged": true,
+  "independent_tests": {
+    "OS_socket_syscalls_denied": true,
+    "errors": 0,
+    "failures": 0,
+    "log": "frozen-c0feb1-54-tests.log",
+    "seconds": 0.064,
+    "tests": 54,
+    "warnings_as_errors": true
+  },
+  "interpretation": {
+    "HTTP403_resolved": false,
+    "day_roster_manifest": null,
+    "forecast_saved": false,
+    "full_347_437_verified": false,
+    "individual_races": null,
+    "machine_rights_verified": false,
+    "meeting_period_inclusion_only": true,
+    "official_cutoffs_verified": false,
+    "race_count": null,
+    "roster_model_features_verified": false
+  },
+  "public_summary": "14 fixed fields; counts/body hash/fixed hold flags only, without URL, opaque form values, venue data or source text",
+  "reviewed_sha256": {
+    "race_ai/keirin_official_schedule.py": "e89bcb264b405942119cc2899d44207c5dae12eb72bda7c5e5f1f2611ad9ae8f",
+    "tests/test_keirin_official_schedule.py": "3a105b54252827c827efd08f96e8c7b11a83a8ac108c0f029c9483dc223db9d6"
+  },
+  "scope": "Only two new code/test files; not connected to production intake or ledger",
+  "status": "CLEAR_PURE_CALENDAR_CANDIDATE_PARSER",
+  "tree": "569011134dedae2abe61d3cd9d3a29a0c4be94d5"
+}

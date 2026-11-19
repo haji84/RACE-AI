@@ -1,0 +1,235 @@
+diff --git a/scripts/boat_all_model_cycle.py b/scripts/boat_all_model_cycle.py
+index c4253a2a..5693c052 100644
+--- a/scripts/boat_all_model_cycle.py
++++ b/scripts/boat_all_model_cycle.py
+@@ -342,0 +343,3 @@ def generate(round_no, baseline_artifact=None):
++    need(not any(path.is_symlink() for path in (folder, *folder.parents)) and
++         all(not path.exists() or path.is_dir() for path in (folder, *folder.parents)),
++         "RETAINED_INPUT_PATH_INVALID")
+@@ -351 +354,3 @@ def generate(round_no, baseline_artifact=None):
+-    if not contexts: return dict(ready=False, contexts=0, generated_forecasts=0)
++    # Seal zero retained contexts through the same runtime, inventory and
++    # receipt path. This records this producer's zero issuance, never source
++    # availability, a zero-race day, or complete schedule coverage.
+diff --git a/tests/test_boat_all_model_cycle_cli.py b/tests/test_boat_all_model_cycle_cli.py
+index 6011805f..15848dde 100644
+--- a/tests/test_boat_all_model_cycle_cli.py
++++ b/tests/test_boat_all_model_cycle_cli.py
+@@ -287,0 +288,215 @@ class AllModelCliTests(unittest.TestCase):
++    def test_zero_retained_contexts_are_sealed_and_independently_read_back(self):
++        cli.prepare_runtime(round_no=1)
++        self.assertFalse((self.temp/"boat-all-model-inputs/cycle-1").exists())
++        # Baseline forecasts can exist even when this additional-model producer
++        # has no retained contexts. Zero here is not zero races or source facts.
++        baseline = native_baseline(source_context())
++        mapping, _ = self.artifact("national.json", wire(baseline).encode(), ident=99,
++                                   name="boat-national-cutoff-42", saved="2030-04-01T18:00:05+09:00")
++        with patch.object(cli, "gh", side_effect=lambda path: mapping[path]), \
++             patch.object(engine, "dispatch", side_effect=AssertionError("empty round ran a predictor")):
++            code, text = self.run_cli(["generate", "--round", "1", "--baseline-artifact", "99"])
++        self.assertEqual(code, 0, text)
++        self.assertTrue(json.loads(text)["ready"])
++        path = self.temp/"boat-all-model-forecasts/cycle-1/forecasts.enc"
++        cipher = path.read_bytes(); payload = store.open_forecasts(cipher, key=KEY)
++        with self.assertRaises(ValueError):
++            store.open_forecasts(cipher, key=b"f"*32)
++        self.assertEqual(payload["summary"], dict(contexts=0, generated_forecasts=0, reused_baseline_forecasts=0))
++        self.assertEqual(payload["current_inputs"], [])
++        self.assertEqual(payload["dispatch_reports"], [])
++        self.assertEqual(payload["native_input_capsules"], [])
++        self.assertEqual(payload["baseline"]["receipt"]["artifact_id"], 99)
++        self.assertEqual(len(baseline["paired_forecasts"]), 1)
++        self.assertEqual(payload["source_requests"], 0)
++        self.assertFalse(payload["originals_overwritten"])
++        self.assertEqual(path.stat().st_mode & 0o777, 0o600)
++        self.assertEqual(path.parent.stat().st_mode & 0o777, 0o700)
++        mapping, _ = self.artifact("forecasts.enc", cipher)
++        with patch.object(cli, "gh", side_effect=lambda item: mapping[item]), \
++             patch.object(cli, "utc_now", return_value=datetime.fromisoformat("2030-04-01T18:00:30+09:00")):
++            code, text = self.run_cli(["readback", "--round", "1", "--artifact", "101"])
++        self.assertEqual(code, 0, text)
++        report = json.loads(text)
++        self.assertTrue(report["ready"] and report["independently_verified"])
++        self.assertEqual((report["contexts"], report["generated_forecasts"]), (0, 0))
++        ref = json.loads((self.temp/"boat-all-model-readback.json").read_text())
++        view = json.loads(Path(ref["private_view_path"]).read_text())
++        self.assertEqual(view["records"], [])
++        self.assertIsNone(view["event_date_jst"])
++        self.assertFalse(view["schedule_completeness_proven"])
++        self.assertFalse(view["official_metrics_eligible"])
++        self.assertFalse(view["all_models_operational"])
++        self.assertEqual(store.restore_forecasts(ref["pointer"], self.repo, key=KEY,
++                                                transport=self.forecast_git), payload)
++
++    def test_empty_directory_is_zero_but_zero_byte_or_malformed_input_is_hold(self):
++        cli.prepare_runtime(round_no=1)
++        folder = self.temp/"boat-all-model-inputs/cycle-1"
++        folder.mkdir(parents=True, mode=0o700)
++        code, text = self.run_cli(["generate", "--round", "1"])
++        self.assertEqual(code, 0, text)
++        self.assertTrue(json.loads(text)["ready"])
++        cipher_path = self.temp/"boat-all-model-forecasts/cycle-1/forecasts.enc"
++        original = cipher_path.read_bytes()
++        source = folder/"20300401-01-01.json"
++        for raw in (b"", b"not-json", b"{}", wire({"schema": engine.INPUT_SCHEMA}).encode()):
++            with self.subTest(raw=raw):
++                source.write_bytes(raw); source.chmod(0o600)
++                code, text = self.run_cli(["generate", "--round", "1"])
++                self.assertEqual(code, 2, text)
++                self.assertEqual(json.loads(text)["status"], "ALL_MODEL_PATH_REJECTED")
++                self.assertNotIn("generated_forecasts", json.loads(text))
++                self.assertEqual(cipher_path.read_bytes(), original)
++        source.unlink()
++        target = self.temp/"private-empty.json"; target.write_bytes(b"{}"); target.chmod(0o600)
++        source.symlink_to(target)
++        code, text = self.run_cli(["generate", "--round", "1"])
++        self.assertEqual(code, 2, text)
++        self.assertEqual(cipher_path.read_bytes(), original)
++
++    def test_empty_directory_or_parent_symlink_never_becomes_a_zero_receipt(self):
++        parent = self.temp/"boat-all-model-inputs"
++        target = self.temp/"private-empty-inputs"; target.mkdir(mode=0o700)
++        for round_no, kind in enumerate(("cycle", "dangling-cycle", "parent", "dangling-parent"), 1):
++            with self.subTest(kind=kind):
++                cli.prepare_runtime(round_no=round_no)
++                destination = target if not kind.startswith("dangling") else self.temp/"absent-inputs"
++                if kind.endswith("cycle"):
++                    parent.mkdir(mode=0o700, exist_ok=True)
++                    link = parent/f"cycle-{round_no}"
++                else:
++                    if parent.exists(): parent.rmdir()
++                    link = parent
++                link.symlink_to(destination, target_is_directory=True)
++                try:
++                    code, text = self.run_cli(["generate", "--round", str(round_no)])
++                    self.assertEqual(code, 2, text)
++                    self.assertEqual(json.loads(text)["reason"], "ALL_MODEL_CLI_RETAINED_INPUT_PATH_INVALID")
++                    self.assertFalse((self.temp/f"boat-all-model-forecasts/cycle-{round_no}/forecasts.enc").exists())
++                finally:
++                    link.unlink()
++
++    def test_existing_input_parent_or_cycle_must_be_a_directory_not_file_or_fifo(self):
++        parent = self.temp/"boat-all-model-inputs"
++        for round_no, (level, kind) in enumerate((
++                ("parent", "file"), ("parent", "fifo"), ("cycle", "file"), ("cycle", "fifo")), 1):
++            with self.subTest(level=level, kind=kind):
++                cli.prepare_runtime(round_no=round_no)
++                self.output.write_text("")
++                if level == "cycle":
++                    parent.mkdir(mode=0o700, exist_ok=True)
++                path = parent if level == "parent" else parent/f"cycle-{round_no}"
++                if kind == "file":
++                    path.write_bytes(b"not-an-input-directory"); path.chmod(0o600)
++                else:
++                    os.mkfifo(path, mode=0o600)
++                try:
++                    code, text = self.run_cli(["generate", "--round", str(round_no)])
++                    self.assertEqual(code, 2, text)
++                    report = json.loads(text)
++                    self.assertEqual(report["reason"], "ALL_MODEL_CLI_RETAINED_INPUT_PATH_INVALID")
++                    self.assertNotIn("contexts", report)
++                    self.assertNotIn("generated_forecasts", report)
++                    self.assertEqual(self.output.read_text(), "ready=false\n")
++                    self.assertFalse((self.temp/f"boat-all-model-forecasts/cycle-{round_no}/forecasts.enc").exists())
++                finally:
++                    path.unlink()
++
++    def test_empty_original_is_reused_and_later_nonempty_input_cannot_replace_it(self):
++        cli.prepare_runtime(round_no=1)
++        code, text = self.run_cli(["generate", "--round", "1"])
++        self.assertEqual(code, 0, text)
++        self.assertTrue(json.loads(text)["ready"])
++        path = self.temp/"boat-all-model-forecasts/cycle-1/forecasts.enc"
++        original = path.read_bytes()
++        with patch.object(engine, "forecast_round", side_effect=AssertionError("empty original regenerated")):
++            code, text = self.run_cli(["generate", "--round", "1"])
++        self.assertEqual(code, 0, text)
++        self.assertEqual(path.read_bytes(), original)
++        context = source_context()
++        engine.retain_current_input(context["program"], context["beforeinfo"], context["as_of"],
++                                    self.temp/"boat-all-model-inputs/cycle-1")
++        code, text = self.run_cli(["generate", "--round", "1"])
++        self.assertEqual(code, 2, text)
++        self.assertEqual(json.loads(text)["reason"], "ALL_MODEL_CLI_SEALED_ROUND_INPUT_CHANGED")
++        self.assertEqual(path.read_bytes(), original)
++
++    def test_zero_contexts_still_require_valid_issued_inventory_owner_and_runtime(self):
++        marker = cli.prepare_runtime(round_no=1)
++        code, text = self.run_cli(["generate", "--round", "2"])
++        self.assertEqual(code, 2, text)
++        self.assertEqual(json.loads(text)["reason"], "ALL_MODEL_CLI_PREPARED_ROUND_MISMATCH")
++        with patch.dict(os.environ, RACE_AI_STATE_KEY=base64.b64encode(b"f"*32).decode()):
++            code, text = self.run_cli(["generate", "--round", "1"])
++        self.assertEqual(code, 2, text)
++        issued = Path(marker["issued_models_path"])
++        issued.write_text(wire({"fictional-race": ["not-a-registered-model"]}))
++        marker["issued_models_sha256"] = hashlib.sha256(issued.read_bytes()).hexdigest()
++        ready = self.temp/"boat-all-model-runtime/runtime-ready.json"
++        ready.write_text(wire(marker))
++        code, text = self.run_cli(["generate", "--round", "1"])
++        self.assertEqual(code, 2, text)
++        self.assertFalse((self.temp/"boat-all-model-forecasts/cycle-1/forecasts.enc").exists())
++        cli.prepare_runtime(round_no=2)
++        with patch.dict(os.environ, GITHUB_SHA="b"*40):
++            code, text = self.run_cli(["generate", "--round", "2"])
++        self.assertEqual(code, 2, text)
++        Path(cli.restore_ready()["runtime_files"]["history.sqlite"]).write_bytes(b"invalid-runtime")
++        code, text = self.run_cli(["generate", "--round", "2"])
++        self.assertEqual(code, 2, text)
++        self.assertFalse((self.temp/"boat-all-model-forecasts/cycle-2/forecasts.enc").exists())
++
++    def test_empty_receipt_save_failure_is_hold_and_partial_cipher_cannot_be_regenerated(self):
++        for round_no, failure in ((1, "cipher"), (2, "manifest")):
++            with self.subTest(failure=failure):
++                cli.prepare_runtime(round_no=round_no)
++                self.output.write_text("")
++                save = cli.save
++                def fail(path, body, **options):
++                    if (failure == "cipher" and Path(path).name == "forecasts.enc" or
++                            failure == "manifest" and Path(path).name == f"cycle-{round_no}.json"):
++                        raise OSError("private-failure-detail-must-not-leave")
++                    return save(path, body, **options)
++                with patch.object(cli, "save", side_effect=fail):
++                    code, text = self.run_cli(["generate", "--round", str(round_no)])
++                self.assertEqual(code, 2, text)
++                self.assertEqual(json.loads(text)["status"], "ALL_MODEL_PATH_REJECTED")
++                self.assertNotIn("private-failure-detail", text)
++                self.assertEqual(self.output.read_text(), "ready=false\n")
++                path = self.temp/f"boat-all-model-forecasts/cycle-{round_no}/forecasts.enc"
++                if failure == "manifest":
++                    original = path.read_bytes()
++                    code, text = self.run_cli(["generate", "--round", str(round_no)])
++                    self.assertEqual(code, 2, text)
++                    self.assertEqual(path.read_bytes(), original)
++                else:
++                    self.assertFalse(path.exists())
++                self.assertFalse((self.temp/"boat-all-model-readback.json").exists())
++
++    def test_empty_readback_failure_does_not_publish_or_acknowledge(self):
++        cli.prepare_runtime(round_no=1)
++        code, text = self.run_cli(["generate", "--round", "1"])
++        self.assertEqual(code, 0, text)
++        self.assertTrue(json.loads(text)["ready"])
++        path = self.temp/"boat-all-model-forecasts/cycle-1/forecasts.enc"
++        cipher = path.read_bytes()
++        mapping, meta = self.artifact("forecasts.enc", cipher)
++        meta["workflow_run"]["head_sha"] = "b"*40
++        mapping["actions/artifacts/101"] = wire(meta).encode()
++        with patch.object(cli, "gh", side_effect=lambda item: mapping[item]), \
++             patch.object(store, "publish_forecasts", side_effect=AssertionError("invalid receipt published")) as publish:
++            code, text = self.run_cli(["readback", "--round", "1", "--artifact", "101"])
++        self.assertEqual(code, 2, text)
++        publish.assert_not_called()
++        mapping, _ = self.artifact("forecasts.enc", cipher)
++        with patch.object(cli, "gh", side_effect=lambda item: mapping[item]), \
++             patch.object(cli, "utc_now", return_value=datetime.fromisoformat("2030-04-01T18:00:30+09:00")), \
++             patch.object(store, "publish_forecasts", side_effect=RuntimeError("private-push-failure")) as publish:
++            code, text = self.run_cli(["readback", "--round", "1", "--artifact", "101"])
++        self.assertEqual(code, 2, text)
++        publish.assert_called_once()
++        self.assertNotIn("private-push-failure", text)
++        self.assertFalse((self.temp/"boat-all-model-readback.json").exists())
++        self.assertEqual(path.read_bytes(), cipher)
++
+@@ -299,0 +515 @@ class AllModelCliTests(unittest.TestCase):
++        self.assertEqual(payload["summary"]["contexts"], 1)
