@@ -189,7 +189,7 @@ class OwnerRaceReport(unittest.TestCase):
         self.assertEqual(len(card.select('[data-model="A"] .ticket')), 2)
         self.assertEqual(len(card.select('[data-model="B"] .ticket')), 2)
         self.assertEqual(len(card.select('[data-model="C"] .ticket')), 0)
-        self.assertIn("A/B", soup.select_one(".coverage-note").text)
+        self.assertIn("A/B", soup.select_one("#coverage").text)
 
     def test_unverified_c_payload_does_not_leak_or_block_a_b(self):
         report, rows = examples()
