@@ -56,10 +56,13 @@ def render_list(raw):
         for record in group['raceProgramList']:
             parts.append('<tr><td><button type="button"><span class="raceEveNamewid">'
                          + record['strRaceNo'] + '</span>' + record['strSyumokuName']
-                         + '</button><input type="hidden" value="' + record['strRaceLnk']
-                         + '"><input type="hidden" value="' + record['strRaceLnkPrm']
-                         + '"><input type="hidden" value="' + record['strRaceLnkKbn']
-                         + '"></td></tr>')
+                         + '</button>')
+            if record.get('strRaceLnk'):
+                parts.append('<input type="hidden" value="' + record['strRaceLnk']
+                             + '"><input type="hidden" value="' + record['strRaceLnkPrm']
+                             + '"><input type="hidden" value="' + record.get('strRaceLnkKbn', '')
+                             + '">')
+            parts.append('</td></tr>')
         parts.append('</table></div>')
     buttons = ''.join('<button class="btn onbtn" onclick="location.href=\'#Nitiji_'
                       + str(i+1) + '\'">' + group['strKaisaiNitijName'] + '</button>'
@@ -466,6 +469,38 @@ class OfficialSPBrowserTests(unittest.TestCase):
             self.assertGreaterEqual(b.date_clicks, 6)
             self.assertTrue(any(expander for _, expander in b.clicks))
             self.assertTrue(inbox.is_dir())
+
+    def future_placeholder_list(self):
+        data = list_data()
+        future = deepcopy(data['SJ0301']['kaisaiDayList'][-1])
+        future['strKaisaiNitijName'] = '最終日(1/16)'
+        for i, row in enumerate(future['raceProgramList']):
+            row.pop('strRaceLnkKbn')
+            if i:
+                row['strRaceLnk'] = row['strRaceLnkPrm'] = ''
+        data['SJ0301']['kaisaiDayList'].append(future)
+        return html(data)
+
+    def test_future_placeholder_rows_do_not_block_strict_current_day_capture(self):
+        b = Browser(venues=(98,)); b.lists[98] = self.future_placeholder_list()
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'OFFICIAL_SP_PARTIAL_INPUT_CAPTURED')
+            self.assertEqual((out['day_race_count'], out['details_verified'], out['riders_verified']),
+                             (3, 3, 21))
+            self.assertEqual(b.detail_visits, 3)
+
+    def test_current_day_and_all_date_label_guards_remain_strict_with_future_placeholders(self):
+        changes = [lambda t: t.replace('value="'+'B'*43+'"', 'value="'+'Z'*43+'"'),
+                   lambda t: t.replace('2日目(1/15)</div>', '2日目(1/16)</div>'),
+                   lambda t: t.replace('value="1"', 'value="2"'),
+                   lambda t: t.replace('最終日(1/16)</div>', '最終日(1/17)</div>')]
+        for change in changes:
+            b = Browser(venues=(98,)); b.lists[98] = self.future_placeholder_list()
+            b.list_dom_mutation = change
+            with self.collect(b) as (out, _, b):
+                self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_SOURCE_LAYOUT')
+                self.assertEqual(out['details_verified'], 0)
+                self.assertEqual(b.detail_visits, 0)
 
     def test_private_create_only_hash_files_preserve_notes_and_expose_only_counts(self):
         with self.collect(Browser(venues=(98,))) as (out, inbox, _):

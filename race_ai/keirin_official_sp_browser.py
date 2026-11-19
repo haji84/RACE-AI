@@ -438,25 +438,12 @@ class _Collector:
         rendered = self.page.locator('#setRaceProgram > div')
         _need(rendered.count() == len(groups))
         selected = None
+        day = datetime.fromisoformat(self.day)
         for i, group in enumerate(groups):
             dom = rendered.nth(i)
             label = dom.locator('.divRaceNitiji')
             _need(label.count() == 1 and receipt._norm(label.text_content() or '') ==
                   receipt._norm(group['strKaisaiNitijName']))
-            buttons = dom.locator('button')
-            rows = group['raceProgramList']
-            _need(buttons.count() == len(rows))
-            for j, record in enumerate(rows):
-                button = buttons.nth(j)
-                number = button.locator('.raceEveNamewid')
-                _need(number.count() == 1 and receipt._norm(number.text_content() or '') ==
-                      receipt._norm(record['strRaceNo']))
-                parent = button.locator('..')
-                inputs = parent.locator('input[type="hidden"]')
-                _need(parent.locator('button').count() == 1 and inputs.count() == 3
-                      and [inputs.nth(k).input_value() for k in range(3)] ==
-                      [record['strRaceLnk'], record['strRaceLnkPrm'], record['strRaceLnkKbn']])
-            day = datetime.fromisoformat(self.day)
             label_match = re.fullmatch(r'(?:初日|最終日|[2-9]日目)\(([0-9]{1,2})/([0-9]{1,2})\)',
                                       receipt._norm(group['strKaisaiNitijName']))
             _need(label_match is not None)
@@ -464,6 +451,21 @@ class _Collector:
                 _need(selected is None)
                 selected = i
         _need(selected is not None)
+        # Unselected days can contain published placeholders without link fields.
+        # Only the uniquely bound current day's rows can supply detail controls.
+        buttons = rendered.nth(selected).locator('button')
+        rows = groups[selected]['raceProgramList']
+        _need(buttons.count() == len(rows))
+        for j, record in enumerate(rows):
+            button = buttons.nth(j)
+            number = button.locator('.raceEveNamewid')
+            _need(number.count() == 1 and receipt._norm(number.text_content() or '') ==
+                  receipt._norm(record['strRaceNo']))
+            parent = button.locator('..')
+            inputs = parent.locator('input[type="hidden"]')
+            _need(parent.locator('button').count() == 1 and inputs.count() == 3
+                  and [inputs.nth(k).input_value() for k in range(3)] ==
+                  [record['strRaceLnk'], record['strRaceLnkPrm'], record['strRaceLnkKbn']])
         return selected
 
     def open_detail(self, parsed, doc, bound, number):
