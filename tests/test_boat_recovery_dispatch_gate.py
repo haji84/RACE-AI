@@ -236,7 +236,7 @@ class RecoveryGateTests(unittest.TestCase):
 
 
     def test_a74_original_recovery_requires_research_cache_checkout_and_new_bound_proof(self):
-        protected='fbc743be548bfd123e46cdbfe290515a59e5e0d3'
+        protected='1dbb47b68d487fc6def0bd4b10b1423f0a2145f6'
         previous='a74f1e940e7fc0852e63938f8138bdb58bd93163'
         args,proof=self.orphan()
         args['history']['workflow_runs'][0]['head_sha']=previous
@@ -250,6 +250,7 @@ class RecoveryGateTests(unittest.TestCase):
         self.assertEqual(decision['release_sha'],protected)
         self.assertEqual(decision['official_source_requests'],0)
         for change in (lambda p:p.update(head_sha=previous),
+                       lambda p:p.update(head_sha='fbc743be548bfd123e46cdbfe290515a59e5e0d3'),
                        lambda p:p.update(head_sha='995ef00a2ffb98a0161e1875d7d2a33145367b40'),
                        lambda p:p.update(head_sha='c979aeb678538d99e277f26726047dccbdc982af'),
                        lambda p:p.update(head_sha='f1f8ed4ffb2a29e6b702685f49de63918610479d'),
@@ -267,7 +268,7 @@ class RecoveryGateTests(unittest.TestCase):
         self.assertEqual((args,proof),before)
 
     def test_bb_original_recovery_requires_research_cache_checkout_and_new_bound_proof(self):
-        protected='fbc743be548bfd123e46cdbfe290515a59e5e0d3'
+        protected='1dbb47b68d487fc6def0bd4b10b1423f0a2145f6'
         previous='bb49215034b779ea1493b35dd91e5c3ebfc04032'
         args,proof=self.orphan()
         args['history']['workflow_runs'][0]['head_sha']=previous
@@ -281,6 +282,7 @@ class RecoveryGateTests(unittest.TestCase):
         self.assertEqual(decision['release_sha'],protected)
         self.assertEqual(decision['official_source_requests'],0)
         for change in (lambda p:p.update(head_sha=previous),
+                       lambda p:p.update(head_sha='fbc743be548bfd123e46cdbfe290515a59e5e0d3'),
                        lambda p:p.update(head_sha='995ef00a2ffb98a0161e1875d7d2a33145367b40'),
                        lambda p:p.update(head_sha='c979aeb678538d99e277f26726047dccbdc982af'),
                        lambda p:p.update(head_sha='f1f8ed4ffb2a29e6b702685f49de63918610479d'),

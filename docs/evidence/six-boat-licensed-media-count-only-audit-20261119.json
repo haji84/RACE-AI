@@ -1,0 +1,29 @@
+{
+  "schema": "RACE_AI_SIX_BOAT_MEDIA_COUNT_ONLY_AUDIT_V1",
+  "recorded_at": "2026-11-19T00:36:00.159574+00:00",
+  "private_audit_sha256": "eb8986bb2f745d8df8c9a17d943043b0d5dab29d8e50faaeba0ca8fee632d581",
+  "status": "HOLD_NO_NEW_SIX_BOAT_CLIP_OBSERVED_HTTP_403_STOP",
+  "retained_known_clip_bytes": 14206138,
+  "retained_known_clip_sha256": "1ac1f0c27f58d8d64ebb1cfc13c2c4e9133cf7bbcce04052f23c28bf2e37f194",
+  "retained_known_clip_license": "CC BY-SA 4.0",
+  "new_web_queries": 3,
+  "normal_metadata_requests": 1,
+  "metadata_http_statuses": [
+    403
+  ],
+  "stopped_after_403": true,
+  "further_external_reads_after_denial": 0,
+  "metadata_denial_root_cause": "UNDETERMINED",
+  "new_video_downloads": 0,
+  "new_six_boat_visible_frames_observed": 0,
+  "new_continuous_six_boat_duration_proven_seconds": null,
+  "new_physical_calibration": null,
+  "independent_labels_created": 0,
+  "tracker_used_as_ground_truth": false,
+  "complete_clip_or_global_absence_claimed": false,
+  "licensed_existing_clip_decoded_again_this_audit": false,
+  "tracker_executions": 0,
+  "new_six_boat_acceptance": false,
+  "keys_or_forecasts_or_models_or_weights_changed": false,
+  "raw_response_or_private_path_published": false
+}

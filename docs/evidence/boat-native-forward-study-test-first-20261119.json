@@ -1,0 +1,172 @@
+{
+  "schema": "RACE_AI_MAIN_NATIVE_FORWARD_STUDY_TEST_FIRST_COUNTS_V1",
+  "base_main_commit": "a6ec09072db385a7bba54deb5793cd5a68ad8b60",
+  "fixed_source_commit": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "registration": {
+    "status": "UNBOUND",
+    "server_witnesses_bound": 0,
+    "actual_candidate_model_maps_resolved_locally": 0,
+    "real_prospective_rows_admitted": 0,
+    "window_days": 5,
+    "original_main_report_retention_days": 30,
+    "original_source_artifact_retention_days": 7,
+    "registration_parent_pin_requires_root_update_before_first_merge": true
+  },
+  "test_first_red": [
+    {
+      "phase": "study_api",
+      "tests": 7,
+      "assertion_failures": 7,
+      "errors": 0
+    },
+    {
+      "phase": "trusted_io_adapter",
+      "tests": 3,
+      "assertion_failures": 3,
+      "errors": 0
+    },
+    {
+      "phase": "existing_report_hook",
+      "tests": 1,
+      "assertion_failures": 1,
+      "errors": 0
+    },
+    {
+      "phase": "registered_missing_forecast_denominator",
+      "tests": 1,
+      "assertion_failures": 1,
+      "errors": 0
+    },
+    {
+      "phase": "report_member_bound_before_decompression",
+      "tests": 1,
+      "assertion_failures": 1,
+      "errors": 0
+    },
+    {
+      "phase": "missing_schedule_is_unknown",
+      "tests": 1,
+      "assertion_failures": 1,
+      "errors": 0
+    },
+    {
+      "phase": "original_native_receipt_expiry",
+      "tests": 1,
+      "assertion_failures": 1,
+      "errors": 0
+    },
+    {
+      "phase": "create_once_parent_tree",
+      "tests": 1,
+      "subtest_failures": 2,
+      "errors": 0
+    },
+    {
+      "phase": "selected_native_candidate_pointer",
+      "tests": 1,
+      "assertion_failures": 1,
+      "errors": 0
+    },
+    {
+      "phase": "fixed_window_no_early_verdict",
+      "tests": 1,
+      "assertion_failures": 1,
+      "errors": 0
+    }
+  ],
+  "compatibility_regression": {
+    "first_full_tests": 389,
+    "assertion_failures": 17,
+    "errors": 0,
+    "cause": "Unspecified private-sink keyword changed the original internal call signature",
+    "fix": "Pass the new keyword only when supplied; preserve the old default call",
+    "existing_test_methods_changed": 0,
+    "focused_existing_methods_green": 2
+  },
+  "verification": {
+    "new_regression_test_methods": 19,
+    "focused": {
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 25.513,
+      "external_network_attempts": 0
+    },
+    "final_related": {
+      "tests": 395,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "seconds": 250.207,
+      "external_network_attempts": 0,
+      "files_stable": true
+    },
+    "final_modules": [
+      "tests.test_boat_owner_national_p1_matrix",
+      "tests.test_boat_exact_all_model_zip_readback",
+      "tests.test_boat_failed_checkpoint_audit",
+      "tests.test_boat_native_matrix_intake",
+      "tests.test_boat_matrix_readback_scope",
+      "tests.test_boat_owner_active_snapshot_audit",
+      "tests.test_all_existing_model_archived_native",
+      "tests.test_boat_current_pair_eligibility_audit",
+      "tests.test_boat_native_forward_study",
+      "tests.test_boat_saved_reason_binding_audit",
+      "tests.test_boat_saved_reason_binding_io",
+      "tests.test_boat_saved_rejection_anchor_proof",
+      "tests.test_boat_saved_rejection_anchor_io",
+      "tests.test_boat_legacy_reason_anchor_guard",
+      "tests.test_boat_saved_rejection_anchor_history",
+      "tests.test_boat_legacy_reason_anchor_entry",
+      "tests.test_boat_rejection_anchor_restoration",
+      "tests.test_boat_rejection_anchor_repair",
+      "tests.test_boat_rejection_anchor_repair_cli"
+    ],
+    "tested_file_sha256": {
+      "scripts/boat_current_pair_eligibility_audit.py": "b238cd4e36392ba1f12d58020c7ed8b0f519a130b31b26baea0a8904690846b8",
+      "scripts/boat_native_forward_study.py": "da3dfc96ba9de69f8b3d1946cbb41aebc07ca9fb511e1dac9ac06ed1374a55ba",
+      "scripts/boat_native_forward_study_audit.py": "644c8d0f0e16e9a6be5020d301ee0978ec145e715d683485b91079aad556f29a",
+      "tests/test_boat_native_forward_study.py": "3c53705b71dc9324c70651baa746421eb2c05e1ad0378429225678e2d2e62f7f",
+      ".github/workflows/boat-owner-national-p1-matrix.yml": "404373d2e8a4ac06ac50010b3e14a21b7a8cbe71a3939690cd560cfd0a142626",
+      "audit/state/boat-native-forward-study.json": "759c948c30c72b0a261514e40e57741944451881f3e6976c83ca90e34ec097b5",
+      "audit/state/boat-native-forward-study-witness.json": "240ccbefd5205c5ff176a087a345d8f75f82a48b5808f3f8ca84adfd1f623001"
+    },
+    "static_preservation": {
+      "unchanged_existing_functions": 10,
+      "default_audit_body_and_all_guards_identical_after_removing_private_sink": true,
+      "helper_blob": "6e82067025e4102cc08fde5a2287210ad3d40476",
+      "source_contract_blob": "be56af54f71d4c3a7d303823b056e4964150db49",
+      "main_contract_blob": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
+      "source_tracked_clean": true,
+      "workflow_jobs_steps_guards_runners_timeouts_permissions_trigger_kinds_preserved": true
+    }
+  },
+  "boundaries": {
+    "source_files_changed": 0,
+    "model_or_weight_changes": 0,
+    "forecast_or_original_clock_rewrites": 0,
+    "protocol_073379_changes": 0,
+    "new_jobs_steps_inputs_cron_runners_timeouts_permissions": 0,
+    "public_or_private_support_verdict_before_window_end": false,
+    "old_574_and_pre_registration_inputs_in_new_denominator": 0,
+    "selection_plans_coerced_to_probabilities": 0,
+    "private_arrays_urls_keys_in_public_summary": 0,
+    "official_raw_qualification": false,
+    "complete_official_ledger_qualification": false,
+    "qualifying_g8_count": 0,
+    "prospective_accuracy_improvement_proven": false,
+    "automatic_promotion": false,
+    "local_real_key_reads": 0,
+    "local_real_forecast_reads": 0,
+    "provider_gets": 0,
+    "pushes": 0,
+    "merges": 0,
+    "dispatches": 0
+  },
+  "retention": {
+    "missing_expired_original_witness": "HOLD",
+    "long_term_witness_retention_implemented": false,
+    "source_vault_report_kind_aliases_added": 0,
+    "separate_main_only_sealed_witness_proposal": "Separate authenticated namespace and schema binding original report ZIP, metadata, nonce, spec, run/head and original server clock with independent readback; no receipt renewal or source vault kind relabeling"
+  }
+}

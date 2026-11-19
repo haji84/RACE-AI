@@ -74,7 +74,18 @@ class OfflineOwnerView(unittest.TestCase):
         self.assertEqual(status, 0)
         self.assertEqual(stat.S_IMODE(self.output.stat().st_mode), 0o600)
         soup = BeautifulSoup(self.output.read_text(), "html.parser")
-        self.assertEqual(len(soup.select("article[data-race-id]")), 4)
+        _, expected_rows = examples()
+        expected_ids = {row["race_id"] for row in expected_rows}
+        ids_by_view = []
+        for panel_id in ("races-venue", "races-cutoff"):
+            panel = soup.find(id=panel_id)
+            self.assertIsNotNone(panel)
+            ids = [card["data-race-id"] for card in panel.select("article[data-race-id]")]
+            self.assertEqual(len(ids), 4)
+            self.assertEqual(len(set(ids)), 4)
+            self.assertEqual(set(ids), expected_ids)
+            ids_by_view.append(set(ids))
+        self.assertEqual(ids_by_view[0], ids_by_view[1])
         self.assertEqual((self.cipher.read_bytes(), self.key_path.read_bytes()), before)
         self.assertNotIn("RAW_SOURCE_MUST_NOT_BE_RENDERED", self.output.read_text())
         self.assertNotIn("PRIVATE KEY", log)
@@ -181,3 +192,4 @@ class ActualPipelineMetricIntegration(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

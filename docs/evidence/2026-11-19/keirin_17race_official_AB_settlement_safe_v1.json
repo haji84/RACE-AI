@@ -1,0 +1,1082 @@
+{
+  "C_optional_not_blocking_A_B": true,
+  "active_official_races": 79,
+  "additional_schema_originals_held_for_missing_model": 1,
+  "confirmed_cancelled_full_refund_races": 0,
+  "day_jst": "2026-11-18",
+  "evidence_scope_note": "締切前の暗号原本と公式結果を照合しています。追加16レースは公式会場の結果PDFを画像で確認した履歴検証で、自動運転の通し試験には含めていません。PDF結果の最初の公表時刻は不明です。原本未読込のレースを外れには数えていません。 別形式で保存された西武園1Rは、原本と復号を確認済みですが当時の生成コードを特定できず、採点を保留しています。",
+  "formal_accuracy_proven": false,
+  "historical_replay_not_live_autonomous_acceptance": true,
+  "json_official_results_verified": 1,
+  "missing_originals": 62,
+  "official_final_results_verified": 17,
+  "official_result_states": {
+    "202611182401": "OFFICIAL_FINAL",
+    "202611182402": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611182403": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611182404": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611182405": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611182406": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611182407": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611182408": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611182409": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611182601": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611182602": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611182603": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611182604": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611182605": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611182606": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611182607": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611182608": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611182609": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611182610": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611183801": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611183802": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611183803": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611183804": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611183805": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611183806": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611183807": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611183808": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611183809": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611183810": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611183811": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611184401": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611184402": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611184403": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611184404": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611184405": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611184406": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611184407": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611184408": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611184409": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611184410": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187301": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187302": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187303": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187304": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187305": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187306": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187307": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187308": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187309": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187310": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187311": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187401": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611187402": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611187403": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611187404": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611187405": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187406": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611187407": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611187408": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611187409": "OFFICIAL_PDF_VISUALLY_REVIEWED",
+    "202611187501": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187502": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187503": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187504": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187505": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187506": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611187507": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611188101": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611188102": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611188103": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611188104": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611188105": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611188106": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611188107": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611188108": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611188109": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611188110": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611188111": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED",
+    "202611188112": "HOLD_OFFICIAL_RESULT_NOT_COLLECTED"
+  },
+  "official_source_rights_not_established_by_this_code": true,
+  "original_proof_states": {
+    "202611182401": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611182402": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611182403": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611182404": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611182405": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611182406": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611182407": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611182408": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611182409": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611187401": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611187402": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611187403": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611187404": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611187406": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611187407": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611187408": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED",
+    "202611187409": "GITHUB_PRE_CUTOFF_ORIGIN_VERIFIED"
+  },
+  "originals_not_loaded_for_audit": 62,
+  "originals_present": 17,
+  "originals_server_verified_before_cutoff": 17,
+  "paired_A_B_scored": 17,
+  "pipeline_schema": "RACE_AI_KEIRIN_OFFICIAL_DAY_PIPELINE_V1",
+  "predictions_never_rewritten": true,
+  "registered_cohort_scope": "UNION_OF_VERIFIED_OFFICIAL_DAY_REVISIONS",
+  "registered_races": 79,
+  "removed_official_races_held": 0,
+  "result_receipts": [
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 800
+      },
+      "cipher_file_sha256": "dffc7303bfb722f75671751cee9a6356258263ec59b630f9dbdc6fc7953b5dfb",
+      "race_id": "202611182401",
+      "result_revision_sha256": "49003e9b36320d470e8e27c3d523b0c412270989894a14261e7fd392c6c65d27",
+      "source_sha256": "35668930ebee9cccc28b0aea8c951c6859669f38ecbdfdfc990d9d4dee14973b",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "cipher_file_sha256": "81157e110140e97897729460fecf968f2435f955af8f00f1f3de639e6ecebdc3",
+      "race_id": "202611182402",
+      "result_revision_sha256": "c9b457a4b4d5418a9ad90a056730faf186185a32488eaaad1a46251965a70d7b",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "426d73df32ac86ca63fc1472f7e6dfe4a5039adc481c56e2026d9227e8f67451",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": true,
+        "hit_at_all": true,
+        "payout_yen": 680,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1000
+      },
+      "cipher_file_sha256": "a511acebca62d696e7eda8df233cdca3cbfcd6e3367cb337a6d814336e244f54",
+      "race_id": "202611182403",
+      "result_revision_sha256": "a0a447a501b0e5cbb5f6cd49683a18d8cb0554bc11673eff75b5c360d70cb6e6",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "426d73df32ac86ca63fc1472f7e6dfe4a5039adc481c56e2026d9227e8f67451",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1100
+      },
+      "cipher_file_sha256": "43b4ef2f958f151a5c0b2be8b650d5de1b6b7da441da53233dafced1d18b0a6f",
+      "race_id": "202611182404",
+      "result_revision_sha256": "b3496dc64ddbd8d744eba330148754c67c56799c8035d1a234ece9f4aadc2ec6",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "426d73df32ac86ca63fc1472f7e6dfe4a5039adc481c56e2026d9227e8f67451",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 900
+      },
+      "cipher_file_sha256": "ea4666bc0ac7de67082d3f70b7318f9cce98bd89bec4659509924378a94f3cda",
+      "race_id": "202611187401",
+      "result_revision_sha256": "7b96149fafc3ffdfa814a1630f3dfc85133b47135fcc42ed24b8e88df8ae7418",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "3433da2568abc9ecfea5f76ccd3f1f8c279691fa92e0222b4ed765e7e3322189",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 900
+      },
+      "cipher_file_sha256": "d73bc2114e4562c02a09fef6329ffe125ce4404ae3138d35b6b875f159fcf7e9",
+      "race_id": "202611187402",
+      "result_revision_sha256": "2010ad5db6d6958ba347a3591a5c05b14b91b1035329fa8427518380cb4537dc",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "3433da2568abc9ecfea5f76ccd3f1f8c279691fa92e0222b4ed765e7e3322189",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": true,
+        "payout_yen": 290,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": true,
+        "hit_at_all": true,
+        "payout_yen": 290,
+        "stake_yen": 700
+      },
+      "cipher_file_sha256": "d3f073e839cb49a8b2a52a4a40d001f33e5a54edb52b194405cb2639fa2e4f7a",
+      "race_id": "202611187403",
+      "result_revision_sha256": "d51f287296d75778f8beb10eba3d35093197b29efae49b7558629b565373b5b3",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "3433da2568abc9ecfea5f76ccd3f1f8c279691fa92e0222b4ed765e7e3322189",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1000
+      },
+      "cipher_file_sha256": "8b8c4b28f3dadbd6a342a56b6b5eec5b1710953ec9b5828da9cbc81e3537a4f3",
+      "race_id": "202611187404",
+      "result_revision_sha256": "fcb40d61edad271cfd4836287066d92c8aa6541bf938b1e7793b63dac5cdf3a7",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "3433da2568abc9ecfea5f76ccd3f1f8c279691fa92e0222b4ed765e7e3322189",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 900
+      },
+      "cipher_file_sha256": "67a99e78967cf86926a9b63fa96bf57c12f5822c4f238dfe72f8de912064a046",
+      "race_id": "202611182405",
+      "result_revision_sha256": "c223ba69b261da1568e639a4866928a7096c3c17d64eb152f645a3fa36fe1aeb",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "426d73df32ac86ca63fc1472f7e6dfe4a5039adc481c56e2026d9227e8f67451",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": true,
+        "payout_yen": 8750,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 900
+      },
+      "cipher_file_sha256": "60898480790faba60c23862015e0eba02645ff9d4604424d2be9142971e14cd8",
+      "race_id": "202611182406",
+      "result_revision_sha256": "b8a93701b5925f5e503d71bc207283d87c37d9390204d058e6739a6f0cf73f9e",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "426d73df32ac86ca63fc1472f7e6dfe4a5039adc481c56e2026d9227e8f67451",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1000
+      },
+      "cipher_file_sha256": "4bbabd3c6341f71f41082001c2cb3849d7b1692eeaa91299234f31162c727ea5",
+      "race_id": "202611182407",
+      "result_revision_sha256": "b125837de07bcaf0f5e30636659db21f91015c94c13988a34253555d61968dbe",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "426d73df32ac86ca63fc1472f7e6dfe4a5039adc481c56e2026d9227e8f67451",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "cipher_file_sha256": "fe833985905a978bbe06b105037527545925ca55f3aa2b0fa4d0f81b268e4d42",
+      "race_id": "202611182408",
+      "result_revision_sha256": "3b122aaef08d18392aed5f18373905e7da4b0b74ad0c6d9abd251f9e453ab9c2",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "426d73df32ac86ca63fc1472f7e6dfe4a5039adc481c56e2026d9227e8f67451",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1000
+      },
+      "cipher_file_sha256": "582bda064972f49721306e335041c9804a5b8e735a313fa0da93fe3ccbabb0ad",
+      "race_id": "202611182409",
+      "result_revision_sha256": "56e60671db273801aece857d9715be9e845440dff72ccc9403ba7d54b5558567",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "426d73df32ac86ca63fc1472f7e6dfe4a5039adc481c56e2026d9227e8f67451",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": true,
+        "payout_yen": 15660,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 800
+      },
+      "cipher_file_sha256": "d4461cb5e7d9580451322c508f3f5b52b06c4d45c19efac524af3168f2b76190",
+      "race_id": "202611187406",
+      "result_revision_sha256": "4e929f7794b71e5c8ba4f13d46c9b3ed9b6f2b449b6f9868df6008c69b0df9d8",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "3433da2568abc9ecfea5f76ccd3f1f8c279691fa92e0222b4ed765e7e3322189",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": true,
+        "payout_yen": 1790,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": true,
+        "payout_yen": 1790,
+        "stake_yen": 1000
+      },
+      "cipher_file_sha256": "5b60843b367465f7f2f8c8942c562407834619eaf09e6b4848cb3d9e3eac0d0c",
+      "race_id": "202611187407",
+      "result_revision_sha256": "750a9400dba53b6784b88fca8a5d7e45b529116239c90db1c1c02b12419571b0",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "3433da2568abc9ecfea5f76ccd3f1f8c279691fa92e0222b4ed765e7e3322189",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 900
+      },
+      "cipher_file_sha256": "b470e425fb3961fe9f69d30ba48df12591a199f8fc18c35f6a252412936afdad",
+      "race_id": "202611187408",
+      "result_revision_sha256": "9ab51fd7b5f78a5ab9ff07e188fe0e6ae398fb965cb73ab78afc5ca3f6d6e959",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "3433da2568abc9ecfea5f76ccd3f1f8c279691fa92e0222b4ed765e7e3322189",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "A_existing": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1200
+      },
+      "B_six_phase": {
+        "hit_at_1": false,
+        "hit_at_all": false,
+        "payout_yen": 0,
+        "stake_yen": 1100
+      },
+      "cipher_file_sha256": "6f83bffc6d48332f18d400b711371201a6a8fc536acf02732e995e9a9e8ee731",
+      "race_id": "202611187409",
+      "result_revision_sha256": "8d9502e0adce338784e1d926bb9eed1002209616039240f50d89848fa4c6bce0",
+      "result_verification_method": "PINNED_VISUAL_PDF_REVIEW",
+      "source_published_at": null,
+      "source_sha256": "3433da2568abc9ecfea5f76ccd3f1f8c279691fa92e0222b4ed765e7e3322189",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    }
+  ],
+  "reviewed_pdf_official_results_verified": 16,
+  "reviewed_pdf_sha256": "9ba18bc253dd27910387e1d32bc7072a536ace7d9cf385d3359cb01340f5d6c9",
+  "schema": "RACE_AI_KEIRIN_NATIONWIDE_ENCRYPTED_AB_RESULT_JOIN_V1",
+  "scorecard": {
+    "A_existing": {
+      "eligible": 17,
+      "hit_at_1": 1,
+      "hit_at_1_rate": 0.058823529411764705,
+      "hit_at_all": 5,
+      "hit_at_all_rate": 0.29411764705882354,
+      "payout_yen": 27170,
+      "stake_yen": 20400,
+      "virtual_profit_yen": 6770,
+      "virtual_roi": 1.3318627450980391
+    },
+    "B_on_same_races_as_C": {
+      "eligible": 0,
+      "hit_at_1": 0,
+      "hit_at_1_rate": null,
+      "hit_at_all": 0,
+      "hit_at_all_rate": null,
+      "payout_yen": 0,
+      "stake_yen": 0,
+      "virtual_profit_yen": 0,
+      "virtual_roi": null
+    },
+    "B_six_phase": {
+      "eligible": 17,
+      "hit_at_1": 1,
+      "hit_at_1_rate": 0.058823529411764705,
+      "hit_at_all": 2,
+      "hit_at_all_rate": 0.11764705882352941,
+      "payout_yen": 2080,
+      "stake_yen": 16400,
+      "virtual_profit_yen": -14320,
+      "virtual_roi": 0.12682926829268293
+    },
+    "C_not_prerequisite_for_AB": true,
+    "C_optional": {
+      "eligible": 0,
+      "hit_at_1": 0,
+      "hit_at_1_rate": null,
+      "hit_at_all": 0,
+      "hit_at_all_rate": null,
+      "payout_yen": 0,
+      "stake_yen": 0,
+      "virtual_profit_yen": 0,
+      "virtual_roi": null
+    },
+    "ab_independently_scored_races": 17,
+    "by_venue": {
+      "大垣": {
+        "A": {
+          "eligible": 0,
+          "hit_at_1": 0,
+          "hit_at_1_rate": null,
+          "hit_at_all": 0,
+          "hit_at_all_rate": null,
+          "payout_yen": 0,
+          "stake_yen": 0,
+          "virtual_profit_yen": 0,
+          "virtual_roi": null
+        },
+        "AB_scored": 0,
+        "B": {
+          "eligible": 0,
+          "hit_at_1": 0,
+          "hit_at_1_rate": null,
+          "hit_at_all": 0,
+          "hit_at_all_rate": null,
+          "payout_yen": 0,
+          "stake_yen": 0,
+          "virtual_profit_yen": 0,
+          "virtual_roi": null
+        },
+        "holds": 10,
+        "registered": 10
+      },
+      "宇都宮": {
+        "A": {
+          "eligible": 9,
+          "hit_at_1": 1,
+          "hit_at_1_rate": 0.1111111111111111,
+          "hit_at_all": 2,
+          "hit_at_all_rate": 0.2222222222222222,
+          "payout_yen": 9430,
+          "stake_yen": 10800,
+          "virtual_profit_yen": -1370,
+          "virtual_roi": 0.8731481481481481
+        },
+        "AB_scored": 9,
+        "B": {
+          "eligible": 9,
+          "hit_at_1": 0,
+          "hit_at_1_rate": 0.0,
+          "hit_at_all": 0,
+          "hit_at_all_rate": 0.0,
+          "payout_yen": 0,
+          "stake_yen": 9100,
+          "virtual_profit_yen": -9100,
+          "virtual_roi": 0.0
+        },
+        "holds": 0,
+        "registered": 9
+      },
+      "小倉": {
+        "A": {
+          "eligible": 0,
+          "hit_at_1": 0,
+          "hit_at_1_rate": null,
+          "hit_at_all": 0,
+          "hit_at_all_rate": null,
+          "payout_yen": 0,
+          "stake_yen": 0,
+          "virtual_profit_yen": 0,
+          "virtual_roi": null
+        },
+        "AB_scored": 0,
+        "B": {
+          "eligible": 0,
+          "hit_at_1": 0,
+          "hit_at_1_rate": null,
+          "hit_at_all": 0,
+          "hit_at_all_rate": null,
+          "payout_yen": 0,
+          "stake_yen": 0,
+          "virtual_profit_yen": 0,
+          "virtual_roi": null
+        },
+        "holds": 12,
+        "registered": 12
+      },
+      "小松島": {
+        "A": {
+          "eligible": 0,
+          "hit_at_1": 0,
+          "hit_at_1_rate": null,
+          "hit_at_all": 0,
+          "hit_at_all_rate": null,
+          "payout_yen": 0,
+          "stake_yen": 0,
+          "virtual_profit_yen": 0,
+          "virtual_roi": null
+        },
+        "AB_scored": 0,
+        "B": {
+          "eligible": 0,
+          "hit_at_1": 0,
+          "hit_at_1_rate": null,
+          "hit_at_all": 0,
+          "hit_at_all_rate": null,
+          "payout_yen": 0,
+          "stake_yen": 0,
+          "virtual_profit_yen": 0,
+          "virtual_roi": null
+        },
+        "holds": 11,
+        "registered": 11
+      },
+      "松山": {
+        "A": {
+          "eligible": 0,
+          "hit_at_1": 0,
+          "hit_at_1_rate": null,
+          "hit_at_all": 0,
+          "hit_at_all_rate": null,
+          "payout_yen": 0,
+          "stake_yen": 0,
+          "virtual_profit_yen": 0,
+          "virtual_roi": null
+        },
+        "AB_scored": 0,
+        "B": {
+          "eligible": 0,
+          "hit_at_1": 0,
+          "hit_at_1_rate": null,
+          "hit_at_all": 0,
+          "hit_at_all_rate": null,
+          "payout_yen": 0,
+          "stake_yen": 0,
+          "virtual_profit_yen": 0,
+          "virtual_roi": null
+        },
+        "holds": 7,
+        "registered": 7
+      },
+      "西武園": {
+        "A": {
+          "eligible": 0,
+          "hit_at_1": 0,
+          "hit_at_1_rate": null,
+          "hit_at_all": 0,
+          "hit_at_all_rate": null,
+          "payout_yen": 0,
+          "stake_yen": 0,
+          "virtual_profit_yen": 0,
+          "virtual_roi": null
+        },
+        "AB_scored": 0,
+        "B": {
+          "eligible": 0,
+          "hit_at_1": 0,
+          "hit_at_1_rate": null,
+          "hit_at_all": 0,
+          "hit_at_all_rate": null,
+          "payout_yen": 0,
+          "stake_yen": 0,
+          "virtual_profit_yen": 0,
+          "virtual_roi": null
+        },
+        "holds": 10,
+        "registered": 10
+      },
+      "静岡": {
+        "A": {
+          "eligible": 0,
+          "hit_at_1": 0,
+          "hit_at_1_rate": null,
+          "hit_at_all": 0,
+          "hit_at_all_rate": null,
+          "payout_yen": 0,
+          "stake_yen": 0,
+          "virtual_profit_yen": 0,
+          "virtual_roi": null
+        },
+        "AB_scored": 0,
+        "B": {
+          "eligible": 0,
+          "hit_at_1": 0,
+          "hit_at_1_rate": null,
+          "hit_at_all": 0,
+          "hit_at_all_rate": null,
+          "payout_yen": 0,
+          "stake_yen": 0,
+          "virtual_profit_yen": 0,
+          "virtual_roi": null
+        },
+        "holds": 11,
+        "registered": 11
+      },
+      "高知": {
+        "A": {
+          "eligible": 8,
+          "hit_at_1": 0,
+          "hit_at_1_rate": 0.0,
+          "hit_at_all": 3,
+          "hit_at_all_rate": 0.375,
+          "payout_yen": 17740,
+          "stake_yen": 9600,
+          "virtual_profit_yen": 8140,
+          "virtual_roi": 1.8479166666666667
+        },
+        "AB_scored": 8,
+        "B": {
+          "eligible": 8,
+          "hit_at_1": 1,
+          "hit_at_1_rate": 0.125,
+          "hit_at_all": 2,
+          "hit_at_all_rate": 0.25,
+          "payout_yen": 2080,
+          "stake_yen": 7300,
+          "virtual_profit_yen": -5220,
+          "virtual_roi": 0.28493150684931506
+        },
+        "holds": 1,
+        "registered": 9
+      }
+    },
+    "c_subset_races": 0,
+    "day_jst": "2026-11-18",
+    "missing_races_are_not_misses": true,
+    "national_day_universe_independently_verified": true,
+    "no_real_bets_made": true,
+    "not_yet_independently_scored_races": 62,
+    "old_four_models_required": false,
+    "one_race_does_not_prove_model_uplift": true,
+    "registered_races": 79,
+    "schema": "RACE_AI_KEIRIN_NATIONWIDE_AB_OUTCOME_SCORECARD_V1",
+    "states": {
+      "AB_SCORED": 17,
+      "C_OPTIONAL_HOLD": 17,
+      "HOLD_NO_OUTCOME_RECEIPT": 62
+    }
+  },
+  "statuses": [
+    {
+      "race_id": "202611182401",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611182402",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611182403",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611182404",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611182405",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611182406",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611182407",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611182408",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611182409",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611182601",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611182602",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611182603",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611182604",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611182605",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611182606",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611182607",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611182608",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611182609",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611182610",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611183801",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611183802",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611183803",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611183804",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611183805",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611183806",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611183807",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611183808",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611183809",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611183810",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611183811",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611184401",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611184402",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611184403",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611184404",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611184405",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611184406",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611184407",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611184408",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611184409",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611184410",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187301",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187302",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187303",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187304",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187305",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187306",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187307",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187308",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187309",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187310",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187311",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187401",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611187402",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611187403",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611187404",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611187405",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187406",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611187407",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611187408",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611187409",
+      "state": "AB_SETTLED_FROM_INDEPENDENT_RECEIPTS"
+    },
+    {
+      "race_id": "202611187501",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187502",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187503",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187504",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187505",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187506",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611187507",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611188101",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611188102",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611188103",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611188104",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611188105",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611188106",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611188107",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611188108",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611188109",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611188110",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611188111",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    },
+    {
+      "race_id": "202611188112",
+      "state": "HOLD_NO_PRE_CUTOFF_FORECAST"
+    }
+  ]
+}

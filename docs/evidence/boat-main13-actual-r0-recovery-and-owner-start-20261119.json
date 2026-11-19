@@ -1,0 +1,60 @@
+{
+  "schema": "RACE_AI_MAIN13_ACTUAL_RECOVERY_AND_OWNER_START_V1",
+  "main": "a6ec09072db385a7bba54deb5793cd5a68ad8b60",
+  "source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "tested_main_tree": "9bb01f9963ee1a87e3372a586392b583514e87d1",
+  "tested_source_tree": "fac54c8e4fd3ceeb8177e408487ca80e9b1e76d4",
+  "gate_run": 44425780224,
+  "gate_job": 135230120859,
+  "completed_gate_log_statuses": [
+    {
+      "status": "HOLD_ALREADY_DISPATCHED_FOR_JST_DAY",
+      "official_source_requests": 0,
+      "dispatch_allowed": false,
+      "recovery_required": true,
+      "release_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6"
+    },
+    {
+      "status": "FAILED_OWNER_ORIGINALS_RECOVERED",
+      "recovered_runs": 1,
+      "official_source_requests": 0,
+      "new_forecasts": 0,
+      "original_forecasts_changed": false,
+      "successor_not_yet_dispatched": true
+    },
+    {
+      "status": "READY_VERIFIED_RECOVERED_OWNER_CONTINUATION",
+      "official_source_requests": 0,
+      "dispatch_allowed": true,
+      "recovery_required": false,
+      "release_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6"
+    },
+    {
+      "status": "NATIVE_SAFARI_CANDIDATE_UNCHANGED",
+      "request_attempted": false,
+      "dispatch_requested": false
+    }
+  ],
+  "recovered_original_run": 44409798061,
+  "exact_r0_artifact": 14475644448,
+  "original_r0_producer_forecast_count": 660,
+  "independently_logged_r0_count": null,
+  "authenticated_exact_r0_recovery_code_succeeded": true,
+  "successor_run": 44426169530,
+  "successor_job": 135231474660,
+  "successor_created_at": "2026-11-19T00:05:35Z",
+  "successor_observed_state": {
+    "p0_restore_step28": "success",
+    "bootstrap_execution_step30": "success",
+    "ciphertext_freeze_step31": "success",
+    "readback_step32": "success",
+    "beyond_expiry_retention_step33": "success",
+    "saved_view_publish_step34": "success",
+    "round01": "in_progress",
+    "actual_generated_forecast_counts_not_yet_read": true
+  },
+  "source_worker_completion": false,
+  "all_day_deadline_or_accuracy_proven": false,
+  "physical_iphone_acceptance": false,
+  "public_ui_deployed": false
+}

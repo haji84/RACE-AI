@@ -1,0 +1,13 @@
+{
+  "observed_at": "2026-11-19T01:19:01.978372+00:00",
+  "number": 5,
+  "state": "open",
+  "draft": true,
+  "title": "feat: v1.1 日次全モーター・乗り手補正とオリジナル展示照合",
+  "body": "## 実装\n- 許諾済みJSONで指定された現在の全モーターを列挙し、履歴・前節使用者・事前motor-blind補正残差・部品整備・当日の艇番とオリジナル展示をas-of安全に照合する日次処理。\n- 台帳、履歴、整備、展示、艇番割当の5系統。各原本ハッシュ、公開/取得時刻。欠測・非対象・期間不一致・取得不足を明示。\n- 出所不明、権限未確認、未来の結果や取り違いのデータはSAFE_STOP。モーター番号は公式で確認済みと自動判定しない。\n- 合成データで日次処理のテストを追加。\n- 日本時間23:00に実行されるActions予定を配置。**ScheduleはこのDraft PRがmainへ統合されるまで起動しない**。実際のオンライン取得は未実装。素材が未提供なら日次成果物はmissing-source failureとなる。\n\n## 未達の受入条件\n- 全国24場の許諾済み現行全モーター一覧/使用履歴/直前展示原本の供給契約、取得処理、実日跨ぎ連続運転は未完成。\n- デフォルトブランチへの統合なし。独立レビュー、現head CI、実物原本の安全な受入、2日連続運転と予測精度の検証が必要。\n- 公開リポジトリへ権利未確認のデータをアップロードしない。\n\n## 試験\npython -m unittest discover -s tests -v\n\n依存 Draft PR #4 → #3 → #2 → #1。",
+  "base_ref": "feat/v10-official-motor-previous-meet-join",
+  "base_sha": "ee0b49aa8ef031178bf7c3dc074f860d83b2935e",
+  "head_ref": "feat/v11-daily-all-motor-exhibition-monitor",
+  "head_sha": "65a158ec81aa4f44c70463157f8b3b5c4a5c3dc6",
+  "html_url": "https://github.com/haji84/RACE-AI/pull/5"
+}

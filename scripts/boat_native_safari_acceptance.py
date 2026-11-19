@@ -48,6 +48,13 @@ SYNTHETIC_PATH = 'data/example-synthetic-forecast-audit.json'
 SYNTHETIC_SHA = 'b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a'
 SYNTHETIC_IDS = tuple('synthetic:2030-01-01:' + sport + ':1'
                       for sport in ('autorace', 'boat', 'horse', 'keirin'))
+# Exact invented fixture from f723f0e8b94a87a6d6a7b414b1bb30954541925e,
+# tests/reference_scenarios_browser.cjs::fixture (factory SHA256
+# 3e209a92f0073c1d64a112186d96680d1c705519ccdc1332824edea225abd03f).
+# Participants, dates, forecasts and results are public inventions, never evidence of real races.
+REFERENCE_SYNTHETIC_PATH = Path(__file__).resolve().parents[1] / 'tests/fixtures/boat_native_safari_reference_synthetic.json'
+REFERENCE_SYNTHETIC_SHA = 'ef3a81f4c026267063a96d37333c9708a0049342e9a094c8061a11b92bb7feea'
+REFERENCE_SYNTHETIC_COUNTS = (('boat', 2, 6), ('keirin', 1, 7), ('autorace', 1, 8), ('horse', 1, 12))
 VISUAL_PAGES = ('home', 'races', 'detail', 'picks', 'results', 'research', 'settings')
 VISUAL_WIDTHS = (320, 390, 1440, 1920)
 DRIVER_OPERATIONS = frozenset(('start_driver', 'wait_for_driver', 'new_session', 'delete_session',
@@ -508,6 +515,23 @@ def synthetic_fixture(assets):
     return value
 
 
+def synthetic_capture_fixture(assets, *, candidate_ui=False):
+    """Candidate screenshots alone use the exact existing rich public scenario."""
+    need(type(candidate_ui) is bool, 'SYNTHETIC_FIXTURE_INVALID')
+    legacy = synthetic_fixture(assets)
+    if not candidate_ui:
+        return legacy
+    try:
+        path = REFERENCE_SYNTHETIC_PATH
+        need(path.is_file() and not any(p.is_symlink() for p in (path, *path.parents))
+             and path.stat().st_size == 7266, 'SYNTHETIC_FIXTURE_INVALID')
+        raw = path.read_bytes()
+        need(len(raw) == 7266 and sha(raw) == REFERENCE_SYNTHETIC_SHA, 'SYNTHETIC_FIXTURE_INVALID')
+        return json.loads(raw)
+    except (OSError, ValueError, TypeError):
+        raise SafariHold('SYNTHETIC_FIXTURE_INVALID') from None
+
+
 def load_public_assets(root):
     root = Path(root).resolve()
     try:
@@ -687,6 +711,21 @@ Object.defineProperty(globalThis,'RaceProductData',{configurable:false,
 ''').encode()
 
 
+def synthetic_capture_guard(fixture, *, candidate_ui=False):
+    if not candidate_ui:
+        return synthetic_guard(fixture)
+    need(sha(wire(fixture).encode()) == REFERENCE_SYNTHETIC_SHA, 'SYNTHETIC_FIXTURE_INVALID')
+    script = synthetic_guard(fixture)
+    old = ('__raceSafariPrivacy.synthetic_fixture_sha256=' + wire(SYNTHETIC_SHA) + ';').encode()
+    new = ('__raceSafariPrivacy.synthetic_fixture_sha256=' + wire(REFERENCE_SYNTHETIC_SHA) + ';').encode()
+    need(script.count(old) == 1, 'SYNTHETIC_FIXTURE_INVALID')
+    # The existing app tolerates unavailable preference storage. Disable writes
+    # for this fresh public-only capture; never clear or conceal existing values.
+    storage = b'''if(typeof Storage==='function')Object.defineProperty(Storage.prototype,'setItem',{
+        configurable:false,writable:false,value(){throw new TypeError('synthetic storage disabled');}});\n'''
+    return storage + script.replace(old, new, 1)
+
+
 class LoopbackSite:
     """Known byte assets + one memory-only private route; no filesystem handler."""
     def __init__(self, assets, view, *, secrets=(), encrypted_seed=None, tamper_seed=False,
@@ -708,10 +747,10 @@ class LoopbackSite:
         if current_v5 is not None:
             self.privacy_script += current_v5_replay_script(current_v5)
         if synthetic:
-            fixture = synthetic_fixture(assets)
+            fixture = synthetic_capture_fixture(assets, candidate_ui=candidate_ui)
             need(encrypted_seed is None and wire(view) == wire(fixture), 'SYNTHETIC_FIXTURE_INVALID')
-            self.synthetic_fixture_sha256 = SYNTHETIC_SHA
-            self.privacy_script += synthetic_guard(fixture)
+            self.synthetic_fixture_sha256 = REFERENCE_SYNTHETIC_SHA if candidate_ui else SYNTHETIC_SHA
+            self.privacy_script += synthetic_capture_guard(fixture, candidate_ui=candidate_ui)
         if encrypted_seed:
             raw = encrypted_seed['raw']
             if tamper_seed:
@@ -1358,28 +1397,69 @@ def encrypted_seed_checks(assets, seed, private, secrets):
             'outbound_browser_requests_permitted': 0, 'real_screenshots_or_traces_exported': 0}
 
 
+def settle_candidate_synthetic_capture(driver, width, page):
+    # A synchronous DOM read does not wait for a presented frame. Require
+    # matching geometry on consecutive animation frames after resetting scroll.
+    driver.script('''const page=arguments[0],width=arguments[1],state={ready:false};
+        globalThis.__raceSafariSyntheticCapture=state;
+        window.scrollTo({top:0,left:0,behavior:"instant"});
+        const headings={home:"YOUR RACE DASHBOARD",races:"RACES & RESULTS",detail:"RACE DETAIL",
+            picks:"TICKET ALLOCATION",results:"AI FORECAST RESULTS",
+            research:"RESEARCH & VERIFICATION",settings:"PREFERENCES"};
+        const visible=e=>!!e?.getClientRects().length&&getComputedStyle(e).visibility==="visible"
+            &&getComputedStyle(e).display!=="none"&&getComputedStyle(e).opacity!=="0";
+        const measure=()=>{
+            const pages=Array.from(document.querySelectorAll(".page:not([hidden])"));
+            const title=document.querySelector("#page-title");
+            if(document.visibilityState!=="visible"||location.hash!=="#"+page||innerWidth!==width
+                ||pages.length!==1||pages[0].id!=="page-"+page||!visible(pages[0])||!visible(title)
+                ||document.querySelector("#page-eyebrow")?.textContent.trim()!==headings[page]
+                ||scrollX!==0||scrollY!==0||document.scrollingElement.scrollTop!==0
+                ||document.scrollingElement.scrollLeft!==0)return null;
+            if(page==="detail"&&(!visible(document.querySelector("#race-detail .detail-tabs"))
+                ||document.querySelectorAll("#detail-tab-content .saved-ticket").length!==8))return null;
+            const box=title.getBoundingClientRect();
+            if(box.top<0||box.bottom>innerHeight)return null;
+            return [innerWidth,innerHeight,box.top,box.left,box.width,box.height,
+                document.documentElement.scrollHeight].join(",");
+        };
+        let previous=null;
+        const frame=()=>{
+            if(globalThis.__raceSafariSyntheticCapture!==state)return;
+            const current=measure();
+            state.ready=current!==null&&current===previous;previous=current;
+            if(!state.ready)requestAnimationFrame(frame);
+        };
+        requestAnimationFrame(frame);''', page, width)
+    driver.wait('return globalThis.__raceSafariSyntheticCapture?.ready===true')
+
+
 def save_synthetic_screenshot(driver, site, folder, width, page):
-    need(site.synthetic_fixture_sha256 == SYNTHETIC_SHA and site.seed_path is None
+    expected_sha = REFERENCE_SYNTHETIC_SHA if site.candidate_ui else SYNTHETIC_SHA
+    need(site.synthetic_fixture_sha256 == expected_sha and site.seed_path is None
          and width in VISUAL_WIDTHS and page in VISUAL_PAGES, 'SYNTHETIC_SCREENSHOT_REJECTED')
-    probe = driver.script('''return {origin:location.origin,fragment:location.hash,
-        verified:globalThis.__raceSafariPrivacy?.synthetic_fixture_verified===true,
-        fixture_sha256:globalThis.__raceSafariPrivacy?.synthetic_fixture_sha256,
-        page_errors:globalThis.__raceSafariPrivacy?.page_errors,
-        visible_page:document.querySelector('.page:not([hidden])')?.id,
-        width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth,
-        encrypted:!!document.querySelector('meta[name="race-ai-encrypted-saved-view"]'),
-        synthetic_banner:document.querySelector('#source-state')?.textContent.includes('合成')};''')
-    need(isinstance(probe, dict) and probe.get('origin') == site.origin
-         and probe.get('fragment') in ('', '#' + page) and probe.get('verified') is True
-         and probe.get('fixture_sha256') == SYNTHETIC_SHA and probe.get('page_errors') == 0
-         and probe.get('visible_page') == 'page-' + page and probe.get('width') == width
-         and probe.get('overflow') is False and probe.get('encrypted') is False
-         and probe.get('synthetic_banner') is True, 'SYNTHETIC_SCREENSHOT_REJECTED')
-    snapshot = browser_snapshot(driver)
-    verify_private_boundary(snapshot, site.audit, ())
-    if site.candidate_ui:
-        need(snapshot.get('local') == {} and snapshot.get('session') == {} and snapshot.get('cookie') == '',
-             'SYNTHETIC_SCREENSHOT_REJECTED')
+    for settled in range(2 if site.candidate_ui else 1):
+        if settled:
+            settle_candidate_synthetic_capture(driver, width, page)
+        probe = driver.script('''return {origin:location.origin,fragment:location.hash,
+            verified:globalThis.__raceSafariPrivacy?.synthetic_fixture_verified===true,
+            fixture_sha256:globalThis.__raceSafariPrivacy?.synthetic_fixture_sha256,
+            page_errors:globalThis.__raceSafariPrivacy?.page_errors,
+            visible_page:document.querySelector('.page:not([hidden])')?.id,
+            width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth,
+            encrypted:!!document.querySelector('meta[name="race-ai-encrypted-saved-view"]'),
+            synthetic_banner:document.querySelector('#source-state')?.textContent.includes('合成')};''')
+        need(isinstance(probe, dict) and probe.get('origin') == site.origin
+             and probe.get('fragment') in ('', '#' + page) and probe.get('verified') is True
+             and probe.get('fixture_sha256') == expected_sha and probe.get('page_errors') == 0
+             and probe.get('visible_page') == 'page-' + page and probe.get('width') == width
+             and probe.get('overflow') is False and probe.get('encrypted') is False
+             and probe.get('synthetic_banner') is True, 'SYNTHETIC_SCREENSHOT_REJECTED')
+        snapshot = browser_snapshot(driver)
+        verify_private_boundary(snapshot, site.audit, ())
+        if site.candidate_ui:
+            need(snapshot.get('local') == {} and snapshot.get('session') == {} and snapshot.get('cookie') == '',
+                 'SYNTHETIC_SCREENSHOT_REJECTED')
     encoded = driver.command('GET', '/screenshot')
     need(isinstance(encoded, str) and len(encoded) <= 24 * 1024 * 1024, 'SYNTHETIC_SCREENSHOT_REJECTED')
     try:
@@ -1393,6 +1473,38 @@ def save_synthetic_screenshot(driver, site, folder, width, page):
     return {'name': path.name, 'bytes': len(raw), 'sha256': sha(raw)}
 
 
+def _reference_synthetic_counts_valid(value):
+    return (type(value) is dict and set(value) == {sport for sport, _, _ in REFERENCE_SYNTHETIC_COUNTS}
+            and all(type(value[sport]) is dict and set(value[sport]) == {'races', 'participants'}
+                    and type(value[sport]['races']) is int and value[sport]['races'] == races
+                    and type(value[sport]['participants']) is int and value[sport]['participants'] == participants
+                    for sport, races, participants in REFERENCE_SYNTHETIC_COUNTS))
+
+
+def reference_synthetic_checks(driver):
+    """Measure all invented rosters before using the same seven capture pages."""
+    click_saved_page(driver, 'races')
+    result = {}
+    for sport, races, participants in REFERENCE_SYNTHETIC_COUNTS:
+        driver.click('[data-sport=' + json.dumps(sport) + ']')
+        driver.click('[data-race-view="upcoming"]')
+        ident = 'synthetic:2030-01-01:' + sport + ':1'
+        driver.wait('return !!document.querySelector("#all-races [data-race-id="+JSON.stringify(arguments[0])+"]")', ident)
+        probe = driver.script('''return {
+            races:document.querySelectorAll('#all-races .race-card').length,
+            participants:document.querySelector('#all-races [data-race-id='+JSON.stringify(arguments[0])+']')?.querySelectorAll('.racer-card').length,
+            upcoming:document.querySelector('[data-race-view="upcoming"]')?.getAttribute('aria-selected')==='true',
+            portraits:document.querySelectorAll('#all-races img').length};''', ident)
+        need(type(probe) is dict and set(probe) == {'races', 'participants', 'upcoming', 'portraits'}
+             and type(probe['races']) is int and probe['races'] == races
+             and type(probe['participants']) is int and probe['participants'] == participants
+             and probe['upcoming'] is True and type(probe['portraits']) is int and probe['portraits'] == 0,
+             'SYNTHETIC_SCREENSHOT_REJECTED')
+        result[sport] = {'races': probe['races'], 'participants': probe['participants']}
+    driver.click('[data-sport="boat"]')
+    return result
+
+
 def synthetic_visual_checks(assets, folder, *, candidate_ui=False):
     """Fresh process, fresh origin/session, exact public fixture, screenshots only."""
     need(not any(os.environ.get(k) for k in ('RACE_AI_STATE_KEY', 'GH_TOKEN', 'GITHUB_TOKEN')),
@@ -1401,7 +1513,7 @@ def synthetic_visual_checks(assets, folder, *, candidate_ui=False):
         require_synthetic_environment()
     folder = Path(folder).absolute()
     need(not folder.exists() and not any(p.is_symlink() for p in folder.parents), 'SYNTHETIC_OUTPUT_REJECTED')
-    fixture = synthetic_fixture(assets)
+    fixture = synthetic_capture_fixture(assets, candidate_ui=candidate_ui)
     screenshots, widths = [], []
     folder.mkdir(mode=0o700)
     with LoopbackSite(assets, fixture, synthetic=True, candidate_ui=candidate_ui) as site:
@@ -1419,18 +1531,20 @@ def synthetic_visual_checks(assets, folder, *, candidate_ui=False):
                 driver.command('POST', '/window/rect', {'width': width, 'height': 1000})
                 widths.append(require_viewport(width, driver.script('return {width:innerWidth,height:innerHeight}')))
                 select_saved_day(driver, fixture['event_date_jst'])
+                if candidate_ui:
+                    widths[-1]['reference_synthetic_sports'] = reference_synthetic_checks(driver)
                 for page in VISUAL_PAGES:
                     if page == 'detail':
                         open_saved_race(driver, fixture['records'][0])
                     else:
                         click_saved_page(driver, page)
                     if page == 'races':
-                        driver.click('[data-race-view="results"]')
+                        driver.click('[data-race-view="upcoming"]' if candidate_ui else '[data-race-view="results"]')
                         driver.wait('return document.querySelectorAll("#all-races [data-open-race]").length>0')
                     driver.script('window.scrollTo({top:0,left:0,behavior:"instant"});')
                     screenshots.append(save_synthetic_screenshot(driver, site, folder, width, page))
     report = {'schema': 'RACE_AI_SYNTHETIC_SAFARI_VISUAL_V1', 'dataset_status': 'SYNTHETIC_ONLY',
-              'public_fixture_sha256': SYNTHETIC_SHA, 'native_browser': identity,
+              'public_fixture_sha256': REFERENCE_SYNTHETIC_SHA if candidate_ui else SYNTHETIC_SHA, 'native_browser': identity,
               'viewports': widths, 'screenshots': screenshots, 'real_data_context_used_for_capture': False,
               'physical_iphone_verified': False, 'all_eight_reference_screens_visually_verified': False}
     if candidate_ui:
@@ -1454,7 +1568,8 @@ def verify_synthetic_artifacts(folder, *, candidate_ui=False):
         names = {str(w) + '-' + p + '.png' for w in VISUAL_WIDTHS for p in VISUAL_PAGES}
         need(report['schema'] == ('RACE_AI_SYNTHETIC_SAFARI_VISUAL_V2' if candidate_ui else
                                   'RACE_AI_SYNTHETIC_SAFARI_VISUAL_V1')
-             and report['dataset_status'] == 'SYNTHETIC_ONLY' and report['public_fixture_sha256'] == SYNTHETIC_SHA
+             and report['dataset_status'] == 'SYNTHETIC_ONLY'
+             and report['public_fixture_sha256'] == (REFERENCE_SYNTHETIC_SHA if candidate_ui else SYNTHETIC_SHA)
              and report.get('real_data_context_used_for_capture') is False
              and report.get('physical_iphone_verified') is False
              and report.get('all_eight_reference_screens_visually_verified') is False
@@ -1476,6 +1591,9 @@ def verify_synthetic_artifacts(folder, *, candidate_ui=False):
                  and viewport.get('physical_iphone_verified') is False, 'SYNTHETIC_OUTPUT_REJECTED')
             require_viewport(width, {'width': viewport.get('actual_inner_width'),
                                      'height': viewport.get('actual_inner_height')})
+            if candidate_ui:
+                need(_reference_synthetic_counts_valid(viewport.get('reference_synthetic_sports')),
+                     'SYNTHETIC_OUTPUT_REJECTED')
         for row in report['screenshots']:
             path = folder / row['name']
             need(path.is_file() and not path.is_symlink() and 8 <= path.stat().st_size <= 16 * 1024 * 1024,

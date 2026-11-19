@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from collections import OrderedDict
 from hashlib import sha256
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 import argparse
@@ -18,6 +19,8 @@ import json
 import os
 import re
 import time
+
+from scripts.keirin_runtime_selection import nationwide_ab_selected
 
 PROFILE = 'owner-approved-winticket-keirinjp-20261109'
 SCHEMA = 'RACE_AI_KEIRIN_CLOUD_OWNER_SOURCE_CONNECTION_V1'
@@ -53,6 +56,7 @@ class SourceSession:
         self.fetch, self.monotonic = fetch, monotonic
         self.deadline = monotonic() + budget_seconds
         self.host_denied = False
+        self.provider_denial_http_status_counts = {'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 0}
         self.budget_exhausted = False
         self.requests = 0
         self.historical_page_cache_hits = 0
@@ -67,6 +71,8 @@ class SourceSession:
 
     def __call__(self, url):
         """Fetch only an approved host and latch access denials for this cycle."""
+        need(not nationwide_ab_selected(),
+             'LEGACY_SOURCE_SUPERSEDED_BY_NATIONWIDE_AB')
         need(self.available(), 'OWNER_SOURCE_SESSION_STOPPED')
         u = urlsplit(url)
         need(u.scheme == 'https' and not u.username and not u.password and
@@ -91,6 +97,13 @@ class SourceSession:
             # Never include an arbitrary provider exception/URL in public logs.
             if any(x in str(exc).upper() for x in ('BLOCKED', 'RATE_LIMIT', '403', '429')):
                 self.host_denied = True
+                # fe7 suppresses this immediate HTTPError context in its public
+                # error text. Preserve only a fixed status count, never its data.
+                context = exc.__context__
+                status = getattr(context, 'code', None) if isinstance(context, HTTPError) else None
+                kind = ({403: 'HTTP_403', 429: 'HTTP_429'}.get(status, 'UNKNOWN')
+                        if type(status) is int else 'UNKNOWN')
+                self.provider_denial_http_status_counts[kind] += 1
             raise
         if eligible and type(body) is bytes and 0 < len(body) <= PAST_CACHE_ENTRY_MAX_BYTES:
             while (self._historical_cache and
@@ -267,6 +280,7 @@ def collect_owner_inputs(inbox, *, owner_auto_confirmed, capture=None, probe=Non
     need(not (root/'pre').exists(), 'OWNER_PARTIAL_SOURCE_PROMOTION_FORBIDDEN')
     out['public_page_requests'] = session.requests
     out['provider_denial_stopped_requests'] = session.host_denied
+    out['provider_denial_http_status_counts'] = dict(session.provider_denial_http_status_counts)
     out['work_budget_exhausted'] = session.budget_exhausted
     # Slot-level deficit totals are count-only and never source or rider
     # values. The same missing family can appear across several races.

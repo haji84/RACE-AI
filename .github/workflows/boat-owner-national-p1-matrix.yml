@@ -18,6 +18,11 @@ on:
       - audit/state/boat-m2-independent-audit-target.json
       - scripts/boat_current_pair_eligibility_audit.py
       - tests/test_boat_current_pair_eligibility_audit.py
+      - scripts/boat_native_forward_study.py
+      - scripts/boat_native_forward_study_audit.py
+      - tests/test_boat_native_forward_study.py
+      - audit/state/boat-native-forward-study.json
+      - audit/state/boat-native-forward-study-witness.json
       - scripts/boat_cutoff_raw_replay_audit.py
       - tests/test_boat_cutoff_raw_replay_audit.py
       - scripts/boat_saved_reason_binding_audit.py
@@ -56,6 +61,11 @@ on:
       - audit/state/boat-m2-independent-audit-target.json
       - scripts/boat_current_pair_eligibility_audit.py
       - tests/test_boat_current_pair_eligibility_audit.py
+      - scripts/boat_native_forward_study.py
+      - scripts/boat_native_forward_study_audit.py
+      - tests/test_boat_native_forward_study.py
+      - audit/state/boat-native-forward-study.json
+      - audit/state/boat-native-forward-study-witness.json
       - scripts/boat_cutoff_raw_replay_audit.py
       - tests/test_boat_cutoff_raw_replay_audit.py
       - scripts/boat_saved_reason_binding_audit.py
@@ -99,7 +109,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: eff296f6d54ad4be297d93e32f1ee0d4592ad9e3
+          ref: 1dbb47b68d487fc6def0bd4b10b1423f0a2145f6
           path: owner-source
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -123,7 +133,7 @@ jobs:
           sparse-checkout: race_ai/boat_saved_model_view.py
           sparse-checkout-cone-mode: false
       - name: Pure model matrix and forced original ZIP AES source-free contract
-        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit tests.test_boat_saved_reason_binding_audit tests.test_boat_saved_reason_binding_io tests.test_boat_saved_rejection_anchor_proof tests.test_boat_saved_rejection_anchor_io tests.test_boat_legacy_reason_anchor_guard tests.test_boat_saved_rejection_anchor_history tests.test_boat_legacy_reason_anchor_entry tests.test_boat_rejection_anchor_restoration tests.test_boat_rejection_anchor_repair tests.test_boat_rejection_anchor_repair_cli -v
+        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit tests.test_boat_native_forward_study tests.test_boat_native_pair_raw_evidence tests.test_boat_saved_reason_binding_audit tests.test_boat_saved_reason_binding_io tests.test_boat_saved_rejection_anchor_proof tests.test_boat_saved_rejection_anchor_io tests.test_boat_legacy_reason_anchor_guard tests.test_boat_saved_rejection_anchor_history tests.test_boat_legacy_reason_anchor_entry tests.test_boat_rejection_anchor_restoration tests.test_boat_rejection_anchor_repair tests.test_boat_rejection_anchor_repair_cli -v
       - name: Prove source-owner and private key are only ever read on trusted main events
         run: |
           python - <<'PY'
@@ -225,7 +235,8 @@ jobs:
          github.event.workflow_run.head_sha == 'f1f8ed4ffb2a29e6b702685f49de63918610479d' ||
          github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af' ||
          github.event.workflow_run.head_sha == '995ef00a2ffb98a0161e1875d7d2a33145367b40' ||
-         github.event.workflow_run.head_sha == 'fbc743be548bfd123e46cdbfe290515a59e5e0d3') &&
+         github.event.workflow_run.head_sha == 'fbc743be548bfd123e46cdbfe290515a59e5e0d3' ||
+         github.event.workflow_run.head_sha == '1dbb47b68d487fc6def0bd4b10b1423f0a2145f6') &&
         (github.event.workflow_run.conclusion == 'success' ||
          github.event.workflow_run.conclusion == 'failure')))
     runs-on: ubuntu-24.04
@@ -325,6 +336,7 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'],'a') as output:
               output.write('run_id='+str(selected['run_id'])+'\n')
               output.write('expected_owner_sha='+selected['expected_owner_sha']+'\n')
+              output.write('closed_round='+str(selected.get('closed_round') or '')+'\n')
           PY_TARGET
       - name: Read exact selected producer package after historical checkpoint
         id: audit_source
@@ -344,6 +356,7 @@ jobs:
           RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
           OWNER_AUDIT_RUN_ID: ${{ steps.audit_target.outputs.run_id }}
           OWNER_AUDIT_SOURCE_SHA: ${{ steps.audit_target.outputs.expected_owner_sha }}
+          OWNER_AUDIT_CLOSED_ROUND: ${{ steps.audit_target.outputs.closed_round }}
         run: |
           python - <<'PY'
           import importlib.util,json,os,re,subprocess
@@ -352,7 +365,7 @@ jobs:
           import race_ai,scripts
           scripts.__path__=list(scripts.__path__)+[str(Path('..').resolve()/'scripts')]
           owner=os.environ['OWNER_AUDIT_SOURCE_SHA']
-          assert owner in ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3','86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163','f1f8ed4ffb2a29e6b702685f49de63918610479d','c979aeb678538d99e277f26726047dccbdc982af','995ef00a2ffb98a0161e1875d7d2a33145367b40','fbc743be548bfd123e46cdbfe290515a59e5e0d3')
+          assert owner in ('eff296f6d54ad4be297d93e32f1ee0d4592ad9e3','86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163','f1f8ed4ffb2a29e6b702685f49de63918610479d','c979aeb678538d99e277f26726047dccbdc982af','995ef00a2ffb98a0161e1875d7d2a33145367b40','fbc743be548bfd123e46cdbfe290515a59e5e0d3','1dbb47b68d487fc6def0bd4b10b1423f0a2145f6')
           assert subprocess.check_output(['git','rev-parse','HEAD'],timeout=10).decode().strip()==owner
           for folder,pin in (('pr64-reference','761247bee0209e37b1af6b8885e92cad3e9260a5'),
                              ('pr72-reference','7a432e5acc4d3495a0e82bd79726929e2f8085fe')):
@@ -372,6 +385,8 @@ jobs:
           try:
               ident=int(os.environ['OWNER_AUDIT_RUN_ID'])
               assert ident>0
+              selected_round=os.environ.get('OWNER_AUDIT_CLOSED_ROUND','')
+              closed_round=int(selected_round) if selected_round else None
               from scripts.boat_private_original_vault import _environment
               from scripts.github_existing_cycle import gh
               repo=Path('.').resolve();_environment(repo)
@@ -380,13 +395,13 @@ jobs:
               reads=active._Reads(gh)
               run=json.loads(reads(f'actions/runs/{ident}'))
               assert run.get('head_sha')==owner
-              m2_receipts=owner in ('86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163','f1f8ed4ffb2a29e6b702685f49de63918610479d','c979aeb678538d99e277f26726047dccbdc982af','995ef00a2ffb98a0161e1875d7d2a33145367b40','fbc743be548bfd123e46cdbfe290515a59e5e0d3')
+              m2_receipts=owner in ('86b029ae5bddd5d4956497d8b32b2c92b8eec521','f55351dce855177a51330f72c37d6238ba2c9e3e','bb49215034b779ea1493b35dd91e5c3ebfc04032','a74f1e940e7fc0852e63938f8138bdb58bd93163','f1f8ed4ffb2a29e6b702685f49de63918610479d','c979aeb678538d99e277f26726047dccbdc982af','995ef00a2ffb98a0161e1875d7d2a33145367b40','fbc743be548bfd123e46cdbfe290515a59e5e0d3','1dbb47b68d487fc6def0bd4b10b1423f0a2145f6')
               # Keep the existing output name for downstream skip boundaries;
               # the report truthfully distinguishes active and completed snapshots.
               active_snapshot=m2_receipts or os.environ['GITHUB_EVENT_NAME']=='push' and run.get('status')=='in_progress'
               if active_snapshot:
                   report=active.audit_active_snapshot(repo,ident,now=snapshot_clock,get=reads,
-                      expected_owner_sha=owner,allow_completed_receipts=m2_receipts)
+                      expected_owner_sha=owner,allow_completed_receipts=m2_receipts,closed_round=closed_round)
                   assert (report['official_source_requests']==0 and report['full_day_coverage'] is False and
                           report['successor_dispatch_allowed'] is False and report['latest_live_counters_audited'] is False)
                   for name in ('boat-all-model-vault-counts.json','boat-exact-zip-aes-model-proof.json'):
@@ -394,10 +409,11 @@ jobs:
                       assert not target.exists() and not target.is_symlink()
                       target.write_text(json.dumps(report,sort_keys=True)+'\n',encoding='utf-8')
                   # CURRENT_PAIR_COUNTS_BEGIN
+                  pair_private=[]
                   try:
                       pair_audit=from_exact_file('boat_current_pair_counts_private','../scripts/boat_current_pair_eligibility_audit.py')
                       pair_counts=pair_audit.audit_current_pairs(get=reads,run_id=ident,now=snapshot_clock,
-                          expected_owner_sha=owner)
+                          expected_owner_sha=owner,closed_round=closed_round,_study_sink=pair_private.append)
                   except Exception:
                       # Preserve verified core originals; failed pair reads attest no counts.
                       pair_counts=dict(current_pair_audit_status='HOLD_PAIR_AUDIT_REJECTED',
@@ -420,6 +436,34 @@ jobs:
                   expected=[r['model_id'] for r in active_catalog() if 'boat' in r['applicable_sports']]
                   report=matrix.calculate(result,expected,independent_original_reader=True,allow_pending_audit=True)
                   assert report['racing_provider_gets']==0 and report['original_forecasts_unchanged']
+              # NATIVE_PAIR_RAW_SAMPLES_BEGIN
+              try:
+                  raw_samples=from_exact_file('boat_native_pair_raw_samples_private','../scripts/boat_native_pair_raw_evidence.py')
+                  report['native_pair_raw_samples']=raw_samples.audit_native_pair_raw_sample(
+                      get=reads,repo=repo,packet=pair_private[0] if active_snapshot and len(pair_private)==1 else None,
+                      now=datetime.now(timezone.utc))
+              except Exception:
+                  report['native_pair_raw_samples']=dict(schema='RACE_AI_NATIVE_PAIR_RAW_SAMPLE_COUNTS_V1',
+                      scope='BOAT_TWO_CELL_P1_RAW_SAMPLES_ONLY',status='HOLD',reason='WORKFLOW_HOOK_UNAVAILABLE',
+                      selected_sample_count=None,attempted_sample_count=None,raw_match_count=None,
+                      formal_status='HOLD_UNPROVEN_PUBLICATION_AND_ACTUAL_CLOSE',formal_qualified=False,
+                      qualifying_g8_count=0,qualifying_g8_denominator=None,promotion_allowed=False,
+                      all_records_verified=False,source_requests=0)
+              # NATIVE_PAIR_RAW_SAMPLES_END
+              # NATIVE_FORWARD_STUDY_BEGIN
+              try:
+                  native_study=from_exact_file('boat_native_forward_study_private','../scripts/boat_native_forward_study_audit.py')
+                  report['native_forward_study']=native_study.audit_native_forward_study(repo,Path('..').resolve(),
+                      get=gh,now=datetime.now(timezone.utc),
+                      main_identity=dict(commit=os.environ['GITHUB_SHA'],run_id=int(os.environ['GITHUB_RUN_ID']),
+                          attempt=int(os.environ['GITHUB_RUN_ATTEMPT']),repository=os.environ['GITHUB_REPOSITORY']),
+                      current_packet=pair_private[0] if active_snapshot and len(pair_private)==1 else None,
+                      clock=lambda:datetime.now(timezone.utc))
+              except Exception:
+                  report['native_forward_study']=dict(schema='RACE_AI_NATIVE_FORWARD_STUDY_COUNTS_V1',
+                      registration_status='HOLD',evaluation_status='UNREGISTERED_HOLD',failure_phase='SPEC',
+                      official_raw_qualified=False,qualifying_g8_count=0,promotion_allowed=False,new_forecasts=0,source_requests=0)
+              # NATIVE_FORWARD_STUDY_END
               with open(os.environ['GITHUB_OUTPUT'],'a') as output:
                   output.write('active_snapshot='+('true' if active_snapshot else 'false')+'\n')
               safe=Path(os.environ['RUNNER_TEMP'])/'boat-national-p1-counts.json'
@@ -637,7 +681,8 @@ jobs:
                               'f1f8ed4ffb2a29e6b702685f49de63918610479d',
                               'c979aeb678538d99e277f26726047dccbdc982af',
                               '995ef00a2ffb98a0161e1875d7d2a33145367b40',
-                              'fbc743be548bfd123e46cdbfe290515a59e5e0d3')
+                              'fbc743be548bfd123e46cdbfe290515a59e5e0d3',
+                              '1dbb47b68d487fc6def0bd4b10b1423f0a2145f6')
               actual=subprocess.check_output(['git','rev-parse','HEAD'],timeout=10,
                   stderr=subprocess.DEVNULL).decode().strip()
               if root.name!='owner-source' or owner not in allowed_owners or actual!=owner:
@@ -950,9 +995,9 @@ jobs:
                   checked=[]
                   for short,pin in (
                       ('boat_owner_evidence_audit','014fc9ddbbd24c501b7784eeae50be315644669f'),
-                      ('boat_exact_all_model_zip_readback','c1be89974f6926383eaedc431e4004bf8827c4d8'),
-                      ('boat_owner_active_snapshot_audit','9dc8551769ee73ee5a823d257bb34c9932feec18'),
-                      ('boat_current_pair_eligibility_audit','3e1f414a4e164f5400f7f7a1533977b8678d80c4')):
+                      ('boat_exact_all_model_zip_readback','c7d28b0a58ca69949bbdbde5f234c0035b43d1fc'),
+                      ('boat_owner_active_snapshot_audit','75313c2a50818c3b687534c80a3285a9ec2a6f8e'),
+                      ('boat_current_pair_eligibility_audit','322aea9a92248b178fcf44f6f5da293b7e195974')):
                       source=main/'scripts'/(short+'.py')
                       assert source.is_file() and not source.is_symlink() and source.resolve()==source
                       raw=source.read_bytes()

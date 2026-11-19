@@ -748,3 +748,68 @@ The owner clarified personal-use development rather than general publication.
 No Pages asset publication or production weight/wager action is introduced.
 Morning delivery audit is metadata evidence, and pure READY is not an actual
 Actions launch. Record the next real gate/worker/native results independently.
+
+2026-11-19 JST: reviewed exact bootstrap P0 recovery implementation.
+Protected source 1dbb47b68d487fc6def0bd4b10b1423f0a2145f6 (PR15; tested tree fac54c8e4fd3ceeb8177e408487ca80e9b1e76d4).
+Bind the current checkout to the real failed fbc owner 44409798061 without relabeling history.
+Authenticate and retain the original r0 14475644448, restore V5/issued maps, and forbid regeneration.
+Preserve all counters, original clocks, fixed contracts and the existing single-writer gate.
+Use only boat-owner-release: single-real-session-20261111 and this existing marker.
+
+2026-11-19 exact current-source closed-prefix read-only verification.
+Protected source remains 1dbb47b68d487fc6def0bd4b10b1423f0a2145f6.
+Independently reopen the observed first two rounds of owner44426169530,
+binding all seven exact receipt IDs, digests, sizes, clocks and repository IDs.
+Preserve complete run/job/inventory metadata; report later rounds as excluded.
+Authenticate both historical fbc r0 and current S r0, first P0, saved original
+inventory and the issued-model projection without reissuing a prediction.
+The issued-model projection is reconstructed from the authenticated saved view;
+this audit does not independently read the runtime issued file.
+Use the actual observation clock for historical HMAC and receipt validation;
+retain source generation's same-day guard and never backdate any original.
+Keep missing round1 ALL_MODEL archive unknown/HOLD, never inferred as zero.
+Read the current saved-view commit at its own observation time, not at round2.
+No latest-control/whole-day/T15-10/G8/accuracy completion is asserted here.
+The running owner is not interrupted or directly dispatched by this audit.
+The existing main gate alone handles subsequent owner state and counters.
+The existing KEIRIN probe may report typed 403/429/UNKNOWN counts under its
+unchanged denial-stop policy. The existing prospective gate now also accepts
+horse; no new model or live horse success is inferred from its fixture tests.
+Use only the existing release prefix and this marker, with unchanged jobs,
+steps, inputs, permissions, cron, runners and timeouts. No UI deployment,
+wager, production weight switch, owner-key export or new paid service.
+
+2026-11-19 richer public-only native Safari capture.
+Reviewed author04777fce6baf8a234219157801fa24569b98a794 changes only the
+existing candidate synthetic fixture and its browser checks. Bind checker blob
+5ff7c6492d98f267e69248ea26a91bf6be6c382e to the exact f723 invented fixture
+ef3a81f4c026267063a96d37333c9708a0049342e9a094c8061a11b92bb7feea.
+Keep real-data private replay, empty-storage rejection, original clocks, current
+V5 limits and public f603 assets unchanged. Disable only synthetic preference
+writes and never erase existing storage. Measure four sport rosters before the
+existing 28 synthetic captures. The existing native helper may test this real
+checker change once; never directly dispatch the forecast source. No physical
+iPhone, login or all-eight-reference acceptance is inferred from fixtures.
+Use the sole existing release prefix/marker and existing jobs/steps/inputs/
+permissions/cron/runners/timeouts. No UI deployment, model/weight change or fees.
+
+2026-11-19 fixed native forward study and bounded raw diagnostic.
+Keep source1dbb47b68d487fc6def0bd4b10b1423f0a2145f6, its original models and
+all frozen contracts unchanged. Pre-registration spec has one preserved nonce,
+actual main parent a277a692a2791c77ee89a2e9af71582f5c98d458 and an UNBOUND
+witness. Resolve existing candidate hashes only on Actions; the existing report
+artifact supplies a real server timestamp before any future enrollment.
+No backdating, retroactive registration, old574-pair denominator, early support,
+model refit, production weight change or official G8 promotion is authorized.
+New study cache uses a bounded resident LRU and single-response limit while
+measuring cumulative reads without a total-acquisition cap. Core authentication
+precedes projection; input-only and the full registered schedule remain intact.
+The same existing main step may independently replay at most two deterministic
+native raw originals at one immutable vault snapshot, reporting only counts,
+fixed holds and hashes. Raw agreement is not publication/actual-close proof.
+Candidate-only capture waits for stable frames/route/content/scroll and repeats
+privacy checks; the real private reader and all public UI assets stay unchanged.
+Use only boat-owner-release: single-real-session-20261111 and this marker.
+Existing owner gates alone may admit normal continuation; no direct source
+retry, interruption, counter reset, new job/step/input/permission/cron/runner/
+timeout, UI deployment, wager, model family, paid service or local key export.

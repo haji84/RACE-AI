@@ -1,0 +1,137 @@
+{
+  "schema": "RACE_AI_NATIVE_PAIR_RAW_EVIDENCE_IMPLEMENTATION_LOCAL_VERIFICATION_V1",
+  "worktree": "/workspace/RACE-AI-native-pair-raw-evidence-20261119",
+  "base": "a6ec09072db385a7bba54deb5793cd5a68ad8b60",
+  "branch": "codex/boat-native-pair-raw-evidence-20261119",
+  "frozen_commit": "b368fce6622ccb245a4c9cb1cc9209f1291b2c37",
+  "files": {
+    "scripts/boat_native_pair_raw_evidence.py": {
+      "bytes": 20930,
+      "sha256": "d202bea7eaccf68f8ea41f8d64fc7c280a50d8b911b6cc5b8978c0a9be629af5"
+    },
+    "tests/test_boat_native_pair_raw_evidence.py": {
+      "bytes": 23636,
+      "sha256": "05f50e45089a588d45261c22b5fe93dc29be93e6dcf0aa45f5756e2ebb57b856"
+    }
+  },
+  "api": "audit_native_pair_raw_evidence(*, get, repo, run_id, pair_artifact_id, record_sha256, vault_snapshot_commit, now, key=None, transport=None)",
+  "source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "constraints": {
+    "old_A74_files_unchanged": true,
+    "source_parser_crypto_files_unchanged": true,
+    "workflows_permissions_jobs_inputs_schedules_weights_unchanged": true,
+    "provider_gets": 0,
+    "dispatches": 0,
+    "external_pushes": 0,
+    "production_key_accesses": 0,
+    "real_archive_reads": 0,
+    "local_fixture_keys_only": true,
+    "OS_socket_creation_connect_send_denied": true
+  },
+  "fixture_setup_notes": [
+    "Initial fixture duplicated source URLs/hashes; corrected before the missing-module RED.",
+    "The reused original fixture was P0; explicitly supplied P1 stage and a numeric exhibition observation for the intended positive P1 case before final GREEN. No production acceptance rule was relaxed."
+  ],
+  "tdd": [
+    {
+      "stage": "MISSING_RUNTIME_RED",
+      "methods": 13,
+      "failures": 26,
+      "errors": 0,
+      "seconds": 26.686
+    },
+    {
+      "stage": "SIGNED_MONTH_TOTAL_RED",
+      "methods": 2,
+      "failures": 1,
+      "errors": 0,
+      "seconds": 8.005
+    },
+    {
+      "stage": "MAIN_CLOCK_AND_DERIVED_SNAPSHOT_RED",
+      "methods": 2,
+      "failures": 3,
+      "errors": 0,
+      "seconds": 5.328
+    },
+    {
+      "stage": "FINAL_NEW_FACADE_GREEN",
+      "methods": 16,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 50.503
+    }
+  ],
+  "tests": [
+    {
+      "stage": "BASELINE_A74_RAW",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 25.757
+    },
+    {
+      "stage": "BASELINE_CURRENT_PAIR",
+      "tests": 65,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 74.799
+    },
+    {
+      "stage": "REGRESSION_A74_RAW",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 26.446
+    },
+    {
+      "stage": "SOURCE_ORIGINAL_CRYPTO_AND_PARSERS",
+      "tests": 87,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 29.034
+    },
+    {
+      "stage": "MAIN_MATRIX_STANDARD_UNIT_COMMAND",
+      "tests": 376,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 245.72
+    }
+  ],
+  "pending": [],
+  "commands": {
+    "new_and_raw_harness": "/tmp/race-ai-main-p0-pin-prep-tests.py",
+    "new": "python /tmp/race-ai-main-p0-pin-prep-tests.py tests.test_boat_native_pair_raw_evidence",
+    "matrix": "python /tmp/race-ai-main-p0-pin-prep-tests.py matrix",
+    "old_raw": "python /tmp/race-ai-main-p0-pin-prep-tests.py tests.test_boat_cutoff_raw_replay_audit",
+    "source_harness": "/tmp/race-ai-native-pair-raw-source-tests-20261119.py",
+    "source": "python /tmp/race-ai-native-pair-raw-source-tests-20261119.py tests.test_all_existing_model_pairs tests.test_all_existing_model_result_intake tests.test_boat_private_original_vault tests.test_boat_private_original_archive tests.test_boat_official_program"
+  },
+  "default_semantics": {
+    "raw_match_can_be_true": true,
+    "upstream_published_at": null,
+    "actual_voting_closed_at": null,
+    "formal_status": "HOLD_UNPROVEN_PUBLICATION_AND_ACTUAL_CLOSE",
+    "formal_qualified": false,
+    "promotion_allowed": false,
+    "derived_result_snapshot_has_separate_observed_at": true,
+    "original_pairs_or_journals_rewritten": false
+  },
+  "unchanged_old_main_files": {
+    "scripts/boat_cutoff_raw_replay_audit.py": true,
+    "scripts/boat_current_pair_eligibility_audit.py": true
+  },
+  "plan": "/tmp/race-ai-native-pair-raw-evidence-plan-20261119.md",
+  "readonly_design_audit": "/tmp/race-ai-native-pair-raw-main-only-readonly-audit-20261119.json",
+  "final_verification_test_count": 486,
+  "working_tree": {
+    "tracked_clean": true,
+    "untracked_local_fixture_worktrees": [
+      "owner-source/",
+      "closed-a74-source/",
+      "reason-binding-source/"
+    ]
+  },
+  "frozen_commit_matches_independently_tested_file_hashes": true
+}

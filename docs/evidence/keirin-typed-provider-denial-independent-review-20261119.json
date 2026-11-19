@@ -1,0 +1,29 @@
+{
+  "schema": "RACE_AI_KEIRIN_TYPED_DENIAL_INDEPENDENT_REVIEW_V1",
+  "reviewed_commit": "0708b2f55fc80f8f5035f468a61e3b434a14f357",
+  "verdict": "CLEAR",
+  "related_tests": {
+    "count": 96,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "seconds": 5.456
+  },
+  "pinned_helper_probe": {
+    "status_403_count": 1,
+    "status_429_count": 1,
+    "synthetic_transport_calls_each": 1,
+    "source_denial_latch_held": true,
+    "new_pre_race_inputs_each": 0
+  },
+  "os_socket_connections_denied": true,
+  "provider_gets": 0,
+  "live_status_confirmed": false,
+  "denial_resolved": false,
+  "workflow_ua_pinned_source_and_request_policy_unchanged": true,
+  "observed_at": "2026-11-18T23:37:47.377334+00:00",
+  "files": {
+    "scripts/keirin_cloud_owner_inputs.py": "86eb1161a1b7e5b4f27bf3c6ef5f6c5c8751e16c921e2867fd87eb558c402d65",
+    "tests/test_keirin_cloud_owner_inputs.py": "b0aadb8810021508aaffb3d5488269a025bbdf7ef8be188cc050c6ddacd2ac89"
+  }
+}

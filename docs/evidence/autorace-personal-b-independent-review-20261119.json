@@ -1,0 +1,135 @@
+{
+  "status": "CLEAR",
+  "recorded_at_utc": "2026-11-19T02:42:28.988923+00:00",
+  "commit": "1e331f062d35f7fa417ee4a5235a867017557eef",
+  "tree": "8f70a4d64685ab1ba74d4199cd31a8771e31d475",
+  "parent": "963054ed60a7488b2b25bdd816455109282abfd3",
+  "source_base": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "reviewed_file_sha256": {
+    "race_ai/autorace_official_sparse_adapter.py": "2658852159a09ca2b6b7e6cfaa9e7eb7f6bf226eff864d83dee887a307794f52",
+    "tests/test_autorace_official_sparse_adapter.py": "ebbfbd0ed6362bc738ccf10b52970fdc9ca3f3b4c879aa16d01bfced6651a7e2"
+  },
+  "independent_original_fixed_bytes_suite": {
+    "tests": 93,
+    "seconds": 112.378,
+    "failures": 0,
+    "errors": 0
+  },
+  "independent_final_fixed_bytes_suite": {
+    "tests": 53,
+    "seconds": 1.124,
+    "failures": 0,
+    "errors": 0
+  },
+  "test_boundaries": {
+    "warnings_as_errors": true,
+    "OS_socket_syscalls_denied": true,
+    "author_files_unchanged": true,
+    "before_after_hashes_equal": true
+  },
+  "initial_retire_flag_finding_preserved_in": "REVIEW-963054.json",
+  "finding_resolved": "New B predicate rejects bool False and float 0.0; accepts exact int 0 or exact str zero",
+  "anchor_challenge": {
+    "commit": "1e331f062d35f7fa417ee4a5235a867017557eef",
+    "baseline": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+    "A_hashes_unchanged": true,
+    "base_A_hashes": {
+      "conversion": "10e0777d965375cbe2fa1425bb179be1205b049eb66128c0da02111bd5fd5af7",
+      "payload": "3a96842da8561e4a5b141db145447065c6125ad1030eed386dca19d4df91bb6b",
+      "prediction": "34cb658c58244b2fb08ffa132e66f9f9a7556f11ee8788c21450f162aa192340"
+    },
+    "candidate_A_hashes": {
+      "conversion": "10e0777d965375cbe2fa1425bb179be1205b049eb66128c0da02111bd5fd5af7",
+      "payload": "3a96842da8561e4a5b141db145447065c6125ad1030eed386dca19d4df91bb6b",
+      "prediction": "34cb658c58244b2fb08ffa132e66f9f9a7556f11ee8788c21450f162aa192340"
+    },
+    "newest_matching_program_clocks_bound": true,
+    "synthetic_only": true,
+    "provider_calls": 0
+  },
+  "flag_challenge": {
+    "commit": "1e331f062d35f7fa417ee4a5235a867017557eef",
+    "synthetic_only": true,
+    "provider_calls": 0,
+    "cases": [
+      {
+        "kind": "boolean_false",
+        "b_state": "HOLD",
+        "personal_request_count": 0,
+        "converted_state": "READY"
+      },
+      {
+        "kind": "float_zero",
+        "b_state": "HOLD",
+        "personal_request_count": 0,
+        "converted_state": "READY"
+      },
+      {
+        "kind": "integer_zero",
+        "b_state": "READY",
+        "personal_request_count": 1,
+        "converted_state": "READY"
+      },
+      {
+        "kind": "string_zero",
+        "b_state": "READY",
+        "personal_request_count": 1,
+        "converted_state": "READY"
+      },
+      {
+        "kind": "missing",
+        "b_state": "HOLD",
+        "personal_request_count": 0,
+        "converted_state": "READY"
+      },
+      {
+        "kind": "withdrawn",
+        "b_state": "HOLD",
+        "personal_request_count": 0,
+        "converted_state": "HOLD"
+      }
+    ]
+  },
+  "static_invariants": {
+    "only_adapter_and_existing_test_changed": true,
+    "legacy_A_roster_guard_exact_bytes_unchanged": true,
+    "original_scorer_registry_weights_unchanged": true,
+    "shared_five_still_P0": true,
+    "no_trial_seconds_to_shared_quality_transform": true,
+    "complete_eight_registered_roster_required_for_B": true,
+    "source_body_POST_case_clock_and_two_minute_guards_preserved": true,
+    "publication_inference_or_independent_receipt_promotion": false
+  },
+  "scope": "LOCAL_PATCH_ONLY_FUTURE_RELEASE_UNINTEGRATED",
+  "effects": {
+    "author_file_edits": 0,
+    "provider_calls": 0,
+    "remote_writes": 0,
+    "dispatches": 0,
+    "actual_key_reads": 0,
+    "private_original_reads": 0,
+    "source_S_changes": 0,
+    "BOAT_study_aliases": 0
+  },
+  "limitations": {
+    "actual_current_eight_trials_verified": false,
+    "actual_B_published": false,
+    "actual_primary_HTML_numeric_trials_previously_observed": 0,
+    "production_promoted": false
+  },
+  "author_reported_final_suite": {
+    "tests": 94,
+    "seconds": 115.202,
+    "failures": 0,
+    "errors": 0,
+    "source": "flag-followup-evidence.json"
+  },
+  "evidence_files": [
+    "frozen-963054-93-tests.log",
+    "frozen-1e331f-53-tests.log",
+    "flag-challenge.json",
+    "flag-challenge-followup.json",
+    "anchor-challenge.json",
+    "anchor-challenge-followup.json"
+  ]
+}

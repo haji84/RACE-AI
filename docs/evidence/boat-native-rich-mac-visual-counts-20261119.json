@@ -1,0 +1,18 @@
+{
+  "status": "PARTIAL",
+  "run_id": 44439338949,
+  "job_id": 135275991793,
+  "reference_images_viewed": 8,
+  "native_images_viewed": 28,
+  "native_named_page_mismatches": 2,
+  "wrong_page_files": [
+    "390-detail.png",
+    "1920-detail.png"
+  ],
+  "reference_visual_pass": 0,
+  "reference_visual_partial": 8,
+  "physical_iphone_verified": false,
+  "account_login_verified": false,
+  "direct_github_feed_delivery_verified": false,
+  "all_eight_reference_screens_visually_verified": false
+}

@@ -1,0 +1,77 @@
+{
+  "schema": "RACE_AI_MAIN_FORWARD_RAW_NATIVE_COMPOSITION_VERIFICATION_V1",
+  "recorded_at": "2026-11-19T02:41:07.900432+00:00",
+  "base_main": "a277a692a2791c77ee89a2e9af71582f5c98d458",
+  "source_fixed": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "study_registration_status": "UNBOUND",
+  "spec_sha256": "e66a46f80d4d758b2f0407cd5bbd79a32c9fa8f9d8c10e177cd9811282084a12",
+  "nonce_preserved_from_author": true,
+  "root_final_matrix": {
+    "tests": 435,
+    "seconds": 345.05,
+    "failures": 0,
+    "errors": 0,
+    "warning_mode": "error",
+    "os_socket_prohibition": true
+  },
+  "root_final_native": {
+    "tests": 197,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "seconds": 16.385,
+    "external_attempts": 0,
+    "modules": [
+      "tests.test_boat_native_safari_acceptance",
+      "tests.test_boat_native_safari_dispatch"
+    ]
+  },
+  "root_independent_raw_sample": {
+    "tests": 10,
+    "seconds": 27.312,
+    "failures": 0,
+    "errors": 0,
+    "os_socket_prohibition": true
+  },
+  "first_composition_test": {
+    "tests": 109,
+    "seconds": 150.268,
+    "failures": 1,
+    "errors": 0,
+    "cause": "OLD_STATIC_CLOSED_ROUND_CALL_LITERAL_OMITTED_NEW_PRIVATE_SINK",
+    "fixed_without_weakening_closed_scope": true
+  },
+  "existing_core_counts_and_formal_flags_preserved": true,
+  "closed_round_and_private_sink_composed": true,
+  "combined_pair_blob_pinned_in_workflow": true,
+  "raw_sample_production_context_defaults_only": true,
+  "workflow_jobs_steps_conditions_permissions_runners_timeouts_trigger_kinds_unchanged": true,
+  "compiled_heredocs": 11,
+  "file_sha256": {
+    "scripts/boat_current_pair_eligibility_audit.py": "ff2ff30085acfc9b1ecb61379cb86e9ebe417ca3a32d169c45d93093e3bc7fb3",
+    "scripts/boat_native_forward_study.py": "da3dfc96ba9de69f8b3d1946cbb41aebc07ca9fb511e1dac9ac06ed1374a55ba",
+    "scripts/boat_native_forward_study_audit.py": "53bab2fd676a5ad21a231227c05a3b8fc0a969303fecec75d1a13bbb0e5b1699",
+    "scripts/boat_native_pair_raw_evidence.py": "c36941d2d7a2ee78fe7131d6c141125fd454c7de9ec64b649f9b8349d09ecaf9",
+    "scripts/boat_native_safari_acceptance.py": "f1c902201fe0f383be3a6b1c97cc4a76a0a6a67eb59881b5950dcf832ac2c3a5",
+    ".github/workflows/boat-owner-national-p1-matrix.yml": "669cb0fcc08783c375412957b18376250b01babd6104ba9fc004530b90b3e18f",
+    "audit/state/boat-native-forward-study.json": "e66a46f80d4d758b2f0407cd5bbd79a32c9fa8f9d8c10e177cd9811282084a12",
+    "audit/state/boat-native-forward-study-witness.json": "128918fc3dd5d7e567fdc7ff726d2594a2c6218fd75e3e567b45b8b3ae1f33cb"
+  },
+  "git_blobs": {
+    "scripts/boat_current_pair_eligibility_audit.py": "322aea9a92248b178fcf44f6f5da293b7e195974",
+    "scripts/boat_native_forward_study.py": "86bd1b4e7b9fb03d243c49c4d7aa87d538b3783f",
+    "scripts/boat_native_forward_study_audit.py": "8326f74f2a2bd58b377730e765ff2834c9e94863",
+    "scripts/boat_native_pair_raw_evidence.py": "2cdab0673d1199bd476430d7c1e33c791e57fb15",
+    "scripts/boat_native_safari_acceptance.py": "7ed909435734c3145bbb94f632ded0ec8bfc5c43",
+    ".github/workflows/boat-owner-national-p1-matrix.yml": "5e5c34d7740ef11bdee1afccaa041398350c29ac",
+    "audit/state/boat-native-forward-study.json": "2bec6033a9a8a534ddcb6fa18a98038245762938",
+    "audit/state/boat-native-forward-study-witness.json": "509ba62d95330b40f94e95882121c0233f87e55c"
+  },
+  "actual_raw_sample_actions_proof": false,
+  "actual_new_study_witness_registered": false,
+  "actual_settled_native_mac_proof": false,
+  "new_provider_gets": 0,
+  "owner_keys_read_locally": 0,
+  "ui_deployed": false,
+  "production_weights_switched": false
+}

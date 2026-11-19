@@ -1,5 +1,7 @@
 """Security and ordering contracts for the trusted official-result job."""
 from pathlib import Path
+from types import SimpleNamespace as NS
+import fnmatch
 import re
 import unittest
 
@@ -13,10 +15,11 @@ def jobs():
 
 
 class OfficialWorkflow(unittest.TestCase):
-    def test_existing_private_key_is_only_referenced_by_trusted_result_job(self):
+    def test_existing_private_key_is_only_referenced_by_trusted_result_and_readiness_jobs(self):
         text, blocks = jobs()
         key = 'secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM'
-        self.assertEqual(text.count(key), 1)
+        self.assertEqual({name for name, block in blocks.items() if key in block},
+                         {'github-only-research-results', 'source-free-readiness'})
         result = blocks['github-only-research-results']
         self.assertIn(key, result)
         for guard in ("github.repository == 'haji84/RACE-AI'", "github.ref == 'refs/heads/main'",
@@ -25,6 +28,55 @@ class OfficialWorkflow(unittest.TestCase):
             self.assertIn(guard, result)
         self.assertIn('actions: read', result)
         self.assertIn('GITHUB_TOKEN: ${{ github.token }}', result)
+
+    def test_readiness_secret_is_admitted_only_after_tests_on_trusted_main_push_or_readiness_dispatch(self):
+        _, blocks = jobs()
+        self.assertIn('source-free-readiness', blocks)
+        block = blocks['source-free-readiness']
+        expression = block.split('    if: >-\n', 1)[1].split('    runs-on:', 1)[0]
+        expression = ' '.join(expression.split()).replace('needs.source-free-tests', 'needs.tests')
+        expression = expression.replace('&&', ' and ').replace('||', ' or ')
+        for changes, expected in (
+            ({}, True),
+            ({'event': 'workflow_dispatch', 'mode': 'readiness'}, True),
+            ({'event': 'workflow_dispatch', 'mode': 'test'}, False),
+            ({'event': 'workflow_dispatch', 'mode': 'run'}, False),
+            ({'event': 'schedule'}, False), ({'event': 'pull_request'}, False),
+            ({'repo': 'fork/RACE-AI'}, False), ({'repo_id': '999'}, False),
+            ({'ref': 'refs/heads/feature'}, False), ({'result': 'failure'}, False),
+        ):
+            values = dict(event='push', mode='', repo='haji84/RACE-AI',
+                          repo_id='1416489937', ref='refs/heads/main', result='success')
+            values.update(changes)
+            context = {'github': NS(repository=values['repo'], repository_id=values['repo_id'],
+                                   ref=values['ref'], event_name=values['event']),
+                       'inputs': NS(mode=values['mode']),
+                       'needs': NS(tests=NS(result=values['result']))}
+            with self.subTest(changes=changes):
+                self.assertEqual(bool(eval(expression, {'__builtins__': {}}, context)), expected)
+        self.assertIn('contents: read', block)
+        self.assertNotIn('contents: write', block)
+        self.assertIn('persist-credentials: false', block)
+        self.assertIn('scripts.keirin_official_readiness --repo', block)
+        self.assertNotIn('scripts.keirin_official_day_pipeline capture', block)
+        self.assertNotIn('scripts.keirin_official_day_pipeline settle', block)
+
+    def test_main_push_readiness_matches_only_its_reviewed_code_and_workflow_paths(self):
+        text, _ = jobs()
+        self.assertIn('  push:\n', text)
+        section = re.search(r'(?ms)^  push:\n(.*?)(?=^  [a-z]|\Z)', text).group(1)
+        self.assertIn('branches: [main]', section)
+        patterns = re.findall(r"^      - '([^']+)'", section, flags=re.M)
+        for path, expected in (
+            ('.github/workflows/keirin-nationwide-ab-auto.yml', True),
+            ('scripts/keirin_official_readiness.py', True),
+            ('scripts/keirin_official_day_pipeline.py', True),
+            ('race_ai/keirin_nationwide_auto_storage.py', True),
+            ('tests/test_keirin_official_readiness.py', True),
+            ('README.md', False), ('unrelated/other_sport.py', False),
+        ):
+            with self.subTest(path=path):
+                self.assertEqual(any(fnmatch.fnmatchcase(path, item) for item in patterns), expected)
 
     def test_current_readback_precedes_settlement_but_prior_races_can_resume(self):
         _, blocks = jobs()

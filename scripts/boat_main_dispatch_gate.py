@@ -14,12 +14,13 @@ from pathlib import Path
 import re
 from zoneinfo import ZoneInfo
 from scripts.boat_failed_recovery_contract import reviewed_recovery_origin
+from scripts.boat_bootstrap_recovery_adapter import current_recovery_origin
 
 SCHEMA = "RACE_AI_BOAT_MAIN_OWNER_DISPATCH_GATE_V1"
 REPO = "haji84/RACE-AI"
 WORKFLOW = "BOAT nationwide cutoff-ordered A/B research (no Vercel)"
 RELEASE_REF = "production/boat-p0-p1-20261111"
-RELEASE_SHA = 'fbc743be548bfd123e46cdbfe290515a59e5e0d3'
+RELEASE_SHA = '1dbb47b68d487fc6def0bd4b10b1423f0a2145f6'
 FIRST_FAILED_ID = 42993305843
 FIRST_FAILED_SHA = "5f5bd960e3377a87541f9d6b348d3c045ea51cf0"
 RELEASE_TOKEN = "RACE_AI_SOURCE_OWNER_BOUNDARY_RELEASED_V1"
@@ -59,7 +60,7 @@ def recovery_selection(*, run: dict, artifacts: dict, _checkpoint_only=False) ->
                        run.get('head_sha') == 'cf7b6f6a926396c6873e78fe1ad1d3d6840088a8')
     if run['id'] == 43131905826:
         require(retained_old_p0)  # Never reassign this immutable run to a newer release.
-    require((original_incident or retained_old_p0 or reviewed_recovery_origin(run.get('head_sha'),RELEASE_SHA)) and
+    require((original_incident or retained_old_p0 or current_recovery_origin(run,RELEASE_SHA)) and
             run.get('head_branch') == RELEASE_REF and
             run.get('event') == 'workflow_dispatch' and
             type(run.get('workflow_id')) is int and run['workflow_id'] == 405276784 and

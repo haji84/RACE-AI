@@ -1,0 +1,104 @@
+{
+  "schema": "RACE_AI_MAIN9_REVIEWED_MERGE_AND_REAL_PROBE_V1",
+  "main": "9a9588571b244e1e89aa7cbe35cb12d675c3bdcb",
+  "tested_head": "ffdb890dfcf136068cbcf42bff9ef40ff6c3aa3d",
+  "identical_git_tree": "ca598c921b989f517f51e459568658faa76575e5",
+  "existing_pr": 9,
+  "normal_protected_merge": true,
+  "final_checks": {
+    "total": 22,
+    "success": 10,
+    "skipped": 12,
+    "failure": 0
+  },
+  "final_ci": {
+    "run": 44437281788,
+    "job": 135269219846,
+    "tests": [
+      {
+        "count": 385,
+        "seconds": 171.082
+      },
+      {
+        "count": 7,
+        "seconds": 14.098
+      }
+    ],
+    "source_free_contracts_passed": true
+  },
+  "main_gate": {
+    "run": 44437961233,
+    "job": 135271458505,
+    "outcomes": [
+      {
+        "dispatch_allowed": false,
+        "future_real_forecast_proven": false,
+        "new_model_or_scorer_added": false,
+        "official_results_reconciled": false,
+        "official_source_requests": 0,
+        "recovery_required": false,
+        "release_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+        "schema": "RACE_AI_BOAT_MAIN_OWNER_DISPATCH_GATE_V1",
+        "status": "HOLD_ACTIVE_OWNER_WORKFLOW"
+      },
+      {
+        "dispatch_requested": false,
+        "existing_runs_count": null,
+        "native_verification_proven": false,
+        "official_provider_gets": 0,
+        "owner_key_read": false,
+        "request_acknowledged": false,
+        "request_attempted": false,
+        "status": "NATIVE_SAFARI_CANDIDATE_UNCHANGED"
+      }
+    ]
+  },
+  "keirin_probe": {
+    "run": 44437961180,
+    "job": 135271457441,
+    "counts": [
+      {
+        "actual_four_model_forecast_saved": false,
+        "date_jst": "2026-11-19",
+        "expired_or_too_close": 0,
+        "historical_page_cache_bytes": 0,
+        "historical_pages_reused_without_new_GET": 0,
+        "history_races_deferred": 0,
+        "history_races_held": 0,
+        "history_races_processed": 0,
+        "invalid_partial_records": 0,
+        "model_B_missing_family_slot_totals": {},
+        "new_pre_race_inputs": 0,
+        "owner_automated_use_attested": true,
+        "permanent_encrypted_storage_claimed": false,
+        "provider_denial_http_status_counts": {
+          "HTTP_403": 1,
+          "HTTP_429": 0,
+          "UNKNOWN": 0
+        },
+        "provider_denial_stopped_requests": true,
+        "provider_machine_rights_independently_verified": false,
+        "public_page_requests": 1,
+        "races": [],
+        "schema": "RACE_AI_KEIRIN_CLOUD_OWNER_SOURCE_CONNECTION_V1",
+        "source_capture_held": true,
+        "source_day_schedule_race_count": null,
+        "source_values_or_rider_names_publicly_logged": false,
+        "state": "OWNER_ATTESTED_SOURCE_ACQUISITION_ONLY",
+        "work_budget_exhausted": false
+      }
+    ]
+  },
+  "independent_closed_prefix_actions_audit": {
+    "run": 44437961225,
+    "job": 135271458002,
+    "status_at_record": "in_progress",
+    "actual_decryption_verified": false
+  },
+  "source_remains": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "source_worker_not_interrupted": true,
+  "keirin_http_403_resolved": false,
+  "ui_deployed": false,
+  "weights_switched": false,
+  "private_plaintext_published": false
+}

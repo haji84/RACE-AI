@@ -75,7 +75,12 @@ jobs:
   # nationwide capture waves in parallel. This does not alter the personal
   # one-page canary job above or publish any raw media.
   fallback_scheduling_gate:
-    if: github.event_name == 'schedule'
+    if: >-
+      !(vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+        vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
+        vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+        vars.RACE_AI_AB_SOURCE_S3_PREFIX == '') &&
+      github.event_name == 'schedule'
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     outputs:
@@ -92,7 +97,12 @@ jobs:
 
   fallback_nationwide_capture:
     needs: fallback_scheduling_gate
-    if: github.event_name == 'schedule' && needs.fallback_scheduling_gate.outputs.should_capture == 'true'
+    if: >-
+      !(vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+        vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
+        vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+        vars.RACE_AI_AB_SOURCE_S3_PREFIX == '') &&
+      github.event_name == 'schedule' && needs.fallback_scheduling_gate.outputs.should_capture == 'true'
     uses: ./.github/workflows/keirin-github-autonomous.yml
     with:
       mode: capture

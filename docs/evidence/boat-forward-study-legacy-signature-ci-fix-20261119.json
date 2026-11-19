@@ -1,0 +1,30 @@
+{
+  "schema": "RACE_AI_FORWARD_STUDY_LEGACY_SIGNATURE_CI_COMPATIBILITY_V1",
+  "first_head": "c9f19e2e0d8d75dcdaac20b3300aca03746eb643",
+  "failed_run": 44446904102,
+  "failed_job": 135301137962,
+  "ci_matrix": {
+    "tests": 435,
+    "seconds": 229.871,
+    "passed": true
+  },
+  "ci_old_a74_raw": {
+    "tests": 7,
+    "seconds": 13.37,
+    "failures": 1,
+    "errors": 0
+  },
+  "cause": "LEGACY_PUBLIC_SIGNATURE_ASSERTION_OMITTED_NEW_OPTIONAL_PRIVATE_STUDY_SINK",
+  "change": "Retain exact signature assertion including closed_round=None and _study_sink=None",
+  "runtime_or_guard_change": false,
+  "local_corrected_old_raw": {
+    "tests": 7,
+    "seconds": 27.71,
+    "failures": 0,
+    "errors": 0,
+    "warning_mode": "error",
+    "os_socket_prohibition": true
+  },
+  "source_original_models_or_weights_changed": false,
+  "new_workflow_run_requested_manually": false
+}

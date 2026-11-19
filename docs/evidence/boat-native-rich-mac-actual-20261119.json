@@ -1,0 +1,198 @@
+{
+  "schema": "RACE_AI_NATIVE_RICH_MAC_ACTUAL_V1",
+  "main": "a277a692a2791c77ee89a2e9af71582f5c98d458",
+  "run": 44439338949,
+  "job": 135275991793,
+  "run_conclusion": "success",
+  "trigger": "EXISTING_MAIN_NATIVE_HELPER_AFTER_REVIEWED_CHECKER_CHANGE",
+  "unit_tests": {
+    "count": 155,
+    "seconds": 53.185
+  },
+  "native_status": "NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED",
+  "verified_at": "2026-11-19T01:52:15.353870+00:00",
+  "native_browser": {
+    "browserName": "Safari",
+    "browserVersion": "26.6",
+    "platformName": "macOS"
+  },
+  "saved_day": "2026-11-19",
+  "authenticated_feed_revision": 471,
+  "feed_revision_is_not_forecast_count": true,
+  "authenticated_results": 9,
+  "authenticated_native_p1_groups": 9,
+  "current_v5": {
+    "status": "ENCRYPTED_CURRENT_V5_SAFARI_VERIFIED",
+    "transport": "LOOPBACK_IMMUTABLE_V5_CIPHERTEXT_REPLAY",
+    "current_v5_live_continuation_verified": true,
+    "current_day_verified": true,
+    "browser_aes_verified": true,
+    "snapshot_sha": "f8e25feed562668167b960e7f2c97989920529b5",
+    "cipher_sha256": "b34e5bdc5353711e5e0d557b0a96847a6c66f8eed2a5cf36c6b0a83e43d1765d",
+    "authenticated_generation": 471,
+    "saved_day": "2026-11-19",
+    "authenticated_results": 9,
+    "authenticated_native_p1_groups": 9,
+    "same_current_model_original_comparisons": 2,
+    "ciphertext_files": 30,
+    "ciphertext_bytes": 236871589,
+    "plaintext_endpoint_reads": 0,
+    "outbound_browser_requests_permitted": 0,
+    "real_screenshots_or_traces_exported": 0,
+    "account_login_verified": false,
+    "physical_iphone_verified": false
+  },
+  "synthetic_visual": {
+    "schema": "RACE_AI_SYNTHETIC_SAFARI_VISUAL_V2",
+    "dataset_status": "SYNTHETIC_ONLY",
+    "public_fixture_sha256": "ef3a81f4c026267063a96d37333c9708a0049342e9a094c8061a11b92bb7feea",
+    "native_browser": {
+      "browserName": "Safari",
+      "browserVersion": "26.6",
+      "platformName": "macOS"
+    },
+    "viewports": [
+      {
+        "requested_width": 320,
+        "actual_inner_width": 320,
+        "actual_inner_height": 948,
+        "requested_width_verified": true,
+        "physical_iphone_verified": false,
+        "reference_synthetic_sports": {
+          "boat": {
+            "races": 2,
+            "participants": 6
+          },
+          "keirin": {
+            "races": 1,
+            "participants": 7
+          },
+          "autorace": {
+            "races": 1,
+            "participants": 8
+          },
+          "horse": {
+            "races": 1,
+            "participants": 12
+          }
+        }
+      },
+      {
+        "requested_width": 390,
+        "actual_inner_width": 390,
+        "actual_inner_height": 948,
+        "requested_width_verified": true,
+        "physical_iphone_verified": false,
+        "reference_synthetic_sports": {
+          "boat": {
+            "races": 2,
+            "participants": 6
+          },
+          "keirin": {
+            "races": 1,
+            "participants": 7
+          },
+          "autorace": {
+            "races": 1,
+            "participants": 8
+          },
+          "horse": {
+            "races": 1,
+            "participants": 12
+          }
+        }
+      },
+      {
+        "requested_width": 1440,
+        "actual_inner_width": 1440,
+        "actual_inner_height": 948,
+        "requested_width_verified": true,
+        "physical_iphone_verified": false,
+        "reference_synthetic_sports": {
+          "boat": {
+            "races": 2,
+            "participants": 6
+          },
+          "keirin": {
+            "races": 1,
+            "participants": 7
+          },
+          "autorace": {
+            "races": 1,
+            "participants": 8
+          },
+          "horse": {
+            "races": 1,
+            "participants": 12
+          }
+        }
+      },
+      {
+        "requested_width": 1920,
+        "actual_inner_width": 1920,
+        "actual_inner_height": 948,
+        "requested_width_verified": true,
+        "physical_iphone_verified": false,
+        "reference_synthetic_sports": {
+          "boat": {
+            "races": 2,
+            "participants": 6
+          },
+          "keirin": {
+            "races": 1,
+            "participants": 7
+          },
+          "autorace": {
+            "races": 1,
+            "participants": 8
+          },
+          "horse": {
+            "races": 1,
+            "participants": 12
+          }
+        }
+      }
+    ],
+    "real_data_context_used_for_capture": false,
+    "physical_iphone_verified": false,
+    "all_eight_reference_screens_visually_verified": false,
+    "candidate_source": {
+      "commit": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+      "web_tree": "d905215e2f886b0bcc4f2e58323ceee465b03c38",
+      "asset_sha256": {
+        "index.html": "ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2",
+        "app.js": "c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5",
+        "style.css": "06414329229c6c7919b67408ca567c859b064d7f2b0d7abab7ddc203ab407e82"
+      }
+    },
+    "synthetic_session_cleanup_verified": true,
+    "account_login_verified": false,
+    "current_v5_live_continuation_verified": false,
+    "real_data_verified": false,
+    "screenshots": 28
+  },
+  "synthetic_artifact_verification": {
+    "status": "SYNTHETIC_SCREENSHOT_ARTIFACTS_VERIFIED",
+    "screenshots": 28,
+    "dataset_status": "SYNTHETIC_ONLY",
+    "candidate_source": {
+      "commit": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+      "web_tree": "d905215e2f886b0bcc4f2e58323ceee465b03c38",
+      "asset_sha256": {
+        "index.html": "ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2",
+        "app.js": "c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5",
+        "style.css": "06414329229c6c7919b67408ca567c859b064d7f2b0d7abab7ddc203ab407e82"
+      }
+    },
+    "physical_iphone_verified": false,
+    "all_eight_reference_screens_visually_verified": false
+  },
+  "physical_iphone_verified": false,
+  "account_login_verified": false,
+  "all_eight_reference_screens_visually_verified": false,
+  "browser_direct_github_feed_delivery_proven": false,
+  "ui_deployed": false,
+  "forecast_or_result_mutation": false,
+  "real_screenshots_exported": 0,
+  "private_plaintext_published": false
+}

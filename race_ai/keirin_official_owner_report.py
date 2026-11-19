@@ -93,16 +93,31 @@ def _metric(value, kind):
     return f"{value:,}" + ("円" if kind == "yen" else "件")
 
 
-def _cutoff(value):
-    if value is None:
-        return "締切未確認"
+def _cutoff_at(value):
+    """Read only timezone-qualified instants; never invent a missing cutoff."""
     try:
         at = datetime.fromisoformat(value.replace("Z", "+00:00"))
         if at.utcoffset() is None:
-            return "締切未確認"
-        return "締切 " + at.astimezone(JST).strftime("%H:%M") + " JST"
-    except (ValueError, TypeError, AttributeError):
+            return None
+        # Normalize before comparing offsets, and ensure it is displayable in JST.
+        at.astimezone(JST)
+        return at.astimezone(timezone.utc)
+    except (ValueError, TypeError, AttributeError, OverflowError):
+        return None
+
+
+def _cutoff(value):
+    at = _cutoff_at(value)
+    if at is None:
         return "締切未確認"
+    return "締切 " + at.astimezone(JST).strftime("%H:%M") + " JST"
+
+
+def _cutoff_sort_key(entry):
+    row = entry[0]
+    at = _cutoff_at(row.get("official_cutoff_at"))
+    return (at is None, at or datetime.max.replace(tzinfo=timezone.utc),
+            row["race_id"])
 
 
 def _summary(role, stats):
@@ -127,9 +142,93 @@ def _summary(role, stats):
             f'<dl class="metric-grid">{values}</dl>{note}</section>')
 
 
-def _arm(role, tickets, state, paid):
+# Display-only extensions. C must come from independently admitted private evidence.
+# The renderer cannot turn an unauthenticated C claim into a scored prediction.
+_PHASE_LABELS = {
+    "INITIAL": "初周", "BELL": "打鐘", "FINAL_HOME": "最終ホーム",
+    "FINAL_BACK": "最終バック", "FOURTH_CORNER": "4コーナー", "GOAL": "ゴール",
+}
+_PHASE_ORDER = tuple(_PHASE_LABELS)
+_ACTION_LABELS = {
+    "PREDICTED_LINE_ORDER_ONLY": "想定ラインの隊列",
+    "LEADER_ATTACKS": "主導権を狙う",
+    "CHALLENGER_EARLY_COUNTER": "別線が早めに反撃",
+    "LEADER_TRIES_TO_HOLD_PACE": "先行のペース維持を試みる",
+    "LEADER_MAKURI_OR_KAMASHI": "主導権側のカマシ・捲り",
+    "CHALLENGER_MAKURI": "別線の捲り",
+    "FRONT_LINE_CONTINUITY_UNVERIFIED": "ライン継続は未検証",
+    "FOLLOWER_SASHI_SCENARIO": "番手差しの仮説",
+    "FOURTH_CORNER_ORDER_CONTINUES": "4角の隊列が続く",
+    "LATE_SPRINT_OVERTAKE": "直線での追い抜き",
+    "FRONT_LEADER_PACE_FADE": "先頭選手の減速",
+}
+
+
+def _phase_cause(stage):
+    # Only fixed published research-action codes are rendered. Ignore identifiers,
+    # arbitrary raw labels and unknown strings rather than leaking source data.
+    actions = stage.get("hypothesis_actions")
+    if type(actions) is not list or len(actions) > 8:
+        return "局面の動作理由は未収録"
+    reasons = [_ACTION_LABELS[action] for action in actions
+               if type(action) is str and action in _ACTION_LABELS]
+    return "・".join(reasons) if reasons else "局面の動作理由は未収録"
+
+
+def _phase_details(forecast):
+    """Present evidenced *hypotheses* only; never invent a missing stage."""
+    if type(forecast) is not dict or not forecast.get("six_phase_scenarios"):
+        return '<p class="method-pending">6局面の詳細は、この表示用原本に未収録です。</p>'
+    scenarios = forecast["six_phase_scenarios"]
+    if type(scenarios) is not list or not 1 <= len(scenarios) <= 24:
+        return '<p class="method-pending">局面詳細を検証できません。</p>'
+    sections = []
+    for idx, item in enumerate(scenarios):
+        if type(item) is not dict or type(item.get("six_phases")) is not list:
+            return '<p class="method-pending">局面詳細を検証できません。</p>'
+        stages = item["six_phases"]
+        if len(stages) != len(_PHASE_ORDER) or any(
+            type(stage) is not dict or stage.get("phase") != expected
+            for stage, expected in zip(stages, _PHASE_ORDER)
+        ):
+            return '<p class="method-pending">6局面の順序を検証できません。</p>'
+        lines = []
+        for stage in stages:
+            try:
+                first_three = _triple(stage.get("projected_top3"))
+            except OwnerReportError:
+                return '<p class="method-pending">局面の車番を検証できません。</p>'
+            triple = "-".join(str(n) for n in first_three)
+            lines.append('<li><span>' + _PHASE_LABELS[stage["phase"]] +
+                         '</span><strong>' + triple + '</strong>' +
+                         '<small>' + _text(_phase_cause(stage)) + '</small></li>')
+        finish = "-".join(str(n) for n in _triple(stages[-1]["projected_top3"]))
+        sections.append(
+            f'<details class="phase-branch"><summary>展開{idx+1}　ゴール予測 {finish}</summary>'
+            '<ol class="phase-steps">' + "".join(lines) + '</ol></details>')
+    return ('<p class="stage-note">すべて予測上の隊列。実映像で確認した着順・確率ではありません。</p>'
+            + "".join(sections))
+
+
+def _basis(role, forecast, ready):
+    if not ready:
+        if role == "C":
+            return '<p class="method-pending">独立認証済みの過去連係履歴・締切前C原本を確認できません。</p>'
+        return '<p class="method-pending">予想原本をこの画面へ読み込めていません。</p>'
+    if role == "A":
+        return ('<p class="method-copy">公開予想印・競走得点・近況・H/Bなどを使う基準方式。'
+                '個別の材料が原本に未記録の場合、具体的な動きまでは断定できません。</p>')
+    if role == "B":
+        return ('<p class="method-copy">ライン・先行・捲り・番手差しを複数の6局面で仮説検討。'
+                '候補順位は的中確率ではありません。</p>' + _phase_details(forecast))
+    return ('<p class="method-copy">Bの展開に、独立検証された過去の追走・連係履歴を追加。'
+            'この表示は予想原本が事前認証された場合のみです。</p>'
+            + _phase_details(forecast))
+
+
+def _arm(role, tickets, state, paid, *, forecast=None, c_unverified=False):
     if not tickets:
-        label, tone = "予測なし", "muted"
+        label, tone = ("認証待ち" if c_unverified else "未生成", "muted") if role == "C" else ("予測なし", "muted")
     elif state == CANCELLED:
         label, tone = "集計対象外", "neutral"
     elif state == SETTLED:
@@ -145,12 +244,23 @@ def _arm(role, tickets, state, paid):
         entries.append(f'<li class="{classes}"><span class="rank">{rank}</span>'
                        f'<strong>{number}</strong></li>')
     picks = ('<ol class="tickets">' + "".join(entries) + "</ol>" if tickets else
-             '<p class="empty">今回の照合に読み込めた予測はありません。</p>')
-    return (f'<section class="arm" data-model="{role}"><div class="arm-heading">'
-            f'<h3>予測{role}</h3><span class="outcome {tone}">{label}</span></div>{picks}</section>')
+             ('<p class="empty">Cは未生成、または独立証拠の確認待ちです。A/Bの表示には影響しません。</p>'
+              if role == "C" else
+              '<p class="empty">今回の照合に読み込めた予測はありません。</p>'))
+    title = {"A": "A｜基準予想", "B": "B｜6局面", "C": "C｜連係履歴"}[role]
+    status_class = "c-outcome" if role == "C" else "outcome"
+    method = _basis(role, forecast, bool(tickets))
+    # Do not collapse picks. Only the optional per-branch explanations fold.
+    return (f'<section class="arm arm-{role.lower()}" data-model="{role}">'
+            f'<div class="arm-heading"><h3>{title}</h3>'
+            f'<span class="{status_class} {tone}">{label}</span></div>'
+            f'<p class="pick-count">三連単 <strong>{len(tickets)}点</strong>・全買い目</p>'
+            + picks + '<div class="basis"><h4>展開と根拠</h4>' + method +
+            '</div><p class="model-outcome">このモデルの照合：' + label +
+            '</p></section>')
 
 
-def _race_card(row, a, b, paid):
+def _race_card(row, a, b, c, paid):
     state = row["state"]
     label = "照合済み" if state == SETTLED else "中止・全額返還" if state == CANCELLED else "照合待ち"
     tone = "settled" if state == SETTLED else "neutral" if state == CANCELLED else "pending"
@@ -169,7 +279,11 @@ def _race_card(row, a, b, paid):
         f'<h2>{row["race_no"]}<span>R</span></h2></div>'
         f'<div class="race-meta"><span class="badge {tone}">{label}</span>'
         f'<p>{_text(_cutoff(row.get("official_cutoff_at")))}</p></div></header>'
-        '<div class="race-columns">' + _arm("A", a, state, paid) + _arm("B", b, state, paid) +
+        '<div class="race-columns">' +
+        _arm("A", a, state, paid, forecast=row.get("A")) +
+        _arm("B", b, state, paid, forecast=row.get("B")) +
+        _arm("C", c, state, paid, forecast=row.get("C") if c else None,
+             c_unverified=row.get("C") is not None and not c) +
         f'<section class="result-panel"><h3>公式結果</h3>{result_html}</section></div></article>')
 
 
@@ -189,7 +303,48 @@ main{max-width:1160px;margin:0 auto;padding:32px 28px 60px}h1,h2,h3,p,dl,dd{marg
 """
 
 
-def render_private_report(report: dict, rows: list[dict]) -> str:
+STYLE += "\n/* Editorial, mobile-first cards. Do not hide any tickets behind JS or tabs. */\n:root{--ink:#252a27;--muted:#65716b;--line:#e6e1d6;--paper:#fff;--blue:#39576a;--green:#476c58}\nbody{background:#f8f6f1;color:var(--ink)}.page-header h1{letter-spacing:.01em}\n.race-columns{grid-template-columns:repeat(3,minmax(0,1fr))}\n.result-panel{grid-column:1/-1;border-left:0!important;border-top:1px solid var(--line);background:#fcfaf5}\n.race-heading{background:#fffdf9}.arm{padding:20px 18px;border-left:0;min-width:0}\n.arm+.arm{border-left:1px solid var(--line)}.arm-heading{align-items:flex-start}\n.arm h3{font-size:16px}.pick-count{font-size:13px;margin:0 0 13px;color:var(--muted)}\n.pick-count strong{font-size:19px;color:var(--ink);margin-left:4px}\n.tickets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}\n.ticket{justify-content:space-between;background:#fff;border-radius:9px;padding:9px 10px}\n.ticket strong{font-size:17px}.rank{font-size:11px}\n.arm-a{border-top:3px solid #4b6174}.arm-b{border-top:3px solid #5b7659}\n.arm-c{border-top:3px solid #a77946;background:#fffdf8}\n.c-outcome{display:inline-block;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:700}\n.basis{border-top:1px solid var(--line);margin-top:17px;padding-top:14px}\n.basis h4{margin:0 0 8px;font-size:13px;color:#4b514d}\n.method-copy,.method-pending,.stage-note{font-size:12px;color:var(--muted);line-height:1.8}\n.phase-branch{border:1px solid var(--line);border-radius:8px;margin-top:7px;background:#fff}\n.phase-branch summary{cursor:pointer;padding:8px 10px;font-size:13px;font-weight:600}\n.phase-steps{list-style:none;padding:0 11px 8px;margin:0}\n.phase-steps li{display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:5px 0;border-top:1px solid #f0ede7}\n.phase-steps strong{font-variant-numeric:tabular-nums}\n.phase-steps li{flex-wrap:wrap}.phase-steps small{flex-basis:100%;font-size:11px;color:var(--muted);line-height:1.4}\n.model-outcome{font-size:12px;margin-top:12px;color:var(--muted)}\n@media(max-width:950px){.race-columns{grid-template-columns:repeat(2,minmax(0,1fr))}.arm-c{grid-column:1/-1;border-top:1px solid var(--line);border-left:0!important}}\n@media(max-width:700px){.race-columns{grid-template-columns:1fr}.arm+.arm{border-left:0;border-top:1px solid var(--line)}.arm-c{grid-column:auto}.arm{padding:18px}.tickets{grid-template-columns:repeat(2,minmax(0,1fr))}}\n"
+
+def _race_views(prepared):
+    # Reuse the already validated cards. Rendering both ordered panels must not
+    # repeat admission callbacks or change forecast / performance denominators.
+    cards = {entry[0]["race_id"]: _race_card(*entry) for entry in prepared}
+    empty = '<p class="no-races">この日の登録レースはありません。</p>'
+    by_venue = sorted(prepared, key=lambda entry: entry[0]["race_id"])
+    by_cutoff = sorted(prepared, key=_cutoff_sort_key)
+    panels = "".join(
+        f'<section id="races-{key}" class="race-view" aria-label="{label}の予想">'
+        '<div class="race-list">' +
+        ("".join(cards[entry[0]["race_id"]] for entry in entries) or empty) +
+        '</div></section>'
+        for key, label, entries in (
+            ("venue", "会場別", by_venue), ("cutoff", "締切順", by_cutoff)))
+    return (
+        '<div class="race-views" role="group" aria-label="レースの表示順">'
+        '<input class="view-choice" type="radio" name="race-view" id="view-venue" '
+        'aria-controls="races-venue" checked><label for="view-venue">会場別</label>'
+        '<input class="view-choice" type="radio" name="race-view" id="view-cutoff" '
+        'aria-controls="races-cutoff"><label for="view-cutoff">締切順</label>'
+        '<p class="view-help">締切順では全会場を日本時間の早い順に表示します。'
+        '同時刻は会場・レース番号順、締切未確認は末尾です。</p>' + panels + '</div>')
+
+
+STYLE += """
+.race-views{display:flex;flex-wrap:wrap;gap:0;position:relative}
+.view-choice{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.view-choice+label{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:110px;padding:8px 24px;border:1px solid var(--line);background:var(--paper);font-size:16px;font-weight:700;cursor:pointer}
+.view-choice+label[for="view-venue"]{border-radius:10px 0 0 10px}
+.view-choice+label[for="view-cutoff"]{border-radius:0 10px 10px 0;margin-left:-1px}
+.view-choice:checked+label{background:var(--ink);border-color:var(--ink);color:#fff;position:relative}
+.view-choice:focus-visible+label{outline:3px solid #c68b31;outline-offset:3px;z-index:1}
+.view-help{flex-basis:100%;margin-top:10px;color:var(--muted);font-size:14px}
+.race-view{display:none;flex-basis:100%;min-width:0;margin-top:16px}
+#view-venue:checked~#races-venue,#view-cutoff:checked~#races-cutoff{display:block}
+@media(max-width:700px){.view-choice+label{flex:1;padding:8px 16px}}
+"""
+
+
+def render_private_report(report: dict, rows: list[dict], *, verify_optional_c=None) -> str:
     """Render trusted settlement output and selected decrypted rows in memory."""
     _need(type(report) is dict and type(rows) is list, "OWNER_REPORT_INPUT_REQUIRED")
     day = report.get("day_jst")
@@ -230,17 +385,31 @@ def render_private_report(report: dict, rows: list[dict]) -> str:
               "OWNER_REPORT_RACE_SCOPE_INVALID")
         seen.add(rid)
         a, b = _tickets(row.get("A")), _tickets(row.get("B"))
+        # C is strictly opt-in to this PRIVATE renderer. The trusted caller
+        # must independently authenticate C source, forecast SHA, cutoff,
+        # private historical-follow labels and the exact same race identity.
+        # No callback means HOLD, even if a C-looking payload is supplied.
+        c = []
+        if row.get("C") is not None and callable(verify_optional_c):
+            try:
+                if verify_optional_c(row) is True:
+                    c = _tickets(row["C"])
+            except Exception:
+                # C evidence may be temporarily unavailable. The optional
+                # external verifier must not hide already verified A/B.
+                c = []
         paid = _paid(row) if row["state"] in (SETTLED, CANCELLED) else {}
         _need(row["state"] != SETTLED or (a and b), "OWNER_REPORT_SCORED_FORECAST_MISSING")
-        prepared.append((row, a, b, paid))
-    actual_scored = sum(row["state"] == SETTLED for row, _, _, _ in prepared)
-    neutral = sum(row["state"] == CANCELLED for row, _, _, _ in prepared)
+        prepared.append((row, a, b, c, paid))
+    actual_scored = sum(row["state"] == SETTLED for row, _, _, _, _ in prepared)
+    neutral = sum(row["state"] == CANCELLED for row, _, _, _, _ in prepared)
     _need(actual_scored == scored and
           report.get("confirmed_cancelled_full_refund_races", neutral) == neutral,
           "OWNER_REPORT_SETTLEMENT_COUNT_MISMATCH")
-    count_a = sum(bool(a) for _, a, _, _ in prepared)
-    count_b = sum(bool(b) for _, _, b, _ in prepared)
-    paired = sum(bool(a) and bool(b) for _, a, b, _ in prepared)
+    count_a = sum(bool(a) for _, a, _, _, _ in prepared)
+    count_b = sum(bool(b) for _, _, b, _, _ in prepared)
+    count_c = sum(bool(c) for _, _, _, c, _ in prepared)
+    paired = sum(bool(a) and bool(b) for _, a, b, _, _ in prepared)
     waiting = total - scored - neutral
     coverage = "".join(
         f'<div class="coverage-cell"><dt>{label}</dt><dd data-metric="{metric}">{value}</dd>'
@@ -250,9 +419,7 @@ def render_private_report(report: dict, rows: list[dict]) -> str:
             ("paired_A_B_scored", "A/B照合済み", scored, "同じレースで成績を比較"),
             ("pending_races", "照合待ち", waiting, "未取得・予測なしを含む"),
         ))
-    cards = "".join(_race_card(*entry) for entry in sorted(prepared, key=lambda x: x[0]["race_id"]))
-    if not cards:
-        cards = '<p class="no-races">この日の登録レースはありません。</p>'
+    race_views = _race_views(prepared)
     return (
         '<!doctype html><html lang="ja"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
@@ -265,15 +432,20 @@ def render_private_report(report: dict, rows: list[dict]) -> str:
         '<section id="coverage" aria-labelledby="coverage-title"><div class="section-heading">'
         '<h2 id="coverage-title">取得・照合の状況</h2></div><dl class="coverage-grid">' + coverage + '</dl>'
         f'<p class="coverage-note">{_text(scope_note)}</p>'
+        f'<p class="coverage-note">C（過去連係追加）認証済み原本：{count_c}件。'
+        'Cが未生成でもA/Bはそれぞれ表示します。Cの実績集計は同一レース分母の別監査待ちです。</p>'
         f'<p class="coverage-note">中止・全額返還：{neutral}件。照合待ちのレースは成績に含めていません。</p></section>'
         '<section id="comparison" aria-labelledby="comparison-title"><div class="section-heading">'
         f'<h2 id="comparison-title">A/Bの実績比較</h2><p>同じ{scored}レースを集計</p></div>'
         '<div class="summary-grid">' + _summary("A", stats_a) + _summary("B", stats_b) + '</div>'
-        '<p class="comparison-note">的中率は照合済みレースの実績です。中止・返還と照合待ちは分母に含めません。'
+        '<p class="comparison-note">A/Bの的中率は照合済みの同一レース分母です。'
+        'Cが存在する場合は独立認証済みの該当レースに限定し、A/B全体の分母と混ぜません。'
+        '中止・返還と照合待ちは分母に含めません。'
         '投資額・払戻額・収支は各候補100円で計算した仮想値です。</p></section>'
         '<section id="races" aria-labelledby="races-title"><div class="section-heading">'
-        f'<h2 id="races-title">レース別の記録</h2><p>全{total}レース</p></div><div class="race-list">{cards}</div></section>'
+        f'<h2 id="races-title">レース別の記録</h2><p>全{total}レース</p></div>{race_views}</section>'
         '<footer class="page-footer">この画面には非公開の予測候補が含まれます。「予測なし」は、この画面に読み込めた原本がないという意味です。'
         '保存先全体で予測が作られなかったことを示しません。予測なし・照合待ちは不的中として数えません。'
         '候補の順番はモデルの順位で、的中確率を示すものではありません。</footer></main></body></html>'
     )
+

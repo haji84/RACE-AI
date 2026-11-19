@@ -1,0 +1,13 @@
+{
+  "observed_at": "2026-11-19T01:49:40.190370+00:00",
+  "number": 4,
+  "state": "open",
+  "draft": true,
+  "title": "feat: official motor usage × racer registration cohort previous-meet audit",
+  "body": "## Facts matched from primary sources\n- BOAT RACE Hamanako motor #12 official usage history: Aug 21–26 2026 Narita Haruto (成田華音), Sept 19–24 Shibuya Akinori, Sept 30–Oct 4 Tsuge Masahiro.\n- BOAT RACE official racer profile matches Narita registration #5466, 138th cohort; official training announcement places 138th cohort debut in May 2026.\n- Historical case: entering Sept 19 meet, previous recorded user was the newly debuted cohort racer; his Aug meet 0 top-two finishes from 9 starts, next user 5 top-two finishes from 11 starts including final (5/10 excluding final).\n\n## Code\n- Offline motor-history text/HTML table parser, strict motor identity, exact normalized racer name + official racer ID/entry cohort join.\n- Historical previous recorded meet detection and cohort-debut-month proxy, incomplete/ambiguous sources flagged as unknown.\n- Tests use a short manually curated excerpt of primary-source facts, NOT raw official HTML. Local no-scraping CLI added.\n- Never treat retrospective source snapshots as available at a historical pre-race cutoff.\n\n## Limitations\nOnly motor #12 / Hamanako confirmed in this proof of concept; no full-venue harvesting or direct official file ingestion tested. Profile date is a cohort-level debut approximation, not an individual's exact debut. Raw official HTML compatibility and event-level B/K reconciliation unverified. Prior PR #1–#3 are still Draft and unmerged. No live use or merge before CI and independent review.\n\nSources:\nhttps://boatrace-hamanako.jp/modules/datafile/?motor_no=12&page=index_motor_hist&select=20\nhttps://www.boatrace.jp/owpc/pc/data/racersearch/profile?entry_period=138&toban=5466\nhttps://www.boatrace.jp/yamato/pc/site/news/2025/04/601/",
+  "base_ref": "feat/v09-motor-rider-adjustment",
+  "base_sha": "c454b9298818695e72e3e3e41ff9e3377f9747ba",
+  "head_ref": "feat/v10-official-motor-previous-meet-join",
+  "head_sha": "ee0b49aa8ef031178bf7c3dc074f860d83b2935e",
+  "html_url": "https://github.com/haji84/RACE-AI/pull/4"
+}

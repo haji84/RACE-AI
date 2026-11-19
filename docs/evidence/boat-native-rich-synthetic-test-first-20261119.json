@@ -1,0 +1,237 @@
+{
+  "schema": "RACE_AI_NATIVE_RICH_SYNTHETIC_FIXTURE_TDD_V1",
+  "main_base": "a6ec09072db385a7bba54deb5793cd5a68ad8b60",
+  "staged_tree": "3086ca8956a5071a83a15b6c22e1681ea29ac958",
+  "files": [
+    {
+      "path": "scripts/boat_native_safari_acceptance.py",
+      "git_blob": "5ff7c6492d98f267e69248ea26a91bf6be6c382e",
+      "bytes": 107115,
+      "sha256": "b8f3b93397cbc5fb8bc86b937f9480568abb714733fd90165adf5493a7839404"
+    },
+    {
+      "path": "tests/test_boat_native_safari_acceptance.py",
+      "git_blob": "5e68e8dd1b4b5ce4fbc38d1ede86599782d48f82",
+      "bytes": 241512,
+      "sha256": "6f37a53b94d44b35ed65aa952a6b6a1746b7ae3e4adab91d42e2b969aff795fe"
+    },
+    {
+      "path": "tests/fixtures/boat_native_safari_reference_synthetic.json",
+      "git_blob": "8cd127f89285704bd68248d22feabb7b64a500fd",
+      "bytes": 7266,
+      "sha256": "ef3a81f4c026267063a96d37333c9708a0049342e9a094c8061a11b92bb7feea"
+    }
+  ],
+  "source_factory": {
+    "commit": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+    "path": "tests/reference_scenarios_browser.cjs",
+    "callable": "fixture",
+    "factory_sha256": "3e209a92f0073c1d64a112186d96680d1c705519ccdc1332824edea225abd03f",
+    "fixture_sha256": "ef3a81f4c026267063a96d37333c9708a0049342e9a094c8061a11b92bb7feea",
+    "fixture_bytes": 7266,
+    "all_participants_dates_forecasts_and_results_invented": true,
+    "matches_final_f723_Chromium_reference_evidence": true,
+    "older_20591_fixture_not_used": true
+  },
+  "tdd": {
+    "baseline": {
+      "native_tests": 148,
+      "seconds": 15.695,
+      "passed": true
+    },
+    "initial_red": {
+      "tests": 6,
+      "failures": 6,
+      "errors": 0,
+      "reason": "missing synthetic_capture_fixture"
+    },
+    "actual_local_integration_refusal": "Four sport clicks persist display preferences; unchanged PNG empty-storage guard refused before export.",
+    "storage_red": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "reason": "candidate preference write was not blocked"
+    },
+    "focused_final": {
+      "tests": 7,
+      "seconds": 0.741,
+      "passed": true
+    },
+    "final_suite": {
+      "tests": 193,
+      "seconds": 16.425,
+      "native": 155,
+      "dispatcher": 38,
+      "passed": true
+    }
+  },
+  "local_Chromium": {
+    "browser_version": "155.0.8059.79",
+    "screenshots": 28,
+    "widths": [
+      320,
+      390,
+      1440,
+      1920
+    ],
+    "height": 948,
+    "sports_each_width": [
+      {
+        "boat": {
+          "races": 2,
+          "participants": 6
+        },
+        "keirin": {
+          "races": 1,
+          "participants": 7
+        },
+        "autorace": {
+          "races": 1,
+          "participants": 8
+        },
+        "horse": {
+          "races": 1,
+          "participants": 12
+        }
+      },
+      {
+        "boat": {
+          "races": 2,
+          "participants": 6
+        },
+        "keirin": {
+          "races": 1,
+          "participants": 7
+        },
+        "autorace": {
+          "races": 1,
+          "participants": 8
+        },
+        "horse": {
+          "races": 1,
+          "participants": 12
+        }
+      },
+      {
+        "boat": {
+          "races": 2,
+          "participants": 6
+        },
+        "keirin": {
+          "races": 1,
+          "participants": 7
+        },
+        "autorace": {
+          "races": 1,
+          "participants": 8
+        },
+        "horse": {
+          "races": 1,
+          "participants": 12
+        }
+      },
+      {
+        "boat": {
+          "races": 2,
+          "participants": 6
+        },
+        "keirin": {
+          "races": 1,
+          "participants": 7
+        },
+        "autorace": {
+          "races": 1,
+          "participants": 8
+        },
+        "horse": {
+          "races": 1,
+          "participants": 12
+        }
+      }
+    ],
+    "external_requests": 0,
+    "page_errors": [],
+    "loopback_audit": {
+      "private_view_reads": 1,
+      "rejected_requests": 2,
+      "secret_in_request": false,
+      "encrypted_seed_reads": 0,
+      "non_read_requests": 0,
+      "outbound_requests_permitted": 0
+    },
+    "native_safari_verified": false,
+    "physical_iphone_verified": false
+  },
+  "existing_native_artifact_audit": {
+    "run": 44428187504,
+    "job": 135238405624,
+    "archive_bytes": 8559824,
+    "archive_sha256": "ff5cfb45fa8f621616d5c07ab52099e5ed07b4b60bdaeb444519d5589a82302d",
+    "all_28_extracted_PNGs_equal_archive_bytes": true,
+    "dimensions": {
+      "widths": [
+        320,
+        390,
+        1440,
+        1920
+      ],
+      "height": 948
+    },
+    "sparse_original_capture_retained": true
+  },
+  "unchanged_legacy_function_bodies": {
+    "synthetic_fixture": true,
+    "synthetic_guard": true,
+    "read_current_v5_replay": true,
+    "current_v5_checks": true,
+    "require_synthetic_environment": true,
+    "verify_private_boundary": true,
+    "main": true
+  },
+  "intentional_existing_test_fixture_adaptations": [
+    "Candidate memory-route test uses selected rich fixture.",
+    "Candidate fragment/storage refusal fixture uses rich identity so it still reaches those refusals.",
+    "Candidate artifact fixture uses rich identity and measured sport-count metadata.",
+    "Candidate session-cleanup driver double supports sport clicks and count probe."
+  ],
+  "privacy": {
+    "candidate_only_storage_setItem_disabled": true,
+    "existing_storage_never_cleared": true,
+    "legacy_guard_body_unchanged": true,
+    "screenshot_empty_storage_requirement_unchanged": true,
+    "private_originals_opened": 0,
+    "owner_keys_read": 0,
+    "provider_requests": 0,
+    "new_Mac_dispatches": 0,
+    "original_reference_JPEGs_or_private_images_published": 0
+  },
+  "unchanged_boundaries": [
+    "sourceS",
+    "real originals",
+    "models",
+    "weights",
+    "deployed f603 and candidate f723 bytes",
+    "current V5 reader/authentication/routes/bounds",
+    "EFF pin",
+    "all workflow files",
+    "permissions",
+    "jobs",
+    "steps",
+    "inputs",
+    "cron",
+    "runner",
+    "timeouts"
+  ],
+  "limitations": {
+    "new_actual_native_Safari_run": false,
+    "account_login_verified": false,
+    "physical_iphone_verified": false,
+    "all_eight_reference_screens_visually_verified": false,
+    "remaining_visual_difference": "The fixture removes missing-roster and single-result-only coverage gaps. Header/filter spacing, viewport density and detail/allocation comparison remain partial; no frontend changes are included."
+  },
+  "integration": {
+    "refs_or_commits_created": false,
+    "GitHub_publication_performed": false,
+    "root_independent_review_and_CI_pending": true
+  }
+}

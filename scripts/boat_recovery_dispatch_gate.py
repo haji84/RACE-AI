@@ -14,7 +14,8 @@ import subprocess
 import sys
 from zoneinfo import ZoneInfo
 from scripts import boat_main_dispatch_gate as base
-from scripts.boat_failed_recovery_contract import verify_dispatch_proof, reviewed_recovery_origin
+from scripts.boat_bootstrap_recovery_adapter import (
+    current_recovery_origin, verify_current_recovery_proof)
 
 
 def read_pinned_control(run, *, reader_root=None):
@@ -102,12 +103,12 @@ def decide(*, now, release, owner_doc, history, retry_proof=None,
     if now.astimezone(ZoneInfo('Asia/Tokyo')).hour<6:return result
     runs=_today(history,now)
     if (not runs or len({r['id'] for r in runs})!=len(runs) or
-            any(not reviewed_recovery_origin(r.get('head_sha'),base.RELEASE_SHA) or r.get('status')!='completed' or
+            any(not current_recovery_origin(r,base.RELEASE_SHA,now) or r.get('status')!='completed' or
                 r.get('conclusion') not in ('success','failure') for r in runs) or
             not any(r.get('conclusion')=='failure' for r in runs)):return result
     result['recovery_required']=True
     if recovery_proof is None:return result
-    fixed=verify_dispatch_proof(recovery_proof,runs,continuation_proof,base.RELEASE_SHA,now)
+    fixed=verify_current_recovery_proof(recovery_proof,runs,continuation_proof,base.RELEASE_SHA,now)
     if fixed is None:return result
     latest=max(runs,key=lambda r:base._stamp(r['created_at']))
     repaired_ids={r['run_id'] for r in recovery_proof['repairs']}
@@ -145,7 +146,7 @@ def trusted_owner_completion(history, now, *, env=None):
         if (actual.get('name')!=base.WORKFLOW or
                 actual.get('event')!='workflow_dispatch' or
                 actual.get('head_branch')!=base.RELEASE_REF or
-                not reviewed_recovery_origin(actual.get('head_sha'),base.RELEASE_SHA) or
+                not current_recovery_origin(actual,base.RELEASE_SHA,now) or
                 actual.get('status')!='completed' or
                 actual.get('conclusion') not in ('success','failure') or
                 (actual.get('head_repository') or {}).get('full_name')!=base.REPO or

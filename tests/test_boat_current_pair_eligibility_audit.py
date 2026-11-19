@@ -1104,5 +1104,26 @@ class ClothingBenchmarkCurrentPairRoleTests(unittest.TestCase):
                     fixture.doCleanups()
 
 
+P0_VISIBILITY_SOURCE='1dbb47b68d487fc6def0bd4b10b1423f0a2145f6'
+
+
+class P0VisibilityCurrentPairRoleTests(unittest.TestCase):
+    """The exact new role retains private AES counts and pending revisions."""
+    @classmethod
+    def setUpClass(cls):CurrentPairEligibilityTests.setUpClass()
+
+    def test_p0_visibility_pairs_keep_private_unqualified_counts_and_latest_pending(self):
+        for method in ('test_real_crypto_counts_are_flat_private_and_still_unqualified',
+                       'test_latest_pending_correction_does_not_fall_back_to_an_older_settlement'):
+            with self.subTest(method=method),patch.object(sys.modules[__name__],'SOURCE',P0_VISIBILITY_SOURCE):
+                fixture=CurrentPairEligibilityTests();fixture.setUp()
+                try:
+                    getattr(fixture,method)()
+                except ValueError as error:
+                    self.fail('Exact P0 visibility current pairs were refused: '+str(error))
+                finally:
+                    fixture.doCleanups()
+
+
 if __name__ == '__main__':
     unittest.main()
