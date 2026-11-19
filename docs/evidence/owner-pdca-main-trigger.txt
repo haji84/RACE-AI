@@ -826,3 +826,15 @@ Safari adds bounded startup structure diagnostics after the observed session
 creation failure. No retry, extra HTTP request, permission change or timeout
 change is authorized, and no Safari failure is claimed fixed without proof.
 The existing main gates and the same sole marker remain the only release path.
+
+2026-11-19 repair failures observed by the actual M3 readback and Safari job.
+Preserve mainf4a42cda749e6d52f90610b519df5cd7c896fac5, sourceS, the original
+M4 witness and fixed window. The research summary must count authenticated
+race observations once across model partitions without changing its bytes.
+Conflicting per-cell observations and unknown evidence remain HOLD.
+Keep a primary Safari failure intact when teardown also fails; record only
+fixed cleanup enums and verified synthetic width/page context. Standalone
+cleanup failure remains HOLD. Do not add retries, RPCs or timeout changes.
+Reuse the existing original-receipt PR and preserve its historical SHA file;
+that receipt does not recover its absent ZIP or establish current predictions.
+No direct source dispatch, reset, model promotion or UI deployment is added.

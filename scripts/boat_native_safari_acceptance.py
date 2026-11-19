@@ -117,12 +117,13 @@ class SyntheticEnvironmentHold(SafariHold):
 
 PUBLIC_UI_MODULES = frozenset(('app.js', 'product-data.js', 'ui-model.js',
     'saved-performance.js', 'forecast-audit-model.js', 'saved-view-crypto.js'))
-UI_STAGES = frozenset(('latest_p1_private_transport', 'encrypted_seed_refusal', 'encrypted_seed_valid'))
+UI_STAGES = frozenset(('latest_p1_private_transport', 'encrypted_seed_refusal', 'encrypted_seed_valid', 'synthetic_capture'))
 UI_ACTIONS = frozenset(('load_saved_view', 'set_viewport', 'select_saved_day', 'open_native_race',
     'select_native_history', 'open_comparison_race', 'open_outlook', 'select_comparison_history',
     'select_comparison_model', 'open_research', 'return_from_research', 'open_results',
     'set_simulation_budget', 'select_simulation_mode', 'load_missing_key', 'load_wrong_key',
-    'load_wrong_view', 'load_modified_cipher', 'load_valid_seed', 'open_seed_probe', 'select_seed_history'))
+    'load_wrong_view', 'load_modified_cipher', 'load_valid_seed', 'open_seed_probe', 'select_seed_history',
+    'prepare_synthetic_tickets', 'verify_synthetic_sports', 'open_synthetic_page', 'capture_synthetic_page'))
 CHECKER_FUNCTIONS = frozenset(('main', 'read_authenticated_view', 'app_checks', 'budget', 'select', '_select_probe',
     'click', '_click_visible_element', 'element', 'wait', 'command', 'open_race', 'select_day', 'click_page',
     'open_saved_race', 'select_saved_day', 'click_saved_page', 'encrypted_seed_checks', 'synthetic_visual_checks',
@@ -201,9 +202,36 @@ def startup_diagnostic(operation, observed):
     return result
 
 
+def cleanup_diagnostic(observed):
+    """Fixed teardown facts only; never stringify an exception or response."""
+    if type(observed) is not dict:
+        return None
+    result = {}
+    for name, allowed in (
+        ('close_result', ('true', 'not_true', 'exception')),
+        ('delete_outcome', ('not_required', 'acknowledged', 'unexpected_response', 'webdriver_error', 'other_failure')),
+        ('process_result', ('wait_returned', 'wait_after_kill_returned', 'poll_failed',
+            'terminate_failed', 'wait_failed', 'kill_failed', 'wait_after_kill_failed'))):
+        value = observed.get(name)
+        result[name] = value if type(value) is str and value in allowed else None
+    status, code = observed.get('delete_http_status'), observed.get('delete_error_code')
+    result['delete_http_status'] = status if type(status) is int and 100 <= status <= 599 else None
+    result['delete_error_code'] = code if type(code) is str and code in W3C_ERRORS else None
+    for name in ('terminate_attempted', 'kill_attempted', 'primary_failure_preserved'):
+        value = observed.get(name)
+        result[name] = value if type(value) is bool else None
+    return result
+
+
 def failure_report(error):
     reason = str(error) if isinstance(error, SafariHold) and str(error) in REASONS else 'SAFARI_OPERATION_FAILED'
     report={'status': 'NATIVE_SAFARI_ACCEPTANCE_HOLD', 'reason': reason}
+    try:
+        cleanup = cleanup_diagnostic(getattr(error, 'session_cleanup', None))
+    except Exception:
+        cleanup = None
+    if cleanup is not None:
+        report['session_cleanup'] = cleanup
     if isinstance(error, CurrentV5ReplayHold):
         phase, upstream = getattr(error, 'phase', None), getattr(error, 'upstream_reason', None)
         counts = error.counts if type(getattr(error, 'counts', None)) is dict else {}
@@ -239,16 +267,25 @@ def failure_report(error):
         startup = startup_diagnostic(report['webdriver_operation'], getattr(error, 'startup', None))
         if startup is not None:
             report['webdriver_startup'] = startup
-    if isinstance(error, (DriverHold, SelectHold)):
-        context = error.ui_context if type(getattr(error, 'ui_context', None)) is dict else {}
+    try:
+        observed_context = getattr(error, 'ui_context', None)
+    except Exception:
+        observed_context = None
+    synthetic_context = (type(observed_context) is dict and type(observed_context.get('stage')) is str
+                         and observed_context['stage'] == 'synthetic_capture')
+    if isinstance(error, (DriverHold, SelectHold)) or synthetic_context:
+        context = observed_context if type(observed_context) is dict else {}
         stage, action, width, click_path = (context.get(k) for k in ('stage', 'action', 'width', 'click_path'))
         report.update(ui_stage=stage if type(stage) is str and stage in UI_STAGES else None,
             ui_action=action if type(action) is str and action in UI_ACTIONS else None,
             ui_verified_width=width if type(width) is int and width in VISUAL_WIDTHS else None,
             ui_click_path=click_path if type(click_path) is str and click_path in ('visible_element', 'native_option') else None,
             ui_hit_target_verified=context.get('hit_target_verified') is True)
+        if report['ui_stage'] == 'synthetic_capture':
+            page = context.get('page')
+            report['ui_capture_page'] = page if type(page) is str and page in VISUAL_PAGES else None
         phase = context.get('select_phase')
-        if phase in ('initial', 'prepared', 'readback'):
+        if type(phase) is str and phase in ('initial', 'prepared', 'readback'):
             report['ui_select_phase'] = phase
             report['ui_select_preflight'] = select_diagnostic(error.probe if isinstance(error, SelectHold)
                                                              else context.get('select_preflight'))
@@ -260,7 +297,10 @@ def failure_report(error):
             if type(matches) is bool and report.get('ui_select_phase') == 'initial'
             and report.get('ui_click_path') == 'visible_element' and type(preflight) is dict
             and preflight.get('control_is_select') is True else None)
-        first = getattr(error, 'first_seed_comparison_initial_selected_target', None)
+        first = None
+        if (report.get('ui_stage') == 'encrypted_seed_valid' and report.get('ui_action') == 'select_seed_history'
+                and report.get('ui_seed_comparison_ordinal') in (1, 2)):
+            first = getattr(error, 'first_seed_comparison_initial_selected_target', None)
         report['ui_first_seed_comparison_initial_selected_target'] = (first
             if type(first) is bool and report.get('ui_stage') == 'encrypted_seed_valid'
             and report.get('ui_action') == 'select_seed_history'
@@ -308,9 +348,11 @@ def failure_report(error):
     return report
 
 
-def ui_diagnostic(driver, stage, action, width=None):
+def ui_diagnostic(driver, stage, action, width=None, *, page=None):
     """Fixed labels and an already verified public width; no UI values."""
     driver.ui_context = {'stage': stage, 'action': action, 'width': width}
+    if stage == 'synthetic_capture':
+        driver.ui_context['page'] = page
 
 
 def driver_environment(environment):
@@ -1225,11 +1267,21 @@ class WebDriver:
             raise BudgetHold(value, probe) from None
 
     def close(self):
+        self.close_observation = dict(delete_outcome='not_required', delete_http_status=None, delete_error_code=None)
         if self.session is not None:
+            self.close_observation['delete_outcome'] = 'other_failure'
             try:
                 if self.command('DELETE', '') is not None:
+                    self.close_observation['delete_outcome'] = 'unexpected_response'
                     return False
-            except SafariHold:
+                self.close_observation['delete_outcome'] = 'acknowledged'
+            except SafariHold as error:
+                self.close_observation['delete_outcome'] = 'other_failure'
+                if isinstance(error, DriverHold) and type(error.operation) is str and error.operation == 'delete_session':
+                    status, code = error.http_status, error.w3c_error
+                    self.close_observation.update(delete_outcome='webdriver_error',
+                        delete_http_status=status if type(status) is int and 100 <= status <= 599 else None,
+                        delete_error_code=code if type(code) is str and code in W3C_ERRORS else None)
                 return False
             finally:
                 self.session = None
@@ -1251,6 +1303,7 @@ def apple_driver():
         raise DriverHold('SAFARIDRIVER_UNAVAILABLE', operation='start_driver') from None
     driver = WebDriver(port)
     startup = {'tcp_connected': None, 'process_running_before_connect': None}
+    primary = None
     try:
         try:
             ready = False
@@ -1285,22 +1338,63 @@ def apple_driver():
             error.startup = observed
             raise
         yield driver, identity
+    except BaseException as error:
+        primary = error
+        try:
+            if type(getattr(error, 'ui_context', None)) is not dict:
+                context = getattr(driver, 'ui_context', None)
+                error.ui_context = dict(context) if type(context) is dict else {}
+        except Exception:
+            pass
+        raise
     finally:
+        cleanup = dict(close_result=None, delete_outcome=None, delete_http_status=None,
+            delete_error_code=None, process_result=None, terminate_attempted=False,
+            kill_attempted=False, primary_failure_preserved=primary is not None)
         try:
             closed = driver.close()
+            cleanup['close_result'] = 'true' if closed is True else 'not_true'
         except Exception:
             closed = False
+            cleanup['close_result'] = 'exception'
+        try:
+            observed = getattr(driver, 'close_observation', None)
+            if type(observed) is dict:
+                cleanup.update((name, observed.get(name)) for name in (
+                    'delete_outcome', 'delete_http_status', 'delete_error_code'))
+        except Exception:
+            pass
+        phase = 'poll'
         try:
             if process.poll() is None:
+                phase = 'terminate'
+                cleanup['terminate_attempted'] = True
                 process.terminate()
+            phase = 'wait'
             try:
                 process.wait(timeout=5)
+                cleanup['process_result'] = 'wait_returned'
             except subprocess.TimeoutExpired:
+                phase = 'kill'
+                cleanup['kill_attempted'] = True
                 process.kill()
+                phase = 'wait_after_kill'
                 process.wait(timeout=5)
-        except (OSError, subprocess.SubprocessError):
+                cleanup['process_result'] = 'wait_after_kill_returned'
+        except Exception:
             closed = False
-        need(closed is True, 'SAFARI_SESSION_CLEANUP_FAILED')
+            cleanup['process_result'] = phase + '_failed'
+        if closed is not True:
+            failure = primary if primary is not None else SafariHold('SAFARI_SESSION_CLEANUP_FAILED')
+            try:
+                failure.session_cleanup = cleanup
+                if type(getattr(failure, 'ui_context', None)) is not dict:
+                    context = getattr(driver, 'ui_context', None)
+                    failure.ui_context = dict(context) if type(context) is dict else {}
+            except Exception:
+                pass
+            if primary is None:
+                raise failure
 
 
 def read_authenticated_view(source_root, seed):
@@ -1568,22 +1662,28 @@ def synthetic_visual_checks(assets, folder, *, candidate_ui=False):
     folder.mkdir(mode=0o700)
     with LoopbackSite(assets, fixture, synthetic=True, candidate_ui=candidate_ui) as site:
         with apple_driver() as (driver, identity):
+            ui_diagnostic(driver, 'synthetic_capture', 'load_saved_view')
             driver.command('POST', '/url', {'url': site.url})
             driver.wait('return globalThis.__raceSafariPrivacy?.synthetic_fixture_verified===true', timeout=90)
             need(driver.script('return Object.keys(localStorage).length===0&&Object.keys(sessionStorage).length===0&&document.cookie===""'),
                  'SYNTHETIC_SCREENSHOT_REJECTED')
             select_saved_day(driver, fixture['event_date_jst'])
+            ui_diagnostic(driver, 'synthetic_capture', 'prepare_synthetic_tickets')
             click_saved_page(driver, 'picks')
             driver.click('#copy-top8')
             driver.wait('return document.querySelectorAll(".ticket-row").length===8')
             driver.click('#equal-allocate')
             for width in VISUAL_WIDTHS:
+                ui_diagnostic(driver, 'synthetic_capture', 'set_viewport')
                 driver.command('POST', '/window/rect', {'width': width, 'height': 1000})
                 widths.append(require_viewport(width, driver.script('return {width:innerWidth,height:innerHeight}')))
+                ui_diagnostic(driver, 'synthetic_capture', 'select_saved_day', width)
                 select_saved_day(driver, fixture['event_date_jst'])
                 if candidate_ui:
+                    ui_diagnostic(driver, 'synthetic_capture', 'verify_synthetic_sports', width)
                     widths[-1]['reference_synthetic_sports'] = reference_synthetic_checks(driver)
                 for page in VISUAL_PAGES:
+                    ui_diagnostic(driver, 'synthetic_capture', 'open_synthetic_page', width, page=page)
                     if page == 'detail':
                         open_saved_race(driver, fixture['records'][0])
                     else:
@@ -1592,6 +1692,7 @@ def synthetic_visual_checks(assets, folder, *, candidate_ui=False):
                         driver.click('[data-race-view="upcoming"]' if candidate_ui else '[data-race-view="results"]')
                         driver.wait('return document.querySelectorAll("#all-races [data-open-race]").length>0')
                     driver.script('window.scrollTo({top:0,left:0,behavior:"instant"});')
+                    ui_diagnostic(driver, 'synthetic_capture', 'capture_synthetic_page', width, page=page)
                     screenshots.append(save_synthetic_screenshot(driver, site, folder, width, page))
     report = {'schema': 'RACE_AI_SYNTHETIC_SAFARI_VISUAL_V1', 'dataset_status': 'SYNTHETIC_ONLY',
               'public_fixture_sha256': REFERENCE_SYNTHETIC_SHA if candidate_ui else SYNTHETIC_SHA, 'native_browser': identity,

@@ -30,6 +30,23 @@ MAX_ZIP = 128*1024*1024
 MAX_EXPANDED = 256*1024*1024
 MAX_CANDIDATES = 10000
 MAX_GROUP = 64*1024*1024
+_FAILURE_CODES = frozenset('''ARTIFACT_INVENTORY_REJECTED ARTIFACT_METADATA_REJECTED
+CHECKOUT_REJECTED CLOCK_REJECTED JSON_REJECTED MAIN_CONTEXT_REJECTED PRIVATE_TEMP_REJECTED
+READ_ENDPOINT_REJECTED REMOTE_REJECTED RESPONSE_BOUND_REJECTED ROUND_CONTEXT_REJECTED
+SOURCE_ADMISSION_REJECTED SOURCE_CONTEXT_REJECTED SUMMARY_COVERAGE_REJECTED ZIP_REJECTED
+OBSERVATION_SNAPSHOT_REJECTED OWNER_STATE_KEY_REQUIRED STATE_AUTHENTICATION_OR_COMPRESSION_FAILED
+RESEARCH_CACHE_FRESH_METADATA_REQUIRED RESEARCH_CACHE_FRESH_IDENTITY_MISMATCH
+RESEARCH_CACHE_ARCHIVE_BOUND_INVALID RESEARCH_CACHE_PRIVATE_ARCHIVE_REQUIRED
+RESEARCH_CACHE_ZIP_READ_FAILED RESEARCH_CACHE_ARCHIVE_BYTES_INVALID
+ALL_MODEL_PAIR_RECEIPT_ARCHIVE_REJECTED ALL_MODEL_PAIR_RECEIPT_ARTIFACT_BYTES_INVALID
+ALL_MODEL_PAIR_RECEIPT_ARTIFACT_CLOCK_INVALID ALL_MODEL_PAIR_RECEIPT_ARTIFACT_IDENTITY_INVALID
+ALL_MODEL_PAIR_RECEIPT_ARTIFACT_NAME_INVALID ALL_MODEL_PAIR_RECEIPT_ARTIFACT_RUN_INVALID
+ALL_MODEL_PAIR_RECEIPT_PRE_CUTOFF_CLOCK_INVALID ALL_MODEL_PAIR_RECEIPT_CAPTURED_INPUT_PRE_CUTOFF_CLOCK_INVALID
+ALL_MODEL_PAIR_RECEIPT_PUBLIC_SUMMARY_BINDING_INVALID ALL_MODEL_PAIR_RECEIPT_PAYLOAD_REPLAY_INVALID
+ALL_MODEL_PAIR_RECEIPT_MIXED_CANDIDATE_CONTEXTS_INVALID
+VENUE_LEARNING_AUTHENTICATION_FAILED VENUE_LEARNING_PAYLOAD_HASH_INVALID
+VENUE_LEARNING_SUMMARY_INVALID VENUE_LEARNING_SUMMARY_MISMATCH
+ALL_MODEL_PRIVATE_PDCA_PAYLOAD_SCHEMA_INVALID ALL_MODEL_PRIVATE_PDCA_SCORE_REPLAY_MISMATCH'''.split())
 
 
 class _Rejected(ValueError):
@@ -39,6 +56,14 @@ class _Rejected(ValueError):
 def _need(ok, reason):
     if not ok:
         raise _Rejected(reason)
+
+
+def _failure_code(error):
+    # Never format exceptions or follow their potentially private cause chain.
+    if type(error) in (_Rejected, ValueError) and len(error.args) == 1 and type(error.args[0]) is str:
+        if error.args[0] in _FAILURE_CODES:
+            return error.args[0]
+    return 'UNCLASSIFIED'
 
 
 def _time(value):
@@ -253,6 +278,7 @@ def _candidates(raw, round_no, meta, root, reads, originals, rounds, now, cache,
     from race_ai.boat_venue_learning import read_candidate
     from race_ai.all_existing_model_pdca import verify_private_pdca, _summary
     from race_ai.all_existing_model_pairs import partition_key
+    from race_ai.existing_model_dispatch import _race_key
     from race_ai.boat_research_batch import file_snapshot
     from scripts.boat_all_racers import _write
     _need(raw.startswith(b'PK\x03\x04') and len(raw) >= 22 and raw[-22:-18] == b'PK\x05\x06' and
@@ -279,7 +305,7 @@ def _candidates(raw, round_no, meta, root, reads, originals, rounds, now, cache,
             admission, forecasts = _original(ident, originals, reads, rounds, now, cache, verified)
             partitions = groups.get(ident, {})
             _need(set(partitions) == set(forecasts), 'SUMMARY_COVERAGE_REJECTED')
-            rows, observations = [], 0
+            rows, observations = [], {}
             # The producer aggregated in original P1 record order. ZIP member
             # order is transport layout and must not reorder float summation.
             for partition in forecasts:
@@ -299,13 +325,22 @@ def _candidates(raw, round_no, meta, root, reads, originals, rounds, now, cache,
                       rounds[round_no][0] <= _time(payload['evaluated_at']) <= _time(meta['created_at']) and
                       _time(admission['saved_at']) <= _time(payload['evaluated_at']), 'SOURCE_ADMISSION_REJECTED')
                 rows.append(payload['score'])
-                observations += int(payload['observation'] is not None)
+                pair = payload['private_forecast']['pair']
+                race = (pair['sport'], _race_key(pair['race_id'], pair['sport']))
+                snapshot = None if payload['observation'] is None else _wire(payload['observation'])
+                # The producer rejects unrelated/duplicate result identities,
+                # then shares one complete observation (or None) across cells.
+                _need(race not in observations or observations[race] == snapshot,
+                      'OBSERVATION_SNAPSHOT_REJECTED')
+                observations[race] = snapshot
                 identity = sha256(files['learning.json']).hexdigest()
                 prefix = PREFIX+identity+'/'
                 candidates.append(dict(manifest_sha256=identity, training_sha256=training, round_no=round_no,
                     files={prefix+name: file_snapshot(folder/name, FILES[name], body) for name, body in files.items()}))
-            expected = dict(_summary(admission, rows, observations), encrypted_readback_verified=True)
-            _need(_json(archive.read(summary_entry), FILES['summary.json']) == expected, 'SUMMARY_COVERAGE_REJECTED')
+            expected = dict(_summary(admission, rows, sum(value is not None for value in observations.values())),
+                            encrypted_readback_verified=True)
+            _need(_wire(_json(archive.read(summary_entry), FILES['summary.json'])) == _wire(expected),
+                  'SUMMARY_COVERAGE_REJECTED')
     _need(len(candidates) <= MAX_CANDIDATES, 'ZIP_REJECTED')
     return candidates
 
@@ -386,7 +421,7 @@ def _remote(candidates, git, out):
 def audit_private_venue_retention(repo, *, get, now, main_identity):
     """Counts/hash-only proof of current exact retention; every failure is HOLD."""
     out = dict(schema='RACE_AI_PRIVATE_VENUE_RETENTION_READBACK_COUNTS_V1', status='HOLD_PRIVATE_RESEARCH_RETENTION',
-        phase='MAIN_CONTEXT', reason='CONTEXT_REJECTED', artifact_count=None, expected_candidate_count=None,
+        phase='MAIN_CONTEXT', reason='CONTEXT_REJECTED', failure_code=None, artifact_count=None, expected_candidate_count=None,
         verified_candidate_count=None, missing_candidate_count=None, conflict_candidate_count=None,
         verified_original_bytes=None, artifact_inventory_sha256=None, candidate_inventory_sha256=None,
         observed_remote_commit=None, source_requests=0, production_promoted=False, plaintext_published=False,
@@ -431,7 +466,8 @@ def audit_private_venue_retention(repo, *, get, now, main_identity):
             else:
                 _need(out['verified_candidate_count'] == len(candidates), 'REMOTE_REJECTED')
                 out.update(status='EXACT_PRIVATE_RESEARCH_RETENTION_VERIFIED', reason='EXACT_CIPHERTEXT_AT_OBSERVED_COMMIT')
-    except Exception:
+    except Exception as error:
+        out['failure_code'] = _failure_code(error)
         out['reason'] = ('CONTEXT_REJECTED' if out['phase'] in ('MAIN_CONTEXT', 'ARTIFACT_METADATA', 'CHECKOUT')
                          else 'PRIVATE_EVIDENCE_REJECTED' if out['phase'] in ('OWNER_AUTHENTICATION', 'PRIVATE_ARCHIVE')
                          else 'REMOTE_READBACK_REJECTED')

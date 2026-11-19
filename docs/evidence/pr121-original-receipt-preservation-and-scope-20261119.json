@@ -1,0 +1,18 @@
+{
+  "all_main_F4_files_preserved_before_scoped_fixes": true,
+  "existing_pr": 121,
+  "force_push": false,
+  "new_pr_created": false,
+  "normal_merge_baseline": "dfb7df77fd4676989e51ef4c22b5e0ff715462c9",
+  "old_28_receipt_not_used_as_current_or_forward_denominator": true,
+  "original_blob": "0f7dcfc005acb022b47a9525adecfea09d9beb1e",
+  "original_forecasts_recovered": false,
+  "original_head": "a2d9ac13c790a883c6ace8fd7373a8902e869389",
+  "original_receipt": "audit/autorace/2026-11-10/all28_A_v1_pretrial_research_SHA256_receipt.txt",
+  "original_receipt_is_human_heuristic_not_trained_model": true,
+  "original_receipt_preserved_byte_for_byte": true,
+  "original_zip_restored": false,
+  "recorded_at": "2026-11-19T05:32:24.943866+00:00",
+  "schema": "RACE_AI_EXISTING_PR121_ORIGINAL_HASH_RECEIPT_PRESERVATION_V1",
+  "sourceS_or_weights_or_public_UI_changed": false
+}

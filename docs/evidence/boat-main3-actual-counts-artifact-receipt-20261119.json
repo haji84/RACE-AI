@@ -1,0 +1,21 @@
+{
+  "artifact_created_at": "2026-11-19T04:45:02Z",
+  "artifact_id": 14500076569,
+  "artifact_name": "boat-national-p1-model-coverage-44460053379",
+  "artifact_zip_bytes": 8668,
+  "artifact_zip_sha256": "59202f915b1b561d36c7e7b80eaac39a79ef57dcea24b65ea49c8b2ef35919bd",
+  "cold_retention_counts_unknown": true,
+  "cold_retention_phase": "PRIVATE_ARCHIVE",
+  "cold_retention_status": "HOLD_PRIVATE_RESEARCH_RETENTION",
+  "evaluation_status": "WINDOW_OPEN_HOLD",
+  "job": 135344355259,
+  "main": "f4a42cda749e6d52f90610b519df5cd7c896fac5",
+  "production_weights_changed": false,
+  "registration_status": "VERIFIED_ORIGINAL_SERVER_WITNESS",
+  "run": 44460053379,
+  "schema": "RACE_AI_MAIN3_ACTUAL_COUNTS_ARTIFACT_RECEIPT_V1",
+  "source_requests": 0,
+  "whole_job_conclusion": "success",
+  "whole_job_status": "completed",
+  "zip_length_digest_crc_and_member_verified": true
+}

@@ -1,0 +1,180 @@
+{
+  "artifacts": {
+    "ZIPs_or_cipher_or_source_body_read": false,
+    "latest_created_at": "2026-11-19T02:52:30Z",
+    "latest_name": "boat-prospective-evaluation-44446167880-r1",
+    "round2_P1_archive_observed": false,
+    "round2_RESULT_archive_observed": false,
+    "total": 7
+  },
+  "cause_assessment": "DESIGNED_LONG_WAIT_PATH_EXISTS_BUT_ACTUAL_CAUSE_UNDETERMINED",
+  "job": {
+    "active_step": {
+      "completed_at": null,
+      "name": "Deadline-ordered five-model round 02",
+      "number": 39,
+      "started_at": "2026-11-19T02:52:31Z"
+    },
+    "active_step_elapsed_seconds_at_observation": 6331,
+    "conclusion": null,
+    "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+    "id": 135298730289,
+    "round1_outer_step_completed_at": "2026-11-19T02:52:31Z",
+    "run_id": 44446167880,
+    "started_at": "2026-11-19T02:41:44Z",
+    "status": "in_progress"
+  },
+  "limits": {
+    "actual_control_or_generation_counts_inferred": false,
+    "actual_keys_read": 0,
+    "direct_job_route_connector_rejection_not_a_job_failure": true,
+    "dispatch_cancel_reset_hotswap": 0,
+    "provider_GETs": 0,
+    "real_ZIPs_or_source_body_read": 0,
+    "remote_writes": 0,
+    "root_worktree_edits": 0,
+    "source_or_workflow_or_flag_changes": 0
+  },
+  "metadata_observed_at": "2026-11-19T04:38:02Z",
+  "normal_wait_bounds": {
+    "initial_wait_for_window_step_already_completed_at": "2026-11-19T02:46:12Z",
+    "next_check_can_extend_normal_poll": false,
+    "normal_poll_after_two_hours_fixture": "READY",
+    "ordinary_poll_max_seconds": 180,
+    "queue_target_future_three_hours_fixture_wait_seconds": 120,
+    "sleep_chunk_seconds_max": 30
+  },
+  "per_operation_limits": {
+    "cache_layout_git_seconds": 30,
+    "git_rewrite_inspection_seconds": 15,
+    "legacy_gh_attempt_seconds": 50,
+    "legacy_gh_max_attempts": 3,
+    "legacy_gh_retry_delays_seconds": [
+      1,
+      2
+    ],
+    "no_fixed_total_GET_count_in_current_cycle_policy": true,
+    "provider_http_12_seconds_is_not_an_aggregate_round_deadline": true,
+    "provider_http_socket_timeout_seconds": 12,
+    "provider_request_pacing_seconds": 2,
+    "shared_git_fetch_seconds": 180,
+    "shared_git_other_command_seconds": 60,
+    "vault_gh_attempt_seconds": 90,
+    "vault_gh_max_attempts": 3,
+    "vault_gh_retry_delays_seconds": [
+      2,
+      4
+    ]
+  },
+  "physical_worker_bounds": {
+    "actual_handoff_environment_value_read": false,
+    "current_observation_before_both_configured_bounds": true,
+    "handoff_estimate_from_step_second": "approximately 2026-11-19T08:13:10Z",
+    "handoff_lead_minutes": 330,
+    "handoff_pin_step_started_and_completed_second": "2026-11-19T02:43:10Z",
+    "handoff_rechecked_in_prepare_loop": true,
+    "job_timeout_estimate_from_job_start": "2026-11-19T08:41:44Z",
+    "job_timeout_minutes": 360,
+    "job_timeout_not_a_proof_of_current_progress": true
+  },
+  "possible_long_waits": [
+    {
+      "actual_state_proven": false,
+      "behavior": "retry=None waits indefinitely in source policy; repeat_prepare rechecks every <=30 seconds and keeps returning 180-second wait decisions until worker handoff/day boundary. No provider retry is performed by this loop.",
+      "kind": "PERSISTED_AUTHORIZATION_OR_SOURCE_REVIEW_WAIT",
+      "refs": [
+        "scripts/github_existing_cycle.py:1435",
+        "scripts/github_existing_cycle.py:1455",
+        "race_ai/repeated_cycle.py:215",
+        "race_ai/source_retry_policy.py:64"
+      ]
+    },
+    {
+      "actual_Retry_After_proven": false,
+      "behavior": "Default backoff caps at 3600 seconds, but an actual server Retry-After may be longer and is respected.",
+      "kind": "PERSISTED_RATE_LIMIT_OR_TRANSIENT_RETRY",
+      "refs": [
+        "race_ai/source_retry_policy.py:40",
+        "race_ai/source_retry_policy.py:46"
+      ]
+    },
+    {
+      "actual_active_command_proven": false,
+      "behavior": "Individual operations have configured timeout/resource bounds; a round contains many operations and no separate short aggregate wall-clock timeout. A coarse composite step cannot locate the active inner command.",
+      "kind": "CAPTURE_OR_MULTI_ITEM_RETENTION_PROCESSING",
+      "refs": [
+        "scripts/boat_nationwide_ab_pilot.py:259",
+        "race_ai/boat_pdca_github_handoff.py:53",
+        "scripts/boat_private_original_vault.py:180",
+        "scripts/boat_private_original_vault.py:224"
+      ]
+    }
+  ],
+  "previous_run_scope": {
+    "actual24_round_success_from_parent_preserved": true,
+    "id": 44426169530,
+    "its_counts_are_not_applied_to_successor": true
+  },
+  "pure_fixture_probe": {
+    "OS_socket_prohibition": true,
+    "actual_keys_read": false,
+    "actual_state_read": false,
+    "cases": [
+      {
+        "case": "next_check_three_hours_future",
+        "result": "POLL_INTERVAL",
+        "wait_seconds": 120
+      },
+      {
+        "case": "ordinary_poll_after_two_hours",
+        "result": "READY",
+        "wait_seconds": 0
+      },
+      {
+        "case": "authorization_wait_after_two_hours",
+        "result": "AUTHORIZATION_WAIT",
+        "wait_seconds": 180
+      },
+      {
+        "case": "Retry_After_7200_seconds_after_one_hour",
+        "result": "RATE_LIMIT_WAIT",
+        "wait_seconds": 3600
+      }
+    ],
+    "demonstrates_possible_behavior_not_actual_cause": true,
+    "filesystem_state_writes": false,
+    "synthetic_only": true
+  },
+  "recorded_at": "2026-11-19T04:42:12.363879+00:00",
+  "run": {
+    "attempt": 1,
+    "conclusion": null,
+    "created_at": "2026-11-19T02:41:40Z",
+    "event": "workflow_dispatch",
+    "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+    "id": 44446167880,
+    "status": "in_progress"
+  },
+  "safe_next_evidence": "Use existing authenticated job logs and sealed final/source control when the normal run makes them available; do not infer control or generation from step status and do not dispatch/cancel/reset/change flags.",
+  "schema": "RACE_AI_SUCCESSOR_LONG_ROUND_READONLY_DIAGNOSIS_V1",
+  "source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "source_file_sha256": {
+    ".github/actions/existing-model-round/action.yml": "418f7025999d0bc50c5e0b1e06972b69b07c9d8bb466ce029740cbdfb1ab518d",
+    ".github/workflows/boat-nationwide-ab-one-shot.yml": "ffef69435bee6e592aa95cf78ea8c37c84f3e38920ab91db938d794fc22cf608",
+    "race_ai/boat_pdca_github_handoff.py": "96a19672c0f2f886a8d1499548aa9287df459646edeebc52c9edbe8ad24fc85e",
+    "race_ai/boat_private_original_vault.py": "a6d0acdbf2daa78caa4e5c864aae2f6ad264bffd01e88b5f518ad54b1bc78ff1",
+    "race_ai/repeated_cycle.py": "f1d13d90f969b4d2fb312b1f46934f070210934632a0d9e09b7d49a46f8c698a",
+    "race_ai/source_retry_policy.py": "cce9c707ec0f8b6ef0c8f5a0ae02f8edba4d7c5c433cd48c216c434253999a9f",
+    "scripts/boat_private_original_vault.py": "046760b15fd3b690dbc2782aadc93b8953692bc99a45361162f48694aca6489c",
+    "scripts/github_existing_cycle.py": "921083bcefc91c8cf777e17412c42c0d06e0f754eb7a7650f9f5045181ecdffa"
+  },
+  "unknown_actual_values": {
+    "active_composite_internal_substep": null,
+    "new_forecast_counts": null,
+    "retention_or_git_timeout_cause": null,
+    "retry_at": null,
+    "sealed_control_completed_round": null,
+    "source_http_status": null,
+    "source_wait": null
+  }
+}

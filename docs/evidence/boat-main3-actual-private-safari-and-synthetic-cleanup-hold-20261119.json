@@ -1,0 +1,98 @@
+{
+  "schema": "RACE_AI_MAIN3_ACTUAL_PRIVATE_SAFARI_PASS_AND_SYNTHETIC_CLEANUP_HOLD_V1",
+  "private_proof": {
+    "run": 44460086148,
+    "job": 135344475665,
+    "timestamp": "2026-11-19T04:47:21.215137+00:00",
+    "status": "NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED",
+    "native_browser": {
+      "browserName": "Safari",
+      "browserVersion": "26.6",
+      "platformName": "macOS"
+    },
+    "pages_sha": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+    "read_only_source_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+    "saved_day": "2026-11-19",
+    "authenticated_generation": 477,
+    "authenticated_results": 18,
+    "authenticated_native_p1_groups": 9,
+    "browser_aes_verified": true,
+    "private_sessions_cleanup_verified": true,
+    "encrypted_current_v5": {
+      "status": "ENCRYPTED_CURRENT_V5_SAFARI_VERIFIED",
+      "transport": "LOOPBACK_IMMUTABLE_V5_CIPHERTEXT_REPLAY",
+      "current_v5_live_continuation_verified": true,
+      "current_day_verified": true,
+      "browser_aes_verified": true,
+      "snapshot_sha": "8374d58ecc8c0b303335a05fc3fd599ffeb34215",
+      "cipher_sha256": "86efcfddc1870db243198f02a3e16565575e40e4bb407438950930392e3cff06",
+      "authenticated_generation": 477,
+      "saved_day": "2026-11-19",
+      "authenticated_results": 18,
+      "authenticated_native_p1_groups": 9,
+      "same_current_model_original_comparisons": 2,
+      "ciphertext_files": 30,
+      "ciphertext_bytes": 239433121,
+      "plaintext_endpoint_reads": 0,
+      "outbound_browser_requests_permitted": 0,
+      "real_screenshots_or_traces_exported": 0,
+      "account_login_verified": false,
+      "physical_iphone_verified": false
+    },
+    "account_login_verified": false,
+    "physical_iphone_verified": false,
+    "all_eight_reference_screens_visually_verified": false,
+    "plaintext_published": false,
+    "forecast_or_result_mutation": false,
+    "whole_job_conclusion": "failure",
+    "synthetic_candidate_failure_reason": "SAFARI_SESSION_CLEANUP_FAILED"
+  },
+  "whole_job_failure": {
+    "run": 44460086148,
+    "job": 135344475665,
+    "conclusion": "failure",
+    "timings": [
+      {
+        "tests": 164,
+        "seconds": 57.416
+      }
+    ],
+    "status_rows": [
+      {
+        "timestamp": "2026-11-19T04:42:06.9083220Z",
+        "status": "BOAT_HARDENED_LIVE_PAGES_HTTP_MATCH"
+      },
+      {
+        "timestamp": "2026-11-19T04:47:21.3703430Z",
+        "status": "NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED",
+        "physical_iphone_verified": false
+      },
+      {
+        "timestamp": "2026-11-19T04:50:08.7799730Z",
+        "status": "NATIVE_SAFARI_ACCEPTANCE_HOLD",
+        "reason": "SAFARI_SESSION_CLEANUP_FAILED",
+        "checker_line": 1303,
+        "checker_function": "apple_driver",
+        "checker_callers": [
+          {
+            "function": "main",
+            "line": 1780
+          },
+          {
+            "function": "synthetic_visual_checks",
+            "line": 1570
+          },
+          {
+            "function": "apple_driver",
+            "line": 1303
+          }
+        ]
+      }
+    ]
+  },
+  "synthetic_artifacts_observed": 0,
+  "candidate_sha": "b55242230e93ec3975a5a49bf3dd5f46632ff794",
+  "synthetic_primary_error_may_be_masked_by_cleanup": true,
+  "underlying_cause_established": false,
+  "new_native_dispatch_by_existing_main_helper_only": true
+}

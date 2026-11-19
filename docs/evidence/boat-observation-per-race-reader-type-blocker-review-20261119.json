@@ -1,0 +1,120 @@
+{
+  "47MB_original_cipher_layout_is_not_authentication": true,
+  "actual_Actions_readback_still_required": true,
+  "actual_M3_observation": {
+    "cold_candidate_counts": null,
+    "cold_phase": "PRIVATE_ARCHIVE",
+    "cold_status": "HOLD_PRIVATE_RESEARCH_RETENTION",
+    "raw_samples_match_count": 2,
+    "registration": "VERIFIED_ORIGINAL_SERVER_WITNESS"
+  },
+  "actual_private_failure_cause": "UNCONFIRMED_WITHOUT_ACTIONS_OWNER_AUTHENTICATION",
+  "actual_storage_verified": false,
+  "additional_actual_zip_reads": 0,
+  "effects": {
+    "actual_artifact_fetches": 0,
+    "actual_owner_key_reads": 0,
+    "actual_private_AES_opens": 0,
+    "author_or_root_source_edits": 0,
+    "dispatches": 0,
+    "provider_requests": 0,
+    "remote_writes": 0,
+    "source_or_models_or_G8_changed": 0
+  },
+  "finding": {
+    "cause": "Python dictionary equality treats bool True and float 1.0 as equal to integer 1, and False as equal to integer 0",
+    "code": "AGGREGATE_SUMMARY_PRIMITIVE_TYPE_COERCION",
+    "line": 342,
+    "minimum_fix": "Keep the original producer summary/cipher/crypto unchanged; compare the complete decoded summary against existing _summary result with type-preserving canonical _wire, after tests-first regressions",
+    "new_acceptance_vs_parent": "Two-cell one-race summary count True or 1.0 rejected by immutable parent M3 and accepted by 705667; count False versus0 was an inherited hole",
+    "path": "scripts/boat_private_venue_retention_audit.py",
+    "predicate": "_json(archive.read(summary_entry), FILES['summary.json']) == expected",
+    "repro_is_fixed_SHA_guarded": true,
+    "repro_script": "check_summary_types.py",
+    "source_authenticated_two_cell_fixture": true,
+    "summary_type_challenges": {
+      "actual_artifact_reads": 0,
+      "actual_key_reads": 0,
+      "cases": [
+        {
+          "accepted_candidates": 2,
+          "actual_status": "ACCEPTED",
+          "expected_integer_count": 1,
+          "injected_type": "boolean_true",
+          "parent_M3_status": "SUMMARY_COVERAGE_REJECTED"
+        },
+        {
+          "accepted_candidates": 2,
+          "actual_status": "ACCEPTED",
+          "expected_integer_count": 1,
+          "injected_type": "float_one",
+          "parent_M3_status": "SUMMARY_COVERAGE_REJECTED"
+        },
+        {
+          "accepted_candidates": 2,
+          "actual_status": "ACCEPTED",
+          "expected_integer_count": 0,
+          "injected_type": "boolean_false",
+          "parent_M3_status": "ACCEPTED"
+        }
+      ],
+      "commit": "705667843f62bd608d4b809e4d328d8a0d1a3ca7",
+      "provider_requests": 0,
+      "remote_writes": 0,
+      "synthetic_AES_only": true
+    },
+    "test_scope_needed": [
+      "observation_count int1 to True or1.0 and int0 toFalse",
+      "encrypted_readback_verified True to integer1",
+      "exact unmodified summaries still accepted",
+      "all prior canonical snapshot/None/revision/scope and producer guards unchanged"
+    ]
+  },
+  "followup_ownership": "Root returned the minimal tests-first comparison change to the author. Reviewer edited no author/root source.",
+  "independent_reader_tests": {
+    "OS_socket_syscalls_denied": true,
+    "errors": 0,
+    "failures": 0,
+    "fixed_bytes_before_after_equal": true,
+    "green_tests_are_not_completion": true,
+    "log": "frozen-705667-reader-tests.log",
+    "seconds": 31.127,
+    "tests": 34,
+    "warnings_as_errors": true
+  },
+  "otherwise_verified_oracles": {
+    "actual_artifact_zip_reads": 0,
+    "actual_key_reads": 0,
+    "all_none_two_cells": "ACCEPTED_ZERO_OBSERVATION_COUNT",
+    "all_other_existing_functions_unchanged": 12,
+    "canonical_alias_snapshot": "AUTHENTICATED_PAYLOAD_ACCEPTED_BY_SOURCE_BUT_MIXED_FULL_SNAPSHOT_REJECTED",
+    "changed_existing_function_names": [
+      "_candidates",
+      "audit_private_venue_retention"
+    ],
+    "commit": "705667843f62bd608d4b809e4d328d8a0d1a3ca7",
+    "failure_code_all_exact_enum_values": 41,
+    "hostile_properties_strings_or_args_touched": 0,
+    "immutable_parent_same_race_two_cells": {
+      "new_candidate_count": 2,
+      "new_status": "ACCEPTED",
+      "old_status": "SUMMARY_COVERAGE_REJECTED",
+      "original_members_unchanged": true,
+      "source_summary_observation_count": 1
+    },
+    "integer_float_coercion": "AUTHENTICATED_PAYLOAD_ACCEPTED_BY_SOURCE_BUT_MIXED_FULL_SNAPSHOT_REJECTED",
+    "producer_canonical_alias_duplicate": "REJECTED_BEFORE_OUTPUT",
+    "provider_requests": 0,
+    "remote_writes": 0,
+    "synthetic_AES_only": true
+  },
+  "parent": "f4a42cda749e6d52f90610b519df5cd7c896fac5",
+  "reviewed_commit": "705667843f62bd608d4b809e4d328d8a0d1a3ca7",
+  "reviewed_sha256": {
+    "scripts/boat_private_venue_retention_audit.py": "0418d0830f8628d0ba61a6033dff1d0b9bd65f019918f335845c361f6f33976f",
+    "tests/test_boat_private_venue_retention_audit.py": "b0948f54c31503a2ea9429ae6e98feb7281a436c3391c40ff2a7022d113a4a80"
+  },
+  "reviewed_tree": "5fc1091ccccd35be308de4c227d07c43b9c78f1c",
+  "source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "status": "BLOCKER"
+}

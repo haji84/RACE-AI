@@ -1,0 +1,152 @@
+{
+  "actual_failure_cause": "UNCONFIRMED_WITHOUT_ACTIONS_OWNER_AUTHENTICATION",
+  "actual_private_retention_after_fix": {
+    "conflict_candidate_count": null,
+    "expected_candidate_count": null,
+    "missing_candidate_count": null,
+    "observed_remote_commit": null,
+    "verified_candidate_count": null
+  },
+  "approved_no_decryption_container_read": {
+    "aes_decryption_calls": 0,
+    "all_member_size_guards_match": true,
+    "artifact_id": 14488233127,
+    "cipher_zip_bytes": 47095317,
+    "crc_all_passed": true,
+    "crc_checked_zip_decoded_bytes": 62526184,
+    "directory_entries": 0,
+    "layout_file_set_count_not_authenticated_candidate_count": 56,
+    "layout_inventory_sha256": "b42d6d75f9d4d4a0ad9597b340a3eb96dfeed7a25197009358848de2854c0ead",
+    "learning_ciphertext_bytes_interpreted": false,
+    "member_count": 172,
+    "owner_key_reads": 0,
+    "provider_gets": 0,
+    "sha256": "e3a402325c4fe13ef1639f16d69b73c9094beb93d76a0c9fa00e97c6472e83e9",
+    "source_artifact_ids": [
+      14485274116,
+      14486133982,
+      14488126267,
+      14488461213
+    ],
+    "source_head_assumption_matches": true,
+    "summary_bodies_interpreted": false,
+    "zip_envelope_matches_current_guard": true
+  },
+  "ast": {
+    "added_functions": [
+      "_failure_code"
+    ],
+    "changed_existing_functions": [
+      "_candidates",
+      "audit_private_venue_retention"
+    ],
+    "unchanged_other_existing_functions": 15
+  },
+  "commit": "705667843f62bd608d4b809e4d328d8a0d1a3ca7",
+  "diagnostic": {
+    "exact_allowlist_count": 41,
+    "exception_chain_traversal": false,
+    "exception_formatting": false,
+    "field": "failure_code",
+    "primary_status_reason_or_counts_changed": false,
+    "success_value": null,
+    "unknown": "UNCLASSIFIED"
+  },
+  "dispatches": 0,
+  "files_sha256": {
+    "scripts/boat_private_venue_retention_audit.py": "0418d0830f8628d0ba61a6033dff1d0b9bd65f019918f335845c361f6f33976f",
+    "tests/test_boat_private_venue_retention_audit.py": "b0948f54c31503a2ea9429ae6e98feb7281a436c3391c40ff2a7022d113a4a80"
+  },
+  "fix": "PER_ORIGINAL_ARTIFACT_CANONICAL_RACE_FULL_OBSERVATION_EQUALITY_THEN_NON_NONE_UNIQUE_COUNT",
+  "frozen_main_contract_blob": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
+  "frozen_source_contract_blob": "be56af54f71d4c3a7d303823b056e4964150db49",
+  "github_pushes": 0,
+  "mainmatrix_module_count": 21,
+  "official_or_g8_claimed": false,
+  "original_ciphertext_changed": false,
+  "original_p1_order_preserved": true,
+  "original_summary_changed": false,
+  "os_socket_connections_denied": true,
+  "parent": "f4a42cda749e6d52f90610b519df5cd7c896fac5",
+  "plaintext_published": false,
+  "producer_reader_python_version_identity": "NOT_ESTABLISHED_FROM_AVAILABLE_SERVICE_EVIDENCE",
+  "production_promoted": false,
+  "public_fixture_case_scope": [
+    "SAME_RACE_TWO_CELLS_ONE_RESULT",
+    "PENDING_NON_NONE_OBSERVATION",
+    "DISTINCT_ORIGINAL_ARTIFACT_REVISIONS_KEPT_SEPARATE",
+    "PRODUCER_UNMATCHED_RESULT_REJECTED",
+    "PRODUCER_DUPLICATE_REVISION_REJECTED",
+    "AUTHENTICATED_CELL_REVISION_DISAGREEMENT_HOLD",
+    "AUTHENTICATED_SOME_CELLS_NONE_HOLD",
+    "ORIGINAL_AGGREGATE_COUNT_TAMPER_HOLD",
+    "ORIGINAL_FULL_SUMMARY_TAMPER_HOLD",
+    "FIXED_FAILURE_CODE_SAME_EXCEPTION",
+    "UNKNOWN_SECRET_TEXT_AND_HOSTILE_EXCEPTION_UNCLASSIFIED",
+    "ARCHIVE_FAILURE_NULL_COUNTS_PRESERVED"
+  ],
+  "real_owner_key_reads": 0,
+  "reproduced_defect": "PER_CELL_OBSERVATION_COUNT_OVERCOUNT_AND_FALSE_SUMMARY_ACCEPTANCE",
+  "schema": "RACE_AI_PRIVATE_VENUE_RETENTION_OBSERVATION_READER_FIX_V1",
+  "source_commit": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "source_crypto_scoring_or_models_changed": false,
+  "source_provider_gets": 0,
+  "source_related_module_count": 6,
+  "source_tracked_diff_files": 0,
+  "tests": {
+    "baseline": {
+      "actual_zip_reads": 0,
+      "errors": 0,
+      "external_network_attempts": 0,
+      "failures": 17,
+      "real_keys_read": 0,
+      "seconds": 13.361,
+      "skips": 0,
+      "tests": 11
+    },
+    "focused": {
+      "actual_zip_reads": 0,
+      "errors": 0,
+      "external_network_attempts": 0,
+      "failures": 0,
+      "real_keys_read": 0,
+      "seconds": 13.996,
+      "skips": 0,
+      "tests": 11
+    },
+    "main": {
+      "actual_zip_reads": 0,
+      "errors": 0,
+      "external_network_attempts": 0,
+      "failures": 0,
+      "real_keys_read": 0,
+      "seconds": 377.633,
+      "skips": 0,
+      "tests": 469
+    },
+    "raw": {
+      "actual_zip_reads": 0,
+      "errors": 0,
+      "external_network_attempts": 0,
+      "failures": 0,
+      "real_keys_read": 0,
+      "seconds": 28.161,
+      "skips": 0,
+      "tests": 7
+    },
+    "source": {
+      "actual_zip_reads": 0,
+      "errors": 0,
+      "external_network_attempts": 0,
+      "failures": 0,
+      "real_keys_read": 0,
+      "seconds": 72.317,
+      "skips": 0,
+      "tests": 94
+    }
+  },
+  "tracked_diff_files": 0,
+  "tree": "5fc1091ccccd35be308de4c227d07c43b9c78f1c",
+  "warnings_as_errors": true,
+  "workflow_or_gate_changed": false
+}

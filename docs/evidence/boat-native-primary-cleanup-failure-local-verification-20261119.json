@@ -1,0 +1,70 @@
+{
+  "WebDriver_only_close_changed": true,
+  "actual_key_reads": 0,
+  "actual_underlying_Mac_cause_known": false,
+  "all_other_readers_crypto_guards_main_capture_functions_and_source_pins_unchanged": true,
+  "base_commit": "f4a42cda749e6d52f90610b519df5cd7c896fac5",
+  "baseline_tests": {
+    "count": 164,
+    "seconds": 19.737,
+    "status": "PASS"
+  },
+  "changed_original_definitions": [
+    "failure_report",
+    "ui_diagnostic",
+    "WebDriver",
+    "apple_driver",
+    "synthetic_visual_checks"
+  ],
+  "compile": "PASS",
+  "diff_check": "PASS",
+  "extra_webdriver_RPCS": 0,
+  "final_commit": "f0832ee949baac9cf7584636658e31b72ad087bf",
+  "final_test_methods": 172,
+  "final_tests": {
+    "count": 172,
+    "seconds": 20.052,
+    "status": "PASS"
+  },
+  "independent_review": {
+    "all_fixed_with_genuine_RED_GREEN": true,
+    "deferred_findings": [],
+    "finding_count": 4,
+    "findings": [
+      "requested width labeled verified before confirmation",
+      "active DELETE exception labeled not_required",
+      "select_phase str subclass could be exported",
+      "synthetic error accessed an irrelevant private-seed getter"
+    ],
+    "rereview_requested": false
+  },
+  "local_real_Safari_launches": 0,
+  "native_fix_success_verified": false,
+  "official_provider_GETs": 0,
+  "old_test_bytes_preserved": true,
+  "old_test_methods": 164,
+  "red_stages": [
+    {
+      "assertion_failures": 20,
+      "errors": 0,
+      "new_methods": 5
+    },
+    {
+      "assertion_failures": 2,
+      "errors": 0,
+      "new_methods": 1
+    },
+    {
+      "assertion_failures": 5,
+      "errors": 0,
+      "review_methods": 3
+    }
+  ],
+  "remote_mutations": 0,
+  "schema": "RACE_AI_NATIVE_CLEANUP_DIAGNOSTIC_LOCAL_VERIFICATION_V1",
+  "session_retries": 0,
+  "source_blob": "62beb8c756c2bc3478e031676a8dfcfae059ad2b",
+  "synthetic_original_flow_equal_after_removing_context_labels": true,
+  "test_blob": "6ceacbfa8e26e02d2b0fa9fb6fd07f11e325d12b",
+  "timeout_changes": 0
+}
