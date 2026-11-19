@@ -34,6 +34,8 @@ _RIDER_FIELDS = frozenset(('syaban', 'sensyuRegistNo', 'sensyuName', 'huKen',
     'kyakusitu', 'kyuhan', 'prevKyuhan', 'heikinTokuten', 'backCnt', 'nigeCnt',
     'makuriCnt', 'sasiCnt', 'markCnt', 'syabanBgColorInfo', 'syabanCharColorInfo'))
 _NOTE_FIELDS = frozenset(('ketujyouTuikaHojyu', 'ketujyouTuikaHojyuColorInfo'))
+# Published table image/alt text is presentation, not a calibrated strength input.
+_PRESENTATION_FIELDS = frozenset(('imgTyosiName', 'imgTyosiPath'))
 
 
 class OfficialSPReceiptError(ValueError):
@@ -294,7 +296,9 @@ def parse_race_detail(raw_bytes, *, expected_day, expected_venue_code,
     riders, cars, identifiers = [], set(), set()
     statuses = {'': 'UNSPECIFIED', '補充': 'SUPPLEMENTAL', '追加': 'ADDED', '欠場': 'WITHDRAWN'}
     for row in source_rows:
-        _need(type(row) is dict and _RIDER_FIELDS <= set(row) <= _RIDER_FIELDS | _NOTE_FIELDS
+        _need(type(row) is dict
+              and _RIDER_FIELDS <= set(row) <= _RIDER_FIELDS | _NOTE_FIELDS | _PRESENTATION_FIELDS
+              and (not (_PRESENTATION_FIELDS & set(row)) or _PRESENTATION_FIELDS <= set(row))
               and all(type(value) is str and len(value) <= 160 for value in row.values()), 'ROSTER_ROW_SCHEMA')
         _need(re.fullmatch(r'[1-9]', row['syaban']) is not None and
               re.fullmatch(r'[0-9]{6}', row['sensyuRegistNo']) is not None and
