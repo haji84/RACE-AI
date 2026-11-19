@@ -396,6 +396,10 @@ class OfficialSPBrowserTests(unittest.TestCase):
             self.assertFalse(result['model_input_admission'])
             self.assertEqual(result['new_forecasts'], 0)
             self.assertEqual(result['winticket_requests'], 0)
+            self.assertIs(type(result.get('blocked_before_send')), int)
+            self.assertGreaterEqual(result['blocked_before_send'], 0)
+            self.assertEqual(set(result['provider_denial_http_status_counts']),
+                             {'HTTP_403', 'HTTP_429', 'UNKNOWN'})
             if hasattr(browser, 'context'):
                 self.assertTrue(browser.context.closed)
                 self.assertTrue(browser.closed)
@@ -414,6 +418,9 @@ class OfficialSPBrowserTests(unittest.TestCase):
             self.assertEqual((out['future_detail_count'], out['expired_detail_count']), (4, 2))
             self.assertEqual(out['unknown_transmitted_status_count'], 0)
             self.assertFalse(out['provider_denied'])
+            self.assertEqual(out['blocked_before_send'], 0)
+            self.assertEqual(out['provider_denial_http_status_counts'],
+                             {'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 0})
             self.assertEqual(out['navigation_request_count'], len(b.sent))
             self.assertEqual(out['http_status_counts'], {'200': len(b.sent)})
             self.assertGreaterEqual(b.date_clicks, 6)
@@ -442,7 +449,10 @@ class OfficialSPBrowserTests(unittest.TestCase):
             with self.subTest(status=status), self.collect(b) as (out, _, b):
                 self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_DENIED')
                 self.assertTrue(out['provider_denied'])
-                self.assertEqual(out['provider_denial_http_status_counts'], {str(status): 1})
+                denials = {'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 0}
+                denials['HTTP_' + str(status) if status in (403, 429) else 'UNKNOWN'] = 1
+                self.assertEqual(out['provider_denial_http_status_counts'], denials)
+                self.assertEqual(out['http_status_counts'], {'200': 1, str(status): 1})
                 self.assertEqual((out['navigation_request_count'], out['resource_request_count']), (1, 1))
                 self.assertEqual(b.list_visits, 0)
                 self.assertIsNone(out['day_race_count'])
@@ -455,6 +465,9 @@ class OfficialSPBrowserTests(unittest.TestCase):
             self.assertEqual(out['unknown_transmitted_status_count'], 1)
             self.assertEqual(out['http_status_counts'], {})
             self.assertFalse(out['provider_denied'])
+            self.assertEqual(out['blocked_before_send'], 0)
+            self.assertEqual(out['provider_denial_http_status_counts'],
+                             {'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 0})
 
     def test_blocked_before_send_mutation_is_not_a_transmitted_http_request(self):
         b = Browser(); b.resource = ('/sp/json', 'POST', 200)
@@ -464,7 +477,8 @@ class OfficialSPBrowserTests(unittest.TestCase):
             self.assertEqual(out['resource_request_count'], 0)
             self.assertEqual(out['http_status_counts'], {'200': 1})
             self.assertEqual(out['unknown_transmitted_status_count'], 0)
-            self.assertGreater(b.blocked, 0)
+            self.assertEqual(out['blocked_before_send'], 1)
+            self.assertEqual(b.blocked, 1)
 
     def test_external_host_redirect_and_challenge_stop(self):
         for mode in ('external', 'redirect', 'challenge'):
@@ -588,6 +602,11 @@ class OfficialSPBrowserTests(unittest.TestCase):
             self.assertGreater(out['resource_request_count'], 160)
             self.assertEqual(out['details_verified'], 3)
 
+    def test_existing_owner_budget_upper_bound_reaches_the_browser(self):
+        with self.collect(Browser(venues=(98,)), budget_seconds=600) as (out, _, _):
+            self.assertEqual(out['state'], 'OFFICIAL_SP_PARTIAL_INPUT_CAPTURED')
+            self.assertEqual(out['details_verified'], 3)
+
     def test_invalid_raw_detail_preserves_list_prefix_without_inventing_records(self):
         b = Browser(venues=(98,)); b.details[3] = b'<html><body>Not a race</body></html>'
         with self.collect(b) as (out, _, _):
@@ -615,6 +634,9 @@ class OfficialSPBrowserTests(unittest.TestCase):
                 out = api.collect_official_sp(inbox, clock=lambda: AT,
                     browser_factory=lambda: calls.append(True))
                 self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_LOCAL_RUNTIME')
+                self.assertEqual(out.get('blocked_before_send'), 0)
+                self.assertEqual(out['provider_denial_http_status_counts'],
+                                 {'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 0})
                 self.assertEqual(calls, [])
 
 

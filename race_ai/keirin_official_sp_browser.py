@@ -131,8 +131,9 @@ class _Collector:
             day_race_count=None, race_lists_verified=0, details_verified=0,
             riders_verified=0, future_detail_count=0, expired_detail_count=0,
             http_status_counts={}, navigation_request_count=0, resource_request_count=0,
-            unknown_transmitted_status_count=0, provider_denied=False,
-            provider_denial_http_status_counts={}, budget_exhausted=False,
+            unknown_transmitted_status_count=0, blocked_before_send=0, provider_denied=False,
+            provider_denial_http_status_counts={'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 0},
+            budget_exhausted=False,
             private_source_files_saved=0, source_sha256=None,
             source_admission=False, model_input_admission=False,
             new_forecasts=0, winticket_requests=0)
@@ -205,6 +206,7 @@ class _Collector:
         except Exception:
             if self.state is None:
                 self.stop(_LAYOUT)
+            self.out['blocked_before_send'] += 1
             try:
                 route.abort()
             except Exception:
@@ -229,7 +231,7 @@ class _Collector:
         if status in _DENIALS:
             self.out['provider_denied'] = True
             denied = self.out['provider_denial_http_status_counts']
-            denied[key] = denied.get(key, 0) + 1
+            denied['HTTP_' + key if status in (403, 429) else 'UNKNOWN'] += 1
             self.stop(_DENIED)
         elif 300 <= status < 400:
             self.stop(_LAYOUT)
@@ -564,13 +566,14 @@ def collect_official_sp(inbox, *, clock=None, monotonic=None, budget_seconds=240
         race_lists_verified=0, details_verified=0, riders_verified=0,
         future_detail_count=0, expired_detail_count=0, http_status_counts={},
         navigation_request_count=0, resource_request_count=0,
-        unknown_transmitted_status_count=0, provider_denied=False,
-        provider_denial_http_status_counts={}, budget_exhausted=False,
+        unknown_transmitted_status_count=0, blocked_before_send=0, provider_denied=False,
+        provider_denial_http_status_counts={'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 0},
+        budget_exhausted=False,
         private_source_files_saved=0, source_sha256=None, source_admission=False,
         model_input_admission=False, new_forecasts=0, winticket_requests=0)
     try:
         _need(type(budget_seconds) in (int, float) and isfinite(budget_seconds)
-              and 0 < budget_seconds <= 240)
+              and 1 <= budget_seconds <= 600)
         private = _Inbox(inbox)
         collector = _Collector(private, clock or (lambda: datetime.now(timezone.utc)),
                                monotonic or time.monotonic, budget_seconds)
