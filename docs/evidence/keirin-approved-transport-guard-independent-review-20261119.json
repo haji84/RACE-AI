@@ -1,0 +1,91 @@
+{
+  "adversarial_cli_oracle": {
+    "active_cli_exit": 2,
+    "active_cli_state": "HOLD_OWNER_APPROVED_SOURCE_HOST_REQUIRED",
+    "active_official_json_fixture_calls": 2,
+    "approved_public_fixture_cases": 24,
+    "author_or_root_edits": 0,
+    "existing_timeout_seconds": 12,
+    "network_dns_attempts": 0,
+    "no_credentials_added": true,
+    "primary_races_persisted_in_mock": 2,
+    "real_keys_read": 0,
+    "real_provider_gets": 0,
+    "real_schedule_and_registration_called": true,
+    "rejected_before_request_and_open": true,
+    "rejected_url_or_type_cases": 81,
+    "remote_mutations": 0,
+    "request_or_open_calls_after_primary_success": 0,
+    "schema": "RACE_AI_KEIRIN_APPROVED_TRANSPORT_ADVERSARIAL_CLI_ORACLE_V1"
+  },
+  "api_requests": 0,
+  "author_commit": "c89becaacd31c6b7ed292e8b420f6c48202ccb02",
+  "author_or_root_edits": 0,
+  "base": "9520104c65c88b3c9c92685ba865d21ad577ced8",
+  "blocking_findings": [],
+  "findings": [
+    "Only the existing fetch_once preflight changed: exactly4 approved HTTPS hosts, absent username/password, Noneor443 port; invalid types and URL/port parse errors become a fixed safe code.",
+    "Banned/deceptive hosts, nonHTTPS, credentials including emptyuserinfo, malformed ports and hostile values are rejected before Request/build_opener.",
+    "Real CLI capture was exercised with injected official JSON and clock: schedule parsing and registration are genuine; secondary transport remains0 and public output is only HOLD_OWNER_APPROVED_SOURCE_HOST_REQUIRED.",
+    "NoRedirect and the complete original transport/parser/normalizer/capture code remain unchanged after removing the admission statements; saved historical parsers are preserved.",
+    "No retries, credential headers, selection flags, paperoriginal format, source permissions, secrets or workflow changes."
+  ],
+  "provider_gets": 0,
+  "real_keys_read": 0,
+  "remote_mutations": 0,
+  "root_integration_commit": "054190f928b5645ae1b1087452ae8f9edd15450c",
+  "root_two_file_hashes_match": true,
+  "schema": "RACE_AI_KEIRIN_APPROVED_TRANSPORT_INDEPENDENT_REVIEW_V1",
+  "scope_limit": "This is a transport-boundary fix. It does not prove actual provider acquisition, live complete coverage, or repair the still-blocked secondary registration source.",
+  "static": {
+    "all_other_tracked_files_unchanged": true,
+    "approved_host_count": 4,
+    "author_commit": "c89becaacd31c6b7ed292e8b420f6c48202ccb02",
+    "base": "9520104c65c88b3c9c92685ba865d21ad577ced8",
+    "changed_runtime_defs": [
+      "fetch_once"
+    ],
+    "new_test_methods": 6,
+    "old_test_methods_preserved": 10,
+    "original_fetch_body_ast_unchanged_after_removing_three_admission_statements": true,
+    "root_integrated_runtime_hash_matches": true,
+    "schema": "RACE_AI_KEIRIN_APPROVED_TRANSPORT_STATIC_REVIEW_V1",
+    "unchanged_runtime_defs": [
+      "SourceCaptureError",
+      "need",
+      "NoRedirect",
+      "_allow_url",
+      "private_dir",
+      "manifest_check",
+      "_write_once",
+      "capture_cycle",
+      "main"
+    ]
+  },
+  "tests": {
+    "after": {
+      "scripts/keirin_capture_public_two_sources.py": "7625a1fdb4eed3f28cbedbdb7dad2031ecd53c9c65cdef63f9972ff3513db6fb",
+      "tests/test_keirin_capture_public_two_sources.py": "b4ebaf183699f73dc1f489ef69c5687f69369ed017ee97540a2ff8e59d9f8805"
+    },
+    "author_commit": "c89becaacd31c6b7ed292e8b420f6c48202ccb02",
+    "author_or_root_edits": 0,
+    "before": {
+      "scripts/keirin_capture_public_two_sources.py": "7625a1fdb4eed3f28cbedbdb7dad2031ecd53c9c65cdef63f9972ff3513db6fb",
+      "tests/test_keirin_capture_public_two_sources.py": "b4ebaf183699f73dc1f489ef69c5687f69369ed017ee97540a2ff8e59d9f8805"
+    },
+    "child_umask": "022",
+    "errors": 0,
+    "failures": 0,
+    "modules": 35,
+    "network_dns_attempts": 0,
+    "real_keys_read": 0,
+    "real_provider_requests": 0,
+    "remote_mutations": 0,
+    "schema": "RACE_AI_KEIRIN_APPROVED_TRANSPORT_INDEPENDENT_TESTS_V1",
+    "seconds": 46.681,
+    "skips": 0,
+    "stable": true,
+    "tests": 381
+  },
+  "verdict": "CLEAR"
+}

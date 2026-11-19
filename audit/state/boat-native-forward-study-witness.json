@@ -1,6 +1,17 @@
 {
+  "candidate_bindings_sha256": "ebfa1b3f9934fb4323f94c451e83347fc9a5d90064354c0dea53444fa7f360a8",
+  "main_commit": "ed336daae7b78ec4c8a8b90cebfaaf713ff70260",
+  "main_run_attempt": 1,
+  "main_run_id": 44449743664,
   "nonce": "548ad3e11a4fab03f18dc74c0a11992be42dd9b0abb2e8fae7521bdc993af08d",
+  "report_artifact_created_at": "2026-11-19T03:15:29Z",
+  "report_artifact_digest": "sha256:1e3822af3cbb3c82ed6d70247d44331f08ab34fe0f008c66645cca0fa35dd3ca",
+  "report_artifact_id": 14495645723,
+  "report_artifact_name": "boat-national-p1-model-coverage-44449743664",
+  "run_created_at": "2026-11-19T03:12:02Z",
   "schema": "RACE_AI_NATIVE_FORWARD_STUDY_WITNESS_BINDING_V1",
+  "spec_git_blob_sha": "2bec6033a9a8a534ddcb6fa18a98038245762938",
   "spec_sha256": "e66a46f80d4d758b2f0407cd5bbd79a32c9fa8f9d8c10e177cd9811282084a12",
-  "status": "UNBOUND"
+  "status": "BOUND",
+  "workflow_id": 418875114
 }

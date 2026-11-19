@@ -961,12 +961,12 @@ def candidate_fixture():
 
 class CandidateSyntheticTests(unittest.TestCase):
     def test_candidate_pin_is_exact_reviewed_ui_not_a_runtime_or_model_pin(self):
-        self.assertEqual(getattr(S, 'CANDIDATE_SHA', None), 'f723f0e8b94a87a6d6a7b414b1bb30954541925e')
-        self.assertEqual(S.CANDIDATE_WEB_TREE, 'd905215e2f886b0bcc4f2e58323ceee465b03c38')
+        self.assertEqual(getattr(S, 'CANDIDATE_SHA', None), 'b55242230e93ec3975a5a49bf3dd5f46632ff794')
+        self.assertEqual(S.CANDIDATE_WEB_TREE, '5cbbfe05a2971485b5c32a84a8ddf7b2539604cc')
         self.assertEqual(S.CANDIDATE_ASSET_SHA256, {
             'index.html': 'ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2',
             'app.js': 'c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5',
-            'style.css': '06414329229c6c7919b67408ca567c859b064d7f2b0d7abab7ddc203ab407e82'})
+            'style.css': 'cf67f3e93763bb816be5c2a4aeeddbd35b5a6e8b50c9d3e4a3331e1e7e599d08'})
         self.assertEqual(S.PAGES_SHA, 'f60308ef7443ca13b5ca23c4896e15ffc67b0427')
         self.assertEqual(S.SOURCE_SHA, 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3')
 
@@ -4014,6 +4014,157 @@ process.stdout.write(JSON.stringify({before,reads,frames:tick+1,ready:reads.at(-
         self.assertIsNone(driver.arm)
         self.assertFalse(driver.waited)
         self.assertEqual(driver.screenshot_calls,1)
+
+
+class NativeSessionStartupDiagnosticTests(unittest.TestCase):
+    def expected(self, phase='new_session', **observed):
+        result = dict(phase=phase, tcp_connected=None, process_running_before_connect=None,
+            process_running_after_failure=None, process_exit_code_after_failure=None,
+            response_message_state=None, response_session_id_field_present=None,
+            response_capabilities_field_present=None)
+        result.update(observed)
+        return result
+
+    @contextmanager
+    def fake_apple(self, process, driver, *, connect_error=None, start_error=None):
+        real_connect = S.socket.create_connection
+        def connect_socket(address, *args, **kwargs):
+            if connect_error is not None:
+                raise connect_error
+            base = driver.base
+            if type(base) is str and address == ('127.0.0.1', S.urllib.parse.urlsplit(base).port):
+                return real_connect(address, *args, **kwargs)
+            return unittest.mock.MagicMock()
+        with patch.object(S.platform, 'system', return_value='Darwin'), \
+                patch.object(S.os.path, 'isfile', return_value=True), \
+                patch.object(S.os, 'access', return_value=True), \
+                patch.object(S.subprocess, 'Popen', return_value=process, side_effect=start_error), \
+                patch.object(S, 'WebDriver', return_value=driver), \
+                patch.object(S.socket, 'create_connection', side_effect=connect_socket) as connect, \
+                patch.object(S.time, 'sleep'):
+            yield connect
+
+    def test_session_error_projects_only_response_shape_and_posts_once(self):
+        secret = 'fixture-private-startup-message https://private.invalid/#saved=private-key'
+        for message, state in ((None, 'absent'), ('', 'empty_string'), (secret, 'nonempty_string'),
+                               ({'private': secret}, 'non_string')):
+            with self.subTest(state=state):
+                value = {'error': 'session not created', 'sessionId': secret,
+                         'capabilities': {'private': secret}, 'stacktrace': secret}
+                if message is not None:
+                    value['message'] = message
+                with driver_endpoint({}, session_reply={'value': value}, session_status=500) as (port, requests):
+                    driver = S.WebDriver(port)
+                    with self.assertRaises(S.DriverHold) as caught:
+                        driver.new_session()
+                    self.assertIsNone(driver.session)
+                    self.assertTrue(driver.close())
+                report = S.failure_report(caught.exception)
+                self.assertEqual(report.get('webdriver_startup'), self.expected(
+                    response_message_state=state, response_session_id_field_present=True,
+                    response_capabilities_field_present=True))
+                self.assertEqual(report['status'], 'NATIVE_SAFARI_ACCEPTANCE_HOLD')
+                self.assertEqual(report['reason'], 'SAFARI_WEBDRIVER_FAILED')
+                self.assertEqual(report['webdriver_error_code'], 'session not created')
+                self.assertEqual([path for path, _ in requests], ['/session'])
+                self.assertNotIn('private', json.dumps(report))
+        malformed = S.driver_error_response('new_session', 500, b'{invalid-private')
+        self.assertEqual(S.failure_report(malformed).get('webdriver_startup'), self.expected())
+
+    def test_failed_session_observes_live_or_exited_process_without_retry(self):
+        real_driver = S.WebDriver
+        for returncode in (None, -9):
+            with self.subTest(returncode=returncode):
+                process = unittest.mock.Mock()
+                process.poll.side_effect = [None, returncode, returncode]
+                value = {'error': 'session not created', 'message': 'fixture-private-message'}
+                with driver_endpoint({}, session_reply={'value': value}, session_status=500) as (port, requests):
+                    driver = real_driver(port)
+                    with self.fake_apple(process, driver) as connect:
+                        with self.assertRaises(S.DriverHold) as caught:
+                            with S.apple_driver():
+                                self.fail('a failed session must never enter UI checks')
+                    report = S.failure_report(caught.exception)
+                self.assertEqual(report.get('webdriver_startup'), self.expected(tcp_connected=True,
+                    process_running_before_connect=True, process_running_after_failure=returncode is None,
+                    process_exit_code_after_failure=returncode, response_message_state='nonempty_string',
+                    response_session_id_field_present=False, response_capabilities_field_present=False))
+                self.assertEqual(report['webdriver_http_status'], 500)
+                self.assertEqual([path for path, _ in requests], ['/session'])
+                self.assertEqual(connect.call_count, 2)  # Readiness plus the single real HTTP POST.
+                self.assertEqual(process.poll.call_count, 3)
+                self.assertEqual(process.terminate.call_count, int(returncode is None))
+                process.wait.assert_called_once_with(timeout=5)
+
+    def test_launch_exit_and_tcp_timeout_keep_distinct_observed_boundaries(self):
+        for stage in ('launch', 'exit', 'tcp_timeout'):
+            with self.subTest(stage=stage):
+                process, driver = unittest.mock.Mock(), unittest.mock.Mock()
+                driver.close.return_value = True
+                process.poll.return_value = 7 if stage == 'exit' else None
+                with self.fake_apple(process, driver,
+                        connect_error=OSError('private-connect') if stage == 'tcp_timeout' else None,
+                        start_error=OSError('private-start') if stage == 'launch' else None) as connect:
+                    with self.assertRaises(S.DriverHold) as caught:
+                        with S.apple_driver():
+                            self.fail('startup failure must never enter UI checks')
+                report = S.failure_report(caught.exception)
+                expected = self.expected('process_launch' if stage == 'launch' else 'tcp_connect')
+                if stage != 'launch':
+                    expected.update(tcp_connected=False if stage == 'tcp_timeout' else None,
+                        process_running_before_connect=stage == 'tcp_timeout',
+                        process_running_after_failure=stage == 'tcp_timeout',
+                        process_exit_code_after_failure=None if stage == 'tcp_timeout' else 7)
+                    driver.close.assert_called_once()
+                self.assertEqual(report.get('webdriver_startup'), expected)
+                self.assertEqual(report['reason'], 'SAFARIDRIVER_UNAVAILABLE')
+                self.assertEqual(connect.call_count, 100 if stage == 'tcp_timeout' else 0)
+                driver.new_session.assert_not_called()
+                self.assertNotIn('private', json.dumps(report))
+
+    def test_unknown_or_spoofed_startup_facts_stay_unknown_without_masking_failure(self):
+        error = S.DriverHold(operation='new_session', http_status=500, w3c_error='session not created')
+        error.startup = {'phase': 'private-key', 'tcp_connected': 1,
+            'process_running_before_connect': 'private-key', 'process_running_after_failure': [],
+            'process_exit_code_after_failure': True, 'response_message_state': 'private-key',
+            'response_session_id_field_present': 1, 'response_capabilities_field_present': 'private-key',
+            'private_extra': 'private-key'}
+        self.assertEqual(S.failure_report(error).get('webdriver_startup'), self.expected())
+        error.startup = 'private-key'
+        self.assertEqual(S.failure_report(error).get('webdriver_startup'), self.expected())
+        error.operation = 'execute_script'
+        self.assertNotIn('webdriver_startup', S.failure_report(error))
+        process = unittest.mock.Mock()
+        process.poll.side_effect = [None, RuntimeError('private-poll'), None]
+        driver = unittest.mock.Mock()
+        driver.new_session.side_effect = S.DriverHold(operation='new_session', http_status=500,
+                                                      w3c_error='session not created')
+        driver.close.return_value = True
+        with self.fake_apple(process, driver):
+            with self.assertRaises(S.DriverHold) as caught:
+                with S.apple_driver():
+                    self.fail('the failed session cannot run UI checks')
+        report = S.failure_report(caught.exception)
+        self.assertEqual(report.get('webdriver_startup'), self.expected(tcp_connected=True,
+            process_running_before_connect=True))
+        self.assertEqual(report['webdriver_error_code'], 'session not created')
+        self.assertNotIn('private', json.dumps(report))
+        driver.new_session.assert_called_once_with()
+        driver.close.assert_called_once_with()
+
+    def test_started_session_ui_failure_gets_no_startup_observation(self):
+        process, driver = unittest.mock.Mock(), unittest.mock.Mock()
+        process.poll.return_value = None
+        driver.new_session.return_value = {'browserName': 'Safari'}
+        driver.close.return_value = True
+        with self.fake_apple(process, driver):
+            with self.assertRaises(S.DriverHold) as caught:
+                with S.apple_driver():
+                    raise S.DriverHold(operation='execute_script', http_status=500, w3c_error='unknown error')
+        self.assertNotIn('webdriver_startup', S.failure_report(caught.exception))
+        self.assertEqual(process.poll.call_count, 2)
+        driver.new_session.assert_called_once_with()
+        driver.close.assert_called_once_with()
 
 
 if __name__ == '__main__':

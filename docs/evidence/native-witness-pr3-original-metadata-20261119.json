@@ -1,0 +1,13 @@
+{
+  "observed_at": "2026-11-19T03:18:13.129052+00:00",
+  "number": 3,
+  "state": "open",
+  "draft": true,
+  "title": "feat: v0.9 前節の乗り手補正とモーター履歴・整備時系列",
+  "body": "## 実装\n- モーター割当周期と節IDを区別して前節の乗り手を識別。単なる直近レースを前節と誤認しない。\n- 選手自身の事前・モーター抜き2連対基準確率と実着順の差を試験的に集計。新人というラベルのみで固定減点しない。\n- 取得/公開時刻・出典hash付きSQLite履歴、整備後の別状態集計、事後情報漏洩防止。\n- CLI motor-observation / motor-service / motor-report と合成データの単体テスト。\n- 1マーク、2・3着の展開、水面傾向、展示ST乖離、モーター/整備/コメント分析の追加要求を設計書へ明記。\n\n## 誤解を避ける点\n- 公式B/Kとモーター実物原本は未照合。手入力JSONの出典は独立認証されていない。\n- モーター抜きの事前基準モデルそのものはまだ実装・精度検証されていない。計算された残差は校正済み確率ではない。\n- 45日半減期・疑似標本10相当は例示用仮設定。適切さは実レースのホールドアウトで確認する。\n- 同じ選手が前節に繰り返し出走した場合の相関調整は未実装。原本投入・動画解析・予測精度改善は未完了。\n- mainへの統合なし。独立レビューと正確なheadのCI、実物原本E2Eが必要。\n\n## 開発確認\npython -m unittest discover -s tests -v\n\n依存PR: #2 (v0.8), #1 (v0.7設計)",
+  "base_ref": "feat/v08-offline-st-waku10-exhibition-entry",
+  "base_sha": "e72339cef296d0b379a52035dfccc50f6a5af3df",
+  "head_ref": "feat/v09-motor-rider-adjustment",
+  "head_sha": "c454b9298818695e72e3e3e41ff9e3377f9747ba",
+  "html_url": "https://github.com/haji84/RACE-AI/pull/3"
+}

@@ -1,0 +1,65 @@
+{
+  "actual_bound_registration_requires_main_Actions": true,
+  "actual_retention_still_unverified": true,
+  "all_11_matrix_heredocs_compile": true,
+  "base_main": "ed336daae7b78ec4c8a8b90cebfaaf713ff70260",
+  "existing_workflow_jobs_steps_inputs_permissions_timeouts_and_event_types_unchanged": true,
+  "frozen_blobs": {
+    "audit/state/boat-native-forward-study.json": "2bec6033a9a8a534ddcb6fa18a98038245762938",
+    "scripts/boat_bootstrap_recovery_adapter.py": "24a2e60816404d0af71f0a7ae543478b3f3442d5",
+    "scripts/boat_failed_recovery_contract.py": "c1621c4184b1841f07eddfbccdc28c1b367a15a8"
+  },
+  "native": {
+    "errors": 0,
+    "external_attempts": 0,
+    "failures": 0,
+    "modules": [
+      "tests.test_boat_native_safari_acceptance",
+      "tests.test_boat_native_safari_dispatch"
+    ],
+    "seconds": 18.711,
+    "skips": 0,
+    "tests": 202
+  },
+  "native_only_loopback_network_allowed": true,
+  "os_socket_prohibition_for_matrix_and_raw": true,
+  "physical_iphone_accepted": false,
+  "production_weights_changed": false,
+  "recorded_at": "2026-11-19T03:48:05.648348+00:00",
+  "safari_cause_fixed": false,
+  "schema": "RACE_AI_PR3_WITNESS_COLD_READBACK_NATIVE_INTEGRATION_V1",
+  "source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "source_dispatched_directly": false,
+  "tested_code_commit": "8dd0052e",
+  "tests": {
+    "a74_raw": {
+      "errors": 0,
+      "failures": 0,
+      "seconds": 24.336,
+      "sha256": "7fe6ee058c4d33c35b613af26a45232c0c1c291d392ae630a1926256ac2bf050",
+      "tests": 7
+    },
+    "hook_green": {
+      "errors": 0,
+      "failures": 0,
+      "seconds": 2.05,
+      "sha256": "b658a04a770e33e6264e564d5e001dce4cdb5dfeee44d88afe617f8c4270e44c",
+      "tests": 2
+    },
+    "hook_red": {
+      "errors": 0,
+      "failures": 2,
+      "seconds": 2.08,
+      "sha256": "d3fc2b732613c7ab4974700973e7d41cfde091afba14d2069bc85029e92eddb3",
+      "tests": 2
+    },
+    "matrix": {
+      "errors": 0,
+      "failures": 0,
+      "seconds": 360.491,
+      "sha256": "a2818ff907495ed3582e349cf630fde7f74622a65f328f7962eb1f4736c85455",
+      "tests": 457
+    }
+  },
+  "ui_published": false
+}

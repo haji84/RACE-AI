@@ -1,0 +1,52 @@
+{
+  "calendar_facts": {
+    "explicit_venue_headers": 42,
+    "forecasts": 0,
+    "full_347_437_verified": false,
+    "individual_race_count": null,
+    "meeting_intervals": 73,
+    "new_pre_race_inputs": 0,
+    "official_cutoffs_verified": false,
+    "real_starter_rosters_verified": false,
+    "requested_day_meeting_candidates": 8,
+    "requested_day_venue_candidates": 8
+  },
+  "navigation_proof": {
+    "calendar_reference_sha256": "d1f39ab490c2dba1b4611ab61acb36a7b3c7e921eeb89f86118be601127dedfb",
+    "form_builder_sha256": "1a0965b5dae8290a5c50b1c94f0f44f92229583f259d2bd97bceae3e142e5d0d",
+    "html_sha256": "ba4fba46da2f2d98812fe3aca09ac238cb73055c20460d9a24f2818556c59546",
+    "javascript_executed": false,
+    "method": "POST",
+    "opaque_value_decoded": false,
+    "opaque_value_used_unchanged": true,
+    "page_script_sha256": "9fbcd1e83fe90d245b16a28474d1c3770c4de74097be2c63648e68c1a8b5547c",
+    "request_body_bytes": 60,
+    "request_body_sha256": "af8273f03354a9514e9a71375b993e0e04d092a7d94ed14fe36ed48d9e64cea8"
+  },
+  "new_main_official_json_route_not_activated": true,
+  "non_count_strings_and_private_paths_omitted": true,
+  "normal_navigation_read": {
+    "additional_provider_requests_after_stop": 0,
+    "attempts": 1,
+    "body_not_saved_reason": "HTTP_ERROR_CAPTURE_PATH_DID_NOT_READ_OR_SAVE_BODY",
+    "fetch_started_at": "2026-11-19T03:51:53.734933+00:00",
+    "http_status": 500,
+    "individual_race_or_cutoff_facts_obtained": false,
+    "received_at": "2026-11-19T03:51:54.174442+00:00",
+    "redirects_followed": 0,
+    "response_body_saved": false,
+    "response_body_sha256": null,
+    "retries": 0,
+    "state": "HTTP_NON_200_STOP"
+  },
+  "private_receipt_sha256": "81faf60273d63b3d7efb61d888e74eb1a95d99c1ca21c1a4176bfe6e5e42c89e",
+  "provider_403_resolved": false,
+  "provider_requests_this_calendar_navigation_task": {
+    "GET": 3,
+    "POST": 1,
+    "cookie_auth_proxy_or_ua_workarounds": 0,
+    "login_bet_or_model_operations": 0,
+    "winticket": 0
+  },
+  "schema": "RACE_AI_APPROVED_KEIRIN_CALENDAR_NORMAL_NAVIGATION_SAFE_COUNTS_V1"
+}

@@ -1,0 +1,75 @@
+{
+  "actual_four_sport_all_race_cutoff_proven": false,
+  "apply_instruction": "git apply --unidiff-zero; actual code is not activated by archiving these patches",
+  "keirin_403_resolved": false,
+  "originals_rewritten": false,
+  "patches": [
+    {
+      "applied_to_runtime": false,
+      "apply_check_against_actual_base_passed": true,
+      "base": "ed336daae7b78ec4c8a8b90cebfaaf713ff70260",
+      "exact_base_cached_index_check_passed": true,
+      "files": [
+        "race_ai/keirin_official_schedule.py",
+        "tests/test_keirin_official_schedule.py"
+      ],
+      "independent_review_file": "docs/evidence/keirin-official-calendar-reviewed-local-20261119-independent-review.json",
+      "name": "keirin-official-calendar-reviewed-local-20261119",
+      "patch_bytes": 24330,
+      "patch_sha256": "f20f45f601c604ed5368198e4944e34d90847d1552bd002275ef211e2f4414df",
+      "reviewed_local_commit": "c0feb1becb8ff70834b87d9a3f901b5c954bccc5",
+      "sourceS_changed": false,
+      "study_changed": false
+    },
+    {
+      "applied_to_runtime": false,
+      "apply_check_against_actual_base_passed": true,
+      "base": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+      "exact_base_cached_index_check_passed": true,
+      "files": [
+        "race_ai/existing_model_coverage.py",
+        "tests/test_existing_model_coverage.py"
+      ],
+      "independent_review_file": "docs/evidence/four-sport-current-coverage-reviewed-local-20261119-independent-review.json",
+      "name": "four-sport-current-coverage-reviewed-local-20261119",
+      "patch_bytes": 12019,
+      "patch_sha256": "5cf7089247115c2731d16a2055a8978f8d2abc9d00fc7cf94d76596ebbf73cf6",
+      "reviewed_local_commit": "c7a08939eedcfbafbee614b0ea65e51d12e963b7",
+      "sourceS_changed": false,
+      "study_changed": false
+    },
+    {
+      "applied_to_runtime": false,
+      "apply_check_against_actual_base_passed": true,
+      "author_related_tests": 66,
+      "base": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+      "blocker_fix": "Existing parent/cycle must be directory; files/FIFOs/symlinks hold before sealed zero receipt.",
+      "exact_base_cached_index_check_passed": true,
+      "files": [
+        "scripts/boat_all_model_cycle.py",
+        "tests/test_boat_all_model_cycle_cli.py"
+      ],
+      "initial_blocker_commit": "1b2a19df9dff626f11db3014e9f0656065271349",
+      "initial_independent_65_pass_did_not_close_blocker": true,
+      "name": "boat-empty-context-sealed-receipt-reviewed-local-20261119",
+      "past_missing_archive_HOLD_unchanged": true,
+      "patch_bytes": 14787,
+      "patch_sha256": "055052015746d65885c3285473434f45f25bd427ee715c444f7cd9ef48f9d52b",
+      "reviewed_local_commit": "0439e01a91b53fd1005d0722043946cf95a6f218",
+      "root_postfix_cli_tests": {
+        "count": 21,
+        "errors": 0,
+        "failures": 0,
+        "os_socket_prohibition": true,
+        "seconds": 5.646
+      },
+      "sourceS_changed": false,
+      "study_changed": false
+    }
+  ],
+  "production_weights_changed": false,
+  "recorded_at": "2026-11-19T04:13:48.458045+00:00",
+  "schema": "RACE_AI_REVIEWED_LOCAL_FUTURE_SOURCE_PATCHES_V1",
+  "ui_published": false,
+  "upstream_missing_is_not_zero": true
+}

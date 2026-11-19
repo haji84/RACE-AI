@@ -1,0 +1,81 @@
+{
+  "additional_checks": {
+    "actual_keys_read": 0,
+    "applicability_and_receipt_auth_not_claimed": true,
+    "base": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+    "commit": "c7a08939eedcfbafbee614b0ea65e51d12e963b7",
+    "current_catalog_30_cells_match_registry": true,
+    "default_catalog_sha256": "4109f41982661a6af50ec73d0b86ed7f2a77d39f6986560d23d5cd14a6072444",
+    "default_empty_and_nonempty_byte_comparisons": 8,
+    "default_matrix_sha256": "5a630b4bda5ea0d330b99cac81bda3246bf01b1ac842c7f8b9e6ab5a7f6c04f7",
+    "explicit_zero_preserved": true,
+    "invalid_denominator_cases_rejected": 9,
+    "nonempty_projection_schedule_combinations": 256,
+    "null_is_never_zero_or_partial_family_sum": true,
+    "only_coverage_function_AST_changed": true,
+    "provider_requests": 0,
+    "registry_sha256": "07da538c97be334845f268a10fb0d7676d3b2cdcd7a3a922b0f7d7d798aaf3f6",
+    "remote_writes": 0,
+    "source_or_model_changes": 0,
+    "synthetic_only": true
+  },
+  "base": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "commit": "c7a08939eedcfbafbee614b0ea65e51d12e963b7",
+  "consumer_review": {
+    "current_report_serialized_to_JSON": true,
+    "existing_current_caller": "scripts/github_existing_cycle.py:1145",
+    "external_research_annotation_does_not_read_target": true,
+    "no_numeric_target_consumer_found_in_python": true,
+    "web_uses_separate_race_ledger_projection": true
+  },
+  "effects": {
+    "actual_keys_read": 0,
+    "author_or_root_files_edited": 0,
+    "dispatches": 0,
+    "models_or_weights_changed": 0,
+    "private_original_reads": 0,
+    "provider_requests": 0,
+    "remote_writes": 0,
+    "source_or_BOAT_study_aliases": 0,
+    "source_switch_or_worker_changes": 0
+  },
+  "fixed_commit_bytes_verified": true,
+  "independent_tests": {
+    "OS_socket_syscalls_denied": true,
+    "errors": 0,
+    "failures": 0,
+    "includes_real_caller_fixture": true,
+    "log": "frozen-c7a089-90-tests.log",
+    "seconds": 3.627,
+    "tests": 90,
+    "warnings_as_errors": true
+  },
+  "interpretation": {
+    "all_models_operational": false,
+    "explicit_integer_zero": 0,
+    "family_partial_sum_when_applicable_sport_unknown": false,
+    "independent_receipts_verified": false,
+    "per_sport_cells": {
+      "autorace": 6,
+      "boat": 14,
+      "horse": 5,
+      "keirin": 5
+    },
+    "phase_or_JRA_NAR_applicability_proven": false,
+    "registered_active_families": 15,
+    "registered_sport_model_cells": 30,
+    "schedule_completeness_proven": false,
+    "unknown_denominator": null
+  },
+  "reviewed_file_sha256": {
+    "race_ai/existing_model_coverage.py": "bbe015ef3214972949f0c41d0720220ecf8a27066a52b5e2b0f1ecb12b2f4417",
+    "tests/test_existing_model_coverage.py": "8d712a0aaaface501718d19e4c35efb973d70ee5d8f813c963a0498cff71a906"
+  },
+  "scope": "Local patch preserved; not reflected in current source S or BOAT fixed study",
+  "status": "CLEAR_LOCAL_CURRENT_COVERAGE_PROJECTION",
+  "tracked_changes_only": [
+    "race_ai/existing_model_coverage.py",
+    "tests/test_existing_model_coverage.py"
+  ],
+  "tree": "1eaf7fc494d16bf3a2259dbe25985e80b2511bd2"
+}
