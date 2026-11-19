@@ -4,6 +4,7 @@ No command entry, source acquisition, writer, new artifact, training or key
 export. Missing original witness or any private evidence stays a bounded HOLD.
 """
 from datetime import datetime, timedelta, timezone
+from collections import OrderedDict
 from hashlib import sha1, sha256
 import importlib.util
 import json
@@ -21,7 +22,10 @@ _PHASES = frozenset(('MAIN_IDENTITY','SPEC','SOURCE_PINS','ORIGIN','CANDIDATE','
 
 class StudyReads:
     """One bounded read-only GitHub namespace; never follows response URLs."""
-    def __init__(self,get):self.get=get;self.cache={};self.total=0
+    def __init__(self,get,*,cache_bytes=512*1024*1024):
+        study.need(type(cache_bytes) is int and 0<cache_bytes<=512*1024*1024,'CACHE_BUDGET_INVALID')
+        self.get=get;self.cache=OrderedDict();self.cache_limit_bytes=cache_bytes
+        self.resident_bytes=0;self.total=0;self.get_count=0
     def __call__(self,path):
         allowed=(type(path) is str and (
             re.fullmatch(r'actions/(?:runs/[1-9][0-9]*(?:/(?:artifacts|jobs)\?per_page=100(?:&page=[1-9][0-9]*)?)?|artifacts/[1-9][0-9]*(?:/zip)?)',path) or
@@ -32,13 +36,18 @@ class StudyReads:
             re.fullmatch(r'contents/audit/state/boat-native-forward-study.json\?ref=[a-f0-9]{40}',path) or
             re.fullmatch(r'actions/workflows/[1-9][0-9]*/runs\?branch=(?:main|production%2Fboat-p0-p1-20261111)&head_sha=[a-f0-9]{40}(?:&created=20[0-9-]{8}\.\.20[0-9-]{8})?&per_page=100(?:&page=[1-9][0-9]*)?',path)))
         study.need(allowed,'READ_ENDPOINT_REJECTED')
-        if path not in self.cache:
-            study.need(len(self.cache)<4096,'READ_BUDGET_EXCEEDED')
-            raw=self.get(path)
-            study.need(type(raw) is bytes and 0<len(raw)<=64*1024*1024,'READ_RESPONSE_BOUND')
-            self.total+=len(raw);study.need(self.total<=512*1024*1024,'READ_BUDGET_EXCEEDED')
+        if path in self.cache:
+            raw=self.cache.pop(path);self.cache[path]=raw
+            return raw
+        self.get_count+=1;raw=self.get(path)
+        if type(raw) is bytes:self.total+=len(raw)
+        study.need(type(raw) is bytes and 0<len(raw)<=64*1024*1024,'READ_RESPONSE_BOUND')
+        if len(raw)<=self.cache_limit_bytes:
+            while self.cache and (self.resident_bytes+len(raw)>self.cache_limit_bytes or len(self.cache)>=4096):
+                unused,evicted=self.cache.popitem(last=False);self.resident_bytes-=len(evicted)
             self.cache[path]=raw
-        return self.cache[path]
+            self.resident_bytes+=len(raw)
+        return raw
 
 
 def _file(root,path,limit=32768):
@@ -158,7 +167,10 @@ def _cohort_packets(spec,receipt,get,now,current_packet):
             existing.audit_current_pairs(get=get,run_id=run['id'],now=now,
                 expected_owner_sha=spec['source_commit'],_study_sink=selected.append)
         study.need(len(selected)==1 and type(selected[0]['records']) is list,'SOURCE_PACKET_INCOMPLETE')
-        packet=selected[0];packet['schedule']=_schedule(packet,get,now);packets.append(packet)
+        original=selected[0];cells=set(spec['cells'])
+        packet=dict(original,records=[item for item in original['records']
+            if 'pair' not in item['payload'] or item['payload']['cell_key'] in cells])
+        packet['schedule']=_schedule(original,get,now);packets.append(packet)
     return packets
 
 

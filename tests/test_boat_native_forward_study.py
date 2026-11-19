@@ -346,6 +346,90 @@ class NativeForwardStudyTests(unittest.TestCase):
         self.assertEqual(closed['public']['research_statistical_rule_satisfied_cell_count'],0)
         self.assertTrue(all(row['statistical_rule_satisfied'] is False for row in closed['private']['cells'].values()))
 
+    def test_cohort_filters_only_after_full_native_authentication_and_keeps_input_only_and_schedule(self):
+        from race_ai import all_existing_model_registry as registry
+        from race_ai.all_existing_model_learning import fit
+        from race_ai.all_existing_model_pairs import make_private_pairs
+        from race_ai.boat_venue_learning import read_candidate,seal_candidate
+        from scripts import boat_current_pair_eligibility_audit as core
+        from tests.test_all_existing_model_native_future import requests as native_requests
+        runtime=NativeForwardRuntimeTests().runtime()
+        seed=existing.pair_fixture.AllExistingModelPrivatePairsTests('runTest');seed.records=self.records
+        extras=seed.extra_native_requests(1);other=extras[0]['cell_key'];rows=[]
+        for number in range(1,9):
+            request=next(r for r in native_requests(day=f'2030-01-{number:02}') if r['cell_key']==other)
+            native=request['native_payload'];info=registry.identity(other[5:],'boat',native)
+            rows.append(dict(model_id=other[5:],sport='boat',race_id=info['race_id'],stage=info['stage'],scope=info['scope'],
+                as_of=info['as_of'],cutoff_at=info['cutoff_at'],native_payload=native,input_sha256=digest(native),
+                input_saved_at=(study._time(info['as_of'])+timedelta(seconds=1)).isoformat(),
+                result=dict(race_id=info['race_id'],sport='boat',status='settled',ordered_top3=[1,2,3],
+                    published_at=None,captured_at=f'2030-01-{number:02}T10:01:00+09:00',
+                    source_ref='synthetic://result/'+str(number),source_rights_ref='fixture-result',source_sha256=f'{number:064x}',
+                    identity_verified=True,roster=info['roster'],payout_per_100_yen=1230,refund_numbers=[])))
+        training=fit(self.records+rows,now=existing.TRAIN_NOW,allow_source=lambda *_:True,allow_training=lambda *_:True)
+        self.assertEqual(set(training['models']),set(CELLS)|{other})
+        observed=deepcopy(self.case.payload['native_payload']);self.case.set_training(training)
+        for request in extras:
+            native=request['native_payload'];native['scope']='OPERATOR_SUPPLIED_RESEARCH'
+            base=native.get('source',native.get('base_source',{}))
+            base['cutoff_at']=study._time(base['cutoff_at']).astimezone(study.JST).isoformat()
+            hashes={base.get('program_source_sha256'),base.get('beforeinfo_source_sha256')}
+            if 'extra' in native:hashes.add(native['extra']['source_sha256'])
+            native['source_evidence']=[dict(source_ref='https://synthetic.invalid/'+h,
+                source_rights_ref='INVENTED_FIXTURE_OWNER_ANALYSIS',source_sha256=h) for h in sorted(hashes)]
+        forecast=self.case.root/'all-cells-before-filter'
+        make_private_pairs(self.case.context,[dict(cell_key=cell,native_payload=deepcopy(observed)) for cell in CELLS]+[extras[0]],
+            forecast,now=existing.FORECAST_NOW,allow_source=lambda *_:True)
+        def archive(folder):
+            return existing.packed({p.name+'/'+name:(p/name).read_bytes() for p in folder.iterdir() if p.is_dir()
+                for name in ('learning.json','learning.enc','summary.json')})
+        self.case.add(800,'all-existing-model-pairs-99-1',archive(forecast),
+            (existing.FORECAST_NOW+timedelta(seconds=3)).isoformat())
+        inputs=self.case.root/'unfitted-clite-before-filter'
+        make_private_pairs(self.case.context,[extras[2]],inputs,now=existing.FORECAST_NOW+timedelta(minutes=3),allow_source=lambda *_:True)
+        self.case.add(801,'all-existing-model-pairs-99-2',archive(inputs),
+            (existing.FORECAST_NOW+timedelta(minutes=3,seconds=3)).isoformat())
+        full=[];before=core.audit_current_pairs(get=self.case.get,run_id=99,now=self.now,expected_owner_sha=SOURCE,_study_sink=full.append)
+        self.assertEqual(before['current_pair_forecast_record_count'],3)
+        self.assertEqual(before['current_pair_input_only_record_count'],1)
+        self.assertEqual(len(full[0]['records']),4)
+        spec=deepcopy(self.spec);spec['candidate_training_sha256']=training['training_sha256']
+        receipt=dict(registered_after='2030-04-01T08:02:01+00:00',window_ends_at='2030-04-06T08:02:01+00:00')
+        interval='2030-03-31..2030-04-06'
+        route=f'actions/workflows/405276784/runs?branch=production%2Fboat-p0-p1-20261111&head_sha={SOURCE}&created={interval}&per_page=100'
+        self.case.extra[route]=wire(dict(total_count=1,workflow_runs=[self.case.run]))
+        schedule=[dict(race_id=f'20300401-24-{n:02}',cutoff_at=self.case.payload['pair']['race_cutoff_at'],
+            roster=deepcopy(self.case.payload['pair']['baseline_normalized']['roster'])) for n in (1,2)]
+        before_packet=deepcopy(full[0])
+        with patch.object(runtime,'_schedule',return_value=schedule):
+            packets=runtime._cohort_packets(spec,receipt,self.case.get,self.now,full[0])
+        self.assertEqual(full[0],before_packet)
+        self.assertEqual(len(packets),1)
+        self.assertEqual(len(packets[0]['records']),3,'nonstudy forecast remained resident after full authentication')
+        self.assertEqual({r['payload']['cell_key'] for r in packets[0]['records'] if 'pair' in r['payload']},set(CELLS))
+        self.assertIs(packets[0]['schedule'],schedule)
+        self.assertEqual(packets[0]['scope'],before_packet['scope'])
+        self.assertEqual(packets[0]['latest'],before_packet['latest'])
+        only=next(r for r in full[0]['records'] if 'pair' not in r['payload'])
+        self.assertIs(next(r for r in packets[0]['records'] if 'pair' not in r['payload']),only)
+        after=core.audit_current_pairs(get=self.case.get,run_id=99,now=self.now,expected_owner_sha=SOURCE)
+        self.assertEqual(after,before)
+        self.assertEqual(after['current_pair_evaluation_minimum_status'],'UNREGISTERED_HOLD')
+        self.assertIsNone(after['current_pair_official_raw_verified'])
+        self.assertEqual(after['current_pair_qualifying_g8_count'],0)
+        bad=next(read_candidate(p) for p in forecast.iterdir() if p.is_dir() and read_candidate(p)['cell_key']==other)
+        bad['pair']['input_sha256']='e'*64
+        rewritten=self.case.root/'bad-nonstudy-record';seal_candidate(bad,rewritten)
+        paths={p.name+'/'+name:(p/name).read_bytes() for p in forecast.iterdir() if p.is_dir()
+            for name in ('learning.json','learning.enc','summary.json')}
+        from race_ai.all_existing_model_pairs import record_partition_key
+        partition=record_partition_key(bad)
+        paths.update({partition+'/'+name:(rewritten/name).read_bytes() for name in ('learning.json','learning.enc','summary.json')})
+        self.case.add(800,'all-existing-model-pairs-99-1',existing.packed(paths),
+            (existing.FORECAST_NOW+timedelta(seconds=3)).isoformat())
+        with patch.object(runtime,'_schedule',return_value=schedule),self.assertRaises(ValueError):
+            runtime._cohort_packets(spec,receipt,self.case.get,self.now,None)
+
 
 class NativeForwardRuntimeTests(unittest.TestCase):
     def runtime(self):
@@ -365,6 +449,59 @@ class NativeForwardRuntimeTests(unittest.TestCase):
         self.assertEqual(reads('actions/runs/111'),b'{}')
         self.assertEqual(reads('actions/runs/111'),b'{}')
         self.assertEqual(calls,['actions/runs/111'])
+
+    def test_lru_resident_budget_keeps_recent_hits_and_rereads_evicted_bytes(self):
+        import inspect
+        runtime=self.runtime()
+        self.assertIn('cache_bytes',inspect.signature(runtime.StudyReads).parameters,'resident LRU cache budget is missing')
+        calls=[];values={f'actions/artifacts/{n}/zip':bytes([n])*2 for n in (1,2,3)}
+        reads=runtime.StudyReads(lambda path:calls.append(path) or values[path],cache_bytes=4)
+        a,b,c=values
+        self.assertEqual(reads(a),values[a]);self.assertEqual(reads(b),values[b]);self.assertEqual(reads(a),values[a])
+        self.assertEqual(reads(c),values[c]);self.assertEqual(list(reads.cache),[a,c])
+        values[b]=b'updated'
+        self.assertEqual(reads(b),b'updated');self.assertNotIn(b,reads.cache)
+        self.assertEqual(reads(c),values[c]);self.assertEqual(len(calls),4)
+        self.assertEqual((reads.total,reads.get_count,reads.resident_bytes),(13,4,4))
+
+    def test_download_and_get_totals_are_measurements_not_cumulative_limits(self):
+        import inspect
+        runtime=self.runtime()
+        self.assertIn('cache_bytes',inspect.signature(runtime.StudyReads).parameters,'resident LRU cache budget is missing')
+        calls=[];reads=runtime.StudyReads(lambda path:calls.append(path) or b'abcd',cache_bytes=4)
+        for number in range(1,101):self.assertEqual(reads(f'actions/artifacts/{number}/zip'),b'abcd')
+        self.assertEqual((reads.total,reads.get_count,reads.resident_bytes),(400,100,4))
+        self.assertEqual(len(calls),100);self.assertEqual(len(reads.cache),1)
+        metadata=runtime.StudyReads(lambda path:b'x',cache_bytes=8192)
+        for number in range(1,4101):metadata(f'actions/artifacts/{number}')
+        self.assertEqual(metadata.get_count,4100)
+        self.assertLessEqual(len(metadata.cache),4096)
+        self.assertLessEqual(metadata.resident_bytes,8192)
+
+    def test_cache_budget_is_bounded_and_large_entries_do_not_evict_cached_residents(self):
+        import inspect
+        runtime=self.runtime()
+        self.assertIn('cache_bytes',inspect.signature(runtime.StudyReads).parameters,'resident LRU cache budget is missing')
+        for invalid in (True,False,0,-1,512*1024*1024+1):
+            with self.subTest(budget=invalid),self.assertRaises(ValueError):runtime.StudyReads(lambda _:b'a',cache_bytes=invalid)
+        values={'actions/artifacts/1':b'aa','actions/artifacts/2/zip':b'large'}
+        reads=runtime.StudyReads(values.__getitem__,cache_bytes=4)
+        reads('actions/artifacts/1');self.assertEqual(reads('actions/artifacts/2/zip'),b'large')
+        self.assertEqual(reads('actions/artifacts/2/zip'),b'large')
+        self.assertEqual(list(reads.cache),['actions/artifacts/1'])
+        self.assertEqual((reads.resident_bytes,reads.get_count,reads.total),(2,3,12))
+
+    def test_lru_never_weakens_single_response_or_read_namespace_guards(self):
+        import inspect
+        runtime=self.runtime()
+        self.assertIn('cache_bytes',inspect.signature(runtime.StudyReads).parameters,'resident LRU cache budget is missing')
+        calls=[];reads=runtime.StudyReads(lambda path:calls.append(path) or b'x'*(64*1024*1024+1),cache_bytes=4)
+        for path in ('https://private.invalid/data','actions/runs/1/rerun'):
+            with self.assertRaises(ValueError):reads(path)
+        self.assertEqual(calls,[])
+        with self.assertRaises(ValueError):reads('actions/artifacts/1/zip')
+        self.assertEqual(calls,['actions/artifacts/1/zip'])
+        self.assertEqual(reads.resident_bytes,0)
 
     def test_source_file_pins_are_exact_without_owner_key_access(self):
         runtime=self.runtime()
