@@ -132,6 +132,9 @@ class Route:
         if self.status is None:
             raise RuntimeError('INVENTED_PRIVATE_TRANSPORT_FAILURE')
         response = Response(self.request, self.raw, self.status)
+        if b.hold_resource_responses and not self.request.navigation:
+            b.held_resources.append(response)
+            return None
         b.in_response_callback = True
         try:
             self.page.emit('response', response)
@@ -339,12 +342,18 @@ class Page:
             self.transmit(inputs[0], b.details.get(number, detail_html(number)),
                           method='POST', fields=fields, status=b.detail_status)
             b.detail_visits += 1
+            if b.final_detail_resource and b.detail_visits == b.final_detail_resource[0]:
+                self.transmit('/sp/ana', b.final_detail_resource[1],
+                              navigation=False, resource_type='xhr')
             if b.after_detail: b.after_detail(b)
             return
         raise AssertionError('UNREVIEWED_CLICK')
 
     def wait_for_load_state(self, **_): pass
-    def close(self): self.closed = True
+    def close(self):
+        if self.browser.release_resources_on_close:
+            self.browser.release_held_resources()
+        self.closed = True
 
 
 class Context:
@@ -376,6 +385,9 @@ class Browser:
         self.resource_fields = self.resource_statuses = None
         self.resource_raw = b'/* invented public script */'
         self.resource_headers = None
+        self.final_detail_resource = None
+        self.hold_resource_responses = self.release_resources_on_close = False
+        self.held_resources = []
         self.late_analytics = False
         self.lists, self.details = {}, {}
         self.sent, self.pages, self.clicks = [], [], []
@@ -391,6 +403,16 @@ class Browser:
         return self.context
 
     def close(self): self.closed = True
+
+    def release_held_resources(self):
+        while self.held_resources:
+            response = self.held_resources.pop(0)
+            self.in_response_callback = True
+            try:
+                response.request._page.emit('response', response)
+                self.context.emit('response', response)
+            finally:
+                self.in_response_callback = False
 
 
 class OfficialSPBrowserTests(unittest.TestCase):
@@ -571,6 +593,42 @@ class OfficialSPBrowserTests(unittest.TestCase):
                     self.assertEqual(out['http_status_counts'], {'200': 1, str(status): 1})
                     self.assertEqual(out['details_verified'], 0)
                     self.assertEqual(b.list_visits, 0)
+
+    def test_final_received_analytics_body_is_drained_while_its_page_remains_open(self):
+        b = Browser(venues=(98,)); b.hold_resource_responses = True
+        b.final_detail_resource = (3, b'{"captcha":"verify your browser"}')
+        b.resource_headers = {'content-type': 'application/json'}
+        def clock_tick():
+            b.release_held_resources()
+            return 0
+        with self.collect(b, monotonic=clock_tick) as (out, _, b):
+            self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_SOURCE_LAYOUT')
+            self.assertEqual((out['details_verified'], out['riders_verified']), (3, 21))
+            self.assertEqual(out['http_status_counts'], {'200': 12})
+            self.assertEqual(out['unknown_transmitted_status_count'], 0)
+
+    def test_final_body_arriving_during_close_is_held_without_inventing_unknown_http(self):
+        b = Browser(venues=(98,)); b.hold_resource_responses = True
+        b.final_detail_resource = (3, b'{"captcha":"verify your browser"}')
+        b.resource_headers = {'content-type': 'application/json'}
+        b.release_resources_on_close = True
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_TRANSPORT')
+            self.assertEqual((out['details_verified'], out['riders_verified']), (3, 21))
+            self.assertEqual(out['http_status_counts'], {'200': 12})
+            self.assertEqual(out['unknown_transmitted_status_count'], 0)
+            self.assertFalse(out['provider_denied'])
+
+    def test_final_unresolved_http_outcome_stays_unknown_when_page_closes(self):
+        b = Browser(venues=(98,)); b.hold_resource_responses = True
+        b.final_detail_resource = (3, b'{"captcha":"verify your browser"}')
+        b.resource_headers = {'content-type': 'application/json'}
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_TRANSPORT')
+            self.assertEqual((out['details_verified'], out['riders_verified']), (3, 21))
+            self.assertEqual(out['http_status_counts'], {'200': 11})
+            self.assertEqual(out['unknown_transmitted_status_count'], 1)
+            self.assertFalse(out['provider_denied'])
 
     def test_analytics_exception_rejects_every_unreviewed_request_variant(self):
         variants = [('/sp/ana?invented=1', 'GET', 'xhr', None),

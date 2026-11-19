@@ -550,11 +550,14 @@ class _Collector:
                 raise _Stop()
             self.open_detail(parsed, doc, bound, number)
         self.check()
+        self.drain_resources()
+        self.check()
 
     def report(self):
         unknown = sum(record['status'] is None for record in self.records.values())
         self.out['unknown_transmitted_status_count'] = unknown
-        if unknown and self.state is None:
+        # A known HTTP status cannot attest an unread body after its page closes.
+        if (unknown or self.pending_resources) and self.state is None:
             self.stop(_TRANSPORT)
         self.out['state'] = self.state or _PARTIAL
         self.out['private_source_files_saved'] = self.inbox.saved
