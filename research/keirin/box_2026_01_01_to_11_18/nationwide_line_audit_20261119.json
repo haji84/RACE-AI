@@ -1,0 +1,79 @@
+{
+  "schema": "KEIRIN_NATIONWIDE_LINE_SOURCE_GATE_V1",
+  "period": "2026-01-01/2026-11-18",
+  "total_settled_races": 24291,
+  "line_applicable_male_races": 22245,
+  "not_applicable_girls_races": 2046,
+  "formal_verified_races": 0,
+  "unverified_line_applicable_races": 22245,
+  "formal_nationwide_verdict": "HOLD",
+  "source_status_by_category": {
+    "5車_ガールズ": {
+      "total": 21,
+      "verified": 0,
+      "missing": 0,
+      "invalid": 0,
+      "not_applicable": 21
+    },
+    "5車_男子": {
+      "total": 216,
+      "verified": 0,
+      "missing": 216,
+      "invalid": 0,
+      "not_applicable": 0
+    },
+    "6車_ガールズ": {
+      "total": 148,
+      "verified": 0,
+      "missing": 0,
+      "invalid": 0,
+      "not_applicable": 148
+    },
+    "6車_男子": {
+      "total": 1085,
+      "verified": 0,
+      "missing": 1085,
+      "invalid": 0,
+      "not_applicable": 0
+    },
+    "7車_ガールズ": {
+      "total": 1877,
+      "verified": 0,
+      "missing": 0,
+      "invalid": 0,
+      "not_applicable": 1877
+    },
+    "7車_男子": {
+      "total": 18754,
+      "verified": 0,
+      "missing": 18754,
+      "invalid": 0,
+      "not_applicable": 0
+    },
+    "8車_男子": {
+      "total": 132,
+      "verified": 0,
+      "missing": 132,
+      "invalid": 0,
+      "not_applicable": 0
+    },
+    "9車_男子": {
+      "total": 2058,
+      "verified": 0,
+      "missing": 2058,
+      "invalid": 0,
+      "not_applicable": 0
+    }
+  },
+  "failure_reasons": {
+    "NO_LINE_SOURCE_SNAPSHOT": 22245
+  },
+  "verified_payout_order_classes": {},
+  "unattached_snapshot_keys": [],
+  "assumptions": [
+    "published predicted line, not video-observed race formation",
+    "no reconstruction from region/style/finishing numbers",
+    "ties produce multiple possible 3-car winning order classes",
+    "retrospective sources and pre-cutoff originals remain distinct"
+  ]
+}
