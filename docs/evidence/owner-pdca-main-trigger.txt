@@ -755,3 +755,26 @@ Bind the current checkout to the real failed fbc owner 44409798061 without relab
 Authenticate and retain the original r0 14475644448, restore V5/issued maps, and forbid regeneration.
 Preserve all counters, original clocks, fixed contracts and the existing single-writer gate.
 Use only boat-owner-release: single-real-session-20261111 and this existing marker.
+
+2026-11-19 exact current-source closed-prefix read-only verification.
+Protected source remains 1dbb47b68d487fc6def0bd4b10b1423f0a2145f6.
+Independently reopen the observed first two rounds of owner44426169530,
+binding all seven exact receipt IDs, digests, sizes, clocks and repository IDs.
+Preserve complete run/job/inventory metadata; report later rounds as excluded.
+Authenticate both historical fbc r0 and current S r0, first P0, saved original
+inventory and the issued-model projection without reissuing a prediction.
+The issued-model projection is reconstructed from the authenticated saved view;
+this audit does not independently read the runtime issued file.
+Use the actual observation clock for historical HMAC and receipt validation;
+retain source generation's same-day guard and never backdate any original.
+Keep missing round1 ALL_MODEL archive unknown/HOLD, never inferred as zero.
+Read the current saved-view commit at its own observation time, not at round2.
+No latest-control/whole-day/T15-10/G8/accuracy completion is asserted here.
+The running owner is not interrupted or directly dispatched by this audit.
+The existing main gate alone handles subsequent owner state and counters.
+The existing KEIRIN probe may report typed 403/429/UNKNOWN counts under its
+unchanged denial-stop policy. The existing prospective gate now also accepts
+horse; no new model or live horse success is inferred from its fixture tests.
+Use only the existing release prefix and this marker, with unchanged jobs,
+steps, inputs, permissions, cron, runners and timeouts. No UI deployment,
+wager, production weight switch, owner-key export or new paid service.

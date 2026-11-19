@@ -1,0 +1,53 @@
+{
+  "schema": "RACE_AI_CURRENT_S_CLOSED_PREFIX_INDEPENDENT_REVIEW_V1",
+  "recorded_at": "2026-11-19T01:27:55.425958+00:00",
+  "author_commits": [
+    "b0503a72e32d230033a7db345642779196a2df39",
+    "592c8c7097d4ef50e5f266c67d090175d8a5a8ee"
+  ],
+  "result": "CLEAR",
+  "reviewer": "four_sport_goal_audit",
+  "final_focused_tests": 9,
+  "final_focused_seconds": 5.482,
+  "warning_mode": "error",
+  "external_network_attempts": 0,
+  "next_day_and_day_plus_two_valid_fixtures_accepted_at_actual_clock": true,
+  "source_generation_guard_still_rejects_other_day": true,
+  "independent_tamper_refusals": 7,
+  "issued_scope": "RECONSTRUCTED_FROM_AUTHENTICATED_SAVED_VIEW",
+  "runtime_issued_file_independently_read": false,
+  "workflow_job_step_counts": {
+    "unit": 11,
+    "authenticated_original_matrix": 21
+  },
+  "workflow_header_job_conditions_and_structure_unchanged": true,
+  "only_unit_owner_dependency_ref_advanced_to_actual_S": true,
+  "compiled_heredocs": 11,
+  "verified_git_blobs": {
+    "scripts/boat_owner_active_snapshot_audit.py": "75313c2a50818c3b687534c80a3285a9ec2a6f8e",
+    "scripts/boat_current_pair_eligibility_audit.py": "72be8bc9af15052207bde5faa86cc39d55317016",
+    "scripts/boat_failed_recovery_contract.py": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
+    "scripts/boat_bootstrap_recovery_adapter.py": "24a2e60816404d0af71f0a7ae543478b3f3442d5"
+  },
+  "actual_actions_decryption_proven": false,
+  "real_keys_read_by_reviewers": 0,
+  "provider_requests": 0,
+  "remote_actions_by_reviewer": 0,
+  "root_integrated_verification": {
+    "tests": 77,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "seconds": 100.731,
+    "external_network_attempts": 0,
+    "files_stable_during_test_run": true,
+    "modules": [
+      "tests.test_boat_owner_active_snapshot_audit.ClosedCurrentSnapshotTests",
+      "tests.test_boat_owner_active_snapshot_audit.ClosedBootstrapOriginalTests",
+      "tests.test_boat_owner_active_snapshot_audit.P0VisibilityOwnerRoleTests",
+      "tests.test_boat_current_pair_eligibility_audit"
+    ]
+  },
+  "root_test_dependency_tree": "fac54c8e4fd3ceeb8177e408487ca80e9b1e76d4",
+  "root_warning_mode": "error"
+}
