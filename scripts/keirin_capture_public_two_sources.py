@@ -57,6 +57,19 @@ def _allow_url(url,kind,rid):
 
 def fetch_once(url):
     """One regular GET, readable public HTML only. No retry on denial."""
+    # Reuse SourceSession's owner-approved WINTICKET/KEIRIN.JP host profile.
+    # Historical URL/HTML parsers below remain usable with saved fixtures.
+    need(type(url) is str, "OWNER_APPROVED_SOURCE_HOST_REQUIRED")
+    try:
+        source = urlsplit(url)
+        approved = (source.scheme == "https" and
+                    source.username is None and source.password is None and
+                    source.port in (None, 443) and source.hostname in {
+                        "winticket.jp", "www.winticket.jp",
+                        "keirin.jp", "www.keirin.jp"})
+    except ValueError:
+        approved = False
+    need(approved, "OWNER_APPROVED_SOURCE_HOST_REQUIRED")
     req=Request(url,headers={
         "User-Agent":"RACE-AI-PersonalResearch/1.0 (source attribution; no bypass)",
         "Accept":"text/html; charset=utf-8",

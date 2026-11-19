@@ -170,5 +170,146 @@ class TwoPublicSourcesToAutoAB(unittest.TestCase):
             self.collect(day_manifest=data)
 
 
+class OwnerApprovedPublicTransport(unittest.TestCase):
+    """Only the existing four-host owner profile may reach real transport."""
+
+    def test_excluded_or_unsafe_sources_rejected_before_request_or_opener(self):
+        urls = [
+            "https://keirin.kdreams.jp/kaisai/2030/01/15/",
+            "https://keirin.netkeiba.com/race/entry/?race_id=203001152601",
+            "https://keirin-mobile.jp/fixture",
+            "https://example.invalid/fixture",
+            "https://keirin.jp.attacker.invalid/fixture",
+            "http://keirin.jp/fixture", "ftp://keirin.jp/fixture",
+            "//keirin.jp/fixture", "https://user:password@keirin.jp/fixture",
+            "https://@keirin.jp/fixture", "https://:@keirin.jp/fixture",
+            "https://keirin.jp@attacker.invalid/fixture",
+            "https://keirin.jp:444/fixture", "https://keirin.jp:bad/fixture",
+            "https://keirin.jp:99999/fixture", "https://[invalid/fixture",
+            None, b"https://keirin.jp/fixture", object(),
+        ]
+        for index, url in enumerate(urls):
+            with self.subTest(case=index), \
+                    patch.object(collector, "Request") as request, \
+                    patch.object(collector, "build_opener") as opener:
+                opener.return_value.open.side_effect = collector.SourceCaptureError(
+                    "TRANSPORT_REACHED_BEFORE_OWNER_ADMISSION")
+                with self.assertRaisesRegex(collector.SourceCaptureError,
+                                            "^OWNER_APPROVED_SOURCE_HOST_REQUIRED$"):
+                    collector.fetch_once(url)
+                request.assert_not_called()
+                opener.assert_not_called()
+
+    def test_existing_source_session_four_host_profile_still_allows_normal_get(self):
+        from scripts import keirin_cloud_owner_inputs as approved
+        for host in ("winticket.jp", "www.winticket.jp", "keirin.jp", "www.keirin.jp"):
+            for port in ("", ":443"):
+                url = "https://" + host + port + "/fixture"
+                with self.subTest(host=host, port=port), \
+                        patch.object(approved, "nationwide_ab_selected", return_value=False), \
+                        patch.object(collector, "build_opener") as opener:
+                    session = approved.SourceSession(
+                        lambda _: b"fixture", monotonic=lambda: 0, budget_seconds=60)
+                    self.assertEqual(session(url), b"fixture")
+                    response = opener.return_value.open.return_value
+                    response.status = 200
+                    response.geturl.return_value = url
+                    response.headers = {"Content-Type": "text/html; charset=utf-8"}
+                    response.read.return_value = b"fixture"
+                    self.assertEqual(collector.fetch_once(url), b"fixture")
+                    request = opener.return_value.open.call_args.args[0]
+                    self.assertEqual(request.get_method(), "GET")
+                    self.assertIsNone(request.get_header("Cookie"))
+                    self.assertIsNone(request.get_header("Authorization"))
+                    response.close.assert_called_once()
+
+    def test_redirect_handler_never_constructs_a_request_to_an_excluded_target(self):
+        with patch.object(collector, "Request") as request, \
+                patch.object(collector, "build_opener") as opener:
+            handler = collector.NoRedirect()
+            for status in (301, 302, 303, 307, 308):
+                self.assertIsNone(handler.redirect_request(
+                    None, None, status, "fixture", {},
+                    "https://keirin.kdreams.jp/fixture"))
+            request.assert_not_called()
+            opener.assert_not_called()
+
+    def test_changed_response_url_stops_before_reading_source_body(self):
+        with patch.object(collector, "build_opener") as opener:
+            response = opener.return_value.open.return_value
+            response.status = 200
+            response.geturl.return_value = "https://keirin.kdreams.jp/fixture"
+            response.headers = {"Content-Type": "text/html"}
+            with self.assertRaisesRegex(collector.SourceCaptureError,
+                                        "^PROVIDER_NON_HTML_OR_REDIRECT$"):
+                collector.fetch_once("https://keirin.jp/fixture")
+            opener.return_value.open.assert_called_once()
+            response.read.assert_not_called()
+            response.close.assert_called_once()
+
+    def test_default_discovery_cannot_send_excluded_calendar_to_transport(self):
+        from scripts import keirin_discover_public_race_links as discovery
+        with patch.object(collector, "Request") as request, \
+                patch.object(collector, "build_opener") as opener:
+            opener.return_value.open.side_effect = collector.SourceCaptureError(
+                "TRANSPORT_REACHED_BEFORE_OWNER_ADMISSION")
+            with self.assertRaisesRegex(collector.SourceCaptureError,
+                                        "^OWNER_APPROVED_SOURCE_HOST_REQUIRED$"):
+                discovery.discover(day_jst="2030-01-15",
+                                   registered_ids=["203001152601"])
+            request.assert_not_called()
+            opener.assert_not_called()
+
+    def test_active_official_capture_success_cannot_reenter_excluded_secondary_source(self):
+        from urllib.parse import parse_qs, urlsplit
+        from race_ai import keirin_official_public_source as official
+        from race_ai import keirin_official_run_history as history
+        from scripts import keirin_github_only_ab_day as live
+        from scripts import keirin_official_day_pipeline as pipeline
+        from scripts import keirin_register_public_day as registration
+        from tests.test_keirin_official_public_source import fixtures
+        day = "2030-01-15"
+        data = json.loads(json.dumps(fixtures()).replace("20261002", "20300115")
+                          .replace("2026/10/02", "2030/01/15"))
+        official_kinds = []
+
+        def get_official(url):
+            kind = parse_qs(urlsplit(url).query)["type"][0]
+            official_kinds.append(kind)
+            return json.dumps(data[kind]).encode("utf-8")
+
+        clock = lambda: datetime.fromisoformat(day + "T08:00:00+00:00")
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            root.chmod(0o700)
+            public_path = root / "fixture-public.pem"
+            public_path.write_bytes(b"fixture checked by the injected key boundary")
+            private = root / "private"
+            private.mkdir(mode=0o700)
+            with patch.object(storage, "checked_public_key"), \
+                    patch.object(live, "archived_day", return_value={}), \
+                    patch.object(pipeline, "official_fetcher", return_value=get_official), \
+                    patch.object(history, "read_revisions", return_value=[]), \
+                    patch.object(pipeline, "persist_delta") as saved, \
+                    patch.object(official, "fetch_day_schedule",
+                                 wraps=official.fetch_day_schedule) as schedule, \
+                    patch.object(registration, "register_day",
+                                 wraps=registration.register_day) as register, \
+                    patch.object(collector, "Request") as request, \
+                    patch.object(collector, "build_opener") as opener:
+                opener.return_value.open.side_effect = collector.SourceCaptureError(
+                    "TRANSPORT_REACHED_BEFORE_OWNER_ADMISSION")
+                with self.assertRaisesRegex(collector.SourceCaptureError,
+                                            "^OWNER_APPROVED_SOURCE_HOST_REQUIRED$"):
+                    pipeline.run_capture(day=day, repo=root, private_root=private,
+                        owner_public_path=public_path, clock=clock)
+                self.assertEqual(official_kinds, ["JSJ057", "JSJ017"])
+                schedule.assert_called_once()
+                register.assert_called_once()
+                self.assertEqual(len(saved.call_args.kwargs["payload"]["schedule"]["races"]), 2)
+                request.assert_not_called()
+                opener.assert_not_called()
+
+
 if __name__=="__main__":
     unittest.main()
