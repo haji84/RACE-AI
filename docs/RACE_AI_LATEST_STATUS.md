@@ -2,7 +2,7 @@
 
 本人用の継続開発として進めた。一般公開の承認待ちは設けず、UI新規公開・投票・本番重み切替は実施していない。以下を最新の確定実測とし、下段の旧記録を履歴として保持する。
 
-- main **49e63d2ec63f4602fc855fc5b5a960023c9d46c0**。既存PR101/102/103/72で通常保護mergeを継続し、新PR0。検証tree **265921571898a00b58452896797b2b62ae9a1e1d** と一致し、workflow全byte、元モデル、weights、source pins、flagsを維持した。
+- main **49e63d2ec63f4602fc855fc5b5a960023c9d46c0**。既存PR101/102/103/72で通常保護mergeを継続し、新PR0。検証tree **265921571898a00b58452896797b2b62ae9a1e1d** と一致した。最終修正のbfd8→49eではworkflow全byteを維持し、元モデル/weights・映像/BOATのsource pins・flagsも変更していない。先のPR101で変更した既存run本文4箇所は保存し、workflow/job/step/input/cron/runner/timeout/permissionの定義は追加していない。
 - 既存の通常運転 **44573425610/job135734603784/attempt1** は当日6会場・57レースIDを検証し、**55レース・延べ398選手** を実読取りした。**10,684送受信が全HTTP200、403/429・未確認・blockは0**。既存240秒の範囲で **HOLD_OFFICIAL_SP_BUDGET / budget_exhausted=true** となり、残る2件はこの運転では未取得。[認証済み完了log・件数・hash](evidence/keirin-403-official-actual-20261120/actual-main-source.json)。
 - 不足2件に当たる当日1Rの2対象は、同じPlaywright1.56/既定Chromium141と入力ガードを使う**別local個別確認**で **2件・延べ16選手** を検証した。978応答全HTTP200、未確認/403/429は0。対象選択を絞った診断であり、通常運転1回の57/57完走や全自動化の証拠に置き換えない。
 - 通常運転の最終状態は **HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT**。source_stateはOWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED、generationはnull、新pre入力0・予想保存false。既存4モデルへ渡す完全入力の条件は未達で、予想生成や結果照合の成功を主張しない。残る2件を別確認できたことと、全モデルの締切15〜10分前生成/保存/照合は別の未達条件。
