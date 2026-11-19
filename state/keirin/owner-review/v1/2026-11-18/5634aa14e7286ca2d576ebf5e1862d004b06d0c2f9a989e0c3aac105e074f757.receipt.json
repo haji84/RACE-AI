@@ -1,0 +1,15 @@
+{
+  "schema": "RACE_AI_KEIRIN_OWNER_REVIEW_ARCHIVE_V1",
+  "day_jst": "2026-11-18",
+  "archive_kind": "HISTORICAL_OWNER_REVIEW_SNAPSHOT",
+  "cipher_sha256": "5634aa14e7286ca2d576ebf5e1862d004b06d0c2f9a989e0c3aac105e074f757",
+  "cipher_bytes": 8710658,
+  "cipher_blob_sha": "8084c511b31665a6e3cbf33d30929ff602446a28",
+  "owner_RSA_SPKI_sha256": "1963d13558d115ce261f224b97d385bd09c65a70c91fb23237f91aa9840bb3a1",
+  "source_snapshot_observed_at": "2026-11-19T03:50:09.743926+00:00",
+  "source_main_commit": "9520104c65c88b3c9c92685ba865d21ad577ced8",
+  "new_pre_cutoff_evidence": false,
+  "live_pipeline_state": false,
+  "live_acceptance_completed": false,
+  "plaintext_or_key_published": false
+}
