@@ -1,0 +1,23 @@
+{
+  "period_start": "2026-01-01",
+  "period_end": "2026-11-18",
+  "all_settled": 24291,
+  "male_eligible": 22245,
+  "girls_excluded": 2046,
+  "matched": 15,
+  "unmatched": 22230,
+  "invalid": 0,
+  "conflicts": 0,
+  "classes": {
+    "SAME_LINE_3": 2,
+    "SAME_LINE_2_PLUS_OTHER": 10,
+    "THREE_DIFFERENT_LINES": 3,
+    "MULTI_CLASS_TIE": 0
+  },
+  "definition": "source-linked historically published predicted lineup, not in-race observed group",
+  "source_files": [
+    "published_lineup_pilot_20261118.jsonl",
+    "published_lineup_more_verified_20261118.jsonl"
+  ],
+  "status": "PILOT_ONLY_NOT_NATIONWIDE_COMPLETE"
+}
