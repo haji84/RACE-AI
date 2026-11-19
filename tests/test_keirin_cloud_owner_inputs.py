@@ -361,7 +361,7 @@ class ProviderDenialStatusTests(unittest.TestCase):
 
 
 class OfficialAnalyticsOwnerCycleTests(unittest.TestCase):
-    def test_current_day_roster_with_presentation_pair_reaches_owner_cycle(self):
+    def test_current_day_seven_and_nine_rider_formats_reach_owner_cycle(self):
         from copy import deepcopy
         from unittest.mock import patch
         import tests as fixtures
@@ -380,11 +380,14 @@ class OfficialAnalyticsOwnerCycleTests(unittest.TestCase):
         data['SJ0301']['kaisaiDayList'].append(future)
         browser.lists[98] = html(data)
         for number in range(1, 4):
-            data = detail_data()
+            data = detail_data(9 if number == 2 else 7)
             data['SC0201']['C0201data']['selRaceNo'] = number
             data['SJ0315']['sensyuTypeInfo'][0].update(
                 imgTyosiName='invented-presentation-sentinel',
                 imgTyosiPath='/sp/static/invented/presentation-sentinel.svg')
+            if number == 2:
+                for car, row in enumerate(data['SJ0315']['sensyuTypeInfo'], 1):
+                    row.update(wakuban=str(min(car, 6)), kyuhanSpecialColor='invented-display-color')
             browser.details[number] = html(data)
 
         def capture(inbox, **kwargs):
@@ -399,7 +402,7 @@ class OfficialAnalyticsOwnerCycleTests(unittest.TestCase):
         self.assertFalse(result['source_capture_held'])
         self.assertEqual(result['source_day_schedule_race_count'], 3)
         self.assertEqual(result['official_sp_acquisition']['details_verified'], 3)
-        self.assertEqual(result['official_sp_acquisition']['riders_verified'], 21)
+        self.assertEqual(result['official_sp_acquisition']['riders_verified'], 23)
         self.assertNotIn('presentation-sentinel', json.dumps(result))
         self.assertEqual(result['new_pre_race_inputs'], 0)
         self.assertFalse(result['actual_four_model_forecast_saved'])
