@@ -266,6 +266,47 @@ class PrivateVenueRetentionTests(unittest.TestCase):
         self.assertGreater(self.reader.prefetch_calls, 0)
         self.assertEqual(before, (self.raws, self.metas, self.reader.files))
 
+    def test_workflow_hook_uses_direct_metadata_transport_before_key_and_preserves_core(self):
+        import textwrap
+        from types import SimpleNamespace
+        text = (ROOT/'.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
+        self.assertIn('# PRIVATE_VENUE_RETENTION_READBACK_BEGIN', text)
+        block = text.split('# PRIVATE_VENUE_RETENTION_READBACK_BEGIN\n', 1)[1].split(
+            '# PRIVATE_VENUE_RETENTION_READBACK_END', 1)[0]
+        before = dict(current_pair_qualifying_g8_count=0, current_pair_official_raw_verified=None,
+                      status='HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED')
+        self.main['event'] = 'pull_request'
+        def unsafe_transport(*args):
+            raise AssertionError('ARCHIVAL_READER_MUST_NOT_INITIALIZE_BEFORE_MAIN_AUTH')
+        namespace = dict(report=deepcopy(before), repo=OWNER, from_exact_file=lambda *_:audit,
+            _live_gh=self.get, gh=unsafe_transport, os=os, timezone=timezone,
+            datetime=SimpleNamespace(now=lambda *_:NOW))
+        with patch('race_ai.boat_pdca_state.state_key') as key, \
+             patch.object(audit.subprocess, 'check_output') as git:
+            exec(textwrap.dedent(block), namespace)
+        key.assert_not_called()
+        git.assert_not_called()
+        self.assertEqual(self.routes, ['actions/runs/9000'])
+        self.assertTrue(all(namespace['report'][k] == value for k, value in before.items()))
+        self.assert_hold(namespace['report']['private_venue_retention_readback'])
+
+    def test_workflow_hook_failure_never_exports_private_exception_or_changes_core(self):
+        import textwrap
+        text = (ROOT/'.github/workflows/boat-owner-national-p1-matrix.yml').read_text()
+        self.assertIn('# PRIVATE_VENUE_RETENTION_READBACK_BEGIN', text)
+        block = text.split('# PRIVATE_VENUE_RETENTION_READBACK_BEGIN\n', 1)[1].split(
+            '# PRIVATE_VENUE_RETENTION_READBACK_END', 1)[0]
+        def fail(*args, **kwargs):
+            raise ValueError('PRIVATE_RESULT_SENTINEL https://private.invalid/?key=secret')
+        before = dict(current_pair_qualifying_g8_count=0, current_pair_official_raw_verified=None)
+        namespace = dict(report=deepcopy(before), repo=OWNER, from_exact_file=fail,
+            _live_gh=fail, os=os, datetime=datetime, timezone=timezone)
+        exec(textwrap.dedent(block), namespace)
+        self.assertTrue(all(namespace['report'][k] == value for k, value in before.items()))
+        self.assert_hold(namespace['report']['private_venue_retention_readback'])
+        self.assertNotIn('PRIVATE_RESULT_SENTINEL', json.dumps(namespace['report']))
+        self.assertNotIn('http', json.dumps(namespace['report']))
+
     def test_main_service_and_environment_guards_precede_key_and_git(self):
         for field, value in [('event', 'pull_request'), ('status', 'completed'), ('path', 'other.yml'),
                              ('head_branch', 'topic'), ('run_attempt', 2), ('head_sha', 'f'*40)]:

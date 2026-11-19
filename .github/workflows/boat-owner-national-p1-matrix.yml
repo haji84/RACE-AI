@@ -21,6 +21,8 @@ on:
       - scripts/boat_native_forward_study.py
       - scripts/boat_native_forward_study_audit.py
       - tests/test_boat_native_forward_study.py
+      - scripts/boat_private_venue_retention_audit.py
+      - tests/test_boat_private_venue_retention_audit.py
       - audit/state/boat-native-forward-study.json
       - audit/state/boat-native-forward-study-witness.json
       - scripts/boat_cutoff_raw_replay_audit.py
@@ -64,6 +66,8 @@ on:
       - scripts/boat_native_forward_study.py
       - scripts/boat_native_forward_study_audit.py
       - tests/test_boat_native_forward_study.py
+      - scripts/boat_private_venue_retention_audit.py
+      - tests/test_boat_private_venue_retention_audit.py
       - audit/state/boat-native-forward-study.json
       - audit/state/boat-native-forward-study-witness.json
       - scripts/boat_cutoff_raw_replay_audit.py
@@ -133,7 +137,7 @@ jobs:
           sparse-checkout: race_ai/boat_saved_model_view.py
           sparse-checkout-cone-mode: false
       - name: Pure model matrix and forced original ZIP AES source-free contract
-        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit tests.test_boat_native_forward_study tests.test_boat_native_pair_raw_evidence tests.test_boat_saved_reason_binding_audit tests.test_boat_saved_reason_binding_io tests.test_boat_saved_rejection_anchor_proof tests.test_boat_saved_rejection_anchor_io tests.test_boat_legacy_reason_anchor_guard tests.test_boat_saved_rejection_anchor_history tests.test_boat_legacy_reason_anchor_entry tests.test_boat_rejection_anchor_restoration tests.test_boat_rejection_anchor_repair tests.test_boat_rejection_anchor_repair_cli -v
+        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit tests.test_boat_native_forward_study tests.test_boat_private_venue_retention_audit tests.test_boat_native_pair_raw_evidence tests.test_boat_saved_reason_binding_audit tests.test_boat_saved_reason_binding_io tests.test_boat_saved_rejection_anchor_proof tests.test_boat_saved_rejection_anchor_io tests.test_boat_legacy_reason_anchor_guard tests.test_boat_saved_rejection_anchor_history tests.test_boat_legacy_reason_anchor_entry tests.test_boat_rejection_anchor_restoration tests.test_boat_rejection_anchor_repair tests.test_boat_rejection_anchor_repair_cli -v
       - name: Prove source-owner and private key are only ever read on trusted main events
         run: |
           python - <<'PY'
@@ -388,7 +392,7 @@ jobs:
               selected_round=os.environ.get('OWNER_AUDIT_CLOSED_ROUND','')
               closed_round=int(selected_round) if selected_round else None
               from scripts.boat_private_original_vault import _environment
-              from scripts.github_existing_cycle import gh
+              from scripts.github_existing_cycle import gh,_live_gh
               repo=Path('.').resolve();_environment(repo)
               active=from_exact_file('boat_active_snapshot_private','../scripts/boat_owner_active_snapshot_audit.py')
               snapshot_clock=datetime.now(timezone.utc)
@@ -464,6 +468,23 @@ jobs:
                       registration_status='HOLD',evaluation_status='UNREGISTERED_HOLD',failure_phase='SPEC',
                       official_raw_qualified=False,qualifying_g8_count=0,promotion_allowed=False,new_forecasts=0,source_requests=0)
               # NATIVE_FORWARD_STUDY_END
+              # PRIVATE_VENUE_RETENTION_READBACK_BEGIN
+              try:
+                  venue_retention=from_exact_file('boat_private_venue_retention_private','../scripts/boat_private_venue_retention_audit.py')
+                  report['private_venue_retention_readback']=venue_retention.audit_private_venue_retention(
+                      repo,get=_live_gh,now=datetime.now(timezone.utc),
+                      main_identity=dict(commit=os.environ['GITHUB_SHA'],run_id=int(os.environ['GITHUB_RUN_ID']),
+                          attempt=int(os.environ['GITHUB_RUN_ATTEMPT']),repository=os.environ['GITHUB_REPOSITORY']))
+              except Exception:
+                  report['private_venue_retention_readback']=dict(
+                      schema='RACE_AI_PRIVATE_VENUE_RETENTION_READBACK_COUNTS_V1',
+                      status='HOLD_PRIVATE_RESEARCH_RETENTION',phase='MAIN_CONTEXT',reason='WORKFLOW_HOOK_UNAVAILABLE',
+                      artifact_count=None,expected_candidate_count=None,verified_candidate_count=None,
+                      missing_candidate_count=None,conflict_candidate_count=None,verified_original_bytes=None,
+                      artifact_inventory_sha256=None,candidate_inventory_sha256=None,observed_remote_commit=None,
+                      historical_push_completion_time_proven=False,source_requests=0,
+                      production_promoted=False,plaintext_published=False)
+              # PRIVATE_VENUE_RETENTION_READBACK_END
               with open(os.environ['GITHUB_OUTPUT'],'a') as output:
                   output.write('active_snapshot='+('true' if active_snapshot else 'false')+'\n')
               safe=Path(os.environ['RUNNER_TEMP'])/'boat-national-p1-counts.json'
