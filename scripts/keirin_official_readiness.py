@@ -109,6 +109,13 @@ def assess(*, repo):
              "HOLD_STATE_BRANCH_RESPONSE_INVALID")
         checks["state_branch_readable"] = True
         report["observed_state_commit"] = reference.split("\t", 1)[0]
+        # Existing frozen races can be settled without the independent new-card
+        # capture opt-ins. This is configuration only, not source authority or
+        # a claim that any official result was fetched or scored.
+        report["independent_result_route_configured"] = bool(
+            checks["github_state_store_enabled"] and
+            checks["external_source_store_unconfigured"] and
+            checks["official_source_enabled"])
         need(nationwide_ab_selected(values), "HOLD_NATIONWIDE_AB_NOT_SELECTED")
         need(checks["official_source_enabled"], "HOLD_OFFICIAL_AUTOMATED_SOURCE_NOT_ENABLED")
         report["state"] = READY
