@@ -1,0 +1,36 @@
+{
+  "schema": "RACE_AI_MAIN4_REVIEWED_MERGE_FINAL_CI_V1",
+  "recorded_at": "2026-11-19T03:18:12.493244+00:00",
+  "main": "ed336daae7b78ec4c8a8b90cebfaaf713ff70260",
+  "tested_head": "6f2a85f95f988aaaee09724fa4cc7179b58b4450",
+  "identical_tree": "fac0e479d9f67e5d2732e5a0e641620a77ff02ae",
+  "first_parent": "a277a692a2791c77ee89a2e9af71582f5c98d458",
+  "registration_spec_parent_matches_actual_first_parent": true,
+  "normal_protected_merge": true,
+  "existing_pr": 4,
+  "final_checks": {
+    "total": 25,
+    "success": 12,
+    "skipped": 13,
+    "failure": 0
+  },
+  "actual_ci": {
+    "run": 44448531368,
+    "job": 135306490344,
+    "tests": [
+      {
+        "count": 435,
+        "seconds": 339.836
+      },
+      {
+        "count": 7,
+        "seconds": 23.605
+      }
+    ],
+    "contracts_and_11_heredoc_compile_passed": true
+  },
+  "source_S_unchanged": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "ui_deployed": false,
+  "production_weights_changed": false,
+  "source_dispatched_directly_by_root": false
+}
