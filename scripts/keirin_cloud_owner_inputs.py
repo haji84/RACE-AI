@@ -20,6 +20,8 @@ import os
 import re
 import time
 
+from scripts.keirin_runtime_selection import nationwide_ab_selected
+
 PROFILE = 'owner-approved-winticket-keirinjp-20261109'
 SCHEMA = 'RACE_AI_KEIRIN_CLOUD_OWNER_SOURCE_CONNECTION_V1'
 SOURCE_PATH = re.compile(r'^/keirin/[a-z][a-z0-9-]{2,30}/racecard/(\d{8})(\d{2})/([1-3])/([1-9]|1[0-2])$')
@@ -69,6 +71,8 @@ class SourceSession:
 
     def __call__(self, url):
         """Fetch only an approved host and latch access denials for this cycle."""
+        need(not nationwide_ab_selected(),
+             'LEGACY_SOURCE_SUPERSEDED_BY_NATIONWIDE_AB')
         need(self.available(), 'OWNER_SOURCE_SESSION_STOPPED')
         u = urlsplit(url)
         need(u.scheme == 'https' and not u.username and not u.password and

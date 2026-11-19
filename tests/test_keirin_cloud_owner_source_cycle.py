@@ -23,6 +23,24 @@ class CloudOwnerSourceCycleTests(unittest.TestCase):
             'provider_machine_rights_independently_verified':False,
             'history_races_processed':1,'races':[]}
 
+    def test_selected_ab_stops_even_fully_configured_legacy_feed_before_staging(self):
+        selected = {
+            'RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED': 'true',
+            'RACE_AI_AB_PUBLIC_CAPTURE_ENABLED': 'true',
+            'RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED': 'true',
+            'RACE_AI_AB_SOURCE_S3_PREFIX': '',
+        }
+        full = {name: 'fixture-not-a-live-license' for name in cloud.LICENSED_SOURCE_REQUIRED_KEYS}
+        with patch.dict(os.environ, {**self.env, **selected, **full}, clear=True):
+            try:
+                grants, stage, status = cloud._licensed_inputs(self.inbox, self.tmp.name)
+            except cloud.ArchiveError as exc:
+                self.fail(f'The superseded source reached provider admission: {exc}')
+        self.assertIsNone(grants)
+        self.assertIsNone(stage)
+        self.assertEqual(status, 'LEGACY_SOURCE_SUPERSEDED_BY_NATIONWIDE_AB')
+        self.assertEqual(list(self.inbox.iterdir()), [])
+
     def test_no_opt_in_stays_offline_and_no_license_is_created(self):
         with patch.dict(os.environ,self.env,clear=True), patch(
             'scripts.keirin_cloud_owner_inputs.collect_owner_inputs') as collect:

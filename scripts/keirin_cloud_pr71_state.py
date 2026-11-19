@@ -40,6 +40,7 @@ from race_ai.keirin_result_delivery import canonical, utc
 from scripts.keirin_cloud_pr71_variable import (
     FourModelVariableLedger, stage_four_model_variable_selections,
 )
+from scripts.keirin_runtime_selection import nationwide_ab_selected
 
 BASE=Path("state/keirin/pr71-production/v1")
 HEAD=BASE/"latest.json"
@@ -323,8 +324,20 @@ def commit(repo,source_root,db,prior):
             git(tree,"push","origin","HEAD:refs/heads/"+STATE_BRANCH)
             git(repo,"fetch","--no-tags","origin",
                 "refs/heads/"+STATE_BRANCH+":refs/remotes/origin/"+STATE_BRANCH)
-            need(git(repo,"rev-parse","refs/remotes/origin/"+STATE_BRANCH)==sent,
-                 "REMOTE_ENCRYPTED_COMMIT_READBACK_MISMATCH")
+            observed=git(repo,"rev-parse","refs/remotes/origin/"+STATE_BRANCH)
+            # Other state lineages may append after our successful push. Bind
+            # readback to this observed commit and our immutable blobs, not to
+            # an exact branch tip or a later writer's mutable latest pointer.
+            try:
+                git(repo,"merge-base","--is-ancestor",sent,observed)
+            except ArchiveError:
+                raise ArchiveError("REMOTE_ENCRYPTED_COMMIT_READBACK_MISMATCH") from None
+            for suffix in (".enc",".scope.json",".proof.json"):
+                path=str(rel)+suffix
+                expected=git(repo,"ls-tree","--full-tree",sent,"--",path)
+                actual=git(repo,"ls-tree","--full-tree",observed,"--",path)
+                need(bool(expected) and actual==expected,
+                     "REMOTE_ENCRYPTED_FILE_READBACK_MISMATCH")
             return {"state":"CLOUD_PR71_ENCRYPTED_GIT_HISTORY_READBACK_VERIFIED",
                     "generation":generation,
                     "cipher_sha256":digest,
@@ -342,6 +355,8 @@ def _licensed_inputs(inbox,source_root):
     produces partial research input only, not a provider licence or a
     falsely admitted full-model packet.
     """
+    if nationwide_ab_selected():
+        return None,None,"LEGACY_SOURCE_SUPERSEDED_BY_NATIONWIDE_AB"
     e=os.environ
     needed=LICENSED_SOURCE_REQUIRED_KEYS
     if missing_source_configuration(e):
@@ -394,6 +409,9 @@ def _licensed_inputs(inbox,source_root):
 
 def cycle(repo,source_root):
     require_main_event()
+    if nationwide_ab_selected():
+        return {"state":"LEGACY_PR71_SUPERSEDED_BY_NATIONWIDE_AB",
+                "new_forecasts":0,"provider_requests":0}
     check_owner_cipher_consent(source_root)
     need(bool(os.getenv("RACE_AI_STATE_KEY")),
          "PRODUCTION_STATE_KEY_NOT_CONFIGURED")

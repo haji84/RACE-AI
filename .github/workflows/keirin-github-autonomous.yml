@@ -99,9 +99,13 @@ jobs:
 
   capture-completed-races:
     if: >-
-      (github.event_name == 'schedule' && github.event.schedule == '21 0-19 * * *') ||
-      (github.event_name == 'schedule' && inputs.mode == 'capture') ||
-      (github.event_name == 'workflow_dispatch' && inputs.mode == 'capture')
+      !(vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+        vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
+        vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+        vars.RACE_AI_AB_SOURCE_S3_PREFIX == '') &&
+      ((github.event_name == 'schedule' && github.event.schedule == '21 0-19 * * *') ||
+       (github.event_name == 'schedule' && inputs.mode == 'capture') ||
+       (github.event_name == 'workflow_dispatch' && inputs.mode == 'capture'))
     runs-on: ubuntu-24.04
     timeout-minutes: 115
     steps:

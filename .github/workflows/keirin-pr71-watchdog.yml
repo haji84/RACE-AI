@@ -44,6 +44,10 @@ jobs:
 
   trusted-fallback:
     if: >-
+      !(vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+        vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
+        vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+        vars.RACE_AI_AB_SOURCE_S3_PREFIX == '') &&
       github.repository == 'haji84/RACE-AI' &&
       (
         (github.event_name == 'schedule' && github.ref == 'refs/heads/main') ||

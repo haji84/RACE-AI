@@ -21,6 +21,8 @@ on:
     paths:
       - '.github/workflows/keirin-pr71-owner-autonomous.yml'
       - 'scripts/keirin_cloud_pr71_state.py'
+      - 'scripts/keirin_runtime_selection.py'
+      - 'tests/test_keirin_runtime_exclusion.py'
       - 'scripts/keirin_live_source_readiness.py'
       - 'tests/test_keirin_live_source_readiness.py'
       - 'tests/test_keirin_cloud_pr71_state.py'
@@ -51,6 +53,8 @@ on:
     paths:
       - '.github/workflows/keirin-pr71-owner-autonomous.yml'
       - 'scripts/keirin_cloud_pr71_state.py'
+      - 'scripts/keirin_runtime_selection.py'
+      - 'tests/test_keirin_runtime_exclusion.py'
       - 'scripts/keirin_live_source_readiness.py'
       - 'tests/test_keirin_live_source_readiness.py'
       - 'tests/test_keirin_cloud_pr71_state.py'
@@ -116,7 +120,7 @@ jobs:
           cd "$GITHUB_WORKSPACE/pr71-source"
           python -m unittest -v tests.test_keirin_pr71_four_model_rank tests.test_keirin_allowed_delivery tests.test_keirin_permissioned_owner
           python -m unittest -v tests.test_keirin_licensed_result_stage tests.test_keirin_license_api_ingest
-          (cd "$GITHUB_WORKSPACE" && PYTHONPATH="$GITHUB_WORKSPACE" python -m unittest -v tests.test_live_15min_proof tests.test_keirin_live_source_readiness)
+          (cd "$GITHUB_WORKSPACE" && PYTHONPATH="$GITHUB_WORKSPACE" python -m unittest -v tests.test_live_15min_proof tests.test_keirin_live_source_readiness tests.test_keirin_runtime_exclusion)
           python -m unittest -v tests.test_keirin_winticket_prior_events tests.test_keirin_prior_selection tests.test_keirin_prior_private_stage tests.test_keirin_winticket_ex_connection tests.test_keirin_weather_input_connection tests.test_keirin_github_owner_future_intake
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_pr71_state.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_workflow_guard.py' -v
@@ -145,7 +149,12 @@ jobs:
       - name: Do not claim synthetic results as live
         run: echo 'Synthetic model and AES tests are not actual real-race prediction evidence.' >> "$GITHUB_STEP_SUMMARY"
       - name: Main-only owner-approved real source connection without production secrets
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !(vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' && vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' && vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' && vars.RACE_AI_AB_SOURCE_S3_PREFIX == '')
+        env:
+          RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED }}
+          RACE_AI_AB_PUBLIC_CAPTURE_ENABLED: ${{ vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED }}
+          RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+          RACE_AI_AB_SOURCE_S3_PREFIX: ${{ vars.RACE_AI_AB_SOURCE_S3_PREFIX }}
         shell: bash
         run: |
           set -euo pipefail
@@ -196,6 +205,10 @@ jobs:
 
   public-preflight:
     if: >-
+      !(vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+        vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
+        vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+        vars.RACE_AI_AB_SOURCE_S3_PREFIX == '') &&
       !(github.event_name == 'workflow_dispatch' && inputs.manual71_pilot == true) &&
       (github.event_name == 'workflow_dispatch' ||
        (github.event_name == 'schedule' && github.event.schedule == '3,33 * * * *'))
@@ -306,6 +319,10 @@ jobs:
   github-hosted-pr71-cycle:
     needs: config_readiness
     if: >-
+      !(vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+        vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
+        vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+        vars.RACE_AI_AB_SOURCE_S3_PREFIX == '') &&
       github.ref == 'refs/heads/main' &&
       !(github.event_name == 'workflow_dispatch' && inputs.manual71_pilot == true) &&
       (github.event_name == 'workflow_dispatch' ||
@@ -317,6 +334,10 @@ jobs:
     outputs:
       committed: ${{ steps.archive.outputs.committed }}
     env:
+      RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED }}
+      RACE_AI_AB_PUBLIC_CAPTURE_ENABLED: ${{ vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED }}
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+      RACE_AI_AB_SOURCE_S3_PREFIX: ${{ vars.RACE_AI_AB_SOURCE_S3_PREFIX }}
       RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
       RACE_AI_KEIRIN_FEED_ENDPOINT: ${{ secrets.RACE_AI_KEIRIN_FEED_ENDPOINT }}
       RACE_AI_KEIRIN_FEED_RIGHTS_REF: ${{ secrets.RACE_AI_KEIRIN_FEED_RIGHTS_REF }}
@@ -365,10 +386,18 @@ jobs:
           PY
 
   independent-cloud-readback:
+    # Preserve historical verification without adding a reader on every A/B
+    # poll. A superseded writer's archive is opened only by explicit dispatch.
     needs: github-hosted-pr71-cycle
     if: >-
+      always() && !cancelled() &&
       github.ref == 'refs/heads/main' &&
-      needs.github-hosted-pr71-cycle.outputs.committed == 'true'
+      (needs.github-hosted-pr71-cycle.outputs.committed == 'true' ||
+       (vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+        vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
+        vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+        vars.RACE_AI_AB_SOURCE_S3_PREFIX == '' &&
+        github.event_name == 'workflow_dispatch' && inputs.manual71_pilot != true))
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
