@@ -1,0 +1,48 @@
+{
+  "scope": "2026-01-01/2026-11-18",
+  "total_settled": 24291,
+  "male_eligible": 22245,
+  "girls_excluded": 2046,
+  "successfully_joined": 6,
+  "missing_published_lineup": 22239,
+  "conflicts": 0,
+  "invalid": 0,
+  "5_car_male": {
+    "eligible": 216,
+    "joined": 0,
+    "missing": 216
+  },
+  "6_car_male": {
+    "eligible": 1085,
+    "joined": 0,
+    "missing": 1085
+  },
+  "7_car_male": {
+    "eligible": 18754,
+    "joined": 6,
+    "missing": 18748,
+    "within_joined_classes": {
+      "SAME_LINE_3": 1,
+      "SAME_LINE_2_PLUS_OTHER": 3,
+      "THREE_DIFFERENT_LINES": 2
+    }
+  },
+  "8_car_male": {
+    "eligible": 132,
+    "joined": 0,
+    "missing": 132
+  },
+  "9_car_male": {
+    "eligible": 2058,
+    "joined": 0,
+    "missing": 2058
+  },
+  "status": "PARTIAL_COHORT_ONLY_NOT_NATIONWIDE_FINAL",
+  "known_sources": [
+    "https://kantoumon.jp/20261118_kochi",
+    "https://kantoumon.jp/20261118_shizuoka"
+  ],
+  "result_source": "haji84/RACE-AI PR #312 race_results_2026??.csv",
+  "no_inferred_lineups": true,
+  "no_claim_of_live_formation": true
+}
