@@ -1138,16 +1138,17 @@ jobs:
 
 
   github-only-research-results:
-    # Run after this poll's independent readback. A failed/no-new capture
-    # does not prevent rechecking older immutable originals.
+    # Independent official settlement can continue for already immutable
+    # pre-cutoff originals even if new A/B card capture is disabled. The
+    # official-source and encrypted Git-state owner opt-ins still gate GETs.
+    # A skipped/failed forecast job never fabricates a new forecast.
     needs: [github-only-owner-capture, github-only-independent-archive-readback]
     if: >-
       always() &&
       github.repository == 'haji84/RACE-AI' &&
       github.ref == 'refs/heads/main' &&
-      vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
-      vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
       vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+      vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED == 'true' &&
       vars.RACE_AI_AB_SOURCE_S3_PREFIX == '' &&
       (github.event_name == 'schedule' ||
        (github.event_name == 'workflow_dispatch' && inputs.mode == 'run'))
