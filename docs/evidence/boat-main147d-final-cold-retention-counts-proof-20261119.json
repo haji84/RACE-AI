@@ -1,0 +1,205 @@
+{
+  "schema": "RACE_AI_MAIN147D_PRIVATE_RETENTION_ACTUAL_COUNTS_PROOF_V1",
+  "observed_at": "2026-11-19T06:08:39.923968+00:00",
+  "main_commit": "147d0558dc8c8718af673310b324b63babc90d59",
+  "main_tree": "b0627bcfdf671fe49beb14b0610b04f2140aa52d",
+  "workflow_run": {
+    "conclusion": "success",
+    "created_at": "2026-11-19T05:49:30Z",
+    "event": "push",
+    "head_branch": "main",
+    "head_sha": "147d0558dc8c8718af673310b324b63babc90d59",
+    "id": 44467797701,
+    "name": "BOAT nationally authenticated P1 matrix (no racing GET)",
+    "path": ".github/workflows/boat-owner-national-p1-matrix.yml",
+    "run_attempt": 1,
+    "status": "completed",
+    "updated_at": "2026-11-19T06:04:46Z",
+    "workflow_id": 418875114
+  },
+  "completed_job": {
+    "id": 135369676262,
+    "run_id": 44467797701,
+    "run_attempt": 1,
+    "head_sha": "147d0558dc8c8718af673310b324b63babc90d59",
+    "name": "Independently reopen sealed national P0/P1 original matrix",
+    "status": "completed",
+    "conclusion": "success",
+    "started_at": "2026-11-19T05:49:33Z",
+    "completed_at": "2026-11-19T06:04:46Z"
+  },
+  "report_artifact_metadata": {
+    "id": 14503356965,
+    "name": "boat-national-p1-model-coverage-44467797701",
+    "size_in_bytes": 8818,
+    "digest": "sha256:83f4d8a7b717805354e083cfc5aa5081788b5ea3a4dae8dee129c37a8f7a2fa9",
+    "expired": false,
+    "created_at": "2026-11-19T05:56:23Z",
+    "expires_at": "2026-12-19T05:56:23Z",
+    "workflow_run": {
+      "id": 44467797701,
+      "head_sha": "147d0558dc8c8718af673310b324b63babc90d59",
+      "head_branch": "main",
+      "repository_id": 1416489937,
+      "head_repository_id": 1416489937
+    }
+  },
+  "report_container_verification": {
+    "artifact_id": 14503356965,
+    "zip_bytes": 8818,
+    "zip_sha256": "83f4d8a7b717805354e083cfc5aa5081788b5ea3a4dae8dee129c37a8f7a2fa9",
+    "member_count": 1,
+    "member_name": "boat-national-p1-counts.json",
+    "member_bytes": 28209,
+    "member_sha256": "f9a0489268b0881cf431c2c5a0309b13c690d031ebae300d0f7e7eb156ad9ca6",
+    "zip_crc_verified": true,
+    "private_directory_mode": "0700",
+    "private_zip_mode": "0600",
+    "private_json_mode": "0600",
+    "real_owner_key_reads": 0,
+    "decryption_calls": 0,
+    "source_provider_gets": 0,
+    "signed_url_output": false
+  },
+  "completed_job_log_verification": {
+    "job_id": 135369676262,
+    "run_id": 44467797701,
+    "completed_job_success_before_log_fetch": true,
+    "active_job_log_fetches": 0,
+    "completed_job_log_fetches": 1,
+    "completed_log_character_count": 180712,
+    "completed_log_line_count": 1504,
+    "target_report_count": 1,
+    "target_report_logged_at": "2026-11-19T05:56:20.0864410Z",
+    "counts_report_bytes_equal_verified_artifact_member": true
+  },
+  "private_venue_retention_readback": {
+    "artifact_count": 3,
+    "artifact_inventory_sha256": "55d51e65b96ff3797d6243b2415e3ab4d2397d75a12ea3e1f4701174fd438d72",
+    "candidate_inventory_sha256": "5f15eeb1eb0344c70fb9d64199c03ca0ce36c1024225ae9243ab5720e160aeab",
+    "conflict_candidate_count": 0,
+    "expected_candidate_count": 336,
+    "failure_code": null,
+    "historical_push_completion_time_proven": false,
+    "missing_candidate_count": 160,
+    "observed_remote_commit": "1af9a3ad7dda6ef2068397e6f98fa00d1de45fa9",
+    "phase": "REMOTE_READBACK",
+    "plaintext_published": false,
+    "production_promoted": false,
+    "reason": "REMOTE_CANDIDATES_MISSING_OR_CONFLICTING",
+    "schema": "RACE_AI_PRIVATE_VENUE_RETENTION_READBACK_COUNTS_V1",
+    "source_requests": 0,
+    "status": "HOLD_PRIVATE_RESEARCH_RETENTION",
+    "verified_candidate_count": 176,
+    "verified_original_bytes": 194960367
+  },
+  "missing_scope": "CANDIDATES_WITH_AT_LEAST_ONE_MISSING_ORIGINAL_FILE",
+  "missing_file_count": null,
+  "missing_round_distribution": null,
+  "historical_timeout_causation_proven": false,
+  "core_audit": {
+    "status": "HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED",
+    "all_model_zip_readback_status": "HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED",
+    "missing_all_model_rounds": [
+      1
+    ]
+  },
+  "study": {
+    "nonce": "548ad3e11a4fab03f18dc74c0a11992be42dd9b0abb2e8fae7521bdc993af08d",
+    "spec_sha256": "e66a46f80d4d758b2f0407cd5bbd79a32c9fa8f9d8c10e177cd9811282084a12",
+    "registration_main_run_id": 44449743664,
+    "registration_report_artifact_id": 14495645723,
+    "candidate_bindings_sha256": "ebfa1b3f9934fb4323f94c451e83347fc9a5d90064354c0dea53444fa7f360a8",
+    "registration_status": "VERIFIED_ORIGINAL_SERVER_WITNESS",
+    "evaluation_status": "WINDOW_OPEN_HOLD",
+    "matched_races_by_cell": {
+      "boat/boat-observed-pairwise-factor-v1": 0,
+      "boat/boat-observed-pairwise-start-v1": 0
+    },
+    "registered_schedule_race_count": null,
+    "missing_forecast_races_by_cell": {
+      "boat/boat-observed-pairwise-factor-v1": null,
+      "boat/boat-observed-pairwise-start-v1": null
+    },
+    "research_statistical_rule_satisfied_cell_count": null,
+    "source_requests": 0,
+    "new_forecasts": 0,
+    "promotion_allowed": false,
+    "qualifying_g8_count": 0
+  },
+  "study_fixed_fields_equal_previous_m3": {
+    "nonce": true,
+    "spec_sha256": true,
+    "registration_main_run_id": true,
+    "registration_report_artifact_id": true,
+    "candidate_bindings_sha256": true
+  },
+  "study_code_spec_witness_byte_unchanged_since_m3": {
+    "audit/state/boat-native-forward-study.json": true,
+    "audit/state/boat-native-forward-study-witness.json": true,
+    "scripts/boat_native_forward_study.py": true,
+    "scripts/boat_native_forward_study_audit.py": true
+  },
+  "original_study_server_witness": {
+    "artifact_id": 14495645723,
+    "artifact_digest": "sha256:1e3822af3cbb3c82ed6d70247d44331f08ab34fe0f008c66645cca0fa35dd3ca",
+    "created_at": "2026-11-19T03:15:29Z",
+    "expires_at": "2026-12-19T03:15:28Z",
+    "expired": false,
+    "window_days": 5,
+    "registered_after": "2026-11-19T03:15:30+00:00",
+    "window_ends_at": "2026-11-24T03:15:30+00:00",
+    "witness_retention_days": 30
+  },
+  "native_pair_raw_samples": {
+    "status": "RAW_SAMPLES_REPLAY_MATCH",
+    "selected_sample_count": 2,
+    "attempted_sample_count": 2,
+    "raw_match_count": 2,
+    "formal_status": "HOLD_UNPROVEN_PUBLICATION_AND_ACTUAL_CLOSE",
+    "formal_qualified": false,
+    "qualifying_g8_count": 0,
+    "promotion_allowed": false
+  },
+  "local_owner_key_reads": 0,
+  "local_aes_decryption_calls": 0,
+  "provider_gets": 0,
+  "source_requests": 0,
+  "dispatches": 0,
+  "retries": 0,
+  "cancels": 0,
+  "remote_writes": 0,
+  "actual_recovery_performed": false,
+  "production_promoted": false,
+  "plaintext_published": false,
+  "scratch_files": {
+    "boat-national-p1-model-coverage-44467797701.zip": {
+      "bytes": 8818,
+      "sha256": "83f4d8a7b717805354e083cfc5aa5081788b5ea3a4dae8dee129c37a8f7a2fa9"
+    },
+    "boat-national-p1-counts.json": {
+      "bytes": 28209,
+      "sha256": "f9a0489268b0881cf431c2c5a0309b13c690d031ebae300d0f7e7eb156ad9ca6"
+    },
+    "report-artifact-metadata.json": {
+      "bytes": 498,
+      "sha256": "c7e84677874bab68631f2d7b446b7dfc3d71f683da9d65931b4d6ff26d6a84bc"
+    },
+    "counts-container-verification.json": {
+      "bytes": 558,
+      "sha256": "4391a7a0aabdb56ee0b7eacddf38ddb87d22fc4efd784dd041f11e433927384d"
+    },
+    "completed-job-counts-report.json": {
+      "bytes": 28209,
+      "sha256": "f9a0489268b0881cf431c2c5a0309b13c690d031ebae300d0f7e7eb156ad9ca6"
+    },
+    "completed-job-log-verification.json": {
+      "bytes": 399,
+      "sha256": "1fbf922faf4c9afe28a3a5cba0a07df7f6d946a47a98727070fcea045ddedb5c"
+    },
+    "metadata-observations.jsonl": {
+      "bytes": 53249,
+      "sha256": "51897692ffa579ae70dd6bde97feb4c198b41b6e6c0f8da2353af640e19b5e3b"
+    }
+  }
+}

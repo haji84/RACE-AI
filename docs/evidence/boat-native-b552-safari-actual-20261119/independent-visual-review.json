@@ -1,0 +1,69 @@
+{
+  "schema": "RACE_AI_NATIVE_M106_COUNTS_ONLY_VISUAL_REVIEW_V1",
+  "status": "NO_NEW_BLOCKING_VISUAL_DEFECT_OBSERVED",
+  "review_scope": "Synthetic capture contact sheet plus six full-resolution PNGs; no interaction or reference-final-acceptance assessment",
+  "main": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+  "run_id": 44470498836,
+  "job_id": 135378501491,
+  "candidate_commit": "b55242230e93ec3975a5a49bf3dd5f46632ff794",
+  "candidate_web_tree": "5cbbfe05a2971485b5c32a84a8ddf7b2539604cc",
+  "reported_browser": {
+    "browserName": "Safari",
+    "browserVersion": "26.6",
+    "platformName": "macOS"
+  },
+  "dataset": "SYNTHETIC_ONLY",
+  "artifact_id": 14504402776,
+  "artifact_bytes": 9095453,
+  "artifact_sha256": "a120eb793d501466f6ad142385807629a29812a0970866e74c45f0725db329df",
+  "independent_integrity_checks": {
+    "ZIP_CRC_verified": true,
+    "PNGs_compared_byte_for_byte_to_ZIP": 28,
+    "PNG_hashes_matched": 28,
+    "PNG_dimensions_matched": 28
+  },
+  "visual_counts": {
+    "contact_sheets_viewed": 1,
+    "contact_capture_panels_reviewed": 28,
+    "full_resolution_PNGs_viewed": 6,
+    "full_resolution_mobile_allocation_views": 2,
+    "full_resolution_mobile_detail_views": 2,
+    "full_resolution_desktop_detail_views": 2,
+    "detail_views_observed_as_actual_detail": 4,
+    "previously_wrong_page_detail_views_rechecked": 2,
+    "wrong_named_page_panels_observed": 0,
+    "blank_capture_panels_observed": 0,
+    "new_blocking_layout_defects_observed": 0,
+    "mobile_ticket_number_amount_overlaps_observed": 0
+  },
+  "known_remaining_static_observations": {
+    "mobile_detail_views_with_horizontal_tab_label_clipping": 1,
+    "mobile_detail_views_with_closed_select_ellipsis": 1,
+    "mobile_allocation_views_with_summary_below_initial_viewport": 2,
+    "post_scroll_focus_or_confirmation_verified_by_this_review": false
+  },
+  "limits": {
+    "original_eight_reference_final_acceptance_verified": false,
+    "physical_iphone_verified": false,
+    "account_login_verified": false,
+    "all_real_data_final_acceptance_verified": false,
+    "all_eight_reference_screens_visually_verified": false,
+    "pixel_perfect_reference_equivalence_asserted": false,
+    "future_Safari_raster_synchronization_guaranteed": false
+  },
+  "actions": {
+    "image_bytes_edited": 0,
+    "images_copied": 0,
+    "new_screenshots_created": 0,
+    "raw_private_screenshots_viewed": 0,
+    "reference_JPEGs_viewed_or_copied_in_this_review": 0,
+    "source_or_provider_requests": 0,
+    "extra_provider_inference_requests": 0,
+    "actual_key_reads": 0,
+    "code_or_ref_changes": 0,
+    "remote_mutations": 0,
+    "production_UI_deployments": 0
+  },
+  "input_manifest_sha256": "88b347efa78ab7bfbe6247c086842066cd9ced6b80a0a9d23a3f4c90b9345ceb",
+  "input_dimensions_sha256": "4ce644c3541a029eb52d9a7fdb37d56225e4dbef21891dede697820315a61c1e"
+}

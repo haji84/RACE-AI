@@ -1,0 +1,21 @@
+{
+  "schema": "RACE_AI_EXISTING_NATIVE_ACCEPTANCE_REQUEST_V1",
+  "observed_at": "2026-11-19T06:12:37.566680+00:00",
+  "main": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+  "source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "workflow_id": 416758725,
+  "inputs": {
+    "browser": "native-safari"
+  },
+  "existing_runs_before": 0,
+  "automatic_gate_status": "NATIVE_SAFARI_CANDIDATE_UNCHANGED",
+  "test_only_fix_requires_new_acceptance": true,
+  "request_attempted": true,
+  "http_status": "204",
+  "request_acknowledged": true,
+  "new_workflow_jobs_steps_inputs_or_permissions": 0,
+  "source_worker_dispatches": 0,
+  "provider_requests": 0,
+  "owner_key_reads": 0,
+  "source_model_UI_or_security_changes": 0
+}

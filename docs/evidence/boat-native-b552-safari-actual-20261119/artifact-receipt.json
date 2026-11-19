@@ -1,0 +1,121 @@
+{
+  "artifact_id": 14504402776,
+  "zip_bytes": 9095453,
+  "zip_sha256": "a120eb793d501466f6ad142385807629a29812a0970866e74c45f0725db329df",
+  "members": {
+    "1440-detail.png": {
+      "bytes": 436736,
+      "sha256": "f424a6426f90bd17d3d3482198a7c481943d3de30c48e0f5550c9b943d303a44"
+    },
+    "1440-picks.png": {
+      "bytes": 506007,
+      "sha256": "9a3d58bda2484114ad1b65c2c180cf3aff4f16b4dbf1039054e59c2995f00c63"
+    },
+    "1440-races.png": {
+      "bytes": 519160,
+      "sha256": "6ebd6833d8c12d18b2c2fd969cf4c5cdee91aeb297ea41dd7492ba129924a3ee"
+    },
+    "1440-home.png": {
+      "bytes": 589428,
+      "sha256": "ccb3966871dca5e2dff468f7aee51e41765bf1eea1901b50fa609664115a2d7d"
+    },
+    "1440-research.png": {
+      "bytes": 414429,
+      "sha256": "fe75284e9f247ad2bc9ddc31f3e761a0e53ca0eb2b617e3c3c99ff9833c8f97a"
+    },
+    "1440-results.png": {
+      "bytes": 633735,
+      "sha256": "df684eb1a64f80e4df101d5a9b0405a71a9ed6ba165ec0729d6a0512ef422b64"
+    },
+    "1440-settings.png": {
+      "bytes": 461871,
+      "sha256": "7d5a259e249c4e42337659b632cd47ffb530b88e1f4a85065248b7ee76a1c1a3"
+    },
+    "1920-detail.png": {
+      "bytes": 446961,
+      "sha256": "480363fe201ff648edfa517e6b6ba4604cfb2fcf1e07166c3376f0d84dd6d058"
+    },
+    "1920-home.png": {
+      "bytes": 646589,
+      "sha256": "e8837a6a2a7616c35518156c1d5da014c3f5a1548f05cd2c7c855b7fa5007112"
+    },
+    "1920-picks.png": {
+      "bytes": 524111,
+      "sha256": "1541f5e140409998e169c75ff9d08565cc38c9187fb53eb241ced4f777d25bf3"
+    },
+    "1920-races.png": {
+      "bytes": 542934,
+      "sha256": "1e359ddcdaa55ceeb46aa32715aba92ae664175a35e0c66091d07f25ca659078"
+    },
+    "1920-research.png": {
+      "bytes": 428562,
+      "sha256": "6f7eb75150bb7f45a37415f28909c0b2ddf7d374c66c944e9e8de1794efc049a"
+    },
+    "1920-results.png": {
+      "bytes": 712826,
+      "sha256": "a91fffc1cbe6f120d3a9457e36be822a0b21e1c3d83b44c858df798b9c072a34"
+    },
+    "1920-settings.png": {
+      "bytes": 477518,
+      "sha256": "7025fe434b12845958deb819ce593a5ecf7fee830a9423990306ed6eec9009f0"
+    },
+    "320-detail.png": {
+      "bytes": 124320,
+      "sha256": "ead5c87bfb5421f37e02efa0e0e5a8cb6765f1cb16f62b4fcbc854c8ac21db6d"
+    },
+    "320-home.png": {
+      "bytes": 166199,
+      "sha256": "e31b51868fb2381275813a09e2ab755245aa1a3c6791e912f71416338c26460f"
+    },
+    "320-picks.png": {
+      "bytes": 132070,
+      "sha256": "e5e9e7d1fec0f11beca53301fad5ba9167e559ca0f4b12aa1e18cc5e52acc250"
+    },
+    "320-races.png": {
+      "bytes": 123510,
+      "sha256": "ab3f5a816a04538d114eab87325506297dbd0f346a4d90b02f904eefbde66595"
+    },
+    "320-research.png": {
+      "bytes": 116386,
+      "sha256": "3f7c0ea5b7628750d1726623be5bea3e878e65f123e3500d6b9bd83bf69b1f33"
+    },
+    "320-results.png": {
+      "bytes": 186337,
+      "sha256": "a5aeb40a914ac9bc43e3b24622a9426ed49728a13bb5e9ea9bcf8aca1d3e3c17"
+    },
+    "320-settings.png": {
+      "bytes": 118726,
+      "sha256": "3ec8f981cdd68549d24dbc96ff2588ac08ceed176062dc97742f9d8548bc8c8f"
+    },
+    "390-detail.png": {
+      "bytes": 152312,
+      "sha256": "aaa35c59e3cbbef2be699e0f46d5666ac5358fbf2f3b1f3d19db202d2297a8d6"
+    },
+    "390-home.png": {
+      "bytes": 198190,
+      "sha256": "8273197977f337321e40828b3fa1d3b5b0ad655bac9dfbed8b5d5ebc0343e4fb"
+    },
+    "390-picks.png": {
+      "bytes": 146904,
+      "sha256": "7f136c204e69227de50abd972895d8790fc92b4e87990c4579c085889dfbdd92"
+    },
+    "390-research.png": {
+      "bytes": 135815,
+      "sha256": "37153c9a34eaba94b9d6826beea8e49651b357f0056541d002887a5a2ae6004d"
+    },
+    "390-races.png": {
+      "bytes": 142585,
+      "sha256": "20c97e5f66d4ecc0e286859125bf25e1ae4a99f5dca682434e5f36605c6773c1"
+    },
+    "390-results.png": {
+      "bytes": 207010,
+      "sha256": "f5b416554bbedbf5e564bba863b7e60c1cc8b4dd90f0d6b08f3846c7d80870fa"
+    },
+    "390-settings.png": {
+      "bytes": 133041,
+      "sha256": "bd5b60b975252b6ca2bf998863fd1374c9031ff3a9f0f989bddd145a01ecc02a"
+    }
+  },
+  "ZIP_CRC_verified": true,
+  "dataset": "SYNTHETIC_ONLY"
+}
