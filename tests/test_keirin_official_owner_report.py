@@ -67,7 +67,8 @@ class OwnerRaceReport(unittest.TestCase):
     def test_all_races_coverage_and_same_denominator_are_visible(self):
         report, rows = examples()
         soup = BeautifulSoup(view.render_private_report(report, rows), "html.parser")
-        self.assertEqual(len(soup.select("article[data-race-id]")), 4)
+        self.assertEqual(len(soup.select("#races-venue article[data-race-id]")), 4)
+        self.assertEqual(len(soup.select("#races-cutoff article[data-race-id]")), 4)
         coverage = soup.select_one("#coverage").get_text(" ", strip=True)
         self.assertIn("登録レース", coverage)
         self.assertEqual(soup.select_one('#coverage [data-metric="registered_races"]').text, "4")
@@ -255,6 +256,62 @@ class OwnerRaceReport(unittest.TestCase):
         self.assertIn("実映像で確認した着順・確率ではありません", card.text)
         self.assertIn("別線の捲り", card.text)
 
+    def test_cutoff_tab_orders_absolute_instants_and_keeps_unknowns_last(self):
+        report, original = pending_examples()
+        cutoffs = ["2026-11-19T12:00:00+09:00", "2026-11-19T02:30:00Z",
+                   "2026-11-19T11:30:00+09:00", None,
+                   "not-a-timestamp", "2026-11-19T10:00:00"]
+        rows = []
+        for race_no, cutoff in enumerate(cutoffs, 1):
+            row = deepcopy(original[0])
+            row.update(race_id=f"2026111926{race_no:02d}", race_no=race_no,
+                       official_cutoff_at=cutoff)
+            rows.append(row)
+        report["registered_races"] = len(rows)
+        soup = BeautifulSoup(view.render_private_report(report, list(reversed(rows))),
+                             "html.parser")
+        deadline = soup.select("#races-cutoff article[data-race-id]")
+        venue = soup.select("#races-venue article[data-race-id]")
+        self.assertEqual([card["data-race-id"] for card in deadline],
+                         [rows[i]["race_id"] for i in [1, 2, 0, 3, 4, 5]])
+        self.assertEqual([card["data-race-id"] for card in venue],
+                         [row["race_id"] for row in rows])
+        self.assertIn("締切 11:30 JST", deadline[0].text)
+        self.assertIn("締切 11:30 JST", deadline[1].text)
+        self.assertTrue(all("締切未確認" in card.text for card in deadline[-3:]))
+        self.assertIn("末尾", soup.select_one(".view-help").text)
+        self.assertTrue(soup.select_one("#view-venue").has_attr("checked"))
+        for choice in soup.select(".view-choice"):
+            self.assertEqual(choice["type"], "radio")
+            self.assertIsNotNone(soup.find("label", attrs={"for": choice["id"]}))
+            self.assertIsNotNone(soup.find(id=choice["aria-controls"]))
+
+    def test_both_order_tabs_keep_identical_abc_picks_and_verify_c_only_once(self):
+        report, rows = examples()
+        rows[0]["C"] = {"ranked_tickets": [[1, 2, 3]]}
+        admitted = []
+
+        def verify_once(row):
+            admitted.append(row["race_id"])
+            return True
+
+        soup = BeautifulSoup(view.render_private_report(
+            report, rows, verify_optional_c=verify_once), "html.parser")
+        self.assertEqual(admitted, [rows[0]["race_id"]])
+        venue = {card["data-race-id"]: card for card in
+                 soup.select("#races-venue article[data-race-id]")}
+        cutoff = {card["data-race-id"]: card for card in
+                  soup.select("#races-cutoff article[data-race-id]")}
+        self.assertEqual(set(venue), set(cutoff))
+        for rid in venue:
+            self.assertEqual(str(venue[rid]), str(cutoff[rid]))
+            self.assertEqual([arm["data-model"] for arm in cutoff[rid].select(".arm")],
+                             ["A", "B", "C"])
+        self.assertEqual(soup.select_one('#coverage [data-metric="registered_races"]').text, "4")
+        self.assertEqual(soup.select_one('#coverage [data-metric="paired_A_B_scored"]').text, "1")
+        self.assertIsNone(soup.find("script"))
+        self.assertIn("script-src 'none'", soup.find("meta", attrs={"http-equiv": "Content-Security-Policy"})["content"])
+
     def test_bad_six_phase_is_not_claimed_as_verified_tactical_detail(self):
         report, rows = examples()
         rows[0]["B"]["six_phase_scenarios"] = [{
@@ -269,3 +326,4 @@ class OwnerRaceReport(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
