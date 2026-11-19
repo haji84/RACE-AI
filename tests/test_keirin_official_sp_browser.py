@@ -645,8 +645,10 @@ class OfficialSPBrowserTests(unittest.TestCase):
             details = [d for d in parsed if d.get('schema', '').endswith('DETAIL_RECEIPT_V1')]
             self.assertEqual(len(details), 3)
             self.assertTrue(all(d['riders'][1]['entry_note_raw'] == '補充' for d in details))
+            self.assertTrue(all(rider.get('style_raw') == '架空脚質'
+                                for detail in details for rider in detail['riders']))
             report = json.dumps(out, ensure_ascii=False)
-            for private in ('架空会場', '架空選手', 'A'*43, 'B'*43, '/sp/', str(inbox)):
+            for private in ('架空会場', '架空選手', '架空脚質', 'A'*43, 'B'*43, '/sp/', str(inbox)):
                 self.assertNotIn(private, report)
 
     def test_each_denied_resource_stops_before_any_later_source_navigation(self):

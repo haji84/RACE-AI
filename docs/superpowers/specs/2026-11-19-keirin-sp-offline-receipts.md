@@ -3,7 +3,9 @@
 Parse already captured calendar, race-list and race-detail HTML without network,
 JavaScript execution, model inference or production admission. Preserve the
 existing calendar parser at c0feb1b and its distinction between meeting ranges
-and genuine race identities. No workflow, dependency, source pin or UI changes.
+and genuine race identities. No dependency, source pin or UI changes. Workflow
+updates are limited to the existing push/PR path filters for the SP
+parser/browser and their tests.
 
 Both entry points receive bytes, an expected SHA-256, an aware observation
 clock, and expected date/venue selection. Detail also receives an expected race
@@ -24,6 +26,11 @@ separately. Validate unique car numbers and six-digit official registrations.
 Retain cancellation and entry notes; supplemental entry is not withdrawal.
 Unknown notes cannot establish active eligibility. Preserve scores and other
 statistics as source text, with no invented rates, denominators or strengths.
+
+New detail receipts retain the published `kyakusitu` string as `style_raw`,
+including whitespace, empty and unrecognized text. This does not classify a
+model riding style or grant admission. Older V1 receipts may omit this additive
+field; they and their original source bytes are not rewritten or backfilled.
 
 Reject changed hashes, invalid clocks/types, ambiguous assignments, duplicate
 JSON keys, nonfinite JSON, invalid UTF-8, incomplete HTML and bounded-resource
