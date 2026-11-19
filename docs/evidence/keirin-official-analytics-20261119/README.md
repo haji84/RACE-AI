@@ -24,7 +24,9 @@ Raw documents, request details and source-derived values remain outside Git.
 The completed Actions decoded-log SHA-256 is
 `43fadefaf5e6d8f9648718b90d566d772db52b87d7b93dbebfe4eda1cb37c328`.
 
-The fix allows only the exact published same-origin analytics GET and preserves
+The fix inspects the exact analytics response regardless of MIME type across
+accepted 2xx statuses, including challenge and size checks. It allows only the
+exact published same-origin analytics GET and preserves
 all status, denial, response, navigation and private-input gates. Unrelated XHR,
 fetch, JSON API, other hosts, mutations, query/fragment variants, copied cookies
 and synthetic browser identities are not introduced. A real later denial still
