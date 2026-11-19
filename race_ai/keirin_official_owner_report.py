@@ -93,16 +93,31 @@ def _metric(value, kind):
     return f"{value:,}" + ("円" if kind == "yen" else "件")
 
 
-def _cutoff(value):
-    if value is None:
-        return "締切未確認"
+def _cutoff_at(value):
+    """Read only timezone-qualified instants; never invent a missing cutoff."""
     try:
         at = datetime.fromisoformat(value.replace("Z", "+00:00"))
         if at.utcoffset() is None:
-            return "締切未確認"
-        return "締切 " + at.astimezone(JST).strftime("%H:%M") + " JST"
-    except (ValueError, TypeError, AttributeError):
+            return None
+        # Normalize before comparing offsets, and ensure it is displayable in JST.
+        at.astimezone(JST)
+        return at.astimezone(timezone.utc)
+    except (ValueError, TypeError, AttributeError, OverflowError):
+        return None
+
+
+def _cutoff(value):
+    at = _cutoff_at(value)
+    if at is None:
         return "締切未確認"
+    return "締切 " + at.astimezone(JST).strftime("%H:%M") + " JST"
+
+
+def _cutoff_sort_key(entry):
+    row = entry[0]
+    at = _cutoff_at(row.get("official_cutoff_at"))
+    return (at is None, at or datetime.max.replace(tzinfo=timezone.utc),
+            row["race_id"])
 
 
 def _summary(role, stats):
@@ -290,6 +305,45 @@ main{max-width:1160px;margin:0 auto;padding:32px 28px 60px}h1,h2,h3,p,dl,dd{marg
 
 STYLE += "\n/* Editorial, mobile-first cards. Do not hide any tickets behind JS or tabs. */\n:root{--ink:#252a27;--muted:#65716b;--line:#e6e1d6;--paper:#fff;--blue:#39576a;--green:#476c58}\nbody{background:#f8f6f1;color:var(--ink)}.page-header h1{letter-spacing:.01em}\n.race-columns{grid-template-columns:repeat(3,minmax(0,1fr))}\n.result-panel{grid-column:1/-1;border-left:0!important;border-top:1px solid var(--line);background:#fcfaf5}\n.race-heading{background:#fffdf9}.arm{padding:20px 18px;border-left:0;min-width:0}\n.arm+.arm{border-left:1px solid var(--line)}.arm-heading{align-items:flex-start}\n.arm h3{font-size:16px}.pick-count{font-size:13px;margin:0 0 13px;color:var(--muted)}\n.pick-count strong{font-size:19px;color:var(--ink);margin-left:4px}\n.tickets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}\n.ticket{justify-content:space-between;background:#fff;border-radius:9px;padding:9px 10px}\n.ticket strong{font-size:17px}.rank{font-size:11px}\n.arm-a{border-top:3px solid #4b6174}.arm-b{border-top:3px solid #5b7659}\n.arm-c{border-top:3px solid #a77946;background:#fffdf8}\n.c-outcome{display:inline-block;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:700}\n.basis{border-top:1px solid var(--line);margin-top:17px;padding-top:14px}\n.basis h4{margin:0 0 8px;font-size:13px;color:#4b514d}\n.method-copy,.method-pending,.stage-note{font-size:12px;color:var(--muted);line-height:1.8}\n.phase-branch{border:1px solid var(--line);border-radius:8px;margin-top:7px;background:#fff}\n.phase-branch summary{cursor:pointer;padding:8px 10px;font-size:13px;font-weight:600}\n.phase-steps{list-style:none;padding:0 11px 8px;margin:0}\n.phase-steps li{display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:5px 0;border-top:1px solid #f0ede7}\n.phase-steps strong{font-variant-numeric:tabular-nums}\n.phase-steps li{flex-wrap:wrap}.phase-steps small{flex-basis:100%;font-size:11px;color:var(--muted);line-height:1.4}\n.model-outcome{font-size:12px;margin-top:12px;color:var(--muted)}\n@media(max-width:950px){.race-columns{grid-template-columns:repeat(2,minmax(0,1fr))}.arm-c{grid-column:1/-1;border-top:1px solid var(--line);border-left:0!important}}\n@media(max-width:700px){.race-columns{grid-template-columns:1fr}.arm+.arm{border-left:0;border-top:1px solid var(--line)}.arm-c{grid-column:auto}.arm{padding:18px}.tickets{grid-template-columns:repeat(2,minmax(0,1fr))}}\n"
 
+def _race_views(prepared):
+    # Reuse the already validated cards. Rendering both ordered panels must not
+    # repeat admission callbacks or change forecast / performance denominators.
+    cards = {entry[0]["race_id"]: _race_card(*entry) for entry in prepared}
+    empty = '<p class="no-races">この日の登録レースはありません。</p>'
+    by_venue = sorted(prepared, key=lambda entry: entry[0]["race_id"])
+    by_cutoff = sorted(prepared, key=_cutoff_sort_key)
+    panels = "".join(
+        f'<section id="races-{key}" class="race-view" aria-label="{label}の予想">'
+        '<div class="race-list">' +
+        ("".join(cards[entry[0]["race_id"]] for entry in entries) or empty) +
+        '</div></section>'
+        for key, label, entries in (
+            ("venue", "会場別", by_venue), ("cutoff", "締切順", by_cutoff)))
+    return (
+        '<div class="race-views" role="group" aria-label="レースの表示順">'
+        '<input class="view-choice" type="radio" name="race-view" id="view-venue" '
+        'aria-controls="races-venue" checked><label for="view-venue">会場別</label>'
+        '<input class="view-choice" type="radio" name="race-view" id="view-cutoff" '
+        'aria-controls="races-cutoff"><label for="view-cutoff">締切順</label>'
+        '<p class="view-help">締切順では全会場を日本時間の早い順に表示します。'
+        '同時刻は会場・レース番号順、締切未確認は末尾です。</p>' + panels + '</div>')
+
+
+STYLE += """
+.race-views{display:flex;flex-wrap:wrap;gap:0;position:relative}
+.view-choice{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.view-choice+label{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:110px;padding:8px 24px;border:1px solid var(--line);background:var(--paper);font-size:16px;font-weight:700;cursor:pointer}
+.view-choice+label[for="view-venue"]{border-radius:10px 0 0 10px}
+.view-choice+label[for="view-cutoff"]{border-radius:0 10px 10px 0;margin-left:-1px}
+.view-choice:checked+label{background:var(--ink);border-color:var(--ink);color:#fff;position:relative}
+.view-choice:focus-visible+label{outline:3px solid #c68b31;outline-offset:3px;z-index:1}
+.view-help{flex-basis:100%;margin-top:10px;color:var(--muted);font-size:14px}
+.race-view{display:none;flex-basis:100%;min-width:0;margin-top:16px}
+#view-venue:checked~#races-venue,#view-cutoff:checked~#races-cutoff{display:block}
+@media(max-width:700px){.view-choice+label{flex:1;padding:8px 16px}}
+"""
+
+
 def render_private_report(report: dict, rows: list[dict], *, verify_optional_c=None) -> str:
     """Render trusted settlement output and selected decrypted rows in memory."""
     _need(type(report) is dict and type(rows) is list, "OWNER_REPORT_INPUT_REQUIRED")
@@ -363,9 +417,7 @@ def render_private_report(report: dict, rows: list[dict], *, verify_optional_c=N
             ("paired_A_B_scored", "A/B照合済み", scored, "同じレースで成績を比較"),
             ("pending_races", "照合待ち", waiting, "未取得・予測なしを含む"),
         ))
-    cards = "".join(_race_card(*entry) for entry in sorted(prepared, key=lambda x: x[0]["race_id"]))
-    if not cards:
-        cards = '<p class="no-races">この日の登録レースはありません。</p>'
+    race_views = _race_views(prepared)
     return (
         '<!doctype html><html lang="ja"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
@@ -389,8 +441,9 @@ def render_private_report(report: dict, rows: list[dict], *, verify_optional_c=N
         '中止・返還と照合待ちは分母に含めません。'
         '投資額・払戻額・収支は各候補100円で計算した仮想値です。</p></section>'
         '<section id="races" aria-labelledby="races-title"><div class="section-heading">'
-        f'<h2 id="races-title">レース別の記録</h2><p>全{total}レース</p></div><div class="race-list">{cards}</div></section>'
+        f'<h2 id="races-title">レース別の記録</h2><p>全{total}レース</p></div>{race_views}</section>'
         '<footer class="page-footer">この画面には非公開の予測候補が含まれます。「予測なし」は、この画面に読み込めた原本がないという意味です。'
         '保存先全体で予測が作られなかったことを示しません。予測なし・照合待ちは不的中として数えません。'
         '候補の順番はモデルの順位で、的中確率を示すものではありません。</footer></main></body></html>'
     )
+
