@@ -269,6 +269,14 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
 #saved-result-metrics .metric strong{font-size:22px;margin:4px 0}
 #saved-result-metrics .metric small{font-size:10px;line-height:1.5}
 @media(max-width:760px){
+  #page-picks .allocation-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px;padding:12px}
+  #page-picks .allocation-controls>.section-heading,#page-picks .allocation-controls>p,#page-picks .allocation-settings{grid-column:1/-1}
+  #page-picks .allocation-controls>.section-heading{margin-bottom:6px}
+  #page-picks .allocation-controls>p.muted{margin-bottom:4px}
+  #page-picks .allocation-settings{margin-top:6px;gap:8px}
+  #page-picks #copy-top8{grid-column:1;grid-row:4;margin:8px 0 0;padding:8px 6px;font-size:11px}
+  #page-picks #review-allocation{grid-column:2;grid-row:4;margin:8px 0 0;min-width:0;font-size:11px}
+  #page-picks #allocation-source{grid-row:5;margin:6px 0 0}
   #page-picks .allocation-review-shortcut{display:block;width:100%;min-height:44px;font-size:12px;text-align:right}
   #page-picks .ticket-row{grid-template-columns:18px minmax(80px,1fr) 110px 34px;gap:0 4px;padding:5px 0}
   #page-picks .ticket-row>.ticket-rank{display:grid;grid-column:1;grid-row:1/3;align-self:center;width:18px;height:18px}
