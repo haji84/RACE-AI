@@ -162,6 +162,34 @@ class OfficialConnectionTests(unittest.TestCase):
             self.invoke()
         self.assertEqual(self.calls, [])
 
+    def test_actual_browser_driver_report_reaches_the_existing_owner_cycle(self):
+        from race_ai.keirin_official_sp_browser import collect_official_sp
+        from tests.test_keirin_official_sp_browser import Browser
+        browser = Browser(venues=(98,))
+        def capture(inbox, **kwargs):
+            return collect_official_sp(inbox, browser_factory=lambda: browser, **kwargs)
+        result = owner.collect_owner_inputs(self.inbox, owner_auto_confirmed=True,
+            official_capture=capture, clock=lambda: datetime(2030, 1, 15, 2, tzinfo=timezone.utc),
+            monotonic=lambda: 0)
+        self.assertIs(result['source_capture_held'], False)
+        self.assertEqual(result['source_day_schedule_race_count'], 3)
+        self.assertEqual(result['official_sp_acquisition']['riders_verified'], 21)
+        self.assertEqual(result['public_page_requests'], len(browser.sent))
+
+    def test_actual_driver_denial_is_preserved_by_the_existing_owner_cycle(self):
+        from race_ai.keirin_official_sp_browser import collect_official_sp
+        from tests.test_keirin_official_sp_browser import Browser
+        browser = Browser(venues=(98,)); browser.calendar_status = 403
+        def capture(inbox, **kwargs):
+            return collect_official_sp(inbox, browser_factory=lambda: browser, **kwargs)
+        result = owner.collect_owner_inputs(self.inbox, owner_auto_confirmed=True,
+            official_capture=capture, clock=lambda: datetime(2030, 1, 15, 2, tzinfo=timezone.utc),
+            monotonic=lambda: 0)
+        self.assertTrue(result['source_capture_held'])
+        self.assertIs(result['provider_denial_stopped_requests'], True)
+        self.assertEqual(result['provider_denial_http_status_counts']['HTTP_403'], 1)
+        self.assertEqual(result['public_page_requests'], 1)
+
 
 class OfficialWorkflowTests(unittest.TestCase):
     def test_workflow_definitions_are_exactly_the_original_outside_run_bodies(self):
