@@ -134,6 +134,30 @@ _PHASE_LABELS = {
     "FINAL_BACK": "最終バック", "FOURTH_CORNER": "4コーナー", "GOAL": "ゴール",
 }
 _PHASE_ORDER = tuple(_PHASE_LABELS)
+_ACTION_LABELS = {
+    "PREDICTED_LINE_ORDER_ONLY": "想定ラインの隊列",
+    "LEADER_ATTACKS": "主導権を狙う",
+    "CHALLENGER_EARLY_COUNTER": "別線が早めに反撃",
+    "LEADER_TRIES_TO_HOLD_PACE": "先行のペース維持を試みる",
+    "LEADER_MAKURI_OR_KAMASHI": "主導権側のカマシ・捲り",
+    "CHALLENGER_MAKURI": "別線の捲り",
+    "FRONT_LINE_CONTINUITY_UNVERIFIED": "ライン継続は未検証",
+    "FOLLOWER_SASHI_SCENARIO": "番手差しの仮説",
+    "FOURTH_CORNER_ORDER_CONTINUES": "4角の隊列が続く",
+    "LATE_SPRINT_OVERTAKE": "直線での追い抜き",
+    "FRONT_LEADER_PACE_FADE": "先頭選手の減速",
+}
+
+
+def _phase_cause(stage):
+    # Only fixed published research-action codes are rendered. Ignore identifiers,
+    # arbitrary raw labels and unknown strings rather than leaking source data.
+    actions = stage.get("hypothesis_actions")
+    if type(actions) is not list or len(actions) > 8:
+        return "局面の動作理由は未収録"
+    reasons = [_ACTION_LABELS[action] for action in actions
+               if type(action) is str and action in _ACTION_LABELS]
+    return "・".join(reasons) if reasons else "局面の動作理由は未収録"
 
 
 def _phase_details(forecast):
@@ -161,7 +185,8 @@ def _phase_details(forecast):
                 return '<p class="method-pending">局面の車番を検証できません。</p>'
             triple = "-".join(str(n) for n in first_three)
             lines.append('<li><span>' + _PHASE_LABELS[stage["phase"]] +
-                         '</span><strong>' + triple + '</strong></li>')
+                         '</span><strong>' + triple + '</strong>' +
+                         '<small>' + _text(_phase_cause(stage)) + '</small></li>')
         finish = "-".join(str(n) for n in _triple(stages[-1]["projected_top3"]))
         sections.append(
             f'<details class="phase-branch"><summary>展開{idx+1}　ゴール予測 {finish}</summary>'
@@ -263,7 +288,8 @@ main{max-width:1160px;margin:0 auto;padding:32px 28px 60px}h1,h2,h3,p,dl,dd{marg
 """
 
 
-STYLE += "\n/* Editorial, mobile-first cards. Do not hide any tickets behind JS or tabs. */\n:root{--ink:#252a27;--muted:#65716b;--line:#e6e1d6;--paper:#fff;--blue:#39576a;--green:#476c58}\nbody{background:#f8f6f1;color:var(--ink)}.page-header h1{letter-spacing:.01em}\n.race-columns{grid-template-columns:repeat(3,minmax(0,1fr))}\n.result-panel{grid-column:1/-1;border-left:0!important;border-top:1px solid var(--line);background:#fcfaf5}\n.race-heading{background:#fffdf9}.arm{padding:20px 18px;border-left:0;min-width:0}\n.arm+.arm{border-left:1px solid var(--line)}.arm-heading{align-items:flex-start}\n.arm h3{font-size:16px}.pick-count{font-size:13px;margin:0 0 13px;color:var(--muted)}\n.pick-count strong{font-size:19px;color:var(--ink);margin-left:4px}\n.tickets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}\n.ticket{justify-content:space-between;background:#fff;border-radius:9px;padding:9px 10px}\n.ticket strong{font-size:17px}.rank{font-size:11px}\n.arm-a{border-top:3px solid #4b6174}.arm-b{border-top:3px solid #5b7659}\n.arm-c{border-top:3px solid #a77946;background:#fffdf8}\n.c-outcome{display:inline-block;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:700}\n.basis{border-top:1px solid var(--line);margin-top:17px;padding-top:14px}\n.basis h4{margin:0 0 8px;font-size:13px;color:#4b514d}\n.method-copy,.method-pending,.stage-note{font-size:12px;color:var(--muted);line-height:1.8}\n.phase-branch{border:1px solid var(--line);border-radius:8px;margin-top:7px;background:#fff}\n.phase-branch summary{cursor:pointer;padding:8px 10px;font-size:13px;font-weight:600}\n.phase-steps{list-style:none;padding:0 11px 8px;margin:0}\n.phase-steps li{display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:5px 0;border-top:1px solid #f0ede7}\n.phase-steps strong{font-variant-numeric:tabular-nums}\n.model-outcome{font-size:12px;margin-top:12px;color:var(--muted)}\n@media(max-width:950px){.race-columns{grid-template-columns:repeat(2,minmax(0,1fr))}.arm-c{grid-column:1/-1;border-top:1px solid var(--line);border-left:0!important}}\n@media(max-width:700px){.race-columns{grid-template-columns:1fr}.arm+.arm{border-left:0;border-top:1px solid var(--line)}.arm-c{grid-column:auto}.arm{padding:18px}.tickets{grid-template-columns:repeat(2,minmax(0,1fr))}}\n"
+STYLE += "\n/* Editorial, mobile-first cards. Do not hide any tickets behind JS or tabs. */\n:root{--ink:#252a27;--muted:#65716b;--line:#e6e1d6;--paper:#fff;--blue:#39576a;--green:#476c58}\nbody{background:#f8f6f1;color:var(--ink)}.page-header h1{letter-spacing:.01em}\n.race-columns{grid-template-columns:repeat(3,minmax(0,1fr))}\n.result-panel{grid-column:1/-1;border-left:0!important;border-top:1px solid var(--line);background:#fcfaf5}\n.race-heading{background:#fffdf9}.arm{padding:20px 18px;border-left:0;min-width:0}\n.arm+.arm{border-left:1px solid var(--line)}.arm-heading{align-items:flex-start}\n.arm h3{font-size:16px}.pick-count{font-size:13px;margin:0 0 13px;color:var(--muted)}\n.pick-count strong{font-size:19px;color:var(--ink);margin-left:4px}\n.tickets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}\n.ticket{justify-content:space-between;background:#fff;border-radius:9px;padding:9px 10px}\n.ticket strong{font-size:17px}.rank{font-size:11px}\n.arm-a{border-top:3px solid #4b6174}.arm-b{border-top:3px solid #5b7659}\n.arm-c{border-top:3px solid #a77946;background:#fffdf8}\n.c-outcome{display:inline-block;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:700}\n.basis{border-top:1px solid var(--line);margin-top:17px;padding-top:14px}\n.basis h4{margin:0 0 8px;font-size:13px;color:#4b514d}\n.method-copy,.method-pending,.stage-note{font-size:12px;color:var(--muted);line-height:1.8}\n.phase-branch{border:1px solid var(--line);border-radius:8px;margin-top:7px;background:#fff}\n.phase-branch summary{cursor:pointer;padding:8px 10px;font-size:13px;font-weight:600}\n.phase-steps{list-style:none;padding:0 11px 8px;margin:0}\n.phase-steps li{display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:5px 0;border-top:1px solid #f0ede7}\n.phase-steps strong{font-variant-numeric:tabular-nums}
+.phase-steps li{flex-wrap:wrap}.phase-steps small{flex-basis:100%;font-size:11px;color:var(--muted);line-height:1.4}\n.model-outcome{font-size:12px;margin-top:12px;color:var(--muted)}\n@media(max-width:950px){.race-columns{grid-template-columns:repeat(2,minmax(0,1fr))}.arm-c{grid-column:1/-1;border-top:1px solid var(--line);border-left:0!important}}\n@media(max-width:700px){.race-columns{grid-template-columns:1fr}.arm+.arm{border-left:0;border-top:1px solid var(--line)}.arm-c{grid-column:auto}.arm{padding:18px}.tickets{grid-template-columns:repeat(2,minmax(0,1fr))}}\n"
 
 def render_private_report(report: dict, rows: list[dict], *, verify_optional_c=None) -> str:
     """Render trusted settlement output and selected decrypted rows in memory."""
