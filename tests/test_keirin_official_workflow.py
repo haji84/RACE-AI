@@ -146,6 +146,40 @@ class OfficialWorkflow(unittest.TestCase):
         self.assertIn('exit "$status"', result)
         self.assertIn('status=$?', result)
 
+    def test_official_results_of_existing_originals_can_run_without_new_card_capture(self):
+        # This is not permission to query a provider: source authorization is
+        # represented by a separate explicit official-source owner opt-in.
+        _, blocks = jobs()
+        result = blocks["github-only-research-results"]
+        self.assertIn("needs: [github-only-owner-capture, github-only-independent-archive-readback]", result)
+        self.assertIn("always() &&", result)
+        self.assertIn("vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true'", result)
+        self.assertIn("vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED == 'true'", result)
+        self.assertNotIn("vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED", result)
+        self.assertNotIn("vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED", result)
+        expression = result.split("    if: >-\\n", 1)[1].split("    runs-on:", 1)[0]
+        expression = " ".join(expression.split()).replace("&&", " and ").replace("||", " or ")
+        for overrides, expected in (
+            ({}, True),
+            ({"official": "false"}, False),
+            ({"store": "false"}, False),
+            ({"s3": "incompatible-store"}, False),
+            ({"ref": "refs/heads/untrusted"}, False),
+            ({"event": "workflow_dispatch", "mode": "saved-only"}, False),
+            ({"event": "workflow_dispatch", "mode": "run"}, True),
+        ):
+            v = dict(repo="haji84/RACE-AI", ref="refs/heads/main", event="schedule",
+                     mode="", official="true", store="true", s3="")
+            v.update(overrides)
+            context = {"github": NS(repository=v["repo"], ref=v["ref"], event_name=v["event"]),
+                       "inputs": NS(mode=v["mode"]),
+                       "vars": NS(RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED=v["store"],
+                                  RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED=v["official"],
+                                  RACE_AI_AB_SOURCE_S3_PREFIX=v["s3"]),
+                       "always": lambda: True}
+            with self.subTest(overrides=overrides):
+                self.assertEqual(bool(eval(expression, {"__builtins__": {}}, context)), expected)
+
     def test_artifact_paths_never_include_plaintext_report_or_source_directory(self):
         _, blocks = jobs()
         result = blocks['github-only-research-results']
