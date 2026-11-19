@@ -1,0 +1,115 @@
+{
+  "existing_PR": 62,
+  "files": {
+    "docs/evidence/race-ai-final-handoff-20261119/README.md": {
+      "bytes": 6782,
+      "sha256": "9bfc0f700c738349736dff7004c0985b4f0372f45e3bd1d0f439478c4657917d"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/ciphertext-actions-recheck.json": {
+      "bytes": 3618,
+      "sha256": "2212c16027415c1516d2c9d7625c0e41ce12b7f7c7df2f6b482f95b4ae68a7e3"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/ciphertext-recovery.json": {
+      "bytes": 5400,
+      "sha256": "113e6758305af1b6d2a2a79c42655504863f8cd6051fbad6e64a81490c92584b"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/current-actions.json": {
+      "bytes": 19567,
+      "sha256": "c50b7efcb8cd566ca1d995eaedd47c02b4e1723c19b3190a71c4593da947911a"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/environment.json": {
+      "bytes": 1259,
+      "sha256": "f02e3ab8002a330b8509894eec414970b1fc394b44e64ecf1f8290c1862739b5"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/keirin-integration-gap.json": {
+      "bytes": 6747,
+      "sha256": "0a3e336eedbf693f878c289ea7ed6234eacda45f0add030de7cdbf1f6391e3aa"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/keirin-one-official-detail.json": {
+      "bytes": 7059,
+      "sha256": "fd86a2b9a1e6fa39e5fba8a75303dbe88185856cd45e2afb84eb2ef3465efd39"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/original-first-attempt-provenance.json": {
+      "bytes": 1325,
+      "sha256": "0f262dd748e987739c0351f55637ca70bc587643ce6f6d8d8f530f5ecfb06c69"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/recovery-packet-independent-review.json": {
+      "bytes": 8064,
+      "sha256": "bf0fb8174f13d55930300c0ad0345d12c9f3b83e4f7d406bc1a3e6b4e5dd0e59"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/sp-parser-d27079e00fc3.patch": {
+      "bytes": 65377,
+      "sha256": "e485a6238c03d6bb952176d5c198679cc24993cf7104194c31ca0f7767aba1af"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/sp-parser-final-author-proof.json": {
+      "bytes": 9306,
+      "sha256": "609e6f576a2aa18245b09dd1c7df4b9b950d21390f72541cbfb53d779581d8fa"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/sp-parser-final-independent-review.json": {
+      "bytes": 8797,
+      "sha256": "693af6965fe7739878ed34e9472be6aae4006dac909ce0c57d3fa51f68ad76fe"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/sp-parser-final-root-tests.json": {
+      "bytes": 1577,
+      "sha256": "3feb7f837d8780635a88c61915036ab13f51eb840229d7efe13b8f13bcb53d2d"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/sp-parser-initial-blocked.patch": {
+      "bytes": 59990,
+      "sha256": "5acb182bd868feefc5707a8416142a72dd0d088060cd30c8040370de8ce4d283"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/sp-parser-initial-blocking-review.json": {
+      "bytes": 6097,
+      "sha256": "c919bdc9c23af67641fb39416468fdf522d59132e4fb59eba9b39180411c195d"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/sp-parser-initial-root-tests.json": {
+      "bytes": 1427,
+      "sha256": "7d637351ee3b8db766927ec4e2fd32a84a1350fd92b90b6c8914df23e6208b06"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/sp-parser-intermediate-author-proof.json": {
+      "bytes": 8313,
+      "sha256": "966f3ea7ab156c9490f77e54d241faf6cb4459edffa0f9f07e32997ae6962e11"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/sp-parser-intermediate-blocked.patch": {
+      "bytes": 63411,
+      "sha256": "189877782ecef149d44dae3a31b806769d5045c0ad864aa5c27f4ed291671e64"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/sp-parser-intermediate-blocking-review.json": {
+      "bytes": 5284,
+      "sha256": "3d6009bda437cf1775336a58a5b09856b5662dc836d0bdcb2d1fa22f35a5b5b1"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/sp-parser-intermediate-root-tests.json": {
+      "bytes": 1531,
+      "sha256": "928755eb1db92ac69e6b17309bcdd6b5a7043d727a4ab6953c12cef8bc09f7fa"
+    },
+    "docs/evidence/race-ai-final-handoff-20261119/sp-parser-reviewed-closure.json": {
+      "bytes": 4468,
+      "sha256": "036e0e802e59a235f66eaee0c2de49a3e89a432bc7b9ac936d6667a40907a06b"
+    }
+  },
+  "latest_status": {
+    "bytes": 547336,
+    "new_prefix_sha256": "dc62985785cf5ef9cab8afac80c8941a620b5ed0ffe629da61696436a3b27c68",
+    "path": "docs/RACE_AI_LATEST_STATUS.md",
+    "preserved_historical_suffix_sha256": "01feb28b01b1af73808e199607e1827a9a65604ca34144650809a5fb35ee1b79",
+    "sha256": "41620116b795d0129dbc35544d95256ffb4ea9ac982fefec0c5aeeb4892cb033"
+  },
+  "main_sha": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+  "normal_FF_parent": "b29d5b731e8c5a0455ac8a9265b4ba384480f9ac",
+  "recorded_at_utc": "2026-11-19T09:08:43.317690+00:00",
+  "schema": "RACE_AI_FINAL_REVIEWED_HANDOFF_EVIDENCE_MANIFEST_20261119_V1",
+  "scope": {
+    "GOAL_complete": false,
+    "archive_commit_changes_evidence_and_status_only": true,
+    "bets": 0,
+    "local_owner_key_reads": 0,
+    "new_PRs": 0,
+    "new_UI_deployments": 0,
+    "new_charges": 0,
+    "new_model_families": 0,
+    "parser_implementation_is_reviewed_patch_not_activated_source": true,
+    "production_weight_switches": 0
+  },
+  "source_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "unchanged_web_blob_count": 82,
+  "unchanged_web_tree": "5cbbfe05a2971485b5c32a84a8ddf7b2539604cc"
+}

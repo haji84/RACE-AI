@@ -1,0 +1,31 @@
+{
+  "frozen_recovery_callers_remain_historical_proofs_not_blind_retry_commands": true,
+  "latest_run_attempt_2_is_distinct_from_original_first_attempt": true,
+  "new_AES_execution_claimed": false,
+  "observed_at_utc": "2026-11-19T08:38:53.049205+00:00",
+  "original_artifact_bytes": 8818,
+  "original_artifact_created_within_original_attempt": true,
+  "original_artifact_expired": false,
+  "original_artifact_sha256": "83f4d8a7b717805354e083cfc5aa5081788b5ea3a4dae8dee129c37a8f7a2fa9",
+  "original_count_artifact_id": 14503356965,
+  "original_first_attempt": {
+    "conclusion": "success",
+    "created_at": "2026-11-19T05:49:30Z",
+    "event": "push",
+    "head_branch": "main",
+    "head_sha": "147d0558dc8c8718af673310b324b63babc90d59",
+    "id": 44467797701,
+    "path": ".github/workflows/boat-owner-national-p1-matrix.yml",
+    "run_attempt": 1,
+    "status": "completed",
+    "updated_at": "2026-11-19T06:04:47Z",
+    "workflow_id": 418875114
+  },
+  "original_job_attempt": 1,
+  "original_job_conclusion": "success",
+  "original_job_id": 135369676262,
+  "owner_key_reads": 0,
+  "schema": "RACE_AI_ORIGINAL_FIRST_ATTEMPT_SERVICE_PROVENANCE_RECONFIRMATION_V1",
+  "service_endpoint": "actions/runs/44467797701/attempts/1",
+  "service_response_sha256": "e04e7505eeda5c83e7f1a015ff81eaebd3ac31d1d570bd1fe5c952dfb185ba6e"
+}

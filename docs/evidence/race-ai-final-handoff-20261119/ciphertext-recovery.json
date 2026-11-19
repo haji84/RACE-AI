@@ -1,0 +1,133 @@
+{
+  "Actions_authenticated_original_inventory": {
+    "artifact_inventory_sha256": "55d51e65b96ff3797d6243b2415e3ab4d2397d75a12ea3e1f4701174fd438d72",
+    "candidate_inventory_sha256": "5f15eeb1eb0344c70fb9d64199c03ca0ce36c1024225ae9243ab5720e160aeab",
+    "original_artifact_id": 14503356965,
+    "original_job_id": 135369676262,
+    "run_id": 44467797701
+  },
+  "byte_checks": [
+    "exact original bytes",
+    "100644 blob mode and type",
+    "Git object ID",
+    "size",
+    "SHA256",
+    "all files from separate read-only object database"
+  ],
+  "final_independent_readback": {
+    "all_present_file_bytes": 375640877,
+    "conflict_candidate_count": 0,
+    "expected_candidate_count": 336,
+    "expected_file_count": 1008,
+    "fully_present_candidate_bytes": 375640877,
+    "fully_present_candidate_count": 336,
+    "missing_candidate_count": 0,
+    "missing_file_bytes": 0,
+    "missing_file_count": 0,
+    "missing_file_inventory_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "pinned_head": "6c0a01ce55b1948b17610f694a15629df5ccdacf",
+    "present_file_count": 1008,
+    "present_file_inventory_sha256": "2ed0ef42e3f24a7ad8631dc963d7618577960fcb6dee51b26643cb1f6b820dae"
+  },
+  "force_pushes": 0,
+  "independent_exact_code_review_sha256": "a9c369d206992f3ce6adab7c0d9ccd53946e1de117984199a9099d809e981b67",
+  "initial_remote_preflight": {
+    "conflicts": 0,
+    "head": "1af9a3ad7dda6ef2068397e6f98fa00d1de45fa9",
+    "missing_bytes": 180680510,
+    "missing_candidates": 160,
+    "missing_files": 480,
+    "present_bytes": 194960367,
+    "present_candidates": 176,
+    "present_files": 528
+  },
+  "last_resume": {
+    "acknowledged_groups": [
+      {
+        "added_file_count": 12,
+        "commit": "e877b9614d25e6cf658394b39e99ed57fed377fc",
+        "parent": "7d978657bb3ba6e8191f231a26d892b979986ec2"
+      },
+      {
+        "added_file_count": 9,
+        "commit": "e47e562d173727a98fd7b3b909e13b8204ae9ba9",
+        "parent": "e877b9614d25e6cf658394b39e99ed57fed377fc"
+      },
+      {
+        "added_file_count": 6,
+        "commit": "99c92cc9a7c8a46f85d9ece2e2088e270c64012f",
+        "parent": "e47e562d173727a98fd7b3b909e13b8204ae9ba9"
+      },
+      {
+        "added_file_count": 3,
+        "commit": "6c0a01ce55b1948b17610f694a15629df5ccdacf",
+        "parent": "99c92cc9a7c8a46f85d9ece2e2088e270c64012f"
+      }
+    ],
+    "authentication_HEAD_index_worktree_unchanged": true,
+    "commit_calls": 4,
+    "execution_outcome_sha256": "63641600f4f7998af73bacc404ca2bf23afe9f7eb425f96b39f055c46befb8ab",
+    "pending_commit": null,
+    "proof_sha256": "900622f2ebb5a352acd902f377ebfe54a600849c85b0400d76b914845d98bbe2",
+    "push_calls": 4,
+    "remaining_bytes": 11956465,
+    "remaining_candidates": 10,
+    "remaining_files": 30,
+    "script_sha256": "f2769d38ea0bd707d1bfd9c142efb51525b9ea584f1047ad3507067843f1a9ce"
+  },
+  "limits": {
+    "all_four_sport_T15_delivery_proven": false,
+    "ciphertext_recovery_is_new_forecast_generation": false,
+    "fresh_Actions_AEAD_reauthentication": "HOLD_MAIN_CONTEXT_FIRST_ATTEMPT_ONLY_ACTUAL_ATTEMPT_2",
+    "new_forward_accuracy_improvement_proven": false
+  },
+  "local_AES_decryption_calls": 0,
+  "new_PRs_or_workflows_or_models": 0,
+  "original_failure_records_preserved": {
+    "v1_status": "PUBLICATION_OUTCOME_UNKNOWN_HOLD",
+    "v2_later_pending_commit_independently_observed": true,
+    "v2_status": "PUBLICATION_OUTCOME_UNKNOWN_HOLD",
+    "v3_blindly_reexecuted": false,
+    "v3_status": "INTERRUPTED_SESSION_NO_FINAL_EXECUTION_RECORD"
+  },
+  "overwritten_existing_files": 0,
+  "owner_key_reads": 0,
+  "post_environment_interruption_preflight": {
+    "all_present_file_bytes": 363684412,
+    "conflict_candidate_count": 0,
+    "expected_candidate_count": 336,
+    "expected_file_count": 1008,
+    "fully_present_candidate_bytes": 363684412,
+    "fully_present_candidate_count": 326,
+    "missing_candidate_count": 10,
+    "missing_file_bytes": 11956465,
+    "missing_file_count": 30,
+    "missing_file_inventory_sha256": "9bef20c29ead6a55b3a7f19b529ec833b3731dd6b5272bff97239c597ea01a35",
+    "pinned_head": "7d978657bb3ba6e8191f231a26d892b979986ec2",
+    "present_file_count": 978,
+    "present_file_inventory_sha256": "f35e2ba70643296294fd4c07159abc90227a4dcfb235cab2adeefa808f282d11"
+  },
+  "private_local_execution_evidence_sha256": {
+    "execution-outcome-v2.json": "2cbad21ae59a5080ace892ef5e73356b8e3d82d4f20e4d5e4756348993a21336",
+    "execution-outcome.json": "3eccd62f8e138b93fd7391b3e67fcfb7607aedcf640e540e269e33409b08d0ed",
+    "post-environment-v3-readonly-observation.json": "784a3d2864dc2b397b882114ba13a1ab82cea760437f6e3578072a1d9e3ac432",
+    "public-guard-probes-v4.json": "769087a47d32a508560aa61d8ce155177df9407b410dd00a682f072183a4e39d",
+    "review-freeze-v4.json": "e96ad78ab40c5a8b9d4d8bab99940a70ac58074b90c4311130b2b479df9e4e8f"
+  },
+  "production_weight_changes": 0,
+  "provider_requests": 0,
+  "public_fixture_guard_checks": {
+    "actual_remote_writes": 0,
+    "errors": 0,
+    "external_network_attempts": 0,
+    "failures": 0,
+    "owner_crypto_calls": [],
+    "public_opaque_fixture_only": true,
+    "seconds": 0.632,
+    "skips": 0,
+    "tests": 17
+  },
+  "schema": "RACE_AI_AUTHENTICATED_ORIGINAL_CIPHERTEXT_RECOVERY_SAFE_FINAL_V1",
+  "source_commit": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "status": "ALL_ORIGINAL_CIPHERTEXT_FILES_PRESENT"
+}

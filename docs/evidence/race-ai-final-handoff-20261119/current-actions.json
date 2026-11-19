@@ -1,0 +1,495 @@
+{
+  "acceptance": {
+    "four_sport_all_race_T15_to_T10_proven": false,
+    "goal_complete": false,
+    "model_or_source_fix_applied": false,
+    "new_model_or_weight_changes": 0
+  },
+  "boat_daily": {
+    "actionable_next_diagnostic": "Authenticate the already retained wait metadata and rejected observations through existing safe count-only readers; establish the exact source/projection mismatch before changing code. Do not clear wait state or weaken cutoff, chronology, or refund binding checks.",
+    "cause_supported": "PINNED_COLLECTOR_REPORTED_SOURCE_WAIT_AND_RETURNED_EXIT_2",
+    "code_refs": [
+      "b9a1451df474e52d95bd40253676365c4fa0940d:scripts/racer_intraday_refresh.py:117",
+      "b9a1451df474e52d95bd40253676365c4fa0940d:race_ai/racer_intraday.py:117",
+      "b9a1451df474e52d95bd40253676365c4fa0940d:race_ai/private_cycle_projection.py:391",
+      "b9a1451df474e52d95bd40253676365c4fa0940d:race_ai/saved_result_sync.py:153",
+      "b9a1451df474e52d95bd40253676365c4fa0940d:race_ai/saved_result_sync.py:157",
+      "86b029ae5bddd5d4956497d8b32b2c92b8eec521:race_ai/boat_saved_model_view.py:531"
+    ],
+    "completed_log_report_line": 587,
+    "current_day_coverage": {
+      "confirmed_races": 0,
+      "day": "2026-11-19",
+      "expected_races": null,
+      "last_checked_at": "2026-11-19T06:53:37.090680+00:00",
+      "latest_result_at": null,
+      "pending_races": null,
+      "revision_conflicts": 3,
+      "schedule_complete": false,
+      "source_state": "SOURCE_WAIT"
+    },
+    "exit_code": 2,
+    "exit_code_line": 588,
+    "failed_job_id": 135394224237,
+    "failed_step_name": "Reflect confirmed races and retain encrypted incremental source packets",
+    "failed_step_number": 11,
+    "implementation_commit": "b9a1451df474e52d95bd40253676365c4fa0940d",
+    "new_observations": 0,
+    "public_report": {
+      "presentation_and_ciphertext_unchanged": true,
+      "raw_sources_published": false,
+      "status": "DAILY_PUBLIC_PUBLISHED",
+      "unchanged_cipher_count": 7
+    },
+    "rejection_counts_are_rejection_events_not_unique_races": true,
+    "rejection_counts_do_not_prove_source_denial_or_code_bug": true,
+    "result_rejection_reason_counts": {
+      "RESULT_CUTOFF_MISMATCH": 15,
+      "RESULT_CUTOFF_REFERENCE_CHRONOLOGY": 1,
+      "SAVED_MODEL_VIEW_CUTOFF_RECONCILIATION_REFUND_BINDING": 2
+    },
+    "result_sync": {
+      "changed_races": 0,
+      "checked_at": "2026-11-19T06:53:37.090680+00:00",
+      "confirmed": 138,
+      "held": 12,
+      "pending": 114,
+      "races": 264,
+      "schema": "RACE_AI_RESULT_SYNC_V1",
+      "state": "SOURCE_WAIT"
+    },
+    "retained": {
+      "generation": 370,
+      "new_capture_count": 0,
+      "packet_bytes": 241664,
+      "plaintext_published": false,
+      "status": "INTRADAY_ENCRYPTED_DELTA_RETAINED"
+    },
+    "run": {
+      "conclusion": "failure",
+      "created_at": "2026-11-19T06:51:53Z",
+      "event": "schedule",
+      "head_branch": "main",
+      "head_sha": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+      "id": 44475283240,
+      "name": "BOAT per-race results and athlete statistics",
+      "run_started_at": "2026-11-19T06:51:53Z",
+      "status": "completed",
+      "updated_at": "2026-11-19T06:54:23Z"
+    },
+    "source_requests": 0,
+    "status": "SOURCE_WAIT",
+    "underlying_boatrace_host_wait_reason": null
+  },
+  "frozen_local_head": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+  "keirin": {
+    "actionable_next_requirement": "Restore an already approved source acquisition path or supply authenticated complete pre-cutoff inputs under the existing contracts. The completed log does not support rotating the AES key or weakening source/rights/admission gates.",
+    "actual": {
+      "existing_pdca_invoked": null,
+      "four_model_variable_held": null,
+      "four_model_variable_saved": null,
+      "generation": null,
+      "missing_source_config_keys": [],
+      "new_forecast_stage_nonzero": null,
+      "official_result_independently_authenticated": null,
+      "owner_source_acquisition": {
+        "actual_four_model_forecast_saved": false,
+        "date_jst": "2026-11-19",
+        "expired_or_too_close": 0,
+        "historical_page_cache_bytes": 0,
+        "historical_pages_reused_without_new_GET": 0,
+        "history_races_deferred": 0,
+        "history_races_held": 0,
+        "history_races_processed": 0,
+        "invalid_partial_records": 0,
+        "model_B_missing_family_slot_totals": {},
+        "new_pre_race_inputs": 0,
+        "owner_automated_use_attested": true,
+        "permanent_encrypted_storage_claimed": false,
+        "provider_denial_http_status_counts": {
+          "HTTP_403": 1,
+          "HTTP_429": 0,
+          "UNKNOWN": 0
+        },
+        "provider_denial_stopped_requests": true,
+        "provider_machine_rights_independently_verified": false,
+        "public_page_requests": 1,
+        "races": [],
+        "schema": "RACE_AI_KEIRIN_CLOUD_OWNER_SOURCE_CONNECTION_V1",
+        "source_capture_held": true,
+        "source_day_schedule_race_count": null,
+        "source_values_or_rider_names_publicly_logged": false,
+        "state": "OWNER_ATTESTED_SOURCE_ACQUISITION_ONLY",
+        "work_budget_exhausted": false
+      },
+      "result_rows_appended": null,
+      "result_rows_held": null,
+      "source_state": "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED",
+      "state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT"
+    },
+    "cause_supported": "CONFIGURATION_ELIGIBLE_BUT_SINGLE_OWNER_SOURCE_REQUEST_DENIED_HTTP_403_AND_NO_COMPLETE_PR71_INPUT",
+    "code_refs": [
+      "9616b854ac4a2683077b937c7d6f29e3e7213700:scripts/keirin_live_source_readiness.py:48",
+      "9616b854ac4a2683077b937c7d6f29e3e7213700:scripts/keirin_cloud_owner_inputs.py:98",
+      "9616b854ac4a2683077b937c7d6f29e3e7213700:scripts/keirin_cloud_pr71_state.py:427"
+    ],
+    "historical_missing_key_hold_is_not_current_blocker": true,
+    "origin_counts": {
+      "deficits_by_source_kind": null,
+      "distinct_missing_origin_instances": null,
+      "distinct_required_origin_instances": null,
+      "formal_model_predictions_verified": false,
+      "license_rights_verified": false,
+      "missing_model_feature_slots": null,
+      "missing_source_field_families": null,
+      "required_model_feature_slots": null,
+      "state": "HOLD_SOURCE_ORIGIN_COUNTS_NOT_OBSERVED"
+    },
+    "owner_cycle_job_id": 135422072620,
+    "owner_cycle_report_line": 301,
+    "public_preflight": {
+      "actual_model_prediction_saved": null,
+      "critical_preflight_source_slots_missing": null,
+      "eligible_unstarted_races": null,
+      "preflight_checked_count": null,
+      "preflight_verified_source_count": null,
+      "race_id": null,
+      "real_full_odds_verified": false,
+      "required_source_slots_A_missing": null,
+      "rider_identity_count": null,
+      "source_races_observed": null,
+      "status": "DAY_INDEX_SOURCE_UNAVAILABLE"
+    },
+    "public_preflight_job_id": 135421991934,
+    "readiness": {
+      "complete_model_inputs_verified": false,
+      "eligible_to_attempt_existing_owner_admission": true,
+      "missing_config_names": [],
+      "official_result_authenticated": false,
+      "optional_provider_config_unset_count": 4,
+      "owner_profile_attested_by_existing_configuration": true,
+      "provider_requests_by_readiness": 0,
+      "real_race_15min_proven": false,
+      "schema": "RACE_AI_KEIRIN_LIVE_PILOT_SOURCE_CONFIGURATION_V1",
+      "source_mode": "EXISTING_OWNER_PUBLIC_PAGE_RESEARCH",
+      "source_rights_verified": false,
+      "status": "OWNER_APPROVED_PUBLIC_RESEARCH_CANDIDATE_COLLECTION_ONLY"
+    },
+    "readiness_job_id": 135421992231,
+    "readiness_report_line": 157,
+    "run": {
+      "conclusion": "success",
+      "created_at": "2026-11-19T07:58:30Z",
+      "event": "workflow_dispatch",
+      "head_branch": "main",
+      "head_sha": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+      "id": 44483738817,
+      "name": "KEIRIN PR71 GitHub-only forecast and PDCA",
+      "run_started_at": "2026-11-19T07:58:30Z",
+      "status": "completed",
+      "updated_at": "2026-11-19T07:58:54Z"
+    },
+    "workflow_success_is_full_forecast_success": false
+  },
+  "observed_at_utc": "2026-11-19 08:15:47 UTC",
+  "private_completed_log_receipts": [
+    {
+      "completed_log_line_count": 643,
+      "decoded_log_bytes": 56722,
+      "decoded_log_sha256": "f5e5755755bf96bf0362b50cb6ad4ff24aaf2fb733eee5880e159fea8887668a",
+      "file": "boat_failed_log.private.json",
+      "receipt_sha256": "992bbb676986a2e371196e6187f6edd0d17d3daec939bdda01f2dec4729381ed"
+    },
+    {
+      "completed_log_line_count": 175,
+      "decoded_log_bytes": 14335,
+      "decoded_log_sha256": "bd95708c1a25b4a185a3ca912cfc8eed062dade14f910f51c51e5d212d018738",
+      "file": "keirin_readiness_log.private.json",
+      "receipt_sha256": "3c6dbb722bc1980f573d4e83037691da77f791f9da3dd8d449ede3cce21b984d"
+    },
+    {
+      "completed_log_line_count": 335,
+      "decoded_log_bytes": 28426,
+      "decoded_log_sha256": "3acda0111f4cfa61760da406894f6b071c962491b9092710eb26be0d13bd075c",
+      "file": "keirin_cycle_log.private.json",
+      "receipt_sha256": "bbf83ffb81ed9be62ff0d931cd104efbb6a4cc9cd6b05fa7534a48beb546b889"
+    },
+    {
+      "completed_log_line_count": 345,
+      "decoded_log_bytes": 29648,
+      "decoded_log_sha256": "40c3b9154d10fd64781eb40ad7c7c042906e466d64e3d32f7dd7c87af459bb9a",
+      "file": "keirin_preflight_log.private.json",
+      "receipt_sha256": "e64933f3b2b9284f93e053f1ee83e5217c4a5e5e83fdf7e5a33c2e3a8d008535"
+    },
+    {
+      "completed_log_line_count": 4367,
+      "decoded_log_bytes": 580458,
+      "decoded_log_sha256": "015991841b2e501212d2a5a8b340351a03e73d37d23cf2bd7cd981abb94e6c55",
+      "file": "source_completed_log.private.json",
+      "receipt_sha256": "277157463d8eddcfb322be83e9742923397f72f71f72001fff8f9934c5ac0c7e"
+    }
+  ],
+  "repository": "haji84/RACE-AI",
+  "schema": "RACE_AI_COMPLETED_ACTIONS_AND_SOURCE_HANDOFF_READONLY_AUDIT_V1",
+  "scope": {
+    "completed_source_logs_fetched_only_after_metadata_completed": true,
+    "count_only_source_control_artifact_read": true,
+    "dispatch_retry_cancel_reset_hotswap": 0,
+    "metadata_and_completed_logs_only": true,
+    "plaintext_forecast_source_or_cipher_archives_read": 0,
+    "remote_writes": 0,
+    "repo_worktree_writes": 0,
+    "secrets_or_private_AES_keys_read": 0,
+    "source_requests_by_auditor": 0,
+    "ui_changes": 0
+  },
+  "source_worker": {
+    "actionable_next_requirement": "Resolve the existing source authorization blockage under the approved acquisition contract; preserved AUTHORIZATION_WAIT must survive handoff. Retrying, resetting counters, or hotswapping does not provide missing pre-cutoff inputs.",
+    "artifact_count": 10,
+    "auditor_decrypted_private_state": false,
+    "bootstrap_generation": {
+      "contexts": 132,
+      "generated_forecasts": 0,
+      "ready": true,
+      "reused_baseline_forecasts": 0,
+      "status": "ALL_MODEL_BOOTSTRAP_CURRENT_COMPLETE"
+    },
+    "bootstrap_readback": {
+      "artifact_id": 14493008422,
+      "contexts": 132,
+      "generated_forecasts": 0,
+      "independently_verified": true,
+      "ready": true,
+      "research_ab_coverage": null,
+      "research_ab_readback": null,
+      "status": "ALL_MODEL_READBACK_COMPLETE"
+    },
+    "code_refs": [
+      "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6:race_ai/source_retry_policy.py:35",
+      "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6:race_ai/source_retry_policy.py:64",
+      "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6:scripts/github_existing_cycle.py:1435",
+      "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6:scripts/boat_source_control.py:40"
+    ],
+    "continuity_cipher_hash_matches_completed_producer_log": true,
+    "control_artifact_receipt_digest_verified": true,
+    "final_continuity_pack": {
+      "cipher_bytes": 336092,
+      "cipher_sha256": "9cb5cababcbed29cba319ec27b541fb8b9eef63db9d2aeb778ac5a839c0ad531",
+      "file_count": 2,
+      "inner_zip_bytes": 335704,
+      "inner_zip_sha256": "33c2751d91536a800768ef394dc66c9b8cddb92de482421ed9989ff4a0143836",
+      "plaintext_published": false,
+      "reused": false,
+      "status": "PRIVATE_ORIGINAL_ARCHIVE_PACKED",
+      "uncompressed_bytes": 3092783
+    },
+    "final_continuity_receipt": {
+      "archive_download_url": "https://api.github.com/repos/haji84/RACE-AI/actions/artifacts/14509559932/zip",
+      "created_at": "2026-11-19T08:13:39Z",
+      "digest": "sha256:57fe340f7c47e8d0f59e686e8edcc5b317945c96a724adbc23714ce8dfa616fa",
+      "expired": false,
+      "expires_at": "2026-11-26T08:13:39Z",
+      "id": 14509559932,
+      "name": "race-cycle-continuity-44446167880",
+      "size_in_bytes": 336351,
+      "updated_at": "2026-11-19T08:13:39Z",
+      "url": "https://api.github.com/repos/haji84/RACE-AI/actions/artifacts/14509559932",
+      "workflow_run": {
+        "head_branch": "production/boat-p0-p1-20261111",
+        "head_repository_id": 1416489937,
+        "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+        "id": 44446167880,
+        "repository_id": 1416489937
+      }
+    },
+    "final_control_pack": {
+      "completed_round": 1,
+      "ready": true,
+      "requests_used": 1,
+      "run_id": 44446167880,
+      "summary_sha256": "fe93615b0a99a7a84afc0a13607e4cfca7b81fa9a4fa40144680dfc91f91493b"
+    },
+    "final_control_ready_true_means_summary_pack_ready_not_forecast_ready": true,
+    "final_retention": {
+      "independent_git_readback_verified": true,
+      "plaintext_published": false,
+      "retained_originals": 2,
+      "source_commit": "c7d693c1ff8e3478537c4d509a4da3c5f90185e7",
+      "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+    },
+    "final_round_outer_steps_success": 24,
+    "finalization": {
+      "completed_round": 1,
+      "lifetime_requests": 15951,
+      "reason": "SOURCE_WAIT",
+      "state": "WORKER_FINALIZED_SOURCE_FREE"
+    },
+    "job_id": 135298730289,
+    "metadata_at_081348_utc": {
+      "outer_round_steps_success": 24,
+      "retention_step70_in_progress": true,
+      "workflow_then_in_progress": true
+    },
+    "new_positive_forecast_protection": {
+      "cached_originals": 0,
+      "complete": true,
+      "descriptor_lookups": 0,
+      "full_current_view_readback_verified": false,
+      "max_capture_ids": 128,
+      "max_descriptor_lookups": 512,
+      "max_io_bytes": 536870912,
+      "metadata_response_bytes": 0,
+      "missing_before": 0,
+      "new_forecast_artifacts": 0,
+      "newly_retained_originals": 0,
+      "official_source_requests": 0,
+      "plaintext_published": false,
+      "remaining": 0,
+      "reserved_io_bytes": 0,
+      "schema": "RACE_AI_NEW_FORECAST_ORIGINAL_PROTECTION_COUNTS_V1",
+      "scope": "NEW_POSITIVE_BOAT_FORECAST_ARTIFACT_IDS",
+      "selected_capture_ids": 0,
+      "source_commit": "f2da805e6c7c49984bc5054ef13d56809325ad0c",
+      "status": "BOAT_FORECAST_ORIGINALS_PROTECTED"
+    },
+    "nonfatal_display_404_endpoint_and_exact_cause": null,
+    "nonfatal_display_readback_errors": [
+      {
+        "failure_at": "github_existing_cycle.py:186",
+        "failure_class": "RuntimeError",
+        "log_line": 989,
+        "reason": "GITHUB_API_READ_HTTP_404_HALT",
+        "status": "ENCRYPTED_VIEW_REJECTED"
+      },
+      {
+        "failure_at": "github_existing_cycle.py:186",
+        "failure_class": "RuntimeError",
+        "log_line": 1161,
+        "reason": "GITHUB_API_READ_HTTP_404_HALT",
+        "status": "ENCRYPTED_VIEW_REJECTED"
+      }
+    ],
+    "observed_long_wait_cause": "PERSISTED_AUTHORIZATION_WAIT_HTTP_403_UNTIL_PHYSICAL_WORKER_HANDOFF",
+    "opaque_continuity_archive_downloaded_by_auditor": false,
+    "producer_encrypted_git_readback_attested": true,
+    "productive_rounds_from_final_control": 1,
+    "public_control_receipt": {
+      "archive_download_url": "https://api.github.com/repos/haji84/RACE-AI/actions/artifacts/14509684259/zip",
+      "created_at": "2026-11-19T08:13:40Z",
+      "digest": "sha256:c6f127442cb860a06d6df0b7f0094c2a7566655a30abb1e29c733b80658a39bd",
+      "expired": false,
+      "expires_at": "2026-11-26T08:13:39Z",
+      "id": 14509684259,
+      "name": "race-source-control-44446167880",
+      "size_in_bytes": 564,
+      "updated_at": "2026-11-19T08:13:40Z",
+      "url": "https://api.github.com/repos/haji84/RACE-AI/actions/artifacts/14509684259",
+      "workflow_run": {
+        "head_branch": "production/boat-p0-p1-20261111",
+        "head_repository_id": 1416489937,
+        "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+        "id": 44446167880,
+        "repository_id": 1416489937
+      }
+    },
+    "round1_forecast_count_is_not_new_generation_count": true,
+    "round1_generation": {
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "ready": false,
+      "status": "ALL_MODEL_GENERATE_COMPLETE"
+    },
+    "round1_readback": {
+      "forecast_count": 359,
+      "p1_artifact": 14492424491,
+      "result_artifact": 14493542495,
+      "round": 1,
+      "scored_forecasts": 92,
+      "session_requests": 1,
+      "state": "ROUND_SAVED_AND_READBACK_VERIFIED"
+    },
+    "rounds_2_through_24": {
+      "active": false,
+      "count": 23,
+      "log_lines": [
+        1846,
+        1946,
+        2046,
+        2146,
+        2246,
+        2346,
+        2446,
+        2546,
+        2646,
+        2746,
+        2846,
+        2946,
+        3046,
+        3146,
+        3246,
+        3346,
+        3446,
+        3546,
+        3646,
+        3746,
+        3846,
+        3946,
+        4046
+      ],
+      "reason": "WORKER_HANDOFF"
+    },
+    "run": {
+      "conclusion": "success",
+      "created_at": "2026-11-19T02:41:40Z",
+      "event": "workflow_dispatch",
+      "head_branch": "production/boat-p0-p1-20261111",
+      "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+      "id": 44446167880,
+      "name": "BOAT nationwide cutoff-ordered A/B research (no Vercel)",
+      "run_started_at": "2026-11-19T02:41:40Z",
+      "status": "completed",
+      "updated_at": "2026-11-19T08:13:58Z"
+    },
+    "source_wait_from_round1": {
+      "source_wait": {
+        "attempts": 1,
+        "http_status": 403,
+        "reason": "SOURCE_AUTHORIZATION_REQUIRED",
+        "retry_at": null,
+        "state": "AUTHORIZATION_WAIT"
+      },
+      "state": "SOURCE_WAIT",
+      "supplement_ready": false
+    },
+    "verified_public_control": {
+      "continuity_cipher_sha256": "9cb5cababcbed29cba319ec27b541fb8b9eef63db9d2aeb778ac5a839c0ad531",
+      "control": {
+        "completed_round": 1,
+        "day_start_lifetime_requests": 15529,
+        "lifetime_completed_rounds": 821,
+        "lifetime_requests": 15951,
+        "prepared_round": null,
+        "requests_used": 1,
+        "source_wait": {
+          "attempts": 1,
+          "http_status": 403,
+          "reason": "SOURCE_AUTHORIZATION_REQUIRED",
+          "retry_at": null,
+          "state": "AUTHORIZATION_WAIT"
+        },
+        "stop_reason": "WORKER_HANDOFF"
+      },
+      "day_jst": "2026-11-19",
+      "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+      "repository": "haji84/RACE-AI",
+      "repository_id": 1416489937,
+      "run_id": 44446167880,
+      "schema": "RACE_AI_BOAT_PUBLIC_SOURCE_CONTROL_V1"
+    },
+    "verified_public_control_json_sha256": "fe93615b0a99a7a84afc0a13607e4cfca7b81fa9a4fa40144680dfc91f91493b",
+    "verified_public_control_zip_sha256": "c6f127442cb860a06d6df0b7f0094c2a7566655a30abb1e29c733b80658a39bd",
+    "whole_run_independent_current_forecast_count": null,
+    "workflow_success_is_24_productive_rounds": false,
+    "workflow_success_is_current_forecast_coverage": false
+  }
+}

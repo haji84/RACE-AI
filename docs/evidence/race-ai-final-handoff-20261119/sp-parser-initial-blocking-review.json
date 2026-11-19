@@ -1,0 +1,112 @@
+{
+  "schema": "RACE_AI_INDEPENDENT_SP_OFFLINE_PARSER_REVIEW_V1",
+  "reviewer": "/root/sp_offline_parser_review",
+  "observed_at_utc": "2026-11-19T08:50:48.437945+00:00",
+  "assessment": "BLOCKED_CORRECTNESS",
+  "reviewed_worktree": "/workspace/RACE-AI-sp-receipt-main-compatibility-20261119",
+  "base_main": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+  "candidate_commit": "df9ecaa49c259140a77251427d2e7378557f3ebb",
+  "owned_file_sha256": {
+    "race_ai/keirin_official_schedule.py": "e89bcb264b405942119cc2899d44207c5dae12eb72bda7c5e5f1f2611ad9ae8f",
+    "race_ai/keirin_official_sp_receipt.py": "3c907f8c5a29d040f0c174e45f9d7fcba175e90dbe4e2725b69d04855f9bea24",
+    "tests/test_keirin_official_schedule.py": "3a105b54252827c827efd08f96e8c7b11a83a8ac108c0f029c9483dc223db9d6",
+    "tests/test_keirin_official_sp_receipt.py": "66d87555d644db20c8efc62510f0f18300db5543480e5213999e8d40e1ce264d",
+    "docs/superpowers/specs/2026-11-19-keirin-sp-offline-receipts.md": "022f08a23c711231bda6b7a794d47b5082f5c615e7cd5b39185b838da86bdbce",
+    "docs/superpowers/plans/2026-11-19-keirin-sp-offline-receipts.md": "eb9bec83d94cc6a1fa5c0b27933b4161a8e01e4470d4b2bdc50abb77d60b47f6"
+  },
+  "combined_patch_path": "/workspace/scratch/keirin-detail-offline-contract-gap-20261119-fyawoyom/keirin-sp-offline-9616-owned-combined-df9ecaa49c25.patch",
+  "combined_patch_sha256": "5acb182bd868feefc5707a8416142a72dd0d088060cd30c8040370de8ce4d283",
+  "findings": [
+    {
+      "id": "SP-REVIEW-1",
+      "priority": "P2",
+      "severity": "important",
+      "path": "race_ai/keirin_official_sp_receipt.py",
+      "lines": [
+        23,
+        145,
+        146
+      ],
+      "title": "Compound member writes bypass the unreviewed-mutation guard",
+      "fixture": "tests.test_keirin_official_sp_receipt.detail_data/html with valid test calendar receipt",
+      "fixture_delta_python": "raw = html(detail_data()).replace(b'</script>', b'jsonData.SC0201.C0201data.selRaceNo += 1;\\n</script>')",
+      "reproduce_python": "SPReceiptTests().parse(raw=raw)",
+      "expected": "OfficialSPReceiptError because the selected race is mutated after extracted JSON",
+      "observed": {
+        "accepted": true,
+        "race_no": 1,
+        "source_admission": false,
+        "model_input_admission": false
+      },
+      "impact": "Receipt bytes can describe a changed selected race while the parser returns the earlier selected race as source-bound. The member guard only recognizes a plain equals assignment."
+    },
+    {
+      "id": "SP-REVIEW-2",
+      "priority": "P2",
+      "severity": "important",
+      "path": "race_ai/keirin_official_sp_receipt.py",
+      "lines": [
+        137,
+        147,
+        148,
+        150
+      ],
+      "title": "A later script may reset jsonData while previously extracted documents remain accepted",
+      "fixture": "tests.test_keirin_official_sp_receipt.detail_data/html with valid test calendar receipt",
+      "fixture_delta_python": "raw = html(detail_data()).replace(b'</body>', b'<script>jsonData = {};</script></body>')",
+      "reproduce_python": "SPReceiptTests().parse(raw=raw)",
+      "expected": "OfficialSPReceiptError because a reset after data assignment makes the embedded documents ambiguous/stale",
+      "observed": {
+        "accepted": true,
+        "race_no": 1,
+        "source_admission": false,
+        "model_input_admission": false
+      },
+      "impact": "Declaration ordering is only checked inside each script, but the extracted dictionary survives across scripts. Document-level mutation/reset invalidation is missing."
+    }
+  ],
+  "nonblocking_observations": [
+    {
+      "id": "SP-REVIEW-3",
+      "path": "race_ai/keirin_official_sp_receipt.py",
+      "lines": [
+        70,
+        78,
+        137
+      ],
+      "title": "Data scripts after the closed html element are accepted",
+      "fixture_delta_python": "original = html(detail_data()); raw = b'<html><body></body></html>' + original[original.index(b'<script>'):original.index(b'</script>')+9]",
+      "observed": {
+        "accepted": true,
+        "race_no": 1
+      },
+      "classification": "Additional strict-markup concern; not independently required for the blocking assessment because HTML browser recovery can accept this placement."
+    }
+  ],
+  "reviewer_actions": [
+    "Read applicable AGENTS.md and the requesting-code-review skill; using-superpowers identifies dispatched subagent exemption.",
+    "Read all six owned paths, root compatibility receipt, status and exact candidate/main/patch hashes.",
+    "Statically inspected byte/hash/time/calendar venue binding, date/race/roster bounds, JSON duplicate/nonfinite guards, script ambiguity and private held outputs.",
+    "Ran three invented-fixture negative probes with socket connect/create_connection methods denied; all three returned accepted results.",
+    "Did not rerun the already recorded 62 tests, because their passing result does not cover these new negative cases.",
+    "Left all compatibility worktree files unchanged and wrote this review receipt only under scratch."
+  ],
+  "external_network_attempts": 0,
+  "provider_http_requests": 0,
+  "owner_key_reads": 0,
+  "real_private_source_inputs_read": false,
+  "source_model_ui_workflow_or_flag_changes": false,
+  "commits_pushes_merges_or_external_writes": false,
+  "retained_guarantees": [
+    "source_admission=false and model_input_admission=false in accepted negative probes",
+    "No network or model execution paths were found in the pure parser",
+    "Raw source body and provider details are excluded from fixed error codes"
+  ],
+  "limits": [
+    "Focused review of the offline candidate only; no production admission, live transport or 403 resolution is verified.",
+    "No JavaScript was executed during probes; their mutations are explicit source text and the parser must reject ambiguous inputs.",
+    "Root-reported existing 62-test evidence was read, not independently rerun.",
+    "No private frozen replay data was accessed.",
+    "This receipt is bound to exact file and patch hashes and requires reevaluation after fixes."
+  ]
+}

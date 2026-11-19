@@ -1,0 +1,1187 @@
+diff --git a/docs/superpowers/plans/2026-11-19-keirin-sp-offline-receipts.md b/docs/superpowers/plans/2026-11-19-keirin-sp-offline-receipts.md
+new file mode 100644
+index 000000000..983651c3e
+--- /dev/null
++++ b/docs/superpowers/plans/2026-11-19-keirin-sp-offline-receipts.md
+@@ -0,0 +1,55 @@
++# Offline SP parser implementation
++
++Spec: `docs/superpowers/specs/2026-11-19-keirin-sp-offline-receipts.md`.
++Baseline: c0feb1becb8ff70834b87d9a3f901b5c954bccc5, existing isolated worktree.
++
++API: `parse_race_list(raw_bytes, *, expected_day, expected_venue_code,
++observed_at, expected_sha256, calendar_receipt)` and
++`parse_race_detail(raw_bytes, *, expected_day, expected_venue_code,
++expected_race_number, observed_at, expected_sha256, calendar_receipt)`.
++Observation clocks are aware `datetime` objects. SHA values bind original bytes.
++
++- [x] Write invented-fixture tests for list/detail output, calendar binding,
++  cancellation/notes, scores, malformed input and explicit admission holds.
++- [x] Run the tests RED because the parser API does not exist.
++- [x] Implement the bounded pure parser in
++  `race_ai/keirin_official_sp_receipt.py`; run tests GREEN.
++- [x] Replay actual private calendar/list/detail offline; verify aggregate
++  counts, clock/hash agreement and preserved holds outside the repository.
++- [x] Run existing calendar 10 and current-main official-source 32 fixtures,
++  inspect the owned patch for source leakage, and commit local owned files.
++- [x] Export baseline-to-candidate and owned-files-only current-main patches
++  into private scratch for the parent's independent review.
++
++Ruling: require calendar receipt context because SP detail has a venue name but
++no numeric venue code. Caller expectations alone cannot prove that binding.
++Ruling: run the explicitly scoped parser/calendar/official-source suites; the
++task forbids broad redundant execution and does not change model/runtime code.
++Review: the parent independently reviews the complete patch before any reuse;
++no merge, push, provider retry or production hookup is part of this plan.
++
++Execution ledger: 16 initial missing-API failures confirmed RED without test
++errors; 20 parser tests GREEN after additional RED-to-GREEN cases for exponent
++overflow, nested mutation, external script markers and detached HTML bodies.
++Initial scoped suites: 20 parser + 10 calendar + 32 official-source fixtures pass.
++Private replay: 14 aggregate checks pass, including existing manifest validation
++and original clock/hash agreement. No real source data is included in Git.
++Whole-patch independent review and any integration remain with the parent.
++
++Independent review of df9ecaa reproduced three accepted invalid inputs RED:
++compound/increment mutation, a cross-script namespace reset, and data after the
++closed HTML document. The fix replaces mutation-pattern detection with complete
++static statement consumption and document ancestry checks. Additional RED cases
++cover alias/conditional statements and malformed routing-literal quotes. Fixed
++scalar routing declarations match the actual private document shapes; no source
++values were copied into fixtures. Revised scoped suites: 26 parser + 10 calendar
+++ 32 official-source fixtures pass. Revised actual replay is byte-identical to
++the original normalized private output. The initial commit, patches, review
++block and nonpassing private DOM-audit assumption remain preserved separately.
++
++The next review reproduced CR/LS/PS comment-termination failures and three
++non-JavaScript control-whitespace inputs RED. The bounded lexical fix recognizes
++all four JavaScript line terminators and uses an explicit whitespace set for
++both comment skipping and statement grammar. Final scoped suites: 28 parser
+++ 10 calendar + 32 official-source fixtures pass. Prior 6459af0 code, patches
++and review evidence remain intact; no raw bytes or capture hashes are rewritten.
+diff --git a/docs/superpowers/specs/2026-11-19-keirin-sp-offline-receipts.md b/docs/superpowers/specs/2026-11-19-keirin-sp-offline-receipts.md
+new file mode 100644
+index 000000000..f1fcae0d1
+--- /dev/null
++++ b/docs/superpowers/specs/2026-11-19-keirin-sp-offline-receipts.md
+@@ -0,0 +1,51 @@
++# Offline KEIRIN SP receipts
++
++Parse already captured calendar, race-list and race-detail HTML without network,
++JavaScript execution, model inference or production admission. Preserve the
++existing calendar parser at c0feb1b and its distinction between meeting ranges
++and genuine race identities. No workflow, dependency, source pin or UI changes.
++
++Both entry points receive bytes, an expected SHA-256, an aware observation
++clock, and expected date/venue selection. Detail also receives an expected race
++number. A required `calendar_receipt` has exactly `raw_bytes`,
++`expected_sha256`, and `observed_at`: SP headers publish names rather than venue
++codes, so the actual calendar header binds the expected code to the name. No
++invented venue dictionary or relabelled PC JSON is accepted.
++
++`parse_race_list` extracts the unique requested SJ0301 date group, validates
++contiguous published race numbers and opaque read-only references, and returns
++the existing saved-day-roster manifest shape. It never borrows clocks from the
++initial SC0201 header, whose date may differ. A calendar range does not establish
++national coverage.
++
++`parse_race_detail` checks SC0201/SJ0315 against the selected calendar venue,
++date and race, verifies official aftBetDate against BetTime, and treats StartTime
++separately. Validate unique car numbers and six-digit official registrations.
++Retain cancellation and entry notes; supplemental entry is not withdrawal.
++Unknown notes cannot establish active eligibility. Preserve scores and other
++statistics as source text, with no invented rates, denominators or strengths.
++
++Reject changed hashes, invalid clocks/types, ambiguous assignments, duplicate
++JSON keys, nonfinite JSON, invalid UTF-8, incomplete HTML and bounded-resource
++violations. Every result explicitly leaves source/model admission, full PR71
++admission, full active eligibility and nationwide coverage false, with zero
++model generations and provider requests. Returned source data is private; the
++module never logs or stores it.
++
++JSON-bearing inline scripts must belong to the document's head/body. Consume
++their complete static grammar: comments, at most one global empty-object/array
++`var jsonData` declaration before any data, literal first-level JSON assignments,
++and literal scalar declarations for the fixed published routing variables.
++Unknown statements, aliases, conditions, calls, mutations and namespace resets
++are rejected. This recognizes data statements rather than interpreting JS.
++Single-line comments end at CR, LF, line separator or paragraph separator.
++Lexical whitespace follows the explicit JavaScript whitespace set; Python's
++broader whitespace classification cannot consume non-JavaScript control bytes.
++
++`http_status_verified` remains false: format validation cannot establish a
++server response status or independently attest the caller's receive clock.
++The caller retains the original capture receipt and private bytes.
++
++Tests use invented public fixtures only. Real saved receipts are replayed only
++outside Git, with safe aggregate evidence. This is offline parser completion,
++not autonomous provider operation or a resolution of a provider 403.
+diff --git a/race_ai/keirin_official_schedule.py b/race_ai/keirin_official_schedule.py
+new file mode 100644
+index 000000000..4a60ab0e7
+--- /dev/null
++++ b/race_ai/keirin_official_schedule.py
+@@ -0,0 +1,261 @@
++"""Pure parsing of the one existing official SP calendar document.
++
++Calendar ranges are candidate meetings, never a daily race roster. Published
++form references remain opaque: this module submits nothing and constructs no
++race URL. No network, forecast, source-rights grant or production input occurs.
++"""
++from calendar import monthrange
++from datetime import date, datetime, timezone
++from hashlib import sha256
++from html.parser import HTMLParser
++import re
++
++
++OFFICIAL_DOCUMENT = 'https://keirin.jp/sp/raceschedule'
++CALENDAR_SCHEMA = 'RACE_AI_KEIRIN_OFFICIAL_CALENDAR_DOCUMENT_V1'
++PROJECTION_SCHEMA = 'RACE_AI_KEIRIN_OFFICIAL_CALENDAR_DAY_PROJECTION_V1'
++DAY_ROSTER_SCHEMA = 'RACE_AI_KEIRIN_NON_RAKUTEN_OWNER_DAY_ROSTER_V1'
++MAX_HTML_BYTES = 8_000_000
++MAX_NODES = 50_000
++MAX_DEPTH = 64
++MAX_MEETINGS = 200
++_VOID = frozenset(('area', 'base', 'br', 'embed', 'hr', 'img', 'input', 'link',
++                   'meta', 'param', 'source', 'track', 'wbr'))
++_VENUE = re.compile(r"location\.href='/sp/jyosellinfo\?jocd=([0-9]{2})'")
++_REFERENCE = re.compile(r"lnk\.formlnk\('/sp/racelist','([A-Za-z0-9_-]{43})'\)")
++_PERIOD = re.compile(r'([0-9]{2})/([0-9]{2})\(([月火水木金土日])\)～'
++                     r'([0-9]{2})/([0-9]{2})\(([月火水木金土日])\)')
++_SHA = re.compile(r'[a-f0-9]{64}\Z')
++
++
++class OfficialCalendarError(ValueError):
++    pass
++
++
++def _need(value, reason):
++    if not value:
++        raise OfficialCalendarError('KEIRIN_OFFICIAL_CALENDAR_' + reason)
++
++
++def admit_official_document(source_url):
++    """Exact observed document only; this is not permission to fetch a host."""
++    _need(type(source_url) is str and source_url == OFFICIAL_DOCUMENT, 'SOURCE_NOT_EXACT')
++    return source_url
++
++
++class _Node:
++    def __init__(self, tag, attrs, parent=None):
++        self.tag, self.attrs, self.parent = tag, attrs, parent
++        self.children, self.parts = [], []
++        self.closed = tag in _VOID
++
++
++class _Document(HTMLParser):
++    def __init__(self):
++        super().__init__(convert_charrefs=True)
++        self.root = _Node('root', {})
++        self.stack, self.nodes = [self.root], []
++
++    def handle_starttag(self, tag, attrs):
++        _need(len(self.nodes) < MAX_NODES and len(self.stack) < MAX_DEPTH, 'DOCUMENT_BOUND')
++        _need(len(attrs) <= 32 and len(attrs) == len(dict(attrs)) and
++              all(value is None or len(value) <= 2048 for key, value in attrs), 'ATTRIBUTE_BOUND_OR_DUPLICATE')
++        node = _Node(tag, dict(attrs), self.stack[-1])
++        node.parent.children.append(node)
++        node.parent.parts.append(node)
++        self.nodes.append(node)
++        if tag not in _VOID:
++            self.stack.append(node)
++
++    def handle_startendtag(self, tag, attrs):
++        self.handle_starttag(tag, attrs)
++        if tag not in _VOID:
++            self.handle_endtag(tag)
++
++    def handle_endtag(self, tag):
++        for index in range(len(self.stack) - 1, 0, -1):
++            if self.stack[index].tag == tag:
++                self.stack[index].closed = True
++                self.stack = self.stack[:index]
++                break
++
++    def handle_data(self, data):
++        self.stack[-1].parts.append(data)
++
++
++def _class(node, value):
++    return value in _attribute(node, 'class').split()
++
++
++def _attribute(node, name):
++    value = node.attrs.get(name)
++    return value if type(value) is str else ''
++
++
++def _descendants(node):
++    for child in node.children:
++        yield child
++        yield from _descendants(child)
++
++
++def _text(node):
++    return ''.join(part if type(part) is str else _text(part) for part in node.parts)
++
++
++def _day(value):
++    _need(type(value) is str, 'DAY_INVALID')
++    try:
++        parsed = date.fromisoformat(value)
++    except ValueError:
++        raise OfficialCalendarError('KEIRIN_OFFICIAL_CALENDAR_DAY_INVALID') from None
++    _need(parsed.isoformat() == value, 'DAY_INVALID')
++    return parsed
++
++
++def _period(text, year, month):
++    match = _PERIOD.fullmatch(re.sub(r'\s+', '', text))
++    _need(match is not None, 'PERIOD_NOT_EXPLICIT')
++    sm, sd, sw, em, ed, ew = match.groups()
++    first, last = date(year, month, 1), date(year, month, monthrange(year, month)[1])
++    candidates = []
++    for sy in (year - 1, year, year + 1):
++        for ey in (year - 1, year, year + 1):
++            try:
++                start, end = date(sy, int(sm), int(sd)), date(ey, int(em), int(ed))
++            except ValueError:
++                continue
++            if (0 <= (end - start).days <= 31 and start <= last and end >= first and
++                    '月火水木金土日'[start.weekday()] == sw and '月火水木金土日'[end.weekday()] == ew):
++                candidates.append((start, end))
++    _need(len(candidates) == 1, 'PERIOD_YEAR_OR_WEEKDAY_AMBIGUOUS')
++    return candidates[0]
++
++
++def parse_calendar(raw, *, source_url, body_sha256, received_at, now, http_status):
++    """Bind exact bytes and actual receive clock; parse only published ranges."""
++    admit_official_document(source_url)
++    _need(type(http_status) is int and http_status == 200, 'HTTP_STATUS_NOT_OK')
++    _need(type(raw) is bytes and 0 < len(raw) <= MAX_HTML_BYTES, 'BODY_BOUND')
++    _need(type(body_sha256) is str and _SHA.fullmatch(body_sha256) is not None and
++          sha256(raw).hexdigest() == body_sha256, 'BODY_HASH_CHANGED')
++    _need(isinstance(received_at, datetime) and received_at.utcoffset() is not None and
++          isinstance(now, datetime) and now.utcoffset() is not None and received_at <= now,
++          'ACTUAL_RECEIVE_CLOCK_INVALID')
++    try:
++        text = raw.decode('utf-8', errors='strict')
++    except UnicodeDecodeError:
++        raise OfficialCalendarError('KEIRIN_OFFICIAL_CALENDAR_CHARSET_UNVERIFIED') from None
++    document = _Document()
++    document.feed(text)
++    document.close()
++    controls = {}
++    for name, pattern in (('dispYearData', r'20[0-9]{2}'), ('dispDayData', r'0[1-9]|1[0-2]')):
++        found = [node for node in document.nodes if node.tag == 'input' and node.attrs.get('id') == name]
++        _need(len(found) == 1 and re.fullmatch(pattern, _attribute(found[0], 'value')) is not None,
++              'DISPLAYED_MONTH_NOT_EXPLICIT')
++        controls[name] = int(found[0].attrs['value'])
++    year, month = controls['dispYearData'], controls['dispDayData']
++    headers, venues = {}, set()
++    for node in document.nodes:
++        if node.tag != 'div' or not _class(node, 'btn100p'):
++            continue
++        buttons = [child for child in _descendants(node) if child.tag == 'button']
++        if len(buttons) != 1:
++            continue
++        match = _VENUE.fullmatch(_attribute(buttons[0], 'onclick'))
++        if match is None:
++            continue
++        code = int(match[1])
++        _need(buttons[0].closed and 1 <= code <= 99 and code not in venues, 'VENUE_HEADER_DUPLICATE_OR_INVALID')
++        headers[id(node)] = code
++        venues.add(code)
++    tables = [node for node in document.nodes if node.tag == 'table' and _class(node, 'race_tbl')]
++    _need(1 <= len(tables) <= MAX_MEETINGS and venues, 'NO_BOUNDED_CALENDAR_MEETINGS')
++    meetings, references = [], set()
++    for table in tables:
++        _need(table.closed, 'MEETING_TABLE_INCOMPLETE')
++        container = table.parent
++        while container is not None and not (container.tag == 'div' and _class(container, 'dayDataDiv0201')):
++            container = container.parent
++        _need(container is not None and container.parent is not None, 'MEETING_VENUE_UNBOUND')
++        siblings = container.parent.children
++        index = siblings.index(container)
++        header = siblings[index - 1] if index else None
++        _need(header is not None and id(header) in headers, 'MEETING_VENUE_UNBOUND')
++        periods = [node for node in _descendants(table) if node.tag == 'td' and _class(node, 'kikan')]
++        _need(len(periods) == 1 and periods[0].closed, 'MEETING_PERIOD_MISSING_OR_DUPLICATE')
++        start, end = _period(_text(periods[0]), year, month)
++        reference = _attribute(table, 'onclick')
++        _need(_REFERENCE.fullmatch(reference) is not None, 'MEETING_NAVIGATION_UNSUPPORTED')
++        digest = sha256(reference.encode()).hexdigest()
++        _need(digest not in references, 'MEETING_NAVIGATION_DUPLICATE')
++        references.add(digest)
++        meetings.append(dict(venue_code=headers[id(header)], start_date_jst=start.isoformat(),
++            end_date_jst=end.isoformat(), navigation_reference_sha256=digest,
++            navigation_kind='PUBLISHED_RACELIST_FORM_NOT_FOLLOWED', navigation_method_verified=False))
++    meetings.sort(key=lambda row:(row['venue_code'], row['start_date_jst'], row['end_date_jst'],
++                                 row['navigation_reference_sha256']))
++    return dict(schema=CALENDAR_SCHEMA, source_url=source_url, source_sha256=body_sha256,
++        captured_at=received_at.astimezone(timezone.utc).isoformat(), displayed_month=f'{year:04d}-{month:02d}',
++        venue_codes=sorted(venues), meetings=meetings, upstream_publication_time_verified=False,
++        individual_race_identities_verified=False, model_input_admission_allowed=False)
++
++
++def project_day(calendar, *, event_day):
++    """Partial interface for collect_owner_inputs; never emit an empty roster.
++
++    The existing keirin_non_rakuten_day.read_saved_day_roster contract needs
++    explicit race_id/venue_code/race_no rows. Its manifest stays None until
++    an independently parsed individual-race document supplies those identities.
++    This wrapper is not an input to keirin_daily_ledger.daily_run.
++    """
++    _need(type(calendar) is dict and calendar.get('schema') == CALENDAR_SCHEMA, 'PARSED_DOCUMENT_REQUIRED')
++    admit_official_document(calendar.get('source_url'))
++    day = _day(event_day)
++    _need(type(calendar.get('displayed_month')) is str and
++          calendar['displayed_month'] == event_day[:7], 'REQUESTED_MONTH_NOT_DISPLAYED')
++    meetings = calendar.get('meetings')
++    _need(type(meetings) is list and 1 <= len(meetings) <= MAX_MEETINGS, 'PARSED_MEETINGS_REQUIRED')
++    candidates = [row for row in meetings if _day(row['start_date_jst']) <= day <= _day(row['end_date_jst'])]
++    venues = sorted({row['venue_code'] for row in candidates})
++    return dict(schema=PROJECTION_SCHEMA, state='HOLD_CALENDAR_ONLY_NO_INDIVIDUAL_RACE_IDENTITIES',
++        event_date_jst=event_day, source_url=calendar['source_url'], source_sha256=calendar['source_sha256'],
++        captured_at=calendar['captured_at'], displayed_month=calendar['displayed_month'],
++        calendar_meetings_observed=len(meetings), calendar_venue_headers_observed=len(calendar['venue_codes']),
++        calendar_meeting_candidates=candidates, calendar_meeting_candidate_count=len(candidates),
++        calendar_venue_candidates=venues, calendar_venue_candidate_count=len(venues),
++        calendar_period_inclusion_only=True, per_day_occurrence_independently_verified=False,
++        target_day_roster_schema=DAY_ROSTER_SCHEMA, day_roster_manifest_ready=False, day_roster_manifest=None,
++        missing_day_roster_fields=['race_id', 'race_no'], races=None, race_count=None,
++        source_day_schedule_race_count=None, complete_national_coverage_verified=False,
++        official_cutoffs_verified=False, model_features_available=False, full_347_437_audit_verified=False,
++        provider_machine_rights_independently_verified=False, new_pre_race_inputs=0,
++        actual_four_model_forecast_saved=False, provider_http_requests=0)
++
++
++def safe_summary(projection):
++    """Finite count-only output; source URL, form values and venue data stay private."""
++    _need(type(projection) is dict and projection.get('schema') == PROJECTION_SCHEMA, 'PROJECTION_REQUIRED')
++    counts = {}
++    for key, limit in (('calendar_meetings_observed', MAX_MEETINGS),
++                       ('calendar_venue_headers_observed', 99),
++                       ('calendar_meeting_candidate_count', MAX_MEETINGS),
++                       ('calendar_venue_candidate_count', 99)):
++        value = projection.get(key)
++        _need(type(value) is int and 0 <= value <= limit, 'COUNT_INVALID')
++        counts[key] = value
++    _need(counts['calendar_meeting_candidate_count'] <= counts['calendar_meetings_observed'] and
++          counts['calendar_venue_candidate_count'] <= counts['calendar_meeting_candidate_count'] and
++          counts['calendar_venue_candidate_count'] <= counts['calendar_venue_headers_observed'] and
++          projection.get('race_count') is None and projection.get('day_roster_manifest') is None and
++          projection.get('day_roster_manifest_ready') is False, 'CALENDAR_SCOPE_CHANGED')
++    digest = projection.get('source_sha256')
++    _need(type(digest) is str and _SHA.fullmatch(digest) is not None, 'BODY_HASH_CHANGED')
++    return dict(schema='RACE_AI_KEIRIN_OFFICIAL_CALENDAR_COUNTS_V1',
++        state='HOLD_CALENDAR_ONLY_NO_INDIVIDUAL_RACE_IDENTITIES', source_sha256=digest,
++        calendar_meetings_observed=counts['calendar_meetings_observed'],
++        calendar_venue_headers_observed=counts['calendar_venue_headers_observed'],
++        calendar_meeting_candidates=counts['calendar_meeting_candidate_count'],
++        calendar_venue_candidates=counts['calendar_venue_candidate_count'], individual_race_count=None,
++        day_roster_manifest_ready=False, official_cutoffs_verified=False, full_347_437_audit_verified=False,
++        new_pre_race_inputs=0, actual_four_model_forecast_saved=False, provider_http_requests=0)
+diff --git a/race_ai/keirin_official_sp_receipt.py b/race_ai/keirin_official_sp_receipt.py
+new file mode 100644
+index 000000000..10fa9e572
+--- /dev/null
++++ b/race_ai/keirin_official_sp_receipt.py
+@@ -0,0 +1,329 @@
++"""Pure, private parsing of already captured official SP HTML receipts.
++
++No HTTP, JavaScript execution, storage, model inference or source admission.
++Expected hashes and observation clocks come from the caller's capture record;
++this module supplies neither a server attestation nor an HTTP status proof.
++Returned names, registrations and published form references remain private.
++"""
++from datetime import date, datetime, timedelta, timezone
++from decimal import Decimal, InvalidOperation
++from hashlib import sha256
++import json
++from math import isfinite
++import re
++from unicodedata import normalize
++
++from . import keirin_official_schedule as calendar
++
++MAX_HTML_BYTES = calendar.MAX_HTML_BYTES
++JST = timezone(timedelta(hours=9))
++_SHA = re.compile(r'[0-9a-f]{64}\Z')
++_CLOCK = re.compile(r'(?:[01][0-9]|2[0-3]):[0-5][0-9]\Z')
++_JS_SPACE_PATTERN = r'[\t\v\f \u00a0\ufeff\r\n\u2028\u2029\u1680\u2000-\u200a\u202f\u205f\u3000]'
++_JS_SPACE = re.compile(_JS_SPACE_PATTERN)
++_LINE_END = re.compile(r'[\r\n\u2028\u2029]')
++_ASSIGN = re.compile(r'(?<![A-Za-z0-9_$.])jsonData\s*\[\s*([\x27\"])([A-Z][A-Z0-9]{2,9})\1\s*\]\s*=\s*'.replace(r'\s', _JS_SPACE_PATTERN))
++_NAMESPACE_DECL = re.compile(r'var\s+jsonData\s*=\s*(?:\{\s*\}|\[\s*\])\s*;'.replace(r'\s', _JS_SPACE_PATTERN))
++_ROUTING_DECL = re.compile((
++    r'var\s+(CONTEXT_PATH|FSJ0305_parentID|FSJ0305_showingID|currentPath|'
++    r'displayingId|displayingSyoriKbn|parentFuncId)\s*=\s*'
++    r'(?:([\x27\"])[A-Za-z0-9_/-]{0,80}\2|[0-9]{1,3})\s*;').replace(r'\s', _JS_SPACE_PATTERN))
++_ROW_FIELDS = frozenset(('strRaceNo', 'strSyumokuName', 'strArrow', 'strArrowName',
++                         'strRaceLnk', 'strRaceLnkPrm', 'strRaceLnkKbn', 'strColorClass'))
++_RIDER_FIELDS = frozenset(('syaban', 'sensyuRegistNo', 'sensyuName', 'huKen',
++    'kyakusitu', 'kyuhan', 'prevKyuhan', 'heikinTokuten', 'backCnt', 'nigeCnt',
++    'makuriCnt', 'sasiCnt', 'markCnt', 'syabanBgColorInfo', 'syabanCharColorInfo'))
++_NOTE_FIELDS = frozenset(('ketujyouTuikaHojyu', 'ketujyouTuikaHojyuColorInfo'))
++
++
++class OfficialSPReceiptError(ValueError):
++    """Fixed-code rejection; never includes private source data."""
++
++
++def _need(condition, code):
++    if not condition:
++        raise OfficialSPReceiptError('KEIRIN_OFFICIAL_SP_' + code)
++
++
++def _norm(value):
++    return re.sub(r'\s+', '', normalize('NFKC', value))
++
++
++def _day(value):
++    _need(type(value) is str and re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}', value), 'DAY_INVALID')
++    try:
++        return date.fromisoformat(value)
++    except ValueError:
++        raise OfficialSPReceiptError('KEIRIN_OFFICIAL_SP_DAY_INVALID') from None
++
++
++def _aware(value):
++    _need(isinstance(value, datetime) and value.utcoffset() is not None, 'OBSERVATION_CLOCK_INVALID')
++    return value.astimezone(timezone.utc)
++
++
++def _body(raw, expected_sha256):
++    _need(type(raw) is bytes and 0 < len(raw) <= MAX_HTML_BYTES, 'BODY_BOUND')
++    _need(type(expected_sha256) is str and _SHA.fullmatch(expected_sha256) is not None
++          and sha256(raw).hexdigest() == expected_sha256, 'BODY_HASH_MISMATCH')
++    try:
++        text = raw.decode('utf-8', 'strict')
++        document = calendar._Document()
++        document.feed(text)
++        document.close()
++    except (UnicodeError, calendar.OfficialCalendarError, RecursionError):
++        raise OfficialSPReceiptError('KEIRIN_OFFICIAL_SP_HTML_INVALID_OR_BOUND') from None
++    for tag in ('html', 'body'):
++        nodes = [node for node in document.nodes if node.tag == tag]
++        _need(len(nodes) == 1 and nodes[0].closed, 'HTML_INCOMPLETE_OR_AMBIGUOUS')
++    html_node = next(node for node in document.nodes if node.tag == 'html')
++    parent = next(node for node in document.nodes if node.tag == 'body').parent
++    while parent is not None and parent is not html_node:
++        parent = parent.parent
++    _need(parent is html_node, 'BODY_NOT_INSIDE_HTML')
++    return document
++
++
++def _pairs(items):
++    result = {}
++    for key, value in items:
++        _need(key not in result, 'DUPLICATE_JSON_KEY')
++        result[key] = value
++    return result
++
++
++def _nonfinite(_):
++    raise OfficialSPReceiptError('KEIRIN_OFFICIAL_SP_NONFINITE_JSON')
++
++
++def _finite_float(value):
++    number = float(value)
++    _need(isfinite(number), 'NONFINITE_JSON')
++    return number
++
++
++def _skip_comments_and_space(script, index):
++    while index < len(script):
++        if _JS_SPACE.fullmatch(script[index]) is not None:
++            index += 1
++        elif script.startswith('//', index):
++            end = _LINE_END.search(script, index + 2)
++            index = len(script) if end is None else end.end()
++        elif script.startswith('/*', index):
++            end = script.find('*/', index + 2)
++            _need(end != -1, 'UNTERMINATED_SCRIPT_COMMENT')
++            index = end + 2
++        else:
++            break
++    return index
++
++
++def _embedded(document):
++    """Consume only the observed static data grammar; never interpret JS."""
++    data, declarations = {}, set()
++    decoder = json.JSONDecoder(object_pairs_hook=_pairs, parse_constant=_nonfinite,
++                               parse_float=_finite_float)
++    for node in document.nodes:
++        if node.tag != 'script' or 'jsonData' not in calendar._text(node):
++            continue
++        ancestors, parent = set(), node.parent
++        while parent is not None:
++            ancestors.add(parent.tag)
++            parent = parent.parent
++        _need('html' in ancestors and bool({'body', 'head'} & ancestors),
++              'JSON_SCRIPT_OUTSIDE_DOCUMENT')
++        _need(node.closed and 'src' not in node.attrs, 'JSON_SCRIPT_INCOMPLETE_OR_EXTERNAL')
++        script, index = calendar._text(node), 0
++        while True:
++            index = _skip_comments_and_space(script, index)
++            if index == len(script):
++                break
++            declaration = _NAMESPACE_DECL.match(script, index)
++            if declaration is not None:
++                _need('jsonData' not in declarations and not data,
++                      'GLOBAL_JSON_DECLARATION_REPEATED_OR_LATE')
++                declarations.add('jsonData')
++                index = declaration.end()
++                continue
++            routing = _ROUTING_DECL.match(script, index)
++            if routing is not None:
++                _need(routing[1] not in declarations, 'REPEATED_ROUTING_DECLARATION')
++                declarations.add(routing[1])
++                index = routing.end()
++                continue
++            assignment = _ASSIGN.match(script, index)
++            _need(assignment is not None, 'UNRECOGNIZED_JSON_SCRIPT_STATEMENT')
++            code = assignment[2]
++            _need(code not in data and len(data) < 16, 'DUPLICATE_OR_EXCESS_JSON_DOCUMENT')
++            try:
++                value, end = decoder.raw_decode(script, assignment.end())
++            except (ValueError, RecursionError):
++                raise OfficialSPReceiptError('KEIRIN_OFFICIAL_SP_JSON_INVALID') from None
++            end = _skip_comments_and_space(script, end)
++            _need(type(value) is dict and script[end:end+1] == ';', 'JSON_BOUNDARY_OR_TYPE')
++            data[code], index = value, end + 1
++    return data
++
++
++def _calendar_binding(receipt, expected_day, expected_venue_code, observed_at):
++    _need(type(receipt) is dict and set(receipt) == {'raw_bytes', 'expected_sha256', 'observed_at'}, 'CALENDAR_RECEIPT_SCHEMA')
++    _need(type(expected_venue_code) is int and 1 <= expected_venue_code <= 99, 'VENUE_CODE_INVALID')
++    received = _aware(receipt['observed_at'])
++    _need(received <= observed_at, 'CALENDAR_OBSERVED_AFTER_DOCUMENT')
++    document = _body(receipt['raw_bytes'], receipt['expected_sha256'])
++    try:
++        parsed = calendar.parse_calendar(receipt['raw_bytes'], source_url=calendar.OFFICIAL_DOCUMENT,
++            body_sha256=receipt['expected_sha256'], received_at=received, now=observed_at, http_status=200)
++        projection = calendar.project_day(parsed, event_day=expected_day)
++    except calendar.OfficialCalendarError:
++        raise OfficialSPReceiptError('KEIRIN_OFFICIAL_SP_CALENDAR_BINDING_INVALID') from None
++    candidates = [item for item in projection['calendar_meeting_candidates']
++                  if item['venue_code'] == expected_venue_code]
++    _need(len(candidates) == 1, 'CALENDAR_DAY_VENUE_NOT_UNIQUE')
++    names = []
++    for node in document.nodes:
++        if node.tag != 'button':
++            continue
++        match = calendar._VENUE.fullmatch(calendar._attribute(node, 'onclick'))
++        if match is not None and int(match[1]) == expected_venue_code:
++            name = _norm(calendar._text(node))
++            _need(bool(name) and len(name) <= 100, 'CALENDAR_VENUE_NAME_INVALID')
++            names.append(name)
++    _need(len(names) == 1, 'CALENDAR_VENUE_NAME_NOT_UNIQUE')
++    return names[0], candidates[0]
++
++
++def _prepare(raw, expected_day, expected_venue_code, observed_at, expected_sha256, calendar_receipt):
++    day, observed = _day(expected_day), _aware(observed_at)
++    document = _body(raw, expected_sha256)
++    name, meeting = _calendar_binding(calendar_receipt, expected_day, expected_venue_code, observed)
++    data = _embedded(document)
++    header_doc = data.get('SC0201')
++    _need(type(header_doc) is dict and type(header_doc.get('resultCd')) is int
++          and header_doc['resultCd'] == 0 and type(header_doc.get('C0201data')) is dict, 'HEADER_UNAVAILABLE')
++    header = header_doc['C0201data']
++    _need(type(header.get('joName')) is str and _norm(header['joName']) == name, 'HEADER_CALENDAR_VENUE_MISMATCH')
++    common = dict(source_sha256=expected_sha256, source_observed_at=observed.isoformat(),
++        calendar_source_sha256=calendar_receipt['expected_sha256'],
++        calendar_meeting_reference_sha256=meeting['navigation_reference_sha256'],
++        event_date_jst=expected_day, venue_code=expected_venue_code,
++        source_admission=False, model_input_admission=False, full_pr71_admission=False,
++        all_nationwide_coverage_verified=False, full_active_eligibility_verified=False,
++        missing_model_origins_preserved=True, model_generation=0, provider_http_requests=0,
++        http_status_verified=False, private_only=True)
++    return day, observed, data, header, common
++
++
++def parse_race_list(raw_bytes, *, expected_day, expected_venue_code, observed_at,
++                    expected_sha256, calendar_receipt):
++    """Return actual dated identities and private references; admit no clocks."""
++    day, observed, data, header, result = _prepare(raw_bytes, expected_day, expected_venue_code,
++        observed_at, expected_sha256, calendar_receipt)
++    listing = data.get('SJ0301')
++    _need(type(listing) is dict and type(listing.get('resultCd')) is int
++          and listing['resultCd'] == 0, 'RACE_LIST_UNAVAILABLE')
++    groups = listing.get('kaisaiDayList')
++    _need(type(groups) is list and 1 <= len(groups) <= 7, 'DAY_GROUP_BOUND')
++    selected, labels = [], set()
++    for group in groups:
++        _need(type(group) is dict and type(group.get('strKaisaiNitijName')) is str, 'DAY_GROUP_SCHEMA')
++        label = re.fullmatch(r'(?:初日|最終日|[2-9]日目)\(([0-9]{1,2})/([0-9]{1,2})\)', _norm(group['strKaisaiNitijName']))
++        _need(label is not None, 'DAY_LABEL_INVALID')
++        month_day = tuple(map(int, label.groups()))
++        _need(month_day not in labels, 'DUPLICATE_DAY_GROUP')
++        labels.add(month_day)
++        if month_day == (day.month, day.day):
++            selected.append(group)
++    _need(len(selected) == 1, 'EXPECTED_DAY_GROUP_NOT_UNIQUE')
++    rows = selected[0].get('raceProgramList')
++    _need(type(rows) is list and 1 <= len(rows) <= 12, 'RACE_ROW_BOUND')
++    races, references, seen = [], [], set()
++    for row in rows:
++        _need(type(row) is dict and set(row) == _ROW_FIELDS and
++              all(type(value) is str and len(value) <= 512 for value in row.values()), 'RACE_ROW_SCHEMA')
++        number = _norm(row['strRaceNo'])
++        _need(re.fullmatch(r'[1-9]|1[0-2]', number) is not None and int(number) not in seen, 'RACE_NUMBER_INVALID_OR_DUPLICATE')
++        number = int(number)
++        seen.add(number)
++        _need(row['strRaceLnk'] == '/sp/race' and row['strRaceLnkKbn'] in ('1', '2')
++              and re.fullmatch(r'[A-Za-z0-9_-]{43}', row['strRaceLnkPrm']) is not None, 'RACE_REFERENCE_UNREVIEWED')
++        races.append(dict(race_id=day.strftime('%Y%m%d')+f'{expected_venue_code:02d}{number:02d}',
++                          venue_code=expected_venue_code, race_no=number))
++        references.append(dict(race_no=number, path=row['strRaceLnk'],
++            opaque_reference=row['strRaceLnkPrm'], link_kind=row['strRaceLnkKbn']))
++    _need(seen == set(range(1, len(seen)+1)), 'RACE_UNIVERSE_HAS_GAPS')
++    result.update(schema='RACE_AI_KEIRIN_OFFICIAL_SP_RACE_LIST_RECEIPT_V1',
++        source_url='https://keirin.jp/sp/racelist', source_method='POST',
++        race_count=len(races), header_clocks_admitted=False, official_cutoffs_verified=False,
++        day_roster_manifest=dict(schema=calendar.DAY_ROSTER_SCHEMA, event_date_jst=expected_day,
++            source_url='https://keirin.jp/sp/racelist', source_sha256=expected_sha256,
++            captured_at=observed.isoformat(), races=sorted(races, key=lambda row: row['race_no'])),
++        race_references=sorted(references, key=lambda row: row['race_no']))
++    return result
++
++
++def _clock(value, optional=False):
++    if optional and value == '':
++        return None
++    _need(type(value) is str and _CLOCK.fullmatch(value) is not None, 'CLOCK_INVALID')
++    return value
++
++
++def parse_race_detail(raw_bytes, *, expected_day, expected_venue_code,
++                      expected_race_number, observed_at, expected_sha256, calendar_receipt):
++    """Preserve one exact selected race's official clocks and published roster."""
++    day, observed, data, header, result = _prepare(raw_bytes, expected_day, expected_venue_code,
++        observed_at, expected_sha256, calendar_receipt)
++    _need(type(expected_race_number) is int and 1 <= expected_race_number <= 12
++          and type(header.get('selRaceNo')) is int and header['selRaceNo'] == expected_race_number
++          and header.get('txtEventDate') == day.strftime('%Y/%m/%d'), 'DETAIL_DAY_OR_RACE_MISMATCH')
++    _need(type(header.get('flgRaceCancel')) is bool, 'CANCELLATION_TYPE_INVALID')
++    bet, start = _clock(header.get('aftBetTime')), _clock(header.get('aftStartTime'))
++    prior_bet, prior_start = _clock(header.get('bfrBetTime'), True), _clock(header.get('bfrStartTime'), True)
++    stamp = header.get('aftBetDate')
++    _need(type(stamp) is str and re.fullmatch(r'[0-9]{12}', stamp) is not None
++          and stamp == day.strftime('%Y%m%d')+bet.replace(':', ''), 'OFFICIAL_CUTOFF_DATE_MISMATCH')
++    cutoff = datetime.combine(day, datetime.strptime(bet, '%H:%M').time(), tzinfo=JST)
++    start_at = datetime.combine(day, datetime.strptime(start, '%H:%M').time(), tzinfo=JST)
++    _need(cutoff < start_at, 'CUTOFF_NOT_BEFORE_START')
++    roster_doc = data.get('SJ0315')
++    _need(type(roster_doc) is dict and type(roster_doc.get('resultCd')) is int
++          and roster_doc['resultCd'] == 0 and roster_doc.get('syusouInfoExistFlg') == '1', 'ROSTER_UNAVAILABLE')
++    source_rows = roster_doc.get('sensyuTypeInfo')
++    _need(type(source_rows) is list and 1 <= len(source_rows) <= 9, 'ROSTER_ROW_BOUND')
++    riders, cars, identifiers = [], set(), set()
++    statuses = {'': 'UNSPECIFIED', '補充': 'SUPPLEMENTAL', '追加': 'ADDED', '欠場': 'WITHDRAWN'}
++    for row in source_rows:
++        _need(type(row) is dict and _RIDER_FIELDS <= set(row) <= _RIDER_FIELDS | _NOTE_FIELDS
++              and all(type(value) is str and len(value) <= 160 for value in row.values()), 'ROSTER_ROW_SCHEMA')
++        _need(re.fullmatch(r'[1-9]', row['syaban']) is not None and
++              re.fullmatch(r'[0-9]{6}', row['sensyuRegistNo']) is not None and
++              bool(row['sensyuName'].strip()), 'RIDER_IDENTITY_INVALID')
++        car, identity = int(row['syaban']), row['sensyuRegistNo']
++        _need(car not in cars and identity not in identifiers, 'DUPLICATE_RIDER_OR_CAR')
++        cars.add(car);identifiers.add(identity)
++        score = row['heikinTokuten']
++        if score in ('', '-', '--'):
++            score = None
++        else:
++            _need(re.fullmatch(r'[0-9]+(?:\.[0-9]+)?', score) is not None, 'SCORE_FORMAT_INVALID')
++            try:
++                _need(Decimal(score).is_finite(), 'SCORE_NONFINITE')
++            except InvalidOperation:
++                raise OfficialSPReceiptError('KEIRIN_OFFICIAL_SP_SCORE_FORMAT_INVALID') from None
++        note = row.get('ketujyouTuikaHojyu', '')
++        riders.append(dict(car=car, registration_id=identity, name=row['sensyuName'],
++            score_raw=score, entry_note_raw=note, entry_status=statuses.get(note, 'UNKNOWN'),
++            statistics_raw={key: row[key] for key in ('backCnt', 'nigeCnt', 'makuriCnt', 'sasiCnt', 'markCnt')}))
++    withdrawals = sum(row['entry_status'] == 'WITHDRAWN' for row in riders)
++    unknown = sum(row['entry_status'] == 'UNKNOWN' for row in riders)
++    result.update(schema='RACE_AI_KEIRIN_OFFICIAL_SP_RACE_DETAIL_RECEIPT_V1',
++        source_url='https://keirin.jp/sp/race', source_method='POST',
++        race_id=day.strftime('%Y%m%d')+f'{expected_venue_code:02d}{expected_race_number:02d}',
++        race_no=expected_race_number, official_cutoff_at=cutoff.isoformat(), start_at=start_at.isoformat(),
++        prior_betting_cutoff_clock=prior_bet, prior_start_clock=prior_start,
++        observed_before_official_cutoff=observed < cutoff, race_cancelled=header['flgRaceCancel'],
++        riders=sorted(riders, key=lambda row: row['car']), withdrawal_count=withdrawals,
++        unknown_entry_status_count=unknown, pr71_cardinality_supported=len(riders) in (7, 9),
++        no_published_roster_exclusion_observed=not (header['flgRaceCancel'] or withdrawals or unknown))
++    return result
+diff --git a/tests/test_keirin_official_schedule.py b/tests/test_keirin_official_schedule.py
+new file mode 100644
+index 000000000..950b01f3b
+--- /dev/null
++++ b/tests/test_keirin_official_schedule.py
+@@ -0,0 +1,190 @@
++"""Invented official-calendar-shaped markup; no live values or requests."""
++from copy import deepcopy
++from datetime import date, datetime, timedelta, timezone
++from hashlib import sha256
++import importlib
++import importlib.util
++import json
++import unittest
++from unittest.mock import patch
++
++
++schedule = (importlib.import_module('race_ai.keirin_official_schedule')
++            if importlib.util.find_spec('race_ai.keirin_official_schedule') else None)
++URL = 'https://keirin.jp/sp/raceschedule'
++NOW = datetime(2030, 1, 15, 2, tzinfo=timezone.utc)
++DAY = '2030-01-15'
++
++
++def period(start, end):
++    weekdays = '月火水木金土日'
++    def side(value):
++        value = date.fromisoformat(value)
++        return value.strftime('%m/%d') + '(' + weekdays[value.weekday()] + ')'
++    return side(start) + '～' + side(end)
++
++
++def meeting(start, end, token='A' * 43):
++    return ('<table class="race_tbl white_bg_color chgcolor" '
++            'onclick="lnk.formlnk(\'/sp/racelist\',\'' + token + '\')">'
++            '<tr><td class="grade pd_l5"><img alt="架空等級"></td>'
++            '<td class="kikan">' + period(start, end) + '</td></tr>'
++            '<tr><td>INVENTED_PRIVATE_SOURCE_VALUE</td></tr></table>')
++
++
++def venue(code, rows):
++    return ('<div class="btn100p clear-fix"><table class="btn100p"><tbody><tr><td>'
++            '<button class="btn linkbtn forceBr" type="button" '
++            'onclick="location.href=\'/sp/jyosellinfo?jocd=' + str(code) + '\'">'
++            '架空会場</button></td></tr></tbody></table></div>'
++            '<div class="dayDataDiv0201"><div>' + ''.join(rows) + '</div></div>')
++
++
++def page(groups=None, year='2030', month='01'):
++    if groups is None:
++        groups = [venue(98, [meeting('2030-01-14', '2030-01-16'),
++                             meeting('2030-01-20', '2030-01-22', 'B' * 43)]),
++                  venue(99, [meeting('2030-01-15', '2030-01-17', 'C' * 43)])]
++    return ('<html><body><input type="hidden" id="dispYearData" value="' + year + '">'
++            '<input type="hidden" id="dispDayData" value="' + month + '">'
++            '<div class="dispoff" id="invented_region">' + ''.join(groups) + '</div>'
++            '<input type="hidden" id="fnHdnTouhyouEnc" value="INVENTED_PRIVATE_TOKEN">'
++            '</body></html>').encode()
++
++
++class OfficialCalendarTests(unittest.TestCase):
++    def api(self):
++        self.assertIsNotNone(schedule, 'the pure official document adapter is missing')
++        return schedule
++
++    def parse(self, body=None, **changes):
++        api = self.api()
++        body = page() if body is None else body
++        args = dict(source_url=URL, body_sha256=sha256(body).hexdigest(),
++                    received_at=NOW, now=NOW + timedelta(seconds=1), http_status=200)
++        args.update(changes)
++        return api.parse_calendar(body, **args)
++
++    def test_only_the_exact_existing_public_document_is_admitted(self):
++        api = self.api()
++        self.assertEqual(api.admit_official_document(URL), URL)
++        for url in (URL + '?day=20300115', URL + '#race', URL + '/',
++                    URL.replace('https:', 'http:'), URL.replace('keirin.jp', 'www.keirin.jp'),
++                    URL.replace('keirin.jp', 'keirin.jp.attacker.invalid'),
++                    'https://user:pass@keirin.jp/sp/raceschedule'):
++            with self.subTest(url=url), self.assertRaises(ValueError):
++                api.admit_official_document(url)
++
++    def test_periods_bind_to_explicit_adjacent_venue_headers(self):
++        parsed = self.parse()
++        self.assertEqual(parsed['displayed_month'], '2030-01')
++        self.assertEqual(parsed['venue_codes'], [98, 99])
++        self.assertEqual(len(parsed['meetings']), 3)
++        first = parsed['meetings'][0]
++        self.assertEqual((first['venue_code'], first['start_date_jst'], first['end_date_jst']),
++                         (98, '2030-01-14', '2030-01-16'))
++        self.assertEqual(len(first['navigation_reference_sha256']), 64)
++        self.assertEqual(first['navigation_kind'], 'PUBLISHED_RACELIST_FORM_NOT_FOLLOWED')
++        self.assertFalse(first['navigation_method_verified'])
++        self.assertFalse(parsed['upstream_publication_time_verified'])
++
++    def test_existing_day_roster_projection_stays_held_without_individual_races(self):
++        api = self.api()
++        out = api.project_day(self.parse(), event_day=DAY)
++        self.assertEqual(out['target_day_roster_schema'], 'RACE_AI_KEIRIN_NON_RAKUTEN_OWNER_DAY_ROSTER_V1')
++        self.assertEqual(out['calendar_venue_candidate_count'], 2)
++        self.assertEqual(out['calendar_meeting_candidate_count'], 2)
++        self.assertIsNone(out['day_roster_manifest'])
++        self.assertFalse(out['day_roster_manifest_ready'])
++        self.assertIsNone(out['races'])
++        self.assertIsNone(out['race_count'])
++        self.assertIsNone(out['source_day_schedule_race_count'])
++        self.assertEqual(out['state'], 'HOLD_CALENDAR_ONLY_NO_INDIVIDUAL_RACE_IDENTITIES')
++        for key in ('complete_national_coverage_verified', 'official_cutoffs_verified',
++                    'model_features_available', 'full_347_437_audit_verified',
++                    'actual_four_model_forecast_saved', 'provider_machine_rights_independently_verified'):
++            self.assertIs(out[key], False)
++        self.assertEqual(out['new_pre_race_inputs'], 0)
++
++    def test_no_calendar_candidate_does_not_prove_a_zero_race_day(self):
++        api = self.api()
++        out = api.project_day(self.parse(), event_day='2030-01-31')
++        self.assertEqual(out['calendar_meeting_candidate_count'], 0)
++        self.assertEqual(out['calendar_venue_candidate_count'], 0)
++        self.assertIsNone(out['race_count'])
++        self.assertFalse(out['complete_national_coverage_verified'])
++        self.assertIsNone(out['day_roster_manifest'])
++
++    def test_byte_identity_http_status_and_actual_receive_clock_are_required(self):
++        self.api()
++        for changes in ({'body_sha256':'f' * 64}, {'http_status':403}, {'http_status':429},
++                        {'http_status':True}, {'received_at':NOW.replace(tzinfo=None)},
++                        {'received_at':NOW + timedelta(seconds=2)}, {'now':NOW.replace(tzinfo=None)},
++                        {'received_at':'2030-01-15T02:00:00Z'}):
++            with self.subTest(changes=changes), self.assertRaises(ValueError):
++                self.parse(**changes)
++        with self.assertRaises(ValueError):
++            self.parse(b'\xff')
++
++    def test_explicit_weekdays_month_and_year_boundary_are_not_guessed(self):
++        api = self.api()
++        body = page([venue(98, [meeting('2030-12-31', '2031-01-02')])], month='12')
++        parsed = self.parse(body)
++        row = parsed['meetings'][0]
++        self.assertEqual((row['start_date_jst'], row['end_date_jst']), ('2030-12-31', '2031-01-02'))
++        self.assertEqual(api.project_day(parsed, event_day='2030-12-31')['calendar_venue_candidate_count'], 1)
++        with self.assertRaises(ValueError):
++            self.parse(page().replace(period('2030-01-14', '2030-01-16').encode(), b'01/14(\xe6\x97\xa5)~01/16(\xe6\x9c\xa8)'))
++        with self.assertRaises(ValueError):
++            api.project_day(self.parse(), event_day='2030-02-01')
++
++    def test_unbound_headers_foreign_navigation_and_unknown_markup_are_refused(self):
++        self.api()
++        for body in (page().replace(b'class="btn100p clear-fix"', b'class="unknown"', 1),
++                     page().replace(b'class="btn100p clear-fix"', b'class', 1),
++                     page().replace(b'id="dispDayData" value="01"', b'id="dispDayData" value', 1),
++                     page().replace(b'/sp/jyosellinfo?jocd=98', b'/sp/private?jocd=98', 1),
++                     page().replace(b'/sp/racelist', b'/private/login', 1),
++                     page().replace(b'class="kikan"', b'class="unknown"', 1),
++                     page().replace(b"'" + b'A' * 43 + b"'", b"'bad&value'", 1)):
++            with self.subTest(body_sha=sha256(body).hexdigest()), self.assertRaises(ValueError):
++                self.parse(body)
++
++    def test_duplicate_or_incomplete_rows_are_not_silently_dropped(self):
++        self.api()
++        for body in (page().replace(b'id="dispYearData"', b'id="dispYearData" id="duplicate"', 1),
++                     page().replace(b'</body>', b'<input id="dispYearData" value="2031"></body>'),
++                     page([venue(98, [meeting('2030-01-14', '2030-01-16')]),
++                           venue(98, [meeting('2030-01-20', '2030-01-22', 'B' * 43)])]),
++                     page([venue(98, [meeting('2030-01-14', '2030-01-16'),
++                                      meeting('2030-01-20', '2030-01-22')])])):
++            with self.subTest(body_sha=sha256(body).hexdigest()), self.assertRaises(ValueError):
++                self.parse(body)
++
++    def test_safe_counts_never_export_urls_opaque_values_or_source_text(self):
++        api = self.api()
++        out = api.project_day(self.parse(), event_day=DAY)
++        safe = api.safe_summary(out)
++        self.assertEqual(safe['calendar_meetings_observed'], 3)
++        self.assertEqual(safe['calendar_venue_candidates'], 2)
++        self.assertIsNone(safe['individual_race_count'])
++        encoded = json.dumps(safe)
++        for private in (URL, 'A' * 43, 'INVENTED_PRIVATE_TOKEN', 'INVENTED_PRIVATE_SOURCE_VALUE', '架空会場'):
++            self.assertNotIn(private, encoded)
++        forged = deepcopy(out);forged['calendar_venue_candidate_count'] = True
++        with self.assertRaises(ValueError):
++            api.safe_summary(forged)
++
++    def test_resource_and_challenge_documents_stop_without_network(self):
++        api = self.api()
++        for body in (b'', b'x' * (api.MAX_HTML_BYTES + 1), b'<html>captcha or login</html>',
++                     b'<div>' * 65 + page() + b'</div>' * 65):
++            with self.subTest(size=len(body)), self.assertRaises(ValueError):
++                self.parse(body)
++        with patch('urllib.request.OpenerDirector.open', side_effect=AssertionError('network forbidden')):
++            result = api.project_day(self.parse(), event_day=DAY)
++        self.assertEqual(result['provider_http_requests'], 0)
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tests/test_keirin_official_sp_receipt.py b/tests/test_keirin_official_sp_receipt.py
+new file mode 100644
+index 000000000..47ab29d24
+--- /dev/null
++++ b/tests/test_keirin_official_sp_receipt.py
+@@ -0,0 +1,265 @@
++"""Invented fixtures only. Boolean assertions never dump source bytes."""
++from copy import deepcopy
++from datetime import datetime, timezone, timedelta
++from hashlib import sha256
++import importlib
++import importlib.util
++import json
++import unittest
++
++from tests.test_keirin_official_schedule import page, venue, meeting
++
++MODULE = 'race_ai.keirin_official_sp_receipt'
++DAY = '2030-01-15'
++AT = datetime(2030, 1, 15, 2, tzinfo=timezone.utc)
++
++
++def calendar_receipt():
++    raw = page([venue(98, [meeting('2030-01-14', '2030-01-16')])])
++    return dict(raw_bytes=raw, expected_sha256=sha256(raw).hexdigest(), observed_at=AT)
++
++
++def header(day='2030/01/15'):
++    return dict(joName='架空会場', txtEventDate=day, selRaceNo=1,
++                aftBetDate='203001151247', aftBetTime='12:47',
++                aftStartTime='12:50', bfrBetTime='12:45', bfrStartTime='12:48',
++                flgRaceCancel=False)
++
++
++def list_data():
++    rows = [dict(strRaceNo=str(n), strSyumokuName='架空区分', strArrow='',
++                 strArrowName='', strRaceLnk='/sp/race',
++                 strRaceLnkPrm=chr(65+n)*43, strRaceLnkKbn='1', strColorClass='')
++            for n in range(1, 4)]
++    return {'SC0201': dict(resultCd=0, C0201data=header('2030/01/14')),
++            'SJ0301': dict(resultCd=0, kaisaiDayList=[
++                dict(strKaisaiNitijName='初日(1/14)', raceProgramList=deepcopy(rows)),
++                dict(strKaisaiNitijName='2日目(1/15)', raceProgramList=rows)])}
++
++
++def detail_data(count=7):
++    riders = []
++    for car in range(1, count+1):
++        riders.append(dict(syaban=str(car), sensyuRegistNo=f'99{car:04d}',
++            sensyuName=f'架空選手{car}', huKen='架空県', kyakusitu='架空脚質',
++            kyuhan='架空級班', prevKyuhan='架空前級班', heikinTokuten='201.25',
++            backCnt='3', nigeCnt='1', makuriCnt='2', sasiCnt='0', markCnt='1',
++            syabanBgColorInfo='', syabanCharColorInfo=''))
++    riders[1]['ketujyouTuikaHojyu'] = '補充'
++    riders[1]['ketujyouTuikaHojyuColorInfo'] = 'invented'
++    return {'SC0201': dict(resultCd=0, C0201data=header()),
++            'SJ0315': dict(resultCd=0, syusouInfoExistFlg='1', sensyuTypeInfo=riders)}
++
++
++def html(data):
++    return ('<html><body><script>\nvar jsonData = {};\n' + ''.join(
++        'jsonData[' + json.dumps(code) + '] = ' + json.dumps(value, ensure_ascii=False)
++        + ';\n' for code, value in data.items()) + '</script></body></html>').encode()
++
++
++class SPReceiptTests(unittest.TestCase):
++    def api(self):
++        present = importlib.util.find_spec(MODULE) is not None
++        self.assertTrue(bool(present), 'SP_PARSER_API_MISSING')
++        return importlib.import_module(MODULE)
++
++    def parse(self, kind='detail', data=None, raw=None, **changes):
++        api = self.api()
++        if raw is None:
++            raw = html(data if data is not None else
++                       (detail_data() if kind == 'detail' else list_data()))
++        args = dict(expected_day=DAY, expected_venue_code=98,
++                    observed_at=AT+timedelta(seconds=1), expected_sha256=sha256(raw).hexdigest(),
++                    calendar_receipt=calendar_receipt())
++        if kind == 'detail':
++            args['expected_race_number'] = 1
++        args.update(changes)
++        return getattr(api, 'parse_race_' + kind)(raw, **args)
++
++    def rejected(self, **changes):
++        self.api()
++        failed = False
++        try:
++            self.parse(**changes)
++        except ValueError:
++            failed = True
++        self.assertTrue(bool(failed), 'EXPECTED_FIXED_GUARD_REJECTION')
++
++    def test_list_preserves_real_identities_and_never_uses_other_day_clocks(self):
++        result = self.parse('list')
++        manifest = result['day_roster_manifest']
++        self.assertTrue(bool([row['race_id'] for row in manifest['races']] ==
++                             ['203001159801', '203001159802', '203001159803']), 'EXPLICIT_LIST_IDENTITIES')
++        self.assertTrue(bool(result['race_count'] == 3 and result['official_cutoffs_verified'] is False
++                             and result['header_clocks_admitted'] is False), 'LIST_HAS_NO_CLOCK_ADMISSION')
++
++    def test_detail_preserves_cutoff_start_roster_notes_and_open_scores(self):
++        result = self.parse()
++        self.assertTrue(bool(result['official_cutoff_at'] == '2030-01-15T12:47:00+09:00'
++                             and result['start_at'] == '2030-01-15T12:50:00+09:00'), 'DISTINCT_OFFICIAL_CLOCKS')
++        self.assertTrue(bool(len(result['riders']) == 7 and result['riders'][0]['score_raw'] == '201.25'), 'RAW_SCORE_NO_CEILING')
++        self.assertTrue(bool(result['riders'][1]['entry_status'] == 'SUPPLEMENTAL'
++                             and result['withdrawal_count'] == 0 and result['pr71_cardinality_supported']), 'SUPPLEMENT_IS_NOT_WITHDRAWAL')
++
++    def test_all_outputs_keep_admission_and_execution_holds(self):
++        for kind in ('list', 'detail'):
++            result = self.parse(kind)
++            self.assertTrue(bool(all(result[key] is False for key in
++                ('source_admission', 'model_input_admission', 'full_pr71_admission',
++                 'all_nationwide_coverage_verified', 'full_active_eligibility_verified'))
++                 and result['model_generation'] == result['provider_http_requests'] == 0), 'EXPLICIT_ADMISSION_HOLDS')
++
++    def test_cancelled_and_withdrawn_and_unknown_notes_do_not_establish_eligibility(self):
++        for mode in ('cancelled', 'withdrawn', 'unknown'):
++            data = detail_data()
++            if mode == 'cancelled': data['SC0201']['C0201data']['flgRaceCancel'] = True
++            else: data['SJ0315']['sensyuTypeInfo'][0]['ketujyouTuikaHojyu'] = '欠場' if mode == 'withdrawn' else '架空未知状態'
++            result = self.parse(data=data)
++            self.assertTrue(bool(result['no_published_roster_exclusion_observed'] is False
++                                 and result['full_active_eligibility_verified'] is False), 'STATUS_CANNOT_PROMOTE_ELIGIBILITY')
++
++    def test_unknown_score_stays_missing_and_counts_stay_raw(self):
++        data = detail_data();data['SJ0315']['sensyuTypeInfo'][0]['heikinTokuten'] = '--'
++        result = self.parse(data=data)
++        self.assertTrue(bool(result['riders'][0]['score_raw'] is None
++                             and result['riders'][0]['statistics_raw']['backCnt'] == '3'
++                             and result['missing_model_origins_preserved']), 'NO_GUESSED_SCORE_OR_RATE')
++
++    def test_wrong_day_venue_race_and_calendar_binding_reject(self):
++        self.rejected(expected_day='2030-01-16')
++        self.rejected(expected_venue_code=99)
++        self.rejected(expected_race_number=2)
++        data = detail_data();data['SC0201']['C0201data']['joName'] = '別の架空会場'
++        self.rejected(data=data)
++
++    def test_wrong_list_day_and_duplicate_day_group_reject(self):
++        self.rejected(kind='list', expected_day='2030-01-16')
++        data=list_data();data['SJ0301']['kaisaiDayList'].append(deepcopy(data['SJ0301']['kaisaiDayList'][1]))
++        self.rejected(kind='list', data=data)
++
++    def test_race_gaps_duplicates_unknown_reference_and_row_types_reject(self):
++        for field,value in [('strRaceNo','5'),('strRaceLnk','/sp/login'),
++                            ('strRaceLnkPrm','short'),('strRaceLnkKbn','9'),('strRaceNo',True)]:
++            data=list_data();data['SJ0301']['kaisaiDayList'][1]['raceProgramList'][1][field]=value
++            self.rejected(kind='list', data=data)
++        data=list_data();data['SJ0301']['kaisaiDayList'][1]['raceProgramList'][1]['strRaceNo']='1'
++        self.rejected(kind='list', data=data)
++
++    def test_duplicate_and_invalid_rider_identity_reject(self):
++        for field,value in [('syaban','1'),('sensyuRegistNo','990001'),
++                            ('syaban','0'),('sensyuRegistNo','not-an-id'),('sensyuName','')]:
++            data=detail_data();data['SJ0315']['sensyuTypeInfo'][1][field]=value
++            self.rejected(data=data)
++
++    def test_invalid_clock_date_cancellation_and_score_types_reject(self):
++        for field,value in [('aftBetTime','25:47'),('aftStartTime','12:46'),
++                            ('aftBetDate','203001141247'),('aftBetDate','203001151246'),
++                            ('bfrBetTime','not-a-clock'),('flgRaceCancel','false'),
++                            ('selRaceNo',True)]:
++            data=detail_data();data['SC0201']['C0201data'][field]=value;self.rejected(data=data)
++        for value in ('NaN','Infinity','-1',True):
++            data=detail_data();data['SJ0315']['sensyuTypeInfo'][0]['heikinTokuten']=value;self.rejected(data=data)
++
++    def test_roster_availability_and_unknown_row_schema_reject(self):
++        for field,value in [('resultCd',1),('syusouInfoExistFlg','0'),('sensyuTypeInfo',[])]:
++            data=detail_data();data['SJ0315'][field]=value;self.rejected(data=data)
++        data=detail_data();data['SJ0315']['sensyuTypeInfo'][0]['unreviewedField']='invented'
++        self.rejected(data=data)
++
++    def test_changed_hash_aware_clock_and_calendar_chronology_reject(self):
++        self.rejected(expected_sha256='0'*64)
++        self.rejected(observed_at=AT.replace(tzinfo=None))
++        self.rejected(observed_at=AT-timedelta(seconds=1))
++        receipt=calendar_receipt();receipt['expected_sha256']='0'*64
++        self.rejected(calendar_receipt=receipt)
++
++    def test_duplicate_document_duplicate_keys_and_nonfinite_json_reject(self):
++        raw=html(detail_data())
++        self.rejected(raw=raw.replace(b'</script>', b'jsonData["SC0201"] = {};\n</script>'))
++        self.rejected(raw=raw.replace(b'"resultCd": 0', b'"resultCd": 0, "resultCd": 0',1))
++        self.rejected(raw=raw.replace(b'"resultCd": 0', b'"resultCd": NaN',1))
++
++    def test_overflowing_json_number_cannot_hide_in_an_unused_field(self):
++        raw=html(detail_data()).replace(b'"resultCd": 0', b'"resultCd": 0, "unusedNumeric": 1e999',1)
++        self.rejected(raw=raw)
++
++    def test_nested_member_mutation_cannot_override_extracted_json(self):
++        raw=html(detail_data()).replace(b'</script>', b'jsonData.SC0201.C0201data = {};\n</script>')
++        self.rejected(raw=raw)
++
++    def test_script_with_src_does_not_supply_inline_provider_data(self):
++        self.rejected(raw=html(detail_data()).replace(b'<script>',b'<script src="">'))
++
++    def test_body_outside_closed_html_is_not_a_complete_receipt(self):
++        raw=html(detail_data()).replace(b'<html><body>',b'<html></html><body>').replace(b'</body></html>',b'</body>')
++        self.rejected(raw=raw)
++
++    def test_compound_and_increment_mutations_cannot_change_scope(self):
++        for suffix in (' += 1', ' -= 1', ' *= 2', ' /= 2', ' %= 2', ' **= 2',
++                       ' <<= 1', ' >>= 1', ' >>>= 1', ' &= 1', ' |= 1', ' ^= 1',
++                       ' &&= 1', ' ||= 1', ' ??= 1', '++', '--'):
++            extra=('jsonData.SC0201.C0201data.selRaceNo'+suffix+';\n').encode()
++            self.rejected(raw=html(detail_data()).replace(b'</script>',extra+b'</script>'))
++
++    def test_second_script_cannot_reset_global_json_namespace(self):
++        raw=html(detail_data()).replace(b'</body>',b'<script>jsonData = {};</script></body>')
++        self.rejected(raw=raw)
++
++    def test_data_script_after_closed_document_cannot_supply_a_receipt(self):
++        original=html(detail_data());raw=b'<html><body></body></html>'+original[original.index(b'<script>'):original.index(b'</script>')+9]
++        self.rejected(raw=raw)
++
++    def test_only_literal_routing_declarations_and_comments_are_consumed(self):
++        extra=(b'// invented routing literals\nvar currentPath = "";\n'
++               b'var displayingId = "SJ0315"; /* invented comment */\n'
++               b'var displayingSyoriKbn = 1; var parentFuncId = "FSJ0305";\n')
++        raw=html(detail_data()).replace(b'var jsonData = {};',extra+b'var jsonData = [];')
++        result=self.parse(raw=raw)
++        self.assertTrue(bool(result['race_no']==1 and len(result['riders'])==7
++                             and result['source_admission'] is False), 'LITERAL_ROUTING_DOES_NOT_CHANGE_DATA')
++
++    def test_aliases_conditionals_and_unknown_statements_are_not_data(self):
++        for extra in (b'var alias = jsonData;\n',b'if (true) {}\n',b'jsonData.push({});\n'):
++            self.rejected(raw=html(detail_data()).replace(b'</script>',extra+b'</script>'))
++
++    def test_routing_string_requires_matching_quote_delimiters(self):
++        raw=html(detail_data()).replace(b'var jsonData = {};', b'var currentPath = \x27/sp\x22; var jsonData = {};')
++        self.rejected(raw=raw)
++
++    def test_every_javascript_line_terminator_ends_single_line_comments(self):
++        for label,separator in [('CR','\r'),('LS','\u2028'),('PS','\u2029')]:
++            with self.subTest(separator=label):
++                extra=('// invented comment'+separator+'jsonData.SC0201.C0201data.selRaceNo += 1;\n').encode()
++                self.rejected(raw=html(detail_data()).replace(b'</script>',extra+b'</script>'))
++
++    def test_non_javascript_control_characters_are_not_grammar_whitespace(self):
++        original=html(detail_data())
++        for label,raw in [('between_statements',original.replace(b'{};',b'{};\x1c',1)),
++                          ('namespace_declaration',original.replace(b'var jsonData',b'var\x1cjsonData',1)),
++                          ('JSON_assignment',original.replace(b'jsonData[',b'jsonData\xc2\x85[',1))]:
++            with self.subTest(position=label):
++                self.rejected(raw=raw)
++
++    def test_commented_quoted_dynamic_and_trailing_assignments_cannot_fake_json(self):
++        raw=html(detail_data())
++        for changed in (raw.replace(b'jsonData["SC0201"]', b'jsonData[documentCode]',1),
++                        raw.replace(b'</script>', b'jsonData.SC0201 = {};\n</script>'),
++                        raw.replace(b'<script>\n',b'<script>/*\n').replace(b'</script>',b'*/</script>'),
++                        raw.replace(b'<script>\n',b'<script>`\n').replace(b'</script>',b'`</script>')):
++            self.rejected(raw=changed)
++
++    def test_oversize_truncated_utf8_and_deep_html_reject(self):
++        api=self.api();raw=html(detail_data())
++        for changed in (b'', b'x'*(api.MAX_HTML_BYTES+1),raw[:-7],raw.replace('架空'.encode(),b'\xff',1),
++                        b'<div>'*65+raw+b'</div>'*65):
++            self.rejected(raw=changed)
++
++    def test_parser_is_parameterized_for_a_different_date_and_nine_riders(self):
++        data=detail_data(9);h=data['SC0201']['C0201data'];h['txtEventDate']='2030/01/16';h['aftBetDate']='203001161247';h['selRaceNo']=3
++        result=self.parse(data=data,expected_day='2030-01-16',expected_race_number=3)
++        self.assertTrue(bool(result['race_id']=='203001169803' and len(result['riders'])==9
++                             and result['pr71_cardinality_supported']), 'PARAMETERIZED_EXPECTATIONS')
++
++
++if __name__ == '__main__':
++    unittest.main()

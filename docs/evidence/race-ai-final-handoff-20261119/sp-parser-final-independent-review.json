@@ -1,0 +1,197 @@
+{
+  "schema": "RACE_AI_INDEPENDENT_SP_OFFLINE_PARSER_REVIEW_V3",
+  "reviewer": "/root/sp_offline_parser_review",
+  "observed_at_utc": "2026-11-19T09:06:11.384470+00:00",
+  "assessment": "CLEAR_FOR_SCOPED_OFFLINE_STATIC_BOOTSTRAP_EXTRACTION",
+  "reviewed_worktree": "/workspace/RACE-AI-sp-receipt-main-compatibility-20261119",
+  "base_main": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+  "candidate_commit": "d27079e00fc387eaef7e6987c1a642883105d7bb",
+  "parent_commit": "6459af08016877c7a50c1a6470b331e17a7ba6cd",
+  "preserved_initial_commit": "df9ecaa49c259140a77251427d2e7378557f3ebb",
+  "owned_file_sha256": {
+    "race_ai/keirin_official_schedule.py": "e89bcb264b405942119cc2899d44207c5dae12eb72bda7c5e5f1f2611ad9ae8f",
+    "race_ai/keirin_official_sp_receipt.py": "25e3ed3c0c2c9e4d42c7e219faf18072e3c0c9a9c1443d394c5a37ef93e37b3f",
+    "tests/test_keirin_official_schedule.py": "3a105b54252827c827efd08f96e8c7b11a83a8ac108c0f029c9483dc223db9d6",
+    "tests/test_keirin_official_sp_receipt.py": "cadc55a80e26feb4e34de8bb0dc8fab6c318ae785fff6007c02b4e12c73bc2c6",
+    "docs/superpowers/specs/2026-11-19-keirin-sp-offline-receipts.md": "dba28a2c61bf07020b85291f2bbe108a824779c198fc24ec0b727ae1602e3934",
+    "docs/superpowers/plans/2026-11-19-keirin-sp-offline-receipts.md": "2eab1b291aaf216eac009e175aec88386da4209262e07008efbfab2288a052fe"
+  },
+  "combined_patch_path": "/workspace/scratch/keirin-detail-offline-contract-gap-20261119-fyawoyom/keirin-sp-offline-9616-owned-combined-d27079e00fc3.patch",
+  "combined_patch_sha256": "e485a6238c03d6bb952176d5c198679cc24993cf7104194c31ca0f7767aba1af",
+  "root_70_test_compatibility_proof_path": "/workspace/scratch/keirin-sp-parser-root-main-compatibility-comment-fix-20261119.json",
+  "root_70_test_compatibility_proof_sha256": "3feb7f837d8780635a88c61915036ab13f51eb840229d7efe13b8f13bcb53d2d",
+  "root_70_test_evidence_independently_rerun": false,
+  "previous_reviews_preserved": [
+    {
+      "path": "/workspace/scratch/keirin-sp-independent-parser-review-20261119-_g20obkx/review.json",
+      "sha256": "c919bdc9c23af67641fb39416468fdf522d59132e4fb59eba9b39180411c195d"
+    },
+    {
+      "path": "/workspace/scratch/keirin-sp-independent-parser-review-fix-20261119-sf81stuj/review.json",
+      "sha256": "3d6009bda437cf1775336a58a5b09856b5662dc836d0bdcb2d1fa22f35a5b5b1"
+    }
+  ],
+  "findings": [],
+  "resolved_prior_findings": [
+    "SP-REVIEW-1",
+    "SP-REVIEW-2",
+    "SP-REVIEW-3",
+    "SP-REVIEW-4"
+  ],
+  "independent_targeted_probe_results": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0,
+    "expected_rejections": [
+      {
+        "case": "original_compound_mutation",
+        "accepted": false,
+        "pass": true
+      },
+      {
+        "case": "original_cross_script_reset",
+        "accepted": false,
+        "pass": true
+      },
+      {
+        "case": "original_outside_html_data",
+        "accepted": false,
+        "pass": true
+      },
+      {
+        "case": "late_global_var_reset",
+        "accepted": false,
+        "pass": true
+      },
+      {
+        "case": "nonJS_between_statements",
+        "accepted": false,
+        "pass": true
+      },
+      {
+        "case": "nonJS_namespace_declaration",
+        "accepted": false,
+        "pass": true
+      },
+      {
+        "case": "nonJS_assignment",
+        "accepted": false,
+        "pass": true
+      },
+      {
+        "case": "line_comment_CR_mutation",
+        "accepted": false,
+        "pass": true
+      },
+      {
+        "case": "line_comment_LF_mutation",
+        "accepted": false,
+        "pass": true
+      },
+      {
+        "case": "line_comment_LS_mutation",
+        "accepted": false,
+        "pass": true
+      },
+      {
+        "case": "line_comment_PS_mutation",
+        "accepted": false,
+        "pass": true
+      }
+    ],
+    "expected_acceptances": [
+      {
+        "case": "valid_comment_CR",
+        "accepted": true,
+        "pass": true,
+        "race_no": 1,
+        "rider_count": 7,
+        "source_admission": false,
+        "model_input_admission": false,
+        "model_generation": 0,
+        "provider_http_requests": 0
+      },
+      {
+        "case": "valid_comment_LF",
+        "accepted": true,
+        "pass": true,
+        "race_no": 1,
+        "rider_count": 7,
+        "source_admission": false,
+        "model_input_admission": false,
+        "model_generation": 0,
+        "provider_http_requests": 0
+      },
+      {
+        "case": "valid_comment_LS",
+        "accepted": true,
+        "pass": true,
+        "race_no": 1,
+        "rider_count": 7,
+        "source_admission": false,
+        "model_input_admission": false,
+        "model_generation": 0,
+        "provider_http_requests": 0
+      },
+      {
+        "case": "valid_comment_PS",
+        "accepted": true,
+        "pass": true,
+        "race_no": 1,
+        "rider_count": 7,
+        "source_admission": false,
+        "model_input_admission": false,
+        "model_generation": 0,
+        "provider_http_requests": 0
+      },
+      {
+        "case": "valid_explicit_JS_whitespace",
+        "accepted": true,
+        "pass": true,
+        "race_no": 1,
+        "rider_count": 7,
+        "source_admission": false,
+        "model_input_admission": false,
+        "model_generation": 0,
+        "provider_http_requests": 0
+      }
+    ],
+    "fixture_helpers": "tests.test_keirin_official_sp_receipt.SPReceiptTests/detail_data/html (public invented fixtures only)",
+    "negative_probe_details": {
+      "original_compound_mutation": "Appended jsonData.SC0201.C0201data.selRaceNo += 1 statement.",
+      "original_cross_script_reset": "Appended separate jsonData = {} script after populated data script.",
+      "original_outside_html_data": "Placed complete populated script after closed html/body.",
+      "late_global_var_reset": "Appended separate var jsonData = {} script after populated data script.",
+      "nonJS_between_statements": "Inserted U+001C after namespace declaration.",
+      "nonJS_namespace_declaration": "Inserted U+001C between var and jsonData.",
+      "nonJS_assignment": "Inserted U+0085 between jsonData and opening bracket.",
+      "line_comment_mutations": "Placed += mutation after // comment terminated by each CR, LF, U+2028 and U+2029."
+    },
+    "positive_probe_details": "Inserted valid // comments with each of CR/LF/U+2028/U+2029 before namespace declaration; separately used NBSP+BOM as JavaScript whitespace between var and jsonData."
+  },
+  "reviewer_actions": [
+    "Re-read final lexical implementation, new tests, spec and plan; verified all six file hashes and combined patch hash against root current-main compatibility evidence.",
+    "Inspected full local child diff 6459af..d27079: only lexical fixes plus parser tests and two docs; calendar files unchanged.",
+    "Confirmed static bootstrap grammar consumes known literal data statements and rejects unknown statements; global declaration and data assignment state are maintained across JSON-bearing scripts.",
+    "Confirmed complete-document script ancestry checks, four JavaScript line terminators and explicit JavaScript whitespace in skip/declaration/assignment/routing grammar.",
+    "Replayed sixteen invented-fixture probes with socket operations denied; all eleven rejection cases and five positive cases passed.",
+    "Reviewed retained hash/time/calendar scope binding and fixed private/admission outputs; no new runtime/model/provider integration was added.",
+    "Read root-reported fresh 70-test compatibility proof without repeating the suite.",
+    "Changed no compatibility worktree files; preserved both old BLOCKED review artifacts and wrote this separate scratch receipt."
+  ],
+  "external_network_attempts": 0,
+  "provider_http_requests": 0,
+  "owner_key_reads": 0,
+  "real_private_source_inputs_read": false,
+  "javascript_executed": false,
+  "source_model_ui_workflow_or_flag_changes": false,
+  "commits_pushes_merges_or_external_writes": false,
+  "limits": [
+    "CLEAR applies only to exact-hash local offline extraction of the documented static bootstrap statements.",
+    "This review does not execute or reconstruct arbitrary JavaScript runtime behavior and does not authenticate source transport, status, provider rights or caller observation clocks.",
+    "No private frozen source body, owner key or original model data was read; actual private replay remains separate author/root evidence.",
+    "Root 70-test evidence was inspected rather than independently rerun; sixteen targeted reviewer probes were run independently.",
+    "Source/model/full PR71/active eligibility/nationwide admission gates remain false; no production admission, autonomous collection, deployment or provider403 resolution is asserted.",
+    "Reevaluation is required if any reviewed code, patch or contract hash changes."
+  ]
+}

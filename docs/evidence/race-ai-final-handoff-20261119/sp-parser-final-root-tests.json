@@ -1,0 +1,28 @@
+{
+  "base_main": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+  "candidate_commit": "d27079e00fc387eaef7e6987c1a642883105d7bb",
+  "combined_patch_sha256": "e485a6238c03d6bb952176d5c198679cc24993cf7104194c31ca0f7767aba1af",
+  "errors": 0,
+  "external_network_attempts": 0,
+  "failures": 0,
+  "local_owner_key_reads": 0,
+  "observed_at_utc": "2026-11-19T09:04:11.752874+00:00",
+  "old_6_owned_file_preimages_verified": true,
+  "owned_file_sha256": {
+    "docs/superpowers/plans/2026-11-19-keirin-sp-offline-receipts.md": "2eab1b291aaf216eac009e175aec88386da4209262e07008efbfab2288a052fe",
+    "docs/superpowers/specs/2026-11-19-keirin-sp-offline-receipts.md": "dba28a2c61bf07020b85291f2bbe108a824779c198fc24ec0b727ae1602e3934",
+    "race_ai/keirin_official_schedule.py": "e89bcb264b405942119cc2899d44207c5dae12eb72bda7c5e5f1f2611ad9ae8f",
+    "race_ai/keirin_official_sp_receipt.py": "25e3ed3c0c2c9e4d42c7e219faf18072e3c0c9a9c1443d394c5a37ef93e37b3f",
+    "tests/test_keirin_official_schedule.py": "3a105b54252827c827efd08f96e8c7b11a83a8ac108c0f029c9483dc223db9d6",
+    "tests/test_keirin_official_sp_receipt.py": "cadc55a80e26feb4e34de8bb0dc8fab6c318ae785fff6007c02b4e12c73bc2c6"
+  },
+  "patch_check_against_clean_main_index_passed": true,
+  "preserved_prior_commit": "6459af08016877c7a50c1a6470b331e17a7ba6cd",
+  "private_source_inputs_in_test_suite": false,
+  "production_admission_or_deployment_performed": false,
+  "schema": "RACE_AI_ROOT_SP_PARSER_COMMENT_FIX_CURRENT_MAIN_COMPATIBILITY_V3",
+  "seconds": 0.318,
+  "skipped": 0,
+  "tests": 70,
+  "warnings_as_errors": true
+}

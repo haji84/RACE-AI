@@ -1,0 +1,92 @@
+{
+  "artifact_receipt": {
+    "ZIP_CRC_verified": true,
+    "artifact_bytes": 7922,
+    "artifact_id": 14511051631,
+    "artifact_sha256": "3b703bdf8e546cd62ce16c1e0aaa7eac9cd9044d8c1c8eeb11150c7907710282",
+    "artifact_upload_step_completed": true,
+    "attempt": 2,
+    "head_sha": "147d0558dc8c8718af673310b324b63babc90d59",
+    "initial_incorrect_expected_digest_rejected_before_download": true,
+    "job_final_status_pending_at_download": true,
+    "job_id": 135432830062,
+    "local_owner_key_reads": 0,
+    "report_sha256": "8bc06d7ffd8baf8aadaad293379ad9befdbd14b43cd1c74140fe3a7038ea5770",
+    "run_id": 44467797701,
+    "schema": "RACE_AI_POST_RECOVERY_ACTIONS_COUNTS_ARTIFACT_RECEIPT_V1",
+    "single_member": true
+  },
+  "cause_verified_in_unchanged_code": {
+    "actual_attempt": 2,
+    "candidate_retention_cryptographic_readback_phase_reached": false,
+    "file": "scripts/boat_private_venue_retention_audit.py",
+    "lines": [
+      130,
+      132,
+      142
+    ],
+    "main_commit": "147d0558dc8c8718af673310b324b63babc90d59",
+    "requires_first_attempt": true
+  },
+  "completed_job": {
+    "artifact_report_sha256": "8bc06d7ffd8baf8aadaad293379ad9befdbd14b43cd1c74140fe3a7038ea5770",
+    "attempt": 2,
+    "completed_at": "2026-11-19T08:30:27Z",
+    "decoded_log_sha256": "4ad983da70788d1f11aa94178aad8e6b9cfecb5b0abb32d23bc38d253e05b2a0",
+    "job_conclusion": "success",
+    "job_id": 135432830062,
+    "local_owner_key_reads": 0,
+    "log_report_typed_canonical_JSON_matches_artifact": true,
+    "matching_log_line": 775,
+    "new_candidate_retention_AES_remote_readback_performed": false,
+    "private_retention_result": "MAIN_CONTEXT_REJECTED_FIRST_ATTEMPT_ONLY",
+    "private_tool_response_sha256": "6702d51797a3ec201e8b06aa206300a7591a2aa00b4234126cdb37ed917cfd2b",
+    "run_id": 44467797701,
+    "schema": "RACE_AI_POST_RECOVERY_COMPLETED_LOG_REPORT_MATCH_V1",
+    "source_provider_requests": 0,
+    "status": "completed"
+  },
+  "final_1008_ciphertext_exact_byte_readback_remains_verified": true,
+  "local_owner_key_reads": 0,
+  "new_remote_candidate_AEAD_authentication_proven": false,
+  "no_gate_weakened": true,
+  "original_Actions_archive_authentication_is_prior_evidence_not_new_recheck": true,
+  "other_scope_AES_checks": {
+    "current_pair_authenticated": true,
+    "newly_recovered_candidate_retention_scope": false,
+    "raw_aes_archives_verified": 7,
+    "scope": "EXISTING_FIRST_SOURCE_WORKER_FIXED_CLOSED_PREFIX_2_ORIGINALS"
+  },
+  "retention_result": {
+    "artifact_count": null,
+    "artifact_inventory_sha256": null,
+    "candidate_inventory_sha256": null,
+    "conflict_candidate_count": null,
+    "expected_candidate_count": null,
+    "failure_code": "MAIN_CONTEXT_REJECTED",
+    "historical_push_completion_time_proven": false,
+    "missing_candidate_count": null,
+    "observed_remote_commit": null,
+    "phase": "MAIN_CONTEXT",
+    "plaintext_published": false,
+    "production_promoted": false,
+    "reason": "CONTEXT_REJECTED",
+    "schema": "RACE_AI_PRIVATE_VENUE_RETENTION_READBACK_COUNTS_V1",
+    "source_requests": 0,
+    "status": "HOLD_PRIVATE_RESEARCH_RETENTION",
+    "verified_candidate_count": null,
+    "verified_original_bytes": null
+  },
+  "schema": "RACE_AI_POST_RECOVERY_ACTIONS_RECHECK_HOLD_SAFE_V1",
+  "study_result": {
+    "evaluation_status": "UNREGISTERED_HOLD",
+    "failure_phase": "MAIN_IDENTITY",
+    "new_forecasts": 0,
+    "official_raw_qualified": false,
+    "promotion_allowed": false,
+    "qualifying_g8_count": 0,
+    "registration_status": "HOLD",
+    "schema": "RACE_AI_NATIVE_FORWARD_STUDY_COUNTS_V1",
+    "source_requests": 0
+  }
+}

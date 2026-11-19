@@ -1,0 +1,139 @@
+{
+  "Actions_scope_checks": {
+    "ZIP_CRC_member_full_bytes_match": true,
+    "candidate_retention": "MAIN_CONTEXT_REJECTED_HOLD",
+    "candidate_retention_new_AEAD_authentication_proven": false,
+    "completed_log_typed_canonical_report_match_line": 775,
+    "new_artifact_ZIP_sha256": "3b703bdf8e546cd62ce16c1e0aaa7eac9cd9044d8c1c8eeb11150c7907710282",
+    "new_artifact_id": 14511051631,
+    "new_attempt": 2,
+    "new_job_id": 135432830062,
+    "new_report_sha256": "8bc06d7ffd8baf8aadaad293379ad9befdbd14b43cd1c74140fe3a7038ea5770",
+    "no_fresh_336_candidate_AES_or_G8_or_improvement_claim": true,
+    "original_artifact_created_inside_first_attempt": true,
+    "original_first_attempt_metadata_exact_projection_match": true,
+    "original_prior_report_artifact_id": 14503356965,
+    "original_report_ZIP_sha256": "83f4d8a7b717805354e083cfc5aa5081788b5ea3a4dae8dee129c37a8f7a2fa9",
+    "separate_existing_prefix_current_pair_authenticated": true,
+    "separate_existing_prefix_raw_AES_archives_verified": 7,
+    "study": "MAIN_IDENTITY_HOLD",
+    "unchanged_first_attempt_only_guard_source_sha256": "f81b067c1194d06a4bcb8fdc0298247157eadef89cdd34b43b36685caa81c148"
+  },
+  "ciphertext_evidence_checks": {
+    "added_paths_by_commit": [
+      12,
+      9,
+      6,
+      3
+    ],
+    "auth_HEAD_index_worktree_unchanged": true,
+    "bytes": 375640877,
+    "cached_final_tree_all1008_mode_type_OIDs_match_authenticated_catalog": true,
+    "candidates": 336,
+    "conflicts": 0,
+    "exact_reviewed_proof_sha256": "900622f2ebb5a352acd902f377ebfe54a600849c85b0400d76b914845d98bbe2",
+    "exact_v4_script_sha256": "f2769d38ea0bd707d1bfd9c142efb51525b9ea584f1047ad3507067843f1a9ce",
+    "execution_outcome_sha256": "63641600f4f7998af73bacc404ca2bf23afe9f7eb425f96b39f055c46befb8ab",
+    "files": 1008,
+    "final_head": "6c0a01ce55b1948b17610f694a15629df5ccdacf",
+    "final_metadata_inventory_digest_matches_catalog_and_outcome": true,
+    "four_acknowledged_create_only_commits": 4,
+    "missing_files": 0,
+    "original_actions_inventory_and_original_failure_records_preserved": true,
+    "pending_commit": null
+  },
+  "findings": [],
+  "latest_status_snapshot": {
+    "initial_7098_byte_prepend_receipt_is_a_preserved_prior_snapshot": true,
+    "later_parser_updates_require_new_final_manifest_or_binding_receipt": true,
+    "original_suffix_preserved": true,
+    "original_suffix_sha256": "01feb28b01b1af73808e199607e1827a9a65604ca34144650809a5fb35ee1b79",
+    "parser_prose_currently_in_progress": true,
+    "path": "/workspace/RACE-AI-final-runtime-evidence-20261119/docs/RACE_AI_LATEST_STATUS.md",
+    "prefix_bytes": 7227,
+    "prefix_sha256": "036461e5033d605013e6ed80c33c27319250f1b3e6281638f0a4f5c6dd9de442",
+    "sha256": "ead6369275f2ec82272008c077ed13e2c916ff839f3120b9bd68a5ea585aabd3"
+  },
+  "limits": [
+    "Review binds the listed exact current file hashes, not later additions or edits. A final manifest or supplemental receipt must bind later parser prose and final packet membership.",
+    "No unfinished offline SP parser code is reviewed or approved by this evidence review. A local parser does not establish a live collector or complete model admission.",
+    "Reviewer checked final cached object metadata and create-only commit deltas; the complete independent original-byte readback is the root executor evidence, retained in exact frozen outcome and proven by reviewed code.",
+    "Original v3 execution remains interrupted/unknown; original v1/v2 failure records are not rewritten by later success.",
+    "The candidate-retention Actions recheck is HOLD. Separate seven-archive/current-pair AES results do not reauthenticate the 336 recovered candidates or establish fresh G8/full-day coverage/accuracy improvement.",
+    "Historical status suffix was checked for exact byte preservation; its existing content was not broadly rereviewed. Environment and runtime observations are their frozen observation times."
+  ],
+  "other_accuracy_checks": {
+    "BOAT_one_completed_round_one_request_403_23_handoffs_zero_new_generation": true,
+    "KEIRIN_configuration_eligible_one_403_zero_complete_inputs_not_historical_key_hold": true,
+    "KEIRIN_detail_six_referenced_safe_proof_hashes_verified": true,
+    "KEIRIN_existing_fixture_count_42_matches_10_plus_32": true,
+    "KEIRIN_gap_93_slots_86_unsupported_72_missing_origins_and_type_compatibility_only": true,
+    "KEIRIN_single_detail_45_checks_160_HTTP200_24_local_blocked_resources_only": true,
+    "Mac_existing_proof_172_tests_28_synthetic_PNGs_and_physical_iPhone_unverified_retained": true,
+    "all_local_links_resolve": true,
+    "full_T15_six_boat_calibration_and_forward_improvement_goals_remain_incomplete": true
+  },
+  "packet_directory": "/workspace/RACE-AI-final-runtime-evidence-20261119/docs/evidence/race-ai-final-handoff-20261119",
+  "packet_file_sha256": {
+    "README.md": "bf15aa649ebad55114d5ede8232877fb687dd23fdf36e4e17f1ba5104083abdb",
+    "ciphertext-actions-recheck.json": "2212c16027415c1516d2c9d7625c0e41ce12b7f7c7df2f6b482f95b4ae68a7e3",
+    "ciphertext-recovery.json": "113e6758305af1b6d2a2a79c42655504863f8cd6051fbad6e64a81490c92584b",
+    "current-actions.json": "c50b7efcb8cd566ca1d995eaedd47c02b4e1723c19b3190a71c4593da947911a",
+    "environment.json": "f02e3ab8002a330b8509894eec414970b1fc394b44e64ecf1f8290c1862739b5",
+    "keirin-integration-gap.json": "0a3e336eedbf693f878c289ea7ed6234eacda45f0add030de7cdbf1f6391e3aa",
+    "keirin-one-official-detail.json": "fd86a2b9a1e6fa39e5fba8a75303dbe88185856cd45e2afb84eb2ef3465efd39",
+    "original-first-attempt-provenance.json": "0f262dd748e987739c0351f55637ca70bc587643ce6f6d8d8f530f5ecfb06c69"
+  },
+  "packet_snapshot": {
+    "JSON_count": 7,
+    "file_count": 8
+  },
+  "privacy_checks": {
+    "all_seven_JSON_duplicate_keys_and_nonfinite_rejected": true,
+    "credentials_keys_cookie_values_and_signed_URLs_absent": true,
+    "packet_URLs_are_four_unsigned_GitHub_API_metadata_URLs": true,
+    "provider_field_names_are_integer_match_counts_only": true,
+    "raw_provider_payloads_or_HTML_absent": true,
+    "real_data_screenshots_or_browser_traces_absent": true,
+    "rider_names_registry_identifiers_scores_and_forecast_values_absent": true
+  },
+  "review_scope": "Current seven JSON files plus README; accuracy and privacy against exact local frozen proof sources. Newly prepended latest-status snapshot checked; unfinished parser implementation excluded.",
+  "review_status": "CLEAR",
+  "reviewed_at_utc": "2026-11-19T08:42:20.184897+00:00",
+  "reviewer_actions": {
+    "AES_calls": 0,
+    "ciphertext_blob_byte_reads": 0,
+    "credential_config_reads": 0,
+    "git_commits": 0,
+    "git_pushes": 0,
+    "owner_key_reads": 0,
+    "raw_provider_document_reads": 0,
+    "remote_requests": 0,
+    "root_or_original_files_edited": 0,
+    "source_provider_requests": 0,
+    "source_tests_reexecuted": 0
+  },
+  "schema": "RACE_AI_FINAL_RUNTIME_HANDOFF_EVIDENCE_ACCURACY_PRIVACY_REVIEW_V1",
+  "source_bindings": {
+    "current-actions.json": {
+      "exact_bytes_match": true,
+      "path": "/workspace/.race-ai-readonly-current-actions-20261119/safe-consolidated-proof.json",
+      "sha256": "c50b7efcb8cd566ca1d995eaedd47c02b4e1723c19b3190a71c4593da947911a"
+    },
+    "environment.json": {
+      "exact_bytes_match": true,
+      "path": "/workspace/scratch/race-ai-environment-final-recheck-20261119.json",
+      "sha256": "f02e3ab8002a330b8509894eec414970b1fc394b44e64ecf1f8290c1862739b5"
+    },
+    "keirin-integration-gap.json": {
+      "exact_bytes_match": true,
+      "path": "/workspace/scratch/keirin-detail-offline-contract-gap-20261119-fyawoyom/MINIMAL_OFFLINE_CONNECTION_DESIGN_SAFE_20261119.json",
+      "sha256": "0a3e336eedbf693f878c289ea7ed6234eacda45f0add030de7cdbf1f6391e3aa"
+    },
+    "keirin-one-official-detail.json": {
+      "exact_bytes_match": true,
+      "path": "/workspace/scratch/keirin-currentday-detail-final-20261119-_k0hk5qw/FINAL_KEIRIN_DETAIL_SAFE_PROOF_20261119.json",
+      "sha256": "fd86a2b9a1e6fa39e5fba8a75303dbe88185856cd45e2afb84eb2ef3465efd39"
+    }
+  }
+}

@@ -1,3 +1,44 @@
+# 2026-11-19 UTC｜保管復旧・実Safari・公式競輪の実確認（GOAL未達）
+
+本人用の継続開発として進めている。一般公開の承認待ちではない。既存PR62へ原本の件数・ハッシュと合成画面証拠を保存し、新しいUI公開・投票・本番重み切替は実施していない。以下の新しい実測を優先し、下段の過去記録は履歴として保持する。
+
+実mainは **9616b854ac4a2683077b937c7d6f29e3e7213700**、BOAT sourceは **1dbb47b68d487fc6def0bd4b10b1423f0a2145f6**。本人用UIの82 web blobsとtree **5cbbfe05a2971485b5c32a84a8ddf7b2539604cc** を維持している。
+
+コマンド実行成功。08:24 UTCの匿名GitHub readはAuthorizationなしHTTP200。認証済みreadは別にadmin/push権限を確認し、暗号stateへの4回の通常FF書込み・応答・独立読戻しも成功した。公開read成功と書込成功を混同していない。元環境の未push **b7380fe6a377e6ccf2b96331f2126c52549bbe17** と **daae4c10167224b7730006d8ada5ade398aaa64b** は認証済みgit/commitsが共に404、local objectも無く **UNRESTORED**。自動移転は仮定していない。[環境証拠](evidence/race-ai-final-handoff-20261119/environment.json)。
+
+## 原暗号文336候補の保管復旧
+
+既存Actionsで認証済みの原inventoryと照合し、**336候補・1,008ファイル・375,640,877 bytes、欠落0・相違0** をGitHubから全byte読戻しした。最終state commitは **6c0a01ce55b1948b17610f694a15629df5ccdacf**。当初176保存/160欠落から、存在する原本を上書きせず不足だけcreate-onlyで補完した。別object databaseでmode/type/OID/size/SHA/全bytesを照合し、owner keyのlocal取得・AES復号は0。中断したV3の最終実行状態は不明のまま保全し、同処理を盲目的に再実行していない。[復旧件数・原inventory・コードreview](evidence/race-ai-final-handoff-20261119/ciphertext-recovery.json)。
+
+追加の読取専用Actions再検査は run44467797701/attempt2/job135432830062 が08:30:27 UTCで終了した。jobはsuccessだが、既存の初回実行限定guardにより **MAIN_CONTEXT_REJECTED/HOLD**、復旧336候補の新しいremote AES認証は未実施。別scopeの既存closed-prefix原本7 AES packageとcurrent pair認証は成功。元のActions認証済み原暗号文との全byte一致、別scopeの認証、この候補再検査HOLDを分ける。完了logと新count artifactの型を含むJSON一致を確認した。guard・権限・鍵を変更していない。[再検査の停止証拠](evidence/race-ai-final-handoff-20261119/ciphertext-actions-recheck.json)。
+
+## 最新BOAT・競輪の実運転
+
+BOAT **44446167880/job135298730289** は08:13:58 UTCで自然完了success。実controlは **completed_round1・今回request1・lifetime15951**、実待機理由は **HTTP403 / SOURCE_AUTHORIZATION_REQUIRED / AUTHORIZATION_WAIT**。第2〜24巡の外側step successは23個のWORKER_HANDOFFであり、24回の生成成功ではない。今回のALL_MODEL新規生成は0、全current view読戻しはfalse。最終の暗号continuity保管とproducerの独立Git読戻しは成功。sourceの待機・counter・原本をresetせず、再試行・cancel・hotswap・新worker直接dispatchはしていない。
+
+別のBOAT日次 **44475283240** はSOURCE_WAIT/exit2、公式request0・新observation0。cutoff mismatch15・chronology1・refund binding2は拒否イベント数で、独立したレース数ではない。既存guardを緩めていない。競輪 **44483738817** は現設定eligible=true、既存source取得1回がHTTP403、新入力0、HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT。以前の鍵未設定HOLDは過去時点であり、現在の原因としない。[認証済み完了log・control照合](evidence/race-ai-final-handoff-20261119/current-actions.json)。
+
+## 公式競輪の通常画面と既存入力の接続
+
+通常ChromiumでKEIRIN.JP calendar→racelist→当日1R detailを1回操作し、3文書すべてHTTP200。**2026-11-19 宇都宮1R、公式締切20:47 JST・発走20:50 JST・選手7名** をstrict JSONと保存DOMで確認。補充2名を欠場扱いにしていない。送信160件/受信160件すべて200/UNKNOWN0。診断用のlocal resource boundが後続24件を送信前停止したため、browser全完了はfalse。45 offline checks成功。全9Rの詳細・全国全レース・T15生成・モデル投入・WINTICKET403解消は未証明。[1Rの実証](evidence/race-ai-final-handoff-20261119/keirin-one-official-detail.json)。
+
+既存calendar parserは実73期間/42会場、既存day-roster validatorは当日9個のrace identityを受理した。7選手のID/scoreは既存helperと型互換だが、既存PR71が要求する93入力枠のうち86、独立origin72が不足する。H/B回数・勝率・分母・強さを推測で埋めず、full PR71 admissionはfalse。既存fixture42件成功。既存browser jobは動画収集の別pinで、予想jobの自動経路へSP parserを接続したことにはならない。[実入力の不足と再利用箇所](evidence/race-ai-final-handoff-20261119/keirin-integration-gap.json)。保存済みSP文書を読む純粋parser候補 **d27079e00fc387eaef7e6987c1a642883105d7bb** をlocal実装した。独立レビューで再現した書換え・複数初期化・文書外script・改行の見逃しを修正し、旧候補と不合格記録も保全。最新main別checkoutで **70 tests/失敗0/skip0/外部通信0**、独立16 probesも成功・最終review CLEAR。原文の9race IDs/7名からの正規化出力は修正前とbyte一致し、実データ照合20項目が成功。新DOM照合は7行の氏名/score/registry21一致で、印字車番・統計column・computed visibilityはその新照合の対象外。既存自動jobへの接続と本番モデル投入は未実施。[review済み変更patch](evidence/race-ai-final-handoff-20261119/sp-parser-d27079e00fc3.patch)、[root70検証](evidence/race-ai-final-handoff-20261119/sp-parser-final-root-tests.json)、[最終独立review](evidence/race-ai-final-handoff-20261119/sp-parser-final-independent-review.json)。
+
+## 実Safariと残る完成条件
+
+実Mac **44470498836/job135378501491** はSafari26.6、172件/57.827秒PASS、暗号化した当日保存viewのprivate loopback再生とcleanup成功。別の資格情報なし合成sessionで7画面×320/390/1440/1920の **28 PNG** を確認・同一byte保存した。これは実機iPhoneや実予想の画面exportではない。[Mac実証と合成画面](evidence/boat-native-b552-safari-actual-20261119/README.md)。
+
+| 完成条件 | 最新判定 |
+| --- | --- |
+| 4競技全レース×適用可能な既存全モデル、締切15〜10分前生成・保存・結果照合 | 未実証。BOAT/競輪の実source拒否と全日分母の不足を保持。取得総数上限を新設していない。 |
+| スマホ/PC・実機iPhone13Pro Safari | Mac実Safariと4幅の合成画面は確認済み。接続された物理iPhone・本人login・全8参考画面の受入は未確認。 |
+| 服色6艇継続識別・強さ校正・予想接続 | 未合格。既存775frameのうち事前固定した7frame/42 AI参照の幾何15/42・current色正解2・6色同時0/7。human GTや全raceの精度へ読み替えない。 |
+| 元モデルと学習版の前向き精度改善 | 元server witnessの登録は保全。観測窓は11月19日03:15:30〜24日03:15:30 UTC。100 matched/5日/10会場日と3指標の不確実性条件に未達。登録や過去574 pairsを改善実証としない。 |
+
+[今回の証拠一覧](evidence/race-ai-final-handoff-20261119/README.md)。六艇の原実測は[main9616の固定証拠](https://github.com/haji84/RACE-AI/blob/9616b854ac4a2683077b937c7d6f29e3e7213700/docs/evidence/boat-six-rider-diagnostic-final-counts-hashes-license-20261119.json)を参照する。新PR・workflow・モデル系統・課金・UIの新規公開・投票・本番重み切替は0。
+
+以下は以前の時点の記録を保全したもの。
+
 ## 2026-11-17 source候補: 結果理由の原本履歴と同期の保全（実view再確認待ち）
 
 既存PR201で同一source/time/status/dataのreason-only原本を追加履歴に保持する候補を検証中。

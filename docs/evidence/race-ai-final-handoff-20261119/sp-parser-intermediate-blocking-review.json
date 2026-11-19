@@ -1,0 +1,92 @@
+{
+  "schema": "RACE_AI_INDEPENDENT_SP_OFFLINE_PARSER_REVIEW_V2",
+  "reviewer": "/root/sp_offline_parser_review",
+  "observed_at_utc": "2026-11-19T09:00:28.596237+00:00",
+  "assessment": "BLOCKED_CORRECTNESS",
+  "reviewed_worktree": "/workspace/RACE-AI-sp-receipt-main-compatibility-20261119",
+  "base_main": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+  "candidate_commit": "6459af08016877c7a50c1a6470b331e17a7ba6cd",
+  "preserved_parent_commit": "df9ecaa49c259140a77251427d2e7378557f3ebb",
+  "owned_file_sha256": {
+    "race_ai/keirin_official_schedule.py": "e89bcb264b405942119cc2899d44207c5dae12eb72bda7c5e5f1f2611ad9ae8f",
+    "race_ai/keirin_official_sp_receipt.py": "03edf4c33c8890412e94be62efbf067192e15888c1ca0319a3409822f4f27d87",
+    "tests/test_keirin_official_schedule.py": "3a105b54252827c827efd08f96e8c7b11a83a8ac108c0f029c9483dc223db9d6",
+    "tests/test_keirin_official_sp_receipt.py": "c0f6042bcecc82bf622b13fd1078b5503ff5146e29ce550f270a47d2ffbe3dca",
+    "docs/superpowers/specs/2026-11-19-keirin-sp-offline-receipts.md": "62f1b9c24055de1b34486396db4c09253fe4f3cd855f1fa6b22707f4fdf8fe24",
+    "docs/superpowers/plans/2026-11-19-keirin-sp-offline-receipts.md": "7cccb1ab5fc06817edaafd8bbaef25d26f73c010c55679cfd3b742782e8603e1"
+  },
+  "combined_patch_path": "/workspace/scratch/keirin-detail-offline-contract-gap-20261119-fyawoyom/keirin-sp-offline-9616-owned-combined-6459af080168.patch",
+  "combined_patch_sha256": "189877782ecef149d44dae3a31b806769d5045c0ad864aa5c27f4ed291671e64",
+  "previous_blocked_review_path": "/workspace/scratch/keirin-sp-independent-parser-review-20261119-_g20obkx/review.json",
+  "previous_blocked_review_sha256": "c919bdc9c23af67641fb39416468fdf522d59132e4fb59eba9b39180411c195d",
+  "resolved_previous_probes": [
+    {
+      "case": "original_compound_mutation",
+      "accepted": false,
+      "fixed_rejection": "KEIRIN_OFFICIAL_SP_UNRECOGNIZED_JSON_SCRIPT_STATEMENT"
+    },
+    {
+      "case": "original_cross_script_reset",
+      "accepted": false,
+      "fixed_rejection": "KEIRIN_OFFICIAL_SP_UNRECOGNIZED_JSON_SCRIPT_STATEMENT"
+    },
+    {
+      "case": "original_outside_html_data",
+      "accepted": false,
+      "fixed_rejection": "KEIRIN_OFFICIAL_SP_JSON_SCRIPT_OUTSIDE_DOCUMENT"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SP-REVIEW-4",
+      "priority": "P2",
+      "severity": "important",
+      "path": "race_ai/keirin_official_sp_receipt.py",
+      "lines": [
+        106,
+        107,
+        108
+      ],
+      "title": "Line-comment scanning hides real mutations after non-LF JavaScript line terminators",
+      "fixture": "tests.test_keirin_official_sp_receipt.SPReceiptTests/detail_data/html public invented fixture helpers",
+      "fixture_delta_python": "original=html(detail_data()); extra=('// invented comment'+terminator+'jsonData.SC0201.C0201data.selRaceNo += 1;\\n').encode(); raw=original.replace(b'</script>',extra+b'</script>')",
+      "terminators_python": [
+        "'\\r'",
+        "'\\u2028'",
+        "'\\u2029'"
+      ],
+      "reproduce_python": "SPReceiptTests().parse(raw=raw)",
+      "expected": "OfficialSPReceiptError because CR, LINE SEPARATOR and PARAGRAPH SEPARATOR each terminate a JavaScript single-line comment before the unreviewed member mutation",
+      "observed_each": {
+        "accepted": true,
+        "race_no": 1,
+        "source_admission": false,
+        "model_input_admission": false
+      },
+      "impact": "The promised complete static grammar treats code after non-LF line terminators as a comment and accepts the earlier selected race despite the receipt containing a scope-changing mutation.",
+      "scope": "Static bootstrap comment recognition only; no general JS runtime evaluation is required or requested."
+    }
+  ],
+  "reviewer_actions": [
+    "Re-read revised module, revised parser tests, specification and plan; verified all six file hashes against the new root compatibility proof.",
+    "Read root fresh 68-test compatibility proof without repeating its suites.",
+    "Statically reviewed complete-statement consumption, cross-script declaration state, routing grammar and script document ancestry.",
+    "Replayed all three original review probes with socket operations denied: all now reject.",
+    "Replayed three invented compound-mutation probes after CR/U+2028/U+2029 line-comment terminators: all three accepted.",
+    "Sent exact new reproduction to root and author and retained every earlier review/patch unchanged.",
+    "Modified no compatibility worktree file; wrote this separate scratch evidence only."
+  ],
+  "external_network_attempts": 0,
+  "provider_http_requests": 0,
+  "owner_key_reads": 0,
+  "real_private_source_inputs_read": false,
+  "source_model_ui_workflow_or_flag_changes": false,
+  "commits_pushes_merges_or_external_writes": false,
+  "limits": [
+    "Exact-hash focused offline implementation review only; no source/provider authentication or HTTP-status proof is asserted.",
+    "No private receipt bytes or owner keys were read; no JavaScript was executed.",
+    "Root-reported 68-test evidence was read, not independently rerun.",
+    "Admission gates remain false in every accepted negative probe; no production admission or 403 resolution is verified.",
+    "Requires reevaluation on a revised candidate hash."
+  ]
+}

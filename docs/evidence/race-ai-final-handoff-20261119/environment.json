@@ -1,0 +1,43 @@
+{
+  "schema": "RACE_AI_ENVIRONMENT_FINAL_RECHECK_20261119_V1",
+  "observed_at_utc": "2026-11-19T08:24:15.082611+00:00",
+  "command_execution": true,
+  "anonymous_public_read": {
+    "status": 200,
+    "authorization_header_sent": false,
+    "main": "9616b854ac4a2683077b937c7d6f29e3e7213700"
+  },
+  "authenticated_repository_read": {
+    "status": 200,
+    "main": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+    "permissions": {
+      "admin": true,
+      "maintain": true,
+      "push": true,
+      "triage": true,
+      "pull": true
+    }
+  },
+  "offline_unpushed_commits": [
+    {
+      "sha": "b7380fe6a377e6ccf2b96331f2126c52549bbe17",
+      "authenticated_git_commit_HTTP_status": 404,
+      "local_commit_object_present": false,
+      "state": "UNRESTORED"
+    },
+    {
+      "sha": "daae4c10167224b7730006d8ada5ade398aaa64b",
+      "authenticated_git_commit_HTTP_status": 404,
+      "local_commit_object_present": false,
+      "state": "UNRESTORED"
+    }
+  ],
+  "confirmed_encrypted_state_normal_FF_writes": {
+    "commits": 4,
+    "from": "7d978657bb3ba6e8191f231a26d892b979986ec2",
+    "to": "6c0a01ce55b1948b17610f694a15629df5ccdacf",
+    "pending_commit": null,
+    "independent_readback_all_1008_files": true
+  },
+  "local_owner_key_reads": 0
+}
