@@ -354,13 +354,20 @@ def read_originals(repo, day):
 
 def load_day_evidence(repo, day, owner_private_pem):
     """Replay every encrypted delta; a corrupt prior state is never reset."""
+    from race_ai import keirin_official_run_history as history
+    return replay_day_evidence(day, owner_private_pem,
+                               history.read_revisions(repo=repo, day=day))
+
+
+def replay_day_evidence(day, owner_private_pem, revisions):
+    """Fold authenticated saved revisions without fetching or writing state."""
     from race_ai import keirin_official_public_source as official
     from race_ai import keirin_official_run_history as history
     state = {'schedule': None, 'schedule_versions': [],
              'official_records': {}, 'accepted_results': {},
              'origin_run_bundles': {},
              'safe_report': None, 'revision_receipts': [], 'cohort_state': None}
-    for saved in history.read_revisions(repo=repo, day=day):
+    for saved in revisions:
         payload = restore_private_snapshot_json(history.decrypt_evidence(
             saved['raw_cipher'], owner_private_pem))
         need(payload.get('schema') == 'RACE_AI_KEIRIN_OFFICIAL_PRIVATE_DELTA_V1' and
