@@ -32,6 +32,117 @@ PAST_RESULT_PATH = re.compile(
     r'^/keirin/[a-z][a-z0-9-]{2,30}/raceresult/[0-9]{10}/[1-3]/(?:[1-9]|1[0-2])$')
 PAST_CACHE_MAX_BYTES = 24 * 1024 * 1024
 PAST_CACHE_ENTRY_MAX_BYTES = 2 * 1024 * 1024
+OFFICIAL_STATES = frozenset({
+    'OFFICIAL_SP_PARTIAL_INPUT_CAPTURED', 'HOLD_OFFICIAL_SP_BUDGET',
+    'HOLD_OFFICIAL_SP_DENIED', 'HOLD_OFFICIAL_SP_NO_CURRENT_MEETINGS',
+    'HOLD_OFFICIAL_SP_SOURCE_LAYOUT', 'HOLD_OFFICIAL_SP_TRANSPORT',
+    'HOLD_OFFICIAL_SP_LOCAL_RUNTIME',
+})
+
+
+def _official_collector():
+    """Find new input readers after pinned model code, without shadowing it."""
+    import race_ai
+    main_package = str(Path(__file__).resolve().parents[1] / 'race_ai')
+    if main_package not in race_ai.__path__:
+        race_ai.__path__.append(main_package)
+    from race_ai.keirin_official_sp_browser import collect_official_sp
+    return collect_official_sp
+
+
+def _official_owner_inputs(root, *, capture, clock, monotonic, budget_seconds):
+    """Map actual official acquisition counts; never expose raw input values."""
+    day = instant(clock()).astimezone(JST).date().isoformat()
+    result = dict(schema=SCHEMA, date_jst=day,
+        state='OWNER_ATTESTED_SOURCE_ACQUISITION_ONLY',
+        source_provider='KEIRIN_JP_PUBLIC_SP', source_day_schedule_race_count=None,
+        source_capture_held=True, invalid_partial_records=0,
+        expired_or_too_close=0, history_races_processed=0, history_races_held=0,
+        history_races_deferred=0, races=[], new_pre_race_inputs=0,
+        actual_four_model_forecast_saved=False, owner_automated_use_attested=True,
+        provider_machine_rights_independently_verified=False,
+        permanent_encrypted_storage_claimed=False,
+        source_values_or_rider_names_publicly_logged=False,
+        public_page_requests=0, provider_denial_stopped_requests=False,
+        provider_denial_http_status_counts={'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 0},
+        work_budget_exhausted=False, historical_pages_reused_without_new_GET=0,
+        historical_page_cache_bytes=0, model_B_missing_family_slot_totals={},
+        winticket_requests=0)
+    if nationwide_ab_selected():
+        result['state'] = 'LEGACY_PR71_SUPERSEDED_BY_NATIONWIDE_AB'
+        return result
+    capture_invoked = False
+    try:
+        collector = capture or _official_collector()
+        capture_invoked = True
+        collected = collector(root, clock=clock,
+            monotonic=monotonic, budget_seconds=budget_seconds)
+        need(type(collected) is dict and collected.get('state') in OFFICIAL_STATES,
+             'OFFICIAL_SOURCE_REPORT_INVALID')
+        need(collected.get('source_admission') is False and
+             collected.get('model_input_admission') is False and
+             type(collected.get('new_forecasts')) is int and collected['new_forecasts'] == 0 and
+             type(collected.get('winticket_requests')) is int and collected['winticket_requests'] == 0,
+             'OFFICIAL_PARTIAL_SOURCE_CANNOT_PROMOTE_OR_RETRY')
+        safe = {'state': collected['state']}
+        count_fields = ('calendar_meetings_observed', 'race_lists_verified',
+            'details_verified', 'riders_verified', 'future_detail_count',
+            'expired_detail_count', 'navigation_request_count',
+            'resource_request_count', 'unknown_transmitted_status_count',
+            'blocked_before_send', 'private_source_files_saved')
+        for name in count_fields:
+            value = collected.get(name)
+            need(type(value) is int and value >= 0, 'OFFICIAL_COUNT_INVALID')
+            safe[name] = value
+        for name in ('day_venue_count', 'day_race_count'):
+            value = collected.get(name)
+            need(value is None or type(value) is int and value >= 0,
+                 'OFFICIAL_DENOMINATOR_INVALID')
+            safe[name] = value
+        for name in ('provider_denied', 'budget_exhausted'):
+            need(type(collected.get(name)) is bool, 'OFFICIAL_STATE_TYPE_INVALID')
+            safe[name] = collected[name]
+        statuses = collected.get('http_status_counts')
+        need(type(statuses) is dict and all(type(k) is str and
+            re.fullmatch('[1-5][0-9]{2}', k) and type(v) is int and v >= 0
+            for k, v in statuses.items()), 'OFFICIAL_HTTP_COUNTS_INVALID')
+        safe['http_status_counts'] = dict(sorted(statuses.items()))
+        denials = collected.get('provider_denial_http_status_counts')
+        need(type(denials) is dict and set(denials) == {'HTTP_403', 'HTTP_429', 'UNKNOWN'} and
+             all(type(v) is int and v >= 0 for v in denials.values()), 'OFFICIAL_DENIAL_COUNTS_INVALID')
+        need(not any(statuses.get(code, 0) for code in ('401', '403', '407', '429')) or
+             safe['provider_denied'], 'OFFICIAL_DENIAL_STATE_INCONSISTENT')
+        need(safe['state'] != 'OFFICIAL_SP_PARTIAL_INPUT_CAPTURED' or
+             not (safe['provider_denied'] or safe['budget_exhausted']),
+             'OFFICIAL_SUCCESS_STATE_INCONSISTENT')
+        need(sum(statuses.values()) + safe['unknown_transmitted_status_count'] ==
+             safe['navigation_request_count'] + safe['resource_request_count'],
+             'OFFICIAL_TRANSMITTED_STATUS_ACCOUNTING_INVALID')
+        need(safe['future_detail_count'] + safe['expired_detail_count'] <= safe['details_verified'] and
+             safe['riders_verified'] <= 9 * safe['details_verified'], 'OFFICIAL_DETAIL_COUNT_INVALID')
+        safe.update(source_admission=False, model_input_admission=False, new_forecasts=0,
+                    winticket_requests=0, provider_denial_http_status_counts=dict(denials))
+        result.update(official_sp_acquisition=safe,
+            source_day_schedule_race_count=safe['day_race_count'],
+            source_capture_held=safe['state'] != 'OFFICIAL_SP_PARTIAL_INPUT_CAPTURED',
+            public_page_requests=safe['navigation_request_count'] + safe['resource_request_count'],
+            public_page_request_count_scope='ALL_TRANSMITTED_BROWSER_REQUESTS',
+            provider_denial_stopped_requests=safe['provider_denied'],
+            provider_denial_http_status_counts=dict(denials),
+            work_budget_exhausted=safe['budget_exhausted'],
+            expired_or_too_close=safe['expired_detail_count'])
+    except (ValueError, OSError, RuntimeError, ImportError, KeyError, TypeError):
+        if capture_invoked:
+            result['public_page_requests'] = None
+            result['provider_denial_stopped_requests'] = None
+            result['provider_denial_http_status_counts'] = {
+                'HTTP_403': None, 'HTTP_429': None, 'UNKNOWN': None}
+            result['winticket_requests'] = None
+        result['official_sp_acquisition'] = dict(state='HOLD_OFFICIAL_SP_LOCAL_RUNTIME',
+            source_admission=False, model_input_admission=False, new_forecasts=0,
+            winticket_requests=None if capture_invoked else 0)
+    need(not (root / 'pre').exists(), 'OWNER_PARTIAL_SOURCE_PROMOTION_FORBIDDEN')
+    return result
 
 
 def need(ok, reason):
@@ -193,16 +304,21 @@ def _safe_result(report, rid, n):
 
 
 def collect_owner_inputs(inbox, *, owner_auto_confirmed, capture=None, probe=None,
-                         fetch=None, clock=None, monotonic=None, budget_seconds=240):
+                         fetch=None, clock=None, monotonic=None, budget_seconds=240,
+                         official_capture=None):
     """All eligible captured races in cutoff order, with no invented features."""
     need(owner_auto_confirmed is True, 'EXPLICIT_OWNER_AUTOMATIC_SCOPE_REQUIRED')
     root = _private_root(inbox)
+    need(not (root / 'pre').exists(), 'OWNER_PARTIAL_SOURCE_CANNOT_SHARE_MODEL_PRE_QUEUE')
     need(type(budget_seconds) in (int, float) and 1 <= budget_seconds <= 600,
          'SOURCE_WORK_TIME_BUDGET_INVALID')
     if clock is None:
         clock = lambda: datetime.now(timezone.utc)
     if monotonic is None:
         monotonic = time.monotonic
+    if capture is None and probe is None and fetch is None:
+        return _official_owner_inputs(root, capture=official_capture, clock=clock,
+            monotonic=monotonic, budget_seconds=budget_seconds)
     if capture is None:
         from scripts.keirin_github_owner_future_intake import owner_future_public_intake
         capture = owner_future_public_intake
