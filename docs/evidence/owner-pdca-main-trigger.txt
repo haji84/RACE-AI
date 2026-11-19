@@ -778,3 +778,17 @@ horse; no new model or live horse success is inferred from its fixture tests.
 Use only the existing release prefix and this marker, with unchanged jobs,
 steps, inputs, permissions, cron, runners and timeouts. No UI deployment,
 wager, production weight switch, owner-key export or new paid service.
+
+2026-11-19 richer public-only native Safari capture.
+Reviewed author04777fce6baf8a234219157801fa24569b98a794 changes only the
+existing candidate synthetic fixture and its browser checks. Bind checker blob
+5ff7c6492d98f267e69248ea26a91bf6be6c382e to the exact f723 invented fixture
+ef3a81f4c026267063a96d37333c9708a0049342e9a094c8061a11b92bb7feea.
+Keep real-data private replay, empty-storage rejection, original clocks, current
+V5 limits and public f603 assets unchanged. Disable only synthetic preference
+writes and never erase existing storage. Measure four sport rosters before the
+existing 28 synthetic captures. The existing native helper may test this real
+checker change once; never directly dispatch the forecast source. No physical
+iPhone, login or all-eight-reference acceptance is inferred from fixtures.
+Use the sole existing release prefix/marker and existing jobs/steps/inputs/
+permissions/cron/runners/timeouts. No UI deployment, model/weight change or fees.
