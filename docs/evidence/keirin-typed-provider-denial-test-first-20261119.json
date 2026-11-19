@@ -1,0 +1,128 @@
+{
+  "schema": "RACE_AI_KEIRIN_TYPED_PROVIDER_DENIAL_STATUS_DIAGNOSTIC_V1",
+  "base_main_sha": "4f6efd5207316a5f1ba3ab0255728224f00dcc53",
+  "frozen_commit_sha": "0708b2f55fc80f8f5035f468a61e3b434a14f357",
+  "worktree": "/workspace/RACE-AI-keirin-denial-status-20261119",
+  "worktree_clean": true,
+  "runtime_relative_path": "scripts/keirin_cloud_owner_inputs.py",
+  "test_relative_path": "tests/test_keirin_cloud_owner_inputs.py",
+  "pinned_source_sha": "fe7e5581263b2b31fbd45536ac6a611c2779fa65",
+  "pinned_source_local_worktree": "/workspace/RACE-AI-keirin-403-resume-20261118/owner-source",
+  "diagnostic_field": "provider_denial_http_status_counts",
+  "fixed_count_keys": [
+    "HTTP_403",
+    "HTTP_429",
+    "UNKNOWN"
+  ],
+  "recognition": "Immediate typed urllib.error.HTTPError __context__, exact int 403 or 429 only; cause chains, nested contexts, message strings and wrapper attributes are not promoted.",
+  "tests": {
+    "baseline": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 0.018
+    },
+    "red": {
+      "tests": 23,
+      "new_methods": 6,
+      "assertion_failures": 8,
+      "errors": 0,
+      "seconds": 0.021
+    },
+    "focused_green": {
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 0.02
+    },
+    "related": {
+      "tests": 96,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 6.197,
+      "modules": [
+        "tests.test_keirin_cloud_owner_inputs",
+        "tests.test_keirin_cloud_owner_source_cycle",
+        "tests.test_keirin_cloud_pr71_state",
+        "tests.test_keirin_cloud_workflow_guard",
+        "tests.test_keirin_cloud_pr71_variable",
+        "tests.test_keirin_day_four_model_audit",
+        "tests.test_keirin_source_gap_plan",
+        "tests.test_keirin_live_source_readiness",
+        "tests.test_keirin_licensed_source_readiness",
+        "tests.test_keirin_owner_public_page_fetch",
+        "tests.test_keirin_github_owner_future_intake",
+        "tests.test_keirin_next_published_race_probe"
+      ]
+    },
+    "initial_related_setup": {
+      "tests": 96,
+      "failures": 0,
+      "errors": 3,
+      "failure_class": "OWNER_PUBLIC_CIPHERTEXT_CONSENT_MISSING",
+      "cause": "RACE_AI_PR71_PINNED_SOURCE_ROOT omitted from local harness",
+      "resolution": "Set to unchanged fe7 worktree exactly as existing workflow; no product code changed for setup"
+    },
+    "os_socket_syscall_denial_inherited_by_children": true,
+    "actual_fe7_default_capture_to_main_licensed_inputs": {
+      "cases": 2,
+      "injected_statuses": [
+        403,
+        429
+      ],
+      "synthetic_transport_calls_per_case": 1,
+      "denial_latch_preserved": true,
+      "new_pre_race_inputs_per_case": 0,
+      "raw_exception_url_header_fields_in_public_report": false
+    }
+  },
+  "related_test_cwd": "/workspace/RACE-AI-keirin-denial-status-20261119",
+  "related_test_argv": [
+    "python",
+    "/tmp/race-ai-keirin-denial-status-tests.py",
+    "tests.test_keirin_cloud_owner_inputs",
+    "tests.test_keirin_cloud_owner_source_cycle",
+    "tests.test_keirin_cloud_pr71_state",
+    "tests.test_keirin_cloud_workflow_guard",
+    "tests.test_keirin_cloud_pr71_variable",
+    "tests.test_keirin_day_four_model_audit",
+    "tests.test_keirin_source_gap_plan",
+    "tests.test_keirin_live_source_readiness",
+    "tests.test_keirin_licensed_source_readiness",
+    "tests.test_keirin_owner_public_page_fetch",
+    "tests.test_keirin_github_owner_future_intake",
+    "tests.test_keirin_next_published_race_probe"
+  ],
+  "pinned_fe7_probe_argv": [
+    "python",
+    "/tmp/race-ai-keirin-denial-status-fe7-probe.py"
+  ],
+  "preservation": {
+    "strict_runtime_reverse_bytes_equal_base": true,
+    "all_17_previous_test_bodies_equal_base_bytes": true,
+    "only_two_committed_files_changed": true,
+    "workflow_fe7_pin_provider_selection_and_ua_unchanged": true,
+    "existing_denial_latch_and_request_accounting_unchanged": true,
+    "cache_budget_and_model_admission_unchanged": true,
+    "p0_pin_prep_worktree_and_patch_preserved": true
+  },
+  "effects": {
+    "provider_gets": 0,
+    "real_retries": 0,
+    "production_key_retrievals": 0,
+    "github_pushes": 0,
+    "dispatches": 0,
+    "external_publications": 0
+  },
+  "acceptance": {
+    "actual_403_or_429_from_new_normal_actions_execution_observed": false,
+    "provider_denial_resolved": false,
+    "existing_source_hold_relaxed": false,
+    "new_forecast_or_complete_pipeline_proven": false
+  },
+  "tested_file_sha256": {
+    "scripts/keirin_cloud_owner_inputs.py": "86eb1161a1b7e5b4f27bf3c6ef5f6c5c8751e16c921e2867fd87eb558c402d65",
+    "tests/test_keirin_cloud_owner_inputs.py": "b0aadb8810021508aaffb3d5488269a025bbdf7ef8be188cc050c6ddacd2ac89"
+  },
+  "related_test_command": "bash /tmp/race-ai-keirin-denial-status-related.sh"
+}

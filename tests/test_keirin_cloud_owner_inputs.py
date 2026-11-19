@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from urllib.error import HTTPError
 import json
 import unittest
 
@@ -219,6 +220,145 @@ class SourceSessionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 session(url)
         self.assertEqual(session.requests,0)
+
+class ProviderDenialStatusTests(unittest.TestCase):
+    URL = 'https://www.winticket.jp/keirin/odds/20300115'
+    DENIAL = 'PUBLIC_PAGE_BLOCKED_OR_RATE_LIMITED_NO_RETRY'
+
+    def denied_fetch(self, status, *, reason=None, calls=None):
+        def fetch(url):
+            if calls is not None:
+                calls.append(url)
+            try:
+                raise HTTPError(url, status, 'PRIVATE_EXCEPTION_SENTINEL',
+                                {'X-Private': 'PRIVATE_HEADER_SENTINEL'}, None)
+            except HTTPError:
+                # Match the existing fe7 helper's suppressed immediate context.
+                raise ValueError(reason or self.DENIAL) from None
+        return fetch
+
+    def session(self, fetch):
+        return SourceSession(fetch, monotonic=lambda: 0, budget_seconds=240)
+
+    def test_exact_403_and_429_contexts_count_once_without_reopening_the_denial_latch(self):
+        for status, expected in (
+            (403, {'HTTP_403': 1, 'HTTP_429': 0, 'UNKNOWN': 0}),
+            (429, {'HTTP_403': 0, 'HTTP_429': 1, 'UNKNOWN': 0}),
+        ):
+            calls = []
+            session = self.session(self.denied_fetch(status, calls=calls))
+            with self.subTest(status=status):
+                with self.assertRaises(ValueError):
+                    session(self.URL)
+                self.assertEqual(getattr(session, 'provider_denial_http_status_counts', None), expected)
+                self.assertTrue(session.host_denied)
+                self.assertFalse(session.available())
+                with self.assertRaisesRegex(ValueError, 'OWNER_SOURCE_SESSION_STOPPED'):
+                    session(self.URL)
+                self.assertEqual(session.requests, 1)
+                self.assertEqual(calls, [self.URL])
+                self.assertEqual(session.provider_denial_http_status_counts, expected)
+
+    def test_actual_collector_hold_exposes_only_fixed_status_counts_without_private_exception_fields(self):
+        for status, expected in (
+            (403, {'HTTP_403': 1, 'HTTP_429': 0, 'UNKNOWN': 0}),
+            (429, {'HTTP_403': 0, 'HTTP_429': 1, 'UNKNOWN': 0}),
+        ):
+            calls = []
+            def capture(root, **kwargs):
+                kwargs['fetch'](self.URL)
+            with self.subTest(status=status), TemporaryDirectory() as root:
+                report = collect_owner_inputs(root, owner_auto_confirmed=True,
+                    capture=capture, probe=lambda **kwargs:self.fail('denial reached history probe'),
+                    fetch=self.denied_fetch(status, calls=calls), clock=lambda:NOW,
+                    monotonic=lambda:0)
+                self.assertEqual(report.get('provider_denial_http_status_counts'), expected)
+                self.assertEqual(report['public_page_requests'], 1)
+                self.assertEqual(calls, [self.URL])
+                self.assertTrue(report['provider_denial_stopped_requests'])
+                self.assertTrue(report['source_capture_held'])
+                self.assertEqual(report['new_pre_race_inputs'], 0)
+                self.assertFalse(report['actual_four_model_forecast_saved'])
+                encoded = json.dumps(report)
+                for private in ('PRIVATE_EXCEPTION_SENTINEL', 'PRIVATE_HEADER_SENTINEL',
+                                'X-Private', self.URL, 'https://'):
+                    self.assertNotIn(private, encoded)
+
+    def test_message_and_status_attributes_without_typed_context_remain_unknown(self):
+        for message in (self.DENIAL, 'PRIVATE_FAILURE_HTTP_403_SENTINEL',
+                        'PRIVATE_FAILURE_HTTP_429_SENTINEL'):
+            error = ValueError(message)
+            error.code, error.http_status = 403, 429
+            def fetch(url):
+                raise error
+            session = self.session(fetch)
+            with self.subTest(message=message), self.assertRaises(ValueError):
+                session(self.URL)
+            self.assertEqual(getattr(session, 'provider_denial_http_status_counts', None),
+                             {'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 1})
+            self.assertTrue(session.host_denied)
+            self.assertEqual(session.requests, 1)
+
+    def test_non_integer_and_non_denial_http_codes_are_not_promoted_to_403_or_429(self):
+        for status in ('403', '429', True, 403.0, 404, 500, None):
+            session = self.session(self.denied_fetch(status))
+            with self.subTest(status=status), self.assertRaises(ValueError):
+                session(self.URL)
+            self.assertEqual(getattr(session, 'provider_denial_http_status_counts', None),
+                             {'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 1})
+            self.assertTrue(session.host_denied)
+            self.assertEqual(session.requests, 1)
+
+    def test_cause_nested_context_and_http_like_objects_cannot_supply_an_exact_status(self):
+        class HttpLikeError(Exception):
+            code = 403
+        def cause_only(url):
+            raise ValueError(self.DENIAL) from HTTPError(url, 403, 'PRIVATE_CAUSE', {}, None)
+        def nested(url):
+            try:
+                raise HTTPError(url, 429, 'PRIVATE_NESTED', {}, None)
+            except HTTPError:
+                try:
+                    raise ValueError('PRIVATE_INTERMEDIATE')
+                except ValueError:
+                    raise ValueError(self.DENIAL) from None
+        def http_like(url):
+            try:
+                raise HttpLikeError('PRIVATE_HTTP_LIKE')
+            except HttpLikeError:
+                raise ValueError(self.DENIAL) from None
+        for fetch in (cause_only, nested, http_like):
+            session = self.session(fetch)
+            with self.subTest(case=fetch.__name__), self.assertRaises(ValueError):
+                session(self.URL)
+            self.assertEqual(getattr(session, 'provider_denial_http_status_counts', None),
+                             {'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 1})
+            self.assertTrue(session.host_denied)
+            self.assertEqual(session.requests, 1)
+
+    def test_success_non_denial_and_pretransport_holds_keep_zero_diagnostic_counts(self):
+        session = self.session(lambda url:b'unchanged successful bytes')
+        self.assertEqual(session(self.URL), b'unchanged successful bytes')
+        self.assertEqual(getattr(session, 'provider_denial_http_status_counts', None),
+                         {'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 0})
+        self.assertFalse(session.host_denied)
+        self.assertEqual(session.requests, 1)
+        for status, reason in ((404, 'PUBLIC_PAGE_NOT_PUBLISHED_OR_GONE'),
+                               (500, 'PUBLIC_PAGE_HTTP_NOT_OK')):
+            session = self.session(self.denied_fetch(status, reason=reason))
+            with self.subTest(status=status), self.assertRaises(ValueError):
+                session(self.URL)
+            self.assertEqual(session.provider_denial_http_status_counts,
+                             {'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 0})
+            self.assertFalse(session.host_denied)
+            self.assertEqual(session.requests, 1)
+        session = self.session(lambda url:self.fail('unapproved transport called'))
+        with self.assertRaises(ValueError):
+            session('https://unapproved.invalid/')
+        self.assertEqual(session.provider_denial_http_status_counts,
+                         {'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 0})
+        self.assertEqual(session.requests, 0)
+
 
 if __name__=='__main__':
     unittest.main()
