@@ -371,6 +371,10 @@ class OfficialAnalyticsOwnerCycleTests(unittest.TestCase):
             from tests.test_keirin_official_sp_browser import AT, Browser
             from tests.test_keirin_official_sp_receipt import list_data, detail_data, html
         browser = Browser(venues=(98,))
+        browser.resource = ('/sp/static/invented-pending-image', 'GET', 200)
+        browser.resource_type = 'image'
+        browser.unfinished_resources = True
+        browser.pending_without_response = browser.cancel_pending_on_navigation = True
         data = list_data()
         future = deepcopy(data['SJ0301']['kaisaiDayList'][-1])
         future['strKaisaiNitijName'] = '最終日(1/16)'
@@ -403,6 +407,9 @@ class OfficialAnalyticsOwnerCycleTests(unittest.TestCase):
         self.assertEqual(result['source_day_schedule_race_count'], 3)
         self.assertEqual(result['official_sp_acquisition']['details_verified'], 3)
         self.assertEqual(result['official_sp_acquisition']['riders_verified'], 23)
+        self.assertEqual(result['official_sp_acquisition']['unknown_transmitted_status_count'], 0)
+        self.assertGreater(len(browser.completion_waits), 0)
+        self.assertEqual(browser.pending_page_closes, 0)
         self.assertNotIn('presentation-sentinel', json.dumps(result))
         self.assertEqual(result['new_pre_race_inputs'], 0)
         self.assertFalse(result['actual_four_model_forecast_saved'])
