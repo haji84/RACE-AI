@@ -1,0 +1,21 @@
+{
+  "schema": "RACE_AI_KEIRIN_OWNER_REVIEW_GIT_READBACK_V1",
+  "repository": "haji84/RACE-AI",
+  "archive_commit": "687bdc834a37b841c36a56162a75cb8a1bc3128f",
+  "previous_state_commit": "2c0f9edfe069ce8a190a348c4497c4ed906bd30a",
+  "observed_state_commit": "687bdc834a37b841c36a56162a75cb8a1bc3128f",
+  "archive_path": "state/keirin/owner-review/v1/2026-11-18/5634aa14e7286ca2d576ebf5e1862d004b06d0c2f9a989e0c3aac105e074f757.sealed.json",
+  "cipher_sha256": "5634aa14e7286ca2d576ebf5e1862d004b06d0c2f9a989e0c3aac105e074f757",
+  "cipher_blob_sha": "8084c511b31665a6e3cbf33d30929ff602446a28",
+  "cipher_bytes": 8710658,
+  "file_mode": "100644",
+  "independent_checkout_readback_verified": true,
+  "existing_state_blobs_unchanged": true,
+  "authenticated_decryption_verified": true,
+  "paired_A_B_scored": 17,
+  "registered_races": 79,
+  "provider_requests": 0,
+  "live_pipeline_state": false,
+  "new_pre_cutoff_evidence": false,
+  "verified_at": "2026-11-19T04:42:11.427060+00:00"
+}

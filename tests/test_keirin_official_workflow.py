@@ -15,11 +15,11 @@ def jobs():
 
 
 class OfficialWorkflow(unittest.TestCase):
-    def test_existing_private_key_is_only_referenced_by_trusted_result_and_readiness_jobs(self):
+    def test_existing_private_key_is_only_referenced_by_trusted_result_readiness_and_saved_jobs(self):
         text, blocks = jobs()
         key = 'secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM'
         self.assertEqual({name for name, block in blocks.items() if key in block},
-                         {'github-only-research-results', 'source-free-readiness'})
+                         {'github-only-research-results', 'source-free-readiness', 'saved-only-replay'})
         result = blocks['github-only-research-results']
         self.assertIn(key, result)
         for guard in ("github.repository == 'haji84/RACE-AI'", "github.ref == 'refs/heads/main'",
@@ -60,6 +60,63 @@ class OfficialWorkflow(unittest.TestCase):
         self.assertIn('scripts.keirin_official_readiness --repo', block)
         self.assertNotIn('scripts.keirin_official_day_pipeline capture', block)
         self.assertNotIn('scripts.keirin_official_day_pipeline settle', block)
+
+    def test_saved_only_secret_requires_explicit_trusted_main_dispatch_after_tests(self):
+        text, blocks = jobs()
+        self.assertIn('saved-only', text.split('  schedule:', 1)[0])
+        self.assertIn('saved-only-replay', blocks)
+        block = blocks['saved-only-replay']
+        expression = block.split('    if: >-\n', 1)[1].split('    runs-on:', 1)[0]
+        expression = ' '.join(expression.split()).replace('needs.source-free-tests', 'needs.tests')
+        expression = expression.replace('&&', ' and ').replace('||', ' or ')
+        for changes, expected in (
+            ({}, True), ({'event': 'push'}, False), ({'event': 'schedule'}, False),
+            ({'event': 'pull_request'}, False), ({'mode': 'run'}, False),
+            ({'mode': 'readiness'}, False), ({'mode': 'test'}, False),
+            ({'repo': 'fork/RACE-AI'}, False), ({'repo_id': '999'}, False),
+            ({'ref': 'refs/heads/feature'}, False), ({'result': 'failure'}, False),
+        ):
+            values = dict(event='workflow_dispatch', mode='saved-only', repo='haji84/RACE-AI',
+                          repo_id='1416489937', ref='refs/heads/main', result='success')
+            values.update(changes)
+            context = {'github': NS(repository=values['repo'], repository_id=values['repo_id'],
+                                   ref=values['ref'], event_name=values['event']),
+                       'inputs': NS(mode=values['mode']),
+                       'needs': NS(tests=NS(result=values['result']))}
+            with self.subTest(changes=changes):
+                self.assertEqual(bool(eval(expression, {'__builtins__': {}}, context)), expected)
+        self.assertIn('contents: read', block)
+        self.assertNotIn('contents: write', block)
+        self.assertNotIn('vars.', block)
+        self.assertNotIn('GITHUB_TOKEN:', block)
+        self.assertIn('persist-credentials: false', block)
+        self.assertIn('scripts.keirin_official_saved_check', block)
+        self.assertNotIn('scripts.keirin_official_day_pipeline', block)
+        self.assertIn('exit "$status"', block)
+        self.assertIn("inputs.mode == 'saved-only'", blocks['source-free-tests'])
+        self.assertIn('tests.test_keirin_official_saved_check', blocks['source-free-tests'])
+        paths = re.findall(r'^\s+(?:path: )?(\$\{\{ runner.temp \}\}/[^\n]+)$', block, flags=re.M)
+        self.assertEqual(len(paths), 3)
+        self.assertTrue(all(path.endswith(('/safe.json', '/batch-safe.json', '/owner-view.sealed.json'))
+                            for path in paths))
+        self.assertNotIn('owner-report.html', block)
+        self.assertIn('if: always()', block)
+        self.assertIn('rm -rf -- "$root"', block)
+
+    def test_saved_only_dispatch_cannot_admit_capture_or_live_settlement_even_if_opted_in(self):
+        _, blocks = jobs()
+        values = NS(RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED='true',
+                    RACE_AI_AB_PUBLIC_CAPTURE_ENABLED='true',
+                    RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED='true', RACE_AI_AB_SOURCE_S3_PREFIX='',
+                    RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED='true')
+        for name in ('github-only-owner-capture', 'github-only-research-results'):
+            block = blocks[name]
+            expression = block.split('    if: >-\n', 1)[1].split('    runs-on:', 1)[0]
+            expression = ' '.join(expression.split()).replace('&&', ' and ').replace('||', ' or ')
+            context = {'github': NS(repository='haji84/RACE-AI', repository_id='1416489937',
+                                   ref='refs/heads/main', event_name='workflow_dispatch'),
+                       'inputs': NS(mode='saved-only'), 'vars': values, 'always': lambda: True}
+            self.assertFalse(bool(eval(expression, {'__builtins__': {}}, context)), name)
 
     def test_main_push_readiness_matches_only_its_reviewed_code_and_workflow_paths(self):
         text, _ = jobs()

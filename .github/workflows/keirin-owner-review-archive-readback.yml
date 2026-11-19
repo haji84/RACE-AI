@@ -1,0 +1,79 @@
+name: KEIRIN encrypted owner-review archive readback
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/keirin-owner-review-archive-readback.yml'
+      - 'docs/evidence/2026-11-19/keirin_owner_review_git_readback_safe_v1.json'
+  pull_request:
+    paths:
+      - '.github/workflows/keirin-owner-review-archive-readback.yml'
+      - 'docs/evidence/2026-11-19/keirin_owner_review_git_readback_safe_v1.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  independent-encrypted-archive-readback:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Read exact historical ciphertext from existing GitHub state
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, subprocess, tempfile
+          from pathlib import Path
+
+          expected = json.loads(Path('docs/evidence/2026-11-19/keirin_owner_review_git_readback_safe_v1.json').read_text())
+          assert expected['repository'] == 'haji84/RACE-AI'
+          commit = '687bdc834a37b841c36a56162a75cb8a1bc3128f'
+          parent = '2c0f9edfe069ce8a190a348c4497c4ed906bd30a'
+          digest = '5634aa14e7286ca2d576ebf5e1862d004b06d0c2f9a989e0c3aac105e074f757'
+          blob = '8084c511b31665a6e3cbf33d30929ff602446a28'
+          path = 'state/keirin/owner-review/v1/2026-11-18/' + digest + '.sealed.json'
+          receipt_path = path.replace('.sealed.json', '.receipt.json')
+          assert expected['archive_commit'] == commit and expected['previous_state_commit'] == parent
+          assert expected['archive_path'] == path and expected['cipher_sha256'] == digest
+          assert expected['cipher_blob_sha'] == blob and expected['cipher_bytes'] == 8710658
+          env = dict(os.environ, GIT_TERMINAL_PROMPT='0')
+          with tempfile.TemporaryDirectory(prefix='keirin-cipher-readback-', dir=os.environ['RUNNER_TEMP']) as root:
+              def git(*args):
+                  return subprocess.check_output(['git', '--no-replace-objects', *args], cwd=root, env=env, stderr=subprocess.DEVNULL, timeout=90)
+              git('init', '--quiet')
+              git('remote', 'add', 'origin', 'https://github.com/haji84/RACE-AI.git')
+              git('fetch', '--no-tags', 'origin', 'refs/heads/state/keirin-encrypted-history:refs/remotes/origin/state/keirin-encrypted-history')
+              observed = git('rev-parse', 'refs/remotes/origin/state/keirin-encrypted-history').decode().strip()
+              assert git('rev-parse', commit + '^').decode().strip() == parent
+              git('merge-base', '--is-ancestor', commit, observed)
+              entry = git('ls-tree', observed, '--', path).decode().strip().split()
+              assert entry == ['100644', 'blob', blob, path]
+              raw = git('show', observed + ':' + path)
+              assert len(raw) == 8710658 and hashlib.sha256(raw).hexdigest() == digest
+              receipt_entry = git('ls-tree', observed, '--', receipt_path).decode().strip().split()
+              assert receipt_entry[0:2] == ['100644', 'blob'] and receipt_entry[3] == receipt_path
+              receipt_raw = git('show', observed + ':' + receipt_path)
+              assert receipt_raw == git('show', commit + ':' + receipt_path)
+              receipt = json.loads(receipt_raw)
+              assert receipt['schema'] == 'RACE_AI_KEIRIN_OWNER_REVIEW_ARCHIVE_V1'
+              assert receipt['cipher_sha256'] == digest and receipt['cipher_bytes'] == len(raw)
+              assert receipt['new_pre_cutoff_evidence'] is False and receipt['live_pipeline_state'] is False
+              changes = git('diff', '--name-status', parent, commit).decode().splitlines()
+              assert set(changes) == {'A\t' + path, 'A\t' + receipt_path}
+          report = {'schema':'RACE_AI_KEIRIN_OWNER_REVIEW_CI_READBACK_V1',
+                    'state':'HISTORICAL_ENCRYPTED_ARCHIVE_READBACK_VERIFIED',
+                    'archive_commit':commit, 'observed_state_commit':observed,
+                    'cipher_sha256':digest, 'cipher_bytes':len(raw),
+                    'provider_requests':0, 'state_writes':0, 'private_key_used':False,
+                    'live_acceptance_completed':False, 'new_pre_cutoff_evidence':False}
+          safe = json.dumps(report, sort_keys=True)
+          print(safe)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as stream:
+              stream.write(safe + '\n')
+          PY
