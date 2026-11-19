@@ -256,6 +256,7 @@ class PrivateVenueRetentionTests(unittest.TestCase):
         before = deepcopy((self.raws, self.metas, self.reader.files))
         out = self.run_audit()
         self.assertEqual(out['status'], 'EXACT_PRIVATE_RESEARCH_RETENTION_VERIFIED')
+        self.assertIsNone(out['failure_code'])
         self.assertEqual(out['artifact_count'], 3)
         self.assertEqual(out['expected_candidate_count'], 3)
         self.assertEqual(out['verified_candidate_count'], 3)
@@ -507,6 +508,18 @@ class PrivateVenueRetentionTests(unittest.TestCase):
         self.assert_hold(self.run_audit())
         self.assertEqual(self.reader.head_calls, 0)
 
+    def test_archive_failure_code_preserves_hold_and_unknown_counts(self):
+        failure = audit._Rejected('OBSERVATION_SNAPSHOT_REJECTED')
+        with patch.object(audit, '_candidates', side_effect=failure):
+            out = self.run_audit()
+        self.assert_hold(out)
+        self.assertEqual(out['phase'], 'PRIVATE_ARCHIVE')
+        self.assertEqual(out['reason'], 'PRIVATE_EVIDENCE_REJECTED')
+        self.assertEqual(out['failure_code'], 'OBSERVATION_SNAPSHOT_REJECTED')
+        self.assertIsNone(out['expected_candidate_count'])
+        self.assertIsNone(out['missing_candidate_count'])
+        self.assertEqual(self.reader.head_calls, 0)
+
     def test_readonly_facade_rejects_publication_and_unpinned_read_commands(self):
         reader = audit._ReadOnly(self.reader)
         for name in ('commit', 'commit_snapshot', 'push', '_write_tree'):
@@ -559,6 +572,217 @@ class PrivateVenueRetentionTests(unittest.TestCase):
         out = self.run_audit()
         self.assertEqual(out['status'], 'EXACT_PRIVATE_RESEARCH_RETENTION_VERIFIED')
         self.assertEqual(out['verified_candidate_count'], 3)
+
+
+class PrivateVenueObservationSnapshotTests(unittest.TestCase):
+    """One producer observation is shared by all cells of its canonical race."""
+    @classmethod
+    def setUpClass(cls):
+        from race_ai.all_existing_model_learning import fit
+        from tests.test_all_existing_model_learning import observed_records
+        from tests.test_observed_weight_learning import NOW as TRAIN_NOW
+        seed = pair_fixture.CurrentPairEligibilityTests('runTest')
+        seed.records = observed_records(synthetic=False)
+        seed.training = fit(seed.records, now=TRAIN_NOW, allow_source=lambda *_:True,
+                            allow_training=lambda *_:True)
+        seed.cell = next(iter(seed.training['models']))
+        seed.setUp()
+        cls.addClassCleanup(seed.doCleanups)
+        seed.pairs(1, both_models=True)
+        cls.raw = seed.raws[800]
+        cls.meta = dict(seed.metas[800], name=f'all-existing-model-pairs-{RUN}-2',
+            workflow_run=dict(id=RUN, repository_id=1416489937, head_repository_id=1416489937,
+                              head_sha=SOURCE, head_branch='production/boat-p0-p1-20261111'))
+        cls.admission, cls.records = _verified_private_pairs_artifact(cls.raw, cls.meta, now=NOW,
+            expected_run_id=RUN, expected_head_sha=SOURCE)
+        assert len(cls.records) == 2
+        cls.evaluated = datetime(2030, 4, 1, 10, 51, tzinfo=timezone.utc)
+        pair = cls.records[0]['pair']
+        cls.observation = dict(race_id=pair['race_id'], sport=pair['sport'], status='settled',
+            ordered_top3=[1, 2, 3], roster=deepcopy(pair['baseline_normalized']['roster']),
+            captured_at='2030-04-01T08:31:00+00:00', source_sha256='c'*64,
+            identity_verified=True, payout_per_100_yen=100, refund_numbers=[])
+
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory(prefix='public-observation-snapshot-')
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.rounds = {2: (datetime(2030, 4, 1, 8, 10, tzinfo=timezone.utc),
+                           datetime(2030, 4, 1, 8, 20, tzinfo=timezone.utc)),
+                       18: (self.evaluated-timedelta(minutes=1), self.evaluated+timedelta(minutes=9))}
+
+    def members(self, observations, *, ident=800):
+        folder = self.root/('producer-'+str(len(list(self.root.iterdir()))))/str(ident)
+        _score_verified_private_pairs(self.admission, self.records, observations, folder, now=self.evaluated)
+        return {str(path.relative_to(folder.parent)): path.read_bytes()
+                for path in folder.rglob('*') if path.is_file()}
+
+    def candidates(self, members, *, additional=None):
+        original_metas = {800: (2, self.meta)}
+        if additional is not None:
+            original_metas.update(additional)
+        routes = []
+        def get(route):
+            routes.append(route)
+            for ident, (_, meta) in original_metas.items():
+                if route == f'actions/artifacts/{ident}':
+                    return wire(meta)
+                if route == f'actions/artifacts/{ident}/zip':
+                    return self.raw
+            self.fail('UNEXPECTED_PUBLIC_FIXTURE_ROUTE')
+        reads = audit._Reads(get, 9000)
+        reads.artifacts.update(original_metas)
+        folder = self.root/('reader-'+str(len(list(self.root.iterdir()))))
+        try:
+            found = audit._candidates(packed(members), 18,
+                dict(created_at=(self.evaluated+timedelta(minutes=1)).isoformat()),
+                folder, reads, original_metas, self.rounds, NOW, self.root/'cache', {})
+        except audit._Rejected as error:
+            return error.args[0], []
+        self.assertEqual(routes, [route for ident in original_metas for route in
+                                  (f'actions/artifacts/{ident}', f'actions/artifacts/{ident}/zip')])
+        return 'ACCEPTED', found
+
+    def change_observation(self, members, observation):
+        from race_ai.all_existing_model_pdca import _score, _summary
+        from race_ai.boat_venue_learning import read_candidate, seal_candidate
+        partition = next(name.split('/')[1] for name in members if name.endswith('/learning.enc'))
+        folder = self.root/'change-source'
+        folder.mkdir()
+        for name in learning.FILES:
+            (folder/name).write_bytes(members['800/'+partition+'/'+name])
+        payload = read_candidate(folder)
+        payload['observation'] = deepcopy(observation)
+        pair = payload['private_forecast']['pair']
+        payload['score'] = dict(cell_key=pair['cell_key'],
+            forecast_record_sha256=digest(payload['private_forecast']), score=_score(pair, observation))
+        payload['summary'] = _summary(self.admission, [payload['score']], int(observation is not None))
+        replacement = self.root/'changed-candidate'
+        seal_candidate(payload, replacement)
+        for name in learning.FILES:
+            members['800/'+partition+'/'+name] = (replacement/name).read_bytes()
+        return payload
+
+    def test_same_race_two_cells_count_one_authenticated_observation(self):
+        members = self.members([self.observation])
+        self.assertEqual(json.loads(members['800/summary.json'])['observation_count'], 1)
+        before = deepcopy(members)
+        status, found = self.candidates(members)
+        self.assertEqual(status, 'ACCEPTED')
+        self.assertEqual(len(found), 2)
+        self.assertEqual(members, before)
+
+    def test_pending_observation_is_one_input_not_zero_settled_results(self):
+        pending = dict(self.observation, status='pending', ordered_top3=[])
+        members = self.members([pending])
+        self.assertEqual(json.loads(members['800/summary.json'])['observation_count'], 1)
+        self.assertEqual(self.candidates(members)[0], 'ACCEPTED')
+
+    def test_observation_snapshot_scope_is_per_original_artifact(self):
+        members = self.members([self.observation])
+        meta = dict(self.meta, id=801, name=f'all-existing-model-pairs-{RUN}-3',
+                    created_at='2030-04-01T08:20:03Z')
+        admission, records = _verified_private_pairs_artifact(self.raw, meta, now=NOW,
+            expected_run_id=RUN, expected_head_sha=SOURCE)
+        folder = self.root/'different-artifact'/'801'
+        revision = dict(self.observation, source_sha256='d'*64)
+        _score_verified_private_pairs(admission, records, [revision], folder, now=self.evaluated)
+        members.update({str(path.relative_to(folder.parent)): path.read_bytes()
+                        for path in folder.rglob('*') if path.is_file()})
+        self.rounds[3] = (datetime(2030, 4, 1, 8, 20, tzinfo=timezone.utc),
+                          datetime(2030, 4, 1, 8, 30, tzinfo=timezone.utc))
+        status, found = self.candidates(members, additional={801: (3, meta)})
+        self.assertEqual(status, 'ACCEPTED')
+        self.assertEqual(len(found), 4)
+
+    def test_producer_rejects_unmatched_result_before_creating_output(self):
+        folder = self.root/'unmatched'
+        with self.assertRaisesRegex(ValueError, '^ALL_MODEL_PRIVATE_PDCA_UNRELATED_RESULT$'):
+            _score_verified_private_pairs(self.admission, self.records,
+                [self.observation, dict(self.observation, race_id='20300401-24-02')],
+                folder, now=self.evaluated)
+        self.assertFalse(folder.exists())
+
+    def test_producer_rejects_duplicate_canonical_race_revision_before_output(self):
+        folder = self.root/'duplicate'
+        revision = dict(self.observation, source_sha256='d'*64)
+        with self.assertRaisesRegex(ValueError, '^ALL_MODEL_PRIVATE_PDCA_DUPLICATE_RESULT_REVISION$'):
+            _score_verified_private_pairs(self.admission, self.records,
+                [self.observation, revision], folder, now=self.evaluated)
+        self.assertFalse(folder.exists())
+
+    def test_authenticated_cell_revision_disagreement_holds(self):
+        members = self.members([self.observation])
+        self.change_observation(members, dict(self.observation, source_sha256='d'*64))
+        self.assertEqual(self.candidates(members)[0], 'OBSERVATION_SNAPSHOT_REJECTED')
+
+    def test_authenticated_some_cells_none_disagreement_holds(self):
+        from race_ai.all_existing_model_pdca import _score, _summary
+        members = self.members([self.observation])
+        changed = self.change_observation(members, None)
+        rows = [changed['score'] if record['pair']['cell_key'] == changed['score']['cell_key'] else
+                dict(cell_key=record['pair']['cell_key'], forecast_record_sha256=digest(record),
+                     score=_score(record['pair'], self.observation)) for record in self.records]
+        members['800/summary.json'] = wire(dict(_summary(self.admission, rows, 1),
+                                                encrypted_readback_verified=True))
+        self.assertEqual(self.candidates(members)[0], 'OBSERVATION_SNAPSHOT_REJECTED')
+
+    def test_original_aggregate_observation_count_is_compared_not_trusted(self):
+        members = self.members([self.observation])
+        summary = json.loads(members['800/summary.json'])
+        summary['observation_count'] = 2
+        members['800/summary.json'] = wire(summary)
+        self.assertEqual(self.candidates(members)[0], 'SUMMARY_COVERAGE_REJECTED')
+
+    def test_original_aggregate_scoreboard_is_still_compared_completely(self):
+        members = self.members([])
+        summary = json.loads(members['800/summary.json'])
+        summary['baseline_forecast_count'] += 1
+        members['800/summary.json'] = wire(summary)
+        self.assertEqual(self.candidates(members)[0], 'SUMMARY_COVERAGE_REJECTED')
+
+
+class PrivateVenueFailureCodeTests(unittest.TestCase):
+    def report(self, error):
+        with patch.object(audit, '_service_context', side_effect=error), \
+             contextlib.redirect_stdout(io.StringIO()) as stdout, \
+             contextlib.redirect_stderr(io.StringIO()) as stderr:
+            out = audit.audit_private_venue_retention(OWNER, get=lambda _:b'{}', now=NOW,
+                                                      main_identity={})
+        self.assertEqual((stdout.getvalue(), stderr.getvalue()), ('', ''))
+        self.assertEqual(out['status'], 'HOLD_PRIVATE_RESEARCH_RETENTION')
+        self.assertEqual(out['phase'], 'MAIN_CONTEXT')
+        self.assertEqual(out['reason'], 'CONTEXT_REJECTED')
+        self.assertIsNone(out['verified_candidate_count'])
+        self.assertIsNone(out['missing_candidate_count'])
+        return out
+
+    def test_exact_local_and_frozen_upstream_failure_codes_are_projected(self):
+        for error in (audit._Rejected('SUMMARY_COVERAGE_REJECTED'),
+                      audit._Rejected('OBSERVATION_SNAPSHOT_REJECTED'),
+                      ValueError('ALL_MODEL_PAIR_RECEIPT_PRE_CUTOFF_CLOCK_INVALID'),
+                      ValueError('VENUE_LEARNING_AUTHENTICATION_FAILED')):
+            with self.subTest(code=error.args[0]):
+                self.assertEqual(self.report(error).get('failure_code'), error.args[0])
+
+    def test_unknown_text_type_or_multiple_args_never_escape(self):
+        class Hostile(ValueError):
+            def __str__(self):
+                raise AssertionError('PRIVATE_EXCEPTION_FORMATTED')
+        class PrivateString(str):
+            pass
+        sentinel = 'PRIVATE_RESULT_SENTINEL https://private.invalid/?params=secret'
+        errors = (ValueError(sentinel), audit._Rejected(sentinel),
+                  ValueError('SUMMARY_COVERAGE_REJECTED '+sentinel),
+                  ValueError('SUMMARY_COVERAGE_REJECTED', sentinel),
+                  ValueError(PrivateString('SUMMARY_COVERAGE_REJECTED')),
+                  RuntimeError('SUMMARY_COVERAGE_REJECTED'), Hostile('SUMMARY_COVERAGE_REJECTED'))
+        for error in errors:
+            with self.subTest(kind=type(error).__name__):
+                out = self.report(error)
+                self.assertEqual(out.get('failure_code'), 'UNCLASSIFIED')
+                self.assertNotIn('PRIVATE_RESULT_SENTINEL', json.dumps(out))
+                self.assertNotIn('http', json.dumps(out))
 
 
 if __name__ == '__main__':
