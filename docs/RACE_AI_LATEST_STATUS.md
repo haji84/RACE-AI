@@ -1,10 +1,11 @@
-# RACE-AI 最新状況 — 2026-11-19 10:29 JST
+# RACE-AI 最新状況 — 2026-11-19 10:39 JST
 
 **GOALは未達。** 原本・既存変更・重み・元の判定を保全して継続中。従来全文は[履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261118_0928.md)へ同一Git blobのまま保全した。
 
 ## 接続・HEAD・未復元
 
-- runtimeのmainは既存PR13の通常merge **`a6ec09072db385a7bba54deb5793cd5a68ad8b60`**、tree `9bb01f9963ee1a87e3372a586392b583514e87d1`。最終候補3ce1f1e5のtested treeと一致し、26 checks（12成功/14skip/失敗0）、実149/225/376＋7件ほかが成功。独立84＋role4件も成功しreview CLEAR。公開Pages `083739d080ac1fa88714bae0b5cca2bfe7712c8b`・公開資産f603は変更していない。
+- 現在のmainは既存PR9の通常merge **`9a9588571b244e1e89aa7cbe35cb12d675c3bdcb`**、tree `ca598c921b989f517f51e459568658faa76575e5`。tested head ffdb890dと同一tree、22 checks（10成功/12skip/失敗0）、実CI385件/171.082秒＋raw7件/14.098秒が成功。閉prefix2読戻し・翌日修正・競輪typed denial診断・既存horse検証を反映した。実mainの原本読戻し44437961225/job135271458002は進行中。[通常mergeと実probe](evidence/boat-main9-reviewed-merge-and-real-keirin403-20261119.json)。
+- 前段mainの既存PR13通常merge **`a6ec09072db385a7bba54deb5793cd5a68ad8b60`**、tree `9bb01f9963ee1a87e3372a586392b583514e87d1` は最終候補3ce1f1e5のtested treeと一致し、26 checks（12成功/14skip/失敗0）、実149/225/376＋7件ほかが成功。独立84＋role4件も成功しreview CLEAR。公開Pages `083739d080ac1fa88714bae0b5cca2bfe7712c8b`・公開資産f603は変更していない。
 - protected sourceは既存PR15の通常merge **`1dbb47b68d487fc6def0bd4b10b1423f0a2145f6`**、tree `fac54c8e4fd3ceeb8177e408487ca80e9b1e76d4`。最終候補72012372のtested treeと一致。GitHub44422863984の913件/223件/既存3・13・38・46件とNode29件、別44422863924の復旧198件が全成功。main PR13はこの実Sと現在の呼出側proofを結合済み。[source/main復旧review](evidence/boat-r0-source-main-recovery-review-20261119.json)。
 - 前段のmain作業基点 `7584fc3d9d60aa2a548a43281041f66cf0ce9681`（既存PR22通常merge）と旧BOAT clock参照同期7003/PR25の証拠を保全した。その後の既存PR19/13による参照同期・復旧は上記の実mainへ反映済み。
 - 修正前sourceは既存PR21の通常merge `fbc743be548bfd123e46cdbfe290515a59e5e0d3`、tree `1068d5a0d1225e0638a31528f8031a5b8e9fc584`。最終候補9f3/既存CI44348357932のtreeと一致。今朝の実原本originとして保全し、995等の歴史role・原本・固定recovery契約も保つ。[sourceの実merge/CI](evidence/boat-source21-reviewed-merge-20261119.json)。
@@ -27,7 +28,7 @@
 
 09:02 JSTの実launcher **44425780224/job135230120859** は別runnerで復旧を行い、正規完了ログにFAILED_OWNER_ORIGINALS_RECOVERED/recovered_runs1/source GET0/new_forecasts0/original_forecasts_changed=falseを記録。続いて **READY_VERIFIED_RECOVERED_OWNER_CONTINUATION** を通り、09:05:35にsource1dbbの実owner **44426169530/job135231474660** が既存ゲートから起動した。直接のsource起動・counter resetは0。[実ゲート/原本復旧](evidence/boat-main13-actual-r0-recovery-and-owner-start-20261119.json)。
 
-新ownerはoriginal再利用28・追加P0実行30/暗号保存31/readback32/**期限後保管33**/view反映34の各stepがsuccess。以前失敗した33を実通過した。10:13の正規metadataでもjobは実行中で、巡回17のstepが進行中。**control完了数・生成件数・締切前件数はまだ新jobの完了ログ/AESから読めていない**。r2のALL_MODEL/P1/PRIVATE_PAIRSなどの暗号artifact実在を確認したが、存在・step成功だけで全件/全モデル適格や全日を主張しない。閉じたsnapshot2の独立読戻し候補b050のレビューで翌日の実時計による拒否を再現し、followup592c8c70でmainの履歴読取認証へ分離した。sourceの当日生成guardは翌日false/Noneを保ち、時計を戻さない。385＋raw7件、最終9 focused件、実S依存のroot77件が成功し、独立review CLEAR。現HEAD CI/実Actions読戻し待ち。[候補と翌日修正の証拠](evidence/boat-current-s-closed-snapshot2-readonly-audit-20261119.json)。
+新ownerはoriginal再利用28・追加P0実行30/暗号保存31/readback32/**期限後保管33**/view反映34の各stepがsuccess。以前失敗した33を実通過した。10:13の正規metadataでもjobは実行中で、巡回17のstepが進行中。**control完了数・生成件数・締切前件数はまだ新jobの完了ログ/AESから読めていない**。r2のALL_MODEL/P1/PRIVATE_PAIRSなどの暗号artifact実在を確認したが、存在・step成功だけで全件/全モデル適格や全日を主張しない。閉じたsnapshot2の独立読戻し候補b050のレビューで翌日の実時計による拒否を再現し、followup592c8c70でmainの履歴読取認証へ分離した。sourceの当日生成guardは翌日false/Noneを保ち、時計を戻さない。385＋raw7件、最終9 focused件、実S依存のroot77件が成功し、独立review CLEAR。現HEAD CI385＋7件も成功して通常merge済み。実Actions読戻し中。[候補と翌日修正の証拠](evidence/boat-current-s-closed-snapshot2-readonly-audit-20261119.json)。
 
 この読取候補の発行済みモデル照合は、認証済みsaved viewから再構成したprojectionと原inventoryの整合確認であり、実runtimeのissued fileを独立に読んだ証明ではない。出力にscopeとruntime_issued_file_independently_read=falseを明示する。R1のALL_MODEL欠落は件数null/HOLDのまま、R3以降のstep/artifactは原metadataを保って理由付きで対象外とし、現在のview commit/観測時刻を閉prefixの時刻に置き換えない。
 
@@ -65,7 +66,7 @@ PR16反映後の実Mac44409808616/job135174602639は148 unit成功・公開4資�
 
 main13のnative自動判定はCANDIDATE_UNCHANGEDで追加POSTなし。原本復旧・当日P1保存後、既存workflow416758725/browser=native-safariを正規認証で1回だけ実行し、**44428187504/job135238405624** が09:20に起動、09:28に **NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED** で成功した。Safari26.6/macOS、保存日11/19、feed revision455、認証済み結果3、native P1 group9、ブラウザAES成功。455は予想件数ではなくfeed改訂番号、9は固有レース数ではない。暗号文30 files/235,283,873 bytesを認証し、外向きbrowser request0・鍵をrequest/URL/storageへ出した件数0・実画面の画像出力0。実データはprivate loopback再生で、GitHub feed直接配送・本人login・物理iPhone・参考8画面すべての合格は未証明。[当日の実Mac受入](evidence/boat-native-current-day-mac-actual-20261119.json)。
 
-候補f723の合成Safari画像28枚は、fixtureが1艇のみで出走者も無い旧入力だったため、4競技6/7/8/12出走の既存rich fixtureへ揃える検証コードを隔離treeで作成した。旧guard・current V5・公開UIは保ち、193 testsとLinux Chromiumの28枚/外向き0を確認した段階。新しいコードのMac実行・最終8画面比較は未実行で、実iPhoneの代用にしない。
+候補f723の合成Safari画像28枚は、fixtureが1艇のみで出走者も無い旧入力だったため、4競技6/7/8/12出走の既存rich fixtureへ揃えた。author04777fceの3pathのみを既存PR5へ統合中。実f723 factoryの生成7266 bytesと完全一致し、旧guard・current V5・公開UIを保持。193 testsとLinux Chromiumの28枚/外向き0、独立193件/16.701秒が成功しreview CLEAR。新しいコードのMac実行・最終8画面比較は未実行で、実iPhoneの代用にしない。[fixtureとテスト先行](evidence/boat-native-rich-synthetic-test-first-20261119.json)、[独立review](evidence/boat-native-rich-synthetic-independent-review-20261119.json)。
 
 一般公開・新しい配備先・公開許可待ちは前提にしない。正当な実装変更を既存prefix/markerを使う通常mergeへ進め、既存ゲートによるsource/native判定を別に確認する。直接source dispatchや予算resetは行わない。
 
@@ -93,7 +94,7 @@ main参照同期もテスト先行RED（recovery138件中5失敗、national368�
 
 競輪のfe7 WINTICKET経路は公開日次index段階で提供元拒否/制限として停止し、403/429のどちらかをログから分離できない。前版の「fe7でHTTP403確認」という断定を訂正する。IP/地域/認証/clientの原因も未確定。00:37 JSTの通常Chromiumによる同じ日次index一回確認はHTTP200/SSR75レース、本人のiPhone 13 Pro Safariでも開催一覧が表示された。一方、01:02 JSTの既存Actions44342598507はDAY_INDEX_SOURCE_UNAVAILABLE、続く実cycleは1request・denial stop・new inputs0でHOLD。jobのsuccessを解消や完全入力の取得としない。追加の経路変更や403/429迂回はしていない。
 
-既存PR9の候補では、fe7が握りつぶした直近のtyped HTTPErrorだけをHTTP_403/HTTP_429/UNKNOWNの固定件数へ分ける。停止条件・接続先・UA・source fe7は不変。23 testsのRED→GREEN、関連96件と独立96件/5.456秒、実fe7 helperからのfixture403/429各1requestを確認した。実mainへ反映した後の既存通常probeで判別する修正であり、取得成功や403解消はまだ主張しない。[独立検証](evidence/keirin-typed-provider-denial-independent-review-20261119.json)。
+既存PR9では、fe7が握りつぶした直近のtyped HTTPErrorだけをHTTP_403/HTTP_429/UNKNOWNの固定件数へ分けた。停止条件・接続先・UA・source fe7は不変。23 testsのRED→GREEN、関連96件と独立96件/5.456秒、実fe7 helperからのfixture403/429各1requestを確認。反映後の実main44437961180/job135271457441は10:35:16 JSTに **HTTP_403=1/HTTP_429=0/UNKNOWN=0**、public_page_requests1、new_pre_race_inputs0、denial stop=trueを記録した。今回の通常取得が403だったと初めて分離できたが、提供元の拒否原因・取得成功・403解消は未確認。[独立検証](evidence/keirin-typed-provider-denial-independent-review-20261119.json)、[実probe](evidence/boat-main9-reviewed-merge-and-real-keirin403-20261119.json)。
 
 同じ候補は既存のreadonly締切前検証へhorseを1語追加し、4競技の正例・競馬の窓外・既存拒否条件の35件を確認した。既存の開始予定T15〜10/締切margin65秒の検証で、ユーザーの締切前優先処理・競馬実生成・JRA/NAR全5モデル適用の実証ではない。[検証範囲](evidence/horse-existing-prospective-gate-verification-20261119.json)。
 
@@ -115,7 +116,7 @@ f723のnative Safari検証用SHA/treeとworkflow候補2tokenを一致させた�
 | --- | --- |
 | スマホ/PC・Safari | 当日の実Mac Safari26.6/run44428187504で保存日11/19・feed revision455・結果3/native P1 9group・browser AES成功。private loopback再生で、GitHub feed直接配送の証明ではない。物理iPhone・本人login・全8画面の最終受入はfalse。候補f723の28PNGは合成で入力充実化を検証中。公開f603は維持。本人端末は13 Proだが接続された実機操作環境は無い。[当日の実受入](evidence/boat-native-current-day-mac-actual-20261119.json)。 |
 | 全レース×全適用既存model | BOATは上記の部分証拠のみ。完全union/全日/T15〜10/日跨ぎは未証明。AUTOの個車入力、JRA/NARの適用区別、4競技全日の独立証明も未完。 |
-| 競輪 | 最新の実44342598507（11/19 01:02 JST）はindex未取得、1request後の403/429合算denial stop、新入力0でHOLD。fe7のexact403単独は不明。c26 captureのexact403・local通常index200/SSR75・本人Safari開催一覧表示とは区別する。全347/437入力/全券/当日予想は未実証。[実ログ](evidence/keirin-main758-actual-source-hold-44342598507-20261119.json)。 |
+| 競輪 | 最新の実44437961180（11/19 10:35 JST）はindex未取得、HTTP403が1request、429/UNKNOWN0、新入力0で停止。403自体は確定したが原因と解消は未確認。local通常index200/SSR75・本人Safari開催一覧表示とは別の接続環境。全347/437入力/全券/当日予想は未実証。[実ログ件数](evidence/boat-main9-reviewed-merge-and-real-keirin403-20261119.json)。 |
 | 6艇の継続識別・校正・予想接続 | 同時6艇の独立GT・承認済み映像・実race結合が未確認。既知Commons映像は2〜3艇で、6艇精度や強さの校正を証明しない。 |
 | 前向き精度改善 | 11/3事前方針のGit blob073379は旧A/B向けで、自動的に新nativeセルを登録しない。同じ100matched/5日/10会場日と改善・不確実性検定を継承する専用study候補を実装中。サーバreceiptへの登録と将来集計は未実行。過去574 PDCA pairs/holdoutを新分母へ流用しない。改善・98%は未実証、重み変更0。 |
 

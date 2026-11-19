@@ -1003,6 +1003,7 @@ class CandidateSyntheticTests(unittest.TestCase):
     def test_candidate_plain_index_adapter_only_serves_the_exact_public_fixture(self):
         with candidate_fixture() as (root, assets, fixture):
             loaded = S.load_candidate_assets(root / 'web')
+            fixture = S.synthetic_capture_fixture(loaded, candidate_ui=True)
             with S.LoopbackSite(loaded, fixture, synthetic=True, candidate_ui=True) as site:
                 with urllib.request.urlopen(site.url, timeout=3) as response:
                     index = response.read()
@@ -1059,12 +1060,12 @@ class CandidateSyntheticTests(unittest.TestCase):
 
     def test_candidate_screenshot_refuses_fragments_and_even_allowed_preference_storage(self):
         class Site:
-            synthetic_fixture_sha256 = S.SYNTHETIC_SHA
+            synthetic_fixture_sha256 = S.REFERENCE_SYNTHETIC_SHA
             seed_path, candidate_ui, origin = None, True, 'http://127.0.0.1:1234'
             audit = {'private_view_reads': 1, 'secret_in_request': False,
                      'non_read_requests': 0, 'outbound_requests_permitted': 0}
         probe = {'origin': Site.origin, 'fragment': '#home', 'verified': True,
-                 'fixture_sha256': S.SYNTHETIC_SHA, 'page_errors': 0, 'visible_page': 'page-home',
+                 'fixture_sha256': S.REFERENCE_SYNTHETIC_SHA, 'page_errors': 0, 'visible_page': 'page-home',
                  'width': 390, 'overflow': False, 'encrypted': False, 'synthetic_banner': True}
         snapshot = {'url': Site.origin + '/#home', 'local': {}, 'session': {}, 'cookie': '',
                     'privacy': {'page_errors': 0}}
@@ -1090,13 +1091,14 @@ class CandidateSyntheticTests(unittest.TestCase):
                     path = folder / (str(width) + '-' + page + '.png');path.write_bytes(raw)
                     images.append({'name': path.name, 'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()})
             report = {'schema': 'RACE_AI_SYNTHETIC_SAFARI_VISUAL_V2', 'dataset_status': 'SYNTHETIC_ONLY',
-                'public_fixture_sha256': S.SYNTHETIC_SHA, 'screenshots': images,
+                'public_fixture_sha256': S.REFERENCE_SYNTHETIC_SHA, 'screenshots': images,
                 'candidate_source': S.candidate_identity(), 'synthetic_session_cleanup_verified': True,
                 'native_browser': {'browserName': 'Safari', 'platformName': 'macOS', 'browserVersion': '26.1'},
                 'real_data_context_used_for_capture': False, 'physical_iphone_verified': False,
                 'all_eight_reference_screens_visually_verified': False, 'account_login_verified': False,
                 'current_v5_live_continuation_verified': False, 'real_data_verified': False,
-                'viewports': [S.require_viewport(w, {'width': w, 'height': 844}) for w in S.VISUAL_WIDTHS]}
+                'viewports': [dict(S.require_viewport(w, {'width': w, 'height': 844}),
+                    reference_synthetic_sports=copy.deepcopy(ReferenceSyntheticFixtureTests.COUNTS)) for w in S.VISUAL_WIDTHS]}
             target = folder / 'synthetic-only.json'
             target.write_text(json.dumps(report))
             self.assertEqual(S.verify_synthetic_artifacts(folder, candidate_ui=True)['screenshots'], 28)
@@ -1117,18 +1119,22 @@ class CandidateSyntheticTests(unittest.TestCase):
         events = []
         class Driver:
             width = 320
+            sport = 'boat'
             def command(self, method, suffix, body):
                 if suffix == '/window/rect':
                     self.width = body['width']
             def wait(self, *args, **kwargs):
                 return True
-            def click(self, *args):
-                pass
-            def script(self, source):
+            def click(self, selector):
+                if selector.startswith('[data-sport='):
+                    self.sport = json.loads(selector.split('=', 1)[1][:-1])
+            def script(self, source, *args):
                 if 'Object.keys(localStorage)' in source:
                     return True
                 if 'width:innerWidth' in source:
                     return {'width': self.width, 'height': 844}
+                if 'portraits:' in source:
+                    return dict(ReferenceSyntheticFixtureTests.COUNTS[self.sport], upcoming=True, portraits=0)
         @contextmanager
         def browser():
             events.append('fresh_session')
@@ -3725,6 +3731,155 @@ class CurrentV5NativeGroupCountTests(unittest.TestCase):
                 self.assertIsNone(diagnostic['observed_results'])
                 self.assertIsNot(report.get('current_v5_live_continuation_verified'), True)
                 self.assertEqual((references, options), before)
+
+
+class ReferenceSyntheticFixtureTests(unittest.TestCase):
+    """Only the pinned, invented reference scenario can replace sparse captures."""
+    RICH_SHA = 'ef3a81f4c026267063a96d37333c9708a0049342e9a094c8061a11b92bb7feea'
+    COUNTS = {'boat': {'races': 2, 'participants': 6},
+              'keirin': {'races': 1, 'participants': 7},
+              'autorace': {'races': 1, 'participants': 8},
+              'horse': {'races': 1, 'participants': 12}}
+
+    def setUp(self):
+        self.assertTrue(callable(getattr(S, 'synthetic_capture_fixture', None)),
+                        'candidate-only reference fixture selector is missing')
+
+    def test_candidate_selects_exact_rich_public_bytes_and_legacy_stays_sparse(self):
+        with candidate_fixture() as (_, assets, legacy):
+            before = copy.deepcopy(assets)
+            self.assertEqual(S.synthetic_capture_fixture(assets), legacy)
+            rich = S.synthetic_capture_fixture(assets, candidate_ui=True)
+            self.assertEqual(hashlib.sha256(S.wire(rich).encode()).hexdigest(), self.RICH_SHA)
+            self.assertEqual(len(rich['records']), 5)
+            self.assertEqual([len(r['participants']) for r in rich['records']], [6, 7, 8, 12, 0])
+            self.assertEqual([r['sport'] for r in rich['records']], ['boat', 'keirin', 'autorace', 'horse', 'boat'])
+            self.assertTrue(all(r['event_date_jst'] == '2030-01-01' and r['result'] is None
+                                and r['scope'] == 'synthetic' for r in rich['records']))
+            self.assertEqual(rich['records'][0]['participants'][0]['name'], '架空1')
+            self.assertIsNone(rich['records'][4]['prediction'])
+            rich['records'].clear()
+            self.assertEqual(len(S.synthetic_capture_fixture(assets, candidate_ui=True)['records']), 5)
+            self.assertEqual(assets, before)
+
+    def test_changed_unknown_real_identifier_key_or_owner_url_fixture_is_rejected(self):
+        with candidate_fixture() as (_, assets, _):
+            good = S.synthetic_capture_fixture(assets, candidate_ui=True)
+            bad = [b'{}', b'not-json']
+            for field, value in [('race_id', '20261119-01-01'),
+                                 ('owner_url', 'https://owner-private.invalid/sentinel'),
+                                 ('RACE_AI_STATE_KEY', 'private-key-sentinel')]:
+                changed = copy.deepcopy(good);changed['records'][0][field] = value
+                bad.append(S.wire(changed).encode())
+            for raw in bad:
+                with self.subTest(size=len(raw)), patch.object(Path, 'read_bytes', return_value=raw), \
+                        self.assertRaisesRegex(S.SafariHold, 'SYNTHETIC_FIXTURE_INVALID'):
+                    S.synthetic_capture_fixture(assets, candidate_ui=True)
+            changed_assets = dict(assets);changed_assets[S.SYNTHETIC_PATH] = b'{}'
+            with self.assertRaises(S.SafariHold):
+                S.synthetic_capture_fixture(changed_assets, candidate_ui=True)
+
+    def test_real_javascript_guard_binds_rich_identity_and_refuses_changed_or_real_parse(self):
+        with candidate_fixture() as (_, assets, _):
+            view = S.synthetic_capture_fixture(assets, candidate_ui=True)
+            script = S.synthetic_capture_guard(view, candidate_ui=True)
+        program = r'''
+const vm=require('node:vm'),fs=require('node:fs');const input=JSON.parse(fs.readFileSync(0,'utf8'));
+const scope={__raceSafariPrivacy:{},real:false};vm.createContext(scope);vm.runInContext(input.script,scope);
+scope.RaceProductData={parse:raw=>({...raw,records:raw.records.map(r=>({...r,scope:scope.real?'private':'synthetic'}))})};
+scope.RaceProductData.parse(input.view);const accepted=scope.__raceSafariPrivacy.synthetic_fixture_sha256;
+let changed=false,real=false;try{scope.RaceProductData.parse({...input.view,owner_url:'https://private.invalid/sentinel'})}catch{changed=true}
+const afterChanged=scope.__raceSafariPrivacy.synthetic_fixture_verified;
+scope.real=true;try{scope.RaceProductData.parse(input.view)}catch{real=true}
+process.stdout.write(JSON.stringify({accepted,changed,afterChanged,real,final:scope.__raceSafariPrivacy.synthetic_fixture_verified}));
+'''
+        result = subprocess.run(['node', '-e', program], input=json.dumps({'script': script.decode(), 'view': view}),
+                                text=True, capture_output=True, check=True, timeout=10)
+        self.assertEqual(json.loads(result.stdout), {'accepted': self.RICH_SHA, 'changed': True,
+                         'afterChanged': False, 'real': True, 'final': False})
+
+    def test_candidate_guard_blocks_preference_writes_without_clearing_existing_storage(self):
+        with candidate_fixture() as (_, assets, _):
+            view = S.synthetic_capture_fixture(assets, candidate_ui=True)
+            scripts = [S.synthetic_capture_guard(view, candidate_ui=mode).decode() for mode in (True, False)]
+        program = r'''
+const vm=require('node:vm'),fs=require('node:fs');const scripts=JSON.parse(fs.readFileSync(0,'utf8'));
+const result=scripts.map(script=>{function Storage(){};Storage.prototype.setItem=function(k,v){this[k]=v};
+ const scope={Storage,__raceSafariPrivacy:{}};vm.createContext(scope);vm.runInContext(script,scope);
+ const store=new Storage();store.existing='private-sentinel';let blocked=false;
+ try{store.setItem('race-ai-display-v1','invented preference')}catch{blocked=true}
+ return {blocked,existingPreserved:store.existing==='private-sentinel',newValueAbsent:!Object.hasOwn(store,'race-ai-display-v1')};});
+process.stdout.write(JSON.stringify(result));
+'''
+        result = subprocess.run(['node', '-e', program], input=json.dumps(scripts), text=True,
+                                capture_output=True, check=True, timeout=10)
+        self.assertEqual(json.loads(result.stdout), [
+            {'blocked': True, 'existingPreserved': True, 'newValueAbsent': True},
+            {'blocked': False, 'existingPreserved': True, 'newValueAbsent': False}])
+
+    def test_loopback_exposes_only_selected_rich_view_and_rejects_legacy_as_candidate(self):
+        with candidate_fixture() as (_, assets, legacy):
+            rich = S.synthetic_capture_fixture(assets, candidate_ui=True)
+            with S.LoopbackSite(assets, rich, synthetic=True, candidate_ui=True) as site:
+                with urllib.request.urlopen(site.origin + '/api/forecast/saved') as response:
+                    self.assertEqual(hashlib.sha256(response.read()).hexdigest(), self.RICH_SHA)
+                self.assertEqual(site.synthetic_fixture_sha256, self.RICH_SHA)
+                with self.assertRaises(urllib.error.HTTPError):
+                    urllib.request.urlopen(site.origin + '/owner-private-sentinel')
+                self.assertEqual(site.audit['outbound_requests_permitted'], 0)
+            with self.assertRaises(S.SafariHold):
+                S.LoopbackSite(assets, legacy, synthetic=True, candidate_ui=True)
+
+    def test_four_sports_use_actual_dom_counts_and_wrong_counts_fail_closed(self):
+        expected = self.COUNTS
+        class Driver:
+            sport = 'boat'
+            changed = None
+            def click(self, selector):
+                if selector.startswith('[data-sport='):
+                    self.sport = json.loads(selector.split('=', 1)[1][:-1])
+            def wait(self, *args, **kwargs):
+                return True
+            def script(self, source, *args):
+                result = dict(expected[self.sport], upcoming=True, portraits=0)
+                result.update(self.changed or {})
+                return result
+        driver = Driver()
+        self.assertEqual(S.reference_synthetic_checks(driver), expected)
+        self.assertEqual(driver.sport, 'boat')
+        for bad in ({'participants': 0}, {'races': True}, {'upcoming': False}, {'portraits': 1}):
+            driver = Driver();driver.changed = bad
+            with self.subTest(bad=bad), self.assertRaisesRegex(S.SafariHold, 'SYNTHETIC_SCREENSHOT_REJECTED'):
+                S.reference_synthetic_checks(driver)
+
+    def test_candidate_artifact_gate_requires_rich_identity_four_sports_and_exact_28_files(self):
+        raw = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
+        with tempfile.TemporaryDirectory() as name:
+            folder = Path(name).resolve();images = []
+            for width in (320, 390, 1440, 1920):
+                for page in ('home', 'races', 'detail', 'picks', 'results', 'research', 'settings'):
+                    path = folder / f'{width}-{page}.png';path.write_bytes(raw)
+                    images.append({'name': path.name, 'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()})
+            report = {'schema': 'RACE_AI_SYNTHETIC_SAFARI_VISUAL_V2', 'dataset_status': 'SYNTHETIC_ONLY',
+                'public_fixture_sha256': self.RICH_SHA, 'screenshots': images, 'candidate_source': S.candidate_identity(),
+                'synthetic_session_cleanup_verified': True,
+                'native_browser': {'browserName': 'Safari', 'platformName': 'macOS', 'browserVersion': '26.6'},
+                'real_data_context_used_for_capture': False, 'physical_iphone_verified': False,
+                'all_eight_reference_screens_visually_verified': False, 'account_login_verified': False,
+                'current_v5_live_continuation_verified': False, 'real_data_verified': False,
+                'viewports': [dict(S.require_viewport(w, {'width': w, 'height': 948}),
+                                   reference_synthetic_sports=copy.deepcopy(self.COUNTS)) for w in (320, 390, 1440, 1920)]}
+            manifest = folder / 'synthetic-only.json';manifest.write_text(json.dumps(report))
+            self.assertEqual(S.verify_synthetic_artifacts(folder, candidate_ui=True)['screenshots'], 28)
+            for change in (lambda x:x.update(public_fixture_sha256=S.SYNTHETIC_SHA),
+                           lambda x:x['viewports'][0]['reference_synthetic_sports']['horse'].update(participants=0),
+                           lambda x:x.update(real_data_verified=True)):
+                bad = copy.deepcopy(report);change(bad);manifest.write_text(json.dumps(bad))
+                with self.assertRaises(S.SafariHold):
+                    S.verify_synthetic_artifacts(folder, candidate_ui=True)
+            manifest.write_text(json.dumps(report));(folder / 'extra.png').write_bytes(raw)
+            with self.assertRaises(S.SafariHold):
+                S.verify_synthetic_artifacts(folder, candidate_ui=True)
 
 
 if __name__ == '__main__':
