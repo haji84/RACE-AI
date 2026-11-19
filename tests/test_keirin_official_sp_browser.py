@@ -102,6 +102,8 @@ class Response:
         self.request, self.url, self.status = request, request.url, status
         self.raw = raw
         self.headers = {'content-type': 'text/html; charset=utf-8'}
+        if request.resource_type == 'xhr' and request._browser.resource_headers is not None:
+            self.headers = request._browser.resource_headers
 
     def body(self):
         b = self.request._browser
@@ -292,7 +294,7 @@ class Page:
             path, method, status = b.resource
             if b.resource_statuses:
                 status = b.resource_statuses.pop(0)
-            self.transmit(path, b'/* invented public script */', method=method,
+            self.transmit(path, b.resource_raw, method=method,
                           navigation=False, resource_type=b.resource_type, status=status,
                           fields=b.resource_fields)
         for i in range(b.resources):
@@ -372,6 +374,8 @@ class Browser:
         self.resource = None; self.resources = 0
         self.resource_type = 'script'
         self.resource_fields = self.resource_statuses = None
+        self.resource_raw = b'/* invented public script */'
+        self.resource_headers = None
         self.late_analytics = False
         self.lists, self.details = {}, {}
         self.sent, self.pages, self.clicks = [], [], []
@@ -529,6 +533,44 @@ class OfficialSPBrowserTests(unittest.TestCase):
             self.assertEqual(out['resource_request_count'], 1)
             self.assertEqual(out['http_status_counts'], {'200': len(b.sent)})
             self.assertEqual(out['unknown_transmitted_status_count'], 0)
+
+    def test_non_html_analytics_challenge_stops_before_public_controls(self):
+        b = Browser(venues=(98,)); b.resource = ('/sp/ana', 'GET', 200)
+        b.resource_type = 'xhr'; b.resource_headers = {'content-type': 'application/json'}
+        b.resource_raw = b'{"captcha":"verify your browser"}'
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_SOURCE_LAYOUT')
+            self.assertEqual(out['http_status_counts'], {'200': 2})
+            self.assertEqual(out['details_verified'], 0)
+            self.assertEqual(out['unknown_transmitted_status_count'], 0)
+            self.assertFalse(out['provider_denied'])
+            self.assertEqual(b.list_visits, 0)
+
+    def test_non_html_analytics_body_retains_the_individual_response_bound(self):
+        b = Browser(venues=(98,)); b.resource = ('/sp/ana', 'GET', 200)
+        b.resource_type = 'xhr'
+        b.resource_headers = {'content-type': 'application/octet-stream'}
+        b.resource_raw = b'x' * (calendar.MAX_HTML_BYTES + 1)
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_SOURCE_LAYOUT')
+            self.assertEqual(out['http_status_counts'], {'200': 2})
+            self.assertEqual(out['details_verified'], 0)
+            self.assertEqual(out['unknown_transmitted_status_count'], 0)
+            self.assertEqual(b.list_visits, 0)
+
+    def test_non_html_analytics_checks_cover_other_accepted_success_statuses(self):
+        bodies = [b'{"captcha":"verify your browser"}',
+                  b'x' * (calendar.MAX_HTML_BYTES + 1)]
+        for status in (201, 202, 206):
+            for raw in bodies:
+                b = Browser(venues=(98,)); b.resource = ('/sp/ana', 'GET', status)
+                b.resource_type = 'xhr'; b.resource_headers = {'content-type': 'application/json'}
+                b.resource_raw = raw
+                with self.subTest(status=status, oversized=len(raw)>calendar.MAX_HTML_BYTES), self.collect(b) as (out, _, b):
+                    self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_SOURCE_LAYOUT')
+                    self.assertEqual(out['http_status_counts'], {'200': 1, str(status): 1})
+                    self.assertEqual(out['details_verified'], 0)
+                    self.assertEqual(b.list_visits, 0)
 
     def test_analytics_exception_rejects_every_unreviewed_request_variant(self):
         variants = [('/sp/ana?invented=1', 'GET', 'xhr', None),

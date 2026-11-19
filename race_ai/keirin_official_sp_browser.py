@@ -53,6 +53,11 @@ def _need(condition):
         raise _Stop()
 
 
+def _published_analytics(request):
+    return (request.method == 'GET' and request.resource_type == 'xhr'
+            and request.url == 'https://keirin.jp/sp/ana' and request.post_data in (None, ''))
+
+
 def _document(raw):
     _need(type(raw) is bytes and 0 < len(raw) <= calendar.MAX_HTML_BYTES)
     text = raw.decode('utf-8', 'strict')
@@ -195,10 +200,8 @@ class _Collector:
             else:
                 # All three observed public documents issue this analytics GET
                 # themselves. It grants no permission for JSON APIs or other XHR.
-                published_analytics = (req.resource_type == 'xhr'
-                    and req.url == 'https://keirin.jp/sp/ana' and req.post_data in (None, ''))
                 _need(req.method == 'GET' and (req.resource_type not in
-                      ('xhr', 'fetch', 'eventsource', 'websocket') or published_analytics)
+                      ('xhr', 'fetch', 'eventsource', 'websocket') or _published_analytics(req))
                       and url.path != '/sp/json')
             record = dict(request=req, navigation=navigation, status=None)
             self.records[id(req)] = record
@@ -248,7 +251,8 @@ class _Collector:
         # yields to Playwright and can finish after the navigation's caller.
         headers = response.headers
         is_html = 'text/html' in headers.get('content-type', '').lower()
-        if not record['navigation'] and (is_html or req.resource_type in ('script', 'stylesheet')):
+        if not record['navigation'] and (is_html or req.resource_type in ('script', 'stylesheet')
+                                         or _published_analytics(req)):
             self.pending_resources.append(response)
 
     def response_body(self, response):
@@ -263,7 +267,8 @@ class _Collector:
     def drain_resources(self):
         while self.pending_resources:
             response = self.pending_resources.pop(0)
-            if response.status == 200:
+            if response.status == 200 or (_published_analytics(response.request)
+                                           and 200 <= response.status < 300):
                 self.response_body(response)
 
     def capture_document(self, response):
