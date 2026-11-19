@@ -109,6 +109,19 @@ class SPReceiptTests(unittest.TestCase):
                  'all_nationwide_coverage_verified', 'full_active_eligibility_verified'))
                  and result['model_generation'] == result['provider_http_requests'] == 0), 'EXPLICIT_ADMISSION_HOLDS')
 
+    def test_detail_preserves_style_text_without_model_classification(self):
+        data = detail_data()
+        styles = ('架空脚質', ' 逃 ', '両', '--', '', ' 未知脚質 ', '追')
+        for rider, style in zip(data['SJ0315']['sensyuTypeInfo'], styles):
+            rider['kyakusitu'] = style
+        result = self.parse(data=data)
+        self.assertTrue(bool(tuple(row.get('style_raw') for row in result['riders']) == styles),
+                        'PUBLISHED_STYLE_TEXT_MUST_BE_PRESERVED')
+        self.assertTrue(bool(all('style' not in row for row in result['riders'])
+                             and result['source_admission'] is False
+                             and result['model_input_admission'] is False),
+                        'RAW_STYLE_CANNOT_CLASSIFY_OR_ADMIT_MODEL_INPUT')
+
     def test_cancelled_and_withdrawn_and_unknown_notes_do_not_establish_eligibility(self):
         for mode in ('cancelled', 'withdrawn', 'unknown'):
             data = detail_data()

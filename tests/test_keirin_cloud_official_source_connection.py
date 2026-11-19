@@ -192,9 +192,11 @@ class OfficialConnectionTests(unittest.TestCase):
 
 
 class OfficialWorkflowTests(unittest.TestCase):
-    def test_workflow_definitions_are_exactly_the_original_outside_run_bodies(self):
+    def test_workflow_definitions_match_reviewed_structure_outside_run_bodies(self):
+        # Includes the reviewed SP module/test path filters; job definitions,
+        # permissions, schedules, source pins and conditions stay protected.
         digest = sha256(structural_lines(FLOW.read_text()).encode()).hexdigest()
-        self.assertEqual(digest, '1b36a52669b6f0db9f5174f8fba04096933077dc46f7a002ccb77b4e2a88cd0e')
+        self.assertEqual(digest, 'd299faba9e01923fd7f8b2c0563c4001fee7da97c9f78acbfae1f188a75ca255')
 
     def test_real_consumers_reuse_browser_version_in_existing_run_steps(self):
         content = FLOW.read_text()

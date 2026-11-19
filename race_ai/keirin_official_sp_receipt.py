@@ -321,7 +321,8 @@ def parse_race_detail(raw_bytes, *, expected_day, expected_venue_code,
                 raise OfficialSPReceiptError('KEIRIN_OFFICIAL_SP_SCORE_FORMAT_INVALID') from None
         note = row.get('ketujyouTuikaHojyu', '')
         riders.append(dict(car=car, registration_id=identity, name=row['sensyuName'],
-            score_raw=score, entry_note_raw=note, entry_status=statuses.get(note, 'UNKNOWN'),
+            score_raw=score, style_raw=row['kyakusitu'],
+            entry_note_raw=note, entry_status=statuses.get(note, 'UNKNOWN'),
             statistics_raw={key: row[key] for key in ('backCnt', 'nigeCnt', 'makuriCnt', 'sasiCnt', 'markCnt')}))
     withdrawals = sum(row['entry_status'] == 'WITHDRAWN' for row in riders)
     unknown = sum(row['entry_status'] == 'UNKNOWN' for row in riders)
