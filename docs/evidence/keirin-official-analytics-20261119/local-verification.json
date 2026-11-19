@@ -1,25 +1,33 @@
 {
   "schema": "RACE_AI_KEIRIN_OFFICIAL_ANALYTICS_LOCAL_VERIFICATION_V1",
-  "recorded_at_utc": "2026-11-19T15:09:39.788195+00:00",
+  "recorded_at_utc": "2026-11-19T15:18:58.650718+00:00",
   "base_main": "3c78b756960148f6bafd00a3dd243288430629ed",
   "author_commit": "bb3b3f58cc3267668f079fdc3b1e30c9818db1ed",
   "root_red_test": "Owner-cycle fixture initially failed source_capture_held assertion; same public analytics GET now reaches parsed details.",
   "suites": [
     {
-      "name": "analytics-combined-final-green.log",
-      "tests": 143,
+      "name": "analytics-combined-release-green.log",
+      "tests": 146,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "sha256": "735a6d77e8c7e78b5a6fc718d60fb370987f8710a9929d15562652160be9d98f"
+      "sha256": "47b20c5c7735c7691c7d6eb9134ada352cbe307a3ef9c8ffb26842d77ad252ad"
     },
     {
-      "name": "analytics-pinned-owner-final-green.log",
+      "name": "analytics-pinned-owner-release-green.log",
       "tests": 24,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
-      "sha256": "78d2b1b9d651dfade8dacbae692a12c7fb83e5c26846d9b72f90b326080b3709"
+      "sha256": "a417fffda2b5edf1d0d537143772e3afce4a3805ff77526b5c226521f11e0e42"
+    },
+    {
+      "name": "analytics-concurrent-main-regressions-green.log",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d4739847389425fdd7876359030743a7d7976d6704ba846af7de0a0abbfa15b7"
     }
   ],
   "workflow_byte_identical_to_base_main": true,
@@ -27,10 +35,12 @@
   "model_input_admission": false,
   "new_forecasts": 0,
   "modified_source_sha256": {
-    "race_ai/keirin_official_sp_browser.py": "4301af9bab61e6839606e2f5133af7a3e273f65233fb41bd2678f9ffde9ecacd",
-    "tests/test_keirin_official_sp_browser.py": "30178ff45d81c7ffadefa41739bda563381142f021cd2b4d76a5e826e0a60691",
+    "race_ai/keirin_official_sp_browser.py": "cd27ba180b2ca3e61e9a5406b0e7b7b6278b51108af91ecaad1e20f5c37f5d14",
+    "tests/test_keirin_official_sp_browser.py": "9038825589139f63ea01568ab31f3ee393d91389721a665600eb3900cd56d7e9",
     "tests/test_keirin_cloud_owner_inputs.py": "d6de1bd37fdbb9fa4c386359010a0984f3c7d2f45ba33a580a20b2fcdbac6ff0"
   },
   "actual_provider_acquisition_after_fix": "NOT_YET_VERIFIED",
-  "response_inspection_followup_commit": "3fd814dbd34ea88c1e3e3ba6301d005af0096853"
+  "response_inspection_followup_commit": "3fd814dbd34ea88c1e3e3ba6301d005af0096853",
+  "final_page_followup_commit": "609a163f010ce6cc3a6c856985498fda9caa4b59",
+  "concurrent_main_preserved": "a831406200d4b56132731a7a2cc582f6ca62abd2"
 }

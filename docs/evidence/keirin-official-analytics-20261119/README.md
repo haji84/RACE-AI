@@ -43,6 +43,12 @@ or turn unknown outcomes into zero. Three consecutive intercepted Chromium
 flows then each verified one list, three details and 21 invented riders with 19
 HTTP 200 responses, zero unknowns/blocks/denials and zero provider requests.
 
+Final already-received bodies are also drained before cleanup. If an unread
+body arrives during page closure, acquisition holds while retaining the actual
+HTTP status and unknown-status counts. A fully intercepted final-page probe
+reproduced the old false partial result and now holds; the unresolved control
+still preserves one unknown status. No extra request or wait was added.
+
 The original PR #102 head, metadata digest and all 120 original changed path
 modes/blobs are preserved in `pr102-original-preservation.json`. Its immutable
 source pin remains unchanged; preserving its ancestry does not activate its old
