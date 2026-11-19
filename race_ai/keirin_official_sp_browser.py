@@ -193,8 +193,13 @@ class _Collector:
                     _need(req.post_data in (None, ''))
                 self.armed = None  # One actual navigation per fresh public click.
             else:
-                _need(req.method == 'GET' and req.resource_type not in
-                      ('xhr', 'fetch', 'eventsource', 'websocket') and url.path != '/sp/json')
+                # All three observed public documents issue this analytics GET
+                # themselves. It grants no permission for JSON APIs or other XHR.
+                published_analytics = (req.resource_type == 'xhr'
+                    and req.url == 'https://keirin.jp/sp/ana' and req.post_data in (None, ''))
+                _need(req.method == 'GET' and (req.resource_type not in
+                      ('xhr', 'fetch', 'eventsource', 'websocket') or published_analytics)
+                      and url.path != '/sp/json')
             record = dict(request=req, navigation=navigation, status=None)
             self.records[id(req)] = record
             key = 'navigation_request_count' if navigation else 'resource_request_count'
@@ -277,6 +282,8 @@ class _Collector:
     def new_page(self):
         self.check()
         if self.page:
+            self.drain_resources()
+            self.check()
             self.page.close()
         self.creating_page = True
         try:

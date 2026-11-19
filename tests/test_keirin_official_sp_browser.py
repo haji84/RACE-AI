@@ -91,6 +91,7 @@ class Request:
         self.resource_type, self.redirected_from = resource_type, redirected_from
         self.navigation = navigation
         self._browser = page.browser
+        self._page = page
 
     def is_navigation_request(self):
         return self.navigation
@@ -104,6 +105,8 @@ class Response:
 
     def body(self):
         b = self.request._browser
+        if self.request._page.closed:
+            raise RuntimeError('RESPONSE_BODY_UNAVAILABLE_AFTER_PAGE_CLOSE')
         if b.prevent_callback_body_read and b.in_response_callback:
             raise RuntimeError('REENTRANT_RESPONSE_BODY_NOT_READY')
         return self.raw
@@ -173,6 +176,11 @@ class Locator:
         return self.get_attribute('value')
 
     def text_content(self, **_):
+        if (self.page.browser.late_analytics and self.nodes
+                and 'divRaceNitiji' in self.nodes[0].attrs.get('class', '').split()):
+            self.page.browser.late_analytics = False
+            self.page.transmit('/sp/ana', b'/* invented late public response */',
+                               navigation=False, resource_type='xhr')
         return calendar._text(self.nodes[0])
 
     def all_text_contents(self):
@@ -282,8 +290,11 @@ class Page:
             self.current = b.calendar_dom_mutation(self.current)
         if b.resource:
             path, method, status = b.resource
+            if b.resource_statuses:
+                status = b.resource_statuses.pop(0)
             self.transmit(path, b'/* invented public script */', method=method,
-                          navigation=False, resource_type='script', status=status)
+                          navigation=False, resource_type=b.resource_type, status=status,
+                          fields=b.resource_fields)
         for i in range(b.resources):
             self.transmit('/sp/static/invented-' + str(i) + '.js', b'// invented',
                           navigation=False, resource_type='script')
@@ -359,6 +370,9 @@ class Browser:
         self.before_post = self.post_mutation = self.after_detail = self.after_list = None
         self.after_date_click = None
         self.resource = None; self.resources = 0
+        self.resource_type = 'script'
+        self.resource_fields = self.resource_statuses = None
+        self.late_analytics = False
         self.lists, self.details = {}, {}
         self.sent, self.pages, self.clicks = [], [], []
         self.blocked = self.list_visits = self.detail_visits = self.date_clicks = 0
@@ -479,6 +493,64 @@ class OfficialSPBrowserTests(unittest.TestCase):
             self.assertEqual(out['unknown_transmitted_status_count'], 0)
             self.assertEqual(out['blocked_before_send'], 1)
             self.assertEqual(b.blocked, 1)
+
+    def test_exact_page_generated_analytics_get_does_not_block_public_controls(self):
+        b = Browser(venues=(98,)); b.resource = ('/sp/ana', 'GET', 200)
+        b.resource_type = 'xhr'
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'OFFICIAL_SP_PARTIAL_INPUT_CAPTURED')
+            self.assertEqual(out['details_verified'], 3)
+            self.assertEqual(out['race_lists_verified'], 1)
+            self.assertEqual(out['blocked_before_send'], 0)
+            self.assertEqual(out['resource_request_count'], 4)
+            self.assertEqual(out['http_status_counts'], {'200': len(b.sent)})
+
+    def test_later_analytics_denial_preserves_prefix_and_stops_detail_navigation(self):
+        b = Browser(venues=(98,)); b.resource = ('/sp/ana', 'GET', 200)
+        b.resource_type = 'xhr'; b.resource_statuses = [200, 403]
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_DENIED')
+            self.assertTrue(out['provider_denied'])
+            self.assertEqual(out['race_lists_verified'], 1)
+            self.assertEqual(out['day_race_count'], 3)
+            self.assertEqual(out['details_verified'], 0)
+            self.assertEqual(out['navigation_request_count'], 3)
+            self.assertEqual(out['resource_request_count'], 2)
+            self.assertEqual(out['http_status_counts'], {'200': 4, '403': 1})
+            self.assertEqual(out['provider_denial_http_status_counts'],
+                             {'HTTP_403': 1, 'HTTP_429': 0, 'UNKNOWN': 0})
+            self.assertEqual(b.detail_visits, 0)
+
+    def test_late_received_analytics_body_is_drained_before_its_page_closes(self):
+        b = Browser(venues=(98,)); b.late_analytics = True
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'OFFICIAL_SP_PARTIAL_INPUT_CAPTURED')
+            self.assertEqual(out['details_verified'], 3)
+            self.assertEqual(out['resource_request_count'], 1)
+            self.assertEqual(out['http_status_counts'], {'200': len(b.sent)})
+            self.assertEqual(out['unknown_transmitted_status_count'], 0)
+
+    def test_analytics_exception_rejects_every_unreviewed_request_variant(self):
+        variants = [('/sp/ana?invented=1', 'GET', 'xhr', None),
+                    ('/sp/ana#invented', 'GET', 'xhr', None),
+                    ('https://attacker.invalid/sp/ana', 'GET', 'xhr', None),
+                    ('https://www.keirin.jp/sp/ana', 'GET', 'xhr', None),
+                    ('/sp/ana', 'GET', 'fetch', None),
+                    ('/sp/ana', 'POST', 'xhr', None),
+                    ('/sp/ana', 'GET', 'xhr', [('invented', '1')]),
+                    ('/sp/ana/changed', 'GET', 'xhr', None),
+                    ('/sp/json', 'GET', 'xhr', None)]
+        for path, method, resource_type, fields in variants:
+            b = Browser(venues=(98,)); b.resource = (path, method, 200)
+            b.resource_type, b.resource_fields = resource_type, fields
+            with self.subTest(method=method, resource_type=resource_type,
+                              path_sha256=sha256(path.encode()).hexdigest()), self.collect(b) as (out, _, b):
+                self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_SOURCE_LAYOUT')
+                self.assertEqual(out['blocked_before_send'], 1)
+                self.assertEqual(out['resource_request_count'], 0)
+                self.assertEqual(out['http_status_counts'], {'200': 1})
+                self.assertEqual(out['unknown_transmitted_status_count'], 0)
+                self.assertEqual(b.list_visits, 0)
 
     def test_external_host_redirect_and_challenge_stop(self):
         for mode in ('external', 'redirect', 'challenge'):
