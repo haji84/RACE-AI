@@ -4270,6 +4270,11 @@ class NativeCleanupFailureDiagnosticTests(unittest.TestCase):
         with patch.object(driver,'command') as command:self.assertIs(driver.close(),True)
         command.assert_not_called()
         self.assertEqual(getattr(driver,'close_observation',None),dict(delete_outcome='not_required',delete_http_status=None,delete_error_code=None))
+        driver.session='invented-session';failure=RuntimeError('private-command')
+        with patch.object(driver,'command',side_effect=failure) as command:
+            with self.assertRaises(RuntimeError) as caught:driver.close()
+        self.assertIs(caught.exception,failure);command.assert_called_once_with('DELETE','')
+        self.assertEqual(driver.close_observation,dict(delete_outcome='other_failure',delete_http_status=None,delete_error_code=None))
 
     def test_cleanup_projection_rejects_spoofed_values_and_private_objects(self):
         class Private:
@@ -4344,6 +4349,49 @@ class NativeCleanupFailureDiagnosticTests(unittest.TestCase):
                 else:self.fail('the original failure must remain fatal')
                 self.assertEqual(S.failure_report(primary)['reason'],'SAFARI_OPERATION_FAILED')
                 driver.close.assert_called_once_with();process.wait.assert_called_once_with(timeout=5)
+
+    def test_failed_synthetic_resize_does_not_claim_a_verified_width(self):
+        @contextmanager
+        def site(*args,**kwargs):yield types.SimpleNamespace(url='http://127.0.0.1:1234/')
+        for failure in ('resize_command','viewport_readback'):
+            with self.subTest(failure=failure),tempfile.TemporaryDirectory() as name:
+                process,driver=unittest.mock.Mock(),unittest.mock.Mock()
+                process.poll.return_value=None;driver.close.return_value=True;driver.ui_context={}
+                driver.script.side_effect=lambda source,*args:{'width':320,'height':948} if 'innerWidth' in source else True
+                def command(method,suffix,*args):
+                    if suffix=='/window/rect' and failure=='resize_command':
+                        raise S.DriverHold(operation='set_window_rect',http_status=500,w3c_error='unknown error')
+                driver.command.side_effect=command
+                with NativeSessionStartupDiagnosticTests().fake_apple(process,driver), \
+                        patch.dict(S.os.environ,{},clear=True),patch.object(S,'LoopbackSite',side_effect=site), \
+                        patch.object(S,'synthetic_capture_fixture',return_value={'event_date_jst':'2030-01-01'}), \
+                        patch.object(S,'select_saved_day'),patch.object(S,'click_saved_page'),patch.object(S,'VISUAL_WIDTHS',(390,)):
+                    with self.assertRaises(S.SafariHold) as caught:S.synthetic_visual_checks({},Path(name)/'synthetic-only')
+                    report=S.failure_report(caught.exception)
+                self.assertEqual(report.get('ui_stage'),'synthetic_capture')
+                self.assertEqual(report.get('ui_action'),'set_viewport')
+                self.assertIsNone(report.get('ui_verified_width'),'requested width is not verified by a failed resize/readback')
+                self.assertIsNone(report.get('ui_capture_page'))
+
+    def test_synthetic_projection_rejects_str_subclasses_and_skips_encrypted_seed_getters(self):
+        calls=[]
+        class PrivatePhase(str):
+            def __eq__(self,other):calls.append('equality');return True
+        class PrivateSeedError(RuntimeError):
+            @property
+            def first_seed_comparison_initial_selected_target(self):
+                calls.append('getter');raise RuntimeError('private-getter')
+        for kind in ('phase','getter'):
+            with self.subTest(kind=kind):
+                calls.clear();error=RuntimeError('private') if kind=='phase' else PrivateSeedError('private')
+                error.ui_context=dict(stage='synthetic_capture',action='capture_synthetic_page',width=390,page='detail')
+                if kind=='phase':error.ui_context['select_phase']=PrivatePhase('private-canary')
+                try:report=S.failure_report(error)
+                except Exception:self.fail('optional diagnostic getters must not suppress the safe report')
+                self.assertNotIn('private',json.dumps(report))
+                self.assertNotIn('ui_select_phase',report)
+                self.assertIsNone(report.get('ui_first_seed_comparison_initial_selected_target'))
+                self.assertEqual(calls,[])
 
 
 if __name__ == '__main__':
