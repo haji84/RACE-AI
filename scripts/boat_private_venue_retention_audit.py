@@ -339,7 +339,8 @@ def _candidates(raw, round_no, meta, root, reads, originals, rounds, now, cache,
                     files={prefix+name: file_snapshot(folder/name, FILES[name], body) for name, body in files.items()}))
             expected = dict(_summary(admission, rows, sum(value is not None for value in observations.values())),
                             encrypted_readback_verified=True)
-            _need(_json(archive.read(summary_entry), FILES['summary.json']) == expected, 'SUMMARY_COVERAGE_REJECTED')
+            _need(_wire(_json(archive.read(summary_entry), FILES['summary.json'])) == _wire(expected),
+                  'SUMMARY_COVERAGE_REJECTED')
     _need(len(candidates) <= MAX_CANDIDATES, 'ZIP_REJECTED')
     return candidates
 

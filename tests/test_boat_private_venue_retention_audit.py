@@ -741,6 +741,52 @@ class PrivateVenueObservationSnapshotTests(unittest.TestCase):
         members['800/summary.json'] = wire(summary)
         self.assertEqual(self.candidates(members)[0], 'SUMMARY_COVERAGE_REJECTED')
 
+    def test_original_summary_observation_count_preserves_integer_type(self):
+        originals = {1: self.members([self.observation]), 0: self.members([])}
+        for count, replacement in ((1, True), (1, 1.0), (0, False), (0, 0.0)):
+            members = deepcopy(originals[count])
+            summary = json.loads(members['800/summary.json'])
+            self.assertIs(type(summary['observation_count']), int)
+            self.assertEqual(summary['observation_count'], replacement)
+            summary['observation_count'] = replacement
+            members['800/summary.json'] = wire(summary)
+            with self.subTest(count=count, replacement_type=type(replacement).__name__):
+                self.assertEqual(self.candidates(members)[0], 'SUMMARY_COVERAGE_REJECTED')
+
+    def test_original_summary_flags_and_nested_counter_preserve_types(self):
+        original = self.members([self.observation])
+        summary = json.loads(original['800/summary.json'])
+        cell = next(iter(summary['scoreboard']))
+        ticket_count = summary['scoreboard'][cell]['baseline']['ticket_count']
+        cases = ((('encrypted_readback_verified',), 1),
+                 (('encrypted_readback_verified',), 1.0),
+                 (('production_promoted',), 0),
+                 (('accuracy_improvement_proven',), 0.0),
+                 (('partition_count',), 2.0),
+                 (('scoreboard', cell, 'baseline', 'ticket_count'), float(ticket_count)))
+        for keys, replacement in cases:
+            members = deepcopy(original)
+            changed = deepcopy(summary)
+            parent = changed
+            for key in keys[:-1]:
+                parent = parent[key]
+            self.assertEqual(parent[keys[-1]], replacement)
+            self.assertIsNot(type(parent[keys[-1]]), type(replacement))
+            parent[keys[-1]] = replacement
+            members['800/summary.json'] = wire(changed)
+            with self.subTest(field=keys[-1], replacement_type=type(replacement).__name__):
+                self.assertEqual(self.candidates(members)[0], 'SUMMARY_COVERAGE_REJECTED')
+
+    def test_original_summary_key_order_and_whitespace_do_not_change_source_types(self):
+        members = self.members([self.observation])
+        summary = json.loads(members['800/summary.json'])
+        members['800/summary.json'] = json.dumps(dict(reversed(list(summary.items()))), indent=2).encode()
+        before = deepcopy(members)
+        status, found = self.candidates(members)
+        self.assertEqual(status, 'ACCEPTED')
+        self.assertEqual(len(found), 2)
+        self.assertEqual(members, before)
+
 
 class PrivateVenueFailureCodeTests(unittest.TestCase):
     def report(self, error):
