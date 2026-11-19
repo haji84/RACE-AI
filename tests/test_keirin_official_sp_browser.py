@@ -95,6 +95,7 @@ class Request:
         self.navigation = navigation
         self._browser = page.browser
         self._page = page
+        self.timing = {'responseEnd': 0}
 
     def is_navigation_request(self):
         return self.navigation
@@ -110,6 +111,9 @@ class Response:
 
     def body(self):
         b = self.request._browser
+        if self.request.timing['responseEnd'] < 0:
+            b.unfinished_body_reads += 1
+            raise RuntimeError('UNBOUNDED_UNFINISHED_BODY_READ')
         if self.request._page.closed:
             raise RuntimeError('RESPONSE_BODY_UNAVAILABLE_AFTER_PAGE_CLOSE')
         if b.prevent_callback_body_read and b.in_response_callback:
@@ -135,6 +139,9 @@ class Route:
         if self.status is None:
             raise RuntimeError('INVENTED_PRIVATE_TRANSPORT_FAILURE')
         response = Response(self.request, self.raw, self.status)
+        if b.unfinished_resources and not self.request.navigation:
+            self.request.timing['responseEnd'] = -1
+            b.pending_completions.append(self.request)
         if b.hold_resource_responses and not self.request.navigation:
             b.held_resources.append(response)
             return None
@@ -371,6 +378,20 @@ class Context:
     def on(self, event, fn): self.events.setdefault(event, []).append(fn)
     def emit(self, event, obj):
         for fn in self.events.get(event, ()): fn(obj)
+    @contextmanager
+    def expect_event(self, event, predicate, *, timeout):
+        assert event == 'requestfinished'
+        result = SimpleNamespace(value=None)
+        yield result
+        self.browser.completion_waits.append(timeout)
+        if self.browser.completion_timeout:
+            self.browser.completion_timeout(timeout)
+            raise TimeoutError('INVENTED_COMPLETION_TIMEOUT')
+        request = next(r for r in self.browser.pending_completions if predicate(r))
+        self.browser.pending_completions.remove(request)
+        request.timing['responseEnd'] = 1
+        self.emit('requestfinished', request)
+        result.value = request
     def new_page(self):
         p = Page(self); self.browser.pages.append(p); self.emit('page', p); return p
     def close(self): self.closed = True
@@ -391,6 +412,10 @@ class Browser:
         self.final_detail_resource = None
         self.hold_resource_responses = self.release_resources_on_close = False
         self.held_resources = []
+        self.unfinished_resources = False
+        self.unfinished_body_reads = 0
+        self.pending_completions, self.completion_waits = [], []
+        self.completion_timeout = None
         self.late_analytics = False
         self.lists, self.details = {}, {}
         self.sent, self.pages, self.clicks = [], [], []
@@ -565,6 +590,30 @@ class OfficialSPBrowserTests(unittest.TestCase):
             self.assertEqual(out['blocked_before_send'], 0)
             self.assertEqual(out['resource_request_count'], 4)
             self.assertEqual(out['http_status_counts'], {'200': len(b.sent)})
+
+    def test_unfinished_body_wait_uses_remaining_budget_and_keeps_known_http_status(self):
+        b = Browser(venues=(98,)); b.resource = ('/sp/ana', 'GET', 200)
+        b.resource_type = 'xhr'; b.unfinished_resources = True
+        elapsed = [0]
+        b.completion_timeout = lambda _: elapsed.__setitem__(0, 1)
+        with self.collect(b, monotonic=lambda: elapsed[0], budget_seconds=1) as (out, _, b):
+            self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_BUDGET')
+            self.assertTrue(out['budget_exhausted'])
+            self.assertEqual(out['http_status_counts'], {'200': 2})
+            self.assertEqual(out['unknown_transmitted_status_count'], 0)
+            self.assertEqual(b.unfinished_body_reads, 0)
+            self.assertEqual(b.completion_waits, [1000])
+            self.assertEqual(b.list_visits, 0)
+
+    def test_unfinished_body_can_finish_within_budget_before_body_is_read(self):
+        b = Browser(venues=(98,)); b.resource = ('/sp/ana', 'GET', 200)
+        b.resource_type = 'xhr'; b.unfinished_resources = True
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'OFFICIAL_SP_PARTIAL_INPUT_CAPTURED')
+            self.assertEqual(out['details_verified'], 3)
+            self.assertEqual(b.unfinished_body_reads, 0)
+            self.assertEqual(len(b.completion_waits), 4)
+            self.assertTrue(all(0 < wait <= 20_000 for wait in b.completion_waits))
 
     def test_later_analytics_denial_preserves_prefix_and_stops_detail_navigation(self):
         b = Browser(venues=(98,)); b.resource = ('/sp/ana', 'GET', 200)

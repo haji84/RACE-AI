@@ -259,6 +259,19 @@ class _Collector:
         length = response.headers.get('content-length')
         _need(length is None or (length.isascii() and length.isdigit()
                                 and int(length) <= calendar.MAX_HTML_BYTES))
+        request = response.request
+        if request.timing['responseEnd'] < 0:
+            # body()/finished() have no timeout. Wait for documented completion
+            # within the existing remaining work budget before reading bytes.
+            try:
+                with self.context.expect_event('requestfinished',
+                        predicate=lambda finished: finished is request, timeout=self.timeout()):
+                    pass
+            except Exception:
+                self.check()
+                raise
+            self.check()
+            _need(request.timing['responseEnd'] >= 0)
         raw = response.body()
         _need(type(raw) is bytes and len(raw) <= calendar.MAX_HTML_BYTES)
         _need(_CHALLENGE.search(raw.decode('utf-8', 'replace')) is None)
