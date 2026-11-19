@@ -4318,6 +4318,33 @@ class NativeCleanupFailureDiagnosticTests(unittest.TestCase):
                     self.assertFalse((Path(name)/'synthetic-only'/'synthetic-only.json').exists())
                     driver.new_session.assert_called_once_with();driver.close.assert_called_once_with()
 
+    def test_diagnostic_attribute_failures_cannot_replace_the_primary_exception(self):
+        class HostileError(RuntimeError):
+            def __getattribute__(self,name):
+                if name in ('ui_context','session_cleanup'):raise RuntimeError('private-attribute')
+                return super().__getattribute__(name)
+            def __setattr__(self,name,value):
+                if name in ('ui_context','session_cleanup'):raise RuntimeError('private-attribute')
+                super().__setattr__(name,value)
+        for hostile in ('error','driver'):
+            with self.subTest(hostile=hostile):
+                primary=HostileError('private') if hostile=='error' else RuntimeError('private')
+                driver,process=unittest.mock.Mock(),unittest.mock.Mock()
+                driver.ui_context={};driver.close.return_value=False;process.poll.return_value=None
+                @contextmanager
+                def metadata():
+                    if hostile=='driver':
+                        with patch.object(type(driver),'close_observation',new_callable=unittest.mock.PropertyMock,create=True) as value:
+                            value.side_effect=RuntimeError('private-attribute');yield
+                    else:yield
+                try:
+                    with metadata(),NativeSessionStartupDiagnosticTests().fake_apple(process,driver):
+                        with S.apple_driver():raise primary
+                except BaseException as error:self.assertIs(error,primary)
+                else:self.fail('the original failure must remain fatal')
+                self.assertEqual(S.failure_report(primary)['reason'],'SAFARI_OPERATION_FAILED')
+                driver.close.assert_called_once_with();process.wait.assert_called_once_with(timeout=5)
+
 
 if __name__ == '__main__':
     unittest.main()
