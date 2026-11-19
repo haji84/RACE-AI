@@ -1,0 +1,497 @@
+{
+  "schema": "RACE_AI_SYNTHETIC_UI_EVIDENCE_MANIFEST_V1",
+  "scope": "SYNTHETIC_ONLY_LINUX_CHROMIUM",
+  "code_commit": "b55242230e93ec3975a5a49bf3dd5f46632ff794",
+  "web_tree": "5cbbfe05a2971485b5c32a84a8ddf7b2539604cc",
+  "browser": {
+    "name": "Chromium",
+    "version": "155.0.8059.79",
+    "platform": "linux"
+  },
+  "synthetic_PNG_count": 32,
+  "synthetic_PNG_total_bytes": 7999736,
+  "PNG_metadata_chunk_types": [
+    "IDAT",
+    "IEND",
+    "IHDR"
+  ],
+  "PNG_text_or_EXIF_metadata_present": false,
+  "native_safari_verified": false,
+  "physical_iphone_verified": false,
+  "all_eight_reference_screens_visually_verified": false,
+  "fixture_sha256": "ef3a81f4c026267063a96d37333c9708a0049342e9a094c8061a11b92bb7feea",
+  "asset_sha256": {
+    "index.html": "ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2",
+    "app.js": "c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5",
+    "style.css": "cf67f3e93763bb816be5c2a4aeeddbd35b5a6e8b50c9d3e4a3331e1e7e599d08"
+  },
+  "test_sources": [
+    {
+      "path": "tests/reference_controls_browser.test.cjs",
+      "git_blob": "a03a303963888a5d386408a4968b853c33ead0f1",
+      "sha256": "c8eea17a3dcbc2869ba8df7239e006337aecd6092e4192e82a199231fd50a1e9"
+    },
+    {
+      "path": "tests/reference_layout_browser.test.cjs",
+      "git_blob": "9d7c1529fca598460543e686c053c17025912608",
+      "sha256": "8d6a01221f055963fd0d90521040a73bd57c14cddb8eb17f2bdc771a6480a085"
+    },
+    {
+      "path": "tests/reference_scenarios_browser.cjs",
+      "git_blob": "d9b769f95d1d82db18ab84f5a498ad302478741b",
+      "sha256": "e9c09d84209b50e307321d47827f6d5fc026b6360502db32041c23d79af69fa6"
+    }
+  ],
+  "original_evidence_hashes": [
+    {
+      "name": "reference-scenarios.json",
+      "bytes": 10774,
+      "sha256": "26533a09102cbeda5faba60ba7d01f02bca1b90c7156761130b0323d269224ae",
+      "role": "original final synthetic capture report; contents not rewritten"
+    },
+    {
+      "name": "local-summary.json",
+      "bytes": 3747,
+      "sha256": "1768f83d0f72c25af4b35506b341ff87d35c21d6d30a5687d30c5e3f5af4ac2f",
+      "role": "original local summary provenance; repository summary removes local absolute paths"
+    },
+    {
+      "name": "baseline-geometry.json",
+      "bytes": 3924,
+      "sha256": "843ba51eb2679430d5fb56df94ea6a25b33a36b2be2ee7a7621410b86c51a21f"
+    },
+    {
+      "name": "final-geometry.json",
+      "bytes": 7045,
+      "sha256": "dcd03c0836b0247b92dfa4986175b0fd2c21c777f9780d08eaabb9438f3940c8"
+    },
+    {
+      "name": "red.log",
+      "bytes": 9462,
+      "sha256": "25e91c79537f0e6c9404792d761ac172786b68d194dffb2fc0f8d3131bd655f9"
+    },
+    {
+      "name": "red-delete-width.log",
+      "bytes": 317,
+      "sha256": "6e52ecb79ea3cb2a6629b05dda2b10d667b4de637370df295e057e7df74f413e"
+    },
+    {
+      "name": "final-controls.log",
+      "bytes": 5168,
+      "sha256": "3f18c70d524ebcf988437b31a24433c5988c595506e9c7ad068ec660260c7b9e"
+    },
+    {
+      "name": "final-layout.log",
+      "bytes": 878,
+      "sha256": "18cbfa66952de91125ca27acd9ca376f0a10b5489da35eeccb79e9110547289a"
+    },
+    {
+      "name": "final-scenarios.log",
+      "bytes": 656,
+      "sha256": "50e4f7539ab86051e1ca7b1aeb4b7bb1f05c7d9ae62b1403f0e6d9090417d6ea"
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "screenshots/rich-320-races.png",
+      "bytes": 181084,
+      "sha256": "95185465e286868bd3cc364fd659e81e8959ee92e558f083afdcc73d09b4b51d",
+      "png_width": 320,
+      "png_height": 1963
+    },
+    {
+      "path": "screenshots/rich-320-home.png",
+      "bytes": 270896,
+      "sha256": "0347221023e771706b2d8486ec97ba833c93244dc3b3541db7fb36be442f68b2",
+      "png_width": 320,
+      "png_height": 2922
+    },
+    {
+      "path": "screenshots/rich-320-detail.png",
+      "bytes": 208408,
+      "sha256": "2b46c1208abd19491c9bf7de14a159ea86cb5e0eaa52a6e68c6e13d711897b93",
+      "png_width": 320,
+      "png_height": 2292
+    },
+    {
+      "path": "screenshots/rich-320-participants.png",
+      "bytes": 145031,
+      "sha256": "e730978c56d0de2b28217640a50ad6abbdc55b24c8a7fe6b03eac78066fdc1a5",
+      "png_width": 320,
+      "png_height": 1804
+    },
+    {
+      "path": "screenshots/rich-320-preview.png",
+      "bytes": 176774,
+      "sha256": "5dd370fb3c750782c14def7b5ac930726adc22c931ae9ac6ca8cfda1a8580c65",
+      "png_width": 320,
+      "png_height": 2374
+    },
+    {
+      "path": "screenshots/rich-320-picks.png",
+      "bytes": 218331,
+      "sha256": "d538daafffb333e27a35414fb7844ac9136e87f3e940195efea0060ca321156b",
+      "png_width": 320,
+      "png_height": 2604
+    },
+    {
+      "path": "screenshots/rich-320-review.png",
+      "bytes": 62169,
+      "sha256": "8e57c5d356cb2dfb8bd2d19604bb34531e029b39f17786ca3e6c0c42ec337702",
+      "png_width": 320,
+      "png_height": 844
+    },
+    {
+      "path": "screenshots/rich-390-keirin-upcoming.png",
+      "bytes": 178103,
+      "sha256": "5eb297bf5a4f930c50a7db5a117048f37b9be8a2b9ce54bd98b36606d568eb00",
+      "png_width": 390,
+      "png_height": 1663
+    },
+    {
+      "path": "screenshots/rich-390-autorace-upcoming.png",
+      "bytes": 175454,
+      "sha256": "ce5ff975d25cea91357fbbaac25ba62d6a16a4acea8628c45683cb1bb5fa9821",
+      "png_width": 390,
+      "png_height": 1650
+    },
+    {
+      "path": "screenshots/rich-390-horse-upcoming.png",
+      "bytes": 178808,
+      "sha256": "569a83147680693ec07dd356da57ccb6375952b3272f7591ee850c355cfc6e94",
+      "png_width": 390,
+      "png_height": 1663
+    },
+    {
+      "path": "screenshots/rich-390-races.png",
+      "bytes": 196077,
+      "sha256": "e33f3ee9cd1a518c6a4c284230938b490bb5a1563896e1e7cd9244ec61d5836b",
+      "png_width": 390,
+      "png_height": 1884
+    },
+    {
+      "path": "screenshots/rich-390-home.png",
+      "bytes": 281262,
+      "sha256": "0a8075e30be706b79c2b89c4228909ec1c099044f2a97ef5fe03469bcf904b72",
+      "png_width": 390,
+      "png_height": 2739
+    },
+    {
+      "path": "screenshots/rich-390-detail.png",
+      "bytes": 207177,
+      "sha256": "b3411deb1dae3431799fddf8496cb1cc6e4171c54bd46265c3ffc5ba399d454e",
+      "png_width": 390,
+      "png_height": 2204
+    },
+    {
+      "path": "screenshots/rich-390-participants.png",
+      "bytes": 147697,
+      "sha256": "a63a299fce069821a552be4159c1d74673165064875d149613916c1d32582fff",
+      "png_width": 390,
+      "png_height": 1773
+    },
+    {
+      "path": "screenshots/rich-390-preview.png",
+      "bytes": 170736,
+      "sha256": "9e173d7295ab264d6cb0680f60d0ca6f3ea704de683b78150c2b57c0aeb7f9aa",
+      "png_width": 390,
+      "png_height": 2028
+    },
+    {
+      "path": "screenshots/rich-390-picks.png",
+      "bytes": 232251,
+      "sha256": "9c9fdf09ed380d8a2f893f21932f1a3502400fa242a185860d4d8fe46cf8cacc",
+      "png_width": 390,
+      "png_height": 2490
+    },
+    {
+      "path": "screenshots/rich-390-review.png",
+      "bytes": 67277,
+      "sha256": "09035072cea394e7bc4966744f21053b8ff3c6316119323c0aaa127b1660d268",
+      "png_width": 390,
+      "png_height": 844
+    },
+    {
+      "path": "screenshots/rich-1440-keirin-upcoming.png",
+      "bytes": 287747,
+      "sha256": "61bd62f672e615bbe570c336daf1c8bd0f1e7e29242ecf82865dab4e2ea5cca9",
+      "png_width": 1440,
+      "png_height": 1257
+    },
+    {
+      "path": "screenshots/rich-1440-autorace-upcoming.png",
+      "bytes": 287208,
+      "sha256": "ecedf84db6a1abd51f5e266016eb6fd78b11045fd894690c7c7e2cd17869f2e1",
+      "png_width": 1440,
+      "png_height": 1257
+    },
+    {
+      "path": "screenshots/rich-1440-horse-upcoming.png",
+      "bytes": 285334,
+      "sha256": "47dd18ad68f48c51ebdd11eab9230c599f4605d02eac10229e0451ca85c9da80",
+      "png_width": 1440,
+      "png_height": 1257
+    },
+    {
+      "path": "screenshots/rich-1440-races.png",
+      "bytes": 304858,
+      "sha256": "b3b7a53c8798d20140ed45a414bd9f038fa1098c3e2e9490a88c141c2fa8f6d6",
+      "png_width": 1440,
+      "png_height": 1278
+    },
+    {
+      "path": "screenshots/rich-1440-home.png",
+      "bytes": 454957,
+      "sha256": "a6c0ed7d4bdb3a330769ba4d2cb0ce1864c3e6988c54375d5b4360475cd9c196",
+      "png_width": 1440,
+      "png_height": 1733
+    },
+    {
+      "path": "screenshots/rich-1440-detail.png",
+      "bytes": 351557,
+      "sha256": "ae550446ac55879463dacfef6bcfc9b305972f3c18979b0ed76c53c333f3acfe",
+      "png_width": 1440,
+      "png_height": 1882
+    },
+    {
+      "path": "screenshots/rich-1440-participants.png",
+      "bytes": 275348,
+      "sha256": "2145dc1e7714eddaa27313b8d69d445a255e28943356c7155118a4952b0bd097",
+      "png_width": 1440,
+      "png_height": 1564
+    },
+    {
+      "path": "screenshots/rich-1440-preview.png",
+      "bytes": 274429,
+      "sha256": "6a2471c4b0d14f13c9c8827f2af54ee50b3ba9ec2d479d5c27748c32370c6339",
+      "png_width": 1440,
+      "png_height": 1702
+    },
+    {
+      "path": "screenshots/rich-1440-picks.png",
+      "bytes": 345444,
+      "sha256": "cee746aa74f2675afddd4b988019be57a34c1e1a0baacb2bae8d13da7adf1ef4",
+      "png_width": 1440,
+      "png_height": 1520
+    },
+    {
+      "path": "screenshots/rich-1920-races.png",
+      "bytes": 312015,
+      "sha256": "449a8e85dc614d7e63f52e29c4db92cbef78a419e8ecadd3a5b7d51fa138a570",
+      "png_width": 1920,
+      "png_height": 1279
+    },
+    {
+      "path": "screenshots/rich-1920-home.png",
+      "bytes": 452243,
+      "sha256": "62b10ba559d6b64ffa892e87371ac332cd0ca8326d4646eec4b37936aebf6eff",
+      "png_width": 1920,
+      "png_height": 1721
+    },
+    {
+      "path": "screenshots/rich-1920-detail.png",
+      "bytes": 359998,
+      "sha256": "bbf84c7d46247b309507278adbe0749f413413f2c305fac6ab54bcba72e8ff69",
+      "png_width": 1920,
+      "png_height": 1882
+    },
+    {
+      "path": "screenshots/rich-1920-participants.png",
+      "bytes": 277980,
+      "sha256": "91222aa3829e9eaacbb2200a7f49a068bc6147f09c4c850ba45ab7c8436f2922",
+      "png_width": 1920,
+      "png_height": 1564
+    },
+    {
+      "path": "screenshots/rich-1920-preview.png",
+      "bytes": 280673,
+      "sha256": "e5f6b23b2bc0cfafc88f0e4bba39040645cfe024005d4d49244a80ad0d9e1d7a",
+      "png_width": 1920,
+      "png_height": 1702
+    },
+    {
+      "path": "screenshots/rich-1920-picks.png",
+      "bytes": 352410,
+      "sha256": "4227715d8454a7dc6f67b8f14042f0fd615b00e52776954e47c6fe84c31296b5",
+      "png_width": 1920,
+      "png_height": 1520
+    }
+  ],
+  "files_except_this_manifest": [
+    {
+      "path": "README.md",
+      "bytes": 2035,
+      "sha256": "ba6947966ca24f2c1bc6092a3e849e5ff05ffc4c989bd2773ce8016f2c8e8f12"
+    },
+    {
+      "path": "screenshots/README.md",
+      "bytes": 818,
+      "sha256": "8d7cc91e3737cec9b9a85edf025cfc72ecf4de4375417ee765bc8b383f4e18af"
+    },
+    {
+      "path": "screenshots/rich-1440-autorace-upcoming.png",
+      "bytes": 287208,
+      "sha256": "ecedf84db6a1abd51f5e266016eb6fd78b11045fd894690c7c7e2cd17869f2e1"
+    },
+    {
+      "path": "screenshots/rich-1440-detail.png",
+      "bytes": 351557,
+      "sha256": "ae550446ac55879463dacfef6bcfc9b305972f3c18979b0ed76c53c333f3acfe"
+    },
+    {
+      "path": "screenshots/rich-1440-home.png",
+      "bytes": 454957,
+      "sha256": "a6c0ed7d4bdb3a330769ba4d2cb0ce1864c3e6988c54375d5b4360475cd9c196"
+    },
+    {
+      "path": "screenshots/rich-1440-horse-upcoming.png",
+      "bytes": 285334,
+      "sha256": "47dd18ad68f48c51ebdd11eab9230c599f4605d02eac10229e0451ca85c9da80"
+    },
+    {
+      "path": "screenshots/rich-1440-keirin-upcoming.png",
+      "bytes": 287747,
+      "sha256": "61bd62f672e615bbe570c336daf1c8bd0f1e7e29242ecf82865dab4e2ea5cca9"
+    },
+    {
+      "path": "screenshots/rich-1440-participants.png",
+      "bytes": 275348,
+      "sha256": "2145dc1e7714eddaa27313b8d69d445a255e28943356c7155118a4952b0bd097"
+    },
+    {
+      "path": "screenshots/rich-1440-picks.png",
+      "bytes": 345444,
+      "sha256": "cee746aa74f2675afddd4b988019be57a34c1e1a0baacb2bae8d13da7adf1ef4"
+    },
+    {
+      "path": "screenshots/rich-1440-preview.png",
+      "bytes": 274429,
+      "sha256": "6a2471c4b0d14f13c9c8827f2af54ee50b3ba9ec2d479d5c27748c32370c6339"
+    },
+    {
+      "path": "screenshots/rich-1440-races.png",
+      "bytes": 304858,
+      "sha256": "b3b7a53c8798d20140ed45a414bd9f038fa1098c3e2e9490a88c141c2fa8f6d6"
+    },
+    {
+      "path": "screenshots/rich-1920-detail.png",
+      "bytes": 359998,
+      "sha256": "bbf84c7d46247b309507278adbe0749f413413f2c305fac6ab54bcba72e8ff69"
+    },
+    {
+      "path": "screenshots/rich-1920-home.png",
+      "bytes": 452243,
+      "sha256": "62b10ba559d6b64ffa892e87371ac332cd0ca8326d4646eec4b37936aebf6eff"
+    },
+    {
+      "path": "screenshots/rich-1920-participants.png",
+      "bytes": 277980,
+      "sha256": "91222aa3829e9eaacbb2200a7f49a068bc6147f09c4c850ba45ab7c8436f2922"
+    },
+    {
+      "path": "screenshots/rich-1920-picks.png",
+      "bytes": 352410,
+      "sha256": "4227715d8454a7dc6f67b8f14042f0fd615b00e52776954e47c6fe84c31296b5"
+    },
+    {
+      "path": "screenshots/rich-1920-preview.png",
+      "bytes": 280673,
+      "sha256": "e5f6b23b2bc0cfafc88f0e4bba39040645cfe024005d4d49244a80ad0d9e1d7a"
+    },
+    {
+      "path": "screenshots/rich-1920-races.png",
+      "bytes": 312015,
+      "sha256": "449a8e85dc614d7e63f52e29c4db92cbef78a419e8ecadd3a5b7d51fa138a570"
+    },
+    {
+      "path": "screenshots/rich-320-detail.png",
+      "bytes": 208408,
+      "sha256": "2b46c1208abd19491c9bf7de14a159ea86cb5e0eaa52a6e68c6e13d711897b93"
+    },
+    {
+      "path": "screenshots/rich-320-home.png",
+      "bytes": 270896,
+      "sha256": "0347221023e771706b2d8486ec97ba833c93244dc3b3541db7fb36be442f68b2"
+    },
+    {
+      "path": "screenshots/rich-320-participants.png",
+      "bytes": 145031,
+      "sha256": "e730978c56d0de2b28217640a50ad6abbdc55b24c8a7fe6b03eac78066fdc1a5"
+    },
+    {
+      "path": "screenshots/rich-320-picks.png",
+      "bytes": 218331,
+      "sha256": "d538daafffb333e27a35414fb7844ac9136e87f3e940195efea0060ca321156b"
+    },
+    {
+      "path": "screenshots/rich-320-preview.png",
+      "bytes": 176774,
+      "sha256": "5dd370fb3c750782c14def7b5ac930726adc22c931ae9ac6ca8cfda1a8580c65"
+    },
+    {
+      "path": "screenshots/rich-320-races.png",
+      "bytes": 181084,
+      "sha256": "95185465e286868bd3cc364fd659e81e8959ee92e558f083afdcc73d09b4b51d"
+    },
+    {
+      "path": "screenshots/rich-320-review.png",
+      "bytes": 62169,
+      "sha256": "8e57c5d356cb2dfb8bd2d19604bb34531e029b39f17786ca3e6c0c42ec337702"
+    },
+    {
+      "path": "screenshots/rich-390-autorace-upcoming.png",
+      "bytes": 175454,
+      "sha256": "ce5ff975d25cea91357fbbaac25ba62d6a16a4acea8628c45683cb1bb5fa9821"
+    },
+    {
+      "path": "screenshots/rich-390-detail.png",
+      "bytes": 207177,
+      "sha256": "b3411deb1dae3431799fddf8496cb1cc6e4171c54bd46265c3ffc5ba399d454e"
+    },
+    {
+      "path": "screenshots/rich-390-home.png",
+      "bytes": 281262,
+      "sha256": "0a8075e30be706b79c2b89c4228909ec1c099044f2a97ef5fe03469bcf904b72"
+    },
+    {
+      "path": "screenshots/rich-390-horse-upcoming.png",
+      "bytes": 178808,
+      "sha256": "569a83147680693ec07dd356da57ccb6375952b3272f7591ee850c355cfc6e94"
+    },
+    {
+      "path": "screenshots/rich-390-keirin-upcoming.png",
+      "bytes": 178103,
+      "sha256": "5eb297bf5a4f930c50a7db5a117048f37b9be8a2b9ce54bd98b36606d568eb00"
+    },
+    {
+      "path": "screenshots/rich-390-participants.png",
+      "bytes": 147697,
+      "sha256": "a63a299fce069821a552be4159c1d74673165064875d149613916c1d32582fff"
+    },
+    {
+      "path": "screenshots/rich-390-picks.png",
+      "bytes": 232251,
+      "sha256": "9c9fdf09ed380d8a2f893f21932f1a3502400fa242a185860d4d8fe46cf8cacc"
+    },
+    {
+      "path": "screenshots/rich-390-preview.png",
+      "bytes": 170736,
+      "sha256": "9e173d7295ab264d6cb0680f60d0ca6f3ea704de683b78150c2b57c0aeb7f9aa"
+    },
+    {
+      "path": "screenshots/rich-390-races.png",
+      "bytes": 196077,
+      "sha256": "e33f3ee9cd1a518c6a4c284230938b490bb5a1563896e1e7cd9244ec61d5836b"
+    },
+    {
+      "path": "screenshots/rich-390-review.png",
+      "bytes": 67277,
+      "sha256": "09035072cea394e7bc4966744f21053b8ff3c6316119323c0aaa127b1660d268"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 7607,
+      "sha256": "488f765c6226d65919b920fe3beb671414d425d1a429b26b0fcb57bc1369967a"
+    }
+  ]
+}

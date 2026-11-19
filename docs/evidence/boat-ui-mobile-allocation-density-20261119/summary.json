@@ -1,0 +1,237 @@
+{
+  "schema": "RACE_AI_LOCAL_MOBILE_ALLOCATION_DENSITY_V1",
+  "base_commit": "f9e2dbbf0150d929898d3f260d32e206b7ece4a3",
+  "final_commit": "b55242230e93ec3975a5a49bf3dd5f46632ff794",
+  "candidate_web_tree": "5cbbfe05a2971485b5c32a84a8ddf7b2539604cc",
+  "modified_paths": [
+    "tests/reference_controls_browser.test.cjs",
+    "web/style.css"
+  ],
+  "browser": {
+    "name": "Chromium",
+    "version": "155.0.8059.79",
+    "platform": "linux"
+  },
+  "geometry": [
+    {
+      "width": 320,
+      "height": 844,
+      "before_complete_rows": 1,
+      "after_complete_rows": 2,
+      "before_settings_height": 395.5625,
+      "after_settings_height": 326.5625,
+      "saved_height_px": 69.0,
+      "copy_and_review_minimum_height": 44,
+      "all_descriptions_lineage_fields_in_flow": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 320,
+      "height": 948,
+      "before_complete_rows": 2,
+      "after_complete_rows": 3,
+      "before_settings_height": 395.5625,
+      "after_settings_height": 326.5625,
+      "saved_height_px": 69.0,
+      "copy_and_review_minimum_height": 44,
+      "all_descriptions_lineage_fields_in_flow": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "before_complete_rows": 1,
+      "after_complete_rows": 2,
+      "before_settings_height": 376.375,
+      "after_settings_height": 307.375,
+      "saved_height_px": 69.0,
+      "copy_and_review_minimum_height": 44,
+      "all_descriptions_lineage_fields_in_flow": true,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 390,
+      "height": 948,
+      "before_complete_rows": 2,
+      "after_complete_rows": 3,
+      "before_settings_height": 376.375,
+      "after_settings_height": 307.375,
+      "saved_height_px": 69.0,
+      "copy_and_review_minimum_height": 44,
+      "all_descriptions_lineage_fields_in_flow": true,
+      "horizontal_overflow": false
+    }
+  ],
+  "tests": {
+    "density_red": "only new density assertion failed; all four legacy control widths passed",
+    "delete_target_red": "actual width34 failed new >=44 width assertion",
+    "controls_green_widths": 4,
+    "layout_green_widths": 4,
+    "rich_scenarios_green_widths": 4,
+    "short_viewport_coordinate_confirmation_cases": 5,
+    "timed_roster_scroll_and_focus_preserved": true,
+    "original_test_assertions_preserved": true
+  },
+  "independent_review": {
+    "reviewer": "mobile_allocation_review",
+    "finding": "preexisting mobile delete width34 versus required44",
+    "fixed_by": "mobile44px delete columns and10px recovered horizontal ticket-panel padding",
+    "verification": "genuine new RED then all three existing browser suites GREEN",
+    "rereview_requested": false
+  },
+  "asset_sha256": {
+    "index.html": "ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2",
+    "app.js": "c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5",
+    "style.css": "cf67f3e93763bb816be5c2a4aeeddbd35b5a6e8b50c9d3e4a3331e1e7e599d08"
+  },
+  "source_fixture_sha256": "b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a",
+  "fixture_sha256": "ef3a81f4c026267063a96d37333c9708a0049342e9a094c8061a11b92bb7feea",
+  "external_requests": 0,
+  "official_provider_gets": 0,
+  "actual_key_reads": 0,
+  "native_safari_verified": false,
+  "physical_iphone_verified": false,
+  "account_login_verified": false,
+  "all_eight_reference_screens_visually_verified": false,
+  "originals_or_source_changed": false,
+  "publication_performed": false,
+  "main_candidate_pin_changed": false,
+  "historical_mac_evidence_regenerated": false,
+  "evidence_scope": "SYNTHETIC_ONLY_LINUX_CHROMIUM",
+  "synthetic_screenshot_count": 32,
+  "synthetic_screenshot_directory": "screenshots",
+  "code_commits_in_order": [
+    "96f1457c8abad7513e3aa5597885a0fcc4680d7f",
+    "f4420c0c7b94e9bd38ad3f3ce7f54e53ed25d43e",
+    "0b353aa2a06e9b715d0e120e2b7e294cb98bfee1",
+    "b55242230e93ec3975a5a49bf3dd5f46632ff794"
+  ],
+  "capture_viewports": [
+    {
+      "width": 320,
+      "height": 844
+    },
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "width": 1920,
+      "height": 1000
+    }
+  ],
+  "geometry_only_additional_height": 948,
+  "full_page_captures_may_exceed_viewport_height": true,
+  "short_viewport_confirmation": [
+    {
+      "width": 640,
+      "height": 360,
+      "coordinate_click_confirmed": true,
+      "fragment_and_candidates_preserved": true
+    },
+    {
+      "width": 640,
+      "height": 390,
+      "coordinate_click_confirmed": true,
+      "fragment_and_candidates_preserved": true
+    },
+    {
+      "width": 760,
+      "height": 390,
+      "coordinate_click_confirmed": true,
+      "fragment_and_candidates_preserved": true
+    },
+    {
+      "width": 390,
+      "height": 320,
+      "coordinate_click_confirmed": true,
+      "fragment_and_candidates_preserved": true
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "coordinate_click_confirmed": true,
+      "fragment_and_candidates_preserved": true
+    }
+  ],
+  "privacy": {
+    "invented_fixture_records": 5,
+    "real_data": false,
+    "real_portraits": false,
+    "owner_credentials": false,
+    "private_fragments": false,
+    "provider_source_frames": false,
+    "reference_JPEGs_copied": 0,
+    "historical_Mac_PNGs_copied": 0
+  },
+  "test_sources": [
+    {
+      "path": "tests/reference_controls_browser.test.cjs",
+      "git_blob": "a03a303963888a5d386408a4968b853c33ead0f1",
+      "sha256": "c8eea17a3dcbc2869ba8df7239e006337aecd6092e4192e82a199231fd50a1e9"
+    },
+    {
+      "path": "tests/reference_layout_browser.test.cjs",
+      "git_blob": "9d7c1529fca598460543e686c053c17025912608",
+      "sha256": "8d6a01221f055963fd0d90521040a73bd57c14cddb8eb17f2bdc771a6480a085"
+    },
+    {
+      "path": "tests/reference_scenarios_browser.cjs",
+      "git_blob": "d9b769f95d1d82db18ab84f5a498ad302478741b",
+      "sha256": "e9c09d84209b50e307321d47827f6d5fc026b6360502db32041c23d79af69fa6"
+    }
+  ],
+  "original_evidence_hashes": [
+    {
+      "name": "reference-scenarios.json",
+      "bytes": 10774,
+      "sha256": "26533a09102cbeda5faba60ba7d01f02bca1b90c7156761130b0323d269224ae",
+      "role": "original final synthetic capture report; contents not rewritten"
+    },
+    {
+      "name": "local-summary.json",
+      "bytes": 3747,
+      "sha256": "1768f83d0f72c25af4b35506b341ff87d35c21d6d30a5687d30c5e3f5af4ac2f",
+      "role": "original local summary provenance; repository summary removes local absolute paths"
+    },
+    {
+      "name": "baseline-geometry.json",
+      "bytes": 3924,
+      "sha256": "843ba51eb2679430d5fb56df94ea6a25b33a36b2be2ee7a7621410b86c51a21f"
+    },
+    {
+      "name": "final-geometry.json",
+      "bytes": 7045,
+      "sha256": "dcd03c0836b0247b92dfa4986175b0fd2c21c777f9780d08eaabb9438f3940c8"
+    },
+    {
+      "name": "red.log",
+      "bytes": 9462,
+      "sha256": "25e91c79537f0e6c9404792d761ac172786b68d194dffb2fc0f8d3131bd655f9"
+    },
+    {
+      "name": "red-delete-width.log",
+      "bytes": 317,
+      "sha256": "6e52ecb79ea3cb2a6629b05dda2b10d667b4de637370df295e057e7df74f413e"
+    },
+    {
+      "name": "final-controls.log",
+      "bytes": 5168,
+      "sha256": "3f18c70d524ebcf988437b31a24433c5988c595506e9c7ad068ec660260c7b9e"
+    },
+    {
+      "name": "final-layout.log",
+      "bytes": 878,
+      "sha256": "18cbfa66952de91125ca27acd9ca376f0a10b5489da35eeccb79e9110547289a"
+    },
+    {
+      "name": "final-scenarios.log",
+      "bytes": 656,
+      "sha256": "50e4f7539ab86051e1ca7b1aeb4b7bb1f05c7d9ae62b1403f0e6d9090417d6ea"
+    }
+  ]
+}
