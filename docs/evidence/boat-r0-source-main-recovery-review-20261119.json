@@ -1,0 +1,151 @@
+{
+  "schema": "RACE_AI_R0_RECOVERY_REVIEW_AND_SOURCE_MAIN_BINDING_V1",
+  "source_author": "68e0b3a773c2bda93a02564947268bfa561b74f3",
+  "source_candidate": "72012372dcf82cabecddf7e1a6287e1655ddae5f",
+  "protected_source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "source_review": {
+    "verdict": "CLEAR",
+    "independent": {
+      "tests": 191,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "seconds": 103.716,
+      "external_network_attempts": 0,
+      "modules": [
+        "tests.test_boat_bootstrap_recovery.BootstrapRecoveryTests",
+        "tests.test_boat_pending_round_recovery",
+        "tests.test_boat_orphan_p1_recovery",
+        "tests.test_boat_recovery_invocation",
+        "tests.test_boat_all_model_cycle_cli",
+        "tests.test_boat_all_model_recovery",
+        "tests.test_saved_view_feed",
+        "tests.test_saved_view_history",
+        "tests.test_boat_original_maintenance"
+      ],
+      "file_hashes_before": {
+        "scripts/boat_bootstrap_recovery_adapter.py": "e6e7bf9592adaa55d1c76bb11d43db05d86a24fbf536a1c959a89c4567db0481",
+        "scripts/boat_recover_failed_owner.py": "5854079492e74d00ce249f4dc374235db492215345bee3e0b29fcd626eb1bbc7",
+        "scripts/boat_all_model_cycle.py": "d2f1eb98eaeb501bd62b5896f69003a1c5b28c0877e7134d7eefb13ee7226908",
+        "scripts/boat_saved_view_feed.py": "ce80aba585f4f3466aaf2b3adebfdda96d8470d8b22f9aecbc4e25f9476b6861",
+        "scripts/github_existing_cycle.py": "766de7976b2263fa91c6c2409676d1f5f4104d8b9727208f0c3ae49b2ec9c3d8",
+        "tests/test_boat_bootstrap_recovery.py": "b1ab337cedb30f4c3f183e7ba3f2fb52694afba59b342fd5347db28afabc1e9a"
+      },
+      "file_hashes_after": {
+        "scripts/boat_bootstrap_recovery_adapter.py": "e6e7bf9592adaa55d1c76bb11d43db05d86a24fbf536a1c959a89c4567db0481",
+        "scripts/boat_recover_failed_owner.py": "5854079492e74d00ce249f4dc374235db492215345bee3e0b29fcd626eb1bbc7",
+        "scripts/boat_all_model_cycle.py": "d2f1eb98eaeb501bd62b5896f69003a1c5b28c0877e7134d7eefb13ee7226908",
+        "scripts/boat_saved_view_feed.py": "ce80aba585f4f3466aaf2b3adebfdda96d8470d8b22f9aecbc4e25f9476b6861",
+        "scripts/github_existing_cycle.py": "766de7976b2263fa91c6c2409676d1f5f4104d8b9727208f0c3ae49b2ec9c3d8",
+        "tests/test_boat_bootstrap_recovery.py": "b1ab337cedb30f4c3f183e7ba3f2fb52694afba59b342fd5347db28afabc1e9a"
+      },
+      "files_stable_during_test_run": true,
+      "failure_ids": [],
+      "error_ids": []
+    },
+    "clock_oracle": {
+      "cases": 2,
+      "errors": 0,
+      "external_network_attempts": 0,
+      "forecast_regeneration_calls": 0,
+      "cases_detail": [
+        {
+          "entry": "fixed_validation_time",
+          "status": "HOLD_FUTURE_COVERAGE",
+          "clock_read_count": 5,
+          "originals_unchanged": true
+        },
+        {
+          "entry": "current_caller_advancing_clock",
+          "status": "VERIFIED_CURRENT_CALLER",
+          "clock_read_count": 17,
+          "originals_unchanged": true
+        }
+      ]
+    },
+    "composition_root_tests": {
+      "tests": 50,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 31.972,
+      "os_socket_denial": true
+    },
+    "composed_github_existing_cycle_restore_hunk_reverses_to_tested_transport": true
+  },
+  "main_local": {
+    "incident_gate_tests": 11,
+    "incident_gate_failures": 0,
+    "native_and_dispatch_tests": 186,
+    "native_and_dispatch_seconds": 15.486,
+    "actual_source_pin_and_marker_pending": false,
+    "actual_source_pin_validation_pending": false,
+    "gate_tests": 149,
+    "gate_failures": 0,
+    "gate_errors": 0,
+    "gate_seconds": 0.395,
+    "independent_core_tests": 84,
+    "independent_core_failures": 0,
+    "independent_core_seconds": 0.229
+  },
+  "frozen_contract_git_blobs": {
+    "main": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
+    "source": "be56af54f71d4c3a7d303823b056e4964150db49",
+    "proof_verifier_and_six_dependencies_ast_identical": true
+  },
+  "main_workflow_structure_unchanged": {
+    "files": 3,
+    "jobs_each": [
+      9,
+      2,
+      2
+    ],
+    "triggers_inputs_permissions_concurrency_runners_timeouts_steps_unchanged": true
+  },
+  "actual_original_readback_proven": false,
+  "originals_regenerated": false,
+  "provider_gets_by_developer": 0,
+  "direct_source_dispatches": 0,
+  "public_ui_deployed": false,
+  "source_protected_tree": "fac54c8e4fd3ceeb8177e408487ca80e9b1e76d4",
+  "source_tested_tree_equal": true,
+  "source_pr": 15,
+  "source_github_ci": {
+    "head": "72012372dcf82cabecddf7e1a6287e1655ddae5f",
+    "run": 44422863984,
+    "job": 135220062584,
+    "python_test_counts": [
+      3,
+      13,
+      913,
+      38,
+      223,
+      46
+    ],
+    "python_failures": 0,
+    "node_tests": 29,
+    "node_failures": 0,
+    "recovery_run": 44422863924,
+    "recovery_job": 135220060793,
+    "recovery_tests": 198,
+    "recovery_failures": 0
+  },
+  "pinned_role_helper_git_blobs": {
+    "scripts/boat_owner_active_snapshot_audit.py": "f8bbfec2714ec59fe480feece4591a15d741b0bb",
+    "scripts/boat_exact_all_model_zip_readback.py": "c7d28b0a58ca69949bbdbde5f234c0035b43d1fc"
+  },
+  "actual_source_token_replacements": {
+    ".github/workflows/boat-main-recovery-contract.yml": 1,
+    ".github/workflows/boat-owner-national-p1-matrix.yml": 4,
+    ".github/workflows/boat-racer-daily.yml": 8,
+    "scripts/boat_exact_all_model_zip_readback.py": 1,
+    "scripts/boat_main_dispatch_gate.py": 1,
+    "scripts/boat_owner_active_snapshot_audit.py": 1,
+    "tests/test_all_existing_model_archived_native.py": 1,
+    "tests/test_boat_current_pair_eligibility_audit.py": 1,
+    "tests/test_boat_owner_active_snapshot_audit.py": 1,
+    "tests/test_boat_owner_completion_trigger.py": 2,
+    "tests/test_boat_recovery_control_reader.py": 1,
+    "tests/test_boat_recovery_dispatch_gate.py": 2
+  },
+  "adapter_git_blob": "24a2e60816404d0af71f0a7ae543478b3f3442d5"
+}
