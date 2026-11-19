@@ -53,6 +53,11 @@ def _need(condition):
         raise _Stop()
 
 
+def _published_analytics(request):
+    return (request.method == 'GET' and request.resource_type == 'xhr'
+            and request.url == 'https://keirin.jp/sp/ana' and request.post_data in (None, ''))
+
+
 def _document(raw):
     _need(type(raw) is bytes and 0 < len(raw) <= calendar.MAX_HTML_BYTES)
     text = raw.decode('utf-8', 'strict')
@@ -193,8 +198,11 @@ class _Collector:
                     _need(req.post_data in (None, ''))
                 self.armed = None  # One actual navigation per fresh public click.
             else:
-                _need(req.method == 'GET' and req.resource_type not in
-                      ('xhr', 'fetch', 'eventsource', 'websocket') and url.path != '/sp/json')
+                # All three observed public documents issue this analytics GET
+                # themselves. It grants no permission for JSON APIs or other XHR.
+                _need(req.method == 'GET' and (req.resource_type not in
+                      ('xhr', 'fetch', 'eventsource', 'websocket') or _published_analytics(req))
+                      and url.path != '/sp/json')
             record = dict(request=req, navigation=navigation, status=None)
             self.records[id(req)] = record
             key = 'navigation_request_count' if navigation else 'resource_request_count'
@@ -243,7 +251,8 @@ class _Collector:
         # yields to Playwright and can finish after the navigation's caller.
         headers = response.headers
         is_html = 'text/html' in headers.get('content-type', '').lower()
-        if not record['navigation'] and (is_html or req.resource_type in ('script', 'stylesheet')):
+        if not record['navigation'] and (is_html or req.resource_type in ('script', 'stylesheet')
+                                         or _published_analytics(req)):
             self.pending_resources.append(response)
 
     def response_body(self, response):
@@ -258,7 +267,8 @@ class _Collector:
     def drain_resources(self):
         while self.pending_resources:
             response = self.pending_resources.pop(0)
-            if response.status == 200:
+            if response.status == 200 or (_published_analytics(response.request)
+                                           and 200 <= response.status < 300):
                 self.response_body(response)
 
     def capture_document(self, response):
@@ -277,6 +287,8 @@ class _Collector:
     def new_page(self):
         self.check()
         if self.page:
+            self.drain_resources()
+            self.check()
             self.page.close()
         self.creating_page = True
         try:
@@ -538,11 +550,14 @@ class _Collector:
                 raise _Stop()
             self.open_detail(parsed, doc, bound, number)
         self.check()
+        self.drain_resources()
+        self.check()
 
     def report(self):
         unknown = sum(record['status'] is None for record in self.records.values())
         self.out['unknown_transmitted_status_count'] = unknown
-        if unknown and self.state is None:
+        # A known HTTP status cannot attest an unread body after its page closes.
+        if (unknown or self.pending_resources) and self.state is None:
             self.stop(_TRANSPORT)
         self.out['state'] = self.state or _PARTIAL
         self.out['private_source_files_saved'] = self.inbox.saved
