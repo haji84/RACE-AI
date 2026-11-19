@@ -15,7 +15,7 @@ RESULT_SHA = "b" * 64
 ROSTER = ("model-A", "model-B")
 
 
-def fixture():
+def fixture(sport="keirin"):
     source = {"race_id": "20261111XX01", "official_cutoff_at": CUTOFF}
     models = {
         "model-A": {"model_id": "model-A", "prediction_sha256": "c"*64,
@@ -25,7 +25,7 @@ def fixture():
     }
     saved = {"source": source, "suite": {"models": models},
              "source_sha256": SOURCE_SHA, "persisted_at": PERSISTED}
-    start = {"sport": "keirin", "race_id": source["race_id"],
+    start = {"sport": sport, "race_id": source["race_id"],
              "source_sha256": SOURCE_SHA, "scheduled_start_at": START,
              "official_cutoff_at": CUTOFF, "schedule_published_at": PUBLISHED,
              "authority": "INDEPENDENTLY_VERIFIED_SOURCE"}
@@ -74,18 +74,24 @@ class LiveWindowTest(unittest.TestCase):
         with self.assertRaisesRegex(LiveProofError, "TIMEZONE_REQUIRED"):
             select_window(schedule, "2026-11-11T11:47:00")
 
-    def test_three_sports_supported(self):
+    def test_four_sports_supported(self):
         _, schedule, _ = fixture()
-        for sport in ("boat", "keirin", "autorace"):
-            schedule["sport"] = sport
-            self.assertEqual(select_window(schedule, PERSISTED),
-                             "IN_15_TO_10_MINUTE_PRE_RACE_WINDOW")
+        for sport in ("boat", "keirin", "autorace", "horse"):
+            with self.subTest(sport=sport):
+                schedule["sport"] = sport
+                self.assertEqual(select_window(schedule, PERSISTED),
+                                 "IN_15_TO_10_MINUTE_PRE_RACE_WINDOW")
+
+    def test_unknown_sport_still_rejected(self):
+        _, schedule, _ = fixture("unknown")
+        with self.assertRaisesRegex(LiveProofError, "SPORT_INVALID"):
+            select_window(schedule, PERSISTED)
 
 
 class ArchivedProofTest(unittest.TestCase):
     def check(self, change=None, expected="PROVEN_TIME_WINDOW_MODEL_RESULT_MATCH",
-              *, verified=True, official=True):
-        saved, start, result = fixture()
+              *, verified=True, official=True, sport="keirin"):
+        saved, start, result = fixture(sport)
         if change:
             change(saved, start, result)
         output = audit_frozen_race(
@@ -104,6 +110,86 @@ class ArchivedProofTest(unittest.TestCase):
         result = self.check()
         self.assertEqual((result["hits"],result["misses"]),(1,1))
         self.assertEqual(summarize([result])["model_result_pairs_proven"],2)
+
+    def test_four_sport_archived_proofs_use_the_same_receipt_gates(self):
+        for sport in ("boat", "keirin", "autorace", "horse"):
+            with self.subTest(sport=sport):
+                result = self.check(sport=sport)
+                self.assertEqual(result, {
+                    "status": "PROVEN_TIME_WINDOW_MODEL_RESULT_MATCH",
+                    "models": 2, "hits": 1, "misses": 1})
+
+    def test_horse_original_numbers_above_six_can_be_graded(self):
+        def horse_numbers(saved, start, result):
+            saved["suite"]["models"]["model-A"]["ordered_top8"] = [
+                [18, 17, 16], [18, 16, 17]]
+            saved["suite"]["models"]["model-B"]["ordered_top8"] = [
+                [17, 18, 16]]
+            result["winning_triples"] = [[18, 17, 16]]
+
+        result = self.check(horse_numbers, sport="horse")
+        self.assertEqual((result["models"], result["hits"], result["misses"]),
+                         (2, 1, 1))
+
+    def test_horse_missing_independent_evidence_stays_hold(self):
+        cases = (
+            ({"start_evidence": None}, "HOLD_NO_VERIFIED_START_TIME"),
+            ({"independent_model_readback": False},
+             "HOLD_SEPARATE_RUNNER_READBACK_MISSING"),
+            ({"verify_start_receipt": None},
+             "HOLD_SCHEDULE_AUTHORITY_UNVERIFIED"),
+            ({"verify_start_receipt": lambda receipt, digest: False},
+             "HOLD_SCHEDULE_AUTHORITY_UNVERIFIED"),
+            ({"independently_authenticated_result": False},
+             "HOLD_OFFICIAL_RESULT_AUTHENTICATION_MISSING"),
+            ({"verify_result_receipt": None},
+             "HOLD_OFFICIAL_RESULT_AUTHENTICATION_MISSING"),
+            ({"verify_result_receipt": lambda receipt: False},
+             "HOLD_OFFICIAL_RESULT_AUTHENTICATION_MISSING"),
+        )
+        for overrides, expected in cases:
+            with self.subTest(gate=next(iter(overrides)), expected=expected):
+                saved, start, result = fixture("horse")
+                original = copy.deepcopy((saved, start, result))
+                options = dict(
+                    start_evidence=start, result=result, expected_models=ROSTER,
+                    independent_model_readback=True,
+                    independently_authenticated_result=True,
+                    verify_start_receipt=lambda receipt, digest: (
+                        receipt.get("authority") ==
+                        "INDEPENDENTLY_VERIFIED_SOURCE"
+                        and receipt.get("source_sha256") == digest),
+                    verify_result_receipt=lambda receipt: (
+                        receipt.get("source_sha256") == RESULT_SHA))
+                options.update(overrides)
+                report = audit_frozen_race(saved, **options)
+                self.assertEqual(report["status"], expected)
+                self.assertNotIn("hits", report)
+                self.assertEqual((saved, start, result), original)
+
+    def test_horse_missing_model_not_ignored(self):
+        self.check(lambda saved, start, result:
+                   saved["suite"]["models"].pop("model-B"),
+                   "HOLD_MODEL_ROSTER_INCOMPLETE", sport="horse")
+
+    def test_horse_after_cutoff_cannot_be_graded(self):
+        self.check(lambda saved, start, result: saved.update(
+            persisted_at="2026-11-11T11:58:01+09:00"),
+            "HOLD_MISSED_10_MINUTE_DEADLINE", sport="horse")
+
+    def test_horse_schedule_and_result_source_forgery_stays_hold(self):
+        cases = (
+            (lambda saved, start, result: start.update(source_sha256="f"*64),
+             "HOLD_SCHEDULE_OR_SOURCE_SHA_MISMATCH"),
+            (lambda saved, start, result: start.update(authority="UNVERIFIED"),
+             "HOLD_SCHEDULE_AUTHORITY_UNVERIFIED"),
+            (lambda saved, start, result: result.update(source_sha256="f"*64),
+             "HOLD_OFFICIAL_RESULT_AUTHENTICATION_MISSING"),
+        )
+        for change, expected in cases:
+            with self.subTest(expected=expected):
+                report = self.check(change, expected, sport="horse")
+                self.assertNotIn("hits", report)
 
     def test_no_frozen_ledger_readback(self):
         self.check(expected="HOLD_SEPARATE_RUNNER_READBACK_MISSING",
