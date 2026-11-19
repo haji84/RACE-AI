@@ -696,7 +696,7 @@ class CutoffRawReplayTests(SavedGridFixture):
         self.assertEqual(sink_calls,[])
         self.assertEqual((fixture.raws,fixture.metas,fixture.payload),original_bytes)
         self.assertEqual(str(inspect.signature(pairs.audit_current_pairs)),
-                         '(*, get, run_id, now, expected_owner_sha)')
+                         '(*, get, run_id, now, expected_owner_sha, closed_round=None)')
         changed = deepcopy(fixture.settled)
         changed['closed_at'] = (datetime.fromisoformat(changed['closed_at'])+timedelta(seconds=1)).isoformat()
         fixture.results(2,[fixture.pending,changed])

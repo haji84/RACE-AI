@@ -1,0 +1,235 @@
+{
+  "actual_closed_prefix_actions_audit_proven": false,
+  "actual_decryption_by_developer": false,
+  "base_main": "a6ec09072db385a7bba54deb5793cd5a68ad8b60",
+  "behavior": {
+    "current_s_r0_baseline_reuse_required": 0,
+    "current_s_r0_generated_forecasts_required": 0,
+    "current_view_commit_and_new_observation_clock_recorded_separately": true,
+    "current_view_requires_existing_authenticated_history": true,
+    "existing_native_aes_projection_saved_inventory_issued_map_guards_reused": true,
+    "forecast_generation_by_auditor": 0,
+    "historical_fbc_r0_separate_run_artifact_payload_inventory_hashes": true,
+    "historical_original_slots_required_retained_without_reissue": 660,
+    "later_round_steps_and_artifacts_excluded_with_reasons_and_metadata_hashes": true,
+    "latest_source_control_audited": false,
+    "latest_writer_state_relabelled": false,
+    "legacy_m2_and_a74_scopes_preserved": true,
+    "missing_r1_all_model_generated_forecasts": null,
+    "missing_r1_all_model_reason": "ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED",
+    "missing_r1_all_model_remains_hold": true,
+    "official_cutoff_g8_accuracy_promotion_guards_unchanged": true,
+    "originals_modified": false,
+    "raw_run_jobs_and_inventory_preserved": true,
+    "view_at_closed_prefix_time_proven": false
+  },
+  "closed_round": 2,
+  "direct_source_dispatches": 0,
+  "frozen_source_contract_blob": "be56af54f71d4c3a7d303823b056e4964150db49",
+  "intermediate_compatibility_regression": {
+    "cause": "NONE_CLOSED_ROUND_KEYWORD_TO_LEGACY_AUDIT_CALLBACK",
+    "corrected_preserving_default_call_shape": true,
+    "errors": 0,
+    "failure_subtests": 17,
+    "focused_diagnostic_methods_passed": 9,
+    "tests": 213
+  },
+  "metadata_observed_at": "2026-11-19T00:38:21.541828+00:00",
+  "no_changes": {
+    "frozen_contracts": true,
+    "models_or_weights": true,
+    "new_job_step_input_cron_runner_timeout_permission_marker": true,
+    "remote_push_or_branch": true,
+    "root_pr9_worktree": true,
+    "source_s": true,
+    "ui": true
+  },
+  "provider_gets": 0,
+  "real_key_reads": 0,
+  "reviewed_file_sha256": {
+    ".github/workflows/boat-owner-national-p1-matrix.yml": "82426e414a7bae939505ae8bd7077e4eb86165d044d9632a0866c949b34b8ec2",
+    "audit/state/boat-m2-independent-audit-target.json": "5b9484af25cc0b311830a1bea7f0cd0e2b8113adc0c301f979750066034fedd7",
+    "scripts/boat_current_pair_eligibility_audit.py": "30d59603e740dda1bfc646fe82e556af0115327abc7cc1ea031a9778fb3878ea",
+    "scripts/boat_owner_active_snapshot_audit.py": "5b56e115379ab8ffb4ffa75712e59de27e752a03cd5af7b7bff634c92040f6e6",
+    "tests/test_boat_cutoff_raw_replay_audit.py": "aa89bfacbd41bbfb12171829ec2d032c59fe5e803713cd1c5fc6be797a95aef1",
+    "tests/test_boat_owner_active_snapshot_audit.py": "8f7253ff077a3161ca3c7346206bbb0a6a799a03f27f9846206e76ab68fb9b47"
+  },
+  "reviewed_git_blobs": {
+    "scripts/boat_bootstrap_recovery_adapter.py": "24a2e60816404d0af71f0a7ae543478b3f3442d5",
+    "scripts/boat_current_pair_eligibility_audit.py": "72be8bc9af15052207bde5faa86cc39d55317016",
+    "scripts/boat_failed_recovery_contract.py": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
+    "scripts/boat_owner_active_snapshot_audit.py": "1abcdec4e677a19ec87bb9a1baa13170212cbb74"
+  },
+  "run_id": 44426169530,
+  "schema": "RACE_AI_CURRENT_S_CLOSED_PREFIX_READONLY_AUDIT_V1",
+  "selected_receipt_metadata": [
+    {
+      "created_at": "2026-11-19T00:13:22Z",
+      "digest": "sha256:170682226ca4a0329ea01ed3079cd14c9c4ebe557904b0ae6558a8ee75ac8ba8",
+      "expired": false,
+      "id": 14485166587,
+      "name": "boat-all-model-forecasts-44426169530-r2",
+      "size_in_bytes": 1193989,
+      "workflow_run": {
+        "head_branch": "production/boat-p0-p1-20261111",
+        "head_repository_id": 1416489937,
+        "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+        "id": 44426169530,
+        "repository_id": 1416489937
+      }
+    },
+    {
+      "created_at": "2026-11-19T00:15:51Z",
+      "digest": "sha256:4462167bb58d636320548db583ea0cbd3485fa9bcdf2e3abe40044bc7fa78e56",
+      "expired": false,
+      "id": 14484887717,
+      "name": "race-existing-cycle-44426169530-cycle-02",
+      "size_in_bytes": 842606,
+      "workflow_run": {
+        "head_branch": "production/boat-p0-p1-20261111",
+        "head_repository_id": 1416489937,
+        "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+        "id": 44426169530,
+        "repository_id": 1416489937
+      }
+    },
+    {
+      "created_at": "2026-11-19T00:10:47Z",
+      "digest": "sha256:6ff38f0fe79d453e370a1965533801e37de0ef9b890f74a866aa1969410efb88",
+      "expired": false,
+      "id": 14484742071,
+      "name": "boat-national-cutoff-44426169530",
+      "size_in_bytes": 3359,
+      "workflow_run": {
+        "head_branch": "production/boat-p0-p1-20261111",
+        "head_repository_id": 1416489937,
+        "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+        "id": 44426169530,
+        "repository_id": 1416489937
+      }
+    },
+    {
+      "created_at": "2026-11-19T00:14:53Z",
+      "digest": "sha256:48deac014e811d270b2e41f3f5ebcc7926dfbb9b67f0ddbac7a20b1fb6ddfc1d",
+      "expired": false,
+      "id": 14484558279,
+      "name": "all-existing-model-pairs-44426169530-2",
+      "size_in_bytes": 7607140,
+      "workflow_run": {
+        "head_branch": "production/boat-p0-p1-20261111",
+        "head_repository_id": 1416489937,
+        "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+        "id": 44426169530,
+        "repository_id": 1416489937
+      }
+    },
+    {
+      "created_at": "2026-11-19T00:11:06Z",
+      "digest": "sha256:7396a5b74b92b4e9b0c1a157983624b5d1cd0159f873a92e5855d6f1c1b7c0ed",
+      "expired": false,
+      "id": 14484373466,
+      "name": "race-existing-cycle-44426169530",
+      "size_in_bytes": 811142,
+      "workflow_run": {
+        "head_branch": "production/boat-p0-p1-20261111",
+        "head_repository_id": 1416489937,
+        "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+        "id": 44426169530,
+        "repository_id": 1416489937
+      }
+    },
+    {
+      "created_at": "2026-11-19T00:13:08Z",
+      "digest": "sha256:5ed5afe5f6f210f6132a8039ae5f591acd1aa5189656e7907ab70a685f93db23",
+      "expired": false,
+      "id": 14483763548,
+      "name": "boat-national-cutoff-44426169530-cycle-02",
+      "size_in_bytes": 32609,
+      "workflow_run": {
+        "head_branch": "production/boat-p0-p1-20261111",
+        "head_repository_id": 1416489937,
+        "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+        "id": 44426169530,
+        "repository_id": 1416489937
+      }
+    },
+    {
+      "created_at": "2026-11-19T00:08:41Z",
+      "digest": "sha256:300b4fb6a65f7d6fbba8b540951d42b711857f99153d8e015bcd5f9b3f16bf35",
+      "expired": false,
+      "id": 14483722909,
+      "name": "boat-all-model-forecasts-44426169530-r0",
+      "size_in_bytes": 1265541,
+      "workflow_run": {
+        "head_branch": "production/boat-p0-p1-20261111",
+        "head_repository_id": 1416489937,
+        "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+        "id": 44426169530,
+        "repository_id": 1416489937
+      }
+    }
+  ],
+  "source_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "test_first": {
+    "initial_assertion_failures": 7,
+    "initial_errors": 0,
+    "initial_tests": 7,
+    "new_methods": 8,
+    "receipt_pin_assertion_failures": 1,
+    "receipt_pin_errors": 0,
+    "receipt_pin_tests": 1
+  },
+  "verification": {
+    "cutoff": {
+      "errors": 0,
+      "external_network_attempts": 0,
+      "failures": 0,
+      "files_stable_during_test_run": true,
+      "modules": [
+        "tests.test_boat_cutoff_raw_replay_audit"
+      ],
+      "seconds": 24.332,
+      "skips": 0,
+      "tests": 7
+    },
+    "matrix": {
+      "errors": 0,
+      "external_network_attempts": 0,
+      "failures": 0,
+      "files_stable_during_test_run": true,
+      "modules": [
+        "tests.test_boat_owner_national_p1_matrix",
+        "tests.test_boat_exact_all_model_zip_readback",
+        "tests.test_boat_failed_checkpoint_audit",
+        "tests.test_boat_native_matrix_intake",
+        "tests.test_boat_matrix_readback_scope",
+        "tests.test_boat_owner_active_snapshot_audit",
+        "tests.test_all_existing_model_archived_native",
+        "tests.test_boat_current_pair_eligibility_audit",
+        "tests.test_boat_saved_reason_binding_audit",
+        "tests.test_boat_saved_reason_binding_io",
+        "tests.test_boat_saved_rejection_anchor_proof",
+        "tests.test_boat_saved_rejection_anchor_io",
+        "tests.test_boat_legacy_reason_anchor_guard",
+        "tests.test_boat_saved_rejection_anchor_history",
+        "tests.test_boat_legacy_reason_anchor_entry",
+        "tests.test_boat_rejection_anchor_restoration",
+        "tests.test_boat_rejection_anchor_repair",
+        "tests.test_boat_rejection_anchor_repair_cli"
+      ],
+      "seconds": 227.749,
+      "skips": 0,
+      "tests": 384
+    }
+  },
+  "workflow_shape": {
+    "headers_equal": true,
+    "heredocs": 11,
+    "heredocs_compile": true,
+    "job_configs_equal": true,
+    "jobs": 2,
+    "jobs_equal": true,
+    "step_counts_equal": true,
+    "step_identity_and_conditions_equal": true
+  }
+}

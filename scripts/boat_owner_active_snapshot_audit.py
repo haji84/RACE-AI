@@ -25,6 +25,27 @@ PARTIAL_RECEIPT_OWNER_SHAS=(M2_OWNER_SHA,PROFILE_OWNER_SHA,RETENTION_OWNER_SHA,A
 BRANCH='production/boat-p0-p1-20261111'
 JOB='Existing frozen P0, exhibition P1, separate official results and PDCA'
 SCHEMA='RACE_AI_ACTIVE_OWNER_RECEIPT_SNAPSHOT_V1'
+CLOSED_SNAPSHOT_RUN_ID=44426169530
+CLOSED_SNAPSHOT_ROUND=2
+CLOSED_P0_MODEL_ARTIFACT=14483722909
+CLOSED_BOOTSTRAP_P0_ARTIFACT=14476113256
+CLOSED_BOOTSTRAP_ORIGINAL=(44409798061,CLOTHING_BENCHMARK_OWNER_SHA,'2026-11-19',14475644448,660)
+CLOSED_RECEIPTS=(
+    ('boat-all-model-forecasts-44426169530-r0',14483722909,1265541,'2026-11-19T00:08:41Z',
+     '300b4fb6a65f7d6fbba8b540951d42b711857f99153d8e015bcd5f9b3f16bf35'),
+    ('boat-national-cutoff-44426169530',14484742071,3359,'2026-11-19T00:10:47Z',
+     '6ff38f0fe79d453e370a1965533801e37de0ef9b890f74a866aa1969410efb88'),
+    ('race-existing-cycle-44426169530',14484373466,811142,'2026-11-19T00:11:06Z',
+     '7396a5b74b92b4e9b0c1a157983624b5d1cd0159f873a92e5855d6f1c1b7c0ed'),
+    ('boat-national-cutoff-44426169530-cycle-02',14483763548,32609,'2026-11-19T00:13:08Z',
+     '5ed5afe5f6f210f6132a8039ae5f591acd1aa5189656e7907ab70a685f93db23'),
+    ('boat-all-model-forecasts-44426169530-r2',14485166587,1193989,'2026-11-19T00:13:22Z',
+     '170682226ca4a0329ea01ed3079cd14c9c4ebe557904b0ae6558a8ee75ac8ba8'),
+    ('all-existing-model-pairs-44426169530-2',14484558279,7607140,'2026-11-19T00:14:53Z',
+     '48deac014e811d270b2e41f3f5ebcc7926dfbb9b67f0ddbac7a20b1fb6ddfc1d'),
+    ('race-existing-cycle-44426169530-cycle-02',14484887717,842606,'2026-11-19T00:15:51Z',
+     '4462167bb58d636320548db583ea0cbd3485fa9bcdf2e3abe40044bc7fa78e56'),
+)
 
 
 def need(ok,reason):
@@ -57,10 +78,45 @@ def _expected_source(value):
     return value
 
 
+def _closed_round(run_id,source,value):
+    if value is None:return None
+    need(type(run_id) is int and run_id==CLOSED_SNAPSHOT_RUN_ID and
+         source==P0_VISIBILITY_OWNER_SHA and type(value) is int and value==CLOSED_SNAPSHOT_ROUND,
+         'CLOSED_SNAPSHOT_NOT_PINNED')
+    return value
+
+
+def _closed_inventory(listing,run,closed_round):
+    """Pin the observed seven receipts and the unexplained missing r1 model ZIP."""
+    from race_ai.actions_contract import digest
+    need(_closed_round(run.get('id'),run.get('head_sha'),closed_round) is not None,'CLOSED_SNAPSHOT_NOT_PINNED')
+    need(type(run.get('run_attempt')) is int and run['run_attempt']==1,'CLOSED_SNAPSHOT_IDENTITY')
+    need(not any(item.get('name')==f'boat-all-model-forecasts-{run["id"]}-r1' for item in listing),
+         'CLOSED_MODEL_ARCHIVE_SET_CHANGED')
+    selected=[]
+    for name,ident,size,created,sha in CLOSED_RECEIPTS:
+        matches=[item for item in listing if item.get('name')==name]
+        need(len(matches)==1,'CLOSED_RECEIPT_MISSING_OR_DUPLICATE');item=matches[0]
+        owner=item.get('workflow_run') or {}
+        need(type(item.get('id')) is int and item['id']==ident and type(item.get('size_in_bytes')) is int and
+             item['size_in_bytes']==size and item.get('created_at')==created and
+             item.get('digest')=='sha256:'+sha and item.get('expired') is False and
+             type(owner.get('id')) is int and owner['id']==run['id'] and
+             owner.get('head_sha')==P0_VISIBILITY_OWNER_SHA and owner.get('head_branch')==BRANCH and
+             type(owner.get('repository_id')) is int and owner['repository_id']==1416489937 and
+             type(owner.get('head_repository_id')) is int and owner['head_repository_id']==1416489937,
+             'CLOSED_RECEIPT_CHANGED')
+        selected.append(item)
+    return dict(pinned_receipts=len(selected),selected_receipt_inventory_sha256=digest(selected),
+        missing_all_model_rounds_at_fixed_snapshot=[1],missing_round_generated_forecasts=None,
+        missing_round_reason='ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED')
+
+
 def select_audit_target(event_name,event,*,main_target=None):
     """Choose read-only evidence scope; never select or authorize a dispatcher."""
     need(type(event) is dict and type(event.get('repository')) is dict and
          event['repository'].get('full_name')=='haji84/RACE-AI','TARGET_REPOSITORY')
+    closed=None
     if event_name=='workflow_run':
         run=event.get('workflow_run');need(type(run) is dict,'TARGET_EVENT')
         source=_expected_source(run.get('head_sha'));ident=run.get('id')
@@ -70,13 +126,20 @@ def select_audit_target(event_name,event,*,main_target=None):
     else:
         need(event_name=='push' and event.get('ref')=='refs/heads/main','TARGET_EVENT')
         if main_target is None:ident,source=44019591352,OWNER_SHA
+        elif type(main_target) is dict and main_target.get('schema')=='RACE_AI_CLOSED_READONLY_AUDIT_TARGET_V1':
+            need(set(main_target)=={'schema','run_id','source_commit','closed_round'},'TARGET_CONFIG')
+            ident,source=main_target['run_id'],main_target['source_commit']
+            closed=_closed_round(ident,source,main_target['closed_round'])
+            need(closed is not None,'TARGET_CONFIG')
         else:
             need(type(main_target) is dict and set(main_target)=={'schema','run_id','source_commit'} and
                  main_target.get('schema')=='RACE_AI_M2_READONLY_AUDIT_TARGET_V1' and
                  main_target.get('source_commit')==M2_OWNER_SHA,'TARGET_CONFIG')
             ident,source=main_target['run_id'],M2_OWNER_SHA
     need(type(ident) is int and 0<ident<10**20,'TARGET_RUN_ID')
-    return dict(run_id=ident,expected_owner_sha=source,allow_completed_receipts=source in PARTIAL_RECEIPT_OWNER_SHAS)
+    output=dict(run_id=ident,expected_owner_sha=source,allow_completed_receipts=source in PARTIAL_RECEIPT_OWNER_SHAS)
+    if closed is not None:output['closed_round']=closed
+    return output
 
 
 def _final_control(get,run,listing,now):
@@ -111,8 +174,12 @@ def _final_control(get,run,listing,now):
     return control
 
 
-def _jobs(get,run,now,*,expected_owner_sha=OWNER_SHA,completed_round_limit=None):
+def _jobs(get,run,now,*,expected_owner_sha=OWNER_SHA,completed_round_limit=None,closed_round=None):
     expected_owner_sha=_expected_source(expected_owner_sha)
+    closed_round=_closed_round(run.get('id'),expected_owner_sha,closed_round)
+    if closed_round is not None:
+        need(run.get('head_sha')==expected_owner_sha and type(run.get('run_attempt')) is int and
+             run['run_attempt']==1 and completed_round_limit is None,'CLOSED_SNAPSHOT_IDENTITY')
     rows=[];total=None
     for page in range(1,12):
         suffix='' if page==1 else f'&page={page}'
@@ -138,11 +205,14 @@ def _jobs(get,run,now,*,expected_owner_sha=OWNER_SHA,completed_round_limit=None)
     selected=[]
     for number,step in sorted(rounds.items()):
         if completed_round_limit is not None and number>completed_round_limit:continue
+        if closed_round is not None and number>closed_round:continue
         if step.get('status')=='completed' and step.get('conclusion')=='success':
             need(number==len(selected)+1 and _time(run['created_at'])<=_time(step['started_at'])<=
                  _time(step['completed_at'])<=now,'ROUND_COMPLETION_CLOCK_OR_GAP')
             selected.append(number)
     need(selected,'NO_COMPLETED_ROUND')
+    if closed_round is not None:
+        need(selected==list(range(1,closed_round+1)),'CLOSED_COMPLETED_ROUND_PREFIX_MISSING')
     if completed_round_limit is not None:
         need(job.get('status')=='completed' and job.get('conclusion') in ('success','failure'),'FINAL_OWNER_JOB_STATUS')
         need(selected==list(range(1,completed_round_limit+1)),'FINAL_COMPLETED_ROUND_PREFIX_MISSING')
@@ -187,10 +257,12 @@ def validate_active_scope(scope,run,listing,now,get,*,expected_owner_sha=OWNER_S
     need(run.get('head_sha')==expected_owner_sha and (active or completed) and type(run.get('run_attempt')) is int and
          run['run_attempt']==1 and run.get('head_branch')==BRANCH and
          run.get('event')=='workflow_dispatch','ACTIVE_OWNER_IDENTITY')
-    control=_final_control(get,run,listing,now) if completed else None
+    closed=_closed_round(run.get('id'),expected_owner_sha,scope.get('closed_round'))
+    if closed is not None:_closed_inventory(listing,run,closed)
+    control=_final_control(get,run,listing,now) if completed and closed is None else None
     need(scope.get('final_control')==control,'SNAPSHOT_CHANGED')
     job,rounds=_jobs(get,run,now,expected_owner_sha=expected_owner_sha,
-                      completed_round_limit=control['completed_round'] if control else None)
+                      completed_round_limit=control['completed_round'] if control else None,closed_round=closed)
     need(scope.get('job')==job and scope.get('rounds')==rounds and
          scope.get('inventory_sha256')==digest(listing),'SNAPSHOT_CHANGED')
     if expected_owner_sha in PARTIAL_RECEIPT_OWNER_SHAS:
@@ -277,7 +349,105 @@ def _saved_view(repo,now,day):
     return F.current_view(bridge.git,bridge.bootstrap,day=day)[3]
 
 
-def audit_active_snapshot(repo,run_id,*,now,get,expected_owner_sha=OWNER_SHA,allow_completed_receipts=False):
+def _saved_view_snapshot(repo,day):
+    """Observe the current authenticated view without backdating it to a round."""
+    from race_ai.racer_result_bridge import SavedResultBridge
+    from race_ai import saved_view_feed as F
+    bridge=SavedResultBridge(repo,now=datetime.now(timezone.utc))
+    commit,unused,unused,view=F.current_view(bridge.git,bridge.bootstrap,day=day)
+    need(type(getattr(bridge.git,'_saved_history_context',None)) is dict,'SAVED_VIEW_HISTORY_REQUIRED')
+    need(type(commit) is str and re.fullmatch('[a-f0-9]{40}',commit),'SAVED_VIEW_COMMIT')
+    return view,dict(commit=commit,observed_at=datetime.now(timezone.utc).isoformat(),history_snapshot_authenticated=True,
+                     view_at_closed_prefix_time_proven=False)
+
+
+def _closed_bootstrap_inventory(get,run,listing,view,document,p0,origin,*,now,day):
+    """Read both exact r0 ZIPs and existing saved originals; never recover or write."""
+    from race_ai import boat_all_model_recovery as R,boat_all_model_store as store
+    from race_ai.cycle_recovery import artifact_pages
+    from race_ai.boat_pdca_state import state_key
+    from race_ai.boat_source_control import _metadata
+    from race_ai.frozen_day_cycle import read_p0
+    from race_ai.actions_contract import digest
+    from scripts import boat_all_model_cycle as cli,boat_bootstrap_recovery_adapter as adapter
+    _closed_round(run.get('id'),run.get('head_sha'),CLOSED_SNAPSHOT_ROUND)
+    old_id,old_head,old_day,old_artifact,expected_count=CLOSED_BOOTSTRAP_ORIGINAL
+    need(day==old_day and origin.get('id')==old_id and origin.get('head_sha')==old_head and
+         adapter._exact_instance(origin,now) and p0.get('id')==CLOSED_BOOTSTRAP_P0_ARTIFACT,
+         'BOOTSTRAP_ORIGINAL_SCOPE')
+    old=R._run(get(f'actions/runs/{old_id}'),old_id,now)
+    need(old==origin,'BOOTSTRAP_ORIGINAL_RUN_CHANGED')
+    old_listing=artifact_pages(get,old_id)
+    first=[m for m in old_listing if m.get('id')==p0['id'] and
+           m.get('name')==f'boat-p0-existing-{old_id}']
+    need(len(first)==1,'BOOTSTRAP_FIRST_P0_MISSING_OR_DUPLICATE')
+    p0_meta_raw=get(f'actions/artifacts/{p0["id"]}')
+    p0_meta,unused=R._metadata(p0_meta_raw,first[0],old,now,get)
+    need(p0_meta==p0,'BOOTSTRAP_FIRST_P0_METADATA_CHANGED')
+    p0_raw=get(f'actions/artifacts/{p0["id"]}/zip')
+    _metadata(p0_raw,p0_meta,name=p0_meta['name'],run_id=old_id,head_sha=old_head)
+    actual_document,unused=read_p0(p0_raw,p0_meta,expected_day=day)
+    need(digest(actual_document)==digest(document),'BOOTSTRAP_FIRST_P0_DOCUMENT_CHANGED')
+    selected=[m for m in old_listing if m.get('id')==old_artifact and
+              m.get('name')==f'boat-all-model-forecasts-{old_id}-r0']
+    current=[m for m in listing if m.get('name')==f'boat-all-model-forecasts-{run["id"]}-r0']
+    need(len(selected)==len(current)==1 and current[0].get('id')==CLOSED_P0_MODEL_ARTIFACT,
+         'BOOTSTRAP_R0_ORIGINAL_MISSING_OR_DUPLICATE')
+    key=state_key('production');packets=[]
+    for owner,item in ((old,selected[0]),(run,current[0])):
+        meta_raw=get(f'actions/artifacts/{item["id"]}')
+        meta,unused=R._metadata(meta_raw,item,owner,now,get)
+        raw=get(f'actions/artifacts/{item["id"]}/zip')
+        projected,summary,receipt=R._project(raw,meta,owner,0,key)
+        with R._checked_zip(raw,max_zip_bytes=R.MAX_ZIP_BYTES,max_expanded=store.MAX_WIRE) as z:
+            payload=store.open_forecasts(z.read('forecasts.enc'),key=key)
+        need(payload.get('stage')=='P0','BOOTSTRAP_R0_STAGE_CHANGED')
+        packets.append((projected,summary,meta,payload))
+    (projected,summary,meta,original_payload),(unused,current_summary,current_meta,current_payload)=packets
+    need(summary['generated_forecasts']==expected_count and summary['reused_baseline_forecasts']==0 and
+         current_summary['generated_forecasts']==current_summary['reused_baseline_forecasts']==0,
+         'BOOTSTRAP_R0_REISSUED_OR_COUNT_CHANGED')
+    inventory=R._preserved_scope(projected,view,day,old_artifact)
+    need(len(inventory)==expected_count,'BOOTSTRAP_ORIGINAL_INVENTORY_CHANGED')
+    maps={'P0':{},'P1':{}};cli._inventory(view,maps)
+    checked=cli.require_saved_bootstrap_models(document,cli._receipt(p0,document),maps['P0'],view,now=now)
+    need(checked is not None and checked['forecasts']==expected_count and
+         checked['forecast_inventory_sha256']==digest(inventory) and
+         checked['restored_inventory_sha256']==digest(inventory) and
+         checked['issued_models_sha256']==checked['included_issued_models_sha256'],
+         'BOOTSTRAP_SAVED_INVENTORY_CHANGED')
+    slots={}
+    for report in current_payload['dispatch_reports']:
+        for slot in report['slots']:
+            ident=(slot['race_id'],slot['model_id'])
+            need(ident not in slots,'BOOTSTRAP_CURRENT_SLOT_DUPLICATE');slots[ident]=slot
+    retained=0
+    for row in projected['records']:
+        for prediction in [row.get('prediction'),*row.get('comparison_predictions',[])]:
+            if prediction is None:continue
+            need(prediction.get('stage')=='P0','BOOTSTRAP_ORIGINAL_STAGE_CHANGED')
+            slot=slots.get((row['race_id'],prediction['model_id']))
+            need(type(slot) is dict and slot.get('status')=='RULE_FILTERED' and
+                 slot.get('reason')=='SAVED_ORIGINAL_RETAINED_IN_OWNER_FEED' and slot.get('prediction') is None,
+                 'BOOTSTRAP_CURRENT_RETAINED_SLOT_MISSING')
+            retained+=1
+    need(retained==expected_count,'BOOTSTRAP_CURRENT_RETAINED_COUNT_CHANGED')
+    return dict(original_run_id=old_id,original_source_commit=old_head,original_artifact_id=old_artifact,
+        original_zip_sha256=meta['digest'][7:],original_inventory_sha256=digest(inventory),
+        original_payload_sha256=digest(original_payload),
+        original_artifact_inventory_sha256=digest(old_listing),original_run_metadata_sha256=digest(old),
+        original_forecasts_authenticated=len(inventory),original_inventory_unchanged=True,
+        first_p0_artifact_id=p0['id'],first_p0_zip_sha256=p0['digest'][7:],first_p0_document_sha256=digest(document),
+        current_run_id=run['id'],current_source_commit=run['head_sha'],current_r0_artifact_id=current_meta['id'],
+        current_r0_zip_sha256=current_meta['digest'][7:],current_r0_contexts=current_summary['contexts'],
+        current_r0_payload_sha256=digest(current_payload),
+        current_r0_generated_forecasts=current_summary['generated_forecasts'],
+        current_r0_reused_baseline_forecasts=current_summary['reused_baseline_forecasts'],
+        current_r0_original_slots_retained_without_reissue=retained,issued_models_verified=True,
+        issued_models_sha256=checked['issued_models_sha256'],official_source_requests=0,new_forecasts=0)
+
+
+def audit_active_snapshot(repo,run_id,*,now,get,expected_owner_sha=OWNER_SHA,allow_completed_receipts=False,closed_round=None):
     from race_ai import boat_all_model_recovery as R
     from race_ai.cycle_recovery import artifact_pages,result_archive
     from race_ai.boat_private_original_archive import open_original_zip
@@ -290,17 +460,19 @@ def audit_active_snapshot(repo,run_id,*,now,get,expected_owner_sha=OWNER_SHA,all
     from scripts import boat_exact_all_model_zip_readback as exact
     need(isinstance(now,datetime) and now.utcoffset() is not None,'AWARE_CLOCK_REQUIRED')
     expected_owner_sha=_expected_source(expected_owner_sha)
+    closed_round=_closed_round(run_id,expected_owner_sha,closed_round)
     need(type(allow_completed_receipts) is bool and (not allow_completed_receipts or expected_owner_sha in PARTIAL_RECEIPT_OWNER_SHAS),
          'COMPLETED_SCOPE_NOT_PINNED')
     reads=_Reads(get);run=R._run(reads(f'actions/runs/{run_id}'),run_id,now)
     need(run.get('head_sha')==expected_owner_sha,'ACTIVE_OWNER_IDENTITY')
     listing=artifact_pages(reads,run_id)
-    control=_final_control(reads,run,listing,now) if allow_completed_receipts and run.get('status')=='completed' else None
+    control=_final_control(reads,run,listing,now) if allow_completed_receipts and run.get('status')=='completed' and closed_round is None else None
     job,rounds=_jobs(reads,run,now,expected_owner_sha=expected_owner_sha,
-                    completed_round_limit=control['completed_round'] if control else None)
+                    completed_round_limit=control['completed_round'] if control else None,closed_round=closed_round)
     scope=dict(schema=SCHEMA,run=run,job=job,rounds=rounds,inventory=listing,
                inventory_sha256=digest(listing),captured_at=now.isoformat(),
                expected_owner_sha=expected_owner_sha,allow_completed_receipts=allow_completed_receipts,final_control=control)
+    if closed_round is not None:scope['closed_round']=closed_round
     if expected_owner_sha in PARTIAL_RECEIPT_OWNER_SHAS:
         scope['all_model_archive_scope']=_model_archive_scope(listing,run_id,rounds,now)
     validate_active_scope(scope,run,listing,now,reads,expected_owner_sha=expected_owner_sha,
@@ -376,7 +548,9 @@ def audit_active_snapshot(repo,run_id,*,now,get,expected_owner_sha=OWNER_SHA,all
              control.get('day_start_lifetime_requests')==previous['day_start_lifetime_requests'] and
              all(_time(rm['created_at'])<=_time(control[field]['created_at'])<=_time(run['updated_at'])
                  for field in ('receipt','source_control_receipt')),'FINAL_COUNTERS_OR_RECEIPT_CHANGED')
-    view=_saved_view(repo,now,day)
+    view_observation=None
+    if closed_round is None:view=_saved_view(repo,now,day)
+    else:view,view_observation=_saved_view_snapshot(repo,day)
     models=[m['model_id'] for m in active_catalog() if 'boat' in m['applicable_sports']]
     proof=exact.audit(get=reads,repo=repo,run_id=run_id,day=day,expected_models=models,
                      original_view=view,now=now,active_scope=scope,expected_owner_sha=expected_owner_sha,
@@ -384,7 +558,8 @@ def audit_active_snapshot(repo,run_id,*,now,get,expected_owner_sha=OWNER_SHA,all
     excluded=[int(match[1]) for step in job['steps']
               if (match:=re.fullmatch(r'Deadline-ordered five-model round ([0-9]{2})',str(step.get('name')))) and
                  int(match[1]) not in rounds and step.get('status')=='completed' and step.get('conclusion')=='success']
-    return dict(schema=SCHEMA,status=('HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED' if proof['missing_all_model_rounds'] else
+    output=dict(schema=SCHEMA,status=('HOLD_ALL_MODEL_ARCHIVE_ABSENT_UNEXPLAINED' if proof['missing_all_model_rounds'] else
+                'CLOSED_PREFIX_RECEIPTS_AES_VERIFIED_PARTIAL_SCOPE' if closed_round is not None else
                 'COMPLETED_OWNER_RECEIPTS_AES_VERIFIED_PARTIAL_SCOPE' if control else
                 'ACTIVE_COMPLETED_RECEIPTS_AES_VERIFIED_PARTIAL_SCOPE'),
         owner_run_id=run_id,owner_source_commit=expected_owner_sha,owner_status_at_snapshot=run['status'],
@@ -402,3 +577,33 @@ def audit_active_snapshot(repo,run_id,*,now,get,expected_owner_sha=OWNER_SHA,all
         all_model_zip_readback=proof,full_day_coverage=False,successor_dispatch_allowed=False,
         latest_live_counters_audited=False,official_source_requests=0,new_forecasts=0,
         original_forecasts_changed=False)
+    if closed_round is not None:
+        observation=_time(view_observation['observed_at'])
+        need(observation>=now,'SAVED_VIEW_OBSERVATION_CLOCK')
+        excluded_artifacts=[]
+        for item in listing:
+            name=item.get('name','');number=None
+            match=re.fullmatch(r'boat-all-model-forecasts-'+str(run_id)+r'-r([0-9]+)',name)
+            if match:number=int(match[1])
+            else:
+                match=re.fullmatch(r'(?:boat-national-cutoff|race-existing-cycle|boat-p0-existing)-'+
+                                   str(run_id)+r'-cycle-([0-9]{2})',name)
+                if match:number=int(match[1])
+                else:
+                    match=re.fullmatch(r'all-existing-model-pairs-'+str(run_id)+r'-([1-9][0-9]*)',name)
+                    if match:number=int(match[1])
+            if number is not None and number>closed_round:
+                excluded_artifacts.append(dict(artifact_id=item['id'],round=number,
+                    reason='AFTER_FIXED_CLOSED_PREFIX',metadata_sha256=digest(item)))
+        output.update(closed_round=closed_round,run_metadata_sha256=digest(run),job_metadata_sha256=digest(job),
+            closed_receipt_inventory=_closed_inventory(listing,run,closed_round),
+            excluded_round_steps=[dict(round=int(match[1]),reason='AFTER_FIXED_CLOSED_PREFIX',
+                completed_successfully=step.get('status')=='completed' and step.get('conclusion')=='success',
+                metadata_sha256=digest(step))
+                for step in job['steps'] if (match:=re.fullmatch(
+                    r'Deadline-ordered five-model round ([0-9]{2})',str(step.get('name')))) and int(match[1])>closed_round],
+            excluded_artifacts=excluded_artifacts,
+            saved_view_observation=view_observation,
+            bootstrap_r0_originals=_closed_bootstrap_inventory(reads,run,listing,view,document,p0_meta,origin,
+                now=observation,day=day))
+    return output

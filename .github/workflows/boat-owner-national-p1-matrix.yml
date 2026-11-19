@@ -99,7 +99,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: eff296f6d54ad4be297d93e32f1ee0d4592ad9e3
+          ref: 1dbb47b68d487fc6def0bd4b10b1423f0a2145f6
           path: owner-source
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -326,6 +326,7 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'],'a') as output:
               output.write('run_id='+str(selected['run_id'])+'\n')
               output.write('expected_owner_sha='+selected['expected_owner_sha']+'\n')
+              output.write('closed_round='+str(selected.get('closed_round') or '')+'\n')
           PY_TARGET
       - name: Read exact selected producer package after historical checkpoint
         id: audit_source
@@ -345,6 +346,7 @@ jobs:
           RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
           OWNER_AUDIT_RUN_ID: ${{ steps.audit_target.outputs.run_id }}
           OWNER_AUDIT_SOURCE_SHA: ${{ steps.audit_target.outputs.expected_owner_sha }}
+          OWNER_AUDIT_CLOSED_ROUND: ${{ steps.audit_target.outputs.closed_round }}
         run: |
           python - <<'PY'
           import importlib.util,json,os,re,subprocess
@@ -373,6 +375,8 @@ jobs:
           try:
               ident=int(os.environ['OWNER_AUDIT_RUN_ID'])
               assert ident>0
+              selected_round=os.environ.get('OWNER_AUDIT_CLOSED_ROUND','')
+              closed_round=int(selected_round) if selected_round else None
               from scripts.boat_private_original_vault import _environment
               from scripts.github_existing_cycle import gh
               repo=Path('.').resolve();_environment(repo)
@@ -387,7 +391,7 @@ jobs:
               active_snapshot=m2_receipts or os.environ['GITHUB_EVENT_NAME']=='push' and run.get('status')=='in_progress'
               if active_snapshot:
                   report=active.audit_active_snapshot(repo,ident,now=snapshot_clock,get=reads,
-                      expected_owner_sha=owner,allow_completed_receipts=m2_receipts)
+                      expected_owner_sha=owner,allow_completed_receipts=m2_receipts,closed_round=closed_round)
                   assert (report['official_source_requests']==0 and report['full_day_coverage'] is False and
                           report['successor_dispatch_allowed'] is False and report['latest_live_counters_audited'] is False)
                   for name in ('boat-all-model-vault-counts.json','boat-exact-zip-aes-model-proof.json'):
@@ -398,7 +402,7 @@ jobs:
                   try:
                       pair_audit=from_exact_file('boat_current_pair_counts_private','../scripts/boat_current_pair_eligibility_audit.py')
                       pair_counts=pair_audit.audit_current_pairs(get=reads,run_id=ident,now=snapshot_clock,
-                          expected_owner_sha=owner)
+                          expected_owner_sha=owner,closed_round=closed_round)
                   except Exception:
                       # Preserve verified core originals; failed pair reads attest no counts.
                       pair_counts=dict(current_pair_audit_status='HOLD_PAIR_AUDIT_REJECTED',
@@ -953,8 +957,8 @@ jobs:
                   for short,pin in (
                       ('boat_owner_evidence_audit','014fc9ddbbd24c501b7784eeae50be315644669f'),
                       ('boat_exact_all_model_zip_readback','c7d28b0a58ca69949bbdbde5f234c0035b43d1fc'),
-                      ('boat_owner_active_snapshot_audit','f8bbfec2714ec59fe480feece4591a15d741b0bb'),
-                      ('boat_current_pair_eligibility_audit','3e1f414a4e164f5400f7f7a1533977b8678d80c4')):
+                      ('boat_owner_active_snapshot_audit','1abcdec4e677a19ec87bb9a1baa13170212cbb74'),
+                      ('boat_current_pair_eligibility_audit','72be8bc9af15052207bde5faa86cc39d55317016')):
                       source=main/'scripts'/(short+'.py')
                       assert source.is_file() and not source.is_symlink() and source.resolve()==source
                       raw=source.read_bytes()
