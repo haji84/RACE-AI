@@ -1,0 +1,31 @@
+{
+  "owner_run_id": 43803973248,
+  "source_sha": "b491fb21ce58ba085dd8f54bb7326442b840d8f4",
+  "job_id": 133090375150,
+  "status": "in_progress",
+  "conclusion": null,
+  "rounds": [
+    {
+      "name": "Deadline-ordered five-model round 01",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-16T04:37:14Z",
+      "completed_at": "2026-11-16T04:41:02Z"
+    },
+    {
+      "name": "Deadline-ordered five-model round 02",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-16T04:41:02Z",
+      "completed_at": "2026-11-16T04:43:47Z"
+    },
+    {
+      "name": "Deadline-ordered five-model round 03",
+      "status": "in_progress",
+      "conclusion": null,
+      "started_at": "2026-11-16T04:43:47Z",
+      "completed_at": null
+    }
+  ],
+  "producer_head_unchanged": true
+}

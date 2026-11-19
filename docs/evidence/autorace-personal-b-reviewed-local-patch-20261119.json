@@ -1,0 +1,31 @@
+{
+  "schema": "RACE_AI_AUTO_PERSONAL_B_REVIEWED_LOCAL_PATCH_V1",
+  "base_source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "local_commits": [
+    "963054ed60a7488b2b25bdd816455109282abfd3",
+    "1e331f062d35f7fa417ee4a5235a867017557eef"
+  ],
+  "patch_sha256": "326ca12e847d1010e5ee559ae39ef0b13c3cb83dd6bbee55765b037cf02e5e0b",
+  "author_related_tests": 94,
+  "author_related_seconds": 115.202,
+  "independent_original_tests": 93,
+  "independent_original_seconds": 112.378,
+  "independent_final_focused_tests": 53,
+  "independent_final_seconds": 1.124,
+  "result": "CLEAR",
+  "legacy_A_three_hashes_unchanged": true,
+  "existing_personal_B_cells_connected": 1,
+  "shared_five_cells_stage": "P0",
+  "bool_false_or_float_zero_retire_flag_rejected": true,
+  "actual_eight_driver_trial_values_observed": false,
+  "real_B_forecasts_created": 0,
+  "active_source_S_updated": false,
+  "boat_study_cohort_source_alias_created": false,
+  "future_release_applied": false,
+  "provider_requests_by_fix": 0,
+  "owner_key_reads": 0,
+  "new_model_family_or_weight_switch": false,
+  "patch_format": "ZERO_CONTEXT_UNIFIED_DIFF",
+  "apply_option": "--unidiff-zero",
+  "check_against_exact_base_S_passed_without_applying": true
+}

@@ -1,0 +1,14 @@
+BOAT 2026-11-13 independent AES original forecast readback
+
+Reference owner forecast-producing run: 43348227701.
+The existing recovery run 43372009358 already wrote encrypted Git history V5
+generation 138 under the canonical state/boat-saved-view branch with router cipher
+SHA256 52e194c99217b5dfdbd5db7d35c203cc762d91ce577a936e93ea53f642a10bee.
+The original recovery's postflight incorrectly accepted only ENCRYPTED_VIEW_PUBLISHED,
+whereas V5 correctly reports ENCRYPTED_HISTORY_VIEW_PUBLISHED.
+This submission fixes that accounting and triggers one source-free independent
+readback of precisely this authenticated router ciphertext and selected 2026-11-13
+day. No provider GET, no new P0/P1, no writing to Git, no source budget resets.
+The readback must report actual saved P0 and P1 counts and declare HOLD if incomplete.
+Future owner runs can reuse the same readback after an authenticated recovered
+original run; the event day is derived from the approved owner run timestamp.

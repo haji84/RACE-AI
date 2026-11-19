@@ -1,0 +1,126 @@
+name: BOAT current official profile AES readback (zero GET)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-profile-current-readback.yml
+      - docs/evidence/boat-profile-current-readback.txt
+  push:
+    branches: [main]
+    paths: [docs/evidence/boat-profile-current-readback.txt]
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && 'boat-current-profile-sourcefree-pr' || 'boat-racer-daily-statistics' }}
+  cancel-in-progress: false
+jobs:
+  isolated_contract:
+    name: Independently test present-day profile source proof (offline only)
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 8ebd36accc8a51eb586560c5db16f415ad601b9b
+          path: source-reader
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+      - run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
+      - name: Independently test AES source, original SHA mismatch and zero GET
+        working-directory: source-reader
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import race_ai
+          import unittest
+          for d in ('../pr64-reference','../pr72-reference'):
+              p=Path(d,'race_ai').resolve()
+              assert p.is_dir()
+              race_ai.__path__.append(str(p))
+          suite=unittest.defaultTestLoader.loadTestsFromNames(
+              ['tests.test_boat_profile_one_shot_proof'])
+          result=unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(not result.wasSuccessful())
+          PY
+      - name: Assert production can only READ the source, never GET the provider
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('.github/workflows/boat-profile-current-readback.yml').read_text()
+          assert '--readback-current' in s
+          assert "boat-profile-current-readback: 20261112-verified-cipher" in s
+          assert '8ebd36accc8a51eb586560c5db16f415ad601b9b' in s
+          production=s.rsplit('\n  current_observed_source:\n',1)[1]
+          assert 'from scripts.boat_profile_one_shot_proof import execute' in production
+          assert "result=execute('.',readback_current=True)" in production
+          assert ('gh'+' workflow '+'run ') not in production
+          assert "'--readback-current'" not in production
+          PY
+
+  current_observed_source:
+    name: Read previously encrypted current official profile, no HTTP
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message,
+                 'boat-profile-current-readback: 20261112-verified-cipher')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 13
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 8ebd36accc8a51eb586560c5db16f415ad601b9b
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Independent AES and current official identity verification (read-only)
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import race_ai
+          import json
+          for d in ('pr64-reference','pr72-reference'):
+              p=Path(d,'race_ai').resolve()
+              assert p.is_dir()
+              race_ai.__path__.append(str(p))
+          from scripts.boat_profile_one_shot_proof import execute
+          result=execute('.',readback_current=True)
+          assert result['status']=='PROFILE_CURRENT_OFFICIAL_HTML_READBACK_VERIFIED'
+          assert result['authenticated_current_profile']==1
+          assert result['official_profile_gets']==0
+          assert result['source_unmodified'] is True
+          assert result['display_name_auto_published'] is False
+          assert result['new_forecasts_created']==0
+          print(json.dumps(result,sort_keys=True))
+          PY

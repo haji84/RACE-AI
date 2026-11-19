@@ -1,0 +1,358 @@
+{
+  "schema": "RACE_AI_BOAT_APPROVED_RESTART_LIVE_20261116_V1",
+  "observed_at": "2026-11-16T01:54:02.768940+00:00",
+  "owner_approval_received": true,
+  "production": {
+    "at": "2026-11-15T22:51:44.858780+00:00",
+    "pr": 302,
+    "merged": true,
+    "reviewed_head": "0db526870a509cd6e68c44e693ed3e73d3b0e50f",
+    "actual_production_head": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "reviewed_tree": "2fa75e7cef52f90a1c70dd0c8f647842cf6aae77",
+    "actual_tree": "2fa75e7cef52f90a1c70dd0c8f647842cf6aae77",
+    "tree_exactly_matches_reviewed_candidate": true
+  },
+  "main": {
+    "at": "2026-11-15T23:01:20.249226+00:00",
+    "pr": 289,
+    "merged": true,
+    "actual_main_head": "ea8965bd49955f5d1e204ca318cf9c542352f345",
+    "reviewed_head": "172fe18159949807a433fb0272734645f3ea333d",
+    "actual_tree": "0acbb8efb22f2a7958e4429e0f10acdc5956db1a",
+    "tree_matches_reviewed_head": true,
+    "expected_production": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "owner_approval_received": true
+  },
+  "historical_failed_owner_separate_runner_AES": {
+    "run": 43772458812,
+    "artifact": 14185455502,
+    "zip_sha256": "14dd31f2d6ec18c1b22f8b1ad270a8af75c913c843936bb3b2d27ee6cd739a6b",
+    "verified": true,
+    "counts": {
+      "aes_authenticated": true,
+      "audit_at": "2026-11-15T23:01:18.314562+00:00",
+      "continuity_artifact_id": 14149543103,
+      "continuity_zip_digest": "sha256:43af3b74965d19a709384a101cf76ba0d3498450328b4c91d373916ebb7ab663",
+      "day_jst": "2026-11-15",
+      "failed_session_requests": 0,
+      "inherited_same_day_requests": 452,
+      "lifetime_completed_rounds": 608,
+      "lifetime_requests": 11524,
+      "live_recovery_to_new_p1_proven": false,
+      "new_forecasts": 0,
+      "official_source_requests": 0,
+      "original_forecasts_changed": false,
+      "owner_head_sha": "5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4",
+      "owner_run_id": 43683174565,
+      "public_counters_match_AES": true,
+      "source_control_artifact_id": 14149712572,
+      "source_control_zip_digest": "sha256:0f6eb9c2d3e5e3a892802ed54b509463a1e89db9c855bb0d08660fa121347dfe",
+      "status": "FAILED_OWNER_CHECKPOINT_AES_VERIFIED_READONLY",
+      "successor_dispatch_allowed": false
+    }
+  },
+  "new_owner": {
+    "run_id": 43772481781,
+    "head": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "automatic_dispatch_run": 43772458763,
+    "additional_P0_permanent_retention_step_succeeded": true,
+    "first_P0_artifact": 14184883244,
+    "all_model_P0_artifact": 14185222651,
+    "first_native_P1": {
+      "artifact_id": 14185736161,
+      "name": "boat-national-cutoff-43772481781",
+      "created_at": "2026-11-15T23:20:46Z",
+      "zip_sha256": "2b17fc127f11e1c5ee9350c4660b3363b8880771b5ed70b54c746f73ad73754a",
+      "metadata_size_and_SHA_verified": true,
+      "encrypted_outer_member_verified": true,
+      "host_AES_decrypted": false
+    },
+    "all_model_P1_round2": {
+      "artifact_id": 14185712188,
+      "name": "boat-all-model-forecasts-43772481781-r2",
+      "created_at": "2026-11-15T23:24:08Z",
+      "zip_sha256": "23cac5682641dc8ca70fb76d969a0ef382fed9542422b765b38f27207479b06d",
+      "metadata_size_and_SHA_verified": true,
+      "encrypted_outer_member_verified": true,
+      "host_AES_decrypted": false
+    },
+    "independent_new_P1_AES_and_cutoff_audit_pending": false,
+    "current_day_denominator": {
+      "races": 120,
+      "models": 14,
+      "all_day_slots": 1680,
+      "includes_not_yet_due_races": true
+    },
+    "current_forecast_count": null,
+    "observed_job_status": "completed",
+    "observed_job_conclusion": "success",
+    "observed_at": "2026-11-16T00:32:33.751196+00:00",
+    "final_public_control_counts": {
+      "completed_round": 24,
+      "prepared_round": null,
+      "previous_session_requests": 218,
+      "lifetime_requests": 11742,
+      "day_start_lifetime_requests": 11524,
+      "lifetime_completed_rounds": 632,
+      "previous_stop_reason": "WORKER_HANDOFF"
+    },
+    "saved_view_formal_P1_slots": 45,
+    "native_baseline_independent_slots_in_separate_schema": 25
+  },
+  "existing_site_acceptance": {
+    "run": 43778358422,
+    "collector_status": "INTRADAY_REFRESHED",
+    "result_scope": "TWO_SELECTED_SAVED_DAYS_NOT_TODAY_ONLY",
+    "changed_races": 9,
+    "confirmed": 149,
+    "held": 9,
+    "pending": 118,
+    "browser_status": "LIVE_OWNER_SITE_REJECTED",
+    "reason": "SAVED_SITE_BROWSER_CHECK_FAILED",
+    "context_generation": 314,
+    "browser_root_cause": "NOT_YET_OBSERVED_SAFE_DIAGNOSTICS_MISSING_IN_OLD_READER"
+  },
+  "proposed_existing_PR286": {
+    "collector_pin": "b47ac0d0ac8076f632316eacc347b0765bb816c1",
+    "manual_current_P1_readonly_verifier": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "special_historical_P0_reader": "0796b52c2804177976e4c2e5ab9b65f32589720b",
+    "new_jobs_or_permissions": 0,
+    "new_schedules_or_services": 0,
+    "producer_change": false,
+    "existing_readonly_push_audit_run_id": 43772481781
+  },
+  "local_validation": {
+    "main_contract_tests": 74,
+    "existing_isolated_reader_tests": 37,
+    "pinned_collector_tests": 31,
+    "independent_review_findings": 0,
+    "live_browser_not_yet_accepted": true,
+    "new_owner_matrix_caller_tests": 37,
+    "new_owner_matrix_default_independently_reviewed": true
+  },
+  "prior_forecast_originals_modified": false,
+  "host_AES_decryption": false,
+  "host_official_provider_GETs": 0,
+  "public_plaintext_or_keys_added": false,
+  "new_PRs_or_model_families": 0,
+  "all_gates_complete": false,
+  "accuracy_98_percent_proven": false,
+  "evidence_sha256": {
+    "APPROVED-PRODUCTION-MERGE-FROZEN.json": "6985cb77e6ca1fde0b6b455b00b0b9ccb0469cab5331e8d6421edc59884964f3",
+    "APPROVED-MAIN-MERGE-FROZEN.json": "4f38044ec27ddc71ae392d76f48622ae1e83774f5c70f5c9006fde96170436c3",
+    "REAL-FAILED-CHECKPOINT-AES-READBACK-FROZEN.json": "6b730d5e7abad969b572c8ef5f00766df58e11dd3c21123297c84f15af1c8571",
+    "REAL-NEW-P1-PHYSICAL-RECEIPTS-FROZEN.json": "0face3d2478fbf2846ecc3ddca1cf5c8b1fee70ab6a8eee70725f93f07adc7dc",
+    "REAL-EXISTING-INTRADAY-SITE-ACCEPTANCE-43778358422.log": "6e2741347c4c33b6942785bb44a244683eae409127fb124a898f8d7f5216cc26",
+    "RESULT-VERIFIER-CALLER-GREEN.log": "fca637f4802feb4d9411cbec30293be0a9c0035745b40473dbb64dae6f000c8e",
+    "RESULT-VERIFIER-EXISTING-READERS-GREEN.log": "dfecc7081bc4d6d0fe3fbc50305d2a0dd56f80eca6f2cb28f344db805f8ba929",
+    "PINNED-B47-FAST-RESULT-TESTS.log": "4c63990833236f3b87157c3d21f36f93e3f0b415afb566294aeb8d2f1c9f6aa5",
+    "ASSISTED-CONTINUATION-CHECK-20261116T004745Z/verified-control.json": "b80d12639e1d9ffefbe891237f13db0c7c1fb2f7478ccd7d37e58e6d8f42ca57",
+    "ASSISTED-CONTINUATION-CHECK-20261116T004745Z/decision.json": "016650d038c9ec0ea8def688a797d32c223374aaf4d4e55e2b5f1f5daa4aa732",
+    "ASSISTED-CONTINUATION-CHECK-20261116T004745Z/ASSISTED-DISPATCH-REQUEST-FROZEN.json": "0f77ed59e08244012ed3bebcf13aa7685163fa21c7e432169a77dd31f70425e4",
+    "NEW-OWNER-AUDIT-CALLER-GREEN.log": "fe52e4784238c27c25933ad19b2e20316db7f5ee74183cb3db5b04ab8aff220b",
+    "PR286-FINAL-CONSTRAINT-CHECK.json": "80096949c8fecdfe52aee75c7a926a938460b69554cd6b873b520cfb68de37d5",
+    "PR286-APPROVED-MAIN-MERGE-FROZEN.json": "64a4ea92db7f59a22c5617b6c4cdece0e389fee2113fdf48e2b5ea188a79aca3",
+    "REAL-NEW-OWNER-MATRIX-READBACK-FROZEN.json": "c2b9ec2bc1d41a50b81caadb7eb0c42e11b59b0b2a5f48ce5f56c9714f1304b2",
+    "UPDATED-SITE-ACCEPTANCE-SAFE-DIAGNOSTIC.json": "babbd498ac949e7092054e11b128888f41a443a520ddcbb50e020da90e13966d",
+    "LONG-RESULT-CLOCK-RED.log": "5e74e2c3bf98c9bc7c4a798cd588e3ba885910a0f784ce12f681bef1f30fa202",
+    "LONG-RESULT-CLOCK-GREEN.log": "04ef7242b79443d2f05596b31ac5a9922ae97505fcc1132dd2c425f8ff9a8d3f",
+    "LONG-RESULT-CLOCK-SOURCE-CANDIDATE.json": "40fd19fe9d4ce602bd2cefb2a47164289b4ed4cbfb87206eb2cdc010515609b3",
+    "MAIN-RESULT-CLOCK-CALLER-GREEN.log": "d00c3f2b05aba4fb621fb29d66b3d9e845ae7eced76ddddcaff3de1a92f87b86",
+    "OWNER-43782543906-FAILED-SAFE.json": "1488aa6aefbb9e3b8958d6220ab2020c29bfdcf83aae0e19df2b21cbb6cfbb2a",
+    "CALLBACK-RETENTION-43784862364-SAFE.json": "22b2a784d8675663d49ee0f598de57abd0f55836bf422890655d1d9596fb2f7c"
+  },
+  "assisted_continuation": {
+    "run_id": 43782543906,
+    "parent_run_id": 43772481781,
+    "created_at": "2026-11-16T00:48:27Z",
+    "actor": "haji84",
+    "head": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "gate": "READY_VERIFIED_SAME_DAY_CONTINUATION",
+    "automatic_completion_event_observed": false,
+    "unattended_handoff_proven": false,
+    "counter_reset": false,
+    "source_originals_changed": false
+  },
+  "main_PR286": {
+    "actual_main_head": "65743d1322acf9d5ddeb87662a0d21ef7c52929b",
+    "actual_tree": "5a93f5e8ad476ad4e58a74d6a8a431cb16c32fa0",
+    "at": "2026-11-16T00:56:53.307432+00:00",
+    "merged": true,
+    "pr": 286,
+    "production_unchanged": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "reviewed_head": "1ae9f614f933777d8b5a6a5fdcd450d5fb060226",
+    "tree_matches_reviewed_head": true
+  },
+  "new_owner_separate_runner_AES": {
+    "artifacts": [
+      {
+        "artifact_id": 14189476525,
+        "count_proof": {
+          "actual_listed_archives": 6,
+          "aes_originals_independently_decrypted": 6,
+          "day_jst": "2026-11-16",
+          "github_zip_sha256_independently_verified": 6,
+          "owner_run_id": 43772481781,
+          "previously_archived_coverages_skipped_without_zip_read": 0,
+          "racing_provider_gets": 0,
+          "status": "AES_ZIP_REPLAY_VERIFIED_P1_COVERAGE_INCOMPLETE"
+        },
+        "name": "boat-all-model-exact-zip-readback-43783302118",
+        "zip_sha256": "e0722630bcd82aafde6460994f361bcbe3e418b53b09533d32c665dc0f2e81b1"
+      },
+      {
+        "artifact_id": 14189471412,
+        "count_proof": {
+          "day_jst": "2026-11-15",
+          "owner_run_id": 43683174565,
+          "status": "FAILED_OWNER_CHECKPOINT_AES_VERIFIED_READONLY"
+        },
+        "name": "boat-failed-checkpoint-aes-readback-43783302118",
+        "zip_sha256": "ac9676c83698f0444b07f7c0d223d993c8d658e671dc52107982c84af2c300fc"
+      },
+      {
+        "artifact_id": 14189192267,
+        "count_proof": {
+          "aes_view_after": {
+            "cutoff_conflicts": 0,
+            "day_jst": "2026-11-16",
+            "expected_model_count": 14,
+            "expected_model_slots": 1680,
+            "independently_authenticated_source_zip_claim": false,
+            "missing_p1_model_slots": 1635,
+            "official_source_gets": 0,
+            "original_forecasts_changed": false,
+            "p1_qualified_unique_slots": 45,
+            "p1_seen_unqualified_slots": 25,
+            "saved_view_race_rows": 120,
+            "scheduled_races": 120,
+            "schema": "RACE_AI_BOAT_AES_SAVED_VIEW_P1_COUNTS_V1",
+            "unsupported_or_extra_models": 0
+          },
+          "aes_view_before": {
+            "cutoff_conflicts": 0,
+            "day_jst": "2026-11-16",
+            "expected_model_count": 14,
+            "expected_model_slots": 1680,
+            "independently_authenticated_source_zip_claim": false,
+            "missing_p1_model_slots": 1635,
+            "official_source_gets": 0,
+            "original_forecasts_changed": false,
+            "p1_qualified_unique_slots": 45,
+            "p1_seen_unqualified_slots": 25,
+            "saved_view_race_rows": 120,
+            "scheduled_races": 120,
+            "schema": "RACE_AI_BOAT_AES_SAVED_VIEW_P1_COUNTS_V1",
+            "unsupported_or_extra_models": 0
+          },
+          "all_model_p1_present": false,
+          "artifact_rounds_verified": 0,
+          "day_jst": "2026-11-16",
+          "deferred_artifacts": 0,
+          "owner_run_id": 43772481781,
+          "physical_models_generated": 0,
+          "provider_gets": 0,
+          "restored_p1_model_rows": 0,
+          "status": "HOLD_ALL_MODEL_P1_COVERAGE"
+        },
+        "name": "boat-all-model-vault-p1-coverage-43783302118",
+        "zip_sha256": "a71c500f3f40d9155c13e73ec6f8b41d9e497158d42c4c82bdda694edad53bb1"
+      },
+      {
+        "artifact_id": 14188972980,
+        "count_proof": {
+          "all_expected_models_p1_readback_proven": false,
+          "day_jst": "2026-11-16",
+          "expected_p1_model_slots": 1680,
+          "missing_p1_model_slots": 1655,
+          "owner_run_id": 43772481781,
+          "p1_saved_expected_slots": 25,
+          "racing_provider_gets": 0,
+          "retained_schedule_races": 120,
+          "scheduled_races": 120,
+          "status": "HOLD_P1_INCOMPLETE_OR_CONFLICTED"
+        },
+        "name": "boat-national-p1-model-coverage-43783302118",
+        "zip_sha256": "53595820d093f42443f54ec20d078ace59eaa66d6eb9a204d87b2ce41074d617"
+      }
+    ],
+    "at": "2026-11-16T00:59:28.333027+00:00",
+    "audit_run_id": 43783302118,
+    "event": "push",
+    "head": "65743d1322acf9d5ddeb87662a0d21ef7c52929b",
+    "host_AES_decryption": false,
+    "independent_runner_job": 133025228902,
+    "new_official_provider_GETs_by_audit": 0,
+    "original_owner_run_id": 43772481781
+  },
+  "updated_existing_site_acceptance": {
+    "fixed_codes": [
+      "GITHUB_TOKEN",
+      "INTRADAY_CAPTURE_CLOCK_INVALID",
+      "RESULT_ONLY"
+    ],
+    "job": 133025379706,
+    "log_sha256": "75b6a48d8954afbd160f6cc68ec22f133a893cb326bec897a42b62f12ae5f09e",
+    "run": 43783346260,
+    "safe_reports": [
+      {
+        "reason": "INTRADAY_CAPTURE_CLOCK_INVALID",
+        "status": "HOLD"
+      }
+    ],
+    "traceback_frames": []
+  },
+  "result_clock_fix": {
+    "changed_files": [
+      "race_ai/racer_intraday.py",
+      "tests/test_racer_result_queue.py"
+    ],
+    "five_minute_skew_unchanged": true,
+    "log_sha256": "04ef7242b79443d2f05596b31ac5a9922ae97505fcc1132dd2c425f8ff9a8d3f",
+    "new_branch_or_PR": false,
+    "no_queue_asof_or_receipt_rewrite": true,
+    "parent": "b47ac0d0ac8076f632316eacc347b0765bb816c1",
+    "production_unchanged": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "source_commit": "b9a1451df474e52d95bd40253676365c4fa0940d",
+    "test_count": 48,
+    "existing_main_PR": 143,
+    "main_caller_tests": 44,
+    "main_live_retest_pending": true,
+    "source_independent_review": "APPROVED_NO_FINDINGS"
+  },
+  "latest_owner_failure": {
+    "run": 43782543906,
+    "conclusion": "failure",
+    "failed_round": 7,
+    "reason": "VAULT_GITHUB_HTTP_404",
+    "endpoint_kind": "ARTIFACT_METADATA",
+    "attempt": 1,
+    "callback_run": 43784862364,
+    "callback_recovery_reason": "ROUND_RECOVERY_TRUSTED_SCHEDULE_REQUIRED",
+    "control": {
+      "previous_run_id": 43782543906,
+      "day_jst": "2026-11-16",
+      "completed_round": 6,
+      "prepared_round": 7,
+      "previous_session_requests": 70,
+      "lifetime_requests": 11812,
+      "lifetime_completed_rounds": 638,
+      "day_start_lifetime_requests": 11524,
+      "source_wait": null,
+      "previous_halted_reason": null,
+      "previous_stop_reason": null,
+      "receipt": {
+        "created_at": "2026-11-16T01:12:02Z",
+        "digest": "sha256:4a5dc4534ab45a79bec4cbb664222195adc61695330de2c4ac4fe0da38afa14c",
+        "id": 14190011394
+      },
+      "source_control_receipt": {
+        "created_at": "2026-11-16T01:12:03Z",
+        "digest": "sha256:066e45de8737e9555dc1d950fb292e35ccae0b85707cc65130f0c8b96f3ec946",
+        "id": 14189372943
+      }
+    },
+    "no_active_successor_observed": true,
+    "forecast_originals_changed": false
+  }
+}

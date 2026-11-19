@@ -1,0 +1,86 @@
+{
+  "OS_socket_syscalls_denied": true,
+  "actual_Actions_readback_still_required": true,
+  "actual_retention_verified_locally": false,
+  "attack_checks": {
+    "PDCA_container_128MiB_bound_distinct_from_original_P1_64MiB": true,
+    "actual_artifact_reads": 0,
+    "actual_key_reads": 0,
+    "commit": "02009e483f473c6b68b8b1e38827bb35d4fcc6c7",
+    "git_paths_refused_before_read": 4,
+    "only_one_head_pin": true,
+    "provider_calls": 0,
+    "synthetic_only": true,
+    "unknown_service_routes_refused_before_get": 8
+  },
+  "bounds_bytes": {
+    "PDCA_container_each": 134217728,
+    "expanded_container_each": 268435456,
+    "original_P1_each": 67108864,
+    "selected_Git_group": 67108864
+  },
+  "effects": {
+    "author_or_root_file_edits": 0,
+    "dispatches": 0,
+    "private_original_reads": 0,
+    "provider_requests": 0,
+    "real_key_reads": 0,
+    "remote_writes": 0,
+    "source_or_model_changes": 0
+  },
+  "fallback_zero_means_remote_absence": false,
+  "fixed_commit_bytes_verified": true,
+  "historical_push_completion_time_proven": false,
+  "independent_integrated_tests": {
+    "errors": 0,
+    "failures": 0,
+    "log": "frozen-8dd0052e-22-tests.log",
+    "seconds": 19.519,
+    "tests": 22
+  },
+  "independent_module_tests": {
+    "errors": 0,
+    "failures": 0,
+    "log": "frozen-02009e-20-tests.log",
+    "seconds": 14.693,
+    "tests": 20
+  },
+  "integration_commit": "8dd0052eee2b07e2ae3835e5398ebd63353d5867",
+  "known_out_of_scope_source_cache_test": {
+    "failures": 1,
+    "new_module_unimported": true,
+    "preserved_not_waived": true,
+    "source": "author source-related-green.json",
+    "tests": 133
+  },
+  "module_base": "a277a692a2791c77ee89a2e9af71582f5c98d458",
+  "module_commit": "02009e483f473c6b68b8b1e38827bb35d4fcc6c7",
+  "reviewed_file_sha256": {
+    ".github/workflows/boat-owner-national-p1-matrix.yml": "261fe0b60adacd3580937dfde85390ecbb1e68ba4028c9650c52d219b54f9e72",
+    "scripts/boat_private_venue_retention_audit.py": "d014483c665ad0a3a679f598a66daaa35a977e63cb6f20ba65c68d9557e949a5",
+    "tests/test_boat_private_venue_retention_audit.py": "e7fea27f05b77d08bdf67862068b9519ab36d9aad94f90bf91cfc4f5ecc102ab"
+  },
+  "source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "status": "CLEAR",
+  "verified_invariants": [
+    "Main metadata then exact checkout then owner-key/Git",
+    "Fixed source/run/job/24-round and three exact artifact inventory",
+    "Full original P1/all-partition/AEAD/score/summary authentication",
+    "One immutable transfer head and independent ODB",
+    "OID/type/mode/size/full bytes/readback AEAD",
+    "Counts/hash/fixed enum output and core/G8 preservation",
+    "No publication or retention retry added; existing live GitHub GET retry defaults preserved"
+  ],
+  "warnings_as_errors": true,
+  "workflow_structure": {
+    "compiled_python_heredocs": 11,
+    "event_kinds_and_existing_filters_unchanged": true,
+    "jobs_and_steps_unchanged": true,
+    "old_workflow_reconstructed_byte_exact": true,
+    "permissions_runners_timeouts_conditions_env_unchanged": true,
+    "two_new_paths_added_to_existing_events": [
+      "pull_request",
+      "push"
+    ]
+  }
+}

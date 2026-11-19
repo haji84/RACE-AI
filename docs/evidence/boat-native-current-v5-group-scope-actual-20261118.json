@@ -1,0 +1,76 @@
+{
+  "schema": "RACE_AI_NATIVE_CURRENT_V5_GROUP_SCOPE_ACTUAL_V1",
+  "head_sha": "b1c8de6b794e0cae61ecdb25593a4d3a11b63e58",
+  "run_id": 44252487186,
+  "job_id": 134626256360,
+  "boundary_tests": {
+    "tests": 137,
+    "seconds": 53.89,
+    "status": "passed"
+  },
+  "records": [
+    {
+      "timestamp": "2026-11-18T06:42:41.9682600Z",
+      "report": {
+        "status": "NATIVE_SAFARI_ACCEPTANCE_HOLD",
+        "reason": "CURRENT_V5_EVIDENCE_INVALID",
+        "current_v5_phase": "verify_probe",
+        "current_v5_diagnostic": {
+          "native_p1_verified": true,
+          "native_groups_match": false,
+          "result_metrics_parsed": true,
+          "probe_fields_match": true,
+          "schema_matches": true,
+          "generation_matches": true,
+          "cipher_matches": true,
+          "history_day_matches": true,
+          "selected_day_matches": true,
+          "source_day_matches": true,
+          "model_choices_match": true,
+          "secret_in_request": false,
+          "expected_results": 72,
+          "observed_results": 72,
+          "expected_native_p1_groups": 9,
+          "observed_native_p1_groups": 21,
+          "expected_model_choices": 2,
+          "observed_model_choices": 2,
+          "v5_read_live_successes": 1,
+          "aes_successes": 11,
+          "private_view_reads": 0,
+          "encrypted_seed_reads": 1,
+          "current_v5_manifest_reads": 2,
+          "current_v5_cipher_reads": 10,
+          "non_read_requests": 0,
+          "outbound_requests_permitted": 0
+        },
+        "checker_function": "main",
+        "checker_line": 1615,
+        "checker_callers": [
+          {
+            "function": "main",
+            "line": 1615
+          }
+        ]
+      }
+    }
+  ],
+  "root_cause": "The verified native-reference groups are a strict subset of all visible P1 groups. Native inclusion passed, but the probe compared total visible P1 count21 to authenticated native-reference count9.",
+  "proven_in_this_failed_run": {
+    "schema_generation_cipher_and_history_selected_source_day_matches": true,
+    "browser_v5_read_live_successes": 1,
+    "aes_successes": 11,
+    "original_model_choices": 2,
+    "expected_results": 72,
+    "observed_results": 72,
+    "native_detail_verified": true,
+    "plaintext_endpoint_reads": 0,
+    "private_key_requests_detected": false
+  },
+  "not_proven": {
+    "overall_native_acceptance": true,
+    "physical_iphone": true,
+    "all_models_all_races": true,
+    "efficacy_improvement": true
+  },
+  "next_fix": "Count unique matched authenticated native references, require every reference present, retain generic/additional P1 options and the existing acceptance equality. Never count all P1 options as native qualification."
+}

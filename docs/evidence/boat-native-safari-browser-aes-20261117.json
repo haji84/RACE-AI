@@ -1,0 +1,151 @@
+{
+  "schema": "RACE_AI_NATIVE_SAFARI_BROWSER_AES_EVIDENCE_V1",
+  "auditor_run_id": 44068042347,
+  "auditor_job_id": 133986892349,
+  "auditor_main_sha": "519705524de274a6c73124746970615086ca237a",
+  "actual_job_conclusion": "success",
+  "original_startup_failure_cause": "UNKNOWN_SAME_CONFIGURATION_LATER_PASSED",
+  "synthetic_artifact": {
+    "id": 14322350355,
+    "size_in_bytes": 8911079,
+    "zip_sha256": "6eb017e91cf41e4685ef8d97fa3b346908db7ec99124f747f5c81fda18cc5957"
+  },
+  "reports": [
+    {
+      "schema": "RACE_AI_NATIVE_SAFARI_ACCEPTANCE_V2",
+      "status": "NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED",
+      "native_browser": {
+        "browserName": "Safari",
+        "browserVersion": "26.6",
+        "platformName": "macOS"
+      },
+      "verified_at": "2026-11-17T10:50:55.161613+00:00",
+      "pages_sha": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+      "read_only_source_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "live_asset_sha256": {
+        "app.js": "b7968390d2a942881e3a03494bb3a96760844ca1134532a940619a5a62bf3c9c",
+        "existing-model-catalog.js": "ff08efd5d08e2570198cecdbd0f6c1ef54c513d232c4ddd3a6ad6c6e83bbfc82",
+        "forecast-audit-model.js": "ae91d3f3a0684f81fded2662b164a76e8d2dd0ee3a1e8b337330256fc69ef487",
+        "index.html": "42de1bb10e809a32937ec132c84b562094af2a4afd572ec105e1fd22d805f38e",
+        "product-data.js": "f013981ae0384874fc5d8e4fe5feb8c99b16837e41a18b6d37aecf9db16f4437",
+        "racer-daily.js": "08187ac31a8a5d262530a45acdc06c07bedcbfd3ce4a1d5be126fdc270a0e167",
+        "racer-portraits-data.js": "6adecadb3070307b1478101e69748772197903a3a5626ae428acd1a82a31bcd2",
+        "racer-portraits.js": "2c15af470bb5394cadd70635b3478d0eab08764a2836641cc7731678d5563275",
+        "racer-profiles-data.js": "2f6cdf0e99ed84753b9be29e6c1a0704b86e19e8a86628b3454f30518730f68f",
+        "racer-profiles.js": "ab387b5b9958d75d8e7e781de53120b54dc92f7d19bf830f12e98d9083213113",
+        "saved-performance.js": "94a05ed6ee8d9a1287d10861e14f927b695b22d989f80395cf3e4d8bb3412213",
+        "saved-view-crypto.js": "60fb3f8f1668a14052d891a9c219c67de4b24d207b64c106a353fefe92cb13ce",
+        "style.css": "6b1d246bbc67057e946577a1f1b159dff81004b5575474fd195868a8f5592ade",
+        "ui-model.js": "b7dd4eb5d6326928f1eefd20f4eb5c6eea2274beb6bf931563659bfb63cad3d7"
+      },
+      "saved_day": "2026-11-17",
+      "authenticated_generation": 412,
+      "authenticated_results": 102,
+      "authenticated_native_p1_groups": 9,
+      "latest_p1_private_transport": {
+        "desktop_viewports": [
+          {
+            "requested_width": 1440,
+            "actual_inner_width": 1440,
+            "actual_inner_height": 948,
+            "requested_width_verified": true,
+            "physical_iphone_verified": false
+          },
+          {
+            "requested_width": 390,
+            "actual_inner_width": 390,
+            "actual_inner_height": 948,
+            "requested_width_verified": true,
+            "physical_iphone_verified": false
+          }
+        ],
+        "model_switch_original_comparisons": 4,
+        "native_p1_detail_views": 2,
+        "result_budget_views": 2,
+        "external_requests_blocked_before_network": 0,
+        "csp_violations_blocked": 0,
+        "private_view_reads": 1,
+        "key_in_requests_url_or_storage": false,
+        "outbound_browser_requests_permitted": 0,
+        "official_source_requests": 0,
+        "transport": "LOOPBACK_EXISTING_PRIVATE_SAVED_ENDPOINT"
+      },
+      "encrypted_seed": {
+        "browser_aes_verified": true,
+        "seed_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+        "same_seed_model_original_comparisons": 2,
+        "refusals_verified": [
+          "missing-key",
+          "wrong-key",
+          "wrong-view",
+          "modified-cipher"
+        ],
+        "viewer_capability_verified": true,
+        "viewer_key_in_fragment": true,
+        "viewer_key_in_requests_or_web_storage": false,
+        "owner_key_in_browser": false,
+        "account_login_verified": false,
+        "current_v5_live_continuation_verified": false,
+        "outbound_browser_requests_permitted": 0,
+        "real_screenshots_or_traces_exported": 0
+      },
+      "browser_aes_verified": true,
+      "account_login_verified": false,
+      "current_v5_live_continuation_verified": false,
+      "browser_aes_and_owner_login_verified": false,
+      "physical_iphone_verified": false,
+      "all_eight_reference_screens_visually_verified": false,
+      "plaintext_published": false,
+      "forecast_or_result_mutation": false
+    },
+    {
+      "schema": "RACE_AI_SYNTHETIC_SAFARI_VISUAL_V1",
+      "dataset_status": "SYNTHETIC_ONLY",
+      "public_fixture_sha256": "b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a",
+      "native_browser": {
+        "browserName": "Safari",
+        "browserVersion": "26.6",
+        "platformName": "macOS"
+      },
+      "viewports": [
+        {
+          "requested_width": 320,
+          "actual_inner_width": 320,
+          "actual_inner_height": 948,
+          "requested_width_verified": true,
+          "physical_iphone_verified": false
+        },
+        {
+          "requested_width": 390,
+          "actual_inner_width": 390,
+          "actual_inner_height": 948,
+          "requested_width_verified": true,
+          "physical_iphone_verified": false
+        },
+        {
+          "requested_width": 1440,
+          "actual_inner_width": 1440,
+          "actual_inner_height": 948,
+          "requested_width_verified": true,
+          "physical_iphone_verified": false
+        },
+        {
+          "requested_width": 1920,
+          "actual_inner_width": 1920,
+          "actual_inner_height": 948,
+          "requested_width_verified": true,
+          "physical_iphone_verified": false
+        }
+      ],
+      "real_data_context_used_for_capture": false,
+      "physical_iphone_verified": false,
+      "all_eight_reference_screens_visually_verified": false,
+      "screenshots": 28
+    },
+    {
+      "status": "SYNTHETIC_SCREENSHOT_ARTIFACTS_VERIFIED",
+      "screenshots": 28,
+      "dataset_status": "SYNTHETIC_ONLY"
+    }
+  ]
+}

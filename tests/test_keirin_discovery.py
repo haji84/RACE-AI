@@ -58,5 +58,36 @@ class TestDiscover(unittest.TestCase):
             discover_from_html(doc(),event_day=DAY,
               source_url="https://keirin.kdreams.jp/kaisai/2026/11/02/")
 
+    def test_excluded_legacy_source_is_rejected_before_transport(self):
+        class Response:
+            status = 200
+            headers = {"Content-Type": "text/html"}
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                pass
+
+            def geturl(self):
+                return URL
+
+            def read(self, limit):
+                return doc()
+
+        class Opener:
+            def __init__(self):
+                self.requests = []
+
+            def open(self, request, **kwargs):
+                self.requests.append(request)
+                return Response()
+
+        transport = Opener()
+        with self.assertRaisesRegex(DiscoveryError,
+                                    "RAKUTEN_SOURCE_EXCLUDED_BY_OWNER"):
+            get_single_day(DAY, opener=transport)
+        self.assertEqual(transport.requests, [])
+
 if __name__=="__main__":
     unittest.main()

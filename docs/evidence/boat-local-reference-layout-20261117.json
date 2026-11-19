@@ -1,0 +1,494 @@
+{
+  "schema": "RACE_AI_LOCAL_REFERENCE_LAYOUT_EVIDENCE_V1",
+  "local_source_commit": "5992f11033fa6e8e7f737cc9b029341f0ed6baf1",
+  "base_source_commit": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+  "local_only": true,
+  "public_push": false,
+  "product_publication": false,
+  "public_pages_unchanged": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+  "browser": "local Chromium",
+  "synthetic_fixture_sha256": "b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a",
+  "reference_zip_sha256": "a5fe91802cc32a6a745f5181387a44f3dc525406760ef5c02445e5214fa7bcaf",
+  "references_inspected": 8,
+  "synthetic_screenshots": 28,
+  "all_eight_reference_screens_visually_verified": false,
+  "physical_iphone_verified": false,
+  "independent_review": "NO_BLOCKERS_WITH_EXPLICIT_DENSITY_AND_ACCEPTANCE_LIMITS",
+  "comparison": {
+    "schema": "RACE_AI_LOCAL_UI_LAYOUT_COMPARISON_V1",
+    "created_at": "2026-11-17T10:39:11.404473+00:00",
+    "source_base": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+    "deployed_product_sha_unchanged": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+    "scope": "LOCAL_PUBLIC_SYNTHETIC_ONLY",
+    "fixture_sha256": "b49654f4cbf5527131b38971e3504a52d5d9431ff62aa1c2dde4bc9bf96da00a",
+    "screenshots": 28,
+    "widths": [
+      320,
+      390,
+      1440,
+      1920
+    ],
+    "physical_iphone_verified": false,
+    "native_safari_verified": false,
+    "all_eight_reference_screens_visually_verified": false,
+    "bounds": [
+      {
+        "width": 320,
+        "height": 844,
+        "page": "home",
+        "selector": "#home-races .race-card h3",
+        "before": {
+          "left": 26,
+          "right": 222,
+          "top": 997,
+          "bottom": 1060,
+          "height": 63,
+          "width": 196
+        },
+        "after": {
+          "left": 26,
+          "right": 222,
+          "top": 601,
+          "bottom": 663,
+          "height": 63,
+          "width": 196
+        },
+        "available_bottom": 773
+      },
+      {
+        "width": 320,
+        "height": 844,
+        "page": "races",
+        "selector": "#all-races .race-card h3",
+        "before": {
+          "left": 29,
+          "right": 205,
+          "top": 916,
+          "bottom": 978,
+          "height": 63,
+          "width": 176
+        },
+        "after": {
+          "left": 29,
+          "right": 205,
+          "top": 589,
+          "bottom": 651,
+          "height": 63,
+          "width": 176
+        },
+        "available_bottom": 773
+      },
+      {
+        "width": 320,
+        "height": 844,
+        "page": "detail",
+        "selector": "#detail-tab-content .forecast-panel .saved-ticket",
+        "before": {
+          "left": 25,
+          "right": 156,
+          "top": 1248,
+          "bottom": 1281,
+          "height": 33,
+          "width": 131
+        },
+        "after": {
+          "left": 25,
+          "right": 156,
+          "top": 703,
+          "bottom": 736,
+          "height": 33,
+          "width": 131
+        },
+        "available_bottom": 773
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "page": "home",
+        "selector": "#home-races .race-card h3",
+        "before": {
+          "left": 26,
+          "right": 238,
+          "top": 896,
+          "bottom": 927,
+          "height": 31,
+          "width": 212
+        },
+        "after": {
+          "left": 26,
+          "right": 238,
+          "top": 574,
+          "bottom": 606,
+          "height": 31,
+          "width": 212
+        },
+        "available_bottom": 773
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "page": "races",
+        "selector": "#all-races .race-card h3",
+        "before": {
+          "left": 29,
+          "right": 275,
+          "top": 922,
+          "bottom": 953,
+          "height": 31,
+          "width": 246
+        },
+        "after": {
+          "left": 29,
+          "right": 275,
+          "top": 546,
+          "bottom": 577,
+          "height": 31,
+          "width": 246
+        },
+        "available_bottom": 773
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "page": "detail",
+        "selector": "#detail-tab-content .forecast-panel .saved-ticket",
+        "before": {
+          "left": 25,
+          "right": 191,
+          "top": 1207,
+          "bottom": 1242,
+          "height": 35,
+          "width": 166
+        },
+        "after": {
+          "left": 25,
+          "right": 191,
+          "top": 661,
+          "bottom": 696,
+          "height": 35,
+          "width": 166
+        },
+        "available_bottom": 773
+      },
+      {
+        "width": 1440,
+        "height": 1000,
+        "page": "home",
+        "selector": "#home-races .race-card h3",
+        "before": {
+          "left": 234,
+          "right": 463,
+          "top": 799,
+          "bottom": 832,
+          "height": 34,
+          "width": 229
+        },
+        "after": {
+          "left": 234,
+          "right": 463,
+          "top": 569,
+          "bottom": 603,
+          "height": 34,
+          "width": 229
+        },
+        "available_bottom": 1000
+      },
+      {
+        "width": 1440,
+        "height": 1000,
+        "page": "races",
+        "selector": "#all-races .race-card h3",
+        "before": {
+          "left": 235,
+          "right": 989,
+          "top": 934,
+          "bottom": 962,
+          "height": 29,
+          "width": 754
+        },
+        "after": {
+          "left": 235,
+          "right": 989,
+          "top": 579,
+          "bottom": 608,
+          "height": 29,
+          "width": 754
+        },
+        "available_bottom": 1000
+      },
+      {
+        "width": 1440,
+        "height": 1000,
+        "page": "detail",
+        "selector": "#detail-tab-content .forecast-panel .saved-ticket",
+        "before": {
+          "left": 286,
+          "right": 813,
+          "top": 1136,
+          "bottom": 1173,
+          "height": 37,
+          "width": 527
+        },
+        "after": {
+          "left": 237,
+          "right": 666,
+          "top": 605,
+          "bottom": 642,
+          "height": 37,
+          "width": 429
+        },
+        "available_bottom": 1000
+      },
+      {
+        "width": 1920,
+        "height": 1000,
+        "page": "home",
+        "selector": "#home-races .race-card h3",
+        "before": {
+          "left": 297,
+          "right": 526,
+          "top": 789,
+          "bottom": 823,
+          "height": 34,
+          "width": 229
+        },
+        "after": {
+          "left": 297,
+          "right": 526,
+          "top": 558,
+          "bottom": 591,
+          "height": 34,
+          "width": 229
+        },
+        "available_bottom": 1000
+      },
+      {
+        "width": 1920,
+        "height": 1000,
+        "page": "races",
+        "selector": "#all-races .race-card h3",
+        "before": {
+          "left": 298,
+          "right": 1386,
+          "top": 936,
+          "bottom": 965,
+          "height": 29,
+          "width": 1088
+        },
+        "after": {
+          "left": 298,
+          "right": 1386,
+          "top": 580,
+          "bottom": 608,
+          "height": 29,
+          "width": 1088
+        },
+        "available_bottom": 1000
+      },
+      {
+        "width": 1920,
+        "height": 1000,
+        "page": "detail",
+        "selector": "#detail-tab-content .forecast-panel .saved-ticket",
+        "before": {
+          "left": 526,
+          "right": 1053,
+          "top": 1138,
+          "bottom": 1175,
+          "height": 37,
+          "width": 527
+        },
+        "after": {
+          "left": 300,
+          "right": 906,
+          "top": 605,
+          "bottom": 642,
+          "height": 37,
+          "width": 606
+        },
+        "available_bottom": 1000
+      }
+    ],
+    "local_commit": "5992f11033fa6e8e7f737cc9b029341f0ed6baf1",
+    "source_asset_sha256": {
+      "web/index.html": "36633a76695c24edbb64d23d44e66cc33167917892a36b95b423abb1202406f9",
+      "web/style.css": "d69e3958d8c11fc285d7ebdce5e8ce1a3c61f184df903589831f0e911b4dcefa",
+      "web/app.js": "abdb1db82dc60f850743b352570c174f9170d6fe2de20ad85f44dcbe4da11e6c"
+    },
+    "image_files": {
+      "1440-detail.png": {
+        "sha256": "b9e5f226824c940aedfe34941961fe2b09fe77812301e643b5ed2f0779ae6c15",
+        "bytes": 237207,
+        "width": 1440,
+        "height": 1000
+      },
+      "1440-home.png": {
+        "sha256": "8f8006f4ce781d98470a8ecdf59a5f5528cfba7a799d4ac1f58be4163bb99e9f",
+        "bytes": 301341,
+        "width": 1440,
+        "height": 1000
+      },
+      "1440-picks.png": {
+        "sha256": "928321e46fd56358ddc38b5178b7aa61dd69fdd2f13a9b9e80eae1e99572cd9c",
+        "bytes": 254145,
+        "width": 1440,
+        "height": 1000
+      },
+      "1440-races.png": {
+        "sha256": "31fd635a1ae8fcbfb6809190461a69737104c3c603f74382408979f8cad55364",
+        "bytes": 243277,
+        "width": 1440,
+        "height": 1000
+      },
+      "1440-research.png": {
+        "sha256": "e8556b8f14997c5d257c30e0542dc7b5e10a37132b6a0bdc90579148ed5ae9f0",
+        "bytes": 201072,
+        "width": 1440,
+        "height": 1000
+      },
+      "1440-results.png": {
+        "sha256": "daab687c21850cfa54c5e9272244196adfdf5d91d74e63fc8b379797ab08323a",
+        "bytes": 224469,
+        "width": 1440,
+        "height": 1000
+      },
+      "1440-settings.png": {
+        "sha256": "33d3d1ed8c8a3bd0b3d55c96e6526f70ca5b2548f0f4f93c27c3a7c7364f640e",
+        "bytes": 240972,
+        "width": 1440,
+        "height": 1000
+      },
+      "1920-detail.png": {
+        "sha256": "c2e0d932e4d24837a1d3237035dc925be69958f57bb4f6b13eded75e09fb96b9",
+        "bytes": 241242,
+        "width": 1920,
+        "height": 1000
+      },
+      "1920-home.png": {
+        "sha256": "5084a7342dcd2d0f2d8d9b9f6380fa70a4c9808377b548342d39b29c112dc871",
+        "bytes": 314844,
+        "width": 1920,
+        "height": 1000
+      },
+      "1920-picks.png": {
+        "sha256": "0feff4596591c2197d2ef6a90bb978e8ed72bc043bf48691afceb5d7a3462ed9",
+        "bytes": 259497,
+        "width": 1920,
+        "height": 1000
+      },
+      "1920-races.png": {
+        "sha256": "8404a186215833341e4a826c39b18ccfc587e4ef352ba5fefd9ce336f419262a",
+        "bytes": 247864,
+        "width": 1920,
+        "height": 1000
+      },
+      "1920-research.png": {
+        "sha256": "99dce747554d09d6736f690fb92b218d3b6f61537225e4cda8e8c048ed76b729",
+        "bytes": 204530,
+        "width": 1920,
+        "height": 1000
+      },
+      "1920-results.png": {
+        "sha256": "46982ca99d21be550c9e60230ec6f6ecfeb8406c0a8bac61c3165b22b18b545a",
+        "bytes": 247985,
+        "width": 1920,
+        "height": 1000
+      },
+      "1920-settings.png": {
+        "sha256": "726c33d96160cfa6f1d743afe5615defaeb98f1aba1213c3b49ea670943daa98",
+        "bytes": 244489,
+        "width": 1920,
+        "height": 1000
+      },
+      "320-detail.png": {
+        "sha256": "8f77a245cd66996a5d96be3b8781a08ce64f1c77d702a37a992e2e520e7fe8f8",
+        "bytes": 85044,
+        "width": 320,
+        "height": 844
+      },
+      "320-home.png": {
+        "sha256": "1742b29a5c105b7f1a0cc733aa19550f69a689a197e0bc402d8fb01ca7526324",
+        "bytes": 91058,
+        "width": 320,
+        "height": 844
+      },
+      "320-picks.png": {
+        "sha256": "4d13404024768c301a333ee3cd490686311047ecc8c46493abce6c02a78de6a3",
+        "bytes": 76832,
+        "width": 320,
+        "height": 844
+      },
+      "320-races.png": {
+        "sha256": "8c761e61cb66864621dc980714eb2f37d538c7ba53b17c584afa7a3c721f292f",
+        "bytes": 70344,
+        "width": 320,
+        "height": 844
+      },
+      "320-research.png": {
+        "sha256": "0642271a7cd00ba4731d9aad7a7e90f2166b639ce406b1a89ad97f8185e03d6a",
+        "bytes": 74343,
+        "width": 320,
+        "height": 844
+      },
+      "320-results.png": {
+        "sha256": "10084c84857df4ca042e68c1741c9bbe4f8aa926478ebb9712dcb6b9c07bc689",
+        "bytes": 88686,
+        "width": 320,
+        "height": 844
+      },
+      "320-settings.png": {
+        "sha256": "e23bb512ede89db1960669215e28e1a36ddf56ffb857f91a30b28ee1ee488525",
+        "bytes": 70978,
+        "width": 320,
+        "height": 844
+      },
+      "390-detail.png": {
+        "sha256": "49e1f553da604a8a5f8a30ee5dfa93d8bd3fafcf87c0458dd922308b724e1e37",
+        "bytes": 96438,
+        "width": 390,
+        "height": 844
+      },
+      "390-home.png": {
+        "sha256": "ee88e882e6b6e570b59e6cac80ca8bbc324c8bf8264257150df5b5da6eccd96f",
+        "bytes": 107458,
+        "width": 390,
+        "height": 844
+      },
+      "390-picks.png": {
+        "sha256": "c0bef4f289a241a0fd06d1ce64355eef740668ba35d38b09f0f0572501d3505b",
+        "bytes": 82717,
+        "width": 390,
+        "height": 844
+      },
+      "390-races.png": {
+        "sha256": "e232d9df9443ecc2ee9236bb297956a7ba17f18006a46599a629a641eefc1186",
+        "bytes": 82166,
+        "width": 390,
+        "height": 844
+      },
+      "390-research.png": {
+        "sha256": "cb0d55fad327931ee648d744c43d7a77d1e6798b697b9452082c93c95490cf07",
+        "bytes": 81244,
+        "width": 390,
+        "height": 844
+      },
+      "390-results.png": {
+        "sha256": "b618aebe292f7bf06f7c54963997d8836b30f0bf50a1582f82d8c03c53879652",
+        "bytes": 95854,
+        "width": 390,
+        "height": 844
+      },
+      "390-settings.png": {
+        "sha256": "66f3b1555d2b98f4ef2b01c4de7f0a82fd25416029cbef5f4af5a89088161ce0",
+        "bytes": 77199,
+        "width": 390,
+        "height": 844
+      }
+    },
+    "independent_review": {
+      "status": "NO_BLOCKING_REGRESSION_FOUND",
+      "scope": "BOUNDED_LOCAL_LAYOUT",
+      "review_file": "final-review.txt"
+    }
+  }
+}

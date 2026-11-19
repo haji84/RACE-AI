@@ -1,0 +1,141 @@
+name: KEIRIN video storage independent acceptance
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/keirin-github-autonomous.yml'
+      - '.github/workflows/keirin-video-storage-acceptance.yml'
+      - 'scripts/keirin_video_storage_acceptance.py'
+      - 'tests/test_keirin_video_storage_acceptance.py'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/keirin-github-autonomous.yml'
+      - '.github/workflows/keirin-video-storage-acceptance.yml'
+      - 'scripts/keirin_video_storage_acceptance.py'
+      - 'tests/test_keirin_video_storage_acceptance.py'
+  workflow_run:
+    workflows:
+      - KEIRIN GitHub-only daily capture and conservative research
+      - KEIRIN hourly personal research canary
+    branches: [main]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: keirin-video-acceptance-${{ github.event.workflow_run.id || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  offline-contract:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Validate secret-safe status, source identity and byte readback
+        run: python -m unittest discover -s tests -p 'test_keirin_video_storage_acceptance.py' -v
+
+  actual-prior-day-source-recovery:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: c26ac0927647f317acf855e0c42cd1703232c19b
+          persist-credentials: false
+      - name: Restore genuine preceding JST-day metadata without footage or decryption
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          day=$(TZ=Asia/Tokyo date --date='yesterday' +%F)
+          python -m scripts.keirin_autonomous_artifact_recovery \
+            --repo "$GITHUB_REPOSITORY" --date "$day" \
+            --mode index --out "$RUNNER_TEMP/verified-prior-day"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from race_ai.keirin_daily_public_catalog import assess_daily_manifest
+          root=Path(os.environ['RUNNER_TEMP'])/'verified-prior-day'
+          progress=json.loads((root/'temporary-artifact-receipts.json').read_text())
+          source=root/'day-source-manifest.json'
+          if not source.is_file():
+              raise SystemExit('PREVIOUS_DAY_SOURCE_STILL_UNPROVEN')
+          doc=json.loads(source.read_text())
+          assess_daily_manifest(doc,target_day_jst=progress['date_jst'])
+          print(json.dumps({'status':'ACTUAL_PRIOR_DAY_CATALOG_RESTORED',
+              'date_jst':doc['date_jst'],'races':doc['discovered_race_count'],
+              'venues':doc['discovered_venue_count'],
+              'manifest_sha256':doc['manifest_sha256'],
+              'new_recordings':0,'durable_storage_proven':False}))
+          PY
+
+  storage-preflight:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Ensure existing archive client is available
+        run: command -v aws || python -m pip install --disable-pip-version-check awscli
+      - name: Check configured secrets and read-only bucket connection, never show values
+        env:
+          ARCHIVE_BUCKET: ${{ secrets.RACE_AI_KEIRIN_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.RACE_AI_KEIRIN_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.RACE_AI_KEIRIN_S3_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.RACE_AI_KEIRIN_AWS_REGION || 'ap-northeast-1' }}
+          RACE_VIDEO_S3_ENDPOINT: ${{ vars.RACE_AI_KEIRIN_S3_ENDPOINT }}
+        run: python -m scripts.keirin_video_storage_acceptance preflight --output "$RUNNER_TEMP/storage-preflight.json"
+      - name: Retain redacted connection result, not credentials
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-video-storage-preflight-${{ github.run_id }}
+          path: ${{ runner.temp }}/storage-preflight.json
+          retention-days: 14
+          if-no-files-found: error
+
+  independent-private-readback:
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.repository.id == 1416489937 &&
+      github.event.workflow_run.head_repository.id == 1416489937 &&
+      github.event.workflow_run.head_branch == 'main' &&
+      (github.event.workflow_run.event == 'schedule' ||
+       github.event.workflow_run.event == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout trusted default-branch consumer, never source PR artifacts
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Ensure independent archive reader is available
+        run: command -v aws || python -m pip install --disable-pip-version-check awscli
+      - name: Bind source upload to its run, independently GET ciphertext and compare SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCHIVE_BUCKET: ${{ secrets.RACE_AI_KEIRIN_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.RACE_AI_KEIRIN_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.RACE_AI_KEIRIN_S3_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.RACE_AI_KEIRIN_AWS_REGION || 'ap-northeast-1' }}
+          RACE_VIDEO_S3_ENDPOINT: ${{ vars.RACE_AI_KEIRIN_S3_ENDPOINT }}
+        run: python -m scripts.keirin_video_storage_acceptance readback --output "$RUNNER_TEMP/independent-readback.json"
+      - name: Keep only independent readback receipt, never downloaded video or key
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-video-independent-readback-${{ github.event.workflow_run.id }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/independent-readback.json
+          retention-days: 14
+          if-no-files-found: error

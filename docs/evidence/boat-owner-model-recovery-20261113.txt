@@ -1,0 +1,16 @@
+BOAT owner AES source-free recovery admission (2026-11-13)
+Source run: 43348227701 (haji84/RACE-AI; existing owner P0/P1 producer).
+Purpose: restore the already generated frozen first P0, five-model P0 and the actual
+partial P1 rounds from their immutable original GitHub Actions artifacts and original
+vault, then run independent encrypted Git readback with count-only stage coverage.
+This does NOT collect any new official source data, regenerate a forecast, overwrite
+an original forecast, reset provider GET caps, buy a ticket, publish secret keys or
+claim future 136/136 P1 completion.
+The recovered Git ciphertext retains the original forecast clocks; any conflicts
+remain HOLD. Explicit original source identity is required and each artifact SHA and
+run ID must pass the existing original native recovery validators.
+On future normal owner workflow completion, execute the same source-free reconciliation
+automatically if the immutable exact production owner code SHA matches. Each invocation
+must use the original owner's run ID and the shared single-state-writer concurrency lane.
+Acceptance: count-only independent readback of 2026-11-13 saved P0/P1 originals;
+no skipped race or model can be marked complete unless actual original exists.

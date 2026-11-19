@@ -1,0 +1,255 @@
+diff --git a/race_ai/autorace_official_sparse_adapter.py b/race_ai/autorace_official_sparse_adapter.py
+index add432d4..f0cc79af 100644
+--- a/race_ai/autorace_official_sparse_adapter.py
++++ b/race_ai/autorace_official_sparse_adapter.py
+@@ -11,0 +12 @@ from html.parser import HTMLParser
++import math
+@@ -55,0 +57,14 @@ def _integer(value, low, high):
++def _trial_seconds(value):
++    if type(value) is str:
++        value = value.strip()
++        if re.fullmatch(r'[0-9]+(?:\.[0-9]+)?', value) is None:
++            return None
++    elif type(value) not in (int, float):
++        return None
++    try:
++        seconds = float(value)
++    except (ValueError, OverflowError):
++        return None
++    return seconds if math.isfinite(seconds) and 3.0 <= seconds <= 4.5 else None
++
++
+@@ -117 +132 @@ def _sources(program_raw, race_raw, dom_raw, metadata, now, rights, request_bodi
+-    documents, proofs, requests, request_hashes = [], [], [], {}
++    documents, proofs, requests, request_hashes, source_clocks = [], [], [], {}, {}
+@@ -140,0 +156,2 @@ def _sources(program_raw, race_raw, dom_raw, metadata, now, rights, request_bodi
++        source_clocks[suffix] = {key:entry[key] for key in (
++            'request_started_at', 'response_received_at', 'body_captured_at')}
+@@ -150 +167 @@ def _sources(program_raw, race_raw, dom_raw, metadata, now, rights, request_bodi
+-    return documents[0], documents[1], _Document(dom_raw), proofs, requests[0], parsed.path.split('/')[-1], request_hashes
++    return documents[0], documents[1], _Document(dom_raw), proofs, requests[0], parsed.path.split('/')[-1], request_hashes, source_clocks
+@@ -209 +226 @@ def _convert(program_raw, race_raw, dom_raw, metadata, *, now, source_rights_ref
+-    program, info, document, evidence, request, venue, request_hashes = _sources(
++    program, info, document, evidence, request, venue, request_hashes, source_clocks = _sources(
+@@ -255,0 +273,8 @@ def _convert(program_raw, race_raw, dom_raw, metadata, *, now, source_rights_ref
++    trials = {p['carNo']:_trial_seconds(p.get('trialRunTime')) for p in players}
++    # This source conversion initially admits only a complete eight-car B.
++    # The existing scorer's separate 3..8-car native contract stays unchanged.
++    post_trial = (personal_ok and len(players) == 8 and cars == set(range(1,9)) and
++                  all(value is not None for value in trials.values()) and
++                  all((type(p.get('retireFlag')) is int and p['retireFlag'] == 0) or
++                      (type(p.get('retireFlag')) is str and p['retireFlag'] == '0') for p in players))
++    personal_phase = PHASES[0] if personal_ok and not trial_present else PHASES[1] if post_trial else None
+@@ -263,0 +289,8 @@ def _convert(program_raw, race_raw, dom_raw, metadata, *, now, source_rights_ref
++    if post_trial:
++        audit['post_trial_observation'] = dict(
++            basis='CURRENT_PROGRAM_DRIVER_BOUND_TRIAL_SECONDS', input_scope='PERSONAL_B_ONLY_SHARED_MODELS_P0',
++            source_ref=evidence[0]['source_ref'], source_sha256=evidence[0]['source_sha256'],
++            request_body_sha256=request_hashes['Program'], **source_clocks['Program'],
++            driver_trials=[dict(car_no=p['carNo'], player_id=str(p['playerCode']),
++                                trial_seconds=trials[p['carNo']]) for p in sorted(players,key=lambda p:p['carNo'])],
++            published_at=None, upstream_publication_verified=False)
+@@ -269 +302,4 @@ def _convert(program_raw, race_raw, dom_raw, metadata, *, now, source_rights_ref
+-    if personal_ok and not trial_present:
++    if personal_phase is not None:
++        selected_drivers = drivers if personal_phase == PHASES[0] else [dict(
++            d, trial_seconds=trials[d['car_no']], trial_observed_at=source_clocks['Program']['body_captured_at'])
++            for d in drivers]
+@@ -272 +308 @@ def _convert(program_raw, race_raw, dom_raw, metadata, *, now, source_rights_ref
+-            sales_cutoff_at=race['sales_cutoff_at'], as_of_at=now.isoformat(), phase=PHASES[0],
++            sales_cutoff_at=race['sales_cutoff_at'], as_of_at=now.isoformat(), phase=personal_phase,
+@@ -274 +310 @@ def _convert(program_raw, race_raw, dom_raw, metadata, *, now, source_rights_ref
+-            drivers=sorted(drivers, key=lambda d:d['car_no']))
++            drivers=sorted(selected_drivers, key=lambda d:d['car_no']))
+@@ -281 +317,2 @@ def _convert(program_raw, race_raw, dom_raw, metadata, *, now, source_rights_ref
+-        states['autorace/'+PERSONAL] = dict(state='READY', reason='OBSERVED_PRE_TRIAL_NATIVE_INPUT')
++        states['autorace/'+PERSONAL] = dict(state='READY', reason=(
++            'OBSERVED_PRE_TRIAL_NATIVE_INPUT' if personal_phase == PHASES[0] else 'OBSERVED_POST_TRIAL_NATIVE_INPUT'))
+@@ -294,0 +332,4 @@ def _convert(program_raw, race_raw, dom_raw, metadata, *, now, source_rights_ref
++    pre_state = states['autorace/'+PERSONAL] if not trial_present else dict(state='HOLD', reason='CURRENT_TRIAL_OBSERVED')
++    post_state = (dict(state='READY', reason='OBSERVED_PERSONAL_POST_TRIAL_NATIVE_INPUT',
++                      cell_keys=['autorace/'+PERSONAL], shared_input_stage='P0') if post_trial else
++                  dict(state='HOLD', reason='CURRENT_TRIAL_NOT_OBSERVED' if not trial_present else 'COMPLETE_EIGHT_CURRENT_TRIALS_REQUIRED'))
+@@ -296,2 +337 @@ def _convert(program_raw, race_raw, dom_raw, metadata, *, now, source_rights_ref
+-        phase_states={PHASES[0]:states['autorace/'+PERSONAL], PHASES[1]:dict(state='HOLD', reason=
+-            'CURRENT_TRIAL_NOT_OBSERVED' if not trial_present else 'POST_TRIAL_NOT_BUILT_BY_PRE_TRIAL_ADAPTER')},
++        phase_states={PHASES[0]:pre_state, PHASES[1]:post_state},
+diff --git a/tests/test_autorace_official_sparse_adapter.py b/tests/test_autorace_official_sparse_adapter.py
+index fc8195df..0dac3e35 100644
+--- a/tests/test_autorace_official_sparse_adapter.py
++++ b/tests/test_autorace_official_sparse_adapter.py
+@@ -2,0 +3 @@ from copy import deepcopy
++import base64
+@@ -72,0 +74,9 @@ def reseal_source(data, field):
++def post_trial_fixture():
++    data = fixture()
++    for player, trial in zip(data['program']['body']['playerList'],
++                             ('3.40', '3.41', '3.42', '3.43', '3.44', '3.45', '3.46', '3.47')):
++        player['trialRunTime'] = trial
++    reseal_source(data, 'program')
++    return data
++
++
+@@ -267,0 +278,162 @@ class AutoraceOfficialSparseAdapterTests(unittest.TestCase):
++    def test_complete_eight_current_trials_build_only_personal_b_with_original_source_clocks(self):
++        data = post_trial_fixture(); before = deepcopy(data)
++        converted = self.build(data)
++        self.assertEqual(len(converted['requests']), 6, 'complete driver-bound trials need the existing personal B input')
++        requests = {r['cell_key']:r['native_payload'] for r in converted['requests']}
++        personal = requests['autorace/'+PERSONAL]; snapshot = personal['snapshot']
++        self.assertEqual(set(personal), {'snapshot', 'scope', 'source_evidence', 'adapter_lineage',
++                                         'source_audit_sha256', 'registered_roster'})
++        self.assertEqual(set(snapshot), {'schema', 'entry_kind', 'race', 'drivers'})
++        self.assertEqual(snapshot['race']['phase'], 'B_POST_TRIAL')
++        self.assertEqual(snapshot['race']['source_captured_at'], data['metadata']['ledger'][0]['body_captured_at'])
++        self.assertEqual([(d['car_no'], d['trial_seconds']) for d in snapshot['drivers']],
++                         [(1,3.40),(2,3.41),(3,3.42),(4,3.43),(5,3.44),(6,3.45),(7,3.46),(8,3.47)])
++        for driver in snapshot['drivers']:
++            self.assertEqual(set(driver), {'car_no', 'handicap_m', 'recent_finishes',
++                                           'trial_seconds', 'trial_observed_at'})
++            self.assertEqual(driver['trial_observed_at'], data['metadata']['ledger'][0]['body_captured_at'])
++        self.assertEqual(personal['registered_roster']['roster'], {str(n):str(1000+n) for n in range(1,9)})
++        self.assertEqual(personal['registered_roster']['source_sha256'], sha256(wire(data['program'])).hexdigest())
++        observed = personal['adapter_lineage']['post_trial_observation']
++        for field in ('request_started_at', 'response_received_at', 'body_captured_at'):
++            self.assertEqual(observed[field], data['metadata']['ledger'][0][field])
++        self.assertEqual(observed['source_sha256'], sha256(wire(data['program'])).hexdigest())
++        self.assertEqual(observed['request_body_sha256'], data['metadata']['ledger'][0]['request_body_sha256'])
++        self.assertIsNone(observed['published_at'])
++        self.assertFalse(observed['upstream_publication_verified'])
++        self.assertTrue(all(e['published_at'] is None for e in personal['source_evidence']))
++        self.assertEqual(converted['phase_states']['A_PRE_TRIAL']['state'], 'HOLD')
++        self.assertEqual(converted['phase_states']['B_POST_TRIAL']['state'], 'READY')
++        self.assertEqual(converted['phase_states']['B_POST_TRIAL']['cell_keys'], ['autorace/'+PERSONAL])
++        self.assertEqual(converted['phase_states']['B_POST_TRIAL']['shared_input_stage'], 'P0')
++        for cell, payload in requests.items():
++            if cell != 'autorace/'+PERSONAL:
++                self.assertEqual(payload['stage'], 'P0')
++                self.assertTrue(all('trial_time_quality' not in p['features'] for p in payload['snapshot']['participants']))
++        self.assertFalse(converted['independent_pre_cutoff_receipt_verified'])
++        self.assertFalse(converted['provider_model_training_permission_confirmed'])
++        self.assertFalse(converted['production_promoted'])
++        self.assertEqual(converted['source_requests'], 0)
++        self.assertEqual(data, before)
++
++    def test_post_trial_original_scorer_registry_capsules_and_exact_six_cell_case_agree(self):
++        from race_ai.autorace_personal_baseline import predict_personal
++        from race_ai.all_existing_model_inputs import _additional_source_pairs
++        from race_ai.all_existing_model_pairs import _native_input
++        from scripts.all_existing_model_source_packet_freeze import case_inputs
++        data = post_trial_fixture(); converted = self.build(data)
++        self.assertEqual(len(converted['requests']), 6)
++        known = {cell['cell_key']:cell for cell in registry.cells()}
++        expected_refs = set(map(tuple, converted['source_refs'])); stages = []
++        for request in converted['requests']:
++            payload = request['native_payload']; mid = request['cell_key'].split('/',1)[1]
++            self.assertEqual(_additional_source_pairs(payload, as_of=NOW.isoformat()), expected_refs)
++            capsule, info, sport = _native_input(request['cell_key'], payload, known, now=NOW,
++                allow_source=lambda ref,right,purpose:purpose=='analysis' and (ref,right) in expected_refs)
++            self.assertEqual(sport, 'autorace'); stages.append(info['stage'])
++            self.assertEqual(info['roster'], {str(n):str(1000+n) for n in range(1,9)})
++            if mid == PERSONAL:
++                original = predict_personal(payload['snapshot'], generated_at=NOW.isoformat())
++                replay = registry.predict(mid, sport, payload, at=NOW, allow_source=lambda *_:True)
++                self.assertEqual(replay['candidate_count'], 336)
++                self.assertEqual(replay['ordered_top8'], original['ordered_top8'])
++                self.assertEqual(replay['supplemental_four'], original['supplemental_four'])
++                self.assertEqual(replay['model_version'], '0.1.0-HEURISTIC-UNTRAINED')
++                self.assertEqual((len(replay['ordered_top8']), len(replay['supplemental_four'])), (8,4))
++        self.assertEqual((stages.count('B_POST_TRIAL'), stages.count('P0')), (1,5))
++        b64 = lambda raw:base64.b64encode(raw).decode('ascii')
++        case = dict(sport='autorace', program_raw_b64=b64(wire(data['program'])),
++                    race_info_raw_b64=b64(wire(data['race'])), rendered_dom_b64=b64(data['dom']),
++                    capture_metadata=data['metadata'],
++                    request_bodies_b64={sha:b64(raw) for sha,raw in data['request_bodies'].items()})
++        admitted = case_inputs(case, now=NOW)
++        self.assertEqual(admitted['state'], 'READY')
++        self.assertEqual({r['cell_key'] for r in admitted['requests']}, set(known)&{'autorace/'+mid for mid in (*ALL_MODELS,LEARNED_ID,PERSONAL)})
++        self.assertFalse(admitted['independent_pre_cutoff_receipt_verified'])
++
++    def test_post_trial_values_follow_registered_cars_after_source_reordering_and_accept_range_edges(self):
++        data = post_trial_fixture(); players = data['program']['body']['playerList']
++        players[0]['trialRunTime'] = 3.0
++        players[-1]['trialRunTime'] = 4.5
++        players.reverse(); reseal_source(data, 'program')
++        converted = self.build(data); self.assertEqual(len(converted['requests']), 6)
++        personal = next(r['native_payload'] for r in converted['requests'] if r['cell_key']=='autorace/'+PERSONAL)
++        expected = [(1,3.0),(2,3.41),(3,3.42),(4,3.43),(5,3.44),(6,3.45),(7,3.46),(8,4.5)]
++        self.assertEqual([(d['car_no'],d['trial_seconds']) for d in personal['snapshot']['drivers']], expected)
++        self.assertEqual(personal['registered_roster']['roster'], {str(n):str(1000+n) for n in range(1,9)})
++        self.assertEqual(personal['adapter_lineage']['post_trial_observation']['driver_trials'],
++                         [dict(car_no=n,player_id=str(1000+n),trial_seconds=seconds) for n,seconds in expected])
++
++    def test_missing_partial_malformed_or_out_of_range_trial_never_creates_a_or_b(self):
++        for value in (None, '', ' ', '-', '3.4s', '3,42', {}, [], True, False,
++                      'NaN', 'Infinity', '1e400', float('nan'), float('inf'), 2.99, 4.51):
++            data = post_trial_fixture(); data['program']['body']['playerList'][0]['trialRunTime'] = value
++            reseal_source(data, 'program'); converted = self.build(data)
++            with self.subTest(value=repr(value)):
++                self.assertEqual(converted['phase_states']['A_PRE_TRIAL']['state'], 'HOLD')
++                self.assertEqual(converted['phase_states']['B_POST_TRIAL']['state'], 'HOLD')
++                self.assertNotIn('autorace/'+PERSONAL, {r['cell_key'] for r in converted['requests']})
++                self.assertTrue(all(r['native_payload']['stage']=='P0' for r in converted['requests']))
++
++    def test_post_trial_initial_scope_requires_eight_confirmed_slots_and_registered_ids(self):
++        for kind in ('seven','duplicate_car','duplicate_id','history_id_mismatch','unknown_id','withdrawn','unknown_withdrawal'):
++            data = post_trial_fixture(); players = data['program']['body']['playerList']
++            if kind=='seven':
++                players.pop()
++                for length in (3,10):data['program']['body'][f'latest{length}List'].pop('1008')
++            elif kind=='duplicate_car':players[1]['carNo']=players[0]['carNo']
++            elif kind=='duplicate_id':players[1]['playerCode']=players[0]['playerCode']
++            elif kind=='history_id_mismatch':players[0]['playerCode']=9999
++            elif kind=='unknown_id':players[0]['playerCode']=None
++            elif kind=='withdrawn':players[0]['retireFlag']=1
++            else:players[0]['retireFlag']=None
++            reseal_source(data, 'program'); converted = self.build(data)
++            with self.subTest(kind=kind):
++                self.assertEqual(converted['phase_states']['A_PRE_TRIAL']['state'], 'HOLD')
++                self.assertEqual(converted['phase_states']['B_POST_TRIAL']['state'], 'HOLD')
++                self.assertNotIn('autorace/'+PERSONAL, {r['cell_key'] for r in converted['requests']})
++
++    def test_post_trial_withdrawal_flag_accepts_only_integer_or_string_zero(self):
++        for flag, ready in ((False,False),(0.0,False),(0,True),('0',True)):
++            data = post_trial_fixture()
++            for player in data['program']['body']['playerList']:
++                player['retireFlag'] = flag
++            reseal_source(data, 'program'); converted = self.build(data)
++            with self.subTest(flag_type=type(flag).__name__, flag=repr(flag)):
++                self.assertEqual(converted['phase_states']['A_PRE_TRIAL']['state'], 'HOLD')
++                self.assertEqual(converted['phase_states']['B_POST_TRIAL']['state'], 'READY' if ready else 'HOLD')
++                personal = [r for r in converted['requests'] if r['cell_key']=='autorace/'+PERSONAL]
++                self.assertEqual(len(personal), 1 if ready else 0)
++
++    def test_complete_trials_do_not_bypass_source_case_clocks_or_cutoff_margin(self):
++        changes = (
++            lambda d:d['metadata']['ledger'][0].update(source_sha256='f'*64),
++            lambda d:d['metadata']['ledger'][0].update(response_received_at=NOW.isoformat()),
++            lambda d:d['metadata']['ledger'][0].update(body_captured_at=(NOW+timedelta(seconds=1)).isoformat()),
++            lambda d:d['metadata'].update(captured_at=(NOW+timedelta(seconds=1)).isoformat()),
++            lambda d:d['metadata'].update(final_url=BASE+'Live/isesaki/Program/2030-01-15_2/program'),
++            lambda d:d['metadata']['ledger'][0].update(status=429),
++            lambda d:d['request_bodies'].clear(),
++        )
++        for mutate in changes:
++            data = post_trial_fixture(); mutate(data)
++            self.assertEqual(self.build(data)['state'], 'HOLD')
++        for at in (NOW.replace(hour=10,minute=56), NOW.replace(hour=10,minute=58), NOW-timedelta(minutes=1)):
++            self.assertEqual(self.build(post_trial_fixture(),now=at)['state'], 'HOLD')
++        self.assertEqual(self.build(post_trial_fixture(),now=NOW.replace(hour=10,minute=55,second=59))['phase_states']['B_POST_TRIAL']['state'], 'READY')
++
++    def test_complete_trials_never_self_admit_research_source_permission(self):
++        data = post_trial_fixture(); data['metadata']['scope'] = 'OPERATOR_SUPPLIED_RESEARCH'
++        converted = self.build(data); self.assertEqual(len(converted['requests']), 6)
++        personal = next(r['native_payload'] for r in converted['requests'] if r['cell_key']=='autorace/'+PERSONAL)
++        with self.assertRaises(ValueError):
++            registry.validate_payload(PERSONAL,'autorace',personal,at=NOW,allow_source=lambda *_:False)
++
++    def test_existing_no_trial_a_output_and_original_prediction_bytes_are_unchanged(self):
++        converted = self.build()
++        personal = next(r['native_payload'] for r in converted['requests'] if r['cell_key']=='autorace/'+PERSONAL)
++        prediction = registry.predict(PERSONAL,'autorace',personal,at=NOW,allow_source=lambda *_:True)
++        self.assertEqual(sha256(wire(converted)).hexdigest(), '10e0777d965375cbe2fa1425bb179be1205b049eb66128c0da02111bd5fd5af7')
++        self.assertEqual(sha256(wire(personal)).hexdigest(), '3a96842da8561e4a5b141db145447065c6125ad1030eed386dca19d4df91bb6b')
++        self.assertEqual(sha256(wire(prediction)).hexdigest(), '34cb658c58244b2fb08ffa132e66f9f9a7556f11ee8788c21450f162aa192340')
++

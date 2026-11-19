@@ -1,0 +1,30 @@
+{
+  "schema": "RACE_AI_LEGACY_REASON_ANCHOR_GUARD_ACTUAL_RED_V1",
+  "observed_at_utc": "2026-11-18T03:09:51Z",
+  "existing_pr": 41,
+  "test_head": "e12ea196e6cff896a1725414c18bc90be29f3c34",
+  "run_id": 44227915799,
+  "job_id": 134545539938,
+  "tests_run": 278,
+  "duration_seconds": 136.631,
+  "failures": 21,
+  "errors": 0,
+  "existing_tests_passed": 255,
+  "genuine_legacy_loss_control_tests_passed": 2,
+  "syntax_error": false,
+  "failure_scope": "21 explicit missing-publication-guard-module assertions",
+  "test_blob": "ba0f94702096cd4e43f7d682bb4b6346bdca6e4d",
+  "fixtures": [
+    "2062fc2f5e1648bb0fc4b5b199045713e5de3b9b",
+    "95956bfb870c11229f9e216b1b4dc8e15b551bdd"
+  ],
+  "tests_frozen": true,
+  "implementation": {
+    "blob": "b438b6ec63b5f8048755081ba1ce074a2d7a0823",
+    "static_review": "CLEAR",
+    "python_green_verified": false
+  },
+  "behavior": "Publication guard only; legacy update_view remains unchanged. Candidate/current per-row OBS/REJ validation and preservation of all prior history and exact ACTIVE anchors before encryption/commit/push.",
+  "publication_or_repair_performed": false,
+  "source_requests": 0
+}

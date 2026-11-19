@@ -1,0 +1,371 @@
+{
+  "schema": "RACE_AI_REAL_OWNER_LIVE_STEP_TIMING_SNAPSHOT_20261118_V1",
+  "repository": "haji84/RACE-AI",
+  "workflow_run_id": 44170869325,
+  "job_id": 134349278782,
+  "actual_source_sha": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+  "protected_future_source_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+  "authority": "Normal connected GitHub REST job API; observed state and timestamps only.",
+  "job_status": "in_progress",
+  "job_conclusion": null,
+  "p0_storage_steps": [
+    {
+      "number": 23,
+      "name": "Obtain first P0 from verified official B only if truly absent",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T20:36:46Z",
+      "completed_at": "2026-11-17T20:36:52Z"
+    },
+    {
+      "number": 24,
+      "name": "Protect first P0 before public artifact storage",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T20:36:52Z",
+      "completed_at": "2026-11-17T20:36:53Z"
+    },
+    {
+      "number": 25,
+      "name": "Save first P0 separately before reading results",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T20:36:53Z",
+      "completed_at": "2026-11-17T20:36:54Z"
+    },
+    {
+      "number": 26,
+      "name": "Read back original ZIP and create-only first receipt index",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T20:36:54Z",
+      "completed_at": "2026-11-17T20:37:03Z"
+    },
+    {
+      "number": 27,
+      "name": "Retain the exact first P0 and unchanged GitHub receipt beyond expiry",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T20:37:03Z",
+      "completed_at": "2026-11-17T20:37:12Z"
+    },
+    {
+      "number": 28,
+      "name": "Reuse authenticated first original, never silently regenerate it",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T20:37:12Z",
+      "completed_at": "2026-11-17T20:37:57Z"
+    },
+    {
+      "number": 29,
+      "name": "Retain the already captured official B for future native input replay",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T20:37:57Z",
+      "completed_at": "2026-11-17T20:38:07Z"
+    },
+    {
+      "number": 30,
+      "name": "Execute new-day P0 families from the authenticated first receipt",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T20:38:07Z",
+      "completed_at": "2026-11-17T20:38:47Z"
+    },
+    {
+      "number": 31,
+      "name": "Freeze additional new-day P0 as owner ciphertext",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T20:38:47Z",
+      "completed_at": "2026-11-17T20:38:49Z"
+    },
+    {
+      "number": 32,
+      "name": "Verify and retain additional new-day P0 originals",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T20:38:49Z",
+      "completed_at": "2026-11-17T20:39:15Z"
+    },
+    {
+      "number": 33,
+      "name": "Retain exact additional P0 execution and physical save receipt beyond expiry",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T20:39:15Z",
+      "completed_at": "2026-11-17T20:39:32Z"
+    },
+    {
+      "number": 34,
+      "name": "Publish authenticated new-day originals with the existing owner view",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T20:39:32Z",
+      "completed_at": "2026-11-17T20:40:00Z"
+    }
+  ],
+  "round_steps": [
+    {
+      "number": 38,
+      "name": "Deadline-ordered five-model round 01",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:20:00Z",
+      "completed_at": "2026-11-17T23:23:49Z",
+      "duration_seconds": 229
+    },
+    {
+      "number": 39,
+      "name": "Deadline-ordered five-model round 02",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:23:49Z",
+      "completed_at": "2026-11-17T23:26:02Z",
+      "duration_seconds": 133
+    },
+    {
+      "number": 40,
+      "name": "Deadline-ordered five-model round 03",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:26:02Z",
+      "completed_at": "2026-11-17T23:27:07Z",
+      "duration_seconds": 65
+    },
+    {
+      "number": 41,
+      "name": "Deadline-ordered five-model round 04",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:27:07Z",
+      "completed_at": "2026-11-17T23:30:37Z",
+      "duration_seconds": 210
+    },
+    {
+      "number": 42,
+      "name": "Deadline-ordered five-model round 05",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:30:37Z",
+      "completed_at": "2026-11-17T23:33:09Z",
+      "duration_seconds": 152
+    },
+    {
+      "number": 43,
+      "name": "Deadline-ordered five-model round 06",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:33:09Z",
+      "completed_at": "2026-11-17T23:38:46Z",
+      "duration_seconds": 337
+    },
+    {
+      "number": 44,
+      "name": "Deadline-ordered five-model round 07",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:38:46Z",
+      "completed_at": "2026-11-17T23:41:02Z",
+      "duration_seconds": 136
+    },
+    {
+      "number": 45,
+      "name": "Deadline-ordered five-model round 08",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:41:02Z",
+      "completed_at": "2026-11-17T23:43:33Z",
+      "duration_seconds": 151
+    },
+    {
+      "number": 46,
+      "name": "Deadline-ordered five-model round 09",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:43:33Z",
+      "completed_at": "2026-11-17T23:46:59Z",
+      "duration_seconds": 206
+    },
+    {
+      "number": 47,
+      "name": "Deadline-ordered five-model round 10",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:46:59Z",
+      "completed_at": "2026-11-17T23:48:51Z",
+      "duration_seconds": 112
+    },
+    {
+      "number": 48,
+      "name": "Deadline-ordered five-model round 11",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:48:51Z",
+      "completed_at": "2026-11-17T23:54:05Z",
+      "duration_seconds": 314
+    },
+    {
+      "number": 49,
+      "name": "Deadline-ordered five-model round 12",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:54:05Z",
+      "completed_at": "2026-11-17T23:56:43Z",
+      "duration_seconds": 158
+    },
+    {
+      "number": 50,
+      "name": "Deadline-ordered five-model round 13",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:56:43Z",
+      "completed_at": "2026-11-17T23:59:12Z",
+      "duration_seconds": 149
+    },
+    {
+      "number": 51,
+      "name": "Deadline-ordered five-model round 14",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-17T23:59:12Z",
+      "completed_at": "2026-11-18T00:01:58Z",
+      "duration_seconds": 166
+    },
+    {
+      "number": 52,
+      "name": "Deadline-ordered five-model round 15",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-18T00:01:58Z",
+      "completed_at": "2026-11-18T00:05:49Z",
+      "duration_seconds": 231
+    },
+    {
+      "number": 53,
+      "name": "Deadline-ordered five-model round 16",
+      "status": "in_progress",
+      "conclusion": null,
+      "started_at": "2026-11-18T00:05:49Z",
+      "completed_at": null,
+      "duration_seconds": null
+    },
+    {
+      "number": 54,
+      "name": "Deadline-ordered five-model round 17",
+      "status": "pending",
+      "conclusion": null,
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": null
+    },
+    {
+      "number": 55,
+      "name": "Deadline-ordered five-model round 18",
+      "status": "pending",
+      "conclusion": null,
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": null
+    },
+    {
+      "number": 56,
+      "name": "Deadline-ordered five-model round 19",
+      "status": "pending",
+      "conclusion": null,
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": null
+    },
+    {
+      "number": 57,
+      "name": "Deadline-ordered five-model round 20",
+      "status": "pending",
+      "conclusion": null,
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": null
+    },
+    {
+      "number": 58,
+      "name": "Deadline-ordered five-model round 21",
+      "status": "pending",
+      "conclusion": null,
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": null
+    },
+    {
+      "number": 59,
+      "name": "Deadline-ordered five-model round 22",
+      "status": "pending",
+      "conclusion": null,
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": null
+    },
+    {
+      "number": 60,
+      "name": "Deadline-ordered five-model round 23",
+      "status": "pending",
+      "conclusion": null,
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": null
+    },
+    {
+      "number": 61,
+      "name": "Deadline-ordered five-model round 24",
+      "status": "pending",
+      "conclusion": null,
+      "started_at": null,
+      "completed_at": null,
+      "duration_seconds": null
+    }
+  ],
+  "completed_success_step_count": 15,
+  "completed_step_duration_summary": {
+    "minimum_seconds": 65,
+    "maximum_seconds": 337,
+    "mean_seconds": 183.267,
+    "median_seconds": 158,
+    "over_300_seconds": 2
+  },
+  "independent_fixed_r0_count_proof": {
+    "run_id": 44190597556,
+    "job_id": 134418652671,
+    "artifact_id": 14367093570,
+    "contexts": 132,
+    "generated_forecasts": 660,
+    "projected_forecasts": 660,
+    "retained_original_slots": 264,
+    "waiting_exhibition_slots": 924,
+    "status": "FIXED_BOOTSTRAP_P0_COUNTS_VERIFIED",
+    "scope": "Fixed additional P0 payload only; first receipt264 is a distinct declaration."
+  },
+  "limits": {
+    "counted_as_actual_physical_rounds": false,
+    "live_p1_generation_inferred": false,
+    "qualification_denominator_proven": false,
+    "deadline_T15_T10_coverage_proven": false,
+    "full_day_coverage": false,
+    "all_four_sports": false,
+    "efficacy_proven": false,
+    "worker_restarted_or_cancelled": false,
+    "counters_reset": false,
+    "owner_key_read_or_exported": false,
+    "official_source_gets_from_audit": 0,
+    "goal_complete": false
+  },
+  "notes": [
+    "Step duration includes source work, local replay and retention; precise operation breakdown needs completed authenticated job logs.",
+    "Two completed round steps exceed five minutes. This alone neither proves nor disproves per-race deadline qualification.",
+    "No successful step label or artifact existence is interpreted as generated forecasts, complete-day coverage or native model accuracy."
+  ],
+  "observation_interval_utc": {
+    "after": "2026-11-18T00:09:55Z",
+    "before": "2026-11-18T00:11:06Z"
+  },
+  "recorded_at_utc": "2026-11-18 00:11:22 UTC"
+}

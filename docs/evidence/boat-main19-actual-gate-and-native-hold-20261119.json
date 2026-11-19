@@ -1,0 +1,120 @@
+{
+  "schema": "RACE_AI_MAIN19_ACTUAL_MERGE_AND_GATE_COUNTS_V1",
+  "recorded_at_utc": "2026-11-18T17:21:18.838541+00:00",
+  "main": {
+    "merge": "bc40906cf2246ba12ad698bb71e6fec492ab7675",
+    "tree": "48fafe1fb44083e47f910db9b85c1ae429840e62",
+    "pr": 19,
+    "tested_head": "d48eee4d7437b6d3711db062ad71d51d4739394e",
+    "tested_tree_matches": true,
+    "normal_protected_merge": true
+  },
+  "source": {
+    "sha": "fbc743be548bfd123e46cdbfe290515a59e5e0d3",
+    "tree": "1068d5a0d1225e0638a31528f8031a5b8e9fc584",
+    "pr": 21
+  },
+  "final_ci": {
+    "checks": 28,
+    "success": 13,
+    "skipped": 15,
+    "failures": 0,
+    "recovery": {
+      "run": 44354636669,
+      "job": 134979300830,
+      "tests": 138,
+      "seconds": 0.521
+    },
+    "matrix": {
+      "run": 44354636493,
+      "job": 134979299075,
+      "tests": 372,
+      "seconds": 152.917,
+      "additional_tests": 7,
+      "additional_seconds": 13.974
+    },
+    "native_checker_source_free": {
+      "run": 44354636418,
+      "job": 134979298998,
+      "tests": 140,
+      "seconds": 18.319,
+      "public_f603_four_assets_match": true
+    }
+  },
+  "actual_launcher": {
+    "run": 44355714905,
+    "job": 134983145756,
+    "metadata_conclusion": "success",
+    "log_source": "Authenticated official GitHub whole-run log ZIP; job-log fetch errored and old CLI single-job view returned empty. Empty/error responses were not treated as proof.",
+    "reports": [
+      {
+        "dispatch_allowed": false,
+        "official_source_requests": 0,
+        "recovery_required": false,
+        "release_sha": "fbc743be548bfd123e46cdbfe290515a59e5e0d3",
+        "status": "HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW"
+      },
+      {
+        "dispatch_requested": true,
+        "native_verification_proven": false,
+        "request_acknowledged": true,
+        "request_attempted": true,
+        "status": "NATIVE_SAFARI_DISPATCH_REQUESTED"
+      }
+    ],
+    "owner_source_dispatch_occurred": false,
+    "source_gets": 0,
+    "originals_or_counters_reset": false
+  },
+  "actual_native": {
+    "run": 44355781785,
+    "job": 134983398274,
+    "head": "bc40906cf2246ba12ad698bb71e6fec492ab7675",
+    "event": "workflow_dispatch",
+    "created_at_utc": "2026-11-18T17:11:10Z",
+    "completed_metadata_at_utc": "2026-11-18T17:15:41Z",
+    "conclusion": "failure",
+    "unit_tests": 140,
+    "unit_seconds": 52.232,
+    "status": "NATIVE_SAFARI_ACCEPTANCE_HOLD",
+    "reason": "CURRENT_V5_REPLAY_INVALID",
+    "checker_function": "main",
+    "checker_line": 1614,
+    "callsite": "read_current_v5_replay",
+    "precise_inner_replay_rejection_condition_confirmed": false,
+    "native_candidate_capture_after_private_stage_proven": false,
+    "candidate_code_pin": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+    "candidate_web_tree": "d905215e2f886b0bcc4f2e58323ceee465b03c38",
+    "repeat_or_direct_dispatch_by_root": false,
+    "guards_or_clocks_relaxed": false,
+    "physical_iphone_proven": false
+  },
+  "ui_preservation": {
+    "code": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+    "evidence_and_png_head": "1e97e66031c3a48467029587bd29f2f6ab669df2",
+    "generated_synthetic_previews": 8,
+    "preview_bytes": 2374519,
+    "all_eight_reference_acceptance": "PARTIAL",
+    "public_assets_basis": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+    "website_assets_published_by_root": false
+  },
+  "limits": {
+    "keirin_403_or_429_resolved": false,
+    "actual_four_sport_all_race_coverage_proven": false,
+    "t15_to_t10_proven": false,
+    "real_six_boat_independent_gt_and_calibration_proven": false,
+    "real_prospective_improvement_proven": false,
+    "offline_pr70_and_pr292_restored": false,
+    "new_pr_model_job_input_cron_runner_timeout_permission_cost_plan": false,
+    "wager_or_production_weight_switch": false,
+    "goal_complete": false
+  },
+  "post_merge_fixed_readback": {
+    "run": 44355714989,
+    "job": 134983143952,
+    "conclusion": "success",
+    "evidence": "boat-mainbc-fixed-source-readback-20261119.json",
+    "new_source_fbc_worker_scope": false,
+    "fresh_forecasts_generated": 0
+  }
+}

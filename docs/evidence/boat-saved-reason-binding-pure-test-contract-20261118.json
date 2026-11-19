@@ -1,0 +1,144 @@
+{
+  "kind": "TESTS_ONLY_AES_BASE_REASON_BINDING_DIAGNOSTIC",
+  "repository": "haji84/RACE-AI",
+  "file": {
+    "path": "tests/test_boat_saved_reason_binding_audit.py",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "2c652533c4aa18d173ec2b3f8fa5d9b2b5d77037",
+    "bytes": 16679,
+    "test_methods": 12
+  },
+  "tree_elements": [
+    {
+      "path": "tests/test_boat_saved_reason_binding_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2c652533c4aa18d173ec2b3f8fa5d9b2b5d77037"
+    }
+  ],
+  "required_api": "scripts.boat_saved_reason_binding_audit.diagnose_view(view, *, guard, origin='AES_BASE')",
+  "guard": {
+    "existing_checkout_path": "owner-source/race_ai/boat_saved_model_view.py",
+    "required_git_blob": "e6db8d720aa151940e01f377831a5884eb4b2ba9",
+    "loading": "Test setup dynamically loads this exact existing guard and checks its canonical Git blob SHA. No replacement or mocked guard. Missing audit module imports before guard setup for a proper initial missing-module RED.",
+    "production_guard_changes": false
+  },
+  "report": {
+    "schema": "RACE_AI_SAVED_REASON_BINDING_COUNTS_V1",
+    "origin": "AES_BASE",
+    "normal_statuses": [
+      "NO_BINDING_INCONSISTENCY_IN_THIS_VIEW",
+      "BINDING_INCONSISTENCY_FOUND"
+    ],
+    "counts": {
+      "observation": {
+        "active_count": 0,
+        "history_count": 0,
+        "missing_active_anchor": 0,
+        "invalid_active_reason_metadata": 0,
+        "invalid_history_reason_metadata": 0,
+        "source_sha_absent_active": 0,
+        "source_sha_absent_history": 0,
+        "source_sha_different": 0,
+        "non_reason_body_mismatch": 0,
+        "clock_text_mismatch": 0,
+        "compared_active_history_pairs": 0,
+        "other_guard_failures": 0
+      },
+      "rejection": {
+        "active_count": 0,
+        "history_count": 0,
+        "missing_active_anchor": 0,
+        "invalid_active_reason_metadata": 0,
+        "invalid_history_reason_metadata": 0,
+        "source_sha_absent_active": 0,
+        "source_sha_absent_history": 0,
+        "source_sha_different": 0,
+        "non_reason_body_mismatch": 0,
+        "clock_text_mismatch": 0,
+        "compared_active_history_pairs": 0,
+        "other_guard_failures": 0
+      }
+    },
+    "originals_changed": false,
+    "observations_reconciled": 0,
+    "source_requests": 0,
+    "publication_performed": false,
+    "forecast_generated": false,
+    "broader_goals_proven": false
+  },
+  "hold_report": {
+    "schema": "RACE_AI_SAVED_REASON_BINDING_COUNTS_V1",
+    "origin": "AES_BASE",
+    "status": "HOLD",
+    "reason": "INPUT_OR_GUARD_INVALID",
+    "counts": null,
+    "originals_changed": false,
+    "observations_reconciled": 0,
+    "source_requests": 0,
+    "publication_performed": false,
+    "forecast_generated": false,
+    "broader_goals_proven": false
+  },
+  "report_shape": "Pure API returns exactly these top-level fields. reason exists only for HOLD. Counts axes are exactly observation and rejection, each containing exactly the twelve named nonnegative integer counters (not booleans). Only origin AES_BASE is accepted; untrusted origin is never echoed. I/O wrapper metadata belongs outside this pure API.",
+  "counter_meanings": {
+    "active_count": "Total active dictionaries in the side's arrays across the scanned records.",
+    "history_count": "Total sidecar original dictionaries in the side's arrays.",
+    "missing_active_anchor": "One per history item without the guard's exact active identity key.",
+    "invalid_active_reason_metadata": "Active dictionaries failing the pinned guard's _reason_metadata for this side.",
+    "invalid_history_reason_metadata": "History dictionaries failing the pinned guard's _reason_metadata for this side.",
+    "source_sha_absent_active": "Active dictionaries with missing or null source_sha256.",
+    "source_sha_absent_history": "History dictionaries with missing or null source_sha256.",
+    "source_sha_different": "Different present source SHAs for an exact active/history pair; additionally, a rejection orphan can count when a same-instant active entry has a present differing SHA. Do not select or guess an orphan's body.",
+    "non_reason_body_mismatch": "Exact guard _wire comparison differs after removing only reason, for exact active/history identity pairs. Includes clock, source, data, provenance and unknown-field differences.",
+    "clock_text_mismatch": "Exact matched pair has equal parsed capture instant but different captured_at text.",
+    "compared_active_history_pairs": "One per history item with the guard's exact active key; orphan diagnostic source checks do not add guessed pairs.",
+    "other_guard_failures": "Zero only after a complete scan with no non-binding guard failure. Any such failure yields HOLD with the entire counts value null."
+  },
+  "authority": "BINDING_INCONSISTENCY_FOUND is tied to the pinned guard's SAVED_MODEL_VIEW_RESULT_REASON_VARIANT_BINDING outcome. Existing guard calls remain unchanged and continue rejecting every bad synthetic binding before and after diagnosis. Any other guard error or invalid view shape atomically returns HOLD/counts=null, even after an earlier binding finding.",
+  "coverage": [
+    "Valid full two-original histories for observations and rejections independently, empty view and active observations without a sidecar.",
+    "Missing active anchors without reconstruction or mutation.",
+    "Present source mismatch: observation exact key still compares both pairs; rejection hash key produces one orphan and only one exact pair, while counting present differing same-instant source.",
+    "Absent active/history SHA values remain absent and count separately.",
+    "Unknown non-reason fields remain exact, strengthen the binding rejection, and never become report key names.",
+    "Invalid active versus invalid history reason metadata counts independently for both guard modes.",
+    "Equivalent capture instants with different text remain non-reason mismatches and binding failures.",
+    "Singleton/duplicate histories, invalid clock, invalid active shape and a later other-guard failure force HOLD with null whole-report counts.",
+    "Malformed top-level views and every unapproved origin hold without input/error reflection.",
+    "Serialization roundtrip, exact input dictionary/wire preservation, fixed-output privacy and all effect/goal flags false."
+  ],
+  "methods": [
+    "test_valid_histories_count_observations_and_rejections_independently",
+    "test_no_sidecar_and_empty_view_do_not_invent_inconsistencies",
+    "test_missing_active_anchors_are_findings_without_reconstructing_originals",
+    "test_source_mismatch_respects_each_guards_identity_without_guessing_a_body",
+    "test_missing_source_hashes_are_counted_without_inventing_source_values",
+    "test_unknown_non_reason_fields_remain_exact_and_never_become_output_names",
+    "test_invalid_active_and_history_reason_metadata_are_counted_separately",
+    "test_equivalent_instants_keep_their_exact_clock_text_binding",
+    "test_other_guard_failures_hold_the_whole_report_with_null_counts",
+    "test_invalid_view_shapes_and_unapproved_origins_hold_without_echoing_input",
+    "test_serialization_roundtrip_keeps_results_and_inputs_byte_equivalent",
+    "test_reports_only_fixed_metadata_counts_and_false_broader_goal_flags"
+  ],
+  "scope": {
+    "tests_only": true,
+    "no_runtime_authored": true,
+    "no_guard_or_publisher_change": true,
+    "no_workflow_write": true,
+    "no_ref_mutation": true,
+    "no_source_provider_get": true,
+    "no_private_data_or_key_read": true,
+    "no_process_started": true
+  },
+  "verification": {
+    "published_test_blob_exact_readback": true,
+    "whole_file_short_quoted_string_newline_scan_clear": true,
+    "python_parse_executed": false,
+    "tests_executed": false,
+    "proper_missing_module_red_observed": false
+  },
+  "required_next_action": "Root registers the test module in the existing national unit command and observes fresh actual missing-module RED before authoring diagnostic runtime. No new job/permission/input/cron/runner/timeout/prefix/marker. Root owns the existing-step read-only AES-base I/O wrapper and authenticated metadata."
+}

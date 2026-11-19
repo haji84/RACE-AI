@@ -1,0 +1,224 @@
+{
+  "observed_at_jst": "2026-11-19T01:25:07+09:00",
+  "repository": "haji84/RACE-AI",
+  "base_main_sha": "7584fc3d9d60aa2a548a43281041f66cf0ce9681",
+  "evidence_scope": "Authenticated GitHub metadata and proper completed job stdout; count/status metadata only. No additional provider requests.",
+  "actual_run": {
+    "id": 44342598507,
+    "workflow": ".github/workflows/keirin-pr71-owner-autonomous.yml",
+    "event": "workflow_dispatch",
+    "branch": "main",
+    "head_sha": "7584fc3d9d60aa2a548a43281041f66cf0ce9681",
+    "created_at_jst": "2026-11-19T01:02:45+09:00",
+    "completed_at_jst": "2026-11-19T01:03:18+09:00",
+    "status": "completed",
+    "conclusion": "success",
+    "total_jobs": 6,
+    "successful_jobs": 3,
+    "skipped_jobs": 3,
+    "event_is_schedule": false,
+    "scheduled_autonomy_proven_by_this_run": false
+  },
+  "log_provenance": {
+    "method": "GitHub authenticated connector fetch_workflow_job_logs; decoded structuredContent.content from completed jobs.",
+    "raw_logs_published_or_committed": false,
+    "echoed_workflow_source_not_used_as_actual_stdout": true,
+    "parsed_actual_json_rows_have_original_log_timestamps": true,
+    "job_completion_markers_observed": true,
+    "preflight_log_character_count": 29640,
+    "cycle_log_character_count": 27286,
+    "readiness_log_character_count": 14333,
+    "verified_checkout_sha_stdout": {
+      "public_preflight": [
+        {
+          "at_utc": "2026-11-18T16:02:55.9560100Z",
+          "checkout_commit_output": "fe7e5581263b2b31fbd45536ac6a611c2779fa65"
+        },
+        {
+          "at_utc": "2026-11-18T16:02:56.5089577Z",
+          "checkout_commit_output": "7584fc3d9d60aa2a548a43281041f66cf0ce9681"
+        }
+      ],
+      "hosted_cycle": [
+        {
+          "at_utc": "2026-11-18T16:03:12.5867268Z",
+          "checkout_commit_output": "7584fc3d9d60aa2a548a43281041f66cf0ce9681"
+        },
+        {
+          "at_utc": "2026-11-18T16:03:13.3928932Z",
+          "checkout_commit_output": "fe7e5581263b2b31fbd45536ac6a611c2779fa65"
+        }
+      ],
+      "config_readiness": [
+        {
+          "at_utc": "2026-11-18T16:03:00.9905955Z",
+          "checkout_commit_output": "7584fc3d9d60aa2a548a43281041f66cf0ce9681"
+        }
+      ]
+    }
+  },
+  "configuration_readiness": {
+    "job_id": 134936342795,
+    "conclusion": "success",
+    "actual_output_at_utc": "2026-11-18T16:03:04.1252722Z",
+    "actual_output_at_jst": "2026-11-19T01:03:04.1252722+09:00",
+    "actual_status": {
+      "schema": "RACE_AI_KEIRIN_LIVE_PILOT_SOURCE_CONFIGURATION_V1",
+      "status": "OWNER_APPROVED_PUBLIC_RESEARCH_CANDIDATE_COLLECTION_ONLY",
+      "source_mode": "EXISTING_OWNER_PUBLIC_PAGE_RESEARCH",
+      "eligible_to_attempt_existing_owner_admission": true,
+      "owner_profile_attested_by_existing_configuration": true,
+      "source_rights_verified": false,
+      "complete_model_inputs_verified": false,
+      "official_result_authenticated": false,
+      "provider_requests_by_readiness": 0
+    },
+    "optional_provider_config_unset_count": 4,
+    "missing_config_name_count": 0,
+    "interpretation": "Existing owner-approved public research collection was eligible; optional export configuration was not a prerequisite for this attempt. Configuration eligibility does not certify all model inputs or source-rights evidence."
+  },
+  "public_preflight": {
+    "job_id": 134936343449,
+    "conclusion": "success",
+    "source_pin": "fe7e5581263b2b31fbd45536ac6a611c2779fa65",
+    "actual_output_at_utc": "2026-11-18T16:02:59.8597742Z",
+    "actual_output_at_jst": "2026-11-19T01:02:59.8597742+09:00",
+    "actual_count_status_output": {
+      "status": "DAY_INDEX_SOURCE_UNAVAILABLE",
+      "source_races_observed": null,
+      "eligible_unstarted_races": null,
+      "rider_identity_count": null,
+      "preflight_checked_count": null,
+      "preflight_verified_source_count": null,
+      "required_source_slots_A_missing": null,
+      "critical_preflight_source_slots_missing": null,
+      "real_full_odds_verified": false,
+      "actual_model_prediction_saved": null
+    },
+    "source_origin_output_at_utc": "2026-11-18T16:02:59.9199363Z",
+    "source_origin_state": "HOLD_SOURCE_ORIGIN_COUNTS_NOT_OBSERVED",
+    "exact_http_status": null,
+    "interpretation": "DAY_INDEX_SOURCE_UNAVAILABLE is a generic unavailable result. It does not independently identify HTTP403, HTTP429, parser failure or another source-read error."
+  },
+  "hosted_cycle": {
+    "job_id": 134936585426,
+    "conclusion": "success",
+    "source_pin": "fe7e5581263b2b31fbd45536ac6a611c2779fa65",
+    "actual_output_at_utc": "2026-11-18T16:03:14.8780935Z",
+    "actual_output_at_jst": "2026-11-19T01:03:14.8780935+09:00",
+    "actual_count_status_output": {
+      "state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT",
+      "generation": null,
+      "source_state": "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED",
+      "new_forecast_stage_nonzero": null,
+      "existing_pdca_invoked": null,
+      "result_rows_appended": null,
+      "result_rows_held": null,
+      "four_model_variable_saved": null,
+      "four_model_variable_held": null,
+      "official_result_independently_authenticated": null,
+      "owner_source_acquisition": {
+        "schema": "RACE_AI_KEIRIN_CLOUD_OWNER_SOURCE_CONNECTION_V1",
+        "state": "OWNER_ATTESTED_SOURCE_ACQUISITION_ONLY",
+        "new_pre_race_inputs": 0,
+        "public_page_requests": 1,
+        "provider_denial_stopped_requests": true,
+        "source_capture_held": true,
+        "date_jst": "2026-11-19",
+        "source_day_schedule_race_count": null,
+        "actual_four_model_forecast_saved": false,
+        "provider_machine_rights_independently_verified": false,
+        "permanent_encrypted_storage_claimed": false
+      }
+    },
+    "exact_http_status": null,
+    "default_fetch_denial_category": "HTTP403_OR_HTTP429_COMBINED_BY_EXISTING_HELPER",
+    "exact_403_distinguished_from_429": false,
+    "retry_after_for_this_actions_request": null,
+    "denial_issuer_or_specific_network_cause_independently_identified": false,
+    "independent_readback_job": {
+      "id": 134936708254,
+      "conclusion": "skipped"
+    },
+    "verified_total_forecast_count": null,
+    "verified_total_result_count": null,
+    "interpretation": "One acquisition request was counted and the denial circuit stopped subsequent requests. No new pre-race input was staged and no four-model forecast was saved in that collection. Job success represents the intended HOLD, not successful source admission, production AES generation or PDCA completion."
+  },
+  "exact_status_semantics": {
+    "source_helper": "race_ai/keirin_owner_public_page_fetch.py:74-77 at fe7e5581263b2b31fbd45536ac6a611c2779fa65",
+    "helper_combines_403_and_429": true,
+    "helper_error_code": "PUBLIC_PAGE_BLOCKED_OR_RATE_LIMITED_NO_RETRY",
+    "cycle_denial_latch": "scripts/keirin_cloud_owner_inputs.py:86-94",
+    "latest_fe7_exact_403_claim_supported": false,
+    "separately_preserved_exact_capture_failure": {
+      "run_id": 44310295802,
+      "job_id": 134822438215,
+      "source_pin": "c26ac0927647f317acf855e0c42cd1703232c19b",
+      "actual_failure_at_jst": "2026-11-18T22:07:21.7396366+09:00",
+      "actual_code": "DAILY_INDEX_HTTP_403",
+      "exact_http_status": 403,
+      "final_guard": "NO_VERIFIED_DAILY_CATALOG_OR_REPLAY",
+      "evidence_path": "docs/evidence/keirin-canary-actual-20261118-1307.json",
+      "source_role": "c26 browser capture's generic public racecard index",
+      "configured_provider_from_pinned_code": "WINTICKET",
+      "provider_identity_basis": "race_ai/keirin_daily_public_catalog.py:18 SOURCE_RACECARD and scripts/keirin_daily_public_discovery.py:22-25,48 at c26.",
+      "keirin_jp_http403_proven_by_this_record": false,
+      "not_the_same_request_or_route_as_latest_fe7_owner_cycle": true
+    }
+  },
+  "separate_local_browser_observation": {
+    "observed_at_jst": "2026-11-19T00:37:12.268431+09:00",
+    "mode": "One approved clean-context local browser connectivity diagnostic, separate from production intake",
+    "browser": "Stock system Chromium155.0.8059.79 via default headless Playwright",
+    "http_status": 200,
+    "index_parser_passed": true,
+    "published_ssr_race_count": 75,
+    "published_ssr_candidate_url_count": 75,
+    "same_jst_day_as_actions_attempt": true,
+    "same_approved_dated_index_route_as_fe7_owner_cycle": true,
+    "allowed_index_navigation_requests": 1,
+    "additional_requests_blocked_before_transport": 18,
+    "redirects_followed": 0,
+    "card_or_odds_followups": 0,
+    "raw_html_or_screenshots_retained": false,
+    "status_counts_receipt_sha256": "faca724205d6d4efcec2203b0b8e0327422dfad8674b20baaf76d8e96a7b212d",
+    "counted_as_an_actions_success": false,
+    "proves_complete_347_or_437_inputs": false
+  },
+  "separate_user_observation": {
+    "evidence_type": "User-reported visibility only",
+    "device": "iPhone13 Pro",
+    "app": "Safari",
+    "observation": "The approved current-day WINTICKET page displays the race meeting list.",
+    "independently_measured_http_status": null,
+    "treated_as_vendor_credentials_or_complete_model_data": false,
+    "prior_personal_use_intent_accepted": true,
+    "user_reports_no_technical_input_or_configuration_bundle": true,
+    "repeated_technical_configuration_or_permission_input_request_required": false
+  },
+  "latest_status_correction": {
+    "target_file": "docs/RACE_AI_LATEST_STATUS.md",
+    "base_main_line": 44,
+    "incorrect_exact_status_statement": "競輪の403は承認済みfe7のWINTICKET日次index応答で起き、catalog/解析/modelより前で停止する。",
+    "correction_required": "fe7の最新Actionsは日次index未取得でHOLDし、1request後に403/429共通の拒否停止を記録した。fe7はHTTPコードを合算しているため403単独と断定できない。exact403は別のc26 capture run44310295802/job134822438215の記録で確認済み。ローカル通常Chromiumの当日index200/SSR75と、iPhone13Pro Safariの開催一覧表示というユーザー報告は、それぞれ別の証拠として扱う。",
+    "status_body_changed_by_this_commit": false,
+    "broader_inference": "The same dated index is accessible from the local browser and user-reported Safari while the later hosted Actions acquisition stopped. Time, client and execution/network environment differ; IP, geo, authentication, bot controls, proxy or origin-specific cause is not established.",
+    "missing_user_use_intent_claimed_as_failure_cause": false,
+    "actions_denial_resolved": false,
+    "complete_forecast_pipeline_or_all_races_proven": false
+  },
+  "audit_actions": {
+    "new_provider_gets": 0,
+    "new_browser_navigations": 0,
+    "github_metadata_reads": true,
+    "proper_completed_job_logs_read": 3,
+    "key_values_retrieved": 0,
+    "private_source_urls_exported": false,
+    "raw_html_exported": false,
+    "raw_prediction_originals_exported": false,
+    "permissions_or_credentials_changed": false,
+    "workflows_jobs_pins_models_weights_or_state_changed": false,
+    "new_prs_or_dispatches": 0,
+    "repository_change_scope": "This evidence JSON only"
+  }
+}

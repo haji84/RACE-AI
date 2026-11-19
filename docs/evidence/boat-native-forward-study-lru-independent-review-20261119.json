@@ -1,0 +1,113 @@
+{
+  "schema": "RACE_AI_STUDY_LRU_FOLLOWUP_INDEPENDENT_REVIEW_V1",
+  "verdict": "CLEAR",
+  "commit": "9b10cba7c17abe92523aeb991dedc963aef79de0",
+  "tree": "4eed966e5350983f48bf564a103f7b74a2f0d731",
+  "parent_commit": "5afaca1538417e4ee9c7071f07865b79bf98f906",
+  "initial_reproducer": {
+    "schema": "RACE_AI_STUDY_TRANSPORT_SCALE_REPRO_V1",
+    "fixture_kind": "PUBLIC_SYNTHETIC_BYTES_NO_ARCHIVE_NO_KEY",
+    "response_bytes": 7607140,
+    "target_responses": 100,
+    "target_download_bytes": 760714000,
+    "transport_total_limit_bytes": 536870912,
+    "first_rejected_response": 71,
+    "accepted_responses": 70,
+    "observed_get_calls": 71,
+    "total_counter_at_rejection": 540106940,
+    "all_fixture_bytes_created_in_memory": true,
+    "external_requests": 0,
+    "actual_archives_or_keys_read": 0
+  },
+  "fixed_scale": {
+    "schema": "RACE_AI_STUDY_SCALE_FOLLOWUP_INDEPENDENT_V1",
+    "commit": "9b10cba7c17abe92523aeb991dedc963aef79de0",
+    "synthetic_only": true,
+    "response_bytes": 7607140,
+    "initial_unique_responses": 100,
+    "downloaded_bytes_after_100": 760714000,
+    "downloaded_bytes_after_evicted_reread": 768321140,
+    "get_calls_after_reread": 101,
+    "logical_resident_payload_bytes": 532499800,
+    "resident_limit_bytes": 536870912,
+    "small_cache_LRU_hit_eviction_reread": true,
+    "single_response_64MiB_limit_preserved": true,
+    "namespace_preserved": true,
+    "actual_archives_or_keys_read": 0,
+    "external_requests": 0,
+    "author_files_unchanged": true,
+    "actual_matched_races_or_five_days_proven": false,
+    "whole_process_memory_claimed": false
+  },
+  "independent_tests": {
+    "tests": 89,
+    "seconds": 105.89,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "external_network_attempts": 0,
+    "files_stable": true
+  },
+  "unittest_reported_seconds": 105.705,
+  "author_full_suite": {
+    "tests": 400,
+    "seconds": 250.257,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "external_network_attempts": 0
+  },
+  "author_unittest_seconds": 249.976,
+  "author_tested_two_file_hashes_match_independent_seven_file_snapshot": true,
+  "file_hashes": {
+    "scripts/boat_current_pair_eligibility_audit.py": "b238cd4e36392ba1f12d58020c7ed8b0f519a130b31b26baea0a8904690846b8",
+    "scripts/boat_native_forward_study.py": "da3dfc96ba9de69f8b3d1946cbb41aebc07ca9fb511e1dac9ac06ed1374a55ba",
+    "scripts/boat_native_forward_study_audit.py": "53bab2fd676a5ad21a231227c05a3b8fc0a969303fecec75d1a13bbb0e5b1699",
+    "tests/test_boat_native_forward_study.py": "f028a11863d1848696f3057fd724f848ee2da7535ed495213059adf75406beef",
+    ".github/workflows/boat-owner-national-p1-matrix.yml": "404373d2e8a4ac06ac50010b3e14a21b7a8cbe71a3939690cd560cfd0a142626",
+    "audit/state/boat-native-forward-study.json": "759c948c30c72b0a261514e40e57741944451881f3e6976c83ca90e34ec097b5",
+    "audit/state/boat-native-forward-study-witness.json": "240ccbefd5205c5ff176a087a345d8f75f82a48b5808f3f8ca84adfd1f623001"
+  },
+  "static": {
+    "unchanged_IO_functions": [
+      "_file",
+      "_head",
+      "verify_source_pins",
+      "_identity",
+      "_current_main",
+      "_restore_candidate",
+      "_hold",
+      "_schedule",
+      "audit_native_forward_study"
+    ],
+    "namespace_admission_AST_identical": true,
+    "single_response_guard_AST_identical": true,
+    "only_cohort_filter_function_changed": true,
+    "source_math_nonce_spec_window_workflow_core_files_unchanged_from_5af": true,
+    "changed_paths": [
+      "docs/evidence/boat-native-forward-study-resident-lru-test-first-20261119.json",
+      "scripts/boat_native_forward_study_audit.py",
+      "tests/test_boat_native_forward_study.py"
+    ]
+  },
+  "authenticated_filter_checks": [
+    "All native records reach unchanged core AEAD/receipt/replay/clock/roster/result admission before filtering.",
+    "Only top private packet is copied; forecast records retain exactly the registered two cells.",
+    "Input-only records lack cell_key and remain intact with embedded capsules.",
+    "Scope/latest/full P0 schedule and missing-race denominator are preserved.",
+    "Resealed invalid nonstudy forecast still rejects in core before the filter.",
+    "No model/training/source/nonce/window/weights/G8/official raw/promotion predicate changes."
+  ],
+  "cache_scope": "512MiB bounds logical resident payload bytes in new StudyReads, plus4096 resident entries; existing core per-run _Reads cache is unchanged. This is not a whole-process RSS claim.",
+  "integration_requirements": [
+    "Root retains combined closed_round+_study_sink helper322aea semantics.",
+    "Root uses actual initial-study first parent M5 a277a692a2791c77ee89a2e9af71582f5c98d458 and recomputes UNBOUND binding spec hash.",
+    "The study is still unregistered; no actual100 matched races/5days/10blocks or efficacy claim follows from these synthetic checks."
+  ],
+  "reviewer_mutations": {
+    "author_or_root_files": false,
+    "keys_or_actual_archives_read": 0,
+    "provider_requests": 0,
+    "remote_refs_or_dispatch": false
+  }
+}

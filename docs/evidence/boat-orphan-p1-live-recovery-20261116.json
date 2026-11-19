@@ -1,0 +1,35 @@
+{
+  "run_id": 43803669261,
+  "job_id": 133089404811,
+  "conclusion": "success",
+  "actual_main_sha": "8979ab6bee7c8d07e7c33c9550b7bf08c147f73a",
+  "source_sha": "b491fb21ce58ba085dd8f54bb7326442b840d8f4",
+  "log_sha256": "3145e4945e538b5271a7c9ca87106560c096c0379fb516150e6c532c74faa89d",
+  "gates": [
+    {
+      "dispatch_allowed": false,
+      "official_source_requests": 0,
+      "recovery_required": true,
+      "release_sha": "b491fb21ce58ba085dd8f54bb7326442b840d8f4",
+      "schema": "RACE_AI_BOAT_MAIN_OWNER_DISPATCH_GATE_V1",
+      "status": "HOLD_ALREADY_DISPATCHED_FOR_JST_DAY"
+    },
+    {
+      "status": "FAILED_OWNER_ORIGINALS_RECOVERED",
+      "recovered_runs": 1,
+      "official_source_requests": 0,
+      "new_forecasts": 0,
+      "original_forecasts_changed": false,
+      "successor_not_yet_dispatched": true
+    },
+    {
+      "dispatch_allowed": true,
+      "official_source_requests": 0,
+      "recovery_required": false,
+      "release_sha": "b491fb21ce58ba085dd8f54bb7326442b840d8f4",
+      "schema": "RACE_AI_BOAT_MAIN_OWNER_DISPATCH_GATE_V1",
+      "status": "READY_VERIFIED_RECOVERED_OWNER_CONTINUATION"
+    }
+  ],
+  "existing_dispatch_step_succeeded": true
+}

@@ -1,0 +1,30 @@
+{
+  "schema": "RACE_AI_CURRENT_PAIR_DIAGNOSTIC_RUNTIME_V1",
+  "base_module": "bbdc031ae3c6a772e4a986d416f73367dd0fdf3b",
+  "module": "a7fc02a6efcf144ad303b480abf09459ff8c6b7a",
+  "runtime_packet": "e418e4957b6b2f79e933b71e7f92586886d0cbfa",
+  "tests": "5e5ef55a511f3bc005e9aefa6333e3bdbeabb493",
+  "tests_packet": "369e23077be036a336d28112023522c702904c65",
+  "actual_clean_red": {
+    "head": "07b6ef968bd8607c35e3d41152a672764375e47a",
+    "run_id": 44273278882,
+    "job_id": 134694964099,
+    "tests": 356,
+    "seconds": 189.578,
+    "failures": 6,
+    "errors": 0,
+    "all_failures_missing_projector": true,
+    "old350_passed": true
+  },
+  "independent_static_review": "CLEAR",
+  "strict16module_and4caller_patches_verified": true,
+  "caller_blob": "e9d76c557ef94760098cabc11385466ba35c11e0",
+  "normal_api_rejection_type_args_message_and_from_none_preserved": true,
+  "normal_hold_results_and_all_predicates_unchanged": true,
+  "actual_underlying_cause": "UNKNOWN_PENDING_ACTIONS",
+  "fresh_ci": "PENDING",
+  "provider_requests": 0,
+  "local_key_access": 0,
+  "original_forecasts_modified": false,
+  "new_model_or_weight_switch": false
+}

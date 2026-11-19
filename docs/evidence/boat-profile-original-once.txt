@@ -1,0 +1,22 @@
+2026-11-12 JST | EXACT ONE PROFILE ORIGINAL PROOF
+This marker is an owner-approved one-shot source provenance investigation
+only if its PR exact-head CI passed and all source limits remain fixed.
+The existing 2026-11-12 P0 original 142 races/284 predictions, two model
+families and AES viewer generation 128 must be unchanged.
+Exactly one unidentified athlete remains among 852 displayed positions.
+Public profile index official source SHA, URL and capture clock matched
+the one remaining owner-private registration in actual source-free run
+43182300542 but the original 2026-11-07 HTML was not archived in
+tracked repository bytes or inspected related historical Actions artifacts.
+The separate one-source proof has no P0/P1 owner GET, does not modify
+its 240-request cap, and does not modify the 12-GET per result collector
+session. The profile-specific attempt cap is ONE and must be durably
+reserved using a keyed opaque Git record BEFORE the single official GET.
+No automatic retry after failure/restart; reserve is not reset.
+The GET may yield changed official bytes. That raw observation must be
+encrypted privately and must NOT be silently relabeled as the exact 11/07
+original if SHA differs. An independent runner must verify the raw HTML
+from AES retention with no source GET before any display change.
+The workflow must never publish registration, name, profile URL or the
+decryption key in public logs. Forecasting, wagering, new model, result
+collector and source budget changes are forbidden.

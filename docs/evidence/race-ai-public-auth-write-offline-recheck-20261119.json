@@ -1,0 +1,48 @@
+{
+  "authenticated_cli": {
+    "login": "haji84",
+    "success": true
+  },
+  "authenticated_latest_main": "9520104c65c88b3c9c92685ba865d21ad577ced8",
+  "authenticated_repository_permissions": {
+    "admin": true,
+    "maintain": true,
+    "pull": true,
+    "push": true,
+    "triage": true
+  },
+  "commands_execute": true,
+  "existing_branch_write_proof": {
+    "branch": "feat/v09-motor-rider-adjustment",
+    "head": "69c884007359b348d82fd7444a6dc3dcc37601c1",
+    "normal_fast_forward_push_succeeded": true
+  },
+  "linked_worktree_count": 144,
+  "main_parallel_update_preserved": "9520104c65c88b3c9c92685ba865d21ad577ced8",
+  "observed_at": "2026-11-19T04:09:32.715655+00:00",
+  "offline_commits": [
+    {
+      "authenticated_api_http_status": 422,
+      "commit_observed": false,
+      "in_local_object_store": false,
+      "restored": false,
+      "sha": "b7380fe6a377e6ccf2b96331f2126c52549bbe17"
+    },
+    {
+      "authenticated_api_http_status": 422,
+      "commit_observed": false,
+      "in_local_object_store": false,
+      "restored": false,
+      "sha": "daae4c10167224b7730006d8ada5ade398aaa64b"
+    }
+  ],
+  "owner_state_key_read_locally": false,
+  "public_and_authenticated_head_equal": true,
+  "schema": "RACE_AI_CURRENT_RUNTIME_PUBLIC_AUTH_WRITE_AND_OFFLINE_RECHECK_V1",
+  "unauthenticated_public_read": {
+    "authorization_header_supplied": false,
+    "head": "9520104c65c88b3c9c92685ba865d21ad577ced8",
+    "http_status": 200,
+    "success": true
+  }
+}

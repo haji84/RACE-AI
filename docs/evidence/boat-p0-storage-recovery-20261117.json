@@ -1,0 +1,744 @@
+{
+  "schema": "RACE_AI_P0_STORAGE_RECOVERY_20261117",
+  "phase": "LIVE_P0_4_ROUNDS_AND_NATIVE_MAC_PRIVATE_VIEW_SUCCEEDED_REMAINING_GATES_PENDING",
+  "main_sha": "36088f5d0d2513f88c3a71ae0a1f3e1d1d5a9649",
+  "production_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+  "storage_candidate_sha": "67200ef25161a48b49a63d04450b1f11656add5b",
+  "unrestored_commits": [
+    "b7380fe6a377e6ccf2b96331f2126c52549bbe17",
+    "daae4c10167224b7730006d8ada5ade398aaa64b"
+  ],
+  "authentication": {
+    "public_read": true,
+    "authenticated_login": "haji84",
+    "api_claims_push": true,
+    "actual_existing_pr_branch_push": true,
+    "branch_protection_read_http_status": 403,
+    "active_main_rules_http_status": 200,
+    "main_requires_pull_request": true,
+    "main_required_status_checks": [
+      "unit"
+    ],
+    "strict_required_status_checks": true,
+    "branch_protection_changed": false,
+    "admin_or_force_bypass_used": false
+  },
+  "storage_ci": [
+    44015412009,
+    44015412001,
+    44015412053
+  ],
+  "artifact_readbacks": [
+    {
+      "id": 14208902044,
+      "bytes": 632048,
+      "zip_sha256": "3635842b40ed27a48d061d21d3af38c337a029941a621a8d4a7176783b8d1dde",
+      "github_digest_matches": true,
+      "name": "race-cycle-continuity-43829249080",
+      "run_id": 43829249080,
+      "head_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
+      "created_at": "2026-11-16T08:27:29Z",
+      "members": [
+        "private-original.enc"
+      ]
+    },
+    {
+      "id": 14208782370,
+      "bytes": 489,
+      "zip_sha256": "a7ac637efc923b17aeb9331f0c2af6e36ee403525f7e7e4fdb5f063c6370f705",
+      "github_digest_matches": true,
+      "name": "race-source-control-43829249080",
+      "run_id": 43829249080,
+      "head_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
+      "created_at": "2026-11-16T08:27:30Z",
+      "members": [
+        "source-control.json"
+      ],
+      "source_control": {
+        "continuity_cipher_sha256": "a5be8fdf6cda67150138e185bc3f08c9c1450e2ae9baaf2651d7cc91a263ee81",
+        "control": {
+          "completed_round": 0,
+          "day_start_lifetime_requests": 11524,
+          "lifetime_completed_rounds": 695,
+          "lifetime_requests": 12770,
+          "prepared_round": null,
+          "requests_used": 0,
+          "source_wait": null,
+          "stop_reason": null
+        },
+        "day_jst": "2026-11-16",
+        "head_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
+        "repository": "haji84/RACE-AI",
+        "repository_id": 1416489937,
+        "run_id": 43829249080,
+        "schema": "RACE_AI_BOAT_PUBLIC_SOURCE_CONTROL_V1"
+      }
+    },
+    {
+      "id": 14207934614,
+      "bytes": 1156570,
+      "zip_sha256": "538885640c3402ab2de87e798094034a7fd6c066d110cd625f8c1296de3e915a",
+      "github_digest_matches": true,
+      "name": "boat-all-model-forecasts-43829249080-r0",
+      "run_id": 43829249080,
+      "head_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
+      "created_at": "2026-11-16T08:25:18Z",
+      "members": [
+        "forecasts.enc"
+      ]
+    },
+    {
+      "id": 14282568112,
+      "bytes": 762382,
+      "zip_sha256": "6a18ed270ce8ede16f82b961533072b444a811ff2c9da0ca99481a6b0f905b04",
+      "github_digest_matches": true,
+      "name": "boat-p0-existing-43978567937",
+      "run_id": 43978567937,
+      "head_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
+      "created_at": "2026-11-16T23:29:11Z",
+      "members": [
+        "private-original.enc"
+      ]
+    },
+    {
+      "id": 14283226283,
+      "bytes": 1062,
+      "zip_sha256": "b7f8f3455a7a37037f37ed290c0ff4b25c664f7bc86c53992ffa8e7cb8c66ebc",
+      "github_digest_matches": true,
+      "name": "race-cycle-continuity-43978567937",
+      "run_id": 43978567937,
+      "head_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
+      "created_at": "2026-11-16T23:30:26Z",
+      "members": [
+        "private-original.enc"
+      ]
+    },
+    {
+      "id": 14283265766,
+      "bytes": 488,
+      "zip_sha256": "9997785e5ce6193418dc09fb1e9f8ab8e9e79317866717449c1df9d4e8631648",
+      "github_digest_matches": true,
+      "name": "race-source-control-43978567937",
+      "run_id": 43978567937,
+      "head_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
+      "created_at": "2026-11-16T23:30:28Z",
+      "members": [
+        "source-control.json"
+      ],
+      "source_control": {
+        "continuity_cipher_sha256": "789d156371565a6fd8a39aff8ede3bfc25c29c495ad66455e3a1401ba44c0adc",
+        "control": {
+          "completed_round": 0,
+          "day_start_lifetime_requests": 13017,
+          "lifetime_completed_rounds": 707,
+          "lifetime_requests": 13018,
+          "prepared_round": null,
+          "requests_used": 1,
+          "source_wait": null,
+          "stop_reason": null
+        },
+        "day_jst": "2026-11-17",
+        "head_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
+        "repository": "haji84/RACE-AI",
+        "repository_id": 1416489937,
+        "run_id": 43978567937,
+        "schema": "RACE_AI_BOAT_PUBLIC_SOURCE_CONTROL_V1"
+      }
+    }
+  ],
+  "real_vault_local_tree": {
+    "status": "REAL_VAULT_LOCAL_TREE_RETAINED",
+    "parent": "676bb7885a57c4f872fdd38dea6adebc8357c540",
+    "tree_unchanged": true,
+    "elapsed_seconds": 0.024,
+    "remote_written": false,
+    "owner_AES_verified": false
+  },
+  "tests": {
+    "storage": 101,
+    "owner_regression": 159,
+    "independent_storage": 75,
+    "independent_bootstrap": 46,
+    "overlapping_scopes": true,
+    "bootstrap_owner_regression": 179,
+    "main_gate_audit_safari": 101,
+    "main_independent_reader": 64,
+    "safari_boundaries": 26,
+    "enriched_recovery": 60,
+    "independent_enriched_recovery": 55,
+    "existing_video_boundaries": 120
+  },
+  "limits": [
+    "Old logs do not identify the exact timed-out Git subcommand",
+    "Local Git reproduces hydration at write-tree; same-mechanism historical attribution is not proven",
+    "ZIP SHA/size verification is not AES authentication",
+    "All-model current head ciphertexts still require complete validation",
+    "Four-sport whole-day coverage, physical iPhone Safari, video tracking/calibration/prediction, prospective improvement remain incomplete",
+    "New P0/P1/RESULT ZIP SHA matches do not prove separate-runner full AES/all-model coverage",
+    "Official result long-term retention is HOLD; raw encrypted result artifact exists",
+    "Only4 of24 rounds complete at observation; full deadline/model coverage and independent new-original AES pending",
+    "Native Mac success uses private loopback saved-view transport; browser AES/owner login, physical iPhone and all8 visual references remain unverified"
+  ],
+  "source_tree": "47b7a871afda4eddfd8a87d6e3caededaa81879e",
+  "bootstrap_ci": [
+    44016312344,
+    44016312246,
+    44016312251
+  ],
+  "native_safari_import_reproduced": true,
+  "native_safari_import_with_fixed_parsers_passed": true,
+  "physical_iphone_verified": false,
+  "projection_candidate_sha": "df3cc88b529f42c753a7246ab60f4775b0b1c27b",
+  "failed_checkpoint_aes_proof": {
+    "aes_authenticated": true,
+    "audit_at": "2026-11-17T04:30:17.867179+00:00",
+    "continuity_artifact_id": 14208902044,
+    "continuity_zip_digest": "sha256:3635842b40ed27a48d061d21d3af38c337a029941a621a8d4a7176783b8d1dde",
+    "day_jst": "2026-11-16",
+    "failed_session_requests": 0,
+    "inherited_same_day_requests": 1246,
+    "lifetime_completed_rounds": 695,
+    "lifetime_requests": 12770,
+    "live_recovery_to_new_p1_proven": false,
+    "new_forecasts": 0,
+    "official_source_requests": 0,
+    "original_forecasts_changed": false,
+    "owner_head_sha": "c123b8538006b3189181195bbc91d8f28d216ba5",
+    "owner_run_id": 43829249080,
+    "public_counters_match_AES": true,
+    "source_control_artifact_id": 14208782370,
+    "source_control_zip_digest": "sha256:a7ac637efc923b17aeb9331f0c2af6e36ee403525f7e7e4fdb5f063c6370f705",
+    "status": "FAILED_OWNER_CHECKPOINT_AES_VERIFIED_READONLY",
+    "successor_dispatch_allowed": false
+  },
+  "all_model_prior_audit": {
+    "run_id": 44017586249,
+    "status": "failure",
+    "reason": "INDEPENDENT_ALL_MODEL_REPLAY_NOT_AVAILABLE"
+  },
+  "observed_at": "2026-11-17T06:07:01.830560+00:00",
+  "live_recovery": {
+    "gate_run_id": 44019424267,
+    "gate_job_id": 133825071851,
+    "gate_success": true,
+    "recovered_originals": 3,
+    "official_source_requests": 0,
+    "new_forecasts": 0,
+    "owner_run_id": 44019591352,
+    "owner_head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+    "additional_p0_vault_step": 33,
+    "additional_p0_vault_conclusion": "success",
+    "round01_conclusion": "success",
+    "round01_completed_at": "2026-11-17T05:05:53Z",
+    "round02_status": "completed",
+    "all_24_rounds_completed": false,
+    "new_originals_independent_runner_AES_verified": false,
+    "round02_conclusion": "success",
+    "round02_completed_at": "2026-11-17T05:21:47Z",
+    "round03_status": "completed",
+    "completed_rounds_at_observation": 4,
+    "observed_job_progress": {
+      "id": 133825616165,
+      "name": "Existing frozen P0, exhibition P1, separate official results and PDCA",
+      "status": "in_progress",
+      "conclusion": null,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "started_at": "2026-11-17T04:47:31Z",
+      "completed_at": null,
+      "rounds": [
+        {
+          "number": 38,
+          "name": "Deadline-ordered five-model round 01",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-17T04:54:59Z",
+          "completed_at": "2026-11-17T05:05:53Z"
+        },
+        {
+          "number": 39,
+          "name": "Deadline-ordered five-model round 02",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-17T05:05:53Z",
+          "completed_at": "2026-11-17T05:21:47Z"
+        },
+        {
+          "number": 40,
+          "name": "Deadline-ordered five-model round 03",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-17T05:21:47Z",
+          "completed_at": "2026-11-17T05:40:01Z"
+        },
+        {
+          "number": 41,
+          "name": "Deadline-ordered five-model round 04",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-17T05:40:01Z",
+          "completed_at": "2026-11-17T05:59:18Z"
+        },
+        {
+          "number": 42,
+          "name": "Deadline-ordered five-model round 05",
+          "status": "in_progress",
+          "conclusion": null,
+          "started_at": "2026-11-17T05:59:18Z",
+          "completed_at": null
+        },
+        {
+          "number": 43,
+          "name": "Deadline-ordered five-model round 06",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 44,
+          "name": "Deadline-ordered five-model round 07",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 45,
+          "name": "Deadline-ordered five-model round 08",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 46,
+          "name": "Deadline-ordered five-model round 09",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 47,
+          "name": "Deadline-ordered five-model round 10",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 48,
+          "name": "Deadline-ordered five-model round 11",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 49,
+          "name": "Deadline-ordered five-model round 12",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 50,
+          "name": "Deadline-ordered five-model round 13",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 51,
+          "name": "Deadline-ordered five-model round 14",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 52,
+          "name": "Deadline-ordered five-model round 15",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 53,
+          "name": "Deadline-ordered five-model round 16",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 54,
+          "name": "Deadline-ordered five-model round 17",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 55,
+          "name": "Deadline-ordered five-model round 18",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 56,
+          "name": "Deadline-ordered five-model round 19",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 57,
+          "name": "Deadline-ordered five-model round 20",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 58,
+          "name": "Deadline-ordered five-model round 21",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 59,
+          "name": "Deadline-ordered five-model round 22",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 60,
+          "name": "Deadline-ordered five-model round 23",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "number": 61,
+          "name": "Deadline-ordered five-model round 24",
+          "status": "pending",
+          "conclusion": null,
+          "started_at": null,
+          "completed_at": null
+        }
+      ],
+      "p0_retention": [
+        {
+          "number": 33,
+          "name": "Retain exact additional P0 execution and physical save receipt beyond expiry",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-17T04:53:26Z",
+          "completed_at": "2026-11-17T04:53:40Z"
+        }
+      ]
+    },
+    "required_new_p1_result_retention_paths_in_successful_rounds": true,
+    "round03_conclusion": "success",
+    "round03_completed_at": "2026-11-17T05:40:01Z",
+    "round04_status": "completed",
+    "round04_conclusion": "success",
+    "round04_completed_at": "2026-11-17T05:59:18Z",
+    "round05_status": "in_progress"
+  },
+  "live_artifact_readbacks": [
+    {
+      "id": 14300856240,
+      "name": "boat-all-model-forecasts-44019591352-r0",
+      "bytes": 9976455,
+      "zip_sha256": "e777ecce89ff46aa2ec1f8440b8ddba8d5bae46e9291d690e02f0021ac513b50",
+      "github_digest_matches": true,
+      "run_id": 44019591352,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "created_at": "2026-11-17T04:52:19Z",
+      "members": [
+        "forecasts.enc"
+      ]
+    },
+    {
+      "id": 14300807230,
+      "name": "boat-national-cutoff-44019591352",
+      "bytes": 133411,
+      "zip_sha256": "2270fbc271dda98a86ddd82e36358bf41b86f46dc41c7b11a4c7d2f0361e8d20",
+      "github_digest_matches": true,
+      "run_id": 44019591352,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "created_at": "2026-11-17T04:56:06Z",
+      "members": [
+        "private-original.enc"
+      ]
+    },
+    {
+      "id": 14301166184,
+      "name": "boat-all-model-forecasts-44019591352-r1",
+      "bytes": 3578749,
+      "zip_sha256": "fd53bb28f71792ed4f346cb932745017696d82d29f35f2cd0efce2d1aeb9437a",
+      "github_digest_matches": true,
+      "run_id": 44019591352,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "created_at": "2026-11-17T04:56:29Z",
+      "members": [
+        "forecasts.enc"
+      ]
+    },
+    {
+      "id": 14300863214,
+      "name": "race-existing-cycle-44019591352",
+      "bytes": 989348,
+      "zip_sha256": "8e9c7c8091ec3ad5657b23ec9914af944233f00e30c73623c9edad1c554e5440",
+      "github_digest_matches": true,
+      "run_id": 44019591352,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "created_at": "2026-11-17T05:03:05Z",
+      "members": [
+        "private-original.enc"
+      ]
+    },
+    {
+      "id": 14300399647,
+      "name": "boat-prospective-evaluation-44019591352-r1",
+      "bytes": 6381,
+      "zip_sha256": "910ac307cf160d648a05b11beda241eab2b24e12e6724c206465d43f5ddd3047",
+      "github_digest_matches": true,
+      "run_id": 44019591352,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "created_at": "2026-11-17T05:05:53Z",
+      "members": [
+        "boat-prospective-audit-1.json"
+      ]
+    },
+    {
+      "id": 14300389237,
+      "name": "official-result-retention-44019591352-1",
+      "bytes": 413,
+      "zip_sha256": "dd6fc34b4d289f66dc7e6918a7d043f99b6dba85dc816349f7f961d7654efee2",
+      "github_digest_matches": true,
+      "run_id": 44019591352,
+      "head_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+      "created_at": "2026-11-17T05:03:36Z",
+      "members": [
+        "official-result-retention-status.json"
+      ]
+    }
+  ],
+  "native_safari_live": {
+    "run_id": 44028066179,
+    "job_id": 133853102653,
+    "main_sha": "36088f5d0d2513f88c3a71ae0a1f3e1d1d5a9649",
+    "status": "success",
+    "native_browser": {
+      "browserName": "Safari",
+      "browserVersion": "26.6",
+      "platformName": "macOS"
+    },
+    "verified_at": "2026-11-17T06:03:13.933594+00:00",
+    "desktop_private_saved_view_only": true,
+    "physical_iphone_verified": false,
+    "browser_aes_and_owner_login_verified": false,
+    "all_eight_reference_screens_visually_verified": false,
+    "final_private_boundary_verified": true,
+    "actual_inner_widths": [
+      1440,
+      390
+    ],
+    "model_switch_original_comparisons": 4,
+    "native_p1_detail_views": 2,
+    "result_budget_views": 2,
+    "evidence_file": "docs/evidence/boat-native-safari-20261117.json",
+    "native_mac_private_view_verified": true,
+    "full_product_acceptance_verified": false
+  },
+  "result_retention_live": {
+    "artifact_id": 14300389237,
+    "ready": false,
+    "state": "HOLD_OFFICIAL_RESULT_RETENTION",
+    "reason": "ALL_MODEL_OFFICIAL_RESULT_FREEZE_NATIVE_ARTIFACT_CLOCK",
+    "failure_phase": "RUNNER_PREFLIGHT"
+  },
+  "prospective_live": {
+    "artifact_id": 14300399647,
+    "status": "HOLD",
+    "reason": "FROZEN_INPUT_REVIEW_REQUIRED",
+    "accuracy_improvement_proven": false,
+    "independent_pre_cutoff_receipt_verified": false,
+    "promotion_allowed": false
+  },
+  "native_safari_attempts": [
+    {
+      "run_id": 44020668953,
+      "job_id": 133829132065,
+      "main_sha": "df1ee16ca9d2d5813880a9d4b8f6d62ed765fb76",
+      "runner_os": "macos-15-intel",
+      "status": "failure",
+      "reason": "APP_UI_CHECK_FAILED",
+      "desktop_acceptance_verified": false,
+      "physical_iphone_verified": false,
+      "public_checker_location_diagnostic_tests": 18
+    },
+    {
+      "run_id": 44022519670,
+      "job_id": 133835055575,
+      "main_sha": "cb3261d0ec66173313e12b74a02e45ac9404e399",
+      "runner_os": "macos-15-intel",
+      "status": "failure",
+      "reason": "APP_UI_CHECK_FAILED",
+      "checker_function": "app_checks",
+      "checker_line": 560,
+      "failed_operation": "NATIVE_BUDGET_INPUT",
+      "desktop_acceptance_verified": false,
+      "physical_iphone_verified": false,
+      "first_viewport_prior_checks_progressed": [
+        "saved_original_load",
+        "native_p1_detail",
+        "saved_model_top8_hash",
+        "research_return",
+        "result_groups_and_count"
+      ],
+      "final_private_boundary_verified": false
+    },
+    {
+      "run_id": 44023534099,
+      "job_id": 133838349546,
+      "main_sha": "acd7c767a454a78dd19499344935ccffd567e67d",
+      "runner_os": "macos-15-intel",
+      "status": "failure",
+      "reason": "APP_UI_CHECK_FAILED",
+      "checker_function": "app_checks",
+      "checker_line": 564,
+      "failed_operation": "NATIVE_BUDGET_INPUT",
+      "desktop_acceptance_verified": false,
+      "physical_iphone_verified": false,
+      "final_private_boundary_verified": false
+    },
+    {
+      "run_id": 44024956057,
+      "job_id": 133842950712,
+      "main_sha": "fb938e5b8690b8d525056e875d1178e94e988c02",
+      "runner_os": "macos-15-intel",
+      "status": "failure",
+      "reason": "APP_UI_CHECK_FAILED",
+      "checker_function": "app_checks",
+      "checker_line": 559,
+      "failed_operation": "DETAIL_OUTLOOK_ELEMENT_LOOKUP",
+      "failed_viewport_known": false,
+      "budget_fix_actual_scope_confirmed": false,
+      "desktop_acceptance_verified": false,
+      "physical_iphone_verified": false,
+      "final_private_boundary_verified": false
+    },
+    {
+      "run_id": 44026515882,
+      "job_id": 133848050105,
+      "main_sha": "1242ccc97a483d50a3f77cbe9d655952f4ed773d",
+      "runner_os": "macos-15-intel",
+      "status": "failure",
+      "reason": "APP_UI_CHECK_FAILED",
+      "checker_function": "app_checks",
+      "checker_line": 598,
+      "ui_page_errors": 0,
+      "ui_error_module": null,
+      "ui_error_line": null,
+      "ui_visible_page": "page-races",
+      "ui_viewport_width": 390,
+      "requested_viewport_or_iteration_known": false,
+      "desktop_acceptance_verified": false,
+      "physical_iphone_verified": false,
+      "final_private_boundary_verified": false
+    }
+  ],
+  "historical_result_retention_pin": {
+    "artifact_id": 13559236491,
+    "actual_metadata_http_status": 404,
+    "manifest": "audit/state/official-result-retention-input.json",
+    "retained_original_restored": false
+  },
+  "native_safari_budget_fix": {
+    "existing_pr": 203,
+    "candidate_sha": "9850f8d",
+    "merged_main_sha": "acd7c767a454a78dd19499344935ccffd567e67d",
+    "exact_head_checks": 23,
+    "checks_success": 10,
+    "checks_skipped": 13,
+    "reviewed_tree_matches": true,
+    "local_tests": 20,
+    "independent_review_tests": 20,
+    "real_mac_retry_run_id": 44023534099,
+    "real_mac_retry_status": "failure"
+  },
+  "native_safari_w3c_actions_candidate": {
+    "existing_pr": 194,
+    "tests": 21,
+    "independent_tests": 21,
+    "actual_mac_verified": false,
+    "numeric_failure_diagnostics_only": true,
+    "app_state_injection": false,
+    "candidate_sha": "03d0f12390793f5a4fe1d0339f43db3c139e48eb",
+    "merged_main_sha": "fb938e5b8690b8d525056e875d1178e94e988c02",
+    "exact_head_checks": 23,
+    "checks_success": 10,
+    "checks_skipped": 13,
+    "reviewed_tree_matches": true
+  },
+  "native_safari_element_readiness_candidate": {
+    "existing_pr": 182,
+    "tests": 23,
+    "independent_tests": 23,
+    "actual_mac_verified": false,
+    "private_dom_or_exception_output": false,
+    "candidate_sha": "3f5f2356e810640db2e1e6d188bd83c51a60945a",
+    "merged_main_sha": "1242ccc97a483d50a3f77cbe9d655952f4ed773d",
+    "exact_head_checks": 23,
+    "checks_success": 10,
+    "checks_skipped": 13,
+    "reviewed_tree_matches": true
+  },
+  "native_safari_hit_target_candidate": {
+    "existing_pr": 64,
+    "tests": 26,
+    "independent_tests": 26,
+    "actual_mac_verified": true,
+    "native_click_retained": true,
+    "js_click_or_state_assignment": false,
+    "occluded_target_click_allowed": false,
+    "immutable_parser_sha": "761247bee0209e37b1af6b8885e92cad3e9260a5",
+    "mutable_parser_branch_runtime_references": 0,
+    "candidate_sha": "38d2ed033bd2596c5eae595ad3a6a382bde94ddb",
+    "merged_main_sha": "36088f5d0d2513f88c3a71ae0a1f3e1d1d5a9649",
+    "reviewed_tree_matches": true,
+    "exact_head_checks": 23,
+    "checks_success": 10,
+    "checks_skipped": 13,
+    "real_mac_retry_run_id": 44028066179,
+    "real_mac_retry_status": "success"
+  },
+  "code_verified_main_sha": "36088f5d0d2513f88c3a71ae0a1f3e1d1d5a9649",
+  "initial_heads": {
+    "preserved_checkout": "b4206312594ef84a43c86695dc3d3ec16d1c5ae0",
+    "main": "058ba8c157722c1dc3565f8ca956567e29b95493",
+    "production": "c123b8538006b3189181195bbc91d8f28d216ba5"
+  },
+  "boat_logical_limit_contract": {
+    "MAX_ROUNDS": null,
+    "MAX_SECONDS": null,
+    "SOURCE_LIMIT": null,
+    "ROUND_SOURCE_LIMIT": null,
+    "whole_four_sport_delivery_proven": false
+  }
+}

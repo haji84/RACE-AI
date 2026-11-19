@@ -1,0 +1,50 @@
+{
+  "PR3_diff_against_current_main_equals_root_changes_only": true,
+  "actual_keys_read": 0,
+  "all_incoming_blob_mode_types_preserved": true,
+  "all_root_blob_mode_types_preserved": true,
+  "base_main": "ed336daae7b78ec4c8a8b90cebfaaf713ff70260",
+  "historical_PR309_evidence_is_today_fullsource_proof": false,
+  "incoming_changed_paths": 102,
+  "incoming_main": "9520104c65c88b3c9c92685ba865d21ad577ced8",
+  "independent_regressions": {
+    "OS_socket_syscalls_denied": true,
+    "errors": 0,
+    "failures": 0,
+    "seconds": 3.075,
+    "tests": 2,
+    "warnings_as_errors": true
+  },
+  "new_main_and_new_merge_cannot_reregister": true,
+  "nine_BOAT_targets_preserved": [
+    ".github/workflows/boat-owner-national-p1-matrix.yml",
+    "scripts/boat_native_safari_acceptance.py",
+    "scripts/boat_native_forward_study.py",
+    "scripts/boat_native_forward_study_audit.py",
+    "audit/state/boat-native-forward-study.json",
+    "audit/state/boat-native-forward-study-witness.json",
+    "audit/state/boat-m2-independent-audit-target.json",
+    "docs/RACE_AI_LATEST_STATUS.md",
+    "docs/evidence/owner-pdca-main-trigger.txt"
+  ],
+  "normal_merge_parents": [
+    "36a3b6242243737fef8db57eb4da55db601e40b9",
+    "9520104c65c88b3c9c92685ba865d21ad577ced8"
+  ],
+  "original_artifact": 14495645723,
+  "original_main": "ed336daae7b78ec4c8a8b90cebfaaf713ff70260",
+  "original_origin_positive": true,
+  "original_run": 44449743664,
+  "overlapping_changed_paths": 0,
+  "provider_requests": 0,
+  "registration_parent_main": "a277a692a2791c77ee89a2e9af71582f5c98d458",
+  "remote_writes": 0,
+  "reviewed_merge": "32ac0e0afe038c3a86a9f6f8e862c8dcb8a6546d",
+  "reviewed_tree": "c3a5818f4b083786223194159e5314768ef57648",
+  "root_changed_paths": 18,
+  "root_or_author_files_edited": 0,
+  "root_pre_merge": "36a3b6242243737fef8db57eb4da55db601e40b9",
+  "source_worker_or_study_switched": false,
+  "spec_nonce_and_pins_unchanged": true,
+  "status": "CLEAR"
+}

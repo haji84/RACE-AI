@@ -1,0 +1,73 @@
+{
+  "schema": "RACE_AI_ONE_SHOT_REJECTION_ANCHOR_REPAIR_RUNTIME_V1",
+  "recorded_at_utc": "2026-11-18T04:13:55Z",
+  "existing_pr": 40,
+  "actual_red": {
+    "head": "a76fb255155d63235a4499a7fb8e5df2c85bcc55",
+    "tree": "d7e926c9049f21fc1973ea2f3cdc4ef3911033d9",
+    "run_id": 44234598851,
+    "job_id": 134567572417,
+    "tests_run": 326,
+    "seconds": 117.798,
+    "existing_passed": 313,
+    "missing_new_module_failures": 12,
+    "missing_cli_import_errors": 1,
+    "syntax_error": false,
+    "new_methods_when_imports_resolve": 20,
+    "frozen_io_tests": "e8465a7a73692f71f034b6c5c8222310b5d99a18",
+    "frozen_cli_tests": "9aef7adda684ce9fbeb240bb7b35a628ec1b5148",
+    "tests_changed_after_red": false
+  },
+  "runtime": {
+    "blob": "931b0c64e0dff70239e9c08e35fcc65a68d3f0ff",
+    "orchestrator_prefix": "960a91a1ea6714fd641b3eadc6a24ae5a101aaad",
+    "cli_fragment": "35bdbe58c5e2fa259f062fd49ee826b3ec27f9fc",
+    "loader_fragment": "f01c36c9d755bd00eef03d8d7db22b021c072ab4",
+    "loader_independent_static_review": "CLEAR",
+    "orchestrator_cli_review": "CLEAR",
+    "fresh_ci": "PENDING"
+  },
+  "prior_real_authority": {
+    "run_id": 44232934955,
+    "job_id": 134562106410,
+    "status": "ALL_ORPHAN_ANCHORS_PROVEN",
+    "snapshots": 3,
+    "orphan_groups": 12,
+    "proved_groups": 12,
+    "planned_active_originals": 12,
+    "retained_history_originals": 24,
+    "originals_changed": false,
+    "publication_performed": false
+  },
+  "activation": {
+    "workflow": ".github/workflows/boat-racer-daily.yml",
+    "blob": "8974eae1641caeaf334820bc30a138692558b467",
+    "existing_job": "owner_p0_p1_dispatch",
+    "main_push_only": true,
+    "first_attempt_only": true,
+    "existing_release_prefix_only": true,
+    "expected_push_before": "09b65329692389fe260e4aa0430e94f341b255dc",
+    "loader_requires_same_main_first_parent": true,
+    "native_last_step_byte_unchanged": true,
+    "existing_jobs_permissions_inputs_cron_runners_timeouts_unchanged": true,
+    "existing_marker_path": "docs/evidence/owner-pdca-main-trigger.txt",
+    "independent_workflow_review": "CLEAR"
+  },
+  "publication_contract": {
+    "existing_source86_F_H_bootstrap_only": true,
+    "existing_CAS_publisher_calls_max": 1,
+    "current_predecessor_must_match": true,
+    "existing_V5_protocol_only": true,
+    "all_other_original_fields_preserved": true,
+    "strict_six_field_ack": true,
+    "immutable_commit_authenticated_readback": true,
+    "ambiguous_write_performed_flag": null,
+    "automatic_retry": false,
+    "key_boundary": "Actions only",
+    "source_requests": 0,
+    "model_training_or_weight_switch": false,
+    "public_ui_deploy": false
+  },
+  "actual_live_repair_performed": false,
+  "goal_complete": false
+}

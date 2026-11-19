@@ -1,0 +1,57 @@
+{
+  "schema": "RACE_AI_NATIVE_REFERENCE_COUNT_CORRECTION_V1",
+  "recorded_at": "2026-11-18T07:10:00Z",
+  "repository": "haji84/RACE-AI",
+  "actual_failure": {
+    "run_id": 44252487186,
+    "job_id": 134626256360,
+    "at": "2026-11-18T06:42:41.9682600Z",
+    "status": "HOLD",
+    "reason": "CURRENT_V5_EVIDENCE_INVALID",
+    "phase": "verify_probe",
+    "expected_native_reference_groups": 9,
+    "observed_all_p1_groups_before_fix": 21,
+    "all_reference_membership_already_verified": true,
+    "expected_results": 72,
+    "observed_results": 72,
+    "expected_model_choices": 2,
+    "observed_model_choices": 2,
+    "private_view_reads": 0,
+    "non_read_requests": 0,
+    "outbound_requests_permitted": 0
+  },
+  "test_first": {
+    "head": "dee69af954b4ce1ac1145b3b22c23fe15002a8db",
+    "tests_blob": "e8c1524f21946a4d03054d21ada89bd74ee59f86",
+    "run_id": 44254795507,
+    "job_id": 134633774199,
+    "tests": 140,
+    "failures": 3,
+    "errors": 0,
+    "prior_137_passed": true,
+    "failure_scope": "Only new counter API was absent; real current_v5_checks cases exercised."
+  },
+  "runtime": {
+    "helper_blob": "f39c5619b69465d3f7cf62b6cef90a53726f88a4",
+    "checker_blob": "3cf193437a6f05ffea22263323a35cbf5cacd6d4",
+    "strict_patch_packet": "8832286b5da229e29de2280aa58f1ebec193d5ea",
+    "independent_static_review": "CLEAR; no Python executed",
+    "meaning": "Count unique exact matched authenticated native references, preserve source-code binding and all-reference membership. Extra all-P1 options remain untouched."
+  },
+  "invariants": {
+    "success_field_count": 19,
+    "diagnostic_field_count": 26,
+    "final_exact_native_count_equality_preserved": true,
+    "crypto_routes_cleanup_and_pins_unchanged": true,
+    "public_ui_changed": false,
+    "workflow_changed": false,
+    "source_gets_by_this_fix": 0,
+    "keys_exported": 0
+  },
+  "not_yet_verified": {
+    "combined_fresh_ci": true,
+    "actual_mac_after_fix": true,
+    "physical_iphone": true,
+    "goal_complete": true
+  }
+}

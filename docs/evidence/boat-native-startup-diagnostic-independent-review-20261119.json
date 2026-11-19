@@ -1,0 +1,119 @@
+{
+  "actual_failure_cause_fixed_or_proven": false,
+  "author_commit": "6548523947f3bc695201382efb6162c8e206c5a9",
+  "author_or_root_file_edits": 0,
+  "base": "ed336daae7b78ec4c8a8b90cebfaaf713ff70260",
+  "blocking_findings": [],
+  "differential_probes": {
+    "compared_runtime_cases": [
+      {
+        "extra_observational_polls": 0,
+        "fixture_case": "launch",
+        "same_cleanup_rpc_tcp_sleep_counts": true,
+        "same_original_exception_identity_behavior": true
+      },
+      {
+        "extra_observational_polls": 1,
+        "fixture_case": "exit",
+        "same_cleanup_rpc_tcp_sleep_counts": true,
+        "same_original_exception_identity_behavior": true
+      },
+      {
+        "extra_observational_polls": 1,
+        "fixture_case": "tcp_timeout",
+        "same_cleanup_rpc_tcp_sleep_counts": true,
+        "same_original_exception_identity_behavior": true
+      },
+      {
+        "extra_observational_polls": 1,
+        "fixture_case": "session",
+        "same_cleanup_rpc_tcp_sleep_counts": true,
+        "same_original_exception_identity_behavior": true
+      },
+      {
+        "extra_observational_polls": 1,
+        "fixture_case": "close_false",
+        "same_cleanup_rpc_tcp_sleep_counts": true,
+        "same_original_exception_identity_behavior": true
+      },
+      {
+        "extra_observational_polls": 1,
+        "fixture_case": "wait_timeout",
+        "same_cleanup_rpc_tcp_sleep_counts": true,
+        "same_original_exception_identity_behavior": true
+      },
+      {
+        "extra_observational_polls": 0,
+        "fixture_case": "ui",
+        "same_cleanup_rpc_tcp_sleep_counts": true,
+        "same_original_exception_identity_behavior": true
+      }
+    ],
+    "external_socket_attempts": 0,
+    "hostile_projection_probes": 72,
+    "physical_mac_launches": 0,
+    "provider_gets": 0,
+    "real_keys_read": 0,
+    "schema": "RACE_AI_NATIVE_STARTUP_INDEPENDENT_DIFFERENTIAL_PROBES_V1",
+    "source_or_root_edits": 0
+  },
+  "gui_permission_or_competing_process_cause_inferred": false,
+  "original_cleanup_ast_unchanged": true,
+  "physical_mac_launches": 0,
+  "popen_tcp_sleep_new_session_calls_and_retry_range_ast_unchanged": true,
+  "provider_gets": 0,
+  "real_keys_read": 0,
+  "remote_mutations": 0,
+  "review_findings": [
+    "Public startup projection contains exactly8 fixed fields: phase derived from sanitized operation, strict booleans, bounded integer or null, and4 message-shape enums only.",
+    "Session ID/capabilities presence never exports their values; raw W3C message/stacktrace/URL is not retained in new typed facts.",
+    "Startup catch ends before yield; differential UI error keeps original identity and unchanged poll/cleanup/RPC counts.",
+    "The sole additional process.poll is observational on pre-yield DriverHold failure; observation errors preserve the original error.",
+    "Existing cleanup behavior, including original cleanup-failure replacement and process wait/kill fallback, is preserved.",
+    "Real loopback error500 fixtures still submit exactly one session POST and no retry; all159 preexisting tests are preserved."
+  ],
+  "root_integrated_runtime_matches": true,
+  "runtime_blob": "1c6c9a2b0e893c29044748ddca38ebdbda72d847",
+  "schema": "RACE_AI_NATIVE_SESSION_START_DIAGNOSTIC_INDEPENDENT_REVIEW_V1",
+  "static": {
+    "added_top_level_defs": [
+      "startup_diagnostic"
+    ],
+    "base": "ed336daae7b78ec4c8a8b90cebfaaf713ff70260",
+    "changed_existing_top_level_defs": [
+      "failure_report",
+      "driver_error",
+      "apple_driver"
+    ],
+    "head": "6548523947f3bc695201382efb6162c8e206c5a9",
+    "new_tests": 5,
+    "original_tests_preserved": 159,
+    "original_webdriver_class_bytes_unchanged": true,
+    "root_integrated_runtime_git_blob": "1c6c9a2b0e893c29044748ddca38ebdbda72d847",
+    "runtime_git_blob": "1c6c9a2b0e893c29044748ddca38ebdbda72d847",
+    "schema": "RACE_AI_NATIVE_STARTUP_DIAGNOSTIC_STATIC_REVIEW_V1"
+  },
+  "tests": {
+    "after": {
+      "scripts/boat_native_safari_acceptance.py": "83727390483713bd4442152c603236fe882213bcce97f29027516a6186e5225b",
+      "tests/test_boat_native_safari_acceptance.py": "de576d7ceaab70e7163c0804aef758c135629221fd38ed7a29b826b175cb08cd"
+    },
+    "author_commit": "6548523947f3bc695201382efb6162c8e206c5a9",
+    "before": {
+      "scripts/boat_native_safari_acceptance.py": "83727390483713bd4442152c603236fe882213bcce97f29027516a6186e5225b",
+      "tests/test_boat_native_safari_acceptance.py": "de576d7ceaab70e7163c0804aef758c135629221fd38ed7a29b826b175cb08cd"
+    },
+    "errors": 0,
+    "external_socket_attempts": 0,
+    "failures": 0,
+    "physical_mac_launches": 0,
+    "provider_gets": 0,
+    "real_keys_read": 0,
+    "schema": "RACE_AI_NATIVE_STARTUP_DIAGNOSTIC_INDEPENDENT_TESTS_V1",
+    "seconds": 19.914,
+    "skips": 0,
+    "stable": true,
+    "tests": 164
+  },
+  "verdict": "CLEAR"
+}

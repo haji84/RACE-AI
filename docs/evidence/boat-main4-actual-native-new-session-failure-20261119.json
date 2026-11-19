@@ -1,0 +1,36 @@
+{
+  "schema": "RACE_AI_MAIN4_ACTUAL_NATIVE_NEW_SESSION_FAILURE_V1",
+  "main_commit": "ed336daae7b78ec4c8a8b90cebfaaf713ff70260",
+  "run": 44449770907,
+  "job": 135310576599,
+  "conclusion": "failure",
+  "unit_test_timings": [
+    {
+      "count": 159,
+      "seconds": 55.148
+    }
+  ],
+  "typed_failures": [
+    {
+      "timestamp": "2026-11-19T03:15:23.2506670Z",
+      "status": "NATIVE_SAFARI_ACCEPTANCE_HOLD",
+      "reason": "SAFARI_WEBDRIVER_FAILED",
+      "webdriver_operation": "new_session",
+      "webdriver_http_status": 500,
+      "webdriver_error_code": "session not created",
+      "remote_automation_disabled_message_observed": false,
+      "webdriver_native_browser": null,
+      "ui_stage": null,
+      "ui_action": null,
+      "ui_width": null,
+      "click_dispatch": null,
+      "failure_boundary": null
+    }
+  ],
+  "session_created": false,
+  "synthetic_capture_fix_exercised": false,
+  "physical_iphone_accepted": false,
+  "underlying_cause_beyond_typed_error": null,
+  "ui_published": false,
+  "production_weights_changed": false
+}

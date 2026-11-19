@@ -1,0 +1,743 @@
+{
+  "schema": "RACE_AI_SOURCE995_NATURAL_COMPLETION_COUNTS_V1",
+  "observed_at_utc": "2026-11-18T16:24:00Z",
+  "run_id": 44310358995,
+  "job_id": 134822591655,
+  "source_sha": "995ef00a2ffb98a0161e1875d7d2a33145367b40",
+  "source": "Authenticated completed Actions job log; producer reports, not a fresh independent full-archive audit.",
+  "job": {
+    "status": "completed",
+    "conclusion": "success",
+    "successful_steps": 69,
+    "failed_steps": 0,
+    "completed_at_utc": "2026-11-18T15:26:12Z"
+  },
+  "control": {
+    "actual_completed_rounds": 4,
+    "later_rounds_5_through_24": "DAY_HANDOFF_NO_OP",
+    "finalized_at_utc": "2026-11-18T15:25:37.3833045Z",
+    "lifetime_requests": 15529,
+    "final_control_ready": true,
+    "final_session_requests": 161
+  },
+  "forecasts": {
+    "additional_rounds_observed": 4,
+    "additional_context_counts": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "additional_generated_forecasts": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "bootstrap_contexts": 132,
+    "bootstrap_generated_forecasts": 0,
+    "bootstrap_ready": true,
+    "bootstrap_readback_producer_report": true,
+    "cumulative_saved_view_forecasts": 634,
+    "cumulative_saved_view_scored": 559,
+    "cumulative_counts_not_added_per_round": true
+  },
+  "first_round_timing": {
+    "additional_generation_utc": "2026-11-18T13:21:23.5380583Z",
+    "pdca_ciphertext_prepared_utc": "2026-11-18T13:31:50.4305675Z",
+    "private_retention_verified_utc": "2026-11-18T13:49:23.3284367Z",
+    "round_control_saved_utc": "2026-11-18T13:50:20.2552593Z"
+  },
+  "limits": {
+    "new_program_capture_clock_binding_proven": false,
+    "all_race_all_day_coverage_proven": false,
+    "t15_to_t10_delivery_proven": false,
+    "all_four_sports_proven": false,
+    "physical_iphone_acceptance_proven": false,
+    "six_boat_real_video_accuracy_proven": false,
+    "prospective_improvement_proven": false,
+    "goal_complete": false,
+    "prior_a74_r4_r19_archive_holds_preserved": true,
+    "private_forecasts_or_keys_exported": false,
+    "old_worker_cancelled": false,
+    "counters_reset": false
+  },
+  "safe_log_projection": [
+    {
+      "at": "2026-11-18T13:06:47.3135983Z",
+      "status": "FROZEN_NATIVE_DIAGNOSTIC_SYNTHETIC_TEST_PASSED",
+      "source_requests": 0
+    },
+    {
+      "at": "2026-11-18T13:07:16.8824678Z",
+      "state": "OBSERVED_ATTEMPT_NO_FORECAST",
+      "reason": "NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES"
+    },
+    {
+      "at": "2026-11-18T13:07:16.8825351Z",
+      "state": "ORIGINAL_REUSED_NO_REGENERATION"
+    },
+    {
+      "at": "2026-11-18T13:07:16.8825780Z",
+      "state": "ORIGINAL_REUSED_NO_REGENERATION"
+    },
+    {
+      "at": "2026-11-18T13:07:16.8826192Z",
+      "round": 1,
+      "active": false,
+      "reason": "WORKER_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T13:07:16.8826570Z",
+      "round": 1,
+      "active": false,
+      "reason": "WORKER_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T13:07:16.8826950Z",
+      "round": 1,
+      "active": false,
+      "reason": "SOURCE_VERIFICATION_REQUIRED"
+    },
+    {
+      "at": "2026-11-18T13:07:19.7817002Z",
+      "state": "SAME_CANDIDATE_RESTORED_PRIVATE_ONLY"
+    },
+    {
+      "at": "2026-11-18T13:07:23.0541796Z",
+      "state": "SAME_CANDIDATE_READY_VERIFIED"
+    },
+    {
+      "at": "2026-11-18T13:07:31.0325727Z",
+      "status": "ENCRYPTED_VIEW_ALREADY_INITIALIZED"
+    },
+    {
+      "at": "2026-11-18T13:09:44.8199612Z",
+      "official_source_requests": 0,
+      "status": "SAVED_MODEL_RECOVERY_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T13:09:44.8205743Z",
+      "source_requests": 0,
+      "status": "UNCHANGED"
+    },
+    {
+      "at": "2026-11-18T13:09:44.8209284Z",
+      "status": "SAVED_ORIGINAL_EVIDENCE_VERIFIED"
+    },
+    {
+      "at": "2026-11-18T13:09:44.8211303Z",
+      "reason": "GITHUB_API_READ_HTTP_404_HALT",
+      "status": "ENCRYPTED_VIEW_REJECTED"
+    },
+    {
+      "at": "2026-11-18T13:09:44.9418360Z",
+      "status": "ORDINARY_PUSH_UNCHANGED"
+    },
+    {
+      "at": "2026-11-18T13:17:25.5738829Z",
+      "state": "ORIGINAL_REUSED_NO_REGENERATION"
+    },
+    {
+      "at": "2026-11-18T13:17:56.5588059Z",
+      "contexts": 132,
+      "generated_forecasts": 0,
+      "ready": true,
+      "status": "ALL_MODEL_BOOTSTRAP_CURRENT_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T13:18:27.4818693Z",
+      "contexts": 132,
+      "generated_forecasts": 0,
+      "independently_verified": true,
+      "ready": true,
+      "status": "ALL_MODEL_READBACK_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T13:18:41.9771403Z",
+      "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+    },
+    {
+      "at": "2026-11-18T13:20:29.8009188Z",
+      "official_source_requests": 0,
+      "status": "SAVED_MODEL_RECOVERY_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T13:20:29.8013706Z",
+      "source_requests": 0,
+      "status": "UNCHANGED"
+    },
+    {
+      "at": "2026-11-18T13:20:29.8016381Z",
+      "status": "SAVED_ORIGINAL_EVIDENCE_VERIFIED"
+    },
+    {
+      "at": "2026-11-18T13:20:29.8017832Z",
+      "reason": "GITHUB_API_READ_HTTP_404_HALT",
+      "status": "ENCRYPTED_VIEW_REJECTED"
+    },
+    {
+      "at": "2026-11-18T13:20:43.9055054Z",
+      "source_requests": 0,
+      "status": "SOURCE_CONTROL_MIRROR_UNCHANGED"
+    },
+    {
+      "at": "2026-11-18T13:20:44.3651748Z",
+      "source_requests": 0,
+      "state": "SOURCE_WINDOW_READY"
+    },
+    {
+      "at": "2026-11-18T13:20:45.3801415Z",
+      "round": 1,
+      "active": true,
+      "reason": "READY"
+    },
+    {
+      "at": "2026-11-18T13:20:48.8281073Z",
+      "state": "NO_MISSING_FUTURE_P0"
+    },
+    {
+      "at": "2026-11-18T13:20:52.5225425Z",
+      "ready": true,
+      "status": "ALL_MODEL_PREPARE_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T13:21:21.9452806Z",
+      "state": "OBSERVED_ATTEMPT_NO_FORECAST",
+      "reason": "NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES"
+    },
+    {
+      "at": "2026-11-18T13:21:22.0623156Z",
+      "status": "PRIVATE_ORIGINAL_ARCHIVE_PACKED"
+    },
+    {
+      "at": "2026-11-18T13:21:23.5380583Z",
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "ready": false,
+      "status": "ALL_MODEL_GENERATE_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T13:21:23.6336909Z",
+      "state": "NO_PRIVATE_P1_INPUT"
+    },
+    {
+      "at": "2026-11-18T13:21:34.9492706Z",
+      "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+    },
+    {
+      "at": "2026-11-18T13:21:58.1799637Z",
+      "forecast_count": 634
+    },
+    {
+      "at": "2026-11-18T13:31:50.4305675Z",
+      "status": "PRIVATE_VENUE_PDCA_CIPHERTEXT_PREPARED"
+    },
+    {
+      "at": "2026-11-18T13:49:23.3284367Z",
+      "status": "OWNER_PRIVATE_RESEARCH_RETENTION_VERIFIED"
+    },
+    {
+      "at": "2026-11-18T13:49:48.7253407Z",
+      "status": "PRIVATE_ORIGINAL_ARCHIVE_PACKED"
+    },
+    {
+      "at": "2026-11-18T13:50:05.3743365Z",
+      "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+    },
+    {
+      "at": "2026-11-18T13:50:13.5105061Z",
+      "status": "SOURCE_CAPTURES_RETAINED"
+    },
+    {
+      "at": "2026-11-18T13:50:20.2552593Z",
+      "state": "ROUND_SAVED_AND_READBACK_VERIFIED",
+      "round": 1,
+      "forecast_count": 634
+    },
+    {
+      "at": "2026-11-18T13:53:19.6559360Z",
+      "official_source_requests": 0,
+      "status": "SAVED_MODEL_RECOVERY_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T13:53:19.6566310Z",
+      "source_requests": 0,
+      "status": "UNCHANGED"
+    },
+    {
+      "at": "2026-11-18T13:53:19.6570548Z",
+      "status": "SAVED_ORIGINAL_EVIDENCE_VERIFIED"
+    },
+    {
+      "at": "2026-11-18T13:53:19.6574403Z",
+      "official_source_requests": 0,
+      "status": "BOAT_FORECAST_ORIGINALS_PROTECTED"
+    },
+    {
+      "at": "2026-11-18T13:53:19.6577809Z",
+      "status": "ENCRYPTED_HISTORY_VIEW_PUBLISHED"
+    },
+    {
+      "at": "2026-11-18T13:53:33.6887864Z",
+      "source_requests": 0
+    },
+    {
+      "at": "2026-11-18T13:53:33.7637232Z",
+      "official_source_requests": 0,
+      "source_requests": 0,
+      "status": "HOLD"
+    },
+    {
+      "at": "2026-11-18T13:53:35.8109851Z",
+      "round": 2,
+      "active": true,
+      "reason": "READY"
+    },
+    {
+      "at": "2026-11-18T13:53:39.8305303Z",
+      "state": "NO_MISSING_FUTURE_P0"
+    },
+    {
+      "at": "2026-11-18T13:53:44.2480078Z",
+      "ready": true,
+      "status": "ALL_MODEL_PREPARE_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T13:54:12.5858399Z",
+      "state": "OBSERVED_ATTEMPT_NO_FORECAST",
+      "reason": "NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES"
+    },
+    {
+      "at": "2026-11-18T13:54:12.7008649Z",
+      "status": "PRIVATE_ORIGINAL_ARCHIVE_PACKED"
+    },
+    {
+      "at": "2026-11-18T13:54:14.1699956Z",
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "ready": false,
+      "status": "ALL_MODEL_GENERATE_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T13:54:14.2687459Z",
+      "state": "NO_PRIVATE_P1_INPUT"
+    },
+    {
+      "at": "2026-11-18T13:54:25.6523033Z",
+      "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+    },
+    {
+      "at": "2026-11-18T13:54:39.4688309Z",
+      "forecast_count": 634
+    },
+    {
+      "at": "2026-11-18T14:04:12.9267278Z",
+      "status": "PRIVATE_VENUE_PDCA_CIPHERTEXT_PREPARED"
+    },
+    {
+      "at": "2026-11-18T14:20:23.6325634Z",
+      "status": "OWNER_PRIVATE_RESEARCH_RETENTION_VERIFIED"
+    },
+    {
+      "at": "2026-11-18T14:20:49.2905301Z",
+      "status": "PRIVATE_ORIGINAL_ARCHIVE_PACKED"
+    },
+    {
+      "at": "2026-11-18T14:21:02.5288618Z",
+      "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+    },
+    {
+      "at": "2026-11-18T14:21:10.5615079Z",
+      "status": "SOURCE_CAPTURES_RETAINED"
+    },
+    {
+      "at": "2026-11-18T14:21:17.4005207Z",
+      "state": "ROUND_SAVED_AND_READBACK_VERIFIED",
+      "round": 2,
+      "forecast_count": 634
+    },
+    {
+      "at": "2026-11-18T14:24:00.8956178Z",
+      "official_source_requests": 0,
+      "status": "SAVED_MODEL_RECOVERY_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T14:24:00.8961021Z",
+      "source_requests": 0,
+      "status": "UNCHANGED"
+    },
+    {
+      "at": "2026-11-18T14:24:00.8963680Z",
+      "status": "SAVED_ORIGINAL_EVIDENCE_VERIFIED"
+    },
+    {
+      "at": "2026-11-18T14:24:00.8966707Z",
+      "official_source_requests": 0,
+      "status": "BOAT_FORECAST_ORIGINALS_PROTECTED"
+    },
+    {
+      "at": "2026-11-18T14:24:00.8969097Z",
+      "status": "ENCRYPTED_HISTORY_VIEW_PUBLISHED"
+    },
+    {
+      "at": "2026-11-18T14:24:10.7119311Z",
+      "source_requests": 0
+    },
+    {
+      "at": "2026-11-18T14:24:10.7840145Z",
+      "official_source_requests": 0,
+      "source_requests": 0,
+      "status": "HOLD"
+    },
+    {
+      "at": "2026-11-18T14:24:12.8036825Z",
+      "round": 3,
+      "active": true,
+      "reason": "READY"
+    },
+    {
+      "at": "2026-11-18T14:24:17.3679153Z",
+      "state": "NO_MISSING_FUTURE_P0"
+    },
+    {
+      "at": "2026-11-18T14:24:21.6562293Z",
+      "ready": true,
+      "status": "ALL_MODEL_PREPARE_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T14:24:50.1456851Z",
+      "state": "OBSERVED_ATTEMPT_NO_FORECAST",
+      "reason": "NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES"
+    },
+    {
+      "at": "2026-11-18T14:24:50.2574141Z",
+      "status": "PRIVATE_ORIGINAL_ARCHIVE_PACKED"
+    },
+    {
+      "at": "2026-11-18T14:24:51.7577306Z",
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "ready": false,
+      "status": "ALL_MODEL_GENERATE_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T14:24:51.8507021Z",
+      "state": "NO_PRIVATE_P1_INPUT"
+    },
+    {
+      "at": "2026-11-18T14:25:03.6014678Z",
+      "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+    },
+    {
+      "at": "2026-11-18T14:25:22.9741969Z",
+      "forecast_count": 634
+    },
+    {
+      "at": "2026-11-18T14:34:38.5390203Z",
+      "status": "PRIVATE_VENUE_PDCA_CIPHERTEXT_PREPARED"
+    },
+    {
+      "at": "2026-11-18T14:50:24.5497903Z",
+      "status": "OWNER_PRIVATE_RESEARCH_RETENTION_VERIFIED"
+    },
+    {
+      "at": "2026-11-18T14:50:49.2111048Z",
+      "status": "PRIVATE_ORIGINAL_ARCHIVE_PACKED"
+    },
+    {
+      "at": "2026-11-18T14:51:02.5957587Z",
+      "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+    },
+    {
+      "at": "2026-11-18T14:51:11.3541920Z",
+      "status": "SOURCE_CAPTURES_RETAINED"
+    },
+    {
+      "at": "2026-11-18T14:51:18.1275277Z",
+      "state": "ROUND_SAVED_AND_READBACK_VERIFIED",
+      "round": 3,
+      "forecast_count": 634
+    },
+    {
+      "at": "2026-11-18T14:54:00.9052419Z",
+      "official_source_requests": 0,
+      "status": "SAVED_MODEL_RECOVERY_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T14:54:00.9059992Z",
+      "source_requests": 0,
+      "status": "UNCHANGED"
+    },
+    {
+      "at": "2026-11-18T14:54:00.9063861Z",
+      "status": "SAVED_ORIGINAL_EVIDENCE_VERIFIED"
+    },
+    {
+      "at": "2026-11-18T14:54:00.9068011Z",
+      "official_source_requests": 0,
+      "status": "BOAT_FORECAST_ORIGINALS_PROTECTED"
+    },
+    {
+      "at": "2026-11-18T14:54:00.9071471Z",
+      "status": "ENCRYPTED_HISTORY_VIEW_PUBLISHED"
+    },
+    {
+      "at": "2026-11-18T14:54:10.3769327Z",
+      "source_requests": 0
+    },
+    {
+      "at": "2026-11-18T14:54:10.4650732Z",
+      "official_source_requests": 0,
+      "source_requests": 0,
+      "status": "HOLD"
+    },
+    {
+      "at": "2026-11-18T14:54:12.5318312Z",
+      "round": 4,
+      "active": true,
+      "reason": "READY"
+    },
+    {
+      "at": "2026-11-18T14:54:17.5487857Z",
+      "state": "NO_MISSING_FUTURE_P0"
+    },
+    {
+      "at": "2026-11-18T14:54:21.8677249Z",
+      "ready": true,
+      "status": "ALL_MODEL_PREPARE_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T14:54:52.9677041Z",
+      "state": "OBSERVED_ATTEMPT_NO_FORECAST",
+      "reason": "NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES"
+    },
+    {
+      "at": "2026-11-18T14:54:53.0748640Z",
+      "status": "PRIVATE_ORIGINAL_ARCHIVE_PACKED"
+    },
+    {
+      "at": "2026-11-18T14:54:54.6597261Z",
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "ready": false,
+      "status": "ALL_MODEL_GENERATE_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T14:54:54.7551956Z",
+      "state": "NO_PRIVATE_P1_INPUT"
+    },
+    {
+      "at": "2026-11-18T14:55:07.7797848Z",
+      "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+    },
+    {
+      "at": "2026-11-18T14:55:27.7811841Z",
+      "forecast_count": 634
+    },
+    {
+      "at": "2026-11-18T15:04:53.5938359Z",
+      "status": "PRIVATE_VENUE_PDCA_CIPHERTEXT_PREPARED"
+    },
+    {
+      "at": "2026-11-18T15:21:34.2648920Z",
+      "status": "OWNER_PRIVATE_RESEARCH_RETENTION_VERIFIED"
+    },
+    {
+      "at": "2026-11-18T15:22:00.2190822Z",
+      "status": "PRIVATE_ORIGINAL_ARCHIVE_PACKED"
+    },
+    {
+      "at": "2026-11-18T15:22:15.0256895Z",
+      "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+    },
+    {
+      "at": "2026-11-18T15:22:24.1933245Z",
+      "status": "SOURCE_CAPTURES_RETAINED"
+    },
+    {
+      "at": "2026-11-18T15:22:31.1376193Z",
+      "state": "ROUND_SAVED_AND_READBACK_VERIFIED",
+      "round": 4,
+      "forecast_count": 634
+    },
+    {
+      "at": "2026-11-18T15:25:14.4124804Z",
+      "official_source_requests": 0,
+      "status": "SAVED_MODEL_RECOVERY_COMPLETE"
+    },
+    {
+      "at": "2026-11-18T15:25:14.4129818Z",
+      "source_requests": 0,
+      "status": "UNCHANGED"
+    },
+    {
+      "at": "2026-11-18T15:25:14.4132433Z",
+      "status": "SAVED_ORIGINAL_EVIDENCE_VERIFIED"
+    },
+    {
+      "at": "2026-11-18T15:25:14.4135447Z",
+      "official_source_requests": 0,
+      "status": "BOAT_FORECAST_ORIGINALS_PROTECTED"
+    },
+    {
+      "at": "2026-11-18T15:25:14.4137858Z",
+      "status": "ENCRYPTED_HISTORY_VIEW_PUBLISHED"
+    },
+    {
+      "at": "2026-11-18T15:25:24.0869061Z",
+      "source_requests": 0
+    },
+    {
+      "at": "2026-11-18T15:25:24.1646289Z",
+      "official_source_requests": 0,
+      "source_requests": 0,
+      "status": "HOLD"
+    },
+    {
+      "at": "2026-11-18T15:25:26.2408577Z",
+      "round": 5,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:26.8286473Z",
+      "round": 6,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:27.3979502Z",
+      "round": 7,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:27.9817216Z",
+      "round": 8,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:28.5564817Z",
+      "round": 9,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:29.1469072Z",
+      "round": 10,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:29.7502530Z",
+      "round": 11,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:30.3401768Z",
+      "round": 12,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:30.8880950Z",
+      "round": 13,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:31.4727506Z",
+      "round": 14,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:32.0633236Z",
+      "round": 15,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:32.6324444Z",
+      "round": 16,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:33.1912867Z",
+      "round": 17,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:33.7847167Z",
+      "round": 18,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:34.3716667Z",
+      "round": 19,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:34.9395207Z",
+      "round": 20,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:35.4979605Z",
+      "round": 21,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:36.0914136Z",
+      "round": 22,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:36.6764018Z",
+      "round": 23,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:37.2564063Z",
+      "round": 24,
+      "active": false,
+      "reason": "DAY_HANDOFF"
+    },
+    {
+      "at": "2026-11-18T15:25:37.3833045Z",
+      "completed_round": 4,
+      "lifetime_requests": 15529,
+      "reason": "DAY_HANDOFF",
+      "state": "WORKER_FINALIZED_SOURCE_FREE"
+    },
+    {
+      "at": "2026-11-18T15:25:38.0896541Z",
+      "status": "PRIVATE_ORIGINAL_ARCHIVE_PACKED"
+    },
+    {
+      "at": "2026-11-18T15:25:39.8496052Z",
+      "completed_round": 4,
+      "ready": true,
+      "requests_used": 161
+    },
+    {
+      "at": "2026-11-18T15:25:58.4936551Z",
+      "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+    },
+    {
+      "at": "2026-11-18T15:26:02.5070025Z",
+      "status": "SOURCE_CAPTURES_RETAINED"
+    }
+  ]
+}

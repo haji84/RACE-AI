@@ -40,6 +40,7 @@ from race_ai.keirin_result_delivery import canonical, utc
 from scripts.keirin_cloud_pr71_variable import (
     FourModelVariableLedger, stage_four_model_variable_selections,
 )
+from scripts.keirin_runtime_selection import nationwide_ab_selected
 
 BASE=Path("state/keirin/pr71-production/v1")
 HEAD=BASE/"latest.json"
@@ -47,6 +48,26 @@ SCHEMA="RACE_AI_KEIRIN_PR71_GITHUB_CLOUD_STATE_V1"
 PROOF="RACE_AI_KEIRIN_PR71_CLOUD_CIPHER_PROOF_V1"
 SHA=re.compile(r"^[0-9a-f]{64}$")
 FULL_SHA=re.compile(r"^[0-9a-f]{40}$")
+LICENSED_SOURCE_REQUIRED_KEYS=(
+    "RACE_AI_KEIRIN_FEED_ENDPOINT",
+    "RACE_AI_KEIRIN_FEED_RIGHTS_REF",
+    "RACE_AI_KEIRIN_LICENSE_MANIFEST_B64",
+    "RACE_AI_KEIRIN_LICENSE_DOCUMENT_B64",
+)
+
+
+def missing_source_configuration(environ=None, *, source_state=None):
+    """Provider-export settings are optional in the owner public research mode.
+
+    The four keys continue to gate the separately configured provider route.
+    Do not claim provider API keys are required for existing public-page intake.
+    """
+    if source_state == "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED":
+        return []
+    values=os.environ if environ is None else environ
+    return [name for name in LICENSED_SOURCE_REQUIRED_KEYS
+            if not values.get(name)]
+
 
 
 def need(ok,reason):
@@ -303,8 +324,20 @@ def commit(repo,source_root,db,prior):
             git(tree,"push","origin","HEAD:refs/heads/"+STATE_BRANCH)
             git(repo,"fetch","--no-tags","origin",
                 "refs/heads/"+STATE_BRANCH+":refs/remotes/origin/"+STATE_BRANCH)
-            need(git(repo,"rev-parse","refs/remotes/origin/"+STATE_BRANCH)==sent,
-                 "REMOTE_ENCRYPTED_COMMIT_READBACK_MISMATCH")
+            observed=git(repo,"rev-parse","refs/remotes/origin/"+STATE_BRANCH)
+            # Other state lineages may append after our successful push. Bind
+            # readback to this observed commit and our immutable blobs, not to
+            # an exact branch tip or a later writer's mutable latest pointer.
+            try:
+                git(repo,"merge-base","--is-ancestor",sent,observed)
+            except ArchiveError:
+                raise ArchiveError("REMOTE_ENCRYPTED_COMMIT_READBACK_MISMATCH") from None
+            for suffix in (".enc",".scope.json",".proof.json"):
+                path=str(rel)+suffix
+                expected=git(repo,"ls-tree","--full-tree",sent,"--",path)
+                actual=git(repo,"ls-tree","--full-tree",observed,"--",path)
+                need(bool(expected) and actual==expected,
+                     "REMOTE_ENCRYPTED_FILE_READBACK_MISMATCH")
             return {"state":"CLOUD_PR71_ENCRYPTED_GIT_HISTORY_READBACK_VERIFIED",
                     "generation":generation,
                     "cipher_sha256":digest,
@@ -315,18 +348,29 @@ def commit(repo,source_root,db,prior):
 
 
 def _licensed_inputs(inbox,source_root):
-    """Optional provider-controlled real feed; absent means HOLD, not fake races.
+    """Prefer the configured independently reviewed provider export.
 
-    The GitHub Secrets must carry the *real* owner-reviewed licence manifest
-    (with actual documented use rights) and its SHA-pinned private document.
-    No vendor URL or contract is manufactured by this adapter.
+    An explicit owner-source profile also permits the existing private
+    acquisition path to run when the export is unconfigured. That path
+    produces partial research input only, not a provider licence or a
+    falsely admitted full-model packet.
     """
+    if nationwide_ab_selected():
+        return None,None,"LEGACY_SOURCE_SUPERSEDED_BY_NATIONWIDE_AB"
     e=os.environ
-    needed=("RACE_AI_KEIRIN_FEED_ENDPOINT","RACE_AI_KEIRIN_FEED_RIGHTS_REF",
-            "RACE_AI_KEIRIN_LICENSE_MANIFEST_B64",
-            "RACE_AI_KEIRIN_LICENSE_DOCUMENT_B64")
-    if any(not e.get(k) for k in needed):
-        return None,None,"SOURCE_FEED_NOT_CONFIGURED"
+    needed=LICENSED_SOURCE_REQUIRED_KEYS
+    if missing_source_configuration(e):
+        from scripts.keirin_cloud_owner_inputs import PROFILE,collect_owner_inputs
+        if e.get("RACE_AI_OWNER_AUTO_SOURCE_PROFILE") != PROFILE:
+            return None,None,"SOURCE_FEED_NOT_CONFIGURED"
+        require_main_event()
+        report=collect_owner_inputs(inbox,owner_auto_confirmed=True)
+        need(report.get("new_pre_race_inputs")==0 and
+             report.get("actual_four_model_forecast_saved") is False and
+             report.get("provider_machine_rights_independently_verified") is False,
+             "OWNER_SOURCE_CANNOT_SELF_APPROVE_FULL_PR71_INPUT")
+        return None,{"new_pre_race_inputs":0,"owner_source_acquisition":report},\
+            "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED"
     from race_ai.keirin_permissioned_owner import (
         load_operator_grants,stage_permissioned_deliveries
     )
@@ -365,6 +409,9 @@ def _licensed_inputs(inbox,source_root):
 
 def cycle(repo,source_root):
     require_main_event()
+    if nationwide_ab_selected():
+        return {"state":"LEGACY_PR71_SUPERSEDED_BY_NATIONWIDE_AB",
+                "new_forecasts":0,"provider_requests":0}
     check_owner_cipher_consent(source_root)
     need(bool(os.getenv("RACE_AI_STATE_KEY")),
          "PRODUCTION_STATE_KEY_NOT_CONFIGURED")
@@ -375,15 +422,21 @@ def cycle(repo,source_root):
         inbox.mkdir(mode=0o700)
         prior,old=restore(repo,source_root,db)
         grants,stage,status=_licensed_inputs(inbox,source_root)
+        owner_source=(stage or {}).get("owner_source_acquisition")
         if prior is None and grants is None:
-            return {"state":"HOLD_NO_LICENSED_FUTURE_SOURCE_AND_NO_PRODUCTION_ORIGINAL",
+            state=("HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT" if owner_source is not None
+                   else "HOLD_NO_LICENSED_FUTURE_SOURCE_AND_NO_PRODUCTION_ORIGINAL")
+            return {"state":state,
                     "new_forecasts":0,"source_state":status,
+                    "owner_source_acquisition":owner_source,
+                    "missing_source_config_keys":missing_source_configuration(source_state=status),
                     "private_key_used_without_writing_public_data":True}
         # A genesis is permitted ONLY when a real license-admitted full PR71
         # packet is present. No artificial new empty "production archive".
         if prior is None and (stage or {}).get("new_pre_race_inputs",0)==0:
             return {"state":"HOLD_NO_COMPLETE_PRE_CUTOFF_INPUT",
-                    "new_forecasts":0,"source_state":status}
+                    "new_forecasts":0,"source_state":status,
+                    "missing_source_config_keys":missing_source_configuration(source_state=status)}
         from race_ai.keirin_pr71_four_model_rank import stage_existing_owner_pre_races
         # Results share the already authorized source feed, but are not model
         # features. Only an ORIGINAL four-model suite frozen before the cutoff
@@ -409,7 +462,8 @@ def cycle(repo,source_root):
         if before is not None and after==before:
             return {"state":"CLOUD_PR71_RESTORED_NO_CHANGED_MODEL_OR_RESULT",
                     "originals_preserved":True,"new_forecasts":0,
-                    "source_state":status,
+                    "source_state":status,"owner_source_acquisition":owner_source,
+                    "missing_source_config_keys":missing_source_configuration(source_state=status),
                     "four_model_variable_saved":variable["four_model_variable_saved"],
                     "four_model_variable_held":variable["four_model_variable_held"],
                     "result_rows_appended":results["results_appended"],
@@ -423,6 +477,7 @@ def cycle(repo,source_root):
         return {**out,"source_state":status,
                 "new_forecast_stage_nonzero":bool(
                     frozen.get("private_four_model_predictions_saved",0)),
+                "missing_source_config_keys":missing_source_configuration(source_state=status),
                 "existing_pdca_invoked":True,
                 "four_model_variable_saved":variable["four_model_variable_saved"],
                 "four_model_variable_held":variable["four_model_variable_held"],
@@ -435,6 +490,47 @@ def cycle(repo,source_root):
                 "all_race_results_acquired":False,
                 "formal_accuracy_calculated":False}
 
+
+
+def audit_prospective_window_from_independent_archive(db, repo_root):
+    """Count real existing originals after the independent AES/SQLite restore.
+
+    The pinned PR71 source snapshot does not contain an independently verified
+    scheduled start time. Never infer it from sales cutoff or from the race ID.
+    Until a separately verified official start receipt is connected, every
+    original remains HOLD regardless of older before-cutoff freeze success.
+    No race ID, picks, provider bytes or private model records are printed.
+    """
+    import importlib.util
+
+    policy = Path(repo_root).resolve() / "race_ai/live_15min_proof.py"
+    need(policy.is_file() and not policy.is_symlink() and
+         policy.stat().st_size <= 32_000,
+         "LIVE_15MIN_PROOF_POLICY_UNAVAILABLE")
+    spec = importlib.util.spec_from_file_location(
+        "race_ai_live_15min_proof_contract", policy)
+    need(spec is not None and spec.loader is not None,
+         "LIVE_15MIN_PROOF_POLICY_INVALID")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    from race_ai.keirin_pr71_four_model_rank import FourModelRankLedger
+    verified = []
+    with PrivateKeirinStore(db) as store:
+        ledger = FourModelRankLedger(store)
+        rows = store.db.execute(
+            "SELECT race_id FROM keirin_pr71_four_model_suites ORDER BY race_id"
+        ).fetchall()
+        need(len(rows) <= 2000, "LIVE_PROOF_ARCHIVE_BOUNDS")
+        for row in rows:
+            saved = ledger.read_suite(row["race_id"])
+            # read_suite independently checks source/model hashes and all
+            # original PR71 model identities. There is no start authority in
+            # the existing pre-race packet: intentionally do not fabricate it.
+            verdict = module.audit_frozen_race(
+                saved, expected_models=ALL_MODELS,
+                independent_model_readback=True, start_evidence=None)
+            verified.append(verdict)
+    return module.summarize(verified)
 
 def main(argv=None):
     import argparse
@@ -457,6 +553,8 @@ def main(argv=None):
                 report={"state":"PR71_SEPARATE_GITHUB_RUNNER_AES_GCM_READBACK_OK",
                         "generation":head["generation"],
                         "four_models_and_private_sqlite_verified":True,
+                        "live_15min":audit_prospective_window_from_independent_archive(
+                            Path(tmp)/"readback.sqlite3", args.repo),
                         "plaintext_public":False}
         print(json.dumps(report,sort_keys=True))
         return 0

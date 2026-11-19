@@ -1,0 +1,174 @@
+2026-11-12 JST BOAT SCHEDULE-GAP SOURCE-FREE PROOF
+This new separate GitHub-only watchdog is a bounded live test, not a
+claim of 5-minute official GET delivery. It must run exactly once on the
+specified main push, then dispatch one and only one follow-up proof via
+workflow_dispatch cycle=2, and stop.
+The already retained official result state may be replayed through the
+existing pinned result reader with 0 official source GET and independent
+readback. No BOAT owner P0/P1 re-generation, quota reset, added source
+collector, historical score rewrite, or result-original replacement.
+The detector uses the actual GitHub schedule run history, determines
+last real BOAT schedule event, and records whether it has gone stale.
+A separate future gate must prove safe cumulative source request budgets
+before any unattended source GET-based resumption is permitted.
+
+SECOND PAIRED LIVE PROOF, post-import repair, 2026-11-12 JST.
+The first real attempt 43186305394 authenticated a 127-minute BOAT
+schedule gap and issued zero provider GET but failed Python import
+before replay because immutable race_ai.core was not on the module path.
+This patch adds independent pinned official adapters to the same
+zero-source reader, without changing source budgets or writing models.
+Its main-push trigger launches a bounded pair of source-free real
+replays. A green PR CI alone is not this full proof.
+
+2026-11-12｜新規公式結果の厳密一回限りの本番回収試験（証拠追加のみ）。
+このmerge commitは既存GitHub BOAT復旧ワークフローに対する単発push起動のみを目的とする。
+実際のBOAT schedule欠落15分以上、元の暗号状態に20分以上新規保存なし、
+公式取得拒否の保留期限内ではない、今処理すべき未確定レースあり、
+同一取得担当の実行中・直近20分の実行なし、復旧試行30分以内の重複なし、
+これら全条件をGitHub実履歴と秘密鍵付き暗号原本で検証できなければsource GET=0でHOLD。
+合格した場合のみ元の固定official result collectorを12回GET以内で1回実行し、
+新たにfinalになった公式結果が1件以上あること、元予想原本のinventory SHA一致、
+暗号保存、別runnerで同じsource ciphertext / final result digest / inventory SHAを再照合する。
+この手動起動は定期schedule自律発火の証明には数えない。source GET上限、元P0/P1、
+拒否済みsourceの停止規則、継続起動の制限は変更しない。新結果未到着なら全体HOLD。
+
+2026-11-12｜実結果GET回収試験 run43203477484 は安全ゲート通過後に既存source script内でexit1。
+現在の原因はsourceのstdoutが非公開RUNNER_TEMPへ退避されており過去ジョブログからは不明。
+暗号転送branchの最後の更新は2026-11-12T06:45:16Zで、この失敗の後には更新されていない。
+今回の診断は旧暗号のread-only復元、元daily store取得、intraday取得、現在の結果表示sourceと公開候補算出だけを実行。
+公式提供元の通信を0回とし、本人名・鍵・HTMLは出力しない。失敗ならフェーズと正規化した原因文字列だけを報告。
+既存の取得制限と重複防止は維持、GET再試行は実施しない。source failure reportは将来実行時だけ安全要約で公開する。
+
+2026-11-12 CHECKPOINT: single guarded fresh-result recovery diagnosis after prior source collector failed with exit 1.
+This change authorizes no new unlimited GET loops. Only existing authenticated gap, pending due results, provider holds, 30-minute source-attempt lock, 12-GET/run quota and single-writer state apply.
+If admitted and source fails, inspect only the whitelisted reason code via existing sanitized failure step. No raw provider response, identity, cipher, key or full private report is logged. Result/P0/PDCA/view source remain unchanged.
+The one-time main merge title must start with boat-gap-fresh-proof: single-bounded-intake-20261112. This push is a controlled diagnosis, not proof of autonomous schedule liveness.
+
+2026-11-12 READ-ONLY GIT AUTH WRITE DIAGNOSTIC. Latest real official-result collector error STATE_GIT_OPERATION_FAILED in run 43211631871, despite source-free encrypted-state loading passing. This probe creates a temporary local empty-tree Git commit and runs exactly one git push --dry-run to the same verified encrypted transfer branch. It makes no official provider requests and performs no remote write. The original collector and source request budgets remain unchanged. The program emits ONLY two booleans: dry_run_exit_zero and remote_unchanged; no token, private bytes, raw stderr, source URL or branch SHA in logs. A dry-run success is not proof that a real push is authorized, and this job never clears the production HOLD.
+
+2026-11-12 read-only Git dry-run diagnostic run43212878454 stopped before producing a positive permission result, no official GET or remote state mutation. The next source-free probe logs only a normalized phase, exception class and public code-file line, never raw git stderr, credentials, private source or ciphertext. It must not be interpreted as real Git write authorization or official-result acceptance.
+
+2026-11-12 READONLY GIT PROBE IMPORT FIX: prior run 43213355803 failed at phase import with missing module from pinned official parser/adapter; this did not test git write permissions. Restore both immutable sibling references exactly as the successful no-GET source diagnostic. Do not retry provider GET or call any real git push.
+
+2026-11-12 | BOAT secure Git write dry-run with GitHub-native credential helper. A real source job failed with STATE_GIT_OPERATION_FAILED. Trigger ONLY the existing BOAT source_free_git_probe on main using the exact merge title boat-git-probe: readonly-git-20261112; no official result GET, no state push and no encrypted source mutation. Confirm whether GitHub auth+existing pinned git fetch and push --dry-run work. A diagnostic pass is not official result ingestion and is not the final target.
+
+2026-11-12 PARTIAL-FETCH DIAGNOSTIC. Existing protected Git dry-run failed at `fetch` after a 180-second timeout, even with GitHub credential helper enabled. This run tests `git fetch --filter=blob:none` on the exact authenticated state commit. Only state metadata/trees are fetched, then a new local commit is built and a `git push --dry-run` is attempted. No provider GET, no remote state write, no source budget change. Do not treat pass as live result ingestion. Commit title boat-git-probe: readonly-git-20261112 | filtered-state-fetch
+
+2026-11-12 JST | One bounded post-PR228 live delivery acceptance. The authorized one-time main push must use the exact prefix boat-gap-fresh-proof: single-bounded-intake-20261112. New result acquisition is allowed only when the pre-existing verified source-gap, 30-minute attempt reservation, 20-minute state freshness, provider 403/429 hold, original 12-GET cap, immutable original forecast and shared writer gates admit it. Verify genuinely new official final by day, AES source ciphertext and final-result digest on a fresh runner, existing source-free model PDCA staging, independent AES PDCA readback, and the actual private Pages P0 result/hit-miss display. All downstream source GET=0. Never retry on same reservation or treat source-free CI as live success. Evidence is the eventual GitHub Actions job log, not this marker.
+
+2026-11-12 23:37 JST | Owner-authorized single production acceptance after corrected SHA 5219f20b72ac8a95850f70d21b77cdd78627117e. Trigger once only via protected merge title prefix boat-gap-fresh-proof: single-bounded-intake-20261112. This marker conveys no completion claim. Real source GET is strictly conditional on existing true schedule gap, due pending result, cooldown 20min, 30min source attempt reservation, provider 403/429 holds, source owner 240 cap, max 12 GET/job, same single-writer lock. If and only if a newly final official result is encrypted and independently SHA checked, require existing source-free PDCA stage, independent PDCA readback, and live Pages result-model DOM verification. On missing evidence report HOLD; never recreate P0/P1 or bypass any source guard. See actual run logs for acceptance.
+
+2026-11-13 JST | SOURCE-FREE ALL-142 COVERAGE RECEIPT, NO SOURCE REPLAY.
+The approved main merge title starts exactly with boat-coverage: sourcefree-142-20261113.
+Run the separate audited 142-race original P0 coverage workflow using already
+AES-authenticated Git saved history only: compare 142 saved original races,
+284 P0 model originals, formal official result vs pending/missing/unsupported
+and per-model eligible/hit/miss/HOLD counts. Emit count-only evidence, never
+race identifiers, tickets, names, source HTML or decrypt keys. No provider GET,
+no owner 240/session reset, no extra schedule or speculative result filling.
+This marker is not completion proof. Failed/missing original input stays HOLD.
+
+2026-11-13 JST | Exact count-only HOLD cause classification for the immutable
+142 race, 284 P0 forecast original. Trigger only the pre-approved main
+boat-coverage: sourcefree-142-20261113 prefix. No racing provider GET,
+no change to original source rate 12 GET/run, no reset or retry, no raw
+source or original forecast published. Compare existing AES authenticated
+official result states and model scorer's fixed unresolved reason codes.
+Reject any reason whose total differs from the model HELD count. Keep all
+pending/missing/unsupported as HOLD until authentic formal receipts exist.
+
+2026-11-13 JST | Strict AES-only original 142 BOAT P0 coverage and unsupported-result reason audit after owner-approved bounded 36 GET recovery release. Trigger only the existing source-free BOAT coverage workflow with exact main merge title boat-coverage: sourcefree-142-20261113. Reopen authenticated owner saved history, count original race inventory 142, P0 forecasts 284, official final/pending/missing/unsupported and sanitized distinct rejection reason counts. Reject mutable forecast inventory, false formal settlements, or missing source authorization. Never fetch a racing provider, never log private race IDs, participants, tickets, owner URLs, keys, or HTML, and never claim that this marker itself proves live source settlement. The original source-recovery workflow remains governed by JST 07-23, 30min attempt reservation, source WAIT and 12-36 result backlog cap.
+
+2026-11-13 07:34 JST | OWNER REQUEST: ONE BOUNDED REAL OFFICIAL RESULT CATCH-UP.
+This commit invokes ONLY the pre-existing protected main recovery workflow,
+using its exact allowlisted title prefix
+boat-gap-fresh-proof: single-bounded-intake-20261112
+without adding provider GETs to any PR or test. The 142 original saved P0
+races/284 predictions remain immutable. Last AES owner coverage verified:
+57 formal results, 80 missing results, 5 reference-only HOLD; these are
+baseline facts, not a claim of newly acquired results.
+With the owner's authorized adaptive 12-36 result-only bound, let the
+existing schedule-gap gate independently revalidate JST07-23 window,
+>=15min missing BOAT primary schedule, >=20min stale sealed state,
+30min durable attempt exclusion, due authenticated saved race targets,
+single Git source writer, 403/429 source denial holds, owner 240-bound
+separation and immutable original forecast SHA. If any fails, zero
+provider GET, no automatic restart and retain HOLD.
+If admitted, require official bytes, AES Git retention, independent
+separate-runner ciphertext/final-result SHA, existing model-specific PDCA
+independent readback and real Pages model/result proof. New 142-race
+coverage should be independently measured after this run. Never expose
+raw source, participant identities, private race IDs or view key.
+
+2026-11-13 07:58 JST | Owner approved real missing-result catch-up without a fixed 30min wait.
+Trigger one guarded main source run with exact existing allowlisted prefix
+boat-gap-fresh-proof: single-bounded-intake-20261112.
+This is evidence of owner intent, NOT evidence that a source GET succeeded.
+On this new immutable main, the 30m attempt timer and 20m source-state timer
+are removed, replaced by per-race settlement_next, verified source
+step history, max96 rolling recovery GET/hour and conservative shared
+max240 GET/hour accounting for all source-capable primary collector runs.
+No active writer, no duplicate run_attempt, 403/429 provider WAIT intact,
+up to36 GET per owner-admitted cycle, minimum2s serial spacing.
+Only after new real final + separate-runner AES/cipher/result digest and
+unchanged P0 forecast receipt can the workflow source-free dispatch another
+independently gated catch-up. If no new result, quota or provider denied,
+do not auto-retry. No new forecasts, private source, tickets or raw data
+may be published. The 142-race audited completion remains HOLD until real.
+
+2026-11-13 08:08 JST | OWNER-REQUESTED REAL NO-FIXED-WAIT CATCH-UP.
+The preceding protected main run #43325048789 returned 18 genuinely new
+official final results from 36 real source GETs; independent AES ciphertext,
+final digest and original P0 inventory were verified. Its source-free
+continuation dispatch failed solely because gh CLI had no local repo.
+The fix is merged as PR #241. This one guarded run tests that exact fix
+without a 30-minute global pause. Do not restart the prior failed job.
+Use the established strict main title prefix boat-gap-fresh-proof:
+single-bounded-intake-20261112 and independently re-check due original
+race IDs, per-race retry clock, provider denials, existing source writers,
+rolling 96 recovery/240 owner GET budget, 2s serial pacing, scope integrity
+and source GET<=36. If genuine new finals are AES-saved and independently
+verified, allow a source-free repo-qualified continuation dispatch. If not,
+report HOLD and do not force a retry. Never modify P0, create synthetic
+official results, or release owner source/race identities.
+
+2026-11-13 08:34 JST | OWNER SOURCE-FREE FINAL TWO RACE DIAGNOSTIC.
+The live Pages display was independently checked at 140/142, but two
+unresolved records cannot be classified by the browser check alone.
+Run ONLY the established AES-authenticated count-only original 142 P0
+audit on the current owner saved-view Git branch, now after production
+run #43327268171. Require exact 142 race inventory, 284 frozen P0
+forecasts, the original model-specific strict scorer, and distinct
+result statuses final/missing/pending/unsupported/void. Report aggregate
+unsupported rejection reasons. No provider GET, no secret or race IDs
+released, no forecast rewrites, no source-budge reservation or new
+job dispatch. Missing/unsupported must remain HOLD and not a miss.
+This marker does not assert 142/142 completion.
+
+2026-11-13 08:47 JST | OWNER REQUESTED FINAL MISSING OFFICIAL RESULTS AFTER HOURLY-CAP REMOVAL
+RACE-AI 2026-11-12 stored 142 P0 original races and 284 model forecasts.
+Latest independent AES-only audit: 130 formal results, 2 genuinely missing,
+10 reference-only nonformal HOLD. This is NOT a completion claim.
+PR #244 removes the previous local 60m96 and 60m240 quotas. Source MUST
+still obey one authorized cycle <=36 GET, per-race persisted retry clock,
+minimum 2 seconds between source requests, 403/429 and Retry-After host
+STOP, original-collector single-writer, source-free admission and original
+P0 inventory protection. Require actual official final bytes + AES save +
+different-runner SHA digest and model PDCA + real Pages presentation before
+credit. If official final is not available, no automatic re-dispatch; do not
+invent results or change original P0. Explicitly source-approved once with
+existing main title prefix boat-gap-fresh-proof: single-bounded-intake-20261112.
+No private race ID or viewing key in this audit marker.
+
+2026-11-13 | SOURCE-FREE POST-PUSH-ACK COVERAGE REAUDIT
+Following 60-second source Git push timeout #43331994296 and no-new-formal-final #43333317888, owner requires exact independent count of the authenticated 2026-11-12 142 original P0 races (284 model forecasts). Reopen actual encrypted Git state using the established independent 142-P0 audit. Separate confirmed finals, genuinely missing results and unsupported/reference-only HOLD with reason counts. This marker authorizes ZERO provider GET, ZERO forecast rewrites, ZERO source retries. Do not claim recovered results without their original official receipt and independent readback. The original P0 remains immutable and reference-only evidence stays HOLD.
+
+2026-11-13 | SOURCE-FREE SEALED CUTOFF BASIS REASON AUDIT
+Count-only readback of the 2026-11-12 142 original P0 saved races. The prior authenticated audit confirmed 132 formal finals and 10 legacy cutoff-reference HOLD. Inspect only private signed reference metadata and publish aggregate basis/offset bins to identify the cause of each legacy reference category; do not publish race IDs, signed source records, exact cutoff times, protected ciphertext or any forecast picks. ZERO provider GET. DO NOT downgrade formal evidence gates or automatically promote legacy reference to official settled labels. The original 284 P0 forecast bytes stay unchanged.
+
+2026-11-13 | SOURCE-FREE LEGACY OFFICIAL RECEIPT AND CUTOFF CHRONOLOGY AUDIT
+Request exactly one existing AES-only 2026-11-12 142-P0 independent audit. All 10 currently unsupported reference-only rows use a raw official SP source but their forecast cutoff does not exactly match the result cutoff. Count only (no IDs and no exact times) whether each row's latest official source SHA/observation identity, settlement body/winner payout and forecasts saved before both cutoffs can be independently verified. This is diagnostic evidence only: do NOT mark a legacy reference formal based on classification, do NOT change result state, P0, source limits or perform any provider GET.
+
+2026-11-13 | OWNER AUTHORIZED 142/142 ORIGINAL BOAT P0 SOURCE-FREE FORMAL AUDIT
+Owner explicitly authorizes counting the 10 formerly reference-only Nov 12 BOAT results as formal when existing authenticated official SP final receipt, payout/refund, latest result identity and both forecast/save cutoff timestamps independently pass. Use same 142-race 284-P0 sealed view and original model scorer, with an audit-only in-memory formal scoring copy; do not alter original P0, source data, sealed AES, or Git state. No provider GET, no new guesses, no official source mutation, no live site claim without separate proof. If any of the 10 fails strict evidence gate, DO NOT claim 284/284 complete. Keep 132/10 baseline separate from new owner-authorized 142 count, and preserve refunds, F/L/accident adjudication through existing settlement. Trigger one allowlisted source-free audit only.

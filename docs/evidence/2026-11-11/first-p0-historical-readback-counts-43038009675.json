@@ -1,0 +1,81 @@
+{
+  "evidence_type": "SELECTED_COUNT_FIELDS_FROM_EXISTING_JOB_LOG",
+  "source_schema": "RACE_AI_INDEPENDENT_PDCA_READBACK_V1",
+  "source_run_id": 43038009675,
+  "source_job_id": 130583568151,
+  "source_job_url": "https://github.com/haji84/RACE-AI/actions/runs/43038009675/job/130583568151",
+  "actual_purchases": false,
+  "all_history_completion_proven": false,
+  "forecast_rewrites": 0,
+  "formally_scored_forecasts": 2774,
+  "full_period_independently_read_days": 4,
+  "full_period_ledger_open_races": 54,
+  "full_period_missing_pdca_days": 0,
+  "full_period_orphan_pdca_days": 0,
+  "full_period_pdca_archived_days": 4,
+  "full_period_readback_coverage_proven": true,
+  "full_period_readback_holds": 0,
+  "full_period_saved_days": 4,
+  "full_period_unavailable_backlog_days": 0,
+  "full_period_unscored_model_forecasts": 498,
+  "held_forecasts": 313,
+  "pending_forecasts": 0,
+  "pdca_day_counts": [
+    {
+      "day": "2026-11-07",
+      "eligible": 1440,
+      "forecasts": 1559,
+      "races": 132,
+      "unresolved": 114
+    },
+    {
+      "day": "2026-11-08",
+      "eligible": 1306,
+      "forecasts": 1526,
+      "races": 132,
+      "unresolved": 199
+    },
+    {
+      "day": "2026-11-11",
+      "eligible": 28,
+      "forecasts": 28,
+      "races": 14,
+      "unresolved": 0
+    }
+  ],
+  "pdca_focus_day": "2026-11-11",
+  "secret_or_private_original_logged": false,
+  "source_provider_requests": 0,
+  "status": "AES_AUTHENTICATED_HISTORICAL_PDCA_READBACK_VERIFIED",
+  "interpretation": "This is the existing historical bulk-settlement reader. It is separate from the original P0 frozen evaluator. Keep the original P0 report's 26 scored and 2 ABNORMAL_FINISH_REVIEW_REQUIRED holds; this excerpt does not resolve those native holds.",
+  "focus_group_counts": [
+    {
+      "stage": "P0",
+      "forecasts": 14,
+      "eligible": 14,
+      "hits": 3,
+      "misses": 11,
+      "void": 0,
+      "held": 0,
+      "pending": 0,
+      "stake_yen_reference": 11200,
+      "returned_yen_reference": 2680,
+      "refund_yen_reference": 0,
+      "net_yen_reference": -8520
+    },
+    {
+      "stage": "P0",
+      "forecasts": 14,
+      "eligible": 14,
+      "hits": 3,
+      "misses": 11,
+      "void": 0,
+      "held": 0,
+      "pending": 0,
+      "stake_yen_reference": 11200,
+      "returned_yen_reference": 2680,
+      "refund_yen_reference": 0,
+      "net_yen_reference": -8520
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_ORIGINAL_METADATA_V1",
+  "recorded_at": "2026-11-18T13:04:00Z",
+  "number": 24,
+  "title": "feat: 許可済み当日スナップショットを含むPreview静的配信パッケージ",
+  "body": "許可確認済みtoday.jsonとweb/index.html,app.js,style.cssを新規の不変出力ディレクトリへまとめるPreviewバンドル生成処理を追加。許可なし・既存出力への上書きを拒否。合成fixtureのテストを追加。\n\n未完成: 実公式B原本の取込、提供元の許可確認、実データ配信、Vercel APIへのアップロード、実機E2E。main/Production変更なし。",
+  "head": {
+    "ref": "feat/boat-preview-feed-package",
+    "sha": "cd86cf46d7eadb4e831b0dc345d6ad1749ea191b"
+  },
+  "base": {
+    "ref": "feat/boat-preview-feed-pipeline",
+    "sha": "745a3cc83403d8260e666c7b0061a8aecb549798"
+  },
+  "draft": true,
+  "state": "open",
+  "html_url": "https://github.com/haji84/RACE-AI/pull/24",
+  "ancestry": {
+    "merge_base": "cd86cf46d7eadb4e831b0dc345d6ad1749ea191b",
+    "behind_by": 0,
+    "ahead_by": 2331
+  },
+  "scope": "Original metadata preserved before repurposing this existing ancestor-only draft for final evidence; no new PR and no old code discarded."
+}

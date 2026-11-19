@@ -1,0 +1,124 @@
+{
+  "schema": "RACE_AI_EIGHT_REFERENCE_SAFARI_MANUAL_AUDIT_20261117_V1",
+  "observed_at": "2026-11-17 23:00:36 UTC",
+  "candidate_commit": "598c80c89b5d6a1bca8dbbb16d091ef9e74bfb76",
+  "candidate_web_tree": "23bddbad96d303cdd9699615ecfa6f99f7f82f61",
+  "native_run_id": 44191905231,
+  "native_job_id": 134423216474,
+  "synthetic_artifact_id": 14377542031,
+  "artifact_bytes": 8472624,
+  "artifact_sha256": "f5952f2367727f345f2f6f9583f1e18188c3eea5f0fd765842546a3b41f9f52a",
+  "local_actual_bytes_hash_and_zip_crc_verified": true,
+  "screenshots": 28,
+  "captured_widths": [
+    320,
+    390,
+    1440,
+    1920
+  ],
+  "captured_height": 948,
+  "reference_images_examined": 8,
+  "candidate_pngs_examined": 8,
+  "manually_compared_widths": [
+    390,
+    1440
+  ],
+  "all_eight_reference_acceptance_verified": false,
+  "physical_iPhone_verified": false,
+  "original_reference_images_modified_or_published": false,
+  "references": [
+    {
+      "name": "01_mobile_home.jpg",
+      "bytes": 418922,
+      "sha256": "9790989528472d82b4cc75c2b0be528946f3ecc5598e4d019cfaaad1cc03cd35"
+    },
+    {
+      "name": "02_mobile_races.jpg",
+      "bytes": 460642,
+      "sha256": "82f57c8e76b8bc53fc634f6df63b17f2ec9b232c9e693392e98f70b7471827a2"
+    },
+    {
+      "name": "03_mobile_detail.jpg",
+      "bytes": 437220,
+      "sha256": "04b1a889d37cabe564fd30fdd8809ee10fe58b5be97bf5818f4803a3b6c30709"
+    },
+    {
+      "name": "04_mobile_allocation.jpg",
+      "bytes": 380003,
+      "sha256": "0ccf8e93c4642136be09598006b416704659bda4aa8a1ec4f8c2e872639f1e19"
+    },
+    {
+      "name": "05_desktop_home.jpg",
+      "bytes": 474474,
+      "sha256": "6241d04cb6866ac6e9e5ff426fff601781a82a5b2c8ac6d1344f2c0e9e06ba5a"
+    },
+    {
+      "name": "06_desktop_races.jpg",
+      "bytes": 458826,
+      "sha256": "818c5a4291f1d4d11718b428f487cc420b5762d00c1c2ce668d79f10e7eef0cf"
+    },
+    {
+      "name": "07_desktop_detail.jpg",
+      "bytes": 552089,
+      "sha256": "f8636974adb210fb5460aa1d62824ca851489fab39cabbf4a54a8259139e20e8"
+    },
+    {
+      "name": "08_desktop_allocation.jpg",
+      "bytes": 405226,
+      "sha256": "f4ca2d4cc60c93ffc87a44e338da56411f07ff05d0d8c578598d18e14eba253c"
+    }
+  ],
+  "matrix": [
+    {
+      "reference": "01_mobile_home.jpg",
+      "candidate": "390-home.png",
+      "status": "PARTIAL",
+      "findings": "Budget/status cards and sport navigation exist; reference portrait/recommendation composition and five-inline KPI layout remain partial."
+    },
+    {
+      "reference": "02_mobile_races.jpg",
+      "candidate": "390-races.png",
+      "status": "PARTIAL",
+      "findings": "Search/filter exists; captured synthetic fixture shows one settled race, so the reference's upcoming four-sport list is not exercised."
+    },
+    {
+      "reference": "03_mobile_detail.jpg",
+      "candidate": "390-detail.png",
+      "status": "PARTIAL",
+      "findings": "Saved original ticket/detail hierarchy exists; reference portraits, calibrated gauges and full commentary/statistics composition remain partial."
+    },
+    {
+      "reference": "04_mobile_allocation.jpg",
+      "candidate": "390-picks.png",
+      "status": "PARTIAL",
+      "findings": "Editable candidate amounts and budget controls exist; reference odds/probability/EV/risk are unverified, and the full summary requires scrolling beyond this viewport."
+    },
+    {
+      "reference": "05_desktop_home.jpg",
+      "candidate": "1440-home.png",
+      "status": "PARTIAL",
+      "findings": "Sidebar, header, five KPI cards and right column exist; reference licensed imagery, AI recommendation/rating and chart content remain partial."
+    },
+    {
+      "reference": "06_desktop_races.jpg",
+      "candidate": "1440-races.png",
+      "status": "PARTIAL",
+      "findings": "Sidebar/content/filter structure exists; captured fixture is a settled-race card rather than the reference's ranked upcoming multi-sport rows."
+    },
+    {
+      "reference": "07_desktop_detail.jpg",
+      "candidate": "1440-detail.png",
+      "status": "PARTIAL",
+      "findings": "Five existing tabs differ from eight in the reference; motor/water/video/qualified analysis and full participant grid remain incomplete."
+    },
+    {
+      "reference": "08_desktop_allocation.jpg",
+      "candidate": "1440-picks.png",
+      "status": "PARTIAL",
+      "findings": "Two-column allocation/summary and original-versus-hand-input distinction exist; reference odds/probability/EV/risk/donut content is not verified."
+    }
+  ],
+  "icon_bug": "Current candidate displays the same club-like glyph for keirin and auto; a separate narrow unpublished SVG correction is being prepared.",
+  "new_icon_candidate_browser_verified": false,
+  "scope": "Qualitative comparison of original user references and pinned synthetic Safari viewport images; no real private screenshots, pixel-equality score, account login or complete live-data UI acceptance claimed."
+}

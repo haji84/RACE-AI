@@ -1,0 +1,96 @@
+{
+  "schema": "RACE_AI_NATIVE_SAFARI_ED904_ACTUAL_SUCCESS_20261118_V1",
+  "repository": "haji84/RACE-AI",
+  "main": "e1c55723bcffb3941b7c6cef370cc42b1f4dcfb6",
+  "tested_tree": "60cf2ae48a6bd6c04536a40c612a8de59abe97f3",
+  "merge_tree_equals_tested": true,
+  "release_gate": {
+    "run_id": 44209496026,
+    "job_id": 134483919235,
+    "logged_at": "2026-11-18T00:38:48.7393800Z",
+    "status": "HOLD_ACTIVE_OWNER_WORKFLOW",
+    "release_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+    "dispatch_allowed": false,
+    "recovery_required": false,
+    "official_source_requests": 0
+  },
+  "native_request": {
+    "logged_at": "2026-11-18T00:38:52.4287016Z",
+    "status": "NATIVE_SAFARI_DISPATCH_REQUESTED",
+    "request_attempted": true,
+    "request_acknowledged": true,
+    "existing_same_head_runs": 0,
+    "requires_empty204_and_successful_close_in_reviewed_code": true,
+    "no_ambiguous_retry": true
+  },
+  "workflow_run_id": 44209527528,
+  "job_id": 134484042240,
+  "job_conclusion": "success",
+  "tests": {
+    "total": 119,
+    "seconds": 52.3,
+    "outcome": "OK"
+  },
+  "private_report": {
+    "schema": "RACE_AI_NATIVE_SAFARI_ACCEPTANCE_V2",
+    "status": "NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED",
+    "native_browser": {
+      "browserName": "Safari",
+      "browserVersion": "26.6",
+      "platformName": "macOS"
+    },
+    "verified_at": "2026-11-18T00:43:47.751418+00:00",
+    "pages_sha": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+    "read_only_source_sha": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+    "saved_day": "2026-11-17",
+    "authenticated_generation": 423,
+    "authenticated_results": 130,
+    "authenticated_native_p1_groups": 11,
+    "browser_aes_verified": true,
+    "private_sessions_cleanup_verified": true,
+    "account_login_verified": false,
+    "current_v5_live_continuation_verified": false,
+    "browser_aes_and_owner_login_verified": false,
+    "physical_iphone_verified": false,
+    "all_eight_reference_screens_visually_verified": false,
+    "plaintext_published": false,
+    "forecast_or_result_mutation": false
+  },
+  "synthetic": {
+    "candidate_source": {
+      "commit": "ed904fe62dad470a91ababce623c52c1fbde5861",
+      "web_tree": "5759ac3f0ab900cc9c6d0ac592a44c4ff4ce53d8",
+      "asset_sha256": {
+        "index.html": "fb942083b431d20a5e53407dabd460ffe291cc8cb776c448c5950ee0bd370741",
+        "app.js": "926187708d1b8d35bbfa21ba7361c86fc51578039cbc1b29f17415f34d132778",
+        "style.css": "8d6c35ec822aab974bad0564692780c26f8cd28859cefea5d143e4aa2e463e3f"
+      }
+    },
+    "screenshots": 28,
+    "widths": [
+      320,
+      390,
+      1440,
+      1920
+    ],
+    "pages": 7,
+    "real_data_context_used_for_capture": false,
+    "synthetic_session_cleanup_verified": true,
+    "final_artifact_verification_status": "SYNTHETIC_SCREENSHOT_ARTIFACTS_VERIFIED"
+  },
+  "artifact": {
+    "id": 14386015956,
+    "size_in_bytes": 8474736,
+    "digest": "sha256:4b6a39077524121931b72e0ba8368fdfb67703d637c0962ebff3f2e320b4c795",
+    "created_at": "2026-11-18T00:45:03Z",
+    "local_download_CRC_or_manual_new_pixel_review": false
+  },
+  "source_key_stayed_inside_Actions": true,
+  "public_UI_deployed": false,
+  "goal_complete": false,
+  "limits": [
+    "Private browser success selected saved2026-11-17/generation423. It does not prove 2026-11-18 P0/P1 display publication.",
+    "All eight visual references and physical iPhone remain unverified.",
+    "New PNGs were generated and checked inside Actions; failed local environment prevents a new manual image review here."
+  ]
+}

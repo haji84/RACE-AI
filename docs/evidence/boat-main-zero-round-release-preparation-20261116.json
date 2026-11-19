@@ -1,0 +1,182 @@
+{
+  "schema": "RACE_AI_BOAT_MAIN_ZERO_ROUND_RELEASE_PREPARATION_20261116_V1",
+  "recorded_at": "2026-11-15T22:40:38.951875+00:00",
+  "original_heads": {
+    "main": "96e0045ffb3a8368c4f63cb955564bb4e6259c0e",
+    "production": "5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4",
+    "PR302": "a5d19e8f8b70eaacd9c5841bc95f5cbbb2e8b145"
+  },
+  "existing_PRs": [
+    302,
+    289
+  ],
+  "failed_owner": 43683174565,
+  "failed_main_recovery": 43716692197,
+  "previous_owner": 43661420983,
+  "real_counter_observation": {
+    "previous_worker_requests": 452,
+    "failed_worker_requests": 0,
+    "lifetime_requests": 11524,
+    "day_start_lifetime_requests": 11072,
+    "lifetime_rounds": 608,
+    "all_counters_preserved": true
+  },
+  "verified_zip_ids": [
+    14149885348,
+    14149712572,
+    14149543103,
+    14143241000,
+    14142746920
+  ],
+  "actual_AES_decryption_in_this_host": false,
+  "historical_input_replay_not_current_admission": true,
+  "regressions": {
+    "counter_new_tests_RED": 2,
+    "counter_reviewed_contract_PASS": 139,
+    "git_timeout_RED_subcases": 9,
+    "git_and_isolation_PASS": 75,
+    "pending_retired_cap_RED": 1,
+    "combined_recovery_and_vault_PASS": 179,
+    "main_zero_round_consumer_RED": 1,
+    "main_gates_PASS": 55,
+    "these_test_scopes_overlap": true,
+    "full_existing_owner_contract_PASS": 385,
+    "saved_site_node_PASS": 15
+  },
+  "confirmed_code_defects": [
+    "ZERO_FAILED_WORKER_INCORRECTLY_REQUIRED_ZERO_ENTIRE_DAY_USAGE",
+    "PENDING_RECOVERY_RETAINED_RETIRED_240_DAILY_CAP",
+    "VAULT_PREFIXED_GIT_FETCH_INCORRECTLY_USED_60_NOT_EXISTING_180_TIMEOUT",
+    "MAIN_CONSUMER_LACKED_REVIEWED_ZERO_ROUND_PROOF_BRANCH"
+  ],
+  "historical_VAULT_inner_operation": "UNKNOWN_NOT_RECORDED",
+  "keyless_filtered_vault_fetch_seconds": 1.807679193,
+  "repository_writes_to_production_or_main": 1,
+  "official_provider_GETs_by_this_work": 0,
+  "new_forecasts_by_this_work": 0,
+  "originals_changed": false,
+  "new_PRs_or_workflows": 0,
+  "production_recovery_to_new_P1_proven": false,
+  "separate_runner_AES_recovery_proven": false,
+  "all_G1_to_G8_complete": false,
+  "private_evidence_hashes": {
+    "BASELINE-PR302-RECOVERY-CONTRACT.log": "703845bbdc0a3bb8ae1fcdd47de3577a25c8ddfea586338c1a83d0837f0074cb",
+    "RED-INHERITED-DAILY-COUNTERS.log": "310476833b89e436c7e98465643eb0a08fa123bfddde78ba53d32a0c8dcb3048",
+    "GREEN-COUNTERS-RECOVERY-CONTRACT.log": "583693927eb58a2532620879e1adece713ae0d988c924665b36b60217d60318d",
+    "RED-GIT-FETCH-TIMEOUT.log": "55399e80f26d41a3b58f75b82cd5a5acb1dfff45829e2fe33763780b25ff47d9",
+    "GREEN-GIT-FETCH-AND-ISOLATION.log": "e827551a920fb8145ba145bb2251650d8804c4f8336a3c84ffe42687e9613f0f",
+    "RED-PENDING-RETIRED-DAILY-CAP.log": "806e5ebe16256809b07495e61606622e95c1096478d4224a36b24e5b821f6d4b",
+    "GREEN-FINAL-RECOVERY-AND-VAULT.log": "7ae0caecdbf5f38698d763e11038fb63b0726f9b044507b33c8fa7979c5e83de",
+    "RED-MAIN-ZERO-ROUND-CONSUMER.log": "3407af8e4f6e1b5f6e6ccb730f3809bb2bc4b353b585949ce4eab2cf8a601c09",
+    "GREEN-MAIN-ZERO-ROUND-CONSUMER.log": "ece72c4a4202c7224848a5b7c13383082da1b551155feae23ba13e5627636939",
+    "REAL-OWNER-COUNTER-CARRY-HISTORICAL-REPLAY-FROZEN.json": "8f0b5e75cd4a759c6d76552cfc6e474ac130a2474333cd23ea3abb5df26aa27a",
+    "ACTUAL-VAULT-FETCH-READONLY-FROZEN.json": "12c9f421c70bbbc9b8ebbe416f3869cfb2e97b019dc881cfa03fb93974820324",
+    "GREEN-FULL-OWNER-PR302-CONTRACT.log": "97dabe6d6d3a932de197b04d11495a233c5f3af444fd690127059cc00a7fdb9b",
+    "GREEN-OWNER-SAVED-SITE-NODE.log": "bed3be6c03b381e837e7bcb6a9bf665300d46f61597ea5bb515fc5e72f01ec41",
+    "GREEN-MAIN-RELEASE-GATES.log": "649902a417ceb4793ba0fea80a8616f2b081b8b2a5ff482399831c12c4d1dcb2",
+    "GREEN-MAIN-READBACK-AND-FAILED-AES.log": "ec6abc8435a33a100727b7b1c63d859e3bff7f979abc7680b155eb585931214a",
+    "RED-MAIN-HISTORIC-READBACK.log": "88bda3813adad7852a6ce881d84703e5c949b3cd3e365ba97b253221aa9db030",
+    "RED-MAIN-HISTORIC-AUDIT.log": "846bbe6edd0956c2c8ac7a2873a85b6155ef0c401b30649fb0d9c21f810ee3d0",
+    "RED-MAIN-FAILED-CHECKPOINT-AES.log": "677bffb87ed6f9915da4c5b55619afc3e460aec2bdd232736c0405138d9e1729",
+    "GREEN-MAIN-FAILED-CHECKPOINT-AES.log": "c3f0884bd5ae11c6905763f5348cde985a47dd0dce7f5be4029a9f6eb86f9588",
+    "CI-PR302-0db526-owner.log": "72b19bf62d033ace861f5cf26bbc361403ce59706a332ca25fdb3f59e84a1375",
+    "CI-PR302-0db526-recovery.log": "430e27ec2890d330cb8b5762b943bb32ade7da007eccf1af50a8246fd53db196",
+    "CI-PR302-0db526-vault.log": "e684c36fba6b839358a8f508fbff6a978bdba76c912e2dda79a3276e1acc3ca6",
+    "CI-PR289-80b3b81-gate.log": "615b1bcc582e7cb1950c476e5c2cf8c8d8e608222349d7ce19daf365fcc1234d",
+    "CI-PR289-80b3b81-readback.log": "90de7fdee49053bc82c0aec3ece939c0b2c9fd5eb1d9fc7086752b6829fce1c9",
+    "CI-PR289-80b3b81-mirror-and-result.log": "b452bcd886cb1feadb2df40d9b1e0753380ac52a0129d91effda5e6e667cfc71",
+    "GITHUB-DOC-READBACK-FROZEN.json": "d933982f3b68a7f01e81754a8a42ae5249bcb2fbe087a194901543b6afe7a883"
+  },
+  "production_candidate": "0db526870a509cd6e68c44e693ed3e73d3b0e50f",
+  "main_candidate_base": "96e0045ffb3a8368c4f63cb955564bb4e6259c0e",
+  "existing_main_PR289_start": "b754c8a0167f68ae2711e42e67c995e9a38f9bc8",
+  "active_release_binding": "ACTUAL_PRODUCTION_HEAD",
+  "requires_rebind_to_actual_production_merge_sha": false,
+  "producer_exact_head_CI": [
+    {
+      "run_id": 43769691369,
+      "conclusion": "success",
+      "scopes": [
+        3,
+        12,
+        324,
+        46
+      ]
+    },
+    {
+      "run_id": 43769691391,
+      "conclusion": "success",
+      "scopes": [
+        140
+      ]
+    },
+    {
+      "run_id": 43769691402,
+      "conclusion": "success",
+      "scopes": [
+        75
+      ]
+    }
+  ],
+  "main_local_tests": {
+    "main_release_gate_tests": 74,
+    "matrix_and_exact_and_failed_AES_tests": 37,
+    "historic_failed_AES_fixtures": 6,
+    "scopes_overlap": true
+  },
+  "historical_reader_sources_only": [
+    "5d1dabff0ab9bb83132cd7fbdd43f49fb4eef6c4"
+  ],
+  "live_dispatcher_exactly_one_sha": true,
+  "failed_checkpoint_audit": {
+    "code_and_synthetic_AES_tests_pass": true,
+    "historical_real_runner_execution": false,
+    "current_clock_only": true,
+    "grants_dispatch": false,
+    "new_workflow": false,
+    "existing_job_main_push_only": true
+  },
+  "independent_review": {
+    "main_gates_tests": 74,
+    "readback_tests": 37,
+    "additional_rejection_cases": 30,
+    "findings": 0,
+    "real_AES_or_live_release_not_proven": true
+  },
+  "main_code_validation_head": "80b3b81f7ddb8e79a7d6f751d621043022ae7fbe",
+  "main_exact_head_CI": [
+    {
+      "run_id": 43770742038,
+      "conclusion": "success",
+      "scopes": [
+        69
+      ]
+    },
+    {
+      "run_id": 43770742073,
+      "conclusion": "success",
+      "scopes": [
+        37
+      ]
+    },
+    {
+      "run_id": 43770742201,
+      "conclusion": "success",
+      "scopes": [
+        205,
+        30,
+        31,
+        44
+      ]
+    }
+  ],
+  "main_all_checks_at_code_head": {
+    "successful": 12,
+    "failed": 0,
+    "pending": 0
+  },
+  "owner_approval_received": true,
+  "actual_production_head": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+  "production_merge_completed": true,
+  "main_merge_completed": false
+}

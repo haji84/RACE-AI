@@ -1,0 +1,77 @@
+{
+  "schema": "RACE_AI_ANCHOR_SAFETY_FINAL_CI_AND_MERGE_V1",
+  "observed_at_utc": "2026-11-18T03:47:44Z",
+  "pr_number": 41,
+  "tested_head": "3f7bbbfd8d8754c113af3ddcace64822da185af8",
+  "tested_tree": "0187b6a1f5a584d48ef68464677c65d637872526",
+  "normal_merge": "09b65329692389fe260e4aa0430e94f341b255dc",
+  "merged_tree_equals_tested": true,
+  "checks": {
+    "total": 39,
+    "success": 16,
+    "skipped": 23
+  },
+  "ci": {
+    "national": {
+      "run_id": 44232261353,
+      "job_id": 134559902994,
+      "tests": 313,
+      "seconds": 104.311,
+      "compiled_heredocs": 10
+    },
+    "recovery": {
+      "job_id": 134559903052,
+      "tests": 119,
+      "seconds": 0.289
+    },
+    "racer": {
+      "job_id": 134559903898,
+      "tests": 181,
+      "seconds": 15.872
+    },
+    "mirror": {
+      "job_id": 134559904147,
+      "tests": [
+        212,
+        32
+      ],
+      "seconds": [
+        58.748,
+        0.026
+      ]
+    },
+    "fast_source": {
+      "job_id": 134559904269,
+      "tests": 48,
+      "seconds": 17.772
+    },
+    "filtered_history": {
+      "job_id": 134559903756,
+      "tests": 72,
+      "seconds": 20.739
+    },
+    "gap": {
+      "job_ids": [
+        134559903807,
+        134559903436
+      ],
+      "tests": [
+        40,
+        10
+      ],
+      "seconds": [
+        0.069,
+        0.098
+      ]
+    },
+    "credential_response": {
+      "job_id": 134559903826,
+      "status": "passed"
+    }
+  },
+  "independent_static_reviews": "CLEAR for runtime9030, entryd2f8, candidate254a, and four-call workflow delta",
+  "new_87_methods_unchanged": true,
+  "model_weights_or_ui_published": false,
+  "actual_repair_performed": false,
+  "goal_complete": false
+}

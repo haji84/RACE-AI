@@ -1,0 +1,44 @@
+{
+  "schema": "RACE_AI_CURRENT_PAIR_JOIN_CODES_RUNTIME_V1",
+  "base_module": "a7fc02a6efcf144ad303b480abf09459ff8c6b7a",
+  "module": "52124f828ee2e7f759ea704f1836a110279449c3",
+  "only_added_constant_codes": [
+    "ALL_MODEL_INTAKE_AWARE_RESULT_CLOCK_REQUIRED",
+    "ALL_MODEL_INTAKE_BOAT_ACTUAL_CUTOFF_REQUIRED",
+    "ALL_MODEL_INTAKE_BOAT_REGISTERED_ROSTER_INVALID",
+    "ALL_MODEL_INTAKE_BOAT_RESULT_PAYOUT_MISMATCH",
+    "ALL_MODEL_INTAKE_RESULT_ACTUAL_CUTOFF_MISMATCH",
+    "ALL_MODEL_INTAKE_RESULT_CAPTURE_CLOCK_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_ORDER_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_PUBLICATION_CLOCK_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_REGISTERED_ROSTER_MISMATCH",
+    "ALL_MODEL_INTAKE_RESULT_SETTLEMENT_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_SOURCE_HASH_INVALID",
+    "ALL_MODEL_INTAKE_RESULT_SOURCE_REQUIRED"
+  ],
+  "one_anchor": "    value_codes = (\n",
+  "caller": "2bdaab9232c558f8b26a3564b851c5c80d5c33a1",
+  "caller_only_pair_hash_rebound": true,
+  "actual_clean_red": {
+    "head": "fb276288ef45f54707dbe74fe5cbc5532bf28b46",
+    "run_id": 44279286954,
+    "job_id": 134715393944,
+    "tests": 359,
+    "seconds": 131.414,
+    "failures": 12,
+    "errors": 0,
+    "old356_and_new_normal_control_passed": true
+  },
+  "contract": "efa0388595f7d88665a0933e740433f65b10fb67",
+  "tests": "4e95e59b43d6b044c91e9c7e7f522db199f5a933",
+  "counts": {
+    "value_error": 143,
+    "runtime_error": 203,
+    "total": 346,
+    "phases": 13
+  },
+  "key_error_category_added": false,
+  "API_carrier_projector_signature_predicates_normal_returns_and_source_codecs_unchanged": true,
+  "actual_specific_failure": "UNKNOWN_PENDING_ACTIONS",
+  "fresh_ci": "PENDING"
+}

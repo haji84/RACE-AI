@@ -1,0 +1,208 @@
+{
+  "kind": "TESTS_ONLY_ACTIONS_V5_REJECTION_ANCHOR_REPAIR_ORCHESTRATOR",
+  "repository": "haji84/RACE-AI",
+  "file": {
+    "path": "tests/test_boat_rejection_anchor_repair.py",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "e8465a7a73692f71f034b6c5c8222310b5d99a18",
+    "bytes": 28093,
+    "lines": 513,
+    "test_methods": 12
+  },
+  "tree_elements": [
+    {
+      "path": "tests/test_boat_rejection_anchor_repair.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e8465a7a73692f71f034b6c5c8222310b5d99a18"
+    }
+  ],
+  "approved_contract": "Parent approved compact design before tests; require V5-only current/ACK, strict first attempt, one existing publisher call, immutable authenticated readback; no implementation before actual RED.",
+  "dependencies": {
+    "proof_blob": "9030da131741eca9dbb86ad977ad5aec476095bb",
+    "candidate_blob": "254aa942559c5c04efd79e2a1e0dbac8bda69b04",
+    "frozen_proof_fixtures": "0eafce05bf6bb4c31dc774aee7b6a6415e6793c4",
+    "guard_blob": "e6db8d720aa151940e01f377831a5884eb4b2ba9",
+    "owner_source": "86b029ae5bddd5d4956497d8b32b2c92b8eec521",
+    "feed_blob": "9bb3bf0d1e48c9b3e3ba8e42030d5a05b681f900",
+    "history_blob": "3587debeeb4024dc768cac69f1a8aca9014d6f3e"
+  },
+  "api": {
+    "module": "scripts.boat_rejection_anchor_repair",
+    "signature": "run_repair(environment, event, *, load_context) -> safe JSON dict",
+    "trust": "Before load_context: strict GITHUB_ACTIONS='true', push, main ref, lowercase40 envSHA=head_commit.id=after, exact haji84/RACE-AI/repository id1416489937/nonprivate repository, boat-racer-daily.yml@refs/heads/main, GITHUB_JOB=owner_p0_p1_dispatch, GITHUB_RUN_ATTEMPT='1', existing owner-release prefix. Unknown environment/event values are never exported. No environment enumeration or key access.",
+    "context_typedef": {
+      "load_context": "Zero-argument trusted callback, called once after trusted context only. Future fixed Actions loader owns all anchored path/module source pins, Git authentication and actual reader provenance; no auth booleans are accepted.",
+      "proof": "Actual pinned proof ModuleType, providing exact VerifiedSnapshot class, match_rejection_anchor_proofs, _read_verified_snapshot and ReadBudget.",
+      "candidate": "Actual pinned restoration ModuleType, providing build_rejection_anchor_restoration and RejectionAnchorRestorationCandidate.",
+      "guard": "Actual pinned e6 ModuleType.",
+      "feed": "Actual unchanged owner-source86 saved_view_feed ModuleType, REF='state/boat-saved-view', existing publish_view. Not a legacy feed or a newly invented crypto/transport.",
+      "repository": "Existing writable feed repository handle with exact ref and head(); orchestrator must never call commit/push/_run/read/fetch directly.",
+      "bootstrap": "Existing private bootstrap dict: key must be exact bytes length32, with view_id/forecast_sha256/source cipher anchor agreeing with current receipt. Tests use only explicit public b'k'*32. No key export or direct cryptography; bytes31/bytes33 or string32 key must reject without publication.",
+      "current": "Exact proof.VerifiedSnapshot, current V5 header and digest/cipher/header/receipt bindings verified through actual proof.",
+      "older_chain": "Tuple of exact same proof.VerifiedSnapshot instances; actual matcher checks bounded contiguous same-source/same-view chain. No cached decisions or authority flags."
+    },
+    "flow": [
+      "Call supplied candidate.build_rejection_anchor_restoration(current,older_chain,guard=guard,proof=proof) exactly once; actual proof matcher runs fresh. Validate exact safe candidate summary and opaque candidate type.",
+      "HOLD or NO_CHANGE never calls publisher or readback. NO_CHANGE carries verified zero restoration counts.",
+      "READY: repository.head() must equal current._snapshot_sha exactly; stale/error is PREDECESSOR_CHANGED before attempt.",
+      "Set publication_attempted immediately before exactly one feed.publish_view(repository,bootstrap,candidate._copy_view(),parent=current._snapshot_sha,previous=current._cipher_sha256,generation=current._header['generation']). No history activation flag, raw Git, retry or new protocol.",
+      "Require exact existing six-field V5 ACK. Only a valid ACK sets publication_performed true; any publisher exception/invalid ACK leaves unknown outcome null and never retries/reopens.",
+      "Reopen ACK.commit with proof._read_verified_snapshot(repository,bootstrap,ACK.commit,feed=feed,guard=guard,budget=proof.ReadBudget(),day=the authenticated current day). Never replace commit with mutable head.",
+      "Require valid returned receipt, exact candidate canonical full wire, ACK commit/cipher/gen+1, V5 schema, predecessor cipher and same view/source/forecast anchors. Both OBS/REJ guards and original forecast/result/OBS/history preservation remain mandatory. Only then readback_verified=true and PUBLISHED_VERIFIED."
+    ],
+    "cli_scope": "These12 methods pin run_repair only. Root separately authorized same-module main(argv=None)/_load_repair_context and separate8 CLI tests before RED; no runtime authored by this packet."
+  },
+  "ack": {
+    "exact_fields": [
+      "status",
+      "generation",
+      "commit",
+      "cipher_sha256",
+      "updated_dates",
+      "head_files"
+    ],
+    "status": "ENCRYPTED_HISTORY_VIEW_PUBLISHED",
+    "generation": "exact int, current generation + 1 (not bool)",
+    "commit": "lowercase40 SHA",
+    "cipher_sha256": "lowercase64 SHA",
+    "updated_dates": "exact int1 for the one authenticated selected day (not bool)",
+    "head_files": "exact int2 from unchanged V5 publisher (not bool)",
+    "invalid_outcome": "HOLD/PUBLICATION_OUTCOME_UNKNOWN, attempted=true, performed=null, readback=false, no retry"
+  },
+  "report": {
+    "schema": "RACE_AI_REJECTION_ANCHOR_REPAIR_V1",
+    "status": [
+      "HOLD",
+      "NO_CHANGE",
+      "PUBLISHED_VERIFIED"
+    ],
+    "exact_fields": [
+      "schema",
+      "status",
+      "counts",
+      "current_view_sha256",
+      "candidate_view_sha256",
+      "published_snapshot_sha",
+      "published_cipher_sha256",
+      "published_generation",
+      "publication_attempted",
+      "publication_performed",
+      "readback_verified",
+      "originals_changed",
+      "observations_reconciled",
+      "source_requests",
+      "forecast_generated",
+      "broader_goals_proven"
+    ],
+    "reason_on_hold_only": [
+      "TRUSTED_MAIN_REQUIRED",
+      "AUTHENTICATED_CONTEXT_UNAVAILABLE",
+      "V5_CURRENT_REQUIRED",
+      "INPUT_OR_CHAIN_INVALID",
+      "BOUND_EXCEEDED",
+      "CURRENT_HISTORY_INVALID",
+      "ACTIVE_PROOF_CONFLICT",
+      "ACTIVE_PROOF_MISSING",
+      "CANDIDATE_GUARD_REJECTED",
+      "PUBLIC_CANDIDATE_INVALID",
+      "PREDECESSOR_CHANGED",
+      "PUBLICATION_OUTCOME_UNKNOWN",
+      "AUTHENTICATED_READBACK_UNAVAILABLE",
+      "READBACK_MISMATCH",
+      "CLI_ARGUMENTS_REJECTED"
+    ],
+    "counts": "Exact seven restoration counts on NO_CHANGE/PUBLISHED_VERIFIED; strictly nonnegative ints, not bool. Null on HOLD.",
+    "hashes": "Canonical current/candidate SHA256 plus authenticated published commit/cipher/generation on PUBLISHED_VERIFIED; NO_CHANGE only current hash; all five hash/generation fields null on HOLD.",
+    "effects": {
+      "originals_changed": false,
+      "observations_reconciled": 0,
+      "source_requests": 0,
+      "forecast_generated": false,
+      "broader_goals_proven": false
+    },
+    "publication_semantics": "attempted=false/performed=false before call; attempted=true/performed=null for exception or invalid ACK; performed=true after valid ACK even if authenticated readback is later HOLD. readback_verified is true only after exact verified reopen.",
+    "privacy": "Capture/discard loader, pure builder, publisher and reader stdout/stderr; fixed stage/proof reasons only. No exceptions/tracebacks, URLs, bodies, IDs, clocks, plaintext, credentials, artifacts or private context fields."
+  },
+  "test_methods": [
+    "def test_trusted_v5_recomputes_real_candidate_and_publishes_once_then_reopens_exact_commit(self):",
+    "def test_untrusted_context_and_every_later_attempt_refuse_before_loading_private_context(self):",
+    "def test_context_errors_flags_or_wrong_module_receipt_and_bootstrap_shapes_never_authorize_write(self):",
+    "def test_v5_current_receipt_digest_cipher_header_and_chain_bindings_are_rechecked(self):",
+    "def test_incomplete_sidecar_only_and_conflicting_old_active_proof_never_create_partial_write(self):",
+    "def test_healthy_v5_is_no_change_with_verified_zero_restore_counts_and_no_publication(self):",
+    "def test_stale_predecessor_or_head_failure_is_a_prepublication_hold(self):",
+    "def test_cas_race_or_ambiguous_publisher_exception_is_attempted_once_without_retry(self):",
+    "def test_only_exact_existing_six_field_v5_ack_with_strict_types_is_accepted(self):",
+    "def test_valid_ack_then_failed_or_inexact_readback_stays_performed_true_without_retry(self):",
+    "def test_private_context_publisher_reader_noise_and_unknown_fields_are_never_exported(self):",
+    "def test_fixed_api_and_invalid_candidate_object_summary_or_counts_cannot_authorize_write(self):"
+  ],
+  "fixture_policy": "Actual supplied A/C/e6 guard with explicit synthetic receipt factory bytes. Mock publisher and selected reader only; this tests orchestration/provenance handling, not AEAD and not actual authentication/publication. Repository raw-operation traps and guarded environment prevent accidental I/O/key access. Healthy bootstrap key is public synthetic b'k'*32; malformed key type/length refuses. Existing crypto/full-reader tests remain unchanged.",
+  "actual_older_proof": {
+    "evidence_source": "Parent authenticated Actions log, not independently fetched by this author",
+    "run": 44232934955,
+    "job": 134562106410,
+    "time_utc": "2026-11-18T03:50:20.5314002Z",
+    "status": "ALL_ORPHAN_ANCHORS_PROVEN",
+    "snapshots": 3,
+    "current_generation": 424,
+    "current_snapshot_prefix": "6eea",
+    "oldest_generation": 422,
+    "oldest_snapshot": "86f0f31289e7a5f0f0708880d2e696e82dae3255",
+    "counts": {
+      "current_active_rejections": 2,
+      "retained_history_originals": 24,
+      "orphan_groups": 12,
+      "proved_groups": 12,
+      "planned_active_originals": 12,
+      "older_active_bodies_checked": 29
+    },
+    "publication_performed": false
+  },
+  "tdd_handoff": [
+    "Parent integrates this tests-only blob in existing unit job and observes 12 missing-module RED assertions.",
+    "Only after actual RED: implement exact library API with unchanged publisher/reader; obtain independent review and fresh required CI.",
+    "Root separately reviews fixed pinned loader and one specific reviewed main-push title under existing prefix, first attempt only; no automatic future-commit retry and no new marker/prefix/job/input/cron/permissions/runner. Actual repair operation remains a separate root-controlled step."
+  ],
+  "verification": {
+    "exact_connector_readback": true,
+    "lexical_string_delimiter_scan": {
+      "end_state": "code",
+      "unclosed_delimiters": [],
+      "errors": []
+    },
+    "python_parse_executed": false,
+    "tests_executed": false,
+    "actual_red_observed": false,
+    "implementation_authored": false
+  },
+  "scope": {
+    "tests_only": true,
+    "no_runtime_changes": true,
+    "no_refs_or_workflows": true,
+    "no_dispatch": true,
+    "no_real_write": true,
+    "no_source_provider_requests": true,
+    "no_key_or_private_data_retrieval": true,
+    "no_process_started": true
+  },
+  "supersedes_test_blobs": [
+    "56fab90436398a799d794a9a655bdb3c33a72f3a",
+    "3e99ceb4fb0169dc008fec74b202a87a1516d141",
+    "34f44acdbeb72ea2de70072ff7ca7531686ab0b1"
+  ],
+  "supersedes_packet": "6b1b0dd2d387601a147a4be9d597d87cd3c1c000",
+  "prefreeze_change": "Preserve all12 methods/security assertions. Remove only prior phase-only no-main assertion, then correct healthy synthetic bootstrap display key to explicit public b'k'*32. Add wrong key str32/bytes31/bytes33 subcases in existing context-shape method; all must HOLD AUTHENTICATED_CONTEXT_UNAVAILABLE before publication. All superseded test blobs uncommitted and no RED before these corrections.",
+  "cli_integration": {
+    "author": "separate agent existing_safari_tests under root authorization",
+    "entry": "main(argv=None)",
+    "callback": "Only exact _load_repair_context callback passed into run_repair, never directly called by main.",
+    "arguments": "Reject arbitrary argv before environment/event access; safe CLI_ARGUMENTS_REJECTED false/false/false.",
+    "event": "Malformed path/strict JSON: INPUT_OR_CHAIN_INVALID, attempted/performed/readback=false.",
+    "exit": "2 for HOLD,0 otherwise.",
+    "orchestration_error": "Unexpected exception or invalid returned report after entering run_repair: PUBLICATION_OUTCOME_UNKNOWN, attempted=true/performed=null/readback=false; valid HOLD keeps exact tri-state.",
+    "implementation": "Not authored or authorized before actual combined RED."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schema": "RACE_AI_NATIVE_CURRENT_V5_DIAGNOSTIC_TEST_FIRST_V1",
+  "head": "5172fce55f69cce4ead569cf53aa2690db5cdfb5",
+  "tree": "64efd8f61a8b97b06db55263dde757af0cd2adaf",
+  "test_blob": "14a6f767d4c990a512ed86766e1bc04d7e4a995b",
+  "contract_blob": "e864a52d6ed0c452bf62d687f1618efd5cf85953",
+  "original_133_prefix_and_footer_preserved": true,
+  "additive_methods": 3,
+  "red": {
+    "run_id": 44249043127,
+    "job_id": 134614934554,
+    "timestamp_utc": "2026-11-18T06:08:16.9497894Z",
+    "tests": 136,
+    "seconds": 17.962,
+    "failures": 3,
+    "errors": 0,
+    "reason": "Missing fixed-phase evidence diagnostic API.",
+    "original_133_passed": true
+  },
+  "diagnostic_only": true,
+  "acceptance_predicate_relaxation": false,
+  "private_values_exported": false,
+  "native_acceptance_proven": false,
+  "goal_complete": false
+}

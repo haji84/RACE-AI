@@ -1,0 +1,212 @@
+{
+  "schema": "RACE_AI_EXISTING_PR47_PRESERVATION_AND_NATIVE_READBACK_20261117_V1",
+  "observed_at_utc": "2026-11-17 22:05:00 UTC",
+  "repository": "haji84/RACE-AI",
+  "existing_pr_before_reuse": {
+    "url": "https://github.com/haji84/RACE-AI/pull/47",
+    "number": 47,
+    "state": "open",
+    "merged": false,
+    "mergeable": true,
+    "draft": true,
+    "body": "全国24会場の共通レジストリと、事実取得/事実公開/写真公開/映像非公開解析/映像保存/映像公開/特徴量公開を独立に判定する権利管理モジュールを追加。unknownは該当用途のみ公開を停止し、別用途・別会場まで停止しない。映像解析許可があっても映像公開許可とは扱わない。運用方針とテスト付き。\n\n未完成: 24会場の公式根拠の全件収集・確認、映像の実物解析、データ自動取得・DB保存・API供給、Preview実機E2E。許可記録の真偽は外部レビューが必要。main/Production変更なし。",
+    "title": "feat: 全国24会場のデータ・写真・映像・非公開解析を用途別に管理",
+    "base": "feat/boat-home-redesign-api-contract",
+    "base_sha": "09799811abb25aecc92fa6f51e0013451ed46534",
+    "head": "feat/boat-all-24-venue-source-governance",
+    "head_sha": "f223369abb053773d342316c288a6911bd3eca5e",
+    "head_repo_id": 1416489937,
+    "head_repo_full_name": "haji84/RACE-AI",
+    "merge_commit_sha": "df91f4827bcfaf4cc578d020c32e734be61e3336",
+    "user": {
+      "login": "haji84",
+      "name": "haji84",
+      "email": null,
+      "avatar_url": "https://avatars.githubusercontent.com/u/173585154?v=4",
+      "id": 173585154
+    },
+    "requested_reviewers": null,
+    "requested_team_reviewers": null,
+    "diff": null,
+    "comments": null,
+    "created_at": "2026-10-14T08:05:59Z",
+    "updated_at": "2026-10-14T08:06:12Z",
+    "closed_at": null,
+    "merged_at": null,
+    "commits": 3,
+    "changed_files": 3,
+    "additions": 117,
+    "deletions": 0,
+    "display_url": "https://github.com/haji84/RACE-AI/pull/47",
+    "display_title": "feat: 全国24会場のデータ・写真・映像・非公開解析を用途別に管理"
+  },
+  "preservation": {
+    "original_head": "f223369abb053773d342316c288a6911bd3eca5e",
+    "ancestor_of_main": true,
+    "compare_main": "f2922ef150d08a6b7302c4fbd269d93747b04ff9",
+    "compare_ahead": 2210,
+    "compare_behind": 0,
+    "open_prs_consuming_old_head_branch": [],
+    "force": false,
+    "new_pr": false,
+    "old_governance_content_retained": true
+  },
+  "protected_refs": {
+    "main": "f2922ef150d08a6b7302c4fbd269d93747b04ff9",
+    "source": "bb49215034b779ea1493b35dd91e5c3ebfc04032"
+  },
+  "cf_guard_verification": {
+    "pr": 48,
+    "tested_head": "30902ee54afc55cbca65012ae85537d899ad9a17",
+    "tested_tree": "7b0e9e7068eb42d156e1b9a655dec9d86094f516",
+    "merged_main": "f2922ef150d08a6b7302c4fbd269d93747b04ff9",
+    "merge_tree_equal": true,
+    "job_id": 134389035905,
+    "tests": 111,
+    "seconds": 15.387,
+    "result": "OK",
+    "checks": {
+      "success": 11,
+      "skipped": 13,
+      "total": 24
+    },
+    "actual_candidate_guard_reached": false
+  },
+  "native_actual": {
+    "run_id": 44183593596,
+    "job_id": 134394092565,
+    "source_head": "f2922ef150d08a6b7302c4fbd269d93747b04ff9",
+    "normal_dispatch_ack_http": 204,
+    "dispatch_at": "2026-11-17T21:48:12.551797Z",
+    "observed_failure_at": "2026-11-17T21:53:02.955549Z",
+    "unit_tests": 111,
+    "unit_seconds": 52.214,
+    "unit_result": "OK",
+    "safe_failure": {
+      "status": "NATIVE_SAFARI_ACCEPTANCE_HOLD",
+      "reason": "SAFARI_WEBDRIVER_FAILED",
+      "webdriver_operation": "element_click",
+      "webdriver_http_status": 500,
+      "webdriver_error_code": "unknown error",
+      "remote_automation_disabled_message_observed": false,
+      "webdriver_native_browser": {
+        "browserName": "Safari",
+        "browserVersion": "26.6",
+        "platformName": "macOS"
+      },
+      "ui_stage": "encrypted_seed_valid",
+      "ui_action": "select_seed_history",
+      "ui_verified_width": null,
+      "ui_click_path": "visible_element",
+      "ui_hit_target_verified": true,
+      "ui_select_phase": "initial",
+      "ui_select_preflight": {
+        "control_is_select": true,
+        "control_connected": true,
+        "control_enabled": true,
+        "control_visible": true,
+        "target_connected": true,
+        "target_enabled": true,
+        "target_visible": true,
+        "selected_target": false,
+        "control_in_view": true,
+        "hit_target": true,
+        "focused": true,
+        "same_control": null,
+        "control_count": 1,
+        "option_count": 13,
+        "target_count": 1,
+        "document_focused": true,
+        "document_visibility": "visible",
+        "viewport_width": 800,
+        "viewport_height": 628,
+        "page_errors": 0,
+        "error_module": null,
+        "error_line": null
+      },
+      "ui_seed_comparison_ordinal": 2,
+      "failure_boundary": "native_select_parent_click",
+      "checker_function": "call",
+      "checker_line": 913,
+      "checker_callers": [
+        {
+          "function": "main",
+          "line": 1553
+        },
+        {
+          "function": "encrypted_seed_checks",
+          "line": 1276
+        },
+        {
+          "function": "select",
+          "line": 1049
+        },
+        {
+          "function": "click",
+          "line": 978
+        },
+        {
+          "function": "_click_visible_element",
+          "line": 998
+        },
+        {
+          "function": "command",
+          "line": 940
+        },
+        {
+          "function": "call",
+          "line": 913
+        }
+      ]
+    },
+    "private_acceptance": false,
+    "candidate_capture": "SKIPPED",
+    "artifact_count": 0,
+    "cf_guard_actual_validation": "NOT_REACHED",
+    "physical_iPhone_acceptance": false,
+    "root_cause": "UNPROVED",
+    "repeated_unchanged_dispatch_authorized": false
+  },
+  "p0_actual": {
+    "run_id": 44170869325,
+    "source_head": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+    "day_jst": "2026-11-18",
+    "first_receipt_commit": "ae81ae3056860a85c3c29f289a74e39ab32416de",
+    "first_receipt_race_count": 132,
+    "first_receipt_model_forecasts": 264,
+    "count_scope": "public immutable receipt declaration; producer original/readback/retention steps succeeded; no independent owner AES count claim",
+    "additional_artifact_id": 14367093570,
+    "additional_generated_count": null,
+    "additional_reused_count": null,
+    "additional_hold_count": null,
+    "rounds_01_to_24": "PENDING",
+    "current_step": "Wait without source requests for the authenticated exhibition window"
+  },
+  "raw_capture": {
+    "pr": 51,
+    "unmerged_head": "4d9231f15d9a288e4492e63f4770d1556689d1ff",
+    "atomic_fault_job": 134381931399,
+    "tests": 832,
+    "seconds": 270.043,
+    "assertion_subtest_failures": 15,
+    "errors": 0,
+    "failure_scope": "RawAtomicPublicationTests only; original 791 and core capture 34 not failed",
+    "atomic_fix_packet": "8c56e4f070ef80a3857c113c956524523f65967a",
+    "atomic_fix_status": "INDEPENDENT_REVIEW_PENDING_AND_NOT_DEPLOYED"
+  },
+  "planned_scope": {
+    "fixed_closed_round_zero_count_helper": "TESTS_BEING_PREPARED; NO_RUNTIME_YET",
+    "immutable_run": 44170869325,
+    "immutable_round": 0,
+    "immutable_artifact": 14367093570,
+    "existing_m2_target_unchanged": true,
+    "existing_national_artifact_members_unchanged": true,
+    "existing_jobs_permissions_inputs_timeouts_schedules_unchanged": true,
+    "new_marker_or_prefix": false
+  },
+  "unrestored_original_commits": [
+    "b7380fe6a377e6ccf2b96331f2126c52549bbe17",
+    "daae4c10167224b7730006d8ada5ade398aaa64b"
+  ],
+  "goal_complete": false
+}

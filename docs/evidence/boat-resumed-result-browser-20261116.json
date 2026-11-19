@@ -1,0 +1,62 @@
+{
+  "run_id": 43804655533,
+  "job_id": 133092532108,
+  "conclusion": "success",
+  "main_sha": "8979ab6bee7c8d07e7c33c9550b7bf08c147f73a",
+  "source_reader_sha": "b491fb21ce58ba085dd8f54bb7326442b840d8f4",
+  "log_sha256": "2b5494dad2d3759101688881645808329d84a38a6a19c2d1d5aa34be9c3eba82",
+  "refresh": {
+    "status": "INTRADAY_REFRESHED",
+    "new_observations": 35,
+    "source_requests": 212,
+    "result_sync": {
+      "changed_races": 42,
+      "confirmed": 194,
+      "held": 12,
+      "pending": 70,
+      "races": 276
+    },
+    "forecast_inputs_changed": false,
+    "private_sources_published": false
+  },
+  "private_context": {
+    "checked_day": "2026-11-16",
+    "current_day": "2026-11-16",
+    "date_scope": "CURRENT_DAY",
+    "expected_original_matched": false,
+    "generation": 334,
+    "native_p1_groups": 11,
+    "official_source_requests": 0,
+    "plaintext_published": false,
+    "stage": "P1",
+    "status": "SAVED_SITE_PRIVATE_CONTEXT_READY"
+  },
+  "browser": {
+    "schema": "RACE_AI_LIVE_SITE_CHECK_COUNTS_V1",
+    "status": "LIVE_OWNER_SITE_VERIFIED",
+    "verified_at": "2026-11-16T04:45:17.911Z",
+    "widths_checked": 3,
+    "feed_generation": 334,
+    "checked_day": "2026-11-16",
+    "current_day": "2026-11-16",
+    "date_scope": "CURRENT_DAY",
+    "stage": "P1",
+    "checked_day_results": 47,
+    "current_day_results": 47,
+    "current_day_p1_groups": 21,
+    "current_day_upcoming_rows_checked": 180,
+    "race_lifecycle_tabs_verified": true,
+    "upcoming_rows_checked": 180,
+    "rationale_views_checked": 3,
+    "native_p1_groups_required": 11,
+    "native_p1_detail_visible": true,
+    "future_native_visible_before_cutoff": true,
+    "model_switch_views_checked": 3,
+    "model_switch_originals_checked": 6,
+    "key_in_requests_or_storage": false,
+    "official_source_requests": 0,
+    "plaintext_published": false
+  },
+  "physical_safari_verified": false,
+  "all_8_reference_screens_verified": false
+}

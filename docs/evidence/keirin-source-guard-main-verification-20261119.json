@@ -1,0 +1,44 @@
+{
+  "schema": "RACE_AI_KEIRIN_SOURCE_GUARD_MAIN_VERIFICATION_V1",
+  "main_base": "f6fda5128bf2ebd3fd526835248e9f55128978d5",
+  "integration_head": "ed87d4688364f8a4a845729fcdca89c8cd3165b9",
+  "existing_pr": 22,
+  "local_source_commits": [
+    "a80b903b2202b617efb131579061d54b4e6a341d",
+    "528b24b08f068963df2a5664b7e5d84aa2aa9518"
+  ],
+  "review": {
+    "verdict": "APPROVED",
+    "network_blocked_tests": 48,
+    "skips": 0
+  },
+  "author_combined_main_tests": {
+    "tests": 138,
+    "skips": 0,
+    "all_pass": true
+  },
+  "root_integrated_boundary_tests": {
+    "tests": 40,
+    "seconds": 0.012,
+    "all_pass": true
+  },
+  "root_integrated_recovery_tests": {
+    "tests": 138,
+    "seconds": 0.449,
+    "all_pass": true
+  },
+  "fixes": [
+    "Stop excluded Kdreams before discovery transport.",
+    "Stop both legacy mobile URL variants before any transport; preserve pure historical parsing.",
+    "Propagate pretransport rejection as source attempts0 in hourly and default manual71 callers."
+  ],
+  "actual_winticket_http403_resolved": false,
+  "missing_current_complete_permissioned_delivery": true,
+  "provider_gets_for_this_verification": 0,
+  "owner_key_retrieved": false,
+  "workflow_changed": false,
+  "source_release_changed": false,
+  "ui_assets_published": false,
+  "weights_changed": false,
+  "goal_complete": false
+}

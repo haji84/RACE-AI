@@ -1,0 +1,1293 @@
+name: BOAT schedule-gap retained-result recovery (zero provider GET)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-result-gap-recovery.yml
+      - scripts/boat_result_gap_audit.py
+      - tests/test_boat_result_gap_audit.py
+      - scripts/boat_result_gap_fresh_gate.py
+      - tests/test_boat_result_gap_fresh_gate.py
+      - scripts/boat_result_fresh_postflight.py
+      - tests/test_boat_result_fresh_postflight.py
+      - docs/evidence/boat-gap-replay-trigger.txt
+  push:
+    branches: [main]
+    paths:
+      - docs/evidence/boat-gap-replay-trigger.txt
+  workflow_dispatch:
+    inputs:
+      cycle:
+        required: true
+        type: choice
+        options: ['2', 'catchup']
+        description: '2=source-free audit; catchup=guarded result recovery without hourly cap'
+  # A single authenticated source-failure diagnosis does not alter GET limits.
+  # Backup polling only. Original BOAT 5-minute schedule remains the primary
+  # source. No fixed per-run GET quota; respect genuine due races and provider WAIT.
+  # GitHub may delay or skip schedule events: timestamps are not an SLA.
+  schedule:
+    - cron: '11,26,41,56 0-14,22-23 * * *'
+  workflow_run:
+    workflows: ['KEIRIN PR71 GitHub-only forecast and PDCA', 'KEIRIN hourly personal research canary']
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && 'boat-gap-sourcefree-pr-check' || 'boat-racer-daily-statistics' }}
+  cancel-in-progress: false
+
+jobs:
+  credential_preflight_unit:
+    name: BOAT ephemeral Git credential helper actual-response test (zero provider GET)
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify gh auth setup-git supplies usable credentials without printing secret
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          gh auth setup-git
+          python - <<'PY'
+          import subprocess
+          request=b'protocol=https\nhost=github.com\n\n'
+          answer=subprocess.run(['git','credential','fill'],input=request,
+              capture_output=True,timeout=15)
+          fields=dict(line.split('=',1) for line in answer.stdout.decode().splitlines()
+                      if '=' in line)
+          assert answer.returncode==0 and fields.get('username') and fields.get('password')
+          print('GIT_ACTUAL_CREDENTIAL_SOURCE_FREE_TEST_PASSED')
+          PY
+  filtered_state_source_unit:
+    name: BOAT filtered Git state source and result-model regression (zero GET)
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: bfcb3bf60d78e9be7d7a6c1a1ee34e1651eedd85
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Run real Git state transport, AES and official result queue regressions
+        run: python -m unittest tests.test_boat_pdca_github_handoff tests.test_racer_intraday_handoff tests.test_racer_daily_handoff tests.test_racer_intraday tests.test_racer_intraday_refresh tests.test_racer_intraday_transport tests.test_racer_result_queue tests.test_racer_result_bridge -v
+      - name: Assert source Git filter retains full signed-history audit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          c=Path('race_ai/boat_pdca_github_handoff.py').read_text()
+          method=c.split('    def fetch(self,commit):',1)[1].split('    def read(self,',1)[0]
+          assert "'--filter=blob:none'" in method
+          assert "'--no-write-fetch-head'" in method
+          assert "'--depth'" not in method
+          assert "commit+':refs/race-ai/pinned-state/'+commit" in method
+          assert "self._reject_rewrites(env)" in c
+          assert "need(self.head()==parent,'STATE_REF_CONCURRENT_UPDATE')" in c
+          print('BOAT_BLOBLESS_FULL_HISTORY_SOURCE_UNIT_VERIFIED')
+          PY
+      - name: Reproduce exact live Git daily-state fetch without provider GET or secret
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          python - <<'PY'
+          import base64,json,os,re
+          from pathlib import Path
+          from race_ai.boat_pdca_github_handoff import GitStateRepository,TRANSFER_REF
+          from race_ai.racer_daily_handoff import DailyStateRepository
+          token=os.environ['GH_TOKEN']
+          assert re.fullmatch('[A-Za-z0-9_.-]{20,512}',token)
+          count=int(os.environ.get('GIT_CONFIG_COUNT','0'))
+          assert 0<=count<=30
+          os.environ['GIT_CONFIG_KEY_'+str(count)]='http.https://github.com/haji84/RACE-AI.extraheader'
+          os.environ['GIT_CONFIG_VALUE_'+str(count)]='AUTHORIZATION: basic '+base64.b64encode(('x-access-token:'+token).encode()).decode()
+          os.environ['GIT_CONFIG_COUNT']=str(count+1)
+          # Test the exact immutable source SHA used by production, not a local subclass.
+          report={}
+          for label,cls in (('daily_filtered',DailyStateRepository),
+                            ('base_transport',GitStateRepository)):
+              try:
+                  git=cls(Path('.'),ref=TRANSFER_REF)
+                  commit=git.head()
+                  assert commit and re.fullmatch('[a-f0-9]{40}',commit)
+                  git.fetch(commit)
+                  assert git.exists(commit,'state/boat-racer-intraday/v1/latest.json')
+                  if label=='daily_filtered':
+                      # Exercise real lazy Git blob retrieval without decrypting
+                      # owner state or disclosing private bytes in public CI.
+                      from hashlib import sha256
+                      for prefix in ('state/boat-racer-intraday/v1/','state/boat-racer-daily/v1/'):
+                          pointer=json.loads(git.read(commit,prefix+'latest.json',16000))
+                          assert pointer.get('cipher_path','').startswith(prefix+'g')
+                          cipher=git.read(commit,pointer['cipher_path'],32*1024*1024)
+                          assert sha256(cipher).hexdigest()==pointer['head']['cipher_sha256']
+                  report[label]='EXACT_GIT_FETCH_OK'
+              except Exception as exc:
+                  code=str(exc)
+                  report[label]=code if type(exc) is ValueError and re.fullmatch('[A-Z0-9_]{3,100}',code) else 'EXACT_GIT_FETCH_ERROR'
+          print(json.dumps(dict(schema='BOAT_SOURCE_FREE_REAL_GIT_DIFF_V1',
+              official_provider_gets=0,remote_writes=0,variants=report),sort_keys=True))
+          assert report['daily_filtered']=='EXACT_GIT_FETCH_OK'
+          assert report['base_transport']=='EXACT_GIT_FETCH_OK'
+          print('BOAT_ENCRYPTED_REAL_BLOB_DIGEST_SOURCE_FREE_VERIFIED')
+          PY
+  source_free_git_probe:
+    name: BOAT encrypted-state Git write dry-run (zero provider GET)
+    if: >-
+      github.repository == 'haji84/RACE-AI' && github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message,'boat-git-probe: readonly-git-20261112')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.sha }}'
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 6327bc5675aee2da94ac13397f1f86f39b27d8fd
+          path: source-reader
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
+      - name: Verify original Git credentials with new local commit, only dry-run remotely
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          gh auth setup-git
+          if git config --get-regexp '^url\\..*\\.(insteadof|pushinsteadof)$' >/dev/null; then
+            echo 'HOLD_GIT_URL_REWRITE'
+            exit 2
+          fi
+          python - <<'PY'
+          import json,os,re,subprocess,sys
+          from pathlib import Path
+          sys.path.insert(0,str(Path('source-reader').resolve()))
+          import race_ai
+          for sibling in ('pr64-reference','pr72-reference'):
+              package=Path(sibling,'race_ai').resolve()
+              assert package.is_dir()
+              race_ai.__path__.append(str(package))
+          phase='import'
+          try:
+              from scripts.boat_private_original_vault import _environment
+              from race_ai.boat_pdca_github_handoff import GitStateRepository,TRANSFER_REF
+              phase='environment'
+              repo=_environment(Path('source-reader').resolve())
+              phase='remote'
+              gate=GitStateRepository(repo,ref=TRANSFER_REF)
+              phase='ls-remote'
+              parent=gate.head()
+              assert parent and re.fullmatch('[a-f0-9]{40}',parent)
+              phase='fetch-filtered'
+              # Fetch the authenticated exact commit and trees without
+              # downloading every historical encrypted blob on the transfer ref.
+              # The original gate implementation is unchanged in this probe.
+              gate._run(['fetch','--filter=blob:none','--no-tags',
+                  '--no-write-fetch-head',gate.fetch_url,
+                  parent+':refs/race-ai/pinned-state/'+parent])
+              phase='local-commit'
+              candidate=gate.commit({},parent)
+              assert re.fullmatch('[a-f0-9]{40}',candidate) and candidate!=parent
+              phase='dry-run'
+              status=subprocess.run(['git','push','--dry-run',gate.push_url,
+                  candidate+':refs/heads/'+gate.ref],cwd=repo,
+                  stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=50)
+              phase='verify-remote'
+              unchanged=gate.head()==parent
+              print(json.dumps(dict(status='BOAT_GIT_WRITE_DRY_RUN_DIAGNOSTIC',
+                  dry_run_exit_zero=status.returncode==0,remote_unchanged=unchanged,
+                  official_source_gets=0,remote_state_written=False),sort_keys=True))
+              assert unchanged
+          except Exception as e:
+              reason=(str(e) if type(e) is ValueError and
+                      re.fullmatch('[A-Z0-9_]{3,100}',str(e))
+                      else 'BOAT_GIT_DIAGNOSTIC_UNKNOWN')
+              trace=[]
+              tb=e.__traceback__
+              while tb:
+                  frame=tb.tb_frame.f_code
+                  file=Path(frame.co_filename).name
+                  if re.fullmatch('[a-zA-Z0-9_]+\\.py',file):
+                      trace.append(file+':'+str(tb.tb_lineno))
+                  tb=tb.tb_next
+              print(json.dumps(dict(status='BOAT_GIT_WRITE_DRY_RUN_HOLD',
+                  phase=phase,exception_type=type(e).__name__[:32],
+                  code_trace=trace[-3:],reason=reason,official_source_gets=0,
+                  remote_state_written=False),sort_keys=True))
+              raise SystemExit(2)
+          PY
+  source_free_diagnostic:
+    name: Pinned BOAT collector source-free diagnosis
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message,
+                 'boat-gap-diagnostic: pinned-readonly-20261112')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 6327bc5675aee2da94ac13397f1f86f39b27d8fd
+          path: source-reader
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
+      - name: Diagnose exact original source reader without racing-provider GET
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY'
+          from datetime import datetime,timezone
+          from pathlib import Path
+          import sys,json,re,traceback
+          sys.path.insert(0,str(Path('source-reader').resolve()))
+          import race_ai
+          for folder in ('pr64-reference','pr72-reference'):
+              package=Path(folder,'race_ai').resolve()
+              assert package.is_dir()
+              race_ai.__path__.append(str(package))
+          from scripts.boat_private_original_vault import _environment
+          from race_ai.racer_daily_handoff import load_daily
+          from race_ai.racer_intraday_handoff import load_intraday
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai.racer_intraday import build_catalogue
+          from race_ai.racer_daily import sha,wire
+          repo=_environment(Path('source-reader').resolve())
+          now=datetime.now(timezone.utc)
+          stage='init'
+          base=None
+          try:
+              stage='daily_load'
+              loaded=load_daily(repo,now=now)
+              base=loaded['store']
+              stage='source_load'
+              intraday=load_intraday(repo,now=now)
+              stage='results_load'
+              result_bridge=SavedResultBridge(repo,now=now)
+              stage='source_free_projection'
+              roster=json.loads((Path('source-reader')/'web/data/racer-profiles.json').read_text())['people']
+              result=build_catalogue(base,intraday['state'],roster,now=now,
+                                     base_sha=loaded['previous']['cipher_sha256'])
+              assert result['status']=='READY'
+              print(json.dumps(dict(status='BOAT_SOURCE_FREE_DIAGNOSTIC_PASSED',
+                  source_gets=0,result_row_count=len(result_bridge.rows),
+                  public_profiles=len(result['people']),diagnosed_steps=4),sort_keys=True))
+          except Exception as exc:
+              reason=(str(exc) if type(exc) is ValueError and
+                      re.fullmatch('[A-Z0-9_]{3,100}',str(exc))
+                      else 'SOURCE_FREE_DIAGNOSTIC_FAILED')
+              print(json.dumps(dict(status='BOAT_SOURCE_FREE_DIAGNOSTIC_HOLD',
+                  source_gets=0,stage=stage,reason=reason,
+                  exception_type=type(exc).__name__ if type(exc).__name__ in
+                      ('ValueError','RuntimeError','KeyError','TypeError','AssertionError') else 'Error'),
+                  sort_keys=True))
+              raise SystemExit(2)
+          finally:
+              if base is not None:base.close()
+          PY
+
+  unit:
+    name: unit
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.event.pull_request.head.sha }}'
+          persist-credentials: false
+      - name: Test actual schedule-gap and bounded fresh-result admission
+        run: python -m unittest tests.test_boat_result_gap_audit tests.test_boat_result_gap_fresh_gate tests.test_boat_result_fresh_postflight tests.test_boat_result_live_pages_retry -v
+      - name: Assert only the new guarded source step can use provider GET
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('.github/workflows/boat-result-gap-recovery.yml').read_text()
+          replay=text.split('\n  observed_gap:\n',1)[1].split('\n  fresh_result:\n',1)[0]
+          fresh=text.split('\n  fresh_result:\n',1)[1]
+          assert '--replay-retained-results' in replay and '--sync-results' not in replay
+          assert '--sync-results' in fresh and '--sync-beforeinfo' not in fresh
+          assert 'gh auth setup-git' in fresh
+          assert "if: steps.source_gate.outputs.admitted == 'true'" in fresh
+          assert 'AUTHENTICATED_GIT_STATE_WRITE_PATH_CONFIGURED_NO_PROVIDER_GET' in fresh
+          assert fresh.index('gh auth setup-git') < fresh.index('--sync-results')
+          assert "persist-credentials: false" in fresh
+          assert 'git -C source-reader ls-remote --heads' in fresh
+          assert 'AUTHENTICATED_GIT_CREDENTIAL_AVAILABLE_NO_PROVIDER_GET' in fresh
+          assert 'HOLD_GIT_CREDENTIAL_UNAVAILABLE' in fresh
+          assert "['git','-C','source-reader','credential','fill']" in fresh
+          assert 'bfcb3bf60d78e9be7d7a6c1a1ee34e1651eedd85' in fresh
+          assert 'needs: observed_gap' in fresh
+          assert "github.event.workflow_run.event == 'schedule'" in fresh
+          assert "github.event.workflow_run.name == 'KEIRIN hourly personal research canary'" in fresh
+          assert 'github.event.workflow_run.run_attempt == 1' in fresh
+          assert "new_results: ${{ steps.new_result.outputs.new_results }}" in fresh
+          assert "outputs.new_results == 'true'" in text
+          assert 'boat-gap-fresh-proof: single-bounded-intake-20261112' in replay
+          assert 'boat-gap-fresh-proof: single-bounded-intake-20261112' in fresh
+          assert "github.ref == 'refs/heads/main'" in fresh
+          assert 'github.event.workflow_run.run_attempt == 1' in fresh
+          assert "github.event.schedule == '11,26,41,56 0-14,22-23 * * *'" in replay
+          assert "github.event.schedule == '11,26,41,56 0-14,22-23 * * *'" in fresh
+          assert "github.event_name == 'schedule'" in replay
+          assert "github.event_name == 'schedule'" in fresh
+          assert 'FRESH_OFFICIAL_FINAL_INCREASE_VERIFIED' in text
+          assert 'exact_result_digest_matched' in text
+          assert 'original_inventory_unchanged' in text
+          assert 'sanitized_source_trace=safe' in text
+          assert 'BOAT_SOURCE_FREE_DIAGNOSTIC_PASSED' in text
+          assert 'BOAT_GIT_WRITE_DRY_RUN_DIAGNOSTIC' in text
+          probe=text.split('  source_free_git_probe:',1)[1].split('  source_free_diagnostic:',1)[0]
+          assert 'gh auth setup-git' in probe
+          assert 'git config --get-regexp' in probe
+          assert 'pr64-reference' in probe and 'pr72-reference' in probe
+          assert 'race_ai.__path__.append(str(package))' in probe
+          assert 'code_trace=trace[-3:]' in text
+          assert "phase='dry-run'" in text
+          assert "'--filter=blob:none'" in probe
+          assert "boat-git-probe: readonly-git-20261112" in text
+          assert "'--dry-run'" in text
+          assert 'boat-gap-diagnostic: pinned-readonly-20261112' in text
+          import ast,textwrap
+          block=text.split('      - name: Diagnose exact original source reader without racing-provider GET',1)[1].split("python - <<'PY'\n",1)[1].split('\n          PY',1)[0]
+          ast.parse(textwrap.dedent(block),filename='read_only_diagnostic')
+          assert '--sync-results' not in text.split('  source_free_diagnostic:',1)[1].split('  unit:',1)[0]
+          assert 'cancel-in-progress: false' in text
+          assert "  fresh_pdca_stage:\n" in text
+          assert "  fresh_pdca_readback:\n" in text
+          assert "  fresh_site_browser:\n" in text
+          assert "needs: [fresh_result, fresh_readback]" in text
+          assert "needs: [fresh_result, fresh_readback, fresh_pdca_readback]" in text
+          assert "NO_NEW_OFFICIAL_FINAL_DAY" in text
+          assert "EXPECTED_NEW_FINAL_DAY" in text
+          assert "FRESH_OFFICIAL_RESULT_MODEL_MATCH_LIVE_PAGES_VERIFIED" in text
+          assert "RACE_AI_BOAT_BACKFILL_DAY" in fresh
+          assert "bridge.choose_older_pending_day()" in fresh
+          assert "bridge.include_backfill_day(" in fresh
+          assert "EXPECTED_BACKFILL_DAY" in fresh
+          assert 'RACE_AI_BOAT_RESULT_CATCHUP_ADMITTED' in fresh
+          assert 'RACE_AI_BOAT_RESULT_GET_CAP' in fresh
+          assert 'EXPECTED_SOURCE_GET_CAP' in fresh
+          assert "source_get_cap" in text
+          assert "options: ['2', 'catchup']" in text
+          assert "inputs.cycle == 'catchup'" in text
+          assert "source_free_followup:" in text
+          policy=Path('scripts/boat_result_gap_fresh_gate.py').read_text()
+          assert 'RECOVERY_BUDGET_60M' not in policy
+          assert 'OWNER_BUDGET_60M' not in policy
+          assert 'MAX_RECOVERY_GETS_PER_CYCLE=36' not in policy
+          assert "selected_rows=F.current_view" in text
+          for job in ("fresh_pdca_stage", "fresh_pdca_readback", "fresh_site_browser"):
+              body=text.split("\n  "+job+":\n",1)[1].split("\n  fresh_",1)[0]
+              assert "--sync-results" not in body and "--sync-beforeinfo" not in body
+              assert "www.boatrace.jp" not in body
+          # Compile all new embedded Python blocks in PR, without any provider GET.
+          for job,expected in (("fresh_pdca_stage",1),("fresh_pdca_readback",1),
+                               ("fresh_site_browser",3)):
+              part=text.split("\n  "+job+":\n",1)[1].split("\n  fresh_",1)[0]
+              snippets=part.split("          python - <<'PY'\n")[1:]
+              assert len(snippets)==expected
+              for code in snippets:
+                  ast.parse(textwrap.dedent(code.split("\n          PY",1)[0]),filename=job)
+          print('FRESH_RESULT_GAP_SOURCE_BOUNDARY_UNIT_VERIFIED')
+          PY
+  offline_contract:
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.event.pull_request.head.sha }}'}
+      - name: Verify event freshness decisions and zero-source bounds
+        run: python -m unittest tests.test_boat_result_gap_audit -v
+      - name: Confirm replay command cannot become a racing provider acquisition
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          t=Path('.github/workflows/boat-result-gap-recovery.yml').read_text()
+          assert '--replay-retained-results' in t
+          assert 'race_ai.__path__.append(str(package))' in t
+          assert '761247bee0209e37b1af6b8885e92cad3e9260a5' in t
+          assert '7a432e5acc4d3495a0e82bd79726929e2f8085fe' in t
+          import re
+          assert not re.search(r'^\s+--sync-(?:results|beforeinfo)\b',t,re.MULTILINE)
+          assert 'gh workflow run boat-result-gap-recovery.yml' in t
+          assert "inputs.cycle == '2'" in t
+          assert "github.event.workflow_run.event == 'schedule'" in t
+          assert 'cancel-in-progress: false' in t
+          print('SOURCE_FREE_GAP_RECOVERY_CONTRACT_VERIFIED')
+          PY
+
+  observed_gap:
+    if: >-
+      github.repository == 'haji84/RACE-AI' && (
+        (github.event_name == 'schedule' && github.ref == 'refs/heads/main' &&
+         github.event.schedule == '11,26,41,56 0-14,22-23 * * *') ||
+        (github.event_name == 'push' &&
+         github.ref == 'refs/heads/main' &&
+         (startsWith(github.event.head_commit.message,
+                     'boat-gap-audit: two-sourcefree-passes-20261112') ||
+          startsWith(github.event.head_commit.message,
+                     'boat-gap-fresh-proof: single-bounded-intake-20261112'))) ||
+        (github.event_name == 'workflow_dispatch' &&
+         github.ref == 'refs/heads/main' &&
+         (inputs.cycle == '2' || inputs.cycle == 'catchup')) ||
+        (github.event_name == 'workflow_run' &&
+         github.event.workflow_run.event == 'schedule' &&
+         (github.event.workflow_run.conclusion == 'success' ||
+         (github.event.workflow_run.name == 'KEIRIN hourly personal research canary' &&
+          github.event.workflow_run.conclusion == 'failure')) &&
+         github.event.workflow_run.head_branch == 'main' &&
+         github.event.workflow_run.head_repository.full_name == github.repository))
+    outputs:
+      gap: ${{ steps.audit.outputs.gap }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.sha }}'
+          persist-credentials: false
+      - name: Check out pinned original result reader without changing it
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 6327bc5675aee2da94ac13397f1f86f39b27d8fd
+          path: source-reader
+          persist-credentials: false
+      - name: Read reviewed display-only publication safety without replacing the collector
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.sha }}'
+          path: legacy-publish-safety
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/boat_legacy_reason_anchor_guard.py
+            scripts/boat_legacy_reason_anchor_entry.py
+          sparse-checkout-cone-mode: false
+      - name: Read the exact current reason guard separately from legacy runtime imports
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 86b029ae5bddd5d4956497d8b32b2c92b8eec521
+          path: reason-binding-source
+          persist-credentials: false
+          sparse-checkout: race_ai/boat_saved_model_view.py
+          sparse-checkout-cone-mode: false
+      - name: Install immutable original official parser separately
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - name: Install immutable original result adapter separately
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
+      - name: Read actual GitHub schedule history only
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-racer-daily.yml/runs?event=schedule&per_page=100" \
+            --jq 'if type == "object" and (.workflow_runs | type) == "array" and (.workflow_runs | length) <= 100 and all(.workflow_runs[]; type == "object") then {workflow_runs: [.workflow_runs[] | {id,name,event,created_at}]} else error("BOAT_GAP_RUNS_SCHEMA") end' \
+            > "$RUNNER_TEMP/boat-schedule-runs.json"
+      - name: Audit source-free recovery eligibility
+        id: audit
+        run: |
+          python scripts/boat_result_gap_audit.py \
+            --runs "$RUNNER_TEMP/boat-schedule-runs.json" \
+            --output "$RUNNER_TEMP/boat-gap-evidence.json"
+          python - <<'PY'
+          from pathlib import Path
+          import json,os
+          p=Path(os.environ['RUNNER_TEMP'])/'boat-gap-evidence.json'
+          data=json.loads(p.read_text())
+          assert data['requested_source_gets']==0 and data['source_budget_extended'] is False
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('gap=' + str(data['status']=='SCHEDULE_GAP_CONFIRMED').lower() + '\n')
+          PY
+      - name: Recover already retained authenticated results only, no source GET
+        if: steps.audit.outputs.gap == 'true'
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        working-directory: source-reader
+        run: |
+          python - <<'PY_REPLAY' > "$RUNNER_TEMP/boat-gap-replay.json"
+          import os
+          from pathlib import Path
+          import race_ai
+          for folder in ('../pr64-reference', '../pr72-reference'):
+              package=Path(folder, 'race_ai').resolve()
+              assert package.is_dir(), 'PINNED_OFFICIAL_ADAPTER_MISSING'
+              race_ai.__path__.append(str(package))
+          import importlib.util
+          safety=Path(os.environ['GITHUB_WORKSPACE'])/'legacy-publish-safety/scripts/boat_legacy_reason_anchor_entry.py'
+          assert safety.is_file() and not safety.is_symlink()
+          spec=importlib.util.spec_from_file_location('reviewed_legacy_reason_anchor_entry',safety)
+          entry=importlib.util.module_from_spec(spec);spec.loader.exec_module(entry)
+          entry.prepare_legacy_feed()
+          from scripts.racer_intraday_refresh import main
+          raise SystemExit(main(['--private-dir',
+              os.path.join(os.environ['RUNNER_TEMP'],'boat-gap-sourcefree'),
+              '--replay-retained-results']))
+          PY_REPLAY
+          python - <<'PY'
+          from pathlib import Path
+          import json,os
+          doc=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-gap-replay.json').read_text())
+          assert doc['status']=='RETAINED_RESULTS_REPLAYED'
+          assert doc['source_requests']==0 and doc['originals_changed'] is False
+          assert doc['source_state_saved'] is False
+          assert doc['forecasting_performed'] is False
+          assert doc['readback_verified'] is True
+          print(json.dumps({'status':'RETAINED_GAP_RECOVERY_VERIFIED',
+                'source_requests':0,'changed_races':doc['changed_races'],
+                'originals_changed':False,'readback_verified':True},sort_keys=True))
+          PY
+      - name: Upload count-only audit proof
+        if: always() && steps.audit.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-result-gap-sourcefree-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/boat-gap-evidence.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Request only the second bounded source-free proof and then stop
+        if: >-
+          success() && github.event_name == 'push' &&
+          startsWith(github.event.head_commit.message,
+                     'boat-gap-audit: two-sourcefree-passes-20261112')
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          gh workflow run boat-result-gap-recovery.yml --ref main -f cycle=2
+          echo 'BOAT_GAP_SECOND_PROOF_DISPATCHED_NO_PROVIDER_GET'
+
+  fresh_result:
+    name: Fresh bounded official result intake
+    needs: observed_gap
+    outputs:
+      result_cipher: ${{ steps.new_result.outputs.result_cipher }}
+      new_results: ${{ steps.new_result.outputs.new_results }}
+      before_final: ${{ steps.new_result.outputs.before_final }}
+      after_final: ${{ steps.new_result.outputs.after_final }}
+      result_digest: ${{ steps.new_result.outputs.result_digest }}
+      inventory_digest: ${{ steps.new_result.outputs.inventory_digest }}
+      scope_days: ${{ steps.new_result.outputs.scope_days }}
+      backfill_day: ${{ steps.new_result.outputs.backfill_day }}
+      new_final_day: ${{ steps.new_result.outputs.new_final_day }}
+      new_day_before: ${{ steps.new_result.outputs.new_day_before }}
+      new_day_after: ${{ steps.new_result.outputs.new_day_after }}
+    if: >-
+      needs.observed_gap.result == 'success' && needs.observed_gap.outputs.gap == 'true' &&
+      github.repository == 'haji84/RACE-AI' &&
+      ((github.event_name == 'schedule' &&
+        github.ref == 'refs/heads/main' &&
+        github.event.schedule == '11,26,41,56 0-14,22-23 * * *') ||
+       (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.event == 'schedule' &&
+        github.event.workflow_run.run_attempt == 1 &&
+        (github.event.workflow_run.conclusion == 'success' ||
+         (github.event.workflow_run.name == 'KEIRIN hourly personal research canary' &&
+          github.event.workflow_run.conclusion == 'failure')) &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository) ||
+       (github.event_name == 'push' &&
+        github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message,
+          'boat-gap-fresh-proof: single-bounded-intake-20261112')) ||
+       (github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/main' && inputs.cycle == 'catchup'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.sha }}'
+          persist-credentials: false
+      - name: Install unmodified bounded result collector separately
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: bfcb3bf60d78e9be7d7a6c1a1ee34e1651eedd85
+          path: source-reader
+          persist-credentials: false
+      - name: Read reviewed display-only publication safety without replacing the collector
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.sha }}'
+          path: legacy-publish-safety
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/boat_legacy_reason_anchor_guard.py
+            scripts/boat_legacy_reason_anchor_entry.py
+          sparse-checkout-cone-mode: false
+      - name: Read the exact current reason guard separately from legacy runtime imports
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 86b029ae5bddd5d4956497d8b32b2c92b8eec521
+          path: reason-binding-source
+          persist-credentials: false
+          sparse-checkout: race_ai/boat_saved_model_view.py
+          sparse-checkout-cone-mode: false
+      - name: Install immutable original official parser
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - name: Install immutable original result adapter
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - name: Install existing source reader dependencies
+        run: python -m pip install --disable-pip-version-check -r source-reader/requirements-history.txt
+      - name: Read sealed source freshness and genuinely due result count without provider GET
+        id: source_scope
+        working-directory: source-reader
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python - <<'PY' > "$RUNNER_TEMP/boat-gap-fresh-sealed-health.json"
+          from datetime import datetime,timedelta,timezone
+          from pathlib import Path
+          import json,os,race_ai
+          for folder in ('../pr64-reference','../pr72-reference'):
+              package=Path(folder,'race_ai').resolve()
+              assert package.is_dir(), 'PINNED_OFFICIAL_ADAPTER_MISSING'
+              race_ai.__path__.append(str(package))
+          from scripts.boat_private_original_vault import _environment
+          from race_ai.racer_intraday_handoff import load_intraday
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai.racer_daily import clock
+          from race_ai import saved_view_feed as F
+          repo=_environment(Path('.').resolve())
+          control=load_intraday(repo)['state'].control
+          bridge=SavedResultBridge(repo,now=datetime.now(timezone.utc))
+          older=bridge.choose_older_pending_day()
+          if older:bridge.include_backfill_day(older)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('backfill_day='+str(older or '')+'\n')
+          now=datetime.now(timezone.utc)
+          retry=control.get('settlement_next') or {}
+          assert isinstance(retry,dict), 'UNVERIFIED_RESULT_RETRY_CLOCKS'
+          due=sum(target['pending'] and target['cutoff_at'] is not None and
+              clock(target['cutoff_at'])+timedelta(minutes=5)<=now and
+              (target['race_id'] not in retry or clock(retry[target['race_id']])<=now)
+              for target in bridge.targets())
+          wait=(control.get('waits') or {}).get('boatrace') or {}
+          final=sum((row.get('result') or {}).get('status')=='final' for row in bridge.rows)
+          before_by_day={day:sum((row.get('result') or {}).get('status')=='final' and row['event_date_jst']==day for row in bridge.rows) for day in bridge.days}
+          inventory=F.inventory_sha(dict(schema='RACE_AI_PRIVATE_CYCLE_VIEW_V1',records=bridge.rows))
+          print(json.dumps(dict(last_checked_at=control.get('last_checked_at'),
+              due_count=due,boatrace_hold_until=wait.get('until'),
+              before_final=final,before_by_day=before_by_day,baseline_races=len(bridge.rows),
+              scope_days=sorted(bridge.days),backfill_day=older,
+              inventory_digest=inventory),sort_keys=True))
+          PY
+      - name: Revalidate trusted schedules, all prior source attempts and sealed budget
+        id: source_gate
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          python scripts/boat_result_gap_fresh_gate.py \
+            --source "$RUNNER_TEMP/boat-gap-fresh-sealed-health.json" \
+            --output "$RUNNER_TEMP/boat-gap-fresh-admission.json"
+      - name: Prepare authenticated Git-only state writes before any provider GET
+        if: steps.source_gate.outputs.admitted == 'true'
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          # Existing source checkout is read-only by design. Configure the
+          # standard GitHub CLI credential helper only after all GET gates pass.
+          gh auth setup-git
+          if git config --get-regexp '^url\\..*\\.(insteadof|pushinsteadof)$' >/dev/null; then
+            echo 'HOLD_GIT_URL_REWRITE'
+            exit 2
+          fi
+          # A credential-helper *key* may be "credential.helper" or
+          # URL-scoped. Verify its actual answer without logging the token.
+          GIT_TERMINAL_PROMPT=0 python - <<'PY'
+          import subprocess
+          request=b'protocol=https\nhost=github.com\n\n'
+          response=subprocess.run(['git','-C','source-reader','credential','fill'],
+              input=request,capture_output=True,timeout=15)
+          values=dict(line.split('=',1) for line in response.stdout.decode('utf-8').splitlines()
+                      if '=' in line)
+          if response.returncode!=0 or not values.get('username') or not values.get('password'):
+              raise SystemExit('HOLD_GIT_CREDENTIAL_UNAVAILABLE')
+          print('AUTHENTICATED_GIT_CREDENTIAL_AVAILABLE_NO_PROVIDER_GET')
+          PY
+          git -C source-reader ls-remote --heads origin 'refs/heads/state/boat-pdca-transfer' >/dev/null
+          echo 'AUTHENTICATED_GIT_STATE_WRITE_PATH_CONFIGURED_NO_PROVIDER_GET'
+      - name: Consume owner-admitted genuine due official-result GETs, checkpoint before timeout
+        if: steps.source_gate.outputs.admitted == 'true'
+        working-directory: source-reader
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+          RACE_AI_BOAT_BACKFILL_DAY: '${{ steps.source_scope.outputs.backfill_day }}'
+          RACE_AI_BOAT_RESULT_CATCHUP_ADMITTED: '${{ steps.source_gate.outputs.admitted }}'
+          RACE_AI_BOAT_RESULT_GET_CAP: '${{ steps.source_gate.outputs.source_get_cap }}'
+        run: |
+          python - <<'PY' > "$RUNNER_TEMP/boat-gap-fresh-result-private.json"
+          import os,race_ai
+          from pathlib import Path
+          for folder in ('../pr64-reference','../pr72-reference'):
+              package=Path(folder,'race_ai').resolve()
+              assert package.is_dir(), 'PINNED_OFFICIAL_ADAPTER_MISSING'
+              race_ai.__path__.append(str(package))
+          import importlib.util
+          safety=Path(os.environ['GITHUB_WORKSPACE'])/'legacy-publish-safety/scripts/boat_legacy_reason_anchor_entry.py'
+          assert safety.is_file() and not safety.is_symlink()
+          spec=importlib.util.spec_from_file_location('reviewed_legacy_reason_anchor_entry',safety)
+          entry=importlib.util.module_from_spec(spec);spec.loader.exec_module(entry)
+          entry.prepare_legacy_feed()
+          from scripts.racer_intraday_refresh import main
+          raise SystemExit(main(['--private-dir',
+              os.path.join(os.environ['RUNNER_TEMP'],'boat-gap-fresh'),
+              '--sync-results']))
+          PY
+
+      - name: Report whitelisted source-error reason without original or key
+        if: failure() && steps.source_gate.outputs.admitted == 'true'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,os,re
+          path=Path(os.environ['RUNNER_TEMP'])/'boat-gap-fresh-result-private.json'
+          try:
+              data=json.loads(path.read_text())
+              assert type(data) is dict
+              reason=data.get('reason')
+              if not isinstance(reason,str) or not re.fullmatch('[A-Z0-9_]{3,100}',reason):
+                  reason='UNKNOWN_UNEXPOSED_ERROR'
+              stage=data.get('status')
+              if stage not in ('HOLD','SOURCE_WAIT','INTRADAY_REFRESHED'):
+                  stage='UNKNOWN'
+              kind=data.get('exception_type')
+              if kind not in ('ValueError','RuntimeError','KeyError','TypeError','AssertionError'):
+                  kind='UNKNOWN'
+              frames=data.get('code_trace')
+              safe=[]
+              allowed={'boat_pdca_github_handoff.py','racer_intraday_handoff.py',
+                       'racer_daily_handoff.py','racer_intraday_refresh.py',
+                       'racer_result_bridge.py','saved_view_feed.py','saved_pages.py',
+                       'boat_private_original_vault.py'}
+              if isinstance(frames,list) and len(frames)<=8:
+                  for frame in frames:
+                      if isinstance(frame,str) and len(frame)<=150:
+                          m=re.fullmatch(r'([a-zA-Z0-9_]+\.py):([0-9]{1,5}):([a-zA-Z0-9_]{1,65})',frame)
+                          if m and m.group(1) in allowed:
+                              safe.append(m.group(1)+':'+m.group(2)+':'+m.group(3))
+              print(json.dumps(dict(status='BOAT_FRESH_SOURCE_FAILED',
+                  reason=reason,source_status=stage,exception_type=kind,
+                  sanitized_source_trace=safe,
+                  provider_requests_verified=False),sort_keys=True))
+          except Exception:
+              print(json.dumps(dict(status='BOAT_FRESH_SOURCE_FAILED',
+                  reason='NO_SANITIZABLE_PRIVATE_REPORT',
+                  provider_requests_verified=False),sort_keys=True))
+          PY
+
+      - name: Require actual new official result and no source-limit bypass
+        if: steps.source_gate.outputs.admitted == 'true'
+        id: new_result
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+          EXPECTED_SOURCE_GET_CAP: '${{ steps.source_gate.outputs.source_get_cap }}'
+        run: |
+          python - <<'PY'
+          import json,os,sys,hashlib,datetime
+          from pathlib import Path
+          report=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-gap-fresh-result-private.json').read_text())
+          assert report['schema']=='RACE_AI_RACER_INTRADAY_RUN_V1'
+          assert report['status']=='INTRADAY_REFRESHED'
+          assert 0<report['source_requests']<=int(os.environ['EXPECTED_SOURCE_GET_CAP'])
+          assert report['retained']['status']=='INTRADAY_ENCRYPTED_DELTA_RETAINED'
+          assert report['retained']['new_capture_count']>0
+          assert type(report['result_sync']['changed_races']) is int and report['result_sync']['changed_races']>=0
+          assert report['result_sync']['state']=='READY'
+          assert report['forecast_inputs_changed'] is False
+          assert report['private_sources_published'] is False
+          baseline=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-gap-fresh-sealed-health.json').read_text())
+          sys.path.insert(0,str(Path('source-reader').resolve()))
+          import race_ai
+          for folder in ('pr64-reference','pr72-reference'):
+              package=Path(folder,'race_ai').resolve()
+              assert package.is_dir()
+              race_ai.__path__.append(str(package))
+          from scripts.boat_private_original_vault import _environment
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai import saved_view_feed as F
+          bridge=SavedResultBridge(_environment(Path('source-reader').resolve()),
+              now=datetime.datetime.now(datetime.timezone.utc))
+          bridge.include_backfill_day(baseline.get('backfill_day'))
+          rows=bridge.rows
+          after_final=sum((r.get('result') or {}).get('status')=='final' for r in rows)
+          assert sorted(bridge.days)==baseline['scope_days']
+          assert len(rows)==baseline['baseline_races']
+          assert after_final>=baseline['before_final']
+          inventory=F.inventory_sha(dict(schema='RACE_AI_PRIVATE_CYCLE_VIEW_V1',records=rows))
+          assert inventory==baseline['inventory_digest']
+          # Source-free policy: successful bounded GET and retained observations
+          # can still yield ZERO newly changed official final races. Never
+          # report failure or forge a new result/worker dispatch in that case.
+          from scripts.boat_result_fresh_postflight import decision
+          adjudication=decision(before_final=baseline['before_final'],
+              after_final=after_final,
+              changed_races=report['result_sync']['changed_races'],
+              provider_gets=report['source_requests'],
+              get_cap=int(os.environ['EXPECTED_SOURCE_GET_CAP']))
+          if adjudication=='BOAT_NO_NEW_FORMAL_FINAL_HOLD':
+              # Authenticated inventory and dates were checked above.
+              # A completed HOLD never sets new_results=true; downstream
+              # AES/model/site stages remain skipped. Re-entry remains only
+              # through original source-owner scheduling and due clocks.
+              print(json.dumps(dict(status='BOAT_NO_NEW_FORMAL_FINAL_HOLD',
+                  provider_gets=report['source_requests'],
+                  source_cipher_retained=True,forecast_inputs_changed=False),
+                  sort_keys=True))
+              raise SystemExit(0)
+          assert adjudication=='FRESH_OFFICIAL_FINAL_INCREASE_VERIFIED' and after_final>baseline['before_final']
+          finals=sorted((r['race_id'],r['result']) for r in rows
+              if (r.get('result') or {}).get('status')=='final')
+          digest=hashlib.sha256(json.dumps(finals,sort_keys=True,
+              separators=(',',':')).encode()).hexdigest()
+          after_by_day={day:sum((r.get('result') or {}).get('status')=='final' and r['event_date_jst']==day for r in rows) for day in bridge.days}
+          assert set(after_by_day)==set(baseline['before_by_day'])
+          new_days=sorted(day for day in after_by_day if after_by_day[day]>baseline['before_by_day'][day])
+          assert new_days, 'NO_NEW_OFFICIAL_FINAL_DAY'
+          new_day=new_days[-1]
+          with open(os.environ['GITHUB_OUTPUT'],'a') as stream:
+              stream.write('new_results=true\n')
+              stream.write('result_cipher='+report['retained']['cipher_sha256']+'\n')
+              stream.write('before_final='+str(baseline['before_final'])+'\n')
+              stream.write('after_final='+str(after_final)+'\n')
+              stream.write('result_digest='+digest+'\n')
+              stream.write('inventory_digest='+inventory+'\n')
+              stream.write('scope_days='+','.join(bridge.days)+'\n')
+              stream.write('backfill_day='+str(baseline.get('backfill_day') or '')+'\n')
+              stream.write('new_final_day='+new_day+'\n')
+              stream.write('new_day_before='+str(baseline['before_by_day'][new_day])+'\n')
+              stream.write('new_day_after='+str(after_by_day[new_day])+'\n')
+          print(json.dumps(dict(status='FRESH_OFFICIAL_FINAL_INCREASE_VERIFIED',
+              provider_gets=report['source_requests'],
+              changed_races=report['result_sync']['changed_races'],
+              new_final_count=after_final-baseline['before_final'],
+              source_cipher_retained=True,forecast_inputs_changed=False),
+              sort_keys=True))
+          PY
+
+  fresh_readback:
+    name: Independently reopen fresh results on different runner (zero GET)
+    needs: fresh_result
+    if: needs.fresh_result.result == 'success' && needs.fresh_result.outputs.new_results == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: bfcb3bf60d78e9be7d7a6c1a1ee34e1651eedd85
+          persist-credentials: false
+      - name: Install immutable official parser
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - name: Install immutable result adapter
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Reopen actual saved AES result and verify unchanged prediction inventory
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+          EXPECTED_SOURCE_CIPHER: '${{ needs.fresh_result.outputs.result_cipher }}'
+          EXPECTED_BEFORE_FINAL: '${{ needs.fresh_result.outputs.before_final }}'
+          EXPECTED_AFTER_FINAL: '${{ needs.fresh_result.outputs.after_final }}'
+          EXPECTED_RESULT_DIGEST: '${{ needs.fresh_result.outputs.result_digest }}'
+          EXPECTED_INVENTORY_DIGEST: '${{ needs.fresh_result.outputs.inventory_digest }}'
+          EXPECTED_SCOPE_DAYS: '${{ needs.fresh_result.outputs.scope_days }}'
+          EXPECTED_BACKFILL_DAY: '${{ needs.fresh_result.outputs.backfill_day }}'
+          EXPECTED_NEW_FINAL_DAY: '${{ needs.fresh_result.outputs.new_final_day }}'
+          EXPECTED_NEW_DAY_BEFORE: '${{ needs.fresh_result.outputs.new_day_before }}'
+          EXPECTED_NEW_DAY_AFTER: '${{ needs.fresh_result.outputs.new_day_after }}'
+        run: |
+          python - <<'PY'
+          import json,race_ai,hashlib,os,datetime
+          from pathlib import Path
+          for folder in ('pr64-reference','pr72-reference'):
+              package=Path(folder,'race_ai').resolve()
+              assert package.is_dir(), 'PINNED_OFFICIAL_ADAPTER_MISSING'
+              race_ai.__path__.append(str(package))
+          from scripts.boat_private_original_vault import _environment
+          from race_ai.racer_intraday_handoff import load_intraday
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from race_ai import saved_view_feed as F
+          repo=_environment(Path('.').resolve())
+          loaded=load_intraday(repo)
+          assert loaded['previous']['head']['cipher_sha256']==os.environ['EXPECTED_SOURCE_CIPHER']
+          bridge=SavedResultBridge(repo,now=datetime.datetime.now(datetime.timezone.utc))
+          if os.environ.get('EXPECTED_BACKFILL_DAY'):
+              bridge.include_backfill_day(os.environ['EXPECTED_BACKFILL_DAY'])
+          assert ','.join(bridge.days)==os.environ['EXPECTED_SCOPE_DAYS']
+          final=sum((row.get('result') or {}).get('status')=='final' for row in bridge.rows)
+          before=int(os.environ['EXPECTED_BEFORE_FINAL'])
+          assert final==int(os.environ['EXPECTED_AFTER_FINAL']) and final>before
+          inventory=F.inventory_sha(dict(schema='RACE_AI_PRIVATE_CYCLE_VIEW_V1',
+                                         records=bridge.rows))
+          assert inventory==os.environ['EXPECTED_INVENTORY_DIGEST']
+          finals=sorted((r['race_id'],r['result']) for r in bridge.rows
+              if (r.get('result') or {}).get('status')=='final')
+          digest=hashlib.sha256(json.dumps(finals,sort_keys=True,
+              separators=(',',':')).encode()).hexdigest()
+          assert digest==os.environ['EXPECTED_RESULT_DIGEST']
+          day=os.environ['EXPECTED_NEW_FINAL_DAY']
+          assert day in bridge.days
+          day_final=sum((r.get('result') or {}).get('status')=='final' and r['event_date_jst']==day for r in bridge.rows)
+          assert day_final==int(os.environ['EXPECTED_NEW_DAY_AFTER'])>int(os.environ['EXPECTED_NEW_DAY_BEFORE'])
+          print(json.dumps(dict(status='FRESH_RESULT_INDEPENDENT_AES_READBACK_VERIFIED',
+              provider_gets=0,new_final_count=final-before,
+              exact_source_cipher_matched=True,exact_result_digest_matched=True,
+              original_inventory_unchanged=True,new_final_day_verified=True),sort_keys=True))
+          PY
+
+  fresh_pdca_stage:
+    name: BOAT source-free model PDCA stage after new official final
+    needs: [fresh_result, fresh_readback]
+    if: needs.fresh_readback.result == 'success' && needs.fresh_result.outputs.new_results == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0796b52c2804177976e4c2e5ab9b65f32589720b
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Score retained original models with existing source-free scorer
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/boat-fresh-pdca" --stage-existing-pdca > "$RUNNER_TEMP/boat-fresh-pdca.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          doc=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-fresh-pdca.json').read_text())
+          assert doc['status']=='STAGED_NEEDS_INDEPENDENT_READBACK'
+          assert doc['source_requests']==doc['source_provider_requests']==0
+          assert doc['forecast_rewrites']==0 and doc['actual_purchases'] is False
+          assert doc['formally_scored_forecasts']>0
+          print(json.dumps(dict(status='BOAT_EXISTING_MODEL_PDCA_STAGED',source_gets=0,
+               scored_forecasts=doc['formally_scored_forecasts'],originals_changed=False),
+               sort_keys=True))
+          PY
+
+  fresh_pdca_readback:
+    name: BOAT independent encrypted model PDCA readback on separate runner
+    needs: fresh_pdca_stage
+    if: needs.fresh_pdca_stage.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0796b52c2804177976e4c2e5ab9b65f32589720b
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Independently authenticate AES model results and original forecast inventory
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+        run: |
+          python -m scripts.verify_all_history_pdca_readback --repository-root . > "$RUNNER_TEMP/boat-fresh-pdca-readback.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          doc=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-fresh-pdca-readback.json').read_text())
+          assert doc['status']=='AES_AUTHENTICATED_HISTORICAL_PDCA_READBACK_VERIFIED'
+          assert doc['formally_scored_forecasts']>0
+          assert doc['source_provider_requests']==0 and doc['forecast_rewrites']==0
+          print(json.dumps(dict(status='BOAT_FRESH_MODEL_PDCA_INDEPENDENTLY_VERIFIED',
+               scored_forecasts=doc['formally_scored_forecasts'],
+               verified_days=doc['saved_days_authenticated'],source_gets=0),sort_keys=True))
+          PY
+
+  fresh_site_browser:
+    name: BOAT live Pages original-model result comparison after AES verification
+    needs: [fresh_result, fresh_readback, fresh_pdca_readback]
+    if: needs.fresh_readback.result == 'success' && needs.fresh_pdca_readback.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0796b52c2804177976e4c2e5ab9b65f32589720b
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22'
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - run: npm install --prefix "$RUNNER_TEMP/result-site-tools" --no-package-lock --ignore-scripts playwright@1.62.1
+      - name: Authenticate actual updated saved result and private browser probe
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+          TARGET_DAY: '${{ needs.fresh_result.outputs.new_final_day }}'
+          NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: http.https://github.com/.extraheader
+          GIT_CONFIG_VALUE_0: ''
+        run: |
+          python - <<'PY'
+          import datetime,os,re
+          from pathlib import Path
+          day=os.environ['TARGET_DAY']
+          assert re.fullmatch(r'20[0-9]{2}-[01][0-9]-[0-3][0-9]',day)
+          assert datetime.date.fromisoformat(day).isoformat()==day
+          PY
+          # On failure the context builder writes a bounded private-local JSON
+          # error record. Emit only a whitelisted status+reason, never the URL,
+          # decrypted records, stack trace or source payload.
+          if python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --day "$TARGET_DAY" --stage P0 > "$RUNNER_TEMP/boat-fresh-site-context-summary.json"; then
+            echo 'BOAT_PRIVATE_SITE_CONTEXT_READY'
+          else
+            python - <<'PY_CONTEXT_HOLD'
+          import json,os,re
+          from pathlib import Path
+          safe=dict(status='BOAT_PRIVATE_SITE_CONTEXT_HOLD',reason='CONTEXT_FAILURE_UNCLASSIFIED',
+                    original_or_result_modified=False,provider_gets=0)
+          path=Path(os.environ['RUNNER_TEMP'])/'boat-fresh-site-context-summary.json'
+          try:
+              report=json.loads(path.read_text(encoding='utf-8'))
+              if type(report) is dict and report.get('status')=='SAVED_SITE_CONTEXT_REJECTED':
+                  reason=report.get('reason')
+                  if type(reason) is str and re.fullmatch(r'(?:SAVED_SITE|FEED|HISTORY|VAULT|STATE)_[A-Z0-9_]{1,100}',reason):
+                      safe['reason']=reason
+          except (OSError,UnicodeError,ValueError,TypeError):
+              pass
+          print(json.dumps(safe,sort_keys=True))
+          PY_CONTEXT_HOLD
+            exit 2
+          fi
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from scripts.boat_private_original_vault import _environment
+          from scripts.boat_saved_view_feed import git_auth
+          from race_ai.racer_result_bridge import SavedResultBridge
+          from datetime import datetime,timezone
+          base=Path(os.environ['RUNNER_TEMP'])
+          context=json.loads((base/'boat-saved-site-context.json').read_text())
+          assert context['day']==os.environ['TARGET_DAY'] and context['minimum_results']>0
+          assert context['stage']=='P0' and context['native_p0_groups']>0
+          git_auth()
+          bridge=SavedResultBridge(_environment(Path('.').resolve()),now=datetime.now(timezone.utc))
+          if context['day'] in bridge.days:
+              selected_rows=bridge.rows
+          else:
+              from race_ai import saved_view_feed as F
+              selected_rows=F.current_view(bridge.git,bridge.bootstrap,day=context['day'])[3]['records']
+          choices=[r['race_id'] for r in selected_rows if r['event_date_jst']==context['day']
+                   and (r.get('result') or {}).get('status')=='final'
+                   and any(p and p.get('stage')=='P0' and p.get('external_receipt_verified') is True
+                           and p.get('eligible_pre_cutoff',True) is True
+                           for p in [r.get('prediction'),*(r.get('comparison_predictions') or [])])]
+          assert choices, 'NO_FINAL_WITH_SAVED_PRE_RACE_MODEL'
+          path=base/'boat-fresh-result-probe-id'
+          fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+          with os.fdopen(fd,'w') as out:out.write(sorted(choices)[0])
+          print(json.dumps(dict(status='BOAT_PRIVATE_FINAL_MODEL_PROBE_READY',
+               source_gets=0,eligible_final_model_races=len(choices)),sort_keys=True))
+          PY
+          PROBE_RACE="$(cat "$RUNNER_TEMP/boat-fresh-result-probe-id")"
+          # Pages/HTTP publication can trail the independently sealed AES result
+          # by several minutes. Retry ONLY the read-only browser, never any
+          # provider GET, forecast, PDCA write or source-admission step.
+          # The browser's failure report is a safe, fixed-schema JSON record.
+          # Do not echo the private URL, DOM, page contents or raw error/stack.
+          for attempt in 1 2 3; do
+            if env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "--race-id=$PROBE_RACE" > "$RUNNER_TEMP/boat-fresh-browser.json"; then
+              echo 'BOAT_READONLY_PAGES_BROWSER_RETRY_SUCCEEDED'
+              break
+            fi
+            BOAT_RETRY_ATTEMPT="$attempt" python - <<'PY_BROWSER_FAIL'
+          import json,os
+          from pathlib import Path
+          path=Path(os.environ['RUNNER_TEMP'])/'boat-fresh-browser.json'
+          safe=dict(status='BOAT_LIVE_PAGES_BROWSER_HOLD',attempt=int(os.environ['BOAT_RETRY_ATTEMPT']),
+                    reason='BROWSER_CHECKER_FAILED',kind='UNCLASSIFIED',checker_line=None)
+          try:
+              report=json.loads(path.read_text(encoding='utf-8'))
+              if (type(report) is dict and report.get('status')=='LIVE_OWNER_SITE_REJECTED' and
+                      report.get('reason')=='SAVED_SITE_BROWSER_CHECK_FAILED'):
+                  kind=report.get('error_kind')
+                  line=report.get('checker_line')
+                  if kind in ('AssertionError','TimeoutError','Error'):
+                      safe['kind']=kind
+                  if type(line) is int and 1<=line<=10000:
+                      safe['checker_line']=line
+          except (OSError,UnicodeError,ValueError,TypeError):
+              pass
+          print(json.dumps(safe,sort_keys=True))
+          PY_BROWSER_FAIL
+            if [[ "$attempt" == 3 ]]; then
+              echo 'BOAT_LIVE_PAGES_FAILED_AFTER_BOUNDED_RETRY'
+              exit 2
+            fi
+            sleep 180
+          done
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          base=Path(os.environ['RUNNER_TEMP'])
+          expected=json.loads((base/'boat-saved-site-context.json').read_text())
+          browser=json.loads((base/'boat-fresh-browser.json').read_text())
+          assert browser['status']=='LIVE_OWNER_SITE_VERIFIED'
+          assert browser['feed_generation']>=expected['generation']
+          assert browser['selected_saved_day']==expected['day']
+          assert browser['checked_day_results']>=expected['minimum_results']>0
+          assert browser['probe_result_matched'] is True
+          assert browser['ai_results_navigation_verified'] is True
+          assert browser['hit_miss_rate_roi_and_settled_pending_net_visible'] is True
+          assert browser['key_in_requests_or_storage'] is False
+          assert browser['official_source_requests']==0 and browser['plaintext_published'] is False
+          print(json.dumps(dict(status='FRESH_OFFICIAL_RESULT_MODEL_MATCH_LIVE_PAGES_VERIFIED',
+               verified_date=expected['day'],source_gets=0,
+               browser_generation=browser['feed_generation'],
+               verified_result_count=browser['checked_day_results'],
+               model_comparison_visible=True,plaintext_published=False),sort_keys=True))
+          PY
+
+  source_free_followup:
+    name: BOAT source-free dispatch only after independently verified new results
+    needs: [fresh_result, fresh_readback]
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.ref == 'refs/heads/main' &&
+      needs.fresh_result.outputs.new_results == 'true' &&
+      needs.fresh_readback.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Queue another independently gated catch-up, not a source GET
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          # The new workflow MUST revalidate actual due targets, provider
+          # hold, per-race retry clock, and shared single-writer concurrency.
+          # A failed or no-new-results run cannot trigger another cycle.
+          gh workflow run boat-result-gap-recovery.yml --repo "$GITHUB_REPOSITORY" --ref main -f cycle=catchup
+          echo 'BOAT_NEXT_CATCHUP_QUEUED_WITHOUT_PROVIDER_GET'

@@ -2,16 +2,28 @@ name: BOAT per-race results and athlete statistics
 on:
   pull_request:
     branches: [main]
-    paths: [.github/workflows/boat-racer-daily.yml]
+    paths:
+      - .github/workflows/boat-racer-daily.yml
+      - scripts/boat_main_dispatch_gate.py
+      - tests/test_boat_main_dispatch_gate.py
+      - tests/test_boat_early_start_gate.py
+      - tests/test_boat_dispatch_concurrency.py
+      - scripts/boat_native_safari_acceptance.py
+      - tests/test_boat_native_safari_acceptance.py
   push:
-    branches: [feat/four-sport-forecast-audit-view-20261022, main]
+    branches: [main]
     paths: [docs/evidence/racer-daily-refresh-trigger.txt, docs/evidence/racer-intraday-refresh-trigger.txt, docs/evidence/owner-pdca-main-trigger.txt]
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
     types: [completed]
-    branches: [feat/four-sport-forecast-audit-view-20261022]
+    branches: [production/boat-p0-p1-20261111]
   schedule:
-    - cron: '2-59/5 0-14,22-23 * * *'
+    # Identical existing UTC minute coverage, separated only so the BOAT
+    # owner launcher can select JST 07:02-08:57 without daily extra jobs.
+    - cron: '2-59/5 0-14 * * *'
+    - cron: '2-59/5 22-23 * * *'
+    # Owner-only warm start at 05:30 JST (GitHub schedule is best-effort).
+    - cron: '30 20 * * *'
     - cron: '20 21 * * *'
   workflow_dispatch:
     inputs:
@@ -39,10 +51,84 @@ on:
 permissions:
   contents: read
 concurrency:
-  # PR-only offline CI must never queue the real intraday result collector.
-  group: ${{ github.event_name == 'pull_request' && 'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics' }}
+  # GitHub retains only one pending run per group. A result refresh must not
+  # replace the completed owner's successor admission before its gate can run.
+  # The launcher's existing job mutex and fresh history still enforce one writer.
+  group: "${{ github.event_name == 'pull_request' && 'boat-mirror-sourcefree-pr-ci' || (github.event_name == 'workflow_run' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111'))) && 'boat-owner-completion-dispatch' || 'boat-racer-daily-statistics' }}"
   cancel-in-progress: false
 jobs:
+  fast_result_source_unit:
+    name: BOAT exact fast-result source tests (no provider GET)
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: b9a1451df474e52d95bd40253676365c4fa0940d
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Exact immutable source regression, queue fairness, retries, AES result bridge
+        run: python -m unittest tests.test_racer_intraday tests.test_racer_result_queue tests.test_racer_result_bridge tests.test_racer_intraday_refresh tests.test_racer_intraday_handoff tests.test_racer_intraday_source tests.test_racer_intraday_transport -v
+      - name: Verify source fixed 12-GET cap, no forbidden provider or owner changes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source=Path('race_ai/racer_intraday.py').read_text()
+          runtime=Path('scripts/racer_intraday_refresh.py').read_text()
+          assert 'max_requests>=1' in source and '1<=max_requests<=12' not in source
+          assert 'max_requests=cap-beforeinfo' in runtime
+          assert 'source_deadline=source_deadline' in runtime
+          assert "cutoff+timedelta(minutes=1)<=now" in source
+          assert "interval=2 if targets[target]['pending']" in source
+          assert 'source_deadline' in source
+          assert "result_targets=targets" in runtime
+          assert "waiting('boatrace')" in source
+          assert '--sync-results' in runtime
+          print('FAST_RESULT_PINNED_SOURCE_UNIT_VERIFIED')
+          PY
+  unit:
+    # Main branch protection expects a real "unit" check. Run genuine tests,
+    # not an empty success marker; source/provider jobs remain disabled on PR.
+    name: unit
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.event.pull_request.head.sha }}'
+          persist-credentials: false
+      - name: Run real existing main dispatcher and recovery unit tests
+        run: python -m unittest tests.test_boat_main_dispatch_gate tests.test_boat_early_start_gate tests.test_boat_owner_completion_trigger tests.test_boat_first_p0_recovery_gate tests.test_boat_dispatch_concurrency tests.test_boat_native_safari_acceptance tests.test_boat_current_bootstrap_recovery_gate -v
+      - name: Verify pinned exact DOM proof and absence of provider GET in PR
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('.github/workflows/boat-racer-daily.yml').read_text()
+          original=text.rsplit('\n  original_reconcile:\n',1)[1].split('\n  source_mirror:\n',1)[0]
+          assert 'ref: ea6992702093a1e67c8c4adb19ca01aaab3fbaca' in original
+          assert '--require-current-official-profile' in original
+          assert 'scripts.boat_first_p0_reconcile' in original
+          assert 'node scripts/boat_saved_site_check.cjs' in original
+          assert '--sync-results' not in original
+          assert 'github.event_name == ' + chr(39) + 'pull_request' + chr(39) in text
+          print('EXACT_PROFILE_SOURCE_FREE_UNIT_VERIFIED')
+          PY
   mirror_contract:
     name: BOAT mirror source-free PR regression
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
@@ -53,7 +139,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 914941a6244364480370ac392441ad4bb5781f83
+          ref: 01ed8abecfc38bdce43895d79e9136a53b26e71e
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -77,15 +163,71 @@ jobs:
               package = Path(root, 'race_ai').resolve()
               assert package.is_dir(), 'PINNED_PARSER_NOT_INSTALLED'
               race_ai.__path__.append(str(package))
-          suite = unittest.defaultTestLoader.loadTestsFromNames(['tests.test_boat_source_control_mirror'])
+          suite = unittest.defaultTestLoader.loadTestsFromNames(['tests.test_boat_source_control_mirror',
+                  'tests.test_boat_all_period_no_age_cutoff',
+                  'tests.test_source_free_model_pdca_stage',
+                  'tests.test_verify_all_history_pdca_readback',
+                  'tests.test_first_p0_bootstrap',
+                  'tests.test_boat_first_p0_readback',
+                  'tests.test_boat_first_p0_reconcile',
+                  'tests.test_boat_saved_result_recovery',
+                  'tests.test_boat_private_original_vault_cli',
+                  'tests.test_boat_saved_site_context'])
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(not result.wasSuccessful())
           PY
+      - name: Verify original-stage identity and private browser boundaries
+        run: node --test tests/saved_site_check.test.cjs
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           path: proposed-workflow
           persist-credentials: false
+      - name: Test canonical owner dispatch gate with no source requests
+        working-directory: proposed-workflow
+        run: python -m unittest tests.test_boat_main_dispatch_gate tests.test_boat_first_p0_recovery_gate -v
+      - name: Read-only confirmation of approved owner release and canonical SHA
+        working-directory: proposed-workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/production/boat-p0-p1-20261111" > "$RUNNER_TEMP/boat-release-ref.json"
+          gh api "repos/$GITHUB_REPOSITORY/contents/docs/RACE_AI_LATEST_STATUS.md?ref=production%2Fboat-p0-p1-20261111" > "$RUNNER_TEMP/boat-release-status.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-nationwide-ab-one-shot.yml/runs?branch=production%2Fboat-p0-p1-20261111&per_page=100" > "$RUNNER_TEMP/boat-release-runs.json"
+          python -m scripts.boat_main_dispatch_gate \
+            --release "$RUNNER_TEMP/boat-release-ref.json" \
+            --owner-doc "$RUNNER_TEMP/boat-release-status.json" \
+            --history "$RUNNER_TEMP/boat-release-runs.json" > "$RUNNER_TEMP/boat-main-real-release-gate.json"
+          python - <<'PY_BOAT_AUDIT'
+          import json,os
+          from pathlib import Path
+          report=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-main-real-release-gate.json').read_text())
+          # This PR CI makes no dispatch and no official source GET.
+          # Once user-approved fixed boundary is lifted, only an active/same-day
+          # worker or missing API evidence may legitimately keep the gate HOLD.
+          allowed={
+              'READY_EXISTING_OWNER_WORKFLOW_ONLY',
+              'HOLD_ALREADY_DISPATCHED_FOR_JST_DAY',
+              'HOLD_ACTIVE_OWNER_WORKFLOW',
+              'HOLD_INCOMPLETE_RUN_HISTORY',
+              'HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW',
+              # Production advanced after main's pinned release; the existing
+              # owner dispatcher must remain HOLD, but source-free PR tests
+              # can independently validate this result-only repair.
+              'HOLD_RELEASE_SHA_MISMATCH'}
+          assert report['status'] in allowed, report['status']
+          if report['status']=='HOLD_RELEASE_SHA_MISMATCH':
+              assert report['dispatch_allowed'] is False
+          assert report['new_model_or_scorer_added'] is False
+          assert report['official_source_requests']==0
+          assert report['future_real_forecast_proven'] is False
+          print(json.dumps({'status':report['status'],
+                            'release_scope_verified':report['status']!='HOLD_RELEASE_SHA_MISMATCH',
+                            'dispatch_requested_from_pr':False,
+                            'real_forecast_proven':False,'new_source_requests':0},sort_keys=True))
+          PY_BOAT_AUDIT
       - name: Verify wiring without running any provider request
         run: |
           python - <<'PY'
@@ -94,8 +236,10 @@ jobs:
           mirror = content.split('  source_mirror:\n', 1)[1].split('  daily:\n', 1)[0]
           daily = content.split('  daily:\n', 1)[1]
           header = content.split('jobs:\n', 1)[0]
+          reader = content.split('  original_readback:\n', 1)[1].split('  original_reconcile:\n', 1)[0]
+          assert '--verify-retained-p1 --output' in reader
           assert mirror.count('Reconcile verified completed BOAT source handoff') == 1
-          assert 'needs: source_mirror' in daily
+          assert 'needs: [source_mirror, original_reconcile]' in daily
           assert '!cancelled()' in daily
           assert 'actions: read' in mirror
           assert 'contents: write' in mirror
@@ -103,22 +247,248 @@ jobs:
           assert "['latest-closed', '--repo-root', '.', '--output', output]" in mirror
           assert mirror.count('race_ai.__path__.append(str(package))') == 1
           assert "github.event.workflow_run.conclusion == 'success'" in mirror
+          assert "github.event.workflow_run.event == 'workflow_dispatch'" in mirror
+          assert "github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111'" in mirror
+          assert "github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032'" in mirror
+          assert "github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163'" in mirror
+          assert "github.event.workflow_run.head_sha == 'f1f8ed4ffb2a29e6b702685f49de63918610479d'" in mirror
+          assert "github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af'" in mirror
+          assert "github.event.workflow_run.head_sha == '995ef00a2ffb98a0161e1875d7d2a33145367b40'" in mirror
+          assert "github.event.workflow_run.head_sha == 'fbc743be548bfd123e46cdbfe290515a59e5e0d3'" in mirror
+          assert "github.event.workflow_run.head_sha == '1dbb47b68d487fc6def0bd4b10b1423f0a2145f6'" in mirror
+          assert "github.event.workflow_run.head_sha == 'f55351dce855177a51330f72c37d6238ba2c9e3e'" in mirror
+          assert "github.event.workflow_run.head_sha == '86b029ae5bddd5d4956497d8b32b2c92b8eec521'" in mirror
+          assert "github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3'" in mirror
+          assert "needs.source_mirror.result == 'success'" in daily
           assert "github.event.schedule == '20 21 * * *'" in mirror
           assert 'continue-on-error: true' not in mirror
-          assert "'boat-mirror-sourcefree-pr-ci' || 'boat-racer-daily-statistics'" in header
-          pin = "ref: $" + "{{ github.event_name == 'push' && github.sha || '914941a6244364480370ac392441ad4bb5781f83' }}"
+          for group in ('boat-mirror-sourcefree-pr-ci', 'boat-owner-completion-dispatch',
+                        'boat-racer-daily-statistics'):
+              assert repr(group) in header
+          pin = "ref: $" + "{{ github.event_name == 'push' && github.sha || 'b9a1451df474e52d95bd40253676365c4fa0940d' }}"
           assert pin in daily
           PY
-  source_mirror:
-    name: Reconcile authenticated completed BOAT source (no provider GET)
+  original_retention:
+    name: Retain exact first P0 and companions without source acquisition
     if: >-
       github.repository == 'haji84/RACE-AI' &&
       ((github.event_name == 'workflow_run' &&
-        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
-        github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022' &&
-        github.event.workflow_run.conclusion == 'success') ||
-       (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *'))
+        github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
+        (github.event.workflow_run.head_sha == '1dbb47b68d487fc6def0bd4b10b1423f0a2145f6' ||
+         github.event.workflow_run.head_sha == 'fbc743be548bfd123e46cdbfe290515a59e5e0d3' ||
+         github.event.workflow_run.head_sha == '995ef00a2ffb98a0161e1875d7d2a33145367b40' ||
+         github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af' ||
+         github.event.workflow_run.head_sha == 'f1f8ed4ffb2a29e6b702685f49de63918610479d' ||
+         github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163' ||
+         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
+         github.event.workflow_run.head_sha == 'f55351dce855177a51330f72c37d6238ba2c9e3e' ||
+         github.event.workflow_run.head_sha == '86b029ae5bddd5d4956497d8b32b2c92b8eec521' ||
+         github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3')) ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca') &&
+        contains(github.event.head_commit.message, 'recover-first-p0-42995325741')) ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message,
+                   'boat-owner-readback: recover-saved-p0-43131905826')))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    outputs:
+      vault_commit: ${{ steps.retained.outputs.vault_commit }}
+      receipt_commit: ${{ steps.select.outputs.receipt_commit }}
+      day: ${{ steps.select.outputs.day }}
+      p0: ${{ steps.select.outputs.p0 }}
+      continuity: ${{ steps.select.outputs.continuity }}
+      control: ${{ steps.select.outputs.control }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false}
+      - name: Select authenticated original artifacts without another source attempt
+        id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORIGINAL_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || (contains(github.event.head_commit.message, 'recover-saved-p0-43131905826') && '43131905826' || '42995325741') }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$ORIGINAL_RUN_ID" =~ ^[1-9][0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$ORIGINAL_RUN_ID" > "$RUNNER_TEMP/original-run.json"
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/runs/$ORIGINAL_RUN_ID/artifacts?per_page=100" > "$RUNNER_TEMP/original-artifact-pages.json"
+          if [[ "$ORIGINAL_RUN_ID" == '42995325741' ]]; then
+            receipt_commit='20fc291429003fd0351baef4b0c1918b76b4e066'
+          else
+            receipt_commit="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feat/four-sport-forecast-audit-view-20261022" --jq '.object.sha')"
+          fi
+          [[ "$receipt_commit" =~ ^[a-f0-9]{40}$ ]]
+          echo "receipt_commit=$receipt_commit" >> "$GITHUB_OUTPUT"
+          export ORIGINAL_RECEIPT_COMMIT="$receipt_commit"
+          python - <<'PY_SELECT'
+          import json, os, subprocess
+          from pathlib import Path
+          from scripts.boat_main_dispatch_gate import resolve_recovery_selection
+          root=Path(os.environ['RUNNER_TEMP'])
+          run=json.loads((root/'original-run.json').read_text())
+          pages=json.loads((root/'original-artifact-pages.json').read_text())
+          assert type(pages) is list and 1 <= len(pages) <= 11
+          assert all(p['total_count']==pages[0]['total_count'] for p in pages)
+          artifacts={'total_count':pages[0]['total_count'],
+                     'artifacts':[a for p in pages for a in p['artifacts']]}
+          def get(endpoint):
+              reply=subprocess.run(['gh','api','repos/haji84/RACE-AI/'+endpoint],
+                  stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=60)
+              assert reply.returncode==0 and 0<len(reply.stdout)<=2*1024*1024
+              return json.loads(reply.stdout)
+          selected=resolve_recovery_selection(run=run,artifacts=artifacts,get=get,
+              receipt_commit=os.environ['ORIGINAL_RECEIPT_COMMIT'])
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              for name,value in dict(day=selected['day_jst'],p0=selected['p0_artifact'],
+                                     continuity=selected['companion_artifacts'][0],
+                                     control=selected['companion_artifacts'][1]).items():
+                  out.write(f'{name}={value}\n')
+          print(json.dumps(selected,sort_keys=True))
+          PY_SELECT
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: eff296f6d54ad4be297d93e32f1ee0d4592ad9e3, path: owner-runtime}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: owner-runtime/pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: owner-runtime/pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r owner-runtime/requirements-history.txt
+      - name: Append exact encrypted originals to the existing permanent vault
+        id: retained
+        working-directory: owner-runtime
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          P0_ID: ${{ steps.select.outputs.p0 }}
+          CONTINUITY_ID: ${{ steps.select.outputs.continuity }}
+          CONTROL_ID: ${{ steps.select.outputs.control }}
+        run: |
+          python -m scripts.boat_private_original_vault capture --artifact "$P0_ID" --artifact "$CONTINUITY_ID" --artifact "$CONTROL_ID" --expected-parent current --repo-root . --output "$RUNNER_TEMP/first-p0-vault.json"
+          python - <<'PY_VAULT'
+          import json,os,re
+          from pathlib import Path
+          report=json.loads((Path(os.environ['RUNNER_TEMP'])/'first-p0-vault.json').read_text())
+          assert report['retained_originals']==3 and report['independent_git_readback_verified'] is True
+          expected={int(os.environ[key]) for key in ('P0_ID','CONTINUITY_ID','CONTROL_ID')}
+          assert {r['artifact_id'] for r in report['locators']}==expected
+          commit=report['source_commit']; assert re.fullmatch('[a-f0-9]{40}',commit)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out: out.write(f'vault_commit={commit}\n')
+          PY_VAULT
+  original_readback:
+    name: Read first P0 on a separate runner at the exact vault commit
+    needs: original_retention
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: read
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+      VAULT_COMMIT: ${{ needs.original_retention.outputs.vault_commit }}
+      RECEIPT_COMMIT: ${{ needs.original_retention.outputs.receipt_commit }}
+      ORIGINAL_DAY: ${{ needs.original_retention.outputs.day }}
+      P0_ID: ${{ needs.original_retention.outputs.p0 }}
+      CONTINUITY_ID: ${{ needs.original_retention.outputs.continuity }}
+      CONTROL_ID: ${{ needs.original_retention.outputs.control }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: eff296f6d54ad4be297d93e32f1ee0d4592ad9e3}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Verify original hashes, receipts, forecast clocks and companions
+        run: python -m scripts.boat_first_p0_readback --repo-root . --vault-commit "$VAULT_COMMIT" --receipt-commit "$RECEIPT_COMMIT" --day "$ORIGINAL_DAY" --p0-artifact "$P0_ID" --companion-artifact "$CONTINUITY_ID" --companion-artifact "$CONTROL_ID" --verify-retained-p1 --output "$RUNNER_TEMP/first-p0-independent-readback.json"
+      - name: Retain only count and hash evidence from the separate reader
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-first-p0-independent-readback-${{ github.run_id }}
+          path: ${{ runner.temp }}/first-p0-independent-readback.json
+          if-no-files-found: error
+          retention-days: 90
+  original_reconcile:
+    name: Reconcile authenticated first P0 with retained official results
+    needs: [original_retention, original_readback]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+      RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+      VAULT_COMMIT: ${{ needs.original_retention.outputs.vault_commit }}
+      RECEIPT_COMMIT: ${{ needs.original_retention.outputs.receipt_commit }}
+      ORIGINAL_DAY: ${{ needs.original_retention.outputs.day }}
+      P0_ID: ${{ needs.original_retention.outputs.p0 }}
+      CONTINUITY_ID: ${{ needs.original_retention.outputs.continuity }}
+      CONTROL_ID: ${{ needs.original_retention.outputs.control }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: ea6992702093a1e67c8c4adb19ca01aaab3fbaca}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Use the original projector, official parser and scorer without source GET
+        run: python -m scripts.boat_first_p0_reconcile --repo-root . --vault-commit "$VAULT_COMMIT" --receipt-commit "$RECEIPT_COMMIT" --day "$ORIGINAL_DAY" --p0-artifact "$P0_ID" --companion-artifact "$CONTINUITY_ID" --companion-artifact "$CONTROL_ID" --include-verified-result-names --diagnose-profile-index --include-current-official-profile --output "$RUNNER_TEMP/first-p0-reconciliation.json"
+      - name: Retain count-only existing-scorer evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-first-p0-official-reconciliation-${{ github.run_id }}
+          path: ${{ runner.temp }}/first-p0-reconciliation.json
+          if-no-files-found: error
+          retention-days: 90
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with: {node-version: '22'}
+      - name: Install the existing private Pages verifier
+        run: npm install --prefix "$RUNNER_TEMP/result-site-tools" --no-package-lock --ignore-scripts playwright@1.62.1
+      # Exact current-only official profile must match one actual DOM card across three widths.
+      - name: Verify the original P0 and official results on the existing Pages view
+        timeout-minutes: 9
+        env:
+          NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: http.https://github.com/.extraheader
+          GIT_CONFIG_VALUE_0: ''
+        run: |
+          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --day "$ORIGINAL_DAY" --stage P0 --expected-original-report "$RUNNER_TEMP/first-p0-reconciliation.json" --require-current-official-profile
+          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results
+  source_mirror:
+    needs: [original_retention, original_readback, original_reconcile]
+    name: Reconcile authenticated completed BOAT source (no provider GET)
+    if: >-
+      !cancelled() && github.repository == 'haji84/RACE-AI' &&
+      !(github.event_name == 'push' && contains(github.event.head_commit.message, 'recover-first-p0-42995325741')) &&
+      ((github.event_name == 'workflow_run' &&
+        github.event.workflow_run.event == 'workflow_dispatch' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
+        (github.event.workflow_run.head_sha == '1dbb47b68d487fc6def0bd4b10b1423f0a2145f6' ||
+         github.event.workflow_run.head_sha == 'fbc743be548bfd123e46cdbfe290515a59e5e0d3' ||
+         github.event.workflow_run.head_sha == '995ef00a2ffb98a0161e1875d7d2a33145367b40' ||
+         github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af' ||
+         github.event.workflow_run.head_sha == 'f1f8ed4ffb2a29e6b702685f49de63918610479d' ||
+         github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163' ||
+         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
+         github.event.workflow_run.head_sha == 'f55351dce855177a51330f72c37d6238ba2c9e3e' ||
+         github.event.workflow_run.head_sha == '86b029ae5bddd5d4956497d8b32b2c92b8eec521' ||
+         github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3') &&
+        github.event.workflow_run.conclusion == 'success' &&
+        needs.original_readback.result == 'success' &&
+        needs.original_reconcile.result == 'success') ||
+       (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca')))
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -127,7 +497,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 914941a6244364480370ac392441ad4bb5781f83
+          ref: eff296f6d54ad4be297d93e32f1ee0d4592ad9e3
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -160,19 +530,34 @@ jobs:
           raise SystemExit(main(['latest-closed', '--repo-root', '.', '--output', output]))
           PY
   daily:
-    needs: source_mirror
+    needs: [source_mirror, original_reconcile]
     if: >-
       !cancelled() &&
+      (!(github.event_name == 'push' && contains(github.event.head_commit.message, 'recover-first-p0-42995325741')) ||
+       needs.original_reconcile.result == 'success') &&
       github.repository == 'haji84/RACE-AI' && github.event_name != 'pull_request' &&
+      !(github.event_name == 'schedule' && github.event.schedule == '30 20 * * *') &&
       (github.event_name != 'workflow_run' ||
-       (github.event.workflow_run.event == 'push' &&
+       (github.event.workflow_run.event == 'workflow_dispatch' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
-        github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022' &&
-        github.event.workflow_run.conclusion == 'success')) &&
+        github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
+        (github.event.workflow_run.head_sha == '1dbb47b68d487fc6def0bd4b10b1423f0a2145f6' ||
+         github.event.workflow_run.head_sha == 'fbc743be548bfd123e46cdbfe290515a59e5e0d3' ||
+         github.event.workflow_run.head_sha == '995ef00a2ffb98a0161e1875d7d2a33145367b40' ||
+         github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af' ||
+         github.event.workflow_run.head_sha == 'f1f8ed4ffb2a29e6b702685f49de63918610479d' ||
+         github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163' ||
+         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
+         github.event.workflow_run.head_sha == 'f55351dce855177a51330f72c37d6238ba2c9e3e' ||
+         github.event.workflow_run.head_sha == '86b029ae5bddd5d4956497d8b32b2c92b8eec521' ||
+         github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3') &&
+        github.event.workflow_run.conclusion == 'success' &&
+        needs.source_mirror.result == 'success')) &&
       (github.event_name != 'push' ||
-       github.ref == 'refs/heads/feat/four-sport-forecast-audit-view-20261022' ||
        (github.ref == 'refs/heads/main' &&
-        startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca')))
+        (startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca') ||
+         startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
+         startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112'))))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -180,7 +565,20 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ github.event_name == 'push' && github.sha || '914941a6244364480370ac392441ad4bb5781f83' }}
+          ref: ${{ github.event_name == 'push' && github.sha || 'b9a1451df474e52d95bd40253676365c4fa0940d' }}
+          persist-credentials: true
+      - name: Use pinned collector for official results and stage-aware P0 reader only for view verification
+        if: >-
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          (startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
+           startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112'))
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          # The immutable older official-result collector cannot accept
+          # "--stage P0". Swap only the read-only site-verifier mode to a
+          # separately CI-proven, stage-aware existing release; source
+          # collection remains pinned to the exact tested fast-results SHA.
+          ref: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-view') && '0796b52c2804177976e4c2e5ab9b65f32589720b' || 'b9a1451df474e52d95bd40253676365c4fa0940d' }}
           persist-credentials: true
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -195,37 +593,144 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '22'
+      - name: Authenticate the saved 11/12 P0 receipt before results or read-only view
+        if: >-
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          (startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
+           startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112'))
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/contents/docs/evidence/2026-11-12/p0-first-receipt.json?ref=feat%2Ffour-sport-forecast-audit-view-20261022" > "$RUNNER_TEMP/boat-result-p0-receipt.json"
+          python - <<'PY_CHECK_P0'
+          import base64, json, os
+          from pathlib import Path
+          response=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-result-p0-receipt.json').read_text())
+          document=json.loads(base64.b64decode(response['content'],validate=False))
+          expected=dict(schema='RACE_AI_P0_FIRST_RECEIPT_V1',
+                        day_jst='2026-11-12',run_id=43131905826,
+                        artifact_id=13905925953,race_count=142,model_forecast_count=284,
+                        zip_sha256='5a3287ac9cb45be6907be6c7d370c04addf3216d6e70184bda20e05502c80c6d',
+                        no_regeneration=True)
+          assert response.get('path') == 'docs/evidence/2026-11-12/p0-first-receipt.json'
+          assert response.get('sha') == 'd5b9cf8b0f5e896bc0f7fd7bfcde62bc809b2992', 'P0_GIT_BLOB_MISMATCH'
+          assert all(document.get(k)==v for k,v in expected.items()), 'VERIFIED_P0_INPUT_MISMATCH'
+          print(json.dumps(dict(status='VERIFIED_EXISTING_P0_FOR_RESULT_ONLY',
+                                day_jst=document['day_jst'],run_id=document['run_id'],
+                                p0_races=document['race_count'],official_gets=0,
+                                new_forecasts_created=0,originals_changed=False)))
+          PY_CHECK_P0
       - name: Install original BOAT result collector dependencies
-        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+        if: >-
+          github.event_name != 'push' || github.ref != 'refs/heads/main' ||
+          startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
+          startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112')
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Read reviewed display-only publication safety without replacing the collector
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: '${{ github.sha }}'
+          path: legacy-publish-safety
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/boat_legacy_reason_anchor_guard.py
+            scripts/boat_legacy_reason_anchor_entry.py
+          sparse-checkout-cone-mode: false
+      - name: Read the exact current reason guard separately from legacy runtime imports
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 86b029ae5bddd5d4956497d8b32b2c92b8eec521
+          path: reason-binding-source
+          persist-credentials: false
+          sparse-checkout: race_ai/boat_saved_model_view.py
+          sparse-checkout-cone-mode: false
       - name: Reflect confirmed races and retain encrypted incremental source packets
-        # Main's one-time owner PDCA verification does not make any provider GET.
-        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+        # Only the exact already-approved result-repair event may run provider
+        # reads from main; other push modes remain source-free.
+        if: >-
+          github.event_name != 'push' || github.ref != 'refs/heads/main' ||
+          startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112')
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           GH_TOKEN: ${{ github.token }}
           INITIALIZE: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: initialize') }}"
           DAILY_RECONCILE: "${{ (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') || (github.event_name == 'workflow_dispatch' && inputs.mode == 'daily') || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-daily-refresh:')) }}"
+          RESULT_ONLY: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') }}"
         shell: bash
         run: |
           args=()
           if [[ "$INITIALIZE" == 'true' ]]; then args+=(--initialize); fi
           if [[ "$DAILY_RECONCILE" == 'true' ]]; then args+=(--daily-reconcile); fi
-          python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results --sync-beforeinfo "${args[@]}"
+          if [[ "$RESULT_ONLY" == 'true' ]]; then
+            # Favor the published result's 12-GET bounded intake over optional
+            # beforeinfo; official-source denials and time gates still hold.
+            python "$GITHUB_WORKSPACE/legacy-publish-safety/scripts/boat_legacy_reason_anchor_entry.py" scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results "${args[@]}"
+          else
+            python "$GITHUB_WORKSPACE/legacy-publish-safety/scripts/boat_legacy_reason_anchor_entry.py" scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results --sync-beforeinfo "${args[@]}"
+          fi
+      # Only after the bounded official result source step completes, use
+      # the existing P0-aware reader for browser checks. Keep source acquisition
+      # pinned to the older approved collector; these checkouts do not GET providers.
+      - name: Restore P0-aware read-only site verifier after result collection
+        if: >-
+          (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.verify_site) ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+           startsWith(github.event.head_commit.message,
+                      'boat-result-refresh: owner-p0-43131905826-20261112'))
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          # Match the current P1 producer and expose only safe failure codes.
+          # Keep the previously proven reader for the explicit historic P0 run.
+          ref: ${{ github.event_name == 'workflow_dispatch' && '1dbb47b68d487fc6def0bd4b10b1423f0a2145f6' || '0796b52c2804177976e4c2e5ab9b65f32589720b' }}
+          persist-credentials: false
+      - name: Restore pinned official parser for post-source site validation
+        if: >-
+          (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.verify_site) ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+           startsWith(github.event.head_commit.message,
+                      'boat-result-refresh: owner-p0-43131905826-20261112'))
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - name: Restore pinned result adapter for post-source site validation
+        if: >-
+          (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.verify_site) ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+           startsWith(github.event.head_commit.message,
+                      'boat-result-refresh: owner-p0-43131905826-20261112'))
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
       - name: Install browser check only for an explicit verification run
         if: >-
-          (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results'))
+          (github.event_name == 'workflow_dispatch' && inputs.verify_site) ||
+          (github.event_name == 'push' &&
+           (startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results') ||
+            startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
+            startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112')))
         run: npm install --prefix "$RUNNER_TEMP/result-site-tools" --no-package-lock --ignore-scripts playwright@1.62.1
       - name: Verify private result display without publishing owner data
         if: >-
-          (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results'))
+          (github.event_name == 'workflow_dispatch' && inputs.verify_site) ||
+          (github.event_name == 'push' &&
+           (startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results') ||
+            startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') ||
+            startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112')))
         timeout-minutes: 9
         env:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
           RESULT_PROBE_RACE: ${{ inputs.probe_race_id || '' }}
-          CHECK_CURRENT_DAY: ${{ inputs.check_current_day || 'false' }}
+          RESULT_VIEW_ONLY: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112') }}"
+          CHECK_CURRENT_DAY: "${{ (github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') || startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112'))) || inputs.check_current_day || 'false' }}"
+          VERIFY_SAVED_P0: "${{ github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'boat-result-refresh: owner-p0-43131905826-20261112') || startsWith(github.event.head_commit.message, 'boat-result-view: saved-p0-43131905826-20261112')) }}"
           CHECK_BEFOREINFO: ${{ inputs.check_beforeinfo || 'false' }}
           # The context installs its own repository-scoped credential.
           # Clear checkout's host header for this read-only step only.
@@ -234,17 +739,39 @@ jobs:
           GIT_CONFIG_VALUE_0: ''
         run: |
           site_context_args=(--latest-saved-day)
+          # The result-only run has a genuine P0 receipt, but no real P1;
+          # never require non-existent P1 just to verify P0 settlement.
+          if [[ "$VERIFY_SAVED_P0" == 'true' ]]; then site_context_args+=(--stage P0); fi
+          if [[ "$RESULT_VIEW_ONLY" == 'true' ]]; then
+            # Never fall back to a historical saved date when proving live P0 settlement.
+            site_context_args=(--day 2026-11-12 --stage P0)
+          fi
           if [[ -n "$RESULT_PROBE_RACE" ]]; then
             [[ "$RESULT_PROBE_RACE" =~ ^[0-9]{8}-[0-9]{2}-[0-9]{2}$ ]] || exit 2
             site_context_args=(--day "${RESULT_PROBE_RACE:0:4}-${RESULT_PROBE_RACE:4:2}-${RESULT_PROBE_RACE:6:2}")
           fi
           python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" "${site_context_args[@]}"
+          if [[ "$RESULT_VIEW_ONLY" == 'true' ]]; then
+            # Existing encrypted feed only; no provider GET, forecast or source writer.
+            python - <<'PY_P0_SITE_RESULTS'
+          import json,os
+          from pathlib import Path
+          context=json.loads((Path(os.environ['RUNNER_TEMP'])/'boat-saved-site-context.json').read_text())
+          assert context['day']==context['current_day']=='2026-11-12','P0_RESULT_VIEW_DAY_MISMATCH'
+          assert context['stage']=='P0' and context['native_p0_groups']==2,'P0_RESULT_VIEW_MODEL_GROUP_MISSING'
+          assert context['minimum_results']>=11,'P0_RESULT_VIEW_NEW_OFFICIAL_RESULTS_MISSING'
+          print(json.dumps(dict(status='P0_RESULT_VIEW_CONTEXT_AUTHENTICATED',day_jst='2026-11-12',
+                                confirmed_results=context['minimum_results'],
+                                p0_model_groups=context['native_p0_groups'],official_source_requests=0,
+                                new_forecasts_created=0,originals_changed=False)))
+          PY_P0_SITE_RESULTS
+          fi
           probe=()
           if [[ -n "$RESULT_PROBE_RACE" ]]; then probe+=("--race-id=$RESULT_PROBE_RACE"); fi
           if [[ "$CHECK_CURRENT_DAY" == 'true' ]]; then probe+=(--check-current-day); fi
           if [[ "$CHECK_BEFOREINFO" == 'true' ]]; then probe+=(--check-beforeinfo); fi
           env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "${probe[@]}"
-      # Only the CODE+AES readback uses independently verified 0317235e.
+      # Only source-free CODE+AES replay uses the verified no-age-limit code.
       # Keep the official-result collector above pinned to its old source-bound code.
       - name: Checkout certified full-period model PDCA code (no source GET)
         if: >-
@@ -253,7 +780,7 @@ jobs:
            startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca'))
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 0317235eadc851b73913c537b7c09a32dc7c208c
+          ref: 0796b52c2804177976e4c2e5ab9b65f32589720b
           path: pdca-verified
           persist-credentials: false
       - name: Checkout original BOAT parser for existing full-period scorer
@@ -302,3 +829,232 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           GH_TOKEN: ${{ github.token }}
         run: python -m scripts.verify_all_history_pdca_readback --repository-root .
+
+  owner_p0_p1_dispatch:
+    name: Gate-and-dispatch original BOAT owner P0/P1 (no scorer duplication)
+    # Schedule starts a new day, while completed owner events immediately invoke
+    # the same source-free successor gate; no second writer or source bypass.
+    # A pending AES repair, provider 403/429 or unverified control remains HOLD.
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.ref == 'refs/heads/main' &&
+      ((github.event_name == 'schedule' &&
+        (github.event.schedule == '30 20 * * *' ||
+         github.event.schedule == '20 21 * * *' ||
+         github.event.schedule == '2-59/5 22-23 * * *' ||
+         github.event.schedule == '2-59/5 0-14 * * *')) ||
+       (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.event == 'workflow_dispatch' &&
+        github.event.workflow_run.name == 'BOAT nationwide cutoff-ordered A/B research (no Vercel)' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.head_branch == 'production/boat-p0-p1-20261111' &&
+        (github.event.workflow_run.head_sha == '1dbb47b68d487fc6def0bd4b10b1423f0a2145f6' ||
+         github.event.workflow_run.head_sha == 'fbc743be548bfd123e46cdbfe290515a59e5e0d3' ||
+         github.event.workflow_run.head_sha == '995ef00a2ffb98a0161e1875d7d2a33145367b40' ||
+         github.event.workflow_run.head_sha == 'c979aeb678538d99e277f26726047dccbdc982af' ||
+         github.event.workflow_run.head_sha == 'f1f8ed4ffb2a29e6b702685f49de63918610479d' ||
+         github.event.workflow_run.head_sha == 'a74f1e940e7fc0852e63938f8138bdb58bd93163' ||
+         github.event.workflow_run.head_sha == 'bb49215034b779ea1493b35dd91e5c3ebfc04032' ||
+         github.event.workflow_run.head_sha == 'f55351dce855177a51330f72c37d6238ba2c9e3e' ||
+         github.event.workflow_run.head_sha == '86b029ae5bddd5d4956497d8b32b2c92b8eec521' ||
+         github.event.workflow_run.head_sha == 'eff296f6d54ad4be297d93e32f1ee0d4592ad9e3' ||
+         contains(fromJSON('["b491fb21ce58ba085dd8f54bb7326442b840d8f4","84128e0ec8bd9fe3da64ad49f74b8511b07e72be"]'), github.event.workflow_run.head_sha)) &&
+        (github.event.workflow_run.conclusion == 'success' ||
+         github.event.workflow_run.conclusion == 'failure')) ||
+       (github.event_name == 'push' &&
+        startsWith(github.event.head_commit.message,
+                   'boat-owner-release: single-real-session-20261111')))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    concurrency:
+      group: boat-main-launcher-source-free
+      cancel-in-progress: false
+    # Already approved by owner on 2026-11-11. Permission is restricted
+    # to this exact release-dispatch job; never granted to the result scorer.
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Read pinned release source only for authenticated successor proof
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 1dbb47b68d487fc6def0bd4b10b1423f0a2145f6
+          path: boat-owner-reader
+      - name: Verify registered owner release SHA, source-owner gate, existing runs
+        id: owner_gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONPATH: ${{ github.workspace }}/boat-owner-reader
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/production/boat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-release.json"
+          gh api "repos/$GITHUB_REPOSITORY/contents/docs/RACE_AI_LATEST_STATUS.md?ref=production%2Fboat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-policy.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-nationwide-ab-one-shot.yml/runs?branch=production%2Fboat-p0-p1-20261111&per_page=100" > "$RUNNER_TEMP/boat-owner-runs.json"
+          retry_args=()
+          # Only the actual pre-source CI failure on 2026-11-11 may be
+          # retried. Independently check GitHub job steps and artifacts.
+          # No general repeat-after-failure bypass and no source GET here.
+          if [[ "$(TZ=Asia/Tokyo date +%F)" == "2026-11-11" ]]; then
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/42993305843" > "$RUNNER_TEMP/boat-earlier-failure.json"
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/42993305843/jobs?per_page=100" > "$RUNNER_TEMP/boat-earlier-jobs.json"
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/42993305843/artifacts?per_page=100" > "$RUNNER_TEMP/boat-earlier-artifacts.json"
+            python - <<'PY_RETRY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])
+          names=('failure','jobs','artifacts')
+          obj={'run':json.loads((root/'boat-earlier-failure.json').read_text()),
+               'jobs':json.loads((root/'boat-earlier-jobs.json').read_text()),
+               'artifacts':json.loads((root/'boat-earlier-artifacts.json').read_text())}
+          (root/'boat-earlier-source-free-proof.json').write_text(
+              json.dumps(obj,separators=(',',':')))
+          print(json.dumps({'status':'VERIFY_EARLIER_PRE_SOURCE_FAILURE_ONLY',
+                            'run_id':42993305843,'provider_requests':0,
+                            'actual_forecast_proven':False},sort_keys=True))
+          PY_RETRY
+            retry_args+=(--retry-proof "$RUNNER_TEMP/boat-earlier-source-free-proof.json")
+          fi
+          python -m scripts.boat_recovery_dispatch_gate \
+            --release "$RUNNER_TEMP/boat-owner-release.json" \
+            --owner-doc "$RUNNER_TEMP/boat-owner-policy.json" \
+            --history "$RUNNER_TEMP/boat-owner-runs.json" \
+            --verify-source-handoff \
+            "${retry_args[@]}" \
+            --github-output "$GITHUB_OUTPUT"
+      - name: Install original parser only when a failed owner needs recovery
+        if: steps.owner_gate.outputs.recovery_required == 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: boat-owner-reader/pr64-reference}
+      - name: Install original adapter only when a failed owner needs recovery
+        if: steps.owner_gate.outputs.recovery_required == 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: boat-owner-reader/pr72-reference}
+      - name: Install source-free recovery dependencies only when needed
+        if: steps.owner_gate.outputs.recovery_required == 'true'
+        run: python -m pip install --disable-pip-version-check -r boat-owner-reader/requirements-history.txt
+      - name: Recover exact failed owner originals on this fresh runner
+        id: owner_recovery
+        if: steps.owner_gate.outputs.recovery_required == 'true'
+        working-directory: boat-owner-reader
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+        run: >-
+          python -m scripts.boat_recover_failed_owner
+          --history "$RUNNER_TEMP/boat-owner-runs.json"
+          --expected-head 1dbb47b68d487fc6def0bd4b10b1423f0a2145f6
+          --output "$RUNNER_TEMP/boat-owner-recovery-proof.json"
+      - name: Recheck fresh owner history and recovered originals before successor admission
+        id: recovered_gate
+        if: steps.owner_recovery.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONPATH: ${{ github.workspace }}/boat-owner-reader
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/production/boat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-release.json"
+          gh api "repos/$GITHUB_REPOSITORY/contents/docs/RACE_AI_LATEST_STATUS.md?ref=production%2Fboat-p0-p1-20261111" > "$RUNNER_TEMP/boat-owner-policy.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/boat-nationwide-ab-one-shot.yml/runs?branch=production%2Fboat-p0-p1-20261111&per_page=100" > "$RUNNER_TEMP/boat-owner-runs.json"
+          python -m scripts.boat_recovery_dispatch_gate --release "$RUNNER_TEMP/boat-owner-release.json" --owner-doc "$RUNNER_TEMP/boat-owner-policy.json" --history "$RUNNER_TEMP/boat-owner-runs.json" --verify-source-handoff --recovery-proof "$RUNNER_TEMP/boat-owner-recovery-proof.json" --github-output "$GITHUB_OUTPUT"
+      - name: Dispatch only the existing owner P0/P1 workflow
+        if: steps.owner_gate.outputs.ready == 'true' || steps.recovered_gate.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh workflow run boat-nationwide-ab-one-shot.yml \
+            --ref production/boat-p0-p1-20261111 \
+            -f production_scope=existing-owner-p0-p1
+          echo 'DISPATCH_REQUESTED_REAL_P0_P1_NOT_YET_PROVEN'
+      - name: Read the existing feed source only for the reviewed one-shot anchor repair
+        if: >-
+          github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          github.run_attempt == '1' &&
+          github.event.before == '09b65329692389fe260e4aa0430e94f341b255dc' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.owner_gate.outcome == 'success'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 86b029ae5bddd5d4956497d8b32b2c92b8eec521
+          path: owner-source
+          persist-credentials: false
+      - name: Read the original parser separately for the same one-shot repair
+        if: >-
+          github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          github.run_attempt == '1' &&
+          github.event.before == '09b65329692389fe260e4aa0430e94f341b255dc' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.owner_gate.outcome == 'success'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: owner-source/pr64-reference
+          persist-credentials: false
+      - name: Read the original adapter separately for the same one-shot repair
+        if: >-
+          github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          github.run_attempt == '1' &&
+          github.event.before == '09b65329692389fe260e4aa0430e94f341b255dc' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.owner_gate.outcome == 'success'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: owner-source/pr72-reference
+          persist-credentials: false
+      - name: Install the existing authenticated feed dependencies for the one-shot repair
+        if: >-
+          github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          github.run_attempt == '1' &&
+          github.event.before == '09b65329692389fe260e4aa0430e94f341b255dc' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.owner_gate.outcome == 'success'
+        run: python -m pip install --disable-pip-version-check -r owner-source/requirements-history.txt
+      - name: Restore only authenticated older ACTIVE originals through the unchanged CAS publisher
+        if: >-
+          github.repository == 'haji84/RACE-AI' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          github.run_attempt == '1' &&
+          github.event.before == '09b65329692389fe260e4aa0430e94f341b255dc' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111') &&
+          steps.owner_gate.outcome == 'success'
+        working-directory: owner-source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: |
+          python - <<'PY_REPAIR'
+          import importlib.util
+          from pathlib import Path
+          source=(Path('..')/'scripts/boat_rejection_anchor_repair.py').resolve()
+          assert source.is_file() and not source.is_symlink() and source.parent.parent==Path('..').resolve()
+          spec=importlib.util.spec_from_file_location('main_one_shot_anchor_repair',source)
+          repair=importlib.util.module_from_spec(spec);spec.loader.exec_module(repair)
+          raise SystemExit(repair.main([]))
+          PY_REPAIR
+
+      - name: Request native Safari acceptance once for the exact main head
+        if: >-
+          success() && steps.owner_gate.outcome == 'success' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          github.run_attempt == '1' &&
+          startsWith(github.event.head_commit.message, 'boat-owner-release: single-real-session-20261111')
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          from scripts.boat_native_safari_dispatch import main
+          main([])
+          PY

@@ -1,0 +1,332 @@
+{
+  "schema": "RACE_AI_SOURCE_S_NATURAL_COMPLETION_ACTUAL_LOG_COUNTS_V1",
+  "run": 44426169530,
+  "job": 135231474660,
+  "source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "conclusion": "success",
+  "completed_at": "2026-11-19T02:17:56Z",
+  "proper_authenticated_job_logs_read": true,
+  "source_log_chars": 4084252,
+  "final_control_report": {
+    "completed_round": 24,
+    "lifetime_requests": 15950,
+    "state": "WORKER_FINALIZED_SOURCE_FREE",
+    "ready": true,
+    "requests_used": 420
+  },
+  "generation_round_mapping_verified_against_preceding_round_markers": true,
+  "generation_rounds": [
+    {
+      "round": 1,
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "reused_baseline_forecasts": 0,
+      "ready": false
+    },
+    {
+      "round": 2,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "reused_baseline_forecasts": 5,
+      "ready": true
+    },
+    {
+      "round": 3,
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "reused_baseline_forecasts": 0,
+      "ready": false
+    },
+    {
+      "round": 4,
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "reused_baseline_forecasts": 0,
+      "ready": false
+    },
+    {
+      "round": 5,
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "reused_baseline_forecasts": 0,
+      "ready": false
+    },
+    {
+      "round": 6,
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "reused_baseline_forecasts": 0,
+      "ready": false
+    },
+    {
+      "round": 7,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "reused_baseline_forecasts": 5,
+      "ready": true
+    },
+    {
+      "round": 8,
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "reused_baseline_forecasts": 0,
+      "ready": false
+    },
+    {
+      "round": 9,
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "reused_baseline_forecasts": 0,
+      "ready": false
+    },
+    {
+      "round": 10,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "reused_baseline_forecasts": 5,
+      "ready": true
+    },
+    {
+      "round": 11,
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "reused_baseline_forecasts": 0,
+      "ready": false
+    },
+    {
+      "round": 12,
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "reused_baseline_forecasts": 0,
+      "ready": false
+    },
+    {
+      "round": 13,
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "reused_baseline_forecasts": 0,
+      "ready": false
+    },
+    {
+      "round": 14,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "reused_baseline_forecasts": 5,
+      "ready": true
+    },
+    {
+      "round": 15,
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "reused_baseline_forecasts": 0,
+      "ready": false
+    },
+    {
+      "round": 16,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "reused_baseline_forecasts": 5,
+      "ready": true
+    },
+    {
+      "round": 17,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "reused_baseline_forecasts": 5,
+      "ready": true
+    },
+    {
+      "round": 18,
+      "contexts": 2,
+      "generated_forecasts": 18,
+      "reused_baseline_forecasts": 10,
+      "ready": true
+    },
+    {
+      "round": 19,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "reused_baseline_forecasts": 5,
+      "ready": true
+    },
+    {
+      "round": 20,
+      "contexts": 3,
+      "generated_forecasts": 27,
+      "reused_baseline_forecasts": 15,
+      "ready": true
+    },
+    {
+      "round": 21,
+      "contexts": 2,
+      "generated_forecasts": 18,
+      "reused_baseline_forecasts": 10,
+      "ready": true
+    },
+    {
+      "round": 22,
+      "contexts": 2,
+      "generated_forecasts": 18,
+      "reused_baseline_forecasts": 10,
+      "ready": true
+    },
+    {
+      "round": 23,
+      "contexts": 0,
+      "generated_forecasts": 0,
+      "reused_baseline_forecasts": 0,
+      "ready": false
+    },
+    {
+      "round": 24,
+      "contexts": 3,
+      "generated_forecasts": 27,
+      "reused_baseline_forecasts": 15,
+      "ready": true
+    }
+  ],
+  "producer_totals": {
+    "contexts": 19,
+    "additional_forecasts": 171,
+    "reused_existing_baseline_forecasts": 95,
+    "positive_rounds": 12,
+    "zero_reported_rounds": 12
+  },
+  "producer_readback_reports": [
+    {
+      "round": 1,
+      "artifact_id": 14483722909,
+      "contexts": 132,
+      "generated_forecasts": 0,
+      "independently_verified": true,
+      "ready": true
+    },
+    {
+      "round": 2,
+      "artifact_id": 14485166587,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "independently_verified": true,
+      "ready": true
+    },
+    {
+      "round": 7,
+      "artifact_id": 14485612303,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "independently_verified": true,
+      "ready": true
+    },
+    {
+      "round": 10,
+      "artifact_id": 14486776496,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "independently_verified": true,
+      "ready": true
+    },
+    {
+      "round": 14,
+      "artifact_id": 14486778645,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "independently_verified": true,
+      "ready": true
+    },
+    {
+      "round": 16,
+      "artifact_id": 14487951025,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "independently_verified": true,
+      "ready": true
+    },
+    {
+      "round": 17,
+      "artifact_id": 14487569715,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "independently_verified": true,
+      "ready": true
+    },
+    {
+      "round": 18,
+      "artifact_id": 14488906946,
+      "contexts": 2,
+      "generated_forecasts": 18,
+      "independently_verified": true,
+      "ready": true
+    },
+    {
+      "round": 19,
+      "artifact_id": 14487684905,
+      "contexts": 1,
+      "generated_forecasts": 9,
+      "independently_verified": true,
+      "ready": true
+    },
+    {
+      "round": 20,
+      "artifact_id": 14488394375,
+      "contexts": 3,
+      "generated_forecasts": 27,
+      "independently_verified": true,
+      "ready": true
+    },
+    {
+      "round": 21,
+      "artifact_id": 14490350979,
+      "contexts": 2,
+      "generated_forecasts": 18,
+      "independently_verified": true,
+      "ready": true
+    },
+    {
+      "round": 22,
+      "artifact_id": 14490986942,
+      "contexts": 2,
+      "generated_forecasts": 18,
+      "independently_verified": true,
+      "ready": true
+    },
+    {
+      "round": 24,
+      "artifact_id": 14491621455,
+      "contexts": 3,
+      "generated_forecasts": 27,
+      "independently_verified": true,
+      "ready": true
+    }
+  ],
+  "private_venue_retention_holds": [
+    {
+      "round": 18,
+      "diagnostic_phase": "RETAIN_CANDIDATES",
+      "diagnostic_reason": "VAULT_GIT_PUSH_TIMEOUT",
+      "retained_candidates": 0,
+      "production_promoted": false,
+      "plaintext_published": false
+    },
+    {
+      "round": 23,
+      "diagnostic_phase": "RETAIN_CANDIDATES",
+      "diagnostic_reason": "VAULT_GIT_PUSH_TIMEOUT",
+      "retained_candidates": 0,
+      "production_promoted": false,
+      "plaintext_published": false
+    },
+    {
+      "round": 24,
+      "diagnostic_phase": "RETAIN_CANDIDATES",
+      "diagnostic_reason": "VAULT_GIT_PUSH_TIMEOUT",
+      "retained_candidates": 0,
+      "production_promoted": false,
+      "plaintext_published": false
+    }
+  ],
+  "whole_run_independent_all_original_AES_audit_proven": false,
+  "zero_context_reports_do_not_prove_all_inputs_available": true,
+  "distinct_race_union_not_inferred": true,
+  "prediction_or_result_originals_changed": false,
+  "source_worker_directly_dispatched_or_retried_by_root": false
+}

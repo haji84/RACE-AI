@@ -1,0 +1,39 @@
+{
+  "schema": "RACE_AI_BOAT_OWNER_APPROVED_RELEASE_20261116_V1",
+  "recorded_at": "2026-11-15T22:54:31.778541+00:00",
+  "owner_approval_received": true,
+  "approved_scope": [
+    "existing_PR302_production_merge",
+    "existing_PR289_actual_SHA_sync_main_merge",
+    "genuine_automatic_forecast_restart_and_independent_readback"
+  ],
+  "production": {
+    "at": "2026-11-15T22:51:44.858780+00:00",
+    "pr": 302,
+    "merged": true,
+    "reviewed_head": "0db526870a509cd6e68c44e693ed3e73d3b0e50f",
+    "actual_production_head": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+    "reviewed_tree": "2fa75e7cef52f90a1c70dd0c8f647842cf6aae77",
+    "actual_tree": "2fa75e7cef52f90a1c70dd0c8f647842cf6aae77",
+    "tree_exactly_matches_reviewed_candidate": true
+  },
+  "main_active_binding_sha": "84128e0ec8bd9fe3da64ad49f74b8511b07e72be",
+  "active_bindings": 22,
+  "main_merge_completed": false,
+  "main_release_CI_pending": true,
+  "local_main_gate_tests_pass": 74,
+  "local_isolated_AES_reader_tests_pass": 37,
+  "synthetic_AES_not_real_owner_readback": true,
+  "official_provider_GETs_in_release_preparation": 0,
+  "actual_failed_owner_AES_runner_verified": false,
+  "new_forecast_saved_by_released_owner_proven": false,
+  "historical_readonly_SHA_preserved": true,
+  "originals_modified": false,
+  "new_PRs_or_workflows": 0,
+  "evidence_sha256": {
+    "APPROVED-PRODUCTION-MERGE-FROZEN.json": "6985cb77e6ca1fde0b6b455b00b0b9ccb0469cab5331e8d6421edc59884964f3",
+    "APPROVED-MAIN-REBIND.json": "1b10a1ea364ddca2a6ab36092cafec0cb50e50cbe5e9324678fd21b1f465cab5",
+    "APPROVED-REBIND-GREEN-MAIN-GATES.log": "9093d58bf5d0539058bf75c094ef4012349858b96972c38b6c1582d20aa146ab",
+    "APPROVED-REBIND-GREEN-MAIN-AES-READERS.log": "b30937ec1ce1e58ada1582cc43a51194d74dbfed05650dd94b51e06b3c4993d0"
+  }
+}

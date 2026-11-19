@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from race_ai.keirin_personal_monitor import (
     JST, MonitorError, _manifest, select_one, run_once
@@ -43,6 +44,20 @@ class MonitorTests(unittest.TestCase):
              allow_get=True,fetch=lambda *a,**k:self.fail("GET not allowed"))
         self.assertEqual(out["state"],"NO_CURRENT_DAY_MANIFEST")
         self.assertEqual(out["get_attempts"],0)
+
+    def test_current_manifest_cannot_reactivate_unapproved_mobile_fetch(self):
+        from tests.test_keirin_mobile_one_shot import _Client
+
+        client = _Client("2026年11月18日 3R 結果 3連単 1-6-7 2670円".encode())
+        with patch("race_ai.keirin_mobile_one_shot.build_opener",
+                   return_value=client):
+            report = run_once(self.manifest(day="2026-11-18"),
+                now=datetime.fromisoformat("2026-11-18T09:47:00+09:00"),
+                allow_get=True)
+        self.assertEqual(report["state"], "SOURCE_NOT_IN_OWNER_PROFILE")
+        self.assertEqual(report["get_attempts"], 0)
+        self.assertFalse(report["confirmed_official_result"])
+        self.assertEqual(client.calls, 0)
 
     def test_before_result_window_never_fetches(self):
         out=run_once(self.manifest(),

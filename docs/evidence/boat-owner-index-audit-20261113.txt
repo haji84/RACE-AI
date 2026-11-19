@@ -1,0 +1,14 @@
+2026-11-13 BOAT source-free V5 index diagnosis, without any racing-provider GET.
+The signed saved router (generation 138, SHA256
+52e194c99217b5dfdbd5db7d35c203cc762d91ce577a936e93ea53f642a10bee)
+was written from source-free original recovery run 43372009358 and independently
+read at 43372816628. The latter reported HOLD_NO_NEW_EVENT_DAY_SAVED, but the
+reader swallowed every ValueError as “missing day”, hiding an integrity error.
+An independent runner must enumerate the actual authenticated available dates,
+distinguish only HISTORY_DAY_UNAVAILABLE from AES/data integrity rejection, and
+when the day truly is absent, preview the exact archived 43348227701 P0/P1
+original artifacts through the already installed read-only recovery parser.
+Output aggregate day/stage counts only, check every original inventory SHA,
+do not save the preview or create new forecasts, and keep the historical
+source request accounting immutable. This evidence is needed before changing
+the authenticated publication route.

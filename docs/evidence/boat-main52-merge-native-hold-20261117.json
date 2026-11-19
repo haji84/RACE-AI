@@ -1,0 +1,136 @@
+{
+  "schema": "RACE_AI_MAIN52_MERGE_AND_NATIVE_HOLD_V1",
+  "observed_at": "2026-11-17T20:28:13Z",
+  "main": {
+    "sha": "c425f03918126f38c9bd13a589b58fc8bc97e7e1",
+    "tested_head": "549de526b9a4854dbccab0fe654b953a4015d901",
+    "tree": "bc2d804b5e72e8b77ca115948b71bf93948f3fe3",
+    "actual_tree_equal": true,
+    "pr": 52,
+    "checks": {
+      "total": 41,
+      "success": 17,
+      "skipped": 24,
+      "failed": 0
+    },
+    "test_groups": [
+      {
+        "job": 134286094586,
+        "count": 149,
+        "seconds": 16.61
+      },
+      {
+        "job": 134286095254,
+        "count": 164,
+        "seconds": 98.207
+      },
+      {
+        "job": 134286094026,
+        "count": 10,
+        "seconds": 0.128
+      }
+    ]
+  },
+  "source": {
+    "sha": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+    "tree": "8a97242da13235d3f55f127eb157f514a25d8eca",
+    "pr": 55,
+    "primary_tests": 791,
+    "actual_new_source_worker_proven": false
+  },
+  "release_gate": {
+    "run": 44166778123,
+    "job": 134334838900,
+    "status": "HOLD_OUTSIDE_OWNER_DAYTIME_WINDOW",
+    "dispatch_allowed": false,
+    "recovery_required": false,
+    "release_sha": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+    "next_existing_schedule": "20:30 UTC /05:30 JST",
+    "clock_override": false
+  },
+  "native_old": {
+    "run": 44124279358,
+    "job": 134183698968,
+    "main": "2641abcd2e6fbc8e7ff12a00ac95a63066c70b03",
+    "private_step": "success",
+    "browser": {
+      "browserName": "Safari",
+      "browserVersion": "26.6",
+      "platformName": "macOS"
+    },
+    "original_comparisons": 4,
+    "p1_detail": 2,
+    "budget": 2,
+    "seed_comparisons": 2,
+    "refusals": 4,
+    "private_cleanup_verified": true,
+    "later_candidate_environment_guard": "HOLD"
+  },
+  "native_new": {
+    "run": 44152622468,
+    "job": 134284779148,
+    "main": "6f77923a5d77712b9471f59fe7f3649fb9e3ca1e",
+    "unit_count": 85,
+    "unit_seconds": 50.78,
+    "private_step": "failure",
+    "failed_at": "2026-11-17T18:57:32Z",
+    "status": "NATIVE_SAFARI_ACCEPTANCE_HOLD",
+    "reason": "SAFARI_WEBDRIVER_FAILED",
+    "operation": "element_click",
+    "http_status": 500,
+    "w3c_error": "unknown error",
+    "stage": "encrypted_seed_valid",
+    "action": "select_seed_history",
+    "select_phase": "initial",
+    "click_path": "visible_element",
+    "hit_verified": true,
+    "new_browser_version_reported": false,
+    "internal_root_cause": "UNPROVED",
+    "candidate_steps": "skipped",
+    "artifacts": 0
+  },
+  "native_followup": {
+    "phase": "DIAGNOSTIC_TESTS_FIRST",
+    "runtime_unchanged": true,
+    "preserved_tests": 91,
+    "added_tests": 9,
+    "expected_total": 100,
+    "tests_executed": false,
+    "expected_red_failures": 8,
+    "behavior_fix_claimed": false,
+    "extra_browser_commands": false,
+    "driver_retry": false
+  },
+  "keirin": {
+    "latest_capture_run": 44150074907,
+    "capture_job": 134275707875,
+    "reason": "PREVIOUS_DAY_VERIFIED_SOURCE_MANIFEST_MISSING",
+    "earlier_reason": "DAILY_INDEX_HTTP_403",
+    "latest_collector_invoked": false,
+    "latest_artifacts": 0,
+    "green_pr71_runs": [
+      44156498718,
+      44162156064
+    ],
+    "actual_status": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT",
+    "new_pre_race_inputs": 0,
+    "actual_four_model_forecast_saved": false,
+    "source_rights_verified": false,
+    "pilot_default_off_unchanged": true
+  },
+  "raw_capture_followup": {
+    "pr": 51,
+    "test_only_head": "77d94a1504c652fee50680ecfece8c8bce60caaa",
+    "new_tests": 33,
+    "source_runtime_unchanged": true,
+    "ci_red_pending": true
+  },
+  "new_prs": 0,
+  "new_jobs": 0,
+  "new_permissions": 0,
+  "new_paid_services": 0,
+  "physical_iphone_verified": false,
+  "all_sports_all_day_verified": false,
+  "prospective_improvement_verified": false,
+  "goal_complete": false
+}

@@ -1,0 +1,232 @@
+{
+  "schema": "RACE_AI_NATIVE_CURRENT_V5_FINAL_CI_AND_MERGE_V1",
+  "tested_head": "68516f8db515f18203781495dcc1bb652896386f",
+  "tested_tree": "1d2846e2fedf156c9a43dc7b74a0704ba5f18839",
+  "normal_merge_sha": "f2819a0084c8947fe266de015b3436619effc900",
+  "merge_tree": "1d2846e2fedf156c9a43dc7b74a0704ba5f18839",
+  "parents": [
+    "a836835f49ebd6292f6601413c661a8dad2d44b8",
+    "68516f8db515f18203781495dcc1bb652896386f"
+  ],
+  "native_tests": {
+    "run_id": 44246150231,
+    "job_id": 134605481930,
+    "tests": 133,
+    "seconds": 15.922,
+    "status": "passed"
+  },
+  "racer_tests": {
+    "run_id": 44246150399,
+    "job_id": 134605479011,
+    "tests": 195,
+    "seconds": 19.624,
+    "status": "passed"
+  },
+  "recovery_dispatch_tests": {
+    "run_id": 44246150386,
+    "job_id": 134605481347,
+    "tests": 131,
+    "seconds": 0.471,
+    "status": "passed"
+  },
+  "checks": {
+    "total": 25,
+    "success": 12,
+    "skipped": 13,
+    "failed": 0,
+    "metadata": [
+      {
+        "id": 134605559238,
+        "name": "Authenticated original schedule P1 video and pending-round evidence",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150386/job/134605559238"
+      },
+      {
+        "id": 134605544279,
+        "name": "restore_on_other_runner",
+        "conclusion": "success",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150220/job/134605544279"
+      },
+      {
+        "id": 134605484483,
+        "name": "fallback_nationwide_capture",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150462/job/134605484483"
+      },
+      {
+        "id": 134605484141,
+        "name": "personal_hourly",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150462/job/134605484141"
+      },
+      {
+        "id": 134605483908,
+        "name": "fallback_scheduling_gate",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150462/job/134605483908"
+      },
+      {
+        "id": 134605482318,
+        "name": "unit",
+        "conclusion": "success",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150462/job/134605482318"
+      },
+      {
+        "id": 134605482046,
+        "name": "Reconcile authenticated completed BOAT source (no provider GET)",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150399/job/134605482046"
+      },
+      {
+        "id": 134605481943,
+        "name": "daily",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150399/job/134605481943"
+      },
+      {
+        "id": 134605481930,
+        "name": "verify_live_http",
+        "conclusion": "success",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150231/job/134605481930"
+      },
+      {
+        "id": 134605481347,
+        "name": "unit",
+        "conclusion": "success",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150386/job/134605481347"
+      },
+      {
+        "id": 134605481307,
+        "name": "Reconcile authenticated first P0 with retained official results",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150399/job/134605481307"
+      },
+      {
+        "id": 134605480884,
+        "name": "Read first P0 on a separate runner at the exact vault commit",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150399/job/134605480884"
+      },
+      {
+        "id": 134605480512,
+        "name": "Gate-and-dispatch original BOAT owner P0/P1 (no scorer duplication)",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150399/job/134605480512"
+      },
+      {
+        "id": 134605480471,
+        "name": "Retain exact first P0 and companions without source acquisition",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150399/job/134605480471"
+      },
+      {
+        "id": 134605479718,
+        "name": "archive_fixture_from_main",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150225/job/134605479718"
+      },
+      {
+        "id": 134605479422,
+        "name": "daily_live_once",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150255/job/134605479422"
+      },
+      {
+        "id": 134605479233,
+        "name": "BOAT exact fast-result source tests (no provider GET)",
+        "conclusion": "success",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150399/job/134605479233"
+      },
+      {
+        "id": 134605479114,
+        "name": "production_key_readiness",
+        "conclusion": "skipped",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150220/job/134605479114"
+      },
+      {
+        "id": 134605479011,
+        "name": "unit",
+        "conclusion": "success",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150399/job/134605479011"
+      },
+      {
+        "id": 134605478765,
+        "name": "BOAT mirror source-free PR regression",
+        "conclusion": "success",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150399/job/134605478765"
+      },
+      {
+        "id": 134605478086,
+        "name": "archive_tests",
+        "conclusion": "success",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150225/job/134605478086"
+      },
+      {
+        "id": 134605477862,
+        "name": "produce",
+        "conclusion": "success",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150220/job/134605477862"
+      },
+      {
+        "id": 134605477808,
+        "name": "discovery_tests",
+        "conclusion": "success",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150255/job/134605477808"
+      },
+      {
+        "id": 134605477604,
+        "name": "private_two_race_cycle",
+        "conclusion": "success",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150254/job/134605477604"
+      },
+      {
+        "id": 134605477477,
+        "name": "keirin_core",
+        "conclusion": "success",
+        "url": "https://github.com/haji84/RACE-AI/actions/runs/44246150235/job/134605477477"
+      }
+    ]
+  },
+  "independent_reviews": {
+    "dispatcher": "CLEAR",
+    "v5_corrected_runtime": "CLEAR",
+    "actual_driver_uses_tested_source_day_probe": true,
+    "assets_workflow_source_candidate_pins_unchanged": true
+  },
+  "main_owner_execution": {
+    "run_id": 44246588266,
+    "job_id": 134606895185,
+    "records": [
+      {
+        "timestamp": "2026-11-18T05:46:57.0886459Z",
+        "dispatch_allowed": false,
+        "future_real_forecast_proven": false,
+        "new_model_or_scorer_added": false,
+        "official_results_reconciled": false,
+        "official_source_requests": 0,
+        "recovery_required": false,
+        "release_sha": "a74f1e940e7fc0852e63938f8138bdb58bd93163",
+        "schema": "RACE_AI_BOAT_MAIN_OWNER_DISPATCH_GATE_V1",
+        "status": "HOLD_ACTIVE_OWNER_WORKFLOW"
+      },
+      {
+        "timestamp": "2026-11-18T05:47:01.6575826Z",
+        "dispatch_requested": true,
+        "existing_runs_count": 0,
+        "native_verification_proven": false,
+        "official_provider_gets": 0,
+        "owner_key_read": false,
+        "request_acknowledged": true,
+        "request_attempted": true,
+        "status": "NATIVE_SAFARI_DISPATCH_REQUESTED"
+      }
+    ]
+  },
+  "native_request": {
+    "run_id": 44246632536,
+    "head_sha": "f2819a0084c8947fe266de015b3436619effc900",
+    "observed_status": "IN_PROGRESS",
+    "live_acceptance_proven": false
+  },
+  "broader_goal_complete": false
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "RACE_AI_SOURCE55_NORMAL_MERGE_PROOF_V1",
+  "observed_at": "2026-11-17T18:30:17Z",
+  "repository": "haji84/RACE-AI",
+  "source_branch": "production/boat-p0-p1-20261111",
+  "source_parent": "f55351dce855177a51330f72c37d6238ba2c9e3e",
+  "reviewed_final_head": "15fc68755e60db3f4e578ef2b8415e4ed909c9eb",
+  "actual_protected_merge": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+  "tested_tree": "8a97242da13235d3f55f127eb157f514a25d8eca",
+  "actual_tree_equal": true,
+  "main_at_observation": "6f77923a5d77712b9471f59fe7f3649fb9e3ca1e",
+  "pull_request": 55,
+  "workflow_run": 44145608111,
+  "job": 134262269443,
+  "checks": {
+    "total": 6,
+    "success": 3,
+    "skipped": 3,
+    "failed": 0,
+    "completed": true
+  },
+  "python_test_groups": [
+    {
+      "tests": 3,
+      "seconds": 0.001
+    },
+    {
+      "tests": 12,
+      "seconds": 0.047
+    },
+    {
+      "tests": 791,
+      "seconds": 189.401
+    },
+    {
+      "tests": 38,
+      "seconds": 2.594
+    },
+    {
+      "tests": 165,
+      "seconds": 42.902
+    },
+    {
+      "tests": 46,
+      "seconds": 0.281
+    }
+  ],
+  "node_stage_and_private_boundary_checks": "success",
+  "exact_component_source_and_test_trees": [
+    {
+      "local_commit": "82c9b862a0ec2fb67c67e66328bd607f685463fd",
+      "public_snapshot_commit": "d4d7e8bf3fbff17ad69541a4f8ba32a13f9985de",
+      "exact_tree": "260c78d65000328d9ab534520163cf73e42d79f9"
+    },
+    {
+      "local_commit": "349480cd1228efc6290f335e51a70670176dd997",
+      "public_snapshot_commit": "39d5b1e73987387bdc1fa29377cf8134f7535cc9",
+      "exact_tree": "afcbc57bfbe166cf6a32a21e6bf3d6670e6eaaa6"
+    },
+    {
+      "local_commit": "640b7e929c03e563aeefe984860ac45dfacc8b35",
+      "public_snapshot_commit": "8cece6f7f7e91d6905157b4bdb37f44dd10255d5",
+      "exact_tree": "314bdbab502bc254faf9cc9e1b1aa964a6206b8d"
+    },
+    {
+      "local_commit": "6f8de877625596bbd283a9756909c0781cf57932",
+      "public_snapshot_commit": "453f419aee51f2b637e613a8e2f81ccb829d3df9",
+      "exact_tree": "f919f2c5afff760b81b140ba56274fd648d9ecbe"
+    }
+  ],
+  "source_transfer": "Explicit source-only Git Data API reconstruction; each complete reviewed component tree matched. Original local commit metadata SHA was not transferred.",
+  "local_final_capture_771": {
+    "conclusion": "failed",
+    "git_fixture_process_resource_errors": 14,
+    "retained": true,
+    "overwritten_by_ci": false
+  },
+  "native_private": {
+    "run": 44124279358,
+    "status": "verified_on_actual_macos_safari",
+    "whole_job": "failed",
+    "candidate": "held_before_assets_by_synthetic_environment_guard",
+    "current_deployed_ui": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+    "candidate_ui": "598c80c89b5d6a1bca8dbbb16d091ef9e74bfb76",
+    "physical_iphone": false
+  },
+  "live_source_after_merge": {
+    "actual_owner_run_id": null,
+    "bootstrap_timeout_fix_proven_live": false,
+    "all_day_all_sports": false,
+    "t15_to10_deadline_coverage": false,
+    "actual_worker_speedup": false
+  },
+  "unrestored_offline_commits": [
+    "b7380fe6a377e6ccf2b96331f2126c52549bbe17",
+    "daae4c10167224b7730006d8ada5ade398aaa64b"
+  ],
+  "goal_complete": false,
+  "official_provider_gets_from_this_verification": 0,
+  "owner_key_extracted": false,
+  "private_originals_exported": false,
+  "ui_publication": false,
+  "weights_switched": false,
+  "new_prs": false,
+  "new_jobs": false,
+  "new_paid_services": false
+}

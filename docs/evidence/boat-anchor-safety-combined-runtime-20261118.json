@@ -1,0 +1,68 @@
+{
+  "schema": "RACE_AI_ANCHOR_SAFETY_COMBINED_RUNTIME_V1",
+  "recorded_at_utc": "2026-11-18T03:30:00Z",
+  "existing_pr": 41,
+  "actual_red": {
+    "head": "fa050161d4066385b45d4e899fc31e28b77a10f6",
+    "run_id": 44229198738,
+    "job_id": 134549775998,
+    "tests_run": 304,
+    "duration_seconds": 164.484,
+    "passing_existing_and_guard_tests": 278,
+    "guard_tests_passed": 23,
+    "history_missing_helper_failures": 17,
+    "restoration_missing_module_failures": 8,
+    "entry_missing_module_import_errors": 1,
+    "syntax_error": false
+  },
+  "frozen_tests": {
+    "guard": "ba0f94702096cd4e43f7d682bb4b6346bdca6e4d",
+    "entry": "244660c6b9e4eb91e52ba5151ed6f9a0bc002c78",
+    "history": "62ab30da645bfe0326a99f497854cddd0a06c83a",
+    "restoration": "6fa321d6e62791a0ad351facaa0a101f85862771"
+  },
+  "runtimes": {
+    "guard": "b438b6ec63b5f8048755081ba1ce074a2d7a0823",
+    "entry": "d2f8c7bf9e1733543eb832fc059ed8b4bf536a04",
+    "history": "c8db7fc1b0632f19a6c2e77eafc9ea98c196370d",
+    "restoration": "254aa942559c5c04efd79e2a1e0dbac8bda69b04"
+  },
+  "independent_static_reviews": {
+    "entry": "CLEAR",
+    "restoration": "CLEAR",
+    "workflow_four_current_paths": "CLEAR",
+    "history": "PENDING"
+  },
+  "workflow_scope": {
+    "live_calls": 4,
+    "legacy_collector_pins_unchanged": true,
+    "all_existing_gates_and_budgets_unchanged": true,
+    "old_p0_readonly_and_pdca_unchanged": true,
+    "historic_0da3_recovery_outside_four_call_scope": true,
+    "new_jobs_permissions_inputs_cron_runners_timeouts": false
+  },
+  "forensic_scope": {
+    "same_day": true,
+    "max_snapshots": 32,
+    "max_aggregate_bytes": 268435456,
+    "max_parent_hops": 128,
+    "max_commit_object_bytes": 65536,
+    "crypto_reader": "unchanged pinned F/H",
+    "mutable_ref_consulted": false,
+    "whole_tree_audit_claimed": false
+  },
+  "restoration_candidate": {
+    "fresh_same_module_matcher_required": true,
+    "only_exact_older_active_append": true,
+    "all_other_fields_preserved": true,
+    "all_json_aliases_detached": true,
+    "observation_and_rejection_guards_per_row": true,
+    "no_publication_path": true
+  },
+  "fresh_python_ci": "PENDING",
+  "actual_older_proof_status": "ACTIVE_PROOF_MISSING at fixed gen423; older extension not yet run",
+  "originals_changed": false,
+  "publication_performed": false,
+  "new_source_requests": 0,
+  "goal_complete": false
+}

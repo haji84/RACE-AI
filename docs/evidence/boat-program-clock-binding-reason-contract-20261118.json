@@ -1,0 +1,51 @@
+{
+  "schema": "RACE_AI_PROGRAM_CAPTURE_CLOCK_REASON_REFINEMENT_V1",
+  "status": "CONTRACT_AND_REPLACEMENT_PLAN_ONLY_RUNTIME_HELD_FOR_ACTUAL_RED",
+  "base_raw_blob": "3b6cde1fb4af0e71ec23a3037f7a2339a1cdf285",
+  "new_reason": "PROGRAM_CAPTURE_CLOCK_BINDING_UNVERIFIED",
+  "scope": "Adapter-only refinement after unchanged strict comparison. No public API/field/counter/status/source/clock change; pure diagnose_saved_cutoff_raw_replay continues RAW_CAPTURE_MISSING.",
+  "exact_predicate": {
+    "strict_report": "schema unchanged; status HOLD; old reason RAW_CAPTURE_MISSING; six exact-int counters in COUNTERS order equal (comp,0,comp,comp,0,0), comp>0; source_requests0,originals_changedfalse,broader_goals_provenfalse.",
+    "complete_authenticated_scope": "Fixed26 SOURCE_CAPTURES headers and all candidate bundles authenticate through unchanged existing A74 V readers; full header/member/source scope and all existing budgets remain mandatory. Any reader failure keeps existing HOLD/null.",
+    "all_program_bindings": "Exhaustively seed a nonempty internal map from every expected PROGRAM source binding in _targets before strict matching: private race,rawSHA,url_form/source_ref,expected captured aware instant. Identical expected bindings may deduplicate; every target must map to one entry.",
+    "per_binding_evidence": "Only actual restored authenticated raw/receipt pairs can set sha_present,url_present,exact_clock_present. Wanted SHA then exact or query-free same-race PROGRAM URL must match using existing pinned observed.locator. Clock comparison remains exact aware equality.",
+    "universal_condition": "EVERY expected PROGRAM binding has sha_present=true AND url_present=true AND exact_clock_present=false. Some/any evidence is insufficient. Collector must complete and remain valid.",
+    "effect": "Return a detached copy of the existing strict report changing ONLY reason to the new literal. Status HOLD and all twelve keys/numeric values remain identical."
+  },
+  "negative_cases": [
+    "No wanted SHA, no matching URL, any unrepresented expected binding or invalid/incomplete collector: keep original report.",
+    "Any exact-clock PROGRAM match, PROGRAM inspector rejection/disagreement, any RESULT failure/missing side or any other counter shape: keep original report.",
+    "Authentication/access/scope/budget failures remain existing null-count HOLD reasons; never substitute this reason.",
+    "Pure API has no collector and never emits the new reason, including its private _Stop handling."
+  ],
+  "private_only_plan": [
+    "Extend existing _retained_captures with optional _program_evidence=None, default preserving the current API behavior. Adapter creates the sole owned collector, seeds all expected bindings, and passes it privately. No caller/workflow override.",
+    "Before unchanged strict clock-filter rejection, collect only authenticated SHA→URL→exact-clock booleans for PROGRAM bindings. Do not select another clock, expose values, alter captures returned, skip later headers or change existing matching.",
+    "After successful complete readback and unchanged diagnose result, apply one private qualification helper for the exact universal predicate. New reason is emitted ONLY through that known-count branch; keep it outside pure/null _hold reason eligibility."
+  ],
+  "unchanged": [
+    "all strict receipt/SHA/URL/clock matching",
+    "12field public schema and every numeric count",
+    "pure API behavior",
+    "pair seam/public audit/original rejection",
+    "G8denominator/qualification/promotion/full-day conclusions",
+    "all original clocks/bytes",
+    "fixed run/head/month/vault/inspector pins",
+    "read budgets/no new scope/provider GET/decoder/key export/jobs/inputs/artifacts/refs"
+  ],
+  "tests_first": {
+    "author": "native_driver_500",
+    "base_existing_test_blob": "0a7386f34ed0d71413e2c4326bacb1fe60700c5a",
+    "edit": "One existing adapter method, preserving seven methods/all assertions",
+    "positive": "Real26-bundle LocalGit/AES/HMAC fixture has wanted PROGRAM rawSHA+URL but receipt2seconds earlier than expected native clock; RESULT exact. Pure returns original RAW_CAPTURE_MISSING; adapter changes reason only.",
+    "controls": [
+      "exact PROGRAM match ordinary outcome",
+      "known PROGRAM inspector rejection",
+      "mixed absentSHA/wrongURL/oneexact binding must not qualify",
+      "late bad authenticated header keeps null authHOLD"
+    ],
+    "expected_red": "Old adapter returns RAW_CAPTURE_MISSING in positive fixture instead of new reason. Root actual RED required before runtime."
+  },
+  "caller": "Root owns whitelist plus exact known-count shape guard; no caller runtime by this agent.",
+  "interpretation": "All expected PROGRAM bodies/URLs are authenticated within this fixed scope, but their expected native capture instants lack exact receipt matches. This is not a nearest-clock choice, a timestamp correction, causal revision/parser proof or a qualification."
+}

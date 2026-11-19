@@ -37,9 +37,19 @@ jobs:
           python -m unittest discover -s tests -p 'test_keirin_daily_ledger.py' -v
 
   daily_live_once:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: >-
+      !(vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED == 'true' &&
+        vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED == 'true' &&
+        vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+        vars.RACE_AI_AB_SOURCE_S3_PREFIX == '') &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-24.04
     timeout-minutes: 3
+    env:
+      RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED }}
+      RACE_AI_AB_PUBLIC_CAPTURE_ENABLED: ${{ vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED }}
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+      RACE_AI_AB_SOURCE_S3_PREFIX: ${{ vars.RACE_AI_AB_SOURCE_S3_PREFIX }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:

@@ -1,0 +1,70 @@
+{
+  "schema": "RACE_AI_FIXED_BOOTSTRAP_P0_ACTUAL_AES_NATIVE_COUNTS_20261117_V1",
+  "repository": "haji84/RACE-AI",
+  "workflow_run_id": 44190597556,
+  "job_id": 134418652671,
+  "main_head": "e619ef93f16ebece85d1d659fd737a836910c167",
+  "authenticated_via": "normal GitHub Actions job-log API through connected GitHub account",
+  "safe_report": {
+    "all_models_operational": false,
+    "applicable_slots": 1848,
+    "artifact_id": 14367093570,
+    "authenticated_original": true,
+    "contexts": 132,
+    "counts_only": true,
+    "current_artifact_status": "NOT_QUERIED",
+    "day_jst": "2026-11-18",
+    "dispatch_authorized": false,
+    "dispatch_status_counts": {
+      "GENERATED_UNATTESTED": 660,
+      "NOT_APPLICABLE": 132,
+      "RULE_FILTERED": 1188
+    },
+    "efficacy_proven": false,
+    "failure_stage": null,
+    "full_day_coverage": false,
+    "generated_forecasts": 660,
+    "github_artifact_receipt_created": false,
+    "non_generated_applicable_slots": 1188,
+    "official_source_requests": 0,
+    "owner_run_id": 44170869325,
+    "owner_source_commit": "bb49215034b779ea1493b35dd91e5c3ebfc04032",
+    "projected_forecasts": 660,
+    "promotion_allowed": false,
+    "qualifying_g8_proven": false,
+    "receipt_scope": "ARCHIVED_GITHUB_ARTIFACT_RESPONSE",
+    "retained_original_slots": 264,
+    "reused_forecasts": 0,
+    "round_no": 0,
+    "schema": "RACE_AI_FIXED_BOOTSTRAP_P0_COUNTS_V1",
+    "source_originals_modified": false,
+    "status": "FIXED_BOOTSTRAP_P0_COUNTS_VERIFIED",
+    "vault_source_commit": "d853f5d6db9089d91748add90560a0b9037b2a1f",
+    "waiting_exhibition_slots": 924,
+    "website_end_to_end_proven": false
+  },
+  "independent_zip_aes_native_projector_executed": true,
+  "producer_success_alone_used_as_count_proof": false,
+  "core_m2_target_unchanged": true,
+  "existing_artifact_members_unchanged": true,
+  "owner_key_stayed_inside_actions": true,
+  "first_p0_receipt": {
+    "commit": "ae81ae3056860a85c3c29f289a74e39ab32416de",
+    "declared_races": 132,
+    "declared_model_forecasts": 264,
+    "scope": "separate original first-P0 receipt; not independently decrypted by this count helper"
+  },
+  "owner_release_gate": {
+    "run_id": 44190597537,
+    "job_id": 134418653207,
+    "status": "HOLD_ACTIVE_OWNER_WORKFLOW",
+    "recovery_required": false,
+    "official_source_requests": 0
+  },
+  "claim_limits": [
+    "132 contexts and 660 generated/projected forecasts apply only to the fixed additional r0 artifact.",
+    "264 retained-original slots are distinct from zero ORIGINAL_REUSED forecasts in this payload.",
+    "924 applicable slots are WAITING_EXHIBITION in this fixed P0 payload; this does not prove later P1 generation. The helper retains full_day/all_models/G8/efficacy/promotion/dispatch/site acceptance as false.",
+    "This is not an independent complete-day source catalog or evidence of completed live rounds/results/all four sports."
+  ]
+}

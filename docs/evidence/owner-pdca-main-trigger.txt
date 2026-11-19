@@ -4,3 +4,825 @@ Run previously tested 0317235eadc851b73913c537b7c09a32dc7c208c for genuine AES/G
 Future normal scheduled runs retain the original official result collector and append authenticated all-day PDCA at the existing daily cron.
 
 2026-11-09: source-free protected main verification retry; skip historical main root requirements install on the one-shot push. The validated readback checkout installs its own pinned dependencies. No official source GET.
+
+2026-11-10 owner request: retain and read back all authenticated saved dates without a three-day age horizon. Existing encrypted Git originals remain the authority; no automatic age purge. Reconcile the latest completed source control via the existing HMAC/CAS mirror, run source-free whole-period PDCA at exact code 08a166d982e8e7d16aa347be41f79f67be2ccdf3, and independently reopen the saved state. No new racing-provider GET, source-issuer authorization, forecast regeneration, model promotion, or source budget reset is authorized by this replay marker.
+
+2026-11-11 JST approved BOAT first real P0/P1 attempt. The owner expressly
+authorized limited Actions dispatch and the existing source-owner boundary
+release earlier in this conversation. PR #145 and PR #146 are merged in main.
+Use existing owner production/boat-p0-p1-20261111 SHA
+5f5bd960e3377a87541f9d6b348d3c045ea51cf0, original AES vault, official
+source/denial limits, single-writer and immutable pre-cutoff records.
+This marker merely asks the existing main-only source-free gate to run.
+If any release, custody, time, active producer or event check fails, HOLD.
+Never create post-result predictions or turn NO_FORECAST into hits.
+The first real saved prediction plus separate readback and original official
+result reconciliation must be independently evidenced; none is claimed here.
+
+2026-11-11 verified failed pre-source retry: owner P0/P1 run 42993305843 passed source-owner release
+and code SHA but failed three outdated workflow assertions BEFORE official
+data source or any forecast was accessed. GitHub API confirms all first-P0,
+P1 and result steps skipped and only existing-cycle-source-42993305843 was
+stored. Retained old origin SHA 5f5bd960e3377a87541f9d6b348d3c045ea51cf0.
+The original source code tests have been fixed and verified by PR #148 CI
+42993987718. Current reviewed owner release SHA is
+e24f09f150e2318dd16a96bdc6db1d8c1317b9ae.
+PR #149 adds an exact same-day source-free proof gate; this marker requests
+the sole pre-source retry, not permission to regenerate an existing original.
+All prior forecasts (none from run 42993305843), AES, source limits, no
+invented NO_FORECAST and result-authority protections remain unchanged.
+Never call this attempt completed until real immutable original readback and
+official existing-scorer settlement prove it.
+
+2026-11-11 exact original recovery: recover-first-p0-42995325741.
+Preserve the already-issued first P0 artifact 13842474540 and its original
+source SHA e24f09f150e2318dd16a96bdc6db1d8c1317b9ae. Retain continuity
+13842779131 and source control 13842973909 in the existing private-original
+vault. Use receipt commit 20fc291429003fd0351baef4b0c1918b76b4e066.
+The existing main BOAT workflow must retain, read back on a separate runner,
+and reconcile only previously captured official result bytes with the existing
+native scorer. This marker authorizes zero new predictions or provider GETs.
+Production code for future already-authorized schedules is pinned separately
+to a60b8493ee67f8cf1006d3c240ffd121a5f359ce; current-day source-dispatch exclusion stays intact.
+
+2026-11-11: recover-first-p0-42995325741 after authenticated result collection.
+The existing retention and independent reader passed in run 43030625791 at
+vault commit 2448b33de6ecf7388f8fd8577860622b67b9b9a2. Keep those exact originals.
+Existing collector run 43015122597 attempts 2 and 3 retained official result
+generation 63 at e95d01b35f96cafff9d0313db80e2eb7ab647cac, with 12 requests each.
+Reconcile the same native P0 against these results, then verify its explicit P0
+groups and a model/ticket sample through the existing private Pages checker.
+Do not regenerate forecasts, relabel P0 as P1, or treat the broader result-feed
+counts as this original's acceptance count. Retain the first HOLD report.
+No original timestamp, frozen prediction, receipt, or historical day is replaced.
+Publish only ciphertext and count/hash evidence. Partial source coverage and
+missing official results remain explicit. A successful job is not proof of a
+P1 forecast or a complete nationwide model/day cycle.
+Final P0 display verifier and existing future launcher code: a6458be1f49924911f1352a5f2b9f6bb46d66115.
+
+2026-11-11: recover-first-p0-42995325741 with existing verified display names.
+Run 43034336347 proved 14 official result captures, 13 scored races / 26 forecasts,
+and 2 ABNORMAL_FINISH_REVIEW_REQUIRED holds. Keep those native verdicts.
+The browser correctly rejected names missing from the recovery projection.
+Use the pinned encrypted runtime and existing verified TERM-name merger,
+scoped to this saved day; preserve all forecast dictionaries and earlier days.
+Measure missing names rather than inventing them, then rerun the exact P0
+artifact-bound Pages check. No new forecasts or provider acquisition.
+Current production pin: ba2d2d698b90548dd67b6ca7ac2dada776b09e32.
+
+2026-11-12 source-free re-verification of the authentic 2026-11-11 first P0.
+Verify the existing source-run 42995325741, first P0 artifact 13842474540,
+continuity artifact 13842779131, source-control artifact 13842973909,
+receipt commit 20fc291429003fd0351baef4b0c1918b76b4e066,
+and unchanged vault commit 2448b33de6ecf7388f8fd8577860622b67b9b9a2.
+Use only the source-free original retention, independent AES readback,
+existing native scorer with retained official 11/11 results, and Pages checker.
+No provider requests, no recreated past forecasts, no invented P1 output.
+Preserve all existing SHA, original cutoff clocks and abnormal-finish HOLDs.
+Report only verified new run/job IDs and exact existing-original coverage.
+
+2026-11-12: validate the existing separate reader's retained-P1 scope.
+Read the same untouched 11/11 P0/companions with release
+0534b5d939275cacf61d161dd69aa6d9dc073c96 and --verify-retained-p1.
+This original run has no P1; require honest P1_NOT_RETAINED / zero forecasts,
+not a fabricated positive proof. No source GET, new forecasts or owner dispatch.
+This negative-control replay must not count as new-day P1 acceptance.
+Existing schedules, retry protections, model/scorer logic and AES stay unchanged.
+
+2026-11-12 10:03 JST | Existing BOAT owner launch gate verification attempt
+Purpose: repair missing same-day live P0/P1 original generation and saved-site feed,
+not fabricate today's races from historical/fixture records.
+Observed source-free preflight: main 9ce445a30b36b4c5911653b737490a72c2e538ba;
+production cf7b6f6a926396c6873e78fe1ad1d3d6840088a8; owner history 13/13;
+no 2026-11-12 workflow_dispatch and no active writer at preflight.
+Only main's existing owner_p0_p1_dispatch job is eligible. Its independent
+source-policy, day, SHA and all-run-history gate must decide whether to launch.
+No new workflow, scheduler, model, AES key or provider endpoint.
+Daily cumulative 240 source GET limit, 45 round limit, first original immutability,
+403/429 HOLD, strict cutoff and independent SHA readback remain mandatory.
+Do not label this triggering note as any real-race forecast or Pages publication.
+GOAL: actual nationwide race schedule vs authenticated stage/model originals,
+including reasoned missing coverage and real Pages delivery to secret viewer.
+
+2026-11-12 JST | OWNER SOURCE-FREE FAILED-SESSION P0 READBACK / ENCRYPTED SITE REPAIR
+Target exactly existing real production workflow_dispatch 43131905826,
+production head cf7b6f6a926396c6873e78fe1ad1d3d6840088a8,
+with 2026-11-12 first-P0 artifact 13905925953,
+immutable original ZIP SHA256 5a3287ac9cb45be6907be6c7d370c04addf3216d6e70184bda20e05502c80c6d.
+Actual initial saved receipt says 142 P0 races, 284 existing model forecasts.
+That source run ended FAILURE at the offline official B retention step,
+after first P0 was saved; it also retained matching CONTINUITY and
+SOURCE_CONTROL artifacts 13905208588 and 13906460172.
+The existing source-free main original_retention/independent_readback/
+reconcile path will authenticate all three original artifacts at exact source
+head, restore only original ciphertext and Git source-free already-retained
+official results, then append to the existing encrypted Pages feed.
+No extra official GET, no new source worker, no retroactive or overwritten P0/P1,
+no key/public prediction leakage, no API or request cap change.
+No real P1 generation or nationwide completeness is claimed.
+
+2026-11-12 JST | Result-only official result reconciliation, existing saved P0
+Trigger exactly one existing GitHub BOAT daily result collector via push subject
+boat-result-refresh: owner-p0-43131905826-20261112.
+Required original: 2026-11-12 first P0 saved by owner run 43131905826,
+artifact 13905925953, 142 real races, 284 two-model P0 forecasts.
+Original encrypted ZIP SHA256: 5a3287ac9cb45be6907be6c7d370c04addf3216d6e70184bda20e05502c80c6d.
+GitHub P0 first receipt blob SHA: d5b9cf8b0f5e896bc0f7fd7bfcde62bc809b2992.
+Existing result collector is pinned and must apply its official-source time
+bounds, at most 12 requests in this run, authenticated race IDs/rosters
+and cutoff comparisons, encrypted result retention and append-only saved feed.
+Missing official result stays PENDING, no forced settlement, no P1 recreation.
+One result-only trigger does not authorize a forecast worker or repeat source
+GET beyond existing source policies. Never overwrite P0 predictions or keys.
+
+2026-11-12 JST | SOURCE-FREE exact P0 browser verification after real results
+Use already-existing main owner-readback: recover-saved-p0-43131905826
+for 2026-11-12 saved P0, without any fresh official source GET.
+Results official collector run 43142854952 reported 11 new actual confirmed
+race result observations and 25 confirmed in the two-day window,
+with 131 pending; stored encrypted result-view feed advanced to
+generation 119 and later generation 120 with original forecast SHA unchanged.
+Result-only run browser checker erroneously required absent P1; PR170 fixed
+that mode. This source-free exact P0 readback proves saved result display
+in the same owner view, with unchanged model IDs and P0 receipts.
+Do not relabel historical picks or synthesize missing P1; no extra forecasts,
+provider GET, or buy/sell submission. Treat unresolved races as PENDING.
+
+2026-11-12 JST | FINAL SOURCE-FREE P0/RESULT PAGES RECONCILIATION
+Previous source-free site proof attempt 43143922070 rejected valid old P0
+solely because active main production SHA pin had advanced after PR166.
+Main PR173 now pins this exact old source run ID+SHA and all three artifact
+IDs+SHA256 for READ-ONLY recovery, without altering owner dispatch gate.
+Existing 11 current-day official results were secured by run 43142854952;
+encrypted saved-view feed generation >=119, prediction forecast SHA unchanged.
+This push uses only owner-readback: recover-saved-p0-43131905826;
+source GET count 0; no forecast rerun; retained P0/CONTINUITY/SOURCE_CONTROL
+identity independently verified and existing P0 Pages checker confirms results.
+No manufactured P1, forced payout, rewrite, or new API limit permission.
+
+2026-11-12 | Source-free independent Pages P0 result verification only
+Target: latest retained encrypted same-view forecast feed for 2026-11-12.
+Already authenticated live original 43131905826, artifact 13905925953,
+142 original P0 races, 284 original P0 model forecasts; do not regenerate.
+Already retained 11 actual 2026-11-12 official result races in existing
+private AES feed; last verified source collector reported 25 confirmed total,
+131 pending, 0 held (including 14 prior-day confirmed results).
+Require the existing private Pages reader to select exact 2026-11-12 and P0,
+verify at least 11 saved confirmed results, 2 native P0 model groups,
+visible result cards, outcome labels and source clock without any provider GET.
+New source worker, replay of official HTTP, second source budget or P1 backfill
+are forbidden. Only the existing daily viewer may execute for this push.
+Trigger SHA is not a forecast or results-source receipt; require browser
+LIVE_OWNER_SITE_VERIFIED report before concluding visible results.
+
+2026-11-12 | Read-only saved P0 settlement Pages proof, stage-aware verifier fix
+Use exact existing encrypted display view ID; 2026-11-12 saved P0 original
+43131905826 / artifact 13905925953, original forecast SHA unchanged.
+Actual already retained 11 new official results; check source-free website
+with stage P0, 2 native model groups and at least 11 confirmed 11/12 races.
+Prior read-only run 43145593014 failed only because its old pinned 914941a
+site context CLI did not support --stage P0. PR178 switched read-only viewer
+to the existing P0-aware pinned production SHA 0796b52 while retaining
+the older official result collector version for true official GET runs.
+This push must call only the already safe read-only site verifier:
+no new provider GET, no source retry, no new P0/P1 and no original rewrites.
+Actual LIVE_OWNER_SITE_VERIFIED browser report is required.
+
+2026-11-12 JST | One bounded official-result source follow-up after independent P0 site verification
+P0 source run: 43131905826, 142 real races, 284 frozen P0 model forecasts,
+immutable official-original artifact 13905925953 and authenticated GitHub readback.
+At 2026-11-12 12:14 JST the encrypted Pages view passed LIVE_OWNER_SITE_VERIFIED:
+19 results, 2 native P0 model groups, 34 formally scored predictions,
+and 250 prediction HOLDs pending adequate official result evidence.
+Source intake last observed at 11:50 JST, with 38 cutoffs passed but
+only 19 results authenticated at 12:14 JST. One regular bounded result
+collection pass is justified to add newly published results, if any.
+Use only existing daily result collector, max 12 upstream GET per run,
+existing source rejection/wait protections and immutable AES source state.
+No second P0/P1 producer, backdated forecast, increased source budget,
+new scheduler, unverified result, page-key disclosure or override.
+The real GitHub workflow result and refreshed site readback must be
+checked separately; this audit note itself proves zero new results.
+2026-11-12 JST | GEN124 SOURCE-FREE DISPLAY-NAME VERIFICATION ONLY
+Target the genuine saved 2026-11-12 P0 from source run 43131905826,
+artifact 13905925953, 142 races and 284 immutable P0 model forecasts.
+Already retained: 31 exact official race results, 26 formally scored races
+and 52 predictions at generation 124; 852 display slots, 843 verified TERM
+names and 9 missing. Original P0, all prediction SHA values, and the
+independent scorer must remain unchanged.
+Main source-free original_reconcile checkout and PR regression are pinned to
+tested SHA 976aa8998fb864a8073293df45d69d63fdf73007, whose 303/303
+Python regressions plus Node browser boundary tests succeeded in
+Actions run 43159150841. This reader uses existing verified same-day B archive
+bytes from encrypted model runtime only when exact original source receipt,
+hash, race ID, lane and registration can be proved. Otherwise keep name null.
+On main push with subject beginning
+"boat-owner-readback: recover-saved-p0-43131905826" run ONLY the existing
+original-retention, independent-readback, native scorer, AES-feed display
+enrichment and real Pages browser verification; never run result-refresh
+or owner-P0/P1 production. 0 racing-provider GET; no budget reset, P1
+fabrication, prior forecast changes, artificial names, hidden HOLDs, or
+public raw names/keys. The browser checker line 233 must remain strict.
+Do not count this marker or a green CI as live browser proof. Demand actual
+LIVE_OWNER_SITE_VERIFIED with >=31 genuine official results and 2 native P0
+model groups, or report the exact hold reason with private details withheld.
+
+2026-11-12 JST | AUTHENTICATED RESULT-SOURCE DISPLAY-NAME COLD REPLAY
+Use exactly the saved 2026-11-12 first P0 (run 43131905826, artifact
+13905925953), its already-retained CONTINUITY and SOURCE_CONTROL companions,
+the existing sealed result state, and the existing encrypted Pages feed.
+Source-free reader SHA 924c70204c1365a634ccfc1b9a5aa89f25eb3bc0 passed
+306 Python native regression tests (Actions 43167727122). The main
+original_reconcile reader has an explicit --include-verified-result-names
+switch for this replay only. It may derive display names from already
+retained exact official same-race results, only if result parser authenticates
+original raw bytes, URL, date, complete participant identity and clock and
+the entrant's race ID, lane and registration number all match.
+No fresh official GET; no P0/P1 generation or mutation, no result replacement,
+no budget bypass, no guessed names and no plaintext source or viewer key
+in Public/logs. A conflicting authenticated name must stop the change.
+Original verdicts, prediction SHA and 232 pending/review statuses remain
+authoritative. Browser must independently verify the same stage/model/31-result
+view. Explicitly report both before/after verified name totals; do not label
+the whole 852-name cohort PASS unless all 852 are independently bound.
+Run only existing owner-readback: recover-saved-p0-43131905826 safe gate.
+
+2026-11-12 JST | STRICT SOURCE-FREE GEN125 PAGES CLIENT VERIFICATION
+The authentic 2026-11-12 P0 original run 43131905826 / artifact 13905925953
+is 142 races, 284 frozen model forecasts, unchanged immutable SHA.
+Authenticated 31 same-day official results and 26 races/52 formally scored
+predictions remain unchanged; original 232 HOLD predictions remain HOLD.
+The source-free result-name reader recovered 6 verifiable names, taking
+843/852 to 849/852, with 3 still unproven. The encrypted existing viewer
+rotated from generation 124 to 125 with unchanged forecast SHA
+4169db99a1d99bbcf96c8fa1bfb076ed2d2fb1f434fc64cf7e43b38e55f5adda.
+Initial gen125 browser run 43168455536 timed out at checker line 192
+because the deployed product-data.js rejected the new SAME_RACE_RESULT
+verified provenance kind. This was a client-side schema mismatch, not a
+forecast/model/scorer or encrypted source fault.
+Source-only code fix PR185 passed independent offline JS contract CI run
+43170544139. Verified static gh-pages fix PR186 changed only product-data.js,
+its index.html cache-bust version and site-build.json integrity hashes, with
+no change to encrypted history or viewer secrets; Pages deployment
+43171211314 completed successfully.
+This commit is only to request the existing trusted SOURCE-FREE
+boat-result-view: saved-p0-43131905826-20261112 route, to validate
+generation >=125 real browser results and unchanged two native P0 model groups.
+The existing result-only ingestion/GET step MUST be SKIPPED. Zero source GET,
+zero model/forecast execution, zero new source cap and no source-owner reset.
+Do NOT treat this marker or Pages deployment success as LIVE_OWNER_SITE_VERIFIED.
+Only the new real browser run can establish the display gate. Keep the three
+unverified names as missing until exact authenticated new source proves them.
+
+2026-11-12 JST | SAFE RESCORE AND VERIFIED NAMES FROM NEWLY RETAINED 39 RESULTS
+A genuine existing BOAT schedule run 43170183274 at 15:43 JST added
+8 authenticated 2026-11-12 confirmed results (31 -> 39), publishing
+the existing private encrypted result feed and public count-only status
+through at most 12 official GET in that *normal* run, without prediction
+regeneration. Source-free Pages verification run 43171548663 separately
+proved generation 126, 39 genuine result cards and two native P0 model
+groups through a fixed strict result-name client parser at Pages
+deploy 43171211314. Source-free browser verification used 0 official GET.
+The original P0 remains run 43131905826 / artifact 13905925953,
+142 races/284 immutable forecasts, with 3 of 852 display names still
+unverified at the last exact native reconciliation run 43168455536.
+Perform ONLY the existing owner-readback: recover-saved-p0-43131905826
+pipeline on newly retained official results: original independent readback,
+native model-specific official score, source-verified SAME_RACE_RESULT name
+fill, encrypted Git result append and existing strict live Pages check.
+Only this source-free pipeline is authorized, 0 provider GET, no model
+generation, no new or reset request budget, no post-result backfill of P1,
+and no overwrites. Recheck count-only names, official results, scores,
+HOLDs and original SHA. If 3 remaining names still lack independent
+evidence, keep them null. This marker alone is not an outcome receipt.
+
+2026-11-12 JST | GEN127 SAME-DAY OTHER-RACE REGISTRATION NAME COLD READBACK
+Use only the exact immutable 2026-11-12 first P0 from original owner
+run 43131905826 (artifact 13905925953; 142 races / 284 model forecasts),
+the archived CONTINUITY and SOURCE_CONTROL companions, the existing
+authenticated 39 result observations, and verified encrypted Pages feed.
+At the prior source-free proof run 43172391241, 849 of 852 participant
+display names were source-bound and three remained unknown; two P0 model
+groups, 68 formal scores, and 39 confirmed race results were checked.
+Source-only draft PR #182 code SHA
+1ff2165de381663da705ac480b7e00ee1e733b7a adds a strict source-free
+same-JST-day registration fallback from independently authenticated other-race
+SP results, while refusing foreign day, conflicting names, and mismatched
+registration numbers. Static JS source CI #43175438269 was green and the
+strict site-only PR #190 deployed with Pages workflow #43175915083 success.
+This main change repins only the source-free mirror regression and
+original_reconcile checkout; the source-authoritative owner code SHA,
+original result collector, model, schedule, AES and rate guards remain fixed.
+Existing P0 replay opts into retained-result names without any new source GET.
+Trigger only the preexisting source-free main entry whose commit begins
+boat-owner-readback: recover-saved-p0-43131905826
+Require independently verified original readback, official native evaluation
+without any forecast rewrite, distinct added-name and missing-name counts,
+and LIVE_OWNER_SITE_VERIFIED after the new encrypted feed appears.
+Do not report 852/852 unless explicitly measured. No user keys, private URL,
+registration numbers, raw names, source payloads or tickets in Public logs.
+No additional HTTP source acquisition or timetable-trigger changes.
+
+2026-11-12 JST | GEN128 OFFICIAL PROFILE INDEX MISSING NAME DIAGNOSTIC
+The confirmed 2026-11-12 first P0 owner SHA and 284 original model
+forecasts are unchanged. In AES saved generation 128, 39 official result
+races and 68 formally scored predictions are attested, and exactly ONE
+of 852 participant display names is still unverified.
+A separately published official racer-profile catalogue is attested by
+the existing Pages asset manifest SHA256
+e810da0da13c47ec3f26dc5a1df67c153ee5dc7363e678fa79b61eabd60bb811.
+The verified public source has 1669 athlete records, including 26 exact
+official per-person profile-index entries not in the 2026-2 TERM data.
+It is currently unknown whether the private remaining registration
+matches one of those entries. The manifest indexes page URLs, capture
+clocks and page hashes, but does NOT include the raw official HTML for
+independent re-parsing. Therefore it MUST NOT automatically fill names.
+The reviewed pinned source-free P0 reader SHA
+9a8116c35fcf930c68080852429f26fb826a68cd adds opt-in
+--diagnose-profile-index. Only emit aggregate
+display_name_profile_index_candidates, *_unmatched,
+and *_source_reparsed=false. Never expose registrations, names, encrypted
+source bytes, source keys, model tickets or affected race IDs in logs.
+Never issue extra source GET, re-generate a prediction, overwrite any P0,
+change the original owner worker/collector source budget, or alter score.
+Run only the already-approved source-free exact P0 readback triggered by
+boat-owner-readback: recover-saved-p0-43131905826 after CI passes.
+A positive catalogue candidate is not a verified source. It requires
+authenticated original official HTML bytes to become an allowed name.
+Do not claim completed until all 852 source-verified or explicitly HOLD.
+
+2026-11-12 JST | CURRENT OFFICIAL PROFILE LAST MISSING NAME AES PROOF
+Exact immutable first-P0 owner run 43131905826, P0 artifact 13905925953,
+142 races and 284 saved model forecasts, original forecast hash
+4169db99a1d99bbcf96c8fa1bfb076ed2d2fb1f434fc64cf7e43b38e55f5adda.
+Retained official results last re-evaluated: 39 races, 68 formally scored
+forecasts, 216 native HOLD, AES generation 128, 851/852 names.
+The missing registration's 2026-11-07 original profile HTML changed:
+Nov12 current page hash differs from the historical expected profile hash.
+The official current page itself was captured once under irreversible
+reservation, encrypted, independently re-opened, source-bound and
+strictly re-parsed with GET=0 in Actions 43190414026. This grants only
+CURRENT official identity display provenance; NEVER pre-2026-11-12 forecast
+input evidence and NEVER an authenticated copy of the Nov7 historical page.
+Pinned reviewed read-only source SHA
+d5ede5fb1f336794e8a0217e9b42d559d8ab0cc4 is invoked solely
+in the existing original_reconcile step with opt-in
+--include-current-official-profile; regular source owner, official result
+collector, schedule and budgets unchanged. No new provider GET. Preserve
+original model, original SHA, scores and any native HOLD. Refuse altered
+AES, unbound registration, invalid official page URL/hash/clock or conflict.
+The verified Pages client supports VERIFIED_OFFICIAL_PROFILE source with
+SHA/registration/current-only checks in deployed PR206.
+Only invoke after exact reader SHA source-free PR CI and main offline CI.
+Existing safe push title begins
+boat-owner-readback: recover-saved-p0-43131905826
+The resulting actual P0 readback, 852/852 roster names if attested,
+unchanged prediction/scorer hashes and independent real browser
+LIVE_OWNER_SITE_VERIFIED determine completion. Never publicize name,
+registration number, source HTML, private key, ticket or viewer URL.
+Ongoing BOAT 5-minute source-GET scheduling reliability remains separate.
+
+2026-11-12｜852件目の厳密なブラウザ表示を原本から無取得検証する一巡。
+GitHub PR #208 の固定ソースSHA ea6992702093a1e67c8c4adb19ca01aaab3fbaca は独立CIで Python 320件と Node 16件成功。
+PR #209 のmain接続で既存のfirst-P0読戻しは元の2026-11-12 source run 43131905826を使い、
+142レース・284件の保存済み予想を変更しない。保存表示852件のsource-bound検証と、
+最後の1件について正しいレースDOM/登録番号/枠番/氏名が3画面幅で一致することを確認する。
+結果は last_profile_exact_browser_verified と last_profile_browser_views_checked の件数のみ報告。
+外部公式データGET=0、新規予想=0、元SHA不変。失敗はHOLD、個人識別値はPublicに出さない。
+
+
+2026-11-16 JST: the owner explicitly approved PR302 production integration,
+PR289 actual-SHA main integration, and real automatic forecast restart validation.
+Production84128e0ec8bd9fe3da64ad49f74b8511b07e72be exactly matches the
+reviewed0db526870 tree. Use the EXISTING trusted protected-main release push
+route with its original boat-owner-release: single-real-session-20261111 prefix.
+This is a new invocation of the existing route, not a historical timestamp or
+a new event type. Fresh source-owner/release/history/single-writer gates and
+the producer's authentic AES restoration remain mandatory. A failed, missing,
+expired, refused or mismatched original remains HOLD; no repeated blind dispatch.
+The existing completion-event path continues later workers. No new workflow,
+schedule, permissions, provider, model, fee, public plaintext or wager.
+
+2026-11-16: continue the already approved release using existing PR199.
+PR164 source b491fb21ce58ba085dd8f54bb7326442b840d8f4 and PR174 main
+ce33c976361d4133523ff1d83ec727cc1ff2eb30 passed protected normal merge.
+PR174 did not touch this push-path file, so no release-launch job ran.
+This invocation changes the existing file required by the existing push
+filter and uses its original boat-owner-release: single-real-session-20261111
+commit prefix. Validate real event/head/release/history/single writer,
+authenticate orphan P1/checkpoint AES and exact vault readback, and only
+then let the existing gate consider a new worker. No event spoof, blind
+dispatch, counter reset, invented RESULT, source wait removal or new job.
+Independent run43802953053 reopened failed owner43782543906 with actual
+completed6/prepared7 and11812/11524/70/638;4 ALL_MODEL ZIPs/27 qualified
+slots matched saved AES originals. No full-day or new-successor claim.
+
+2026-11-16T07:55Z: continue the approved release through existing PR69.
+Owner43818666068 naturally completed24 rounds at07:54:09Z with lifetime12770.
+Existing PR288 protected merge produced exact production SHA
+c123b8538006b3189181195bbc91d8f28d216ba5; reviewed d798 tree is unchanged.
+This marker invokes only the existing protected-main release gate. Verify
+actual release/head/history, original AES continuity/control and one writer
+before the next owner; preserve b491 original receipts, clocks and counters.
+No blind dispatch, forged event, new job/cron, weight promotion or wager.
+
+2026-11-17: continue the owner's requested P0 storage failure recovery using existing PR292/70.
+PR292 exact-head d26b7ba CI3 suites and independent review passed; the protected normal merge
+produced actual production82cedd7b6054ef73664a57e6e17709be56fb12c4 with identical reviewed tree.
+Use this exact release only for a new worker. Authenticate latest failed bootstrap43978567937
+(P0 plus AES/public control and first receipt replay), retain/read back all3 originals,
+and preserve13018 lifetime/13017 day base/1 worker GET. Audit historical43829249080
+separately. No blind retry, counter reset, new model, weight switch, job, cron, permission or fee.
+
+2026-11-17: preserve source-free failed gate44017586294, no successor/no counter reset.
+Existing PR108 preserves the prior proposal ancestry and applies only the actual
+verified learning-sidecar projection before first-receipt comparison, plus safe
+code-location diagnostics. Actual productioneff296f6d54ad4be297d93e32f1ee0d4592ad9e3
+matches reviewed df3cc88 tree. Continue through the EXISTING trusted main release
+with source/wait/single-writer/AES/vault gates intact; no new PR/job/model/fee.
+
+2026-11-17: invoke the existing protected-main owner release route through PR171.
+Actual production 86b029ae5bddd5d4956497d8b32b2c92b8eec521 is the ordinary PR201
+merge, matching the reviewed source tree; source CI44070104091 passed all4 checks.
+This updates the EXISTING push-filtered marker. The main merge subject must begin
+boat-owner-release: single-real-session-20261111
+PR163/main519705524de274a6c73124746970615086ca237a did not change this marker
+and used a different prefix: gate-only run44068040299 did not start an M1 worker.
+No M1 or M2 live worker is claimed by this marker.
+
+The last actual owner44019591352 at eff296f6d54ad4be297d93e32f1ee0d4592ad9e3
+naturally completed13 rounds at2026-11-17T10:28:18Z; steps14-24 were no-ops.
+Its public final control reports requests485, lifetime13503, day base13017,
+lifetime completed rounds720, prepared=null and WORKER_HANDOFF. Preserve every
+original receipt, clock, source hash and counter; authenticate final continuity
+and public control independently before admitting one successor. Public control
+is not a claim that the final checkpoint AES has already been authenticated.
+
+Independent raw-AES audit44063726374/job133971901973 reopened38 originals for
+the frozen rounds1-12 snapshot, including13 ALL_MODEL ZIPs from rounds0-12.
+It reopened252 P1 rows:216 matched the saved view and36 were missing. Official
+cutoff qualification remained0 with unknown denominator; this is partial proof,
+not a final-round13 audit, full-day coverage, or permission for a successor.
+Native Mac proof44068042347/job133986892349 at main51970552 succeeded with
+Safari26.6: browser AES/history seed, unchanged Top8 and4 refusal cases;28
+synthetic captures verified actual widths320/390/1440/1920. Account login,
+physical iPhone and all8 reference-screen acceptance remain false. The earlier
+session failure cause remains unknown; startup configuration was unchanged.
+
+Use the exact new source only after the existing trusted event/release/history,
+single-producer, encrypted-original and source-wait gates all pass. The producer
+must restore authenticated originals and cumulative counters without reset;
+missing or mismatched evidence remains HOLD. Keep eff audit/Safari pins and
+historical receipts read-only. No manual source dispatch, forged event, new
+workflow/cron/permission, model/weight promotion, provider, fee or wager.
+
+2026-11-17: use the existing protected-main release route for exact source
+f55351dce855177a51330f72c37d6238ba2c9e3e, normally merged through existing PR63
+after all5 checks. Its tree exactly matches reviewed acf84c7b224f2eb4168cfc76c917388c7744d6b4.
+This append changes the existing push-filtered marker; the main merge subject
+must begin boat-owner-release: single-real-session-20261111.
+Only future workers use the new source. Active M2 owner44075021607 remains at
+86b029ae5bddd5d4956497d8b32b2c92b8eec521; current active history must HOLD
+any new dispatch. Its immutable local checkout, original receipts, clocks,
+source hashes, counters and source-wait/denial conditions are not rewritten.
+
+Existing independent audit44087732511/job134054474873 froze M2 native rounds1-3:
+9 AES originals and9 ALL_MODEL P1 rows matched9 saved-view originals. Missing
+ALL_MODEL archives2/3 remain unexplained with generationnull; missing official
+program evidence keeps qualified totals0 and denominatornull. Later native
+rounds are not added to this fixed proof. No full-day or all-model success is
+claimed. Historical failed checkpoint43829249080 was separately reauthenticated;
+the actual archived13559236491 metadata HOLD remains a separate diagnosis.
+
+The next source is admitted only after the existing gate independently verifies
+the actual protected release/event/head/history, no active producer, and genuine
+final continuity/control. Exact M2 is a reviewed readback origin, never an old
+checkout/proof dispatch authority. Restore cumulative counters and immutable
+first-receipt originals without reset; absent, pending, refused or mismatched
+evidence remains HOLD. The existing completion event or schedule considers
+one successor, with no direct source dispatch or manufactured final control.
+
+Only exact f55351dce855177a51330f72c37d6238ba2c9e3e joins M2's explicit read-only
+partial receipt audit contract. Every selected native P1/RESULT and present
+ALL_MODEL archive still requires exact inventory, SHA/AES/model replay and
+source/clock checks. Missing ALL_MODEL generation remains unknown, with no
+full-day/latest-counter/successor claim. Existing M2 target44075021607/86,
+EFF default/Safari/old-P0 readers and public assets remain unchanged. No model
+family/weight, provider, workflow/job/permission, fee or wager is introduced.
+
+2026-11-17 protected source release: selected-blob prefetch and bounded capture retention
+Future dispatch authority advances only to actual production merge
+bb49215034b779ea1493b35dd91e5c3ebfc04032, normally merged through existing source PR55.
+The actual source tree 8a97242da13235d3f55f127eb157f514a25d8eca equals reviewed candidate
+15fc68755e60db3f4e578ef2b8415e4ed909c9eb. Fresh existing Actions CI 44145608111,
+job 134262269443, passed 791 primary source-free tests plus the separately
+registered source contract, recovery, capture, and Node checks. This is code
+and fixture evidence; no new worker or real-operation success is claimed.
+
+The existing release trigger prefix remains exactly:
+boat-owner-release: single-real-session-20261111
+This append uses the existing owner-pdca-main-trigger.txt push path.
+Release/source dispatch readers select only the new exact SHA; f553, M2 and EFF
+remain historical readback origins, never alternative dispatch authority.
+M2 audit selection stays run 44075021607/source
+86b029ae5bddd5d4956497d8b32b2c92b8eec521; EFF defaults, old-P0 readers,
+Safari/native proof, public assets, and archived helper 900003 stay unchanged.
+The archived helper SHA256 remains
+6f78cb4325f477e1dc8ddf8d2b241ef357cec256d29b4d5a2a16a5827f9cf97e.
+
+Actual M2 completed naturally with DAY_HANDOFF: 10 physical rounds,
+304 session requests, 13807 lifetime requests, day base 13017, no prepared round
+and no source wait. Its later successful step labels are no-ops, not rounds.
+Existing 24-AES/14-pair evidence retains its stated partial/unqualified scope.
+No actual f553 or new-source worker is asserted. BOAT completion callback
+delivery remains unproved; passing code contracts do not prove that trigger.
+The existing schedule, early-window HOLD, fresh-history single-writer gate,
+encrypted continuity and source 403/429 refusals remain mandatory. Never reset
+counters, replace old originals, regenerate a saved forecast, or count a missing
+archive as zero issuance. No full-day, latest-counter, successor, qualification,
+accuracy, or native-iPhone acceptance is added by this source-pin transition.
+
+2026-11-17: count only the exact retained bootstrap P0 of run 44170869325, round 0,
+artifact 14367093570, source bb49215034b779ea1493b35dd91e5c3ebfc04032.
+The existing owner-release prefix/marker path and fresh-history single-writer
+gate are reused unchanged. A live owner must remain HOLD_ACTIVE_OWNER_WORKFLOW.
+The separate closed-artifact stdout counts do not change M2 target/core audit,
+artifact members, current input authority, model weights, or dispatch permission.
+Missing/unverified counts are null; zero is reported only after authenticated
+readback of the complete immutable ZIP. No source acquisition or new producer.
+
+2026-11-17 exact protected source transition: a74f1e940e7fc0852e63938f8138bdb58bd93163
+Tree ec6cdf2fefe1a03e2ef68aeb3991de268fdbdd96 equals the source PR51 candidate
+that passed837 primary and178 independent recovery tests. Future source and
+checkout/proof pins select only this exact release. BB/M2/F553/EFF remain
+strictly reviewed historical originals, never alternate dispatch authority.
+An active BB worker must remain HOLD_ACTIVE_OWNER_WORKFLOW with no duplicate.
+The fixed BB r0 audit, all byte pins, its optional stdout step, M2 target,
+old P0/EFF/Safari readers, original forecasts and weights remain unchanged.
+Existing release prefix: boat-owner-release: single-real-session-20261111
+No new job, permission, input, schedule, runner, timeout, marker or prefix.
+Actual source a74 owner execution, all-day/all-sport coverage and G8 remain
+unproved; this marker does not replace fresh history, AES or source gates.
+
+2026-11-18 00:33:47 UTC: existing native-Safari caller restoration for the exact unpublished UI pin.
+Use only the EXISTING boat-owner-release: single-real-session-20261111 push prefix
+and this existing marker path. The source-core gate and current exact a74 release
+remain unchanged. An active BB producer44170869325 must continue to block another
+owner. No producer restart, counter reset or changed original is authorized here.
+The historical native acceptance caller is restored as one optional LAST step in
+the existing owner job. Only first-attempt trusted-main release push, a real UI
+candidate-pin change from the exact first parent, unchanged other native-workflow
+bytes, public repository, fixed active existing workflow and complete same-head
+history may admit one fixed416758725/main/native-safari POST. An uncertain POST
+is never repeated. Same candidate means static SKIP. Native proof stays false
+until the actual job succeeds. Existing jobs/permissions/inputs/schedules/runners/
+timeouts/prefixes/marker paths do not increase. Owner key stays in Actions and is
+not used by this metadata-only caller; no official source GET or UI publication.
+Candidate ed904fe62dad470a91ababce623c52c1fbde5861/web5759ac3 remains Draft62.
+Prior actual598 Mac proof is distinct. Physical iPhone/all8 references, full-day/
+all-sport coverage and prospective efficacy remain unproved. FreshCI/review and
+actual POST/native logs must be observed; this marker itself proves none of them.
+
+2026-11-18 01:40:12 UTC: verify the real BB handoff and the existing saved-view diagnostic.
+Producer44170869325 at exactBB closed naturally: its log reports24 completed
+rounds, WORKER_HANDOFF and304 worker GETs. These producer counts are not an
+independent final-AES proof. Preserve all original forecasts, source receipts,
+clocks and lifetime/day/worker counters. The last actual protected-source query
+at2026-11-18 01:37:45UTC showed zero a74 workflow_dispatch runs; completion-event
+and schedule delivery remain unproved. Use ONLY this existing marker path and
+existing boat-owner-release: single-real-session-20261111 prefix for the normal
+fresh-history/single-writer/main/source/continuity/public-control gate. The gate
+must authenticate the exact closedBB originals before considering the current
+reviewed a74 source. Any active owner, source wait, mismatch or missing proof
+remains HOLD; this note is not dispatch or source-access authority by itself.
+No old worker rerun, original regeneration, source-budget reset or weight change.
+The same release runs a count-only AES-base diagnostic in the existing national
+job. BB's26 saved-view binding rejections and staleNov17/gen423 remain unresolved.
+The diagnostic makes no source GET, repair, publication or model promotion.
+Native same-ed904 pin is unchanged and must SKIP another automatic Mac request.
+No new job definition/permission/dispatch input/cron/runner/timeout/prefix/marker,
+artifact membership, model family, public UI, fee or wager is introduced.
+
+2026-11-18 selected-snapshot rejection anchor proof (read-only)
+Authenticate immutable saved-view424/6eea8632 and same-day423/71c1b06f using
+existing Actions-only F/H readers and filtered read-only Git transport. Output
+only fixed statuses/counts/public snapshot+cipher hashes. Sidecars alone never
+authorize restoration; every orphan needs a byte-equal older ACTIVE original.
+No repair, source GET, publication or model promotion is performed by this audit.
+Current a74 run44218343091 must continue; active-owner admission remains HOLD.
+Reuse this original marker and original release prefix; no new job/permission/
+input/cron/runner/timeout/marker/model family/UI deployment/fee/wager is added.
+
+2026-11-18 bounded older ACTIVE proof and four legacy publication guards
+Keep current a74 worker44218343091 running. Fixed424-to423 proof returned
+ACTIVE_PROOF_MISSING; follow only authenticated same-day previous-cipher and
+generation links within32 snapshots/256MiB/128 parent hops. Never rebuild
+ACTIVE evidence from sidecars, choose reasons or reset any source budget.
+Existing four live legacy publication calls receive a source-byte-pinned
+pre-publication guard; their collectors/readers/argv/GET gates remain unchanged.
+A pure restoration candidate has no writer/CAS/publication connection here.
+No repair is claimed, no source request is added, no new job/input/cron/runner/
+timeout/permission/prefix/marker/model/fee/UI deployment/weight switch is added.
+
+2026-11-18 one-shot authenticated rejection-anchor restoration
+The existing main41 Actions audit authenticated all12 orphan groups using
+three snapshots424/423/422; no sidecar alone supplies authority. Preserve every
+forecast/result/OBS/history/unknown field/clock and add only the proven old
+ACTIVE originals. Use only source86's unchanged V5 CAS publisher once, then
+reopen the returned immutable ciphertext and require complete candidate equality.
+Activation is the first trusted original-prefix main push whose before/first
+parent is09b65329692389fe260e4aa0430e94f341b255dc. Later pushes and job reruns
+must not retry an ambiguous write. No new release prefix or marker is created.
+Current a74 worker44218343091 continues. No source GET/budget reset/model fit/
+weight switch/new job/permissions/input/cron/runner/timeout/fee/UI deployment.
+
+2026-11-18 current encrypted V5 native acceptance: retain the actual gen425 repair and independent missing0 evidence. Verify the revised native checker against the unchanged deployed f603 assets, EFF reader and ed904 candidate through the existing native workflow. Bind one immutable authenticated snapshot, require actual browser AES and today's source/history/selected day; retain false login/iPhone/goal flags until separately demonstrated. Use the unchanged existing owner gate, preserve the running A74 worker and all original budgets; no forced dispatch, source reset, new workflow job/input/runner/timeout, public UI publication, model or weight switch. A checker-byte change is the concrete reviewed reason for one exact-main native request; an uncertain request is never retried.
+
+2026-11-18 actual native HOLD: run44246632536/job134607045564 returned CURRENT_V5_EVIDENCE_INVALID after133 boundary tests passed. Preserve this failure, do not relax acceptance. Request only the revised existing native checker after verified safe diagnostics: seven fixed phases and26 primitive bool/count/null fields, with final audit sampled after both cleanup steps. No private URL, key, race/model identifier, tickets or decrypted body is exported. Same f603/EFF/ed904/native workflow; current source remains A74 until a separately tested normal source merge and exact main pin synchronization. Existing owner single-writer/source budgets and original marker/prefix remain unchanged.
+
+2026-11-18 exact protected source pin synchronization and native-reference count correction.
+Reviewed source PR39 tested bcb3eb40811ec117001649bb27b7343ba79e62a2,
+tree33a715b8293b25ac4d55bf1761899f44b46f6e1c, normally merged as protected
+f1f8ed4ffb2a29e6b702685f49de63918610479d with the exact same tree.
+Synchronize existing main dispatch/current-reader/callback/partial-origin roles
+to that actual protected SHA; preserve all older original readback roles and
+fixed historical readers. Cache is transport-only and future-worker-only;
+no live speedup is claimed. A74 run44218343091 completed all24 rounds without
+skip, and existing automatic continuation44252479726 remains the active owner.
+Preserve that worker, original counters and snapshots; no interruption,
+hotswap, new source dispatch, budget reset or relaxed admission is requested.
+Correct current-V5 acceptance to count unique authenticated native references
+present in the unchanged UI; extra generic/comparison P1 remains available.
+Require every authenticated reference and the original exact count equality.
+Preserve actual Mac44252487186 HOLD (expectednative9/allP1observed21) as failure
+evidence. Only the genuinely changed checker justifies one existing exact-main
+native request after fresh tests; uncertain ACK is never retried. Physical
+iPhone/current-day Mac success/all-day coverage/efficacy require actual evidence.
+Use the unchanged prefix boat-owner-release: single-real-session-20261111,
+this same marker, workflow/job/input/cron/runner/timeout/permissions and release
+gates. No key export, private forecast output, UI publication, wager, model
+family, weight switch, new PR, paid service or receipt/clock rewrite.
+
+2026-11-18 protected venue-diagnostic source synchronization.
+Normally merged source PR34 is c979aeb678538d99e277f26726047dccbdc982af,
+tested tree766b8a3ea5d9d3b85e0f399523ede2eb8f1b688b (candidatee803f654).
+Actual source CI877/38/165/46 plus3/12 contracts passed; raw exception text,
+private identifiers and arbitrary class names remain excluded from diagnostics.
+Advance only current main dispatch/reader/callback roles to this actual SHA.
+Retain F1 read roles and prior P0 rules, both failed-origin contracts and all
+fixed M2/BB/EFF/0796 readers. There was no F1 workflow_dispatch, so no F1
+original/control provenance is invented. New F2 P0 inheritance is restricted
+to the same four reviewed issued origins (M2/profile/BB/A74), never F1/unknown.
+Preserve active A74 continuation44252479726 and its original counters; no
+interruption, hotswap, source budget reset or extra owner dispatch is requested.
+Run the separate existing-job read-only count audit of closed A74
+44218343091 with its exact sourceA74 codec and SHA-bound main count readers.
+Keep missing ALL_MODEL rounds4/19 HOLD; this P1/unqualified-native audit is
+not a complete P0/P1 union, new G8 denominator or prospective efficacy proof.
+Use the existing marker/prefix/jobs/inputs/permissions/cron/runners/timeouts.
+The native checker/candidate bytes are unchanged; preserve actual Nov18
+Mac/gen433/79results/9native success and physical-iPhone/login/8-reference
+visual false flags. Do not request another unchanged native run.
+No key export, private payload or real screenshot output, UI deployment,
+wager, model family, paid service, production weight or original clock rewrite.
+
+2026-11-18 protected HTTP receive-clock source synchronization.
+Normally merged source PR26 is 995ef00a2ffb98a0161e1875d7d2a33145367b40,
+tree c3968e028da7b4c68a422582bddac6d81232add9, identical to reviewed e4386739.
+Actual source CI passed 880 primary tests and the unchanged 3/12/38/165/46
+separate checks. Future ON raw-HTML capture returns the same receive-clock
+object retained with the original body; OFF behavior, pacing and post-pacing
+day refusal remain unchanged. Generation uses its own actual later clock.
+No historical timestamp, cutoff, body, forecast, parser or weight is repaired.
+
+Advance only the existing current dispatch/reader/callback roles to this exact
+source. Preserve C979/F1 and all issued historical roles; P0 inheritance from
+a different source stays limited to M2/profile/BB/A74. Both failed-origin
+contracts and fixed M2/BB/EFF/native readers remain unchanged. No C979/F1
+original is assumed. Closed A74 worker44252479726 finished naturally at
+12:15:41Z: 14 prepared/completed rounds, with rounds15-24 handoff no-ops.
+Additional-generation producer reports are positive in8 and zero in6 rounds.
+These statements are log evidence, not a final independent control-AES proof.
+The existing unchanged gate must authenticate final continuity/control,
+cumulative counters, fresh history and source waits before any successor.
+Never manufacture readiness, directly dispatch a source worker, reset a
+budget, repeat an ambiguous request or claim a new-source run from this note.
+
+Use only the existing boat-owner-release: single-real-session-20261111 prefix
+and this existing marker path. No workflow/job/input/permission/cron/runner/
+timeout, native candidate/checker, UI publication, model family, paid service,
+wager or production weight change is introduced. Physical iPhone, full-race/
+all-model/four-sport coverage, T15-10 timeliness and prospective efficacy remain
+unverified. Source995 actual worker/capture-clock proof requires actual logs.
+
+2026-11-19 protected clothing benchmark and retention-validation source synchronization.
+Normally merged source PR21 is fbc743be548bfd123e46cdbfe290515a59e5e0d3,
+tree 1068d5a0d1225e0638a31528f8031a5b8e9fc584, identical to its tested source tree.
+Advance only the existing current dispatch/reader/callback roles to this exact
+source. Preserve 995/C979/F1 and all issued historical audit/callback roles.
+New-source P0 inheritance remains same-source or M2/profile/BB/A74 only;
+The new role refuses 995/C979/F1/unknown P0. Every older role continues to
+refuse P0 originating from this new source.
+Frozen failed-origin contracts, closed M2/BB/EFF/A74 readers and the fixed M2
+read-only target are unchanged. Retain original AES readback, source clocks,
+cutoffs, receipts, counter continuity, fresh history and the existing source waits.
+The synthetic clothing and retention checks do not prove live T15-10 operation,
+four-sport/all-race/all-model coverage or prospective improvement.
+Use only boat-owner-release: single-real-session-20261111 and this existing
+marker path. No new job/input/cron/runner/timeout/permission, direct dispatch,
+model family, production weight, paid service, UI publication or wager is added.
+
+2026-11-19 personal-use native replay rejection diagnostics.
+Actual reviewed code b5f907c4bdcbebc0734f3d172d9aa86bcb21133f
+adds fixed phase/allowlisted reason/bounded read counts to the existing
+CURRENT_V5_REPLAY_INVALID report without changing its admission predicate.
+Integrated checker blob 3d43773123747717444d0172f5eeffdf3b251c28 and
+helper blob 4aeb73f49aef54cf5d4b65fb8c3e238b83c6218c retain all source/day/
+crypto/byte guards and unchanged EFF reader/workflow/UI assets.
+The protected owner source stays fbc743be548bfd123e46cdbfe290515a59e5e0d3.
+Use only boat-owner-release: single-real-session-20261111 and this existing
+marker for the real reviewed implementation change. The unchanged fresh-history
+owner gate alone may admit a worker; no direct source dispatch, counter reset,
+new entry/job/input/cron/runner/timeout/permission/model/paid service is added.
+The owner clarified personal-use development rather than general publication.
+No Pages asset publication or production weight/wager action is introduced.
+Morning delivery audit is metadata evidence, and pure READY is not an actual
+Actions launch. Record the next real gate/worker/native results independently.
+
+2026-11-19 JST: reviewed exact bootstrap P0 recovery implementation.
+Protected source 1dbb47b68d487fc6def0bd4b10b1423f0a2145f6 (PR15; tested tree fac54c8e4fd3ceeb8177e408487ca80e9b1e76d4).
+Bind the current checkout to the real failed fbc owner 44409798061 without relabeling history.
+Authenticate and retain the original r0 14475644448, restore V5/issued maps, and forbid regeneration.
+Preserve all counters, original clocks, fixed contracts and the existing single-writer gate.
+Use only boat-owner-release: single-real-session-20261111 and this existing marker.
+
+2026-11-19 exact current-source closed-prefix read-only verification.
+Protected source remains 1dbb47b68d487fc6def0bd4b10b1423f0a2145f6.
+Independently reopen the observed first two rounds of owner44426169530,
+binding all seven exact receipt IDs, digests, sizes, clocks and repository IDs.
+Preserve complete run/job/inventory metadata; report later rounds as excluded.
+Authenticate both historical fbc r0 and current S r0, first P0, saved original
+inventory and the issued-model projection without reissuing a prediction.
+The issued-model projection is reconstructed from the authenticated saved view;
+this audit does not independently read the runtime issued file.
+Use the actual observation clock for historical HMAC and receipt validation;
+retain source generation's same-day guard and never backdate any original.
+Keep missing round1 ALL_MODEL archive unknown/HOLD, never inferred as zero.
+Read the current saved-view commit at its own observation time, not at round2.
+No latest-control/whole-day/T15-10/G8/accuracy completion is asserted here.
+The running owner is not interrupted or directly dispatched by this audit.
+The existing main gate alone handles subsequent owner state and counters.
+The existing KEIRIN probe may report typed 403/429/UNKNOWN counts under its
+unchanged denial-stop policy. The existing prospective gate now also accepts
+horse; no new model or live horse success is inferred from its fixture tests.
+Use only the existing release prefix and this marker, with unchanged jobs,
+steps, inputs, permissions, cron, runners and timeouts. No UI deployment,
+wager, production weight switch, owner-key export or new paid service.
+
+2026-11-19 richer public-only native Safari capture.
+Reviewed author04777fce6baf8a234219157801fa24569b98a794 changes only the
+existing candidate synthetic fixture and its browser checks. Bind checker blob
+5ff7c6492d98f267e69248ea26a91bf6be6c382e to the exact f723 invented fixture
+ef3a81f4c026267063a96d37333c9708a0049342e9a094c8061a11b92bb7feea.
+Keep real-data private replay, empty-storage rejection, original clocks, current
+V5 limits and public f603 assets unchanged. Disable only synthetic preference
+writes and never erase existing storage. Measure four sport rosters before the
+existing 28 synthetic captures. The existing native helper may test this real
+checker change once; never directly dispatch the forecast source. No physical
+iPhone, login or all-eight-reference acceptance is inferred from fixtures.
+Use the sole existing release prefix/marker and existing jobs/steps/inputs/
+permissions/cron/runners/timeouts. No UI deployment, model/weight change or fees.
+
+2026-11-19 fixed native forward study and bounded raw diagnostic.
+Keep source1dbb47b68d487fc6def0bd4b10b1423f0a2145f6, its original models and
+all frozen contracts unchanged. Pre-registration spec has one preserved nonce,
+actual main parent a277a692a2791c77ee89a2e9af71582f5c98d458 and an UNBOUND
+witness. Resolve existing candidate hashes only on Actions; the existing report
+artifact supplies a real server timestamp before any future enrollment.
+No backdating, retroactive registration, old574-pair denominator, early support,
+model refit, production weight change or official G8 promotion is authorized.
+New study cache uses a bounded resident LRU and single-response limit while
+measuring cumulative reads without a total-acquisition cap. Core authentication
+precedes projection; input-only and the full registered schedule remain intact.
+The same existing main step may independently replay at most two deterministic
+native raw originals at one immutable vault snapshot, reporting only counts,
+fixed holds and hashes. Raw agreement is not publication/actual-close proof.
+Candidate-only capture waits for stable frames/route/content/scroll and repeats
+privacy checks; the real private reader and all public UI assets stay unchanged.
+Use only boat-owner-release: single-real-session-20261111 and this marker.
+Existing owner gates alone may admit normal continuation; no direct source
+retry, interruption, counter reset, new job/step/input/permission/cron/runner/
+timeout, UI deployment, wager, model family, paid service or local key export.
+
+2026-11-19 bind the original native server witness and inspect failed retention.
+Keep the original M4 witness run44449743664/artifact14495645723, one nonce and
+the unchanged spec. The immutable server receipt fixes 2026-11-19T03:15:30Z
+through 2026-11-24T03:15:30Z; Actions must authenticate the actual candidate
+and witness again before reporting registration or cohort counts.
+Read only the exact r18/r23/r24 research candidates at one observed transfer
+commit with complete original/ciphertext authentication. Do not republish or
+infer historical push completion from current presence or fallback counters.
+Safari adds bounded startup structure diagnostics after the observed session
+creation failure. No retry, extra HTTP request, permission change or timeout
+change is authorized, and no Safari failure is claimed fixed without proof.
+The existing main gates and the same sole marker remain the only release path.

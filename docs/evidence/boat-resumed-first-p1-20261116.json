@@ -1,0 +1,51 @@
+{
+  "owner_run_id": 43803973248,
+  "source_sha": "b491fb21ce58ba085dd8f54bb7326442b840d8f4",
+  "artifacts": [
+    {
+      "artifact_id": 14197897453,
+      "kind": "P1",
+      "name": "boat-national-cutoff-43803973248",
+      "created_at": "2026-11-16T04:38:08Z",
+      "zip_bytes": 68349,
+      "zip_sha256": "8a941510ebd4068962438cda1ea3eeff973fe47234e4d66c658a7a2be25820a4",
+      "physical_zip_digest_verified": true,
+      "encrypted_only": true
+    },
+    {
+      "artifact_id": 14198425877,
+      "kind": "ALL_MODEL_P1",
+      "name": "boat-all-model-forecasts-43803973248-r1",
+      "created_at": "2026-11-16T04:38:29Z",
+      "zip_bytes": 3551984,
+      "zip_sha256": "535d39154e1c7220f58d2f01ee6fa04e0dfc3dedfdfe2ac470ece15a0e5113af",
+      "physical_zip_digest_verified": true,
+      "encrypted_only": true
+    }
+  ],
+  "physical_new_p1_saved": true,
+  "local_decryption_attempted": false,
+  "first_round_completed": true,
+  "independent_new_p1_AES_verified": false,
+  "all_day_coverage_proven": false,
+  "first_round_step": {
+    "name": "Deadline-ordered five-model round 01",
+    "number": 35,
+    "status": "completed",
+    "conclusion": "success",
+    "started_at": "2026-11-16T04:37:14Z",
+    "completed_at": "2026-11-16T04:41:02Z"
+  },
+  "producer_native_P1_AES_and_vault_readback_passed": true,
+  "owner_status": "in_progress",
+  "active_steps": [
+    "Deadline-ordered five-model round 02"
+  ],
+  "producer_result_AES_and_report_readback_passed": true,
+  "nested_P1_byte_equality_independently_verified": false,
+  "evidence_correction": {
+    "supersedes": "NEW-OWNER-FIRST-P1-ROUND-VERIFIED-FROZEN.json",
+    "superseded_sha256": "a2a0470587df527910096d1c351f37681ebea24136bde633900791a33be30284",
+    "reason": "NORMAL_ROUND_CHECKS_RESULT_AES_AND_REPORT_NOT_NESTED_P1_BYTE_EQUALITY"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_PRESERVATION_V1",
+  "recorded_at_utc": "2026-11-18T05:48:00Z",
+  "repository": "haji84/RACE-AI",
+  "pr": 37,
+  "original": {
+    "state": "open",
+    "draft": true,
+    "title": "feat: 徳山公式モーター抽選表の登録番号・モーター抽出",
+    "body": "徳山公式のモーター抽選結果ページで確認した列構成（順位/登番/級別/選手名/モーター番号/率/ボート番号/率/前検タイム）を基準に、保存済みHTMLから登録番号・氏名・モーター番号を抽出するオフラインパーサを追加。重複、出典不一致を拒否。公式ページの表示内容に基づく合成HTMLテストであり、実HTMLバイトを用いたE2Eは未完了。開催節同一性・取得時刻・出典検証は外部工程で必須。main/Production変更なし。",
+    "head_ref": "feat/tokuyama-real-layout-motor-parser",
+    "head_sha": "0324a43387b131f224f4676e51a8c2809cd3e44e",
+    "base_ref": "feat/boat-venue-racer-motor-join",
+    "base_sha": "bc213373adcb94703a837ea05e4ee618c8b0ba30"
+  },
+  "ancestry": {
+    "destination_ref": "main",
+    "destination_sha": "f2819a0084c8947fe266de015b3436619effc900",
+    "merge_base_sha": "0324a43387b131f224f4676e51a8c2809cd3e44e",
+    "behind_by": 0,
+    "ahead_by": 2279,
+    "original_head_is_ancestor": true
+  },
+  "open_base_consumers": {
+    "collection_count": 39,
+    "per_page": 100,
+    "matching_prs": []
+  },
+  "scope": "Preserve original PR; record actual PR38 verification and normal merge; prepare synchronization only after the separately tested source39 is normally merged. Do not invent its protected SHA or alter historical source readers."
+}

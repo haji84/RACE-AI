@@ -1,0 +1,69 @@
+{
+  "schema": "RACE_AI_ACTUAL_P0_FAILURE_AND_NATIVE_DIAGNOSIS_COUNTS_V1",
+  "source_run_id": 44409798061,
+  "source_job_id": 135174569110,
+  "source_head": "fbc743be548bfd123e46cdbfe290515a59e5e0d3",
+  "native_run_id": 44409808616,
+  "native_job_id": 135174602639,
+  "main_head": "4f6efd5207316a5f1ba3ab0255728224f00dcc53",
+  "provenance": "Completed job logs read with existing authenticated GitHub connection; selected status/count fields only",
+  "reports": {
+    "personal_new_source_failed_log": [
+      {
+        "status": "EXACT_ORIGINAL_VAULT_RETAINED",
+        "independent_git_readback_verified": true
+      },
+      {
+        "status": "ALL_MODEL_BOOTSTRAP_CURRENT_COMPLETE",
+        "ready": true,
+        "contexts": 132,
+        "generated_forecasts": 660
+      },
+      {
+        "status": "ALL_MODEL_PATH_REJECTED",
+        "reason": "ALL_MODEL_CLI_OPERATION_FAILED"
+      },
+      {
+        "status": "EXACT_ORIGINAL_VAULT_REJECTED",
+        "reason": "VAULT_GITHUB_HTTP_404"
+      },
+      {
+        "status": "EXACT_ORIGINAL_VAULT_RETAINED",
+        "independent_git_readback_verified": true
+      }
+    ],
+    "private_native_diag_actual_log": [
+      {
+        "status": "NATIVE_SAFARI_ACCEPTANCE_HOLD",
+        "reason": "CURRENT_V5_REPLAY_INVALID",
+        "current_v5_replay_phase": "current_day_authentication",
+        "current_v5_replay_upstream_reason": "HISTORY_DAY_UNAVAILABLE",
+        "current_v5_replay_counts": {
+          "files": 2,
+          "budget_used_bytes": 10932,
+          "budget_remaining_bytes": 268424524
+        }
+      }
+    ]
+  },
+  "control_counts": [
+    {
+      "completed_round": 0,
+      "requests_used": 1,
+      "ready": true
+    }
+  ],
+  "interpretation": {
+    "first_p0_original_vault_readback_verified": true,
+    "additional_r0_generated_forecasts_producer_report": 660,
+    "additional_r0_independent_readback": false,
+    "additional_r0_indefinite_vault_readback": false,
+    "completed_rounds": 0,
+    "additional_models_must_not_be_regenerated": true,
+    "underlying_github_404_cause_confirmed": false,
+    "native_acceptance": false,
+    "all_day_deadline_or_g8_proven": false,
+    "physical_iphone_acceptance": false,
+    "public_ui_deployed": false
+  }
+}

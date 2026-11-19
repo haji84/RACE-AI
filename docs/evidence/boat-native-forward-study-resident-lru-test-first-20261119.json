@@ -1,0 +1,108 @@
+{
+  "schema": "RACE_AI_NATIVE_FORWARD_RESIDENT_LRU_TEST_FIRST_COUNTS_V1",
+  "base_commit": "5afaca1538417e4ee9c7071f07865b79bf98f906",
+  "cache": {
+    "default_resident_bytes": 536870912,
+    "max_single_response_bytes": 67108864,
+    "max_resident_entries": 4096,
+    "cumulative_download_and_get_count": "MEASURE_ONLY",
+    "over_resident_budget_valid_entry": "RETURN_UNCACHED",
+    "evicted_entry": "REREAD_AND_REAUTHENTICATE"
+  },
+  "red": {
+    "tests": 5,
+    "failures": 5,
+    "errors": 0,
+    "seconds": 4.604,
+    "external_network_attempts": 0
+  },
+  "focused_green": {
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 5.164,
+    "external_network_attempts": 0
+  },
+  "full_related": {
+    "tests": 400,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "seconds": 250.257,
+    "external_network_attempts": 0,
+    "files_stable": true,
+    "file_hashes": {
+      "scripts/boat_native_forward_study_audit.py": "53bab2fd676a5ad21a231227c05a3b8fc0a969303fecec75d1a13bbb0e5b1699",
+      "tests/test_boat_native_forward_study.py": "f028a11863d1848696f3057fd724f848ee2da7535ed495213059adf75406beef"
+    }
+  },
+  "full_modules": [
+    "tests.test_boat_owner_national_p1_matrix",
+    "tests.test_boat_exact_all_model_zip_readback",
+    "tests.test_boat_failed_checkpoint_audit",
+    "tests.test_boat_native_matrix_intake",
+    "tests.test_boat_matrix_readback_scope",
+    "tests.test_boat_owner_active_snapshot_audit",
+    "tests.test_all_existing_model_archived_native",
+    "tests.test_boat_current_pair_eligibility_audit",
+    "tests.test_boat_native_forward_study",
+    "tests.test_boat_saved_reason_binding_audit",
+    "tests.test_boat_saved_reason_binding_io",
+    "tests.test_boat_saved_rejection_anchor_proof",
+    "tests.test_boat_saved_rejection_anchor_io",
+    "tests.test_boat_legacy_reason_anchor_guard",
+    "tests.test_boat_saved_rejection_anchor_history",
+    "tests.test_boat_legacy_reason_anchor_entry",
+    "tests.test_boat_rejection_anchor_restoration",
+    "tests.test_boat_rejection_anchor_repair",
+    "tests.test_boat_rejection_anchor_repair_cli"
+  ],
+  "public_dummy_scale": {
+    "schema": "RACE_AI_STUDY_LRU_SCALE_PUBLIC_FIXTURE_V1",
+    "response_bytes": 7607140,
+    "accepted": {
+      "responses": 100,
+      "synthetic_transport_get_calls": 100,
+      "downloaded_bytes": 760714000,
+      "resident_bytes": 532499800,
+      "cache_entries": 70
+    },
+    "evicted_reread_get_calls": 101,
+    "final_downloaded_bytes": 768321140,
+    "final_resident_bytes": 532499800,
+    "cache_budget_bytes": 536870912,
+    "provider_gets": 0,
+    "actual_archives_read": 0,
+    "keys_read": 0
+  },
+  "packet_projection": {
+    "core_authenticated_forecast_records": 3,
+    "retained_registered_forecast_records": 2,
+    "authenticated_input_only_records_retained_unchanged": 1,
+    "nonstudy_corruption_rejected_before_projection": true,
+    "whole_canonical_p0_schedule_preserved": true,
+    "whole_latest_and_scope_preserved": true,
+    "core_public_p0_g8_flags_unchanged": true
+  },
+  "preservation": {
+    "unchanged_files": [
+      "audit/state/boat-native-forward-study.json",
+      "audit/state/boat-native-forward-study-witness.json",
+      "scripts/boat_native_forward_study.py",
+      "scripts/boat_current_pair_eligibility_audit.py",
+      ".github/workflows/boat-owner-national-p1-matrix.yml"
+    ],
+    "other_io_top_level_functions_ast_unchanged": 9,
+    "nonce_spec_window_witness_changed": false,
+    "source_model_weights_crypto_original_clocks_changed": false,
+    "core_reader_or_workflow_changed": false,
+    "existing_per_run_core_cache_outside_lru_budget_unchanged": true,
+    "keys_read": 0,
+    "real_archives_read_locally": 0,
+    "provider_gets": 0,
+    "pushes": 0,
+    "merges": 0,
+    "dispatches": 0,
+    "registration": "UNBOUND"
+  }
+}

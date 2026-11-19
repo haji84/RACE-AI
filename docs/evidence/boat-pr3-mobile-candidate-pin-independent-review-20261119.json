@@ -1,0 +1,69 @@
+{
+  "PAGES_SHA": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+  "SOURCE_SHA": "eff296f6d54ad4be297d93e32f1ee0d4592ad9e3",
+  "allowlisted_capture_asset_bytes": 37569381,
+  "allowlisted_capture_asset_count": 74,
+  "base_main": "054190f928b5645ae1b1087452ae8f9edd15450c",
+  "boundaries_preserved": [
+    "Pinned clean exact Git checkout and all blob bytes",
+    "Synthetic fixture hash and privacy guard",
+    "No owner key/view URL/extra environment or export authority",
+    "Current V5 immutable cipher and legacy live source paths unchanged"
+  ],
+  "candidate_asset_sha256": {
+    "app.js": "c5c172f39e7592b44885e8b4a4bb80fc29af5ddef652512eb522e342644a3ca5",
+    "index.html": "ebe5c116ca645e47aa9b4da29307eddd354463c3c21a3cc02141a6f43b9319e2",
+    "style.css": "cf67f3e93763bb816be5c2a4aeeddbd35b5a6e8b50c9d3e4a3331e1e7e599d08"
+  },
+  "candidate_commit": "b55242230e93ec3975a5a49bf3dd5f46632ff794",
+  "candidate_web_tree": "5cbbfe05a2971485b5c32a84a8ddf7b2539604cc",
+  "effects": {
+    "actual_key_reads": 0,
+    "dispatches": 0,
+    "provider_requests": 0,
+    "remote_writes": 0,
+    "root_or_candidate_file_edits": 0,
+    "source_S_or_registered_M4_or_models_changed": 0
+  },
+  "existing_test_methods_preserved": 164,
+  "fixture_f723_provenance_and_bytes_preserved": true,
+  "independent_targeted_tests": {
+    "OS_socket_syscalls_denied": true,
+    "errors": 0,
+    "failures": 0,
+    "log": "pin-privacy-bounds-tests.log",
+    "seconds": 0.118,
+    "tests": 10,
+    "warnings_as_errors": true
+  },
+  "limitations": {
+    "UI_published": false,
+    "all_eight_reference_acceptance_proven": false,
+    "login_proven": false,
+    "new_real_Mac_capture_proven": false,
+    "physical_iPhone_proven": false
+  },
+  "reviewed_uncommitted_paths": {
+    ".github/workflows/boat-owner-formal-live-pages-proof.yml": {
+      "all_other_bytes_unchanged": true,
+      "literal_replacements": 2,
+      "sha256": "01eaa56c8279123795d3ec8cccc64b9e932d0a9a7ac2069c562f66b4cdcd6d3a"
+    },
+    "scripts/boat_native_safari_acceptance.py": {
+      "all_other_bytes_unchanged": true,
+      "literal_replacements": 3,
+      "sha256": "af5d0545b2d44008a28d60f11cfb344f26bdfe02d7508ce0afa399d9f9e82490"
+    },
+    "tests/test_boat_native_safari_acceptance.py": {
+      "all_other_bytes_unchanged": true,
+      "literal_replacements": 3,
+      "sha256": "d9b5799ec19799ed1532409794b1673a4b372639db9b3e48323ad4fbf0be1a83"
+    }
+  },
+  "runtime_classes_functions_other_bytes_unchanged": true,
+  "status": "CLEAR_PIN_SYNC_ONLY",
+  "strict_loader_verified_git_blob_bytes": 40846603,
+  "strict_loader_verified_git_blob_count": 82,
+  "total_literal_replacements": 8,
+  "workflow_gates_permissions_jobs_runners_inputs_other_pins_unchanged": true
+}

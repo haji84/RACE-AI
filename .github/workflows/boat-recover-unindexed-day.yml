@@ -1,0 +1,182 @@
+name: BOAT admit sealed P0-P1 originals into previously unindexed 2026-11-13 (zero racing GET)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/boat-recover-unindexed-day.yml
+      - scripts/boat_restore_unindexed_owner_day.py
+      - tests/test_boat_restore_unindexed_owner_day.py
+      - docs/evidence/boat-unindexed-day-restoration-20261113.txt
+  push:
+    branches: [main]
+    paths:
+      - docs/evidence/boat-unindexed-day-restoration-20261113.txt
+permissions:
+  contents: read
+concurrency:
+  group: boat-racer-daily-statistics
+  cancel-in-progress: false
+jobs:
+  sourcefree_unit:
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: "${{ github.event.pull_request.head.sha }}"
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0da3f00b0f5c5115f956658d306ddcb9833ec7af
+          path: owner-source
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: owner-source/pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: owner-source/pr72-reference
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r owner-source/requirements-history.txt
+      - name: Exact new-day source-free guard tests and Python syntax
+        run: |
+          python -m unittest tests.test_boat_restore_unindexed_owner_day -v
+          python -m py_compile scripts/boat_restore_unindexed_owner_day.py
+          python - <<'PY'
+          from pathlib import Path
+          code=Path('.github/workflows/boat-recover-unindexed-day.yml').read_text()
+          assert 'group: boat-racer-daily-statistics' in code
+          assert 'RACE_AI_PROGRAM_SOURCE_ENABLED:' in code
+          assert 'zero racing GET' in code
+          assert 'GITHUB_ACTIONS' in Path('owner-source/scripts/boat_private_original_vault.py').read_text()
+          assert 'F.publish_view' in Path('scripts/boat_restore_unindexed_owner_day.py').read_text()
+          assert 'boat-recover-unindexed: sourcefree-43348227701' in code
+          assert 'GH_TOKEN:' in code and 'RACE_AI_STATE_KEY:' in code
+          assert 'www.boatrace.jp' not in code.split('\n  admit_original_day:\n',1)[1]
+          print('BOAT_UNINDEXED_ORIGINAL_SAVED_DAY_SOURCEFREE_GUARDS_PASS')
+          PY
+      - name: Original archive/recovery and V5 history no-provider regressions
+        working-directory: owner-source
+        run: |
+          python - <<'PY'
+          import unittest,race_ai
+          from pathlib import Path
+          for folder in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(folder,'race_ai').resolve()))
+          names=['tests.test_boat_all_model_recovery',
+                 'tests.test_saved_view_history',
+                 'tests.test_saved_model_name_alias_intake']
+          suite=unittest.defaultTestLoader.loadTestsFromNames(names)
+          result=unittest.TextTestRunner(verbosity=1).run(suite)
+          raise SystemExit(not result.wasSuccessful())
+          PY
+
+  admit_original_day:
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message,
+                 'boat-recover-unindexed: sourcefree-43348227701')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    outputs:
+      cipher: '${{ steps.restoration.outputs.cipher }}'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0da3f00b0f5c5115f956658d306ddcb9833ec7af
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: "${{ github.sha }}"
+          path: day-recovery-source
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Restore exact 136-race original P0 and physically generated P1; AES CAS commit + readback
+        id: restoration
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+          RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+          RACE_AI_PROGRAM_SOURCE_ENABLED: 'false'
+        run: |
+          python day-recovery-source/scripts/boat_restore_unindexed_owner_day.py
+
+  independent_day_readback:
+    name: Independently verify the restored 2026-11-13 AES index and P0/P1 stage coverage
+    needs: admit_original_day
+    if: needs.admit_original_day.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0da3f00b0f5c5115f956658d306ddcb9833ec7af
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: "${{ github.sha }}"
+          path: day-recovery-source
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Compare actual AES stage inventory to source writer, no provider GET
+        env:
+          GH_TOKEN: '${{ github.token }}'
+          RACE_AI_STATE_KEY: '${{ secrets.RACE_AI_STATE_KEY }}'
+          EXPECTED_CIPHER: '${{ needs.admit_original_day.outputs.cipher }}'
+        run: |
+          python - <<'PY'
+          import os,sys,json,re,race_ai
+          from pathlib import Path
+          for folder in ('pr64-reference','pr72-reference'):
+              race_ai.__path__.append(str(Path(folder,'race_ai').resolve()))
+          sys.path.insert(0,str(Path('day-recovery-source/scripts').resolve()))
+          from boat_restore_unindexed_owner_day import coverage,DAY
+          from scripts.boat_private_original_vault import _environment
+          from race_ai import saved_view_feed as F
+          from race_ai.racer_result_bridge import SavedResultBridge
+          repo=_environment(Path('.').resolve())
+          bridge=SavedResultBridge(repo,now=__import__('datetime').datetime.now(
+              __import__('datetime').timezone.utc))
+          parent,cipher,gen,view=F.current_view(bridge.git,bridge.bootstrap,day=DAY)
+          expected=os.environ.get('EXPECTED_CIPHER')
+          assert re.fullmatch('[a-f0-9]{64}',expected or '') and cipher==expected
+          counts=coverage(view)
+          assert counts['races']>=136 and counts['stage_races']['P0']>=136
+          print(json.dumps(dict(schema='BOAT_NEW_DAY_INDEPENDENT_V5_AES_READBACK_V1',
+              status='AES_DAY_AND_STAGE_COUNTS_VERIFIED_P1_COMPLETENESS_HOLD',
+              day=DAY,stage_coverage=counts,forecast_original_rewrites=0,
+              official_source_gets=0,independent_run=True,national_schedule_proven=False,
+              all_p1_races_proven=False),sort_keys=True))
+          PY

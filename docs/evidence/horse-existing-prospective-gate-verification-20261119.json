@@ -1,0 +1,29 @@
+{
+  "schema": "RACE_AI_HORSE_EXISTING_PROSPECTIVE_GATE_VERIFICATION_V1",
+  "recorded_at": "2026-11-19T01:22:44.048832+00:00",
+  "author_commit": "57ace7b5ba2f571e96e6a465b35dcbdd88372c80",
+  "integrated_commit": "564042449007d5dc33665a601de99b3c2e7778ce",
+  "runtime_change": "Add horse to existing SPORTS allowlist only",
+  "tdd": {
+    "tests": 27,
+    "expected_initial_failures": 7,
+    "expected_initial_errors": 1,
+    "error_reason": "SPORT_INVALID",
+    "green_tests": 27
+  },
+  "independent_related_tests": 35,
+  "independent_seconds": 0.007,
+  "warning_mode": "error",
+  "existing_thresholds_and_denials_unchanged": true,
+  "all_four_sports_positive_cases": true,
+  "horse_outside_window_cases_rejected_minutes": [
+    18,
+    17,
+    16
+  ],
+  "window_reference": "existing start-time T15\u201310 with 65-second cutoff margin",
+  "user_cutoff_priority_proven": false,
+  "live_horse_generation_proven": false,
+  "jra_nar_all_five_models_applicability_proven": false,
+  "source_or_workflow_or_models_or_weights_changed": false
+}

@@ -1,0 +1,134 @@
+{
+  "kind": "PURE_AES_BASE_REASON_BINDING_AUDIT_RUNTIME",
+  "repository": "haji84/RACE-AI",
+  "file": {
+    "path": "scripts/boat_saved_reason_binding_audit.py",
+    "mode": "100644",
+    "type": "blob",
+    "sha": "88eaf4f0c29296280c38fd7efc9f0abe2d249a0e",
+    "bytes": 5922
+  },
+  "tree_elements": [
+    {
+      "path": "scripts/boat_saved_reason_binding_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "88eaf4f0c29296280c38fd7efc9f0abe2d249a0e"
+    }
+  ],
+  "api_contract_packet": "cfcf994595b441e46eda160030193edc9ce2c812",
+  "immutable_tests": {
+    "pure_test_blob": "6ea5cd4071628d91c3a5658396f6d37c9dd960e2",
+    "methods": 12,
+    "tests_modified": false,
+    "path_adaptation_only_by_root": "reason-binding-source/race_ai/boat_saved_model_view.py"
+  },
+  "proper_red": {
+    "provenance": "Root supplied observed existing national CI results before runtime authorization",
+    "run_id": 44214541265,
+    "job_id": 134500961933,
+    "head": "a350a1b3420c7abd194cd671a34c797faee710e1",
+    "tree": "3aa57da67af953c35cf3049056b49cae74e9bda8",
+    "tests": 215,
+    "elapsed_seconds": 102.186,
+    "existing_pass": 206,
+    "controlled_io_setup_failures": 8,
+    "pure_missing_module_import_errors": 1,
+    "syntax_errors": 0,
+    "fixed_guard_fixture_checkout_success": true
+  },
+  "public_api": "diagnose_view(view, *, guard, origin='AES_BASE')",
+  "public_constant": {
+    "SCHEMA": "RACE_AI_SAVED_REASON_BINDING_COUNTS_V1"
+  },
+  "private_helpers": [
+    "_need_shape",
+    "_empty_counts",
+    "_base_report",
+    "_identity",
+    "_count_side"
+  ],
+  "rationale": [
+    "Accept only the fixed AES_BASE origin, expected private-view schema and bounded list of unique string-identified rows; use the supplied pinned guard's existing JSON tree/size validation without copying or changing the input.",
+    "Call the unchanged guard._observations separately for every row and each observation/rejection side. Only the exact SAVED_MODEL_VIEW_RESULT_REASON_VARIANT_BINDING reason is a binding finding; every other guard error or malformed shape yields one atomic static HOLD with counts null.",
+    "Continue scanning after a binding finding so a later other-guard failure invalidates earlier partial counts rather than emitting misleading zeros or an incomplete success.",
+    "Reproduce the guard's exact active identity key: capture instant for observations; capture instant plus source SHA for rejections. Preserve first active anchor exactly with setdefault.",
+    "Count raw active/history item totals, reason metadata failures, absent source hashes, exact anchor misses and exact identity pairs. Compare non-reason bodies only through the pinned guard's exact wire representation.",
+    "Count semantic-equal capture clocks with different text without normalizing or changing the originals.",
+    "For a rejection orphan, only check present same-instant source hashes for a disagreement. Do not guess an anchor or compare, reconstruct, drop or repair the orphan body.",
+    "Emit only the fixed schema/origin/status/counter names and the six accepted false/zero effect flags. No raw rows, identifiers, capture clocks, source hashes, source URLs, reason values, unknown field names or exception text enter the report.",
+    "Keep other_guard_failures zero only on a complete non-HOLD result. Its unknown whole-report counterpart is counts null on any failure.",
+    "The code has no imports, file/network/environment/process access, key handling, I/O wrapper, actual reader, run_audit or main. Root appends the independently reviewed I/O layer after this pure module body."
+  ],
+  "counter_names": [
+    "active_count",
+    "history_count",
+    "missing_active_anchor",
+    "invalid_active_reason_metadata",
+    "invalid_history_reason_metadata",
+    "source_sha_absent_active",
+    "source_sha_absent_history",
+    "source_sha_different",
+    "non_reason_body_mismatch",
+    "clock_text_mismatch",
+    "compared_active_history_pairs",
+    "other_guard_failures"
+  ],
+  "status_contract": {
+    "normal": [
+      "NO_BINDING_INCONSISTENCY_IN_THIS_VIEW",
+      "BINDING_INCONSISTENCY_FOUND"
+    ],
+    "hold": "HOLD",
+    "hold_reason": "INPUT_OR_GUARD_INVALID",
+    "hold_counts": null,
+    "origin": "AES_BASE"
+  },
+  "effects": {
+    "originals_changed": false,
+    "observations_reconciled": 0,
+    "source_requests": 0,
+    "publication_performed": false,
+    "forecast_generated": false,
+    "broader_goals_proven": false
+  },
+  "guard_contract": {
+    "blob": "e6db8d720aa151940e01f377831a5884eb4b2ba9",
+    "modified": false,
+    "pure_parameter_only": true,
+    "called_interfaces": [
+      "_observations",
+      "SavedModelViewError",
+      "_tree",
+      "_wire",
+      "MAX_BYTES",
+      "_clock",
+      "_sha",
+      "_reason_metadata"
+    ]
+  },
+  "verification": {
+    "exact_GitHub_code_readback": true,
+    "whole_file_short_string_scan": {
+      "invalid": [],
+      "endState": "code",
+      "lines": 131
+    },
+    "python_parse_executed": false,
+    "tests_executed": false,
+    "CI_green_observed": false
+  },
+  "scope": {
+    "runtime_is_pure_only": true,
+    "run_audit_authored": false,
+    "main_authored": false,
+    "reader_authored": false,
+    "guard_or_publisher_changed": false,
+    "test_or_workflow_changed": false,
+    "ref_mutation": false,
+    "provider_get": false,
+    "key_read": false,
+    "process_started": false
+  },
+  "next_action": "Root appends its I/O layer without shadowing the listed pure helpers/constants, installs the combined module on existing PR43 and runs fresh existing CI. No passing or broader-goal claim follows from this authoring/readback packet alone."
+}

@@ -1,0 +1,123 @@
+{
+  "schema": "RACE_AI_OLDER_ACTIVE_ALL_GROUPS_PROVEN_ACTUAL_V1",
+  "observed_at_utc": "2026-11-18T03:51:38Z",
+  "actual_logged_at_utc": "2026-11-18T03:50:20.5314002Z",
+  "main_sha": "09b65329692389fe260e4aa0430e94f341b255dc",
+  "run_id": 44232934955,
+  "job_id": 134562106410,
+  "job_conclusion": "success",
+  "safe_reports": [
+    {
+      "timestamp_utc": "2026-11-18T03:50:20.5308839Z",
+      "report": {
+        "authenticated_base": true,
+        "broader_goals_proven": false,
+        "counts": {
+          "observation": {
+            "active_count": 600,
+            "clock_text_mismatch": 0,
+            "compared_active_history_pairs": 0,
+            "history_count": 0,
+            "invalid_active_reason_metadata": 0,
+            "invalid_history_reason_metadata": 0,
+            "missing_active_anchor": 0,
+            "non_reason_body_mismatch": 0,
+            "other_guard_failures": 0,
+            "source_sha_absent_active": 0,
+            "source_sha_absent_history": 0,
+            "source_sha_different": 0
+          },
+          "rejection": {
+            "active_count": 2,
+            "clock_text_mismatch": 0,
+            "compared_active_history_pairs": 0,
+            "history_count": 24,
+            "invalid_active_reason_metadata": 0,
+            "invalid_history_reason_metadata": 0,
+            "missing_active_anchor": 24,
+            "non_reason_body_mismatch": 0,
+            "other_guard_failures": 0,
+            "source_sha_absent_active": 0,
+            "source_sha_absent_history": 0,
+            "source_sha_different": 0
+          }
+        },
+        "forecast_generated": false,
+        "generation": 424,
+        "observations_reconciled": 0,
+        "origin": "AES_BASE",
+        "originals_changed": false,
+        "publication_performed": false,
+        "schema": "RACE_AI_SAVED_REASON_BINDING_COUNTS_V1",
+        "snapshot_sha": "6eea8632c5d9a5504092c7b7c45ba57f3e7d6ddb",
+        "source_requests": 0,
+        "status": "BINDING_INCONSISTENCY_FOUND"
+      }
+    },
+    {
+      "timestamp_utc": "2026-11-18T03:50:20.5311703Z",
+      "report": {
+        "official_source_requests": 0,
+        "schema": "RACE_AI_EXISTING_WORKFLOW_STATE_COUNTS_V1",
+        "status": "EXISTING_WORKFLOW_STATES_VERIFIED",
+        "workflow_settings_changed": false,
+        "workflow_states": {
+          "independent_audit": {
+            "state": "active",
+            "workflow_id": 418875114
+          },
+          "launcher": {
+            "state": "active",
+            "workflow_id": 410194475
+          },
+          "owner": {
+            "state": "active",
+            "workflow_id": 405276784
+          }
+        }
+      }
+    },
+    {
+      "timestamp_utc": "2026-11-18T03:50:20.5314002Z",
+      "report": {
+        "broader_goals_proven": false,
+        "counts": {
+          "current_active_rejections": 2,
+          "older_active_bodies_checked": 29,
+          "orphan_groups": 12,
+          "planned_active_originals": 12,
+          "proved_groups": 12,
+          "retained_history_originals": 24,
+          "snapshots_checked": 3
+        },
+        "forecast_generated": false,
+        "observations_reconciled": 0,
+        "originals_changed": false,
+        "publication_performed": false,
+        "schema": "RACE_AI_SAVED_REJECTION_ANCHOR_PROOF_V1",
+        "snapshots": [
+          {
+            "cipher_sha256": "3ebea79d29ab4d0cdf84226428077574e10f3ea16f2fde6df56e83a6e7c5d89a",
+            "snapshot_sha": "6eea8632c5d9a5504092c7b7c45ba57f3e7d6ddb"
+          },
+          {
+            "cipher_sha256": "c6e3242c4687c97fbe54777c63d007d9f8e898ce6b0b6ccca3aecbdecf223513",
+            "snapshot_sha": "71c1b06f36c4b6c01fcca6432c64ff5f4a18b8b9"
+          },
+          {
+            "cipher_sha256": "2ae7379d751b75f9323dbc6b6ad6baaf2c1616c3cdeae65297cc57a4249cce92",
+            "snapshot_sha": "86f0f31289e7a5f0f0708880d2e696e82dae3255"
+          }
+        ],
+        "source_requests": 0,
+        "status": "ALL_ORPHAN_ANCHORS_PROVEN"
+      }
+    }
+  ],
+  "interpretation": "All12 orphan rejection groups have byte-equal older ACTIVE originals in the authenticated same-day3-snapshot chain. This is restoration evidence, not a performed repair.",
+  "prior_fixed_423_proof_was_missing": true,
+  "actual_restoration": false,
+  "publication_performed": false,
+  "source_requests": 0,
+  "goal_complete": false
+}

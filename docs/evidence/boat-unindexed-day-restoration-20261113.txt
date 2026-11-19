@@ -1,0 +1,28 @@
+2026-11-13 source-free BOAT owner new-day encrypted original admission.
+
+The V5 index in state/boat-saved-view at head
+6383db3fad783dd40ad40be3b828c0b783b3aad9 has generation 138,
+cipher SHA256 52e194c99217b5dfdbd5db7d35c203cc762d91ce577a936e93ea53f642a10bee,
+and five authenticated days excluding 2026-11-13.
+
+Authenticated original owner run 43348227701 physically saved and independently
+read back initial 136 P0 races and 680 5-model P0 forecasts plus real partial P1.
+A source-free preview #43373587491 confirmed 4 signed model archives and 806
+projected original forecast items, but the original recovery implicitly
+scoped the day to the already-indexed 2026-11-12, excluding 145 forecast
+race rows with a different event date. Full contents were not logged.
+
+This exact event authorizes one and only one AES state publication:
+read the old V5 router and original inventory under immutable SHA,
+recover only the already signed owner run artifact group with explicit
+target day 2026-11-13, require original inventory and clock conservation,
+verify newly introduced artifact IDs via original permanent vault,
+append an authenticated V5 day descriptor under CAS, reopen the exact new
+encrypted router and day, and have a separate runner reopen and report
+per-stage counts. Never issue an official provider GET or new prediction;
+do not interpret partial P1 as full all-day P1 or fabricate missed
+deadline-window forecasts. No new worker runs or quota reset.
+
+On any identity, source scope, forecast SHA, CAS, independent cipher,
+source quota, or missing physical original failure, stop with an explicit
+HOLD and do not claim completion.

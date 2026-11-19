@@ -84,6 +84,103 @@ class CloudPr71GitHistoryTests(unittest.TestCase):
             self.assertEqual(saved["suite"]["model_count"],4)
             return saved["suite"]["suite_sha256"]
 
+    def concurrent_append_after_push(self, mutate):
+        """A second real clone appends after the first push, before readback."""
+        underlying_git = cloud.git
+        appended = False
+
+        def concurrent(repo, *args):
+            nonlocal appended
+            result = underlying_git(repo, *args)
+            if not appended and args == ("push", "origin", "HEAD:refs/heads/" + cloud.STATE_BRANCH):
+                appended = True
+                self.first_commit = underlying_git(repo, "rev-parse", "HEAD")
+                self.other = self.root / "concurrent-runner"
+                sh("git", "clone", str(self.remote), str(self.other))
+                sh("git", "checkout", cloud.STATE_BRANCH, cwd=self.other)
+                mutate(self.other)
+                sh("git", "add", "--all", cwd=self.other)
+                sh("git", "-c", "user.name=second-writer",
+                   "-c", "user.email=second@example.invalid",
+                   "commit", "-m", "independent state update", cwd=self.other)
+                sh("git", "push", "origin", cloud.STATE_BRANCH, cwd=self.other)
+            return result
+
+        return patch.object(cloud, "git", side_effect=concurrent)
+
+    def test_concurrent_other_lineage_append_preserves_success_and_original_blob(self):
+        original = self.frozen()
+
+        def add_other_lineage(tree):
+            target = tree / "state/keirin/other-history/receipt.json"
+            target.parent.mkdir(parents=True)
+            target.write_text('{"fixture_only":true}\n')
+
+        with self.concurrent_append_after_push(add_other_lineage):
+            try:
+                saved = cloud.commit(self.repo, self.source, self.db, None)
+            except cloud.ArchiveError as exc:
+                self.fail(f"A legitimate concurrent append rejected the saved generation: {exc}")
+        remote_head = sh("git", "--git-dir", str(self.remote), "rev-parse", cloud.STATE_BRANCH)
+        self.assertNotEqual(remote_head, self.first_commit)
+        self.assertEqual(saved["state"], "CLOUD_PR71_ENCRYPTED_GIT_HISTORY_READBACK_VERIFIED")
+        self.assertEqual(sh("git", "--git-dir", str(self.remote), "show",
+                            cloud.STATE_BRANCH + ":state/keirin/other-history/receipt.json"),
+                         '{"fixture_only":true}')
+        reread = self.root / "second-clone-readback.sqlite3"
+        head, inventory = cloud.restore(self.other, self.source, reread)
+        self.assertEqual(head["cipher_sha256"], saved["cipher_sha256"])
+        self.assertEqual(inventory["frozen"], 1)
+        with PrivateKeirinStore(reread) as store:
+            self.assertEqual(FourModelRankLedger(store).read_suite(RID)["suite"]["suite_sha256"],
+                             original)
+        self.assertEqual(sh("git", "--git-dir", str(self.remote), "show",
+                            cloud.STATE_BRANCH + ":state/keirin/v1/README.md"),
+                         "EXISTING SYNTHETIC STATE MUST SURVIVE")
+
+    def test_concurrent_cipher_tamper_cannot_be_accepted_as_a_valid_append(self):
+        self.frozen()
+
+        def tamper(tree):
+            head = json.loads((tree / cloud.HEAD).read_text())
+            (tree / head["snapshot_file"]).write_bytes(b"tampered ciphertext")
+
+        with self.concurrent_append_after_push(tamper):
+            with self.assertRaisesRegex(cloud.ArchiveError, "REMOTE_ENCRYPTED_FILE_READBACK_MISMATCH"):
+                cloud.commit(self.repo, self.source, self.db, None)
+
+    def test_concurrent_scope_deletion_cannot_be_accepted_as_a_valid_append(self):
+        self.frozen()
+
+        def remove_scope(tree):
+            head = json.loads((tree / cloud.HEAD).read_text())
+            (tree / head["scope_file"]).unlink()
+
+        with self.concurrent_append_after_push(remove_scope):
+            with self.assertRaisesRegex(cloud.ArchiveError, "REMOTE_ENCRYPTED_FILE_READBACK_MISMATCH"):
+                cloud.commit(self.repo, self.source, self.db, None)
+
+    def test_selected_ab_stops_new_pr71_cycle_before_source_or_archive_access(self):
+        env = {
+            "GITHUB_ACTIONS": "true", "GITHUB_REPOSITORY": cloud.REPO,
+            "GITHUB_REPOSITORY_ID": cloud.REPOSITORY_ID,
+            "GITHUB_REF": "refs/heads/main", "GITHUB_EVENT_NAME": "schedule",
+            "RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED": "true",
+            "RACE_AI_AB_PUBLIC_CAPTURE_ENABLED": "true",
+            "RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED": "true",
+            "RACE_AI_AB_SOURCE_S3_PREFIX": "",
+        }
+        with patch.dict(os.environ, env, clear=True):
+            try:
+                report = cloud.cycle(self.root / "no-checkout", self.root / "no-source")
+            except cloud.ArchiveError as exc:
+                self.fail(f"The superseded producer reached its archive/source path: {exc}")
+        self.assertEqual(report["state"], "LEGACY_PR71_SUPERSEDED_BY_NATIONWIDE_AB")
+        self.assertEqual(report["new_forecasts"], 0)
+        self.assertEqual(report["provider_requests"], 0)
+        self.assertFalse((self.root / "no-checkout").exists())
+        self.assertFalse((self.root / "no-source").exists())
+
     def test_real_four_model_code_aes_checkpoint_and_second_runner_restore(self):
         original=self.frozen()
         created=cloud.commit(self.repo,self.source,self.db,None)

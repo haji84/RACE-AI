@@ -1,0 +1,59 @@
+{
+  "schema": "RACE_AI_DIAGNOSTIC_CI_COMPILE_COUNT_CORRECTION_20261118_V1",
+  "recorded_at_utc": "2026-11-18 01:40:12 UTC",
+  "base_head": "ec31d07df982effff7e1d5708729c52807a4360c",
+  "base_tree": "d1093204676394c4528c6d44be0793387ae64bb7",
+  "run_id": 44216538283,
+  "job_id": 134507653080,
+  "tests": {
+    "total": 226,
+    "seconds": 102.835,
+    "outcome": "OK",
+    "test_methods_changed": false
+  },
+  "failure": {
+    "step": "Compile the independent ALL_MODEL AES reader and keep provider source outside",
+    "assertion": "assert len(blocks)==9",
+    "actual_blocks": 10,
+    "reason": "One legitimate new diagnostic heredoc was added; old exact-count assertion was not updated."
+  },
+  "correction": {
+    "workflow_blob": "a0837952e6c61dd59806e07df46d50191d595371",
+    "expected_blocks": 10,
+    "compile_every_block_unchanged": true,
+    "old_nine_block_bodies_unchanged": true,
+    "fixed_r0_step_bytes_unchanged": true
+  },
+  "added_metadata_probe": {
+    "scope": "Fixed existing workflow state GET only via normal authenticated Actions gh CLI.",
+    "workflow_ids": [
+      405276784,
+      410194475,
+      418875114
+    ],
+    "paths_validated": true,
+    "allowed_states": [
+      "active",
+      "deleted",
+      "disabled_fork",
+      "disabled_inactivity",
+      "disabled_manually"
+    ],
+    "unverified_states_null": true,
+    "raw_body_or_error_exported": false,
+    "settings_changed": false,
+    "new_job_or_permissions": false
+  },
+  "marker": {
+    "path": "docs/evidence/owner-pdca-main-trigger.txt",
+    "sha": "fdd52b18970f9f82c71721bf6b4863a33a118f75",
+    "old_body_exact_prefix": true,
+    "prefix": "boat-owner-release: single-real-session-20261111",
+    "purpose": "Ask the existing fresh-history/AES handoff gate to consider current a74 only after authenticating closed BB. No direct source dispatch."
+  },
+  "runtime_blob_unchanged": "307e83bd20f19cb473323dbef003d2abd518fcf4",
+  "fresh_final_CI": "PENDING",
+  "actual_private_counts": null,
+  "repair_proven": false,
+  "goal_complete": false
+}

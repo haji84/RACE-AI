@@ -1,0 +1,30 @@
+{
+  "schema": "RACE_AI_MAIN5_EXISTING_HELPER_ACTUAL_V1",
+  "run": 44439302607,
+  "job": 135275867074,
+  "main": "a277a692a2791c77ee89a2e9af71582f5c98d458",
+  "outcomes": [
+    {
+      "dispatch_allowed": false,
+      "future_real_forecast_proven": false,
+      "new_model_or_scorer_added": false,
+      "official_results_reconciled": false,
+      "official_source_requests": 0,
+      "recovery_required": false,
+      "release_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+      "schema": "RACE_AI_BOAT_MAIN_OWNER_DISPATCH_GATE_V1",
+      "status": "HOLD_ACTIVE_OWNER_WORKFLOW"
+    },
+    {
+      "dispatch_requested": true,
+      "existing_runs_count": 0,
+      "native_verification_proven": false,
+      "official_provider_gets": 0,
+      "owner_key_read": false,
+      "request_acknowledged": true,
+      "request_attempted": true,
+      "status": "NATIVE_SAFARI_DISPATCH_REQUESTED"
+    }
+  ],
+  "source_worker_directly_dispatched_by_root": false
+}

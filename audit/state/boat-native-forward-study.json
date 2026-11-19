@@ -1,0 +1,49 @@
+{
+  "candidate_context_config_sha256": "2521fc68f618bb06bd7691e0fba9dd91a863fc4fb20a46289f4bb9b45638e2b7",
+  "candidate_training_sha256": "42117035d5e2ac4977308a2276e835a4d79daa14600fd3ee23c10944c0571c03",
+  "cells": {
+    "boat/boat-observed-pairwise-factor-v1": {
+      "arm_versions": {
+        "baseline": "0.1.0-UNTRAINED",
+        "learned": null
+      },
+      "kind": "PROBABILITY",
+      "model_id": "boat-observed-pairwise-factor-v1"
+    },
+    "boat/boat-observed-pairwise-start-v1": {
+      "arm_versions": {
+        "baseline": "0.1.0-UNTRAINED",
+        "learned": null
+      },
+      "kind": "PROBABILITY",
+      "model_id": "boat-observed-pairwise-start-v1"
+    }
+  },
+  "legacy_protocol_blob_sha": "073379c12648064305a8b7e03dfc172d2b448f73",
+  "nonce": "548ad3e11a4fab03f18dc74c0a11992be42dd9b0abb2e8fae7521bdc993af08d",
+  "policy": {
+    "analysis": "FIXED_WINDOW_END_NO_EARLY_SUPPORT",
+    "bootstrap_samples": 2000,
+    "bootstrap_seed": 20261103,
+    "denominator": "ALL_REGISTERED_SCHEDULE_RACES_WITH_MISSING_PENDING_SPECIAL_COUNTS",
+    "metrics": [
+      "HIT_AT_8",
+      "MULTICLASS_BRIER",
+      "LOG_LOSS"
+    ],
+    "minimum_days": 5,
+    "minimum_matched_races": 100,
+    "minimum_venue_day_blocks": 10,
+    "multiplicity": "ALL_CELLS_AND_ALL_METRICS_NO_BEST_CELL_SELECTION",
+    "production_promoted": false
+  },
+  "receipt_precision_seconds": 1,
+  "registration_parent_main_commit": "a277a692a2791c77ee89a2e9af71582f5c98d458",
+  "registry_sha256": "4de65a98854f59f8860811affeecb3b29a7182faf54b29add2494c1d7859456b",
+  "runtime_pointer_sha256": "a08f133ac133ffa75a69b44c5ea044e0ee7cae82c6124858a69a169df45b94b6",
+  "schema": "RACE_AI_NATIVE_FORWARD_STUDY_SPEC_V1",
+  "source_commit": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "stage": "P1",
+  "window_days": 5,
+  "witness_retention_days": 30
+}

@@ -1,11 +1,14 @@
 """Unit tests for daily discover-only immutable coverage ledger."""
 from datetime import datetime
+from contextlib import redirect_stdout
+from io import StringIO
 import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
-from race_ai.keirin_daily_ledger import daily_run, save_once
+from race_ai.keirin_daily_ledger import daily_run, save_once, main
 from race_ai.keirin_discovery import DiscoveryError
 
 DAY="2026-11-03"
@@ -55,6 +58,46 @@ class DailyLedgerTests(unittest.TestCase):
         doc=daily_run(today=DAY,collector=self.sample)
         self.assertTrue(all(r["model_version"] is None for r in doc["records"]))
         self.assertFalse(doc["national_coverage_verified"])
+
+    def test_default_cli_cannot_fetch_excluded_source_or_write_roster(self):
+        from tests.test_keirin_discovery import doc
+
+        class Response:
+            status = 200
+            headers = {"Content-Type": "text/html"}
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                pass
+
+            def geturl(self):
+                return "https://keirin.kdreams.jp/kaisai/2026/11/03/"
+
+            def read(self, limit):
+                return doc()
+
+        class Opener:
+            def __init__(self):
+                self.requests = []
+
+            def open(self, request, **kwargs):
+                self.requests.append(request)
+                return Response()
+
+        transport = Opener()
+        with tempfile.TemporaryDirectory() as folder:
+            output = Path(folder) / "today_manifest.json"
+            stdout = StringIO()
+            with patch("race_ai.keirin_discovery.build_opener",
+                       return_value=transport), redirect_stdout(stdout):
+                code = main(["--day", DAY, "--output", str(output)])
+            self.assertEqual(code, 2)
+            self.assertEqual(json.loads(stdout.getvalue())["state"],
+                             "DAILY_DISCOVERY_INCOMPLETE")
+            self.assertFalse(output.exists())
+        self.assertEqual(transport.requests, [])
 
 
 if __name__=="__main__":

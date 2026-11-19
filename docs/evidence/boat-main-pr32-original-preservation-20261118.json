@@ -1,0 +1,26 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_ORIGINAL_PRESERVATION_V1",
+  "pr_number": 32,
+  "repository": "haji84/RACE-AI",
+  "original": {
+    "title": "feat: 取込済み公式K履歴と選手勝敗分析を接続",
+    "body": "既存SQLite starts（公式K取込）から予測時点以前の選手履歴を抽出し、実進入/枠別成績と勝敗パターン分析に接続。公式K startsには決まり手が保存されていないため、勝者の決まり手は未取得と表示し捏造しない。合成SQLite fixtureの回帰テスト追加。\n\n未完成: 実公式K原本の履歴取込E2E、決まり手の公式別ソース接続、勝ち筋/負け筋の映像根拠、当日データの自動表示。main/Production変更なし。",
+    "head_sha": "e1a780ab2662dd0d2a728717f6cded1bcb2e785d",
+    "head_branch": "feat/boat-racer-sqlite-history-bridge",
+    "base_branch": "feat/boat-racer-win-loss-patterns",
+    "base_sha": "d16e0281665295023dd1536a8d69ec95f1a5ceb5",
+    "draft": true
+  },
+  "ancestry": {
+    "main": "f114fc74dcddce89aaa42dc812379f2cf6da906f",
+    "merge_base": "e1a780ab2662dd0d2a728717f6cded1bcb2e785d",
+    "ahead_by": 2305,
+    "behind_by": 0
+  },
+  "open_consumers": {
+    "complete": true,
+    "count": 33,
+    "consumers": []
+  },
+  "force_update": false
+}
