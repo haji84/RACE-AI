@@ -1,0 +1,27 @@
+{
+  "actual_Safari_fix_verified": false,
+  "added_RPCs": 0,
+  "integrated_code_commit": "e9cdb73b",
+  "original_primary_identity_preserved": true,
+  "original_test_methods_preserved": 164,
+  "reviewed_author_commit": "f0832ee949baac9cf7584636658e31b72ad087bf",
+  "reviewed_four_followup_privacy_and_observation_corrections": true,
+  "reviewed_full_diff": true,
+  "root_regression": {
+    "errors": 0,
+    "external_attempts": 0,
+    "failures": 0,
+    "modules": [
+      "tests.test_boat_native_safari_acceptance",
+      "tests.test_boat_native_safari_dispatch"
+    ],
+    "seconds": 20.201,
+    "skips": 0,
+    "tests": 210
+  },
+  "schema": "RACE_AI_NATIVE_PRIMARY_CLEANUP_ROOT_REVIEW_V1",
+  "source_blob": "62beb8c756c2bc3478e031676a8dfcfae059ad2b",
+  "source_or_crypto_or_UI_pins_changed": false,
+  "standalone_cleanup_still_HOLD": true,
+  "timeout_changes": 0
+}

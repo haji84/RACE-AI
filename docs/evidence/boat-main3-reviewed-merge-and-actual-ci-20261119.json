@@ -1,0 +1,50 @@
+{
+  "schema": "RACE_AI_MAIN3_REVIEWED_NORMAL_MERGE_AND_ACTUAL_CI_V1",
+  "main": "f4a42cda749e6d52f90610b519df5cd7c896fac5",
+  "tested_head": "35ec4486c1eaafaa8dcf4cbe1263462a8655812c",
+  "identical_tree": "db529bd97c3da502b1f70916f0c37565369a4bbe",
+  "first_parent": "9520104c65c88b3c9c92685ba865d21ad577ced8",
+  "existing_pr": 3,
+  "checks": {
+    "total": 25,
+    "success": 12,
+    "skipped": 13,
+    "failure": 0
+  },
+  "actual_ci": {
+    "job": 135341396594,
+    "run": 44459144346,
+    "conclusion": "success",
+    "timings": [
+      {
+        "tests": 457,
+        "seconds": 359.541
+      },
+      {
+        "tests": 7,
+        "seconds": 23.582
+      }
+    ],
+    "contract_passed": true
+  },
+  "owner_gate": [
+    {
+      "status": "HOLD_ACTIVE_OWNER_WORKFLOW",
+      "dispatch_allowed": false
+    },
+    {
+      "status": "NATIVE_SAFARI_DISPATCH_REQUESTED",
+      "official_provider_gets": 0,
+      "owner_key_read": false,
+      "dispatch_requested": true,
+      "request_attempted": true,
+      "request_acknowledged": true,
+      "existing_runs_count": 0,
+      "native_verification_proven": false
+    }
+  ],
+  "sourceS": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "source_dispatched_directly": false,
+  "ui_published": false,
+  "production_weights_changed": false
+}

@@ -1,0 +1,11 @@
+{
+  "base_ref": "main",
+  "base_sha": "3deb73206208fb6eadb7ac30d848b75e204f6daa",
+  "body": "Research-only public hash receipt for today's Kawaguchi 12R, Isesaki 8R, Iizuka 8R, all fixed 2026-11-10 07:19:55 JST before first known cutoff at 10:53 JST. Picks are 8 basic + 4 extra per race, verified for intra-race uniqueness. This is NOT existing trained RACE-AI model output, not calibrated probability and NOT observed measured trials. No raw predictions publicly committed. Private original ZIP attached to user conversation (SHA256 `e878a8d2b5e3d0a790128d52faea7c265fa4b624e13a9cae112045cd71022439`); attempted Private Library upload failed AccessDeny. Later B forecasts must be independently time-stamped and results scored only against authenticated original ZIP. No changes to 2026-11-09 PR #106. Hold merge pending separate audit.",
+  "draft": true,
+  "head_ref": "audit/autorace-20261110-pretrial-a-0719-sha",
+  "head_sha": "a2d9ac13c790a883c6ace8fd7373a8902e869389",
+  "number": 121,
+  "observed_at": "2026-11-19T04:57:26.776489+00:00",
+  "title": "audit(autorace): freeze 2026-11-10 pretrial A research SHA for all 28 races"
+}
