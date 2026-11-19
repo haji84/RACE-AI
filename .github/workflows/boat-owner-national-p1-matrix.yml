@@ -18,6 +18,11 @@ on:
       - audit/state/boat-m2-independent-audit-target.json
       - scripts/boat_current_pair_eligibility_audit.py
       - tests/test_boat_current_pair_eligibility_audit.py
+      - scripts/boat_native_forward_study.py
+      - scripts/boat_native_forward_study_audit.py
+      - tests/test_boat_native_forward_study.py
+      - audit/state/boat-native-forward-study.json
+      - audit/state/boat-native-forward-study-witness.json
       - scripts/boat_cutoff_raw_replay_audit.py
       - tests/test_boat_cutoff_raw_replay_audit.py
       - scripts/boat_saved_reason_binding_audit.py
@@ -56,6 +61,11 @@ on:
       - audit/state/boat-m2-independent-audit-target.json
       - scripts/boat_current_pair_eligibility_audit.py
       - tests/test_boat_current_pair_eligibility_audit.py
+      - scripts/boat_native_forward_study.py
+      - scripts/boat_native_forward_study_audit.py
+      - tests/test_boat_native_forward_study.py
+      - audit/state/boat-native-forward-study.json
+      - audit/state/boat-native-forward-study-witness.json
       - scripts/boat_cutoff_raw_replay_audit.py
       - tests/test_boat_cutoff_raw_replay_audit.py
       - scripts/boat_saved_reason_binding_audit.py
@@ -123,7 +133,7 @@ jobs:
           sparse-checkout: race_ai/boat_saved_model_view.py
           sparse-checkout-cone-mode: false
       - name: Pure model matrix and forced original ZIP AES source-free contract
-        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit tests.test_boat_saved_reason_binding_audit tests.test_boat_saved_reason_binding_io tests.test_boat_saved_rejection_anchor_proof tests.test_boat_saved_rejection_anchor_io tests.test_boat_legacy_reason_anchor_guard tests.test_boat_saved_rejection_anchor_history tests.test_boat_legacy_reason_anchor_entry tests.test_boat_rejection_anchor_restoration tests.test_boat_rejection_anchor_repair tests.test_boat_rejection_anchor_repair_cli -v
+        run: python -m unittest tests.test_boat_owner_national_p1_matrix tests.test_boat_exact_all_model_zip_readback tests.test_boat_failed_checkpoint_audit tests.test_boat_native_matrix_intake tests.test_boat_matrix_readback_scope tests.test_boat_owner_active_snapshot_audit tests.test_all_existing_model_archived_native tests.test_boat_current_pair_eligibility_audit tests.test_boat_native_forward_study tests.test_boat_saved_reason_binding_audit tests.test_boat_saved_reason_binding_io tests.test_boat_saved_rejection_anchor_proof tests.test_boat_saved_rejection_anchor_io tests.test_boat_legacy_reason_anchor_guard tests.test_boat_saved_rejection_anchor_history tests.test_boat_legacy_reason_anchor_entry tests.test_boat_rejection_anchor_restoration tests.test_boat_rejection_anchor_repair tests.test_boat_rejection_anchor_repair_cli -v
       - name: Prove source-owner and private key are only ever read on trusted main events
         run: |
           python - <<'PY'
@@ -399,10 +409,15 @@ jobs:
                       assert not target.exists() and not target.is_symlink()
                       target.write_text(json.dumps(report,sort_keys=True)+'\n',encoding='utf-8')
                   # CURRENT_PAIR_COUNTS_BEGIN
+                  pair_private=[]
                   try:
                       pair_audit=from_exact_file('boat_current_pair_counts_private','../scripts/boat_current_pair_eligibility_audit.py')
                       pair_counts=pair_audit.audit_current_pairs(get=reads,run_id=ident,now=snapshot_clock,
+<<<<<<< HEAD
                           expected_owner_sha=owner,closed_round=closed_round)
+=======
+                          expected_owner_sha=owner,_study_sink=pair_private.append)
+>>>>>>> 5afaca15 (feat(boat): add fixed-witness native forward study audit)
                   except Exception:
                       # Preserve verified core originals; failed pair reads attest no counts.
                       pair_counts=dict(current_pair_audit_status='HOLD_PAIR_AUDIT_REJECTED',
@@ -425,6 +440,20 @@ jobs:
                   expected=[r['model_id'] for r in active_catalog() if 'boat' in r['applicable_sports']]
                   report=matrix.calculate(result,expected,independent_original_reader=True,allow_pending_audit=True)
                   assert report['racing_provider_gets']==0 and report['original_forecasts_unchanged']
+              # NATIVE_FORWARD_STUDY_BEGIN
+              try:
+                  native_study=from_exact_file('boat_native_forward_study_private','../scripts/boat_native_forward_study_audit.py')
+                  report['native_forward_study']=native_study.audit_native_forward_study(repo,Path('..').resolve(),
+                      get=gh,now=datetime.now(timezone.utc),
+                      main_identity=dict(commit=os.environ['GITHUB_SHA'],run_id=int(os.environ['GITHUB_RUN_ID']),
+                          attempt=int(os.environ['GITHUB_RUN_ATTEMPT']),repository=os.environ['GITHUB_REPOSITORY']),
+                      current_packet=pair_private[0] if active_snapshot and len(pair_private)==1 else None,
+                      clock=lambda:datetime.now(timezone.utc))
+              except Exception:
+                  report['native_forward_study']=dict(schema='RACE_AI_NATIVE_FORWARD_STUDY_COUNTS_V1',
+                      registration_status='HOLD',evaluation_status='UNREGISTERED_HOLD',failure_phase='SPEC',
+                      official_raw_qualified=False,qualifying_g8_count=0,promotion_allowed=False,new_forecasts=0,source_requests=0)
+              # NATIVE_FORWARD_STUDY_END
               with open(os.environ['GITHUB_OUTPUT'],'a') as output:
                   output.write('active_snapshot='+('true' if active_snapshot else 'false')+'\n')
               safe=Path(os.environ['RUNNER_TEMP'])/'boat-national-p1-counts.json'
@@ -957,8 +986,13 @@ jobs:
                   for short,pin in (
                       ('boat_owner_evidence_audit','014fc9ddbbd24c501b7784eeae50be315644669f'),
                       ('boat_exact_all_model_zip_readback','c7d28b0a58ca69949bbdbde5f234c0035b43d1fc'),
+<<<<<<< HEAD
                       ('boat_owner_active_snapshot_audit','75313c2a50818c3b687534c80a3285a9ec2a6f8e'),
                       ('boat_current_pair_eligibility_audit','72be8bc9af15052207bde5faa86cc39d55317016')):
+=======
+                      ('boat_owner_active_snapshot_audit','f8bbfec2714ec59fe480feece4591a15d741b0bb'),
+                      ('boat_current_pair_eligibility_audit','6e82067025e4102cc08fde5a2287210ad3d40476')):
+>>>>>>> 5afaca15 (feat(boat): add fixed-witness native forward study audit)
                       source=main/'scripts'/(short+'.py')
                       assert source.is_file() and not source.is_symlink() and source.resolve()==source
                       raw=source.read_bytes()

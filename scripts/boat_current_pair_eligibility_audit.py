@@ -392,7 +392,7 @@ def _scope(get, run_id, now, source, *, closed_round=None):
     return active, reads, scope
 
 
-def _audit(get, run_id, now, source, _diagnostic=None, _raw_cutoff_sink=None, *, closed_round=None):
+def _audit(get, run_id, now, source, _diagnostic=None, _raw_cutoff_sink=None, _study_sink=None, *, closed_round=None):
     diagnostic = {} if _diagnostic is None else _diagnostic
     diagnostic['phase'] = 'PAIR_PREFLIGHT'
     from race_ai.actions_contract import canonical, digest
@@ -467,6 +467,8 @@ def _audit(get, run_id, now, source, _diagnostic=None, _raw_cutoff_sink=None, *,
         return dict(result, current_pair_audit_status='HOLD_NO_PAIR_ARCHIVES')
 
     first = {}; input_races = set(); training_ids = set(); training_hashes = set()
+    study_records = [] if _study_sink is not None else None
+    latest = {}
     forecasts = 0; input_only = 0
     for number, item in sorted(selected.items(), key=lambda entry:(active._time(entry[1]['created_at']), entry[1]['id'])):
         diagnostic['phase'] = 'PAIR_RECEIPT'
@@ -489,6 +491,11 @@ def _audit(get, run_id, now, source, _diagnostic=None, _raw_cutoff_sink=None, *,
         for payload in records:
             _need(canonical(payload['training']) == canonical(context['training'])
                   and canonical(payload['training_receipt']) == canonical(context['receipt']))
+            if study_records is not None:
+                if len(study_records) < 12000:
+                    study_records.append(dict(payload=payload, metadata=metadata, context=context))
+                else:
+                    study_records = None
             sport, race = record_identity(payload)
             _need(sport == 'boat')
             race = official_id(race)
@@ -589,15 +596,25 @@ def _audit(get, run_id, now, source, _diagnostic=None, _raw_cutoff_sink=None, *,
         result.update({'current_pair_producer_journal_'+name+'_join_count':count for name, count in joins.items()})
     diagnostic['phase'] = 'PAIR_FINALIZE'
     result['current_pair_artifacts_sha256'] = digest(sorted(provenance.items()))
+    if _study_sink is not None:
+        try:
+            _study_sink(dict(run=run, records=study_records, latest=latest, scope=scope))
+        except Exception:
+            # A research callback cannot replace an already verified count audit.
+            pass
     return result
 
 
-def audit_current_pairs(*, get, run_id, now, expected_owner_sha, closed_round=None):
+def audit_current_pairs(*, get, run_id, now, expected_owner_sha, closed_round=None, _study_sink=None):
     """Raise on selected bad/missing evidence; return only flat unqualified counts."""
     diagnostic = {'phase': 'PAIR_PREFLIGHT'}
     try:
-        options={} if closed_round is None else dict(closed_round=closed_round)
-        return _audit(get, run_id, now, expected_owner_sha, _diagnostic=diagnostic,**options)
+        options = {}
+        if closed_round is not None:
+            options['closed_round'] = closed_round
+        if _study_sink is not None:
+            options['_study_sink'] = _study_sink
+        return _audit(get, run_id, now, expected_owner_sha, _diagnostic=diagnostic, **options)
     except Exception as error:
         # The trusted workflow preserves its prior independent core proof and
         # emits static UNKNOWN/HOLD fields. Never echo private exception values.
