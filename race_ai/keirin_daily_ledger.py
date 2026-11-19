@@ -14,11 +14,14 @@ import os
 from pathlib import Path
 
 from .keirin_discovery import get_single_day, DiscoveryError
+from scripts.keirin_runtime_selection import nationwide_ab_selected
 
 JST=timezone(timedelta(hours=9))
 
 
 def daily_run(*, today=None, collector=get_single_day):
+    if nationwide_ab_selected():
+        raise DiscoveryError("LEGACY_SOURCE_SUPERSEDED_BY_NATIONWIDE_AB")
     if today is None:
         today=datetime.now(JST).date().isoformat()
     discovery=collector(today)

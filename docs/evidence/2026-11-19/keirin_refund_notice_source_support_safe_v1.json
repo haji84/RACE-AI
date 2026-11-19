@@ -1,0 +1,15 @@
+{
+  "state": "OFFICIAL_REFUND_NOTICE_SOURCE_SUPPORTED",
+  "verified_notice_count": 2,
+  "cancelled_race_notice_count": 1,
+  "market_scoped_notice_count": 1,
+  "source_sha256": [
+    "5b09b4df626064a7e9677bd3a5d610503c4bc7bc02afdce3794c8cf7af172fcf",
+    "c3f95cb936cd0b962c27d3adb26b2546e6b05a75fe64ab325b29a8e6af8191bf"
+  ],
+  "receipt_sha256": [
+    "562b53e06faa82b4edcbdc197a433109fa7febf8669dd6c78fa6887dbca35b1c",
+    "eb31e8a3d91c2d16f97d1b054942013bf3687ca0600667ee8c451da8d010e18a"
+  ],
+  "settlement_e2e_count": 0
+}
