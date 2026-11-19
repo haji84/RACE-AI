@@ -1,6 +1,6 @@
 {
   "schema": "RACE_AI_KEIRIN_OFFICIAL_COMPLETED_ACTUAL_SOURCE_V1",
-  "recorded_at_utc": "2026-11-19T17:12:44.966268+00:00",
+  "recorded_at_utc": "2026-11-19T17:37:55.969191+00:00",
   "event_day_jst": "2026-11-20",
   "attempts": [
     {
@@ -155,12 +155,130 @@
         "source_provider": "KEIRIN_JP_PUBLIC_SP",
         "winticket_requests": 0
       }
+    },
+    {
+      "run_id": 44573425610,
+      "run_attempt": 1,
+      "job_id": 135734603784,
+      "event": "workflow_dispatch",
+      "completed_at_utc": "2026-11-19T17:16:00Z",
+      "workflow_head": "49e63d2ec63f4602fc855fc5b5a960023c9d46c0",
+      "completed_authenticated_log": true,
+      "existing_source_budget_seconds": 240,
+      "runtime_summary": [
+        {
+          "state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT",
+          "generation": null,
+          "source_state": "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED",
+          "new_forecast_stage_nonzero": null,
+          "existing_pdca_invoked": null,
+          "result_rows_appended": null,
+          "result_rows_held": null,
+          "four_model_variable_saved": null,
+          "four_model_variable_held": null,
+          "official_result_independently_authenticated": null
+        }
+      ],
+      "decoded_log_bytes": 55613,
+      "decoded_log_sha256": "b7db1e46e6bda6a62c42ca1220fac5c291e5a5b850250212c69c4f8b48d66dd0",
+      "report": {
+        "actual_four_model_forecast_saved": false,
+        "new_pre_race_inputs": 0,
+        "official_sp_acquisition": {
+          "blocked_before_send": 0,
+          "budget_exhausted": true,
+          "calendar_meetings_observed": 73,
+          "day_race_count": 57,
+          "day_venue_count": 6,
+          "details_verified": 55,
+          "expired_detail_count": 0,
+          "future_detail_count": 55,
+          "http_status_counts": {
+            "200": 10684
+          },
+          "model_input_admission": false,
+          "navigation_request_count": 177,
+          "new_forecasts": 0,
+          "private_source_files_saved": 495,
+          "provider_denial_http_status_counts": {
+            "HTTP_403": 0,
+            "HTTP_429": 0,
+            "UNKNOWN": 0
+          },
+          "provider_denied": false,
+          "race_lists_verified": 6,
+          "resource_request_count": 10507,
+          "riders_verified": 398,
+          "source_admission": false,
+          "state": "HOLD_OFFICIAL_SP_BUDGET",
+          "unknown_transmitted_status_count": 0,
+          "winticket_requests": 0
+        },
+        "provider_machine_rights_independently_verified": false,
+        "public_page_requests": 10684,
+        "schema": "RACE_AI_KEIRIN_CLOUD_OWNER_SOURCE_CONNECTION_V1",
+        "source_capture_held": true,
+        "source_day_schedule_race_count": 57,
+        "source_provider": "KEIRIN_JP_PUBLIC_SP",
+        "winticket_requests": 0
+      }
     }
   ],
   "actual_four_model_forecasts": 0,
   "full_model_and_t15_acceptance": false,
   "winticket_side_unblock": "UNVERIFIED",
-  "actual_status": "PARTIAL_REAL_INPUT_WITH_BUDGET_HOLD",
-  "remaining": "25 of57 detail records verified within the existing120-second source job. All5292 received statuses200, unknown0, no denial. All-model/T15 generation and WINTICKET-side unblock remain unverified.",
-  "raw_source_documents_public": false
+  "actual_status": "55_OF57_REAL_RUNNER_DETAILS_WITH_BUDGET_HOLD",
+  "remaining": "Normal240-second runtime verified55 of57, then held at the existing budget. Full-model input conditions remain unmet, new pre-race inputs0 and forecast savedFalse; this is not all-model/T15 completion.",
+  "raw_source_documents_public": false,
+  "local_tail_verification": {
+    "environment": "LOCAL_PLAYWRIGHT_1_56_DEFAULT_CHROMIUM_141",
+    "selection": "Two explicit final identities from the observed current-day list; targeted diagnostic, not the unmodified production ordering.",
+    "targets": [
+      [
+        1,
+        51
+      ],
+      [
+        1,
+        81
+      ]
+    ],
+    "production_full_coverage_proven": false,
+    "unmodified_source_guards": true,
+    "private_diagnostic_sha256": "f1e6d70b3cbb317e174d17b32335ef125f72d1865aaaf241f16fa9cd288e1cc8",
+    "started_at_utc": "2026-11-19T17:30:06.135842+00:00",
+    "ended_at_utc": "2026-11-19T17:30:42.863901+00:00",
+    "report": {
+      "blocked_before_send": 0,
+      "budget_exhausted": false,
+      "calendar_meetings_observed": 73,
+      "day_race_count": 57,
+      "day_venue_count": 6,
+      "details_verified": 2,
+      "expired_detail_count": 0,
+      "future_detail_count": 2,
+      "http_status_counts": {
+        "200": 978
+      },
+      "model_input_admission": false,
+      "navigation_request_count": 18,
+      "new_forecasts": 0,
+      "private_source_files_saved": 53,
+      "provider_denial_http_status_counts": {
+        "HTTP_403": 0,
+        "HTTP_429": 0,
+        "UNKNOWN": 0
+      },
+      "provider_denied": false,
+      "race_lists_verified": 6,
+      "resource_request_count": 960,
+      "riders_verified": 16,
+      "schema": "RACE_AI_KEIRIN_OFFICIAL_SP_BROWSER_COUNTS_V1",
+      "source_admission": false,
+      "source_sha256": "ba4fba46da2f2d98812fe3aca09ac238cb73055c20460d9a24f2818556c59546",
+      "state": "OFFICIAL_SP_PARTIAL_INPUT_CAPTURED",
+      "unknown_transmitted_status_count": 0,
+      "winticket_requests": 0
+    }
+  }
 }

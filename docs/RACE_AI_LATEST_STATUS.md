@@ -1,3 +1,19 @@
+# 2026-11-20 JST｜競輪公式入力55件の実運転・残る2件の個別確認（GOAL未達）
+
+本人用の継続開発として進めた。一般公開の承認待ちは設けず、UI新規公開・投票・本番重み切替は実施していない。以下を最新の確定実測とし、下段の旧記録を履歴として保持する。
+
+- main **49e63d2ec63f4602fc855fc5b5a960023c9d46c0**。既存PR101/102/103/72で通常保護mergeを継続し、新PR0。検証tree **265921571898a00b58452896797b2b62ae9a1e1d** と一致し、workflow全byte、元モデル、weights、source pins、flagsを維持した。
+- 既存の通常運転 **44573425610/job135734603784/attempt1** は当日6会場・57レースIDを検証し、**55レース・延べ398選手** を実読取りした。**10,684送受信が全HTTP200、403/429・未確認・blockは0**。既存240秒の範囲で **HOLD_OFFICIAL_SP_BUDGET / budget_exhausted=true** となり、残る2件はこの運転では未取得。[認証済み完了log・件数・hash](evidence/keirin-403-official-actual-20261120/actual-main-source.json)。
+- 不足2件に当たる当日1Rの2対象は、同じPlaywright1.56/既定Chromium141と入力ガードを使う**別local個別確認**で **2件・延べ16選手** を検証した。978応答全HTTP200、未確認/403/429は0。対象選択を絞った診断であり、通常運転1回の57/57完走や全自動化の証拠に置き換えない。
+- 通常運転の最終状態は **HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT**。source_stateはOWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED、generationはnull、新pre入力0・予想保存false。既存4モデルへ渡す完全入力の条件は未達で、予想生成や結果照合の成功を主張しない。残る2件を別確認できたことと、全モデルの締切15〜10分前生成/保存/照合は別の未達条件。
+- 先のmain-only実測 **44570218869/job135726669330** では既存120秒で25レース・延べ183選手、全5,292応答HTTP200/未確認0まで確認した。旧bfdの0件/1件HOLDと2回の完了logも消去せず同じ証拠へ保持した。
+- 読み込み途中の画像/フォントを通常遷移が中断してcollectorが停止する再現不具合を修正した。送信済み通信の完了と本文/拒否を既存budget内で確認し、待機後の今日のscope/tokenを再検証する。unknownを0に書き換えず、失敗callbackを維持する。関連165件・元モデル優先環境25件・独立94件/native6controlが成功、GitHub62checkは11成功/51skip/失敗0。[実装・独立review・保全](evidence/keirin-403-official-actual-20261120/implementation-and-validation.json)。
+- 匿名GitHub readはAuthorizationなしHTTP200。認証済みread/push権限と既存branchへの実FF書込/通常保護mergeを別に確認した。鍵のlocal取得は0、通常運転の鍵は既存Actions内だけで扱った。[環境と原本保全](evidence/keirin-403-official-actual-20261120/environment-and-preservation.json)。
+- BOAT source **1dbb47b68d487fc6def0bd4b10b1423f0a2145f6** は不変。保管先state/boat-pdca-transferは17f9b5e4へ1commit進んでいたが、復旧済み6c0a01ceの学習原本prefix変更0/削除0をread-only確認。元336候補/1,008fileの全byte復旧を継承する。state/keirin-encrypted-historyは別branchの687bdc83であり、2branchを混同しない。BOAT直接dispatch/retry/cancel/reset/hotswapは0。
+- UI/証拠PR62はDraft・baseproductionのまま、82 web blobs/tree **5cbbfe05a2971485b5c32a84a8ddf7b2539604cc** を維持する。WINTICKET自身/映像collectorの403解除、通常運転57/57、全4競技×全適用モデル/T15、物理iPhone13Pro、6艇連続識別/校正/予想接続、前向き精度改善は未達。元offline未push **b7380fe6a377e6ccf2b96331f2126c52549bbe17** / **daae4c10167224b7730006d8ada5ade398aaa64b** はUNRESTOREDを維持し、自動移転を仮定しない。
+
+以下は以前の確認記録。
+
 # 2026-11-20 JST｜公式競輪25レースの実取得を確認（GOAL未達）
 
 本人用の開発を継続する。一般公開の承認待ちは設けず、UI新規公開・投票・本番重み切替は行っていない。以下を最新の実測として優先し、下段を履歴として保持する。

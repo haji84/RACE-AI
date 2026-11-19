@@ -1,6 +1,6 @@
 {
   "schema": "RACE_AI_KEIRIN_OFFICIAL_INTEGRATION_VALIDATION_V1",
-  "recorded_at_utc": "2026-11-19T17:12:44.972849+00:00",
+  "recorded_at_utc": "2026-11-19T17:37:55.970220+00:00",
   "repository": "haji84/RACE-AI",
   "main": "49e63d2ec63f4602fc855fc5b5a960023c9d46c0",
   "tested_head": "7ea2c4b07bac7971322ee720290551e3b2233a3b",
@@ -93,10 +93,24 @@
     },
     "new_trusted_main_acquisition": "NOT_YET_VERIFIED"
   },
-  "actual_source_run": 44570218869,
-  "actual_source_result": "PARTIAL_REAL_INPUT_WITH_BUDGET_HOLD",
+  "actual_source_run": 44573425610,
+  "actual_source_result": "55_OF57_REAL_RUNNER_DETAILS_WITH_BUDGET_HOLD",
   "original_model_code_and_weights_unchanged": true,
   "actual_source_report": "actual-main-source.json",
   "original_pr72_head": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
-  "ui_evidence_draft_head_unchanged": "86d832bdb8377055f9e84df15e62680396e2eebb"
+  "ui_evidence_draft_head_unchanged": "86d832bdb8377055f9e84df15e62680396e2eebb",
+  "previous_public_source_run": 44570218869,
+  "new_runtime_generation": null,
+  "new_runtime_state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT",
+  "existing_ui_candidate_web_tree": "5cbbfe05a2971485b5c32a84a8ddf7b2539604cc",
+  "boat_source_ref_unchanged": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "boat_research_retention": {
+    "branch": "state/boat-pdca-transfer",
+    "previous_independent_readback_head": "6c0a01ce55b1948b17610f694a15629df5ccdacf",
+    "current_head_readonly": "17f9b5e497b3e331afb312d363e26ca51aadcc28",
+    "ahead_commits": 1,
+    "changed_recovered_learning_paths": 0,
+    "deleted_paths": 0
+  },
+  "keirin_state_head_readonly": "687bdc834a37b841c36a56162a75cb8a1bc3128f"
 }

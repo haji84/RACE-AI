@@ -1,0 +1,29 @@
+{
+  "schema": "RACE_AI_GITHUB_READ_AUTH_WRITE_SEPARATE_V1",
+  "recorded_at_utc": "2026-11-19T17:37:55.970583+00:00",
+  "anonymous_read": {
+    "http_status": 200,
+    "authorization_header": false,
+    "main": "49e63d2ec63f4602fc855fc5b5a960023c9d46c0"
+  },
+  "authenticated_repo_permissions": {
+    "pull": true,
+    "push": true,
+    "admin": true
+  },
+  "actual_write": {
+    "normal_ff_existing_pr72": true,
+    "protected_merge": true,
+    "merged_main": "49e63d2ec63f4602fc855fc5b5a960023c9d46c0",
+    "tested_tree_match": true
+  },
+  "secret_values_read_locally": false,
+  "production_key_usage": "Existing Actions runtime only",
+  "public_read_does_not_imply_write": true,
+  "repo_visibility": "public",
+  "workflow_definitions_changed": false,
+  "production_weights_changed": false,
+  "ui_deployment": false,
+  "wager": false,
+  "new_prs": 0
+}
