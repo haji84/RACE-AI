@@ -1,5 +1,5 @@
 """Invented public UI/browser fixtures; these tests never contact a provider."""
-from contextlib import contextmanager, redirect_stdout, redirect_stderr
+from contextlib import ExitStack, contextmanager, redirect_stdout, redirect_stderr
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 from hashlib import sha256
@@ -26,8 +26,10 @@ AT = datetime(2030, 1, 15, 2, tzinfo=timezone.utc)
 URL = calendar.OFFICIAL_DOCUMENT
 
 
-def calendar_html(venues=(98, 99)):
-    groups = [venue(code, [meeting('2030-01-14', '2030-01-16', chr(65+i)*43)])
+def calendar_html(venues=(98, 99), past_meetings=0):
+    groups = [venue(code, [meeting('2030-01-14', '2030-01-16', chr(65+i)*43)] +
+                    ([meeting('2030-01-01', '2030-01-02', f'Z{n:042d}')
+                      for n in range(past_meetings)] if i == 0 else []))
               for i, code in enumerate(venues)]
     raw = calendar_page(groups)
     return raw.replace(b'<div class="dispoff" id="invented_region">',
@@ -206,6 +208,30 @@ class Locator:
 
     def all_text_contents(self):
         return [calendar._text(n) for n in self.nodes]
+
+    def evaluate_all(self, expression):
+        api = importlib.import_module(MODULE)
+        if expression == api._ONCLICK_VALUES:
+            return [n.attrs.get('onclick') or '' for n in self.nodes]
+        def button_value(button):
+            parent = Locator(self.page, [button.parent])
+            return dict(has_shadow_root=False, number_texts=Locator(self.page, [button]).locator(
+                '.raceEveNamewid').all_text_contents(),
+                parent_button_count=parent.locator('button').count(),
+                input_values=[n.attrs.get('value', '') for n in
+                              parent.locator('input[type="hidden"]').nodes])
+        if expression == api._RACE_BUTTON_VALUES:
+            return [button_value(n) for n in self.nodes]
+        if expression == api._RACE_GROUP_VALUES:
+            result = []
+            for node in self.nodes:
+                group = Locator(self.page, [node])
+                labels = group.locator('.divRaceNitiji')
+                result.append(dict(has_shadow_root=False, label_texts=[Locator(self.page, [n]).text_content()
+                                                for n in labels.nodes],
+                                   rows=[button_value(n) for n in group.locator('button').nodes]))
+            return result
+        raise AssertionError('UNREVIEWED_DOM_PROJECTION')
 
     def is_visible(self):
         if not self.nodes: return False
@@ -521,6 +547,59 @@ class OfficialSPBrowserTests(unittest.TestCase):
             self.assertGreaterEqual(b.date_clicks, 6)
             self.assertTrue(any(expander for _, expander in b.clicks))
             self.assertTrue(inbox.is_dir())
+
+    def test_full_day_fits_existing_budget_with_bounded_dom_protocol_cost(self):
+        b = Browser(); b.calendar = calendar_html(past_meetings=71)
+        b.details[2] = detail_html(2, 9)
+        elapsed, depth = [0], [0]
+        def metered(original):
+            def read(*args, **kwargs):
+                if not depth[0]:
+                    elapsed[0] += 0.25
+                depth[0] += 1
+                try:
+                    return original(*args, **kwargs)
+                finally:
+                    depth[0] -= 1
+            return read
+        with ExitStack() as stack:
+            for name in ('count', 'get_attribute', 'input_value', 'text_content',
+                         'all_text_contents', 'is_visible', 'wait_for', 'evaluate_all'):
+                if hasattr(Locator, name):
+                    stack.enter_context(patch.object(Locator, name,
+                        metered(getattr(Locator, name))))
+            with self.collect(b, monotonic=lambda: elapsed[0], budget_seconds=120) as (out, _, b):
+                self.assertEqual(out['state'], 'OFFICIAL_SP_PARTIAL_INPUT_CAPTURED')
+                self.assertEqual((out['calendar_meetings_observed'], out['day_venue_count'],
+                                  out['day_race_count'], out['race_lists_verified']), (73, 2, 6, 2))
+                self.assertEqual((out['details_verified'], out['riders_verified']), (6, 46))
+                self.assertEqual(out['http_status_counts'], {'200': 22})
+                self.assertEqual(out['unknown_transmitted_status_count'], 0)
+                self.assertEqual(out['blocked_before_send'], 0)
+                self.assertFalse(out['budget_exhausted'])
+
+    def test_duplicate_missing_nested_and_reordered_rendered_controls_reject_before_detail(self):
+        changes = [
+            lambda t: t.replace('<span id="hhJoName">', '<span id="hhJoName"></span><span id="hhJoName">'),
+            lambda t: t.replace('<div class="divRaceNitiji">2日目(1/15)</div>',
+                '<div class="divRaceNitiji">2日目(1/15)</div>' * 2),
+            lambda t: t.replace('class="raceEveNamewid">1</span>',
+                'class="raceEveNamewid">1</span><span class="raceEveNamewid">1</span>'),
+            lambda t: t.replace('<button type="button">',
+                '<button type="button"><button type="button"></button>'),
+            lambda t: t.replace('<input type="hidden" value="/sp/race">', ''),
+            lambda t: t.replace('<input type="hidden" value="/sp/race">',
+                '<input type="hidden" value="/sp/race">' * 2),
+            lambda t: t.replace('class="raceEveNamewid">1</span>',
+                'class="raceEveNamewid">2</span>'),
+        ]
+        for index, change in enumerate(changes):
+            b = Browser(venues=(98,)); b.list_dom_mutation = change
+            with self.subTest(change=index), self.collect(b) as (out, _, b):
+                self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_SOURCE_LAYOUT')
+                self.assertEqual(out['details_verified'], 0)
+                self.assertEqual(b.detail_visits, 0)
+                self.assertEqual(out['blocked_before_send'], 0)
 
     def future_placeholder_list(self):
         data = list_data()
@@ -1045,6 +1124,87 @@ class OfficialSPBrowserTests(unittest.TestCase):
                 self.assertEqual(out['provider_denial_http_status_counts'],
                                  {'HTTP_403': 0, 'HTTP_429': 0, 'UNKNOWN': 0})
                 self.assertEqual(calls, [])
+
+
+class NativeSPDOMProjectionTests(unittest.TestCase):
+    """Optional default Chromium controls, with only invented local documents."""
+    @classmethod
+    def setUpClass(cls):
+        if importlib.util.find_spec('playwright') is None:
+            raise unittest.SkipTest('optional Playwright is not installed')
+        from playwright.sync_api import sync_playwright
+        cls.runtime = sync_playwright().start()
+        if not Path(cls.runtime.chromium.executable_path).is_file():
+            cls.runtime.stop()
+            raise unittest.SkipTest('optional Chromium is not installed')
+        cls.browser = cls.runtime.chromium.launch(headless=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.browser.close()
+        cls.runtime.stop()
+
+    def setUp(self):
+        self.context = self.browser.new_context(service_workers='block', accept_downloads=False)
+        self.addCleanup(self.context.close)
+        self.requests = []
+        def reject(route):
+            self.requests.append(route.request)
+            route.abort()
+        self.context.route('**/*', reject)
+        self.page = self.context.new_page()
+        self.api = importlib.import_module(MODULE)
+        self.collector = self.api._Collector(None, lambda: AT, lambda: 0, 240)
+        self.collector.page = self.page
+
+    def list_control(self):
+        raw = list_html()
+        calendar_raw = calendar_html(venues=(98,))
+        bound = dict(raw_bytes=calendar_raw, expected_sha256=sha256(calendar_raw).hexdigest(), observed_at=AT)
+        doc = dict(raw=raw, expected_sha256=sha256(raw).hexdigest(), observed_at=AT)
+        parsed = self.api.receipt.parse_race_list(raw, expected_day='2030-01-15',
+            expected_venue_code=98, observed_at=AT, expected_sha256=doc['expected_sha256'],
+            calendar_receipt=bound)
+        self.page.set_content(render_list(raw))
+        return parsed, doc, bound
+
+    def test_actual_dom_projects_all_calendar_controls_without_provider_requests(self):
+        raw = calendar_html(past_meetings=71)
+        self.page.set_content(raw.decode())
+        bound = dict(raw_bytes=raw, expected_sha256=sha256(raw).hexdigest(), observed_at=AT)
+        parsed = calendar.parse_calendar(raw, source_url=URL, body_sha256=bound['expected_sha256'],
+            received_at=AT, now=AT, http_status=200)
+        candidate = calendar.project_day(parsed, event_day='2030-01-15')['calendar_meeting_candidates'][0]
+        _, target, opaque = self.collector.calendar_target(bound, candidate)
+        self.assertEqual(opaque, 'A' * 43)
+        self.assertEqual(target.get_attribute('onclick'), "lnk.formlnk('/sp/racelist','" + 'A' * 43 + "')")
+        self.assertEqual(self.requests, [])
+
+    def test_actual_dom_projects_current_values_and_rejects_changed_control_structure(self):
+        parsed, doc, bound = self.list_control()
+        self.assertEqual(self.collector.verify_list_dom(parsed, doc, bound), 1)
+        # Property-only changes leave the captured markup attribute unchanged.
+        # A getAttribute-based projection would incorrectly admit this control.
+        mutations = [
+            "document.querySelector('#Nitiji_2 input').value = '/sp/changed'",
+            "document.querySelector('#hhJoName').after(document.querySelector('#hhJoName').cloneNode(true))",
+            "document.querySelector('#Nitiji_2 .divRaceNitiji').after(document.querySelector('#Nitiji_2 .divRaceNitiji').cloneNode(true))",
+            "document.querySelector('#Nitiji_2 button').remove()",
+            "document.querySelector('#Nitiji_2 tr').after(document.querySelector('#Nitiji_2 tr').cloneNode(true))",
+            "document.querySelector('#Nitiji_2 tr').parentElement.append(document.querySelector('#Nitiji_2 tr'))",
+            "document.querySelector('#Nitiji_2 button .raceEveNamewid').after(document.querySelector('#Nitiji_2 button .raceEveNamewid').cloneNode(true))",
+            "document.querySelector('#Nitiji_2 button').append(document.createElement('button'))",
+            "document.querySelector('#Nitiji_2 input').remove()",
+            "document.querySelector('#Nitiji_2 input').after(document.querySelector('#Nitiji_2 input').cloneNode(true))",
+            "const host = document.createElement('span'); document.querySelector('#Nitiji_2 input').parentElement.append(host); host.attachShadow({mode: 'open'}).innerHTML = '<input type=hidden value=/sp/race>'",
+        ]
+        for index, mutation in enumerate(mutations):
+            with self.subTest(change=index):
+                parsed, doc, bound = self.list_control()
+                self.page.evaluate(mutation)
+                with self.assertRaises(self.api._Stop):
+                    self.collector.verify_list_dom(parsed, doc, bound)
+        self.assertEqual(self.requests, [])
 
 
 if __name__ == '__main__':

@@ -1,3 +1,16 @@
+# 2026-11-20 JST｜全件取得の照合時間を短縮・WINTICKETの実403を再確認（実運転は未確認）
+
+本人用の開発を継続し、既存の画面照合を一括読取りへ変更した。以下はこの変更の統合前検証であり、新しい実全件運転・予想保存の合格ではない。下段の旧記録を履歴として保持する。
+
+- 前回の通常実運転は **6会場57レースID・55詳細/延べ398選手・全10,684応答HTTP200/未確認0**。既存240秒で残る2件が未取得だった。今回は同じ件数・順序・値・token・待機後scopeの検査を維持し、要素別の大量のブラウザー通信だけを一括化した。既存120/240秒と全workflow定義・本文、HTTP/本文/拒否処理、元モデル/weights/source pinsは不変。
+- 73 calendar tableの合成ケースが修正前HOLD_OFFICIAL_SP_BUDGET、修正後は既存120秒で全6件/46選手・22応答すべて200へ進んだ。実Chromiumでもinput.valueだけの変更、重複/欠落/順序/入れ子/未審査shadow rootを拒否した。root関連 **147件、元モデル優先環境7+25件** が成功・skip0。独立124件+追加native28controlも成功・CLEAR。実日の57/57とT15保存は統合後の既存運転で確認する。[検証と独立review](evidence/keirin-coverage-winticket-20261120/implementation-and-validation.json)。
+- **WINTICKET自身は未解消**。最新確認の定期run **44619210875/job135896120088** は **11月20日06:30:11 JST**、最初の通常公開一覧GETが実HTTP403で、解析/映像へ未到達。後続保管もSOURCE_ARCHIVE_NOT_ATTESTED。本人のiPhone13 Pro Safariでは**同じ /keirin/racecard/ の開催一覧が表示**された。接続元/時刻等が異なり、IP/地域/認証/bot対策などの具体的原因は未確定。新たなWT要求・拒否再試行・偽装・proxy・cookie持込は0。[独立した完了ログの確認](evidence/keirin-coverage-winticket-20261120/winticket-denial.json)。
+- **全件取得と全モデル自動運転は別**。既存PR71入力はscore以外に履歴/ライン/環境等が不足し、全scoreが揃っても7/9車で86/108 numeric slotsが欠ける。現在の既存経路はnew_pre_race_inputs=0・grants=Noneで、全件取得後も予想0/HOLDを維持する。欠測の推測補完・自作の許可証・空の本番AES genesisは行わない。[既存入力の不足](evidence/keirin-coverage-winticket-20261120/model-input-gaps.json)。
+- 新PRを作らず、古い既存PR10の11原pathをimmutable head **e3506dbc0980589fd6476615b793d25c7bdb2854** とGit親履歴に保全して利用する。古いtreeを再適用せず、BOAT source **1dbb47b68d487fc6def0bd4b10b1423f0a2145f6**・原暗号文・予想履歴・PR62 UIを変更しない。[保全記録](evidence/keirin-coverage-winticket-20261120/original-pr10-preservation.json)。
+- 全4競技全件×全適用モデル/T15生成保存結果照合、WINTICKET403、物理iPhone受入、6艇識別/校正/予想接続、前向き改善は未達。元offline未push b7380fe6/daae4c10はUNRESTOREDを継承し、自動転送を仮定しない。UI新規公開・投票・本番重み切替・追加課金0。
+
+以下は以前の確認記録。
+
 # 2026-11-20 JST｜競輪の画面遷移と通信完了を修正中（GOAL未達）
 
 本人用の開発を継続する。UI新規公開・投票・本番重み切替は実施していない。以下を最新の実測として優先し、下段を履歴として保持する。

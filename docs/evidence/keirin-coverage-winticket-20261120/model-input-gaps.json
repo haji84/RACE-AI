@@ -1,0 +1,78 @@
+{
+  "schema": "RACE_AI_KEIRIN_COMPLETE_CAPTURE_EXISTING_MODEL_GAP_V1",
+  "source_pin": "fe7e5581263b2b31fbd45536ac6a611c2779fa65",
+  "source_files": [
+    "race_ai/keirin_allowed_delivery.py",
+    "race_ai/keirin_preflight.py",
+    "race_ai/keirin_pr71_model_adapter.py"
+  ],
+  "current_reader": "race_ai/keirin_official_sp_receipt.py",
+  "current_numeric_required_origin_at_most": [
+    "race_score"
+  ],
+  "missing_A_distinct_rider_origins": [
+    "recent_strength_or_form_change",
+    "start_or_line_reliability",
+    "last_lap_acceleration",
+    "venue_and_distance_compatibility",
+    "stamina_and_pace_resilience",
+    "position_flexibility_and_solo_behavior",
+    "top_three_rate",
+    "teammate_pair_history",
+    "lead_attempt_and_success"
+  ],
+  "missing_B_additional_distinct_origins": [
+    "late_lap_and_agari_time",
+    "bank_positioning_and_traffic"
+  ],
+  "missing_race_environment_origins": [
+    "wind_speed",
+    "rainfall",
+    "humidity",
+    "air_temperature",
+    "surface_wetness",
+    "bank_cant_and_corner_shape",
+    "track_weather_effect_history",
+    "track_surface_and_condition",
+    "line_competition_and_lead_candidates"
+  ],
+  "required_numeric_slots": {
+    "7_riders": 93,
+    "9_riders": 117
+  },
+  "remaining_numeric_slots_if_every_score_exists": {
+    "7_riders": 86,
+    "9_riders": 108
+  },
+  "distinct_missing_A_origins_if_every_score_exists": {
+    "7_riders": 72,
+    "9_riders": 90
+  },
+  "raw_statistics_have_verified_denominators": false,
+  "full_audit_entries": {
+    "7_riders": 347,
+    "9_riders": 437
+  },
+  "core_and_provenance_also_incomplete": true,
+  "core_gaps": [
+    "class_and_stage",
+    "race_rules_and_distance",
+    "line_roles",
+    "history_and_style_ratios",
+    "comments_and_revisions"
+  ],
+  "required_numeric_provenance": [
+    "published_at",
+    "captured_at",
+    "as_of_before_cutoff",
+    "sample_n",
+    "source_url",
+    "rights_ref"
+  ],
+  "existing_cycle_source_state": "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED",
+  "current_source_model_admission": false,
+  "new_pre_race_inputs": 0,
+  "new_forecasts": 0,
+  "full_day_source_capture_is_not_model_completion": true,
+  "owner_machine_permission_missing_asserted_as_cause": false
+}

@@ -1,0 +1,326 @@
+{
+  "schema": "RACE_AI_WINTICKET_INDEPENDENT_HTTP_DENIAL_DIAGNOSIS_V1",
+  "repository": "haji84/RACE-AI",
+  "auditor": "/root/winticket_denial_diagnosis",
+  "scope": "Read-only code/evidence diagnosis plus this explicitly requested safe aggregate receipt only.",
+  "selected_latest_completed_collector_run": 44619210875,
+  "global_latest_run_or_all_history_claimed": false,
+  "completed_collector_evidence": [
+    {
+      "run_id": 44619210875,
+      "job_id": 135896120088,
+      "run_url": "https://github.com/haji84/RACE-AI/actions/runs/44619210875",
+      "workflow_path": ".github/workflows/keirin-personal-hourly-canary.yml",
+      "event": "schedule",
+      "run_head_sha": "49e63d2ec63f4602fc855fc5b5a960023c9d46c0",
+      "head_branch": "main",
+      "run_status": "completed",
+      "run_conclusion": "failure",
+      "run_attempt": 1,
+      "run_created_at_utc": "2026-11-19T21:29:04Z",
+      "run_created_at_jst": "2026-11-20T06:29:04+09:00",
+      "job_status": "completed",
+      "job_conclusion": "failure",
+      "executed_source_pin": "c26ac0927647f317acf855e0c42cd1703232c19b",
+      "source_checkout_exact_stdout": [
+        {
+          "at_utc": "2026-11-19T21:29:18.6859073Z",
+          "source_pin": "c26ac0927647f317acf855e0c42cd1703232c19b"
+        }
+      ],
+      "http_status": 403,
+      "actual_stdout_errors": [
+        {
+          "failure_at_utc": "2026-11-19T21:30:11.4612888Z",
+          "failure_at_jst": "2026-11-20T06:30:11.4612888+09:00",
+          "code": "DAILY_INDEX_HTTP_403"
+        }
+      ],
+      "stack_frames": [
+        {
+          "path": "scripts/keirin_daily_dynamic_clip_collector.py",
+          "line": 231,
+          "function": "main"
+        },
+        {
+          "path": "scripts/keirin_daily_dynamic_clip_collector.py",
+          "line": 40,
+          "function": "run"
+        },
+        {
+          "path": "scripts/keirin_daily_public_discovery.py",
+          "line": 48,
+          "function": "discover"
+        },
+        {
+          "path": "scripts/keirin_daily_public_discovery.py",
+          "line": 25,
+          "function": "_read_index"
+        }
+      ],
+      "final_guard": [
+        {
+          "at_utc": "2026-11-19T21:30:11.7926313Z",
+          "at_jst": "2026-11-20T06:30:11.7926313+09:00",
+          "code": "NO_VERIFIED_DAILY_CATALOG_OR_REPLAY"
+        }
+      ],
+      "completed_authenticated_logs_inspected": true,
+      "echoed_workflow_source_excluded_from_actual_error_extraction": true,
+      "decoded_log_utf8_bytes": 82660,
+      "decoded_log_sha256": "df6c91d9589a0a6cc1cc969475641bff8933839a38e528fad8cbd0c5219270e0",
+      "hash_scope": "UTF-8 encoding of unchanged decoded structuredContent.content; not the original HTTP transfer/archive bytes",
+      "hash_computed_from_existing_in_memory_result": true,
+      "log_refetch_for_hash": false
+    },
+    {
+      "run_id": 44528962738,
+      "job_id": 135577036665,
+      "run_url": "https://github.com/haji84/RACE-AI/actions/runs/44528962738",
+      "workflow_path": ".github/workflows/keirin-personal-hourly-canary.yml",
+      "event": "schedule",
+      "run_head_sha": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+      "head_branch": "main",
+      "run_status": "completed",
+      "run_conclusion": "failure",
+      "run_attempt": 1,
+      "run_created_at_utc": "2026-11-19T12:59:03Z",
+      "run_created_at_jst": "2026-11-19T21:59:03+09:00",
+      "job_status": "completed",
+      "job_conclusion": "failure",
+      "executed_source_pin": "c26ac0927647f317acf855e0c42cd1703232c19b",
+      "source_checkout_exact_stdout": [
+        {
+          "at_utc": "2026-11-19T12:59:21.5553654Z",
+          "source_pin": "c26ac0927647f317acf855e0c42cd1703232c19b"
+        }
+      ],
+      "http_status": 403,
+      "actual_stdout_errors": [
+        {
+          "failure_at_utc": "2026-11-19T13:00:30.7012800Z",
+          "failure_at_jst": "2026-11-19T22:00:30.7012800+09:00",
+          "code": "DAILY_INDEX_HTTP_403"
+        }
+      ],
+      "stack_frames": [
+        {
+          "path": "scripts/keirin_daily_dynamic_clip_collector.py",
+          "line": 231,
+          "function": "main"
+        },
+        {
+          "path": "scripts/keirin_daily_dynamic_clip_collector.py",
+          "line": 40,
+          "function": "run"
+        },
+        {
+          "path": "scripts/keirin_daily_public_discovery.py",
+          "line": 48,
+          "function": "discover"
+        },
+        {
+          "path": "scripts/keirin_daily_public_discovery.py",
+          "line": 25,
+          "function": "_read_index"
+        }
+      ],
+      "final_guard": [
+        {
+          "at_utc": "2026-11-19T13:00:31.0099320Z",
+          "at_jst": "2026-11-19T22:00:31.0099320+09:00",
+          "code": "NO_VERIFIED_DAILY_CATALOG_OR_REPLAY"
+        }
+      ],
+      "completed_authenticated_logs_inspected": true,
+      "echoed_workflow_source_excluded_from_actual_error_extraction": true,
+      "decoded_log_utf8_bytes": 82670,
+      "decoded_log_sha256": "14f757aa46223dc65119986cdde4295017801f2859c5dd7c62c42b67dd2cbb79",
+      "hash_scope": "UTF-8 encoding of unchanged decoded structuredContent.content; not the original HTTP transfer/archive bytes",
+      "hash_computed_from_existing_in_memory_result": true,
+      "log_refetch_for_hash": false
+    },
+    {
+      "run_id": 44491357722,
+      "job_id": 135447494161,
+      "run_url": "https://github.com/haji84/RACE-AI/actions/runs/44491357722",
+      "workflow_path": ".github/workflows/keirin-github-autonomous.yml",
+      "event": "schedule",
+      "run_head_sha": "9616b854ac4a2683077b937c7d6f29e3e7213700",
+      "head_branch": "main",
+      "run_status": "completed",
+      "run_conclusion": "failure",
+      "run_attempt": 1,
+      "run_created_at_utc": "2026-11-19T08:52:43Z",
+      "run_created_at_jst": "2026-11-19T17:52:43+09:00",
+      "job_status": "completed",
+      "job_conclusion": "failure",
+      "executed_source_pin": "c26ac0927647f317acf855e0c42cd1703232c19b",
+      "source_checkout_exact_stdout": [
+        {
+          "at_utc": "2026-11-19T08:52:53.6346204Z",
+          "source_pin": "c26ac0927647f317acf855e0c42cd1703232c19b"
+        }
+      ],
+      "http_status": 403,
+      "actual_stdout_errors": [
+        {
+          "failure_at_utc": "2026-11-19T09:21:14.8710870Z",
+          "failure_at_jst": "2026-11-19T18:21:14.8710870+09:00",
+          "code": "DAILY_INDEX_HTTP_403"
+        }
+      ],
+      "stack_frames": [
+        {
+          "path": "scripts/keirin_daily_dynamic_clip_collector.py",
+          "line": 231,
+          "function": "main"
+        },
+        {
+          "path": "scripts/keirin_daily_dynamic_clip_collector.py",
+          "line": 40,
+          "function": "run"
+        },
+        {
+          "path": "scripts/keirin_daily_public_discovery.py",
+          "line": 48,
+          "function": "discover"
+        },
+        {
+          "path": "scripts/keirin_daily_public_discovery.py",
+          "line": 25,
+          "function": "_read_index"
+        }
+      ],
+      "final_guard": [
+        {
+          "at_utc": "2026-11-19T09:21:15.1199300Z",
+          "at_jst": "2026-11-19T18:21:15.1199300+09:00",
+          "code": "NO_VERIFIED_DAILY_CATALOG_OR_REPLAY"
+        }
+      ],
+      "completed_authenticated_logs_inspected": true,
+      "echoed_workflow_source_excluded_from_actual_error_extraction": true,
+      "decoded_log_utf8_bytes": 82343,
+      "decoded_log_sha256": "e43bea4b45e96b1264784af1fae951ef896867e8e8dc99a9f3ac2f9422309c45",
+      "hash_scope": "UTF-8 encoding of unchanged decoded structuredContent.content; not the original HTTP transfer/archive bytes",
+      "hash_computed_from_existing_in_memory_result": true,
+      "log_refetch_for_hash": false
+    }
+  ],
+  "dependent_storage_evidence": {
+    "run_id": 44619412974,
+    "job_id": 135896740145,
+    "run_url": "https://github.com/haji84/RACE-AI/actions/runs/44619412974",
+    "workflow_path": ".github/workflows/keirin-video-storage-acceptance.yml",
+    "event": "workflow_run",
+    "run_head_sha": "49e63d2ec63f4602fc855fc5b5a960023c9d46c0",
+    "run_status": "completed",
+    "run_conclusion": "failure",
+    "job_status": "completed",
+    "job_conclusion": "failure",
+    "collector_source_pin_not_consumer_run_head": "c26ac0927647f317acf855e0c42cd1703232c19b",
+    "actual_stdout_reports": [
+      {
+        "at_utc": "2026-11-19T21:30:23.6088197Z",
+        "at_jst": "2026-11-20T06:30:23.6088197+09:00",
+        "status": "SOURCE_ARCHIVE_NOT_ATTESTED",
+        "source_run_id": 44619210875,
+        "independent_readback_verified": false
+      }
+    ],
+    "completed_authenticated_logs_inspected": true,
+    "decoded_log_utf8_bytes": 13871,
+    "decoded_log_sha256": "61c9de4a73a98ca22542e91a0193499fe30ed6c9e542beb5d63c678fed035c8f",
+    "hash_scope": "UTF-8 encoding of unchanged decoded structuredContent.content; not the original HTTP transfer/archive bytes",
+    "hash_computed_from_existing_in_memory_result": true,
+    "log_refetch_for_hash": false,
+    "interpretation": "Dependent storage acceptance did not establish independent readback; it did not prove an additional WINTICKET request or an HTTP failure of its own."
+  },
+  "failure_boundary": {
+    "request_method": "GET",
+    "collector_public_url": "https://www.winticket.jp/keirin/racecard/",
+    "source_url_constant": "race_ai/keirin_daily_public_catalog.py:18 at c26",
+    "navigation": "scripts/keirin_daily_public_discovery.py:23",
+    "response_gate": "scripts/keirin_daily_public_discovery.py:24-25",
+    "first_index_call": "scripts/keirin_daily_public_discovery.py:48",
+    "stock_browser_config": "headless=True, channel=chrome, no-sandbox; locale ja-JP; timezone Asia/Tokyo",
+    "html_evaluate_reached": false,
+    "second_results_index_reached": false,
+    "video_player_collection_reached": false,
+    "parser_or_model_exception_caused_this_403": false
+  },
+  "route_distinctions": {
+    "video_collector": "https://www.winticket.jp/keirin/racecard/",
+    "legacy_owner_collector_template": "https://www.winticket.jp/keirin/odds/YYYYMMDD",
+    "legacy_owner_source": "scripts/keirin_github_owner_future_intake.py:66 at fe7e5581263b2b31fbd45536ac6a611c2779fa65",
+    "earlier_dated_index_local_stock_chromium_observation": {
+      "at_jst": "2026-11-19T00:37:12.268431+09:00",
+      "http_status": 200,
+      "published_ssr_race_count": 75,
+      "evidence": "docs/evidence/keirin-main758-actual-source-hold-44342598507-20261119.json:169-186",
+      "new_network_request_by_this_audit": false
+    },
+    "new_same_generic_route_user_report": {
+      "reported_date_jst": "2026-11-20",
+      "exact_report_time_jst": null,
+      "device": "iPhone13 Pro",
+      "browser": "Safari",
+      "public_url": "https://www.winticket.jp/keirin/racecard/",
+      "same_route_as_video_collector": true,
+      "meeting_list_visible_user_report": true,
+      "evidence_type": "User reply in active parent session relayed to this auditor; visibility report only",
+      "independently_measured_http_status": null,
+      "independent_browser_capture_by_this_audit": false,
+      "establishes_actions_access": false,
+      "establishes_complete_model_inputs": false
+    },
+    "interpretation": "The new user report concerns the same generic route. Treat it as evidence against a universally invalid route; it does not identify the denial policy or establish server-runner access."
+  },
+  "diagnosis": {
+    "http_denial_before_application_parsing_confirmed": true,
+    "source_side_denial_issuer_or_specific_policy": "UNKNOWN",
+    "actual_cause_beyond_http_403": "UNKNOWN",
+    "ip_geo_tls_cookie_authentication_user_agent_or_bot_policy_proven": false,
+    "error_response_body_or_header_receipt_available": false,
+    "actual_code_defect_causing_403_identified": false,
+    "known_url_date_or_browser_launch_defect_proven": false,
+    "owner_permission_missing_asserted_as_cause": false,
+    "server_side_unblock_performed": false,
+    "source_side_unblock_not_performed": true,
+    "current_authorization_or_access_controls_allow_changing_winticket_server_policy": false,
+    "winticket_403_resolved": false,
+    "keirin_jp_success_treated_as_winticket_unblock": false
+  },
+  "smallest_supported_next_diagnostic": {
+    "implemented": false,
+    "description": "At a future already authorized ordinary acquisition, record safe fixed status/count/hash evidence from that same denial response before stopping. No added request, retry, route fallback, borrowed session, identity masking or access-control circumvention.",
+    "safe_fields": "UTC/JST clock, HTTP status, URL hash, tightly allowlisted response metadata, bounded body hash and fixed classification; no public raw body or credentials.",
+    "limitation": "Observability only; cannot change a provider refusal. No provider-specific documented machine export endpoint was established by this audit."
+  },
+  "audit_actions": {
+    "new_winticket_requests": 0,
+    "new_keirin_jp_requests": 0,
+    "actualWTrequests": 0,
+    "new_provider_requests": 0,
+    "provider_retries": 0,
+    "dispatches": 0,
+    "reruns": 0,
+    "repository_mutations": 0,
+    "completed_authenticated_log_reads": 4,
+    "active_job_log_reads": 0,
+    "raw_logs_saved_or_exported": false,
+    "raw_source_documents_saved_or_exported": false,
+    "keys_or_secret_values_read": 0,
+    "source_pins_changed": 0,
+    "permissions_changed": 0,
+    "provider_identity_or_client_masking_changes": 0,
+    "receipt_only_write_authorized": true
+  },
+  "bounds": {
+    "log_hashes": "SHA-256 of existing unchanged decoded connector content encoded as UTF-8; never original HTTP/archive hashes. Hashes computed privately without exporting logs. Known empty, abc and multi-block SHA-256 vectors passed.",
+    "no_completion_claim": "No WINTICKET unblock, full source intake, new forecast, video capture, all-race automation or source-side server access proved.",
+    "source_history_preserved": true,
+    "existing_models_forecasts_and_result_history_changed": false
+  }
+}
