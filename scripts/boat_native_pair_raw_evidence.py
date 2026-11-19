@@ -345,3 +345,140 @@ def audit_native_pair_raw_evidence(*, get, repo, run_id, pair_artifact_id, recor
             return dict(public=_public(proof=digest(proof)), private=proof)
     except Exception:
         return dict(public=_public(reason=phase), private=None)
+
+
+def _sample_selection(packet, now):
+    from race_ai.actions_contract import digest
+    from race_ai.frozen_day_cycle import official_id
+    from race_ai.all_existing_model_intake import _time
+    _need(type(packet) is dict and set(packet) == {'run', 'scope', 'records', 'latest'}
+          and type(packet['run']) is dict and type(packet['scope']) is dict
+          and type(packet['latest']) is dict and type(packet['records']) is list
+          and len(packet['records']) <= 12000)
+    run, scope = packet['run'], packet['scope']
+    _need(_id(run.get('id')) and run.get('head_sha') == SOURCE and scope.get('run') == run
+          and scope.get('expected_owner_sha') == SOURCE and type(scope.get('rounds')) is list
+          and 1 <= len(scope['rounds']) <= 24
+          and all(type(n) is int for n in scope['rounds'])
+          and scope['rounds'] == list(range(1, len(scope['rounds']) + 1))
+          and _time(scope.get('captured_at')) <= now
+          and scope.get('inventory_sha256') == digest(scope.get('inventory')))
+    candidates = {cell: [] for cell in CELLS}
+    for item in packet['records']:
+        _need(type(item) is dict and set(item) == {'payload', 'metadata', 'context'}
+              and all(type(item[name]) is dict for name in item))
+        payload, metadata = item['payload'], item['metadata']
+        pair = payload.get('pair')
+        if pair is None:
+            continue
+        _need(type(pair) is dict)
+        cell = pair.get('cell_key')
+        _need(type(cell) is str)
+        if cell not in CELLS or pair.get('stage') != 'P1':
+            continue
+        origin = metadata.get('workflow_run')
+        _need(payload.get('cell_key') == cell and pair.get('model_id') == cell[5:]
+              and pair.get('sport') == 'boat' and _id(metadata.get('id'))
+              and type(origin) is dict and type(origin.get('id')) is int and origin['id'] == run['id']
+              and origin.get('head_sha') == SOURCE and all(type(origin.get(k)) is int and
+                  origin[k] == 1416489937 for k in ('repository_id', 'head_repository_id')))
+        race = official_id(pair['race_id'])
+        candidates[cell].append((race, digest(payload), metadata['id']))
+    # Results, hit counts and the caller's latest journal do not select samples.
+    selected = [(cell, *min(candidates[cell])) for cell in sorted(CELLS) if candidates[cell]]
+    return run['id'], selected, digest(scope)
+
+
+def _checked_sample(result, selected, run_id, snapshot, now):
+    from race_ai.actions_contract import digest
+    _need(type(result) is dict and set(result) == {'public', 'private'} and type(result['public']) is dict)
+    public = result['public']; proof = public.get('proof_sha256')
+    matched = public.get('raw_status') == 'RAW_SOURCE_REPLAY_MATCH'
+    _need(_hex(proof, 64) if matched else public.get('raw_status') == 'HOLD'
+          and type(public.get('reason')) is str and public['reason'] in _PHASES and proof is None)
+    expected = _public(proof=proof) if matched else _public(reason=public['reason'])
+    _need(set(public) == set(expected) and all(type(public[name]) is type(value)
+          and public[name] == value for name, value in expected.items()))
+    if matched:
+        private = result['private']; _, _, record, artifact = selected
+        _need(type(private) is dict and digest(private) == proof
+              and private.get('record_sha256') == record and private.get('pair_artifact_id') == artifact
+              and private.get('run_id') == run_id and private.get('source_commit') == SOURCE
+              and private.get('vault_snapshot_commit') == snapshot
+              and private.get('result_snapshot', {}).get('observed_at') == now.isoformat())
+    else:
+        _need(result['private'] is None)
+    return matched, public['reason'], proof
+
+
+def audit_native_pair_raw_sample(*, get, repo, packet, now, key=None, transport=None,
+                                vault_snapshot_commit=None):
+    """Counts-only diagnostic: at most one deterministic P1 original per cell.
+
+    The caller's packet selects subjects, never authenticates them. Each is
+    independently re-read by the existing facade. A closed packet's selection
+    scope and this later observation have separate hashes; no clock is rewritten.
+    Production resolves the existing vault head once, after trusted main checks.
+    Explicit key/local transport/immutable snapshot injection is fixture-only.
+    """
+    from race_ai.actions_contract import digest
+    selected = []; attempted = matched = 0; holds = []; proofs = []
+    scope_sha = selection_sha = observed_sha = snapshot = None
+    phase = 'INPUT_OR_CONTEXT_REJECTED'
+
+    def report(reason):
+        unique = set(holds)
+        return dict(schema='RACE_AI_NATIVE_PAIR_RAW_SAMPLE_COUNTS_V1',
+            scope='BOAT_TWO_CELL_P1_RAW_SAMPLES_ONLY',
+            status='RAW_SAMPLES_REPLAY_MATCH' if matched == attempted == len(selected) == 2 and reason is None else 'HOLD',
+            reason=reason, required_cell_count=2, selected_sample_count=len(selected),
+            attempted_sample_count=attempted, missing_cell_count=2 - len(selected),
+            raw_match_count=matched, raw_hold_count=attempted - matched,
+            sample_hold_reason=next(iter(unique)) if len(unique) == 1 else 'MIXED_SAMPLE_HOLDS' if unique else None,
+            packet_scope_sha256=scope_sha, selection_sha256=selection_sha,
+            observed_at_sha256=observed_sha, vault_snapshot_commit=snapshot,
+            proofs_sha256=digest(proofs) if attempted else None,
+            formal_status='HOLD_UNPROVEN_PUBLICATION_AND_ACTUAL_CLOSE', formal_qualified=False,
+            qualifying_g8_count=0, qualifying_g8_denominator=None, promotion_allowed=False,
+            all_records_verified=False, source_requests=0)
+
+    try:
+        _need(callable(get) and type(now) is datetime and now.utcoffset() is not None)
+        from scripts import boat_owner_active_snapshot_audit as active
+        reads = active._Reads(get)
+        if key is None:
+            _need(transport is None and vault_snapshot_commit is None)
+            _actions_context(reads, now)
+        else:
+            _need(type(key) is bytes and len(key) == 32 and transport is not None
+                  and _hex(vault_snapshot_commit, 40))
+        run_id, selected, scope_sha = _sample_selection(packet, now)
+        selection_sha = digest(selected); observed_sha = digest(now.isoformat())
+        if not selected:
+            return report('MISSING_CELL_SAMPLE')
+        phase = 'VAULT_SNAPSHOT_REJECTED'
+        from race_ai import boat_private_original_vault as vault
+        reader = vault.VaultGitRepository(repo, ref=vault.VAULT_REF) if key is None else transport
+        _need(reader.ref == vault.VAULT_REF)
+        candidate_snapshot = reader.head() if key is None else vault_snapshot_commit
+        _need(_hex(candidate_snapshot, 40))
+        snapshot = candidate_snapshot
+        for subject in selected:
+            phase = 'RAW_SAMPLE_REPORT_REJECTED'
+            _, _, record, artifact = subject
+            attempted += 1
+            result = audit_native_pair_raw_evidence(get=reads, repo=repo, run_id=run_id,
+                pair_artifact_id=artifact, record_sha256=record, vault_snapshot_commit=snapshot,
+                now=now, key=key, transport=reader)
+            accepted, reason, proof = _checked_sample(result, subject, run_id, snapshot, now)
+            if accepted:
+                matched += 1
+            else:
+                holds.append(reason)
+            proofs.append((subject, reason, proof))
+            del result
+        return report('MISSING_CELL_SAMPLE' if len(selected) < 2 else 'RAW_SAMPLE_HOLD' if holds else None)
+    except Exception:
+        if attempted > matched + len(holds):
+            holds.append('RAW_SAMPLE_REPORT_REJECTED')
+        return report(phase)

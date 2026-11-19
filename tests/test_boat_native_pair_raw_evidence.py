@@ -425,5 +425,199 @@ class NativePairRawEvidenceTests(unittest.TestCase):
         self.assert_hold(self.api(record_sha256={'official': True}))
 
 
+class NativePairRawSampleTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        NativePairRawEvidenceTests.setUpClass()
+
+    def setUp(self):
+        self.case = NativePairRawEvidenceTests('runTest')
+        self.case.setUp(); self.addCleanup(self.case.doCleanups)
+
+    def packet(self):
+        _, _, scope = current.audit._scope(self.case.f.get, 99, NOW, SOURCE)
+        return dict(run=deepcopy(scope['run']), scope=deepcopy(scope),
+            latest={'20300401-24-01': deepcopy(self.case.observation)},
+            records=[dict(payload=deepcopy(payload), metadata=deepcopy(self.case.f.metas[800]),
+                          context=deepcopy(self.case.f.context)) for payload in self.case.payloads.values()])
+
+    def sample(self, packet=None, **changes):
+        self.assertTrue(hasattr(facade, 'audit_native_pair_raw_sample'), 'bounded raw sample wrapper is missing')
+        values = dict(get=self.case.f.get, repo=self.case.reader.repo,
+            packet=self.packet() if packet is None else packet, now=NOW,
+            key=KEY, transport=self.case.reader, vault_snapshot_commit=self.case.snapshot)
+        values.update(changes)
+        return facade.audit_native_pair_raw_sample(**values)
+
+    def safe(self, value):
+        self.assertTrue(all(type(v) in (str, int, bool, type(None)) for v in value.values()))
+        for text in ('https://', '20300401-24-01', 'PRIVATE_RESULT_SENTINEL', 'snapshot_source_url'):
+            self.assertNotIn(text, json.dumps(value))
+        self.assertEqual(value['scope'], 'BOAT_TWO_CELL_P1_RAW_SAMPLES_ONLY')
+        self.assertEqual(value['formal_status'], 'HOLD_UNPROVEN_PUBLICATION_AND_ACTUAL_CLOSE')
+        for name in ('formal_qualified', 'promotion_allowed', 'all_records_verified'):
+            self.assertIs(value[name], False)
+        self.assertEqual(value['qualifying_g8_count'], 0)
+        self.assertIsNone(value['qualifying_g8_denominator'])
+        self.assertEqual(value['source_requests'], 0)
+
+    def main_context(self):
+        self.case.f.extra['actions/runs/77'] = wire(dict(id=77, head_sha='b' * 40,
+            head_branch='main', event='push', run_attempt=1,
+            path='.github/workflows/boat-owner-national-p1-matrix.yml', status='in_progress', conclusion=None,
+            created_at='2030-04-01T09:00:00Z',
+            repository=dict(id=1416489937, full_name='haji84/RACE-AI'),
+            head_repository=dict(id=1416489937, full_name='haji84/RACE-AI')))
+        return dict(GITHUB_ACTIONS='true', GITHUB_REPOSITORY='haji84/RACE-AI', GITHUB_REF='refs/heads/main',
+            GITHUB_EVENT_NAME='push', GITHUB_RUN_ATTEMPT='1', GITHUB_RUN_ID='77', GITHUB_SHA='b' * 40)
+
+    def test_two_genuine_cells_match_but_never_qualify_all_records_or_formal(self):
+        packet = self.packet(); before = deepcopy(packet)
+        value = self.sample(packet)
+        self.assertEqual(value['status'], 'RAW_SAMPLES_REPLAY_MATCH')
+        self.assertEqual(value['selected_sample_count'], 2)
+        self.assertEqual(value['attempted_sample_count'], 2)
+        self.assertEqual(value['raw_match_count'], 2)
+        self.assertEqual(value['raw_hold_count'], 0)
+        self.assertEqual(value['missing_cell_count'], 0)
+        self.assertEqual(value['vault_snapshot_commit'], self.case.snapshot)
+        self.assertEqual(packet, before)
+        self.safe(value)
+
+    def test_fixed_race_order_and_two_call_bound_ignore_caller_results_and_duplicates(self):
+        packet = self.packet()
+        native = deepcopy(self.case.native)
+        native['snapshot']['race_id'] = 'boat:2030-04-01:boatrace-jcd-24:2'
+        folder = self.case.f.root / 'later-race-samples'
+        make_private_pairs(self.case.f.context, [dict(cell_key=cell, native_payload=deepcopy(native))
+            for cell in self.case.training['models']], folder,
+            now=current.FORECAST_NOW + timedelta(minutes=3), allow_source=lambda *_: True)
+        raw = current.packed({child.name + '/' + name: (child / name).read_bytes()
+            for child in folder.iterdir() if child.is_dir()
+            for name in ('learning.json', 'learning.enc', 'summary.json')})
+        self.case.f.add(801, 'all-existing-model-pairs-99-2', raw, '2030-04-01T08:13:03Z')
+        extras = [dict(payload=read_candidate(child), metadata=deepcopy(self.case.f.metas[801]),
+                       context=deepcopy(self.case.f.context)) for child in folder.iterdir() if child.is_dir()]
+        packet['records'] = extras + packet['records'] * 12
+        with patch.object(facade, 'audit_native_pair_raw_evidence',
+                          wraps=facade.audit_native_pair_raw_evidence) as checked:
+            first = self.sample(packet)
+            self.assertEqual(checked.call_count, 2)
+            self.assertEqual([call.kwargs['pair_artifact_id'] for call in checked.call_args_list], [800, 800])
+        changed = deepcopy(packet); changed['records'].reverse()
+        changed['latest'] = {'performance_choice': {'private_url': 'https://private.invalid', 'score': 999}}
+        again = self.sample(changed)
+        self.assertEqual(first, again)
+        self.assertEqual(first['raw_match_count'], 2)
+        self.assertNotIn('actions/artifacts/801/zip', self.case.f.calls)
+        self.safe(first)
+
+    def test_missing_cell_and_empty_packet_are_explicit_partial_holds(self):
+        packet = self.packet(); packet['records'] = packet['records'][:1]
+        value = self.sample(packet)
+        self.assertEqual(value['status'], 'HOLD')
+        self.assertEqual(value['reason'], 'MISSING_CELL_SAMPLE')
+        self.assertEqual(value['missing_cell_count'], 1)
+        self.assertEqual(value['attempted_sample_count'], 1)
+        self.assertEqual(value['raw_match_count'], 1)
+        self.safe(value)
+        packet['records'] = []
+        value = self.sample(packet)
+        self.assertEqual((value['missing_cell_count'], value['attempted_sample_count']), (2, 0))
+        self.safe(value)
+
+    def test_production_freezes_exactly_one_head_for_both_real_facade_calls(self):
+        owner = self
+        class HeadReader(TrackedReader):
+            head_calls = 0
+            def head(self):
+                self.head_calls += 1
+                return self.commit if self.head_calls == 1 else 'f' * 40
+        reader = HeadReader(self.case.reader.reader, self.case.snapshot)
+        packet = self.packet()
+        with patch.dict(os.environ, self.main_context()), patch.object(vault, 'VaultGitRepository',
+                return_value=reader) as factory:
+            value = self.sample(packet, key=None, transport=None, vault_snapshot_commit=None)
+        self.assertEqual(value['raw_match_count'], 2)
+        self.assertEqual(reader.head_calls, 1)
+        factory.assert_called_once_with(self.case.reader.repo, ref=vault.VAULT_REF)
+        self.assertEqual(value['vault_snapshot_commit'], self.case.snapshot)
+        self.safe(value)
+
+    def test_untrusted_main_context_never_touches_key_git_or_facade(self):
+        packet = self.packet()
+        with patch.dict(os.environ, {}, clear=True), patch('race_ai.boat_pdca_state.state_key') as secret, \
+                patch.object(vault, 'VaultGitRepository') as git, \
+                patch.object(facade, 'audit_native_pair_raw_evidence') as checked:
+            value = self.sample(packet, key=None, transport=None, vault_snapshot_commit=None)
+        self.assertEqual(value['status'], 'HOLD')
+        self.assertEqual(value['attempted_sample_count'], 0)
+        secret.assert_not_called(); git.assert_not_called(); checked.assert_not_called()
+        self.safe(value)
+
+    def test_invalid_head_is_rejected_without_echoing_the_git_value(self):
+        class BadHeadReader(TrackedReader):
+            def head(self):
+                return 'https://private.invalid/untrusted-head'
+        reader = BadHeadReader(self.case.reader.reader, self.case.snapshot)
+        with patch.dict(os.environ, self.main_context()), patch.object(vault, 'VaultGitRepository', return_value=reader):
+            value = self.sample(self.packet(), key=None, transport=None, vault_snapshot_commit=None)
+        self.assertEqual(value['status'], 'HOLD')
+        self.assertIsNone(value['vault_snapshot_commit'])
+        self.assertEqual(value['attempted_sample_count'], 0)
+        self.safe(value)
+
+    def test_forged_facade_boolean_count_cannot_be_counted_as_a_match(self):
+        checked = facade.audit_native_pair_raw_evidence
+        def changed(**kwargs):
+            result = checked(**kwargs)
+            result['public']['source_requests'] = False
+            return result
+        with patch.object(facade, 'audit_native_pair_raw_evidence', side_effect=changed):
+            value = self.sample()
+        self.assertEqual(value['status'], 'HOLD')
+        self.assertEqual(value['raw_match_count'], 0)
+        self.assertEqual(value['sample_hold_reason'], 'RAW_SAMPLE_REPORT_REJECTED')
+        self.safe(value)
+
+    def test_actual_source_mismatch_and_raw_holds_propagate_without_private_output(self):
+        packet = self.packet()
+        self.case.f.run['head_sha'] = 'f' * 40
+        value = self.sample(packet)
+        self.assertEqual(value['status'], 'HOLD')
+        self.assertEqual(value['raw_hold_count'], 2)
+        self.assertEqual(value['sample_hold_reason'], 'SOURCE_SCOPE_REJECTED')
+        self.safe(value)
+        self.case.f.run['head_sha'] = SOURCE
+        self.case.retain(self.case.captures()[1:])
+        value = self.sample(packet)
+        self.assertEqual(value['raw_hold_count'], 2)
+        self.assertEqual(value['sample_hold_reason'], 'RAW_REPLAY_REJECTED')
+        self.safe(value)
+
+    def test_packet_forgery_and_production_snapshot_override_fail_closed(self):
+        packet = self.packet(); packet['run']['head_sha'] = 'f' * 40
+        self.assertEqual(self.sample(packet)['status'], 'HOLD')
+        packet = self.packet(); packet['records'][0]['metadata']['id'] = True
+        self.assertEqual(self.sample(packet)['status'], 'HOLD')
+        with patch.dict(os.environ, self.main_context()), patch.object(vault, 'VaultGitRepository') as git:
+            value = self.sample(self.packet(), key=None, transport=None)
+        self.assertEqual(value['status'], 'HOLD')
+        git.assert_not_called()
+        self.safe(value)
+
+    def test_selection_scope_and_observation_time_are_separate_hashed_snapshots(self):
+        packet = self.packet(); packet['scope']['closed_round'] = 2
+        before = deepcopy(packet)
+        first = self.sample(packet)
+        later = self.sample(packet, now=NOW + timedelta(minutes=1))
+        self.assertEqual(first['selection_sha256'], later['selection_sha256'])
+        self.assertEqual(first['packet_scope_sha256'], later['packet_scope_sha256'])
+        self.assertNotEqual(first['observed_at_sha256'], later['observed_at_sha256'])
+        self.assertNotEqual(first['proofs_sha256'], later['proofs_sha256'])
+        self.assertEqual(packet, before)
+        self.safe(later)
+
+
 if __name__ == '__main__':
     unittest.main()
