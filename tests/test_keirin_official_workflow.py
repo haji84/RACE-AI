@@ -157,7 +157,7 @@ class OfficialWorkflow(unittest.TestCase):
         self.assertIn("vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED == 'true'", result)
         self.assertNotIn("vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED", result)
         self.assertNotIn("vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED", result)
-        expression = result.split("    if: >-\\n", 1)[1].split("    runs-on:", 1)[0]
+        expression = result.split("    if: >-\n", 1)[1].split("    runs-on:", 1)[0]
         expression = " ".join(expression.split()).replace("&&", " and ").replace("||", " or ")
         for overrides, expected in (
             ({}, True),
