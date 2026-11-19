@@ -1,0 +1,140 @@
+{
+  "actions_evidence_from_parent": {
+    "HTTP_403": 1,
+    "HTTP_429": 0,
+    "UNKNOWN": 0,
+    "denial_stop": true,
+    "job_id": 135271457441,
+    "new_inputs": 0,
+    "provenance": "PARENT_PROVIDED_PROPER_JOB_LOG_COUNTS",
+    "public_page_requests": 1,
+    "raw_job_logs_refetched_by_this_audit": false,
+    "run_id": 44437961180
+  },
+  "audit_limits": {
+    "actual_response_body_saved": false,
+    "additional_assets_or_links_requested": 0,
+    "browser_requests": 0,
+    "credentials_requested": 0,
+    "http_error_offline_fixture_network_requests": 0,
+    "internal_api_guesses": 0,
+    "keirin_jp_actual_gets": 1,
+    "old_592_author_tree_modified": false,
+    "other_provider_requests": 0,
+    "production_implementation_changes": 0,
+    "public_url_or_response_body_exposed": false,
+    "real_keys_read": 0,
+    "remote_writes": 0,
+    "useragent_cookie_proxy_token_bypass_attempts": 0,
+    "winticket_additional_requests": 0
+  },
+  "completed_at": "2026-11-19T01:49:01.081603+00:00",
+  "input_gap": {
+    "actual_complete_347_437_audit_proven": false,
+    "actual_official_schedule_race_count": null,
+    "full_four_model_forecasts_generated": 0,
+    "missing_values_invented": 0,
+    "new_pre_race_inputs": 0,
+    "official_individual_race_inputs_admitted": 0,
+    "partial_model_slot_counts_are_separate_from_full_audit": {
+      "7": 93,
+      "9": 117
+    },
+    "preflight_required_status_counts": {
+      "7": 347,
+      "9": 437
+    },
+    "publication_or_cutoff_clock_inferred_from_fetch_time": false,
+    "required_field_kinds": {
+      "7": {
+        "derived_only_with_prior_evidence": 135,
+        "forecast_hypothesis_not_raw_data": 6,
+        "pre_race_source_fact": 149,
+        "source_available_only_if_published_at_race_time": 57
+      },
+      "9": {
+        "derived_only_with_prior_evidence": 173,
+        "forecast_hypothesis_not_raw_data": 6,
+        "pre_race_source_fact": 187,
+        "source_available_only_if_published_at_race_time": 71
+      }
+    }
+  },
+  "keirin_jp_single_get": {
+    "actual_schedule_race_count": null,
+    "html_structure": {
+      "anchors": 2,
+      "external_scripts": 12,
+      "has_next_data": false,
+      "has_preloaded_state": false,
+      "inline_scripts": 3,
+      "inputs": 9,
+      "json_scripts": 0,
+      "official_host_links": 2,
+      "rows": 239,
+      "scripts": 15,
+      "tables": 163
+    },
+    "individual_race_inputs_admitted": 0,
+    "observed_at": "2026-11-19T01:42:02.816416+00:00",
+    "request_attempts": 1,
+    "response_body_bytes": 116872,
+    "response_body_sha256": "ba4fba46da2f2d98812fe3aca09ac238cb73055c20460d9a24f2818556c59546",
+    "response_status": 200,
+    "source_provenance": {
+      "code_sha256": "777225230cc2a87cf172b094d61d313b13e7ee5a98da5af995968de766971d78",
+      "constant": "TARGETS.keirin_jp_public_schedule",
+      "path": "scripts/keirin_public_source_smoke.py"
+    },
+    "source_url_sha256": "ae487a2f021726e862ae0615537fe6ecd7d42c95193f1d804a71431a17f50121",
+    "status": "ORDINARY_PUBLIC_HTML_READ"
+  },
+  "main": "9a9588571b244e1e89aa7cbe35cb12d675c3bdcb",
+  "minimum_next_scope_without_denial_bypass": [
+    "EXACT_EXISTING_OFFICIAL_SP_DOCUMENT_ADMISSION_AND_PRIVATE_CAPTURE",
+    "OFFICIAL_DATED_SCHEDULE_PARSER_INTO_EXISTING_ROSTER_WITH_BYTE_HASH_AND_ACTUAL_CAPTURE_CLOCK",
+    "SEPARATE_OFFICIAL_RACE_INPUT_ADAPTER_BEFORE_EXISTING_347_437_GUARDS"
+  ],
+  "pinned_keirin_source": "fe7e5581263b2b31fbd45536ac6a611c2779fa65",
+  "route_findings": {
+    "current_automatic_collector_primary": "WINTICKET_DATED_INDEX_ONLY",
+    "generic_capture_rejection": "NON_KEIRIN_PUBLIC_PAGE_REJECTED",
+    "generic_official_html_capture_is_not_race_input_conversion": true,
+    "legacy_mobile_origin_outside_approved_hosts_rejected_before_transport": true,
+    "legacy_rakuten_discovery_live_disabled_before_transport": true,
+    "normalized_partial_card_parser_source": "WINTICKET_ONLY",
+    "official_schedule_parser_wired_to_current_automatic_collector": false,
+    "official_sp_schedule_existing_smoke_target": true,
+    "official_sp_schedule_rejected_by_generic_pc_only_capture": true,
+    "owner_automatic_scope_for_official_schedule": true,
+    "owner_profile_hosts": 4,
+    "same_denied_session_blocks_other_approved_hosts_before_fetch": true,
+    "saved_official_roster_and_csv_are_offline_imports": true
+  },
+  "schema": "RACE_AI_KEIRIN_403_AND_OFFICIAL_PRIMARY_READONLY_FINDINGS_V1",
+  "winticket_transport": {
+    "browser_run_by_this_audit": false,
+    "confirmed_failure_stage": "DATED_INDEX_HTTP_RESPONSE_BEFORE_SSR_OR_RACECARD_PARSE",
+    "cookies_or_authorization_configured": false,
+    "date_source": "ACTUAL_RUNTIME_CLOCK_CONVERTED_TO_JST",
+    "declared_headers": {
+      "Accept": "text/html,application/xhtml+xml",
+      "User-Agent": "RACE-AI-Owner-Approved-Research/1.0"
+    },
+    "denial_reason_beyond_http_status": "UNKNOWN",
+    "error_body_or_header_receipt_retained": false,
+    "exact_status_recovered_from": "IMMEDIATE_TYPED_HTTPERROR_CONTEXT_CODE",
+    "http_error_body_reads_in_current_code": 0,
+    "http_error_header_reads_in_current_code": 0,
+    "index_url_sha256": "e570da158ef7424ac3d17d4f1f7284bd889c0107ddbcc6b60ebb8454841fdf32",
+    "ip_useragent_tls_cookie_geo_or_waf_cause_established": false,
+    "maximum_html_bytes": 8000000,
+    "method": "GET",
+    "owner_reports_same_url_available_in_normal_safari": true,
+    "public_error": "PUBLIC_PAGE_BLOCKED_OR_RATE_LIMITED_NO_RETRY",
+    "redirects_followed": 0,
+    "retries": 0,
+    "timeout_seconds": 12,
+    "url_identity_provenance": "fe7:scripts/keirin_github_owner_future_intake.py:66"
+  }
+}

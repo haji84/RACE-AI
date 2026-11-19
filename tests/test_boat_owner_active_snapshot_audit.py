@@ -1326,7 +1326,7 @@ class ClosedCurrentSnapshotTests(unittest.TestCase):
         self.assertIn("selected.get('closed_round')",live)
         self.assertIn('OWNER_AUDIT_CLOSED_ROUND: ${{ steps.audit_target.outputs.closed_round }}',live)
         self.assertIn('allow_completed_receipts=m2_receipts,closed_round=closed_round)',live)
-        self.assertIn('expected_owner_sha=owner,closed_round=closed_round)',live)
+        self.assertIn('expected_owner_sha=owner,closed_round=closed_round,_study_sink=pair_private.append)',live)
         self.assertIn('EXACT_CLOSED_A74_REPRESENTED_P1_ONLY',live)
         self.assertIn('latest_live_counters_audited',live)
 

@@ -792,3 +792,24 @@ checker change once; never directly dispatch the forecast source. No physical
 iPhone, login or all-eight-reference acceptance is inferred from fixtures.
 Use the sole existing release prefix/marker and existing jobs/steps/inputs/
 permissions/cron/runners/timeouts. No UI deployment, model/weight change or fees.
+
+2026-11-19 fixed native forward study and bounded raw diagnostic.
+Keep source1dbb47b68d487fc6def0bd4b10b1423f0a2145f6, its original models and
+all frozen contracts unchanged. Pre-registration spec has one preserved nonce,
+actual main parent a277a692a2791c77ee89a2e9af71582f5c98d458 and an UNBOUND
+witness. Resolve existing candidate hashes only on Actions; the existing report
+artifact supplies a real server timestamp before any future enrollment.
+No backdating, retroactive registration, old574-pair denominator, early support,
+model refit, production weight change or official G8 promotion is authorized.
+New study cache uses a bounded resident LRU and single-response limit while
+measuring cumulative reads without a total-acquisition cap. Core authentication
+precedes projection; input-only and the full registered schedule remain intact.
+The same existing main step may independently replay at most two deterministic
+native raw originals at one immutable vault snapshot, reporting only counts,
+fixed holds and hashes. Raw agreement is not publication/actual-close proof.
+Candidate-only capture waits for stable frames/route/content/scroll and repeats
+privacy checks; the real private reader and all public UI assets stay unchanged.
+Use only boat-owner-release: single-real-session-20261111 and this marker.
+Existing owner gates alone may admit normal continuation; no direct source
+retry, interruption, counter reset, new job/step/input/permission/cron/runner/
+timeout, UI deployment, wager, model family, paid service or local key export.

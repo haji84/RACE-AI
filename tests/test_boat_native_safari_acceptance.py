@@ -3882,5 +3882,139 @@ process.stdout.write(JSON.stringify(result));
                 S.verify_synthetic_artifacts(folder, candidate_ui=True)
 
 
+class SyntheticPaintSettlementTests(unittest.TestCase):
+    """A visible DOM is not evidence that its pixels have been presented."""
+    NODE = r'''
+const vm=require('node:vm'),fs=require('node:fs'),input=JSON.parse(fs.readFileSync(0,'utf8'));
+const queue=[],mode=input.mode,expected=input.page,width=input.width;
+const titles={home:'YOUR RACE DASHBOARD',races:'RACES & RESULTS',detail:'RACE DETAIL',
+ picks:'TICKET ALLOCATION',results:'AI FORECAST RESULTS',research:'RESEARCH & VERIFICATION',settings:'PREFERENCES'};
+let tick=0;
+const rect=()=>({x:12,y:120,top:120,left:12,width:200,height:28,right:212,bottom:148});
+const page={id:'page-'+expected,hidden:false,getClientRects:()=>[rect()],getBoundingClientRect:rect};
+const title={textContent:'レース詳細',getClientRects:()=>[rect()],getBoundingClientRect:rect};
+const eyebrow={textContent:mode==='semantic'?'RACES & RESULTS':titles[expected]};
+const panel={getClientRects:()=>[rect()],getBoundingClientRect:rect};
+const scope={innerWidth:width,innerHeight:948,scrollX:0,scrollY:100,
+ location:{hash:mode==='route'?'#races':'#'+expected},
+ getComputedStyle:()=>({display:'block',visibility:'visible',opacity:'1'}),
+ document:{visibilityState:'visible',documentElement:{scrollHeight:1500},
+  scrollingElement:{scrollTop:100,scrollLeft:0},
+  querySelectorAll(selector){
+   if(selector==='.page:not([hidden])')return [page];
+   if(selector.includes('saved-ticket'))return Array.from({length:mode==='detail'?0:8},()=>panel);
+   if(selector.includes('detail-tabs'))return Array.from({length:5},()=>panel);
+   return [];
+  },
+  querySelector(selector){
+   if(selector==='#page-title')return title;
+   if(selector==='#page-eyebrow')return eyebrow;
+   if(selector==='#page-'+expected)return page;
+   if(selector.includes('forecast-panel')||selector.includes('detail-tabs'))return panel;
+   return null;
+  }},
+ requestAnimationFrame:callback=>queue.push(callback)};
+scope.window=scope;scope.globalThis=scope;
+scope.scrollTo=()=>{scope.scrollX=0;scope.scrollY=mode==='scroll'?100:0;
+ scope.document.scrollingElement.scrollTop=scope.scrollY;};
+vm.createContext(scope);
+const run=(source,args)=>vm.runInContext('(function(){'+source+'}).apply(null,'+JSON.stringify(args)+')',scope);
+run(input.arm,input.arguments);
+const before=run(input.wait,input.wait_arguments);
+const reads=[];
+for(;tick<6;tick++){
+ const callbacks=queue.splice(0);for(const callback of callbacks)callback(tick*16);
+ reads.push(run(input.wait,input.wait_arguments));
+ if(reads.at(-1))break;
+}
+process.stdout.write(JSON.stringify({before,reads,frames:tick+1,ready:reads.at(-1)===true}));
+'''
+
+    @staticmethod
+    def png(color):
+        import struct, zlib
+        def chunk(kind, body):
+            return struct.pack('>I', len(body))+kind+body+struct.pack('>I', zlib.crc32(kind+body))
+        return (b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR', struct.pack('>IIBBBBB', 1, 1, 8, 2, 0, 0, 0))+
+                chunk(b'IDAT', zlib.compress(b'\0'+bytes(color)))+chunk(b'IEND', b''))
+
+    def fixture(self, *, candidate=True, mode='normal', storage_after_wait=False):
+        owner = self
+        class Site:
+            candidate_ui, seed_path, origin = candidate, None, 'http://127.0.0.1:1234'
+            synthetic_fixture_sha256 = S.REFERENCE_SYNTHETIC_SHA if candidate else S.SYNTHETIC_SHA
+            audit = {'private_view_reads': 1, 'secret_in_request': False,
+                     'non_read_requests': 0, 'outbound_requests_permitted': 0}
+        class Driver:
+            arm = None
+            waited = False
+            screenshot_calls = 0
+            result = None
+            def script(self, source, *arguments):
+                if 'requestAnimationFrame' in source:
+                    self.arm = source, arguments
+                    return None
+                if 'url:location.href' in source:
+                    return {'url': Site.origin+'/#detail', 'local':
+                            {'untrusted': 'private-sentinel'} if self.waited and storage_after_wait else {},
+                            'session': {}, 'cookie': '', 'privacy': {'page_errors': 0}}
+                return {'origin': Site.origin, 'fragment': '#detail', 'verified': True,
+                        'fixture_sha256': Site.synthetic_fixture_sha256, 'page_errors': 0,
+                        'visible_page': 'page-detail', 'width': 390, 'overflow': False,
+                        'encrypted': False, 'synthetic_banner': True}
+            def wait(self, source, *arguments, **kwargs):
+                owner.assertIsNotNone(self.arm, 'frame wait must be armed for this capture')
+                result = subprocess.run(['node', '-e', owner.NODE], input=json.dumps({
+                    'arm': self.arm[0], 'arguments': self.arm[1], 'wait': source,
+                    'wait_arguments': arguments, 'mode': mode, 'page': 'detail', 'width': 390}),
+                    text=True, capture_output=True, check=True, timeout=10)
+                self.result = json.loads(result.stdout);self.waited = True
+                if not self.result['ready']:
+                    raise S.SafariHold('APP_UI_CHECK_FAILED')
+                return True
+            def command(self, method, path):
+                owner.assertEqual((method,path), ('GET','/screenshot'))
+                self.screenshot_calls += 1
+                # The fixture compositor presents new pixels only after frame callbacks.
+                return base64.b64encode(owner.png((255,0,0) if self.waited else (0,0,255))).decode()
+        return Site(), Driver()
+
+    def test_candidate_capture_waits_for_two_presented_frames_after_dom_is_ready(self):
+        site,driver = self.fixture()
+        with tempfile.TemporaryDirectory() as name:
+            S.save_synthetic_screenshot(driver,site,Path(name),390,'detail')
+            self.assertEqual((Path(name)/'390-detail.png').read_bytes(),self.png((255,0,0)))
+        self.assertIs(driver.result['before'],False)
+        self.assertIs(driver.result['reads'][0],False)
+        self.assertIs(driver.result['reads'][1],True)
+        self.assertEqual(driver.screenshot_calls,1)
+
+    def test_candidate_capture_refuses_wrong_route_semantics_missing_detail_and_scroll(self):
+        for mode in ('route','semantic','detail','scroll'):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as name:
+                site,driver = self.fixture(mode=mode)
+                with self.assertRaises(S.SafariHold):
+                    S.save_synthetic_screenshot(driver,site,Path(name),390,'detail')
+                self.assertEqual(driver.screenshot_calls,0)
+                self.assertEqual(list(Path(name).iterdir()),[])
+
+    def test_candidate_privacy_is_rechecked_after_the_frame_wait_before_pixels_are_exported(self):
+        site,driver = self.fixture(storage_after_wait=True)
+        with tempfile.TemporaryDirectory() as name:
+            with self.assertRaises(S.SafariHold):
+                S.save_synthetic_screenshot(driver,site,Path(name),390,'detail')
+            self.assertEqual(driver.screenshot_calls,0)
+            self.assertEqual(list(Path(name).iterdir()),[])
+
+    def test_legacy_synthetic_capture_keeps_its_existing_protocol(self):
+        site,driver = self.fixture(candidate=False)
+        with tempfile.TemporaryDirectory() as name:
+            S.save_synthetic_screenshot(driver,site,Path(name),390,'detail')
+            self.assertEqual((Path(name)/'390-detail.png').read_bytes(),self.png((0,0,255)))
+        self.assertIsNone(driver.arm)
+        self.assertFalse(driver.waited)
+        self.assertEqual(driver.screenshot_calls,1)
+
+
 if __name__ == '__main__':
     unittest.main()

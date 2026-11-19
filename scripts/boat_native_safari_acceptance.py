@@ -1397,29 +1397,69 @@ def encrypted_seed_checks(assets, seed, private, secrets):
             'outbound_browser_requests_permitted': 0, 'real_screenshots_or_traces_exported': 0}
 
 
+def settle_candidate_synthetic_capture(driver, width, page):
+    # A synchronous DOM read does not wait for a presented frame. Require
+    # matching geometry on consecutive animation frames after resetting scroll.
+    driver.script('''const page=arguments[0],width=arguments[1],state={ready:false};
+        globalThis.__raceSafariSyntheticCapture=state;
+        window.scrollTo({top:0,left:0,behavior:"instant"});
+        const headings={home:"YOUR RACE DASHBOARD",races:"RACES & RESULTS",detail:"RACE DETAIL",
+            picks:"TICKET ALLOCATION",results:"AI FORECAST RESULTS",
+            research:"RESEARCH & VERIFICATION",settings:"PREFERENCES"};
+        const visible=e=>!!e?.getClientRects().length&&getComputedStyle(e).visibility==="visible"
+            &&getComputedStyle(e).display!=="none"&&getComputedStyle(e).opacity!=="0";
+        const measure=()=>{
+            const pages=Array.from(document.querySelectorAll(".page:not([hidden])"));
+            const title=document.querySelector("#page-title");
+            if(document.visibilityState!=="visible"||location.hash!=="#"+page||innerWidth!==width
+                ||pages.length!==1||pages[0].id!=="page-"+page||!visible(pages[0])||!visible(title)
+                ||document.querySelector("#page-eyebrow")?.textContent.trim()!==headings[page]
+                ||scrollX!==0||scrollY!==0||document.scrollingElement.scrollTop!==0
+                ||document.scrollingElement.scrollLeft!==0)return null;
+            if(page==="detail"&&(!visible(document.querySelector("#race-detail .detail-tabs"))
+                ||document.querySelectorAll("#detail-tab-content .saved-ticket").length!==8))return null;
+            const box=title.getBoundingClientRect();
+            if(box.top<0||box.bottom>innerHeight)return null;
+            return [innerWidth,innerHeight,box.top,box.left,box.width,box.height,
+                document.documentElement.scrollHeight].join(",");
+        };
+        let previous=null;
+        const frame=()=>{
+            if(globalThis.__raceSafariSyntheticCapture!==state)return;
+            const current=measure();
+            state.ready=current!==null&&current===previous;previous=current;
+            if(!state.ready)requestAnimationFrame(frame);
+        };
+        requestAnimationFrame(frame);''', page, width)
+    driver.wait('return globalThis.__raceSafariSyntheticCapture?.ready===true')
+
+
 def save_synthetic_screenshot(driver, site, folder, width, page):
     expected_sha = REFERENCE_SYNTHETIC_SHA if site.candidate_ui else SYNTHETIC_SHA
     need(site.synthetic_fixture_sha256 == expected_sha and site.seed_path is None
          and width in VISUAL_WIDTHS and page in VISUAL_PAGES, 'SYNTHETIC_SCREENSHOT_REJECTED')
-    probe = driver.script('''return {origin:location.origin,fragment:location.hash,
-        verified:globalThis.__raceSafariPrivacy?.synthetic_fixture_verified===true,
-        fixture_sha256:globalThis.__raceSafariPrivacy?.synthetic_fixture_sha256,
-        page_errors:globalThis.__raceSafariPrivacy?.page_errors,
-        visible_page:document.querySelector('.page:not([hidden])')?.id,
-        width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth,
-        encrypted:!!document.querySelector('meta[name="race-ai-encrypted-saved-view"]'),
-        synthetic_banner:document.querySelector('#source-state')?.textContent.includes('合成')};''')
-    need(isinstance(probe, dict) and probe.get('origin') == site.origin
-         and probe.get('fragment') in ('', '#' + page) and probe.get('verified') is True
-         and probe.get('fixture_sha256') == expected_sha and probe.get('page_errors') == 0
-         and probe.get('visible_page') == 'page-' + page and probe.get('width') == width
-         and probe.get('overflow') is False and probe.get('encrypted') is False
-         and probe.get('synthetic_banner') is True, 'SYNTHETIC_SCREENSHOT_REJECTED')
-    snapshot = browser_snapshot(driver)
-    verify_private_boundary(snapshot, site.audit, ())
-    if site.candidate_ui:
-        need(snapshot.get('local') == {} and snapshot.get('session') == {} and snapshot.get('cookie') == '',
-             'SYNTHETIC_SCREENSHOT_REJECTED')
+    for settled in range(2 if site.candidate_ui else 1):
+        if settled:
+            settle_candidate_synthetic_capture(driver, width, page)
+        probe = driver.script('''return {origin:location.origin,fragment:location.hash,
+            verified:globalThis.__raceSafariPrivacy?.synthetic_fixture_verified===true,
+            fixture_sha256:globalThis.__raceSafariPrivacy?.synthetic_fixture_sha256,
+            page_errors:globalThis.__raceSafariPrivacy?.page_errors,
+            visible_page:document.querySelector('.page:not([hidden])')?.id,
+            width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth,
+            encrypted:!!document.querySelector('meta[name="race-ai-encrypted-saved-view"]'),
+            synthetic_banner:document.querySelector('#source-state')?.textContent.includes('合成')};''')
+        need(isinstance(probe, dict) and probe.get('origin') == site.origin
+             and probe.get('fragment') in ('', '#' + page) and probe.get('verified') is True
+             and probe.get('fixture_sha256') == expected_sha and probe.get('page_errors') == 0
+             and probe.get('visible_page') == 'page-' + page and probe.get('width') == width
+             and probe.get('overflow') is False and probe.get('encrypted') is False
+             and probe.get('synthetic_banner') is True, 'SYNTHETIC_SCREENSHOT_REJECTED')
+        snapshot = browser_snapshot(driver)
+        verify_private_boundary(snapshot, site.audit, ())
+        if site.candidate_ui:
+            need(snapshot.get('local') == {} and snapshot.get('session') == {} and snapshot.get('cookie') == '',
+                 'SYNTHETIC_SCREENSHOT_REJECTED')
     encoded = driver.command('GET', '/screenshot')
     need(isinstance(encoded, str) and len(encoded) <= 24 * 1024 * 1024, 'SYNTHETIC_SCREENSHOT_REJECTED')
     try:
