@@ -1,3 +1,19 @@
+# 2026-11-20 00:04 JST｜競輪403の継続修正（GOAL未達）
+
+本人用開発を継続中。一般公開の承認待ちは設けない。UI新規公開・投票・本番重み切替は実施していない。以下を最新の確認とし、下段の以前の状況は履歴として保持する。
+
+- 確認済みmainは **3c78b756960148f6bafd00a3dd243288430629ed**。既存PR101の通常保護mergeで、WINTICKETの拒否に依存しない公式KEIRIN.JPの通常画面経路を接続した。BOAT source **1dbb47b68d487fc6def0bd4b10b1423f0a2145f6** と既存モデルpinは変更していない。
+- 実Actions **44547916659/job135643414848** は公式経路37応答が全てHTTP200、403/429は0。jobはsuccessでも、こちらの通信チェックで停止し開催一覧/レース/選手の解析は0だった。未取得を成功扱いにしない。
+- 同じ停止を変更していないguardで再現した。公式画面の掲載scriptが送る `/sp/ana` の空body・同一origin XHR GETが最初の停止点。後続6通信は停止後のblockだった。この厳密な通常通信だけを許可する修正と、解析から既存owner-cycleまでの回帰検査を進めている。[診断と修正範囲](evidence/keirin-official-analytics-20261119/README.md)。**修正後の実取得は、この記録時点では未確認。**
+- WINTICKET映像側の実run44491357722と44528962738は通常Chromiumでも `DAILY_INDEX_HTTP_403`。今回の公式入力経路の確認と、WINTICKET自身の403解除は分ける。UA偽装・cookie持込・proxy・拒否後retryは行わない。
+- 既存PR102の元head **c52ff0216435b97a0209c43bbe5d0de589445736**、120変更pathのmode/type/blob/immutable URLを保全し、新PRは作らない。workflow/job/step/input/cron/runner/timeout/permissionの定義追加は0。
+- 原暗号文の保管復旧は **336候補・1,008file・375,640,877bytes・欠落0・相違0** を別object databaseで全byte確認済み。state head **6c0a01ce55b1948b17610f694a15629df5ccdacf**。追加Actionsの候補AES再検査は初回限定guardでHOLDであり、全byte一致とは別に扱う。鍵のlocal取得は0。[既存PR62の保管証拠](https://github.com/haji84/RACE-AI/blob/6970228c7df74f4e93122facf9d3baff4733413f/docs/evidence/race-ai-final-handoff-20261119/ciphertext-recovery.json)。
+- 実Mac Safari26.6の44470498836/job135378501491は172検査・private loopback/AES・合成28PNGを通過した。物理iPhone13ProのRACE-AI受入は未確認。本人SafariでWINTICKET一覧が開いたことを実機アプリ受入に置き換えない。[最新の他scope証拠](https://github.com/haji84/RACE-AI/blob/6970228c7df74f4e93122facf9d3baff4733413f/docs/RACE_AI_LATEST_STATUS.md)。
+- 元offline未pushの **b7380fe6a377e6ccf2b96331f2126c52549bbe17** / **daae4c10167224b7730006d8ada5ade398aaa64b** は正規readでもlocal objectでも取得できず **UNRESTORED**。別環境ファイルの自動移転は仮定しない。
+- 4競技全日全モデル・締切15〜10分前の生成/保存/照合、6艇の連続識別/校正/予想接続、前向き比較の精度改善は未達。登録済み観測期間/原本/重み/分母を変更しない。
+
+以下は以前の確認記録。上記と矛盾する「現在」表現は当時の時点を示す。
+
 # RACE-AI 最新状況 — 2026-11-19 15:03 JST
 
 **GOALは未達。** 本人利用の開発・受入確認を継続し、一般公開の確認待ちは設けない。原本・既存変更・本番重みを保全する。前版は[同一blobの履歴](history/RACE_AI_STATUS_HISTORY_THROUGH_20261119_1332.md)と[相対リンクも有効なF4原文](https://github.com/haji84/RACE-AI/blob/f4a42cda749e6d52f90610b519df5cd7c896fac5/docs/RACE_AI_LATEST_STATUS.md)に保存した。

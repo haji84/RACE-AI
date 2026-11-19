@@ -1,0 +1,35 @@
+{
+  "schema": "RACE_AI_KEIRIN_OFFICIAL_ANALYTICS_LOCAL_VERIFICATION_V1",
+  "recorded_at_utc": "2026-11-19T15:05:34.136704+00:00",
+  "base_main": "3c78b756960148f6bafd00a3dd243288430629ed",
+  "author_commit": "bb3b3f58cc3267668f079fdc3b1e30c9818db1ed",
+  "root_red_test": "Owner-cycle fixture initially failed source_capture_held assertion; same public analytics GET now reaches parsed details.",
+  "suites": [
+    {
+      "name": "analytics-combined-green.log",
+      "tests": 140,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "0f78fd63e43728abe96c2d81f5a03b54d63350348b947a3cc51c432d39fc20e7"
+    },
+    {
+      "name": "analytics-pinned-owner-green.log",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "78d2b1b9d651dfade8dacbae692a12c7fb83e5c26846d9b72f90b326080b3709"
+    }
+  ],
+  "workflow_byte_identical_to_base_main": true,
+  "source_admission": false,
+  "model_input_admission": false,
+  "new_forecasts": 0,
+  "modified_source_sha256": {
+    "race_ai/keirin_official_sp_browser.py": "14df7e93f046d20c0125ac150a496791eb379ccb0d02afb20a3b03a869688078",
+    "tests/test_keirin_official_sp_browser.py": "55526ddbe1a2b80eb0d234598a70f58c2ea99593ffce4b136a2b3a7a5eefae74",
+    "tests/test_keirin_cloud_owner_inputs.py": "d6de1bd37fdbb9fa4c386359010a0984f3c7d2f45ba33a580a20b2fcdbac6ff0"
+  },
+  "actual_provider_acquisition_after_fix": "NOT_YET_VERIFIED"
+}

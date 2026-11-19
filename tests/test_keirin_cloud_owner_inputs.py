@@ -360,5 +360,42 @@ class ProviderDenialStatusTests(unittest.TestCase):
         self.assertEqual(session.requests, 0)
 
 
+class OfficialAnalyticsOwnerCycleTests(unittest.TestCase):
+    def test_published_page_analytics_does_not_hold_the_existing_owner_cycle(self):
+        from unittest.mock import patch
+        import tests as fixtures
+        from scripts.keirin_cloud_owner_inputs import _official_collector
+        collect_official_sp = _official_collector()
+        # Existing CI imports this file after the pinned source's test package.
+        # Append only invented fixture modules; pinned model modules stay first.
+        with patch.object(fixtures, '__path__', list(fixtures.__path__) + [str(Path(__file__).parent)]):
+            from tests.test_keirin_official_sp_browser import AT, Browser, Page
+        browser = Browser(venues=(98,))
+        original_goto = Page.goto
+
+        def goto(page, *args, **kwargs):
+            response = original_goto(page, *args, **kwargs)
+            page.transmit('/sp/ana', b'', navigation=False, resource_type='xhr')
+            return response
+
+        def capture(inbox, **kwargs):
+            return collect_official_sp(inbox, browser_factory=lambda: browser, **kwargs)
+
+        with TemporaryDirectory() as tmp, patch.object(Page, 'goto', goto):
+            inbox = Path(tmp) / 'inbox'
+            inbox.mkdir(mode=0o700)
+            result = collect_owner_inputs(inbox, owner_auto_confirmed=True,
+                official_capture=capture, clock=lambda: AT, monotonic=lambda: 0)
+            self.assertFalse((inbox / 'pre').exists())
+        self.assertFalse(result['source_capture_held'])
+        self.assertEqual(result['source_day_schedule_race_count'], 3)
+        self.assertEqual(result['official_sp_acquisition']['details_verified'], 3)
+        self.assertEqual(result['official_sp_acquisition']['riders_verified'], 21)
+        self.assertEqual(result['public_page_requests'], len(browser.sent))
+        self.assertGreater(sum(r.resource_type == 'xhr' for r in browser.sent), 0)
+        self.assertEqual(result['new_pre_race_inputs'], 0)
+        self.assertFalse(result['actual_four_model_forecast_saved'])
+
+
 if __name__=='__main__':
     unittest.main()
