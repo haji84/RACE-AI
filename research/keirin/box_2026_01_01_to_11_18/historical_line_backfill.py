@@ -58,7 +58,7 @@ def run(root,out,max_pages,delay):
     out.mkdir(parents=True,exist_ok=True)
     log=out/"source_fetch_audit.jsonl";store=out/"lineups_collected.jsonl";store.touch(exist_ok=True)
     seen_urls={r["source_url"] for r in read_jsonl(log) if r.get("status") in ("OK","NO_PAGE","NO_VALID_LINES")}
-    known={r["race_key"]:r for r in read_jsonl(root/"published_lineup_pilot_20261118.jsonl")}
+    known={r["race_key"]:r for r in (read_jsonl(root/"published_lineup_pilot_20261118.jsonl")+read_jsonl(root/"published_lineup_more_verified_20261118.jsonl"))}
     for r in read_jsonl(store):
         old=known.get(r["race_key"])
         if old and old["lineup"]!=r["lineup"]:raise ValueError("SOURCE_LINEUP_CONFLICT")
