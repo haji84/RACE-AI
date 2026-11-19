@@ -1,0 +1,155 @@
+{
+  "schema": "RACE_AI_VERIFIED_SYNTHETIC_NATIVE_CAPTURE_ARCHIVE_V1",
+  "run": 44439338949,
+  "job": 135275991793,
+  "artifact_id": 14490472805,
+  "zip_bytes": 9151195,
+  "zip_sha256": "d5ec34e7fc199ccf12762cb07c7d1f4b1a675bd459a7bd9251708a0a9457f082",
+  "candidate_commit": "f723f0e8b94a87a6d6a7b414b1bb30954541925e",
+  "main": "a277a692a2791c77ee89a2e9af71582f5c98d458",
+  "dataset_status": "SYNTHETIC_ONLY",
+  "physical_iphone_verified": false,
+  "all_eight_reference_screens_visually_verified": false,
+  "pngs": [
+    {
+      "name": "1440-detail.png",
+      "bytes": 436736,
+      "sha256": "f424a6426f90bd17d3d3482198a7c481943d3de30c48e0f5550c9b943d303a44"
+    },
+    {
+      "name": "1440-home.png",
+      "bytes": 589530,
+      "sha256": "f48315a1846656a81dbbc0efde678739e0b055e993e647609070232d0fd83475"
+    },
+    {
+      "name": "1440-races.png",
+      "bytes": 519160,
+      "sha256": "6ebd6833d8c12d18b2c2fd969cf4c5cdee91aeb297ea41dd7492ba129924a3ee"
+    },
+    {
+      "name": "1440-picks.png",
+      "bytes": 506007,
+      "sha256": "9a3d58bda2484114ad1b65c2c180cf3aff4f16b4dbf1039054e59c2995f00c63"
+    },
+    {
+      "name": "1440-research.png",
+      "bytes": 414429,
+      "sha256": "fe75284e9f247ad2bc9ddc31f3e761a0e53ca0eb2b617e3c3c99ff9833c8f97a"
+    },
+    {
+      "name": "1440-results.png",
+      "bytes": 633735,
+      "sha256": "df684eb1a64f80e4df101d5a9b0405a71a9ed6ba165ec0729d6a0512ef422b64"
+    },
+    {
+      "name": "1440-settings.png",
+      "bytes": 461871,
+      "sha256": "7d5a259e249c4e42337659b632cd47ffb530b88e1f4a85065248b7ee76a1c1a3"
+    },
+    {
+      "name": "1920-detail.png",
+      "bytes": 550769,
+      "sha256": "2b0a545fd88345cf64227d3d556b295a7633e8b4f0871b1895175de6f39c21f6"
+    },
+    {
+      "name": "1920-home.png",
+      "bytes": 646589,
+      "sha256": "e8837a6a2a7616c35518156c1d5da014c3f5a1548f05cd2c7c855b7fa5007112"
+    },
+    {
+      "name": "1920-picks.png",
+      "bytes": 524111,
+      "sha256": "1541f5e140409998e169c75ff9d08565cc38c9187fb53eb241ced4f777d25bf3"
+    },
+    {
+      "name": "1920-races.png",
+      "bytes": 542934,
+      "sha256": "1e359ddcdaa55ceeb46aa32715aba92ae664175a35e0c66091d07f25ca659078"
+    },
+    {
+      "name": "1920-research.png",
+      "bytes": 428562,
+      "sha256": "6f7eb75150bb7f45a37415f28909c0b2ddf7d374c66c944e9e8de1794efc049a"
+    },
+    {
+      "name": "1920-results.png",
+      "bytes": 712826,
+      "sha256": "a91fffc1cbe6f120d3a9457e36be822a0b21e1c3d83b44c858df798b9c072a34"
+    },
+    {
+      "name": "1920-settings.png",
+      "bytes": 477518,
+      "sha256": "7025fe434b12845958deb819ce593a5ecf7fee830a9423990306ed6eec9009f0"
+    },
+    {
+      "name": "320-detail.png",
+      "bytes": 124320,
+      "sha256": "ead5c87bfb5421f37e02efa0e0e5a8cb6765f1cb16f62b4fcbc854c8ac21db6d"
+    },
+    {
+      "name": "320-home.png",
+      "bytes": 166199,
+      "sha256": "e31b51868fb2381275813a09e2ab755245aa1a3c6791e912f71416338c26460f"
+    },
+    {
+      "name": "320-picks.png",
+      "bytes": 124676,
+      "sha256": "5e932467aa15066ba352ec364698ab4203b419ff08cbaabec3573b81ebb62e22"
+    },
+    {
+      "name": "320-results.png",
+      "bytes": 186337,
+      "sha256": "a5aeb40a914ac9bc43e3b24622a9426ed49728a13bb5e9ea9bcf8aca1d3e3c17"
+    },
+    {
+      "name": "320-research.png",
+      "bytes": 116386,
+      "sha256": "3f7c0ea5b7628750d1726623be5bea3e878e65f123e3500d6b9bd83bf69b1f33"
+    },
+    {
+      "name": "320-races.png",
+      "bytes": 123510,
+      "sha256": "ab3f5a816a04538d114eab87325506297dbd0f346a4d90b02f904eefbde66595"
+    },
+    {
+      "name": "320-settings.png",
+      "bytes": 118726,
+      "sha256": "3ec8f981cdd68549d24dbc96ff2588ac08ceed176062dc97742f9d8548bc8c8f"
+    },
+    {
+      "name": "390-detail.png",
+      "bytes": 113166,
+      "sha256": "a98241afacfa8013eb5f121888a227b2dfdc88e8bae4e6a895f9337aadbb6ea9"
+    },
+    {
+      "name": "390-home.png",
+      "bytes": 198190,
+      "sha256": "8273197977f337321e40828b3fa1d3b5b0ad655bac9dfbed8b5d5ebc0343e4fb"
+    },
+    {
+      "name": "390-picks.png",
+      "bytes": 139218,
+      "sha256": "492e6f2b32d3dfceca687ca54e4c4f874ab6f020ff5ee9ebd25cee31833d4c67"
+    },
+    {
+      "name": "390-races.png",
+      "bytes": 142586,
+      "sha256": "409417f972024d6e67c06f6da63218bf7a406d48f67cad180e42216d2d9fa7f7"
+    },
+    {
+      "name": "390-research.png",
+      "bytes": 135815,
+      "sha256": "37153c9a34eaba94b9d6826beea8e49651b357f0056541d002887a5a2ae6004d"
+    },
+    {
+      "name": "390-results.png",
+      "bytes": 207010,
+      "sha256": "f5b416554bbedbf5e564bba863b7e60c1cc8b4dd90f0d6b08f3846c7d80870fa"
+    },
+    {
+      "name": "390-settings.png",
+      "bytes": 133041,
+      "sha256": "bd5b60b975252b6ca2bf998863fd1374c9031ff3a9f0f989bddd145a01ecc02a"
+    }
+  ]
+}
