@@ -1,0 +1,158 @@
+{
+  "dataset_id": "keirin_3rentan_box_2026_01_01_to_2026_11_18",
+  "generated_utc": "2026-11-19T11:58:06.578842+00:00",
+  "scope": {
+    "period_start": "2026-01-01",
+    "period_end": "2026-11-18",
+    "settled_races": 24291,
+    "excluded_no_payout": 62,
+    "aggregated_boxes": 1068,
+    "monthly_box_rows": 10005,
+    "race_counts_by_field_gender": {
+      "5_ガールズ": 21,
+      "5_男子": 216,
+      "6_ガールズ": 148,
+      "6_男子": 1085,
+      "7_ガールズ": 1877,
+      "7_男子": 18754,
+      "8_男子": 132,
+      "9_男子": 2058
+    }
+  },
+  "source_archive": {
+    "filename": "keirin_box_2026_recheck.zip",
+    "bytes": 23671264,
+    "sha256": "395e073d29d0efdc95e7e95b7426b2384c987038583d1094b482076cf447abce",
+    "library_url": "https://chatgpt.com/library?file_id=libfile_fde3_f-aedaa3f3d6c48191bf9977e0ca2e4a6a_b3acd7caddc4819189d1672b910c7b88&account_id=personal"
+  },
+  "provenance": {
+    "race_sources": {
+      "KEIRIN.JP": 3334,
+      "楽天Kドリームス": 20957
+    },
+    "lineup_evidence": "NOT_INCLUDED_IN_THIS_SOURCE_ARCHIVE",
+    "lineup_status": "PENDING_SOURCE_BOUND_RECONCILIATION",
+    "race_result_status": "SETTLED_VERIFIED_AGAINST_DAILY_RESULT_PAGES"
+  },
+  "files": [
+    {
+      "name": "race_results_202601.csv",
+      "sha256": "a106dc6859ad15249e772545c65bf844e2aaf8489db2f3ec6db405804f876f3a",
+      "github_blob_sha": "15ac1a2ed321b6153afd246bcee7553f4d4e731b",
+      "bytes": 641425,
+      "rows": 2305
+    },
+    {
+      "name": "race_results_202602.csv",
+      "sha256": "6ba1f8046234ea291ee0fc94f733eb97a044768506d7522442c390351556e8af",
+      "github_blob_sha": "a23dfca53964ba16f2155df4eb527bd397d6e31b",
+      "bytes": 609516,
+      "rows": 2134
+    },
+    {
+      "name": "race_results_202603.csv",
+      "sha256": "1408614c3311da9684a433e0f89d65dd5723627f293e62f416b6beb58cfd2943",
+      "github_blob_sha": "8ebe36556ab983594d28a39c1749d8c32d59d867",
+      "bytes": 661989,
+      "rows": 2257
+    },
+    {
+      "name": "race_results_202604.csv",
+      "sha256": "5e6d708d3851ab04ece7ad5e36879293e96ff94727f499454e9f8fcf45b5b51b",
+      "github_blob_sha": "1a2442d476d81da50372c812e2a43e3ea381aaae",
+      "bytes": 682210,
+      "rows": 2340
+    },
+    {
+      "name": "race_results_202605.csv",
+      "sha256": "38cce1aa08a226c1aed60bf24f7fcc40b5a539a1a68db428d3b670c760707558",
+      "github_blob_sha": "6c9454c5b09c0612c70b50e928951bea6f272594",
+      "bytes": 676094,
+      "rows": 2309
+    },
+    {
+      "name": "race_results_202606.csv",
+      "sha256": "2eb9ae26ed8db6c2e95869e6fdc0bf975d44287d79f66afc319c2e4228407e57",
+      "github_blob_sha": "7527be3d9bb81c8c6fedd6df6b5fa402b4297898",
+      "bytes": 661115,
+      "rows": 2263
+    },
+    {
+      "name": "race_results_202607.csv",
+      "sha256": "5e639b189557b7ef58380a56dae94987e9a67aa646a873752ee422bce70dc06f",
+      "github_blob_sha": "62005fdcdfeeb279acab37db5b9ba13812611ed7",
+      "bytes": 706919,
+      "rows": 2414
+    },
+    {
+      "name": "race_results_202608.csv",
+      "sha256": "4ab2fb18495fadef9121fc8bd87c762c247ed853b4be040970abc239fa1d3ed2",
+      "github_blob_sha": "4df741dce16c0d2053858fb8022116642f02bf11",
+      "bytes": 689040,
+      "rows": 2352
+    },
+    {
+      "name": "race_results_202609.csv",
+      "sha256": "9cdcbb62c2a2aa1040fc109390ec9747fb68ba69dfc866e00abbc4ddaef99eda",
+      "github_blob_sha": "bfb3a0c71beef76a72af29bfa6e9fb6d4b7d3528",
+      "bytes": 661505,
+      "rows": 2264
+    },
+    {
+      "name": "race_results_202610.csv",
+      "sha256": "11f7f212a0625a2b71a6efba13de3061f900db4aa44e8eef31347476e4961050",
+      "github_blob_sha": "9d7facbc73d5ad7ba31f7d3839996c553b05be6e",
+      "bytes": 663794,
+      "rows": 2268
+    },
+    {
+      "name": "race_results_202611.csv",
+      "sha256": "1cc31f1ab8bd3e9a05688699d867519797a6857597d8b9f78ae7a922495ec607",
+      "github_blob_sha": "6dd40dbebb3836e4b24ca44bcb5bbc34a9074a72",
+      "bytes": 404677,
+      "rows": 1385
+    },
+    {
+      "name": "box_stats_1068.csv",
+      "sha256": "c7f049ee0bc5d7284fc89ecf4ce116939254c0fe0dc5f28d925fe45427f590ef",
+      "github_blob_sha": "232c8780c7cefb9f60cb8fdba6f563c4f52e274b",
+      "bytes": 210675,
+      "rows": 1068
+    },
+    {
+      "name": "box_stats_month_2026H1.csv",
+      "sha256": "3113119062fcb62808daf5dc263c4f5ba88a18f71e9597247e036a7a4e7b1f66",
+      "github_blob_sha": "27422a1d179909bb7e942029d541889d8aeb2446",
+      "bytes": 548649,
+      "rows": 5534
+    },
+    {
+      "name": "box_stats_month_2026H2.csv",
+      "sha256": "a21d9f5264b5f45cd42be3c5d5d9ec803072a0253a39fb1ccc343151293b50d8",
+      "github_blob_sha": "2cbce858957aded9ea4b8908f9a94342ed30840d",
+      "bytes": 442348,
+      "rows": 4471
+    },
+    {
+      "name": "line_classifier.py",
+      "sha256": "acf137c2a59e1cbdbab920bc531c3aa254f76e5b493d3912841324ed6202b1ce",
+      "github_blob_sha": "31782a00272734fa21f2077a605b10df24f03fda",
+      "bytes": 4736,
+      "rows": null
+    },
+    {
+      "name": "test_line_classifier.py",
+      "sha256": "fbf9c9bdc2f1a340cc49c6eaf2ac759b0a25addb66debfd5513ee8b1404ff8c2",
+      "github_blob_sha": "a7e7b09aca79b5c6733bd4efc244184b3d0e530a",
+      "bytes": 1471,
+      "rows": null
+    },
+    {
+      "name": "README.md",
+      "sha256": "e39b6bdd86f8deeb682e82bfa57efcf6301f8437ae7b333e66579c5b19a498e1",
+      "github_blob_sha": "3526a61b3c2c841412dad1b8a45d3f954283d7bf",
+      "bytes": 4444,
+      "rows": null
+    }
+  ]
+}
