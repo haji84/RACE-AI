@@ -1,0 +1,57 @@
+{
+  "schema": "RACE_AI_KEIRIN_REQUEST_SETTLEMENT_VERIFICATION_V1",
+  "recorded_at_utc": "2026-11-19T16:40:45.510813+00:00",
+  "base_main": "bfd8de04b8e6bb7fefc6a910f1d2aae2f536e40f",
+  "author_commit": "f979eb814b7ef4f58709c8f458f94706f7e7b145",
+  "runtime": "Playwright 1.56.0 / default bundled Chromium 141.0.7390.37",
+  "suites": [
+    {
+      "tests": 165,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "sha256": "4ee4620744840267aa6370f2d03a05f92e77fed447b9cb3ccd9ec7d0b039e329"
+    },
+    {
+      "tests": 25,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "sha256": "7114250ab40634321b5c077f523183531bbc79602e1681f14c830bdc6798b213"
+    }
+  ],
+  "provider_calls_in_tests": 0,
+  "source_admission": false,
+  "model_input_admission": false,
+  "new_forecasts": 0,
+  "source_sha256": {
+    "race_ai/keirin_official_sp_browser.py": "586521f573dd8d23c395ab7645f7c255a8f718cf23fa5ed823bfa425a2d2713d",
+    "tests/test_keirin_official_sp_browser.py": "c8f733a68121b6b273916489cfa93be8f34deb5229b1abfa8c5fe6190ae5b269",
+    "tests/test_keirin_cloud_owner_inputs.py": "f668063e6e40f32edb9bd40b2d30808aab41b7523f9d269260634c9f0fb94904"
+  },
+  "workflow_tree": "9f87dbaedfd5b89de64524e3b9b9b2742e5e491c",
+  "native_controls": {
+    "old_pending_image_and_font": {
+      "details": 0,
+      "unknown": 1,
+      "state": "HOLD_OFFICIAL_SP_TRANSPORT",
+      "failure": "net::ERR_ABORTED"
+    },
+    "settled_image_and_font": {
+      "details": 3,
+      "riders": 21,
+      "http200": 12,
+      "unknown": 0
+    },
+    "late_denial": {
+      "post_requests": 0,
+      "http403": 1
+    },
+    "never_headers": {
+      "state": "HOLD_OFFICIAL_SP_BUDGET",
+      "unknown": 1,
+      "elapsed_seconds": 1.073
+    }
+  },
+  "new_trusted_main_acquisition": "NOT_YET_VERIFIED"
+}

@@ -1,3 +1,18 @@
+# 2026-11-20 JST｜競輪の画面遷移と通信完了を修正中（GOAL未達）
+
+本人用の開発を継続する。UI新規公開・投票・本番重み切替は実施していない。以下を最新の実測として優先し、下段を履歴として保持する。
+
+- 検証元mainは **bfd8de04b8e6bb7fefc6a910f1d2aae2f536e40f**。実run **44560531226** は当日6会場・57レースIDまで検証した。attempt1は詳細0、正規のtransport再検査attempt2は **1レース・7選手** を実検証し、両方に未確認通信4件が残ってHOLD_TRANSPORT。確認済み応答は全HTTP200、403/429は0。job successを安定取得成功には数えない。[元の認証済み実測](https://github.com/haji84/RACE-AI/blob/86d832bdb8377055f9e84df15e62680396e2eebb/docs/evidence/keirin-403-official-actual-20261120/actual-main-source.json)。
+- 同じPlaywright1.56/既定Chromium141のlocal実取得は14レース・延べ102選手まで確認した。約120秒のnavigation timeoutがreport上TRANSPORT/budget falseとなる分類の不足も確認した。これをGitHubで14件確認したとは扱わない。
+- 外部providerを使わない同一ブラウザ版の再現テストで、読み込み中の画像/フォントを通常の画面遷移が中断し、`net::ERR_ABORTED` からcollector全体が止まることを確認した。旧page.close/hash変更では再現しない。GitHubの停止と整合する機序だが、元logだけで唯一の原因とは断定しない。
+- 修正後は送信済み通信を既存budget内で完了確認し、本文/拒否を検査してから通常の遷移へ進む。待機後に今日のscope/tokenを再検証し、unknownを0に書き換えず、失敗callbackも維持する。再現ケースは旧処理0detailsから新処理3details/21選手へ進み、late403はPOST前停止、本文未到達は約1秒budgetでunknown1を保持してHOLDした。
+- 関連 **165検査** と元モデル優先環境での **25検査** が成功。例外ログは固定categoryとlocal関数/行だけで、本文・URL・selector・例外messageを出さない。workflow全byte/既存時間上限/元モデル/weights/source pinsは維持し、新しいjob/step/input/cron/runner/permission等を増やさない。[再現と保全](evidence/keirin-request-settlement-20261120/README.md)。**新しい実Actions取得は記録時点で未確認。**
+- 既存PR72の元head **7a432e5acc4d3495a0e82bd79726929e2f8085fe** と331変更pathのmode/type/blob/immutable URLを保全し、元treeは適用しない。既存PR62はUI/証拠Draftのまま、本人用82 web blobs/tree **5cbbfe05a2971485b5c32a84a8ddf7b2539604cc** はhead **86d832bdb8377055f9e84df15e62680396e2eebb** に不変で保持する。新PR0。
+- source/model admissionはfalse、新予想0。WINTICKET自身/映像collectorの403解除、全4競技全日×全既存モデル・締切15〜10分前生成/保存/結果照合、物理iPhone13Pro、6艇連続識別/校正/予想接続、前向き精度改善は未達。元暗号文336候補/1,008fileの復旧、実Mac Safari172検査、元offline未push2commitのUNRESTOREDを継承する。
+- BOAT source **1dbb47b68d487fc6def0bd4b10b1423f0a2145f6** の待機・counter・原本を変更しない。直接dispatch/retry/cancel/reset/hotswap、課金、投票、本番重み切替は行わない。
+
+以下は以前の確認記録。
+
 # 2026-11-20 JST｜競輪の公式入力を修正中（GOAL未達）
 
 本人用の開発を継続する。一般公開の確認待ちは設けず、UI新規公開・投票・本番重み切替は行っていない。以下を最新の実測として優先し、以前の記録は下段に保持する。

@@ -1,0 +1,2995 @@
+{
+  "schema": "RACE_AI_EXISTING_PR_ORIGINAL_PRESERVATION_V1",
+  "recorded_at_utc": "2026-11-19T16:29:46.045017+00:00",
+  "pr": 72,
+  "repository": "haji84/RACE-AI",
+  "original_head": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+  "original_base": "bca59ebc5c7174e79d2dba027a97890f5d0d3d1f",
+  "original_base_ref": "codex/actions-four-sport-e2e",
+  "original_title": "feat(p0): reject incomplete four-sport daily coverage without source rights",
+  "original_draft": true,
+  "original_body_sha256": "3d2d355698d34775ed3dcffb20bf2acf9bcf9a7c8d2e546c5c156cae6699b06d",
+  "original_changed_paths": 331,
+  "preservation": "Original source-gate proposal is retained in immutable ancestry; its old tree is not replayed or activated.",
+  "entries": [
+    {
+      "path": ".gitattributes",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0751a4852003e15b6413f0b1078dff20e530f915",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.gitattributes"
+    },
+    {
+      "path": ".github/workflows/keirin-candidate-audit-unit.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "1b48d8c91341cee40ecc37e6b4c58548b8fdfee9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/keirin-candidate-audit-unit.yml"
+    },
+    {
+      "path": ".github/workflows/keirin-legacy-one-shot-20261103.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5f8637b4a0c1ef82b9ca07b2eca2c3da470367d1",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/keirin-legacy-one-shot-20261103.yml"
+    },
+    {
+      "path": ".github/workflows/keirin-mobile-one-shot.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "1e6221bbcbdf4f5bb4f6107634c1e7d605d6ccf2",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/keirin-mobile-one-shot.yml"
+    },
+    {
+      "path": ".github/workflows/keirin-next-forecast-worker-contract.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "2552cd60cca1d40e43bf6f10b401124e85260c9a",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/keirin-next-forecast-worker-contract.yml"
+    },
+    {
+      "path": ".github/workflows/keirin-official-one-shot-probe.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "12b29f5371b8e3dab8dc20ff3934a0b598e89b96",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/keirin-official-one-shot-probe.yml"
+    },
+    {
+      "path": ".github/workflows/keirin-personal-hourly-canary.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3251a052ca5dc95cdb3829aa619b1f54bb71a2d3",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/keirin-personal-hourly-canary.yml"
+    },
+    {
+      "path": ".github/workflows/keirin-personal-research-contract.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5871ec9546639a6e40453f75771a45b072d2b265",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/keirin-personal-research-contract.yml"
+    },
+    {
+      "path": ".github/workflows/keirin-pr71-real-model-to-private-freeze-synthetic.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f99287d0eab8c68898022a7adab9bafca548c59e",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/keirin-pr71-real-model-to-private-freeze-synthetic.yml"
+    },
+    {
+      "path": ".github/workflows/keirin-private-sqlite-regression.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "180f0355787862c4b3b51c51800cea1482b96ccc",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/keirin-private-sqlite-regression.yml"
+    },
+    {
+      "path": ".github/workflows/keirin-today-one-shot-20261103.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a3067a09a1538c1ab306fea890e07f0287c9d654",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/keirin-today-one-shot-20261103.yml"
+    },
+    {
+      "path": ".github/workflows/offline-discovery-audit.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c5f59afd928de835ef055f42b262f0351598b9f8",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/offline-discovery-audit.yml"
+    },
+    {
+      "path": ".github/workflows/p0-ashiya10-near-cutoff-one-shot.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "50fc45c04d30b9751b8c9db4b9f73b0bf939bbf2",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-ashiya10-near-cutoff-one-shot.yml"
+    },
+    {
+      "path": ".github/workflows/p0-biwako-one-research-shadow-20261024.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "38779f51cff711284c49a8136fae6fe3ccff62ae",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-biwako-one-research-shadow-20261024.yml"
+    },
+    {
+      "path": ".github/workflows/p0-cutoff-ordered-preview.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "12ecf59f153f8de4b1a51b4c881631ed032f4a42",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-cutoff-ordered-preview.yml"
+    },
+    {
+      "path": ".github/workflows/p0-freeze-witness.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a8308e9bec136ce953e71acfc963dead85d95df1",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-freeze-witness.yml"
+    },
+    {
+      "path": ".github/workflows/p0-isesaki11-real-trial.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "453bc22785fdb5db19199656f3381db070d598d1",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-isesaki11-real-trial.yml"
+    },
+    {
+      "path": ".github/workflows/p0-jra-one-race-charset.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "942880b05359309b2e147cb91666bd62f30f285b",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-jra-one-race-charset.yml"
+    },
+    {
+      "path": ".github/workflows/p0-k21-shape-diagnostic.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "cd32e4e131ecf1f380b0bbbcd41da6c9cb154cc9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-k21-shape-diagnostic.yml"
+    },
+    {
+      "path": ".github/workflows/p0-mikuni-7r-one-research-shadow-20261024.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "abf99f70ea1db57af072e10daa84496bc40647f1",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-mikuni-7r-one-research-shadow-20261024.yml"
+    },
+    {
+      "path": ".github/workflows/p0-mikuni9-same-race-full-join.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "902263abeccffb562b0b7460a05215d775c14edd",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-mikuni9-same-race-full-join.yml"
+    },
+    {
+      "path": ".github/workflows/p0-nonboat-3source-one-shot.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3bdbf67ca2f8f68aaf1bdbf66a5d7680bb3ee536",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-nonboat-3source-one-shot.yml"
+    },
+    {
+      "path": ".github/workflows/p0-ohmura8-disjoint-older-k.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a2d1375ea80edf9e87a5f7e911f1d122eabc00e8",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-ohmura8-disjoint-older-k.yml"
+    },
+    {
+      "path": ".github/workflows/p0-ohmura8-extended-history.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a1267fbeb61de6999cfdaa9ac7f23f93fbbb3544",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-ohmura8-extended-history.yml"
+    },
+    {
+      "path": ".github/workflows/p0-one-shot-real-b-parse.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "cb8f3d90656aa71e05e062b1772500ab8079f814",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-one-shot-real-b-parse.yml"
+    },
+    {
+      "path": ".github/workflows/p0-one-shot-real-k-readiness.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d4df9148b2141c895c1b49a97b656d0b59b77ef9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-one-shot-real-k-readiness.yml"
+    },
+    {
+      "path": ".github/workflows/p0-real-k-b-pr71-form.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e1d953060623650756916815d3abf742b70c829f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-real-k-b-pr71-form.yml"
+    },
+    {
+      "path": ".github/workflows/p0-real-mikuni-8r-preview.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bacb95a5025c8c16a55b75c826c9d2e737d772d1",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-real-mikuni-8r-preview.yml"
+    },
+    {
+      "path": ".github/workflows/p0-single-b-smoke.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "eb1d82a6db983c3838ddc06147d4f81bf9153c2c",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-single-b-smoke.yml"
+    },
+    {
+      "path": ".github/workflows/p0-single-future-boat-gate-20261024.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "1208995a39aba1adee7e93c3d037b20c8c87d73a",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-single-future-boat-gate-20261024.yml"
+    },
+    {
+      "path": ".github/workflows/p0-single-source-smoke.yml",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e7b4ac8af2cc9d5786201373b6791cc4f626a5e7",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.github/workflows/p0-single-source-smoke.yml"
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "32bbd95b0cf6b00afa2baa7c4fe2247ea23db369",
+      "original_status": "modified",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/.gitignore"
+    },
+    {
+      "path": "AGENTS.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bfc40d1873101d9b49179e506f64c2ff74bc89ed",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/AGENTS.md"
+    },
+    {
+      "path": "audit/2026-10-24/biwako-11r-official-result-postrace-shadow-compare-20261024.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "fbb5922c590b28075c938ea887bd1f6ff3797fc0",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/audit/2026-10-24/biwako-11r-official-result-postrace-shadow-compare-20261024.json"
+    },
+    {
+      "path": "audit/2026-10-24/biwako-11r-unadmitted-b-lite-shadow-top8.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e111718a40c215ff9af6017a8c55904131f2949e",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/audit/2026-10-24/biwako-11r-unadmitted-b-lite-shadow-top8.json"
+    },
+    {
+      "path": "audit/2026-10-24/mikuni-7r-unadmitted-b-lite-shadow-top8.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "abbe0c38a4f911b00d86b09ab7fc52bdb1e018ac",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/audit/2026-10-24/mikuni-7r-unadmitted-b-lite-shadow-top8.json"
+    },
+    {
+      "path": "audit/2026-10-25/mikuni-7r-official-result-postrace-shadow-compare-20261025.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d9d4b4099f2a85f16c8e2f1feeb01d80a23b26b2",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/audit/2026-10-25/mikuni-7r-official-result-postrace-shadow-compare-20261025.json"
+    },
+    {
+      "path": "audit/sha-only/2026-11-03/keirin-aomori8r-9d42869e.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "719e773ee39be2961afffd84eac5b627978cfc40",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/audit/sha-only/2026-11-03/keirin-aomori8r-9d42869e.json"
+    },
+    {
+      "path": "config/keirin_personal_20261103_manifest.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "732c70f01b0ca220fe3c26b8d94671b27b03f3c8",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/config/keirin_personal_20261103_manifest.json"
+    },
+    {
+      "path": "config/pr71-max8-reference-manifest.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "967357a5a87725ec49263176731517d3d3c635f5",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/config/pr71-max8-reference-manifest.json"
+    },
+    {
+      "path": "config/private-wire-vault-reference-manifest.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "346885436eab7510ed766f5bb3c75710519bd608",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/config/private-wire-vault-reference-manifest.json"
+    },
+    {
+      "path": "docs/ASSET_REUSE_MATRIX.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f45842331c8fa5c0b6d043f056fe520a2dd3fb0d",
+      "original_status": "modified",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/ASSET_REUSE_MATRIX.md"
+    },
+    {
+      "path": "docs/CODEX_RACE_AI_GITHUB_VERIFIED_STATUS_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "66e872e525df5f2a5eabb8532dc6327ca29c4080",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/CODEX_RACE_AI_GITHUB_VERIFIED_STATUS_20261025.md"
+    },
+    {
+      "path": "docs/CODEX_RACE_AI_PARALLEL_RUNBOOK_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e67468ca48c4880203d2a048540a9ca8cd9d8497",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/CODEX_RACE_AI_PARALLEL_RUNBOOK_20261025.md"
+    },
+    {
+      "path": "docs/CODEX_RACE_AI_PARALLEL_TASKBOARD_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e99dab83882a5d21588561e4c30d2d93b34b9a7d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/CODEX_RACE_AI_PARALLEL_TASKBOARD_20261025.md"
+    },
+    {
+      "path": "docs/CODEX_RACE_AI_START_PROMPT_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "cd27451f975c7f333b068ac42df685715588c1bc",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/CODEX_RACE_AI_START_PROMPT_20261025.md"
+    },
+    {
+      "path": "docs/CODEX_RACE_AI_THREE_STREAM_MASTER_HANDOFF_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "dea8d9c7c4e381b164d413e1c603b5dd7bf682e2",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/CODEX_RACE_AI_THREE_STREAM_MASTER_HANDOFF_20261025.md"
+    },
+    {
+      "path": "docs/FAIR_MODEL_EVALUATION_20261027.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3e23edcbe088fd8cd52227ced0309f9f2d899ad7",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/FAIR_MODEL_EVALUATION_20261027.md"
+    },
+    {
+      "path": "docs/FOUR_SPORT_COHORT_LEDGER_BRIDGE_20261102.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "afac36789b682ff21c354e98ba62c31aeb672e4d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/FOUR_SPORT_COHORT_LEDGER_BRIDGE_20261102.md"
+    },
+    {
+      "path": "docs/FOUR_SPORT_RESULT_REVISION_LINK_20261102.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bb6b8fd3d10bcd163c973334acc48079c2a5eda2",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/FOUR_SPORT_RESULT_REVISION_LINK_20261102.md"
+    },
+    {
+      "path": "docs/KEIRIN_AUTHORIZED_RESULT_FEED_GATE_20261103.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0435fbb8c8c49bae384047af82006ba0dd40e889",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/KEIRIN_AUTHORIZED_RESULT_FEED_GATE_20261103.md"
+    },
+    {
+      "path": "docs/KEIRIN_AUTHORIZED_RESULT_INTAKE_IMPLEMENTATION_20261103.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "fb9309247636e01a6fa1001c35d2a81f9d8b4f02",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/KEIRIN_AUTHORIZED_RESULT_INTAKE_IMPLEMENTATION_20261103.md"
+    },
+    {
+      "path": "docs/KEIRIN_FULL_AUTOMATION_REAL_GATES_20261103.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7ca0f11c1de6e4037c84deba7ade32e37b71a62b",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/KEIRIN_FULL_AUTOMATION_REAL_GATES_20261103.md"
+    },
+    {
+      "path": "docs/KEIRIN_OFFICIAL_RESULT_HTTP_CONNECTOR_20261103.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7d48076485abd2ac173befbae8acf4bbee4249b9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/KEIRIN_OFFICIAL_RESULT_HTTP_CONNECTOR_20261103.md"
+    },
+    {
+      "path": "docs/KEIRIN_PERSONAL_PRIVATE_RESEARCH_MODE_20261103.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5bef04bba5f9eaefc105099302cbf2ea689b2402",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/KEIRIN_PERSONAL_PRIVATE_RESEARCH_MODE_20261103.md"
+    },
+    {
+      "path": "docs/KEIRIN_REAL_RACE_E2E_ACCEPTANCE_20261103.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bf8ff48c9fdf4b772e778fe9ae9cb9d88b6059a3",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/KEIRIN_REAL_RACE_E2E_ACCEPTANCE_20261103.md"
+    },
+    {
+      "path": "docs/KEIRIN_RESULT_TO_FORECAST_REACTOR_20261103.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "06a69520fffb6291b7d8c5aa7dbd47a6f4a1925e",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/KEIRIN_RESULT_TO_FORECAST_REACTOR_20261103.md"
+    },
+    {
+      "path": "docs/OWNER_PRIVATE_REAL_READBACK_20261103.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f37fba5001f696444e23bb82d68cae4bd615fc73",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/OWNER_PRIVATE_REAL_READBACK_20261103.md"
+    },
+    {
+      "path": "docs/P0_ACTUAL_BOAT_1R_OBSERVATION_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ad52317d4d9d808642e67c029f06ff4e066c504b",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_ACTUAL_BOAT_1R_OBSERVATION_20261024.md"
+    },
+    {
+      "path": "docs/P0_APPEND_ONLY_FREEZE_WRITER_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5e0750c567e2d1438b8360689aa2628f4b5101c4",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_APPEND_ONLY_FREEZE_WRITER_20261023.md"
+    },
+    {
+      "path": "docs/P0_BEFOREINFO_PUBLICATION_TRIGGER_V1_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "4e7d9fc1e8503e36c594d4415844c08177b2b99b",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_BEFOREINFO_PUBLICATION_TRIGGER_V1_20261024.md"
+    },
+    {
+      "path": "docs/P0_BK_OFFICIAL_ARCHIVE_TRANSPORT_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c022d9d6974aff7aceef3b4ca9a5c2f33ddf6a24",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_BK_OFFICIAL_ARCHIVE_TRANSPORT_20261024.md"
+    },
+    {
+      "path": "docs/P0_BOAT_75_FEATURE_GATE_INDEPENDENT_REVIEW_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0999bf08c05475fcf378b2241164e098696848bd",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_BOAT_75_FEATURE_GATE_INDEPENDENT_REVIEW_20261024.md"
+    },
+    {
+      "path": "docs/P0_BOAT_FIRSTPARTY_STAT_NORMALIZATION_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "140403ff74e793c57650cc8f104c5219c2d7665a",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_BOAT_FIRSTPARTY_STAT_NORMALIZATION_20261024.md"
+    },
+    {
+      "path": "docs/P0_BOAT_OBSERVED_COURSE_HISTORY_20261026.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "fa93a6e71bedb972d75cb160247c36662b8b10f7",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_BOAT_OBSERVED_COURSE_HISTORY_20261026.md"
+    },
+    {
+      "path": "docs/P0_BOAT_OFFICIAL_WEB_INTAKE_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "1efbacd77fd9b9cce3ecf4d4f2e9cbe9f7491009",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_BOAT_OFFICIAL_WEB_INTAKE_20261023.md"
+    },
+    {
+      "path": "docs/P0_BOAT_SOURCE_READINESS_CONTRACT_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b8cf680eb09fcc248b5f6099be488eb54a61eb3d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_BOAT_SOURCE_READINESS_CONTRACT_20261025.md"
+    },
+    {
+      "path": "docs/P0_BOAT_SPARSE_SHADOW_MODELS_V1_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c414d9a7300f574aed40677ecd325ec62543e17f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_BOAT_SPARSE_SHADOW_MODELS_V1_20261024.md"
+    },
+    {
+      "path": "docs/P0_CAPTURED_HISTORY_BRIDGE_20261028.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9d5865fd9accfb21133fa0ed807de82d7f77f619",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_CAPTURED_HISTORY_BRIDGE_20261028.md"
+    },
+    {
+      "path": "docs/P0_CONTROLLED_BOAT_HTML_CAPTURE_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e94c6c4807790b82c27e7a1d4f64087de77bccb7",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_CONTROLLED_BOAT_HTML_CAPTURE_20261023.md"
+    },
+    {
+      "path": "docs/P0_CUTOFF_FIRST_SOURCE_READY_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "248558c62da94773b602bde58106d13076a9d029",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_CUTOFF_FIRST_SOURCE_READY_20261024.md"
+    },
+    {
+      "path": "docs/P0_DATA_USAGE_AND_PUBLICATION_SCOPE_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0ee778e81c043c03ebf741eb09f7f1ec498d3a28",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_DATA_USAGE_AND_PUBLICATION_SCOPE_20261023.md"
+    },
+    {
+      "path": "docs/P0_DISCOVERY_AUDIT_CLI_20261022.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "2cefdaede7a593c6fbe344e9e589ff9ddf35fb7f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_DISCOVERY_AUDIT_CLI_20261022.md"
+    },
+    {
+      "path": "docs/P0_DURABLE_RETENTION_PREREQUISITE_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3f32aa9cfe7e8967169fe5c23e9412eb7bf6ab5d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_DURABLE_RETENTION_PREREQUISITE_20261025.md"
+    },
+    {
+      "path": "docs/P0_EXISTING_BOAT_METHOD_INTEGRATION_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c85436018511b6085a44918ba5008ae484151ce8",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_EXISTING_BOAT_METHOD_INTEGRATION_20261024.md"
+    },
+    {
+      "path": "docs/P0_FIXED_MODEL_CASE_PROFILES_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f7c09274392a6272c4c7637fcc2b2372a4cbcf51",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_FIXED_MODEL_CASE_PROFILES_20261025.md"
+    },
+    {
+      "path": "docs/P0_FOUR_SPORT_PRESENCE_GATES_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "60a8c714857be28bf0e36a3de80be5839666465a",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_FOUR_SPORT_PRESENCE_GATES_20261024.md"
+    },
+    {
+      "path": "docs/P0_FREEZE_PUSH_WITNESS_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "6c290c11d232ad1564b94240259dd677892170c1",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_FREEZE_PUSH_WITNESS_20261023.md"
+    },
+    {
+      "path": "docs/P0_MIKUNI9_REAL_FULL_JOIN_AND_RIGHTS_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "6d55d3d0ca4cca99e1f5e227456e46da6464d554",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_MIKUNI9_REAL_FULL_JOIN_AND_RIGHTS_20261024.md"
+    },
+    {
+      "path": "docs/P0_MODEL_SUITE_SETTLEMENT_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "2a9a81e8af85e6534d4ac8de2cbb92fd14fe9aa3",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_MODEL_SUITE_SETTLEMENT_20261025.md"
+    },
+    {
+      "path": "docs/P0_NAR_DAILY_BUNDLE_AUDIT_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a40ec2af0e52a6a68efdfaf79261a2eeb447d5ba",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_NAR_DAILY_BUNDLE_AUDIT_20261023.md"
+    },
+    {
+      "path": "docs/P0_NAR_LOCAL_RACELIST_INTAKE_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a44d2c572aa19267e6bdd20d77ca0eb8127d74b3",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_NAR_LOCAL_RACELIST_INTAKE_20261023.md"
+    },
+    {
+      "path": "docs/P0_NAR_PAYBACK_LOCAL_AUDIT_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ba338b65464cd01401507c41a1c11c04158dacf7",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_NAR_PAYBACK_LOCAL_AUDIT_20261023.md"
+    },
+    {
+      "path": "docs/P0_NEXT_STAGE_HISTORY_PREVIEW_GEOMETRY_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b39603496fb3fcfd80a17aaa9f8482fd46dc9468",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_NEXT_STAGE_HISTORY_PREVIEW_GEOMETRY_20261024.md"
+    },
+    {
+      "path": "docs/P0_NONBOAT_OFFICIAL_SOURCE_REAL_CHECK_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "cf18c038f33ba6da8564fdb698e661b4c3b5a56a",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_NONBOAT_OFFICIAL_SOURCE_REAL_CHECK_20261024.md"
+    },
+    {
+      "path": "docs/P0_NONBOAT_TRIAL_ACTUAL_CORRECTION_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "2341ea1b6dc2c08bbdcbbfe1b1d18c1c48ca46c2",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_NONBOAT_TRIAL_ACTUAL_CORRECTION_20261024.md"
+    },
+    {
+      "path": "docs/P0_OBSERVED_PAIR_COMPARISON_20261027.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5b9bad9b4bb28d5197a75a417e3d80d15e5ea97a",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_OBSERVED_PAIR_COMPARISON_20261027.md"
+    },
+    {
+      "path": "docs/P0_OFFICIAL_BOAT_DAY_SCHEDULE_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d2a7f359225ac3c8cd09c52158b04c0d4a3030bd",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_OFFICIAL_BOAT_DAY_SCHEDULE_20261024.md"
+    },
+    {
+      "path": "docs/P0_OFFICIAL_B_FEATURE_BRIDGE_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ecf1de26d19cc652d6305e7709331b2ec3493b48",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_OFFICIAL_B_FEATURE_BRIDGE_20261024.md"
+    },
+    {
+      "path": "docs/P0_OFFICIAL_B_MINIMAL_IDENTITY_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "17a32a3024ddcfbc9a4556aad8b3351f3601169c",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_OFFICIAL_B_MINIMAL_IDENTITY_20261024.md"
+    },
+    {
+      "path": "docs/P0_OFFICIAL_PRIVATE_RECEIPT_LINK_20261102.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "2d6ba81f2c22b90030be0d68cd30e5acdc5581b8",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_OFFICIAL_PRIVATE_RECEIPT_LINK_20261102.md"
+    },
+    {
+      "path": "docs/P0_OFFLINE_ADVANCED_MODEL_RUN_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "363f526f41cd921e3431b14b3293ad6be679737b",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_OFFLINE_ADVANCED_MODEL_RUN_20261025.md"
+    },
+    {
+      "path": "docs/P0_OFFLINE_EXPORT_INTAKE_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "05767a966ee2685b928ba23a875d08577a641a72",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_OFFLINE_EXPORT_INTAKE_20261023.md"
+    },
+    {
+      "path": "docs/P0_OHMURA8_OLDER_K_GAP_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "09a4663a1c97c9cd6f8f5b0b0147ee5982f2ebdf",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_OHMURA8_OLDER_K_GAP_20261024.md"
+    },
+    {
+      "path": "docs/P0_ONE_SHOT_SOURCE_SMOKE_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "cb8843d8b8b6aa7c5c9a29723409cab4376df469",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_ONE_SHOT_SOURCE_SMOKE_20261024.md"
+    },
+    {
+      "path": "docs/P0_PERMISSIONED_CASE_EXECUTION_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "82c6569a66c9bb402583fd05359f2cdefbff1fcb",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_PERMISSIONED_CASE_EXECUTION_20261025.md"
+    },
+    {
+      "path": "docs/P0_PERMISSIONED_CASE_SUBMISSION_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c4844ac64021726eb881190a06a61d6492ccb838",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_PERMISSIONED_CASE_SUBMISSION_20261025.md"
+    },
+    {
+      "path": "docs/P0_PR71_CROSSBRANCH_SYNTHETIC_VERIFICATION_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f0fbe304197eb58b9f9db559dfa879c0e21937df",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_PR71_CROSSBRANCH_SYNTHETIC_VERIFICATION_20261023.md"
+    },
+    {
+      "path": "docs/P0_PR71_DELIVERY_BINDING_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0ba3cba46bb55b404fd7a7b780cf9872eae3c90e",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_PR71_DELIVERY_BINDING_20261023.md"
+    },
+    {
+      "path": "docs/P0_PRIVATE_RETENTION_ACTION_V3_20261026.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "30cc2025f9602906954a2d3ff7304a180e06e8ff",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_PRIVATE_RETENTION_ACTION_V3_20261026.md"
+    },
+    {
+      "path": "docs/P0_PRIVATE_WIRE_RETENTION_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7c95ddc3ba4ef21804c23a68ec043df10b81ddf3",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_PRIVATE_WIRE_RETENTION_20261025.md"
+    },
+    {
+      "path": "docs/P0_PROOF_AWARE_SETTLEMENT_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "30f523fffc1c396d9675b4b7c60a2647168b6a99",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_PROOF_AWARE_SETTLEMENT_20261023.md"
+    },
+    {
+      "path": "docs/P0_PROVIDER_RIGHTS_AND_FREEZE_GATE_20261022.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7dbe7c8ee14e65a83d8469f0229e19d936c0b145",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_PROVIDER_RIGHTS_AND_FREEZE_GATE_20261022.md"
+    },
+    {
+      "path": "docs/P0_PUBLICATION_TRANSITION_V2_20261025.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7c738a2c9737e0dfdd853471f3eb8cf4b85f81c5",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_PUBLICATION_TRANSITION_V2_20261025.md"
+    },
+    {
+      "path": "docs/P0_RACE_BOUND_FREEZE_RECEIPT_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "1d8311cc71a1d82628c2b4faa70a662e1767f945",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_RACE_BOUND_FREEZE_RECEIPT_20261023.md"
+    },
+    {
+      "path": "docs/P0_REAL_BOAT_INPUT_READINESS_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5341ecacede06b23ada1357696545cf246b36f95",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_REAL_BOAT_INPUT_READINESS_20261024.md"
+    },
+    {
+      "path": "docs/P0_REAL_GITHUB_SERVER_WITNESS_SYNTHETIC_20261023.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "4bec6ee93a6c67ead7749dd77f85d4b04048e8f5",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_REAL_GITHUB_SERVER_WITNESS_SYNTHETIC_20261023.md"
+    },
+    {
+      "path": "docs/P0_REAL_K_AND_EXHIBITION_DATA_GATES_20261024.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f29ccb7596b7752f1a16817388520d7c698326fb",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_REAL_K_AND_EXHIBITION_DATA_GATES_20261024.md"
+    },
+    {
+      "path": "docs/P0_RETAINED_CAPTURED_AUDIT_20261028.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "fd794a5dd1279d47c9e830f37c69a3ca4a6ca110",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P0_RETAINED_CAPTURED_AUDIT_20261028.md"
+    },
+    {
+      "path": "docs/P1_BEFOREINFO_RESEARCH_CASE_20261028.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a92dcf1de12efe9bb2088bd678665a138d0007bc",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/P1_BEFOREINFO_RESEARCH_CASE_20261028.md"
+    },
+    {
+      "path": "docs/REQUIRED_EXIT_GATES.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "fae208773fe48e12b30ba34903d80936c4cca31f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/REQUIRED_EXIT_GATES.md"
+    },
+    {
+      "path": "docs/RETAINED_PREDICTION_AUDIT_20261027.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7d402f5e8f9374cdcbb61761aa7b6e9d6c6e444b",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/RETAINED_PREDICTION_AUDIT_20261027.md"
+    },
+    {
+      "path": "docs/SPEC_CONFLICTS.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3be1beb12ad73e6d3b5fb81c094262e1fbf0cbd8",
+      "original_status": "modified",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/SPEC_CONFLICTS.md"
+    },
+    {
+      "path": "docs/SRC_RIGHTS_STATUS.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "75db0c060b5c17d50d7687118f29dd6694675f43",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/SRC_RIGHTS_STATUS.md"
+    },
+    {
+      "path": "docs/evidence/2026-10-24-biwako-11r-live-B-lite-gate-no-forecast.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "8ff9601e2cc99a0e7845a3b0b499a700a081cdfe",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/2026-10-24-biwako-11r-live-B-lite-gate-no-forecast.json"
+    },
+    {
+      "path": "docs/evidence/2026-10-24-biwako-12r-official-schedule.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d2e61283a6f44f24ff4a5fb553eee435afa07494",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/2026-10-24-biwako-12r-official-schedule.json"
+    },
+    {
+      "path": "docs/evidence/2026-10-24-biwako-1r-official-facts.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f419e0a40e505c47f53b247a5053446aa2df6dc1",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/2026-10-24-biwako-1r-official-facts.json"
+    },
+    {
+      "path": "docs/evidence/2026-10-24-pdca-2026-10-22-boat-official-crosscheck-aggregate.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9a7df7fc387bbac350fe28023dc9fa2b9a443887",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/2026-10-24-pdca-2026-10-22-boat-official-crosscheck-aggregate.json"
+    },
+    {
+      "path": "docs/evidence/P0_20261024_1323_1325_CUTOFF_ORDERED_PREVIEW.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b6f881b81346ecb24aafcc99b22ac9adf7a6cb23",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/P0_20261024_1323_1325_CUTOFF_ORDERED_PREVIEW.json"
+    },
+    {
+      "path": "docs/evidence/P0_20261024_OFFICIAL_168_CUTOFF_DYNAMIC_1324.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "966f5e5e06928c32a7e27f669b464388ca833a45",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/P0_20261024_OFFICIAL_168_CUTOFF_DYNAMIC_1324.json"
+    },
+    {
+      "path": "docs/evidence/P0_ASHIYA10_NEAR_CUTOFF_REAL_JOIN_20261024.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "932c5fcce898c69a4530d25ab1f7780dd32d7fa6",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/P0_ASHIYA10_NEAR_CUTOFF_REAL_JOIN_20261024.json"
+    },
+    {
+      "path": "docs/evidence/P0_IS11_FIVE_PRE_CUTOFF_TRIAL_OBSERVATIONS_20261024.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "64f035863af8e5fb8180c4342190eab102b2e9d2",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/P0_IS11_FIVE_PRE_CUTOFF_TRIAL_OBSERVATIONS_20261024.json"
+    },
+    {
+      "path": "docs/evidence/P0_IS11_FOUR_OBSERVATIONS_NO_VERIFIED_TRIAL_20261024.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "72f2c99e14d6755cb1f21f400761620f34c46ab6",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/P0_IS11_FOUR_OBSERVATIONS_NO_VERIFIED_TRIAL_20261024.json"
+    },
+    {
+      "path": "docs/evidence/P0_IS11_THREE_REAL_PRETRIAL_OBSERVATIONS_20261024.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "6bf0916321780068032b2775c99184680bb5cb92",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/P0_IS11_THREE_REAL_PRETRIAL_OBSERVATIONS_20261024.json"
+    },
+    {
+      "path": "docs/evidence/P0_MIKUNI9_REAL_FULL_JOIN_20261024.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "2caa1d5ad94330de449139ef99ee47b094b9cf9d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/P0_MIKUNI9_REAL_FULL_JOIN_20261024.json"
+    },
+    {
+      "path": "docs/evidence/P0_NONBOAT_FIRSTPARTY_3SPORT_REAL_AUDIT_20261024.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c5cfcbdd2c5ac6026ce5d645c4ab865048412308",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/P0_NONBOAT_FIRSTPARTY_3SPORT_REAL_AUDIT_20261024.json"
+    },
+    {
+      "path": "docs/evidence/P0_OHMURA8_DISTINCT_K_OCT01_08_20261024.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a8641149106c10015706f649b12153af2a7d6545",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/P0_OHMURA8_DISTINCT_K_OCT01_08_20261024.json"
+    },
+    {
+      "path": "docs/evidence/P0_OHMURA8_REAL_K15_HISTORY_20261024.json",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7bfbd64e30fae39e0d0a9340c684cd89c5160ffb",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/evidence/P0_OHMURA8_REAL_K15_HISTORY_20261024.json"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-25-boat-source-readiness.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "852df62be50ee3baaaa34d1cc8319f28aaca7fce",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-25-boat-source-readiness.md"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-25-durable-retention-prerequisite.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3378aff3fbc650699f7f69b382d216b8e5e7d447",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-25-durable-retention-prerequisite.md"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-25-fixed-model-case-profiles.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "598c63f07ca5a15c7d659f1be9dd1b8218782e6e",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-25-fixed-model-case-profiles.md"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-25-permissioned-case-execution.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b3176f934a4cf81b1343c874a45e154420ad7066",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-25-permissioned-case-execution.md"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-25-permissioned-submission-intent.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ebc874c6166c608411f4caaabc83ffe1d7fbed59",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-25-permissioned-submission-intent.md"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-25-private-wire-retention.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d8d6f387325fd4472fa4e376b50d1ec9bfb6f134",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-25-private-wire-retention.md"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-25-three-lane-integrity.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "49600917ddc7fbbdf6b1a8355bf9758bfcfb38ad",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-25-three-lane-integrity.md"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-26-measured-boat-history.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7c403962e00e786a3b4a595a0cb9c420964dcd89",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-26-measured-boat-history.md"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-26-private-retention-action.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "17469150f3c27eb6bdc758daed663b8c30faea78",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-26-private-retention-action.md"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-27-fair-model-evaluation.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7ec190ecf45afff9f177028c61eb4c283dcaad90",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-27-fair-model-evaluation.md"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-28-beforeinfo-research-case.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c5ff58cee7745e78e5b6e9202a4925b2b4d7e403",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-28-beforeinfo-research-case.md"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-28-captured-history-bridge.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7b039e32647de17c7a5fc9f9029cad4e7408f351",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-28-captured-history-bridge.md"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-28-retained-captured-audit.md",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ec9bc83a555f166b5d8ff5a5d37ae18528d13e6d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/docs/superpowers/plans/2026-10-28-retained-captured-audit.md"
+    },
+    {
+      "path": "race_ai/append_only_freeze_writer.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "1e1f87d1d2c997232d739057bf039ab0230459f8",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/append_only_freeze_writer.py"
+    },
+    {
+      "path": "race_ai/autorace_official_trial_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "840303363b288175dbd0ab0246d66831ddae3cd9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/autorace_official_trial_adapter.py"
+    },
+    {
+      "path": "race_ai/b_layout_shape_diagnostic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "1c508c8304dbafa8297aac4607b21bc02f09a23f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/b_layout_shape_diagnostic.py"
+    },
+    {
+      "path": "race_ai/boat_b_feature_bridge.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "6a15e38b2620e5af06dca6e11da44b1df7a755f6",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/boat_b_feature_bridge.py"
+    },
+    {
+      "path": "race_ai/boat_beforeinfo_research_case.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b775ddcb96256f445a5f5f00198e864b08a93a9f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/boat_beforeinfo_research_case.py"
+    },
+    {
+      "path": "race_ai/boat_captured_history_bridge.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a4393ee219a3b41fc2b51585595dc1fb74b75497",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/boat_captured_history_bridge.py"
+    },
+    {
+      "path": "race_ai/boat_deadline_first_selector.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3840bdd1078472e6f43c5c5568da43d9b39949df",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/boat_deadline_first_selector.py"
+    },
+    {
+      "path": "race_ai/boat_existing_asset_integration.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c3717d2f7fc954ca6bb187576a910d084e90ad33",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/boat_existing_asset_integration.py"
+    },
+    {
+      "path": "race_ai/boat_firstparty_stat_normalizer.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5fd5ad317f44d357932b297748cd0e9098dab585",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/boat_firstparty_stat_normalizer.py"
+    },
+    {
+      "path": "race_ai/boat_k_history_dedup_contract.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a389a204e72d1bfada9aadb07cabd9f82eaa4898",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/boat_k_history_dedup_contract.py"
+    },
+    {
+      "path": "race_ai/boat_observed_course_history.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "79ab7b89e5271f5074f43472089486436b080197",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/boat_observed_course_history.py"
+    },
+    {
+      "path": "race_ai/boat_observed_program_bridge.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ce35d9a53a5a8fd5b2ad7e2baee93594c8b3a1c5",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/boat_observed_program_bridge.py"
+    },
+    {
+      "path": "race_ai/boat_official_web_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d356ef6660a0042221a5e375431622eaa845abee",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/boat_official_web_adapter.py"
+    },
+    {
+      "path": "race_ai/boat_preview_weather_evidence.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "08639ba829a398fee7f6c89804d33f5c6d744785",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/boat_preview_weather_evidence.py"
+    },
+    {
+      "path": "race_ai/boat_sparse_shadow_models.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ceaf96bfd1c88d262a9f0f96f20a1ee29d1a4bf8",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/boat_sparse_shadow_models.py"
+    },
+    {
+      "path": "race_ai/controlled_boat_html_capture.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "77d9eb64f47c2ef9ae2a6d41b26b73cf1c139267",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/controlled_boat_html_capture.py"
+    },
+    {
+      "path": "race_ai/discovery_audit_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0fccee52bd1ed309a3f349992ad41f0048742b69",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/discovery_audit_cli.py"
+    },
+    {
+      "path": "race_ai/evaluation_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "df6968fdd7a1319a6a9a809927a6b790a3d653ad",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/evaluation_cli.py"
+    },
+    {
+      "path": "race_ai/evaluation_experiment.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3cf91bc6bb1fac7fc014a6a3f61e9705e21b4f5d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/evaluation_experiment.py"
+    },
+    {
+      "path": "race_ai/evaluation_journal.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bf459ec58b7fda4adad626692aef7c0a27254b47",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/evaluation_journal.py"
+    },
+    {
+      "path": "race_ai/evaluation_metrics.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "27e26268231ad86cf23fe62c6e1a7ecddc279b77",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/evaluation_metrics.py"
+    },
+    {
+      "path": "race_ai/evaluation_result_revision_bridge.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9648efadc17dd2204465faa888adce19348718f9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/evaluation_result_revision_bridge.py"
+    },
+    {
+      "path": "race_ai/evaluation_result_revision_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bb768f5e11b221f094291205e73bd3e17e346a95",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/evaluation_result_revision_cli.py"
+    },
+    {
+      "path": "race_ai/four_sport_ledger_bridge.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "adff4dfebbc27bb69af0bd0fcc73dd4a0ae38b1f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/four_sport_ledger_bridge.py"
+    },
+    {
+      "path": "race_ai/four_sport_ledger_bridge_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f764e8127e8e452120c4af670d1a23cd84057ba3",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/four_sport_ledger_bridge_cli.py"
+    },
+    {
+      "path": "race_ai/four_sport_presentation_trigger.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bb4d673b39cc7d87c102105cf7933cf0291d97e8",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/four_sport_presentation_trigger.py"
+    },
+    {
+      "path": "race_ai/four_sport_publication_transition.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "49ad1d4daa971b857222051f32e580fece3d809f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/four_sport_publication_transition.py"
+    },
+    {
+      "path": "race_ai/github_witness_resolution.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "602a5840a1cc3fa1b3fb443991e08601972dc63a",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/github_witness_resolution.py"
+    },
+    {
+      "path": "race_ai/isolated_model_case_runtime.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d4b6bf4aa0307cce44e55c4c96c075e0c6a6205b",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/isolated_model_case_runtime.py"
+    },
+    {
+      "path": "race_ai/isolated_model_case_worker.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "fff3b20765bc157128f5d987f3c9a3635cf10938",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/isolated_model_case_worker.py"
+    },
+    {
+      "path": "race_ai/keirin_candidate_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5d71ac0bec9480e3a96c70c65a18b2e9a64bb7a6",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/keirin_candidate_audit.py"
+    },
+    {
+      "path": "race_ai/keirin_mobile_one_shot.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0dad2e46628b1c55e53747f65c99136cfd6594bb",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/keirin_mobile_one_shot.py"
+    },
+    {
+      "path": "race_ai/keirin_next_forecast_worker.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "651779c727ebe912514d08796895de30f6139566",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/keirin_next_forecast_worker.py"
+    },
+    {
+      "path": "race_ai/keirin_official_result_page.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ab993b0f14570a21083f625b6d06be2aa5ecfdac",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/keirin_official_result_page.py"
+    },
+    {
+      "path": "race_ai/keirin_owner_one_cycle.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f4d2b47e6b7176c1ca7a13e0ea56e639d2d1a748",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/keirin_owner_one_cycle.py"
+    },
+    {
+      "path": "race_ai/keirin_owner_sqlite.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ba3c3b4fb00381cc5fd8ecdf811c4e108d49c4ef",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/keirin_owner_sqlite.py"
+    },
+    {
+      "path": "race_ai/keirin_personal_monitor.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "6f77a73667cfdbc7839b0ff4cb60dacee00e716e",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/keirin_personal_monitor.py"
+    },
+    {
+      "path": "race_ai/keirin_personal_research_once.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b3ff5e310144a3767b7a236f730a659b639eabb9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/keirin_personal_research_once.py"
+    },
+    {
+      "path": "race_ai/keirin_pr71_model_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5a6a49649335192e17090afaedc5146e01ffae8a",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/keirin_pr71_model_adapter.py"
+    },
+    {
+      "path": "race_ai/keirin_result_delivery.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "4a364b37c72da782b62915cfd496e31a8d3cd5d3",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/keirin_result_delivery.py"
+    },
+    {
+      "path": "race_ai/keirin_result_reactor.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d0f1a66bafe5e055153a3af341d2d494cc68a641",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/keirin_result_reactor.py"
+    },
+    {
+      "path": "race_ai/model_case_contracts.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "62c3f529c9a77ac22e87d13ed8f4c34a165fadac",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/model_case_contracts.py"
+    },
+    {
+      "path": "race_ai/model_suite_settlement.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e6d180720dc5a4c554ec17feac4af1977785192e",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/model_suite_settlement.py"
+    },
+    {
+      "path": "race_ai/nar_daily_bundle_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "6f4694e9a810894be84c1d809f5255b3b106a3bc",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/nar_daily_bundle_audit.py"
+    },
+    {
+      "path": "race_ai/nar_payback_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "dec4357489be865f1d0d49300ae65010f2d46cba",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/nar_payback_adapter.py"
+    },
+    {
+      "path": "race_ai/nar_racelist_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e035d28efd35d016515ce28132b81251ca08afc6",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/nar_racelist_adapter.py"
+    },
+    {
+      "path": "race_ai/observed_pair_comparison.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9cab67700eb82e98ea70c710fb3f745233bc4165",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/observed_pair_comparison.py"
+    },
+    {
+      "path": "race_ai/official_b_minimal_identity.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "dcf82b013c0ab40d1ef9ebdf6c831c88c2b491bb",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/official_b_minimal_identity.py"
+    },
+    {
+      "path": "race_ai/official_bk_archive_transport.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f92f722be84459f86a36c4c3ff40a8335ddd3e80",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/official_bk_archive_transport.py"
+    },
+    {
+      "path": "race_ai/official_boat_fact_observation.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "02d61242eeeeb21a2e547147b07d4c89f56877a6",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/official_boat_fact_observation.py"
+    },
+    {
+      "path": "race_ai/official_private_receipt_link.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ad37116a24d2b314bf56a8a4c1043ec736e6f562",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/official_private_receipt_link.py"
+    },
+    {
+      "path": "race_ai/offline_model_run.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "fcd7cee1a958213bb9cf3ace621b4ac63d6dfd16",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/offline_model_run.py"
+    },
+    {
+      "path": "race_ai/operator_export_intake.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "73de102f12f5f9f7caaa51fbafbf5f7d005ce648",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/operator_export_intake.py"
+    },
+    {
+      "path": "race_ai/owner_private_file_reader.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f74fe7888a0cce0d1f0a6badff1032697f2c13d7",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/owner_private_file_reader.py"
+    },
+    {
+      "path": "race_ai/permissioned_case_submission.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "fa8f08cce83b5563a450846da72ff8f74131ee49",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/permissioned_case_submission.py"
+    },
+    {
+      "path": "race_ai/permissioned_model_case.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "fafe7b781d1f11a19f854a6d835cb25f69d07c5d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/permissioned_model_case.py"
+    },
+    {
+      "path": "race_ai/pr71_delivery_binding.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "2ee450a3d1696ec9f778b01c96960cd5e0164228",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/pr71_delivery_binding.py"
+    },
+    {
+      "path": "race_ai/private_retention_action.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "4a09526b83209503057425367a0bd54bdf78b5c9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/private_retention_action.py"
+    },
+    {
+      "path": "race_ai/private_wire_retention.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "29a9c915254d702eb0d229060371d0306e34ba6d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/private_wire_retention.py"
+    },
+    {
+      "path": "race_ai/proof_aware_settlement.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a0004b0aceb1f917bc1d888162fbcc8f0dbc7af1",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/proof_aware_settlement.py"
+    },
+    {
+      "path": "race_ai/race_bound_freeze_receipt.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "8fd3198d7a0e215b2090ef4b0058b24f7fa088c4",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/race_bound_freeze_receipt.py"
+    },
+    {
+      "path": "race_ai/retained_captured_journal.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3fe92fbeaf22daefe81204dd3e5caf827a810164",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/retained_captured_journal.py"
+    },
+    {
+      "path": "race_ai/retained_captured_labels.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "497df78eaad54257db070f05ae0d1749e8a3d085",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/retained_captured_labels.py"
+    },
+    {
+      "path": "race_ai/retained_captured_origin.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "252ede6ac9101bf20a6ffc6c992e2a77a66069f2",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/retained_captured_origin.py"
+    },
+    {
+      "path": "race_ai/retained_case_submission.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ac83b4dce9db58fd09a6a566cf78abeefcb5eec9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/retained_case_submission.py"
+    },
+    {
+      "path": "race_ai/retained_evaluation_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0d89e22952e510357b627c3cd76bb347be0bbbb9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/retained_evaluation_cli.py"
+    },
+    {
+      "path": "race_ai/retained_prediction_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "80fb917b9a5e6bbc334de9a532d706ccbebceaaa",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/race_ai/retained_prediction_audit.py"
+    },
+    {
+      "path": "scripts/check_anchor_witness.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9f17396ce9644eb6ee25ec8d922cb573bfe1eb14",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/check_anchor_witness.py"
+    },
+    {
+      "path": "scripts/keirin_mobile_probe_once.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c0aca070ca6a132d50431a121a7f35ded10fa0f6",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/keirin_mobile_probe_once.py"
+    },
+    {
+      "path": "scripts/keirin_official_result_probe_once.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "6b70d7efeb06a4121940fa5a83f43b18c46f6351",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/keirin_official_result_probe_once.py"
+    },
+    {
+      "path": "scripts/keirin_personal_research_once.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "edc4cc059bdc007b4166b8bf1300b65b6c6ff069",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/keirin_personal_research_once.py"
+    },
+    {
+      "path": "scripts/keirin_result_feed_once.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7ca83559d1f99b149ea8d8e9e382e36601f1192c",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/keirin_result_feed_once.py"
+    },
+    {
+      "path": "scripts/p0_ashiya10_near_cutoff_join_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "666b5983d6894bfb6b1f31deced5777a8ed5a926",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_ashiya10_near_cutoff_join_20261024.py"
+    },
+    {
+      "path": "scripts/p0_biwako_11r_unadmitted_research_shadow_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "438b37c9313380f4769f8b3999d2d1408207de1d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_biwako_11r_unadmitted_research_shadow_20261024.py"
+    },
+    {
+      "path": "scripts/p0_cutoff_ordered_preview_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c93781ce9357dbaeeed947784dec13cdbb22a99a",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_cutoff_ordered_preview_20261024.py"
+    },
+    {
+      "path": "scripts/p0_isesaki11_real_trial_probe_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ea133980c8c2fa422aae1b217a7125fdca826919",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_isesaki11_real_trial_probe_20261024.py"
+    },
+    {
+      "path": "scripts/p0_jra_kyoto12_charset_audit_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "adface8613eb1c9f9e9f7f761aee9ec1b9751cc1",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_jra_kyoto12_charset_audit_20261024.py"
+    },
+    {
+      "path": "scripts/p0_mikuni9_same_race_full_join_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b70ac01f3f8609022ba1ed0cae0137972bb5cc4c",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_mikuni9_same_race_full_join_20261024.py"
+    },
+    {
+      "path": "scripts/p0_mikuni_7r_unadmitted_research_shadow_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f360dfb6b2ed029e5674fb431a6eebb72dba0029",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_mikuni_7r_unadmitted_research_shadow_20261024.py"
+    },
+    {
+      "path": "scripts/p0_nonboat_official_format_probe_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "549b719f3c1ff55b4b72762ecc414545ad14a6c3",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_nonboat_official_format_probe_20261024.py"
+    },
+    {
+      "path": "scripts/p0_ohmura8_disjoint_older_k_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0c3b4a071f3db27b637f23f09b7714618ec61f14",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_ohmura8_disjoint_older_k_20261024.py"
+    },
+    {
+      "path": "scripts/p0_ohmura8_extended_pr71_historical_k_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3c0f97f9295abb7c6bc0ea01e4016bb68e402cc5",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_ohmura8_extended_pr71_historical_k_audit.py"
+    },
+    {
+      "path": "scripts/p0_one_shot_k21_shape_diagnostic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3f93d2ec0662fda69fb4e52e4feb5b5714528b5e",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_one_shot_k21_shape_diagnostic.py"
+    },
+    {
+      "path": "scripts/p0_one_shot_real_b_parse.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "db0063fe685d82b6a7a8168001c98584676fcf26",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_one_shot_real_b_parse.py"
+    },
+    {
+      "path": "scripts/p0_one_shot_real_k_readiness_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0f3592a72cbf4c6e4eb339a920aa07352640e35b",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_one_shot_real_k_readiness_20261024.py"
+    },
+    {
+      "path": "scripts/p0_real_b_k_pr71_history_join_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "00f7d4eb8f294f379340b5045c8e8b31585737bb",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_real_b_k_pr71_history_join_20261024.py"
+    },
+    {
+      "path": "scripts/p0_real_mikuni_8r_preview_weather_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b0b627956db1c4ee5e055be1a6d9f0e04f038fc7",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_real_mikuni_8r_preview_weather_20261024.py"
+    },
+    {
+      "path": "scripts/p0_single_b_smoke.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bf8854741b0dea18d51e34a334adea2b98f88328",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_single_b_smoke.py"
+    },
+    {
+      "path": "scripts/p0_single_future_boat_gate_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5896af72c205dd04ccf835f061d0cda9b77aac1a",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_single_future_boat_gate_20261024.py"
+    },
+    {
+      "path": "scripts/p0_single_source_smoke.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bc80507f628e7df897590d1031634633f48d1c7f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/p0_single_source_smoke.py"
+    },
+    {
+      "path": "scripts/private_retention_action_local_vault.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "28e861ccaccda88c8243f5704b13bc6987ed45ea",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/private_retention_action_local_vault.mjs"
+    },
+    {
+      "path": "scripts/review_boat_feature_gate.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f991b5e90455bd4c838fcb8d22933c0472743b04",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/review_boat_feature_gate.py"
+    },
+    {
+      "path": "scripts/verify_actual_boat_readiness.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "02fdab3c8a9bdd45b79b338251139703d0db8fb3",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/verify_actual_boat_readiness.py"
+    },
+    {
+      "path": "scripts/verify_fixed_model_cases_synthetic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d4ae3a41423777b673e07c3b361783cd29814ab5",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/verify_fixed_model_cases_synthetic.py"
+    },
+    {
+      "path": "scripts/verify_model_suite_settlement_synthetic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "663284c2bb6de5fa4ced9f2a4c5c759bf5bf7627",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/verify_model_suite_settlement_synthetic.py"
+    },
+    {
+      "path": "scripts/verify_observed_pairs_synthetic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e13ee97f65903a78d74c3ab62187126050aea238",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/verify_observed_pairs_synthetic.py"
+    },
+    {
+      "path": "scripts/verify_offline_model_run_synthetic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9ee5bd5534180757f4c4678d90bc650070066d7c",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/verify_offline_model_run_synthetic.py"
+    },
+    {
+      "path": "scripts/verify_permissioned_case_synthetic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b26742c85bf0f7fc55ec04f5ecc1a53c6415c297",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/verify_permissioned_case_synthetic.py"
+    },
+    {
+      "path": "scripts/verify_permissioned_submission_synthetic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "6f1ca88241b0b728092b0078dce0838520c25a2f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/verify_permissioned_submission_synthetic.py"
+    },
+    {
+      "path": "scripts/verify_pr71_crossbranch_synthetic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f44ef8189144bc780b3c88c076b03632ac77b130",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/verify_pr71_crossbranch_synthetic.py"
+    },
+    {
+      "path": "scripts/verify_private_retention_action_synthetic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f4acc1c4440ff06a41d3a06716f570281b1077b3",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/verify_private_retention_action_synthetic.py"
+    },
+    {
+      "path": "scripts/verify_private_wire_retention_synthetic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5ab2b9c2ec61848c3bada3bba3cbdb7253c8c235",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/verify_private_wire_retention_synthetic.py"
+    },
+    {
+      "path": "scripts/verify_retained_case_synthetic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "349f734981de35381030b2caf26c555d2d7bca98",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/scripts/verify_retained_case_synthetic.py"
+    },
+    {
+      "path": "tests/test_anchor_witness.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "302124134f562064a8eb1c78b8f664c2e5126330",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_anchor_witness.py"
+    },
+    {
+      "path": "tests/test_append_only_freeze_writer.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "202ad556f2c8f73d510c21b2de1036591e67f888",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_append_only_freeze_writer.py"
+    },
+    {
+      "path": "tests/test_autorace_official_trial_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "70aa4ed951d2aab4d244e5413f1b87003f65252d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_autorace_official_trial_adapter.py"
+    },
+    {
+      "path": "tests/test_b_layout_shape_diagnostic.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d01ab45db018af3b2c483e3792eb2c7ca8f1293e",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_b_layout_shape_diagnostic.py"
+    },
+    {
+      "path": "tests/test_boat_b_feature_bridge.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "08f522b2a53dba33cf4441c861236039ba25a0a1",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_boat_b_feature_bridge.py"
+    },
+    {
+      "path": "tests/test_boat_beforeinfo_research_case.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "279e4ae217f8a8891accd6e9ba506e33771e3e4b",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_boat_beforeinfo_research_case.py"
+    },
+    {
+      "path": "tests/test_boat_captured_history_bridge.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "80ed22a092615869ff5e820b1efcded394ad30b1",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_boat_captured_history_bridge.py"
+    },
+    {
+      "path": "tests/test_boat_deadline_first_selector.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "98f0903d98c560f1fdba6d99b6ff19f9dfe9856d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_boat_deadline_first_selector.py"
+    },
+    {
+      "path": "tests/test_boat_existing_asset_integration.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b13dbe99392b160591d2679a24c63c40fdf5e3de",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_boat_existing_asset_integration.py"
+    },
+    {
+      "path": "tests/test_boat_feature_requirement_review.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e988989cf7a545b864e6dc00d2e833347e26361e",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_boat_feature_requirement_review.py"
+    },
+    {
+      "path": "tests/test_boat_firstparty_stat_normalizer.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "96fec4f5d2dc77fbd23c56ec7f220643a5fad212",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_boat_firstparty_stat_normalizer.py"
+    },
+    {
+      "path": "tests/test_boat_k_manifest_preview_weather.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5ab1ddad5819ba6566ac84566759b3d2c4266cc5",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_boat_k_manifest_preview_weather.py"
+    },
+    {
+      "path": "tests/test_boat_observed_course_history.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e8c3a50dd5b3c006907733e65116f701478ecbbb",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_boat_observed_course_history.py"
+    },
+    {
+      "path": "tests/test_boat_observed_program_bridge.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "5edeb7823c0d850314f47ec7c35494f43ffb6b68",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_boat_observed_program_bridge.py"
+    },
+    {
+      "path": "tests/test_boat_official_web_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "25d9f1360fa0bcf8201487a3e25bd46f3095fe96",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_boat_official_web_adapter.py"
+    },
+    {
+      "path": "tests/test_boat_sparse_shadow_models.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "8478eac20e7e0172bdfe7d3bfd327fc6271f5692",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_boat_sparse_shadow_models.py"
+    },
+    {
+      "path": "tests/test_controlled_boat_html_capture.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "90efbb05c3ccbd40e8256e468c39b4a6901d918c",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_controlled_boat_html_capture.py"
+    },
+    {
+      "path": "tests/test_discovery_audit_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "6d4bf399a811ec0630cd9e1e9e0a9d87e4e9a47c",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_discovery_audit_cli.py"
+    },
+    {
+      "path": "tests/test_evaluation_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "08e27d1112edde68ae53e3f106726ac25ca3d659",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_evaluation_cli.py"
+    },
+    {
+      "path": "tests/test_evaluation_experiment.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7bddfefe7189317e661d90c2104b762cbb51126b",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_evaluation_experiment.py"
+    },
+    {
+      "path": "tests/test_evaluation_four_sport_bridge.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a4a3bb4d8963aded3bef97a572fda487c93e4be8",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_evaluation_four_sport_bridge.py"
+    },
+    {
+      "path": "tests/test_evaluation_journal.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "bd2f835fc75798f583e9b31373649c274af7d574",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_evaluation_journal.py"
+    },
+    {
+      "path": "tests/test_evaluation_keirin_result_delivery.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "8d48664183686c361f74d318364f5ebe4f219c3c",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_evaluation_keirin_result_delivery.py"
+    },
+    {
+      "path": "tests/test_evaluation_official_private_receipt_link.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "98e9cbfbc5d807dcb0891d64dd1be28ee726ce1c",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_evaluation_official_private_receipt_link.py"
+    },
+    {
+      "path": "tests/test_evaluation_result_revision_bridge.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "63e62172bd2d59601fd611226dc1d7c11b07e84d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_evaluation_result_revision_bridge.py"
+    },
+    {
+      "path": "tests/test_fixed_model_case_profiles.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f0947d95c0d21ce213187024c7286e39fa20a8be",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_fixed_model_case_profiles.py"
+    },
+    {
+      "path": "tests/test_four_sport_presentation_trigger.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c972e9fbd3ddafc6c66a17bf60b48b276384ad9b",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_four_sport_presentation_trigger.py"
+    },
+    {
+      "path": "tests/test_four_sport_publication_transition.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b378b3a1ba97cd99b238a63c3dbaab8cf077baa5",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_four_sport_publication_transition.py"
+    },
+    {
+      "path": "tests/test_github_witness_resolution.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "0a50984a6052870e5f4272d890bfe3100bd725b5",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_github_witness_resolution.py"
+    },
+    {
+      "path": "tests/test_isolated_model_case_runtime.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d254c5953a6e1066eb1da7c632535b4bd5b2b8da",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_isolated_model_case_runtime.py"
+    },
+    {
+      "path": "tests/test_keirin_candidate_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "8626db0c1b7e662c838a75b4fd7341788a5cf7e4",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_keirin_candidate_audit.py"
+    },
+    {
+      "path": "tests/test_keirin_mobile_one_shot.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f5f6725a07391e6a43aba83f08c0c4688a327795",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_keirin_mobile_one_shot.py"
+    },
+    {
+      "path": "tests/test_keirin_next_forecast_worker.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "4ca34f848221f674539a1a15d01083bffe1dc3cf",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_keirin_next_forecast_worker.py"
+    },
+    {
+      "path": "tests/test_keirin_official_result_page.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f48e9c52dd6a1bcaa2cc80b07f6c232b63c95452",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_keirin_official_result_page.py"
+    },
+    {
+      "path": "tests/test_keirin_one_synthetic_e2e.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "872711ebea4910dacc3ed90e556b8184c07cbf3e",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_keirin_one_synthetic_e2e.py"
+    },
+    {
+      "path": "tests/test_keirin_owner_one_cycle.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "2a934f9fbf1e376dc348c6d98c695cea1c375d43",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_keirin_owner_one_cycle.py"
+    },
+    {
+      "path": "tests/test_keirin_owner_sqlite.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9b3e8ba0bc60ef3de044e6acac89c1832c7b205f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_keirin_owner_sqlite.py"
+    },
+    {
+      "path": "tests/test_keirin_owner_sqlite_pr71_e2e.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "986797bc4f3291c196c5305b3651aeedab9e0e7d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_keirin_owner_sqlite_pr71_e2e.py"
+    },
+    {
+      "path": "tests/test_keirin_personal_monitor.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "b62970a304e6c9f2e9582c12277e91890153fa4a",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_keirin_personal_monitor.py"
+    },
+    {
+      "path": "tests/test_keirin_personal_research_once.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "edda49643c20fb91aad0f8849a4df1f11d34b5b0",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_keirin_personal_research_once.py"
+    },
+    {
+      "path": "tests/test_keirin_pr71_model_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c329da829d3e982853f51f421651fc627cbb5f49",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_keirin_pr71_model_adapter.py"
+    },
+    {
+      "path": "tests/test_keirin_result_reactor.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "4253e73ff988ea6a5b89c53c1167b4b8ab134951",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_keirin_result_reactor.py"
+    },
+    {
+      "path": "tests/test_model_suite_settlement.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "6d870a2c300c96645e31c663ace8f746f0cea325",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_model_suite_settlement.py"
+    },
+    {
+      "path": "tests/test_nar_daily_bundle_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9b4e619566d05b4e1ed6f426e7f5300747672d88",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_nar_daily_bundle_audit.py"
+    },
+    {
+      "path": "tests/test_nar_payback_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a7dad4f24e0816e26f3da55093789f2f1f9cb6eb",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_nar_payback_adapter.py"
+    },
+    {
+      "path": "tests/test_nar_racelist_adapter.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a046ae7370b7749a14ae4b5cc303fb7c7d38ff46",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_nar_racelist_adapter.py"
+    },
+    {
+      "path": "tests/test_observed_biwako_day_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "cd8db252542c0b8042e4609829c6e9efa8a642d9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_observed_biwako_day_20261024.py"
+    },
+    {
+      "path": "tests/test_observed_pair_comparison.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "58aaff4737860872cd938084fa440cf7a00fccdf",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_observed_pair_comparison.py"
+    },
+    {
+      "path": "tests/test_official_b_minimal_identity.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "febfc63801d282801a7cf4b5598aaa522c13d6bb",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_official_b_minimal_identity.py"
+    },
+    {
+      "path": "tests/test_official_bk_archive_transport.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "83bd35c44f8597fde55fbe9e02e76829afba6a12",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_official_bk_archive_transport.py"
+    },
+    {
+      "path": "tests/test_official_boat_fact_observation.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a5fa5fdc463dfab63089133d20822accffcacbc2",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_official_boat_fact_observation.py"
+    },
+    {
+      "path": "tests/test_offline_model_reference.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ebb5b02abc7d30bd1dd27e76a5048315bf7647a5",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_offline_model_reference.py"
+    },
+    {
+      "path": "tests/test_offline_model_run.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "7121d159149b0f7be108d711230a056fbf809fb1",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_offline_model_run.py"
+    },
+    {
+      "path": "tests/test_operator_export_intake.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "c6d07766ef4823cf6a1c9ced09ca1f5ca76303a3",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_operator_export_intake.py"
+    },
+    {
+      "path": "tests/test_owner_private_file_reader.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "abfe1cf6cd9658434b6ebaeb0617b2dd712746cb",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_owner_private_file_reader.py"
+    },
+    {
+      "path": "tests/test_owner_private_link_integration.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "aa05f4996100eaba62f3b24af84cde61b6bceafb",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_owner_private_link_integration.py"
+    },
+    {
+      "path": "tests/test_p0_ashiya10_near_cutoff_window.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "86d84a36ebf79c239d553e01933551171cbd9bc9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_ashiya10_near_cutoff_window.py"
+    },
+    {
+      "path": "tests/test_p0_beforeinfo_publication_trigger.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "da4daedbef145662f7dcf6a7f8ab8167f19fa651",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_beforeinfo_publication_trigger.py"
+    },
+    {
+      "path": "tests/test_p0_isesaki11_real_trial_probe.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "19ced819a7b45a28b4fd17d086cedefec5b7bffa",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_isesaki11_real_trial_probe.py"
+    },
+    {
+      "path": "tests/test_p0_jra_kyoto12_charset_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "f1829b13af7829baf083dc99e4f2e64874b46e54",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_jra_kyoto12_charset_audit.py"
+    },
+    {
+      "path": "tests/test_p0_mikuni9_same_race_full_join_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "a125c862087b29b0cee1f73fbc629c6ada53095d",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_mikuni9_same_race_full_join_20261024.py"
+    },
+    {
+      "path": "tests/test_p0_nonboat_official_format_probe.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ba4ac742d9c39f97d2b666bc8ca1485670f0e88f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_nonboat_official_format_probe.py"
+    },
+    {
+      "path": "tests/test_p0_ohmura8_disjoint_older_k.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3d82f758a08c1066d17edce333d543f5e95a8d5c",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_ohmura8_disjoint_older_k.py"
+    },
+    {
+      "path": "tests/test_p0_ohmura8_extended_history.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "203c47dbb9a459df6739106ac11900c31aac4327",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_ohmura8_extended_history.py"
+    },
+    {
+      "path": "tests/test_p0_one_shot_real_b_parse.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "56d8ca6d60d93f4e95ad17599b0b337a4598986f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_one_shot_real_b_parse.py"
+    },
+    {
+      "path": "tests/test_p0_one_shot_real_k_readiness_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "d73b6bc075b37fb4b4b98595ff1fcb82796f4946",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_one_shot_real_k_readiness_20261024.py"
+    },
+    {
+      "path": "tests/test_p0_real_b_k_pr71_history_join_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "dd4641b2aa015c0b5702c56e4c651be56087b815",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_real_b_k_pr71_history_join_20261024.py"
+    },
+    {
+      "path": "tests/test_p0_real_mikuni_8r_preview_weather_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "ad9dcbff82a46e5d27a292a51aafa65f0a305eed",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_real_mikuni_8r_preview_weather_20261024.py"
+    },
+    {
+      "path": "tests/test_p0_single_b_smoke.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "193c88cf1498e6eee178da6da8405b45b7ca2f43",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_single_b_smoke.py"
+    },
+    {
+      "path": "tests/test_p0_single_future_boat_gate_20261024.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "708113b899899c0b5d338e1ab07427bb372a586c",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_single_future_boat_gate_20261024.py"
+    },
+    {
+      "path": "tests/test_p0_single_source_smoke.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "2bc96c6a1a246f83fb0dbc1d5613ddcfd847e116",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_p0_single_source_smoke.py"
+    },
+    {
+      "path": "tests/test_permissioned_case_submission.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "75735607abac355a6de525122d495876d5d8c986",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_permissioned_case_submission.py"
+    },
+    {
+      "path": "tests/test_permissioned_model_case.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "035564e7d50f3ddd5d4651f9e1e2290d60d4c7c3",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_permissioned_model_case.py"
+    },
+    {
+      "path": "tests/test_pr71_delivery_binding.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "afc08bbe51feba6a4fc5dd574d1bea66d4cb521e",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_pr71_delivery_binding.py"
+    },
+    {
+      "path": "tests/test_private_retention_action.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "50b9e16bcf6199612cf1740b2a7630016af3d95f",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_private_retention_action.py"
+    },
+    {
+      "path": "tests/test_private_retention_action_integration.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "09fb2de92c4a6eb4c21d3dfc83495a19b9eacc78",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_private_retention_action_integration.py"
+    },
+    {
+      "path": "tests/test_private_wire_retention.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "21f027df93cf94e29593faf718ba1127ab4b55f6",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_private_wire_retention.py"
+    },
+    {
+      "path": "tests/test_proof_aware_settlement.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "80d3d2808524f7a63219f2076cd74fffa0a1d8d4",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_proof_aware_settlement.py"
+    },
+    {
+      "path": "tests/test_race_bound_freeze_receipt.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "9a4ea2f3260f0580b058b5106d6773e03e72b163",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_race_bound_freeze_receipt.py"
+    },
+    {
+      "path": "tests/test_retained_captured_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "376041aa9bcfa5db9223a372e441c61d05b30ed7",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_retained_captured_cli.py"
+    },
+    {
+      "path": "tests/test_retained_captured_journal.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "21fb3dd2ac19b9df6cb79d182b641606fcb560a9",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_retained_captured_journal.py"
+    },
+    {
+      "path": "tests/test_retained_captured_origin.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "3ac0057ecc69eedc1b21c4f0d264685e434cc4fe",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_retained_captured_origin.py"
+    },
+    {
+      "path": "tests/test_retained_case_submission.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "237f250452ef2088be829c9e3d0956e321b97ace",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_retained_case_submission.py"
+    },
+    {
+      "path": "tests/test_retained_case_submission_integration.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "e960de02ade376154595981fb49e24a7103887c5",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_retained_case_submission_integration.py"
+    },
+    {
+      "path": "tests/test_retained_evaluation_cli.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "31aeb0ff8a4e9ca7d306ff2adaa87db08908c9d5",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_retained_evaluation_cli.py"
+    },
+    {
+      "path": "tests/test_retained_prediction_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "75f1f7ec453e04eedcdfa7abf2927dedfed01488",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_retained_prediction_audit.py"
+    },
+    {
+      "path": "tests/test_two_source_discovery_audit.py",
+      "mode": "100644",
+      "type": "blob",
+      "git_blob_oid": "516aac3675f9535a8c01c96a4e9f2188120a4e12",
+      "original_status": "added",
+      "immutable_source_ref": "7a432e5acc4d3495a0e82bd79726929e2f8085fe",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/7a432e5acc4d3495a0e82bd79726929e2f8085fe/tests/test_two_source_discovery_audit.py"
+    }
+  ]
+}

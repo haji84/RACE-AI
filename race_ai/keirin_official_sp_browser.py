@@ -9,6 +9,7 @@ counts and hashes; provider documents and parsed records stay in the inbox.
 from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 import json
+import logging
 from math import isfinite
 import os
 from pathlib import Path
@@ -56,6 +57,22 @@ def _need(condition):
 def _published_analytics(request):
     return (request.method == 'GET' and request.resource_type == 'xhr'
             and request.url == 'https://keirin.jp/sp/ana' and request.post_data in (None, ''))
+
+
+def _log_collection_failure(error):
+    """Never log exception strings, foreign frames, locals or traceback values."""
+    category = ('TIMEOUT' if type(error).__name__ == 'TimeoutError' else
+                'DEPENDENCY' if isinstance(error, ImportError) else
+                'LOCAL_IO' if isinstance(error, OSError) else 'RUNTIME')
+    function, line = 'collect_official_sp', collect_official_sp.__code__.co_firstlineno
+    trace = error.__traceback__
+    while trace is not None:
+        code = trace.tb_frame.f_code
+        if trace.tb_frame.f_globals is globals() and not code.co_name.startswith('<'):
+            function, line = code.co_name, trace.tb_lineno
+        trace = trace.tb_next
+    logging.getLogger(__name__).warning('collection failure category=%s function=%s line=%d',
+                                        category, function, line)
 
 
 def _document(raw):
@@ -255,11 +272,7 @@ class _Collector:
                                          or _published_analytics(req)):
             self.pending_resources.append(response)
 
-    def response_body(self, response):
-        length = response.headers.get('content-length')
-        _need(length is None or (length.isascii() and length.isdigit()
-                                and int(length) <= calendar.MAX_HTML_BYTES))
-        request = response.request
+    def wait_for_request(self, request):
         if request.timing['responseEnd'] < 0:
             # body()/finished() have no timeout. Wait for documented completion
             # within the existing remaining work budget before reading bytes.
@@ -272,6 +285,12 @@ class _Collector:
                 raise
             self.check()
             _need(request.timing['responseEnd'] >= 0)
+
+    def response_body(self, response):
+        length = response.headers.get('content-length')
+        _need(length is None or (length.isascii() and length.isdigit()
+                                and int(length) <= calendar.MAX_HTML_BYTES))
+        self.wait_for_request(response.request)
         raw = response.body()
         _need(type(raw) is bytes and len(raw) <= calendar.MAX_HTML_BYTES)
         _need(_CHALLENGE.search(raw.decode('utf-8', 'replace')) is None)
@@ -283,6 +302,18 @@ class _Collector:
             if response.status == 200 or (_published_analytics(response.request)
                                            and 200 <= response.status < 300):
                 self.response_body(response)
+
+    def settle_requests(self):
+        """Finish already transmitted work before a public navigation cancels it."""
+        while True:
+            self.check()
+            self.drain_resources()
+            pending = [row['request'] for row in self.records.values()
+                       if row['request'].timing['responseEnd'] < 0]
+            if not pending:
+                self.check()
+                return
+            self.wait_for_request(pending[0])
 
     def capture_document(self, response):
         _need(response is not None)
@@ -300,8 +331,7 @@ class _Collector:
     def new_page(self):
         self.check()
         if self.page:
-            self.drain_resources()
-            self.check()
+            self.settle_requests()
             self.page.close()
         self.creating_page = True
         try:
@@ -329,14 +359,21 @@ class _Collector:
         self.stop(_LAYOUT)
         socket.close()
 
-    def failed(self, _):
+    def failed(self, request):
         if not self.closing:
             self.stop(_TRANSPORT)
+            try:
+                failure = request.failure
+            except Exception:
+                failure = None
+            kind = 'ABORTED' if type(failure) is str and failure == 'net::ERR_ABORTED' else 'OTHER'
+            logging.getLogger(__name__).warning('request failure function=failed line=%d kind=%s',
+                                                _Collector.failed.__code__.co_firstlineno, kind)
 
     def navigate(self, path, method, action, opaque=None, scope=None):
         self.check()
         _need(self.armed is None)
-        self.drain_resources()
+        self.settle_requests()
         if scope is not None:
             scope()
         self.armed = (path, method, opaque)
@@ -564,9 +601,7 @@ class _Collector:
                 self.out['day_venue_count'] = self.out['day_race_count'] = None
                 raise _Stop()
             self.open_detail(parsed, doc, bound, number)
-        self.check()
-        self.drain_resources()
-        self.check()
+        self.settle_requests()
 
     def report(self):
         unknown = sum(record['status'] is None for record in self.records.values())
@@ -620,9 +655,16 @@ def collect_official_sp(inbox, *, clock=None, monotonic=None, budget_seconds=240
         except (calendar.OfficialCalendarError, receipt.OfficialSPReceiptError,
                 UnicodeError, ValueError, KeyError, StopIteration):
             collector.stop(_LAYOUT)
-        except Exception:
+        except Exception as error:
+            _log_collection_failure(error)
+            try:
+                collector.check()
+            except _Stop:
+                pass
             collector.stop(_TRANSPORT)
-    except Exception:
+    except Exception as error:
+        if not isinstance(error, _Stop):
+            _log_collection_failure(error)
         if collector:
             collector.stop(_LOCAL)
     finally:
