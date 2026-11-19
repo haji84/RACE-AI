@@ -1,0 +1,7 @@
+race_key,venue,field_size,published_lineup,three_rentan_result,payout_yen_per_100,line_class,same_line_pair_places,solo_finish_places,lineup_source_url,result_source_url
+20261118_38_01,静岡,7,1 6 4 3│2 5│7,1-2-5,2070,SAME_LINE_2_PLUS_OTHER,2-3,,https://kantoumon.jp/20261118_shizuoka,https://keirin.kdreams.jp/shizuoka/racedetail/3820261117020001/?pageType=KS_RACE_CARD_PAGE_TYPE_SHOW_RESULT
+20261118_38_02,静岡,7,7 2 4│6│1 5 3,1-4-2,8180,SAME_LINE_2_PLUS_OTHER,2-3,,https://kantoumon.jp/20261118_shizuoka,https://keirin.kdreams.jp/shizuoka/racedetail/3820261117020002/?pageType=KS_RACE_CARD_PAGE_TYPE_SHOW_RESULT
+20261118_38_03,静岡,7,3 6│1 7 4│2 5,1-7-4,1190,SAME_LINE_3,,,https://kantoumon.jp/20261118_shizuoka,https://keirin.kdreams.jp/shizuoka/racedetail/3820261117020003/?pageType=KS_RACE_CARD_PAGE_TYPE_SHOW_RESULT
+20261118_74_04,高知,7,1 6│7 2 3│5 4,1-2-4,1710,THREE_DIFFERENT_LINES,,,https://kantoumon.jp/20261118_kochi,https://keirin.kdreams.jp/kochi/racedetail/7420261117020004/?pageType=KS_RACE_CARD_PAGE_TYPE_SHOW_RESULT
+20261118_74_05,高知,7,1│2 3│4│7 5 6,5-3-1,18650,THREE_DIFFERENT_LINES,,3,https://kantoumon.jp/20261118_kochi,https://keirin.kdreams.jp/kochi/racedetail/7420261117020005/?pageType=KS_RACE_CARD_PAGE_TYPE_SHOW_RESULT
+20261118_74_06,高知,7,6 2 1│3 5 4 7,3-1-4,15660,SAME_LINE_2_PLUS_OTHER,1-3,,https://kantoumon.jp/20261118_kochi,https://keirin.kdreams.jp/kochi/racedetail/7420261117020006/?pageType=KS_RACE_CARD_PAGE_TYPE_SHOW_RESULT
