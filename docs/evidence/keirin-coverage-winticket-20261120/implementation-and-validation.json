@@ -1,0 +1,105 @@
+{
+  "schema": "RACE_AI_KEIRIN_DOM_BATCH_SOURCE_VALIDATION_V1",
+  "source_candidate": "54db5ccc7fdeaa108590c83287a9da96f4fcad9c",
+  "integration_tests_commit": "97a773b1b2193ef5c71aee885c3a7a75d9b1ef1a",
+  "preserved_history_candidate": "53b4dd531a115603cdddaede797f779254c1f770",
+  "pre_docs_tree": "7296c760a312b2f9b0da5a20284e30dfb650ede6",
+  "source_blob_oid": "440bc71047bf4171b75b68e142db9a2fed53c416",
+  "workflow_tree": "9f87dbaedfd5b89de64524e3b9b9b2742e5e491c",
+  "workflow_bytes_changed_from_main": false,
+  "resource_transport_or_lifecycle_changed": false,
+  "navigation_sequence_changed": false,
+  "current_property_values_preserved": true,
+  "live_scope_after_settlement_preserved": true,
+  "open_shadow_root_scope": "reject unreviewed rendered control scopes",
+  "budgets_seconds": {
+    "existing_main_source_step": 120,
+    "existing_normal_runtime": 240
+  },
+  "tests": {
+    "root_related": {
+      "count": 147,
+      "failures": 0,
+      "skips": 0,
+      "native_default_chromium_tests_included": 2
+    },
+    "pinned_source_cycle": {
+      "count": 7,
+      "failures": 0,
+      "skips": 0
+    },
+    "pinned_owner_inputs": {
+      "count": 25,
+      "failures": 0,
+      "skips": 0
+    },
+    "pinned_source": "fe7e5581263b2b31fbd45536ac6a611c2779fa65",
+    "playwright": "1.56.0"
+  },
+  "tdd": {
+    "before": "HOLD_OFFICIAL_SP_BUDGET",
+    "after": "OFFICIAL_SP_PARTIAL_INPUT_CAPTURED",
+    "invented_calendar_tables": 73,
+    "invented_day_details": 6,
+    "invented_rider_records": 46,
+    "actual_fixture_navigations": 22,
+    "http_status_counts": {
+      "200": 22
+    },
+    "unknown_transmitted": 0,
+    "blocked_before_send": 0,
+    "observed_metered_dom_reads_after": 212,
+    "budget_seconds": 120,
+    "real_day_coverage_proved_by_this_fixture": false
+  },
+  "independent_review": {
+    "conclusion": "CLEAR",
+    "receipt": "independent-review.json",
+    "receipt_sha256": "6a10737f5bcb742571ca161d39d7e8ca34585595241f94dc4d0c7d2b346d27a9",
+    "tests_passed": 124,
+    "skips": 0,
+    "additional_native_checks": 28,
+    "provider_requests": 0
+  },
+  "github_required_checks": {
+    "head": "1e9a24c597710b2d9810d889e24c606ffba6f2ab",
+    "completed": 37,
+    "success": 8,
+    "skipped": 29,
+    "failed": 0,
+    "required_unit": "success",
+    "protection_bypassed": false
+  },
+  "actual_post_merge_run": {
+    "evidence": "actual-runtime.json",
+    "run": 44626622832,
+    "attempt": 2,
+    "job": 135927605711,
+    "same_current_day_source_details": "57/57",
+    "rider_records": 414,
+    "http_status_counts": {
+      "200": 11050
+    },
+    "unknown": 0,
+    "denied": false,
+    "budget_exhausted": false,
+    "source_work_budget_seconds": 240,
+    "model_input_admission": false,
+    "forecast_saved": false
+  },
+  "model_generation_admission": false,
+  "full_all_sport_t15_completion": false,
+  "winticket_unblocked": false,
+  "original_unpushed_commits": {
+    "b7380fe6a377e6ccf2b96331f2126c52549bbe17": "UNRESTORED",
+    "daae4c10167224b7730006d8ada5ade398aaa64b": "UNRESTORED"
+  },
+  "boat_source_frozen": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "production_weight_switches": 0,
+  "new_ui_deployments": 0,
+  "new_prs": 0,
+  "new_charges": 0,
+  "merged_main": "e99c7d2f370d5513407ca974200dcf653651428e",
+  "tested_candidate": "1e9a24c597710b2d9810d889e24c606ffba6f2ab",
+  "tested_tree_matches_merged_main": true
+}

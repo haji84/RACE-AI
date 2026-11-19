@@ -1,0 +1,67 @@
+{
+  "schema": "RACE_AI_KEIRIN_COVERAGE_ENVIRONMENT_PRESERVATION_V1",
+  "observed_at_utc": "2026-11-19T22:25:48.924802+00:00",
+  "command_execution": true,
+  "anonymous_github_read_http_status": 200,
+  "anonymous_read_treated_as_authenticated_write": false,
+  "authenticated_repository_permissions": {
+    "pull": true,
+    "push": true,
+    "admin": true
+  },
+  "actual_authenticated_write": {
+    "mode": "normal fast-forward",
+    "branch": "feat/v13-20261014-live-validation",
+    "before": "e3506dbc0980589fd6476615b793d25c7bdb2854",
+    "after": "1e9a24c597710b2d9810d889e24c606ffba6f2ab"
+  },
+  "actual_protected_merge": {
+    "pr": 10,
+    "main": "e99c7d2f370d5513407ca974200dcf653651428e",
+    "reviewed_tree": "647267bfb8d59a45851fdae0cb6150c94478d714",
+    "tree_matches": true,
+    "required_unit_success": true,
+    "all_checks_complete_at_merge": 37,
+    "success": 8,
+    "skipped": 29,
+    "force_or_admin_bypass": false
+  },
+  "retention_heads": {
+    "state/keirin-encrypted-history": "687bdc834a37b841c36a56162a75cb8a1bc3128f",
+    "state/boat-pdca-transfer": "17f9b5e497b3e331afb312d363e26ca51aadcc28"
+  },
+  "retention_heads_match_previous_verified_observation": true,
+  "prior_ciphertext_recovery_receipt_preserved": {
+    "candidates": 336,
+    "files": 1008,
+    "bytes": 375640877,
+    "original_exact_readback_commit": "6c0a01ce55b1948b17610f694a15629df5ccdacf",
+    "branch": "state/boat-pdca-transfer",
+    "full_ciphertext_byte_audit_repeated_by_this_change": false
+  },
+  "frozen_boat_source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "boat_dispatch_retry_cancel_reset_hotswap": 0,
+  "real_state_keys_read_or_used_locally": 0,
+  "raw_source_or_prediction_originals_uploaded": false,
+  "existing_ui": {
+    "pr": 62,
+    "draft": true,
+    "base": "production/boat-p0-p1-20261111",
+    "expected_before_evidence_update": "6531ac7028260fef6abacdc083a6adc3cd92ce89",
+    "web_blobs": 82,
+    "web_tree": "5cbbfe05a2971485b5c32a84a8ddf7b2539604cc",
+    "ui_files_changed": 0
+  },
+  "new_prs": 0,
+  "new_workflow_job_step_input_cron_runner_timeout_permission_markers": 0,
+  "new_models": 0,
+  "new_charges": 0,
+  "new_deployments": 0,
+  "wagers": 0,
+  "production_weight_switches": 0,
+  "unrestored_original_commits": [
+    "b7380fe6a377e6ccf2b96331f2126c52549bbe17",
+    "daae4c10167224b7730006d8ada5ade398aaa64b"
+  ],
+  "off_environment_local_files_assumed_transferred": false
+}

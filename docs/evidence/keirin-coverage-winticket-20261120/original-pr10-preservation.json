@@ -1,0 +1,93 @@
+{
+  "pr": 10,
+  "original_head": "e3506dbc0980589fd6476615b793d25c7bdb2854",
+  "original_base": "3d7977d689ac34df117201aa642afab652f49dda",
+  "original_branch": "feat/v13-20261014-live-validation",
+  "original_path_count": 11,
+  "entries": [
+    {
+      "path": ".github/workflows/official-b-motor-daily.yml",
+      "mode": "100644",
+      "type": "blob",
+      "oid": "7db0d1ab3ff128a62af9a529cd30250247839592",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/e3506dbc0980589fd6476615b793d25c7bdb2854/.github/workflows/official-b-motor-daily.yml"
+    },
+    {
+      "path": ".github/workflows/validation-20261014.yml",
+      "mode": "100644",
+      "type": "blob",
+      "oid": "c883b0a8ff0afde51c8da47cf9ac133bfee0ba1f",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/e3506dbc0980589fd6476615b793d25c7bdb2854/.github/workflows/validation-20261014.yml"
+    },
+    {
+      "path": "docs/VALIDATION_DAY1_2026-10-14.md",
+      "mode": "100644",
+      "type": "blob",
+      "oid": "7e93f9b84c215bec4dc8749fffbf04228b31fa60",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/e3506dbc0980589fd6476615b793d25c7bdb2854/docs/VALIDATION_DAY1_2026-10-14.md"
+    },
+    {
+      "path": "race_ai/audit_journal.py",
+      "mode": "100644",
+      "type": "blob",
+      "oid": "f35b1984055e1d843cc44ddeb8b8a0a2d09a2c80",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/e3506dbc0980589fd6476615b793d25c7bdb2854/race_ai/audit_journal.py"
+    },
+    {
+      "path": "race_ai/motor_spotcheck.py",
+      "mode": "100644",
+      "type": "blob",
+      "oid": "7446b50e8c9e49cabc0afc79783751d847b4f630",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/e3506dbc0980589fd6476615b793d25c7bdb2854/race_ai/motor_spotcheck.py"
+    },
+    {
+      "path": "race_ai/official_b_motors.py",
+      "mode": "100644",
+      "type": "blob",
+      "oid": "750b1620977187bba143548fd3262db153224c1c",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/e3506dbc0980589fd6476615b793d25c7bdb2854/race_ai/official_b_motors.py"
+    },
+    {
+      "path": "race_ai/official_motor_day_verify.py",
+      "mode": "100644",
+      "type": "blob",
+      "oid": "e019780fdeac9a978ecfa80b64c2077dafb7226d",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/e3506dbc0980589fd6476615b793d25c7bdb2854/race_ai/official_motor_day_verify.py"
+    },
+    {
+      "path": "tests/fixtures/official_20261013_19_09_motor_reference.json",
+      "mode": "100644",
+      "type": "blob",
+      "oid": "a2f78d8c33e22b01ad54fe04f5e1433ec95fb6cc",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/e3506dbc0980589fd6476615b793d25c7bdb2854/tests/fixtures/official_20261013_19_09_motor_reference.json"
+    },
+    {
+      "path": "tests/test_audit_journal.py",
+      "mode": "100644",
+      "type": "blob",
+      "oid": "5be4bd8950ad4fdda2e250629b7b9e87663410eb",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/e3506dbc0980589fd6476615b793d25c7bdb2854/tests/test_audit_journal.py"
+    },
+    {
+      "path": "tests/test_motor_spotcheck.py",
+      "mode": "100644",
+      "type": "blob",
+      "oid": "17d10c0418a9ce4c66c6252d5ae12130abbdc689",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/e3506dbc0980589fd6476615b793d25c7bdb2854/tests/test_motor_spotcheck.py"
+    },
+    {
+      "path": "tests/test_official_b_motors.py",
+      "mode": "100644",
+      "type": "blob",
+      "oid": "8e4ec83b5b88c0c390cc59a2560160eede1c7009",
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/e3506dbc0980589fd6476615b793d25c7bdb2854/tests/test_official_b_motors.py"
+    }
+  ],
+  "candidate_before_docs": "53b4dd531a115603cdddaede797f779254c1f770",
+  "tree": "7296c760a312b2f9b0da5a20284e30dfb650ede6",
+  "original_head_reachable": true,
+  "original_tree_applied": false,
+  "original_blobs_unchanged": true,
+  "workflow_tree": "9f87dbaedfd5b89de64524e3b9b9b2742e5e491c",
+  "new_prs": 0
+}

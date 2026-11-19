@@ -1,3 +1,19 @@
+# 2026-11-20 JST｜公式入力57/57を通常経路で確認（全モデル運転・WINTICKET403は未達）
+
+統合済みmain **e99c7d2f370d5513407ca974200dcf653651428e** の実結果を、既存PR62の証拠branchへ保存する。main側の状況文書は統合前検証の時点を保持し、本追記とactual-runtime.jsonが統合後の確認結果。本人用の開発を継続しており、以下を最新として下段の旧記録を履歴に残す。
+
+- 既存の通常workflow **44626622832/attempt2/job135927605711** は **11月20日07:31:46 JST** に完了。当日 **6会場57/57レース・延べ414選手** を、分割local診断ではなく**一つの通常取得処理**で検証した。**11,050送受信すべてHTTP200・未確認0・403/429/502/送信前block0**。既存240秒枠で **budget_exhausted=false**、公式締切390秒以上前57/期限超過0。手動起動した既存GitHub運転の確認であり、無人の全日定期運転やT15予想保存の合格へ読み替えない。[完了logの集計・hash・前後の試行](evidence/keirin-coverage-winticket-20261120/actual-runtime.json)。
+- 最初の同run/attempt1/job135925309214は **30件・延べ218選手** の後に **HTTP502が1件** あり、HOLD_OFFICIAL_SP_TRANSPORTで停止した。6,106応答200/1応答502、未確認0・403/429は0。認証拒否とは別の通信失敗として完了済みの競輪jobだけを一度正規再確認し、上記57/57に進んだ。失敗を削除せず、5xxを無視する変更や再試行の自動ループは加えていない。
+- **予想保存と結果照合は未完成**。当日全件のsource状態はOFFICIAL_SP_PARTIAL_INPUT_CAPTUREDだが、これは完全モデル入力を意味しない。new_pre_race_inputs=0・actual_four_model_forecast_saved=false・source/model admission=false。通常運転の最終状態は **HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT**、generationとPDCA/結果の未観測項目はnullを維持する。511個のprivate source fileは一時領域の取得記録で、永続AES予想保存の件数ではない。
+- 既存PR71にはscore以外の履歴・ライン・環境等が不足し、全scoreが揃っても7/9車で **86/108 numeric slots** が欠ける。締切前の出典・標本数・監査用のcore情報も不足する。未知値の推測補完や空の本番archive作成で通さない。[既存モデル入力の具体的な不足](evidence/keirin-coverage-winticket-20261120/model-input-gaps.json)。
+- **WINTICKET自身は未解消**。最新に確認した定期run **44619210875/job135896120088** は **11月20日06:30:11 JST**、通常公開 **/keirin/racecard/** の最初のGETで実403。解析/映像に未到達で、後続保管もSOURCE_ARCHIVE_NOT_ATTESTED。本人のiPhone13 Pro Safariでは**同じURLの開催一覧が表示**された。GitHubとSafariの差は確認したが、応答body/header receiptが無いためIP/地域/認証/bot判定等の具体的な拒否原因は不明。こちらの調査でのWT新規要求・拒否後再試行・cookie持込・偽装・proxyは0。利用許諾が無いことを原因とは断定していない。[独立した403調査](evidence/keirin-coverage-winticket-20261120/winticket-denial.json)。
+- 画面照合の大量の要素別通信を固定の一括読取りへ変更し、順序/件数/現input.value/token/待機後のfresh scopeと本文/拒否処理を維持した。既存120秒の別確認 **44626522357/job135921703850** は **32/57件・延べ232選手**、6,516応答すべて200/未確認0、既存budgetでHOLD。前回の同120秒25件、同240秒55件の記録も保持する。
+- root関連 **147件+元モデル優先環境7+25件**、独立 **124件+追加native28control** が成功、skip0。既存PR10で通常保護merge、37checkは8成功/29skip/失敗0、required unit成功。tested tree **647267bfb8d59a45851fdae0cb6150c94478d714** と実mainが一致。元PR10の11pathをimmutable head e3506dbcと親履歴へ保全し、古いtreeを適用していない。[実装・独立review・CI](evidence/keirin-coverage-winticket-20261120/implementation-and-validation.json)。
+- 全workflow bytes/tree **9f87dbaedfd5b89de64524e3b9b9b2742e5e491c**、120/240秒、元モデル/weights/source pins/flagsを維持。BOAT source **1dbb47b68d487fc6def0bd4b10b1423f0a2145f6**・両暗号保管branchのHEADも不変で、BOAT直接dispatch/retry/cancel/reset/hotswapは0。PR62はDraft/baseproductionのまま、82 web blobs/tree **5cbbfe05a2971485b5c32a84a8ddf7b2539604cc** を維持する。[環境・原本保全](evidence/keirin-coverage-winticket-20261120/environment-and-preservation.json)。
+- **GOAL未達**：全4競技×全適用モデルの全日/T15生成・永続保存・結果照合、WINTICKET403解除、物理iPhoneのRACE-AI受入、6艇連続識別/校正/予想接続、前向き精度改善は未合格。iPhoneでWTが表示されたことをRACE-AI実機受入に数えない。元offline未push **b7380fe6a377e6ccf2b96331f2126c52549bbe17 / daae4c10167224b7730006d8ada5ade398aaa64b** はUNRESTORED。UI新規公開・投票・本番重み切替・追加課金・新PR0。
+
+以下は以前の確認記録。
+
 # 2026-11-20 JST｜競輪公式入力55件の実運転・残る2件の個別確認（GOAL未達）
 
 本人用の継続開発として進めた。一般公開の承認待ちは設けず、UI新規公開・投票・本番重み切替は実施していない。以下を最新の確定実測とし、下段の旧記録を履歴として保持する。
