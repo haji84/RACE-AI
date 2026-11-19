@@ -26,6 +26,34 @@
   "closed_round": 2,
   "direct_source_dispatches": 0,
   "frozen_source_contract_blob": "be56af54f71d4c3a7d303823b056e4964150db49",
+  "historical_clock_followup": {
+    "actual_clock_plus_one_day_accepts_authentic_originals": true,
+    "actual_now_must_follow_origin_creation_and_coverage_verified_at": true,
+    "cause": "PRODUCER_SAME_DAY_GUARD_USED_FOR_HISTORICAL_READONLY_AUDIT",
+    "clock_backdated": false,
+    "dispatch_proof_produced": false,
+    "existing_hmac_coverage_and_physical_receipt_and_full_inventory_verified": true,
+    "final_matrix_tests": 385,
+    "final_raw_tests": 7,
+    "first_p0_and_issued_map_still_mandatory": true,
+    "immutable_origin_creation_day_and_identity_retained": true,
+    "main_readonly_seam": "_readonly_saved_bootstrap_models",
+    "new_methods": 1,
+    "output_scope_clarification": {
+      "final_active_blob": "75313c2a50818c3b687534c80a3285a9ec2a6f8e",
+      "final_focused_errors": 0,
+      "final_focused_failures": 0,
+      "final_focused_methods": 9,
+      "final_focused_seconds": 4.834,
+      "fully_tested_prior_active_blob": "8a49f33ea5a95259f88a4e916f69c9a86b007dcf",
+      "guard_and_math_ast_unchanged_from_fully_tested_prior_blob": true,
+      "two_constant_output_fields_added": true
+    },
+    "preserved_prior_commit": "b0503a72e32d230033a7db345642779196a2df39",
+    "source_adapter_and_generation_resume_guard_still_reject_other_day": true,
+    "source_files_changed": 0,
+    "valid_hmac_with_future_verified_at_rejected": true
+  },
   "intermediate_compatibility_regression": {
     "cause": "NONE_CLOSED_ROUND_KEYWORD_TO_LEGACY_AUDIT_CALLBACK",
     "corrected_preserving_default_call_shape": true,
@@ -33,6 +61,12 @@
     "failure_subtests": 17,
     "focused_diagnostic_methods_passed": 9,
     "tests": 213
+  },
+  "issued_models_reporting": {
+    "runtime_issued_file_independently_read": false,
+    "scope": "RECONSTRUCTED_FROM_AUTHENTICATED_SAVED_VIEW",
+    "source_preflight_runtime_file_attestation_inferred_from_this_audit": false,
+    "view_issued_projection_consistency_verified": true
   },
   "metadata_observed_at": "2026-11-19T00:38:21.541828+00:00",
   "no_changes": {
@@ -47,18 +81,18 @@
   "provider_gets": 0,
   "real_key_reads": 0,
   "reviewed_file_sha256": {
-    ".github/workflows/boat-owner-national-p1-matrix.yml": "82426e414a7bae939505ae8bd7077e4eb86165d044d9632a0866c949b34b8ec2",
+    ".github/workflows/boat-owner-national-p1-matrix.yml": "00fa4fb8c9b4a0e1327de37a251695ddb67d4372b4bced9f07e5040364f5c569",
     "audit/state/boat-m2-independent-audit-target.json": "5b9484af25cc0b311830a1bea7f0cd0e2b8113adc0c301f979750066034fedd7",
     "scripts/boat_current_pair_eligibility_audit.py": "30d59603e740dda1bfc646fe82e556af0115327abc7cc1ea031a9778fb3878ea",
-    "scripts/boat_owner_active_snapshot_audit.py": "5b56e115379ab8ffb4ffa75712e59de27e752a03cd5af7b7bff634c92040f6e6",
+    "scripts/boat_owner_active_snapshot_audit.py": "72628f39298a673777369dc35bb17d82f363c9890556ceae95431e71f204ccf5",
     "tests/test_boat_cutoff_raw_replay_audit.py": "aa89bfacbd41bbfb12171829ec2d032c59fe5e803713cd1c5fc6be797a95aef1",
-    "tests/test_boat_owner_active_snapshot_audit.py": "8f7253ff077a3161ca3c7346206bbb0a6a799a03f27f9846206e76ab68fb9b47"
+    "tests/test_boat_owner_active_snapshot_audit.py": "5c9a2d0d26d538d475ad1db493694ac9943967eecb24e2864e86ee0312b05a91"
   },
   "reviewed_git_blobs": {
     "scripts/boat_bootstrap_recovery_adapter.py": "24a2e60816404d0af71f0a7ae543478b3f3442d5",
     "scripts/boat_current_pair_eligibility_audit.py": "72be8bc9af15052207bde5faa86cc39d55317016",
     "scripts/boat_failed_recovery_contract.py": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
-    "scripts/boat_owner_active_snapshot_audit.py": "1abcdec4e677a19ec87bb9a1baa13170212cbb74"
+    "scripts/boat_owner_active_snapshot_audit.py": "75313c2a50818c3b687534c80a3285a9ec2a6f8e"
   },
   "run_id": 44426169530,
   "schema": "RACE_AI_CURRENT_S_CLOSED_PREFIX_READONLY_AUDIT_V1",
@@ -171,16 +205,20 @@
   ],
   "source_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
   "test_first": {
+    "historical_clock_assertion_failures": 1,
+    "historical_clock_errors": 0,
+    "historical_clock_tests": 1,
     "initial_assertion_failures": 7,
     "initial_errors": 0,
     "initial_tests": 7,
-    "new_methods": 8,
+    "new_methods": 9,
     "receipt_pin_assertion_failures": 1,
     "receipt_pin_errors": 0,
     "receipt_pin_tests": 1
   },
   "verification": {
     "cutoff": {
+      "active_blob_at_run": "8a49f33ea5a95259f88a4e916f69c9a86b007dcf",
       "errors": 0,
       "external_network_attempts": 0,
       "failures": 0,
@@ -188,11 +226,41 @@
       "modules": [
         "tests.test_boat_cutoff_raw_replay_audit"
       ],
-      "seconds": 24.332,
+      "seconds": 27.093,
       "skips": 0,
-      "tests": 7
+      "tests": 7,
+      "workflow_pin_rebound_by_verified_blob_hash": true
+    },
+    "historical-final": {
+      "active_blob_at_run": "75313c2a50818c3b687534c80a3285a9ec2a6f8e",
+      "errors": 0,
+      "external_network_attempts": 0,
+      "failures": 0,
+      "files_stable_during_test_run": true,
+      "modules": [
+        "tests.test_boat_owner_active_snapshot_audit.ClosedCurrentSnapshotTests",
+        "tests.test_boat_owner_active_snapshot_audit.ClosedBootstrapOriginalTests"
+      ],
+      "seconds": 4.834,
+      "skips": 0,
+      "tests": 9,
+      "workflow_pin_rebound_by_verified_blob_hash": true
+    },
+    "historical-green": {
+      "errors": 0,
+      "external_network_attempts": 0,
+      "failures": 0,
+      "files_stable_during_test_run": true,
+      "modules": [
+        "tests.test_boat_owner_active_snapshot_audit.ClosedCurrentSnapshotTests",
+        "tests.test_boat_owner_active_snapshot_audit.ClosedBootstrapOriginalTests"
+      ],
+      "seconds": 4.637,
+      "skips": 0,
+      "tests": 9
     },
     "matrix": {
+      "active_blob_at_run": "8a49f33ea5a95259f88a4e916f69c9a86b007dcf",
       "errors": 0,
       "external_network_attempts": 0,
       "failures": 0,
@@ -217,9 +285,10 @@
         "tests.test_boat_rejection_anchor_repair",
         "tests.test_boat_rejection_anchor_repair_cli"
       ],
-      "seconds": 227.749,
+      "seconds": 234.688,
       "skips": 0,
-      "tests": 384
+      "tests": 385,
+      "workflow_pin_rebound_by_verified_blob_hash": true
     }
   },
   "workflow_shape": {

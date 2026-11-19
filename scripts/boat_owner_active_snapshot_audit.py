@@ -361,6 +361,53 @@ def _saved_view_snapshot(repo,day):
                      view_at_closed_prefix_time_proven=False)
 
 
+def _readonly_saved_bootstrap_models(document,p0,view,inventory,model_meta,origin,*,model_receipt,issued,key,now):
+    """Authenticate historical originals at the actual clock; grant no producer permission."""
+    from race_ai import boat_all_model_recovery as R
+    from race_ai.actions_contract import digest
+    from race_ai.frozen_day_cycle import official_id
+    from race_ai.saved_view_feed import forecast_inventory
+    from scripts import boat_all_model_cycle as cli
+    day=CLOSED_BOOTSTRAP_ORIGINAL[2]
+    need(isinstance(now,datetime) and now.utcoffset() is not None and
+         _time(origin['created_at'])<=now and document.get('day_jst')==day and
+         document.get('code_sha')==origin['head_sha'],'BOOTSTRAP_READONLY_ORIGIN_CLOCK')
+    coverage=R._read_coverage(view,R._coverage_key(key),now)
+    complete,nonempty=R._coverage_complete(coverage,view,origin,model_meta,[day])
+    entry=coverage.get(day,{}).get(str(model_meta['id']))
+    need(complete and nonempty and type(entry) is dict,'BOOTSTRAP_READONLY_COVERAGE_REQUIRED')
+    state=entry['state']
+    need(state['round_no']==0 and state['run_id']==origin['id'] and
+         state['head_sha']==origin['head_sha'] and state['receipt']==model_receipt and
+         state['scoped_inventory']==inventory,'BOOTSTRAP_READONLY_COVERAGE_CHANGED')
+    actual=forecast_inventory(view)
+    need(all(actual.get(k)==v for k,v in inventory.items()),'BOOTSTRAP_READONLY_ORIGINAL_MISSING')
+    selected=[];baseline=[]
+    for row in view['records']:
+        predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p]
+        for target,artifact in ((selected,model_meta['id']),(baseline,p0['id'])):
+            keep=[p for p in predictions if p.get('artifact_id')==artifact and p.get('stage')=='P0']
+            if keep:target.append(dict(row,prediction=keep[0],comparison_predictions=keep[1:]))
+    expected={(official_id(s['race_id']),mid):p for s in document['predictions'] for mid,p in s['models'].items()}
+    baseline_rows={(row['race_id'],p['model_id']):p for row in baseline
+        for p in [row['prediction'],*row['comparison_predictions']]
+        if p.get('prediction_sha256')==expected.get((row['race_id'],p['model_id']),{}).get('prediction_sha256')}
+    need(expected and len(expected)==document.get('model_forecast_count') and set(baseline_rows)==set(expected) and
+         all(baseline_rows[k].get('prediction_sha256')==p['prediction_sha256'] and
+             baseline_rows[k].get('ordered_top8')==p['ordered_top8'] and baseline_rows[k].get('as_of')==p['as_of'] and
+             baseline_rows[k].get('cutoff_at')==p['sales_cutoff_at'] for k,p in expected.items()),
+         'BOOTSTRAP_READONLY_FIRST_P0_MISSING')
+    maps={'P0':{},'P1':{}};cli._inventory(dict(view,records=selected),maps)
+    need(maps['P0'] and type(issued) is dict and all(set(mids)<=set(issued.get(rid,()))
+         for rid,mids in maps['P0'].items()),'BOOTSTRAP_READONLY_ISSUED_MAP_MISSING')
+    wanted={rid:sorted(mids) for rid,mids in maps['P0'].items()}
+    included={rid:sorted(set(issued.get(rid,()))&set(mids)) for rid,mids in wanted.items()}
+    return dict(forecasts=len(inventory),baseline_forecasts=len(expected),
+        baseline_inventory_sha256=digest(forecast_inventory(dict(view,records=baseline))),
+        forecast_inventory_sha256=digest(inventory),restored_inventory_sha256=digest({k:actual[k] for k in inventory}),
+        issued_models_sha256=digest(wanted),included_issued_models_sha256=digest(included))
+
+
 def _closed_bootstrap_inventory(get,run,listing,view,document,p0,origin,*,now,day):
     """Read both exact r0 ZIPs and existing saved originals; never recover or write."""
     from race_ai import boat_all_model_recovery as R,boat_all_model_store as store
@@ -373,7 +420,8 @@ def _closed_bootstrap_inventory(get,run,listing,view,document,p0,origin,*,now,da
     _closed_round(run.get('id'),run.get('head_sha'),CLOSED_SNAPSHOT_ROUND)
     old_id,old_head,old_day,old_artifact,expected_count=CLOSED_BOOTSTRAP_ORIGINAL
     need(day==old_day and origin.get('id')==old_id and origin.get('head_sha')==old_head and
-         adapter._exact_instance(origin,now) and p0.get('id')==CLOSED_BOOTSTRAP_P0_ARTIFACT,
+         adapter._exact_instance(origin) and _time(origin['created_at'])<=now and
+         p0.get('id')==CLOSED_BOOTSTRAP_P0_ARTIFACT,
          'BOOTSTRAP_ORIGINAL_SCOPE')
     old=R._run(get(f'actions/runs/{old_id}'),old_id,now)
     need(old==origin,'BOOTSTRAP_ORIGINAL_RUN_CHANGED')
@@ -402,15 +450,16 @@ def _closed_bootstrap_inventory(get,run,listing,view,document,p0,origin,*,now,da
         with R._checked_zip(raw,max_zip_bytes=R.MAX_ZIP_BYTES,max_expanded=store.MAX_WIRE) as z:
             payload=store.open_forecasts(z.read('forecasts.enc'),key=key)
         need(payload.get('stage')=='P0','BOOTSTRAP_R0_STAGE_CHANGED')
-        packets.append((projected,summary,meta,payload))
-    (projected,summary,meta,original_payload),(unused,current_summary,current_meta,current_payload)=packets
+        packets.append((projected,summary,meta,payload,receipt))
+    (projected,summary,meta,original_payload,old_receipt),(unused,current_summary,current_meta,current_payload,unused)=packets
     need(summary['generated_forecasts']==expected_count and summary['reused_baseline_forecasts']==0 and
          current_summary['generated_forecasts']==current_summary['reused_baseline_forecasts']==0,
          'BOOTSTRAP_R0_REISSUED_OR_COUNT_CHANGED')
     inventory=R._preserved_scope(projected,view,day,old_artifact)
     need(len(inventory)==expected_count,'BOOTSTRAP_ORIGINAL_INVENTORY_CHANGED')
     maps={'P0':{},'P1':{}};cli._inventory(view,maps)
-    checked=cli.require_saved_bootstrap_models(document,cli._receipt(p0,document),maps['P0'],view,now=now)
+    checked=_readonly_saved_bootstrap_models(document,p0,view,inventory,meta,old,
+        model_receipt=old_receipt,issued=maps['P0'],key=key,now=now)
     need(checked is not None and checked['forecasts']==expected_count and
          checked['forecast_inventory_sha256']==digest(inventory) and
          checked['restored_inventory_sha256']==digest(inventory) and
@@ -444,6 +493,8 @@ def _closed_bootstrap_inventory(get,run,listing,view,document,p0,origin,*,now,da
         current_r0_generated_forecasts=current_summary['generated_forecasts'],
         current_r0_reused_baseline_forecasts=current_summary['reused_baseline_forecasts'],
         current_r0_original_slots_retained_without_reissue=retained,issued_models_verified=True,
+        issued_models_scope='RECONSTRUCTED_FROM_AUTHENTICATED_SAVED_VIEW',
+        runtime_issued_file_independently_read=False,
         issued_models_sha256=checked['issued_models_sha256'],official_source_requests=0,new_forecasts=0)
 
 

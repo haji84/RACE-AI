@@ -1393,6 +1393,8 @@ class ClosedBootstrapOriginalTests(unittest.TestCase):
         self.assertEqual(out['current_r0_original_slots_retained_without_reissue'],count)
         self.assertEqual(out['original_run_id'],99);self.assertEqual(out['current_run_id'],100)
         self.assertTrue(out['original_inventory_unchanged']);self.assertTrue(out['issued_models_verified'])
+        self.assertEqual(out['issued_models_scope'],'RECONSTRUCTED_FROM_AUTHENTICATED_SAVED_VIEW')
+        self.assertFalse(out['runtime_issued_file_independently_read'])
         self.assertNotIn('ordered_top8',json.dumps(out));self.assertEqual((view,responses,payload),before)
         from types import SimpleNamespace
         from datetime import timedelta
@@ -1432,6 +1434,52 @@ class ClosedBootstrapOriginalTests(unittest.TestCase):
             with self.subTest(case=case),self.assertRaises((ValueError,KeyError)):
                 fn(responses.__getitem__,run,[meta],view,f.doc,f.p0meta,origin,now=clock,day=day)
             view.clear();view.update(original[0]);responses.clear();responses.update(original[1]);run.clear();run.update(original[2])
+
+    def test_historical_readonly_audit_uses_actual_later_clock_and_rejects_future_coverage(self):
+        from datetime import timedelta
+        from race_ai import boat_all_model_recovery as recovery
+        from scripts import boat_all_model_cycle as cli,boat_bootstrap_recovery_adapter as adapter
+        f,run,meta,payload,view,responses,clock,day=self.fixture()
+        later=clock+timedelta(days=1);before=deepcopy((view,responses,payload))
+        maps={'P0':{},'P1':{}};cli._inventory(view,maps)
+        self.assertIsNone(cli.require_saved_bootstrap_models(f.doc,cli._receipt(f.p0meta,f.doc),maps['P0'],view,now=later))
+        self.assertFalse(adapter._exact_instance(f.run,later));self.assertTrue(adapter._exact_instance(f.run))
+        error=None
+        try:checked=active._closed_bootstrap_inventory(responses.__getitem__,run,[meta],view,
+                    f.doc,f.p0meta,f.run,now=later,day=day)
+        except ValueError as exc:error=exc
+        self.assertIsNone(error,'an authentic prior-day original must remain auditable at the actual clock')
+        self.assertEqual(checked['original_forecasts_authenticated'],f.models_payload['summary']['generated_forecasts'])
+        self.assertEqual(checked['current_r0_generated_forecasts'],0)
+        self.assertEqual((view,responses,payload),before)
+        projected,unused,receipt=recovery._project(responses[f'actions/artifacts/{f.models_meta["id"]}/zip'],
+                                                  f.models_meta,f.run,0,KEY)
+        inventory=recovery._preserved_scope(projected,view,day,f.models_meta['id'])
+        issued=deepcopy(maps['P0'])
+        row=next(row for row in projected['records'] if row.get('prediction') or row.get('comparison_predictions'))
+        prediction=row.get('prediction') or row['comparison_predictions'][0]
+        issued[row['race_id']].remove(prediction['model_id'])
+        with self.assertRaisesRegex(ValueError,'BOOTSTRAP_READONLY_ISSUED_MAP_MISSING'):
+            active._readonly_saved_bootstrap_models(f.doc,f.p0meta,view,inventory,f.models_meta,f.run,
+                model_receipt=receipt,issued=issued,key=KEY,now=later)
+        missing=deepcopy(view)
+        for row in missing['records']:
+            if (row.get('prediction') or {}).get('artifact_id')==f.p0meta['id']:row['prediction']=None
+            row['comparison_predictions']=[p for p in row.get('comparison_predictions',[]) if p.get('artifact_id')!=f.p0meta['id']]
+        with self.assertRaisesRegex(ValueError,'BOOTSTRAP_READONLY_FIRST_P0_MISSING'):
+            active._closed_bootstrap_inventory(responses.__getitem__,run,[meta],missing,
+                f.doc,f.p0meta,f.run,now=later,day=day)
+        future=deepcopy(view)
+        for row in future['records']:
+            for ident,entry in list(row.get(recovery.EVIDENCE_FIELD,{}).items()):
+                state=deepcopy(entry['state']);state['verified_at']=(later+timedelta(microseconds=1)).isoformat()
+                row[recovery.EVIDENCE_FIELD][ident]=recovery._signed_coverage(state,recovery._coverage_key(KEY))
+        with self.assertRaisesRegex(ValueError,'COVERAGE_IDENTITY_INVALID'):
+            active._closed_bootstrap_inventory(responses.__getitem__,run,[meta],future,
+                f.doc,f.p0meta,f.run,now=later,day=day)
+        with self.assertRaises(ValueError):
+            active._closed_bootstrap_inventory(responses.__getitem__,run,[meta],view,
+                f.doc,f.p0meta,f.run,now=clock.replace(hour=1,minute=0),day=day)
 
 
 if __name__=='__main__':unittest.main()

@@ -957,7 +957,7 @@ jobs:
                   for short,pin in (
                       ('boat_owner_evidence_audit','014fc9ddbbd24c501b7784eeae50be315644669f'),
                       ('boat_exact_all_model_zip_readback','c7d28b0a58ca69949bbdbde5f234c0035b43d1fc'),
-                      ('boat_owner_active_snapshot_audit','1abcdec4e677a19ec87bb9a1baa13170212cbb74'),
+                      ('boat_owner_active_snapshot_audit','75313c2a50818c3b687534c80a3285a9ec2a6f8e'),
                       ('boat_current_pair_eligibility_audit','72be8bc9af15052207bde5faa86cc39d55317016')):
                       source=main/'scripts'/(short+'.py')
                       assert source.is_file() and not source.is_symlink() and source.resolve()==source
