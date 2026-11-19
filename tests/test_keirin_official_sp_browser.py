@@ -1,5 +1,5 @@
 """Invented public UI/browser fixtures; these tests never contact a provider."""
-from contextlib import contextmanager, redirect_stdout
+from contextlib import contextmanager, redirect_stdout, redirect_stderr
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 from hashlib import sha256
@@ -96,6 +96,7 @@ class Request:
         self._browser = page.browser
         self._page = page
         self.timing = {'responseEnd': 0}
+        self.failure = None
 
     def is_navigation_request(self):
         return self.navigation
@@ -106,7 +107,9 @@ class Response:
         self.request, self.url, self.status = request, request.url, status
         self.raw = raw
         self.headers = {'content-type': 'text/html; charset=utf-8'}
-        if request.resource_type == 'xhr' and request._browser.resource_headers is not None:
+        if request.resource_type in ('image', 'font'):
+            self.headers = {'content-type': 'image/png' if request.resource_type == 'image' else 'font/woff2'}
+        if not request.navigation and request._browser.resource_headers is not None:
             self.headers = request._browser.resource_headers
 
     def body(self):
@@ -142,6 +145,9 @@ class Route:
         if b.unfinished_resources and not self.request.navigation:
             self.request.timing['responseEnd'] = -1
             b.pending_completions.append(self.request)
+            if b.pending_without_response:
+                b.completion_responses[id(self.request)] = response
+                return None
         if b.hold_resource_responses and not self.request.navigation:
             b.held_resources.append(response)
             return None
@@ -275,6 +281,11 @@ class Page:
 
     def transmit(self, path, raw, *, method='GET', fields=None, status=200,
                  navigation=True, resource_type='document', redirected_from=None):
+        if navigation and self.browser.cancel_pending_on_navigation:
+            for pending in self.browser.pending_completions:
+                if pending._page is self and pending.timing['responseEnd'] < 0:
+                    pending.failure = 'net::ERR_ABORTED'
+                    self.context.emit('requestfailed', pending)
         url = path if path.startswith('https://') else 'https://keirin.jp' + path
         request = Request(self, url, method, urlencode(fields) if fields is not None else None,
                           navigation, resource_type, redirected_from)
@@ -313,6 +324,8 @@ class Page:
         for i in range(b.resources):
             self.transmit('/sp/static/invented-' + str(i) + '.js', b'// invented',
                           navigation=False, resource_type='script')
+        if b.after_goto:
+            b.after_goto(self)
         return response
 
     def click(self, node):
@@ -361,6 +374,8 @@ class Page:
 
     def wait_for_load_state(self, **_): pass
     def close(self):
+        self.browser.pending_page_closes += sum(r._page is self and r.timing['responseEnd'] < 0
+                                                for r in self.browser.pending_completions)
         if self.browser.release_resources_on_close:
             self.browser.release_held_resources()
         self.closed = True
@@ -389,8 +404,14 @@ class Context:
             raise TimeoutError('INVENTED_COMPLETION_TIMEOUT')
         request = next(r for r in self.browser.pending_completions if predicate(r))
         self.browser.pending_completions.remove(request)
+        response = self.browser.completion_responses.pop(id(request), None)
+        if response:
+            response.status = self.browser.completion_status
+            self.emit('response', response)
         request.timing['responseEnd'] = 1
         self.emit('requestfinished', request)
+        if self.browser.completion_hook:
+            self.browser.completion_hook(request._page)
         result.value = request
     def new_page(self):
         p = Page(self); self.browser.pages.append(p); self.emit('page', p); return p
@@ -404,6 +425,7 @@ class Browser:
         self.calendar_dom_mutation = self.list_dom_mutation = None
         self.before_post = self.post_mutation = self.after_detail = self.after_list = None
         self.after_date_click = None
+        self.after_goto = None
         self.resource = None; self.resources = 0
         self.resource_type = 'script'
         self.resource_fields = self.resource_statuses = None
@@ -416,6 +438,11 @@ class Browser:
         self.unfinished_body_reads = 0
         self.pending_completions, self.completion_waits = [], []
         self.completion_timeout = None
+        self.pending_without_response = self.cancel_pending_on_navigation = False
+        self.completion_responses = {}
+        self.completion_status = 200
+        self.completion_hook = None
+        self.pending_page_closes = 0
         self.late_analytics = False
         self.lists, self.details = {}, {}
         self.sent, self.pages, self.clicks = [], [], []
@@ -455,7 +482,7 @@ class OfficialSPBrowserTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='official-sp-private-') as tmp:
             inbox = Path(tmp) / 'inbox'
             output = io.StringIO()
-            with redirect_stdout(output):
+            with redirect_stdout(output), redirect_stderr(io.StringIO()):
                 result = api.collect_official_sp(inbox, clock=lambda: AT,
                     browser_factory=lambda: browser, **kwargs)
             self.assertEqual(output.getvalue(), '')
@@ -614,6 +641,130 @@ class OfficialSPBrowserTests(unittest.TestCase):
             self.assertEqual(b.unfinished_body_reads, 0)
             self.assertEqual(len(b.completion_waits), 4)
             self.assertTrue(all(0 < wait <= 20_000 for wait in b.completion_waits))
+
+    def pending_asset(self, kind='image'):
+        b = Browser(venues=(98,)); b.resource = ('/sp/static/invented-pending', 'GET', 200)
+        b.resource_type = kind; b.unfinished_resources = True
+        b.pending_without_response = b.cancel_pending_on_navigation = True
+        return b
+
+    def test_already_transmitted_images_and_fonts_finish_before_public_navigation(self):
+        for kind in ('image', 'font'):
+            with self.collect(self.pending_asset(kind)) as (out, _, b):
+                self.assertEqual(out['state'], 'OFFICIAL_SP_PARTIAL_INPUT_CAPTURED')
+                self.assertEqual(out['details_verified'], 3)
+                self.assertEqual(out['unknown_transmitted_status_count'], 0)
+                self.assertEqual(out['http_status_counts'], {'200': len(b.sent)})
+                self.assertEqual(b.pending_page_closes, 0)
+
+    def test_late_denial_during_settlement_stops_before_public_post(self):
+        b = self.pending_asset(); b.completion_status = 403
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_DENIED')
+            self.assertEqual(out['http_status_counts'], {'200': 1, '403': 1})
+            self.assertEqual(out['unknown_transmitted_status_count'], 0)
+            self.assertEqual(b.list_visits, 0)
+
+    def test_pending_asset_deadline_preserves_known_and_unknown_http_outcomes(self):
+        for without_response in (False, True):
+            b = self.pending_asset(); b.pending_without_response = without_response
+            elapsed = [0]; b.completion_timeout = lambda _: elapsed.__setitem__(0, 1)
+            with self.collect(b, monotonic=lambda: elapsed[0], budget_seconds=1) as (out, _, b):
+                self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_BUDGET')
+                self.assertTrue(out['budget_exhausted'])
+                self.assertEqual(out['unknown_transmitted_status_count'], int(without_response))
+                self.assertEqual(out['http_status_counts'], {'200': 1 if without_response else 2})
+                self.assertEqual(b.list_visits, 0)
+
+    def test_fresh_calendar_scope_is_rechecked_after_pending_asset_wait(self):
+        b = self.pending_asset()
+        b.completion_hook = lambda page: setattr(page, 'current', page.current.replace('A'*43, 'Z'*43))
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_SOURCE_LAYOUT')
+            self.assertEqual(b.list_visits, 0)
+            self.assertEqual(out['unknown_transmitted_status_count'], 0)
+
+    def test_received_late_pending_asset_settles_before_old_page_is_closed(self):
+        b = self.pending_asset(); b.resource = None
+        def late(_):
+            if b.list_visits == 1:
+                b.pages[-1].transmit('/sp/static/late-image', b'invented',
+                                    navigation=False, resource_type='image')
+        b.after_list = late
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'OFFICIAL_SP_PARTIAL_INPUT_CAPTURED')
+            self.assertEqual(out['details_verified'], 3)
+            self.assertEqual(out['unknown_transmitted_status_count'], 0)
+            self.assertEqual(b.pending_page_closes, 0)
+
+    def test_current_day_scope_is_rechecked_after_detail_settlement_wait(self):
+        b = self.pending_asset(); b.resource = None
+        b.after_date_click = lambda page: page.transmit('/sp/static/late-image', b'invented',
+                                                       navigation=False, resource_type='image')
+        b.completion_hook = lambda page: setattr(page, 'current',
+            page.current.replace('2日目(1/15)</div>', '2日目(1/16)</div>'))
+        with self.collect(b) as (out, _, b):
+            self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_SOURCE_LAYOUT')
+            self.assertEqual(out['details_verified'], 0)
+            self.assertEqual(b.detail_visits, 0)
+            self.assertEqual(out['unknown_transmitted_status_count'], 0)
+
+    def test_navigation_timeout_at_deadline_is_a_budget_hold(self):
+        b = Browser(venues=(98,)); elapsed = [0]
+        def timeout(_):
+            elapsed[0] = 1
+            raise TimeoutError('INVENTED_PRIVATE_TIMEOUT_MESSAGE')
+        b.after_goto = timeout
+        with self.collect(b, monotonic=lambda: elapsed[0], budget_seconds=1) as (out, _, _):
+            self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_BUDGET')
+            self.assertTrue(out['budget_exhausted'])
+            self.assertEqual(out['http_status_counts'], {'200': 1})
+
+    def test_navigation_timeout_preserves_prior_denial_state(self):
+        b = Browser(venues=(98,)); b.calendar_status = 403
+        def timeout(_):
+            raise TimeoutError('INVENTED_PRIVATE_TIMEOUT_MESSAGE')
+        b.after_goto = timeout
+        with self.collect(b) as (out, _, _):
+            self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_DENIED')
+            self.assertTrue(out['provider_denied'])
+            self.assertEqual(out['http_status_counts'], {'403': 1})
+
+    def test_unexpected_failure_logs_only_trusted_location_and_finite_category(self):
+        b = Browser(venues=(98,))
+        def fail(_):
+            raise RuntimeError('INVENTED_PRIVATE_EXCEPTION_TOKEN https://private.invalid/secret')
+        b.after_goto = fail
+        with self.assertLogs(MODULE, level='WARNING') as captured:
+            with self.collect(b) as (out, _, _):
+                self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_TRANSPORT')
+        self.assertTrue(captured.records)
+        for record in captured.records:
+            self.assertIsNone(record.exc_info)
+            self.assertIsNone(record.stack_info)
+            self.assertRegex(record.getMessage(), r'category=RUNTIME function=[A-Za-z_]+ line=[1-9][0-9]*$')
+            self.assertNotIn('INVENTED_PRIVATE_EXCEPTION_TOKEN', record.getMessage())
+            self.assertNotIn('private.invalid', record.getMessage())
+            self.assertNotIn('fail', str(record.args[1]))
+
+    def test_request_failure_callback_logs_only_literal_location_and_finite_kind(self):
+        for failure, kind in [('net::ERR_ABORTED', 'ABORTED'),
+                              ('INVENTED_PRIVATE_TOKEN https://private.invalid/secret', 'OTHER')]:
+            b = Browser(venues=(98,))
+            def failed(page):
+                request = b.sent[0]
+                request.failure = failure
+                page.context.emit('requestfailed', request)
+            b.after_goto = failed
+            with self.assertLogs(MODULE, level='WARNING') as captured:
+                with self.collect(b) as (out, _, _):
+                    self.assertEqual(out['state'], 'HOLD_OFFICIAL_SP_TRANSPORT')
+            message = '\n'.join(record.getMessage() for record in captured.records)
+            self.assertRegex(message, r'function=failed line=[1-9][0-9]* kind='+kind)
+            self.assertNotIn('INVENTED_PRIVATE_TOKEN', message)
+            self.assertNotIn('private.invalid', message)
+            self.assertTrue(all(record.exc_info is None and record.stack_info is None
+                                for record in captured.records))
 
     def test_later_analytics_denial_preserves_prefix_and_stops_detail_navigation(self):
         b = Browser(venues=(98,)); b.resource = ('/sp/ana', 'GET', 200)
