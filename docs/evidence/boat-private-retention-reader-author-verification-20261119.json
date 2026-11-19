@@ -1,0 +1,183 @@
+{
+  "actual_ciphertext_zips_read": 0,
+  "actual_metadata_only": [
+    {
+      "created_at": "2026-11-19T02:15:00Z",
+      "digest": "sha256:1529c468f9afb2771ea70e43baa116753015c3512f67d8f5b6d11cd080ebff03",
+      "expires_at": "2026-11-26T02:14:54Z",
+      "id": 14492170715,
+      "size_in_bytes": 118004001
+    },
+    {
+      "created_at": "2026-11-19T02:06:22Z",
+      "digest": "sha256:398754e20a9d0b6a71c18e927ab76522772e549bb626107ecfd9cb6ab4c8d29b",
+      "expires_at": "2026-11-26T02:06:16Z",
+      "id": 14491506398,
+      "size_in_bytes": 118004438
+    },
+    {
+      "created_at": "2026-11-19T01:22:25Z",
+      "digest": "sha256:e3a402325c4fe13ef1639f16d69b73c9094beb93d76a0c9fa00e97c6472e83e9",
+      "expires_at": "2026-11-26T01:22:22Z",
+      "id": 14488233127,
+      "size_in_bytes": 47095317
+    }
+  ],
+  "actual_retention_proven": false,
+  "api": "audit_private_venue_retention(repo, *, get, now, main_identity)",
+  "caller_context": "Existing mainmatrix authenticated_original_matrix step only; actual main push/workflow_run attempt1 in_progress service metadata; exact clean main/source Git checkouts.",
+  "caller_get": "scripts.github_existing_cycle._live_gh",
+  "caller_identity_fields": [
+    "commit",
+    "run_id",
+    "attempt",
+    "repository"
+  ],
+  "commit": "02009e483f473c6b68b8b1e38827bb35d4fcc6c7",
+  "dispatches": 0,
+  "existing_module_changes": 0,
+  "existing_source_cache_fixture_observation": {
+    "actual_keys_read": 0,
+    "actual_zip_reads": 0,
+    "external_network_attempts": 0,
+    "forged_loose_object_still_present": true,
+    "idempotent_retention_result_equal": true,
+    "observed_bytes_equal_original": true,
+    "observed_bytes_equal_tampered": false,
+    "reader_has_packfiles": true,
+    "schema": "RACE_AI_EXISTING_CACHE_FIXTURE_UNUSED_LOOSE_OBJECT_PROBE_V1",
+    "source_changes": 0,
+    "source_intakes": 2,
+    "synthetic_only": true
+  },
+  "formal_qualification_or_model_adoption_granted": false,
+  "frozen_main_contract_blob": "c1621c4184b1841f07eddfbccdc28c1b367a15a8",
+  "frozen_source_contract_blob": "be56af54f71d4c3a7d303823b056e4964150db49",
+  "main_final": {
+    "actual_zip_reads": 0,
+    "errors": 0,
+    "external_network_attempts": 0,
+    "failures": 0,
+    "mode": "main",
+    "modules": [
+      "tests.test_boat_owner_national_p1_matrix",
+      "tests.test_boat_exact_all_model_zip_readback",
+      "tests.test_boat_failed_checkpoint_audit",
+      "tests.test_boat_native_matrix_intake",
+      "tests.test_boat_matrix_readback_scope",
+      "tests.test_boat_owner_active_snapshot_audit",
+      "tests.test_all_existing_model_archived_native",
+      "tests.test_boat_current_pair_eligibility_audit",
+      "tests.test_boat_saved_reason_binding_audit",
+      "tests.test_boat_saved_reason_binding_io",
+      "tests.test_boat_saved_rejection_anchor_proof",
+      "tests.test_boat_saved_rejection_anchor_io",
+      "tests.test_boat_legacy_reason_anchor_guard",
+      "tests.test_boat_saved_rejection_anchor_history",
+      "tests.test_boat_legacy_reason_anchor_entry",
+      "tests.test_boat_rejection_anchor_restoration",
+      "tests.test_boat_rejection_anchor_repair",
+      "tests.test_boat_rejection_anchor_repair_cli",
+      "tests.test_boat_private_venue_retention_audit"
+    ],
+    "real_keys_read": 0,
+    "schema": "RACE_AI_PRIVATE_RESEARCH_RETENTION_SOURCEFREE_TESTS_V1",
+    "seconds": 252.478,
+    "skips": 0,
+    "tests": 405
+  },
+  "new_files": {
+    "scripts/boat_private_venue_retention_audit.py": {
+      "bytes": 25233,
+      "sha256": "d014483c665ad0a3a679f598a66daaa35a977e63cb6f20ba65c68d9557e949a5"
+    },
+    "tests/test_boat_private_venue_retention_audit.py": {
+      "bytes": 26861,
+      "sha256": "dfba6201b3da95c72d2f71ac3df00c54bd0e01920120b5a300a7b7ee2fe721b0"
+    }
+  },
+  "parent": "a277a692a2791c77ee89a2e9af71582f5c98d458",
+  "provider_requests": 0,
+  "publication_calls_in_runtime_ast": 0,
+  "raw_final": {
+    "actual_zip_reads": 0,
+    "errors": 0,
+    "external_network_attempts": 0,
+    "failures": 0,
+    "mode": "raw",
+    "modules": [
+      "tests.test_boat_cutoff_raw_replay_audit"
+    ],
+    "real_keys_read": 0,
+    "schema": "RACE_AI_PRIVATE_RESEARCH_RETENTION_SOURCEFREE_TESTS_V1",
+    "seconds": 29.843,
+    "skips": 0,
+    "tests": 7
+  },
+  "real_keys_read": 0,
+  "remote_mutations": 0,
+  "root_other_worktrees_edited": false,
+  "schema": "RACE_AI_PRIVATE_RESEARCH_RETENTION_MAIN_ONLY_FREEZE_V1",
+  "source_commit": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "source_tracked_changes": 0,
+  "supplemental_source": {
+    "actual_zip_reads": 0,
+    "errors": 0,
+    "external_network_attempts": 0,
+    "failures": 1,
+    "mode": "source",
+    "modules": [
+      "tests.test_boat_venue_learning_handoff",
+      "tests.test_boat_venue_research_batch",
+      "tests.test_boat_venue_research_retention",
+      "tests.test_boat_venue_research_cache",
+      "tests.test_all_existing_model_pairs",
+      "tests.test_boat_venue_research_receipt",
+      "tests.test_boat_venue_research_pdca",
+      "tests.test_boat_pdca_github_handoff"
+    ],
+    "real_keys_read": 0,
+    "schema": "RACE_AI_PRIVATE_RESEARCH_RETENTION_SOURCEFREE_TESTS_V1",
+    "seconds": 100.597,
+    "skips": 0,
+    "tests": 133
+  },
+  "supplemental_source_known_failure": "tests.test_boat_venue_research_cache.ResearchReadbackReuseTests.test_tampered_cached_blob_never_passes_full_byte_comparison",
+  "tdd": {
+    "initial_red": {
+      "errors": 0,
+      "failures": 10,
+      "seconds": 1.952,
+      "tests": 10
+    },
+    "new_green": {
+      "errors": 0,
+      "failures": 0,
+      "seconds": 15.417,
+      "skips": 0,
+      "tests": 20
+    },
+    "postcommit_green": {
+      "errors": 0,
+      "failures": 0,
+      "seconds": 14.851,
+      "skips": 0,
+      "tests": 20
+    },
+    "type_container_red": {
+      "errors": 0,
+      "seconds": 3.354,
+      "subcase_failures": 6,
+      "tests": 2
+    },
+    "workflow_id_red": {
+      "errors": 0,
+      "seconds": 2.011,
+      "subcase_failures": 3,
+      "tests": 1
+    }
+  },
+  "timeout_or_permissions_or_jobs_or_inputs_changes": 0,
+  "tree": "541fb32c80b3daf91573981f5fcf561f85c0d613",
+  "workflow_changes": 0
+}

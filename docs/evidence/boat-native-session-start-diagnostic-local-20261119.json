@@ -1,0 +1,66 @@
+{
+  "base": "ed336daae7b78ec4c8a8b90cebfaaf713ff70260",
+  "bounded_actions_interval": {
+    "end": "2026-11-19T03:16:00Z",
+    "native_dispatch_count": 2,
+    "overlap_between_native_dispatches": false,
+    "start": "2026-11-19T01:30:00Z",
+    "total_run_count": 69
+  },
+  "conclusions": [
+    "HTTP500 and the recognized W3C code were received before a valid session acknowledgement.",
+    "The available logs do not establish the Safari GUI, permission, or competing-process cause.",
+    "Workflow and startup code are unchanged between prior success and current failure.",
+    "The proposed change adds diagnostics only; no behavior fix is proved.",
+    "Synthetic capture was not reached by the failed run."
+  ],
+  "failed_job": 135310576599,
+  "failed_run": 44449770907,
+  "failed_run_created_at": "2026-11-19T03:12:16Z",
+  "local_real_safari_launches": 0,
+  "official_racing_provider_gets": 0,
+  "owner_key_reads": 0,
+  "previous_completed_at": "2026-11-19T01:53:22Z",
+  "previous_job": 135275991793,
+  "previous_run": 44439338949,
+  "reports": {
+    "current_failure": [
+      {
+        "browser": null,
+        "reason": "SAFARI_WEBDRIVER_FAILED",
+        "remote_automation_disabled_message_observed": false,
+        "status": "NATIVE_SAFARI_ACCEPTANCE_HOLD",
+        "timestamp": "2026-11-19T03:15:23.2506670Z",
+        "webdriver_error_code": "session not created",
+        "webdriver_http_status": 500,
+        "webdriver_operation": "new_session"
+      }
+    ],
+    "previous_success": [
+      {
+        "browser": null,
+        "reason": null,
+        "remote_automation_disabled_message_observed": null,
+        "status": "NATIVE_MACOS_SAFARI_SAVED_VIEW_VERIFIED",
+        "timestamp": "2026-11-19T01:52:15.4343200Z",
+        "webdriver_error_code": null,
+        "webdriver_http_status": null,
+        "webdriver_operation": null
+      }
+    ]
+  },
+  "run_attempts": 1,
+  "same_setup": {
+    "build": "24G830",
+    "image": "macos-15",
+    "image_version": "20260824.0482.1",
+    "os": "macOS",
+    "provisioner_version": "20260819.586",
+    "runner_version": "2.338.2",
+    "startup_and_driver_definitions_identical": true,
+    "version": "15.7.9",
+    "workflow_bytes_identical": true
+  },
+  "schema": "RACE_AI_NATIVE_STARTUP_DIAGNOSTIC_LOCAL_EVIDENCE_V1",
+  "session_retries": 0
+}

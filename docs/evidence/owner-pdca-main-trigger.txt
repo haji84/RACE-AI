@@ -813,3 +813,16 @@ Use only boat-owner-release: single-real-session-20261111 and this marker.
 Existing owner gates alone may admit normal continuation; no direct source
 retry, interruption, counter reset, new job/step/input/permission/cron/runner/
 timeout, UI deployment, wager, model family, paid service or local key export.
+
+2026-11-19 bind the original native server witness and inspect failed retention.
+Keep the original M4 witness run44449743664/artifact14495645723, one nonce and
+the unchanged spec. The immutable server receipt fixes 2026-11-19T03:15:30Z
+through 2026-11-24T03:15:30Z; Actions must authenticate the actual candidate
+and witness again before reporting registration or cohort counts.
+Read only the exact r18/r23/r24 research candidates at one observed transfer
+commit with complete original/ciphertext authentication. Do not republish or
+infer historical push completion from current presence or fallback counters.
+Safari adds bounded startup structure diagnostics after the observed session
+creation failure. No retry, extra HTTP request, permission change or timeout
+change is authorized, and no Safari failure is claimed fixed without proof.
+The existing main gates and the same sole marker remain the only release path.
