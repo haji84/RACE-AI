@@ -1,0 +1,22 @@
+{
+  "actual_provider_requests": 0,
+  "failures": 0,
+  "known_WINTICKET_denial_remains": true,
+  "live_403_resolution_proven": false,
+  "model_AES_history_tests_seconds": 7.235,
+  "official_source_is_partial_not_model_admission": true,
+  "original_model_AES_history_tests": 14,
+  "private_log_sha256": {
+    "combined-contract-green.private.log": "4e2e0bdeab2822d1bb0c0a48ce26cd877ff32089f3968fa1fc57f142df227b5f",
+    "test_keirin_cloud_owner_source_cycle.py.private.log": "46f271d3e84a3978d741900712237284d22410a2f73972e89c81c7ce7b0c1b4f",
+    "test_keirin_cloud_pr71_state.py.private.log": "5285686156e9fe83755a3cd46ea013b0a60db46c9bdbc8c247cdd76c8329d76f"
+  },
+  "private_owner_key_reads": 0,
+  "related_tests": 135,
+  "related_tests_seconds": 1.333,
+  "schema": "RACE_AI_OFFICIAL_SOURCE_CONNECTION_LOCAL_VERIFICATION_V1",
+  "skipped": 0,
+  "source_boundary_tests": 6,
+  "tested_code_head": "4aa5eeef4678b69b7bf05f330637d877e1a9b83c",
+  "workflow_nonrun_text_sha256": "1b36a52669b6f0db9f5174f8fba04096933077dc46f7a002ccb77b4e2a88cd0e"
+}

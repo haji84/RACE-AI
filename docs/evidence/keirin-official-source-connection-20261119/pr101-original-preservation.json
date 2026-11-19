@@ -1,0 +1,364 @@
+{
+  "PR": 101,
+  "ancestry_preserved_yet": true,
+  "current_tree_after_preservation": "97bc548e405be6c79d53aec61f27e8c969cdc3b3",
+  "current_tree_before_preservation": "97bc548e405be6c79d53aec61f27e8c969cdc3b3",
+  "current_tree_unchanged_during_preservation": true,
+  "new_PRs": 0,
+  "observed_at_utc": "2026-11-19T14:33:57.766517+00:00",
+  "original_PR_body_sha256": "7a3f481ecb8d4e936062c7edf7d01463d653be322eee087bb4867e57e43af127",
+  "original_base": "main",
+  "original_branch": "feat/keirin-preflight-all-factors-20261108",
+  "original_changed_file_count": 43,
+  "original_changed_files": [
+    {
+      "blob": "dae8a78086b8747f028ac633572e36ecb138f098",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/.github/workflows/keirin-daily-discovery.yml",
+      "mode": "100644",
+      "original_status": "modified",
+      "path": ".github/workflows/keirin-daily-discovery.yml",
+      "type": "blob"
+    },
+    {
+      "blob": "55bf66705d5a92070da5d7cb937a47ac2809ee2f",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/.github/workflows/keirin-private-spool-ci.yml",
+      "mode": "100644",
+      "original_status": "modified",
+      "path": ".github/workflows/keirin-private-spool-ci.yml",
+      "type": "blob"
+    },
+    {
+      "blob": "fb51a8da6a47493588d13608aabdadbd79b5178e",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/AGENTS.md",
+      "mode": "100644",
+      "original_status": "modified",
+      "path": "AGENTS.md",
+      "type": "blob"
+    },
+    {
+      "blob": "01679cb67a0fb17080f236dde83236abbee9be90",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/docs/KEIRIN_NON_RAKUTEN_LOCAL_SOURCE_347_GATE_20261108.md",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "docs/KEIRIN_NON_RAKUTEN_LOCAL_SOURCE_347_GATE_20261108.md",
+      "type": "blob"
+    },
+    {
+      "blob": "f0bf72bded2148fb92c5c8dd3bbaf2dab5e8445a",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/docs/KEIRIN_NON_RAKUTEN_SOURCES_UNCAPPED_SCORE_20261108.md",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "docs/KEIRIN_NON_RAKUTEN_SOURCES_UNCAPPED_SCORE_20261108.md",
+      "type": "blob"
+    },
+    {
+      "blob": "3ff54773ffaebe74f40fefdb350b52d4197425ca",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/docs/KEIRIN_PERMISSIONED_SOURCE_TO_MODEL_CONNECTOR_20261108.md",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "docs/KEIRIN_PERMISSIONED_SOURCE_TO_MODEL_CONNECTOR_20261108.md",
+      "type": "blob"
+    },
+    {
+      "blob": "a32ab1ce6546b705227952610b9d1656a94d66f5",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/docs/KEIRIN_PRE_RACE_ALL_FACTORS_POLICY_20261108.md",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "docs/KEIRIN_PRE_RACE_ALL_FACTORS_POLICY_20261108.md",
+      "type": "blob"
+    },
+    {
+      "blob": "a4f8a1792bd56d88b4886330b5f48132b5f8adb1",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/docs/KEIRIN_REAL_RIDER_SHADOW_FORECAST_20261108.md",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "docs/KEIRIN_REAL_RIDER_SHADOW_FORECAST_20261108.md",
+      "type": "blob"
+    },
+    {
+      "blob": "c95595b4e959e09d5637f68d79c89b31c001ce55",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_allowed_delivery.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_allowed_delivery.py",
+      "type": "blob"
+    },
+    {
+      "blob": "7a9fa04d3f22a25a4084088b544a4a7518c5afe5",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_daily_ledger.py",
+      "mode": "100644",
+      "original_status": "modified",
+      "path": "race_ai/keirin_daily_ledger.py",
+      "type": "blob"
+    },
+    {
+      "blob": "c1430d9849c06cb2fcc39c5e43b00e9ab4528b1f",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_discovery.py",
+      "mode": "100644",
+      "original_status": "modified",
+      "path": "race_ai/keirin_discovery.py",
+      "type": "blob"
+    },
+    {
+      "blob": "d2c909825bd5817021bdc4289fc6902319c4997c",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_field_acquisition.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_field_acquisition.py",
+      "type": "blob"
+    },
+    {
+      "blob": "cc2c48664c51afaf1a80d20e922546e30803ddf4",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_licensed_api_ingest.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_licensed_api_ingest.py",
+      "type": "blob"
+    },
+    {
+      "blob": "fc0ddc74141460054cb267b93f475edcfe85590e",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_non_rakuten_day.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_non_rakuten_day.py",
+      "type": "blob"
+    },
+    {
+      "blob": "2948108d612a292ccef57280ce0a7613969025a4",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_non_rakuten_sources.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_non_rakuten_sources.py",
+      "type": "blob"
+    },
+    {
+      "blob": "e0e6d73a897ce754f62627cc1e432efae6d1f2fd",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_open_meteo_stage.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_open_meteo_stage.py",
+      "type": "blob"
+    },
+    {
+      "blob": "2c9014ae0a3d38dbb9af7aafb8ab7e4497cf7df6",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_open_meteo_weather.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_open_meteo_weather.py",
+      "type": "blob"
+    },
+    {
+      "blob": "c000b17c22a95e9f12e95702ca7bfa52695f578e",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_owner_manual.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_owner_manual.py",
+      "type": "blob"
+    },
+    {
+      "blob": "7037a353c32d1d7a500fba838d6ff792ef1bae25",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_owner_saved_csv.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_owner_saved_csv.py",
+      "type": "blob"
+    },
+    {
+      "blob": "a004341ec776343d1079894ddae196e5d8d77485",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_owner_saved_hex.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_owner_saved_hex.py",
+      "type": "blob"
+    },
+    {
+      "blob": "22595bed1a3a88ebe0fcafd6f5469484a5db4b6a",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_permissioned_owner.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_permissioned_owner.py",
+      "type": "blob"
+    },
+    {
+      "blob": "798bbdd05e39c04c36a276d1d861cf4ccbfd03e2",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_pr71_model_adapter.py",
+      "mode": "100644",
+      "original_status": "modified",
+      "path": "race_ai/keirin_pr71_model_adapter.py",
+      "type": "blob"
+    },
+    {
+      "blob": "761f862409f9199ef1396c03d70832b19fdf6aa1",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_preflight.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_preflight.py",
+      "type": "blob"
+    },
+    {
+      "blob": "0c905ff10d09c1a122601c9e45655a2a21c6e375",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_real_rider_shadow.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_real_rider_shadow.py",
+      "type": "blob"
+    },
+    {
+      "blob": "8b653e5d80e0a84860fe284dde3a5081200cbc0b",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_real_shadow_intake.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_real_shadow_intake.py",
+      "type": "blob"
+    },
+    {
+      "blob": "b94d152c456e1bd44ca4e3a1912a305083c4e803",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/race_ai/keirin_weather_merge.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "race_ai/keirin_weather_merge.py",
+      "type": "blob"
+    },
+    {
+      "blob": "5f1c5ad1eb2c3c57e88698d72c4ee7d21af3660d",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/scripts/keirin_permissioned_owner_agent.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "scripts/keirin_permissioned_owner_agent.py",
+      "type": "blob"
+    },
+    {
+      "blob": "313047b637a5e2c499d12c05f8e2e29c08243041",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/scripts/keirin_weather_live_smoke.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "scripts/keirin_weather_live_smoke.py",
+      "type": "blob"
+    },
+    {
+      "blob": "4e27e73e017b05611d441a7d51d1aa59f0e38a78",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_allowed_delivery.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_allowed_delivery.py",
+      "type": "blob"
+    },
+    {
+      "blob": "da8b6d9f22059fb01a765de6c3d482ef315671f2",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_daily_ledger.py",
+      "mode": "100644",
+      "original_status": "modified",
+      "path": "tests/test_keirin_daily_ledger.py",
+      "type": "blob"
+    },
+    {
+      "blob": "1085fa8263bb2c8f5965d8e43c27d5ada0372890",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_discovery.py",
+      "mode": "100644",
+      "original_status": "modified",
+      "path": "tests/test_keirin_discovery.py",
+      "type": "blob"
+    },
+    {
+      "blob": "bf5e4312b6f1faee1b93db28109ead2350b16942",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_field_acquisition.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_field_acquisition.py",
+      "type": "blob"
+    },
+    {
+      "blob": "d21c74d7ca6a92633b952a5d0b1ef599148e6f5b",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_license_api_ingest.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_license_api_ingest.py",
+      "type": "blob"
+    },
+    {
+      "blob": "bba6604ba1ac715f97329727f1d7fad745a353ed",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_non_rakuten_day.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_non_rakuten_day.py",
+      "type": "blob"
+    },
+    {
+      "blob": "644db359ffbf7f6c665000bbc8056e2787c0658a",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_non_rakuten_sources.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_non_rakuten_sources.py",
+      "type": "blob"
+    },
+    {
+      "blob": "7fb0238c25a13606012b71e2c9466de6a9aeaee8",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_open_meteo_stage.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_open_meteo_stage.py",
+      "type": "blob"
+    },
+    {
+      "blob": "023c3bf75a85ad2e32a60a08380a0aabed0d9ebe",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_open_meteo_weather.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_open_meteo_weather.py",
+      "type": "blob"
+    },
+    {
+      "blob": "62d457cfa52a162149734c770f727b084413d96f",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_owner_manual.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_owner_manual.py",
+      "type": "blob"
+    },
+    {
+      "blob": "d16e1addb20b390eb275ee1bd79ea251b9d21974",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_owner_saved_csv.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_owner_saved_csv.py",
+      "type": "blob"
+    },
+    {
+      "blob": "8bd053235c09e2bc84e19c8ac1ea5ed6970730a6",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_owner_saved_hex.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_owner_saved_hex.py",
+      "type": "blob"
+    },
+    {
+      "blob": "0155461d4eeed418befd29504df80161de5a89fd",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_permissioned_owner.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_permissioned_owner.py",
+      "type": "blob"
+    },
+    {
+      "blob": "4774b19a701cd684fce1c02b00219c7021f10227",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_preflight.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_preflight.py",
+      "type": "blob"
+    },
+    {
+      "blob": "7849ddf7d3019c4d03aeeb9f0df120e5fa7bb668",
+      "immutable_URL": "https://github.com/haji84/RACE-AI/blob/db7daecd5e2f564d8d3ef30a3d0867c518848a68/tests/test_keirin_real_rider_shadow.py",
+      "mode": "100644",
+      "original_status": "added",
+      "path": "tests/test_keirin_real_rider_shadow.py",
+      "type": "blob"
+    }
+  ],
+  "original_head": "db7daecd5e2f564d8d3ef30a3d0867c518848a68",
+  "original_title": "競輪：実選手の非楽天データ→347項目監査→部分入力研究8点、正式PR71は欠測停止",
+  "preservation_commit": "f8590a02ec5575bbe9bb9283f60c6239f75fec3f",
+  "preservation_intent": "ANCESTRY_AND_IMMUTABLE_BLOBS_RETAINED_WITHOUT_REPLAYING_OLD_TREE_OVER_CURRENT_MAIN",
+  "schema": "RACE_AI_EXISTING_PR101_ORIGINAL_PRESERVATION_V1"
+}
