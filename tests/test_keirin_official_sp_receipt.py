@@ -125,6 +125,59 @@ class SPReceiptTests(unittest.TestCase):
                              and result['riders'][0]['statistics_raw']['backCnt'] == '3'
                              and result['missing_model_origins_preserved']), 'NO_GUESSED_SCORE_OR_RATE')
 
+    def test_published_presentation_image_pair_does_not_supply_score_or_model_inputs(self):
+        data = detail_data()
+        data['SJ0315']['sensyuTypeInfo'][0]['heikinTokuten'] = '--'
+        baseline = self.parse(data=data)
+        row = data['SJ0315']['sensyuTypeInfo'][0]
+        row.update(imgTyosiName='架空表示の印',
+                   imgTyosiPath='/sp/static/invented/presentation-sentinel.svg')
+        result = self.parse(data=data)
+        self.assertEqual(result['riders'], baseline['riders'])
+        self.assertIsNone(result['riders'][0]['score_raw'])
+        self.assertNotIn('presentation-sentinel', json.dumps(result))
+        self.assertNotIn('imgTyosi', json.dumps(result))
+        self.assertFalse(result['source_admission'])
+        self.assertFalse(result['model_input_admission'])
+        self.assertEqual(result['model_generation'], 0)
+        self.assertEqual(result['provider_http_requests'], 0)
+
+    def test_presentation_fields_remain_a_bounded_string_pair(self):
+        for extras in ({'imgTyosiName': 'invented'},
+                       {'imgTyosiPath': '/sp/static/invented.svg'},
+                       {'imgTyosiName': None, 'imgTyosiPath': 'invented'},
+                       {'imgTyosiName': 'invented', 'imgTyosiPath': ['invented']},
+                       {'imgTyosiName': 'x' * 161, 'imgTyosiPath': 'invented'},
+                       {'imgTyosiName': 'invented', 'imgTyosiPath': 'x' * 161},
+                       {'imgTyosiName': 'invented', 'imgTyosiPath': 'invented',
+                        'imgTyosiScore': '100'}):
+            with self.subTest(fields=sorted(extras)):
+                data = detail_data()
+                data['SJ0315']['sensyuTypeInfo'][0].update(extras)
+                self.rejected(data=data)
+
+    def test_nine_rider_frame_and_display_color_do_not_change_rider_values(self):
+        data = detail_data(9)
+        baseline = self.parse(data=data)
+        for car, row in enumerate(data['SJ0315']['sensyuTypeInfo'], 1):
+            row.update(wakuban=str(min(car, 6)), kyuhanSpecialColor='invented-display-color')
+        result = self.parse(data=data)
+        self.assertEqual(result['riders'], baseline['riders'])
+        self.assertEqual(len(result['riders']), 9)
+        self.assertNotIn('wakuban', json.dumps(result))
+        self.assertNotIn('invented-display-color', json.dumps(result))
+        self.assertFalse(result['model_input_admission'])
+        self.assertEqual(result['model_generation'], 0)
+
+    def test_frame_metadata_and_color_retain_type_and_size_guards(self):
+        for extras in ({'wakuban': '0'}, {'wakuban': '7'}, {'wakuban': '1.0'},
+                       {'wakuban': True}, {'kyuhanSpecialColor': None},
+                       {'kyuhanSpecialColor': 'x' * 161}, {'unknownDisplay': 'invented'}):
+            with self.subTest(fields=sorted(extras)):
+                data = detail_data(9)
+                data['SJ0315']['sensyuTypeInfo'][0].update(extras)
+                self.rejected(data=data)
+
     def test_wrong_day_venue_race_and_calendar_binding_reject(self):
         self.rejected(expected_day='2030-01-16')
         self.rejected(expected_venue_code=99)

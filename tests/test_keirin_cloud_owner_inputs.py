@@ -361,6 +361,52 @@ class ProviderDenialStatusTests(unittest.TestCase):
 
 
 class OfficialAnalyticsOwnerCycleTests(unittest.TestCase):
+    def test_current_day_seven_and_nine_rider_formats_reach_owner_cycle(self):
+        from copy import deepcopy
+        from unittest.mock import patch
+        import tests as fixtures
+        from scripts.keirin_cloud_owner_inputs import _official_collector
+        capture_driver = _official_collector()
+        with patch.object(fixtures, '__path__', list(fixtures.__path__) + [str(Path(__file__).parent)]):
+            from tests.test_keirin_official_sp_browser import AT, Browser
+            from tests.test_keirin_official_sp_receipt import list_data, detail_data, html
+        browser = Browser(venues=(98,))
+        data = list_data()
+        future = deepcopy(data['SJ0301']['kaisaiDayList'][-1])
+        future['strKaisaiNitijName'] = '最終日(1/16)'
+        for row in future['raceProgramList']:
+            row.update(strRaceLnk='', strRaceLnkPrm='')
+            row.pop('strRaceLnkKbn', None)
+        data['SJ0301']['kaisaiDayList'].append(future)
+        browser.lists[98] = html(data)
+        for number in range(1, 4):
+            data = detail_data(9 if number == 2 else 7)
+            data['SC0201']['C0201data']['selRaceNo'] = number
+            data['SJ0315']['sensyuTypeInfo'][0].update(
+                imgTyosiName='invented-presentation-sentinel',
+                imgTyosiPath='/sp/static/invented/presentation-sentinel.svg')
+            if number == 2:
+                for car, row in enumerate(data['SJ0315']['sensyuTypeInfo'], 1):
+                    row.update(wakuban=str(min(car, 6)), kyuhanSpecialColor='invented-display-color')
+            browser.details[number] = html(data)
+
+        def capture(inbox, **kwargs):
+            return capture_driver(inbox, browser_factory=lambda: browser, **kwargs)
+
+        with TemporaryDirectory() as tmp:
+            inbox = Path(tmp) / 'inbox'
+            inbox.mkdir(mode=0o700)
+            result = collect_owner_inputs(inbox, owner_auto_confirmed=True,
+                official_capture=capture, clock=lambda: AT, monotonic=lambda: 0)
+            self.assertFalse((inbox / 'pre').exists())
+        self.assertFalse(result['source_capture_held'])
+        self.assertEqual(result['source_day_schedule_race_count'], 3)
+        self.assertEqual(result['official_sp_acquisition']['details_verified'], 3)
+        self.assertEqual(result['official_sp_acquisition']['riders_verified'], 23)
+        self.assertNotIn('presentation-sentinel', json.dumps(result))
+        self.assertEqual(result['new_pre_race_inputs'], 0)
+        self.assertFalse(result['actual_four_model_forecast_saved'])
+
     def test_published_page_analytics_does_not_hold_the_existing_owner_cycle(self):
         from unittest.mock import patch
         import tests as fixtures

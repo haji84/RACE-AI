@@ -1,0 +1,37 @@
+{
+  "schema": "RACE_AI_KEIRIN_CURRENT_DAY_LOCAL_VERIFICATION_V1",
+  "recorded_at_utc": "2026-11-19T15:51:08.634953+00:00",
+  "base_main": "6306a6fd59f9a7b2df46eb8640d9ad5966c6a59e",
+  "code_commit": "cd057491ea7573310aca7ae7de2e25715e3c6181",
+  "author_commits": [
+    "56b2ebcb1497e9edcfcdaaabaac03178c2cf644e",
+    "ef8ab2511b7713099341673557e1233e587c10e7"
+  ],
+  "suites": [
+    {
+      "tests": 155,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "sha256": "50e2ae82ea387da53e033d65641b333cf5000a8ada86f8b1080b741ac6d88854"
+    },
+    {
+      "tests": 25,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "sha256": "ccef43c75e1f87c40a7c419950aff1a9ba3bbdde4c85bfa2828032aca19733d7"
+    }
+  ],
+  "source_code_sha256": {
+    "race_ai/keirin_official_sp_browser.py": "127c743d7a2ebf1ac328c90b509543de9875ed333d672d6de78d82d1c0b7fae0",
+    "race_ai/keirin_official_sp_receipt.py": "525a6bc2bc9f7763b03ea62d6b179dc4566a1e55a8002a531cc79a1a00bfa2eb",
+    "tests/test_keirin_cloud_owner_inputs.py": "dfc12fe762cfb90372574a50f5e667d6b3d7fd481279b6a06eaa2511bff10fb9",
+    "tests/test_keirin_official_sp_receipt.py": "8a6c28baca5d1f19775284f0aa8478286d223cacf5e8b65565afdf062cf4f7e8",
+    "tests/test_keirin_official_sp_browser.py": "7c6911c05aae233e82ce6e4410cce77e0aed44446e10be803c88a730333047c5"
+  },
+  "workflow_byte_identical_to_base_main": true,
+  "source_admission": false,
+  "model_input_admission": false,
+  "new_forecasts": 0
+}
