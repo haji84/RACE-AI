@@ -1,0 +1,145 @@
+{
+  "schema": "RACE_AI_NATIVE_TEST_TEMP_ALIAS_FIXTURE_FIX_V1",
+  "base_commit": "147d0558dc8c8718af673310b324b63babc90d59",
+  "final_commit": "b5c1e5cf88be0e7a8d63dc32b848a5ecc9f8d496",
+  "changed_paths": [
+    "tests/test_boat_native_safari_acceptance.py"
+  ],
+  "test_blob": "9add95f46e185828b76008fbe09ff1b506f9834e",
+  "runtime_blob_unchanged": "62beb8c756c2bc3478e031676a8dfcfae059ad2b",
+  "actual_failed_Mac_run": {
+    "run_id": 44467823700,
+    "job_id": 135369769829,
+    "head": "147d0558dc8c8718af673310b324b63babc90d59",
+    "unit_test_count": 172,
+    "unit_seconds": 56.142,
+    "unit_failures": 6,
+    "unit_errors": 0,
+    "failures_by_method": {
+      "test_synthetic_open_and_capture_boundaries_survive_primary_and_cleanup_failures": 4,
+      "test_failed_synthetic_resize_does_not_claim_a_verified_width": 2
+    },
+    "unit_step_conclusion": "failure",
+    "real_private_Safari_step_conclusion": "skipped",
+    "synthetic_capture_step_conclusion": "skipped",
+    "published_artifact_count": 0,
+    "temp_alias_spelling_logged": false,
+    "postfix_actual_Mac_success_observed": false
+  },
+  "diagnosis": {
+    "proved_fixture_defect": "test-owned TemporaryDirectory roots were passed without canonicalization to the intentionally strict output-parent-symlink guard",
+    "actual_Mac_specific_var_alias_observed": false,
+    "matching_real_symlink_Linux_reproduction": true,
+    "runtime_defect_established": false
+  },
+  "fix": {
+    "canonicalized_fixture_roots": 2,
+    "all172_method_names_and_classes_preserved": true,
+    "old_assertions_not_removed": true,
+    "resize_boundary_assertions_strengthened": true,
+    "runtime_guard_unchanged_and_unmocked": true,
+    "raw_alias_still_rejected": true
+  },
+  "red": {
+    "schema": "RACE_AI_REAL_TEMP_ALIAS_FIXTURE_PROBE_V1",
+    "platform": "linux",
+    "physical_directory_created": true,
+    "real_symlink_created": true,
+    "raw_alias_output_guard_rejected": true,
+    "canonical_output_parents_have_no_symlink": true,
+    "test_methods": 2,
+    "subtest_failures": 6,
+    "errors": 0,
+    "skipped": 0,
+    "failures_by_method": {
+      "test_synthetic_open_and_capture_boundaries_survive_primary_and_cleanup_failures": 4,
+      "test_failed_synthetic_resize_does_not_claim_a_verified_width": 2
+    },
+    "intended_boundaries_proven_by_original_assertions": false,
+    "native_safari_launched": false,
+    "source_requests": 0,
+    "owner_key_reads": 0,
+    "runtime_guard_mocked": false
+  },
+  "green_targeted": {
+    "schema": "RACE_AI_REAL_TEMP_ALIAS_FIXTURE_PROBE_V1",
+    "platform": "linux",
+    "physical_directory_created": true,
+    "real_symlink_created": true,
+    "raw_alias_output_guard_rejected": true,
+    "canonical_output_parents_have_no_symlink": true,
+    "test_methods": 2,
+    "subtest_failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "failures_by_method": {},
+    "intended_boundaries_proven_by_original_assertions": true,
+    "native_safari_launched": false,
+    "source_requests": 0,
+    "owner_key_reads": 0,
+    "runtime_guard_mocked": false
+  },
+  "green_all_real_alias": {
+    "schema": "RACE_AI_REAL_TEMP_ALIAS_FIXTURE_PROBE_V1",
+    "platform": "linux",
+    "physical_directory_created": true,
+    "real_symlink_created": true,
+    "raw_alias_output_guard_rejected": true,
+    "canonical_output_parents_have_no_symlink": true,
+    "test_methods": 172,
+    "subtest_failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "failures_by_method": {},
+    "intended_boundaries_proven_by_original_assertions": true,
+    "native_safari_launched": false,
+    "source_requests": 0,
+    "owner_key_reads": 0,
+    "runtime_guard_mocked": false
+  },
+  "normal_green": {
+    "test_methods": 172,
+    "seconds": 20.241,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "real_alias_green_seconds": 20.115,
+  "compile": "PASS",
+  "diff_check": "PASS",
+  "independent_review": "CLEAR",
+  "review_scope": "test fixture canonicalization and stronger intended-boundary assertions; no native acceptance claim",
+  "evidence_files": {
+    "red.json": {
+      "sha256": "30d15c9f9af0d5679b9a95d233a3c6bf1c184f27a9935c849f6cf317a4709d04",
+      "bytes": 693
+    },
+    "green.json": {
+      "sha256": "e8c84bc8dbad4a5a6265004e304dc93462099abb635c887e241afd6b6e1f8120",
+      "bytes": 529
+    },
+    "green-all-172.json": {
+      "sha256": "8d3fa7fffb4285e5f1c30ef542a0399e1ab88dec720c0c9ba35aa2a2ac7c12de",
+      "bytes": 531
+    },
+    "reproduce.py": {
+      "sha256": "3e18dedd5e7b51191d90f2beeaa03dc2016f9f5c805a5e1c50129d3173d2160e",
+      "bytes": 2738
+    },
+    "normal-172.log": {
+      "sha256": "3261c1f928c4b182d137ab3834fbf93f1c3f13d53db3ebcc4d8c6487769c39c9",
+      "bytes": 100
+    },
+    "green-all-172.log": {
+      "sha256": "e8027b5256eb106de980258ccc388ac60e997fc853423a607628607ce062ae44",
+      "bytes": 38541
+    }
+  },
+  "source_provider_requests": 0,
+  "owner_key_reads": 0,
+  "actual_Safari_launches": 0,
+  "webDriver_RPCs_added": 0,
+  "remote_mutations": 0,
+  "workflow_changes": 0,
+  "native_Safari_acceptance_verified_by_this_fix": false
+}

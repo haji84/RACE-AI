@@ -1,0 +1,140 @@
+{
+  "schema": "RACE_AI_PR106_ORIGINAL_HISTORY_PRESERVATION_V1",
+  "original_head": "5b0f7ef86cc211e026971280f96669f1806f92bc",
+  "original_tree": "92b9e386dc8a7c10c99c6c80387c3d981f8d7ec4",
+  "original_paths": [
+    {
+      "path": "audit/autorace/2026-11-09/all-races-A-research-pretrial-0917-sha256.txt",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9910b7112734c22023d2e0a351e1d0eb84caf1ff",
+      "adopted_in_current_tree": true,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/audit/autorace/2026-11-09/all-races-A-research-pretrial-0917-sha256.txt"
+    },
+    {
+      "path": "audit/autorace/2026-11-09/iizuka_01to08_official_results_observed_20261110_0343JST.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "6031ba3c5ee1dcf33063348d37dad46e1d39baca",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/audit/autorace/2026-11-09/iizuka_01to08_official_results_observed_20261110_0343JST.json"
+    },
+    {
+      "path": "audit/autorace/2026-11-09/isesaki_01to05_A_PDCA_1715JST.sha256.txt",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "072d22299a3a8f9b4f1331a7ff765615634acac4",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/audit/autorace/2026-11-09/isesaki_01to05_A_PDCA_1715JST.sha256.txt"
+    },
+    {
+      "path": "audit/autorace/2026-11-09/isesaki_01to11_results_confirmed_20261110_0753JST.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c0cbab54d21b238833be7e36a4051c853906f2bb",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/audit/autorace/2026-11-09/isesaki_01to11_results_confirmed_20261110_0753JST.json"
+    },
+    {
+      "path": "audit/autorace/2026-11-09/isesaki_06to09_postcutoff_trial_observation_1850JST.sha256.txt",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "57f89a06b16591f7e1e53ed13bf7d84aed7a8c35",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/audit/autorace/2026-11-09/isesaki_06to09_postcutoff_trial_observation_1850JST.sha256.txt"
+    },
+    {
+      "path": "audit/autorace/2026-11-09/isesaki_10R_postcutoff_trial_observation_1951JST.sha256.txt",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "b2efff47a6f409190a5103e4f4caf1bd53bd6362",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/audit/autorace/2026-11-09/isesaki_10R_postcutoff_trial_observation_1951JST.sha256.txt"
+    },
+    {
+      "path": "audit/autorace/2026-11-09/isesaki_12R_B_posttrial_research_v1_203534JST.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "1820d90bfbdc74a64be51a3787bf206dd433546c",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/audit/autorace/2026-11-09/isesaki_12R_B_posttrial_research_v1_203534JST.json"
+    },
+    {
+      "path": "audit/autorace/2026-11-09/isesaki_12R_B_posttrial_result_PDCA_confirmed_20261110_025530JST.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "846b3abf5034db35b4c5a8821cc25b6a665d8d1b",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/audit/autorace/2026-11-09/isesaki_12R_B_posttrial_result_PDCA_confirmed_20261110_025530JST.json"
+    },
+    {
+      "path": "audit/autorace/2026-11-09/kawaguchi-1R-A-v1-wet-HOLD-review-103444-sha256.txt",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "56902db41b8b80727bb2d246723148a7f10cc27c",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/audit/autorace/2026-11-09/kawaguchi-1R-A-v1-wet-HOLD-review-103444-sha256.txt"
+    },
+    {
+      "path": "audit/autorace/2026-11-09/kawaguchi_09to10_results_partial_observed_20261110_0454JST.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "ca7a532986f3d97df4251878685c4faa7bfdfc7f",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/audit/autorace/2026-11-09/kawaguchi_09to10_results_partial_observed_20261110_0454JST.json"
+    },
+    {
+      "path": "audit/autorace/2026-11-09/kawaguchi_10to12_results_completed_observed_20261110_0630JST.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "6d95490bae9e4773528bba5bc71d015ed60e8582",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/audit/autorace/2026-11-09/kawaguchi_10to12_results_completed_observed_20261110_0630JST.json"
+    },
+    {
+      "path": "docs/evidence/autorace-20261109-kawaguchi-11r-trial-1622-sha-receipt.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "ab6ddcb257d8fd675c8b1721708cfdf37d521559",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/docs/evidence/autorace-20261109-kawaguchi-11r-trial-1622-sha-receipt.json"
+    },
+    {
+      "path": "docs/evidence/autorace-20261109-kawaguchi-1to8-pdca-receipt.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "7c757ce925cc6f44949b124e9ac8e0ea55572e8d",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/docs/evidence/autorace-20261109-kawaguchi-1to8-pdca-receipt.json"
+    },
+    {
+      "path": "docs/evidence/autorace_20261109_125826JST_A7_revision_B6_SHA256_receipt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "72a2e33c29514514f0657b50b08ca29769c89ab0",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/docs/evidence/autorace_20261109_125826JST_A7_revision_B6_SHA256_receipt.txt"
+    },
+    {
+      "path": "docs/evidence/autorace_20261109_142529JST_kawaguchi_4R_official_A8_A12_PDCA_SHA256_receipt.txt",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "b3ed2a568947be64e6cd07ccfc4a1c87f9cf7f2d",
+      "adopted_in_current_tree": false,
+      "immutable_url": "https://github.com/haji84/RACE-AI/blob/5b0f7ef86cc211e026971280f96669f1806f92bc/docs/evidence/autorace_20261109_142529JST_kawaguchi_4R_official_A8_A12_PDCA_SHA256_receipt.txt"
+    }
+  ],
+  "original_path_count": 15,
+  "raw_JSON_current_tree_copies": 0,
+  "original_ancestry_preserved": true,
+  "reconciliation_commit": "66bcebc1c54dfa3228dcba15646157241c237abd",
+  "reconciliation_strategy": "OURS_WITH_TESTED_MAIN_TREE_ASSERTION",
+  "main_parent_preserved": "147d0558dc8c8718af673310b324b63babc90d59",
+  "fixture_fix_commit": "9445fdb888334e75ccdb9d9a345fcd3df0d186f1",
+  "hash_receipt_bytes": 5182,
+  "hash_receipt_sha256": "00ec2ee983bdb6a2bba2b6fb6e6922c9300c68f3131eab9c2dba7601dbf95e73",
+  "original_ZIP_restored": false,
+  "trained_model_authority": false,
+  "current_or_prospective_denominator_added": 0,
+  "UI_added_to_main": false
+}

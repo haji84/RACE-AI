@@ -4309,7 +4309,7 @@ class NativeCleanupFailureDiagnosticTests(unittest.TestCase):
                             patch.object(S,'save_synthetic_screenshot',side_effect=primary) as capture, \
                             patch.object(S,'VISUAL_WIDTHS',(390,)),patch.object(S,'VISUAL_PAGES',('detail',)):
                         with self.assertRaises(S.SafariHold) as caught:
-                            S.synthetic_visual_checks({},Path(name)/'synthetic-only')
+                            S.synthetic_visual_checks({},Path(name).resolve()/'synthetic-only')
                         report=S.failure_report(caught.exception)
                     self.assertIs(caught.exception,primary)
                     self.assertEqual(report['reason'],'SYNTHETIC_SCREENSHOT_REJECTED')
@@ -4366,12 +4366,16 @@ class NativeCleanupFailureDiagnosticTests(unittest.TestCase):
                         patch.dict(S.os.environ,{},clear=True),patch.object(S,'LoopbackSite',side_effect=site), \
                         patch.object(S,'synthetic_capture_fixture',return_value={'event_date_jst':'2030-01-01'}), \
                         patch.object(S,'select_saved_day'),patch.object(S,'click_saved_page'),patch.object(S,'VISUAL_WIDTHS',(390,)):
-                    with self.assertRaises(S.SafariHold) as caught:S.synthetic_visual_checks({},Path(name)/'synthetic-only')
+                    with self.assertRaises(S.SafariHold) as caught:S.synthetic_visual_checks({},Path(name).resolve()/'synthetic-only')
                     report=S.failure_report(caught.exception)
                 self.assertEqual(report.get('ui_stage'),'synthetic_capture')
                 self.assertEqual(report.get('ui_action'),'set_viewport')
                 self.assertIsNone(report.get('ui_verified_width'),'requested width is not verified by a failed resize/readback')
                 self.assertIsNone(report.get('ui_capture_page'))
+                self.assertEqual(report['reason'],'SAFARI_WEBDRIVER_FAILED' if failure=='resize_command' else 'VIEWPORT_INVALID')
+                driver.command.assert_any_call('POST','/window/rect',{'width':390,'height':1000})
+                self.assertEqual(driver.command.call_count,2)
+                driver.new_session.assert_called_once_with();driver.close.assert_called_once_with()
 
     def test_synthetic_projection_rejects_str_subclasses_and_skips_encrypted_seed_getters(self):
         calls=[]

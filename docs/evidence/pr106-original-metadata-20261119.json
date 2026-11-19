@@ -1,0 +1,11 @@
+{
+  "base_ref": "main",
+  "base_sha": "db5860b522589735e9c143b050f2daef027ca665",
+  "body": "Audit-only, public SHA256 receipt. 29 newly issued A research drafts created at 2026-11-09T09:17:20+09:00, plus 3 existing A originals preserved byte-for-byte. No picks or confidential originals stored in this public repository. All 32 originals, per-race hashes, and manifest are packaged in the owner-visible conversation ZIP. Not trained RACE-AI model predictions; no trial/result inputs; wet-surface and final lineup not confirmed. Future B/results/PDCA must be separately appended. Please run required `unit` before merge.",
+  "draft": false,
+  "head_ref": "audit/autorace-20261109-research-a-0917-sha",
+  "head_sha": "5b0f7ef86cc211e026971280f96669f1806f92bc",
+  "number": 106,
+  "state": "open",
+  "title": "audit(autorace): immutable pretrial SHA receipt for 32 research A forecasts, 2026-11-09"
+}
