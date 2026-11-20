@@ -123,10 +123,12 @@ def generate_shadow(snapshot, supplement, *, baseline, generated_at):
         "A_research": {
             "model": "baseline-plus-documented-form-v1",
             "ranked_tickets": ranked_a,
+            "baseline_ranked_tickets": baseline["A"]["ranked_tickets"],
             "changed_from_original": ranked_a != baseline["A"]["ranked_tickets"]},
         "B_research": {
             "model": "six-phase-plus-documented-form-v1",
             "ranked_tickets": ranked_b,
+            "baseline_ranked_tickets": baseline["B"]["ranked_tickets"],
             "changed_from_original": ranked_b != baseline["B"]["ranked_tickets"],
             "branch_condition_factors": [
                 {"scenario_id": sid,
