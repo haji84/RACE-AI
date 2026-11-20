@@ -156,6 +156,87 @@ class NoteInputCollectionTests(unittest.TestCase):
         self.assertEqual(manifest['daily_coverage']['counts'],dict(observed=1,input_available=1,missing=0,held=0))
         self.assertFalse(result['safe_report']['formal_model_admission'])
 
+    def test_selected_net_link_accepts_only_the_observed_tracking_value_in_either_query_order(self):
+        from race_ai import keirin_public_two_source_normalizer as adapter
+        for query in ('race_id='+rid(2)+'&rf=courselist','rf=courselist&race_id='+rid(2)):
+            with self.subTest(query=query),TemporaryDirectory() as temp:
+                self.selected_class_pages();self.calls.clear()
+                original=self.pages[urls(2)[0]]
+                href='https://keirin.netkeiba.com/race/entry/?'+query
+                raw=original.replace(('<a class="Active" href="'+urls(2)[0]+'">').encode(),
+                    ('<a class="Active" href="'+href+'">').encode())
+                self.pages[urls(2)[0]]=raw
+                root=Path(temp);root.chmod(0o700)
+                result=self.api().collect_day(day_jst=DAY,private_root=root,
+                    fetch=self.fetch,clock=lambda:NOW,model_source_commit='a'*40)
+                races,references,manifest=self.documents(result)
+                self.assertEqual(len(races['races']),1)
+                self.assertEqual(references[0]['input']['competition'],'S')
+                provenance=references[0]['class_field_source']
+                self.assertEqual(provenance['url'],urls(2)[0])
+                self.assertEqual(provenance['bytes_sha256'],sha256(raw).hexdigest())
+                self.assertEqual((root/'raw'/(sha256(raw).hexdigest()+'.html')).read_bytes(),raw)
+                self.assertEqual(self.calls,[CALENDAR,MEETING,*urls(2)])
+                self.assertEqual(manifest['daily_coverage']['counts'],dict(observed=1,input_available=1,missing=0,held=0))
+                with self.assertRaisesRegex(adapter.PublicPageNormalizeError,'KDREAMS_RACE_CLASS_NOT_IN_SOURCE'):
+                    adapter.merge_pre_race_pages(race_id=rid(2),netkeirin_raw=raw,netkeirin_url=urls(2)[0],
+                        netkeirin_captured_at=NOW.isoformat(),kdreams_raw=self.pages[urls(2)[1]],
+                        kdreams_url=urls(2)[1],kdreams_captured_at=NOW.isoformat(),created_at=NOW.isoformat())
+
+    def test_selected_tracking_link_rejects_identity_changes_and_unobserved_query_forms(self):
+        from race_ai import keirin_public_two_source_normalizer as adapter
+        self.selected_class_pages();source=urls(2)[0];tracked=source+'&rf=courselist'
+        bad={
+            'unknown_key':tracked+'&other=courselist',
+            'duplicate_race_id':tracked+'&race_id='+rid(2),
+            'conflicting_race_id':tracked+'&race_id='+rid(1),
+            'blank_duplicate_race_id':tracked+'&race_id=',
+            'duplicate_rf':tracked+'&rf=courselist',
+            'conflicting_rf':tracked+'&rf=other',
+            'blank_duplicate_rf':tracked+'&rf=',
+            'blank_rf':source+'&rf=',
+            'different_rf':source+'&rf=other',
+            'wrong_case_rf':source+'&rf=courseList',
+            'missing_race_id':'https://keirin.netkeiba.com/race/entry/?rf=courselist',
+            'wrong_day':tracked.replace('20300115','20300116'),
+            'wrong_race':tracked.replace(rid(2),rid(1)),
+            'wrong_host':tracked.replace('keirin.netkeiba.com','example.invalid'),
+            'wrong_path':tracked.replace('/race/entry/','/race/entry/results.html'),
+            'http':tracked.replace('https://','http://'),
+            'relative':tracked.removeprefix('https://keirin.netkeiba.com'),
+            'userinfo':tracked.replace('https://','https://user@'),
+            'port':tracked.replace('keirin.netkeiba.com','keirin.netkeiba.com:443'),
+            'other_port':tracked.replace('keirin.netkeiba.com','keirin.netkeiba.com:8443'),
+            'fragment':tracked+'#race',
+            'empty_fragment':tracked+'#',
+            'leading_space':' '+tracked,
+            'malformed_query':tracked+'&',
+        }
+        for label,href in bad.items():
+            with self.subTest(label=label):
+                raw=self.pages[source].replace(('<a class="Active" href="'+source+'">').encode(),
+                    ('<a class="Active" href="'+href+'">').encode())
+                with self.assertRaisesRegex(adapter.PublicPageNormalizeError,'NET_SELECTED_CLASS_SELECTION_MISMATCH'):
+                    adapter.merge_pre_race_pages(race_id=rid(2),netkeirin_raw=raw,netkeirin_url=source,
+                        netkeirin_captured_at=NOW.isoformat(),kdreams_raw=self.pages[urls(2)[1]],
+                        kdreams_url=urls(2)[1],kdreams_captured_at=NOW.isoformat(),created_at=NOW.isoformat(),
+                        allow_selected_netkeirin_class=True)
+
+    def test_tracking_link_does_not_relax_the_exact_source_canonical(self):
+        from race_ai import keirin_public_two_source_normalizer as adapter
+        self.selected_class_pages();source=urls(2)[0]
+        tracked=self.pages[source].replace(('<a class="Active" href="'+source+'">').encode(),
+            ('<a class="Active" href="'+source+'&rf=courselist">').encode())
+        for other in (source+'&rf=courselist',source.replace('/race/entry/','/race/entry/results.html')):
+            with self.subTest(canonical=other):
+                raw=tracked.replace(('<link rel="canonical" href="'+source+'">').encode(),
+                    ('<link rel="canonical" href="'+other+'">').encode())
+                with self.assertRaisesRegex(adapter.PublicPageNormalizeError,'SOURCE_CANONICAL_URL_RACE_MISMATCH'):
+                    adapter.merge_pre_race_pages(race_id=rid(2),netkeirin_raw=raw,netkeirin_url=source,
+                        netkeirin_captured_at=NOW.isoformat(),kdreams_raw=self.pages[urls(2)[1]],
+                        kdreams_url=urls(2)[1],kdreams_captured_at=NOW.isoformat(),created_at=NOW.isoformat(),
+                        allow_selected_netkeirin_class=True)
+
     def test_explicit_selected_class_conflict_holds_before_generating_reference_outputs(self):
         self.pages=pages_for([(2,'12:12')])
         self.pages[urls(2)[0]]=selected_net_page(2,'S級 予選')

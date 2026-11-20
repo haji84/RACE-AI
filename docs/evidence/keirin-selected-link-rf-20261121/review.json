@@ -1,0 +1,26 @@
+{
+  "schema": "RACE_AI_SELECTED_LINK_RF_REVIEW_V1",
+  "state": "INDEPENDENT_REVIEW_CLEAR",
+  "source_hashes": {
+    "normalizer": "b1f4adab625c9ee7a8547ba70a41a2b1bd613566c0fee1c38473bf55ddcdcd20",
+    "tests": "55c90ed099d31592e2e5364c611461226e97bb6193cd7e733abd63b68c10e7b9"
+  },
+  "root_related_tests": {
+    "passed": 131,
+    "failed": 0,
+    "warnings_as_errors": true
+  },
+  "independent_related_tests": {
+    "passed": 69,
+    "failed": 0,
+    "warnings_as_errors": true
+  },
+  "independent_additional_uri_active_challenges": 35,
+  "canonical_guard_unchanged": true,
+  "model_schema_changed": false,
+  "default_behavior_unchanged": true,
+  "provider_requests_during_replay": 0,
+  "raw_original_receipts_unchanged": true,
+  "actual_new_generation_save": "PENDING_PROTECTED_MERGE_AND_LIVE_RUN",
+  "workflow_changes": 0
+}
