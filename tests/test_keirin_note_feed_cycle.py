@@ -1,5 +1,5 @@
 """Scheduled display feed boundaries with invented pages and a local Git remote."""
-from datetime import datetime,timezone
+from datetime import datetime,timezone,timedelta
 import importlib
 import json
 from pathlib import Path
@@ -52,6 +52,18 @@ class FeedCycleTests(unittest.TestCase):
         return dict(site_root=str(kwargs['private_root']),result_checks={},safe_report=dict(
             provider_denied=False,changed_observations=0,public_page_requests=0,checked_races=0))
 
+    def collect_empty(self,**kwargs):
+        self.calls.append(kwargs)
+        root=Path(kwargs['private_root']);day=kwargs['day_jst']
+        folder=root/'data'/day;folder.mkdir(parents=True)
+        report=dict(selected_races=0,provider_denied=False,public_page_requests=1,
+            captured_races=0,captured_race_ids=[],priority_window_race_ids=[],
+            research_references_generated=0,observed_races=0)
+        (folder/'races.json').write_text(json.dumps(dict(date=day,races=[])))
+        (folder/'reference_AB.json').write_text('[]')
+        (folder/'manifest.json').write_text(json.dumps(dict(day_jst=day,safe_report=report)))
+        return dict(site_root=str(root),safe_report=report)
+
     def test_missing_seed_stops_without_provider_get_or_branch_genesis(self):
         r=self.cycle();self.assertEqual(r['state'],'HOLD_NOTE_OWNER_SEED_REQUIRED')
         self.assertEqual(self.calls,[]);self.assertIsNone(self.store.head())
@@ -68,7 +80,7 @@ class FeedCycleTests(unittest.TestCase):
 
     def test_no_new_forecast_tick_still_checks_results_for_every_imported_day(self):
         self.seed()
-        self.collect=lambda **kwargs:dict(safe_report=dict(selected_races=0,provider_denied=False,public_page_requests=1))
+        self.collect=self.collect_empty
         result=self.cycle()
         self.assertEqual(len(self.result_calls),1)
         self.assertEqual(self.result_calls[0]['days'],['2030-01-15'])
@@ -88,9 +100,9 @@ class FeedCycleTests(unittest.TestCase):
         first=self.seed();extra=packet();extra['dates']=['2028-01-01']
         feed.publish_snapshot(self.store,self.recipient,feed.seal_snapshot(extra,self.recipient,kind='import'),
             expected_parent=first['source_commit'])
-        self.collect=lambda **kwargs:dict(safe_report=dict(selected_races=0,provider_denied=False,public_page_requests=0))
+        self.collect=self.collect_empty
         self.cycle(clock=lambda:datetime(2030,1,16,0,tzinfo=timezone.utc))
-        self.assertEqual(self.result_calls[0]['days'],['2028-01-01','2030-01-15'])
+        self.assertEqual(self.result_calls[0]['days'],['2028-01-01','2030-01-15','2030-01-16'])
 
     def test_results_are_separate_encrypted_deltas_and_unchanged_ticks_only_update_progress(self):
         self.seed()
@@ -131,7 +143,7 @@ class FeedCycleTests(unittest.TestCase):
         with tarfile.open(fileobj=io.BytesIO(archive),mode='r:gz') as saved:
             self.assertEqual(saved.extractfile('raw/result.html').read(),b'private invented result source')
         before={e['cipher_sha256'] for e in index['entries']}
-        self.collect=lambda **kwargs:dict(safe_report=dict(selected_races=0,provider_denied=False,public_page_requests=1))
+        self.collect=self.collect_empty
         def unchanged(**kwargs):
             return dict(site_root=str(kwargs['private_root']),result_checks={
                 rid:{**row,'checked_at':'2030-01-15T00:10:00+00:00'} for rid,row in checks.items()},
@@ -143,8 +155,8 @@ class FeedCycleTests(unittest.TestCase):
 
     def test_result_denial_survives_packaging_failure(self):
         from unittest.mock import patch
-        self.seed()
-        self.collect=lambda **kwargs:dict(safe_report=dict(selected_races=0,provider_denied=False,public_page_requests=0))
+        self.seed();self.cycle()
+        self.collect=self.collect_empty
         def denied(**kwargs):
             root=Path(kwargs['private_root']);day=root/'data/2030-01-15';day.mkdir(parents=True)
             (day/'research_results.json').write_text('{}')
@@ -165,8 +177,8 @@ class FeedCycleTests(unittest.TestCase):
         self.assertEqual([e['kind'] for e in index['entries']],['import','research'])
 
     def test_inconsistent_progress_cannot_publish_a_result_without_its_private_facts(self):
-        self.seed()
-        self.collect=lambda **kwargs:dict(safe_report=dict(selected_races=0,provider_denied=False,public_page_requests=0))
+        self.seed();self.cycle()
+        self.collect=self.collect_empty
         def broken(**kwargs):
             return dict(site_root=str(kwargs['private_root']),result_checks={
                 '203001159801':dict(checked_at='2030-01-15T00:00:00Z',digest='a'*64,status='MATCHED')},
@@ -199,6 +211,30 @@ class FeedCycleTests(unittest.TestCase):
             expected_parent=seed['source_commit'],denied=True)
         r=self.cycle();self.assertEqual(r['state'],'HOLD_NOTE_PREVIOUS_PROVIDER_DENIAL_NO_RETRY')
         self.assertEqual(self.calls,[])
+
+    def test_first_empty_day_is_retained_without_repeating_empty_ticks(self):
+        self.seed();self.collect=self.collect_empty
+        now=datetime(2030,1,15,0,0,tzinfo=timezone.utc)
+        first=self.cycle(clock=lambda:now)
+        self.assertEqual(first['state'],'KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED',
+            'A day without forecasts must have its own encrypted observation, not disappear.')
+        index=feed.load_index(self.store,self.recipient,self.store.head())
+        self.assertEqual(len(index['entries']),2)
+        self.assertEqual(index['entries'][-1]['days'],['2030-01-15'])
+        self.assertEqual(index['entries'][-1]['captured_race_ids'],[])
+        first_head=self.store.head()
+        now+=timedelta(minutes=5)
+        second=self.cycle(clock=lambda:now)
+        self.assertEqual(second['state'],'NOTE_NO_NEW_ELIGIBLE_RESEARCH_INPUTS')
+        self.assertEqual(self.store.head(),first_head)
+        now+=timedelta(days=1)
+        third=self.cycle(clock=lambda:now)
+        self.assertEqual(third['state'],'KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED')
+        index=feed.load_index(self.store,self.recipient,self.store.head())
+        self.assertEqual(len(index['entries']),3)
+        self.assertEqual(index['entries'][-1]['days'],['2030-01-16'])
+        self.assertEqual(index['covered_race_ids'],[])
+        self.assertEqual(len(self.result_calls),3,'Empty observations must not disable result updates.')
 
     def test_fresh_denial_survives_a_source_archive_failure(self):
         from unittest.mock import patch
