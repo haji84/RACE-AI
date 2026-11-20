@@ -19,9 +19,13 @@ on:
       - 'race_ai/keirin_nationwide_auto_*.py'
       - 'race_ai/keirin_rider_form_evidence.py'
       - 'race_ai/keirin_form_fall_shadow.py'
+      - 'race_ai/keirin_form_history_admission.py'
+      - 'race_ai/keirin_form_fall_blind_pdca.py'
       - 'tests/test_keirin_rider_form_evidence.py'
       - 'scripts/keirin_form_fall_owner_view.py'
       - 'tests/test_keirin_form_fall_owner_view.py'
+      - 'tests/test_keirin_form_history_admission.py'
+      - 'tests/test_keirin_form_fall_blind_pdca.py'
       - 'scripts/keirin_nationwide_auto_forecast.py'
       - 'scripts/keirin_register_public_day.py'
       - 'scripts/keirin_github_only_ab_*.py'
@@ -95,6 +99,8 @@ jobs:
             tests.test_keirin_nationwide_auto_generator \
             tests.test_keirin_rider_form_evidence \
             tests.test_keirin_form_fall_owner_view \
+            tests.test_keirin_form_history_admission \
+            tests.test_keirin_form_fall_blind_pdca \
             tests.test_keirin_nationwide_auto_storage \
             tests.test_keirin_nationwide_auto_runner \
             tests.test_keirin_nationwide_auto_settlement \
@@ -134,6 +140,8 @@ jobs:
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_rider_form_evidence.py \
             race_ai/keirin_form_fall_shadow.py \
+            race_ai/keirin_form_history_admission.py \
+            race_ai/keirin_form_fall_blind_pdca.py \
             scripts/keirin_form_fall_owner_view.py \
             race_ai/keirin_nationwide_auto_storage.py \
             race_ai/keirin_nationwide_auto_settlement.py \
