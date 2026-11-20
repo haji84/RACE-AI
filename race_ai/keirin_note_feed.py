@@ -73,7 +73,9 @@ def _ids(values):
 def checked_entry(entry):
     fields={'cipher_sha256','source_content_sha256','ephemeral_public_key','salt',
             'created_at','days','kind','captured_race_ids','priority_window_race_ids'}
-    need(type(entry) is dict and set(entry)==fields and entry['kind'] in {'import','research','archive','results'},'ENTRY')
+    need(type(entry) is dict, 'ENTRY')
+    if entry.get('kind') == 'result': fields = fields | {'result_revisions'}
+    need(set(entry)==fields and entry['kind'] in {'import','research','archive','result','results'},'ENTRY')
     for name in ('cipher_sha256','source_content_sha256'):
         need(type(entry[name]) is str and re.fullmatch('[a-f0-9]{64}',entry[name]),'ENTRY_HASH')
     need(len(unb64(entry['ephemeral_public_key']))==65 and len(unb64(entry['salt']))==32,'ENTRY_ECDH')
@@ -84,6 +86,12 @@ def checked_entry(entry):
     captured=_ids(entry['captured_race_ids']);priority=_ids(entry['priority_window_race_ids'])
     need(set(priority)<=set(captured),'PRIORITY_IDS')
     need(entry['kind']!='results' or not captured and not priority,'RESULTS_NOT_FORECAST_COVERAGE')
+    if entry['kind'] == 'result':
+        revisions = entry['result_revisions']
+        need(type(revisions) is dict and 0 < len(revisions) <= 300 and
+             not captured and not priority, 'RESULT_REVISIONS')
+        _ids(list(revisions))
+        need(all(type(v) is str and re.fullmatch('[a-f0-9]{64}',v) for v in revisions.values()), 'RESULT_REVISIONS')
     return entry
 
 
@@ -122,6 +130,25 @@ def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=No
         need(type(note.get('files')) is dict and all(type(path) is str and re.fullmatch(
             r'data/\d{4}-\d{2}-\d{2}/research_results\.json',path) and
             path.split('/')[1] in note['dates'] for path in note['files']),'RESULTS_ONLY_FILES')
+    result_revisions = {}
+    if kind == 'result':
+        from .keirin_result_updates import checked_updates
+        need(not captured_ids and not priority_ids and type(note.get('files')) is dict and
+             bool(note['files']), 'RESULT_DISPLAY_ONLY')
+        for path, value in note['files'].items():
+            need(re.fullmatch(r'data/[0-9]{4}-[0-9]{2}-[0-9]{2}/result_updates\.json', path), 'RESULT_DISPLAY_ONLY')
+            raw = value['text'].encode('utf-8')
+            need(value['sha256'] == sha256(raw).hexdigest() and value['bytes'] == len(raw), 'RESULT_BYTES')
+            updates = checked_updates(json.loads(raw))
+            for row in updates['races']:
+                need(row['race_id'] not in result_revisions, 'DUPLICATE_RESULT_RACE')
+                result_revisions[row['race_id']] = row['revision']
+        # Public per-race commitments cannot hide a guessable plaintext hash:
+        # their values can simply be copied into a guessed result note. Add
+        # independent entropy inside the encrypted plaintext only. The stable
+        # public revisions still provide cross-run idempotency before sealing.
+        # Existing imported/forecast packets and their encryption are unchanged.
+        note = dict(note, result_private_nonce=b64(os.urandom(32)))
     plain=canonical(note);need(0<len(plain)<=MAX_VIEW,'PLAIN_BOUND')
     ephemeral=ec.generate_private_key(ec.SECP256R1())
     public=ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(),unb64(recipient['public_key']))
@@ -133,12 +160,14 @@ def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=No
         ciphertext=base64.b64encode(AESGCM(aes).encrypt(nonce,plain,canonical(header))).decode()))+b'\n'
     observed=(clock or (lambda:datetime.now(timezone.utc)))()
     need(isinstance(observed,datetime) and observed.utcoffset() is not None,'CLOCK')
-    entry=checked_entry(dict(cipher_sha256=sha256(wire).hexdigest(),
+    entry_values=dict(cipher_sha256=sha256(wire).hexdigest(),
         source_content_sha256=header['source_content_sha256'],
         ephemeral_public_key=b64(ephemeral.public_key().public_bytes(
             serialization.Encoding.X962,serialization.PublicFormat.UncompressedPoint)),salt=b64(salt),
         created_at=observed.astimezone(timezone.utc).isoformat(),days=note['dates'],kind=kind,
-        captured_race_ids=_ids(list(captured_ids)),priority_window_race_ids=_ids(list(priority_ids))))
+        captured_race_ids=_ids(list(captured_ids)),priority_window_race_ids=_ids(list(priority_ids)))
+    if kind == 'result': entry_values['result_revisions'] = result_revisions
+    entry=checked_entry(entry_values)
     return dict(entry=entry,cipher=wire)
 
 
@@ -168,7 +197,10 @@ def append_index(previous,recipient,*,entry=None,denied=False,result_checks=None
         schema=INDEX,repository=REPO,recipient_id=checked_recipient(recipient)['recipient_id'],entries=[],
         provider_denied=False,covered_race_ids=[],priority_window_race_ids=[])
     # A denial latch is persistent across dates and subsequent successful ticks.
-    need(not doc['provider_denied'] or entry is None,'PREVIOUS_PROVIDER_DENIAL_NO_RETRY')
+    # Publishing an already captured result does not issue a provider request.
+    # Input acquisition remains latched in cycle(); this never clears the latch.
+    need(not doc['provider_denied'] or entry is None or
+         entry.get('kind') == 'result', 'PREVIOUS_PROVIDER_DENIAL_NO_RETRY')
     if entry is not None:
         checked_entry(entry);need(entry['cipher_sha256'] not in {r['cipher_sha256'] for r in doc['entries']},'DUPLICATE_ENTRY')
         doc['entries'].append(entry)

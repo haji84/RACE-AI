@@ -37,8 +37,8 @@
     "source_free": true
   },
   "workflow_graphs_unchanged_except_existing_run_bodies": 3,
-  "app_sha256": "6ffb2ad7882d456e14e385d7876e02be7bd49b7d2e564873f59fb5ba6a953a87",
-  "style_sha256": "7c78086241e82721df8e56e5f59153e3c66648ca0a925a4fd5bff19a0b36d893",
+  "app_sha256": "a27f76ce02f77223cf0e91099bd3d1fb0ce647c47bc7b921212f030f437b65e4",
+  "style_sha256": "40ce3fa65c7c9191bf4092dcc1242ef324d896c0c141b5926f5e669fe282c859",
   "production_source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
   "live_source_or_accuracy_proven_by_fixtures": false,
   "ci_command_form_regression": {
@@ -48,5 +48,15 @@
     "correction": "Restore original single-line native Safari command; Pages fixture tests remain in the existing Ubuntu static run body.",
     "targeted_tests_after_correction": 9,
     "result": "PASS"
+  },
+  "combined_after_main316": {
+    "python_tests": 214,
+    "python_warnings_as_errors": true,
+    "node_executions": 87,
+    "browser_tests": 12,
+    "browser_and_feed_tests": 24,
+    "skips": 0,
+    "result": "PASS",
+    "real_packet_reopened_with_final_reader_hashes": true
   }
 }

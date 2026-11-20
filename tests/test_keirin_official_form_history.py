@@ -194,6 +194,25 @@ class OfficialFormHistoryTests(unittest.TestCase):
                                         observed_at=NOW, expected_reference=self.final_reference(),
                                         verified_unit_evidence=evidence, source_bytes_by_sha=raw_map)
 
+    def test_later_unit_confirmation_does_not_change_original_result_observation(self):
+        import inspect
+        self.assertIn('unit_verified_at', inspect.signature(form.parse_final_result).parameters)
+        unit, sources = self.unit_evidence()
+        result_at = '2026-11-20T05:00:00+00:00'
+        later = '2026-11-20T05:00:02+00:00'
+        unit['observed_at'] = later
+        parsed = form.parse_final_result(final_result(), expected_race_id='202611108101',
+            observed_at=result_at, expected_reference=self.final_reference(),
+            verified_unit_evidence=unit, source_bytes_by_sha=sources, unit_verified_at=later)
+        self.assertEqual(parsed['observed_at'], result_at)
+        self.assertEqual(parsed['payout_unit_verified_at'], later)
+        self.assertTrue(parsed['monetary_comparison_eligible'])
+        with self.assertRaises(ValueError):
+            form.parse_final_result(final_result(), expected_race_id='202611108101',
+                observed_at=result_at, expected_reference=self.final_reference(),
+                verified_unit_evidence=unit, source_bytes_by_sha=sources,
+                unit_verified_at='2026-11-20T04:59:59+00:00')
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,178 @@
+name: KEIRIN result updates
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/keirin-result-live.yml'
+      - 'race_ai/keirin_result_*.py'
+      - 'race_ai/keirin_saved_source_comparison.py'
+      - 'scripts/keirin_result_watch.py'
+      - 'scripts/keirin_official_day_pipeline.py'
+      - 'scripts/keirin_official_form_canary.py'
+      - 'race_ai/keirin_official_form_history.py'
+      - 'race_ai/keirin_note_feed.py'
+      - 'web/keirin-note-*.js'
+      - 'tests/test_keirin_result_*.py'
+      - 'tests/test_keirin_saved_source_comparison.py'
+      - 'tests/test_keirin_official_fetch_diagnostics.py'
+      - 'tests/test_keirin_note_result_reader.py'
+      - 'tests/keirin_note_*.test.cjs'
+  pull_request:
+    paths:
+      - '.github/workflows/keirin-result-live.yml'
+      - '.github/workflows/keirin-nationwide-ab-auto.yml'
+      - 'race_ai/keirin_result_*.py'
+      - 'race_ai/keirin_saved_source_comparison.py'
+      - 'scripts/keirin_result_watch.py'
+      - 'scripts/keirin_official_day_pipeline.py'
+      - 'scripts/keirin_official_form_canary.py'
+      - 'race_ai/keirin_official_form_history.py'
+      - 'race_ai/keirin_note_feed.py'
+      - 'web/keirin-note-*.js'
+      - 'web/app.js'
+      - 'tests/test_keirin_result_*.py'
+      - 'tests/test_keirin_saved_source_comparison.py'
+      - 'tests/test_keirin_official_fetch_diagnostics.py'
+      - 'tests/test_keirin_note_result_reader.py'
+      - 'tests/test_keirin_official_form_canary.py'
+      - 'tests/test_keirin_note_browser.py'
+      - 'tests/keirin_note_*.test.cjs'
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        required: true
+        default: test
+        options: [test, saved-only, observe]
+  schedule:
+    # Start/recover the bounded observer during 08:00-23:59 JST.
+    # GitHub may delay starts; this is not a push or wall-clock latency SLA.
+    - cron: '2-57/5 23,0-14 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keirin-result-live-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Verify collection, encryption and result observer without providers
+        run: |
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5' 'playwright>=1.49,<2'
+          python -m unittest -v \
+            tests.test_keirin_result_diagnostics \
+            tests.test_keirin_result_collection \
+            tests.test_keirin_result_observer \
+            tests.test_keirin_result_watch \
+            tests.test_keirin_result_updates \
+            tests.test_keirin_saved_source_comparison \
+            tests.test_keirin_result_live_workflow \
+            tests.test_keirin_official_form_canary \
+            tests.test_keirin_official_form_history \
+            tests.test_keirin_official_day_pipeline \
+            tests.test_keirin_official_fetch_diagnostics \
+            tests.test_keirin_github_provider_stop \
+            tests.test_keirin_note_feed \
+            tests.test_keirin_note_result_reader \
+            tests.test_keirin_note_feed_cycle
+          node --test tests/keirin_note_*.test.cjs
+      - name: Verify the owner view refresh in Chromium using invented loopback data
+        shell: bash
+        run: |
+          set -euo pipefail
+          # ubuntu-24.04 already includes Chrome. Reinstalling all browser OS
+          # dependencies exhausted the job window after all seven tests passed.
+          browser_path="$(command -v google-chrome || command -v chromium || true)"
+          if [ -z "$browser_path" ] || [ ! -x "$browser_path" ]; then
+            echo 'The runner-provided Chromium browser is unavailable.'
+            exit 1
+          fi
+          "$browser_path" --version
+          RACE_AI_TEST_CHROMIUM="$browser_path" python -m unittest tests.test_keirin_note_browser -v
+
+  observe-results:
+    # Same owner key, opt-ins and permissions as the former result job.
+    # Source work does not wait for forecast capture or whole-day completion.
+    needs: tests
+    if: >-
+      always() &&
+      github.repository == 'haji84/RACE-AI' &&
+      github.repository_id == '1416489937' &&
+      github.ref == 'refs/heads/main' &&
+      vars.RACE_AI_AB_SOURCE_S3_PREFIX == '' &&
+      ((github.event_name == 'schedule' &&
+        vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+        vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED == 'true') ||
+       (github.event_name == 'workflow_dispatch' && needs.tests.result == 'success' &&
+        (inputs.mode == 'saved-only' ||
+         (inputs.mode == 'observe' &&
+          vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
+          vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED == 'true'))))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+      RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED: ${{ vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Observe admitted results and publish each encrypted update
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
+          RESULT_MODE: ${{ inputs.mode || 'observe' }}
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="$RUNNER_TEMP/keirin-result-live-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root/private" "$root/safe"
+          status=0
+          python -m scripts.keirin_result_watch \
+            --mode "$RESULT_MODE" \
+            --repo "$GITHUB_WORKSPACE" \
+            --private-root "$root/private" \
+            --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --report "$root/safe/summary.json" \
+            --interval-seconds 60 --duration-seconds 540 --max-ticks 10 || status=$?
+          if [ -f "$root/safe/summary.json" ]; then
+            cat "$root/safe/summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$status"
+      - name: Retain only bounded safe result observer receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-result-live-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-result-live-${{ github.run_id }}/safe/summary.json
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Destroy ephemeral plaintext
+        if: always()
+        shell: bash
+        run: |
+          root="$RUNNER_TEMP/keirin-result-live-$GITHUB_RUN_ID"
+          if [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-result-live-* ]]; then
+            rm -rf -- "$root"
+          fi

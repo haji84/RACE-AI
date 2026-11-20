@@ -151,5 +151,13 @@
     "production_weights_switch": 0,
     "production_key_local_use": 0,
     "denial_reset_or_bypass": 0
+  },
+  "concurrent_main": {
+    "head": "78b855e462ec57aef5cc0e265747847ca7bf3b22",
+    "parent": "28e726d463e761ec2102c191adb567cf4f469086",
+    "pull_request": 316,
+    "new_pr_created_by_this_work": false,
+    "scope": "Official KEIRIN result observer, encrypted updates, independent order/payout, refresh UI",
+    "preservation": "Normal merge; preserve official result/result_revisions and secondary results/result_checks as independent contracts"
   }
 }

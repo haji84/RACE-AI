@@ -1,3 +1,15 @@
+# 2026-11-21 02:04 JST｜並行mainの公式結果更新を保全し、二次結果の照合と統合
+
+検証中に独立作業のPR316が **main78b855e462ec57aef5cc0e265747847ca7bf3b22** へ統合されたため、通常mergeで全変更を保全した。既存PR291だけを継続し、公式 `result/result_revisions/result_updates.json` と、今回の二次研究 `results/result_checks/research_results.json` の両形式・別履歴を保持する。公式の着順/配当を研究HOLDで消さず、更新の重複防止・端末内cache・選択保持も維持した。
+
+- 統合後rootは **Python214、Node87、Chromium12** を確認。独立reviewでもmixed62・公式71・Node87と両結果が混在する320/390/1440の追加実ブラウザーケースが成功、重大未解決0。実132件の既存暗号文を最終readerで再読取りし、原予想不変/128二社一致/4HOLD・参考A/B共通53件を確認した。まだ新しい結果indexはGitへ公開しておらず、最終CI→通常保護merge→実Git保存/Actionsの順で確認する。
+- 既存Pagesの並行更新9d317はapp/styleだけが保護main78と同じ新byteになり、manifest/indexのversionは旧版だった。凍結publisherの厳密なHASH_MISMATCH拒否を保ち、直前の検証済みe787との差分がその2fileだけであることと正規main bytesを照合した。CASで2assetのmetadataを修正（b18a0bfe）、同じ凍結publisherでindex/資産を再生成（**5bf9757e**）。全暗号文・元forecast identityを保持し、配備後 **14資産の実HTTP一致** を確認した。BOAT producer/sourceS/counter/stop/weightsは不変。
+- 最初のPR CIは、こちらがSafari検査runを複数行へ変えたことで172件中1件の既存契約検査が失敗し、元の単行形式へ戻して9関連検査を通した。次のCIは並行Pagesのmetadata不整合を正しくHOLDした。どちらも失敗記録を残し、上記修正後の新headで再検査する。
+
+証拠は [統合検査](evidence/race-ai-goal-continuation-20261121/validation.json)、[実暗号化読戻し](evidence/race-ai-goal-continuation-20261121/combined-real-sealed-readback.json)、[既存Pages修正](evidence/race-ai-goal-continuation-20261121/concurrent-main-pages-publication.json)、[HTTP](evidence/race-ai-goal-continuation-20261121/concurrent-main-pages-http.json)。**WINTICKET自身403・4競技全件/T15・独立6艇校正・実機iPhone・前向き改善は下記のとおり未達**。正式結果の追加コード自体を完成・精度改善とは数えない。
+
+以下は統合前の検証記録。
+
 # 2026-11-21 01:48 JST｜競輪132件の結果を実照合、配信と前向き監査の不具合を修正（GOAL未達）
 
 本人の「全部完了させて」を受け、実装・検査・実取得を継続する。以下が最新の検証時点で、下段は以前の記録として保持する。コード候補 **f2f9c82d2e9d9306b8e97824e58f7674c2257e6b**、基準main **28e726d463e761ec2102c191adb567cf4f469086**。統合後の実HEAD/CI/運転読戻しは[既存PR291](https://github.com/haji84/RACE-AI/pull/291)へ記録する。

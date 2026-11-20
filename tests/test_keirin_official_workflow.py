@@ -113,7 +113,7 @@ class OfficialWorkflow(unittest.TestCase):
         for name in ('github-only-owner-capture', 'github-only-research-results'):
             block = blocks[name]
             expression = block.split('    if: >-\n', 1)[1].split('    runs-on:', 1)[0]
-            expression = ' '.join(expression.split()).replace('&&', ' and ').replace('||', ' or ')
+            expression = ' '.join(expression.split()).replace('&&', ' and ').replace('||', ' or ').replace('false', 'False')
             context = {'github': NS(repository='haji84/RACE-AI', repository_id='1416489937',
                                    ref='refs/heads/main', event_name='workflow_dispatch'),
                        'inputs': NS(mode='saved-only'), 'vars': values, 'always': lambda: True}
@@ -147,7 +147,7 @@ class OfficialWorkflow(unittest.TestCase):
         self.assertIn('exit "$status"', result)
         self.assertIn('status=$?', result)
 
-    def test_official_results_of_existing_originals_can_run_without_new_card_capture(self):
+    def test_legacy_result_job_keeps_its_source_gates_but_cannot_double_poll(self):
         # This is not permission to query a provider: source authorization is
         # represented by a separate explicit official-source owner opt-in.
         _, blocks = jobs()
@@ -159,7 +159,7 @@ class OfficialWorkflow(unittest.TestCase):
         self.assertNotIn("vars.RACE_AI_KEIRIN_AB_AUTOGEN_ENABLED", result)
         self.assertNotIn("vars.RACE_AI_AB_PUBLIC_CAPTURE_ENABLED", result)
         expression = result.split("    if: >-\n", 1)[1].split("    runs-on:", 1)[0]
-        expression = " ".join(expression.split()).replace("&&", " and ").replace("||", " or ")
+        expression = " ".join(expression.split()).replace("&&", " and ").replace("||", " or ").replace('false','False')
         for overrides, expected in (
             ({}, True),
             ({"official": "false"}, False),
@@ -179,7 +179,7 @@ class OfficialWorkflow(unittest.TestCase):
                                   RACE_AI_AB_SOURCE_S3_PREFIX=v["s3"]),
                        "always": lambda: True}
             with self.subTest(overrides=overrides):
-                self.assertEqual(bool(eval(expression, {"__builtins__": {}}, context)), expected)
+                self.assertFalse(bool(eval(expression, {"__builtins__": {}}, context)))
 
     def test_artifact_paths_never_include_plaintext_report_or_source_directory(self):
         _, blocks = jobs()

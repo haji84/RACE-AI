@@ -38,6 +38,7 @@ from race_ai import keirin_official_canary_join as join
 from race_ai import keirin_official_form_history as form
 from race_ai import keirin_official_reviewed_pdf as payout_unit
 from race_ai import keirin_official_run_history as history
+from race_ai import keirin_result_diagnostics as diagnostics
 from scripts import keirin_capture_official_form_history as history_capture
 from scripts import keirin_github_only_ab_day as day_report
 from scripts import keirin_official_day_pipeline as day_pipeline
@@ -47,12 +48,15 @@ CUTOFF = origin.FORM_CANARY_CUTOFF
 DAY = '2026-11-20'
 PRE_CUTOFF_SCHEMA = 'RACE_AI_KEIRIN_OFFICIAL_FORM_CANARY_PRE_CUTOFF_V1'
 SETTLEMENT_SCHEMA = 'RACE_AI_KEIRIN_OFFICIAL_FORM_CANARY_SETTLEMENT_V1'
+ORDER_SCHEMA = 'RACE_AI_KEIRIN_OFFICIAL_FORM_CANARY_ORDER_V1'
 COHORT = dict(schema='RACE_AI_KEIRIN_FIXED_FORM_CANARY_COHORT_V1', day_jst=DAY,
               race_ids=[RACE], official_cutoff_at=CUTOFF, max_tickets_per_arm=12)
 
 
 class CanaryError(ValueError):
-    pass
+    def __init__(self, code, *, safe_diagnostics=None):
+        super().__init__(code)
+        self.safe_diagnostics = diagnostics.checked_diagnostics(safe_diagnostics or [])
 
 
 def need(ok, code):
@@ -329,7 +333,7 @@ def run_capture(*, repo, private_root, owner_public_pem, clock=utc_now):
 
 
 def collect_final_result(*, repo, private_root, frozen_card, clock=utc_now, request=None):
-    """Follow the actual calendar/list result button after the target's cutoff."""
+    """Verify official order first; optional payout-unit evidence cannot erase it."""
     _provider_preflight(repo)
     root = _private_root(private_root)
     need(frozen_card['race_id'] == RACE and frozen_card['official_cutoff_at'] == CUTOFF and
@@ -338,10 +342,36 @@ def collect_final_result(*, repo, private_root, frozen_card, clock=utc_now, requ
     if request is None:
         transport = card_source._CurlPublicSession(str(root), clock)
         request = transport.request
-    sources, receipts = {}, []
+    sources, receipts, safe_diagnostics = {}, [], []
+    safe_root = _private_root(root/'safe')
     calendar, sp = card_source.calendar, card_source.receipt
+    current_purpose = 'OFFICIAL_CALENDAR'
+
+    def record(purpose, stage, reason, code=None):
+        row = diagnostics.make_diagnostic(purpose=purpose, stage=stage, reason=reason,
+            http_status=code if type(code) is int and 100 <= code <= 599 else None,
+            observed_at=clock().isoformat())
+        safe_diagnostics.append(row)
+        diagnostics.checked_diagnostics(safe_diagnostics)
+        # Save before persisting a denial. The normal exception path carries
+        # the same allowlisted rows into the public summary kept by Actions.
+        _json_save(safe_root/(sha256(_json_bytes(row)).hexdigest()+'.json'), row)
+
+    def fail(code):
+        raise CanaryError(code, safe_diagnostics=safe_diagnostics)
+
+    def deny(*, status=None, challenge=False):
+        try:
+            _persist_denial(repo, clock, status=status, challenge=challenge)
+        except CanaryError as exc:
+            raise CanaryError(str(exc), safe_diagnostics=safe_diagnostics) from None
+        except provider_stop.ProviderStopPersistenceError:
+            record(current_purpose, 'PERSIST_STOP', 'PROVIDER_STOP_PERSISTENCE_FAILED', status)
+            raise CanaryError('CANARY_PROVIDER_STOP_PERSISTENCE_FAILED_NO_RETRY',
+                              safe_diagnostics=safe_diagnostics) from None
 
     def read(path, fields=None, referer=None):
+        nonlocal current_purpose
         # Every route below is a fixed observed public form/script, except the
         # exact organizer guide already present in the reviewed unit registry.
         allowed = {'/sp/raceschedule', '/sp/racelist', '/sp/race',
@@ -350,18 +380,36 @@ def collect_final_result(*, repo, private_root, frozen_card, clock=utc_now, requ
         need(path in allowed or path == 'https://www.hofukeirin.jp/ticket/',
              'CANARY_RESULT_UNOBSERVED_ROUTE')
         url = 'https://keirin.jp'+path if path.startswith('/') else path
-        response = request(url, fields, referer)
-        code = response['status']
-        _persist_denial(repo, clock, status=code)
-        need(type(code) is int and code == 200 and response['url'] == url,
-             'CANARY_RESULT_HTTP_OR_REDIRECT_INVALID')
+        current_purpose = next(purpose for purpose, (host, fixed_path, _) in diagnostics.ROUTES.items()
+                               if url == 'https://'+host+fixed_path)
+        try:
+            response = request(url, fields, referer)
+        except Exception:
+            record(current_purpose, 'REQUEST', 'TRANSPORT_FAILED')
+            fail('CANARY_RESULT_TRANSPORT_FAILED')
+        code = response.get('status') if type(response) is dict else None
+        if type(code) is int and code in (401, 403, 407, 429):
+            record(current_purpose, 'HTTP_RESPONSE', 'HTTP_DENIED', code)
+            deny(status=code)
+        if type(code) is not int or code != 200:
+            record(current_purpose, 'HTTP_RESPONSE', 'HTTP_ERROR', code)
+            fail('CANARY_RESULT_HTTP_OR_REDIRECT_INVALID')
+        if response.get('url') != url:
+            record(current_purpose, 'HTTP_RESPONSE', 'REDIRECT_REFUSED', code)
+            fail('CANARY_RESULT_HTTP_OR_REDIRECT_INVALID')
         raw = response['raw']
-        need(type(raw) is bytes and 0 < len(raw) <= calendar.MAX_HTML_BYTES,
-             'CANARY_RESULT_SOURCE_BYTES_INVALID')
-        _persist_denial(repo, clock, challenge=card_source.browser_source._CHALLENGE.search(
-            raw.decode('utf-8', 'replace')) is not None)
+        if not (type(raw) is bytes and 0 < len(raw) <= calendar.MAX_HTML_BYTES):
+            record(current_purpose, 'CONTENT_CHECK', 'SOURCE_BYTES_INVALID', code)
+            fail('CANARY_RESULT_SOURCE_BYTES_INVALID')
+        challenge = diagnostics.challenge_reason(raw,
+            passive_guide_scripts=current_purpose == 'OFFICIAL_PAYOUT_UNIT')
+        if challenge:
+            record(current_purpose, 'CONTENT_CHECK', challenge, code)
+            deny(challenge=True)
         at = form._aware(response['observed_at'])
-        need(core.when(CUTOFF) < at <= clock(), 'CANARY_RESULT_CAPTURE_CLOCK_INVALID')
+        if not core.when(CUTOFF) < at <= clock():
+            record(current_purpose, 'CONTENT_CHECK', 'CAPTURE_CLOCK_INVALID', code)
+            fail('CANARY_RESULT_CAPTURE_CLOCK_INVALID')
         digest = sha256(raw).hexdigest()
         sources[digest] = raw
         history_capture._save_once(root/(digest+'.bin'), raw)
@@ -369,6 +417,7 @@ def collect_final_result(*, repo, private_root, frozen_card, clock=utc_now, requ
             form_fields=fields, bytes_sha256=digest, captured_at=at.isoformat(), http_status=code)
         receipts.append(provenance)
         _json_save(root/(sha256(_json_bytes(provenance)).hexdigest()+'.json'), provenance)
+        record(current_purpose, 'CONTENT_CHECK', 'SOURCE_ACCEPTED', code)
         return dict(raw_bytes=raw, observed_at=at, expected_sha256=digest, receipt=provenance)
 
     def script(document, path, parts):
@@ -406,24 +455,55 @@ def collect_final_result(*, repo, private_root, frozen_card, clock=utc_now, requ
              'if(dispDI==2){dispDI="SJ0326";}', 'commonSubmit.formPost(action,params);'))
         rows = [r for r in parsed['race_references'] if r['race_no'] == 5]
         need(len(rows) == 1 and rows[0]['path'] == '/sp/race', 'CANARY_RESULT_REFERENCE_MISSING')
-        need(rows[0]['link_kind'] == '2', 'CANARY_OFFICIAL_RESULT_NOT_PUBLISHED_YET')
+        if rows[0]['link_kind'] != '2':
+            record('OFFICIAL_RACE_LIST', 'CONTENT_CHECK', 'RESULT_NOT_PUBLISHED', 200)
+            fail('CANARY_OFFICIAL_RESULT_NOT_PUBLISHED_YET')
         token = rows[0]['opaque_reference']
-        guide = read('https://www.hofukeirin.jp/ticket/')
-        unit_url = guide['receipt']['source_url']
-        exact = payout_unit.UNIT_URLS[unit_url]
-        need(exact.encode('utf-8') in guide['raw_bytes'], 'CANARY_OFFICIAL_PAYOUT_UNIT_MISSING')
-        unit = dict(url=unit_url, source_sha256=guide['expected_sha256'],
-                    observed_at=guide['observed_at'].isoformat(), verified_payout_basis_yen=100,
-                    exact_excerpt=exact)
-        # Keep the guide's actual capture time before the result observation;
-        # neither clock is backdated to manufacture monetary eligibility.
         detail = read('/sp/race', [('encp', token), ('disp', 'SJ0326')], 'https://keirin.jp/sp/racelist')
         reference = dict(source_url='https://keirin.jp/sp/race', method='POST', disp='SJ0326',
             token=token, official_cutoff_at=CUTOFF,
             starters=[dict(car=r['car'], registration_id=r['registration_id']) for r in frozen_card['riders']])
+        try:
+            order = form.parse_final_result(detail['raw_bytes'], expected_race_id=RACE,
+                observed_at=detail['observed_at'].isoformat(), expected_reference=reference)
+        except (ValueError, TypeError, KeyError):
+            record('OFFICIAL_FINAL_RESULT', 'PARSE_RESULT', 'SOURCE_VALIDATION_FAILED', 200)
+            fail('CANARY_OFFICIAL_RESULT_VALIDATION_FAILED')
+        record('OFFICIAL_FINAL_RESULT', 'PARSE_RESULT', 'RESULT_VALIDATED', 200)
+        unit, unit_at, unit_state = None, None, 'UNAVAILABLE'
+        try:
+            guide = read('https://www.hofukeirin.jp/ticket/')
+            unit_url = guide['receipt']['source_url']
+            exact = payout_unit.UNIT_URLS[unit_url]
+            if exact.encode('utf-8') not in guide['raw_bytes']:
+                record('OFFICIAL_PAYOUT_UNIT', 'VERIFY_UNIT', 'UNIT_TEXT_MISSING', 200)
+                fail('CANARY_OFFICIAL_PAYOUT_UNIT_MISSING')
+            unit = dict(url=unit_url, source_sha256=guide['expected_sha256'],
+                        observed_at=guide['observed_at'].isoformat(), verified_payout_basis_yen=100,
+                        exact_excerpt=exact)
+            unit_at, unit_state = clock().isoformat(), 'VERIFIED'
+            record('OFFICIAL_PAYOUT_UNIT', 'VERIFY_UNIT', 'UNIT_VERIFIED', 200)
+        except CanaryError as exc:
+            if str(exc) == 'CANARY_PROVIDER_STOP_PERSISTENCE_FAILED_NO_RETRY':
+                raise
+            unit_state = ('PROVIDER_STOPPED' if str(exc) == 'CANARY_PROVIDER_DENIED_PERSISTED_NO_RETRY'
+                          else 'UNAVAILABLE')
+            # The already validated order remains available. No fallback host,
+            # endpoint, client, retry, or further network call follows a denial.
         return dict(raw_result=detail['raw_bytes'], observed_at=detail['observed_at'].isoformat(),
-            expected_reference=reference, unit_evidence=unit,
-            source_bytes_by_sha=sources, source_receipts=receipts)
+            expected_reference=reference, unit_evidence=unit, unit_verified_at=unit_at,
+            official_order=order, payout_unit_state=unit_state,
+            source_bytes_by_sha=sources, source_receipts=receipts,
+            safe_diagnostics=diagnostics.checked_diagnostics(safe_diagnostics))
+    except CanaryError as exc:
+        if exc.safe_diagnostics:
+            raise
+        record(current_purpose, 'CONTENT_CHECK', 'SOURCE_VALIDATION_FAILED')
+        raise CanaryError(str(exc), safe_diagnostics=safe_diagnostics) from None
+    except Exception:
+        record(current_purpose, 'CONTENT_CHECK', 'SOURCE_VALIDATION_FAILED')
+        raise CanaryError('CANARY_RESULT_SOURCE_VALIDATION_FAILED',
+                          safe_diagnostics=safe_diagnostics) from None
     finally:
         if transport is not None:
             transport.close()
@@ -439,7 +519,7 @@ def _load_original_bundle(repo, private_pem):
                  payload.get('producer_run_id') == saved['receipt'].get('producer_run_id'),
                  'CANARY_FROZEN_EVIDENCE_PRODUCER_INVALID')
             found.append((payload, saved['receipt']))
-        elif payload.get('schema') == SETTLEMENT_SCHEMA:
+        elif payload.get('schema') in (SETTLEMENT_SCHEMA, ORDER_SCHEMA):
             need(payload.get('day_jst') == DAY and payload.get('race_id') == RACE,
                  'CANARY_SAVED_SETTLEMENT_SCOPE_INVALID')
             settled.append((payload, saved['receipt']))
@@ -508,21 +588,37 @@ def compare_frozen(*, payload, raw_baseline, raw_conditioned, owner_private_pem,
         return form.parse_final_result(final_capture['raw_result'], expected_race_id=RACE,
             observed_at=final_capture['observed_at'], expected_reference=final_capture['expected_reference'],
             verified_unit_evidence=final_capture['unit_evidence'],
-            source_bytes_by_sha=final_capture['source_bytes_by_sha'])
+            source_bytes_by_sha=final_capture['source_bytes_by_sha'],
+            unit_verified_at=final_capture.get('unit_verified_at'))
 
     final = reparse_final()
     original_ids = {r['car']:r['athlete_id'] for r in inputs['snapshot']['riders']}
-    need(final['monetary_comparison_eligible'] is True and
-         {r['car'] for r in final['starters']} == starters and
+    need({r['car'] for r in final['starters']} == starters and
          {r['car']:r['registration_id'] for r in final['starters']} == original_ids,
          'CANARY_MONETARY_OR_REGISTERED_ROSTER_COMPARISON_UNVERIFIED')
     official_receipt = dict(race_id=RACE, source_sha256=final['source_sha256'],
-        observed_at=final['observed_at'], payout_unit_source_sha256=final['payout_unit_evidence']['source_sha256'])
+        observed_at=final['observed_at'])
+    witnesses = dict(baseline_origin=base_origin, condition_origin=conditioned_origin,
+                     official_final=official_receipt)
+    if final['monetary_comparison_eligible'] is not True:
+        # This is exact order membership over the four authenticated existing
+        # ticket lists, not a second model or an invented monetary PDCA result.
+        winners = {tuple(triple) for triple in final['winning_triples']}
+        matched = {}
+        for name, arm in (('A', baseline['A']), ('B', baseline['B']),
+                          ('A_conditioned', adjusted['shadow']['A_research']),
+                          ('B_conditioned', adjusted['shadow']['B_research'])):
+            tickets = pdca._tickets(arm, starters)
+            matched[name] = dict(first_hit=tickets[0] in winners,
+                all_hit=any(ticket in winners for ticket in tickets), points=len(tickets))
+        return dict(order_comparison=dict(schema='RACE_AI_KEIRIN_FOUR_ARM_ORDER_MATCH_V1',
+            race_id=RACE, arms=matched, monetary_comparison_eligible=False),
+            official_result=final, origin_receipts=witnesses)
+    official_receipt['payout_unit_source_sha256'] = final['payout_unit_evidence']['source_sha256']
     row = dict(baseline=baseline, conditioned=adjusted['shadow'], result=final,
         starters=sorted(starters), baseline_sealed_at=payload['baseline_sealed_at'],
         conditioned_sealed_at=payload['conditioned_sealed_at'],
-        verified_receipts=dict(baseline_origin=base_origin, condition_origin=conditioned_origin,
-                               official_final=official_receipt))
+        verified_receipts=witnesses)
 
     def verify_base(rid, joined, witness):
         return (rid == RACE and joined is row and witness == base_origin and
@@ -544,13 +640,11 @@ def compare_frozen(*, payload, raw_baseline, raw_conditioned, owner_private_pem,
                 origin_receipts=row['verified_receipts'])
 
 
-def reuse_completed(*, payload, bundle_receipt, settled, raw_baseline,
-                   raw_conditioned, owner_private_pem):
-    """Revalidate a completed encrypted trial; no source requests or new writes."""
-    if not settled:
-        return None
-    saved, receipt = settled[-1]
-    need(saved.get('schema') == SETTLEMENT_SCHEMA and saved.get('day_jst') == DAY and
+def replay_saved_result(*, payload, bundle_receipt, saved_pair, raw_baseline,
+                        raw_conditioned, owner_private_pem):
+    """Re-authenticate a saved full or order-only result without provider I/O."""
+    saved, receipt = saved_pair
+    need(saved.get('schema') in (SETTLEMENT_SCHEMA, ORDER_SCHEMA) and saved.get('day_jst') == DAY and
          saved.get('race_id') == RACE and
          saved.get('pre_cutoff_evidence_plaintext_sha256') == bundle_receipt['evidence_plaintext_sha256'] and
          saved.get('baseline_cipher_sha256') == payload['baseline_cipher_sha256'] and
@@ -564,11 +658,30 @@ def reuse_completed(*, payload, bundle_receipt, settled, raw_baseline,
     scored = compare_frozen(payload=payload, raw_baseline=raw_baseline,
         raw_conditioned=raw_conditioned, owner_private_pem=owner_private_pem,
         packets=saved['origin_packets'], final_capture=saved['final_capture'])
-    need(all(saved.get(key) == scored[key] for key in
-             ('comparison', 'official_result', 'origin_receipts')) and
-         saved.get('safe_report', {}).get('paired_comparable_races') == 1 and
-         saved['safe_report'].get('nationwide_expansion_gate_passed') is True,
+    monetary = saved['schema'] == SETTLEMENT_SCHEMA
+    compare_key = 'comparison' if monetary else 'order_comparison'
+    need(all(saved.get(key) == scored.get(key) for key in
+             (compare_key, 'official_result', 'origin_receipts')) and
+         saved.get('safe_report', {}).get('paired_comparable_races') == int(monetary) and
+         saved['safe_report'].get('nationwide_expansion_gate_passed') is monetary,
          'CANARY_COMPLETED_COMPARISON_NOT_REPRODUCIBLE')
+    return scored
+
+
+def reuse_completed(*, payload, bundle_receipt, settled, raw_baseline,
+                   raw_conditioned, owner_private_pem, publish_result=None):
+    """Reuse authenticated final evidence and recover interrupted publication."""
+    if not settled or settled[-1][0].get('schema') == ORDER_SCHEMA:
+        return None
+    saved, receipt = settled[-1]
+    scored = replay_saved_result(payload=payload, bundle_receipt=bundle_receipt,
+        saved_pair=settled[-1], raw_baseline=raw_baseline, raw_conditioned=raw_conditioned,
+        owner_private_pem=owner_private_pem)
+    if publish_result is not None:
+        try:
+            publish_result(payload=payload, scored=scored, final_capture=saved['final_capture'])
+        except Exception:
+            raise CanaryError('CANARY_SAVED_RESULT_PUBLICATION_FAILED') from None
     report = dict(saved['safe_report'])
     report.update(state='EXISTING_VERIFIED_CANARY_COMPARISON_REUSED',
                   settlement_evidence_cipher_sha256=receipt['cipher_sha256'],
@@ -577,8 +690,10 @@ def reuse_completed(*, payload, bundle_receipt, settled, raw_baseline,
     return report
 
 
-def run_settle(*, repo, private_root, owner_public_pem, owner_private_pem, clock=utc_now):
+def run_settle(*, repo, private_root, owner_public_pem, owner_private_pem, clock=utc_now,
+               publish_result=None):
     check_runtime('settle', clock())
+    need(publish_result is None or callable(publish_result), 'CANARY_RESULT_PUBLISHER_INVALID')
     root = _private_root(private_root)
     public = Path(owner_public_pem).read_bytes()
     storage.checked_public_key(public)
@@ -587,7 +702,8 @@ def run_settle(*, repo, private_root, owner_public_pem, owner_private_pem, clock
     payload, bundle_receipt, settled = _load_original_bundle(repo, owner_private_pem)
     raw_base, raw_conditioned, base_receipt = _archived_pair(repo, payload)
     reused = reuse_completed(payload=payload, bundle_receipt=bundle_receipt, settled=settled,
-        raw_baseline=raw_base, raw_conditioned=raw_conditioned, owner_private_pem=owner_private_pem)
+        raw_baseline=raw_base, raw_conditioned=raw_conditioned, owner_private_pem=owner_private_pem,
+        publish_result=publish_result)
     if reused is not None:
         return reused
     from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
@@ -596,17 +712,31 @@ def run_settle(*, repo, private_root, owner_public_pem, owner_private_pem, clock
     # Verify successful, distinct server-timed jobs before calling a provider.
     _verify_origins(payload, raw_base, raw_conditioned, packets)
     result_dir = _private_root(root/'result')
-    final_capture = collect_final_result(repo=repo, private_root=result_dir,
-                                         frozen_card=payload['card_manifest'], clock=clock)
+    try:
+        final_capture = collect_final_result(repo=repo, private_root=result_dir,
+                                             frozen_card=payload['card_manifest'], clock=clock)
+    except CanaryError as exc:
+        exc.server_origin_verified = True
+        raise
     scored = compare_frozen(payload=payload, raw_baseline=raw_base,
         raw_conditioned=raw_conditioned, owner_private_pem=owner_private_pem,
         packets=packets, final_capture=final_capture)
-    report = _report('REAL_FUTURE_CANARY_FOUR_ARMS_COMPARISON_COMPLETE')
-    report.update(server_origin_verified=True, paired_comparable_races=1,
-                  nationwide_expansion_gate_passed=True, actual_official_result_verified=True,
+    monetary = scored['official_result']['monetary_comparison_eligible'] is True
+    report = _report('REAL_FUTURE_CANARY_FOUR_ARMS_COMPARISON_COMPLETE' if monetary else
+                     'OFFICIAL_ORDER_VERIFIED_PAYOUT_UNIT_PENDING')
+    report.update(server_origin_verified=True, paired_comparable_races=int(monetary),
+                  order_comparable_races=1, monetary_comparison_eligible=monetary,
+                  nationwide_expansion_gate_passed=monetary, actual_official_result_verified=True,
                   exact_frozen_originals_authenticated=True,
-                  same_conditions_all_four_arms=True, monetary_basis_yen=100)
-    revision = dict(schema=SETTLEMENT_SCHEMA, day_jst=DAY, race_id=RACE,
+                  same_conditions_all_four_arms=True,
+                  safe_diagnostics=diagnostics.checked_diagnostics(final_capture.get('safe_diagnostics', [])))
+    if monetary:
+        report['monetary_basis_yen'] = 100
+    else:
+        report['payout_unit_state'] = final_capture.get('payout_unit_state', 'UNAVAILABLE')
+        need(report['payout_unit_state'] in ('UNAVAILABLE', 'PROVIDER_STOPPED', 'NOT_REQUESTED'),
+             'CANARY_PAYOUT_STATE_INVALID')
+    revision = dict(schema=SETTLEMENT_SCHEMA if monetary else ORDER_SCHEMA, day_jst=DAY, race_id=RACE,
         pre_cutoff_evidence_plaintext_sha256=bundle_receipt['evidence_plaintext_sha256'],
         baseline_cipher_sha256=payload['baseline_cipher_sha256'],
         conditioned_cipher_sha256=payload['conditioned_cipher_sha256'],
@@ -618,6 +748,16 @@ def run_settle(*, repo, private_root, owner_public_pem, owner_private_pem, clock
     history_capture._save_once(root/(sha256(sealed).hexdigest()+'.settlement.sealed.json'), sealed)
     saved = history.append_revision(repo=repo, day=DAY, raw_cipher=sealed, safe_report=report)
     report['settlement_evidence_cipher_sha256'] = saved['cipher_sha256']
+    if publish_result is not None:
+        try:
+            publish_result(payload=payload, scored=scored, final_capture=final_capture)
+        except Exception:
+            error = CanaryError('CANARY_RESULT_PUBLICATION_FAILED_AFTER_ARCHIVE',
+                                safe_diagnostics=report['safe_diagnostics'])
+            error.server_origin_verified = True
+            error.actual_official_result_verified = True
+            error.archived_result_sha256 = saved['cipher_sha256']
+            raise error from None
     return report
 
 
@@ -639,13 +779,29 @@ def main(argv=None):
             result = run_capture(repo=args.repo, private_root=root, owner_public_pem=args.owner_public_pem)
         else:
             private_pem = os.environ.get('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode('utf-8')
+            from race_ai.keirin_result_updates import from_canary_comparison, publish_updates
+            def publish_result(*, payload, scored, final_capture):
+                return publish_updates(args.repo, from_canary_comparison(
+                    payload=payload, scored=scored, final_capture=final_capture),
+                    source_commit=os.environ['GITHUB_SHA'], owner_private_pem=private_pem)
             result = run_settle(repo=args.repo, private_root=root, owner_public_pem=args.owner_public_pem,
-                                owner_private_pem=private_pem)
+                                owner_private_pem=private_pem, publish_result=publish_result)
     except Exception as exc:
-        reason = str(exc)
+        # Generic exceptions may contain credentials even if the message happens
+        # to be all-uppercase. Only this module's fixed contract codes are public.
+        reason = str(exc) if isinstance(exc, CanaryError) else 'CANARY_LOCAL_OR_CONTRACT_FAILURE'
         if re.fullmatch(r'[A-Z][A-Z0-9_]{4,140}', reason) is None:
             reason = 'CANARY_LOCAL_OR_CONTRACT_FAILURE'
         result['state'] = reason if reason.startswith('HOLD_') else 'HOLD_'+reason
+        if isinstance(exc, CanaryError):
+            result['safe_diagnostics'] = diagnostics.checked_diagnostics(exc.safe_diagnostics)
+            if getattr(exc, 'server_origin_verified', False) is True:
+                result['server_origin_verified'] = True
+            if getattr(exc, 'actual_official_result_verified', False) is True:
+                result['actual_official_result_verified'] = True
+            archived = getattr(exc, 'archived_result_sha256', None)
+            if type(archived) is str and core.SHA.fullmatch(archived):
+                result['settlement_evidence_cipher_sha256'] = archived
         code = 0 if reason == 'CANARY_OFFICIAL_RESULT_NOT_PUBLISHED_YET' else 2
     try:
         # No source, prediction or key is ever placed in this public artifact.
