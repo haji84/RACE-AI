@@ -174,5 +174,87 @@ class NationwideRealAutomationCode(unittest.TestCase):
         self.assertIn("HOLD_SOURCE_OTHER_RACE_OR_DATE",out["statuses"])
 
 
+    def add_private_form_source(self, *, broken_sha=False, late=False):
+        history = b"<html><body>SYNTHETIC 2026 fall and results only</body></html>"
+        sha = sha256(history).hexdigest()
+        if not broken_sha:
+            (self.raw/(sha+".html")).write_bytes(history)
+        source = {
+            "schema": "RACE_AI_KEIRIN_PRIVATE_FORM_SUPPLEMENT_V1",
+            "race_id": RID,
+            "source_pages": [{
+                "kind": "PROGRAM",
+                "url": "https://example.org/synthetic-result-history",
+                "bytes_sha256": sha,
+                "captured_at": "2026-11-18T09:04:00+09:00" if late else
+                               "2026-11-18T09:00:00+09:00"}],
+            "condition_evidence": {
+                "schema": "RACE_AI_KEIRIN_RIDER_FORM_FALL_EVIDENCE_V1",
+                "as_of": "2026-11-18T09:00:00+09:00",
+                "riders": [{
+                    "car": 1, "absences": [], "comments": [],
+                    "results": [{
+                        "race_id": "202611012601",
+                        "race_date": "2026-11-01", "status": "FALL_DNF",
+                        "place": None, "field_size": 7,
+                        "published_at": "2026-11-18T08:30:00+09:00",
+                        "source_sha256": sha}]}]}}
+        (self.cards/(RID+".form.json")).write_text(
+            json.dumps(source), encoding="utf-8")
+        return source
+
+    def test_form_source_is_separate_owner_sealed_shadow_not_backfilled_baseline(self):
+        self.add_source()
+        self.add_private_form_source()
+        report = self.run_it()
+        row = next(x for x in report["records"] if x["race_id"] == RID)
+        self.assertEqual(row["state"],
+                         "A_B_PRIVATE_CIPHER_CREATED_SAME_JOB_SHA_MATCH")
+        self.assertEqual(row["form_fall_shadow_state"],
+                         "PRIVATE_CONDITIONED_SHADOW_SEALED")
+        self.assertTrue((self.cipher/(RID+".sealed.json")).is_file())
+        shadowfile = self.cipher/(RID+".form.sealed.json")
+        self.assertTrue(shadowfile.is_file())
+        self.assertEqual(shadowfile.stat().st_mode & 0o777, 0o600)
+        self.assertNotIn("FALL_DNF", shadowfile.read_text())
+        self.assertNotIn("ranked_tickets", json.dumps(report))
+        independent = reader.verify(producer_report=report,
+                                    cipher_dir=self.cipher)
+        self.assertEqual(independent["independent_cipher_file_shas_ok"], 1)
+        self.assertEqual(independent["independent_condition_cipher_shas_ok"], 1)
+
+    def test_form_unverified_raw_bytes_hold_before_any_forecast(self):
+        self.add_source()
+        self.add_private_form_source(broken_sha=True)
+        report = self.run_it()
+        self.assertEqual(report["A_generated"], 0)
+        self.assertEqual(report["same_job_sealed"], 0)
+        self.assertIn("HOLD_OWNER_RAW_SOURCE_BYTES_MISSING", report["statuses"])
+
+    def test_form_source_not_valid_before_cutoff_is_hold(self):
+        self.add_source()
+        self.add_private_form_source(late=True)
+        report = self.run_it()
+        self.assertEqual(report["same_job_sealed"],0)
+        self.assertIn("HOLD_FORM_SOURCE_AFTER_PREDICTION_OR_CUTOFF", report["statuses"])
+
+    def test_form_shadow_tamper_does_not_rewrite_valid_baseline(self):
+        self.add_source()
+        self.add_private_form_source()
+        report=self.run_it()
+        basefile=self.cipher/(RID+".sealed.json")
+        original=basefile.read_bytes()
+        shadowfile=self.cipher/(RID+".form.sealed.json")
+        shadowfile.write_bytes(shadowfile.read_bytes()+b"tampered")
+        independent=reader.verify(producer_report=report,
+                                  cipher_dir=self.cipher)
+        row=next(x for x in independent["records"] if x["race_id"]==RID)
+        self.assertEqual(row["state"],"INDEPENDENT_CIPHERTEXT_SHA_READBACK_OK")
+        self.assertEqual(row["form_fall_shadow_state"],
+                         "HOLD_FORM_CIPHER_SHA_MISMATCH")
+        self.assertEqual(independent["independent_condition_cipher_shas_ok"],0)
+        self.assertEqual(basefile.read_bytes(),original)
+
+
 if __name__=="__main__":
     unittest.main()
