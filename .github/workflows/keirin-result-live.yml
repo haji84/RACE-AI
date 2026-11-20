@@ -8,6 +8,12 @@ on:
       - 'race_ai/keirin_result_*.py'
       - 'race_ai/keirin_saved_source_comparison.py'
       - 'race_ai/keirin_frozen_forecast_view.py'
+      - 'race_ai/keirin_official_source_continuation.py'
+      - 'race_ai/keirin_official_nationwide_*.py'
+      - 'race_ai/keirin_official_class_evidence.py'
+      - 'tests/test_keirin_official_class_evidence.py'
+      - 'race_ai/keirin_nationwide_forecast_view.py'
+      - 'scripts/keirin_official_nationwide_continuation.py'
       - 'scripts/keirin_result_watch.py'
       - 'scripts/keirin_official_day_pipeline.py'
       - 'scripts/keirin_official_form_canary.py'
@@ -27,6 +33,12 @@ on:
       - 'race_ai/keirin_result_*.py'
       - 'race_ai/keirin_saved_source_comparison.py'
       - 'race_ai/keirin_frozen_forecast_view.py'
+      - 'race_ai/keirin_official_source_continuation.py'
+      - 'race_ai/keirin_official_nationwide_*.py'
+      - 'race_ai/keirin_official_class_evidence.py'
+      - 'tests/test_keirin_official_class_evidence.py'
+      - 'race_ai/keirin_nationwide_forecast_view.py'
+      - 'scripts/keirin_official_nationwide_continuation.py'
       - 'scripts/keirin_result_watch.py'
       - 'scripts/keirin_official_day_pipeline.py'
       - 'scripts/keirin_official_form_canary.py'
@@ -84,6 +96,13 @@ jobs:
             tests.test_keirin_result_updates \
             tests.test_keirin_saved_source_comparison \
             tests.test_keirin_frozen_forecast_view \
+            tests.test_keirin_official_source_continuation \
+            tests.test_keirin_official_class_evidence \
+            tests.test_keirin_official_nationwide_continuation \
+            tests.test_keirin_official_nationwide_sources \
+            tests.test_keirin_official_nationwide_records \
+            tests.test_keirin_official_continuation_workflow \
+            tests.test_keirin_nationwide_forecast_view \
             tests.test_keirin_result_live_workflow \
             tests.test_keirin_official_form_canary \
             tests.test_keirin_official_form_history \
@@ -109,35 +128,29 @@ jobs:
           RACE_AI_TEST_CHROMIUM="$browser_path" python -m unittest tests.test_keirin_note_browser -v
 
   observe-results:
-    # Same owner key, opt-ins and permissions as the former result job.
+    # Same owner key/store and permissions. The admitted official-SP path
+    # replays the actual completed trial before source access. Legacy JSON
+    # retains its prior source opt-ins and persistent stops.
     # Source work does not wait for forecast capture or whole-day completion.
     needs: tests
     if: >-
-      always() &&
+      always() && !cancelled() &&
       github.repository == 'haji84/RACE-AI' &&
       github.repository_id == '1416489937' &&
       github.ref == 'refs/heads/main' &&
       vars.RACE_AI_AB_SOURCE_S3_PREFIX == '' &&
-      ((github.event_name == 'schedule' &&
-        vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
-        vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED == 'true') ||
+      (github.event_name == 'schedule' ||
        (github.event_name == 'workflow_dispatch' && needs.tests.result == 'success' &&
-        (inputs.mode == 'saved-only' ||
-         (inputs.mode == 'observe' &&
-          vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED == 'true' &&
-          vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED == 'true'))))
+        (inputs.mode == 'saved-only' || inputs.mode == 'observe')))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: write
       actions: read
     env:
-      # Explicit manual replay authorizes this job's existing encrypted store
-      # only. Repository variables and live-source authorization stay intact.
-      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: >-
-        ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'saved-only' &&
-            github.repository == 'haji84/RACE-AI' && github.repository_id == '1416489937' &&
-            github.ref == 'refs/heads/main' && 'true' || vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+      # This job can read/write the already approved encrypted store. Source
+      # access remains a separate authenticated decision inside the runner.
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: 'true'
       RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED: ${{ vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683

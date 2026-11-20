@@ -124,6 +124,60 @@ class ResultWatchTests(unittest.TestCase):
         self.assertTrue(out['no_provider_tick'])
         self.assertEqual(out['provider_requests'], 0)
 
+    def test_approved_sp_watch_uses_its_guarded_tick_without_enabling_legacy_json(self):
+        from scripts import keirin_official_nationwide_continuation as continuation
+        with patch.dict('os.environ',{
+            'GITHUB_ACTIONS':'true','GITHUB_REPOSITORY_ID':'1416489937',
+            'GITHUB_WORKFLOW_REF':continuation.WATCH_WORKFLOW,'GITHUB_JOB':'observe-results',
+            'RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED':'false'}), \
+             patch.object(continuation,'settle_tick',return_value=dict(
+                state='OFFICIAL_SP_RESULT_POLL_COMPLETE',source_requests=3,provider_denied=False,
+                source_unavailable=False,publication_acks=1,published_races=1,published_originals=1,
+                original_publication_acks=1,published_day_status=1,safe_diagnostics=[],updates=None)) as tick:
+            out=self.run_case(max_ticks=2)
+        self.assertEqual(tick.call_count,2)
+        self.assertIs(tick.call_args_list[0].kwargs['context'],tick.call_args_list[1].kwargs['context'])
+        self.assertEqual(out['provider_requests'],6)
+        self.assertEqual(out['published_races'],2)
+        self.assertEqual(out['published_originals'],2)
+        self.assertEqual(out['original_publication_acks'],2)
+        self.assertEqual(out['published_day_status'],2)
+        self.settle.assert_not_called();self.http.assert_not_called()
+        self.assertNotIn('updates',out)
+
+    def test_sp_gate_failure_stops_without_legacy_fallback_or_source_claim(self):
+        from scripts import keirin_official_nationwide_continuation as continuation
+        with patch.dict('os.environ',{
+            'GITHUB_ACTIONS':'true','GITHUB_REPOSITORY_ID':'1416489937',
+            'GITHUB_WORKFLOW_REF':continuation.WATCH_WORKFLOW,'GITHUB_JOB':'observe-results'}), \
+             patch.object(continuation,'settle_tick',return_value=dict(
+                state='HOLD_OFFICIAL_SP_RESULT_GATE_OR_SOURCE_FAILED',source_requests=0,provider_denied=False,
+                source_unavailable=True,publication_acks=0,published_races=0,safe_diagnostics=[],updates=None)) as tick:
+            out=self.run_case(max_ticks=3)
+        self.assertEqual(tick.call_count,1);self.assertTrue(out['no_provider_tick'])
+        self.assertEqual(out['provider_requests'],0)
+        self.assertEqual(out['state'],'HOLD_OFFICIAL_SP_RESULT_GATE_OR_SOURCE_FAILED')
+        self.settle.assert_not_called();self.http.assert_not_called()
+
+    def test_sp_saved_only_restores_original_and_result_packets_without_source_lease(self):
+        from scripts import keirin_official_nationwide_continuation as continuation
+        from race_ai import keirin_official_nationwide_records as records
+        with patch.dict('os.environ',{
+            'GITHUB_ACTIONS':'true','GITHUB_REPOSITORY_ID':'1416489937',
+            'GITHUB_WORKFLOW_REF':continuation.WATCH_WORKFLOW,'GITHUB_JOB':'observe-results',
+            'RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED':'false'}), \
+                patch.object(records,'discover_days',return_value=[DAY]),\
+                patch.object(continuation,'replay_results',return_value=dict(published_races=1,
+                    publication_acks=1,results_held=0,published_originals=1,original_publication_acks=1)) as replay,\
+                patch.object(continuation,'_begin_lease',side_effect=AssertionError('NO_SOURCE_LEASE')):
+            out=self.run_case(mode='saved-only')
+        replay.assert_called_once()
+        self.assertEqual(out['published_originals'],1)
+        self.assertEqual(out['original_publication_acks'],1)
+        self.assertEqual(out['published_races'],2)
+        self.assertEqual(out['provider_requests'],0)
+        self.http.assert_not_called()
+
     def test_prior_transient_stop_is_not_reported_as_provider_denial(self):
         self.denied = True
         self.stop_code = 'PUBLIC_PROVIDER_HTTP_ERROR_STOP'
@@ -192,17 +246,19 @@ class ResultWatchTests(unittest.TestCase):
         self.http.assert_not_called()
 
     def workflow_store_flag(self, *, event='workflow_dispatch', mode='saved-only',
-                            ref='refs/heads/main', repo='haji84/RACE-AI', store=''):
+                            ref='refs/heads/main', repo='haji84/RACE-AI', store='',
+                            result='success', cancelled=False, s3=''):
         path = Path(__file__).resolve().parents[1] / '.github/workflows/keirin-result-live.yml'
         job = path.read_text().split('  observe-results:\n', 1)[1]
-        value = re.search(r'^      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: (.*(?:\n        .*)*)',
-                          job, re.M)[1]
-        expression = value[value.index('${{') + 3:value.index('}}')]
-        expression = ' '.join(expression.split()).replace('&&', ' and ').replace('||', ' or ')
+        value = re.search(r'^      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: (.*)',job,re.M)[1]
+        expression=re.search(r'^    if: >-\n((?:      .*\n)+)',job,re.M)[1]
+        expression = ' '.join(expression.split()).replace('&&', ' and ').replace('||', ' or ').replace('!cancelled()', 'not cancelled()')
         context = dict(github=SimpleNamespace(event_name=event, ref=ref, repository=repo,
             repository_id='1416489937'), inputs=SimpleNamespace(mode=mode),
-            vars=SimpleNamespace(RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED=store))
-        return eval(expression, {'__builtins__': {}}, context)
+            vars=SimpleNamespace(RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED=store,RACE_AI_AB_SOURCE_S3_PREFIX=s3),
+            needs=SimpleNamespace(tests=SimpleNamespace(result=result)),
+            always=lambda:True,cancelled=lambda:cancelled)
+        return value.strip("'\"") if eval(expression, {'__builtins__': {}}, context) else ''
 
     def test_manual_saved_only_workflow_authorization_reaches_real_archive_preflight(self):
         from race_ai import keirin_nationwide_cipher_history as archive
@@ -231,12 +287,13 @@ class ResultWatchTests(unittest.TestCase):
         self.http.assert_not_called()
 
     def test_saved_only_authorization_does_not_enable_other_workflow_contexts(self):
-        for changes in ({'mode': 'observe'}, {'event': 'schedule'},
-                        {'event': 'pull_request'}, {'ref': 'refs/heads/feature'},
-                        {'repo': 'fork/RACE-AI'}):
+        for changes in ({'mode':'test'}, {'result':'failure'}, {'cancelled':True}, {'s3':'not-empty'},
+                        {'event': 'pull_request'}, {'ref': 'refs/heads/feature'}, {'repo': 'fork/RACE-AI'}):
             with self.subTest(changes=changes):
                 self.assertEqual(self.workflow_store_flag(**changes), '')
         self.assertEqual(self.workflow_store_flag(event='schedule', store='true'), 'true')
+        self.assertEqual(self.workflow_store_flag(event='schedule'), 'true')
+        self.assertEqual(self.workflow_store_flag(mode='observe'), 'true')
 
     def test_main_identifies_missing_saved_store_authorization_without_archive_io(self):
         out = self.safe / 'summary.json'

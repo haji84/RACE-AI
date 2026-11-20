@@ -10,6 +10,13 @@ on:
       - 'scripts/keirin_official_day_pipeline.py'
       - 'scripts/keirin_official_form_canary.py'
       - 'race_ai/keirin_provider_reconciliation.py'
+      - 'race_ai/keirin_official_source_continuation.py'
+      - 'race_ai/keirin_official_nationwide_*.py'
+      - 'race_ai/keirin_official_class_evidence.py'
+      - 'tests/test_keirin_official_class_evidence.py'
+      - 'race_ai/keirin_nationwide_forecast_view.py'
+      - 'scripts/keirin_official_nationwide_continuation.py'
+      - 'tests/test_keirin_official_continuation_workflow.py'
       - 'scripts/keirin_capture_official_form_history.py'
       - 'race_ai/keirin_nationwide_auto_storage.py'
       - 'scripts/keirin_runtime_selection.py'
@@ -20,6 +27,8 @@ on:
   pull_request:
     paths:
       - 'race_ai/keirin_nationwide_auto_*.py'
+      - 'race_ai/keirin_nationwide_forecast_view.py'
+      - 'tests/test_keirin_nationwide_forecast_view.py'
       - 'race_ai/keirin_rider_form_evidence.py'
       - 'race_ai/keirin_form_fall_shadow.py'
       - 'race_ai/keirin_form_history_admission.py'
@@ -72,7 +81,7 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, readiness, saved-only, run, form-canary, form-canary-reconcile]
+        options: [test, readiness, saved-only, run, form-canary, form-canary-reconcile, official-continue]
   schedule:
     # Can be delayed, so published cutoff is checked again at actual save.
     - cron: '*/10 * * * *'
@@ -89,7 +98,7 @@ jobs:
     if: >-
       github.event_name == 'push' || github.event_name == 'pull_request' ||
       (github.event_name == 'workflow_dispatch' &&
-       (inputs.mode == 'test' || inputs.mode == 'readiness' || inputs.mode == 'saved-only' || inputs.mode == 'form-canary' || inputs.mode == 'form-canary-reconcile'))
+       (inputs.mode == 'test' || inputs.mode == 'readiness' || inputs.mode == 'saved-only' || inputs.mode == 'form-canary' || inputs.mode == 'form-canary-reconcile' || inputs.mode == 'official-continue'))
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
@@ -117,6 +126,13 @@ jobs:
             tests.test_keirin_official_canary_card \
             tests.test_keirin_official_canary_join \
             tests.test_keirin_official_nationwide_extension \
+            tests.test_keirin_official_source_continuation \
+            tests.test_keirin_official_class_evidence \
+            tests.test_keirin_official_nationwide_continuation \
+            tests.test_keirin_official_nationwide_sources \
+            tests.test_keirin_official_nationwide_records \
+            tests.test_keirin_official_continuation_workflow \
+            tests.test_keirin_nationwide_forecast_view \
             tests.test_keirin_official_form_canary \
             tests.test_keirin_nationwide_auto_storage \
             tests.test_keirin_nationwide_auto_runner \
@@ -1479,5 +1495,258 @@ jobs:
         run: |
           root="$RUNNER_TEMP/keirin-form-canary-result-$GITHUB_RUN_ID"
           if [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-form-canary-result-* ]]; then
+            rm -rf -- "$root"
+          fi
+
+  official-sp-capture:
+    # The owner authorized nationwide continuation after the real four-arm
+    # trial. The runner replays that exact encrypted proof before any source
+    # request; ordinary source flags and the historical stop are preserved.
+    needs: source-free-tests
+    if: >-
+      always() && !cancelled() &&
+      github.repository == 'haji84/RACE-AI' &&
+      github.repository_id == '1416489937' &&
+      github.ref == 'refs/heads/main' &&
+      vars.RACE_AI_AB_SOURCE_S3_PREFIX == '' &&
+      (github.event_name == 'schedule' ||
+       (github.event_name == 'workflow_dispatch' && inputs.mode == 'official-continue' &&
+        needs.source-free-tests.result == 'success'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: 'true'
+    outputs:
+      archived: ${{ steps.capture.outputs.archived }}
+      day: ${{ steps.capture.outputs.day }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Register the official day and preserve future original forecasts
+        id: capture
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="$RUNNER_TEMP/keirin-official-sp-capture-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root/safe"
+          chmod 700 "$root"
+          status=0
+          python -m scripts.keirin_official_nationwide_continuation capture \
+            --repo "$GITHUB_WORKSPACE" --private-root "$root" \
+            --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --report "$root/safe/summary.json" --max-races 4 > "$root/counts.json" || status=$?
+          if [ -f "$root/safe/summary.json" ]; then
+            cat "$root/safe/summary.json" >> "$GITHUB_STEP_SUMMARY"
+            python - "$root/safe/summary.json" <<'PY'
+          from datetime import date
+          import json, os, sys
+          report = json.load(open(sys.argv[1]))
+          day = report['day_jst']
+          assert date.fromisoformat(day).isoformat() == day
+          originals = report.get('new_encrypted_originals', [])
+          assert type(originals) is list
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write('day=' + day + '\n')
+              out.write('archived=' + str(bool(originals)).lower() + '\n')
+          PY
+          fi
+          exit "$status"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: keirin-official-sp-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-official-sp-capture-${{ github.run_id }}/safe/summary.json
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Destroy temporary source and forecast plaintext
+        if: always()
+        shell: bash
+        run: |
+          root="$RUNNER_TEMP/keirin-official-sp-capture-$GITHUB_RUN_ID"
+          if [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-official-sp-capture-* ]]; then
+            rm -rf -- "$root"
+          fi
+
+  official-sp-independent-readback:
+    needs: official-sp-capture
+    if: >-
+      !cancelled() &&
+      github.repository == 'haji84/RACE-AI' &&
+      github.repository_id == '1416489937' &&
+      github.ref == 'refs/heads/main' &&
+      needs.official-sp-capture.result == 'success' &&
+      needs.official-sp-capture.outputs.archived == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: read
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: 'true'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-official-sp-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-official-sp-readback
+      - name: Verify immutable ciphertext on a separate runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48'
+          python -m scripts.keirin_github_only_ab_readback \
+            --report "$RUNNER_TEMP/keirin-official-sp-readback/summary.json" \
+            --repo "$GITHUB_WORKSPACE" \
+            --out "$RUNNER_TEMP/keirin-official-sp-readback/keirin-git-independent.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-official-sp-readback-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-official-sp-readback/keirin-git-independent.json
+          retention-days: 21
+          if-no-files-found: error
+
+  official-sp-publish:
+    # A day with no admissible originals still exposes its real registered
+    # races and explicit holds; it never manufactures zero-point forecasts.
+    needs: [official-sp-capture, official-sp-independent-readback]
+    if: >-
+      always() && !cancelled() &&
+      github.repository == 'haji84/RACE-AI' &&
+      github.repository_id == '1416489937' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'schedule' ||
+       (github.event_name == 'workflow_dispatch' && inputs.mode == 'official-continue')) &&
+      needs.official-sp-capture.result == 'success' &&
+      (needs.official-sp-capture.outputs.archived != 'true' ||
+       needs.official-sp-independent-readback.result == 'success')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: write
+      actions: read
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: 'true'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Publish authenticated saved originals and day coverage without provider requests
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
+          CAPTURED_DAY: ${{ needs.official-sp-capture.outputs.day }}
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="$RUNNER_TEMP/keirin-official-sp-publish-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root/safe"
+          chmod 700 "$root"
+          status=0
+          python -m scripts.keirin_official_nationwide_continuation publish \
+            --day "$CAPTURED_DAY" --repo "$GITHUB_WORKSPACE" --private-root "$root" \
+            --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --report "$root/safe/summary.json" > "$root/counts.json" || status=$?
+          if [ -f "$root/safe/summary.json" ]; then
+            cat "$root/safe/summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$status"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: keirin-official-sp-display-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-official-sp-publish-${{ github.run_id }}/safe/summary.json
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Destroy temporary decoded forecasts
+        if: always()
+        shell: bash
+        run: |
+          root="$RUNNER_TEMP/keirin-official-sp-publish-$GITHUB_RUN_ID"
+          if [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-official-sp-publish-* ]]; then
+            rm -rf -- "$root"
+          fi
+
+  official-sp-settle:
+    # Explicit recovery only. The continuous source poller remains the
+    # existing result-live workflow, independent from this capture chain.
+    needs: source-free-tests
+    if: >-
+      !cancelled() &&
+      github.repository == 'haji84/RACE-AI' &&
+      github.repository_id == '1416489937' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'workflow_dispatch' && inputs.mode == 'official-continue' &&
+      needs.source-free-tests.result == 'success' &&
+      vars.RACE_AI_AB_SOURCE_S3_PREFIX == ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: 'true'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Compare due authenticated originals through the admitted official form path
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="$RUNNER_TEMP/keirin-official-sp-settle-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root/safe"
+          chmod 700 "$root"
+          status=0
+          python -m scripts.keirin_official_nationwide_continuation settle \
+            --repo "$GITHUB_WORKSPACE" --private-root "$root" \
+            --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --report "$root/safe/summary.json" --max-races 8 > "$root/counts.json" || status=$?
+          if [ -f "$root/safe/summary.json" ]; then
+            cat "$root/safe/summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$status"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: keirin-official-sp-settlement-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-official-sp-settle-${{ github.run_id }}/safe/summary.json
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Destroy temporary official result plaintext
+        if: always()
+        shell: bash
+        run: |
+          root="$RUNNER_TEMP/keirin-official-sp-settle-$GITHUB_RUN_ID"
+          if [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-official-sp-settle-* ]]; then
             rm -rf -- "$root"
           fi

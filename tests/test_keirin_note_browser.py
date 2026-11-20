@@ -620,6 +620,75 @@ class NoteBrowserTests(unittest.TestCase):
         self.assertEqual(self.external, [])
         self.assertEqual(self.errors, [])
 
+    def test_nationwide_baseline_cards_show_all_tickets_and_missing_arms_without_prior_import(self):
+        from tests.test_keirin_nationwide_forecast_view import nationwide_document, DAY as day, RACE as race
+        doc=nationwide_document(); saved=doc['races'][0]['original']
+        doc['races'][1].update(race_id=day.replace('-','')+'9802',venue_code=98,cutoff_at=day+'T09:00:00+09:00')
+        expected={'A':saved['baseline']['A']['ranked_tickets'],'B':saved['baseline']['B']['ranked_tickets']}
+        winner=expected['A'][0]
+        arms={name:dict(state='pending',points=None,stake_yen=None,return_yen=None)
+              for name in ('A','B','C','adjusted_A','adjusted_B')}
+        for name,tickets in expected.items():
+            arms[name]=dict(state='hit' if winner in tickets else 'miss',points=len(tickets),stake_yen=None,return_yen=None)
+        result=dict(race_id=race,revision='b'*64,observed_at=day+'T09:00:00Z',authority='official',
+            order_status='confirmed',payout_status='pending',winning_triples=['-'.join(map(str,winner))],
+            payouts_100yen={},source_comparison=[],diagnostics=[],arms=arms)
+        value=dict(schema='RACE_AI_KEIRIN_NOTE_VIEW_V1',formal_model_admission=False,
+            production_weight_switch=False,dates=[day],source_commit='a'*40,imported_at=doc['observed_at'],
+            files={f'data/{day}/nationwide_forecasts.json':source(doc),f'data/{day}/result_updates.json':source(dict(
+                schema='RACE_AI_KEIRIN_RESULT_UPDATES_V1',observed_at=result['observed_at'],races=[result]))})
+        self.page.goto(self.base,wait_until='domcontentloaded'); self.page.locator('#keirin-note-open').click()
+        self.page.locator('#kn-file').set_input_files(dict(name='invented-national.json',mimeType='application/json',buffer=canonical(value)))
+        self.loaded(); self.assertEqual(self.page.locator('#kn-file').input_value(),'')
+        self.assertEqual(self.page.locator('.kn-national-race').count(),3)
+        self.assertIn('全3レースの保存状況',self.page.locator('#kn-nationwide-summary').inner_text())
+        self.assertIn('A/B保存済み 1 / 3件',self.page.locator('#kn-nationwide-summary').inner_text())
+        self.assertTrue(self.page.locator('#kn-variant').is_disabled())
+        ready=self.page.locator(f'[data-note-race="{race}"]')
+        for name,tickets in expected.items():
+            arm=ready.locator(f'[data-result-arm="{name}"]')
+            combos=arm.locator('[data-frozen-combo]').evaluate_all('(items)=>items.map(x=>x.dataset.frozenCombo)')
+            self.assertEqual(combos,['-'.join(map(str,t)) for t in tickets])
+            self.assertEqual(len(set(combos)),len(tickets))
+            self.assertEqual(arm.locator('strong').inner_text(),'的中' if winner in tickets else '不的中')
+        for name in ('adjusted_A','adjusted_B'):
+            self.assertIn('補正の保存待ち',ready.locator(f'[data-result-arm="{name}"]').inner_text())
+            self.assertEqual(ready.locator(f'[data-frozen-arm="{name}"]').count(),0)
+        self.assertIn('未作成',ready.locator('[data-result-arm="C"]').inner_text())
+        ready.get_by_text('展開の見立て・根拠',exact=True).click()
+        self.assertEqual(ready.locator('.kn-frozen-scenario').count(),len(saved['baseline']['B']['six_phase_scenarios']))
+        unsupported=self.page.locator('[data-nationwide-state="UNSUPPORTED_CLASS_OR_ROUND"]')
+        self.assertIn('種別・勝ち上がり条件の確認待ち',unsupported.inner_text())
+        pending=self.page.locator(f'[data-note-race="{day.replace("-","")}9903"]')
+        self.assertEqual(pending.locator('[data-frozen-combo]').count(),0)
+        self.assertNotIn('0点',pending.inner_text())
+        self.page.get_by_role('button',name='開催コード 98',exact=True).click()
+        self.assertEqual(self.page.locator('.kn-national-race').count(),1)
+        self.page.get_by_role('button',name='締切順・全会場',exact=True).click()
+        ids=self.page.locator('.kn-national-race').evaluate_all('(items)=>items.map(x=>x.dataset.noteRace)')
+        self.assertEqual(ids,[day.replace('-','')+'9802',race,day.replace('-','')+'9903'])
+        for width in (390,1280):
+            self.page.set_viewport_size(dict(width=width,height=844))
+            self.assertTrue(self.page.locator('.kn-scroll').evaluate('(el)=>el.scrollWidth<=el.clientWidth+1'))
+        self.assertEqual(self.external,[]); self.assertEqual(self.errors,[])
+
+    def test_single_national_delta_distinguishes_unread_originals_from_missing_predictions(self):
+        from tests.test_keirin_nationwide_forecast_view import nationwide_document, DAY as day, RACE as race
+        doc=nationwide_document(); doc.update(inventory_complete=False,missing_venues=[88]); doc['races'][0]['original']=None
+        value=dict(schema='RACE_AI_KEIRIN_NOTE_VIEW_V1',formal_model_admission=False,
+            production_weight_switch=False,dates=[day],source_commit='a'*40,imported_at=doc['observed_at'],
+            files={f'data/{day}/nationwide_forecasts.json':source(doc)})
+        self.page.goto(self.base,wait_until='domcontentloaded'); self.page.locator('#keirin-note-open').click()
+        self.page.locator('#kn-file').set_input_files(dict(name='invented-delta.json',mimeType='application/json',buffer=canonical(value)))
+        self.loaded(); panel=self.page.locator('#kn-nationwide-summary')
+        self.assertIn('確認できた3レース',panel.inner_text()); self.assertIn('全国の対象総数はまだ確認中',panel.inner_text())
+        self.assertIn('未読込のレースが 1件',panel.inner_text()); self.assertIn('未確認の開催コード：88',panel.inner_text())
+        row=self.page.locator(f'[data-note-race="{race}"]')
+        self.assertIn('保存原本の読込待ち',row.locator('[data-result-arm="A"]').inner_text())
+        self.assertIn('保存原本の読込待ち',row.locator('[data-result-arm="B"]').inner_text())
+        self.assertEqual(row.locator('[data-frozen-combo]').count(),0); self.assertNotIn('0点',row.inner_text())
+        self.assertEqual(self.external,[]); self.assertEqual(self.errors,[])
+
 
 if __name__ == '__main__':
     unittest.main()

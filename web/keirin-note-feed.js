@@ -19,13 +19,17 @@
     need((sameKeys(index,fields)||sameKeys(index,fields+',result_checks'))&&index.schema==='RACE_AI_KEIRIN_NOTE_FEED_V1'&&index.repository==='haji84/RACE-AI'&&index.recipient_id===recipient&&typeof index.provider_denied==='boolean'&&Array.isArray(index.entries)&&ids(index.covered_race_ids)&&ids(index.priority_window_race_ids));
     const hashes=new Set(),covered=new Set(),priority=new Set();
     for(const e of index.entries){
-      const keys='cipher_sha256,source_content_sha256,ephemeral_public_key,salt,created_at,days,kind,captured_race_ids,priority_window_race_ids'+(e?.kind==='result'?',result_revisions':e?.kind==='canary-original'?',original_revisions':'');
-      need(sameKeys(e,keys)&&hex(e.cipher_sha256)&&hex(e.source_content_sha256)&&!hashes.has(e.cipher_sha256)&&['import','research','archive','result','results','canary-original'].includes(e.kind));
+      const keys='cipher_sha256,source_content_sha256,ephemeral_public_key,salt,created_at,days,kind,captured_race_ids,priority_window_race_ids'+(e?.kind==='result'?',result_revisions':e?.kind==='canary-original'?',original_revisions':e?.kind==='nationwide'?',day_revision,original_revisions,registered_race_ids':'');
+      need(sameKeys(e,keys)&&hex(e.cipher_sha256)&&hex(e.source_content_sha256)&&!hashes.has(e.cipher_sha256)&&['import','research','archive','result','results','canary-original','nationwide'].includes(e.kind));
       need(decode(e.ephemeral_public_key).length===65&&decode(e.salt).length===32&&Array.isArray(e.days)&&e.days.length&&new Set(e.days).size===e.days.length&&e.days.every(M.day)&&Number.isFinite(Date.parse(e.created_at))&&ids(e.captured_race_ids)&&ids(e.priority_window_race_ids));
       need(e.captured_race_ids.every(id=>e.days.some(d=>id.startsWith(d.replaceAll('-',''))))&&(e.kind!=='results'||e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0));
       need(e.priority_window_race_ids.every(id=>e.captured_race_ids.includes(id)));hashes.add(e.cipher_sha256);e.captured_race_ids.forEach(id=>covered.add(id));e.priority_window_race_ids.forEach(id=>priority.add(id));
       if(e.kind==='result')need(e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&record(e.result_revisions)&&Object.keys(e.result_revisions).length>0&&Object.keys(e.result_revisions).length<=300&&ids(Object.keys(e.result_revisions))&&Object.values(e.result_revisions).every(hex));
       if(e.kind==='canary-original')need(e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&record(e.original_revisions)&&Object.keys(e.original_revisions).length>0&&Object.keys(e.original_revisions).length<=300&&ids(Object.keys(e.original_revisions))&&Object.values(e.original_revisions).every(hex));
+      if(e.kind==='nationwide'){
+        need(e.days.length===1&&e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&hex(e.day_revision)&&ids(e.registered_race_ids)&&e.registered_race_ids.length<=600&&e.registered_race_ids.every(id=>id.startsWith(e.days[0].replaceAll('-',''))&&Number(id.slice(-2))>=1&&Number(id.slice(-2))<=12));
+        need(record(e.original_revisions)&&Object.keys(e.original_revisions).every(id=>e.registered_race_ids.includes(id))&&Object.values(e.original_revisions).every(v=>sameKeys(v,'baseline,conditioned')&&hex(v.baseline)&&(v.conditioned===null||hex(v.conditioned))));
+      }
     }
     need(index.covered_race_ids.length===covered.size&&index.covered_race_ids.every(id=>covered.has(id))&&index.priority_window_race_ids.length===priority.size&&index.priority_window_race_ids.every(id=>priority.has(id)));
     if(Object.hasOwn(index,'result_checks')){
@@ -58,11 +62,17 @@
       const revisions=Object.fromEntries([...data.frozenForecasts.values()].flatMap(rows=>[...rows.values()].map(row=>[row.race_id,row.revision])));
       need(Object.keys(revisions).sort().join(',')===Object.keys(e.original_revisions).sort().join(',')&&Object.entries(revisions).every(([id,revision])=>e.original_revisions[id]===revision));
     }
+    if(e.kind==='nationwide'){
+      need(data.dates.length===1&&data.nationwide.size===1&&[...data.files.keys()].join(',')==='data/'+data.dates[0]+'/nationwide_forecasts.json');
+      const doc=data.nationwide.get(data.dates[0]),revisions=Object.fromEntries(doc.races.filter(row=>row.original_identity!==null).map(row=>[row.race_id,row.original_identity]));
+      need(doc.revision===e.day_revision&&doc.races.map(r=>r.race_id).sort().join(',')===e.registered_race_ids.slice().sort().join(',')&&Object.keys(revisions).sort().join(',')===Object.keys(e.original_revisions).sort().join(','));
+      need(Object.entries(revisions).every(([id,v])=>v.baseline===e.original_revisions[id].baseline&&v.conditioned===e.original_revisions[id].conditioned));
+    }
     return data;
   }
   function merge(parts,{resultChecks={}}={}){
     need(Array.isArray(parts)&&parts.length>0);
-    const days=new Map(),files=new Map(),fileShas=new Map(),results=new Map(),refreshHolds=[],updates=new Map(),histories=new Map(),frozen=new Map();let importedAt=parts[0].importedAt;
+    const days=new Map(),files=new Map(),fileShas=new Map(),results=new Map(),refreshHolds=[],updates=new Map(),histories=new Map(),frozen=new Map(),nationwide=new Map(),nationwideHistory=new Map();let importedAt=parts[0].importedAt;
     const stable=v=>Array.isArray(v)?'['+v.map(stable).join(',')+']':record(v)?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+stable(v[k])).join(',')+'}':JSON.stringify(v);
     const semantic=result=>Object.fromEntries(Object.entries(result).filter(([key])=>key!=='observed_at'));
 
@@ -72,6 +82,13 @@
       for(const [path,value] of part.fileShas||[])fileShas.set(path,value);
       importedAt=part.importedAt;
       for(const date of part.dates){
+        const national=part.nationwide?.get(date);
+        if(national){
+          const history=nationwideHistory.get(date)||new Map(),seen=history.get(national.revision);
+          need(!seen||stable(M.nationwideSemantic(seen))===stable(M.nationwideSemantic(national)));
+          if(!seen||Date.parse(national.observed_at)>=Date.parse(seen.observed_at))history.set(national.revision,national);
+          nationwideHistory.set(date,history);nationwide.set(date,M.mergeNationwide(nationwide.get(date),national));
+        }
         if(!frozen.has(date))frozen.set(date,new Map());
         for(const [id,original] of part.frozenForecasts?.get(date)||[]){const prior=frozen.get(date).get(id);need(!prior||stable(prior)===stable(original));frozen.get(date).set(id,original);}
         if(!updates.has(date))updates.set(date,new Map());
@@ -86,6 +103,7 @@
 
         const byId=new Map((days.get(date)||[]).map(row=>[row.id,row]));
         for(const row of M.rows(part,date)){
+          if(row.nationwideOnly)continue;
           const prior=byId.get(row.id);if(!prior){byId.set(row.id,{...row,referenceHistory:[...(row.referenceHistory||[])],researchResultHistory:[],latestResearchResult:null,resultHistory:[],resultUpdate:null});continue;}
           // Immutable snapshots keep every version. An input refresh does not
           // replace the authored originals imported from the owner's Site.
@@ -120,6 +138,7 @@
         results.set(id,history);
       }
     }
+    M.attachNationwide(days,nationwide);
     for(const [date,list] of days)days.set(date,list.map(row=>{
       const history=results.get(row.id)||[];
       need(history.every(saved=>saved.observation.winning_triple===null||!row.cars.size||saved.observation.winning_triple.every(n=>row.cars.has(n))));
@@ -127,7 +146,7 @@
     }));
     for(const [date,rows] of days)days.set(date,rows.map(row=>{
       const result=updates.get(date)?.get(row.id),original=frozen.get(date)?.get(row.id);if(!result&&!original)return row;
-      return {...row,...(result?{resultUpdate:result,resultHistory:[...histories.get(row.id).values()]}:{}),...(original?{frozenForecast:original}:{})};
+      return {...row,...(result?{resultUpdate:result,resultHistory:[...histories.get(row.id).values()]}:{}),...(original?{frozenForecast:M.combineFrozen(row.frozenForecast,original)}:{})};
     }));
     const checks=new Map(Object.entries(resultChecks));
     for(const [id,check] of checks){
@@ -135,7 +154,7 @@
       if(check.digest!==null)need(latest&&latest.observation_sha256===check.digest&&Date.parse(check.checked_at)>=Date.parse(latest.captured_at)&&check.status===(latest.state==='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL'?'MATCHED':latest.state.startsWith('PENDING_')?'PENDING':'HOLD'));
       else need(!latest&&check.status!=='MATCHED');
     }
-    return {schema:M.SCHEMA,dates:[...days.keys()].sort(),days,files,fileShas,results,resultUpdates:updates,frozenForecasts:frozen,resultChecks:checks,cipherSha:null,formal:false,importedAt,sourceCommit:parts[0].sourceCommit,refreshHolds};
+    return {schema:M.SCHEMA,dates:[...days.keys()].sort(),days,files,fileShas,results,resultUpdates:updates,frozenForecasts:frozen,nationwide,nationwideHistory,resultChecks:checks,cipherSha:null,formal:false,importedAt,sourceCommit:parts[0].sourceCommit,refreshHolds};
   }
   async function bytes(response,signal){
     need(response.ok);const length=response.headers?.get('content-length');need(length==null||/^\d+$/.test(length)&&Number(length)<=MAX);

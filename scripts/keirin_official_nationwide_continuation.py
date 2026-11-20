@@ -1,0 +1,649 @@
+"""Run the admitted official-SP continuation with bounded, private evidence.
+
+Capture, independent Git readback, source-free publication and result polling
+are separate operations. No global source flag or existing stop is changed.
+"""
+from collections import Counter
+from copy import deepcopy
+from datetime import datetime, timedelta, timezone
+from hashlib import sha256
+from pathlib import Path
+from tempfile import TemporaryDirectory
+import argparse
+import json
+import os
+import re
+import sys
+
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from race_ai import keirin_nationwide_auto_generator as model
+from race_ai import keirin_nationwide_auto_storage as storage
+from race_ai import keirin_nationwide_cipher_history as archive
+from race_ai import keirin_official_nationwide_extension as extension
+from race_ai import keirin_official_nationwide_records as records
+from race_ai import keirin_official_nationwide_sources as sources
+from race_ai import keirin_official_form_history as form
+from race_ai import keirin_form_fall_shadow as shadow
+from race_ai import keirin_official_run_history as history
+from scripts import keirin_official_day_pipeline as pipeline
+from scripts import keirin_capture_official_form_history as capture_files
+
+SCHEMA='RACE_AI_KEIRIN_GITHUB_ONLY_LIVE_AB_DAY_V1'
+WORKFLOW='haji84/RACE-AI/.github/workflows/keirin-nationwide-ab-auto.yml@refs/heads/main'
+WATCH_WORKFLOW='haji84/RACE-AI/.github/workflows/keirin-result-live.yml@refs/heads/main'
+
+
+def now_utc():return datetime.now(timezone.utc)
+
+
+def need(ok,code):
+    if not ok:raise ValueError('OFFICIAL_CONTINUATION_'+code)
+
+
+def _runtime(*,repo,private_root,owner_public_pem,owner_private_pem,day,clock,mode):
+    at=form._aware(clock());today=at.astimezone(form.JST).date().isoformat()
+    day=day or today;history._day(day)
+    need(mode in ('capture','publish','settle'),'MODE_INVALID')
+    need(os.getenv('GITHUB_ACTIONS')=='true' and os.getenv('GITHUB_REPOSITORY')==archive.REPO and
+         os.getenv('GITHUB_REPOSITORY_ID')==archive.REPO_ID and os.getenv('GITHUB_REF')=='refs/heads/main' and
+         os.getenv('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch') and
+         os.getenv('RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED')=='true','TRUSTED_RUNTIME_REQUIRED')
+    roles={'capture':'official-sp-capture','publish':'official-sp-publish','settle':'official-sp-settle'}
+    pair=(os.getenv('GITHUB_WORKFLOW_REF'),os.getenv('GITHUB_JOB'))
+    need(pair==(WORKFLOW,roles[mode]) or mode=='settle' and pair==(WATCH_WORKFLOW,'observe-results'),
+         'EXACT_SOURCE_JOB_REQUIRED')
+    need(mode!='capture' or day==today,'CAPTURE_ACTUAL_DAY_REQUIRED')
+    private_public=pipeline.check_owner_private_key(owner_private_pem)
+    public=Path(owner_public_pem).read_bytes();parsed=storage.checked_public_key(public)
+    need(parsed.public_numbers()==storage.checked_public_key(private_public).public_numbers(),'OWNER_KEY_PAIR_REQUIRED')
+    root=capture_files._private_directory(private_root);repo=Path(repo).resolve()
+    need(root.resolve()!=repo and repo not in root.resolve().parents,'PRIVATE_ROOT_OUTSIDE_REPOSITORY')
+    commit=os.getenv('GITHUB_SHA','')
+    need(archive.COMMIT.fullmatch(commit) and archive.RUN.fullmatch(os.getenv('GITHUB_RUN_ID','')),
+         'RUN_CODE_IDENTITY_REQUIRED')
+    checked=archive._remote(repo,synthetic_local=False)
+    need(archive._cmd(checked,'rev-parse','HEAD')[1]==commit,'CHECKOUT_CODE_CHANGED')
+    return repo,root,day,public,commit
+
+
+def _begin_lease(repo,owner_private_pem,clock,commit):
+    from race_ai import keirin_official_source_continuation as continuation
+    return continuation.begin(repo=repo,now=clock(),source_commit=commit,
+        owner_private_pem=owner_private_pem,event_day=form._aware(clock()).astimezone(form.JST).date().isoformat(),
+        max_requests=300,lease_seconds=900)
+
+
+def _summary(day,state='OFFICIAL_SP_CAPTURE_PARTIAL'):
+    return dict(schema=SCHEMA,day_jst=day,state=state,registered_races=0,
+        day_inventory_complete=False,all_prediction_coverage_complete=False,
+        new_A_B_sealed=0,new_A_B_git_archived=0,new_conditioned_A_B_git_archived=0,
+        new_encrypted_originals=[],source_requests=0,provider_denied=False,
+        source_or_forecast_plaintext_exposed=False,paired_comparable_races=0,
+        safe_diagnostics=[],statuses={})
+
+
+def _baseline_already_exists(store,race_id):
+    if race_id in store.index['originals']:return True
+    raw=archive.read_blob_bytes(store.repo,store.head,archive._refs(race_id)[1],max_bytes=16384)
+    if raw is None:
+        need(archive.read_blob_bytes(store.repo,store.head,archive._refs(race_id)[0]) is None,'ORPHAN_BASELINE_ARCHIVE')
+        return False
+    receipt=history._json(raw)
+    archive._read_at(store.repo,store.head,race_id,receipt['cipher_sha256'])
+    return True
+
+
+def _label(inventory,race):
+    listed=next((s for s in inventory['list_sources'] if s['venue_code']==race['venue_code']),None)
+    if listed is None:return None
+    row=next((r for r in sources.cards._current_rows(listed['raw_bytes'],inventory['registry']['event_day'])
+              if int(sources.cards.receipt._norm(r['strRaceNo']))==race['race_no']),None)
+    return sources.cards.receipt._norm(row['strSyumokuName']) if row else None
+
+
+def _save_registry(store,inventory,states,prior,public,clock):
+    registry=inventory['registry']
+    need(registry is not None,'REGISTRY_NOT_CAPTURED')
+    at=form._aware(clock()).isoformat()
+    payload=dict(schema=records.DAY_SCHEMA,day_jst=store.day,observed_at=at,
+        producer_run_id=os.environ['GITHUB_RUN_ID'],producer_commit=os.environ['GITHUB_SHA'],
+        prior_race_ids=prior,registry=registry,
+        inventory={key:inventory[key] for key in ('calendar_receipt','list_sources')},
+        states=sorted(states.values(),key=lambda r:r['race_id']),
+        safe_report=dict(day_jst=store.day,registered_races=len(registry['registered_race_ids'])))
+    if 'unadmitted_class_evidence' in inventory:
+        payload['unadmitted_class_evidence']=inventory['unadmitted_class_evidence']
+    records.replay_registry(payload)
+    return store.append(kind='registry',payload=payload,public_pem=public,observed_at=at)
+
+
+def _seal_and_archive(*,candidate,condition_input,history_manifest,condition_state,session,
+                      store,public,root,clock,commit,cohort):
+    snapshot=candidate['snapshot'];rid=snapshot['race_id']
+    generated=form._aware(clock()).isoformat()
+    baseline=model.generate_A_B(snapshot,generated_at=generated,max_tickets=12)
+    adjusted=supplement=None
+    if condition_input is not None:
+        try:
+            supplement=condition_input['supplement']
+            adjusted=shadow.generate_shadow(snapshot,supplement,baseline=baseline,generated_at=generated)
+        except (ValueError,KeyError,TypeError):
+            adjusted=supplement=None;condition_state='HISTORY_UNVERIFIED'
+    sealed_at=form._aware(clock()).isoformat()
+    directory=capture_files._private_directory(root/rid)
+    path=directory/(rid+'.sealed.json')
+    saved=storage.seal_once(snapshot=snapshot,prediction=baseline,public_key_pem=public,path=path,sealed_at=sealed_at)
+    digest=saved['cipher_sha256'];cohort_sha=model.digest(cohort)
+    restored=archive.append_once(repo=store.repo,raw_cipher=path.read_bytes(),expected_cipher_sha256=digest,
+        producer_run_id=os.environ['GITHUB_RUN_ID'],producer_commit=commit,cohort_sha256=cohort_sha)
+    need(restored['state'] in ('GIT_ORIGINAL_CREATE_ONCE_AND_RESTORED','IDENTICAL_ORIGINAL_ALREADY_FROZEN_NO_NEW_WRITE'),
+         'BASELINE_ARCHIVE_ACK_INVALID')
+    condition_sha=condition_at=None
+    condition_archive_state='NO_CONDITIONED_ORIGINAL'
+    if adjusted is not None:
+        try:
+            condition_at=form._aware(clock()).isoformat();p=directory/(rid+'.form.sealed.json')
+            sealed=shadow.seal_shadow_once(snapshot=snapshot,supplement=supplement,shadow=adjusted,
+                public_key_pem=public,path=p,sealed_at=condition_at)
+            condition_sha=sealed['file_sha256']
+            written=archive.append_conditioned_once(repo=store.repo,raw_cipher=p.read_bytes(),
+                expected_cipher_sha256=condition_sha,expected_baseline_cipher_sha256=digest,
+                expected_baseline_prediction_sha256=baseline['prediction_sha256'],cohort_sha256=cohort_sha,
+                producer_run_id=os.environ['GITHUB_RUN_ID'],producer_commit=commit)
+            condition_archive_state=written['state']
+            need(condition_archive_state in ('GIT_CONDITIONED_ORIGINAL_CREATE_ONCE_AND_RESTORED',
+                 'IDENTICAL_CONDITIONED_ORIGINAL_ALREADY_FROZEN'),'CONDITION_ARCHIVE_ACK_INVALID')
+            condition_state='CONDITIONED_ARCHIVED_AWAITING_READBACK'
+        except (ValueError,KeyError,TypeError,OSError):
+            adjusted=supplement=condition_sha=condition_at=None
+            condition_state='CONDITIONED_ARCHIVE_UNVERIFIED';condition_archive_state='NO_CONDITIONED_ORIGINAL'
+    needed=set()
+    if history_manifest is not None:
+        needed.update(r['bytes_sha256'] for r in history_manifest['source_receipts'])
+    source_bytes={digest:session.sources[digest] for digest in needed if digest in session.sources}
+    payload=dict(schema=records.PRE_SCHEMA,day_jst=store.day,race_id=rid,cohort=cohort,cohort_sha256=cohort_sha,
+        producer_run_id=os.environ['GITHUB_RUN_ID'],producer_commit=commit,snapshot=snapshot,baseline=baseline,
+        baseline_arguments=candidate['arguments'],baseline_cipher_sha256=digest,baseline_sealed_at=sealed_at,
+        conditioned=adjusted,supplement=supplement,conditioned_cipher_sha256=condition_sha,
+        conditioned_sealed_at=condition_at,condition_state=condition_state,
+        history_manifest=history_manifest if adjusted is not None else None,
+        source_bytes_by_sha=source_bytes if adjusted is not None else {},
+        identity_proof=condition_input['identity_proof'] if adjusted is not None else None,
+        availability=condition_input['availability'] if adjusted is not None else None,
+        safe_report=dict(day_jst=store.day,race_id=rid,state='FROZEN_ORIGINAL_SOURCE_BUNDLE'))
+    evidence=store.append(kind='original',payload=payload,public_pem=public,observed_at=clock(),race_id=rid)
+    row=dict(race_id=rid,cipher_sha256=digest,conditioned_state=condition_archive_state,
+             baseline_prediction_sha256=baseline['prediction_sha256'],cohort_sha256=cohort_sha,
+             evidence_cipher_sha256=evidence['cipher_sha256'])
+    if condition_sha is not None:row['conditioned_cipher_sha256']=condition_sha
+    return row,condition_state
+
+
+def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,clock=now_utc,max_races=4):
+    repo,root,day,public,commit=_runtime(repo=repo,private_root=private_root,owner_public_pem=owner_public_pem,
+        owner_private_pem=owner_private_pem,day=day,clock=clock,mode='capture')
+    need(type(max_races) is int and 1<=max_races<=8,'CAPTURE_RACE_BOUND')
+    report=_summary(day);store=records.RecordStore(repo,day);prior=[]
+    if store.index['registry']:
+        prior=records.replay_registry(store.read(store.index['registry'],owner_private_pem))['registered_race_ids']
+    prior=sorted(set(prior)|set(store.index['originals']))
+    lease=_begin_lease(repo,owner_private_pem,clock,commit)
+    session=sources.OfficialSourceSession(repo=repo,private_root=capture_files._private_directory(root/'sources'),
+                                         lease=lease,clock=clock)
+    finish='FAILED'
+    try:
+        inventory=extension.collect_day_inventory(request=session.request,clock=clock,event_day=day,
+                                                  prior_race_ids=prior)
+        registry=inventory['registry']
+        if registry is None:
+            report['state']='HOLD_OFFICIAL_DAY_SOURCE_UNAVAILABLE'
+            finish='PROVIDER_STOPPED' if session.provider_denied else 'PARTIAL'
+            return report
+        need(len(registry['registered_race_ids'])<=records.MAX_RACES,'REGISTRY_RACE_BOUND')
+        states={rid:dict(race_id=rid,state='WAITING_SOURCE_CAPTURE',condition_state='HISTORY_NOT_COLLECTED')
+                for rid in registry['registered_race_ids']}
+        report.update(registered_races=len(states),day_inventory_complete=registry['day_inventory_complete'])
+        for rid in registry['disappeared_race_ids']:states[rid]['state']='RACE_DISAPPEARED_FROM_CURRENT_LIST'
+        _save_registry(store,inventory,states,prior,public,clock)
+        cohort=records.cohort(registry);attempted=0;earliest_frozen_cutoff=None
+        for race in sorted(registry['races'],key=lambda r:(r['race_no'],r['venue_code'])):
+            rid=race['race_id'];row=states[rid]
+            if _baseline_already_exists(store,rid):row['state']='FROZEN_ORIGINAL_PRESERVED';continue
+            if race['source_state']=='RESULT_PUBLISHED':row['state']='PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL';continue
+            if _label(inventory,race) not in extension.OBSERVED_CLASSES:
+                row['state']='UNSUPPORTED_CLASS_OR_ROUND';continue
+            if session.halted:
+                row['state']='PROVIDER_STOPPED' if session.provider_denied else 'SOURCE_UNAVAILABLE';continue
+            if earliest_frozen_cutoff is not None and (earliest_frozen_cutoff-form._aware(clock())).total_seconds()<390:
+                row['state']='SOURCE_CAPTURE_BUDGET_PENDING';continue
+            if attempted>=max_races:row['state']='SOURCE_CAPTURE_BUDGET_PENDING';continue
+            attempted+=1
+            try:
+                candidate=sources.collect_candidate(session=session,inventory=inventory,race=race,clock=clock)
+            except (ValueError,KeyError,TypeError,OSError) as exc:
+                row['state']=('PROVIDER_STOPPED' if session.provider_denied else 'SOURCE_UNAVAILABLE' if session.halted else
+                    'CUTOFF_MARGIN_INSUFFICIENT' if 'MARGIN' in str(exc) else 'BASELINE_SOURCE_UNVERIFIED')
+                continue
+            joined=manifest=None;condition_state='HISTORY_NOT_COLLECTED'
+            try:
+                manifest=sources.collect_conditions(session=session,candidate=candidate,clock=clock)
+                args=candidate['arguments']
+                joined=sources.build_condition_candidate(snapshot=candidate['snapshot'],
+                    card_arguments=args['card_arguments'],prediction_source=args['prediction_source'],
+                    prediction_scripts=args['prediction_scripts'],history_manifest=manifest,
+                    source_bytes_by_sha=session.sources,now=clock())
+            except (ValueError,KeyError,TypeError,OSError):
+                joined=manifest=None
+                condition_state='HISTORY_SOURCE_UNAVAILABLE' if session.halted else 'HISTORY_UNVERIFIED'
+            try:
+                saved,condition_state=_seal_and_archive(candidate=candidate,condition_input=joined,
+                    history_manifest=manifest,condition_state=condition_state,session=session,store=store,
+                    public=public,root=root,clock=clock,commit=commit,cohort=cohort)
+                report['new_encrypted_originals'].append(saved)
+                cutoff=form._aware(candidate['snapshot']['published_cutoff_at'])
+                earliest_frozen_cutoff=min(earliest_frozen_cutoff or cutoff,cutoff)
+                session.capture_deadline=earliest_frozen_cutoff-timedelta(seconds=240)
+                row.update(state='A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK',condition_state=condition_state)
+            except (ValueError,KeyError,TypeError,OSError):
+                row.update(state='FROZEN_ARCHIVE_UNVERIFIED',condition_state=condition_state)
+            _save_registry(store,inventory,states,prior,public,clock)
+        from race_ai.keirin_official_class_evidence import collect_unknown_class_evidence, LABEL
+        if not session.halted and (earliest_frozen_cutoff is None or
+                form._aware(clock())<earliest_frozen_cutoff-timedelta(seconds=240)):
+            try:
+                evidence=collect_unknown_class_evidence(session=session,inventory=inventory,clock=clock,max_classes=4)
+                inventory['unadmitted_class_evidence']=evidence
+                report['class_evidence']=evidence['safe_summary']
+            except (ValueError,KeyError,TypeError,OSError):
+                report['class_evidence_hold']='UNADMITTED_CLASS_EVIDENCE_UNAVAILABLE'
+        classes={}
+        for race in registry['races']:
+            label=_label(inventory,race)
+            label=label if label and (LABEL.fullmatch(label) or label in extension.OBSERVED_CLASSES) else 'UNRECOGNIZED_CLASS_LABEL'
+            classes.setdefault(label,Counter())[states[race['race_id']]['state']]+=1
+        report['class_statuses']=[dict(class_label=label,statuses=dict(sorted(counts.items())))
+                                  for label,counts in sorted(classes.items())]
+        _save_registry(store,inventory,states,prior,public,clock)
+        count=len(report['new_encrypted_originals'])
+        report.update(new_A_B_sealed=count,new_A_B_git_archived=count,
+            new_conditioned_A_B_git_archived=sum('conditioned_cipher_sha256' in row for row in report['new_encrypted_originals']),
+            statuses=dict(sorted(Counter(row['state'] for row in states.values()).items())))
+        report['state']='OFFICIAL_SP_BASELINES_ARCHIVED' if count else 'OFFICIAL_SP_DAY_REGISTERED_WITH_EXPLICIT_HOLDS'
+        finish='PROVIDER_STOPPED' if session.provider_denied else 'PARTIAL'
+        return report
+    finally:
+        report.update(source_requests=session.count,provider_denied=session.provider_denied,
+                      safe_diagnostics=session.safe_diagnostics)
+        session.close()
+        try:lease.finish(state=finish,now=clock())
+        except Exception:
+            # This closes source work, but a receipt failure cannot erase
+            # already archived originals from the independent readback job.
+            report['source_lease_finish_failed']=True
+            report['state']='HOLD_OFFICIAL_SP_FINISH_RECEIPT_FAILED'
+
+
+def run_publish(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,clock=now_utc):
+    repo,root,day,public,commit=_runtime(repo=repo,private_root=private_root,owner_public_pem=owner_public_pem,
+        owner_private_pem=owner_private_pem,day=day,clock=clock,mode='publish')
+    from race_ai.keirin_nationwide_forecast_view import publish_day
+    admitted=records.load_admitted_day(repo,owner_private_pem,day)
+    result=publish_day(repo,admitted,commit,owner_private_pem)
+    need(type(result) is dict and result.get('provider_requests')==0 and result.get('state') in
+         ('KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED','EXISTING_NATIONWIDE_DISPLAY_REUSED'),
+         'PUBLICATION_ACK_INVALID')
+    return dict(result,day_jst=day,source_requests=0,authenticated_originals=len(admitted['records']))
+
+
+class SettlementContext:
+    """One lazily opened source lease for a bounded result observer process."""
+    def __init__(self):
+        self.lease=None;self.session=None;self.tick=0;self.client=None;self.packet_cache={}
+        self.source_day=None;self.closed=False;self.finish_failed=False
+        self.attempted={};self.replay_attempted={};self.published_revisions=set();self.stores={}
+        self.original_day_signatures={};self.original_day_attempted={}
+        self.safe_holds=[]
+
+    def ensure(self,*,repo,private_root,owner_private_pem,clock,commit):
+        need(not self.closed,'RESULT_CONTEXT_CLOSED')
+        day=form._aware(clock()).astimezone(form.JST).date().isoformat()
+        if self.lease is not None:
+            need(self.source_day==day and not self.session.halted,'RESULT_SOURCE_CONTEXT_ENDED')
+            self.lease.assert_active(repo=repo,now=clock())
+            self.session.cache.clear()
+            return self.session
+        self.lease=_begin_lease(repo,owner_private_pem,clock,commit);self.source_day=day
+        self.session=sources.OfficialSourceSession(repo=repo,
+            private_root=capture_files._private_directory(Path(private_root)/'result-sources'),
+            lease=self.lease,clock=clock)
+        return self.session
+
+    def close(self,clock=now_utc):
+        if self.closed:return
+        self.closed=True
+        if self.session is not None:self.session.close()
+        if self.lease is not None:
+            try:self.lease.finish(state='PROVIDER_STOPPED' if self.session and self.session.provider_denied else 'PARTIAL',now=clock())
+            except Exception:self.finish_failed=True
+
+
+def _join_updates(documents):
+    from race_ai import keirin_result_updates as updates
+    latest={}
+    for doc in documents:
+        for row in doc['races']:
+            prior=latest.get(row['race_id'])
+            if prior is None or form._aware(row['observed_at'])>=form._aware(prior['observed_at']):
+                latest[row['race_id']]=row
+    rows=list(latest.values())
+    at=max((form._aware(row['observed_at']) for row in rows),default=datetime(1970,1,1,tzinfo=timezone.utc))
+    return updates.checked_updates(dict(schema=updates.SCHEMA,observed_at=at.isoformat(),races=rows))
+
+
+def _publish_result(repo,doc,commit,private):
+    from race_ai.keirin_result_updates import publish_updates
+    ack=publish_updates(repo,doc,source_commit=commit,owner_private_pem=private)
+    need(type(ack) is dict and ack.get('provider_requests')==0 and ack.get('state') in (
+        'KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED','EXISTING_RESULT_DISPLAY_REUSED'),
+        'RESULT_DISPLAY_ACK_INVALID')
+    return ack
+
+
+def _hold(context,stage,code,race_id=None):
+    # stage/code are local literals; exception text and source values never
+    # become public diagnostics.
+    row=dict(stage=stage,code=code)
+    if race_id is not None:row['race_id']=race_id
+    context.safe_holds.append(row);context.safe_holds=context.safe_holds[-32:]
+
+
+def _known_days(repo,clock,context,days=None):
+    now=form._aware(clock());today=now.astimezone(form.JST).date().isoformat()
+    known=records.discover_days(repo) if days is None else list(days)
+    known=[day for day in known if day<=today]
+    current=[d for d in known if d==today];older=sorted((d for d in known if d!=today),reverse=True)
+    # One bounded backlog opportunity per observer window; current due originals
+    # otherwise stay ahead of yesterday's unresolved publication.
+    return ((older+current) if context.tick and context.tick%10==0 else current+older)[:10]
+
+
+def _store_for_tick(repo,day,context):
+    if day not in context.stores:context.stores[day]=records.RecordStore(repo,day)
+    return context.stores[day]
+
+
+def _refresh_origin_metadata(context):
+    """Refresh mutable run lists without replacing a refusal-latched client."""
+    from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
+    if isinstance(context.client,GitHubEvidenceClient):
+        for path in list(context.client._cache):
+            if path.startswith('/actions/runs/'):
+                del context.client._cache[path]
+    # Immutable artifact downloads and completed packet_cache remain intact.
+
+
+def _recover_saved_originals(repo,private,context,days,commit,publish,report):
+    """Restore at most two saved day displays, before results or any source lease."""
+    if not publish:return
+    from race_ai.keirin_nationwide_forecast_view import publish_day
+    from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
+    candidates=[]
+    for position,day in enumerate(days):
+        store=_store_for_tick(repo,day,context)
+        if store.index['registry'] is None:continue
+        signature=model.digest(dict(registry=store.index['registry'],originals=store.index['originals']))
+        if context.original_day_signatures.get(day)==signature:continue
+        candidates.append((context.original_day_attempted.get(day,0),position,day,signature,store))
+    for _,_,day,signature,store in sorted(candidates)[:2]:
+        context.original_day_attempted[day]=context.tick
+        try:
+            context.client=context.client or GitHubEvidenceClient()
+            admitted=records.load_admitted_day(repo,private,day,origin_client=context.client)
+            ack=publish_day(repo,admitted,commit,private)
+            need(type(ack) is dict and ack.get('provider_requests')==0 and ack.get('state') in (
+                'KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED','EXISTING_NATIONWIDE_DISPLAY_REUSED') and
+                type(ack.get('published_originals')) is int and 0<=ack['published_originals']<=len(admitted['records']) and
+                type(ack.get('published_day_status')) is int and ack['published_day_status'] in (0,1) and
+                (ack['state']!='EXISTING_NATIONWIDE_DISPLAY_REUSED' or
+                 ack['published_originals']==ack['published_day_status']==0),'SAVED_ORIGINAL_DISPLAY_ACK_INVALID')
+            report['published_originals']+=ack['published_originals']
+            report['original_publication_acks']+=1
+            report['published_day_status']+=ack['published_day_status']
+            admitted_ids={row['race_id'] for row in admitted['records']}
+            pending_condition=any(row.get('condition_state') in (
+                'CONDITIONED_ARCHIVED_AWAITING_READBACK','CONDITIONED_ORIGIN_PROOF_PENDING',
+                'CONDITIONED_ARCHIVE_UNVERIFIED') for row in admitted['records'])
+            # A later GitHub readback can become visible without an index
+            # change. Do not cache a partially admitted day as complete.
+            if admitted_ids==set(store.index['originals']) and not pending_condition:
+                context.original_day_signatures[day]=signature
+        except (ValueError,KeyError,TypeError,OSError):
+            report['origin_held']+=1
+            _hold(context,'ORIGINAL_DISPLAY_RECOVERY','SAVED_ORIGINAL_ADMISSION_OR_PUBLICATION_HELD')
+
+
+def _recover_saved_results(repo,private,context,days,commit,publish,documents,report):
+    """Archive success survives a failed/aborted prior publication, without I/O to sources."""
+    attempts=0
+    for day in days:
+        store=_store_for_tick(repo,day,context)
+        candidates=sorted(store.index['results'].items(),key=lambda item:(
+            context.replay_attempted.get((day,item[0]),0),item[0]))
+        for rid,versions in candidates:
+            meta=versions[-1];key=(day,rid,meta['evidence_sha256'])
+            if key in context.published_revisions:continue
+            if attempts>=8:return
+            attempts+=1;context.replay_attempted[(day,rid)]=context.tick
+            stage='SAVED_RESULT_REPLAY'
+            try:
+                doc=records.replay_saved_result(store,store.index['originals'][rid],meta,private)
+                documents.append(doc)
+                if publish:
+                    stage='RESULT_PUBLICATION';ack=_publish_result(repo,doc,commit,private)
+                    report['published_races']+=ack['published_races'];report['publication_acks']+=1
+                context.published_revisions.add(key)
+            except (ValueError,KeyError,TypeError,OSError):
+                report['origin_held']+=1
+                _hold(context,stage,'SAVED_RESULT_REPLAY_OR_PUBLICATION_HELD',rid)
+
+
+def _pending_originals(repo,private,clock,context,max_races,days=None):
+    from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
+    now=form._aware(clock());selected=_known_days(repo,clock,context,days)
+    context.client=context.client or GitHubEvidenceClient()
+    out=[];held=0;attempts=0
+    for day in selected:
+        store=_store_for_tick(repo,day,context)
+        # Unobserved order checks take priority over unit-only retries. Within
+        # each class the least recently attempted row prevents starvation.
+        candidates=sorted(store.index['originals'].items(),key=lambda item:(
+            bool(store.index['results'].get(item[0])),context.attempted.get((day,item[0]),0),
+            item[1]['cutoff_at'],item[0]))
+        for rid,meta in candidates:
+            if len(out)>=max_races or attempts>=32:return out,held
+            if form._aware(meta['cutoff_at'])>=now:continue
+            previous=store.index['results'].get(rid,[])
+            if previous and previous[-1]['monetary_complete']:continue
+            attempts+=1;context.attempted[(day,rid)]=context.tick
+            try:
+                payload=store.read(meta,private)
+                original,packets=records.admit_original(store,payload,private,
+                    origin_client=context.client,packet_cache=context.packet_cache)
+                out.append(dict(store=store,meta=meta,payload=payload,original=original,packets=packets))
+            except (ValueError,KeyError,TypeError,OSError):
+                held+=1;_hold(context,'ORIGINAL_ADMISSION','ORIGINAL_SOURCE_OR_SERVER_ORIGIN_UNVERIFIED',rid)
+    return out,held
+
+
+def settle_tick(*,repo,owner_private_pem,private_root,clock=now_utc,max_races=8,
+                context=None,days=None,publish=True,source_commit=None):
+    """One bounded SP poll. No source lease is opened when nothing is due."""
+    need(type(max_races) is int and 1<=max_races<=8,'RESULT_RACE_BOUND')
+    public=pipeline.check_owner_private_key(owner_private_pem)
+    commit=source_commit or os.environ['GITHUB_SHA']
+    need(archive.COMMIT.fullmatch(commit),'RESULT_CODE_IDENTITY')
+    owned=context is None;context=context or SettlementContext();context.tick+=1
+    context.stores={};context.safe_holds=[]
+    _refresh_origin_metadata(context)
+    report=dict(state='NO_DUE_ADMITTED_OFFICIAL_ORIGINALS',source_requests=0,provider_denied=False,
+        source_unavailable=False,no_provider_tick=True,origin_held=0,settled_races=0,
+        published_races=0,publication_acks=0,published_originals=0,original_publication_acks=0,
+        published_day_status=0,safe_diagnostics=[],safe_holds=[],updates=None)
+    documents=[];before=context.session.count if context.session else 0
+    try:
+        known=_known_days(repo,clock,context,days)
+        _recover_saved_originals(repo,owner_private_pem,context,known,commit,publish,report)
+        _recover_saved_results(repo,owner_private_pem,context,known,commit,publish,documents,report)
+        pending,held=_pending_originals(repo,owner_private_pem,clock,context,max_races,known)
+        report['origin_held']+=held
+        if not pending:
+            if report['publication_acks'] or report['original_publication_acks']:
+                report['state']='OFFICIAL_SP_SAVED_RESULT_UPDATES_PUBLISHED'
+            return report
+        session=context.ensure(repo=repo,private_root=private_root,owner_private_pem=owner_private_pem,
+                               clock=clock,commit=commit)
+        report['no_provider_tick']=False;inventories={}
+        for item in pending:
+            store,original=item['store'],item['original'];day=store.day;rid=original['race_id']
+            if session.halted:break
+            if day not in inventories:
+                prior=[]
+                if store.index['registry']:
+                    prior=records.replay_registry(store.read(store.index['registry'],owner_private_pem))['registered_race_ids']
+                inventories[day]=extension.collect_day_inventory(request=session.request,clock=clock,
+                    event_day=day,prior_race_ids=prior)
+            inventory=inventories[day]
+            if inventory['registry'] is None or session.halted:
+                _hold(context,'DAY_RESULT_NAVIGATION','OFFICIAL_DAY_NAVIGATION_UNAVAILABLE',rid)
+                break
+            stage='OFFICIAL_FINAL_RESULT'
+            try:
+                capture=sources.collect_final(session=session,inventory=inventory,original=original,clock=clock)
+                stage='ORIGINAL_AND_RESULT_COMPARISON'
+                raw,adjusted=records.archived_original(store,item['payload'])
+                scored=records.compare_result(original=original,payload=item['payload'],raw_baseline=raw,
+                    raw_conditioned=adjusted,packets=item['packets'],final_capture=capture)
+                previous=store.index['results'].get(rid,[])
+                if previous:
+                    prior=store.read(previous[-1],owner_private_pem)
+                    same=(prior['scored']['official_result']['source_sha256']==scored['official_result']['source_sha256'] and
+                          prior['scored']['monetary_comparison_eligible']==scored['monetary_comparison_eligible'])
+                    if same:
+                        doc=records.replay_saved_result(store,item['meta'],previous[-1],owner_private_pem)
+                        documents.append(doc)
+                        if publish:
+                            stage='RESULT_PUBLICATION'
+                            ack=_publish_result(repo,doc,commit,owner_private_pem)
+                            report['published_races']+=ack['published_races'];report['publication_acks']+=1
+                        context.published_revisions.add((day,rid,previous[-1]['evidence_sha256']))
+                        continue
+                saved=dict(schema=records.RESULT_SCHEMA,day_jst=day,race_id=rid,
+                    producer_run_id=os.environ['GITHUB_RUN_ID'],producer_commit=commit,
+                    original_evidence_sha256=item['meta']['evidence_sha256'],origin_packets=item['packets'],
+                    final_capture=capture,scored=scored,safe_report=dict(day_jst=day,
+                        state='OFFICIAL_SP_RESULT_SCORED',order_comparable_races=1,
+                        paired_comparable_races=int(scored['comparison'] is not None)))
+                stage='ENCRYPTED_RESULT_ARCHIVE'
+                meta=store.append(kind='result',payload=saved,public_pem=public,observed_at=clock(),
+                    race_id=rid,monetary_complete=scored['monetary_comparison_eligible'])
+                # The encrypted archive/readback precedes every publication.
+                doc=records.result_updates(original,scored,capture);documents.append(doc)
+                report['settled_races']+=1
+                if publish:
+                    stage='RESULT_PUBLICATION'
+                    ack=_publish_result(repo,doc,commit,owner_private_pem)
+                    report['published_races']+=ack['published_races'];report['publication_acks']+=1
+                context.published_revisions.add((day,rid,meta['evidence_sha256']))
+            except (ValueError,KeyError,TypeError,OSError) as error:
+                code=('OFFICIAL_RESULT_NOT_YET_PUBLISHED' if type(error) is sources.SourceError and
+                      str(error)=='OFFICIAL_CONTINUATION_RESULT_NOT_PUBLISHED' else 'RESULT_STAGE_VALIDATION_OR_OPERATION_HELD')
+                _hold(context,stage,code,rid)
+                if session.halted:break
+                report['origin_held']+=1
+        report['state']='OFFICIAL_SP_RESULT_POLL_COMPLETE'
+        if session.halted:report['state']='HOLD_OFFICIAL_SP_PROVIDER_STOP' if session.provider_denied else 'HOLD_OFFICIAL_SP_SOURCE_UNAVAILABLE'
+        return report
+    except Exception:
+        report['state']='HOLD_OFFICIAL_SP_RESULT_GATE_OR_SOURCE_FAILED'
+        report['source_unavailable']=True
+        _hold(context,'RESULT_GATE_OR_SOURCE','CONTINUATION_OR_SAVED_ARCHIVE_UNAVAILABLE')
+        return report
+    finally:
+        if context.session is not None:
+            report.update(source_requests=context.session.count-before,provider_denied=context.session.provider_denied,
+                source_unavailable=report['source_unavailable'] or context.session.halted and not context.session.provider_denied,
+                safe_diagnostics=context.session.safe_diagnostics)
+        report['updates']=_join_updates(documents) if documents else None
+        report['safe_holds']=context.safe_holds
+        if owned:context.close(clock)
+
+
+def replay_results(*,repo,owner_private_pem,day,source_commit,publish=True):
+    """Explicit saved-only path; does not create transport, source lease or model."""
+    pipeline.check_owner_private_key(owner_private_pem)
+    store=records.RecordStore(repo,day);documents=[];held=0;written=acks=0
+    original_count=original_acks=day_status=0
+    if publish:
+        try:
+            from race_ai.keirin_nationwide_forecast_view import publish_day
+            admitted=records.load_admitted_day(repo,owner_private_pem,day)
+            original_ack=publish_day(repo,admitted,source_commit,owner_private_pem)
+            need(original_ack.get('provider_requests')==0 and original_ack.get('state') in
+                ('KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED','EXISTING_NATIONWIDE_DISPLAY_REUSED'),
+                'SAVED_ORIGINAL_PUBLICATION_ACK_INVALID')
+            original_count=original_ack['published_originals'];day_status=original_ack['published_day_status']
+            original_acks=1
+        except (ValueError,KeyError,TypeError,OSError):held+=1
+    for rid,versions in sorted(store.index['results'].items()):
+        try:
+            doc=records.replay_saved_result(store,store.index['originals'][rid],versions[-1],owner_private_pem)
+            documents.append(doc)
+            if publish:
+                ack=_publish_result(repo,doc,source_commit,owner_private_pem)
+                written+=ack['published_races'];acks+=1
+        except (ValueError,KeyError,TypeError,OSError):held+=1
+    return dict(state='OFFICIAL_SP_SAVED_RESULTS_REPLAYED',source_requests=0,provider_requests=0,
+        published_races=written,publication_acks=acks,results_held=held,
+        published_originals=original_count,original_publication_acks=original_acks,published_day_status=day_status,
+        updates=_join_updates(documents) if documents else None)
+
+
+def run_settle(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,clock=now_utc,max_races=8):
+    repo,root,day,public,commit=_runtime(repo=repo,private_root=private_root,owner_public_pem=owner_public_pem,
+        owner_private_pem=owner_private_pem,day=day,clock=clock,mode='settle')
+    out=settle_tick(repo=repo,owner_private_pem=owner_private_pem,private_root=root,clock=clock,
+                    max_races=max_races,days=[day],source_commit=commit)
+    out.pop('updates',None)
+    return dict(out,day_jst=day)
+
+
+def main(argv=None):
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('mode',choices=('capture','publish','settle'))
+    parser.add_argument('--repo',required=True);parser.add_argument('--private-root',required=True)
+    parser.add_argument('--owner-public-pem',required=True);parser.add_argument('--report',required=True)
+    parser.add_argument('--day');parser.add_argument('--max-races',type=int,default=4)
+    args=parser.parse_args(argv);code=0
+    try:
+        root=capture_files._private_directory(args.private_root)
+        target=Path(args.report).absolute();need(target==root/'safe'/'summary.json','SAFE_REPORT_PATH')
+        capture_files._private_directory(target.parent)
+        options=dict(repo=args.repo,private_root=root,owner_public_pem=args.owner_public_pem,
+            owner_private_pem=os.getenv('RACE_AI_KEIRIN_PRIVATE_RSA_PEM','').encode(),day=args.day)
+        if args.mode=='capture':report=run_capture(**options,max_races=args.max_races)
+        elif args.mode=='publish':report=run_publish(**options)
+        else:report=run_settle(**options,max_races=args.max_races)
+    except Exception:
+        day=args.day or now_utc().astimezone(form.JST).date().isoformat()
+        report=_summary(day,'HOLD_OFFICIAL_CONTINUATION_RUNTIME_OR_CONTRACT_FAILED');code=2
+    try:
+        root=capture_files._private_directory(args.private_root);target=Path(args.report).absolute()
+        need(target==root/'safe'/'summary.json','SAFE_REPORT_PATH')
+        capture_files._private_directory(target.parent)
+        capture_files._save_once(target,history._canonical(report))
+    except Exception:
+        print('{"state":"HOLD_OFFICIAL_CONTINUATION_SAFE_REPORT_FAILED"}');return 2
+    print(json.dumps(report,sort_keys=True));return code
+
+
+if __name__=='__main__':raise SystemExit(main())

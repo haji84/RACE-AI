@@ -76,7 +76,8 @@ def checked_entry(entry):
     need(type(entry) is dict, 'ENTRY')
     if entry.get('kind') == 'result': fields = fields | {'result_revisions'}
     if entry.get('kind') == 'canary-original': fields = fields | {'original_revisions'}
-    need(set(entry)==fields and entry['kind'] in {'import','research','archive','result','results','canary-original'},'ENTRY')
+    if entry.get('kind') == 'nationwide': fields = fields | {'day_revision','original_revisions','registered_race_ids'}
+    need(set(entry)==fields and entry['kind'] in {'import','research','archive','result','results','canary-original','nationwide'},'ENTRY')
     for name in ('cipher_sha256','source_content_sha256'):
         need(type(entry[name]) is str and re.fullmatch('[a-f0-9]{64}',entry[name]),'ENTRY_HASH')
     need(len(unb64(entry['ephemeral_public_key']))==65 and len(unb64(entry['salt']))==32,'ENTRY_ECDH')
@@ -93,6 +94,13 @@ def checked_entry(entry):
              not captured and not priority, 'RESULT_REVISIONS')
         _ids(list(revisions))
         need(all(type(v) is str and re.fullmatch('[a-f0-9]{64}',v) for v in revisions.values()), 'RESULT_REVISIONS')
+    if entry['kind'] == 'nationwide':
+        from .keirin_nationwide_forecast_view import _day, _ids as day_ids, checked_identities
+        need(len(entry['days']) == 1 and not captured and not priority and
+             type(entry['day_revision']) is str and re.fullmatch('[a-f0-9]{64}',entry['day_revision']), 'NATIONWIDE_ENTRY')
+        day = _day(entry['days'][0]); day_ids(entry['registered_race_ids'], day)
+        checked_identities(entry['original_revisions'], day)
+        need(set(entry['original_revisions']) <= set(entry['registered_race_ids']), 'NATIONWIDE_ORIGINAL_SCOPE')
     return entry
 
 
@@ -133,6 +141,19 @@ def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=No
             path.split('/')[1] in note['dates'] for path in note['files']),'RESULTS_ONLY_FILES')
     result_revisions = {}
     original_revisions = {}
+    if kind == 'nationwide':
+        from .keirin_nationwide_forecast_view import checked_day, public_identities, MAX_FILE_BYTES
+        need(not captured_ids and not priority_ids and type(note.get('files')) is dict and
+             len(note['files']) == 1 and len(note['dates']) == 1, 'NATIONWIDE_DISPLAY_ONLY')
+        path, value = next(iter(note['files'].items()))
+        need(path == 'data/'+note['dates'][0]+'/nationwide_forecasts.json', 'NATIONWIDE_DISPLAY_ONLY')
+        raw = value['text'].encode('utf-8')
+        need(len(raw) <= MAX_FILE_BYTES and value['sha256'] == sha256(raw).hexdigest() and
+             value['bytes'] == len(raw), 'NATIONWIDE_BYTES')
+        day = checked_day(json.loads(raw)); need(day['day_jst'] == note['dates'][0], 'NATIONWIDE_DAY')
+        day_revision, registered_ids = day['revision'], [r['race_id'] for r in day['races']]
+        original_revisions = public_identities(day)
+        note = dict(note, nationwide_private_nonce=b64(os.urandom(32)))
     if kind == 'canary-original':
         from .keirin_frozen_forecast_view import checked_forecasts
         need(not captured_ids and not priority_ids and type(note.get('files')) is dict and
@@ -183,6 +204,9 @@ def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=No
         captured_race_ids=_ids(list(captured_ids)),priority_window_race_ids=_ids(list(priority_ids)))
     if kind == 'result': entry_values['result_revisions'] = result_revisions
     if kind == 'canary-original': entry_values['original_revisions'] = original_revisions
+    if kind == 'nationwide':
+        entry_values.update(day_revision=day_revision, original_revisions=original_revisions,
+                            registered_race_ids=registered_ids)
     entry=checked_entry(entry_values)
     return dict(entry=entry,cipher=wire)
 
@@ -216,7 +240,7 @@ def append_index(previous,recipient,*,entry=None,denied=False,result_checks=None
     # Publishing an already captured result does not issue a provider request.
     # Input acquisition remains latched in cycle(); this never clears the latch.
     need(not doc['provider_denied'] or entry is None or
-         entry.get('kind') in {'result','canary-original'}, 'PREVIOUS_PROVIDER_DENIAL_NO_RETRY')
+         entry.get('kind') in {'result','canary-original','nationwide'}, 'PREVIOUS_PROVIDER_DENIAL_NO_RETRY')
     if entry is not None:
         checked_entry(entry);need(entry['cipher_sha256'] not in {r['cipher_sha256'] for r in doc['entries']},'DUPLICATE_ENTRY')
         doc['entries'].append(entry)

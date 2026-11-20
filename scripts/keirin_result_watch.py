@@ -167,6 +167,60 @@ def _content_identity(doc):
                             separators=(',', ':')).encode()).hexdigest()
 
 
+def _official_sp_context():
+    return (os.getenv('GITHUB_ACTIONS')=='true' and
+        os.getenv('GITHUB_REPOSITORY_ID')=='1416489937' and
+        os.getenv('GITHUB_WORKFLOW_REF')==
+            'haji84/RACE-AI/.github/workflows/keirin-result-live.yml@refs/heads/main' and
+        os.getenv('GITHUB_JOB')=='observe-results')
+
+
+def _run_official_sp_watch(*,summary,repo,root,private,commit,clock,monotonic,sleep,
+                          interval_seconds,duration_seconds,max_ticks):
+    from scripts import keirin_official_nationwide_continuation as continuation
+    context=continuation.SettlementContext();last_state=None
+    def stop_check():
+        if context.lease is not None:
+            try:context.lease.assert_active(repo=repo,now=clock())
+            except Exception:
+                summary['stop_check_failed']=True
+                raise ResultWatchError('RESULT_WATCH_OFFICIAL_SP_STOP_CHECK_FAILED') from None
+        return False
+    def tick():
+        nonlocal last_state
+        out=continuation.settle_tick(repo=repo,owner_private_pem=private,private_root=root,
+            clock=clock,max_races=RESULT_RACE_BUDGET,context=context,publish=True,source_commit=commit)
+        last_state=out['state']
+        summary['provider_requests']+=out['source_requests']
+        summary['published_races']+=out['published_races']
+        summary['publication_acks']+=out['publication_acks']
+        summary['published_originals']+=out.get('published_originals',0)
+        summary['original_publication_acks']+=out.get('original_publication_acks',0)
+        summary['published_day_status']+=out.get('published_day_status',0)
+        summary['published_snapshots']+=int(out['published_races']>0)
+        summary['provider_denied']=out['provider_denied']
+        summary['source_unavailable']=out['source_unavailable']
+        summary['safe_diagnostics']=out['safe_diagnostics'][-32:]
+        summary['safe_holds']=out.get('safe_holds',[])[-32:]
+        # settle_tick publishes each captured, archived race immediately. The
+        # controller only bounds the next poll; no private result enters this
+        # summary or waits for the whole observation window to end.
+        return dict(snapshot=None,provider_denied=out['provider_denied'],done=out['source_unavailable'])
+    try:
+        observed=run_observer(tick=tick,publish=lambda _:None,stop_check=stop_check,
+            monotonic=monotonic,sleep=sleep,interval_seconds=interval_seconds,
+            duration_seconds=duration_seconds,max_ticks=max_ticks)
+    finally:context.close(clock)
+    for key in ('state','ticks','done'):summary[key]=observed[key]
+    summary['no_provider_tick']=summary['provider_requests']==0
+    summary['source_route']='OFFICIAL_SP_VERIFIED_CONTINUATION'
+    summary['source_lease_finish_failed']=context.finish_failed
+    if last_state and last_state.startswith('HOLD_'):summary['state']=last_state
+    if summary['stop_check_failed']:summary['state']='HOLD_RESULT_WATCH_OFFICIAL_SP_STOP_CHECK_FAILED'
+    if context.finish_failed:summary['state']='HOLD_RESULT_WATCH_OFFICIAL_SP_FINISH_RECEIPT_FAILED'
+    return summary
+
+
 def run_watch(*, repo, mode, private_root, owner_public_path, owner_private_pem,
               clock=None, monotonic=None, sleep=None, interval_seconds=60,
               duration_seconds=540, max_ticks=10, source_commit=None):
@@ -191,13 +245,17 @@ def run_watch(*, repo, mode, private_root, owner_public_path, owner_private_pem,
         owner_private_pem=owner_private_pem, clock=clock, source_commit=source_commit)
     summary = dict(schema=SCHEMA, mode=mode, day_jst=at.astimezone(JST).date().isoformat(),
         state='RESULT_WATCH_SAVED_COMPLETE', ticks=0, publication_acks=0,
-        published_snapshots=0, published_races=0, published_originals=0,
+        published_snapshots=0, published_races=0, published_originals=0,published_day_status=0,
         original_publication_acks=0, provider_denied=False,
         no_provider_tick=True, provider_requests=0, days_visited=[], days_held=0,
         stop_check_failed=False, source_unavailable=False, safe_diagnostics=[], done=False,
         target_interval_seconds=interval_seconds, result_race_budget=RESULT_RACE_BUDGET,
         current_day_priority=True, backlog_check_every_ticks=BACKLOG_EVERY_TICKS,
         due_current_originals=None)
+    if mode=='observe' and _official_sp_context():
+        return _run_official_sp_watch(summary=summary,repo=repo,root=root,private=owner_private_pem,
+            commit=commit,clock=clock,monotonic=monotonic,sleep=sleep,interval_seconds=interval_seconds,
+            duration_seconds=duration_seconds,max_ticks=max_ticks)
     if mode == 'observe' and not (
             os.getenv('RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED') == 'true' and
             os.getenv('RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED') == 'true'):
@@ -334,6 +392,26 @@ def run_watch(*, repo, mode, private_root, owner_public_path, owner_private_pem,
             summary['published_snapshots'] += 1
 
     if mode == 'saved-only':
+        if _official_sp_context():
+            # This scope has a separate bounded evidence index. Restoring it
+            # never enables the legacy provider or consumes a source lease.
+            from race_ai import keirin_official_nationwide_records as sp_records
+            from scripts import keirin_official_nationwide_continuation as continuation
+            try:
+                for day in sp_records.discover_days(repo)[:10]:
+                    replay=continuation.replay_results(repo=repo,owner_private_pem=owner_private_pem,
+                        day=day,source_commit=commit,publish=True)
+                    summary['published_races']+=replay['published_races']
+                    summary['publication_acks']+=replay['publication_acks']
+                    summary['published_originals']+=replay.get('published_originals',0)
+                    summary['original_publication_acks']+=replay.get('original_publication_acks',0)
+                    summary['published_day_status']+=replay.get('published_day_status',0)
+                    summary['published_snapshots']+=int(replay['published_races']>0)
+                    summary['days_held']+=replay['results_held']
+                    if day not in summary['days_visited']:summary['days_visited'].append(day)
+            except Exception:
+                summary['days_held']+=1
+                summary['state']='HOLD_RESULT_WATCH_OFFICIAL_SP_SAVED_REPLAY_FAILED'
         try:
             selected_days = days()
         except Exception:
