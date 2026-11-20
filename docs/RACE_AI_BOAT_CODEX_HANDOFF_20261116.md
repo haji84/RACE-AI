@@ -419,3 +419,10 @@ M2部分監査は1〜7巡/17原本、追加P1の9行表示データ一致9/欠�
 [実行と範囲](evidence/boat-actual-profile-gate-archive-aes-20261117.json)。
 次は候補UI598の実Mac受入。既存workflow416758725のbrowser=native-safariを使い、新job/配信を増やさない。
 64件/独立レビュー済み3fileを既存PR58へ保存。実Mac/iPhone/全8参考/実dataは実行まで未確認。
+
+## 2026-11-21 継続：実停止を再監査し、observer/既存Pages検証を修正
+
+基準main28e、BOAT S1dbbは不変。最新owner44656378586は新巡回0/24skipで、真正controlはSOURCE_AUTHORIZATION_REQUIRED/403/attempts1。成功jobを予想成功へ変換しない。run44766623468の当日分母はnullのままSOURCE_WAIT。
+既存Pagesの旧full-app固定による実HTTP失敗を、元forecast/cipher/core/scorer/cryptoを保全した現行保護mainの全JS/CSS照合へ修正した。前向きobserverでは古いrun.updated_atだけで新記録を落とす判定を除き、recordごとの認証・登録期間・原本・scorerは維持する。
+所有競輪ガイドの132過去レースは実二社結果128一致/4HOLD、別表示鍵で暗号化/WebCrypto読戻し成功。BOAT正式成績/学習改善/4競技全日へ足さない。
+修正候補f2f9c82dの既存PR291で統合/実運転を続け、最新のrun・検査・未達は[最新状況](RACE_AI_LATEST_STATUS.md)と[実監査](evidence/race-ai-goal-continuation-20261121/README.md)を正本とする。物理iPhone・独立6艇校正・11/24終了前向き改善は未完了。新PR/モデル系統/課金/投票/本番weights変更/元offline2commit復元の架空宣言はしない。

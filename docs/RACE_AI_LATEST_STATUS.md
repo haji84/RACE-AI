@@ -1,3 +1,26 @@
+# 2026-11-21 01:48 JST｜競輪132件の結果を実照合、配信と前向き監査の不具合を修正（GOAL未達）
+
+本人の「全部完了させて」を受け、実装・検査・実取得を継続する。以下が最新の検証時点で、下段は以前の記録として保持する。コード候補 **f2f9c82d2e9d9306b8e97824e58f7674c2257e6b**、基準main **28e726d463e761ec2102c191adb567cf4f469086**。統合後の実HEAD/CI/運転読戻しは[既存PR291](https://github.com/haji84/RACE-AI/pull/291)へ記録する。
+
+- **実結果の照合**：所有ガイドの11/19 **75件**・11/20 **57件**、合計132レースを通常のKdreams/netkeirin取得で確認した。二社一致 **128件**、特殊払戻等の正式確認待ち3件・取得失敗1件の **4件はHOLD**。前半103要求で48件、後半184要求で84件を確認し、403/429は0。これは所有ガイド対象の過去二日であり、現在の全国全件・4競技・全モデルの完走ではない。[実取得](evidence/race-ai-goal-continuation-20261121/real-result-tail.json)。
+- **暗号化して端末内照合**：別の表示専用P-256受取人へ結果2packetを暗号化し、実WebCryptoで132件のfile/cipher binding、元予想の不変、128一致/4保留を確認した。参考A/Bで比較できるのは53レース×2=106行。原本の全点数・各100円の研究比較で、Hit@8・公式認証・学習効果・実購入とはしない。これは記録時点ではlocal暗号文読戻しであり、Git保存/実Actionsの完了を先取りしない。[実暗号化読戻し](evidence/race-ai-goal-continuation-20261121/real-sealed-readback.json)。
+- **継続処理の修正**：新しい締切前予想を先に保存し、その後で過去日結果を照合する。新規予想0件・日付跨ぎでも結果照合を続け、元予想と結果改訂を別保存する。独立reviewで見つかった「過去日発見だけで時間切れ」「入力collector例外時の拒否ラッチ消失」は実再現→修正→独立再検査で解消した。拒否後の追加GETは0。取得総数/日数の切捨て上限は設けず、既存budgetで日・会場を公平に巡回する。
+- **Pages検証の修正**：承認済み競輪ガイド追加後に、旧f603の全app byteへ固定していたHTTP検証がrun **44738980224/job136297904822** で失敗した。元forecast identity/全cipher履歴/BOAT core・scorer・cryptoと資産pathを固定したまま、保護mainの現行JS/CSS全件とGit/manifest/HTTPを照合する方式へ修正。現在の旧main28eとPages e787を実HTTPで14資産一致確認し、異なる配備/改変manifest/未承認codeを拒否した。BOAT producerには変更しない。
+- **前向きobserverの修正**：長時間producerの古いrun.updated_atだけで、新しい正規recordを落とすshortcutを削除した。実AESを使う回帰と独立検査が成功。各recordの時計/登録/締切・固定study・採点器・閾値は変えず、失われた新規原本や精度改善を作り出さない。
+- **検査と保全**：rootのbackend66、Node23、Chromium11（320/390/1440）、Pages/既存guard23、新規observer回帰1が成功。独立backend59・client5browser/22uniqueNode・observer関連90も成功し、重大未解決0。実暗号化feedでも132件表示、JS例外0・鍵送信0・providerブラウザーGET0を確認。実機iPhoneではない。既存PR291の元head **f06b15aee0c6d615deed9dceda8cbdfe41042c98** と213変更pathをGit親/manifestへ保存し、古いtreeを再適用せず新PRを作らない。[review/検査](evidence/race-ai-goal-continuation-20261121/README.md)。
+
+| 残るGOAL | 現在の実証と不足 |
+| --- | --- |
+| WINTICKET自身の403解除 | 最新確認run44728334291/job136261471157は11/20 20:32:53 JST、最初の通常 `/keirin/racecard/` GETで403、解析前。本人iPhone Safariでは表示するが、具体的原因と正規automation接続条件は未確定。別入力の200をWT解除とはしない。 |
+| 4競技全件・T15生成保存・結果 | 最新BOAT owner44656378586は新巡回0/GET0/24skip、真正controlは AUTHORIZATION_WAIT/SOURCE_AUTHORIZATION_REQUIRED/403/attempts1。最新結果44766623468も当日分母null/SOURCE_WAIT。formal競輪は不足入力で予想0、AUTO/HORSE全国継続運転は未実証。Noteでは33件の締切前生成/保存、うち同一T15〜10窓1件を過去run44683039940で確認済みだが、正式全モデルと区別する。 |
+| 6艇識別・校正・予想接続 | 実775frame/7選定frameのAI開発参照では6艇同時正解0/7、適格ID遷移0。独立した時間方向ラベル、距離/時計のcheck点、強さの正解targetがない。未校正の強さやAI参照を合格へ変換しない。 |
+| 前向き精度改善 | 登録済み期間は11/19 12:15:30〜11/24 12:15:30 JST。最後の有効reportはmatched0、必要100組/5日/10会場日未達。終了を早めず、旧574組で埋めず、結果を見る前の新規原本を要する。 |
+| iPhone13Pro実受入 | 接続実機はなくRACE-AI本人操作の返答は未確認。Chrome・Mac SafariやWT一覧の表示を実機合格へ置換しない。 |
+
+[正確な実run/artifact/件数とnullの監査](evidence/race-ai-goal-continuation-20261121/actual-goal-audit.json)。BOAT **S=1dbb47b68d487fc6def0bd4b10b1423f0a2145f6**・counter・stop・source/model pinsを保全し、直接dispatch/rerun/cancel/reset/hotswapは0。本番重み切替・投票・追加課金・state keyのlocal取得/使用0。元offline未push **b7380fe6a377e6ccf2b96331f2126c52549bbe17 / daae4c10167224b7730006d8ada5ade398aaa64b はUNRESTORED**。別環境ファイルの自動移転は仮定しない。
+
+以下は以前の記録。
+
 # 2026-11-20 JST｜提供された競輪ガイドをGitHubへ取り込み、既存画面で実読取りを確認
 
 本人の『取り込んで、GitHubに取り込んで使える画面にして、入力元も同じようにして。』に従い、同じRACE-AIに統合する。以下を最新として優先し、下段は当時の記録として保持する。

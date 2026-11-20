@@ -1,0 +1,26 @@
+{
+  "status": "REAL_PYTHON_P256_TO_WEBCRYPTO_RESULT_JOIN_VERIFIED",
+  "source_races": 132,
+  "secondary_matched": 128,
+  "held": 4,
+  "verified_result_bindings": 132,
+  "comparable_model_race_rows": 106,
+  "original_forecasts_unchanged": true,
+  "private_plaintext_uploaded": false,
+  "production_state_key_used": false,
+  "result_published": false,
+  "code_source_commit": "f2f9c82d2e9d9306b8e97824e58f7674c2257e6b",
+  "observed_at_utc": "2026-11-20T16:47:52.538749+00:00",
+  "encrypted_result_packets": [
+    {
+      "cipher_sha256": "19dc3f3aad2d00fadc242748c17708883e97e69d5777a64856b5ea7762468870",
+      "source_content_sha256": "7cf1c463c68b6c3cdb8c4edf4c277b83ba585173aca9ce4c681a8ebef9d114ba",
+      "bytes": 5748004
+    },
+    {
+      "cipher_sha256": "08778c013da862835d4823e58cd4ed59231d8b5cc459890cd1c2cc2c2dee1090",
+      "source_content_sha256": "70ea7900886d1d7a62dbac093277b5c5be5d5b07bd7cb749f4d947b130338212",
+      "bytes": 10200160
+    }
+  ]
+}
