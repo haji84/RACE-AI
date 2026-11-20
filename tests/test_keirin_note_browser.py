@@ -303,10 +303,12 @@ class NoteBrowserTests(unittest.TestCase):
                                    buffer=canonical(packet('新しい架空会場'))))
         self.loaded()
         self.assertIn('新しい架空会場', self.page.locator('.kn-race h2').inner_text())
+        self.assertEqual(field.input_value(), '')
         self.page.evaluate('window.__releaseOldImport()')
         self.page.wait_for_function('() => window.__oldImportCompleted===true')
         self.assertIn('新しい架空会場', self.page.locator('.kn-race h2').inner_text())
         self.assertEqual(self.external, [])
+        self.assertEqual(self.errors, [])
 
     def test_clear_invalidates_a_delayed_independent_feed_decode(self):
         fixture = json.dumps(packet(), ensure_ascii=False)
@@ -593,6 +595,7 @@ class NoteBrowserTests(unittest.TestCase):
             mimeType='application/json', buffer=canonical(value)))
         self.loaded()
         self.assertIn('締切前に保存した予想', self.page.locator('.kn-live-result').inner_text())
+        self.assertEqual(self.page.locator('#kn-file').input_value(), '')
         for name,tickets in expected.items():
             panel = self.page.locator(f'[data-result-arm="{name}"]')
             self.assertEqual(panel.locator(f'[data-frozen-arm="{name}"] li').count(), len(tickets))

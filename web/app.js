@@ -2781,7 +2781,15 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       <footer class="kn-footer"><p>個別分析・改訂・参考A/Bはそれぞれの保存原本を保持します。参考Cの未生成も表示します。参考モデルの重みは校正済み確率ではありません。</p><p>画面での選択と配分は購入候補です。投票・決済は行いません。データと本人用リンクの鍵は外部へ送信しません。</p><p id="kn-provenance"></p></footer></div>
       <div class="kn-selection"><div><strong id="kn-selection-count">検討リスト 0件</strong><small>候補・配分の試算</small></div><button id="kn-copy-selection" type="button">検討リストをコピー</button></div>`;
     $('kn-close').addEventListener('click',()=>dialog.close());
-    $('kn-file').addEventListener('change',async event=>{const file=event.target.files?.[0];if(!file)return;const version=beginLoad();try{if(file.size>64*1024*1024)throw Error();note('保存データを確認しています。');await accept(await M.openPacket(JSON.parse(await file.text())),version);}catch{if(version===loadVersion)note('保存データを開けませんでした。形式と原本の整合を確認してください。',true);}if(version===loadVersion)event.target.value='';});
+    $('kn-file').addEventListener('change',async event=>{
+      // Shadow-tree event targets are cleared after dispatch. Keep the input
+      // itself before awaiting file reads so the completed import can reset it.
+      const input=event.currentTarget,file=input.files?.[0];if(!file)return;
+      const version=beginLoad();
+      try{if(file.size>64*1024*1024)throw Error();note('保存データを確認しています。');await accept(await M.openPacket(JSON.parse(await file.text())),version);}
+      catch{if(version===loadVersion)note('保存データを開けませんでした。形式と原本の整合を確認してください。',true);}
+      if(version===loadVersion)input.value='';
+    });
     $('kn-clear').addEventListener('click',()=>{beginLoad();data=null;currentDay='';preferences.clear();selected.clear();expanded.clear();if(/^#(?:note|notefeed)=/.test(location.hash)){history.replaceState(null,'',location.pathname+location.search);window.RaceNoteInitialFragment='';}render();note('読込データを消去しました。');});
     $('kn-market').addEventListener('change',event=>{market=event.target.value;renderCards();});
     $('kn-variant').addEventListener('change',event=>{variant=event.target.value;renderCards();});
