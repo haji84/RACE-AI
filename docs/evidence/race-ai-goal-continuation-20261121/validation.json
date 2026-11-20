@@ -40,5 +40,13 @@
   "app_sha256": "6ffb2ad7882d456e14e385d7876e02be7bd49b7d2e564873f59fb5ba6a953a87",
   "style_sha256": "7c78086241e82721df8e56e5f59153e3c66648ca0a925a4fd5bff19a0b36d893",
   "production_source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
-  "live_source_or_accuracy_proven_by_fixtures": false
+  "live_source_or_accuracy_proven_by_fixtures": false,
+  "ci_command_form_regression": {
+    "first_run": 44777311009,
+    "failed_job": 136430444440,
+    "first_result": "1/172_FAILED_EXACT_EXISTING_RUN_FORM_CONTRACT",
+    "correction": "Restore original single-line native Safari command; Pages fixture tests remain in the existing Ubuntu static run body.",
+    "targeted_tests_after_correction": 9,
+    "result": "PASS"
+  }
 }
