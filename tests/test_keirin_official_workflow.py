@@ -20,7 +20,13 @@ class OfficialWorkflow(unittest.TestCase):
         key = 'secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM'
         self.assertEqual({name for name, block in blocks.items() if key in block},
                          {'github-only-research-results', 'source-free-readiness', 'saved-only-replay',
-                          'form-canary-settle'})
+                          'form-canary-settle', 'official-sp-capture', 'official-sp-publish',
+                          'official-sp-settle'})
+        for name in ('official-sp-capture','official-sp-publish','official-sp-settle'):
+            for guard in ("github.repository == 'haji84/RACE-AI'",
+                          "github.repository_id == '1416489937'",
+                          "github.ref == 'refs/heads/main'"):
+                self.assertIn(guard, blocks[name].split('    runs-on:',1)[0])
         result = blocks['github-only-research-results']
         self.assertIn(key, result)
         for guard in ("github.repository == 'haji84/RACE-AI'", "github.ref == 'refs/heads/main'",

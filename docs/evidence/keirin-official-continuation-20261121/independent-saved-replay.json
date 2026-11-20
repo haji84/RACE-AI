@@ -1,0 +1,28 @@
+{
+  "backlog_check_every_ticks": 10,
+  "current_day_priority": true,
+  "day_jst": "2026-11-21",
+  "days_held": 0,
+  "days_visited": [
+    "2026-11-20"
+  ],
+  "done": true,
+  "due_current_originals": null,
+  "mode": "saved-only",
+  "no_provider_tick": true,
+  "original_publication_acks": 1,
+  "provider_denied": false,
+  "provider_requests": 0,
+  "publication_acks": 1,
+  "published_originals": 0,
+  "published_races": 0,
+  "published_snapshots": 0,
+  "result_race_budget": 8,
+  "safe_diagnostics": [],
+  "schema": "RACE_AI_KEIRIN_RESULT_WATCH_V1",
+  "source_unavailable": false,
+  "state": "RESULT_WATCH_SAVED_COMPLETE",
+  "stop_check_failed": false,
+  "target_interval_seconds": 60,
+  "ticks": 1
+}

@@ -34,10 +34,28 @@ def _source(raw, expected):
     return raw
 
 
-# Only labels actually observed in the current official list are admitted.
-# Adding another class/round requires an observed source and regression.
+# Exact labels, after the existing NFKC normalization, observed in the
+# retained official /sp/racelist response:
+# SHA256 c5828c08f1a84a3dbc1174e473abe87103290dd83a85b652ca6d6c94a4f91588,
+# SJ0301.kaisaiDayList[].raceProgramList[].strSyumokuName (2026-11-20).
+# Later-day labels were published with no usable navigation reference then.
+# Naming a round never admits a card: current published reference, roster,
+# grade, cutoff and line checks below remain mandatory; advance rules unknown.
+# Additional labels, including A-class, require primary evidence and regression.
 OBSERVED_CLASSES = {
+    'S級一次予選1': 'S',
     'S級一次予選2': 'S',
+    'S級選抜': 'S',
+    'S級二次予選B': 'S',
+    'S級二次予選A': 'S',
+    'S級ダイヤモンドレース': 'S',
+    'S級一般': 'S',
+    'S級特選': 'S',
+    'S級準決勝': 'S',
+    'S級特別優秀': 'S',
+    'S級決勝': 'S',
+    'L級ガールズ予選': 'GIRLS',
+    'L級ガールズ準決勝': 'GIRLS',
     'L級ガールズ選抜': 'GIRLS',
     'L級ガールズ特選': 'GIRLS',
     'L級ガールズ決勝': 'GIRLS',
