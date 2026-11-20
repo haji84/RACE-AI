@@ -21,7 +21,7 @@ from hashlib import sha256
 from html.parser import HTMLParser
 from pathlib import Path
 from unicodedata import normalize
-from urllib.parse import urlsplit, parse_qs
+from urllib.parse import urlsplit, parse_qs, parse_qsl
 import re
 import json
 
@@ -398,6 +398,23 @@ def parse_kdreams(*,raw,source_url,race_id,captured_at,
             "competition":competition,"round_stage":stage}
 
 
+def _selected_net_link(href,source_url,race_id):
+    """Same selected race, allowing only the observed courselist tracking tag."""
+    if type(href) is not str or not href.startswith('https://') or '#' in href or any(c.isspace() for c in href):
+        return False
+    try:
+        selected=urlsplit(href);source=urlsplit(source_url)
+        query=parse_qsl(selected.query,keep_blank_values=True,strict_parsing=True,max_num_fields=2)
+        source_query=parse_qsl(source.query,keep_blank_values=True,strict_parsing=True,max_num_fields=1)
+    except ValueError:
+        return False
+    return (selected.scheme==source.scheme=='https' and
+        selected.netloc==source.netloc=='keirin.netkeiba.com' and
+        selected.path==source.path=='/race/entry/' and not source.fragment and
+        source_query==[('race_id',race_id)] and sorted(query) in (
+            [('race_id',race_id)], [('race_id',race_id),('rf','courselist')]))
+
+
 def _selected_net_class(*,race_id,netkeirin_raw,netkeirin_url,netkeirin_captured_at,
                         kdreams_raw,kdreams_url,starter_cars):
     """Opt-in class fact from one current header, never history or rider grades."""
@@ -434,7 +451,7 @@ def _selected_net_class(*,race_id,netkeirin_raw,netkeirin_url,netkeirin_captured
          len(selected.select('.Race_Name'))==1,'NET_SELECTED_CLASS_SCOPE_REQUIRED')
     wrapper=selected.find_parent('div',class_='RaceList_NameBox')
     active=wrapper.select('a.Active') if wrapper is not None else []
-    need(len(active)==1 and active[0].get('href')==netkeirin_url,
+    need(len(active)==1 and _selected_net_link(active[0].get('href'),netkeirin_url,race_id),
          'NET_SELECTED_CLASS_SELECTION_MISMATCH')
     numbers=selected.select('.Race_Num')
     need(len(numbers)==1 and normalize('NFKC',numbers[0].get_text('',strip=True))==

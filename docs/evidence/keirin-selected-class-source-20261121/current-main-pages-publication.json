@@ -1,0 +1,21 @@
+{
+  "status": "PAGES_PRESENTATION_REFRESHED",
+  "source_commit": "3eed4c36da379354c3100bb9af926e342f4b1158",
+  "parent_commit": "924912a869eb4dbaa7c4f6b424c035640928218d",
+  "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+  "manifest_sha256": "d9a4a4f96e629b8740e23058b16193ffe0bd109998a1ce23a33971a52e74a497",
+  "portrait_count": 1669,
+  "ciphertext_unchanged": true,
+  "plaintext_published": false,
+  "trusted_ui_source": "12cf6b3a729f1eb3c3d67de06bd2c83464539115",
+  "prior_partial_presentation_parent": "ef04473dfde160275263fef31b993545b2fb5c61",
+  "metadata_repair_commit": "924912a869eb4dbaa7c4f6b424c035640928218d",
+  "repaired_entries": [
+    "app.js",
+    "style.css"
+  ],
+  "original_identity_unchanged": true,
+  "production_state_key_used": false,
+  "direct_boat_producer_actions": 0,
+  "app_sha256": "96197f94aad351907b7a7ea4d2053afde8a0eadcf2dc7983133d0339c6d0a8b9"
+}
