@@ -15,7 +15,7 @@ import re
 SCHEMA = "RACE_AI_KEIRIN_RIDER_FORM_FALL_EVIDENCE_V1"
 SHA = re.compile(r"^[0-9a-f]{64}$")
 RACE = re.compile(r"^20[0-9]{10}$")
-RESULT_STATES = {"FINISHED", "FALL_DNF", "OTHER_DNF", "DNS"}
+RESULT_STATES = {"FINISHED", "FALL_FINISHED", "FALL_DNF", "OTHER_DNF", "DNS"}
 STATEMENT_SPEAKERS = {"RIDER", "INTERVIEW", "MEDIA"}
 TREND_THRESHOLD = 0.15
 
@@ -65,12 +65,17 @@ def validate(evidence, *, starters, source_pages, as_of, target_race_id):
     target = day(target_race_id[:4] + "-" + target_race_id[4:6] + "-" +
                  target_race_id[6:8])
     cutoff = instant(as_of)
-    need(instant(evidence["as_of"]) <= cutoff,
+    evidence_cutoff = instant(evidence["as_of"])
+    need(evidence_cutoff <= cutoff,
          "FORM_CAPTURE_AFTER_PREDICTION_INPUT")
     program_shas = {
         p["bytes_sha256"] for p in source_pages
-        if p.get("kind") == "PROGRAM"
+        if type(p) is dict and p.get("kind") == "PROGRAM"
     }
+    need(all(type(p) is dict and
+             instant(p.get("captured_at")) <= evidence_cutoff
+             for p in source_pages if p.get("kind") == "PROGRAM"),
+         "FORM_SOURCE_CAPTURE_AFTER_EVIDENCE_ASOF")
     need(type(evidence["riders"]) is list and
          len(evidence["riders"]) <= len(starters),
          "FORM_RIDER_LIST_INVALID")
@@ -99,16 +104,17 @@ def validate(evidence, *, starters, source_pages, as_of, target_race_id):
                  "FORM_FUTURE_DUPLICATE_OR_WRONG_RACE")
             observed.add(rid)
             status = record["status"]
-            need(status in RESULT_STATES, "FORM_RESULT_STATUS_INVALID")
+            need(type(status) is str and status in RESULT_STATES,
+                 "FORM_RESULT_STATUS_INVALID")
             field, place = record["field_size"], record["place"]
             need(type(field) is int and 5 <= field <= 9,
                  "FORM_FIELD_SIZE_INVALID")
-            if status == "FINISHED":
+            if status in ("FINISHED", "FALL_FINISHED"):
                 need(type(place) is int and 1 <= place <= field,
                      "FORM_FINISH_POSITION_INVALID")
             else:
                 need(place is None, "FORM_NON_FINISH_CANNOT_HAVE_PLACE")
-            _receipt(record, program_shas, cutoff)
+            _receipt(record, program_shas, evidence_cutoff)
         absences = rider["absences"]
         need(type(absences) is list and len(absences) <= 8,
              "FORM_ABSENCE_COUNT_INVALID")
@@ -119,7 +125,7 @@ def validate(evidence, *, starters, source_pages, as_of, target_race_id):
             first, last = day(a["start"]), day(a["end"])
             need(first <= last < target and (last-first).days <= 365,
                  "FORM_ABSENCE_PERIOD_INVALID")
-            _receipt(a, program_shas, cutoff)
+            _receipt(a, program_shas, evidence_cutoff)
         comments = rider["comments"]
         need(type(comments) is list and len(comments) <= 12,
              "FORM_COMMENT_COUNT_INVALID")
@@ -127,12 +133,13 @@ def validate(evidence, *, starters, source_pages, as_of, target_race_id):
             need(type(c) is dict and set(c) == {
                 "speaker", "text", "published_at", "source_sha256"},
                  "FORM_COMMENT_FIELDS_INVALID")
-            need(c["speaker"] in STATEMENT_SPEAKERS and
+            need(type(c["speaker"]) is str and
+                 c["speaker"] in STATEMENT_SPEAKERS and
                  type(c["text"]) is str and
                  1 <= len(c["text"]) <= 300 and
                  all(ord(ch) >= 32 for ch in c["text"]),
                  "FORM_COMMENT_INVALID")
-            _receipt(c, program_shas, cutoff)
+            _receipt(c, program_shas, evidence_cutoff)
     return evidence
 
 
@@ -182,10 +189,10 @@ def assess(evidence, *, starters, source_pages, as_of, target_race_id):
         results = sorted(rider["results"],
                          key=lambda x: (x["race_date"], x["race_id"]))
         finished = [r for r in results
-                    if r["status"] == "FINISHED" and
+                    if r["status"] in ("FINISHED", "FALL_FINISHED") and
                     (target - day(r["race_date"])).days <= 180]
         recent_change = _three_split(finished)
-        falls = [r for r in results if r["status"] == "FALL_DNF" and
+        falls = [r for r in results if r["status"] in ("FALL_DNF", "FALL_FINISHED") and
                  (target - day(r["race_date"])).days <= 180]
         last_fall = falls[-1] if falls else None
         fall_change = None
@@ -210,7 +217,7 @@ def assess(evidence, *, starters, source_pages, as_of, target_race_id):
             recent_absence = max(rider["absences"], key=lambda a: a["end"])
             absence_days = (day(recent_absence["end"]) -
                             day(recent_absence["start"])).days + 1
-            returns = sum(r["status"] == "FINISHED" and
+            returns = sum(r["status"] in ("FINISHED", "FALL_FINISHED") and
                           day(r["race_date"]) > day(recent_absence["end"])
                           for r in results)
         output[car] = {
