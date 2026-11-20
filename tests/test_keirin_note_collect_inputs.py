@@ -148,6 +148,52 @@ class NoteInputCollectionTests(unittest.TestCase):
         self.assertEqual(result['safe_report']['captured_race_ids'],[rid(2)])
         self.assertEqual(result['safe_report']['already_captured_races_skipped'],2)
 
+    def test_daily_coverage_accounts_for_every_observed_race_without_inventing_results(self):
+        result=self.collect()
+        _,_,manifest=self.documents(result)
+        coverage=manifest.get('daily_coverage')
+        self.assertIsInstance(coverage,dict,'The encrypted manifest must retain daily coverage.')
+        self.assertEqual(coverage['schema'],'RACE_AI_KEIRIN_NOTE_DAY_COVERAGE_V1')
+        self.assertEqual(coverage['day_jst'],DAY)
+        self.assertEqual(coverage['observed_at'],NOW.astimezone(self.api().UTC).isoformat())
+        self.assertEqual(coverage['counts'],dict(observed=4,input_available=2,missing=1,held=1))
+        rows={r['race_id']:r for r in coverage['races']}
+        self.assertEqual(set(rows),{rid(n) for n in range(1,5)})
+        self.assertEqual(rows[rid(1)]['input_status'],'available')
+        self.assertTrue(rows[rid(2)]['captured_this_cycle'])
+        self.assertEqual(rows[rid(3)]['input_status'],'missing')
+        self.assertEqual(rows[rid(3)]['reason'],'PAST_PUBLISHED_CUTOFF')
+        self.assertEqual(rows[rid(4)]['input_status'],'held')
+        self.assertIsNone(rows[rid(4)]['published_cutoff_at'])
+        self.assertFalse(coverage['national_universe_verified'])
+        self.assertFalse(coverage['formal_model_admission'])
+        self.assertNotIn('scored',coverage['counts'])
+        self.assertNotIn('cancelled',coverage['counts'])
+        self.assertNotIn('refunded',coverage['counts'])
+
+    def test_daily_coverage_preserves_prior_input_after_failed_refresh_and_stop(self):
+        self.pages=pages_for([(1,'13:00'),(2,'12:12'),(3,'12:11'),(4,'11:59')])
+        original=self.fetch
+        def deny(url):
+            if url==urls(3)[0]:
+                self.calls.append(url)
+                raise capture.SourceCaptureError('PROVIDER_DENIED_OR_RATE_LIMITED_STOP')
+            return original(url)
+        self.fetch=deny
+        result=self.collect(already_captured_ids=(rid(3),rid(4)))
+        _,_,manifest=self.documents(result)
+        coverage=manifest.get('daily_coverage')
+        self.assertIsInstance(coverage,dict,'A stopped cycle must retain the complete observed roster.')
+        self.assertEqual(coverage['counts'],dict(observed=4,input_available=2,missing=0,held=2))
+        rows={r['race_id']:r for r in coverage['races']}
+        self.assertEqual(rows[rid(3)]['input_status'],'available')
+        self.assertEqual(rows[rid(3)]['reason'],'HOLD_PROVIDER_DENIED_OR_RATE_LIMITED_STOP')
+        self.assertFalse(rows[rid(3)]['captured_this_cycle'])
+        self.assertEqual(rows[rid(4)]['input_status'],'available')
+        self.assertEqual(rows[rid(1)]['input_status'],'held')
+        self.assertEqual(rows[rid(2)]['input_status'],'held')
+        self.assertEqual(self.calls,[CALENDAR,MEETING,urls(3)[0]])
+
     def test_priority_refresh_includes_ten_and_fifteen_minute_boundaries(self):
         self.pages=pages_for([(1,'12:16'),(2,'12:15'),(3,'12:10'),(4,'12:09')])
         result=self.collect(already_captured_ids=tuple(rid(n) for n in range(1,5)))
