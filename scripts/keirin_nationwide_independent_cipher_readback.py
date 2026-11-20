@@ -14,6 +14,7 @@ import json
 import os
 
 from race_ai import keirin_nationwide_auto_storage as storage
+from race_ai import keirin_form_fall_shadow as form_shadow
 from scripts import keirin_nationwide_auto_forecast as producer
 
 SCHEMA = "RACE_AI_KEIRIN_NATIONWIDE_AB_CIPHER_SECOND_RUNNER_V1"
@@ -49,16 +50,33 @@ def verify(*,producer_report, cipher_dir):
                 raise storage.AutoSealError("INDEPENDENT_ARM_SOURCE_SHA_MISMATCH")
             row["state"]="INDEPENDENT_CIPHERTEXT_SHA_READBACK_OK"
             row["cipher_file_sha256"]=verified["cipher_file_sha256"]
+            if r.get("form_fall_shadow_state") == "PRIVATE_CONDITIONED_SHADOW_SEALED":
+                try:
+                    form_shadow.readback_shadow(
+                        out/(rid+".form.sealed.json"),
+                        expected_sha=r["form_fall_shadow_file_sha256"],
+                        expected_baseline_sha=r["form_fall_baseline_sha256"],
+                        expected_race=rid)
+                    row["form_fall_shadow_state"] = "INDEPENDENT_FORM_CIPHER_SHA_OK"
+                except (ValueError,KeyError,TypeError,OSError,
+                        form_shadow.ConditionShadowError):
+                    row["form_fall_shadow_state"] = "HOLD_FORM_CIPHER_SHA_MISMATCH"
+            elif "form_fall_shadow_state" in r:
+                row["form_fall_shadow_state"] = r["form_fall_shadow_state"]
         except (ValueError,KeyError,TypeError,storage.AutoSealError):
             row["state"]="HOLD_INDEPENDENT_CIPHER_SHA_MISMATCH"
         records.append(row)
     if len(records)!=producer_report.get("registered_races"):
         raise ValueError("PRODUCER_COHORT_DENOMINATOR_MISMATCH")
     counts=Counter(r["state"] for r in records)
+    condition_counts=Counter(r.get("form_fall_shadow_state") for r in records)
     return {"schema":SCHEMA,"day_jst":producer_report["day_jst"],
             "registered_races":len(records),
             "independent_cipher_file_shas_ok":counts[
                 "INDEPENDENT_CIPHERTEXT_SHA_READBACK_OK"],
+            "independent_condition_cipher_shas_ok":
+                condition_counts["INDEPENDENT_FORM_CIPHER_SHA_OK"],
+            "condition_shadow_not_official_forecast":True,
             "RSA_private_decryption_verified":False,
             "actual_official_result_verified":False,
             "old_four_model_PR71_required":False,
