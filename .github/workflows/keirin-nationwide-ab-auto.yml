@@ -17,6 +17,8 @@ on:
   pull_request:
     paths:
       - 'race_ai/keirin_nationwide_auto_*.py'
+      - 'race_ai/keirin_rider_form_evidence.py'
+      - 'tests/test_keirin_rider_form_evidence.py'
       - 'scripts/keirin_nationwide_auto_forecast.py'
       - 'scripts/keirin_register_public_day.py'
       - 'scripts/keirin_github_only_ab_*.py'
@@ -88,6 +90,7 @@ jobs:
           python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
           python -m unittest -v \
             tests.test_keirin_nationwide_auto_generator \
+            tests.test_keirin_rider_form_evidence \
             tests.test_keirin_nationwide_auto_storage \
             tests.test_keirin_nationwide_auto_runner \
             tests.test_keirin_nationwide_auto_settlement \
@@ -125,6 +128,7 @@ jobs:
             tests.test_keirin_official_refund_notice
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
+            race_ai/keirin_rider_form_evidence.py \
             race_ai/keirin_nationwide_auto_storage.py \
             race_ai/keirin_nationwide_auto_settlement.py \
             race_ai/keirin_nationwide_cipher_history.py \
