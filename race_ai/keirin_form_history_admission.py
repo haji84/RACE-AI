@@ -113,10 +113,11 @@ def build_supplement(*, raw_export, source_url, captured_at, snapshot,
                 need(type(event) is dict and
                      type(event.get("registration_id")) is str and
                      event["registration_id"] == ident and
-                     event.get("source_sha256") == digest,
+                     event.get("source_ref") == "THIS_EXPORT",
                      "HISTORY_EVENT_OFFICIAL_ID_OR_SHA_MISMATCH")
                 clean = {k:v for k,v in event.items()
-                         if k != "registration_id"}
+                         if k not in ("registration_id","source_ref")}
+                clean["source_sha256"] = digest
                 inner[kind].append(clean)
         output.append({"car":car, **inner})
     evidence = {"schema":form.SCHEMA,
