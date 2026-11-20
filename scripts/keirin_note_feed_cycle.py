@@ -27,7 +27,15 @@ def source_archive(root):
     raw=buffer.getvalue();need(len(raw)<=MAX_VIEW,'SOURCE_ARCHIVE_BOUND');return raw
 
 
-def cycle(repo,*,recipient=None,store=None,collector=None,clock=None,source_commit=None):
+def private_denial(root,safe=None):
+    """Read the existing private stop before a failed temporary root is removed."""
+    if safe is not None and safe.get('provider_denied') is True:return True
+    marker=Path(root)/'raw/provider-denial-stop.json'
+    return marker.is_file() and not marker.is_symlink() and json.loads(marker.read_bytes()).get(
+        'state')=='HOLD_PROVIDER_DENIED_OR_RATE_LIMITED_STOP'
+
+
+def cycle(repo,*,recipient=None,store=None,collector=None,result_collector=None,clock=None,source_commit=None):
     repo=Path(repo).resolve();store=store or NoteFeedGit(repo)
     recipient=checked_recipient(recipient or json.loads(
         (repo/'config/keirin-note-recipient.json').read_bytes()))
@@ -45,31 +53,101 @@ def cycle(repo,*,recipient=None,store=None,collector=None,clock=None,source_comm
     source_commit=source_commit or subprocess.check_output(
         ['git','rev-parse','HEAD'],cwd=repo).decode().strip()
     with TemporaryDirectory(prefix='keirin-note-input-') as folder:
-        root=Path(folder);root.chmod(0o700)
-        collected=collector(day_jst=day,private_root=root,clock=clock,
-            already_captured_ids=prior['covered_race_ids'],
-            priority_captured_ids=prior['priority_window_race_ids'],
-            model_source_commit=source_commit)
-        safe=collected['safe_report']
-        need(type(safe.get('provider_denied')) is bool,'CAPTURE_REPORT')
-        if safe.get('selected_races')==0 and not safe['provider_denied']:
-            return dict(state='NOTE_NO_NEW_ELIGIBLE_RESEARCH_INPUTS',acquisition=safe,
-                provider_requests=safe.get('public_page_requests'),entries=len(prior['entries']))
+        root=Path(folder);root.chmod(0o700);safe=None
         try:
-            note=import_site(Path(collected['site_root']),source_commit=source_commit,clock=clock)
-            note.update(scope='OWNER_MATCHED_SOURCE_RESEARCH_REFRESH',source_site=None,
-                source_profile='owner-imported-kdreams-netkeirin-20261120',
-                actual_four_model_forecast_saved=False)
-            note=attach_archive(note,'source-inputs.tar.gz',source_archive(root))
-            sealed=seal_snapshot(note,recipient,kind='research',
-                captured_ids=safe['captured_race_ids'],priority_ids=safe['priority_window_race_ids'],clock=clock)
-            result=publish_snapshot(store,recipient,sealed,expected_parent=parent,denied=safe['provider_denied'])
-            result['acquisition']=safe
+            collected=collector(day_jst=day,private_root=root,clock=clock,
+                already_captured_ids=prior['covered_race_ids'],
+                priority_captured_ids=prior['priority_window_race_ids'],
+                model_source_commit=source_commit)
+            safe=collected['safe_report']
+            need(type(safe.get('provider_denied')) is bool,'CAPTURE_REPORT')
+            result=dict(state='NOTE_NO_NEW_ELIGIBLE_RESEARCH_INPUTS',acquisition=safe,
+                    provider_requests=safe.get('public_page_requests'),entries=len(prior['entries']))
+            if safe.get('selected_races')!=0 or safe['provider_denied']:
+                note=import_site(Path(collected['site_root']),source_commit=source_commit,clock=clock)
+                note.update(scope='OWNER_MATCHED_SOURCE_RESEARCH_REFRESH',source_site=None,
+                    source_profile='owner-imported-kdreams-netkeirin-20261120',
+                    actual_four_model_forecast_saved=False)
+                note=attach_archive(note,'source-inputs.tar.gz',source_archive(root))
+                sealed=seal_snapshot(note,recipient,kind='research',
+                    captured_ids=safe['captured_race_ids'],priority_ids=safe['priority_window_race_ids'],clock=clock)
+                result=publish_snapshot(store,recipient,sealed,expected_parent=parent,denied=safe['provider_denied'])
+                result['acquisition']=safe
+        except Exception:
+            if private_denial(root,safe):latch_denial(store,recipient)
+            raise
+    if safe['provider_denied']:return result
+    # Publish pre-cutoff output FIRST. Historical result work uses a distinct
+    # temporary root and refreshed CAS parent, including no-new-input ticks.
+    if result_collector is None:
+        from scripts.keirin_note_collect_results import collect_results
+        result_collector=collect_results
+    parent=store.head();prior=load_index(store,recipient,parent)
+    need(prior is not None,'RESULT_HISTORY_MISSING_NO_RESET')
+    if prior['provider_denied']:return dict(result,results=dict(
+        state='HOLD_NOTE_PREVIOUS_PROVIDER_DENIAL_NO_RETRY',provider_requests=0))
+    days=sorted({day for entry in prior['entries'] for day in entry['days']})
+    with TemporaryDirectory(prefix='keirin-note-results-') as folder:
+        root=Path(folder);root.chmod(0o700);safe_results=None
+        try:
+            collected=result_collector(days=days,private_root=root,clock=clock,
+                result_checks=prior.get('result_checks',{}))
+            safe_results=collected['safe_report']
+            need(type(safe_results.get('provider_denied')) is bool and
+                type(safe_results.get('changed_observations')) is int and
+                safe_results['changed_observations']>=0,'RESULT_REPORT')
+            checks=collected['result_checks'];sealed=None
+            if safe_results['changed_observations']:
+                note=import_site(Path(collected['site_root']),source_commit=source_commit,clock=clock)
+                validate_result_delta(note,checks,prior.get('result_checks',{}),
+                    safe_results['changed_observations'])
+                note.update(scope='OWNER_SECONDARY_RESEARCH_RESULT_OBSERVATIONS',source_site=None,
+                    source_profile='owner-imported-kdreams-netkeirin-20261120',
+                    actual_four_model_forecast_saved=False)
+                note=attach_archive(note,'result-sources.tar.gz',source_archive(root))
+                sealed=seal_snapshot(note,recipient,kind='results',clock=clock)
+            else:
+                need(all(rid in prior.get('result_checks',{}) and
+                    row['digest']==prior['result_checks'][rid]['digest'] and
+                    row['status']==prior['result_checks'][rid]['status'] for rid,row in checks.items()),
+                    'RESULT_FACT_CHANGE_WITHOUT_PRIVATE_DELTA')
+            if sealed is not None or checks or safe_results['provider_denied']:
+                published=publish_snapshot(store,recipient,sealed,expected_parent=parent,
+                    denied=safe_results['provider_denied'],result_checks=checks)
+                result.update(published)
+            result['results']=safe_results
             return result
         except Exception:
-            if safe['provider_denied']:
-                latch_denial(store,recipient)
+            # Keep a real denial even if import, encryption, or publication
+            # fails. The original private marker contains no source values.
+            if private_denial(root,safe_results):latch_denial(store,recipient)
             raise
+
+
+def validate_result_delta(note,checks,prior,expected_count):
+    """Bind public progress to the new private facts before either is written."""
+    from scripts.keirin_note_collect_results import SCHEMA,checked_observation,_status
+    from race_ai.keirin_note_feed import checked_result_checks,result_clock
+    checked_result_checks(checks);seen=set()
+    for path,entry in note['files'].items():
+        need(path.endswith('/research_results.json'),'RESULT_ONLY_PACKET')
+        data=json.loads(entry['text'])
+        need(type(data) is dict and set(data)=={'schema','day_jst','observations'} and
+             data['schema']==SCHEMA and path=='data/'+data['day_jst']+'/research_results.json' and
+             type(data['observations']) is list,'RESULT_DELTA_SCHEMA')
+        for row in data['observations']:
+            checked_observation(row)
+            rid=row['race_id'];old=prior.get(rid)
+            need(rid not in seen and rid[:8]==data['day_jst'].replace('-','') and rid in checks,
+                 'RESULT_OBSERVATION_ID')
+            seen.add(rid);result_clock(row['captured_at'])
+            need(row['observation_sha256']==checks[rid]['digest'] and
+                 row['captured_at']==checks[rid]['checked_at'] and _status(row)==checks[rid]['status'] and
+                 row['previous_observation_sha256']==(old['digest'] if old else None),
+                 'RESULT_OBSERVATION_BINDING')
+    changed={rid for rid,row in checks.items() if rid not in prior or
+        row['digest']!=prior[rid]['digest'] or row['status']!=prior[rid]['status']}
+    need(seen==changed and len(seen)==expected_count,'RESULT_DELTA_COUNT')
 
 
 def latch_denial(store,recipient):

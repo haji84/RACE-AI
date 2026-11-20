@@ -1,0 +1,44 @@
+{
+  "schema": "RACE_AI_GOAL_CONTINUATION_VALIDATION_V1",
+  "backend": {
+    "tests": 66,
+    "skips": 0,
+    "warnings_as_errors": true,
+    "result": "PASS"
+  },
+  "node": {
+    "tests": 23,
+    "skips": 0,
+    "result": "PASS"
+  },
+  "chromium": {
+    "tests": 11,
+    "viewports": [
+      320,
+      390,
+      1440
+    ],
+    "skips": 0,
+    "result": "PASS",
+    "physical_iphone": false
+  },
+  "pages_and_workflow_guards": {
+    "tests": 23,
+    "result": "PASS"
+  },
+  "forward_new_regression_root": {
+    "tests": 1,
+    "real_aes_invented_inputs": true,
+    "result": "PASS"
+  },
+  "forward_related_agent_suite": {
+    "tests": 90,
+    "result": "PASS",
+    "source_free": true
+  },
+  "workflow_graphs_unchanged_except_existing_run_bodies": 3,
+  "app_sha256": "6ffb2ad7882d456e14e385d7876e02be7bd49b7d2e564873f59fb5ba6a953a87",
+  "style_sha256": "7c78086241e82721df8e56e5f59153e3c66648ca0a925a4fd5bff19a0b36d893",
+  "production_source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "live_source_or_accuracy_proven_by_fixtures": false
+}

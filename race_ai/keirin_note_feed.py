@@ -73,7 +73,7 @@ def _ids(values):
 def checked_entry(entry):
     fields={'cipher_sha256','source_content_sha256','ephemeral_public_key','salt',
             'created_at','days','kind','captured_race_ids','priority_window_race_ids'}
-    need(type(entry) is dict and set(entry)==fields and entry['kind'] in {'import','research','archive'},'ENTRY')
+    need(type(entry) is dict and set(entry)==fields and entry['kind'] in {'import','research','archive','results'},'ENTRY')
     for name in ('cipher_sha256','source_content_sha256'):
         need(type(entry[name]) is str and re.fullmatch('[a-f0-9]{64}',entry[name]),'ENTRY_HASH')
     need(len(unb64(entry['ephemeral_public_key']))==65 and len(unb64(entry['salt']))==32,'ENTRY_ECDH')
@@ -82,7 +82,31 @@ def checked_entry(entry):
     clock=datetime.fromisoformat(entry['created_at'].replace('Z','+00:00'))
     need(clock.utcoffset() is not None,'CLOCK')
     captured=_ids(entry['captured_race_ids']);priority=_ids(entry['priority_window_race_ids'])
-    need(set(priority)<=set(captured),'PRIORITY_IDS');return entry
+    need(set(priority)<=set(captured),'PRIORITY_IDS')
+    need(entry['kind']!='results' or not captured and not priority,'RESULTS_NOT_FORECAST_COVERAGE')
+    return entry
+
+
+def result_clock(value):
+    need(type(value) is str and re.fullmatch(
+        r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|\+00:00)',value),'RESULT_CHECK_CLOCK')
+    at=datetime.fromisoformat(value.replace('Z','+00:00'))
+    return at
+
+
+def checked_result_checks(checks):
+    """Only opaque progress metadata belongs in the public display index."""
+    need(type(checks) is dict,'RESULT_CHECKS')
+    _ids(list(checks))
+    for rid,row in checks.items():
+        datetime.strptime(rid[:8],'%Y%m%d')
+        need(type(row) is dict and set(row)=={'checked_at','digest','status'} and
+             row['status'] in {'MATCHED','HOLD','PENDING'},'RESULT_CHECK_FIELDS')
+        result_clock(row['checked_at'])
+        need(row['digest'] is None or type(row['digest']) is str and
+             re.fullmatch('[a-f0-9]{64}',row['digest']),'RESULT_CHECK_DIGEST')
+        need(row['status']!='MATCHED' or row['digest'] is not None,'MATCHED_DIGEST_REQUIRED')
+    return checks
 
 
 def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=None):
@@ -94,6 +118,10 @@ def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=No
     need(type(note) is dict and note.get('schema')==SCHEMA and
          note.get('formal_model_admission') is False and
          note.get('production_weight_switch') is False,'DISPLAY_SCOPE')
+    if kind=='results':
+        need(type(note.get('files')) is dict and all(type(path) is str and re.fullmatch(
+            r'data/\d{4}-\d{2}-\d{2}/research_results\.json',path) and
+            path.split('/')[1] in note['dates'] for path in note['files']),'RESULTS_ONLY_FILES')
     plain=canonical(note);need(0<len(plain)<=MAX_VIEW,'PLAIN_BOUND')
     ephemeral=ec.generate_private_key(ec.SECP256R1())
     public=ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(),unb64(recipient['public_key']))
@@ -116,8 +144,9 @@ def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=No
 
 def checked_index(doc,recipient):
     checked_recipient(recipient)
-    need(type(doc) is dict and set(doc)=={'schema','repository','recipient_id','entries',
-        'provider_denied','covered_race_ids','priority_window_race_ids'} and
+    fields={'schema','repository','recipient_id','entries',
+        'provider_denied','covered_race_ids','priority_window_race_ids'}
+    need(type(doc) is dict and set(doc) in (fields,fields|{'result_checks'}) and
         doc['schema']==INDEX and doc['repository']==REPO and
         doc['recipient_id']==recipient['recipient_id'] and type(doc['provider_denied']) is bool and
         type(doc['entries']) is list,'INDEX')
@@ -127,10 +156,14 @@ def checked_index(doc,recipient):
         covered.update(entry['captured_race_ids']);priority.update(entry['priority_window_race_ids'])
     need(_ids(doc['covered_race_ids'])==sorted(covered) and
          _ids(doc['priority_window_race_ids'])==sorted(priority),'COVERAGE_INDEX')
+    if 'result_checks' in doc:
+        checked_result_checks(doc['result_checks'])
+        days={d.replace('-','') for entry in doc['entries'] for d in entry['days']}
+        need(all(rid[:8] in days for rid in doc['result_checks']),'RESULT_CHECK_DAY_OUTSIDE_HISTORY')
     return doc
 
 
-def append_index(previous,recipient,*,entry=None,denied=False):
+def append_index(previous,recipient,*,entry=None,denied=False,result_checks=None):
     doc=json.loads(canonical(checked_index(previous,recipient))) if previous is not None else dict(
         schema=INDEX,repository=REPO,recipient_id=checked_recipient(recipient)['recipient_id'],entries=[],
         provider_denied=False,covered_race_ids=[],priority_window_race_ids=[])
@@ -142,6 +175,15 @@ def append_index(previous,recipient,*,entry=None,denied=False):
         doc['covered_race_ids']=sorted(set(doc['covered_race_ids'])|set(entry['captured_race_ids']))
         doc['priority_window_race_ids']=sorted(set(doc['priority_window_race_ids'])|set(entry['priority_window_race_ids']))
     doc['provider_denied']=doc['provider_denied'] or denied
+    if result_checks is not None:
+        checked_result_checks(result_checks)
+        need(not previous or not previous['provider_denied'],'PREVIOUS_PROVIDER_DENIAL_NO_RETRY')
+        prior=doc.get('result_checks',{})
+        for rid,row in result_checks.items():
+            old=prior.get(rid)
+            need(old is None or result_clock(row['checked_at'])>result_clock(old['checked_at']) or
+                 row==old,'RESULT_CHECK_CLOCK_BACKWARD_OR_CONFLICT')
+        doc['result_checks']={**prior,**result_checks}
     return checked_index(doc,recipient)
 
 
@@ -208,14 +250,23 @@ def load_index(store,recipient,parent):
     store.fetch(parent);paths=store.tree(parent)
     doc=checked_index(json.loads(store.read(parent,'index.json')),recipient)
     need(set(paths)=={'index.json'}|{'views/'+e['cipher_sha256']+'.json' for e in doc['entries']},'INDEX_TREE_MISMATCH')
+    for entry in doc['entries']:
+        h=entry['cipher_sha256']
+        need(sha256(store.read(parent,'views/'+h+'.json')).hexdigest()==h,'RETAINED_CIPHERTEXT_SHA')
     return doc
 
 
-def publish_snapshot(store,recipient,snapshot=None,*,expected_parent,denied=False):
+def publish_snapshot(store,recipient,snapshot=None,*,expected_parent,denied=False,result_checks=None):
     need(store.head()==expected_parent,'CONCURRENT_UPDATE')
     prior=load_index(store,recipient,expected_parent)
     entry=snapshot['entry'] if snapshot else None
-    index=append_index(prior,recipient,entry=entry,denied=denied)
+    if result_checks:
+        previous=(prior or {}).get('result_checks',{})
+        changed=any(rid not in previous or row['digest']!=previous[rid]['digest'] or
+            row['status']!=previous[rid]['status'] for rid,row in checked_result_checks(result_checks).items())
+        need(not changed or entry is not None and entry.get('kind')=='results',
+             'RESULT_FACT_CHANGE_REQUIRES_ENCRYPTED_DELTA')
+    index=append_index(prior,recipient,entry=entry,denied=denied,result_checks=result_checks)
     files={'index.json':canonical(index)+b'\n'}
     before=store.run(['ls-tree','-r',expected_parent,'--','views']) if expected_parent else b''
     if snapshot:

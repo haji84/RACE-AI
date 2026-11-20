@@ -1,0 +1,1730 @@
+{
+  "base": {
+    "ref": "fix/keirin-reuse-pipeline-holds-20261114",
+    "sha": "0a09d43b7990106f6ef3ba48ff29a4dc4f83b8fd"
+  },
+  "body": "## 2026-11-19 JST: 公式A/B照合の接続と実レース検証\n\n全国A/B処理の不足箇所を修正し、公式日程・結果、締切前のGitHub保存証拠、既存RSA/AES原本、同一母数の採点、暗号化した結果履歴、所有者用HTML／オフライン閲覧を接続しました。\n\n- 公開済みソース: [f06b15ae](https://github.com/haji84/RACE-AI/commit/f06b15aee0c6d615deed9dceda8cbdfe41042c98)。\n- [そのコミットの全国A/B CI](https://github.com/haji84/RACE-AI/actions/runs/44414437961)で315 tests / OKを確認。関連4 workflowもsuccess。これは本番の全国取得・採点成功ではありません。\n- 独立レビューで、取得対象の固定、改訂日程による母数欠落、過去日・証拠の巡回偏り、同内容pollによる暗号履歴増加、日付をまたぐ取得拒否後の追加GETを修正確認。\n- 実データの受入れは宇都宮 `202611182401` の1組。真の保存原本、GitHub server metadataとZIP digest、公式取得済みbytes、既存鍵の認証・モデル再演算を照合。A12点・B8点はいずれも不的中。全国79Rを母数に保ち、今回未読込の78Rを不的中としていません。\n- [実証receipt](https://github.com/haji84/RACE-AI/blob/f06b15aee0c6d615deed9dceda8cbdfe41042c98/docs/evidence/2026-11-19/keirin_utsunomiya1r_official_AB_settlement_safe_v1.json)と[完成条件の監査](https://github.com/haji84/RACE-AI/blob/f06b15aee0c6d615deed9dceda8cbdfe41042c98/docs/KEIRIN_OFFICIAL_AUTOMATION_COMPLETION_AUDIT_20261119.md)。\n\n公式の継続取得条件、提供元の拒否・入力不足、未確認の返還形式、mainでの既存Secret実行、既存定期処理との同時稼働、未来日の全国一巡、映像の独立ラベル、実端末表示は引き続き別の受入れ条件です。全国無人運転の完成や、この積み重なった研究Draft全体のmergeを主張しません。\n\n本番向けに必要な依存だけを切り出した独立Draftは [PR #309](https://github.com/haji84/RACE-AI/pull/309) です。基点mainから75ファイルを追加し、既存ファイルは変更していません。既存PR71・daily discoveryとの取得重複、モデル系統、拒否停止、保存競合の運用条件も導入文書に明記しています。\n\n---\n\n## 2026-11-18 現行の最優先開発ゴール：全国全レース A/B（C任意）\n\n本人指示により未完成の共通4モデルは比較の親ソース・必須条件から除外。A=既に生成している/今後実生成する予想、B=6局面・戦術分岐、C=独立認証済み追走履歴を加えたB（**なくてもA/B実施**）。\n\n全国の**2026-11-18は8会場79レース**。通常ページ50Rから漏れる**静岡11R・宇都宮9R・高知9R**も含め、G1/F1/F2・ガールズ・6車・ナイター・ミッドナイト全件を事前登録。初期登録Gitコミット 4f601b9、締切前AES保全済みは西武園1RのA/B 1件、**他78Rの実予想と正式結果比較は未合格**。同日の初レースより前に全国79Rの母数を固定し、NO_FORECASTを的中/不的中として扱わない。将来日についても会場数・レース数を固定ハードコードしない。\n\n[現行の全国A/B正本](https://github.com/haji84/RACE-AI/blob/research/keirin-six-phase-score-20261114/docs/KEIRIN_NATIONWIDE_AB_ALL_RACES_20261118.md) / [79R登録台帳](https://github.com/haji84/RACE-AI/blob/research/keirin-six-phase-score-20261114/docs/evidence/2026-11-18/keirin_all79_nationwide_AB_registered_v1.json) 。以下は過去の旧PR71研究文書を含む経緯であり現行の必須条件ではない。PRはDraft、本番main・Secret変更や有料外部サービスは未実施。\n\n---\n\n## 2026-11-18 現行比較方式（所有者最優先指示）\n\n未完成の共通4モデルは新研究の予想A・比較対象・完成条件から**除外**。現在生成・保存されている予想A（例：11/17全国71R V3）を親とし、6局面予想Bを生成。独立確認済み追走履歴がある場合のみC（B＋連係経験）を追加する。Cが未完成でもA/Bを進める。新規比較コードと正式正本は [KEIRIN_ACTIVE_GENERATED_AB_OPTIONAL_C_20261118.md](https://github.com/haji84/RACE-AI/blob/research/keirin-six-phase-score-20261114/docs/KEIRIN_ACTIVE_GENERATED_AB_OPTIONAL_C_20261118.md)。以下の旧「PR71四モデルを親にする」説明は経緯であり、現行の完成条件ではない。\n\n---\n\n## Purpose\n**Reuse the existing KEIRIN PR71 forecast + PR #102 video/PDCA assets.** Add only the missing six-stage evidence/score overlay; do not replace the model, recorder, learner, or result scorer. This is stacked on existing Draft PR #290 and does not touch production `main`.\n\n## Implemented\n- SHA-linked, pre-cutoff **private** six-phase sidecar for an existing one-of-four PR71 model original; validates six stages, source/input hashes, timezone-aware clock, cutoff margin, and create-once + byte-SHA readback.\n- Pure post-race comparison of independently reviewed PR #102 clip-admission frame receipts and per-phase rider/line/attack observations; no pixel-classification claims.\n- User's requested weights: INITIAL=10, BELL=15, FINAL_HOME=15, FINAL_BACK=20, FOURTH_CORNER=15, GOAL=25.\n- Initial subcomponents leader/top3/line groups/second-wheel/visible attack. `UNKNOWN` never counts as a failed or perfect stage. Report visual coverage, comparable coverage, weighted earned points and conditional accuracy separately.\n- Fail-closed on wrong SHA, phase identity/order, replay-frame reuse, missing independent original/visual/rights/schedule/result attestation, late or tampered original. Never auto-learn, auto-merge, change betting or official ROI.\n- Tests registered in **existing** KEIRIN PR71 synthetic CI; no new workflow/scheduler/provider/secret/storage. Test cases are fictional 2030 races, not 武雄2R production labels.\n\n## Actual verified blockers\n- Live owner run 43582550517: provider access denial, no qualifying new formal four-model snapshot.\n- Real video capture 43567244002: 8 encrypted browser recordings and 362 scene-feature frames, but 0 independently verified tactical labels and private long-term archive unavailable (independent acceptance 43568226669 fails).\n- 武雄2R ~2m48s / 1-7-2 is **user-reported research context**, not a validated GitHub pre-cutoff forecast original, private clip SHA, official result or AI-extracted stage data. **Excluded from formal training/ROI**.\n\n## Completion gates remaining\nRun CI; wire this schema to the existing producer's **encrypted** state + fresh-runner readback when a real full input is available; produce actual rider/line stage annotations by the existing PR102 video pipeline, independently verify rights, join official result; then site view and blind forward cohort evaluation. No synthetic CI result is live proof.\n\nTechnical handoff: `docs/KEIRIN_SIX_PHASE_OVERLAY_20261114.md`. **DRAFT / DO NOT MERGE** until audited.\n\n## Verified offline code-path integration (2026-11-14)\n- Existing pinned PR71 `FourModelRankLedger.read_suite` frozen four-model SQLite output -> exact per-model SHA -> six-stage before-cutoff sidecar: fictional-input integration passes.\n- Existing immutable PR #102 `keirin_video_clip_policy.assess_clip` -> receipt-bound frame pairs -> six-stage scorer: fictional-video integration passes.\n- New regressions **29** total (phase 23 + PR102 2 + PR71 4). GitHub Actions [run 43586082434](https://github.com/haji84/RACE-AI/actions/runs/43586082434) SUCCESS on `4d782779671703c46dc26e676cb9e7e649a31835`; later documentation-only commit still requires checking its own CI if triggered.\n- No real phase labels for Takeo 2R, no source permissions or footage verification, no live formal forecast, no main merge. Completion and model training are **NOT** claimed.\n\n## Latest final HEAD CI\n- Head `e2f55080b7092bad017e464fe10e2bad7caf566d` (fixed six-phase and component weights; strict private-dir freeze guard). GitHub Actions [43586233193](https://github.com/haji84/RACE-AI/actions/runs/43586233193) **completed/success** against this HEAD.\n- 29 new fictional offline regressions (23 scoring contract + 2 existing pinned PR102 clip admission + 4 existing pinned PR71 real-code private SQLite suite integration) and all existing tests in that workflow passed. The protected main still points at `b4206312594e...`; no live input, video, result or learning success claimed.\n## 2026-11-15 JST continuation: reproducible HTTP 403, source HOLD, real-code rider gate\n- Main [PR71 run 43615418955](https://github.com/haji84/RACE-AI/actions/runs/43615418955) returned provider-denied HOLD, no formal model forecast; independent live model readback skipped.\n- GitHub metadata [capture run 43619018351](https://github.com/haji84/RACE-AI/actions/runs/43619018351), artifact 14123028109 (ZIP SHA256 9a62bda0fd0df47ee7822c5c84fa52e32d168b89e8112d6bc42c1a832cf09a) confirms 24/24 HTTP 403 mislabeled as race identity mismatch, zero sealed clips.\n- Corrected existing PR #102 capture and wave stop: source release c52ff0216435b97a0209c43bbe5d0de589445736, offline [run 43621134941](https://github.com/haji84/RACE-AI/actions/runs/43621134941) 5/5 tests green. Exact source SHA pinned in this research PR's existing capture and PR71 CI workflow; main unaffected.\n- Source collector now classifies sanitized provider refusal / budget / not published / network failure in original scripts/keirin_cloud_owner_inputs.py; no new GET after a provider denial, no partial pre-race model promotion.\n- Added race_ai/keirin_frame_rider_identity_gate.py and tests. Requires source-bound PR102 frame SHA/review refs, two independent consistent LIVE frames, verified PR71 saved roster/model/input SHA, correct car/rank and approved visual attestor. Only leader and top3 candidate observations can reach the existing six-stage scorer; line/second-wheel/attack are UNKNOWN until separately independently observed. This is NOT a new AI or trained OCR and it has ZERO real rider recognition proof.\n- New branch CI [run 43622485918](https://github.com/haji84/RACE-AI/actions/runs/43622485918) and HEAD [43622641874](https://github.com/haji84/RACE-AI/actions/runs/43622641874) both green for research code only; no production video success.\n- Durable detailed evidence and remaining gates: docs/KEIRIN_SIX_PHASE_OVERLAY_20261114.md. Keep Draft, no main merge, no paid storage, no owner computer footage burden.\n\n## 2026-11-15 JST additional line review gate\n- Extended existing rider evidence gate with an **independently reviewed two-frame line-relation interface**. A partial view may score an independently confirmed immediate follower only; it must NOT grade the entire line as failed. Full line-group comparison requires **all 7/9 starters** independently position-confirmed in both frames.\n- Existing PR71 roster and model SHA, PR102 clip frame SHA and review refs must agree; proposed line data alone is not authority. Attack and unseen movement remain UNKNOWN. No live video OCR or trained classifier introduced.\n- Source-only PR102 five-test [run 43621134941](https://github.com/haji84/RACE-AI/actions/runs/43621134941) SUCCESS. Phase source-free [run 43623166641](https://github.com/haji84/RACE-AI/actions/runs/43623166641) SUCCESS: **18 new frame/roster/line tests**, plus previously implemented 23 phase tests, two PR102 adapter tests and four PR71 SQLite adapter tests. Parent #290 source-safe tests also pass.\n- Current document+code HEAD **2256ee9b67b7da44de03149524704696f5b2ae88**: PR71 [43623240938](https://github.com/haji84/RACE-AI/actions/runs/43623240938), video flow [43623240977](https://github.com/haji84/RACE-AI/actions/runs/43623240977), video acceptance offline [43623240931](https://github.com/haji84/RACE-AI/actions/runs/43623240931) all CI SUCCESS. They are PR regressions, not main production recordings or independent model acceptance.\n- **Remaining**: provider legitimately restores source access; actual encrypted/independently read-back future PR71 originals; authorized private media bytes; actual OCR/tracking with measured real accuracy; official result and stage comparisons; private durability, safe site and prospective learning A/B. No source bypass, new cost, changes to existing production weights, auto-purchase or main merge.\n\n## 2026-11-15 JST: actual past-race media validation, not recognition accuracy\n- Owner-private existing RSA/AES-GCM archives for **2026-11-09 Aomori 1R/2R/3R** were restored, authenticated-decrypted in a temporary local private workspace, and each raw recording SHA compared against the previously saved private frame-feature receipt.\n- Existing frame sampling was reproduced with OpenCV at each recorded video second, using the prior screen-player crop. Exact BGR crop SHA256: **54/54**, **49/49**, **50/50**, total **153/153** samples equal, **0 mismatches**, **0 unreadable frames**. This is genuine private-media byte/frame integrity evidence, **NOT** an OCR/trajectory/rider-ID accuracy result.\n- In those saved 153 observations, no independently verified individual rider IDs or tactical labels were found; they remain UNKNOWN. Do not infer a success rate or use them for formal training/ROI or official stage scoring.\n- Redacted proof with dates, counts, SHA lineage and explicit remaining gates is at `docs/evidence/keirin_historical_three_races_frame_readback_20261115.json`. **No private key, decrypted video, cropped frame pixels or label guesses were committed**.\n- Temporary working copies of the private RSA key and decoded media were cleared from the analysis container; source assets remain in the owner's private Library. Main branch unchanged, Draft/NO MERGE.\n\n## 2026-11-15 JST: real 153-saved-frame historical color-evaluation continuation\n- Authenticated existing owner-private AES-GCM Aomori 2026-11-09 1R/2R/3R WebM recordings against original SHA256. Re-decoded saved samples **54/54 + 49/49 + 50/50 = 153/153** pixel-crop SHA256 matching existing private features.\n- For a strictly **single-review, manually localized** within-race held-out patch pilot: 1R t=48s 6 crops (4 decided/3 agree), 2R t=64s 5 crops (4/4), 3R t=78s 7 crops (5/5), total 18 cropped observed riders, 13 guesses, 12 matching the review (72.222% attempt coverage, 92.308% conditional one-review agreement). Color-only; **not automatic racer detection, digit OCR, true verified ID accuracy, or future-race generalization**. Five UNKNOWN and one discrepancy retained.\n- The old provisional 2R 65-second frame was not one of the 153 saved two-second samples. Replaced with **64 seconds** before final numbers were recorded; do not reuse prior 11/10 out of 18 as the final sample.\n- 3 races × 6 required phases = 18 phase slots; **zero independently validated phase positions/lines**, so position, line, and phase-scoring *accuracy* are NULL, never 0% or 100%. Training/model promotion forbidden.\n- Code: race_ai/keirin_historical_rider_color_eval.py (color candidate with UNKNOWN), scripts/keirin_historical_color_eval_offline.py (owner-private genuine WebM+153 SHA audit runner), and 2 new test modules. New **9 + 5 synthetic tests**, same existing PR71 CI; no new model, media provider, scheduled job, paid storage or main change.\n- Actual source redacted aggregate: docs/evidence/keirin_historical_color_single_review_153frames_20261115.json (source video SHA lineage, count-only results; no real screenshots, private review coordinates, private key or filenames with secrets). Supporting methodology and next acceptance gates: docs/KEIRIN_SIX_PHASE_OVERLAY_20261114.md.\n- Owner-private review-crop manifest is kept outside public GitHub; its SHA256 is included in the redacted proof. Working decrypted video and private RSA key copies were deleted from the analysis runtime after evaluation.\n- **Remaining**: real rider localization (detector) measured on a separate independently labeled future-race set, proper jersey-number OCR/identity, tracking and line/attack annotations, stage boundaries, real pre-cutoff original + official result join, and encrypted independent readback. CI success is only code-path evidence. Draft/DO NOT MERGE.\n\n## 2026-11-15 JST: actual auto color-region pilot on three preserved Aomori recordings\n- Private RSA/AES-GCM media from Nov 9 Aomori 1R (6 starters), 2R/3R (7) was reopened in an ephemeral private analysis runtime, with all 153/153 saved BGR crop SHA256 replays matching. No new source network calls or additional media rights assumed.\n- Same existing Draft PR adds a lightweight automatic HSV connected-component candidate detector (race_ai/keirin_visual_jersey_proposals.py), SHA-bound private replay CLI (scripts/keirin_historical_auto_color_eval_private.py), private synthetic OpenCV regression tests, and an untrusted track policy. Manual coordinates are used ONLY after color detection for one-review comparison.\n- On three previously single-reviewed target frame instants: 18 provisional individual torso/car labels versus 28 automatic color blobs; 12 one-to-one spatial matches <=40px and 12 matches of tentative jersey color, 12/18=66.667% exploratory joint agreement. The additional 16 blobs were NOT independently adjudicated false positives; one reviewed instant covered only 5/7 riders. This is NOT validated human detection or genuine digit OCR accuracy.\n- 153 actual frames held 1,667 untrusted color blobs and 357 color tracks lasting >=2 saved frames; these are not 357 independently verified racers. Across the 12 matched reviewed-frame color blobs, 10 had a nearby same-colored candidate at -2/+2 seconds. This is NOT a measured person-tracking precision or verified rider continuity.\n- Redacted evidence: docs/evidence/keirin_auto_jersey_color_153frames_20261115.json. Full constraints and next gates: docs/KEIRIN_SIX_PHASE_OVERLAY_20261114.md. No pixels, reviewed bounding coordinates or RSA private key were published.\n- The 6-car video research gate now works in synthetic CI; immutable PR71 official four-model input still allows only 7/9 starters. Existing model, private originals, official results, ROI and learning are untouched.\n- Missing and NOT claimed: independent second-rater labels, complete rider detection with white/black bibs, proven OCR, actual ordered position and line tracking, independently evidenced 6-stage scores (0/18), forward holdout uplift. Draft DO NOT MERGE; main unchanged.\n\n## 2026-11-15 JST: unseen Takeo 1R and independent review acceptance gate\n- Existing private encrypted archive for 2026-11-09 Takeo 1R (race ID 202611098401) successfully RSA/AES-GCM authenticated-decrypted with exact source video SHA 6dafdbe570b107d0059b946076b66a5ec60edc6a95bffee63b29106733262439. This is a *new race relative to the earlier Aomori 1R/2R/3R color pilot*, not proof of never-used-by-any-model historical data. Video 89.52s, 1280x720, 25fps.\n- Frozen HSV color-blob configuration evaluated on 45 actual decoded frames sampled at 2s: 214 untrusted color regions in 43/45 frames; 2 SOURCE frames separately provisionally labeled from unannotated pixels BEFORE viewing candidate output, 14 tentative jersey colors; 10/14 one-to-one <=40px location matches, 9/14 same-color+location. **This is SINGLE visual review, not two independent reviewers, and NOT person detector precision/recall or OCR accuracy.** Additional blobs not adjudicated as false positives.\n- 45 source-frame digests and 214 untrusted proposals were SHA-bound and frozen create-once in private temporary analysis (canonical SHA 0957fcea59c888f1ca2c2441009a548aeceb09956223b88a3462453786a02392). A first private single-review label record had SHA 06b6ea38f7ce55573beb4d425b090cad7c55cdfb766f0c96cf2de1756d930d35. Original private source remains unchanged. External trusted same-code and separate-runner readback are NOT yet verified.\n- Added race_ai/keirin_blind_rider_holdout_gate.py: independent per-frame two-rater exhaustive annotation, identity/time/recording/proposal SHA checks, IoU spatial consensus, only then TP, FP, FN, precision/recall/F1 for the **same target object type**; disagreements/unreviewed truth are strict HOLD with metrics null. Color-region agreement remains separate from genuine digit OCR/person ID and six-phase accuracy.\n- Added scripts/keirin_blind_video_review_packets.py: source-bound private 45-frame images for two separate blinded reviewer slots without prediction boxes. Two 45-image private packet sets were generated in temporary storage; **no reviewer identities assigned, no second review completed, and no private images/coordinates sent to public GitHub**. Same source can regenerate packets once private original and frozen SHA are restored.\n- New offline regressions: 16 holdout-metric gate + 6 private reviewer packet contracts. Real GitHub Actions [43669854179](https://github.com/haji84/RACE-AI/actions/runs/43669854179) completed/success with existing PR71/PR102 synthetic regressions. Successful offline CI does not prove real independent labels.\n- Durable redacted real-source evidence: docs/evidence/keirin_takeo1r_unseen_color_holdout_20261115.json; stepwise review acceptance: docs/KEIRIN_TAKEO1R_BLIND_INDEPENDENT_REVIEW_GATE_20261115.md. All real accuracy metrics still null and all six formal phases 0/6; no PR71 original, formal accuracy, model weights, learned tactics, main or site changed.\n- **NEXT:** independently assigned/exhaustive two reviewer annotations on identical source images, resolve any disagreement, fresh independent archive+model lineage readback, actual person/bib/tracking assessment on multiple unseen races. Only after that should existing scorer/PDCA be considered for production activation. Draft/DO NOT MERGE.\n\n## Final handoff / latest verified research HEAD (2026-11-15 JST)\n- HEAD `4b14ce0d0091d2eff302f9aed9dbe4bec4cc817d`: [PR71 synthetic CI run 43670240236](https://github.com/haji84/RACE-AI/actions/runs/43670240236) **completed/success** with 16 two-review holdout gate tests and 6 private review-packet tests; additional existing regression suites passed. The two other PR workflows also completed success, but no actual hosted private-video processing or independent reviewers ran in those CI jobs.\n- New real research proof: `docs/evidence/keirin_takeo1r_unseen_color_holdout_20261115.json`; acceptance guide: `docs/KEIRIN_TAKEO1R_BLIND_INDEPENDENT_REVIEW_GATE_20261115.md`.\n- In private ephemeral analysis, 45 frames/214 candidate regions bound to Takeo 1R video SHA, 14 first-review provisional color labels at two samples, and 9 tentative joint color/spatial matches; full 45-frame prediction manifest read back and two 45-image blind-review placeholder slots generated. **No actual independent second review**, so independent FP/FN, person recall/precision, OCR/identity, track, phase PDCA remain NULL/UNKNOWN and no model promotion authorized.\n- Source ciphertext, RSA private key, video and private annotations were only materialized as temporary copies from the owner's existing private Library. After preserving public-safe hashes and code, the **ephemeral working directory was deleted**; original private Library files remain unchanged. The review images must be regenerated from the same authenticated video and SHA if/when reviewers are available, not claimed durably stored.\n- Existing PR102/PR71 prediction models, main, site and model parameters unchanged; Draft DO NOT MERGE until proper source/review evidence.\n\n## 2026-11-15 JST: next gate progressed, true independent labels still 0\n- Current source/main changed separately, but this Draft PR remains isolated. Do not merge without reviewing production conflicts and genuine acceptance.\n- Existing ciphertext archive restored authenticated 2026-11-09 **Takeo 2R** `202611098402`, source WebM SHA `4e389a46c223b7cb2eaa7c5c5bdc34ade229deedea8a3c795c8be987b57aa810`. The exact PR291 public detector code SHA `2493ee8738bc171c80440d751ce83b842d77d52fe5a550796579b92b3adf95f8` was transported from PR71 CI artifact #14146597007, then run locally on **46 original source frames, 222 untrusted color-region candidates**. It did not take manual positions or race outcome as input. \n- Frozen source-bound candidate `proposal_sha256=b207ec30d3fb368b9d9e64b494aa8e9e3657aac388023226c798da8ba8a98bae`, immutable file SHA `d31f4786e91375eded54f57a955e8bae156d4cfd2d4ef679793dc4558f760869`; A/B independent preview packets each contain 46 unlabeled source-frame PNGs. Three owner RSA-OAEP/AES-256-GCM ZIPs were produced and tag/digest/decryption checked. Their exact public-safe SHA evidence is in `docs/evidence/keirin_takeo2r_46frame_frozen_blind_packets_20261115.json`. Video and private key were never published.\n- A *different run* [43677376341](https://github.com/haji84/RACE-AI/actions/runs/43677376341) exported the exact public `scripts/keirin_restore_blind_owner_packets.py` code. It was used to **actually restore all three encrypted archives** in a private process, confirming matching frozen prediction bytes and A/B each 46 images+2 unsigned forms. The owner-private decrypted temporary directory and temporary RSA key copy have been cleared. Cross-host production readback remains **NOT verified**.\n- Separate external historical racecards confirmed seven actual race entrants, car numbers 1..7, but **no actual on-pixel person→car or lineup reference label**. The detector had been frozen before the roster web lookup. No after-result leak or retroactive model training.\n- New independent Ed25519 trust gate `race_ai/keirin_signed_blind_review_gate.py`, offline signing helper `scripts/keirin_sign_blind_review_private.py`, and encrypted packet restore helper `scripts/keirin_restore_blind_owner_packets.py`. Two different keys alone MUST NOT authorize a score. An independently owned third-party trust-registry attestor, separate key/challenge receipts, true complete frame labels, verified video and model lineage are required. In their absence the existing holdout scorer reports HOLD and precision/recall/ID accuracy=NULL. No signing keys, real signed reviews or actual human verified frame labels have been obtained.\n- A/B sealed packet files are current-conversation downloadable encrypted attachments, **NOT newly persisted to private Library**: the Library upload attempt failed with destination_conflict. The public GitHub repo contains only code, safe hashes and the handoff, never raw pixels/box coordinates/private keys. The original encrypted WebM still resides in existing owner-private Library.\n- Full restart and real remaining acceptance: `docs/KEIRIN_TAKEO2R_INDEPENDENT_REVIEW_RESTART_20261115.md`. Main, PR71 weights, official score, PDCA, wagers and site remain untouched. Keep Draft, **DO NOT MERGE** until actual external independent labels and genuine live production proof.\n\n## 2026-11-15 JST: two real-frame OFFLINE blind annotation workbenches (still zero real independent labels)\n- Existing Takeo 2R frozen source `202611098402` verified from owner-private RSA/AES archive; 46 frames × 2 unsigned reviewer slots. Created separate **standalone offline HTML annotation interfaces** from the exact tested PR source, with embedded 46 original PNG images per reviewer, zero detector bounding boxes/guessed cars, image-drag bbox markup, explicit vehicle/evidence/rank/line/UNKNOWN, per-frame exhaustive checklist, local JSON export/resume. HTML is private user-facing conversation content, **NOT committed/uploaded to public GitHub**.\n- A HTML 12,768,730 bytes, SHA `4bfab49ce7c1beba6840fab40856aaaf9843afdff9077acd2fa723831ccc6469`; B 12,768,730 bytes, SHA `95d6bd402dbce180486952da643584860c76f7ca1669ab459409b39e7ac845eb`. Both are real image-backed UI, not fake fixture screenshots. They contain sensitive replay images and must remain private.\n- Added owner-only `scripts/keirin_private_blind_review_workbench.py` and `scripts/keirin_finalize_blind_review_private.py`. The owner-side finalizer checks the full 46-frame exported JSON against original private packet SHA, order, frame IDs and frozen proposal before letting the EXISTING review contract/Ed25519 signing process proceed. Added **7 synthetic source-free regression tests** and registered in existing CI.\n- Real local headless Chromium smoke: A/B open and render 46 PNGs (515px original crop width), no external network requests, zero JavaScript errors; on A, drag-to-annotate, color-only car choice, reset-to-UNKNOWN, and draft JSON export work. The automated UI test's fabricated mark was discarded and never counted as a label. Mobile Safari was **not independently tested**.\n- Final PR HEAD `808d4ce0dead58fbbe6ea6644356c0f26a881ad1` passed [PR71 synthetic CI 43681193987](https://github.com/haji84/RACE-AI/actions/runs/43681193987). Full safe evidence: `docs/evidence/keirin_takeo2r_real_video_blind_workbench_20261115.json`; instructions `docs/KEIRIN_TAKEO2R_OFFLINE_REVIEW_WORKBENCH_20261115.md`.\n- **No two real human reviewers have been authenticated or submitted A/B data. Actual independent labels: 0; person recall, number OCR, identity tracking, stage accuracy and PDCA admission remain NULL/UNKNOWN.** Two self-generated keys or synthetic CI success cannot substitute for genuine independent review. Stacked PR remains Draft; main/predictions/results/model/site unchanged. Temporary decrypted working RSA/PNG materials removed after generation; standalone private HTML files still contain images.\n\n## 2026-11-15 JST: proceed with existing A/B as machine research, not human ground truth\n- Owner says no distinct outside reviewers are currently available and requests existing A/B source frames instead of recruiting people. Existing A and B reviewer packets are empty slots containing pixel-identical 46 real Takeo2R frame samples, NOT two verified humans. Research need not wait on recruiting people. Official precision/recall/PDCA gates remain unchanged.\n- Actual A: original frozen HSV color proposals for Takeo2R, SHA b207ec30d3fb368b9d9e64b494aa8e9e3657aac388023226c798da8ba8a98bae, 222 region candidates. B: deliberately stricter HSV hue/saturation/brightness component variant on the same BGR frame bytes, 114 region candidates. Source and A/B frame SHA were checked for all 46 frames.\n- One-to-one within 40 pixels: 99 spatial matches and 96 spatial+same-color matches. A-to-B candidate stability = 96/222 = 43.243%; B-to-A = 96/114 = 84.211%; A-not-confirmed-by-B = 126; B-not-confirmed-by-A = 18. Three spatial pairs disagree on color. These are NOT measured false positives, true identities or actual recall.\n- Greatest exploratory disagreement windows: source timestamp 14s (11 A, 4 B, 2 matches), 32s (11/3/3), 82s (8/1/0). Causes not independently labeled. No real human second review was created.\n- Code was added in race_ai/keirin_color_ab_stability.py, scripts/keirin_private_color_ab_compare.py and 6 source-free tests. The exact new code exported by GitHub Actions artifact #14153235201 was rerun against all 46 actual private source-bound frames, reproducing 222/114/99/96. Only aggregate redacted report SHA 80b32360c0554c05c7334a474bf34b4b29d10b54c7dd2722ef58bf4af92d21a6 is public.\n- References: docs/evidence/keirin_takeo2r_A_B_auto_color_stability_20261115.json and docs/KEIRIN_TAKEO2R_AI_AB_NO_HUMAN_REVIEW_RESEARCH_20261115.md.\n- Two HSV rule sets are not independent reviewers or independently witnessed ground truth. True person precision/recall, genuine number OCR, track/rank/line/phase accuracy remain NULL/UNKNOWN. Formal independent reviews 0, stage scoring and learning disabled, main unchanged. Keep Draft.\n\n## 2026-11-15 JST: real A/B failure causes and camera flow diagnostic improvement\n- Owner requests development without recruiting external reviewers. Existing immutable Takeo2R source A/B 46 original frames were recovered using the previously SHA-authenticated encrypted owner materials. The immutable A prediction SHA remains b207ec30d3fb368b9d9e64b494aa8e9e3657aac388023226c798da8ba8a98bae; original 46 source-frame SHA checks pass. Existing forecast and model weights untouched.\n- Implemented race_ai/keirin_color_failure_triage.py and private replay scripts/keirin_private_color_failure_triage.py, with 6 synthetic tests in the existing CI. It separates **123 A regions with no B SPATIAL match** from **126 A regions with no matching B COLOR**: the difference is 3 spatially paired blobs classified as different colors. B equivalent: 15 without spatial match vs 18 without matching color.\n- Real source-pixel reproduction from exact exported GitHub Actions code (artifact #14153948029, run 43695605220): among 123 A-only spatial regions, **49** have zero strict B HSV pixels in the original A bbox, **65** have 1..94 strict HSV pixels (below B's 95px connected-component minimum), and **9** have >=95 pixels but still no spatial match (unresolved morphology/centroid/shape). These categories are source-bound, **not true-person FP/FN**. Upper region/background risk flags: 29 (y<240/584), very elongated shapes 8; flags may overlap with other groups. Actual private visual inspection showed track/bike patches at 14s, background billboard at 32s, and track patches at 82s among detections, but this is a single research inspection, not a blinded all-frame truth set.\n- Implemented race_ai/keirin_camera_motion_quality.py and scripts/keirin_private_camera_motion_audit.py with 6 synthetic tests in the same CI. Verified all original 46 frame SHAs, examined adjacent 45 two-second pairs. LK feature flow+global RANSAC met background-motion quality candidate thresholds for **16/45** pairs; **29/45** held (27 low global RANSAC inliers, 1 insufficient source features, 1 insufficient tracks). Those 16 are NOT proven same-rider tracks. We explicitly refuse unstable flow as identity/tactical truth.\n- Research action: do not tighten HSV blindly. B drops many background patches but also loses actual plausible jersey-color pixels. Triage threshold losses separately from object-shape/background confusion and flow reliability. Prioritize 14s,32s,82s,6s,34s, keep UNKNOWN where evidence is weak. Before person-ID inference, add independent shape/bib-number observations as a separate research gate without paid providers or unapproved production changes.\n- New permanent evidence: docs/evidence/keirin_takeo2r_real_46frame_color_failure_triage_20261115.json, docs/evidence/keirin_takeo2r_camera_motion_quality_20261115.json and docs/KEIRIN_TAKEO2R_AB_ROOT_CAUSE_AND_FLOW_20261115.md. Combined redacted local report SHA f8ff06a760e7abd90d8e0c1560ee5e098c2f64654af89b38e804b8ede9a5c83a; neither raw pixels nor exact boxes were committed.\n- Formal independently verified person/car/track/stage accuracy remains UNKNOWN/null, authentic two-human review labels still 0, official PDCA/training/site/main never promoted. PR remains Draft. Do not mislabel offline CI/threshold agreement as real rider recognition.\n\n## 2026-11-15 JST follow-up: steps 1-3 shape/context research on REAL Takeo2R 46 frames\n- PR #291 Draft continues. Owner's priority: diagnose 14/32/82s advertisement/road false-like color regions, preserve probable riders rather than blindly tighten HSV, and stop untrusted camera-unstable cross-frame color linking. Existing independent-human truth requirement remains for formal precision/recall and PDCA; human recruitment does NOT block research.\n- Exact owner-private source SHA `4e389a46c223b7cb2eaa7c5c5bdc34ade229deedea8a3c795c8be987b57aa810`, frozen A SHA `b207ec30d3fb368b9d9e64b494aa8e9e3657aac388023226c798da8ba8a98bae`. Both existing image-only A/B private reviewer HTML records have 46 exact SHA BGR PNG frames. All original A222/B114, spatial99 and same-color96 counters reproduced without changing the model.\n- **Remaining nine A-only with 95+ strict HSV pixels investigated:** rerun B's existing OPEN/CLOSE morphology and connected components on exact source images. All **9/9** source-bound overlapping component groups fragmented/eroded so each component fell below B's 95-pixel min. Previous other causes remain 49 zero strict HSV pixels and 65 with 1-94. This identifies a processing mechanism, NOT nine proven false detections.\n- New `race_ai/keirin_bicycle_shape_context.py` adds weak OpenCV two-wheel-shaped circle-pair geometry and upper/wide background-risk metadata **without deleting original A candidate boxes**. On 222 A color blobs: **71** have possible wheel-shape context, **151** do not. Among 123 spatially A-only, **41** had possible wheel context and **23** no-wheel plus broad-image risk. Source second snapshots 14s A11/wheel6, 32s A11/wheel0, 82s A8/wheel3. 32s shows real cyclists despite no wheel cue; wheel absence MUST NEVER be used as absence-of-rider proof. Potential wheel pairs may also be background circles. This is not a person detector or verified bicycle counting.\n- `scripts/keirin_private_bicycle_shape_motion_audit.py` reuses the existing SHA-bound LK/RANSAC camera quality and conservative color-flow guard on all 45 consecutive 2s source pairs. Quality candidate16 / HOLD29; fail-closed scene boundaries yield 30 segments (24 singles, maximum 6 frames). Untrusted same-color track candidates seen twice baseline29, after safe boundaries28. None are 28 real same-athlete tracks, phase positions or model wins.\n- Replayed the identical source against the exact PUBLIC Python modules exported from GitHub Actions CI artifact #14167620201, with redacted shape+camera report SHA `da9702680e1d1b087c23dd413a823509b920e6cc7502fe8f723748e4846c6478`, reproduced byte-for-byte on a second local source run. Expanded morphology diagnostics through the same CI-exported source and got redacted report SHA `fdf66b7df2908ff129d850391a9f528402a3156dc3591df35cac77b8144884a4`. NO person bounding boxes, source pixels, owner secret, genuine human reviews or made-up truth published.\n- New isolated source-file and private-runner regression tests in the EXISTING CI passed [43727956963](https://github.com/haji84/RACE-AI/actions/runs/43727956963) for source HEAD `ed29e9dd36438d2fd4e9e1aee2106eaac4b62720`. New permanent references: `docs/evidence/keirin_takeo2r_bicycle_shape_and_postmorph_20261115.json` and `docs/KEIRIN_TAKEO2R_SHAPE_AND_CAMERA_RESEARCH_20261115.md`.\n- **Status:** research STEP 1 cause resolved at morphology-mechanism level, STEP 2 weak bicycle context and background-risk flags, STEP 3 camera-cut conservative continuity implemented/replayed; **not** full rider/background separation, bib OCR or rider identity. Genuine independent labels0, officially verifiable precision/recall/stage/line/PDCA = NULL/HOLD, main and PR71 weights untouched. DO NOT MERGE solely on green CI.\n",
+  "changed_files": 213,
+  "draft": true,
+  "head": {
+    "ref": "research/keirin-six-phase-score-20261114",
+    "sha": "f06b15aee0c6d615deed9dceda8cbdfe41042c98"
+  },
+  "number": 291,
+  "state": "open",
+  "title": "research(keirin): nationwide all-race A generated vs B six-phase, optional line C",
+  "url": "https://github.com/haji84/RACE-AI/pull/291",
+  "files": [
+    {
+      "filename": ".github/workflows/keirin-github-autonomous.yml",
+      "previous_filename": null,
+      "sha": "d303d44d1de97d246b85551358e3e9a755aedb90",
+      "status": "modified",
+      "original_base_mode_type_blob": "100644 blob d11137891cc217042abd2e6de319abd466aa7dfe",
+      "original_head_mode_type_blob": "100644 blob d303d44d1de97d246b85551358e3e9a755aedb90"
+    },
+    {
+      "filename": ".github/workflows/keirin-nationwide-ab-auto.yml",
+      "previous_filename": null,
+      "sha": "028f139832e2e031861bf7867316358827178365",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 028f139832e2e031861bf7867316358827178365"
+    },
+    {
+      "filename": ".github/workflows/keirin-pr71-owner-autonomous.yml",
+      "previous_filename": null,
+      "sha": "001e2b0c6865546f0779e034975312273dc56c28",
+      "status": "modified",
+      "original_base_mode_type_blob": "100644 blob d81eea8237a8ac998173930f8fb0e2572915541c",
+      "original_head_mode_type_blob": "100644 blob 001e2b0c6865546f0779e034975312273dc56c28"
+    },
+    {
+      "filename": "docs/CODEX_KEIRIN_VIDEO_HANDOFF_20261116.md",
+      "previous_filename": null,
+      "sha": "ce08326b20d05206df90eb342c62746e95bb530c",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob ce08326b20d05206df90eb342c62746e95bb530c"
+    },
+    {
+      "filename": "docs/KEIRIN_ACTIVE_GENERATED_AB_OPTIONAL_C_20261118.md",
+      "previous_filename": null,
+      "sha": "31c3c97b8483fc85a28ff227d24770b30873a4df",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 31c3c97b8483fc85a28ff227d24770b30873a4df"
+    },
+    {
+      "filename": "docs/KEIRIN_ALL_RACES_AUTOGEN_AND_AUTO_SETTLE_HANDOFF_20261119.md",
+      "previous_filename": null,
+      "sha": "267ea241e4a97dee6eaccf34ea2fe98bc29aa86f",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 267ea241e4a97dee6eaccf34ea2fe98bc29aa86f"
+    },
+    {
+      "filename": "docs/KEIRIN_CODEX_HANDOFF_REAL_ONE_RACE_20261116.md",
+      "previous_filename": null,
+      "sha": "2f8fc0d26f3fdb70731611540cb0709474b0fd1b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 2f8fc0d26f3fdb70731611540cb0709474b0fd1b"
+    },
+    {
+      "filename": "docs/KEIRIN_LINE_COHESION_20261118.md",
+      "previous_filename": null,
+      "sha": "ecf995885ad3fadb50503a64126be2705ed37ac1",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob ecf995885ad3fadb50503a64126be2705ed37ac1"
+    },
+    {
+      "filename": "docs/KEIRIN_MANUAL_71_ACTIONS_PILOT_20261117.md",
+      "previous_filename": null,
+      "sha": "dc8f9ebd6d7e9f8ff7fc5d4d5bd0f8a0044379a9",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob dc8f9ebd6d7e9f8ff7fc5d4d5bd0f8a0044379a9"
+    },
+    {
+      "filename": "docs/KEIRIN_MANUAL_71_RESULT_SYNC_20261117.md",
+      "previous_filename": null,
+      "sha": "97aa0968b405d96220e36f776f2ae4589a9fa0d8",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 97aa0968b405d96220e36f776f2ae4589a9fa0d8"
+    },
+    {
+      "filename": "docs/KEIRIN_NATIONWIDE_AB_ALL_RACES_20261118.md",
+      "previous_filename": null,
+      "sha": "66bf1b858a22c461b77d3c3c61127f9c24cdfae9",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 66bf1b858a22c461b77d3c3c61127f9c24cdfae9"
+    },
+    {
+      "filename": "docs/KEIRIN_NATIONWIDE_AB_AUTOMATIC_FORECAST_20261118.md",
+      "previous_filename": null,
+      "sha": "04871632f0f60ab12628c4ba0f641125b943205e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 04871632f0f60ab12628c4ba0f641125b943205e"
+    },
+    {
+      "filename": "docs/KEIRIN_NATIONWIDE_AUTO_PUBLIC_SOURCE_PIPELINE_20261118.md",
+      "previous_filename": null,
+      "sha": "c3f772877dbe68f1de29ca36934f9752a0efe484",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob c3f772877dbe68f1de29ca36934f9752a0efe484"
+    },
+    {
+      "filename": "docs/KEIRIN_OFFICIAL_AUTOMATION_COMPLETION_AUDIT_20261119.md",
+      "previous_filename": null,
+      "sha": "e5d42c018dda77a3fc700496e1765f999abd537d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob e5d42c018dda77a3fc700496e1765f999abd537d"
+    },
+    {
+      "filename": "docs/KEIRIN_REAL_LINE_FORWARD_20261118.md",
+      "previous_filename": null,
+      "sha": "2c0e5b62fa70b2e37125b4cea351d9ef40804b14",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 2c0e5b62fa70b2e37125b4cea351d9ef40804b14"
+    },
+    {
+      "filename": "docs/KEIRIN_SIX_PHASE_OVERLAY_20261114.md",
+      "previous_filename": null,
+      "sha": "7ff901daed2e61537dfa27d86900d3270f2e13f8",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 7ff901daed2e61537dfa27d86900d3270f2e13f8"
+    },
+    {
+      "filename": "docs/KEIRIN_TACTICAL_BRANCHING_DESIGN_20261117.md",
+      "previous_filename": null,
+      "sha": "9fdec512ed09940e32dcc4467f25512ca6579144",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9fdec512ed09940e32dcc4467f25512ca6579144"
+    },
+    {
+      "filename": "docs/KEIRIN_TAKEO1R_BLIND_INDEPENDENT_REVIEW_GATE_20261115.md",
+      "previous_filename": null,
+      "sha": "ae36f43aa878bcbd8367a0185eb63e85005cfe49",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob ae36f43aa878bcbd8367a0185eb63e85005cfe49"
+    },
+    {
+      "filename": "docs/KEIRIN_TAKEO2R_AB_ROOT_CAUSE_AND_FLOW_20261115.md",
+      "previous_filename": null,
+      "sha": "ece29ca12f00a83d20232a69055c17dd19e4f56f",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob ece29ca12f00a83d20232a69055c17dd19e4f56f"
+    },
+    {
+      "filename": "docs/KEIRIN_TAKEO2R_AI_AB_NO_HUMAN_REVIEW_RESEARCH_20261115.md",
+      "previous_filename": null,
+      "sha": "08ec5a6fdc2ac5e7198858e1d5119b94ebec2ccc",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 08ec5a6fdc2ac5e7198858e1d5119b94ebec2ccc"
+    },
+    {
+      "filename": "docs/KEIRIN_TAKEO2R_INDEPENDENT_REVIEW_RESTART_20261115.md",
+      "previous_filename": null,
+      "sha": "650e22e7ddc982797911a81032a89521554c77b3",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 650e22e7ddc982797911a81032a89521554c77b3"
+    },
+    {
+      "filename": "docs/KEIRIN_TAKEO2R_OFFLINE_REVIEW_WORKBENCH_20261115.md",
+      "previous_filename": null,
+      "sha": "a5324705cddceb8d4ab897c6edbb6ce607cb1bdc",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob a5324705cddceb8d4ab897c6edbb6ce607cb1bdc"
+    },
+    {
+      "filename": "docs/KEIRIN_TAKEO2R_SHAPE_AND_CAMERA_RESEARCH_20261115.md",
+      "previous_filename": null,
+      "sha": "8831afe83de4dc0d581952d88fd8f20e51e3ce81",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 8831afe83de4dc0d581952d88fd8f20e51e3ce81"
+    },
+    {
+      "filename": "docs/evidence/2026-11-17/keirin_owner_manual71_20261117_sealed_v1.json",
+      "previous_filename": null,
+      "sha": "30d78b629a0972f50dc01b3309f42df4bf7a1d06",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 30d78b629a0972f50dc01b3309f42df4bf7a1d06"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_all79_actual_0746_status_v1.json",
+      "previous_filename": null,
+      "sha": "dcb89e816948342df9649015288b190f10f84d22",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob dcb89e816948342df9649015288b190f10f84d22"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_all79_nationwide_AB_registered_v1.json",
+      "previous_filename": null,
+      "sha": "ba102add923728ebf2d4575d0b478f002e527be1",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob ba102add923728ebf2d4575d0b478f002e527be1"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_main_3runs_source_denial_verified_v1.json",
+      "previous_filename": null,
+      "sha": "4a035043899185b125ea98b296d1c64dc0d3297b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 4a035043899185b125ea98b296d1c64dc0d3297b"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_owner_existing_71r_available_source_inventory_v1.json",
+      "previous_filename": null,
+      "sha": "e3255d7c6adf1c7c9cd77d429177bf944e186467",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob e3255d7c6adf1c7c9cd77d429177bf944e186467"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem",
+      "previous_filename": null,
+      "sha": "7717a321a66243118e1864c2136c88c4713ab19c",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 7717a321a66243118e1864c2136c88c4713ab19c"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_seibuen1r_3arm_cohort_frozen_v1.json",
+      "previous_filename": null,
+      "sha": "5f159d58f3609538a6e3ff9ea8555bb80d5abe7c",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 5f159d58f3609538a6e3ff9ea8555bb80d5abe7c"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_seibuen1r_AB_postrace_three_sources_preview_v1.json",
+      "previous_filename": null,
+      "sha": "3b2c30a84499420ef287853f79fe3265deae0e97",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 3b2c30a84499420ef287853f79fe3265deae0e97"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_seibuen1r_AB_sealed_cipher_v1.json",
+      "previous_filename": null,
+      "sha": "969d12a69eb9d0c8f98625fde426adccad1b8ee2",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 969d12a69eb9d0c8f98625fde426adccad1b8ee2"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_seibuen1r_AB_three_provider_result_research_score_v1.json",
+      "previous_filename": null,
+      "sha": "792bcb02054a476e2be37cd312b820a09ffa8144",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 792bcb02054a476e2be37cd312b820a09ffa8144"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_seibuen1r_active_generated_AB_prereg_v1.json",
+      "previous_filename": null,
+      "sha": "cebfa250cf38359df7bd1c7b3fa260504662032d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob cebfa250cf38359df7bd1c7b3fa260504662032d"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_seibuen1r_future_three_arm_pre_register_v1.json",
+      "previous_filename": null,
+      "sha": "002b326f90a92ce59570318816cb2ce030794b7f",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 002b326f90a92ce59570318816cb2ce030794b7f"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_takeo2r_follower_qualitative_comment_v1.json",
+      "previous_filename": null,
+      "sha": "68ab5ef570386a55a522e3e7561d6db2fa5a970e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 68ab5ef570386a55a522e3e7561d6db2fa5a970e"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_takeo2r_real_review_packet_readback_redacted.json",
+      "previous_filename": null,
+      "sha": "89d07b4600bef2e5a9a1291f57bacb60a9e06adb",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 89d07b4600bef2e5a9a1291f57bacb60a9e06adb"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_takeo2r_real_webm_redecrypt_frame_sha_v1.json",
+      "previous_filename": null,
+      "sha": "9211c19afbe693f64a38e788045e1c5d2fdeb9aa",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9211c19afbe693f64a38e788045e1c5d2fdeb9aa"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_takeo2r_single_visual_color_order_candidates_v1.json",
+      "previous_filename": null,
+      "sha": "c8905a74879a88cb040116c03d3b0b5815bcdc67",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob c8905a74879a88cb040116c03d3b0b5815bcdc67"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_takeo_public_pair_finishes_v1.json",
+      "previous_filename": null,
+      "sha": "b9dfdc9897c315c2a8fabfbdbee482867f0abafa",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob b9dfdc9897c315c2a8fabfbdbee482867f0abafa"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_takeo_public_planned_pairs_v1.json",
+      "previous_filename": null,
+      "sha": "b54e197f1c3b53166903fd844129483a6e6dc7f2",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob b54e197f1c3b53166903fd844129483a6e6dc7f2"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_utsunomiya1r_real_auto_AB_sealed_v1.json",
+      "previous_filename": null,
+      "sha": "61b65bea0bb7ec582f3f2fe5553886d90a17ff2a",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 61b65bea0bb7ec582f3f2fe5553886d90a17ff2a"
+    },
+    {
+      "filename": "docs/evidence/2026-11-18/keirin_utsunomiya1r_real_auto_AB_source_to_aes_readback_v1.json",
+      "previous_filename": null,
+      "sha": "910c3369387238d9649f39100a05e126f86a63cf",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 910c3369387238d9649f39100a05e126f86a63cf"
+    },
+    {
+      "filename": "docs/evidence/2026-11-19/keirin_utsunomiya1r_official_AB_settlement_safe_v1.json",
+      "previous_filename": null,
+      "sha": "39c433ebfe947281d905b299eea7f17433e90d85",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 39c433ebfe947281d905b299eea7f17433e90d85"
+    },
+    {
+      "filename": "docs/evidence/keirin_20261109_two_new_race_fixed_replay_20261116.json",
+      "previous_filename": null,
+      "sha": "e276a503d69e88f43e80df63b5f6b17c7a057c61",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob e276a503d69e88f43e80df63b5f6b17c7a057c61"
+    },
+    {
+      "filename": "docs/evidence/keirin_auto_jersey_color_153frames_20261115.json",
+      "previous_filename": null,
+      "sha": "0d4985bf2d10f32ca74d81ae13ad3f65bc3af05b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 0d4985bf2d10f32ca74d81ae13ad3f65bc3af05b"
+    },
+    {
+      "filename": "docs/evidence/keirin_historical_color_single_review_153frames_20261115.json",
+      "previous_filename": null,
+      "sha": "ff9e3c3397830654f3b4325333c8173f64977e77",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob ff9e3c3397830654f3b4325333c8173f64977e77"
+    },
+    {
+      "filename": "docs/evidence/keirin_historical_three_races_frame_readback_20261115.json",
+      "previous_filename": null,
+      "sha": "52a64dfe452c74b02d3f90bf6027b27c3d0aa6ff",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 52a64dfe452c74b02d3f90bf6027b27c3d0aa6ff"
+    },
+    {
+      "filename": "docs/evidence/keirin_takeo1r_unseen_color_holdout_20261115.json",
+      "previous_filename": null,
+      "sha": "714d4a6c013a8313d7f26c2438c45143440857b1",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 714d4a6c013a8313d7f26c2438c45143440857b1"
+    },
+    {
+      "filename": "docs/evidence/keirin_takeo2r_46frame_frozen_blind_packets_20261115.json",
+      "previous_filename": null,
+      "sha": "5921872622511c985bc90035c4c1dc1feeb3d57e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 5921872622511c985bc90035c4c1dc1feeb3d57e"
+    },
+    {
+      "filename": "docs/evidence/keirin_takeo2r_A_B_auto_color_stability_20261115.json",
+      "previous_filename": null,
+      "sha": "df1edd2ec87ca5dd97b2f932ad3f06894c95e301",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob df1edd2ec87ca5dd97b2f932ad3f06894c95e301"
+    },
+    {
+      "filename": "docs/evidence/keirin_takeo2r_bicycle_shape_and_postmorph_20261115.json",
+      "previous_filename": null,
+      "sha": "b4685f88e18c2caf0d8768a3692f6e530325d599",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob b4685f88e18c2caf0d8768a3692f6e530325d599"
+    },
+    {
+      "filename": "docs/evidence/keirin_takeo2r_camera_motion_quality_20261115.json",
+      "previous_filename": null,
+      "sha": "630c8dc4547b1101df5ce1e71941e92b3e40ab3a",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 630c8dc4547b1101df5ce1e71941e92b3e40ab3a"
+    },
+    {
+      "filename": "docs/evidence/keirin_takeo2r_real_46frame_color_failure_triage_20261115.json",
+      "previous_filename": null,
+      "sha": "9fc0be01514201fd3e601017d3bcd8be9b44732d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9fc0be01514201fd3e601017d3bcd8be9b44732d"
+    },
+    {
+      "filename": "docs/evidence/keirin_takeo2r_real_video_blind_workbench_20261115.json",
+      "previous_filename": null,
+      "sha": "c650abba29152a4c27b0229c7f5af2a7d7b8ae53",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob c650abba29152a4c27b0229c7f5af2a7d7b8ae53"
+    },
+    {
+      "filename": "docs/superpowers/plans/2026-11-19-keirin-official-automation.md",
+      "previous_filename": null,
+      "sha": "91c3e93fb453e8fff8bcc21fd1c9b16562aa6c4b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 91c3e93fb453e8fff8bcc21fd1c9b16562aa6c4b"
+    },
+    {
+      "filename": "race_ai/keirin_active_available_pipeline.py",
+      "previous_filename": null,
+      "sha": "52b2c022fd5b840d42e8e955f7046a82990aaa0e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 52b2c022fd5b840d42e8e955f7046a82990aaa0e"
+    },
+    {
+      "filename": "race_ai/keirin_available_forecast_sources.py",
+      "previous_filename": null,
+      "sha": "f2369b3b50baa04021fcc3e6c4c8f9e63b0cc96f",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob f2369b3b50baa04021fcc3e6c4c8f9e63b0cc96f"
+    },
+    {
+      "filename": "race_ai/keirin_available_prediction_audit.py",
+      "previous_filename": null,
+      "sha": "601a7d900751d1a191d9d17c021216688cf36908",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 601a7d900751d1a191d9d17c021216688cf36908"
+    },
+    {
+      "filename": "race_ai/keirin_bicycle_shape_context.py",
+      "previous_filename": null,
+      "sha": "8dc28c480122ae4cdfdd34e206b966156e8a6155",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 8dc28c480122ae4cdfdd34e206b966156e8a6155"
+    },
+    {
+      "filename": "race_ai/keirin_blind_rider_holdout_gate.py",
+      "previous_filename": null,
+      "sha": "754a25684af7be8c35c832a91e766f82ecb1c243",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 754a25684af7be8c35c832a91e766f82ecb1c243"
+    },
+    {
+      "filename": "race_ai/keirin_camera_motion_quality.py",
+      "previous_filename": null,
+      "sha": "5e44078432536bb6a582b3460d43b77e68a61016",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 5e44078432536bb6a582b3460d43b77e68a61016"
+    },
+    {
+      "filename": "race_ai/keirin_color_ab_stability.py",
+      "previous_filename": null,
+      "sha": "d8eced35fe6a45859cbfc679c8cb1b13b42256ec",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob d8eced35fe6a45859cbfc679c8cb1b13b42256ec"
+    },
+    {
+      "filename": "race_ai/keirin_color_failure_triage.py",
+      "previous_filename": null,
+      "sha": "4c493cf6a6fecc77f7a9bc954bf5055efbaa1cea",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 4c493cf6a6fecc77f7a9bc954bf5055efbaa1cea"
+    },
+    {
+      "filename": "race_ai/keirin_color_track_flow_guard.py",
+      "previous_filename": null,
+      "sha": "3aa36819afb3b214155627562a4b0ee37bbe322f",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 3aa36819afb3b214155627562a4b0ee37bbe322f"
+    },
+    {
+      "filename": "race_ai/keirin_dynamic_nationwide_registry.py",
+      "previous_filename": null,
+      "sha": "7c9383df9af94a8bb882f0f6372910af504bae63",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 7c9383df9af94a8bb882f0f6372910af504bae63"
+    },
+    {
+      "filename": "race_ai/keirin_frame_rider_identity_gate.py",
+      "previous_filename": null,
+      "sha": "718bd8aa0642e06574b0fa5a851c429242d09a56",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 718bd8aa0642e06574b0fa5a851c429242d09a56"
+    },
+    {
+      "filename": "race_ai/keirin_github_capture_selection.py",
+      "previous_filename": null,
+      "sha": "779312b592dde5af477b01faee5cb2a844990aba",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 779312b592dde5af477b01faee5cb2a844990aba"
+    },
+    {
+      "filename": "race_ai/keirin_github_evidence_client.py",
+      "previous_filename": null,
+      "sha": "028f2917d77d6d160781ad97e86a53fef9337d97",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 028f2917d77d6d160781ad97e86a53fef9337d97"
+    },
+    {
+      "filename": "race_ai/keirin_github_origin_evidence.py",
+      "previous_filename": null,
+      "sha": "22d08b0f13f476093bc047e86da6ae1b6f865668",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 22d08b0f13f476093bc047e86da6ae1b6f865668"
+    },
+    {
+      "filename": "race_ai/keirin_github_provider_stop.py",
+      "previous_filename": null,
+      "sha": "6ff6ac7221a9c564c3f68833651f89f1c332fa71",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 6ff6ac7221a9c564c3f68833651f89f1c332fa71"
+    },
+    {
+      "filename": "race_ai/keirin_historical_rider_color_eval.py",
+      "previous_filename": null,
+      "sha": "bf4d2313500f03b787dbd34c986383b7783cc2ae",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob bf4d2313500f03b787dbd34c986383b7783cc2ae"
+    },
+    {
+      "filename": "race_ai/keirin_line_cohesion.py",
+      "previous_filename": null,
+      "sha": "9a4314be6552165a0d73e896b0127c1a60efc2a6",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9a4314be6552165a0d73e896b0127c1a60efc2a6"
+    },
+    {
+      "filename": "race_ai/keirin_line_three_arm_audit.py",
+      "previous_filename": null,
+      "sha": "344602808a5f3e3b6c46c24e9396ace75a4683e5",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 344602808a5f3e3b6c46c24e9396ace75a4683e5"
+    },
+    {
+      "filename": "race_ai/keirin_manual71_live_evidence.py",
+      "previous_filename": null,
+      "sha": "8e9355ad778bda255ca340653abdd7b98fcc7c43",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 8e9355ad778bda255ca340653abdd7b98fcc7c43"
+    },
+    {
+      "filename": "race_ai/keirin_manual71_owner_encrypted_intake.py",
+      "previous_filename": null,
+      "sha": "5de11499d0a6b1e1df45590b112feed435b60aff",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 5de11499d0a6b1e1df45590b112feed435b60aff"
+    },
+    {
+      "filename": "race_ai/keirin_manual_71_actions_bridge.py",
+      "previous_filename": null,
+      "sha": "0c7686a801b57334f4acf37be2d3238568f533d4",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 0c7686a801b57334f4acf37be2d3238568f533d4"
+    },
+    {
+      "filename": "race_ai/keirin_manual_result_sync.py",
+      "previous_filename": null,
+      "sha": "fcb6c74f7f5900b6aea24ee32c8cbf706271b532",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob fcb6c74f7f5900b6aea24ee32c8cbf706271b532"
+    },
+    {
+      "filename": "race_ai/keirin_nationwide_AB_executor.py",
+      "previous_filename": null,
+      "sha": "9680b4ec8f532ee78298815f1285d4f95961827d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9680b4ec8f532ee78298815f1285d4f95961827d"
+    },
+    {
+      "filename": "race_ai/keirin_nationwide_AB_results.py",
+      "previous_filename": null,
+      "sha": "38a4675bcdad108600a34ff6faf615cc26c3b322",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 38a4675bcdad108600a34ff6faf615cc26c3b322"
+    },
+    {
+      "filename": "race_ai/keirin_nationwide_active_AB.py",
+      "previous_filename": null,
+      "sha": "512aa7d83f7b7a4dd196cb62aec2d741f7612356",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 512aa7d83f7b7a4dd196cb62aec2d741f7612356"
+    },
+    {
+      "filename": "race_ai/keirin_nationwide_auto_generator.py",
+      "previous_filename": null,
+      "sha": "f899a2317cf38d1be8e8832eaa678af6666a7d4a",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob f899a2317cf38d1be8e8832eaa678af6666a7d4a"
+    },
+    {
+      "filename": "race_ai/keirin_nationwide_auto_settlement.py",
+      "previous_filename": null,
+      "sha": "fb4131402381f70d25a4e7b4195846cb0f6c1756",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob fb4131402381f70d25a4e7b4195846cb0f6c1756"
+    },
+    {
+      "filename": "race_ai/keirin_nationwide_auto_storage.py",
+      "previous_filename": null,
+      "sha": "da89720e07974deafae63269b190d8bbe7e1723a",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob da89720e07974deafae63269b190d8bbe7e1723a"
+    },
+    {
+      "filename": "race_ai/keirin_nationwide_cipher_history.py",
+      "previous_filename": null,
+      "sha": "a87ba37a662f859595bf6bd1343de0da403e0ef1",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob a87ba37a662f859595bf6bd1343de0da403e0ef1"
+    },
+    {
+      "filename": "race_ai/keirin_observed_follow_admission.py",
+      "previous_filename": null,
+      "sha": "750307578a760d92fc9928c68eca3bccff381500",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 750307578a760d92fc9928c68eca3bccff381500"
+    },
+    {
+      "filename": "race_ai/keirin_official_cohort.py",
+      "previous_filename": null,
+      "sha": "ff8f0ac8b52214b7985498a622e8c6ac13283c66",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob ff8f0ac8b52214b7985498a622e8c6ac13283c66"
+    },
+    {
+      "filename": "race_ai/keirin_official_owner_report.py",
+      "previous_filename": null,
+      "sha": "f8b229beaa152b2689098823426c7a944ce32424",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob f8b229beaa152b2689098823426c7a944ce32424"
+    },
+    {
+      "filename": "race_ai/keirin_official_poll_progress.py",
+      "previous_filename": null,
+      "sha": "a63fe4ce3b21827c5d5f785933d443643b743993",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob a63fe4ce3b21827c5d5f785933d443643b743993"
+    },
+    {
+      "filename": "race_ai/keirin_official_public_source.py",
+      "previous_filename": null,
+      "sha": "9c22c5ced0af0f2e974acb2e53a3d06544f2a975",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9c22c5ced0af0f2e974acb2e53a3d06544f2a975"
+    },
+    {
+      "filename": "race_ai/keirin_official_run_history.py",
+      "previous_filename": null,
+      "sha": "a8b0c5dcb001bea4690e373227b3ca3bcb4f13b3",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob a8b0c5dcb001bea4690e373227b3ca3bcb4f13b3"
+    },
+    {
+      "filename": "race_ai/keirin_phase_overlay.py",
+      "previous_filename": null,
+      "sha": "22bee65748fa8ac5079d4c1941b4049da7fe7966",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 22bee65748fa8ac5079d4c1941b4049da7fe7966"
+    },
+    {
+      "filename": "race_ai/keirin_public_two_source_normalizer.py",
+      "previous_filename": null,
+      "sha": "7b53b52ffd0f2ec602bc2807ab7246101fd8407e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 7b53b52ffd0f2ec602bc2807ab7246101fd8407e"
+    },
+    {
+      "filename": "race_ai/keirin_real_line_evidence.py",
+      "previous_filename": null,
+      "sha": "900396ebe0b046b507c320c394d6aa88b78845d4",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 900396ebe0b046b507c320c394d6aa88b78845d4"
+    },
+    {
+      "filename": "race_ai/keirin_real_pair_finish_outcome.py",
+      "previous_filename": null,
+      "sha": "2730063614aa3561e44912c189f31cad4de937c8",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 2730063614aa3561e44912c189f31cad4de937c8"
+    },
+    {
+      "filename": "race_ai/keirin_real_three_arm_prospective_bridge.py",
+      "previous_filename": null,
+      "sha": "fe50f82e65d5eba644d77f04ab44bc4bcb192bb1",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob fe50f82e65d5eba644d77f04ab44bc4bcb192bb1"
+    },
+    {
+      "filename": "race_ai/keirin_round_motivation.py",
+      "previous_filename": null,
+      "sha": "45a7a575479133add55dd94f43db11cb83262c3f",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 45a7a575479133add55dd94f43db11cb83262c3f"
+    },
+    {
+      "filename": "race_ai/keirin_round_paired_audit.py",
+      "previous_filename": null,
+      "sha": "2f61aabf5edc54bed0c8fac63be828a808674219",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 2f61aabf5edc54bed0c8fac63be828a808674219"
+    },
+    {
+      "filename": "race_ai/keirin_round_six_phase_rank.py",
+      "previous_filename": null,
+      "sha": "d8dfedabb21bf3ed956da95919a8a029c4b32041",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob d8dfedabb21bf3ed956da95919a8a029c4b32041"
+    },
+    {
+      "filename": "race_ai/keirin_secondary_result_consensus.py",
+      "previous_filename": null,
+      "sha": "19190e47c4ca7867c518c981d0c9e09269deefc9",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 19190e47c4ca7867c518c981d0c9e09269deefc9"
+    },
+    {
+      "filename": "race_ai/keirin_seibuen_20261118_AB_settlement.py",
+      "previous_filename": null,
+      "sha": "8791dc92a6a067aac1735ee52bf59221079d498a",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 8791dc92a6a067aac1735ee52bf59221079d498a"
+    },
+    {
+      "filename": "race_ai/keirin_shape_digit_candidate_research.py",
+      "previous_filename": null,
+      "sha": "2b26600c074a6ce9234cd4c1dde26ed5be3c1810",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 2b26600c074a6ce9234cd4c1dde26ed5be3c1810"
+    },
+    {
+      "filename": "race_ai/keirin_signed_blind_review_gate.py",
+      "previous_filename": null,
+      "sha": "76e7085cd3a702d06a8923578f3b6dad4825366c",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 76e7085cd3a702d06a8923578f3b6dad4825366c"
+    },
+    {
+      "filename": "race_ai/keirin_visual_jersey_proposals.py",
+      "previous_filename": null,
+      "sha": "e3b20c4d1a360caf249622d80be097d920d6f62e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob e3b20c4d1a360caf249622d80be097d920d6f62e"
+    },
+    {
+      "filename": "scripts/keirin_blind_video_review_packets.py",
+      "previous_filename": null,
+      "sha": "dcf63a02f48452280cc211eced734e7d356e4deb",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob dcf63a02f48452280cc211eced734e7d356e4deb"
+    },
+    {
+      "filename": "scripts/keirin_capture_public_two_sources.py",
+      "previous_filename": null,
+      "sha": "a3f29586811a3f93baadc4cecb53c3d75d58f489",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob a3f29586811a3f93baadc4cecb53c3d75d58f489"
+    },
+    {
+      "filename": "scripts/keirin_cloud_owner_inputs.py",
+      "previous_filename": null,
+      "sha": "5710710b1cb282d0cf6a00ba0ce37d2a14e33b1d",
+      "status": "modified",
+      "original_base_mode_type_blob": "100644 blob 7fc9c930cb1c0ef466622952bf7a4a80590d6ed7",
+      "original_head_mode_type_blob": "100644 blob 5710710b1cb282d0cf6a00ba0ce37d2a14e33b1d"
+    },
+    {
+      "filename": "scripts/keirin_cloud_pr71_state.py",
+      "previous_filename": null,
+      "sha": "473d1f56647170b236288c475b4e61caed7ed38b",
+      "status": "modified",
+      "original_base_mode_type_blob": "100644 blob 7f80050de1a69fed0efaaa0a99df30fe66395688",
+      "original_head_mode_type_blob": "100644 blob 473d1f56647170b236288c475b4e61caed7ed38b"
+    },
+    {
+      "filename": "scripts/keirin_discover_public_race_links.py",
+      "previous_filename": null,
+      "sha": "75f69edaa38a886398882ed40bc166db9e74eb45",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 75f69edaa38a886398882ed40bc166db9e74eb45"
+    },
+    {
+      "filename": "scripts/keirin_evening_national_real_AB_20261118.py",
+      "previous_filename": null,
+      "sha": "9a5c85458499860de0de3054b043de5baf71ca5e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9a5c85458499860de0de3054b043de5baf71ca5e"
+    },
+    {
+      "filename": "scripts/keirin_finalize_blind_review_private.py",
+      "previous_filename": null,
+      "sha": "9ade89100817253e21999366155f88589db67763",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9ade89100817253e21999366155f88589db67763"
+    },
+    {
+      "filename": "scripts/keirin_github_only_ab_day.py",
+      "previous_filename": null,
+      "sha": "6a417b7ee1471e05762e7a954d1bd61f56e6881b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 6a417b7ee1471e05762e7a954d1bd61f56e6881b"
+    },
+    {
+      "filename": "scripts/keirin_github_only_ab_readback.py",
+      "previous_filename": null,
+      "sha": "ef54c7de397af887a7ced9378e8717daf5b03c48",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob ef54c7de397af887a7ced9378e8717daf5b03c48"
+    },
+    {
+      "filename": "scripts/keirin_github_only_result_day.py",
+      "previous_filename": null,
+      "sha": "29258b757ab53e8df560e455d26787bfc6c9846d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 29258b757ab53e8df560e455d26787bfc6c9846d"
+    },
+    {
+      "filename": "scripts/keirin_historical_auto_color_eval_private.py",
+      "previous_filename": null,
+      "sha": "dfbf29e3cd2bd14fec985dd08be1e531a0b9df9d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob dfbf29e3cd2bd14fec985dd08be1e531a0b9df9d"
+    },
+    {
+      "filename": "scripts/keirin_historical_color_eval_offline.py",
+      "previous_filename": null,
+      "sha": "5fa551e2a8daa619e388c6db0f3df0056918c047",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 5fa551e2a8daa619e388c6db0f3df0056918c047"
+    },
+    {
+      "filename": "scripts/keirin_kochi5r_line_source_diagnostic.py",
+      "previous_filename": null,
+      "sha": "cafa19d9d9a0675241112ea2ebe7b43befa4f921",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob cafa19d9d9a0675241112ea2ebe7b43befa4f921"
+    },
+    {
+      "filename": "scripts/keirin_manual71_owner_intake_cli.py",
+      "previous_filename": null,
+      "sha": "b973068efb284b258325ef68b35464786d48cf40",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob b973068efb284b258325ef68b35464786d48cf40"
+    },
+    {
+      "filename": "scripts/keirin_manual_result_sync_cli.py",
+      "previous_filename": null,
+      "sha": "453f3642058089e19538b4a7c9a0d31de4a13f52",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 453f3642058089e19538b4a7c9a0d31de4a13f52"
+    },
+    {
+      "filename": "scripts/keirin_nationwide_auto_forecast.py",
+      "previous_filename": null,
+      "sha": "9d15e460d2d5b848b628abf2c02ab806bf3be755",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9d15e460d2d5b848b628abf2c02ab806bf3be755"
+    },
+    {
+      "filename": "scripts/keirin_nationwide_independent_cipher_readback.py",
+      "previous_filename": null,
+      "sha": "52906ddbd7e215199d7f300735e2bc64b66bcaad",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 52906ddbd7e215199d7f300735e2bc64b66bcaad"
+    },
+    {
+      "filename": "scripts/keirin_official_backlog_days.py",
+      "previous_filename": null,
+      "sha": "e36141bd31c3a6a67b18ff40e0a763425ac6357d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob e36141bd31c3a6a67b18ff40e0a763425ac6357d"
+    },
+    {
+      "filename": "scripts/keirin_official_day_pipeline.py",
+      "previous_filename": null,
+      "sha": "b2a67725934f88e9c6a7459cb200a5ecb5186b5a",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob b2a67725934f88e9c6a7459cb200a5ecb5186b5a"
+    },
+    {
+      "filename": "scripts/keirin_official_owner_view.py",
+      "previous_filename": null,
+      "sha": "9dbe5d52870719183f4d590e58fbe793b311f3dd",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9dbe5d52870719183f4d590e58fbe793b311f3dd"
+    },
+    {
+      "filename": "scripts/keirin_private_bicycle_shape_motion_audit.py",
+      "previous_filename": null,
+      "sha": "091c8e7c48c8989e367149e57c2a059c780be5b0",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 091c8e7c48c8989e367149e57c2a059c780be5b0"
+    },
+    {
+      "filename": "scripts/keirin_private_blind_review_workbench.py",
+      "previous_filename": null,
+      "sha": "88a58f7e18912c13922846bf3e7611763270fbae",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 88a58f7e18912c13922846bf3e7611763270fbae"
+    },
+    {
+      "filename": "scripts/keirin_private_camera_motion_audit.py",
+      "previous_filename": null,
+      "sha": "aa5d1149d264e611e64747d7672f789f54178ed9",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob aa5d1149d264e611e64747d7672f789f54178ed9"
+    },
+    {
+      "filename": "scripts/keirin_private_color_ab_compare.py",
+      "previous_filename": null,
+      "sha": "bb55f06ce7a3504c9b249210a98a56f08a2e6ea7",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob bb55f06ce7a3504c9b249210a98a56f08a2e6ea7"
+    },
+    {
+      "filename": "scripts/keirin_private_color_failure_triage.py",
+      "previous_filename": null,
+      "sha": "3b21501a172660112b023d2d9e56b5c8a022d1b3",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 3b21501a172660112b023d2d9e56b5c8a022d1b3"
+    },
+    {
+      "filename": "scripts/keirin_private_review_pair_readiness.py",
+      "previous_filename": null,
+      "sha": "4799f2344e95ccbca36e4bc4ba5e79e08a06da3b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 4799f2344e95ccbca36e4bc4ba5e79e08a06da3b"
+    },
+    {
+      "filename": "scripts/keirin_private_shape_digit_holdout.py",
+      "previous_filename": null,
+      "sha": "052ae3f193dc9f757d3a4bcc997be2337db2c984",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 052ae3f193dc9f757d3a4bcc997be2337db2c984"
+    },
+    {
+      "filename": "scripts/keirin_real_nationwide_day_link_smoke.py",
+      "previous_filename": null,
+      "sha": "7d31587712c4c316eb6de49f270f0eaa48d88f92",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 7d31587712c4c316eb6de49f270f0eaa48d88f92"
+    },
+    {
+      "filename": "scripts/keirin_real_public_source_smoke.py",
+      "previous_filename": null,
+      "sha": "1f74fdbe1e276545bcc6c69d3fb75a35e3e24153",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 1f74fdbe1e276545bcc6c69d3fb75a35e3e24153"
+    },
+    {
+      "filename": "scripts/keirin_real_source_to_aes_one_run.py",
+      "previous_filename": null,
+      "sha": "1259380856d4d738e432bcc7ccd11c1c9fef0619",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 1259380856d4d738e432bcc7ccd11c1c9fef0619"
+    },
+    {
+      "filename": "scripts/keirin_register_public_day.py",
+      "previous_filename": null,
+      "sha": "1e54be2caefa5bdb71ca988b44ee5229b804e52e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 1e54be2caefa5bdb71ca988b44ee5229b804e52e"
+    },
+    {
+      "filename": "scripts/keirin_restore_blind_owner_packets.py",
+      "previous_filename": null,
+      "sha": "c2ab8c9e944a5b8507bf1e683257bb3a038257c2",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob c2ab8c9e944a5b8507bf1e683257bb3a038257c2"
+    },
+    {
+      "filename": "scripts/keirin_secondary_result_poll.py",
+      "previous_filename": null,
+      "sha": "9fec103ec59cc382fd39dac436ba27c91ea5adf1",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9fec103ec59cc382fd39dac436ba27c91ea5adf1"
+    },
+    {
+      "filename": "scripts/keirin_sign_blind_review_private.py",
+      "previous_filename": null,
+      "sha": "8d66559c8adca103c7cf24085cc263a35a6b7491",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 8d66559c8adca103c7cf24085cc263a35a6b7491"
+    },
+    {
+      "filename": "tests/test_keirin_active_available_pipeline.py",
+      "previous_filename": null,
+      "sha": "87242ea1fbf676de72a772bfe18db42618fe5042",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 87242ea1fbf676de72a772bfe18db42618fe5042"
+    },
+    {
+      "filename": "tests/test_keirin_available_forecast_comparison.py",
+      "previous_filename": null,
+      "sha": "e3d5ebcf172c12c65a9f885761f6776e08a764f4",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob e3d5ebcf172c12c65a9f885761f6776e08a764f4"
+    },
+    {
+      "filename": "tests/test_keirin_bicycle_shape_context.py",
+      "previous_filename": null,
+      "sha": "6cbaf03dcf83271cb4082777f0b4c33db0249666",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 6cbaf03dcf83271cb4082777f0b4c33db0249666"
+    },
+    {
+      "filename": "tests/test_keirin_blind_rider_holdout_gate.py",
+      "previous_filename": null,
+      "sha": "a4176ed15caffbb53eea2a7ac155fa8aa91d4ae2",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob a4176ed15caffbb53eea2a7ac155fa8aa91d4ae2"
+    },
+    {
+      "filename": "tests/test_keirin_blind_video_review_packets.py",
+      "previous_filename": null,
+      "sha": "90e0edc25307466a2c74f3de9a8c9f29498db92e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 90e0edc25307466a2c74f3de9a8c9f29498db92e"
+    },
+    {
+      "filename": "tests/test_keirin_camera_motion_quality.py",
+      "previous_filename": null,
+      "sha": "04db3fc008c086e6e11da1b12c8105515f28911e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 04db3fc008c086e6e11da1b12c8105515f28911e"
+    },
+    {
+      "filename": "tests/test_keirin_capture_public_two_sources.py",
+      "previous_filename": null,
+      "sha": "f61b847538000a6751a859287973974c9fc5374d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob f61b847538000a6751a859287973974c9fc5374d"
+    },
+    {
+      "filename": "tests/test_keirin_cloud_owner_inputs.py",
+      "previous_filename": null,
+      "sha": "5861ef597a0960826a2f2be85d6ddde8b82d93f4",
+      "status": "modified",
+      "original_base_mode_type_blob": "100644 blob e8b08a6cc771a707dc969d35349ac54bc9f1352a",
+      "original_head_mode_type_blob": "100644 blob 5861ef597a0960826a2f2be85d6ddde8b82d93f4"
+    },
+    {
+      "filename": "tests/test_keirin_cloud_owner_source_cycle.py",
+      "previous_filename": null,
+      "sha": "a5f6d765b4bb0535510b3c06e8d7ea64a0d8b988",
+      "status": "modified",
+      "original_base_mode_type_blob": "100644 blob 441aa1e7368fef9973d21bd603bf8e074788a10a",
+      "original_head_mode_type_blob": "100644 blob a5f6d765b4bb0535510b3c06e8d7ea64a0d8b988"
+    },
+    {
+      "filename": "tests/test_keirin_color_ab_stability.py",
+      "previous_filename": null,
+      "sha": "12e372c215caa7a08e40bc5b4a9994920b87f419",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 12e372c215caa7a08e40bc5b4a9994920b87f419"
+    },
+    {
+      "filename": "tests/test_keirin_color_failure_triage.py",
+      "previous_filename": null,
+      "sha": "cedd678cf019db70e677807e90bf15efb6f1969b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob cedd678cf019db70e677807e90bf15efb6f1969b"
+    },
+    {
+      "filename": "tests/test_keirin_color_track_flow_guard.py",
+      "previous_filename": null,
+      "sha": "4546e24915becab81bc8fe3faba59877bf2fbe21",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 4546e24915becab81bc8fe3faba59877bf2fbe21"
+    },
+    {
+      "filename": "tests/test_keirin_discover_public_race_links.py",
+      "previous_filename": null,
+      "sha": "597998e2f09dee4d007e0041d7f106f986529f00",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 597998e2f09dee4d007e0041d7f106f986529f00"
+    },
+    {
+      "filename": "tests/test_keirin_dynamic_nationwide_registry.py",
+      "previous_filename": null,
+      "sha": "8049cd547491e797f0f3e3d855bd381153dc7869",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 8049cd547491e797f0f3e3d855bd381153dc7869"
+    },
+    {
+      "filename": "tests/test_keirin_evening_national_real_AB_20261118.py",
+      "previous_filename": null,
+      "sha": "1cc0024d5d51126e178e147866db079ab899a0cf",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 1cc0024d5d51126e178e147866db079ab899a0cf"
+    },
+    {
+      "filename": "tests/test_keirin_frame_rider_identity_gate.py",
+      "previous_filename": null,
+      "sha": "848eb12e5629a2817a63ccf64393d1fc95557f40",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 848eb12e5629a2817a63ccf64393d1fc95557f40"
+    },
+    {
+      "filename": "tests/test_keirin_github_capture_selection.py",
+      "previous_filename": null,
+      "sha": "7082d17d9d723dd3fb7e59170e9cba81f2ce85df",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 7082d17d9d723dd3fb7e59170e9cba81f2ce85df"
+    },
+    {
+      "filename": "tests/test_keirin_github_evidence_client.py",
+      "previous_filename": null,
+      "sha": "fbcc18790f13b0df3224d85d6a73b358f6714e07",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob fbcc18790f13b0df3224d85d6a73b358f6714e07"
+    },
+    {
+      "filename": "tests/test_keirin_github_only_ab_day.py",
+      "previous_filename": null,
+      "sha": "b9083e1e09e0ca9247956b4d60ecc49eeea8b1bd",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob b9083e1e09e0ca9247956b4d60ecc49eeea8b1bd"
+    },
+    {
+      "filename": "tests/test_keirin_github_only_result_day.py",
+      "previous_filename": null,
+      "sha": "75ce69719a88ba0b78b4b915fc964b03fa97089e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 75ce69719a88ba0b78b4b915fc964b03fa97089e"
+    },
+    {
+      "filename": "tests/test_keirin_github_origin_evidence.py",
+      "previous_filename": null,
+      "sha": "d7d98abbea422bf446c451bc8f470b91dea1c593",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob d7d98abbea422bf446c451bc8f470b91dea1c593"
+    },
+    {
+      "filename": "tests/test_keirin_github_provider_stop.py",
+      "previous_filename": null,
+      "sha": "04ea48c23a28a36952179fbc343edf7161d74893",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 04ea48c23a28a36952179fbc343edf7161d74893"
+    },
+    {
+      "filename": "tests/test_keirin_historical_auto_private_runtime.py",
+      "previous_filename": null,
+      "sha": "26323cef242e82a6ff348752185997522fb015a7",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 26323cef242e82a6ff348752185997522fb015a7"
+    },
+    {
+      "filename": "tests/test_keirin_historical_color_runtime.py",
+      "previous_filename": null,
+      "sha": "7da4bfb9dcd82b374cf31a4e9e3338fbd0d6f0bc",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 7da4bfb9dcd82b374cf31a4e9e3338fbd0d6f0bc"
+    },
+    {
+      "filename": "tests/test_keirin_historical_rider_color_eval.py",
+      "previous_filename": null,
+      "sha": "c930c32529010a35aa1d3d346027a0c1c3b8c931",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob c930c32529010a35aa1d3d346027a0c1c3b8c931"
+    },
+    {
+      "filename": "tests/test_keirin_line_cohesion.py",
+      "previous_filename": null,
+      "sha": "01ac2941bb3715e1a400033849e8496cd4068773",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 01ac2941bb3715e1a400033849e8496cd4068773"
+    },
+    {
+      "filename": "tests/test_keirin_line_three_arm_audit.py",
+      "previous_filename": null,
+      "sha": "2cb9cbf7479074e93f689b1826df8ddd333f7c53",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 2cb9cbf7479074e93f689b1826df8ddd333f7c53"
+    },
+    {
+      "filename": "tests/test_keirin_live_source_readiness.py",
+      "previous_filename": null,
+      "sha": "b8b601608c8aef865993f7e04e4ad8bfeb8df102",
+      "status": "modified",
+      "original_base_mode_type_blob": "100644 blob 4e8533e068941443f33bc9142b6649ba1fab0cfd",
+      "original_head_mode_type_blob": "100644 blob b8b601608c8aef865993f7e04e4ad8bfeb8df102"
+    },
+    {
+      "filename": "tests/test_keirin_manual71_live_evidence.py",
+      "previous_filename": null,
+      "sha": "90d595186791f3ba8023a2281ad99f1babb8c2ea",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 90d595186791f3ba8023a2281ad99f1babb8c2ea"
+    },
+    {
+      "filename": "tests/test_keirin_manual71_owner_encrypted_intake.py",
+      "previous_filename": null,
+      "sha": "b3a95556ffbd20486e361243bf665bd6271f0af4",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob b3a95556ffbd20486e361243bf665bd6271f0af4"
+    },
+    {
+      "filename": "tests/test_keirin_manual71_owner_intake_cli.py",
+      "previous_filename": null,
+      "sha": "558707691ca36ce53ffe8d03e26dfb885f4171a5",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 558707691ca36ce53ffe8d03e26dfb885f4171a5"
+    },
+    {
+      "filename": "tests/test_keirin_manual_71_actions_bridge.py",
+      "previous_filename": null,
+      "sha": "32b2b4e38f78de9bebbc3f585287350386bc6241",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 32b2b4e38f78de9bebbc3f585287350386bc6241"
+    },
+    {
+      "filename": "tests/test_keirin_manual_result_sync.py",
+      "previous_filename": null,
+      "sha": "b1257fc3ab295dd6449dfe729cdf9e5d24023aed",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob b1257fc3ab295dd6449dfe729cdf9e5d24023aed"
+    },
+    {
+      "filename": "tests/test_keirin_nationwide_AB_executor.py",
+      "previous_filename": null,
+      "sha": "8aea8f164f843ffa3a65ad4fa846bc5aff364a4f",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 8aea8f164f843ffa3a65ad4fa846bc5aff364a4f"
+    },
+    {
+      "filename": "tests/test_keirin_nationwide_AB_results.py",
+      "previous_filename": null,
+      "sha": "b37a88bb0bf63819458e3b2e617556fb60aef518",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob b37a88bb0bf63819458e3b2e617556fb60aef518"
+    },
+    {
+      "filename": "tests/test_keirin_nationwide_active_AB.py",
+      "previous_filename": null,
+      "sha": "5ff8c3da9027732d403eff54a0c99e188af924b3",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 5ff8c3da9027732d403eff54a0c99e188af924b3"
+    },
+    {
+      "filename": "tests/test_keirin_nationwide_auto_day_registry_workflow.py",
+      "previous_filename": null,
+      "sha": "dcdc20ed9c162b8a870505789aaf836b7d11e9bd",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob dcdc20ed9c162b8a870505789aaf836b7d11e9bd"
+    },
+    {
+      "filename": "tests/test_keirin_nationwide_auto_generator.py",
+      "previous_filename": null,
+      "sha": "07f738399ec5f7e991991cb0fd415385ea747a74",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 07f738399ec5f7e991991cb0fd415385ea747a74"
+    },
+    {
+      "filename": "tests/test_keirin_nationwide_auto_runner.py",
+      "previous_filename": null,
+      "sha": "7908fe0c5e1efa76ccae829b04bc31cd34659907",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 7908fe0c5e1efa76ccae829b04bc31cd34659907"
+    },
+    {
+      "filename": "tests/test_keirin_nationwide_auto_settlement.py",
+      "previous_filename": null,
+      "sha": "e6ab2b4c4f6b4bbc8b84ecfb7eedf746a6b7bd9f",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob e6ab2b4c4f6b4bbc8b84ecfb7eedf746a6b7bd9f"
+    },
+    {
+      "filename": "tests/test_keirin_nationwide_auto_storage.py",
+      "previous_filename": null,
+      "sha": "c2712c5d811992c130f2ef330d4e37c222fcf68b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob c2712c5d811992c130f2ef330d4e37c222fcf68b"
+    },
+    {
+      "filename": "tests/test_keirin_nationwide_cipher_history.py",
+      "previous_filename": null,
+      "sha": "f9d2100c1de97992cf95ffd8fbd9b94b800169ce",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob f9d2100c1de97992cf95ffd8fbd9b94b800169ce"
+    },
+    {
+      "filename": "tests/test_keirin_observed_follow_admission.py",
+      "previous_filename": null,
+      "sha": "cbad32a2ab14b0eed135a93bf7b0da6b88b70262",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob cbad32a2ab14b0eed135a93bf7b0da6b88b70262"
+    },
+    {
+      "filename": "tests/test_keirin_official_backlog_days.py",
+      "previous_filename": null,
+      "sha": "472f1f312d98885814ad1393b44ebb1a45bc7ab1",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 472f1f312d98885814ad1393b44ebb1a45bc7ab1"
+    },
+    {
+      "filename": "tests/test_keirin_official_cohort.py",
+      "previous_filename": null,
+      "sha": "6db9d603c0eb9535994f4c1902b7482be584082a",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 6db9d603c0eb9535994f4c1902b7482be584082a"
+    },
+    {
+      "filename": "tests/test_keirin_official_day_pipeline.py",
+      "previous_filename": null,
+      "sha": "3f5594c2942b210ab698aca97fd2e81707fca49b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 3f5594c2942b210ab698aca97fd2e81707fca49b"
+    },
+    {
+      "filename": "tests/test_keirin_official_owner_report.py",
+      "previous_filename": null,
+      "sha": "68cd6590b2250d0b0cf28a5ae332c3ba80266b37",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 68cd6590b2250d0b0cf28a5ae332c3ba80266b37"
+    },
+    {
+      "filename": "tests/test_keirin_official_owner_view.py",
+      "previous_filename": null,
+      "sha": "7c8b42ad8584598c72773cd146c899e4d6ecebcb",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 7c8b42ad8584598c72773cd146c899e4d6ecebcb"
+    },
+    {
+      "filename": "tests/test_keirin_official_poll_progress.py",
+      "previous_filename": null,
+      "sha": "71043fff24bd587c8e100310227f550f36b4d401",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 71043fff24bd587c8e100310227f550f36b4d401"
+    },
+    {
+      "filename": "tests/test_keirin_official_public_source.py",
+      "previous_filename": null,
+      "sha": "eee68e2e98070af8588898ca058bc599fbe84629",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob eee68e2e98070af8588898ca058bc599fbe84629"
+    },
+    {
+      "filename": "tests/test_keirin_official_run_history.py",
+      "previous_filename": null,
+      "sha": "8f1ff857fbbdaefad033777a1b8fb8cbd6ae9d83",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 8f1ff857fbbdaefad033777a1b8fb8cbd6ae9d83"
+    },
+    {
+      "filename": "tests/test_keirin_official_runtime_integration.py",
+      "previous_filename": null,
+      "sha": "fd31133dce4eb321951b5528f02032a4e55d4780",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob fd31133dce4eb321951b5528f02032a4e55d4780"
+    },
+    {
+      "filename": "tests/test_keirin_official_workflow.py",
+      "previous_filename": null,
+      "sha": "e7150396fddca0eae5d5d3f7b702c4b466901a36",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob e7150396fddca0eae5d5d3f7b702c4b466901a36"
+    },
+    {
+      "filename": "tests/test_keirin_phase_overlay.py",
+      "previous_filename": null,
+      "sha": "0f1a81cbdfb8f5172e8e1e7c6d11c32f06d5cc1e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 0f1a81cbdfb8f5172e8e1e7c6d11c32f06d5cc1e"
+    },
+    {
+      "filename": "tests/test_keirin_phase_pr102_integration.py",
+      "previous_filename": null,
+      "sha": "f3fc15bfe0ac63770e2558d6f29fa2f28c73ca18",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob f3fc15bfe0ac63770e2558d6f29fa2f28c73ca18"
+    },
+    {
+      "filename": "tests/test_keirin_phase_pr71_integration.py",
+      "previous_filename": null,
+      "sha": "7509cf0d20598a523a0b18b0eb08c3bf0b40c4c5",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 7509cf0d20598a523a0b18b0eb08c3bf0b40c4c5"
+    },
+    {
+      "filename": "tests/test_keirin_private_bicycle_shape_motion_audit.py",
+      "previous_filename": null,
+      "sha": "b1e69b9810acfc55bf759eef2cd8e78358f8832b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob b1e69b9810acfc55bf759eef2cd8e78358f8832b"
+    },
+    {
+      "filename": "tests/test_keirin_private_blind_review_workbench.py",
+      "previous_filename": null,
+      "sha": "9941d1bdd522bfe0b1b5368bdbab46606d49ce5a",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9941d1bdd522bfe0b1b5368bdbab46606d49ce5a"
+    },
+    {
+      "filename": "tests/test_keirin_private_review_pair_readiness.py",
+      "previous_filename": null,
+      "sha": "4bda317d5f4269f0dda54522ab836518997eced9",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 4bda317d5f4269f0dda54522ab836518997eced9"
+    },
+    {
+      "filename": "tests/test_keirin_public_two_source_normalizer.py",
+      "previous_filename": null,
+      "sha": "eb9b7f9d0f12912a99d93a3bd8ef9d8b8c418ed3",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob eb9b7f9d0f12912a99d93a3bd8ef9d8b8c418ed3"
+    },
+    {
+      "filename": "tests/test_keirin_real_pair_finish_outcome.py",
+      "previous_filename": null,
+      "sha": "0668eabbc75cce34dd9d155eb8acf7778ad5f28b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 0668eabbc75cce34dd9d155eb8acf7778ad5f28b"
+    },
+    {
+      "filename": "tests/test_keirin_real_seibuen_ab_cipher.py",
+      "previous_filename": null,
+      "sha": "08062c2712d2bb65862c423930fd172ded37cfdb",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 08062c2712d2bb65862c423930fd172ded37cfdb"
+    },
+    {
+      "filename": "tests/test_keirin_real_three_arm_prospective_bridge.py",
+      "previous_filename": null,
+      "sha": "fa7d9ef5b316796c5782265a24e219bf449423dc",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob fa7d9ef5b316796c5782265a24e219bf449423dc"
+    },
+    {
+      "filename": "tests/test_keirin_register_public_day.py",
+      "previous_filename": null,
+      "sha": "b227a84925d839453552c22e74ce4992e991b28d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob b227a84925d839453552c22e74ce4992e991b28d"
+    },
+    {
+      "filename": "tests/test_keirin_restore_blind_owner_packets.py",
+      "previous_filename": null,
+      "sha": "ae299c29d7f776e08321feb8f153dc7df50eda08",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob ae299c29d7f776e08321feb8f153dc7df50eda08"
+    },
+    {
+      "filename": "tests/test_keirin_round_motivation.py",
+      "previous_filename": null,
+      "sha": "713ce1ba429575c57c815fd64dfa98dc71bd73bf",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 713ce1ba429575c57c815fd64dfa98dc71bd73bf"
+    },
+    {
+      "filename": "tests/test_keirin_round_paired_audit.py",
+      "previous_filename": null,
+      "sha": "9e4df3d5be9c310817ae0a4d91263d81cb286e93",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9e4df3d5be9c310817ae0a4d91263d81cb286e93"
+    },
+    {
+      "filename": "tests/test_keirin_round_six_phase_rank.py",
+      "previous_filename": null,
+      "sha": "4fa12b2014ceff567efea670a06066a036d0a6d0",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 4fa12b2014ceff567efea670a06066a036d0a6d0"
+    },
+    {
+      "filename": "tests/test_keirin_secondary_result_consensus.py",
+      "previous_filename": null,
+      "sha": "83b7848ca647aad104bb296c2e57f55abe84b464",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 83b7848ca647aad104bb296c2e57f55abe84b464"
+    },
+    {
+      "filename": "tests/test_keirin_seibuen_20261118_AB_settlement.py",
+      "previous_filename": null,
+      "sha": "66b5d34eb126025b5deea5da9db74d098fca7551",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 66b5d34eb126025b5deea5da9db74d098fca7551"
+    },
+    {
+      "filename": "tests/test_keirin_shape_digit_candidate_research.py",
+      "previous_filename": null,
+      "sha": "c80bc3218415fb7395eac08d410aa87e0bbd4dc2",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob c80bc3218415fb7395eac08d410aa87e0bbd4dc2"
+    },
+    {
+      "filename": "tests/test_keirin_sign_blind_review_private.py",
+      "previous_filename": null,
+      "sha": "47a55e79b2f07c70d7ef06dee2ca24351abb5e79",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 47a55e79b2f07c70d7ef06dee2ca24351abb5e79"
+    },
+    {
+      "filename": "tests/test_keirin_signed_blind_review_gate.py",
+      "previous_filename": null,
+      "sha": "af00443d8e341c6405c4f883d07c1f8b5aae1e7f",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob af00443d8e341c6405c4f883d07c1f8b5aae1e7f"
+    },
+    {
+      "filename": "tests/test_keirin_utsunomiya1r_real_auto_cipher_freeze.py",
+      "previous_filename": null,
+      "sha": "bafd24b26fc816e4512222eb39be3220ffd22875",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob bafd24b26fc816e4512222eb39be3220ffd22875"
+    },
+    {
+      "filename": "tests/test_keirin_visual_jersey_proposals.py",
+      "previous_filename": null,
+      "sha": "43543d02f5370290b379a0382887ac65ba6e61d3",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 43543d02f5370290b379a0382887ac65ba6e61d3"
+    }
+  ],
+  "history_preservation": {
+    "original_head_is_ancestor": true,
+    "original_tree_not_reapplied": true,
+    "main_base": "28e726d463e761ec2102c191adb567cf4f469086",
+    "ours_merge": "bcab195d760b2be8981490d1f2d1c8334f83bccb",
+    "new_pull_requests": 0
+  }
+}

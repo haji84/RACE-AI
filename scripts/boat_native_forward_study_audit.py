@@ -157,7 +157,9 @@ def _cohort_packets(spec,receipt,get,now,current_packet):
         study.need(run.get('head_sha')==spec['source_commit'] and run.get('head_branch')=='production/boat-p0-p1-20261111' and
             run.get('event')=='workflow_dispatch' and type(run.get('workflow_id')) is int and run['workflow_id']==405276784 and
             type(run.get('run_attempt')) is int and run['run_attempt']==1,'SOURCE_HISTORY_CHANGED')
-        if study._time(run.get('updated_at',run['created_at']))<lower or study._time(run['created_at'])>=upper:continue
+        # A running producer may save newer originals without updating run
+        # metadata. Registration eligibility is checked on each authenticated record.
+        if study._time(run['created_at'])>=upper:continue
         selected=[]
         if current_packet is not None and current_packet['run']['id']==run['id']:
             active,reads,scope=existing._scope(get,run['id'],now,spec['source_commit'])

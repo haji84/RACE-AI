@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import re
 import threading
+from tempfile import TemporaryDirectory
 import unittest
 from urllib.parse import urlsplit
 
@@ -74,6 +75,33 @@ def encrypted(value):
     return body, sha256(body).hexdigest(), base64.urlsafe_b64encode(key).decode().rstrip('=')
 
 
+def result_observation(state='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL',
+                       previous=None, at='2030-01-15T03:10:00Z'):
+    matched = state == 'SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL'
+    value = dict(schema='RACE_AI_KEIRIN_INDEPENDENT_SECONDARY_RESULT_MATCH_V1',
+        race_id=RACE, state=state, winning_triple=[3, 1, 2] if matched else None,
+        payout_per_100yen=5300 if matched else None,
+        provider_receipts=[dict(provider=provider, source_bytes_sha256=str(n)*64,
+            observed_at=at, source_url=url) for n, provider, url in (
+            (1, 'Kdreams', KDREAMS+'?pageType=result'),
+            (2, 'netkeirin', NETKEIRIN.replace('/entry/', '/result/')))],
+        official_primary_result_authenticated=False,
+        actual_organizer_cutoff_authenticated=False,
+        qualifies_for_formal_settlement=False)
+    fact = dict(value, provider_receipts=[dict(provider=r['provider'],
+        source_url=r['source_url']) for r in value['provider_receipts']])
+    return dict(value, captured_at=at,
+        observation_sha256=sha256(canonical(fact)).hexdigest(),
+        previous_observation_sha256=previous)
+
+
+def with_results(value, observations):
+    value['files'][f'data/{DAY}/research_results.json'] = source(dict(
+        schema='RACE_AI_KEIRIN_NOTE_RESEARCH_RESULTS_V1', day_jst=DAY,
+        observations=observations))
+    return value
+
+
 @unittest.skipUnless(importlib.util.find_spec('playwright'), 'Playwright is optional')
 class NoteBrowserTests(unittest.TestCase):
     @classmethod
@@ -113,6 +141,7 @@ class NoteBrowserTests(unittest.TestCase):
         assets = {'/': (html, 'text/html; charset=utf-8'),
                   '/note.js': (bundle, 'text/javascript; charset=utf-8'),
                   '/style.css': (styles, 'text/css; charset=utf-8')}
+        self.assets = assets
         state = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -123,8 +152,8 @@ class NoteBrowserTests(unittest.TestCase):
                     state.request_started.set()
                     state.release_response.wait(10)
                     raw, mime = state.served_cipher, 'application/json'
-                elif path in assets:
-                    raw, mime = assets[path]
+                elif path in state.assets:
+                    raw, mime = state.assets[path]
                 else:
                     self.send_error(404)
                     return
@@ -309,6 +338,147 @@ class NoteBrowserTests(unittest.TestCase):
         self.assertEqual(self.page.locator('.kn-ticket').count(), 1)
         self.assertIn('参考A', self.page.locator('.kn-badges').inner_text())
         self.assertEqual(self.external, [])
+
+    def test_bound_reference_results_show_exact_points_and_conditional_research_at_all_widths(self):
+        value = with_results(packet(), [result_observation()])
+        value['files'][f'data/{DAY}/settlement.json'] = source([
+            dict(race_id=RACE, winning_combo='1-2-3', status='MISS', net_yen=-200)])
+        self.cipher, self.identity, self.key = encrypted(value)
+        self.served_cipher = self.cipher
+        self.open()
+        self.loaded()
+        result = self.page.locator('.kn-research-result')
+        self.assertEqual(result.get_attribute('data-result-state'),
+                         'SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL')
+        self.assertIn('参考A · 1点', result.inner_text())
+        self.assertIn('5,200円', result.inner_text())
+        self.assertIn('参考B · 1点', result.inner_text())
+        self.assertIn('-100円', result.inner_text())
+        self.assertIn('条件付きの研究比較', result.inner_text())
+        self.assertIn('提供サイトの保存分析の照合',
+                      self.page.locator('.kn-race .kn-result').first.inner_text())
+        self.assertNotIn('Hit@8', result.inner_text())
+        for width in (320, 390, 1440):
+            self.page.set_viewport_size(dict(width=width, height=844))
+            self.assertFalse(self.page.evaluate(
+                'document.documentElement.scrollWidth>innerWidth'))
+            self.assertIn('同じレースでA/Bを比較できる数 1 / 1',
+                          self.page.locator('#kn-research-summary').inner_text())
+        self.assertEqual(self.errors, [])
+        self.assertEqual(self.external, [])
+        self.assertFalse(any(self.key in path+referrer for path, referrer in self.requests))
+
+    def test_latest_disagreement_holds_current_comparison_and_preserves_result_history(self):
+        first = result_observation()
+        held = result_observation('HOLD_SECONDARY_RESULT_DISAGREEMENT',
+            first['observation_sha256'], '2030-01-15T03:20:00Z')
+        self.cipher, self.identity, self.key = encrypted(with_results(packet(), [first, held]))
+        self.served_cipher = self.cipher
+        self.open()
+        self.loaded()
+        result = self.page.locator('.kn-research-result')
+        self.assertEqual(result.get_attribute('data-result-state'), held['state'])
+        self.assertIn('出典間の相違で保留', result.inner_text())
+        self.assertIn('参考A · 1点 · 未判定', result.inner_text())
+        result.get_by_text('結果の改訂履歴・出典', exact=True).click()
+        self.assertEqual(result.locator('[data-result-revision]').count(), 2)
+        self.assertGreater(result.locator('a[href="'+NETKEIRIN.replace('/entry/', '/result/')+'"]').count(), 0)
+        self.assertIn('同じレースでA/Bを比較できる数 0 / 1',
+                      self.page.locator('#kn-research-summary').inner_text())
+        self.assertEqual(self.errors, [])
+
+    def test_result_only_packet_displays_saved_results_without_inventing_predictions(self):
+        value = packet()
+        value['files'] = {}
+        self.cipher, self.identity, self.key = encrypted(with_results(value, [result_observation()]))
+        self.served_cipher = self.cipher
+        self.open()
+        self.loaded()
+        self.assertEqual(self.page.locator('.kn-race').count(), 0)
+        self.assertIn('保存結果 1件 · 予想未読込 1件',
+                      self.page.locator('#kn-research-summary').inner_text())
+        self.assertIn('二つの掲載元が一致',
+                      self.page.locator('#kn-result-only').inner_text())
+        self.assertEqual(self.errors, [])
+
+    def test_two_car_saved_analysis_shows_hit_without_borrowing_trifecta_payout(self):
+        value = with_results(packet(), [result_observation()])
+        value['files'][f'data/{DAY}/two_car_forecasts.json'] = source([
+            dict(race_id=RACE, analysis_created_at='2030-01-15T08:01:00+09:00',
+                 tickets=[dict(combo='3-1', role='本線')])])
+        self.cipher, self.identity, self.key = encrypted(value)
+        self.served_cipher = self.cipher
+        self.open()
+        self.loaded()
+        self.page.locator('#kn-market').select_option('2t')
+        self.page.locator('#kn-variant').select_option('original')
+        selected = self.page.locator('.kn-selected-comparison')
+        self.assertEqual(selected.count(), 1)
+        self.assertIn('2車単・保存分析 · 1点 · 的中', selected.inner_text())
+        self.assertIn('払戻 未確認', selected.inner_text())
+        self.assertNotIn('5,300円', selected.inner_text())
+        self.assertEqual(self.errors, [])
+
+    def test_real_feed_crypto_keeps_each_reference_version_bound_in_the_result_display(self):
+        from race_ai import keirin_note_feed as api
+        original = packet()
+        fresh = packet()
+        del fresh['files'][f'data/{DAY}/forecasts.json']
+        references = json.loads(fresh['files'][f'data/{DAY}/reference_AB.json']['text'])
+        references[0]['output']['A']['ranked_tickets'] = [[2, 3, 1]]
+        fresh['files'][f'data/{DAY}/reference_AB.json'] = source(references)
+        delta = packet()
+        delta['files'] = {}
+        observation = result_observation()
+        with_results(delta, [observation])
+        with TemporaryDirectory() as tmp:
+            cap = api.create_recipient(Path(tmp)/'fixture-only-owner')
+            key = Path(cap['private_key']).read_text().strip()
+            snapshots = [api.seal_snapshot(value, cap['public'], kind=kind)
+                for value, kind in ((original, 'import'), (fresh, 'research'), (delta, 'results'))]
+            index = None
+            for snapshot in snapshots:
+                index = api.append_index(index, cap['public'], entry=snapshot['entry'])
+            index = api.append_index(index, cap['public'], result_checks={RACE:dict(
+                checked_at=observation['captured_at'], digest=observation['observation_sha256'],
+                status='MATCHED')})
+        components = ['keirin-note-source/staking.js', 'keirin-note-source/staking_flexible.js',
+            'keirin-note-source/rollover.js', 'keirin-note-model.js', 'keirin-note-feed.js',
+            'keirin-note-view.js']
+        self.assets['/note.js'] = (b'window.RaceNoteInitialFragment=location.hash;\n'+b'\n'.join(
+            (ROOT/'web'/name).read_bytes() for name in components), 'text/javascript; charset=utf-8')
+        html, mime = self.assets['/']
+        self.assets['/'] = (html.replace(b"connect-src 'self';", b"connect-src 'self' https://raw.githubusercontent.com;"), mime)
+        base = 'https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-note-view/'
+        responses = {base+'index.json': canonical(index)}
+        responses.update({base+'views/'+s['entry']['cipher_sha256']+'.json':s['cipher']
+                          for s in snapshots})
+        fixture_requests = []
+
+        def serve(route):
+            request = route.request
+            fixture_requests.append((request.url, request.headers))
+            route.fulfill(status=200, body=responses[request.url], headers={
+                'content-type':'application/json', 'access-control-allow-origin':self.base})
+
+        self.page.route(base+'**', serve)
+        self.page.goto(self.base+'/#notefeed='+key, wait_until='domcontentloaded')
+        self.loaded()
+        result = self.page.locator('.kn-research-result')
+        self.assertIn('参考A · 1点 · 不的中',
+                      result.locator(':scope > .kn-reference-comparison').first.inner_text())
+        result.get_by_text('参考予想の保存版・原本の照合', exact=True).click()
+        versions = result.locator('details').last
+        self.assertIn('参考予想の保存版 1', versions.inner_text())
+        self.assertIn('参考A · 1点 · 的中', versions.inner_text())
+        self.assertIn(snapshots[0]['entry']['cipher_sha256'], versions.inner_text())
+        self.assertIn(snapshots[1]['entry']['cipher_sha256'], versions.inner_text())
+        self.page.locator('#kn-variant').select_option('original')
+        self.assertIn('1−2−3', ''.join(self.page.locator('.kn-tickets').inner_text().split()))
+        self.assertEqual(len(fixture_requests), 4)
+        self.assertFalse(any(key in url+json.dumps(headers) for url, headers in fixture_requests))
+        self.assertEqual(self.external, [])
+        self.assertEqual(self.errors, [])
 
 
 if __name__ == '__main__':
