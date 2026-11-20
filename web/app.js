@@ -2241,9 +2241,15 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   const fail=()=>{throw new Error('KEIRIN_NOTE_INVALID');};
   const need=v=>{if(!v)fail();};
   const hex=v=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v);
-  const day=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v;
+  const day=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T00:00:00Z'))&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v;
   const text=(v,max=2000)=>typeof v==='string'&&v.length<=max?v:'';
   const rid=v=>typeof v==='string'&&/^20\d{10}$/.test(v);
+  const sameKeys=(v,keys)=>record(v)&&Object.keys(v).sort().join(',')===keys.split(',').sort().join(',');
+  const utc=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}T\d\d:\d\d:\d\d(?:\.\d{1,6})?(?:Z|\+00:00)$/.test(v)&&clock(v.slice(0,10),v)!==null;
+  const canonical=v=>JSON.stringify(v&&typeof v==='object'?Array.isArray(v)?v.map(x=>JSON.parse(canonical(x))):Object.fromEntries(Object.keys(v).sort().map(k=>[k,JSON.parse(canonical(v[k]))])):v);
+  const RESULT_SCHEMA='RACE_AI_KEIRIN_NOTE_RESEARCH_RESULTS_V1',CONSENSUS_SCHEMA='RACE_AI_KEIRIN_INDEPENDENT_SECONDARY_RESULT_MATCH_V1';
+  const MATCHED='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL';
+  const RESULT_STATES=new Set([MATCHED,'HOLD_SECONDARY_RESULT_DISAGREEMENT','HOLD_NO_PUBLISHED_CUTOFF_HINT','HOLD_PROVIDER_DENIED_OR_RATE_LIMITED_STOP','HOLD_RESULT_SOURCE_UNAVAILABLE','HOLD_RESULT_SOURCE_UNVERIFIED','HOLD_RESULT_DAY_MISMATCH','HOLD_RESULT_RACE_MISMATCH','HOLD_SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL','HOLD_CONFLICTING_SOURCE_RESULT','PENDING_RESULT_NOT_PUBLISHED','PENDING_RESULT_NOT_FINAL']);
   const apiCrypto=()=>globalThis.crypto?.subtle?globalThis.crypto:require('node:crypto').webcrypto;
   const digest=async v=>Array.from(new Uint8Array(await apiCrypto().subtle.digest('SHA-256',typeof v==='string'?encoder.encode(v):v)),n=>n.toString(16).padStart(2,'0')).join('');
   function safeUrl(value){
@@ -2251,12 +2257,13 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   }
   function mapRows(value){
     const a=Array.isArray(value)?value:record(value)&&Array.isArray(value.races)?value.races:[];
-    const result=new Map();for(const row of a){need(record(row));const id=row.race_id||row.input?.race_id||row.output?.race_id;need(rid(id)&&!result.has(id));result.set(id,row);}return result;
+    const result=new Map();for(const row of a){need(record(row));const id=row.race_id||row.input?.race_id||row.output?.race_id;need(rid(id)&&!result.has(id)&&[row.race_id,row.input?.race_id,row.output?.race_id].every(value=>value===undefined||value===id));result.set(id,row);}return result;
   }
   function clock(date,value){
     if(typeof value!=='string'||!value)return null;
     const stamp=/^\d\d:\d\d$/.test(value)?date+'T'+value+':00+09:00':value;
-    if(!/^\d{4}-\d{2}-\d{2}T\d\d:\d\d(?::\d\d)?(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(stamp))return null;
+    const parts=/^(\d{4}-\d{2}-\d{2})T(\d\d):(\d\d)(?::(\d\d))?(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.exec(stamp);
+    if(!parts||!day(parts[1])||Number(parts[2])>23||Number(parts[3])>59||Number(parts[4]||0)>59)return null;
     const n=Date.parse(stamp);return Number.isFinite(n)?stamp:null;
   }
   function tickets(value,places,cars){
@@ -2270,7 +2277,11 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       return {...t,combo:t.combo,role:text(t.role,30)||'参考'};
     });
   }
-  function normalize(date,files){
+  function binding(files,shas,cipherSha,date,name,legacy=false){
+    const path=files.has('data/'+date+'/'+name)?'data/'+date+'/'+name:legacy&&files.has('data/'+name)?'data/'+name:null;
+    return path?{cipherSha,fileSha256:shas.get(path),path}:null;
+  }
+  function normalize(date,files,shas,cipherSha,results){
     const read=name=>files.get('data/'+date+'/'+name);
     const roster=mapRows(read('races.json')??files.get('data/races.json'));
     const originals=mapRows(read('forecasts.json')??files.get('data/forecasts.json'));
@@ -2280,6 +2291,9 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const quotes=mapRows(read('odds_snapshot_flexible.json'));
     const settled=mapRows(read('settlement.json'));
     const rollover=mapRows(read('three_car_rollover_forecasts.json'));
+    for(const name of ['races.json','forecasts.json','two_car_forecasts.json','flexible_forecasts.json','reference_AB.json','odds_snapshot_flexible.json','settlement.json','three_car_rollover_forecasts.json']){
+      if(files.has('data/'+date+'/'+name))need([...mapRows(read(name)).keys()].every(id=>id.startsWith(date.replaceAll('-',''))));
+    }
     const ids=new Set([...roster.keys(),...originals.keys(),...two.keys(),...refs.keys()].filter(id=>id.startsWith(date.replaceAll('-',''))));
     const out=[];
     for(const id of ids){
@@ -2290,14 +2304,50 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
         cutoff:clock(date,r.deadline_time||r.cutoff||p.deadline_jst),start:clock(date,r.start_time||r.start||p.start_jst),
         sourceUrl:safeUrl(r.source_url),raw:r,riders:people,cars,lines:Array.isArray(r.lines)?r.lines:[],original:p,
         two:two.get(id)||{},flexible:flexible.get(id)||{},referenceEnvelope:refs.get(id)||{},reference:refs.get(id)?.output||refs.get(id)||{},quote:quotes.get(id)||{},
-        settlement:settled.get(id)||null,rollover:rollover.get(id)||{},environment:read('environment.json')||null};
+        settlement:settled.get(id)||null,rollover:rollover.get(id)||{},environment:read('environment.json')||null,
+        bindings:Object.fromEntries([['original','forecasts.json',true],['two','two_car_forecasts.json'],['flexible','flexible_forecasts.json'],['reference','reference_AB.json'],['rollover','three_car_rollover_forecasts.json']].map(([key,name,legacy])=>[key,binding(files,shas,cipherSha,date,name,legacy)])),
+        referenceHistory:[],resultHistory:[],resultUpdate:null,researchResultHistory:[...(results.get(id)||[])],latestResearchResult:(results.get(id)||[]).at(-1)||null};
       tickets(p.tickets,3,cars);tickets(row.two.tickets,2,cars);tickets(row.rollover.tickets,3,cars);
       for(const market of ['3t','2t'])tickets(row.flexible.markets?.[market]?.tickets,market==='2t'?2:3,cars);
       for(const model of ['A','B'])tickets(row.reference[model]?.ranked_tickets,3,cars);
+      for(const saved of row.researchResultHistory)need(saved.observation.winning_triple===null||!cars.size||saved.observation.winning_triple.every(n=>cars.has(n)));
       need(Number.isInteger(row.number)&&row.number>=1&&row.number<=12);
       out.push(row);
     }
     return out.sort((a,b)=>(Date.parse(a.cutoff)||Infinity)-(Date.parse(b.cutoff)||Infinity)||a.id.localeCompare(b.id));
+  }
+  function resultUrl(provider,value,id){
+    need(typeof value==='string'&&value.length<2048);
+    const u=new URL(value);need(u.protocol==='https:'&&!u.username&&!u.password&&!u.hash&&!u.port&&value.startsWith('https://'+u.hostname+'/'));
+    if(provider==='netkeirin')need(u.hostname==='keirin.netkeiba.com'&&u.pathname==='/race/result/'&&u.search==='?race_id='+id);
+    else{
+      need(provider==='Kdreams'&&u.hostname==='keirin.kdreams.jp'&&['','?pageType=result'].includes(u.search));
+      const m=/^\/[a-z0-9-]+\/racedetail\/([0-9]{2})(20[0-9]{6})([0-9]{2})00([0-9]{2})\/$/.exec(u.pathname);
+      need(m&&m[1]===id.slice(8,10)&&m[4]===id.slice(10)&&Number(m[3])>=1&&Number(m[3])<=8);
+      const begin=m[2].slice(0,4)+'-'+m[2].slice(4,6)+'-'+m[2].slice(6);need(day(begin));
+      need(new Date(Date.parse(begin+'T00:00:00Z')+(Number(m[3])-1)*86400000).toISOString().slice(0,10).replaceAll('-','')===id.slice(0,8));
+    }
+  }
+  async function resultRecords(files,shas,cipherSha,dates){
+    const results=new Map();
+    for(const [path,value] of files){
+      if(!path.endsWith('/research_results.json'))continue;
+      const d=path.split('/')[1];need(dates.includes(d)&&sameKeys(value,'schema,day_jst,observations')&&value.schema===RESULT_SCHEMA&&value.day_jst===d&&Array.isArray(value.observations)&&value.observations.length<=10000);
+      for(const o of value.observations){
+        need(sameKeys(o,'schema,race_id,state,winning_triple,payout_per_100yen,provider_receipts,official_primary_result_authenticated,actual_organizer_cutoff_authenticated,qualifies_for_formal_settlement,captured_at,observation_sha256,previous_observation_sha256')&&o.schema===CONSENSUS_SCHEMA&&rid(o.race_id)&&o.race_id.startsWith(d.replaceAll('-',''))&&RESULT_STATES.has(o.state)&&utc(o.captured_at)&&hex(o.observation_sha256)&&(o.previous_observation_sha256===null||hex(o.previous_observation_sha256))&&o.previous_observation_sha256!==o.observation_sha256);
+        need(o.official_primary_result_authenticated===false&&o.actual_organizer_cutoff_authenticated===false&&o.qualifies_for_formal_settlement===false&&Array.isArray(o.provider_receipts)&&o.provider_receipts.length<=2);
+        const providers=new Set();for(const receipt of o.provider_receipts){need(sameKeys(receipt,'provider,source_bytes_sha256,observed_at,source_url')&&!providers.has(receipt.provider)&&hex(receipt.source_bytes_sha256)&&utc(receipt.observed_at)&&Date.parse(receipt.observed_at)<=Date.parse(o.captured_at));resultUrl(receipt.provider,receipt.source_url,o.race_id);providers.add(receipt.provider);}
+        if(o.state===MATCHED)need(providers.size===2&&Array.isArray(o.winning_triple)&&o.winning_triple.length===3&&new Set(o.winning_triple).size===3&&o.winning_triple.every(n=>Number.isInteger(n)&&n>=1&&n<=9)&&Number.isSafeInteger(o.payout_per_100yen)&&o.payout_per_100yen>=100&&o.payout_per_100yen<=1000000000);
+        else need(o.winning_triple===null&&o.payout_per_100yen===null);
+        const fact={...o,provider_receipts:o.provider_receipts.map(({provider,source_url})=>({provider,source_url})).sort((a,b)=>(a.provider<b.provider?-1:a.provider>b.provider?1:0)||(a.source_url<b.source_url?-1:a.source_url>b.source_url?1:0))};
+        for(const key of ['captured_at','observation_sha256','previous_observation_sha256'])delete fact[key];
+        need(await digest(canonical(fact))===o.observation_sha256);
+        const prior=results.get(o.race_id)||[],last=prior.at(-1)?.observation;
+        if(last)need(o.previous_observation_sha256===last.observation_sha256&&Date.parse(o.captured_at)>=Date.parse(last.captured_at));
+        prior.push({observation:o,binding:{cipherSha,fileSha256:shas.get(path),path}});results.set(o.race_id,prior);
+      }
+    }
+    return results;
   }
   function resultUpdates(date,files){
     const value=files.get('data/'+date+'/result_updates.json'),updates=new Map();
@@ -2343,21 +2393,23 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       need(row.http_status===null||Number.isInteger(row.http_status)&&row.http_status>=100&&row.http_status<=599);
     }
   }
-  async function openPacket(packet){
+  async function decodePacket(packet,cipherSha){
     need(record(packet)&&packet.schema===SCHEMA&&packet.formal_model_admission===false&&packet.production_weight_switch===false&&record(packet.files));
     need(Array.isArray(packet.dates)&&packet.dates.length>0&&packet.dates.every(day)&&new Set(packet.dates).size===packet.dates.length);
-    const parsed=new Map();let total=0;
+    const parsed=new Map(),fileShas=new Map();let total=0;
     for(const [path,entry] of Object.entries(packet.files)){
       need(/^data\/(?:\d{4}-\d{2}-\d{2}\/)?[A-Za-z0-9_.-]+\.json$/.test(path)&&record(entry)&&typeof entry.text==='string'&&hex(entry.sha256));
       const bytes=encoder.encode(entry.text);total+=bytes.length;need(bytes.length<=12*1024*1024&&total<=LIMIT&&bytes.length===entry.bytes);
       need(await digest(bytes)===entry.sha256);
-      const value=JSON.parse(entry.text);parsed.set(path,value);
+      const dated=/^data\/(\d{4}-\d{2}-\d{2})\//.exec(path);need(!dated||packet.dates.includes(dated[1]));
+      const value=JSON.parse(entry.text);parsed.set(path,value);fileShas.set(path,entry.sha256);
     }
-    const days=new Map(packet.dates.slice().sort().map(date=>[date,normalize(date,parsed)]));
-    const results=new Map([...days.keys()].map(date=>[date,resultUpdates(date,parsed)]));
-    for(const [date,rows] of days)for(const row of rows){const update=results.get(date).get(row.id);if(update){row.resultUpdate=update;row.resultHistory=[update];}}
-    return {schema:SCHEMA,dates:[...days.keys()],days,resultUpdates:results,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,formal:false};
+    const results=await resultRecords(parsed,fileShas,cipherSha,packet.dates),days=new Map(packet.dates.slice().sort().map(date=>[date,normalize(date,parsed,fileShas,cipherSha,results)]));
+    const updates=new Map([...days.keys()].map(date=>[date,resultUpdates(date,parsed)]));
+    for(const [date,rows] of days)for(const row of rows){const update=updates.get(date).get(row.id);if(update){row.resultUpdate=update;row.resultHistory=[update];}}
+    return {schema:SCHEMA,dates:[...days.keys()],days,resultUpdates:updates,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,fileShas,cipherSha,results,formal:false};
   }
+  async function openPacket(packet){return decodePacket(packet,null);}
   function rows(data,date){return data.days.get(date)||[];}
   function forecast(row,market='3t',variant='flexible'){
     const places=market==='2t'?2:3;
@@ -2365,7 +2417,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       const ref=row.reference[variant]||{};
       return {label:'参考'+variant,tickets:market==='3t'?tickets(ref.ranked_tickets,3,row.cars):[],scenarios:ref.six_phase_scenarios||[],
         allocatable:false,headline:'既存モデルの研究出力',reason:variant==='C'?'独立した連係履歴が不足しているため未生成':'公開印・統計・並びを使用した参考計算',
-        createdAt:row.reference.generated_at,confidence:null,risk:'学習済み・校正済みの確率ではありません。',source:ref};
+        createdAt:row.reference.generated_at,binding:row.bindings?.reference||null,confidence:null,risk:'学習済み・校正済みの確率ではありません。',source:ref};
     }
     const base=market==='2t'?row.two:row.original;
     let current=base,label=market==='2t'?'2車単・保存分析':'3連単・原分析';
@@ -2374,7 +2426,29 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return {label,tickets:tickets(current.tickets,places,row.cars),scenarios:[...(row.original.scenarios||[]),...(current.extra_scenarios||[])],allocatable:true,
       headline:text(current.headline)||text(base.headline)||'予想未取得',reason:text(current.point_reason||current.reason||current.confidence_reason||current.verdict||current.selection_reason),
       confidence:text(current.confidence,40),risk:text(current.risk),createdAt:current.analysis_created_at,
-      source:current};
+      binding:row.bindings?.[variant==='rollover'&&market==='3t'?'rollover':variant==='flexible'&&row.flexible.markets?.[market]?'flexible':market==='2t'?'two':'original']||null,source:current};
+  }
+  function compare(row,market='3t',variant='A',version=null){
+    need(['3t','2t'].includes(market)&&['original','flexible','rollover','A','B','C'].includes(variant));
+    const context=version?{...row,reference:version.reference,referenceEnvelope:version.envelope,bindings:{...row.bindings,reference:version.binding}}:row;
+    const prediction=forecast(context,market,variant),saved=row.latestResearchResult,observation=saved?.observation;
+    const generated=clock(row.date,prediction.createdAt),cutoff=clock(row.date,row.cutoff);
+    const score={raceId:row.id,market,variant,status:'RESEARCH_UNKNOWN',ticketCount:prediction.tickets.length,hitAt1:null,hitAtAll:null,stakeYen:prediction.tickets.length*100,payoutYen:null,netYen:null,
+      generatedAt:generated,cutoff,predictionBinding:prediction.binding,resultBinding:saved?.binding||null,resultObservationSha256:observation?.observation_sha256||null,
+      timingStatus:!generated?'GENERATED_AT_MISSING':!cutoff?'CUTOFF_UNVERIFIED':Date.parse(generated)>=Date.parse(cutoff)?'GENERATED_AFTER_OR_AT_CUTOFF':'RECORDED_PRE_CUTOFF_NOT_FORMAL',formal:false,scope:'CONDITIONAL_RESEARCH_ONLY'};
+    const history=row.researchResultHistory||[];
+    if(observation&&(!history.length||history[0].observation.previous_observation_sha256!==null||history.at(-1).observation.observation_sha256!==observation.observation_sha256||!history.every((entry,n)=>n===0||entry.observation.previous_observation_sha256===history[n-1].observation.observation_sha256)))return {...score,reason:'RESULT_HISTORY_INCOMPLETE'};
+    if(!prediction.tickets.length||!prediction.binding||observation?.state!==MATCHED||observation.race_id!==row.id||!row.cars.size||!observation.winning_triple.every(n=>row.cars.has(n)))return score;
+    const combo=observation.winning_triple.slice(0,market==='2t'?2:3).join('-');score.hitAt1=prediction.tickets[0].combo===combo;score.hitAtAll=prediction.tickets.some(t=>t.combo===combo);score.status=score.hitAtAll?'RESEARCH_HIT':'RESEARCH_MISS';
+    if(market==='3t'){score.payoutYen=score.hitAtAll?observation.payout_per_100yen:0;score.netYen=score.payoutYen-score.stakeYen;}
+    return score;
+  }
+  function summarize(values,market='3t'){
+    need(Array.isArray(values));const unique=new Map(values.map(row=>[row.id,row]));need(unique.size===values.length);
+    const pairs=values.map(row=>({A:compare(row,market,'A'),B:compare(row,market,'B')}));
+    const arm=(name,subset=pairs)=>{const scores=subset.map(p=>p[name]),known=scores.filter(s=>s.status!=='RESEARCH_UNKNOWN');return {evaluableRaces:known.length,unknownRaces:scores.length-known.length,hitRaces:known.filter(s=>s.hitAtAll).length,ticketCounts:[...new Set(known.map(s=>s.ticketCount))].sort((a,b)=>a-b),stakeYen:known.reduce((n,s)=>n+s.stakeYen,0),payoutYen:known.every(s=>s.payoutYen!==null)?known.reduce((n,s)=>n+s.payoutYen,0):null};};
+    const paired=pairs.filter(p=>p.A.status!=='RESEARCH_UNKNOWN'&&p.B.status!=='RESEARCH_UNKNOWN');
+    return {raceCount:values.length,pairedRaceCount:paired.length,A:arm('A'),B:arm('B'),paired:{A:arm('A',paired),B:arm('B',paired)},formal:false,improvementProven:false};
   }
   function allocate(prediction,budget,excluded=new Set()){
     need([2000,2500,3000].includes(budget));
@@ -2400,9 +2474,9 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const aad=encoder.encode(JSON.stringify({schema:h.schema,source_content_sha256:h.source_content_sha256}));
     const plain=new Uint8Array(await apiCrypto().subtle.decrypt({name:'AES-GCM',iv:nonce,additionalData:aad,tagLength:128},imported,encrypted));
     need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
-    return openPacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)));
+    return decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
   }
-  return {openPacket,openCipher,rows,forecast,allocate,safeUrl,digest,clock,SCHEMA};
+  return {openPacket,openCipher,rows,forecast,compare,summarize,allocate,resultUpdates,checkedDiagnostics,safeUrl,digest,clock,utc,day,SCHEMA};
 });
 
 /* Independent display capability. Its private key never enters a request URL. */
@@ -2422,16 +2496,23 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   function decode(value){need(typeof value==='string'&&/^[A-Za-z0-9_-]+$/.test(value));const raw=Uint8Array.from(atob(value.replaceAll('-','+').replaceAll('_','/')+'='.repeat((-value.length%4+4)%4)),c=>c.charCodeAt(0));need(encode(raw)===value);return raw;}
   const ids=v=>Array.isArray(v)&&new Set(v).size===v.length&&v.every(n=>typeof n==='string'&&/^20[0-9]{10}$/.test(n));
   function checkIndex(index,recipient){
-    need(sameKeys(index,'schema,repository,recipient_id,entries,provider_denied,covered_race_ids,priority_window_race_ids')&&index.schema==='RACE_AI_KEIRIN_NOTE_FEED_V1'&&index.repository==='haji84/RACE-AI'&&index.recipient_id===recipient&&typeof index.provider_denied==='boolean'&&Array.isArray(index.entries)&&ids(index.covered_race_ids)&&ids(index.priority_window_race_ids));
+    const fields='schema,repository,recipient_id,entries,provider_denied,covered_race_ids,priority_window_race_ids';
+    need((sameKeys(index,fields)||sameKeys(index,fields+',result_checks'))&&index.schema==='RACE_AI_KEIRIN_NOTE_FEED_V1'&&index.repository==='haji84/RACE-AI'&&index.recipient_id===recipient&&typeof index.provider_denied==='boolean'&&Array.isArray(index.entries)&&ids(index.covered_race_ids)&&ids(index.priority_window_race_ids));
     const hashes=new Set(),covered=new Set(),priority=new Set();
     for(const e of index.entries){
       const keys='cipher_sha256,source_content_sha256,ephemeral_public_key,salt,created_at,days,kind,captured_race_ids,priority_window_race_ids'+(e?.kind==='result'?',result_revisions':'');
-      need(sameKeys(e,keys)&&hex(e.cipher_sha256)&&hex(e.source_content_sha256)&&!hashes.has(e.cipher_sha256)&&['import','research','archive','result'].includes(e.kind));
-      need(decode(e.ephemeral_public_key).length===65&&decode(e.salt).length===32&&Array.isArray(e.days)&&e.days.length&&e.days.every(d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d))&&Number.isFinite(Date.parse(e.created_at))&&ids(e.captured_race_ids)&&ids(e.priority_window_race_ids));
+      need(sameKeys(e,keys)&&hex(e.cipher_sha256)&&hex(e.source_content_sha256)&&!hashes.has(e.cipher_sha256)&&['import','research','archive','result','results'].includes(e.kind));
+      need(decode(e.ephemeral_public_key).length===65&&decode(e.salt).length===32&&Array.isArray(e.days)&&e.days.length&&new Set(e.days).size===e.days.length&&e.days.every(M.day)&&Number.isFinite(Date.parse(e.created_at))&&ids(e.captured_race_ids)&&ids(e.priority_window_race_ids));
+      need(e.captured_race_ids.every(id=>e.days.some(d=>id.startsWith(d.replaceAll('-',''))))&&(e.kind!=='results'||e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0));
       need(e.priority_window_race_ids.every(id=>e.captured_race_ids.includes(id)));hashes.add(e.cipher_sha256);e.captured_race_ids.forEach(id=>covered.add(id));e.priority_window_race_ids.forEach(id=>priority.add(id));
       if(e.kind==='result')need(e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&record(e.result_revisions)&&Object.keys(e.result_revisions).length>0&&Object.keys(e.result_revisions).length<=300&&ids(Object.keys(e.result_revisions))&&Object.values(e.result_revisions).every(hex));
     }
-    need(index.covered_race_ids.length===covered.size&&index.covered_race_ids.every(id=>covered.has(id))&&index.priority_window_race_ids.length===priority.size&&index.priority_window_race_ids.every(id=>priority.has(id)));return index;
+    need(index.covered_race_ids.length===covered.size&&index.covered_race_ids.every(id=>covered.has(id))&&index.priority_window_race_ids.length===priority.size&&index.priority_window_race_ids.every(id=>priority.has(id)));
+    if(Object.hasOwn(index,'result_checks')){
+      need(record(index.result_checks));
+      for(const [id,check] of Object.entries(index.result_checks))need(ids([id])&&M.day(id.slice(0,4)+'-'+id.slice(4,6)+'-'+id.slice(6,8))&&index.entries.some(e=>e.days.some(d=>id.startsWith(d.replaceAll('-',''))))&&sameKeys(check,'checked_at,digest,status')&&M.utc(check.checked_at)&&(check.digest===null||hex(check.digest))&&['MATCHED','HOLD','PENDING'].includes(check.status)&&(check.status!=='MATCHED'||check.digest!==null));
+    }
+    return index;
   }
   async function capability(value){
     need(typeof value==='string'&&value.length>=150&&value.length<=400);
@@ -2446,6 +2527,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     need(await M.digest(bytes)===e.cipher_sha256);const h=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)).header;need(h?.source_content_sha256===e.source_content_sha256);
     const data=await M.openCipher(bytes,{cipherSha:e.cipher_sha256,key:encode(key)});
     need(data.dates.slice().sort().join(',')===e.days.slice().sort().join(','));
+    if(e.kind==='results')need(e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&[...data.files.keys()].every(path=>/^data\/\d{4}-\d{2}-\d{2}\/research_results\.json$/.test(path))&&data.dates.every(date=>M.rows(data,date).length===0));
     if(e.kind==='result'){
       need([...data.files.keys()].every(path=>/^data\/\d{4}-\d{2}-\d{2}\/result_updates\.json$/.test(path))&&data.resultUpdates.size===data.dates.length);
       const revisions=Object.fromEntries([...data.resultUpdates.values()].flatMap(rows=>[...rows.values()].map(row=>[row.race_id,row.revision])));
@@ -2453,14 +2535,16 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     }
     return data;
   }
-  function merge(parts){
+  function merge(parts,{resultChecks={}}={}){
     need(Array.isArray(parts)&&parts.length>0);
-    const days=new Map(),files=new Map(),refreshHolds=[],updates=new Map(),histories=new Map();let importedAt=parts[0].importedAt;
+    const days=new Map(),files=new Map(),fileShas=new Map(),results=new Map(),refreshHolds=[],updates=new Map(),histories=new Map();let importedAt=parts[0].importedAt;
     const stable=v=>Array.isArray(v)?'['+v.map(stable).join(',')+']':record(v)?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+stable(v[k])).join(',')+'}':JSON.stringify(v);
     const semantic=result=>Object.fromEntries(Object.entries(result).filter(([key])=>key!=='observed_at'));
+
     const roster=row=>row.riders.map(p=>p.number+':'+p.name.replace(/\s/g,'')).sort().join('|');
     for(const part of parts){
       for(const [path,value] of part.files)files.set(path,value);
+      for(const [path,value] of part.fileShas||[])fileShas.set(path,value);
       importedAt=part.importedAt;
       for(const date of part.dates){
         if(!updates.has(date))updates.set(date,new Map());
@@ -2472,33 +2556,59 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
           const prior=updates.get(date).get(id);
           if(!prior||Date.parse(result.observed_at)>=Date.parse(prior.observed_at))updates.get(date).set(id,result);
         }
+
         const byId=new Map((days.get(date)||[]).map(row=>[row.id,row]));
         for(const row of M.rows(part,date)){
-          const prior=byId.get(row.id);if(!prior){byId.set(row.id,row);continue;}
+          const prior=byId.get(row.id);if(!prior){byId.set(row.id,{...row,referenceHistory:[...(row.referenceHistory||[])],researchResultHistory:[],latestResearchResult:null,resultHistory:[],resultUpdate:null});continue;}
           // Immutable snapshots keep every version. An input refresh does not
           // replace the authored originals imported from the owner's Site.
           const authored=(prior.original.tickets||[]).length>0;
-          if(authored&&(roster(prior)!==roster(row)||Date.parse(prior.cutoff)!==Date.parse(row.cutoff))){
+          const predicted=authored||Object.keys(prior.reference||{}).length>0||(prior.two.tickets||[]).length>0||Object.keys(prior.flexible?.markets||{}).length>0;
+          const sameCutoff=prior.cutoff===row.cutoff||prior.cutoff&&row.cutoff&&Date.parse(prior.cutoff)===Date.parse(row.cutoff);
+          if(predicted&&(roster(prior)!==roster(row)||!sameCutoff)){
             refreshHolds.push({raceId:row.id,reason:'HOLD_RESEARCH_REFRESH_SOURCE_CONTEXT_CHANGED'});continue;
           }
-          const combined=authored?{...prior,reference:row.reference,referenceEnvelope:row.referenceEnvelope}:{...row};
+          const combined={...prior,bindings:{...prior.bindings}};
           for(const name of ['original','two','flexible','rollover','settlement']){
             const old=prior[name],fresh=row[name];
-            if(!fresh||(record(fresh)&&!Object.keys(fresh).length))combined[name]=old;
-            else if(name==='settlement')combined[name]=fresh;
+            if(name==='settlement'&&fresh&&(!record(fresh)||Object.keys(fresh).length))combined[name]=fresh;
+            else if((!old||record(old)&&!Object.keys(old).length)&&fresh){combined[name]=fresh;if(row.bindings?.[name])combined.bindings[name]=row.bindings[name];}
           }
-          if(!Object.keys(row.reference||{}).length){combined.reference=prior.reference;combined.referenceEnvelope=prior.referenceEnvelope;}
-          combined.referenceHistory=[...(prior.referenceHistory||[]),...(Object.keys(prior.reference||{}).length?[{reference:prior.reference,envelope:prior.referenceEnvelope}]:[])];
+          combined.referenceHistory=[...(prior.referenceHistory||[])];
+          if(Object.keys(row.reference||{}).length){
+            if(Object.keys(prior.reference||{}).length&&JSON.stringify(prior.bindings?.reference)!==JSON.stringify(row.bindings?.reference))combined.referenceHistory.push({reference:prior.reference,envelope:prior.referenceEnvelope,binding:prior.bindings?.reference||null});
+            combined.reference=row.reference;combined.referenceEnvelope=row.referenceEnvelope;combined.bindings.reference=row.bindings?.reference||null;
+          }
           byId.set(row.id,combined);
         }
         days.set(date,[...byId.values()].sort((a,b)=>(Date.parse(a.cutoff)||Infinity)-(Date.parse(b.cutoff)||Infinity)||a.id.localeCompare(b.id)));
       }
+      for(const [id,observations] of part.results||[]){
+        const history=results.get(id)||[];
+        for(const saved of observations){
+          const o=saved.observation,last=history.at(-1)?.observation;
+          need(last?o.previous_observation_sha256===last.observation_sha256&&o.observation_sha256!==last.observation_sha256&&Date.parse(o.captured_at)>=Date.parse(last.captured_at):o.previous_observation_sha256===null);
+          history.push(saved);
+        }
+        results.set(id,history);
+      }
     }
+    for(const [date,list] of days)days.set(date,list.map(row=>{
+      const history=results.get(row.id)||[];
+      need(history.every(saved=>saved.observation.winning_triple===null||!row.cars.size||saved.observation.winning_triple.every(n=>row.cars.has(n))));
+      return {...row,researchResultHistory:[...history],latestResearchResult:history.at(-1)||null};
+    }));
     for(const [date,rows] of days)days.set(date,rows.map(row=>{
       const result=updates.get(date)?.get(row.id);if(!result)return row;
       return {...row,resultUpdate:result,resultHistory:[...histories.get(row.id).values()]};
     }));
-    return {schema:M.SCHEMA,dates:[...days.keys()].sort(),days,files,resultUpdates:updates,formal:false,importedAt,sourceCommit:parts[0].sourceCommit,refreshHolds};
+    const checks=new Map(Object.entries(resultChecks));
+    for(const [id,check] of checks){
+      const latest=results.get(id)?.at(-1)?.observation;
+      if(check.digest!==null)need(latest&&latest.observation_sha256===check.digest&&Date.parse(check.checked_at)>=Date.parse(latest.captured_at)&&check.status===(latest.state==='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL'?'MATCHED':latest.state.startsWith('PENDING_')?'PENDING':'HOLD'));
+      else need(!latest&&check.status!=='MATCHED');
+    }
+    return {schema:M.SCHEMA,dates:[...days.keys()].sort(),days,files,fileShas,results,resultUpdates:updates,resultChecks:checks,cipherSha:null,formal:false,importedAt,sourceCommit:parts[0].sourceCommit,refreshHolds};
   }
   async function bytes(response,signal){
     need(response.ok);const length=response.headers?.get('content-length');need(length==null||/^\d+$/.test(length)&&Number(length)<=MAX);
@@ -2519,6 +2629,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
         if(previous){
           need(index.entries.length>=previous.entries.length&&(!previous.provider_denied||index.provider_denied));
           previous.entries.forEach((entry,i)=>need(sameEntry(entry,index.entries[i])));
+          for(const [id,check] of Object.entries(previous.result_checks||{})){const fresh=index.result_checks?.[id];need(fresh&&Date.parse(fresh.checked_at)>=Date.parse(check.checked_at));}
         }
         const parts=[],display=index.entries.filter(e=>e.kind!=='archive');
         for(const entry of display){
@@ -2531,7 +2642,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
           parts.push(cache.get(entry.cipher_sha256));
         }
         need(!closed&&!signal?.aborted);
-        const data=merge(parts);
+        const data=merge(parts,{resultChecks:index.result_checks||{}});
         data.feed={entries:index.entries.length,providerDenied:index.provider_denied,revision:await M.digest(wire),checkedAt:new Date().toISOString()};
         need(!closed&&!signal?.aborted);previous=index;return data;
       }finally{busy=false;}
@@ -2590,7 +2701,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       <div class="kn-scroll"><section class="kn-import"><div><label class="kn-file">保存データを開く<input id="kn-file" type="file" accept=".json,application/json"></label><button id="kn-clear" type="button" class="kn-secondary">読込データを消す</button></div><p id="kn-status" role="status">本人用リンク、または保存データJSONから開けます。</p></section>
       <nav id="kn-days" class="kn-day-tabs" aria-label="予想の日付"></nav><section id="kn-metrics" class="kn-metrics"></section>
       <section class="kn-tools"><div id="kn-venues" class="kn-venues" aria-label="会場"></div><div class="kn-controls"><label>券種<select id="kn-market"><option value="3t">3連単</option><option value="2t">2車単</option></select></label><label>表示する予想<select id="kn-variant"><option value="flexible">改訂された分析</option><option value="original">原分析</option><option value="rollover">絞り込み分析</option><option value="A">参考A</option><option value="B">参考B・6局面</option><option value="C">参考Cの状況</option></select></label><label class="kn-search-label">検索<input id="kn-search" type="search" placeholder="会場・選手・レース名"></label></div><div class="kn-small-controls"><label><input id="kn-future" type="checkbox">これからのレース</label><label><input id="kn-selected" type="checkbox">検討リストのみ</label><span id="kn-count"></span></div></section>
-      <div id="kn-races" class="kn-grid"></div>
+      <section id="kn-research-summary" class="kn-result" hidden></section><div id="kn-result-only"></div><div id="kn-races" class="kn-grid"></div>
       <details class="kn-rollover"><summary>2段階の資金配分を試算する</summary><p>受取額は払戻と返還の合計を手入力します。実購入の記録とは別の試算です。</p><div class="kn-controls"><label>初回の予算<select id="kn-roll-budget"><option>2000</option><option selected>2500</option><option>3000</option></select></label><label>1戦目の受取額<input id="kn-return-one" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label><label>2戦目の受取額<input id="kn-return-two" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label></div><div id="kn-roll-result"></div></details>
       <footer class="kn-footer"><p>個別分析・改訂・参考A/Bはそれぞれの保存原本を保持します。参考Cの未生成も表示します。参考モデルの重みは校正済み確率ではありません。</p><p>画面での選択と配分は購入候補です。投票・決済は行いません。データと本人用リンクの鍵は外部へ送信しません。</p><p id="kn-provenance"></p></footer></div>
       <div class="kn-selection"><div><strong id="kn-selection-count">検討リスト 0件</strong><small>候補・配分の試算</small></div><button id="kn-copy-selection" type="button">検討リストをコピー</button></div>`;
@@ -2635,6 +2746,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const list=all(),now=Date.now();const shown=list.filter(r=>(!venue||r.venue===venue)&&(!query||(r.venue+' '+r.title+' '+r.riders.map(p=>p.name).join(' ')+' '+r.original.headline).toLocaleLowerCase('ja').includes(query))&&(!futureOnly||r.cutoff&&Date.parse(r.cutoff)>now)&&(!selectedOnly||selected.has(r.id)));
     $('kn-count').textContent='表示 '+shown.length+' / 全'+list.length+'レース';
     $('kn-races').innerHTML=shown.length?shown.map(renderRace).join(''):'<div class="kn-empty">'+(data?'条件に合うレースはありません。':'本人用リンク、または保存データを開くと予想を表示します。')+'</div>';
+    renderResearchSummary(list);
     selectionSummary();
   }
   function lineHtml(row){
@@ -2655,9 +2767,42 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+(prediction.confidence?'<span>分析区分 '+esc(prediction.confidence)+'</span>':'')+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p><div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+budget+
       '<div class="kn-point-heading"><b>予想 '+prediction.tickets.length+'点'+(prediction.allocatable?' · 配分 '+allocation.chosen.length+'点':'')+'</b></div><div class="kn-tickets">'+(items||'<p class="kn-empty">'+esc(prediction.reason||'この券種の保存予想はありません。')+'</p>')+'</div>'+(prediction.tickets.length>3?'<button type="button" class="kn-more" data-expand="'+row.id+'">'+(open?'上位3点に戻す':'全'+prediction.tickets.length+'点を表示')+'</button>':'')+
       (prediction.allocatable&&!allocation.available?'<p class="kn-warning">配分対象がないか、全点への100円単位の配分に予算が足りません。点数を選び直してください。</p>':'')+
-      '<div class="kn-race-actions"><button type="button" data-select="'+row.id+'" aria-pressed="'+selected.has(row.id)+'">'+(selected.has(row.id)?'検討リストから外す':'検討リストに追加')+'</button><button type="button" data-copy="'+row.id+'" '+(prediction.allocatable&&!allocation.available?'disabled':'')+'>買い目をコピー</button></div>'+result+
+      '<div class="kn-race-actions"><button type="button" data-select="'+row.id+'" aria-pressed="'+selected.has(row.id)+'">'+(selected.has(row.id)?'検討リストから外す':'検討リストに追加')+'</button><button type="button" data-copy="'+row.id+'" '+(prediction.allocatable&&!allocation.available?'disabled':'')+'>買い目をコピー</button></div>'+result+researchResult(row)+
       scenarios(prediction.scenarios)+roster(row)+
       '<details class="kn-details"><summary>出典・予想時点・注意点</summary><p>'+esc(prediction.risk||'保存された条件付きの分析です。')+'</p><p>予想の記載時点 '+stamp(prediction.createdAt)+'</p><p>オッズの保存時点 '+stamp(row.quote.source_updated_at||row.quote.fetched_at)+'</p><p>'+esc(row.quote.scope_label||'保存時点の値。現在値は掲載元で確認してください。')+'</p>'+sourceLink(row.sourceUrl,'出走表・掲載オッズ')+referenceProvenance(row)+'<p class="kn-small">参考A/Bは既存計算、Cは独立した連係履歴が不足しているため未生成です。正式な全モデル実測の認証とは別に表示しています。</p></details></article>';
+  }
+  function resultLabel(state){
+    if(state==='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL')return '二つの掲載元が一致（公式認証なし）';
+    if(state==='HOLD_SECONDARY_RESULT_DISAGREEMENT')return '出典間の相違で保留';
+    if(state?.startsWith('PENDING_'))return '結果の掲載・確定待ち';
+    const holds={HOLD_NO_PUBLISHED_CUTOFF_HINT:'掲載締切を確認できないため保留',HOLD_PROVIDER_DENIED_OR_RATE_LIMITED_STOP:'入力元の取得拒否で保留',HOLD_RESULT_SOURCE_UNAVAILABLE:'結果の取得を保留',HOLD_RESULT_SOURCE_UNVERIFIED:'結果の根拠を確認できないため保留',HOLD_RESULT_DAY_MISMATCH:'結果の日付照合を保留',HOLD_RESULT_RACE_MISMATCH:'結果のレース照合を保留',HOLD_SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL:'返還・中止・同着の公式確認待ち',HOLD_CONFLICTING_SOURCE_RESULT:'掲載内容の相違で保留'};
+    return holds[state]||'結果の照合は未取得';
+  }
+  function comparisonHtml(row,model,version=null){
+    const score=M.compare(row,market,model,version),status=score.status==='RESEARCH_HIT'?'的中':score.status==='RESEARCH_MISS'?'不的中':'未判定';
+    const label=['A','B','C'].includes(model)?'参考'+model:M.forecast(row,market,model).label;
+    const timing={GENERATED_AT_MISSING:'予想の生成時点は未確認',CUTOFF_UNVERIFIED:'掲載締切は未確認',GENERATED_AFTER_OR_AT_CUTOFF:'掲載締切以後に生成された保存版',RECORDED_PRE_CUTOFF_NOT_FORMAL:'記載時点は掲載締切前（正式な保存時刻の認証なし）'};
+    return '<div class="'+(['A','B','C'].includes(model)?'kn-reference-comparison':'kn-selected-comparison')+'" data-model="'+esc(model)+'"><p><b>'+esc(label)+' · '+score.ticketCount+'点 · '+status+'</b></p><p>各100円の想定：投資 '+money(score.stakeYen)+' · 払戻 '+money(score.payoutYen)+' · 差引 '+money(score.netYen)+'</p><p class="kn-small">予想の記載時点 '+stamp(score.generatedAt)+' · '+esc(timing[score.timingStatus])+'</p>'+(score.reason==='RESULT_HISTORY_INCOMPLETE'?'<p class="kn-warning">先行する結果の保存版が未読込のため、比較は保留しています。</p>':'')+'</div>';
+  }
+  function bindingHtml(value,label){
+    return value?'<p class="kn-small">'+esc(label)+'のファイルSHA256 '+esc(value.fileSha256)+'<br>暗号文SHA256 '+esc(value.cipherSha||'暗号文経由の読込ではありません')+'</p>':'';
+  }
+  function resultRevision(saved,n){
+    const o=saved.observation;
+    return '<section data-result-revision="'+n+'"><p><b>結果の保存版 '+n+' · '+esc(resultLabel(o.state))+'</b></p><p>取得 '+stamp(o.captured_at)+' · '+esc(o.winning_triple?.join('−')||'結果保留')+' · 各100円の3連単払戻 '+money(o.payout_per_100yen)+'</p>'+o.provider_receipts.map(r=>'<p>'+sourceLink(r.source_url,r.provider+'の結果')+' · 出典取得 '+stamp(r.observed_at)+'</p>').join('')+bindingHtml(saved.binding,'結果原本')+'</section>';
+  }
+  function researchResult(row){
+    if(!row.latestResearchResult&&!Object.keys(row.reference||{}).length)return '';
+    const latest=row.latestResearchResult?.observation,history=row.researchResultHistory||[],versions=row.referenceHistory||[];
+    return '<section class="kn-result kn-research-result kn-details" data-result-state="'+esc(latest?.state||'UNOBSERVED')+'"><b>参考A/Bと保存結果の照合</b><p>'+esc(resultLabel(latest?.state))+' · '+esc(latest?.winning_triple?.join('−')||'結果未確認')+'</p>'+(!['A','B','C'].includes(variant)?comparisonHtml(row,variant):'')+comparisonHtml(row,'A')+comparisonHtml(row,'B')+'<p class="kn-small">条件付きの研究比較です。点数は各保存版の全買い目を使用し、1点100円で計算します。実購入・正式PR71成績・学習効果の証明ではありません。2車単の払戻は独立した根拠がないため未確認です。</p><details class="kn-details"><summary>結果の改訂履歴・出典</summary>'+(history.length?history.map((saved,n)=>resultRevision(saved,n+1)).join(''):'<p>結果の保存履歴はありません。</p>')+'</details><details class="kn-details"><summary>参考予想の保存版・原本の照合</summary>'+[...versions,{reference:row.reference,envelope:row.referenceEnvelope,binding:row.bindings?.reference}].map((version,n)=>'<section><p><b>参考予想の保存版 '+(n+1)+(n===versions.length?'（現在）':'')+'</b></p>'+comparisonHtml(row,'A',version)+comparisonHtml(row,'B',version)+bindingHtml(version.binding,'参考予想原本')+'</section>').join('')+'</details></section>';
+  }
+  function renderResearchSummary(list){
+    const panel=$('kn-research-summary'),only=$('kn-result-only');
+    if(!data){panel.hidden=true;panel.textContent='';only.innerHTML='';return;}
+    const results=[...(data.results||new Map())].filter(([id])=>id.startsWith(currentDay.replaceAll('-',''))),known=new Set(list.map(row=>row.id)),unpaired=results.filter(([id])=>!known.has(id));
+    const summary=M.summarize(list,market),arm=name=>{const v=summary[name];return '参考'+name+'：的中 '+v.hitRaces+' / 判定 '+v.evaluableRaces+'レース · 未判定 '+v.unknownRaces+'件 · 保存点数 '+(v.ticketCounts.length?v.ticketCounts.join('・'):'未確認')+'点';};
+    panel.hidden=false;panel.innerHTML='<b>保存結果と参考予想の研究比較</b><p>保存結果 '+results.length+'件 · 予想未読込 '+unpaired.length+'件</p><p>同じレースでA/Bを比較できる数 '+summary.pairedRaceCount+' / '+summary.raceCount+' · その共通レースの的中 A '+summary.paired.A.hitRaces+' / '+summary.pairedRaceCount+'、B '+summary.paired.B.hitRaces+' / '+summary.pairedRaceCount+'</p><p>'+esc(arm('A'))+'</p><p>'+esc(arm('B'))+'</p><p class="kn-small">表示中の日付の全保存レースが分母です。未判定は外れに含めません。A/Bの差から学習による改善は判断できません。</p>';
+    only.innerHTML=unpaired.map(([id,history])=>'<details class="kn-details"><summary>'+esc(id)+' · '+esc(resultLabel(history.at(-1)?.observation.state))+'</summary><p>このレースの予想原本は未読込のため、的中比較の分母へ加えません。</p>'+history.map((saved,n)=>resultRevision(saved,n+1)).join('')+'</details>').join('');
   }
   function liveResult(row){
     const result=row.resultUpdate;if(!result)return '';

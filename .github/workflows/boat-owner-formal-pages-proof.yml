@@ -50,6 +50,7 @@ jobs:
         working-directory: audit-code
         run: |
           python -m unittest tests.test_boat_auto_site_coverage -v
+          python -m unittest tests.test_boat_pages_live_proof -v
           python - <<'PY'
           from pathlib import Path
           code=Path('.github/workflows/boat-owner-formal-pages-proof.yml').read_text()
@@ -317,30 +318,17 @@ jobs:
       - name: Reopen actual public Pages HTML, app, model and decrypt assets via HTTP
         run: |
           python - <<'PY'
-          import hashlib,json,urllib.request,urllib.parse
+          import os,re,subprocess,sys,tempfile
           from pathlib import Path
-          base='https://haji84.github.io/RACE-AI/'
-          manifest=json.loads(Path('site-build.json').read_bytes())
-          assert manifest['schema']=='RACE_AI_SAVED_PAGES_BUILD_V1'
-          selected=('index.html','app.js','saved-performance.js','saved-view-crypto.js')
-          html=Path('index.html').read_text()
-          for path in selected:
-              raw=Path(path).read_bytes()
-              digest=hashlib.sha256(raw).hexdigest()
-              assert manifest['files'][path]=={'bytes':len(raw),'sha256':digest}
-              if path.endswith('.js'):
-                  assert './'+path+'?v='+digest[:12] in html
-              request=urllib.request.Request(base+path+'?audit=owner-sourcefree',
-                  headers={'User-Agent':'RACE-AI-AES-pages-auto-proof/1',
-                           'Cache-Control':'no-cache'})
-              with urllib.request.urlopen(request,timeout=25) as response:
-                  assert response.status==200
-                  final=urllib.parse.urlsplit(response.url)
-                  assert final.hostname=='haji84.github.io' and final.path=='/RACE-AI/'+path
-                  body=response.read(len(raw)+1)
-              assert body==raw,'BOAT_DEPLOYED_PAGES_BYTES_CHANGED'
-          assert '<section id="boat-owner-formal-proof"' in html
-          print(json.dumps(dict(status='BOAT_AUTOMATIC_SITE_AES_AND_HTTP_PARITY_VERIFIED',
-              assets=4,official_provider_gets=0,source_state_mutations=0,
-              original_forecast_rewrites=0),sort_keys=True))
+          code_ref=os.environ['GITHUB_SHA']
+          rows=subprocess.check_output(['git','ls-remote','origin','refs/heads/main']).decode().splitlines()
+          assert len(rows)==1,'TRUSTED_MAIN_NOT_RESOLVED'
+          ui_ref=rows[0].split()[0]
+          assert all(re.fullmatch('[a-f0-9]{40}',v) for v in (code_ref,ui_ref))
+          subprocess.run(['git','fetch','--no-tags','origin',code_ref,ui_ref],check=True)
+          raw=subprocess.check_output(['git','show',code_ref+':scripts/boat_pages_live_proof.py'])
+          assert 0<len(raw)<65536,'APPROVED_PROOF_CODE_BOUND'
+          with tempfile.TemporaryDirectory(prefix='pages-proof-',dir=os.environ['RUNNER_TEMP']) as folder:
+              script=Path(folder)/'proof.py';script.write_bytes(raw)
+              subprocess.run([sys.executable,str(script),'--repo','.', '--ui-source',ui_ref],check=True)
           PY

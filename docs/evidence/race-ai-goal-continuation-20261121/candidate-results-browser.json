@@ -1,0 +1,19 @@
+{
+  "status": "CANDIDATE_WITH_REAL_ENCRYPTED_RESULTS_VERIFIED",
+  "viewport": 390,
+  "races_by_day": {
+    "2026-11-19": 75,
+    "2026-11-20": 57
+  },
+  "research_comparison_cards": 57,
+  "secondary_matched": 128,
+  "held": 4,
+  "paired_reference_races_latest_day": 53,
+  "unknown_results_not_scored": true,
+  "page_errors": 0,
+  "key_transmitted": false,
+  "provider_browser_requests": 0,
+  "physical_iphone": false,
+  "transport": "actual public Pages and raw GitHub ciphertext; candidate app/css plus result index/new ciphers fulfilled locally",
+  "seconds": 8.46
+}

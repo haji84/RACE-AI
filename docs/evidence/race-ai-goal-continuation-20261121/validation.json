@@ -1,0 +1,62 @@
+{
+  "schema": "RACE_AI_GOAL_CONTINUATION_VALIDATION_V1",
+  "backend": {
+    "tests": 66,
+    "skips": 0,
+    "warnings_as_errors": true,
+    "result": "PASS"
+  },
+  "node": {
+    "tests": 23,
+    "skips": 0,
+    "result": "PASS"
+  },
+  "chromium": {
+    "tests": 11,
+    "viewports": [
+      320,
+      390,
+      1440
+    ],
+    "skips": 0,
+    "result": "PASS",
+    "physical_iphone": false
+  },
+  "pages_and_workflow_guards": {
+    "tests": 23,
+    "result": "PASS"
+  },
+  "forward_new_regression_root": {
+    "tests": 1,
+    "real_aes_invented_inputs": true,
+    "result": "PASS"
+  },
+  "forward_related_agent_suite": {
+    "tests": 90,
+    "result": "PASS",
+    "source_free": true
+  },
+  "workflow_graphs_unchanged_except_existing_run_bodies": 3,
+  "app_sha256": "a27f76ce02f77223cf0e91099bd3d1fb0ce647c47bc7b921212f030f437b65e4",
+  "style_sha256": "40ce3fa65c7c9191bf4092dcc1242ef324d896c0c141b5926f5e669fe282c859",
+  "production_source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "live_source_or_accuracy_proven_by_fixtures": false,
+  "ci_command_form_regression": {
+    "first_run": 44777311009,
+    "failed_job": 136430444440,
+    "first_result": "1/172_FAILED_EXACT_EXISTING_RUN_FORM_CONTRACT",
+    "correction": "Restore original single-line native Safari command; Pages fixture tests remain in the existing Ubuntu static run body.",
+    "targeted_tests_after_correction": 9,
+    "result": "PASS"
+  },
+  "combined_after_main316": {
+    "python_tests": 214,
+    "python_warnings_as_errors": true,
+    "node_executions": 87,
+    "browser_tests": 12,
+    "browser_and_feed_tests": 24,
+    "skips": 0,
+    "result": "PASS",
+    "real_packet_reopened_with_final_reader_hashes": true
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "schema": "RACE_AI_GOAL_ACTUAL_AUDIT_20261121_V1",
+  "observed_at_utc": "2026-11-20T16:36:08.998353+00:00",
+  "main": "28e726d463e761ec2102c191adb567cf4f469086",
+  "authorization": {
+    "commands": true,
+    "github_public_read": true,
+    "github_authenticated_read": true,
+    "github_normal_push_previously_verified": true,
+    "permission_bypass": false
+  },
+  "offline_unpushed_originals": {
+    "b7380fe6a377e6ccf2b96331f2126c52549bbe17": "UNRESTORED",
+    "daae4c10167224b7730006d8ada5ade398aaa64b": "UNRESTORED"
+  },
+  "winticket": {
+    "state": "UNRESOLVED_HTTP_403",
+    "run_id": 44728334291,
+    "job_id": 136261471157,
+    "observed_at_jst": "2026-11-20T20:32:53+09:00",
+    "source": "c26ac0927647f317acf855e0c42cd1703232c19b",
+    "url": "https://www.winticket.jp/keirin/racecard/",
+    "failure": "DAILY_INDEX_HTTP_403",
+    "before_parsing": true,
+    "configured_login_or_session": false,
+    "iphone_owner_same_route_display_reported": true,
+    "specific_denial_cause_proven": false,
+    "provider_requests_by_this_audit": 0
+  },
+  "boat_current_owner": {
+    "run_id": 44656378586,
+    "github_conclusion": "success",
+    "actual_new_rounds": 0,
+    "worker_gets": 0,
+    "skipped_rounds": 24,
+    "source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+    "control_artifact_id": 14610226734,
+    "artifact_zip_sha256": "1c2d4259ddf3a9456a87e089403b26b6a8b1395c0bf4c0a00a710d0b7d16c656",
+    "control": {
+      "state": "AUTHORIZATION_WAIT",
+      "code": "SOURCE_AUTHORIZATION_REQUIRED",
+      "http_status": 403,
+      "attempts": 1,
+      "retry_at": null,
+      "lifetime_gets": 15951,
+      "day_base": 15951,
+      "lifetime_rounds": 821,
+      "prepared": null
+    },
+    "direct_producer_actions": 0
+  },
+  "boat_latest_results": {
+    "run_id": 44766623468,
+    "job_id": 136392831774,
+    "conclusion": "failure",
+    "code": "SOURCE_WAIT",
+    "get_attempts": 0,
+    "new_observations": 0,
+    "retained_multi_day": {
+      "total": 264,
+      "confirmed": 138,
+      "held": 12,
+      "pending": 114
+    },
+    "today": {
+      "expected": null,
+      "confirmed": 0,
+      "pending": null,
+      "schedule_complete": false
+    },
+    "retention_generation": 374,
+    "ciphertexts_preserved": 7
+  },
+  "four_sport": {
+    "goal_complete": false,
+    "frozen_s_active_families": 15,
+    "applicable_sport_model_cells": {
+      "BOAT": 14,
+      "KEIRIN": 5,
+      "AUTO": 6,
+      "HORSE": 5
+    },
+    "nationwide_all_races_all_models_t15_saved_and_settled_verified": false,
+    "auto_horse_recurring_nationwide_runtime_evidenced": false,
+    "keirin_formal": {
+      "run_id": 44738348117,
+      "job_id": 136295427395,
+      "observed_race_ids": 57,
+      "venues": 6,
+      "official_responses_200": 714,
+      "details": 0,
+      "riders": 0,
+      "formal_predictions": 0,
+      "source_hold": "HOLD_OFFICIAL_SP_SOURCE_LAYOUT",
+      "model_hold": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT"
+    }
+  },
+  "note_real_pre_cutoff": {
+    "run_id": 44683039940,
+    "job_id": 136110816090,
+    "unique_pre_cutoff_reference_forecasts": 33,
+    "same_t15_to_t10_generation_and_first_git_save": 1,
+    "observed_partial_source_races": 57,
+    "formal_model_admission": false,
+    "learning_improvement_proven": false
+  },
+  "six_boat": {
+    "goal_complete": false,
+    "real_clip_sha256": "1ac1f0c27f58d8d64ebb1cfc13c2c4e9133cf7bbcce04052f23c28bf2e37f194",
+    "real_clip_frames": 775,
+    "development_ai_reference_frames": 7,
+    "reference_parts": 42,
+    "geometry_matches": 15,
+    "final_color_matches": 2,
+    "whole_six_match_frames": 0,
+    "eligible_identity_transitions": 0,
+    "human_verified": false,
+    "independent_temporal_labels_available": false,
+    "independent_metric_clock_strength_targets_available": false,
+    "frozen_source_unchanged": true
+  },
+  "forward_study": {
+    "goal_complete": false,
+    "registered_start_jst": "2026-11-19T12:15:30+09:00",
+    "registered_end_jst": "2026-11-24T12:15:30+09:00",
+    "minimum_matched_pairs": 100,
+    "minimum_dates": 5,
+    "minimum_venue_days": 10,
+    "last_valid_artifact": 14503356965,
+    "matched_pairs": 0,
+    "dates": 0,
+    "venue_days": 0,
+    "historical_pairs_excluded": 574,
+    "window_or_threshold_change": false,
+    "backfill": false,
+    "canary_capture_run": 44679067367,
+    "canary_settlement_run": 44710402748,
+    "canary_settlement_state": "HOLD_CANARY_PROVIDER_DENIED_PERSISTED_NO_RETRY",
+    "canary_comparable_results": 0
+  },
+  "iphone": {
+    "model": "iPhone 13 Pro",
+    "actual_race_ai_acceptance_verified": false,
+    "chromium_is_physical_iphone_evidence": false
+  },
+  "unapproved_actions": {
+    "new_pr": 0,
+    "new_model_family": 0,
+    "new_charges": 0,
+    "votes_or_bets": 0,
+    "production_weights_switch": 0,
+    "production_key_local_use": 0,
+    "denial_reset_or_bypass": 0
+  },
+  "concurrent_main": {
+    "head": "78b855e462ec57aef5cc0e265747847ca7bf3b22",
+    "parent": "28e726d463e761ec2102c191adb567cf4f469086",
+    "pull_request": 316,
+    "new_pr_created_by_this_work": false,
+    "scope": "Official KEIRIN result observer, encrypted updates, independent order/payout, refresh UI",
+    "preservation": "Normal merge; preserve official result/result_revisions and secondary results/result_checks as independent contracts"
+  }
+}

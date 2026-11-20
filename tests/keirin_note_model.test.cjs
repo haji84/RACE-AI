@@ -17,3 +17,57 @@ test('source links accept only attributed public providers',()=>{const M=require
 test('two-car analysis keeps the original shared scenario roots',async()=>{const M=require(modulePath),p=packet(),name='data/2030-01-15/forecasts.json',original=JSON.parse(p.files[name].text);original[0].scenarios=[{label:'架空の先行展開',phases:[{description:'架空の隊列'}]}];p.files[name]=source(original);const d=await M.openPacket(p),r=M.rows(d,'2030-01-15')[0];assert.equal(M.forecast(r,'2t','original').scenarios[0]?.label,'架空の先行展開');});
 test('keeps the attributed reference input alongside its unchanged research output',async()=>{const M=require(modulePath),p=packet(),name='data/2030-01-15/reference_AB.json',entries=JSON.parse(p.files[name].text);entries[0].input.source_pages=[{kind:'RACECARD',url:'https://keirin.netkeiba.com/race/entry/?race_id=203001159801'},{kind:'LINE',url:'https://keirin.kdreams.jp/test/racedetail/9820300115010001/'}];p.files[name]=source(entries);const d=await M.openPacket(p),r=M.rows(d,'2030-01-15')[0];assert.ok(r.referenceEnvelope?.input,'reference input provenance must remain accessible');assert.deepEqual(r.referenceEnvelope.input.source_pages,entries[0].input.source_pages);assert.deepEqual(r.reference,entries[0].output);assert.equal(M.forecast(r,'3t','B').tickets[0].combo,'2-3-1');});
 module.exports={packet,source};
+
+const RF=require('./keirin_note_result_fixtures.cjs');
+test('opens a source-bound result-only packet without inventing a roster or forecast coverage',async()=>{
+ const M=require(modulePath),obs=RF.observation(),p=RF.resultsPacket([obs]);
+ const data=await M.openPacket(p);
+ assert.equal(M.rows(data,RF.DAY).length,0);
+ assert.equal(data.cipherSha,null);
+ assert.equal(data.results.get(RF.RACE)[0].observation.observation_sha256,obs.observation_sha256);
+ assert.equal(data.results.get(RF.RACE)[0].binding.fileSha256,p.files['data/'+RF.DAY+'/research_results.json'].sha256);
+});
+test('rejects result fact tampering and incorrect date, identity, receipts or formal flags',async()=>{
+ const M=require(modulePath);
+ const variants=[o=>o.winning_triple=[1,2,3],o=>o.race_id='203001169801',o=>o.provider_receipts[1].source_url='https://keirin.netkeiba.com/race/result/?race_id=203001159802',o=>o.qualifies_for_formal_settlement=true,o=>o.extra='unreviewed',o=>o.previous_observation_sha256=o.observation_sha256];
+ for(const alter of variants){const o=RF.observation();alter(o);await assert.rejects(()=>M.openPacket(RF.resultsPacket([o])));}
+ const p=packet();p.files['data/'+RF.DAY+'/reference_AB.json']=source([{input:{race_id:RF.RACE},output:{race_id:'203001159802',A:{ranked_tickets:[[1,2,3]]}}}]);
+ await assert.rejects(()=>M.openPacket(p));
+});
+test('scores exact saved ticket counts with 100-yen arithmetic and a separate unknown two-car payout',async()=>{
+ const M=require(modulePath),F=require('../web/keirin-note-feed.js');
+ const data=F.merge([await M.openPacket(packet()),await M.openPacket(RF.resultsPacket([RF.observation()]))]),row=M.rows(data,RF.DAY)[0];
+ const before=JSON.stringify(row.original),a=M.compare(row,'3t','A'),b=M.compare(row,'3t','B');
+ assert.equal(a.status,'RESEARCH_HIT');assert.equal(a.ticketCount,1);assert.equal(a.hitAt1,true);assert.equal(a.stakeYen,100);assert.equal(a.payoutYen,5300);assert.equal(a.netYen,5200);
+ assert.equal(a.formal,false);assert.equal(a.timingStatus,'GENERATED_AT_MISSING');assert.equal(a.predictionBinding.fileSha256,packet().files['data/'+RF.DAY+'/reference_AB.json'].sha256);
+ assert.equal(b.status,'RESEARCH_MISS');assert.equal(b.payoutYen,0);assert.equal(b.netYen,-100);
+ const two={...row,two:{race_id:RF.RACE,tickets:[{combo:'3-1',role:'本線'}]},bindings:{...row.bindings,two:row.bindings.original}};
+ const score=M.compare(two,'2t','original');assert.equal(score.status,'RESEARCH_HIT');assert.equal(score.payoutYen,null);assert.equal(score.netYen,null);
+ assert.equal(JSON.stringify(row.original),before);
+});
+test('keeps a twelve-point research hit distinct from Hit@8 and marks late generation nonformal',async()=>{
+ const M=require(modulePath),F=require('../web/keirin-note-feed.js'),p=packet();
+ const roster=JSON.parse(p.files['data/'+RF.DAY+'/races.json'].text);roster.races[0].riders.push({number:4,name:'架空4'});p.files['data/'+RF.DAY+'/races.json']=source(roster);
+ const ranked=[[1,2,3],[1,2,4],[1,3,2],[1,3,4],[1,4,2],[1,4,3],[2,1,3],[2,1,4],[2,3,1],[2,3,4],[2,4,1],[3,1,2]];
+ p.files['data/'+RF.DAY+'/reference_AB.json']=source([{input:{race_id:RF.RACE},output:{race_id:RF.RACE,generated_at:'2030-01-15T03:01:00Z',A:{ranked_tickets:ranked}}}]);
+ const row=M.rows(F.merge([await M.openPacket(p),await M.openPacket(RF.resultsPacket([RF.observation()]))]),RF.DAY)[0],score=M.compare(row,'3t','A');
+ assert.equal(score.ticketCount,12);assert.equal(score.stakeYen,1200);assert.equal(score.payoutYen,5300);assert.equal(score.netYen,4100);assert.equal(score.hitAt1,false);
+ assert.equal(score.timingStatus,'GENERATED_AFTER_OR_AT_CUTOFF');assert.equal(score.formal,false);assert.equal(Object.hasOwn(score,'hitAt8'),false);
+});
+test('cipher identity comes only from verified encrypted bytes and remains bound to every forecast version',async()=>{
+ const {createCipheriv,randomBytes}=require('node:crypto'),M=require(modulePath),F=require('../web/keirin-note-feed.js');
+ async function sealed(p){const plain=Buffer.from(JSON.stringify(p)),header={schema:'RACE_AI_SAVED_WEB_VIEW_V1',source_content_sha256:RF.sha(plain.toString())},key=randomBytes(32),nonce=randomBytes(12),cipher=createCipheriv('aes-256-gcm',key,nonce);cipher.setAAD(Buffer.from(JSON.stringify(header)));const ciphertext=Buffer.concat([cipher.update(plain),cipher.final(),cipher.getAuthTag()]);const wire=Buffer.from(JSON.stringify({header,nonce:nonce.toString('base64'),ciphertext:ciphertext.toString('base64')})),cipherSha=RF.sha(wire.toString());return {data:await M.openCipher(new Uint8Array(wire),{cipherSha,key:key.toString('base64url')}),cipherSha};}
+ const p=packet();p.cipherSha='f'.repeat(64);assert.equal((await M.openPacket(p)).cipherSha,null);
+ const one=await sealed(p),two=await sealed(p);assert.equal(one.data.cipherSha,one.cipherSha);
+ const merged=F.merge([one.data,two.data]),row=M.rows(merged,RF.DAY)[0];assert.equal(row.bindings.original.cipherSha,one.cipherSha);assert.equal(row.bindings.reference.cipherSha,two.cipherSha);assert.equal(row.referenceHistory[0].binding.cipherSha,one.cipherSha);
+ assert.equal(row.referenceHistory[0].binding.fileSha256,p.files['data/'+RF.DAY+'/reference_AB.json'].sha256);
+});
+test('invalid UTC calendar dates and out-of-day packet rows are rejected before comparison',async()=>{
+ const M=require(modulePath),o=RF.observation();o.captured_at='2030-02-30T03:10:00Z';await assert.rejects(()=>M.openPacket(RF.resultsPacket([o])));
+ const q=packet(),name='data/'+RF.DAY+'/races.json',value=JSON.parse(q.files[name].text);value.races[0].race_id='203001169801';q.files[name]=source(value);await assert.rejects(()=>M.openPacket(q));
+});
+test('partial result deltas cannot score without the preceding history and HOLD accepts bounded receipt counts',async()=>{
+ const M=require(modulePath),first=RF.observation({previous:'f'.repeat(64)}),p=packet();Object.assign(p.files,RF.resultsPacket([first]).files);
+ const row=M.rows(await M.openPacket(p),RF.DAY)[0];assert.equal(M.compare(row).status,'RESEARCH_UNKNOWN');assert.equal(M.compare(row).reason,'RESULT_HISTORY_INCOMPLETE');
+ for(const providers of [[],['Kdreams'],['Kdreams','netkeirin']]){const o=RF.observation({state:'HOLD_SECONDARY_RESULT_DISAGREEMENT',providers});assert.equal((await M.openPacket(RF.resultsPacket([o]))).results.get(RF.RACE).length,1);}
+});

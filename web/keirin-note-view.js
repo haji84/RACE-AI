@@ -29,7 +29,7 @@
       <div class="kn-scroll"><section class="kn-import"><div><label class="kn-file">保存データを開く<input id="kn-file" type="file" accept=".json,application/json"></label><button id="kn-clear" type="button" class="kn-secondary">読込データを消す</button></div><p id="kn-status" role="status">本人用リンク、または保存データJSONから開けます。</p></section>
       <nav id="kn-days" class="kn-day-tabs" aria-label="予想の日付"></nav><section id="kn-metrics" class="kn-metrics"></section>
       <section class="kn-tools"><div id="kn-venues" class="kn-venues" aria-label="会場"></div><div class="kn-controls"><label>券種<select id="kn-market"><option value="3t">3連単</option><option value="2t">2車単</option></select></label><label>表示する予想<select id="kn-variant"><option value="flexible">改訂された分析</option><option value="original">原分析</option><option value="rollover">絞り込み分析</option><option value="A">参考A</option><option value="B">参考B・6局面</option><option value="C">参考Cの状況</option></select></label><label class="kn-search-label">検索<input id="kn-search" type="search" placeholder="会場・選手・レース名"></label></div><div class="kn-small-controls"><label><input id="kn-future" type="checkbox">これからのレース</label><label><input id="kn-selected" type="checkbox">検討リストのみ</label><span id="kn-count"></span></div></section>
-      <div id="kn-races" class="kn-grid"></div>
+      <section id="kn-research-summary" class="kn-result" hidden></section><div id="kn-result-only"></div><div id="kn-races" class="kn-grid"></div>
       <details class="kn-rollover"><summary>2段階の資金配分を試算する</summary><p>受取額は払戻と返還の合計を手入力します。実購入の記録とは別の試算です。</p><div class="kn-controls"><label>初回の予算<select id="kn-roll-budget"><option>2000</option><option selected>2500</option><option>3000</option></select></label><label>1戦目の受取額<input id="kn-return-one" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label><label>2戦目の受取額<input id="kn-return-two" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label></div><div id="kn-roll-result"></div></details>
       <footer class="kn-footer"><p>個別分析・改訂・参考A/Bはそれぞれの保存原本を保持します。参考Cの未生成も表示します。参考モデルの重みは校正済み確率ではありません。</p><p>画面での選択と配分は購入候補です。投票・決済は行いません。データと本人用リンクの鍵は外部へ送信しません。</p><p id="kn-provenance"></p></footer></div>
       <div class="kn-selection"><div><strong id="kn-selection-count">検討リスト 0件</strong><small>候補・配分の試算</small></div><button id="kn-copy-selection" type="button">検討リストをコピー</button></div>`;
@@ -74,6 +74,7 @@
     const list=all(),now=Date.now();const shown=list.filter(r=>(!venue||r.venue===venue)&&(!query||(r.venue+' '+r.title+' '+r.riders.map(p=>p.name).join(' ')+' '+r.original.headline).toLocaleLowerCase('ja').includes(query))&&(!futureOnly||r.cutoff&&Date.parse(r.cutoff)>now)&&(!selectedOnly||selected.has(r.id)));
     $('kn-count').textContent='表示 '+shown.length+' / 全'+list.length+'レース';
     $('kn-races').innerHTML=shown.length?shown.map(renderRace).join(''):'<div class="kn-empty">'+(data?'条件に合うレースはありません。':'本人用リンク、または保存データを開くと予想を表示します。')+'</div>';
+    renderResearchSummary(list);
     selectionSummary();
   }
   function lineHtml(row){
@@ -94,9 +95,42 @@
     return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+(prediction.confidence?'<span>分析区分 '+esc(prediction.confidence)+'</span>':'')+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p><div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+budget+
       '<div class="kn-point-heading"><b>予想 '+prediction.tickets.length+'点'+(prediction.allocatable?' · 配分 '+allocation.chosen.length+'点':'')+'</b></div><div class="kn-tickets">'+(items||'<p class="kn-empty">'+esc(prediction.reason||'この券種の保存予想はありません。')+'</p>')+'</div>'+(prediction.tickets.length>3?'<button type="button" class="kn-more" data-expand="'+row.id+'">'+(open?'上位3点に戻す':'全'+prediction.tickets.length+'点を表示')+'</button>':'')+
       (prediction.allocatable&&!allocation.available?'<p class="kn-warning">配分対象がないか、全点への100円単位の配分に予算が足りません。点数を選び直してください。</p>':'')+
-      '<div class="kn-race-actions"><button type="button" data-select="'+row.id+'" aria-pressed="'+selected.has(row.id)+'">'+(selected.has(row.id)?'検討リストから外す':'検討リストに追加')+'</button><button type="button" data-copy="'+row.id+'" '+(prediction.allocatable&&!allocation.available?'disabled':'')+'>買い目をコピー</button></div>'+result+
+      '<div class="kn-race-actions"><button type="button" data-select="'+row.id+'" aria-pressed="'+selected.has(row.id)+'">'+(selected.has(row.id)?'検討リストから外す':'検討リストに追加')+'</button><button type="button" data-copy="'+row.id+'" '+(prediction.allocatable&&!allocation.available?'disabled':'')+'>買い目をコピー</button></div>'+result+researchResult(row)+
       scenarios(prediction.scenarios)+roster(row)+
       '<details class="kn-details"><summary>出典・予想時点・注意点</summary><p>'+esc(prediction.risk||'保存された条件付きの分析です。')+'</p><p>予想の記載時点 '+stamp(prediction.createdAt)+'</p><p>オッズの保存時点 '+stamp(row.quote.source_updated_at||row.quote.fetched_at)+'</p><p>'+esc(row.quote.scope_label||'保存時点の値。現在値は掲載元で確認してください。')+'</p>'+sourceLink(row.sourceUrl,'出走表・掲載オッズ')+referenceProvenance(row)+'<p class="kn-small">参考A/Bは既存計算、Cは独立した連係履歴が不足しているため未生成です。正式な全モデル実測の認証とは別に表示しています。</p></details></article>';
+  }
+  function resultLabel(state){
+    if(state==='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL')return '二つの掲載元が一致（公式認証なし）';
+    if(state==='HOLD_SECONDARY_RESULT_DISAGREEMENT')return '出典間の相違で保留';
+    if(state?.startsWith('PENDING_'))return '結果の掲載・確定待ち';
+    const holds={HOLD_NO_PUBLISHED_CUTOFF_HINT:'掲載締切を確認できないため保留',HOLD_PROVIDER_DENIED_OR_RATE_LIMITED_STOP:'入力元の取得拒否で保留',HOLD_RESULT_SOURCE_UNAVAILABLE:'結果の取得を保留',HOLD_RESULT_SOURCE_UNVERIFIED:'結果の根拠を確認できないため保留',HOLD_RESULT_DAY_MISMATCH:'結果の日付照合を保留',HOLD_RESULT_RACE_MISMATCH:'結果のレース照合を保留',HOLD_SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL:'返還・中止・同着の公式確認待ち',HOLD_CONFLICTING_SOURCE_RESULT:'掲載内容の相違で保留'};
+    return holds[state]||'結果の照合は未取得';
+  }
+  function comparisonHtml(row,model,version=null){
+    const score=M.compare(row,market,model,version),status=score.status==='RESEARCH_HIT'?'的中':score.status==='RESEARCH_MISS'?'不的中':'未判定';
+    const label=['A','B','C'].includes(model)?'参考'+model:M.forecast(row,market,model).label;
+    const timing={GENERATED_AT_MISSING:'予想の生成時点は未確認',CUTOFF_UNVERIFIED:'掲載締切は未確認',GENERATED_AFTER_OR_AT_CUTOFF:'掲載締切以後に生成された保存版',RECORDED_PRE_CUTOFF_NOT_FORMAL:'記載時点は掲載締切前（正式な保存時刻の認証なし）'};
+    return '<div class="'+(['A','B','C'].includes(model)?'kn-reference-comparison':'kn-selected-comparison')+'" data-model="'+esc(model)+'"><p><b>'+esc(label)+' · '+score.ticketCount+'点 · '+status+'</b></p><p>各100円の想定：投資 '+money(score.stakeYen)+' · 払戻 '+money(score.payoutYen)+' · 差引 '+money(score.netYen)+'</p><p class="kn-small">予想の記載時点 '+stamp(score.generatedAt)+' · '+esc(timing[score.timingStatus])+'</p>'+(score.reason==='RESULT_HISTORY_INCOMPLETE'?'<p class="kn-warning">先行する結果の保存版が未読込のため、比較は保留しています。</p>':'')+'</div>';
+  }
+  function bindingHtml(value,label){
+    return value?'<p class="kn-small">'+esc(label)+'のファイルSHA256 '+esc(value.fileSha256)+'<br>暗号文SHA256 '+esc(value.cipherSha||'暗号文経由の読込ではありません')+'</p>':'';
+  }
+  function resultRevision(saved,n){
+    const o=saved.observation;
+    return '<section data-result-revision="'+n+'"><p><b>結果の保存版 '+n+' · '+esc(resultLabel(o.state))+'</b></p><p>取得 '+stamp(o.captured_at)+' · '+esc(o.winning_triple?.join('−')||'結果保留')+' · 各100円の3連単払戻 '+money(o.payout_per_100yen)+'</p>'+o.provider_receipts.map(r=>'<p>'+sourceLink(r.source_url,r.provider+'の結果')+' · 出典取得 '+stamp(r.observed_at)+'</p>').join('')+bindingHtml(saved.binding,'結果原本')+'</section>';
+  }
+  function researchResult(row){
+    if(!row.latestResearchResult&&!Object.keys(row.reference||{}).length)return '';
+    const latest=row.latestResearchResult?.observation,history=row.researchResultHistory||[],versions=row.referenceHistory||[];
+    return '<section class="kn-result kn-research-result kn-details" data-result-state="'+esc(latest?.state||'UNOBSERVED')+'"><b>参考A/Bと保存結果の照合</b><p>'+esc(resultLabel(latest?.state))+' · '+esc(latest?.winning_triple?.join('−')||'結果未確認')+'</p>'+(!['A','B','C'].includes(variant)?comparisonHtml(row,variant):'')+comparisonHtml(row,'A')+comparisonHtml(row,'B')+'<p class="kn-small">条件付きの研究比較です。点数は各保存版の全買い目を使用し、1点100円で計算します。実購入・正式PR71成績・学習効果の証明ではありません。2車単の払戻は独立した根拠がないため未確認です。</p><details class="kn-details"><summary>結果の改訂履歴・出典</summary>'+(history.length?history.map((saved,n)=>resultRevision(saved,n+1)).join(''):'<p>結果の保存履歴はありません。</p>')+'</details><details class="kn-details"><summary>参考予想の保存版・原本の照合</summary>'+[...versions,{reference:row.reference,envelope:row.referenceEnvelope,binding:row.bindings?.reference}].map((version,n)=>'<section><p><b>参考予想の保存版 '+(n+1)+(n===versions.length?'（現在）':'')+'</b></p>'+comparisonHtml(row,'A',version)+comparisonHtml(row,'B',version)+bindingHtml(version.binding,'参考予想原本')+'</section>').join('')+'</details></section>';
+  }
+  function renderResearchSummary(list){
+    const panel=$('kn-research-summary'),only=$('kn-result-only');
+    if(!data){panel.hidden=true;panel.textContent='';only.innerHTML='';return;}
+    const results=[...(data.results||new Map())].filter(([id])=>id.startsWith(currentDay.replaceAll('-',''))),known=new Set(list.map(row=>row.id)),unpaired=results.filter(([id])=>!known.has(id));
+    const summary=M.summarize(list,market),arm=name=>{const v=summary[name];return '参考'+name+'：的中 '+v.hitRaces+' / 判定 '+v.evaluableRaces+'レース · 未判定 '+v.unknownRaces+'件 · 保存点数 '+(v.ticketCounts.length?v.ticketCounts.join('・'):'未確認')+'点';};
+    panel.hidden=false;panel.innerHTML='<b>保存結果と参考予想の研究比較</b><p>保存結果 '+results.length+'件 · 予想未読込 '+unpaired.length+'件</p><p>同じレースでA/Bを比較できる数 '+summary.pairedRaceCount+' / '+summary.raceCount+' · その共通レースの的中 A '+summary.paired.A.hitRaces+' / '+summary.pairedRaceCount+'、B '+summary.paired.B.hitRaces+' / '+summary.pairedRaceCount+'</p><p>'+esc(arm('A'))+'</p><p>'+esc(arm('B'))+'</p><p class="kn-small">表示中の日付の全保存レースが分母です。未判定は外れに含めません。A/Bの差から学習による改善は判断できません。</p>';
+    only.innerHTML=unpaired.map(([id,history])=>'<details class="kn-details"><summary>'+esc(id)+' · '+esc(resultLabel(history.at(-1)?.observation.state))+'</summary><p>このレースの予想原本は未読込のため、的中比較の分母へ加えません。</p>'+history.map((saved,n)=>resultRevision(saved,n+1)).join('')+'</details>').join('');
   }
   function liveResult(row){
     const result=row.resultUpdate;if(!result)return '';

@@ -46,40 +46,19 @@ jobs:
       - name: Match GitHub Pages HTTP response bytes to deployed SHA and manifest
         run: |
           python - <<'PY'
-          import hashlib,json,urllib.request,urllib.parse
+          import os,re,subprocess,sys,tempfile
           from pathlib import Path
-          base='https://haji84.github.io/RACE-AI/'
-          manifest=json.loads(Path('site-build.json').read_bytes())
-          assert manifest['schema']=='RACE_AI_SAVED_PAGES_BUILD_V1'
-          assert manifest['forecast_sha256']=='4169db99a1d99bbcf96c8fa1bfb076ed2d2fb1f434fc64cf7e43b38e55f5adda'
-          selected=('index.html','app.js','saved-performance.js','saved-view-crypto.js')
-          index=Path('index.html').read_text()
-          for path in selected:
-              local=Path(path).read_bytes()
-              digest=hashlib.sha256(local).hexdigest()
-              assert manifest['files'][path]=={'bytes':len(local),'sha256':digest},'SAVED_PAGES_MANIFEST_MISMATCH'
-              if path.endswith('.js'):
-                  assert './'+path+'?v='+digest[:12] in index,'INDEX_SCRIPT_VERSION_MISMATCH'
-              url=base+path+'?verify=f60308ef7443ca13b5ca23c4896e15ffc67b0427'
-              request=urllib.request.Request(url,headers={
-                  'User-Agent':'RACE-AI-owner-pages-public-proof/1',
-                  'Cache-Control':'no-cache'})
-              with urllib.request.urlopen(request,timeout=24) as response:
-                  assert response.status==200,'LIVE_PAGES_HTTP_UNAVAILABLE'
-                  final=urllib.parse.urlsplit(response.url)
-                  assert final.hostname=='haji84.github.io' and final.path=='/RACE-AI/'+path, 'LIVE_PAGES_HOST_OR_PATH_CHANGED'
-                  body=response.read(len(local)+1)
-              assert body==local and hashlib.sha256(body).hexdigest()==digest,'LIVE_PAGES_BYTES_DIFFER'
-          assert '<section id="boat-owner-formal-proof"' in index
-          assert 'owner-formal.js' not in index and 'owner-formal.js' not in manifest['files']
-          assert b'RaceOwnerFormal' in Path('app.js').read_bytes()
-          assert 'app.js?v=b7968390d2a9' in index
-          print(json.dumps({
-              'status':'BOAT_HARDENED_LIVE_PAGES_HTTP_MATCH',
-              'paths_checked':list(selected),
-              'page_sha':'f60308ef7443ca13b5ca23c4896e15ffc67b0427',
-              'original_encrypted_forecasts_unchanged':True,
-              'official_racing_provider_gets':0},sort_keys=True))
+          code_ref=os.environ['GITHUB_SHA']
+          rows=subprocess.check_output(['git','ls-remote','origin','refs/heads/main']).decode().splitlines()
+          assert len(rows)==1,'TRUSTED_MAIN_NOT_RESOLVED'
+          ui_ref=rows[0].split()[0]
+          assert all(re.fullmatch('[a-f0-9]{40}',v) for v in (code_ref,ui_ref))
+          subprocess.run(['git','fetch','--no-tags','origin',code_ref,ui_ref],check=True)
+          raw=subprocess.check_output(['git','show',code_ref+':scripts/boat_pages_live_proof.py'])
+          assert 0<len(raw)<65536,'APPROVED_PROOF_CODE_BOUND'
+          with tempfile.TemporaryDirectory(prefix='pages-proof-',dir=os.environ['RUNNER_TEMP']) as folder:
+              script=Path(folder)/'proof.py';script.write_bytes(raw)
+              subprocess.run([sys.executable,str(script),'--repo','.', '--ui-source',ui_ref],check=True)
           PY
       - name: Checkout the exact proposed Safari acceptance adapter and tests
         if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.browser == 'native-safari')

@@ -1,0 +1,39 @@
+{
+  "schema": "RACE_AI_NOTE_REAL_RESULTS_TAIL_20261121_V1",
+  "observed_at_utc": "2026-11-20T16:46:18.032420+00:00",
+  "result": {
+    "schema": "RACE_AI_KEIRIN_NOTE_RESULT_COLLECTION_V1",
+    "days_requested": 2,
+    "provider_denied": false,
+    "budget_exhausted": false,
+    "public_page_requests": 184,
+    "national_universe_verified": false,
+    "formal_model_admission": false,
+    "actual_four_model_forecast_saved": false,
+    "discovered_days": 2,
+    "observed_races": 132,
+    "checked_races": 84,
+    "matched_races": 80,
+    "hold_races": 4,
+    "pending_races": 0,
+    "changed_observations": 84,
+    "not_due_races": 48,
+    "future_races": 0,
+    "unknown_cutoff_races": 0,
+    "states": {
+      "SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL": 80,
+      "HOLD_SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL": 3,
+      "HOLD_RESULT_SOURCE_UNAVAILABLE": 1
+    }
+  },
+  "combined_checks": 132,
+  "combined_days": {
+    "20261119": 75,
+    "20261120": 57
+  },
+  "combined_matched": 128,
+  "private_output_retained": true,
+  "plaintext_uploaded": false,
+  "production_key_used": false,
+  "result_published": false
+}

@@ -1,0 +1,14 @@
+{
+  "status": "REAL_PYTHON_P256_TO_WEBCRYPTO_RESULT_JOIN_VERIFIED",
+  "source_races": 132,
+  "secondary_matched": 128,
+  "held": 4,
+  "verified_result_bindings": 132,
+  "comparable_model_race_rows": 106,
+  "original_forecasts_unchanged": true,
+  "private_plaintext_uploaded": false,
+  "production_state_key_used": false,
+  "result_published": false,
+  "client_integration_base": "78b855e462ec57aef5cc0e265747847ca7bf3b22",
+  "source": "Existing real sealed132-race packets; no new provider request"
+}

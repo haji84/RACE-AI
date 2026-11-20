@@ -1,0 +1,21 @@
+{
+  "status": "PAGES_PRESENTATION_REFRESHED",
+  "source_commit": "5bf9757e8fb996265719c3e9a9575f7c923e04ba",
+  "parent_commit": "b18a0bfe7c97137cd7eb9d3195a906efc6b37406",
+  "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+  "manifest_sha256": "432283896e5e24303fec70f9cf3c21adfc19812c9f68c37ba0e72b17541246e9",
+  "portrait_count": 1669,
+  "ciphertext_unchanged": true,
+  "plaintext_published": false,
+  "manifest_repair_parent": "9d317f86e9d8d5a1c1f2e1140449ce4e4d7c1398",
+  "manifest_repair_commit": "b18a0bfe7c97137cd7eb9d3195a906efc6b37406",
+  "trusted_ui_source": "78b855e462ec57aef5cc0e265747847ca7bf3b22",
+  "reason": "Preserve concurrently merged official result UI and restore exact main/deployment parity",
+  "production_key_used": false,
+  "direct_boat_producer_actions": 0,
+  "repaired_mismatched_entries": [
+    "app.js",
+    "style.css"
+  ],
+  "mismatched_bytes_verified_against_protected_main": true
+}

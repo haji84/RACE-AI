@@ -24,7 +24,8 @@ DAY_FILES = {'races.json', 'forecasts.json', 'manifest.json', 'environment.json'
     'two_car_odds.json', 'stake_plans.json', 'flexible_forecasts.json',
     'flexible_stake_plans.json', 'odds_snapshot_flexible.json', 'rollover_routes.json',
     'three_car_rollover_forecasts.json', 'three_car_rollover_routes.json',
-    'three_car_rollover_stake_plans.json', 'settlement.json', 'verification.json'}
+    'three_car_rollover_stake_plans.json', 'settlement.json', 'verification.json',
+    'research_results.json'}
 
 
 def need(ok, code):

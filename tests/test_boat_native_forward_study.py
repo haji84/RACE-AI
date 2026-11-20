@@ -346,6 +346,31 @@ class NativeForwardStudyTests(unittest.TestCase):
         self.assertEqual(closed['public']['research_statistical_rule_satisfied_cell_count'],0)
         self.assertTrue(all(row['statistical_rule_satisfied'] is False for row in closed['private']['cells'].values()))
 
+    def test_running_producer_stale_updated_at_keeps_authenticated_post_registration_originals(self):
+        runtime=NativeForwardRuntimeTests().runtime()
+        self.case.run['updated_at']=self.case.run['created_at']
+        binding,routes=self.witness()
+        receipt=study.verify_registration_witness(self.raw_spec,binding,candidate=self.resolved(),
+            get=routes.__getitem__,now=self.now)
+        self.assertLess(study._time(self.case.run['updated_at']),study._time(receipt['registered_after']))
+        route=(f'actions/workflows/405276784/runs?branch=production%2Fboat-p0-p1-20261111&head_sha={SOURCE}'
+            '&created=2030-03-31..2030-04-08&per_page=100')
+        self.case.extra[route]=wire(dict(total_count=1,workflow_runs=[self.case.run]))
+        before=deepcopy(self.case.run)
+        # Only P0 schedule I/O is isolated; native AES/receipt authentication,
+        # record clocks and scoring use the existing invented-data readers.
+        with patch.object(runtime,'_schedule',return_value=[]):
+            packets=runtime._cohort_packets(self.spec,receipt,self.case.get,self.now,None)
+        self.assertEqual(len(packets),1,'stale run metadata hid authenticated newer originals')
+        self.assertEqual(self.case.run,before)
+        public=study.analyze_native_cohort(self.spec,receipt,self.resolved(),packets,now=self.now)['public']
+        self.assertEqual(public['matched_races_by_cell'],{cell:1 for cell in CELLS})
+        self.assertIsNone(public['registered_schedule_race_count'])
+        self.assertIsNone(public['all_registered_normal_race_count'])
+        self.assertFalse(public['complete_official_ledger_verified'])
+        self.assertIsNone(public['research_statistical_rule_satisfied_cell_count'])
+        self.assertFalse(public['promotion_allowed'])
+
     def test_cohort_filters_only_after_full_native_authentication_and_keeps_input_only_and_schedule(self):
         from race_ai import all_existing_model_registry as registry
         from race_ai.all_existing_model_learning import fit
