@@ -136,8 +136,12 @@ def _existing_baseline(repo):
     return item
 
 
-def _provider_preflight(repo):
-    need(provider_stop.read_for_observed_day(repo=repo, day=DAY) is None,
+def _provider_preflight(repo, clock=utc_now):
+    now = clock()
+    need(isinstance(now, datetime) and now.utcoffset() is not None,
+         'CANARY_PROVIDER_CLOCK_INVALID')
+    observed_day = now.astimezone(form.JST).date().isoformat()
+    need(provider_stop.read_for_observed_day(repo=repo, day=observed_day) is None,
          'CANARY_PERSISTENT_PROVIDER_STOP')
 
 
@@ -256,7 +260,7 @@ def run_capture(*, repo, private_root, owner_public_pem, clock=utc_now):
     prior = _existing_baseline(repo)
     if prior is not None:
         return _report('EXISTING_CANARY_ORIGINAL_PRESERVED_NO_REFORECAST')
-    _provider_preflight(repo)
+    _provider_preflight(repo, clock=clock)
     need((core.when(CUTOFF)-clock()).total_seconds() >= 390, 'CANARY_CAPTURE_START_MARGIN_REQUIRED')
     card_dir, history_dir, sealed_dir = root/'card', root/'history', root/'sealed'
     for path in (card_dir, history_dir, sealed_dir):
@@ -332,9 +336,16 @@ def run_capture(*, repo, private_root, owner_public_pem, clock=utc_now):
     return final
 
 
-def collect_final_result(*, repo, private_root, frozen_card, clock=utc_now, request=None):
+def collect_final_result(*, repo, private_root, frozen_card, clock=utc_now, request=None,
+                         reconciliation_lease=None):
     """Verify official order first; optional payout-unit evidence cannot erase it."""
-    _provider_preflight(repo)
+    if reconciliation_lease is None:
+        _provider_preflight(repo, clock=clock)
+    else:
+        from race_ai.keirin_provider_reconciliation import ReconciliationLease
+        need(isinstance(reconciliation_lease, ReconciliationLease),
+             'CANARY_RECONCILIATION_LEASE_REQUIRED')
+        reconciliation_lease.assert_active(now=clock(), repo=repo)
     root = _private_root(private_root)
     need(frozen_card['race_id'] == RACE and frozen_card['official_cutoff_at'] == CUTOFF and
          clock() > core.when(CUTOFF), 'CANARY_RESULT_BEFORE_FIXED_CUTOFF')
@@ -382,6 +393,14 @@ def collect_final_result(*, repo, private_root, frozen_card, clock=utc_now, requ
         url = 'https://keirin.jp'+path if path.startswith('/') else path
         current_purpose = next(purpose for purpose, (host, fixed_path, _) in diagnostics.ROUTES.items()
                                if url == 'https://'+host+fixed_path)
+        if reconciliation_lease is not None:
+            from race_ai.keirin_provider_reconciliation import ReconciliationError
+            try:
+                reconciliation_lease.before_request(purpose=current_purpose,
+                    method='POST' if fields is not None else 'GET', url=url, now=clock())
+            except ReconciliationError:
+                record(current_purpose, 'REQUEST', 'SOURCE_VALIDATION_FAILED')
+                fail('CANARY_RECONCILIATION_LEASE_NOT_ACTIVE')
         try:
             response = request(url, fields, referer)
         except Exception:
@@ -691,8 +710,9 @@ def reuse_completed(*, payload, bundle_receipt, settled, raw_baseline,
 
 
 def run_settle(*, repo, private_root, owner_public_pem, owner_private_pem, clock=utc_now,
-               publish_result=None):
+               publish_result=None, reconcile_legacy_stop=False):
     check_runtime('settle', clock())
+    need(type(reconcile_legacy_stop) is bool, 'CANARY_RECONCILIATION_MODE_INVALID')
     need(publish_result is None or callable(publish_result), 'CANARY_RESULT_PUBLISHER_INVALID')
     root = _private_root(private_root)
     public = Path(owner_public_pem).read_bytes()
@@ -712,42 +732,76 @@ def run_settle(*, repo, private_root, owner_public_pem, owner_private_pem, clock
     # Verify successful, distinct server-timed jobs before calling a provider.
     _verify_origins(payload, raw_base, raw_conditioned, packets)
     result_dir = _private_root(root/'result')
+    lease = None
+    if reconcile_legacy_stop:
+        from race_ai import keirin_provider_reconciliation as reconciliation
+        try:
+            # Claim exactly this legacy incident before the first source request.
+            # Forecast authentication and completed-result reuse happen first.
+            lease = reconciliation.begin(repo=repo, now=clock(),
+                                          source_commit=os.environ['GITHUB_SHA'])
+        except reconciliation.ReconciliationError as exc:
+            error = CanaryError(str(exc))
+            error.server_origin_verified = True
+            raise error from None
     try:
         final_capture = collect_final_result(repo=repo, private_root=result_dir,
-                                             frozen_card=payload['card_manifest'], clock=clock)
-    except CanaryError as exc:
-        exc.server_origin_verified = True
-        raise
-    scored = compare_frozen(payload=payload, raw_baseline=raw_base,
-        raw_conditioned=raw_conditioned, owner_private_pem=owner_private_pem,
-        packets=packets, final_capture=final_capture)
-    monetary = scored['official_result']['monetary_comparison_eligible'] is True
-    report = _report('REAL_FUTURE_CANARY_FOUR_ARMS_COMPARISON_COMPLETE' if monetary else
-                     'OFFICIAL_ORDER_VERIFIED_PAYOUT_UNIT_PENDING')
-    report.update(server_origin_verified=True, paired_comparable_races=int(monetary),
-                  order_comparable_races=1, monetary_comparison_eligible=monetary,
-                  nationwide_expansion_gate_passed=monetary, actual_official_result_verified=True,
-                  exact_frozen_originals_authenticated=True,
-                  same_conditions_all_four_arms=True,
-                  safe_diagnostics=diagnostics.checked_diagnostics(final_capture.get('safe_diagnostics', [])))
-    if monetary:
-        report['monetary_basis_yen'] = 100
-    else:
-        report['payout_unit_state'] = final_capture.get('payout_unit_state', 'UNAVAILABLE')
-        need(report['payout_unit_state'] in ('UNAVAILABLE', 'PROVIDER_STOPPED', 'NOT_REQUESTED'),
-             'CANARY_PAYOUT_STATE_INVALID')
-    revision = dict(schema=SETTLEMENT_SCHEMA if monetary else ORDER_SCHEMA, day_jst=DAY, race_id=RACE,
-        pre_cutoff_evidence_plaintext_sha256=bundle_receipt['evidence_plaintext_sha256'],
-        baseline_cipher_sha256=payload['baseline_cipher_sha256'],
-        conditioned_cipher_sha256=payload['conditioned_cipher_sha256'],
-        producer_run_id=payload['producer_run_id'], producer_commit=payload['producer_commit'],
-        settler_run_id=os.environ['GITHUB_RUN_ID'], settler_commit=os.environ['GITHUB_SHA'],
-        origin_packets=packets, final_capture=final_capture, **scored, safe_report=report)
-    sealed = history.seal_evidence(day_pipeline.private_snapshot_json(revision), public, DAY,
-                                   clock().isoformat())
-    history_capture._save_once(root/(sha256(sealed).hexdigest()+'.settlement.sealed.json'), sealed)
-    saved = history.append_revision(repo=repo, day=DAY, raw_cipher=sealed, safe_report=report)
-    report['settlement_evidence_cipher_sha256'] = saved['cipher_sha256']
+            frozen_card=payload['card_manifest'], clock=clock, reconciliation_lease=lease)
+        scored = compare_frozen(payload=payload, raw_baseline=raw_base,
+            raw_conditioned=raw_conditioned, owner_private_pem=owner_private_pem,
+            packets=packets, final_capture=final_capture)
+        monetary = scored['official_result']['monetary_comparison_eligible'] is True
+        report = _report('REAL_FUTURE_CANARY_FOUR_ARMS_COMPARISON_COMPLETE' if monetary else
+                         'OFFICIAL_ORDER_VERIFIED_PAYOUT_UNIT_PENDING')
+        report.update(server_origin_verified=True, paired_comparable_races=int(monetary),
+                      order_comparable_races=1, monetary_comparison_eligible=monetary,
+                      nationwide_expansion_gate_passed=monetary, actual_official_result_verified=True,
+                      exact_frozen_originals_authenticated=True,
+                      same_conditions_all_four_arms=True,
+                      safe_diagnostics=diagnostics.checked_diagnostics(final_capture.get('safe_diagnostics', [])))
+        if monetary:
+            report['monetary_basis_yen'] = 100
+        else:
+            report['payout_unit_state'] = final_capture.get('payout_unit_state', 'UNAVAILABLE')
+            need(report['payout_unit_state'] in ('UNAVAILABLE', 'PROVIDER_STOPPED', 'NOT_REQUESTED'),
+                 'CANARY_PAYOUT_STATE_INVALID')
+        revision = dict(schema=SETTLEMENT_SCHEMA if monetary else ORDER_SCHEMA, day_jst=DAY, race_id=RACE,
+            pre_cutoff_evidence_plaintext_sha256=bundle_receipt['evidence_plaintext_sha256'],
+            baseline_cipher_sha256=payload['baseline_cipher_sha256'],
+            conditioned_cipher_sha256=payload['conditioned_cipher_sha256'],
+            producer_run_id=payload['producer_run_id'], producer_commit=payload['producer_commit'],
+            settler_run_id=os.environ['GITHUB_RUN_ID'], settler_commit=os.environ['GITHUB_SHA'],
+            origin_packets=packets, final_capture=final_capture, **scored, safe_report=report)
+        sealed = history.seal_evidence(day_pipeline.private_snapshot_json(revision), public, DAY,
+                                       clock().isoformat())
+        history_capture._save_once(root/(sha256(sealed).hexdigest()+'.settlement.sealed.json'), sealed)
+        saved = history.append_revision(repo=repo, day=DAY, raw_cipher=sealed, safe_report=report)
+        report['settlement_evidence_cipher_sha256'] = saved['cipher_sha256']
+    except Exception as exc:
+        error = exc if isinstance(exc, CanaryError) else CanaryError(
+            'CANARY_RESULT_COMPARISON_OR_ARCHIVE_FAILED',
+            safe_diagnostics=locals().get('final_capture', {}).get('safe_diagnostics', []))
+        error.server_origin_verified = True
+        if lease is not None:
+            try:
+                lease.finish(state='FAILED', now=clock())
+            except Exception:
+                failed = CanaryError('CANARY_RECONCILIATION_RECEIPT_WRITE_FAILED',
+                                     safe_diagnostics=error.safe_diagnostics)
+                failed.server_origin_verified = True
+                raise failed from None
+        raise error from None
+    if lease is not None:
+        try:
+            lease.finish(state='FOUR_ARMS_ARCHIVED' if monetary else 'ORDER_ONLY_ARCHIVED', now=clock())
+        except Exception:
+            error = CanaryError('CANARY_RECONCILIATION_RECEIPT_WRITE_FAILED_AFTER_ARCHIVE',
+                                safe_diagnostics=report['safe_diagnostics'])
+            error.server_origin_verified = True
+            error.actual_official_result_verified = True
+            error.archived_result_sha256 = saved['cipher_sha256']
+            raise error from None
+        report['legacy_stop_reconciliation'] = 'COMPLETED_FOR_FIXED_RACE_ONLY'
     if publish_result is not None:
         try:
             publish_result(payload=payload, scored=scored, final_capture=final_capture)
@@ -768,6 +822,7 @@ def main(argv=None):
     parser.add_argument('--private-root', required=True)
     parser.add_argument('--owner-public-pem', required=True)
     parser.add_argument('--report', required=True)
+    parser.add_argument('--reconcile-legacy-stop', action='store_true')
     args = parser.parse_args(argv)
     result, code = _report(), 0
     try:
@@ -775,17 +830,26 @@ def main(argv=None):
         report_path = Path(args.report).absolute()
         need(report_path == root/'safe'/'summary.json', 'CANARY_SAFE_REPORT_PATH_REQUIRED')
         _private_root(report_path.parent)
+        need(not args.reconcile_legacy_stop or args.mode == 'settle',
+             'CANARY_RECONCILIATION_SETTLEMENT_ONLY')
         if args.mode == 'capture':
             result = run_capture(repo=args.repo, private_root=root, owner_public_pem=args.owner_public_pem)
         else:
             private_pem = os.environ.get('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode('utf-8')
             from race_ai.keirin_result_updates import from_canary_comparison, publish_updates
+            from race_ai.keirin_frozen_forecast_view import publish_frozen_forecast
             def publish_result(*, payload, scored, final_capture):
+                original = publish_frozen_forecast(args.repo, payload,
+                    os.environ['GITHUB_SHA'], private_pem)
+                need(type(original) is dict and original.get('state') in {
+                    'KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED', 'EXISTING_FROZEN_DISPLAY_REUSED'} and
+                    original.get('provider_requests') == 0, 'CANARY_FROZEN_DISPLAY_ACK_INVALID')
                 return publish_updates(args.repo, from_canary_comparison(
                     payload=payload, scored=scored, final_capture=final_capture),
                     source_commit=os.environ['GITHUB_SHA'], owner_private_pem=private_pem)
             result = run_settle(repo=args.repo, private_root=root, owner_public_pem=args.owner_public_pem,
-                                owner_private_pem=private_pem, publish_result=publish_result)
+                owner_private_pem=private_pem, publish_result=publish_result,
+                reconcile_legacy_stop=args.reconcile_legacy_stop)
     except Exception as exc:
         # Generic exceptions may contain credentials even if the message happens
         # to be all-uppercase. Only this module's fixed contract codes are public.

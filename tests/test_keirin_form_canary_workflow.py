@@ -40,6 +40,7 @@ class FormCanaryWorkflow(unittest.TestCase):
                 ({"event":"pull_request"},False), ({"repo":"fork/RACE-AI"},False),
                 ({"repo_id":"999"},False), ({"ref":"refs/heads/feature"},False),
                 ({"tests":"failure"},False),
+                ({"event":"workflow_dispatch","mode":"form-canary-reconcile"},True),
                 ({"event":"workflow_dispatch","mode":"saved-only"},False)):
             with self.subTest(changes=changes):
                 self.assertEqual(self.allowed("form-canary-window", **changes), expected)
@@ -60,6 +61,17 @@ class FormCanaryWorkflow(unittest.TestCase):
                         {"window":"failure"}):
             with self.subTest(changes=changes):
                 self.assertFalse(self.allowed("form-canary-settle", settle_window="true", **changes))
+
+    def test_reconciliation_is_explicit_manual_settlement_only(self):
+        source, blocks = jobs()
+        self.assertIn("form-canary-reconcile", source)
+        settle = blocks["form-canary-settle"]
+        self.assertIn("CANARY_RECONCILE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'form-canary-reconcile' }}", settle)
+        self.assertIn('reconcile_args+=(--reconcile-legacy-stop)', settle)
+        self.assertIn('"${reconcile_args[@]}"', settle)
+        self.assertNotIn('--reconcile-legacy-stop', blocks['form-canary-capture'])
+        self.assertIn('tests.test_keirin_provider_reconciliation', source)
+        self.assertIn('tests.test_keirin_form_canary_backfill', source)
 
     def test_capture_hold_keeps_safe_reason_and_failing_exit_status(self):
         _, blocks = jobs()

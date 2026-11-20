@@ -107,7 +107,7 @@ class FormCanaryOrigin(unittest.TestCase):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 self.verify(producer=producer, readback=reader)
 
-    def test_canary_window_has_fixed_one_day_cutoff_and_no_retrospective_capture(self):
+    def test_canary_window_allows_next_day_settlement_without_retrospective_capture(self):
         self.assertTrue(callable(getattr(origin, "form_canary_window", None)))
         for at, capture, settle in (
             ("2026-11-19T23:59:59+09:00", False, False),
@@ -115,7 +115,10 @@ class FormCanaryOrigin(unittest.TestCase):
             ("2026-11-20T17:05:56+09:00", False, False),
             ("2026-11-20T17:07:00+09:00", False, True),
             ("2026-11-20T23:59:59+09:00", False, True),
-            ("2026-11-21T00:00:00+09:00", False, False)):
+            ("2026-11-21T00:00:00+09:00", False, True),
+            ("2026-11-21T23:59:59+09:00", False, True),
+            ("2026-11-21T14:59:59+00:00", False, True),
+            ("2026-11-22T00:00:00+09:00", False, False)):
             with self.subTest(at=at):
                 got = origin.form_canary_window(datetime.fromisoformat(at))
                 self.assertEqual((got["capture"], got["settle"]), (capture, settle))

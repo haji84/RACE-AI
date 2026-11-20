@@ -7,6 +7,7 @@ on:
       - '.github/workflows/keirin-result-live.yml'
       - 'race_ai/keirin_result_*.py'
       - 'race_ai/keirin_saved_source_comparison.py'
+      - 'race_ai/keirin_frozen_forecast_view.py'
       - 'scripts/keirin_result_watch.py'
       - 'scripts/keirin_official_day_pipeline.py'
       - 'scripts/keirin_official_form_canary.py'
@@ -15,6 +16,7 @@ on:
       - 'web/keirin-note-*.js'
       - 'tests/test_keirin_result_*.py'
       - 'tests/test_keirin_saved_source_comparison.py'
+      - 'tests/test_keirin_frozen_forecast_view.py'
       - 'tests/test_keirin_official_fetch_diagnostics.py'
       - 'tests/test_keirin_note_result_reader.py'
       - 'tests/keirin_note_*.test.cjs'
@@ -24,6 +26,7 @@ on:
       - '.github/workflows/keirin-nationwide-ab-auto.yml'
       - 'race_ai/keirin_result_*.py'
       - 'race_ai/keirin_saved_source_comparison.py'
+      - 'race_ai/keirin_frozen_forecast_view.py'
       - 'scripts/keirin_result_watch.py'
       - 'scripts/keirin_official_day_pipeline.py'
       - 'scripts/keirin_official_form_canary.py'
@@ -33,6 +36,7 @@ on:
       - 'web/app.js'
       - 'tests/test_keirin_result_*.py'
       - 'tests/test_keirin_saved_source_comparison.py'
+      - 'tests/test_keirin_frozen_forecast_view.py'
       - 'tests/test_keirin_official_fetch_diagnostics.py'
       - 'tests/test_keirin_note_result_reader.py'
       - 'tests/test_keirin_official_form_canary.py'
@@ -79,6 +83,7 @@ jobs:
             tests.test_keirin_result_watch \
             tests.test_keirin_result_updates \
             tests.test_keirin_saved_source_comparison \
+            tests.test_keirin_frozen_forecast_view \
             tests.test_keirin_result_live_workflow \
             tests.test_keirin_official_form_canary \
             tests.test_keirin_official_form_history \
@@ -127,7 +132,12 @@ jobs:
       contents: write
       actions: read
     env:
-      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: ${{ vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
+      # Explicit manual replay authorizes this job's existing encrypted store
+      # only. Repository variables and live-source authorization stay intact.
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: >-
+        ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'saved-only' &&
+            github.repository == 'haji84/RACE-AI' && github.repository_id == '1416489937' &&
+            github.ref == 'refs/heads/main' && 'true' || vars.RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED }}
       RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED: ${{ vars.RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683

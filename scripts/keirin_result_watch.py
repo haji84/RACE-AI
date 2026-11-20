@@ -24,10 +24,19 @@ REPOSITORY = 'haji84/RACE-AI'
 JST = timezone(timedelta(hours=9))
 RESULT_RACE_BUDGET = 8
 BACKLOG_EVERY_TICKS = 10
+PREFLIGHT_STAGES = frozenset({'RUNTIME_CONTEXT', 'ARCHIVE_AUTHORIZATION', 'OWNER_KEY',
+    'PRIVATE_OUTPUT', 'CLOCK', 'SOURCE_COMMIT'})
+PREFLIGHT_REASONS = frozenset('RESULT_WATCH_' + reason for reason in (
+    'MODE_INVALID', 'TRUSTED_MAIN_EVENT_REQUIRED', 'SAVED_GIT_STORE_REQUIRED',
+    'EXISTING_PUBLIC_KEY_REQUIRED', 'OWNER_KEY_PAIR_MISMATCH',
+    'PRIVATE_ROOT_OUTSIDE_REPOSITORY_REQUIRED', 'AWARE_CLOCK_REQUIRED',
+    'SOURCE_COMMIT_INVALID', 'CHECKOUT_COMMIT_MISMATCH', 'PREFLIGHT_CHECK_FAILED'))
 
 
 class ResultWatchError(ValueError):
-    pass
+    def __init__(self, code, *, failure_stage=None):
+        super().__init__(code)
+        self.failure_stage = failure_stage
 
 
 def need(ok, code):
@@ -114,25 +123,39 @@ def _preflight(*, repo, mode, private_root, owner_public_path,
                owner_private_pem, clock, source_commit):
     from race_ai import keirin_nationwide_auto_storage as storage
     from scripts.keirin_capture_public_two_sources import private_dir
-    need(mode in {'saved-only', 'observe'}, 'MODE_INVALID')
-    need(os.getenv('GITHUB_REPOSITORY') == REPOSITORY and
-         os.getenv('GITHUB_REF') == 'refs/heads/main' and
-         os.getenv('GITHUB_EVENT_NAME') in {'schedule', 'workflow_dispatch'},
-         'TRUSTED_MAIN_EVENT_REQUIRED')
-    # No provider or GitHub request precedes the existing private/public pin.
-    private_public = pipeline.check_owner_private_key(owner_private_pem)
-    path = Path(owner_public_path)
-    need(path.is_file() and not path.is_symlink(), 'EXISTING_PUBLIC_KEY_REQUIRED')
-    public = storage.checked_public_key(path.read_bytes())
-    private_public = storage.checked_public_key(private_public)
-    need(public.public_numbers() == private_public.public_numbers(), 'OWNER_KEY_PAIR_MISMATCH')
-    root = private_dir(private_root)
-    repo = Path(repo).resolve()
-    need(root.resolve() != repo and repo not in root.resolve().parents,
-         'PRIVATE_ROOT_OUTSIDE_REPOSITORY_REQUIRED')
-    at = aware_time(clock)
-    commit = source_commit if source_commit is not None else current_commit(repo)
-    need(type(commit) is str and re.fullmatch('[a-f0-9]{40}', commit), 'SOURCE_COMMIT_INVALID')
+    stage = 'RUNTIME_CONTEXT'
+    try:
+        need(mode in {'saved-only', 'observe'}, 'MODE_INVALID')
+        need(os.getenv('GITHUB_REPOSITORY') == REPOSITORY and
+             os.getenv('GITHUB_REF') == 'refs/heads/main' and
+             os.getenv('GITHUB_EVENT_NAME') in {'schedule', 'workflow_dispatch'},
+             'TRUSTED_MAIN_EVENT_REQUIRED')
+        stage = 'ARCHIVE_AUTHORIZATION'
+        if mode == 'saved-only':
+            need(os.getenv('RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED') == 'true',
+                 'SAVED_GIT_STORE_REQUIRED')
+        stage = 'OWNER_KEY'
+        # No provider or GitHub request precedes the existing private/public pin.
+        private_public = pipeline.check_owner_private_key(owner_private_pem)
+        path = Path(owner_public_path)
+        need(path.is_file() and not path.is_symlink(), 'EXISTING_PUBLIC_KEY_REQUIRED')
+        public = storage.checked_public_key(path.read_bytes())
+        private_public = storage.checked_public_key(private_public)
+        need(public.public_numbers() == private_public.public_numbers(), 'OWNER_KEY_PAIR_MISMATCH')
+        stage = 'PRIVATE_OUTPUT'
+        root = private_dir(private_root)
+        repo = Path(repo).resolve()
+        need(root.resolve() != repo and repo not in root.resolve().parents,
+             'PRIVATE_ROOT_OUTSIDE_REPOSITORY_REQUIRED')
+        stage = 'CLOCK'
+        at = aware_time(clock)
+        stage = 'SOURCE_COMMIT'
+        commit = source_commit if source_commit is not None else current_commit(repo)
+        need(type(commit) is str and re.fullmatch('[a-f0-9]{40}', commit), 'SOURCE_COMMIT_INVALID')
+    except Exception as exc:
+        reason = str(exc) if type(exc) is ResultWatchError and str(exc) in PREFLIGHT_REASONS else \
+            'RESULT_WATCH_PREFLIGHT_CHECK_FAILED'
+        raise ResultWatchError(reason, failure_stage=stage) from None
     return repo, root, at, commit
 
 
@@ -168,7 +191,8 @@ def run_watch(*, repo, mode, private_root, owner_public_path, owner_private_pem,
         owner_private_pem=owner_private_pem, clock=clock, source_commit=source_commit)
     summary = dict(schema=SCHEMA, mode=mode, day_jst=at.astimezone(JST).date().isoformat(),
         state='RESULT_WATCH_SAVED_COMPLETE', ticks=0, publication_acks=0,
-        published_snapshots=0, published_races=0, provider_denied=False,
+        published_snapshots=0, published_races=0, published_originals=0,
+        original_publication_acks=0, provider_denied=False,
         no_provider_tick=True, provider_requests=0, days_visited=[], days_held=0,
         stop_check_failed=False, source_unavailable=False, safe_diagnostics=[], done=False,
         target_interval_seconds=interval_seconds, result_race_budget=RESULT_RACE_BUDGET,
@@ -248,6 +272,18 @@ def run_watch(*, repo, mode, private_root, owner_public_path, owner_private_pem,
             from scripts import keirin_official_form_canary as canary
             canary_doc = updates.saved_canary_updates(repo, owner_private_pem) if day == canary.DAY else None
             if canary_doc is not None:
+                from race_ai.keirin_frozen_forecast_view import saved_frozen_forecast
+                original_receipt = saved_frozen_forecast(repo, owner_private_pem, commit)
+                need(type(original_receipt) is dict and original_receipt.get('state') in {
+                    'KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED', 'EXISTING_FROZEN_DISPLAY_REUSED'} and
+                    type(original_receipt.get('published_originals')) is int and
+                    original_receipt['published_originals'] in (0, 1) and
+                    type(original_receipt.get('provider_requests')) is int and
+                    original_receipt['provider_requests'] == 0 and
+                    (original_receipt['state'] == 'KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED' or
+                     original_receipt['published_originals'] == 0), 'FROZEN_PUBLICATION_ACK_INVALID')
+                summary['published_originals'] += original_receipt['published_originals']
+                summary['original_publication_acks'] += 1
                 publish(canary_doc)
             saved = pipeline.load_day_evidence(repo, day, owner_private_pem)
             if saved['schedule'] is None:
@@ -298,7 +334,14 @@ def run_watch(*, repo, mode, private_root, owner_public_path, owner_private_pem,
             summary['published_snapshots'] += 1
 
     if mode == 'saved-only':
-        for day in days():
+        try:
+            selected_days = days()
+        except Exception:
+            summary.update(state='HOLD_RESULT_WATCH_SAVED_DAY_DISCOVERY_FAILED',
+                failure_stage='SAVED_DAY_DISCOVERY',
+                failure_reason='RESULT_WATCH_SAVED_HISTORY_UNAVAILABLE')
+            return summary
+        for day in selected_days:
             summary['ticks'] += 1
             try:
                 doc = one_day(day)
@@ -309,6 +352,8 @@ def run_watch(*, repo, mode, private_root, owner_public_path, owner_private_pem,
                 # counts for earlier verified publications in this run.
                 summary['days_held'] += 1
                 summary['state'] = 'HOLD_RESULT_WATCH_SAVED_DAY_FAILED'
+                summary['failure_stage'] = 'SAVED_DAY_REPLAY_OR_PUBLICATION'
+                summary['failure_reason'] = 'RESULT_WATCH_SAVED_DAY_FAILED'
                 return summary
         summary['done'] = True
         return summary
@@ -374,8 +419,10 @@ def main(argv=None):
     parser.add_argument('--max-ticks', type=int, default=10)
     args = parser.parse_args(argv)
     out = None
+    stage = 'REPORT_PATH'
     try:
         out = _report_path(args.report, args.private_root)
+        stage = 'RUNNER'
         report = run_watch(repo=Path(args.repo), mode=args.mode,
             private_root=Path(args.private_root), owner_public_path=Path(args.owner_public_pem),
             owner_private_pem=os.getenv('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode(),
@@ -383,9 +430,15 @@ def main(argv=None):
             max_ticks=args.max_ticks)
         failed = report['state'].startswith('HOLD_') and report['state'] not in {
             'HOLD_RESULT_OBSERVER_PROVIDER_STOP', 'HOLD_RESULT_WATCH_SOURCE_DISABLED'}
-    except Exception:
+    except Exception as exc:
         report = dict(schema=SCHEMA, mode=args.mode,
-                      state='HOLD_RESULT_WATCH_PREFLIGHT_OR_SAVED_PUBLICATION_FAILED')
+                      state='HOLD_RESULT_WATCH_PREFLIGHT_OR_SAVED_PUBLICATION_FAILED',
+                      failure_stage=stage, failure_reason='RESULT_WATCH_OPERATION_UNVERIFIED')
+        if type(exc) is ResultWatchError and exc.failure_stage in PREFLIGHT_STAGES:
+            reason = str(exc) if str(exc) in PREFLIGHT_REASONS else 'RESULT_WATCH_PREFLIGHT_CHECK_FAILED'
+            report.update(state='HOLD_RESULT_WATCH_PREFLIGHT_FAILED',
+                failure_stage=exc.failure_stage, failure_reason=reason,
+                no_provider_tick=True, provider_requests=0)
         failed = True
     raw = (json.dumps(report, ensure_ascii=False, sort_keys=True,
                       separators=(',', ':')) + '\n').encode()

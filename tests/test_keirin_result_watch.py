@@ -5,9 +5,11 @@ from hashlib import sha256
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from unittest.mock import patch
 import copy
 import json
+import re
 import unittest
 
 from scripts import keirin_result_watch as watch
@@ -175,11 +177,11 @@ class ResultWatchTests(unittest.TestCase):
         self.settle.assert_not_called()
         self.http.assert_not_called()
 
-    def test_saved_only_ignores_source_gate_and_stop_without_any_source_constructor(self):
+    def test_saved_only_with_store_authorization_ignores_source_gate_and_stop(self):
         self.denied = True
         with patch.dict('os.environ', {
                 'RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED': 'false',
-                'RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED': 'false'}), \
+                'RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED': 'true'}), \
                 patch('scripts.keirin_official_day_pipeline.official_fetcher') as factory:
             out = self.run_case(mode='saved-only')
         self.assertEqual(out['state'], 'RESULT_WATCH_SAVED_COMPLETE')
@@ -189,12 +191,113 @@ class ResultWatchTests(unittest.TestCase):
         factory.assert_not_called()
         self.http.assert_not_called()
 
+    def workflow_store_flag(self, *, event='workflow_dispatch', mode='saved-only',
+                            ref='refs/heads/main', repo='haji84/RACE-AI', store=''):
+        path = Path(__file__).resolve().parents[1] / '.github/workflows/keirin-result-live.yml'
+        job = path.read_text().split('  observe-results:\n', 1)[1]
+        value = re.search(r'^      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: (.*(?:\n        .*)*)',
+                          job, re.M)[1]
+        expression = value[value.index('${{') + 3:value.index('}}')]
+        expression = ' '.join(expression.split()).replace('&&', ' and ').replace('||', ' or ')
+        context = dict(github=SimpleNamespace(event_name=event, ref=ref, repository=repo,
+            repository_id='1416489937'), inputs=SimpleNamespace(mode=mode),
+            vars=SimpleNamespace(RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED=store))
+        return eval(expression, {'__builtins__': {}}, context)
+
+    def test_manual_saved_only_workflow_authorization_reaches_real_archive_preflight(self):
+        from race_ai import keirin_nationwide_cipher_history as archive
+        (self.repo / '.git').mkdir()
+
+        def discover(repo):
+            archive._remote(repo, synthetic_local=False)
+            return self.known
+
+        self.discover.side_effect = discover
+        self.denied = True
+        with patch.dict('os.environ', {
+                'GITHUB_ACTIONS': 'true', 'GITHUB_REPOSITORY_ID': '1416489937',
+                'RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED': self.workflow_store_flag(),
+                'RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED': ''}), \
+                patch.object(archive, '_cmd', return_value=(0, 'https://github.com/haji84/RACE-AI')), \
+                patch.object(watch, 'TickOfficialFetcher', side_effect=AssertionError('NO_PROVIDER')):
+            try:
+                result = self.run_case(mode='saved-only')
+            except ValueError as error:
+                self.fail('The explicit saved-only job failed archive authorization: ' + str(error))
+        self.assertEqual(result['state'], 'RESULT_WATCH_SAVED_COMPLETE')
+        self.assertEqual(result['published_races'], 1)
+        self.assertEqual(result['provider_requests'], 0)
+        self.assertFalse(self.calls[0]['collect_official'])
+        self.http.assert_not_called()
+
+    def test_saved_only_authorization_does_not_enable_other_workflow_contexts(self):
+        for changes in ({'mode': 'observe'}, {'event': 'schedule'},
+                        {'event': 'pull_request'}, {'ref': 'refs/heads/feature'},
+                        {'repo': 'fork/RACE-AI'}):
+            with self.subTest(changes=changes):
+                self.assertEqual(self.workflow_store_flag(**changes), '')
+        self.assertEqual(self.workflow_store_flag(event='schedule', store='true'), 'true')
+
+    def test_main_identifies_missing_saved_store_authorization_without_archive_io(self):
+        out = self.safe / 'summary.json'
+        with patch.dict('os.environ', {
+                'RACE_AI_KEIRIN_PRIVATE_RSA_PEM': self.private.decode(),
+                'RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED': ''}), \
+                patch.object(watch, 'current_commit', return_value='c' * 40), \
+                patch.object(watch, 'utc_now', return_value=NOW), redirect_stdout(StringIO()):
+            status = watch.main(['--mode', 'saved-only', '--repo', str(self.repo),
+                '--private-root', str(self.private_root), '--owner-public-pem', str(self.pem),
+                '--report', str(out)])
+        self.assertEqual(status, 2)
+        summary = json.loads(out.read_bytes())
+        self.assertEqual(summary['failure_stage'], 'ARCHIVE_AUTHORIZATION')
+        self.assertEqual(summary['failure_reason'], 'RESULT_WATCH_SAVED_GIT_STORE_REQUIRED')
+        self.assertEqual(summary['provider_requests'], 0)
+        self.discover.assert_not_called()
+        self.http.assert_not_called()
+
+    def test_main_key_failure_names_stage_without_exposing_exception(self):
+        out = self.safe / 'summary.json'
+        with patch.object(watch.pipeline, 'check_owner_private_key',
+                          side_effect=ValueError('SECRET_KEY_CONTEXT')), \
+                redirect_stdout(StringIO()) as stdout:
+            status = watch.main(['--mode', 'saved-only', '--repo', str(self.repo),
+                '--private-root', str(self.private_root), '--owner-public-pem', str(self.pem),
+                '--report', str(out)])
+        self.assertEqual(status, 2)
+        summary = json.loads(out.read_bytes())
+        self.assertEqual(summary.get('failure_stage'), 'OWNER_KEY')
+        self.assertEqual(summary.get('failure_reason'), 'RESULT_WATCH_PREFLIGHT_CHECK_FAILED')
+        self.assertNotIn('SECRET_KEY_CONTEXT', out.read_text() + stdout.getvalue())
+        self.discover.assert_not_called()
+        self.http.assert_not_called()
+
+    def test_saved_day_discovery_failure_has_a_safe_stage(self):
+        self.discover.side_effect = ValueError('SECRET_GIT_CONTEXT')
+        try:
+            result = self.run_case(mode='saved-only')
+        except ValueError:
+            self.fail('Saved-day discovery failed without a safe stage report')
+        self.assertEqual(result['state'], 'HOLD_RESULT_WATCH_SAVED_DAY_DISCOVERY_FAILED')
+        self.assertEqual(result['failure_stage'], 'SAVED_DAY_DISCOVERY')
+        self.assertEqual(result['provider_requests'], 0)
+        self.assertNotIn('SECRET_GIT_CONTEXT', json.dumps(result))
+        self.settle.assert_not_called()
+
     def test_canary_only_saved_history_republishes_without_generic_schedule_or_provider(self):
         from race_ai import keirin_result_updates as updates
         self.known = ['2026-11-20']
         document = updates.from_official_records({RACE: self.record}, {})
+
+        def frozen(repo, key, commit):
+            self.assertEqual((repo, key, commit), (self.repo, self.private, 'c' * 40))
+            self.events.append(('frozen', '202611208105'))
+            return dict(state='KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED',
+                        published_originals=1, provider_requests=0)
+
         with (patch('scripts.keirin_official_backlog_days.select_days', return_value=['2026-11-20']),
               patch('race_ai.keirin_result_updates.saved_canary_updates', return_value=document) as replay,
+              patch('race_ai.keirin_frozen_forecast_view.saved_frozen_forecast', side_effect=frozen),
               patch.object(watch, 'TickOfficialFetcher', side_effect=AssertionError('NO_PROVIDER_FETCHER'))):
             out = self.run_case(mode='saved-only')
         replay.assert_called_once_with(self.repo, self.private)
@@ -202,8 +305,25 @@ class ResultWatchTests(unittest.TestCase):
         self.http.assert_not_called()
         self.assertEqual(out['days_held'], 0)
         self.assertEqual(out['published_races'], 1)
+        self.assertEqual([event[0] for event in self.events], ['frozen', 'publish'])
+        self.assertEqual(out.get('published_originals'), 1)
+        self.assertEqual(out.get('original_publication_acks'), 1)
+        self.assertEqual(out['publication_acks'], 1)
         self.assertEqual(self.clock.sleeps, [])
         self.assertEqual(len(self.published), 1)
+
+    def test_frozen_display_requires_an_admitted_saved_canary_result(self):
+        self.known = ['2026-11-20']
+        with (patch('scripts.keirin_official_backlog_days.select_days', return_value=['2026-11-20']),
+              patch('race_ai.keirin_result_updates.saved_canary_updates', return_value=None),
+              patch('race_ai.keirin_frozen_forecast_view.saved_frozen_forecast',
+                    side_effect=AssertionError('NO_ADMITTED_SAVED_CANARY')) as frozen):
+            out = self.run_case(mode='saved-only')
+        self.assertEqual(out['days_held'], 1)
+        self.assertEqual(out.get('published_originals'), 0)
+        self.assertEqual(self.published, [])
+        frozen.assert_not_called()
+        self.http.assert_not_called()
 
     def test_backlog_rotation_is_sparse_when_current_due_originals_are_finished(self):
         self.known = ['2026-09-29', '2026-10-01', DAY]

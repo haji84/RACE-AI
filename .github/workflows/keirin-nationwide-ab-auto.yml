@@ -9,6 +9,7 @@ on:
       - 'scripts/keirin_official_saved_check.py'
       - 'scripts/keirin_official_day_pipeline.py'
       - 'scripts/keirin_official_form_canary.py'
+      - 'race_ai/keirin_provider_reconciliation.py'
       - 'scripts/keirin_capture_official_form_history.py'
       - 'race_ai/keirin_nationwide_auto_storage.py'
       - 'scripts/keirin_runtime_selection.py'
@@ -35,6 +36,8 @@ on:
       - 'scripts/keirin_github_only_ab_*.py'
       - 'tests/test_keirin_github_only_ab_day.py'
       - 'race_ai/keirin_github_provider_stop.py'
+      - 'race_ai/keirin_provider_reconciliation.py'
+      - 'tests/test_keirin_provider_reconciliation.py'
       - 'race_ai/keirin_github_capture_selection.py'
       - 'tests/test_keirin_github_capture_selection.py'
       - 'tests/test_keirin_github_provider_stop.py'
@@ -69,7 +72,7 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, readiness, saved-only, run, form-canary]
+        options: [test, readiness, saved-only, run, form-canary, form-canary-reconcile]
   schedule:
     # Can be delayed, so published cutoff is checked again at actual save.
     - cron: '*/10 * * * *'
@@ -86,7 +89,7 @@ jobs:
     if: >-
       github.event_name == 'push' || github.event_name == 'pull_request' ||
       (github.event_name == 'workflow_dispatch' &&
-       (inputs.mode == 'test' || inputs.mode == 'readiness' || inputs.mode == 'saved-only' || inputs.mode == 'form-canary'))
+       (inputs.mode == 'test' || inputs.mode == 'readiness' || inputs.mode == 'saved-only' || inputs.mode == 'form-canary' || inputs.mode == 'form-canary-reconcile'))
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
@@ -107,6 +110,9 @@ jobs:
             tests.test_keirin_form_fall_blind_pdca \
             tests.test_keirin_form_canary_origin \
             tests.test_keirin_form_canary_workflow \
+            tests.test_keirin_form_canary_backfill \
+            tests.test_keirin_provider_reconciliation \
+            tests.test_keirin_form_canary_reconciliation \
             tests.test_keirin_official_form_history \
             tests.test_keirin_official_canary_card \
             tests.test_keirin_official_canary_join \
@@ -1259,7 +1265,7 @@ jobs:
 
   form-canary-window:
     # Owner authorized one future live race before nationwide expansion.
-    # Scope is fixed in reviewed code: 202611208105, JST 2026-11-20 only.
+    # Capture stays fixed to 2026-11-20; saved-race settlement through 11-21 JST.
     # No repository variable, secret, permission or global opt-in is changed.
     needs: source-free-tests
     if: >-
@@ -1270,7 +1276,8 @@ jobs:
       (github.event_name == 'schedule' ||
        (needs.source-free-tests.result == 'success' &&
         (github.event_name == 'push' ||
-         (github.event_name == 'workflow_dispatch' && inputs.mode == 'form-canary'))))
+         (github.event_name == 'workflow_dispatch' &&
+          (inputs.mode == 'form-canary' || inputs.mode == 'form-canary-reconcile')))))
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     permissions:
@@ -1440,6 +1447,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
+          CANARY_RECONCILE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'form-canary-reconcile' }}
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
@@ -1447,7 +1455,12 @@ jobs:
           mkdir -m 700 -p "$root/safe"
           chmod 700 "$root"
           status=0
+          reconcile_args=()
+          if [ "$CANARY_RECONCILE" = 'true' ]; then
+            reconcile_args+=(--reconcile-legacy-stop)
+          fi
           python -m scripts.keirin_official_form_canary settle \
+            "${reconcile_args[@]}" \
             --repo "$GITHUB_WORKSPACE" --private-root "$root" \
             --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
             --report "$root/safe/summary.json" > "$root/counts.json" || status=$?

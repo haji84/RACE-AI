@@ -163,6 +163,63 @@
       need(row.http_status===null||Number.isInteger(row.http_status)&&row.http_status>=100&&row.http_status<=599);
     }
   }
+  function frozenForecasts(date,files){
+    const doc=files.get('data/'+date+'/frozen_forecasts.json'),out=new Map();if(doc==null)return out;
+    need(exact(doc,['schema','races'])&&doc.schema==='RACE_AI_KEIRIN_FROZEN_FORECASTS_V1'&&Array.isArray(doc.races)&&doc.races.length>0&&doc.races.length<=300);
+    const baseKeys='schema race_id generated_at published_cutoff_at source_facts_sha256 source_as_of A B C official_cutoff_independently_authenticated official_result_observed all_six_phase_orders_are_hypotheses_not_video_truth branch_weights_are_not_calibrated_probabilities formal_model_promoted old_PR71_four_models_required real_money_wager_placed prediction_sha256'.split(' ');
+    const shadowKeys='schema race_id generated_at published_cutoff_at baseline_source_sha256 baseline_prediction_sha256 condition_supplement_sha256 A_research B_research rider_assessments verified_source_receipt_count medical_recovery_or_crash_causality_inferred comments_quoted_in_private_supplement_only historical_originals_mutated is_official_calibrated_or_production_forecast C_optional_unrelated sha256'.split(' ');
+    const phases=['INITIAL','BELL','FINAL_HOME','FINAL_BACK','FOURTH_CORNER','GOAL'],number=(v,lo,hi)=>Number.isFinite(v)&&v>=lo&&v<=hi;
+    for(const row of doc.races){
+      need(exact(row,['race_id','revision','baseline_cipher_sha256','conditioned_cipher_sha256','baseline_sealed_at','conditioned_sealed_at','facts','baseline','conditioned'])&&rid(row.race_id)&&row.race_id.startsWith(date.replaceAll('-',''))&&!out.has(row.race_id));
+      for(const key of ['revision','baseline_cipher_sha256','conditioned_cipher_sha256'])need(hex(row[key]));
+      const base=row.baseline,adjusted=row.conditioned,facts=row.facts;
+      need(exact(base,baseKeys)&&exact(adjusted,shadowKeys)&&base.schema==='RACE_AI_KEIRIN_AUTOMATIC_MARKS_AND_SIX_PHASE_V1'&&adjusted.schema==='RACE_AI_KEIRIN_CONDITIONED_AB_SHADOW_V1'&&base.race_id===row.race_id&&adjusted.race_id===row.race_id);
+      need(hex(base.prediction_sha256)&&hex(base.source_facts_sha256)&&hex(adjusted.sha256)&&hex(adjusted.condition_supplement_sha256)&&adjusted.baseline_prediction_sha256===base.prediction_sha256&&adjusted.baseline_source_sha256===base.source_facts_sha256&&adjusted.generated_at===base.generated_at&&adjusted.published_cutoff_at===base.published_cutoff_at);
+      for(const value of [base.generated_at,base.published_cutoff_at,base.source_as_of,row.baseline_sealed_at,row.conditioned_sealed_at])need(clock(date,value));
+      need(Date.parse(base.source_as_of)<=Date.parse(base.generated_at));
+      for(const key of ['baseline_sealed_at','conditioned_sealed_at'])need(Date.parse(base.generated_at)<=Date.parse(row[key])&&Date.parse(base.published_cutoff_at)-Date.parse(row[key])>=65000);
+      need(exact(base.C,['state'])&&base.C.state==='HOLD_NO_INDEPENDENT_HISTORICAL_FOLLOW_LABELS');
+      for(const key of ['official_cutoff_independently_authenticated','official_result_observed','formal_model_promoted','old_PR71_four_models_required','real_money_wager_placed'])need(base[key]===false);
+      need(base.all_six_phase_orders_are_hypotheses_not_video_truth===true&&base.branch_weights_are_not_calibrated_probabilities===true);
+      for(const key of ['medical_recovery_or_crash_causality_inferred','historical_originals_mutated','is_official_calibrated_or_production_forecast'])need(adjusted[key]===false);
+      need(adjusted.comments_quoted_in_private_supplement_only===true&&adjusted.C_optional_unrelated===true&&Number.isInteger(adjusted.verified_source_receipt_count)&&adjusted.verified_source_receipt_count>=1&&adjusted.verified_source_receipt_count<=400);
+      need(exact(facts,['competition','line_groups','riders'])&&['CHALLENGE','A1_A2','S','GIRLS','OTHER'].includes(facts.competition)&&Array.isArray(facts.riders)&&facts.riders.length>=5&&facts.riders.length<=9);
+      const cars=new Set();
+      for(const r of facts.riders){
+        need(exact(r,['car','athlete_id','mark_rank','competition_points','recent_form_score','h_count','b_count','style'])&&Number.isInteger(r.car)&&r.car>=1&&r.car<=9&&!cars.has(r.car));cars.add(r.car);
+        need(r.athlete_id===null||typeof r.athlete_id==='string'&&/^\d{4,8}$/.test(r.athlete_id));
+        need(r.mark_rank==='UNMARKED'||Number.isInteger(r.mark_rank)&&r.mark_rank>=1&&r.mark_rank<=facts.riders.length);
+        need(number(r.competition_points,0,150)&&number(r.recent_form_score,0,1)&&['h_count','b_count'].every(k=>Number.isInteger(r[k])&&r[k]>=0&&r[k]<=99)&&['NIGE','MAKURI','SASHI','MARK','ALLROUND','UNKNOWN'].includes(r.style));
+      }
+      need(Array.isArray(facts.line_groups)&&facts.line_groups.length>0&&facts.line_groups.length<=cars.size&&facts.line_groups.every(g=>Array.isArray(g)&&g.length>0&&g.every(c=>Number.isInteger(c)&&cars.has(c))));
+      const members=facts.line_groups.flat();need(members.length===cars.size&&new Set(members).size===cars.size&&(facts.competition!=='GIRLS'||facts.line_groups.every(g=>g.length===1)));
+      need(exact(base.A,['model','ranked_tickets','based_on_published_marks_not_shared_PR71'])&&base.A.model==='marks-ordinal-plus-observed-rider-strength-v1'&&base.A.based_on_published_marks_not_shared_PR71===true&&exact(base.B,['model','ranked_tickets','six_phase_scenarios','round_objective_source'])&&base.B.model==='line-tactical-six-phase-untrained-v1'&&['SOURCE_EVIDENCED','UNKNOWN_NOT_IMPUTED'].includes(base.B.round_objective_source));
+      const scenarios=base.B.six_phase_scenarios,ids=new Set();need(Array.isArray(scenarios)&&scenarios.length>=2&&scenarios.length<=20);
+      for(const scenario of scenarios){
+        need(exact(scenario,['scenario_id','six_phases','projected_3ren_tan','relative_research_weight'])&&typeof scenario.scenario_id==='string'&&/^L[1-9]_V[0-3]$/.test(scenario.scenario_id)&&!ids.has(scenario.scenario_id)&&number(scenario.relative_research_weight,0,1));ids.add(scenario.scenario_id);
+        need(Array.isArray(scenario.six_phases)&&scenario.six_phases.length===6);
+        scenario.six_phases.forEach((s,i)=>{need(exact(s,['phase','projected_order','projected_top3','hypothesis_actions','actual_rider_position_video_verified'])&&s.phase===phases[i]&&s.actual_rider_position_video_verified===false&&Array.isArray(s.projected_order)&&s.projected_order.length===cars.size&&new Set(s.projected_order).size===cars.size&&s.projected_order.every(c=>Number.isInteger(c)&&cars.has(c))&&JSON.stringify(s.projected_top3)===JSON.stringify(s.projected_order.slice(0,3))&&Array.isArray(s.hypothesis_actions)&&s.hypothesis_actions.length>0&&s.hypothesis_actions.length<=8&&s.hypothesis_actions.every(a=>typeof a==='string'&&/^[A-Z][A-Z0-9_]{0,79}$/.test(a)));});
+        need(JSON.stringify(scenario.projected_3ren_tan)===JSON.stringify(scenario.six_phases[5].projected_top3));
+      }
+      need(Math.abs(scenarios.reduce((sum,s)=>sum+s.relative_research_weight,0)-1)<=1e-6);
+      for(const [name,label] of [['A','baseline-plus-documented-form-v1'],['B','six-phase-plus-documented-form-v1']]){
+        const arm=adjusted[name+'_research'],keys=['model','ranked_tickets','baseline_ranked_tickets','changed_from_original'];if(name==='B')keys.push('branch_condition_factors','branch_factor_is_uncalibrated');
+        need(exact(arm,keys)&&arm.model===label&&JSON.stringify(arm.baseline_ranked_tickets)===JSON.stringify(base[name].ranked_tickets)&&typeof arm.changed_from_original==='boolean'&&arm.changed_from_original===(JSON.stringify(arm.ranked_tickets)!==JSON.stringify(base[name].ranked_tickets)));
+        for(const value of [base[name].ranked_tickets,arm.ranked_tickets]){need(Array.isArray(value)&&value.length>=1&&value.length<=12&&value.every(t=>Array.isArray(t)&&t.length===3&&t.every(Number.isInteger)));tickets(value,3,cars);}
+      }
+      const factors=adjusted.B_research.branch_condition_factors;
+      need(adjusted.B_research.branch_factor_is_uncalibrated===true&&Array.isArray(factors)&&factors.length===ids.size&&new Set(factors.map(f=>f?.scenario_id)).size===ids.size&&factors.every(f=>exact(f,['scenario_id','relative_weight_after'])&&ids.has(f.scenario_id)&&number(f.relative_weight_after,0,1))&&Math.abs(factors.reduce((sum,f)=>sum+f.relative_weight_after,0)-1)<=1e-6);
+      need(Array.isArray(adjusted.rider_assessments)&&adjusted.rider_assessments.length===cars.size);const assessed=new Set(),trends=['IMPROVING','DECLINING','NO_CLEAR_CHANGE','INSUFFICIENT_DATA'];
+      for(const a of adjusted.rider_assessments){
+        need(exact(a,'car trend recent_result_change post_fall_change post_fall_trend fall_on_record documented_absence_days return_after_absence_results comments_count score_adjustment effect_on_tactics'.split(' '))&&Number.isInteger(a.car)&&cars.has(a.car)&&!assessed.has(a.car));assessed.add(a.car);
+        need(trends.includes(a.trend)&&trends.includes(a.post_fall_trend)&&typeof a.fall_on_record==='boolean'&&number(a.score_adjustment,-.08,.08)&&['UNKNOWN_NO_ADJUSTMENT','OBSERVED_RESULTS_UPWEIGHT_RESEARCH','OBSERVED_RESULTS_DOWNWEIGHT_RESEARCH'].includes(a.effect_on_tactics));
+        for(const key of ['recent_result_change','post_fall_change'])need(a[key]===null||number(a[key],-1,1));
+        for(const key of ['documented_absence_days','return_after_absence_results','comments_count'])need(a[key]===null||Number.isInteger(a[key])&&a[key]>=0&&a[key]<=36525);
+      }
+      out.set(row.race_id,row);
+    }
+    return out;
+  }
   async function decodePacket(packet,cipherSha){
     need(record(packet)&&packet.schema===SCHEMA&&packet.formal_model_admission===false&&packet.production_weight_switch===false&&record(packet.files));
     need(Array.isArray(packet.dates)&&packet.dates.length>0&&packet.dates.every(day)&&new Set(packet.dates).size===packet.dates.length);
@@ -176,11 +233,21 @@
     }
     const results=await resultRecords(parsed,fileShas,cipherSha,packet.dates),days=new Map(packet.dates.slice().sort().map(date=>[date,normalize(date,parsed,fileShas,cipherSha,results)]));
     const updates=new Map([...days.keys()].map(date=>[date,resultUpdates(date,parsed)]));
-    for(const [date,rows] of days)for(const row of rows){const update=updates.get(date).get(row.id);if(update){row.resultUpdate=update;row.resultHistory=[update];}}
-    return {schema:SCHEMA,dates:[...days.keys()],days,resultUpdates:updates,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,fileShas,cipherSha,results,formal:false};
+    const frozen=new Map([...days.keys()].map(date=>[date,frozenForecasts(date,parsed)]));
+    for(const [date,rows] of days)for(const row of rows){const update=updates.get(date).get(row.id);if(update){row.resultUpdate=update;row.resultHistory=[update];}const original=frozen.get(date).get(row.id);if(original)row.frozenForecast=original;}
+    return {schema:SCHEMA,dates:[...days.keys()],days,resultUpdates:updates,frozenForecasts:frozen,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,fileShas,cipherSha,results,formal:false};
   }
   async function openPacket(packet){return decodePacket(packet,null);}
   function rows(data,date){return data.days.get(date)||[];}
+  function frozenArm(row,name){
+    const frozen=row.frozenForecast;if(!frozen||!['A','B','adjusted_A','adjusted_B'].includes(name))return null;
+    const adjusted=name.startsWith('adjusted_'),role=adjusted?name.slice(9):name,arm=adjusted?frozen.conditioned[role+'_research']:frozen.baseline[role];
+    const factors=new Map(frozen.conditioned.B_research.branch_condition_factors.map(f=>[f.scenario_id,f.relative_weight_after]));
+    return {name,role,adjusted,source:arm,tickets:tickets(arm.ranked_tickets,3,new Set(frozen.facts.riders.map(r=>r.car))),
+      scenarios:role==='B'?frozen.baseline.B.six_phase_scenarios.map(s=>({...s,relative_research_weight:adjusted?factors.get(s.scenario_id):s.relative_research_weight})):[],
+      assessments:adjusted?frozen.conditioned.rider_assessments:[],facts:frozen.facts,generatedAt:frozen.baseline.generated_at,
+      sourceAsOf:frozen.baseline.source_as_of,sealedAt:adjusted?frozen.conditioned_sealed_at:frozen.baseline_sealed_at,cutoffAt:frozen.baseline.published_cutoff_at};
+  }
   function forecast(row,market='3t',variant='flexible'){
     const places=market==='2t'?2:3;
     if(['A','B','C'].includes(variant)){
@@ -246,5 +313,5 @@
     need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
     return decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
   }
-  return {openPacket,openCipher,rows,forecast,compare,summarize,allocate,resultUpdates,checkedDiagnostics,safeUrl,digest,clock,utc,day,SCHEMA};
+  return {openPacket,openCipher,rows,forecast,frozenArm,compare,summarize,allocate,resultUpdates,checkedDiagnostics,safeUrl,digest,clock,utc,day,SCHEMA};
 });
