@@ -179,3 +179,6 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
 .kn-result-arms{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
 .kn-result-arm{padding:12px;border:1px solid #dfe5df;border-radius:9px;background:#fff}.kn-result-arm h4{margin:0 0 6px;font-size:13px}.kn-result-arm strong{font-size:16px}.kn-result-arm p{margin:5px 0;font-size:12px}
 @media(max-width:480px){.kn-result-arms{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.kn-result-arm{padding:10px}}
+
+.kn-reference-comparison,.kn-selected-comparison{padding:10px 0;border-bottom:1px solid var(--kn-line)}
+.kn-research-result[data-result-state^="HOLD_"],.kn-research-result[data-result-state^="PENDING_"],.kn-research-result[data-result-state="UNOBSERVED"]{background:#fff8ec;border-color:#d8c6a5}
