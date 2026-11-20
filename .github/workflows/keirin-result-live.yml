@@ -90,9 +90,18 @@ jobs:
             tests.test_keirin_note_feed_cycle
           node --test tests/keirin_note_*.test.cjs
       - name: Verify the owner view refresh in Chromium using invented loopback data
+        shell: bash
         run: |
-          python -m playwright install --with-deps chromium
-          python -m unittest tests.test_keirin_note_browser -v
+          set -euo pipefail
+          # ubuntu-24.04 already includes Chrome. Reinstalling all browser OS
+          # dependencies exhausted the job window after all seven tests passed.
+          browser_path="$(command -v google-chrome || command -v chromium || true)"
+          if [ -z "$browser_path" ] || [ ! -x "$browser_path" ]; then
+            echo 'The runner-provided Chromium browser is unavailable.'
+            exit 1
+          fi
+          "$browser_path" --version
+          RACE_AI_TEST_CHROMIUM="$browser_path" python -m unittest tests.test_keirin_note_browser -v
 
   observe-results:
     # Same owner key, opt-ins and permissions as the former result job.
