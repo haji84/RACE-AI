@@ -1,0 +1,298 @@
+{
+  "base": {
+    "ref": "main",
+    "sha": "9616b854ac4a2683077b937c7d6f29e3e7213700"
+  },
+  "body": "## Saved data\n- 2026-01-01 to 2026-11-18: 24,291 settled races in 11 month-split public-result CSVs, with venue, real starters, payouts, and source URLs.\n- All 1,068 3-car BOX rows by field size, gender, session and class, with investment, wins, net, ROI, rankings, maximum payout dependence.\n- 10,005 monthly BOX rows across two half-year CSVs, plus source/methodology README, hash manifest, and seven-tested line classifier.\n\n## Validation\n- Historical result source inventory: 24,291 settled races; 62 excluded non-settled or no-payout rows; 0 unsettled-source issues reported in the original bundle.\n- The 17 GitHub data/code/README files were independently fetched after save, and exact normalized Git blob SHA matched on all 17/17.\n- Local line classifier test: 7 passing cases. No claim of GitHub CI success.\n\n## Essential limitation\n- The restored source ZIP does NOT carry independently time-anchored published pre-race lineup snapshots for all 24,291 races. Numbers and rider regions cannot recover original line membership.\n- The classifier distinguishes full same-line three, two of same plus other, and three different lines, solo riders, positions and tied payouts, but nationwide line-frequency statistics remain not formally accepted until lineup sources are joined and independently checked.\n- Do not present this as observed in-race formations or race-video labels. Do not train on unaudited lineup estimates.\n\n## Safety / scope\n- Separate research Draft; do not merge into production without review.\n- Only historical public result derivatives; no private AES forecast plaintext, production key or Secret committed.\n- The original ZIP SHA256 and Library reference are pinned in manifest.\n\n## 2026-11-19 nationwide line-composition acceptance audit\n\nFormal result: **HOLD, not nationwide-finalized**. Across 24,291 settled race-result records, 22,245 men's races are line-composition applicable; 2,046 girls' races are N/A. Of those 22,245, independently source-bound published-lineup originals with verified source bytes/SHA and all-starter alignment available in this PR: **0**. All 22,245 remain UNVERIFIED for line statistics. Prior provisional 64.06%, solo 3,536 and line-of-4 1,006 cannot be reproduced from the archived lineup-less source and must not become official statistics. A source-only fail-closed gate, 8 locally passing tests, machine-readable receipt and explicit missing-data report have been added; exact Git blob readback matched for all four additions. See [acceptance audit](https://github.com/haji84/RACE-AI/blob/research/keirin-box-line-2026-11-19/research/keirin/box_2026_01_01_to_11_18/NATIONWIDE_LINE_AUDIT_20261119.md). No main merge, no predictive model or live scoring changes.\n\n## 2026-11-19: Published-lineup backfill continuation (research)\n\n- Historical public lineup source-linked entries: **6 -> 15**. Added Kokura 1-2R, Ogaki 7-9R and Utsunomiya 1-4R on 2026-11-18; the venue/date/race/actual-starter set and 3-ren-tan were checked against the existing result CSV.\n- Applicable men's race denominator **22,245**; **22,230 remain missing**. Girls 2,046 are N/A. Pilot classifications: same-line three 2, two-from-one-line-plus-other 10, three distinct lines 3. These are not nationwide proportions.\n- Added `published_lineup_more_verified_20261118.jsonl`, `line_matched_15_verified_20261118.csv`, `line_coverage_15_pilot_20261119.json`, `LINE_BACKFILL_PROGRESS_20261119.md`, the bounded `historical_line_backfill.py`, and research-only GitHub Actions workflow `keirin-line-backfill-research.yml`.\n- The workflow is an attempted first batch, **not a verified successful remote collection**. The public source may be unavailable or refuse robots/policy access; do not bypass. Main not touched, real forecast/Secret untouched.\n- Current honest status: PARTIAL, not nationally finalized. Source-bound per-race lines are necessary, but no requirement for pre-cutoff snapshot time attestation or video in this historical publication analysis.\n",
+  "changed_files": 34,
+  "draft": true,
+  "head": {
+    "ref": "research/keirin-box-line-2026-11-19",
+    "sha": "379df9b501364863f0b9966bf71d89df2bd8656f"
+  },
+  "number": 312,
+  "state": "open",
+  "title": "research(keirin): archive 2026 race results, box performance and line classifier",
+  "url": "https://github.com/haji84/RACE-AI/pull/312",
+  "files": [
+    {
+      "filename": ".github/workflows/keirin-line-backfill-research.yml",
+      "previous_filename": null,
+      "sha": "8e2cf71b07bf2909996a02055aec6f121994e575",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 8e2cf71b07bf2909996a02055aec6f121994e575"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/LINE_BACKFILL_PROGRESS_20261119.md",
+      "previous_filename": null,
+      "sha": "16fe24e7fdc67743d623f00bc9070bffb1a2c2df",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 16fe24e7fdc67743d623f00bc9070bffb1a2c2df"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/NATIONWIDE_LINE_AUDIT_20261119.md",
+      "previous_filename": null,
+      "sha": "b8fe6923c8f3135c37d762ae0d6bc60b093cc347",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob b8fe6923c8f3135c37d762ae0d6bc60b093cc347"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/README.md",
+      "previous_filename": null,
+      "sha": "3526a61b3c2c841412dad1b8a45d3f954283d7bf",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 3526a61b3c2c841412dad1b8a45d3f954283d7bf"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/box_performance_report.md",
+      "previous_filename": null,
+      "sha": "100d52b12a4c672b9dc5d3541b22b64f5b71cd9e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 100d52b12a4c672b9dc5d3541b22b64f5b71cd9e"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/box_stats_1068.csv",
+      "previous_filename": null,
+      "sha": "232c8780c7cefb9f60cb8fdba6f563c4f52e274b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 232c8780c7cefb9f60cb8fdba6f563c4f52e274b"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/box_stats_month_2026H1.csv",
+      "previous_filename": null,
+      "sha": "27422a1d179909bb7e942029d541889d8aeb2446",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 27422a1d179909bb7e942029d541889d8aeb2446"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/box_stats_month_2026H2.csv",
+      "previous_filename": null,
+      "sha": "2cbce858957aded9ea4b8908f9a94342ed30840d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 2cbce858957aded9ea4b8908f9a94342ed30840d"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/historical_line_backfill.py",
+      "previous_filename": null,
+      "sha": "d320f6a29ac63905f16445ed1681351fda83f690",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob d320f6a29ac63905f16445ed1681351fda83f690"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/line_analysis_progress_20261119.md",
+      "previous_filename": null,
+      "sha": "26bc7f74d615ec8704cf1d4a7d7457b845c33eae",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 26bc7f74d615ec8704cf1d4a7d7457b845c33eae"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/line_classifier.py",
+      "previous_filename": null,
+      "sha": "31782a00272734fa21f2077a605b10df24f03fda",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 31782a00272734fa21f2077a605b10df24f03fda"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/line_coverage_15_pilot_20261119.json",
+      "previous_filename": null,
+      "sha": "85f8f4a2f1d2ef82e1e07966315284876071e501",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 85f8f4a2f1d2ef82e1e07966315284876071e501"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/line_coverage_pilot_20261119.json",
+      "previous_filename": null,
+      "sha": "564a8b0598fdc72147b66145cc11d23f7121fee8",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 564a8b0598fdc72147b66145cc11d23f7121fee8"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/line_matched_15_verified_20261118.csv",
+      "previous_filename": null,
+      "sha": "35a76d6286864722dc30fca7acbd749dff87123c",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 35a76d6286864722dc30fca7acbd749dff87123c"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/line_matched_examples_20261118.csv",
+      "previous_filename": null,
+      "sha": "abe3ae93aadbec60adc5eb25c32804303b9b2b10",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob abe3ae93aadbec60adc5eb25c32804303b9b2b10"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/manifest.json",
+      "previous_filename": null,
+      "sha": "d8b2fd3341787e9aed19464dc032b33430b7f180",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob d8b2fd3341787e9aed19464dc032b33430b7f180"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/nationwide_line_audit_20261119.json",
+      "previous_filename": null,
+      "sha": "fdde6ca4497271d2bfa5b636dc04ce2a2eefeae1",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob fdde6ca4497271d2bfa5b636dc04ce2a2eefeae1"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/nationwide_line_gate.py",
+      "previous_filename": null,
+      "sha": "c67a49b4028b85c16398fbe682303e2f54f55528",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob c67a49b4028b85c16398fbe682303e2f54f55528"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/published_lineup_more_verified_20261118.jsonl",
+      "previous_filename": null,
+      "sha": "19c757932d93929c2f42466fff36aad51530cd2d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 19c757932d93929c2f42466fff36aad51530cd2d"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/published_lineup_pilot_20261118.jsonl",
+      "previous_filename": null,
+      "sha": "418862842313f1e2b4aa8d553578c56d8fc065c2",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 418862842313f1e2b4aa8d553578c56d8fc065c2"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/race_results_202601.csv",
+      "previous_filename": null,
+      "sha": "15ac1a2ed321b6153afd246bcee7553f4d4e731b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 15ac1a2ed321b6153afd246bcee7553f4d4e731b"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/race_results_202602.csv",
+      "previous_filename": null,
+      "sha": "a23dfca53964ba16f2155df4eb527bd397d6e31b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob a23dfca53964ba16f2155df4eb527bd397d6e31b"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/race_results_202603.csv",
+      "previous_filename": null,
+      "sha": "8ebe36556ab983594d28a39c1749d8c32d59d867",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 8ebe36556ab983594d28a39c1749d8c32d59d867"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/race_results_202604.csv",
+      "previous_filename": null,
+      "sha": "1a2442d476d81da50372c812e2a43e3ea381aaae",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 1a2442d476d81da50372c812e2a43e3ea381aaae"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/race_results_202605.csv",
+      "previous_filename": null,
+      "sha": "6c9454c5b09c0612c70b50e928951bea6f272594",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 6c9454c5b09c0612c70b50e928951bea6f272594"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/race_results_202606.csv",
+      "previous_filename": null,
+      "sha": "7527be3d9bb81c8c6fedd6df6b5fa402b4297898",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 7527be3d9bb81c8c6fedd6df6b5fa402b4297898"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/race_results_202607.csv",
+      "previous_filename": null,
+      "sha": "62005fdcdfeeb279acab37db5b9ba13812611ed7",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 62005fdcdfeeb279acab37db5b9ba13812611ed7"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/race_results_202608.csv",
+      "previous_filename": null,
+      "sha": "4df741dce16c0d2053858fb8022116642f02bf11",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 4df741dce16c0d2053858fb8022116642f02bf11"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/race_results_202609.csv",
+      "previous_filename": null,
+      "sha": "bfb3a0c71beef76a72af29bfa6e9fb6d4b7d3528",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob bfb3a0c71beef76a72af29bfa6e9fb6d4b7d3528"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/race_results_202610.csv",
+      "previous_filename": null,
+      "sha": "9d7facbc73d5ad7ba31f7d3839996c553b05be6e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 9d7facbc73d5ad7ba31f7d3839996c553b05be6e"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/race_results_202611.csv",
+      "previous_filename": null,
+      "sha": "6dd40dbebb3836e4b24ca44bcb5bbc34a9074a72",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 6dd40dbebb3836e4b24ca44bcb5bbc34a9074a72"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/test_historical_line_backfill.py",
+      "previous_filename": null,
+      "sha": "fc188437b3fefb19ef3701cf6973380d8020e971",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob fc188437b3fefb19ef3701cf6973380d8020e971"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/test_line_classifier.py",
+      "previous_filename": null,
+      "sha": "a7e7b09aca79b5c6733bd4efc244184b3d0e530a",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob a7e7b09aca79b5c6733bd4efc244184b3d0e530a"
+    },
+    {
+      "filename": "research/keirin/box_2026_01_01_to_11_18/test_nationwide_line_gate.py",
+      "previous_filename": null,
+      "sha": "451033a91112e3fe04f454cfabff3a27d1d7bd9d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 451033a91112e3fe04f454cfabff3a27d1d7bd9d"
+    }
+  ],
+  "preserved_head_ancestor": true,
+  "original_tree_reapplied": false,
+  "current_base": "3b9758b8b561605bea1d01ca6a369e713876c42a",
+  "concurrent_main_changes_preserved": [
+    "1591232c9ddf98f36900360bf392162829d2fe8d",
+    "3b9758b8b561605bea1d01ca6a369e713876c42a"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schema": "RACE_AI_REAL_GITHUB_PAGES_RESULT_BROWSER_20261121_V1",
+  "observed_at_utc": "2026-11-20T17:15:54.662662+00:00",
+  "page": "https://haji84.github.io/RACE-AI/",
+  "transport": "Actual public GitHub Pages assets and raw GitHub encrypted Note feed; no network interception",
+  "reports": [
+    {
+      "viewport": 390,
+      "status": "PASS",
+      "day19_races": 75,
+      "day20_races": 57,
+      "day20_paired_reference_races": 53,
+      "secondary_matches": 128,
+      "held": 4,
+      "page_errors": 0,
+      "key_transmitted": false,
+      "provider_browser_requests": 0,
+      "physical_iphone": false,
+      "seconds": 11.63
+    },
+    {
+      "viewport": 1440,
+      "status": "PASS",
+      "day19_races": 75,
+      "day20_races": 57,
+      "day20_paired_reference_races": 53,
+      "secondary_matches": 128,
+      "held": 4,
+      "page_errors": 0,
+      "key_transmitted": false,
+      "provider_browser_requests": 0,
+      "physical_iphone": false,
+      "seconds": 8.9
+    }
+  ]
+}

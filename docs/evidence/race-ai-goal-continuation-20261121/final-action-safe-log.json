@@ -1,0 +1,100 @@
+{
+  "schema": "RACE_AI_ACTUAL_MAIN_NOTE_CYCLE_LOG_20261121_V1",
+  "run": 44781578013,
+  "job": 136445426680,
+  "main": "88b5bfdad02d01c4a54815b7cdcbc6b73ebe2943",
+  "records": [
+    {
+      "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED",
+      "source_commit": "40f252055674995e76442d7f809a7c988e3a2830",
+      "entries": 9,
+      "provider_denied": false,
+      "covered_races": 71,
+      "priority_window_races": 3,
+      "private_plaintext_uploaded": false,
+      "production_state_key_used": false,
+      "acquisition": {
+        "schema": "RACE_AI_KEIRIN_NOTE_INPUT_COLLECTION_V1",
+        "observed_races": 57,
+        "selected_races": 57,
+        "public_page_requests": 121,
+        "provider_denied": false,
+        "formal_model_admission": false,
+        "national_universe_verified": false,
+        "states": {
+          "HOLD_KDREAMS_LINE_NOT_ALL_REAL_CARS": 18,
+          "HOLD_KDREAMS_RACE_CLASS_NOT_IN_SOURCE": 1,
+          "PRIVATE_CARD_NORMALIZED_FROM_TWO_PUBLIC_SOURCES": 38
+        }
+      },
+      "results": {
+        "schema": "RACE_AI_KEIRIN_NOTE_RESULT_COLLECTION_V1",
+        "days_requested": 3,
+        "discovered_days": 3,
+        "observed_races": 189,
+        "checked_races": 4,
+        "matched_races": 1,
+        "hold_races": 3,
+        "changed_observations": 1,
+        "not_due_races": 128,
+        "future_races": 57,
+        "unknown_cutoff_races": 0,
+        "public_page_requests": 31,
+        "provider_denied": false,
+        "national_universe_verified": false,
+        "formal_model_admission": false,
+        "states": {
+          "HOLD_SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL": 3,
+          "SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL": 1
+        }
+      }
+    },
+    {
+      "state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT",
+      "generation": null,
+      "source_state": "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED",
+      "new_forecast_stage_nonzero": null,
+      "existing_pdca_invoked": null,
+      "result_rows_appended": null,
+      "result_rows_held": null,
+      "four_model_variable_saved": null,
+      "four_model_variable_held": null,
+      "official_result_independently_authenticated": null
+    },
+    {
+      "owner_source_acquisition_keys": [
+        "actual_four_model_forecast_saved",
+        "date_jst",
+        "expired_or_too_close",
+        "historical_page_cache_bytes",
+        "historical_pages_reused_without_new_GET",
+        "history_races_deferred",
+        "history_races_held",
+        "history_races_processed",
+        "invalid_partial_records",
+        "model_B_missing_family_slot_totals",
+        "new_pre_race_inputs",
+        "official_sp_acquisition",
+        "owner_automated_use_attested",
+        "permanent_encrypted_storage_claimed",
+        "provider_denial_http_status_counts",
+        "provider_denial_stopped_requests",
+        "provider_machine_rights_independently_verified",
+        "public_page_request_count_scope",
+        "public_page_requests",
+        "races",
+        "schema",
+        "source_capture_held",
+        "source_day_schedule_race_count",
+        "source_provider",
+        "source_values_or_rider_names_publicly_logged",
+        "state",
+        "winticket_requests",
+        "work_budget_exhausted"
+      ],
+      "owner_source_acquisition": {
+        "state": "OWNER_ATTESTED_SOURCE_ACQUISITION_ONLY"
+      }
+    }
+  ]
+}

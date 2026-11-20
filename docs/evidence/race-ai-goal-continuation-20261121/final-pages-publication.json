@@ -1,0 +1,14 @@
+{
+  "status": "PAGES_PRESENTATION_REFRESHED",
+  "source_commit": "718d4622c61769e2d5d63377cef45d1db2a1a947",
+  "parent_commit": "5bf9757e8fb996265719c3e9a9575f7c923e04ba",
+  "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+  "manifest_sha256": "8b07428abba6d4deeffb84f62cf0d9303a7f1cb52b1c0c8395b1220fc256334d",
+  "portrait_count": 1669,
+  "ciphertext_unchanged": true,
+  "plaintext_published": false,
+  "trusted_ui_source": "88b5bfdad02d01c4a54815b7cdcbc6b73ebe2943",
+  "app_sha256": "a27f76ce02f77223cf0e91099bd3d1fb0ce647c47bc7b921212f030f437b65e4",
+  "production_state_key_used": false,
+  "direct_boat_producer_actions": 0
+}

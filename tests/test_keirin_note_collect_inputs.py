@@ -84,6 +84,16 @@ def pages_for(spec):
     return pages
 
 
+def selected_net_page(number,title):
+    """Invented selected-header shape; class facts are separate from statistics."""
+    header=('<div class="RaceList_NameBox"><div class="RaceList_NameBox_inner">'
+        '<div class="RaceList_Item01"><div class="Race_Num">'+str(number)+'R</div></div>'
+        '<div class="RaceList_Item02"><div class="Race_TitleBox"><h1>'
+        '<div class="Race_Name">'+title+'</div></h1></div></div></div>'
+        '<a class="Active" href="'+urls(number)[0]+'">対象レース</a></div>')
+    return net_page(number).replace(b'<body>',('<body>'+header).encode())
+
+
 class NoteInputCollectionTests(unittest.TestCase):
     def setUp(self):
         self.temp=TemporaryDirectory()
@@ -112,6 +122,167 @@ class NoteInputCollectionTests(unittest.TestCase):
         return (json.loads((folder/'races.json').read_bytes()),
                 json.loads((folder/'reference_AB.json').read_bytes()),
                 json.loads((folder/'manifest.json').read_bytes()))
+
+    def selected_class_pages(self,competition='S級'):
+        self.pages=pages_for([(2,'12:12')])
+        self.pages[urls(2)[0]]=selected_net_page(2,competition+' 例示特別競走')
+        self.pages[urls(2)[1]]=self.pages[urls(2)[1]].replace(
+            'A級予選'.encode(),'例示特別競走'.encode())
+
+    def test_selected_net_class_fills_only_the_missing_class_and_keeps_original_receipts(self):
+        self.selected_class_pages()
+        before=dict(self.pages)
+        result=self.collect();races,refs,manifest=self.documents(result)
+        self.assertEqual(result['safe_report']['captured_race_ids'],[rid(2)])
+        self.assertEqual(self.calls,[CALENDAR,MEETING,*urls(2)])
+        self.assertEqual(refs[0]['input']['competition'],'S')
+        self.assertEqual(refs[0]['input']['line_groups'],[[1,2],[3,4],[5,6]])
+        self.assertEqual(refs[0]['input']['round_stage'],'OTHER')
+        self.assertEqual(races['races'][0]['riders'][0]['score'],91)
+        self.assertEqual(refs[0]['input']['riders'][0]['competition_points'],71)
+        provenance=refs[0]['class_field_source']
+        self.assertEqual(provenance['url'],urls(2)[0])
+        self.assertEqual(provenance['bytes_sha256'],sha256(before[urls(2)[0]]).hexdigest())
+        self.assertEqual(provenance['selected_header'],'S級 例示特別競走')
+        self.assertEqual(provenance['selected_header_sha256'],sha256('S級 例示特別競走'.encode()).hexdigest())
+        self.assertEqual(provenance['race_id'],rid(2))
+        self.assertEqual(provenance['day_jst'],DAY)
+        self.assertEqual(races['races'][0]['field_sources']['competition'],provenance)
+        program=[p for p in refs[0]['input']['source_pages'] if p['kind']=='PROGRAM']
+        self.assertEqual(len(program),1)
+        self.assertEqual(program[0]['bytes_sha256'],provenance['bytes_sha256'])
+        for receipt in manifest['source_receipts']:
+            self.assertEqual((self.root/'raw'/(receipt['bytes_sha256']+'.html')).read_bytes(),before[receipt['url']])
+        self.assertEqual(manifest['daily_coverage']['counts'],dict(observed=1,input_available=1,missing=0,held=0))
+        self.assertFalse(result['safe_report']['formal_model_admission'])
+
+    def test_explicit_selected_class_conflict_holds_before_generating_reference_outputs(self):
+        self.pages=pages_for([(2,'12:12')])
+        self.pages[urls(2)[0]]=selected_net_page(2,'S級 予選')
+        result=self.collect();races,refs,manifest=self.documents(result)
+        self.assertEqual(races['races'],[]);self.assertEqual(refs,[])
+        self.assertEqual(self.calls,[CALENDAR,MEETING,*urls(2)])
+        self.assertEqual(manifest['daily_coverage']['counts'],dict(observed=1,input_available=0,missing=0,held=1))
+
+    def test_selected_class_source_rejects_wrong_day_race_canonical_roster_and_ambiguous_headers(self):
+        changes={
+            'wrong_day':lambda raw:raw.replace(b'race_id=203001159802',b'race_id=203001169802'),
+            'wrong_race':lambda raw:raw.replace(b'>2R</div>',b'>1R</div>'),
+            'missing_canonical':lambda raw:raw.replace(('<link rel="canonical" href="'+urls(2)[0]+'">').encode(),b''),
+            'wrong_roster':lambda raw:raw.replace(b'EXAMPLE_RIDER_1',b'EXAMPLE_DIFFERENT_RIDER'),
+            'duplicate_header':lambda raw:raw.replace(b'</h1>',b'<div class="Race_Name">S'+ '級 例示特別競走</div></h1>'.encode()),
+            'missing_class':lambda raw:raw.replace('S級 例示特別競走'.encode(),'例示特別競走'.encode()),
+            'wrong_label':lambda raw:raw.replace('S級 例示特別競走'.encode(),'S級 例示別競走'.encode()),
+            'two_classes':lambda raw:raw.replace('S級 例示特別競走'.encode(),'S級 A級 例示特別競走'.encode()),
+            'wrong_selected_day':lambda raw:raw.replace(('<a class="Active" href="'+urls(2)[0]+'">').encode(),('<a class="Active" href="'+urls(2)[0].replace('20300115','20300116')+'">').encode()),
+            'wrong_selected_race':lambda raw:raw.replace(('<a class="Active" href="'+urls(2)[0]+'">').encode(),('<a class="Active" href="'+urls(1)[0]+'">').encode()),
+            'missing_selected_link':lambda raw:raw.replace(b'class="Active"',b'class="inactive"'),
+            'duplicate_selected_link':lambda raw:raw.replace(b'</div><table>',('<a class="Active" href="'+urls(2)[0]+'">duplicate</a></div><table>').encode()),
+        }
+        for label,change in changes.items():
+            with self.subTest(label=label),TemporaryDirectory() as temp:
+                self.selected_class_pages();self.calls.clear()
+                self.pages[urls(2)[0]]=change(self.pages[urls(2)[0]])
+                root=Path(temp);root.chmod(0o700)
+                result=self.api().collect_day(day_jst=DAY,private_root=root,
+                    fetch=self.fetch,clock=lambda:NOW,model_source_commit='a'*40)
+                races,refs,manifest=self.documents(result)
+                self.assertEqual(len(races['races']),0);self.assertEqual(refs,[])
+                self.assertEqual(result['safe_report']['captured_races'],0)
+                self.assertEqual(manifest['daily_coverage']['counts']['held'],1)
+                self.assertEqual(self.calls,[CALENDAR,MEETING,*urls(2)])
+
+    def test_selected_class_binds_full_responsive_names_without_tooltip_or_abbreviation_text(self):
+        from bs4 import BeautifulSoup
+        for mismatch in (False,True):
+            with self.subTest(mismatch=mismatch),TemporaryDirectory() as temp:
+                self.selected_class_pages();self.calls.clear()
+                soup=BeautifulSoup(self.pages[urls(2)[0]],'html.parser')
+                for row in list(soup.select('tr')):
+                    cells=row.find_all('td',recursive=False)
+                    mobile=BeautifulSoup(str(row),'html.parser').tr
+                    mobile_cells=mobile.find_all('td',recursive=False)
+                    mobile_cells[4].clear()
+                    mobile_cells[4].append(BeautifulSoup('<div class="PlayerName DispB"><span>例示の補足</span><a class="Player01">省略名</a></div>','html.parser').div)
+                    name=cells[4].get_text('',strip=True)
+                    if mismatch and cells[1].get_text('',strip=True)=='1':
+                        name='EXAMPLE_DIFFERENT_RIDER'
+                    cells[4].clear()
+                    cells[4].append(BeautifulSoup('<div class="Player_InfoWrap DispA"><dl><dt class="PlayerName">'+name+'<img class="Icon_Note"><span><svg><title>お気に入り例示</title></svg></span></dt></dl></div>','html.parser').div)
+                    row.insert_before(mobile)
+                self.pages[urls(2)[0]]=str(soup).encode()
+                root=Path(temp);root.chmod(0o700)
+                result=self.api().collect_day(day_jst=DAY,private_root=root,
+                    fetch=self.fetch,clock=lambda:NOW,model_source_commit='a'*40)
+                races,references,_=self.documents(result)
+                self.assertEqual(len(races['races']),0 if mismatch else 1)
+                self.assertEqual(len(references),0 if mismatch else 1)
+                self.assertEqual(self.calls,[CALENDAR,MEETING,*urls(2)])
+
+    def test_selected_class_does_not_replace_an_unpublished_lineup_or_use_historical_class(self):
+        for mode in ('unpublished_line','historical_class_only'):
+            with self.subTest(mode=mode),TemporaryDirectory() as temp:
+                self.selected_class_pages();self.calls.clear()
+                if mode=='unpublished_line':
+                    raw=self.pages[urls(2)[1]].decode();start=raw.index('<div class="line_position">');end=raw.index('</div>',start)
+                    self.pages[urls(2)[1]]=(raw[:start]+'<div class="line_position"><p>並び予想がありません</p>'+raw[end:]).encode()
+                else:
+                    self.pages[urls(2)[0]]=self.pages[urls(2)[0]].replace('S級 例示特別競走'.encode(),'例示特別競走'.encode()).replace(b'</body>','<table class="past_racecard_table"><tr><td>S級予選</td></tr></table></body>'.encode())
+                root=Path(temp);root.chmod(0o700)
+                result=self.api().collect_day(day_jst=DAY,private_root=root,fetch=self.fetch,clock=lambda:NOW)
+                self.assertEqual(result['safe_report']['captured_races'],0)
+                self.assertEqual(self.calls,[CALENDAR,MEETING,*urls(2)])
+                if mode=='unpublished_line':self.assertEqual(result['safe_report']['states'],{'HOLD_KDREAMS_LINE_NOT_ALL_REAL_CARS':1})
+
+    def test_selected_class_path_preserves_the_cutoff_guard_after_the_source_pair_is_read(self):
+        self.selected_class_pages();clock=[NOW]
+        def fetch(url):
+            raw=self.fetch(url)
+            if url==urls(2)[1]:clock[0]=NOW+timedelta(minutes=11)
+            return raw
+        result=self.api().collect_day(day_jst=DAY,private_root=self.root,fetch=fetch,clock=lambda:clock[0])
+        self.assertEqual(result['safe_report']['captured_races'],0)
+        self.assertIn('HOLD_PREDICTION_AFTER_OR_TOO_CLOSE_TO_PUBLISHED_CUTOFF',result['safe_report']['states'])
+
+    def test_selected_net_class_is_an_explicit_normalizer_opt_in(self):
+        self.selected_class_pages()
+        from race_ai import keirin_public_two_source_normalizer as adapter
+        arguments=dict(race_id=rid(2),netkeirin_raw=self.pages[urls(2)[0]],netkeirin_url=urls(2)[0],
+            netkeirin_captured_at=NOW.isoformat(),kdreams_raw=self.pages[urls(2)[1]],
+            kdreams_url=urls(2)[1],kdreams_captured_at=NOW.isoformat(),created_at=NOW.isoformat())
+        with self.assertRaisesRegex(adapter.PublicPageNormalizeError,'KDREAMS_RACE_CLASS_NOT_IN_SOURCE'):
+            adapter.merge_pre_race_pages(**arguments)
+        result=adapter.merge_pre_race_pages(**arguments,allow_selected_netkeirin_class=True)
+        self.assertEqual(result['source_packet']['competition'],'S')
+
+    def test_explicit_A_and_L_classes_use_the_same_selected_source_binding(self):
+        for label,expected in (('A級','A1_A2'),('L級ガールズ','GIRLS')):
+            with self.subTest(label=label),TemporaryDirectory() as temp:
+                self.selected_class_pages(label);self.calls.clear()
+                root=Path(temp);root.chmod(0o700)
+                result=self.api().collect_day(day_jst=DAY,private_root=root,fetch=self.fetch,clock=lambda:NOW)
+                _,references,_=self.documents(result)
+                self.assertEqual(result['safe_report']['captured_races'],1)
+                self.assertEqual(references[0]['input']['competition'],expected)
+                self.assertEqual(self.calls,[CALENDAR,MEETING,*urls(2)])
+                if expected=='GIRLS':
+                    self.assertEqual(references[0]['input']['line_groups'],[[n] for n in range(1,7)])
+
+    def test_an_existing_K_class_does_not_require_a_missing_net_class_or_change_the_snapshot(self):
+        from race_ai import keirin_public_two_source_normalizer as adapter
+        for title in ('例示の見出し','A級予選'):
+            for selection in ('normal','missing','other_race'):
+                with self.subTest(title=title,selection=selection):
+                    self.pages=pages_for([(2,'12:12')]);raw=selected_net_page(2,title)
+                    if selection=='missing':raw=raw.replace(b'class="Active"',b'class="inactive"')
+                    if selection=='other_race':raw=raw.replace(('<a class="Active" href="'+urls(2)[0]+'">').encode(),('<a class="Active" href="'+urls(1)[0]+'">').encode())
+                    arguments=dict(race_id=rid(2),netkeirin_raw=raw,netkeirin_url=urls(2)[0],
+                        netkeirin_captured_at=NOW.isoformat(),kdreams_raw=self.pages[urls(2)[1]],
+                        kdreams_url=urls(2)[1],kdreams_captured_at=NOW.isoformat(),created_at=NOW.isoformat())
+                    before=adapter.merge_pre_race_pages(**arguments)
+                    after=adapter.merge_pre_race_pages(**arguments,allow_selected_netkeirin_class=True)
+                    self.assertEqual(before,after)
+                    self.assertNotIn('class_field_source',after)
 
     def test_priority_collection_preserves_source_values_and_research_only_outputs(self):
         result=self.collect()

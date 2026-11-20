@@ -1,3 +1,32 @@
+# 2026-11-21 JST｜既存PR312の限定修正は原本再生39/57、残り18は未掲載
+
+最新の確認済み運転は下段のmain88/run44781578013（38/57）。その19保留を暗号化原本から調べ、18件に並び未掲載の明記、1件に同一選択レースのnetkeirin見出しで明示された競走区分を確認した。
+
+- 既存PR312では、Kdreamsの区分省略時だけ、そのnetkeirinの選択見出しを使う明示opt-inを追加。canonical/date/R/選択中リンク/出走者/競走名を結び、矛盾・曖昧さを拒否する。元Kdreamsの締切/並び・統計と元raw SHAは維持し、区分の出典だけnetkeirin PROGRAM receiptと別metadataへ記録する。新モデル・重み・正式admissionを変えない。
+- socketを止めた実原本57組の再生は **39正常/18未掲載HOLD**、元38カードは同一byte、121取得原本/受領記録は不変。既存既定動作も57/57で同じ結果・エラー。根拠なしの級班推測・過去表の全体検索はしない。関連66検査＋独立6負例が成功、rootの関連suiteと最終CIを別記する。
+- 原本再生は新しい実予想の保存実証ではない。通常保護merge後の既存Actions・独立読戻しが済むまで、現在の実績を39へ書き換えない。main3b975の並行四arm表示、main1591232のdaily coverageも全て保全。workflow graph/source/model pins/頻度/権限の変更0。
+
+[原本監査](evidence/keirin-selected-class-source-20261121/actual-held-source-audit.json)・[オフライン再生](evidence/keirin-selected-class-source-20261121/offline-real-replay.json)・[独立review](evidence/keirin-selected-class-source-20261121/review.json)。WINTICKET自体403、4競技全件/T15、実機iPhone、独立6艇校正、前向き改善の未達は下段のまま保持する。実運転後の結果は既存PR312に追記する。
+
+以下は確認済み運転と以前の記録。
+
+# 2026-11-21 02:46 JST｜既存PR291を統合、実運転で翌日38件生成・結果129一致/3保留
+
+既存PR291は **main88b5bfdad02d01c4a54815b7cdcbc6b73ebe2943** へ通常保護merge済み。レビューhead7900f3480とtree8feb05186e600a846fcb3acc81a92f4cdd7118f3が一致し、PR最終29checks＝13success/16skip/失敗0。配備後のmainもHTTP再照合を含め60checks＝11success/49skip/失敗0。旧失敗は保持し、未実行skipを実証へ加算しない。
+
+- **既存Actionsの実運転**：run **44781578013/job136445426680** はcompleted/success。11/21の掲載元57候補を121要求で確認し、**38レースの参考A/B各38件** を生成・暗号化保存した。local別読取では38件すべてのfile/cipher binding、掲載締切前生成、および掲載締切前にGitHub読戻し済みであることを確認。T15〜10窓の全件保存、実際の主催者締切、正式PR71全モデルの認証ではない。
+- **結果改訂を実確認**：過去132レースはlocal実二社取得時の128一致/4HOLDから、同Actionsの別結果取得31要求で **129二社一致/3HOLD** へ更新。前回の取得失敗1件が照合でき、旧観測も別cipherの改訂履歴として保持した。3件は特殊払戻等の公式確認待ち。参考A/Bの11/20共通分母は53→54レースで、学習改善・Hit@8・実購入の実績とはしない。
+- **実配信**：既存Pages **718d4622c61769e2d5d63377cef45d1db2a1a947** の実HTTP14資産とmain88の一致を、GitHub job **136452750118/run44780867206 attempt2** でも確認。元forecast identity・全cipher・BOAT core/scorer/cryptoは不変。実公開Page/raw GitHub暗号文の390/1440pxで読戻し、JS例外0・鍵送信0・掲載元ブラウザー要求0。Actions改訂後も390pxで翌日38件/129一致3保留を確認した。本人用リンクの鍵は同じ。
+- **残る入力の実原本監査**：19保留中 **18件は「並び予想がありません」と明記**され、並びの数値は0件。残り1件はKdreamsの選択競走見出しが競走区分を省略しているが、同一canonical/date/R/出走者のnetkeirin選択見出しには区分が明記されている。121/121原本/receiptと保存3fileを全byte照合し、推測補完を避けてこの1件だけの限定修正を既存PR312で続ける。新PRは作らない。
+- **正式経路は別**：同runの旧PR71は **HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT**、source_state=OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED。生成/PDCA/結果の件数fieldはnullで、job successを全モデルの生成成功に変えない。Noteの参考出力とも別。
+- **並行mainを保全**：後続PR318（main1591232）の初回日付観測/daily_coverage、およびPR317（main3b9758b）の既存四arm原本/結果表示を通常mergeで保全する。既存PR312の元379df9b5・34pathのmode/type/blob/metadataも親履歴に残し、旧treeの一括適用はしない。上記の実運転/画面の証拠は当時のmain88に対応する。
+
+[実Actionsとsafe log](evidence/race-ai-goal-continuation-20261121/final-action-safe-log.json)・[38件の独立読戻し](evidence/race-ai-goal-continuation-20261121/final-action-independent-note-readback.json)・[配信画面](evidence/race-ai-goal-continuation-20261121/final-action-live-browser.json)・[main HTTP](evidence/race-ai-goal-continuation-20261121/final-github-http-proof.json)・[19件の原本監査](evidence/keirin-selected-class-source-20261121/actual-held-source-audit.json)。
+
+**GOAL全体は未達**。WINTICKET自身の最初の403、BOAT SのSOURCE_AUTHORIZATION_REQUIRED/403、4競技全日×全既存適用モデル/T15実証、独立6艇識別・距離/時計/強さ校正、実機iPhoneの全受入、11/24終了の前向き精度改善は未完了。iPhone13Pro本人操作を改めて依頼中だが回答未確認。最後の有効study reportはmatched0、既存固定期間と100組/5日/10会場日を保全する。本番重み切替/投票/追加課金/BOAT直接再起動0、state keyのlocal取得・使用0、元offline未push2commitはUNRESTORED。
+
+以下は各時点の記録。
+
 # 2026-11-21 02:04 JST｜並行mainの公式結果更新を保全し、二次結果の照合と統合
 
 検証中に独立作業のPR316が **main78b855e462ec57aef5cc0e265747847ca7bf3b22** へ統合されたため、通常mergeで全変更を保全した。既存PR291だけを継続し、公式 `result/result_revisions/result_updates.json` と、今回の二次研究 `results/result_checks/research_results.json` の両形式・別履歴を保持する。公式の着順/配当を研究HOLDで消さず、更新の重複防止・端末内cache・選択保持も維持した。

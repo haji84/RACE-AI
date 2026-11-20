@@ -1,0 +1,18 @@
+{
+  "state_head": "40f252055674995e76442d7f809a7c988e3a2830",
+  "entries": 9,
+  "kinds": {
+    "import": 1,
+    "archive": 1,
+    "research": 4,
+    "results": 3
+  },
+  "forecast_coverage": 71,
+  "result_checks": 132,
+  "result_states": {
+    "MATCHED": 129,
+    "HOLD": 3
+  },
+  "provider_denied": false,
+  "latest_entry_created_at": "2026-11-20T17:17:45.654505+00:00"
+}

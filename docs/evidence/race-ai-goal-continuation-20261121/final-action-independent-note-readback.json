@@ -1,0 +1,23 @@
+{
+  "status": "ACTUAL_ACTION_CIPHERS_AND_NEW_REFERENCE_READBACK_VERIFIED",
+  "next_day_references": 38,
+  "generated_before_published_cutoff": 38,
+  "git_readback_observed_before_published_cutoff": 38,
+  "verified_forecast_bindings": 38,
+  "reference_A": 38,
+  "reference_B": 38,
+  "source_result_races": 132,
+  "secondary_matches": 129,
+  "held": 3,
+  "day20_paired_references": 54,
+  "formal_model_admission": false,
+  "actual_organizer_cutoff_authenticated": false,
+  "nationwide_universe_verified": false,
+  "learning_improvement_proven": false,
+  "production_state_key_used": false,
+  "private_plaintext_uploaded": false,
+  "action_run": 44781578013,
+  "state_head": "40f252055674995e76442d7f809a7c988e3a2830",
+  "observed_at_utc": "2026-11-20T17:22:24.796508+00:00",
+  "reader_main": "88b5bfdad02d01c4a54815b7cdcbc6b73ebe2943"
+}
