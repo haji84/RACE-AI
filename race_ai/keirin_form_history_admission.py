@@ -36,7 +36,8 @@ def need(condition, code):
 
 
 def build_supplement(*, raw_export, source_url, captured_at, snapshot,
-                     independently_authorize_source):
+                     independently_authorize_source,
+                     independently_verify_identity):
     """Pure local conversion. No source GET, no synthetic rider identities.
 
     The trusted caller must authenticate usage rights and bytes with a real
@@ -46,6 +47,8 @@ def build_supplement(*, raw_export, source_url, captured_at, snapshot,
          "HISTORY_EXPORT_BYTES_REQUIRED")
     need(callable(independently_authorize_source),
          "HISTORY_EXTERNAL_RIGHTS_VALIDATOR_REQUIRED")
+    need(callable(independently_verify_identity),
+         "HISTORY_EXTERNAL_IDENTITY_VALIDATOR_REQUIRED")
     model.validate_snapshot(snapshot, computed_at=captured_at)
     try:
         model._url(source_url)
@@ -98,6 +101,11 @@ def build_supplement(*, raw_export, source_url, captured_at, snapshot,
              model.RID.fullmatch(ident) is not None and
              ident == starters[car],
              "HISTORY_OFFICIAL_ID_AND_STARTER_MISMATCH")
+        need(independently_verify_identity(
+            snapshot["race_id"], car, ident,
+            tuple((p["url"],p["bytes_sha256"]) for p in
+                  snapshot["source_pages"] if p["kind"] == "RACECARD")) is True,
+            "HISTORY_INDEPENDENT_ROSTER_ID_NOT_VERIFIED")
         seen.add(car)
         # Every historical row must explicitly attribute the same athlete,
         # not just use today's car number. Our existing V1 form evaluator
