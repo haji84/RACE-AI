@@ -17,6 +17,7 @@ from hashlib import sha256
 from itertools import permutations
 from math import isfinite
 from urllib.parse import urlsplit
+from . import keirin_rider_form_evidence as condition
 import json
 import re
 
@@ -79,7 +80,8 @@ def validate_snapshot(snap, *, computed_at):
     fields = {"schema", "race_id", "as_of", "published_cutoff_at",
               "cutoff_source", "source_pages", "competition", "round_stage",
               "round_rule", "line_groups", "riders"}
-    need(type(snap) is dict and set(snap) == fields and
+    need(type(snap) is dict and
+         set(snap) in (fields, fields | {"condition_evidence"}) and
          snap.get("schema") == SCHEMA and
          type(snap.get("race_id")) is str and
          VENUE.fullmatch(snap["race_id"]) is not None,
@@ -178,11 +180,19 @@ def validate_snapshot(snap, *, computed_at):
     need(snap["competition"] != "GIRLS" or
          all(len(g) == 1 for g in lines),
          "GIRLS_PERMANENT_LINE_NOT_VERIFIED")
+    if "condition_evidence" in snap:
+        try:
+            condition.validate(
+                snap["condition_evidence"], starters=seen_cars,
+                source_pages=pages, as_of=snap["as_of"],
+                target_race_id=rid)
+        except condition.FormEvidenceError as exc:
+            raise AutomaticForecastError(str(exc)) from None
     # Never promote the input to an organizer- or model-verified forecast.
     return snap
 
 
-def _strengths(riders):
+def _strengths(riders, *, condition_adjustments=None):
     n = len(riders)
     lo = min(r["competition_points"] for r in riders)
     hi = max(r["competition_points"] for r in riders)
@@ -197,6 +207,8 @@ def _strengths(riders):
         power[r["car"]] = (
             .50 * mark + .30 * points + .14 * r["recent_form_score"]
             + .06 * hb)
+        if condition_adjustments is not None:
+            power[r["car"]] += condition_adjustments.get(r["car"], 0.0)
     return power
 
 
@@ -287,7 +299,21 @@ def generate_A_B(snapshot, *, generated_at, max_tickets=12):
     validate_snapshot(snapshot, computed_at=generated_at)
     need(type(max_tickets) is int and 1 <= max_tickets <= 12,
          "TICKET_COUNT_OUT_OF_RANGE")
-    strengths = _strengths(snapshot["riders"])
+    condition_reports = None
+    if "condition_evidence" in snapshot:
+        try:
+            condition_reports = condition.assess(
+                snapshot["condition_evidence"],
+                starters={r["car"] for r in snapshot["riders"]},
+                source_pages=snapshot["source_pages"],
+                as_of=snapshot["as_of"], target_race_id=snapshot["race_id"])
+        except condition.FormEvidenceError as exc:
+            raise AutomaticForecastError(str(exc)) from None
+    strengths = _strengths(
+        snapshot["riders"],
+        condition_adjustments=(
+            {car: r["score_adjustment"] for car, r in condition_reports.items()}
+            if condition_reports is not None else None))
     a = _baseline_A(snapshot, strengths, max_tickets=max_tickets)
     leaders = [g[0] for g in snapshot["line_groups"]]
     leaders.sort(key=lambda c: (-strengths[c], c))
@@ -306,6 +332,14 @@ def generate_A_B(snapshot, *, generated_at, max_tickets=12):
                 mode_weight *= 1.12
             elif lead_style in ("MAKURI", "ALLROUND") and variant in (1, 2):
                 mode_weight *= 1.12
+            if condition_reports is not None:
+                # A small exploratory tactical reweight. Missing evidence
+                # leaves the exact original weights untouched. Never infer
+                # a medical limit or a fallen rider's inability to lead.
+                delta = condition_reports[leader]["score_adjustment"]
+                mode_weight *= (
+                    1.0 + 2.0 * delta if variant in (0, 3)
+                    else 1.0 - delta)
             # Apply only source-evidenced objectives. UNKNOWN does not
             # silently inherit a generic advancement rule.
             rule = snapshot["round_rule"]
@@ -357,5 +391,19 @@ def generate_A_B(snapshot, *, generated_at, max_tickets=12):
         "old_PR71_four_models_required": False,
         "real_money_wager_placed": False,
     }
+    if condition_reports is not None:
+        public_safe_trace = [condition_reports[c] for c in
+                             sorted(condition_reports)]
+        result["A"]["pre_cutoff_form_fall_trace"] = public_safe_trace
+        result["B"]["pre_cutoff_form_fall_trace"] = public_safe_trace
+        result["condition_research_notes"] = {
+            "schema": condition.SCHEMA,
+            "captured_before_prediction": True,
+            "personal_medical_recovery_claimed": False,
+            "fall_alone_never_penalizes": True,
+            "comment_text_not_automatically_interpreted": True,
+            "ranking_weights_uncalibrated": True,
+            "historical_source_rows_in_private_snapshot": True,
+        }
     result["prediction_sha256"] = digest(result)
     return result
