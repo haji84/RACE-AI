@@ -1,3 +1,4 @@
+if (typeof window === 'object' && typeof location === 'object') window.RaceNoteInitialFragment = location.hash;
 /* Count-only visual attestation against the owner-approved 2026-11-12 AES audit.
  * Never changes encrypted originals, forecasts, actual-purchase records, or
  * racing-provider traffic. Every displayed match must come from a loaded view.
@@ -2098,4 +2099,482 @@
   loadSavedDataset();
   window.addEventListener("race-ai-daily-updated", ()=>{renderDailyCard();syncResultRefreshUI();});
   globalThis.RaceRacerDaily?.load();
+})();
+
+(function(root){
+  'use strict';
+  // Rank/role weights express an allocation example, not fitted probabilities.
+  function allocate(tickets,budget){
+    if(![2000,2500,3000].includes(budget))throw new RangeError('Unsupported budget');
+    if(!Array.isArray(tickets)||tickets.length<1||tickets.length>12)throw new RangeError('Invalid ticket count');
+    const seen={};
+    const weights=tickets.map(t=>{
+      if(!['本線','押さえ','波乱'].includes(t.role))throw new TypeError('Invalid ticket role');
+      const i=seen[t.role]||0;seen[t.role]=i+1;
+      return ({'本線':8,'押さえ':2,'波乱':0.75}[t.role])/(1+i*0.35);
+    });
+    const remaining=budget/100-tickets.length;
+    const total=weights.reduce((a,b)=>a+b,0);
+    const raw=weights.map(w=>remaining*w/total);
+    const units=raw.map(x=>1+Math.floor(x));
+    let left=budget/100-units.reduce((a,b)=>a+b,0);
+    const order=raw.map((v,i)=>({i,rem:v-Math.floor(v)})).sort((a,b)=>b.rem-a.rem||a.i-b.i);
+    for(let j=0;j<left;j++)units[order[j].i]++;
+    return units.map(x=>x*100);
+  }
+  function profitOdds(budget,amount){
+    if(!Number.isFinite(budget)||!Number.isFinite(amount)||budget<=0||amount<=0)throw new RangeError('Positive amounts required');
+    return (Math.floor(budget*10/amount)+1)/10;
+  }
+  function estimate(budget,amount,odds){
+    if(typeof odds!=='number'||!Number.isFinite(odds)||odds<1||odds>=9999.9)return null;
+    const payout=Math.round(amount*odds);
+    return {payout,net:payout-budget};
+  }
+  const api={allocate,profitOdds,estimate};
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  else root.KeirinStaking=api;
+})(typeof window==='object'?window:globalThis);
+
+(function(root){
+  'use strict';
+  const base=typeof module==='object'&&module.exports?require('./staking.js'):root.KeirinStaking;
+  function allocate(tickets,budget){
+    if(![2000,2500,3000].includes(budget))throw new RangeError('Unsupported budget');
+    if(!Array.isArray(tickets)||tickets.length<1||tickets.length>504)throw new RangeError('Invalid ticket count');
+    if(tickets.length*100>budget)throw new RangeError('Budget is below 100 yen per selected ticket');
+    const seen={};
+    const weights=tickets.map(t=>{if(!['本線','押さえ','波乱'].includes(t.role))throw new TypeError('Invalid ticket role');const i=seen[t.role]||0;seen[t.role]=i+1;return ({'本線':8,'押さえ':2,'波乱':0.75}[t.role])/(1+i*0.35);});
+    const remaining=budget/100-tickets.length,total=weights.reduce((a,b)=>a+b,0);
+    const raw=weights.map(w=>remaining*w/total),units=raw.map(x=>1+Math.floor(x));
+    const left=budget/100-units.reduce((a,b)=>a+b,0),order=raw.map((v,i)=>({i,rem:v-Math.floor(v)})).sort((a,b)=>b.rem-a.rem||a.i-b.i);
+    for(let j=0;j<left;j++)units[order[j].i]++;
+    return units.map(x=>x*100);
+  }
+  const api={...base,allocate,canAllocate:(tickets,budget)=>tickets.length>0&&tickets.length*100<=budget};
+  if(typeof module==='object'&&module.exports)module.exports=api;else root.KeirinStaking=api;
+})(typeof window==='object'?window:globalThis);
+
+(function(root,factory){
+  if(typeof module==='object'&&module.exports)module.exports=factory(require('./staking.js'));
+  else root.KeirinRollover=factory(root.KeirinStaking);
+})(typeof window==='object'?window:globalThis,function(staking){
+  'use strict';
+  const budgets=[2000,2500,3000];
+  const maxReceipt=100000000;
+
+  function checkBudget(value){
+    if(!budgets.includes(value))throw new RangeError('初回予算は2000・2500・3000円から選んでください。');
+  }
+  function checkReceipt(value){
+    if(value!==null&&(!Number.isSafeInteger(value)||value<0||value>maxReceipt)){
+      throw new RangeError('受取額は0〜100000000円の整数、未入力はnullにしてください。');
+    }
+  }
+  function positiveInteger(value){
+    if(!Number.isSafeInteger(value)||value<=0)throw new RangeError('正の整数の金額が必要です。');
+  }
+
+  // Receipts include refunds. Only profit may fund the second and final stage.
+  function plan({initialBudget,firstReturn=null,secondReturn=null}={}){
+    checkBudget(initialBudget);
+    checkReceipt(firstReturn);
+    checkReceipt(secondReturn);
+    const base={firstStake:initialBudget,nextStake:0,reserve:0,finalReturn:null,net:null};
+    if(firstReturn===null){
+      return {...base,status:'awaiting_first',reason:'1戦目の受取額（払戻と返還の合計）を入力してください。'};
+    }
+
+    const profit=firstReturn-initialBudget;
+    if(profit<2000){
+      const reason=firstReturn===0
+        ?'1戦目の受取が0円で終了。初回予算が損失になります。'
+        :profit<0
+          ?'1戦目は購入額を回収できず終了。返還を含む受取額で計算しています。'
+          :profit===0
+            ?'1戦目の受取が初回予算と同額のため、差額0円で終了します。'
+            :'利益が次の最低額2,000円に届かないため終了。受取は取り分けます。';
+      return {...base,status:'stopped',reserve:firstReturn,finalReturn:firstReturn,net:profit,reason};
+    }
+
+    const nextStake=profit>=3000?3000:profit>=2500?2500:2000;
+    const reserve=firstReturn-nextStake;
+    if(secondReturn===null){
+      return {
+        ...base,status:'awaiting_second',nextStake,reserve,
+        reason:'元金と余剰分を取り分け、利益の範囲で2戦目へ。2戦目の受取額を入力してください。',
+      };
+    }
+    const finalReturn=reserve+secondReturn;
+    return {
+      ...base,status:'completed',nextStake,reserve,finalReturn,net:finalReturn-initialBudget,
+      reason:'2戦目の受取を取り分け分に加えて終了。3戦目へは進みません。',
+    };
+  }
+
+  // Bounds assume one winning ticket and no refund, in 0.1-odds increments.
+  function positiveBounds(total,amount){
+    positiveInteger(total);
+    positiveInteger(amount);
+    const scaled=total*10;
+    if(!Number.isSafeInteger(scaled))throw new RangeError('金額が計算可能な範囲を超えています。');
+    return {breakEvenOdds:Math.ceil(scaled/amount)/10,profitOdds:(Math.floor(scaled/amount)+1)/10};
+  }
+  function continuationOdds(initialBudget,amount,minNext=2000){
+    checkBudget(initialBudget);
+    positiveInteger(minNext);
+    return positiveBounds(initialBudget+minNext,amount).breakEvenOdds;
+  }
+  return {plan,positiveBounds,continuationOdds,allocate:staking.allocate};
+});
+
+/* Owner-provided Site view adapter. Original/revised/research records stay separate. */
+(function(root,factory){
+  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-source/staking_flexible.js'));
+  else root.RaceKeirinNote=factory(root.KeirinStaking);
+})(typeof window==='object'?window:globalThis,function(staking){
+  'use strict';
+  const SCHEMA='RACE_AI_KEIRIN_NOTE_VIEW_V1',OUTER='RACE_AI_SAVED_WEB_VIEW_V1';
+  const LIMIT=64*1024*1024,encoder=new TextEncoder();
+  const record=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
+  const fail=()=>{throw new Error('KEIRIN_NOTE_INVALID');};
+  const need=v=>{if(!v)fail();};
+  const hex=v=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v);
+  const day=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v;
+  const text=(v,max=2000)=>typeof v==='string'&&v.length<=max?v:'';
+  const rid=v=>typeof v==='string'&&/^20\d{10}$/.test(v);
+  const apiCrypto=()=>globalThis.crypto?.subtle?globalThis.crypto:require('node:crypto').webcrypto;
+  const digest=async v=>Array.from(new Uint8Array(await apiCrypto().subtle.digest('SHA-256',typeof v==='string'?encoder.encode(v):v)),n=>n.toString(16).padStart(2,'0')).join('');
+  function safeUrl(value){
+    try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password&&(!u.port||u.port==='443')&&['keirin.kdreams.jp','keirin.netkeiba.com','keirin.jp','www.keirin.jp','winticket.jp','www.winticket.jp','www.jma.go.jp','www.sponichi.co.jp','keirin.sponichi.co.jp'].includes(u.hostname)?u.href:null;}catch{return null;}
+  }
+  function mapRows(value){
+    const a=Array.isArray(value)?value:record(value)&&Array.isArray(value.races)?value.races:[];
+    const result=new Map();for(const row of a){need(record(row));const id=row.race_id||row.input?.race_id||row.output?.race_id;need(rid(id)&&!result.has(id));result.set(id,row);}return result;
+  }
+  function clock(date,value){
+    if(typeof value!=='string'||!value)return null;
+    const stamp=/^\d\d:\d\d$/.test(value)?date+'T'+value+':00+09:00':value;
+    if(!/^\d{4}-\d{2}-\d{2}T\d\d:\d\d(?::\d\d)?(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(stamp))return null;
+    const n=Date.parse(stamp);return Number.isFinite(n)?stamp:null;
+  }
+  function tickets(value,places,cars){
+    if(value==null)return [];
+    need(Array.isArray(value)&&value.length<=504);
+    const seen=new Set();return value.map(item=>{
+      const t=Array.isArray(item)?{combo:item.join('-'),role:'参考'}:item;
+      need(record(t)&&typeof t.combo==='string'&&new RegExp('^[1-9](?:-[1-9]){'+(places-1)+'}$').test(t.combo));
+      const numbers=t.combo.split('-').map(Number);
+      need(new Set(numbers).size===places&&!seen.has(t.combo)&&(!cars.size||numbers.every(n=>cars.has(n))));seen.add(t.combo);
+      return {...t,combo:t.combo,role:text(t.role,30)||'参考'};
+    });
+  }
+  function normalize(date,files){
+    const read=name=>files.get('data/'+date+'/'+name);
+    const roster=mapRows(read('races.json')??files.get('data/races.json'));
+    const originals=mapRows(read('forecasts.json')??files.get('data/forecasts.json'));
+    const two=mapRows(read('two_car_forecasts.json'));
+    const flexible=mapRows(read('flexible_forecasts.json'));
+    const refs=mapRows(read('reference_AB.json'));
+    const quotes=mapRows(read('odds_snapshot_flexible.json'));
+    const settled=mapRows(read('settlement.json'));
+    const rollover=mapRows(read('three_car_rollover_forecasts.json'));
+    const ids=new Set([...roster.keys(),...originals.keys(),...two.keys(),...refs.keys()].filter(id=>id.startsWith(date.replaceAll('-',''))));
+    const out=[];
+    for(const id of ids){
+      const r=roster.get(id)||{},p=originals.get(id)||{},riders=r.riders||[];
+      need(Array.isArray(riders)&&riders.length<=9);
+      const cars=new Set();const people=riders.map(raw=>{need(record(raw));const number=raw.number??raw.car;need(Number.isInteger(number)&&number>=1&&number<=9&&!cars.has(number));cars.add(number);return {...raw,number,name:text(raw.name,120)||'氏名未取得',score:raw.score??raw.points};});
+      const row={id,date,venue:text(r.venue||p.venue,100)||'会場名未取得',number:r.race_no??r.no??p.no??Number(id.slice(-2)),title:text(r.race_title||r.title,200),
+        cutoff:clock(date,r.deadline_time||r.cutoff||p.deadline_jst),start:clock(date,r.start_time||r.start||p.start_jst),
+        sourceUrl:safeUrl(r.source_url),raw:r,riders:people,cars,lines:Array.isArray(r.lines)?r.lines:[],original:p,
+        two:two.get(id)||{},flexible:flexible.get(id)||{},referenceEnvelope:refs.get(id)||{},reference:refs.get(id)?.output||refs.get(id)||{},quote:quotes.get(id)||{},
+        settlement:settled.get(id)||null,rollover:rollover.get(id)||{},environment:read('environment.json')||null};
+      tickets(p.tickets,3,cars);tickets(row.two.tickets,2,cars);tickets(row.rollover.tickets,3,cars);
+      for(const market of ['3t','2t'])tickets(row.flexible.markets?.[market]?.tickets,market==='2t'?2:3,cars);
+      for(const model of ['A','B'])tickets(row.reference[model]?.ranked_tickets,3,cars);
+      need(Number.isInteger(row.number)&&row.number>=1&&row.number<=12);
+      out.push(row);
+    }
+    return out.sort((a,b)=>(Date.parse(a.cutoff)||Infinity)-(Date.parse(b.cutoff)||Infinity)||a.id.localeCompare(b.id));
+  }
+  async function openPacket(packet){
+    need(record(packet)&&packet.schema===SCHEMA&&packet.formal_model_admission===false&&packet.production_weight_switch===false&&record(packet.files));
+    need(Array.isArray(packet.dates)&&packet.dates.length>0&&packet.dates.every(day)&&new Set(packet.dates).size===packet.dates.length);
+    const parsed=new Map();let total=0;
+    for(const [path,entry] of Object.entries(packet.files)){
+      need(/^data\/(?:\d{4}-\d{2}-\d{2}\/)?[A-Za-z0-9_.-]+\.json$/.test(path)&&record(entry)&&typeof entry.text==='string'&&hex(entry.sha256));
+      const bytes=encoder.encode(entry.text);total+=bytes.length;need(bytes.length<=12*1024*1024&&total<=LIMIT&&bytes.length===entry.bytes);
+      need(await digest(bytes)===entry.sha256);
+      const value=JSON.parse(entry.text);parsed.set(path,value);
+    }
+    const days=new Map(packet.dates.slice().sort().map(date=>[date,normalize(date,parsed)]));
+    return {schema:SCHEMA,dates:[...days.keys()],days,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,formal:false};
+  }
+  function rows(data,date){return data.days.get(date)||[];}
+  function forecast(row,market='3t',variant='flexible'){
+    const places=market==='2t'?2:3;
+    if(['A','B','C'].includes(variant)){
+      const ref=row.reference[variant]||{};
+      return {label:'参考'+variant,tickets:market==='3t'?tickets(ref.ranked_tickets,3,row.cars):[],scenarios:ref.six_phase_scenarios||[],
+        allocatable:false,headline:'既存モデルの研究出力',reason:variant==='C'?'独立した連係履歴が不足しているため未生成':'公開印・統計・並びを使用した参考計算',
+        createdAt:row.reference.generated_at,confidence:null,risk:'学習済み・校正済みの確率ではありません。',source:ref};
+    }
+    const base=market==='2t'?row.two:row.original;
+    let current=base,label=market==='2t'?'2車単・保存分析':'3連単・原分析';
+    if(variant==='flexible'&&row.flexible.markets?.[market]){current={...base,...row.flexible.markets[market],analysis_created_at:row.flexible.analysis_created_at};label=market==='2t'?'2車単・改訂分析':'3連単・改訂分析';}
+    if(variant==='rollover'&&market==='3t'&&row.rollover.tickets){current=row.rollover;label='3連単・絞り込み分析';}
+    return {label,tickets:tickets(current.tickets,places,row.cars),scenarios:[...(row.original.scenarios||[]),...(current.extra_scenarios||[])],allocatable:true,
+      headline:text(current.headline)||text(base.headline)||'予想未取得',reason:text(current.point_reason||current.reason||current.confidence_reason||current.verdict||current.selection_reason),
+      confidence:text(current.confidence,40),risk:text(current.risk),createdAt:current.analysis_created_at,
+      source:current};
+  }
+  function allocate(prediction,budget,excluded=new Set()){
+    need([2000,2500,3000].includes(budget));
+    const chosen=prediction.tickets.filter(t=>!excluded.has(t.combo));
+    const available=prediction.allocatable&&chosen.length>0&&chosen.length*100<=budget&&chosen.every(t=>['本線','押さえ','波乱'].includes(t.role));
+    if(!available)return {available:false,total:0,chosen,amounts:prediction.tickets.map(()=>0)};
+    const paid=staking.allocate(chosen,budget),byCombo=new Map(chosen.map((t,i)=>[t.combo,paid[i]]));
+    return {available:true,total:budget,chosen,amounts:prediction.tickets.map(t=>byCombo.get(t.combo)||0)};
+  }
+  function b64(value,max=LIMIT*2){
+    need(typeof value==='string'&&value.length>0&&value.length<=max&&value.length%4===0&&!/[^A-Za-z0-9+/=]/.test(value));
+    const binary=atob(value);need(btoa(binary)===value);return Uint8Array.from(binary,c=>c.charCodeAt(0));
+  }
+  async function openCipher(bytes,{cipherSha,key}){
+    need(bytes instanceof Uint8Array&&bytes.length<=90*1024*1024&&hex(cipherSha)&&await digest(bytes)===cipherSha);
+    const envelope=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+    need(record(envelope)&&Object.keys(envelope).sort().join(',')==='ciphertext,header,nonce');
+    const h=envelope.header;need(record(h)&&Object.keys(h).sort().join(',')==='schema,source_content_sha256'&&h.schema===OUTER&&hex(h.source_content_sha256));
+    need(typeof key==='string'&&/^[A-Za-z0-9_-]{43}$/.test(key));
+    const rawKey=b64(key.replaceAll('-','+').replaceAll('_','/')+'=',44),nonce=b64(envelope.nonce,16),encrypted=b64(envelope.ciphertext);
+    need(rawKey.length===32&&nonce.length===12&&encrypted.length>=16);
+    const imported=await apiCrypto().subtle.importKey('raw',rawKey,{name:'AES-GCM'},false,['decrypt']);
+    const aad=encoder.encode(JSON.stringify({schema:h.schema,source_content_sha256:h.source_content_sha256}));
+    const plain=new Uint8Array(await apiCrypto().subtle.decrypt({name:'AES-GCM',iv:nonce,additionalData:aad,tagLength:128},imported,encrypted));
+    need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
+    return openPacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)));
+  }
+  return {openPacket,openCipher,rows,forecast,allocate,safeUrl,digest,clock,SCHEMA};
+});
+
+/* Independent display capability. Its private key never enters a request URL. */
+(function(root,factory){
+  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-model.js'));
+  else root.RaceKeirinNoteFeed=factory(root.RaceKeirinNote);
+})(typeof window==='object'?window:globalThis,function(M){
+  'use strict';
+  const BASE='https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-note-view/';
+  const INFO='RACE_AI_KEIRIN_NOTE_FEED_V1:',encoder=new TextEncoder(),MAX=90*1024*1024;
+  const need=v=>{if(!v)throw Error('KEIRIN_NOTE_FEED_INVALID');};
+  const cryptoApi=()=>globalThis.crypto?.subtle?globalThis.crypto:require('node:crypto').webcrypto;
+  const hex=v=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v);
+  const record=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
+  const sameKeys=(v,keys)=>record(v)&&Object.keys(v).sort().join(',')===keys.split(',').sort().join(',');
+  const encode=raw=>btoa(String.fromCharCode(...new Uint8Array(raw))).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
+  function decode(value){need(typeof value==='string'&&/^[A-Za-z0-9_-]+$/.test(value));const raw=Uint8Array.from(atob(value.replaceAll('-','+').replaceAll('_','/')+'='.repeat((-value.length%4+4)%4)),c=>c.charCodeAt(0));need(encode(raw)===value);return raw;}
+  const ids=v=>Array.isArray(v)&&new Set(v).size===v.length&&v.every(n=>typeof n==='string'&&/^20[0-9]{10}$/.test(n));
+  function checkIndex(index,recipient){
+    need(sameKeys(index,'schema,repository,recipient_id,entries,provider_denied,covered_race_ids,priority_window_race_ids')&&index.schema==='RACE_AI_KEIRIN_NOTE_FEED_V1'&&index.repository==='haji84/RACE-AI'&&index.recipient_id===recipient&&typeof index.provider_denied==='boolean'&&Array.isArray(index.entries)&&ids(index.covered_race_ids)&&ids(index.priority_window_race_ids));
+    const hashes=new Set(),covered=new Set(),priority=new Set();
+    for(const e of index.entries){
+      need(sameKeys(e,'cipher_sha256,source_content_sha256,ephemeral_public_key,salt,created_at,days,kind,captured_race_ids,priority_window_race_ids')&&hex(e.cipher_sha256)&&hex(e.source_content_sha256)&&!hashes.has(e.cipher_sha256)&&['import','research','archive'].includes(e.kind));
+      need(decode(e.ephemeral_public_key).length===65&&decode(e.salt).length===32&&Array.isArray(e.days)&&e.days.length&&e.days.every(d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d))&&Number.isFinite(Date.parse(e.created_at))&&ids(e.captured_race_ids)&&ids(e.priority_window_race_ids));
+      need(e.priority_window_race_ids.every(id=>e.captured_race_ids.includes(id)));hashes.add(e.cipher_sha256);e.captured_race_ids.forEach(id=>covered.add(id));e.priority_window_race_ids.forEach(id=>priority.add(id));
+    }
+    need(index.covered_race_ids.length===covered.size&&index.covered_race_ids.every(id=>covered.has(id))&&index.priority_window_race_ids.length===priority.size&&index.priority_window_race_ids.every(id=>priority.has(id)));return index;
+  }
+  async function capability(value){
+    need(typeof value==='string'&&value.length>=150&&value.length<=400);
+    const c=cryptoApi(),privateKey=await c.subtle.importKey('pkcs8',decode(value),{name:'ECDH',namedCurve:'P-256'},true,['deriveBits']);
+    const jwk=await c.subtle.exportKey('jwk',privateKey),raw=new Uint8Array(65);raw[0]=4;raw.set(decode(jwk.x),1);raw.set(decode(jwk.y),33);
+    return {privateKey,recipient:await M.digest(raw)};
+  }
+  async function openEntry(bytes,e,cap){
+    const c=cryptoApi(),ephemeral=await c.subtle.importKey('raw',decode(e.ephemeral_public_key),{name:'ECDH',namedCurve:'P-256'},false,[]);
+    const shared=await c.subtle.deriveBits({name:'ECDH',public:ephemeral},cap.privateKey,256),material=await c.subtle.importKey('raw',shared,'HKDF',false,['deriveBits']);
+    const key=await c.subtle.deriveBits({name:'HKDF',hash:'SHA-256',salt:decode(e.salt),info:encoder.encode(INFO+cap.recipient)},material,256);
+    need(await M.digest(bytes)===e.cipher_sha256);const h=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)).header;need(h?.source_content_sha256===e.source_content_sha256);
+    const data=await M.openCipher(bytes,{cipherSha:e.cipher_sha256,key:encode(key)});
+    need(data.dates.slice().sort().join(',')===e.days.slice().sort().join(','));return data;
+  }
+  function merge(parts){
+    need(Array.isArray(parts)&&parts.length>0);
+    const days=new Map(),files=new Map(),refreshHolds=[];let importedAt=parts[0].importedAt;
+    const roster=row=>row.riders.map(p=>p.number+':'+p.name.replace(/\s/g,'')).sort().join('|');
+    for(const part of parts){
+      for(const [path,value] of part.files)files.set(path,value);
+      importedAt=part.importedAt;
+      for(const date of part.dates){
+        const byId=new Map((days.get(date)||[]).map(row=>[row.id,row]));
+        for(const row of M.rows(part,date)){
+          const prior=byId.get(row.id);if(!prior){byId.set(row.id,row);continue;}
+          // Immutable snapshots keep every version. An input refresh does not
+          // replace the authored originals imported from the owner's Site.
+          const authored=(prior.original.tickets||[]).length>0;
+          if(authored&&(roster(prior)!==roster(row)||Date.parse(prior.cutoff)!==Date.parse(row.cutoff))){
+            refreshHolds.push({raceId:row.id,reason:'HOLD_RESEARCH_REFRESH_SOURCE_CONTEXT_CHANGED'});continue;
+          }
+          const combined=authored?{...prior,reference:row.reference,referenceEnvelope:row.referenceEnvelope}:{...row};
+          for(const name of ['original','two','flexible','rollover','settlement']){
+            const old=prior[name],fresh=row[name];
+            if(!fresh||(record(fresh)&&!Object.keys(fresh).length))combined[name]=old;
+          }
+          if(!Object.keys(row.reference||{}).length){combined.reference=prior.reference;combined.referenceEnvelope=prior.referenceEnvelope;}
+          combined.referenceHistory=[...(prior.referenceHistory||[]),...(Object.keys(prior.reference||{}).length?[{reference:prior.reference,envelope:prior.referenceEnvelope}]:[])];
+          byId.set(row.id,combined);
+        }
+        days.set(date,[...byId.values()].sort((a,b)=>(Date.parse(a.cutoff)||Infinity)-(Date.parse(b.cutoff)||Infinity)||a.id.localeCompare(b.id)));
+      }
+    }
+    return {schema:M.SCHEMA,dates:[...days.keys()].sort(),days,files,formal:false,importedAt,sourceCommit:parts[0].sourceCommit,refreshHolds};
+  }
+  async function bytes(response,signal){
+    need(response.ok);const length=response.headers?.get('content-length');need(length==null||/^\d+$/.test(length)&&Number(length)<=MAX);
+    const reader=response.body?.getReader();need(reader);const parts=[];let size=0;
+    try{for(;;){signal?.throwIfAborted();const {value,done}=await reader.read();if(done)break;size+=value.byteLength;need(size<=MAX);parts.push(value);}}catch(e){await reader.cancel().catch(()=>{});throw e;}
+    const result=new Uint8Array(size);let offset=0;for(const p of parts){result.set(p,offset);offset+=p.length;}return result;
+  }
+  async function open(key,{signal,onStatus,fetcher=globalThis.fetch}={}){
+    const cap=await capability(key),options={credentials:'omit',referrerPolicy:'no-referrer',cache:'no-store',signal};
+    const index=checkIndex(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(await bytes(await fetcher(BASE+'index.json',options),signal))),cap.recipient);
+    const parts=[],display=index.entries.filter(e=>e.kind!=='archive');
+    for(const entry of display){
+      signal?.throwIfAborted();onStatus?.('暗号化した保存履歴を確認しています。 '+(parts.length+1)+' / '+display.length);
+      const wire=await bytes(await fetcher(BASE+'views/'+entry.cipher_sha256+'.json',options),signal);parts.push(await openEntry(wire,entry,cap));
+    }
+    signal?.throwIfAborted();const data=merge(parts);data.feed={entries:index.entries.length,providerDenied:index.provider_denied};return data;
+  }
+  return {open,openEntry,capability,checkIndex,merge,BASE};
+});
+
+/* A separate owner view. It never writes the formal model ledger or changes its keys. */
+(() => {
+  'use strict';
+  const M=window.RaceKeirinNote;
+  if(!M||document.getElementById('keirin-note-dialog'))return;
+  const fragment=window.RaceNoteInitialFragment||location.hash;
+  const dialog=document.createElement('dialog');dialog.id='keirin-note-dialog';dialog.className='kn-modal';dialog.setAttribute('aria-label','競輪の予想・分析ガイド');
+  const host=document.createElement('div');host.className='kn-host';dialog.append(host);
+  const root=host.attachShadow({mode:'open'}),sheet=document.createElement('link');sheet.rel='stylesheet';sheet.href=document.querySelector('link[rel="stylesheet"]')?.href||'./style.css';root.append(sheet);
+  const shell=document.createElement('div');shell.className='kn-shell';root.append(shell);document.body.append(dialog);
+  const launcher=document.createElement('button');launcher.id='keirin-note-open';launcher.type='button';launcher.className='kn-launcher';launcher.textContent='競輪の予想・分析ガイドを開く';
+  const strip=document.createElement('div');strip.className='kn-launch-strip';strip.append(launcher);(document.getElementById('data-banner')||document.querySelector('main'))?.after(strip);
+  let data=null,currentDay='',venue='',query='',market='3t',variant='flexible',futureOnly=false,selectedOnly=false;
+  let loadVersion=0,activeLoadAbort=null;
+  const preferences=new Map(),selected=new Set(),expanded=new Set();
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const money=v=>Number.isFinite(v)?v.toLocaleString('ja-JP')+'円':'未確認';
+  const $=id=>root.getElementById(id),all=()=>data?M.rows(data,currentDay):[];
+  const time=v=>v&&Number.isFinite(Date.parse(v))?new Date(v).toLocaleTimeString('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'}):'未確認';
+  const stamp=v=>v&&Number.isFinite(Date.parse(v))?new Date(v).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo',hour12:false}):'未確認';
+  const num=(v,suffix='')=>typeof v==='number'&&Number.isFinite(v)?esc(v)+suffix:'未確認';
+  const car=n=>Number.isInteger(n)&&n>=1&&n<=9?'<span class="kn-car kn-c'+n+'">'+n+'</span>':'';
+  const pref=row=>{const key=row.id+':'+market+':'+variant;if(!preferences.has(key))preferences.set(key,{budget:2500,excluded:new Set()});return preferences.get(key);};
+  function sourceLink(url,label){const safe=M.safeUrl(url);return safe?'<a target="_blank" rel="noopener noreferrer" href="'+esc(safe)+'">'+esc(label)+'</a>':'';}
+  function note(message,error=false){$('kn-status').textContent=message;$('kn-status').classList.toggle('kn-error',error);}
+  function beginLoad(){loadVersion++;activeLoadAbort?.abort();activeLoadAbort=null;return loadVersion;}
+  function build(){
+    shell.innerHTML=`<header class="kn-head"><div><p class="kn-eyebrow">RACE AI · KEIRIN NOTE</p><h1>競輪の読みどころ</h1><p>保存された分析・参考モデル・買い目を確認する</p></div><button type="button" id="kn-close" class="kn-close">閉じる</button></header>
+      <div class="kn-scroll"><section class="kn-import"><div><label class="kn-file">保存データを開く<input id="kn-file" type="file" accept=".json,application/json"></label><button id="kn-clear" type="button" class="kn-secondary">読込データを消す</button></div><p id="kn-status" role="status">本人用リンク、または保存データJSONから開けます。</p></section>
+      <nav id="kn-days" class="kn-day-tabs" aria-label="予想の日付"></nav><section id="kn-metrics" class="kn-metrics"></section>
+      <section class="kn-tools"><div id="kn-venues" class="kn-venues" aria-label="会場"></div><div class="kn-controls"><label>券種<select id="kn-market"><option value="3t">3連単</option><option value="2t">2車単</option></select></label><label>表示する予想<select id="kn-variant"><option value="flexible">改訂された分析</option><option value="original">原分析</option><option value="rollover">絞り込み分析</option><option value="A">参考A</option><option value="B">参考B・6局面</option><option value="C">参考Cの状況</option></select></label><label class="kn-search-label">検索<input id="kn-search" type="search" placeholder="会場・選手・レース名"></label></div><div class="kn-small-controls"><label><input id="kn-future" type="checkbox">これからのレース</label><label><input id="kn-selected" type="checkbox">検討リストのみ</label><span id="kn-count"></span></div></section>
+      <div id="kn-races" class="kn-grid"></div>
+      <details class="kn-rollover"><summary>2段階の資金配分を試算する</summary><p>受取額は払戻と返還の合計を手入力します。実購入の記録とは別の試算です。</p><div class="kn-controls"><label>初回の予算<select id="kn-roll-budget"><option>2000</option><option selected>2500</option><option>3000</option></select></label><label>1戦目の受取額<input id="kn-return-one" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label><label>2戦目の受取額<input id="kn-return-two" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label></div><div id="kn-roll-result"></div></details>
+      <footer class="kn-footer"><p>個別分析・改訂・参考A/Bはそれぞれの保存原本を保持します。参考Cの未生成も表示します。参考モデルの重みは校正済み確率ではありません。</p><p>画面での選択と配分は購入候補です。投票・決済は行いません。データと本人用リンクの鍵は外部へ送信しません。</p><p id="kn-provenance"></p></footer></div>
+      <div class="kn-selection"><div><strong id="kn-selection-count">検討リスト 0件</strong><small>候補・配分の試算</small></div><button id="kn-copy-selection" type="button">検討リストをコピー</button></div>`;
+    $('kn-close').addEventListener('click',()=>dialog.close());
+    $('kn-file').addEventListener('change',async event=>{const file=event.target.files?.[0];if(!file)return;const version=beginLoad();try{if(file.size>64*1024*1024)throw Error();note('保存データを確認しています。');await accept(await M.openPacket(JSON.parse(await file.text())),version);}catch{if(version===loadVersion)note('保存データを開けませんでした。形式と原本の整合を確認してください。',true);}if(version===loadVersion)event.target.value='';});
+    $('kn-clear').addEventListener('click',()=>{beginLoad();data=null;currentDay='';preferences.clear();selected.clear();expanded.clear();if(/^#(?:note|notefeed)=/.test(location.hash)){history.replaceState(null,'',location.pathname+location.search);window.RaceNoteInitialFragment='';}render();note('読込データを消去しました。');});
+    $('kn-market').addEventListener('change',event=>{market=event.target.value;renderCards();});
+    $('kn-variant').addEventListener('change',event=>{variant=event.target.value;renderCards();});
+    $('kn-search').addEventListener('input',event=>{query=event.target.value.trim().toLocaleLowerCase('ja');renderCards();});
+    $('kn-future').addEventListener('change',event=>{futureOnly=event.target.checked;renderCards();});
+    $('kn-selected').addEventListener('change',event=>{selectedOnly=event.target.checked;renderCards();});
+    root.addEventListener('click',event=>click(event.target.closest('button')));
+    root.addEventListener('change',event=>{const e=event.target;if(e.matches('[data-budget]')){const row=all().find(r=>r.id===e.dataset.budget);if(row){pref(row).budget=Number(e.value);renderCards();}}else if(e.matches('[data-ticket]')){const row=all().find(r=>r.id===e.dataset.race);if(row){const p=pref(row);e.checked?p.excluded.delete(e.dataset.ticket):p.excluded.add(e.dataset.ticket);renderCards();}}});
+    for(const id of ['kn-roll-budget','kn-return-one','kn-return-two'])$(id).addEventListener('input',renderRollover);
+    $('kn-copy-selection').addEventListener('click',()=>copy(all().filter(r=>selected.has(r.id)).map(copyRace).filter(Boolean).join('\n\n')));
+    render();renderRollover();
+  }
+  async function accept(value,version){if(version!==loadVersion)return;data=value;currentDay=data.dates.at(-1);venue='';query='';$('kn-search').value='';preferences.clear();selected.clear();expanded.clear();const authored=all().some(row=>row.original?.tickets?.length||row.two?.tickets?.length||row.flexible?.markets?.['3t']?.tickets?.length||row.flexible?.markets?.['2t']?.tickets?.length);variant=authored?'flexible':'A';if(!authored){market='3t';$('kn-market').value=market;}$('kn-variant').value=variant;render();note(data.feed?.providerDenied?'保存データを開きました。入力元の取得拒否により、自動取得は停止しています。':'保存データを端末内で開きました。',Boolean(data.feed?.providerDenied));}
+  function render(){
+    const days=data?.dates||[];$('kn-days').innerHTML=days.map(d=>'<button type="button" data-day="'+esc(d)+'" aria-pressed="'+(d===currentDay)+'">'+esc(d.slice(5).replace('-','月')+'日')+'</button>').join('');
+    const list=all(),riders=list.reduce((n,r)=>n+r.riders.length,0),original=list.reduce((n,r)=>n+M.forecast(r,'3t','original').tickets.length,0),priced=list.filter(r=>r.quote.fetched_at).length;
+    $('kn-metrics').innerHTML=[['対象レース',list.length+'件'],['出走メンバー',riders+'名'],['原分析の買い目',original+'点'],['保存オッズ',priced+'レース']].map(([k,v])=>'<div><span>'+esc(k)+'</span><strong>'+esc(v)+'</strong></div>').join('');
+    const venues=[...new Set(list.map(r=>r.venue))];$('kn-venues').innerHTML=[['','全会場'],...venues.map(v=>[v,v])].map(([v,label])=>'<button type="button" data-venue="'+esc(v)+'" aria-pressed="'+(v===venue)+'">'+esc(label)+'</button>').join('');
+    $('kn-provenance').textContent=data?'読込日時 '+stamp(data.importedAt)+' · 出典と予想時点は各レースで確認できます。'+(data.refreshHolds?.length?' · 入力変更 '+data.refreshHolds.length+'件は原分析との照合待ちです。':''):'';
+    renderCards();
+  }
+  function renderCards(){
+    const list=all(),now=Date.now();const shown=list.filter(r=>(!venue||r.venue===venue)&&(!query||(r.venue+' '+r.title+' '+r.riders.map(p=>p.name).join(' ')+' '+r.original.headline).toLocaleLowerCase('ja').includes(query))&&(!futureOnly||r.cutoff&&Date.parse(r.cutoff)>now)&&(!selectedOnly||selected.has(r.id)));
+    $('kn-count').textContent='表示 '+shown.length+' / 全'+list.length+'レース';
+    $('kn-races').innerHTML=shown.length?shown.map(renderRace).join(''):'<div class="kn-empty">'+(data?'条件に合うレースはありません。':'本人用リンク、または保存データを開くと予想を表示します。')+'</div>';
+    selectionSummary();
+  }
+  function lineHtml(row){
+    const line=n=>Number.isInteger(n)?car(n):n&&Array.isArray(n.contest)?'<span class="kn-contest">'+n.contest.map(car).join('')+'<small>競り</small></span>':'';
+    return row.lines.map(group=>'<span class="kn-line">'+(Array.isArray(group)?group:[]).map(line).join('<span>−</span>')+'</span>').join('<span class="kn-line-gap">/</span>');
+  }
+  function renderRace(row){
+    const prediction=M.forecast(row,market,variant),p=pref(row),allocation=M.allocate(prediction,p.budget,p.excluded),key=row.id+':'+market+':'+variant,open=expanded.has(key);
+    const late=row.cutoff&&Date.parse(row.cutoff)<Date.now();
+    const items=prediction.tickets.map((ticket,i)=>{
+      const quote=row.quote[market==='2t'?'odds_2t':'odds_3t']?.[ticket.combo],status=row.quote[market==='2t'?'quote_status_2t':'quote_status_3t']?.[ticket.combo];
+      const odds=typeof quote==='number'&&quote>0&&quote<9999.9?quote+'倍':status==='capped'?'上限表示':'未確認';
+      return '<div class="kn-ticket '+(!open&&i>=3?'kn-ticket-folded':'')+'"><label>'+ (prediction.allocatable?'<input type="checkbox" data-ticket="'+esc(ticket.combo)+'" data-race="'+row.id+'" '+(!p.excluded.has(ticket.combo)?'checked':'')+' aria-label="'+esc(ticket.combo)+'を配分対象にする">':'')+'<span class="kn-combo">'+ticket.combo.split('-').map(Number).map(car).join('<span>−</span>')+'</span><span class="kn-role">'+esc(ticket.role)+'</span></label><div><b>'+ (prediction.allocatable?money(allocation.amounts[i]):'比較用')+'</b><small>'+esc(odds)+'</small></div></div>';
+    }).join('');
+    const outcome=row.settlement;
+    const result=outcome?'<section class="kn-result"><b>提供サイトの保存分析の照合</b><p>'+esc(outcome.winning_combo||'結果未確認')+' · '+(outcome.sources_agree===false?'出典間の相違で保留':outcome.hit?'的中':outcome.status==='MISS'?'不的中':esc(outcome.status||'照合未確認'))+'</p><p>各100円の想定：'+money(outcome.net_yen)+'（実購入ではありません）</p></section>':'';
+    const budget=prediction.allocatable?'<div class="kn-budget"><label>候補予算<select data-budget="'+row.id+'">'+[2000,2500,3000].map(n=>'<option value="'+n+'" '+(n===p.budget?'selected':'')+'>'+money(n)+'</option>').join('')+'</select></label><span>配分 '+allocation.chosen.length+'点 / 合計 '+money(allocation.total)+'</span></div>':'';
+    return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+(prediction.confidence?'<span>分析区分 '+esc(prediction.confidence)+'</span>':'')+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p><div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+budget+
+      '<div class="kn-point-heading"><b>予想 '+prediction.tickets.length+'点'+(prediction.allocatable?' · 配分 '+allocation.chosen.length+'点':'')+'</b></div><div class="kn-tickets">'+(items||'<p class="kn-empty">'+esc(prediction.reason||'この券種の保存予想はありません。')+'</p>')+'</div>'+(prediction.tickets.length>3?'<button type="button" class="kn-more" data-expand="'+row.id+'">'+(open?'上位3点に戻す':'全'+prediction.tickets.length+'点を表示')+'</button>':'')+
+      (prediction.allocatable&&!allocation.available?'<p class="kn-warning">配分対象がないか、全点への100円単位の配分に予算が足りません。点数を選び直してください。</p>':'')+
+      '<div class="kn-race-actions"><button type="button" data-select="'+row.id+'" aria-pressed="'+selected.has(row.id)+'">'+(selected.has(row.id)?'検討リストから外す':'検討リストに追加')+'</button><button type="button" data-copy="'+row.id+'" '+(prediction.allocatable&&!allocation.available?'disabled':'')+'>買い目をコピー</button></div>'+result+
+      scenarios(prediction.scenarios)+roster(row)+
+      '<details class="kn-details"><summary>出典・予想時点・注意点</summary><p>'+esc(prediction.risk||'保存された条件付きの分析です。')+'</p><p>予想の記載時点 '+stamp(prediction.createdAt)+'</p><p>オッズの保存時点 '+stamp(row.quote.source_updated_at||row.quote.fetched_at)+'</p><p>'+esc(row.quote.scope_label||'保存時点の値。現在値は掲載元で確認してください。')+'</p>'+sourceLink(row.sourceUrl,'出走表・掲載オッズ')+referenceProvenance(row)+'<p class="kn-small">参考A/Bは既存計算、Cは独立した連係履歴が不足しているため未生成です。正式な全モデル実測の認証とは別に表示しています。</p></details></article>';
+  }
+  function scenarios(values){
+    if(!Array.isArray(values)||!values.length)return '';
+    const names=['初周','打鐘','最終ホーム','最終バック','4コーナー','ゴール'];
+    return '<details class="kn-details"><summary>展開と根拠・6局面を読む</summary>'+values.slice(0,64).map((s,i)=>{
+      if(!s||typeof s!=='object')return '';
+      const phases=s.six_phases||s.phases||s.phase_orders||[];
+      const list=Array.isArray(phases)?phases:Object.entries(phases).map(([phase,order])=>({phase,order}));
+      return '<section class="kn-scenario"><h4>'+esc(s.label||s.scenario_id||s.id||'展開 '+(i+1))+'</h4><p>'+esc(s.condition||'条件付きの展開仮説')+'</p><ol>'+list.map((p,n)=>{const order=p?.projected_order||p?.order||p?.ordering;const actions=p?.hypothesis_actions;return '<li><b>'+esc(typeof p==='object'?p?.label||p?.phase||names[n]||'局面':names[n]||'局面')+'</b><span>'+esc(typeof p==='string'?p:p?.description||p?.event||(Array.isArray(order)?order.map(v=>Array.isArray(v)?v.join('−'):v).join(' → '):'')||'記述未取得')+'</span>'+(actions?'<p>'+esc(Array.isArray(actions)?actions.join(' / '):actions)+'</p>':'')+'</li>';}).join('')+'</ol><p class="kn-small">'+esc(Array.isArray(s.evidence)?s.evidence.join(' / '):s.evidence||'')+'</p></section>';
+    }).join('')+'</details>';
+  }
+  function roster(row){
+    return '<details class="kn-details"><summary>選手の数字・コメント・近況</summary><div class="kn-table-scroll"><table><thead><tr><th>車</th><th>選手</th><th>得点</th><th>S/H/B</th><th>逃/捲/差/マ</th><th>勝率</th><th>3連対</th></tr></thead><tbody>'+row.riders.map(p=>'<tr><td>'+car(p.number)+'</td><td>'+esc(p.name)+'</td><td>'+num(p.score)+'</td><td>'+[p.S,p.H,p.B].map(v=>num(v)).join('/')+'</td><td>'+[p.nige??p.escape,p.makuri,p.sashi,p.mark].map(v=>num(v)).join('/')+'</td><td>'+num(p.win_rate??p.win,'%')+'</td><td>'+num(p.top3_rate,'%')+'</td></tr>').join('')+'</tbody></table></div>'+row.riders.map(p=>'<p class="kn-rider-note"><b>'+p.number+' '+esc(p.name)+'</b><span>コメント：'+esc(p.comment||'未取得')+'</span><span>近況：'+esc((Array.isArray(p.recent_meets)?p.recent_meets:Array.isArray(p.recent_meetings)?p.recent_meetings:Object.values(p.recent_meetings||{})).filter(Boolean).join(' / ')||'未取得')+'</span></p>'+fieldProvenance(p)).join('')+'<p class="kn-small">主表示の統計は掲載元の値を保持します。参考A/Bのnetkeirin統計と平均しません。H/Bは過去の先頭回数で、今日の隊列ではありません。</p></details>';
+  }
+  function providerName(url){const host=new URL(url).hostname;return host==='keirin.netkeiba.com'?'netkeirin':host==='keirin.kdreams.jp'?'Kドリームス':host;}
+  function referenceProvenance(row){const pages=row.referenceEnvelope?.input?.source_pages;if(!Array.isArray(pages))return '';const seen=new Set(),links=pages.flatMap(page=>{const url=M.safeUrl(page?.url);if(!url||seen.has(url))return [];seen.add(url);return [sourceLink(url,'参考A/Bの入力・'+providerName(url))];});return links.length?'<p class="kn-small kn-reference-provenance">'+links.join(' / ')+'</p>':'';}
+  function fieldProvenance(person){const fields=person.field_sources;if(!fields||typeof fields!=='object'||Array.isArray(fields))return '';const labels={statistics:'得点・率・成績',H:'H',B:'B',comment:'コメント',recent_meetings:'近況',venue_5yr:'当場の成績',same_distance_year:'同じ周長の成績'};const links=Object.entries(fields).flatMap(([field,value])=>{const url=M.safeUrl(typeof value==='string'?value:value?.url);return url?[sourceLink(url,(labels[field]||field)+'：'+providerName(url))]:[];});return links.length?'<p class="kn-small kn-field-provenance">'+esc(person.number)+'番の項目別出典：'+links.join(' / ')+'</p>':'';}
+  function selectionSummary(){const list=all().filter(r=>selected.has(r.id));const total=list.reduce((n,r)=>{const f=M.forecast(r,market,variant),p=pref(r);return n+M.allocate(f,p.budget,p.excluded).total;},0);$('kn-selection-count').textContent='検討リスト '+list.length+'件 · '+money(total);$('kn-copy-selection').disabled=!list.length;}
+  function copyRace(row){const f=M.forecast(row,market,variant),p=pref(row),a=M.allocate(f,p.budget,p.excluded);if(f.allocatable&&!a.available)return '';return row.date+' '+row.venue+' '+row.number+'R / '+f.label+' / 掲載締切 '+time(row.cutoff)+'\n'+f.tickets.filter((t,i)=>!f.allocatable||a.amounts[i]>0).map(t=>{const i=f.tickets.indexOf(t);return t.combo+(f.allocatable?' '+money(a.amounts[i]):'');}).join('\n')+'\n'+(f.allocatable?'候補配分 '+money(a.total)+' · 未購入':'参考計算・比較用');}
+  async function copy(value){if(!value)return;try{await navigator.clipboard.writeText(value);note('買い目候補をコピーしました。');}catch{const area=document.createElement('textarea');area.value=value;root.append(area);area.select();const ok=document.execCommand('copy');area.remove();note(ok?'買い目候補をコピーしました。':'このブラウザーではコピーできませんでした。',!ok);}}
+  function click(button){
+    if(!button)return;
+    if(button.dataset.day){currentDay=button.dataset.day;venue='';render();return;}
+    if(Object.hasOwn(button.dataset,'venue')){venue=button.dataset.venue;render();return;}
+    if(button.dataset.expand){const key=button.dataset.expand+':'+market+':'+variant;expanded.has(key)?expanded.delete(key):expanded.add(key);renderCards();return;}
+    if(button.dataset.select){const id=button.dataset.select;selected.has(id)?selected.delete(id):selected.add(id);renderCards();return;}
+    if(button.dataset.copy){const row=all().find(r=>r.id===button.dataset.copy);if(row)copy(copyRace(row));}
+  }
+  function renderRollover(){
+    try{const value=id=>$(id).value===''?null:Number($(id).value);const p=window.KeirinRollover.plan({initialBudget:Number($('kn-roll-budget').value),firstReturn:value('kn-return-one'),secondReturn:value('kn-return-two')});$('kn-roll-result').innerHTML='<p>初回 '+money(p.firstStake)+' · 次の候補 '+money(p.nextStake)+' · 留保 '+money(p.reserve)+'</p><p>'+esc(p.reason||'最終の試算：'+money(p.net))+'</p>';}catch{$('kn-roll-result').textContent='受取額は0〜100,000,000円の整数で入力してください。';}
+  }
+  async function bounded(response){const limit=90*1024*1024,length=response.headers.get('content-length');if(length!==null&&(!/^\d+$/.test(length)||Number(length)>limit))throw Error();const reader=response.body?.getReader();if(!reader)throw Error();const parts=[];let total=0;try{for(;;){const {value,done}=await reader.read();if(done)break;total+=value.byteLength;if(total>limit)throw Error();parts.push(value);}}catch{await reader.cancel().catch(()=>{});throw Error();}const bytes=new Uint8Array(total);let offset=0;for(const p of parts){bytes.set(p,offset);offset+=p.length;}return bytes;}
+  async function fromFragment(){
+    const match=/^#note=([a-f0-9]{64})\.([A-Za-z0-9_-]{43})$/.exec(fragment);
+    const feed=/^#notefeed=([A-Za-z0-9_-]{150,400})$/.exec(fragment);
+    if(!match&&!feed)return;
+    const version=beginLoad();
+    dialog.showModal();note('本人用の保存データを開いています。');
+    const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),feed?120000:20000);
+    activeLoadAbort=abort;
+    try{let value;if(feed){if(typeof window.RaceKeirinNoteFeed?.open!=='function')throw Error();value=await window.RaceKeirinNoteFeed.open(feed[1],{signal:abort.signal,onStatus:()=>{if(version===loadVersion)note('保存された最新データを確認しています。');}});}else{const response=await fetch(new URL('./views/'+match[1]+'.json',document.baseURI),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer',signal:abort.signal});if(!response.ok)throw Error();value=await M.openCipher(await bounded(response),{cipherSha:match[1],key:match[2]});}await accept(value,version);}
+    catch{if(version===loadVersion)note('本人用リンクのデータを開けませんでした。保存データまたはリンクを確認してください。',true);}finally{clearTimeout(timer);if(activeLoadAbort===abort)activeLoadAbort=null;}
+  }
+  build();launcher.addEventListener('click',()=>dialog.showModal());fromFragment();
 })();
