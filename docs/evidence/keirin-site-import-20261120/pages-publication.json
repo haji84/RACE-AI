@@ -1,0 +1,18 @@
+{
+  "status": "PAGES_PRESENTATION_REFRESHED",
+  "source_commit": "8d7283fd02e28d472485930637396c807fbe16f3",
+  "parent_commit": "57da5e4f2e01c91f1b33daa1aaccf92743d7f4b3",
+  "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+  "manifest_sha256": "e87f31d54bd8f86f1c52f9f2d8751197d4b445ac90981998836fd7414dd01d66",
+  "portrait_count": 1669,
+  "ciphertext_unchanged": true,
+  "plaintext_published": false,
+  "source_ui_commit": "8c378cc33999644f52394dc26c45e6559b6ede9b",
+  "frozen_publisher_blob": "4754c4ee1b2ccc88ad71f1fbea3ebe0a0351ea5c",
+  "existing_manifest_identity_unchanged": true,
+  "all_existing_view_oids_unchanged": true,
+  "additional_live_asset_paths": 0,
+  "existing_owner_formal_display_preserved": true,
+  "independent_note_feed": "state/keirin-note-view",
+  "new_secret_access": false
+}

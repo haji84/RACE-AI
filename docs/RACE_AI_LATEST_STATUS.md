@@ -1,3 +1,19 @@
+# 2026-11-20 JST｜提供された競輪ガイドをGitHubへ取り込み、既存画面で実読取りを確認
+
+本人の『取り込んで、GitHubに取り込んで使える画面にして、入力元も同じようにして。』に従い、同じRACE-AIに統合する。以下を最新として優先し、下段は当時の記録として保持する。
+
+- 所有サイトの公開v6 source **25a829413d5f5940f0dcaed1cc7dda7e473105a0** を保全。11/19の75レース/539選手/680点、11/20の57レース/414選手/原分析543点・可変改訂594点、2車単、参考A/B、C未生成を区別する。原本122ファイルのGit archiveも暗号化して同じGitHubに保持した。別環境のファイル自動転送は仮定せず、元offline未push **b7380fe6a377e6ccf2b96331f2126c52549bbe17 / daae4c10167224b7730006d8ada5ade398aaa64b はUNRESTORED**。
+- 既存PR **#62** の履歴を親に残し、現在のmain **4701697f5**（公式履歴canaryを含む）を保全してmain向けに整理した。新PR/モデル系統/課金/投票/本番重み切替は追加しない。旧PRの古い他分野のtreeを戻さない。
+- 既存Pagesの現行70資産を土台に、日付/会場/検索、2車単・3連単、原分析/改訂/A/B/C、点数選択、予算配分、コピー、6局面、選手情報・出典、保存オッズと照合の画面を統合。実公開URL **https://haji84.github.io/RACE-AI/** はHTTP200。実ネットワークのChromium390/1440pxで57件/75件の切替・B/C・元BOAT表示を確認し、JS例外0・鍵の送信0・掲載元へのブラウザー要求0。**物理iPhone/Safariの合格ではない**。[実公開画面](evidence/keirin-site-import-20261120/live-pages-browser.json)。
+- Pagesは既存の凍結publisherでCAS更新し、元の全cipher OIDとBOAT manifest identityを保持した。BOAT **S=1dbb47b68d487fc6def0bd4b10b1423f0a2145f6** と既存run **44656378586** は変更・dispatch/rerun/cancel/reset/hotswapをしていない。元の失敗run **43829249080** はcompleted/failureのままであり、後続の実行状態と区別する。[表示更新の保全](evidence/keirin-site-import-20261120/pages-publication.json)。
+- 同じKdreams/netkeirin入力を許可済みの通常GETで接続した。ローカル実取得は **6会場57観測、24件締切後、33未来候補中31正規化・参考A/B計算、73GETで拒否0**。2件はnetkeirin canonicalが結果routeを指したためHOLDし、URL照合を緩和しない。1件は掲載T15〜10で取得・計算したが、Git保存まで同窓内の認証はしていない。原本と計算の暗号化Git readbackは **48ac1c6f39872d0ac95baf4123728694e1a1327b**。[取得・保管の実測](evidence/keirin-site-import-20261120/implementation.json)。
+- 日々の更新は**独立した表示専用P-256公開受取人**に暗号化し、本人用の秘密鍵はURL fragmentにのみ置く。`RACE_AI_STATE_KEY` のlocal取得/使用は0、表示処理へも渡さない。取得総数の恣意的上限を設けず、全公開開催HREF/未来候補を扱い、掲載T15〜10を優先して一度更新する。取得と計算が両方T15〜10の場合だけpriority receiptに数える。拒否ラッチは日付をまたいで保全し、包装失敗時も制御ラッチだけを保管する。
+- 既存の相互排他的なPR71/AB Git writerの**run本文だけ**へ接続し、旧source/configが許す既存実行経路を使う。workflow/job/step/input/if/cron/runner/timeout/permission等の定義追加0、元A/B generatorのblob一致を確認した。最新の運転件数・時刻は [暗号化表示index](https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-note-view/index.json) と既存完了Actionsを参照する。記録時点の31件はlocal実入力後のGit保管実証であり、統合後の定期全件T15運転を先取りしない。
+- 関連Python **103検査**、Node **9契約**、Chromium **6合成ケースと実データ2幅**を検証。PR head8c378cc33のCIは成功11/失敗0、以後の時刻判定・互換性修正と記録は最終headのCIで再確認する。独立reviewは重大な未解決0。[review](evidence/keirin-site-import-20261120/review.json)。
+- **WINTICKET側の403は未解消**。今回の別入力元のHTTP200と区別する。全4競技全件×全適用モデル/T15保存・結果照合、実機iPhone、6艇識別/校正/予想接続、前向き改善は未完了。部分入力・参考計算を正式PR71全入力の認証や精度向上と扱わない。
+
+以下は以前の記録。
+
 # 2026-11-20 JST｜全件取得の照合時間を短縮・WINTICKETの実403を再確認（実運転は未確認）
 
 本人用の開発を継続し、既存の画面照合を一括読取りへ変更した。以下はこの変更の統合前検証であり、新しい実全件運転・予想保存の合格ではない。下段の旧記録を履歴として保持する。

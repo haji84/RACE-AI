@@ -1,0 +1,30 @@
+{
+  "page": "https://haji84.github.io/RACE-AI/",
+  "transport": "actual public GitHub Pages and actual raw GitHub ciphertext; no network interception",
+  "results": [
+    {
+      "viewport": 390,
+      "HTTP_status": 200,
+      "latest_races": 57,
+      "previous_races": 75,
+      "load_and_interaction_seconds": 6.9,
+      "page_errors": 0,
+      "key_transmitted": false,
+      "provider_requests": 0,
+      "owner_formal_preserved": true,
+      "physical_iPhone": false
+    },
+    {
+      "viewport": 1440,
+      "HTTP_status": 200,
+      "latest_races": 57,
+      "previous_races": 75,
+      "load_and_interaction_seconds": 4.97,
+      "page_errors": 0,
+      "key_transmitted": false,
+      "provider_requests": 0,
+      "owner_formal_preserved": true,
+      "physical_iPhone": false
+    }
+  ]
+}

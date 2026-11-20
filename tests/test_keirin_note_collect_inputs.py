@@ -220,6 +220,24 @@ class NoteInputCollectionTests(unittest.TestCase):
         self.assertEqual(result['safe_report']['captured_race_ids'],[rid(2)])
         self.assertEqual(result['safe_report']['priority_window_race_ids'],[])
 
+    def test_priority_receipt_also_requires_generation_before_the_ten_minute_boundary(self):
+        self.pages=pages_for([(2,'12:12'),(3,'12:14')])
+        current=[NOW]
+        def fetch(url):
+            raw=self.fetch(url)
+            if url==urls(3)[0]:
+                current[0]+=timedelta(minutes=3)
+            return raw
+        result=self.api().collect_day(day_jst=DAY,private_root=self.root,
+                                      fetch=fetch,clock=lambda:current[0])
+        _,references,_=self.documents(result)
+        first=references[0]
+        cutoff=datetime.fromisoformat(first['input']['published_cutoff_at'])
+        self.assertEqual((cutoff-datetime.fromisoformat(first['input']['as_of'])).total_seconds(),720)
+        self.assertEqual((cutoff-datetime.fromisoformat(first['output']['generated_at'])).total_seconds(),540)
+        self.assertEqual(result['safe_report']['captured_race_ids'],[rid(2),rid(3)])
+        self.assertEqual(result['safe_report']['priority_window_race_ids'],[rid(3)])
+
     def test_a_pair_that_becomes_too_close_stops_before_fetching_its_second_page(self):
         self.pages=pages_for([(2,'12:12')])
         current=[NOW]

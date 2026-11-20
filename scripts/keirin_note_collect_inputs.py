@@ -399,7 +399,9 @@ def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_id
                     captured.append(race_id)
                     source_remaining=(model.when(snap['published_cutoff_at'])-
                                       model.when(snap['as_of'])).total_seconds()
-                    if 600<=source_remaining<=900:
+                    generation_remaining=(model.when(snap['published_cutoff_at'])-
+                                          model.when(generated_at)).total_seconds()
+                    if 600<=source_remaining<=900 and 600<=generation_remaining<=900:
                         priority_captured.append(race_id)
                 except (ValueError,KeyError,TypeError,OSError) as error:
                     states['HOLD_'+_safe_reason(error)]+=1

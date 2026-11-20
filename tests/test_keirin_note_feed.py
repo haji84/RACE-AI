@@ -86,7 +86,9 @@ class NoteFeedTests(unittest.TestCase):
         script="""
         let raw='';process.stdin.on('data',x=>raw+=x);process.stdin.on('end',async()=>{
           try{const v=JSON.parse(raw),F=require('./web/keirin-note-feed.js');let calls=[];
-            const data=await F.open(v.key,{fetcher:async(url,opt)=>{
+            const signal=new AbortController().signal;
+            Object.defineProperty(signal,'throwIfAborted',{value:undefined});
+            const data=await F.open(v.key,{signal,fetcher:async(url,opt)=>{
               if(url.includes(v.key)||opt.credentials!=='omit')throw Error();calls.push(url);
               return new Response(url.endsWith('index.json')?JSON.stringify(v.index):new Uint8Array(v.cipher));
             }});

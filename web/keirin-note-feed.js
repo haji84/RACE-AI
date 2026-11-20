@@ -72,7 +72,7 @@
   async function bytes(response,signal){
     need(response.ok);const length=response.headers?.get('content-length');need(length==null||/^\d+$/.test(length)&&Number(length)<=MAX);
     const reader=response.body?.getReader();need(reader);const parts=[];let size=0;
-    try{for(;;){signal?.throwIfAborted();const {value,done}=await reader.read();if(done)break;size+=value.byteLength;need(size<=MAX);parts.push(value);}}catch(e){await reader.cancel().catch(()=>{});throw e;}
+    try{for(;;){need(!signal?.aborted);const {value,done}=await reader.read();if(done)break;size+=value.byteLength;need(size<=MAX);parts.push(value);}}catch(e){await reader.cancel().catch(()=>{});throw e;}
     const result=new Uint8Array(size);let offset=0;for(const p of parts){result.set(p,offset);offset+=p.length;}return result;
   }
   async function open(key,{signal,onStatus,fetcher=globalThis.fetch}={}){
@@ -80,10 +80,10 @@
     const index=checkIndex(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(await bytes(await fetcher(BASE+'index.json',options),signal))),cap.recipient);
     const parts=[],display=index.entries.filter(e=>e.kind!=='archive');
     for(const entry of display){
-      signal?.throwIfAborted();onStatus?.('暗号化した保存履歴を確認しています。 '+(parts.length+1)+' / '+display.length);
+      need(!signal?.aborted);onStatus?.('暗号化した保存履歴を確認しています。 '+(parts.length+1)+' / '+display.length);
       const wire=await bytes(await fetcher(BASE+'views/'+entry.cipher_sha256+'.json',options),signal);parts.push(await openEntry(wire,entry,cap));
     }
-    signal?.throwIfAborted();const data=merge(parts);data.feed={entries:index.entries.length,providerDenied:index.provider_denied};return data;
+    need(!signal?.aborted);const data=merge(parts);data.feed={entries:index.entries.length,providerDenied:index.provider_denied};return data;
   }
   return {open,openEntry,capability,checkIndex,merge,BASE};
 });

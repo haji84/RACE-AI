@@ -73,7 +73,7 @@
     "retries": 0
   },
   "validation": {
-    "related_python_tests": 102,
+    "related_python_tests": 103,
     "python_failures": 0,
     "browser_tests": 6,
     "browser_failures": 0,
@@ -93,8 +93,10 @@
     "new_charges": 0,
     "offline_commits": "UNRESTORED b7380fe6a377e6ccf2b96331f2126c52549bbe17 / daae4c10167224b7730006d8ada5ade398aaa64b"
   },
-  "live_pages_updated": false,
+  "live_pages_updated": true,
   "physical_iPhone_verified": false,
   "winticket_403_resolved": false,
-  "four_sport_goal_complete": false
+  "four_sport_goal_complete": false,
+  "live_browser_verified": true,
+  "latest_source_window_requires_actual_generation": true
 }

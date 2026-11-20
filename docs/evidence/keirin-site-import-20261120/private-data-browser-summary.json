@@ -1,0 +1,28 @@
+{
+  "transport": "loopback UI with committed Git ciphertext; GitHub network substituted by exact retained blobs",
+  "head": "48ac1c6f39872d0ac95baf4123728694e1a1327b",
+  "results": [
+    {
+      "viewport": 390,
+      "load_seconds": 10.08,
+      "races_latest": 57,
+      "previous_day_races": 75,
+      "network_view_requests": 3,
+      "archive_requests": 0,
+      "errors": [],
+      "old_sports_navigable": 4,
+      "private_fragment_sent": false
+    },
+    {
+      "viewport": 1440,
+      "load_seconds": 7.42,
+      "races_latest": 57,
+      "previous_day_races": 75,
+      "network_view_requests": 3,
+      "archive_requests": 0,
+      "errors": [],
+      "old_sports_navigable": 4,
+      "private_fragment_sent": false
+    }
+  ]
+}
