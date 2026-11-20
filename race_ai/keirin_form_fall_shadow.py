@@ -128,6 +128,10 @@ def generate_shadow(snapshot, supplement, *, baseline, generated_at):
             "model": "six-phase-plus-documented-form-v1",
             "ranked_tickets": ranked_b,
             "changed_from_original": ranked_b != baseline["B"]["ranked_tickets"],
+            "branch_condition_factors": [
+                {"scenario_id": sid,
+                 "relative_weight_after": round(weight / sum(x[2] for x in adjusted), 8)}
+                for sid, _ticket, weight in adjusted],
             "branch_factor_is_uncalibrated": True},
         "rider_assessments": [assessed[n] for n in sorted(assessed)],
         "verified_source_receipt_count": len(pages),
