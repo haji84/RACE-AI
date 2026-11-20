@@ -155,6 +155,15 @@ jobs:
             scripts/keirin_manual71_owner_intake_cli.py \
             scripts/keirin_manual71_matsuyama7_preflight.py
           echo 'Owner RSA, official result, AES archive and browser are NOT verified by synthetic CI.' >> "$GITHUB_STEP_SUMMARY"
+          (
+            cd "$GITHUB_WORKSPACE"
+            export PYTHONPATH="$GITHUB_WORKSPACE"
+            python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5'
+            python -m unittest -v tests.test_keirin_note_view tests.test_keirin_note_feed tests.test_keirin_note_feed_cycle tests.test_keirin_note_collect_inputs
+            node --test tests/keirin_note_feed.test.cjs
+            python scripts/build_keirin_note_assets.py
+            git diff --exit-code -- web/app.js web/style.css
+          )
       - name: Do not claim synthetic results as live
         run: echo 'Synthetic model and AES tests are not actual real-race prediction evidence.' >> "$GITHUB_STEP_SUMMARY"
       - name: Main-only owner-approved real source connection without production secrets
@@ -384,6 +393,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # The owner-imported display profile uses only its public recipient.
+          # Preserve the original PR71 cycle even if this independent view holds.
+          if ! (
+            set -euo pipefail
+            cd "$GITHUB_WORKSPACE"
+            python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+            env -u RACE_AI_STATE_KEY PYTHONPATH="$GITHUB_WORKSPACE" python -m scripts.keirin_note_feed_cycle --repo "$GITHUB_WORKSPACE"
+          ); then
+            echo 'NOTE_SOURCE_OR_ENCRYPTED_DISPLAY_HOLD; original PR71 cycle continues.' >> "$GITHUB_STEP_SUMMARY"
+          fi
           if [[ -z "$RACE_AI_STATE_KEY" ]]; then
             echo 'NO_PRIVATE_AES_KEY_HOLD' >> "$GITHUB_STEP_SUMMARY"
             echo 'committed=false' >> "$GITHUB_OUTPUT"

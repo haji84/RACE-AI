@@ -7,6 +7,7 @@ import unittest
 from race_ai import keirin_dynamic_nationwide_registry as dynamic
 from scripts import keirin_capture_public_two_sources as capture
 from scripts import keirin_register_public_day as day
+from tests.test_keirin_discover_public_race_links import listed_race
 
 DAY = "2026-11-19"
 CALENDAR = "https://keirin.kdreams.jp/kaisai/2026/11/19/"
@@ -73,6 +74,16 @@ class PublicDayRegistrationTests(unittest.TestCase):
                          "2620261118020001/")
         self.assertEqual(self.calls, [CALENDAR, C24, C26])
         self.assertEqual(len(list(self.dir.glob("*.html"))), 3)
+
+    def test_registration_retains_only_cutoffs_printed_beside_the_linked_race(self):
+        self.pages[C24]=('<html><nav>締切 00:01</nav><ul class="racecard_list">'+
+            listed_race('/utsunomiya/racedetail/2420261119010001/',
+                        cutoff="10:45",start="10:50")+'</ul></html>').encode()
+        _,manifest,safe=self.register()
+        self.assertEqual([r["cutoff_hint"] for r in manifest["races"]],
+                         ["2026-11-19T10:45:00+09:00",None,None])
+        self.assertFalse(safe["official_cutoff_verified"])
+        self.assertFalse(safe["national_universe_verified"])
 
     def test_partial_meeting_limit_does_not_claim_complete_day(self):
         registry, manifest, safe = self.register(max_meetings=1)

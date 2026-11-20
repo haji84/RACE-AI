@@ -6,6 +6,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 import json
 import unittest
+from urllib.error import HTTPError
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -156,6 +157,41 @@ class TwoPublicSourcesToAutoAB(unittest.TestCase):
         self.assertEqual(out["states"]["HOLD_FETCH_BUDGET_NOT_YET_TRIED"],1)
         self.assertEqual(len(self.calls),2)
 
+    def test_default_capture_processes_every_linked_race_beyond_eight(self):
+        data=manifest()
+        data["races"]=[]
+        for number in range(1,10):
+            rid="2026111824"+f"{number:02d}"
+            data["races"].append({
+                "race_id":rid,
+                "netkeirin_url":"https://keirin.netkeiba.com/race/entry/?race_id="+rid,
+                "kdreams_url":"https://keirin.kdreams.jp/utsunomiya/racedetail/24202611170200"+f"{number:02d}/",
+                "cutoff_hint":"2026-11-18T20:45:00+09:00"})
+        def fetch(url):
+            self.calls.append(url)
+            return self.net if "netkeiba.com" in url else self.kd
+        try:
+            out=self.collect(day_manifest=data,
+                registered_ids=[r["race_id"] for r in data["races"]],fetch=fetch)
+        except collector.SourceCaptureError as exc:
+            self.fail("Uncapped eligible manifest was rejected: "+str(exc))
+        self.assertEqual(out["normalized_private_cards"],9)
+        self.assertEqual(out["GET_pair_attempts"],9)
+        self.assertEqual(len(self.calls),18)
+
+    def test_cutoff_priority_compares_instants_across_explicit_offsets(self):
+        data=manifest()
+        data["races"].append({
+            "race_id":"202611182402",
+            "netkeirin_url":"https://keirin.netkeiba.com/race/entry/?race_id=202611182402",
+            "kdreams_url":"https://keirin.kdreams.jp/utsunomiya/racedetail/2420261117020002/",
+            "cutoff_hint":"2026-11-18T12:00:00+00:00"})
+        def fetch(url):
+            self.calls.append(url)
+            return self.net if "netkeiba.com" in url else self.kd
+        self.collect(day_manifest=data,max_races=1,fetch=fetch)
+        self.assertEqual(self.calls[0],NET)
+
     def test_inconsistent_pre_captured_time_rejected(self):
         bad=manifest()
         bad["races"][0]["cutoff_hint"]="2026-11-19T21:00:00+09:00"
@@ -171,12 +207,14 @@ class TwoPublicSourcesToAutoAB(unittest.TestCase):
 
 
 class OwnerApprovedPublicTransport(unittest.TestCase):
-    """Only the existing four-host owner profile may reach real transport."""
+    """The owner-authorized Site sources use ordinary bounded public GETs."""
 
     def test_excluded_or_unsafe_sources_rejected_before_request_or_opener(self):
         urls = [
-            "https://keirin.kdreams.jp/kaisai/2030/01/15/",
-            "https://keirin.netkeiba.com/race/entry/?race_id=203001152601",
+            "https://keirin.kdreams.jp.attacker.invalid/kaisai/2030/01/15/",
+            "https://keirin.netkeiba.com.attacker.invalid/race/entry/",
+            "https://www.keirin.kdreams.jp/fixture",
+            "https://user:password@keirin.netkeiba.com/fixture",
             "https://keirin-mobile.jp/fixture",
             "https://example.invalid/fixture",
             "https://keirin.jp.attacker.invalid/fixture",
@@ -199,6 +237,36 @@ class OwnerApprovedPublicTransport(unittest.TestCase):
                     collector.fetch_once(url)
                 request.assert_not_called()
                 opener.assert_not_called()
+
+    def test_same_inputs_hosts_allow_transparent_GET_without_credentials(self):
+        for host in ("keirin.kdreams.jp","keirin.netkeiba.com"):
+            url="https://"+host+"/fixture"
+            with self.subTest(host=host),patch.object(collector,"build_opener") as opener:
+                response=opener.return_value.open.return_value
+                response.status=200
+                response.geturl.return_value=url
+                response.headers={"Content-Type":"text/html; charset=utf-8"}
+                response.read.return_value=b"synthetic public HTML"
+                try:
+                    raw=collector.fetch_once(url)
+                except collector.SourceCaptureError as exc:
+                    self.fail("Owner-authorized source was rejected: "+str(exc))
+                self.assertEqual(raw,b"synthetic public HTML")
+                request=opener.return_value.open.call_args.args[0]
+                self.assertEqual(request.get_method(),"GET")
+                self.assertTrue(request.get_header("User-agent").startswith("RACE-AI-"))
+                self.assertIsNone(request.get_header("Cookie"))
+                self.assertIsNone(request.get_header("Authorization"))
+                response.close.assert_called_once()
+
+    def test_401_is_a_provider_denial_without_retry(self):
+        with patch.object(collector,"build_opener") as opener:
+            opener.return_value.open.side_effect=HTTPError(
+                "https://keirin.jp/fixture",401,"synthetic denied",{},None)
+            with self.assertRaisesRegex(collector.SourceCaptureError,
+                                        "^PROVIDER_DENIED_OR_RATE_LIMITED_STOP$"):
+                collector.fetch_once("https://keirin.jp/fixture")
+            self.assertEqual(opener.return_value.open.call_count,1)
 
     def test_existing_source_session_four_host_profile_still_allows_normal_get(self):
         from scripts import keirin_cloud_owner_inputs as approved
@@ -247,20 +315,19 @@ class OwnerApprovedPublicTransport(unittest.TestCase):
             response.read.assert_not_called()
             response.close.assert_called_once()
 
-    def test_default_discovery_cannot_send_excluded_calendar_to_transport(self):
+    def test_default_discovery_admits_calendar_then_stops_after_denial(self):
         from scripts import keirin_discover_public_race_links as discovery
-        with patch.object(collector, "Request") as request, \
-                patch.object(collector, "build_opener") as opener:
-            opener.return_value.open.side_effect = collector.SourceCaptureError(
-                "TRANSPORT_REACHED_BEFORE_OWNER_ADMISSION")
+        with patch.object(collector,"build_opener") as opener:
+            opener.return_value.open.side_effect=HTTPError(
+                "https://keirin.kdreams.jp/kaisai/2030/01/15/",401,
+                "synthetic denied",{},None)
             with self.assertRaisesRegex(collector.SourceCaptureError,
-                                        "^OWNER_APPROVED_SOURCE_HOST_REQUIRED$"):
+                                        "^PROVIDER_DENIED_OR_RATE_LIMITED_STOP$"):
                 discovery.discover(day_jst="2030-01-15",
                                    registered_ids=["203001152601"])
-            request.assert_not_called()
-            opener.assert_not_called()
+            self.assertEqual(opener.return_value.open.call_count,1)
 
-    def test_active_official_capture_success_cannot_reenter_excluded_secondary_source(self):
+    def test_official_capture_secondary_denial_is_latched_before_returning(self):
         from urllib.parse import parse_qs, urlsplit
         from race_ai import keirin_official_public_source as official
         from race_ai import keirin_official_run_history as history
@@ -295,20 +362,22 @@ class OwnerApprovedPublicTransport(unittest.TestCase):
                                  wraps=official.fetch_day_schedule) as schedule, \
                     patch.object(registration, "register_day",
                                  wraps=registration.register_day) as register, \
-                    patch.object(collector, "Request") as request, \
+                    patch.object(live.provider_stop,"record_denial") as stop, \
                     patch.object(collector, "build_opener") as opener:
-                opener.return_value.open.side_effect = collector.SourceCaptureError(
-                    "TRANSPORT_REACHED_BEFORE_OWNER_ADMISSION")
+                opener.return_value.open.side_effect=HTTPError(
+                    "https://keirin.kdreams.jp/kaisai/2030/01/15/",401,
+                    "synthetic denied",{},None)
                 with self.assertRaisesRegex(collector.SourceCaptureError,
-                                            "^OWNER_APPROVED_SOURCE_HOST_REQUIRED$"):
+                                            "^PROVIDER_DENIED_OR_RATE_LIMITED_STOP$"):
                     pipeline.run_capture(day=day, repo=root, private_root=private,
                         owner_public_path=public_path, clock=clock)
                 self.assertEqual(official_kinds, ["JSJ057", "JSJ017"])
                 schedule.assert_called_once()
                 register.assert_called_once()
                 self.assertEqual(len(saved.call_args.kwargs["payload"]["schedule"]["races"]), 2)
-                request.assert_not_called()
-                opener.assert_not_called()
+                self.assertEqual(opener.return_value.open.call_count,1)
+                self.assertEqual(stop.call_args.kwargs["code"],
+                                 "PROVIDER_DENIED_OR_RATE_LIMITED_STOP")
 
 
 if __name__=="__main__":

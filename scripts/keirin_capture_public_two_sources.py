@@ -1,8 +1,8 @@
-"""Bounded public racecard capture -> normalized private A/B source cards.
+"""Public racecard capture -> normalized private A/B source cards.
 
 Owner-authored manifest supplies *exact published URLs*. No URL patterns are
 guessed from a race ID; no hidden API, credentials, antibot bypass, parallel
-provider hammering or retries after 403/429. Captured HTML and normalized
+provider hammering or retries after 401/403/429. Captured HTML and normalized
 cards are kept only in an owner-private 0700 path and never printed.
 
 This collector does not independently certify publication rights, organizer
@@ -30,7 +30,6 @@ from race_ai.keirin_nationwide_auto_generator import (
 SCHEMA="RACE_AI_KEIRIN_APPROVED_PUBLIC_TWO_SOURCE_DAY_URLS_V1"
 REPORT="RACE_AI_KEIRIN_TWO_SOURCE_AUTO_CAPTURE_REPORT_V1"
 MAX_BYTES=6_000_000
-MAX_RACES_PER_RUN=8
 
 
 class SourceCaptureError(ValueError):
@@ -57,8 +56,8 @@ def _allow_url(url,kind,rid):
 
 def fetch_once(url):
     """One regular GET, readable public HTML only. No retry on denial."""
-    # Reuse SourceSession's owner-approved WINTICKET/KEIRIN.JP host profile.
-    # Historical URL/HTML parsers below remain usable with saved fixtures.
+    # The owner's 2026-11-20 Site migration explicitly includes its Kdreams
+    # and netkeirin inputs, alongside the previously approved public hosts.
     need(type(url) is str, "OWNER_APPROVED_SOURCE_HOST_REQUIRED")
     try:
         source = urlsplit(url)
@@ -66,7 +65,8 @@ def fetch_once(url):
                     source.username is None and source.password is None and
                     source.port in (None, 443) and source.hostname in {
                         "winticket.jp", "www.winticket.jp",
-                        "keirin.jp", "www.keirin.jp"})
+                        "keirin.jp", "www.keirin.jp",
+                        "keirin.kdreams.jp", "keirin.netkeiba.com"})
     except ValueError:
         approved = False
     need(approved, "OWNER_APPROVED_SOURCE_HOST_REQUIRED")
@@ -89,7 +89,7 @@ def fetch_once(url):
             raise SourceCaptureError("PROVIDER_EMPTY_OR_OVERSIZED_HTML")
         return data
     except HTTPError as exc:
-        if exc.code in (403,429):
+        if exc.code in (401,403,429):
             raise SourceCaptureError("PROVIDER_DENIED_OR_RATE_LIMITED_STOP") from None
         raise SourceCaptureError("PUBLIC_PROVIDER_HTTP_ERROR_STOP") from None
     except (URLError, TimeoutError, OSError):
@@ -168,17 +168,19 @@ def _write_once(path,data):
 
 
 def capture_cycle(*,day_manifest,registered_ids,private_cards_dir,
-                  private_raw_dir,clock=None,fetch=None,max_races=8):
+                  private_raw_dir,clock=None,fetch=None,max_races=None):
     manifest_check(day_manifest,registered_ids=registered_ids)
     cards=private_dir(private_cards_dir)
     raw=private_dir(private_raw_dir)
-    need(type(max_races) is int and 1<=max_races<=MAX_RACES_PER_RUN,
-         "PUBLIC_SOURCE_BOUNDED_RACES_PER_RUN")
+    # Process the eligible manifest by default. A caller may still allocate a
+    # smaller batch inside its existing work/session budget.
+    need(max_races is None or (type(max_races) is int and max_races>=1),
+         "PUBLIC_SOURCE_RACE_BUDGET_INVALID")
     clock=clock or (lambda:datetime.now(timezone.utc))
     fetch=fetch or fetch_once
     need(callable(clock) and callable(fetch),
          "SOURCE_COLLECTOR_CLOCK_OR_FETCH_REQUIRED")
-    # An actual 403/429 is a day-wide stop certificate. Restored from
+    # An actual 401/403/429 is a day-wide stop certificate. Restored from
     # owner-private S3 on later 10-minute runs to avoid repeated denied GETs.
     blocker=raw/"provider-denial-stop.json"
     if blocker.exists():
@@ -206,7 +208,9 @@ def capture_cycle(*,day_manifest,registered_ids,private_cards_dir,
     # Prefer actual published close timestamps from venue-day manifests, but
     # only to order GETs: never treat a cutoff hint as verified official time.
     candidates=sorted(day_manifest["races"],
-        key=lambda r:(r["cutoff_hint"] is None,r["cutoff_hint"] or "",
+        key=lambda r:(r["cutoff_hint"] is None,
+                      when(r["cutoff_hint"]) if r["cutoff_hint"] else
+                      datetime.max.replace(tzinfo=timezone.utc),
                       r["race_id"]))
     for item in candidates:
         rid=item["race_id"]
@@ -214,7 +218,7 @@ def capture_cycle(*,day_manifest,registered_ids,private_cards_dir,
         if dest.exists():
             rows.append({"race_id":rid,"state":"CAPTURE_ALREADY_PRESENT_CREATE_ONCE"})
             continue
-        if visited>=max_races:
+        if max_races is not None and visited>=max_races:
             rows.append({"race_id":rid,"state":"HOLD_FETCH_BUDGET_NOT_YET_TRIED"})
             continue
         visited+=1
@@ -288,7 +292,8 @@ def main(argv=None):
     p.add_argument("--private-cards-dir",required=True)
     p.add_argument("--private-raw-dir",required=True)
     p.add_argument("--report",required=True)
-    p.add_argument("--max-races",type=int,default=8)
+    p.add_argument("--max-races",type=int,
+                   help="Optional caller batch budget; default processes the eligible manifest")
     a=p.parse_args(argv)
     try:
         manifest=json.loads(Path(a.day_manifest).read_text(encoding="utf-8"))

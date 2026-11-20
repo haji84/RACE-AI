@@ -57,7 +57,72 @@ def build(*,net=None,kdreams=None,now=NOW,kd_url=KD):
         created_at=now)
 
 
+def scoped_kdreams(*,title="Ａ級準決勝",leading_follower=False):
+    """Invented race facts in the published header/line DOM shape."""
+    groups=[[1,5],[2],[4,3,6]]
+    spans=['<span class="icon_p"><span class="p000">←</span></span>']
+    for group in groups:
+        for offset,car in enumerate(group):
+            role="追込" if offset or leading_follower else "先行"
+            spans.append('<span class="icon_p"><span>'+str(car)+
+                         '</span><span>'+role+'</span></span>')
+        spans.append('<span class="icon_p space"></span>')
+    return (f'<html><head><link rel="canonical" href="{KD}"></head><body>'
+            '<nav>S級決勝 L級ガールズ 並び予想</nav>'
+            '<p>別レース 投票締切 00:01</p>'
+            '<div class="racecard_header"><div class="inner cf">'
+            f'<h2 class="title"><span class="status">{title}</span></h2>'
+            '<dl class="time"><dt class="start">発走</dt><dd>20:50</dd>'
+            '<dt class="bet">締切</dt><dd>20:45</dd></dl></div></div>'
+            '<h2>並び予想</h2><div class="line_position">'+''.join(spans)+
+            '</div><h2>レース評</h2></body></html>').encode()
+
+
 class ActualSourceShapeAdapter(unittest.TestCase):
+    def parse_scoped(self,**options):
+        try:
+            return adapter.parse_kdreams(raw=scoped_kdreams(**options),
+                source_url=KD,race_id=RID,captured_at=SEEN,
+                starter_cars=[1,2,3,4,5,6])
+        except adapter.PublicPageNormalizeError as exc:
+            self.fail("Published structured race facts were rejected: "+str(exc))
+
+    def test_scoped_header_ignores_other_race_cutoff_class_and_final_navigation(self):
+        packet=self.parse_scoped()
+        self.assertEqual(packet["cutoff_at"],
+                         "2026-11-18T20:45:00+09:00")
+        self.assertEqual(packet["competition"],"A1_A2")
+        self.assertEqual(packet["round_stage"],"SEMI_FINAL")
+
+    def test_structured_line_spaces_preserve_group_whose_first_role_is_follower(self):
+        packet=self.parse_scoped(leading_follower=True)
+        self.assertEqual(packet["line_groups"],[[1,5],[2],[4,3,6]])
+
+    def test_scoped_girls_display_positions_become_solo_research_groups(self):
+        packet=self.parse_scoped(title="L級ガールズ予選")
+        self.assertEqual(packet["competition"],"GIRLS")
+        self.assertEqual(packet["round_stage"],"PRELIMINARY")
+        self.assertEqual(packet["line_groups"],[[1],[2],[3],[4],[5],[6]])
+
+    def test_present_canonical_for_another_race_cannot_authenticate_the_page(self):
+        net,kd=pages()
+        for who,raw,url in (("net",net,NET),("kd",kd,KD)):
+            wrong=url.replace("0001/","0002/") if who=="kd" else url[:-2]+"02"
+            bound=raw.replace(b"<html>",(
+                '<html><head><link rel="canonical" href="'+wrong+'"></head>').encode())
+            with self.subTest(source=who),self.assertRaisesRegex(
+                    adapter.PublicPageNormalizeError,"SOURCE_CANONICAL_URL_RACE_MISMATCH"):
+                build(**({"net":bound} if who=="net" else {"kdreams":bound}))
+
+    def test_conflicting_canonical_tags_are_held(self):
+        net,kd=pages()
+        net=net.replace(b"<html>",(
+            '<html><head><link rel="canonical" href="'+NET+'">'
+            '<link rel="canonical" href="'+NET[:-2]+'02"></head>').encode())
+        with self.assertRaisesRegex(adapter.PublicPageNormalizeError,
+                                    "SOURCE_CANONICAL_URL_RACE_MISMATCH"):
+            build(net=net)
+
     def test_netkeirin_marks_and_kdreams_line_meeting_day2(self):
         parsed=build()
         s=parsed["source_packet"]

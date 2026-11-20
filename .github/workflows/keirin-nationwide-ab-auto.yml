@@ -1025,6 +1025,11 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          # Independent owner-imported display profile; the old controller's
+          # provider stop and formal admission remain unchanged below.
+          if ! env -u RACE_AI_STATE_KEY python -m scripts.keirin_note_feed_cycle --repo "$GITHUB_WORKSPACE"; then
+            echo 'NOTE_SOURCE_OR_ENCRYPTED_DISPLAY_HOLD; existing controller continues.' >> "$GITHUB_STEP_SUMMARY"
+          fi
           python -m scripts.keirin_official_day_pipeline capture \
             --day "${{ steps.private.outputs.day }}" \
             --repo "$GITHUB_WORKSPACE" \

@@ -40,3 +40,10 @@ The owner explicitly instructed after the Cloudflare shutdown: 「GitHubで出�
 - GORIQ (haji84/AI-) may orchestrate software development but is not another KEIRIN forecast repository. A GitHub Issue/comment does not prove GORIQ authenticated intake, a started WorkRun, or unattended execution.
 - This is a reversible documentation / development-routing decision, not authorization to change secrets, permissions, vendor access, costs, repository visibility, branch protection, encryption, production deployment, or wagers. Existing Human Gates and required checks remain unchanged.
 - Detailed inventory and real-race acceptance: `docs/KEIRIN_REPO_CONSOLIDATION_20261110.md`.
+
+## Owner-approved Site import and matching inputs (2026-11-20)
+
+- The owner supplied the existing `keirin-20261119-race-note.chankuma.chatgpt.site` and explicitly instructed: 「取り込んで、GitHubに取り込んで使える画面にして、入力元も同じようにして。」
+- Reuse that owned Site's presentation, allocation functions, and preserved data formats inside this repository. Kdreams and netkeirin are approved input sources for this import, in addition to the prior WINTICKET/KEIRIN.JP paths. This explicit instruction supersedes the older two-provider restriction for this work.
+- Keep the distinct sources and the original analysis, flexible revision and existing A/B research output identifiable. Do not turn these into an authenticated PR71 full-model forecast, invent C, overwrite original predictions, or promote weights.
+- GitHub-only, encryption of private originals, no betting, no new charges and existing protected-review requirements still apply. The Site's Cloudflare Worker is not an approved new RACE-AI backend; port its needed functions to the existing GitHub path.

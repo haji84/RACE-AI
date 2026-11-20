@@ -14,6 +14,7 @@ from __future__ import annotations
 from datetime import datetime,timedelta,timezone
 from hashlib import sha256
 from pathlib import Path
+from unicodedata import normalize
 from urllib.parse import urljoin,urlsplit
 import re
 import json
@@ -43,6 +44,8 @@ def need(ok,reason):
 
 def _day_id(begin,index):
     try:
+        if not 1<=int(index)<=7:
+            return None
         return (datetime.strptime(begin,"%Y%m%d").date()+
                 timedelta(days=int(index)-1)).strftime("%Y%m%d")
     except (ValueError,OverflowError):
@@ -97,6 +100,45 @@ def linked_details(html,*,base_url,day,venue):
     return urls
 
 
+def linked_cutoff_hints(html,*,base_url,day,venue):
+    """Only the closing clock printed in the same real linked-race row.
+
+    A hint orders acquisition; it never certifies the organizer's cutoff.
+    Missing or unsupported clock markup stays unknown, never the start time.
+    """
+    from bs4 import BeautifulSoup
+    details=linked_details(html,base_url=base_url,day=day,venue=venue)
+    by_url={url:rid for rid,url in details.items()}
+    soup=BeautifulSoup(html,"html.parser")
+    hints={}
+    for li in soup.select("ul.racecard_list > li"):
+        anchors=li.select("p.race > a[href]")
+        if len(anchors)!=1:
+            continue
+        url=urlsplit(urljoin(base_url,anchors[0]["href"]))
+        if url.scheme!="https" or url.hostname!="keirin.kdreams.jp":
+            continue
+        rid=by_url.get("https://keirin.kdreams.jp"+url.path)
+        if rid is None:
+            continue
+        values=[]
+        for dt in li.select("div.header dl > dt"):
+            label=normalize("NFKC",dt.get_text("",strip=True))
+            if label not in ("締切","投票締切"):
+                continue
+            dd=dt.find_next_sibling()
+            if dd is not None and dd.name=="dd":
+                values.append(normalize("NFKC",dd.get_text("",strip=True)))
+        if len(values)!=1 or not re.fullmatch(r"(?:[01]?[0-9]|2[0-3]):[0-5][0-9]",values[0]):
+            continue
+        hour,minute=map(int,values[0].split(":"))
+        hint=f"{day}T{hour:02d}:{minute:02d}:00+09:00"
+        need(rid not in hints or hints[rid]==hint,
+             "CONFLICTING_PUBLISHED_CUTOFF_HINTS")
+        hints[rid]=hint
+    return hints
+
+
 def discover(*,day_jst,registered_ids,fetch=None,clock=None,max_meetings=12):
     need(type(day_jst) is str and re.fullmatch(r"20[0-9]{2}-[0-9]{2}-[0-9]{2}",day_jst),
          "DYNAMIC_DAY_NOT_VALID")
@@ -117,6 +159,7 @@ def discover(*,day_jst,registered_ids,fetch=None,clock=None,max_meetings=12):
     cards=linked_racecards(data,base_url=calendar,day=day_jst)
     required=set(rid[8:10] for rid in registered_ids)
     details={}
+    cutoffs={}
     scanned=0
     errors=0
     for venue,url in sorted(cards.items()):
@@ -129,6 +172,8 @@ def discover(*,day_jst,registered_ids,fetch=None,clock=None,max_meetings=12):
             html=fetch(url)
             links=linked_details(html,base_url=url,day=day_jst,venue=venue)
             details.update(links)
+            cutoffs.update(linked_cutoff_hints(
+                html,base_url=url,day=day_jst,venue=venue))
         except capture.SourceCaptureError as exc:
             errors+=1
             if str(exc) in ("PROVIDER_DENIED_OR_RATE_LIMITED_STOP",
@@ -148,8 +193,8 @@ def discover(*,day_jst,registered_ids,fetch=None,clock=None,max_meetings=12):
             "race_id":rid,
             "netkeirin_url":net,
             "kdreams_url":details[rid],
-            # The URL list cannot authenticate or infer a sales cutoff.
-            "cutoff_hint":None,
+            # Only a visible per-race label supplies an ordering hint.
+            "cutoff_hint":cutoffs.get(rid),
         })
     manifest={
         "schema":SCHEMA,"day_jst":day_jst,
