@@ -311,6 +311,31 @@ def display_race(snapshot,raw,*,meeting_url,meeting_raw,raw_path):
         bank=None,weather=None,missing_fields=['bank','race_time_weather'],no_today_results_used=True)
 
 
+def _day_coverage(manifest,*,already,captured,reasons,stopped,clock):
+    """Account for observed IDs without treating acquisition as settlement.
+
+    This summary stays inside the encrypted manifest. Prior saved research
+    inputs remain available when a refresh fails or its cutoff has passed.
+    The source roster is observed, not independently verified nationwide.
+    """
+    fresh=set(captured);available=set(already)|fresh;rows=[]
+    for race in manifest['races']:
+        race_id=race['race_id']
+        reason=reasons.get(race_id,'NOT_ATTEMPTED_THIS_CYCLE')
+        if reason=='NOT_ATTEMPTED_THIS_CYCLE' and stopped:
+            reason='HOLD_'+_safe_reason(stopped)
+        status=('available' if race_id in available else
+                'held' if reason.startswith('HOLD_') else 'missing')
+        rows.append(dict(race_id=race_id,published_cutoff_at=race['cutoff_hint'],
+            input_status=status,reason=reason,captured_this_cycle=race_id in fresh))
+    counts=Counter(row['input_status'] for row in rows)
+    return dict(schema='RACE_AI_KEIRIN_NOTE_DAY_COVERAGE_V1',
+        day_jst=manifest['day_jst'],observed_at=_now(clock).isoformat(),
+        national_universe_verified=False,formal_model_admission=False,
+        counts=dict(observed=len(rows),input_available=counts['available'],
+                    missing=counts['missing'],held=counts['held']),races=rows)
+
+
 def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_ids=(),
                 priority_captured_ids=(),model_source_commit=None):
     """Return safe_report plus private Site-root handles for owner encryption.
@@ -338,7 +363,7 @@ def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_id
     paths=[dated/name for name in ('races.json','reference_AB.json','manifest.json')]
     need(not any(p.exists() or p.is_symlink() for p in paths),'DATED_SNAPSHOT_ALREADY_EXISTS')
     session=_Session(root,day_jst,fetch,clock)
-    counts=Counter();states=Counter();races=[];references=[];captured=[];priority_captured=[]
+    counts=Counter();states=Counter();reasons={};races=[];references=[];captured=[];priority_captured=[]
     manifest=dict(schema=capture.SCHEMA,day_jst=day_jst,races=[],
                   source_use_scope='OWNER_PERSONAL_RESEARCH_ONLY')
     try:
@@ -350,14 +375,18 @@ def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_id
         priority=[];future=[]
         for row in manifest['races']:
             if row['cutoff_hint'] is None:
+                reasons[row['race_id']]='HOLD_PUBLISHED_CUTOFF_UNAVAILABLE'
                 counts['missing_cutoff_hint_races']+=1;continue
             remaining=(model.when(row['cutoff_hint'])-_now(clock)).total_seconds()
             if remaining<=0:
+                reasons[row['race_id']]='PAST_PUBLISHED_CUTOFF'
                 counts['past_cutoff_races']+=1;continue
             if remaining<65:
+                reasons[row['race_id']]='HOLD_PUBLISHED_CUTOFF_TOO_CLOSE'
                 counts['too_close_races']+=1;continue
             window=600<=remaining<=900
             if row['race_id'] in already and (not window or row['race_id'] in priority_done):
+                reasons[row['race_id']]='PREVIOUSLY_CAPTURED'
                 counts['already_captured_races_skipped']+=1;continue
             (priority if window else future).append(row)
             session.cutoffs[row['netkeirin_url']]=model.when(row['cutoff_hint'])
@@ -374,6 +403,7 @@ def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_id
                 fetch=session,clock=session.observed_clock,max_races=None)
             states.update(report['states'])
             for row in report['records']:
+                reasons[row['race_id']]=row['state']
                 if row['state']!='PRIVATE_CARD_NORMALIZED_FROM_TWO_PUBLIC_SOURCES':
                     continue
                 race_id=row['race_id']
@@ -397,6 +427,7 @@ def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_id
                         independent_runner_readback=False,model_source_commit=model_source_commit,
                         model_source_sha256=sha256(Path(model.__file__).read_bytes()).hexdigest()))
                     captured.append(race_id)
+                    reasons[race_id]='RESEARCH_INPUT_CAPTURED'
                     source_remaining=(model.when(snap['published_cutoff_at'])-
                                       model.when(snap['as_of'])).total_seconds()
                     generation_remaining=(model.when(snap['published_cutoff_at'])-
@@ -404,7 +435,8 @@ def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_id
                     if 600<=source_remaining<=900 and 600<=generation_remaining<=900:
                         priority_captured.append(race_id)
                 except (ValueError,KeyError,TypeError,OSError) as error:
-                    states['HOLD_'+_safe_reason(error)]+=1
+                    reasons[race_id]='HOLD_'+_safe_reason(error)
+                    states[reasons[race_id]]+=1
     except (ValueError,KeyError,TypeError,OSError) as error:
         states['HOLD_'+_safe_reason(error)]+=1
     finally:
@@ -427,7 +459,9 @@ def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_id
         observed_venue_count=counts['observed_venues'],national_universe_verified=False))
     _write_snapshot(paths[1],references)
     _write_snapshot(paths[2],dict(schema=SCHEMA,day_jst=day_jst,
-        source_manifest=manifest,source_receipts=list(session.receipts.values()),safe_report=safe))
+        source_manifest=manifest,source_receipts=list(session.receipts.values()),safe_report=safe,
+        daily_coverage=_day_coverage(manifest,already=already,captured=captured,
+            reasons=reasons,stopped=session.stopped,clock=clock)))
     return dict(safe_report=safe,site_root=str(root),dated_dir=str(dated),
                 races_path=str(paths[0]),reference_path=str(paths[1]),manifest_path=str(paths[2]))
 

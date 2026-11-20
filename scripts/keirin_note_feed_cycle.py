@@ -63,7 +63,12 @@ def cycle(repo,*,recipient=None,store=None,collector=None,result_collector=None,
             need(type(safe.get('provider_denied')) is bool,'CAPTURE_REPORT')
             result=dict(state='NOTE_NO_NEW_ELIGIBLE_RESEARCH_INPUTS',acquisition=safe,
                     provider_requests=safe.get('public_page_requests'),entries=len(prior['entries']))
-            if safe.get('selected_races')!=0 or safe['provider_denied']:
+            # Preserve the first collector observation of each JST day even
+            # without eligible forecasts. Repeated empty ticks still perform
+            # the existing result checks below, without duplicate ciphertext.
+            day_recorded=any(entry['kind']=='research' and day in entry['days']
+                             for entry in prior['entries'])
+            if safe.get('selected_races')!=0 or safe['provider_denied'] or not day_recorded:
                 note=import_site(Path(collected['site_root']),source_commit=source_commit,clock=clock)
                 note.update(scope='OWNER_MATCHED_SOURCE_RESEARCH_REFRESH',source_site=None,
                     source_profile='owner-imported-kdreams-netkeirin-20261120',
