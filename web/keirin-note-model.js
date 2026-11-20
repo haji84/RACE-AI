@@ -1,0 +1,129 @@
+/* Owner-provided Site view adapter. Original/revised/research records stay separate. */
+(function(root,factory){
+  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-source/staking_flexible.js'));
+  else root.RaceKeirinNote=factory(root.KeirinStaking);
+})(typeof window==='object'?window:globalThis,function(staking){
+  'use strict';
+  const SCHEMA='RACE_AI_KEIRIN_NOTE_VIEW_V1',OUTER='RACE_AI_SAVED_WEB_VIEW_V1';
+  const LIMIT=64*1024*1024,encoder=new TextEncoder();
+  const record=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
+  const fail=()=>{throw new Error('KEIRIN_NOTE_INVALID');};
+  const need=v=>{if(!v)fail();};
+  const hex=v=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v);
+  const day=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v;
+  const text=(v,max=2000)=>typeof v==='string'&&v.length<=max?v:'';
+  const rid=v=>typeof v==='string'&&/^20\d{10}$/.test(v);
+  const apiCrypto=()=>globalThis.crypto?.subtle?globalThis.crypto:require('node:crypto').webcrypto;
+  const digest=async v=>Array.from(new Uint8Array(await apiCrypto().subtle.digest('SHA-256',typeof v==='string'?encoder.encode(v):v)),n=>n.toString(16).padStart(2,'0')).join('');
+  function safeUrl(value){
+    try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password&&(!u.port||u.port==='443')&&['keirin.kdreams.jp','keirin.netkeiba.com','keirin.jp','www.keirin.jp','winticket.jp','www.winticket.jp','www.jma.go.jp','www.sponichi.co.jp','keirin.sponichi.co.jp'].includes(u.hostname)?u.href:null;}catch{return null;}
+  }
+  function mapRows(value){
+    const a=Array.isArray(value)?value:record(value)&&Array.isArray(value.races)?value.races:[];
+    const result=new Map();for(const row of a){need(record(row));const id=row.race_id||row.input?.race_id||row.output?.race_id;need(rid(id)&&!result.has(id));result.set(id,row);}return result;
+  }
+  function clock(date,value){
+    if(typeof value!=='string'||!value)return null;
+    const stamp=/^\d\d:\d\d$/.test(value)?date+'T'+value+':00+09:00':value;
+    if(!/^\d{4}-\d{2}-\d{2}T\d\d:\d\d(?::\d\d)?(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(stamp))return null;
+    const n=Date.parse(stamp);return Number.isFinite(n)?stamp:null;
+  }
+  function tickets(value,places,cars){
+    if(value==null)return [];
+    need(Array.isArray(value)&&value.length<=504);
+    const seen=new Set();return value.map(item=>{
+      const t=Array.isArray(item)?{combo:item.join('-'),role:'参考'}:item;
+      need(record(t)&&typeof t.combo==='string'&&new RegExp('^[1-9](?:-[1-9]){'+(places-1)+'}$').test(t.combo));
+      const numbers=t.combo.split('-').map(Number);
+      need(new Set(numbers).size===places&&!seen.has(t.combo)&&(!cars.size||numbers.every(n=>cars.has(n))));seen.add(t.combo);
+      return {...t,combo:t.combo,role:text(t.role,30)||'参考'};
+    });
+  }
+  function normalize(date,files){
+    const read=name=>files.get('data/'+date+'/'+name);
+    const roster=mapRows(read('races.json')??files.get('data/races.json'));
+    const originals=mapRows(read('forecasts.json')??files.get('data/forecasts.json'));
+    const two=mapRows(read('two_car_forecasts.json'));
+    const flexible=mapRows(read('flexible_forecasts.json'));
+    const refs=mapRows(read('reference_AB.json'));
+    const quotes=mapRows(read('odds_snapshot_flexible.json'));
+    const settled=mapRows(read('settlement.json'));
+    const rollover=mapRows(read('three_car_rollover_forecasts.json'));
+    const ids=new Set([...roster.keys(),...originals.keys(),...two.keys(),...refs.keys()].filter(id=>id.startsWith(date.replaceAll('-',''))));
+    const out=[];
+    for(const id of ids){
+      const r=roster.get(id)||{},p=originals.get(id)||{},riders=r.riders||[];
+      need(Array.isArray(riders)&&riders.length<=9);
+      const cars=new Set();const people=riders.map(raw=>{need(record(raw));const number=raw.number??raw.car;need(Number.isInteger(number)&&number>=1&&number<=9&&!cars.has(number));cars.add(number);return {...raw,number,name:text(raw.name,120)||'氏名未取得',score:raw.score??raw.points};});
+      const row={id,date,venue:text(r.venue||p.venue,100)||'会場名未取得',number:r.race_no??r.no??p.no??Number(id.slice(-2)),title:text(r.race_title||r.title,200),
+        cutoff:clock(date,r.deadline_time||r.cutoff||p.deadline_jst),start:clock(date,r.start_time||r.start||p.start_jst),
+        sourceUrl:safeUrl(r.source_url),raw:r,riders:people,cars,lines:Array.isArray(r.lines)?r.lines:[],original:p,
+        two:two.get(id)||{},flexible:flexible.get(id)||{},referenceEnvelope:refs.get(id)||{},reference:refs.get(id)?.output||refs.get(id)||{},quote:quotes.get(id)||{},
+        settlement:settled.get(id)||null,rollover:rollover.get(id)||{},environment:read('environment.json')||null};
+      tickets(p.tickets,3,cars);tickets(row.two.tickets,2,cars);tickets(row.rollover.tickets,3,cars);
+      for(const market of ['3t','2t'])tickets(row.flexible.markets?.[market]?.tickets,market==='2t'?2:3,cars);
+      for(const model of ['A','B'])tickets(row.reference[model]?.ranked_tickets,3,cars);
+      need(Number.isInteger(row.number)&&row.number>=1&&row.number<=12);
+      out.push(row);
+    }
+    return out.sort((a,b)=>(Date.parse(a.cutoff)||Infinity)-(Date.parse(b.cutoff)||Infinity)||a.id.localeCompare(b.id));
+  }
+  async function openPacket(packet){
+    need(record(packet)&&packet.schema===SCHEMA&&packet.formal_model_admission===false&&packet.production_weight_switch===false&&record(packet.files));
+    need(Array.isArray(packet.dates)&&packet.dates.length>0&&packet.dates.every(day)&&new Set(packet.dates).size===packet.dates.length);
+    const parsed=new Map();let total=0;
+    for(const [path,entry] of Object.entries(packet.files)){
+      need(/^data\/(?:\d{4}-\d{2}-\d{2}\/)?[A-Za-z0-9_.-]+\.json$/.test(path)&&record(entry)&&typeof entry.text==='string'&&hex(entry.sha256));
+      const bytes=encoder.encode(entry.text);total+=bytes.length;need(bytes.length<=12*1024*1024&&total<=LIMIT&&bytes.length===entry.bytes);
+      need(await digest(bytes)===entry.sha256);
+      const value=JSON.parse(entry.text);parsed.set(path,value);
+    }
+    const days=new Map(packet.dates.slice().sort().map(date=>[date,normalize(date,parsed)]));
+    return {schema:SCHEMA,dates:[...days.keys()],days,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,formal:false};
+  }
+  function rows(data,date){return data.days.get(date)||[];}
+  function forecast(row,market='3t',variant='flexible'){
+    const places=market==='2t'?2:3;
+    if(['A','B','C'].includes(variant)){
+      const ref=row.reference[variant]||{};
+      return {label:'参考'+variant,tickets:market==='3t'?tickets(ref.ranked_tickets,3,row.cars):[],scenarios:ref.six_phase_scenarios||[],
+        allocatable:false,headline:'既存モデルの研究出力',reason:variant==='C'?'独立した連係履歴が不足しているため未生成':'公開印・統計・並びを使用した参考計算',
+        createdAt:row.reference.generated_at,confidence:null,risk:'学習済み・校正済みの確率ではありません。',source:ref};
+    }
+    const base=market==='2t'?row.two:row.original;
+    let current=base,label=market==='2t'?'2車単・保存分析':'3連単・原分析';
+    if(variant==='flexible'&&row.flexible.markets?.[market]){current={...base,...row.flexible.markets[market],analysis_created_at:row.flexible.analysis_created_at};label=market==='2t'?'2車単・改訂分析':'3連単・改訂分析';}
+    if(variant==='rollover'&&market==='3t'&&row.rollover.tickets){current=row.rollover;label='3連単・絞り込み分析';}
+    return {label,tickets:tickets(current.tickets,places,row.cars),scenarios:[...(row.original.scenarios||[]),...(current.extra_scenarios||[])],allocatable:true,
+      headline:text(current.headline)||text(base.headline)||'予想未取得',reason:text(current.point_reason||current.reason||current.confidence_reason||current.verdict||current.selection_reason),
+      confidence:text(current.confidence,40),risk:text(current.risk),createdAt:current.analysis_created_at,
+      source:current};
+  }
+  function allocate(prediction,budget,excluded=new Set()){
+    need([2000,2500,3000].includes(budget));
+    const chosen=prediction.tickets.filter(t=>!excluded.has(t.combo));
+    const available=prediction.allocatable&&chosen.length>0&&chosen.length*100<=budget&&chosen.every(t=>['本線','押さえ','波乱'].includes(t.role));
+    if(!available)return {available:false,total:0,chosen,amounts:prediction.tickets.map(()=>0)};
+    const paid=staking.allocate(chosen,budget),byCombo=new Map(chosen.map((t,i)=>[t.combo,paid[i]]));
+    return {available:true,total:budget,chosen,amounts:prediction.tickets.map(t=>byCombo.get(t.combo)||0)};
+  }
+  function b64(value,max=LIMIT*2){
+    need(typeof value==='string'&&value.length>0&&value.length<=max&&value.length%4===0&&!/[^A-Za-z0-9+/=]/.test(value));
+    const binary=atob(value);need(btoa(binary)===value);return Uint8Array.from(binary,c=>c.charCodeAt(0));
+  }
+  async function openCipher(bytes,{cipherSha,key}){
+    need(bytes instanceof Uint8Array&&bytes.length<=90*1024*1024&&hex(cipherSha)&&await digest(bytes)===cipherSha);
+    const envelope=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+    need(record(envelope)&&Object.keys(envelope).sort().join(',')==='ciphertext,header,nonce');
+    const h=envelope.header;need(record(h)&&Object.keys(h).sort().join(',')==='schema,source_content_sha256'&&h.schema===OUTER&&hex(h.source_content_sha256));
+    need(typeof key==='string'&&/^[A-Za-z0-9_-]{43}$/.test(key));
+    const rawKey=b64(key.replaceAll('-','+').replaceAll('_','/')+'=',44),nonce=b64(envelope.nonce,16),encrypted=b64(envelope.ciphertext);
+    need(rawKey.length===32&&nonce.length===12&&encrypted.length>=16);
+    const imported=await apiCrypto().subtle.importKey('raw',rawKey,{name:'AES-GCM'},false,['decrypt']);
+    const aad=encoder.encode(JSON.stringify({schema:h.schema,source_content_sha256:h.source_content_sha256}));
+    const plain=new Uint8Array(await apiCrypto().subtle.decrypt({name:'AES-GCM',iv:nonce,additionalData:aad,tagLength:128},imported,encrypted));
+    need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
+    return openPacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)));
+  }
+  return {openPacket,openCipher,rows,forecast,allocate,safeUrl,digest,clock,SCHEMA};
+});

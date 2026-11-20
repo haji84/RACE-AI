@@ -1,0 +1,102 @@
+{
+  "recorded_at": "2026-11-20T05:26:49.261032+00:00",
+  "source_site_commit": "25a829413d5f5940f0dcaed1cc7dda7e473105a0",
+  "source_site_tracked_files": 122,
+  "source_archive_sha256": "d7515e23ca5ce1f5d3f08371bfb71fa9c0b82ce78d2269657cea07ee3f177411",
+  "source_archive_bytes": 14586076,
+  "import_counts": {
+    "2026-11-19": {
+      "races": 75,
+      "riders": 539,
+      "original_3t_points": 680
+    },
+    "2026-11-20": {
+      "races": 57,
+      "riders": 414,
+      "original_3t_points": 543,
+      "revised_3t_points": 594,
+      "C_predictions": 0
+    }
+  },
+  "encrypted_github_readback": {
+    "covered_races": 31,
+    "entries": 3,
+    "priority_window_races": 1,
+    "private_plaintext_uploaded": false,
+    "production_state_key_used": false,
+    "provider_denied": false,
+    "source_commit": "48ac1c6f39872d0ac95baf4123728694e1a1327b",
+    "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED"
+  },
+  "encrypted_commit_time": "2026-11-20T05:25:11Z",
+  "local_source_capture": {
+    "schema": "RACE_AI_KEIRIN_NOTE_INPUT_COLLECTION_V1",
+    "day_jst": "2026-11-20",
+    "observed_races": 57,
+    "observed_venues": 6,
+    "past_cutoff_races": 24,
+    "too_close_races": 0,
+    "missing_cutoff_hint_races": 0,
+    "already_captured_races_skipped": 0,
+    "selected_races": 33,
+    "selected_priority_races": 1,
+    "captured_races": 31,
+    "research_references_generated": 31,
+    "missing_source_races": 2,
+    "public_page_requests": 73,
+    "provider_denied": false,
+    "states": {
+      "HOLD_SOURCE_CANONICAL_URL_RACE_MISMATCH": 2,
+      "PRIVATE_CARD_NORMALIZED_FROM_TWO_PUBLIC_SOURCES": 31
+    },
+    "national_universe_verified": false,
+    "formal_model_admission": false,
+    "actual_four_model_forecast_saved": false,
+    "production_weight_switch": false,
+    "no_results_used_as_pre_race_inputs": true,
+    "authored_forecasts_created": 0,
+    "wagers_placed": false
+  },
+  "local_priority_observation": {
+    "race_id": "202611202609",
+    "captured_at": "2026-11-20T05:17:10.690157+00:00",
+    "generated_at": "2026-11-20T05:17:11.242521+00:00",
+    "published_cutoff_at": "2026-11-20T14:29:00+09:00",
+    "generation_within_published_15_to_10_minute_window": true,
+    "git_save_within_same_window_claimed": false,
+    "formal_PR71_prediction": false
+  },
+  "source_holds": {
+    "count": 2,
+    "reason": "NETKEIRIN_CANONICAL_POINTS_TO_RESULTS_ROUTE_NOT_PROVEN_PRERACE_EQUIVALENT",
+    "parser_not_weakened": true,
+    "retries": 0
+  },
+  "validation": {
+    "related_python_tests": 103,
+    "python_failures": 0,
+    "browser_tests": 6,
+    "browser_failures": 0,
+    "unique_node_contracts": 9,
+    "workflow_definition_additions": 0
+  },
+  "preservation": {
+    "BOAT_S": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+    "BOAT_active_run": 44656378586,
+    "BOAT_worker_actions": 0,
+    "state_key_read_locally": false,
+    "private_display_key_in_public_git": false,
+    "new_prs": 0,
+    "new_model_families": 0,
+    "production_weight_switches": 0,
+    "wagers": 0,
+    "new_charges": 0,
+    "offline_commits": "UNRESTORED b7380fe6a377e6ccf2b96331f2126c52549bbe17 / daae4c10167224b7730006d8ada5ade398aaa64b"
+  },
+  "live_pages_updated": true,
+  "physical_iPhone_verified": false,
+  "winticket_403_resolved": false,
+  "four_sport_goal_complete": false,
+  "live_browser_verified": true,
+  "latest_source_window_requires_actual_generation": true
+}

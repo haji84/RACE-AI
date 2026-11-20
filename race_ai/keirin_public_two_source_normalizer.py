@@ -53,7 +53,7 @@ def _time(x):
         raise PublicPageNormalizeError("CAPTURE_TIME_INVALID") from None
 
 
-def _text(raw):
+def _page(raw):
     need(type(raw) is bytes and 1<=len(raw)<=9_000_000,
          "OWNER_PAGE_BYTES_MISSING_OR_LARGE")
     try:
@@ -73,9 +73,24 @@ def _text(raw):
             if cells:
                 rows.append(" | ".join(x.get_text(" ",strip=True) for x in cells))
         body=soup.get_text(" ",strip=True)
-        return value,body,rows
+        return value,body,rows,soup
     return value,value,[x.strip().strip("|") for x in value.splitlines()
-                        if "|" in x]
+                        if "|" in x],None
+
+
+def _text(raw):
+    # Preserve the saved-page diagnostic's existing three-value interface.
+    return _page(raw)[:3]
+
+
+def _check_canonical(soup,source_url):
+    """Bind a published canonical when present; old table text has none."""
+    if soup is None:
+        return
+    links=[node for node in soup.find_all("link")
+           if "canonical" in [str(x).lower() for x in node.get("rel",[])]]
+    need(not links or (len(links)==1 and links[0].get("href")==source_url),
+         "SOURCE_CANONICAL_URL_RACE_MISMATCH")
 
 
 def _url_role(url,who,rid):
@@ -158,7 +173,8 @@ def parse_netkeirin(*,raw,source_url,race_id,captured_at):
     """Printed 23-field paper-mark racecard only. Unsupported layouts HOLD."""
     _url_role(source_url,"net",race_id)
     _time(captured_at)
-    _,_,rows=_text(raw)
+    _,_,rows,soup=_page(raw)
+    _check_canonical(soup,source_url)
     found={}
     for row in rows:
         parts=[normalize("NFKC",p).strip() for p in row.strip().split("|")]
@@ -203,12 +219,78 @@ def parse_netkeirin(*,raw,source_url,race_id,captured_at):
     return [found[n] for n in sorted(found)]
 
 
+def _scoped_kdreams(soup,*,race_id,starter_cars):
+    """Use the selected race header and actual displayed line separators."""
+    headers=soup.select("div.racecard_header")
+    need(len(headers)==1,"KDREAMS_RACE_HEADER_AMBIGUOUS")
+    header=headers[0]
+    titles=header.select("h2.title > span.status")
+    need(len(titles)==1,"KDREAMS_RACE_CLASS_NOT_IN_SOURCE")
+    title=normalize("NFKC",titles[0].get_text(" ",strip=True))
+    need(1<=len(title)<=160,"KDREAMS_RACE_CLASS_NOT_IN_SOURCE")
+    cutoffs=[]
+    for dt in header.select("dl.time > dt"):
+        label=normalize("NFKC",dt.get_text("",strip=True))
+        if label not in ("締切","投票締切"):
+            continue
+        dd=dt.find_next_sibling()
+        need(dd is not None and dd.name=="dd",
+             "KDREAMS_PUBLISHED_CUTOFF_CLOCK_MISSING")
+        cutoffs.append(normalize("NFKC",dd.get_text("",strip=True)))
+    need(len(cutoffs)==1 and re.fullmatch(r"[0-9]{1,2}:[0-9]{2}",cutoffs[0]),
+         "KDREAMS_PUBLISHED_CUTOFF_CLOCK_MISSING")
+    hour,minute=map(int,cutoffs[0].split(":"))
+    need(0<=hour<=23 and 0<=minute<=59,"KDREAMS_CUTOFF_TIME_INVALID")
+    cutoff=f"{race_id[:4]}-{race_id[4:6]}-{race_id[6:8]}T{hour:02d}:{minute:02d}:00+09:00"
+    girls="ガールズ" in title or "L級" in title
+    if girls:
+        # Displayed positions are not permanent cooperative lines in L-class.
+        need(type(starter_cars) is list and 5<=len(starter_cars)<=9 and
+             len(set(starter_cars))==len(starter_cars) and
+             all(type(car) is int and 1<=car<=9 for car in starter_cars),
+             "GIRLS_ROSTER_REQUIRED_FOR_SOLO_RESEARCH")
+        groups=[[car] for car in starter_cars]
+    else:
+        wraps=soup.select("div.line_position_inner") or soup.select("div.line_position")
+        need(len(wraps)==1,"KDREAMS_EXPLICIT_LINE_GROUPS_MISSING")
+        groups=[]
+        group=[]
+        for span in wraps[0].find_all("span",recursive=False):
+            if "space" in span.get("class",[]):
+                if group:
+                    groups.append(group)
+                    group=[]
+                continue
+            children=span.find_all("span",recursive=False)
+            if children:
+                number=normalize("NFKC",children[0].get_text("",strip=True))
+                if re.fullmatch(r"[1-9]",number):
+                    group.append(int(number))
+        if group:
+            groups.append(group)
+    cars=sum(groups,[])
+    need(5<=len(cars)<=9 and len(set(cars))==len(cars) and
+         set(cars)==set(range(1,len(cars)+1)),
+         "KDREAMS_LINE_NOT_ALL_REAL_CARS")
+    competition=("GIRLS" if girls else "CHALLENGE" if "チャレンジ" in title else
+                 "S" if "S級" in title else "A1_A2" if "A級" in title else None)
+    need(competition is not None,"KDREAMS_RACE_CLASS_NOT_IN_SOURCE")
+    stage=next((value for word,value in (
+        ("準決","SEMI_FINAL"),("決勝","FINAL"),("一般","GENERAL"),
+        ("予選","PRELIMINARY"),("特選","SELECTION")) if word in title),"OTHER")
+    return {"cutoff_at":cutoff,"line_groups":groups,
+            "competition":competition,"round_stage":stage}
+
+
 def parse_kdreams(*,raw,source_url,race_id,captured_at,
                   starter_cars=None):
-    """Visible bracket-style line, or evidenced L-class solo research groups."""
+    """Published race DOM, with legacy saved visible-table/text support."""
     _url_role(source_url,"k",race_id)
     _time(captured_at)
-    _,text,_rows=_text(raw)
+    _,text,_rows,soup=_page(raw)
+    _check_canonical(soup,source_url)
+    if soup is not None and soup.select("div.racecard_header"):
+        return _scoped_kdreams(soup,race_id=race_id,starter_cars=starter_cars)
     # Separate the actual race header from site navigation / result pages.
     need("投票締切" in text or "締切" in text,
          "KDREAMS_VISIBLE_LINE_OR_CUTOFF_MISSING")
@@ -297,10 +379,10 @@ def parse_kdreams(*,raw,source_url,race_id,captured_at,
     else:
         raise PublicPageNormalizeError("KDREAMS_RACE_CLASS_NOT_IN_SOURCE")
     # The stage is descriptive only, no generic inferred promotion rule.
-    if "決勝" in grade_text:
-        stage="FINAL"
-    elif "準決" in grade_text:
+    if "準決" in grade_text:
         stage="SEMI_FINAL"
+    elif "決勝" in grade_text:
+        stage="FINAL"
     elif "一般" in grade_text:
         stage="GENERAL"
     elif "予選" in grade_text:

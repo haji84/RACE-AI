@@ -75,6 +75,7 @@ def register_day(*, day_jst, private_raw_dir, fetch=None, clock=None,
 
     snapshots = []
     linked = {}
+    cutoff_hints = {}
     errors = 0
     stopped_for_denial = False
     attempted = 0
@@ -93,6 +94,9 @@ def register_day(*, day_jst, private_raw_dir, fetch=None, clock=None,
             details = links.linked_details(
                 meeting_html, base_url=meeting_url,
                 day=day_jst, venue=venue_code)
+            cutoff_hints.update(links.linked_cutoff_hints(
+                meeting_html, base_url=meeting_url,
+                day=day_jst, venue=venue_code))
         except capture.SourceCaptureError as exc:
             errors += 1
             # Do not probe other pages after a denial or rate limit.
@@ -146,7 +150,7 @@ def register_day(*, day_jst, private_raw_dir, fetch=None, clock=None,
             "netkeirin_url":
                 "https://keirin.netkeiba.com/race/entry/?race_id=" + rid,
             "kdreams_url": linked[rid],
-            "cutoff_hint": None,
+            "cutoff_hint": cutoff_hints.get(rid),
         })
     manifest = {
         "schema": capture.SCHEMA,

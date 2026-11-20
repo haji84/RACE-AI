@@ -21,7 +21,46 @@ def fixture():
     return {CAL:day,CARD:meeting}
 
 
+def listed_race(href,*,cutoff="20:45",start="20:50"):
+    closing=(f'<dt>締切</dt><dd>{cutoff}</dd>' if cutoff is not None else '')
+    return ('<li><div class="header"><dl><dt>発走</dt><dd>'+start+'</dd>'+
+            closing+'</dl></div><p class="race"><a href="'+href+'">'
+            '<span class="num">1R</span><span class="name">例示競走</span>'
+            '</a></p></li>')
+
+
 class KdreamsDayLinkResearch(unittest.TestCase):
+    def test_actual_linked_race_rows_supply_day_bound_published_deadline_hints(self):
+        pages=fixture()
+        pages[CARD]=('<html><nav>締切 00:01</nav><ul class="racecard_list">'+
+            listed_race('/utsunomiya/racedetail/2420261117020001/')+
+            listed_race('/utsunomiya/racedetail/2420261117020002/',cutoff="21:05")+
+            listed_race('/utsunomiya/racedetail/2420261117020003/',cutoff=None)+
+            '</ul></html>').encode()
+        out=discover.discover(day_jst="2026-11-18",registered_ids=RIDS,
+                              fetch=lambda url:pages[url])
+        self.assertEqual([row["cutoff_hint"] for row in out["manifest"]["races"]],
+            ["2026-11-18T20:45:00+09:00","2026-11-18T21:05:00+09:00",None])
+        self.assertTrue(out["netkeirin_GET_candidates_not_yet_verified"])
+
+    def test_conflicting_published_deadlines_for_one_race_are_not_selected(self):
+        pages=fixture()
+        href='/utsunomiya/racedetail/2420261117020001/'
+        pages[CARD]=('<html><ul class="racecard_list">'+listed_race(href)+
+            listed_race(href,cutoff="21:00")+'</ul></html>').encode()
+        with self.assertRaisesRegex(discover.DayLinksError,
+                                    "CONFLICTING_PUBLISHED_CUTOFF_HINTS"):
+            discover.discover(day_jst="2026-11-18",registered_ids=RIDS,
+                              fetch=lambda url:pages[url])
+
+    def test_meeting_day_index_zero_or_beyond_seven_is_not_a_real_day_link(self):
+        for meeting in ("24202611190000","24202611110800"):
+            with self.subTest(meeting=meeting):
+                raw=('<html><a href="/utsunomiya/racecard/'+meeting+
+                     '/">example</a></html>').encode()
+                self.assertEqual(discover.linked_racecards(
+                    raw,base_url=CAL,day="2026-11-18"),{})
+
     def test_meeting_day_two_extracted_from_real_link_shape_no_fabrication(self):
         p=fixture()
         out=discover.discover(day_jst="2026-11-18",

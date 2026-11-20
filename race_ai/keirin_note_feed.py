@@ -1,0 +1,234 @@
+"""Append-only GitHub display feed encrypted to an independent owner recipient.
+
+The runner needs only the public P-256 recipient. Neither the display private
+key nor RACE_AI_STATE_KEY is read by the scheduled writer. Prior source and
+forecast snapshots remain immutable encrypted Git objects.
+"""
+import base64
+from datetime import datetime, timezone
+from hashlib import sha256
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import tempfile
+
+from .keirin_note_view import canonical, _private_root, _create, MAX_VIEW, OUTER, SCHEMA
+
+REPO='haji84/RACE-AI'
+BRANCH='state/keirin-note-view'
+INDEX='RACE_AI_KEIRIN_NOTE_FEED_V1'
+RECIPIENT='RACE_AI_KEIRIN_NOTE_PUBLIC_RECIPIENT_V1'
+INFO=b'RACE_AI_KEIRIN_NOTE_FEED_V1:'
+MAX_WIRE=90*1024*1024
+
+
+def need(ok,code):
+    if not ok:raise ValueError('KEIRIN_NOTE_FEED_'+code)
+
+
+def b64(raw):return base64.urlsafe_b64encode(raw).decode().rstrip('=')
+
+
+def unb64(value):
+    need(type(value) is str and re.fullmatch('[A-Za-z0-9_-]+',value),'BASE64')
+    raw=base64.urlsafe_b64decode(value+'='*((-len(value))%4))
+    need(b64(raw)==value,'BASE64');return raw
+
+
+def checked_recipient(doc):
+    from cryptography.hazmat.primitives.asymmetric import ec
+    need(type(doc) is dict and set(doc)=={'schema','recipient_id','public_key'} and
+         doc['schema']==RECIPIENT,'RECIPIENT')
+    raw=unb64(doc['public_key']);need(len(raw)==65 and raw[0]==4 and
+         sha256(raw).hexdigest()==doc['recipient_id'],'RECIPIENT_HASH')
+    ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(),raw)
+    return doc
+
+
+def create_recipient(private_dir):
+    """Explicit owner setup only. Never called from a scheduled collection."""
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from cryptography.hazmat.primitives import serialization
+    root=_private_root(private_dir)
+    need(not any(root.iterdir()),'EXISTING_OWNER_CAPABILITY_PRESERVED')
+    key=ec.generate_private_key(ec.SECP256R1())
+    public=key.public_key().public_bytes(serialization.Encoding.X962,
+        serialization.PublicFormat.UncompressedPoint)
+    private=b64(key.private_bytes(serialization.Encoding.DER,
+        serialization.PrivateFormat.PKCS8,serialization.NoEncryption()))
+    recipient=dict(schema=RECIPIENT,recipient_id=sha256(public).hexdigest(),public_key=b64(public))
+    _create(root/'display-key.txt',(private+'\n').encode())
+    _create(root/'owner-url.txt',('https://haji84.github.io/RACE-AI/#notefeed='+private+'\n').encode())
+    return dict(public=recipient,private_key=str(root/'display-key.txt'),owner_url=str(root/'owner-url.txt'))
+
+
+def _ids(values):
+    need(type(values) is list and len(set(values))==len(values) and
+         all(type(v) is str and re.fullmatch('20[0-9]{10}',v) for v in values),'RACE_IDS')
+    return sorted(values)
+
+
+def checked_entry(entry):
+    fields={'cipher_sha256','source_content_sha256','ephemeral_public_key','salt',
+            'created_at','days','kind','captured_race_ids','priority_window_race_ids'}
+    need(type(entry) is dict and set(entry)==fields and entry['kind'] in {'import','research','archive'},'ENTRY')
+    for name in ('cipher_sha256','source_content_sha256'):
+        need(type(entry[name]) is str and re.fullmatch('[a-f0-9]{64}',entry[name]),'ENTRY_HASH')
+    need(len(unb64(entry['ephemeral_public_key']))==65 and len(unb64(entry['salt']))==32,'ENTRY_ECDH')
+    need(type(entry['days']) is list and entry['days'] and
+         all(type(d) is str and re.fullmatch('[0-9]{4}-[0-9]{2}-[0-9]{2}',d) for d in entry['days']),'DAYS')
+    clock=datetime.fromisoformat(entry['created_at'].replace('Z','+00:00'))
+    need(clock.utcoffset() is not None,'CLOCK')
+    captured=_ids(entry['captured_race_ids']);priority=_ids(entry['priority_window_race_ids'])
+    need(set(priority)<=set(captured),'PRIORITY_IDS');return entry
+
+
+def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=None):
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from cryptography.hazmat.primitives import hashes,serialization
+    from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    checked_recipient(recipient)
+    need(type(note) is dict and note.get('schema')==SCHEMA and
+         note.get('formal_model_admission') is False and
+         note.get('production_weight_switch') is False,'DISPLAY_SCOPE')
+    plain=canonical(note);need(0<len(plain)<=MAX_VIEW,'PLAIN_BOUND')
+    ephemeral=ec.generate_private_key(ec.SECP256R1())
+    public=ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(),unb64(recipient['public_key']))
+    salt=os.urandom(32)
+    aes=HKDF(algorithm=hashes.SHA256(),length=32,salt=salt,
+        info=INFO+recipient['recipient_id'].encode()).derive(ephemeral.exchange(ec.ECDH(),public))
+    header=dict(schema=OUTER,source_content_sha256=sha256(plain).hexdigest());nonce=os.urandom(12)
+    wire=canonical(dict(header=header,nonce=base64.b64encode(nonce).decode(),
+        ciphertext=base64.b64encode(AESGCM(aes).encrypt(nonce,plain,canonical(header))).decode()))+b'\n'
+    observed=(clock or (lambda:datetime.now(timezone.utc)))()
+    need(isinstance(observed,datetime) and observed.utcoffset() is not None,'CLOCK')
+    entry=checked_entry(dict(cipher_sha256=sha256(wire).hexdigest(),
+        source_content_sha256=header['source_content_sha256'],
+        ephemeral_public_key=b64(ephemeral.public_key().public_bytes(
+            serialization.Encoding.X962,serialization.PublicFormat.UncompressedPoint)),salt=b64(salt),
+        created_at=observed.astimezone(timezone.utc).isoformat(),days=note['dates'],kind=kind,
+        captured_race_ids=_ids(list(captured_ids)),priority_window_race_ids=_ids(list(priority_ids))))
+    return dict(entry=entry,cipher=wire)
+
+
+def checked_index(doc,recipient):
+    checked_recipient(recipient)
+    need(type(doc) is dict and set(doc)=={'schema','repository','recipient_id','entries',
+        'provider_denied','covered_race_ids','priority_window_race_ids'} and
+        doc['schema']==INDEX and doc['repository']==REPO and
+        doc['recipient_id']==recipient['recipient_id'] and type(doc['provider_denied']) is bool and
+        type(doc['entries']) is list,'INDEX')
+    hashes=set();covered=set();priority=set()
+    for entry in doc['entries']:
+        checked_entry(entry);h=entry['cipher_sha256'];need(h not in hashes,'DUPLICATE_ENTRY');hashes.add(h)
+        covered.update(entry['captured_race_ids']);priority.update(entry['priority_window_race_ids'])
+    need(_ids(doc['covered_race_ids'])==sorted(covered) and
+         _ids(doc['priority_window_race_ids'])==sorted(priority),'COVERAGE_INDEX')
+    return doc
+
+
+def append_index(previous,recipient,*,entry=None,denied=False):
+    doc=json.loads(canonical(checked_index(previous,recipient))) if previous is not None else dict(
+        schema=INDEX,repository=REPO,recipient_id=checked_recipient(recipient)['recipient_id'],entries=[],
+        provider_denied=False,covered_race_ids=[],priority_window_race_ids=[])
+    # A denial latch is persistent across dates and subsequent successful ticks.
+    need(not doc['provider_denied'] or entry is None,'PREVIOUS_PROVIDER_DENIAL_NO_RETRY')
+    if entry is not None:
+        checked_entry(entry);need(entry['cipher_sha256'] not in {r['cipher_sha256'] for r in doc['entries']},'DUPLICATE_ENTRY')
+        doc['entries'].append(entry)
+        doc['covered_race_ids']=sorted(set(doc['covered_race_ids'])|set(entry['captured_race_ids']))
+        doc['priority_window_race_ids']=sorted(set(doc['priority_window_race_ids'])|set(entry['priority_window_race_ids']))
+    doc['provider_denied']=doc['provider_denied'] or denied
+    return checked_index(doc,recipient)
+
+
+class NoteFeedGit:
+    """Fixed canonical display branch; normal FF CAS, isolated temporary index."""
+    ref=BRANCH
+    def __init__(self,repo):self.repo=Path(repo);self.remote=self._remote()
+
+    def run(self,args,*,body=None,env=None):
+        r=subprocess.run(['git',*args],cwd=self.repo,input=body,stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,timeout=90,env=env)
+        need(r.returncode==0,'GIT_OPERATION_FAILED');return r.stdout
+
+    def _remote(self):
+        fetch=self.run(['remote','get-url','--all','origin']).decode().splitlines()
+        push=self.run(['remote','get-url','--push','--all','origin']).decode().splitlines()
+        allowed={'https://github.com/'+REPO+'.git','https://github.com/'+REPO,
+                 'git@github.com:'+REPO+'.git'}
+        need(len(fetch)==len(push)==1 and fetch[0] in allowed and push[0] in allowed,
+             'CANONICAL_REMOTE_REQUIRED');return 'origin'
+
+    def head(self):
+        rows=self.run(['ls-remote',self.remote,'refs/heads/'+self.ref]).decode().splitlines()
+        need(len(rows)<=1,'REMOTE_HEAD');return rows[0].split()[0] if rows else None
+
+    def fetch(self,head):
+        need(re.fullmatch('[a-f0-9]{40}',head),'COMMIT');self.run(['fetch','--no-tags',self.remote,head])
+
+    def read(self,head,path):
+        need(path=='index.json' or re.fullmatch(r'views/[a-f0-9]{64}\.json',path),'PATH')
+        size=int(self.run(['cat-file','-s',head+':'+path]));need(0<size<=MAX_WIRE,'BLOB_BOUND')
+        body=self.run(['show',head+':'+path]);need(len(body)==size,'BLOB_SIZE');return body
+
+    def tree(self,head):
+        rows=self.run(['ls-tree','-r','--format=%(objectmode)\t%(path)',head]).decode().splitlines()
+        paths=[]
+        for row in rows:
+            mode,_,p=row.partition('\t');need(mode=='100644' and (p=='index.json' or
+                re.fullmatch(r'views/[a-f0-9]{64}\.json',p)),'UNEXPECTED_TREE');paths.append(p)
+        return paths
+
+    def commit(self,files,parent):
+        with tempfile.TemporaryDirectory(prefix='keirin-display-index-') as folder:
+            env=dict(os.environ,GIT_INDEX_FILE=str(Path(folder)/'index'))
+            self.run(['read-tree',parent] if parent else ['read-tree','--empty'],env=env)
+            for path,body in sorted(files.items()):
+                blob=self.run(['hash-object','-w','--stdin'],body=body,env=env).decode().strip()
+                self.run(['update-index','--add','--cacheinfo','100644,'+blob+','+path],env=env)
+            tree=self.run(['write-tree'],env=env).decode().strip()
+            args=['-c','user.name=RACE-AI encrypted display','-c','user.email=race-ai-state@users.noreply.github.com',
+                  '-c','commit.gpgSign=false','commit-tree',tree]
+            if parent:args+=['-p',parent]
+            return self.run(args,body=b'Retain owner-only encrypted KEIRIN display snapshot\n',env=env).decode().strip()
+
+    def push(self,commit,parent):
+        need(self._remote()==self.remote,'REMOTE_CHANGED')
+        need(self.head()==parent,'CONCURRENT_UPDATE')
+        self.run(['push',self.remote,commit+':refs/heads/'+self.ref])
+        need(self.head()==commit,'REMOTE_READBACK')
+
+
+def load_index(store,recipient,parent):
+    if parent is None:return None
+    store.fetch(parent);paths=store.tree(parent)
+    doc=checked_index(json.loads(store.read(parent,'index.json')),recipient)
+    need(set(paths)=={'index.json'}|{'views/'+e['cipher_sha256']+'.json' for e in doc['entries']},'INDEX_TREE_MISMATCH')
+    return doc
+
+
+def publish_snapshot(store,recipient,snapshot=None,*,expected_parent,denied=False):
+    need(store.head()==expected_parent,'CONCURRENT_UPDATE')
+    prior=load_index(store,recipient,expected_parent)
+    entry=snapshot['entry'] if snapshot else None
+    index=append_index(prior,recipient,entry=entry,denied=denied)
+    files={'index.json':canonical(index)+b'\n'}
+    before=store.run(['ls-tree','-r',expected_parent,'--','views']) if expected_parent else b''
+    if snapshot:
+        body=snapshot['cipher'];need(sha256(body).hexdigest()==entry['cipher_sha256'],'CIPHER_SHA')
+        files['views/'+entry['cipher_sha256']+'.json']=body
+    commit=store.commit(files,expected_parent);paths=store.tree(commit)
+    need(set(paths)=={'index.json'}|{'views/'+e['cipher_sha256']+'.json' for e in index['entries']},'NEW_TREE')
+    if expected_parent:
+        after=store.run(['ls-tree','-r',commit,'--','views'])
+        need(all(line in after.splitlines() for line in before.splitlines()),'CIPHERTEXT_HISTORY_CHANGED')
+    store.push(commit,expected_parent)
+    for path,body in files.items():need(store.read(commit,path)==body,'REMOTE_BYTES')
+    return dict(state='KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED',source_commit=commit,
+        entries=len(index['entries']),provider_denied=index['provider_denied'],
+        covered_races=len(index['covered_race_ids']),priority_window_races=len(index['priority_window_race_ids']),
+        private_plaintext_uploaded=False,production_state_key_used=False)
