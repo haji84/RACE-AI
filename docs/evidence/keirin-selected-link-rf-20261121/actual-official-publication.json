@@ -1,0 +1,21 @@
+{
+  "run_id": 44794841056,
+  "artifact_id": 14659630735,
+  "artifact_zip_sha256": "ddd4d1eadd3e53e0402e4f453636fa08cacc8375f297d72f869410d7569dd213",
+  "safe_summary": {
+    "authenticated_originals": 4,
+    "covered_races": 72,
+    "day_jst": "2026-11-21",
+    "entries": 15,
+    "priority_window_races": 3,
+    "private_plaintext_uploaded": false,
+    "production_state_key_used": false,
+    "provider_denied": false,
+    "provider_requests": 0,
+    "published_day_status": 1,
+    "published_originals": 4,
+    "source_commit": "5279ab195bb1653a2624d754fc1af7856c11013a",
+    "source_requests": 0,
+    "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED"
+  }
+}

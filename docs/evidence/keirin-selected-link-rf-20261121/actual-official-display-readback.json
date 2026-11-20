@@ -1,0 +1,33 @@
+{
+  "schema": "RACE_AI_ACTUAL_OFFICIAL_DAY_DISPLAY_READBACK_20261121_V1",
+  "state": "ACTUAL_OFFICIAL_DAY_DISPLAY_GIT_READBACK_VERIFIED",
+  "main": "d44a11257e61d3b539d7d033a93c27e0ea429746",
+  "state_head": "5279ab195bb1653a2624d754fc1af7856c11013a",
+  "cipher_sha256": "399dd9973655cfd9a21f25e30ae1eadb328030181ce0105d872e48c25347134e",
+  "observed_at_utc": "2026-11-20T18:53:17.917260+00:00",
+  "registry_races": 57,
+  "inventory_complete": true,
+  "baseline_A_B_originals": 4,
+  "conditioned_A_B_originals": 3,
+  "all_originals_present_in_this_packet": true,
+  "all_originals_sealed_at_least_65_seconds_before_published_cutoff": true,
+  "all_originals_observed_in_git_before_published_cutoff": true,
+  "strict_current_display_validator_passed": true,
+  "statuses": {
+    "UNSUPPORTED_CLASS_OR_ROUND": 44,
+    "SOURCE_CAPTURE_BUDGET_PENDING": 9,
+    "A_B_AUTHENTICATED_PRE_CUTOFF": 4
+  },
+  "conditions": {
+    "HISTORY_NOT_COLLECTED": 53,
+    "HISTORY_UNVERIFIED": 1,
+    "CONDITIONED_AUTHENTICATED_PRE_CUTOFF": 3
+  },
+  "formal_PR71_admission": false,
+  "official_cutoff_independently_authenticated": false,
+  "learning_improvement_proven": false,
+  "production_state_key_used": false,
+  "production_RSA_private_key_used_locally": false,
+  "private_plaintext_uploaded": false,
+  "display_private_key_transmitted": false
+}
