@@ -29,6 +29,9 @@ SUPPLEMENT_SCHEMA = "RACE_AI_KEIRIN_PRIVATE_FORM_SUPPLEMENT_V1"
 SCHEMA = "RACE_AI_KEIRIN_CONDITIONED_AB_SHADOW_V1"
 SEALED_SCHEMA = "RACE_AI_KEIRIN_PRIVATE_CONDITIONED_AB_CIPHER_V1"
 BRANCH_ID = re.compile(r"^L([1-9])_V([0-3])$")
+# Nine riders can require six recent results plus both sides of a fall.
+# Preserve each actual result receipt instead of fabricating a combined URL.
+MAX_CONDITION_SOURCE_PAGES = 128
 
 
 class ConditionShadowError(ValueError):
@@ -47,11 +50,10 @@ def source_bundle(snapshot, supplement, *, generated_at):
          supplement["schema"] == SUPPLEMENT_SCHEMA and
          supplement["race_id"] == snapshot["race_id"] and
          type(supplement["source_pages"]) is list and
-         1 <= len(supplement["source_pages"]) <= 10,
+         1 <= len(supplement["source_pages"]) <= MAX_CONDITION_SOURCE_PAGES,
          "FORM_SUPPLEMENT_SCHEMA_OR_RACE_INVALID")
     pages = supplement["source_pages"]
-    need(len(snapshot["source_pages"]) + len(pages) <= 16 and
-         all(type(p) is dict and
+    need(all(type(p) is dict and
              set(p) == {"kind", "url", "bytes_sha256", "captured_at"} and
              p["kind"] == "PROGRAM" and
              type(p["bytes_sha256"]) is str and

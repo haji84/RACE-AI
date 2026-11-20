@@ -49,13 +49,16 @@ def day(value):
     return d
 
 
-def _receipt(row, seen_sources, cutoff):
+def _receipt(row, source_captures, cutoff):
     need(type(row.get("source_sha256")) is str and
          SHA.fullmatch(row["source_sha256"]) is not None and
-         row["source_sha256"] in seen_sources,
+         row["source_sha256"] in source_captures,
          "FORM_SOURCE_SHA_UNMATCHED")
-    need(instant(row.get("published_at")) <= cutoff,
+    published = instant(row.get("published_at"))
+    need(published <= cutoff,
          "FORM_PUBLISHED_AFTER_INPUT_CUTOFF")
+    need(published <= source_captures[row["source_sha256"]],
+         "FORM_PUBLISHED_AFTER_SOURCE_CAPTURE")
 
 
 def validate(evidence, *, starters, source_pages, as_of, target_race_id):
@@ -68,14 +71,18 @@ def validate(evidence, *, starters, source_pages, as_of, target_race_id):
     evidence_cutoff = instant(evidence["as_of"])
     need(evidence_cutoff <= cutoff,
          "FORM_CAPTURE_AFTER_PREDICTION_INPUT")
-    program_shas = {
-        p["bytes_sha256"] for p in source_pages
-        if type(p) is dict and p.get("kind") == "PROGRAM"
-    }
-    need(all(type(p) is dict and
-             instant(p.get("captured_at")) <= evidence_cutoff
-             for p in source_pages if p.get("kind") == "PROGRAM"),
+    need(all(type(p) is dict for p in source_pages),
          "FORM_SOURCE_CAPTURE_AFTER_EVIDENCE_ASOF")
+    program_captures = {}
+    for page in source_pages:
+        if page.get("kind") != "PROGRAM":
+            continue
+        captured = instant(page.get("captured_at"))
+        need(captured <= evidence_cutoff,
+             "FORM_SOURCE_CAPTURE_AFTER_EVIDENCE_ASOF")
+        digest = page["bytes_sha256"]
+        program_captures[digest] = min(
+            captured, program_captures.get(digest, captured))
     need(type(evidence["riders"]) is list and
          len(evidence["riders"]) <= len(starters),
          "FORM_RIDER_LIST_INVALID")
@@ -114,7 +121,7 @@ def validate(evidence, *, starters, source_pages, as_of, target_race_id):
                      "FORM_FINISH_POSITION_INVALID")
             else:
                 need(place is None, "FORM_NON_FINISH_CANNOT_HAVE_PLACE")
-            _receipt(record, program_shas, evidence_cutoff)
+            _receipt(record, program_captures, evidence_cutoff)
         absences = rider["absences"]
         need(type(absences) is list and len(absences) <= 8,
              "FORM_ABSENCE_COUNT_INVALID")
@@ -125,7 +132,7 @@ def validate(evidence, *, starters, source_pages, as_of, target_race_id):
             first, last = day(a["start"]), day(a["end"])
             need(first <= last < target and (last-first).days <= 365,
                  "FORM_ABSENCE_PERIOD_INVALID")
-            _receipt(a, program_shas, evidence_cutoff)
+            _receipt(a, program_captures, evidence_cutoff)
         comments = rider["comments"]
         need(type(comments) is list and len(comments) <= 12,
              "FORM_COMMENT_COUNT_INVALID")
@@ -139,7 +146,7 @@ def validate(evidence, *, starters, source_pages, as_of, target_race_id):
                  1 <= len(c["text"]) <= 300 and
                  all(ord(ch) >= 32 for ch in c["text"]),
                  "FORM_COMMENT_INVALID")
-            _receipt(c, program_shas, evidence_cutoff)
+            _receipt(c, program_captures, evidence_cutoff)
     return evidence
 
 
@@ -188,8 +195,10 @@ def assess(evidence, *, starters, source_pages, as_of, target_race_id):
             continue
         results = sorted(rider["results"],
                          key=lambda x: (x["race_date"], x["race_id"]))
+        # A crash-affected finish is retained as a fall event but is not a
+        # normal performance observation. It cannot alone lower form.
         finished = [r for r in results
-                    if r["status"] in ("FINISHED", "FALL_FINISHED") and
+                    if r["status"] == "FINISHED" and
                     (target - day(r["race_date"])).days <= 180]
         recent_change = _three_split(finished)
         falls = [r for r in results if r["status"] in ("FALL_DNF", "FALL_FINISHED") and

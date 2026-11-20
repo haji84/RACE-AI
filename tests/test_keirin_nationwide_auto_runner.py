@@ -203,10 +203,18 @@ class NationwideRealAutomationCode(unittest.TestCase):
             json.dumps(source), encoding="utf-8")
         return source
 
+    def synthetic_form_loader(self, *, snapshot, raw_pages_dir, captured_at):
+        """Test-only stand-in for the separately reviewed original-byte parser.
+
+        This fixture does not establish a real provider or rider identity.
+        No production entry point installs this loader.
+        """
+        return json.loads((self.cards/(RID+".form.json")).read_text())
+
     def test_form_source_is_separate_owner_sealed_shadow_not_backfilled_baseline(self):
         self.add_source()
         self.add_private_form_source()
-        report = self.run_it()
+        report = self.run_it(form_evidence_loader=self.synthetic_form_loader)
         row = next(x for x in report["records"] if x["race_id"] == RID)
         self.assertEqual(row["state"],
                          "A_B_PRIVATE_CIPHER_CREATED_SAME_JOB_SHA_MATCH")
@@ -223,25 +231,52 @@ class NationwideRealAutomationCode(unittest.TestCase):
         self.assertEqual(independent["independent_cipher_file_shas_ok"], 1)
         self.assertEqual(independent["independent_condition_cipher_shas_ok"], 1)
 
-    def test_form_unverified_raw_bytes_hold_before_any_forecast(self):
+    def test_unverified_car_only_supplement_never_seals_conditioned_forecast(self):
+        snapshot = fixture()
+        for rider in snapshot["riders"]:
+            rider["athlete_id"] = None
+        self.add_source(snapshot=snapshot)
+        self.add_private_form_source()
+        report = self.run_it()
+        row = next(x for x in report["records"] if x["race_id"] == RID)
+        self.assertEqual(report["same_job_sealed"], 1)
+        self.assertEqual(row["form_fall_shadow_state"],
+                         "HOLD_CONDITION_SOURCE_IDENTITY_NOT_VERIFIED")
+        self.assertFalse((self.cipher/(RID+".form.sealed.json")).exists())
+
+    def test_broken_optional_condition_file_preserves_valid_baseline(self):
+        self.add_source()
+        (self.cards/(RID+".form.json")).write_text("{not valid JSON")
+        report = self.run_it()
+        row = next(x for x in report["records"] if x["race_id"] == RID)
+        self.assertEqual(report["same_job_sealed"], 1)
+        self.assertEqual(row["form_fall_shadow_state"],
+                         "HOLD_CONDITION_SOURCE_IDENTITY_NOT_VERIFIED")
+        self.assertFalse((self.cipher/(RID+".form.sealed.json")).exists())
+
+    def test_form_unverified_raw_bytes_hold_only_conditioned_forecast(self):
         self.add_source()
         self.add_private_form_source(broken_sha=True)
-        report = self.run_it()
-        self.assertEqual(report["A_generated"], 0)
-        self.assertEqual(report["same_job_sealed"], 0)
-        self.assertIn("HOLD_OWNER_RAW_SOURCE_BYTES_MISSING", report["statuses"])
+        report = self.run_it(form_evidence_loader=self.synthetic_form_loader)
+        self.assertEqual(report["A_generated"], 1)
+        self.assertEqual(report["same_job_sealed"], 1)
+        row = next(x for x in report["records"] if x["race_id"] == RID)
+        self.assertEqual(row["form_fall_shadow_state"],
+                         "HOLD_OWNER_RAW_SOURCE_BYTES_MISSING")
 
     def test_form_source_not_valid_before_cutoff_is_hold(self):
         self.add_source()
         self.add_private_form_source(late=True)
-        report = self.run_it()
-        self.assertEqual(report["same_job_sealed"],0)
-        self.assertIn("HOLD_FORM_SOURCE_AFTER_PREDICTION_OR_CUTOFF", report["statuses"])
+        report = self.run_it(form_evidence_loader=self.synthetic_form_loader)
+        self.assertEqual(report["same_job_sealed"],1)
+        row = next(x for x in report["records"] if x["race_id"] == RID)
+        self.assertEqual(row["form_fall_shadow_state"],
+                         "HOLD_FORM_SOURCE_AFTER_PREDICTION_OR_CUTOFF")
 
     def test_form_shadow_tamper_does_not_rewrite_valid_baseline(self):
         self.add_source()
         self.add_private_form_source()
-        report=self.run_it()
+        report=self.run_it(form_evidence_loader=self.synthetic_form_loader)
         basefile=self.cipher/(RID+".sealed.json")
         original=basefile.read_bytes()
         shadowfile=self.cipher/(RID+".form.sealed.json")

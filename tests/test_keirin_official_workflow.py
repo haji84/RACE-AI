@@ -19,7 +19,8 @@ class OfficialWorkflow(unittest.TestCase):
         text, blocks = jobs()
         key = 'secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM'
         self.assertEqual({name for name, block in blocks.items() if key in block},
-                         {'github-only-research-results', 'source-free-readiness', 'saved-only-replay'})
+                         {'github-only-research-results', 'source-free-readiness', 'saved-only-replay',
+                          'form-canary-settle'})
         result = blocks['github-only-research-results']
         self.assertIn(key, result)
         for guard in ("github.repository == 'haji84/RACE-AI'", "github.ref == 'refs/heads/main'",

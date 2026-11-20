@@ -68,6 +68,29 @@ class PreCutoffFormFallResearch(unittest.TestCase):
         self.assertFalse(out["historical_originals_mutated"])
         self.assertEqual(supplement,before)
 
+    def test_separate_official_result_pages_fit_complete_roster_history(self):
+        supplement = pack(results=[result(n, n) for n in range(1,7)])
+        page = supplement["source_pages"][0]
+        # Seven riders need six individually identified historical results;
+        # one official result document per historical race is normal input.
+        supplement["source_pages"] = [dict(page, bytes_sha256=f"{n:064x}")
+                                      for n in range(42)]
+        supplement["source_pages"].append(page)
+        try:
+            _, base, out = compute(supplement)
+        except shadow.ConditionShadowError as exc:
+            self.fail(f"Complete bounded history was rejected: {exc}")
+        self.assertEqual(out["verified_source_receipt_count"], 43)
+        self.assertEqual(out["baseline_prediction_sha256"],
+                         base["prediction_sha256"])
+
+    def test_excessive_condition_source_page_list_is_rejected(self):
+        supplement = pack()
+        supplement["source_pages"] *= 129
+        with self.assertRaisesRegex(shadow.ConditionShadowError,
+                                    "FORM_SUPPLEMENT_SCHEMA_OR_RACE_INVALID"):
+            compute(supplement)
+
     def test_a_fall_without_post_return_evidence_is_not_automatic_penalty(self):
         snap,base,out=compute(pack(results=[result(4,None,status="FALL_DNF")]))
         rider=out["rider_assessments"][0]
@@ -80,6 +103,35 @@ class PreCutoffFormFallResearch(unittest.TestCase):
                          base["A"]["ranked_tickets"])
         self.assertEqual(out["B_research"]["ranked_tickets"],
                          base["B"]["ranked_tickets"])
+
+    def test_fall_finish_is_not_normal_recent_form(self):
+        for normal_count in (5, 6):
+            with self.subTest(normal_count=normal_count):
+                rows = [result(n, 1) for n in range(1, normal_count+1)]
+                fall = result(normal_count+1, 7)
+                fall["status"] = "FALL_FINISHED"
+                rows.append(fall)
+                _, base, out = compute(pack(results=rows))
+                rider = out["rider_assessments"][0]
+                self.assertTrue(rider["fall_on_record"])
+                self.assertEqual(rider["score_adjustment"], 0)
+                self.assertIsNone(rider["post_fall_change"])
+                self.assertEqual(rider["recent_result_change"],
+                                 None if normal_count == 5 else 0)
+                self.assertEqual(out["A_research"]["ranked_tickets"],
+                                 base["A"]["ranked_tickets"])
+
+    def test_publication_must_precede_its_own_source_capture(self):
+        supp = pack(results=[result(1, 1)])
+        supp["source_pages"][0]["captured_at"] = "2026-11-18T08:00:00+09:00"
+        supp["condition_evidence"]["riders"][0]["results"][0]["published_at"] = (
+            "2026-11-18T08:30:00+09:00")
+        supp["source_pages"].append({
+            "kind":"PROGRAM", "url":"https://example.org/later-other-source",
+            "bytes_sha256":"f"*64, "captured_at":ASOF})
+        with self.assertRaisesRegex(shadow.ConditionShadowError,
+                                    "FORM_PUBLISHED_AFTER_SOURCE_CAPTURE"):
+            compute(supp)
 
     def test_documented_absence_return_and_comments_are_traced_but_not_diagnosed(self):
         supp=pack(

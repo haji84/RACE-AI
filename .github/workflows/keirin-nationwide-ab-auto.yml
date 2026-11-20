@@ -8,6 +8,8 @@ on:
       - 'scripts/keirin_official_readiness.py'
       - 'scripts/keirin_official_saved_check.py'
       - 'scripts/keirin_official_day_pipeline.py'
+      - 'scripts/keirin_official_form_canary.py'
+      - 'scripts/keirin_capture_official_form_history.py'
       - 'race_ai/keirin_nationwide_auto_storage.py'
       - 'scripts/keirin_runtime_selection.py'
       - 'tests/test_keirin_runtime_exclusion.py'
@@ -26,6 +28,8 @@ on:
       - 'tests/test_keirin_form_fall_owner_view.py'
       - 'tests/test_keirin_form_history_admission.py'
       - 'tests/test_keirin_form_fall_blind_pdca.py'
+      - 'tests/test_keirin_form_canary_*.py'
+      - 'scripts/keirin_capture_official_form_history.py'
       - 'scripts/keirin_nationwide_auto_forecast.py'
       - 'scripts/keirin_register_public_day.py'
       - 'scripts/keirin_github_only_ab_*.py'
@@ -65,7 +69,7 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, readiness, saved-only, run]
+        options: [test, readiness, saved-only, run, form-canary]
   schedule:
     # Can be delayed, so published cutoff is checked again at actual save.
     - cron: '*/10 * * * *'
@@ -82,7 +86,7 @@ jobs:
     if: >-
       github.event_name == 'push' || github.event_name == 'pull_request' ||
       (github.event_name == 'workflow_dispatch' &&
-       (inputs.mode == 'test' || inputs.mode == 'readiness' || inputs.mode == 'saved-only'))
+       (inputs.mode == 'test' || inputs.mode == 'readiness' || inputs.mode == 'saved-only' || inputs.mode == 'form-canary'))
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
@@ -101,6 +105,13 @@ jobs:
             tests.test_keirin_form_fall_owner_view \
             tests.test_keirin_form_history_admission \
             tests.test_keirin_form_fall_blind_pdca \
+            tests.test_keirin_form_canary_origin \
+            tests.test_keirin_form_canary_workflow \
+            tests.test_keirin_official_form_history \
+            tests.test_keirin_official_canary_card \
+            tests.test_keirin_official_canary_join \
+            tests.test_keirin_official_nationwide_extension \
+            tests.test_keirin_official_form_canary \
             tests.test_keirin_nationwide_auto_storage \
             tests.test_keirin_nationwide_auto_runner \
             tests.test_keirin_nationwide_auto_settlement \
@@ -143,6 +154,8 @@ jobs:
             race_ai/keirin_form_history_admission.py \
             race_ai/keirin_form_fall_blind_pdca.py \
             scripts/keirin_form_fall_owner_view.py \
+            scripts/keirin_capture_official_form_history.py \
+            scripts/keirin_official_form_canary.py \
             race_ai/keirin_nationwide_auto_storage.py \
             race_ai/keirin_nationwide_auto_settlement.py \
             race_ai/keirin_nationwide_cipher_history.py \
@@ -1233,5 +1246,217 @@ jobs:
         run: |
           root="$RUNNER_TEMP/keirin-official-$GITHUB_RUN_ID"
           if [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-official-* ]]; then
+            rm -rf -- "$root"
+          fi
+
+  form-canary-window:
+    # Owner authorized one future live race before nationwide expansion.
+    # Scope is fixed in reviewed code: 202611208105, JST 2026-11-20 only.
+    # No repository variable, secret, permission or global opt-in is changed.
+    needs: source-free-tests
+    if: >-
+      always() &&
+      github.repository == 'haji84/RACE-AI' &&
+      github.repository_id == '1416489937' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'schedule' ||
+       (needs.source-free-tests.result == 'success' &&
+        (github.event_name == 'push' ||
+         (github.event_name == 'workflow_dispatch' && inputs.mode == 'form-canary'))))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    outputs:
+      capture: ${{ steps.window.outputs.capture }}
+      settle: ${{ steps.window.outputs.settle }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Check the single-race runtime window without provider access
+        id: window
+        shell: bash
+        run: |
+          python - <<'PY'
+          from datetime import datetime, timezone
+          import os
+          from race_ai.keirin_github_origin_evidence import form_canary_window
+          window = form_canary_window(datetime.now(timezone.utc))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              for key in ('capture', 'settle'):
+                  output.write(key + '=' + str(window[key]).lower() + '\n')
+          PY
+
+  form-canary-capture:
+    needs: form-canary-window
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.repository_id == '1416489937' &&
+      github.ref == 'refs/heads/main' &&
+      needs.form-canary-window.result == 'success' &&
+      needs.form-canary-window.outputs.capture == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      # Local authorization for the fixed trial; repository vars stay intact.
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: 'true'
+    outputs:
+      archived: ${{ steps.capture.outputs.archived }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Collect verified rider history and freeze both original pairs
+        id: capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="$RUNNER_TEMP/keirin-form-canary-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root/safe"
+          chmod 700 "$root"
+          status=0
+          python -m scripts.keirin_official_form_canary capture \
+            --repo "$GITHUB_WORKSPACE" --private-root "$root" \
+            --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --report "$root/safe/summary.json" > "$root/counts.json" || status=$?
+          cat "$root/counts.json" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$status" -ne 0 ]; then exit "$status"; fi
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path(os.environ['RUNNER_TEMP']) / ('keirin-form-canary-' + os.environ['GITHUB_RUN_ID']) / 'safe/summary.json'
+          report = json.loads(path.read_text())
+          ready = report.get('new_A_B_git_archived') == 1 and report.get('new_conditioned_A_B_git_archived') == 1
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('archived=' + str(ready).lower() + '\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: keirin-form-canary-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-form-canary-${{ github.run_id }}/safe/summary.json
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Destroy ephemeral canary sources and plaintext
+        if: always()
+        shell: bash
+        run: |
+          root="$RUNNER_TEMP/keirin-form-canary-$GITHUB_RUN_ID"
+          if [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-form-canary-* ]]; then
+            rm -rf -- "$root"
+          fi
+
+  form-canary-independent-readback:
+    needs: form-canary-capture
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.repository_id == '1416489937' &&
+      github.ref == 'refs/heads/main' &&
+      needs.form-canary-capture.result == 'success' &&
+      needs.form-canary-capture.outputs.archived == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: 'true'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-form-canary-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-form-canary-readback
+      - name: Verify both committed ciphertext originals on a separate runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          python -m scripts.keirin_github_only_ab_readback \
+            --report "$RUNNER_TEMP/keirin-form-canary-readback/summary.json" \
+            --repo "$GITHUB_WORKSPACE" --out "$RUNNER_TEMP/keirin-git-independent.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = json.loads((Path(os.environ['RUNNER_TEMP']) / 'keirin-git-independent.json').read_text())
+          if report.get('paired_cipher_originals_verified') != 1:
+              raise SystemExit('HOLD_CANARY_FOUR_ARMS_NOT_RETRIEVED')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-form-canary-readback-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-git-independent.json
+          retention-days: 21
+          if-no-files-found: error
+
+  form-canary-settle:
+    # Subsequent schedule runs may settle the previously sealed trial. No
+    # forecast is generated here and the ordinary nationwide opt-ins stay off.
+    needs: [form-canary-window, form-canary-capture, form-canary-independent-readback]
+    if: >-
+      always() &&
+      github.repository == 'haji84/RACE-AI' &&
+      github.repository_id == '1416489937' &&
+      github.ref == 'refs/heads/main' &&
+      needs.form-canary-window.result == 'success' &&
+      needs.form-canary-window.outputs.settle == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    env:
+      RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: 'true'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Authenticate both frozen pairs and compare the official result
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="$RUNNER_TEMP/keirin-form-canary-result-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root/safe"
+          chmod 700 "$root"
+          status=0
+          python -m scripts.keirin_official_form_canary settle \
+            --repo "$GITHUB_WORKSPACE" --private-root "$root" \
+            --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            --report "$root/safe/summary.json" > "$root/counts.json" || status=$?
+          cat "$root/counts.json" >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: keirin-form-canary-settlement-receipt-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-form-canary-result-${{ github.run_id }}/safe/summary.json
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Destroy ephemeral canary settlement plaintext
+        if: always()
+        shell: bash
+        run: |
+          root="$RUNNER_TEMP/keirin-form-canary-result-$GITHUB_RUN_ID"
+          if [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-form-canary-result-* ]]; then
             rm -rf -- "$root"
           fi

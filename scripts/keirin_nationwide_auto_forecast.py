@@ -82,7 +82,7 @@ def _safe_error(code):
 
 def run_cycle(*,registry, private_racecards_dir, raw_pages_dir,
               private_cipher_dir, owner_public_key_pem,
-              clock=None):
+              clock=None, form_evidence_loader=None):
     races=registered_race_ids(registry)
     cards=private_dir(private_racecards_dir)
     raw_pages=private_dir(raw_pages_dir)
@@ -119,29 +119,40 @@ def run_cycle(*,registry, private_racecards_dir, raw_pages_dir,
                  "SOURCE_JSON_MUST_BE_RACE_FACTS_OBJECT")
             need(snap.get("race_id")==race_id,
                  "SOURCE_OTHER_RACE_OR_DATE")
-            supplement = None
-            supplement_file = cards / (race_id + ".form.json")
-            if supplement_file.is_file() or supplement_file.is_symlink():
-                need(supplement_file.is_file() and
-                     not supplement_file.is_symlink() and
-                     0 < supplement_file.stat().st_size <= MAX_SOURCE,
-                     "FORM_SUPPLEMENT_PRIVATE_FILE_INVALID")
-                supplement = json.loads(
-                    supplement_file.read_bytes().decode("utf-8"))
             now=clock().astimezone(timezone.utc).isoformat()
             model.validate_snapshot(snap,computed_at=now)
             checked_raw_sources(snap,raw_pages)
-            if supplement is not None:
-                form_shadow.source_bundle(snap, supplement, generated_at=now)
-                checked_raw_sources({
-                    "cutoff_source": snap["cutoff_source"],
-                    "source_pages": supplement["source_pages"]}, raw_pages)
             # The SHA-locked baseline is unchanged; conditions are a separate
             # independently timestamped research sidecar.
             forecast=model.generate_A_B(snap,generated_at=now)
-            shadow_forecast = (form_shadow.generate_shadow(
-                snap, supplement, baseline=forecast, generated_at=now)
-                if supplement is not None else None)
+            supplement = shadow_forecast = None
+            supplement_file = cards / (race_id + ".form.json")
+            requested = supplement_file.exists() or supplement_file.is_symlink()
+            row["form_fall_shadow_state"] = "NO_FORM_SOURCE_BASELINE_ONLY"
+            if requested or form_evidence_loader is not None:
+                # Structured car-number JSON is not an identity attestation.
+                # The trusted application supplies a LOCAL source parser that
+                # rebuilds evidence from original bytes and verifies official
+                # roster registration IDs. CLI defaults never admit sidecars.
+                try:
+                    need(callable(form_evidence_loader) and all(
+                        type(r["athlete_id"]) is str and
+                        model.RID.fullmatch(r["athlete_id"])
+                        for r in snap["riders"]),
+                        "CONDITION_SOURCE_IDENTITY_NOT_VERIFIED")
+                    supplement = form_evidence_loader(
+                        snapshot=snap, raw_pages_dir=raw_pages, captured_at=now)
+                    need(type(supplement) is dict,
+                         "CONDITION_VERIFIED_SOURCE_MISSING")
+                    form_shadow.source_bundle(snap, supplement, generated_at=now)
+                    checked_raw_sources({
+                        "cutoff_source": snap["cutoff_source"],
+                        "source_pages": supplement["source_pages"]}, raw_pages)
+                    shadow_forecast = form_shadow.generate_shadow(
+                        snap, supplement, baseline=forecast, generated_at=now)
+                except (ValueError, TypeError, KeyError, OSError) as exc:
+                    supplement = shadow_forecast = None
+                    row["form_fall_shadow_state"] = "HOLD_"+_safe_error(str(exc))
             row["A_generated"]=True
             row["B_generated"]=True
             saved=seal.seal_once(
@@ -178,8 +189,6 @@ def run_cycle(*,registry, private_racecards_dir, raw_pages_dir,
                 except (ValueError,TypeError,KeyError,OSError,
                         form_shadow.ConditionShadowError):
                     row["form_fall_shadow_state"] = "HOLD_CONDITIONED_SHADOW_SEAL"
-            else:
-                row["form_fall_shadow_state"] = "NO_FORM_SOURCE_BASELINE_ONLY"
         except (ValueError,KeyError,TypeError,OSError,
                 model.AutomaticForecastError,seal.AutoSealError,
                 form_shadow.ConditionShadowError) as exc:

@@ -157,8 +157,11 @@ def compare_cohort(*, registered_race_ids, joined_private_rows,
                 old_score,new_score = _score(prior,paid),_score(new,paid)
                 scores[role] = {"old":old_score, "conditioned":new_score,
                                 "changed":prior != new}
-                for dest,result in (("original",old_score),
-                                    ("conditioned",new_score)):
+            # Admit the complete four-arm comparison atomically. A failed
+            # B validation must not leave A's hits or stakes in the cohort.
+            for role, score in scores.items():
+                for dest,result in (("original",score["old"]),
+                                    ("conditioned",score["conditioned"])):
                     combined[role][dest]["first"] += int(result["first_hit"])
                     combined[role][dest]["hit"] += int(result["all_hit"])
                     combined[role][dest]["stake"] += result["stake_yen"]

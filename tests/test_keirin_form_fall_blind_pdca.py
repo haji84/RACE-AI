@@ -133,6 +133,29 @@ class ConditionBlindPDCA(unittest.TestCase):
             pdca.compare_cohort(registered_race_ids=[RID],
                 joined_private_rows={OTHER:make()}, independently_verify=trusted())
 
+    def test_invalid_b_does_not_commit_any_a_metrics(self):
+        row = make()
+        row["conditioned"]["B_research"]["ranked_tickets"][1] = (
+            row["conditioned"]["B_research"]["ranked_tickets"][0])
+        row["conditioned"]["sha256"] = base.digest({
+            k:v for k,v in row["conditioned"].items() if k != "sha256"})
+        report = pdca.compare_cohort(
+            registered_race_ids=[RID], joined_private_rows={RID:row},
+            independently_verify=trusted())
+        self.assertEqual(report["paired_comparable_races"], 0)
+        self.assertEqual(report["statuses"], {
+            "HOLD_UNVERIFIED_PRE_CUTOFF_OR_FINAL": 1})
+        for role in ("A", "B"):
+            for arm in ("original", "conditioned"):
+                metrics = report["metrics"][role][arm]
+                self.assertEqual(metrics["first_hit"], 0)
+                self.assertEqual(metrics["all_hit"], 0)
+                self.assertEqual(metrics["stake_yen"], 0)
+                self.assertEqual(metrics["payout_yen"], 0)
+                self.assertEqual(metrics["virtual_profit_yen"], 0)
+                self.assertIsNone(metrics["virtual_roi"])
+                self.assertIsNone(metrics["hit_rate"])
+
 
 if __name__=="__main__":
     unittest.main()

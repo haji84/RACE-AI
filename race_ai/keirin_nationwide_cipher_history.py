@@ -22,12 +22,14 @@ import re
 import subprocess
 
 from . import keirin_nationwide_auto_storage as storage
+from . import keirin_form_fall_shadow as condition
 
 REPO = "haji84/RACE-AI"
 REPO_ID = "1416489937"
 BRANCH = "state/keirin-encrypted-history"
 ROOT = "state/keirin/ab/v1"
 SCHEMA = "RACE_AI_KEIRIN_AB_GIT_CIPHER_ORIGINAL_V1"
+FORM_SCHEMA = "RACE_AI_KEIRIN_CONDITIONED_AB_GIT_ORIGINAL_V1"
 SHA = re.compile(r"^[0-9a-f]{64}$")
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
 RUN = re.compile(r"^[1-9][0-9]{0,16}$")
@@ -110,12 +112,12 @@ def _cipher(raw, expected_sha):
     return doc
 
 
-def _receipt(doc, digest, run_id, producer_sha, previous_head):
+def _receipt(doc, digest, run_id, producer_sha, previous_head, cohort_sha256=None):
     need(type(run_id) is str and RUN.fullmatch(run_id) and
          type(producer_sha) is str and COMMIT.fullmatch(producer_sha) and
          type(previous_head) is str and COMMIT.fullmatch(previous_head),
          "PRODUCER_OR_PARENT_PROVENANCE_REQUIRED")
-    return {
+    receipt = {
         "schema":SCHEMA,
         "race_id":doc["race_id"],
         "cipher_sha256":digest,
@@ -126,6 +128,11 @@ def _receipt(doc, digest, run_id, producer_sha, previous_head):
         "branch":BRANCH,
         "cipher_only_not_source_or_cutoff_attestation":True,
     }
+    if cohort_sha256 is not None:
+        need(type(cohort_sha256) is str and SHA.fullmatch(cohort_sha256),
+             "REGISTRY_COHORT_SHA_REQUIRED")
+        receipt["cohort_sha256"] = cohort_sha256
+    return receipt
 
 
 def _refresh(repo):
@@ -193,17 +200,21 @@ def _read_at(repo, ref, race_id, expected_sha):
         receipt=json.loads(metadata[1])
     except (ValueError,TypeError):
         raise GitCipherArchiveError("ARCHIVE_RECEIPT_NOT_JSON") from None
-    need(type(receipt) is dict and
-         set(receipt)=={
+    fields = {
             "schema","race_id","cipher_sha256","original_sealed_at",
             "producer_run_id","producer_commit","previous_archive_commit",
             "branch","cipher_only_not_source_or_cutoff_attestation"
-         } and
+    }
+    need(type(receipt) is dict and
+         set(receipt) in (fields, fields | {"cohort_sha256"}) and
          receipt["schema"]==SCHEMA and
          receipt["race_id"]==race_id and receipt["branch"]==BRANCH and
          receipt["cipher_sha256"]==expected_sha and
          receipt["cipher_only_not_source_or_cutoff_attestation"] is True,
          "ARCHIVE_RECEIPT_OR_SHA_MISMATCH")
+    if "cohort_sha256" in receipt:
+        need(type(receipt["cohort_sha256"]) is str and
+             SHA.fullmatch(receipt["cohort_sha256"]), "REGISTRY_COHORT_SHA_REQUIRED")
     doc=_cipher(raw,expected_sha)
     need(doc["race_id"]==race_id and
          receipt["original_sealed_at"]==doc["sealed_at"] and
@@ -234,7 +245,8 @@ def read_original(*, repo, race_id, expected_cipher_sha256,
 
 
 def append_once(*,repo,raw_cipher,expected_cipher_sha256,
-                producer_run_id,producer_commit,synthetic_local=False):
+                producer_run_id,producer_commit,synthetic_local=False,
+                cohort_sha256=None):
     """Strict fast-forward-only append; never create/reset state branch."""
     repo=_remote(repo,synthetic_local=synthetic_local)
     doc=_cipher(raw_cipher,expected_cipher_sha256)
@@ -250,12 +262,15 @@ def append_once(*,repo,raw_cipher,expected_cipher_sha256,
         if prior_cipher is not None:
             if sha256(prior_cipher).hexdigest() != expected_cipher_sha256:
                 raise GitCipherArchiveError("FORECAST_ORIGINAL_ALREADY_EXISTS_DIFFERENT_CIPHER")
-            _read_at(repo,head,rid,expected_cipher_sha256)
+            prior = _read_at(repo,head,rid,expected_cipher_sha256)
+            if cohort_sha256 is not None:
+                need(prior.get("cohort_sha256") == cohort_sha256,
+                     "EXISTING_ORIGINAL_COHORT_MISMATCH")
             return {"state":"IDENTICAL_ORIGINAL_ALREADY_FROZEN_NO_NEW_WRITE",
                     "race_id":rid,"cipher_sha256":expected_cipher_sha256,
                     "readback_head":head}
         receipt=_receipt(doc,expected_cipher_sha256,producer_run_id,
-                         producer_commit,head)
+                         producer_commit,head,cohort_sha256)
         with TemporaryDirectory(prefix="keirin-cipher-only-git-") as d:
             tree=Path(d)/"tree"
             _cmd(repo,"worktree","add","--detach",str(tree),head)
@@ -292,3 +307,177 @@ def append_once(*,repo,raw_cipher,expected_cipher_sha256,
                     "readback_head":observed["observed_branch_head"]}
         # Race in another runner? Never force-push. Fetch and check.
     raise GitCipherArchiveError("CONCURRENT_GIT_FAST_FORWARD_RETRY_EXHAUSTED")
+
+
+def _form_refs(race_id):
+    cipher, receipt = _refs(race_id)
+    return (cipher.removesuffix(".sealed.json") + ".form.sealed.json",
+            receipt.removesuffix(".receipt.json") + ".form.receipt.json")
+
+
+def _form_cipher(raw, digest, race_id, parent_sha):
+    need(type(raw) is bytes and 0 < len(raw) < MAX_BYTES and
+         type(digest) is str and SHA.fullmatch(digest) and
+         sha256(raw).hexdigest() == digest and
+         type(parent_sha) is str and SHA.fullmatch(parent_sha),
+         "CONDITIONED_CIPHER_OR_PARENT_SHA_INVALID")
+    _form_refs(race_id)
+    # Reuse the existing envelope validator; the temporary file is ciphertext
+    # only and never contains a key, source page or unencrypted prediction.
+    with TemporaryDirectory(prefix="keirin-conditioned-cipher-check-") as folder:
+        path = Path(folder) / (race_id + ".form.sealed.json")
+        path.write_bytes(raw)
+        path.chmod(0o600)
+        try:
+            condition.readback_shadow(path, expected_sha=digest,
+                expected_baseline_sha=parent_sha, expected_race=race_id)
+            return json.loads(raw)
+        except (ValueError, TypeError, KeyError):
+            raise GitCipherArchiveError("CONDITIONED_CIPHER_ENVELOPE_INVALID") from None
+
+
+def _paired_baseline(repo, head, doc, baseline_sha, cohort_sha,
+                     producer_run_id=None, producer_commit=None):
+    need(type(cohort_sha) is str and SHA.fullmatch(cohort_sha),
+         "REGISTRY_COHORT_SHA_REQUIRED")
+    rid = doc["race_id"]
+    receipt = _read_at(repo, head, rid, baseline_sha)
+    need(receipt is not None and receipt.get("cohort_sha256") == cohort_sha,
+         "CONDITIONED_BASELINE_OR_COHORT_NOT_FROZEN")
+    if producer_run_id is not None:
+        need(receipt["producer_run_id"] == producer_run_id and
+             receipt["producer_commit"] == producer_commit,
+             "CONDITIONED_PRODUCER_DIFFERS_FROM_BASELINE")
+    base = _cipher(read_blob_bytes(repo, head, _refs(rid)[0]), baseline_sha)
+    need(base["generated_at"] == doc["generated_at"] and
+         base["published_cutoff_at"] == doc["cutoff_at"],
+         "CONDITIONED_BASELINE_INPUT_CLOCK_MISMATCH")
+    return receipt
+
+
+def _read_conditioned_at(repo, head, race_id, expected_sha, baseline_sha,
+                         parent_sha, cohort_sha):
+    cipher_path, receipt_path = _form_refs(race_id)
+    raw = read_blob_bytes(repo, head, cipher_path)
+    metadata = _show(repo, head, receipt_path)
+    need((raw is None) == (metadata is None),
+         "CONDITIONED_ARCHIVE_PAIR_INCOMPLETE")
+    if raw is None:
+        return None
+    doc = _form_cipher(raw, expected_sha, race_id, parent_sha)
+    try:
+        receipt = json.loads(metadata[1])
+    except (ValueError, TypeError):
+        raise GitCipherArchiveError("CONDITIONED_RECEIPT_NOT_JSON") from None
+    need(type(receipt) is dict and set(receipt) == {
+        "schema", "race_id", "cipher_sha256", "original_sealed_at",
+        "producer_run_id", "producer_commit", "previous_archive_commit",
+        "branch", "cipher_only_not_source_or_cutoff_attestation",
+        "cohort_sha256", "baseline_cipher_sha256", "baseline_prediction_sha256"} and
+        receipt["schema"] == FORM_SCHEMA and receipt["race_id"] == race_id and
+        receipt["branch"] == BRANCH and receipt["cipher_sha256"] == expected_sha and
+        receipt["baseline_cipher_sha256"] == baseline_sha and
+        receipt["baseline_prediction_sha256"] == parent_sha and
+        receipt["cohort_sha256"] == cohort_sha and
+        receipt["original_sealed_at"] == doc["sealed_at"] and
+        receipt["cipher_only_not_source_or_cutoff_attestation"] is True,
+        "CONDITIONED_RECEIPT_OR_SHA_MISMATCH")
+    _paired_baseline(repo, head, doc, baseline_sha, cohort_sha,
+                     receipt["producer_run_id"], receipt["producer_commit"])
+    previous = receipt["previous_archive_commit"]
+    need(type(previous) is str and COMMIT.fullmatch(previous) and
+         _cmd(repo, "merge-base", "--is-ancestor", previous, head, okay=True)[0] == 0,
+         "CONDITIONED_ARCHIVE_PARENT_NOT_ANCESTOR")
+    return receipt
+
+
+def read_conditioned_original(*, repo, race_id, expected_cipher_sha256,
+                              expected_baseline_cipher_sha256,
+                              expected_baseline_prediction_sha256,
+                              cohort_sha256, synthetic_local=False):
+    """Verify a paired original from Git; plaintext parent linkage stays unproven."""
+    repo = _remote(repo, synthetic_local=synthetic_local)
+    head = _refresh(repo)
+    receipt = _read_conditioned_at(repo, head, race_id, expected_cipher_sha256,
+        expected_baseline_cipher_sha256, expected_baseline_prediction_sha256,
+        cohort_sha256)
+    need(receipt is not None, "CONDITIONED_ARCHIVED_RACE_NOT_FOUND")
+    return {
+        "state":"ENCRYPTED_GIT_CONDITIONED_SHA_READBACK_OK", "race_id":race_id,
+        "cipher_sha256":expected_cipher_sha256, "observed_branch_head":head,
+        "baseline_cipher_sha256":expected_baseline_cipher_sha256,
+        "baseline_prediction_sha256":expected_baseline_prediction_sha256,
+        "cohort_sha256":cohort_sha256,
+        "producer_run_id":receipt["producer_run_id"],
+        "RSA_decryption_verified":False, "official_cutoff_verified":False,
+        "plaintext_parent_linkage_verified":False}
+
+
+def append_conditioned_once(*, repo, raw_cipher, expected_cipher_sha256,
+                            expected_baseline_cipher_sha256,
+                            expected_baseline_prediction_sha256, cohort_sha256,
+                            producer_run_id, producer_commit, synthetic_local=False):
+    """Append the same-run conditioned ciphertext without changing its baseline."""
+    repo = _remote(repo, synthetic_local=synthetic_local)
+    try:
+        rid = json.loads(raw_cipher)["race_id"]
+    except (ValueError, TypeError, KeyError):
+        raise GitCipherArchiveError("CONDITIONED_CIPHER_JSON_INVALID") from None
+    doc = _form_cipher(raw_cipher, expected_cipher_sha256, rid,
+                       expected_baseline_prediction_sha256)
+    cipher_path, receipt_path = _form_refs(rid)
+    for attempt in range(3):
+        head = _refresh(repo)
+        _paired_baseline(repo, head, doc, expected_baseline_cipher_sha256,
+                         cohort_sha256, producer_run_id, producer_commit)
+        prior = read_blob_bytes(repo, head, cipher_path)
+        prior_receipt = _show(repo, head, receipt_path)
+        need((prior is None) == (prior_receipt is None),
+             "CONDITIONED_ARCHIVE_PAIR_INCOMPLETE")
+        if prior is not None:
+            need(sha256(prior).hexdigest() == expected_cipher_sha256,
+                 "CONDITIONED_ORIGINAL_ALREADY_EXISTS_DIFFERENT_CIPHER")
+            _read_conditioned_at(repo, head, rid, expected_cipher_sha256,
+                expected_baseline_cipher_sha256, expected_baseline_prediction_sha256,
+                cohort_sha256)
+            return {"state":"IDENTICAL_CONDITIONED_ORIGINAL_ALREADY_FROZEN",
+                    "race_id":rid, "cipher_sha256":expected_cipher_sha256,
+                    "readback_head":head}
+        receipt = _receipt(doc, expected_cipher_sha256, producer_run_id,
+                           producer_commit, head, cohort_sha256)
+        receipt.update(schema=FORM_SCHEMA,
+                       baseline_cipher_sha256=expected_baseline_cipher_sha256,
+                       baseline_prediction_sha256=expected_baseline_prediction_sha256)
+        with TemporaryDirectory(prefix="keirin-conditioned-git-") as folder:
+            tree = Path(folder) / "tree"
+            _cmd(repo, "worktree", "add", "--detach", str(tree), head)
+            try:
+                dest, rec = tree/cipher_path, tree/receipt_path
+                need(not dest.exists() and not rec.exists(),
+                     "CONDITIONED_ORIGINAL_CREATE_ONCE_VIOLATION")
+                dest.write_bytes(raw_cipher)
+                rec.write_bytes((json.dumps(receipt, sort_keys=True,
+                    separators=(",", ":")) + "\n").encode("utf-8"))
+                _cmd(tree, "add", "--", cipher_path, receipt_path)
+                _cmd(tree, "-c", "user.name=RACE-AI", "-c",
+                     "user.email=race-ai@users.noreply.github.com", "commit", "-m",
+                     f"archive(keirin): conditioned A/B {rid} original SHA")
+                newhead = _cmd(tree, "rev-parse", "HEAD")[1]
+                status, _ = _cmd(tree, "push", "origin",
+                    f"HEAD:refs/heads/{BRANCH}", okay=True)
+            finally:
+                _cmd(repo, "worktree", "remove", "--force", str(tree), okay=True)
+        if status == 0:
+            restored = read_conditioned_original(repo=repo, race_id=rid,
+                expected_cipher_sha256=expected_cipher_sha256,
+                expected_baseline_cipher_sha256=expected_baseline_cipher_sha256,
+                expected_baseline_prediction_sha256=expected_baseline_prediction_sha256,
+                cohort_sha256=cohort_sha256, synthetic_local=synthetic_local)
+            need(_cmd(repo, "merge-base", "--is-ancestor", newhead,
+                      restored["observed_branch_head"], okay=True)[0] == 0,
+                 "CONDITIONED_NEW_COMMIT_NOT_ANCESTOR_OF_READBACK")
+            return {"state":"GIT_CONDITIONED_ORIGINAL_CREATE_ONCE_AND_RESTORED",
+                    "race_id":rid, "cipher_sha256":expected_cipher_sha256,
+                    "write_commit":newhead,
+                    "readback_head":restored["observed_branch_head"]}
+    raise GitCipherArchiveError("CONDITIONED_GIT_FAST_FORWARD_RETRY_EXHAUSTED")
