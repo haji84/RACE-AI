@@ -387,6 +387,89 @@ class GithubOnlyABDay(unittest.TestCase):
                                         "DUPLICATE"):
                 readback.verify(report=report,repo=self.root)
 
+    def test_conditioned_readback_failure_keeps_verified_baseline(self):
+        report = {"schema":live.SCHEMA,"day_jst":DAY,
+                  "new_A_B_git_archived":1, "new_conditioned_A_B_git_archived":1,
+                  "new_encrypted_originals":[{
+                      "race_id":RID2, "cipher_sha256":"a"*64,
+                      "conditioned_state":"GIT_CONDITIONED_ORIGINAL_CREATE_ONCE_AND_RESTORED",
+                      "conditioned_cipher_sha256":"b"*64,
+                      "baseline_prediction_sha256":"c"*64,
+                      "cohort_sha256":"d"*64}]}
+        with patch.object(readback.archive, "read_original", return_value={
+                "state":"ENCRYPTED_GIT_CIPHERTEXT_SHA_READBACK_OK"}), \
+             patch.object(readback.archive, "read_conditioned_original", create=True,
+                          side_effect=ValueError("CONDITIONED_SHA_MISMATCH")):
+            result = readback.verify(report=report, repo=self.root)
+        self.assertEqual(result["independently_verified"], 1)
+        self.assertEqual(result.get("independently_verified_conditioned"), 0)
+        self.assertEqual(result.get("paired_cipher_originals_verified"), 0)
+        self.assertEqual(result["records"][0].get("conditioned_state"),
+                         "HOLD_CONDITIONED_SECOND_RUNNER_READBACK")
+
+    def test_producer_cannot_preclaim_successful_conditioned_readback(self):
+        report = {"schema":live.SCHEMA, "day_jst":DAY,
+                  "new_A_B_git_archived":1, "new_encrypted_originals":[{
+                      "race_id":RID2, "cipher_sha256":"a"*64,
+                      "conditioned_state":"SECOND_RUNNER_CONDITIONED_GITHUB_SHA_CONFIRMED"}]}
+        with patch.object(readback.archive, "read_original", return_value={
+                "state":"ENCRYPTED_GIT_CIPHERTEXT_SHA_READBACK_OK"}):
+            result = readback.verify(report=report, repo=self.root)
+        self.assertEqual(result["independently_verified"], 1)
+        self.assertEqual(result["paired_cipher_originals_verified"], 0)
+
+    def run_with_conditioned_archive(self, *, fail=False):
+        baseline = b"synthetic sealed baseline"
+        conditioned = b"synthetic sealed conditioned"
+        baseline_sha = sha256(baseline).hexdigest()
+        conditioned_sha = sha256(conditioned).hexdigest()
+
+        def generate(**kwargs):
+            folder = kwargs["private_cipher_dir"]
+            (folder/(RID2+".sealed.json")).write_bytes(baseline)
+            (folder/(RID2+".form.sealed.json")).write_bytes(conditioned)
+            return {"registered_races":2, "same_job_sealed":1, "statuses":{},
+                    "records":[{
+                        "race_id":RID2, "ciphertext_local_created":True,
+                        "cipher_file_sha256":baseline_sha,
+                        "form_fall_shadow_state":"PRIVATE_CONDITIONED_SHADOW_SEALED",
+                        "form_fall_shadow_file_sha256":conditioned_sha,
+                        "form_fall_baseline_sha256":"c"*64}]}
+
+        with patch.object(live, "archived_day", return_value={}), \
+             patch.object(live.registration, "register_day", return_value=(
+                 {"day_jst":DAY}, example_manifest(), {})), \
+             patch.object(live.collector, "capture_cycle", return_value={
+                 "GET_pair_attempts":1, "normalized_private_cards":1, "states":{}}), \
+             patch.object(live.generator, "registered_race_ids", return_value=[RID1,RID2]), \
+             patch.object(live.generator, "run_cycle", side_effect=generate), \
+             patch.object(live.archive, "append_once", return_value={
+                 "state":"GIT_ORIGINAL_CREATE_ONCE_AND_RESTORED"}), \
+             patch.object(live.archive, "append_conditioned_once", create=True,
+                          side_effect=OSError("synthetic write failure") if fail else None,
+                          return_value={"state":"GIT_CONDITIONED_ORIGINAL_CREATE_ONCE_AND_RESTORED"}), \
+             patch.dict(os.environ, {"GITHUB_RUN_ID":"12345", "GITHUB_SHA":"a"*40}):
+            return live.run_day(day=DAY, workspace=self.root,
+                private_dir_path=self.root, owner_public_pem=self.pub, clock=CLOCK)
+
+    def test_day_persists_conditioned_original_alongside_baseline(self):
+        report = self.run_with_conditioned_archive()
+        self.assertEqual(report["new_A_B_git_archived"], 1)
+        self.assertEqual(report.get("new_conditioned_A_B_git_archived"), 1)
+        row = report["new_encrypted_originals"][0]
+        self.assertEqual(row.get("conditioned_state"),
+                         "GIT_CONDITIONED_ORIGINAL_CREATE_ONCE_AND_RESTORED")
+        self.assertEqual(row.get("conditioned_cipher_sha256"),
+                         sha256(b"synthetic sealed conditioned").hexdigest())
+        self.assertEqual(row.get("baseline_prediction_sha256"), "c"*64)
+
+    def test_conditioned_git_failure_is_hold_without_losing_baseline(self):
+        report = self.run_with_conditioned_archive(fail=True)
+        self.assertEqual(report["new_A_B_git_archived"], 1)
+        self.assertEqual(report.get("new_conditioned_A_B_git_archived"), 0)
+        self.assertEqual(report["new_encrypted_originals"][0].get("conditioned_state"),
+                         "HOLD_CONDITIONED_GIT_ARCHIVE")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -58,7 +58,9 @@ def archived_day(repo, day, *, provider_day=None):
                             head, "--", prefix)
     found = {}
     named = set(paths.splitlines()) if paths else set()
-    for path in sorted(named):
+    form_paths = {path for path in named if path.endswith(
+        (".form.sealed.json", ".form.receipt.json"))}
+    for path in sorted(named - form_paths):
         require(path.startswith(prefix), "ARCHIVE_DAY_PATH_MISMATCH")
         if not path.endswith(".sealed.json"):
             require(path.endswith(".receipt.json"), "ARCHIVE_UNKNOWN_FILE")
@@ -78,10 +80,27 @@ def archived_day(repo, day, *, provider_day=None):
             raise GitHubOnlyDayError("ARCHIVE_RECEIPT_NOT_AUTHENTIC") from None
         archive._read_at(repo, head, race_id, digest)
         found[race_id] = digest
-    for path in named:
+    for path in named - form_paths:
         if path.endswith(".receipt.json"):
             race_id = path[len(prefix):-len(".receipt.json")]
             require(race_id in found, "ARCHIVE_ORPHAN_RECEIPT")
+    for path in sorted(form_paths):
+        suffix = ".form.sealed.json" if path.endswith(".form.sealed.json") else ".form.receipt.json"
+        race_id = path[len(prefix):-len(suffix)]
+        require(race_id in found, "ARCHIVE_CONDITIONED_WITHOUT_BASELINE")
+        sealed, receipt = archive._form_refs(race_id)
+        require(sealed in form_paths and receipt in form_paths,
+                "ARCHIVE_INCOMPLETE_CONDITIONED_PAIR")
+        if path == receipt:
+            continue
+        metadata = archive._show(repo, head, receipt)
+        require(metadata is not None, "ARCHIVE_CONDITIONED_RECEIPT_MISSING")
+        try:
+            rec = json.loads(metadata[1])
+            archive._read_conditioned_at(repo, head, race_id, rec["cipher_sha256"],
+                found[race_id], rec["baseline_prediction_sha256"], rec["cohort_sha256"])
+        except (ValueError, KeyError, TypeError):
+            raise GitHubOnlyDayError("ARCHIVE_CONDITIONED_READBACK_INVALID") from None
     return found
 
 
@@ -244,6 +263,8 @@ def run_day(*, day, workspace, private_dir_path, owner_public_pem,
         owner_public_key_pem=key_path.read_bytes(), clock=clock)
 
     newly = []
+    cohort_sha = sha256(json.dumps(registry, ensure_ascii=False,
+        sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
     for row in prediction["records"]:
         if row["ciphertext_local_created"] is not True:
             continue
@@ -259,12 +280,46 @@ def run_day(*, day, workspace, private_dir_path, owner_public_pem,
             repo=repo, raw_cipher=cipher,
             expected_cipher_sha256=expected,
             producer_run_id=os.environ["GITHUB_RUN_ID"],
-            producer_commit=os.environ["GITHUB_SHA"])
+            producer_commit=os.environ["GITHUB_SHA"], cohort_sha256=cohort_sha)
         require(written["state"] in {
             "GIT_ORIGINAL_CREATE_ONCE_AND_RESTORED",
             "IDENTICAL_ORIGINAL_ALREADY_FROZEN_NO_NEW_WRITE"},
             "GITHUB_CIPHER_ARCHIVE_NOT_VERIFIED")
-        newly.append({"race_id": race_id, "cipher_sha256": expected})
+        archived = {"race_id": race_id, "cipher_sha256": expected,
+                    "cohort_sha256":cohort_sha,
+                    "conditioned_state":row.get("form_fall_shadow_state",
+                                                "NO_CONDITIONED_ORIGINAL")}
+        if row.get("form_fall_shadow_state") == "PRIVATE_CONDITIONED_SHADOW_SEALED":
+            try:
+                conditioned_path = root / "sealed" / (race_id + ".form.sealed.json")
+                require(conditioned_path.is_file() and not conditioned_path.is_symlink() and
+                        0 < conditioned_path.stat().st_size < archive.MAX_BYTES,
+                        "CONDITIONED_CIPHER_FILE_INVALID")
+                conditioned = conditioned_path.read_bytes()
+                condition_sha = row["form_fall_shadow_file_sha256"]
+                require(sha256(conditioned).hexdigest() == condition_sha,
+                        "CONDITIONED_CIPHER_SHA_CHANGED_BEFORE_GIT")
+                parent_sha = row["form_fall_baseline_sha256"]
+                saved = archive.append_conditioned_once(
+                    repo=repo, raw_cipher=conditioned,
+                    expected_cipher_sha256=condition_sha,
+                    expected_baseline_cipher_sha256=expected,
+                    expected_baseline_prediction_sha256=parent_sha,
+                    cohort_sha256=cohort_sha,
+                    producer_run_id=os.environ["GITHUB_RUN_ID"],
+                    producer_commit=os.environ["GITHUB_SHA"])
+                require(saved["state"] in {
+                    "GIT_CONDITIONED_ORIGINAL_CREATE_ONCE_AND_RESTORED",
+                    "IDENTICAL_CONDITIONED_ORIGINAL_ALREADY_FROZEN"},
+                    "CONDITIONED_GIT_ARCHIVE_NOT_VERIFIED")
+                archived.update(conditioned_state=saved["state"],
+                    conditioned_cipher_sha256=condition_sha,
+                    baseline_prediction_sha256=parent_sha)
+            except (ValueError, TypeError, KeyError, OSError):
+                # The already archived baseline stays usable. A partial pair
+                # is explicit HOLD and cannot satisfy the four-arm live gate.
+                archived["conditioned_state"] = "HOLD_CONDITIONED_GIT_ARCHIVE"
+        newly.append(archived)
     require(len(newly) == prediction["same_job_sealed"],
             "CIPHER_GENERATED_BUT_NOT_PERSISTED")
     return {
@@ -284,6 +339,8 @@ def run_day(*, day, workspace, private_dir_path, owner_public_pem,
         "normalized_cards": capture_status["normalized_private_cards"],
         "new_A_B_sealed": len(newly),
         "new_A_B_git_archived": len(newly),
+        "new_conditioned_A_B_git_archived": sum(
+            "conditioned_cipher_sha256" in row for row in newly),
         "official_results_scored": 0,
         "no_result_implies_no_miss": True,
         "provider_states": capture_status["states"],
