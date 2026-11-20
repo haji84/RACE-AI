@@ -34,7 +34,15 @@
       <footer class="kn-footer"><p>個別分析・改訂・参考A/Bはそれぞれの保存原本を保持します。参考Cの未生成も表示します。参考モデルの重みは校正済み確率ではありません。</p><p>画面での選択と配分は購入候補です。投票・決済は行いません。データと本人用リンクの鍵は外部へ送信しません。</p><p id="kn-provenance"></p></footer></div>
       <div class="kn-selection"><div><strong id="kn-selection-count">検討リスト 0件</strong><small>候補・配分の試算</small></div><button id="kn-copy-selection" type="button">検討リストをコピー</button></div>`;
     $('kn-close').addEventListener('click',()=>dialog.close());
-    $('kn-file').addEventListener('change',async event=>{const file=event.target.files?.[0];if(!file)return;const version=beginLoad();try{if(file.size>64*1024*1024)throw Error();note('保存データを確認しています。');await accept(await M.openPacket(JSON.parse(await file.text())),version);}catch{if(version===loadVersion)note('保存データを開けませんでした。形式と原本の整合を確認してください。',true);}if(version===loadVersion)event.target.value='';});
+    $('kn-file').addEventListener('change',async event=>{
+      // Shadow-tree event targets are cleared after dispatch. Keep the input
+      // itself before awaiting file reads so the completed import can reset it.
+      const input=event.currentTarget,file=input.files?.[0];if(!file)return;
+      const version=beginLoad();
+      try{if(file.size>64*1024*1024)throw Error();note('保存データを確認しています。');await accept(await M.openPacket(JSON.parse(await file.text())),version);}
+      catch{if(version===loadVersion)note('保存データを開けませんでした。形式と原本の整合を確認してください。',true);}
+      if(version===loadVersion)input.value='';
+    });
     $('kn-clear').addEventListener('click',()=>{beginLoad();data=null;currentDay='';preferences.clear();selected.clear();expanded.clear();if(/^#(?:note|notefeed)=/.test(location.hash)){history.replaceState(null,'',location.pathname+location.search);window.RaceNoteInitialFragment='';}render();note('読込データを消去しました。');});
     $('kn-market').addEventListener('change',event=>{market=event.target.value;renderCards();});
     $('kn-variant').addEventListener('change',event=>{variant=event.target.value;renderCards();});
@@ -99,6 +107,24 @@
       scenarios(prediction.scenarios)+roster(row)+
       '<details class="kn-details"><summary>出典・予想時点・注意点</summary><p>'+esc(prediction.risk||'保存された条件付きの分析です。')+'</p><p>予想の記載時点 '+stamp(prediction.createdAt)+'</p><p>オッズの保存時点 '+stamp(row.quote.source_updated_at||row.quote.fetched_at)+'</p><p>'+esc(row.quote.scope_label||'保存時点の値。現在値は掲載元で確認してください。')+'</p>'+sourceLink(row.sourceUrl,'出走表・掲載オッズ')+referenceProvenance(row)+'<p class="kn-small">参考A/Bは既存計算、Cは独立した連係履歴が不足しているため未生成です。正式な全モデル実測の認証とは別に表示しています。</p></details></article>';
   }
+  function frozenBasis(saved){
+    const facts=saved.facts,styles={NIGE:'逃げ',MAKURI:'捲り',SASHI:'差し',MARK:'追込',ALLROUND:'自在',UNKNOWN:'未確認'};
+    const line=facts.line_groups.map(g=>g.join('−')).join(' / ');
+    const factsTable='<p>保存時の'+(facts.competition==='GIRLS'?'位置取りの仮定':'並び予想')+'：'+esc(line)+'</p><div class="kn-table-scroll"><table><thead><tr><th>車</th><th>印順位</th><th>得点</th><th>近況値</th><th>H/B</th><th>脚質</th></tr></thead><tbody>'+facts.riders.map(r=>'<tr><td>'+r.car+'</td><td>'+(r.mark_rank==='UNMARKED'?'無印':r.mark_rank)+'</td><td>'+r.competition_points+'</td><td>'+r.recent_form_score+'</td><td>'+r.h_count+'/'+r.b_count+'</td><td>'+styles[r.style]+'</td></tr>').join('')+'</tbody></table></div>';
+    const actions={PREDICTED_LINE_ORDER_ONLY:'掲載の並びを出発点にする想定',LEADER_ATTACKS:'主導権候補が動く想定',CHALLENGER_EARLY_COUNTER:'別の先頭候補が早めに仕掛け返す想定',LEADER_TRIES_TO_HOLD_PACE:'主導権候補がペースを保つ想定',LEADER_MAKURI_OR_KAMASHI:'主導権候補が捲り・かましで前へ出る想定',CHALLENGER_MAKURI:'別の先頭候補が捲る想定',FRONT_LINE_CONTINUITY_UNVERIFIED:'前の隊列が続くかは未確認',FOLLOWER_SASHI_SCENARIO:'番手から差す展開を想定',FOURTH_CORNER_ORDER_CONTINUES:'4コーナーの順序が続く想定',LATE_SPRINT_OVERTAKE:'終盤の加速で前を交わす想定',FRONT_LEADER_PACE_FADE:'前の選手が失速する想定'};
+    const actionText=value=>actions[value]||(/^LEADER_CAR_[1-9]$/.test(value)?'主導権候補は'+value.at(-1)+'番':/^CAR_[1-9]$/.test(value)?'対象は'+value.at(-1)+'番':'保存された動きの仮定');
+    const phases=['初周','打鐘','最終ホーム','最終バック','4コーナー','ゴール'];
+    const scenarios=saved.scenarios.map((s,i)=>'<article class="kn-frozen-scenario"><h5>見立て '+(i+1)+' · '+esc(s.projected_3ren_tan.join('−'))+'</h5><p>候補内の重み '+(s.relative_research_weight*100).toFixed(1)+'%</p><ol>'+s.six_phases.map((p,j)=>'<li><b>'+phases[j]+'</b> '+esc(p.projected_order.join(' → '))+'<br>'+esc(p.hypothesis_actions.map(actionText).join(' / '))+'</li>').join('')+'</ol></article>').join('');
+    const trend={IMPROVING:'上向き',DECLINING:'下向き',NO_CLEAR_CHANGE:'目立つ変化なし',INSUFFICIENT_DATA:'比較材料が不足'};
+    const change=v=>v===null?'未比較':(v>0?'+':'')+v;
+    const adjustments=saved.assessments.length?'<p>直近成績と落車前後の成績差に基づく、保存時点の補正です。落車の記録だけで状態を決めつけていません。</p><div class="kn-table-scroll"><table><thead><tr><th>車</th><th>近況</th><th>直近の差</th><th>落車前後の差</th><th>補正値</th></tr></thead><tbody>'+saved.assessments.map(a=>'<tr><td>'+a.car+'</td><td>'+trend[a.trend]+'</td><td>'+change(a.recent_result_change)+'</td><td>'+change(a.post_fall_change)+'</td><td>'+change(a.score_adjustment)+'</td></tr>').join('')+'</tbody></table></div>'+saved.assessments.map(a=>'<p>'+a.car+'番：'+(a.fall_on_record?'落車の保存記録あり':'落車の保存記録なし')+' · 欠場期間 '+(a.documented_absence_days===null?'未確認':a.documented_absence_days+'日')+' · 復帰後 '+(a.return_after_absence_results===null?'未確認':a.return_after_absence_results+'走')+' · コメント記録 '+(a.comments_count??'未確認')+'件</p>').join('')+'<p class="kn-small">数値は保存された比較用の値です。体調の診断や的中率を表すものではありません。</p>':'';
+    const title=saved.adjusted?(saved.role==='B'?'展開の見立て・近況の補正':'近況の補正・根拠'):(saved.role==='B'?'展開の見立て・根拠':'予想の根拠');
+    return '<details class="kn-details kn-frozen-basis"><summary>'+title+'</summary><p>'+(saved.role==='A'?'保存時の印順位と選手の数値をもとに候補順を付けています。Aの原本には局面別の見立てはありません。':'保存された6局面の見立てです。各局面の順序は予想上の仮定です。')+'</p>'+factsTable+adjustments+(scenarios?'<p class="kn-small">分岐の重みは候補内の比重です。的中確率ではありません。</p>'+scenarios:'')+'</details>';
+  }
+  function frozenTickets(saved){
+    if(!saved)return '';
+    return '<p class="kn-frozen-clock">作成 '+stamp(saved.generatedAt)+'<br>締切前の保存 '+stamp(saved.sealedAt)+'</p><p>全部の買い目</p><ol class="kn-frozen-tickets" data-frozen-arm="'+saved.name+'">'+saved.tickets.map(t=>'<li data-frozen-combo="'+t.combo+'">'+t.combo.split('-').map(Number).map(car).join('<span>−</span>')+'</li>').join('')+'</ol>'+frozenBasis(saved);
+  }
   function resultLabel(state){
     if(state==='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL')return '二つの掲載元が一致（公式認証なし）';
     if(state==='HOLD_SECONDARY_RESULT_DISAGREEMENT')return '出典間の相違で保留';
@@ -133,22 +159,23 @@
     only.innerHTML=unpaired.map(([id,history])=>'<details class="kn-details"><summary>'+esc(id)+' · '+esc(resultLabel(history.at(-1)?.observation.state))+'</summary><p>このレースの予想原本は未読込のため、的中比較の分母へ加えません。</p>'+history.map((saved,n)=>resultRevision(saved,n+1)).join('')+'</details>').join('');
   }
   function liveResult(row){
-    const result=row.resultUpdate;if(!result)return '';
-    const official=result.authority==='official',confirmed=result.order_status==='confirmed',paid=official&&result.payout_status==='confirmed';
-    const order=result.order_status==='conflict'?'出典間の相違を確認中':confirmed?result.winning_triples.join(' / '):'着順を確認中';
+    const result=row.resultUpdate,frozen=row.frozenForecast;if(!result&&!frozen)return '';
+    const official=result?.authority==='official',confirmed=result?.order_status==='confirmed',paid=official&&result?.payout_status==='confirmed';
+    const order=result?.order_status==='conflict'?'出典間の相違を確認中':confirmed?result.winning_triples.join(' / '):'着順を確認中';
     const status={hit:'的中',miss:'不的中',pending:'未照合',void:'返還・採点対象外',unverifiable:'原本の確認待ち'};
-    const arms=[['A','締切前保存A'],['B','締切前保存B'],['C','締切前保存C'],['adjusted_A','調子補正A'],['adjusted_B','調子補正B']].map(([name,label])=>{
-      const arm=result.arms[name],state=arm?.state||'pending';
-      return '<div class="kn-result-arm" data-result-arm="'+name+'"><h4>'+label+'</h4><strong>'+esc(status[state]||'未照合')+'</strong><p>'+(arm?.points!=null?arm.points+'点':'点数未確認')+'</p>'+(paid&&arm?.stake_yen!=null&&arm?.return_yen!=null?'<p>各100円の想定：投資 '+money(arm.stake_yen)+' / 払戻 '+money(arm.return_yen)+'</p>':'')+'</div>';
+    const arms=[['A','A'],['B','B'],['adjusted_A','補正A'],['adjusted_B','補正B'],['C','C']].map(([name,label])=>{
+      const arm=result?.arms[name],saved=M.frozenArm(row,name),aligned=!saved||arm?.points==null||arm.points===saved.tickets.length;
+      const state=aligned?(arm?.state||'pending'):'unverifiable',outcome=frozen&&name==='C'?'未作成':!result?'結果待ち':status[state]||'未照合';
+      return '<div class="kn-result-arm" data-result-arm="'+name+'"><h4>'+(frozen?label:'締切前保存'+label)+'</h4><p>採点結果：<strong>'+esc(outcome)+'</strong></p><p>'+(saved?'点数 '+saved.tickets.length+'点':arm?.points!=null?arm.points+'点':frozen&&name==='C'?'Cの予想は未作成です。':'点数未確認')+'</p>'+(paid&&aligned&&arm?.stake_yen!=null&&arm?.return_yen!=null?'<p>各100円の想定：投資 '+money(arm.stake_yen)+' / 払戻 '+money(arm.return_yen)+'</p>':'')+(!aligned?'<p class="kn-warning">保存原本と採点側の点数が一致していないため、採点結果の表示を保留しています。</p>':'')+frozenTickets(saved)+'</div>';
     }).join('');
     const sourceNames={keirin_jp:'KEIRIN.JP',kdreams:'Kドリームス',netkeirin:'netkeirin',official_pdf:'公式PDF',official_json:'公式データ'};
     const comparisonNames={matched:'一致',different:'相違あり',unavailable:'取得待ち',unverified:'未確認'};
-    const comparisons=result.source_comparison.map(s=>sourceNames[s.source_id]+'：'+comparisonNames[s.state]).join(' / ');
-    const payout=paid?Object.entries(result.payouts_100yen).map(([combo,yen])=>esc(combo)+' '+money(yen)).join(' / '):(result.payout_status==='held'?'配当の確認を保留中':'配当確認中');
+    const comparisons=(result?.source_comparison||[]).map(s=>sourceNames[s.source_id]+'：'+comparisonNames[s.state]).join(' / ');
+    const payout=paid?Object.entries(result.payouts_100yen).map(([combo,yen])=>esc(combo)+' '+money(yen)).join(' / '):(result?.payout_status==='held'?'配当の確認を保留中':'配当確認中');
     const purposes={OFFICIAL_CALENDAR:'開催日程',CALENDAR_SCRIPT:'開催日程の画面処理',FORM_SCRIPT:'画面の遷移処理',OFFICIAL_RACE_LIST:'レース一覧',RACE_LIST_VIEW_SCRIPT:'レース一覧の表示処理',RACE_LIST_CONTROLLER_SCRIPT:'レース一覧の遷移処理',OFFICIAL_FINAL_RESULT:'公式の着順・配当',OFFICIAL_PAYOUT_UNIT:'配当単位の説明',OFFICIAL_JSON_CALENDAR:'開催日程',OFFICIAL_JSON_DAY_LIST:'開催別のレース一覧',OFFICIAL_JSON_RESULT_SUMMARY:'結果一覧',OFFICIAL_JSON_HEADER:'レース情報',OFFICIAL_JSON_DETAIL:'公式の着順・配当'};
     const stages={REQUEST:'通信',HTTP_RESPONSE:'応答確認',CONTENT_CHECK:'ページ内容の確認',PARSE_RESULT:'結果の読取',VERIFY_UNIT:'配当単位の確認',PERSIST_STOP:'取得停止の保存'};
-    const diagnostics=result.diagnostics.length?'<details class="kn-details"><summary>取得先と確認状況</summary>'+result.diagnostics.map(d=>'<p class="kn-small"><b>'+purposes[d.purpose]+'</b> · '+esc(d.method)+' '+esc(d.source_host+d.source_path)+'<br>HTTP '+(d.http_status===null?'応答なし':d.http_status)+' · '+stages[d.stage]+' · '+esc(d.reason)+'<br>'+stamp(d.observed_at)+'</p>').join('')+'</details>':'';
-    return '<section class="kn-result kn-live-result"><h3>'+(official?'公式結果':'参考結果・公式確認待ち')+'</h3><p class="kn-result-order">'+esc(order)+'</p><p>'+payout+(paid?'（100円あたり）':'')+'</p><div class="kn-result-arms">'+arms+'</div><p class="kn-small">締切前に保存された各原本の照合です。結果確認 '+stamp(result.observed_at)+'</p>'+(comparisons?'<p class="kn-small kn-result-comparison">保存資料との照合：'+esc(comparisons)+'</p>':'')+diagnostics+'</section>';
+    const diagnostics=result?.diagnostics.length?'<details class="kn-details"><summary>取得先と確認状況</summary>'+result.diagnostics.map(d=>'<p class="kn-small"><b>'+purposes[d.purpose]+'</b> · '+esc(d.method)+' '+esc(d.source_host+d.source_path)+'<br>HTTP '+(d.http_status===null?'応答なし':d.http_status)+' · '+stages[d.stage]+' · '+esc(d.reason)+'<br>'+stamp(d.observed_at)+'</p>').join('')+'</details>':'';
+    return '<section class="kn-result kn-live-result"><h3>'+(frozen?'締切前に保存した予想':official?'公式結果':'参考結果・公式確認待ち')+'</h3>'+(frozen?'<p class="kn-small">入力の保存時点 '+stamp(frozen.baseline.source_as_of)+' · 締切 '+stamp(frozen.baseline.published_cutoff_at)+'</p>':'')+'<p class="kn-result-order">'+(result?(official?'公式結果：':'参考結果・公式確認待ち：'):'')+esc(order)+'</p><p>'+payout+(paid?'（100円あたり）':'')+'</p><div class="kn-result-arms'+(frozen?' kn-has-originals':'')+'">'+arms+'</div><p class="kn-small">締切前に保存された各原本の照合です。'+(result?'結果確認 '+stamp(result.observed_at):'結果の保存を待っています。')+'</p>'+(comparisons?'<p class="kn-small kn-result-comparison">保存資料との照合：'+esc(comparisons)+'</p>':'')+diagnostics+'</section>';
   }
   function scenarios(values){
     if(!Array.isArray(values)||!values.length)return '';
