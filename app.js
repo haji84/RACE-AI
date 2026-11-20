@@ -2393,6 +2393,63 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       need(row.http_status===null||Number.isInteger(row.http_status)&&row.http_status>=100&&row.http_status<=599);
     }
   }
+  function frozenForecasts(date,files){
+    const doc=files.get('data/'+date+'/frozen_forecasts.json'),out=new Map();if(doc==null)return out;
+    need(exact(doc,['schema','races'])&&doc.schema==='RACE_AI_KEIRIN_FROZEN_FORECASTS_V1'&&Array.isArray(doc.races)&&doc.races.length>0&&doc.races.length<=300);
+    const baseKeys='schema race_id generated_at published_cutoff_at source_facts_sha256 source_as_of A B C official_cutoff_independently_authenticated official_result_observed all_six_phase_orders_are_hypotheses_not_video_truth branch_weights_are_not_calibrated_probabilities formal_model_promoted old_PR71_four_models_required real_money_wager_placed prediction_sha256'.split(' ');
+    const shadowKeys='schema race_id generated_at published_cutoff_at baseline_source_sha256 baseline_prediction_sha256 condition_supplement_sha256 A_research B_research rider_assessments verified_source_receipt_count medical_recovery_or_crash_causality_inferred comments_quoted_in_private_supplement_only historical_originals_mutated is_official_calibrated_or_production_forecast C_optional_unrelated sha256'.split(' ');
+    const phases=['INITIAL','BELL','FINAL_HOME','FINAL_BACK','FOURTH_CORNER','GOAL'],number=(v,lo,hi)=>Number.isFinite(v)&&v>=lo&&v<=hi;
+    for(const row of doc.races){
+      need(exact(row,['race_id','revision','baseline_cipher_sha256','conditioned_cipher_sha256','baseline_sealed_at','conditioned_sealed_at','facts','baseline','conditioned'])&&rid(row.race_id)&&row.race_id.startsWith(date.replaceAll('-',''))&&!out.has(row.race_id));
+      for(const key of ['revision','baseline_cipher_sha256','conditioned_cipher_sha256'])need(hex(row[key]));
+      const base=row.baseline,adjusted=row.conditioned,facts=row.facts;
+      need(exact(base,baseKeys)&&exact(adjusted,shadowKeys)&&base.schema==='RACE_AI_KEIRIN_AUTOMATIC_MARKS_AND_SIX_PHASE_V1'&&adjusted.schema==='RACE_AI_KEIRIN_CONDITIONED_AB_SHADOW_V1'&&base.race_id===row.race_id&&adjusted.race_id===row.race_id);
+      need(hex(base.prediction_sha256)&&hex(base.source_facts_sha256)&&hex(adjusted.sha256)&&hex(adjusted.condition_supplement_sha256)&&adjusted.baseline_prediction_sha256===base.prediction_sha256&&adjusted.baseline_source_sha256===base.source_facts_sha256&&adjusted.generated_at===base.generated_at&&adjusted.published_cutoff_at===base.published_cutoff_at);
+      for(const value of [base.generated_at,base.published_cutoff_at,base.source_as_of,row.baseline_sealed_at,row.conditioned_sealed_at])need(clock(date,value));
+      need(Date.parse(base.source_as_of)<=Date.parse(base.generated_at));
+      for(const key of ['baseline_sealed_at','conditioned_sealed_at'])need(Date.parse(base.generated_at)<=Date.parse(row[key])&&Date.parse(base.published_cutoff_at)-Date.parse(row[key])>=65000);
+      need(exact(base.C,['state'])&&base.C.state==='HOLD_NO_INDEPENDENT_HISTORICAL_FOLLOW_LABELS');
+      for(const key of ['official_cutoff_independently_authenticated','official_result_observed','formal_model_promoted','old_PR71_four_models_required','real_money_wager_placed'])need(base[key]===false);
+      need(base.all_six_phase_orders_are_hypotheses_not_video_truth===true&&base.branch_weights_are_not_calibrated_probabilities===true);
+      for(const key of ['medical_recovery_or_crash_causality_inferred','historical_originals_mutated','is_official_calibrated_or_production_forecast'])need(adjusted[key]===false);
+      need(adjusted.comments_quoted_in_private_supplement_only===true&&adjusted.C_optional_unrelated===true&&Number.isInteger(adjusted.verified_source_receipt_count)&&adjusted.verified_source_receipt_count>=1&&adjusted.verified_source_receipt_count<=400);
+      need(exact(facts,['competition','line_groups','riders'])&&['CHALLENGE','A1_A2','S','GIRLS','OTHER'].includes(facts.competition)&&Array.isArray(facts.riders)&&facts.riders.length>=5&&facts.riders.length<=9);
+      const cars=new Set();
+      for(const r of facts.riders){
+        need(exact(r,['car','athlete_id','mark_rank','competition_points','recent_form_score','h_count','b_count','style'])&&Number.isInteger(r.car)&&r.car>=1&&r.car<=9&&!cars.has(r.car));cars.add(r.car);
+        need(r.athlete_id===null||typeof r.athlete_id==='string'&&/^\d{4,8}$/.test(r.athlete_id));
+        need(r.mark_rank==='UNMARKED'||Number.isInteger(r.mark_rank)&&r.mark_rank>=1&&r.mark_rank<=facts.riders.length);
+        need(number(r.competition_points,0,150)&&number(r.recent_form_score,0,1)&&['h_count','b_count'].every(k=>Number.isInteger(r[k])&&r[k]>=0&&r[k]<=99)&&['NIGE','MAKURI','SASHI','MARK','ALLROUND','UNKNOWN'].includes(r.style));
+      }
+      need(Array.isArray(facts.line_groups)&&facts.line_groups.length>0&&facts.line_groups.length<=cars.size&&facts.line_groups.every(g=>Array.isArray(g)&&g.length>0&&g.every(c=>Number.isInteger(c)&&cars.has(c))));
+      const members=facts.line_groups.flat();need(members.length===cars.size&&new Set(members).size===cars.size&&(facts.competition!=='GIRLS'||facts.line_groups.every(g=>g.length===1)));
+      need(exact(base.A,['model','ranked_tickets','based_on_published_marks_not_shared_PR71'])&&base.A.model==='marks-ordinal-plus-observed-rider-strength-v1'&&base.A.based_on_published_marks_not_shared_PR71===true&&exact(base.B,['model','ranked_tickets','six_phase_scenarios','round_objective_source'])&&base.B.model==='line-tactical-six-phase-untrained-v1'&&['SOURCE_EVIDENCED','UNKNOWN_NOT_IMPUTED'].includes(base.B.round_objective_source));
+      const scenarios=base.B.six_phase_scenarios,ids=new Set();need(Array.isArray(scenarios)&&scenarios.length>=2&&scenarios.length<=20);
+      for(const scenario of scenarios){
+        need(exact(scenario,['scenario_id','six_phases','projected_3ren_tan','relative_research_weight'])&&typeof scenario.scenario_id==='string'&&/^L[1-9]_V[0-3]$/.test(scenario.scenario_id)&&!ids.has(scenario.scenario_id)&&number(scenario.relative_research_weight,0,1));ids.add(scenario.scenario_id);
+        need(Array.isArray(scenario.six_phases)&&scenario.six_phases.length===6);
+        scenario.six_phases.forEach((s,i)=>{need(exact(s,['phase','projected_order','projected_top3','hypothesis_actions','actual_rider_position_video_verified'])&&s.phase===phases[i]&&s.actual_rider_position_video_verified===false&&Array.isArray(s.projected_order)&&s.projected_order.length===cars.size&&new Set(s.projected_order).size===cars.size&&s.projected_order.every(c=>Number.isInteger(c)&&cars.has(c))&&JSON.stringify(s.projected_top3)===JSON.stringify(s.projected_order.slice(0,3))&&Array.isArray(s.hypothesis_actions)&&s.hypothesis_actions.length>0&&s.hypothesis_actions.length<=8&&s.hypothesis_actions.every(a=>typeof a==='string'&&/^[A-Z][A-Z0-9_]{0,79}$/.test(a)));});
+        need(JSON.stringify(scenario.projected_3ren_tan)===JSON.stringify(scenario.six_phases[5].projected_top3));
+      }
+      need(Math.abs(scenarios.reduce((sum,s)=>sum+s.relative_research_weight,0)-1)<=1e-6);
+      for(const [name,label] of [['A','baseline-plus-documented-form-v1'],['B','six-phase-plus-documented-form-v1']]){
+        const arm=adjusted[name+'_research'],keys=['model','ranked_tickets','baseline_ranked_tickets','changed_from_original'];if(name==='B')keys.push('branch_condition_factors','branch_factor_is_uncalibrated');
+        need(exact(arm,keys)&&arm.model===label&&JSON.stringify(arm.baseline_ranked_tickets)===JSON.stringify(base[name].ranked_tickets)&&typeof arm.changed_from_original==='boolean'&&arm.changed_from_original===(JSON.stringify(arm.ranked_tickets)!==JSON.stringify(base[name].ranked_tickets)));
+        for(const value of [base[name].ranked_tickets,arm.ranked_tickets]){need(Array.isArray(value)&&value.length>=1&&value.length<=12&&value.every(t=>Array.isArray(t)&&t.length===3&&t.every(Number.isInteger)));tickets(value,3,cars);}
+      }
+      const factors=adjusted.B_research.branch_condition_factors;
+      need(adjusted.B_research.branch_factor_is_uncalibrated===true&&Array.isArray(factors)&&factors.length===ids.size&&new Set(factors.map(f=>f?.scenario_id)).size===ids.size&&factors.every(f=>exact(f,['scenario_id','relative_weight_after'])&&ids.has(f.scenario_id)&&number(f.relative_weight_after,0,1))&&Math.abs(factors.reduce((sum,f)=>sum+f.relative_weight_after,0)-1)<=1e-6);
+      need(Array.isArray(adjusted.rider_assessments)&&adjusted.rider_assessments.length===cars.size);const assessed=new Set(),trends=['IMPROVING','DECLINING','NO_CLEAR_CHANGE','INSUFFICIENT_DATA'];
+      for(const a of adjusted.rider_assessments){
+        need(exact(a,'car trend recent_result_change post_fall_change post_fall_trend fall_on_record documented_absence_days return_after_absence_results comments_count score_adjustment effect_on_tactics'.split(' '))&&Number.isInteger(a.car)&&cars.has(a.car)&&!assessed.has(a.car));assessed.add(a.car);
+        need(trends.includes(a.trend)&&trends.includes(a.post_fall_trend)&&typeof a.fall_on_record==='boolean'&&number(a.score_adjustment,-.08,.08)&&['UNKNOWN_NO_ADJUSTMENT','OBSERVED_RESULTS_UPWEIGHT_RESEARCH','OBSERVED_RESULTS_DOWNWEIGHT_RESEARCH'].includes(a.effect_on_tactics));
+        for(const key of ['recent_result_change','post_fall_change'])need(a[key]===null||number(a[key],-1,1));
+        for(const key of ['documented_absence_days','return_after_absence_results','comments_count'])need(a[key]===null||Number.isInteger(a[key])&&a[key]>=0&&a[key]<=36525);
+      }
+      out.set(row.race_id,row);
+    }
+    return out;
+  }
   async function decodePacket(packet,cipherSha){
     need(record(packet)&&packet.schema===SCHEMA&&packet.formal_model_admission===false&&packet.production_weight_switch===false&&record(packet.files));
     need(Array.isArray(packet.dates)&&packet.dates.length>0&&packet.dates.every(day)&&new Set(packet.dates).size===packet.dates.length);
@@ -2406,11 +2463,21 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     }
     const results=await resultRecords(parsed,fileShas,cipherSha,packet.dates),days=new Map(packet.dates.slice().sort().map(date=>[date,normalize(date,parsed,fileShas,cipherSha,results)]));
     const updates=new Map([...days.keys()].map(date=>[date,resultUpdates(date,parsed)]));
-    for(const [date,rows] of days)for(const row of rows){const update=updates.get(date).get(row.id);if(update){row.resultUpdate=update;row.resultHistory=[update];}}
-    return {schema:SCHEMA,dates:[...days.keys()],days,resultUpdates:updates,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,fileShas,cipherSha,results,formal:false};
+    const frozen=new Map([...days.keys()].map(date=>[date,frozenForecasts(date,parsed)]));
+    for(const [date,rows] of days)for(const row of rows){const update=updates.get(date).get(row.id);if(update){row.resultUpdate=update;row.resultHistory=[update];}const original=frozen.get(date).get(row.id);if(original)row.frozenForecast=original;}
+    return {schema:SCHEMA,dates:[...days.keys()],days,resultUpdates:updates,frozenForecasts:frozen,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,fileShas,cipherSha,results,formal:false};
   }
   async function openPacket(packet){return decodePacket(packet,null);}
   function rows(data,date){return data.days.get(date)||[];}
+  function frozenArm(row,name){
+    const frozen=row.frozenForecast;if(!frozen||!['A','B','adjusted_A','adjusted_B'].includes(name))return null;
+    const adjusted=name.startsWith('adjusted_'),role=adjusted?name.slice(9):name,arm=adjusted?frozen.conditioned[role+'_research']:frozen.baseline[role];
+    const factors=new Map(frozen.conditioned.B_research.branch_condition_factors.map(f=>[f.scenario_id,f.relative_weight_after]));
+    return {name,role,adjusted,source:arm,tickets:tickets(arm.ranked_tickets,3,new Set(frozen.facts.riders.map(r=>r.car))),
+      scenarios:role==='B'?frozen.baseline.B.six_phase_scenarios.map(s=>({...s,relative_research_weight:adjusted?factors.get(s.scenario_id):s.relative_research_weight})):[],
+      assessments:adjusted?frozen.conditioned.rider_assessments:[],facts:frozen.facts,generatedAt:frozen.baseline.generated_at,
+      sourceAsOf:frozen.baseline.source_as_of,sealedAt:adjusted?frozen.conditioned_sealed_at:frozen.baseline_sealed_at,cutoffAt:frozen.baseline.published_cutoff_at};
+  }
   function forecast(row,market='3t',variant='flexible'){
     const places=market==='2t'?2:3;
     if(['A','B','C'].includes(variant)){
@@ -2476,7 +2543,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
     return decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
   }
-  return {openPacket,openCipher,rows,forecast,compare,summarize,allocate,resultUpdates,checkedDiagnostics,safeUrl,digest,clock,utc,day,SCHEMA};
+  return {openPacket,openCipher,rows,forecast,frozenArm,compare,summarize,allocate,resultUpdates,checkedDiagnostics,safeUrl,digest,clock,utc,day,SCHEMA};
 });
 
 /* Independent display capability. Its private key never enters a request URL. */
@@ -2500,12 +2567,13 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     need((sameKeys(index,fields)||sameKeys(index,fields+',result_checks'))&&index.schema==='RACE_AI_KEIRIN_NOTE_FEED_V1'&&index.repository==='haji84/RACE-AI'&&index.recipient_id===recipient&&typeof index.provider_denied==='boolean'&&Array.isArray(index.entries)&&ids(index.covered_race_ids)&&ids(index.priority_window_race_ids));
     const hashes=new Set(),covered=new Set(),priority=new Set();
     for(const e of index.entries){
-      const keys='cipher_sha256,source_content_sha256,ephemeral_public_key,salt,created_at,days,kind,captured_race_ids,priority_window_race_ids'+(e?.kind==='result'?',result_revisions':'');
-      need(sameKeys(e,keys)&&hex(e.cipher_sha256)&&hex(e.source_content_sha256)&&!hashes.has(e.cipher_sha256)&&['import','research','archive','result','results'].includes(e.kind));
+      const keys='cipher_sha256,source_content_sha256,ephemeral_public_key,salt,created_at,days,kind,captured_race_ids,priority_window_race_ids'+(e?.kind==='result'?',result_revisions':e?.kind==='canary-original'?',original_revisions':'');
+      need(sameKeys(e,keys)&&hex(e.cipher_sha256)&&hex(e.source_content_sha256)&&!hashes.has(e.cipher_sha256)&&['import','research','archive','result','results','canary-original'].includes(e.kind));
       need(decode(e.ephemeral_public_key).length===65&&decode(e.salt).length===32&&Array.isArray(e.days)&&e.days.length&&new Set(e.days).size===e.days.length&&e.days.every(M.day)&&Number.isFinite(Date.parse(e.created_at))&&ids(e.captured_race_ids)&&ids(e.priority_window_race_ids));
       need(e.captured_race_ids.every(id=>e.days.some(d=>id.startsWith(d.replaceAll('-',''))))&&(e.kind!=='results'||e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0));
       need(e.priority_window_race_ids.every(id=>e.captured_race_ids.includes(id)));hashes.add(e.cipher_sha256);e.captured_race_ids.forEach(id=>covered.add(id));e.priority_window_race_ids.forEach(id=>priority.add(id));
       if(e.kind==='result')need(e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&record(e.result_revisions)&&Object.keys(e.result_revisions).length>0&&Object.keys(e.result_revisions).length<=300&&ids(Object.keys(e.result_revisions))&&Object.values(e.result_revisions).every(hex));
+      if(e.kind==='canary-original')need(e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&record(e.original_revisions)&&Object.keys(e.original_revisions).length>0&&Object.keys(e.original_revisions).length<=300&&ids(Object.keys(e.original_revisions))&&Object.values(e.original_revisions).every(hex));
     }
     need(index.covered_race_ids.length===covered.size&&index.covered_race_ids.every(id=>covered.has(id))&&index.priority_window_race_ids.length===priority.size&&index.priority_window_race_ids.every(id=>priority.has(id)));
     if(Object.hasOwn(index,'result_checks')){
@@ -2533,11 +2601,16 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       const revisions=Object.fromEntries([...data.resultUpdates.values()].flatMap(rows=>[...rows.values()].map(row=>[row.race_id,row.revision])));
       need(Object.keys(revisions).sort().join(',')===Object.keys(e.result_revisions).sort().join(',')&&Object.entries(revisions).every(([id,revision])=>e.result_revisions[id]===revision));
     }
+    if(e.kind==='canary-original'){
+      need([...data.files.keys()].every(path=>/^data\/\d{4}-\d{2}-\d{2}\/frozen_forecasts\.json$/.test(path))&&data.frozenForecasts.size===data.dates.length);
+      const revisions=Object.fromEntries([...data.frozenForecasts.values()].flatMap(rows=>[...rows.values()].map(row=>[row.race_id,row.revision])));
+      need(Object.keys(revisions).sort().join(',')===Object.keys(e.original_revisions).sort().join(',')&&Object.entries(revisions).every(([id,revision])=>e.original_revisions[id]===revision));
+    }
     return data;
   }
   function merge(parts,{resultChecks={}}={}){
     need(Array.isArray(parts)&&parts.length>0);
-    const days=new Map(),files=new Map(),fileShas=new Map(),results=new Map(),refreshHolds=[],updates=new Map(),histories=new Map();let importedAt=parts[0].importedAt;
+    const days=new Map(),files=new Map(),fileShas=new Map(),results=new Map(),refreshHolds=[],updates=new Map(),histories=new Map(),frozen=new Map();let importedAt=parts[0].importedAt;
     const stable=v=>Array.isArray(v)?'['+v.map(stable).join(',')+']':record(v)?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+stable(v[k])).join(',')+'}':JSON.stringify(v);
     const semantic=result=>Object.fromEntries(Object.entries(result).filter(([key])=>key!=='observed_at'));
 
@@ -2547,6 +2620,8 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       for(const [path,value] of part.fileShas||[])fileShas.set(path,value);
       importedAt=part.importedAt;
       for(const date of part.dates){
+        if(!frozen.has(date))frozen.set(date,new Map());
+        for(const [id,original] of part.frozenForecasts?.get(date)||[]){const prior=frozen.get(date).get(id);need(!prior||stable(prior)===stable(original));frozen.get(date).set(id,original);}
         if(!updates.has(date))updates.set(date,new Map());
         for(const [id,result] of part.resultUpdates?.get(date)||[]){
           const history=histories.get(id)||new Map(),seen=history.get(result.revision);
@@ -2599,8 +2674,8 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       return {...row,researchResultHistory:[...history],latestResearchResult:history.at(-1)||null};
     }));
     for(const [date,rows] of days)days.set(date,rows.map(row=>{
-      const result=updates.get(date)?.get(row.id);if(!result)return row;
-      return {...row,resultUpdate:result,resultHistory:[...histories.get(row.id).values()]};
+      const result=updates.get(date)?.get(row.id),original=frozen.get(date)?.get(row.id);if(!result&&!original)return row;
+      return {...row,...(result?{resultUpdate:result,resultHistory:[...histories.get(row.id).values()]}:{}),...(original?{frozenForecast:original}:{})};
     }));
     const checks=new Map(Object.entries(resultChecks));
     for(const [id,check] of checks){
@@ -2608,7 +2683,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       if(check.digest!==null)need(latest&&latest.observation_sha256===check.digest&&Date.parse(check.checked_at)>=Date.parse(latest.captured_at)&&check.status===(latest.state==='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL'?'MATCHED':latest.state.startsWith('PENDING_')?'PENDING':'HOLD'));
       else need(!latest&&check.status!=='MATCHED');
     }
-    return {schema:M.SCHEMA,dates:[...days.keys()].sort(),days,files,fileShas,results,resultUpdates:updates,resultChecks:checks,cipherSha:null,formal:false,importedAt,sourceCommit:parts[0].sourceCommit,refreshHolds};
+    return {schema:M.SCHEMA,dates:[...days.keys()].sort(),days,files,fileShas,results,resultUpdates:updates,frozenForecasts:frozen,resultChecks:checks,cipherSha:null,formal:false,importedAt,sourceCommit:parts[0].sourceCommit,refreshHolds};
   }
   async function bytes(response,signal){
     need(response.ok);const length=response.headers?.get('content-length');need(length==null||/^\d+$/.test(length)&&Number(length)<=MAX);
@@ -2706,7 +2781,15 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       <footer class="kn-footer"><p>個別分析・改訂・参考A/Bはそれぞれの保存原本を保持します。参考Cの未生成も表示します。参考モデルの重みは校正済み確率ではありません。</p><p>画面での選択と配分は購入候補です。投票・決済は行いません。データと本人用リンクの鍵は外部へ送信しません。</p><p id="kn-provenance"></p></footer></div>
       <div class="kn-selection"><div><strong id="kn-selection-count">検討リスト 0件</strong><small>候補・配分の試算</small></div><button id="kn-copy-selection" type="button">検討リストをコピー</button></div>`;
     $('kn-close').addEventListener('click',()=>dialog.close());
-    $('kn-file').addEventListener('change',async event=>{const file=event.target.files?.[0];if(!file)return;const version=beginLoad();try{if(file.size>64*1024*1024)throw Error();note('保存データを確認しています。');await accept(await M.openPacket(JSON.parse(await file.text())),version);}catch{if(version===loadVersion)note('保存データを開けませんでした。形式と原本の整合を確認してください。',true);}if(version===loadVersion)event.target.value='';});
+    $('kn-file').addEventListener('change',async event=>{
+      // Shadow-tree event targets are cleared after dispatch. Keep the input
+      // itself before awaiting file reads so the completed import can reset it.
+      const input=event.currentTarget,file=input.files?.[0];if(!file)return;
+      const version=beginLoad();
+      try{if(file.size>64*1024*1024)throw Error();note('保存データを確認しています。');await accept(await M.openPacket(JSON.parse(await file.text())),version);}
+      catch{if(version===loadVersion)note('保存データを開けませんでした。形式と原本の整合を確認してください。',true);}
+      if(version===loadVersion)input.value='';
+    });
     $('kn-clear').addEventListener('click',()=>{beginLoad();data=null;currentDay='';preferences.clear();selected.clear();expanded.clear();if(/^#(?:note|notefeed)=/.test(location.hash)){history.replaceState(null,'',location.pathname+location.search);window.RaceNoteInitialFragment='';}render();note('読込データを消去しました。');});
     $('kn-market').addEventListener('change',event=>{market=event.target.value;renderCards();});
     $('kn-variant').addEventListener('change',event=>{variant=event.target.value;renderCards();});
@@ -2771,6 +2854,24 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       scenarios(prediction.scenarios)+roster(row)+
       '<details class="kn-details"><summary>出典・予想時点・注意点</summary><p>'+esc(prediction.risk||'保存された条件付きの分析です。')+'</p><p>予想の記載時点 '+stamp(prediction.createdAt)+'</p><p>オッズの保存時点 '+stamp(row.quote.source_updated_at||row.quote.fetched_at)+'</p><p>'+esc(row.quote.scope_label||'保存時点の値。現在値は掲載元で確認してください。')+'</p>'+sourceLink(row.sourceUrl,'出走表・掲載オッズ')+referenceProvenance(row)+'<p class="kn-small">参考A/Bは既存計算、Cは独立した連係履歴が不足しているため未生成です。正式な全モデル実測の認証とは別に表示しています。</p></details></article>';
   }
+  function frozenBasis(saved){
+    const facts=saved.facts,styles={NIGE:'逃げ',MAKURI:'捲り',SASHI:'差し',MARK:'追込',ALLROUND:'自在',UNKNOWN:'未確認'};
+    const line=facts.line_groups.map(g=>g.join('−')).join(' / ');
+    const factsTable='<p>保存時の'+(facts.competition==='GIRLS'?'位置取りの仮定':'並び予想')+'：'+esc(line)+'</p><div class="kn-table-scroll"><table><thead><tr><th>車</th><th>印順位</th><th>得点</th><th>近況値</th><th>H/B</th><th>脚質</th></tr></thead><tbody>'+facts.riders.map(r=>'<tr><td>'+r.car+'</td><td>'+(r.mark_rank==='UNMARKED'?'無印':r.mark_rank)+'</td><td>'+r.competition_points+'</td><td>'+r.recent_form_score+'</td><td>'+r.h_count+'/'+r.b_count+'</td><td>'+styles[r.style]+'</td></tr>').join('')+'</tbody></table></div>';
+    const actions={PREDICTED_LINE_ORDER_ONLY:'掲載の並びを出発点にする想定',LEADER_ATTACKS:'主導権候補が動く想定',CHALLENGER_EARLY_COUNTER:'別の先頭候補が早めに仕掛け返す想定',LEADER_TRIES_TO_HOLD_PACE:'主導権候補がペースを保つ想定',LEADER_MAKURI_OR_KAMASHI:'主導権候補が捲り・かましで前へ出る想定',CHALLENGER_MAKURI:'別の先頭候補が捲る想定',FRONT_LINE_CONTINUITY_UNVERIFIED:'前の隊列が続くかは未確認',FOLLOWER_SASHI_SCENARIO:'番手から差す展開を想定',FOURTH_CORNER_ORDER_CONTINUES:'4コーナーの順序が続く想定',LATE_SPRINT_OVERTAKE:'終盤の加速で前を交わす想定',FRONT_LEADER_PACE_FADE:'前の選手が失速する想定'};
+    const actionText=value=>actions[value]||(/^LEADER_CAR_[1-9]$/.test(value)?'主導権候補は'+value.at(-1)+'番':/^CAR_[1-9]$/.test(value)?'対象は'+value.at(-1)+'番':'保存された動きの仮定');
+    const phases=['初周','打鐘','最終ホーム','最終バック','4コーナー','ゴール'];
+    const scenarios=saved.scenarios.map((s,i)=>'<article class="kn-frozen-scenario"><h5>見立て '+(i+1)+' · '+esc(s.projected_3ren_tan.join('−'))+'</h5><p>候補内の重み '+(s.relative_research_weight*100).toFixed(1)+'%</p><ol>'+s.six_phases.map((p,j)=>'<li><b>'+phases[j]+'</b> '+esc(p.projected_order.join(' → '))+'<br>'+esc(p.hypothesis_actions.map(actionText).join(' / '))+'</li>').join('')+'</ol></article>').join('');
+    const trend={IMPROVING:'上向き',DECLINING:'下向き',NO_CLEAR_CHANGE:'目立つ変化なし',INSUFFICIENT_DATA:'比較材料が不足'};
+    const change=v=>v===null?'未比較':(v>0?'+':'')+v;
+    const adjustments=saved.assessments.length?'<p>直近成績と落車前後の成績差に基づく、保存時点の補正です。落車の記録だけで状態を決めつけていません。</p><div class="kn-table-scroll"><table><thead><tr><th>車</th><th>近況</th><th>直近の差</th><th>落車前後の差</th><th>補正値</th></tr></thead><tbody>'+saved.assessments.map(a=>'<tr><td>'+a.car+'</td><td>'+trend[a.trend]+'</td><td>'+change(a.recent_result_change)+'</td><td>'+change(a.post_fall_change)+'</td><td>'+change(a.score_adjustment)+'</td></tr>').join('')+'</tbody></table></div>'+saved.assessments.map(a=>'<p>'+a.car+'番：'+(a.fall_on_record?'落車の保存記録あり':'落車の保存記録なし')+' · 欠場期間 '+(a.documented_absence_days===null?'未確認':a.documented_absence_days+'日')+' · 復帰後 '+(a.return_after_absence_results===null?'未確認':a.return_after_absence_results+'走')+' · コメント記録 '+(a.comments_count??'未確認')+'件</p>').join('')+'<p class="kn-small">数値は保存された比較用の値です。体調の診断や的中率を表すものではありません。</p>':'';
+    const title=saved.adjusted?(saved.role==='B'?'展開の見立て・近況の補正':'近況の補正・根拠'):(saved.role==='B'?'展開の見立て・根拠':'予想の根拠');
+    return '<details class="kn-details kn-frozen-basis"><summary>'+title+'</summary><p>'+(saved.role==='A'?'保存時の印順位と選手の数値をもとに候補順を付けています。Aの原本には局面別の見立てはありません。':'保存された6局面の見立てです。各局面の順序は予想上の仮定です。')+'</p>'+factsTable+adjustments+(scenarios?'<p class="kn-small">分岐の重みは候補内の比重です。的中確率ではありません。</p>'+scenarios:'')+'</details>';
+  }
+  function frozenTickets(saved){
+    if(!saved)return '';
+    return '<p class="kn-frozen-clock">作成 '+stamp(saved.generatedAt)+'<br>締切前の保存 '+stamp(saved.sealedAt)+'</p><p>全部の買い目</p><ol class="kn-frozen-tickets" data-frozen-arm="'+saved.name+'">'+saved.tickets.map(t=>'<li data-frozen-combo="'+t.combo+'">'+t.combo.split('-').map(Number).map(car).join('<span>−</span>')+'</li>').join('')+'</ol>'+frozenBasis(saved);
+  }
   function resultLabel(state){
     if(state==='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL')return '二つの掲載元が一致（公式認証なし）';
     if(state==='HOLD_SECONDARY_RESULT_DISAGREEMENT')return '出典間の相違で保留';
@@ -2805,22 +2906,23 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     only.innerHTML=unpaired.map(([id,history])=>'<details class="kn-details"><summary>'+esc(id)+' · '+esc(resultLabel(history.at(-1)?.observation.state))+'</summary><p>このレースの予想原本は未読込のため、的中比較の分母へ加えません。</p>'+history.map((saved,n)=>resultRevision(saved,n+1)).join('')+'</details>').join('');
   }
   function liveResult(row){
-    const result=row.resultUpdate;if(!result)return '';
-    const official=result.authority==='official',confirmed=result.order_status==='confirmed',paid=official&&result.payout_status==='confirmed';
-    const order=result.order_status==='conflict'?'出典間の相違を確認中':confirmed?result.winning_triples.join(' / '):'着順を確認中';
+    const result=row.resultUpdate,frozen=row.frozenForecast;if(!result&&!frozen)return '';
+    const official=result?.authority==='official',confirmed=result?.order_status==='confirmed',paid=official&&result?.payout_status==='confirmed';
+    const order=result?.order_status==='conflict'?'出典間の相違を確認中':confirmed?result.winning_triples.join(' / '):'着順を確認中';
     const status={hit:'的中',miss:'不的中',pending:'未照合',void:'返還・採点対象外',unverifiable:'原本の確認待ち'};
-    const arms=[['A','締切前保存A'],['B','締切前保存B'],['C','締切前保存C'],['adjusted_A','調子補正A'],['adjusted_B','調子補正B']].map(([name,label])=>{
-      const arm=result.arms[name],state=arm?.state||'pending';
-      return '<div class="kn-result-arm" data-result-arm="'+name+'"><h4>'+label+'</h4><strong>'+esc(status[state]||'未照合')+'</strong><p>'+(arm?.points!=null?arm.points+'点':'点数未確認')+'</p>'+(paid&&arm?.stake_yen!=null&&arm?.return_yen!=null?'<p>各100円の想定：投資 '+money(arm.stake_yen)+' / 払戻 '+money(arm.return_yen)+'</p>':'')+'</div>';
+    const arms=[['A','A'],['B','B'],['adjusted_A','補正A'],['adjusted_B','補正B'],['C','C']].map(([name,label])=>{
+      const arm=result?.arms[name],saved=M.frozenArm(row,name),aligned=!saved||arm?.points==null||arm.points===saved.tickets.length;
+      const state=aligned?(arm?.state||'pending'):'unverifiable',outcome=frozen&&name==='C'?'未作成':!result?'結果待ち':status[state]||'未照合';
+      return '<div class="kn-result-arm" data-result-arm="'+name+'"><h4>'+(frozen?label:'締切前保存'+label)+'</h4><p>採点結果：<strong>'+esc(outcome)+'</strong></p><p>'+(saved?'点数 '+saved.tickets.length+'点':arm?.points!=null?arm.points+'点':frozen&&name==='C'?'Cの予想は未作成です。':'点数未確認')+'</p>'+(paid&&aligned&&arm?.stake_yen!=null&&arm?.return_yen!=null?'<p>各100円の想定：投資 '+money(arm.stake_yen)+' / 払戻 '+money(arm.return_yen)+'</p>':'')+(!aligned?'<p class="kn-warning">保存原本と採点側の点数が一致していないため、採点結果の表示を保留しています。</p>':'')+frozenTickets(saved)+'</div>';
     }).join('');
     const sourceNames={keirin_jp:'KEIRIN.JP',kdreams:'Kドリームス',netkeirin:'netkeirin',official_pdf:'公式PDF',official_json:'公式データ'};
     const comparisonNames={matched:'一致',different:'相違あり',unavailable:'取得待ち',unverified:'未確認'};
-    const comparisons=result.source_comparison.map(s=>sourceNames[s.source_id]+'：'+comparisonNames[s.state]).join(' / ');
-    const payout=paid?Object.entries(result.payouts_100yen).map(([combo,yen])=>esc(combo)+' '+money(yen)).join(' / '):(result.payout_status==='held'?'配当の確認を保留中':'配当確認中');
+    const comparisons=(result?.source_comparison||[]).map(s=>sourceNames[s.source_id]+'：'+comparisonNames[s.state]).join(' / ');
+    const payout=paid?Object.entries(result.payouts_100yen).map(([combo,yen])=>esc(combo)+' '+money(yen)).join(' / '):(result?.payout_status==='held'?'配当の確認を保留中':'配当確認中');
     const purposes={OFFICIAL_CALENDAR:'開催日程',CALENDAR_SCRIPT:'開催日程の画面処理',FORM_SCRIPT:'画面の遷移処理',OFFICIAL_RACE_LIST:'レース一覧',RACE_LIST_VIEW_SCRIPT:'レース一覧の表示処理',RACE_LIST_CONTROLLER_SCRIPT:'レース一覧の遷移処理',OFFICIAL_FINAL_RESULT:'公式の着順・配当',OFFICIAL_PAYOUT_UNIT:'配当単位の説明',OFFICIAL_JSON_CALENDAR:'開催日程',OFFICIAL_JSON_DAY_LIST:'開催別のレース一覧',OFFICIAL_JSON_RESULT_SUMMARY:'結果一覧',OFFICIAL_JSON_HEADER:'レース情報',OFFICIAL_JSON_DETAIL:'公式の着順・配当'};
     const stages={REQUEST:'通信',HTTP_RESPONSE:'応答確認',CONTENT_CHECK:'ページ内容の確認',PARSE_RESULT:'結果の読取',VERIFY_UNIT:'配当単位の確認',PERSIST_STOP:'取得停止の保存'};
-    const diagnostics=result.diagnostics.length?'<details class="kn-details"><summary>取得先と確認状況</summary>'+result.diagnostics.map(d=>'<p class="kn-small"><b>'+purposes[d.purpose]+'</b> · '+esc(d.method)+' '+esc(d.source_host+d.source_path)+'<br>HTTP '+(d.http_status===null?'応答なし':d.http_status)+' · '+stages[d.stage]+' · '+esc(d.reason)+'<br>'+stamp(d.observed_at)+'</p>').join('')+'</details>':'';
-    return '<section class="kn-result kn-live-result"><h3>'+(official?'公式結果':'参考結果・公式確認待ち')+'</h3><p class="kn-result-order">'+esc(order)+'</p><p>'+payout+(paid?'（100円あたり）':'')+'</p><div class="kn-result-arms">'+arms+'</div><p class="kn-small">締切前に保存された各原本の照合です。結果確認 '+stamp(result.observed_at)+'</p>'+(comparisons?'<p class="kn-small kn-result-comparison">保存資料との照合：'+esc(comparisons)+'</p>':'')+diagnostics+'</section>';
+    const diagnostics=result?.diagnostics.length?'<details class="kn-details"><summary>取得先と確認状況</summary>'+result.diagnostics.map(d=>'<p class="kn-small"><b>'+purposes[d.purpose]+'</b> · '+esc(d.method)+' '+esc(d.source_host+d.source_path)+'<br>HTTP '+(d.http_status===null?'応答なし':d.http_status)+' · '+stages[d.stage]+' · '+esc(d.reason)+'<br>'+stamp(d.observed_at)+'</p>').join('')+'</details>':'';
+    return '<section class="kn-result kn-live-result"><h3>'+(frozen?'締切前に保存した予想':official?'公式結果':'参考結果・公式確認待ち')+'</h3>'+(frozen?'<p class="kn-small">入力の保存時点 '+stamp(frozen.baseline.source_as_of)+' · 締切 '+stamp(frozen.baseline.published_cutoff_at)+'</p>':'')+'<p class="kn-result-order">'+(result?(official?'公式結果：':'参考結果・公式確認待ち：'):'')+esc(order)+'</p><p>'+payout+(paid?'（100円あたり）':'')+'</p><div class="kn-result-arms'+(frozen?' kn-has-originals':'')+'">'+arms+'</div><p class="kn-small">締切前に保存された各原本の照合です。'+(result?'結果確認 '+stamp(result.observed_at):'結果の保存を待っています。')+'</p>'+(comparisons?'<p class="kn-small kn-result-comparison">保存資料との照合：'+esc(comparisons)+'</p>':'')+diagnostics+'</section>';
   }
   function scenarios(values){
     if(!Array.isArray(values)||!values.length)return '';
