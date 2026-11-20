@@ -274,7 +274,7 @@ class OfficialBatchRuntime(unittest.TestCase):
         shared=pipeline.official_fetcher(Path('/unused'),lambda:now[0],fetch=denied)
         def settle(**kw):
             with self.assertRaises(official.OfficialProviderStop):
-                kw['shared_official_fetch']('https://keirin.jp/pc/json?fixture')
+                kw['shared_official_fetch'](official._url('JSJ057', kday='20261118'))
             now[0]=datetime.fromisoformat('2026-11-19T00:00:01+09:00')
             return {'day_jst':kw['day'],'provider_state':'HOLD_OFFICIAL_PROVIDER_STOPPED_THIS_POLL'}
         with TemporaryDirectory() as tmp, \

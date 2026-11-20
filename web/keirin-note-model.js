@@ -7,6 +7,7 @@
   const SCHEMA='RACE_AI_KEIRIN_NOTE_VIEW_V1',OUTER='RACE_AI_SAVED_WEB_VIEW_V1';
   const LIMIT=64*1024*1024,encoder=new TextEncoder();
   const record=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
+  const exact=(value,keys)=>record(value)&&Object.keys(value).sort().join(',')===keys.slice().sort().join(',');
   const fail=()=>{throw new Error('KEIRIN_NOTE_INVALID');};
   const need=v=>{if(!v)fail();};
   const hex=v=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v);
@@ -68,6 +69,50 @@
     }
     return out.sort((a,b)=>(Date.parse(a.cutoff)||Infinity)-(Date.parse(b.cutoff)||Infinity)||a.id.localeCompare(b.id));
   }
+  function resultUpdates(date,files){
+    const value=files.get('data/'+date+'/result_updates.json'),updates=new Map();
+    if(value==null)return updates;
+    need(exact(value,['schema','observed_at','races'])&&value.schema==='RACE_AI_KEIRIN_RESULT_UPDATES_V1'&&clock(date,value.observed_at)&&Array.isArray(value.races)&&value.races.length<=300);
+    for(const row of value.races){
+      need(exact(row,['race_id','revision','observed_at','authority','order_status','payout_status','winning_triples','payouts_100yen','source_comparison','diagnostics','arms'])&&rid(row.race_id)&&row.race_id.startsWith(date.replaceAll('-',''))&&!updates.has(row.race_id)&&hex(row.revision)&&clock(date,row.observed_at)&&Date.parse(row.observed_at)<=Date.parse(value.observed_at));
+      need(['official','secondary'].includes(row.authority)&&['confirmed','pending','conflict'].includes(row.order_status)&&['confirmed','pending','held'].includes(row.payout_status));
+      need(Array.isArray(row.winning_triples)&&row.winning_triples.length<=20&&new Set(row.winning_triples).size===row.winning_triples.length);
+      for(const combo of row.winning_triples)need(typeof combo==='string'&&/^[1-9]-[1-9]-[1-9]$/.test(combo)&&new Set(combo.split('-')).size===3);
+      need((row.order_status==='confirmed')===(row.winning_triples.length>0)&&record(row.payouts_100yen));
+      const money=row.authority==='official'&&row.order_status==='confirmed'&&row.payout_status==='confirmed';
+      if(row.payout_status==='confirmed')need(money);
+      if(money){
+        need(Object.keys(row.payouts_100yen).sort().join(',')===row.winning_triples.slice().sort().join(','));
+        Object.values(row.payouts_100yen).forEach(yen=>need(Number.isSafeInteger(yen)&&yen>=100&&yen<=1000000000));
+      }else need(Object.keys(row.payouts_100yen).length===0);
+      need(Array.isArray(row.source_comparison)&&row.source_comparison.length<=5&&new Set(row.source_comparison.map(s=>s?.source_id)).size===row.source_comparison.length);
+      row.source_comparison.forEach(s=>need(exact(s,['source_id','state'])&&['keirin_jp','kdreams','netkeirin','official_pdf','official_json'].includes(s.source_id)&&['matched','different','unavailable','unverified'].includes(s.state)));
+      checkedDiagnostics(row.diagnostics,date);need(exact(row.arms,['A','B','C','adjusted_A','adjusted_B']));
+      const arms={};
+      for(const [name,value] of Object.entries(row.arms)){
+        need(exact(value,['state','points','stake_yen','return_yen'])&&['hit','miss','pending','void','unverifiable'].includes(value.state));
+        const arm={...value};
+        need(arm.points===null||Number.isSafeInteger(arm.points)&&arm.points>=1&&arm.points<=504);
+        for(const field of ['stake_yen','return_yen'])need(arm[field]===null||Number.isSafeInteger(arm[field])&&arm[field]>=0&&arm[field]<=504000000000);
+        if(!money||['pending','unverifiable'].includes(arm.state))need(arm.stake_yen===null&&arm.return_yen===null);
+        if(row.authority!=='official'||row.order_status!=='confirmed')need(!['hit','miss','void'].includes(arm.state));
+        arms[name]=arm;
+      }
+      updates.set(row.race_id,{...row,arms});
+    }
+    return updates;
+  }
+  function checkedDiagnostics(rows,date){
+    const routes={OFFICIAL_CALENDAR:['keirin.jp','/sp/raceschedule','GET'],CALENDAR_SCRIPT:['keirin.jp','/sp/static/js/SJ0201.js','GET'],FORM_SCRIPT:['keirin.jp','/sp/static/js/commonSubmit.js','GET'],OFFICIAL_RACE_LIST:['keirin.jp','/sp/racelist','POST'],RACE_LIST_VIEW_SCRIPT:['keirin.jp','/sp/static/js/SJ0301_v.js','GET'],RACE_LIST_CONTROLLER_SCRIPT:['keirin.jp','/sp/static/js/SJ0301_c.js','GET'],OFFICIAL_FINAL_RESULT:['keirin.jp','/sp/race','POST'],OFFICIAL_PAYOUT_UNIT:['www.hofukeirin.jp','/ticket/','GET'],OFFICIAL_JSON_CALENDAR:['keirin.jp','/pc/json','GET'],OFFICIAL_JSON_DAY_LIST:['keirin.jp','/pc/json','GET'],OFFICIAL_JSON_RESULT_SUMMARY:['keirin.jp','/pc/json','GET'],OFFICIAL_JSON_HEADER:['keirin.jp','/pc/json','GET'],OFFICIAL_JSON_DETAIL:['keirin.jp','/pc/json','GET']};
+    const reasons=['SOURCE_ACCEPTED','TRANSPORT_FAILED','HTTP_DENIED','HTTP_ERROR','REDIRECT_REFUSED','SOURCE_BYTES_INVALID','CHALLENGE_MARKUP','CAPTURE_CLOCK_INVALID','SOURCE_VALIDATION_FAILED','UNIT_TEXT_MISSING','UNIT_VERIFIED','RESULT_VALIDATED','RESULT_NOT_PUBLISHED','PROVIDER_STOP_PERSISTENCE_FAILED'];
+    need(Array.isArray(rows)&&rows.length<=32);
+    for(const row of rows){
+      need(record(row)&&Object.keys(row).sort().join(',')==='http_status,method,observed_at,purpose,reason,schema,source_host,source_path,stage'&&row.schema==='RACE_AI_KEIRIN_RESULT_DIAGNOSTIC_V1');
+      const route=routes[row.purpose];need(route&&row.source_host===route[0]&&row.source_path===route[1]&&row.method===route[2]);
+      need(['REQUEST','HTTP_RESPONSE','CONTENT_CHECK','PARSE_RESULT','VERIFY_UNIT','PERSIST_STOP'].includes(row.stage)&&reasons.includes(row.reason)&&clock(date,row.observed_at));
+      need(row.http_status===null||Number.isInteger(row.http_status)&&row.http_status>=100&&row.http_status<=599);
+    }
+  }
   async function openPacket(packet){
     need(record(packet)&&packet.schema===SCHEMA&&packet.formal_model_admission===false&&packet.production_weight_switch===false&&record(packet.files));
     need(Array.isArray(packet.dates)&&packet.dates.length>0&&packet.dates.every(day)&&new Set(packet.dates).size===packet.dates.length);
@@ -79,7 +124,9 @@
       const value=JSON.parse(entry.text);parsed.set(path,value);
     }
     const days=new Map(packet.dates.slice().sort().map(date=>[date,normalize(date,parsed)]));
-    return {schema:SCHEMA,dates:[...days.keys()],days,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,formal:false};
+    const results=new Map([...days.keys()].map(date=>[date,resultUpdates(date,parsed)]));
+    for(const [date,rows] of days)for(const row of rows){const update=results.get(date).get(row.id);if(update){row.resultUpdate=update;row.resultHistory=[update];}}
+    return {schema:SCHEMA,dates:[...days.keys()],days,resultUpdates:results,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,formal:false};
   }
   function rows(data,date){return data.days.get(date)||[];}
   function forecast(row,market='3t',variant='flexible'){

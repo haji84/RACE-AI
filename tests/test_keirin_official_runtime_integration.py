@@ -94,12 +94,12 @@ class OfficialEncryptedRuntimeIntegration(unittest.TestCase):
     def clock(self):
         return self.now
 
-    def poll(self, *, saved_only=False, github_client=None):
+    def poll(self, *, saved_only=False, github_client=None, fetcher=None):
         self.runner_number += 1
         private_root = self.root / f"private-run-{self.runner_number}"
         private_root.mkdir(mode=0o700)
         with patch.object(pipeline, "official_fetcher",
-                          return_value=transport(self.data)) as acquire:
+                          return_value=fetcher or transport(self.data)) as acquire:
             report = pipeline.run_settlement(
                 day=DAY, repo=self.repo, private_root=private_root,
                 owner_public_path=self.public_path, owner_private_pem=self.private,
@@ -112,6 +112,35 @@ class OfficialEncryptedRuntimeIntegration(unittest.TestCase):
 
     def loaded(self):
         return pipeline.load_day_evidence(self.repo, DAY, self.private)
+
+    def test_malformed_result_retains_safe_diagnostic_in_encrypted_settlement(self):
+        self.poll()
+        ordinary = transport(self.data)
+        def broken_detail(url):
+            return b'private malformed body' if official._check_url(url) == 'JSJ012' else ordinary(url)
+        get = pipeline.official_fetcher(self.repo, self.clock, fetch=broken_detail)
+        report = self.poll(fetcher=get)
+        self.assertEqual(report['provider_state'], 'HOLD_OFFICIAL_PROVIDER_STOPPED_THIS_POLL')
+        rows = report.get('safe_diagnostics')
+        self.assertIsInstance(rows, list, 'SETTLEMENT_DIAGNOSTIC_REQUIRED')
+        self.assertEqual(rows[-1]['purpose'], 'OFFICIAL_JSON_DETAIL')
+        self.assertEqual(rows[-1]['http_status'], 200)
+        self.assertEqual(rows[-1]['stage'], 'PARSE_RESULT')
+        self.assertEqual(rows[-1]['reason'], 'SOURCE_VALIDATION_FAILED')
+        self.assertNotIn('private malformed body', json.dumps(rows))
+        self.assertEqual(self.loaded()['safe_report']['safe_diagnostics'], rows)
+        self.assertEqual(report['official_result_states'][RACE], 'OFFICIAL_FINAL')
+
+    def test_first_schedule_parse_failure_keeps_safe_diagnostics_on_error(self):
+        get = pipeline.official_fetcher(self.repo, self.clock, fetch=lambda _:b'invalid private JSON')
+        with self.assertRaises(pipeline.OfficialPipelineError) as raised:
+            self.poll(fetcher=get)
+        rows = getattr(raised.exception, 'safe_diagnostics', None)
+        self.assertIsInstance(rows, list, 'NO_SCHEDULE_FAILURE_DIAGNOSTIC_REQUIRED')
+        self.assertEqual(rows[-1]['purpose'], 'OFFICIAL_JSON_CALENDAR')
+        self.assertEqual(rows[-1]['http_status'], 200)
+        self.assertEqual(rows[-1]['reason'], 'SOURCE_VALIDATION_FAILED')
+        self.assertNotIn('invalid private JSON', json.dumps(rows))
 
     def archived(self):
         return history.read_revisions(repo=self.repo, day=DAY)
