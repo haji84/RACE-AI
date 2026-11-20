@@ -18,6 +18,7 @@ on:
     paths:
       - 'race_ai/keirin_nationwide_auto_*.py'
       - 'race_ai/keirin_rider_form_evidence.py'
+      - 'race_ai/keirin_form_fall_shadow.py'
       - 'tests/test_keirin_rider_form_evidence.py'
       - 'scripts/keirin_nationwide_auto_forecast.py'
       - 'scripts/keirin_register_public_day.py'
@@ -129,6 +130,7 @@ jobs:
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_rider_form_evidence.py \
+            race_ai/keirin_form_fall_shadow.py \
             race_ai/keirin_nationwide_auto_storage.py \
             race_ai/keirin_nationwide_auto_settlement.py \
             race_ai/keirin_nationwide_cipher_history.py \
