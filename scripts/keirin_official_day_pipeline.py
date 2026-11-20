@@ -329,7 +329,10 @@ def read_originals(repo, day):
     head = archive._refresh(repo)
     prefix = f'{archive.ROOT}/{day}/'
     _, paths = archive._cmd(repo, 'ls-tree', '-r', '--name-only', head, '--', prefix)
-    originals, named = {}, set(paths.splitlines())
+    # Conditioned siblings have their own paired archive/verifier. They are
+    # neither baseline originals nor orphan baseline receipts.
+    originals, named = {}, {path for path in paths.splitlines()
+                            if not path.endswith(('.form.sealed.json', '.form.receipt.json'))}
     for path in sorted(named):
         need(path.startswith(prefix), 'ORIGINAL_ARCHIVE_DAY_PATH_INVALID')
         if path.endswith('.receipt.json'):
@@ -370,6 +373,15 @@ def replay_day_evidence(day, owner_private_pem, revisions):
     for saved in revisions:
         payload = restore_private_snapshot_json(history.decrypt_evidence(
             saved['raw_cipher'], owner_private_pem))
+        if payload.get('schema') in (
+                'RACE_AI_KEIRIN_OFFICIAL_FORM_CANARY_PRE_CUTOFF_V1',
+                'RACE_AI_KEIRIN_OFFICIAL_FORM_CANARY_SETTLEMENT_V1'):
+            # Independently authenticated canary originals share encrypted
+            # retention, but are folded by their own fixed-race scorer.
+            need(day == payload.get('day_jst') == '2026-11-20' and
+                 payload.get('race_id') == '202611208105',
+                 'OFFICIAL_CANARY_REVISION_SCOPE_INVALID')
+            continue
         need(payload.get('schema') == 'RACE_AI_KEIRIN_OFFICIAL_PRIVATE_DELTA_V1' and
              payload.get('day_jst') == day and payload.get('kind') in (
                  'OFFICIAL_SCHEDULE', 'OFFICIAL_SETTLEMENT'),

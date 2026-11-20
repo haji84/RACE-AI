@@ -34,14 +34,43 @@ def verify(*, report, repo):
         day.require(verified["state"] ==
                     "ENCRYPTED_GIT_CIPHERTEXT_SHA_READBACK_OK",
                     "INDEPENDENT_GITHUB_READBACK_NOT_VERIFIED")
-        rows.append({"race_id": rid,
-                     "state": "SECOND_RUNNER_GITHUB_SHA_CONFIRMED",
-                     "cipher_sha256": digest})
+        checked = {"race_id": rid,
+                   "state": "SECOND_RUNNER_GITHUB_SHA_CONFIRMED",
+                   "cipher_sha256": digest,
+                   "conditioned_state":(
+                       "NO_CONDITIONED_ORIGINAL" if row.get("conditioned_state") in
+                       (None, "NO_CONDITIONED_ORIGINAL", "NO_FORM_SOURCE_BASELINE_ONLY")
+                       else "HOLD_CONDITIONED_SECOND_RUNNER_READBACK")}
+        if row.get("conditioned_state") in {
+                "GIT_CONDITIONED_ORIGINAL_CREATE_ONCE_AND_RESTORED",
+                "IDENTICAL_CONDITIONED_ORIGINAL_ALREADY_FROZEN"}:
+            try:
+                condition_sha = row["conditioned_cipher_sha256"]
+                result = archive.read_conditioned_original(
+                    repo=repo, race_id=rid, expected_cipher_sha256=condition_sha,
+                    expected_baseline_cipher_sha256=digest,
+                    expected_baseline_prediction_sha256=row["baseline_prediction_sha256"],
+                    cohort_sha256=row["cohort_sha256"])
+                day.require(result["state"] == "ENCRYPTED_GIT_CONDITIONED_SHA_READBACK_OK",
+                            "INDEPENDENT_CONDITIONED_GITHUB_READBACK_NOT_VERIFIED")
+                checked.update(
+                    conditioned_state="SECOND_RUNNER_CONDITIONED_GITHUB_SHA_CONFIRMED",
+                    conditioned_cipher_sha256=condition_sha,
+                    baseline_prediction_sha256=row["baseline_prediction_sha256"],
+                    cohort_sha256=row["cohort_sha256"])
+            except (ValueError, TypeError, KeyError, OSError):
+                checked["conditioned_state"] = "HOLD_CONDITIONED_SECOND_RUNNER_READBACK"
+        rows.append(checked)
     day.require(len(rows) == report["new_A_B_git_archived"],
                 "ARCHIVED_COUNT_DIFFERS_FROM_SECOND_RUNNER")
+    paired = sum(row["conditioned_state"] ==
+                 "SECOND_RUNNER_CONDITIONED_GITHUB_SHA_CONFIRMED" for row in rows)
     return {"schema": SCHEMA, "day_jst": report["day_jst"],
             "new_archived": len(rows), "independently_verified": len(rows),
+            "independently_verified_conditioned":paired,
+            "paired_cipher_originals_verified":paired,
             "RSA_private_decryption_verified": False,
+            "plaintext_parent_linkage_verified":False,
             "organizer_result_verified": False,
             "records": rows}
 

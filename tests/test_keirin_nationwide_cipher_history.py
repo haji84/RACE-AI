@@ -12,7 +12,10 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from race_ai import keirin_nationwide_auto_generator as model
 from race_ai import keirin_nationwide_auto_storage as storage
 from race_ai import keirin_nationwide_cipher_history as ledger
+from race_ai import keirin_form_fall_shadow as shadow
+from scripts import keirin_github_only_ab_day as live
 from tests.test_keirin_nationwide_auto_generator import fixture, AT
+from tests.test_keirin_rider_form_evidence import pack
 
 
 def git(path, *args):
@@ -172,6 +175,84 @@ class SyntheticGitHubOnlyCipherHistory(unittest.TestCase):
                                            max_bytes=invalid)
         self.assertIsNone(ledger.read_blob_bytes(
             self.worker1, head, "missing.sealed.json"))
+
+    def condition_pair(self):
+        snap = fixture()
+        prediction = model.generate_A_B(snap, generated_at=AT)
+        normal, normal_sha = self.sealed(snap["race_id"])
+        supplement = pack()
+        adjusted = shadow.generate_shadow(
+            snap, supplement, baseline=prediction, generated_at=AT)
+        path = self.root / (str(len(list(self.root.glob("*.json")))) + ".form.sealed.json")
+        receipt = shadow.seal_shadow_once(
+            snapshot=snap, supplement=supplement, shadow=adjusted,
+            public_key_pem=self.pem, path=path,
+            sealed_at="2026-11-18T09:01:10+09:00")
+        return normal, normal_sha, path.read_bytes(), receipt, prediction
+
+    def test_conditioned_original_survives_independent_git_clone_and_day_restore(self):
+        self.assertTrue(callable(getattr(ledger, "append_conditioned_once", None)))
+        normal, normal_sha, form, receipt, prediction = self.condition_pair()
+        rid = prediction["race_id"]
+        ledger.append_once(
+            repo=self.worker1, raw_cipher=normal,
+            expected_cipher_sha256=normal_sha,
+            producer_run_id="123456", producer_commit="a"*40,
+            cohort_sha256="d"*64, synthetic_local=True)
+        args = dict(repo=self.worker1, raw_cipher=form,
+                    expected_cipher_sha256=receipt["file_sha256"],
+                    expected_baseline_cipher_sha256=normal_sha,
+                    expected_baseline_prediction_sha256=prediction["prediction_sha256"],
+                    cohort_sha256="d"*64, producer_run_id="123456",
+                    producer_commit="a"*40, synthetic_local=True)
+        saved = ledger.append_conditioned_once(**args)
+        restored = ledger.read_conditioned_original(
+            repo=self.worker2, race_id=rid,
+            expected_cipher_sha256=receipt["file_sha256"],
+            expected_baseline_cipher_sha256=normal_sha,
+            expected_baseline_prediction_sha256=prediction["prediction_sha256"],
+            cohort_sha256="d"*64, synthetic_local=True)
+        self.assertEqual(restored["state"], "ENCRYPTED_GIT_CONDITIONED_SHA_READBACK_OK")
+        self.assertEqual(restored["producer_run_id"], "123456")
+        self.assertEqual(restored["cohort_sha256"], "d"*64)
+        self.assertEqual(ledger.read_blob_bytes(
+            self.worker2, restored["observed_branch_head"], ledger._form_refs(rid)[0]), form)
+        again = ledger.append_conditioned_once(**dict(args, repo=self.worker2))
+        self.assertEqual(again["state"], "IDENTICAL_CONDITIONED_ORIGINAL_ALREADY_FROZEN")
+        self.assertEqual(again["readback_head"], saved["write_commit"])
+        with patch.object(ledger, "_remote", side_effect=lambda repo, **_: Path(repo)), \
+             patch.object(live.provider_stop, "read_for_observed_day", return_value=None):
+            self.assertEqual(live.archived_day(self.worker2, "2026-11-18"),
+                             {rid:normal_sha})
+
+    def test_conditioned_archive_requires_matching_run_and_cohort_without_replacing_base(self):
+        self.assertTrue(callable(getattr(ledger, "append_conditioned_once", None)))
+        normal, normal_sha, form, receipt, prediction = self.condition_pair()
+        rid = prediction["race_id"]
+        ledger.append_once(
+            repo=self.worker1, raw_cipher=normal,
+            expected_cipher_sha256=normal_sha,
+            producer_run_id="123456", producer_commit="a"*40,
+            cohort_sha256="d"*64, synthetic_local=True)
+        args = dict(repo=self.worker2, raw_cipher=form,
+                    expected_cipher_sha256=receipt["file_sha256"],
+                    expected_baseline_cipher_sha256=normal_sha,
+                    expected_baseline_prediction_sha256=prediction["prediction_sha256"],
+                    cohort_sha256="d"*64, producer_run_id="123456",
+                    producer_commit="a"*40, synthetic_local=True)
+        for changed in ({"producer_run_id":"999999"},
+                        {"producer_commit":"b"*40}, {"cohort_sha256":"e"*64},
+                        {"expected_baseline_prediction_sha256":"f"*64}):
+            with self.subTest(changed=changed), self.assertRaises(ValueError):
+                ledger.append_conditioned_once(**dict(args, **changed))
+        ledger.append_conditioned_once(**args)
+        other = form + b"\n"
+        with self.assertRaisesRegex(ledger.GitCipherArchiveError, "ALREADY_EXISTS_DIFFERENT"):
+            ledger.append_conditioned_once(**dict(args, raw_cipher=other,
+                expected_cipher_sha256=sha256(other).hexdigest()))
+        restored = ledger.read_original(repo=self.worker2, race_id=rid,
+            expected_cipher_sha256=normal_sha, synthetic_local=True)
+        self.assertEqual(restored["cipher_sha256"], normal_sha)
 
 
 if __name__=="__main__":

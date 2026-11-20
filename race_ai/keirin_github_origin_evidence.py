@@ -66,6 +66,16 @@ class OriginPolicy:
 
 
 DEFAULT_POLICY = OriginPolicy()
+# Owner-authorized single future race. These bounds are trusted code, not
+# workflow input, a source page, or a relaxation of the default policy.
+FORM_CANARY_RACE = "202611208105"
+FORM_CANARY_CUTOFF = "2026-11-20T17:07:00+09:00"
+FORM_CANARY_POLICY = OriginPolicy(
+    allowed_events=("push", "schedule", "workflow_dispatch"),
+    producer_job_name="form-canary-capture",
+    readback_job_name="form-canary-independent-readback",
+    producer_artifact_name="keirin-form-canary-receipt-{run_id}",
+    readback_artifact_name="keirin-form-canary-readback-{run_id}")
 UTSUNOMIYA_RACE = "202611182401"
 UTSUNOMIYA_SHA = "dffc7303bfb722f75671751cee9a6356258263ec59b630f9dbdc6fc7953b5dfb"
 UTSUNOMIYA_RUN = "44234778255"
@@ -334,6 +344,10 @@ def verify_origin_evidence(*, race_id, raw_cipher, expected_cipher_sha256,
     directly from workflow_dispatch input or a caller-provided source manifest.
     """
     policy = _checked_policy(policy)
+    if policy == FORM_CANARY_POLICY:
+        _need(race_id == FORM_CANARY_RACE and
+              _time(official_cutoff_at) == _time(FORM_CANARY_CUTOFF),
+              "FORM_CANARY_FIXED_RACE_AND_CUTOFF_REQUIRED")
     _need(type(race_id) is str and RID.fullmatch(race_id) and
           type(expected_cipher_sha256) is str and SHA.fullmatch(expected_cipher_sha256) and
           type(raw_cipher) is bytes and 0 < len(raw_cipher) < 2_000_000 and
@@ -409,6 +423,90 @@ def verify_origin_evidence(*, race_id, raw_cipher, expected_cipher_sha256,
     receipt["evidence_sha256"] = sha256(json.dumps(
         receipt, sort_keys=True, separators=(",", ":"),
         allow_nan=False).encode()).hexdigest()
+    return receipt
+
+
+def form_canary_window(now):
+    """Bound the authorized trial to its JST day and real save-time margin."""
+    _need(isinstance(now, datetime) and now.utcoffset() is not None,
+          "FORM_CANARY_AWARE_RUNTIME_CLOCK_REQUIRED")
+    within = (_time("2026-11-20T00:00:00+09:00") <= now <
+              _time("2026-11-21T00:00:00+09:00"))
+    cutoff = _time(FORM_CANARY_CUTOFF)
+    return {"race_id":FORM_CANARY_RACE,
+            "capture":within and (cutoff-now).total_seconds() >= 65,
+            "settle":within and now >= cutoff}
+
+
+def _conditioned_report_rows(report, *, producer):
+    rows = report["new_encrypted_originals" if producer else "records"]
+    accepted = ({"GIT_CONDITIONED_ORIGINAL_CREATE_ONCE_AND_RESTORED",
+                 "IDENTICAL_CONDITIONED_ORIGINAL_ALREADY_FROZEN"} if producer else
+                {"SECOND_RUNNER_CONDITIONED_GITHUB_SHA_CONFIRMED"})
+    found = {}
+    for row in rows:
+        if row.get("conditioned_state") not in accepted:
+            continue
+        fields = ("conditioned_cipher_sha256", "baseline_prediction_sha256",
+                  "cohort_sha256", "cipher_sha256")
+        _need(all(type(row.get(name)) is str and SHA.fullmatch(row[name])
+                  for name in fields), "CONDITIONED_ORIGIN_REPORT_SHA_INVALID")
+        found[row["race_id"]] = tuple(row[name] for name in fields)
+    counts = (("new_conditioned_A_B_git_archived",) if producer else
+              ("independently_verified_conditioned", "paired_cipher_originals_verified"))
+    _need(all(type(report.get(name)) is int and report[name] == len(found)
+              for name in counts), "CONDITIONED_ORIGIN_REPORT_COUNT_MISMATCH")
+    return found
+
+
+def verify_conditioned_origin_evidence(*, race_id, raw_baseline_cipher,
+        expected_baseline_cipher_sha256, raw_conditioned_cipher,
+        expected_conditioned_cipher_sha256, expected_baseline_prediction_sha256,
+        cohort_sha256, official_cutoff_at, expected_producer_run_id,
+        expected_producer_commit, producer, readback, policy=FORM_CANARY_POLICY):
+    """Bind both frozen arms to the same trusted-main jobs and 65-second gate.
+
+    Parent prediction and source content must still be authenticated on RSA
+    decryption. This proves exact ciphertext presence, not model accuracy.
+    """
+    _need(policy == FORM_CANARY_POLICY,
+          "CONDITIONED_CANARY_REVIEWED_MAIN_POLICY_REQUIRED")
+    _need(type(raw_conditioned_cipher) is bytes and
+          0 < len(raw_conditioned_cipher) < 2_000_000 and
+          all(type(value) is str and SHA.fullmatch(value) for value in (
+              expected_conditioned_cipher_sha256, expected_baseline_prediction_sha256,
+              cohort_sha256)) and
+          sha256(raw_conditioned_cipher).hexdigest() == expected_conditioned_cipher_sha256,
+          "CONDITIONED_IMMUTABLE_CIPHER_BYTES_INVALID")
+    baseline = verify_origin_evidence(race_id=race_id,
+        raw_cipher=raw_baseline_cipher,
+        expected_cipher_sha256=expected_baseline_cipher_sha256,
+        official_cutoff_at=official_cutoff_at,
+        expected_producer_run_id=expected_producer_run_id,
+        expected_producer_commit=expected_producer_commit,
+        producer=producer, readback=readback, policy=policy)
+    first = _bundle(producer, role="producer", policy=policy)
+    second = _bundle(readback, role="readback", policy=policy)
+    _need(first["run_id"] == second["run_id"] and
+          first["commit"] == second["commit"], "CONDITIONED_PAIR_SAME_RUN_REQUIRED")
+    before = _conditioned_report_rows(first["report"], producer=True)
+    after = _conditioned_report_rows(second["report"], producer=False)
+    _need(before == after and before.get(race_id) == (
+        expected_conditioned_cipher_sha256, expected_baseline_prediction_sha256,
+        cohort_sha256, expected_baseline_cipher_sha256),
+        "CONDITIONED_REPORTS_DO_NOT_BIND_BOTH_ORIGINALS")
+    receipt = {k:v for k,v in baseline.items() if k != "evidence_sha256"}
+    receipt.update(
+        schema="RACE_AI_KEIRIN_CONDITIONED_GITHUB_SERVER_ORIGIN_EVIDENCE_V1",
+        state="GITHUB_PRE_CUTOFF_CONDITIONED_ORIGIN_VERIFIED",
+        cipher_sha256=expected_conditioned_cipher_sha256,
+        baseline_cipher_sha256=expected_baseline_cipher_sha256,
+        baseline_prediction_sha256=expected_baseline_prediction_sha256,
+        cohort_sha256=cohort_sha256,
+        baseline_origin_evidence_sha256=baseline["evidence_sha256"],
+        plaintext_parent_linkage_verified=False)
+    receipt["evidence_sha256"] = sha256(json.dumps(receipt, sort_keys=True,
+        separators=(",", ":"), allow_nan=False).encode()).hexdigest()
     return receipt
 
 
