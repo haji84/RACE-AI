@@ -1,0 +1,21 @@
+{
+  "state": "INDEPENDENT_REVIEW_CLEAR",
+  "baseline": "3b9758b8b561605bea1d01ca6a369e713876c42a",
+  "related_tests": 66,
+  "extra_negative_challenges": 6,
+  "default_outputs_or_errors_unchanged": 57,
+  "prior_cards_byte_identical": 38,
+  "replay_normalized": 39,
+  "replay_unpublished_line_holds": 18,
+  "model_generator_unchanged": true,
+  "capture_transport_unchanged": true,
+  "cycle_unchanged": true,
+  "provider_requests": 0,
+  "real_future_forecast_claimed": false,
+  "files": {
+    "race_ai/keirin_public_two_source_normalizer.py": "28982baf96e9497c49afa35406ce64583e2b78c21b872055adbf60cb0ed7d704",
+    "scripts/keirin_note_collect_inputs.py": "1347ec046c332219ed34843c550348c7d07fa85e04f392293a19303f72f236c4",
+    "tests/test_keirin_note_collect_inputs.py": "b3378606dc239d284752c5748c392624e506f1c2880e49dadab143758ad55902"
+  },
+  "root_related_suite": "120 tests in 11.165s"
+}

@@ -219,7 +219,7 @@ def parse_netkeirin(*,raw,source_url,race_id,captured_at):
     return [found[n] for n in sorted(found)]
 
 
-def _scoped_kdreams(soup,*,race_id,starter_cars):
+def _scoped_kdreams(soup,*,race_id,starter_cars,competition_hint=None):
     """Use the selected race header and actual displayed line separators."""
     headers=soup.select("div.racecard_header")
     need(len(headers)==1,"KDREAMS_RACE_HEADER_AMBIGUOUS")
@@ -242,7 +242,7 @@ def _scoped_kdreams(soup,*,race_id,starter_cars):
     hour,minute=map(int,cutoffs[0].split(":"))
     need(0<=hour<=23 and 0<=minute<=59,"KDREAMS_CUTOFF_TIME_INVALID")
     cutoff=f"{race_id[:4]}-{race_id[4:6]}-{race_id[6:8]}T{hour:02d}:{minute:02d}:00+09:00"
-    girls="ガールズ" in title or "L級" in title
+    girls="ガールズ" in title or "L級" in title or competition_hint=="GIRLS"
     if girls:
         # Displayed positions are not permanent cooperative lines in L-class.
         need(type(starter_cars) is list and 5<=len(starter_cars)<=9 and
@@ -273,7 +273,7 @@ def _scoped_kdreams(soup,*,race_id,starter_cars):
          set(cars)==set(range(1,len(cars)+1)),
          "KDREAMS_LINE_NOT_ALL_REAL_CARS")
     competition=("GIRLS" if girls else "CHALLENGE" if "チャレンジ" in title else
-                 "S" if "S級" in title else "A1_A2" if "A級" in title else None)
+                 "S" if "S級" in title else "A1_A2" if "A級" in title else competition_hint)
     need(competition is not None,"KDREAMS_RACE_CLASS_NOT_IN_SOURCE")
     stage=next((value for word,value in (
         ("準決","SEMI_FINAL"),("決勝","FINAL"),("一般","GENERAL"),
@@ -398,15 +398,120 @@ def parse_kdreams(*,raw,source_url,race_id,captured_at,
             "competition":competition,"round_stage":stage}
 
 
+def _selected_net_class(*,race_id,netkeirin_raw,netkeirin_url,netkeirin_captured_at,
+                        kdreams_raw,kdreams_url,starter_cars):
+    """Opt-in class fact from one current header, never history or rider grades."""
+    _,_,_,net=_page(netkeirin_raw)
+    _,_,_,kd=_page(kdreams_raw)
+    if kd is None or not kd.select('div.racecard_header'):
+        return None  # Keep the legacy saved-text adapter unchanged.
+    headers=kd.select('div.racecard_header')
+    need(len(headers)==1,'KDREAMS_RACE_HEADER_AMBIGUOUS')
+    titles=headers[0].select('h2.title > span.status')
+    need(len(titles)==1,'KDREAMS_RACE_CLASS_NOT_IN_SOURCE')
+    kd_title=GAP.sub('',normalize('NFKC',titles[0].get_text(' ',strip=True)))
+    kd_class=('GIRLS' if 'ガールズ' in kd_title or 'L級' in kd_title else
+              'CHALLENGE' if 'チャレンジ' in kd_title else
+              'S' if 'S級' in kd_title else 'A1_A2' if 'A級' in kd_title else None)
+    names=net.select('.Race_Name') if net is not None else []
+    if not names and kd_class is not None:
+        return None  # An existing Kdreams class needs no new source dependency.
+    need(len(names)==1,'NET_SELECTED_CLASS_HEADER_AMBIGUOUS')
+    header=normalize('NFKC',names[0].get_text(' ',strip=True))
+    need(1<=len(header)<=160,'NET_SELECTED_CLASS_HEADER_AMBIGUOUS')
+    match=re.fullmatch(r'(A級チャレンジ|L級ガールズ|S級|A級|L級)(.+)',GAP.sub('',header))
+    if match is None and kd_class is not None:
+        return None  # No competing class fact; keep the original Kdreams packet.
+    need(match is not None and not any(v in match[2] for v in
+         ('S級','A級','L級','チャレンジ')),'NET_SELECTED_CLASS_NOT_EXPLICIT')
+    prefix=match[1]
+    competition=('CHALLENGE' if 'チャレンジ' in prefix else 'GIRLS' if 'L級' in prefix
+                 else 'S' if prefix=='S級' else 'A1_A2')
+    if kd_class==competition:
+        return None  # Net supplies no missing class; preserve the existing packet.
+    selected=names[0].find_parent('div',class_='RaceList_NameBox_inner')
+    need(selected is not None and len(net.select('div.RaceList_NameBox_inner'))==1 and
+         len(selected.select('.Race_Name'))==1,'NET_SELECTED_CLASS_SCOPE_REQUIRED')
+    wrapper=selected.find_parent('div',class_='RaceList_NameBox')
+    active=wrapper.select('a.Active') if wrapper is not None else []
+    need(len(active)==1 and active[0].get('href')==netkeirin_url,
+         'NET_SELECTED_CLASS_SELECTION_MISMATCH')
+    numbers=selected.select('.Race_Num')
+    need(len(numbers)==1 and normalize('NFKC',numbers[0].get_text('',strip=True))==
+         str(int(race_id[-2:]))+'R','NET_SELECTED_CLASS_RACE_MISMATCH')
+    _url_role(netkeirin_url,'net',race_id)
+    _url_role(kdreams_url,'k',race_id)
+    for soup,url in ((net,netkeirin_url),(kd,kdreams_url)):
+        links=[n for n in soup.find_all('link') if 'canonical' in
+               [str(v).lower() for v in n.get('rel',[])]]
+        need(len(links)==1 and links[0].get('href')==url,
+             'SELECTED_CLASS_CANONICAL_REQUIRED')
+    if kd_class is not None:
+        need(competition==kd_class,'SELECTED_RACE_CLASS_SOURCE_CONFLICT')
+        return None
+    need(match[2]==kd_title,'SELECTED_RACE_CLASS_LABEL_MISMATCH')
+    net_names={}
+    for row in net.find_all('tr'):
+        cells=row.find_all(['td','th'],recursive=False)
+        if len(cells)!=23:
+            continue
+        number=normalize('NFKC',cells[1].get_text('',strip=True))
+        if not re.fullmatch('[1-9]',number):
+            continue
+        car=int(number);full_names=cells[4].select('dt.PlayerName')
+        if full_names:
+            need(len(full_names)==1,'SELECTED_CLASS_NET_ROSTER_AMBIGUOUS')
+            # Full desktop identity is direct text. Child SVG/title text is
+            # favorite-button metadata, and the mobile link is abbreviated.
+            text=''.join(full_names[0].find_all(string=True,recursive=False))
+        elif cells[4].select('div.PlayerName.DispB'):
+            continue  # A complete full-name row for this car is still required.
+        else:
+            need(not cells[4].find(True),'SELECTED_CLASS_NET_ROSTER_AMBIGUOUS')
+            text=cells[4].get_text('',strip=True)
+        name=GAP.sub('',normalize('NFKC',text))
+        need(1<=len(name)<=160 and (car not in net_names or net_names[car]==name),
+             'SELECTED_CLASS_NET_ROSTER_AMBIGUOUS')
+        net_names[car]=name
+    tables=kd.select('table.racecard_table')
+    need(bool(tables),'SELECTED_CLASS_KD_ROSTER_REQUIRED')
+    kd_names={}
+    for row in tables[0].select('tr'):
+        number=row.select_one('td.num');rider=row.select_one('td.rider')
+        if number is None or not re.fullmatch('[1-9]',normalize('NFKC',number.get_text('',strip=True))):
+            continue
+        car=int(normalize('NFKC',number.get_text('',strip=True)))
+        parts=list(rider.stripped_strings) if rider is not None else []
+        need(parts and car not in kd_names,'SELECTED_CLASS_KD_ROSTER_AMBIGUOUS')
+        kd_names[car]=GAP.sub('',normalize('NFKC',parts[0]))
+    need(set(net_names)==set(starter_cars) and net_names==kd_names,
+         'SELECTED_CLASS_SOURCE_ROSTER_MISMATCH')
+    return dict(field='competition',provider='netkeirin',race_id=race_id,
+        day_jst=race_id[:4]+'-'+race_id[4:6]+'-'+race_id[6:8],competition=competition,
+        url=netkeirin_url,bytes_sha256=sha256(netkeirin_raw).hexdigest(),
+        captured_at=netkeirin_captured_at,selector='.RaceList_NameBox_inner .Race_Name',
+        selected_header=header,selected_header_sha256=sha256(header.encode()).hexdigest())
+
+
 def merge_pre_race_pages(*,race_id,netkeirin_raw,netkeirin_url,
                          netkeirin_captured_at,kdreams_raw,kdreams_url,
-                         kdreams_captured_at,created_at):
+                         kdreams_captured_at,created_at,allow_selected_netkeirin_class=False):
     """Two captured public sources, strict same-race identity and provenance."""
     riders=parse_netkeirin(raw=netkeirin_raw,source_url=netkeirin_url,
                           race_id=race_id,captured_at=netkeirin_captured_at)
-    bracket=parse_kdreams(raw=kdreams_raw,source_url=kdreams_url,
-                          race_id=race_id,captured_at=kdreams_captured_at,
-                          starter_cars=[r["car"] for r in riders])
+    need(type(allow_selected_netkeirin_class) is bool,'SELECTED_CLASS_OPT_IN_REQUIRED')
+    class_source=(_selected_net_class(race_id=race_id,netkeirin_raw=netkeirin_raw,
+        netkeirin_url=netkeirin_url,netkeirin_captured_at=netkeirin_captured_at,
+        kdreams_raw=kdreams_raw,kdreams_url=kdreams_url,starter_cars=[r['car'] for r in riders])
+        if allow_selected_netkeirin_class else None)
+    if class_source is None:
+        bracket=parse_kdreams(raw=kdreams_raw,source_url=kdreams_url,
+                              race_id=race_id,captured_at=kdreams_captured_at,
+                              starter_cars=[r["car"] for r in riders])
+    else:
+        _time(kdreams_captured_at)
+        bracket=_scoped_kdreams(_page(kdreams_raw)[3],race_id=race_id,
+            starter_cars=[r['car'] for r in riders],competition_hint=class_source['competition'])
     now=_time(created_at)
     seen_net=_time(netkeirin_captured_at)
     seen_kd=_time(kdreams_captured_at)
@@ -436,8 +541,10 @@ def merge_pre_race_pages(*,race_id,netkeirin_raw,netkeirin_url,
         "line_groups":bracket["line_groups"],
         "riders":riders,
     }
+    if class_source is not None:
+        packet['source_pages'].append(source('PROGRAM',netkeirin_url,netkeirin_raw,netkeirin_captured_at))
     auto.validate_snapshot(packet,computed_at=created_at)
-    return {
+    result={
         "schema":SCHEMA,
         "source_packet":packet,
         "packet_sha256":auto.digest(packet),
@@ -449,3 +556,6 @@ def merge_pre_race_pages(*,race_id,netkeirin_raw,netkeirin_url,
         "organizer_actual_close_instant_independently_verified":False,
         "no_new_forecast_generated_during_normalization":True,
     }
+    if class_source is not None:
+        result['class_field_source']=class_source
+    return result

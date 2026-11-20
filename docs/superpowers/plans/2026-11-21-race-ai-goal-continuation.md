@@ -66,6 +66,8 @@ Files: `scripts/boat_native_forward_study_audit.py` and its existing tests.
 ## Integration and evidence
 
 - [x] Review all agent diffs and run meaningful combined checks. Rebuild existing allowlisted assets only.
-- [ ] Reuse PR291 with original history and current main preserved, normal FF/required CI/protected merge. No unrelated old tree is applied.
-- [ ] Verify existing Pages delivery, actual approved result acquisition and encrypted readback through existing execution paths. Preserve source holds and missing coverage rather than converting them to success.
-- [ ] Update latest status with exact code/run/receipt evidence and unresolved externally controlled gates. Do not claim all four sports, physical iPhone, six-boat calibration or accuracy completion from fixture success.
+- [x] Reuse PR291 with original history and current main preserved, normal FF/required CI/protected merge. No unrelated old tree is applied.
+- [x] Verify existing Pages delivery, actual approved result acquisition and encrypted readback through existing execution paths. Preserve source holds and missing coverage rather than converting them to success.
+- [x] Update latest status with exact code/run/receipt evidence and unresolved externally controlled gates. Do not claim all four sports, physical iPhone, six-boat calibration or accuracy completion from fixture success.
+
+Actual PR291 protected merge88b5bfdad,13success/16skip; exact tree8feb0518. ExistingPages718d4622/http14assets and real38newnextdayreferences+129secondaryresults/3HOLD in run44781578013 were read back. These are partial Note research, not the remaining external gates. PR312 preserves the next narrow selected-class correction and the final receipts.

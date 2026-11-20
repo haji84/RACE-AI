@@ -1,0 +1,37 @@
+{
+  "schema": "RACE_AI_NOTE_REAL_RESULT_PUBLICATION_20261121_V1",
+  "state": "ENCRYPTED_RESULT_GIT_READBACK_VERIFIED",
+  "observed_at_utc": "2026-11-20T17:12:58.160412+00:00",
+  "main": "88b5bfdad02d01c4a54815b7cdcbc6b73ebe2943",
+  "parent": "ac59c669e68d25f3f43eefff6366307ab8ae7b81",
+  "head": "899f0625aca9e30cfd8b8a87d2d9ec6f3ab212a2",
+  "receipts": [
+    {
+      "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED",
+      "source_commit": "a6f80aeed8f0d53b9a9adc5e037d6bc776519eef",
+      "entries": 6,
+      "provider_denied": false,
+      "covered_races": 33,
+      "priority_window_races": 3,
+      "private_plaintext_uploaded": false,
+      "production_state_key_used": false
+    },
+    {
+      "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED",
+      "source_commit": "899f0625aca9e30cfd8b8a87d2d9ec6f3ab212a2",
+      "entries": 7,
+      "provider_denied": false,
+      "covered_races": 33,
+      "priority_window_races": 3,
+      "private_plaintext_uploaded": false,
+      "production_state_key_used": false
+    }
+  ],
+  "checked_races": 132,
+  "secondary_matched": 128,
+  "held": 4,
+  "original_cipher_blobs_preserved": true,
+  "forecast_coverage_unchanged": true,
+  "private_plaintext_uploaded": false,
+  "production_state_key_used": false
+}

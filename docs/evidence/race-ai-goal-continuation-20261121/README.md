@@ -31,3 +31,9 @@ While PR291 CI ran, independent PR316 merged as main78b855e462ec57aef5cc0e265747
 The concurrent Pages commit9d317 changed app/style to exact protected-main78 bytes while retaining the old asset manifest and old versioned index. The unchanged frozen publisher correctly refused PAGES_FILE_HASH_MISMATCH. Verified that only app/style differed from last verified e787, repaired those two manifest entries via normal CAS (b18a0bfe), then used the unchanged publisher to rebuild the canonical index/assets (5bf9757e). All cipher/history/original identity remained intact; current-main HTTP proof passed14assets after deployment. See the publication and HTTP JSONs.
 
 Combined root verification passed214Python tests with warnings as errors,87Node executions and the real132-packet WebCrypto/browser readback. Independent reviewers cleared both contracts, separate histories, monotonic refresh and unchanged coverage. Four sport/real iPhone/video/prospective gates above remain unmet.
+
+## Completed main88 runtime and delivery receipts
+
+PR291 merged normally as88b5bfdad with exact reviewed tree and13success/16skip. The existing runtime44781578013 completed successfully:57candidate races,38new next-day A/B references,129secondary result matches/3special holds; formal PR71 remainedHOLD with null counters. Independent display-key readback authenticated38forecast bindings and pre-published-cutoff generation/Git visibility. Real Pages718d4622 was checked at390/1440; the later result correction and next-day38 were reopened at390. GitHub HTTP proof44780867206 attempt2 checked14assets successfully.
+
+Raw source inspection explains18valid missing-line holds; one selected-class parser gap proceeds under existingPR312. Later concurrent main1591232/3b9758b changes are preserved; they do not retroactively change these timestamped receipts. See final-action*, final-main*, final-merge, final-pages* and final-github-http-proof JSONs.

@@ -336,6 +336,37 @@ def _day_coverage(manifest,*,already,captured,reasons,stopped,clock):
                     missing=counts['missing'],held=counts['held']),races=rows)
 
 
+def _selected_class_records(report,*,manifest,session,cards,clock):
+    """Recheck saved pairs locally; no new fetch, retry or shared-module patch."""
+    by_id={row['race_id']:row for row in manifest['races']};records=[]
+    for record in report['records']:
+        if record['state'] not in {'PRIVATE_CARD_NORMALIZED_FROM_TWO_PUBLIC_SOURCES',
+                'HOLD_KDREAMS_RACE_CLASS_NOT_IN_SOURCE'}:
+            records.append(record);continue
+        rid=record['race_id'];item=by_id[rid]
+        try:
+            net=session.receipts[item['netkeirin_url']];kd=session.receipts[item['kdreams_url']]
+            net_raw=session.pages[item['netkeirin_url']];kd_raw=session.pages[item['kdreams_url']]
+            need(sha256(net_raw).hexdigest()==net['bytes_sha256'] and
+                 sha256(kd_raw).hexdigest()==kd['bytes_sha256'],'SELECTED_CLASS_SOURCE_SHA_CHANGED')
+            normalized=normalize_pages.merge_pre_race_pages(race_id=rid,
+                netkeirin_raw=net_raw,netkeirin_url=net['url'],netkeirin_captured_at=net['captured_at'],
+                kdreams_raw=kd_raw,kdreams_url=kd['url'],kdreams_captured_at=kd['captured_at'],
+                created_at=_now(clock).isoformat(),allow_selected_netkeirin_class=True)
+            raw=model.canonical(normalized['source_packet'])+b'\n'
+            capture._write_once(cards/(rid+'.json'),raw)
+            row=dict(race_id=rid,state='PRIVATE_CARD_NORMALIZED_FROM_TWO_PUBLIC_SOURCES',
+                     packet_sha256=sha256(raw).hexdigest())
+            if 'class_field_source' in normalized:
+                row['class_field_source']=normalized['class_field_source']
+            records.append(row)
+        except (ValueError,KeyError,TypeError,OSError) as error:
+            records.append(dict(race_id=rid,state='HOLD_'+_safe_reason(error)))
+    counts=Counter(row['state'] for row in records)
+    return dict(report,records=records,states=dict(sorted(counts.items())),
+                normalized_private_cards=counts['PRIVATE_CARD_NORMALIZED_FROM_TWO_PUBLIC_SOURCES'])
+
+
 def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_ids=(),
                 priority_captured_ids=(),model_source_commit=None):
     """Return safe_report plus private Site-root handles for owner encryption.
@@ -401,6 +432,8 @@ def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_id
                 registered_ids=[r['race_id'] for r in manifest['races']],
                 private_cards_dir=root/'cards',private_raw_dir=root/'raw',
                 fetch=session,clock=session.observed_clock,max_races=None)
+            report=_selected_class_records(report,manifest=selected,session=session,
+                                           cards=root/'cards',clock=clock)
             states.update(report['states'])
             for row in report['records']:
                 reasons[row['race_id']]=row['state']
@@ -419,6 +452,8 @@ def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_id
                     meeting_url=meetings[race_id[8:10]]
                     display=display_race(snap,raw,meeting_url=meeting_url,
                         meeting_raw=session.pages[meeting_url],raw_path=source)
+                    if 'class_field_source' in row:
+                        display['field_sources']={'competition':row['class_field_source']}
                     generated_at=_now(clock).isoformat()
                     prediction=model.generate_A_B(snap,generated_at=generated_at,max_tickets=12)
                     races.append(display)
@@ -426,6 +461,8 @@ def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_id
                         status='OWNER_RESEARCH_REFERENCE_NOT_FORMAL_SEALED_ORIGINAL',
                         independent_runner_readback=False,model_source_commit=model_source_commit,
                         model_source_sha256=sha256(Path(model.__file__).read_bytes()).hexdigest()))
+                    if 'class_field_source' in row:
+                        references[-1]['class_field_source']=row['class_field_source']
                     captured.append(race_id)
                     reasons[race_id]='RESEARCH_INPUT_CAPTURED'
                     source_remaining=(model.when(snap['published_cutoff_at'])-
