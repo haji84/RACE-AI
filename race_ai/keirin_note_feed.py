@@ -75,7 +75,8 @@ def checked_entry(entry):
             'created_at','days','kind','captured_race_ids','priority_window_race_ids'}
     need(type(entry) is dict, 'ENTRY')
     if entry.get('kind') == 'result': fields = fields | {'result_revisions'}
-    need(set(entry)==fields and entry['kind'] in {'import','research','archive','result','results'},'ENTRY')
+    if entry.get('kind') == 'canary-original': fields = fields | {'original_revisions'}
+    need(set(entry)==fields and entry['kind'] in {'import','research','archive','result','results','canary-original'},'ENTRY')
     for name in ('cipher_sha256','source_content_sha256'):
         need(type(entry[name]) is str and re.fullmatch('[a-f0-9]{64}',entry[name]),'ENTRY_HASH')
     need(len(unb64(entry['ephemeral_public_key']))==65 and len(unb64(entry['salt']))==32,'ENTRY_ECDH')
@@ -86,8 +87,8 @@ def checked_entry(entry):
     captured=_ids(entry['captured_race_ids']);priority=_ids(entry['priority_window_race_ids'])
     need(set(priority)<=set(captured),'PRIORITY_IDS')
     need(entry['kind']!='results' or not captured and not priority,'RESULTS_NOT_FORECAST_COVERAGE')
-    if entry['kind'] == 'result':
-        revisions = entry['result_revisions']
+    if entry['kind'] in {'result','canary-original'}:
+        revisions = entry['result_revisions' if entry['kind'] == 'result' else 'original_revisions']
         need(type(revisions) is dict and 0 < len(revisions) <= 300 and
              not captured and not priority, 'RESULT_REVISIONS')
         _ids(list(revisions))
@@ -131,6 +132,20 @@ def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=No
             r'data/\d{4}-\d{2}-\d{2}/research_results\.json',path) and
             path.split('/')[1] in note['dates'] for path in note['files']),'RESULTS_ONLY_FILES')
     result_revisions = {}
+    original_revisions = {}
+    if kind == 'canary-original':
+        from .keirin_frozen_forecast_view import checked_forecasts
+        need(not captured_ids and not priority_ids and type(note.get('files')) is dict and
+             bool(note['files']), 'FROZEN_DISPLAY_ONLY')
+        for path, value in note['files'].items():
+            need(re.fullmatch(r'data/[0-9]{4}-[0-9]{2}-[0-9]{2}/frozen_forecasts\.json', path), 'FROZEN_DISPLAY_ONLY')
+            raw = value['text'].encode('utf-8')
+            need(value['sha256'] == sha256(raw).hexdigest() and value['bytes'] == len(raw), 'FROZEN_BYTES')
+            for row in checked_forecasts(json.loads(raw))['races']:
+                need(row['race_id'] not in original_revisions and
+                     row['race_id'].startswith(path.split('/')[1].replace('-','')), 'FROZEN_RACE_SCOPE')
+                original_revisions[row['race_id']] = row['revision']
+        note = dict(note, original_private_nonce=b64(os.urandom(32)))
     if kind == 'result':
         from .keirin_result_updates import checked_updates
         need(not captured_ids and not priority_ids and type(note.get('files')) is dict and
@@ -167,6 +182,7 @@ def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=No
         created_at=observed.astimezone(timezone.utc).isoformat(),days=note['dates'],kind=kind,
         captured_race_ids=_ids(list(captured_ids)),priority_window_race_ids=_ids(list(priority_ids)))
     if kind == 'result': entry_values['result_revisions'] = result_revisions
+    if kind == 'canary-original': entry_values['original_revisions'] = original_revisions
     entry=checked_entry(entry_values)
     return dict(entry=entry,cipher=wire)
 
@@ -200,7 +216,7 @@ def append_index(previous,recipient,*,entry=None,denied=False,result_checks=None
     # Publishing an already captured result does not issue a provider request.
     # Input acquisition remains latched in cycle(); this never clears the latch.
     need(not doc['provider_denied'] or entry is None or
-         entry.get('kind') == 'result', 'PREVIOUS_PROVIDER_DENIAL_NO_RETRY')
+         entry.get('kind') in {'result','canary-original'}, 'PREVIOUS_PROVIDER_DENIAL_NO_RETRY')
     if entry is not None:
         checked_entry(entry);need(entry['cipher_sha256'] not in {r['cipher_sha256'] for r in doc['entries']},'DUPLICATE_ENTRY')
         doc['entries'].append(entry)

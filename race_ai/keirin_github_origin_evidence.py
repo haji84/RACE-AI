@@ -427,7 +427,7 @@ def verify_origin_evidence(*, race_id, raw_cipher, expected_cipher_sha256,
 
 
 def form_canary_window(now):
-    """Bound the authorized trial to its JST day and real save-time margin."""
+    """Keep capture fixed; allow its saved race to settle through the next day."""
     _need(isinstance(now, datetime) and now.utcoffset() is not None,
           "FORM_CANARY_AWARE_RUNTIME_CLOCK_REQUIRED")
     within = (_time("2026-11-20T00:00:00+09:00") <= now <
@@ -435,7 +435,7 @@ def form_canary_window(now):
     cutoff = _time(FORM_CANARY_CUTOFF)
     return {"race_id":FORM_CANARY_RACE,
             "capture":within and (cutoff-now).total_seconds() >= 65,
-            "settle":within and now >= cutoff}
+            "settle":cutoff <= now < _time("2026-11-22T00:00:00+09:00")}
 
 
 def _conditioned_report_rows(report, *, producer):

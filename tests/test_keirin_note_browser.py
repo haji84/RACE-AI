@@ -564,6 +564,59 @@ class NoteBrowserTests(unittest.TestCase):
         self.assertEqual(self.external, [])
         self.assertEqual(self.errors, [])
 
+    def test_frozen_four_arm_lists_and_their_basis_remain_separate_from_imported_references(self):
+        from tests.test_keirin_frozen_forecast_view import frozen_document, DAY as frozen_day, RACE as frozen_race
+        frozen = frozen_document(); saved = frozen['races'][0]
+        value = packet(); files = {}
+        for path, entry in value['files'].items():
+            raw = entry['text'].replace(DAY, frozen_day).replace(RACE, frozen_race)
+            files[path.replace(DAY,frozen_day)] = source(json.loads(raw))
+        value.update(dates=[frozen_day], files=files)
+        value['files'][f'data/{frozen_day}/frozen_forecasts.json'] = source(frozen)
+        winner = saved['baseline']['A']['ranked_tickets'][0]
+        expected = {'A':saved['baseline']['A']['ranked_tickets'],
+            'B':saved['baseline']['B']['ranked_tickets'],
+            'adjusted_A':saved['conditioned']['A_research']['ranked_tickets'],
+            'adjusted_B':saved['conditioned']['B_research']['ranked_tickets']}
+        arms = {name:dict(state='hit' if winner in tickets else 'miss', points=len(tickets),
+                         stake_yen=None, return_yen=None) for name,tickets in expected.items()}
+        arms['C'] = dict(state='pending', points=None, stake_yen=None, return_yen=None)
+        result = dict(race_id=frozen_race, revision='b'*64, observed_at=frozen_day+'T09:00:00Z',
+            authority='official', order_status='confirmed', payout_status='pending',
+            winning_triples=['-'.join(map(str,winner))], payouts_100yen={},
+            source_comparison=[], diagnostics=[], arms=arms)
+        value['files'][f'data/{frozen_day}/result_updates.json'] = source(dict(
+            schema='RACE_AI_KEIRIN_RESULT_UPDATES_V1', observed_at=frozen_day+'T09:01:00Z', races=[result]))
+        self.page.goto(self.base, wait_until='domcontentloaded')
+        self.page.locator('#keirin-note-open').click()
+        self.page.locator('#kn-file').set_input_files(dict(name='invented-frozen.json',
+            mimeType='application/json', buffer=canonical(value)))
+        self.loaded()
+        self.assertIn('締切前に保存した予想', self.page.locator('.kn-live-result').inner_text())
+        for name,tickets in expected.items():
+            panel = self.page.locator(f'[data-result-arm="{name}"]')
+            self.assertEqual(panel.locator(f'[data-frozen-arm="{name}"] li').count(), len(tickets))
+            combos = panel.locator('[data-frozen-combo]').evaluate_all('(items)=>items.map(x=>x.dataset.frozenCombo)')
+            self.assertEqual(combos, ['-'.join(map(str,t)) for t in tickets])
+            self.assertIn(f'点数 {len(tickets)}点', panel.inner_text())
+            self.assertIn('締切前の保存', panel.inner_text())
+            self.assertEqual(panel.locator('strong').inner_text(), '的中' if winner in tickets else '不的中')
+        self.assertIn('未作成', self.page.locator('[data-result-arm="C"]').inner_text())
+        self.assertEqual(self.page.locator('[data-frozen-arm="C"]').count(), 0)
+        self.page.locator('#kn-variant').select_option('A')
+        self.assertEqual(self.page.locator('.kn-ticket').count(), 1)
+        self.assertIn('3', self.page.locator('.kn-ticket .kn-combo').inner_text())
+        b = self.page.locator('[data-result-arm="B"]')
+        b.get_by_text('展開の見立て・根拠', exact=True).click()
+        self.assertEqual(b.locator('.kn-frozen-scenario').count(), len(saved['baseline']['B']['six_phase_scenarios']))
+        self.assertEqual(b.locator('.kn-frozen-scenario').first.locator('li').count(), 6)
+        adjusted = self.page.locator('[data-result-arm="adjusted_A"]')
+        adjusted.get_by_text('近況の補正・根拠', exact=True).click()
+        self.assertIn('落車前後の差', adjusted.inner_text())
+        self.assertIn('比較材料が不足', adjusted.inner_text())
+        self.assertEqual(self.external, [])
+        self.assertEqual(self.errors, [])
+
 
 if __name__ == '__main__':
     unittest.main()
