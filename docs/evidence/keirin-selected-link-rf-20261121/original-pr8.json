@@ -1,0 +1,134 @@
+{
+  "base": {
+    "ref": "feat/v11-daily-all-motor-exhibition-monitor",
+    "sha": "65a158ec81aa4f44c70463157f8b3b5c4a5c3dc6"
+  },
+  "body": "## 2026-10-14 JST 検証できた実績\n- BOAT RACE公式がダウンロード用に案内している2026-10-13 B/K LZHをGitHub Actionsでそれぞれ直接GET。libarchiveでメモリー内展開・CP932解析。\n- B/Kそれぞれ11開催場、132レース、792艇別記録。race_id × lane × racer_registration_id を全件突合して一致、**相違0・欠落0**。\n- 鳴門8Rの欠場を実データで再現。欠場艇のSTと進入コースはnull、予測対象ST履歴から除外。\n- K/B原本はpublic repo/CI artifactsに保存せず、照合数・hashのみ記録。\n- 非公式Boatrace Open APIは同日11場、132レースのJSON取得と形式検証に成功。非公式・欠測あり・original 1周/回り足/直線値なし・現行全モーター一覧なしと表示。\n- CI最新 head `3d7977d689ac34df117201aa642afab652f49dda`: 72テスト実行、71成功、OpenCV条件で1スキップ。公式実通信チェックと非公式メタデータのみの実通信チェック両方成功。\n\n公式照合記録: https://github.com/haji84/RACE-AI/actions/runs/38476612885\n\n## 日次実行の追加\n- `.github/workflows/official-daily-integrity.yml`: JST07:00頃に前日のB/Kを1回ずつ照合し、メタデータレポートを成果物化。\n- 既存daily-motor-audit.yml: JST23:00頃に許諾済み入力に基づくモーター分析。第三者フィードは `RACE_AI_PUBLIC_FEED_ALLOWED=true` の明示的なrepo変数がない限り無効。\n- **GitHub Actions scheduleはmainのデフォルトブランチでのみ動く。Draft PRのままでは毎日の定期ジョブは未稼働**。いずれも無料枠・実運用連続2日検証は未確認。\n\n## 完成と呼べない部分\n1. 全国24場の開催/非開催カレンダーによるカバレッジ検証。2026-10-13は開催場11場を観測。\n2. 現行モーター全番号・使用開始周期・前節乗り手と公式Bの個別モーター番号の結合、永続DB保存。まだ全モーターの毎日更新ではない。\n3. 公式各場のオリジナル展示1周・回り足・直線と映像を合法的に取得する経路。非公式APIには未搭載。\n4. 権利/利用条件のレビュー、実データの24場全件/2日連続運用、独立コードレビュー、過去未使用データでの性能検証。\n\n## ガード\n新PRは前段 #5 → #4 → #3 → #2 → #1 に依存。独立レビューと最新head CI確認前のmain自動マージ不可。入力未取得を成功と報告せず、不明の値を捏造しない。",
+  "changed_files": 14,
+  "draft": true,
+  "head": {
+    "ref": "feat/v12-public-day-feed-and-coverage",
+    "sha": "3d7977d689ac34df117201aa642afab652f49dda"
+  },
+  "number": 8,
+  "state": "open",
+  "title": "feat: v1.2 公式B/K全日取得・792艇照合と日次予定、非公式当日APIの補助検証",
+  "url": "https://github.com/haji84/RACE-AI/pull/8",
+  "files": [
+    {
+      "filename": ".github/workflows/daily-motor-audit.yml",
+      "previous_filename": null,
+      "sha": "c9df80e5ace2de515fdb4d5cd35cd2a6c149e836",
+      "status": "modified",
+      "original_base_mode_type_blob": "100644 blob 5d3c846fb5b277deaaffc2ac368e47febda9854f",
+      "original_head_mode_type_blob": "100644 blob c9df80e5ace2de515fdb4d5cd35cd2a6c149e836"
+    },
+    {
+      "filename": ".github/workflows/official-daily-integrity.yml",
+      "previous_filename": null,
+      "sha": "a89becc911423e1506ba3378aef1e4c5013d44c3",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob a89becc911423e1506ba3378aef1e4c5013d44c3"
+    },
+    {
+      "filename": ".github/workflows/public-source-smoke.yml",
+      "previous_filename": null,
+      "sha": "3213b68ab94da7d9f791d9e456f6f47ed9fa31c1",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 3213b68ab94da7d9f791d9e456f6f47ed9fa31c1"
+    },
+    {
+      "filename": "docs/V12_OFFICIAL_DAILY_FEED_VALIDATION.md",
+      "previous_filename": null,
+      "sha": "66e0a3da970b3eee122e967a6c5dc5ebd83af38b",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 66e0a3da970b3eee122e967a6c5dc5ebd83af38b"
+    },
+    {
+      "filename": "race_ai/core.py",
+      "previous_filename": null,
+      "sha": "6f24478ec163da4f335e83b1ef65bd9bc5873f5f",
+      "status": "modified",
+      "original_base_mode_type_blob": "100644 blob a836ebc86dc0160f4c6d11d0561295321c47f35b",
+      "original_head_mode_type_blob": "100644 blob 6f24478ec163da4f335e83b1ef65bd9bc5873f5f"
+    },
+    {
+      "filename": "race_ai/official_archive_probe.py",
+      "previous_filename": null,
+      "sha": "96fd547b89d631bcf664afcdbea5e51f57df656c",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 96fd547b89d631bcf664afcdbea5e51f57df656c"
+    },
+    {
+      "filename": "race_ai/official_daily_reconcile.py",
+      "previous_filename": null,
+      "sha": "6e8bccb9f89402a4f604c2319a77df70b5d6adab",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 6e8bccb9f89402a4f604c2319a77df70b5d6adab"
+    },
+    {
+      "filename": "race_ai/official_daily_verify.py",
+      "previous_filename": null,
+      "sha": "cde4961a1252d0960d68b541b58bb8842c1c29c5",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob cde4961a1252d0960d68b541b58bb8842c1c29c5"
+    },
+    {
+      "filename": "race_ai/official_lzh_extract.py",
+      "previous_filename": null,
+      "sha": "538a73d676a7f37fad70689bfd34a94319725234",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 538a73d676a7f37fad70689bfd34a94319725234"
+    },
+    {
+      "filename": "race_ai/public_day_feed.py",
+      "previous_filename": null,
+      "sha": "d70f634feba15af2854ecb437b45e0f1ae6cb19d",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob d70f634feba15af2854ecb437b45e0f1ae6cb19d"
+    },
+    {
+      "filename": "tests/test_core.py",
+      "previous_filename": null,
+      "sha": "51e681d29996cdaef92421fc0706b15326a29440",
+      "status": "modified",
+      "original_base_mode_type_blob": "100644 blob de2c2e1ca64cd3ea530489ea422cd588691f1af0",
+      "original_head_mode_type_blob": "100644 blob 51e681d29996cdaef92421fc0706b15326a29440"
+    },
+    {
+      "filename": "tests/test_official_archive_probe.py",
+      "previous_filename": null,
+      "sha": "7b0d3539bea8d020f9088c819aff51a47d7efb03",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 7b0d3539bea8d020f9088c819aff51a47d7efb03"
+    },
+    {
+      "filename": "tests/test_official_daily_reconcile.py",
+      "previous_filename": null,
+      "sha": "6a6f31f2310f610c79d1e53bb247ba50ddf95633",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob 6a6f31f2310f610c79d1e53bb247ba50ddf95633"
+    },
+    {
+      "filename": "tests/test_public_day_feed.py",
+      "previous_filename": null,
+      "sha": "c24ef3dadf83b9d0da1e52d0f909792583fe310e",
+      "status": "added",
+      "original_base_mode_type_blob": null,
+      "original_head_mode_type_blob": "100644 blob c24ef3dadf83b9d0da1e52d0f909792583fe310e"
+    }
+  ],
+  "original_head_already_ancestor": true,
+  "original_tree_reapplied": false,
+  "current_base": "24346984613a42fb635e039015aac03d7628babc"
+}
