@@ -6,7 +6,7 @@ from race_ai import keirin_nationwide_auto_generator as base
 from race_ai import keirin_form_fall_blind_pdca as pdca
 from race_ai import keirin_form_fall_shadow as shadow
 from tests.test_keirin_nationwide_auto_generator import fixture
-from tests.test_keirin_form_history_admission import simulated_export,raw,rights,AT,SOURCE_URL
+from tests.test_keirin_form_history_admission import simulated_export,raw,rights,identity,AT,SOURCE_URL
 from race_ai import keirin_form_history_admission as admission
 
 RID="202611182601"
@@ -20,7 +20,8 @@ def make():
     supplement=admission.build_supplement(
         raw_export=raw(export),source_url=SOURCE_URL,
         captured_at=AT,snapshot=snap,
-        independently_authorize_source=rights)
+        independently_authorize_source=rights,
+        independently_verify_identity=identity)
     conditioned=shadow.generate_shadow(
         snap,supplement,baseline=prediction,generated_at=AT)
     ticket=prediction["A"]["ranked_tickets"][0]
