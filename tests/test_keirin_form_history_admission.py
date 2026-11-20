@@ -59,13 +59,21 @@ def rights(ref, url, digest, uses):
             uses == tuple(sorted(admission.USES)))
 
 
+def identity(rid, car, registered_id, roster_refs):
+    # A fake verifier used ONLY by this source-free test.
+    return (rid == "202611182601" and car == 1 and
+            registered_id == fixture()["riders"][0]["athlete_id"] and
+            bool(roster_refs))
+
+
 def build(data=None, snap=None, **kw):
     snap = snap or fixture()
     data = data or simulated_export(snap)
     return admission.build_supplement(
         raw_export=raw(data), source_url=SOURCE_URL,
         captured_at=AT, snapshot=snap,
-        independently_authorize_source=rights, **kw)
+        independently_authorize_source=rights,
+        independently_verify_identity=identity, **kw)
 
 
 class AuthorizedHistoryAdmission(unittest.TestCase):
@@ -125,13 +133,34 @@ class AuthorizedHistoryAdmission(unittest.TestCase):
             admission.build_supplement(
                 raw_export=raw(d), source_url=SOURCE_URL,
                 captured_at=AT, snapshot=snap,
-                independently_authorize_source=None)
+                independently_authorize_source=None,
+                independently_verify_identity=identity)
         with self.assertRaisesRegex(admission.HistoryAdapterError,
                                     "HISTORY_INDEPENDENT_RIGHTS_NOT_VERIFIED"):
             admission.build_supplement(
                 raw_export=raw(d), source_url=SOURCE_URL,
                 captured_at=AT, snapshot=snap,
-                independently_authorize_source=lambda *_: False)
+                independently_authorize_source=lambda *_: False,
+                independently_verify_identity=identity)
+
+
+    def test_independent_roster_registration_witness_is_mandatory(self):
+        snap=fixture()
+        rawdoc=raw(simulated_export(snap))
+        with self.assertRaisesRegex(admission.HistoryAdapterError,
+                                    "HISTORY_EXTERNAL_IDENTITY_VALIDATOR_REQUIRED"):
+            admission.build_supplement(
+                raw_export=rawdoc, source_url=SOURCE_URL,
+                captured_at=AT, snapshot=snap,
+                independently_authorize_source=rights,
+                independently_verify_identity=None)
+        with self.assertRaisesRegex(admission.HistoryAdapterError,
+                                    "HISTORY_INDEPENDENT_ROSTER_ID_NOT_VERIFIED"):
+            admission.build_supplement(
+                raw_export=rawdoc, source_url=SOURCE_URL,
+                captured_at=AT, snapshot=snap,
+                independently_authorize_source=rights,
+                independently_verify_identity=lambda *_: False)
 
     def test_different_race_or_future_document_has_no_forecast(self):
         d=simulated_export()
