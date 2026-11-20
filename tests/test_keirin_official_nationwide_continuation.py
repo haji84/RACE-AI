@@ -1,0 +1,242 @@
+"""Bounded runner tests: no provider access, ephemeral keys, real source fixtures."""
+from copy import deepcopy
+from datetime import datetime
+from hashlib import sha256
+import importlib
+from pathlib import Path
+import json
+import tempfile
+import unittest
+from unittest.mock import patch, Mock
+
+from tests.test_keirin_official_nationwide_records import NationwideRecordTests
+from tests.test_keirin_official_nationwide_extension import NationwideExtensionTests
+from race_ai import keirin_official_nationwide_extension as extension
+from race_ai import keirin_nationwide_auto_storage as storage
+
+
+class FakeLease:
+    def __init__(self):self.finished=[]
+    def finish(self,**kwargs):self.finished.append(kwargs['state'])
+
+
+class FakeStore:
+    def __init__(self,repo,day):
+        self.repo=repo;self.day=day;self.head='a'*40
+        self.index={'registry':None,'originals':{},'results':{}}
+        self.saved=[]
+    def append(self,**kwargs):
+        self.saved.append(deepcopy(kwargs))
+        return {'evidence_sha256':'b'*64,'cipher_sha256':'c'*64}
+
+
+class RunnerTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):NationwideRecordTests.setUpClass.__func__(cls)
+    def setUp(self):NationwideRecordTests.setUp(self)
+    def api(self):return importlib.import_module('scripts.keirin_official_nationwide_continuation')
+    def run_fixture(self,folder,*,condition_error=True,existing=False):
+        from race_ai import keirin_official_nationwide_sources as sources
+        args=NationwideExtensionTests().baseline_arguments();now=args.pop('now')
+        candidate=extension.build_baseline_candidate(**args,now=now)
+        candidate.update(arguments=args,card=extension.parse_extension_card(**args['card_arguments'],now=now))
+        cal=args['card_arguments']['calendar_receipt'];listed=dict(
+            raw_bytes=args['card_arguments']['list_raw'],expected_sha256=args['card_arguments']['list_sha256'],
+            observed_at=args['card_arguments']['list_observed_at'],venue_code=98,http_status=200)
+        registry=extension.register_day(calendar_receipt=cal,list_sources=[listed],event_day='2030-01-15',now=now)
+        inventory=dict(registry=registry,calendar_receipt=cal,list_sources=[listed],source_bytes_by_sha={},
+            state='DAY_SOURCES_CAPTURED',provider_denied=False,failure_code=None,source_receipts=[])
+        lease=FakeLease();store=FakeStore('/synthetic','2030-01-15')
+        class Session:
+            halted=False;provider_denied=False;safe_diagnostics=[];count=0;sources={};receipts=[]
+            request=None
+            def close(self):pass
+        public=Path(folder)/'public.pem';public.write_bytes(self.public)
+        root=Path(folder)/'private';root.mkdir(mode=0o700)
+        env={'GITHUB_SHA':'a'*40,'GITHUB_RUN_ID':'123456789'}
+        with (patch.dict('os.environ',env),
+              patch.object(self.api(),'_runtime',return_value=(Path('/synthetic'),root,'2030-01-15',self.public,'a'*40)),
+              patch.object(self.api(),'_begin_lease',return_value=lease),
+              patch.object(self.api().records,'RecordStore',return_value=store),
+              patch.object(self.api(),'_baseline_already_exists',return_value=existing),
+              patch.object(sources,'OfficialSourceSession',return_value=Session()),
+              patch.object(extension,'collect_day_inventory',return_value=inventory),
+              patch.object(sources,'collect_candidate',return_value=candidate) as collect,
+              patch.object(sources,'collect_conditions',side_effect=ValueError('PRIVATE_HISTORY_FAILURE')),
+              patch.object(self.api().archive,'append_once',return_value={'state':'GIT_ORIGINAL_CREATE_ONCE_AND_RESTORED'})):
+            out=self.api().run_capture(repo='/synthetic',private_root=root,owner_public_pem=public,
+                owner_private_pem=self.private,day='2030-01-15',clock=lambda:now,max_races=1)
+        return out,store,collect,lease
+
+    def test_condition_failure_still_archives_baseline_and_keeps_full_day_denominator(self):
+        with tempfile.TemporaryDirectory() as folder:
+            out,store,collect,lease=self.run_fixture(folder)
+        self.assertEqual(out['registered_races'],3)
+        self.assertEqual(out['new_A_B_git_archived'],1)
+        self.assertEqual(out['new_conditioned_A_B_git_archived'],0)
+        saved=[r['payload'] for r in store.saved if r['kind']=='original']
+        self.assertEqual(len(saved),1);self.assertIsNone(saved[0]['conditioned'])
+        self.assertGreater(len(saved[0]['baseline']['A']['ranked_tickets']),0)
+        self.assertLessEqual(len(saved[0]['baseline']['A']['ranked_tickets']),12)
+        day=[r['payload'] for r in store.saved if r['kind']=='registry'][-1]
+        self.assertEqual(len(day['states']),3)
+        self.assertNotIn('PRIVATE_HISTORY_FAILURE',str(out))
+        self.assertEqual(len(lease.finished),1)
+
+    def test_existing_original_never_fetches_sources_or_regenerates_for_that_race(self):
+        with tempfile.TemporaryDirectory() as folder:
+            out,store,collect,lease=self.run_fixture(folder,existing=True)
+        collect.assert_not_called()
+        self.assertEqual(out['new_A_B_git_archived'],0)
+        self.assertFalse(any(r['kind']=='original' for r in store.saved))
+
+    def test_pending_current_day_rotates_and_newly_due_order_precedes_unit_retry(self):
+        api=self.api();context=api.SettlementContext();context.client=object();context.tick=1
+        store=FakeStore('/synthetic','2030-01-15')
+        ids=['2030011598'+str(n).zfill(2) for n in range(1,5)]
+        store.index['originals']={rid:dict(race_id=rid,cutoff_at='2030-01-15T12:00:00+09:00') for rid in ids}
+        store.read=lambda meta,key:dict(race_id=meta['race_id'])
+        clock=lambda:datetime.fromisoformat('2030-01-15T15:00:00+09:00')
+        with patch.object(api.records,'RecordStore',return_value=store),\
+                patch.object(api.records,'admit_original',side_effect=lambda store,payload,key,**kw:(payload,{})):
+            first,_=api._pending_originals('/synthetic',self.private,clock,context,2,days=[store.day])
+            context.tick+=1
+            second,_=api._pending_originals('/synthetic',self.private,clock,context,2,days=[store.day])
+        self.assertEqual([r['original']['race_id'] for r in first],ids[:2])
+        self.assertEqual([r['original']['race_id'] for r in second],ids[2:])
+
+    def test_archive_success_publication_failure_recovers_on_next_tick_without_result_fetch(self):
+        api=self.api();day='2030-01-15';rid='203001159801';clock=lambda:datetime.fromisoformat(day+'T15:00:00+09:00')
+        store=FakeStore('/synthetic',day);meta=dict(race_id=rid,cutoff_at=day+'T12:00:00+09:00',evidence_sha256='a'*64)
+        store.index['originals'][rid]=meta
+        payload=dict(race_id=rid);store.read=lambda receipt,key:payload
+        original=dict(race_id=rid,day_jst=day)
+        events=[]
+        def append(**kwargs):
+            events.append('archive')
+            store.index['results'][rid]=[dict(evidence_sha256='b'*64,monetary_complete=True)]
+            return store.index['results'][rid][-1]
+        store.append=append
+        context=api.SettlementContext();context.client=object()
+        session=Mock(halted=False,provider_denied=False,count=0,safe_diagnostics=[])
+        context.ensure=Mock(return_value=session)
+        doc={'races':[]};scored=dict(official_result=dict(source_sha256='c'*64),monetary_comparison_eligible=True,comparison=None)
+        def publish(*args):
+            events.append('publish')
+            if events.count('publish')==1:raise ValueError('PRIVATE_PUBLISH_FAILURE')
+            return dict(published_races=1)
+        with patch.dict('os.environ',{'GITHUB_RUN_ID':'123456789','GITHUB_SHA':'a'*40}),\
+                patch.object(api.pipeline,'check_owner_private_key',return_value=self.public),\
+                patch.object(api.records,'RecordStore',return_value=store),\
+                patch.object(api.records,'admit_original',return_value=(original,{})),\
+                patch.object(api.extension,'collect_day_inventory',return_value={'registry':{},'list_sources':[]}),\
+                patch.object(api.sources,'collect_final',return_value={}) as collect,\
+                patch.object(api.records,'archived_original',return_value=(b'base',None)),\
+                patch.object(api.records,'compare_result',return_value=scored),\
+                patch.object(api.records,'result_updates',return_value=doc),\
+                patch.object(api.records,'replay_saved_result',return_value=doc) as replay,\
+                patch.object(api,'_join_updates',return_value=doc),\
+                patch.object(api,'_publish_result',side_effect=publish):
+            first=api.settle_tick(repo='/synthetic',owner_private_pem=self.private,private_root='/private',
+                clock=clock,context=context,days=[day])
+            second=api.settle_tick(repo='/synthetic',owner_private_pem=self.private,private_root='/private',
+                clock=clock,context=context,days=[day])
+        self.assertEqual(events,['archive','publish','publish'])
+        self.assertEqual(collect.call_count,1)
+        self.assertEqual(context.ensure.call_count,1)
+        self.assertEqual(replay.call_count,1)
+        self.assertEqual(first['settled_races'],1)
+        self.assertEqual(second['published_races'],1)
+        self.assertTrue(second['no_provider_tick'])
+        self.assertNotIn('PRIVATE_PUBLISH_FAILURE',str(first))
+
+    def test_ordinary_tick_recovers_original_before_result_while_provider_is_stopped(self):
+        from race_ai import keirin_nationwide_forecast_view as display
+        api=self.api();day='2030-01-15';rid='203001159801'
+        store=FakeStore('/synthetic',day)
+        store.index.update(registry={'evidence_sha256':'a'*64},originals={rid:{'evidence_sha256':'b'*64}},
+            results={rid:[dict(evidence_sha256='c'*64,monetary_complete=True)]})
+        admitted={'records':[dict(race_id=rid,condition_state='NO_CONDITIONED_ORIGINAL')],
+            'states':[dict(race_id=rid,state='A_B_AUTHENTICATED_PRE_CUTOFF',condition_state='NO_CONDITIONED_ORIGINAL')]}
+        context=api.SettlementContext();events=[];doc={'races':[]}
+        def original(*args):
+            events.append('original')
+            return dict(state='KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED',provider_requests=0,
+                published_originals=1,published_day_status=1)
+        def result(*args):events.append('result');return dict(published_races=1)
+        with patch.dict('os.environ',{'GITHUB_SHA':'a'*40,'RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED':'false'}),\
+                patch.object(api.pipeline,'check_owner_private_key',return_value=self.public),\
+                patch.object(api.records,'RecordStore',return_value=store),\
+                patch.object(api.records,'load_admitted_day',return_value=admitted) as load,\
+                patch.object(display,'publish_day',side_effect=original) as publish,\
+                patch.object(api.records,'replay_saved_result',return_value=doc),\
+                patch.object(api,'_publish_result',side_effect=result),\
+                patch.object(api,'_pending_originals',return_value=([{}],0)),\
+                patch.object(api,'_begin_lease',side_effect=ValueError('PERSISTENT_SOURCE_STOP')) as gate,\
+                patch.object(api.sources,'OfficialSourceSession') as transport,\
+                patch.object(api,'_join_updates',return_value=doc):
+            first=api.settle_tick(repo='/synthetic',owner_private_pem=self.private,private_root='/private',
+                clock=lambda:datetime.fromisoformat(day+'T15:00:00+09:00'),context=context,days=[day])
+            api.settle_tick(repo='/synthetic',owner_private_pem=self.private,private_root='/private',
+                clock=lambda:datetime.fromisoformat(day+'T15:01:00+09:00'),context=context,days=[day])
+        self.assertEqual(events,['original','result'])
+        self.assertEqual(first['published_originals'],1);self.assertEqual(first['published_races'],1)
+        self.assertEqual(first['source_requests'],0);self.assertTrue(first['no_provider_tick'])
+        self.assertEqual(load.call_count,1);self.assertEqual(publish.call_count,1)
+        self.assertEqual(gate.call_count,2);transport.assert_not_called()
+
+    def test_original_recovery_retries_failed_or_pending_admission_before_caching(self):
+        from race_ai import keirin_nationwide_forecast_view as display
+        api=self.api();context=api.SettlementContext();store=FakeStore('/synthetic','2030-01-15')
+        rid='203001159801';store.index.update(registry={'evidence_sha256':'a'*64},originals={rid:{'evidence_sha256':'b'*64}})
+        pending={'records':[],'states':[dict(race_id=rid,state='ORIGIN_PROOF_PENDING',condition_state='NO_CONDITIONED_ORIGINAL')]}
+        ready={'records':[dict(race_id=rid,condition_state='NO_CONDITIONED_ORIGINAL')],
+            'states':[dict(race_id=rid,state='A_B_AUTHENTICATED_PRE_CUTOFF',condition_state='NO_CONDITIONED_ORIGINAL')]}
+        ack=dict(state='KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED',provider_requests=0,
+            published_originals=0,published_day_status=1)
+        with patch.object(api.records,'RecordStore',return_value=store),\
+                patch.object(api.records,'load_admitted_day',side_effect=[pending,ready,ready]) as load,\
+                patch.object(display,'publish_day',side_effect=[ack,ValueError('PRIVATE_PUBLISH_ERROR'),ack]) as publish:
+            for number in range(1,5):
+                context.tick=number;context.stores={}
+                report=dict(published_originals=0,original_publication_acks=0,published_day_status=0,origin_held=0)
+                api._recover_saved_originals('/synthetic',self.private,context,[store.day],'a'*40,True,report)
+        self.assertEqual(load.call_count,3);self.assertEqual(publish.call_count,3)
+        self.assertNotIn('PRIVATE_PUBLISH_ERROR',str(context.safe_holds))
+
+    def test_tick_refreshes_real_mutable_origin_metadata_but_preserves_artifacts_and_denial(self):
+        from race_ai.keirin_github_evidence_client import GitHubEvidenceClient,API
+        from tests.test_keirin_github_origin_evidence import evidence_fixture
+        from tests.test_keirin_github_evidence_client import Response
+        from urllib.error import HTTPError
+        producer,reader=evidence_fixture();ready=False;calls=[];denied=False
+        payloads={API+'/actions/runs/123456':producer['run'],
+            API+'/actions/runs/123456/jobs?per_page=100&filter=all':dict(total_count=2,jobs=[producer['job'],reader['job']])}
+        archives={p['artifact']['archive_download_url']:p['archive_bytes'] for p in (producer,reader)}
+        def request(req,**kwargs):
+            calls.append(req.full_url)
+            if denied:raise HTTPError(req.full_url,403,'PRIVATE_DENIAL_TOKEN',{},None)
+            if req.full_url in archives:return Response(archives[req.full_url],url=req.full_url)
+            if req.full_url.endswith('/artifacts?per_page=100'):
+                body=dict(total_count=2 if ready else 1,artifacts=[producer['artifact'],reader['artifact']] if ready else [producer['artifact']])
+            else:body=payloads[req.full_url]
+            return Response(json.dumps(body).encode(),url=req.full_url)
+        context=self.api().SettlementContext();context.client=GitHubEvidenceClient(token='',open_request=request)
+        context.packet_cache['completed']=object();saved_packet=context.packet_cache['completed']
+        immutable='/actions/artifacts/'+str(producer['artifact']['id'])+'/zip'
+        context.client._read(immutable,archive=True)
+        with self.assertRaises(ValueError):context.client.read_run_bundle('123456')
+        ready=True
+        self.api()._refresh_origin_metadata(context)
+        bundle=context.client.read_run_bundle('123456')
+        self.assertEqual(bundle['readback']['artifact']['id'],reader['artifact']['id'])
+        self.assertEqual(calls.count(API+immutable),1)
+        self.assertIs(context.packet_cache['completed'],saved_packet)
+        denied=True;self.api()._refresh_origin_metadata(context)
+        with self.assertRaisesRegex(ValueError,'HTTP_403'):context.client.read_run_bundle('123456')
+        count=len(calls);self.api()._refresh_origin_metadata(context)
+        with self.assertRaisesRegex(ValueError,'HTTP_403'):context.client.read_run_bundle('123456')
+        self.assertEqual(len(calls),count)
+
+
+if __name__=='__main__':unittest.main()

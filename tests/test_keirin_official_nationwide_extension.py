@@ -192,5 +192,66 @@ class NationwideExtensionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'CLASS_OR_ROUND_NOT_YET_OBSERVED'):
             ext.build_baseline_candidate(**args)
 
+    def labelled_arguments(self, label, competition):
+        """Invented current cards; real observed labels alone are not card proof."""
+        args=self.baseline_arguments();card=args['card_arguments']
+        listing=ext.receipt._embedded(ext.card_api.browser_source._document(card['list_raw']))
+        for day in listing['SJ0301']['kaisaiDayList']:
+            for race in day['raceProgramList']:
+                if race['strRaceNo']=='1':race['strSyumokuName']=label
+        card['list_raw']=html(listing)
+        card['list_sha256']=sha256(card['list_raw']).hexdigest()
+        if competition=='S':
+            data=ext.receipt._embedded(ext.card_api.browser_source._document(card['detail_raw']))
+            for rider in data['SJ0315']['sensyuTypeInfo']:
+                rider.update(kyuhan='S1',prevKyuhan='S1')
+            lines,script=line_fixture();data['SJ0314']=lines['SJ0314']
+            linked=list(args['prediction_scripts'])+[ext.LINE_VIEW_PATH]
+            extra=(''.join('<script src="'+path+'"></script>' for path in linked)+
+                '<script>var displayingSyoriKbn = 1;</script>'+
+                '<button onclick="btnClickOfFrame(\'SJ0321\')">予想情報</button>')
+            card['detail_raw']=html(data).replace(b'</body>',extra.encode()+b'</body>')
+            card['detail_sha256']=sha256(card['detail_raw']).hexdigest()
+            card['line_view_source']=script
+        return args
+
+    def test_exact_observed_round_names_keep_raw_stage_without_inventing_advance_rules(self):
+        cases=(('S級一次予選1','S'),('S級一次予選2','S'),('S級選抜','S'),
+            ('S級二次予選B','S'),('S級二次予選A','S'),('S級ダイヤモンドレース','S'),
+            ('S級一般','S'),('S級特選','S'),('S級準決勝','S'),('S級特別優秀','S'),('S級決勝','S'),
+            ('L級ガールズ予選','GIRLS'),('L級ガールズ準決勝','GIRLS'),
+            ('L級ガールズ選抜','GIRLS'),('L級ガールズ特選','GIRLS'),('L級ガールズ決勝','GIRLS'))
+        for label,competition in cases:
+            with self.subTest(label=label):
+                try:
+                    out=ext.build_baseline_candidate(**self.labelled_arguments(label,competition))
+                except ext.OfficialExtensionError as exc:
+                    self.fail('An independently validated card with an observed round was rejected: '+str(exc))
+                self.assertEqual(out['snapshot']['competition'],competition)
+                self.assertEqual(out['snapshot']['round_stage'],label)
+                self.assertIsNone(out['snapshot']['round_rule'])
+                self.assertFalse(out['all_prediction_coverage_complete'])
+
+    def test_observed_label_still_requires_live_navigation_and_matching_card_grade(self):
+        args=self.labelled_arguments('S級二次予選A','S');card=args['card_arguments']
+        original=card['detail_raw']
+        card['detail_raw']=original.replace(b'"kyuhan": "S1"',b'"kyuhan": "L1"')
+        card['detail_sha256']=sha256(card['detail_raw']).hexdigest()
+        with self.assertRaisesRegex(ValueError,'CARD_CLASS_DISAGREEMENT'):
+            ext.build_baseline_candidate(**args)
+        card['detail_raw']=original;card['detail_sha256']=sha256(original).hexdigest()
+        data=ext.receipt._embedded(ext.card_api.browser_source._document(card['list_raw']))
+        for day in data['SJ0301']['kaisaiDayList']:
+            for row in day['raceProgramList']:
+                if row['strRaceNo']=='1':row['strRaceLnkKbn']='2'
+        card['list_raw']=html(data);card['list_sha256']=sha256(card['list_raw']).hexdigest()
+        with self.assertRaisesRegex(ValueError,'FUTURE_CARD_REFERENCE_REQUIRED'):
+            ext.build_baseline_candidate(**args)
+
+    def test_unobserved_a_class_is_not_enabled_by_s_and_girls_label_expansion(self):
+        args=self.labelled_arguments('A級予選','S')
+        with self.assertRaisesRegex(ValueError,'CLASS_OR_ROUND_NOT_YET_OBSERVED'):
+            ext.build_baseline_candidate(**args)
+
 
 if __name__=='__main__':unittest.main()

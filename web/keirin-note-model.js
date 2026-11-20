@@ -20,6 +20,9 @@
   const RESULT_SCHEMA='RACE_AI_KEIRIN_NOTE_RESEARCH_RESULTS_V1',CONSENSUS_SCHEMA='RACE_AI_KEIRIN_INDEPENDENT_SECONDARY_RESULT_MATCH_V1';
   const MATCHED='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL';
   const RESULT_STATES=new Set([MATCHED,'HOLD_SECONDARY_RESULT_DISAGREEMENT','HOLD_NO_PUBLISHED_CUTOFF_HINT','HOLD_PROVIDER_DENIED_OR_RATE_LIMITED_STOP','HOLD_RESULT_SOURCE_UNAVAILABLE','HOLD_RESULT_SOURCE_UNVERIFIED','HOLD_RESULT_DAY_MISMATCH','HOLD_RESULT_RACE_MISMATCH','HOLD_SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL','HOLD_CONFLICTING_SOURCE_RESULT','PENDING_RESULT_NOT_PUBLISHED','PENDING_RESULT_NOT_FINAL']);
+  const NATIONWIDE_SCHEMA='RACE_AI_KEIRIN_NATIONWIDE_FORECAST_VIEW_V1';
+  const NATIONAL_STATES=new Set('WAITING_SOURCE_CAPTURE UNSUPPORTED_CLASS_OR_ROUND PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL FROZEN_ORIGINAL_PRESERVED SOURCE_CAPTURE_BUDGET_PENDING CUTOFF_MARGIN_INSUFFICIENT BASELINE_SOURCE_UNVERIFIED PROVIDER_STOPPED SOURCE_UNAVAILABLE A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK A_B_AUTHENTICATED_PRE_CUTOFF ORIGIN_PROOF_PENDING FROZEN_ARCHIVE_UNVERIFIED RACE_DISAPPEARED_FROM_CURRENT_LIST'.split(' '));
+  const CONDITION_STATES=new Set('HISTORY_NOT_COLLECTED HISTORY_SOURCE_UNAVAILABLE HISTORY_UNVERIFIED INSUFFICIENT_CAPTURE_MARGIN CONDITIONED_ARCHIVED_AWAITING_READBACK CONDITIONED_AUTHENTICATED_PRE_CUTOFF CONDITIONED_ORIGIN_PROOF_PENDING CONDITIONED_ARCHIVE_UNVERIFIED NO_CONDITIONED_ORIGINAL'.split(' '));
   const apiCrypto=()=>globalThis.crypto?.subtle?globalThis.crypto:require('node:crypto').webcrypto;
   const digest=async v=>Array.from(new Uint8Array(await apiCrypto().subtle.digest('SHA-256',typeof v==='string'?encoder.encode(v):v)),n=>n.toString(16).padStart(2,'0')).join('');
   function safeUrl(value){
@@ -164,25 +167,35 @@
     }
   }
   function frozenForecasts(date,files){
-    const doc=files.get('data/'+date+'/frozen_forecasts.json'),out=new Map();if(doc==null)return out;
+    const doc=files.get('data/'+date+'/frozen_forecasts.json');if(doc==null)return new Map();
     need(exact(doc,['schema','races'])&&doc.schema==='RACE_AI_KEIRIN_FROZEN_FORECASTS_V1'&&Array.isArray(doc.races)&&doc.races.length>0&&doc.races.length<=300);
+    return checkedFrozenRows(date,doc.races,true);
+  }
+  function checkedFrozenRows(date,rows,conditionedRequired){
+    const out=new Map();
     const baseKeys='schema race_id generated_at published_cutoff_at source_facts_sha256 source_as_of A B C official_cutoff_independently_authenticated official_result_observed all_six_phase_orders_are_hypotheses_not_video_truth branch_weights_are_not_calibrated_probabilities formal_model_promoted old_PR71_four_models_required real_money_wager_placed prediction_sha256'.split(' ');
     const shadowKeys='schema race_id generated_at published_cutoff_at baseline_source_sha256 baseline_prediction_sha256 condition_supplement_sha256 A_research B_research rider_assessments verified_source_receipt_count medical_recovery_or_crash_causality_inferred comments_quoted_in_private_supplement_only historical_originals_mutated is_official_calibrated_or_production_forecast C_optional_unrelated sha256'.split(' ');
     const phases=['INITIAL','BELL','FINAL_HOME','FINAL_BACK','FOURTH_CORNER','GOAL'],number=(v,lo,hi)=>Number.isFinite(v)&&v>=lo&&v<=hi;
-    for(const row of doc.races){
+    for(const row of rows){
       need(exact(row,['race_id','revision','baseline_cipher_sha256','conditioned_cipher_sha256','baseline_sealed_at','conditioned_sealed_at','facts','baseline','conditioned'])&&rid(row.race_id)&&row.race_id.startsWith(date.replaceAll('-',''))&&!out.has(row.race_id));
-      for(const key of ['revision','baseline_cipher_sha256','conditioned_cipher_sha256'])need(hex(row[key]));
+      for(const key of ['revision','baseline_cipher_sha256'])need(hex(row[key]));
       const base=row.baseline,adjusted=row.conditioned,facts=row.facts;
-      need(exact(base,baseKeys)&&exact(adjusted,shadowKeys)&&base.schema==='RACE_AI_KEIRIN_AUTOMATIC_MARKS_AND_SIX_PHASE_V1'&&adjusted.schema==='RACE_AI_KEIRIN_CONDITIONED_AB_SHADOW_V1'&&base.race_id===row.race_id&&adjusted.race_id===row.race_id);
-      need(hex(base.prediction_sha256)&&hex(base.source_facts_sha256)&&hex(adjusted.sha256)&&hex(adjusted.condition_supplement_sha256)&&adjusted.baseline_prediction_sha256===base.prediction_sha256&&adjusted.baseline_source_sha256===base.source_facts_sha256&&adjusted.generated_at===base.generated_at&&adjusted.published_cutoff_at===base.published_cutoff_at);
-      for(const value of [base.generated_at,base.published_cutoff_at,base.source_as_of,row.baseline_sealed_at,row.conditioned_sealed_at])need(clock(date,value));
+      need(exact(base,baseKeys)&&base.schema==='RACE_AI_KEIRIN_AUTOMATIC_MARKS_AND_SIX_PHASE_V1'&&base.race_id===row.race_id&&hex(base.prediction_sha256)&&hex(base.source_facts_sha256));
+      if(adjusted===null)need(!conditionedRequired&&row.conditioned_cipher_sha256===null&&row.conditioned_sealed_at===null);
+      else{
+        need(exact(adjusted,shadowKeys)&&adjusted.schema==='RACE_AI_KEIRIN_CONDITIONED_AB_SHADOW_V1'&&adjusted.race_id===row.race_id&&hex(row.conditioned_cipher_sha256));
+        need(hex(adjusted.sha256)&&hex(adjusted.condition_supplement_sha256)&&adjusted.baseline_prediction_sha256===base.prediction_sha256&&adjusted.baseline_source_sha256===base.source_facts_sha256&&adjusted.generated_at===base.generated_at&&adjusted.published_cutoff_at===base.published_cutoff_at);
+      }
+      for(const value of [base.generated_at,base.published_cutoff_at,base.source_as_of,row.baseline_sealed_at,...(adjusted?[row.conditioned_sealed_at]:[])])need(clock(date,value));
       need(Date.parse(base.source_as_of)<=Date.parse(base.generated_at));
-      for(const key of ['baseline_sealed_at','conditioned_sealed_at'])need(Date.parse(base.generated_at)<=Date.parse(row[key])&&Date.parse(base.published_cutoff_at)-Date.parse(row[key])>=65000);
+      for(const key of ['baseline_sealed_at',...(adjusted?['conditioned_sealed_at']:[])])need(Date.parse(base.generated_at)<=Date.parse(row[key])&&Date.parse(base.published_cutoff_at)-Date.parse(row[key])>=65000);
       need(exact(base.C,['state'])&&base.C.state==='HOLD_NO_INDEPENDENT_HISTORICAL_FOLLOW_LABELS');
       for(const key of ['official_cutoff_independently_authenticated','official_result_observed','formal_model_promoted','old_PR71_four_models_required','real_money_wager_placed'])need(base[key]===false);
       need(base.all_six_phase_orders_are_hypotheses_not_video_truth===true&&base.branch_weights_are_not_calibrated_probabilities===true);
-      for(const key of ['medical_recovery_or_crash_causality_inferred','historical_originals_mutated','is_official_calibrated_or_production_forecast'])need(adjusted[key]===false);
-      need(adjusted.comments_quoted_in_private_supplement_only===true&&adjusted.C_optional_unrelated===true&&Number.isInteger(adjusted.verified_source_receipt_count)&&adjusted.verified_source_receipt_count>=1&&adjusted.verified_source_receipt_count<=400);
+      if(adjusted){
+        for(const key of ['medical_recovery_or_crash_causality_inferred','historical_originals_mutated','is_official_calibrated_or_production_forecast'])need(adjusted[key]===false);
+        need(adjusted.comments_quoted_in_private_supplement_only===true&&adjusted.C_optional_unrelated===true&&Number.isInteger(adjusted.verified_source_receipt_count)&&adjusted.verified_source_receipt_count>=1&&adjusted.verified_source_receipt_count<=400);
+      }
       need(exact(facts,['competition','line_groups','riders'])&&['CHALLENGE','A1_A2','S','GIRLS','OTHER'].includes(facts.competition)&&Array.isArray(facts.riders)&&facts.riders.length>=5&&facts.riders.length<=9);
       const cars=new Set();
       for(const r of facts.riders){
@@ -202,6 +215,8 @@
         need(JSON.stringify(scenario.projected_3ren_tan)===JSON.stringify(scenario.six_phases[5].projected_top3));
       }
       need(Math.abs(scenarios.reduce((sum,s)=>sum+s.relative_research_weight,0)-1)<=1e-6);
+      for(const name of ['A','B']){const value=base[name].ranked_tickets;need(Array.isArray(value)&&value.length>=1&&value.length<=12&&value.every(t=>Array.isArray(t)&&t.length===3&&t.every(Number.isInteger)));tickets(value,3,cars);}
+      if(adjusted){
       for(const [name,label] of [['A','baseline-plus-documented-form-v1'],['B','six-phase-plus-documented-form-v1']]){
         const arm=adjusted[name+'_research'],keys=['model','ranked_tickets','baseline_ranked_tickets','changed_from_original'];if(name==='B')keys.push('branch_condition_factors','branch_factor_is_uncalibrated');
         need(exact(arm,keys)&&arm.model===label&&JSON.stringify(arm.baseline_ranked_tickets)===JSON.stringify(base[name].ranked_tickets)&&typeof arm.changed_from_original==='boolean'&&arm.changed_from_original===(JSON.stringify(arm.ranked_tickets)!==JSON.stringify(base[name].ranked_tickets)));
@@ -216,9 +231,69 @@
         for(const key of ['recent_result_change','post_fall_change'])need(a[key]===null||number(a[key],-1,1));
         for(const key of ['documented_absence_days','return_after_absence_results','comments_count'])need(a[key]===null||Number.isInteger(a[key])&&a[key]>=0&&a[key]<=36525);
       }
+      }
       out.set(row.race_id,row);
     }
     return out;
+  }
+  function nationwideDay(date,files){
+    const doc=files.get('data/'+date+'/nationwide_forecasts.json');if(doc==null)return null;
+    need(exact(doc,['schema','day_jst','revision','observed_at','registry_available','inventory_complete','missing_venues','disappeared_race_ids','races'])&&doc.schema===NATIONWIDE_SCHEMA&&doc.day_jst===date&&hex(doc.revision)&&typeof doc.observed_at==='string'&&doc.observed_at.includes('T')&&clock(date,doc.observed_at));
+    need(typeof doc.registry_available==='boolean'&&typeof doc.inventory_complete==='boolean'&&Array.isArray(doc.races)&&doc.races.length<=600&&Array.isArray(doc.missing_venues)&&doc.missing_venues.length<=43&&new Set(doc.missing_venues).size===doc.missing_venues.length&&doc.missing_venues.every(v=>Number.isInteger(v)&&v>=0&&v<=99));
+    const ids=new Set();
+    for(const row of doc.races){
+      need(exact(row,['race_id','venue_code','race_no','cutoff_at','state','condition_state','original_identity','original'])&&rid(row.race_id)&&row.race_id.startsWith(date.replaceAll('-',''))&&!ids.has(row.race_id));ids.add(row.race_id);
+      need(Number.isInteger(row.venue_code)&&row.venue_code===Number(row.race_id.slice(8,10))&&Number.isInteger(row.race_no)&&row.race_no>=1&&row.race_no<=12&&row.race_no===Number(row.race_id.slice(-2))&&NATIONAL_STATES.has(row.state)&&CONDITION_STATES.has(row.condition_state));
+      need(row.cutoff_at===null||typeof row.cutoff_at==='string'&&row.cutoff_at.includes('T')&&clock(date,row.cutoff_at)&&new Date(Date.parse(row.cutoff_at)+9*3600000).toISOString().slice(0,10)===date);
+      if(row.original===null){const identity=row.original_identity;
+        if(identity===null)need(row.state!=='A_B_AUTHENTICATED_PRE_CUTOFF'&&row.condition_state!=='CONDITIONED_AUTHENTICATED_PRE_CUTOFF');
+        else need(exact(identity,['baseline','conditioned'])&&hex(identity.baseline)&&(identity.conditioned===null||hex(identity.conditioned))&&(row.condition_state!=='CONDITIONED_AUTHENTICATED_PRE_CUTOFF'||identity.conditioned!==null));
+        continue;}
+      checkedFrozenRows(date,[row.original],false);const original=row.original,identity=row.original_identity,adjusted=original.conditioned!==null;
+      need(exact(identity,['baseline','conditioned'])&&hex(identity.baseline)&&(identity.conditioned===null||hex(identity.conditioned))&&original.race_id===row.race_id&&original.baseline.published_cutoff_at===row.cutoff_at&&Date.parse(original.baseline_sealed_at)<=Date.parse(doc.observed_at));
+      need((identity.conditioned!==null)===adjusted&&(row.condition_state==='CONDITIONED_AUTHENTICATED_PRE_CUTOFF')===adjusted&&(!adjusted||Date.parse(original.conditioned_sealed_at)<=Date.parse(doc.observed_at)));
+    }
+    need(Array.isArray(doc.disappeared_race_ids)&&new Set(doc.disappeared_race_ids).size===doc.disappeared_race_ids.length&&doc.disappeared_race_ids.every(id=>ids.has(id)));
+    need(!doc.inventory_complete||doc.registry_available&&!doc.missing_venues.length&&!doc.disappeared_race_ids.length);
+    need(doc.registry_available||!doc.races.length&&!doc.missing_venues.length&&!doc.disappeared_race_ids.length);
+    return doc;
+  }
+  function combineFrozen(prior,fresh){
+    if(!prior)return fresh||null;if(!fresh)return prior;
+    for(const name of ['race_id','baseline_cipher_sha256','baseline_sealed_at','facts','baseline'])need(canonical(prior[name])===canonical(fresh[name]));
+    if(prior.conditioned&&fresh.conditioned)for(const name of ['conditioned','conditioned_cipher_sha256','conditioned_sealed_at'])need(canonical(prior[name])===canonical(fresh[name]));
+    return fresh.conditioned||!prior.conditioned?fresh:prior;
+  }
+  function mergeNationwide(prior,fresh){
+    if(!prior)return fresh;need(prior.day_jst===fresh.day_jst);
+    const old=new Map(prior.races.map(row=>[row.race_id,row]));
+    for(const row of fresh.races){const previous=old.get(row.race_id);combineFrozen(previous?.original,row.original);
+      if(previous?.original_identity&&row.original_identity)need(previous.original_identity.baseline===row.original_identity.baseline&&(previous.original_identity.conditioned===null||row.original_identity.conditioned===null||previous.original_identity.conditioned===row.original_identity.conditioned));}
+    if(Date.parse(fresh.observed_at)<Date.parse(prior.observed_at))return prior;
+    const ids=new Set(fresh.races.map(row=>row.race_id));need(prior.races.every(row=>ids.has(row.race_id)));
+    return {...fresh,races:fresh.races.map(row=>{const previous=old.get(row.race_id),original=combineFrozen(previous?.original,row.original);let identity=row.original_identity||previous?.original_identity||null;
+      if(identity&&previous?.original_identity?.conditioned&&!identity.conditioned)identity={...identity,conditioned:previous.original_identity.conditioned};
+      return {...row,cutoff_at:original?.baseline.published_cutoff_at||row.cutoff_at,original,original_identity:identity};})};
+  }
+  function nationwideSemantic(doc){
+    const semantic=Object.fromEntries(Object.entries(doc).filter(([key])=>key!=='observed_at'));
+    semantic.races=doc.races.map(row=>Object.fromEntries(Object.entries(row).filter(([key])=>key!=='original')));
+    return semantic;
+  }
+  function attachNationwide(days,nationwide){
+    for(const [date,doc] of nationwide){
+      const byId=new Map((days.get(date)||[]).map(row=>[row.id,row]));
+      for(const item of doc.races){
+        let row=byId.get(item.race_id);
+        if(!row){const facts=item.original?.facts,riders=(facts?.riders||[]).map(r=>({number:r.car,name:'氏名未取得',score:r.competition_points}));
+          row={id:item.race_id,date,venue:'開催コード '+String(item.venue_code).padStart(2,'0'),number:item.race_no,title:'',cutoff:item.cutoff_at,start:null,sourceUrl:null,raw:{},riders,cars:new Set(riders.map(r=>r.number)),lines:facts?.line_groups||[],original:{},two:{},flexible:{},reference:{},referenceEnvelope:{},quote:{},settlement:null,rollover:{},environment:null,bindings:{},referenceHistory:[],resultHistory:[],resultUpdate:null,researchResultHistory:[],latestResearchResult:null,nationwideOnly:true};
+        }
+        const original=combineFrozen(row.frozenForecast,item.original);
+        byId.set(item.race_id,{...row,nationwideStatus:item,...(original?{frozenForecast:original}:{}),...(row.nationwideOnly?{cutoff:item.cutoff_at}: {})});
+      }
+      days.set(date,[...byId.values()].sort((a,b)=>(Date.parse(a.cutoff)||Infinity)-(Date.parse(b.cutoff)||Infinity)||a.id.localeCompare(b.id)));
+    }
+    return days;
   }
   async function decodePacket(packet,cipherSha){
     need(record(packet)&&packet.schema===SCHEMA&&packet.formal_model_admission===false&&packet.production_weight_switch===false&&record(packet.files));
@@ -226,7 +301,8 @@
     const parsed=new Map(),fileShas=new Map();let total=0;
     for(const [path,entry] of Object.entries(packet.files)){
       need(/^data\/(?:\d{4}-\d{2}-\d{2}\/)?[A-Za-z0-9_.-]+\.json$/.test(path)&&record(entry)&&typeof entry.text==='string'&&hex(entry.sha256));
-      const bytes=encoder.encode(entry.text);total+=bytes.length;need(bytes.length<=12*1024*1024&&total<=LIMIT&&bytes.length===entry.bytes);
+      const bytes=encoder.encode(entry.text),fileLimit=/^data\/\d{4}-\d{2}-\d{2}\/nationwide_forecasts\.json$/.test(path)?32*1024*1024:12*1024*1024;
+      total+=bytes.length;need(bytes.length<=fileLimit&&total<=LIMIT&&bytes.length===entry.bytes);
       need(await digest(bytes)===entry.sha256);
       const dated=/^data\/(\d{4}-\d{2}-\d{2})\//.exec(path);need(!dated||packet.dates.includes(dated[1]));
       const value=JSON.parse(entry.text);parsed.set(path,value);fileShas.set(path,entry.sha256);
@@ -234,15 +310,18 @@
     const results=await resultRecords(parsed,fileShas,cipherSha,packet.dates),days=new Map(packet.dates.slice().sort().map(date=>[date,normalize(date,parsed,fileShas,cipherSha,results)]));
     const updates=new Map([...days.keys()].map(date=>[date,resultUpdates(date,parsed)]));
     const frozen=new Map([...days.keys()].map(date=>[date,frozenForecasts(date,parsed)]));
-    for(const [date,rows] of days)for(const row of rows){const update=updates.get(date).get(row.id);if(update){row.resultUpdate=update;row.resultHistory=[update];}const original=frozen.get(date).get(row.id);if(original)row.frozenForecast=original;}
-    return {schema:SCHEMA,dates:[...days.keys()],days,resultUpdates:updates,frozenForecasts:frozen,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,fileShas,cipherSha,results,formal:false};
+    const nationwide=new Map([...days.keys()].flatMap(date=>{const doc=nationwideDay(date,parsed);return doc?[[date,doc]]:[];}));
+    attachNationwide(days,nationwide);
+    for(const [date,rows] of days)for(const row of rows){const update=updates.get(date).get(row.id);if(update){row.resultUpdate=update;row.resultHistory=[update];}const original=frozen.get(date).get(row.id);if(original)row.frozenForecast=combineFrozen(row.frozenForecast,original);const history=results.get(row.id)||[];if(history.length){row.researchResultHistory=[...history];row.latestResearchResult=history.at(-1);}}
+    return {schema:SCHEMA,dates:[...days.keys()],days,resultUpdates:updates,frozenForecasts:frozen,nationwide,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,fileShas,cipherSha,results,formal:false};
   }
   async function openPacket(packet){return decodePacket(packet,null);}
   function rows(data,date){return data.days.get(date)||[];}
   function frozenArm(row,name){
     const frozen=row.frozenForecast;if(!frozen||!['A','B','adjusted_A','adjusted_B'].includes(name))return null;
-    const adjusted=name.startsWith('adjusted_'),role=adjusted?name.slice(9):name,arm=adjusted?frozen.conditioned[role+'_research']:frozen.baseline[role];
-    const factors=new Map(frozen.conditioned.B_research.branch_condition_factors.map(f=>[f.scenario_id,f.relative_weight_after]));
+    const adjusted=name.startsWith('adjusted_'),role=adjusted?name.slice(9):name;if(adjusted&&!frozen.conditioned)return null;
+    const arm=adjusted?frozen.conditioned[role+'_research']:frozen.baseline[role];
+    const factors=new Map((frozen.conditioned?.B_research.branch_condition_factors||[]).map(f=>[f.scenario_id,f.relative_weight_after]));
     return {name,role,adjusted,source:arm,tickets:tickets(arm.ranked_tickets,3,new Set(frozen.facts.riders.map(r=>r.car))),
       scenarios:role==='B'?frozen.baseline.B.six_phase_scenarios.map(s=>({...s,relative_research_weight:adjusted?factors.get(s.scenario_id):s.relative_research_weight})):[],
       assessments:adjusted?frozen.conditioned.rider_assessments:[],facts:frozen.facts,generatedAt:frozen.baseline.generated_at,
@@ -313,5 +392,5 @@
     need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
     return decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
   }
-  return {openPacket,openCipher,rows,forecast,frozenArm,compare,summarize,allocate,resultUpdates,checkedDiagnostics,safeUrl,digest,clock,utc,day,SCHEMA};
+  return {openPacket,openCipher,rows,forecast,frozenArm,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,utc,day,SCHEMA};
 });

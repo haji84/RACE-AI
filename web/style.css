@@ -183,3 +183,4 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
 
 .kn-reference-comparison,.kn-selected-comparison{padding:10px 0;border-bottom:1px solid var(--kn-line)}
 .kn-research-result[data-result-state^="HOLD_"],.kn-research-result[data-result-state^="PENDING_"],.kn-research-result[data-result-state="UNOBSERVED"]{background:#fff8ec;border-color:#d8c6a5}
+.kn-nationwide-summary h2{font-size:18px;margin:0 0 10px}.kn-nationwide-status{margin:14px 0;padding:10px 14px;background:#f5f8f5;border-left:3px solid #54765b;border-radius:5px}.kn-nationwide-status p{margin:4px 0;font-size:13px;line-height:1.7}.kn-national-race>.kn-live-result{margin-top:12px}.kn-national-race .kn-result-arm{min-width:0;overflow-wrap:anywhere}
