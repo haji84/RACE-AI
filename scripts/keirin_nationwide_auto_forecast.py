@@ -30,6 +30,43 @@ MAX_SOURCE = 2_000_000
 MAX_PAGE = 9_000_000
 STATUS_SCHEMA = "RACE_AI_KEIRIN_NATIONWIDE_AUTO_GENERATION_CYCLE_V1"
 
+FORM_SUPPLEMENT_SCHEMA = "RACE_AI_KEIRIN_PRIVATE_FORM_SUPPLEMENT_V1"
+
+
+def merge_condition_supplement(snapshot, raw_supplement, *, race_id):
+    """Owner-private, pre-cutoff additional source package; never a fresh GET.
+
+    Only typed facts with raw PROGRAM page receipts can enter the predictor.
+    Original two-source racecard remains byte-unmodified on disk. A malformed
+    supplement HOLDs the race rather than silently downgrading its method.
+    """
+    need(type(raw_supplement) is dict and
+         set(raw_supplement) == {"schema", "race_id", "source_pages", "condition_evidence"} and
+         raw_supplement["schema"] == FORM_SUPPLEMENT_SCHEMA and
+         raw_supplement["race_id"] == race_id and
+         type(raw_supplement["source_pages"]) is list and
+         1 <= len(raw_supplement["source_pages"]) <= 10,
+         "FORM_SUPPLEMENT_SCHEMA_OR_RACE_INVALID")
+    need("condition_evidence" not in snapshot,
+         "FORM_SUPPLEMENT_DUPLICATES_EXISTING_INPUT")
+    import copy
+    enriched = copy.deepcopy(snapshot)
+    import_sources = raw_supplement["source_pages"]
+    need(all(type(page) is dict and page.get("kind") == "PROGRAM"
+             for page in import_sources),
+         "FORM_SUPPLEMENT_PROGRAM_SOURCES_REQUIRED")
+    enriched["source_pages"].extend(copy.deepcopy(import_sources))
+    # Reflect the latest captured PROGRAM page. Do not move timestamps into
+    # the past or reset the source-published sales cutoff.
+    joined = [model.when(snapshot["as_of"])] + [
+        model.when(page["captured_at"]) for page in import_sources]
+    enriched["as_of"] = max(joined).isoformat()
+    enriched["condition_evidence"] = copy.deepcopy(
+        raw_supplement["condition_evidence"])
+    need(len(enriched["source_pages"]) <= 16,
+         "FORM_SUPPLEMENT_TOO_MANY_SOURCE_PAGES")
+    return enriched
+
 
 def need(test, reason):
     if not test:
@@ -119,6 +156,16 @@ def run_cycle(*,registry, private_racecards_dir, raw_pages_dir,
                  "SOURCE_JSON_MUST_BE_RACE_FACTS_OBJECT")
             need(snap.get("race_id")==race_id,
                  "SOURCE_OTHER_RACE_OR_DATE")
+            supplement_file = cards / (race_id + ".form.json")
+            if supplement_file.is_file() or supplement_file.is_symlink():
+                need(supplement_file.is_file() and
+                     not supplement_file.is_symlink() and
+                     0 < supplement_file.stat().st_size <= MAX_SOURCE,
+                     "FORM_SUPPLEMENT_PRIVATE_FILE_INVALID")
+                supplement = json.loads(
+                    supplement_file.read_bytes().decode("utf-8"))
+                snap = merge_condition_supplement(
+                    snap, supplement, race_id=race_id)
             now=clock().astimezone(timezone.utc).isoformat()
             model.validate_snapshot(snap,computed_at=now)
             checked_raw_sources(snap,raw_pages)
@@ -144,6 +191,8 @@ def run_cycle(*,registry, private_racecards_dir, raw_pages_dir,
                 "six_phase_scenarios":len(forecast["B"]["six_phase_scenarios"]),
                 "real_official_cutoff_independent_proof":False,
                 "confirmed_owner_source_raw_bytes_sha":True,
+                "private_form_fall_evidence_consumed":
+                    "condition_evidence" in snap,
             })
         except (ValueError,KeyError,TypeError,OSError,
                 model.AutomaticForecastError,seal.AutoSealError) as exc:
