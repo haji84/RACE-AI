@@ -62,6 +62,53 @@ class NoteFeedTests(unittest.TestCase):
         other=api.create_recipient(self.root/'other')['public']
         with self.assertRaises(ValueError):api.append_index(stopped,other)
 
+    def test_result_plaintext_commitment_has_private_randomness_outside_public_metadata(self):
+        from race_ai import keirin_result_updates as updates
+        from race_ai import keirin_official_public_source as official
+        from tests.test_keirin_official_public_source import fixtures, transport, DAY, RACE, NOW
+        from cryptography.hazmat.primitives import serialization, hashes
+        from cryptography.hazmat.primitives.asymmetric import ec
+        from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        api = self.api()
+        cap = api.create_recipient(self.root/'owner')
+        get = transport(fixtures())
+        schedule = official.fetch_day_schedule(DAY, fetcher=get, clock=lambda:NOW)
+        record = official.fetch_race_result(RACE, schedule=schedule, fetcher=get, clock=lambda:NOW)
+        doc = updates.from_official_records({RACE:record}, {})
+        note = updates.note_packet(doc, source_commit='a'*40)
+        original = api.canonical(note)
+        first = api.seal_snapshot(note, cap['public'], kind='result', clock=lambda:NOW)
+        second = api.seal_snapshot(note, cap['public'], kind='result', clock=lambda:NOW)
+        self.assertNotEqual(first['entry']['source_content_sha256'],
+                            second['entry']['source_content_sha256'],
+                            'LOW_ENTROPY_RESULT_PLAINTEXT_HASH_MUST_NOT_BE_GUESSABLE')
+        self.assertEqual(first['entry']['result_revisions'], second['entry']['result_revisions'])
+        self.assertEqual(api.canonical(note), original, 'CALLER_PACKET_MUST_NOT_BE_MUTATED')
+        key = serialization.load_der_private_key(api.unb64(
+            Path(cap['private_key']).read_text().strip()), None)
+        private_nonces = []
+        for snap in (first, second):
+            entry = snap['entry']; envelope = json.loads(snap['cipher'])
+            ephemeral = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(),
+                api.unb64(entry['ephemeral_public_key']))
+            aes = HKDF(algorithm=hashes.SHA256(), length=32, salt=api.unb64(entry['salt']),
+                info=api.INFO+cap['public']['recipient_id'].encode()).derive(key.exchange(ec.ECDH(), ephemeral))
+            plain = AESGCM(aes).decrypt(base64.b64decode(envelope['nonce']),
+                base64.b64decode(envelope['ciphertext']), api.canonical(envelope['header']))
+            unpacked = json.loads(plain)
+            nonce = unpacked.pop('result_private_nonce')
+            private_nonces.append(nonce)
+            self.assertEqual(len(api.unb64(nonce)), 32)
+            self.assertEqual(api.canonical(unpacked), original)
+            self.assertEqual(sha256(plain).hexdigest(), entry['source_content_sha256'])
+            self.assertEqual(set(envelope['header']), {'schema', 'source_content_sha256'})
+            index = api.append_index(None, cap['public'], entry=entry)
+            self.assertNotIn('result_private_nonce', json.dumps(index))
+            self.assertNotIn(nonce, json.dumps(index))
+            self.assertNotIn(nonce.encode(), snap['cipher'])
+        self.assertNotEqual(*private_nonces)
+
     def test_public_index_rejects_secret_or_unapproved_fields(self):
         api=self.api();p=api.create_recipient(self.root/'owner')['public']
         index=api.append_index(None,p);index['key']='not-allowed'

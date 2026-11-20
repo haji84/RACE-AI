@@ -255,36 +255,101 @@ def official_fetcher(repo, clock, *, fetch=None):
     """
     from race_ai import keirin_official_public_source as official
     from race_ai import keirin_github_provider_stop as stop
+    from race_ai import keirin_result_diagnostics as diagnostics
+    from urllib.error import HTTPError, URLError
     if fetch is None:
         need(os.getenv('RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED') == 'true',
              'OFFICIAL_AUTOMATED_SOURCE_NOT_ENABLED')
         fetch = official._http_get
-    cache, stopped = {}, None
+    cache, stopped, trace = {}, None, []
+    purposes = {'JSJ057': 'OFFICIAL_JSON_CALENDAR', 'JSJ017': 'OFFICIAL_JSON_DAY_LIST',
+                'JSJ018': 'OFFICIAL_JSON_RESULT_SUMMARY', 'JSJ001': 'OFFICIAL_JSON_HEADER',
+                'JSJ012': 'OFFICIAL_JSON_DETAIL'}
+
+    def safe_diagnostics():
+        return diagnostics.checked_diagnostics(trace)
+
+    def record(purpose, stage, reason, status=None):
+        trace.append(diagnostics.make_diagnostic(purpose=purpose, stage=stage, reason=reason,
+            http_status=status, observed_at=clock().isoformat()))
+        del trace[:-32]
+
+    def record_validation_failure():
+        if trace and trace[-1]['reason'] == 'SOURCE_ACCEPTED':
+            purpose = trace[-1]['purpose']
+            stage = ('PARSE_RESULT' if purpose in {'OFFICIAL_JSON_RESULT_SUMMARY',
+                     'OFFICIAL_JSON_DETAIL'} else 'CONTENT_CHECK')
+            record(purpose, stage, 'SOURCE_VALIDATION_FAILED', trace[-1]['http_status'])
+
+    def failed(purpose, error):
+        nonlocal stopped
+        status = getattr(error, 'status', None) if isinstance(error, official.OfficialProviderStop) else None
+        if isinstance(error, HTTPError):
+            status = error.code
+        elif isinstance(error, official.OfficialSourceError):
+            match = re.fullmatch(r'OFFICIAL_HTTP_([1-5][0-9]{2})', str(error))
+            if match:
+                status = int(match[1])
+        if type(status) is not int or not 100 <= status <= 599:
+            status = None
+        denied = status in (401, 403, 407, 429)
+        if status is not None:
+            record(purpose, 'HTTP_RESPONSE', 'HTTP_DENIED' if denied else 'HTTP_ERROR', status)
+            stopped = (official.OfficialProviderStop(status) if denied else
+                       official.OfficialSourceError('OFFICIAL_HTTP_' + str(status)))
+        elif isinstance(error, (URLError, TimeoutError, OSError)) or (
+                isinstance(error, official.OfficialSourceError) and
+                str(error) == 'OFFICIAL_TRANSPORT_UNAVAILABLE'):
+            record(purpose, 'REQUEST', 'TRANSPORT_FAILED')
+            stopped = official.OfficialSourceError('OFFICIAL_TRANSPORT_UNAVAILABLE')
+        elif isinstance(error, official.OfficialSourceError) and str(error) == 'OFFICIAL_REDIRECT_NOT_FOLLOWED':
+            record(purpose, 'HTTP_RESPONSE', 'REDIRECT_REFUSED')
+            stopped = official.OfficialSourceError('OFFICIAL_REDIRECT_NOT_FOLLOWED')
+        else:
+            # Only these fixed internal failures establish that the transport
+            # already verified an HTTP 200 response. Unknown status stays null.
+            content_200 = isinstance(error, official.OfficialSourceError) and str(error) in {
+                'OFFICIAL_JSON_CONTENT_TYPE_REQUIRED', 'OFFICIAL_SOURCE_SIZE_INVALID'}
+            record(purpose, 'CONTENT_CHECK', 'SOURCE_VALIDATION_FAILED', 200 if content_200 else None)
+            stopped = official.OfficialSourceError('OFFICIAL_SOURCE_VALIDATION_FAILED')
+        stopped.safe_diagnostics = safe_diagnostics()
+        code = (stop.DENIED if denied else 'PUBLIC_PROVIDER_HTTP_ERROR_STOP'
+                if status is not None else 'PUBLIC_PROVIDER_UNAVAILABLE_STOP')
+        try:
+            # The fixed-purpose receipt is already retained before the stop
+            # write; an exception or runner failure cannot expose URL queries.
+            stop.record_denial(repo=repo, code=code,
+                observed_at=clock().astimezone(timezone.utc).isoformat())
+        except stop.ProviderStopPersistenceError as exc:
+            record(purpose, 'PERSIST_STOP', 'PROVIDER_STOP_PERSISTENCE_FAILED', status)
+            exc.safe_diagnostics = safe_diagnostics()
+            raise
+        raise stopped from None
 
     def get(url):
-        nonlocal stopped
         if stopped is not None:
             raise stopped
         if url in cache:
             return cache[url]
+        purpose = purposes[official._check_url(url)]
         try:
             raw = fetch(url)
-        except official.OfficialProviderStop as exc:
-            stopped = exc
-            stop.record_denial(repo=repo, code='PROVIDER_DENIED_OR_RATE_LIMITED_STOP',
-                               observed_at=clock().astimezone(timezone.utc).isoformat())
-            raise
-        except official.OfficialSourceError as exc:
+        except (official.OfficialSourceError, HTTPError, URLError, TimeoutError, OSError) as exc:
             # A broken transport is not a request to probe other race URLs.
-            stopped = exc
-            code = ('PUBLIC_PROVIDER_HTTP_ERROR_STOP' if str(exc).startswith('OFFICIAL_HTTP_')
-                    else 'PUBLIC_PROVIDER_UNAVAILABLE_STOP')
-            stop.record_denial(repo=repo, code=code,
-                               observed_at=clock().astimezone(timezone.utc).isoformat())
-            raise
+            failed(purpose, exc)
+        record(purpose, 'HTTP_RESPONSE', 'SOURCE_ACCEPTED', 200)
         cache[url] = raw
         return raw
+    get.safe_diagnostics = safe_diagnostics
+    get.record_validation_failure = record_validation_failure
     return get
+
+
+def official_fetch_diagnostics(fetch):
+    """Read only the strict safe accessor, never caller exception or URL text."""
+    from race_ai.keirin_result_diagnostics import checked_diagnostics
+    accessor = getattr(fetch, 'safe_diagnostics', None)
+    return checked_diagnostics(accessor()) if callable(accessor) else []
 
 
 def select_result_races(schedule, records, originals, now, *, max_races=8, poll_cursor=None):
@@ -375,6 +440,7 @@ def replay_day_evidence(day, owner_private_pem, revisions):
             saved['raw_cipher'], owner_private_pem))
         if payload.get('schema') in (
                 'RACE_AI_KEIRIN_OFFICIAL_FORM_CANARY_PRE_CUTOFF_V1',
+                'RACE_AI_KEIRIN_OFFICIAL_FORM_CANARY_ORDER_V1',
                 'RACE_AI_KEIRIN_OFFICIAL_FORM_CANARY_SETTLEMENT_V1'):
             # Independently authenticated canary originals share encrypted
             # retention, but are folded by their own fixed-race scorer.
@@ -540,6 +606,7 @@ def run_settlement(*, day, repo, private_root, owner_public_path,
              for value in (cursor, origin_cursor)), 'OFFICIAL_POLL_CURSOR_INVALID')
     selected = []
     provider_state = saved['cohort_state']
+    get = shared_official_fetch
     stopped = stop.read_for_observed_day(repo=repo, day=now.astimezone(JST).date().isoformat())
     if collect_official and stopped is None:
         get = shared_official_fetch or official_fetcher(repo, clock)
@@ -558,10 +625,24 @@ def run_settlement(*, day, repo, private_root, owner_public_path,
                 records[rid] = official.fetch_race_result(
                     rid, schedule=schedule, fetcher=get, clock=clock, previous_result=previous)
         except official.OfficialSourceError:
+            recorder = getattr(get, 'record_validation_failure', None)
+            if callable(recorder):
+                recorder()
             provider_state = 'HOLD_OFFICIAL_PROVIDER_STOPPED_THIS_POLL'
     elif stopped is not None:
         provider_state = 'HOLD_PROVIDER_PREVIOUS_DENIAL_NO_RETRY'
-    need(schedule is not None, 'OFFICIAL_SCHEDULE_NOT_AVAILABLE')
+    diagnostic_rows = official_fetch_diagnostics(get)
+    if not diagnostic_rows and isinstance(saved.get('safe_report'), dict):
+        from race_ai.keirin_result_diagnostics import checked_diagnostics
+        diagnostic_rows = checked_diagnostics(saved['safe_report'].get('safe_diagnostics', []))
+    # Successful unchanged polls should not create encrypted revisions merely
+    # because a fresh HTTP receive timestamp changed in routine diagnostics.
+    if diagnostic_rows and all(r['reason'] == 'SOURCE_ACCEPTED' for r in diagnostic_rows):
+        diagnostic_rows = []
+    if schedule is None:
+        error = OfficialPipelineError('OFFICIAL_SCHEDULE_NOT_AVAILABLE')
+        error.safe_diagnostics = diagnostic_rows
+        raise error
     joined = cohort.build_registered_cohort(versions)
     need(set(originals) <= set(joined['races_by_id']),
          'RESTORED_ORIGINAL_OUTSIDE_OFFICIAL_COHORT')
@@ -585,6 +666,7 @@ def run_settlement(*, day, repo, private_root, owner_public_path,
     report, rows, proofs = settle_collected(schedule=schedule, originals_by_race=originals,
         official_records_by_race=records, origin_packets_by_race=packets,
         owner_private_pem=owner_private_pem, schedule_versions=versions)
+    report['safe_diagnostics'] = diagnostic_rows
     if provider_state is not None:
         report['provider_state'] = provider_state
     if client.stopped_reason is not None:
@@ -662,6 +744,9 @@ def run_settlement_days(*, repo, private_root, owner_public_path, owner_private_
                 held += 1
         except (ValueError, TypeError, KeyError, OSError, RuntimeError) as exc:
             report = {'schema': SCHEMA, 'day_jst': day, 'state': public_failure(exc)}
+            from race_ai.keirin_result_diagnostics import checked_diagnostics
+            report['safe_diagnostics'] = checked_diagnostics(
+                getattr(exc, 'safe_diagnostics', official_fetch_diagnostics(get)))
             held += 1
             fatal = isinstance(exc, RuntimeError)
         capture._write_once(day_root / 'safe.json',
@@ -669,7 +754,7 @@ def run_settlement_days(*, repo, private_root, owner_public_path, owner_private_
         summaries.append({key: report[key] for key in (
             'day_jst', 'state', 'registered_races', 'paired_A_B_scored',
             'originals_server_verified_before_cutoff', 'provider_state',
-            'github_evidence_state') if key in report})
+            'github_evidence_state', 'safe_diagnostics') if key in report})
         if fatal:
             break
     return {'schema': SCHEMA, 'day_jst': clock().astimezone(JST).date().isoformat(),

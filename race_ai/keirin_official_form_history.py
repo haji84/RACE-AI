@@ -280,7 +280,8 @@ def parse_history_result(raw, *, expected_registration_id, observed_at, expected
 
 
 def parse_final_result(raw, *, expected_race_id, observed_at, expected_reference,
-                       verified_unit_evidence=None, source_bytes_by_sha=None):
+                       verified_unit_evidence=None, source_bytes_by_sha=None,
+                       unit_verified_at=None):
     """Verify actual order, and independently verify any external payout unit.
 
     The observed SP result page does not explicitly define its displayed payout
@@ -377,12 +378,18 @@ def parse_final_result(raw, *, expected_race_id, observed_at, expected_reference
             unit_raw = reviewed_unit._bytes(source_bytes_by_sha, unit.get("source_sha256"))
         except (ValueError, TypeError):
             raise OfficialFormHistoryError("OFFICIAL_FORM_PAYOUT_UNIT_SOURCE_CHANGED") from None
-        _need(unit["exact_excerpt"].encode("utf-8") in unit_raw and
-              _aware(unit.get("observed_at")) <= observed, "PAYOUT_UNIT_NOT_SUPPORTED")
+        verified_at = observed if unit_verified_at is None else _aware(unit_verified_at)
+        _need(verified_at >= observed and
+              unit["exact_excerpt"].encode("utf-8") in unit_raw and
+              _aware(unit.get("observed_at")) <= verified_at, "PAYOUT_UNIT_NOT_SUPPORTED")
         parsed.update(payout_unit_state="OFFICIAL_GUIDE_VERIFIED_100_YEN",
                       monetary_comparison_eligible=True,
                       payouts_100yen=[dict(triple=list(x), yen=paid[x]) for x in sorted(winners)],
                       payout_unit_evidence={key: unit[key] for key in
                                             ("url", "source_sha256", "observed_at",
                                              "verified_payout_basis_yen", "exact_excerpt")})
+        if unit_verified_at is not None:
+            # Preserve when the result itself was actually received. A later
+            # independent unit confirmation is a separate observation clock.
+            parsed['payout_unit_verified_at'] = verified_at.isoformat()
     return parsed

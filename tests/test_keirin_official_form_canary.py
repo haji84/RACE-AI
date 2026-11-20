@@ -197,6 +197,42 @@ class FrozenCanaryPackage(unittest.TestCase):
                 self.assertEqual(out['comparison']['metrics']['A']['original']['stake_yen'],1200)
                 self.assertEqual(out['comparison']['metrics']['A']['conditioned']['stake_yen'],1200)
                 self.assertTrue(out['official_result']['monetary_comparison_eligible'])
+                from race_ai.keirin_result_updates import from_canary_comparison
+                full_update = from_canary_comparison(payload=package['payload'], scored=out,
+                                                     final_capture=capture)['races'][0]
+                self.assertEqual(full_update['payout_status'], 'confirmed')
+                self.assertEqual(full_update['arms']['C']['state'], 'pending')
+                for role in ('A', 'B'):
+                    scores = out['comparison']['records'][0]['scored'][role]
+                    for family, name in (('old', role), ('conditioned', 'adjusted_'+role)):
+                        self.assertEqual(full_update['arms'][name]['points'], scores[family]['points'])
+                        self.assertEqual(full_update['arms'][name]['return_yen'], scores[family]['payout_yen'])
+                invalid_capture = dict(capture, raw_result=capture['raw_result'].replace(b'"1-2-3"', b'"2-1-3"'))
+                with self.assertRaises(ValueError):
+                    from_canary_comparison(payload=package['payload'], scored=out,
+                                           final_capture=invalid_capture)
+                order_capture = dict(capture, unit_evidence=None, payout_unit_state='UNAVAILABLE')
+                order_only = api.compare_frozen(payload=package['payload'], raw_baseline=package['baseline_cipher'],
+                    raw_conditioned=package['conditioned_cipher'], owner_private_pem=self.private,
+                    packets=dict(producer=producer,readback=reader), final_capture=order_capture)
+                self.assertEqual(set(order_only['order_comparison']['arms']),
+                                 {'A', 'B', 'A_conditioned', 'B_conditioned'})
+                self.assertNotIn('comparison', order_only)
+                self.assertFalse(order_only['official_result']['monetary_comparison_eligible'])
+                for role in order_only['order_comparison']['arms'].values():
+                    self.assertEqual(set(role), {'first_hit', 'all_hit', 'points'})
+                order_update = from_canary_comparison(payload=package['payload'], scored=order_only,
+                                                      final_capture=order_capture)['races'][0]
+                self.assertEqual(order_update['order_status'], 'confirmed')
+                self.assertEqual(order_update['payout_status'], 'pending')
+                self.assertEqual(order_update['payouts_100yen'], {})
+                self.assertEqual(order_update['arms']['C']['state'], 'pending')
+                for role, name in (('A', 'A'), ('B', 'B'),
+                                   ('A_conditioned', 'adjusted_A'), ('B_conditioned', 'adjusted_B')):
+                    self.assertEqual(order_update['arms'][name]['points'],
+                                     order_only['order_comparison']['arms'][role]['points'])
+                    self.assertIsNone(order_update['arms'][name]['stake_yen'])
+                    self.assertIsNone(order_update['arms'][name]['return_yen'])
                 altered_inputs = deepcopy(inputs)
                 altered_inputs['snapshot']['riders'][0]['h_count'] += 1
                 altered_payload = dict(package['payload'], snapshot=altered_inputs['snapshot'])
@@ -229,6 +265,41 @@ class FrozenCanaryPackage(unittest.TestCase):
                 env=dict(GITHUB_ACTIONS='true',GITHUB_REPOSITORY='haji84/RACE-AI',GITHUB_REPOSITORY_ID='1416489937',
                     GITHUB_REF='refs/heads/main',GITHUB_EVENT_NAME='schedule',GITHUB_RUN_ID='123458',
                     GITHUB_SHA='c'*40,RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED='true')
+                stored = []
+                published = []
+                def append_order(**kwargs):
+                    restored = pipeline.restore_private_snapshot_json(
+                        history.decrypt_evidence(kwargs['raw_cipher'], self.private))
+                    stored.append(restored)
+                    self.assertEqual(restored['schema'], api.ORDER_SCHEMA)
+                    self.assertEqual(restored['official_result']['winning_triples'], [[1, 2, 3]])
+                    return {'cipher_sha256': sha256(kwargs['raw_cipher']).hexdigest()}
+                def publish_order(**kwargs):
+                    self.assertEqual(len(stored), 1, 'PUBLISH_ONLY_AFTER_ENCRYPTED_ARCHIVE')
+                    self.assertEqual(kwargs['payload'], package['payload'])
+                    self.assertEqual(kwargs['scored']['order_comparison']['arms'],
+                                     stored[0]['order_comparison']['arms'])
+                    published.append(kwargs)
+                with (patch.dict('os.environ', env, clear=True),
+                      patch.object(api, '_load_original_bundle', return_value=(package['payload'],
+                        {'evidence_plaintext_sha256':'f'*64}, [])),
+                      patch.object(api, '_archived_pair', return_value=(package['baseline_cipher'],
+                        package['conditioned_cipher'], {'producer_run_id':'123456'})),
+                      patch('race_ai.keirin_github_evidence_client.GitHubEvidenceClient.read_run_bundle',
+                        return_value=dict(producer=producer, readback=reader)),
+                      patch.object(api, 'collect_final_result', return_value=order_capture),
+                      patch.object(api.history, 'append_revision', side_effect=append_order)):
+                    partial = api.run_settle(repo='/synthetic', private_root=Path(folder)/'partial',
+                        owner_public_pem=public_path, owner_private_pem=self.private,
+                        clock=lambda:datetime.fromisoformat('2026-11-20T17:30:00+09:00'),
+                        publish_result=publish_order)
+                self.assertEqual(partial['order_comparable_races'], 1)
+                self.assertEqual(partial['paired_comparable_races'], 0)
+                self.assertFalse(partial['nationwide_expansion_gate_passed'])
+                self.assertTrue(partial['actual_official_result_verified'])
+                self.assertFalse(partial['monetary_comparison_eligible'])
+                self.assertEqual(len(stored), 1)
+                self.assertEqual(len(published), 1)
                 with (patch.dict('os.environ',env,clear=True),
                       patch.object(api,'_load_original_bundle',return_value=(package['payload'],
                         {'evidence_plaintext_sha256':'f'*64},[(saved_plain,record)])),
@@ -237,9 +308,11 @@ class FrozenCanaryPackage(unittest.TestCase):
                       patch.object(api.history,'append_revision',side_effect=AssertionError('must not append again')) as append):
                     reused=api.run_settle(repo='/synthetic',private_root=Path(folder)/'resume',
                         owner_public_pem=public_path,owner_private_pem=self.private,
-                        clock=lambda:datetime.fromisoformat('2026-11-20T17:30:00+09:00'))
+                        clock=lambda:datetime.fromisoformat('2026-11-20T17:30:00+09:00'),
+                        publish_result=lambda **kwargs: published.append(kwargs))
                     self.assertEqual(reused['state'],'EXISTING_VERIFIED_CANARY_COMPARISON_REUSED')
                     self.assertEqual(reused['paired_comparable_races'],1)
+                    self.assertEqual(len(published),2,'ARCHIVED_RESULT_PUBLICATION_MUST_BE_RECOVERABLE')
                     fetch.assert_not_called();append.assert_not_called()
                 reader['job']['completed_at']='2026-11-20T08:05:56Z'
                 with self.assertRaises(ValueError):
@@ -261,10 +334,11 @@ class FrozenCanaryPackage(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'PERSISTENT_PROVIDER_STOP'):
                 api._provider_preflight('/synthetic')
 
-    def test_final_public_form_follows_current_result_reference_and_guide_first(self):
+    def test_final_public_form_follows_current_result_reference_and_result_first(self):
         from urllib.parse import urlsplit
         from tests.test_keirin_official_schedule import page,venue,meeting
         from tests.test_keirin_official_sp_receipt import header,html
+        from tests.test_keirin_result_collection import fixture as collection_fixture
         api=self.api()
         def link(raw, paths):
             return raw.replace(b'</body>', ''.join('<script src="'+p+'"></script>' for p in paths).encode()+b'</body>')
@@ -280,7 +354,7 @@ class FrozenCanaryPackage(unittest.TestCase):
             '/sp/static/js/commonSubmit.js':b'$form.attr("method","post");',
             '/sp/static/js/SJ0301_v.js':b'raceProgram.strRaceLnk;raceProgram.strRaceLnkPrm;raceProgram.strRaceLnkKbn;',
             '/sp/static/js/SJ0301_c.js':b'var action=$(children[1]).attr("value");params["encp"]=$(children[2]).attr("value");if(dispDI==2){dispDI="SJ0326";}commonSubmit.formPost(action,params);',
-            '/sp/race':b'<html><body>invented final document bytes</body></html>',
+            '/sp/race':collection_fixture()[0]['/sp/race'],
             '/ticket/':api.payout_unit.UNIT_URLS['https://www.hofukeirin.jp/ticket/'].encode(),
         }
         for available in (True,False):
@@ -299,8 +373,8 @@ class FrozenCanaryPackage(unittest.TestCase):
                     out=api.collect_final_result(repo='/synthetic',private_root=folder,
                         frozen_card=frozen,clock=lambda:now,request=request)
                     self.assertEqual(out['expected_reference']['token'],'E'*43)
-                    self.assertEqual(calls[-2][0],'https://www.hofukeirin.jp/ticket/')
-                    self.assertEqual(calls[-1],('https://keirin.jp/sp/race',[('encp','E'*43),('disp','SJ0326')]))
+                    self.assertEqual(calls[-1][0],'https://www.hofukeirin.jp/ticket/')
+                    self.assertEqual(calls[-2],('https://keirin.jp/sp/race',[('encp','E'*43),('disp','SJ0326')]))
                     self.assertEqual(len(calls),8)
                 else:
                     with self.assertRaisesRegex(ValueError,'RESULT_NOT_PUBLISHED_YET'):

@@ -1174,12 +1174,15 @@ jobs:
 
 
   github-only-research-results:
+    # Replaced by keirin-result-live.yml. Keep historical job identity for
+    # receipt verification; it must never become a second provider poller.
     # Independent official settlement can continue for already immutable
     # pre-cutoff originals even if new A/B card capture is disabled. The
     # official-source and encrypted Git-state owner opt-ins still gate GETs.
     # A skipped/failed forecast job never fabricates a new forecast.
     needs: [github-only-owner-capture, github-only-independent-archive-readback]
     if: >-
+      false &&
       always() &&
       github.repository == 'haji84/RACE-AI' &&
       github.ref == 'refs/heads/main' &&

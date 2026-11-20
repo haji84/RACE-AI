@@ -4,6 +4,7 @@ from hashlib import sha256
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import importlib.util
 import json
+import os
 from pathlib import Path
 import re
 import threading
@@ -81,7 +82,8 @@ class NoteBrowserTests(unittest.TestCase):
         from playwright.sync_api import sync_playwright
         cls.runtime = sync_playwright().start()
         try:
-            cls.browser = cls.runtime.chromium.launch(headless=True, args=['--no-sandbox'])
+            cls.browser = cls.runtime.chromium.launch(headless=True, args=['--no-sandbox'],
+                executable_path=os.getenv('RACE_AI_TEST_CHROMIUM'))
         except Exception:
             cls.runtime.stop()
             raise
@@ -105,9 +107,11 @@ class NoteBrowserTests(unittest.TestCase):
             '<link rel="stylesheet" href="./style.css"><script defer src="./note.js"></script>'
             '</head><body><main><div id="data-banner">架空の保存画面</div></main></body></html>').encode()
         components = ['keirin-note-source/staking.js', 'keirin-note-source/staking_flexible.js',
-                      'keirin-note-source/rollover.js', 'keirin-note-model.js', 'keirin-note-view.js']
-        bundle = b'window.RaceNoteInitialFragment=location.hash;\n' + b'\n'.join(
-            (ROOT/'web'/name).read_bytes() for name in components)
+                      'keirin-note-source/rollover.js', 'keirin-note-model.js', 'keirin-note-feed.js']
+        bundle = (b'window.RaceNoteInitialFragment=location.hash;\n' + b'\n'.join(
+            (ROOT/'web'/name).read_bytes() for name in components) +
+            b'\nObject.assign(window.RaceKeirinNoteFeed,window.__noteFeedOverride||{});\n' +
+            (ROOT/'web/keirin-note-view.js').read_bytes())
         styles = (ROOT/'web/race-style-core.css').read_bytes() + b'\n' + (
             ROOT/'web/keirin-note.css').read_bytes()
         assets = {'/': (html, 'text/html; charset=utf-8'),
@@ -176,7 +180,8 @@ class NoteBrowserTests(unittest.TestCase):
                        wait_until='domcontentloaded')
 
     def loaded(self):
-        self.page.locator('#kn-status').filter(has_text='端末内で開きました').wait_for()
+        self.page.locator('#kn-status').filter(has_text=re.compile(
+            r'端末内で開きました|保存データの更新を確認しました')).wait_for()
 
     def watch_decryption(self):
         self.page.evaluate('''() => {
@@ -277,7 +282,7 @@ class NoteBrowserTests(unittest.TestCase):
     def test_clear_invalidates_a_delayed_independent_feed_decode(self):
         fixture = json.dumps(packet(), ensure_ascii=False)
         self.page.add_init_script('''
-          window.RaceKeirinNoteFeed={open:async(key,{signal,onStatus})=>{
+          window.__noteFeedOverride={createSession:null,open:async(key,{signal,onStatus})=>{
             window.__feedStarted=true;
             onStatus?.('synthetic status');
             await new Promise(resolve=>window.__releaseFeed=resolve);
@@ -309,6 +314,85 @@ class NoteBrowserTests(unittest.TestCase):
         self.assertEqual(self.page.locator('.kn-ticket').count(), 1)
         self.assertIn('参考A', self.page.locator('.kn-badges').inner_text())
         self.assertEqual(self.external, [])
+
+    def test_open_feed_reflects_order_and_independent_arms_without_resetting_controls(self):
+        updated = packet()
+        result = dict(race_id=RACE, revision='b'*64,
+            observed_at=DAY+'T04:00:00Z', authority='official',
+            order_status='confirmed', payout_status='pending',
+            winning_triples=['3-1-2'], payouts_100yen={},
+            source_comparison=[dict(source_id='keirin_jp', state='matched'),
+                dict(source_id='kdreams', state='matched'),
+                dict(source_id='netkeirin', state='different')],
+            diagnostics=[], arms={
+                'A': dict(state='hit', points=1, stake_yen=None, return_yen=None),
+                'B': dict(state='miss', points=1, stake_yen=None, return_yen=None),
+                'C': dict(state='pending', points=None, stake_yen=None, return_yen=None),
+                'adjusted_A': dict(state='pending', points=None, stake_yen=None, return_yen=None),
+                'adjusted_B': dict(state='pending', points=None, stake_yen=None, return_yen=None)})
+        updated['files'][f'data/{DAY}/result_updates.json'] = source(dict(
+            schema='RACE_AI_KEIRIN_RESULT_UPDATES_V1',
+            observed_at=DAY+'T04:01:00Z', races=[result]))
+        fixtures = json.dumps([packet(), updated], ensure_ascii=False)
+        self.page.add_init_script('''
+          const realTimeout=window.setTimeout;
+          window.setTimeout=(fn,delay,...args)=>{
+            if(delay===30000){window.__noteIdle=true;window.__noteTick=()=>fn(...args);return 0;}
+            return realTimeout(fn,delay,...args);
+          };
+          window.__noteRefreshes=0;window.__noteClosed=0;window.__noteAllowResult=false;
+          window.__noteFeedOverride={createSession:async()=>({
+            refresh:async()=>{
+              window.__noteRefreshes++;window.__noteIdle=false;
+              if(window.__noteFailNext){window.__noteFailNext=false;throw Error('invented refresh failure');}
+              const updated=window.__noteAllowResult;
+              const data=await window.RaceKeirinNote.openPacket(('''+fixtures+''')[updated?1:0]);
+              data.feed={entries:updated?2:1,revision:updated?'b':'a',providerDenied:false,checkedAt:'2030-01-15T04:02:00Z'};
+              return data;
+            },close:()=>{window.__noteClosed++;}
+          })};
+        ''')
+        self.page.goto(self.base+'/#notefeed='+'Q'*160, wait_until='domcontentloaded')
+        self.loaded()
+        self.page.locator('#kn-variant').select_option('B')
+        self.page.locator('#kn-search').fill('架空会場')
+        self.page.get_by_role('button', name='検討リストに追加', exact=True).click()
+        self.page.wait_for_function('document.readyState === "complete" && window.__noteIdle === true')
+        refreshes = self.page.evaluate('window.__noteRefreshes')
+        self.page.evaluate('window.__noteAllowResult=true;window.__noteTick()')
+        self.page.locator('[data-result-arm="A"] strong').wait_for()
+        self.assertEqual(self.page.locator('[data-result-arm="A"] strong').inner_text(), '的中')
+        self.assertEqual(self.page.locator('[data-result-arm="B"] strong').inner_text(), '不的中')
+        self.assertIn('未照合', self.page.locator('[data-result-arm="C"]').inner_text())
+        self.assertIn('配当確認中', self.page.locator('.kn-live-result').inner_text())
+        self.assertNotIn('0円', self.page.locator('.kn-live-result').inner_text())
+        comparison = self.page.locator('.kn-result-comparison').inner_text()
+        self.assertIn('保存資料との照合：', comparison)
+        self.assertIn('Kドリームス：一致', comparison)
+        self.assertIn('netkeirin：相違あり', comparison)
+        self.assertEqual(self.page.locator('#kn-variant').input_value(), 'B')
+        self.assertEqual(self.page.locator('#kn-search').input_value(), '架空会場')
+        self.assertEqual(self.page.get_by_role('button', name='検討リストから外す', exact=True).count(), 1)
+        self.assertIn('表示確認', self.page.locator('#kn-provenance').inner_text())
+        self.assertIn('結果確認', self.page.locator('#kn-provenance').inner_text())
+        self.page.evaluate('window.__noteFailNext=true;window.__noteTick()')
+        status = self.page.locator('#kn-status')
+        status.filter(has_text='更新を確認できませんでした').wait_for()
+        self.assertIn('kn-error', status.get_attribute('class'))
+        self.assertEqual(self.page.locator('[data-result-arm="A"] strong').inner_text(), '的中')
+        self.page.evaluate('window.__noteTick()')
+        status.filter(has_text='保存データの更新を確認しました').wait_for()
+        self.assertNotIn('kn-error', status.get_attribute('class') or '')
+        self.assertEqual(self.page.locator('#kn-variant').input_value(), 'B')
+        self.assertEqual(self.page.locator('#kn-search').input_value(), '架空会場')
+        self.assertEqual(self.page.get_by_role('button', name='検討リストから外す', exact=True).count(), 1)
+        self.page.locator('#kn-clear').click()
+        self.page.evaluate('window.__noteTick()')
+        self.assertEqual(self.page.evaluate('window.__noteRefreshes'), refreshes+3)
+        self.assertEqual(self.page.evaluate('window.__noteClosed'), 1)
+        self.assertEqual(self.page.locator('.kn-race').count(), 0)
+        self.assertEqual(self.external, [])
+        self.assertEqual(self.errors, [])
 
 
 if __name__ == '__main__':
