@@ -1,7 +1,7 @@
 """New dynamic records retain the existing model and encrypted original format."""
 from copy import deepcopy
 from hashlib import sha256
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import BytesIO
 import importlib
 import json
@@ -33,7 +33,7 @@ class NationwideRecordTests(unittest.TestCase):
 
     def api(self): return importlib.import_module('race_ai.keirin_official_nationwide_records')
 
-    def payload(self, folder, conditioned=True):
+    def payload(self, folder, conditioned=True, *, with_confidence=False):
         from race_ai import keirin_official_nationwide_extension as ext
         from race_ai.keirin_official_nationwide_sources import build_condition_candidate
         args=NationwideExtensionTests().baseline_arguments();at=args.pop('now')
@@ -41,16 +41,24 @@ class NationwideRecordTests(unittest.TestCase):
         baseline=model.generate_A_B(snapshot,generated_at=at.isoformat())
         root=Path(folder);root.chmod(0o700)
         base_path=root/'original.sealed.json'
-        base=storage.seal_once(snapshot=snapshot,prediction=baseline,public_key_pem=self.public,path=base_path,sealed_at=at.isoformat())
+        metadata={}
+        sealed_at=at.isoformat()
+        if with_confidence:
+            from race_ai import keirin_confidence as confidence
+            metadata['confidence_assessment']=confidence.assess_baseline(snapshot,baseline,assessed_at=at.isoformat())
+            sealed_at=(at+timedelta(seconds=5)).isoformat()
+        base=storage.seal_once(snapshot=snapshot,prediction=baseline,public_key_pem=self.public,
+            path=base_path,sealed_at=sealed_at,**metadata)
         registry=NationwideExtensionTests().registry();rid=snapshot['race_id'];registry['registered_race_ids']=[rid]
         cohort=self.api().cohort(registry)
         payload=dict(schema=self.api().PRE_SCHEMA,day_jst=registry['event_day'],race_id=rid,
             producer_run_id='123456789',producer_commit='a'*40,cohort=cohort,cohort_sha256=model.digest(cohort),
-            snapshot=snapshot,baseline=baseline,baseline_sealed_at=at.isoformat(),
+            snapshot=snapshot,baseline=baseline,baseline_sealed_at=sealed_at,
             baseline_cipher_sha256=base['cipher_sha256'],baseline_arguments=args,
             conditioned=None,supplement=None,conditioned_cipher_sha256=None,conditioned_sealed_at=None,
             history_manifest=None,source_bytes_by_sha={},identity_proof=None,availability=None,
             condition_state='NO_CONDITIONED_ORIGINAL')
+        payload.update(metadata)
         raw_conditioned=None
         if conditioned:
             captured=fixture()
@@ -76,6 +84,40 @@ class NationwideRecordTests(unittest.TestCase):
             self.assertEqual(result['baseline'],payload['baseline'])
             self.assertEqual(result['conditioned'],payload['conditioned'])
             self.assertEqual(result['snapshot'],payload['snapshot'])
+
+    def test_confidence_survives_replay_only_when_source_bundle_matches_the_cipher(self):
+        from race_ai import keirin_confidence as confidence
+        with tempfile.TemporaryDirectory() as folder:
+            payload,raw,_=self.payload(folder,False,with_confidence=True)
+            with patch.object(confidence,'assess_baseline',side_effect=AssertionError('no reassessment')):
+                result=self.api().replay_original(payload=payload,raw_baseline=raw,
+                    raw_conditioned=None,owner_private_pem=self.private)
+            self.assertEqual(result.get('confidence_assessment'),payload['confidence_assessment'])
+            self.assertEqual(result['baseline'],payload['baseline'])
+            changed_time=(model.when(payload['baseline']['generated_at'])+timedelta(seconds=1)).isoformat()
+            another=confidence.assess_baseline(payload['snapshot'],payload['baseline'],assessed_at=changed_time)
+            confidence.checked_assessment(another,snapshot=payload['snapshot'],baseline=payload['baseline'],
+                sealed_at=payload['baseline_sealed_at'])
+            with self.assertRaisesRegex(ValueError,'CONFIDENCE_SOURCE_CIPHER_MISMATCH'):
+                self.api().replay_original(payload=dict(payload,confidence_assessment=another),raw_baseline=raw,
+                    raw_conditioned=None,owner_private_pem=self.private)
+            for change in (lambda p:p.pop('confidence_assessment'),
+                    lambda p:p['confidence_assessment'].__setitem__('source_prediction_sha256','f'*64),
+                    lambda p:p['confidence_assessment'].__setitem__('extra',True)):
+                bad=deepcopy(payload);change(bad)
+                with self.assertRaises(ValueError):
+                    self.api().replay_original(payload=bad,raw_baseline=raw,
+                        raw_conditioned=None,owner_private_pem=self.private)
+
+    def test_legacy_original_cannot_acquire_a_new_source_bundle_assessment(self):
+        from race_ai import keirin_confidence as confidence
+        with tempfile.TemporaryDirectory() as folder:
+            payload,raw,_=self.payload(folder,False)
+            payload['confidence_assessment']=confidence.assess_baseline(payload['snapshot'],payload['baseline'],
+                assessed_at=payload['baseline']['generated_at'])
+            with self.assertRaises(ValueError):
+                self.api().replay_original(payload=payload,raw_baseline=raw,
+                    raw_conditioned=None,owner_private_pem=self.private)
 
     def test_missing_or_corrupt_condition_does_not_remove_authenticated_baseline(self):
         with tempfile.TemporaryDirectory() as folder:

@@ -15,6 +15,7 @@ import re
 
 from . import keirin_note_feed as feed
 from . import keirin_nationwide_auto_generator as model
+from . import keirin_confidence as confidence
 from . import keirin_form_fall_shadow as shadow
 from .keirin_form_fall_blind_pdca import _tickets
 from .keirin_note_view import canonical, SCHEMA as NOTE_SCHEMA
@@ -80,8 +81,9 @@ def checked_forecasts(doc):
          type(doc['races']) is list and 1 <= len(doc['races']) <= 300, 'DOCUMENT')
     seen = set()
     for row in doc['races']:
-        need(exact(row, ('race_id', 'revision', 'baseline_cipher_sha256', 'conditioned_cipher_sha256',
-            'baseline_sealed_at', 'conditioned_sealed_at', 'facts', 'baseline', 'conditioned')), 'ROW')
+        fields = {'race_id', 'revision', 'baseline_cipher_sha256', 'conditioned_cipher_sha256',
+            'baseline_sealed_at', 'conditioned_sealed_at', 'facts', 'baseline', 'conditioned'}
+        need(exact(row, fields) or exact(row, fields | {'confidence_assessment'}), 'ROW')
         rid = row['race_id']; base, adjusted, facts = row['baseline'], row['conditioned'], row['facts']
         need(type(rid) is str and model.VENUE.fullmatch(rid) and rid not in seen, 'RACE_ID'); seen.add(rid)
         for key in ('revision', 'baseline_cipher_sha256', 'conditioned_cipher_sha256'):
@@ -101,6 +103,11 @@ def checked_forecasts(doc):
         need(model.when(base['source_as_of']) <= generated, 'SOURCE_CLOCK')
         for key in ('baseline_sealed_at', 'conditioned_sealed_at'):
             sealed = model.when(row[key]); need(generated <= sealed and (cutoff-sealed).total_seconds() >= 65, 'CUTOFF')
+        if 'confidence_assessment' in row:
+            # Full snapshot validation is done at the authenticated adapter
+            # boundary. Display packets deliberately omit raw source receipts.
+            confidence.checked_assessment(row['confidence_assessment'],snapshot=None,
+                baseline=base,sealed_at=row['baseline_sealed_at'])
         need(base['C'] == {'state': HOLD_C}, 'C_NOT_GENERATED')
         for key in ('official_cutoff_independently_authenticated', 'official_result_observed',
                     'formal_model_promoted', 'old_PR71_four_models_required', 'real_money_wager_placed'):
@@ -178,6 +185,9 @@ def from_payload(payload, owner_private_pem):
     check_owner_private_key(owner_private_pem)
     need(type(payload) is dict and payload.get('schema') == 'RACE_AI_KEIRIN_OFFICIAL_FORM_CANARY_PRE_CUTOFF_V1' and
          payload.get('race_id') == FORM_CANARY_RACE, 'AUTHENTICATED_CANARY_SCOPE')
+    # The fixed historical canary is never retrospectively assessed. New
+    # nationwide conditioned rows use checked_forecasts through their adapter.
+    need('confidence_assessment' not in payload, 'HISTORICAL_CANARY_CONFIDENCE_NOT_ALLOWED')
     base, adjusted, snapshot = payload['baseline'], payload['conditioned'], payload['snapshot']
     model.validate_snapshot(snapshot, computed_at=base['generated_at'])
     need(base['race_id'] == snapshot['race_id'] == payload['race_id'] and

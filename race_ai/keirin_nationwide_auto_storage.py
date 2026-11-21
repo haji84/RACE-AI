@@ -24,6 +24,7 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from . import keirin_nationwide_auto_generator as model
+from . import keirin_confidence as confidence
 
 SCHEMA = "RACE_AI_KEIRIN_NATIONWIDE_AUTO_AB_ENCRYPTED_V1"
 PINNED_OWNER_SPKI_SHA256 = (
@@ -65,8 +66,8 @@ def checked_public_key(data, *, expected_spki_sha=None):
     return key
 
 
-def _arm_encrypt(key, prediction, snapshot, role, record_id):
-    raw = model.canonical({
+def _arm_encrypt(key, prediction, snapshot, role, record_id, assessment=None):
+    payload = {
         "schema": "RACE_AI_KEIRIN_NATIONWIDE_AB_PRIVATE_ARM_V1",
         "role": role,
         "race_id": record_id,
@@ -76,7 +77,10 @@ def _arm_encrypt(key, prediction, snapshot, role, record_id):
         "pre_race_facts_sha256": prediction["source_facts_sha256"],
         "prediction_sha256": prediction["prediction_sha256"],
         "official_result_not_included": True,
-    }) + b"\n"
+    }
+    if assessment is not None:
+        payload["confidence_assessment"] = assessment
+    raw = model.canonical(payload) + b"\n"
     need(len(raw) < MAX_INPUT_BYTES, "PRIVATE_ARM_TOO_LARGE")
     compressed = zlib.compress(raw, level=9)
     aes = AESGCM.generate_key(bit_length=256)
@@ -145,7 +149,7 @@ def validate_cipher(envelope):
 
 
 def seal_once(*, snapshot, prediction, public_key_pem, path, sealed_at,
-              expected_spki_sha=None):
+              expected_spki_sha=None, confidence_assessment=None):
     """No overwrite. Only an already-existing, private 0700 destination."""
     model.validate_snapshot(snapshot, computed_at=prediction["generated_at"])
     need(prediction["schema"] == model.PREDICTION and
@@ -158,6 +162,10 @@ def seal_once(*, snapshot, prediction, public_key_pem, path, sealed_at,
     need(model.when(prediction["generated_at"]) <= at and
          (model.when(snapshot["published_cutoff_at"]) - at).total_seconds() >= 65,
          "SEAL_AFTER_OR_TOO_CLOSE_TO_PUBLISHED_CUTOFF")
+    assessment = None
+    if confidence_assessment is not None:
+        assessment = confidence.checked_assessment(confidence_assessment,
+            snapshot=snapshot, baseline=prediction, sealed_at=sealed_at)
     dest = Path(path)
     folder = dest.parent
     need(folder.is_dir() and not folder.is_symlink() and
@@ -184,8 +192,8 @@ def seal_once(*, snapshot, prediction, public_key_pem, path, sealed_at,
         "official_result_included": False,
         "cross_runner_RSA_decryption_attested": False,
         "research_only": True,
-        "A": _arm_encrypt(pub, prediction, snapshot, "A", snapshot["race_id"]),
-        "B": _arm_encrypt(pub, prediction, snapshot, "B", snapshot["race_id"]),
+        "A": _arm_encrypt(pub, prediction, snapshot, "A", snapshot["race_id"], assessment),
+        "B": _arm_encrypt(pub, prediction, snapshot, "B", snapshot["race_id"], assessment),
     }
     validate_cipher(info)
     data = model.canonical(info) + b"\n"

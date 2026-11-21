@@ -17,6 +17,7 @@ import sys
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from race_ai import keirin_nationwide_auto_generator as model
+from race_ai import keirin_confidence as confidence
 from race_ai import keirin_nationwide_auto_storage as storage
 from race_ai import keirin_nationwide_cipher_history as archive
 from race_ai import keirin_official_nationwide_extension as extension
@@ -122,6 +123,8 @@ def _seal_and_archive(*,candidate,condition_input,history_manifest,condition_sta
     snapshot=candidate['snapshot'];rid=snapshot['race_id']
     generated=form._aware(clock()).isoformat()
     baseline=model.generate_A_B(snapshot,generated_at=generated,max_tickets=12)
+    assessment=confidence.assess_baseline(snapshot,baseline,
+        assessed_at=form._aware(clock()).isoformat())
     adjusted=supplement=None
     if condition_input is not None:
         try:
@@ -132,7 +135,8 @@ def _seal_and_archive(*,candidate,condition_input,history_manifest,condition_sta
     sealed_at=form._aware(clock()).isoformat()
     directory=capture_files._private_directory(root/rid)
     path=directory/(rid+'.sealed.json')
-    saved=storage.seal_once(snapshot=snapshot,prediction=baseline,public_key_pem=public,path=path,sealed_at=sealed_at)
+    saved=storage.seal_once(snapshot=snapshot,prediction=baseline,public_key_pem=public,path=path,
+        sealed_at=sealed_at,confidence_assessment=assessment)
     digest=saved['cipher_sha256'];cohort_sha=model.digest(cohort)
     restored=archive.append_once(repo=store.repo,raw_cipher=path.read_bytes(),expected_cipher_sha256=digest,
         producer_run_id=os.environ['GITHUB_RUN_ID'],producer_commit=commit,cohort_sha256=cohort_sha)
@@ -163,6 +167,7 @@ def _seal_and_archive(*,candidate,condition_input,history_manifest,condition_sta
     source_bytes={digest:session.sources[digest] for digest in needed if digest in session.sources}
     payload=dict(schema=records.PRE_SCHEMA,day_jst=store.day,race_id=rid,cohort=cohort,cohort_sha256=cohort_sha,
         producer_run_id=os.environ['GITHUB_RUN_ID'],producer_commit=commit,snapshot=snapshot,baseline=baseline,
+        confidence_assessment=assessment,
         baseline_arguments=candidate['arguments'],baseline_cipher_sha256=digest,baseline_sealed_at=sealed_at,
         conditioned=adjusted,supplement=supplement,conditioned_cipher_sha256=condition_sha,
         conditioned_sealed_at=condition_at,condition_state=condition_state,

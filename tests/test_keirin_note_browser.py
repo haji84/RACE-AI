@@ -135,7 +135,7 @@ class NoteBrowserTests(unittest.TestCase):
             '<link rel="stylesheet" href="./style.css"><script defer src="./note.js"></script>'
             '</head><body><main><div id="data-banner">架空の保存画面</div></main></body></html>').encode()
         components = ['keirin-note-source/staking.js', 'keirin-note-source/staking_flexible.js',
-                      'keirin-note-source/rollover.js', 'keirin-note-model.js', 'keirin-note-feed.js']
+                      'keirin-note-source/rollover.js', 'confidence.js', 'keirin-note-model.js', 'keirin-note-feed.js']
         bundle = (b'window.RaceNoteInitialFragment=location.hash;\n' + b'\n'.join(
             (ROOT/'web'/name).read_bytes() for name in components) +
             b'\nObject.assign(window.RaceKeirinNoteFeed,window.__noteFeedOverride||{});\n' +
@@ -421,7 +421,7 @@ class NoteBrowserTests(unittest.TestCase):
         self.page.locator('#kn-variant').select_option('original')
         selected = self.page.locator('.kn-selected-comparison')
         self.assertEqual(selected.count(), 1)
-        self.assertIn('2車単・保存分析 · 1点 · 的中', selected.inner_text())
+        self.assertIn('2車単・通常予想 · 1点 · 的中', selected.inner_text())
         self.assertIn('払戻 未確認', selected.inner_text())
         self.assertNotIn('5,300円', selected.inner_text())
         self.assertEqual(self.errors, [])
@@ -450,7 +450,7 @@ class NoteBrowserTests(unittest.TestCase):
                 checked_at=observation['captured_at'], digest=observation['observation_sha256'],
                 status='MATCHED')})
         components = ['keirin-note-source/staking.js', 'keirin-note-source/staking_flexible.js',
-            'keirin-note-source/rollover.js', 'keirin-note-model.js', 'keirin-note-feed.js',
+            'keirin-note-source/rollover.js', 'confidence.js', 'keirin-note-model.js', 'keirin-note-feed.js',
             'keirin-note-view.js']
         self.assets['/note.js'] = (b'window.RaceNoteInitialFragment=location.hash;\n'+b'\n'.join(
             (ROOT/'web'/name).read_bytes() for name in components), 'text/javascript; charset=utf-8')

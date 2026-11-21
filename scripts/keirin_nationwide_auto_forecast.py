@@ -22,6 +22,7 @@ import stat
 import sys
 
 from race_ai import keirin_nationwide_auto_generator as model
+from race_ai import keirin_confidence as confidence
 from race_ai import keirin_nationwide_auto_storage as seal
 from race_ai import keirin_form_fall_shadow as form_shadow
 from race_ai import keirin_nationwide_active_AB as country
@@ -125,6 +126,8 @@ def run_cycle(*,registry, private_racecards_dir, raw_pages_dir,
             # The SHA-locked baseline is unchanged; conditions are a separate
             # independently timestamped research sidecar.
             forecast=model.generate_A_B(snap,generated_at=now)
+            assessment=confidence.assess_baseline(snap,forecast,
+                assessed_at=clock().astimezone(timezone.utc).isoformat())
             supplement = shadow_forecast = None
             supplement_file = cards / (race_id + ".form.json")
             requested = supplement_file.exists() or supplement_file.is_symlink()
@@ -159,7 +162,8 @@ def run_cycle(*,registry, private_racecards_dir, raw_pages_dir,
                 snapshot=snap,prediction=forecast,
                 public_key_pem=owner_public_key_pem,
                 path=encrypted,
-                sealed_at=clock().astimezone(timezone.utc).isoformat())
+                sealed_at=clock().astimezone(timezone.utc).isoformat(),
+                confidence_assessment=assessment)
             row.update({
                 "state":"A_B_PRIVATE_CIPHER_CREATED_SAME_JOB_SHA_MATCH",
                 "ciphertext_local_created":True,

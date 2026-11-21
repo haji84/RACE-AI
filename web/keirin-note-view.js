@@ -1,8 +1,8 @@
 /* A separate owner view. It never writes the formal model ledger or changes its keys. */
 (() => {
   'use strict';
-  const M=window.RaceKeirinNote;
-  if(!M||document.getElementById('keirin-note-dialog'))return;
+  const M=window.RaceKeirinNote,C=window.RaceKeirinConfidence;
+  if(!M||!C||document.getElementById('keirin-note-dialog'))return;
   const fragment=window.RaceNoteInitialFragment||location.hash;
   const dialog=document.createElement('dialog');dialog.id='keirin-note-dialog';dialog.className='kn-modal';dialog.setAttribute('aria-label','競輪の予想・分析ガイド');
   const host=document.createElement('div');host.className='kn-host';dialog.append(host);
@@ -10,7 +10,7 @@
   const shell=document.createElement('div');shell.className='kn-shell';root.append(shell);document.body.append(dialog);
   const launcher=document.createElement('button');launcher.id='keirin-note-open';launcher.type='button';launcher.className='kn-launcher';launcher.textContent='競輪の予想・分析ガイドを開く';
   const strip=document.createElement('div');strip.className='kn-launch-strip';strip.append(launcher);(document.getElementById('data-banner')||document.querySelector('main'))?.after(strip);
-  let data=null,currentDay='',venue='',query='',market='3t',variant='flexible',futureOnly=false,selectedOnly=false;
+  let data=null,currentDay='',venue='',query='',market='3t',variant='flexible',confidenceFilter='all',futureOnly=false,selectedOnly=false;
   let loadVersion=0,activeLoadAbort=null,feedWatcher=null,pendingFeed=null;
   const preferences=new Map(),selected=new Set(),expanded=new Set();
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -28,9 +28,9 @@
     shell.innerHTML=`<header class="kn-head"><div><p class="kn-eyebrow">RACE AI · KEIRIN NOTE</p><h1>競輪の読みどころ</h1><p>保存された分析・参考モデル・買い目を確認する</p></div><button type="button" id="kn-close" class="kn-close">閉じる</button></header>
       <div class="kn-scroll"><section class="kn-import"><div><label class="kn-file">保存データを開く<input id="kn-file" type="file" accept=".json,application/json"></label><button id="kn-clear" type="button" class="kn-secondary">読込データを消す</button></div><p id="kn-status" role="status">本人用リンク、または保存データJSONから開けます。</p></section>
       <nav id="kn-days" class="kn-day-tabs" aria-label="予想の日付"></nav><section id="kn-metrics" class="kn-metrics"></section>
-      <section class="kn-tools"><div id="kn-venues" class="kn-venues" aria-label="会場"></div><div class="kn-controls"><label>券種<select id="kn-market"><option value="3t">3連単</option><option value="2t">2車単</option></select></label><label>表示する予想<select id="kn-variant"><option value="flexible">改訂された分析</option><option value="original">原分析</option><option value="rollover">絞り込み分析</option><option value="A">参考A</option><option value="B">参考B・6局面</option><option value="C">参考Cの状況</option></select></label><label class="kn-search-label">検索<input id="kn-search" type="search" placeholder="会場・選手・レース名"></label></div><div class="kn-small-controls"><label><input id="kn-future" type="checkbox">これからのレース</label><label><input id="kn-selected" type="checkbox">検討リストのみ</label><span id="kn-count"></span></div></section>
+      <section class="kn-tools"><div id="kn-venues" class="kn-venues" aria-label="会場"></div><div class="kn-prediction-tabs" aria-label="通常予想と転がし予想"><button type="button" data-prediction="flexible">通常予想</button><button type="button" data-prediction="rollover">転がし予想</button><button type="button" data-confidence-filter="high_plus">高以上だけ見る</button></div><div class="kn-controls"><label>券種<select id="kn-market"><option value="3t">3連単</option><option value="2t">2車単</option></select></label><label>表示する予想<select id="kn-variant"><option value="flexible">通常予想・改訂版</option><option value="original">通常予想・原版</option><option value="rollover">転がし予想</option><option value="A">参考A</option><option value="B">参考B・6局面</option><option value="C">参考Cの状況</option></select></label><label>信頼度<select id="kn-confidence"><option value="all">すべて</option><option value="high_plus">高以上（高・激アツ🔥）</option><option value="hot">激アツ🔥のみ</option><option value="high">高のみ</option><option value="medium">中のみ</option><option value="low">低のみ</option><option value="unrated">未評価のみ</option></select></label><label class="kn-search-label">検索<input id="kn-search" type="search" placeholder="会場・選手・レース名"></label></div><div class="kn-small-controls"><label><input id="kn-future" type="checkbox">これからのレース</label><label><input id="kn-selected" type="checkbox">検討リストのみ</label><span id="kn-count"></span></div><p id="kn-confidence-count" class="kn-small" aria-live="polite"></p><p class="kn-small">信頼度は保存された予想の評価です。新方式は展開と買い目の整合を評価し、的中率は未校正です。</p></section>
       <section id="kn-nationwide-summary" class="kn-result kn-nationwide-summary" hidden></section><section id="kn-research-summary" class="kn-result" hidden></section><div id="kn-result-only"></div><div id="kn-races" class="kn-grid"></div>
-      <details class="kn-rollover"><summary>2段階の資金配分を試算する</summary><p>受取額は払戻と返還の合計を手入力します。実購入の記録とは別の試算です。</p><div class="kn-controls"><label>初回の予算<select id="kn-roll-budget"><option>2000</option><option selected>2500</option><option>3000</option></select></label><label>1戦目の受取額<input id="kn-return-one" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label><label>2戦目の受取額<input id="kn-return-two" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label></div><div id="kn-roll-result"></div></details>
+      <details class="kn-rollover"><summary>転がし・2段階の資金配分を試算する</summary><p>受取額は払戻と返還の合計を手入力します。実購入の記録とは別の試算です。</p><div class="kn-controls"><label>初回の予算<select id="kn-roll-budget"><option>2000</option><option selected>2500</option><option>3000</option></select></label><label>1戦目の受取額<input id="kn-return-one" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label><label>2戦目の受取額<input id="kn-return-two" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label></div><div id="kn-roll-result"></div></details>
       <footer class="kn-footer"><p>個別分析・改訂・参考A/Bはそれぞれの保存原本を保持します。参考Cの未生成も表示します。参考モデルの重みは校正済み確率ではありません。</p><p>画面での選択と配分は購入候補です。投票・決済は行いません。データと本人用リンクの鍵は外部へ送信しません。</p><p id="kn-provenance"></p></footer></div>
       <div class="kn-selection"><div><strong id="kn-selection-count">検討リスト 0件</strong><small>候補・配分の試算</small></div><button id="kn-copy-selection" type="button">検討リストをコピー</button></div>`;
     $('kn-close').addEventListener('click',()=>dialog.close());
@@ -46,6 +46,7 @@
     $('kn-clear').addEventListener('click',()=>{beginLoad();data=null;currentDay='';preferences.clear();selected.clear();expanded.clear();if(/^#(?:note|notefeed)=/.test(location.hash)){history.replaceState(null,'',location.pathname+location.search);window.RaceNoteInitialFragment='';}render();note('読込データを消去しました。');});
     $('kn-market').addEventListener('change',event=>{market=event.target.value;renderCards();});
     $('kn-variant').addEventListener('change',event=>{variant=event.target.value;renderCards();});
+    $('kn-confidence').addEventListener('change',event=>{confidenceFilter=event.target.value;renderCards();});
     $('kn-search').addEventListener('input',event=>{query=event.target.value.trim().toLocaleLowerCase('ja');renderCards();});
     $('kn-future').addEventListener('change',event=>{futureOnly=event.target.checked;renderCards();});
     $('kn-selected').addEventListener('change',event=>{selectedOnly=event.target.checked;renderCards();});
@@ -76,25 +77,39 @@
     const nationwide=data?.nationwide?.get(currentDay),saved=nationwide?.races.filter(row=>row.original_identity).length||0,adjusted=nationwide?.races.filter(row=>row.original_identity?.conditioned).length||0;
     const metrics=nationwide?[['確認した対象',nationwide.registry_available?nationwide.races.length+'件':'確認中'],['A保存済み',saved+'件'],['B保存済み',saved+'件'],['補正A/B保存済み',adjusted+'件']]:[['対象レース',list.length+'件'],['出走メンバー',riders+'名'],['原分析の買い目',original+'点'],['保存オッズ',priced+'レース']];
     $('kn-metrics').innerHTML=metrics.map(([k,v])=>'<div><span>'+esc(k)+'</span><strong>'+esc(v)+'</strong></div>').join('');
-    const imported=list.some(row=>!row.nationwideOnly);$('kn-market').disabled=Boolean(nationwide)&&!imported;$('kn-variant').disabled=Boolean(nationwide)&&!imported;
+    const imported=list.some(row=>!row.nationwideOnly),onlyNational=Boolean(nationwide)&&!imported;$('kn-market').disabled=onlyNational;$('kn-variant').disabled=onlyNational;
+    if(onlyNational){market='3t';$('kn-market').value=market;}
+    for(const button of root.querySelectorAll('[data-prediction]'))button.disabled=onlyNational;
     const venues=[...new Set(list.map(r=>r.venue))];$('kn-venues').innerHTML=[['','締切順・全会場'],...venues.map(v=>[v,v])].map(([v,label])=>'<button type="button" data-venue="'+esc(v)+'" aria-pressed="'+(v===venue)+'">'+esc(label)+'</button>').join('');
     renderProvenance();
     renderCards();
   }
   function renderCards(){
-    const list=all(),now=Date.now();const shown=list.filter(r=>(!venue||r.venue===venue)&&(!query||(r.venue+' '+r.title+' '+r.riders.map(p=>p.name).join(' ')+' '+r.original.headline).toLocaleLowerCase('ja').includes(query))&&(!futureOnly||r.cutoff&&Date.parse(r.cutoff)>now)&&(!selectedOnly||selected.has(r.id)));
+    const list=all(),now=Date.now();const candidates=list.filter(r=>(!venue||r.venue===venue)&&(!query||(r.venue+' '+r.title+' '+r.riders.map(p=>p.name).join(' ')+' '+r.original.headline).toLocaleLowerCase('ja').includes(query))&&(!futureOnly||r.cutoff&&Date.parse(r.cutoff)>now)&&(!selectedOnly||selected.has(r.id))&&(r.nationwideOnly||variant!=='rollover'||M.forecast(r,market,variant).tickets.length>0));
+    const shown=candidates.filter(r=>confidenceFilter==='all'||displayedPredictions(r).some(prediction=>C.predictionMatches(prediction,confidenceFilter)));
     $('kn-count').textContent='表示 '+shown.length+' / 全'+list.length+'レース';
-    $('kn-races').innerHTML=shown.length?shown.map(renderRace).join(''):'<div class="kn-empty">'+(data?'条件に合うレースはありません。':'本人用リンク、または保存データを開くと予想を表示します。')+'</div>';
+    const counts=[0,0,0,0,0];for(const row of candidates)for(const prediction of displayedPredictions(row))if(prediction.tickets.length)counts[C.normalize(prediction.confidence).rank]++;
+    $('kn-confidence-count').textContent='表示条件内の保存予想：激アツ🔥 '+counts[4]+'件 / 高 '+counts[3]+'件 / 中 '+counts[2]+'件 / 低 '+counts[1]+'件 / 未評価 '+counts[0]+'件';
+    for(const button of root.querySelectorAll('[data-prediction]'))button.setAttribute('aria-pressed',String(button.dataset.prediction==='rollover'?variant==='rollover':['original','flexible'].includes(variant)));
+    root.querySelector('[data-confidence-filter]').setAttribute('aria-pressed',String(confidenceFilter==='high_plus'));
+    const empty=data?(confidenceFilter==='high_plus'||confidenceFilter==='hot'?'この条件に合う保存予想はありません。信頼度は保存時の評価を表示しています。':variant==='rollover'?'この条件の転がし候補はありません。':'条件に合うレースはありません。'):'本人用リンク、または保存データを開くと予想を表示します。';
+    $('kn-races').innerHTML=shown.length?shown.map(renderRace).join(''):'<div class="kn-empty">'+empty+'</div>';
     renderNationwideSummary();
     renderResearchSummary(list);
     selectionSummary();
+  }
+  function displayedPredictions(row){return M.displayedPredictions(row,market,variant);}
+  function confidenceBadge(prediction){const value=C.normalize(prediction.confidence);return '<span class="kn-confidence kn-confidence-'+value.rank+'" data-confidence-rank="'+value.rank+'">信頼度 '+esc(C.displayLabel(prediction.confidence))+'</span>';}
+  function confidenceEvidence(prediction){
+    const entry=prediction.confidenceAssessment,bundle=prediction.confidenceBundle;if(!entry||!bundle)return '';
+    return '<details class="kn-details kn-confidence-evidence"><summary>信頼度の根拠</summary><p>保存時のルール評価・的中率は未校正</p><ul>'+entry.reasons.map(reason=>'<li>'+esc(reason.message)+'</li>').join('')+'</ul><p class="kn-small">'+entry.limitations.map(esc).join('<br>')+'</p><p class="kn-small">評価 '+stamp(bundle.assessed_at)+' · ルール '+esc(bundle.rules_version)+'</p></details>';
   }
   function lineHtml(row){
     const line=n=>Number.isInteger(n)?car(n):n&&Array.isArray(n.contest)?'<span class="kn-contest">'+n.contest.map(car).join('')+'<small>競り</small></span>':'';
     return row.lines.map(group=>'<span class="kn-line">'+(Array.isArray(group)?group:[]).map(line).join('<span>−</span>')+'</span>').join('<span class="kn-line-gap">/</span>');
   }
   function renderRace(row){
-    if(row.nationwideOnly)return renderNationwideRace(row);
+    if(row.nationwideOnly||confidenceFilter!=='all'&&!C.predictionMatches(M.forecast(row,market,variant),confidenceFilter))return renderNationwideRace(row);
     const prediction=M.forecast(row,market,variant),p=pref(row),allocation=M.allocate(prediction,p.budget,p.excluded),key=row.id+':'+market+':'+variant,open=expanded.has(key);
     const late=row.cutoff&&Date.parse(row.cutoff)<Date.now();
     const items=prediction.tickets.map((ticket,i)=>{
@@ -105,7 +120,7 @@
     const outcome=row.settlement;
     const result=liveResult(row)+(outcome?'<section class="kn-result"><b>提供サイトの保存分析の照合</b><p>'+esc(outcome.winning_combo||'結果未確認')+' · '+(outcome.sources_agree===false?'出典間の相違で保留':outcome.hit?'的中':outcome.status==='MISS'?'不的中':esc(outcome.status||'照合未確認'))+'</p><p>各100円の想定：'+money(outcome.net_yen)+'（実購入ではありません）</p></section>':'');
     const budget=prediction.allocatable?'<div class="kn-budget"><label>候補予算<select data-budget="'+row.id+'">'+[2000,2500,3000].map(n=>'<option value="'+n+'" '+(n===p.budget?'selected':'')+'>'+money(n)+'</option>').join('')+'</select></label><span>配分 '+allocation.chosen.length+'点 / 合計 '+money(allocation.total)+'</span></div>':'';
-    return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+(prediction.confidence?'<span>分析区分 '+esc(prediction.confidence)+'</span>':'')+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p><div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+budget+
+    return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+confidenceBadge(prediction)+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p>'+confidenceEvidence(prediction)+'<div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+budget+
       '<div class="kn-point-heading"><b>予想 '+prediction.tickets.length+'点'+(prediction.allocatable?' · 配分 '+allocation.chosen.length+'点':'')+'</b></div><div class="kn-tickets">'+(items||'<p class="kn-empty">'+esc(prediction.reason||'この券種の保存予想はありません。')+'</p>')+'</div>'+(prediction.tickets.length>3?'<button type="button" class="kn-more" data-expand="'+row.id+'">'+(open?'上位3点に戻す':'全'+prediction.tickets.length+'点を表示')+'</button>':'')+
       (prediction.allocatable&&!allocation.available?'<p class="kn-warning">配分対象がないか、全点への100円単位の配分に予算が足りません。点数を選び直してください。</p>':'')+
       '<div class="kn-race-actions"><button type="button" data-select="'+row.id+'" aria-pressed="'+selected.has(row.id)+'">'+(selected.has(row.id)?'検討リストから外す':'検討リストに追加')+'</button><button type="button" data-copy="'+row.id+'" '+(prediction.allocatable&&!allocation.available?'disabled':'')+'>買い目をコピー</button></div>'+nationalStatus(row)+result+researchResult(row)+
@@ -152,7 +167,7 @@
   }
   function frozenTickets(saved){
     if(!saved)return '';
-    return '<p class="kn-frozen-clock">作成 '+stamp(saved.generatedAt)+'<br>締切前の保存 '+stamp(saved.sealedAt)+'</p><p>全部の買い目</p><ol class="kn-frozen-tickets" data-frozen-arm="'+saved.name+'">'+saved.tickets.map(t=>'<li data-frozen-combo="'+t.combo+'">'+t.combo.split('-').map(Number).map(car).join('<span>−</span>')+'</li>').join('')+'</ol>'+frozenBasis(saved);
+    return '<div class="kn-badges">'+confidenceBadge(saved)+'</div>'+confidenceEvidence(saved)+'<p class="kn-frozen-clock">作成 '+stamp(saved.generatedAt)+'<br>締切前の保存 '+stamp(saved.sealedAt)+'</p><p>全部の買い目</p><ol class="kn-frozen-tickets" data-frozen-arm="'+saved.name+'">'+saved.tickets.map(t=>'<li data-frozen-combo="'+t.combo+'">'+t.combo.split('-').map(Number).map(car).join('<span>−</span>')+'</li>').join('')+'</ol>'+frozenBasis(saved);
   }
   function resultLabel(state){
     if(state==='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL')return '二つの掲載元が一致（公式認証なし）';
@@ -162,6 +177,8 @@
     return holds[state]||'結果の照合は未取得';
   }
   function comparisonHtml(row,model,version=null){
+    const context=version?{...row,reference:version.reference,referenceEnvelope:version.envelope}:row;
+    if(!C.predictionMatches(M.forecast(context,market,model),confidenceFilter))return '';
     const score=M.compare(row,market,model,version),status=score.status==='RESEARCH_HIT'?'的中':score.status==='RESEARCH_MISS'?'不的中':'未判定';
     const label=['A','B','C'].includes(model)?'参考'+model:M.forecast(row,market,model).label;
     const timing={GENERATED_AT_MISSING:'予想の生成時点は未確認',CUTOFF_UNVERIFIED:'掲載締切は未確認',GENERATED_AFTER_OR_AT_CUTOFF:'掲載締切以後に生成された保存版',RECORDED_PRE_CUTOFF_NOT_FORMAL:'記載時点は掲載締切前（正式な保存時刻の認証なし）'};
@@ -195,11 +212,13 @@
     const status={hit:'的中',miss:'不的中',pending:'未照合',void:'返還・採点対象外',unverifiable:'原本の確認待ち'};
     const arms=[['A','A'],['B','B'],['adjusted_A','補正A'],['adjusted_B','補正B'],['C','C']].map(([name,label])=>{
       const arm=result?.arms[name],saved=M.frozenArm(row,name),aligned=!saved||arm?.points==null||arm.points===saved.tickets.length;
+      if(confidenceFilter!=='all'&&((!row.nationwideOnly&&(market!=='3t'||variant==='rollover'))||!C.predictionMatches(saved,confidenceFilter)))return '';
       const state=aligned?(arm?.state||'pending'):'unverifiable',missing=national&&!saved&&!arm?.points;
       const referencePending=!saved&&national?.original_identity&&(['A','B'].includes(name)||name.startsWith('adjusted_')&&national.original_identity.conditioned);
       const outcome=(frozen||national)&&name==='C'?'未作成':referencePending?'保存原本の読込待ち':missing?(name.startsWith('adjusted_')?'補正の保存待ち':'未作成'):!result?'結果待ち':status[state]||'未照合';
       return '<div class="kn-result-arm" data-result-arm="'+name+'"><h4>'+(frozen||national?label:'締切前保存'+label)+'</h4><p>採点結果：<strong>'+esc(outcome)+'</strong></p><p>'+(saved?'点数 '+saved.tickets.length+'点':arm?.points!=null?arm.points+'点':(frozen||national)&&name==='C'?'Cの予想は未作成です。':'点数未確認')+'</p>'+(missing&&name.startsWith('adjusted_')?'<p class="kn-small">'+conditionLabel(national.condition_state)+'</p>':'')+(paid&&aligned&&arm?.stake_yen!=null&&arm?.return_yen!=null?'<p>各100円の想定：投資 '+money(arm.stake_yen)+' / 払戻 '+money(arm.return_yen)+'</p>':'')+(!aligned?'<p class="kn-warning">保存原本と採点側の点数が一致していないため、採点結果の表示を保留しています。</p>':'')+frozenTickets(saved)+'</div>';
     }).join('');
+    if(confidenceFilter!=='all'&&!arms)return '';
     const sourceNames={keirin_jp:'KEIRIN.JP',kdreams:'Kドリームス',netkeirin:'netkeirin',official_pdf:'公式PDF',official_json:'公式データ'};
     const comparisonNames={matched:'一致',different:'相違あり',unavailable:'取得待ち',unverified:'未確認'};
     const comparisons=(result?.source_comparison||[]).map(s=>sourceNames[s.source_id]+'：'+comparisonNames[s.state]).join(' / ');
@@ -230,6 +249,8 @@
   async function copy(value){if(!value)return;try{await navigator.clipboard.writeText(value);note('買い目候補をコピーしました。');}catch{const area=document.createElement('textarea');area.value=value;root.append(area);area.select();const ok=document.execCommand('copy');area.remove();note(ok?'買い目候補をコピーしました。':'このブラウザーではコピーできませんでした。',!ok);}}
   function click(button){
     if(!button)return;
+    if(button.dataset.prediction){variant=button.dataset.prediction;$('kn-variant').value=variant;renderCards();return;}
+    if(button.dataset.confidenceFilter){confidenceFilter=button.dataset.confidenceFilter;$('kn-confidence').value=confidenceFilter;renderCards();return;}
     if(button.dataset.day){currentDay=button.dataset.day;venue='';render();return;}
     if(Object.hasOwn(button.dataset,'venue')){venue=button.dataset.venue;render();return;}
     if(button.dataset.expand){const key=button.dataset.expand+':'+market+':'+variant;expanded.has(key)?expanded.delete(key):expanded.add(key);renderCards();return;}

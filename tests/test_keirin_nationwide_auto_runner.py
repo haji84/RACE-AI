@@ -1,6 +1,6 @@
 """Synthetic source bytes and TEST RSA key. Not actual real-race proof."""
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -98,6 +98,32 @@ class NationwideRealAutomationCode(unittest.TestCase):
         self.assertEqual(out["organizer_results_scored"],0)
         self.assertNotIn("ranked_tickets",json.dumps(out))
         self.assertFalse(out["source_provider_access_verified"])
+
+    def test_fresh_pre_cutoff_confidence_is_saved_privately_with_the_batch_original(self):
+        from tests.test_keirin_nationwide_auto_storage import make_key
+        from race_ai import keirin_nationwide_auto_settlement as settlement
+        self.add_source();key,public,pin=make_key()
+        private=key.private_bytes(serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,serialization.NoEncryption())
+        ticks=iter(datetime.fromisoformat(NOW)+timedelta(seconds=n) for n in range(10))
+        with patch.object(storage,'PINNED_OWNER_SPKI_SHA256',pin):
+            report=self.run_it(owner_public_key_pem=public,clock=lambda:next(ticks))
+            raw=(self.cipher/(RID+'.sealed.json')).read_bytes()
+            manifest,baseline,_,assessment=settlement.decrypt_original_with_assessment(raw_cipher=raw,
+                expected_cipher_sha256=sha256(raw).hexdigest(),owner_private_pem=private)
+        self.assertIsNotNone(assessment)
+        self.assertGreater(generator.when(assessment['assessed_at']),generator.when(baseline['generated_at']))
+        self.assertLessEqual(generator.when(assessment['assessed_at']),generator.when(manifest['sealed_at']))
+        self.assertNotIn('confidence_assessment',baseline)
+        self.assertNotIn('confidence_assessment',json.dumps(report))
+
+    def test_clock_crossing_the_assessment_margin_does_not_seal_an_unassessed_original(self):
+        self.add_source()
+        times=iter((datetime.fromisoformat(NOW),datetime.fromisoformat('2026-11-18T11:58:56+09:00')))
+        report=self.run_it(clock=lambda:next(times))
+        self.assertEqual(report['same_job_sealed'],0)
+        self.assertEqual(report['A_generated'],0)
+        self.assertFalse((self.cipher/(RID+'.sealed.json')).exists())
 
     def test_second_runner_cipher_check_not_RSA_decryption(self):
         self.add_source()

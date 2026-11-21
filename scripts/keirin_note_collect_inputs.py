@@ -18,6 +18,7 @@ import os
 import re
 
 from race_ai import keirin_nationwide_auto_generator as model
+from race_ai import keirin_confidence as confidence
 from race_ai import keirin_public_two_source_normalizer as normalize_pages
 from race_ai.keirin_note_view import _private_root, MAX_FILE
 from scripts import keirin_capture_public_two_sources as capture
@@ -456,8 +457,10 @@ def collect_day(*,day_jst,private_root,fetch=None,clock=None,already_captured_id
                         display['field_sources']={'competition':row['class_field_source']}
                     generated_at=_now(clock).isoformat()
                     prediction=model.generate_A_B(snap,generated_at=generated_at,max_tickets=12)
+                    assessment=confidence.assess_baseline(snap,prediction,
+                        assessed_at=_now(clock).isoformat())
                     races.append(display)
-                    references.append(dict(input=snap,output=prediction,
+                    references.append(dict(input=snap,output=prediction,confidence_assessment=assessment,
                         status='OWNER_RESEARCH_REFERENCE_NOT_FORMAL_SEALED_ORIGINAL',
                         independent_runner_readback=False,model_source_commit=model_source_commit,
                         model_source_sha256=sha256(Path(model.__file__).read_bytes()).hexdigest()))

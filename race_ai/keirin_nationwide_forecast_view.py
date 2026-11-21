@@ -17,6 +17,7 @@ import re
 from . import keirin_frozen_forecast_view as frozen
 from . import keirin_note_feed as feed
 from . import keirin_nationwide_auto_generator as model
+from . import keirin_confidence as confidence
 from .keirin_form_fall_blind_pdca import _tickets
 from .keirin_note_view import canonical, SCHEMA as NOTE_SCHEMA
 
@@ -62,7 +63,8 @@ def _ids(values, day):
 
 def checked_original(row):
     """Validate the new baseline-only variant without relaxing canary V1."""
-    need(frozen.exact(row, ORIGINAL_KEYS), 'ORIGINAL_FIELDS')
+    need(frozen.exact(row, ORIGINAL_KEYS) or
+         frozen.exact(row, (*ORIGINAL_KEYS,'confidence_assessment')), 'ORIGINAL_FIELDS')
     if row['conditioned'] is not None:
         frozen.checked_forecasts(dict(schema=frozen.SCHEMA, races=[row]))
         return row
@@ -79,6 +81,9 @@ def checked_original(row):
         model.when(base['published_cutoff_at']), model.when(row['baseline_sealed_at']))
     need(model.when(base['source_as_of']) <= generated <= sealed and
          (cutoff-sealed).total_seconds() >= 65, 'BASELINE_CUTOFF')
+    if 'confidence_assessment' in row:
+        confidence.checked_assessment(row['confidence_assessment'],snapshot=None,
+            baseline=base,sealed_at=row['baseline_sealed_at'])
     need(base['C'] == {'state': frozen.HOLD_C}, 'NO_FABRICATED_C')
     for name in ('official_cutoff_independently_authenticated', 'official_result_observed',
                  'formal_model_promoted', 'old_PR71_four_models_required', 'real_money_wager_placed'):
@@ -253,11 +258,16 @@ def from_admitted(admitted, owner_private_pem):
             else: need(adjusted['condition_supplement_sha256'] == model.digest(payload['supplement']), 'SUPPLEMENT_IDENTITY')
             original = {name:deepcopy(payload[name]) for name in ORIGINAL_KEYS
                         if name not in {'revision','facts'}}
+            if 'confidence_assessment' in payload:
+                original['confidence_assessment'] = deepcopy(confidence.checked_assessment(payload['confidence_assessment'],
+                    snapshot=snapshot,baseline=base,sealed_at=payload['baseline_sealed_at']))
             original['facts'] = {name:deepcopy(snapshot[name]) for name in ('competition','line_groups','riders')}
             original['revision'] = _opaque(key, 'ORIGINAL', original)
             checked_original(original)
             base_identity = {name:original[name] for name in ('race_id','baseline_cipher_sha256',
                 'baseline_sealed_at','facts','baseline')}
+            if 'confidence_assessment' in original:
+                base_identity['confidence_assessment'] = original['confidence_assessment']
             identity = dict(baseline=_opaque(key, 'BASELINE', base_identity), conditioned=None)
             if adjusted is not None:
                 identity['conditioned'] = _opaque(key, 'CONDITIONED', dict(baseline=identity['baseline'],

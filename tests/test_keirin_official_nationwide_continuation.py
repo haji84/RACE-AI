@@ -90,6 +90,19 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(out['new_A_B_git_archived'],0)
         self.assertFalse(any(r['kind']=='original' for r in store.saved))
 
+    def test_new_original_binds_the_same_confidence_in_source_bundle_and_both_cipher_arms(self):
+        from race_ai import keirin_nationwide_auto_settlement as decrypt
+        with tempfile.TemporaryDirectory() as folder:
+            _,store,_,_=self.run_fixture(folder)
+            saved=next(r['payload'] for r in store.saved if r['kind']=='original')
+            self.assertIn('confidence_assessment',set(saved))
+            raw=(Path(folder)/'private'/saved['race_id']/(saved['race_id']+'.sealed.json')).read_bytes()
+            _,baseline,_,assessment=decrypt.decrypt_original_with_assessment(raw_cipher=raw,
+                expected_cipher_sha256=saved['baseline_cipher_sha256'],owner_private_pem=self.private)
+        self.assertEqual(assessment,saved['confidence_assessment'])
+        self.assertEqual(baseline,saved['baseline'])
+        self.assertNotIn('confidence_assessment',baseline)
+
     def test_pending_current_day_rotates_and_newly_due_order_precedes_unit_retry(self):
         api=self.api();context=api.SettlementContext();context.client=object();context.tick=1
         store=FakeStore('/synthetic','2030-01-15')
