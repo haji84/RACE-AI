@@ -2228,11 +2228,251 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   return {plan,positiveBounds,continuationOdds,allocate:staking.allocate};
 });
 
+/* Presentation and validation of saved assessments. This module never assigns a grade. */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.RaceKeirinConfidence = factory();
+})(typeof window === 'object' ? window : globalThis, function () {
+  'use strict';
+
+  const SCHEMA = 'RACE_AI_KEIRIN_CONFIDENCE_ASSESSMENT_V1';
+  const RULES = 'research-coherence-v1';
+  const UNIVERSE_SCHEMA = 'RACE_AI_KEIRIN_CONFIDENCE_UNIVERSE_V1';
+  const PHASES = ['INITIAL', 'BELL', 'FINAL_HOME', 'FINAL_BACK', 'FOURTH_CORNER', 'GOAL'];
+  // Immutable research-coherence-v1 acceptance constraints. These only reject
+  // contradictory saved metrics/grades; they never create or change a rating.
+  const V1_GRADE_CONSTRAINTS = [[4, .85, .85, .90, .90], [3, .70, .70, .80, .80], [2, .50, .50, .60, .50]];
+  const GRADES = new Map([['未評価', 0], ['低', 1], ['中', 2], ['高', 3], ['激アツ', 4]]);
+  const verified = new WeakSet();
+  const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+  const exact = (value, names) => record(value) && Object.keys(value).sort().join(',') === names.slice().sort().join(',');
+  const need = condition => { if (!condition) throw new Error('KEIRIN_CONFIDENCE_INVALID'); };
+  const hex = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+  const bounded = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.length <= max;
+  const ratio = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
+  const unique = values => new Set(values).size === values.length;
+  const canonical = value => JSON.stringify(value && typeof value === 'object'
+    ? Array.isArray(value) ? value.map(item => JSON.parse(canonical(item)))
+      : Object.fromEntries(Object.keys(value).sort().map(key => [key, JSON.parse(canonical(value[key]))]))
+    : value);
+  function timestamp(value) {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d\d:\d\d:\d\d(?:\.\d{1,6})?(?:Z|[+-]\d\d:\d\d)$/.test(value)) return null;
+    const time = Date.parse(value), date = value.slice(0, 10), midnight = Date.parse(date + 'T00:00:00Z');
+    if (!Number.isFinite(time) || !Number.isFinite(midnight) || new Date(midnight).toISOString().slice(0, 10) !== date || Number(value.slice(11, 13)) > 23 || Number(value.slice(14, 16)) > 59 || Number(value.slice(17, 19)) > 59) return null;
+    return time;
+  }
+  function timestampMicros(value) {
+    const milliseconds = timestamp(value);if (milliseconds === null) return null;
+    const fraction = /\.(\d{1,6})(?:Z|[+-]\d\d:\d\d)$/.exec(value)?.[1] || '';
+    return BigInt(milliseconds) * 1000n + BigInt(fraction.padEnd(6, '0').slice(3));
+  }
+  async function digest(value) {
+    const crypto = globalThis.crypto?.subtle ? globalThis.crypto : require('node:crypto').webcrypto;
+    const bytes = new TextEncoder().encode(canonical(value));
+    return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  function normalize(raw) {
+    switch (typeof raw === 'string' ? raw.trim() : null) {
+      case '激アツ':
+      case '激アツ🔥': return { label: '激アツ', rank: 4 };
+      case '高':
+      case '高い':
+      case '高め': return { label: '高', rank: 3 };
+      case '中':
+      case '中位': return { label: '中', rank: 2 };
+      case '低':
+      case '低め':
+      case '控えめ': return { label: '低', rank: 1 };
+      default: return { label: '未評価', rank: 0 };
+    }
+  }
+  function displayLabel(raw) {
+    const value = normalize(raw);
+    return value.rank === 4 ? '激アツ🔥' : value.label;
+  }
+  function matches(raw, filter = 'all') {
+    const { rank } = normalize(raw);
+    switch (filter) {
+      case 'all': return true;
+      case 'high_plus': return rank >= 3;
+      case 'hot': return rank === 4;
+      case 'high': return rank === 3;
+      case 'medium': return rank === 2;
+      case 'low': return rank === 1;
+      case 'unrated': return rank === 0;
+      default: return false;
+    }
+  }
+  function predictionMatches(prediction, filter = 'all') {
+    return filter === 'all' || Boolean(prediction?.tickets?.length && matches(prediction.confidence, filter));
+  }
+  function selected(bundle, name) {
+    if (bundle == null) return { confidence: null, confidenceAssessment: null, confidenceBundle: null };
+    need(verified.has(bundle));
+    const entry = bundle.evaluations[name];
+    return { confidence: entry?.grade ?? null, confidenceAssessment: entry || null, confidenceBundle: entry ? bundle : null };
+  }
+
+  function ticketArrays(values, market, cars) {
+    const places = market === '2t' ? 2 : 3;
+    need(Array.isArray(values) && values.length <= 504);
+    const tuples = values.map(value => {
+      const tuple = Array.isArray(value) ? value : typeof value?.combo === 'string' && new RegExp('^[1-9](?:-[1-9]){' + (places - 1) + '}$').test(value.combo) ? value.combo.split('-').map(Number) : null;
+      need(Array.isArray(tuple) && tuple.length === places && unique(tuple) && tuple.every(car => Number.isInteger(car) && car >= 1 && car <= 9 && (!cars || cars.includes(car))));
+      return tuple.slice();
+    });
+    need(unique(tuples.map(tuple => tuple.join('-'))));
+    return tuples.sort((a, b) => a.join('-').localeCompare(b.join('-')));
+  }
+  function checkedUniverse(universe) {
+    need(exact(universe, ['schema', 'race_id', 'source_as_of', 'cutoff', 'source_prediction_sha256', 'source_facts_sha256', 'cars', 'evidence_kind', 'candidate_origin', 'source_status', 'scenarios']));
+    need(universe.schema === UNIVERSE_SCHEMA && /^20\d{10}$/.test(universe.race_id) && timestamp(universe.source_as_of) !== null && timestamp(universe.cutoff) !== null);
+    need(hex(universe.source_prediction_sha256) && hex(universe.source_facts_sha256));
+    need(Array.isArray(universe.cars) && universe.cars.length >= 5 && universe.cars.length <= 9 && unique(universe.cars) && universe.cars.every((car, index) => Number.isInteger(car) && car >= 1 && car <= 9 && (!index || universe.cars[index - 1] < car)));
+    need(['canonical_b_orders', 'authored_goals'].includes(universe.evidence_kind) && ['canonical_projection_v1', 'independent_preselection_v1', 'legacy_ticket_links'].includes(universe.candidate_origin));
+    const status = universe.source_status;
+    need(exact(status, ['lineup', 'required_missing', 'conflicting_fields']) && ['published_prediction', 'not_applicable_girls', 'unknown'].includes(status.lineup));
+    for (const key of ['required_missing', 'conflicting_fields']) need(Array.isArray(status[key]) && status[key].length <= 128 && unique(status[key]) && status[key].every(value => bounded(value, 200)));
+    need(Array.isArray(universe.scenarios) && universe.scenarios.length > 0 && universe.scenarios.length <= 128);
+    const ids = new Set();
+    for (const scenario of universe.scenarios) {
+      need(exact(scenario, ['id', 'role', 'counter_family', 'phases', 'goal_candidates', 'research_weight']) && bounded(scenario.id, 120) && !ids.has(scenario.id));
+      ids.add(scenario.id);
+      need(['main', 'counter'].includes(scenario.role) && (scenario.role === 'main' ? scenario.counter_family === null : ['counterattack', 'follower_sashi', 'late_sprint', 'pace_fade', 'other'].includes(scenario.counter_family)));
+      need(Array.isArray(scenario.phases) && scenario.phases.length <= 128);
+      const prose = scenario.phases.every(phase => bounded(phase, 2000));
+      if (!prose) scenario.phases.forEach(phase => {
+        need(exact(phase, ['phase', 'projected_order', 'projected_top3', 'hypothesis_actions', 'actual_rider_position_video_verified']) && PHASES.includes(phase.phase) && phase.actual_rider_position_video_verified === false);
+        need(Array.isArray(phase.projected_order) && phase.projected_order.length === universe.cars.length && unique(phase.projected_order) && phase.projected_order.every(car => universe.cars.includes(car)));
+        need(canonical(phase.projected_top3) === canonical(phase.projected_order.slice(0, 3)) && Array.isArray(phase.hypothesis_actions) && phase.hypothesis_actions.length > 0 && phase.hypothesis_actions.length <= 32 && phase.hypothesis_actions.every(action => bounded(action, 120) && /^[A-Z][A-Z0-9_]*$/.test(action)));
+      });
+      need(record(scenario.goal_candidates) && Object.keys(scenario.goal_candidates).length > 0 && Object.keys(scenario.goal_candidates).every(market => ['3t', '2t'].includes(market)));
+      for (const [market, candidates] of Object.entries(scenario.goal_candidates)) {
+        need(ticketArrays(candidates, market, universe.cars).length > 0);
+        const goal = scenario.phases.find(phase => record(phase) && phase.phase === 'GOAL');
+        if (goal) need(candidates.some(candidate => canonical(candidate) === canonical(goal.projected_order.slice(0, market === '2t' ? 2 : 3))));
+      }
+      if (universe.evidence_kind === 'canonical_b_orders') need(!prose && typeof scenario.research_weight === 'string' && /^(?:0\.\d{12}|1\.000000000000)$/.test(scenario.research_weight) && Number(scenario.research_weight) > 0);
+      else need(scenario.research_weight === null);
+    }
+    if (universe.evidence_kind === 'canonical_b_orders') need(Math.abs(universe.scenarios.reduce((sum, scenario) => sum + Number(scenario.research_weight), 0) - 1) <= 1e-8);
+    return ids;
+  }
+  function universeFromBaseline(baseline, source) {
+    need(record(baseline) && record(source) && Array.isArray(source.riders) && Array.isArray(baseline.B?.six_phase_scenarios));
+    const riders = source.riders.slice().sort((a, b) => a.car - b.car), missing = [];
+    for (const rider of riders) {
+      if (rider.competition_points <= 0) missing.push('riders.' + rider.car + '.competition_points');
+      if (rider.style === 'UNKNOWN') missing.push('riders.' + rider.car + '.style');
+    }
+    const families = [
+      ['pace_fade', ['FRONT_LEADER_PACE_FADE']], ['late_sprint', ['LATE_SPRINT_OVERTAKE']],
+      ['follower_sashi', ['FOLLOWER_SASHI_SCENARIO']], ['counterattack', ['CHALLENGER_EARLY_COUNTER', 'CHALLENGER_MAKURI']],
+    ];
+    return {
+      schema: UNIVERSE_SCHEMA, race_id: baseline.race_id, source_as_of: baseline.source_as_of, cutoff: baseline.published_cutoff_at,
+      source_prediction_sha256: baseline.prediction_sha256, source_facts_sha256: baseline.source_facts_sha256,
+      cars: riders.map(rider => rider.car), evidence_kind: 'canonical_b_orders', candidate_origin: 'canonical_projection_v1',
+      source_status: { lineup: source.competition === 'GIRLS' ? 'not_applicable_girls' : 'published_prediction', required_missing: missing, conflicting_fields: [] },
+      scenarios: baseline.B.six_phase_scenarios.map(scenario => {
+        const actions = scenario.six_phases.flatMap(phase => phase.hypothesis_actions);
+        const family = families.find(([, labels]) => labels.some(label => actions.includes(label)))?.[0] || null;
+        return { id: scenario.scenario_id, role: family ? 'counter' : 'main', counter_family: family, phases: scenario.six_phases,
+          goal_candidates: { '3t': [scenario.projected_3ren_tan], '2t': [scenario.projected_3ren_tan.slice(0, 2)] }, research_weight: scenario.relative_research_weight.toFixed(12) };
+      }),
+    };
+  }
+  function authoredPredictionBody(raw) {
+    const value = Object.fromEntries(Object.entries(raw).filter(([key]) => key !== 'confidence_assessment'));
+    if (Object.hasOwn(value, 'rollover')) value.rollover = authoredPredictionBody(value.rollover);
+    return value;
+  }
+  function freezeAssessment(value) {
+    if (value !== null && typeof value === 'object') {
+      for (const child of Object.values(value)) freezeAssessment(child);
+      Object.freeze(value);
+    }
+    return value;
+  }
+  async function validate(bundle, context) {
+    need(exact(bundle, ['schema', 'rules_version', 'race_id', 'assessed_at', 'cutoff', 'source_prediction_sha256', 'source_facts_sha256', 'scenario_universe_sha256', 'evaluations']));
+    need(bundle.schema === SCHEMA && bundle.rules_version === RULES && bundle.race_id === context.raceId && bundle.cutoff === context.cutoff);
+    const assessed = timestampMicros(bundle.assessed_at), generated = timestampMicros(context.generatedAt), cutoff = timestampMicros(bundle.cutoff), sourceAt = timestampMicros(context.universe.source_as_of);
+    need(assessed !== null && generated !== null && cutoff !== null && sourceAt !== null && sourceAt <= generated && generated <= assessed && cutoff - assessed >= 65000000n);
+    if (context.sealedAt !== undefined) {
+      const sealed = timestampMicros(context.sealedAt);need(sealed !== null && assessed <= sealed && cutoff - sealed >= 65000000n);
+    }
+    for (const name of ['source_prediction_sha256', 'source_facts_sha256', 'scenario_universe_sha256']) need(hex(bundle[name]));
+    need(bundle.source_prediction_sha256 === context.predictionSha256 && bundle.source_facts_sha256 === context.universe.source_facts_sha256);
+    const ids = checkedUniverse(context.universe);
+    need(context.universe.race_id === bundle.race_id && context.universe.cutoff === bundle.cutoff && await digest(context.universe) === bundle.scenario_universe_sha256);
+    need(exact(bundle.evaluations, Object.keys(context.evaluations)));
+    for (const [name, expected] of Object.entries(context.evaluations)) {
+      const entry = bundle.evaluations[name];
+      need(exact(entry, ['grade', 'rank', 'market', 'strategy', 'tickets_sha256', 'metrics', 'reasons', 'limitations']) && GRADES.has(entry.grade) && entry.rank === GRADES.get(entry.grade));
+      need(entry.market === expected.market && entry.strategy === expected.strategy && hex(entry.tickets_sha256));
+      need(await digest(ticketArrays(expected.tickets, entry.market, context.universe.cars)) === entry.tickets_sha256);
+      const metrics = entry.metrics;
+      need(exact(metrics, ['scenario_count', 'axis_cars', 'axis_top2_share', 'pair_top4_share', 'triple_top6_share', 'scenario_coverage', 'major_uncovered_ids', 'evidence_kind', 'weight_basis', 'late_phase_axis_presence']));
+      need(Number.isInteger(metrics.scenario_count) && metrics.scenario_count === ids.size && metrics.scenario_count <= 128 && Array.isArray(metrics.axis_cars) && metrics.axis_cars.length <= 2 && unique(metrics.axis_cars) && metrics.axis_cars.every(car => context.universe.cars.includes(car)));
+      for (const key of ['axis_top2_share', 'pair_top4_share', 'triple_top6_share', 'scenario_coverage', 'late_phase_axis_presence']) need(metrics[key] === null || ratio(metrics[key]));
+      if (entry.rank === 0) need(metrics.axis_cars.length === 0 && ['axis_top2_share', 'pair_top4_share', 'triple_top6_share', 'scenario_coverage', 'late_phase_axis_presence'].every(key => metrics[key] === null) && Array.isArray(metrics.major_uncovered_ids) && metrics.major_uncovered_ids.length === 0);
+      else {
+        need(['axis_top2_share', 'pair_top4_share', 'scenario_coverage'].every(key => metrics[key] !== null) && (entry.market !== '3t' || metrics.triple_top6_share !== null));
+        need(context.universe.scenarios.every(scenario => scenario.phases.length === 6 && (typeof scenario.phases[0] === 'string' || scenario.phases.every((phase, index) => phase.phase === PHASES[index])) && Object.hasOwn(scenario.goal_candidates, entry.market)));
+        const status = context.universe.source_status;
+        need(status.lineup !== 'unknown' && status.required_missing.length === 0 && status.conflicting_fields.length === 0);
+      }
+      if (entry.market === '2t') need(metrics.triple_top6_share === null);
+      need(Array.isArray(metrics.major_uncovered_ids) && unique(metrics.major_uncovered_ids) && metrics.major_uncovered_ids.every(id => ids.has(id)));
+      if (entry.rank > 0) {
+        const accepted = V1_GRADE_CONSTRAINTS.find(([rank, axis, pair, triple, coverage]) => metrics.axis_top2_share >= axis && metrics.pair_top4_share >= pair && (entry.market === '2t' || metrics.triple_top6_share >= triple) && metrics.scenario_coverage >= coverage && (rank < 3 || metrics.major_uncovered_ids.length === 0));
+        need(entry.rank === (accepted ? accepted[0] : 1));
+      }
+      need(metrics.evidence_kind === context.universe.evidence_kind && metrics.weight_basis === (context.universe.evidence_kind === 'canonical_b_orders' ? 'canonical_relative_research' : 'equal_scenarios'));
+      need(Array.isArray(entry.reasons) && entry.reasons.length > 0 && entry.reasons.length <= 128);
+      for (const reason of entry.reasons) need(exact(reason, ['code', 'message', 'scenario_ids']) && bounded(reason.code, 120) && /^[A-Z][A-Z0-9_]*$/.test(reason.code) && bounded(reason.message, 2000) && Array.isArray(reason.scenario_ids) && unique(reason.scenario_ids) && reason.scenario_ids.every(id => ids.has(id)));
+      need(Array.isArray(entry.limitations) && entry.limitations.length > 0 && entry.limitations.length <= 32 && entry.limitations.every(value => bounded(value, 2000)));
+      if (context.universe.candidate_origin === 'legacy_ticket_links') need(entry.rank === 0);
+    }
+    freezeAssessment(bundle);
+    verified.add(bundle);
+    return bundle;
+  }
+  async function validateBaseline(bundle, baseline, { source, sealedAt, raceId = baseline?.race_id } = {}) {
+    need(record(baseline) && baseline.schema === 'RACE_AI_KEIRIN_AUTOMATIC_MARKS_AND_SIX_PHASE_V1' && baseline.race_id === raceId && hex(baseline.prediction_sha256) && hex(baseline.source_facts_sha256));
+    const universe = universeFromBaseline(baseline, source);
+    return validate(bundle, { raceId, cutoff: baseline.published_cutoff_at, generatedAt: baseline.generated_at, sealedAt, predictionSha256: baseline.prediction_sha256, universe,
+      evaluations: Object.fromEntries(['A', 'B'].map(name => [name, { market: '3t', strategy: 'normal', tickets: baseline[name]?.ranked_tickets }])) });
+  }
+  async function validateAuthored(raw, { raceId, market, strategy }) {
+    const keys = ['race_id', 'analysis_created_at', 'deadline_jst', 'market', 'strategy', 'headline', 'reason', 'risk', 'tickets', 'scenarios', 'confidence_universe', 'confidence_assessment'];
+    if (strategy === 'rollover') { keys.push('eligible');need(raw.eligible === true); }
+    if (Object.hasOwn(raw, 'rollover')) { keys.push('rollover');need(market === '2t' && strategy === 'normal'); }
+    need(exact(raw, keys) && raw.race_id === raceId && raw.market === market && raw.strategy === strategy);
+    for (const field of ['headline', 'reason', 'risk']) need(bounded(raw[field], 2000));
+    need(Array.isArray(raw.tickets) && raw.tickets.length > 0 && raw.tickets.every(ticket => exact(ticket, ['combo', 'role']) && bounded(ticket.role, 30)));
+    const universe = raw.confidence_universe;
+    need(record(universe) && universe.evidence_kind === 'authored_goals' && universe.candidate_origin === 'independent_preselection_v1');
+    checkedUniverse(universe);
+    need(raw.confidence_assessment?.assessed_at === raw.analysis_created_at && canonical(raw.scenarios) === canonical(universe.scenarios.map(scenario => ({ scenario_id: scenario.id, six_phases: scenario.phases }))));
+    if (Object.hasOwn(raw, 'rollover')) {
+      await validateAuthored(raw.rollover, { raceId, market: '2t', strategy: 'rollover' });
+      need(canonical(raw.rollover.confidence_universe) === canonical(universe) && timestampMicros(raw.rollover.analysis_created_at) <= timestampMicros(raw.analysis_created_at));
+    }
+    return validate(raw.confidence_assessment, { raceId, cutoff: raw.deadline_jst, generatedAt: raw.analysis_created_at, predictionSha256: await digest(authoredPredictionBody(raw)), universe,
+      evaluations: { selected: { market, strategy, tickets: raw.tickets } } });
+  }
+
+  return { normalize, displayLabel, matches, predictionMatches, selected, validate, validateBaseline, validateAuthored, universeFromBaseline, authoredPredictionBody, canonical, digest, timestamp, SCHEMA, RULES, UNIVERSE_SCHEMA };
+});
+
 /* Owner-provided Site view adapter. Original/revised/research records stay separate. */
 (function(root,factory){
-  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-source/staking_flexible.js'));
-  else root.RaceKeirinNote=factory(root.KeirinStaking);
-})(typeof window==='object'?window:globalThis,function(staking){
+  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-source/staking_flexible.js'),require('./confidence.js'));
+  else root.RaceKeirinNote=factory(root.KeirinStaking,root.RaceKeirinConfidence);
+})(typeof window==='object'?window:globalThis,function(staking,confidence){
   'use strict';
   const SCHEMA='RACE_AI_KEIRIN_NOTE_VIEW_V1',OUTER='RACE_AI_SAVED_WEB_VIEW_V1';
   const LIMIT=64*1024*1024,encoder=new TextEncoder();
@@ -2310,7 +2550,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
         settlement:settled.get(id)||null,rollover:rollover.get(id)||{},environment:read('environment.json')||null,
         bindings:Object.fromEntries([['original','forecasts.json',true],['two','two_car_forecasts.json'],['flexible','flexible_forecasts.json'],['reference','reference_AB.json'],['rollover','three_car_rollover_forecasts.json']].map(([key,name,legacy])=>[key,binding(files,shas,cipherSha,date,name,legacy)])),
         referenceHistory:[],resultHistory:[],resultUpdate:null,researchResultHistory:[...(results.get(id)||[])],latestResearchResult:(results.get(id)||[]).at(-1)||null};
-      tickets(p.tickets,3,cars);tickets(row.two.tickets,2,cars);tickets(row.rollover.tickets,3,cars);
+      tickets(p.tickets,3,cars);tickets(row.two.tickets,2,cars);tickets(row.two.rollover?.tickets,2,cars);tickets(row.rollover.tickets,3,cars);
       for(const market of ['3t','2t'])tickets(row.flexible.markets?.[market]?.tickets,market==='2t'?2:3,cars);
       for(const model of ['A','B'])tickets(row.reference[model]?.ranked_tickets,3,cars);
       for(const saved of row.researchResultHistory)need(saved.observation.winning_triple===null||!cars.size||saved.observation.winning_triple.every(n=>cars.has(n)));
@@ -2407,7 +2647,8 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const shadowKeys='schema race_id generated_at published_cutoff_at baseline_source_sha256 baseline_prediction_sha256 condition_supplement_sha256 A_research B_research rider_assessments verified_source_receipt_count medical_recovery_or_crash_causality_inferred comments_quoted_in_private_supplement_only historical_originals_mutated is_official_calibrated_or_production_forecast C_optional_unrelated sha256'.split(' ');
     const phases=['INITIAL','BELL','FINAL_HOME','FINAL_BACK','FOURTH_CORNER','GOAL'],number=(v,lo,hi)=>Number.isFinite(v)&&v>=lo&&v<=hi;
     for(const row of rows){
-      need(exact(row,['race_id','revision','baseline_cipher_sha256','conditioned_cipher_sha256','baseline_sealed_at','conditioned_sealed_at','facts','baseline','conditioned'])&&rid(row.race_id)&&row.race_id.startsWith(date.replaceAll('-',''))&&!out.has(row.race_id));
+      const rowKeys=['race_id','revision','baseline_cipher_sha256','conditioned_cipher_sha256','baseline_sealed_at','conditioned_sealed_at','facts','baseline','conditioned'];
+      need((exact(row,rowKeys)||exact(row,[...rowKeys,'confidence_assessment']))&&rid(row.race_id)&&row.race_id.startsWith(date.replaceAll('-',''))&&!out.has(row.race_id));
       for(const key of ['revision','baseline_cipher_sha256'])need(hex(row[key]));
       const base=row.baseline,adjusted=row.conditioned,facts=row.facts;
       need(exact(base,baseKeys)&&base.schema==='RACE_AI_KEIRIN_AUTOMATIC_MARKS_AND_SIX_PHASE_V1'&&base.race_id===row.race_id&&hex(base.prediction_sha256)&&hex(base.source_facts_sha256));
@@ -2491,6 +2732,8 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   function combineFrozen(prior,fresh){
     if(!prior)return fresh||null;if(!fresh)return prior;
     for(const name of ['race_id','baseline_cipher_sha256','baseline_sealed_at','facts','baseline'])need(canonical(prior[name])===canonical(fresh[name]));
+    need(Object.hasOwn(prior,'confidence_assessment')===Object.hasOwn(fresh,'confidence_assessment'));
+    if(Object.hasOwn(prior,'confidence_assessment'))need(canonical(prior.confidence_assessment)===canonical(fresh.confidence_assessment));
     if(prior.conditioned&&fresh.conditioned)for(const name of ['conditioned','conditioned_cipher_sha256','conditioned_sealed_at'])need(canonical(prior[name])===canonical(fresh[name]));
     return fresh.conditioned||!prior.conditioned?fresh:prior;
   }
@@ -2541,18 +2784,37 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const updates=new Map([...days.keys()].map(date=>[date,resultUpdates(date,parsed)]));
     const frozen=new Map([...days.keys()].map(date=>[date,frozenForecasts(date,parsed)]));
     const nationwide=new Map([...days.keys()].flatMap(date=>{const doc=nationwideDay(date,parsed);return doc?[[date,doc]]:[];}));
+    await validateConfidence(days,frozen,nationwide);
     attachNationwide(days,nationwide);
     for(const [date,rows] of days)for(const row of rows){const update=updates.get(date).get(row.id);if(update){row.resultUpdate=update;row.resultHistory=[update];}const original=frozen.get(date).get(row.id);if(original)row.frozenForecast=combineFrozen(row.frozenForecast,original);const history=results.get(row.id)||[];if(history.length){row.researchResultHistory=[...history];row.latestResearchResult=history.at(-1);}}
     return {schema:SCHEMA,dates:[...days.keys()],days,resultUpdates:updates,frozenForecasts:frozen,nationwide,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,fileShas,cipherSha,results,formal:false};
   }
   async function openPacket(packet){return decodePacket(packet,null);}
+  async function validateConfidence(days,frozen,nationwide){
+    const originals=new Set();
+    for(const rows of frozen.values())for(const original of rows.values())originals.add(original);
+    for(const doc of nationwide.values())for(const row of doc.races)if(row.original)originals.add(row.original);
+    for(const original of originals)if(Object.hasOwn(original,'confidence_assessment')){
+      need(confidence);await confidence.validateBaseline(original.confidence_assessment,original.baseline,{source:original.facts,sealedAt:original.baseline_sealed_at});
+    }
+    for(const rows of days.values())for(const row of rows){
+      if(Object.hasOwn(row.referenceEnvelope,'confidence_assessment')){
+        need(confidence);await confidence.validateBaseline(row.referenceEnvelope.confidence_assessment,row.reference,{source:row.referenceEnvelope.input,raceId:row.id});
+      }
+      const selected=[[row.original,'3t','normal'],[row.two,'2t','normal'],[row.rollover,'3t','rollover'],[row.two.rollover,'2t','rollover'],...['3t','2t'].map(market=>[row.flexible.markets?.[market],market,'normal'])];
+      for(const [raw,market,strategy] of selected)if(raw&&Object.hasOwn(raw,'confidence_assessment')){
+        need(confidence);await confidence.validateAuthored(raw,{raceId:row.id,market,strategy});
+      }
+    }
+  }
   function rows(data,date){return data.days.get(date)||[];}
   function frozenArm(row,name){
     const frozen=row.frozenForecast;if(!frozen||!['A','B','adjusted_A','adjusted_B'].includes(name))return null;
     const adjusted=name.startsWith('adjusted_'),role=adjusted?name.slice(9):name;if(adjusted&&!frozen.conditioned)return null;
     const arm=adjusted?frozen.conditioned[role+'_research']:frozen.baseline[role];
     const factors=new Map((frozen.conditioned?.B_research.branch_condition_factors||[]).map(f=>[f.scenario_id,f.relative_weight_after]));
-    return {name,role,adjusted,source:arm,tickets:tickets(arm.ranked_tickets,3,new Set(frozen.facts.riders.map(r=>r.car))),
+    const assessment=!adjusted&&Object.hasOwn(frozen,'confidence_assessment')?confidence.selected(frozen.confidence_assessment,role):{confidence:null,confidenceAssessment:null,confidenceBundle:null};
+    return {name,role,adjusted,source:arm,...assessment,tickets:tickets(arm.ranked_tickets,3,new Set(frozen.facts.riders.map(r=>r.car))),
       scenarios:role==='B'?frozen.baseline.B.six_phase_scenarios.map(s=>({...s,relative_research_weight:adjusted?factors.get(s.scenario_id):s.relative_research_weight})):[],
       assessments:adjusted?frozen.conditioned.rider_assessments:[],facts:frozen.facts,generatedAt:frozen.baseline.generated_at,
       sourceAsOf:frozen.baseline.source_as_of,sealedAt:adjusted?frozen.conditioned_sealed_at:frozen.baseline_sealed_at,cutoffAt:frozen.baseline.published_cutoff_at};
@@ -2561,18 +2823,28 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const places=market==='2t'?2:3;
     if(['A','B','C'].includes(variant)){
       const ref=row.reference[variant]||{};
+      const assessment=market==='3t'&&['A','B'].includes(variant)&&Object.hasOwn(row.referenceEnvelope||{},'confidence_assessment')?confidence.selected(row.referenceEnvelope.confidence_assessment,variant):{confidence:null,confidenceAssessment:null,confidenceBundle:null};
       return {label:'参考'+variant,tickets:market==='3t'?tickets(ref.ranked_tickets,3,row.cars):[],scenarios:ref.six_phase_scenarios||[],
         allocatable:false,headline:'既存モデルの研究出力',reason:variant==='C'?'独立した連係履歴が不足しているため未生成':'公開印・統計・並びを使用した参考計算',
-        createdAt:row.reference.generated_at,binding:row.bindings?.reference||null,confidence:null,risk:'学習済み・校正済みの確率ではありません。',source:ref};
+        createdAt:row.reference.generated_at,binding:row.bindings?.reference||null,...assessment,risk:'学習済み・校正済みの確率ではありません。',source:ref};
     }
     const base=market==='2t'?row.two:row.original;
-    let current=base,label=market==='2t'?'2車単・保存分析':'3連単・原分析';
-    if(variant==='flexible'&&row.flexible.markets?.[market]){current={...base,...row.flexible.markets[market],analysis_created_at:row.flexible.analysis_created_at};label=market==='2t'?'2車単・改訂分析':'3連単・改訂分析';}
-    if(variant==='rollover'&&market==='3t'&&row.rollover.tickets){current=row.rollover;label='3連単・絞り込み分析';}
-    return {label,tickets:tickets(current.tickets,places,row.cars),scenarios:[...(row.original.scenarios||[]),...(current.extra_scenarios||[])],allocatable:true,
+    let current=base,assessmentSource=base,label=market==='2t'?'2車単・通常予想':'3連単・通常予想';
+    if(variant==='flexible'&&row.flexible.markets?.[market]){assessmentSource=row.flexible.markets[market];current={...base,...assessmentSource,analysis_created_at:assessmentSource.analysis_created_at||row.flexible.analysis_created_at};label=market==='2t'?'2車単・改訂予想':'3連単・改訂予想';}
+    if(variant==='rollover'){
+      if(market==='3t'&&row.rollover.tickets){current=row.rollover;assessmentSource=current;label='3連単・転がし予想';}
+      else if(market==='2t'&&base.rollover?.eligible){assessmentSource=base.rollover;current={...base,...base.rollover,risk:base.rollover.excluded_risk||base.rollover.risk||base.risk};label='2車単・転がし予想';}
+      else{assessmentSource={};current={...base,tickets:[],confidence:null,reason:base.rollover?.reason||'このレースは転がし候補に選んでいません。',headline:'転がし候補は見送り'};label='転がし・見送り';}
+    }
+    const assessment=Object.hasOwn(assessmentSource,'confidence_assessment')?confidence.selected(assessmentSource.confidence_assessment,'selected'):{confidence:text(current.confidence,40),confidenceAssessment:null,confidenceBundle:null};
+    return {label,tickets:tickets(current.tickets,places,row.cars),scenarios:[...(current.scenarios||row.original.scenarios||[]),...(current.extra_scenarios||[])],allocatable:true,
       headline:text(current.headline)||text(base.headline)||'予想未取得',reason:text(current.point_reason||current.reason||current.confidence_reason||current.verdict||current.selection_reason),
-      confidence:text(current.confidence,40),risk:text(current.risk),createdAt:current.analysis_created_at,
+      ...assessment,risk:text(current.risk),createdAt:current.analysis_created_at,
       binding:row.bindings?.[variant==='rollover'&&market==='3t'?'rollover':variant==='flexible'&&row.flexible.markets?.[market]?'flexible':market==='2t'?'two':'original']||null,source:current};
+  }
+  function displayedPredictions(row,market='3t',variant='flexible'){
+    const saved=(row.nationwideOnly||market==='3t'&&variant!=='rollover')?['A','B','adjusted_A','adjusted_B'].map(name=>frozenArm(row,name)).filter(Boolean):[];
+    return row.nationwideOnly?saved:[forecast(row,market,variant),...saved];
   }
   function compare(row,market='3t',variant='A',version=null){
     need(['3t','2t'].includes(market)&&['original','flexible','rollover','A','B','C'].includes(variant));
@@ -2622,7 +2894,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
     return decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
   }
-  return {openPacket,openCipher,rows,forecast,frozenArm,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,utc,day,SCHEMA};
+  return {openPacket,openCipher,rows,forecast,frozenArm,displayedPredictions,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,utc,day,SCHEMA};
 });
 
 /* Independent display capability. Its private key never enters a request URL. */
@@ -2846,8 +3118,8 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
 /* A separate owner view. It never writes the formal model ledger or changes its keys. */
 (() => {
   'use strict';
-  const M=window.RaceKeirinNote;
-  if(!M||document.getElementById('keirin-note-dialog'))return;
+  const M=window.RaceKeirinNote,C=window.RaceKeirinConfidence;
+  if(!M||!C||document.getElementById('keirin-note-dialog'))return;
   const fragment=window.RaceNoteInitialFragment||location.hash;
   const dialog=document.createElement('dialog');dialog.id='keirin-note-dialog';dialog.className='kn-modal';dialog.setAttribute('aria-label','競輪の予想・分析ガイド');
   const host=document.createElement('div');host.className='kn-host';dialog.append(host);
@@ -2855,7 +3127,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   const shell=document.createElement('div');shell.className='kn-shell';root.append(shell);document.body.append(dialog);
   const launcher=document.createElement('button');launcher.id='keirin-note-open';launcher.type='button';launcher.className='kn-launcher';launcher.textContent='競輪の予想・分析ガイドを開く';
   const strip=document.createElement('div');strip.className='kn-launch-strip';strip.append(launcher);(document.getElementById('data-banner')||document.querySelector('main'))?.after(strip);
-  let data=null,currentDay='',venue='',query='',market='3t',variant='flexible',futureOnly=false,selectedOnly=false;
+  let data=null,currentDay='',venue='',query='',market='3t',variant='flexible',confidenceFilter='all',futureOnly=false,selectedOnly=false;
   let loadVersion=0,activeLoadAbort=null,feedWatcher=null,pendingFeed=null;
   const preferences=new Map(),selected=new Set(),expanded=new Set();
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2873,9 +3145,9 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     shell.innerHTML=`<header class="kn-head"><div><p class="kn-eyebrow">RACE AI · KEIRIN NOTE</p><h1>競輪の読みどころ</h1><p>保存された分析・参考モデル・買い目を確認する</p></div><button type="button" id="kn-close" class="kn-close">閉じる</button></header>
       <div class="kn-scroll"><section class="kn-import"><div><label class="kn-file">保存データを開く<input id="kn-file" type="file" accept=".json,application/json"></label><button id="kn-clear" type="button" class="kn-secondary">読込データを消す</button></div><p id="kn-status" role="status">本人用リンク、または保存データJSONから開けます。</p></section>
       <nav id="kn-days" class="kn-day-tabs" aria-label="予想の日付"></nav><section id="kn-metrics" class="kn-metrics"></section>
-      <section class="kn-tools"><div id="kn-venues" class="kn-venues" aria-label="会場"></div><div class="kn-controls"><label>券種<select id="kn-market"><option value="3t">3連単</option><option value="2t">2車単</option></select></label><label>表示する予想<select id="kn-variant"><option value="flexible">改訂された分析</option><option value="original">原分析</option><option value="rollover">絞り込み分析</option><option value="A">参考A</option><option value="B">参考B・6局面</option><option value="C">参考Cの状況</option></select></label><label class="kn-search-label">検索<input id="kn-search" type="search" placeholder="会場・選手・レース名"></label></div><div class="kn-small-controls"><label><input id="kn-future" type="checkbox">これからのレース</label><label><input id="kn-selected" type="checkbox">検討リストのみ</label><span id="kn-count"></span></div></section>
+      <section class="kn-tools"><div id="kn-venues" class="kn-venues" aria-label="会場"></div><div class="kn-prediction-tabs" aria-label="通常予想と転がし予想"><button type="button" data-prediction="flexible">通常予想</button><button type="button" data-prediction="rollover">転がし予想</button><button type="button" data-confidence-filter="high_plus">高以上だけ見る</button></div><div class="kn-controls"><label>券種<select id="kn-market"><option value="3t">3連単</option><option value="2t">2車単</option></select></label><label>表示する予想<select id="kn-variant"><option value="flexible">通常予想・改訂版</option><option value="original">通常予想・原版</option><option value="rollover">転がし予想</option><option value="A">参考A</option><option value="B">参考B・6局面</option><option value="C">参考Cの状況</option></select></label><label>信頼度<select id="kn-confidence"><option value="all">すべて</option><option value="high_plus">高以上（高・激アツ🔥）</option><option value="hot">激アツ🔥のみ</option><option value="high">高のみ</option><option value="medium">中のみ</option><option value="low">低のみ</option><option value="unrated">未評価のみ</option></select></label><label class="kn-search-label">検索<input id="kn-search" type="search" placeholder="会場・選手・レース名"></label></div><div class="kn-small-controls"><label><input id="kn-future" type="checkbox">これからのレース</label><label><input id="kn-selected" type="checkbox">検討リストのみ</label><span id="kn-count"></span></div><p id="kn-confidence-count" class="kn-small" aria-live="polite"></p><p class="kn-small">信頼度は保存された予想の評価です。新方式は展開と買い目の整合を評価し、的中率は未校正です。</p></section>
       <section id="kn-nationwide-summary" class="kn-result kn-nationwide-summary" hidden></section><section id="kn-research-summary" class="kn-result" hidden></section><div id="kn-result-only"></div><div id="kn-races" class="kn-grid"></div>
-      <details class="kn-rollover"><summary>2段階の資金配分を試算する</summary><p>受取額は払戻と返還の合計を手入力します。実購入の記録とは別の試算です。</p><div class="kn-controls"><label>初回の予算<select id="kn-roll-budget"><option>2000</option><option selected>2500</option><option>3000</option></select></label><label>1戦目の受取額<input id="kn-return-one" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label><label>2戦目の受取額<input id="kn-return-two" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label></div><div id="kn-roll-result"></div></details>
+      <details class="kn-rollover"><summary>転がし・2段階の資金配分を試算する</summary><p>受取額は払戻と返還の合計を手入力します。実購入の記録とは別の試算です。</p><div class="kn-controls"><label>初回の予算<select id="kn-roll-budget"><option>2000</option><option selected>2500</option><option>3000</option></select></label><label>1戦目の受取額<input id="kn-return-one" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label><label>2戦目の受取額<input id="kn-return-two" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label></div><div id="kn-roll-result"></div></details>
       <footer class="kn-footer"><p>個別分析・改訂・参考A/Bはそれぞれの保存原本を保持します。参考Cの未生成も表示します。参考モデルの重みは校正済み確率ではありません。</p><p>画面での選択と配分は購入候補です。投票・決済は行いません。データと本人用リンクの鍵は外部へ送信しません。</p><p id="kn-provenance"></p></footer></div>
       <div class="kn-selection"><div><strong id="kn-selection-count">検討リスト 0件</strong><small>候補・配分の試算</small></div><button id="kn-copy-selection" type="button">検討リストをコピー</button></div>`;
     $('kn-close').addEventListener('click',()=>dialog.close());
@@ -2891,6 +3163,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     $('kn-clear').addEventListener('click',()=>{beginLoad();data=null;currentDay='';preferences.clear();selected.clear();expanded.clear();if(/^#(?:note|notefeed)=/.test(location.hash)){history.replaceState(null,'',location.pathname+location.search);window.RaceNoteInitialFragment='';}render();note('読込データを消去しました。');});
     $('kn-market').addEventListener('change',event=>{market=event.target.value;renderCards();});
     $('kn-variant').addEventListener('change',event=>{variant=event.target.value;renderCards();});
+    $('kn-confidence').addEventListener('change',event=>{confidenceFilter=event.target.value;renderCards();});
     $('kn-search').addEventListener('input',event=>{query=event.target.value.trim().toLocaleLowerCase('ja');renderCards();});
     $('kn-future').addEventListener('change',event=>{futureOnly=event.target.checked;renderCards();});
     $('kn-selected').addEventListener('change',event=>{selectedOnly=event.target.checked;renderCards();});
@@ -2921,25 +3194,39 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const nationwide=data?.nationwide?.get(currentDay),saved=nationwide?.races.filter(row=>row.original_identity).length||0,adjusted=nationwide?.races.filter(row=>row.original_identity?.conditioned).length||0;
     const metrics=nationwide?[['確認した対象',nationwide.registry_available?nationwide.races.length+'件':'確認中'],['A保存済み',saved+'件'],['B保存済み',saved+'件'],['補正A/B保存済み',adjusted+'件']]:[['対象レース',list.length+'件'],['出走メンバー',riders+'名'],['原分析の買い目',original+'点'],['保存オッズ',priced+'レース']];
     $('kn-metrics').innerHTML=metrics.map(([k,v])=>'<div><span>'+esc(k)+'</span><strong>'+esc(v)+'</strong></div>').join('');
-    const imported=list.some(row=>!row.nationwideOnly);$('kn-market').disabled=Boolean(nationwide)&&!imported;$('kn-variant').disabled=Boolean(nationwide)&&!imported;
+    const imported=list.some(row=>!row.nationwideOnly),onlyNational=Boolean(nationwide)&&!imported;$('kn-market').disabled=onlyNational;$('kn-variant').disabled=onlyNational;
+    if(onlyNational){market='3t';$('kn-market').value=market;}
+    for(const button of root.querySelectorAll('[data-prediction]'))button.disabled=onlyNational;
     const venues=[...new Set(list.map(r=>r.venue))];$('kn-venues').innerHTML=[['','締切順・全会場'],...venues.map(v=>[v,v])].map(([v,label])=>'<button type="button" data-venue="'+esc(v)+'" aria-pressed="'+(v===venue)+'">'+esc(label)+'</button>').join('');
     renderProvenance();
     renderCards();
   }
   function renderCards(){
-    const list=all(),now=Date.now();const shown=list.filter(r=>(!venue||r.venue===venue)&&(!query||(r.venue+' '+r.title+' '+r.riders.map(p=>p.name).join(' ')+' '+r.original.headline).toLocaleLowerCase('ja').includes(query))&&(!futureOnly||r.cutoff&&Date.parse(r.cutoff)>now)&&(!selectedOnly||selected.has(r.id)));
+    const list=all(),now=Date.now();const candidates=list.filter(r=>(!venue||r.venue===venue)&&(!query||(r.venue+' '+r.title+' '+r.riders.map(p=>p.name).join(' ')+' '+r.original.headline).toLocaleLowerCase('ja').includes(query))&&(!futureOnly||r.cutoff&&Date.parse(r.cutoff)>now)&&(!selectedOnly||selected.has(r.id))&&(r.nationwideOnly||variant!=='rollover'||M.forecast(r,market,variant).tickets.length>0));
+    const shown=candidates.filter(r=>confidenceFilter==='all'||displayedPredictions(r).some(prediction=>C.predictionMatches(prediction,confidenceFilter)));
     $('kn-count').textContent='表示 '+shown.length+' / 全'+list.length+'レース';
-    $('kn-races').innerHTML=shown.length?shown.map(renderRace).join(''):'<div class="kn-empty">'+(data?'条件に合うレースはありません。':'本人用リンク、または保存データを開くと予想を表示します。')+'</div>';
+    const counts=[0,0,0,0,0];for(const row of candidates)for(const prediction of displayedPredictions(row))if(prediction.tickets.length)counts[C.normalize(prediction.confidence).rank]++;
+    $('kn-confidence-count').textContent='表示条件内の保存予想：激アツ🔥 '+counts[4]+'件 / 高 '+counts[3]+'件 / 中 '+counts[2]+'件 / 低 '+counts[1]+'件 / 未評価 '+counts[0]+'件';
+    for(const button of root.querySelectorAll('[data-prediction]'))button.setAttribute('aria-pressed',String(button.dataset.prediction==='rollover'?variant==='rollover':['original','flexible'].includes(variant)));
+    root.querySelector('[data-confidence-filter]').setAttribute('aria-pressed',String(confidenceFilter==='high_plus'));
+    const empty=data?(confidenceFilter==='high_plus'||confidenceFilter==='hot'?'この条件に合う保存予想はありません。信頼度は保存時の評価を表示しています。':variant==='rollover'?'この条件の転がし候補はありません。':'条件に合うレースはありません。'):'本人用リンク、または保存データを開くと予想を表示します。';
+    $('kn-races').innerHTML=shown.length?shown.map(renderRace).join(''):'<div class="kn-empty">'+empty+'</div>';
     renderNationwideSummary();
     renderResearchSummary(list);
     selectionSummary();
+  }
+  function displayedPredictions(row){return M.displayedPredictions(row,market,variant);}
+  function confidenceBadge(prediction){const value=C.normalize(prediction.confidence);return '<span class="kn-confidence kn-confidence-'+value.rank+'" data-confidence-rank="'+value.rank+'">信頼度 '+esc(C.displayLabel(prediction.confidence))+'</span>';}
+  function confidenceEvidence(prediction){
+    const entry=prediction.confidenceAssessment,bundle=prediction.confidenceBundle;if(!entry||!bundle)return '';
+    return '<details class="kn-details kn-confidence-evidence"><summary>信頼度の根拠</summary><p>保存時のルール評価・的中率は未校正</p><ul>'+entry.reasons.map(reason=>'<li>'+esc(reason.message)+'</li>').join('')+'</ul><p class="kn-small">'+entry.limitations.map(esc).join('<br>')+'</p><p class="kn-small">評価 '+stamp(bundle.assessed_at)+' · ルール '+esc(bundle.rules_version)+'</p></details>';
   }
   function lineHtml(row){
     const line=n=>Number.isInteger(n)?car(n):n&&Array.isArray(n.contest)?'<span class="kn-contest">'+n.contest.map(car).join('')+'<small>競り</small></span>':'';
     return row.lines.map(group=>'<span class="kn-line">'+(Array.isArray(group)?group:[]).map(line).join('<span>−</span>')+'</span>').join('<span class="kn-line-gap">/</span>');
   }
   function renderRace(row){
-    if(row.nationwideOnly)return renderNationwideRace(row);
+    if(row.nationwideOnly||confidenceFilter!=='all'&&!C.predictionMatches(M.forecast(row,market,variant),confidenceFilter))return renderNationwideRace(row);
     const prediction=M.forecast(row,market,variant),p=pref(row),allocation=M.allocate(prediction,p.budget,p.excluded),key=row.id+':'+market+':'+variant,open=expanded.has(key);
     const late=row.cutoff&&Date.parse(row.cutoff)<Date.now();
     const items=prediction.tickets.map((ticket,i)=>{
@@ -2950,7 +3237,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const outcome=row.settlement;
     const result=liveResult(row)+(outcome?'<section class="kn-result"><b>提供サイトの保存分析の照合</b><p>'+esc(outcome.winning_combo||'結果未確認')+' · '+(outcome.sources_agree===false?'出典間の相違で保留':outcome.hit?'的中':outcome.status==='MISS'?'不的中':esc(outcome.status||'照合未確認'))+'</p><p>各100円の想定：'+money(outcome.net_yen)+'（実購入ではありません）</p></section>':'');
     const budget=prediction.allocatable?'<div class="kn-budget"><label>候補予算<select data-budget="'+row.id+'">'+[2000,2500,3000].map(n=>'<option value="'+n+'" '+(n===p.budget?'selected':'')+'>'+money(n)+'</option>').join('')+'</select></label><span>配分 '+allocation.chosen.length+'点 / 合計 '+money(allocation.total)+'</span></div>':'';
-    return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+(prediction.confidence?'<span>分析区分 '+esc(prediction.confidence)+'</span>':'')+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p><div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+budget+
+    return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+confidenceBadge(prediction)+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p>'+confidenceEvidence(prediction)+'<div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+budget+
       '<div class="kn-point-heading"><b>予想 '+prediction.tickets.length+'点'+(prediction.allocatable?' · 配分 '+allocation.chosen.length+'点':'')+'</b></div><div class="kn-tickets">'+(items||'<p class="kn-empty">'+esc(prediction.reason||'この券種の保存予想はありません。')+'</p>')+'</div>'+(prediction.tickets.length>3?'<button type="button" class="kn-more" data-expand="'+row.id+'">'+(open?'上位3点に戻す':'全'+prediction.tickets.length+'点を表示')+'</button>':'')+
       (prediction.allocatable&&!allocation.available?'<p class="kn-warning">配分対象がないか、全点への100円単位の配分に予算が足りません。点数を選び直してください。</p>':'')+
       '<div class="kn-race-actions"><button type="button" data-select="'+row.id+'" aria-pressed="'+selected.has(row.id)+'">'+(selected.has(row.id)?'検討リストから外す':'検討リストに追加')+'</button><button type="button" data-copy="'+row.id+'" '+(prediction.allocatable&&!allocation.available?'disabled':'')+'>買い目をコピー</button></div>'+nationalStatus(row)+result+researchResult(row)+
@@ -2997,7 +3284,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   }
   function frozenTickets(saved){
     if(!saved)return '';
-    return '<p class="kn-frozen-clock">作成 '+stamp(saved.generatedAt)+'<br>締切前の保存 '+stamp(saved.sealedAt)+'</p><p>全部の買い目</p><ol class="kn-frozen-tickets" data-frozen-arm="'+saved.name+'">'+saved.tickets.map(t=>'<li data-frozen-combo="'+t.combo+'">'+t.combo.split('-').map(Number).map(car).join('<span>−</span>')+'</li>').join('')+'</ol>'+frozenBasis(saved);
+    return '<div class="kn-badges">'+confidenceBadge(saved)+'</div>'+confidenceEvidence(saved)+'<p class="kn-frozen-clock">作成 '+stamp(saved.generatedAt)+'<br>締切前の保存 '+stamp(saved.sealedAt)+'</p><p>全部の買い目</p><ol class="kn-frozen-tickets" data-frozen-arm="'+saved.name+'">'+saved.tickets.map(t=>'<li data-frozen-combo="'+t.combo+'">'+t.combo.split('-').map(Number).map(car).join('<span>−</span>')+'</li>').join('')+'</ol>'+frozenBasis(saved);
   }
   function resultLabel(state){
     if(state==='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL')return '二つの掲載元が一致（公式認証なし）';
@@ -3007,6 +3294,8 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return holds[state]||'結果の照合は未取得';
   }
   function comparisonHtml(row,model,version=null){
+    const context=version?{...row,reference:version.reference,referenceEnvelope:version.envelope}:row;
+    if(!C.predictionMatches(M.forecast(context,market,model),confidenceFilter))return '';
     const score=M.compare(row,market,model,version),status=score.status==='RESEARCH_HIT'?'的中':score.status==='RESEARCH_MISS'?'不的中':'未判定';
     const label=['A','B','C'].includes(model)?'参考'+model:M.forecast(row,market,model).label;
     const timing={GENERATED_AT_MISSING:'予想の生成時点は未確認',CUTOFF_UNVERIFIED:'掲載締切は未確認',GENERATED_AFTER_OR_AT_CUTOFF:'掲載締切以後に生成された保存版',RECORDED_PRE_CUTOFF_NOT_FORMAL:'記載時点は掲載締切前（正式な保存時刻の認証なし）'};
@@ -3040,11 +3329,13 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const status={hit:'的中',miss:'不的中',pending:'未照合',void:'返還・採点対象外',unverifiable:'原本の確認待ち'};
     const arms=[['A','A'],['B','B'],['adjusted_A','補正A'],['adjusted_B','補正B'],['C','C']].map(([name,label])=>{
       const arm=result?.arms[name],saved=M.frozenArm(row,name),aligned=!saved||arm?.points==null||arm.points===saved.tickets.length;
+      if(confidenceFilter!=='all'&&((!row.nationwideOnly&&(market!=='3t'||variant==='rollover'))||!C.predictionMatches(saved,confidenceFilter)))return '';
       const state=aligned?(arm?.state||'pending'):'unverifiable',missing=national&&!saved&&!arm?.points;
       const referencePending=!saved&&national?.original_identity&&(['A','B'].includes(name)||name.startsWith('adjusted_')&&national.original_identity.conditioned);
       const outcome=(frozen||national)&&name==='C'?'未作成':referencePending?'保存原本の読込待ち':missing?(name.startsWith('adjusted_')?'補正の保存待ち':'未作成'):!result?'結果待ち':status[state]||'未照合';
       return '<div class="kn-result-arm" data-result-arm="'+name+'"><h4>'+(frozen||national?label:'締切前保存'+label)+'</h4><p>採点結果：<strong>'+esc(outcome)+'</strong></p><p>'+(saved?'点数 '+saved.tickets.length+'点':arm?.points!=null?arm.points+'点':(frozen||national)&&name==='C'?'Cの予想は未作成です。':'点数未確認')+'</p>'+(missing&&name.startsWith('adjusted_')?'<p class="kn-small">'+conditionLabel(national.condition_state)+'</p>':'')+(paid&&aligned&&arm?.stake_yen!=null&&arm?.return_yen!=null?'<p>各100円の想定：投資 '+money(arm.stake_yen)+' / 払戻 '+money(arm.return_yen)+'</p>':'')+(!aligned?'<p class="kn-warning">保存原本と採点側の点数が一致していないため、採点結果の表示を保留しています。</p>':'')+frozenTickets(saved)+'</div>';
     }).join('');
+    if(confidenceFilter!=='all'&&!arms)return '';
     const sourceNames={keirin_jp:'KEIRIN.JP',kdreams:'Kドリームス',netkeirin:'netkeirin',official_pdf:'公式PDF',official_json:'公式データ'};
     const comparisonNames={matched:'一致',different:'相違あり',unavailable:'取得待ち',unverified:'未確認'};
     const comparisons=(result?.source_comparison||[]).map(s=>sourceNames[s.source_id]+'：'+comparisonNames[s.state]).join(' / ');
@@ -3075,6 +3366,8 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   async function copy(value){if(!value)return;try{await navigator.clipboard.writeText(value);note('買い目候補をコピーしました。');}catch{const area=document.createElement('textarea');area.value=value;root.append(area);area.select();const ok=document.execCommand('copy');area.remove();note(ok?'買い目候補をコピーしました。':'このブラウザーではコピーできませんでした。',!ok);}}
   function click(button){
     if(!button)return;
+    if(button.dataset.prediction){variant=button.dataset.prediction;$('kn-variant').value=variant;renderCards();return;}
+    if(button.dataset.confidenceFilter){confidenceFilter=button.dataset.confidenceFilter;$('kn-confidence').value=confidenceFilter;renderCards();return;}
     if(button.dataset.day){currentDay=button.dataset.day;venue='';render();return;}
     if(Object.hasOwn(button.dataset,'venue')){venue=button.dataset.venue;render();return;}
     if(button.dataset.expand){const key=button.dataset.expand+':'+market+':'+variant;expanded.has(key)?expanded.delete(key):expanded.add(key);renderCards();return;}

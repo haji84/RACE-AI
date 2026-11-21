@@ -129,6 +129,26 @@ class NoteInputCollectionTests(unittest.TestCase):
         self.pages[urls(2)[1]]=self.pages[urls(2)[1]].replace(
             'A級予選'.encode(),'例示特別競走'.encode())
 
+    def test_new_reference_saves_confidence_beside_the_unchanged_baseline(self):
+        from race_ai import keirin_nationwide_auto_generator as model
+        self.pages=pages_for([(2,'12:12')])
+        ticks=iter(NOW+timedelta(seconds=n) for n in range(120))
+        result=self.api().collect_day(day_jst=DAY,private_root=self.root,
+            fetch=self.fetch,clock=lambda:next(ticks),model_source_commit='a'*40)
+        _,references,_=self.documents(result)
+        self.assertEqual(len(references),1)
+        reference=references[0]
+        self.assertIn('confidence_assessment',set(reference))
+        baseline=reference['output'];assessment=reference['confidence_assessment']
+        self.assertEqual(assessment['source_prediction_sha256'],baseline['prediction_sha256'])
+        self.assertEqual(assessment['source_facts_sha256'],baseline['source_facts_sha256'])
+        self.assertGreater(model.when(assessment['assessed_at']),model.when(baseline['generated_at']))
+        self.assertGreaterEqual((model.when(assessment['cutoff'])-
+            model.when(assessment['assessed_at'])).total_seconds(),65)
+        self.assertEqual(baseline,model.generate_A_B(reference['input'],
+            generated_at=baseline['generated_at'],max_tickets=12))
+        self.assertNotIn('confidence_assessment',baseline)
+
     def test_selected_net_class_fills_only_the_missing_class_and_keeps_original_receipts(self):
         self.selected_class_pages()
         before=dict(self.pages)

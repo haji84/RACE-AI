@@ -1,8 +1,8 @@
 /* Owner-provided Site view adapter. Original/revised/research records stay separate. */
 (function(root,factory){
-  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-source/staking_flexible.js'));
-  else root.RaceKeirinNote=factory(root.KeirinStaking);
-})(typeof window==='object'?window:globalThis,function(staking){
+  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-source/staking_flexible.js'),require('./confidence.js'));
+  else root.RaceKeirinNote=factory(root.KeirinStaking,root.RaceKeirinConfidence);
+})(typeof window==='object'?window:globalThis,function(staking,confidence){
   'use strict';
   const SCHEMA='RACE_AI_KEIRIN_NOTE_VIEW_V1',OUTER='RACE_AI_SAVED_WEB_VIEW_V1';
   const LIMIT=64*1024*1024,encoder=new TextEncoder();
@@ -80,7 +80,7 @@
         settlement:settled.get(id)||null,rollover:rollover.get(id)||{},environment:read('environment.json')||null,
         bindings:Object.fromEntries([['original','forecasts.json',true],['two','two_car_forecasts.json'],['flexible','flexible_forecasts.json'],['reference','reference_AB.json'],['rollover','three_car_rollover_forecasts.json']].map(([key,name,legacy])=>[key,binding(files,shas,cipherSha,date,name,legacy)])),
         referenceHistory:[],resultHistory:[],resultUpdate:null,researchResultHistory:[...(results.get(id)||[])],latestResearchResult:(results.get(id)||[]).at(-1)||null};
-      tickets(p.tickets,3,cars);tickets(row.two.tickets,2,cars);tickets(row.rollover.tickets,3,cars);
+      tickets(p.tickets,3,cars);tickets(row.two.tickets,2,cars);tickets(row.two.rollover?.tickets,2,cars);tickets(row.rollover.tickets,3,cars);
       for(const market of ['3t','2t'])tickets(row.flexible.markets?.[market]?.tickets,market==='2t'?2:3,cars);
       for(const model of ['A','B'])tickets(row.reference[model]?.ranked_tickets,3,cars);
       for(const saved of row.researchResultHistory)need(saved.observation.winning_triple===null||!cars.size||saved.observation.winning_triple.every(n=>cars.has(n)));
@@ -177,7 +177,8 @@
     const shadowKeys='schema race_id generated_at published_cutoff_at baseline_source_sha256 baseline_prediction_sha256 condition_supplement_sha256 A_research B_research rider_assessments verified_source_receipt_count medical_recovery_or_crash_causality_inferred comments_quoted_in_private_supplement_only historical_originals_mutated is_official_calibrated_or_production_forecast C_optional_unrelated sha256'.split(' ');
     const phases=['INITIAL','BELL','FINAL_HOME','FINAL_BACK','FOURTH_CORNER','GOAL'],number=(v,lo,hi)=>Number.isFinite(v)&&v>=lo&&v<=hi;
     for(const row of rows){
-      need(exact(row,['race_id','revision','baseline_cipher_sha256','conditioned_cipher_sha256','baseline_sealed_at','conditioned_sealed_at','facts','baseline','conditioned'])&&rid(row.race_id)&&row.race_id.startsWith(date.replaceAll('-',''))&&!out.has(row.race_id));
+      const rowKeys=['race_id','revision','baseline_cipher_sha256','conditioned_cipher_sha256','baseline_sealed_at','conditioned_sealed_at','facts','baseline','conditioned'];
+      need((exact(row,rowKeys)||exact(row,[...rowKeys,'confidence_assessment']))&&rid(row.race_id)&&row.race_id.startsWith(date.replaceAll('-',''))&&!out.has(row.race_id));
       for(const key of ['revision','baseline_cipher_sha256'])need(hex(row[key]));
       const base=row.baseline,adjusted=row.conditioned,facts=row.facts;
       need(exact(base,baseKeys)&&base.schema==='RACE_AI_KEIRIN_AUTOMATIC_MARKS_AND_SIX_PHASE_V1'&&base.race_id===row.race_id&&hex(base.prediction_sha256)&&hex(base.source_facts_sha256));
@@ -261,6 +262,8 @@
   function combineFrozen(prior,fresh){
     if(!prior)return fresh||null;if(!fresh)return prior;
     for(const name of ['race_id','baseline_cipher_sha256','baseline_sealed_at','facts','baseline'])need(canonical(prior[name])===canonical(fresh[name]));
+    need(Object.hasOwn(prior,'confidence_assessment')===Object.hasOwn(fresh,'confidence_assessment'));
+    if(Object.hasOwn(prior,'confidence_assessment'))need(canonical(prior.confidence_assessment)===canonical(fresh.confidence_assessment));
     if(prior.conditioned&&fresh.conditioned)for(const name of ['conditioned','conditioned_cipher_sha256','conditioned_sealed_at'])need(canonical(prior[name])===canonical(fresh[name]));
     return fresh.conditioned||!prior.conditioned?fresh:prior;
   }
@@ -311,18 +314,37 @@
     const updates=new Map([...days.keys()].map(date=>[date,resultUpdates(date,parsed)]));
     const frozen=new Map([...days.keys()].map(date=>[date,frozenForecasts(date,parsed)]));
     const nationwide=new Map([...days.keys()].flatMap(date=>{const doc=nationwideDay(date,parsed);return doc?[[date,doc]]:[];}));
+    await validateConfidence(days,frozen,nationwide);
     attachNationwide(days,nationwide);
     for(const [date,rows] of days)for(const row of rows){const update=updates.get(date).get(row.id);if(update){row.resultUpdate=update;row.resultHistory=[update];}const original=frozen.get(date).get(row.id);if(original)row.frozenForecast=combineFrozen(row.frozenForecast,original);const history=results.get(row.id)||[];if(history.length){row.researchResultHistory=[...history];row.latestResearchResult=history.at(-1);}}
     return {schema:SCHEMA,dates:[...days.keys()],days,resultUpdates:updates,frozenForecasts:frozen,nationwide,sourceCommit:packet.source_commit,importedAt:packet.imported_at,files:parsed,fileShas,cipherSha,results,formal:false};
   }
   async function openPacket(packet){return decodePacket(packet,null);}
+  async function validateConfidence(days,frozen,nationwide){
+    const originals=new Set();
+    for(const rows of frozen.values())for(const original of rows.values())originals.add(original);
+    for(const doc of nationwide.values())for(const row of doc.races)if(row.original)originals.add(row.original);
+    for(const original of originals)if(Object.hasOwn(original,'confidence_assessment')){
+      need(confidence);await confidence.validateBaseline(original.confidence_assessment,original.baseline,{source:original.facts,sealedAt:original.baseline_sealed_at});
+    }
+    for(const rows of days.values())for(const row of rows){
+      if(Object.hasOwn(row.referenceEnvelope,'confidence_assessment')){
+        need(confidence);await confidence.validateBaseline(row.referenceEnvelope.confidence_assessment,row.reference,{source:row.referenceEnvelope.input,raceId:row.id});
+      }
+      const selected=[[row.original,'3t','normal'],[row.two,'2t','normal'],[row.rollover,'3t','rollover'],[row.two.rollover,'2t','rollover'],...['3t','2t'].map(market=>[row.flexible.markets?.[market],market,'normal'])];
+      for(const [raw,market,strategy] of selected)if(raw&&Object.hasOwn(raw,'confidence_assessment')){
+        need(confidence);await confidence.validateAuthored(raw,{raceId:row.id,market,strategy});
+      }
+    }
+  }
   function rows(data,date){return data.days.get(date)||[];}
   function frozenArm(row,name){
     const frozen=row.frozenForecast;if(!frozen||!['A','B','adjusted_A','adjusted_B'].includes(name))return null;
     const adjusted=name.startsWith('adjusted_'),role=adjusted?name.slice(9):name;if(adjusted&&!frozen.conditioned)return null;
     const arm=adjusted?frozen.conditioned[role+'_research']:frozen.baseline[role];
     const factors=new Map((frozen.conditioned?.B_research.branch_condition_factors||[]).map(f=>[f.scenario_id,f.relative_weight_after]));
-    return {name,role,adjusted,source:arm,tickets:tickets(arm.ranked_tickets,3,new Set(frozen.facts.riders.map(r=>r.car))),
+    const assessment=!adjusted&&Object.hasOwn(frozen,'confidence_assessment')?confidence.selected(frozen.confidence_assessment,role):{confidence:null,confidenceAssessment:null,confidenceBundle:null};
+    return {name,role,adjusted,source:arm,...assessment,tickets:tickets(arm.ranked_tickets,3,new Set(frozen.facts.riders.map(r=>r.car))),
       scenarios:role==='B'?frozen.baseline.B.six_phase_scenarios.map(s=>({...s,relative_research_weight:adjusted?factors.get(s.scenario_id):s.relative_research_weight})):[],
       assessments:adjusted?frozen.conditioned.rider_assessments:[],facts:frozen.facts,generatedAt:frozen.baseline.generated_at,
       sourceAsOf:frozen.baseline.source_as_of,sealedAt:adjusted?frozen.conditioned_sealed_at:frozen.baseline_sealed_at,cutoffAt:frozen.baseline.published_cutoff_at};
@@ -331,18 +353,28 @@
     const places=market==='2t'?2:3;
     if(['A','B','C'].includes(variant)){
       const ref=row.reference[variant]||{};
+      const assessment=market==='3t'&&['A','B'].includes(variant)&&Object.hasOwn(row.referenceEnvelope||{},'confidence_assessment')?confidence.selected(row.referenceEnvelope.confidence_assessment,variant):{confidence:null,confidenceAssessment:null,confidenceBundle:null};
       return {label:'参考'+variant,tickets:market==='3t'?tickets(ref.ranked_tickets,3,row.cars):[],scenarios:ref.six_phase_scenarios||[],
         allocatable:false,headline:'既存モデルの研究出力',reason:variant==='C'?'独立した連係履歴が不足しているため未生成':'公開印・統計・並びを使用した参考計算',
-        createdAt:row.reference.generated_at,binding:row.bindings?.reference||null,confidence:null,risk:'学習済み・校正済みの確率ではありません。',source:ref};
+        createdAt:row.reference.generated_at,binding:row.bindings?.reference||null,...assessment,risk:'学習済み・校正済みの確率ではありません。',source:ref};
     }
     const base=market==='2t'?row.two:row.original;
-    let current=base,label=market==='2t'?'2車単・保存分析':'3連単・原分析';
-    if(variant==='flexible'&&row.flexible.markets?.[market]){current={...base,...row.flexible.markets[market],analysis_created_at:row.flexible.analysis_created_at};label=market==='2t'?'2車単・改訂分析':'3連単・改訂分析';}
-    if(variant==='rollover'&&market==='3t'&&row.rollover.tickets){current=row.rollover;label='3連単・絞り込み分析';}
-    return {label,tickets:tickets(current.tickets,places,row.cars),scenarios:[...(row.original.scenarios||[]),...(current.extra_scenarios||[])],allocatable:true,
+    let current=base,assessmentSource=base,label=market==='2t'?'2車単・通常予想':'3連単・通常予想';
+    if(variant==='flexible'&&row.flexible.markets?.[market]){assessmentSource=row.flexible.markets[market];current={...base,...assessmentSource,analysis_created_at:assessmentSource.analysis_created_at||row.flexible.analysis_created_at};label=market==='2t'?'2車単・改訂予想':'3連単・改訂予想';}
+    if(variant==='rollover'){
+      if(market==='3t'&&row.rollover.tickets){current=row.rollover;assessmentSource=current;label='3連単・転がし予想';}
+      else if(market==='2t'&&base.rollover?.eligible){assessmentSource=base.rollover;current={...base,...base.rollover,risk:base.rollover.excluded_risk||base.rollover.risk||base.risk};label='2車単・転がし予想';}
+      else{assessmentSource={};current={...base,tickets:[],confidence:null,reason:base.rollover?.reason||'このレースは転がし候補に選んでいません。',headline:'転がし候補は見送り'};label='転がし・見送り';}
+    }
+    const assessment=Object.hasOwn(assessmentSource,'confidence_assessment')?confidence.selected(assessmentSource.confidence_assessment,'selected'):{confidence:text(current.confidence,40),confidenceAssessment:null,confidenceBundle:null};
+    return {label,tickets:tickets(current.tickets,places,row.cars),scenarios:[...(current.scenarios||row.original.scenarios||[]),...(current.extra_scenarios||[])],allocatable:true,
       headline:text(current.headline)||text(base.headline)||'予想未取得',reason:text(current.point_reason||current.reason||current.confidence_reason||current.verdict||current.selection_reason),
-      confidence:text(current.confidence,40),risk:text(current.risk),createdAt:current.analysis_created_at,
+      ...assessment,risk:text(current.risk),createdAt:current.analysis_created_at,
       binding:row.bindings?.[variant==='rollover'&&market==='3t'?'rollover':variant==='flexible'&&row.flexible.markets?.[market]?'flexible':market==='2t'?'two':'original']||null,source:current};
+  }
+  function displayedPredictions(row,market='3t',variant='flexible'){
+    const saved=(row.nationwideOnly||market==='3t'&&variant!=='rollover')?['A','B','adjusted_A','adjusted_B'].map(name=>frozenArm(row,name)).filter(Boolean):[];
+    return row.nationwideOnly?saved:[forecast(row,market,variant),...saved];
   }
   function compare(row,market='3t',variant='A',version=null){
     need(['3t','2t'].includes(market)&&['original','flexible','rollover','A','B','C'].includes(variant));
@@ -392,5 +424,5 @@
     need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
     return decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
   }
-  return {openPacket,openCipher,rows,forecast,frozenArm,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,utc,day,SCHEMA};
+  return {openPacket,openCipher,rows,forecast,frozenArm,displayedPredictions,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,utc,day,SCHEMA};
 });

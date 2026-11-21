@@ -117,6 +117,32 @@ class NationwideForecastViewTests(unittest.TestCase):
         bad = deepcopy(doc); bad['races'][0]['original']['conditioned']['baseline_prediction_sha256'] = '0'*64
         with self.assertRaises(ValueError): api.checked_day(bad)
 
+    def test_saved_confidence_survives_baseline_only_and_conditioned_display_without_rescoring(self):
+        from race_ai import keirin_confidence as confidence
+        for conditioned in (False,True):
+            with self.subTest(conditioned=conditioned):
+                admitted=admitted_fixture(conditioned=conditioned);payload=admitted['records'][0]
+                legacy=self.api().from_admitted(admitted,self.private)
+                payload['confidence_assessment']=confidence.assess_baseline(payload['snapshot'],payload['baseline'],
+                    assessed_at=payload['baseline_sealed_at'])
+                before=deepcopy(payload)
+                with patch.object(confidence,'assess_baseline',side_effect=AssertionError('no reassessment')):
+                    doc=self.api().from_admitted(admitted,self.private)
+                    packet=self.api().note_packet(doc,'a'*40)
+                saved=json.loads(packet['files']['data/'+DAY+'/nationwide_forecasts.json']['text'])['races'][0]['original']
+                self.assertEqual(saved.get('confidence_assessment'),payload['confidence_assessment'])
+                self.assertEqual(saved['baseline'],payload['baseline'])
+                self.assertEqual(saved['conditioned'],payload['conditioned'])
+                self.assertEqual(payload,before)
+                self.assertNotEqual(doc['races'][0]['original_identity']['baseline'],
+                    legacy['races'][0]['original_identity']['baseline'])
+                for change in (lambda r:r['confidence_assessment'].__setitem__('extra',True),
+                        lambda r:r['confidence_assessment'].__setitem__('source_facts_sha256','f'*64),
+                        lambda r:r.__setitem__('confidence_assessment',None),
+                        lambda r:r.__setitem__('unknown_metadata',True)):
+                    bad=deepcopy(doc);change(bad['races'][0]['original'])
+                    with self.assertRaises(ValueError):self.api().checked_day(bad)
+
     def test_unavailable_inventory_is_unknown_and_missing_races_never_become_zero_ticket_predictions(self):
         api = self.api()
         empty = dict(day_jst=DAY, registry=None, records=[], states=[], observed_at=NOW.isoformat())

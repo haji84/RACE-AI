@@ -25,6 +25,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.exceptions import InvalidTag
 
 from . import keirin_nationwide_auto_generator as model
+from . import keirin_confidence as confidence
 from . import keirin_nationwide_auto_storage as storage
 from . import keirin_nationwide_AB_results as nationwide_results
 from . import keirin_available_prediction_audit as audit
@@ -70,8 +71,10 @@ def _b64(encoded):
 
 
 def decrypt_original_pair(*, raw_cipher, expected_cipher_sha256,
-                          owner_private_pem):
+                          owner_private_pem, _include_assessment=False):
     """RSA/AES authentication + independent model replay, no plaintext I/O."""
+    # Keep replay in this function: the historic Python 3.11 verifier binds
+    # its SHA-locked generator through an isolated copy of these globals.
     need(type(raw_cipher) is bytes and 0 < len(raw_cipher) < MAX_SEALED and
          type(expected_cipher_sha256) is str and
          SHA.fullmatch(expected_cipher_sha256) and
@@ -118,10 +121,12 @@ def decrypt_original_pair(*, raw_cipher, expected_cipher_sha256,
         except (ValueError, InvalidTag, zlib.error, UnicodeError):
             raise AutoSettlementError("OWNER_DECRYPT_OR_ZLIB_AUTH_FAILED") from None
         data = _json(plain)
-        need(type(data) is dict and set(data) == {
+        legacy_fields = {
             "schema", "role", "race_id", "prediction", "generated_at",
             "pre_race_facts", "pre_race_facts_sha256", "prediction_sha256",
-            "official_result_not_included"} and
+            "official_result_not_included"}
+        need(type(data) is dict and set(data) in (
+             legacy_fields, legacy_fields | {"confidence_assessment"}) and
              data["schema"] == "RACE_AI_KEIRIN_NATIONWIDE_AB_PRIVATE_ARM_V1" and
              data["role"] == role and
              data["race_id"] == manifest["race_id"] and
@@ -158,7 +163,26 @@ def decrypt_original_pair(*, raw_cipher, expected_cipher_sha256,
                  replay["prediction_sha256"] and
              originals[role]["prediction"] == replay[role],
              "A_B_DECRYPTED_PREDICTION_NOT_REPRODUCIBLE")
-    return manifest, replay, {r["car"] for r in snap["riders"]}
+    has_assessment = "confidence_assessment" in originals["A"]
+    need(has_assessment == ("confidence_assessment" in originals["B"]),
+         "A_B_CONFIDENCE_PRESENCE_MISMATCH")
+    assessment = None
+    if has_assessment:
+        need(model.canonical(originals["A"]["confidence_assessment"]) ==
+             model.canonical(originals["B"]["confidence_assessment"]),
+             "A_B_CONFIDENCE_NOT_IDENTICAL")
+        assessment = confidence.checked_assessment(originals["A"]["confidence_assessment"],
+            snapshot=snap, baseline=replay, sealed_at=manifest["sealed_at"])
+    result = manifest, replay, {r["car"] for r in snap["riders"]}
+    return (*result, assessment) if _include_assessment else result
+
+
+def decrypt_original_with_assessment(*, raw_cipher, expected_cipher_sha256,
+                                     owner_private_pem):
+    """Return the authenticated saved sidecar without generating a new one."""
+    return decrypt_original_pair(raw_cipher=raw_cipher,
+        expected_cipher_sha256=expected_cipher_sha256,
+        owner_private_pem=owner_private_pem, _include_assessment=True)
 
 
 def _verified(verifier, *args):

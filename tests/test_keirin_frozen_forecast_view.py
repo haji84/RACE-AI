@@ -88,6 +88,19 @@ class FrozenForecastViewTests(unittest.TestCase):
         self.assertNotEqual(row['revision'], payload['baseline']['prediction_sha256'])
         self.assertEqual(payload, frozen_payload())
 
+    def test_fixed_historical_canary_cannot_acquire_a_confidence_sidecar(self):
+        from race_ai import keirin_confidence as confidence
+        payload=frozen_payload()
+        payload['confidence_assessment']=confidence.assess_baseline(payload['snapshot'],payload['baseline'],
+            assessed_at=payload['baseline_sealed_at'])
+        before=deepcopy(payload)
+        with self.assertRaisesRegex(ValueError,'HISTORICAL_CANARY_CONFIDENCE_NOT_ALLOWED'):
+            self.api().from_payload(payload,self.private)
+        self.assertEqual(payload,before)
+        payload['confidence_assessment']=None
+        with self.assertRaisesRegex(ValueError,'HISTORICAL_CANARY_CONFIDENCE_NOT_ALLOWED'):
+            self.api().from_payload(payload,self.private)
+
     def test_changed_frozen_identity_duplicate_tickets_and_post_cutoff_sealing_are_rejected(self):
         payload = frozen_payload()
         for mutate in (

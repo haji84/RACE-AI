@@ -21,6 +21,7 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from . import keirin_nationwide_auto_generator as model
+from . import keirin_confidence as confidence
 from . import keirin_nationwide_auto_storage as storage
 from . import keirin_nationwide_auto_settlement as decrypt
 from . import keirin_nationwide_cipher_history as archive
@@ -126,15 +127,22 @@ def replay_original(*, payload, raw_baseline, raw_conditioned, owner_private_pem
          payload['cohort'].get('schema')=='RACE_AI_KEIRIN_OFFICIAL_SP_DAY_COHORT_V1' and
          payload['cohort'].get('day_jst')==day and payload['cohort'].get('max_tickets_per_arm')==12 and
          rid in payload['cohort'].get('race_ids',[]),'ORIGINAL_COHORT')
-    envelope,baseline,_=decrypt.decrypt_original_pair(raw_cipher=raw_baseline,
+    envelope,baseline,_,assessment=decrypt.decrypt_original_with_assessment(raw_cipher=raw_baseline,
         expected_cipher_sha256=payload['baseline_cipher_sha256'],owner_private_pem=owner_private_pem)
     rebuilt=extension.build_baseline_candidate(**payload['baseline_arguments'],now=model.when(base['generated_at']))
     need(baseline==base and rebuilt['snapshot']==payload['snapshot'] and
          baseline['source_facts_sha256']==model.digest(payload['snapshot']) and
          envelope['sealed_at']==payload['baseline_sealed_at'],'ORIGINAL_SOURCE_OR_MODEL_CHANGED')
+    has_assessment='confidence_assessment' in payload
+    need(has_assessment==(assessment is not None),'CONFIDENCE_PRESENCE_MISMATCH')
+    if has_assessment:
+        saved=confidence.checked_assessment(payload['confidence_assessment'],
+            snapshot=payload['snapshot'],baseline=baseline,sealed_at=envelope['sealed_at'])
+        need(model.canonical(saved)==model.canonical(assessment),'CONFIDENCE_SOURCE_CIPHER_MISMATCH')
     out={key:deepcopy(payload[key]) for key in ('schema','day_jst','race_id','cohort','cohort_sha256',
         'producer_run_id','producer_commit','snapshot','baseline','baseline_cipher_sha256','baseline_sealed_at',
         'conditioned','supplement','conditioned_cipher_sha256','conditioned_sealed_at','condition_state')}
+    if has_assessment:out['confidence_assessment']=deepcopy(assessment)
     if payload.get('conditioned') is not None:
         try:
             decoded=decrypt_conditioned(raw_conditioned,expected_sha256=payload['conditioned_cipher_sha256'],

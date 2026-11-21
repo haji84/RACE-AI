@@ -8,7 +8,7 @@ def build(root=None):
     root = Path(root) if root else Path(__file__).resolve().parents[1]
     web = root / 'web'
     parts = [web/'keirin-note-source/staking.js', web/'keirin-note-source/staking_flexible.js',
-             web/'keirin-note-source/rollover.js', web/'keirin-note-model.js', web/'keirin-note-feed.js',
+             web/'keirin-note-source/rollover.js', web/'confidence.js', web/'keirin-note-model.js', web/'keirin-note-feed.js',
              web/'keirin-note-view.js']
     original = (web/'race-app-core.js').read_bytes()
     prefix = b"if (typeof window === 'object' && typeof location === 'object') window.RaceNoteInitialFragment = location.hash;\n"
