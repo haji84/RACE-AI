@@ -421,7 +421,7 @@ class NoteBrowserTests(unittest.TestCase):
         self.page.locator('#kn-variant').select_option('original')
         selected = self.page.locator('.kn-selected-comparison')
         self.assertEqual(selected.count(), 1)
-        self.assertIn('2車単・保存分析 · 1点 · 的中', selected.inner_text())
+        self.assertIn('2車単・通常予想 · 1点 · 的中', selected.inner_text())
         self.assertIn('払戻 未確認', selected.inner_text())
         self.assertNotIn('5,300円', selected.inner_text())
         self.assertEqual(self.errors, [])
