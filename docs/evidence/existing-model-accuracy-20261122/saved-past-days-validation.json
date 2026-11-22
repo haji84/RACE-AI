@@ -1,0 +1,30 @@
+{
+  "BOAT_producer_actions": 0,
+  "existing_protected_main_presentation_synchronized": true,
+  "failed": 0,
+  "fresh_node_command": "node --test tests/keirin_note_assets.test.cjs tests/keirin_note_model.test.cjs tests/keirin_note_feed.test.cjs tests/keirin_note_feed_refresh.test.cjs tests/keirin_note_results.test.cjs tests/keirin_note_nationwide.test.cjs tests/keirin_note_frozen.test.cjs tests/keirin_note_confidence.test.cjs tests/keirin_note_confidence_integration.test.cjs",
+  "fresh_tests": 141,
+  "frozen_33_case_predictions_changed": false,
+  "history_day_rows": [
+    75,
+    57,
+    57,
+    68
+  ],
+  "live_http_assets_verified": 14,
+  "new_pr": false,
+  "new_site_created": false,
+  "observed_at_utc": "2026-11-22T07:25:46.692454+00:00",
+  "original_forecasts_and_all_ciphertexts_unchanged": true,
+  "passed": 141,
+  "physical_iPhone_acceptance": false,
+  "preview_and_live_browser_passed": true,
+  "product_code_changed": false,
+  "production_keys_used": false,
+  "production_weights_switched": false,
+  "provider_requests": 0,
+  "registered_study_changed": false,
+  "schema": "RACE_AI_SAVED_PAST_DAYS_VALIDATION_V1",
+  "skipped": 0,
+  "source_state_mutations": 0
+}

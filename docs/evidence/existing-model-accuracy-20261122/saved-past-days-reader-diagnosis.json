@@ -1,0 +1,74 @@
+{
+  "existing_node_tests": {
+    "failed": 0,
+    "modules": [
+      "keirin_note_assets",
+      "keirin_note_model",
+      "keirin_note_feed",
+      "keirin_note_feed_refresh",
+      "keirin_note_results",
+      "keirin_note_nationwide",
+      "keirin_note_frozen",
+      "keirin_note_confidence",
+      "keirin_note_confidence_integration"
+    ],
+    "passed": 141,
+    "skipped": 0,
+    "tests": 141
+  },
+  "finding": "An older deployed presentation rejects a newer saved nationwide record; the unchanged protected-main reader accepts the same authenticated saved ciphertexts. No original prediction or result rewrite is needed.",
+  "initial_actual_browser": {
+    "key_transmitted": false,
+    "load_success_not_observed_within_seconds": 120,
+    "viewport": 390
+  },
+  "model_or_weight_change": false,
+  "observed_at_utc": "2026-11-22T07:22:46.412943+00:00",
+  "offline_exact_cipher_replay": {
+    "protected_main_reader": {
+      "dates": [
+        "2026-11-19",
+        "2026-11-20",
+        "2026-11-21",
+        "2026-11-22"
+      ],
+      "displayed_rows": [
+        75,
+        57,
+        57,
+        68
+      ],
+      "source": "8646af01e7931e5c0901f4e6dc3d1bd4544bbaa7",
+      "state": "PASS"
+    },
+    "provider_requests": 0,
+    "served_reader": {
+      "code": "KEIRIN_NOTE_INVALID",
+      "first_rejected_entry_created_at": "2026-11-21T19:56:26.425648+00:00",
+      "first_rejected_entry_kind": "nationwide",
+      "state": "HOLD"
+    }
+  },
+  "physical_iPhone_acceptance": false,
+  "preview_browser_passed": true,
+  "previous_pages_commit": "99832a6236081320283be47ac2a5df85f661adf4",
+  "previous_served_app_sha256": "7d2e5f0190ad4ee0682e53d869620b6b8c0b99ce696a7817d3165f70155d60f0",
+  "product_code_change": false,
+  "saved_days": [
+    "2026-11-19",
+    "2026-11-20",
+    "2026-11-21",
+    "2026-11-22"
+  ],
+  "saved_feed_head": "bd0088f6dae80b193adabc0b2b7da65d80b27f69",
+  "schema": "RACE_AI_SAVED_HISTORY_READER_COMPATIBILITY_DIAGNOSIS_V1",
+  "separate_12_second_transport_diagnosis": {
+    "day_buttons": 0,
+    "key_transmitted": false,
+    "owned_page_http_200_responses": 14,
+    "page_error_types": [],
+    "raw_github_http_200_responses": 47,
+    "requests_failed": 0,
+    "status": "OWNER_VIEW_LOADING"
+  }
+}

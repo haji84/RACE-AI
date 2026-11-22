@@ -1,0 +1,14 @@
+{
+  "assets": 14,
+  "encrypted_original_blob_unchanged": true,
+  "legacy_reader_unchanged": true,
+  "manifest_sha256": "35740018125d2885e1799d3daebc7980b2db4d71abb31630b6cdb1dc96666e10",
+  "official_provider_gets": 0,
+  "original_forecast_identity_unchanged": true,
+  "original_forecast_rewrites": 0,
+  "original_reference": "f60308ef7443ca13b5ca23c4896e15ffc67b0427",
+  "page_commit": "f2e97da96672484d52e178c30134603fd286d4e0",
+  "source_state_mutations": 0,
+  "status": "BOAT_APPROVED_PRESENTATION_AND_HTTP_VERIFIED",
+  "trusted_ui_source": "8646af01e7931e5c0901f4e6dc3d1bd4544bbaa7"
+}

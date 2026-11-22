@@ -1,0 +1,49 @@
+{
+  "dates": [
+    "2026-11-19",
+    "2026-11-20",
+    "2026-11-21",
+    "2026-11-22"
+  ],
+  "historical_data_limited_to_saved_dates": true,
+  "key_transmitted": false,
+  "observed_at_utc": "2026-11-22T07:20:22.830418+00:00",
+  "old_day_selection_and_history_expansion": "PASS",
+  "page": "http://127.0.0.1:33687/",
+  "page_errors": 0,
+  "physical_iPhone": false,
+  "provider_browser_requests": 0,
+  "schema": "RACE_AI_SAVED_PAST_DAYS_ACTUAL_BROWSER_20261122_V1",
+  "seconds": 34.7,
+  "summaries": [
+    {
+      "day": "2026-11-19",
+      "displayed_races": 75,
+      "original_prediction_history_sections": 75,
+      "result_history_sections": 75,
+      "secondary_matched_results": 75
+    },
+    {
+      "day": "2026-11-20",
+      "displayed_races": 57,
+      "original_prediction_history_sections": 57,
+      "result_history_sections": 57,
+      "secondary_matched_results": 54
+    },
+    {
+      "day": "2026-11-21",
+      "displayed_races": 57,
+      "original_prediction_history_sections": 57,
+      "result_history_sections": 57,
+      "secondary_matched_results": 55
+    },
+    {
+      "day": "2026-11-22",
+      "displayed_races": 68,
+      "original_prediction_history_sections": 68,
+      "result_history_sections": 68,
+      "secondary_matched_results": 38
+    }
+  ],
+  "viewport": 390
+}
