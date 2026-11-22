@@ -1,0 +1,13 @@
+{
+  "schema": "RACE_AI_KEIRIN_HISTORY_SEARCH_DELIVERY_20261122_V1",
+  "observed_at_utc": "2026-11-22T08:34:21Z",
+  "state": "OWNER_APPROVED_ONE_PR_DELIVERY_PENDING",
+  "owner_instruction": "進めて",
+  "authorized_new_PR_count": 1,
+  "candidate_ui_source": "3d61079f08b585e32d2a856f18f96bc34b53cfc8",
+  "new_search_ui_deployed": false,
+  "physical_iPhone_verified": false,
+  "production_weights_switched": false,
+  "new_site_created": false,
+  "branch_protection_changed": false
+}

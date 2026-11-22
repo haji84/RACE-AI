@@ -1,4 +1,4 @@
-# 2026-11-22｜競輪の保存履歴検索（実装・検証済み、main反映待ち）
+# 2026-11-22｜競輪の保存履歴検索（受入検証と配備記録）
 
 日付を一つずつ選ぶ方式では保存日が増えると探しにくいため、既存の本人用ガイドに検索条件とページ分けを追加した。
 
@@ -16,8 +16,8 @@
 
 ## 反映状況と範囲
 
-候補ブランチは [`feat/keirin-history-search-20261122`](https://github.com/haji84/RACE-AI/tree/feat/keirin-history-search-20261122)。検証したコードは `3d61079f08b585e32d2a856f18f96bc34b53cfc8`。検索UIはまだprotected mainおよび既存Pagesに反映していない。
+候補ブランチは [`feat/keirin-history-search-20261122`](https://github.com/haji84/RACE-AI/tree/feat/keirin-history-search-20261122)。非公開プレビューで検証したコードは `3d61079f08b585e32d2a856f18f96bc34b53cfc8`。前節の集計証拠は配備前の検証記録であり、最終CI・main統合・既存Pages反映後の検証は、同ブランチの[最新配備記録](https://github.com/haji84/RACE-AI/blob/feat/keirin-history-search-20261122/docs/evidence/keirin-history-search-20261122/delivery.json)へ追記する。
 
-所有者の「新PRを増やさず」を保持している。関連する既存PRはmerge済みで、閉じた未merge PRの検索は0件。開いている49は別配備系統、71は異なるbaseの大規模draftで凍結producerの参照先、148は凍結producerのCI専用で、今回のUI用に変更しない。main保護や必須CIも変更しない。実装・レビュー・プレビューを先に完成させたうえで、通常反映のための新PR1件の例外だけを所有者へ確認する。
+所有者は実装・レビュー・プレビューの完了後、新PR1本を作り必要な検査を通して反映する提案に「進めて」と回答した（2026-11-22 17:34 JSTに確認）。この明示例外により今回のUIだけを通常のPRで反映する。関連する既存PRはmerge済みで、閉じた未merge PRの検索は0件。開いている49は別配備系統、71は異なるbaseの大規模draftで凍結producerの参照先、148は凍結producerのCI専用で、今回のUI用に変更しない。main保護や必須CIは保持する。
 
 検索は端末内の読込済みデータを対象とする。暗号文の配信・全履歴読込方式は今回変更せず、任意の蓄積量に対する読込時間まで実証したものではない。予想原本・結果改訂・配分計算・暗号化・元BOAT画面・研究固定値・workflow・本番重みを変更していない。実機iPhone、4競技全件/T15、6艇識別と校正、前向き精度改善の完成には数えない。
