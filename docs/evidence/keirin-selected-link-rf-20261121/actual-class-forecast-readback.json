@@ -1,0 +1,46 @@
+{
+  "schema": "RACE_AI_ACTUAL_SELECTED_CLASS_READBACK_20261121_V1",
+  "state": "ACTUAL_PRE_CUTOFF_CLASS_FORECAST_GIT_READBACK_VERIFIED",
+  "observed_at_utc": "2026-11-20T18:40:38.647582+00:00",
+  "main": "d44a11257e61d3b539d7d033a93c27e0ea429746",
+  "state_head": "d5ebf71d5357450663773aca3e0261a72cede0f2",
+  "cipher_sha256": "f20dad0da26b4fff9e3bfeee239c002f357d6e2c9a3ba28705f442085061fb44",
+  "target_race_id_sha256": "f2e89eb4d8e65b5f5ca10fc4b514b92b91f43571721edc4fc57a02993a0617ad",
+  "class_source_provider": "netkeirin",
+  "class_source_bytes_sha256": "10407ae58edb2959a945e477d3a2c2b99c40bb4a9810052132511b2b37137a36",
+  "class_header_sha256": "61c63397d79737d00c53b6916dc529e7ae4aa4d28a068e248c1bb302dc881442",
+  "competition": "S",
+  "generated_before_published_cutoff": true,
+  "git_readback_observed_before_published_cutoff": true,
+  "reference_A_points": 12,
+  "reference_B_points": 11,
+  "new_reference_inputs": 1,
+  "daily_coverage": {
+    "held": 18,
+    "input_available": 39,
+    "missing": 0,
+    "observed": 57
+  },
+  "collection_counts": {
+    "observed_races": 57,
+    "selected_races": 19,
+    "captured_races": 1,
+    "public_page_requests": 45,
+    "provider_denied": false,
+    "states": {
+      "HOLD_KDREAMS_LINE_NOT_ALL_REAL_CARS": 17,
+      "HOLD_SOURCE_CANONICAL_URL_RACE_MISMATCH": 1,
+      "PRIVATE_CARD_NORMALIZED_FROM_TWO_PUBLIC_SOURCES": 1
+    }
+  },
+  "result_check_states": {
+    "MATCHED": 129,
+    "HOLD": 3,
+    "PENDING": 0
+  },
+  "formal_model_admission": false,
+  "actual_organizer_cutoff_authenticated": false,
+  "learning_improvement_proven": false,
+  "production_state_key_used": false,
+  "private_plaintext_uploaded": false
+}

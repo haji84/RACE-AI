@@ -1,0 +1,29 @@
+{
+  "run_id": 44794841056,
+  "artifact_id": 14658717573,
+  "artifact_zip_sha256": "91f994f42becde1ad800dbc0a5d8c73b4780ab885fec53bc4142f4e21bdf882b",
+  "safe_summary": {
+    "RSA_private_decryption_verified": false,
+    "day_jst": "2026-11-21",
+    "independently_verified": 4,
+    "independently_verified_conditioned": 3,
+    "new_archived": 4,
+    "organizer_result_verified": false,
+    "paired_cipher_originals_verified": 3,
+    "plaintext_parent_linkage_verified": false,
+    "schema": "RACE_AI_KEIRIN_GITHUB_ONLY_AB_SECOND_RUNNER_V1",
+    "new_encrypted_original_count": 0
+  },
+  "full_report_keys": [
+    "RSA_private_decryption_verified",
+    "day_jst",
+    "independently_verified",
+    "independently_verified_conditioned",
+    "new_archived",
+    "organizer_result_verified",
+    "paired_cipher_originals_verified",
+    "plaintext_parent_linkage_verified",
+    "records",
+    "schema"
+  ]
+}

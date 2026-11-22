@@ -1,0 +1,81 @@
+{
+  "run_id": 44794110022,
+  "job_id": 136490885125,
+  "main": "d44a11257e61d3b539d7d033a93c27e0ea429746",
+  "github_conclusion": "success",
+  "note": {
+    "acquisition": {
+      "actual_four_model_forecast_saved": false,
+      "already_captured_races_skipped": 38,
+      "authored_forecasts_created": 0,
+      "captured_races": 1,
+      "day_jst": "2026-11-21",
+      "formal_model_admission": false,
+      "meeting_pages_attempted": 6,
+      "missing_cutoff_hint_races": 0,
+      "missing_source_races": 18,
+      "national_universe_verified": false,
+      "no_results_used_as_pre_race_inputs": true,
+      "observed_races": 57,
+      "observed_venues": 6,
+      "past_cutoff_races": 0,
+      "production_weight_switch": false,
+      "provider_denied": false,
+      "public_page_requests": 45,
+      "published_meeting_links": 6,
+      "research_references_generated": 1,
+      "schema": "RACE_AI_KEIRIN_NOTE_INPUT_COLLECTION_V1",
+      "selected_priority_races": 0,
+      "selected_races": 19,
+      "states": {
+        "HOLD_KDREAMS_LINE_NOT_ALL_REAL_CARS": 17,
+        "HOLD_SOURCE_CANONICAL_URL_RACE_MISMATCH": 1,
+        "PRIVATE_CARD_NORMALIZED_FROM_TWO_PUBLIC_SOURCES": 1
+      },
+      "too_close_races": 0,
+      "wagers_placed": false
+    },
+    "covered_races": 72,
+    "entries": 14,
+    "priority_window_races": 3,
+    "private_plaintext_uploaded": false,
+    "production_state_key_used": false,
+    "provider_denied": false,
+    "source_commit": "d5ebf71d5357450663773aca3e0261a72cede0f2",
+    "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED",
+    "results": {
+      "actual_four_model_forecast_saved": false,
+      "budget_exhausted": false,
+      "changed_observations": 0,
+      "checked_races": 4,
+      "days_requested": 3,
+      "discovered_days": 3,
+      "formal_model_admission": false,
+      "future_races": 57,
+      "hold_races": 3,
+      "matched_races": 1,
+      "national_universe_verified": false,
+      "not_due_races": 128,
+      "observed_races": 189,
+      "pending_races": 0,
+      "provider_denied": false,
+      "public_page_requests": 31,
+      "schema": "RACE_AI_KEIRIN_NOTE_RESULT_COLLECTION_V1",
+      "states": {
+        "HOLD_SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL": 3,
+        "SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL": 1
+      },
+      "unknown_cutoff_races": 0
+    }
+  },
+  "legacy_full_model": {
+    "state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT",
+    "source_state": "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED",
+    "new_forecast_stage_nonzero": null,
+    "four_model_variable_saved": null,
+    "four_model_variable_held": null,
+    "official_result_independently_authenticated": null
+  },
+  "source_logs_authenticated": true,
+  "production_state_key_used_locally": false
+}

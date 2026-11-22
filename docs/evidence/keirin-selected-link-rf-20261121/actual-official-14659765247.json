@@ -1,0 +1,208 @@
+{
+  "run_id": 44794841056,
+  "artifact_id": 14659765247,
+  "artifact_zip_sha256": "c70693ab9a73b14eb81ea521ef5f66f369b75b64c95c085622bbddef1d8dc414",
+  "safe_summary": {
+    "all_prediction_coverage_complete": false,
+    "class_evidence": [
+      {
+        "class_label": "A\u7d1a\u30c1\u30e3\u30ec\u30f3\u30b8\u4e00\u822c",
+        "detail_sha256": "ed62b9b4aeb3a4555bb7ef4359c1974ab17328a2371e03bb4a28259d1bae2cac",
+        "grades": [
+          "A3"
+        ],
+        "http_status": 200,
+        "list_sha256": "7a9ddb78d0432c9e82eddc04e06efe6ff9c84b66d710aaa799345489d60d808f",
+        "observed_at": "2026-11-20T18:48:06.925250+00:00",
+        "official_cutoff_at": "2026-11-21T20:47:00+09:00",
+        "prediction_admitted": false,
+        "race_id": "202611212201",
+        "rider_count": 7,
+        "source_host": "keirin.jp",
+        "source_path": "/sp/race",
+        "state": "PUBLISHED_CLASS_CARD_EVIDENCE_ONLY"
+      },
+      {
+        "class_label": "A\u7d1a\u4e88\u9078",
+        "detail_sha256": "427a2d59f1d5e3b94f48926f98d253d0d273559ca40e83a90270abe63f8c8ef0",
+        "grades": [
+          "A1",
+          "A2"
+        ],
+        "http_status": 200,
+        "list_sha256": "9b404a297cd12672140ceb1d1073fb2f9b3f07018ec47677323c4f5c48985d58",
+        "observed_at": "2026-11-20T18:48:08.107252+00:00",
+        "official_cutoff_at": "2026-11-21T10:45:00+09:00",
+        "prediction_admitted": false,
+        "race_id": "202611213601",
+        "rider_count": 7,
+        "source_host": "keirin.jp",
+        "source_path": "/sp/race",
+        "state": "PUBLISHED_CLASS_CARD_EVIDENCE_ONLY"
+      },
+      {
+        "class_label": "L\u7d1a\u30ac\u30fc\u30eb\u30ba\u4e00\u822c",
+        "detail_sha256": "d022eb70b67f83f17ca38385ca6e5c739d9b8b0107112164d088016e7fd3ed21",
+        "grades": [
+          "L1"
+        ],
+        "http_status": 200,
+        "list_sha256": "5bcf491ef4cc0ab9b25bcc4f7e23239ec63ce84e78dc094c95f725404669ed52",
+        "observed_at": "2026-11-20T18:48:09.293689+00:00",
+        "official_cutoff_at": "2026-11-21T08:47:00+09:00",
+        "prediction_admitted": false,
+        "race_id": "202611215101",
+        "rider_count": 7,
+        "source_host": "keirin.jp",
+        "source_path": "/sp/race",
+        "state": "PUBLISHED_CLASS_CARD_EVIDENCE_ONLY"
+      },
+      {
+        "class_label": "A\u7d1a\u30c1\u30e3\u30ec\u30f3\u30b8\u6e96\u6c7a\u52dd",
+        "http_status": null,
+        "prediction_admitted": false,
+        "race_id": "202611212203",
+        "source_host": "keirin.jp",
+        "source_path": "/sp/race",
+        "state": "SOURCE_CAPTURE_FAILED"
+      }
+    ],
+    "class_statuses": [
+      {
+        "class_label": "A\u7d1a\u30c1\u30e3\u30ec\u30f3\u30b8\u4e00\u822c",
+        "statuses": {
+          "UNSUPPORTED_CLASS_OR_ROUND": 6
+        }
+      },
+      {
+        "class_label": "A\u7d1a\u30c1\u30e3\u30ec\u30f3\u30b8\u6c7a\u52dd",
+        "statuses": {
+          "UNSUPPORTED_CLASS_OR_ROUND": 1
+        }
+      },
+      {
+        "class_label": "A\u7d1a\u30c1\u30e3\u30ec\u30f3\u30b8\u6e96\u6c7a\u52dd",
+        "statuses": {
+          "UNSUPPORTED_CLASS_OR_ROUND": 4
+        }
+      },
+      {
+        "class_label": "A\u7d1a\u30c1\u30e3\u30ec\u30f3\u30b8\u9078\u629c",
+        "statuses": {
+          "UNSUPPORTED_CLASS_OR_ROUND": 2
+        }
+      },
+      {
+        "class_label": "A\u7d1a\u4e88\u9078",
+        "statuses": {
+          "UNSUPPORTED_CLASS_OR_ROUND": 8
+        }
+      },
+      {
+        "class_label": "A\u7d1a\u521d\u65e5\u7279\u9078",
+        "statuses": {
+          "UNSUPPORTED_CLASS_OR_ROUND": 2
+        }
+      },
+      {
+        "class_label": "A\u7d1a\u6e96\u6c7a\u52dd",
+        "statuses": {
+          "UNSUPPORTED_CLASS_OR_ROUND": 6
+        }
+      },
+      {
+        "class_label": "A\u7d1a\u7279\u4e00\u822c",
+        "statuses": {
+          "UNSUPPORTED_CLASS_OR_ROUND": 4
+        }
+      },
+      {
+        "class_label": "L\u7d1a\u30ac\u30fc\u30eb\u30ba\u4e00\u822c",
+        "statuses": {
+          "UNSUPPORTED_CLASS_OR_ROUND": 1
+        }
+      },
+      {
+        "class_label": "L\u7d1a\u30ac\u30fc\u30eb\u30ba\u6c7a\u52dd",
+        "statuses": {
+          "SOURCE_CAPTURE_BUDGET_PENDING": 1
+        }
+      },
+      {
+        "class_label": "S\u7d1a\u30c0\u30a4\u30e4\u30e2\u30f3\u30c9\u30ec\u30fc\u30b9",
+        "statuses": {
+          "SOURCE_CAPTURE_BUDGET_PENDING": 1
+        }
+      },
+      {
+        "class_label": "S\u7d1a\u4e88\u9078",
+        "statuses": {
+          "UNSUPPORTED_CLASS_OR_ROUND": 8
+        }
+      },
+      {
+        "class_label": "S\u7d1a\u4e8c\u6b21\u4e88\u9078A",
+        "statuses": {
+          "SOURCE_CAPTURE_BUDGET_PENDING": 3
+        }
+      },
+      {
+        "class_label": "S\u7d1a\u4e8c\u6b21\u4e88\u9078B",
+        "statuses": {
+          "SOURCE_CAPTURE_BUDGET_PENDING": 3
+        }
+      },
+      {
+        "class_label": "S\u7d1a\u521d\u65e5\u7279\u9078",
+        "statuses": {
+          "UNSUPPORTED_CLASS_OR_ROUND": 2
+        }
+      },
+      {
+        "class_label": "S\u7d1a\u9078\u629c",
+        "statuses": {
+          "A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK": 4,
+          "SOURCE_CAPTURE_BUDGET_PENDING": 1
+        }
+      }
+    ],
+    "day_inventory_complete": true,
+    "day_jst": "2026-11-21",
+    "new_A_B_git_archived": 4,
+    "new_A_B_sealed": 4,
+    "new_conditioned_A_B_git_archived": 3,
+    "paired_comparable_races": 0,
+    "provider_denied": false,
+    "registered_races": 57,
+    "schema": "RACE_AI_KEIRIN_GITHUB_ONLY_LIVE_AB_DAY_V1",
+    "source_or_forecast_plaintext_exposed": false,
+    "source_requests": 300,
+    "state": "OFFICIAL_SP_BASELINES_ARCHIVED",
+    "statuses": {
+      "A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK": 4,
+      "SOURCE_CAPTURE_BUDGET_PENDING": 9,
+      "UNSUPPORTED_CLASS_OR_ROUND": 44
+    },
+    "new_encrypted_original_count": 4
+  },
+  "full_report_keys": [
+    "all_prediction_coverage_complete",
+    "class_evidence",
+    "class_statuses",
+    "day_inventory_complete",
+    "day_jst",
+    "new_A_B_git_archived",
+    "new_A_B_sealed",
+    "new_conditioned_A_B_git_archived",
+    "new_encrypted_originals",
+    "paired_comparable_races",
+    "provider_denied",
+    "registered_races",
+    "safe_diagnostics",
+    "schema",
+    "source_or_forecast_plaintext_exposed",
+    "source_requests",
+    "state",
+    "statuses"
+  ]
+}

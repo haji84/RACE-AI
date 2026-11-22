@@ -1,0 +1,14 @@
+{
+  "schema": "RACE_AI_SELECTED_LINK_RF_PRESERVATION_V1",
+  "head": "5279ab195bb1653a2624d754fc1af7856c11013a",
+  "prior": "40f252055674995e76442d7f809a7c988e3a2830",
+  "prior_encrypted_entries_preserved": 9,
+  "current_encrypted_entries": 15,
+  "old_cipher_oids_unchanged": true,
+  "all_index_ciphers_hash_verified": true,
+  "recipient_unchanged": true,
+  "workflow_definitions_or_bodies_changed": false,
+  "source_model_config_changed": false,
+  "original_commit_ancestry_preserved": true,
+  "production_state_key_used": false
+}

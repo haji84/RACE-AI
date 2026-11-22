@@ -1,0 +1,503 @@
+{
+  "schema": "RACE_AI_GOAL_ACTUAL_AUDIT_20261121_V2",
+  "observed_at_utc": "2026-11-20T18:57:16.816296+00:00",
+  "main": "d44a11257e61d3b539d7d033a93c27e0ea429746",
+  "authorization": {
+    "commands": true,
+    "github_public_read": true,
+    "github_authenticated_read": true,
+    "github_normal_push_previously_verified": true,
+    "permission_bypass": false,
+    "github_normal_push_verified": true,
+    "github_protected_normal_merge_verified": true,
+    "github_public_read_is_not_authentication_proof": true
+  },
+  "offline_unpushed_originals": {
+    "b7380fe6a377e6ccf2b96331f2126c52549bbe17": "UNRESTORED",
+    "daae4c10167224b7730006d8ada5ade398aaa64b": "UNRESTORED"
+  },
+  "winticket": {
+    "state": "UNRESOLVED_HTTP_403",
+    "run_id": 44728334291,
+    "job_id": 136261471157,
+    "observed_at_jst": "2026-11-20T20:32:53+09:00",
+    "source": "c26ac0927647f317acf855e0c42cd1703232c19b",
+    "url": "https://www.winticket.jp/keirin/racecard/",
+    "failure": "DAILY_INDEX_HTTP_403",
+    "before_parsing": true,
+    "configured_login_or_session": false,
+    "iphone_owner_same_route_display_reported": true,
+    "specific_denial_cause_proven": false,
+    "provider_requests_by_this_audit": 0
+  },
+  "boat_current_owner": {
+    "run_id": 44656378586,
+    "github_conclusion": "success",
+    "actual_new_rounds": 0,
+    "worker_gets": 0,
+    "skipped_rounds": 24,
+    "source": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+    "control_artifact_id": 14610226734,
+    "artifact_zip_sha256": "1c2d4259ddf3a9456a87e089403b26b6a8b1395c0bf4c0a00a710d0b7d16c656",
+    "control": {
+      "state": "AUTHORIZATION_WAIT",
+      "code": "SOURCE_AUTHORIZATION_REQUIRED",
+      "http_status": 403,
+      "attempts": 1,
+      "retry_at": null,
+      "lifetime_gets": 15951,
+      "day_base": 15951,
+      "lifetime_rounds": 821,
+      "prepared": null
+    },
+    "direct_producer_actions": 0
+  },
+  "boat_latest_results": {
+    "run_id": 44766623468,
+    "job_id": 136392831774,
+    "conclusion": "failure",
+    "code": "SOURCE_WAIT",
+    "get_attempts": 0,
+    "new_observations": 0,
+    "retained_multi_day": {
+      "total": 264,
+      "confirmed": 138,
+      "held": 12,
+      "pending": 114
+    },
+    "today": {
+      "expected": null,
+      "confirmed": 0,
+      "pending": null,
+      "schedule_complete": false
+    },
+    "retention_generation": 374,
+    "ciphertexts_preserved": 7
+  },
+  "four_sport": {
+    "goal_complete": false,
+    "frozen_s_active_families": 15,
+    "applicable_sport_model_cells": {
+      "BOAT": 14,
+      "KEIRIN": 5,
+      "AUTO": 6,
+      "HORSE": 5
+    },
+    "nationwide_all_races_all_models_t15_saved_and_settled_verified": false,
+    "auto_horse_recurring_nationwide_runtime_evidenced": false,
+    "keirin_formal": {
+      "run_id": 44738348117,
+      "job_id": 136295427395,
+      "observed_race_ids": 57,
+      "venues": 6,
+      "official_responses_200": 714,
+      "details": 0,
+      "riders": 0,
+      "formal_predictions": 0,
+      "source_hold": "HOLD_OFFICIAL_SP_SOURCE_LAYOUT",
+      "model_hold": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT"
+    }
+  },
+  "note_real_pre_cutoff": {
+    "run_id": 44683039940,
+    "job_id": 136110816090,
+    "unique_pre_cutoff_reference_forecasts": 33,
+    "same_t15_to_t10_generation_and_first_git_save": 1,
+    "observed_partial_source_races": 57,
+    "formal_model_admission": false,
+    "learning_improvement_proven": false
+  },
+  "six_boat": {
+    "goal_complete": false,
+    "real_clip_sha256": "1ac1f0c27f58d8d64ebb1cfc13c2c4e9133cf7bbcce04052f23c28bf2e37f194",
+    "real_clip_frames": 775,
+    "development_ai_reference_frames": 7,
+    "reference_parts": 42,
+    "geometry_matches": 15,
+    "final_color_matches": 2,
+    "whole_six_match_frames": 0,
+    "eligible_identity_transitions": 0,
+    "human_verified": false,
+    "independent_temporal_labels_available": false,
+    "independent_metric_clock_strength_targets_available": false,
+    "frozen_source_unchanged": true
+  },
+  "forward_study": {
+    "goal_complete": false,
+    "registered_start_jst": "2026-11-19T12:15:30+09:00",
+    "registered_end_jst": "2026-11-24T12:15:30+09:00",
+    "minimum_matched_pairs": 100,
+    "minimum_dates": 5,
+    "minimum_venue_days": 10,
+    "last_valid_artifact": 14503356965,
+    "matched_pairs": 0,
+    "dates": 0,
+    "venue_days": 0,
+    "historical_pairs_excluded": 574,
+    "window_or_threshold_change": false,
+    "backfill": false,
+    "previous_keirin_canary_record_superseded_by": "keirin_official_fixed_race"
+  },
+  "iphone": {
+    "model": "iPhone 13 Pro",
+    "actual_race_ai_acceptance_verified": false,
+    "chromium_is_physical_iphone_evidence": false
+  },
+  "unapproved_actions": {
+    "new_pr": 0,
+    "new_model_family": 0,
+    "new_charges": 0,
+    "votes_or_bets": 0,
+    "production_weights_switch": 0,
+    "production_key_local_use": 0,
+    "denial_reset_or_bypass": 0,
+    "scope": "THIS_ROOT_CONTINUATION_ONLY"
+  },
+  "concurrent_main": {
+    "preserved_protected_commits": [
+      "78b855e462ec57aef5cc0e265747847ca7bf3b22",
+      "1591232c9ddf98f36900360bf392162829d2fe8d",
+      "3b9758b8b561605bea1d01ca6a369e713876c42a",
+      "24346984613a42fb635e039015aac03d7628babc"
+    ],
+    "new_pr_created_by_this_work": false,
+    "own_workflow_definition_edits": 0,
+    "preservation": "All incoming official-result, frozen-arm, nationwide, inventory and UI work preserved by normal merges"
+  },
+  "completed_this_continuation": {
+    "existing_prs_merged": [
+      291,
+      312,
+      8
+    ],
+    "new_pr_created": false,
+    "pr8_normal_protected_merge": "d44a11257e61d3b539d7d033a93c27e0ea429746",
+    "root_related_tests": 131,
+    "independent_related_tests": 69,
+    "independent_additional_challenges": 35,
+    "pr8_ci": {
+      "success": 8,
+      "skipped": 12,
+      "failure": 0
+    },
+    "actual_reference_readback": "actual-class-forecast-readback.json",
+    "actual_public_browser": "final-action-live-browser.json",
+    "pages_http_live_proof": "pages-http-live-proof.json"
+  },
+  "note_latest_actual": {
+    "schema": "RACE_AI_ACTUAL_SELECTED_CLASS_READBACK_20261121_V1",
+    "state": "ACTUAL_PRE_CUTOFF_CLASS_FORECAST_GIT_READBACK_VERIFIED",
+    "observed_at_utc": "2026-11-20T18:40:38.647582+00:00",
+    "main": "d44a11257e61d3b539d7d033a93c27e0ea429746",
+    "state_head": "d5ebf71d5357450663773aca3e0261a72cede0f2",
+    "cipher_sha256": "f20dad0da26b4fff9e3bfeee239c002f357d6e2c9a3ba28705f442085061fb44",
+    "target_race_id_sha256": "f2e89eb4d8e65b5f5ca10fc4b514b92b91f43571721edc4fc57a02993a0617ad",
+    "class_source_provider": "netkeirin",
+    "class_source_bytes_sha256": "10407ae58edb2959a945e477d3a2c2b99c40bb4a9810052132511b2b37137a36",
+    "class_header_sha256": "61c63397d79737d00c53b6916dc529e7ae4aa4d28a068e248c1bb302dc881442",
+    "competition": "S",
+    "generated_before_published_cutoff": true,
+    "git_readback_observed_before_published_cutoff": true,
+    "reference_A_points": 12,
+    "reference_B_points": 11,
+    "new_reference_inputs": 1,
+    "daily_coverage": {
+      "held": 18,
+      "input_available": 39,
+      "missing": 0,
+      "observed": 57
+    },
+    "collection_counts": {
+      "observed_races": 57,
+      "selected_races": 19,
+      "captured_races": 1,
+      "public_page_requests": 45,
+      "provider_denied": false,
+      "states": {
+        "HOLD_KDREAMS_LINE_NOT_ALL_REAL_CARS": 17,
+        "HOLD_SOURCE_CANONICAL_URL_RACE_MISMATCH": 1,
+        "PRIVATE_CARD_NORMALIZED_FROM_TWO_PUBLIC_SOURCES": 1
+      }
+    },
+    "result_check_states": {
+      "MATCHED": 129,
+      "HOLD": 3,
+      "PENDING": 0
+    },
+    "formal_model_admission": false,
+    "actual_organizer_cutoff_authenticated": false,
+    "learning_improvement_proven": false,
+    "production_state_key_used": false,
+    "private_plaintext_uploaded": false,
+    "record_scope": "One new reference, bringing 2026-11-21 retained references to39/57; unrelated official nationwide originals are a separate cohort."
+  },
+  "keirin_official_fixed_race": {
+    "state": "REAL_FUTURE_CANARY_FOUR_ARMS_COMPARISON_COMPLETE",
+    "race_id": "202611208105",
+    "run_id": 44784648369,
+    "job_id": 136457334722,
+    "source_commit": "3b9758b8b561605bea1d01ca6a369e713876c42a",
+    "permitted_http_200": 8,
+    "compared_races": 1,
+    "compared_arms": 4,
+    "post_result_new_forecasts": 0,
+    "independent_saved_only_run": 44786003895,
+    "independent_saved_only_state": "RESULT_WATCH_SAVED_COMPLETE",
+    "independent_provider_requests": 0,
+    "nationwide_all_races_proven": false,
+    "learning_improvement_proven": false
+  },
+  "keirin_nationwide_continuation": {
+    "run_id": 44794841056,
+    "source_commit": "d44a11257e61d3b539d7d033a93c27e0ea429746",
+    "state": "COMPLETED_SUCCESS_WITH_PARTIAL_COVERAGE",
+    "source_free_tests": "PASS",
+    "same_workflow_existing_mode": "official-continue",
+    "legacy_opt_in_flags_changed": false,
+    "historical_stop_preserved": true,
+    "new_stop_or_denial_stops_acquisition": true,
+    "four_arm_pinned_proof_revalidation_required": true,
+    "independent_read_only_review": "CLEAR",
+    "completion_claim": false,
+    "github_conclusion": "success",
+    "source_free_tests_passed": 697,
+    "capture": {
+      "all_prediction_coverage_complete": false,
+      "class_evidence": [
+        {
+          "class_label": "A\u7d1a\u30c1\u30e3\u30ec\u30f3\u30b8\u4e00\u822c",
+          "detail_sha256": "ed62b9b4aeb3a4555bb7ef4359c1974ab17328a2371e03bb4a28259d1bae2cac",
+          "grades": [
+            "A3"
+          ],
+          "http_status": 200,
+          "list_sha256": "7a9ddb78d0432c9e82eddc04e06efe6ff9c84b66d710aaa799345489d60d808f",
+          "observed_at": "2026-11-20T18:48:06.925250+00:00",
+          "official_cutoff_at": "2026-11-21T20:47:00+09:00",
+          "prediction_admitted": false,
+          "race_id": "202611212201",
+          "rider_count": 7,
+          "source_host": "keirin.jp",
+          "source_path": "/sp/race",
+          "state": "PUBLISHED_CLASS_CARD_EVIDENCE_ONLY"
+        },
+        {
+          "class_label": "A\u7d1a\u4e88\u9078",
+          "detail_sha256": "427a2d59f1d5e3b94f48926f98d253d0d273559ca40e83a90270abe63f8c8ef0",
+          "grades": [
+            "A1",
+            "A2"
+          ],
+          "http_status": 200,
+          "list_sha256": "9b404a297cd12672140ceb1d1073fb2f9b3f07018ec47677323c4f5c48985d58",
+          "observed_at": "2026-11-20T18:48:08.107252+00:00",
+          "official_cutoff_at": "2026-11-21T10:45:00+09:00",
+          "prediction_admitted": false,
+          "race_id": "202611213601",
+          "rider_count": 7,
+          "source_host": "keirin.jp",
+          "source_path": "/sp/race",
+          "state": "PUBLISHED_CLASS_CARD_EVIDENCE_ONLY"
+        },
+        {
+          "class_label": "L\u7d1a\u30ac\u30fc\u30eb\u30ba\u4e00\u822c",
+          "detail_sha256": "d022eb70b67f83f17ca38385ca6e5c739d9b8b0107112164d088016e7fd3ed21",
+          "grades": [
+            "L1"
+          ],
+          "http_status": 200,
+          "list_sha256": "5bcf491ef4cc0ab9b25bcc4f7e23239ec63ce84e78dc094c95f725404669ed52",
+          "observed_at": "2026-11-20T18:48:09.293689+00:00",
+          "official_cutoff_at": "2026-11-21T08:47:00+09:00",
+          "prediction_admitted": false,
+          "race_id": "202611215101",
+          "rider_count": 7,
+          "source_host": "keirin.jp",
+          "source_path": "/sp/race",
+          "state": "PUBLISHED_CLASS_CARD_EVIDENCE_ONLY"
+        },
+        {
+          "class_label": "A\u7d1a\u30c1\u30e3\u30ec\u30f3\u30b8\u6e96\u6c7a\u52dd",
+          "http_status": null,
+          "prediction_admitted": false,
+          "race_id": "202611212203",
+          "source_host": "keirin.jp",
+          "source_path": "/sp/race",
+          "state": "SOURCE_CAPTURE_FAILED"
+        }
+      ],
+      "class_statuses": [
+        {
+          "class_label": "A\u7d1a\u30c1\u30e3\u30ec\u30f3\u30b8\u4e00\u822c",
+          "statuses": {
+            "UNSUPPORTED_CLASS_OR_ROUND": 6
+          }
+        },
+        {
+          "class_label": "A\u7d1a\u30c1\u30e3\u30ec\u30f3\u30b8\u6c7a\u52dd",
+          "statuses": {
+            "UNSUPPORTED_CLASS_OR_ROUND": 1
+          }
+        },
+        {
+          "class_label": "A\u7d1a\u30c1\u30e3\u30ec\u30f3\u30b8\u6e96\u6c7a\u52dd",
+          "statuses": {
+            "UNSUPPORTED_CLASS_OR_ROUND": 4
+          }
+        },
+        {
+          "class_label": "A\u7d1a\u30c1\u30e3\u30ec\u30f3\u30b8\u9078\u629c",
+          "statuses": {
+            "UNSUPPORTED_CLASS_OR_ROUND": 2
+          }
+        },
+        {
+          "class_label": "A\u7d1a\u4e88\u9078",
+          "statuses": {
+            "UNSUPPORTED_CLASS_OR_ROUND": 8
+          }
+        },
+        {
+          "class_label": "A\u7d1a\u521d\u65e5\u7279\u9078",
+          "statuses": {
+            "UNSUPPORTED_CLASS_OR_ROUND": 2
+          }
+        },
+        {
+          "class_label": "A\u7d1a\u6e96\u6c7a\u52dd",
+          "statuses": {
+            "UNSUPPORTED_CLASS_OR_ROUND": 6
+          }
+        },
+        {
+          "class_label": "A\u7d1a\u7279\u4e00\u822c",
+          "statuses": {
+            "UNSUPPORTED_CLASS_OR_ROUND": 4
+          }
+        },
+        {
+          "class_label": "L\u7d1a\u30ac\u30fc\u30eb\u30ba\u4e00\u822c",
+          "statuses": {
+            "UNSUPPORTED_CLASS_OR_ROUND": 1
+          }
+        },
+        {
+          "class_label": "L\u7d1a\u30ac\u30fc\u30eb\u30ba\u6c7a\u52dd",
+          "statuses": {
+            "SOURCE_CAPTURE_BUDGET_PENDING": 1
+          }
+        },
+        {
+          "class_label": "S\u7d1a\u30c0\u30a4\u30e4\u30e2\u30f3\u30c9\u30ec\u30fc\u30b9",
+          "statuses": {
+            "SOURCE_CAPTURE_BUDGET_PENDING": 1
+          }
+        },
+        {
+          "class_label": "S\u7d1a\u4e88\u9078",
+          "statuses": {
+            "UNSUPPORTED_CLASS_OR_ROUND": 8
+          }
+        },
+        {
+          "class_label": "S\u7d1a\u4e8c\u6b21\u4e88\u9078A",
+          "statuses": {
+            "SOURCE_CAPTURE_BUDGET_PENDING": 3
+          }
+        },
+        {
+          "class_label": "S\u7d1a\u4e8c\u6b21\u4e88\u9078B",
+          "statuses": {
+            "SOURCE_CAPTURE_BUDGET_PENDING": 3
+          }
+        },
+        {
+          "class_label": "S\u7d1a\u521d\u65e5\u7279\u9078",
+          "statuses": {
+            "UNSUPPORTED_CLASS_OR_ROUND": 2
+          }
+        },
+        {
+          "class_label": "S\u7d1a\u9078\u629c",
+          "statuses": {
+            "A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK": 4,
+            "SOURCE_CAPTURE_BUDGET_PENDING": 1
+          }
+        }
+      ],
+      "day_inventory_complete": true,
+      "day_jst": "2026-11-21",
+      "new_A_B_git_archived": 4,
+      "new_A_B_sealed": 4,
+      "new_conditioned_A_B_git_archived": 3,
+      "paired_comparable_races": 0,
+      "provider_denied": false,
+      "registered_races": 57,
+      "schema": "RACE_AI_KEIRIN_GITHUB_ONLY_LIVE_AB_DAY_V1",
+      "source_or_forecast_plaintext_exposed": false,
+      "source_requests": 300,
+      "state": "OFFICIAL_SP_BASELINES_ARCHIVED",
+      "statuses": {
+        "A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK": 4,
+        "SOURCE_CAPTURE_BUDGET_PENDING": 9,
+        "UNSUPPORTED_CLASS_OR_ROUND": 44
+      },
+      "new_encrypted_original_count": 4
+    },
+    "second_runner_cipher_readback": {
+      "RSA_private_decryption_verified": false,
+      "day_jst": "2026-11-21",
+      "independently_verified": 4,
+      "independently_verified_conditioned": 3,
+      "new_archived": 4,
+      "organizer_result_verified": false,
+      "paired_cipher_originals_verified": 3,
+      "plaintext_parent_linkage_verified": false,
+      "schema": "RACE_AI_KEIRIN_GITHUB_ONLY_AB_SECOND_RUNNER_V1",
+      "new_encrypted_original_count": 0
+    },
+    "publication": {
+      "authenticated_originals": 4,
+      "covered_races": 72,
+      "day_jst": "2026-11-21",
+      "entries": 15,
+      "priority_window_races": 3,
+      "private_plaintext_uploaded": false,
+      "production_state_key_used": false,
+      "provider_denied": false,
+      "provider_requests": 0,
+      "published_day_status": 1,
+      "published_originals": 4,
+      "source_commit": "5279ab195bb1653a2624d754fc1af7856c11013a",
+      "source_requests": 0,
+      "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED"
+    },
+    "owner_display_readback": "actual-official-display-readback.json",
+    "remaining_registered_without_saved_A_B": 53,
+    "all_race_model_coverage_complete": false,
+    "paired_comparable_current_day": 0
+  },
+  "goal_complete": false,
+  "current_main_ci": {
+    "skipped": 64,
+    "success": 10
+  },
+  "latest_note_state_head": "5279ab195bb1653a2624d754fc1af7856c11013a",
+  "registered_model_support_gap": {
+    "actual_official_day_registered": 57,
+    "baseline_A_B_saved": 4,
+    "conditioned_A_B_saved": 3,
+    "source_capture_budget_pending": 9,
+    "unsupported_class_or_round": 44,
+    "not_an_external_authentication_error": true,
+    "current_class_support_incomplete": true,
+    "safe_new_primary_class_evidence": "actual-official-14659765247.json",
+    "further_implementation_and_real_admission_required": true
+  },
+  "record_delivery": {
+    "code_merged_to_protected_main": true,
+    "runtime_appendix_on_same_existing_pr8_branch": true,
+    "new_pr_created": false,
+    "direct_main_docs_push_or_protection_bypass": false
+  }
+}

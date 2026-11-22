@@ -1,3 +1,20 @@
+# 2026-11-21 03:55 JST｜実運転と保存読戻し：全国一覧57件、公式入力A/B4件・補正3件、参考39件
+
+既存PR8は **main d44a11257e61d3b539d7d033a93c27e0ea429746** へ通常保護merge済み。レビューhead fdd970868a5b4982d161a1a5c555fe1af79ac4cb とtree d0247eefa0773dbf7be14e01d6dcdac73fecf8a3 が一致した。PR最終20checksは8成功/12skip/失敗0、main最終74checksは10成功/64skip/失敗0。関連131テスト、独立69テストと追加35 URI/選択リンク検査が成功。最終実行記録はこの既存PR8の同じブランチへ追記し、保護されたmainへ直接pushしない。
+
+- **提供サイトと同じ入力・参考A/B**：既存実行[44794110022](https://github.com/haji84/RACE-AI/actions/runs/44794110022)は成功。実45GETで追加1件を生成・暗号化Git保存し、11/21の保有入力は **39/観測57、18保留**。今回の保留内訳は並び未掲載17/canonical矛盾1。各rawのSHA・級班見出し・PROGRAM出典・A12点/B11点の結合を表示専用鍵で独立に再検証し、生成とGit読戻しの両方が掲載締切前であることを確認した。従来の参考予想/二次資料照合は **129一致/3保留** を維持。旧PR71全入力は `HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT`、未取得カウンターはnullを保持する。参考予想を正式全モデルの合格にしない。
+- **公式全国継続の実運転**：[44794841056](https://github.com/haji84/RACE-AI/actions/runs/44794841056)は697事前テスト後、公開公式SP経路の300要求で **当日57件の全国一覧を登録、A/B原本4件・補正A/B原本3件を暗号化保存**。別ランナーは4件/補正3件の暗号文を確認したが、そのジョブ単独ではRSA復号・plaintext親結合を証明しない。後続publisherは既存所有者鍵で認証済み原本を読み、取得先通信0件で本人用表示へ反映。rootは独立した表示専用鍵で57分母/4原本/補正3を厳密validatorと再照合し、原本の封緘・Git可視時刻が掲載締切前であることを確認した。結果確認は当日適格原本の期限到来なしで **新規採点0/GET0**。当日の比較可能件数0を、以前の固定レース1件の完了と混同しない。
+- **全国全件は未完成**：公式57件の残りは **未対応級班・種目44/取得枠内未処理9**。この実行の4件は全競輪・全4競技・全適用モデルの完成ではない。実取得でA3、A1/A2、L1の追加一次資料は保存できたが、現在のparser/admissionはこれら全種目をまだ扱えない。取得拒否だけの問題とは記録しない。新しいモデル系統や推測値で埋めず、種目/grade/出典契約の実装と本番の照合を要する。
+- **実公開画面**：既存Pagesの14資産を現main/Git/manifest/HTTPと照合。390px/1440pxで11/19の75件、11/20の57件、11/21の全国57件と参考39件、A/B・C保留・過去結果を実ネットワークから確認した。JS例外0/鍵送信0/providerブラウザー通信0。旧9暗号化エントリーの内容とblobを現15件の中に保全。物理iPhoneの受入ではない。
+
+[実run集計](evidence/keirin-selected-link-rf-20261121/actual-pr71-cycle.json)・[公式取得](evidence/keirin-selected-link-rf-20261121/actual-official-14659765247.json)・[公式表示読戻し](evidence/keirin-selected-link-rf-20261121/actual-official-display-readback.json)・[実画面](evidence/keirin-selected-link-rf-20261121/final-action-live-browser.json)・[全GOAL監査](evidence/keirin-selected-link-rf-20261121/actual-goal-audit.json)。
+
+**全GOALは未完了**。WINTICKET自体は最新実確認44728334291の403が残り、本人Safari表示とGitHub runner拒否の具体的な差は未確定。別の公式SPやKdreams/netkeirinの200を解除と数えない。BOATは凍結S/停止とcounterを維持した取得停止状態、他競技を含む全レース×既存全適用モデル/T15保存・結果照合も未達。6艇は独立した時系列正解・距離/時計・強さtargetが不足し、開発参照の6艇同時正解は0/7。実機iPhone13ProでのRACE-AI受入返答はまだない。登録済み前向き期間は11/19 12:15:30〜11/24 12:15:30 JST、最後の有効BOAT reportはmatched0/必要100組・5日・10会場日未達。期間短縮・旧574組の代用・本番重み切替はしない。
+
+元offline未push b7380fe6a377e6ccf2b96331f2126c52549bbe17 / daae4c10167224b7730006d8ada5ade398aaa64b は認証済みcanonical originから再fetchしても取得できず **UNRESTORED**。新PR・新規課金・投票・本番重み切替・production keyのlocal取得/使用・BOAT producer直接操作・停止解除/回避はいずれもこの継続作業で0。
+
+以下は以前の確認記録。
+
 # 2026-11-21 JST｜実取得で判明した同一レース参照リンクの限定修正（実保存は統合後に確認）
 
 PR312はmain12cf6b3a729f1eb3c3d67de06bd2c83464539115へ通常保護merge済み。後続の既存実行[44789444126](https://github.com/haji84/RACE-AI/actions/runs/44789444126)では新規参考予想0件、保有38/観測57を維持した。最新の原本監査で、残る区分1件は選択中リンクの同一host/path/race_idに付く `rf=courselist` だけが照合を阻んでいた。2件のcanonicalは結果routeを指して矛盾しており、現在も拒否する。
