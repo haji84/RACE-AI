@@ -1,0 +1,343 @@
+{
+  "schema": "RACE_AI_ORIGINAL_SITE_AUTOMATION_AND_OWNER_ACCEPTANCE_20261122_V2",
+  "interface": {
+    "url": "https://keirin-20261119-race-note.chankuma.chatgpt.site",
+    "display_reads_while_visible_seconds": 30,
+    "storage_and_generation": "Existing RACE-AI GitHub Actions and encrypted GitHub history",
+    "hosting": "Existing Sites project front end only",
+    "v21": {
+      "schema": "RACE_AI_SITE_AUTOMATION_STATUS_DELIVERY_20261122_V1",
+      "site_url": "https://keirin-20261119-race-note.chankuma.chatgpt.site",
+      "site_version": 21,
+      "site_source_commit": "177be270092748605e92a808dafa180b33cd8f5e",
+      "deployment_id": "appgdep_6b02d17aa63081919cd49b83c9e893f6",
+      "deployment_status": "succeeded",
+      "observed_at_utc": "2026-11-22T11:27:03.002873+00:00",
+      "owner_priority": "この競輪サイトを先に完成させる",
+      "tests": {
+        "passed": 145,
+        "failed": 0,
+        "health_red_green": 4,
+        "review_regression_red_green": 1
+      },
+      "independent_review": {
+        "critical": 0,
+        "important": 0,
+        "minor_fixed": 1,
+        "second_review_dispatch": false
+      },
+      "changes": [
+        "掲載保存版と自動表示の接続を区別",
+        "更新失敗時は前回表示と接続を保持",
+        "回復時に表示状態を復旧",
+        "入力元の停止を表示",
+        "読込完了前に表示済みと断定しない"
+      ],
+      "data_storage_and_automation": "GitHub",
+      "audience_changed": false,
+      "backend_changed": false,
+      "production_weights_switched": false,
+      "betting": false,
+      "observer_run": 45014620929,
+      "observer_state": "RESULT_OBSERVER_WINDOW_ENDED",
+      "observer_done": false,
+      "pre_cutoff_all_race_completion": false,
+      "formal_four_model_state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT",
+      "variables_api_read": "HTTP403 integration permission; settings unchanged",
+      "native_deployment_verified": true,
+      "user_device_check_described_below": true
+    },
+    "v22": {
+      "version": 22,
+      "saved_version_id": "appgprj_6afe2bc8d25c8191a65f81c6203dbe71~appgver_3f6163ebf78c8191a7a97447e52c34eb",
+      "source_commit": "335b612d08225b2e33a69fbaefc602c90cc39384",
+      "deployment_id": "appgdep_6b02d9d2b9148191b2d166ba4ddd2719",
+      "deployment_status": "succeeded",
+      "deployed_at_utc": "2026-11-22T12:02:41.213680+00:00",
+      "saved_archive_hash": "sha256:0a2c3533234e465655dbc28e90819d3f0820c5058a370d71e1e1c729458e12a8",
+      "test_count": 152,
+      "failed": 0,
+      "worker_sha256": "77910af44fe0025de7b8aa51a741888c5177550cce1cebe6f57066df88bb43af",
+      "independent_review_fix_tested": true
+    },
+    "owner_report": {
+      "version": 21,
+      "cause_reported": "接続リンクをコピーしていなかった",
+      "reported_display": "保存データの更新を確認しました。",
+      "first_open_and_later_recheck_pass_reported": true,
+      "displayed_revision_at_recheck": "unchanged",
+      "automatic_connection_after_reload": "UNCONFIRMED",
+      "full_iphone_safari_acceptance": "UNCONFIRMED",
+      "physical_acceptance_of_v22": "UNCONFIRMED"
+    }
+  },
+  "verified_runtime": {
+    "audited_repo_main": "33cc486445bad39b0168a5653f6e8b5b947d85bb",
+    "newer_closing_results_schedule": {
+      "run_id": 45015329315,
+      "job_id": 137186873809,
+      "event": "schedule",
+      "status": "success",
+      "created_at_utc": "2026-11-22T11:02:24Z",
+      "observer_state": "RESULT_OBSERVER_WINDOW_ENDED",
+      "done": false,
+      "ticks": 7,
+      "provider_requests": 0,
+      "publication_acks": 16,
+      "new_result_races": 0
+    },
+    "official_observer_dispatch": {
+      "run_id": 45014620929,
+      "job_id": 137184566504,
+      "event": "workflow_dispatch",
+      "status": "success",
+      "state": "RESULT_OBSERVER_WINDOW_ENDED",
+      "done": false,
+      "ticks": 6,
+      "provider_requests": 19,
+      "published_races": 6,
+      "publication_acks": 16
+    },
+    "official_source_dispatch": {
+      "run_id": 45017430382,
+      "event": "workflow_dispatch",
+      "status": "success",
+      "artifact_aggregates": {
+        "14751864588": {
+          "all_prediction_coverage_complete": false,
+          "day_inventory_complete": true,
+          "day_jst": "2026-11-22",
+          "new_A_B_git_archived": 0,
+          "new_A_B_sealed": 0,
+          "new_conditioned_A_B_git_archived": 0,
+          "paired_comparable_races": 0,
+          "provider_denied": false,
+          "registered_races": 68,
+          "schema": "RACE_AI_KEIRIN_GITHUB_ONLY_LIVE_AB_DAY_V1",
+          "source_or_forecast_plaintext_exposed": false,
+          "source_requests": 18,
+          "state": "OFFICIAL_SP_DAY_REGISTERED_WITH_EXPLICIT_HOLDS",
+          "statuses.CUTOFF_MARGIN_INSUFFICIENT": 1,
+          "statuses.FROZEN_ORIGINAL_PRESERVED": 6,
+          "statuses.PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 43,
+          "statuses.UNSUPPORTED_CLASS_OR_ROUND": 18
+        },
+        "14752587047": {
+          "authenticated_originals": 6,
+          "covered_races": 158,
+          "day_jst": "2026-11-22",
+          "entries": 72,
+          "priority_window_races": 9,
+          "private_plaintext_uploaded": false,
+          "production_state_key_used": false,
+          "provider_denied": false,
+          "provider_requests": 0,
+          "published_day_status": 1,
+          "published_originals": 0,
+          "source_requests": 0,
+          "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED"
+        },
+        "14752606805": {
+          "day_jst": "2026-11-22",
+          "no_provider_tick": true,
+          "origin_held": 0,
+          "original_publication_acks": 1,
+          "provider_denied": false,
+          "publication_acks": 6,
+          "published_day_status": 0,
+          "published_originals": 0,
+          "published_races": 0,
+          "settled_races": 0,
+          "source_requests": 0,
+          "source_unavailable": false,
+          "state": "OFFICIAL_SP_SAVED_RESULT_UPDATES_PUBLISHED"
+        }
+      }
+    },
+    "existing_reference_cycle_dispatch": {
+      "run_id": 45020397618,
+      "job_id": 137201812933,
+      "event": "workflow_dispatch",
+      "created_at_utc": "2026-11-22T12:04:23Z",
+      "finished_at_utc": "2026-11-22T12:08:33Z",
+      "conclusion": "success",
+      "results": {
+        "discovered_old_days": 2,
+        "observed_races": 132,
+        "checked_races": 125,
+        "matched_races": 124,
+        "changed_observations": 0,
+        "requests": 267,
+        "budget_exhausted": true
+      },
+      "generation_admission_state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT"
+    },
+    "readback": {
+      "observed_at_utc": "2026-11-22T11:47:57.745Z",
+      "feed_entries": 72,
+      "transport": "Verified standard HTTPS transport; actual Site crypto/model in Node; not a browser test",
+      "by_day": [
+        {
+          "day_jst": "2026-11-19",
+          "rows": 75,
+          "reference_a": 0,
+          "reference_b": 0,
+          "frozen_official": 0,
+          "official_scored": 0,
+          "secondary": {
+            "SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL": 75
+          }
+        },
+        {
+          "day_jst": "2026-11-20",
+          "rows": 57,
+          "reference_a": 57,
+          "reference_b": 57,
+          "frozen_official": 1,
+          "official_scored": 1,
+          "secondary": {
+            "SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL": 54,
+            "HOLD_SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL": 3
+          }
+        },
+        {
+          "day_jst": "2026-11-21",
+          "rows": 57,
+          "reference_a": 57,
+          "reference_b": 57,
+          "frozen_official": 10,
+          "official_scored": 10,
+          "secondary": {
+            "SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL": 55,
+            "PENDING_RESULT_NOT_PUBLISHED": 2
+          }
+        },
+        {
+          "day_jst": "2026-11-22",
+          "rows": 68,
+          "reference_a": 68,
+          "reference_b": 68,
+          "frozen_official": 6,
+          "official_scored": 6,
+          "secondary": {
+            "SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL": 46,
+            "HOLD_SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL": 1,
+            "NO_SECONDARY_OBSERVATION": 21
+          }
+        }
+      ],
+      "dated_published_snapshot": {
+        "date": "2026-11-22",
+        "races": 68,
+        "generated_at": "2026-11-22T08:36:34.828193+00:00",
+        "post_cutoff_created": 44
+      },
+      "after_reference_dispatch": {
+        "observed_at_utc": "2026-11-22T12:13:01.244Z",
+        "reader_source": "335b612d08225b2e33a69fbaefc602c90cc39384",
+        "day": "2026-11-22",
+        "registry_races": 68,
+        "append_only_prefix_preserved": true,
+        "before_entries": 72,
+        "after_entries": 72,
+        "latest_encrypted_index_sha256": "fbef503bd06d993855f5a19c6d61ae6eef490781a746e8f4150b4f3dd85bab1e",
+        "new_kinds": {},
+        "validated_new_observations": {},
+        "today_secondary_result_checks_before": {
+          "NO_CHECK": 21,
+          "MATCHED": 46,
+          "HOLD": 1
+        },
+        "today_secondary_result_checks_after": {
+          "NO_CHECK": 21,
+          "MATCHED": 46,
+          "HOLD": 1
+        },
+        "provider_denied": false,
+        "display_key_sent": false,
+        "formal_score_rows_from_previous_audit": 6
+      }
+    },
+    "coverage_limits": {
+      "source_inventory_complete": true,
+      "today_registered": 68,
+      "forecast_coverage_complete": false,
+      "pre_cutoff_originals": 6,
+      "officially_scored": 6,
+      "reference_a_rows": 68,
+      "reference_b_rows": 68,
+      "official_registry_cutoff_audit": {
+        "observed_at_utc": "2026-11-22T12:07:33.174Z",
+        "day": "2026-11-22",
+        "feed_entries": 72,
+        "provider_denied": false,
+        "encrypted_day_observed_at": "2026-11-22T11:30:06.085980+00:00",
+        "reference_cutoff_source": "Dated Site reference snapshot; no admission based on reference cutoff",
+        "registry_available": true,
+        "inventory_complete": true,
+        "registered": 68,
+        "cutoffCounts": {
+          "UNSUPPORTED_CLASS_OR_ROUND": {
+            "total": 18,
+            "official_cutoff_unknown": 18,
+            "official_future": 0,
+            "published_reference_future": 14,
+            "published_reference_10_to_15_min": 0
+          },
+          "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": {
+            "total": 43,
+            "official_cutoff_unknown": 43,
+            "official_future": 0,
+            "published_reference_future": 0,
+            "published_reference_10_to_15_min": 0
+          },
+          "A_B_AUTHENTICATED_PRE_CUTOFF": {
+            "total": 6,
+            "official_cutoff_unknown": 0,
+            "official_future": 0,
+            "published_reference_future": 0,
+            "published_reference_10_to_15_min": 0
+          },
+          "CUTOFF_MARGIN_INSUFFICIENT": {
+            "total": 1,
+            "official_cutoff_unknown": 1,
+            "official_future": 0,
+            "published_reference_future": 0,
+            "published_reference_10_to_15_min": 0
+          }
+        }
+      },
+      "published_future_reference_title_counts": {
+        "チャレンジ選抜": 2,
+        "A級特一般": 4,
+        "A級特選": 4,
+        "チャレンジ決勝": 2,
+        "A級決勝": 2
+      },
+      "applicable_all_models_and_deadline_window_proven": false,
+      "last_nationwide_schedule_utc_at_audit": "2026-11-22T04:57:02Z",
+      "source_capture_per_invocation_bound": 4
+    }
+  },
+  "current_day_result_priority_candidate": {
+    "base": "33cc486445bad39b0168a5653f6e8b5b947d85bb",
+    "commit": "47a3c42293e2a0d08b9cff7e95659c095e84a2e6",
+    "status": "LOCALLY_TESTED_NOT_ON_PROTECTED_MAIN",
+    "changed_behavior": "Start with one meeting for today in JST and alternate today and historical meetings within the existing budget. Keep rotation within the historical group.",
+    "regression_tests_failed_before_fix": 2,
+    "python_passed": 86,
+    "node_passed": 27,
+    "live_execution": false,
+    "existing_encrypted_originals_and_source_stop_policy_preserved": true
+  },
+  "remaining_earlier_goals": {
+    "four_sport_full_coverage_and_timing_proven": false,
+    "six_boat_tracking_and_calibration_proven": false,
+    "prospective_accuracy_improvement_proven": false,
+    "offline_unpushed_pr70_pr292": "UNRESTORED",
+    "WINTICKET_required_for_current_site": false
+  },
+  "production_weights_switched": false,
+  "betting": false,
+  "new_pr_created": false
+}
