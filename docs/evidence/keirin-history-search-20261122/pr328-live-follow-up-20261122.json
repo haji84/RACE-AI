@@ -1072,5 +1072,12 @@
     },
     "physical_iphone_safari_acceptance_this_turn": false,
     "prospective_accuracy_improvement_proven": false
+  },
+  "normal_url_readback_after_propagation": {
+    "observed_at_utc": "2026-11-22T14:00:28.182303+00:00",
+    "feed_head": "97fe202a8b97f9bea966e9bc566d46a55c4e084e",
+    "index_sha256": "7e4075ddcaeac2c13d01f6e9d897421a6e4cdea5b48fb3e1fbab0f10032fa0eb",
+    "entries": 84,
+    "normal_branch_url_matches_latest_commit": true
   }
 }
