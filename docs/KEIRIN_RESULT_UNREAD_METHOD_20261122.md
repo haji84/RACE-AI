@@ -89,34 +89,72 @@ case excluding that rider from first place. Either independently selected
 market can remain generated when the other market has no tickets. The baseline remains unchanged;
 no diagnosis, medical recovery claim or numerical injury penalty is inferred.
 
-`race_ai/keirin_research_stability.py` grades the complete candidate universe,
-not selected ticket coverage. Adding tickets or rewording a scenario cannot raise
-the grade. Two-car confidence uses the same direct pair support as selection.
-These are provisional hypothesis-stability grades. Current assessments use
-`forward-scenario-stability-20261122-v2`. Version 1 imposed an unwanted blanket
-medium ceiling; version 2 removes it without changing the existing concentration
-thresholds or candidate support calculation. A high grade requires the most
-supported single outcome to have at least 0.40 of the whole 3T candidate support,
-or 0.55 for 2T, and the A/B top outcome must agree. The medium thresholds remain
-0.15 for 3T and 0.25 for 2T. These are uncalibrated design rules, not hit-rate
-boundaries. A high grade describes concentration in the modeled universe and
-does not establish predictive accuracy. Each current explanation states its
-observed support share and the applicable unchanged thresholds.
+`race_ai/keirin_research_stability.py` now connects the current forward research
+route to the existing four-grade rule. New assessments use
+`forward-research-coherence-20261122-v3`, identify the inherited threshold rule as
+`research-coherence-v1`, and can return 低, 中, 高, or 激アツ. Missing or unsuitable
+evidence remains 未評価. This is a change from v2's single-outcome stability
+metric to the established winner/pair/triple concentration and selected-coverage
+criteria; it is not a promotion of model weights or an accuracy claim.
 
-Essential source omissions or conflicts remain unassessed, the existing
-condition-evidence caution still limits a grade to medium, and an abstention is
-low. Adding or removing selected tickets does not change the grade. Historical
-confidence records and the sealed baseline are preserved with their original
-version; they are not relabeled as version 2.
+The shared pure `grade_coherence_metrics` function in
+`race_ai/keirin_confidence.py` owns the unchanged thresholds:
 
-This result-unread evaluator currently assigns low, medium, and high, plus
-unassessed when necessary. Its hot-grade path is not implemented. The separate
-four-grade evaluator in `race_ai/keirin_confidence.py` uses different metrics
-and source/time contracts; it is not connected to this current research route.
-Its four grades are also provisional research coherence, not calibrated winning
-probabilities. Version 2 does not invent a hot threshold or substitute that
-different evaluator merely to populate a high/hot filter. Removing the blanket
-ceiling alone does not imply any real race will qualify as high.
+| Grade | Top-two winner share | Top-four pair share | Top-six triple share (3t) | Selected coverage |
+| --- | ---: | ---: | ---: | ---: |
+| 激アツ | 0.85 | 0.85 | 0.90 | 0.90 |
+| 高 | 0.70 | 0.70 | 0.80 | 0.80 |
+| 中 | 0.50 | 0.50 | 0.60 | 0.50 |
+| 低 | Below the medium requirements | | | |
+
+High and hot additionally require every major represented branch to be covered.
+Two-car evaluations do not use the triple requirement. Every share refers to
+this saved research representation, not a frequency observed in actual races.
+
+The forward adapter keeps the existing complete market pools. Exact triples use
+the maximum existing `support_A/B` among their supporting scenarios. Pairs use
+the maximum existing `pair_support_A/B`; they are not formed by summing third
+alternatives. Normalize that complete market pool once, before consulting
+selected tickets. Winner concentration sums this normalized support by first
+car; pair and triple concentration sum the leading four pairs and six triples.
+Selected coverage sums the same fixed support only for the actual saved tickets.
+No ticket, scenario, model coefficient, or source support value is changed.
+
+The major-branch adapter is explicit because forward scenarios can contain
+duplicate goals and multiple thirds. Each distinct market candidate with at
+least 10% of fixed-pool support is major. Represent it by the actual supporting
+scenario with the highest raw market support, breaking ties by `scenario_id`.
+Also retain the highest-support actual scenario in each present counter family,
+with the same tie rule. `HOLD` is the main branch; `COUNTER`, `FOLLOWER_PASS`,
+`ATTACKER_FADE`, and `LATE_FINISH` map respectively to counterattack, follower
+sashi, pace fade, and late sprint. The sorted union is `major_scenario_ids`;
+those whose market goal is not selected form `major_uncovered_ids`. Both steps
+use direct pair support for 2t. Extra third variants cannot inflate pair
+concentration, coverage, or the grade. A tied representative ID can change, but
+its represented pair and covered/uncovered state cannot change merely because
+another third is described.
+
+The evaluator requires complete, valid six-phase car orders, consistent goals,
+distinct scenarios, and actual main/counter branches. It does not fill missing
+positions or invent a counter branch. Essential source omissions, unavailable
+lines, and unresolved line conflicts remain unassessed. The existing condition
+evidence caution still limits a grade to medium; abstention remains low. A/B
+agreement remains visible as a diagnostic, not an independent-evidence bonus.
+
+Ticket count itself earns no bonus. Removing tickets cannot improve coverage or
+the grade, and adding tickets outside the modeled pool cannot improve either.
+Adding a supported outcome can improve actual coverage; therefore the former
+v2 claim that all additions/removals leave the grade unchanged does not apply
+to v3. Strong concentration alone is insufficient when selected tickets omit
+important branches. No real race is guaranteed to receive high or hot.
+
+The result-unread envelope remains separate from the formal pre-cutoff sidecar.
+It retains actual creation/assessment times and its original source/cutoff facts,
+with `official_pre_cutoff_assessment_created`, guard-modification and result-use
+flags false. No call to formal `assess_baseline` or `evaluate_ticket_set` is made,
+and the formal 65-second guard is unchanged. Historical v1/v2 packets and sealed
+baselines retain their original version and bytes. A new v3 assessment is saved
+as a new research output rather than backdated into an old forecast.
 
 ## Source-only verification
 
@@ -133,6 +171,13 @@ including the current extended module; its integrity check is not relaxed.
 python -m unittest tests.test_keirin_evidence_selection tests.test_keirin_forward_scenarios tests.test_keirin_result_unread_method tests.test_keirin_nationwide_auto_generator -v
 python scripts/keirin_generate_result_unread_analysis.py --self-check
 ```
+
+The synthetic tests include a single-line source fixture that reaches hot for
+both arms and both markets through the unchanged forward generator and ticket
+selection. They also cover missing orders, omitted major branches, separate
+markets, fixed-denominator subset behavior, actual timestamps, and an isolated
+direct CLI check of the shared confidence import. This establishes reachable
+software paths, not real-race accuracy or profitability.
 
 The existing persistent-core PR workflow runs these commands. No new workflow,
 schedule, provider, permission or production weight promotion is introduced.

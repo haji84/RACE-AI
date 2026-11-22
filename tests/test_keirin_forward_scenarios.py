@@ -1,9 +1,15 @@
 """Forward paths and independent markets; synthetic riders, no race results."""
 from collections import defaultdict
 from copy import deepcopy
+import json
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
 import unittest
 
 from race_ai import keirin_nationwide_auto_generator as model
+from race_ai import keirin_confidence as confidence
 from race_ai import keirin_research_stability as stability
 from tests.test_keirin_evidence_selection import fixture
 
@@ -35,39 +41,105 @@ def dominant_forward_analysis():
     return analysis
 
 
+def hot_forward_snapshot():
+    """Synthetic single-line case; generated tickets/support remain untouched."""
+    snapshot = fixture()
+    snapshot['line_groups'] = [[1, 2, 3, 4, 5, 6, 7]]
+    for rider in snapshot['riders']:
+        car = rider['car']
+        strong = car in (1, 2)
+        rider.update(competition_points=90 if strong else 60 if car == 3 else 50,
+            win_rate=40 if strong else 0, top2_rate=70 if strong else 30 if car == 3 else 0,
+            top3_rate=90 if strong else 75 if car == 3 else 1, mark_rank='UNMARKED',
+            h_count=0, b_count=0, nige=0, makuri=1 if car == 1 else 0,
+            sashi=7 if car == 2 else 1 if car == 3 else 0,
+            mark=5 if car in (2, 3) else 0,
+            style='NIGE' if car == 1 else 'MARK',
+            comment='自力。' if car == 1 else '前の選手へ。')
+    return snapshot
+
+
+def hot_forward_analysis():
+    analysis = model.generate_evidence_analysis(hot_forward_snapshot())
+    analysis.update(race_id='209901016201', generated_at='2099-01-01T13:00:00+09:00',
+                    missing_model_features=[], line_warnings=[], condition_evidence=[])
+    return analysis
+
+
+def coherence_analysis():
+    """Hand-counted synthetic paths, independent of any selected ticket set.
+
+    Top two winners and top four pairs each carry .95 of this fixed pool.
+    All six triples carry 1.0. The ordinary selection covers the first four
+    outcomes (.95), including the highest-weight counterattack.
+    """
+    rows = [
+        ('main', 'HOLD', [1, 2, 3], .45),
+        ('counter', 'COUNTER', [1, 3, 2], .40),
+        ('second-a', 'HOLD', [2, 1, 3], .05),
+        ('second-b', 'HOLD', [2, 3, 1], .05),
+        ('minor-a', 'HOLD', [4, 5, 1], .025),
+        ('minor-b', 'HOLD', [5, 4, 1], .025),
+    ]
+    phases = ('INITIAL', 'BELL', 'FINAL_HOME', 'FINAL_BACK', 'FOURTH_CORNER', 'GOAL')
+    scenarios = []
+    for sid, kind, goal, weight in rows:
+        order = goal + [car for car in range(1, 8) if car not in goal]
+        scenarios.append(dict(scenario_id=sid, tactical_branch_id=sid,
+            branch_kind=kind, projected_3ren_tan=list(goal),
+            six_phases=[dict(phase=phase, projected_order=list(order),
+                projected_top3=list(goal), hypothesis_actions=['SYNTHETIC_HYPOTHESIS'],
+                actual_rider_position_video_verified=False) for phase in phases],
+            support_A=weight, support_B=weight,
+            pair_support_A=weight, pair_support_B=weight,
+            relative_research_weight=weight))
+    arm = dict(six_phase_scenarios=scenarios,
+               ranked_tickets=[list(row[2]) for row in rows[:4]],
+               ranked_2ren_tan=[list(row[2][:2]) for row in rows[:4]],
+               selection={market: {'recommendation':'CONDITIONAL_CANDIDATES'}
+                          for market in ('3t','2t')})
+    return dict(race_id='209901016201', generated_at='2099-01-01T13:00:00+09:00',
+        source_as_of='2099-01-01T12:30:00+09:00',
+        published_cutoff_at='2099-01-01T12:00:00+09:00',
+        created_after_published_cutoff=True,
+        timing_label='締切後作成・結果欄未参照の参考分析',
+        method={'id':'forward-phase-independent-pair-selection-20261122'},
+        missing_model_features=[], line_warnings=[], condition_evidence=[],
+        A=deepcopy(arm), B=deepcopy(arm))
+
+
 class ForwardScenarioRegression(unittest.TestCase):
-    def test_forward_high_is_reachable_from_a_generated_dominant_field(self):
+    def test_dominant_single_ticket_does_not_hide_uncovered_counter_branches(self):
         out = stability.assess_research_analysis(dominant_forward_analysis())
         self.assertEqual({key: value['grade'] for key, value in out['evaluations'].items()},
-                         {'A_3t':'高', 'A_2t':'高', 'B_3t':'高', 'B_2t':'高'})
-        self.assertEqual(out['rules_version'], 'forward-scenario-stability-20261122-v2')
+                         {'A_3t':'中', 'A_2t':'中', 'B_3t':'中', 'B_2t':'中'})
+        self.assertEqual(out['rules_version'], 'forward-research-coherence-20261122-v3')
         for key, entry in out['evaluations'].items():
             reasons = {reason['code']: reason['message'] for reason in entry['reasons']}
-            self.assertNotIn('FORWARD_METHOD_NOT_CALIBRATED', reasons)
-            self.assertIn('40%' if key.endswith('3t') else '55%', reasons['CANDIDATE_CONCENTRATION'])
-            self.assertIn('15%' if key.endswith('3t') else '25%', reasons['CANDIDATE_CONCENTRATION'])
-            self.assertIn('的中率', reasons['CANDIDATE_CONCENTRATION'])
+            self.assertIn('MAJOR_SCENARIO_UNCOVERED', reasons)
+            self.assertIn('NEXT_LEVEL_NOT_MET', reasons)
+            self.assertLess(entry['metrics']['scenario_coverage'], .8)
 
-    def test_forward_ticket_count_changes_do_not_raise_or_lower_confidence(self):
+    def test_reducing_forward_tickets_cannot_raise_confidence_or_shrink_denominator(self):
         analysis = model.generate_evidence_analysis(fixture())
         analysis.update(race_id='209901016201', generated_at='2099-01-01T01:00:00+09:00',
                         missing_model_features=[], line_warnings=[], condition_evidence=[])
         original = stability.assess_research_analysis(analysis)
-        for include_all in (False, True):
-            changed = deepcopy(analysis)
-            for arm in ('A', 'B'):
-                for market, field in (('3t', 'ranked_tickets'), ('2t', 'ranked_2ren_tan')):
-                    pool = changed[arm]['candidate_tickets'][market]
-                    chosen = pool if include_all else pool[:1]
-                    changed[arm][field] = deepcopy(chosen)
-                    changed[arm]['point_count_' + market] = len(chosen)
-                    changed[arm]['markets'][market]['tickets'] = deepcopy(chosen)
-                    changed[arm]['markets'][market]['point_count'] = len(chosen)
-            self.assertEqual(original, stability.assess_research_analysis(changed))
+        changed = deepcopy(analysis)
+        for arm in ('A', 'B'):
+            for field in ('ranked_tickets', 'ranked_2ren_tan'):
+                changed[arm][field] = changed[arm][field][:1]
+        reduced = stability.assess_research_analysis(changed)
+        self.assertEqual(original['scenario_universe_sha256'], reduced['scenario_universe_sha256'])
+        for key, entry in reduced['evaluations'].items():
+            self.assertLessEqual(entry['rank'], original['evaluations'][key]['rank'])
+            self.assertIn('scenario_coverage', entry['metrics'])
+            self.assertLessEqual(entry['metrics']['scenario_coverage'],
+                                 original['evaluations'][key]['metrics']['scenario_coverage'])
 
     def test_forward_high_keeps_missing_condition_and_abstention_restrictions(self):
-        original = dominant_forward_analysis()
-        self.assertTrue(all(e['rank'] == 3 for e in
+        original = coherence_analysis()
+        self.assertTrue(all(e['rank'] == 4 for e in
                             stability.assess_research_analysis(original)['evaluations'].values()))
         for field, value, expected_rank in (
             ('condition_evidence', [{'fact':'Synthetic pre-race caution'}], 2),
@@ -83,9 +155,9 @@ class ForwardScenarioRegression(unittest.TestCase):
         held['A']['selection']['3t']['recommendation'] = 'ABSTAIN_INSUFFICIENT_SEPARATION'
         out = stability.assess_research_analysis(held)['evaluations']
         self.assertEqual(out['A_3t']['rank'], 1)
-        self.assertEqual(out['A_2t']['rank'], 3)
-        self.assertEqual(out['B_3t']['rank'], 3)
-        self.assertEqual(out['B_2t']['rank'], 3)
+        self.assertEqual(out['A_2t']['rank'], 4)
+        self.assertEqual(out['B_3t']['rank'], 4)
+        self.assertEqual(out['B_2t']['rank'], 4)
 
     def test_same_tactical_branch_cannot_rewrite_corner_to_fit_ticket(self):
         scenarios = model.generate_evidence_analysis(fixture())["B"]["six_phase_scenarios"]
@@ -234,6 +306,145 @@ class ForwardScenarioRegression(unittest.TestCase):
                      dict(projected_3ren_tan=[4, 2, 1], support_A=1.)]
         self.assertEqual(stability._distribution(scenarios, 'A', 2),
                          {(1, 2): .75, (4, 2): .25})
+
+
+class ForwardCoherenceRegression(unittest.TestCase):
+    def test_direct_cli_checks_shared_confidence_without_pythonpath(self):
+        script = Path(__file__).resolve().parents[1] / 'scripts/keirin_generate_result_unread_analysis.py'
+        with tempfile.TemporaryDirectory() as cwd:
+            result = subprocess.run([sys.executable, '-I', '-B', str(script), '--self-check'],
+                                    cwd=cwd, text=True, capture_output=True, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout).get('synthetic_confidence_contract'), 'passed')
+
+    def test_unchanged_forward_generator_and_selection_reach_hot_for_both_markets(self):
+        analysis = hot_forward_analysis()
+        before = deepcopy(analysis)
+        out = stability.assess_research_analysis(analysis)
+        self.assertEqual({key: value['grade'] for key, value in out['evaluations'].items()},
+                         {'A_3t':'激アツ', 'A_2t':'激アツ', 'B_3t':'激アツ', 'B_2t':'激アツ'})
+        self.assertEqual(analysis, before)
+        for entry in out['evaluations'].values():
+            self.assertGreaterEqual(entry['metrics'].get('scenario_coverage', 0), .9)
+            self.assertEqual(entry['metrics'].get('major_uncovered_ids'), [])
+
+    def test_all_four_grades_use_whole_pool_and_actual_selection_coverage(self):
+        cases = [([[1, 2, 3]], '低', .45),
+                 ([[1, 2, 3], [2, 1, 3], [2, 3, 1]], '中', .55),
+                 ([[1, 2, 3], [1, 3, 2]], '高', .85),
+                 ([[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1]], '激アツ', .95)]
+        for tickets, grade, coverage in cases:
+            with self.subTest(grade=grade):
+                analysis = coherence_analysis()
+                analysis['A']['ranked_tickets'] = tickets
+                before = deepcopy(analysis)
+                out = stability.assess_research_analysis(analysis)
+                self.assertEqual(out['evaluations']['A_3t']['grade'], grade)
+                metrics = out['evaluations']['A_3t']['metrics']
+                self.assertEqual(metrics.get('axis_top2_share'), .95)
+                self.assertEqual(metrics.get('pair_top4_share'), .95)
+                self.assertEqual(metrics.get('triple_top6_share'), 1.0)
+                self.assertEqual(metrics.get('scenario_coverage'), coverage)
+                self.assertEqual(analysis, before)
+
+    def test_hot_path_never_creates_or_backdates_a_formal_assessment(self):
+        analysis = coherence_analysis()
+        out = stability.assess_research_analysis(analysis, assessed_at='2099-01-01T14:00:00+09:00')
+        self.assertEqual(out['evaluations']['A_3t']['grade'], '激アツ')
+        self.assertEqual(out['assessed_at'], '2099-01-01T14:00:00+09:00')
+        self.assertEqual(out['timing_label'], analysis['timing_label'])
+        self.assertFalse(out['official_pre_cutoff_assessment_created'])
+        self.assertFalse(out['production_guard_modified'])
+        self.assertFalse(out['production_guard_bypassed'])
+        self.assertFalse(out['target_results_used'])
+        self.assertNotIn('confidence_assessment', analysis)
+        self.assertEqual(analysis['published_cutoff_at'], '2099-01-01T12:00:00+09:00')
+        with self.assertRaisesRegex(ValueError, 'ASSESSMENT_BEFORE_CREATION'):
+            stability.assess_research_analysis(analysis, assessed_at='2099-01-01T12:59:59+09:00')
+
+    def test_extra_unmodeled_tickets_do_not_gain_count_bonus(self):
+        analysis = coherence_analysis()
+        original = stability.assess_research_analysis(analysis)
+        analysis['A']['ranked_tickets'] += [[7, 6, 5], [6, 7, 5]]
+        analysis['A']['point_count_3t'] = 999
+        changed = stability.assess_research_analysis(analysis)
+        self.assertEqual(changed, original)
+
+    def test_missing_or_invalid_six_phase_orders_do_not_receive_a_grade(self):
+        for defect in ('missing', 'order', 'goal', 'actual', 'branch', 'counter', 'line', 'boolean_goal'):
+            with self.subTest(defect=defect):
+                analysis = coherence_analysis()
+                rows = analysis['A']['six_phase_scenarios']
+                if defect == 'missing':
+                    rows[0]['six_phases'].pop(1)
+                elif defect == 'order':
+                    rows[0]['six_phases'][0]['projected_order'] = [1, 1, 2, 3, 4, 5, 6]
+                elif defect == 'goal':
+                    rows[0]['six_phases'][-1]['projected_top3'] = [7, 6, 5]
+                elif defect == 'actual':
+                    rows[0]['six_phases'][0]['actual_rider_position_video_verified'] = True
+                elif defect == 'branch':
+                    rows[0]['branch_kind'] = 'UNSOURCED_COUNTER'
+                elif defect == 'line':
+                    rows[0]['known_line_hypothesis'] = False
+                elif defect == 'boolean_goal':
+                    rows[0]['projected_3ren_tan'][0] = True
+                else:
+                    rows[1]['branch_kind'] = 'HOLD'
+                out = stability.assess_research_analysis(analysis)
+                self.assertEqual(out['evaluations']['A_3t']['rank'], 0)
+                self.assertEqual(out['evaluations']['A_2t']['rank'], 0)
+                self.assertEqual(out['evaluations']['B_3t']['rank'], 4)
+
+    def test_unavailable_line_status_blocks_complete_looking_scenarios(self):
+        analysis = coherence_analysis()
+        analysis['line_status'] = 'UNAVAILABLE'
+        out = stability.assess_research_analysis(analysis)
+        self.assertTrue(all(entry['rank'] == 0 for entry in out['evaluations'].values()))
+
+    def test_pair_support_and_pair_major_branches_ignore_extra_thirds(self):
+        analysis = coherence_analysis()
+        original = stability.assess_research_analysis(analysis)
+        for arm in ('A', 'B'):
+            extra = deepcopy(analysis[arm]['six_phase_scenarios'][1])
+            extra['scenario_id'] = 'counter-extra-third'
+            extra['projected_3ren_tan'] = [1, 3, 7]
+            for phase in extra['six_phases']:
+                phase['projected_order'] = [1, 3, 7, 2, 4, 5, 6]
+                phase['projected_top3'] = [1, 3, 7]
+            extra['support_A'] = extra['support_B'] = .001
+            analysis[arm]['six_phase_scenarios'].append(extra)
+        changed = stability.assess_research_analysis(analysis)
+        for arm in ('A', 'B'):
+            old = original['evaluations'][arm + '_2t']
+            new = changed['evaluations'][arm + '_2t']
+            self.assertEqual(new['rank'], 4)
+            self.assertEqual(new['metrics'], old['metrics'])
+            self.assertIsNone(new['metrics'].get('triple_top6_share'))
+
+    def test_uncovered_family_blocks_high_despite_adequate_total_coverage(self):
+        analysis = coherence_analysis()
+        for arm in ('A', 'B'):
+            analysis[arm]['six_phase_scenarios'][-1]['branch_kind'] = 'ATTACKER_FADE'
+        out = stability.assess_research_analysis(analysis)
+        for entry in out['evaluations'].values():
+            self.assertEqual(entry['rank'], 2)
+            self.assertIn('minor-b', entry['metrics'].get('major_uncovered_ids', []))
+            self.assertEqual(entry['metrics']['scenario_coverage'], .95)
+
+    def test_distinct_markets_and_arms_do_not_inherit_hot(self):
+        analysis = coherence_analysis()
+        analysis['A']['ranked_2ren_tan'] = [[7, 6]]
+        analysis['B']['ranked_tickets'] = [[7, 6, 5]]
+        out = stability.assess_research_analysis(analysis)['evaluations']
+        self.assertEqual({key: value['grade'] for key, value in out.items()},
+                         {'A_3t':'激アツ', 'A_2t':'低', 'B_3t':'低', 'B_2t':'激アツ'})
+
+    def test_canonical_time_gate_still_rejects_post_cutoff_new_sidecar(self):
+        from tests.test_keirin_confidence import baseline_fixture
+        snapshot, baseline = baseline_fixture('hot')
+        with self.assertRaisesRegex(confidence.ConfidenceAssessmentError, 'AFTER_OR_TOO_CLOSE_TO_CUTOFF'):
+            confidence.assess_baseline(snapshot, baseline, assessed_at='2099-01-01T13:00:00+09:00')
 
 
 if __name__ == "__main__":

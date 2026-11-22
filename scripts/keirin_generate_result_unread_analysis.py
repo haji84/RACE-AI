@@ -17,6 +17,7 @@ from math import isfinite
 from pathlib import Path
 import re
 import subprocess
+import sys
 from unicodedata import normalize
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
@@ -540,6 +541,10 @@ def apply_condition_observations(analysis, observations):
 
 
 def confidence_helper():
+    # Direct CLI execution exposes scripts/, not the repository package root.
+    # Resolve the existing shared research rule in an isolated Python process.
+    if str(REPO) not in sys.path:
+        sys.path.insert(0, str(REPO))
     path = REPO / 'race_ai/keirin_research_stability.py'
     spec = importlib.util.spec_from_file_location('result_unread_confidence_helper', path)
     module = importlib.util.module_from_spec(spec)
@@ -561,7 +566,14 @@ def method_check(model):
     for arm in ('A','B'):
         check_tickets(output[arm]['ranked_tickets'], list(range(1,8)), 3)
         check_tickets(output[arm]['ranked_2ren_tan'], list(range(1,8)), 2)
-    return {'synthetic_method_contract':'passed', 'real_results_read':False}
+    output.update(race_id='209901016201', generated_at='2099-01-01T01:00:00+09:00',
+                  missing_model_features=[], line_warnings=[], condition_evidence=[])
+    assessment = confidence_helper().assess_research_analysis(output)
+    need(set(assessment['evaluations']) == {'A_3t','A_2t','B_3t','B_2t'} and
+         all(entry['rank'] > 0 for entry in assessment['evaluations'].values()),
+         'SYNTHETIC_CONFIDENCE_CONTRACT_FAILED')
+    return {'synthetic_method_contract':'passed', 'synthetic_confidence_contract':'passed',
+            'real_results_read':False}
 
 
 def main():
