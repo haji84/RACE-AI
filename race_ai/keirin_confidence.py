@@ -277,8 +277,13 @@ def _measure(universe, selected, market):
     return metrics
 
 
-def _grade(metrics, market):
-    # Designed thresholds, not empirical success or return-rate boundaries.
+def grade_coherence_metrics(metrics, market):
+    """Pure four-grade rule shared by separately validated research adapters.
+
+    This only classifies already measured fixed-universe metrics. It does not
+    create an assessment, validate source provenance, or waive cutoff gates.
+    The thresholds are designed rules, not empirical success/return rates.
+    """
     for rank, (axis, pair, triple, coverage) in THRESHOLDS.items():
         if (metrics["axis_top2_share"] >= axis and metrics["pair_top4_share"] >= pair and
             (market == "2t" or metrics["triple_top6_share"] >= triple) and
@@ -286,6 +291,11 @@ def _grade(metrics, market):
             (rank < 3 or not metrics["major_uncovered_ids"])):
             return rank
     return 1
+
+
+def _grade(metrics, market):
+    # Keep the established formal evaluator's internal call surface unchanged.
+    return grade_coherence_metrics(metrics, market)
 
 
 def _percent(value):

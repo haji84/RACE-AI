@@ -40,6 +40,39 @@ The display-only view contains the existing minimized source facts. Its validato
 
 Adjusted A/B forecasts have different tickets and do not inherit baseline grades. A three-car grade is never copied to a two-car forecast.
 
+## Result-unread forward research adapter
+
+The current forward research route uses
+`forward-research-coherence-20261122-v3` in its separate
+`KEIRIN_RESULT_UNREAD_RESEARCH_COHERENCE_V1` envelope. It calls the pure
+`grade_coherence_metrics` rule above, with `inherited_rules_version` set to
+`research-coherence-v1`. This connects all four grades without changing the
+formal sidecar API, its source validation, or the 65-second pre-cutoff gate.
+
+This adapter measures the current forward generator's complete independent
+market pools: maximum existing support per exact triple, and maximum existing
+direct pair support per pair. It derives winner/pair/triple concentration and
+actual selected-ticket coverage from that fixed denominator. A candidate with
+at least 10% normalized support and the strongest actual scenario from each
+present counter family define major represented branches. No new scenario,
+finishing order, timestamp, model coefficient, or support value is invented.
+The exact branch mapping and tie rules are documented in
+`KEIRIN_RESULT_UNREAD_METHOD_20261122.md`.
+
+The distinction from the canonical sidecar is deliberate: current forward
+research can be created after cutoff and does not attest a preserved pre-race
+original. Its actual creation and assessment times remain visible, and its
+formal-assessment/guard-modification/result-use flags remain false. It must not
+be passed off as a `RACE_AI_KEIRIN_CONFIDENCE_ASSESSMENT_V1` sidecar or be
+backdated to satisfy that schema. Saved older packets retain their own rules.
+
+The four-grade adapter retains missing-evidence, condition-caution, and
+abstention restrictions. It gives no bonus for ticket count. Removing a subset
+cannot raise coverage or the grade; adding an unmodeled ticket cannot help.
+Adding a modeled outcome can improve coverage, so v3 does not repeat the older
+single-candidate stability rule's blanket ticket-invariance claim. These remain
+uncalibrated research grades, including 激アツ.
+
 ## New authored normal and rollover forecasts
 
 `race_ai/keirin_authored_confidence.py` creates fresh records with `confidence_universe` and a `confidence_assessment` whose `evaluations` contains one `selected` entry. A universe must declare the new `RACE_AI_KEIRIN_CONFIDENCE_UNIVERSE_V1` format, `authored_goals`, and `independent_preselection_v1`. Merely renaming a legacy `goal_candidates` property does not establish independent coverage.
