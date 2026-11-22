@@ -16,6 +16,8 @@
 
 ## 反映状況と範囲
 
+PR325は通常merge済み。既存Pagesへの反映、実HTTP照合、実保存データによる320/390/1440pxの受入を完了した。最終結果は以下の最新配備記録を参照する。
+
 候補ブランチは [`feat/keirin-history-search-20261122`](https://github.com/haji84/RACE-AI/tree/feat/keirin-history-search-20261122)。非公開プレビューで検証したコードは `3d61079f08b585e32d2a856f18f96bc34b53cfc8`。前節の集計証拠は配備前の検証記録であり、最終CI・main統合・既存Pages反映後の検証は、同ブランチの[最新配備記録](https://github.com/haji84/RACE-AI/blob/feat/keirin-history-search-20261122/docs/evidence/keirin-history-search-20261122/delivery.json)へ追記する。
 
 所有者は実装・レビュー・プレビューの完了後、新PR1本を作り必要な検査を通して反映する提案に「進めて」と回答した（2026-11-22 17:34 JSTに確認）。この明示例外により今回のUIだけを通常のPRで反映する。関連する既存PRはmerge済みで、閉じた未merge PRの検索は0件。開いている49は別配備系統、71は異なるbaseの大規模draftで凍結producerの参照先、148は凍結producerのCI専用で、今回のUI用に変更しない。main保護や必須CIは保持する。
