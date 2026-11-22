@@ -1,0 +1,115 @@
+diff --git a/scripts/keirin_note_collect_results.py b/scripts/keirin_note_collect_results.py
+index b61505e72..7a65d843b 100644
+--- a/scripts/keirin_note_collect_results.py
++++ b/scripts/keirin_note_collect_results.py
+@@ -3,7 +3,7 @@
+ No forecasts are generated and neither owner private key is needed. A matched
+ Kdreams/netkeirin pair remains secondary research, never official settlement.
+ """
+-from collections import Counter
++from collections import Counter, deque
+ from datetime import date, datetime, timezone
+ from hashlib import sha256
+ import re
+@@ -155,12 +155,13 @@ def collect_results(*,days,private_root,result_checks=None,fetch=None,clock=None
+     session=ResultSession(root,today,fetch or capture.fetch_once,clock,
+         monotonic=monotonic or time.monotonic,budget_seconds=budget_seconds)
+     counts=Counter();states=Counter();updates={};changed={}
+-    # A clock-derived round robin needs no invented race or progress record.
+-    # Even empty or unparseable historical days cannot permanently monopolize
+-    # discovery: every retained day leads one normal ten-minute tick in N.
+     tick=int(now.timestamp())//600
+-    ordered=sorted(set(days));offset=tick%len(ordered)
+-    ordered=ordered[offset:]+ordered[:offset]
++    historical_days=sorted(set(days)-{today})
++    if historical_days:
++        # Keep the existing round robin for dates before today's JST card.
++        offset=tick%len(historical_days)
++        historical_days=historical_days[offset:]+historical_days[:offset]
++
+     def consume(day,manifest):
+         counts['observed_races']+=len(manifest['races']);candidates=[]
+         for row in manifest['races']:
+@@ -206,18 +207,33 @@ def collect_results(*,days,private_root,result_checks=None,fetch=None,clock=None
+                 checked_observation(observed)
+                 changed.setdefault(day,[]).append(observed)
+                 counts['changed_observations']+=1
+-    try:
+-        for day in ordered:
++    def process_meetings(scan_days):
++        for day in scan_days:
+             if session.stopped or session.budget_exhausted:break
+             discovered=False
+             try:
+-                for manifest in meeting_manifests(session,day,tick=tick,day_count=len(ordered)):
++                for manifest in meeting_manifests(session,day,tick=tick,day_count=len(scan_days)):
+                     if not discovered:counts['discovered_days']+=1;discovered=True
+                     consume(day,manifest)
++                    yield
+                     if session.stopped or session.budget_exhausted:break
+             except BudgetExhausted:break
+             except (ValueError,KeyError,TypeError,OSError) as error:
+                 states['HOLD_'+inputs._safe_reason(error)]+=1
++
++    # Let today's first meeting check results before history can use the budget.
++    # Then alternate meetings under the same deadline and provider stop latch.
++    scans=deque()
++    if today in days:scans.append(process_meetings([today]))
++    if historical_days:scans.append(process_meetings(historical_days))
++    try:
++        while scans and not session.stopped and not session.budget_exhausted:
++            scan=scans.popleft()
++            try:
++                next(scan)
++            except StopIteration:
++                continue
++            scans.append(scan)
+     finally:
+         session.finish()
+     for day,observations in changed.items():
+diff --git a/tests/test_keirin_note_collect_results.py b/tests/test_keirin_note_collect_results.py
+index dbe7224b8..5671ed48c 100644
+--- a/tests/test_keirin_note_collect_results.py
++++ b/tests/test_keirin_note_collect_results.py
+@@ -152,6 +152,41 @@ class ResultCollectionTests(unittest.TestCase):
+         self.assertEqual(result['safe_report']['matched_races'],4)
+         self.assertEqual(len(self.observations(result,ancient)),1)
+ 
++    def test_current_day_reaches_result_checks_when_history_would_use_the_budget(self):
++        days=['2030-01-12','2030-01-13','2030-01-14',DAY]
++        for day in days:
++            self.add_day(day,12)
++        now=datetime(2030,1,15,12,tzinfo=timezone.utc)
++        result=self.collect(days=days,result_checks={},clock=lambda:now,
++            monotonic=lambda:len(self.urls),budget_seconds=6)
++
++        self.assertEqual(self.urls[0],calendar(DAY))
++        self.assertEqual(set(result['result_checks']),{rid(n=1),rid(n=2)})
++        self.assertEqual(result['safe_report']['matched_races'],2)
++        self.assertEqual(len(self.urls),6)
++
++    def test_history_gets_a_turn_before_the_second_current_meeting(self):
++        old='2030-01-14'
++        self.add_day(old,1)
++        self.add_day(DAY,1)
++        compact=DAY.replace('-','')
++        card=meeting(DAY).replace('98'+compact,'97'+compact)
++        race=detail(DAY,1).replace('98'+compact,'97'+compact)
++        self.pages[calendar(DAY)]+=f'<a href="{card}">架空開催</a>'.encode()
++        self.pages[card]=self.pages[meeting(DAY)].replace(detail(DAY,1).encode(),race.encode())
++        self.pages[race+'?pageType=result']=result_html(DAY,1)
++        self.pages['https://keirin.netkeiba.com/race/result/?race_id='+compact+'9701']=result_html(DAY,1)
++        now=datetime(2030,1,15,12,10,tzinfo=timezone.utc)
++        result=self.collect(days=[old,DAY],result_checks={},clock=lambda:now,
++            monotonic=lambda:len(self.urls),budget_seconds=8)
++
++        self.assertEqual(self.urls[0],calendar(DAY))
++        self.assertEqual(len(result['result_checks']),2)
++        self.assertEqual({race_id[:8] for race_id in result['result_checks']},
++            {compact,old.replace('-','')})
++        self.assertEqual(result['safe_report']['matched_races'],2)
++        self.assertEqual(len(self.urls),8)
++
+     def test_pending_retry_interval_and_special_results_hold_without_official_claim(self):
+         self.pages[detail(DAY,1)+'?pageType=result']=result_html(DAY,1,payout='---')
+         self.pages[detail(DAY,2)+'?pageType=result']=result_html(DAY,2,suffix='<p>返還</p>')
