@@ -1,0 +1,20 @@
+{
+  "already_approved_sources": [
+    "Kdreams",
+    "netkeirin",
+    "applicable existing KEIRIN.JP routes"
+  ],
+  "boat_producer_freeze_and_registration_unchanged": true,
+  "new_charges": false,
+  "new_pr": false,
+  "new_providers_added": false,
+  "observed_at_utc": "2026-11-22T06:21:51.721610+00:00",
+  "owner_instruction": "WINticket\u306b\u3053\u3060\u308f\u3089\u306a\u304f\u3066\u3082\u3044\u3044\u3088",
+  "preserve_missing_input_and_formal_settlement_gates": true,
+  "production_weights_switched": false,
+  "schema": "RACE_AI_OWNER_APPROVED_SOURCE_PRIORITY_20261122_V1",
+  "source_of_instruction": "Owner message in current conversation; recorded in AGENTS.md",
+  "wagers_placed": false,
+  "winticket_403_resolved": false,
+  "winticket_required_for_goal": false
+}

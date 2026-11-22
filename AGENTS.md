@@ -47,3 +47,12 @@ The owner explicitly instructed after the Cloudflare shutdown: 「GitHubで出�
 - Reuse that owned Site's presentation, allocation functions, and preserved data formats inside this repository. Kdreams and netkeirin are approved input sources for this import, in addition to the prior WINTICKET/KEIRIN.JP paths. This explicit instruction supersedes the older two-provider restriction for this work.
 - Keep the distinct sources and the original analysis, flexible revision and existing A/B research output identifiable. Do not turn these into an authenticated PR71 full-model forecast, invent C, overwrite original predictions, or promote weights.
 - GitHub-only, encryption of private originals, no betting, no new charges and existing protected-review requirements still apply. The Site's Cloudflare Worker is not an approved new RACE-AI backend; port its needed functions to the existing GitHub path.
+
+## Owner removed WINTICKET as a required dependency (2026-11-22)
+
+The owner explicitly instructed: 「WINticketにこだわらなくてもいいよ」.
+
+- Do not make WINTICKET access or removal of its HTTP403 a prerequisite for KEIRIN development, accuracy evaluation or acceptance. Continue using the already approved and observed Kdreams/netkeirin sources, and suitable existing KEIRIN.JP inputs.
+- Preserve WINTICKET's actual refusal history and describe its access as unresolved unless an ordinary successful request on the relevant execution path proves otherwise. This owner decision removes a product dependency; it does not establish that WINTICKET changed its server response.
+- Keep missing inputs, unsupported classes, full-race/model coverage and result authentication visible. Secondary-source research forecasts/results are not automatically official PR71 all-model forecasts or formal settlement.
+- The separate BOAT producer freeze, registered comparison conditions, provider-denial stops and private-data protections remain unchanged. Do not reset a stop or counter, borrow a session, or introduce another provider or paid service under this instruction.

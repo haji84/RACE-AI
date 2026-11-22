@@ -4,6 +4,8 @@
 
 この指示で、提供サイトと同じKドリームス・netkeirinの入力を本移行の対象に追加する。過去のWINTICKET/KEIRIN.JP限定の取得設定より本指示を優先する。Cloudflare/Vercel・新課金・投票・本番重み切替・新PRを追加する指示ではない。既存の取得拒否履歴や未完成表示を消さない。
 
+**2026-11-22追記**：本人が「WINticketにこだわらなくてもいいよ」と明示した。WINTICKETの403解除を完成の必須条件から外し、取得できているKドリームス・netkeirinと、適用可能な既存KEIRIN.JP入力で開発を続ける。WINTICKET自体の拒否履歴と別件のBOAT停止は保全する。入力元の方針変更だけで、全件・全モデル・実機・校正・前向き精度の検証を合格にはしない。
+
 ## 取得済みの原本
 
 - Source Site: `https://keirin-20261119-race-note.chankuma.chatgpt.site/`
