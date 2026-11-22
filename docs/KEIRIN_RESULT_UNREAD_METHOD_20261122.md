@@ -3,8 +3,11 @@
 The current displayed analysis uses `generate_evidence_analysis` in
 `race_ai/keirin_nationwide_auto_generator.py`. Its sequence is source facts,
 conditional six-phase scenarios, complete candidate pools, independent market
-selection, then derived ticket counts. It replaces the fixed-count display
-processor without changing the historical sealed-record entry point or originals.
+selection, then derived ticket counts. The current method ID is
+`forward-phase-independent-pair-selection-20261122`. It corrects the preceding
+display processor without changing the historical sealed-record entry point or
+originals. This is a correction to the research method, not evidence of improved
+prediction accuracy or profitability.
 
 ## Evidence and scenario constraints
 
@@ -15,27 +18,62 @@ recorded without an unvalidated performance bonus. Missing points, including a
 published zero, are unknown rather than zero ability. Unknown weather, bank
 affinity, injury history and advancement rules are not invented.
 
-Each scenario records all six phases and the original attacking car. A simple
-follower pass keeps the attacker second. A separate attacker-fade branch moves
-that actual attacker below the first two. Second and third candidates require
-line-position or other-line-front routes; full-field arbitrary permutations do
-not share a generic explanation. Missing lines stop B independently. A may still
-use ability evidence, but its first five positions are explicitly unknown.
+Each tactical branch fixes INITIAL, BELL, FINAL_HOME, FINAL_BACK and
+FOURTH_CORNER before any finishing candidate is considered. GOAL is derived by
+replaying explicit adjacent overtakes from that corner; the ticket is GOAL's
+first three cars. A simple follower pass keeps the original attacker second.
+A fade branch preserves the attacking identity, places competing riders near
+the front before the corner, then lets the two adjacent riders pass the fading
+attacker. It no longer enumerates all hypothetical replacement winners/seconds.
+
+After the branch's necessary pass, at most one additional evidenced adjacent
+duel for second or third is represented. The challenger needs a stronger
+published finishing indicator or explicit sashi evidence. This is a declared
+untrained path restriction, not a claim that omitted race outcomes are
+impossible. Remote riders cannot be moved to the front solely to match a ticket.
+Missing lines stop B independently. A may still use ability evidence, but its
+first five positions remain explicitly unknown and `attacking_car` is null for
+`ABILITY_ONLY`. Its explanation does not claim a forward position or overtaking
+path was generated.
 
 ## Independent ticket selection
 
-For an exact three-car finish, repeated scenario descriptions use the maximum
-support rather than multiplying the same evidence. Two-car support is the sum
-over distinct third-place alternatives in the complete candidate pool, before
-any three-car selection. Both markets then retain candidates with at least half
-their own maximum support. This is an explicit untrained research rule, not a
-calibrated probability, expected-return calculation, or fitted accuracy claim.
+Each branch scores its first/second pair before third-place alternatives are
+created: head strength squared times second strength to power 1.3. A also
+applies the square root of branch support; B applies full branch support and
+local-movement fit. Thus A no longer gives a fade-only assumption the same
+weight as an otherwise equal straightforward path. The coefficients remain
+untrained research heuristics, explicitly recorded in the method metadata.
+
+For three-car support, each branch's pair support is distributed among its
+reachable thirds in proportion to third strength to power 0.8. Exact triples
+use maximum support across branches. Two-car support independently uses the
+maximum `pair_support_A/B` across branches for that pair; adding or duplicating
+third-place candidates cannot raise it. Both pools are complete before either
+market is selected. Neither support is a calibrated probability or expected
+return, and current odds are not used to choose tickets.
 
 There is no twelve-ticket cap or padding. One ticket and more than twelve are
-both supported. Ties are not cut at an arbitrary count. Selection records its
-candidate/excluded counts, rule, scenario IDs and reasons. Above thirty tickets,
-a review warning reports the amount at 100 yen per ticket; it does not alter the
-count or recommend purchasing every candidate.
+both supported. The half-of-peak research window is retained, rather than tuned
+to a desired count or to observed race results. If that window retains every
+candidate in a multi-candidate pool, selection abstains with
+`ABSTAIN_INSUFFICIENT_SEPARATION` instead of recommending the whole set. A field
+of solo riders with identical effective scoring/role/start inputs also
+abstains: car-number sorting and generated branch counts are not distinguishing
+evidence. The signature uses computed head/second/third strengths,
+`explicit_attack`, `explicit_sashi`, the effective lead/counter branch supports
+and the S value actually used for initial ordering. Raw style, published mark or
+comment metadata is already subsumed by those inputs and is not added again.
+For example, removing a redundant attack comment from an otherwise identical
+ALLROUND rider cannot turn an abstention into adopted tickets. All source facts
+remain recorded in the feature audit. `selection_context.indistinguishable_solo_field` and
+`selection.abstention_code` expose the reason for independent validation.
+
+All candidates remain in `candidate_tickets` and `candidate_evidence`. Adopted
+tickets alone appear in `ranked_tickets`, `ranked_2ren_tan` and `ticket_evidence`.
+Selection reports candidate, excluded, held and adopted counts separately.
+Above thirty adopted tickets, a review warning reports the amount at 100 yen
+per ticket; it does not alter the count or recommend purchasing every candidate.
 
 ## Time, condition and confidence boundaries
 
@@ -47,13 +85,21 @@ or turn a retrospective calculation into a saved pre-cutoff original.
 
 Condition notes bind race, car and name to the cited self-report. An explicitly
 stated current-pain condition can create an independently labeled sensitivity
-case excluding that rider from first place. The baseline remains unchanged;
+case excluding that rider from first place. Either independently selected
+market can remain generated when the other market has no tickets. The baseline remains unchanged;
 no diagnosis, medical recovery claim or numerical injury penalty is inferred.
 
 `race_ai/keirin_research_stability.py` grades the complete candidate universe,
 not selected ticket coverage. Adding tickets or rewording a scenario cannot raise
-the grade. These are provisional hypothesis-stability grades. The current method
-does not issue a hot grade without the missing condition and accuracy evidence.
+the grade. Two-car confidence uses the same direct pair support as selection.
+These are provisional hypothesis-stability grades. The forward correction caps
+the current method at medium: removing unsupported paths can increase
+concentration, but that mathematical change is not validation evidence for a
+high grade. An abstention is low. Historical confidence and the sealed baseline
+remain unchanged. The reason is stored in each current assessment, rather than
+implied by the size of the chosen ticket list. Low and medium remain uncalibrated
+labels for relative hypothesis concentration; the cap prevents high promotion
+and does not freeze every revised assessment at its prior low/medium label.
 
 ## Source-only verification
 
@@ -67,7 +113,7 @@ The production historical verifier still rejects any different source bytes,
 including the current extended module; its integrity check is not relaxed.
 
 ```sh
-python -m unittest tests.test_keirin_evidence_selection tests.test_keirin_result_unread_method tests.test_keirin_nationwide_auto_generator -v
+python -m unittest tests.test_keirin_evidence_selection tests.test_keirin_forward_scenarios tests.test_keirin_result_unread_method tests.test_keirin_nationwide_auto_generator -v
 python scripts/keirin_generate_result_unread_analysis.py --self-check
 ```
 
