@@ -1,0 +1,397 @@
+{
+  "schema": "RACE_AI_KEIRIN_AUTOMATION_CONTINUATION_20261122_V1",
+  "day_jst": "2026-11-22",
+  "recorded_at_utc": "2026-11-22T12:48:22.411Z",
+  "protected_main": {
+    "head": "33cc486445bad39b0168a5653f6e8b5b947d85bb",
+    "pull_request_required": true,
+    "required_checks": [
+      "unit"
+    ],
+    "new_pr_created": false
+  },
+  "existing_runtime": {
+    "today_first_timing_dispatch": {
+      "run_id": 45022594143,
+      "job_id": 137208664101,
+      "status": "success",
+      "created_at_utc": "2026-11-22T12:30:11Z",
+      "finished_at_utc": "2026-11-22T12:34:08Z",
+      "original_code": true,
+      "summary": {
+        "acquisition": {
+          "captured_races": 1,
+          "observed_races": 68,
+          "provider_denied": false,
+          "public_page_requests": 10
+        },
+        "covered_races": 158,
+        "entries": 74,
+        "priority_window_races": 10,
+        "provider_denied": false,
+        "results": {
+          "budget_exhausted": false,
+          "changed_observations": 9,
+          "checked_races": 121,
+          "discovered_days": 4,
+          "future_races": 12,
+          "hold_races": 4,
+          "matched_races": 114,
+          "not_due_races": 124,
+          "observed_races": 257,
+          "pending_races": 3,
+          "provider_denied": false,
+          "public_page_requests": 270
+        },
+        "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED"
+      },
+      "pr71_four_model_admission": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT"
+    },
+    "encrypted_feed_readback": {
+      "observed_at_utc": "2026-11-22T12:41:56.236Z",
+      "reader_source": "335b612d08225b2e33a69fbaefc602c90cc39384",
+      "day": "2026-11-22",
+      "registry_races": 68,
+      "append_only_prefix_preserved": true,
+      "before_entries": 72,
+      "after_entries": 75,
+      "latest_encrypted_index_sha256": "3f6fac515c1a83647b2838a1879465c2705cf11286b1666545fcb35c6901c6c7",
+      "new_kinds": {
+        "research": 1,
+        "results": 1,
+        "nationwide": 1
+      },
+      "validated_new_observations": {
+        "2026-11-22": {
+          "SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL": 8,
+          "PENDING_RESULT_NOT_PUBLISHED": 1
+        }
+      },
+      "today_secondary_result_checks_before": {
+        "NO_CHECK": 21,
+        "MATCHED": 46,
+        "HOLD": 1
+      },
+      "today_secondary_result_checks_after": {
+        "MATCHED": 54,
+        "PENDING": 1,
+        "NO_CHECK": 12,
+        "HOLD": 1
+      },
+      "provider_denied": false,
+      "display_key_sent": false,
+      "formal_score_rows_from_previous_audit": 6
+    },
+    "secondary_timing_audit": {
+      "day": "2026-11-22",
+      "as_of_utc": "2026-11-22T12:48:22.411Z",
+      "registration_count": 68,
+      "entries": 75,
+      "cutoff_reference": "Dated public listing snapshot; scheduler hint only",
+      "last_published_reference_cutoff_jst": "2026-11-22T23:25:00.000+09:00",
+      "statuses": {
+        "MATCHED": {
+          "races": 54,
+          "at_dispatch_end_reference_cutoff_future": 0,
+          "at_audit_reference_cutoff_future": 0,
+          "cutoff_unknown": 0,
+          "official_result_preserved": 6,
+          "official_original_preserved": 6
+        },
+        "PENDING": {
+          "races": 1,
+          "at_dispatch_end_reference_cutoff_future": 0,
+          "at_audit_reference_cutoff_future": 0,
+          "cutoff_unknown": 0,
+          "official_result_preserved": 0,
+          "official_original_preserved": 0
+        },
+        "NO_CHECK": {
+          "races": 12,
+          "at_dispatch_end_reference_cutoff_future": 12,
+          "at_audit_reference_cutoff_future": 10,
+          "cutoff_unknown": 0,
+          "official_result_preserved": 0,
+          "official_original_preserved": 0
+        },
+        "HOLD": {
+          "races": 1,
+          "at_dispatch_end_reference_cutoff_future": 0,
+          "at_audit_reference_cutoff_future": 0,
+          "cutoff_unknown": 0,
+          "official_result_preserved": 0,
+          "official_original_preserved": 0
+        }
+      }
+    },
+    "reference_timing": {
+      "observed_at_utc": "2026-11-22T12:43:09.939Z",
+      "new_research_entries": 1,
+      "prior_priority_window_races": 9,
+      "current_priority_window_races": 10,
+      "observations": [
+        {
+          "day": "2026-11-22",
+          "generated_at": "2026-11-22T12:31:03.570965+00:00",
+          "recorded_published_cutoff_at": "2026-11-22T21:45:00+09:00",
+          "generated_seconds_before_cutoff": 836.43,
+          "index_entry_created_at": "2026-11-22T12:31:03.632299+00:00",
+          "previously_covered": true,
+          "timing_status": "RECORDED_PRE_CUTOFF_NOT_FORMAL",
+          "formal": false
+        }
+      ],
+      "official_originals_added": false
+    },
+    "official_refresh": {
+      "run_id": 45023069187,
+      "job_id": 137210438104,
+      "completed_at_utc": "2026-11-22T12:39:14Z",
+      "receipt_artifact_id": 14753729432,
+      "aggregate_and_class_card_receipts": {
+        "state": "OFFICIAL_SP_DAY_REGISTERED_WITH_EXPLICIT_HOLDS",
+        "day_jst": "2026-11-22",
+        "registered_races": 68,
+        "new_A_B_git_archived": 0,
+        "day_inventory_complete": true,
+        "provider_denied": false,
+        "source_requests": 16,
+        "statuses": {
+          "FROZEN_ORIGINAL_PRESERVED": 6,
+          "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 50,
+          "UNSUPPORTED_CLASS_OR_ROUND": 12
+        },
+        "class_statuses": [
+          {
+            "class_label": "A級チャレンジ一般",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 4
+            }
+          },
+          {
+            "class_label": "A級チャレンジ予選",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 4
+            }
+          },
+          {
+            "class_label": "A級チャレンジ決勝",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 2
+            }
+          },
+          {
+            "class_label": "A級チャレンジ選抜",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 2
+            }
+          },
+          {
+            "class_label": "A級一般",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 4
+            }
+          },
+          {
+            "class_label": "A級予選",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 6
+            }
+          },
+          {
+            "class_label": "A級初日特選",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 2
+            }
+          },
+          {
+            "class_label": "A級決勝",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 2
+            }
+          },
+          {
+            "class_label": "A級準決勝",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 6
+            }
+          },
+          {
+            "class_label": "A級特一般",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 4
+            }
+          },
+          {
+            "class_label": "A級特予選",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 4
+            }
+          },
+          {
+            "class_label": "A級特選",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 4
+            }
+          },
+          {
+            "class_label": "S級一般",
+            "statuses": {
+              "FROZEN_ORIGINAL_PRESERVED": 3,
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 4
+            }
+          },
+          {
+            "class_label": "S級準決勝",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 9
+            }
+          },
+          {
+            "class_label": "S級特選",
+            "statuses": {
+              "FROZEN_ORIGINAL_PRESERVED": 1,
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 2
+            }
+          },
+          {
+            "class_label": "S級選抜",
+            "statuses": {
+              "FROZEN_ORIGINAL_PRESERVED": 2,
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 1
+            }
+          },
+          {
+            "class_label": "UNRECOGNIZED_CLASS_LABEL",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 2
+            }
+          }
+        ],
+        "class_evidence": [
+          {
+            "class_label": "A級特一般",
+            "grades": [
+              "A1",
+              "A2"
+            ],
+            "state": "PUBLISHED_CLASS_CARD_EVIDENCE_ONLY",
+            "rider_count": 7,
+            "http_status": 200,
+            "list_sha256": "85b24c2c72cf393c4570b039b090eade8fb77b7de24a89e1ed54a50c3754b7cf",
+            "detail_sha256": "b2eafce714e597a18e6607ec147fed5d6cf121a5e77c03e41ee73732e60e7151",
+            "observed_at": "2026-11-22T12:37:57.599242+00:00"
+          },
+          {
+            "class_label": "A級特選",
+            "grades": [
+              "A1",
+              "A2"
+            ],
+            "state": "PUBLISHED_CLASS_CARD_EVIDENCE_ONLY",
+            "rider_count": 7,
+            "http_status": 200,
+            "list_sha256": "85b24c2c72cf393c4570b039b090eade8fb77b7de24a89e1ed54a50c3754b7cf",
+            "detail_sha256": "8c3bb240915f72f45dbba617070d47e73ebfd72c67196c3242551f16a379d45b",
+            "observed_at": "2026-11-22T12:37:58.918455+00:00"
+          },
+          {
+            "class_label": "A級チャレンジ決勝",
+            "grades": [
+              "A3"
+            ],
+            "state": "PUBLISHED_CLASS_CARD_EVIDENCE_ONLY",
+            "rider_count": 7,
+            "http_status": 200,
+            "list_sha256": "85b24c2c72cf393c4570b039b090eade8fb77b7de24a89e1ed54a50c3754b7cf",
+            "detail_sha256": "8bc9c3ed7279a0d11e9f5dba89ab6170bb9e3295c8d77bac45353481e393f8d0",
+            "observed_at": "2026-11-22T12:38:00.226142+00:00"
+          },
+          {
+            "class_label": "A級決勝",
+            "grades": [
+              "A1"
+            ],
+            "state": "PUBLISHED_CLASS_CARD_EVIDENCE_ONLY",
+            "rider_count": 7,
+            "http_status": 200,
+            "list_sha256": "85b24c2c72cf393c4570b039b090eade8fb77b7de24a89e1ed54a50c3754b7cf",
+            "detail_sha256": "2842253c965ca791c1152bfcb98d912176519a40ff06ca7020ef048acb7e21fe",
+            "observed_at": "2026-11-22T12:38:01.538244+00:00"
+          }
+        ]
+      }
+    }
+  },
+  "candidate": {
+    "branch": "fix/keirin-current-result-priority-20261122",
+    "head": "2ebd276b650089c17739c16011f053682ab073ee",
+    "pushed": true,
+    "production_applied": false,
+    "production_verification": false,
+    "details": [
+      "Check an actually due JST current meeting before alternating current and historical meetings.",
+      "Preserve the existing deadline, skip already-checked/future races and retain no-cutoff holds.",
+      "Accept six verified exact A-class labels using existing CHALLENGE or A1_A2 with matched official grades."
+    ],
+    "local_tests": {
+      "python_passed": 278,
+      "node_passed": 27,
+      "independent_check": "PASS",
+      "reproduced_priority_cases": [
+        "History consumes budget before first current meeting",
+        "Future-only first current meeting",
+        "Missing-cutoff-only first current meeting"
+      ],
+      "legacy_official_labels_with_byte_identical_fixture_inputs_and_forecasts": 16
+    },
+    "source_free_workflow": {
+      "validated_runs": [
+        {
+          "conclusion": "success",
+          "created_at": "2026-11-22T12:45:43Z",
+          "head_sha": "edb0c531148277645a7e1df599a289f47835af68",
+          "id": 45023949463,
+          "status": "completed",
+          "updated_at": "2026-11-22T12:47:25Z"
+        },
+        {
+          "conclusion": "success",
+          "created_at": "2026-11-22T12:41:32Z",
+          "head_sha": "ec0f23f3b1af3fb80b2ed81d318f71a7dc582b5e",
+          "id": 45023593692,
+          "status": "completed",
+          "updated_at": "2026-11-22T12:42:56Z"
+        }
+      ],
+      "latest_run_checked_same_official_code": true,
+      "latest_commit_extra_changes_only_secondary_result_collector_and_fixture": true
+    },
+    "official_class_receipt_sources": [
+      {
+        "run_id": 44987254723,
+        "artifact_id": 14739668608
+      },
+      {
+        "run_id": 45017430382,
+        "artifact_id": 14751864588
+      },
+      {
+        "run_id": 45023069187,
+        "artifact_id": 14753729432
+      }
+    ],
+    "official_acceptance_scope": "Official program titles and matching grades only, with fresh source/card checks on execution."
+  },
+  "completeness": {
+    "whole_day_registered": true,
+    "official_frozen_originals": 6,
+    "official_scored": 6,
+    "official_already_published_without_original": 50,
+    "raw_class_hold_at_official_refresh": 12,
+    "every_hold_class_with_candidate_exact_label": true,
+    "all_races_pre_cutoff_proven": false,
+    "unattended_full_day_proven": false,
+    "complete_pr71_formal_inputs_proven": false
+  }
+}
