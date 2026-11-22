@@ -1,0 +1,140 @@
+{
+  "actual_saved_data_tests": [
+    {
+      "cross_day_summaries_hidden": true,
+      "display_key_transmitted": false,
+      "exact_date_query_matches": 57,
+      "exact_race_number_filter": "PASS",
+      "horizontal_overflow": false,
+      "inclusive_two_day_range_matches": 114,
+      "last_page_cards": 17,
+      "max_cards": 20,
+      "original_and_result_history_expansion": "PASS",
+      "page_count": 13,
+      "page_errors": 0,
+      "physical_iPhone": false,
+      "provider_browser_requests": 0,
+      "saved_dates": 4,
+      "saved_races": 257,
+      "search_query_transmitted": false,
+      "traversed_unique_races": 257,
+      "viewport_width": 320
+    },
+    {
+      "cross_day_summaries_hidden": true,
+      "display_key_transmitted": false,
+      "exact_date_query_matches": 57,
+      "exact_race_number_filter": "PASS",
+      "horizontal_overflow": false,
+      "inclusive_two_day_range_matches": 114,
+      "last_page_cards": 17,
+      "max_cards": 20,
+      "original_and_result_history_expansion": "PASS",
+      "page_count": 13,
+      "page_errors": 0,
+      "physical_iPhone": false,
+      "provider_browser_requests": 0,
+      "saved_dates": 4,
+      "saved_races": 257,
+      "search_query_transmitted": false,
+      "traversed_unique_races": 257,
+      "viewport_width": 390
+    },
+    {
+      "cross_day_summaries_hidden": true,
+      "display_key_transmitted": false,
+      "exact_date_query_matches": 57,
+      "exact_race_number_filter": "PASS",
+      "horizontal_overflow": false,
+      "inclusive_two_day_range_matches": 114,
+      "last_page_cards": 17,
+      "max_cards": 20,
+      "original_and_result_history_expansion": "PASS",
+      "page_count": 13,
+      "page_errors": 0,
+      "physical_iPhone": false,
+      "provider_browser_requests": 0,
+      "saved_dates": 4,
+      "saved_races": 257,
+      "search_query_transmitted": false,
+      "traversed_unique_races": 257,
+      "viewport_width": 1440
+    }
+  ],
+  "app_sha256": "949ff233ab0ef8daef7fda42550000548e55abfd037f2d5be8238d11e2fc55f4",
+  "candidate_embeds_unchanged_core": true,
+  "candidate_source": "3d61079f08b585e32d2a856f18f96bc34b53cfc8",
+  "deployed": false,
+  "independent_review": {
+    "all_resolved_with_regressions": true,
+    "findings": [
+      "empty_calendar_archive_wide_unpaired_results",
+      "invisible_selected_venue_after_scope_change",
+      "ambiguous_cross_year_shortcut_labels"
+    ],
+    "reviewer": "fresh gpt-6.2-astra",
+    "second_review_dispatch": false
+  },
+  "integration": {
+    "eligible_existing_pr_found": false,
+    "new_pr_exception_required": true,
+    "new_search_ui_deployed": false,
+    "protected_main_merged": false,
+    "protected_main_preserved": "ac444a33bed1d60b6b01adc0f6a6542a5f24c0fa"
+  },
+  "local_tests": {
+    "chromium": {
+      "failed": 0,
+      "passed": 23
+    },
+    "merged_main_forward_scenarios": {
+      "failed": 0,
+      "passed": 13
+    },
+    "node": {
+      "failed": 0,
+      "passed": 150,
+      "skipped": 0
+    },
+    "python_related": {
+      "failed": 0,
+      "passed": 53
+    }
+  },
+  "main_core_unchanged": true,
+  "new_PR_created": false,
+  "observed_at_utc": "2026-11-22T08:14:32.732553+00:00",
+  "original_ciphertexts_unchanged": true,
+  "original_core_sha256": "b7968390d2a942881e3a03494bb3a96760844ca1134532a940619a5a62bf3c9c",
+  "pages_parent": "f2e97da96672484d52e178c30134603fd286d4e0",
+  "physical_iPhone": false,
+  "production_state_key_used": false,
+  "red_green": {
+    "missing_history_helpers": {
+      "failed_before": 9,
+      "passed_after": 9
+    },
+    "new_browser_behavior": {
+      "failed_before": 5
+    },
+    "review_regressions": {
+      "failed_before": 3,
+      "passed_in_final_browser_suite": true
+    }
+  },
+  "remote_write": false,
+  "schema": "RACE_AI_KEIRIN_HISTORY_SEARCH_PRIVATE_PREVIEW_20261122_V1",
+  "scope": {
+    "boat_producer_actions": 0,
+    "encrypted_history_loading_protocol_changed": false,
+    "forecast_generator_changed": false,
+    "loaded_saved_data_only": true,
+    "production_weights_changed": false,
+    "real_data_screenshots_exported": false
+  },
+  "seconds": 95.49,
+  "style_sha256": "7aba3ea9aca68cc7b8553fc2a0ec8fd99d00988b6eef2facd5be0a0e96d06e78",
+  "synthetic_filtered_matches": 240,
+  "synthetic_fixture_days": 240,
+  "synthetic_fixture_races": 2400
+}
