@@ -1,0 +1,49 @@
+{
+  "schema": "RACE_AI_ORIGINAL_SITE_HISTORY_SEARCH_DELIVERY_20261122_V1",
+  "observed_at_utc": "2026-11-22T10:29:14.898123+00:00",
+  "site_url": "https://keirin-20261119-race-note.chankuma.chatgpt.site",
+  "project_id": "appgprj_6afe2bc8d25c8191a65f81c6203dbe71",
+  "version_number": 20,
+  "version_id": "appgprj_6afe2bc8d25c8191a65f81c6203dbe71~appgver_eef906bf31d881918db38009a02d503e",
+  "deployment_id": "appgdep_6b02c3ecf5688191a3ff391e78b7b935",
+  "deployment_status": "succeeded",
+  "site_source_commit": "7ceff1f889158063e879fd6ef3a2edb5ee907f43",
+  "preserved_previous_version": 19,
+  "preserved_previous_source_commit": "617782ed70e47dcedc2cc04d4d133394b3c3aa00",
+  "hosting_provider_confirmed": "cloudflare_artifact",
+  "owner_approved_exception": "元サイトの画面更新だけはCloudflare禁止の例外として進めて",
+  "canonical_storage_and_automation": "haji84/RACE-AI on GitHub",
+  "new_site_created": false,
+  "audience_changed": false,
+  "environment_variables_changed": false,
+  "forecast_data_or_originals_changed": false,
+  "provider_backend_changed": false,
+  "production_weights_switched": false,
+  "betting": false,
+  "tests": {
+    "baseline": 123,
+    "final": 140,
+    "failed": 0,
+    "initial_model_red_green": 9,
+    "initial_view_red_green": 6,
+    "review_regressions_red_green": 3
+  },
+  "review": {
+    "independent_review": true,
+    "important_findings_fixed": 2,
+    "refresh_test_strengthened": true
+  },
+  "worker_build": {
+    "status": "PASS",
+    "bytes": 16703068,
+    "sha256": "fbcc00a0f0d75b653076166352b3b1461c56cfb89188145821c83060ec73b7d0",
+    "site_generates_forecasts": false
+  },
+  "verification_limits": {
+    "native_deployment": "succeeded with URL",
+    "node_renderer_and_worker": "PASS",
+    "live_browser": "UNVERIFIED: managed Sites CUA infrastructure unavailable",
+    "physical_iPhone": false
+  },
+  "source_archive_sha256": "sha256:5e3dec2da5cbe4c2e45b446c948017ea5f856f627da8501d178e9abf66022259"
+}

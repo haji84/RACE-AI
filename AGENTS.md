@@ -47,3 +47,11 @@ The owner explicitly instructed after the Cloudflare shutdown: 「GitHubで出�
 - Reuse that owned Site's presentation, allocation functions, and preserved data formats inside this repository. Kdreams and netkeirin are approved input sources for this import, in addition to the prior WINTICKET/KEIRIN.JP paths. This explicit instruction supersedes the older two-provider restriction for this work.
 - Keep the distinct sources and the original analysis, flexible revision and existing A/B research output identifiable. Do not turn these into an authenticated PR71 full-model forecast, invent C, overwrite original predictions, or promote weights.
 - GitHub-only, encryption of private originals, no betting, no new charges and existing protected-review requirements still apply. The Site's Cloudflare Worker is not an approved new RACE-AI backend; port its needed functions to the existing GitHub path.
+
+## Owner exception: existing Site presentation only (2026-11-22)
+
+- The owner explicitly approved: 「元サイトの画面更新だけはCloudflare禁止の例外として進めて」.
+- This exception covers presentation changes and the necessary rebuild/deployment of the existing `keirin-20261119-race-note.chankuma.chatgpt.site` Site. Preserve its identity, audience, URL, published archives and existing source changes.
+- Its hosting provider was verified as `cloudflare_artifact`; the existing source builds a Worker entrypoint. Do not confuse this existing presentation hosting with authorization for a new Cloudflare data or automation backend.
+- Forecast storage, generation, automation and authoritative evidence remain in `haji84/RACE-AI` on GitHub. No new Cloudflare service, D1/R2 binding, schedule, permission, charge, model family, betting, production weight switch, or BOAT producer action is authorized by this exception.
+- Delivery and verification limits: `docs/evidence/keirin-history-search-20261122/original-site-delivery.json`. Browser/Safari acceptance remains separate from native deployment success.

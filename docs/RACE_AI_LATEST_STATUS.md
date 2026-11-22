@@ -1,3 +1,13 @@
+# 2026-11-22 19:29 JST｜元の競輪Siteへ履歴検索を20版として反映
+
+所有者が指していた元の[競輪の読みどころ](https://keirin-20261119-race-note.chankuma.chatgpt.site/)へ、全期間・期間・会場・選手・レース番号の検索と20件ずつの表示を反映した。前回PR325はGitHub版だけの更新だったため、反映先の認識を訂正した。元Siteの最新19版/source617782eを保持し、20版/source7ceff1f889158063e879fd6ef3a2edb5ee907f43のnative配備成功を確認。URL・公開範囲・掲載データ・過去保存版は維持した。
+
+所有者は「元サイトの画面更新だけはCloudflare禁止の例外として進めて」と明示承認した。元Siteのproviderはcloudflare_artifact、既存buildはWorkerを生成する構成であることを確認した。例外はこの既存画面の更新だけで、保存・自動運転はGitHubに維持する。新しいCloudflare backend、D1/R2、権限、課金、モデル系統、投票、本番重み切替、BOAT producer操作は追加していない。
+
+既存123検査から開始し、検索9件・画面6件のRED→GREENを確認。独立reviewの空日付例外・最新保存日の既定予想も実処理で再現して修正し、全140検査と既存Worker build検査が成功した。元データ・予想原本・結果・信頼度・接続・既存backendの14 path群は不変。今回のmanaged Sites実行環境にはCUAがなく、実ブラウザー・実機Safariの確認は未実施。native配備成功を実機合格へ置き換えない。[配備と検証証拠](evidence/keirin-history-search-20261122/original-site-delivery.json)。
+
+以下はGitHub版のみの反映を含む各時点の記録。
+
 # 2026-11-22 17:47 JST｜競輪の保存履歴検索を既存画面へ反映し、実配信で検証
 
 [PR325](https://github.com/haji84/RACE-AI/pull/325)を必須CI成功後に通常mergeし、保護main `4711b9b1d841906c3d0cb1d67c8ba3497c5da58f` と同じ画面ファイルを既存Pagesへ反映した。並行PR324の信頼度改善も保持している。全保存日を会場・選手・日付・Rで検索し、期間指定・20件ずつのページ移動が利用できる。
