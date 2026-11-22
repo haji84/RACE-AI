@@ -1,0 +1,40 @@
+{
+  "BOAT_producer_actions": false,
+  "actual_existing_branch_push_and_readback_commit": "68ca11f366fa3a7500f00afacfe4ffaa1fdbc7c4",
+  "anonymous_public_read_http_status": 200,
+  "api_reported_push_permission": true,
+  "authenticated_login": "haji84",
+  "command_execution": true,
+  "display_key_transmitted": false,
+  "existing_branch": "feat/v12-public-day-feed-and-coverage",
+  "frozen_research_code_sha256": "db25b121811578d993247fb7d5960baa939f46dc41fda6bc6859a963392a9155",
+  "main_updated_by_this_accuracy_work": false,
+  "new_charges": false,
+  "new_pr": false,
+  "observed_at_utc": "2026-11-22T03:27:48.826986+00:00",
+  "offline_commit_status": "UNRESTORED; no automatic cross-environment transfer assumed; prior authenticated canonical fetch failed",
+  "original_generator_sha256": "9aa0143192707733a9666f8d0dad70e589451f67943130796d3ed4af0387f413",
+  "production_RSA_private_key_retrieved": false,
+  "production_state_key_retrieved": false,
+  "production_weights_switched": false,
+  "protected_main": "51bec791cc5be2b56f996934b4df8b51894d67d8",
+  "protected_paths_identical_to_main": [
+    ".github",
+    "audit",
+    "state",
+    "config",
+    "web",
+    "race_ai/keirin_nationwide_auto_generator.py",
+    "race_ai/keirin_nationwide_auto_settlement.py",
+    "race_ai/keirin_form_fall_blind_pdca.py",
+    "race_ai/four_sport_model_registry.py"
+  ],
+  "registered_study_sha256": "e66a46f80d4d758b2f0407cd5bbd79a32c9fa8f9d8c10e177cd9811282084a12",
+  "repository_visibility": "public",
+  "schema": "RACE_AI_ACCURACY_ENVIRONMENT_AND_PRESERVATION_V1",
+  "unrestored_offline_commits": [
+    "b7380fe6a377e6ccf2b96331f2126c52549bbe17",
+    "daae4c10167224b7730006d8ada5ade398aaa64b"
+  ],
+  "wagers": false
+}

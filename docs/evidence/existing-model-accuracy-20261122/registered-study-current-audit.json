@@ -1,0 +1,86 @@
+{
+  "candidate_artifact_exists": 14724323646,
+  "existing_shadow33_cohort_is_separate": true,
+  "last_valid_observer": {
+    "artifact_created_at_utc": "2026-11-19T05:56:23Z",
+    "artifact_id": 14503356965,
+    "artifact_sha256": "83f4d8a7b717805354e083cfc5aa5081788b5ea3a4dae8dee129c37a8f7a2fa9",
+    "baseline": {
+      "dates": 0,
+      "matched": 0,
+      "venue_days": 0
+    },
+    "candidate": {
+      "dates": 0,
+      "matched": 0,
+      "venue_days": 0
+    },
+    "run_attempt": 1,
+    "run_id": 44467797701,
+    "these_are_last_valid_counts_not_current_counts": true
+  },
+  "latest_observer": {
+    "artifact_id": 14652423227,
+    "artifact_sha256": "d35cfc78bbc573310dd15557677295dea660bfa08e02869d45d556ef37d5a3f8",
+    "current_dates": null,
+    "current_matched_pairs": null,
+    "current_venue_days": null,
+    "failure_phase": "HISTORY",
+    "run_id": 44780867312,
+    "state": "UNREGISTERED_HOLD",
+    "statistical_support": null
+  },
+  "latest_source": {
+    "artifact_id": 14735267894,
+    "artifact_sha256": "6672604a00fe8e6f0bf22c7b9c1f42b1676e4e5bd09b8fb923ae2a3b645edc20",
+    "conclusion": "success",
+    "run_id": 44948138024,
+    "source_control": {
+      "continuity_cipher_sha256": "7f30aed5f04d730e283a0a2083854370f57f43db26cc25866cf59a7b37e0d67d",
+      "control": {
+        "completed_round": 0,
+        "day_start_lifetime_requests": 15951,
+        "lifetime_completed_rounds": 821,
+        "lifetime_requests": 15951,
+        "prepared_round": null,
+        "requests_used": 0,
+        "source_wait": {
+          "attempts": 1,
+          "http_status": 403,
+          "reason": "SOURCE_AUTHORIZATION_REQUIRED",
+          "retry_at": null,
+          "state": "AUTHORIZATION_WAIT"
+        },
+        "stop_reason": "WORKER_HANDOFF"
+      },
+      "day_jst": "2026-11-22",
+      "head_sha": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+      "repository": "haji84/RACE-AI",
+      "repository_id": 1416489937,
+      "run_id": 44948138024,
+      "schema": "RACE_AI_BOAT_PUBLIC_SOURCE_CONTROL_V1"
+    },
+    "status": "completed"
+  },
+  "no_safe_manual_observer_dispatch": "Existing observer has no workflow_dispatch; frozen protocol admits first-attempt push/workflow_run only.",
+  "nullable_learned_version_id_is_not_absence_of_learned_model": true,
+  "observed_at_utc": "2026-11-22T03:28:12.165519+00:00",
+  "producer_dispatched_or_rerun": false,
+  "production_promoted": false,
+  "registered_protocol_changed": false,
+  "requirements": {
+    "dates": 5,
+    "matched_pairs": 100,
+    "metrics": [
+      "Hit@8",
+      "Brier",
+      "logloss"
+    ],
+    "venue_days": 10
+  },
+  "schema": "RACE_AI_REGISTERED_STUDY_CURRENT_READONLY_AUDIT_V1",
+  "source_commit": "1dbb47b68d487fc6def0bd4b10b1423f0a2145f6",
+  "stops_or_counters_reset": false,
+  "window_end_jst": "2026-11-24T12:15:30+09:00",
+  "window_start_jst": "2026-11-19T12:15:30+09:00"
+}

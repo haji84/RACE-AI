@@ -1,0 +1,27 @@
+{
+  "auditor_review": {
+    "all_reproduced_and_fixed": true,
+    "findings": [
+      "Bind complete forecast cohort with trusted published digest",
+      "Validate complete shadow source/schema and post-training input clock"
+    ],
+    "important_findings": 2,
+    "minor_note": "Use documented module entry python -m scripts.keirin_existing_model_accuracy_audit from repository root."
+  },
+  "frozen_helper_source_unchanged_after_candidate_lock": true,
+  "research_review": {
+    "all_reproduced_and_fixed": true,
+    "findings": [
+      "Saved training-label availability must precede first validation input",
+      "Validate selected weights and require external locked digest at shadow call site",
+      "Exactly replay nonempty original A/B in known historical runtime",
+      "Every provider receipt must follow published cutoff",
+      "Reject fitting IDs and mismatched JST race day in future shadows"
+    ],
+    "important_findings": 5
+  },
+  "reviewer_scope": "Read-only independent source/test review; no private labels, keys or provider requests",
+  "root_verification": "742 tests passed after fixes",
+  "schema": "RACE_AI_ACCURACY_INDEPENDENT_REVIEW_V1",
+  "unresolved_important_findings": 0
+}

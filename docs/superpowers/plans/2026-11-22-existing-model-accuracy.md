@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Preserve registered BOAT source1dbb47b68d487fc6def0bd4b10b1423f0a2145f6, witness, Nov19–24 window, all metrics and thresholds; no producer actions.
-- No new model family/PR/workflow graph/provider request/charges/bets/production promotion. Never retrieve production state or RSA keys.
+- No new model family/PR/workflow graph/charges/bets/production promotion. New research code makes no provider requests; ordinary existing main result acquisition is separately recorded. Never retrieve production state or RSA keys.
 - No plaintext real snapshots, labels, weights or forecast originals in public Git/logs/artifacts.
 - Do not alter the original A/B generator or settlement.
 
@@ -29,10 +29,10 @@
 
 **Files:** modify `race_ai/four_sport_learning.py`; create `tests/test_four_sport_learning_chronology.py`.
 
-- [ ] Add synthetic regressions rejecting validation as_of<=train_end and test as_of<=validation_end while admitting valid separated cohorts and preserving train-only coefficients.
-- [ ] Observe the rejection regressions fail before the fix.
-- [ ] Add the minimal lower-bound checks in `fit_chronological()` without changing the optimizer or train-only API.
-- [ ] Run focused regressions and existing relevant model suites; preserve actual red/green evidence.
+- [x] Add synthetic regressions rejecting validation as_of<=train_end and test as_of<=validation_end while admitting valid separated cohorts and preserving train-only coefficients.
+- [x] Observe the rejection regressions fail before the fix.
+- [x] Add the minimal lower-bound checks in `fit_chronological()` without changing the optimizer or train-only API.
+- [x] Run focused regressions and existing relevant model suites; preserve actual red/green evidence.
 
 ### Task 2: Existing-A research candidate
 
@@ -40,10 +40,10 @@
 
 **Interfaces:** validated private rows contain `snapshot`, `baseline`, `result` and immutable provenance. `fit_candidates(train_rows, validation_rows, ...)` has no test-label input. `rank_candidate(snapshot, artifact, generated_at, ticket_count=8)` preserves MODEL_A and actual clocks. Report fields distinguish research scope, retrospective diagnostics, source completeness and production=false.
 
-- [ ] Test exact baseline ticket parity for 5–9 starters/ties, input immutability, held labels, duplicates, split overlap, finite bounded weights, deterministic selection and generation after/too close to cutoff.
-- [ ] Observe feature tests fail before creating product code.
-- [ ] Implement source-based score components, bounded train-only coefficient fitting with a fixed regularization grid and independent validation selection including unchanged baseline.
-- [ ] Run tests and independently verify the same snapshot/result IDs and eight-ticket budgets.
+- [x] Test exact baseline ticket parity for 5–9 starters/ties, input immutability, held labels, duplicates, split overlap, finite bounded weights, deterministic selection and generation after/too close to cutoff.
+- [x] Observe feature tests fail before creating product code.
+- [x] Implement source-based score components, bounded train-only coefficient fitting with a fixed regularization grid and independent validation selection including unchanged baseline.
+- [x] Run tests and independently verify the same snapshot/result IDs and eight-ticket budgets.
 
 ### Task 3: Real evidence and encrypted forward shadow
 
@@ -52,7 +52,17 @@
 - [x] Read latest main/authentication and preserve existing work on an isolated branch.
 - [x] Verify 53 encrypted packets; retain 145 research observations with exact original-runtime replay and original source hash, no float tolerance.
 - [x] Build fixed historical baseline cohorts31/55; one training label is explicitly purged for availability, leaving30/55 without inspecting final-day results; record baseline scores and missing denominators.
-- [ ] Fit only historical training/validation and lock the candidate; use the unexamined final-day results only afterwards.
-- [ ] Generate remaining future shadows with actual times if candidate merits testing, encrypt and save them on the existing PR8 branch before their cutoffs; otherwise report no candidate improvement without fabricating one.
-- [ ] Independently read back ciphers and safe aggregate results; run final review/tests and preserve original model/study hashes.
+- [x] Fit only historical training/validation and lock the candidate; use the unexamined final-day results only afterwards.
+- [x] Generate remaining future shadows with actual times if candidate merits testing, encrypt and save them on the existing PR8 branch before their cutoffs; otherwise report no candidate improvement without fabricating one.
+- [x] Independently read back ciphers and safe aggregate results; run final review/tests and preserve original model/study hashes.
 - [ ] Update existing branch/PR8 records only; report measured changes and uncompleted forward support.
+
+### Task 4: Read-only comparison of the frozen cohort
+
+This concrete audit step was added once the actual candidate and 33 encrypted forecasts were frozen. It reuses the existing PDCA ticket/scoring functions, adds no registry authority and makes no provider requests.
+
+- [x] Test unchanged candidate/cohort digests, same eight-ticket budgets, source/schema/clocks, duplicate revisions, pending/held results and private CLI output.
+- [x] Reproduce and fix independent review findings about full-cohort binding and shadow metadata.
+- [x] Apply the reviewed CLI to the actual authenticated Git package; publish only aggregate results.
+- [x] Verify 742 configured and new tests, preserving the original A/B, workflow graph and BOAT study hashes.
+- [ ] Demonstrate real forward accuracy improvement. Validation20/55 equals baseline; historical held-out15 has baseline7/candidate6; all33 sealed future forecasts await results at the recorded observation. Do not tune the frozen candidate using those labels.

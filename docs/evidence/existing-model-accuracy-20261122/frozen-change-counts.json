@@ -1,0 +1,9 @@
+{
+  "schema": "RACE_AI_FROZEN_WEIGHT_CHANGE_COUNTS_V1",
+  "cohort": 33,
+  "changed_ticket_sets": 27,
+  "changed_first_ticket": 11,
+  "earliest_cutoff_utc": "2026-11-22T03:07:00+00:00",
+  "latest_cutoff_utc": "2026-11-22T11:25:00+00:00",
+  "weights_or_cohort_changed": false
+}

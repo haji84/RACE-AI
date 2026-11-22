@@ -1,0 +1,31 @@
+{
+  "claims": {
+    "formal_settlement": false,
+    "physical_iPhone_acceptance": false,
+    "real_forward_accuracy_improvement": false
+  },
+  "command": "python -W error -m unittest -v tests.test_keirin_nationwide_auto_generator tests.test_keirin_rider_form_evidence tests.test_keirin_form_fall_owner_view tests.test_keirin_form_history_admission tests.test_keirin_form_fall_blind_pdca tests.test_keirin_form_canary_origin tests.test_keirin_form_canary_workflow tests.test_keirin_form_canary_backfill tests.test_keirin_provider_reconciliation tests.test_keirin_form_canary_reconciliation tests.test_keirin_official_form_history tests.test_keirin_official_canary_card tests.test_keirin_official_canary_join tests.test_keirin_official_nationwide_extension tests.test_keirin_official_source_continuation tests.test_keirin_official_class_evidence tests.test_keirin_official_nationwide_continuation tests.test_keirin_official_nationwide_sources tests.test_keirin_official_nationwide_records tests.test_keirin_official_continuation_workflow tests.test_keirin_nationwide_forecast_view tests.test_keirin_official_form_canary tests.test_keirin_nationwide_auto_storage tests.test_keirin_nationwide_auto_runner tests.test_keirin_nationwide_auto_settlement tests.test_keirin_nationwide_cipher_history tests.test_keirin_public_two_source_normalizer tests.test_keirin_capture_public_two_sources tests.test_keirin_utsunomiya1r_real_auto_cipher_freeze tests.test_keirin_evening_national_real_AB_20261118 tests.test_keirin_discover_public_race_links tests.test_keirin_register_public_day tests.test_keirin_nationwide_auto_day_registry_workflow tests.test_keirin_github_only_ab_day tests.test_keirin_github_provider_stop tests.test_keirin_github_capture_selection tests.test_keirin_secondary_result_consensus tests.test_keirin_github_only_result_day tests.test_keirin_dynamic_nationwide_registry tests.test_keirin_github_evidence_client tests.test_keirin_github_origin_evidence tests.test_keirin_official_public_source tests.test_keirin_official_cohort tests.test_keirin_official_poll_progress tests.test_keirin_official_run_history tests.test_keirin_official_day_pipeline tests.test_keirin_official_runtime_integration tests.test_keirin_official_backlog_days tests.test_keirin_official_owner_report tests.test_keirin_official_owner_view tests.test_keirin_official_workflow tests.test_keirin_runtime_exclusion tests.test_keirin_official_readiness tests.test_keirin_official_saved_check tests.test_keirin_official_reviewed_pdf tests.test_keirin_legacy_evening_replay tests.test_keirin_official_refund_notice tests.test_four_sport_learning_chronology tests.test_keirin_existing_model_accuracy tests.test_keirin_existing_model_accuracy_audit",
+  "configured_existing_modules": 57,
+  "duration_seconds": 94.611,
+  "exit_code": 0,
+  "fit_versions": {
+    "numpy": "2.4.6",
+    "scipy": "1.17.1"
+  },
+  "log_sha256": "96bb9e5ecd74f05150bdcb366796c5a06db07c94184cc51600c286f9f4035768",
+  "new_modules": 3,
+  "private_data_permissions_unchanged": true,
+  "python": "3.11.17",
+  "red_green": {
+    "chronology": true,
+    "research_feature": true,
+    "review_admission_guards": true,
+    "review_audit_cohort_and_metadata_guards": true
+  },
+  "schema": "RACE_AI_EXISTING_A_ACCURACY_VALIDATION_V1",
+  "scipy_used_only_by_offline_fit": true,
+  "source_free": true,
+  "test_process_umask": "0022",
+  "tests": 742,
+  "umask_note": "Host default 0077 reproduces one pre-existing permission-fixture failure on unchanged main. The full test process uses 0022 so that the fixture creates its intended world-readable folder; production guards are unchanged and research data stays 0600/0700."
+}

@@ -1,3 +1,21 @@
+# 2026-11-22 12:24 JST｜既存Aの学習候補と33件を締切前保存、的中率改善は未実証
+
+精度改善に向けて既存競輪Aの5係数だけを学習し、元予想を保持した比較用候補を実装した。**的中率の改善はまだ確認できない。** 選定用55件は元A20/55・学習版20/55、正解平均順位58.709→55.145。候補を固定してから初めて読んだ11/22の過去分15件は元7/15・学習版6/15（別に1保留）であり、この遡及評価を前向き改善と扱わない。
+
+- **実際の締切前比較を固定**：11/20の30件で学習、11/21の55件で選定。学習ラベル1件はvalidation開始時に未保存だったため元記録を保持して除外。11/22 11:47:46 JSTに候補を作成し、33レースの元A/学習版各8点を実生成した。暗号化packageを既存PR8 branchのcommit **68ca11f366fa3a7500f00afacfe4ffaa1fdbc7c4** へ保存、GitHub APIで **11:51:26 JST** に読戻し。全33件の掲載締切12:07〜20:25より前だった。27件の8点集合・11件の1位候補が変わったが、変化数は精度向上ではない。
+- **最新の実採点**：12:24 JST時点の保存結果では33件すべて照合待ち、確定0件・保留0件、的中率はnull。予想/係数/全33件manifestを凍結し、結果を見て再学習・対象選別しない。採点CLIは既存PDCAの券検査・採点を再利用し、固定digest、元/学習版の再生、同一8点、入力/結果時計を検証する。新しい自動scheduleへ接続したとは扱わない。
+- **実装・検査**：既存4競技学習器のvalidation/testが境界以前のas_ofを受け入れる不具合を修正。既存A/B generator・結果採点・registry・workflow graph・audit/state・本番weightsは不変。独立reviewの重要7点を失敗する回帰検査で再現・修正し、既存57moduleと追加3moduleの **742検査が成功**。145研究観測はPython3.11/3.12の元コードで完全再生し、誤差許容で通していない。全ラベルは二次資料一致であり、確率校正/公式全件認証ではない。
+- **既存結果回収の実運転**：[44979508136](https://github.com/haji84/RACE-AI/actions/runs/44979508136)はcompleted/success。二次結果6件の改訂を暗号化保存。新研究コードは取得先通信0件だが、この既存runは予想46GET/結果222GET、別PR71公式SP処理5,208要求を行った。旧PR71は完全入力不足のHOLD、件数fieldはnull。11/22観測68件/今回参考10件を、11/21公式57件の44未対応/9未処理の解消にしない。WINTICKET要求0件なので403解除の証拠ではない。
+- **登録済みBOATは別監査**：期間 **11/19 12:15:30〜11/24 12:15:30 JST**、100組・5日・10会場日・Hit@8/Brier/loglossを維持。最新observer44780867312はHISTORYでHOLD、現在の有効組数は不明/null。最後の有効11/19 reportの0件を現在値にしない。最新凍結source44948138024はcompleted/successでも、403/AUTHORIZATION_WAIT・完了0ラウンド。保存された学習候補artifactは存在し、nullableな版IDを学習版不存在と誤読しない。今回の33件を登録studyへ合算せず、producer操作/停止解除/counter resetは0。
+
+[学習と測定の詳細](evidence/existing-model-accuracy-20261122/README.md)・[固定33件の採点](evidence/existing-model-accuracy-20261122/frozen-forward-audit.json)・[検査](evidence/existing-model-accuracy-20261122/validation.json)・[登録studyの現在監査](evidence/existing-model-accuracy-20261122/registered-study-current-audit.json)。
+
+環境のコマンド実行と匿名公開read(HTTP200)、haji84認証、APIのpush権限、既存branchへの実push/再読戻しを別々に確認した。protected mainは **51bec791cc5be2b56f996934b4df8b51894d67d8**、今回の研究コード・cipher・集計は既存PR8の同じbranchへ保管しており、main統合・本番切替ではない。新PR・新モデル系統・追加課金・新規UI公開・投票・本番重み切替・production keyのlocal取得/使用はいずれも0。元offline未push b7380fe6 / daae4c10 は引き続き **UNRESTORED**。
+
+**全GOALは未完了**。WINTICKET自体403、公式競輪の未対応/未処理、他3競技を含む全件×適用可能な既存全モデル/T15、実機iPhone13Pro、独立6艇識別・校正、前向き精度改善を引き続き未完了とする。
+
+以下は以前の確認記録。
+
 # 2026-11-21 03:55 JST｜実運転と保存読戻し：全国一覧57件、公式入力A/B4件・補正3件、参考39件
 
 既存PR8は **main d44a11257e61d3b539d7d033a93c27e0ea429746** へ通常保護merge済み。レビューhead fdd970868a5b4982d161a1a5c555fe1af79ac4cb とtree d0247eefa0773dbf7be14e01d6dcdac73fecf8a3 が一致した。PR最終20checksは8成功/12skip/失敗0、main最終74checksは10成功/64skip/失敗0。関連131テスト、独立69テストと追加35 URI/選択リンク検査が成功。最終実行記録はこの既存PR8の同じブランチへ追記し、保護されたmainへ直接pushしない。

@@ -1,0 +1,23 @@
+{
+  "schema": "RACE_AI_EXISTING_A_LOCKED_SHADOW_GIT_READBACK_V1",
+  "state": "EXTERNAL_GITHUB_CIPHER_AND_PRIVATE_READBACK_VERIFIED",
+  "commit": "68ca11f366fa3a7500f00afacfe4ffaa1fdbc7c4",
+  "code_commit": "ea63ea27743a5e782d7872838cc22298c485b503",
+  "cipher_sha256": "55145fa03758396ff978abaf681aeed808e5e1825a4fcf29bf0ac0203c146b6a",
+  "candidate_artifact_sha256": "476dbf8a216553183c9d9e37c2433562aeaf0ec14c6f2c656cf913392fef3233",
+  "github_response_date": "2026-11-22T02:51:26+00:00",
+  "observed_at_utc": "2026-11-22T02:51:26.700848+00:00",
+  "forecast_count": 33,
+  "all_generated_and_git_read_before_published_cutoff": true,
+  "equal_eight_ticket_budgets": true,
+  "candidate_locked_before_final_day_result_reveal": true,
+  "body_and_file_sha_verified": true,
+  "production_state_key_used": false,
+  "production_RSA_private_key_used": false,
+  "display_key_transmitted": false,
+  "provider_requests": 0,
+  "registered_BOAT_study_changed": false,
+  "prospective_improvement_proven": false,
+  "independent_signed_timestamp_attestation": false,
+  "forecast_manifest_sha256": "c5e612e7ac3c934888e5c057b0996a6e3c1a58941bab1fa56ac21fd2e695b1dd"
+}
