@@ -1,3 +1,17 @@
+# 2026-11-22 15:55 JST｜取得待ち3件を追加照合、22/33件。残りは締切前10件・結果未掲載1件
+
+本人の「照合待ちを解消して」を受け、固定した33件の結果を再取得・再採点した。**19→22件を照合済み**、元A **7/22 (31.82%)**・学習版 **7/22 (31.82%)**。両方的中7・両方不的中15で、的中数の改善は未実証。予想・係数・全33件manifestは初回封緘時から変更していない。
+
+- **取得できる3件を解消**：14件の残りを確認し、掲載締切後だった3件の二次資料一致を新たに保存した。既存の当日取得器で17GET・5件確認、4観測の改訂を暗号化Git保存。通常の照合間隔と拒否停止、全原本/旧結果履歴を保持した。別の特殊払戻HOLD1件は固定33件の対象外である。
+- **残り11件の理由**：15:55 JST時点で、掲載締切前 **10件（16:00〜20:25 JST）**、15:54締切でサイトに結果未掲載 **1件**。掲載締切後で保存観測のない対象は0件。未掲載分の通常の次回確認は16:04:16 JST以降。全33件の照合は、最終掲載締切20:25の後に結果が出てから可能になる。掲載締切は独立認証済みの主催者時刻ではない。
+- **検証と保全**：新しい結果cipherと改訂列を認証し、固定候補/全33件digest・同一8点・元/学習版完全再生を元の採点CLIで再検査した。今回の製品コード・本番重み・workflow graph・BOAT source/登録条件の変更0、再学習/投票/新PR/追加課金0。WINTICKETへの要求0で、承認済みKドリームス/netkeirinを使用した。新しい自動監視を設置したとは扱わない。
+
+[照合待ちの理由](evidence/existing-model-accuracy-20261122/pending-resolution-status.json)・[固定22件採点](evidence/existing-model-accuracy-20261122/frozen-forward-audit-pending-resolution-20261122T065556.json)・[実取得と保存](evidence/existing-model-accuracy-20261122/current-day-result-refresh.json)。保存headは **bd0088f6dae80b193adabc0b2b7da65d80b27f69**。
+
+WINTICKET解除は本人指示で必須条件から外した。4競技全件/全モデル/T15、実機iPhone、独立6艇校正、前向き精度改善などの全GOALは引き続き未完了。今回の競輪22件を登録BOATの分母へ合算しない。
+
+以下は各時点の確認記録。
+
 # 2026-11-22 15:19 JST｜WINTICKETを必須条件から外し、固定した33件のうち19件を実採点
 
 本人の最新指示 **「WINticketにこだわらなくてもいいよ」** を反映し、WINTICKETの403解除を開発・精度評価・完成の必須条件から外した。既に承認され、実取得できているKドリームス・netkeirinを中心に、適用できる既存KEIRIN.JP入力で進める。WINTICKET自体の拒否履歴は保全する。これは入力元の判断であり、別件のBOAT停止や登録済み比較条件を変える指示ではない。
@@ -6,7 +20,7 @@
 - **結果を実更新**：既存[run44992650227](https://github.com/haji84/RACE-AI/actions/runs/44992650227)はmain8646afから正常終了し、参考9件を追加保存、WINTICKET要求0。一方、過去4日分の結果は時間枠を使い切り変更0だったため、既存の当日結果取得機能をローカルで実行。68GETで31件確認（29一致/2未掲載）、21観測の改訂を元の暗号化/CAS/Git読戻しで保存した。取得拒否0、通常の照合間隔・全原本・全改訂履歴を保持した。
 - **コードと保全**：今回、取得器/学習器/採点器・workflow graph・registry・BOAT source Sは変更していない。固定候補SHAと33件manifest SHAが初回保存時と同一であることを検証し、既存採点10テストを再実行して成功。以前の742検査は前回の記録として保全する。本番鍵のlocal取得/使用・学習係数の再選定・本番重み切替・投票・新PR・追加課金は0。
 
-[最新の固定33件採点](evidence/existing-model-accuracy-20261122/frozen-forward-audit-followup-20261122T0619.json)・[当日結果の保存](evidence/existing-model-accuracy-20261122/current-day-result-refresh.json)・[既存Actions実績](evidence/existing-model-accuracy-20261122/approved-sources-main-followup.json)・[詳細と継続手順](evidence/existing-model-accuracy-20261122/README.md)。当日結果の保存headは **ff9b31b3e91e5a27cd09453657f1338c57f8dce0**。
+[最新の固定33件採点](evidence/existing-model-accuracy-20261122/frozen-forward-audit-followup-20261122T0619.json)・[当日結果の保存](evidence/existing-model-accuracy-20261122/current-day-result-refresh-20261122T0619.json)・[既存Actions実績](evidence/existing-model-accuracy-20261122/approved-sources-main-followup.json)・[詳細と継続手順](evidence/existing-model-accuracy-20261122/README.md)。当日結果の保存headは **ff9b31b3e91e5a27cd09453657f1338c57f8dce0**。
 
 **全GOALは未完了**。4競技全レース×既存全適用モデル/T15・保存と結果照合、残る競輪入力、実機iPhone13Pro、独立6艇識別・校正、前向き精度改善の実証を継続する。BOATの11/24 12:15:30 JSTまでの登録条件は維持し、今回の競輪19件をその分母へ加算しない。最新の方針は[AGENTS.md](../AGENTS.md)に記録した。
 

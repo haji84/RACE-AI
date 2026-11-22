@@ -1,0 +1,27 @@
+{
+  "counts": {
+    "after_cutoff_no_saved_result": 0,
+    "after_cutoff_provider_pending": 1,
+    "before_published_cutoff": 10,
+    "held": 0,
+    "matched": 22
+  },
+  "cutoffs_are_published_hints_not_independently_authenticated_organizer_times": true,
+  "earliest_future_published_cutoff_jst": "2026-11-22T16:00:00+09:00",
+  "expected": 33,
+  "fixed_cohort_sha256": "c5e612e7ac3c934888e5c057b0996a6e3c1a58941bab1fa56ac21fd2e695b1dd",
+  "latest_future_published_cutoff_jst": "2026-11-22T20:25:00+09:00",
+  "matched_increase_since_previous": 3,
+  "next_regular_pending_check_eligible_at_jst": "2026-11-22T16:04:16.684202+09:00",
+  "observed_at_jst": "2026-11-22T15:55:56.531932+09:00",
+  "old_candidate_and_all_original_forecasts_unchanged": true,
+  "production_promoted": false,
+  "provider_pending_published_cutoffs_jst": [
+    "2026-11-22T15:54:00+09:00"
+  ],
+  "registered_BOAT_study_changed": false,
+  "schema": "RACE_AI_FROZEN_COHORT_PENDING_CAUSE_DIAGNOSIS_V1",
+  "state_head": "bd0088f6dae80b193adabc0b2b7da65d80b27f69",
+  "statistical_improvement_supported": null,
+  "unfetched_published_cutoffs_jst": []
+}
