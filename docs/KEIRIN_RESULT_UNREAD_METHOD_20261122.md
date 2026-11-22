@@ -92,14 +92,31 @@ no diagnosis, medical recovery claim or numerical injury penalty is inferred.
 `race_ai/keirin_research_stability.py` grades the complete candidate universe,
 not selected ticket coverage. Adding tickets or rewording a scenario cannot raise
 the grade. Two-car confidence uses the same direct pair support as selection.
-These are provisional hypothesis-stability grades. The forward correction caps
-the current method at medium: removing unsupported paths can increase
-concentration, but that mathematical change is not validation evidence for a
-high grade. An abstention is low. Historical confidence and the sealed baseline
-remain unchanged. The reason is stored in each current assessment, rather than
-implied by the size of the chosen ticket list. Low and medium remain uncalibrated
-labels for relative hypothesis concentration; the cap prevents high promotion
-and does not freeze every revised assessment at its prior low/medium label.
+These are provisional hypothesis-stability grades. Current assessments use
+`forward-scenario-stability-20261122-v2`. Version 1 imposed an unwanted blanket
+medium ceiling; version 2 removes it without changing the existing concentration
+thresholds or candidate support calculation. A high grade requires the most
+supported single outcome to have at least 0.40 of the whole 3T candidate support,
+or 0.55 for 2T, and the A/B top outcome must agree. The medium thresholds remain
+0.15 for 3T and 0.25 for 2T. These are uncalibrated design rules, not hit-rate
+boundaries. A high grade describes concentration in the modeled universe and
+does not establish predictive accuracy. Each current explanation states its
+observed support share and the applicable unchanged thresholds.
+
+Essential source omissions or conflicts remain unassessed, the existing
+condition-evidence caution still limits a grade to medium, and an abstention is
+low. Adding or removing selected tickets does not change the grade. Historical
+confidence records and the sealed baseline are preserved with their original
+version; they are not relabeled as version 2.
+
+This result-unread evaluator currently assigns low, medium, and high, plus
+unassessed when necessary. Its hot-grade path is not implemented. The separate
+four-grade evaluator in `race_ai/keirin_confidence.py` uses different metrics
+and source/time contracts; it is not connected to this current research route.
+Its four grades are also provisional research coherence, not calibrated winning
+probabilities. Version 2 does not invent a hot threshold or substitute that
+different evaluator merely to populate a high/hot filter. Removing the blanket
+ceiling alone does not imply any real race will qualify as high.
 
 ## Source-only verification
 
