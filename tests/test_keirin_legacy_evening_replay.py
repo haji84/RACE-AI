@@ -24,7 +24,10 @@ from tests.test_keirin_nationwide_auto_generator import fixture, AT
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = (ROOT / "race_ai/keirin_nationwide_auto_generator.py").read_bytes()
+# Historical replay requires the exact published source bytes, not whatever
+# current-method functions were subsequently added to the live module.
+# Public source provenance: haji84/RACE-AI@51bec791cc5be2b56f996934b4df8b51894d67d8.
+SOURCE = (ROOT / "tests/fixtures/keirin_generator_source_9aa01431.txt").read_bytes()
 RUN = 44290470874
 API = "https://api.github.com/repos/haji84/RACE-AI"
 
@@ -152,6 +155,14 @@ class LegacyEveningReplay(unittest.TestCase):
         except ImportError:
             self.fail("SHA-bound historical batch replay is not implemented")
         return keirin_legacy_evening_replay
+
+    def test_historical_source_fixture_is_exact_and_current_source_is_rejected(self):
+        legacy = self.implementation()
+        self.assertEqual(sha256(SOURCE).hexdigest(), legacy.MODEL_SOURCE_SHA256)
+        current = (ROOT / "race_ai/keirin_nationwide_auto_generator.py").read_bytes()
+        self.assertNotEqual(sha256(current).hexdigest(), legacy.MODEL_SOURCE_SHA256)
+        with self.assertRaisesRegex(ValueError, "MODEL_SOURCE"):
+            legacy.generate_legacy_A_B(fixture(), generated_at=AT, generator_source_bytes=current)
 
     def test_original_python311_prediction_digest_is_reproduced_exactly(self):
         result = self.implementation().generate_legacy_A_B(
