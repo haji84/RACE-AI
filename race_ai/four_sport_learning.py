@@ -344,6 +344,10 @@ def fit_chronological(rows,*,sport,train_end_at,validation_end_at,test_end_at,
         cutoff=moment(race["sales_cutoff_at"])
         cohort=train if cutoff<=train_end else valid if cutoff<=valid_end else test if cutoff<=test_end else None
         if cohort is None:continue
+        if cohort is valid and moment(race["as_of"])<=train_end:
+            raise ModelInputError("validation snapshot must follow training boundary")
+        if cohort is test and moment(race["as_of"])<=valid_end:
+            raise ModelInputError("test snapshot must follow validation boundary")
         cap=train_end if cohort is train else valid_end if cohort is valid else test_end
         label=_label(item["result"],snap,scope=scope,allow_result=allow_result,window_end=cap)
         cohort.append((snap,label))
