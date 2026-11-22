@@ -1,0 +1,81 @@
+{
+  "schema": "RACE_AI_KEIRIN_SEIBUEN_11_OWNER_REFERENCE_RECOVERY_V1",
+  "method": "VERIFIED_REPLAY_IMPORT_OF_EXISTING_OWNER_ENCRYPTED_RESEARCH_SOURCES",
+  "race_id": "202611232611",
+  "normal_url": {
+    "checked_at_utc": "2026-11-22T23:44:05.131650+00:00",
+    "feed_git_head": "f5e04a7fe933e1ee63b829b43369287257abe343",
+    "normal_url_matches_publish_commit": true,
+    "entries": 99,
+    "includes_seibuen_11": true,
+    "index_sha256": "ad9b0f457a9a1fb2f2c59c460ba61b552f9fbd2edd0085e0be8003c1eca80e1d"
+  },
+  "prior_feed_commit": "6a0a43b4bc5160d123b39ec85d8c39626fecd349",
+  "publication_receipt": {
+    "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED",
+    "source_commit": "f5e04a7fe933e1ee63b829b43369287257abe343",
+    "entries": 99,
+    "provider_denied": false,
+    "covered_races": 247,
+    "priority_window_races": 12,
+    "private_plaintext_uploaded": false,
+    "production_state_key_used": false,
+    "cutoff_jst": "2026-11-23T20:10:00+09:00",
+    "verified_at_utc": "2026-11-22T23:43:32.543030+00:00"
+  },
+  "view_readback": {
+    "state": "PUBLISHED_VIEW_READBACK_VERIFIED",
+    "observed_at_utc": "2026-11-22T23:44:09.545Z",
+    "feed_git_head": "f5e04a7fe933e1ee63b829b43369287257abe343",
+    "race": "202611232611",
+    "venue": "西武園",
+    "race_number": 11,
+    "day_jst": "2026-11-23",
+    "rider_count": 7,
+    "original_reference_rows_held": 88,
+    "current_reference_rows": 89,
+    "checked_against_day_inventory": 89,
+    "cutoff": "2026-11-23T20:10:00+09:00",
+    "generated_at": "2026-11-22T23:41:22.561081+00:00",
+    "reference_A_tickets": 12,
+    "reference_B_tickets": 8,
+    "entry_hash": "dc489728f102d171651141fdd8c70fde2609abfe08236140011f6696411871c0",
+    "official_baselines": 1
+  },
+  "forecast": {
+    "race_id": "202611232611",
+    "venue": "西武園",
+    "race_number": 11,
+    "day_jst": "2026-11-23",
+    "generated_at": "2026-11-22T23:41:22.561081+00:00",
+    "cutoff": "2026-11-23T20:10:00+09:00",
+    "rider_count": 7,
+    "reference_A_tickets": 12,
+    "reference_B_tickets": 8,
+    "ciphertext_sha256": "dc489728f102d171651141fdd8c70fde2609abfe08236140011f6696411871c0",
+    "provenance": {
+      "method": "OWNER_REPLAY_OF_RETAINED_PRE_RACE_SOURCE_BYTES",
+      "source_feed_commit": "6a0a43b4bc5160d123b39ec85d8c39626fecd349",
+      "source_packet_sha256": "696a852ac50f960100096d48874dcb71ecb50dfde2b94ed4f6427b834993dd26",
+      "source_archive_sha256": "019076f0387787fe7fc3a0f8df0e554ee31131fd71db5e8c1d129540969c7300",
+      "local_parser_commit": "ca33fc0452aeac883f0537ff8e878b33ab836de6",
+      "model_source_commit": "ac6f4e8a014af5bf144b0146961a706159d06f0d",
+      "provider_requests": 0,
+      "captured_source_observed_at": [
+        "2026-11-22T23:23:05.768938+00:00",
+        "2026-11-22T23:23:06.263247+00:00"
+      ],
+      "full_name_and_car_agreement": 7
+    }
+  },
+  "label_comparison": {
+    "netkeirin": "A級 初日特別選抜",
+    "kdreams": "初日特選",
+    "same_current_roster_riders": 7
+  },
+  "parser_candidate_test_result": {
+    "python_passed": 88,
+    "failures": 0,
+    "applied_to_main": false
+  }
+}
