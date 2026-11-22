@@ -338,6 +338,37 @@
     }
   }
   function rows(data,date){return data.days.get(date)||[];}
+  function historyRows(data,{period='day',day:selectedDay='',from='',to=''}={}){
+    if(!data||!Array.isArray(data.dates))return [];
+    let dates;
+    if(period==='day')dates=day(selectedDay)?data.dates.filter(d=>d===selectedDay):[];
+    else if(period==='range')dates=day(from)&&day(to)&&from<=to?data.dates.filter(d=>from<=d&&d<=to):[];
+    else if(period==='all')dates=data.dates.slice();
+    else return [];
+    return dates.sort().reverse().flatMap(date=>rows(data,date));
+  }
+  const searchText=value=>String(value??'').normalize('NFKC').toLocaleLowerCase('ja');
+  function matchesHistory(row,{query='',venue='',raceNumber=''}={}){
+    if(venue&&row.venue!==venue||raceNumber!==''&&row.number!==Number(raceNumber))return false;
+    const text=searchText([row.venue,row.title,row.id,row.date,row.original?.headline,
+      ...(row.riders||[]).map(r=>r.name)].join(' '));
+    const parts=searchText(query).replace(/(\d{1,2})r\b/g,' $1r ').trim().split(/\s+/).filter(Boolean);
+    return parts.every(term=>{
+      const race=/^(\d{1,2})r$/.exec(term);
+      if(race)return Number(race[1])>=1&&Number(race[1])<=12&&row.number===Number(race[1]);
+      const date=/^(?:(\d{4})[-/])?(\d{1,2})[-/](\d{1,2})$/.exec(term);
+      if(date)return (!date[1]||row.date.slice(0,4)===date[1])&&
+        Number(row.date.slice(5,7))===Number(date[2])&&Number(row.date.slice(8,10))===Number(date[3]);
+      return text.includes(term);
+    });
+  }
+  function historyPage(list,page,size=20){
+    const length=Number.isInteger(size)&&size>0&&size<=100?size:20;
+    const pages=Math.max(1,Math.ceil(list.length/length));
+    page=Math.min(pages,Math.max(1,Number.isInteger(page)?page:1));
+    const start=(page-1)*length,items=list.slice(start,start+length);
+    return {items,page,pages,total:list.length,first:items.length?start+1:0,last:start+items.length};
+  }
   function frozenArm(row,name){
     const frozen=row.frozenForecast;if(!frozen||!['A','B','adjusted_A','adjusted_B'].includes(name))return null;
     const adjusted=name.startsWith('adjusted_'),role=adjusted?name.slice(9):name;if(adjusted&&!frozen.conditioned)return null;
@@ -424,5 +455,5 @@
     need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
     return decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
   }
-  return {openPacket,openCipher,rows,forecast,frozenArm,displayedPredictions,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,utc,day,SCHEMA};
+  return {openPacket,openCipher,rows,historyRows,matchesHistory,historyPage,forecast,frozenArm,displayedPredictions,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,utc,day,SCHEMA};
 });
