@@ -1,5 +1,7 @@
 """Real Chromium with invented note files; every request stays on loopback."""
 import base64
+from copy import deepcopy
+from datetime import date, timedelta
 from hashlib import sha256
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import importlib.util
@@ -60,6 +62,31 @@ def packet(venue='架空会場'):
         files={f'data/{DAY}/races.json': source(rows),
                f'data/{DAY}/forecasts.json': source(original),
                f'data/{DAY}/reference_AB.json': source(reference)})
+
+
+def history_packet(days=240, races_per_day=10):
+    """Invented multi-day originals; no provider or production input is used."""
+    value = dict(schema='RACE_AI_KEIRIN_NOTE_VIEW_V1', formal_model_admission=False,
+        production_weight_switch=False, source_commit='a'*40,
+        imported_at='2030-01-15T00:00:00Z', dates=[], files={})
+    template = json.loads(packet()['files'][f'data/{DAY}/races.json']['text'])['races'][0]
+    for offset in range(days):
+        day = (date(2020, 1, 1) + timedelta(days=offset)).isoformat()
+        value['dates'].append(day)
+        cards, originals, flexible = [], [], []
+        for number in range(1, races_per_day+1):
+            rid = day.replace('-', '') + '98' + str(number).zfill(2)
+            card = deepcopy(template)
+            card.update(race_id=rid, venue='青葉' if number % 2 else '架空会場', race_no=number)
+            cards.append(card)
+            tickets = [dict(combo='1-2-3', role='本線'), dict(combo='3-2-1', role='波乱')]
+            originals.append(dict(race_id=rid, headline='架空の過去分析',
+                analysis_created_at=day+'T08:00:00+09:00', tickets=tickets, scenarios=[]))
+            flexible.append(dict(race_id=rid, markets={'3t': dict(tickets=deepcopy(tickets))}))
+        value['files'][f'data/{day}/races.json'] = source(dict(races=cards))
+        value['files'][f'data/{day}/forecasts.json'] = source(originals)
+        value['files'][f'data/{day}/flexible_forecasts.json'] = source(dict(races=flexible))
+    return value
 
 
 def encrypted(value):
@@ -688,6 +715,124 @@ class NoteBrowserTests(unittest.TestCase):
         self.assertIn('保存原本の読込待ち',row.locator('[data-result-arm="B"]').inner_text())
         self.assertEqual(row.locator('[data-frozen-combo]').count(),0); self.assertNotIn('0点',row.inner_text())
         self.assertEqual(self.external,[]); self.assertEqual(self.errors,[])
+
+
+    def open_history(self, value):
+        self.served_cipher, self.identity, self.key = encrypted(value)
+        self.open()
+        self.loaded()
+
+    def test_history_calendar_and_shortcuts_stay_bounded_with_240_saved_days(self):
+        self.open_history(history_packet())
+        self.assertEqual(self.page.locator('#kn-date').count(), 1)
+        self.assertLessEqual(self.page.locator('#kn-days [data-day]').count(), 7)
+        self.assertEqual(self.page.locator('#kn-date').input_value(), '2020-08-27')
+        self.page.locator('#kn-date').fill('2020-01-02')
+        self.page.locator('#kn-date').press('Tab')
+        self.assertEqual(self.page.locator('[data-note-race]').count(), 10)
+        self.assertTrue(all(r.startswith('20200102') for r in
+            self.page.locator('[data-note-race]').evaluate_all('(nodes)=>nodes.map(n=>n.dataset.noteRace)')))
+        for width in (320, 390, 1440):
+            self.page.set_viewport_size(dict(width=width, height=900))
+            self.assertTrue(self.page.locator('.kn-shell').evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'))
+        self.assertEqual(self.errors, [])
+        self.assertEqual(self.external, [])
+
+    def test_history_all_period_search_pages_and_exact_race_number(self):
+        self.open_history(history_packet())
+        self.assertEqual(self.page.locator('[data-history="all"]').count(), 1)
+        self.page.locator('[data-history="all"]').click()
+        self.page.locator('#kn-search').fill('青葉　１Ｒ')
+        self.assertEqual(self.page.locator('[data-note-race]').count(), 20)
+        self.assertIn('240', self.page.locator('#kn-count').inner_text())
+        self.assertEqual(self.page.locator('[data-note-race]').first.get_attribute('data-note-race'), '202008279801')
+        self.assertEqual(self.page.locator('.kn-race-date').count(), 20)
+        self.page.locator('#kn-page-next').click()
+        self.assertEqual(self.page.locator('[data-note-race]').first.get_attribute('data-note-race'), '202008079801')
+        self.page.locator('#kn-search').fill('2020/1/2 青葉 1R')
+        self.assertEqual(self.page.locator('[data-note-race]').count(), 1)
+        self.assertEqual(self.page.locator('[data-note-race]').get_attribute('data-note-race'), '202001029801')
+        self.assertTrue(self.page.locator('#kn-page-prev').is_disabled())
+        self.assertFalse(self.page.locator('#kn-research-summary').is_visible())
+        self.assertFalse(self.page.locator('#kn-nationwide-summary').is_visible())
+        self.assertEqual(self.external, [])
+
+    def test_history_range_race_filter_and_invalid_or_unsaved_day(self):
+        self.open_history(history_packet(3, 4))
+        self.assertEqual(self.page.locator('#kn-history-filters').count(), 1)
+        self.page.locator('#kn-history-filters > summary').click()
+        self.page.locator('#kn-period').select_option('range')
+        self.page.locator('#kn-from').fill('2020-01-01')
+        self.page.locator('#kn-from').press('Tab')
+        self.page.locator('#kn-to').fill('2020-01-02')
+        self.page.locator('#kn-to').press('Tab')
+        self.page.locator('#kn-race-number').select_option('3')
+        self.assertEqual(self.page.locator('[data-note-race]').count(), 2)
+        self.assertEqual(self.page.locator('[data-note-race]').evaluate_all('(ns)=>ns.map(n=>n.dataset.noteRace)'),
+            ['202001029803', '202001019803'])
+        self.page.locator('#kn-from').fill('2020-01-03')
+        self.page.locator('#kn-from').press('Tab')
+        self.assertEqual(self.page.locator('[data-note-race]').count(), 0)
+        self.assertIn('開始日', self.page.locator('#kn-period-status').inner_text())
+        self.page.locator('#kn-period').select_option('day')
+        self.page.locator('#kn-date').fill('2020-01-10')
+        self.page.locator('#kn-date').press('Tab')
+        self.assertEqual(self.page.locator('#kn-date').input_value(), '2020-01-10')
+        self.assertEqual(self.page.locator('[data-note-race]').count(), 0)
+        self.assertIn('保存', self.page.locator('#kn-period-status').inner_text())
+        self.assertEqual(self.errors, [])
+
+    def test_history_selection_and_budget_survive_paging_and_filter_reset(self):
+        self.open_history(history_packet(3, 12))
+        self.assertEqual(self.page.locator('[data-history="all"]').count(), 1)
+        self.page.locator('[data-history="all"]').click()
+        first = self.page.locator('[data-note-race]').first
+        rid = first.get_attribute('data-note-race')
+        first.locator('[data-select]').click()
+        self.page.locator(f'[data-note-race="{rid}"] [data-budget]').select_option('3000')
+        self.page.locator(f'[data-note-race="{rid}"] [data-ticket]').first.uncheck()
+        self.page.locator('#kn-page-next').click()
+        self.assertIn('検討リスト 1件', self.page.locator('#kn-selection-count').inner_text())
+        self.page.locator('#kn-page-prev').click()
+        first = self.page.locator(f'[data-note-race="{rid}"]')
+        self.assertEqual(first.locator('[data-budget]').input_value(), '3000')
+        self.assertFalse(first.locator('[data-ticket]').first.is_checked())
+        self.assertEqual(first.locator('[data-select]').get_attribute('aria-pressed'), 'true')
+        self.page.locator('#kn-reset-search').click()
+        first = self.page.locator(f'[data-note-race="{rid}"]')
+        self.assertEqual(first.locator('[data-budget]').input_value(), '3000')
+        self.assertEqual(first.locator('[data-select]').get_attribute('aria-pressed'), 'true')
+
+    def test_history_scope_query_and_page_survive_a_background_feed_refresh(self):
+        fixtures = json.dumps(history_packet(40, 2), ensure_ascii=False)
+        self.page.add_init_script('''
+          const realTimeout=window.setTimeout;
+          window.setTimeout=(fn,delay,...args)=>{
+            if(delay===30000){window.__historyTick=()=>fn(...args);window.__historyIdle=true;return 0;}
+            return realTimeout(fn,delay,...args);
+          };
+          window.__historyVersion=0;
+          window.__noteFeedOverride={createSession:async()=>({refresh:async()=>{
+            const data=await window.RaceKeirinNote.openPacket('''+fixtures+''');
+            data.feed={revision:String(window.__historyVersion),checkedAt:'2030-01-15T00:00:00Z',providerDenied:false};
+            return data;
+          },close:()=>{}})};
+        ''')
+        self.page.goto(self.base+'/#notefeed='+'Q'*160, wait_until='domcontentloaded')
+        self.loaded()
+        self.assertEqual(self.page.locator('[data-history="all"]').count(), 1)
+        self.page.locator('[data-history="all"]').click()
+        self.page.locator('#kn-search').fill('青葉 1R')
+        self.page.locator('#kn-page-next').click()
+        first = self.page.locator('[data-note-race]').first.get_attribute('data-note-race')
+        self.page.wait_for_function('window.__historyIdle===true')
+        self.page.evaluate('window.__historyVersion=1;window.__historyTick()')
+        self.page.locator('#kn-status').filter(has_text='最新の結果を反映').wait_for()
+        self.assertEqual(self.page.locator('#kn-period').input_value(), 'all')
+        self.assertEqual(self.page.locator('#kn-search').input_value(), '青葉 1R')
+        self.assertEqual(self.page.locator('[data-note-race]').first.get_attribute('data-note-race'), first)
+        self.assertEqual(self.errors, [])
+        self.assertEqual(self.external, [])
 
 
 if __name__ == '__main__':

@@ -31,17 +31,17 @@
 
 **Interfaces:** `historyRows(data,{period,day,from,to})`, `matchesHistory(row,{query,venue,raceNumber})`, `historyPage(rows,page,size=20)`.
 
-- [ ] Add real-behavior Node regressions for inclusive scopes, invalid dates, normalized AND queries, exact race numbers, and full traversal of 53 rows over three pages without mutating originals.
-- [ ] Observe the missing behavior fail; implement the three pure helpers and run focused tests.
+- [x] Add real-behavior Node regressions for inclusive scopes, invalid dates, normalized AND queries, exact race numbers, and full traversal of 53 rows over three pages without mutating originals.
+- [x] Observe the missing behavior fail; implement the three pure helpers and run focused tests. Nine RED failures became nine passes.
 
 ### Task 2: Scalable controls and rendering
 
 **Files:** `web/keirin-note-view.js`, `web/keirin-note.css`, generated `web/app.js`, `web/style.css`; `tests/test_keirin_note_browser.py`.
 
-- [ ] Add failing browser regressions with hundreds of dates/2,000+ invented rows: calendar/range/all-period search, at most seven day buttons and twenty cards, previous/next traversal, reset, no-result range, selection/budget retention and background refresh.
-- [ ] Implement scope controls and pagination using Task1 helpers, preserving existing IDs and individual result/original rendering.
-- [ ] Add dates to multi-day cards; keep single-day summary semantics and hide those summaries for cross-day search.
-- [ ] Rebuild app/style with `python -m scripts.build_keirin_note_assets`; run full related Node/browser suites and existing page-delivery tests.
+- [x] Add failing browser regressions with hundreds of dates/2,000+ invented rows: calendar/range/all-period search, at most seven day buttons and twenty cards, previous/next traversal, reset, no-result range, selection/budget retention and background refresh. Five RED failures became passes.
+- [x] Implement scope controls and pagination using Task1 helpers, preserving existing IDs and individual result/original rendering.
+- [x] Add dates to multi-day cards; keep single-day summary semantics and hide those summaries for cross-day search.
+- [x] Rebuild app/style with `python -m scripts.build_keirin_note_assets`; run full related Node/browser suites and existing page-delivery tests. Node150, Python53 and Chromium20 passed.
 
 ### Task 3: Review, concrete preview and delivery
 

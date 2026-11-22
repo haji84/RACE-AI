@@ -11,11 +11,12 @@
   const launcher=document.createElement('button');launcher.id='keirin-note-open';launcher.type='button';launcher.className='kn-launcher';launcher.textContent='競輪の予想・分析ガイドを開く';
   const strip=document.createElement('div');strip.className='kn-launch-strip';strip.append(launcher);(document.getElementById('data-banner')||document.querySelector('main'))?.after(strip);
   let data=null,currentDay='',venue='',query='',market='3t',variant='flexible',confidenceFilter='all',futureOnly=false,selectedOnly=false;
+  let period='day',rangeFrom='',rangeTo='',raceNumber='',pageNumber=1;
   let loadVersion=0,activeLoadAbort=null,feedWatcher=null,pendingFeed=null;
   const preferences=new Map(),selected=new Set(),expanded=new Set();
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money=v=>Number.isFinite(v)?v.toLocaleString('ja-JP')+'円':'未確認';
-  const $=id=>root.getElementById(id),all=()=>data?M.rows(data,currentDay):[];
+  const $=id=>root.getElementById(id),all=()=>M.historyRows(data,{period,day:currentDay,from:rangeFrom,to:rangeTo});
   const time=v=>v&&Number.isFinite(Date.parse(v))?new Date(v).toLocaleTimeString('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'}):'未確認';
   const stamp=v=>v&&Number.isFinite(Date.parse(v))?new Date(v).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo',hour12:false}):'未確認';
   const num=(v,suffix='')=>typeof v==='number'&&Number.isFinite(v)?esc(v)+suffix:'未確認';
@@ -27,6 +28,7 @@
   function build(){
     shell.innerHTML=`<header class="kn-head"><div><p class="kn-eyebrow">RACE AI · KEIRIN NOTE</p><h1>競輪の読みどころ</h1><p>保存された分析・参考モデル・買い目を確認する</p></div><button type="button" id="kn-close" class="kn-close">閉じる</button></header>
       <div class="kn-scroll"><section class="kn-import"><div><label class="kn-file">保存データを開く<input id="kn-file" type="file" accept=".json,application/json"></label><button id="kn-clear" type="button" class="kn-secondary">読込データを消す</button></div><p id="kn-status" role="status">本人用リンク、または保存データJSONから開けます。</p></section>
+      <section class="kn-history" aria-label="保存履歴を探す"><div class="kn-history-top"><label>日付を指定<input id="kn-date" type="date"></label><button type="button" data-history="all">全期間から探す</button></div><details id="kn-history-filters"><summary>期間・レース番号で絞り込む</summary><div class="kn-history-grid"><label>検索する期間<select id="kn-period"><option value="day">指定した1日</option><option value="range">期間を指定</option><option value="all">すべての保存日</option></select></label><label>レース番号<select id="kn-race-number"><option value="">すべてのレース</option>${Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'R</option>').join('')}</select></label><label id="kn-from-label" hidden>開始日<input id="kn-from" type="date"></label><label id="kn-to-label" hidden>終了日<input id="kn-to" type="date"></label></div><div class="kn-history-shortcuts"><button type="button" data-history="latest">最新日</button><button type="button" data-history="week">直近7日</button><button type="button" id="kn-reset-search">条件をリセット</button></div></details><p id="kn-period-status" class="kn-small" role="status"></p></section>
       <nav id="kn-days" class="kn-day-tabs" aria-label="予想の日付"></nav><section id="kn-metrics" class="kn-metrics"></section>
       <section class="kn-tools"><div id="kn-venues" class="kn-venues" aria-label="会場"></div><div class="kn-prediction-tabs" aria-label="通常予想と転がし予想"><button type="button" data-prediction="flexible">通常予想</button><button type="button" data-prediction="rollover">転がし予想</button><button type="button" data-confidence-filter="high_plus">高以上だけ見る</button></div><div class="kn-controls"><label>券種<select id="kn-market"><option value="3t">3連単</option><option value="2t">2車単</option></select></label><label>表示する予想<select id="kn-variant"><option value="flexible">通常予想・改訂版</option><option value="original">通常予想・原版</option><option value="rollover">転がし予想</option><option value="A">参考A</option><option value="B">参考B・6局面</option><option value="C">参考Cの状況</option></select></label><label>信頼度<select id="kn-confidence"><option value="all">すべて</option><option value="high_plus">高以上（高・激アツ🔥）</option><option value="hot">激アツ🔥のみ</option><option value="high">高のみ</option><option value="medium">中のみ</option><option value="low">低のみ</option><option value="unrated">未評価のみ</option></select></label><label class="kn-search-label">検索<input id="kn-search" type="search" placeholder="会場・選手・レース名"></label></div><div class="kn-small-controls"><label><input id="kn-future" type="checkbox">これからのレース</label><label><input id="kn-selected" type="checkbox">検討リストのみ</label><span id="kn-count"></span></div><p id="kn-confidence-count" class="kn-small" aria-live="polite"></p><p class="kn-small">信頼度は保存された予想の評価です。新方式は展開と買い目の整合を評価し、的中率は未校正です。</p></section>
       <section id="kn-nationwide-summary" class="kn-result kn-nationwide-summary" hidden></section><section id="kn-research-summary" class="kn-result" hidden></section><div id="kn-result-only"></div><div id="kn-races" class="kn-grid"></div>
@@ -43,25 +45,45 @@
       catch{if(version===loadVersion)note('保存データを開けませんでした。形式と原本の整合を確認してください。',true);}
       if(version===loadVersion)input.value='';
     });
-    $('kn-clear').addEventListener('click',()=>{beginLoad();data=null;currentDay='';preferences.clear();selected.clear();expanded.clear();if(/^#(?:note|notefeed)=/.test(location.hash)){history.replaceState(null,'',location.pathname+location.search);window.RaceNoteInitialFragment='';}render();note('読込データを消去しました。');});
-    $('kn-market').addEventListener('change',event=>{market=event.target.value;renderCards();});
-    $('kn-variant').addEventListener('change',event=>{variant=event.target.value;renderCards();});
-    $('kn-confidence').addEventListener('change',event=>{confidenceFilter=event.target.value;renderCards();});
-    $('kn-search').addEventListener('input',event=>{query=event.target.value.trim().toLocaleLowerCase('ja');renderCards();});
-    $('kn-future').addEventListener('change',event=>{futureOnly=event.target.checked;renderCards();});
-    $('kn-selected').addEventListener('change',event=>{selectedOnly=event.target.checked;renderCards();});
+    $('kn-clear').addEventListener('click',()=>{beginLoad();data=null;resetSearch();preferences.clear();selected.clear();expanded.clear();if(/^#(?:note|notefeed)=/.test(location.hash)){history.replaceState(null,'',location.pathname+location.search);window.RaceNoteInitialFragment='';}render();note('読込データを消去しました。');});
+    $('kn-market').addEventListener('change',event=>{market=event.target.value;pageNumber=1;renderCards();});
+    $('kn-variant').addEventListener('change',event=>{variant=event.target.value;pageNumber=1;renderCards();});
+    $('kn-confidence').addEventListener('change',event=>{confidenceFilter=event.target.value;pageNumber=1;renderCards();});
+    $('kn-search').placeholder='会場・選手・日付・5R（例：青葉 1R）';$('kn-search').maxLength=200;
+    $('kn-search').addEventListener('input',event=>{query=event.target.value;pageNumber=1;renderCards();});
+    $('kn-future').addEventListener('change',event=>{futureOnly=event.target.checked;pageNumber=1;renderCards();});
+    $('kn-selected').addEventListener('change',event=>{selectedOnly=event.target.checked;pageNumber=1;renderCards();});
+    $('kn-date').addEventListener('change',event=>{currentDay=event.target.value;period='day';venue='';pageNumber=1;pastSearch();render();});
+    $('kn-period').addEventListener('change',event=>{period=event.target.value;pageNumber=1;pastSearch();render();});
+    for(const id of ['kn-from','kn-to'])$(id).addEventListener('change',event=>{
+      if(id==='kn-from')rangeFrom=event.target.value;else rangeTo=event.target.value;
+      pageNumber=1;render();
+    });
+    $('kn-race-number').addEventListener('change',event=>{raceNumber=event.target.value;pageNumber=1;renderCards();});
+    $('kn-reset-search').addEventListener('click',()=>{resetSearch();render();});
+    const pagination=document.createElement('nav');pagination.id='kn-pagination';pagination.className='kn-pagination';pagination.setAttribute('aria-label','検索結果のページ');
+    pagination.innerHTML='<button type="button" id="kn-page-prev">前へ</button><label>ページ<input id="kn-page" type="number" min="1" inputmode="numeric"></label><span id="kn-page-total"></span><button type="button" id="kn-page-next">次へ</button>';
+    $('kn-races').after(pagination);$('kn-races').tabIndex=-1;
+    $('kn-page').addEventListener('change',event=>{pageNumber=Number(event.target.value);renderCards();});
     root.addEventListener('click',event=>click(event.target.closest('button')));
     root.addEventListener('change',event=>{const e=event.target;if(e.matches('[data-budget]')){const row=all().find(r=>r.id===e.dataset.budget);if(row){pref(row).budget=Number(e.value);renderCards();}}else if(e.matches('[data-ticket]')){const row=all().find(r=>r.id===e.dataset.race);if(row){const p=pref(row);e.checked?p.excluded.delete(e.dataset.ticket):p.excluded.add(e.dataset.ticket);renderCards();}}});
     for(const id of ['kn-roll-budget','kn-return-one','kn-return-two'])$(id).addEventListener('input',renderRollover);
     $('kn-copy-selection').addEventListener('click',()=>copy(all().filter(r=>selected.has(r.id)).map(copyRace).filter(Boolean).join('\n\n')));
     render();renderRollover();
   }
-  async function accept(value,version){if(version!==loadVersion)return;data=value;currentDay=data.dates.at(-1);venue='';query='';$('kn-search').value='';preferences.clear();selected.clear();expanded.clear();const authored=all().some(row=>row.original?.tickets?.length||row.two?.tickets?.length||row.flexible?.markets?.['3t']?.tickets?.length||row.flexible?.markets?.['2t']?.tickets?.length);variant=authored?'flexible':'A';if(!authored){market='3t';$('kn-market').value=market;}$('kn-variant').value=variant;render();note(data.feed?.providerDenied?'保存データを端末内で開きました。入力元への取得は停止中です。保存済み結果の更新は確認します。':'保存データを端末内で開きました。',Boolean(data.feed?.providerDenied));}
+  function pastSearch(){futureOnly=false;$('kn-future').checked=false;}
+  function sevenDaysBefore(date){return M.day(date)?new Date(Date.parse(date+'T00:00:00Z')-6*86400000).toISOString().slice(0,10):'';}
+  function resetSearch(){
+    period='day';currentDay=data?.dates.at(-1)||'';rangeTo=currentDay;rangeFrom=sevenDaysBefore(currentDay);
+    venue='';query='';raceNumber='';pageNumber=1;confidenceFilter='all';selectedOnly=false;pastSearch();
+    $('kn-search').value='';$('kn-confidence').value='all';$('kn-selected').checked=false;
+  }
+  async function accept(value,version){if(version!==loadVersion)return;data=value;resetSearch();preferences.clear();selected.clear();expanded.clear();const authored=all().some(row=>row.original?.tickets?.length||row.two?.tickets?.length||row.flexible?.markets?.['3t']?.tickets?.length||row.flexible?.markets?.['2t']?.tickets?.length);variant=authored?'flexible':'A';if(!authored){market='3t';$('kn-market').value=market;}$('kn-variant').value=variant;render();note(data.feed?.providerDenied?'保存データを端末内で開きました。入力元への取得は停止中です。保存済み結果の更新は確認します。':'保存データを端末内で開きました。',Boolean(data.feed?.providerDenied));}
   function refreshDisplay(value,version){
     if(version!==loadVersion)return;
     if(root.activeElement?.matches('[data-budget],[data-ticket]')){pendingFeed={value,version};return;}
     pendingFeed=null;const same=data?.feed?.revision===value.feed?.revision;
-    data=value;if(!data.dates.includes(currentDay))currentDay=data.dates.at(-1)||'';
+    data=value;
     if(same){renderProvenance();note(data.feed?.providerDenied?'保存データの更新を確認しました。入力元への取得は停止中です。':'保存データの更新を確認しました。',Boolean(data.feed?.providerDenied));return;}
     const scroll=root.querySelector('.kn-scroll'),position=scroll.scrollTop;render();scroll.scrollTop=position;
     note(data.feed?.providerDenied?'保存された結果を更新しました。入力元への取得は停止中です。':'保存された最新の結果を反映しました。',Boolean(data.feed?.providerDenied));
@@ -72,11 +94,23 @@
     $('kn-provenance').textContent=data?'読込日時 '+stamp(data.importedAt)+' · 出典と予想時点は各レースで確認できます。'+(data.feed?' · 表示確認 '+stamp(data.feed.checkedAt)+'（表示中は30秒ごとに保存データを確認）':'')+(latest?' · 結果確認 '+stamp(latest):'')+(data.refreshHolds?.length?' · 入力変更 '+data.refreshHolds.length+'件は原分析との照合待ちです。':''):'';
   }
   function render(){
-    const days=data?.dates||[];$('kn-days').innerHTML=days.map(d=>'<button type="button" data-day="'+esc(d)+'" aria-pressed="'+(d===currentDay)+'">'+esc(d.slice(5).replace('-','月')+'日')+'</button>').join('');
-    const list=all(),riders=list.reduce((n,r)=>n+r.riders.length,0),original=list.reduce((n,r)=>n+M.forecast(r,'3t','original').tickets.length,0),priced=list.filter(r=>r.quote.fetched_at).length;
-    const nationwide=data?.nationwide?.get(currentDay),saved=nationwide?.races.filter(row=>row.original_identity).length||0,adjusted=nationwide?.races.filter(row=>row.original_identity?.conditioned).length||0;
-    const metrics=nationwide?[['確認した対象',nationwide.registry_available?nationwide.races.length+'件':'確認中'],['A保存済み',saved+'件'],['B保存済み',saved+'件'],['補正A/B保存済み',adjusted+'件']]:[['対象レース',list.length+'件'],['出走メンバー',riders+'名'],['原分析の買い目',original+'点'],['保存オッズ',priced+'レース']];
-    $('kn-metrics').innerHTML=metrics.map(([k,v])=>'<div><span>'+esc(k)+'</span><strong>'+esc(v)+'</strong></div>').join('');
+    const days=data?.dates||[];let shortcuts=days.slice(-7);
+    if(days.includes(currentDay)&&!shortcuts.includes(currentDay))shortcuts=[currentDay,...shortcuts.slice(-6)].sort();
+    $('kn-days').innerHTML=shortcuts.map(d=>'<button type="button" data-day="'+esc(d)+'" aria-pressed="'+(period==='day'&&d===currentDay)+'">'+esc(d.slice(5).replace('-','月')+'日')+'</button>').join('');
+    $('kn-date').value=currentDay;$('kn-date').disabled=period!=='day';$('kn-period').value=period;
+    $('kn-from').value=rangeFrom;$('kn-to').value=rangeTo;$('kn-race-number').value=raceNumber;
+    $('kn-from-label').hidden=$('kn-to-label').hidden=period!=='range';
+    const invalid=period==='range'&&(!M.day(rangeFrom)||!M.day(rangeTo)||rangeFrom>rangeTo);
+    $('kn-period-status').textContent=!data?'保存データを開くと日付・期間を指定できます。':invalid?'開始日と終了日を確認してください。開始日は終了日以前を指定してください。':period==='all'?'すべての保存日を検索します。':period==='range'?rangeFrom+' 〜 '+rangeTo+' の保存データを検索します。':!days.includes(currentDay)?'指定した日付の保存データはありません。':currentDay+' の保存データを表示します。';
+    $('kn-period-status').classList.toggle('kn-error',invalid);
+    $('kn-metrics').hidden=period!=='day';
+    const list=all();
+    const nationwide=period==='day'?data?.nationwide?.get(currentDay):null,saved=nationwide?.races.filter(row=>row.original_identity).length||0,adjusted=nationwide?.races.filter(row=>row.original_identity?.conditioned).length||0;
+    if(period==='day'){
+      const riders=list.reduce((n,r)=>n+r.riders.length,0),original=list.reduce((n,r)=>n+M.forecast(r,'3t','original').tickets.length,0),priced=list.filter(r=>r.quote.fetched_at).length;
+      const metrics=nationwide?[['確認した対象',nationwide.registry_available?nationwide.races.length+'件':'確認中'],['A保存済み',saved+'件'],['B保存済み',saved+'件'],['補正A/B保存済み',adjusted+'件']]:[['対象レース',list.length+'件'],['出走メンバー',riders+'名'],['原分析の買い目',original+'点'],['保存オッズ',priced+'レース']];
+      $('kn-metrics').innerHTML=metrics.map(([k,v])=>'<div><span>'+esc(k)+'</span><strong>'+esc(v)+'</strong></div>').join('');
+    }else $('kn-metrics').textContent='';
     const imported=list.some(row=>!row.nationwideOnly),onlyNational=Boolean(nationwide)&&!imported;$('kn-market').disabled=onlyNational;$('kn-variant').disabled=onlyNational;
     if(onlyNational){market='3t';$('kn-market').value=market;}
     for(const button of root.querySelectorAll('[data-prediction]'))button.disabled=onlyNational;
@@ -85,15 +119,18 @@
     renderCards();
   }
   function renderCards(){
-    const list=all(),now=Date.now();const candidates=list.filter(r=>(!venue||r.venue===venue)&&(!query||(r.venue+' '+r.title+' '+r.riders.map(p=>p.name).join(' ')+' '+r.original.headline).toLocaleLowerCase('ja').includes(query))&&(!futureOnly||r.cutoff&&Date.parse(r.cutoff)>now)&&(!selectedOnly||selected.has(r.id))&&(r.nationwideOnly||variant!=='rollover'||M.forecast(r,market,variant).tickets.length>0));
+    const list=all(),now=Date.now();const candidates=list.filter(r=>M.matchesHistory(r,{venue,query,raceNumber})&&(!futureOnly||r.cutoff&&Date.parse(r.cutoff)>now)&&(!selectedOnly||selected.has(r.id))&&(r.nationwideOnly||variant!=='rollover'||M.forecast(r,market,variant).tickets.length>0));
     const shown=candidates.filter(r=>confidenceFilter==='all'||displayedPredictions(r).some(prediction=>C.predictionMatches(prediction,confidenceFilter)));
-    $('kn-count').textContent='表示 '+shown.length+' / 全'+list.length+'レース';
+    const page=M.historyPage(shown,pageNumber);pageNumber=page.page;
+    $('kn-count').textContent='表示 '+page.first+'〜'+page.last+' / 該当 '+shown.length+'件（対象 '+list.length+'レース）';
+    $('kn-pagination').hidden=page.pages<=1;$('kn-page-prev').disabled=page.page<=1;$('kn-page-next').disabled=page.page>=page.pages;
+    $('kn-page').value=String(page.page);$('kn-page').max=String(page.pages);$('kn-page-total').textContent='/ '+page.pages+'ページ';
     const counts=[0,0,0,0,0];for(const row of candidates)for(const prediction of displayedPredictions(row))if(prediction.tickets.length)counts[C.normalize(prediction.confidence).rank]++;
     $('kn-confidence-count').textContent='表示条件内の保存予想：激アツ🔥 '+counts[4]+'件 / 高 '+counts[3]+'件 / 中 '+counts[2]+'件 / 低 '+counts[1]+'件 / 未評価 '+counts[0]+'件';
     for(const button of root.querySelectorAll('[data-prediction]'))button.setAttribute('aria-pressed',String(button.dataset.prediction==='rollover'?variant==='rollover':['original','flexible'].includes(variant)));
     root.querySelector('[data-confidence-filter]').setAttribute('aria-pressed',String(confidenceFilter==='high_plus'));
     const empty=data?(confidenceFilter==='high_plus'||confidenceFilter==='hot'?'この条件に合う保存予想はありません。信頼度は保存時の評価を表示しています。':variant==='rollover'?'この条件の転がし候補はありません。':'条件に合うレースはありません。'):'本人用リンク、または保存データを開くと予想を表示します。';
-    $('kn-races').innerHTML=shown.length?shown.map(renderRace).join(''):'<div class="kn-empty">'+empty+'</div>';
+    $('kn-races').innerHTML=page.items.length?page.items.map(renderRace).join(''):'<div class="kn-empty">'+empty+'</div>';
     renderNationwideSummary();
     renderResearchSummary(list);
     selectionSummary();
@@ -120,7 +157,7 @@
     const outcome=row.settlement;
     const result=liveResult(row)+(outcome?'<section class="kn-result"><b>提供サイトの保存分析の照合</b><p>'+esc(outcome.winning_combo||'結果未確認')+' · '+(outcome.sources_agree===false?'出典間の相違で保留':outcome.hit?'的中':outcome.status==='MISS'?'不的中':esc(outcome.status||'照合未確認'))+'</p><p>各100円の想定：'+money(outcome.net_yen)+'（実購入ではありません）</p></section>':'');
     const budget=prediction.allocatable?'<div class="kn-budget"><label>候補予算<select data-budget="'+row.id+'">'+[2000,2500,3000].map(n=>'<option value="'+n+'" '+(n===p.budget?'selected':'')+'>'+money(n)+'</option>').join('')+'</select></label><span>配分 '+allocation.chosen.length+'点 / 合計 '+money(allocation.total)+'</span></div>':'';
-    return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+confidenceBadge(prediction)+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p>'+confidenceEvidence(prediction)+'<div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+budget+
+    return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><p class="kn-race-date">'+esc(row.date)+'</p><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+confidenceBadge(prediction)+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p>'+confidenceEvidence(prediction)+'<div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+budget+
       '<div class="kn-point-heading"><b>予想 '+prediction.tickets.length+'点'+(prediction.allocatable?' · 配分 '+allocation.chosen.length+'点':'')+'</b></div><div class="kn-tickets">'+(items||'<p class="kn-empty">'+esc(prediction.reason||'この券種の保存予想はありません。')+'</p>')+'</div>'+(prediction.tickets.length>3?'<button type="button" class="kn-more" data-expand="'+row.id+'">'+(open?'上位3点に戻す':'全'+prediction.tickets.length+'点を表示')+'</button>':'')+
       (prediction.allocatable&&!allocation.available?'<p class="kn-warning">配分対象がないか、全点への100円単位の配分に予算が足りません。点数を選び直してください。</p>':'')+
       '<div class="kn-race-actions"><button type="button" data-select="'+row.id+'" aria-pressed="'+selected.has(row.id)+'">'+(selected.has(row.id)?'検討リストから外す':'検討リストに追加')+'</button><button type="button" data-copy="'+row.id+'" '+(prediction.allocatable&&!allocation.available?'disabled':'')+'>買い目をコピー</button></div>'+nationalStatus(row)+result+researchResult(row)+
@@ -140,10 +177,10 @@
     return '<section class="kn-nationwide-status" data-nationwide-state="'+esc(status.state)+'"><p><b>'+nationalStateLabel(status.state)+'</b></p><p>'+conditionLabel(status.condition_state)+'</p>'+(status.original_identity&&!row.frozenForecast?'<p class="kn-warning">以前に保存した買い目は未読込です。未作成や不的中には数えていません。</p>':'')+'</section>';
   }
   function renderNationwideRace(row){
-    return '<article class="kn-race kn-national-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>各予想の買い目・根拠・採点を確認できます。</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b></div></div>'+nationalStatus(row)+liveResult(row)+researchResult(row)+'</article>';
+    return '<article class="kn-race kn-national-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><p class="kn-race-date">'+esc(row.date)+'</p><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>各予想の買い目・根拠・採点を確認できます。</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b></div></div>'+nationalStatus(row)+liveResult(row)+researchResult(row)+'</article>';
   }
   function renderNationwideSummary(){
-    const panel=$('kn-nationwide-summary'),doc=data?.nationwide?.get(currentDay);
+    const panel=$('kn-nationwide-summary'),doc=period==='day'?data?.nationwide?.get(currentDay):null;
     if(!doc){panel.hidden=true;panel.textContent='';return;}
     const total=doc.races.length,saved=doc.races.filter(row=>row.original_identity).length,adjusted=doc.races.filter(row=>row.original_identity?.conditioned).length,unread=doc.races.filter(row=>row.original_identity&&!row.original).length,unsupported=doc.races.filter(row=>row.state==='UNSUPPORTED_CLASS_OR_ROUND').length;
     panel.hidden=false;panel.dataset.registeredRaces=total;
@@ -198,7 +235,7 @@
   }
   function renderResearchSummary(list){
     const panel=$('kn-research-summary'),only=$('kn-result-only');
-    if(!data){panel.hidden=true;panel.textContent='';only.innerHTML='';return;}
+    if(!data||period!=='day'){panel.hidden=true;panel.textContent='';only.innerHTML='';return;}
     const results=[...(data.results||new Map())].filter(([id])=>id.startsWith(currentDay.replaceAll('-',''))),known=new Set(list.map(row=>row.id)),unpaired=results.filter(([id])=>!known.has(id));
     if(data.nationwide?.has(currentDay)&&!results.length&&list.every(row=>row.nationwideOnly)){panel.hidden=true;panel.textContent='';only.innerHTML='';return;}
     const summary=M.summarize(list,market),arm=name=>{const v=summary[name];return '参考'+name+'：的中 '+v.hitRaces+' / 判定 '+v.evaluableRaces+'レース · 未判定 '+v.unknownRaces+'件 · 保存点数 '+(v.ticketCounts.length?v.ticketCounts.join('・'):'未確認')+'点';};
@@ -249,10 +286,20 @@
   async function copy(value){if(!value)return;try{await navigator.clipboard.writeText(value);note('買い目候補をコピーしました。');}catch{const area=document.createElement('textarea');area.value=value;root.append(area);area.select();const ok=document.execCommand('copy');area.remove();note(ok?'買い目候補をコピーしました。':'このブラウザーではコピーできませんでした。',!ok);}}
   function click(button){
     if(!button)return;
-    if(button.dataset.prediction){variant=button.dataset.prediction;$('kn-variant').value=variant;renderCards();return;}
-    if(button.dataset.confidenceFilter){confidenceFilter=button.dataset.confidenceFilter;$('kn-confidence').value=confidenceFilter;renderCards();return;}
-    if(button.dataset.day){currentDay=button.dataset.day;venue='';render();return;}
-    if(Object.hasOwn(button.dataset,'venue')){venue=button.dataset.venue;render();return;}
+    if(button.id==='kn-page-next'||button.id==='kn-page-prev'){
+      pageNumber+=button.id==='kn-page-next'?1:-1;renderCards();$('kn-races').focus({preventScroll:true});$('kn-races').scrollIntoView({block:'start'});return;
+    }
+    if(button.dataset.history){
+      const latest=data?.dates.at(-1)||'';
+      if(button.dataset.history==='all'){period='all';$('kn-history-filters').open=true;}
+      else if(button.dataset.history==='week'){period='range';rangeTo=latest;rangeFrom=sevenDaysBefore(latest);}
+      else {period='day';currentDay=latest;}
+      pageNumber=1;pastSearch();render();if(button.dataset.history==='all')$('kn-search').focus();return;
+    }
+    if(button.dataset.prediction){variant=button.dataset.prediction;$('kn-variant').value=variant;pageNumber=1;renderCards();return;}
+    if(button.dataset.confidenceFilter){confidenceFilter=button.dataset.confidenceFilter;$('kn-confidence').value=confidenceFilter;pageNumber=1;renderCards();return;}
+    if(button.dataset.day){currentDay=button.dataset.day;period='day';venue='';pageNumber=1;pastSearch();render();return;}
+    if(Object.hasOwn(button.dataset,'venue')){venue=button.dataset.venue;pageNumber=1;render();return;}
     if(button.dataset.expand){const key=button.dataset.expand+':'+market+':'+variant;expanded.has(key)?expanded.delete(key):expanded.add(key);renderCards();return;}
     if(button.dataset.select){const id=button.dataset.select;selected.has(id)?selected.delete(id):selected.add(id);renderCards();return;}
     if(button.dataset.copy){const row=all().find(r=>r.id===button.dataset.copy);if(row)copy(copyRace(row));}
