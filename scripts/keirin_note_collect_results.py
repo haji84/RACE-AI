@@ -164,6 +164,7 @@ def collect_results(*,days,private_root,result_checks=None,fetch=None,clock=None
 
     def consume(day,manifest):
         counts['observed_races']+=len(manifest['races']);candidates=[]
+        checked_due_result=False
         for row in manifest['races']:
             rid=row['race_id'];old=checks.get(rid)
             if old and (now-result_clock(old['checked_at'])).total_seconds()<(
@@ -198,6 +199,7 @@ def collect_results(*,days,private_root,result_checks=None,fetch=None,clock=None
                         if record:receipts.append(dict(provider=provider,source_url=url,
                             source_bytes_sha256=record['bytes_sha256'],observed_at=record['captured_at']))
                     observed=_held(rid,state,receipts)
+                checked_due_result=True
             at=inputs._now(clock).isoformat();digest=fact_digest(observed);status=_status(observed)
             counts['checked_races']+=1;counts[status.lower()+'_races']+=1;states[observed['state']]+=1
             updates[rid]=dict(checked_at=at,digest=digest,status=status)
@@ -207,6 +209,7 @@ def collect_results(*,days,private_root,result_checks=None,fetch=None,clock=None
                 checked_observation(observed)
                 changed.setdefault(day,[]).append(observed)
                 counts['changed_observations']+=1
+        return checked_due_result
     def process_meetings(scan_days, *, seek_due_first=False):
         for day in scan_days:
             if session.stopped or session.budget_exhausted:break
@@ -214,9 +217,8 @@ def collect_results(*,days,private_root,result_checks=None,fetch=None,clock=None
             try:
                 for manifest in meeting_manifests(session,day,tick=tick,day_count=len(scan_days)):
                     if not discovered:counts['discovered_days']+=1;discovered=True
-                    checked_before=counts['checked_races']
-                    consume(day,manifest)
-                    if not seek_due_first or counts['checked_races']>checked_before:
+                    checked_due_result=consume(day,manifest)
+                    if not seek_due_first or checked_due_result:
                         seek_due_first=False
                         yield
                     if session.stopped or session.budget_exhausted:break
@@ -224,8 +226,8 @@ def collect_results(*,days,private_root,result_checks=None,fetch=None,clock=None
             except (ValueError,KeyError,TypeError,OSError) as error:
                 states['HOLD_'+inputs._safe_reason(error)]+=1
 
-    # Give a meeting with due results today the first turn. Future-only and
-    # recently checked meetings should not hand that turn to past dates.
+    # Give a meeting with due results today the first turn, passing over
+    # future races, fresh checks, and holds without a published cutoff.
     # Then alternate meetings under the same deadline and provider stop latch.
     scans=deque()
     if today in days:scans.append(process_meetings([today],seek_due_first=True))

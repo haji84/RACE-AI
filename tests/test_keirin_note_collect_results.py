@@ -206,6 +206,22 @@ class ResultCollectionTests(unittest.TestCase):
         self.assertEqual(result['safe_report']['future_races'],1)
         self.assertEqual(len(self.urls),9)
 
+    def test_missing_cutoff_hold_does_not_take_the_first_current_result_check(self):
+        old='2030-01-14'
+        self.add_day(old,12)
+        self.add_day(DAY,1)
+        self.add_extra_meeting(DAY,'97',cutoff='不明')
+        now=datetime(2030,1,15,12,tzinfo=timezone.utc)
+        result=self.collect(days=[old,DAY],result_checks={},clock=lambda:now,
+            monotonic=lambda:len(self.urls),budget_seconds=9)
+
+        self.assertEqual(result['safe_report']['unknown_cutoff_races'],1)
+        self.assertEqual(result['result_checks'][DAY.replace('-','')+'9701']['status'],'HOLD')
+        self.assertIn(rid(),result['result_checks'], 'A due current race must be checked')
+        self.assertLess(self.urls.index(detail(DAY,1)+'?pageType=result'),
+            self.urls.index(calendar(old)))
+        self.assertEqual(len(self.urls),9)
+
     def test_pending_retry_interval_and_special_results_hold_without_official_claim(self):
         self.pages[detail(DAY,1)+'?pageType=result']=result_html(DAY,1,payout='---')
         self.pages[detail(DAY,2)+'?pageType=result']=result_html(DAY,2,suffix='<p>返還</p>')
