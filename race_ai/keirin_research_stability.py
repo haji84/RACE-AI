@@ -11,6 +11,7 @@ from math import log
 
 GRADES = ['未評価', '低', '中', '高', '激アツ']
 RULES_VERSION = 'evidence-scenario-stability-20261122'
+FORWARD_RULES_VERSION = 'forward-scenario-stability-20261122'
 
 
 def _canonical(value):
@@ -38,15 +39,18 @@ def _unassessed(market, message):
 
 def _distribution(scenarios, arm, places):
     exact = {}
+    direct_pair = places == 2 and all('pair_support_' + arm in s for s in scenarios)
     for scenario in scenarios:
         weight = scenario.get('support_' + arm, scenario.get('relative_research_weight', 0))
+        if direct_pair:
+            weight = scenario.get('pair_support_' + arm, weight)
         if not isinstance(weight, (int, float)) or weight < 0:
             raise ValueError('INVALID_SCENARIO_SUPPORT')
-        triple = tuple(scenario['projected_3ren_tan'])
-        exact[triple] = max(exact.get(triple, 0), weight)
+        ticket = tuple(scenario['projected_3ren_tan'][:2] if direct_pair else scenario['projected_3ren_tan'])
+        exact[ticket] = max(exact.get(ticket, 0), weight)
     support = defaultdict(float)
-    for triple, weight in exact.items():
-        support[triple[:places]] += weight
+    for ticket, weight in exact.items():
+        support[ticket[:places]] += weight
     total = sum(support.values())
     if not total:
         return {}
@@ -57,8 +61,10 @@ def assess_research_analysis(analysis, *, assessed_at=None):
     at = assessed_at or analysis['generated_at']
     if _clock(at) < _clock(analysis['generated_at']):
         raise ValueError('ASSESSMENT_BEFORE_CREATION')
+    forward_method = analysis.get('method', {}).get('id') == 'forward-phase-independent-pair-selection-20261122'
     result = dict(schema='KEIRIN_RESULT_UNREAD_RESEARCH_COHERENCE_V1',
-        rules_version=RULES_VERSION, race_id=analysis['race_id'], assessed_at=at,
+        rules_version=FORWARD_RULES_VERSION if forward_method else RULES_VERSION,
+        race_id=analysis['race_id'], assessed_at=at,
         official_pre_cutoff_assessment_created=False, production_guard_modified=False,
         production_guard_bypassed=False, target_results_used=False,
         calibrated_probability=False,
@@ -103,6 +109,16 @@ def assess_research_analysis(analysis, *, assessed_at=None):
             rank = 3 if concentration >= high and same_top else 2 if concentration >= medium else 1
             if analysis.get('condition_evidence'):
                 rank = min(rank, 2)
+            selection = analysis.get(arm, {}).get('selection', {}).get(market, {})
+            abstained = selection.get('recommendation') == 'ABSTAIN_INSUFFICIENT_SEPARATION'
+            if abstained:
+                rank = 1
+            # Fewer forward paths are not new validation evidence. The new
+            # uncalibrated method cannot promote a narrow research universe
+            # to high confidence merely because unsupported paths were removed.
+            method = analysis.get('method', {}).get('id', '')
+            if method == 'forward-phase-independent-pair-selection-20261122':
+                rank = min(rank, 2)
             reasons = [
                 _reason('ENTIRE_CANDIDATE_POOL',
                     f'採用前の全{len(distribution)}通りを比較して判定。点数を増減しても評価は変わりません。'),
@@ -120,6 +136,10 @@ def assess_research_analysis(analysis, *, assessed_at=None):
             ]
             if analysis.get('condition_evidence'):
                 reasons.append(_reason('CONDITION_CAUTION', '落車後の本人コメントに不確実性があるため、高以上を付けていません。'))
+            if abstained:
+                reasons.append(_reason('ABSTAIN_INSUFFICIENT_SEPARATION', '全候補が選別窓内に残り、絞る根拠が不足。買い目は見送りです。'))
+            if method == 'forward-phase-independent-pair-selection-20261122':
+                reasons.append(_reason('FORWARD_METHOD_NOT_CALIBRATED', '順方向の展開修正で候補数は変わりますが、実結果での精度検証は未実施のため高以上へ引き上げません。'))
             result['evaluations'][key] = dict(
                 grade=GRADES[rank], rank=rank, market=market, strategy='normal',
                 metrics={'candidate_count':len(distribution),

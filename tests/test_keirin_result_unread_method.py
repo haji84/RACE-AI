@@ -66,4 +66,24 @@ class CurrentMethodEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'CONDITION_COMMENT_IDENTITY_MISMATCH'):
             g.apply_condition_observations(analysis,[dict(race_id='209901016201',car=1,name='SyntheticB')])
 
+    def test_condition_state_checks_both_independent_markets(self):
+        observation=dict(race_id='209901016201',car=1,name='Synthetic',
+            fact='本人は痛みが残ると説明。',judgement='影響は未確定。',
+            possible_ticket_impact='痛みが影響する場合の条件付き案。',
+            evidence_type='synthetic self report',source_url='https://example.invalid/pre-race',
+            captured_at='2099-01-01T00:00:00+09:00')
+        cases=[([],[[1,2],[2,3]],'GENERATED_CONDITIONAL_REFERENCE'),
+               ([[1,2,3],[2,3,4]],[],'GENERATED_CONDITIONAL_REFERENCE'),
+               ([[1,2,3]],[[1,2]],'NO_TICKETS_UNDER_CONDITION')]
+        for triples,pairs,state in cases:
+            with self.subTest(triples=triples,pairs=pairs):
+                packet=dict(ranked_tickets=triples,ranked_2ren_tan=pairs)
+                analysis=dict(race_id='209901016201',generated_at='2099-01-01T01:00:00+09:00',
+                    form_and_fall=[dict(car=1,name='Synthetic',confirmed_facts={})],
+                    A=copy.deepcopy(packet),B=copy.deepcopy(packet))
+                g.apply_condition_observations(analysis,[observation])
+                for arm in ('A','B'):
+                    self.assertEqual(analysis['condition_adjusted'][arm]['state'],state)
+                    self.assertEqual(analysis[arm],packet)
+
 if __name__=='__main__':unittest.main()

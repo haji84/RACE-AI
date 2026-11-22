@@ -31,7 +31,8 @@ class EvidenceSelection(unittest.TestCase):
             for b in range(1,6):
                 if a!=b: broad.append(dict(ticket=[a,b,6],support=1.0,scenario_ids=[f"{a}-{b}"],reasons=["equally supported finish"]))
         selected,meta=model.select_evidence_tickets(broad,market="3t")
-        self.assertEqual(len(selected),20)
+        self.assertEqual(len(selected),0)
+        self.assertEqual(meta["held_count"],20)
         self.assertEqual(meta["excluded_count"],0)
 
     def test_complete_generator_can_select_one_or_more_than_twelve(self):
@@ -46,10 +47,16 @@ class EvidenceSelection(unittest.TestCase):
         for arm in ("A","B"):
             self.assertEqual(generated[arm]["ranked_tickets"],[[1,2,3]])
             self.assertEqual(generated[arm]["ranked_2ren_tan"],[[1,2]])
-        even=fixture()
-        for row in even["riders"]:
-            row.update(competition_points=90,win_rate=20,top2_rate=40,top3_rate=60,mark_rank="UNMARKED")
-        generated=model.generate_evidence_analysis(even)
+        broad=fixture()
+        for row in broad["riders"]:
+            weak=row['car']==7
+            row.update(competition_points=60 if weak else 90,
+                win_rate=0 if weak else 20,top2_rate=0 if weak else 40,
+                top3_rate=0 if weak else 60,mark_rank="UNMARKED",
+                h_count=8,b_count=10,S=0,nige=5,makuri=3,sashi=4,mark=4,
+                style="ALLROUND")
+        broad['line_groups']=[[row['car']] for row in broad['riders']]
+        generated=model.generate_evidence_analysis(broad)
         self.assertGreater(generated["A"]["point_count_3t"],12)
         self.assertGreater(generated["B"]["point_count_3t"],12)
 
@@ -79,9 +86,10 @@ class EvidenceSelection(unittest.TestCase):
     def test_two_car_pool_is_built_before_three_car_selection(self):
         # Several weak thirds combine into the strongest pair. A truncated
         # 3T list would drop it. Independent market aggregation must retain it.
-        scenarios=[dict(scenario_id="a",projected_3ren_tan=[3,4,5],support_A=1.0,support_B=1.0,rationale=["strong single third"])]
+        scenarios=[dict(scenario_id="a",projected_3ren_tan=[3,4,5],support_A=1.0,support_B=1.0,pair_support_A=1.0,pair_support_B=1.0,rationale=["strong single third"]),
+                   dict(scenario_id="weak",projected_3ren_tan=[5,6,7],support_A=.1,support_B=.1,pair_support_A=.1,pair_support_B=.1,rationale=["weak pair"])]
         for third in (3,4,5,6,7):
-            scenarios.append(dict(scenario_id=f"b{third}",projected_3ren_tan=[1,2,third],support_A=.2,support_B=.2,rationale=["second place stable, third open"]))
+            scenarios.append(dict(scenario_id=f"b{third}",projected_3ren_tan=[1,2,third],support_A=.2,support_B=.2,pair_support_A=1.0,pair_support_B=1.0,rationale=["second place stable, third open"]))
         markets=model.select_scenario_markets(scenarios,arm="A")
         self.assertNotIn([1,2,3],markets["ranked_tickets"])
         self.assertIn([1,2],markets["ranked_2ren_tan"])

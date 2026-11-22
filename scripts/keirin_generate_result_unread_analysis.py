@@ -24,7 +24,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
 MODEL_FILE = REPO / 'race_ai/keirin_nationwide_auto_generator.py'
-MODEL_SHA256 = 'dfab448650884edc595177b2418f08769008a601bdbc68b4567e815c2bb79f0f'
+MODEL_SHA256 = 'b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47'
 DAY = '2026-11-22'
 JST = ZoneInfo('Asia/Tokyo')
 STYLE_MAP = {'逃': 'NIGE', '両': 'ALLROUND', '追': 'MARK'}
@@ -522,7 +522,7 @@ def apply_condition_observations(analysis, observations):
             original3, original2 = original_tickets[arm]['ranked_tickets'], original_tickets[arm]['ranked_2ren_tan']
             retained3 = [ticket for ticket in original3 if ticket[0] not in affected_cars]
             retained2 = [ticket for ticket in original2 if ticket[0] not in affected_cars]
-            sidecar[arm] = {'state': 'GENERATED_CONDITIONAL_REFERENCE' if retained3 else 'NO_TICKETS_UNDER_CONDITION',
+            sidecar[arm] = {'state': 'GENERATED_CONDITIONAL_REFERENCE' if (retained3 or retained2) else 'NO_TICKETS_UNDER_CONDITION',
                 'ranked_tickets': retained3, 'ranked_2ren_tan': retained2,
                 'removed_3t': [ticket for ticket in original3 if ticket[0] in affected_cars],
                 'removed_2t': [ticket for ticket in original2 if ticket[0] in affected_cars],
