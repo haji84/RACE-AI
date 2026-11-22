@@ -59,6 +59,12 @@ does not issue a hot grade without the missing condition and accuracy evidence.
 
 All committed tests use synthetic riders, comments and scenarios. Actual source
 captures, generated predictions and private originals are not committed.
+Historical replay tests use the exact public generator-source fixture
+`tests/fixtures/keirin_generator_source_9aa01431.txt`, retained from canonical
+commit `51bec791cc5be2b56f996934b4df8b51894d67d8`. Its SHA256 remains
+`9aa0143192707733a9666f8d0dad70e589451f67943130796d3ed4af0387f413`.
+The production historical verifier still rejects any different source bytes,
+including the current extended module; its integrity check is not relaxed.
 
 ```sh
 python -m unittest tests.test_keirin_evidence_selection tests.test_keirin_result_unread_method tests.test_keirin_nationwide_auto_generator -v
