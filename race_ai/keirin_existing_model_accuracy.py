@@ -7,9 +7,14 @@ The unchanged generator remains the sole original-forecast replay authority.
 from datetime import datetime,timedelta,timezone
 from hashlib import sha256
 from itertools import permutations
+from functools import lru_cache
+import json
 import math
 from pathlib import Path
 import re
+import shutil
+import subprocess
+import sys
 
 from . import keirin_nationwide_auto_generator as original
 
@@ -84,6 +89,42 @@ def _provenance(row,kind):
     return original.when(row['entry_created_at'])
 
 
+@lru_cache(maxsize=256)
+def _exact_original(snapshot_json,baseline_json,source_sha):
+    """Exact original-code replay; known historical runtimes, never float tolerance."""
+    snapshot=json.loads(snapshot_json);baseline=json.loads(baseline_json)
+    if original.generate_A_B(snapshot,generated_at=baseline['generated_at'],
+            max_tickets=len(baseline['A']['ranked_tickets']))==baseline:return True
+    # Python 3.12 changed built-in float summation. Retained originals were
+    # actually created under both 3.11 (Actions) and 3.12 (owner research).
+    # Invoke only installed known interpreters with fixed trusted source code.
+    code="""import json,sys
+from pathlib import Path
+from hashlib import sha256
+sys.path.insert(0,sys.argv[1])
+from race_ai import keirin_nationwide_auto_generator as m
+assert sha256(Path(m.__file__).read_bytes()).hexdigest()==sys.argv[2]
+s,b=json.loads(sys.stdin.buffer.read())
+print('MATCH' if m.generate_A_B(s,generated_at=b['generated_at'],max_tickets=len(b['A']['ranked_tickets']))==b else 'DIFFERENT')
+"""
+    root=str(Path(original.__file__).resolve().parents[1])
+    for version in ((3,11),(3,12)):
+        if version==sys.version_info[:2]:continue
+        executable=shutil.which('python'+'.'.join(map(str,version)))
+        if executable is None:continue
+        try:
+            result=subprocess.run([executable,'-c',code,root,source_sha],
+                input=original.canonical([snapshot,baseline]),stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,timeout=10)
+        except (OSError,subprocess.TimeoutExpired):continue
+        if result.returncode==0 and result.stdout==b'MATCH\n':return True
+    return False
+
+
+def _available(row):
+    return _provenance(row['result_provenance'],'results')
+
+
 def _prepare(rows):
     from scripts.keirin_note_collect_results import checked_observation,MATCHED
     _need(type(rows) is list and rows,'ROWS')
@@ -99,14 +140,17 @@ def _prepare(rows):
         _need(baseline['race_id']==rid and baseline['source_facts_sha256']==original.digest(snapshot) and
             baseline['prediction_sha256']==original.digest({k:v for k,v in baseline.items() if k!='prediction_sha256'}) and
             baseline['A']['model']==original.MODEL_A and baseline['B']['model']==original.MODEL_B,'ORIGINAL_HASH')
-        _need(baseline['A']['ranked_tickets']==_rank(snapshot,DEFAULT_WEIGHTS)[:len(baseline['A']['ranked_tickets'])],
-            'ORIGINAL_A_REPLAY')
+        a,b=baseline['A']['ranked_tickets'],baseline['B']['ranked_tickets']
+        _need(type(a) is list and 8<=len(a)<=12 and type(b) is list and 1<=len(b)<=len(a),'ORIGINAL_TICKET_BUDGET')
+        _need(_exact_original(original.canonical(snapshot),original.canonical(baseline),
+            sha256(Path(original.__file__).read_bytes()).hexdigest()),'ORIGINAL_REPLAY')
         generated=original.when(baseline['generated_at'])
         _need(generated<=_provenance(row['forecast_provenance'],'research')<cutoff,'FORECAST_NOT_SAVED_PRE_CUTOFF')
         checked_observation(result)
         _need(result['state']==MATCHED and result['race_id']==rid,'MATCHED_RESULT_REQUIRED')
         captured=original.when(result['captured_at'])
-        _need(cutoff<captured<=_provenance(row['result_provenance'],'results'),'RESULT_CLOCK')
+        _need(cutoff<captured<=_available(row) and
+            all(cutoff<original.when(receipt['observed_at']) for receipt in result['provider_receipts']),'RESULT_CLOCK')
         target=tuple(result['winning_triple'])
         _need(set(target)<=set(_features(snapshot)),'RESULT_ROSTER')
         prepared.append((snapshot,target,row))
@@ -152,6 +196,12 @@ def _objective(theta,tables,regularization):
         grad/len(tables)+2*regularization*delta)
 
 
+def _selection_key(candidate):
+    metrics=candidate['validation']
+    distance=math.fsum((v-d)**2 for v,d in zip(candidate['weights'],DEFAULT_WEIGHTS))
+    return (-metrics['hits'],metrics['mean_winning_rank'],distance,candidate['selection'])
+
+
 def fit_candidates(train_rows,validation_rows,*,clock=None):
     """Fit TRAIN only; select on a separate later-day cohort; no test-label API."""
     import numpy as np
@@ -160,11 +210,11 @@ def fit_candidates(train_rows,validation_rows,*,clock=None):
     _need(len(train)>=6 and len(validation)>=2,'COHORT_TOO_SMALL')
     train_ids={s['race_id'] for s,unused,row in train};valid_ids={s['race_id'] for s,unused,row in validation}
     _need(not train_ids&valid_ids and max(rid[:8] for rid in train_ids)<min(rid[:8] for rid in valid_ids),'COHORT_OVERLAP')
-    train_boundary=max(max(original.when(s['published_cutoff_at']),original.when(row['result']['captured_at']))
+    train_boundary=max(max(original.when(s['published_cutoff_at']),_available(row))
         for s,unused,row in train)
     _need(train_boundary<min(original.when(s['as_of']) for s,unused,row in validation),'TRAIN_LABEL_AFTER_VALIDATION_INPUT')
     now=_clock(clock)
-    _need(all(original.when(row['result']['captured_at'])<=now for unused,target,row in train+validation),'LABEL_NOT_YET_AVAILABLE')
+    _need(all(_available(row)<=now for unused,target,row in train+validation),'LABEL_NOT_YET_AVAILABLE')
     tables=_tables(train)
     candidates=[dict(selection='unchanged_baseline',weights=list(DEFAULT_WEIGHTS),optimizer_success=True,
         validation=_score(validation,DEFAULT_WEIGHTS),training_surrogate_loss=_objective(np.asarray(DEFAULT_WEIGHTS),tables,0.)[0])]
@@ -177,17 +227,14 @@ def fit_candidates(train_rows,validation_rows,*,clock=None):
         weights=np.clip(result.x,0.,[1.,1.,1.,1.,.25]);weights[:4]/=np.sum(weights[:4]);weights=weights.tolist();_weights(weights)
         candidates.append(dict(selection='train_l2_'+str(regularization),weights=weights,optimizer_success=True,
             validation=_score(validation,weights),training_surrogate_loss=_objective(np.asarray(weights),tables,0.)[0]))
-    def selection_key(candidate):
-        metrics=candidate['validation'];distance=math.fsum((v-d)**2 for v,d in zip(candidate['weights'],DEFAULT_WEIGHTS))
-        return (-metrics['hits'],metrics['mean_winning_rank'],distance,candidate['selection'])
-    selected=min(candidates,key=selection_key)
+    selected=min(candidates,key=_selection_key)
     artifact=dict(schema=SCHEMA,model_id=original.MODEL_A,scope=SCOPE,created_at=now.isoformat(),
         created_at_independently_attested=False,source_model_sha256=sha256(Path(original.__file__).read_bytes()).hexdigest(),
         research_code_sha256=sha256(Path(__file__).read_bytes()).hexdigest(),weights=selected['weights'],
         selected_candidate=selected['selection'],trained_examples=len(train),validation_examples=len(validation),
         training_boundary=train_boundary.isoformat(),
         first_validation_input_at=min(original.when(s['as_of']) for s,unused,row in validation).isoformat(),
-        validation_labels_available_at=max(original.when(row['result']['captured_at']) for s,unused,row in validation).isoformat(),
+        validation_labels_available_at=max(_available(row) for s,unused,row in validation).isoformat(),
         train_race_ids=sorted(train_ids),validation_race_ids=sorted(valid_ids),
         training_data_sha256=original.digest(sorted(train_rows,key=lambda r:r['snapshot']['race_id'])),
         validation_data_sha256=original.digest(sorted(validation_rows,key=lambda r:r['snapshot']['race_id'])),
@@ -211,13 +258,31 @@ def _artifact(artifact):
     created=original.when(artifact['created_at']);boundary=original.when(artifact['training_boundary'])
     _need(boundary<original.when(artifact['first_validation_input_at']) and
         original.when(artifact['validation_labels_available_at'])<=created and boundary<created,'ARTIFACT_CHRONOLOGY')
+    candidates=artifact['candidates']
+    _need(type(candidates) is list and candidates and
+        len({c['selection'] for c in candidates})==len(candidates),'CANDIDATES')
+    for candidate in candidates:
+        _weights(candidate['weights'])
+        _need(candidate['optimizer_success'] is True and
+            type(candidate['validation']['n']) is int and candidate['validation']['n']==artifact['validation_examples'] and
+            type(candidate['validation']['hits']) is int and 0<=candidate['validation']['hits']<=artifact['validation_examples'] and
+            candidate['validation']['ticket_count']==8,'CANDIDATE_METRICS')
+    winner=min(candidates,key=_selection_key)
+    baseline=next((c for c in candidates if c['selection']=='unchanged_baseline'),None)
+    _need(baseline is not None and baseline['weights']==list(DEFAULT_WEIGHTS) and
+        artifact['weights']==winner['weights'] and artifact['selected_candidate']==winner['selection'] and
+        artifact['validation_selected']==winner['validation'] and artifact['validation_baseline']==baseline['validation'],
+        'SELECTED_CANDIDATE_INCONSISTENT')
     return artifact
 
 
-def forecast_candidate(snapshot,artifact,*,clock=None):
+def forecast_candidate(snapshot,artifact,*,clock=None,expected_artifact_sha256=None):
     artifact=_artifact(artifact);now=_clock(clock)
+    _need(expected_artifact_sha256 is None or artifact['artifact_sha256']==expected_artifact_sha256,'LOCK_DIGEST_CHANGED')
     _need(original.when(artifact['created_at'])<=now,'FORECAST_PRECEDES_ARTIFACT')
     _need(original.when(artifact['training_boundary'])<original.when(snapshot['as_of']),'INPUT_PRECEDES_TRAINING')
+    _need(original.when(snapshot['published_cutoff_at']).astimezone(JST).strftime('%Y%m%d')==snapshot['race_id'][:8] and
+        snapshot['race_id'] not in set(artifact['train_race_ids'])|set(artifact['validation_race_ids']),'FITTING_RACE_OR_DAY_CONFLICT')
     generated=now.isoformat()
     selected=rank_tickets(snapshot,weights=artifact['weights'],generated_at=generated)
     baseline=rank_tickets(snapshot,generated_at=generated)

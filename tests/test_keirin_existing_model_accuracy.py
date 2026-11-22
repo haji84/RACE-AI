@@ -101,6 +101,29 @@ class ExistingModelResearchTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'TRAIN_LABEL_AFTER_VALIDATION_INPUT'):
             research.fit_candidates(train,self.valid,clock=lambda:NOW)
 
+    def test_saved_label_availability_controls_training_split_and_fit_clock(self):
+        train=deepcopy(self.train);valid=deepcopy(self.valid)
+        train[-1]['result_provenance']['entry_created_at']='2030-02-01T00:00:00+00:00'
+        with self.assertRaises(ValueError):research.fit_candidates(train,self.valid,clock=lambda:NOW)
+        valid[-1]['result_provenance']['entry_created_at']='2030-02-01T00:00:00+00:00'
+        with self.assertRaises(ValueError):research.fit_candidates(self.train,valid,clock=lambda:NOW)
+
+    def test_empty_or_modified_original_cannot_enter_scoring_denominator(self):
+        for mutate in ('empty','B'):
+            with self.subTest(mutate=mutate):
+                r=row(1)
+                if mutate=='empty':
+                    r['baseline']['A']['ranked_tickets']=[];r['baseline']['B']['ranked_tickets']=[]
+                else:r['baseline']['B']['ranked_tickets'][0]=[3,1,2]
+                r['baseline']['prediction_sha256']=original.digest({k:v for k,v in r['baseline'].items() if k!='prediction_sha256'})
+                with self.assertRaises(ValueError):research.score_records([r])
+
+    def test_each_result_provider_receipt_must_follow_the_cutoff(self):
+        r=row(1)
+        for receipt in r['result']['provider_receipts']:receipt['observed_at']=r['snapshot']['as_of']
+        r['result']['observation_sha256']=fact_digest(r['result'])
+        with self.assertRaises(ValueError):research.score_records([r])
+
     def test_held_results_are_not_losses_or_training_labels(self):
         r=row(1);r['result'].update(state='HOLD_RESULT_SOURCE_UNAVAILABLE',winning_triple=None,
             payout_per_100yen=None,provider_receipts=[])
@@ -127,6 +150,19 @@ class ExistingModelResearchTests(unittest.TestCase):
         r=row(16);at=datetime(2030,1,16,1,tzinfo=timezone.utc)
         artifact=deepcopy(self.artifact);artifact['weights'][0]+=.01
         with self.assertRaises(ValueError):research.forecast_candidate(r['snapshot'],artifact,clock=lambda:at)
+
+    def test_rehashed_selected_coefficients_must_match_the_actual_validation_winner(self):
+        artifact=deepcopy(self.artifact);artifact['weights']=list(research.DEFAULT_WEIGHTS)
+        artifact['artifact_sha256']=original.digest({k:v for k,v in artifact.items() if k!='artifact_sha256'})
+        with self.assertRaises(ValueError):
+            research.forecast_candidate(row(16)['snapshot'],artifact,
+                clock=lambda:datetime(2030,1,16,1,tzinfo=timezone.utc))
+
+    def test_forward_snapshot_day_and_identity_cannot_reuse_fitting_races(self):
+        r=row(16);r['snapshot']['race_id']=self.artifact['validation_race_ids'][0]
+        with self.assertRaises(ValueError):
+            research.forecast_candidate(r['snapshot'],self.artifact,
+                clock=lambda:datetime(2030,1,16,1,tzinfo=timezone.utc))
         artifact=deepcopy(self.artifact);artifact['model_id']='invented-new-family'
         artifact['artifact_sha256']=original.digest({k:v for k,v in artifact.items() if k!='artifact_sha256'})
         with self.assertRaises(ValueError):research.forecast_candidate(r['snapshot'],artifact,clock=lambda:at)
