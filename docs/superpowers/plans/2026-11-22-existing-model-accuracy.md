@@ -55,7 +55,7 @@
 - [x] Fit only historical training/validation and lock the candidate; use the unexamined final-day results only afterwards.
 - [x] Generate remaining future shadows with actual times if candidate merits testing, encrypt and save them on the existing PR8 branch before their cutoffs; otherwise report no candidate improvement without fabricating one.
 - [x] Independently read back ciphers and safe aggregate results; run final review/tests and preserve original model/study hashes.
-- [ ] Update existing branch/PR8 records only; report measured changes and uncompleted forward support.
+- [x] Update existing branch/PR8 records only; report measured changes and uncompleted forward support. Code/evidence commit e493d6da5103817845321af57f5e3e1d28e95e2f was normally pushed and publicly read back; the already-merged PR8 description links that fixed revision. This is not a new main merge or production promotion.
 
 ### Task 4: Read-only comparison of the frozen cohort
 
