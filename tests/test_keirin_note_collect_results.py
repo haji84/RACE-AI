@@ -152,6 +152,41 @@ class ResultCollectionTests(unittest.TestCase):
         self.assertEqual(result['safe_report']['matched_races'],4)
         self.assertEqual(len(self.observations(result,ancient)),1)
 
+    def test_current_day_reaches_result_checks_when_history_would_use_the_budget(self):
+        days=['2030-01-12','2030-01-13','2030-01-14',DAY]
+        for day in days:
+            self.add_day(day,12)
+        now=datetime(2030,1,15,12,tzinfo=timezone.utc)
+        result=self.collect(days=days,result_checks={},clock=lambda:now,
+            monotonic=lambda:len(self.urls),budget_seconds=6)
+
+        self.assertEqual(self.urls[0],calendar(DAY))
+        self.assertEqual(set(result['result_checks']),{rid(n=1),rid(n=2)})
+        self.assertEqual(result['safe_report']['matched_races'],2)
+        self.assertEqual(len(self.urls),6)
+
+    def test_history_gets_a_turn_before_the_second_current_meeting(self):
+        old='2030-01-14'
+        self.add_day(old,1)
+        self.add_day(DAY,1)
+        compact=DAY.replace('-','')
+        card=meeting(DAY).replace('98'+compact,'97'+compact)
+        race=detail(DAY,1).replace('98'+compact,'97'+compact)
+        self.pages[calendar(DAY)]+=f'<a href="{card}">架空開催</a>'.encode()
+        self.pages[card]=self.pages[meeting(DAY)].replace(detail(DAY,1).encode(),race.encode())
+        self.pages[race+'?pageType=result']=result_html(DAY,1)
+        self.pages['https://keirin.netkeiba.com/race/result/?race_id='+compact+'9701']=result_html(DAY,1)
+        now=datetime(2030,1,15,12,10,tzinfo=timezone.utc)
+        result=self.collect(days=[old,DAY],result_checks={},clock=lambda:now,
+            monotonic=lambda:len(self.urls),budget_seconds=8)
+
+        self.assertEqual(self.urls[0],calendar(DAY))
+        self.assertEqual(len(result['result_checks']),2)
+        self.assertEqual({race_id[:8] for race_id in result['result_checks']},
+            {compact,old.replace('-','')})
+        self.assertEqual(result['safe_report']['matched_races'],2)
+        self.assertEqual(len(self.urls),8)
+
     def test_pending_retry_interval_and_special_results_hold_without_official_claim(self):
         self.pages[detail(DAY,1)+'?pageType=result']=result_html(DAY,1,payout='---')
         self.pages[detail(DAY,2)+'?pageType=result']=result_html(DAY,2,suffix='<p>返還</p>')

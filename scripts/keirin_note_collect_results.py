@@ -3,7 +3,7 @@
 No forecasts are generated and neither owner private key is needed. A matched
 Kdreams/netkeirin pair remains secondary research, never official settlement.
 """
-from collections import Counter
+from collections import Counter, deque
 from datetime import date, datetime, timezone
 from hashlib import sha256
 import re
@@ -155,12 +155,13 @@ def collect_results(*,days,private_root,result_checks=None,fetch=None,clock=None
     session=ResultSession(root,today,fetch or capture.fetch_once,clock,
         monotonic=monotonic or time.monotonic,budget_seconds=budget_seconds)
     counts=Counter();states=Counter();updates={};changed={}
-    # A clock-derived round robin needs no invented race or progress record.
-    # Even empty or unparseable historical days cannot permanently monopolize
-    # discovery: every retained day leads one normal ten-minute tick in N.
     tick=int(now.timestamp())//600
-    ordered=sorted(set(days));offset=tick%len(ordered)
-    ordered=ordered[offset:]+ordered[:offset]
+    historical_days=sorted(set(days)-{today})
+    if historical_days:
+        # Keep the existing round robin for dates before today's JST card.
+        offset=tick%len(historical_days)
+        historical_days=historical_days[offset:]+historical_days[:offset]
+
     def consume(day,manifest):
         counts['observed_races']+=len(manifest['races']);candidates=[]
         for row in manifest['races']:
@@ -206,18 +207,33 @@ def collect_results(*,days,private_root,result_checks=None,fetch=None,clock=None
                 checked_observation(observed)
                 changed.setdefault(day,[]).append(observed)
                 counts['changed_observations']+=1
-    try:
-        for day in ordered:
+    def process_meetings(scan_days):
+        for day in scan_days:
             if session.stopped or session.budget_exhausted:break
             discovered=False
             try:
-                for manifest in meeting_manifests(session,day,tick=tick,day_count=len(ordered)):
+                for manifest in meeting_manifests(session,day,tick=tick,day_count=len(scan_days)):
                     if not discovered:counts['discovered_days']+=1;discovered=True
                     consume(day,manifest)
+                    yield
                     if session.stopped or session.budget_exhausted:break
             except BudgetExhausted:break
             except (ValueError,KeyError,TypeError,OSError) as error:
                 states['HOLD_'+inputs._safe_reason(error)]+=1
+
+    # Let today's first meeting check results before history can use the budget.
+    # Then alternate meetings under the same deadline and provider stop latch.
+    scans=deque()
+    if today in days:scans.append(process_meetings([today]))
+    if historical_days:scans.append(process_meetings(historical_days))
+    try:
+        while scans and not session.stopped and not session.budget_exhausted:
+            scan=scans.popleft()
+            try:
+                next(scan)
+            except StopIteration:
+                continue
+            scans.append(scan)
     finally:
         session.finish()
     for day,observations in changed.items():
