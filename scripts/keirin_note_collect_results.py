@@ -207,24 +207,28 @@ def collect_results(*,days,private_root,result_checks=None,fetch=None,clock=None
                 checked_observation(observed)
                 changed.setdefault(day,[]).append(observed)
                 counts['changed_observations']+=1
-    def process_meetings(scan_days):
+    def process_meetings(scan_days, *, seek_due_first=False):
         for day in scan_days:
             if session.stopped or session.budget_exhausted:break
             discovered=False
             try:
                 for manifest in meeting_manifests(session,day,tick=tick,day_count=len(scan_days)):
                     if not discovered:counts['discovered_days']+=1;discovered=True
+                    checked_before=counts['checked_races']
                     consume(day,manifest)
-                    yield
+                    if not seek_due_first or counts['checked_races']>checked_before:
+                        seek_due_first=False
+                        yield
                     if session.stopped or session.budget_exhausted:break
             except BudgetExhausted:break
             except (ValueError,KeyError,TypeError,OSError) as error:
                 states['HOLD_'+inputs._safe_reason(error)]+=1
 
-    # Let today's first meeting check results before history can use the budget.
+    # Give a meeting with due results today the first turn. Future-only and
+    # recently checked meetings should not hand that turn to past dates.
     # Then alternate meetings under the same deadline and provider stop latch.
     scans=deque()
-    if today in days:scans.append(process_meetings([today]))
+    if today in days:scans.append(process_meetings([today],seek_due_first=True))
     if historical_days:scans.append(process_meetings(historical_days))
     try:
         while scans and not session.stopped and not session.budget_exhausted:
