@@ -1,0 +1,441 @@
+{
+  "schema": "RACE_AI_KEIRIN_PR328_PRODUCTION_ACCEPTANCE_20261122_V1",
+  "observed_at_utc": "2026-11-22T13:16:13.359Z",
+  "day_jst": "2026-11-22",
+  "approval_scope": "One protected pull request plus required checks and operational verification",
+  "pr": {
+    "number": 328,
+    "url": "https://github.com/haji84/RACE-AI/pull/328",
+    "head_sha": "2ebd276b650089c17739c16011f053682ab073ee",
+    "merged_main": "ac6f4e8a014af5bf144b0146961a706159d06f0d",
+    "merged_at_utc": "2026-11-22T13:00:53Z",
+    "method": "merge",
+    "main_tree_matches_reviewed_head": true,
+    "checked_files": 5,
+    "checks": {
+      "success": 9,
+      "skipped": 33,
+      "failed": 0,
+      "required_unit": "pass"
+    }
+  },
+  "post_merge_checks": {
+    "official": {
+      "run_id": 45025234124,
+      "code_tests": "success",
+      "readiness_job": 137217701906,
+      "readiness_state": "HOLD_NATIONWIDE_AB_NOT_SELECTED",
+      "same_existing_readiness_in_run": 44903768999,
+      "owner_key_pin_valid": true,
+      "git_history_readable": true,
+      "settings_changed": false
+    },
+    "result": {
+      "run_id": 45025234153,
+      "status": "success"
+    }
+  },
+  "manual_result_path": {
+    "run_id": 45025475639,
+    "job_id": 137217493818,
+    "event": "workflow_dispatch",
+    "main_sha": "ac6f4e8a014af5bf144b0146961a706159d06f0d",
+    "completed_at_utc": "2026-11-22T13:05:42Z",
+    "reports": [
+      {
+        "acquisition": {
+          "captured_races": 1,
+          "observed_races": 68,
+          "provider_denied": false,
+          "public_page_requests": 10
+        },
+        "covered_races": 158,
+        "entries": 78,
+        "priority_window_races": 11,
+        "provider_denied": false,
+        "results": {
+          "budget_exhausted": false,
+          "changed_observations": 4,
+          "checked_races": 10,
+          "discovered_days": 4,
+          "future_races": 9,
+          "hold_races": 4,
+          "matched_races": 3,
+          "not_due_races": 238,
+          "observed_races": 257,
+          "pending_races": 3,
+          "provider_denied": false,
+          "public_page_requests": 49
+        },
+        "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED"
+      },
+      {
+        "owner_source_acquisition": {
+          "official_sp_acquisition": {
+            "budget_exhausted": false,
+            "new_forecasts": 0,
+            "provider_denied": false,
+            "state": "HOLD_OFFICIAL_SP_SOURCE_LAYOUT"
+          },
+          "public_page_requests": 816,
+          "state": "OWNER_ATTESTED_SOURCE_ACQUISITION_ONLY"
+        },
+        "result_rows_appended": null,
+        "result_rows_held": null,
+        "source_state": "OWNER_ATTESTED_PARTIAL_SOURCE_COLLECTED",
+        "state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT"
+      }
+    ],
+    "secondary_before": 54,
+    "secondary_after": 57,
+    "encrypted_history_readback": {
+      "observed_at_utc": "2026-11-22T13:06:21.779Z",
+      "reader_source": "335b612d08225b2e33a69fbaefc602c90cc39384",
+      "day": "2026-11-22",
+      "registry_races": 68,
+      "append_only_prefix_preserved": true,
+      "before_entries": 72,
+      "after_entries": 78,
+      "latest_encrypted_index_sha256": "6987861c94225220008c8c5e1589b45d4c1ceb27b53228babc27367da5a751cf",
+      "new_kinds": {
+        "research": 2,
+        "results": 2,
+        "nationwide": 2
+      },
+      "validated_new_observations": {
+        "2026-11-22": {
+          "SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL": 11,
+          "PENDING_RESULT_NOT_PUBLISHED": 2
+        }
+      },
+      "today_secondary_result_checks_before": {
+        "NO_CHECK": 21,
+        "MATCHED": 46,
+        "HOLD": 1
+      },
+      "today_secondary_result_checks_after": {
+        "MATCHED": 57,
+        "NO_CHECK": 9,
+        "PENDING": 1,
+        "HOLD": 1
+      },
+      "provider_denied": false,
+      "display_key_sent": false,
+      "formal_score_rows_from_previous_audit": 6
+    },
+    "reference_window": {
+      "observed_at_utc": "2026-11-22T13:06:34.353Z",
+      "new_research_entries": 2,
+      "prior_priority_window_races": 9,
+      "current_priority_window_races": 11,
+      "observations": [
+        {
+          "day": "2026-11-22",
+          "generated_at": "2026-11-22T12:31:03.570965+00:00",
+          "recorded_published_cutoff_at": "2026-11-22T21:45:00+09:00",
+          "generated_seconds_before_cutoff": 836.43,
+          "index_entry_created_at": "2026-11-22T12:31:03.632299+00:00",
+          "previously_covered": true,
+          "timing_status": "RECORDED_PRE_CUTOFF_NOT_FORMAL",
+          "formal": false
+        },
+        {
+          "day": "2026-11-22",
+          "generated_at": "2026-11-22T13:04:12.833226+00:00",
+          "recorded_published_cutoff_at": "2026-11-22T22:15:00+09:00",
+          "generated_seconds_before_cutoff": 647.167,
+          "index_entry_created_at": "2026-11-22T13:04:12.878470+00:00",
+          "previously_covered": true,
+          "timing_status": "RECORDED_PRE_CUTOFF_NOT_FORMAL",
+          "formal": false
+        }
+      ],
+      "official_originals_added": false
+    }
+  },
+  "manual_official_path": {
+    "run": {
+      "conclusion": "success",
+      "created_at": "2026-11-22T13:07:54Z",
+      "event": "workflow_dispatch",
+      "head_sha": "ac6f4e8a014af5bf144b0146961a706159d06f0d",
+      "id": 45025854999,
+      "status": "completed",
+      "updated_at": "2026-11-22T13:15:29Z"
+    },
+    "artifact_aggregates": {
+      "14754874318": {
+        "all_prediction_coverage_complete": false,
+        "day_inventory_complete": true,
+        "day_jst": "2026-11-22",
+        "new_A_B_git_archived": 2,
+        "new_A_B_sealed": 2,
+        "new_conditioned_A_B_git_archived": 2,
+        "paired_comparable_races": 0,
+        "provider_denied": false,
+        "registered_races": 68,
+        "schema": "RACE_AI_KEIRIN_GITHUB_ONLY_LIVE_AB_DAY_V1",
+        "source_or_forecast_plaintext_exposed": false,
+        "source_requests": 140,
+        "state": "OFFICIAL_SP_BASELINES_ARCHIVED",
+        "statuses": {
+          "A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK": 2,
+          "CUTOFF_MARGIN_INSUFFICIENT": 2,
+          "FROZEN_ORIGINAL_PRESERVED": 6,
+          "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 53,
+          "SOURCE_CAPTURE_BUDGET_PENDING": 5
+        },
+        "class_statuses": [
+          {
+            "class_label": "A級チャレンジ一般",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 4
+            }
+          },
+          {
+            "class_label": "A級チャレンジ予選",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 4
+            }
+          },
+          {
+            "class_label": "A級チャレンジ決勝",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 2
+            }
+          },
+          {
+            "class_label": "A級チャレンジ選抜",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 2
+            }
+          },
+          {
+            "class_label": "A級一般",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 4
+            }
+          },
+          {
+            "class_label": "A級予選",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 6
+            }
+          },
+          {
+            "class_label": "A級初日特選",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 2
+            }
+          },
+          {
+            "class_label": "A級決勝",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 2
+            }
+          },
+          {
+            "class_label": "A級準決勝",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 6
+            }
+          },
+          {
+            "class_label": "A級特一般",
+            "statuses": {
+              "CUTOFF_MARGIN_INSUFFICIENT": 1,
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 3
+            }
+          },
+          {
+            "class_label": "A級特予選",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 4
+            }
+          },
+          {
+            "class_label": "A級特選",
+            "statuses": {
+              "A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK": 2,
+              "CUTOFF_MARGIN_INSUFFICIENT": 1,
+              "SOURCE_CAPTURE_BUDGET_PENDING": 1
+            }
+          },
+          {
+            "class_label": "S級一般",
+            "statuses": {
+              "FROZEN_ORIGINAL_PRESERVED": 3,
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 4
+            }
+          },
+          {
+            "class_label": "S級準決勝",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 9
+            }
+          },
+          {
+            "class_label": "S級特選",
+            "statuses": {
+              "FROZEN_ORIGINAL_PRESERVED": 1,
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 2
+            }
+          },
+          {
+            "class_label": "S級選抜",
+            "statuses": {
+              "FROZEN_ORIGINAL_PRESERVED": 2,
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 1
+            }
+          },
+          {
+            "class_label": "UNRECOGNIZED_CLASS_LABEL",
+            "statuses": {
+              "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 2
+            }
+          }
+        ],
+        "diagnostic_counts": [
+          {
+            "stage": "CONTENT_CHECK",
+            "reason": "SOURCE_ACCEPTED",
+            "http_status": 200,
+            "count": 32
+          }
+        ],
+        "archived_items": 2
+      },
+      "14755862018": {
+        "RSA_private_decryption_verified": false,
+        "day_jst": "2026-11-22",
+        "independently_verified": 2,
+        "independently_verified_conditioned": 2,
+        "new_archived": 2,
+        "organizer_result_verified": false,
+        "plaintext_parent_linkage_verified": false,
+        "schema": "RACE_AI_KEIRIN_GITHUB_ONLY_AB_SECOND_RUNNER_V1"
+      },
+      "14756495035": {
+        "authenticated_originals": 8,
+        "covered_races": 158,
+        "day_jst": "2026-11-22",
+        "entries": 79,
+        "priority_window_races": 11,
+        "private_plaintext_uploaded": false,
+        "production_state_key_used": false,
+        "provider_denied": false,
+        "provider_requests": 0,
+        "published_day_status": 1,
+        "published_originals": 2,
+        "source_requests": 0,
+        "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED"
+      },
+      "14755871278": {
+        "day_jst": "2026-11-22",
+        "no_provider_tick": true,
+        "original_publication_acks": 1,
+        "provider_denied": false,
+        "publication_acks": 6,
+        "published_day_status": 0,
+        "published_originals": 0,
+        "published_races": 0,
+        "settled_races": 0,
+        "source_requests": 0,
+        "source_unavailable": false,
+        "state": "OFFICIAL_SP_SAVED_RESULT_UPDATES_PUBLISHED",
+        "diagnostic_counts": []
+      }
+    },
+    "second_runner_job_id": 137220177879,
+    "independent_public_encrypted_blob_read_before_cutoff": {
+      "day_jst": "2026-11-22",
+      "producer_run_id": 45025854999,
+      "readback_git_commit": "d49533e366f9f7c0992eaa3e3369d8aa7dc83aa6",
+      "originals_verified": 2,
+      "receipt_clock_and_encrypted_blob_hashes": [
+        {
+          "cutoff_jst": "2026-11-22T22:27:00+09:00",
+          "receipt_observed_at_utc": "2026-11-22T13:12:15.136237+00:00",
+          "baseline_https_readback_at_utc": "2026-11-22T13:14:48.620929+00:00",
+          "record_seconds_before_cutoff": 884.864,
+          "baseline_https_read_seconds_before_cutoff": 731.379,
+          "baseline_cipher_bytes": 11621,
+          "source_bundle_cipher_bytes": 10838626,
+          "baseline_and_source_bundle_cipher_hashes_verified": true
+        },
+        {
+          "cutoff_jst": "2026-11-22T22:47:00+09:00",
+          "receipt_observed_at_utc": "2026-11-22T13:13:23.633829+00:00",
+          "baseline_https_readback_at_utc": "2026-11-22T13:14:49.071601+00:00",
+          "record_seconds_before_cutoff": 2016.366,
+          "baseline_https_read_seconds_before_cutoff": 1930.928,
+          "baseline_cipher_bytes": 11673,
+          "source_bundle_cipher_bytes": 7507130,
+          "baseline_and_source_bundle_cipher_hashes_verified": true
+        }
+      ]
+    },
+    "site_feed_readback": {
+      "day": "2026-11-22",
+      "as_of_utc": "2026-11-22T13:16:13.359Z",
+      "feed_entries": 79,
+      "registry_observed_at": "2026-11-22T13:13:32.429735+00:00",
+      "registry_complete": true,
+      "registered_races": 68,
+      "official_status_counts": {
+        "PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL": 53,
+        "CUTOFF_MARGIN_INSUFFICIENT": 2,
+        "A_B_AUTHENTICATED_PRE_CUTOFF": 8,
+        "SOURCE_CAPTURE_BUDGET_PENDING": 5
+      },
+      "official_saved_originals": {
+        "baseline": 8,
+        "conditioned": 7,
+        "authenticated_registry_originals": 8,
+        "baseline_generated_in_10_to_15_min": 1,
+        "baseline_sealed_in_10_to_15_min": 1,
+        "future_baselines": 2,
+        "with_official_result_entry": 6
+      },
+      "official_saved_originals_by_class": {
+        "A1_A2": {
+          "baseline": 2,
+          "conditioned": 2,
+          "official_result": 0
+        },
+        "S": {
+          "baseline": 6,
+          "conditioned": 5,
+          "official_result": 6
+        }
+      },
+      "current_secondary_counts": {
+        "MATCHED": 57,
+        "NO_CHECK": 9,
+        "PENDING": 1,
+        "HOLD": 1
+      },
+      "new_pending_official_cutoff_clocks": [
+        {
+          "cutoff_at": "2026-11-22T22:27:00+09:00",
+          "generated_seconds_before": 891.56,
+          "sealed_seconds_before": 891.555
+        },
+        {
+          "cutoff_at": "2026-11-22T22:47:00+09:00",
+          "generated_seconds_before": 2022.778,
+          "sealed_seconds_before": 2022.773
+        }
+      ],
+      "provider_denied": false,
+      "display_key_sent": false
+    }
+  },
+  "incomplete": {
+    "day_wide_pre_cutoff_completion": false,
+    "unattended_end_to_end_proven_at_this_checkpoint": false,
+    "pr71_formal_four_model_source_admitted": false,
+    "official_results_due_for_new_originals": 2,
+    "budget_pending_at_capture": 5
+  }
+}
