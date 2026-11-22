@@ -152,6 +152,76 @@ class ResultCollectionTests(unittest.TestCase):
         self.assertEqual(result['safe_report']['matched_races'],4)
         self.assertEqual(len(self.observations(result,ancient)),1)
 
+    def test_current_day_reaches_result_checks_when_history_would_use_the_budget(self):
+        days=['2030-01-12','2030-01-13','2030-01-14',DAY]
+        for day in days:
+            self.add_day(day,12)
+        now=datetime(2030,1,15,12,tzinfo=timezone.utc)
+        result=self.collect(days=days,result_checks={},clock=lambda:now,
+            monotonic=lambda:len(self.urls),budget_seconds=6)
+
+        self.assertEqual(self.urls[0],calendar(DAY))
+        self.assertEqual(set(result['result_checks']),{rid(n=1),rid(n=2)})
+        self.assertEqual(result['safe_report']['matched_races'],2)
+        self.assertEqual(len(self.urls),6)
+
+    def add_extra_meeting(self, day, venue, cutoff='12:00'):
+        compact=day.replace('-','')
+        card=meeting(day).replace('98'+compact,venue+compact)
+        race=detail(day,1).replace('98'+compact,venue+compact)
+        self.pages[calendar(day)]+=f'<a href="{card}">架空開催</a>'.encode()
+        self.pages[card]=self.pages[meeting(day)].replace(detail(day,1).encode(),race.encode()).replace(b'12:00',cutoff.encode())
+        self.pages[race+'?pageType=result']=result_html(day,1)
+        self.pages['https://keirin.netkeiba.com/race/result/?race_id='+compact+venue+'01']=result_html(day,1)
+
+    def test_history_gets_a_turn_before_the_second_current_meeting(self):
+        old='2030-01-14'
+        self.add_day(old,1)
+        self.add_day(DAY,1)
+        self.add_extra_meeting(DAY,'97')
+        now=datetime(2030,1,15,12,10,tzinfo=timezone.utc)
+        result=self.collect(days=[old,DAY],result_checks={},clock=lambda:now,
+            monotonic=lambda:len(self.urls),budget_seconds=8)
+
+        self.assertEqual(self.urls[0],calendar(DAY))
+        self.assertEqual(len(result['result_checks']),2)
+        self.assertEqual({race_id[:8] for race_id in result['result_checks']},
+            {DAY.replace('-',''),old.replace('-','')})
+        self.assertEqual(result['safe_report']['matched_races'],2)
+        self.assertEqual(len(self.urls),8)
+
+    def test_future_only_first_meeting_does_not_delay_a_due_current_meeting(self):
+        old='2030-01-14'
+        self.add_day(old,12)
+        self.add_day(DAY,1)
+        self.add_extra_meeting(DAY,'97',cutoff='23:50')
+        now=datetime(2030,1,15,12,tzinfo=timezone.utc)
+        result=self.collect(days=[old,DAY],result_checks={},clock=lambda:now,
+            monotonic=lambda:len(self.urls),budget_seconds=9)
+
+        self.assertIn(rid(),result['result_checks'], 'A due current race must be checked')
+        self.assertEqual(result['result_checks'][rid()]['status'],'MATCHED')
+        self.assertLess(self.urls.index(detail(DAY,1)+'?pageType=result'),
+            self.urls.index(calendar(old)))
+        self.assertEqual(result['safe_report']['future_races'],1)
+        self.assertEqual(len(self.urls),9)
+
+    def test_missing_cutoff_hold_does_not_take_the_first_current_result_check(self):
+        old='2030-01-14'
+        self.add_day(old,12)
+        self.add_day(DAY,1)
+        self.add_extra_meeting(DAY,'97',cutoff='不明')
+        now=datetime(2030,1,15,12,tzinfo=timezone.utc)
+        result=self.collect(days=[old,DAY],result_checks={},clock=lambda:now,
+            monotonic=lambda:len(self.urls),budget_seconds=9)
+
+        self.assertEqual(result['safe_report']['unknown_cutoff_races'],1)
+        self.assertEqual(result['result_checks'][DAY.replace('-','')+'9701']['status'],'HOLD')
+        self.assertIn(rid(),result['result_checks'], 'A due current race must be checked')
+        self.assertLess(self.urls.index(detail(DAY,1)+'?pageType=result'),
+            self.urls.index(calendar(old)))
+        self.assertEqual(len(self.urls),9)
+
     def test_pending_retry_interval_and_special_results_hold_without_official_claim(self):
         self.pages[detail(DAY,1)+'?pageType=result']=result_html(DAY,1,payout='---')
         self.pages[detail(DAY,2)+'?pageType=result']=result_html(DAY,2,suffix='<p>返還</p>')

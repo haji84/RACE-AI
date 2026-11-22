@@ -41,8 +41,17 @@ def _source(raw, expected):
 # Later-day labels were published with no usable navigation reference then.
 # Naming a round never admits a card: current published reference, roster,
 # grade, cutoff and line checks below remain mandatory; advance rules unknown.
-# Additional labels, including A-class, require primary evidence and regression.
+# The official continuation runs 44987254723, 45017430382 and 45023069187
+# also verified future cards for the six A-class labels below, with A3 or
+# A1/A2 grades.
+# A label never supplies a qualification rule or any missing card input.
 OBSERVED_CLASSES = {
+    'A級チャレンジ一般': 'CHALLENGE',
+    'A級チャレンジ選抜': 'CHALLENGE',
+    'A級チャレンジ決勝': 'CHALLENGE',
+    'A級特一般': 'A1_A2',
+    'A級特選': 'A1_A2',
+    'A級決勝': 'A1_A2',
     'S級一次予選1': 'S',
     'S級一次予選2': 'S',
     'S級選抜': 'S',
@@ -59,6 +68,13 @@ OBSERVED_CLASSES = {
     'L級ガールズ選抜': 'GIRLS',
     'L級ガールズ特選': 'GIRLS',
     'L級ガールズ決勝': 'GIRLS',
+}
+
+RIDER_GRADE_PATTERNS = {
+    'CHALLENGE': r'A3',
+    'A1_A2': r'A[12]',
+    'S': r'S[12S]|S級[12S]班',
+    'GIRLS': r'L1|L級1班',
 }
 LINE_VIEW_PATH = '/sp/static/js/SJ0314_v.js'
 _LINE_VIEW_FRAGMENTS = (
@@ -303,7 +319,7 @@ def parse_extension_card(*, list_raw, detail_raw, expected_day, venue_code, race
           'WITHDRAWAL_OR_ROSTER_UNRESOLVED')
     embedded = receipt._embedded(card_api.browser_source._document(detail_raw))
     grades = [receipt._norm(r['kyuhan']) for r in embedded['SJ0315']['sensyuTypeInfo']]
-    pattern = r'L1|L級1班' if competition=='GIRLS' else r'S[12S]|S級[12S]班'
+    pattern = RIDER_GRADE_PATTERNS[competition]
     _need(all(re.fullmatch(pattern,g) for g in grades), 'CARD_CLASS_DISAGREEMENT')
     if line_view_source is not None:
         _need(form._aware(line_view_source['observed_at']) <= now, 'LINE_VIEW_AFTER_INPUT')
