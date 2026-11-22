@@ -91,16 +91,18 @@ no diagnosis, medical recovery claim or numerical injury penalty is inferred.
 
 `race_ai/keirin_research_stability.py` now connects the current forward research
 route to the existing four-grade rule. New assessments use
-`forward-research-coherence-20261122-v3`, identify the inherited threshold rule as
+`forward-research-coherence-20261122-v4`, identify the inherited threshold rule as
 `research-coherence-v1`, and can return 低, 中, 高, or 激アツ. Missing or unsuitable
-evidence remains 未評価. This is a change from v2's single-outcome stability
-metric to the established winner/pair/triple concentration and selected-coverage
-criteria; it is not a promotion of model weights or an accuracy claim.
+evidence remains 未評価. V3 introduced winner/pair/triple concentration and
+selected-coverage criteria in place of v2's single-outcome stability metric.
+V4 measures the leading four triples instead of six; it leaves the leading two
+winner candidates, leading four pairs and all threshold percentages unchanged.
+This is not a promotion of model weights or an accuracy claim.
 
 The shared pure `grade_coherence_metrics` function in
 `race_ai/keirin_confidence.py` owns the unchanged thresholds:
 
-| Grade | Top-two winner share | Top-four pair share | Top-six triple share (3t) | Selected coverage |
+| Grade | Top-two winner share | Top-four pair share | Top-four triple share (3t) | Selected coverage |
 | --- | ---: | ---: | ---: | ---: |
 | 激アツ | 0.85 | 0.85 | 0.90 | 0.90 |
 | 高 | 0.70 | 0.70 | 0.80 | 0.80 |
@@ -110,15 +112,19 @@ The shared pure `grade_coherence_metrics` function in
 High and hot additionally require every major represented branch to be covered.
 Two-car evaluations do not use the triple requirement. Every share refers to
 this saved research representation, not a frequency observed in actual races.
+V4 emits `triple_top4_share` (null for 2t), with no `triple_top6_share` field.
+It passes that metric name explicitly to the shared grader and next-level
+explanation. The shared grader's default and the formal sidecar stay on top six.
 
 The forward adapter keeps the existing complete market pools. Exact triples use
 the maximum existing `support_A/B` among their supporting scenarios. Pairs use
 the maximum existing `pair_support_A/B`; they are not formed by summing third
 alternatives. Normalize that complete market pool once, before consulting
 selected tickets. Winner concentration sums this normalized support by first
-car; pair and triple concentration sum the leading four pairs and six triples.
+car; pair and triple concentration sum the leading four pairs and four triples.
 Selected coverage sums the same fixed support only for the actual saved tickets.
 No ticket, scenario, model coefficient, or source support value is changed.
+Four is a concentration window, not a cap of four adopted tickets.
 
 The major-branch adapter is explicit because forward scenarios can contain
 duplicate goals and multiple thirds. Each distinct market candidate with at
@@ -145,16 +151,18 @@ Ticket count itself earns no bonus. Removing tickets cannot improve coverage or
 the grade, and adding tickets outside the modeled pool cannot improve either.
 Adding a supported outcome can improve actual coverage; therefore the former
 v2 claim that all additions/removals leave the grade unchanged does not apply
-to v3. Strong concentration alone is insufficient when selected tickets omit
+to v3/v4. Strong concentration alone is insufficient when selected tickets omit
 important branches. No real race is guaranteed to receive high or hot.
 
 The result-unread envelope remains separate from the formal pre-cutoff sidecar.
 It retains actual creation/assessment times and its original source/cutoff facts,
 with `official_pre_cutoff_assessment_created`, guard-modification and result-use
 flags false. No call to formal `assess_baseline` or `evaluate_ticket_set` is made,
-and the formal 65-second guard is unchanged. Historical v1/v2 packets and sealed
-baselines retain their original version and bytes. A new v3 assessment is saved
-as a new research output rather than backdated into an old forecast.
+and the formal 65-second guard is unchanged. Historical v1/v2/v3 packets and
+sealed baselines retain their original version and bytes. Historical v3 replay
+uses its original top-six metric, grade and explanation. A new v4 assessment
+uses the actual assessment time, preserving the source analysis's generation
+time and tickets; it is not backdated into an old forecast.
 
 ## Source-only verification
 
@@ -178,6 +186,12 @@ selection. They also cover missing orders, omitted major branches, separate
 markets, fixed-denominator subset behavior, actual timestamps, and an isolated
 direct CLI check of the shared confidence import. This establishes reachable
 software paths, not real-race accuracy or profitability.
+
+The top-four regression uses six synthetic triples with top-six support of
+100% and top-four support of 82%. With all major branches covered, v3 grades it
+hot while v4 grades it high. The 90% hot boundary is unchanged. Separate checks
+pin historical v1/v2/v3 output digests and confirm two-car entries change only
+the unused null triple metric's name.
 
 The existing persistent-core PR workflow runs these commands. No new workflow,
 schedule, provider, permission or production weight promotion is introduced.

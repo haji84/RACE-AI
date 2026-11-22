@@ -1,6 +1,7 @@
 """Forward paths and independent markets; synthetic riders, no race results."""
 from collections import defaultdict
 from copy import deepcopy
+from hashlib import sha256
 import json
 from pathlib import Path
 import subprocess
@@ -108,12 +109,31 @@ def coherence_analysis():
         A=deepcopy(arm), B=deepcopy(arm))
 
 
+def spread_thirds_analysis():
+    """Six selected triples; top four carry .82, but four pairs cover 1.0."""
+    analysis = coherence_analysis()
+    rows = [([1, 2, 3], .30), ([1, 2, 4], .25),
+            ([2, 1, 3], .15), ([2, 1, 4], .12),
+            ([1, 3, 4], .10), ([2, 3, 4], .08)]
+    for arm in ('A', 'B'):
+        for scenario, (goal, support) in zip(analysis[arm]['six_phase_scenarios'], rows):
+            scenario.update(projected_3ren_tan=list(goal), support_A=support,
+                support_B=support, pair_support_A=support, pair_support_B=support,
+                relative_research_weight=support)
+            for phase in scenario['six_phases']:
+                phase['projected_order'] = goal + [car for car in range(1, 8) if car not in goal]
+                phase['projected_top3'] = list(goal)
+        analysis[arm]['ranked_tickets'] = [list(goal) for goal, _ in rows]
+        analysis[arm]['ranked_2ren_tan'] = [[1, 2], [2, 1], [1, 3], [2, 3]]
+    return analysis
+
+
 class ForwardScenarioRegression(unittest.TestCase):
     def test_dominant_single_ticket_does_not_hide_uncovered_counter_branches(self):
         out = stability.assess_research_analysis(dominant_forward_analysis())
         self.assertEqual({key: value['grade'] for key, value in out['evaluations'].items()},
                          {'A_3t':'中', 'A_2t':'中', 'B_3t':'中', 'B_2t':'中'})
-        self.assertEqual(out['rules_version'], 'forward-research-coherence-20261122-v3')
+        self.assertEqual(out['rules_version'], 'forward-research-coherence-20261122-v4')
         for key, entry in out['evaluations'].items():
             reasons = {reason['code']: reason['message'] for reason in entry['reasons']}
             self.assertIn('MAJOR_SCENARIO_UNCOVERED', reasons)
@@ -309,6 +329,77 @@ class ForwardScenarioRegression(unittest.TestCase):
 
 
 class ForwardCoherenceRegression(unittest.TestCase):
+    def test_historical_research_versions_keep_their_original_assessment_bytes(self):
+        # Captured from main 4711b9b1 before the top-four change, using only the
+        # hand-counted synthetic input above. A v3 rewrite to top four changes
+        # its old hot grade and fails both the literal grade and byte digest.
+        analysis = spread_thirds_analysis()
+        old_analysis = deepcopy(analysis)
+        old_analysis.pop('method')
+        cases = [
+            (stability._assess_legacy_research_analysis(old_analysis), '中',
+             '6d65c067e4f7d3c2f8ae3a2c7724ae33a55bd906a849e22e4a2e903e81331b0b'),
+            (stability._assess_legacy_research_analysis(analysis), '中',
+             '5bbd63b660929c28d155d46ece28f688ae7dedc8107a7240c08ace422e5ab4dc'),
+            (stability._assess_forward_research_analysis(
+                analysis, rules_version='forward-research-coherence-20261122-v3'),
+             '激アツ', 'd8546f134f7dacf53bc7390130b8c7b0346e9f35a7b13aec70941e1cc89febf6'),
+        ]
+        for packet, grade, digest in cases:
+            with self.subTest(version=packet['rules_version']):
+                self.assertEqual(packet['evaluations']['A_3t']['grade'], grade)
+                raw = json.dumps(packet, ensure_ascii=False, sort_keys=True,
+                                 separators=(',', ':'), allow_nan=False).encode()
+                self.assertEqual(sha256(raw).hexdigest(), digest)
+
+    def test_two_car_evaluation_is_unchanged_apart_from_null_triple_field_name(self):
+        analysis = spread_thirds_analysis()
+        old = stability._assess_forward_research_analysis(
+            analysis, rules_version='forward-research-coherence-20261122-v3')
+        new = stability.assess_research_analysis(analysis)
+        for arm in ('A', 'B'):
+            expected = deepcopy(old['evaluations'][arm + '_2t'])
+            self.assertIsNone(expected['metrics'].pop('triple_top6_share'))
+            expected['metrics']['triple_top4_share'] = None
+            self.assertEqual(new['evaluations'][arm + '_2t'], expected)
+            self.assertEqual(new['evaluations'][arm + '_2t']['metrics']['axis_cars'], [1, 2])
+
+    def test_six_triples_cannot_receive_hot_when_top_four_hold_only_82_percent(self):
+        analysis = spread_thirds_analysis()
+        before = deepcopy(analysis)
+        out = stability.assess_research_analysis(analysis)
+        for arm in ('A', 'B'):
+            entry = out['evaluations'][arm + '_3t']
+            self.assertEqual(entry['grade'], '高')
+            self.assertEqual(entry['metrics'].get('triple_top4_share'), .82)
+            self.assertNotIn('triple_top6_share', entry['metrics'])
+            self.assertEqual(entry['metrics']['axis_top2_share'], 1.0)
+            self.assertEqual(entry['metrics']['pair_top4_share'], 1.0)
+            self.assertEqual(entry['metrics']['scenario_coverage'], 1.0)
+            self.assertEqual(entry['metrics']['major_uncovered_ids'], [])
+            reasons = {reason['code']: reason['message'] for reason in entry['reasons']}
+            self.assertIn('上位4組', reasons['PARTNER_GOAL_CONCENTRATION'])
+            self.assertIn('82.0%', reasons['NEXT_LEVEL_NOT_MET'])
+            self.assertIn('90.0%', reasons['NEXT_LEVEL_NOT_MET'])
+            self.assertEqual(out['evaluations'][arm + '_2t']['grade'], '激アツ')
+            self.assertEqual(len(analysis[arm]['ranked_tickets']), 6)
+        self.assertEqual(out['rules_version'], 'forward-research-coherence-20261122-v4')
+        self.assertEqual(analysis, before)
+
+    def test_top_four_triples_must_reach_the_unchanged_90_percent_hot_boundary(self):
+        cases = [([.35, .25, .20, .10, .06, .04], '激アツ', .9),
+                 ([.35, .25, .20, .0999, .0601, .04], '高', .8999)]
+        for supports, grade, top_four in cases:
+            with self.subTest(top_four=top_four):
+                analysis = spread_thirds_analysis()
+                for arm in ('A', 'B'):
+                    for scenario, weight in zip(analysis[arm]['six_phase_scenarios'], supports):
+                        scenario.update(support_A=weight, support_B=weight)
+                out = stability.assess_research_analysis(analysis)
+                self.assertEqual(out['evaluations']['A_3t']['grade'], grade)
+                self.assertEqual(out['evaluations']['A_3t']['metrics'].get('triple_top4_share'), top_four)
+                self.assertEqual(out['evaluations']['A_2t']['grade'], '激アツ')
+
     def test_direct_cli_checks_shared_confidence_without_pythonpath(self):
         script = Path(__file__).resolve().parents[1] / 'scripts/keirin_generate_result_unread_analysis.py'
         with tempfile.TemporaryDirectory() as cwd:
@@ -343,7 +434,7 @@ class ForwardCoherenceRegression(unittest.TestCase):
                 metrics = out['evaluations']['A_3t']['metrics']
                 self.assertEqual(metrics.get('axis_top2_share'), .95)
                 self.assertEqual(metrics.get('pair_top4_share'), .95)
-                self.assertEqual(metrics.get('triple_top6_share'), 1.0)
+                self.assertEqual(metrics.get('triple_top4_share'), .95)
                 self.assertEqual(metrics.get('scenario_coverage'), coverage)
                 self.assertEqual(analysis, before)
 
@@ -420,7 +511,7 @@ class ForwardCoherenceRegression(unittest.TestCase):
             new = changed['evaluations'][arm + '_2t']
             self.assertEqual(new['rank'], 4)
             self.assertEqual(new['metrics'], old['metrics'])
-            self.assertIsNone(new['metrics'].get('triple_top6_share'))
+            self.assertIsNone(new['metrics'].get('triple_top4_share'))
 
     def test_uncovered_family_blocks_high_despite_adequate_total_coverage(self):
         analysis = coherence_analysis()

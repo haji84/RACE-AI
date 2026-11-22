@@ -1,7 +1,8 @@
 """Source-bound current research coherence, never a calibrated win chance.
 
-Forward v3 reuses the established four-grade rule over the whole independent
-market pool and actual selected coverage. Ticket count itself earns no bonus.
+Forward v4 measures the leading four triples over the whole independent market
+pool, retaining the established thresholds and actual selected coverage.
+Ticket count itself earns no bonus and is not capped by this assessment.
 Historical official confidence and its deadline gates are untouched.
 """
 from collections import defaultdict
@@ -15,7 +16,9 @@ from race_ai.keirin_nationwide_auto_generator import PHASES
 
 GRADES = ['未評価', '低', '中', '高', '激アツ']
 RULES_VERSION = 'evidence-scenario-stability-20261122'
-FORWARD_RULES_VERSION = 'forward-research-coherence-20261122-v3'
+FORWARD_RULES_VERSION = 'forward-research-coherence-20261122-v4'
+FORWARD_TRIPLE_TOP_N = {'forward-research-coherence-20261122-v3': 6,
+                      FORWARD_RULES_VERSION: 4}
 LEGACY_FORWARD_RULES_VERSION = 'forward-scenario-stability-20261122-v2'
 FORWARD_FAMILIES = {'HOLD': None, 'COUNTER': 'counterattack',
                     'FOLLOWER_PASS': 'follower_sashi', 'ATTACKER_FADE': 'pace_fade',
@@ -241,7 +244,7 @@ def _selected_tickets(analysis, arm, places, cars):
     return tickets
 
 
-def _forward_metrics(scenarios, distribution, selected, arm, places):
+def _forward_metrics(scenarios, distribution, selected, arm, places, *, triple_top_n):
     """Use max-support outcomes and real branch representatives as denominator.
 
     A candidate carrying at least 10% is major. Its strongest actual source
@@ -273,22 +276,34 @@ def _forward_metrics(scenarios, distribution, selected, arm, places):
     share = lambda value: round(min(1.0, max(0.0, value)), 12)
     return dict(axis_cars=axis, axis_top2_share=share(sum(winners[car] for car in axis)),
         pair_top4_share=share(sum(sorted(pairs.values(), reverse=True)[:4])),
-        triple_top6_share=share(sum(sorted(distribution.values(), reverse=True)[:6])) if places == 3 else None,
+        **{f'triple_top{triple_top_n}_share':
+           share(sum(sorted(distribution.values(), reverse=True)[:triple_top_n])) if places == 3 else None},
         scenario_coverage=share(sum(weight for ticket, weight in distribution.items() if ticket in selected)),
         major_scenario_ids=sorted(major),
         major_uncovered_ids=sorted(sid for sid, ticket in major.items() if ticket not in selected))
 
 
 def assess_research_analysis(analysis, *, assessed_at=None):
+    """Create the current research assessment; never rewrite a saved original."""
     if analysis.get('method', {}).get('id') != 'forward-phase-independent-pair-selection-20261122':
         return _assess_legacy_research_analysis(analysis, assessed_at=assessed_at)
+    return _assess_forward_research_analysis(analysis, assessed_at=assessed_at,
+                                           rules_version=FORWARD_RULES_VERSION)
+
+
+def _assess_forward_research_analysis(analysis, *, assessed_at=None, rules_version):
+    """Keep v3's explicit metric/reason contract available for historical replay."""
+    if rules_version not in FORWARD_TRIPLE_TOP_N:
+        raise ValueError('FORWARD_RULES_VERSION_UNSUPPORTED')
+    triple_top_n = FORWARD_TRIPLE_TOP_N[rules_version]
+    triple_share_field = f'triple_top{triple_top_n}_share'
     at = assessed_at or analysis['generated_at']
     if _clock(at) < _clock(analysis['generated_at']):
         raise ValueError('ASSESSMENT_BEFORE_CREATION')
     if analysis.get('source_as_of') and _clock(analysis['source_as_of']) > _clock(analysis['generated_at']):
         raise ValueError('SOURCE_CAPTURE_AFTER_GENERATION')
     result = dict(schema='KEIRIN_RESULT_UNREAD_RESEARCH_COHERENCE_V1',
-        rules_version=FORWARD_RULES_VERSION, inherited_rules_version=confidence.RULES_VERSION,
+        rules_version=rules_version, inherited_rules_version=confidence.RULES_VERSION,
         race_id=analysis['race_id'], assessed_at=at,
         official_pre_cutoff_assessment_created=False, production_guard_modified=False,
         production_guard_bypassed=False, target_results_used=False, calibrated_probability=False,
@@ -348,8 +363,10 @@ def assess_research_analysis(analysis, *, assessed_at=None):
                 normalized_support_entropy=entropy / log(len(distribution)) if len(distribution) > 1 else 0,
                 A_B_top_candidate_agreement=top == other_top,
                 selected_ticket_count_used_for_grade=False,
-                **_forward_metrics(scenarios, distribution, selected, arm, places))
-            rank = confidence.grade_coherence_metrics(metrics, market)
+                **_forward_metrics(scenarios, distribution, selected, arm, places,
+                                   triple_top_n=triple_top_n))
+            rank = confidence.grade_coherence_metrics(metrics, market,
+                                                     triple_share_field=triple_share_field)
             reasons = [
                 _reason('ENTIRE_CANDIDATE_POOL',
                     f'採用前の全{len(distribution)}通りを固定の分母に判定。点数そのものへの加点はありません。'),
@@ -357,7 +374,7 @@ def assess_research_analysis(analysis, *, assessed_at=None):
                     f'勝ち切り候補上位2車は「{"・".join(map(str, metrics["axis_cars"]))}」。全候補内の支持比率は{metrics["axis_top2_share"]:.1%}。的中率ではありません。'),
                 _reason('PARTNER_GOAL_CONCENTRATION',
                     f'1・2着候補上位4組の支持比率は{metrics["pair_top4_share"]:.1%}。' +
-                    (f'3着までの上位6組は{metrics["triple_top6_share"]:.1%}。' if places == 3 else '') +
+                    (f'3着までの上位{triple_top_n}組は{metrics[triple_share_field]:.1%}。' if places == 3 else '') +
                     '採用前の全候補に対する比率です。'),
                 _reason('FIXED_UNIVERSE_COVERAGE',
                     f'採用買い目が残す全候補内の支持比率は{metrics["scenario_coverage"]:.1%}。候補集合は買い目の増減で変えません。'),
@@ -369,7 +386,8 @@ def assess_research_analysis(analysis, *, assessed_at=None):
                     '全候補内の支持比率10%以上の筋、または各対抗分岐の最上位候補に未採用があるため、高以上にはしません。')
                 reason['scenario_ids'] = list(metrics['major_uncovered_ids'])
                 reasons.append(reason)
-            gap = confidence._next_level_reason(metrics, market, rank)
+            gap = confidence._next_level_reason(metrics, market, rank,
+                                                triple_share_field=triple_share_field)
             if gap is not None:
                 reasons.append(gap)
             if analysis.get('condition_evidence'):

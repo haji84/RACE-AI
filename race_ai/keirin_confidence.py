@@ -277,16 +277,20 @@ def _measure(universe, selected, market):
     return metrics
 
 
-def grade_coherence_metrics(metrics, market):
+def grade_coherence_metrics(metrics, market, *, triple_share_field="triple_top6_share"):
     """Pure four-grade rule shared by separately validated research adapters.
 
     This only classifies already measured fixed-universe metrics. It does not
     create an assessment, validate source provenance, or waive cutoff gates.
     The thresholds are designed rules, not empirical success/return rates.
+    The formal v1 rule retains top six. A separately versioned adapter may
+    explicitly use top four without changing saved formal assessments.
     """
+    _need(triple_share_field in ("triple_top6_share", "triple_top4_share"),
+          "CONFIDENCE_TRIPLE_METRIC_INVALID")
     for rank, (axis, pair, triple, coverage) in THRESHOLDS.items():
         if (metrics["axis_top2_share"] >= axis and metrics["pair_top4_share"] >= pair and
-            (market == "2t" or metrics["triple_top6_share"] >= triple) and
+            (market == "2t" or metrics[triple_share_field] >= triple) and
             metrics["scenario_coverage"] >= coverage and
             (rank < 3 or not metrics["major_uncovered_ids"])):
             return rank
@@ -302,7 +306,7 @@ def _percent(value):
     return f"{value*100:.1f}%"
 
 
-def _next_level_reason(metrics, market, rank):
+def _next_level_reason(metrics, market, rank, *, triple_share_field="triple_top6_share"):
     if rank >= 4:
         return None
     next_rank = rank+1
@@ -310,7 +314,8 @@ def _next_level_reason(metrics, market, rank):
     checks = [("axis_top2_share", limits[0], "勝ち切り候補の集中"),
               ("pair_top4_share", limits[1], "1・2着候補の集中")]
     if market == "3t":
-        checks.append(("triple_top6_share", limits[2], "3着までの候補の集中"))
+        label = "3着までの上位4組の集中" if triple_share_field == "triple_top4_share" else "3着までの候補の集中"
+        checks.append((triple_share_field, limits[2], label))
     checks.append(("scenario_coverage", limits[3], "買い目に残る候補"))
     gaps = [f"{label}の候補内比重が約{_percent(metrics[key])}で基準{_percent(limit)}以上に未達"
             for key, limit, label in checks if metrics[key] < limit]

@@ -6,7 +6,7 @@ The reader displays 激アツ, 高, 中, or 低. These levels compare the cohere
 
 The first rule version is `research-coherence-v1`. Its thresholds are explicit design choices awaiting prospective validation against subsequently observed results. They are not fitted claims about past accuracy, and the feature does not promote model weights or place wagers.
 
-## One evaluator and a fixed denominator
+## Formal v1 evaluator and a fixed denominator
 
 `race_ai/keirin_confidence.py` evaluates both automatic and newly authored selections. It uses the complete independent universe of plausible outcomes, not a universe reconstructed from the selected tickets.
 
@@ -43,11 +43,30 @@ Adjusted A/B forecasts have different tickets and do not inherit baseline grades
 ## Result-unread forward research adapter
 
 The current forward research route uses
-`forward-research-coherence-20261122-v3` in its separate
+`forward-research-coherence-20261122-v4` in its separate
 `KEIRIN_RESULT_UNREAD_RESEARCH_COHERENCE_V1` envelope. It calls the pure
-`grade_coherence_metrics` rule above, with `inherited_rules_version` set to
-`research-coherence-v1`. This connects all four grades without changing the
-formal sidecar API, its source validation, or the 65-second pre-cutoff gate.
+`grade_coherence_metrics` rule above with an explicit
+`triple_share_field="triple_top4_share"` and `inherited_rules_version` set to
+`research-coherence-v1`. V4 changes triple concentration from the leading six
+triples to the leading four. Its metrics contain `triple_top4_share`, not
+`triple_top6_share`; for two-car evaluation that field is null and is not graded.
+Winner concentration stays at the leading two cars, pair concentration stays at
+the leading four pairs, and every threshold percentage stays unchanged.
+
+| Grade | Top-two winner share | Top-four pair share | Top-four triple share (3t) | Coverage |
+| --- | ---: | ---: | ---: | ---: |
+| 激アツ | 0.85 | 0.85 | 0.90 | 0.90 |
+| 高 | 0.70 | 0.70 | 0.80 | 0.80 |
+| 中 | 0.50 | 0.50 | 0.60 | 0.50 |
+| 低 | Below the medium requirements | | | |
+
+Four is the number of leading outcomes whose support is measured, not a ticket
+limit. The saved generator, support values, scenarios and selected tickets are
+unchanged. Two-car grades keep their complete existing computation. The shared
+grader's default remains top six, preserving the formal v1 sidecar API, saved
+historical grades, source validation and 65-second pre-cutoff gate. Historical
+forward v3 replay explicitly selects the old top-six metric and retains its
+original output schema and reasons.
 
 This adapter measures the current forward generator's complete independent
 market pools: maximum existing support per exact triple, and maximum existing
@@ -69,7 +88,7 @@ backdated to satisfy that schema. Saved older packets retain their own rules.
 The four-grade adapter retains missing-evidence, condition-caution, and
 abstention restrictions. It gives no bonus for ticket count. Removing a subset
 cannot raise coverage or the grade; adding an unmodeled ticket cannot help.
-Adding a modeled outcome can improve coverage, so v3 does not repeat the older
+Adding a modeled outcome can improve coverage, so v3/v4 do not repeat the older
 single-candidate stability rule's blanket ticket-invariance claim. These remain
 uncalibrated research grades, including 激アツ.
 
