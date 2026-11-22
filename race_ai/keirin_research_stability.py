@@ -11,7 +11,7 @@ from math import log
 
 GRADES = ['未評価', '低', '中', '高', '激アツ']
 RULES_VERSION = 'evidence-scenario-stability-20261122'
-FORWARD_RULES_VERSION = 'forward-scenario-stability-20261122'
+FORWARD_RULES_VERSION = 'forward-scenario-stability-20261122-v2'
 
 
 def _canonical(value):
@@ -113,12 +113,15 @@ def assess_research_analysis(analysis, *, assessed_at=None):
             abstained = selection.get('recommendation') == 'ABSTAIN_INSUFFICIENT_SEPARATION'
             if abstained:
                 rank = 1
-            # Fewer forward paths are not new validation evidence. The new
-            # uncalibrated method cannot promote a narrow research universe
-            # to high confidence merely because unsupported paths were removed.
-            method = analysis.get('method', {}).get('id', '')
-            if method == 'forward-phase-independent-pair-selection-20261122':
-                rank = min(rank, 2)
+            concentration_reason = (
+                '別の展開にも候補が分散しており、絞り込みの根拠は弱めです。' if rank==1 else
+                '対抗展開も残るため、中心候補が崩れる条件を併記しています。' if rank==2 else
+                '複数の展開分岐で中心候補に支持が集まっています。ただし資料不足の影響は残ります。')
+            if forward_method:
+                concentration_reason += (
+                    f' 最上位1候補の支持比率は{concentration:.1%}。'
+                    f'「高」の数値条件は{high:.0%}以上とA/Bの最上位候補一致、'
+                    f'「中」は{medium:.0%}以上です。候補内の支持比率であり、的中率ではありません。')
             reasons = [
                 _reason('ENTIRE_CANDIDATE_POOL',
                     f'採用前の全{len(distribution)}通りを比較して判定。点数を増減しても評価は変わりません。'),
@@ -128,18 +131,16 @@ def assess_research_analysis(analysis, *, assessed_at=None):
                     ('基礎重視と展開重視で最上位候補が一致しています。' if same_top else
                      '基礎重視と展開重視で最上位候補が分かれています。')),
                 _reason('CANDIDATE_CONCENTRATION',
-                    '別の展開にも候補が分散しており、絞り込みの根拠は弱めです。' if rank==1 else
-                    '対抗展開も残るため、中心候補が崩れる条件を併記しています。' if rank==2 else
-                    '複数の展開分岐で中心候補に支持が集まっています。ただし資料不足の影響は残ります。'),
+                    concentration_reason),
                 _reason('NO_UNSUPPORTED_HOT_GRADE',
+                    'この方式では「高」までを判定し、既存の4段階評価の「激アツ」判定は未接続です。'
+                    if forward_method else
                     '時系列の近況・状態確認・実結果による検証が不足しているため、激アツにはしていません。'),
             ]
             if analysis.get('condition_evidence'):
                 reasons.append(_reason('CONDITION_CAUTION', '落車後の本人コメントに不確実性があるため、高以上を付けていません。'))
             if abstained:
                 reasons.append(_reason('ABSTAIN_INSUFFICIENT_SEPARATION', '全候補が選別窓内に残り、絞る根拠が不足。買い目は見送りです。'))
-            if method == 'forward-phase-independent-pair-selection-20261122':
-                reasons.append(_reason('FORWARD_METHOD_NOT_CALIBRATED', '順方向の展開修正で候補数は変わりますが、実結果での精度検証は未実施のため高以上へ引き上げません。'))
             result['evaluations'][key] = dict(
                 grade=GRADES[rank], rank=rank, market=market, strategy='normal',
                 metrics={'candidate_count':len(distribution),
