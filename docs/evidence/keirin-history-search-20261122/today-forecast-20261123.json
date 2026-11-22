@@ -1,0 +1,446 @@
+{
+  "schema": "RACE_AI_KEIRIN_TODAY_FORECAST_REPLAY_AND_SHORT_WINDOW_20261123_V1",
+  "day_jst": "2026-11-23",
+  "main_sha": "ac6f4e8a014af5bf144b0146961a706159d06f0d",
+  "forecast_replay": {
+    "replayed_reference_ab": {
+      "generated": 88,
+      "both_rankings_match_saved": 88
+    },
+    "saved_input_identity_checks": [
+      {
+        "race_id": "202611233402",
+        "source": "net",
+        "captured_at": "2026-11-22T16:52:15.207909+00:00",
+        "canonical_path": "/race/entry/results.html",
+        "canonical_explicit_race_id_relation": "SAME",
+        "canonical_same_host": true,
+        "canonical_count": 1,
+        "same_path": false,
+        "exact_canonical_url_match": false,
+        "canonical_passes_same_race_url_check": false
+      },
+      {
+        "race_id": "202611233402",
+        "source": "kd",
+        "captured_at": "2026-11-22T16:52:15.534034+00:00",
+        "canonical_path": null,
+        "canonical_explicit_race_id_relation": "ABSENT",
+        "canonical_same_host": true,
+        "canonical_count": 1,
+        "same_path": true,
+        "exact_canonical_url_match": true,
+        "canonical_passes_same_race_url_check": true
+      },
+      {
+        "race_id": "202611232611",
+        "source": "net",
+        "captured_at": "2026-11-22T22:11:59.773304+00:00",
+        "canonical_path": "/race/entry/results.html",
+        "canonical_explicit_race_id_relation": "SAME",
+        "canonical_same_host": true,
+        "canonical_count": 1,
+        "same_path": false,
+        "exact_canonical_url_match": false,
+        "canonical_passes_same_race_url_check": false
+      },
+      {
+        "race_id": "202611232611",
+        "source": "kd",
+        "captured_at": "2026-11-22T22:12:00.051898+00:00",
+        "canonical_path": null,
+        "canonical_explicit_race_id_relation": "ABSENT",
+        "canonical_same_host": true,
+        "canonical_count": 1,
+        "same_path": true,
+        "exact_canonical_url_match": true,
+        "canonical_passes_same_race_url_check": true
+      }
+    ],
+    "day": "2026-11-23",
+    "feed_head": "eacd81b413fb38d2fe0a36b3aa2be4bdd92a55f6",
+    "observed_at_utc": "2026-11-22T22:31:00.807Z",
+    "feed_entries": 96,
+    "registered_races": 89,
+    "official_inventory_complete": true,
+    "site_rows": 89,
+    "reference_input_observed_races": 89,
+    "reference_ab": 88,
+    "reference_ab_pre_cutoff": 88,
+    "reference_ab_future": 88,
+    "earliest_displayed_future_cutoff": "2026-11-23T08:45:00+09:00",
+    "latest_displayed_future_cutoff": "2026-11-23T23:25:00+09:00",
+    "official_ab": 1,
+    "conditioned_ab": 0,
+    "official_cutoffs": [
+      "2026-11-23T15:37:00+09:00"
+    ],
+    "registry_states": {
+      "UNSUPPORTED_CLASS_OR_ROUND": 57,
+      "BASELINE_SOURCE_UNVERIFIED": 4,
+      "SOURCE_CAPTURE_BUDGET_PENDING": 27,
+      "A_B_AUTHENTICATED_PRE_CUTOFF": 1
+    },
+    "missing_reference_rows": [
+      {
+        "race_id": "202611232611",
+        "venue": "開催コード 26",
+        "number": 11,
+        "state": "HOLD_SOURCE_CANONICAL_URL_RACE_MISMATCH",
+        "displayed_cutoff_at": null,
+        "listing_cutoff_hint": "2026-11-23T20:10:00+09:00",
+        "registry_state": "UNSUPPORTED_CLASS_OR_ROUND",
+        "official_forecast_saved": false
+      }
+    ],
+    "provider_denied": false
+  },
+  "original_site_normal_github_url": {
+    "checked_at_utc": "2026-11-22T22:32:16.792197+00:00",
+    "feed_head": "eacd81b413fb38d2fe0a36b3aa2be4bdd92a55f6",
+    "normal_url_matches_latest_commit": true,
+    "entries": 96,
+    "index_sha256": "6c3539066a2c59d8545cebe5c7a4eda4f3eb0577da2487502294dfdf4fed4964",
+    "provider_denied": false
+  },
+  "live_runs": {
+    "official_schedule": {
+      "run_id": 45065557236,
+      "event": "schedule",
+      "receipt": {
+        "all_prediction_coverage_complete": false,
+        "day_inventory_complete": true,
+        "day_jst": "2026-11-23",
+        "new_A_B_git_archived": 1,
+        "new_A_B_sealed": 1,
+        "new_conditioned_A_B_git_archived": 0,
+        "paired_comparable_races": 0,
+        "provider_denied": false,
+        "registered_races": 89,
+        "schema": "RACE_AI_KEIRIN_GITHUB_ONLY_LIVE_AB_DAY_V1",
+        "source_or_forecast_plaintext_exposed": false,
+        "source_requests": 119,
+        "state": "OFFICIAL_SP_BASELINES_ARCHIVED",
+        "statuses": {
+          "A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK": 1,
+          "BASELINE_SOURCE_UNVERIFIED": 3,
+          "SOURCE_CAPTURE_BUDGET_PENDING": 28,
+          "UNSUPPORTED_CLASS_OR_ROUND": 57
+        },
+        "class_statuses": [
+          {
+            "class_label": "A級チャレンジ一般",
+            "statuses": {
+              "BASELINE_SOURCE_UNVERIFIED": 2
+            }
+          },
+          {
+            "class_label": "A級チャレンジ予選",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 20
+            }
+          },
+          {
+            "class_label": "A級チャレンジ準決勝",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 2
+            }
+          },
+          {
+            "class_label": "A級一般",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 6
+            }
+          },
+          {
+            "class_label": "A級初日特選",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 2
+            }
+          },
+          {
+            "class_label": "A級決勝",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 2
+            }
+          },
+          {
+            "class_label": "A級準決勝",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 6
+            }
+          },
+          {
+            "class_label": "A級特一般",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 2
+            }
+          },
+          {
+            "class_label": "A級特予選",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 9
+            }
+          },
+          {
+            "class_label": "A級特選",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 4
+            }
+          },
+          {
+            "class_label": "A級選抜",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 2
+            }
+          },
+          {
+            "class_label": "S級一般",
+            "statuses": {
+              "A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK": 1,
+              "BASELINE_SOURCE_UNVERIFIED": 1,
+              "SOURCE_CAPTURE_BUDGET_PENDING": 5
+            }
+          },
+          {
+            "class_label": "S級決勝",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 3
+            }
+          },
+          {
+            "class_label": "S級特別優秀",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 2
+            }
+          },
+          {
+            "class_label": "S級特選",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 7
+            }
+          },
+          {
+            "class_label": "S級選抜",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 3
+            }
+          },
+          {
+            "class_label": "UNRECOGNIZED_CLASS_LABEL",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 10
+            }
+          }
+        ],
+        "diagnostic_counts": [
+          {
+            "stage": "CONTENT_CHECK",
+            "reason": "SOURCE_ACCEPTED",
+            "http_status": 200,
+            "count": 32
+          }
+        ],
+        "archived_items": 1
+      }
+    },
+    "reference_schedule": {
+      "run_id": 45076277711,
+      "event": "schedule",
+      "log": {
+        "authenticated": true,
+        "note_report": {
+          "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED",
+          "entries": 95,
+          "reference_capture": {
+            "observed_races": 89,
+            "captured_races": 0,
+            "provider_denied": false
+          },
+          "result_checks": {
+            "checked_races": 89,
+            "changed_observations": 0,
+            "provider_denied": false
+          }
+        },
+        "note_hold": false
+      }
+    },
+    "additional_official_capture": {
+      "run_id": 45077095280,
+      "event": "workflow_dispatch",
+      "receipt": {
+        "all_prediction_coverage_complete": false,
+        "day_inventory_complete": true,
+        "day_jst": "2026-11-23",
+        "new_A_B_git_archived": 0,
+        "new_A_B_sealed": 0,
+        "new_conditioned_A_B_git_archived": 0,
+        "paired_comparable_races": 0,
+        "provider_denied": false,
+        "registered_races": 89,
+        "schema": "RACE_AI_KEIRIN_GITHUB_ONLY_LIVE_AB_DAY_V1",
+        "source_or_forecast_plaintext_exposed": false,
+        "source_requests": 24,
+        "state": "OFFICIAL_SP_DAY_REGISTERED_WITH_EXPLICIT_HOLDS",
+        "statuses": {
+          "BASELINE_SOURCE_UNVERIFIED": 4,
+          "FROZEN_ORIGINAL_PRESERVED": 1,
+          "SOURCE_CAPTURE_BUDGET_PENDING": 27,
+          "UNSUPPORTED_CLASS_OR_ROUND": 57
+        },
+        "class_statuses": [
+          {
+            "class_label": "A級チャレンジ一般",
+            "statuses": {
+              "BASELINE_SOURCE_UNVERIFIED": 2
+            }
+          },
+          {
+            "class_label": "A級チャレンジ予選",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 20
+            }
+          },
+          {
+            "class_label": "A級チャレンジ準決勝",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 2
+            }
+          },
+          {
+            "class_label": "A級一般",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 6
+            }
+          },
+          {
+            "class_label": "A級初日特選",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 2
+            }
+          },
+          {
+            "class_label": "A級決勝",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 2
+            }
+          },
+          {
+            "class_label": "A級準決勝",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 6
+            }
+          },
+          {
+            "class_label": "A級特一般",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 2
+            }
+          },
+          {
+            "class_label": "A級特予選",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 9
+            }
+          },
+          {
+            "class_label": "A級特選",
+            "statuses": {
+              "BASELINE_SOURCE_UNVERIFIED": 1,
+              "SOURCE_CAPTURE_BUDGET_PENDING": 3
+            }
+          },
+          {
+            "class_label": "A級選抜",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 2
+            }
+          },
+          {
+            "class_label": "S級一般",
+            "statuses": {
+              "BASELINE_SOURCE_UNVERIFIED": 1,
+              "FROZEN_ORIGINAL_PRESERVED": 1,
+              "SOURCE_CAPTURE_BUDGET_PENDING": 5
+            }
+          },
+          {
+            "class_label": "S級決勝",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 3
+            }
+          },
+          {
+            "class_label": "S級特別優秀",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 2
+            }
+          },
+          {
+            "class_label": "S級特選",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 7
+            }
+          },
+          {
+            "class_label": "S級選抜",
+            "statuses": {
+              "SOURCE_CAPTURE_BUDGET_PENDING": 3
+            }
+          },
+          {
+            "class_label": "UNRECOGNIZED_CLASS_LABEL",
+            "statuses": {
+              "UNSUPPORTED_CLASS_OR_ROUND": 10
+            }
+          }
+        ],
+        "diagnostic_counts": [
+          {
+            "stage": "CONTENT_CHECK",
+            "reason": "SOURCE_ACCEPTED",
+            "http_status": 200,
+            "count": 24
+          }
+        ],
+        "archived_items": 0
+      },
+      "display": {
+        "authenticated_originals": 1,
+        "covered_races": 246,
+        "day_jst": "2026-11-23",
+        "entries": 96,
+        "priority_window_races": 12,
+        "private_plaintext_uploaded": false,
+        "production_state_key_used": false,
+        "provider_denied": false,
+        "provider_requests": 0,
+        "published_day_status": 1,
+        "published_originals": 0,
+        "source_requests": 0,
+        "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED"
+      }
+    }
+  },
+  "missing_race": {
+    "race_id": "202611232611",
+    "venue": "西武園",
+    "race_number": 11,
+    "published_hint_cutoff": "2026-11-23T20:10:00+09:00",
+    "still_requires_verified_prerace_input": true
+  },
+  "local_short_window_patch": {
+    "commit": "915fb827af90ffb23dd56e387235280e97fb3e2f",
+    "python_passed": 482,
+    "node_passed": 150,
+    "shorter_reference_generation_test_seconds": 50,
+    "official_input_preparation_test_minutes": 3,
+    "output_that_finished_at_cutoff_rejected": true,
+    "protected_main_requires_pull_request": true,
+    "required_checks": [
+      "unit"
+    ],
+    "live_status": "LOCAL_VERIFIED_NOT_DEPLOYED"
+  }
+}
