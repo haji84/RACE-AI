@@ -96,12 +96,15 @@
   function render(){
     const days=data?.dates||[];let shortcuts=days.slice(-7);
     if(days.includes(currentDay)&&!shortcuts.includes(currentDay))shortcuts=[currentDay,...shortcuts.slice(-6)].sort();
-    $('kn-days').innerHTML=shortcuts.map(d=>'<button type="button" data-day="'+esc(d)+'" aria-pressed="'+(period==='day'&&d===currentDay)+'">'+esc(d.slice(5).replace('-','月')+'日')+'</button>').join('');
+    const showYears=new Set(shortcuts.map(d=>d.slice(0,4))).size>1;
+    const fullDate=d=>d.slice(0,4)+'年'+Number(d.slice(5,7))+'月'+Number(d.slice(8,10))+'日';
+    $('kn-days').innerHTML=shortcuts.map(d=>'<button type="button" data-day="'+esc(d)+'" aria-label="'+fullDate(d)+'" aria-pressed="'+(period==='day'&&d===currentDay)+'">'+esc(showYears?fullDate(d):d.slice(5).replace('-','月')+'日')+'</button>').join('');
     $('kn-date').value=currentDay;$('kn-date').disabled=period!=='day';$('kn-period').value=period;
     $('kn-from').value=rangeFrom;$('kn-to').value=rangeTo;$('kn-race-number').value=raceNumber;
     $('kn-from-label').hidden=$('kn-to-label').hidden=period!=='range';
     const invalid=period==='range'&&(!M.day(rangeFrom)||!M.day(rangeTo)||rangeFrom>rangeTo);
-    $('kn-period-status').textContent=!data?'保存データを開くと日付・期間を指定できます。':invalid?'開始日と終了日を確認してください。開始日は終了日以前を指定してください。':period==='all'?'すべての保存日を検索します。':period==='range'?rangeFrom+' 〜 '+rangeTo+' の保存データを検索します。':!days.includes(currentDay)?'指定した日付の保存データはありません。':currentDay+' の保存データを表示します。';
+    $('kn-period-status').textContent=!data?'保存データを開くと日付・期間を指定できます。':invalid?'開始日と終了日を確認してください。開始日は終了日以前を指定してください。':period==='all'?'すべての保存日を検索します。':period==='range'?rangeFrom+' 〜 '+rangeTo+' の保存データを検索します。':!M.day(currentDay)?'日付を指定してください。':!days.includes(currentDay)?'指定した日付の保存データはありません。':currentDay+' の保存データを表示します。';
+    if(venue)$('kn-period-status').textContent+=' · 会場：'+venue;
     $('kn-period-status').classList.toggle('kn-error',invalid);
     $('kn-metrics').hidden=period!=='day';
     const list=all();
@@ -114,7 +117,9 @@
     const imported=list.some(row=>!row.nationwideOnly),onlyNational=Boolean(nationwide)&&!imported;$('kn-market').disabled=onlyNational;$('kn-variant').disabled=onlyNational;
     if(onlyNational){market='3t';$('kn-market').value=market;}
     for(const button of root.querySelectorAll('[data-prediction]'))button.disabled=onlyNational;
-    const venues=[...new Set(list.map(r=>r.venue))];$('kn-venues').innerHTML=[['','締切順・全会場'],...venues.map(v=>[v,v])].map(([v,label])=>'<button type="button" data-venue="'+esc(v)+'" aria-pressed="'+(v===venue)+'">'+esc(label)+'</button>').join('');
+    const availableVenues=new Set(list.map(r=>r.venue)),venues=[...availableVenues];
+    if(venue&&!availableVenues.has(venue))venues.unshift(venue);
+    $('kn-venues').innerHTML=[['','締切順・全会場'],...venues.map(v=>[v,v+(availableVenues.has(v)?'':'（この期間は0件）')])].map(([v,label])=>'<button type="button" data-venue="'+esc(v)+'" aria-pressed="'+(v===venue)+'">'+esc(label)+'</button>').join('');
     renderProvenance();
     renderCards();
   }
@@ -235,7 +240,7 @@
   }
   function renderResearchSummary(list){
     const panel=$('kn-research-summary'),only=$('kn-result-only');
-    if(!data||period!=='day'){panel.hidden=true;panel.textContent='';only.innerHTML='';return;}
+    if(!data||period!=='day'||!M.day(currentDay)||!data.dates.includes(currentDay)){panel.hidden=true;panel.textContent='';only.innerHTML='';return;}
     const results=[...(data.results||new Map())].filter(([id])=>id.startsWith(currentDay.replaceAll('-',''))),known=new Set(list.map(row=>row.id)),unpaired=results.filter(([id])=>!known.has(id));
     if(data.nationwide?.has(currentDay)&&!results.length&&list.every(row=>row.nationwideOnly)){panel.hidden=true;panel.textContent='';only.innerHTML='';return;}
     const summary=M.summarize(list,market),arm=name=>{const v=summary[name];return '参考'+name+'：的中 '+v.hitRaces+' / 判定 '+v.evaluableRaces+'レース · 未判定 '+v.unknownRaces+'件 · 保存点数 '+(v.ticketCounts.length?v.ticketCounts.join('・'):'未確認')+'点';};

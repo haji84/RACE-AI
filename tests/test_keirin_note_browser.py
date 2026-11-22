@@ -835,5 +835,64 @@ class NoteBrowserTests(unittest.TestCase):
         self.assertEqual(self.external, [])
 
 
+    def test_history_empty_calendar_does_not_expose_every_result_as_unpaired(self):
+        from scripts.keirin_note_collect_results import fact_digest
+        value = with_results(packet(), [result_observation()])
+        other_day = '2030-01-16'
+        other = result_observation(at=other_day+'T03:10:00Z')
+        other['race_id'] = '203001169801'
+        for receipt in other['provider_receipts']:
+            receipt['source_url'] = receipt['source_url'].replace('20300115', '20300116')
+        other['observation_sha256'] = fact_digest(other)
+        value['dates'].append(other_day)
+        value['files'][f'data/{other_day}/research_results.json'] = source(dict(
+            schema='RACE_AI_KEIRIN_NOTE_RESEARCH_RESULTS_V1', day_jst=other_day, observations=[other]))
+        self.open_history(value)
+        self.assertEqual(self.page.locator('#kn-result-only > details').count(), 1)
+        self.page.locator('#kn-date').fill('')
+        self.page.locator('#kn-date').press('Tab')
+        self.assertEqual(self.page.locator('[data-note-race]').count(), 0)
+        self.assertFalse(self.page.locator('#kn-research-summary').is_visible())
+        self.assertEqual(self.page.locator('#kn-result-only > details').count(), 0)
+        self.assertEqual(self.errors, [])
+
+    def test_history_selected_venue_remains_visible_when_the_new_period_has_no_matches(self):
+        value = history_packet(3, 1)
+        name = 'data/2020-01-03/races.json'
+        cards = json.loads(value['files'][name]['text'])
+        cards['races'][0]['venue'] = '架空の新会場'
+        value['files'][name] = source(cards)
+        self.open_history(value)
+        self.page.locator('[data-history="all"]').click()
+        self.page.locator('[data-venue="青葉"]').click()
+        self.assertEqual(self.page.locator('[data-note-race]').count(), 2)
+        self.page.locator('[data-history="latest"]').click()
+        self.assertEqual(self.page.locator('[data-note-race]').count(), 0)
+        active = self.page.locator('[data-venue="青葉"][aria-pressed="true"]')
+        self.assertEqual(active.count(), 1)
+        self.assertTrue(active.is_visible())
+        self.assertIn('0件', active.inner_text())
+        self.page.locator('[data-venue=""]').click()
+        self.assertEqual(self.page.locator('[data-note-race]').count(), 1)
+        self.assertIn('架空の新会場', self.page.locator('[data-note-race]').inner_text())
+
+    def test_history_shortcuts_identify_the_year_before_selecting_another_race_day(self):
+        value = history_packet(1, 2)
+        for name, entry in list(value['files'].items()):
+            new_name = name.replace('2020-01-01', '2021-01-01')
+            text = entry['text'].replace('2020-01-01', '2021-01-01').replace('20200101', '20210101')
+            value['files'][new_name] = source(json.loads(text))
+        value['dates'].append('2021-01-01')
+        self.open_history(value)
+        self.page.locator('#kn-date').fill('2020-01-01')
+        self.page.locator('#kn-date').press('Tab')
+        self.assertEqual(self.page.get_by_role('button', name='2020年1月1日', exact=True).count(), 1)
+        self.assertIn('2020', self.page.locator('[data-day="2020-01-01"]').inner_text())
+        self.page.get_by_role('button', name='2021年1月1日', exact=True).click()
+        self.assertEqual(self.page.locator('#kn-date').input_value(), '2021-01-01')
+        self.assertTrue(all(r.startswith('20210101') for r in
+            self.page.locator('[data-note-race]').evaluate_all('(ns)=>ns.map(n=>n.dataset.noteRace)')))
+
+
 if __name__ == '__main__':
     unittest.main()
