@@ -1,0 +1,67 @@
+{
+  "catalogue_sha256": "a590a38880c72fce491a5e58e257eebe89d4a48def3c67a6a3aa833e5da63382",
+  "date_precision": {
+    "fully_dated_special_meeting": "The published date is the first day of the multi-day meeting.",
+    "fully_dated_start_anchors": "Published ranked debuts and milestone achievement days.",
+    "latest_actual_start": "The viewed profiles do not provide the full calendar date of the latest individual race.",
+    "recent_ranked_meetings": "The public profile displays month and day of the meeting on recent result cards."
+  },
+  "official_profile_route": "https://keirin.jp/pc/racerprofile",
+  "official_starts_evidence": {
+    "explicit_retirement_or_withdrawal_marker": 0,
+    "identity_confirmed": 45,
+    "in_window_via_year_counts_or_full_date": 39,
+    "lifetime_starts_positive": 45,
+    "numeric_festival_finish_month_day_year_unconfirmed": 6,
+    "recent_four_months_starts_positive": 9,
+    "recent_numeric_finish_with_visible_month_day": 45,
+    "special_event_full_date_in_window": 9
+  },
+  "official_starts_evidence_by_registry_region_type": {
+    "domestic": {
+      "2025_or_2026_or_full_date_inside_study": 33,
+      "audited": 39,
+      "lifetime": 39,
+      "recent_four_months_starts_positive": 4,
+      "recent_numeric_finish_with_visible_month_day": 39,
+      "year_2025_positive": 30,
+      "year_2026_positive": 18
+    },
+    "foreign": {
+      "2025_or_2026_or_full_date_inside_study": 6,
+      "audited": 6,
+      "lifetime": 6,
+      "recent_four_months_starts_positive": 5,
+      "recent_numeric_finish_with_visible_month_day": 6,
+      "year_2025_positive": 0,
+      "year_2026_positive": 6
+    }
+  },
+  "private_supplement_sha256": "bdf981319d06417f4e80f2d376ad2626743e953c07f756acad8abc1e1677637a",
+  "profile_count": 45,
+  "published_style_counts": {
+    "両": 18,
+    "追": 24,
+    "逃": 3
+  },
+  "registry_index_updated_at_jst": "2026-11-18T02:37:00+09:00",
+  "registry_sha256": "f48693892ff6dd2b30d1b16806b991c04925fbb0c064cb92e61180c378031edb",
+  "retrieval_window_utc": [
+    "2026-11-23T17:07:25.777213+00:00",
+    "2026-11-23T17:08:49.945362+00:00"
+  ],
+  "schema": "KEIRIN_OFFICIAL_UNMATCHED_PROFILE_AUDIT_V1",
+  "section_and_activity_counts": {
+    "distinct_registration_and_exact_start_anchor_dates": 82,
+    "profiles_with_career_results_update_timestamp": 45,
+    "profiles_with_exact_dated_start_anchors": 45,
+    "profiles_with_explicit_style": 45,
+    "profiles_with_fully_dated_special_meeting_openings": 19,
+    "profiles_with_most_recent_exact_start_date": 0,
+    "profiles_with_profile_update_timestamp": 45,
+    "profiles_with_ranked_meeting_month_day": 45,
+    "profiles_with_recent_results_update_timestamp": 45,
+    "ranked_starts_with_visible_meeting_month_day": 1413
+  },
+  "local_envelope_ciphertext_sha256": "1927591d3efc04ba13dea0769a1fdb254b9b27a84b3a6a901061b3b6bb096ff0"
+}

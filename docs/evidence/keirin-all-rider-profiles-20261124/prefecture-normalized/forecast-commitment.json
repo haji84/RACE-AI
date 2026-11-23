@@ -1,0 +1,27 @@
+{
+  "schema": "KEIRIN_RIDER_PROFILE_COMMITMENT_V1",
+  "sealed_at": "2026-11-23T17:17:47.019611+00:00",
+  "forecast_sha256": "4945215f2ab271e0dea67213a01d0faa44a37c7a4b678466829c7eb9df1787a6",
+  "configuration_sha256": "204b42c315a562f24c5a9409c09d98e14c680e935db8bb41e3ec3abbea3e11ba",
+  "previous_line_configuration_sha256": "24c5ac653404aace3e8635256d06ec563f64a1737fe124940d49d0cee824facd",
+  "original_generator_sha256": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47",
+  "input_sha256": "4d0d9719e50fdaef160a2bbc8e029ea0f95fc74fcba87f61bf29dfd2b3f0482b",
+  "coverage_sha256": "f6deefffb753b1c308501f35ab043568689effd03401764f4b67385a06fe87a6",
+  "assembly_sha256": "eb319bddc5100ca78b73417d8c3fb52680d412f6f69a4ee44779383edd1fc395",
+  "scoring_sha256": "7fb4bbb6fa0750dd837f461d6f18f97861ff5c1cc5afe7091f74cb1e29edd45d",
+  "implementation_sha256": {
+    "scripts/keirin_rider_profile_history.py": "c42bbe2de24c56dacbd887217a4d088017af0f7636764d5a4fa03e7f3d74681c",
+    "scripts/keirin_rider_profile_identity.py": "f5ef59a862599736748dc964e136563ed15349e3045420eed0c13d6d7802551e",
+    "scripts/keirin_rider_profile_study.py": "34604b7eaa7bca7228d42bb16b645a96a41a09db17ae3fc0de494c8f5230fed8",
+    "scripts/keirin_small_ticket_study.py": "3b0327acd1ff593a91593c38a49eedb4b02bb63b34383a109f37062799ef4c0d"
+  },
+  "selection": "published_line",
+  "profile_variant_for_current_b": "rider_context",
+  "current_b_profile_strength": 0.5,
+  "holdout_input": 3590,
+  "frozen": 3589,
+  "frozen_timed": 561,
+  "unforecast": {
+    "INSUFFICIENT_OBSERVED_FINISH_FEATURES": 1
+  }
+}

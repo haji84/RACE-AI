@@ -10,11 +10,19 @@ def name_key(value):
     return ''.join(normalize('NFKC', value or '').split())
 
 
+def prefecture_key(value):
+    value = name_key(value)
+    if value == '東京都' or (len(value) >= 3 and value.endswith(('県', '府'))):
+        return value[:-1]
+    return value
+
+
 def same_archived_rider(csv_identity, sql_identity):
     csv_name, csv_term, csv_pref = csv_identity
     sql_name, sql_term, sql_pref = sql_identity
     if not csv_name or csv_term is None or csv_term != sql_term:
         return False
+    csv_pref, sql_pref = prefecture_key(csv_pref), prefecture_key(sql_pref)
     return ((csv_name, csv_pref) == (sql_name, sql_pref)
             or (len(sql_pref) == 2 and csv_name == sql_name + sql_pref[0] and csv_pref == sql_pref[1:]))
 
@@ -29,7 +37,7 @@ class IdentityIndex:
             if not is_registration(registration) or registration in self.cohorts:
                 raise ValueError('The reference register has an invalid or duplicate registration.')
             self.names[registration].add(name_key(rider['name']))
-            self.prefectures[registration].add(name_key(rider['prefecture_or_country']))
+            self.prefectures[registration].add(prefecture_key(rider['prefecture_or_country']))
             self.cohorts[registration] = rider['cohort']
         for rider in earlier:
             registration = rider['registrationNo']
@@ -37,7 +45,7 @@ class IdentityIndex:
                        if 'KEIRIN.JP:JSJ006' in item['sources']}
             if aliases and is_registration(registration):
                 self.names[registration].update(aliases)
-                self.prefectures[registration].add(name_key(rider['currentPrefecture']))
+                self.prefectures[registration].add(prefecture_key(rider['currentPrefecture']))
         self.by_name = defaultdict(set)
         for registration, aliases in self.names.items():
             for alias in filter(None, aliases):
@@ -56,7 +64,7 @@ class IdentityIndex:
         self.direct[rider, cohort].add(registration)
         self.earlier_cohorts[registration].add(cohort)
         if prefecture:
-            self.prefectures[registration].add(prefecture)
+            self.prefectures[registration].add(prefecture_key(prefecture))
 
     def candidates(self, rider, cohort):
         matches = set(self.direct.get((rider, cohort), ()))
@@ -73,11 +81,12 @@ class IdentityIndex:
         rider, cohort, prefecture = identity
         if not rider or cohort is None or not prefecture:
             return None
+        canonical = prefecture_key(prefecture)
         possible = {registration for registration in self.candidates(rider, cohort)
-                    if prefecture in self.prefectures[registration]}
+                    if canonical in self.prefectures[registration]}
         if from_csv and len(rider) > 1 and len(prefecture) == 1:
             # The archive's spaced prefecture was split with its first character in the name.
-            restored = rider[-1] + prefecture
+            restored = prefecture_key(rider[-1] + prefecture)
             possible.update(registration for registration in self.candidates(rider[:-1], cohort)
                             if restored in self.prefectures[registration])
         return next(iter(possible)) if len(possible) == 1 else None

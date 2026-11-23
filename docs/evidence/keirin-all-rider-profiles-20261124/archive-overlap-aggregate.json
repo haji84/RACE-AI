@@ -1,0 +1,91 @@
+{
+  "catalogue_sha256": "a590a38880c72fce491a5e58e257eebe89d4a48def3c67a6a3aa833e5da63382",
+  "results": {
+    "all_missing": {
+      "in_old_official_derived_master": 0,
+      "registrations": 45,
+      "registrations_with_observation_by_archive": {
+        "kdreams_sqlite_name_term": 22,
+        "kdreams_sqlite_name_term_ranked": 22,
+        "kdreams_sqlite_normalized_pref": 22,
+        "kdreams_sqlite_normalized_pref_ranked": 22,
+        "monthly_csv_repair_and_normalized_pref": 30,
+        "monthly_different_pref": 2,
+        "monthly_name_term": 34,
+        "monthly_name_term_ranked": 34,
+        "monthly_normalized_pref": 33,
+        "monthly_normalized_pref_ranked": 33
+      },
+      "registrations_with_observation_either_archive": {
+        "name_term": 34,
+        "name_term_ranked": 34,
+        "normalized_pref": 33,
+        "normalized_pref_ranked": 33,
+        "registered_pref_exact_ranked": 0
+      }
+    },
+    "confirmed_official_starts_in_window": {
+      "in_old_official_derived_master": 0,
+      "registrations": 39,
+      "registrations_with_observation_by_archive": {
+        "kdreams_sqlite_name_term": 22,
+        "kdreams_sqlite_name_term_ranked": 22,
+        "kdreams_sqlite_normalized_pref": 22,
+        "kdreams_sqlite_normalized_pref_ranked": 22,
+        "monthly_csv_repair_and_normalized_pref": 29,
+        "monthly_different_pref": 2,
+        "monthly_name_term": 33,
+        "monthly_name_term_ranked": 33,
+        "monthly_normalized_pref": 32,
+        "monthly_normalized_pref_ranked": 32
+      },
+      "registrations_with_observation_either_archive": {
+        "name_term": 33,
+        "name_term_ranked": 33,
+        "normalized_pref": 32,
+        "normalized_pref_ranked": 32,
+        "registered_pref_exact_ranked": 0
+      }
+    },
+    "domestic": {
+      "in_old_official_derived_master": 0,
+      "registrations": 39,
+      "registrations_with_observation_by_archive": {
+        "kdreams_sqlite_name_term": 22,
+        "kdreams_sqlite_name_term_ranked": 22,
+        "kdreams_sqlite_normalized_pref": 22,
+        "kdreams_sqlite_normalized_pref_ranked": 22,
+        "monthly_csv_repair_and_normalized_pref": 30,
+        "monthly_different_pref": 2,
+        "monthly_name_term": 34,
+        "monthly_name_term_ranked": 34,
+        "monthly_normalized_pref": 33,
+        "monthly_normalized_pref_ranked": 33
+      },
+      "registrations_with_observation_either_archive": {
+        "name_term": 34,
+        "name_term_ranked": 34,
+        "normalized_pref": 33,
+        "normalized_pref_ranked": 33,
+        "registered_pref_exact_ranked": 0
+      }
+    },
+    "foreign": {
+      "in_old_official_derived_master": 0,
+      "registrations": 6,
+      "registrations_with_observation_by_archive": {},
+      "registrations_with_observation_either_archive": {
+        "name_term": 0,
+        "name_term_ranked": 0,
+        "normalized_pref": 0,
+        "normalized_pref_ranked": 0,
+        "registered_pref_exact_ranked": 0
+      }
+    }
+  },
+  "scope_note": "Counts compare raw historical source identities with the official registry and source-backed old aliases. The audit does not retain race-level model admission or reassign riders.",
+  "study_window_jst": [
+    "20231124",
+    "20261123"
+  ]
+}

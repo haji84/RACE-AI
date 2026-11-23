@@ -1,0 +1,14 @@
+{
+  "archive_foreign_placeholder_repaired_rows": 105,
+  "archived_term_999_numeric_ranked_rows": 62,
+  "archived_term_999_rows": 105,
+  "distinct_archived_short_names_matching_unique_official_name_suffix": 6,
+  "interpretation": "All six archived variants use a surname-only display and a generic foreign jurisdiction. The official profiles give a distinct country and full registered name.",
+  "numeric_ranked_meetings_with_same_month_day_and_rank_sequence": 10,
+  "numeric_ranked_starts_in_those_meetings": 24,
+  "official_short_name_matches_with_same_meeting_month_day_and_finish_sequence": 5,
+  "other_archive_ranked_meetings": 18,
+  "other_archive_ranked_starts": 38,
+  "schema": "KEIRIN_FOREIGN_INVITEE_ALIAS_AGGREGATE_V1",
+  "verified_official_foreign_profile_count": 6
+}

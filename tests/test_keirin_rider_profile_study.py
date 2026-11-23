@@ -99,6 +99,20 @@ class KeirinRiderProfileStudyTests(unittest.TestCase):
         catalog.observe_exact_race(('競輪選手', 100, '福島'), '012345')
         self.assertIsNone(catalog.bind(('競輪選手', 100, '福島')))
 
+    def test_official_prefecture_suffixes_match_short_archive_labels(self):
+        from scripts.keirin_rider_profile_identity import IdentityIndex
+
+        catalog = IdentityIndex([
+            {'registration': '012345', 'name': '選手一', 'cohort': 102, 'prefecture_or_country': '福岡県'},
+            {'registration': '054321', 'name': '選手二', 'cohort': 101, 'prefecture_or_country': '京都府'},
+            {'registration': '023456', 'name': '選手三', 'cohort': 100, 'prefecture_or_country': '北海道'},
+        ], [])
+        self.assertEqual(catalog.bind(('選手一', 102, '福岡')), '012345')
+        self.assertEqual(catalog.bind(('選手一福', 102, '岡'), from_csv=True), '012345')
+        self.assertEqual(catalog.bind(('選手二', 101, '京都')), '054321')
+        self.assertEqual(catalog.bind(('選手三', 100, '北海道')), '023456')
+        self.assertIsNone(catalog.bind(('選手二', 101, '東京')))
+
     def test_profile_features_participate_in_all_three_finishing_stages(self):
         from scripts import keirin_rider_profile_study as study
 
