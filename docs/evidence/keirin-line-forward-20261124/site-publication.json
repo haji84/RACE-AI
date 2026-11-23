@@ -1,0 +1,36 @@
+{
+  "schema": "KEIRIN_PUBLIC_LINE_RANK_SITE_PUBLICATION_V1",
+  "date": "2026-11-24",
+  "site_url": "https://keirin-20261119-race-note.chankuma.chatgpt.site",
+  "site_version": 28,
+  "site_source_commit": "861cce18c73cbe8c075a2b828c0a0da2c4606515",
+  "site_deployment": "appgdep_6b04a63c99cc8191936e16cd9f1f8a94",
+  "published_at": "2026-11-23T20:47:05.379094+00:00",
+  "public_packet_path": "/data/keirin_20261124_ranked_public.json",
+  "public_packet_sha256": "7b3bdbfb1b9180f1c2f046c874ad63151686120da2dd545c814e7e8cb5670ba3",
+  "model": "published_line",
+  "weights_sha256": "204b42c315a562f24c5a9409c09d98e14c680e935db8bb41e3ec3abbea3e11ba",
+  "forecast_generated_at": "2026-11-23T20:42:55.945758+00:00",
+  "first_published_cutoff_at": "2026-11-24T08:45:00+09:00",
+  "racecards_listed": 81,
+  "forecasts_listed": 66,
+  "lineups_awaiting_publication": 15,
+  "pending_lineups_rechecked": 15,
+  "matches_pre_cutoff_comparison_rankings": 66,
+  "public_http_readback": {
+    "unauthenticated": true,
+    "packaged_forecast_and_renderer_hashes_match": true,
+    "previous_forecast_dates_readable": ["2026-11-22", "2026-11-23"],
+    "previous_result_date_readable": "2026-11-23"
+  },
+  "display": {
+    "trifecta_ranked_candidates": 8,
+    "trifecta_initially_visible": 4,
+    "exacta_ranked_candidates": 4,
+    "exacta_initially_visible": 2,
+    "odds_source_links": true,
+    "numeric_quote_snapshot_used": false
+  },
+  "site_tests_passed": 164,
+  "live_browser_check": "unavailable_in_execution_environment"
+}
