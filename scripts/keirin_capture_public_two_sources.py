@@ -13,6 +13,7 @@ from __future__ import annotations
 from collections import Counter
 from datetime import datetime, timezone, timedelta
 from hashlib import sha256
+from http.client import HTTPException
 from pathlib import Path
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from urllib.parse import urlsplit
@@ -33,7 +34,10 @@ MAX_BYTES=6_000_000
 
 
 class SourceCaptureError(ValueError):
-    pass
+    def __init__(self, code, *, http_status=None, retry_after=None):
+        super().__init__(code)
+        self.http_status = http_status
+        self.retry_after = retry_after
 
 
 def need(ok,code):
@@ -89,10 +93,11 @@ def fetch_once(url):
             raise SourceCaptureError("PROVIDER_EMPTY_OR_OVERSIZED_HTML")
         return data
     except HTTPError as exc:
-        if exc.code in (401,403,429):
-            raise SourceCaptureError("PROVIDER_DENIED_OR_RATE_LIMITED_STOP") from None
-        raise SourceCaptureError("PUBLIC_PROVIDER_HTTP_ERROR_STOP") from None
-    except (URLError, TimeoutError, OSError):
+        code = ("PROVIDER_DENIED_OR_RATE_LIMITED_STOP" if exc.code in (401,403,429)
+                else "PUBLIC_PROVIDER_HTTP_ERROR_STOP")
+        retry_after = exc.headers.get('Retry-After') if exc.headers else None
+        raise SourceCaptureError(code, http_status=exc.code, retry_after=retry_after) from None
+    except (URLError, TimeoutError, OSError, HTTPException):
         raise SourceCaptureError("PUBLIC_PROVIDER_UNAVAILABLE_STOP") from None
     finally:
         if response is not None:response.close()
