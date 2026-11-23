@@ -1,0 +1,49 @@
+{
+  "catalogue": {
+    "total": 4002,
+    "october": 2270,
+    "november_to_22": 1643,
+    "november_23": 89,
+    "days": 54
+  },
+  "recovered": {
+    "total": 412,
+    "october": 406,
+    "november_to_22": 5,
+    "november_23": 1,
+    "days": 13
+  },
+  "confirmed_app_line_groups": {
+    "total": 394,
+    "october": 391,
+    "november_to_22": 3,
+    "november_23": 0,
+    "days": 10
+  },
+  "entries_only": {
+    "total": 18,
+    "october": 15,
+    "november_to_22": 2,
+    "november_23": 1,
+    "days": 8
+  },
+  "two_source_exact_race_car_and_name": {
+    "total": 401,
+    "october": 397,
+    "november_to_22": 3,
+    "november_23": 1,
+    "days": 11
+  },
+  "program_timing": "RETROSPECTIVE_NO_PROVEN_CUTOFF_VERSION",
+  "input_sha256": "4020cd81e19d61c0e5653e44366df5febd696d1f9ab903cd4f521a14384412aa",
+  "input_proof_sha256": "23ffbb60abc6372d257dc1b018457665868d818947e91f0aaac2c584ecf5b89b",
+  "independent_recovered_feature_row": 1,
+  "final_rankable_cards": {
+    "published_line": 3984,
+    "entries_only": 18,
+    "total": 4002
+  },
+  "pre_cutoff_records_before_retrospective_recovery": 562,
+  "pre_cutoff_records_with_S_and_B_for_every_rider": 562,
+  "pre_cutoff_records_with_H_for_any_rider": 0
+}

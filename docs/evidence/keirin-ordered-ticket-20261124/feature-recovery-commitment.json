@@ -1,0 +1,10 @@
+{
+  "schema": "KEIRIN_ORDERED_TICKET_ONE_CARD_FEATURE_RECOVERY_V1",
+  "source_sha256": "078e620f7969306c0bf9cd84bff66fedcede7d83c27735c7cb8af39a6761c706",
+  "input_sha256": "09f6b9e4ea86dc8c1de50d3cfa75033294530f44694409307dff0f44ab3af053",
+  "frozen_at": "2026-11-23T22:19:52.702845+00:00",
+  "races": 1,
+  "forecast_commitment_sha256": "7b63d3990f4967f68da25e8ad1e340c9aab483b6341038d85c8e3420695bcdc8",
+  "excluded_from_strict_pre_cutoff_summary": true,
+  "owner_cipher_sha256": "e97183b9212de2fe3d0757c444a305d8f9ac1fb07468daa712b584b69b0153ef"
+}
