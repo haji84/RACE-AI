@@ -35,3 +35,8 @@ class KeirinLineHistoryResearchTests(unittest.TestCase):
         self.assertTrue(np.array_equal(
             self.research.design(info, 'line_with_history', pair),
             self.research.design(info, 'entry_only', pair)))
+
+    def test_fitting_refuses_an_order_that_places_the_same_rider_twice(self):
+        with self.assertRaisesRegex(ValueError, 'Fitting result orders'):
+            self.research.fit([{'input': self.card,
+                                'outcomes': {'2t': [[1, 2]], '3t': [[1, 2, 2]]}}])

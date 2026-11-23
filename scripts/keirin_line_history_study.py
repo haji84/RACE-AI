@@ -111,7 +111,7 @@ def fit(examples):
         if len(paid['2t'])!=1 or len(paid['3t'])!=1:
             continue
         observed=paid['3t'][0]
-        if observed[:2]!=paid['2t'][0]:
+        if len(observed)!=3 or len(set(observed))!=3 or observed[:2]!=paid['2t'][0]:
             raise ValueError('Fitting result orders disagree across the two markets.')
         info=frame(item['input'])
         rows.append((info,[info[0].index(car) for car in observed]))

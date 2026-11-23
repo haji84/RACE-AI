@@ -1,0 +1,218 @@
+{
+  "scope": "Reconnaissance on dated public archived results. Exact car and name agree with Kdreams and name matches official-derived registration master. No use in test predictions.",
+  "counts": {
+    "result_pages": 23,
+    "actual_riders": 161,
+    "linked_verified_riders": 130,
+    "complete_identity_races": 5,
+    "result_profile_links": 161
+  },
+  "role_matched_observations": {
+    "SOLO_checked_rows": 29,
+    "SOLO_S_n": 24,
+    "SOLO_S_yes": 1,
+    "SOLO_B_n": 29,
+    "SOLO_B_yes": 3,
+    "LEAD_checked_rows": 40,
+    "LEAD_S_n": 38,
+    "LEAD_S_yes": 9,
+    "LEAD_B_n": 40,
+    "LEAD_B_yes": 18,
+    "SECOND_checked_rows": 44,
+    "SECOND_S_n": 42,
+    "SECOND_S_yes": 6,
+    "SECOND_B_n": 44,
+    "SECOND_B_yes": 0,
+    "REAR_checked_rows": 17,
+    "REAR_S_n": 17,
+    "REAR_S_yes": 2,
+    "REAR_B_n": 17,
+    "REAR_B_yes": 0
+  },
+  "receipts": [
+    {
+      "race_id": "202311282701",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202311282701",
+      "source_sha256": "6c553840ef777693c3766405339d4fdd3df2c023585d3890896e50fc46dfc5ca",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 4
+    },
+    {
+      "race_id": "202312162602",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202312162602",
+      "source_sha256": "e769b4adce0d14d58c224206b0723250f4e7d92e9589421f6cf0d79a75781dda",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 6
+    },
+    {
+      "race_id": "202401171310",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202401171310",
+      "source_sha256": "759434d96f46fb45196a88863f84c8e9789369bd99a67b9d356e920ef0c40047",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 7
+    },
+    {
+      "race_id": "202402145310",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202402145310",
+      "source_sha256": "fccb375b587b56cd4f6eb6f774389c72112cbc77952e967655c4fe4b6f702257",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 7
+    },
+    {
+      "race_id": "202403162207",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202403162207",
+      "source_sha256": "5d22713d8b4c52e7b3b1f5a700de475b9d690c6b0bd26d21df9d8b2f560759f7",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 5
+    },
+    {
+      "race_id": "202404158312",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202404158312",
+      "source_sha256": "bc06cc7ee04d25a0f3762fc44823ef758e87183bf708db07f0971c2e7513b9c8",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 4
+    },
+    {
+      "race_id": "202405162509",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202405162509",
+      "source_sha256": "fa59256995e914985917cf3b29c9f978267d5a618f5cee581a4b5a35d33adb45",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 7
+    },
+    {
+      "race_id": "202406173703",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202406173703",
+      "source_sha256": "bf6dcf657ec40a2a66da722fc70f3f817fc9d62003d4fee4a7388be411c12c82",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 5
+    },
+    {
+      "race_id": "202407167307",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202407167307",
+      "source_sha256": "0bf5b22552d668fb589e519a3b835320a6d15e7c2104cb31b3c917facacb0642",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 6
+    },
+    {
+      "race_id": "202408168401",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202408168401",
+      "source_sha256": "80b3dcfb9689f2dac2bbbc675ff5ef49a31442a543a82402ced7d3799f271b3c",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 6
+    },
+    {
+      "race_id": "202409161206",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202409161206",
+      "source_sha256": "1eaecc018cbbcba77b3ad24685045c6961b79ec250849eb5121068a8eb9dde0b",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 5
+    },
+    {
+      "race_id": "202410173109",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202410173109",
+      "source_sha256": "879eca5a467394a58eff0d0130f75421bd5c6780ddfdc3576677d28a71975e0e",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 7
+    },
+    {
+      "race_id": "202411151310",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202411151310",
+      "source_sha256": "90e4fd7d485af88dfb4964e049acf1137d97ed26088bb7022da4611106fa9d8a",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 6
+    },
+    {
+      "race_id": "202412164502",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202412164502",
+      "source_sha256": "7b3a2cdf532104df5d6e1cc97de9a50314a1454ea802ff9058fae0eac8935d24",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 5
+    },
+    {
+      "race_id": "202501157505",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202501157505",
+      "source_sha256": "fae41d9065a3b0dd486c0c3a98c1020840e03d78520abd947b6263f64a908907",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 6
+    },
+    {
+      "race_id": "202502142607",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202502142607",
+      "source_sha256": "38dd9aeeb87be5e39487ef238cb757cc453f30d353944ccc44cf219ee250871b",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 6
+    },
+    {
+      "race_id": "202503166306",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202503166306",
+      "source_sha256": "f8680b43dd3526f54891b1928d2495398cee5a46851d02040c9a6244ca60f54f",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 5
+    },
+    {
+      "race_id": "202504158601",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202504158601",
+      "source_sha256": "5ad96e2f36b7700864f0795c6a9893d644d5992e98ea498b62722e6c398b3de3",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 6
+    },
+    {
+      "race_id": "202505167303",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202505167303",
+      "source_sha256": "93fab0f5d733377f426c2ba7795b0e66c7b376bd71b078b08c044c8c97ed8e94",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 4
+    },
+    {
+      "race_id": "202506163807",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202506163807",
+      "source_sha256": "2d26e92bb99d9e59db090566d02dbf324b9b7dd97040c7f157512ee91bd90972",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 7
+    },
+    {
+      "race_id": "202507163404",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202507163404",
+      "source_sha256": "d3e8e2f3759982621d4efe10447aab51a8cf3918e62028e0418c9b50a353a63f",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 4
+    },
+    {
+      "race_id": "202508158107",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202508158107",
+      "source_sha256": "48acaec11e4d6ead0c3f9f87863c55129f940e885a013b0b049db65f667ff5be",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 6
+    },
+    {
+      "race_id": "202509161105",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202509161105",
+      "source_sha256": "0fc0473ff5e1eed4cbe6b3dd26225d91bb0a7edf10e255f874ca06a151038f9e",
+      "observed_riders": 7,
+      "result_profile_links": 7,
+      "identity_matches_with_official_derived_master": 6
+    }
+  ]
+}

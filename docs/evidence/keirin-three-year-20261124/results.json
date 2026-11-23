@@ -1,0 +1,1956 @@
+{
+  "schema": "KEIRIN_THREE_YEAR_EXPERIMENT_RESULTS_V1",
+  "commitment_head": "013ee5b31277dba43051141d4676aeecda299802",
+  "ci_witness": 45207158599,
+  "ci_created_at": "2026-11-23T15:36:40Z",
+  "holdout_result_opened_at": "2026-11-23T15:37:25.138894+00:00",
+  "frozen_count": 1725,
+  "not_forecast_count": 1,
+  "archive_verified_before_cutoff": 561,
+  "archived_program_replay": 1164,
+  "scored_total": 1720,
+  "recent_result_binding": {
+    "label_source_commit": "2aaf134c8f41d1a42c31e6023f0052df27e17ec8",
+    "checked_at": "2026-11-23T15:32:20.196402+00:00",
+    "matched_within_study": 86
+  },
+  "all_evaluation_records": {
+    "unresolved": 5,
+    "per_cap": {
+      "2t:1:entry_only": {
+        "races": 1720,
+        "hits": 358,
+        "points": 1720
+      },
+      "2t:1:published_line": {
+        "races": 1720,
+        "hits": 410,
+        "points": 1720
+      },
+      "2t:1:line_with_history": {
+        "races": 1720,
+        "hits": 403,
+        "points": 1720
+      },
+      "2t:1:existing_A": {
+        "races": 1720,
+        "hits": 307,
+        "points": 1720
+      },
+      "2t:1:existing_B": {
+        "races": 1720,
+        "hits": 306,
+        "points": 1720
+      },
+      "2t:2:entry_only": {
+        "races": 1720,
+        "hits": 587,
+        "points": 3440
+      },
+      "2t:2:published_line": {
+        "races": 1720,
+        "hits": 646,
+        "points": 3440
+      },
+      "2t:2:line_with_history": {
+        "races": 1720,
+        "hits": 647,
+        "points": 3440
+      },
+      "2t:2:existing_A": {
+        "races": 1720,
+        "hits": 510,
+        "points": 3419
+      },
+      "2t:2:existing_B": {
+        "races": 1720,
+        "hits": 521,
+        "points": 3419
+      },
+      "2t:4:entry_only": {
+        "races": 1720,
+        "hits": 805,
+        "points": 6880
+      },
+      "2t:4:published_line": {
+        "races": 1720,
+        "hits": 915,
+        "points": 6880
+      },
+      "2t:4:line_with_history": {
+        "races": 1720,
+        "hits": 918,
+        "points": 6880
+      },
+      "2t:4:existing_A": {
+        "races": 1720,
+        "hits": 700,
+        "points": 6787
+      },
+      "2t:4:existing_B": {
+        "races": 1720,
+        "hits": 702,
+        "points": 6787
+      },
+      "3t:4:entry_only": {
+        "races": 1720,
+        "hits": 354,
+        "points": 6880
+      },
+      "3t:4:published_line": {
+        "races": 1720,
+        "hits": 396,
+        "points": 6880
+      },
+      "3t:4:line_with_history": {
+        "races": 1720,
+        "hits": 399,
+        "points": 6880
+      },
+      "3t:4:existing_A": {
+        "races": 1720,
+        "hits": 296,
+        "points": 6807
+      },
+      "3t:4:existing_B": {
+        "races": 1720,
+        "hits": 295,
+        "points": 6807
+      },
+      "3t:8:entry_only": {
+        "races": 1720,
+        "hits": 554,
+        "points": 13760
+      },
+      "3t:8:published_line": {
+        "races": 1720,
+        "hits": 622,
+        "points": 13760
+      },
+      "3t:8:line_with_history": {
+        "races": 1720,
+        "hits": 624,
+        "points": 13760
+      },
+      "3t:8:existing_A": {
+        "races": 1720,
+        "hits": 424,
+        "points": 13405
+      },
+      "3t:8:existing_B": {
+        "races": 1720,
+        "hits": 423,
+        "points": 13405
+      }
+    },
+    "same_ticket_count_including_existing_arms": {
+      "2t:1:entry_only": {
+        "races": 1720,
+        "hits": 358,
+        "points": 1720
+      },
+      "2t:1:published_line": {
+        "races": 1720,
+        "hits": 410,
+        "points": 1720
+      },
+      "2t:1:line_with_history": {
+        "races": 1720,
+        "hits": 403,
+        "points": 1720
+      },
+      "2t:1:existing_A": {
+        "races": 1720,
+        "hits": 307,
+        "points": 1720
+      },
+      "2t:1:existing_B": {
+        "races": 1720,
+        "hits": 306,
+        "points": 1720
+      },
+      "2t:2:entry_only": {
+        "races": 1720,
+        "hits": 585,
+        "points": 3419
+      },
+      "2t:2:published_line": {
+        "races": 1720,
+        "hits": 644,
+        "points": 3419
+      },
+      "2t:2:line_with_history": {
+        "races": 1720,
+        "hits": 645,
+        "points": 3419
+      },
+      "2t:2:existing_A": {
+        "races": 1720,
+        "hits": 510,
+        "points": 3419
+      },
+      "2t:2:existing_B": {
+        "races": 1720,
+        "hits": 521,
+        "points": 3419
+      },
+      "2t:4:entry_only": {
+        "races": 1720,
+        "hits": 796,
+        "points": 6787
+      },
+      "2t:4:published_line": {
+        "races": 1720,
+        "hits": 907,
+        "points": 6787
+      },
+      "2t:4:line_with_history": {
+        "races": 1720,
+        "hits": 909,
+        "points": 6787
+      },
+      "2t:4:existing_A": {
+        "races": 1720,
+        "hits": 700,
+        "points": 6787
+      },
+      "2t:4:existing_B": {
+        "races": 1720,
+        "hits": 702,
+        "points": 6787
+      },
+      "3t:4:entry_only": {
+        "races": 1720,
+        "hits": 351,
+        "points": 6807
+      },
+      "3t:4:published_line": {
+        "races": 1720,
+        "hits": 395,
+        "points": 6807
+      },
+      "3t:4:line_with_history": {
+        "races": 1720,
+        "hits": 398,
+        "points": 6807
+      },
+      "3t:4:existing_A": {
+        "races": 1720,
+        "hits": 296,
+        "points": 6807
+      },
+      "3t:4:existing_B": {
+        "races": 1720,
+        "hits": 295,
+        "points": 6807
+      },
+      "3t:8:entry_only": {
+        "races": 1720,
+        "hits": 543,
+        "points": 13405
+      },
+      "3t:8:published_line": {
+        "races": 1720,
+        "hits": 613,
+        "points": 13405
+      },
+      "3t:8:line_with_history": {
+        "races": 1720,
+        "hits": 616,
+        "points": 13405
+      },
+      "3t:8:existing_A": {
+        "races": 1720,
+        "hits": 424,
+        "points": 13405
+      },
+      "3t:8:existing_B": {
+        "races": 1720,
+        "hits": 423,
+        "points": 13405
+      }
+    },
+    "phase_pair_coverage": {
+      "pair_visible_in_3t8:entry_only": 816,
+      "total:entry_only": 1720,
+      "pair_visible_in_3t8:published_line": 841,
+      "total:published_line": 1720,
+      "pair_visible_in_3t8:line_with_history": 837,
+      "total:line_with_history": 1720,
+      "pair_visible_in_3t8:existing_A": 774,
+      "total:existing_A": 1720,
+      "pair_visible_in_3t8:existing_B": 771,
+      "total:existing_B": 1720
+    },
+    "day_block_95_percentage_points": {
+      "2t:1:published_line_against_entry_only": [
+        1.529,
+        4.704
+      ],
+      "2t:1:line_with_history_against_published_line": [
+        -0.956,
+        0.059
+      ],
+      "2t:2:published_line_against_entry_only": [
+        1.076,
+        5.765
+      ],
+      "2t:2:line_with_history_against_published_line": [
+        -0.74,
+        0.982
+      ],
+      "2t:4:published_line_against_entry_only": [
+        4.336,
+        8.671
+      ],
+      "2t:4:line_with_history_against_published_line": [
+        -0.526,
+        0.896
+      ],
+      "3t:4:published_line_against_entry_only": [
+        0.911,
+        3.986
+      ],
+      "3t:4:line_with_history_against_published_line": [
+        -0.506,
+        0.778
+      ],
+      "3t:8:published_line_against_entry_only": [
+        1.78,
+        6.05
+      ],
+      "3t:8:line_with_history_against_published_line": [
+        -0.42,
+        0.636
+      ]
+    }
+  },
+  "retrospective_program_slice": {
+    "unresolved": 1,
+    "per_cap": {
+      "2t:1:entry_only": {
+        "races": 1163,
+        "hits": 275,
+        "points": 1163
+      },
+      "2t:1:published_line": {
+        "races": 1163,
+        "hits": 284,
+        "points": 1163
+      },
+      "2t:1:line_with_history": {
+        "races": 1163,
+        "hits": 278,
+        "points": 1163
+      },
+      "2t:1:existing_A": {
+        "races": 1163,
+        "hits": 213,
+        "points": 1163
+      },
+      "2t:1:existing_B": {
+        "races": 1163,
+        "hits": 204,
+        "points": 1163
+      },
+      "2t:2:entry_only": {
+        "races": 1163,
+        "hits": 433,
+        "points": 2326
+      },
+      "2t:2:published_line": {
+        "races": 1163,
+        "hits": 441,
+        "points": 2326
+      },
+      "2t:2:line_with_history": {
+        "races": 1163,
+        "hits": 435,
+        "points": 2326
+      },
+      "2t:2:existing_A": {
+        "races": 1163,
+        "hits": 335,
+        "points": 2305
+      },
+      "2t:2:existing_B": {
+        "races": 1163,
+        "hits": 340,
+        "points": 2305
+      },
+      "2t:4:entry_only": {
+        "races": 1163,
+        "hits": 569,
+        "points": 4652
+      },
+      "2t:4:published_line": {
+        "races": 1163,
+        "hits": 615,
+        "points": 4652
+      },
+      "2t:4:line_with_history": {
+        "races": 1163,
+        "hits": 618,
+        "points": 4652
+      },
+      "2t:4:existing_A": {
+        "races": 1163,
+        "hits": 454,
+        "points": 4559
+      },
+      "2t:4:existing_B": {
+        "races": 1163,
+        "hits": 450,
+        "points": 4559
+      },
+      "3t:4:entry_only": {
+        "races": 1163,
+        "hits": 260,
+        "points": 4652
+      },
+      "3t:4:published_line": {
+        "races": 1163,
+        "hits": 278,
+        "points": 4652
+      },
+      "3t:4:line_with_history": {
+        "races": 1163,
+        "hits": 278,
+        "points": 4652
+      },
+      "3t:4:existing_A": {
+        "races": 1163,
+        "hits": 191,
+        "points": 4579
+      },
+      "3t:4:existing_B": {
+        "races": 1163,
+        "hits": 189,
+        "points": 4579
+      },
+      "3t:8:entry_only": {
+        "races": 1163,
+        "hits": 400,
+        "points": 9304
+      },
+      "3t:8:published_line": {
+        "races": 1163,
+        "hits": 421,
+        "points": 9304
+      },
+      "3t:8:line_with_history": {
+        "races": 1163,
+        "hits": 424,
+        "points": 9304
+      },
+      "3t:8:existing_A": {
+        "races": 1163,
+        "hits": 274,
+        "points": 8951
+      },
+      "3t:8:existing_B": {
+        "races": 1163,
+        "hits": 272,
+        "points": 8951
+      }
+    },
+    "same_ticket_count_including_existing_arms": {
+      "2t:1:entry_only": {
+        "races": 1163,
+        "hits": 275,
+        "points": 1163
+      },
+      "2t:1:published_line": {
+        "races": 1163,
+        "hits": 284,
+        "points": 1163
+      },
+      "2t:1:line_with_history": {
+        "races": 1163,
+        "hits": 278,
+        "points": 1163
+      },
+      "2t:1:existing_A": {
+        "races": 1163,
+        "hits": 213,
+        "points": 1163
+      },
+      "2t:1:existing_B": {
+        "races": 1163,
+        "hits": 204,
+        "points": 1163
+      },
+      "2t:2:entry_only": {
+        "races": 1163,
+        "hits": 431,
+        "points": 2305
+      },
+      "2t:2:published_line": {
+        "races": 1163,
+        "hits": 439,
+        "points": 2305
+      },
+      "2t:2:line_with_history": {
+        "races": 1163,
+        "hits": 433,
+        "points": 2305
+      },
+      "2t:2:existing_A": {
+        "races": 1163,
+        "hits": 335,
+        "points": 2305
+      },
+      "2t:2:existing_B": {
+        "races": 1163,
+        "hits": 340,
+        "points": 2305
+      },
+      "2t:4:entry_only": {
+        "races": 1163,
+        "hits": 560,
+        "points": 4559
+      },
+      "2t:4:published_line": {
+        "races": 1163,
+        "hits": 607,
+        "points": 4559
+      },
+      "2t:4:line_with_history": {
+        "races": 1163,
+        "hits": 609,
+        "points": 4559
+      },
+      "2t:4:existing_A": {
+        "races": 1163,
+        "hits": 454,
+        "points": 4559
+      },
+      "2t:4:existing_B": {
+        "races": 1163,
+        "hits": 450,
+        "points": 4559
+      },
+      "3t:4:entry_only": {
+        "races": 1163,
+        "hits": 257,
+        "points": 4579
+      },
+      "3t:4:published_line": {
+        "races": 1163,
+        "hits": 277,
+        "points": 4579
+      },
+      "3t:4:line_with_history": {
+        "races": 1163,
+        "hits": 277,
+        "points": 4579
+      },
+      "3t:4:existing_A": {
+        "races": 1163,
+        "hits": 191,
+        "points": 4579
+      },
+      "3t:4:existing_B": {
+        "races": 1163,
+        "hits": 189,
+        "points": 4579
+      },
+      "3t:8:entry_only": {
+        "races": 1163,
+        "hits": 389,
+        "points": 8951
+      },
+      "3t:8:published_line": {
+        "races": 1163,
+        "hits": 412,
+        "points": 8951
+      },
+      "3t:8:line_with_history": {
+        "races": 1163,
+        "hits": 416,
+        "points": 8951
+      },
+      "3t:8:existing_A": {
+        "races": 1163,
+        "hits": 274,
+        "points": 8951
+      },
+      "3t:8:existing_B": {
+        "races": 1163,
+        "hits": 272,
+        "points": 8951
+      }
+    },
+    "phase_pair_coverage": {
+      "pair_visible_in_3t8:entry_only": 567,
+      "total:entry_only": 1163,
+      "pair_visible_in_3t8:published_line": 573,
+      "total:published_line": 1163,
+      "pair_visible_in_3t8:line_with_history": 571,
+      "total:line_with_history": 1163,
+      "pair_visible_in_3t8:existing_A": 504,
+      "total:existing_A": 1163,
+      "pair_visible_in_3t8:existing_B": 499,
+      "total:existing_B": 1163
+    },
+    "day_block_95_percentage_points": {
+      "2t:1:published_line_against_entry_only": [
+        -0.28,
+        1.906
+      ],
+      "2t:1:line_with_history_against_published_line": [
+        -1.222,
+        0.082
+      ],
+      "2t:2:published_line_against_entry_only": [
+        -1.8,
+        3.187
+      ],
+      "2t:2:line_with_history_against_published_line": [
+        -1.208,
+        0.095
+      ],
+      "2t:4:published_line_against_entry_only": [
+        2.214,
+        5.698
+      ],
+      "2t:4:line_with_history_against_published_line": [
+        -0.595,
+        1.113
+      ],
+      "3t:4:published_line_against_entry_only": [
+        -0.282,
+        3.393
+      ],
+      "3t:4:line_with_history_against_published_line": [
+        -0.876,
+        0.918
+      ],
+      "3t:8:published_line_against_entry_only": [
+        -0.52,
+        4.355
+      ],
+      "3t:8:line_with_history_against_published_line": [
+        -0.301,
+        0.906
+      ]
+    }
+  },
+  "timed_pre_cutoff_slice": {
+    "unresolved": 4,
+    "per_cap": {
+      "2t:1:entry_only": {
+        "races": 557,
+        "hits": 83,
+        "points": 557
+      },
+      "2t:1:published_line": {
+        "races": 557,
+        "hits": 126,
+        "points": 557
+      },
+      "2t:1:line_with_history": {
+        "races": 557,
+        "hits": 125,
+        "points": 557
+      },
+      "2t:1:existing_A": {
+        "races": 557,
+        "hits": 94,
+        "points": 557
+      },
+      "2t:1:existing_B": {
+        "races": 557,
+        "hits": 102,
+        "points": 557
+      },
+      "2t:2:entry_only": {
+        "races": 557,
+        "hits": 154,
+        "points": 1114
+      },
+      "2t:2:published_line": {
+        "races": 557,
+        "hits": 205,
+        "points": 1114
+      },
+      "2t:2:line_with_history": {
+        "races": 557,
+        "hits": 212,
+        "points": 1114
+      },
+      "2t:2:existing_A": {
+        "races": 557,
+        "hits": 175,
+        "points": 1114
+      },
+      "2t:2:existing_B": {
+        "races": 557,
+        "hits": 181,
+        "points": 1114
+      },
+      "2t:4:entry_only": {
+        "races": 557,
+        "hits": 236,
+        "points": 2228
+      },
+      "2t:4:published_line": {
+        "races": 557,
+        "hits": 300,
+        "points": 2228
+      },
+      "2t:4:line_with_history": {
+        "races": 557,
+        "hits": 300,
+        "points": 2228
+      },
+      "2t:4:existing_A": {
+        "races": 557,
+        "hits": 246,
+        "points": 2228
+      },
+      "2t:4:existing_B": {
+        "races": 557,
+        "hits": 252,
+        "points": 2228
+      },
+      "3t:4:entry_only": {
+        "races": 557,
+        "hits": 94,
+        "points": 2228
+      },
+      "3t:4:published_line": {
+        "races": 557,
+        "hits": 118,
+        "points": 2228
+      },
+      "3t:4:line_with_history": {
+        "races": 557,
+        "hits": 121,
+        "points": 2228
+      },
+      "3t:4:existing_A": {
+        "races": 557,
+        "hits": 105,
+        "points": 2228
+      },
+      "3t:4:existing_B": {
+        "races": 557,
+        "hits": 106,
+        "points": 2228
+      },
+      "3t:8:entry_only": {
+        "races": 557,
+        "hits": 154,
+        "points": 4456
+      },
+      "3t:8:published_line": {
+        "races": 557,
+        "hits": 201,
+        "points": 4456
+      },
+      "3t:8:line_with_history": {
+        "races": 557,
+        "hits": 200,
+        "points": 4456
+      },
+      "3t:8:existing_A": {
+        "races": 557,
+        "hits": 150,
+        "points": 4454
+      },
+      "3t:8:existing_B": {
+        "races": 557,
+        "hits": 151,
+        "points": 4454
+      }
+    },
+    "same_ticket_count_including_existing_arms": {
+      "2t:1:entry_only": {
+        "races": 557,
+        "hits": 83,
+        "points": 557
+      },
+      "2t:1:published_line": {
+        "races": 557,
+        "hits": 126,
+        "points": 557
+      },
+      "2t:1:line_with_history": {
+        "races": 557,
+        "hits": 125,
+        "points": 557
+      },
+      "2t:1:existing_A": {
+        "races": 557,
+        "hits": 94,
+        "points": 557
+      },
+      "2t:1:existing_B": {
+        "races": 557,
+        "hits": 102,
+        "points": 557
+      },
+      "2t:2:entry_only": {
+        "races": 557,
+        "hits": 154,
+        "points": 1114
+      },
+      "2t:2:published_line": {
+        "races": 557,
+        "hits": 205,
+        "points": 1114
+      },
+      "2t:2:line_with_history": {
+        "races": 557,
+        "hits": 212,
+        "points": 1114
+      },
+      "2t:2:existing_A": {
+        "races": 557,
+        "hits": 175,
+        "points": 1114
+      },
+      "2t:2:existing_B": {
+        "races": 557,
+        "hits": 181,
+        "points": 1114
+      },
+      "2t:4:entry_only": {
+        "races": 557,
+        "hits": 236,
+        "points": 2228
+      },
+      "2t:4:published_line": {
+        "races": 557,
+        "hits": 300,
+        "points": 2228
+      },
+      "2t:4:line_with_history": {
+        "races": 557,
+        "hits": 300,
+        "points": 2228
+      },
+      "2t:4:existing_A": {
+        "races": 557,
+        "hits": 246,
+        "points": 2228
+      },
+      "2t:4:existing_B": {
+        "races": 557,
+        "hits": 252,
+        "points": 2228
+      },
+      "3t:4:entry_only": {
+        "races": 557,
+        "hits": 94,
+        "points": 2228
+      },
+      "3t:4:published_line": {
+        "races": 557,
+        "hits": 118,
+        "points": 2228
+      },
+      "3t:4:line_with_history": {
+        "races": 557,
+        "hits": 121,
+        "points": 2228
+      },
+      "3t:4:existing_A": {
+        "races": 557,
+        "hits": 105,
+        "points": 2228
+      },
+      "3t:4:existing_B": {
+        "races": 557,
+        "hits": 106,
+        "points": 2228
+      },
+      "3t:8:entry_only": {
+        "races": 557,
+        "hits": 154,
+        "points": 4454
+      },
+      "3t:8:published_line": {
+        "races": 557,
+        "hits": 201,
+        "points": 4454
+      },
+      "3t:8:line_with_history": {
+        "races": 557,
+        "hits": 200,
+        "points": 4454
+      },
+      "3t:8:existing_A": {
+        "races": 557,
+        "hits": 150,
+        "points": 4454
+      },
+      "3t:8:existing_B": {
+        "races": 557,
+        "hits": 151,
+        "points": 4454
+      }
+    },
+    "phase_pair_coverage": {
+      "pair_visible_in_3t8:entry_only": 249,
+      "total:entry_only": 557,
+      "pair_visible_in_3t8:published_line": 268,
+      "total:published_line": 557,
+      "pair_visible_in_3t8:line_with_history": 266,
+      "total:line_with_history": 557,
+      "pair_visible_in_3t8:existing_A": 270,
+      "total:existing_A": 557,
+      "pair_visible_in_3t8:existing_B": 272,
+      "total:existing_B": 557
+    },
+    "day_block_95_percentage_points": {
+      "2t:1:published_line_against_entry_only": [
+        6.341,
+        9.262
+      ],
+      "2t:1:line_with_history_against_published_line": [
+        -0.887,
+        0.56
+      ],
+      "2t:2:published_line_against_entry_only": [
+        6.486,
+        11.417
+      ],
+      "2t:2:line_with_history_against_published_line": [
+        -0.611,
+        3.147
+      ],
+      "2t:4:published_line_against_entry_only": [
+        8.35,
+        14.722
+      ],
+      "2t:4:line_with_history_against_published_line": [
+        -1.328,
+        1.299
+      ],
+      "3t:4:published_line_against_entry_only": [
+        1.473,
+        6.667
+      ],
+      "3t:4:line_with_history_against_published_line": [
+        -0.185,
+        1.27
+      ],
+      "3t:8:published_line_against_entry_only": [
+        6.229,
+        10.642
+      ],
+      "3t:8:line_with_history_against_published_line": [
+        -1.292,
+        0.812
+      ]
+    }
+  },
+  "timed_pre_cutoff_with_earlier_role_history": {
+    "unresolved": 4,
+    "per_cap": {
+      "2t:1:entry_only": {
+        "races": 557,
+        "hits": 83,
+        "points": 557
+      },
+      "2t:1:published_line": {
+        "races": 557,
+        "hits": 126,
+        "points": 557
+      },
+      "2t:1:line_with_history": {
+        "races": 557,
+        "hits": 125,
+        "points": 557
+      },
+      "2t:1:existing_A": {
+        "races": 557,
+        "hits": 94,
+        "points": 557
+      },
+      "2t:1:existing_B": {
+        "races": 557,
+        "hits": 102,
+        "points": 557
+      },
+      "2t:2:entry_only": {
+        "races": 557,
+        "hits": 154,
+        "points": 1114
+      },
+      "2t:2:published_line": {
+        "races": 557,
+        "hits": 205,
+        "points": 1114
+      },
+      "2t:2:line_with_history": {
+        "races": 557,
+        "hits": 212,
+        "points": 1114
+      },
+      "2t:2:existing_A": {
+        "races": 557,
+        "hits": 175,
+        "points": 1114
+      },
+      "2t:2:existing_B": {
+        "races": 557,
+        "hits": 181,
+        "points": 1114
+      },
+      "2t:4:entry_only": {
+        "races": 557,
+        "hits": 236,
+        "points": 2228
+      },
+      "2t:4:published_line": {
+        "races": 557,
+        "hits": 300,
+        "points": 2228
+      },
+      "2t:4:line_with_history": {
+        "races": 557,
+        "hits": 300,
+        "points": 2228
+      },
+      "2t:4:existing_A": {
+        "races": 557,
+        "hits": 246,
+        "points": 2228
+      },
+      "2t:4:existing_B": {
+        "races": 557,
+        "hits": 252,
+        "points": 2228
+      },
+      "3t:4:entry_only": {
+        "races": 557,
+        "hits": 94,
+        "points": 2228
+      },
+      "3t:4:published_line": {
+        "races": 557,
+        "hits": 118,
+        "points": 2228
+      },
+      "3t:4:line_with_history": {
+        "races": 557,
+        "hits": 121,
+        "points": 2228
+      },
+      "3t:4:existing_A": {
+        "races": 557,
+        "hits": 105,
+        "points": 2228
+      },
+      "3t:4:existing_B": {
+        "races": 557,
+        "hits": 106,
+        "points": 2228
+      },
+      "3t:8:entry_only": {
+        "races": 557,
+        "hits": 154,
+        "points": 4456
+      },
+      "3t:8:published_line": {
+        "races": 557,
+        "hits": 201,
+        "points": 4456
+      },
+      "3t:8:line_with_history": {
+        "races": 557,
+        "hits": 200,
+        "points": 4456
+      },
+      "3t:8:existing_A": {
+        "races": 557,
+        "hits": 150,
+        "points": 4454
+      },
+      "3t:8:existing_B": {
+        "races": 557,
+        "hits": 151,
+        "points": 4454
+      }
+    },
+    "same_ticket_count_including_existing_arms": {
+      "2t:1:entry_only": {
+        "races": 557,
+        "hits": 83,
+        "points": 557
+      },
+      "2t:1:published_line": {
+        "races": 557,
+        "hits": 126,
+        "points": 557
+      },
+      "2t:1:line_with_history": {
+        "races": 557,
+        "hits": 125,
+        "points": 557
+      },
+      "2t:1:existing_A": {
+        "races": 557,
+        "hits": 94,
+        "points": 557
+      },
+      "2t:1:existing_B": {
+        "races": 557,
+        "hits": 102,
+        "points": 557
+      },
+      "2t:2:entry_only": {
+        "races": 557,
+        "hits": 154,
+        "points": 1114
+      },
+      "2t:2:published_line": {
+        "races": 557,
+        "hits": 205,
+        "points": 1114
+      },
+      "2t:2:line_with_history": {
+        "races": 557,
+        "hits": 212,
+        "points": 1114
+      },
+      "2t:2:existing_A": {
+        "races": 557,
+        "hits": 175,
+        "points": 1114
+      },
+      "2t:2:existing_B": {
+        "races": 557,
+        "hits": 181,
+        "points": 1114
+      },
+      "2t:4:entry_only": {
+        "races": 557,
+        "hits": 236,
+        "points": 2228
+      },
+      "2t:4:published_line": {
+        "races": 557,
+        "hits": 300,
+        "points": 2228
+      },
+      "2t:4:line_with_history": {
+        "races": 557,
+        "hits": 300,
+        "points": 2228
+      },
+      "2t:4:existing_A": {
+        "races": 557,
+        "hits": 246,
+        "points": 2228
+      },
+      "2t:4:existing_B": {
+        "races": 557,
+        "hits": 252,
+        "points": 2228
+      },
+      "3t:4:entry_only": {
+        "races": 557,
+        "hits": 94,
+        "points": 2228
+      },
+      "3t:4:published_line": {
+        "races": 557,
+        "hits": 118,
+        "points": 2228
+      },
+      "3t:4:line_with_history": {
+        "races": 557,
+        "hits": 121,
+        "points": 2228
+      },
+      "3t:4:existing_A": {
+        "races": 557,
+        "hits": 105,
+        "points": 2228
+      },
+      "3t:4:existing_B": {
+        "races": 557,
+        "hits": 106,
+        "points": 2228
+      },
+      "3t:8:entry_only": {
+        "races": 557,
+        "hits": 154,
+        "points": 4454
+      },
+      "3t:8:published_line": {
+        "races": 557,
+        "hits": 201,
+        "points": 4454
+      },
+      "3t:8:line_with_history": {
+        "races": 557,
+        "hits": 200,
+        "points": 4454
+      },
+      "3t:8:existing_A": {
+        "races": 557,
+        "hits": 150,
+        "points": 4454
+      },
+      "3t:8:existing_B": {
+        "races": 557,
+        "hits": 151,
+        "points": 4454
+      }
+    },
+    "phase_pair_coverage": {
+      "pair_visible_in_3t8:entry_only": 249,
+      "total:entry_only": 557,
+      "pair_visible_in_3t8:published_line": 268,
+      "total:published_line": 557,
+      "pair_visible_in_3t8:line_with_history": 266,
+      "total:line_with_history": 557,
+      "pair_visible_in_3t8:existing_A": 270,
+      "total:existing_A": 557,
+      "pair_visible_in_3t8:existing_B": 272,
+      "total:existing_B": 557
+    },
+    "day_block_95_percentage_points": {
+      "2t:1:published_line_against_entry_only": [
+        6.341,
+        9.262
+      ],
+      "2t:1:line_with_history_against_published_line": [
+        -0.887,
+        0.56
+      ],
+      "2t:2:published_line_against_entry_only": [
+        6.486,
+        11.417
+      ],
+      "2t:2:line_with_history_against_published_line": [
+        -0.611,
+        3.147
+      ],
+      "2t:4:published_line_against_entry_only": [
+        8.35,
+        14.722
+      ],
+      "2t:4:line_with_history_against_published_line": [
+        -1.328,
+        1.299
+      ],
+      "3t:4:published_line_against_entry_only": [
+        1.473,
+        6.667
+      ],
+      "3t:4:line_with_history_against_published_line": [
+        -0.185,
+        1.27
+      ],
+      "3t:8:published_line_against_entry_only": [
+        6.229,
+        10.642
+      ],
+      "3t:8:line_with_history_against_published_line": [
+        -1.292,
+        0.812
+      ]
+    }
+  },
+  "odds_policy": "No additional odds were admitted for this evaluation; only the program and earlier phase history are compared.",
+  "role_evidence": {
+    "timed_input_days": [
+      "20261116",
+      "20261117",
+      "20261118",
+      "20261119",
+      "20261120",
+      "20261121",
+      "20261122",
+      "20261123"
+    ],
+    "program_age_minutes": {
+      "min": 159.4,
+      "median": 528.1,
+      "max": 1099.0
+    },
+    "exact_preserved_receipts_10_to_15_before": 0,
+    "previous_markers_by_planned_role": {
+      "LEAD": {
+        "S_n": 5707,
+        "S_yes": 997,
+        "B_n": 5916,
+        "B_yes": 2224,
+        "win_by_escape_or_makuri_n": 5916,
+        "win_by_escape_or_makuri_yes": 1033
+      },
+      "REAR": {
+        "S_n": 2891,
+        "S_yes": 250,
+        "B_n": 2964,
+        "B_yes": 4,
+        "win_by_escape_or_makuri_n": 2964,
+        "win_by_escape_or_makuri_yes": 3
+      },
+      "SECOND": {
+        "S_n": 5832,
+        "S_yes": 936,
+        "B_n": 6042,
+        "B_yes": 21,
+        "win_by_escape_or_makuri_n": 6042,
+        "win_by_escape_or_makuri_yes": 45
+      },
+      "SOLO": {
+        "S_n": 2800,
+        "S_yes": 226,
+        "B_n": 3038,
+        "B_yes": 244,
+        "win_by_escape_or_makuri_n": 3038,
+        "win_by_escape_or_makuri_yes": 217
+      }
+    },
+    "prior_roles_mean": "Planned line roles, anchored to exact same-race registration and the actual S/B result marks.",
+    "prior_role_history_in_timed_card_rows": {
+      "total_rider_rows": 4028,
+      "rider_rows_with_at_least_three_prior_role_observations": 2622
+    }
+  },
+  "independent_result_sensitivity": {
+    "scope": "Both Kdreams and netkeirin paid order match, or the existing two-source live ledger for November 23.",
+    "old_archives_exclusions": {
+      "unavailable_on_either_source": 6,
+      "source_disagreement": 3
+    },
+    "scored_total": 1714,
+    "scored_timed": 556,
+    "timed": {
+      "unresolved": 5,
+      "per_cap": {
+        "2t:1:entry_only": {
+          "races": 556,
+          "hits": 83,
+          "points": 556
+        },
+        "2t:1:published_line": {
+          "races": 556,
+          "hits": 126,
+          "points": 556
+        },
+        "2t:1:line_with_history": {
+          "races": 556,
+          "hits": 125,
+          "points": 556
+        },
+        "2t:1:existing_A": {
+          "races": 556,
+          "hits": 94,
+          "points": 556
+        },
+        "2t:1:existing_B": {
+          "races": 556,
+          "hits": 102,
+          "points": 556
+        },
+        "2t:2:entry_only": {
+          "races": 556,
+          "hits": 154,
+          "points": 1112
+        },
+        "2t:2:published_line": {
+          "races": 556,
+          "hits": 205,
+          "points": 1112
+        },
+        "2t:2:line_with_history": {
+          "races": 556,
+          "hits": 212,
+          "points": 1112
+        },
+        "2t:2:existing_A": {
+          "races": 556,
+          "hits": 175,
+          "points": 1112
+        },
+        "2t:2:existing_B": {
+          "races": 556,
+          "hits": 181,
+          "points": 1112
+        },
+        "2t:4:entry_only": {
+          "races": 556,
+          "hits": 236,
+          "points": 2224
+        },
+        "2t:4:published_line": {
+          "races": 556,
+          "hits": 300,
+          "points": 2224
+        },
+        "2t:4:line_with_history": {
+          "races": 556,
+          "hits": 300,
+          "points": 2224
+        },
+        "2t:4:existing_A": {
+          "races": 556,
+          "hits": 246,
+          "points": 2224
+        },
+        "2t:4:existing_B": {
+          "races": 556,
+          "hits": 252,
+          "points": 2224
+        },
+        "3t:4:entry_only": {
+          "races": 556,
+          "hits": 94,
+          "points": 2224
+        },
+        "3t:4:published_line": {
+          "races": 556,
+          "hits": 118,
+          "points": 2224
+        },
+        "3t:4:line_with_history": {
+          "races": 556,
+          "hits": 121,
+          "points": 2224
+        },
+        "3t:4:existing_A": {
+          "races": 556,
+          "hits": 105,
+          "points": 2224
+        },
+        "3t:4:existing_B": {
+          "races": 556,
+          "hits": 106,
+          "points": 2224
+        },
+        "3t:8:entry_only": {
+          "races": 556,
+          "hits": 154,
+          "points": 4448
+        },
+        "3t:8:published_line": {
+          "races": 556,
+          "hits": 201,
+          "points": 4448
+        },
+        "3t:8:line_with_history": {
+          "races": 556,
+          "hits": 200,
+          "points": 4448
+        },
+        "3t:8:existing_A": {
+          "races": 556,
+          "hits": 150,
+          "points": 4446
+        },
+        "3t:8:existing_B": {
+          "races": 556,
+          "hits": 151,
+          "points": 4446
+        }
+      },
+      "same_ticket_count_including_existing_arms": {
+        "2t:1:entry_only": {
+          "races": 556,
+          "hits": 83,
+          "points": 556
+        },
+        "2t:1:published_line": {
+          "races": 556,
+          "hits": 126,
+          "points": 556
+        },
+        "2t:1:line_with_history": {
+          "races": 556,
+          "hits": 125,
+          "points": 556
+        },
+        "2t:1:existing_A": {
+          "races": 556,
+          "hits": 94,
+          "points": 556
+        },
+        "2t:1:existing_B": {
+          "races": 556,
+          "hits": 102,
+          "points": 556
+        },
+        "2t:2:entry_only": {
+          "races": 556,
+          "hits": 154,
+          "points": 1112
+        },
+        "2t:2:published_line": {
+          "races": 556,
+          "hits": 205,
+          "points": 1112
+        },
+        "2t:2:line_with_history": {
+          "races": 556,
+          "hits": 212,
+          "points": 1112
+        },
+        "2t:2:existing_A": {
+          "races": 556,
+          "hits": 175,
+          "points": 1112
+        },
+        "2t:2:existing_B": {
+          "races": 556,
+          "hits": 181,
+          "points": 1112
+        },
+        "2t:4:entry_only": {
+          "races": 556,
+          "hits": 236,
+          "points": 2224
+        },
+        "2t:4:published_line": {
+          "races": 556,
+          "hits": 300,
+          "points": 2224
+        },
+        "2t:4:line_with_history": {
+          "races": 556,
+          "hits": 300,
+          "points": 2224
+        },
+        "2t:4:existing_A": {
+          "races": 556,
+          "hits": 246,
+          "points": 2224
+        },
+        "2t:4:existing_B": {
+          "races": 556,
+          "hits": 252,
+          "points": 2224
+        },
+        "3t:4:entry_only": {
+          "races": 556,
+          "hits": 94,
+          "points": 2224
+        },
+        "3t:4:published_line": {
+          "races": 556,
+          "hits": 118,
+          "points": 2224
+        },
+        "3t:4:line_with_history": {
+          "races": 556,
+          "hits": 121,
+          "points": 2224
+        },
+        "3t:4:existing_A": {
+          "races": 556,
+          "hits": 105,
+          "points": 2224
+        },
+        "3t:4:existing_B": {
+          "races": 556,
+          "hits": 106,
+          "points": 2224
+        },
+        "3t:8:entry_only": {
+          "races": 556,
+          "hits": 154,
+          "points": 4446
+        },
+        "3t:8:published_line": {
+          "races": 556,
+          "hits": 201,
+          "points": 4446
+        },
+        "3t:8:line_with_history": {
+          "races": 556,
+          "hits": 200,
+          "points": 4446
+        },
+        "3t:8:existing_A": {
+          "races": 556,
+          "hits": 150,
+          "points": 4446
+        },
+        "3t:8:existing_B": {
+          "races": 556,
+          "hits": 151,
+          "points": 4446
+        }
+      },
+      "phase_pair_coverage": {
+        "pair_visible_in_3t8:entry_only": 249,
+        "total:entry_only": 556,
+        "pair_visible_in_3t8:published_line": 268,
+        "total:published_line": 556,
+        "pair_visible_in_3t8:line_with_history": 266,
+        "total:line_with_history": 556,
+        "pair_visible_in_3t8:existing_A": 270,
+        "total:existing_A": 556,
+        "pair_visible_in_3t8:existing_B": 272,
+        "total:existing_B": 556
+      },
+      "day_block_95_percentage_points": {
+        "2t:1:published_line_against_entry_only": [
+          6.36,
+          9.262
+        ],
+        "2t:1:line_with_history_against_published_line": [
+          -0.89,
+          0.561
+        ],
+        "2t:2:published_line_against_entry_only": [
+          6.522,
+          11.417
+        ],
+        "2t:2:line_with_history_against_published_line": [
+          -0.611,
+          3.147
+        ],
+        "2t:4:published_line_against_entry_only": [
+          8.362,
+          14.748
+        ],
+        "2t:4:line_with_history_against_published_line": [
+          -1.328,
+          1.308
+        ],
+        "3t:4:published_line_against_entry_only": [
+          1.481,
+          6.678
+        ],
+        "3t:4:line_with_history_against_published_line": [
+          -0.185,
+          1.275
+        ],
+        "3t:8:published_line_against_entry_only": [
+          6.239,
+          10.681
+        ],
+        "3t:8:line_with_history_against_published_line": [
+          -1.292,
+          0.813
+        ]
+      }
+    },
+    "all": {
+      "unresolved": 11,
+      "per_cap": {
+        "2t:1:entry_only": {
+          "races": 1714,
+          "hits": 357,
+          "points": 1714
+        },
+        "2t:1:published_line": {
+          "races": 1714,
+          "hits": 409,
+          "points": 1714
+        },
+        "2t:1:line_with_history": {
+          "races": 1714,
+          "hits": 402,
+          "points": 1714
+        },
+        "2t:1:existing_A": {
+          "races": 1714,
+          "hits": 306,
+          "points": 1714
+        },
+        "2t:1:existing_B": {
+          "races": 1714,
+          "hits": 306,
+          "points": 1714
+        },
+        "2t:2:entry_only": {
+          "races": 1714,
+          "hits": 585,
+          "points": 3428
+        },
+        "2t:2:published_line": {
+          "races": 1714,
+          "hits": 643,
+          "points": 3428
+        },
+        "2t:2:line_with_history": {
+          "races": 1714,
+          "hits": 644,
+          "points": 3428
+        },
+        "2t:2:existing_A": {
+          "races": 1714,
+          "hits": 508,
+          "points": 3407
+        },
+        "2t:2:existing_B": {
+          "races": 1714,
+          "hits": 520,
+          "points": 3407
+        },
+        "2t:4:entry_only": {
+          "races": 1714,
+          "hits": 801,
+          "points": 6856
+        },
+        "2t:4:published_line": {
+          "races": 1714,
+          "hits": 911,
+          "points": 6856
+        },
+        "2t:4:line_with_history": {
+          "races": 1714,
+          "hits": 914,
+          "points": 6856
+        },
+        "2t:4:existing_A": {
+          "races": 1714,
+          "hits": 698,
+          "points": 6763
+        },
+        "2t:4:existing_B": {
+          "races": 1714,
+          "hits": 700,
+          "points": 6763
+        },
+        "3t:4:entry_only": {
+          "races": 1714,
+          "hits": 352,
+          "points": 6856
+        },
+        "3t:4:published_line": {
+          "races": 1714,
+          "hits": 394,
+          "points": 6856
+        },
+        "3t:4:line_with_history": {
+          "races": 1714,
+          "hits": 398,
+          "points": 6856
+        },
+        "3t:4:existing_A": {
+          "races": 1714,
+          "hits": 295,
+          "points": 6783
+        },
+        "3t:4:existing_B": {
+          "races": 1714,
+          "hits": 294,
+          "points": 6783
+        },
+        "3t:8:entry_only": {
+          "races": 1714,
+          "hits": 551,
+          "points": 13712
+        },
+        "3t:8:published_line": {
+          "races": 1714,
+          "hits": 620,
+          "points": 13712
+        },
+        "3t:8:line_with_history": {
+          "races": 1714,
+          "hits": 622,
+          "points": 13712
+        },
+        "3t:8:existing_A": {
+          "races": 1714,
+          "hits": 422,
+          "points": 13357
+        },
+        "3t:8:existing_B": {
+          "races": 1714,
+          "hits": 421,
+          "points": 13357
+        }
+      },
+      "same_ticket_count_including_existing_arms": {
+        "2t:1:entry_only": {
+          "races": 1714,
+          "hits": 357,
+          "points": 1714
+        },
+        "2t:1:published_line": {
+          "races": 1714,
+          "hits": 409,
+          "points": 1714
+        },
+        "2t:1:line_with_history": {
+          "races": 1714,
+          "hits": 402,
+          "points": 1714
+        },
+        "2t:1:existing_A": {
+          "races": 1714,
+          "hits": 306,
+          "points": 1714
+        },
+        "2t:1:existing_B": {
+          "races": 1714,
+          "hits": 306,
+          "points": 1714
+        },
+        "2t:2:entry_only": {
+          "races": 1714,
+          "hits": 583,
+          "points": 3407
+        },
+        "2t:2:published_line": {
+          "races": 1714,
+          "hits": 641,
+          "points": 3407
+        },
+        "2t:2:line_with_history": {
+          "races": 1714,
+          "hits": 642,
+          "points": 3407
+        },
+        "2t:2:existing_A": {
+          "races": 1714,
+          "hits": 508,
+          "points": 3407
+        },
+        "2t:2:existing_B": {
+          "races": 1714,
+          "hits": 520,
+          "points": 3407
+        },
+        "2t:4:entry_only": {
+          "races": 1714,
+          "hits": 792,
+          "points": 6763
+        },
+        "2t:4:published_line": {
+          "races": 1714,
+          "hits": 903,
+          "points": 6763
+        },
+        "2t:4:line_with_history": {
+          "races": 1714,
+          "hits": 905,
+          "points": 6763
+        },
+        "2t:4:existing_A": {
+          "races": 1714,
+          "hits": 698,
+          "points": 6763
+        },
+        "2t:4:existing_B": {
+          "races": 1714,
+          "hits": 700,
+          "points": 6763
+        },
+        "3t:4:entry_only": {
+          "races": 1714,
+          "hits": 349,
+          "points": 6783
+        },
+        "3t:4:published_line": {
+          "races": 1714,
+          "hits": 393,
+          "points": 6783
+        },
+        "3t:4:line_with_history": {
+          "races": 1714,
+          "hits": 397,
+          "points": 6783
+        },
+        "3t:4:existing_A": {
+          "races": 1714,
+          "hits": 295,
+          "points": 6783
+        },
+        "3t:4:existing_B": {
+          "races": 1714,
+          "hits": 294,
+          "points": 6783
+        },
+        "3t:8:entry_only": {
+          "races": 1714,
+          "hits": 540,
+          "points": 13357
+        },
+        "3t:8:published_line": {
+          "races": 1714,
+          "hits": 611,
+          "points": 13357
+        },
+        "3t:8:line_with_history": {
+          "races": 1714,
+          "hits": 614,
+          "points": 13357
+        },
+        "3t:8:existing_A": {
+          "races": 1714,
+          "hits": 422,
+          "points": 13357
+        },
+        "3t:8:existing_B": {
+          "races": 1714,
+          "hits": 421,
+          "points": 13357
+        }
+      },
+      "phase_pair_coverage": {
+        "pair_visible_in_3t8:entry_only": 812,
+        "total:entry_only": 1714,
+        "pair_visible_in_3t8:published_line": 837,
+        "total:published_line": 1714,
+        "pair_visible_in_3t8:line_with_history": 833,
+        "total:line_with_history": 1714,
+        "pair_visible_in_3t8:existing_A": 772,
+        "total:existing_A": 1714,
+        "pair_visible_in_3t8:existing_B": 769,
+        "total:existing_B": 1714
+      },
+      "day_block_95_percentage_points": {
+        "2t:1:published_line_against_entry_only": [
+          1.534,
+          4.718
+        ],
+        "2t:1:line_with_history_against_published_line": [
+          -0.959,
+          0.059
+        ],
+        "2t:2:published_line_against_entry_only": [
+          1.037,
+          5.732
+        ],
+        "2t:2:line_with_history_against_published_line": [
+          -0.742,
+          0.987
+        ],
+        "2t:4:published_line_against_entry_only": [
+          4.282,
+          8.764
+        ],
+        "2t:4:line_with_history_against_published_line": [
+          -0.528,
+          0.899
+        ],
+        "3t:4:published_line_against_entry_only": [
+          0.916,
+          3.995
+        ],
+        "3t:4:line_with_history_against_published_line": [
+          -0.421,
+          0.819
+        ],
+        "3t:8:published_line_against_entry_only": [
+          1.89,
+          6.09
+        ],
+        "3t:8:line_with_history_against_published_line": [
+          -0.421,
+          0.637
+        ]
+      }
+    }
+  },
+  "verification": {
+    "sealed_by_ci_url": "https://github.com/haji84/RACE-AI/actions/runs/45207158599",
+    "post_review_refit_byte_identical": true,
+    "original_generator_matches_sealed_digest": true,
+    "private_sealed_ciphertext_sha256": "a3cf1f517351d122e691a07496cd27cedb6b8aa31a835b9e51777d5bd87d7fbb"
+  }
+}
