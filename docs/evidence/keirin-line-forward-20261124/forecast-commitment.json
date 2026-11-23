@@ -1,0 +1,38 @@
+{
+  "schema": "KEIRIN_LINE_RANKER_PUBLIC_COMMITMENT_V1",
+  "date": "2026-11-24",
+  "sealed_at": "2026-11-23T20:22:41.425697+00:00",
+  "methods": [
+    "current_A",
+    "current_B",
+    "published_line"
+  ],
+  "caps": {
+    "2t": [
+      1,
+      2,
+      4
+    ],
+    "3t": [
+      1,
+      4,
+      8
+    ]
+  },
+  "primary_metric": "3t:8:published_line_vs_current_B",
+  "source_inventory_sha256": "0003d79dad3f45afeb90daa46acfd8475361514e54880550fe62ae390cbe5a41",
+  "locked_files": {
+    "docs/evidence/keirin-all-rider-profiles-20261124/prefecture-normalized/weights.json": "204b42c315a562f24c5a9409c09d98e14c680e935db8bb41e3ec3abbea3e11ba",
+    "race_ai/keirin_nationwide_auto_generator.py": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47",
+    "scripts/keirin_generate_result_unread_analysis.py": "7f362dbbc8e89dae3aae28f8687c14aec3b9d5a7dec442b86cdb5ce5d27f20c9",
+    "scripts/keirin_rider_profile_study.py": "34604b7eaa7bca7228d42bb16b645a96a41a09db17ae3fc0de494c8f5230fed8",
+    "scripts/keirin_line_history_study.py": "eba455664a22739fadf8f4f99f8b4938e399600fc6ddae226704ba81345ce25b",
+    "scripts/keirin_small_ticket_study.py": "3b0327acd1ff593a91593c38a49eedb4b02bb63b34383a109f37062799ef4c0d",
+    "scripts/keirin_line_forward_study.py": "e94f132b6f1d8db9deacef3c7a1b8153fadb3cd12d1ba8b112af5c43de8719b3"
+  },
+  "target_count": 81,
+  "frozen_count": 66,
+  "first_cutoff_at": "2026-11-24T08:45:00+09:00",
+  "last_cutoff_at": "2026-11-24T21:16:00+09:00",
+  "data_sha256": "e846bb04042a9df5497866255d4c6b73a3f749c6c9c1a24711bc6d3737dea855"
+}

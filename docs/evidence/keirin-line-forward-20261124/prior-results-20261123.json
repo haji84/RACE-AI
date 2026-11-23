@@ -1,0 +1,336 @@
+{
+  "schema": "KEIRIN_NOVEMBER23_PROSPECTIVE_CLOSEOUT_V1",
+  "follower_scenario_v2": {
+    "date": "2026-11-23",
+    "eligible_pairs": 23,
+    "compared_pairs": 22,
+    "checked_at": "2026-11-23T15:55:02.503459+00:00",
+    "windows": {
+      "2t": 4,
+      "3t": 4
+    },
+    "metrics": {
+      "A": {
+        "2t": {
+          "baseline": {
+            "candidate_hits": 18,
+            "fixed_window_hits": 14,
+            "selected_hits": 15,
+            "fixed_window_points": 88,
+            "selected_points": 94
+          },
+          "candidate": {
+            "candidate_hits": 21,
+            "fixed_window_hits": 15,
+            "selected_hits": 16,
+            "fixed_window_points": 88,
+            "selected_points": 100
+          }
+        },
+        "3t": {
+          "baseline": {
+            "candidate_hits": 14,
+            "fixed_window_hits": 11,
+            "selected_hits": 12,
+            "fixed_window_points": 88,
+            "selected_points": 139
+          },
+          "candidate": {
+            "candidate_hits": 15,
+            "fixed_window_hits": 11,
+            "selected_hits": 12,
+            "fixed_window_points": 88,
+            "selected_points": 132
+          }
+        }
+      },
+      "B": {
+        "2t": {
+          "baseline": {
+            "candidate_hits": 18,
+            "fixed_window_hits": 14,
+            "selected_hits": 15,
+            "fixed_window_points": 88,
+            "selected_points": 93
+          },
+          "candidate": {
+            "candidate_hits": 21,
+            "fixed_window_hits": 15,
+            "selected_hits": 16,
+            "fixed_window_points": 88,
+            "selected_points": 98
+          }
+        },
+        "3t": {
+          "baseline": {
+            "candidate_hits": 14,
+            "fixed_window_hits": 12,
+            "selected_hits": 11,
+            "fixed_window_points": 88,
+            "selected_points": 131
+          },
+          "candidate": {
+            "candidate_hits": 15,
+            "fixed_window_hits": 11,
+            "selected_hits": 11,
+            "fixed_window_points": 88,
+            "selected_points": 122
+          }
+        }
+      }
+    },
+    "result_state_head": "37bda18979e902650c139e24e13dcfbf764cf1b3",
+    "commitment_head": "4a7d5b3a5dd79a4a29fbdd630bb0c4d4fa026287",
+    "witnessed_at": "2026-11-23T11:08:19Z"
+  },
+  "refreshed_H_single_race": {
+    "date": "2026-11-23",
+    "eligible_pairs": 1,
+    "compared_pairs": 1,
+    "checked_at": "2026-11-23T15:55:02.503459+00:00",
+    "windows": {
+      "2t": 4,
+      "3t": 4
+    },
+    "metrics": {
+      "A": {
+        "2t": {
+          "baseline": {
+            "candidate_hits": 0,
+            "fixed_window_hits": 0,
+            "selected_hits": 0,
+            "fixed_window_points": 4,
+            "selected_points": 6
+          },
+          "candidate": {
+            "candidate_hits": 1,
+            "fixed_window_hits": 0,
+            "selected_hits": 0,
+            "fixed_window_points": 4,
+            "selected_points": 7
+          }
+        },
+        "3t": {
+          "baseline": {
+            "candidate_hits": 0,
+            "fixed_window_hits": 0,
+            "selected_hits": 0,
+            "fixed_window_points": 4,
+            "selected_points": 3
+          },
+          "candidate": {
+            "candidate_hits": 0,
+            "fixed_window_hits": 0,
+            "selected_hits": 0,
+            "fixed_window_points": 4,
+            "selected_points": 4
+          }
+        }
+      },
+      "B": {
+        "2t": {
+          "baseline": {
+            "candidate_hits": 0,
+            "fixed_window_hits": 0,
+            "selected_hits": 0,
+            "fixed_window_points": 4,
+            "selected_points": 5
+          },
+          "candidate": {
+            "candidate_hits": 1,
+            "fixed_window_hits": 0,
+            "selected_hits": 0,
+            "fixed_window_points": 4,
+            "selected_points": 6
+          }
+        },
+        "3t": {
+          "baseline": {
+            "candidate_hits": 0,
+            "fixed_window_hits": 0,
+            "selected_hits": 0,
+            "fixed_window_points": 4,
+            "selected_points": 3
+          },
+          "candidate": {
+            "candidate_hits": 0,
+            "fixed_window_hits": 0,
+            "selected_hits": 0,
+            "fixed_window_points": 4,
+            "selected_points": 4
+          }
+        }
+      }
+    },
+    "result_state_head": "37bda18979e902650c139e24e13dcfbf764cf1b3",
+    "commitment_head": "0ebf6b10d72d7de36960e5853c07f499592bf1c5",
+    "witnessed_at": "2026-11-23T11:45:08Z"
+  },
+  "finish_rank_same_scenario_pool": {
+    "scope": "live",
+    "commitment_head": "f255eb36fc093e47c8b0e72ea644927a2fb3c3f1",
+    "witness_ci": 45185353509,
+    "github_created_at": "2026-11-23T13:35:01Z",
+    "label_phase_started": "2026-11-23T20:10:30.431711+00:00",
+    "result_state_head": "37bda18979e902650c139e24e13dcfbf764cf1b3",
+    "coverage": {
+      "with_lines": {
+        "frozen": 6,
+        "scored": 5
+      }
+    },
+    "metrics": {
+      "with_lines:current_A:2t": {
+        "equal_points_hits": 4,
+        "equal_points_races": 5,
+        "equal_points_total": 20,
+        "first_hit": 4,
+        "selected_points": 17,
+        "selected_races": 5,
+        "selected_hits": 4
+      },
+      "with_lines:current_A:3t": {
+        "equal_points_hits": 4,
+        "equal_points_races": 5,
+        "equal_points_total": 20,
+        "first_hit": 4,
+        "selected_points": 19,
+        "selected_races": 5,
+        "selected_hits": 4
+      },
+      "with_lines:current_B:2t": {
+        "equal_points_hits": 4,
+        "equal_points_races": 5,
+        "equal_points_total": 20,
+        "first_hit": 4,
+        "selected_points": 12,
+        "selected_races": 5,
+        "selected_hits": 4
+      },
+      "with_lines:current_B:3t": {
+        "equal_points_hits": 4,
+        "equal_points_races": 5,
+        "equal_points_total": 20,
+        "first_hit": 4,
+        "selected_points": 14,
+        "selected_races": 5,
+        "selected_hits": 4
+      },
+      "with_lines:learned_A:2t": {
+        "equal_points_hits": 4,
+        "equal_points_races": 5,
+        "equal_points_total": 20,
+        "first_hit": 3,
+        "selected_points": 7,
+        "selected_races": 5,
+        "selected_hits": 4
+      },
+      "with_lines:learned_A:3t": {
+        "equal_points_hits": 4,
+        "equal_points_races": 5,
+        "equal_points_total": 20,
+        "first_hit": 3,
+        "selected_points": 18,
+        "selected_races": 5,
+        "selected_hits": 4
+      },
+      "with_lines:learned_B:2t": {
+        "equal_points_hits": 4,
+        "equal_points_races": 5,
+        "equal_points_total": 20,
+        "first_hit": 3,
+        "selected_points": 7,
+        "selected_races": 5,
+        "selected_hits": 4
+      },
+      "with_lines:learned_B:3t": {
+        "equal_points_hits": 4,
+        "equal_points_races": 5,
+        "equal_points_total": 20,
+        "first_hit": 3,
+        "selected_points": 16,
+        "selected_races": 5,
+        "selected_hits": 4
+      },
+      "with_lines:tactical_A:2t": {
+        "equal_points_hits": 4,
+        "equal_points_races": 5,
+        "equal_points_total": 20,
+        "first_hit": 4,
+        "selected_points": 18,
+        "selected_races": 5,
+        "selected_hits": 4
+      },
+      "with_lines:tactical_A:3t": {
+        "equal_points_hits": 4,
+        "equal_points_races": 5,
+        "equal_points_total": 20,
+        "first_hit": 4,
+        "selected_points": 20,
+        "selected_races": 5,
+        "selected_hits": 4
+      },
+      "with_lines:tactical_B:2t": {
+        "equal_points_hits": 4,
+        "equal_points_races": 5,
+        "equal_points_total": 20,
+        "first_hit": 4,
+        "selected_points": 15,
+        "selected_races": 5,
+        "selected_hits": 4
+      },
+      "with_lines:tactical_B:3t": {
+        "equal_points_hits": 4,
+        "equal_points_races": 5,
+        "equal_points_total": 20,
+        "first_hit": 4,
+        "selected_points": 17,
+        "selected_races": 5,
+        "selected_hits": 4
+      }
+    },
+    "paired": {
+      "with_lines:A:2t": {
+        "both_hit": 4,
+        "both_missed": 1
+      },
+      "with_lines:A:3t": {
+        "both_hit": 4,
+        "both_missed": 1
+      },
+      "with_lines:B:2t": {
+        "both_hit": 4,
+        "both_missed": 1
+      },
+      "with_lines:B:3t": {
+        "both_hit": 4,
+        "both_missed": 1
+      }
+    },
+    "day_block_95_interval_percentage_points": {
+      "with_lines:A:2t": null,
+      "with_lines:A:3t": null,
+      "with_lines:B:2t": null,
+      "with_lines:B:3t": null
+    },
+    "diagnostics": {
+      "with_lines": {
+        "regular_races": 5,
+        "current_A_2t_pool_hit": 4,
+        "current_A_3t_pool_hit": 4,
+        "tactical_A_2t_pool_hit": 5,
+        "tactical_A_3t_pool_hit": 4,
+        "current_B_2t_pool_hit": 4,
+        "current_B_3t_pool_hit": 4,
+        "tactical_B_2t_pool_hit": 5,
+        "tactical_B_3t_pool_hit": 4,
+        "current_A_correct_head_missing_second": 1,
+        "tactical_A_correct_pair_missing_third": 1,
+        "tactical_A_missing_third_on_different_line": 1,
+        "current_B_correct_head_missing_second": 1,
+        "tactical_B_correct_pair_missing_third": 1,
+        "tactical_B_missing_third_on_different_line": 1
+      }
+    }
+  }
+}

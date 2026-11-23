@@ -1,0 +1,30 @@
+{
+  "counts": {
+    "PUBLISHED_LINEUP_MISSING": 15,
+    "admitted": 66,
+    "girls": 10,
+    "same_race_recent_tab_with_verified_entry_table": 6
+  },
+  "fields": {
+    "B": 455,
+    "H": 455,
+    "H_positive": 213,
+    "S": 455,
+    "comment": 413,
+    "rider_rows": 455,
+    "score": 455,
+    "source_tip": 455,
+    "top2_rate": 455,
+    "top3_rate": 455,
+    "win_rate": 455
+  },
+  "first_capture_at": "2026-11-23T20:12:27.967455+00:00",
+  "http_200": 81,
+  "last_capture_at": "2026-11-23T20:13:48.630309+00:00",
+  "network_receipt_list_sha256": "899251fcfe6c5852423cc17b58460cdadd01cfbb94b1fb9bb28728776f0d6476",
+  "observed_venues": 9,
+  "program_snapshot_sha256": "26c3a2c61edee2f70d85823b7e3891aea6ba95145cd4e1cd12de005b4d8c73ec",
+  "projection_script_sha256": "92e53b6502b5072d93cd2d45c1414e1850554094f2709f61a4145939e852dde2",
+  "source_index_generated_at": "2026-11-24T05:06:36+09:00",
+  "target_count": 81
+}
