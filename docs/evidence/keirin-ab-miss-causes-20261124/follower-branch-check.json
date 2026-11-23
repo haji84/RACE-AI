@@ -1,0 +1,39 @@
+{
+  "source_commit": "894b7e6f4b89863fce791ace143e2ad29098152c",
+  "post_hoc": true,
+  "method": "forward-phase-rider-position-context-20261123-v2",
+  "compared_method_sha256": "68141d2380c76e84896e7e60476dc310dee1155c9f887a5542dfc0a2c200f465",
+  "audit_sha256": "be306e8863960891c73d9af6587d15f359b8ed8ca260dee59bc4b2b291809f75",
+  "same_points": {
+    "races": 557,
+    "additional_path_races": 351,
+    "additional_paths_total": 2087,
+    "2t:2:common_points": 1114,
+    "2t:2:old_hit": 181,
+    "2t:2:trial_hit": 185,
+    "2t:2:only_old_hit": 6,
+    "2t:2:only_trial_hit": 10,
+    "2t:old_full_pool_hit": 386,
+    "2t:trial_full_pool_hit": 417,
+    "3t:4:common_points": 2228,
+    "3t:4:old_hit": 106,
+    "3t:4:trial_hit": 105,
+    "3t:4:only_old_hit": 3,
+    "3t:4:only_trial_hit": 2,
+    "3t:8:common_points": 4454,
+    "3t:8:old_hit": 151,
+    "3t:8:trial_hit": 147,
+    "3t:8:only_old_hit": 6,
+    "3t:8:only_trial_hit": 2,
+    "3t:old_full_pool_hit": 248,
+    "3t:trial_full_pool_hit": 254
+  },
+  "public_cases": [
+    {
+      "public_race_id": "202611228105",
+      "trial_has_actual_back_leader": true,
+      "trial_contains_paid_pair": false,
+      "trial_contains_paid_triple": false
+    }
+  ]
+}

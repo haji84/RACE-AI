@@ -1,0 +1,121 @@
+{
+  "schema": "KEIRIN_AB_MISS_STAGE_VALIDATION_V1",
+  "post_hoc": true,
+  "analysis_sha256": "89297cc4cd6dd36ecc35a186f04a490ad8d027118fef508621a006be9e4de32a",
+  "source_commit": "894b7e6f4b89863fce791ace143e2ad29098152c",
+  "subsets": {
+    "all": {
+      "results_by_finish_status": {
+        "complete_numeric_finish": {
+          "races": 3243,
+          "candidate_full_hit": 1096,
+          "B_top8_hit": 820
+        },
+        "with_recorded_special_status": {
+          "races": 215,
+          "candidate_full_hit": 49,
+          "B_top8_hit": 33
+        },
+        "status_not_verified": {
+          "races": 124,
+          "candidate_full_hit": 58,
+          "B_top8_hit": 43
+        }
+      },
+      "rank_misses_when_gold_reachable": {
+        "correct_third_not_generated_for_pair": 89,
+        "winner_not_a_winning_candidate": 101,
+        "correct_first_two_not_generated": 117
+      },
+      "results_with_exact_observed_B_leader": {
+        "observations": 3494,
+        "candidate_order_reachable": 1160,
+        "pair_reachable": 1896,
+        "any_scenario": 3418,
+        "gold_pair": 1146,
+        "gold_triple": 734
+      },
+      "total": {
+        "races": 3582,
+        "allow_rear_winner": 0
+      }
+    },
+    "dated_pre_cutoff": {
+      "results_by_finish_status": {
+        "complete_numeric_finish": {
+          "races": 434,
+          "candidate_full_hit": 192,
+          "B_top8_hit": 114
+        },
+        "status_not_verified": {
+          "races": 93,
+          "candidate_full_hit": 46,
+          "B_top8_hit": 32
+        },
+        "with_recorded_special_status": {
+          "races": 30,
+          "candidate_full_hit": 10,
+          "B_top8_hit": 5
+        }
+      },
+      "rank_misses_when_gold_reachable": {
+        "winner_not_a_winning_candidate": 39,
+        "correct_first_two_not_generated": 37,
+        "correct_third_not_generated_for_pair": 21
+      },
+      "results_with_exact_observed_B_leader": {
+        "observations": 469,
+        "candidate_order_reachable": 205,
+        "pair_reachable": 322,
+        "any_scenario": 461,
+        "gold_pair": 198,
+        "gold_triple": 132
+      },
+      "total": {
+        "races": 557,
+        "allow_rear_winner": 0
+      }
+    }
+  },
+  "public_case_metrics": {
+    "202611205103": {
+      "race_id": "202611205103",
+      "exact_result_join": true,
+      "normalized_deciding_method": "OTHER_WIN",
+      "winner_role": "REAR",
+      "first_two_reachable": false,
+      "full_pool_contains_finishing_order": false,
+      "observed_back_rider_role": "SOLO",
+      "observed_back_leader_reachable": false,
+      "minimum_exchanges_from_any_modeled_fourth_corner": 10,
+      "number_of_announced_lines_among_podium": 3,
+      "verified_result_status": "complete_numeric_finish"
+    },
+    "202611228105": {
+      "race_id": "202611228105",
+      "exact_result_join": true,
+      "normalized_deciding_method": "FRONT_WIN",
+      "winner_role": "SECOND",
+      "first_two_reachable": false,
+      "full_pool_contains_finishing_order": false,
+      "observed_back_rider_role": "SECOND",
+      "observed_back_leader_reachable": false,
+      "minimum_exchanges_from_any_modeled_fourth_corner": 4,
+      "number_of_announced_lines_among_podium": 3,
+      "verified_result_status": "complete_numeric_finish"
+    },
+    "202611228111": {
+      "race_id": "202611228111",
+      "exact_result_join": true,
+      "normalized_deciding_method": "OTHER_WIN",
+      "winner_role": "SOLO",
+      "first_two_reachable": true,
+      "full_pool_contains_finishing_order": false,
+      "observed_back_rider_role": "LEAD",
+      "observed_back_leader_reachable": true,
+      "minimum_exchanges_from_any_modeled_fourth_corner": 4,
+      "number_of_announced_lines_among_podium": 3,
+      "verified_result_status": "complete_numeric_finish"
+    }
+  }
+}
