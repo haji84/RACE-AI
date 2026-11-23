@@ -1,0 +1,109 @@
+{
+  "schema": "KEIRIN_EQUAL_TOTAL_POINTS_CHECK_V1",
+  "post_hoc": true,
+  "source_commit": "894b7e6f4b89863fce791ace143e2ad29098152c",
+  "remote_result_snapshot": {
+    "label_source_commit": "37bda18979e902650c139e24e13dcfbf764cf1b3",
+    "checked_at": "2026-11-23T15:55:02.503459+00:00",
+    "matched_within_study": 86
+  },
+  "study_sha256": "8ca88536709c6faf71beca9a42222e2eeca1f348acc9a28ea053838e6b93b88d",
+  "unchanged_candidate_ranks": true,
+  "subsets": {
+    "all": {
+      "A": {
+        "headline": {
+          "races": 3582,
+          "original_points": 16721,
+          "uniform_points": 16721,
+          "original_hits": 686,
+          "uniform_hits": 690,
+          "uniform_new_hits": 90,
+          "uniform_lost_hits": 86,
+          "original_under_five": 2139,
+          "original_over_eight": 384,
+          "original_0": 46
+        },
+        "uniform_floor": 4,
+        "uniform_extra": 2531,
+        "previously_excluded_hit_rank_histogram": {
+          "4": 36,
+          "5": 28,
+          "3": 15,
+          "2": 10,
+          "1": 1
+        }
+      },
+      "B": {
+        "headline": {
+          "races": 3582,
+          "original_points": 15623,
+          "uniform_points": 15623,
+          "original_hits": 651,
+          "uniform_hits": 655,
+          "uniform_new_hits": 100,
+          "uniform_lost_hits": 96,
+          "original_under_five": 2226,
+          "original_over_eight": 308,
+          "original_0": 45
+        },
+        "uniform_floor": 4,
+        "uniform_extra": 1433,
+        "previously_excluded_hit_rank_histogram": {
+          "3": 29,
+          "4": 42,
+          "2": 14,
+          "5": 14,
+          "1": 1
+        }
+      }
+    },
+    "dated_pre_cutoff": {
+      "A": {
+        "headline": {
+          "races": 557,
+          "original_points": 3179,
+          "uniform_points": 3179,
+          "original_hits": 118,
+          "uniform_hits": 125,
+          "uniform_new_hits": 23,
+          "uniform_lost_hits": 16,
+          "original_under_five": 268,
+          "original_over_eight": 99,
+          "original_0": 0
+        },
+        "uniform_floor": 5,
+        "uniform_extra": 394,
+        "previously_excluded_hit_rank_histogram": {
+          "4": 8,
+          "6": 4,
+          "2": 2,
+          "5": 6,
+          "3": 3
+        }
+      },
+      "B": {
+        "headline": {
+          "races": 557,
+          "original_points": 2787,
+          "uniform_points": 2787,
+          "original_hits": 108,
+          "uniform_hits": 124,
+          "uniform_new_hits": 29,
+          "uniform_lost_hits": 13,
+          "original_under_five": 303,
+          "original_over_eight": 73,
+          "original_0": 0
+        },
+        "uniform_floor": 5,
+        "uniform_extra": 2,
+        "previously_excluded_hit_rank_histogram": {
+          "5": 12,
+          "4": 9,
+          "2": 2,
+          "3": 6
+        }
+      }
+    }
+  }
+}
