@@ -356,6 +356,9 @@ def check_tickets(tickets, cars, length):
 def check_market_tickets(analysis, cars, market):
     key, length = ('ranked_tickets', 3) if market == '3t' else ('ranked_2ren_tan', 2)
     selected = analysis[key]
+    listed = analysis['markets'][market]
+    need(type(selected) is list and listed['tickets'] == selected and listed['point_count'] == len(selected),
+         'INVALID_ANALYSIS_TICKETS')
     if selected == []:
         selection = analysis['selection'][market]
         need(selection.get('point_count') == 0 and
@@ -363,7 +366,10 @@ def check_market_tickets(analysis, cars, market):
              selection.get('abstention_code') in ('INDISTINGUISHABLE_RIDER_EVIDENCE',
                                                  'ALL_CANDIDATES_WITHIN_SUPPORT_WINDOW'),
              'INVALID_ANALYSIS_TICKETS')
-        check_tickets(analysis['candidate_tickets'][market], cars, length)
+        candidates = analysis['candidate_tickets'][market]
+        check_tickets(candidates, cars, length)
+        need(selection['abstention_code'] != 'ALL_CANDIDATES_WITHIN_SUPPORT_WINDOW' or len(candidates) > 1,
+             'INVALID_ANALYSIS_TICKETS')
     else:
         check_tickets(selected, cars, length)
 

@@ -24,6 +24,27 @@ def conditions():
 
 
 class RiderContextStudyTests(unittest.TestCase):
+    def test_string_field_reference_uses_timestamp_and_hash_bound_to_its_url(self):
+        row = dict(source_url='https://example.invalid/primary', source_sha256='a'*64,
+                   fetched_at='2099-01-01T09:00:00+09:00',
+                   supplemental_sources=[dict(source_url='https://example.invalid/secondary',
+                       source_sha256='b'*64, captured_at='2099-01-01T09:30:00+09:00', http_status=200)],
+                   riders=[{'field_sources':{'H':'https://example.invalid/secondary'}}])
+        started = ingest.instant('2099-01-01T10:00:00+09:00')
+        study.check_source_receipts(row, started)
+        row['line_hypotheses'] = [{'source_url':'https://example.invalid/unclocked'}]
+        with self.assertRaisesRegex(ValueError,'LINE_SOURCE_RECEIPT_UNBOUND'):
+            study.check_source_receipts(row, started)
+        row['line_hypotheses'][0]['source_url'] = 'https://example.invalid/secondary'
+        study.check_source_receipts(row, started)
+        row['riders'][0]['field_sources']['H'] = dict(url='https://example.invalid/secondary',
+            captured_at='2099-01-01T09:30:00+09:00', bytes_sha256='c'*64)
+        with self.assertRaisesRegex(ValueError,'FIELD_SOURCE_RECEIPT_UNBOUND'):
+            study.check_source_receipts(row, started)
+        row['supplemental_sources'][0]['captured_at'] = None
+        with self.assertRaisesRegex(ValueError,'SOURCE_TIME_MISSING'):
+            study.check_source_receipts(row, started)
+
     def test_single_digit_hour_is_a_supported_published_cutoff(self):
         self.assertEqual(ingest.published_cutoff('2099-01-01','8:05').hour, 8)
 
@@ -65,3 +86,9 @@ class RiderContextStudyTests(unittest.TestCase):
         result = study.score(frame, outcomes, witnessed_at='2099-01-01T10:01:00+09:00')
         self.assertEqual(result['eligible_pairs'], 2)
         self.assertEqual(result['compared_pairs'], 0)
+
+    def test_disagreeing_two_and_three_rider_orders_cannot_score(self):
+        frame, outcomes = conditions()
+        outcomes['races'][0]['comparison']['winning_2t'] = [1,2]
+        with self.assertRaisesRegex(ValueError,'PUBLIC_RESULT_ORDER_INVALID'):
+            study.score(frame, outcomes, witnessed_at='2099-01-01T10:01:00+09:00')

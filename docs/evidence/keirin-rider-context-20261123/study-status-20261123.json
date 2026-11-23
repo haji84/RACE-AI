@@ -1,0 +1,35 @@
+{
+  "schema": "KEIRIN_RIDER_CONTEXT_STUDY_PROGRESS_V1",
+  "method": "forward-phase-rider-position-context-20261123-v2",
+  "witness": {
+    "commit": "4a7d5b3a5dd79a4a29fbdd630bb0c4d4fa026287",
+    "ci_run_id": 45162398533,
+    "github_created_at": "2026-11-23T11:08:19Z",
+    "first_cutoff_at": "2026-11-23T11:10:00Z",
+    "last_cutoff_at": "2026-11-23T14:25:00Z",
+    "pairs_before_cutoff": 23,
+    "races_with_new_paths": 12,
+    "new_paths": 55,
+    "published_roster_readback_ref": "8cc7b24811a1bd0f4ebbc31c0f4a8356ca401fa9",
+    "local_owner_cipher_sha256": "345f1b084d22670bed36556e936b5aa56075b552e5871761aa8be011e163d5c6"
+  },
+  "historical_diagnostic": {
+    "result_state_head": "1f9e07fa6070d3f62f4022f7102e2046e3d1e5c3",
+    "races": 58,
+    "published_baseline_reproduced": true,
+    "top4_3t_hits_per_arm_baseline_and_candidate": [15, 15],
+    "top4_2t_hits_per_arm_baseline_and_candidate": [29, 29],
+    "candidate_pool_2t_hits_per_arm_baseline_and_candidate": [41, 42],
+    "candidate_pool_3t_hits_per_arm_baseline_and_candidate": [25, 25],
+    "toyohashi_6r_2t_and_3t_still_absent": true
+  },
+  "rider_evidence": {
+    "published_20261123_rosters": 89,
+    "rider_rows": 637,
+    "rider_rows_with_S_H_B_counts": 637,
+    "rider_rows_with_verified_registration": 0,
+    "observed_past_lane_and_attack_paths_connected": false
+  },
+  "prospective_scores": null,
+  "production_model_promoted": false
+}

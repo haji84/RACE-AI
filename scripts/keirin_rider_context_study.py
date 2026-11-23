@@ -32,6 +32,26 @@ def market_lists(output):
                  for market in WINDOWS} for arm in ('A','B')}
 
 
+def check_source_receipts(row, started):
+    captures = {(ingest.source_url(row['source_url']),row['source_sha256'],ingest.instant(row['fetched_at']))}
+    for source in row.get('supplemental_sources',[]):
+        digest = source['source_sha256']
+        ingest.need(source['http_status']==200 and re.fullmatch(r'[0-9a-f]{64}',str(digest)),
+                    'SUPPLEMENT_RECEIPT_INVALID')
+        captures.add((ingest.source_url(source['source_url']),digest,ingest.instant(source.get('captured_at'))))
+    ingest.need(all(clock <= started for _,_,clock in captures),'SOURCE_CAPTURE_AFTER_GENERATION')
+    captured_urls = {url for url,_,_ in captures}
+    for hypothesis in row.get('line_hypotheses') or []:
+        ingest.need(hypothesis['source_url'] in captured_urls,'LINE_SOURCE_RECEIPT_UNBOUND')
+    for rider in row['riders']:
+        for source in (rider.get('field_sources') or {}).values():
+            if isinstance(source,str):
+                bound = source in captured_urls
+            else:
+                bound = (source.get('url'),source.get('bytes_sha256'),ingest.instant(source.get('captured_at'))) in captures
+            ingest.need(bound,'FIELD_SOURCE_RECEIPT_UNBOUND')
+
+
 def freeze(path):
     raw = path.read_bytes()
     doc = json.loads(raw)
@@ -49,11 +69,7 @@ def freeze(path):
         cutoff = ingest.published_cutoff(day,row.get('deadline_time'))
         if cutoff is None or cutoff <= started:
             continue
-        sources = list(row.get('supplemental_sources',[]))
-        sources.extend(source for rider in row['riders'] for source in (rider.get('field_sources') or {}).values())
-        for source in sources:
-            ingest.need(ingest.instant(source.get('captured_at')) <= started,
-                        'SOURCE_CAPTURE_AFTER_GENERATION')
+        check_source_receipts(row,started)
         current = ingest.analyze(row, model, started.isoformat())
         cutoff = ingest.instant(current['published_cutoff_at'])
         if ingest.instant(current['source_as_of']) >= cutoff:
@@ -170,7 +186,7 @@ def main():
     evaluate = commands.add_parser('score')
     evaluate.add_argument('--private-input', type=Path, required=True)
     evaluate.add_argument('--commitment-head', required=True)
-    evaluate.add_argument('--commitment-path')
+    evaluate.add_argument('--commitment-path', required=True)
     evaluate.add_argument('--ci-run-id', type=int, required=True)
     args = parser.parse_args()
     if args.command == 'freeze':
