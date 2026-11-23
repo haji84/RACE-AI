@@ -45,7 +45,7 @@ class ClassEvidenceTests(unittest.TestCase):
     def api(self):
         return importlib.import_module('race_ai.keirin_official_class_evidence')
 
-    def fixture(self, labels=('A級一般', 'A級一般', 'A級チャレンジ一般'), kind='1'):
+    def fixture(self, labels=('A級一般', 'A級一般', 'A級チャレンジ予選'), kind='1'):
         data = list_data()
         rows = data['SJ0301']['kaisaiDayList'][1]['raceProgramList']
         details = {}
@@ -82,7 +82,10 @@ class ClassEvidenceTests(unittest.TestCase):
         self.assertEqual(out['safe_summary'][0]['detail_sha256'], sha256(details[1]).hexdigest())
 
     def test_supported_labels_and_published_results_never_trigger_probe(self):
-        for labels, kind in ((('S級一般',)*3, '1'), (('A級一般',)*3, '2')):
+        for labels, kind in (
+                (('S級一般',)*3, '1'),
+                (('A級チャレンジ一般', 'A級特選', 'A級チャレンジ選抜'), '1'),
+                (('A級一般',)*3, '2')):
             inventory, details = self.fixture(labels, kind)
             session = SourceSession(details)
             out = self.api().collect_unknown_class_evidence(session=session, inventory=inventory,

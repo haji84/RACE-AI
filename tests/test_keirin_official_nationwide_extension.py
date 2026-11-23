@@ -192,7 +192,7 @@ class NationwideExtensionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'CLASS_OR_ROUND_NOT_YET_OBSERVED'):
             ext.build_baseline_candidate(**args)
 
-    def labelled_arguments(self, label, competition):
+    def labelled_arguments(self, label, competition, grades=('S1',)):
         """Invented current cards; real observed labels alone are not card proof."""
         args=self.baseline_arguments();card=args['card_arguments']
         listing=ext.receipt._embedded(ext.card_api.browser_source._document(card['list_raw']))
@@ -201,10 +201,11 @@ class NationwideExtensionTests(unittest.TestCase):
                 if race['strRaceNo']=='1':race['strSyumokuName']=label
         card['list_raw']=html(listing)
         card['list_sha256']=sha256(card['list_raw']).hexdigest()
-        if competition=='S':
+        if competition!='GIRLS':
             data=ext.receipt._embedded(ext.card_api.browser_source._document(card['detail_raw']))
-            for rider in data['SJ0315']['sensyuTypeInfo']:
-                rider.update(kyuhan='S1',prevKyuhan='S1')
+            for i,rider in enumerate(data['SJ0315']['sensyuTypeInfo']):
+                grade=grades[i%len(grades)]
+                rider.update(kyuhan=grade,prevKyuhan=grade)
             lines,script=line_fixture();data['SJ0314']=lines['SJ0314']
             linked=list(args['prediction_scripts'])+[ext.LINE_VIEW_PATH]
             extra=(''.join('<script src="'+path+'"></script>' for path in linked)+
@@ -252,6 +253,33 @@ class NationwideExtensionTests(unittest.TestCase):
         args=self.labelled_arguments('A級予選','S')
         with self.assertRaisesRegex(ValueError,'CLASS_OR_ROUND_NOT_YET_OBSERVED'):
             ext.build_baseline_candidate(**args)
+
+    def test_observed_a_rounds_feed_the_existing_baseline_a_and_b(self):
+        cases=(('A級チャレンジ一般','CHALLENGE',('A3',)),
+               ('A級チャレンジ選抜','CHALLENGE',('A3',)),
+               ('A級チャレンジ決勝','CHALLENGE',('A3',)),
+               ('A級特一般','A1_A2',('A1','A2')),
+               ('A級特選','A1_A2',('A1','A2')),
+               ('A級決勝','A1_A2',('A1',)))
+        for label,competition,grades in cases:
+            with self.subTest(label=label):
+                args=self.labelled_arguments(label,competition,grades)
+                snapshot=ext.build_baseline_candidate(**args)['snapshot']
+                self.assertEqual(snapshot['competition'],competition)
+                self.assertEqual(snapshot['round_stage'],label)
+                self.assertIsNone(snapshot['round_rule'])
+                self.assertEqual(snapshot['line_groups'],[[1,2],[3],[4,5],[6,7]])
+                forecast=ext.core.generate_A_B(snapshot,generated_at=args['now'].isoformat())
+                self.assertTrue(forecast['A']['ranked_tickets'])
+                self.assertTrue(forecast['B']['ranked_tickets'])
+
+    def test_observed_a_round_requires_every_rider_to_have_its_matching_grade(self):
+        for label,competition,grades in (
+                ('A級特選','A1_A2',('A1','A3')),
+                ('A級チャレンジ選抜','CHALLENGE',('A3','A2'))):
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(ValueError,'CARD_CLASS_DISAGREEMENT'):
+                    ext.build_baseline_candidate(**self.labelled_arguments(label,competition,grades))
 
 
 if __name__=='__main__':unittest.main()
