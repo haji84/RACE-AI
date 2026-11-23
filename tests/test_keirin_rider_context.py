@@ -63,8 +63,26 @@ class RiderContextTests(unittest.TestCase):
         for path in paths:
             for step in path['six_phases']:
                 self.assertEqual(sorted(step['projected_order']), list(range(1,8)))
+            self.assertFalse({1,4}.intersection(event['overtaker'] for event in path['finish_transitions']))
         self.assertIn([2,5], result['candidate']['A']['candidate_tickets']['2t'])
         self.assertNotIn([2,5], result['baseline']['A']['candidate_tickets']['2t'])
+
+    def test_same_finish_with_two_timing_hypotheses_keeps_one_unit_of_support(self):
+        race = card()
+        one = context.compare(race)['candidate']
+        race['riders'][1]['b_count'] = 5
+        two = context.compare(race)['candidate']
+        def branch_share(output):
+            return sum(path['relative_research_weight'] for path in output['A']['six_phase_scenarios']
+                       if path['branch_kind'] in ('FOLLOWER_SELF_ATTACK','CONTESTED_FOLLOWER_ATTACK'))
+        self.assertGreater(two['new_scenario_count'], one['new_scenario_count'])
+        self.assertAlmostEqual(branch_share(two), branch_share(one))
+
+    def test_contest_requires_self_propulsion_on_both_lines(self):
+        race = card()
+        race['riders'][0].update(style='MARK', h_count=0, b_count=0, nige=0, makuri=0)
+        result = context.compare(race)
+        self.assertEqual(scenarios(result, kind='CONTESTED_FOLLOWER_ATTACK', rider=2), [])
 
     def test_marking_and_start_tally_alone_never_admit_an_independent_attack(self):
         race = card()

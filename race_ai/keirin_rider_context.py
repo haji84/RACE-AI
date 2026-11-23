@@ -1,12 +1,13 @@
 """Evaluate additional rider-position paths with the existing evidence A/B."""
 from __future__ import annotations
 
+from collections import Counter
 from copy import deepcopy
 
 from . import keirin_nationwide_auto_generator as core
 
 
-METHOD = 'forward-phase-rider-position-context-20261123-v1'
+METHOD = 'forward-phase-rider-position-context-20261123-v2'
 PHASE_LABELS = {'FINAL_HOME': '最終ホーム', 'FINAL_BACK': '最終バック'}
 
 
@@ -87,7 +88,8 @@ def _supported_paths(profiles, groups, line, opponent, phase, basis):
     leader, rider = line[:2]
     rival = opponent[0] if opponent else None
     kind = 'CONTESTED_FOLLOWER_ATTACK' if rival else 'FOLLOWER_SELF_ATTACK'
-    branch = f'{kind}_{phase}_{leader}_{rider}_{rival or 0}'
+    timing_group = f'{kind}_{leader}_{rider}_{rival or 0}'
+    branch = f'{timing_group}_{phase}'
     prefix = _phase_path(groups, profiles, line, opponent, phase, basis)
     support = core._counter_branch_support(profiles[rider])
     if rival:
@@ -96,6 +98,8 @@ def _supported_paths(profiles, groups, line, opponent, phase, basis):
     paths = core._local_finish_paths(prefix, profiles, groups, rider, rival, kind)
     pairs = {}
     for order, events, fit in paths:
+        if rival and any(event['overtaker'] in (leader,rival) for event in events):
+            continue
         pairs.setdefault(tuple(order[:2]), {})[order[2]] = (order, events, fit)
     for (first, second), thirds in pairs.items():
         base = max(.001, profiles[first]['head_strength']) ** 2 * max(.001, profiles[second]['second_strength']) ** 1.3
@@ -111,7 +115,7 @@ def _supported_paths(profiles, groups, line, opponent, phase, basis):
             yield dict(
                 scenario_id=branch+'_'+'-'.join(map(str,ticket)), tactical_branch_id=branch,
                 branch_kind=kind, attacking_car=rider, challenger_car=rival, faded_car=leader if rival else None,
-                attack_phase=phase, attack_phase_basis=basis,
+                attack_phase=phase, attack_phase_basis=basis, timing_group=timing_group,
                 projected_3ren_tan=ticket, six_phases=prefix+[goal], finish_transitions=events,
                 rationale=[prefix[core.PHASES.index(phase)]['explanation'], prefix[-1]['explanation']],
                 branch_support=support, pair_support_A=pair_a, pair_support_B=pair_b,
@@ -129,7 +133,7 @@ def compare(snapshot):
         if len(line) < 2 or not _self_propelled(profiles[line[1]]):
             continue
         opponents = [group for group in groups if group != line and len(group) >= 2 and
-                     profiles[group[0]]['explicit_attack']]
+                     _self_propelled(profiles[group[0]]) and _self_propelled(profiles[line[0]])]
         opponent = max(opponents, key=lambda group: profiles[group[0]]['head_strength'], default=None)
         for phase, basis in _attack_hypotheses(profiles[line[1]]):
             additions.extend(_supported_paths(profiles, groups, line, None, phase, basis))
@@ -138,14 +142,21 @@ def compare(snapshot):
 
     candidate = dict(method_id=METHOD, position_evidence=_position_evidence(profiles,groups),
                      new_scenario_count=len(additions))
+    def timing_key(scenario):
+        return scenario.get('timing_group',scenario['tactical_branch_id']), tuple(scenario['projected_3ren_tan'])
+
+    timing_counts = Counter(timing_key(scenario) for scenario in additions)
     for arm in ('A','B'):
         prediction = deepcopy(baseline[arm])
         if additions:
             scenarios = prediction['six_phase_scenarios'] + additions
             prediction.update(core.select_scenario_markets(scenarios, arm=arm))
-            strength = sum(scenario[f'support_{arm}'] for scenario in scenarios)
-            prediction['six_phase_scenarios'] = [dict(scenario, relative_research_weight=scenario[f'support_{arm}']/strength)
-                                                 for scenario in scenarios]
+            # H and B alternatives share the support of the same terminal path.
+            weights = [scenario[f'support_{arm}'] / timing_counts.get(timing_key(scenario),1)
+                       for scenario in scenarios]
+            strength = sum(weights)
+            prediction['six_phase_scenarios'] = [dict(scenario, relative_research_weight=weight/strength)
+                                                 for scenario,weight in zip(scenarios,weights)]
             prediction['method_mode'] = METHOD
         candidate[arm] = prediction
     return {'baseline':baseline, 'candidate':candidate}

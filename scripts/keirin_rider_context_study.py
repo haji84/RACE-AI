@@ -7,7 +7,13 @@ from hashlib import sha256
 import json
 import os
 from pathlib import Path
+import re
 from secrets import token_hex
+import subprocess
+import sys
+
+if __package__ in (None,''):
+    sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 
 from race_ai import keirin_rider_context as context
 from scripts import keirin_generate_result_unread_analysis as ingest
@@ -16,6 +22,8 @@ from scripts import keirin_generate_result_unread_analysis as ingest
 FROZEN_SCHEMA = 'KEIRIN_RIDER_CONTEXT_PROSPECTIVE_V1'
 RECEIPT_SCHEMA = 'KEIRIN_RIDER_CONTEXT_PUBLIC_COMMITMENT_V1'
 WINDOWS = {'2t':4, '3t':4}
+REPOSITORY = 'haji84/RACE-AI'
+WORKFLOW = '.github/workflows/keirin-persistent-core-ci.yml'
 
 
 def market_lists(output):
@@ -38,11 +46,14 @@ def freeze(path):
         race_id = row['race_id']
         ingest.need(race_id not in seen, 'DUPLICATE_INPUT_RACE')
         seen.add(race_id)
-        if row.get('deadline_time') is None:
+        cutoff = ingest.published_cutoff(day,row.get('deadline_time'))
+        if cutoff is None or cutoff <= started:
             continue
-        cutoff = datetime.fromisoformat(f'{day}T{row["deadline_time"]}').replace(tzinfo=ingest.JST)
-        if cutoff <= started:
-            continue
+        sources = list(row.get('supplemental_sources',[]))
+        sources.extend(source for rider in row['riders'] for source in (rider.get('field_sources') or {}).values())
+        for source in sources:
+            ingest.need(ingest.instant(source.get('captured_at')) <= started,
+                        'SOURCE_CAPTURE_AFTER_GENERATION')
         current = ingest.analyze(row, model, started.isoformat())
         cutoff = ingest.instant(current['published_cutoff_at'])
         if ingest.instant(current['source_as_of']) >= cutoff:
@@ -74,6 +85,29 @@ def commitment(frame):
                 windows=frame['windows'], data_sha256=ingest.digest(frame))
 
 
+def github_json(route, *, raw=False):
+    command = ['gh','api',f'repos/{REPOSITORY}/{route}']
+    if raw:
+        command += ['-H','Accept: application/vnd.github.raw+json']
+    return json.loads(subprocess.check_output(command,timeout=25))
+
+
+def github_witness(frame, commit, run_id, *, receipt_path=None):
+    ingest.need(re.fullmatch(r'[0-9a-f]{40}',commit) and type(run_id) is int and run_id > 0, 'GITHUB_WITNESS_INVALID')
+    run = github_json(f'actions/runs/{run_id}')
+    repository = run['repository']
+    ingest.need(repository['full_name']==REPOSITORY and repository['id']==1416489937 and
+                run['event']=='pull_request' and run['path']==WORKFLOW and run['head_sha']==commit,
+                'GITHUB_WITNESS_RUN_MISMATCH')
+    receipt_path = receipt_path or ('docs/evidence/keirin-rider-context-20261123/'
+                                    f'prospective-commitment-{frame["date"].replace("-","")}.json')
+    ingest.need(re.fullmatch(r'docs/evidence/keirin-rider-context-[0-9]{8}/prospective-commitment-[0-9]{8}(?:-v[0-9]+)?\.json',
+                            receipt_path), 'GITHUB_COMMITMENT_PATH_INVALID')
+    proof = github_json(f'contents/{receipt_path}?ref={commit}',raw=True)
+    ingest.need(proof==commitment(frame), 'GITHUB_COMMITMENT_MISMATCH')
+    return run['created_at']
+
+
 def score(frame, outcomes, *, witnessed_at):
     ingest.need(frame['schema']==FROZEN_SCHEMA and frame['windows']==WINDOWS, 'FROZEN_FRAME_SCHEMA_INVALID')
     ingest.need(outcomes['schema']=='KEIRIN_PUBLISHED_RESULTS_V1' and outcomes['date']==frame['date'],
@@ -95,14 +129,19 @@ def score(frame, outcomes, *, witnessed_at):
                     'PUBLIC_RESULT_BINDING_INVALID')
         if not ingest.instant(pair['cutoff_at']) <= ingest.instant(cmp['observed_at']) <= ingest.instant(outcomes['checked_at']):
             continue
+        winners = cmp['winning_3t']
+        ingest.need(type(winners) is list and len(winners)==3 and
+                    all(type(car) is int and 1 <= car <= 9 for car in winners) and len(set(winners))==3 and
+                    cmp['winning_2t']==winners[:2], 'PUBLIC_RESULT_ORDER_INVALID')
         matched.add(row['race_id'])
         for arm in ('A','B'):
             for market, window in WINDOWS.items():
                 winning = cmp['winning_'+market]
+                budget = min(window, *(len(pair[version][arm][market]['candidates']) for version in ('baseline','candidate')))
                 for version in ('baseline','candidate'):
                     picks = pair[version][arm][market]
                     counts = metrics[arm][market][version]
-                    fixed = picks['candidates'][:window]
+                    fixed = picks['candidates'][:budget]
                     counts['candidate_hits'] += winning in picks['candidates']
                     counts['fixed_window_hits'] += winning in fixed
                     counts['selected_hits'] += winning in picks['selected']
@@ -130,9 +169,9 @@ def main():
     preparation.add_argument('--commitment', type=Path, required=True)
     evaluate = commands.add_parser('score')
     evaluate.add_argument('--private-input', type=Path, required=True)
-    evaluate.add_argument('--commitment', type=Path, required=True)
-    evaluate.add_argument('--results', type=Path, required=True)
-    evaluate.add_argument('--witnessed-at', required=True, help='Timestamp of the independently verified GitHub readback')
+    evaluate.add_argument('--commitment-head', required=True)
+    evaluate.add_argument('--commitment-path')
+    evaluate.add_argument('--ci-run-id', type=int, required=True)
     args = parser.parse_args()
     if args.command == 'freeze':
         frame = freeze(args.input)
@@ -142,9 +181,11 @@ def main():
         print(json.dumps(receipt))
     else:
         frame = json.loads(args.private_input.read_bytes())
-        proof = json.loads(args.commitment.read_bytes())
-        ingest.need(commitment(frame)==proof, 'GITHUB_COMMITMENT_MISMATCH')
-        print(json.dumps(score(frame, json.loads(args.results.read_bytes()), witnessed_at=args.witnessed_at)))
+        witnessed = github_witness(frame,args.commitment_head,args.ci_run_id,receipt_path=args.commitment_path)
+        state = github_json('git/ref/heads/state/keirin-public-results')['object']['sha']
+        outcomes = github_json(f'contents/results/{frame["date"]}.json?ref={state}',raw=True)
+        print(json.dumps(dict(score(frame,outcomes,witnessed_at=witnessed), result_state_head=state,
+                              commitment_head=args.commitment_head, witnessed_at=witnessed)))
 
 
 if __name__ == '__main__':

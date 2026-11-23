@@ -368,6 +368,14 @@ def check_market_tickets(analysis, cars, market):
         check_tickets(selected, cars, length)
 
 
+def published_cutoff(day, value):
+    if value is None:
+        return None
+    need(isinstance(value,str) and re.fullmatch(r'(?:[01]?[0-9]|2[0-3]):[0-5][0-9]',value), 'INVALID_CUTOFF_TEXT')
+    hour, minute = map(int,value.split(':'))
+    return datetime.fromisoformat(f'{day}T{hour:02}:{minute:02}:00').replace(tzinfo=JST)
+
+
 def analyze(row, model, generated_at, observations=None):
     check_no_result_fields(row)
     need(row.get('date') == DAY and re.fullmatch(DAY.replace('-', '') + '[0-9]{4}', str(row.get('race_id', ''))),
@@ -392,11 +400,7 @@ def analyze(row, model, generated_at, observations=None):
     cars = [rider['car'] for rider in riders]
     lines, line_status, line_hypotheses, line_warnings = resolve_lines(row, riders)
     cutoff_text = row.get('deadline_time')
-    cutoff = None
-    if cutoff_text is not None:
-        need(re.fullmatch(r'(?:[01]?[0-9]|2[0-3]):[0-5][0-9]', cutoff_text), 'INVALID_CUTOFF_TEXT')
-        hour, minute = map(int, cutoff_text.split(':'))
-        cutoff = datetime.fromisoformat(f'{DAY}T{hour:02}:{minute:02}:00').replace(tzinfo=JST)
+    cutoff = published_cutoff(DAY,cutoff_text)
     after = generated >= cutoff if cutoff else None
     condition = []
     names = {rider['car']: rider['name'] for rider in riders}
