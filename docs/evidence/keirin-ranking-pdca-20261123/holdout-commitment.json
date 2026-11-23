@@ -1,0 +1,20 @@
+{
+  "schema": "KEIRIN_RANK_ADJUSTMENT_FROZEN_FORECAST_V1",
+  "scope": "holdout",
+  "sealed_at": "2026-11-23T13:34:00.077740+00:00",
+  "salted_forecasts_sha256": "e09c0ae6c7a1ed6d48912f965480341b5afe79ecddb20ec06362de17b4473fe4",
+  "fitted_weights_sha256": "d53220b078617acdb15f1ae07860e03f003493887f514fe39783b6f7c65ed8ef",
+  "locked_generators": {
+    "race_ai/keirin_nationwide_auto_generator.py": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47",
+    "race_ai/keirin_rider_context.py": "68141d2380c76e84896e7e60476dc310dee1155c9f887a5542dfc0a2c200f465"
+  },
+  "adjustment_source_sha256": "bf5dcf71499f9aeebb9cffb17388031461c1f989f3e5527886f45e7230304d2c",
+  "training_source_sha256": "80e491827b852fb96af7ea0f5c839759ad7f9b750a9c465d089e44cca6a4bc57",
+  "forecast_source_sha256": "c86a1ae50cef14c89ca877f85b754fe150eeab91c3cf238bd3dceef57623aef5",
+  "input_sha256": "daaf3ce3a84447fa3d03cf0eea0fe5252b7f9f44b2cdf5129ff22d885be81f3b",
+  "race_counts": {
+    "annual": 3912,
+    "with_lines": 474
+  },
+  "declared_label_free_start": "2026-10-01"
+}

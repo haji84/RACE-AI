@@ -34,6 +34,6 @@ jobs:
       - name: Result-unread scenarios and independent ticket counts
         run: |
           python -m unittest tests.test_keirin_evidence_selection tests.test_keirin_forward_scenarios tests.test_keirin_result_unread_method tests.test_keirin_nationwide_auto_generator -v
-          python -m unittest tests.test_keirin_rider_context tests.test_keirin_rider_context_study -v
+          python -m unittest tests.test_keirin_rider_context tests.test_keirin_rider_context_study tests.test_keirin_ranking_adjustment -v
           python -m unittest tests.test_keirin_confidence tests.test_keirin_authored_confidence tests.test_keirin_confidence_storage -v
           python scripts/keirin_generate_result_unread_analysis.py --self-check

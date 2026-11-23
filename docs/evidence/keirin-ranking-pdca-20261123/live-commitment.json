@@ -1,0 +1,20 @@
+{
+  "schema": "KEIRIN_RANK_ADJUSTMENT_FROZEN_FORECAST_V1",
+  "scope": "live",
+  "sealed_at": "2026-11-23T13:33:48.807266+00:00",
+  "salted_forecasts_sha256": "4bd9cc6caa1186db9b8716e9072892dc4f119f849fcc9d0101012736cfa36298",
+  "fitted_weights_sha256": "d53220b078617acdb15f1ae07860e03f003493887f514fe39783b6f7c65ed8ef",
+  "locked_generators": {
+    "race_ai/keirin_nationwide_auto_generator.py": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47",
+    "race_ai/keirin_rider_context.py": "68141d2380c76e84896e7e60476dc310dee1155c9f887a5542dfc0a2c200f465"
+  },
+  "adjustment_source_sha256": "bf5dcf71499f9aeebb9cffb17388031461c1f989f3e5527886f45e7230304d2c",
+  "training_source_sha256": "80e491827b852fb96af7ea0f5c839759ad7f9b750a9c465d089e44cca6a4bc57",
+  "forecast_source_sha256": "c86a1ae50cef14c89ca877f85b754fe150eeab91c3cf238bd3dceef57623aef5",
+  "date": "2026-11-23",
+  "race_count": 6,
+  "first_cutoff_at": "2026-11-23T22:40:00+09:00",
+  "last_cutoff_at": "2026-11-23T23:25:00+09:00",
+  "input_source_sha256": "fac31353f4ebcbeeb9f57e780281b93821cbb1ef391d5cbed7adf19dd8ebdfeb",
+  "refreshed_source_sha256": "a8b6f12b5fef28ed038513870232e8f0b7fa2d40db322c245c3280bf8dfa2ff3"
+}

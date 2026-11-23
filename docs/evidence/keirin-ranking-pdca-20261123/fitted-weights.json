@@ -1,0 +1,148 @@
+{
+  "schema": "KEIRIN_RESEARCH_RANK_ADJUSTMENT_V1",
+  "fit_end": "20260731",
+  "validation_end": "20260930",
+  "fit_unique_results": 18608,
+  "validation_races": 4608,
+  "original_validation_hits": {
+    "2t": 1953,
+    "3t": 785
+  },
+  "candidates": [
+    {
+      "variant": "cumulative",
+      "blend": 0.35,
+      "hits": {
+        "2t": 2076,
+        "3t": 868
+      }
+    },
+    {
+      "variant": "cumulative",
+      "blend": 0.65,
+      "hits": {
+        "2t": 2142,
+        "3t": 911
+      }
+    },
+    {
+      "variant": "cumulative",
+      "blend": 1.0,
+      "hits": {
+        "2t": 2188,
+        "3t": 948
+      }
+    },
+    {
+      "variant": "separate_finish_rates",
+      "blend": 0.35,
+      "hits": {
+        "2t": 2081,
+        "3t": 869
+      }
+    },
+    {
+      "variant": "separate_finish_rates",
+      "blend": 0.65,
+      "hits": {
+        "2t": 2142,
+        "3t": 907
+      }
+    },
+    {
+      "variant": "separate_finish_rates",
+      "blend": 1.0,
+      "hits": {
+        "2t": 2179,
+        "3t": 961
+      }
+    },
+    {
+      "variant": "separate_finish_rates_and_style",
+      "blend": 0.35,
+      "hits": {
+        "2t": 2097,
+        "3t": 856
+      }
+    },
+    {
+      "variant": "separate_finish_rates_and_style",
+      "blend": 0.65,
+      "hits": {
+        "2t": 2159,
+        "3t": 898
+      }
+    },
+    {
+      "variant": "separate_finish_rates_and_style",
+      "blend": 1.0,
+      "hits": {
+        "2t": 2189,
+        "3t": 938
+      }
+    }
+  ],
+  "selected": {
+    "variant": "separate_finish_rates",
+    "blend": 1.0,
+    "hits": {
+      "2t": 2179,
+      "3t": 961
+    }
+  },
+  "feature_ablation_validation_hits": {
+    "points": {
+      "2t": 2077,
+      "3t": 923
+    },
+    "marks": {
+      "2t": 1965,
+      "3t": 783
+    },
+    "rates": {
+      "2t": 2124,
+      "3t": 924
+    }
+  },
+  "coefficients": [
+    {
+      "relative_points": 1.8369428318,
+      "relative_points_known": -0.5612811507,
+      "mark_first": 0.6453898454,
+      "mark_second": 0.3832894687,
+      "mark_third": -0.4129273005,
+      "mark_other": -0.0013348435,
+      "mark_known": 0.6144171702,
+      "win_rate": 2.5488396583,
+      "win_known": -0.0
+    },
+    {
+      "relative_points": 1.5066744622,
+      "relative_points_known": 0.0270018513,
+      "mark_first": 0.443956325,
+      "mark_second": 0.6740759196,
+      "mark_third": -0.4286118499,
+      "mark_other": -0.0883654565,
+      "mark_known": 0.6010549383,
+      "win_rate": 0.9562578657,
+      "win_known": -0.0,
+      "second_only_rate": 0.7318414514,
+      "second_only_known": -0.0037096488
+    },
+    {
+      "relative_points": 1.1819063914,
+      "relative_points_known": 0.0681845202,
+      "mark_first": 0.193773061,
+      "mark_second": 0.2058838892,
+      "mark_third": -0.1622329759,
+      "mark_other": 0.0204013631,
+      "mark_known": 0.2578253374,
+      "win_rate": 0.3730060499,
+      "win_known": 0.0,
+      "second_only_rate": 0.6574657435,
+      "second_only_known": 0.0392374581,
+      "third_only_rate": 0.7218813001,
+      "third_only_known": -0.0172235294
+    }
+  ]
+}
