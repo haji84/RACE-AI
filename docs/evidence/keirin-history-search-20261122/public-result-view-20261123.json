@@ -1,0 +1,86 @@
+{
+  "schema": "RACE_AI_KEIRIN_PUBLIC_RESULT_VIEW_V1",
+  "checked_at": "2026-11-23T01:05:38.003Z",
+  "worker_sha256": "f170fb85f7a0c589ebe96bb8218de2334c0d8a8404e8e92805ca53a56869aee5",
+  "same_view_url": "https://keirin-20261119-race-note.chankuma.chatgpt.site/#results",
+  "dates": {
+    "2026-11-23": {
+      "rows": 89,
+      "matched": 6,
+      "held": 1,
+      "pending_checked": 1,
+      "checked_at": "2026-11-23T01:04:15.502828+00:00",
+      "sidecar_sha256": "f23d3140e563844b015038166c26265cb14ff1c3283c9fd3c6c9d850672ecb67",
+      "comparison_counts": {
+        "A_2t": {
+          "no_tickets": 1,
+          "hit": 4,
+          "miss": 1
+        },
+        "B_2t": {
+          "miss": 2,
+          "hit": 4
+        },
+        "A_3t": {
+          "miss": 5,
+          "hit": 1
+        },
+        "B_3t": {
+          "miss": 5,
+          "hit": 1
+        }
+      }
+    },
+    "2026-11-22": {
+      "rows": 68,
+      "matched": 67,
+      "held": 1,
+      "pending_checked": 0,
+      "checked_at": "2026-11-23T01:01:04.968108+00:00",
+      "sidecar_sha256": "d84b18bc01a0264a03d6cdc877d830cb656562d289d0b27bf16cb98720ff7f21",
+      "comparison_counts": {
+        "A_2t": {
+          "miss": 35,
+          "hit": 32
+        },
+        "B_2t": {
+          "miss": 37,
+          "hit": 29,
+          "no_tickets": 1
+        },
+        "A_3t": {
+          "miss": 53,
+          "hit": 14
+        },
+        "B_3t": {
+          "miss": 55,
+          "hit": 11,
+          "no_tickets": 1
+        }
+      }
+    }
+  },
+  "forecast_assets_byte_identical": true,
+  "anonymous_view_verified": true,
+  "real_safari_verified": false,
+  "base_site_source_commit": "01174acfbb576c33cac75360a0fa8f2b7f6607d5",
+  "site_tests": {
+    "passed": 160,
+    "failed": 0
+  },
+  "result_sources": [
+    "Kdreams",
+    "netkeirin"
+  ],
+  "both_payout_markets_checked": true,
+  "matched_is_not_official_authority": true,
+  "site_version": 26,
+  "site_source_commit": "95e16ef16c6322ecb0b17c4e8e2912043c784afc",
+  "deployment_status": "succeeded",
+  "deployment_confirmed_at_utc": "2026-11-23T01:07:28.934412+00:00",
+  "site_access_mode": "public",
+  "direct_site_https_status_from_workspace": 403,
+  "direct_edge_error_code": "1010",
+  "data_update": "published capture snapshot",
+  "automatic_public_result_collection_verified": false
+}
