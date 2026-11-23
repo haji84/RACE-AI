@@ -69,13 +69,11 @@ def market_payouts(soup, provider):
 
 def has_special_notice(soup, provider):
     table = soup.select_one(PAYOUT_TABLES[provider])
-    if table and re.search(r'返還|同着|レース中止|発売中止', text(table)):
-        return True
-    for node in soup.select('p, div, span, td'):
-        if (text(node).rstrip('。') in {'レース中止', '発売中止'} and
-                node.find_parent(['header', 'footer', 'nav', 'aside']) is None):
-            return True
-    return False
+    if table is None:
+        return False
+    cells = table.select(':scope > tr > td, :scope > tbody > tr > td')
+    notices = {'返還', '全返還', '同着', 'レース中止', '発売中止'}
+    return any(cell.find('a') is None and text(cell).rstrip('。') in notices for cell in cells)
 
 
 def observe(race, provider, url, fetch, consensus, evidence):

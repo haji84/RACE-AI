@@ -78,17 +78,20 @@ class PublicResultRefreshTests(unittest.TestCase):
         request.assert_called_once()
         self.assertEqual(evidence[-1]['code'], 'PUBLIC_PROVIDER_UNAVAILABLE_STOP')
 
-    def test_layout_change_is_retryable_and_explicit_cancellation_is_preserved(self):
+    def test_only_race_payout_cells_can_produce_a_new_permanent_special_hold(self):
         page = '''<html><head><title>広島競輪 2026年11月23日 1R 結果</title></head>
         <body><div>払戻</div>{notice}<table class="refund_table">
         <tr><th>2枠連</th><th>2車連</th><th>3連勝</th><th>ワイド</th></tr>
         <tr><td>単</td><td></td><td>単</td><td>1-2 780円</td><td>単</td><td>1-2-4 2,110円</td></tr>
-        <tr><td>払戻の補足欄</td></tr></table></body></html>'''
-        for notice, expected in [('', 'source_disagreement'),
-                                 ('<footer>返還についてのヘルプ</footer>', 'source_disagreement'),
-                                 ('<p>レース中止</p>', 'special_result')]:
-            with self.subTest(notice=notice):
-                html = page.format(notice=notice).encode('utf-8')
+        {additional}</table></body></html>'''
+        cases = [('', '<tr><td>払戻の補足欄</td></tr>', 'source_disagreement'),
+                 ('<footer>返還についてのヘルプ</footer>', '', 'source_disagreement'),
+                 ('', '<tfoot><tr><td><a>返還についてのヘルプ</a></td></tr></tfoot>', 'source_disagreement'),
+                 ('<section><h3>別の日程</h3><p>レース中止</p></section>', '', 'source_disagreement'),
+                 ('', '<tr><td>同着</td></tr>', 'special_result')]
+        for notice, additional, expected in cases:
+            with self.subTest(notice=notice, additional=additional):
+                html = page.format(notice=notice, additional=additional).encode('utf-8')
                 data, _ = publisher.collect(roster([race(0)]), lambda _url: html, consensus, now=NOW)
                 self.assertEqual(data['races'][0]['state'], 'held')
                 self.assertEqual(data['races'][0]['reason'], expected)
