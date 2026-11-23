@@ -10,26 +10,147 @@
     "pairs_before_cutoff": 23,
     "races_with_new_paths": 12,
     "new_paths": 55,
+    "new_paths_by_timing_evidence": {"H": 0, "B": 40, "self_propelled_without_checkpoint_count": 15},
     "published_roster_readback_ref": "8cc7b24811a1bd0f4ebbc31c0f4a8356ca401fa9",
     "local_owner_cipher_sha256": "345f1b084d22670bed36556e936b5aa56075b552e5871761aa8be011e163d5c6"
   },
   "historical_diagnostic": {
     "result_state_head": "1f9e07fa6070d3f62f4022f7102e2046e3d1e5c3",
+    "published_forecast_asset_sha256": "e0bbe0df758673ac79e9d5b70ff3da5790cba361c8b8fc08cd6e43cca6fe48c7",
     "races": 58,
+    "excluded_public_forecasts_at_or_after_cutoff": 4,
     "published_baseline_reproduced": true,
     "top4_3t_hits_per_arm_baseline_and_candidate": [15, 15],
     "top4_2t_hits_per_arm_baseline_and_candidate": [29, 29],
     "candidate_pool_2t_hits_per_arm_baseline_and_candidate": [41, 42],
     "candidate_pool_3t_hits_per_arm_baseline_and_candidate": [25, 25],
+    "baseline_3t_pool_misses_per_arm": {
+      "total": 33,
+      "winning_pair_present_in_3t_prefix": 16,
+      "winner_present_winning_pair_absent": 14,
+      "winner_absent": 3
+    },
     "toyohashi_6r_2t_and_3t_still_absent": true
   },
   "rider_evidence": {
     "published_20261123_rosters": 89,
     "rider_rows": 637,
     "rider_rows_with_S_H_B_counts": 637,
+    "rider_rows_with_positive_H": 2,
     "rider_rows_with_verified_registration": 0,
-    "observed_past_lane_and_attack_paths_connected": false
+    "observed_past_lane_and_attack_paths_connected": false,
+    "historical_identity_sample": {
+      "race_id": "202611224506",
+      "netkeirin_result_profile_links": 7,
+      "profiles_cross_checked_with_keirin_jp": 1,
+      "name_and_registration_verified": 1,
+      "observed_single_race_lead_markers": ["S", "B"],
+      "netkeirin_result_source_sha256": "4877e4fea6da86d40e6e03f775be3da4cc93ce0474d69d9041706b1368c147be",
+      "netkeirin_profile_source_sha256": "9c1c7acf6b50acb8fc757abfcee2f83fb2f35c01b790b739ee849ab8fb1edb74",
+      "keirin_jp_profile_source_sha256": "a79fb1b0ebb32c9e99cff468b98a302aab8d8c8a2f8b5ac6369e239b22ce64bf",
+      "used_in_frozen_prediction": false
+    },
+    "fresh_home_counts_sample": {
+      "race_id": "202611236107",
+      "exact_roster_name_matches": 7,
+      "captured_at": "2026-11-23T11:43:34.362515+00:00",
+      "cutoff_at": "2026-11-23T14:25:00+00:00",
+      "source_sha256": "753a5487ebdd92835e75f77022323ddf492d3dbc593d564b03a752a5dc253350",
+      "riders_with_positive_H_earlier_and_refreshed": [0, 6],
+      "new_paths_by_timing_evidence": {"H": 12, "B": 12},
+      "separate_input_validation_overlapping_main_cohort": true,
+      "commitment_path": "prospective-commitment-20261123-v3.json",
+      "commitment_head": "0ebf6b10d72d7de36960e5853c07f499592bf1c5",
+      "ci_run_id": 45167977911,
+      "github_created_at": "2026-11-23T11:45:08Z",
+      "local_owner_cipher_sha256": "d923dff28705a87ef1a824bbdadbca5b26a82eeca6f9fce55bb24b094e1700bf"
+    }
   },
-  "prospective_scores": null,
+  "prospective_scores": {
+    "date": "2026-11-23",
+    "eligible_pairs": 23,
+    "compared_pairs": 3,
+    "checked_at": "2026-11-23T11:47:22.818043+00:00",
+    "windows": {
+      "2t": 4,
+      "3t": 4
+    },
+    "metrics": {
+      "A": {
+        "2t": {
+          "baseline": {
+            "candidate_hits": 2,
+            "fixed_window_hits": 1,
+            "selected_hits": 1,
+            "fixed_window_points": 12,
+            "selected_points": 12
+          },
+          "candidate": {
+            "candidate_hits": 2,
+            "fixed_window_hits": 1,
+            "selected_hits": 1,
+            "fixed_window_points": 12,
+            "selected_points": 14
+          }
+        },
+        "3t": {
+          "baseline": {
+            "candidate_hits": 1,
+            "fixed_window_hits": 1,
+            "selected_hits": 1,
+            "fixed_window_points": 12,
+            "selected_points": 23
+          },
+          "candidate": {
+            "candidate_hits": 1,
+            "fixed_window_hits": 1,
+            "selected_hits": 1,
+            "fixed_window_points": 12,
+            "selected_points": 25
+          }
+        }
+      },
+      "B": {
+        "2t": {
+          "baseline": {
+            "candidate_hits": 2,
+            "fixed_window_hits": 1,
+            "selected_hits": 2,
+            "fixed_window_points": 12,
+            "selected_points": 21
+          },
+          "candidate": {
+            "candidate_hits": 2,
+            "fixed_window_hits": 1,
+            "selected_hits": 2,
+            "fixed_window_points": 12,
+            "selected_points": 23
+          }
+        },
+        "3t": {
+          "baseline": {
+            "candidate_hits": 1,
+            "fixed_window_hits": 1,
+            "selected_hits": 1,
+            "fixed_window_points": 12,
+            "selected_points": 25
+          },
+          "candidate": {
+            "candidate_hits": 1,
+            "fixed_window_hits": 1,
+            "selected_hits": 1,
+            "fixed_window_points": 12,
+            "selected_points": 26
+          }
+        }
+      }
+    },
+    "result_state_head": "3b6c8f967c288368c726b416e86391cc2e8a2dc4",
+    "commitment_head": "4a7d5b3a5dd79a4a29fbdd630bb0c4d4fa026287",
+    "witnessed_at": "2026-11-23T11:08:19Z",
+    "compared_pairs_with_new_paths": 1,
+    "compared_pairs_with_changed_forecasts": 1,
+    "past_cutoff_pending": 1
+  },
   "production_model_promoted": false
 }
