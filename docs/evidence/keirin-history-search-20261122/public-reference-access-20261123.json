@@ -1,0 +1,49 @@
+{
+  "schema": "RACE_AI_KEIRIN_PUBLIC_REFERENCE_RELEASE_V1",
+  "prior_site_source_commit": "aefaf9c5e5aa0f0794cd1cbe13b329be7594bd1c",
+  "projection": {
+    "date": "2026-11-23",
+    "original_encrypted_index_sha256": "ad9b0f457a9a1fb2f2c59c460ba61b552f9fbd2edd0085e0be8003c1eca80e1d",
+    "original_encrypted_requests": 10,
+    "display_rows": 89,
+    "exact_reference_A": 89,
+    "exact_reference_B": 89,
+    "seibuen_11r": true,
+    "asset": "dist/data/keirin_20261123_reference_public.json.gz",
+    "asset_sha256": "bf92218c3288366969c07513dee9937da8ce5e8b11efcdf96977b67fe869f431",
+    "public_json_sha256": "63cfb063c28c94253e020980fd1e5ae67cea9a439c8395fbe6093887f7063289",
+    "raw_bytes": 406549,
+    "gzip_bytes": 29096,
+    "published_fields": "race names, roster names and bibs, cutoff, start, line groups, reference A/B pick order and B phase ordering",
+    "key_or_raw_captures_emitted": false
+  },
+  "anonymous_view": {
+    "site_route": "/",
+    "public_data_route": "/data/keirin_20261123_reference_public.json",
+    "site_worker_sha256": "a27a7136ff8c3731a703b182ed70b64f9ab9741729f483c1e158fcaee8dcfb88",
+    "checked_at": "2026-11-23T00:18:15.740Z",
+    "displayed_date": "2026-11-23",
+    "anonymous_reference_A": 89,
+    "anonymous_reference_B": 89,
+    "seibuen_11r": true,
+    "owner_connection_calls": 0,
+    "initial_browser_storage_entries": 0,
+    "site_url": "https://keirin-20261119-race-note.chankuma.chatgpt.site/",
+    "xhr_cookie_requirement": false,
+    "exact_worker_route_test": true,
+    "physical_iphone_test": false
+  },
+  "suite": {
+    "passed": 156,
+    "failed": 0
+  },
+  "site_version": 24,
+  "site_source_commit": "74abd276e4e995547d8229c4554b2b9b3f88938a",
+  "deployment_status": "succeeded",
+  "deployment_confirmed_at_utc": "2026-11-23T00:19:37.223858+00:00",
+  "site_access_mode": "public",
+  "site_access_revision": 2,
+  "direct_site_https_status_from_workspace": 403,
+  "direct_site_edge_error_code": "1010",
+  "future_day_publication_automated": false
+}
