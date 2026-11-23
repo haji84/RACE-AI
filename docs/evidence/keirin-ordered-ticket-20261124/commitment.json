@@ -1,0 +1,34 @@
+{
+  "schema": "KEIRIN_ORDERED_TICKET_FROZEN_STUDY_V1",
+  "sealed_at": "2026-11-23T22:11:08.682375+00:00",
+  "prior_replay_commit": "894b7e6f4b89863fce791ace143e2ad29098152c",
+  "prior_replay_ci": "45226157211",
+  "prior_exact_ranking_matches": 3589,
+  "source_sha256": {
+    "fit.json.gz": "c55e95d6aa6e599933b2e565d0c33efeede9a5c9894c4d237c593f0af537e245",
+    "calibrate.json.gz": "1a1048233d630a0ed873561cf5575cac5a807e310826439d2983e404cbf96c97",
+    "holdout.json.gz": "4d0d9719e50fdaef160a2bbc8e029ea0f95fc74fcba87f61bf29dfd2b3f0482b",
+    "weights.json": "204b42c315a562f24c5a9409c09d98e14c680e935db8bb41e3ec3abbea3e11ba"
+  },
+  "prior_holdout_sha256": "4d0d9719e50fdaef160a2bbc8e029ea0f95fc74fcba87f61bf29dfd2b3f0482b",
+  "script_sha256": {
+    "scripts/keirin_ordered_ticket_study.py": "56a14c06bc7f4775c84084ae9c72433177274ed2b23d59f722aeef66d8a91d92",
+    "experiment.py": "153f48877ea43d2c5b31256746ae48c51258dbf58b211021eda63b00d4c8a70a"
+  },
+  "config_sha256": {
+    "recent-config.json": "60e88f53496f934cb968706e38291d8d68fc664429a3356de617cc0e634c9a47",
+    "earlier-config.json": "9432f66cf511a6a69754e88f6cc9d81d95df7d8dbbf45f301a3749964335fafb"
+  },
+  "nonce_bound_forecasts_sha256": {
+    "recent-predictions.json.gz": "342e2982ccbc920cd1dabbbb2f840c00c5cb3185144b939717b77ef7e64145c8",
+    "earlier-predictions.json.gz": "4be761f0ff412d42b6d1ce2740849b482bf0bc8613ba697ec7d545fad04ccc18"
+  },
+  "primary": "three_ordered_finishers_top_eight",
+  "secondary": "top_one_four_and_same_budget_one_four_eight",
+  "target_results_used_for_predicting_or_choosing": false,
+  "earlier_combined_archive_contains_labels_but_forecast_reads_card_fields_only": true,
+  "private_retrospective_cipher_sha256": {
+    "recent": "995b7b4a3dc98df4226b75bc6825a3825d3eb0a2972832ca3ad3a154ed5ea8d5",
+    "earlier": "877da4ea27772364978e3d0ee8814683f8b1636a725acbf4b58fe053a8c388e0"
+  }
+}

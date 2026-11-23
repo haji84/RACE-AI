@@ -1,0 +1,16 @@
+{
+  "schema": "KEIRIN_ORDERED_PAIR_PROSPECTIVE_COMMITMENT_V1",
+  "date": "2026-11-24",
+  "frozen_at": "2026-11-23T22:11:56.691748+00:00",
+  "trial": "pair_and_third",
+  "races": 66,
+  "earliest_cutoff": "2026-11-24T08:45:00+09:00",
+  "last_cutoff": "2026-11-24T21:16:00+09:00",
+  "same_fields_as_original_study": true,
+  "old_comparison_head": "4e65c1c3d000c2fe0228dac9ca1d19b4a4e3cb1e",
+  "old_comparison_run": 45259189248,
+  "current_model_source_sha256": "56a14c06bc7f4775c84084ae9c72433177274ed2b23d59f722aeef66d8a91d92",
+  "recent_config_sha256": "60e88f53496f934cb968706e38291d8d68fc664429a3356de617cc0e634c9a47",
+  "data_sha256": "42126e4785b1bd2cd2a11db6a26f0d306a25e8af7a4b77e1cb977ae7992ad7f4",
+  "owner_cipher_sha256": "91ac6f5936f4ba3d882e7a513b55749e6c4dac1b7de6b4c678ef2eba6046428a"
+}
