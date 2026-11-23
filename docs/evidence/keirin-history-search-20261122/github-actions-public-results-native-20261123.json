@@ -1,0 +1,32 @@
+{
+  "schema": "RACE_AI_KEIRIN_PUBLIC_RESULTS_NATIVE_CRON_V1",
+  "repository": "haji84/RACE-AI",
+  "pull_request": 329,
+  "reviewed_head": "0eec1b46b86bd8a0a03c5940ebb047d16f3e1a7e",
+  "merged_main": "2d4a87c43795af5aaaa966603c9e5a634fb67759",
+  "merged_at": "2026-11-23T04:57:20Z",
+  "verification": {
+    "local_python_tests_passed": 110,
+    "required_unit_job": "https://github.com/haji84/RACE-AI/actions/runs/45114749782/job/137494906701",
+    "public_result_fixture_job": "https://github.com/haji84/RACE-AI/actions/runs/45114749864/job/137494906844",
+    "independent_review_passed": true
+  },
+  "workflow": {
+    "workflow_id": 427407851,
+    "path": ".github/workflows/keirin-public-site-results.yml",
+    "contents_sha256": "e91ed742f82ff858529f635cbde51d3eeb6c975115008be131338bf4f579afe4",
+    "github_state": "active",
+    "cron_utc": "10,25,40,55 0-15,23 * * *",
+    "first_configured_slot_after_merge": "2026-11-23T05:10:00Z",
+    "first_native_scheduled_run": null
+  },
+  "continuity_at_activation": {
+    "verified_at": "2026-11-23T04:58:44.927016Z",
+    "codex_timer_enabled": false,
+    "interim_github_run": 45110871676,
+    "interim_status": "in_progress",
+    "public_result_state_head": "b225fc7939aa3dd1145268168d1996e9f3a31730",
+    "november_22_matched": 67,
+    "november_23_matched": 33
+  }
+}

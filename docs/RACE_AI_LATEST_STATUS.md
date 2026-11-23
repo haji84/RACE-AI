@@ -1,3 +1,9 @@
+# 2026-11-23 13:58 JST｜公開照合のGitHub定期設定をmainへ反映
+
+承認を受けた公開照合専用のPR #329を、必須の `unit` と公開結果のテスト、独立レビューの通過後に `main` へ反映した。GitHubで定期ワークフローが有効であることを読み戻した。設定は日本時間8:10から翌0:55まで15分ごと。取得制限の待機、途中までに取得した結果の保存、次回の再開位置、照合済みと特殊保留の保全を検査した。[PR #329](https://github.com/haji84/RACE-AI/pull/329) · [定期ワークフロー](https://github.com/haji84/RACE-AI/actions/workflows/keirin-public-site-results.yml)
+
+確認時点の公開結果は22日67件、23日33件が照合済み。Codexの定期起動は停止済みで、GitHub Actionsの一時運転を継続している。14:10以降にGitHubの定期ジョブがキューに入ったら一時運転を終了し、定期ジョブの実行と公開JSONの読み戻しを確認する。[実行と確認記録](evidence/keirin-history-search-20261122/github-actions-public-results-native-20261123.json)
+
 # 2026-11-23 13:32 JST｜公開結果照合の起動をGitHub Actionsへ移行
 
 元サイトに掲載済みの11月22日・23日分を、既存リポジトリのGitHub Actionsで15分ごとに確認する一時運転に切り替えた。13:17の初回実行で23日分の照合済みが27件から30件になり、公開JSONを読み戻してからCodexの定期起動「競輪の公開照合更新」を停止した。13:32に同じGitHubジョブが追加起動なしで再確認し、31件まで更新した。22日分の照合済み67件と両日の特殊結果各1件を保全した。[GitHub Actionsの運転](https://github.com/haji84/RACE-AI/actions/runs/45110871676) · [公開結果JSON](https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-results/results/2026-11-23.json)
