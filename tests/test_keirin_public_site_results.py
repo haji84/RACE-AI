@@ -1,4 +1,9 @@
+from contextlib import redirect_stdout
 from datetime import datetime, timezone
+import io
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
@@ -26,6 +31,43 @@ def snapshot(entries):
 
 
 class PublicResultRefreshTests(unittest.TestCase):
+    def test_watch_reports_completion_only_after_all_published_races_are_resolved(self):
+        special = {'race_id': IDS[0], 'state': 'held', 'reason': 'special_result'}
+        with TemporaryDirectory() as directory:
+            state = Path(directory)
+            (state / 'rosters').mkdir()
+            (state / 'results').mkdir()
+            manifest = state / 'rosters' / f'{DATE}.json'
+            (state / 'results' / f'{DATE}.json').write_text(json.dumps(snapshot([special])))
+            with (patch('sys.argv', ['publisher', '--state-directory', directory, '--stop-when-complete']),
+                  patch.object(publisher, 'datetime', wraps=datetime) as clock,
+                  redirect_stdout(io.StringIO())):
+                clock.now.return_value = NOW
+                manifest.write_text(json.dumps(roster([race(0), race(1, '2026-11-23T12:00:00+09:00')])))
+                self.assertEqual(publisher.main(), 0)
+                manifest.write_text(json.dumps(roster([race(0)])))
+                self.assertEqual(publisher.main(), 10)
+
+    def test_publisher_reports_source_failure_after_saving_existing_and_pending_rows(self):
+        special = {'race_id': IDS[0], 'state': 'held', 'reason': 'special_result'}
+        with TemporaryDirectory() as directory:
+            state = Path(directory)
+            (state / 'rosters').mkdir()
+            (state / 'results').mkdir()
+            (state / 'rosters' / f'{DATE}.json').write_text(json.dumps(roster([race(0), race(1)])))
+            result = state / 'results' / f'{DATE}.json'
+            result.write_text(json.dumps(snapshot([special])))
+            with (patch('sys.argv', ['publisher', '--state-directory', directory]),
+                  patch.object(publisher, 'datetime', wraps=datetime) as clock,
+                  patch.object(publisher, 'observe', side_effect=ValueError('PROVIDER_DENIED_OR_RATE_LIMITED_STOP')),
+                  redirect_stdout(io.StringIO())):
+                clock.now.return_value = NOW
+                status = publisher.main()
+            self.assertEqual(json.loads(result.read_text())['races'], [
+                special, {'race_id': IDS[1], 'state': 'pending', 'reason': 'source_unavailable'},
+            ])
+            self.assertEqual(status, 75)
+
     def test_refresh_fetches_only_due_unsettled_races_and_keeps_the_saved_match(self):
         saved={'race_id':IDS[0],'state':'matched','comparison':{'race_id':IDS[0]}}
         prior=snapshot([saved,{'race_id':IDS[1],'state':'pending','reason':'result_unpublished'}])

@@ -166,6 +166,8 @@ def collect(published, fetch, consensus, *, previous=None, now=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--state-directory', required=True, type=Path)
+    parser.add_argument('--stop-when-complete', action='store_true',
+                        help='Return 10 when every published race is matched or has a special result.')
     args = parser.parse_args()
     from race_ai import keirin_secondary_result_consensus as consensus
     from scripts.keirin_capture_public_two_sources import fetch_once
@@ -173,6 +175,7 @@ def main():
     checked(bool(rosters),'PUBLIC_RESULT_ROSTERS_MISSING')
     result_dir=args.state_directory/'results'
     result_dir.mkdir(exist_ok=True)
+    remaining = 0
     for path in rosters:
         published=json.loads(path.read_bytes())
         checked(path.stem==published['date'],'PUBLIC_ROSTER_FILENAME_MISMATCH')
@@ -181,12 +184,19 @@ def main():
         packet,evidence=collect(published,fetch_once,consensus,previous=previous)
         if packet!=previous:
             destination.write_text(json.dumps(packet,ensure_ascii=False,separators=(',', ':'))+'\n')
+        resolved = sum(entry['state'] == 'matched' or entry.get('reason') == 'special_result'
+                       for entry in packet['races'])
+        remaining += len(published['races']) - resolved
+        provider_failure = next((entry['code'] for entry in evidence if entry.get('code') in (
+            'PROVIDER_DENIED_OR_RATE_LIMITED_STOP', 'PUBLIC_PROVIDER_UNAVAILABLE_STOP')), None)
         print(json.dumps({'date':packet['date'],'checked_at':packet['checked_at'],
                           'race_count':len(published['races']),'updated':packet!=previous,
-                          'states':dict(Counter(entry['state'] for entry in packet['races']))}))
-        if any(entry.get('code') in ('PROVIDER_DENIED_OR_RATE_LIMITED_STOP','PUBLIC_PROVIDER_UNAVAILABLE_STOP') for entry in evidence):
-            break
+                          'states':dict(Counter(entry['state'] for entry in packet['races'])),
+                          'provider_failure':provider_failure}))
+        if provider_failure:
+            return 75
+    return 10 if args.stop_when_complete and remaining == 0 else 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())
