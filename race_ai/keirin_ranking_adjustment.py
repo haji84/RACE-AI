@@ -104,17 +104,26 @@ def adjust(snapshot, prediction, arm, coefficients, blend, *, profiles=None):
     ratios = {(head,second): adjusted_pair(profiles,weights,blend,head,second)/ability_pair(profiles,head,second)
               for _,head,second in branches}
     pair_key, support_key = 'pair_support_'+arm, 'support_'+arm
+    other_arm = 'B' if arm == 'A' else 'A'
+    other_pair, other_support = 'pair_support_'+other_arm, 'support_'+other_arm
     adjusted, relative = [], []
     for path in paths:
         head, second, third = path['projected_3ren_tan']
         pair = path[pair_key]*ratios[head,second]
         fraction = thirds[third]/denominators[path['tactical_branch_id'],head,second]
         support = pair*fraction
-        adjusted.append({**path,pair_key:pair,support_key:support,'conditional_third_support':fraction})
+        fractions = {arm: fraction, other_arm: path[other_support] / path[other_pair]}
+        adjusted.append({**path, pair_key: pair, support_key: support,
+                         'conditional_third_support': fraction,
+                         'conditional_third_support_by_arm': fractions})
         relative.append(path.get('relative_research_weight',path[support_key])*support/path[support_key])
     indistinguishable = prediction['selection_context']['indistinguishable_solo_field']
     market = core.select_scenario_markets(adjusted,arm=arm,indistinguishable_field=indistinguishable)
     total = fsum(relative)
     paths = [dict(path,relative_research_weight=mass/total) for path,mass in zip(adjusted,relative)]
-    return {**prediction,**market,'six_phase_scenarios':paths,
-            'research_finish_rank_adjustment':{'blend':blend,'paths_preserved':True}}
+    rationale = [line for line in prediction.get('rationale', ())
+                 if not line.startswith('支持値と選別境界は未学習')]
+    rationale.append('展開から得た候補を着順別の学習係数で順位付けする。'
+                     '採用境界は既存の研究ルールを使い、支持値の確率校正は行っていない。')
+    return {**prediction, **market, 'six_phase_scenarios': paths, 'rationale': rationale,
+            'research_finish_rank_adjustment': {'arm': arm, 'blend': blend, 'paths_preserved': True}}

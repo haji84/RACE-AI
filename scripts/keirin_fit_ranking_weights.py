@@ -1,14 +1,10 @@
 """Fit existing keirin A/B finish adjustments on earlier, admitted races."""
-from collections import defaultdict
-from itertools import permutations
+from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 from pathlib import Path
 import argparse
 import gzip
 import json
-
-import numpy as np
-from scipy.optimize import minimize
-from scipy.special import logsumexp
 
 from race_ai import keirin_nationwide_auto_generator as core
 from race_ai import keirin_ranking_adjustment as adjustment
@@ -40,6 +36,8 @@ def fields(variant, omit=None):
 
 
 def fit_records(rows, end):
+    import numpy as np
+
     usable = []
     for record in rows:
         race = record['input']
@@ -69,6 +67,10 @@ def fit_records(rows, end):
 
 
 def fit_weights(training, variant, omit=None):
+    import numpy as np
+    from scipy.optimize import minimize
+    from scipy.special import logsumexp
+
     x,available,outcomes = training
     available = available.copy()
     rows = np.arange(len(x))
@@ -97,60 +99,38 @@ def fit_weights(training, variant, omit=None):
     return result
 
 
-def validation_groups(rows, low, high):
-    grouped = defaultdict(list)
-    for record in rows:
-        race = record['input']
-        if not low<=race['race_id'][:8]<=high or record['cohort']!='annual':
-            raise ValueError('Validation dates must be outside training and before the final test.')
-        profiles = core._evidence_profiles(race)[0]
-        grouped[len(profiles)].append((profiles,adjustment.feature_vectors(profiles),record))
-    result = []
-    for size,members in sorted(grouped.items()):
-        pairs = np.array(list(permutations(range(size),2)))
-        triples = np.array(list(permutations(range(size),3)))
-        pair_index = {tuple(pair): index for index,pair in enumerate(pairs)}
-        repeats = np.array([pair_index[tuple(triple[:2])] for triple in triples])
-        features, power, truth2, truth3, originals = [], [], [], [], []
-        for profiles,vector,record in members:
-            cars = sorted(profiles)
-            features.append([[vector[car][key] for key in adjustment.FEATURES] for car in cars])
-            power.append([[max(.001,profiles[car][key]) for car in cars]
-                          for key in ('head_strength','second_strength','third_strength')])
-            hit = {m:{tuple(cars.index(car) for car in combo) for combo in record['outcomes'][m]}
-                   for m in ('2t','3t')}
-            truth2.append([tuple(pair) in hit['2t'] for pair in pairs])
-            truth3.append([tuple(triple) in hit['3t'] for triple in triples])
-            originals.append({market: int(any(pick in record['outcomes'][market]
-                                               for pick in record['old']['current_A'][market]['top']))
-                              for market in ('2t','3t')})
-        result.append(dict(x=np.array(features),power=np.array(power),pairs=pairs,triples=triples,
-                           repeat=repeats,truth2=np.array(truth2),truth3=np.array(truth3),
-                           originals=originals))
-    return result
+def score_validation_race(record, trials):
+    snapshot = record['input']
+    base = core.generate_evidence_analysis(snapshot)
+    profiles = {row['car']: row for row in base['feature_audit']['riders']}
+    paid = {market: {tuple(order) for order in record['outcomes'][market]}
+            for market in ('2t', '3t')}
+
+    def score(forecast):
+        return {
+            market: int(any(tuple(ticket) in orders
+                            for ticket in forecast['candidate_tickets'][market][:4]))
+            for market, orders in paid.items()
+        }
+
+    original = base['A']
+    comparisons = [
+        score(adjustment.adjust(snapshot, original, 'A', weights, blend, profiles=profiles))
+        for weights, blend in trials
+    ]
+    return score(original), comparisons
 
 
-def validation_hits(groups, coeffs, blend):
-    table = np.array([[stage.get(name,0.0) for name in adjustment.FEATURES] for stage in coeffs])
-    hits = {'2t':0,'3t':0}
-    for g in groups:
-        pairs,triples = g['pairs'],g['triples']
-        a,b = pairs.T
-        i,j,k = triples.T
-        p = g['power']
-        logits = np.einsum('rnf,sf->rsn',g['x'],table)
-        e = np.exp(logits-logits.max(axis=2,keepdims=True))
-        original = p[:,0,a]**2*p[:,1,b]**1.3
-        learned = (e[:,0,a]/e[:,0,:].sum(axis=1,keepdims=True)
-                   * e[:,1,b]/(e[:,1,:].sum(axis=1,keepdims=True)-e[:,1,a]))
-        pair = original**(1-blend)*learned**blend
-        third = p[:,2,:]**(.8*(1-blend))*e[:,2,:]**blend
-        denom = third.sum(axis=1,keepdims=True)-third[:,i]-third[:,j]
-        triple = pair[:,g['repeat']]*third[:,k]/denom
-        for market,prob,truth in (('2t',pair,g['truth2']),('3t',triple,g['truth3'])):
-            indices = np.argsort(-prob,axis=1,kind='stable')[:,:4]
-            hits[market] += int(np.take_along_axis(truth,indices,axis=1).any(axis=1).sum())
-    return hits
+def validation_totals(executor, rows, trials):
+    original = {'2t': 0, '3t': 0}
+    totals = [dict(original) for _ in trials]
+    score = partial(score_validation_race, trials=trials)
+    for baseline, comparisons in executor.map(score, rows, chunksize=24):
+        for market in original:
+            original[market] += baseline[market]
+            for total, comparison in zip(totals, comparisons):
+                total[market] += comparison[market]
+    return original, totals
 
 
 def read(path):
@@ -159,29 +139,31 @@ def read(path):
 
 
 def train(training_rows, validation_rows, train_end, validation_end):
-    if any(r['input']['race_id'][:8]<=train_end for r in validation_rows):
-        raise ValueError('Validation overlaps with training.')
-    fit = fit_records(training_rows,train_end)
-    validate = validation_groups(validation_rows,min(r['input']['race_id'][:8] for r in validation_rows),validation_end)
-    original = {market:sum(row[market] for group in validate for row in group['originals'])
-                for market in ('2t','3t')}
-    candidates, coefficients = [], {}
-    for variant in VARIANTS:
-        weights = fit_weights(fit,variant)
-        coefficients[variant] = weights
-        for blend in BLENDS:
-            candidates.append(dict(variant=variant, blend=blend, hits=validation_hits(validate,weights,blend)))
-    # Primary metric remains 3t at the same budget, with a 2t no-loss guard.
-    eligible = [c for c in candidates if c['hits']['2t']>=original['2t']]
-    if not eligible:
-        raise ValueError('No candidate preserves the original validation 2t performance.')
-    chosen = max(eligible,key=lambda c:(c['hits']['3t'],c['hits']['2t'],-c['blend'],-VARIANTS.index(c['variant'])))
-    ablations = {}
-    for omitted in ('points','marks','rates','style'):
-        if omitted=='style' and chosen['variant']!=VARIANTS[-1]:
-            continue
-        control = fit_weights(fit,chosen['variant'],omit=omitted)
-        ablations[omitted] = validation_hits(validate,control,chosen['blend'])
+    if not validation_rows or any(
+        not train_end < row['input']['race_id'][:8] <= validation_end
+        or row['cohort'] != 'annual' or row['input']['line_groups'] is not None
+        for row in validation_rows
+    ):
+        raise ValueError('Validation needs ability-only races within the declared validation dates.')
+    fit = fit_records(training_rows, train_end)
+    coefficients = {variant: fit_weights(fit, variant) for variant in VARIANTS}
+    options = [(variant, blend) for variant in VARIANTS for blend in BLENDS]
+    trials = [(coefficients[variant], blend) for variant, blend in options]
+    with ProcessPoolExecutor(max_workers=4) as executor:
+        original, scores = validation_totals(executor, validation_rows, trials)
+        candidates = [dict(variant=variant, blend=blend, hits=hits)
+                      for (variant, blend), hits in zip(options, scores)]
+        eligible = [candidate for candidate in candidates if candidate['hits']['2t'] >= original['2t']]
+        if not eligible:
+            raise ValueError('No candidate preserves the original validation 2t performance.')
+        chosen = max(eligible, key=lambda c: (c['hits']['3t'], c['hits']['2t'],
+                                               -c['blend'], -VARIANTS.index(c['variant'])))
+        groups = ('points', 'marks', 'rates', 'style') if chosen['variant'] == VARIANTS[-1] else (
+            'points', 'marks', 'rates')
+        controls = [(fit_weights(fit, chosen['variant'], omit=group), chosen['blend'])
+                    for group in groups]
+        _, control_scores = validation_totals(executor, validation_rows, controls)
+    ablations = dict(zip(groups, control_scores))
     return {'schema':'KEIRIN_RESEARCH_RANK_ADJUSTMENT_V1',
             'fit_end':train_end,'validation_end':validation_end, 'fit_unique_results':len(fit[0]),
             'validation_races':len(validation_rows),'original_validation_hits':original,

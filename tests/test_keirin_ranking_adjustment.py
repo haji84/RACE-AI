@@ -47,6 +47,12 @@ class RankingAdjustmentTests(unittest.TestCase):
         self.assertEqual([s['scenario_id'] for s in base['six_phase_scenarios']],
                          [s['scenario_id'] for s in changed['six_phase_scenarios']])
         self.assertEqual(base,saved)
+        for path in changed['six_phase_scenarios']:
+            for arm in ('A', 'B'):
+                self.assertAlmostEqual(path['conditional_third_support_by_arm'][arm],
+                                       path[f'support_{arm}'] / path[f'pair_support_{arm}'])
+        self.assertEqual(changed['research_finish_rank_adjustment']['arm'], 'B')
+        self.assertFalse(any(line.startswith('支持値と選別境界は未学習') for line in changed['rationale']))
 
     def test_missing_rates_do_not_look_like_zero_finish_history(self):
         race = snapshot()
@@ -56,6 +62,24 @@ class RankingAdjustmentTests(unittest.TestCase):
         values = self.method.feature_vectors(original._evidence_profiles(race)[0])
         self.assertTrue(all(row['second_only_rate']==0 for row in values.values()))
         self.assertTrue(all(row['second_only_known']==0 for row in values.values()))
+
+    def test_validation_uses_the_forecast_engine_to_resolve_the_fourth_candidate(self):
+        from scripts import keirin_fit_ranking_weights as fitter
+
+        race = snapshot()
+        for row in race['riders']:
+            car = row['car']
+            row.update(win_rate=30-car, top2_rate=40-car, top3_rate=60-car,
+                       style='逃' if car == 1 else '追')
+        weights = [{}, {}, {}]
+        base = original.generate_evidence_analysis(race)['A']
+        forecast = self.method.adjust(race, base, 'A', weights, 1.0)
+        paid = {'2t': [[1, 2]], '3t': [[1, 2, 4]]}
+        expected = {market: int(paid[market][0] in forecast['candidate_tickets'][market][:4])
+                    for market in paid}
+        record = {'input': race, 'outcomes': paid}
+        _, scores = fitter.score_validation_race(record, [(weights, 1.0)])
+        self.assertEqual(scores[0], expected)
 
 
 if __name__ == '__main__':
