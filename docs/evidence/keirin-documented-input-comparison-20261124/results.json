@@ -1,0 +1,3942 @@
+{
+  "schema": "KEIRIN_DOCUMENTED_INPUT_COMPARISON_V1",
+  "assumptions": {
+    "historical_replay": true,
+    "prospective_improvement_measured": false,
+    "odds_used_only_for_source_availability_audit": true,
+    "common_point_count_per_race": true
+  },
+  "result_readback": {
+    "label_source_commit": "37bda18979e902650c139e24e13dcfbf764cf1b3",
+    "checked_at": "2026-11-23T15:55:02.503459+00:00",
+    "matched_within_study": 86
+  },
+  "source_comparison": {
+    "races": 86,
+    "rider_rows": 616,
+    "riders_with_private_verified_history": 616,
+    "fields_added": {
+      "h_count": 616,
+      "h_count_nonzero": 2,
+      "mark_rank": 616,
+      "comment": 616
+    },
+    "quote_minutes_before_cutoff": {
+      "median": 356.49984166666667,
+      "minimum": 4.5291500000000005,
+      "count_10_to_15": 1,
+      "verified_quotes": 82
+    }
+  },
+  "cohorts": {
+    "earlier_locked_evaluation": {
+      "races": 3582,
+      "metrics": {
+        "2t:1:current_A": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 643,
+          "below_cap": 0
+        },
+        "2t:1:current_B": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 644,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_position_scenarios": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 670,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_finish_rank": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 789,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_scenarios_and_rank": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 812,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_scenarios_rank_and_history": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 806,
+          "below_cap": 0
+        },
+        "2t:1:saved_line_conditional": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 863,
+          "below_cap": 0
+        },
+        "2t:1:plackett_luce_from_prerace_entries": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 726,
+          "below_cap": 0
+        },
+        "2t:2:current_A": {
+          "races": 3582,
+          "points": 7123,
+          "hits": 1016,
+          "below_cap": 41
+        },
+        "2t:2:current_B": {
+          "races": 3582,
+          "points": 7123,
+          "hits": 1020,
+          "below_cap": 41
+        },
+        "2t:2:current_B_with_position_scenarios": {
+          "races": 3582,
+          "points": 7123,
+          "hits": 1058,
+          "below_cap": 41
+        },
+        "2t:2:current_B_with_finish_rank": {
+          "races": 3582,
+          "points": 7123,
+          "hits": 1103,
+          "below_cap": 41
+        },
+        "2t:2:current_B_with_scenarios_and_rank": {
+          "races": 3582,
+          "points": 7123,
+          "hits": 1135,
+          "below_cap": 41
+        },
+        "2t:2:current_B_with_scenarios_rank_and_history": {
+          "races": 3582,
+          "points": 7123,
+          "hits": 1139,
+          "below_cap": 41
+        },
+        "2t:2:saved_line_conditional": {
+          "races": 3582,
+          "points": 7123,
+          "hits": 1356,
+          "below_cap": 41
+        },
+        "2t:2:plackett_luce_from_prerace_entries": {
+          "races": 3582,
+          "points": 7123,
+          "hits": 1182,
+          "below_cap": 41
+        },
+        "2t:4:current_A": {
+          "races": 3582,
+          "points": 14142,
+          "hits": 1417,
+          "below_cap": 79
+        },
+        "2t:4:current_B": {
+          "races": 3582,
+          "points": 14142,
+          "hits": 1425,
+          "below_cap": 79
+        },
+        "2t:4:current_B_with_position_scenarios": {
+          "races": 3582,
+          "points": 14142,
+          "hits": 1464,
+          "below_cap": 79
+        },
+        "2t:4:current_B_with_finish_rank": {
+          "races": 3582,
+          "points": 14142,
+          "hits": 1431,
+          "below_cap": 79
+        },
+        "2t:4:current_B_with_scenarios_and_rank": {
+          "races": 3582,
+          "points": 14142,
+          "hits": 1464,
+          "below_cap": 79
+        },
+        "2t:4:current_B_with_scenarios_rank_and_history": {
+          "races": 3582,
+          "points": 14142,
+          "hits": 1457,
+          "below_cap": 79
+        },
+        "2t:4:saved_line_conditional": {
+          "races": 3582,
+          "points": 14142,
+          "hits": 1874,
+          "below_cap": 79
+        },
+        "2t:4:plackett_luce_from_prerace_entries": {
+          "races": 3582,
+          "points": 14142,
+          "hits": 1681,
+          "below_cap": 79
+        },
+        "3t:1:current_A": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 228,
+          "below_cap": 0
+        },
+        "3t:1:current_B": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 224,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_position_scenarios": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 222,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_finish_rank": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 299,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_scenarios_and_rank": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 296,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_scenarios_rank_and_history": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 298,
+          "below_cap": 0
+        },
+        "3t:1:saved_line_conditional": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 286,
+          "below_cap": 0
+        },
+        "3t:1:plackett_luce_from_prerace_entries": {
+          "races": 3582,
+          "points": 3582,
+          "hits": 175,
+          "below_cap": 0
+        },
+        "3t:4:current_A": {
+          "races": 3582,
+          "points": 14190,
+          "hits": 627,
+          "below_cap": 66
+        },
+        "3t:4:current_B": {
+          "races": 3582,
+          "points": 14190,
+          "hits": 628,
+          "below_cap": 66
+        },
+        "3t:4:current_B_with_position_scenarios": {
+          "races": 3582,
+          "points": 14190,
+          "hits": 630,
+          "below_cap": 66
+        },
+        "3t:4:current_B_with_finish_rank": {
+          "races": 3582,
+          "points": 14190,
+          "hits": 688,
+          "below_cap": 66
+        },
+        "3t:4:current_B_with_scenarios_and_rank": {
+          "races": 3582,
+          "points": 14190,
+          "hits": 698,
+          "below_cap": 66
+        },
+        "3t:4:current_B_with_scenarios_rank_and_history": {
+          "races": 3582,
+          "points": 14190,
+          "hits": 704,
+          "below_cap": 66
+        },
+        "3t:4:saved_line_conditional": {
+          "races": 3582,
+          "points": 14190,
+          "hits": 840,
+          "below_cap": 66
+        },
+        "3t:4:plackett_luce_from_prerace_entries": {
+          "races": 3582,
+          "points": 14190,
+          "hits": 575,
+          "below_cap": 66
+        },
+        "3t:8:current_A": {
+          "races": 3582,
+          "points": 27787,
+          "hits": 893,
+          "below_cap": 375
+        },
+        "3t:8:current_B": {
+          "races": 3582,
+          "points": 27787,
+          "hits": 896,
+          "below_cap": 375
+        },
+        "3t:8:current_B_with_position_scenarios": {
+          "races": 3582,
+          "points": 27787,
+          "hits": 900,
+          "below_cap": 375
+        },
+        "3t:8:current_B_with_finish_rank": {
+          "races": 3582,
+          "points": 27787,
+          "hits": 920,
+          "below_cap": 375
+        },
+        "3t:8:current_B_with_scenarios_and_rank": {
+          "races": 3582,
+          "points": 27787,
+          "hits": 921,
+          "below_cap": 375
+        },
+        "3t:8:current_B_with_scenarios_rank_and_history": {
+          "races": 3582,
+          "points": 27787,
+          "hits": 918,
+          "below_cap": 375
+        },
+        "3t:8:saved_line_conditional": {
+          "races": 3582,
+          "points": 27787,
+          "hits": 1298,
+          "below_cap": 375
+        },
+        "3t:8:plackett_luce_from_prerace_entries": {
+          "races": 3582,
+          "points": 27787,
+          "hits": 924,
+          "below_cap": 375
+        }
+      },
+      "paired": {
+        "2t:1:current_A_vs_current_B": {
+          "races": 3582,
+          "gained": 38,
+          "lost": 39
+        },
+        "2t:1:current_B_with_position_scenarios_vs_current_B": {
+          "races": 3582,
+          "gained": 49,
+          "lost": 23
+        },
+        "2t:1:current_B_with_finish_rank_vs_current_B": {
+          "races": 3582,
+          "gained": 236,
+          "lost": 91
+        },
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 3582,
+          "gained": 276,
+          "lost": 108
+        },
+        "2t:1:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 3582,
+          "gained": 269,
+          "lost": 107
+        },
+        "2t:1:saved_line_conditional_vs_current_B": {
+          "races": 3582,
+          "gained": 401,
+          "lost": 182
+        },
+        "2t:1:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 3582,
+          "gained": 321,
+          "lost": 239
+        },
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 3582,
+          "gained": 244,
+          "lost": 102
+        },
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 3582,
+          "gained": 41,
+          "lost": 18
+        },
+        "2t:1:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 3582,
+          "gained": 17,
+          "lost": 23
+        },
+        "2t:1:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 3582,
+          "gained": 176,
+          "lost": 313
+        },
+        "2t:2:current_A_vs_current_B": {
+          "races": 3582,
+          "gained": 32,
+          "lost": 36
+        },
+        "2t:2:current_B_with_position_scenarios_vs_current_B": {
+          "races": 3582,
+          "gained": 58,
+          "lost": 20
+        },
+        "2t:2:current_B_with_finish_rank_vs_current_B": {
+          "races": 3582,
+          "gained": 154,
+          "lost": 71
+        },
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 3582,
+          "gained": 200,
+          "lost": 85
+        },
+        "2t:2:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 3582,
+          "gained": 203,
+          "lost": 84
+        },
+        "2t:2:saved_line_conditional_vs_current_B": {
+          "races": 3582,
+          "gained": 521,
+          "lost": 185
+        },
+        "2t:2:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 3582,
+          "gained": 420,
+          "lost": 258
+        },
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 3582,
+          "gained": 157,
+          "lost": 80
+        },
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 3582,
+          "gained": 50,
+          "lost": 18
+        },
+        "2t:2:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 3582,
+          "gained": 20,
+          "lost": 16
+        },
+        "2t:2:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 3582,
+          "gained": 189,
+          "lost": 363
+        },
+        "2t:4:current_A_vs_current_B": {
+          "races": 3582,
+          "gained": 29,
+          "lost": 37
+        },
+        "2t:4:current_B_with_position_scenarios_vs_current_B": {
+          "races": 3582,
+          "gained": 75,
+          "lost": 36
+        },
+        "2t:4:current_B_with_finish_rank_vs_current_B": {
+          "races": 3582,
+          "gained": 89,
+          "lost": 83
+        },
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 3582,
+          "gained": 151,
+          "lost": 112
+        },
+        "2t:4:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 3582,
+          "gained": 150,
+          "lost": 118
+        },
+        "2t:4:saved_line_conditional_vs_current_B": {
+          "races": 3582,
+          "gained": 682,
+          "lost": 233
+        },
+        "2t:4:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 3582,
+          "gained": 558,
+          "lost": 302
+        },
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 3582,
+          "gained": 96,
+          "lost": 96
+        },
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 3582,
+          "gained": 67,
+          "lost": 34
+        },
+        "2t:4:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 3582,
+          "gained": 14,
+          "lost": 21
+        },
+        "2t:4:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 3582,
+          "gained": 210,
+          "lost": 403
+        },
+        "3t:1:current_A_vs_current_B": {
+          "races": 3582,
+          "gained": 11,
+          "lost": 7
+        },
+        "3t:1:current_B_with_position_scenarios_vs_current_B": {
+          "races": 3582,
+          "gained": 5,
+          "lost": 7
+        },
+        "3t:1:current_B_with_finish_rank_vs_current_B": {
+          "races": 3582,
+          "gained": 105,
+          "lost": 30
+        },
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 3582,
+          "gained": 107,
+          "lost": 35
+        },
+        "3t:1:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 3582,
+          "gained": 110,
+          "lost": 36
+        },
+        "3t:1:saved_line_conditional_vs_current_B": {
+          "races": 3582,
+          "gained": 229,
+          "lost": 167
+        },
+        "3t:1:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 3582,
+          "gained": 146,
+          "lost": 195
+        },
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 3582,
+          "gained": 103,
+          "lost": 29
+        },
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 3582,
+          "gained": 5,
+          "lost": 8
+        },
+        "3t:1:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 3582,
+          "gained": 9,
+          "lost": 7
+        },
+        "3t:1:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 3582,
+          "gained": 99,
+          "lost": 210
+        },
+        "3t:4:current_A_vs_current_B": {
+          "races": 3582,
+          "gained": 23,
+          "lost": 24
+        },
+        "3t:4:current_B_with_position_scenarios_vs_current_B": {
+          "races": 3582,
+          "gained": 21,
+          "lost": 19
+        },
+        "3t:4:current_B_with_finish_rank_vs_current_B": {
+          "races": 3582,
+          "gained": 116,
+          "lost": 56
+        },
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 3582,
+          "gained": 132,
+          "lost": 62
+        },
+        "3t:4:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 3582,
+          "gained": 138,
+          "lost": 62
+        },
+        "3t:4:saved_line_conditional_vs_current_B": {
+          "races": 3582,
+          "gained": 438,
+          "lost": 226
+        },
+        "3t:4:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 3582,
+          "gained": 343,
+          "lost": 396
+        },
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 3582,
+          "gained": 121,
+          "lost": 53
+        },
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 3582,
+          "gained": 22,
+          "lost": 12
+        },
+        "3t:4:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 3582,
+          "gained": 15,
+          "lost": 9
+        },
+        "3t:4:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 3582,
+          "gained": 192,
+          "lost": 457
+        },
+        "3t:8:current_A_vs_current_B": {
+          "races": 3582,
+          "gained": 15,
+          "lost": 18
+        },
+        "3t:8:current_B_with_position_scenarios_vs_current_B": {
+          "races": 3582,
+          "gained": 25,
+          "lost": 21
+        },
+        "3t:8:current_B_with_finish_rank_vs_current_B": {
+          "races": 3582,
+          "gained": 75,
+          "lost": 51
+        },
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 3582,
+          "gained": 90,
+          "lost": 65
+        },
+        "3t:8:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 3582,
+          "gained": 86,
+          "lost": 64
+        },
+        "3t:8:saved_line_conditional_vs_current_B": {
+          "races": 3582,
+          "gained": 640,
+          "lost": 238
+        },
+        "3t:8:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 3582,
+          "gained": 510,
+          "lost": 482
+        },
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 3582,
+          "gained": 78,
+          "lost": 57
+        },
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 3582,
+          "gained": 19,
+          "lost": 18
+        },
+        "3t:8:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 3582,
+          "gained": 6,
+          "lost": 9
+        },
+        "3t:8:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 3582,
+          "gained": 217,
+          "lost": 591
+        }
+      },
+      "day_block_95_percentage_points": {
+        "2t:1:current_A_vs_current_B": [
+          -0.478,
+          0.437
+        ],
+        "2t:1:current_B_with_position_scenarios_vs_current_B": [
+          0.28,
+          1.177
+        ],
+        "2t:1:current_B_with_finish_rank_vs_current_B": [
+          2.871,
+          5.251
+        ],
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B": [
+          3.411,
+          5.963
+        ],
+        "2t:1:current_B_with_scenarios_rank_and_history_vs_current_B": [
+          3.276,
+          5.756
+        ],
+        "2t:1:saved_line_conditional_vs_current_B": [
+          4.733,
+          7.602
+        ],
+        "2t:1:plackett_luce_from_prerace_entries_vs_current_B": [
+          0.911,
+          3.802
+        ],
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": [
+          2.759,
+          5.269
+        ],
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": [
+          0.257,
+          1.009
+        ],
+        "2t:1:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": [
+          -0.494,
+          0.166
+        ],
+        "2t:1:plackett_luce_from_prerace_entries_vs_saved_line_conditional": [
+          -5.02,
+          -2.582
+        ],
+        "2t:2:current_A_vs_current_B": [
+          -0.594,
+          0.389
+        ],
+        "2t:2:current_B_with_position_scenarios_vs_current_B": [
+          0.51,
+          1.581
+        ],
+        "2t:2:current_B_with_finish_rank_vs_current_B": [
+          1.418,
+          3.177
+        ],
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B": [
+          2.273,
+          4.14
+        ],
+        "2t:2:current_B_with_scenarios_rank_and_history_vs_current_B": [
+          2.456,
+          4.142
+        ],
+        "2t:2:saved_line_conditional_vs_current_B": [
+          7.817,
+          10.95
+        ],
+        "2t:2:plackett_luce_from_prerace_entries_vs_current_B": [
+          2.918,
+          6.11
+        ],
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": [
+          1.229,
+          3.096
+        ],
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": [
+          0.413,
+          1.408
+        ],
+        "2t:2:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": [
+          -0.252,
+          0.469
+        ],
+        "2t:2:plackett_luce_from_prerace_entries_vs_saved_line_conditional": [
+          -6.101,
+          -3.582
+        ],
+        "2t:4:current_A_vs_current_B": [
+          -0.672,
+          0.196
+        ],
+        "2t:4:current_B_with_position_scenarios_vs_current_B": [
+          0.473,
+          1.653
+        ],
+        "2t:4:current_B_with_finish_rank_vs_current_B": [
+          -0.516,
+          0.831
+        ],
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B": [
+          0.25,
+          1.898
+        ],
+        "2t:4:current_B_with_scenarios_rank_and_history_vs_current_B": [
+          0.055,
+          1.741
+        ],
+        "2t:4:saved_line_conditional_vs_current_B": [
+          10.935,
+          14.076
+        ],
+        "2t:4:plackett_luce_from_prerace_entries_vs_current_B": [
+          5.504,
+          8.785
+        ],
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": [
+          -0.846,
+          0.834
+        ],
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": [
+          0.365,
+          1.469
+        ],
+        "2t:4:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": [
+          -0.55,
+          0.137
+        ],
+        "2t:4:plackett_luce_from_prerace_entries_vs_saved_line_conditional": [
+          -6.585,
+          -4.175
+        ],
+        "3t:1:current_A_vs_current_B": [
+          -0.085,
+          0.306
+        ],
+        "3t:1:current_B_with_position_scenarios_vs_current_B": [
+          -0.252,
+          0.141
+        ],
+        "3t:1:current_B_with_finish_rank_vs_current_B": [
+          1.48,
+          2.735
+        ],
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B": [
+          1.405,
+          2.662
+        ],
+        "3t:1:current_B_with_scenarios_rank_and_history_vs_current_B": [
+          1.454,
+          2.72
+        ],
+        "3t:1:saved_line_conditional_vs_current_B": [
+          0.449,
+          3.071
+        ],
+        "3t:1:plackett_luce_from_prerace_entries_vs_current_B": [
+          -2.581,
+          -0.195
+        ],
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": [
+          1.511,
+          2.639
+        ],
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": [
+          -0.304,
+          0.136
+        ],
+        "3t:1:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": [
+          -0.114,
+          0.229
+        ],
+        "3t:1:plackett_luce_from_prerace_entries_vs_saved_line_conditional": [
+          -4.245,
+          -1.989
+        ],
+        "3t:4:current_A_vs_current_B": [
+          -0.372,
+          0.308
+        ],
+        "3t:4:current_B_with_position_scenarios_vs_current_B": [
+          -0.254,
+          0.367
+        ],
+        "3t:4:current_B_with_finish_rank_vs_current_B": [
+          0.965,
+          2.4
+        ],
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B": [
+          1.122,
+          2.844
+        ],
+        "3t:4:current_B_with_scenarios_rank_and_history_vs_current_B": [
+          1.307,
+          3.006
+        ],
+        "3t:4:saved_line_conditional_vs_current_B": [
+          4.451,
+          7.401
+        ],
+        "3t:4:plackett_luce_from_prerace_entries_vs_current_B": [
+          -3.042,
+          0.085
+        ],
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": [
+          1.108,
+          2.735
+        ],
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": [
+          -0.055,
+          0.605
+        ],
+        "3t:4:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": [
+          -0.142,
+          0.454
+        ],
+        "3t:4:plackett_luce_from_prerace_entries_vs_saved_line_conditional": [
+          -8.74,
+          -6.103
+        ],
+        "3t:8:current_A_vs_current_B": [
+          -0.396,
+          0.197
+        ],
+        "3t:8:current_B_with_position_scenarios_vs_current_B": [
+          -0.28,
+          0.506
+        ],
+        "3t:8:current_B_with_finish_rank_vs_current_B": [
+          0.0,
+          1.292
+        ],
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B": [
+          -0.087,
+          1.449
+        ],
+        "3t:8:current_B_with_scenarios_rank_and_history_vs_current_B": [
+          -0.22,
+          1.382
+        ],
+        "3t:8:saved_line_conditional_vs_current_B": [
+          9.681,
+          12.708
+        ],
+        "3t:8:plackett_luce_from_prerace_entries_vs_current_B": [
+          -1.116,
+          2.538
+        ],
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": [
+          -0.11,
+          1.246
+        ],
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": [
+          -0.337,
+          0.387
+        ],
+        "3t:8:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": [
+          -0.284,
+          0.134
+        ],
+        "3t:8:plackett_luce_from_prerace_entries_vs_saved_line_conditional": [
+          -11.936,
+          -8.977
+        ]
+      }
+    },
+    "versioned_programs_saved_before_cutoff": {
+      "races": 557,
+      "metrics": {
+        "2t:1:current_A": {
+          "races": 557,
+          "points": 557,
+          "hits": 94,
+          "below_cap": 0
+        },
+        "2t:1:current_B": {
+          "races": 557,
+          "points": 557,
+          "hits": 102,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_position_scenarios": {
+          "races": 557,
+          "points": 557,
+          "hits": 103,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_finish_rank": {
+          "races": 557,
+          "points": 557,
+          "hits": 102,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_scenarios_and_rank": {
+          "races": 557,
+          "points": 557,
+          "hits": 108,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_scenarios_rank_and_history": {
+          "races": 557,
+          "points": 557,
+          "hits": 106,
+          "below_cap": 0
+        },
+        "2t:1:saved_line_conditional": {
+          "races": 557,
+          "points": 557,
+          "hits": 131,
+          "below_cap": 0
+        },
+        "2t:1:plackett_luce_from_prerace_entries": {
+          "races": 557,
+          "points": 557,
+          "hits": 91,
+          "below_cap": 0
+        },
+        "2t:2:current_A": {
+          "races": 557,
+          "points": 1114,
+          "hits": 175,
+          "below_cap": 0
+        },
+        "2t:2:current_B": {
+          "races": 557,
+          "points": 1114,
+          "hits": 181,
+          "below_cap": 0
+        },
+        "2t:2:current_B_with_position_scenarios": {
+          "races": 557,
+          "points": 1114,
+          "hits": 185,
+          "below_cap": 0
+        },
+        "2t:2:current_B_with_finish_rank": {
+          "races": 557,
+          "points": 1114,
+          "hits": 177,
+          "below_cap": 0
+        },
+        "2t:2:current_B_with_scenarios_and_rank": {
+          "races": 557,
+          "points": 1114,
+          "hits": 178,
+          "below_cap": 0
+        },
+        "2t:2:current_B_with_scenarios_rank_and_history": {
+          "races": 557,
+          "points": 1114,
+          "hits": 180,
+          "below_cap": 0
+        },
+        "2t:2:saved_line_conditional": {
+          "races": 557,
+          "points": 1114,
+          "hits": 210,
+          "below_cap": 0
+        },
+        "2t:2:plackett_luce_from_prerace_entries": {
+          "races": 557,
+          "points": 1114,
+          "hits": 164,
+          "below_cap": 0
+        },
+        "2t:4:current_A": {
+          "races": 557,
+          "points": 2228,
+          "hits": 246,
+          "below_cap": 0
+        },
+        "2t:4:current_B": {
+          "races": 557,
+          "points": 2228,
+          "hits": 252,
+          "below_cap": 0
+        },
+        "2t:4:current_B_with_position_scenarios": {
+          "races": 557,
+          "points": 2228,
+          "hits": 261,
+          "below_cap": 0
+        },
+        "2t:4:current_B_with_finish_rank": {
+          "races": 557,
+          "points": 2228,
+          "hits": 252,
+          "below_cap": 0
+        },
+        "2t:4:current_B_with_scenarios_and_rank": {
+          "races": 557,
+          "points": 2228,
+          "hits": 263,
+          "below_cap": 0
+        },
+        "2t:4:current_B_with_scenarios_rank_and_history": {
+          "races": 557,
+          "points": 2228,
+          "hits": 258,
+          "below_cap": 0
+        },
+        "2t:4:saved_line_conditional": {
+          "races": 557,
+          "points": 2228,
+          "hits": 297,
+          "below_cap": 0
+        },
+        "2t:4:plackett_luce_from_prerace_entries": {
+          "races": 557,
+          "points": 2228,
+          "hits": 250,
+          "below_cap": 0
+        },
+        "3t:1:current_A": {
+          "races": 557,
+          "points": 557,
+          "hits": 37,
+          "below_cap": 0
+        },
+        "3t:1:current_B": {
+          "races": 557,
+          "points": 557,
+          "hits": 37,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_position_scenarios": {
+          "races": 557,
+          "points": 557,
+          "hits": 37,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_finish_rank": {
+          "races": 557,
+          "points": 557,
+          "hits": 42,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_scenarios_and_rank": {
+          "races": 557,
+          "points": 557,
+          "hits": 40,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_scenarios_rank_and_history": {
+          "races": 557,
+          "points": 557,
+          "hits": 39,
+          "below_cap": 0
+        },
+        "3t:1:saved_line_conditional": {
+          "races": 557,
+          "points": 557,
+          "hits": 47,
+          "below_cap": 0
+        },
+        "3t:1:plackett_luce_from_prerace_entries": {
+          "races": 557,
+          "points": 557,
+          "hits": 23,
+          "below_cap": 0
+        },
+        "3t:4:current_A": {
+          "races": 557,
+          "points": 2228,
+          "hits": 105,
+          "below_cap": 0
+        },
+        "3t:4:current_B": {
+          "races": 557,
+          "points": 2228,
+          "hits": 106,
+          "below_cap": 0
+        },
+        "3t:4:current_B_with_position_scenarios": {
+          "races": 557,
+          "points": 2228,
+          "hits": 105,
+          "below_cap": 0
+        },
+        "3t:4:current_B_with_finish_rank": {
+          "races": 557,
+          "points": 2228,
+          "hits": 110,
+          "below_cap": 0
+        },
+        "3t:4:current_B_with_scenarios_and_rank": {
+          "races": 557,
+          "points": 2228,
+          "hits": 108,
+          "below_cap": 0
+        },
+        "3t:4:current_B_with_scenarios_rank_and_history": {
+          "races": 557,
+          "points": 2228,
+          "hits": 110,
+          "below_cap": 0
+        },
+        "3t:4:saved_line_conditional": {
+          "races": 557,
+          "points": 2228,
+          "hits": 125,
+          "below_cap": 0
+        },
+        "3t:4:plackett_luce_from_prerace_entries": {
+          "races": 557,
+          "points": 2228,
+          "hits": 80,
+          "below_cap": 0
+        },
+        "3t:8:current_A": {
+          "races": 557,
+          "points": 4454,
+          "hits": 150,
+          "below_cap": 1
+        },
+        "3t:8:current_B": {
+          "races": 557,
+          "points": 4454,
+          "hits": 151,
+          "below_cap": 1
+        },
+        "3t:8:current_B_with_position_scenarios": {
+          "races": 557,
+          "points": 4454,
+          "hits": 147,
+          "below_cap": 1
+        },
+        "3t:8:current_B_with_finish_rank": {
+          "races": 557,
+          "points": 4454,
+          "hits": 160,
+          "below_cap": 1
+        },
+        "3t:8:current_B_with_scenarios_and_rank": {
+          "races": 557,
+          "points": 4454,
+          "hits": 158,
+          "below_cap": 1
+        },
+        "3t:8:current_B_with_scenarios_rank_and_history": {
+          "races": 557,
+          "points": 4454,
+          "hits": 158,
+          "below_cap": 1
+        },
+        "3t:8:saved_line_conditional": {
+          "races": 557,
+          "points": 4454,
+          "hits": 206,
+          "below_cap": 1
+        },
+        "3t:8:plackett_luce_from_prerace_entries": {
+          "races": 557,
+          "points": 4454,
+          "hits": 134,
+          "below_cap": 1
+        }
+      },
+      "paired": {
+        "2t:1:current_A_vs_current_B": {
+          "races": 557,
+          "gained": 7,
+          "lost": 15
+        },
+        "2t:1:current_B_with_position_scenarios_vs_current_B": {
+          "races": 557,
+          "gained": 8,
+          "lost": 7
+        },
+        "2t:1:current_B_with_finish_rank_vs_current_B": {
+          "races": 557,
+          "gained": 9,
+          "lost": 9
+        },
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 557,
+          "gained": 21,
+          "lost": 15
+        },
+        "2t:1:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 557,
+          "gained": 22,
+          "lost": 18
+        },
+        "2t:1:saved_line_conditional_vs_current_B": {
+          "races": 557,
+          "gained": 56,
+          "lost": 27
+        },
+        "2t:1:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 557,
+          "gained": 38,
+          "lost": 49
+        },
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 557,
+          "gained": 14,
+          "lost": 9
+        },
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 557,
+          "gained": 12,
+          "lost": 6
+        },
+        "2t:1:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 557,
+          "gained": 6,
+          "lost": 8
+        },
+        "2t:1:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 557,
+          "gained": 25,
+          "lost": 65
+        },
+        "2t:2:current_A_vs_current_B": {
+          "races": 557,
+          "gained": 7,
+          "lost": 13
+        },
+        "2t:2:current_B_with_position_scenarios_vs_current_B": {
+          "races": 557,
+          "gained": 10,
+          "lost": 6
+        },
+        "2t:2:current_B_with_finish_rank_vs_current_B": {
+          "races": 557,
+          "gained": 10,
+          "lost": 14
+        },
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 557,
+          "gained": 17,
+          "lost": 20
+        },
+        "2t:2:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 557,
+          "gained": 18,
+          "lost": 19
+        },
+        "2t:2:saved_line_conditional_vs_current_B": {
+          "races": 557,
+          "gained": 63,
+          "lost": 34
+        },
+        "2t:2:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 557,
+          "gained": 48,
+          "lost": 65
+        },
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 557,
+          "gained": 9,
+          "lost": 16
+        },
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 557,
+          "gained": 9,
+          "lost": 8
+        },
+        "2t:2:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 557,
+          "gained": 6,
+          "lost": 4
+        },
+        "2t:2:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 557,
+          "gained": 44,
+          "lost": 90
+        },
+        "2t:4:current_A_vs_current_B": {
+          "races": 557,
+          "gained": 7,
+          "lost": 13
+        },
+        "2t:4:current_B_with_position_scenarios_vs_current_B": {
+          "races": 557,
+          "gained": 15,
+          "lost": 6
+        },
+        "2t:4:current_B_with_finish_rank_vs_current_B": {
+          "races": 557,
+          "gained": 14,
+          "lost": 14
+        },
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 557,
+          "gained": 29,
+          "lost": 18
+        },
+        "2t:4:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 557,
+          "gained": 30,
+          "lost": 24
+        },
+        "2t:4:saved_line_conditional_vs_current_B": {
+          "races": 557,
+          "gained": 86,
+          "lost": 41
+        },
+        "2t:4:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 557,
+          "gained": 65,
+          "lost": 67
+        },
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 557,
+          "gained": 17,
+          "lost": 15
+        },
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 557,
+          "gained": 15,
+          "lost": 4
+        },
+        "2t:4:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 557,
+          "gained": 4,
+          "lost": 9
+        },
+        "2t:4:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 557,
+          "gained": 48,
+          "lost": 95
+        },
+        "3t:1:current_A_vs_current_B": {
+          "races": 557,
+          "gained": 4,
+          "lost": 4
+        },
+        "3t:1:current_B_with_position_scenarios_vs_current_B": {
+          "races": 557,
+          "gained": 0,
+          "lost": 0
+        },
+        "3t:1:current_B_with_finish_rank_vs_current_B": {
+          "races": 557,
+          "gained": 9,
+          "lost": 4
+        },
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 557,
+          "gained": 7,
+          "lost": 4
+        },
+        "3t:1:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 557,
+          "gained": 7,
+          "lost": 5
+        },
+        "3t:1:saved_line_conditional_vs_current_B": {
+          "races": 557,
+          "gained": 37,
+          "lost": 27
+        },
+        "3t:1:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 557,
+          "gained": 20,
+          "lost": 34
+        },
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 557,
+          "gained": 7,
+          "lost": 4
+        },
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 557,
+          "gained": 0,
+          "lost": 2
+        },
+        "3t:1:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 557,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:1:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 557,
+          "gained": 13,
+          "lost": 37
+        },
+        "3t:4:current_A_vs_current_B": {
+          "races": 557,
+          "gained": 6,
+          "lost": 7
+        },
+        "3t:4:current_B_with_position_scenarios_vs_current_B": {
+          "races": 557,
+          "gained": 2,
+          "lost": 3
+        },
+        "3t:4:current_B_with_finish_rank_vs_current_B": {
+          "races": 557,
+          "gained": 13,
+          "lost": 9
+        },
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 557,
+          "gained": 12,
+          "lost": 10
+        },
+        "3t:4:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 557,
+          "gained": 16,
+          "lost": 12
+        },
+        "3t:4:saved_line_conditional_vs_current_B": {
+          "races": 557,
+          "gained": 58,
+          "lost": 39
+        },
+        "3t:4:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 557,
+          "gained": 50,
+          "lost": 76
+        },
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 557,
+          "gained": 12,
+          "lost": 9
+        },
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 557,
+          "gained": 1,
+          "lost": 3
+        },
+        "3t:4:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 557,
+          "gained": 6,
+          "lost": 4
+        },
+        "3t:4:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 557,
+          "gained": 38,
+          "lost": 83
+        },
+        "3t:8:current_A_vs_current_B": {
+          "races": 557,
+          "gained": 4,
+          "lost": 5
+        },
+        "3t:8:current_B_with_position_scenarios_vs_current_B": {
+          "races": 557,
+          "gained": 2,
+          "lost": 6
+        },
+        "3t:8:current_B_with_finish_rank_vs_current_B": {
+          "races": 557,
+          "gained": 16,
+          "lost": 7
+        },
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 557,
+          "gained": 16,
+          "lost": 9
+        },
+        "3t:8:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 557,
+          "gained": 16,
+          "lost": 9
+        },
+        "3t:8:saved_line_conditional_vs_current_B": {
+          "races": 557,
+          "gained": 92,
+          "lost": 37
+        },
+        "3t:8:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 557,
+          "gained": 76,
+          "lost": 93
+        },
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 557,
+          "gained": 17,
+          "lost": 6
+        },
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 557,
+          "gained": 2,
+          "lost": 4
+        },
+        "3t:8:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 557,
+          "gained": 3,
+          "lost": 3
+        },
+        "3t:8:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 557,
+          "gained": 46,
+          "lost": 118
+        }
+      },
+      "day_block_95_percentage_points": {
+        "2t:1:current_A_vs_current_B": [
+          -2.891,
+          0.183
+        ],
+        "2t:1:current_B_with_position_scenarios_vs_current_B": [
+          -1.544,
+          1.629
+        ],
+        "2t:1:current_B_with_finish_rank_vs_current_B": [
+          -1.333,
+          1.455
+        ],
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B": [
+          -0.963,
+          3.131
+        ],
+        "2t:1:current_B_with_scenarios_rank_and_history_vs_current_B": [
+          -1.365,
+          2.69
+        ],
+        "2t:1:saved_line_conditional_vs_current_B": [
+          2.98,
+          7.611
+        ],
+        "2t:1:plackett_luce_from_prerace_entries_vs_current_B": [
+          -3.589,
+          -0.186
+        ],
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": [
+          -0.164,
+          2.087
+        ],
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": [
+          0.195,
+          1.792
+        ],
+        "2t:1:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": [
+          -1.751,
+          0.887
+        ],
+        "2t:1:plackett_luce_from_prerace_entries_vs_saved_line_conditional": [
+          -10.036,
+          -4.545
+        ],
+        "2t:2:current_A_vs_current_B": [
+          -2.23,
+          0.0
+        ],
+        "2t:2:current_B_with_position_scenarios_vs_current_B": [
+          -0.962,
+          2.052
+        ],
+        "2t:2:current_B_with_finish_rank_vs_current_B": [
+          -2.909,
+          0.909
+        ],
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B": [
+          -3.381,
+          1.95
+        ],
+        "2t:2:current_B_with_scenarios_rank_and_history_vs_current_B": [
+          -2.421,
+          1.471
+        ],
+        "2t:2:saved_line_conditional_vs_current_B": [
+          2.922,
+          7.449
+        ],
+        "2t:2:plackett_luce_from_prerace_entries_vs_current_B": [
+          -6.818,
+          0.543
+        ],
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": [
+          -4.212,
+          1.133
+        ],
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": [
+          -1.321,
+          1.63
+        ],
+        "2t:2:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": [
+          -0.916,
+          1.579
+        ],
+        "2t:2:plackett_luce_from_prerace_entries_vs_saved_line_conditional": [
+          -10.786,
+          -5.935
+        ],
+        "2t:4:current_A_vs_current_B": [
+          -2.612,
+          0.355
+        ],
+        "2t:4:current_B_with_position_scenarios_vs_current_B": [
+          0.367,
+          2.812
+        ],
+        "2t:4:current_B_with_finish_rank_vs_current_B": [
+          -1.636,
+          1.721
+        ],
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B": [
+          0.348,
+          3.831
+        ],
+        "2t:4:current_B_with_scenarios_rank_and_history_vs_current_B": [
+          -1.261,
+          4.054
+        ],
+        "2t:4:saved_line_conditional_vs_current_B": [
+          3.985,
+          11.9
+        ],
+        "2t:4:plackett_luce_from_prerace_entries_vs_current_B": [
+          -3.448,
+          2.804
+        ],
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": [
+          -1.549,
+          2.253
+        ],
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": [
+          1.246,
+          2.664
+        ],
+        "2t:4:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": [
+          -2.235,
+          0.368
+        ],
+        "2t:4:plackett_luce_from_prerace_entries_vs_saved_line_conditional": [
+          -11.478,
+          -5.612
+        ],
+        "3t:1:current_A_vs_current_B": [
+          -0.531,
+          0.525
+        ],
+        "3t:1:current_B_with_position_scenarios_vs_current_B": [
+          0.0,
+          0.0
+        ],
+        "3t:1:current_B_with_finish_rank_vs_current_B": [
+          -0.208,
+          2.027
+        ],
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B": [
+          -0.398,
+          1.626
+        ],
+        "3t:1:current_B_with_scenarios_rank_and_history_vs_current_B": [
+          -0.787,
+          1.52
+        ],
+        "3t:1:saved_line_conditional_vs_current_B": [
+          -1.557,
+          5.429
+        ],
+        "3t:1:plackett_luce_from_prerace_entries_vs_current_B": [
+          -5.852,
+          1.117
+        ],
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": [
+          -0.398,
+          1.626
+        ],
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": [
+          -0.858,
+          0.0
+        ],
+        "3t:1:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": [
+          -0.595,
+          0.0
+        ],
+        "3t:1:plackett_luce_from_prerace_entries_vs_saved_line_conditional": [
+          -7.209,
+          -1.597
+        ],
+        "3t:4:current_A_vs_current_B": [
+          -1.117,
+          0.949
+        ],
+        "3t:4:current_B_with_position_scenarios_vs_current_B": [
+          -0.903,
+          0.855
+        ],
+        "3t:4:current_B_with_finish_rank_vs_current_B": [
+          -0.183,
+          1.792
+        ],
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B": [
+          -0.699,
+          1.518
+        ],
+        "3t:4:current_B_with_scenarios_rank_and_history_vs_current_B": [
+          -1.384,
+          2.828
+        ],
+        "3t:4:saved_line_conditional_vs_current_B": [
+          -0.912,
+          7.449
+        ],
+        "3t:4:plackett_luce_from_prerace_entries_vs_current_B": [
+          -9.722,
+          0.0
+        ],
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": [
+          -0.507,
+          1.731
+        ],
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": [
+          -1.217,
+          0.379
+        ],
+        "3t:4:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": [
+          -1.226,
+          1.619
+        ],
+        "3t:4:plackett_luce_from_prerace_entries_vs_saved_line_conditional": [
+          -10.473,
+          -5.536
+        ],
+        "3t:8:current_A_vs_current_B": [
+          -1.079,
+          0.701
+        ],
+        "3t:8:current_B_with_position_scenarios_vs_current_B": [
+          -1.961,
+          0.186
+        ],
+        "3t:8:current_B_with_finish_rank_vs_current_B": [
+          0.0,
+          3.151
+        ],
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B": [
+          -0.174,
+          2.46
+        ],
+        "3t:8:current_B_with_scenarios_rank_and_history_vs_current_B": [
+          -0.379,
+          2.698
+        ],
+        "3t:8:saved_line_conditional_vs_current_B": [
+          5.593,
+          14.833
+        ],
+        "3t:8:plackett_luce_from_prerace_entries_vs_current_B": [
+          -8.72,
+          2.564
+        ],
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": [
+          0.737,
+          3.01
+        ],
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": [
+          -1.59,
+          0.719
+        ],
+        "3t:8:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": [
+          -0.947,
+          1.06
+        ],
+        "3t:8:plackett_luce_from_prerace_entries_vs_saved_line_conditional": [
+          -15.534,
+          -10.572
+        ]
+      }
+    },
+    "november23_before_cutoff_card_receipts": {
+      "races": 86,
+      "metrics": {
+        "2t:1:current_A": {
+          "races": 86,
+          "points": 86,
+          "hits": 24,
+          "below_cap": 0
+        },
+        "2t:1:current_B": {
+          "races": 86,
+          "points": 86,
+          "hits": 24,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_position_scenarios": {
+          "races": 86,
+          "points": 86,
+          "hits": 26,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_finish_rank": {
+          "races": 86,
+          "points": 86,
+          "hits": 25,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_scenarios_and_rank": {
+          "races": 86,
+          "points": 86,
+          "hits": 26,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "points": 86,
+          "hits": 28,
+          "below_cap": 0
+        },
+        "2t:1:saved_line_conditional": {
+          "races": 86,
+          "points": 86,
+          "hits": 26,
+          "below_cap": 0
+        },
+        "2t:1:plackett_luce_from_prerace_entries": {
+          "races": 86,
+          "points": 86,
+          "hits": 22,
+          "below_cap": 0
+        },
+        "2t:1:current_A_with_extra_card_fields": {
+          "races": 86,
+          "points": 86,
+          "hits": 24,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_extra_card_fields": {
+          "races": 86,
+          "points": 86,
+          "hits": 25,
+          "below_cap": 0
+        },
+        "2t:1:current_B_with_extra_fields_and_saved_methods": {
+          "races": 86,
+          "points": 86,
+          "hits": 24,
+          "below_cap": 0
+        },
+        "2t:2:current_A": {
+          "races": 86,
+          "points": 172,
+          "hits": 33,
+          "below_cap": 0
+        },
+        "2t:2:current_B": {
+          "races": 86,
+          "points": 172,
+          "hits": 35,
+          "below_cap": 0
+        },
+        "2t:2:current_B_with_position_scenarios": {
+          "races": 86,
+          "points": 172,
+          "hits": 37,
+          "below_cap": 0
+        },
+        "2t:2:current_B_with_finish_rank": {
+          "races": 86,
+          "points": 172,
+          "hits": 34,
+          "below_cap": 0
+        },
+        "2t:2:current_B_with_scenarios_and_rank": {
+          "races": 86,
+          "points": 172,
+          "hits": 36,
+          "below_cap": 0
+        },
+        "2t:2:current_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "points": 172,
+          "hits": 36,
+          "below_cap": 0
+        },
+        "2t:2:saved_line_conditional": {
+          "races": 86,
+          "points": 172,
+          "hits": 40,
+          "below_cap": 0
+        },
+        "2t:2:plackett_luce_from_prerace_entries": {
+          "races": 86,
+          "points": 172,
+          "hits": 35,
+          "below_cap": 0
+        },
+        "2t:2:current_A_with_extra_card_fields": {
+          "races": 86,
+          "points": 172,
+          "hits": 34,
+          "below_cap": 0
+        },
+        "2t:2:current_B_with_extra_card_fields": {
+          "races": 86,
+          "points": 172,
+          "hits": 34,
+          "below_cap": 0
+        },
+        "2t:2:current_B_with_extra_fields_and_saved_methods": {
+          "races": 86,
+          "points": 172,
+          "hits": 36,
+          "below_cap": 0
+        },
+        "2t:4:current_A": {
+          "races": 86,
+          "points": 344,
+          "hits": 44,
+          "below_cap": 0
+        },
+        "2t:4:current_B": {
+          "races": 86,
+          "points": 344,
+          "hits": 44,
+          "below_cap": 0
+        },
+        "2t:4:current_B_with_position_scenarios": {
+          "races": 86,
+          "points": 344,
+          "hits": 46,
+          "below_cap": 0
+        },
+        "2t:4:current_B_with_finish_rank": {
+          "races": 86,
+          "points": 344,
+          "hits": 41,
+          "below_cap": 0
+        },
+        "2t:4:current_B_with_scenarios_and_rank": {
+          "races": 86,
+          "points": 344,
+          "hits": 43,
+          "below_cap": 0
+        },
+        "2t:4:current_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "points": 344,
+          "hits": 43,
+          "below_cap": 0
+        },
+        "2t:4:saved_line_conditional": {
+          "races": 86,
+          "points": 344,
+          "hits": 52,
+          "below_cap": 0
+        },
+        "2t:4:plackett_luce_from_prerace_entries": {
+          "races": 86,
+          "points": 344,
+          "hits": 47,
+          "below_cap": 0
+        },
+        "2t:4:current_A_with_extra_card_fields": {
+          "races": 86,
+          "points": 344,
+          "hits": 45,
+          "below_cap": 0
+        },
+        "2t:4:current_B_with_extra_card_fields": {
+          "races": 86,
+          "points": 344,
+          "hits": 44,
+          "below_cap": 0
+        },
+        "2t:4:current_B_with_extra_fields_and_saved_methods": {
+          "races": 86,
+          "points": 344,
+          "hits": 45,
+          "below_cap": 0
+        },
+        "3t:1:current_A": {
+          "races": 86,
+          "points": 86,
+          "hits": 10,
+          "below_cap": 0
+        },
+        "3t:1:current_B": {
+          "races": 86,
+          "points": 86,
+          "hits": 10,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_position_scenarios": {
+          "races": 86,
+          "points": 86,
+          "hits": 10,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_finish_rank": {
+          "races": 86,
+          "points": 86,
+          "hits": 13,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_scenarios_and_rank": {
+          "races": 86,
+          "points": 86,
+          "hits": 13,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "points": 86,
+          "hits": 13,
+          "below_cap": 0
+        },
+        "3t:1:saved_line_conditional": {
+          "races": 86,
+          "points": 86,
+          "hits": 8,
+          "below_cap": 0
+        },
+        "3t:1:plackett_luce_from_prerace_entries": {
+          "races": 86,
+          "points": 86,
+          "hits": 5,
+          "below_cap": 0
+        },
+        "3t:1:current_A_with_extra_card_fields": {
+          "races": 86,
+          "points": 86,
+          "hits": 10,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_extra_card_fields": {
+          "races": 86,
+          "points": 86,
+          "hits": 12,
+          "below_cap": 0
+        },
+        "3t:1:current_B_with_extra_fields_and_saved_methods": {
+          "races": 86,
+          "points": 86,
+          "hits": 10,
+          "below_cap": 0
+        },
+        "3t:4:current_A": {
+          "races": 86,
+          "points": 344,
+          "hits": 27,
+          "below_cap": 0
+        },
+        "3t:4:current_B": {
+          "races": 86,
+          "points": 344,
+          "hits": 28,
+          "below_cap": 0
+        },
+        "3t:4:current_B_with_position_scenarios": {
+          "races": 86,
+          "points": 344,
+          "hits": 27,
+          "below_cap": 0
+        },
+        "3t:4:current_B_with_finish_rank": {
+          "races": 86,
+          "points": 344,
+          "hits": 27,
+          "below_cap": 0
+        },
+        "3t:4:current_B_with_scenarios_and_rank": {
+          "races": 86,
+          "points": 344,
+          "hits": 26,
+          "below_cap": 0
+        },
+        "3t:4:current_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "points": 344,
+          "hits": 26,
+          "below_cap": 0
+        },
+        "3t:4:saved_line_conditional": {
+          "races": 86,
+          "points": 344,
+          "hits": 32,
+          "below_cap": 0
+        },
+        "3t:4:plackett_luce_from_prerace_entries": {
+          "races": 86,
+          "points": 344,
+          "hits": 21,
+          "below_cap": 0
+        },
+        "3t:4:current_A_with_extra_card_fields": {
+          "races": 86,
+          "points": 344,
+          "hits": 27,
+          "below_cap": 0
+        },
+        "3t:4:current_B_with_extra_card_fields": {
+          "races": 86,
+          "points": 344,
+          "hits": 28,
+          "below_cap": 0
+        },
+        "3t:4:current_B_with_extra_fields_and_saved_methods": {
+          "races": 86,
+          "points": 344,
+          "hits": 29,
+          "below_cap": 0
+        },
+        "3t:8:current_A": {
+          "races": 86,
+          "points": 688,
+          "hits": 31,
+          "below_cap": 0
+        },
+        "3t:8:current_B": {
+          "races": 86,
+          "points": 688,
+          "hits": 30,
+          "below_cap": 0
+        },
+        "3t:8:current_B_with_position_scenarios": {
+          "races": 86,
+          "points": 688,
+          "hits": 31,
+          "below_cap": 0
+        },
+        "3t:8:current_B_with_finish_rank": {
+          "races": 86,
+          "points": 688,
+          "hits": 33,
+          "below_cap": 0
+        },
+        "3t:8:current_B_with_scenarios_and_rank": {
+          "races": 86,
+          "points": 688,
+          "hits": 33,
+          "below_cap": 0
+        },
+        "3t:8:current_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "points": 688,
+          "hits": 33,
+          "below_cap": 0
+        },
+        "3t:8:saved_line_conditional": {
+          "races": 86,
+          "points": 688,
+          "hits": 39,
+          "below_cap": 0
+        },
+        "3t:8:plackett_luce_from_prerace_entries": {
+          "races": 86,
+          "points": 688,
+          "hits": 26,
+          "below_cap": 0
+        },
+        "3t:8:current_A_with_extra_card_fields": {
+          "races": 86,
+          "points": 688,
+          "hits": 31,
+          "below_cap": 0
+        },
+        "3t:8:current_B_with_extra_card_fields": {
+          "races": 86,
+          "points": 688,
+          "hits": 32,
+          "below_cap": 0
+        },
+        "3t:8:current_B_with_extra_fields_and_saved_methods": {
+          "races": 86,
+          "points": 688,
+          "hits": 33,
+          "below_cap": 0
+        }
+      },
+      "paired": {
+        "2t:1:current_A_vs_current_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "2t:1:current_B_with_position_scenarios_vs_current_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 0
+        },
+        "2t:1:current_B_with_finish_rank_vs_current_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 0
+        },
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 1
+        },
+        "2t:1:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 86,
+          "gained": 4,
+          "lost": 0
+        },
+        "2t:1:saved_line_conditional_vs_current_B": {
+          "races": 86,
+          "gained": 5,
+          "lost": 3
+        },
+        "2t:1:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 86,
+          "gained": 5,
+          "lost": 7
+        },
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "2t:1:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 86,
+          "gained": 2,
+          "lost": 1
+        },
+        "2t:1:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 86,
+          "gained": 2,
+          "lost": 0
+        },
+        "2t:1:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 86,
+          "gained": 3,
+          "lost": 7
+        },
+        "2t:1:current_A_with_extra_card_fields_vs_current_A": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "2t:1:current_B_with_extra_card_fields_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 2
+        },
+        "2t:1:current_B_with_extra_fields_and_saved_methods_vs_current_B_with_extra_card_fields": {
+          "races": 86,
+          "gained": 4,
+          "lost": 5
+        },
+        "2t:1:current_B_with_extra_fields_and_saved_methods_vs_current_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "gained": 4,
+          "lost": 8
+        },
+        "2t:1:current_B_with_extra_fields_and_saved_methods_vs_current_B": {
+          "races": 86,
+          "gained": 4,
+          "lost": 4
+        },
+        "2t:2:current_A_vs_current_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 3
+        },
+        "2t:2:current_B_with_position_scenarios_vs_current_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 0
+        },
+        "2t:2:current_B_with_finish_rank_vs_current_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 2
+        },
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 2
+        },
+        "2t:2:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 2
+        },
+        "2t:2:saved_line_conditional_vs_current_B": {
+          "races": 86,
+          "gained": 9,
+          "lost": 4
+        },
+        "2t:2:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 86,
+          "gained": 7,
+          "lost": 7
+        },
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 86,
+          "gained": 1,
+          "lost": 2
+        },
+        "2t:2:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 86,
+          "gained": 2,
+          "lost": 0
+        },
+        "2t:2:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "2t:2:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 86,
+          "gained": 7,
+          "lost": 12
+        },
+        "2t:2:current_A_with_extra_card_fields_vs_current_A": {
+          "races": 86,
+          "gained": 1,
+          "lost": 0
+        },
+        "2t:2:current_B_with_extra_card_fields_vs_current_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 1
+        },
+        "2t:2:current_B_with_extra_fields_and_saved_methods_vs_current_B_with_extra_card_fields": {
+          "races": 86,
+          "gained": 3,
+          "lost": 1
+        },
+        "2t:2:current_B_with_extra_fields_and_saved_methods_vs_current_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "gained": 4,
+          "lost": 4
+        },
+        "2t:2:current_B_with_extra_fields_and_saved_methods_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 2
+        },
+        "2t:4:current_A_vs_current_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "2t:4:current_B_with_position_scenarios_vs_current_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 0
+        },
+        "2t:4:current_B_with_finish_rank_vs_current_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 3
+        },
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 3
+        },
+        "2t:4:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 3
+        },
+        "2t:4:saved_line_conditional_vs_current_B": {
+          "races": 86,
+          "gained": 12,
+          "lost": 4
+        },
+        "2t:4:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 86,
+          "gained": 8,
+          "lost": 5
+        },
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 86,
+          "gained": 0,
+          "lost": 3
+        },
+        "2t:4:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 86,
+          "gained": 2,
+          "lost": 0
+        },
+        "2t:4:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "2t:4:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 86,
+          "gained": 4,
+          "lost": 9
+        },
+        "2t:4:current_A_with_extra_card_fields_vs_current_A": {
+          "races": 86,
+          "gained": 1,
+          "lost": 0
+        },
+        "2t:4:current_B_with_extra_card_fields_vs_current_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "2t:4:current_B_with_extra_fields_and_saved_methods_vs_current_B_with_extra_card_fields": {
+          "races": 86,
+          "gained": 5,
+          "lost": 4
+        },
+        "2t:4:current_B_with_extra_fields_and_saved_methods_vs_current_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "gained": 6,
+          "lost": 4
+        },
+        "2t:4:current_B_with_extra_fields_and_saved_methods_vs_current_B": {
+          "races": 86,
+          "gained": 5,
+          "lost": 4
+        },
+        "3t:1:current_A_vs_current_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "3t:1:current_B_with_position_scenarios_vs_current_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "3t:1:current_B_with_finish_rank_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 0
+        },
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 0
+        },
+        "3t:1:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 0
+        },
+        "3t:1:saved_line_conditional_vs_current_B": {
+          "races": 86,
+          "gained": 6,
+          "lost": 8
+        },
+        "3t:1:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 8
+        },
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 86,
+          "gained": 3,
+          "lost": 0
+        },
+        "3t:1:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "3t:1:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "3t:1:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 86,
+          "gained": 2,
+          "lost": 5
+        },
+        "3t:1:current_A_with_extra_card_fields_vs_current_A": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "3t:1:current_B_with_extra_card_fields_vs_current_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 0
+        },
+        "3t:1:current_B_with_extra_fields_and_saved_methods_vs_current_B_with_extra_card_fields": {
+          "races": 86,
+          "gained": 3,
+          "lost": 5
+        },
+        "3t:1:current_B_with_extra_fields_and_saved_methods_vs_current_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "gained": 1,
+          "lost": 4
+        },
+        "3t:1:current_B_with_extra_fields_and_saved_methods_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 3
+        },
+        "3t:4:current_A_vs_current_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:4:current_B_with_position_scenarios_vs_current_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:4:current_B_with_finish_rank_vs_current_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 3
+        },
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 4
+        },
+        "3t:4:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 4
+        },
+        "3t:4:saved_line_conditional_vs_current_B": {
+          "races": 86,
+          "gained": 11,
+          "lost": 7
+        },
+        "3t:4:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 86,
+          "gained": 11,
+          "lost": 18
+        },
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 86,
+          "gained": 2,
+          "lost": 3
+        },
+        "3t:4:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 86,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:4:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "3t:4:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 86,
+          "gained": 8,
+          "lost": 19
+        },
+        "3t:4:current_A_with_extra_card_fields_vs_current_A": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "3t:4:current_B_with_extra_card_fields_vs_current_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "3t:4:current_B_with_extra_fields_and_saved_methods_vs_current_B_with_extra_card_fields": {
+          "races": 86,
+          "gained": 2,
+          "lost": 1
+        },
+        "3t:4:current_B_with_extra_fields_and_saved_methods_vs_current_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "gained": 4,
+          "lost": 1
+        },
+        "3t:4:current_B_with_extra_fields_and_saved_methods_vs_current_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 1
+        },
+        "3t:8:current_A_vs_current_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:8:current_B_with_position_scenarios_vs_current_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:8:current_B_with_finish_rank_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 0
+        },
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 0
+        },
+        "3t:8:current_B_with_scenarios_rank_and_history_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 0
+        },
+        "3t:8:saved_line_conditional_vs_current_B": {
+          "races": 86,
+          "gained": 14,
+          "lost": 5
+        },
+        "3t:8:plackett_luce_from_prerace_entries_vs_current_B": {
+          "races": 86,
+          "gained": 13,
+          "lost": 17
+        },
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B_with_position_scenarios": {
+          "races": 86,
+          "gained": 2,
+          "lost": 0
+        },
+        "3t:8:current_B_with_scenarios_and_rank_vs_current_B_with_finish_rank": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "3t:8:current_B_with_scenarios_rank_and_history_vs_current_B_with_scenarios_and_rank": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "3t:8:plackett_luce_from_prerace_entries_vs_saved_line_conditional": {
+          "races": 86,
+          "gained": 8,
+          "lost": 21
+        },
+        "3t:8:current_A_with_extra_card_fields_vs_current_A": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "3t:8:current_B_with_extra_card_fields_vs_current_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 0
+        },
+        "3t:8:current_B_with_extra_fields_and_saved_methods_vs_current_B_with_extra_card_fields": {
+          "races": 86,
+          "gained": 2,
+          "lost": 1
+        },
+        "3t:8:current_B_with_extra_fields_and_saved_methods_vs_current_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "3t:8:current_B_with_extra_fields_and_saved_methods_vs_current_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 0
+        }
+      },
+      "day_block_95_percentage_points": {}
+    },
+    "november23_actual_public_input": {
+      "races": 86,
+      "metrics": {
+        "2t:1:public_A": {
+          "races": 86,
+          "points": 86,
+          "hits": 24,
+          "below_cap": 0
+        },
+        "2t:1:public_B": {
+          "races": 86,
+          "points": 86,
+          "hits": 26,
+          "below_cap": 0
+        },
+        "2t:1:public_B_with_position_scenarios": {
+          "races": 86,
+          "points": 86,
+          "hits": 26,
+          "below_cap": 0
+        },
+        "2t:1:public_B_with_finish_rank": {
+          "races": 86,
+          "points": 86,
+          "hits": 23,
+          "below_cap": 0
+        },
+        "2t:1:public_B_with_scenarios_and_rank": {
+          "races": 86,
+          "points": 86,
+          "hits": 24,
+          "below_cap": 0
+        },
+        "2t:1:public_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "points": 86,
+          "hits": 24,
+          "below_cap": 0
+        },
+        "2t:1:public_B_with_history": {
+          "races": 86,
+          "points": 86,
+          "hits": 25,
+          "below_cap": 0
+        },
+        "2t:1:public_saved_line_conditional": {
+          "races": 86,
+          "points": 86,
+          "hits": 27,
+          "below_cap": 0
+        },
+        "2t:1:public_plackett_luce": {
+          "races": 86,
+          "points": 86,
+          "hits": 24,
+          "below_cap": 0
+        },
+        "2t:2:public_A": {
+          "races": 86,
+          "points": 172,
+          "hits": 34,
+          "below_cap": 0
+        },
+        "2t:2:public_B": {
+          "races": 86,
+          "points": 172,
+          "hits": 34,
+          "below_cap": 0
+        },
+        "2t:2:public_B_with_position_scenarios": {
+          "races": 86,
+          "points": 172,
+          "hits": 36,
+          "below_cap": 0
+        },
+        "2t:2:public_B_with_finish_rank": {
+          "races": 86,
+          "points": 172,
+          "hits": 35,
+          "below_cap": 0
+        },
+        "2t:2:public_B_with_scenarios_and_rank": {
+          "races": 86,
+          "points": 172,
+          "hits": 35,
+          "below_cap": 0
+        },
+        "2t:2:public_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "points": 172,
+          "hits": 36,
+          "below_cap": 0
+        },
+        "2t:2:public_B_with_history": {
+          "races": 86,
+          "points": 172,
+          "hits": 34,
+          "below_cap": 0
+        },
+        "2t:2:public_saved_line_conditional": {
+          "races": 86,
+          "points": 172,
+          "hits": 37,
+          "below_cap": 0
+        },
+        "2t:2:public_plackett_luce": {
+          "races": 86,
+          "points": 172,
+          "hits": 38,
+          "below_cap": 0
+        },
+        "2t:4:public_A": {
+          "races": 86,
+          "points": 344,
+          "hits": 45,
+          "below_cap": 0
+        },
+        "2t:4:public_B": {
+          "races": 86,
+          "points": 344,
+          "hits": 45,
+          "below_cap": 0
+        },
+        "2t:4:public_B_with_position_scenarios": {
+          "races": 86,
+          "points": 344,
+          "hits": 48,
+          "below_cap": 0
+        },
+        "2t:4:public_B_with_finish_rank": {
+          "races": 86,
+          "points": 344,
+          "hits": 44,
+          "below_cap": 0
+        },
+        "2t:4:public_B_with_scenarios_and_rank": {
+          "races": 86,
+          "points": 344,
+          "hits": 46,
+          "below_cap": 0
+        },
+        "2t:4:public_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "points": 344,
+          "hits": 46,
+          "below_cap": 0
+        },
+        "2t:4:public_B_with_history": {
+          "races": 86,
+          "points": 344,
+          "hits": 45,
+          "below_cap": 0
+        },
+        "2t:4:public_saved_line_conditional": {
+          "races": 86,
+          "points": 344,
+          "hits": 52,
+          "below_cap": 0
+        },
+        "2t:4:public_plackett_luce": {
+          "races": 86,
+          "points": 344,
+          "hits": 46,
+          "below_cap": 0
+        },
+        "3t:1:public_A": {
+          "races": 86,
+          "points": 86,
+          "hits": 12,
+          "below_cap": 0
+        },
+        "3t:1:public_B": {
+          "races": 86,
+          "points": 86,
+          "hits": 14,
+          "below_cap": 0
+        },
+        "3t:1:public_B_with_position_scenarios": {
+          "races": 86,
+          "points": 86,
+          "hits": 13,
+          "below_cap": 0
+        },
+        "3t:1:public_B_with_finish_rank": {
+          "races": 86,
+          "points": 86,
+          "hits": 11,
+          "below_cap": 0
+        },
+        "3t:1:public_B_with_scenarios_and_rank": {
+          "races": 86,
+          "points": 86,
+          "hits": 12,
+          "below_cap": 0
+        },
+        "3t:1:public_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "points": 86,
+          "hits": 11,
+          "below_cap": 0
+        },
+        "3t:1:public_B_with_history": {
+          "races": 86,
+          "points": 86,
+          "hits": 15,
+          "below_cap": 0
+        },
+        "3t:1:public_saved_line_conditional": {
+          "races": 86,
+          "points": 86,
+          "hits": 8,
+          "below_cap": 0
+        },
+        "3t:1:public_plackett_luce": {
+          "races": 86,
+          "points": 86,
+          "hits": 6,
+          "below_cap": 0
+        },
+        "3t:4:public_A": {
+          "races": 86,
+          "points": 344,
+          "hits": 27,
+          "below_cap": 0
+        },
+        "3t:4:public_B": {
+          "races": 86,
+          "points": 344,
+          "hits": 28,
+          "below_cap": 0
+        },
+        "3t:4:public_B_with_position_scenarios": {
+          "races": 86,
+          "points": 344,
+          "hits": 27,
+          "below_cap": 0
+        },
+        "3t:4:public_B_with_finish_rank": {
+          "races": 86,
+          "points": 344,
+          "hits": 28,
+          "below_cap": 0
+        },
+        "3t:4:public_B_with_scenarios_and_rank": {
+          "races": 86,
+          "points": 344,
+          "hits": 28,
+          "below_cap": 0
+        },
+        "3t:4:public_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "points": 344,
+          "hits": 29,
+          "below_cap": 0
+        },
+        "3t:4:public_B_with_history": {
+          "races": 86,
+          "points": 344,
+          "hits": 27,
+          "below_cap": 0
+        },
+        "3t:4:public_saved_line_conditional": {
+          "races": 86,
+          "points": 344,
+          "hits": 28,
+          "below_cap": 0
+        },
+        "3t:4:public_plackett_luce": {
+          "races": 86,
+          "points": 344,
+          "hits": 23,
+          "below_cap": 0
+        },
+        "3t:8:public_A": {
+          "races": 86,
+          "points": 688,
+          "hits": 30,
+          "below_cap": 0
+        },
+        "3t:8:public_B": {
+          "races": 86,
+          "points": 688,
+          "hits": 31,
+          "below_cap": 0
+        },
+        "3t:8:public_B_with_position_scenarios": {
+          "races": 86,
+          "points": 688,
+          "hits": 31,
+          "below_cap": 0
+        },
+        "3t:8:public_B_with_finish_rank": {
+          "races": 86,
+          "points": 688,
+          "hits": 32,
+          "below_cap": 0
+        },
+        "3t:8:public_B_with_scenarios_and_rank": {
+          "races": 86,
+          "points": 688,
+          "hits": 32,
+          "below_cap": 0
+        },
+        "3t:8:public_B_with_scenarios_rank_and_history": {
+          "races": 86,
+          "points": 688,
+          "hits": 32,
+          "below_cap": 0
+        },
+        "3t:8:public_B_with_history": {
+          "races": 86,
+          "points": 688,
+          "hits": 30,
+          "below_cap": 0
+        },
+        "3t:8:public_saved_line_conditional": {
+          "races": 86,
+          "points": 688,
+          "hits": 42,
+          "below_cap": 0
+        },
+        "3t:8:public_plackett_luce": {
+          "races": 86,
+          "points": 688,
+          "hits": 33,
+          "below_cap": 0
+        }
+      },
+      "paired": {
+        "2t:1:public_A_vs_public_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 2
+        },
+        "2t:1:public_B_with_position_scenarios_vs_public_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "2t:1:public_B_with_finish_rank_vs_public_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 6
+        },
+        "2t:1:public_B_with_scenarios_and_rank_vs_public_B": {
+          "races": 86,
+          "gained": 4,
+          "lost": 6
+        },
+        "2t:1:public_B_with_scenarios_rank_and_history_vs_public_B": {
+          "races": 86,
+          "gained": 4,
+          "lost": 6
+        },
+        "2t:1:public_B_with_history_vs_public_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 1
+        },
+        "2t:1:public_saved_line_conditional_vs_public_B": {
+          "races": 86,
+          "gained": 6,
+          "lost": 5
+        },
+        "2t:1:public_plackett_luce_vs_public_B": {
+          "races": 86,
+          "gained": 6,
+          "lost": 8
+        },
+        "2t:1:public_B_with_scenarios_rank_and_history_vs_public_B_with_scenarios_and_rank": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "2t:2:public_A_vs_public_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "2t:2:public_B_with_position_scenarios_vs_public_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 0
+        },
+        "2t:2:public_B_with_finish_rank_vs_public_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 1
+        },
+        "2t:2:public_B_with_scenarios_and_rank_vs_public_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 2
+        },
+        "2t:2:public_B_with_scenarios_rank_and_history_vs_public_B": {
+          "races": 86,
+          "gained": 4,
+          "lost": 2
+        },
+        "2t:2:public_B_with_history_vs_public_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "2t:2:public_saved_line_conditional_vs_public_B": {
+          "races": 86,
+          "gained": 7,
+          "lost": 4
+        },
+        "2t:2:public_plackett_luce_vs_public_B": {
+          "races": 86,
+          "gained": 8,
+          "lost": 4
+        },
+        "2t:2:public_B_with_scenarios_rank_and_history_vs_public_B_with_scenarios_and_rank": {
+          "races": 86,
+          "gained": 1,
+          "lost": 0
+        },
+        "2t:4:public_A_vs_public_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "2t:4:public_B_with_position_scenarios_vs_public_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 0
+        },
+        "2t:4:public_B_with_finish_rank_vs_public_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 4
+        },
+        "2t:4:public_B_with_scenarios_and_rank_vs_public_B": {
+          "races": 86,
+          "gained": 5,
+          "lost": 4
+        },
+        "2t:4:public_B_with_scenarios_rank_and_history_vs_public_B": {
+          "races": 86,
+          "gained": 5,
+          "lost": 4
+        },
+        "2t:4:public_B_with_history_vs_public_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 2
+        },
+        "2t:4:public_saved_line_conditional_vs_public_B": {
+          "races": 86,
+          "gained": 10,
+          "lost": 3
+        },
+        "2t:4:public_plackett_luce_vs_public_B": {
+          "races": 86,
+          "gained": 7,
+          "lost": 6
+        },
+        "2t:4:public_B_with_scenarios_rank_and_history_vs_public_B_with_scenarios_and_rank": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "3t:1:public_A_vs_public_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 2
+        },
+        "3t:1:public_B_with_position_scenarios_vs_public_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:1:public_B_with_finish_rank_vs_public_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 5
+        },
+        "3t:1:public_B_with_scenarios_and_rank_vs_public_B": {
+          "races": 86,
+          "gained": 3,
+          "lost": 5
+        },
+        "3t:1:public_B_with_scenarios_rank_and_history_vs_public_B": {
+          "races": 86,
+          "gained": 2,
+          "lost": 5
+        },
+        "3t:1:public_B_with_history_vs_public_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:1:public_saved_line_conditional_vs_public_B": {
+          "races": 86,
+          "gained": 6,
+          "lost": 12
+        },
+        "3t:1:public_plackett_luce_vs_public_B": {
+          "races": 86,
+          "gained": 4,
+          "lost": 12
+        },
+        "3t:1:public_B_with_scenarios_rank_and_history_vs_public_B_with_scenarios_and_rank": {
+          "races": 86,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:4:public_A_vs_public_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:4:public_B_with_position_scenarios_vs_public_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:4:public_B_with_finish_rank_vs_public_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "3t:4:public_B_with_scenarios_and_rank_vs_public_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 1
+        },
+        "3t:4:public_B_with_scenarios_rank_and_history_vs_public_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:4:public_B_with_history_vs_public_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:4:public_saved_line_conditional_vs_public_B": {
+          "races": 86,
+          "gained": 9,
+          "lost": 9
+        },
+        "3t:4:public_plackett_luce_vs_public_B": {
+          "races": 86,
+          "gained": 12,
+          "lost": 17
+        },
+        "3t:4:public_B_with_scenarios_rank_and_history_vs_public_B_with_scenarios_and_rank": {
+          "races": 86,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:8:public_A_vs_public_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:8:public_B_with_position_scenarios_vs_public_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        },
+        "3t:8:public_B_with_finish_rank_vs_public_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:8:public_B_with_scenarios_and_rank_vs_public_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:8:public_B_with_scenarios_rank_and_history_vs_public_B": {
+          "races": 86,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:8:public_B_with_history_vs_public_B": {
+          "races": 86,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:8:public_saved_line_conditional_vs_public_B": {
+          "races": 86,
+          "gained": 16,
+          "lost": 5
+        },
+        "3t:8:public_plackett_luce_vs_public_B": {
+          "races": 86,
+          "gained": 14,
+          "lost": 12
+        },
+        "3t:8:public_B_with_scenarios_rank_and_history_vs_public_B_with_scenarios_and_rank": {
+          "races": 86,
+          "gained": 0,
+          "lost": 0
+        }
+      },
+      "day_block_95_percentage_points": {}
+    },
+    "november23_public_generated_before_cutoff": {
+      "races": 82,
+      "metrics": {
+        "2t:1:public_A": {
+          "races": 82,
+          "points": 82,
+          "hits": 23,
+          "below_cap": 0
+        },
+        "2t:1:public_B": {
+          "races": 82,
+          "points": 82,
+          "hits": 25,
+          "below_cap": 0
+        },
+        "2t:1:public_B_with_position_scenarios": {
+          "races": 82,
+          "points": 82,
+          "hits": 24,
+          "below_cap": 0
+        },
+        "2t:1:public_B_with_finish_rank": {
+          "races": 82,
+          "points": 82,
+          "hits": 22,
+          "below_cap": 0
+        },
+        "2t:1:public_B_with_scenarios_and_rank": {
+          "races": 82,
+          "points": 82,
+          "hits": 23,
+          "below_cap": 0
+        },
+        "2t:1:public_B_with_scenarios_rank_and_history": {
+          "races": 82,
+          "points": 82,
+          "hits": 23,
+          "below_cap": 0
+        },
+        "2t:1:public_B_with_history": {
+          "races": 82,
+          "points": 82,
+          "hits": 24,
+          "below_cap": 0
+        },
+        "2t:1:public_saved_line_conditional": {
+          "races": 82,
+          "points": 82,
+          "hits": 26,
+          "below_cap": 0
+        },
+        "2t:1:public_plackett_luce": {
+          "races": 82,
+          "points": 82,
+          "hits": 23,
+          "below_cap": 0
+        },
+        "2t:2:public_A": {
+          "races": 82,
+          "points": 164,
+          "hits": 33,
+          "below_cap": 0
+        },
+        "2t:2:public_B": {
+          "races": 82,
+          "points": 164,
+          "hits": 33,
+          "below_cap": 0
+        },
+        "2t:2:public_B_with_position_scenarios": {
+          "races": 82,
+          "points": 164,
+          "hits": 34,
+          "below_cap": 0
+        },
+        "2t:2:public_B_with_finish_rank": {
+          "races": 82,
+          "points": 164,
+          "hits": 34,
+          "below_cap": 0
+        },
+        "2t:2:public_B_with_scenarios_and_rank": {
+          "races": 82,
+          "points": 164,
+          "hits": 34,
+          "below_cap": 0
+        },
+        "2t:2:public_B_with_scenarios_rank_and_history": {
+          "races": 82,
+          "points": 164,
+          "hits": 35,
+          "below_cap": 0
+        },
+        "2t:2:public_B_with_history": {
+          "races": 82,
+          "points": 164,
+          "hits": 33,
+          "below_cap": 0
+        },
+        "2t:2:public_saved_line_conditional": {
+          "races": 82,
+          "points": 164,
+          "hits": 36,
+          "below_cap": 0
+        },
+        "2t:2:public_plackett_luce": {
+          "races": 82,
+          "points": 164,
+          "hits": 37,
+          "below_cap": 0
+        },
+        "2t:4:public_A": {
+          "races": 82,
+          "points": 328,
+          "hits": 43,
+          "below_cap": 0
+        },
+        "2t:4:public_B": {
+          "races": 82,
+          "points": 328,
+          "hits": 43,
+          "below_cap": 0
+        },
+        "2t:4:public_B_with_position_scenarios": {
+          "races": 82,
+          "points": 328,
+          "hits": 45,
+          "below_cap": 0
+        },
+        "2t:4:public_B_with_finish_rank": {
+          "races": 82,
+          "points": 328,
+          "hits": 43,
+          "below_cap": 0
+        },
+        "2t:4:public_B_with_scenarios_and_rank": {
+          "races": 82,
+          "points": 328,
+          "hits": 44,
+          "below_cap": 0
+        },
+        "2t:4:public_B_with_scenarios_rank_and_history": {
+          "races": 82,
+          "points": 328,
+          "hits": 44,
+          "below_cap": 0
+        },
+        "2t:4:public_B_with_history": {
+          "races": 82,
+          "points": 328,
+          "hits": 43,
+          "below_cap": 0
+        },
+        "2t:4:public_saved_line_conditional": {
+          "races": 82,
+          "points": 328,
+          "hits": 50,
+          "below_cap": 0
+        },
+        "2t:4:public_plackett_luce": {
+          "races": 82,
+          "points": 328,
+          "hits": 45,
+          "below_cap": 0
+        },
+        "3t:1:public_A": {
+          "races": 82,
+          "points": 82,
+          "hits": 12,
+          "below_cap": 0
+        },
+        "3t:1:public_B": {
+          "races": 82,
+          "points": 82,
+          "hits": 13,
+          "below_cap": 0
+        },
+        "3t:1:public_B_with_position_scenarios": {
+          "races": 82,
+          "points": 82,
+          "hits": 12,
+          "below_cap": 0
+        },
+        "3t:1:public_B_with_finish_rank": {
+          "races": 82,
+          "points": 82,
+          "hits": 10,
+          "below_cap": 0
+        },
+        "3t:1:public_B_with_scenarios_and_rank": {
+          "races": 82,
+          "points": 82,
+          "hits": 11,
+          "below_cap": 0
+        },
+        "3t:1:public_B_with_scenarios_rank_and_history": {
+          "races": 82,
+          "points": 82,
+          "hits": 10,
+          "below_cap": 0
+        },
+        "3t:1:public_B_with_history": {
+          "races": 82,
+          "points": 82,
+          "hits": 14,
+          "below_cap": 0
+        },
+        "3t:1:public_saved_line_conditional": {
+          "races": 82,
+          "points": 82,
+          "hits": 8,
+          "below_cap": 0
+        },
+        "3t:1:public_plackett_luce": {
+          "races": 82,
+          "points": 82,
+          "hits": 6,
+          "below_cap": 0
+        },
+        "3t:4:public_A": {
+          "races": 82,
+          "points": 328,
+          "hits": 26,
+          "below_cap": 0
+        },
+        "3t:4:public_B": {
+          "races": 82,
+          "points": 328,
+          "hits": 27,
+          "below_cap": 0
+        },
+        "3t:4:public_B_with_position_scenarios": {
+          "races": 82,
+          "points": 328,
+          "hits": 26,
+          "below_cap": 0
+        },
+        "3t:4:public_B_with_finish_rank": {
+          "races": 82,
+          "points": 328,
+          "hits": 27,
+          "below_cap": 0
+        },
+        "3t:4:public_B_with_scenarios_and_rank": {
+          "races": 82,
+          "points": 328,
+          "hits": 27,
+          "below_cap": 0
+        },
+        "3t:4:public_B_with_scenarios_rank_and_history": {
+          "races": 82,
+          "points": 328,
+          "hits": 28,
+          "below_cap": 0
+        },
+        "3t:4:public_B_with_history": {
+          "races": 82,
+          "points": 328,
+          "hits": 26,
+          "below_cap": 0
+        },
+        "3t:4:public_saved_line_conditional": {
+          "races": 82,
+          "points": 328,
+          "hits": 27,
+          "below_cap": 0
+        },
+        "3t:4:public_plackett_luce": {
+          "races": 82,
+          "points": 328,
+          "hits": 23,
+          "below_cap": 0
+        },
+        "3t:8:public_A": {
+          "races": 82,
+          "points": 656,
+          "hits": 29,
+          "below_cap": 0
+        },
+        "3t:8:public_B": {
+          "races": 82,
+          "points": 656,
+          "hits": 30,
+          "below_cap": 0
+        },
+        "3t:8:public_B_with_position_scenarios": {
+          "races": 82,
+          "points": 656,
+          "hits": 30,
+          "below_cap": 0
+        },
+        "3t:8:public_B_with_finish_rank": {
+          "races": 82,
+          "points": 656,
+          "hits": 31,
+          "below_cap": 0
+        },
+        "3t:8:public_B_with_scenarios_and_rank": {
+          "races": 82,
+          "points": 656,
+          "hits": 31,
+          "below_cap": 0
+        },
+        "3t:8:public_B_with_scenarios_rank_and_history": {
+          "races": 82,
+          "points": 656,
+          "hits": 31,
+          "below_cap": 0
+        },
+        "3t:8:public_B_with_history": {
+          "races": 82,
+          "points": 656,
+          "hits": 29,
+          "below_cap": 0
+        },
+        "3t:8:public_saved_line_conditional": {
+          "races": 82,
+          "points": 656,
+          "hits": 41,
+          "below_cap": 0
+        },
+        "3t:8:public_plackett_luce": {
+          "races": 82,
+          "points": 656,
+          "hits": 32,
+          "below_cap": 0
+        }
+      },
+      "paired": {
+        "2t:1:public_A_vs_public_B": {
+          "races": 82,
+          "gained": 0,
+          "lost": 2
+        },
+        "2t:1:public_B_with_position_scenarios_vs_public_B": {
+          "races": 82,
+          "gained": 0,
+          "lost": 1
+        },
+        "2t:1:public_B_with_finish_rank_vs_public_B": {
+          "races": 82,
+          "gained": 3,
+          "lost": 6
+        },
+        "2t:1:public_B_with_scenarios_and_rank_vs_public_B": {
+          "races": 82,
+          "gained": 4,
+          "lost": 6
+        },
+        "2t:1:public_B_with_scenarios_rank_and_history_vs_public_B": {
+          "races": 82,
+          "gained": 4,
+          "lost": 6
+        },
+        "2t:1:public_B_with_history_vs_public_B": {
+          "races": 82,
+          "gained": 0,
+          "lost": 1
+        },
+        "2t:1:public_saved_line_conditional_vs_public_B": {
+          "races": 82,
+          "gained": 6,
+          "lost": 5
+        },
+        "2t:1:public_plackett_luce_vs_public_B": {
+          "races": 82,
+          "gained": 6,
+          "lost": 8
+        },
+        "2t:1:public_B_with_scenarios_rank_and_history_vs_public_B_with_scenarios_and_rank": {
+          "races": 82,
+          "gained": 0,
+          "lost": 0
+        },
+        "2t:2:public_A_vs_public_B": {
+          "races": 82,
+          "gained": 1,
+          "lost": 1
+        },
+        "2t:2:public_B_with_position_scenarios_vs_public_B": {
+          "races": 82,
+          "gained": 1,
+          "lost": 0
+        },
+        "2t:2:public_B_with_finish_rank_vs_public_B": {
+          "races": 82,
+          "gained": 2,
+          "lost": 1
+        },
+        "2t:2:public_B_with_scenarios_and_rank_vs_public_B": {
+          "races": 82,
+          "gained": 3,
+          "lost": 2
+        },
+        "2t:2:public_B_with_scenarios_rank_and_history_vs_public_B": {
+          "races": 82,
+          "gained": 4,
+          "lost": 2
+        },
+        "2t:2:public_B_with_history_vs_public_B": {
+          "races": 82,
+          "gained": 0,
+          "lost": 0
+        },
+        "2t:2:public_saved_line_conditional_vs_public_B": {
+          "races": 82,
+          "gained": 7,
+          "lost": 4
+        },
+        "2t:2:public_plackett_luce_vs_public_B": {
+          "races": 82,
+          "gained": 8,
+          "lost": 4
+        },
+        "2t:2:public_B_with_scenarios_rank_and_history_vs_public_B_with_scenarios_and_rank": {
+          "races": 82,
+          "gained": 1,
+          "lost": 0
+        },
+        "2t:4:public_A_vs_public_B": {
+          "races": 82,
+          "gained": 1,
+          "lost": 1
+        },
+        "2t:4:public_B_with_position_scenarios_vs_public_B": {
+          "races": 82,
+          "gained": 2,
+          "lost": 0
+        },
+        "2t:4:public_B_with_finish_rank_vs_public_B": {
+          "races": 82,
+          "gained": 3,
+          "lost": 3
+        },
+        "2t:4:public_B_with_scenarios_and_rank_vs_public_B": {
+          "races": 82,
+          "gained": 4,
+          "lost": 3
+        },
+        "2t:4:public_B_with_scenarios_rank_and_history_vs_public_B": {
+          "races": 82,
+          "gained": 4,
+          "lost": 3
+        },
+        "2t:4:public_B_with_history_vs_public_B": {
+          "races": 82,
+          "gained": 2,
+          "lost": 2
+        },
+        "2t:4:public_saved_line_conditional_vs_public_B": {
+          "races": 82,
+          "gained": 10,
+          "lost": 3
+        },
+        "2t:4:public_plackett_luce_vs_public_B": {
+          "races": 82,
+          "gained": 7,
+          "lost": 5
+        },
+        "2t:4:public_B_with_scenarios_rank_and_history_vs_public_B_with_scenarios_and_rank": {
+          "races": 82,
+          "gained": 0,
+          "lost": 0
+        },
+        "3t:1:public_A_vs_public_B": {
+          "races": 82,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:1:public_B_with_position_scenarios_vs_public_B": {
+          "races": 82,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:1:public_B_with_finish_rank_vs_public_B": {
+          "races": 82,
+          "gained": 2,
+          "lost": 5
+        },
+        "3t:1:public_B_with_scenarios_and_rank_vs_public_B": {
+          "races": 82,
+          "gained": 3,
+          "lost": 5
+        },
+        "3t:1:public_B_with_scenarios_rank_and_history_vs_public_B": {
+          "races": 82,
+          "gained": 2,
+          "lost": 5
+        },
+        "3t:1:public_B_with_history_vs_public_B": {
+          "races": 82,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:1:public_saved_line_conditional_vs_public_B": {
+          "races": 82,
+          "gained": 6,
+          "lost": 11
+        },
+        "3t:1:public_plackett_luce_vs_public_B": {
+          "races": 82,
+          "gained": 4,
+          "lost": 11
+        },
+        "3t:1:public_B_with_scenarios_rank_and_history_vs_public_B_with_scenarios_and_rank": {
+          "races": 82,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:4:public_A_vs_public_B": {
+          "races": 82,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:4:public_B_with_position_scenarios_vs_public_B": {
+          "races": 82,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:4:public_B_with_finish_rank_vs_public_B": {
+          "races": 82,
+          "gained": 1,
+          "lost": 1
+        },
+        "3t:4:public_B_with_scenarios_and_rank_vs_public_B": {
+          "races": 82,
+          "gained": 1,
+          "lost": 1
+        },
+        "3t:4:public_B_with_scenarios_rank_and_history_vs_public_B": {
+          "races": 82,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:4:public_B_with_history_vs_public_B": {
+          "races": 82,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:4:public_saved_line_conditional_vs_public_B": {
+          "races": 82,
+          "gained": 9,
+          "lost": 9
+        },
+        "3t:4:public_plackett_luce_vs_public_B": {
+          "races": 82,
+          "gained": 12,
+          "lost": 16
+        },
+        "3t:4:public_B_with_scenarios_rank_and_history_vs_public_B_with_scenarios_and_rank": {
+          "races": 82,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:8:public_A_vs_public_B": {
+          "races": 82,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:8:public_B_with_position_scenarios_vs_public_B": {
+          "races": 82,
+          "gained": 0,
+          "lost": 0
+        },
+        "3t:8:public_B_with_finish_rank_vs_public_B": {
+          "races": 82,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:8:public_B_with_scenarios_and_rank_vs_public_B": {
+          "races": 82,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:8:public_B_with_scenarios_rank_and_history_vs_public_B": {
+          "races": 82,
+          "gained": 1,
+          "lost": 0
+        },
+        "3t:8:public_B_with_history_vs_public_B": {
+          "races": 82,
+          "gained": 0,
+          "lost": 1
+        },
+        "3t:8:public_saved_line_conditional_vs_public_B": {
+          "races": 82,
+          "gained": 16,
+          "lost": 5
+        },
+        "3t:8:public_plackett_luce_vs_public_B": {
+          "races": 82,
+          "gained": 14,
+          "lost": 12
+        },
+        "3t:8:public_B_with_scenarios_rank_and_history_vs_public_B_with_scenarios_and_rank": {
+          "races": 82,
+          "gained": 0,
+          "lost": 0
+        }
+      },
+      "day_block_95_percentage_points": {}
+    }
+  },
+  "source_lock": {
+    "schema": "KEIRIN_DOCUMENTED_INPUT_COMPARISON_LOCAL_LOCK_V1",
+    "results_opened_by_this_stage": false,
+    "retrospective": true,
+    "prior_holdout_commit": "894b7e6f4b89863fce791ace143e2ad29098152c",
+    "prior_holdout_ci": "45226157211",
+    "prior_holdout_input_sha256": "4d0d9719e50fdaef160a2bbc8e029ea0f95fc74fcba87f61bf29dfd2b3f0482b",
+    "replay_script_sha256": "7f78650780e88d051125a3488e7aed0cbc363a752899ccb1ea673fdab499a2c3",
+    "salted_forecast_sha256": "812c9387f61f444ee35ffeb2dcb5069b4eda5b28b7b20901a1f3fe01f24560be",
+    "new_source_sha256": {
+      "direct_cards": "fac31353f4ebcbeeb9f57e780281b93821cbb1ef391d5cbed7adf19dd8ebdfeb",
+      "odds_receipts": "e78f8c3ff26cc463cfa1b73bfe4f42984f110748063b8f71c86ef684b848bfbe"
+    },
+    "public_display_sha256": "e0bbe0df758673ac79e9d5b70ff3da5790cba361c8b8fc08cd6e43cca6fe48c7",
+    "public_display_candidate_order_and_allocations_verified": 89,
+    "code_and_coefficient_sha256": {
+      "race_ai/keirin_nationwide_auto_generator.py": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47",
+      "race_ai/keirin_rider_context.py": "68141d2380c76e84896e7e60476dc310dee1155c9f887a5542dfc0a2c200f465",
+      "race_ai/keirin_ranking_adjustment.py": "29d01a9c43a7d2c72175f78f016652ad968cde71e6a3ce1a197524d15a123270",
+      "scripts/keirin_rider_profile_study.py": "34604b7eaa7bca7228d42bb16b645a96a41a09db17ae3fc0de494c8f5230fed8",
+      "scripts/keirin_small_ticket_study.py": "3b0327acd1ff593a91593c38a49eedb4b02bb63b34383a109f37062799ef4c0d",
+      "docs/evidence/keirin-ranking-pdca-20261123/fitted-weights.json": "d53220b078617acdb15f1ae07860e03f003493887f514fe39783b6f7c65ed8ef",
+      "docs/evidence/keirin-all-rider-profiles-20261124/prefecture-normalized/weights.json": "204b42c315a562f24c5a9409c09d98e14c680e935db8bb41e3ec3abbea3e11ba"
+    },
+    "extra_source_before_label_filter": {
+      "joined_races": 88,
+      "rider_rows": 630,
+      "direct_source_independent_attestation": 0
+    },
+    "extra_source_fields_before_label_filter": {
+      "h_count": 630,
+      "h_count_nonzero": 2,
+      "mark_rank": 630,
+      "comment": 630
+    },
+    "odds_exclusions_before_label_filter": {
+      "cutoff_or_quote_status_unverified": 5
+    }
+  }
+}
