@@ -32,7 +32,7 @@ jobs:
       - name: Verify public result collection using fixtures
         shell: bash
         run: |
-          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5'
+          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5' 'cryptography>=44,<48'
           python -m unittest tests.test_keirin_public_site_results tests.test_keirin_capture_public_two_sources
           bash -n scripts/keirin_publish_public_site_results.sh
 
