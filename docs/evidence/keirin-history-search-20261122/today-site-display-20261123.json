@@ -1,0 +1,62 @@
+{
+  "checked_at": "2026-11-23T00:04:11.702Z",
+  "day_jst": "2026-11-23",
+  "first_day": {
+    "scope": "2026-11-23",
+    "docs": 1,
+    "requests": 10,
+    "bytes": 21549058,
+    "elapsed_ms": 6350,
+    "rows": 89,
+    "reference_ab": 89,
+    "revision": "ad9b0f457a9a1fb2f2c59c460ba61b552f9fbd2edd0085e0be8003c1eca80e1d"
+  },
+  "selected_archive": {
+    "scope": "2026-11-19",
+    "docs": 1,
+    "requests": 14,
+    "bytes": 54796144,
+    "elapsed_ms": 10958,
+    "rows": 0,
+    "reference_ab": 0,
+    "revision": "ad9b0f457a9a1fb2f2c59c460ba61b552f9fbd2edd0085e0be8003c1eca80e1d"
+  },
+  "back_to_today": {
+    "scope": "2026-11-23",
+    "docs": 1,
+    "requests": 15,
+    "bytes": 54928502,
+    "elapsed_ms": 11089,
+    "rows": 89,
+    "reference_ab": 89,
+    "revision": "ad9b0f457a9a1fb2f2c59c460ba61b552f9fbd2edd0085e0be8003c1eca80e1d"
+  },
+  "same_page_connection_and_remembered_verified": true,
+  "rendered_reference_A": 89,
+  "rendered_reference_B": 89,
+  "seibuen_11r_rendered": true,
+  "oldest_archive_rendered": 75,
+  "key_in_requested_url_or_headers": false,
+  "contacted_only_existing_github_feed": true,
+  "browser_or_physical_iphone_test": false,
+  "schema": "RACE_AI_KEIRIN_TODAY_DISPLAY_VALIDATION_V1",
+  "prior_site_source_commit": "335b612d08225b2e33a69fbaefc602c90cc39384",
+  "transport": "Standard HTTPS to GitHub, production view and decryption scripts executed with a minimal Node document",
+  "test_suite": {
+    "passed": 155,
+    "failed": 0,
+    "skipped": 0
+  },
+  "configured_site_url": "https://keirin-20261119-race-note.chankuma.chatgpt.site/",
+  "previous_full_history_ciphertext_bytes": 309314996,
+  "site_version": 23,
+  "site_source_commit": "aefaf9c5e5aa0f0794cd1cbe13b329be7594bd1c",
+  "worker_sha256": "d393c0c5dc0612e95b60d7b7e75ef9317a545835fcfc73f112abc44df27aa1ff",
+  "site_deployment_status": "succeeded",
+  "deployment_confirmed_at_utc": "2026-11-23T00:06:10.967110+00:00",
+  "site_access_mode": "public",
+  "deployment_scope": "existing site frontend only",
+  "direct_site_https_status_from_workspace": 403,
+  "direct_site_edge_error_code": "1010",
+  "display_data_visibility": "encrypted GitHub feed with owner connection"
+}
