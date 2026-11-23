@@ -1,8 +1,11 @@
 from contextlib import redirect_stdout
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import io
 import json
+import os
 from pathlib import Path
+import shutil
+import subprocess
 from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
@@ -31,6 +34,45 @@ def snapshot(entries):
 
 
 class PublicResultRefreshTests(unittest.TestCase):
+    @unittest.skipUnless(shutil.which('git') and shutil.which('bash'), 'The public publisher runs with Git and Bash')
+    def test_watch_reads_back_the_first_poll_before_checking_again(self):
+        repo = Path(__file__).resolve().parents[1]
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            state_ref = 'state/keirin-public-results'
+            remote = root / 'remote.git'
+            checkout = root / 'checkout'
+            runner_temp = root / 'runner-temp'
+            runner_temp.mkdir()
+
+            def git(*args, cwd=root):
+                return subprocess.run(['git', *args], cwd=cwd, check=True, text=True, capture_output=True).stdout
+
+            git('init', '--bare', str(remote))
+            git('init', '-b', state_ref, str(checkout))
+            (checkout / 'rosters').mkdir()
+            cutoff = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+            (checkout / 'rosters' / f'{DATE}.json').write_text(json.dumps(roster([race(0, cutoff)])))
+            git('add', 'rosters', cwd=checkout)
+            git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                'commit', '-m', 'Fixture roster', cwd=checkout)
+            git('remote', 'add', 'origin', str(remote), cwd=checkout)
+            git('push', 'origin', state_ref, cwd=checkout)
+
+            summary = runner_temp / 'summary'
+            env = {**os.environ, 'RUNNER_TEMP': str(runner_temp), 'GITHUB_STEP_SUMMARY': str(summary),
+                   'PYTHONPATH': str(repo)}
+            # Advance the real Bash clock in the fixture so both polls run immediately.
+            command = 'sleep() { SECONDS=$((SECONDS + $1)); }; source "$1" 16'
+            result = subprocess.run(['bash', '-c', command, 'test-watch',
+                                     str(repo / 'scripts/keirin_publish_public_site_results.sh')],
+                                    cwd=checkout, env=env, text=True, capture_output=True, timeout=30)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            polls = [json.loads(line) for line in summary.read_text().splitlines()]
+            self.assertEqual([poll['updated'] for poll in polls], [True, False])
+            stored = git('--git-dir', str(remote), 'show', f'{state_ref}:results/{DATE}.json')
+            self.assertEqual(json.loads(stored)['races'], [])
+
     def test_watch_reports_completion_only_after_all_published_races_are_resolved(self):
         special = {'race_id': IDS[0], 'state': 'held', 'reason': 'special_result'}
         with TemporaryDirectory() as directory:

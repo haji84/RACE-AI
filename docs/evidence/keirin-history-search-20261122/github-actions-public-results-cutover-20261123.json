@@ -1,0 +1,69 @@
+{
+  "schema": "RACE_AI_KEIRIN_PUBLIC_RESULTS_GITHUB_ACTIONS_CUTOVER_V1",
+  "verified_at": "2026-11-23T04:32:37.998Z",
+  "published_race_dates": ["2026-11-22", "2026-11-23"],
+  "workflow": {
+    "run_url": "https://github.com/haji84/RACE-AI/actions/runs/45110871676",
+    "job_url": "https://github.com/haji84/RACE-AI/actions/runs/45110871676/job/137482690557",
+    "source_commit": "ecf72b322c36e13d4aded36049193efc5edbaac8",
+    "runner": "ubuntu-24.04",
+    "started_at": "2026-11-23T04:16:47Z",
+    "status_at_readback": "in_progress",
+    "internal_interval_seconds": 900,
+    "max_watch_minutes_per_job": 345,
+    "sequential_watch_jobs": 2,
+    "additional_dispatches_after_start": 0
+  },
+  "codex_timer": {
+    "title": "競輪の公開照合更新",
+    "paused_at": "2026-11-23T04:17:55.590721Z",
+    "enabled_at_readback": false
+  },
+  "public_results": {
+    "branch": "state/keirin-public-results",
+    "before": {
+      "commit": "894f6c04feeb3d8a4987398d2889d1e3d0a3a606",
+      "november_23_matched": 27
+    },
+    "first_observation": {
+      "commit": "1ebf24f16b92f146109d6f6a21d3bb6c8edbba9f",
+      "checked_at": "2026-11-23T04:17:10.183088Z",
+      "november_23_matched": 30
+    },
+    "automatic_observation_after_timer_pause": {
+      "commit": "13c2c219f88c22a113d9e0120edfc1816c02ede5",
+      "checked_at": "2026-11-23T04:32:08.336600Z",
+      "november_22_matched": 67,
+      "november_22_special_held": 1,
+      "november_23_matched": 31,
+      "november_23_special_held": 1,
+      "november_23_pending": 1,
+      "git_author": "github-actions[bot]"
+    },
+    "prior_matches_and_special_holds_preserved": true,
+    "updated_paths_are_public_results_only": true,
+    "public_http_status": 200,
+    "public_cors": "*",
+    "branch_and_commit_json_equal": true
+  },
+  "site_reader": {
+    "url": "https://keirin-20261119-race-note.chankuma.chatgpt.site/#results",
+    "deployed_worker_sha256": "71a7acef799ecd6a9f8df49b0c83d0bc975918d8bb9f30fbcbf7f963c88ada7e",
+    "initial_fallback_matches": 6,
+    "anonymous_matches_after_refresh": 31,
+    "same_built_site_code": true,
+    "physical_safari_verified": false
+  },
+  "permanent_schedule": {
+    "candidate_branch": "codex/keirin-public-results-cron-20261123",
+    "candidate_commit": "9f4920754c35a781c0c6fa4d268f16d8122186c9",
+    "protected_main_base": "ac6f4e8a014af5bf144b0146961a706159d06f0d",
+    "candidate_changed_files": 4,
+    "cron_utc": "10,25,40,55 0-15,23 * * *",
+    "local_python_tests_passed": 58,
+    "existing_node_tests_passed": 150,
+    "actionlint_passed": true,
+    "activated_on_default_branch": false,
+    "pending": "Owner authorization for one dedicated PR and required checks"
+  }
+}

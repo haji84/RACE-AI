@@ -1,3 +1,9 @@
+# 2026-11-23 13:32 JST｜公開結果照合の起動をGitHub Actionsへ移行
+
+元サイトに掲載済みの11月22日・23日分を、既存リポジトリのGitHub Actionsで15分ごとに確認する一時運転に切り替えた。13:17の初回実行で23日分の照合済みが27件から30件になり、公開JSONを読み戻してからCodexの定期起動「競輪の公開照合更新」を停止した。13:32に同じGitHubジョブが追加起動なしで再確認し、31件まで更新した。22日分の照合済み67件と両日の特殊結果各1件を保全した。[GitHub Actionsの運転](https://github.com/haji84/RACE-AI/actions/runs/45110871676) · [公開結果JSON](https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-results/results/2026-11-23.json)
+
+元サイト第27版と同じ表示処理に公開JSONを渡し、本人接続や画面再読み込みなしで23日分の表示が6件から31件に更新されることを確認した。一時運転は23日の最終掲載締切を越える長さで、照合対象がすべて確定した時点で早く終了できる。GitHubの定期起動を恒久化する4ファイルの差分は既存リポジトリに保存済み。既定ブランチ `main` への反映には必須チェック付きのPRが必要で、通知時点では承認待ち。[差分](https://github.com/haji84/RACE-AI/compare/ac6f4e8a014af5bf144b0146961a706159d06f0d...9f4920754c35a781c0c6fa4d268f16d8122186c9) · [確認記録](evidence/keirin-history-search-20261122/github-actions-public-results-cutover-20261123.json)
+
 # 2026-11-23 10:57 JST｜競輪の公開結果照合を自動更新
 
 元サイトの第27版で、結果照合を開いている間は30秒ごとにGitHubの公開結果を確認する。取得と保存は標準GitHub Actionsで行い、定期起動は15分間隔。公開中の11月22日・23日のレース台帳を対象とし、締切後の未確定分を順に確認する。Kドリームスとnetkeirinの2券種の着順と払戻が一致した結果を公開用ブランチへ保存する。取得元の拒否で止まった場合や画面の読込に失敗した場合は、照合済みの結果を保持する。[結果照合を開く](https://keirin-20261119-race-note.chankuma.chatgpt.site/#results)
