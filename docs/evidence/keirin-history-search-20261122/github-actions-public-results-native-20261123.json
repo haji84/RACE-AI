@@ -28,5 +28,18 @@
     "public_result_state_head": "b225fc7939aa3dd1145268168d1996e9f3a31730",
     "november_22_matched": 67,
     "november_23_matched": 33
+  },
+  "runtime_readback": {
+    "verified_at": "2026-11-23T05:36:32.524390Z",
+    "configured_slots_checked": ["2026-11-23T05:10:00Z", "2026-11-23T05:25:00Z"],
+    "native_scheduled_runs_observed": 0,
+    "interim_status": "in_progress",
+    "public_result_state_head": "568cd3f4b4445b975b954917a4dd4ef76ba5b64a",
+    "november_23_observed_at": "2026-11-23T05:32:08.883480Z",
+    "november_22_matched": 67,
+    "november_23_matched": 37,
+    "prior_matches_and_special_holds_preserved": true,
+    "public_json_matches_git": true,
+    "public_http_status": 200
   }
 }

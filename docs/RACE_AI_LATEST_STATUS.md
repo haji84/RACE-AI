@@ -1,8 +1,8 @@
-# 2026-11-23 13:58 JST｜公開照合のGitHub定期設定をmainへ反映
+# 2026-11-23 14:36 JST｜公開照合のGitHub定期設定をmainへ反映
 
 承認を受けた公開照合専用のPR #329を、必須の `unit` と公開結果のテスト、独立レビューの通過後に `main` へ反映した。GitHubで定期ワークフローが有効であることを読み戻した。設定は日本時間8:10から翌0:55まで15分ごと。取得制限の待機、途中までに取得した結果の保存、次回の再開位置、照合済みと特殊保留の保全を検査した。[PR #329](https://github.com/haji84/RACE-AI/pull/329) · [定期ワークフロー](https://github.com/haji84/RACE-AI/actions/workflows/keirin-public-site-results.yml)
 
-確認時点の公開結果は22日67件、23日33件が照合済み。Codexの定期起動は停止済みで、GitHub Actionsの一時運転を継続している。14:10以降にGitHubの定期ジョブがキューに入ったら一時運転を終了し、定期ジョブの実行と公開JSONの読み戻しを確認する。[実行と確認記録](evidence/keirin-history-search-20261122/github-actions-public-results-native-20261123.json)
+14:10と14:25の設定枠を経過した14:36時点で、新しい定期ワークフローの実行履歴は0件。GitHub Actionsの一時運転は14:32に公開JSONを更新し、照合済みは22日67件、23日37件。既存の照合結果と特殊保留を保持し、元サイトが読む公開URLでGitHubの保存データと一致することを確認した。Codexの定期起動は停止済み。GitHubの初回定期実行の確認は残っている。[一時運転](https://github.com/haji84/RACE-AI/actions/runs/45110871676) · [実行と確認記録](evidence/keirin-history-search-20261122/github-actions-public-results-native-20261123.json)
 
 # 2026-11-23 13:32 JST｜公開結果照合の起動をGitHub Actionsへ移行
 
