@@ -1,0 +1,69 @@
+{
+  "independent_additional_period": [
+    "20260601",
+    "20260731"
+  ],
+  "fixed_before_additional_period_score": {
+    "scope": [
+      "20260601",
+      "20260731"
+    ],
+    "forecast_frozen_at": "2026-11-23T23:18:40.894636+00:00",
+    "existing_calibration_selected_variant": "back_25",
+    "methodology_unchanged": true,
+    "usable_history_closed_on": "20260331",
+    "initial_early_config_sha256": "9487a4c42ee8e9e978bfddca5bc285888059f4b01c93f01d62f95ab95010ed4a",
+    "frozen_rank_sha256": "6202653de7f9f539cbbd6c7dc4333205629a4ba3f5eb3369078f5c90ece3f8e2",
+    "driver_sha256": "5498cbd84b613e30b7b8393713c2e895f57d9cb2238ae756413048914f57c550",
+    "races": 4665,
+    "owner_cipher_sha256": "f0b826c0fa27f34b7c8eda179d13951813bbefa5ba5b4a74e1ace12d52746995"
+  },
+  "metrics": {
+    "races_in_input": 4665,
+    "races_with_result": 4665,
+    "races_scored": 4665,
+    "rank_breakdown": {
+      "saved": {
+        "hit_1": 508,
+        "predicted_mass_1_sum": 508.6851872164837,
+        "hit_4": 1281,
+        "predicted_mass_4_sum": 1265.2669028448117,
+        "hit_8": 1829,
+        "predicted_mass_8_sum": 1816.5352998855478,
+        "correct_1_2_in_eight": 2488
+      },
+      "back_25": {
+        "hit_1": 510,
+        "predicted_mass_1_sum": 512.8864401524293,
+        "hit_4": 1290,
+        "predicted_mass_4_sum": 1276.6638852990382,
+        "hit_8": 1830,
+        "predicted_mass_8_sum": 1829.9037805850182,
+        "correct_1_2_in_eight": 2483,
+        "gained_8": 27,
+        "lost_8": 26
+      },
+      "home_back_25": {
+        "hit_1": 511,
+        "predicted_mass_1_sum": 512.9780447649143,
+        "hit_4": 1295,
+        "predicted_mass_4_sum": 1276.6570273231432,
+        "hit_8": 1826,
+        "predicted_mass_8_sum": 1829.7147708922257,
+        "correct_1_2_in_eight": 2479,
+        "gained_8": 27,
+        "lost_8": 30
+      }
+    },
+    "paired_day_95_percentage_points": {
+      "back_25": [
+        -0.233,
+        0.278
+      ],
+      "home_back_25": [
+        -0.348,
+        0.218
+      ]
+    }
+  }
+}

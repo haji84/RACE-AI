@@ -1,0 +1,50 @@
+{
+  "source_observation": {
+    "admitted_cards_sha256": "838398e1d2a7432282d95f18e656e40117f56d74e31913732f905cce6c2f0476",
+    "attempted": 1,
+    "body_sha256": "9428b51e84da5ab8104d52437646ff3d80f855870a2135282fbe75a15a3dd6f0",
+    "change_conditions": [
+      "UNCHANGED"
+    ],
+    "condition": "UNCHANGED",
+    "cutoff_at": "2026-11-24T08:45:00+09:00",
+    "earlier_sha256": "8db0ac1db6e666f984156fb4fa70e4dfd14ae6ef8cc78b3fc77e4c7ea6f1f2e3",
+    "http_date": "2026-11-23T23:31:20+00:00",
+    "http_status": 200,
+    "minutes_to_cutoff": 13.653,
+    "receipts_sha256": "0631c076dd746550761b2c8738c86594bcdc8e82d54d7928435b4d7e8bc1331c",
+    "refresh_sha256": "ad38d5534dd950d82f5d6851a31a37911e54ad5b16b091a5954e987416098316",
+    "roster_count": 7,
+    "time_observed_at": "2026-11-23T23:31:20.832847+00:00",
+    "verified": 1,
+    "vs_early": "UNCHANGED",
+    "window_end": "2026-11-24T08:35:00+09:00",
+    "window_start": "2026-11-24T08:30:00+09:00"
+  },
+  "forecast_commitment": {
+    "date": "2026-11-24",
+    "forecast_frozen_at": "2026-11-23T23:31:21.648451+00:00",
+    "cutoff": "2026-11-24T08:45:00+09:00",
+    "source_as_of": "2026-11-23T23:31:20.832847+00:00",
+    "registered_starters": 7,
+    "source_to_cutoff_minutes": 13.652785883333333,
+    "forecast_to_cutoff_minutes": 13.639192483333334,
+    "confirmed_comparisons": 1,
+    "line_version_classification": "unchanged",
+    "published_source_sha256": "9428b51e84da5ab8104d52437646ff3d80f855870a2135282fbe75a15a3dd6f0",
+    "input_sha256": "838398e1d2a7432282d95f18e656e40117f56d74e31913732f905cce6c2f0476",
+    "forecasts_digest": "d207ac798438cc34c53124101cc3bf29e9a4f16d5b02d3faa10589653d2d0478",
+    "model_config_sha256": "f2320760e6dff3dbd9ec4be1bb490d438e786d58cdc032e44abc10d7e9082722",
+    "forecast_methods": [
+      "saved",
+      "back_100",
+      "home_back_100"
+    ],
+    "ticket_rank_changes_compared_to_08h14": {
+      "saved": false,
+      "back_100": false
+    },
+    "owner_cipher_sha256": "b6112042251307127a2454290a8b47f36a3eb6d809da3617a2230d3f6ee58338"
+  },
+  "source_summary_sha256": "a2eb66ecb6db18aeffd11a2a5cff78aa3266f3b7708971877869e63ceb7ccbc3"
+}

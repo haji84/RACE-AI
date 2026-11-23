@@ -1,0 +1,122 @@
+{
+  "admitted_archive_versions": 27,
+  "admitted_races": 526,
+  "app_commit": "a8c7851a062e36da1e10101dcbbe1aad278fe168",
+  "archive_days": 90,
+  "archive_distinct_race_keys": 6718,
+  "between_chronological_observations_minutes": {
+    "max": 400.65,
+    "median": 352.01666666666665,
+    "min": 56.61666666666667
+  },
+  "by_admitted_day": {
+    "2026-11-16": {
+      "admitted_observations": 110,
+      "chronological_pairs": 50,
+      "races_with_two_eligible_versions": 35
+    },
+    "2026-11-17": {
+      "admitted_observations": 139,
+      "chronological_pairs": 80,
+      "races_with_two_eligible_versions": 50
+    },
+    "2026-11-18": {
+      "admitted_observations": 135,
+      "chronological_pairs": 67,
+      "races_with_two_eligible_versions": 46
+    },
+    "2026-11-19": {
+      "admitted_observations": 136,
+      "chronological_pairs": 63,
+      "races_with_two_eligible_versions": 45
+    },
+    "2026-11-20": {
+      "admitted_observations": 125,
+      "chronological_pairs": 68,
+      "races_with_two_eligible_versions": 44
+    },
+    "2026-11-21": {
+      "admitted_observations": 100,
+      "chronological_pairs": 44,
+      "races_with_two_eligible_versions": 38
+    },
+    "2026-11-22": {
+      "admitted_observations": 153,
+      "chronological_pairs": 87,
+      "races_with_two_eligible_versions": 48
+    },
+    "2026-11-23": {
+      "admitted_observations": 270,
+      "chronological_pairs": 183,
+      "races_with_two_eligible_versions": 87
+    }
+  },
+  "changed_pairs_sha256": null,
+  "changed_pairs_with_both_ranker_ready": 0,
+  "chronological_pair_counts": {
+    "UNCHANGED": 642,
+    "unchanged_with_different_display_order": 0
+  },
+  "independent_reference_races": 6722,
+  "line_availability_changes_with_same_roster": {
+    "later_version_supplied_line": 68
+  },
+  "netkeirin_reference_commit": "b044f1f99e840a25e873927bddb1558e4b67f51a",
+  "race_observation_dispositions": {
+    "admitted_observations": 1168,
+    "app_at_or_after_its_cutoff": 11462,
+    "before_own_published_cutoff_observations": 1411,
+    "different_starter_roster_or_name": 11,
+    "file_commits_seen": 187,
+    "line_partial_or_invalid": 14,
+    "line_unpublished": 158,
+    "numeric_venue_label_corroborated_by_kdreams": 81,
+    "race_observations": 12873,
+    "venue_name_disagreement": 60
+  },
+  "races_with_pre_own_cutoff_observation": 568,
+  "races_with_two_eligible_chronological_versions": 393,
+  "races_with_two_eligible_versions": 393,
+  "range_jst": [
+    "2026-08-26",
+    "2026-11-23"
+  ],
+  "roster_changes_between_dated_pre_cutoff_versions": {
+    "same_cars_name_differs": 1,
+    "starter_cars_differ": 1
+  },
+  "unique_changed_races": 0,
+  "source_aggregate_sha256": "efd80b3f0eb397297c636c2ed07a7370cd82c9b4e281dc25900d00cffaaa56ae",
+  "first_full_appearance_pairs": {
+    "archive_source_pin": "a8c7851a062e36da1e10101dcbbe1aad278fe168",
+    "complete_line_minutes_to_cutoff_min_median_max": [
+      175.08,
+      261.35,
+      346.83
+    ],
+    "dates": [
+      "2026-11-16",
+      "2026-11-22"
+    ],
+    "dispositions": {
+      "MODELS_ACCEPT_IDENTICAL_FINAL_RIDER_FEATURES": 68,
+      "UNPUBLISHED": 68
+    },
+    "early_and_final_before_same_cutoff": 68,
+    "first_complete_version_inside_last_15m": 0,
+    "full_exact_roster_in_both": 68,
+    "independent_netkeirin_entries_pin": "b044f1f99e840a25e873927bddb1558e4b67f51a",
+    "minutes_between_versions_min_median_max": [
+      352.12,
+      352.37,
+      357.02
+    ],
+    "pairs": 68,
+    "prior_minutes_to_cutoff_min_median_max": [
+      527.2,
+      613.89,
+      699.2
+    ],
+    "private_pairs_sha256": "bb1c1f1f84ecf309294a18c84db98e4231f4b1752be967d3a08f275438452999"
+  }
+}

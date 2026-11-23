@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-24",
+  "fixed_at": "2026-11-23T23:14:42.008191+00:00",
+  "count": 64,
+  "first_cutoff": "2026-11-24T08:45:00+09:00",
+  "last_cutoff": "2026-11-24T21:16:00+09:00",
+  "verified_registrations": 443,
+  "pre_cutoff_version_receipt_sha256": "6814961d8d4684f625857471fc5a9bb39fd7b1f911cb8f50b2081d6cc07529b6",
+  "model_config_sha256": "f2320760e6dff3dbd9ec4be1bb490d438e786d58cdc032e44abc10d7e9082722",
+  "earlier_line_ledger_sha256": "26c3a2c61edee2f70d85823b7e3891aea6ba95145cd4e1cd12de005b4d8c73ec",
+  "global_selection": "back_100",
+  "field_selection": {
+    "nine_starters": "back_25",
+    "all_solo": "saved",
+    "other": "back_100"
+  },
+  "private_estimates_sha256": "70f84bf6fc86463b59acf04707f1463ee98daec4db3d65cb17bcc974eee1ae18",
+  "cipher_sha256": "ff39b651d3d0c65367c31dba9c9ccd67019175617b03448f6e1509a5bb22e70a"
+}

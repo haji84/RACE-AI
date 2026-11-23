@@ -1,0 +1,43 @@
+{
+  "independent_H_B_performance": {
+    "cohort": "held-out October-November archived test starts",
+    "counts": {
+      "base_assigned_as_H_hit": 24,
+      "estimated_H_hit": 25,
+      "B_without_H_hit": 34,
+      "B_integrating_H_hit": 32,
+      "B_with_H_known_after_start_hit": 36,
+      "admitted": 49,
+      "actual_line_change": 14,
+      "exact_rider_change": 15
+    },
+    "sums_in_heldout": {
+      "expected_switch_total": 11.154581712080624,
+      "switch_Brier": 9.859024355748693,
+      "base_assigned_as_H_nll": 46.08102019023309,
+      "estimated_H_nll": 46.6334736253078,
+      "B_without_H_nll": 39.63059548807944,
+      "B_integrating_H_nll": 40.25674952001284,
+      "B_with_H_known_after_start_nll": 31.94638884881847
+    }
+  },
+  "report_source_verification": {
+    "checked_races": 27,
+    "H_and_B_unique": 27,
+    "planned_pair_loss_with_unique_H_B": 4,
+    "known_pair_lost_despite_same_H_B_leader": 3,
+    "recent_reports_available_by_frozen_training": 8
+  },
+  "coverage_in_refreshed_cards": {
+    "prediction_cards": 64,
+    "starters": 443,
+    "starters_with_an_earlier_documented_move": 5,
+    "cards_with_an_earlier_documented_move": 4,
+    "starters_with_earlier_label_as_second": 0,
+    "known_same_leader_second_pair": 0,
+    "candidate_leader_second_pairs": 139
+  },
+  "official_report_summary_sha256": "918f3f97fd0a75ecf1ede17f48e77dd8a04b13f5fbddea5f898abc44327ce5f7",
+  "verified_source_report_files": 12,
+  "owner_cipher_sha256": "b4dbbec5711a270be246530870aa6e59ccac18ddcd6af7d37c157c720868c272"
+}

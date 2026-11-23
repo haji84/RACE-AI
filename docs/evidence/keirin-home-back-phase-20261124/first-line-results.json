@@ -1,0 +1,27 @@
+{
+  "proof": {
+    "source_sha256": "bb1c1f1f84ecf309294a18c84db98e4231f4b1752be967d3a08f275438452999",
+    "weights_sha256": "24c5ac653404aace3e8635256d06ec563f64a1737fe124940d49d0cee824facd",
+    "driver_sha256": "b8317ede2c788dc96bfea8c245dd8be9cacde38df046dd0e6ac042d85c00fe8c",
+    "races": 68,
+    "forecast_frozen_at": "2026-11-23T23:22:46.961823+00:00",
+    "matching_rider_features_from_same_available_card": true,
+    "forecast_digest": "dbfe4b6fc1d0f6ef463cedc4c39ef16123c7ba1dc45d7edb965a4243624b3105",
+    "owner_cipher_sha256": "74587720991d66c1e81f06f89ace4ae182db7af8b176e629604528bd950e4e1f"
+  },
+  "counts": {
+    "scored": 68,
+    "without_line_hit_1": 5,
+    "without_line_hit_4": 12,
+    "without_line_hit_8": 17,
+    "published_line_hit_1": 6,
+    "published_line_hit_4": 12,
+    "published_line_hit_8": 18,
+    "gained_8": 7,
+    "lost_8": 6
+  },
+  "paired_day_95_percentage_points": [
+    -9.434,
+    8.219
+  ]
+}
