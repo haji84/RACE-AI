@@ -1,0 +1,299 @@
+[
+  {
+    "month_jst": "202311",
+    "race_id": "202311282701",
+    "source_url": "https://keirin.kdreams.jp/keiokaku/racedetail/2720231126030001/",
+    "http": 200,
+    "sha256": "961f05b4a28078f9fb6f78e330a84e1e8773bab56beabf4c2d3cb702563ac3c5",
+    "fetched_at": "2026-11-23T15:29:33.054507+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 7
+  },
+  {
+    "month_jst": "202312",
+    "race_id": "202312162602",
+    "source_url": "https://keirin.kdreams.jp/seibuen/racedetail/2620231216010002/",
+    "http": 200,
+    "sha256": "49328f264f15daf22145c12fa537d1f57575b1e578ec9902fb95e37d725ee727",
+    "fetched_at": "2026-11-23T15:29:35.997067+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 4
+  },
+  {
+    "month_jst": "202401",
+    "race_id": "202401171310",
+    "source_url": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320240116020010/",
+    "http": 200,
+    "sha256": "4a1195ca07c482b13b76e21fbd5dea09aa97a3a3134ad417bdcb83e547531ebe",
+    "fetched_at": "2026-11-23T15:29:37.737367+00:00",
+    "marked_event_counts": {
+      "S": 1,
+      "B": 1
+    },
+    "complete_group_count": 3
+  },
+  {
+    "month_jst": "202402",
+    "race_id": "202402145310",
+    "source_url": "https://keirin.kdreams.jp/nara/racedetail/5320240213020010/",
+    "http": 200,
+    "sha256": "2bcd42b875e594f0ab9b9ffbca8643790ea026bf3c1058340352fbd9ff999bf1",
+    "fetched_at": "2026-11-23T15:29:39.644545+00:00",
+    "marked_event_counts": {
+      "S": 1,
+      "B": 1
+    },
+    "complete_group_count": 3
+  },
+  {
+    "month_jst": "202403",
+    "race_id": "202403162207",
+    "source_url": "https://keirin.kdreams.jp/maebashi/racedetail/2220240315020007/",
+    "http": 200,
+    "sha256": "75e96ca7a72aa422d3976f0c7819f3cdc609f56830c2b3c2af5229110e76a03f",
+    "fetched_at": "2026-11-23T15:29:41.685820+00:00",
+    "marked_event_counts": {
+      "B": 1
+    },
+    "complete_group_count": 7
+  },
+  {
+    "month_jst": "202404",
+    "race_id": "202404158312",
+    "source_url": "https://keirin.kdreams.jp/kurume/racedetail/8320240413030012/",
+    "http": 200,
+    "sha256": "f62dae36c34dc3c6227e90379c4b1ebd27067eb721e43a5b04f739d02490e361",
+    "fetched_at": "2026-11-23T15:29:43.880928+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 4
+  },
+  {
+    "month_jst": "202405",
+    "race_id": "202405162509",
+    "source_url": "https://keirin.kdreams.jp/omiya/racedetail/2520240514030009/",
+    "http": 200,
+    "sha256": "3fe0fa56b46a497cb22cfd7914a30a98126ce986b6a0456bf26e4f920b5fddd8",
+    "fetched_at": "2026-11-23T15:29:45.757642+00:00",
+    "marked_event_counts": {
+      "S": 1,
+      "B": 1
+    },
+    "complete_group_count": 3
+  },
+  {
+    "month_jst": "202406",
+    "race_id": "202406173703",
+    "source_url": "https://keirin.kdreams.jp/ito/racedetail/3720240617010003/",
+    "http": 200,
+    "sha256": "0cacc80c692b7330b2015130695dec41edc207150e2386d6a3fa6bd57b298c0b",
+    "fetched_at": "2026-11-23T15:29:47.885487+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 3
+  },
+  {
+    "month_jst": "202407",
+    "race_id": "202407167307",
+    "source_url": "https://keirin.kdreams.jp/komatsushima/racedetail/7320240716010007/",
+    "http": 200,
+    "sha256": "525e23bf525765f93a339abde3c6cb8c5e75e86b7b62f51d53de9b3cd13a186a",
+    "fetched_at": "2026-11-23T15:29:49.696978+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 3
+  },
+  {
+    "month_jst": "202408",
+    "race_id": "202408168401",
+    "source_url": "https://keirin.kdreams.jp/takeo/racedetail/8420240816010001/",
+    "http": 200,
+    "sha256": "62e46e70a591232cfe9d4589460c39fddfd1ee212a84ef572b3bb0d1ce620422",
+    "fetched_at": "2026-11-23T15:29:51.399796+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 3
+  },
+  {
+    "month_jst": "202409",
+    "race_id": "202409161206",
+    "source_url": "https://keirin.kdreams.jp/aomori/racedetail/1220240915020006/",
+    "http": 200,
+    "sha256": "c0530f0a96e49abce6fad4c76387905ba4f0338aa4bdb09f1ca1a23cd8dc974c",
+    "fetched_at": "2026-11-23T15:29:53.340317+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 3
+  },
+  {
+    "month_jst": "202410",
+    "race_id": "202410173109",
+    "source_url": "https://keirin.kdreams.jp/matsudo/racedetail/3120241015030009/",
+    "http": 200,
+    "sha256": "dc3528b032e66fbdd890c17ef27b92823a4656fdb3edb70219cf229ee3523622",
+    "fetched_at": "2026-11-23T15:29:55.112600+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 4
+  },
+  {
+    "month_jst": "202411",
+    "race_id": "202411151310",
+    "source_url": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320241113030010/",
+    "http": 200,
+    "sha256": "14120476feac4b6c781ba079a6341d73169cac3cfc859184b95c4bb933c0288f",
+    "fetched_at": "2026-11-23T15:29:56.871077+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 5
+  },
+  {
+    "month_jst": "202412",
+    "race_id": "202412164502",
+    "source_url": "https://keirin.kdreams.jp/toyohashi/racedetail/4520241215020002/",
+    "http": 200,
+    "sha256": "14626d4b08206516f2580b63deca2f12baadc2678f4380a2da321262916d9009",
+    "fetched_at": "2026-11-23T15:29:59.067034+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 4
+  },
+  {
+    "month_jst": "202501",
+    "race_id": "202501157505",
+    "source_url": "https://keirin.kdreams.jp/matsuyama/racedetail/7520250113030005/",
+    "http": 200,
+    "sha256": "e6c381db5acd9d368ea19d862564fb078e51a1ccd4713292d3ec833ca103af51",
+    "fetched_at": "2026-11-23T15:30:00.984860+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 7
+  },
+  {
+    "month_jst": "202502",
+    "race_id": "202502142607",
+    "source_url": "https://keirin.kdreams.jp/seibuen/racedetail/2620250213020007/",
+    "http": 200,
+    "sha256": "48f808da25cf4e8933979872c1469614a5ad2db5ac5094bfdad9837cc29c2709",
+    "fetched_at": "2026-11-23T15:30:02.745494+00:00",
+    "marked_event_counts": {
+      "S": 1,
+      "B": 1
+    },
+    "complete_group_count": 3
+  },
+  {
+    "month_jst": "202503",
+    "race_id": "202503166306",
+    "source_url": "https://keirin.kdreams.jp/hofu/racedetail/6320250316010006/",
+    "http": 200,
+    "sha256": "9e6b0254e9730cfef8a4700047d4a253d5e4f2fd60f0ad2a30f999476f627391",
+    "fetched_at": "2026-11-23T15:30:04.599909+00:00",
+    "marked_event_counts": {
+      "S": 1,
+      "B": 1
+    },
+    "complete_group_count": 4
+  },
+  {
+    "month_jst": "202504",
+    "race_id": "202504158601",
+    "source_url": "https://keirin.kdreams.jp/beppu/racedetail/8620250415010001/",
+    "http": 200,
+    "sha256": "ea268f6e17ef32901a339b760c5de63da01ceb864d113973b484dd0988847404",
+    "fetched_at": "2026-11-23T15:30:06.198974+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 4
+  },
+  {
+    "month_jst": "202505",
+    "race_id": "202505167303",
+    "source_url": "https://keirin.kdreams.jp/komatsushima/racedetail/7320250514030003/",
+    "http": 200,
+    "sha256": "0be2d8eb8657844dbfe9cffb3582a472285158094b7199786cf2c93076cd325e",
+    "fetched_at": "2026-11-23T15:30:07.910582+00:00",
+    "marked_event_counts": {
+      "B": 1
+    },
+    "complete_group_count": 3
+  },
+  {
+    "month_jst": "202506",
+    "race_id": "202506163807",
+    "source_url": "https://keirin.kdreams.jp/shizuoka/racedetail/3820250616010007/",
+    "http": 200,
+    "sha256": "ed9150e34ae0ce9c0aaa300b1217c3a988f4b3b05b0da3068dc8374df26e87a0",
+    "fetched_at": "2026-11-23T15:30:09.635820+00:00",
+    "marked_event_counts": {
+      "S": 1,
+      "B": 1
+    },
+    "complete_group_count": 3
+  },
+  {
+    "month_jst": "202507",
+    "race_id": "202507163404",
+    "source_url": "https://keirin.kdreams.jp/kawasaki/racedetail/3420250716010004/",
+    "http": 200,
+    "sha256": "7709abb3dd47dc862e0ea6cb9747e84a9df2ffcaa7ef4353960136b4baa0013d",
+    "fetched_at": "2026-11-23T15:30:11.319236+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 4
+  },
+  {
+    "month_jst": "202508",
+    "race_id": "202508158107",
+    "source_url": "https://keirin.kdreams.jp/kokura/racedetail/8120250815010007/",
+    "http": 200,
+    "sha256": "21ea4dace5f4a890b97561c45d02c6d0be5b0d8b08e3918c125971bf8e6aa31d",
+    "fetched_at": "2026-11-23T15:30:12.949987+00:00",
+    "marked_event_counts": {
+      "B": 1,
+      "S": 1
+    },
+    "complete_group_count": 3
+  },
+  {
+    "month_jst": "202509",
+    "race_id": "202509161105",
+    "source_url": "https://keirin.kdreams.jp/hakodate/racedetail/1120250914030005/",
+    "http": 200,
+    "sha256": "94458a7f37b4fb40dc32e5342fb1bc3b6e4b48561a3667a241f78b097296fc8c",
+    "fetched_at": "2026-11-23T15:30:14.624929+00:00",
+    "marked_event_counts": {
+      "S": 1,
+      "B": 1
+    },
+    "complete_group_count": 3
+  }
+]

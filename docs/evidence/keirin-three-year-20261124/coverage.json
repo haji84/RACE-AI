@@ -1,0 +1,130 @@
+{
+  "range_jst": [
+    "20231124",
+    "20261123"
+  ],
+  "archive_inventory_races": 82731,
+  "archive_inventory_days": 1096,
+  "archive_inventory_endpoints": [
+    "20231124",
+    "20261123"
+  ],
+  "monthly_races": 80388,
+  "monthly_id_conflicts": 0,
+  "kdreams_sql_races": 30713,
+  "kdreams_verified_group_roster_races": 29159,
+  "earliest_race_with_sql_groups": "202510011101",
+  "latest_race_with_sql_groups": "202611228112",
+  "counts": {
+    "earlier_race_any_registered": 3039,
+    "usable_earlier_phase_races": 2843,
+    "usable_earlier_phase_rider_rows": 17960,
+    "usable_S_rider_rows": 17230,
+    "usable_B_rider_rows": 17960,
+    "fit": 2508,
+    "fit_with_role_history": 1893,
+    "tune": 420,
+    "tune_with_role_history": 412,
+    "holdout": 1726,
+    "holdout_with_role_history": 1684
+  },
+  "strict_test_races": 562,
+  "app": {
+    "mapped_archive_riders": 41534,
+    "archive_riders": 47158,
+    "registry_ids": 2043,
+    "app_projected_races": 6617,
+    "pre_cutoff_races": 562
+  },
+  "app_commitments": {
+    "2026-11-16:c27d3133079d3e84e30033830a72e8c8decb581d": {
+      "sha256": "91851e95b10b378c09c53131d68f531f2671dee7634634ff3fa854779e493675",
+      "committed_at": "2026-11-16T06:05:37+09:00",
+      "qualifying_races": 56
+    },
+    "2026-11-16:576426b57a356a1486bff750c0805012d3242bac": {
+      "sha256": "091c039bb21ee74a5f8c036c5be241d01bb43548a9dcca10bf007aebd070236e",
+      "committed_at": "2026-11-16T17:39:08+09:00",
+      "qualifying_races": 16
+    },
+    "2026-11-17:49d5e80e09946a2e7388b01f434e02bc11856ce9": {
+      "sha256": "fab0dde605bfe9de75e861ab84419685c795e0a512b6aceb82d059205df304b5",
+      "committed_at": "2026-11-17T05:07:25+09:00",
+      "qualifying_races": 70
+    },
+    "2026-11-18:0ae625431f32b2458319142650a78ca920b50544": {
+      "sha256": "8038666b758b4bdc7a6893e3bc4d7149abcc641d217d405841ce41aca24d4ee3",
+      "committed_at": "2026-11-18T05:07:52+09:00",
+      "qualifying_races": 70
+    },
+    "2026-11-18:1e2bf9cacb184108033da23ec59f128eb4f7c667": {
+      "sha256": "0e68e8962949037a4aa55ecd9e6fb480b384e201dce1a044eef6da0b388549e0",
+      "committed_at": "2026-11-18T17:39:55+09:00",
+      "qualifying_races": 9
+    },
+    "2026-11-19:db26fdba6f550993b751d65780d0c051913256e5": {
+      "sha256": "ca964637c1aa3b5d53d33f8b391d81a05f6bd0c3c24704926eb8abc3688bb05f",
+      "committed_at": "2026-11-19T05:07:49+09:00",
+      "qualifying_races": 65
+    },
+    "2026-11-19:0363101a7ef09a3c519ad4288eea06cdd0a89cf6": {
+      "sha256": "3b0a6bda22af0409281b58c7f572451901bba5ef457f50c0572f010868eb4582",
+      "committed_at": "2026-11-19T17:44:47+09:00",
+      "qualifying_races": 8
+    },
+    "2026-11-20:5f994805b6f2d2950b9e7ae68a7726ec69a2d423": {
+      "sha256": "7d7046fb957858032e433b4c84be707243dfe450b155928ef7b0da1254edc678",
+      "committed_at": "2026-11-20T05:06:03+09:00",
+      "qualifying_races": 57
+    },
+    "2026-11-21:21c5099f28958187d1ab97834f44837e5100c27f": {
+      "sha256": "7bdc54bbf7825507d6bd17458dfdfdfc79ea9a866cb0bdf27f74bb7c9f84c61e",
+      "committed_at": "2026-11-21T05:07:28+09:00",
+      "qualifying_races": 39
+    },
+    "2026-11-21:35f65523f4e755b785f3ee022b21fc5baf4f1b79": {
+      "sha256": "93715ef2d687fdb16c3b55a9c5023223de746bbb7994984fccb2d3ef67215224",
+      "committed_at": "2026-11-21T17:38:43+09:00",
+      "qualifying_races": 17
+    },
+    "2026-11-22:28eac981704595d57b375be994c09a450d57754d": {
+      "sha256": "199a11df62f951ee138b109c3d979d79e69fb044950076bf2805eff9dc1ce122",
+      "committed_at": "2026-11-22T05:06:18+09:00",
+      "qualifying_races": 49
+    },
+    "2026-11-22:4b41b9c5dfe60de6d7d9aaed08d7934cea119aa4": {
+      "sha256": "2c3e639cfcf79e3f67405a4e2a9c918bb254fe25c164a9275d4bc3423fc45f0e",
+      "committed_at": "2026-11-22T17:38:10+09:00",
+      "qualifying_races": 18
+    },
+    "2026-11-23:e49896211a42fa856d8c148d77a1efafdb2c7e32": {
+      "sha256": "1b16bebcebef9960c9e9d31f1f7d47b390200a787902aeab6d4aa2a7a1f99042",
+      "committed_at": "2026-11-23T05:06:34+09:00",
+      "qualifying_races": 88
+    }
+  },
+  "ranges": {
+    "earlier_history_start": "20260825",
+    "fit": [
+      "20260903",
+      "20261020"
+    ],
+    "tune": [
+      "20261021",
+      "20261031"
+    ],
+    "holdout": [
+      "20261101",
+      "20261123"
+    ],
+    "holdout_uses_history_strictly_before": "20261101"
+  },
+  "H_fields_available_in_bulk_phase_source": false,
+  "actual_attack_timestamp_in_bulk_phase_source": false,
+  "monthly_races_by_year": {
+    "2023": 2834,
+    "2024": 27771,
+    "2025": 27432,
+    "2026": 22351
+  }
+}

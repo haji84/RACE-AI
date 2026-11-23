@@ -1,0 +1,22 @@
+{
+  "schema": "KEIRIN_THREE_YEAR_EXPERIMENT_COMMITMENT_V1",
+  "sealed_at": "2026-11-23T15:35:47.938575+00:00",
+  "forecast_sha256": "a897ddc66c96b6bd93c3cef1bd685d38fb3405df689ffb97e7795ea1c052b6c3",
+  "trainer_sha256": "c6f37452df26c6c62a733b06acb58a50d3aac3ae208655f964b5842299c44656",
+  "original_generator_sha256": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47",
+  "weight_config_sha256": "24c5ac653404aace3e8635256d06ec563f64a1737fe124940d49d0cee824facd",
+  "holdout_input_sha256": "c86ede5d8b3f7fc4663c4ade78c3bc09b3e94b5952128ea0c014e59a4528c846",
+  "assembly_source_sha256": "55fb13525d83014ccaeb25429c666be7e6e78ef028286e432c147ee190ef3668",
+  "evaluation_source_sha256": "9a8c25b3248b90e84a5afe6cbf3f7c4eeecd2e29bda5dbd71d0199ffc4bca46d",
+  "db_provenance_sha256": "c797a32a4203bc36e6f467f41f53e71b60677d45818e788e750f38247628b2f7",
+  "monthly_provenance_sha256": "49e71ec8441bdf181ae7b02c79a05cdd41d2c7c66da1c6e2b71bf0cf49c676d7",
+  "coverage_audit_sha256": "09f8c95868e2ee0006e73e9b4baa7082ec6568c07a0c8cd7559e8d406ab9d258",
+  "rider_identity_master_sha256": "17874818b26dbde91a7503ed7fbda31836721b1990b8908f5708785b799886f0",
+  "selected_before_reading_results": "published_line",
+  "evaluation_candidate_races": 1726,
+  "frozen_races": 1725,
+  "unforecast_reasons": {
+    "INSUFFICIENT_OBSERVED_FINISH_FEATURES": 1
+  },
+  "frozen_races_with_commit_before_cutoff": 561
+}
