@@ -3,11 +3,20 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 import json
 from pathlib import Path
 import re
+import time
 from unicodedata import normalize
+
+PAYOUT_TABLES = {'Kdreams': 'table.refund_table', 'netkeirin': 'table.Payout_Detail_Table'}
+SOURCE_STOP_CODES = {
+    'PROVIDER_DENIED_OR_RATE_LIMITED_STOP', 'PUBLIC_PROVIDER_HTTP_ERROR_STOP',
+    'PUBLIC_PROVIDER_UNAVAILABLE_STOP', 'PROVIDER_NON_HTML_OR_REDIRECT',
+    'PROVIDER_EMPTY_OR_OVERSIZED_HTML',
+}
 
 
 def checked(condition, code):
@@ -31,11 +40,11 @@ def payout(order, amount, places):
 
 
 def market_payouts(soup, provider):
+    table = soup.select_one(PAYOUT_TABLES[provider])
+    checked(table is not None, 'PAYOUT_NOT_PUBLISHED')
     if provider == 'Kdreams':
-        table = soup.select_one('table.refund_table')
-        checked(table is not None, 'PAYOUT_NOT_PUBLISHED')
         rows = table.find_all('tr')
-        checked(len(rows) == 2, 'REFUND_OR_MULTIPLE_PAYOUT_ROWS')
+        checked(len(rows) == 2, 'PAYOUT_TABLE_LAYOUT_CHANGED')
         headings = [re.sub(r'\s+', '', text(th)) for th in rows[0].find_all('th', recursive=False)]
         checked(headings == ['2枠連', '2車連', '3連勝', 'ワイド'], 'PAYOUT_TABLE_HEADER_CHANGED')
         cells = [text(cell) for cell in rows[1].find_all('td', recursive=False)]
@@ -47,8 +56,6 @@ def market_payouts(soup, provider):
             result[market] = payout(value[1], value[2], places)
         return result
 
-    table = soup.select_one('table.Payout_Detail_Table')
-    checked(table is not None, 'PAYOUT_NOT_PUBLISHED')
     result = {}
     for label, market, places in [('2車単', '2t', 2), ('3連単', '3t', 3)]:
         matching = [row for row in table.find_all('tr')
@@ -58,6 +65,17 @@ def market_payouts(soup, provider):
         checked(len(cells) == 2, 'PAYOUT_TABLE_LAYOUT_CHANGED')
         result[market] = payout(text(cells[0]), text(cells[1]), places)
     return result
+
+
+def has_special_notice(soup, provider):
+    table = soup.select_one(PAYOUT_TABLES[provider])
+    if table and re.search(r'返還|同着|レース中止|発売中止', text(table)):
+        return True
+    for node in soup.select('p, div, span, td'):
+        if (text(node).rstrip('。') in {'レース中止', '発売中止'} and
+                node.find_parent(['header', 'footer', 'nav', 'aside']) is None):
+            return True
+    return False
 
 
 def observe(race, provider, url, fetch, consensus, evidence):
@@ -71,8 +89,13 @@ def observe(race, provider, url, fetch, consensus, evidence):
     checked(race['venue']+'競輪' in title
             and date.strftime('%Y年')+str(date.month)+'月'+str(date.day)+'日' in title
             and re.search(r'(?<!\d)'+str(race['race_no'])+r'\s*R(?!\d)', title), 'RACE_TITLE_NOT_CONFIRMED')
-    triple = consensus.parse_observation(raw=body, provider=provider, source_url=url,
-                                        race_id=race['race_id'], observed_at=observed)
+    try:
+        triple = consensus.parse_observation(raw=body, provider=provider, source_url=url,
+                                            race_id=race['race_id'], observed_at=observed)
+    except consensus.ResultConsensusError as error:
+        if str(error) == 'SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL' and not has_special_notice(soup, provider):
+            raise ValueError('RESULT_SPECIAL_NOTICE_UNCONFIRMED') from None
+        raise
     amounts = market_payouts(soup, provider)
     checked(amounts['3t'] == (triple['winning_triple'], triple['payout_per_100yen']), 'PAYOUT_TABLE_DISAGREES')
     checked(amounts['2t'][0] == amounts['3t'][0][:2], 'PAYOUT_MARKETS_DISAGREE')
@@ -107,7 +130,30 @@ def validate_roster(published, consensus):
         ids.add(rid)
 
 
-def collect(published, fetch, consensus, *, previous=None, now=None):
+def provider_pause(error, now):
+    status = getattr(error, 'http_status', None)
+    if status not in (401, 403, 429):
+        return None
+    retry_at = None
+    if status == 429:
+        value = getattr(error, 'retry_after', None) or ''
+        retry_at = now + timedelta(hours=1)
+        if re.fullmatch(r'[0-9]+', value):
+            try:
+                retry_at = now + timedelta(seconds=int(value))
+            except (ValueError, OverflowError):
+                retry_at = None
+        elif value:
+            try:
+                reported = parsedate_to_datetime(value)
+                if reported.utcoffset() is not None:
+                    retry_at = max(now, reported)
+            except (TypeError, ValueError, OverflowError):
+                pass
+    return {'status': status, 'retry_at': retry_at.astimezone(timezone.utc).isoformat() if retry_at else None}
+
+
+def collect(published, fetch, consensus, *, previous=None, now=None, resume_after=None, can_poll=None):
     validate_roster(published,consensus)
     date = published['date']
     entries, evidence = [], []
@@ -120,20 +166,29 @@ def collect(published, fetch, consensus, *, previous=None, now=None):
         old={entry['race_id']:entry for entry in previous['races']}
         checked(len(old)==len(previous['races']) and set(old)<={r['race_id'] for r in published['races']},'PREVIOUS_RESULT_ROSTER_MISMATCH')
     attempted = False
-    for race in sorted(published['races'], key=lambda row: datetime.fromisoformat(row['published_cutoff_at'])):
-        checked(race['date'] == date, 'DAY_MISMATCH')
-        if max(datetime.fromisoformat(race['published_cutoff_at']),datetime.fromisoformat(published['generated_at'])) >= poll_at:
-            continue
+    ordered = sorted(published['races'], key=lambda row: (
+        datetime.fromisoformat(row['published_cutoff_at']), row['race_id']))
+    order = {race['race_id']: index for index, race in enumerate(ordered)}
+    start = order.get(resume_after, -1) + 1
+    generated = datetime.fromisoformat(published['generated_at'])
+    for race in ordered[start:] + ordered[:start]:
         rid = race['race_id']
         existing=old.get(rid)
         if existing and (existing['state']=='matched' or existing.get('reason')=='special_result'):
             entries.append(existing)
             continue
+        if max(datetime.fromisoformat(race['published_cutoff_at']), generated) >= poll_at:
+            continue
         if stopped:
             entries.append(existing or {'race_id':rid, 'state':'pending', 'reason':'source_unavailable'})
             continue
+        if can_poll is not None and not can_poll():
+            if existing:
+                entries.append(existing)
+            continue
         try:
             attempted=True
+            evidence.append({'race_id': rid, 'attempted': True})
             kd, first = observe(race, 'Kdreams', race['source_url']+'?pageType=result', fetch, consensus, evidence)
             net, second = observe(race, 'netkeirin', 'https://keirin.netkeiba.com/race/result/?race_id='+rid,
                                   fetch, consensus, evidence)
@@ -145,22 +200,40 @@ def collect(published, fetch, consensus, *, previous=None, now=None):
             entries.append({'race_id':rid, 'state':'matched', 'comparison':comparison})
         except (ValueError, OSError) as error:
             code = str(error)
-            if code in ('PROVIDER_DENIED_OR_RATE_LIMITED_STOP','PUBLIC_PROVIDER_UNAVAILABLE_STOP'):
+            if code == 'PUBLIC_PROVIDER_HTTP_ERROR_STOP' and getattr(error, 'http_status', None) == 404:
+                code = 'RESULT_HTTP_NOT_FOUND'
+            if code in SOURCE_STOP_CODES:
                 stopped = True
                 reason, state = 'source_unavailable', 'pending'
-            elif code in ('PAYOUT_NOT_PUBLISHED','TRIFECTA_RESULT_NOT_PUBLISHED','SOURCE_HTML_NOT_FINAL_RESULT_PAGE','PUBLIC_PROVIDER_HTTP_ERROR_STOP'):
+            elif code in ('PAYOUT_NOT_PUBLISHED','TRIFECTA_RESULT_NOT_PUBLISHED','SOURCE_HTML_NOT_FINAL_RESULT_PAGE','RESULT_HTTP_NOT_FOUND'):
                 reason, state = 'result_unpublished', 'pending'
-            elif code in ('SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL','REFUND_OR_MULTIPLE_PAYOUT_ROWS'):
+            elif code == 'SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL':
                 reason, state = 'special_result', 'held'
             else:
                 reason, state = 'source_disagreement', 'held'
             entries.append({'race_id':rid, 'state':state, 'reason':reason})
             evidence.append({'race_id':rid, 'state':state,
                              'code':code if re.fullmatch(r'[A-Z0-9_]{3,90}', code) else 'SOURCE_CHECK_FAILED'})
+            pause = provider_pause(error, datetime.now(timezone.utc)) if stopped else None
+            if pause is not None:
+                evidence[-1]['provider_pause'] = pause
     if not attempted and previous is not None:
         return previous,evidence
     return {'schema':'KEIRIN_PUBLISHED_RESULTS_V1', 'date':date,
-            'checked_at':datetime.now(timezone.utc).isoformat(), 'races':entries}, evidence
+            'checked_at':datetime.now(timezone.utc).isoformat(),
+            'races':sorted(entries, key=lambda entry: order[entry['race_id']])}, evidence
+
+
+def pause_is_active(path, now):
+    if not path.exists():
+        return False
+    pause = json.loads(path.read_bytes())
+    checked(type(pause) is dict and set(pause) == {'status', 'retry_at'} and pause['status'] in (401,403,429),
+            'INVALID_PUBLIC_PROVIDER_PAUSE')
+    if pause['retry_at'] is None or datetime.fromisoformat(pause['retry_at']) > now:
+        print(json.dumps({'provider_paused': pause}))
+        return True
+    return False
 
 
 def main():
@@ -171,31 +244,68 @@ def main():
     args = parser.parse_args()
     from race_ai import keirin_secondary_result_consensus as consensus
     from scripts.keirin_capture_public_two_sources import fetch_once
-    rosters=sorted((args.state_directory/'rosters').glob('20??-??-??.json'), reverse=True)
+    rosters=sorted((args.state_directory/'rosters').glob('20??-??-??.json'))
     checked(bool(rosters),'PUBLIC_RESULT_ROSTERS_MISSING')
     result_dir=args.state_directory/'results'
     result_dir.mkdir(exist_ok=True)
-    remaining = 0
+    pause_file = result_dir / 'provider-pause.json'
+    if pause_is_active(pause_file, datetime.now(timezone.utc)):
+        return 0
+
+    position_file = result_dir / 'poll-positions.json'
+    positions = json.loads(position_file.read_bytes()) if position_file.exists() else {}
+    checked(type(positions) is dict and all(
+        re.fullmatch(r'20\d\d-\d\d-\d\d', day) and type(rid) is str and
+        re.fullmatch(day.replace('-', '') + r'\d{4}', rid)
+        for day, rid in positions.items()), 'INVALID_PUBLIC_RESULT_POLL_POSITIONS')
+    previous_positions = positions.copy()
+    day_packets = []
     for path in rosters:
-        published=json.loads(path.read_bytes())
-        checked(path.stem==published['date'],'PUBLIC_ROSTER_FILENAME_MISMATCH')
         destination=result_dir/path.name
         previous=json.loads(destination.read_bytes()) if destination.exists() else None
-        packet,evidence=collect(published,fetch_once,consensus,previous=previous)
+        day_packets.append((previous['checked_at'] if previous else '', path, destination, previous))
+
+    # Leave time for the last pair of requests and the Git write before the job times out.
+    deadline = time.monotonic() + 450
+
+    def can_poll():
+        return time.monotonic() < deadline
+
+    complete = True
+    status = 0
+    for _, path, destination, previous in sorted(day_packets):
+        if not can_poll():
+            complete = False
+            break
+        published=json.loads(path.read_bytes())
+        day = path.stem
+        checked(day==published['date'],'PUBLIC_ROSTER_FILENAME_MISMATCH')
+        packet,evidence=collect(published,fetch_once,consensus,previous=previous,
+                                resume_after=positions.get(day),can_poll=can_poll)
         if packet!=previous:
             destination.write_text(json.dumps(packet,ensure_ascii=False,separators=(',', ':'))+'\n')
         resolved = sum(entry['state'] == 'matched' or entry.get('reason') == 'special_result'
                        for entry in packet['races'])
-        remaining += len(published['races']) - resolved
-        provider_failure = next((entry['code'] for entry in evidence if entry.get('code') in (
-            'PROVIDER_DENIED_OR_RATE_LIMITED_STOP', 'PUBLIC_PROVIDER_UNAVAILABLE_STOP')), None)
+        if resolved < len(published['races']):
+            complete = False
+            last_attempt = next((row['race_id'] for row in reversed(evidence) if row.get('attempted')), None)
+            if last_attempt is not None:
+                positions[day] = last_attempt
+        else:
+            positions.pop(day, None)
+        failure = next((row for row in evidence if row.get('code') in SOURCE_STOP_CODES), None)
         print(json.dumps({'date':packet['date'],'checked_at':packet['checked_at'],
                           'race_count':len(published['races']),'updated':packet!=previous,
                           'states':dict(Counter(entry['state'] for entry in packet['races'])),
-                          'provider_failure':provider_failure}))
-        if provider_failure:
-            return 75
-    return 10 if args.stop_when_complete and remaining == 0 else 0
+                          'provider_failure':failure['code'] if failure else None}))
+        if failure:
+            if 'provider_pause' in failure:
+                pause_file.write_text(json.dumps(failure['provider_pause'])+'\n')
+            status = 75
+            break
+    if positions != previous_positions:
+        position_file.write_text(json.dumps(positions, sort_keys=True)+'\n')
+    return status or (10 if args.stop_when_complete and complete else 0)
 
 
 if __name__ == '__main__':

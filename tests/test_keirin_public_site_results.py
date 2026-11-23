@@ -1,5 +1,6 @@
 from contextlib import redirect_stdout
 from datetime import datetime, timedelta, timezone
+from http.client import IncompleteRead
 import io
 import json
 import os
@@ -9,8 +10,10 @@ import subprocess
 from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
+from urllib.error import HTTPError
 
 from race_ai import keirin_secondary_result_consensus as consensus
+from scripts import keirin_capture_public_two_sources as capture
 from scripts import keirin_public_site_results as publisher
 
 DATE = '2026-11-23'
@@ -34,6 +37,104 @@ def snapshot(entries):
 
 
 class PublicResultRefreshTests(unittest.TestCase):
+    def test_new_cutoff_does_not_remove_a_match_or_special_result(self):
+        match = {'race_id': IDS[0], 'state': 'matched', 'comparison': {'race_id': IDS[0]}}
+        special = {'race_id': IDS[1], 'state': 'held', 'reason': 'special_result'}
+        later = '2026-11-23T12:00:00+09:00'
+        with patch.object(publisher, 'observe', side_effect=ValueError('PAYOUT_NOT_PUBLISHED')):
+            data, _ = publisher.collect(roster([race(0, later), race(1, later), race(2)]),
+                                        None, consensus, previous=snapshot([match, special]), now=NOW)
+        rows = {row['race_id']: row for row in data['races']}
+        self.assertEqual(rows.get(IDS[0]), match)
+        self.assertEqual(rows.get(IDS[1]), special)
+        self.assertEqual(rows[IDS[2]]['reason'], 'result_unpublished')
+
+    def test_missing_page_is_pending_while_http_outage_stops_the_batch(self):
+        cases = [(404, 'result_unpublished', 2), (503, 'source_unavailable', 1)]
+        for status, reason, calls in cases:
+            with self.subTest(status=status), patch.object(capture, 'build_opener') as opener:
+                request = opener.return_value.open
+                request.side_effect = HTTPError('https://keirin.kdreams.jp/', status, 'fixture', {}, None)
+                data, evidence = publisher.collect(roster([race(0), race(1)]), capture.fetch_once,
+                                                   consensus, now=NOW)
+                self.assertEqual([row['reason'] for row in data['races']], [reason, reason])
+                self.assertEqual(request.call_count, calls)
+                self.assertEqual(next(row['code'] for row in evidence if 'code' in row),
+                                 'RESULT_HTTP_NOT_FOUND' if status == 404 else 'PUBLIC_PROVIDER_HTTP_ERROR_STOP')
+
+    def test_truncated_response_stops_the_batch_and_keeps_the_prior_match(self):
+        match = {'race_id': IDS[0], 'state': 'matched', 'comparison': {'race_id': IDS[0]}}
+        with patch.object(capture, 'build_opener') as opener:
+            request = opener.return_value.open
+            response = request.return_value
+            response.status = 200
+            response.headers = {'Content-Type': 'text/html'}
+            response.geturl.side_effect = lambda: request.call_args.args[0].full_url
+            response.read.side_effect = IncompleteRead(b'<html>', expected=40)
+            data, evidence = publisher.collect(roster([race(0),race(1),race(2)]), capture.fetch_once,
+                                               consensus, previous=snapshot([match]), now=NOW)
+        self.assertIn(match, data['races'])
+        self.assertEqual([row['reason'] for row in data['races'][1:]], ['source_unavailable'] * 2)
+        request.assert_called_once()
+        self.assertEqual(evidence[-1]['code'], 'PUBLIC_PROVIDER_UNAVAILABLE_STOP')
+
+    def test_layout_change_is_retryable_and_explicit_cancellation_is_preserved(self):
+        page = '''<html><head><title>広島競輪 2026年11月23日 1R 結果</title></head>
+        <body><div>払戻</div>{notice}<table class="refund_table">
+        <tr><th>2枠連</th><th>2車連</th><th>3連勝</th><th>ワイド</th></tr>
+        <tr><td>単</td><td></td><td>単</td><td>1-2 780円</td><td>単</td><td>1-2-4 2,110円</td></tr>
+        <tr><td>払戻の補足欄</td></tr></table></body></html>'''
+        for notice, expected in [('', 'source_disagreement'),
+                                 ('<footer>返還についてのヘルプ</footer>', 'source_disagreement'),
+                                 ('<p>レース中止</p>', 'special_result')]:
+            with self.subTest(notice=notice):
+                html = page.format(notice=notice).encode('utf-8')
+                data, _ = publisher.collect(roster([race(0)]), lambda _url: html, consensus, now=NOW)
+                self.assertEqual(data['races'][0]['state'], 'held')
+                self.assertEqual(data['races'][0]['reason'], expected)
+
+    def test_rate_limit_persists_between_polls_until_retry_after(self):
+        with TemporaryDirectory() as directory:
+            state = Path(directory)
+            (state / 'rosters').mkdir()
+            (state / 'rosters' / f'{DATE}.json').write_text(json.dumps(roster([race(0)])))
+            with (patch('sys.argv', ['publisher', '--state-directory', directory]),
+                  patch.object(publisher, 'datetime', wraps=datetime) as clock,
+                  patch.object(capture, 'build_opener') as opener,
+                  redirect_stdout(io.StringIO())):
+                request = opener.return_value.open
+                request.side_effect = HTTPError('https://keirin.kdreams.jp/', 429, 'fixture',
+                                                {'Retry-After': '10800'}, None)
+                clock.now.return_value = NOW
+                self.assertEqual(publisher.main(), 75)
+                clock.now.return_value = NOW + timedelta(minutes=15)
+                publisher.main()
+                request.assert_called_once()
+                clock.now.return_value = NOW + timedelta(hours=3)
+                request.side_effect = HTTPError('https://keirin.kdreams.jp/', 404, 'fixture', {}, None)
+                self.assertEqual(publisher.main(), 0)
+                self.assertEqual(request.call_count, 2)
+
+    def test_budget_preserves_earlier_rows_and_resumes_with_the_next_race(self):
+        match = {'race_id': IDS[2], 'state': 'matched', 'comparison': {'race_id': IDS[2]}}
+        published = roster([race(0), race(1), race(2)])
+        calls = []
+
+        def missing(url):
+            calls.append(url)
+            raise ValueError('PAYOUT_NOT_PUBLISHED')
+
+        with patch.object(publisher, 'datetime', wraps=datetime) as clock:
+            clock.now.return_value = NOW
+            first, _ = publisher.collect(published, missing, consensus, previous=snapshot([match]),
+                                         now=NOW, can_poll=lambda: not calls)
+            self.assertEqual({row['race_id'] for row in first['races']}, {IDS[0], IDS[2]})
+            later, _ = publisher.collect(published, missing, consensus, previous=first, now=NOW,
+                                         resume_after=IDS[0], can_poll=lambda: len(calls) == 1)
+        self.assertEqual([url.split('/')[-2][-1] for url in calls], ['1', '2'])
+        self.assertEqual({row['race_id'] for row in later['races']}, set(IDS))
+        self.assertIn(match, later['races'])
+
     @unittest.skipUnless(shutil.which('git') and shutil.which('bash'), 'The public publisher runs with Git and Bash')
     def test_watch_reads_back_the_first_poll_before_checking_again(self):
         repo = Path(__file__).resolve().parents[1]

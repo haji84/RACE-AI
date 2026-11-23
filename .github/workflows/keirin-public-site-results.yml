@@ -10,6 +10,7 @@ on:
     paths:
       - '.github/workflows/keirin-public-site-results.yml'
       - 'scripts/keirin_publish_public_site_results.sh'
+      - 'scripts/keirin_capture_public_two_sources.py'
       - 'scripts/keirin_public_site_results.py'
       - 'tests/test_keirin_public_site_results.py'
 
@@ -32,7 +33,7 @@ jobs:
         shell: bash
         run: |
           python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5'
-          python -m unittest tests.test_keirin_public_site_results
+          python -m unittest tests.test_keirin_public_site_results tests.test_keirin_capture_public_two_sources
           bash -n scripts/keirin_publish_public_site_results.sh
 
   publish-public-site-results:
