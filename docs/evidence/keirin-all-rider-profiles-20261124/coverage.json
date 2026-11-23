@@ -1,0 +1,160 @@
+{
+  "schema": "KEIRIN_RIDER_HISTORY_COVERAGE_V1",
+  "date_range_jst": [
+    "20231124",
+    "20261123"
+  ],
+  "official_active": 2416,
+  "official_updated_at": "2026-11-18T02:37:00+09:00",
+  "official_identities_sha256": "f48693892ff6dd2b30d1b16806b991c04925fbb0c064cb92e61180c378031edb",
+  "official_gender": {
+    "female": 227,
+    "male": 2189
+  },
+  "registry_census": {
+    "observations_any": 2371,
+    "observations_at_least_three": 2371,
+    "last365_at_least_three": 2371,
+    "last60_at_least_three": 2320,
+    "archive_has_identity": 2371
+  },
+  "historical_monthly": {
+    "races": 80388,
+    "rider_name_term_prefecture_tuples": 2683,
+    "rider_name_term_pairs": 2681,
+    "official_distinct_registrations_matched_to_monthly": 2372,
+    "linked_registry_ids_with_admitted_results": 2372,
+    "conflicting_races": 0
+  },
+  "profiles": {
+    "eligible_prior_races": 72677,
+    "eligible_csv_races": 47543,
+    "eligible_rider_rows": 515351,
+    "used_rider_rows": 484289,
+    "speed_rows": 482053,
+    "role_rows": 164217,
+    "actual_s_rows": 163942,
+    "actual_b_rows": 174048,
+    "incomplete_earlier_fields": 6057,
+    "unbound_rider_rows": 31062,
+    "eligible_sql_races": 25134
+  },
+  "sources_for_same_race_binding": {
+    "mapped_archive_riders": 47128,
+    "archive_riders": 47158,
+    "registry_ids": 2427,
+    "app_projected_races": 6617,
+    "pre_cutoff_races": 562
+  },
+  "partitions": {
+    "fit": 22545,
+    "calibrate": 3050,
+    "holdout": 3590
+  },
+  "example_features": {
+    "fit": {
+      "entry_rows": 160362,
+      "career_rows_at_least_three": 155421,
+      "recent_rows_at_least_three": 153685,
+      "role_rows_at_least_three": 134067,
+      "track_rows_at_least_three": 75236,
+      "grade_rows_at_least_three": 154523,
+      "bound": 155645
+    },
+    "calibrate": {
+      "entry_rows": 21717,
+      "career_rows_at_least_three": 21667,
+      "recent_rows_at_least_three": 21504,
+      "role_rows_at_least_three": 21162,
+      "track_rows_at_least_three": 10043,
+      "grade_rows_at_least_three": 21653,
+      "bound": 21670
+    },
+    "after": {
+      "entry_rows": 21564,
+      "career_rows_at_least_three": 21564,
+      "recent_rows_at_least_three": 21238,
+      "role_rows_at_least_three": 21158,
+      "track_rows_at_least_three": 9291,
+      "grade_rows_at_least_three": 21545,
+      "bound": 21564
+    },
+    "timed": {
+      "entry_rows": 4035,
+      "career_rows_at_least_three": 4033,
+      "recent_rows_at_least_three": 3954,
+      "role_rows_at_least_three": 3932,
+      "track_rows_at_least_three": 2058,
+      "grade_rows_at_least_three": 4032,
+      "bound": 4033
+    }
+  },
+  "timed_program_races": 562,
+  "program_receipts": {
+    "2026-11-16:c27d3133079d3e84e30033830a72e8c8decb581d": {
+      "sha256": "91851e95b10b378c09c53131d68f531f2671dee7634634ff3fa854779e493675",
+      "committed_at": "2026-11-16T06:05:37+09:00",
+      "qualifying_races": 56
+    },
+    "2026-11-16:576426b57a356a1486bff750c0805012d3242bac": {
+      "sha256": "091c039bb21ee74a5f8c036c5be241d01bb43548a9dcca10bf007aebd070236e",
+      "committed_at": "2026-11-16T17:39:08+09:00",
+      "qualifying_races": 16
+    },
+    "2026-11-17:49d5e80e09946a2e7388b01f434e02bc11856ce9": {
+      "sha256": "fab0dde605bfe9de75e861ab84419685c795e0a512b6aceb82d059205df304b5",
+      "committed_at": "2026-11-17T05:07:25+09:00",
+      "qualifying_races": 70
+    },
+    "2026-11-18:0ae625431f32b2458319142650a78ca920b50544": {
+      "sha256": "8038666b758b4bdc7a6893e3bc4d7149abcc641d217d405841ce41aca24d4ee3",
+      "committed_at": "2026-11-18T05:07:52+09:00",
+      "qualifying_races": 70
+    },
+    "2026-11-18:1e2bf9cacb184108033da23ec59f128eb4f7c667": {
+      "sha256": "0e68e8962949037a4aa55ecd9e6fb480b384e201dce1a044eef6da0b388549e0",
+      "committed_at": "2026-11-18T17:39:55+09:00",
+      "qualifying_races": 9
+    },
+    "2026-11-19:db26fdba6f550993b751d65780d0c051913256e5": {
+      "sha256": "ca964637c1aa3b5d53d33f8b391d81a05f6bd0c3c24704926eb8abc3688bb05f",
+      "committed_at": "2026-11-19T05:07:49+09:00",
+      "qualifying_races": 65
+    },
+    "2026-11-19:0363101a7ef09a3c519ad4288eea06cdd0a89cf6": {
+      "sha256": "3b0a6bda22af0409281b58c7f572451901bba5ef457f50c0572f010868eb4582",
+      "committed_at": "2026-11-19T17:44:47+09:00",
+      "qualifying_races": 8
+    },
+    "2026-11-20:5f994805b6f2d2950b9e7ae68a7726ec69a2d423": {
+      "sha256": "7d7046fb957858032e433b4c84be707243dfe450b155928ef7b0da1254edc678",
+      "committed_at": "2026-11-20T05:06:03+09:00",
+      "qualifying_races": 57
+    },
+    "2026-11-21:21c5099f28958187d1ab97834f44837e5100c27f": {
+      "sha256": "7bdc54bbf7825507d6bd17458dfdfdfc79ea9a866cb0bdf27f74bb7c9f84c61e",
+      "committed_at": "2026-11-21T05:07:28+09:00",
+      "qualifying_races": 39
+    },
+    "2026-11-21:35f65523f4e755b785f3ee022b21fc5baf4f1b79": {
+      "sha256": "93715ef2d687fdb16c3b55a9c5023223de746bbb7994984fccb2d3ef67215224",
+      "committed_at": "2026-11-21T17:38:43+09:00",
+      "qualifying_races": 17
+    },
+    "2026-11-22:28eac981704595d57b375be994c09a450d57754d": {
+      "sha256": "199a11df62f951ee138b109c3d979d79e69fb044950076bf2805eff9dc1ce122",
+      "committed_at": "2026-11-22T05:06:18+09:00",
+      "qualifying_races": 49
+    },
+    "2026-11-22:4b41b9c5dfe60de6d7d9aaed08d7934cea119aa4": {
+      "sha256": "2c3e639cfcf79e3f67405a4e2a9c918bb254fe25c164a9275d4bc3423fc45f0e",
+      "committed_at": "2026-11-22T17:38:10+09:00",
+      "qualifying_races": 18
+    },
+    "2026-11-23:e49896211a42fa856d8c148d77a1efafdb2c7e32": {
+      "sha256": "1b16bebcebef9960c9e9d31f1f7d47b390200a787902aeab6d4aa2a7a1f99042",
+      "committed_at": "2026-11-23T05:06:34+09:00",
+      "qualifying_races": 88
+    }
+  }
+}

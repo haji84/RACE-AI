@@ -140,6 +140,10 @@ def probabilities(columns, weights, mode, prefix):
     names = feature_names(mode, position)
     matrix = choice_matrix(columns, names, prefix)
     logits = matrix @ np.array([weights[position][key] for key in names])
+    return available_probabilities(logits, prefix)
+
+
+def available_probabilities(logits, prefix):
     for fixed in prefix:
         logits[np.arange(len(fixed)), fixed] = -np.inf
     mass = np.exp(logits - np.max(logits, axis=1, keepdims=True))
@@ -147,13 +151,18 @@ def probabilities(columns, weights, mode, prefix):
 
 
 def rankings(cars, columns, weights, mode):
+    return conditional_rankings(cars, lambda prefix: probabilities(columns, weights, mode, prefix))
+
+
+def conditional_rankings(cars, probabilities_for_prefix):
+    """Order legal tickets from successive probabilities of the remaining riders."""
     size = len(cars)
     positions = np.arange(size)
-    first = probabilities(columns, weights, mode, ())[0]
-    second = probabilities(columns, weights, mode, (positions,))
+    first = probabilities_for_prefix(())[0]
+    second = probabilities_for_prefix((positions,))
     pair = first[:, None] * second
     head, following = np.where(pair > 0)
-    third = probabilities(columns, weights, mode, (head, following))
+    third = probabilities_for_prefix((head, following))
     triple = pair[head, following, None] * third
 
     pair_order = np.argsort(-pair.ravel(), kind='stable')
