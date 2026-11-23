@@ -1,0 +1,143 @@
+{
+  "date": "2026-11-23",
+  "root": "/",
+  "static_data_url": "/data/keirin_20261123_reference_public.json",
+  "candidate_worker_sha256": "fafb4822bb46ff37bd77cef6c2110cd4932492bffedb6508e0c2dfbab60ba06a",
+  "public_asset_sha256": "26a1562752eb641d1b35db71e6440d004af3051402188f6fd4db1e8786fc28bc",
+  "source_odds_capture": {
+    "day": "2026-11-23",
+    "ticket": "refresh",
+    "observed_at": "2026-11-23T00:34:29.390Z",
+    "targeted": 51,
+    "observations": 89,
+    "stopped": null,
+    "status": {
+      "ok": 89
+    },
+    "scopes": {
+      "all_outlets": 89
+    },
+    "rawHttp": {
+      "200": 89
+    },
+    "with_numeric_2t": 89,
+    "with_numeric_3t": 89
+  },
+  "time_generated_utc": "2026-11-23T00:29:47.264442+00:00",
+  "forecast_count_distributions": {
+    "A_3t": {
+      "counts": {
+        "1": 5,
+        "2": 12,
+        "3": 13,
+        "4": 15,
+        "5": 11,
+        "6": 5,
+        "7": 7,
+        "8": 8,
+        "9": 1,
+        "10": 3,
+        "11": 2,
+        "12": 3,
+        "14": 1,
+        "15": 1,
+        "16": 1,
+        "17": 1
+      }
+    },
+    "B_3t": {
+      "counts": {
+        "1": 9,
+        "2": 14,
+        "3": 16,
+        "4": 12,
+        "5": 9,
+        "6": 7,
+        "7": 7,
+        "9": 4,
+        "11": 4,
+        "12": 1,
+        "13": 1,
+        "15": 1,
+        "16": 3,
+        "17": 1
+      }
+    },
+    "A_2t": {
+      "counts": {
+        "0": 2,
+        "2": 19,
+        "3": 18,
+        "4": 9,
+        "5": 15,
+        "6": 12,
+        "7": 9,
+        "8": 2,
+        "9": 1,
+        "12": 2
+      }
+    },
+    "B_2t": {
+      "counts": {
+        "1": 2,
+        "2": 24,
+        "3": 14,
+        "4": 13,
+        "5": 15,
+        "6": 7,
+        "7": 7,
+        "8": 1,
+        "9": 4,
+        "11": 1,
+        "12": 1
+      }
+    }
+  },
+  "selected_odds_counts": {
+    "3t": {
+      "tickets": 939,
+      "numeric": 926,
+      "capped": 13,
+      "unlisted": 0
+    },
+    "2t": {
+      "tickets": 764,
+      "numeric": 682,
+      "capped": 82,
+      "unlisted": 0
+    }
+  },
+  "display_panels": {
+    "A_3t": 89,
+    "B_3t": 89,
+    "A_2t": 89,
+    "B_2t": 89
+  },
+  "anonymous_connection_calls": 0,
+  "marked_as_after_cutoff": 5,
+  "browser_or_device_test": false,
+  "evaluated_at_utc": "2026-11-23T00:38:27.491Z",
+  "schema": "RACE_AI_KEIRIN_VARIABLE_POINTS_ODDS_RELEASE_V1",
+  "base_site_source_commit": "74abd276e4e995547d8229c4554b2b9b3f88938a",
+  "previous_A_3t_fixed_12_races": 89,
+  "previous_chat_transcript_readable": false,
+  "method_source": "2026-11-22 documented site method",
+  "selection_relative_to_peak": 0.5,
+  "verified_pre_race_card_inputs": 89,
+  "model_result_fields_read": false,
+  "site_tests_passed": 158,
+  "python_tests_passed": 35,
+  "site_version": 25,
+  "site_source_commit": "01174acfbb576c33cac75360a0fa8f2b7f6607d5",
+  "deployment_status": "succeeded",
+  "deployment_confirmed_at_utc": "2026-11-23T00:40:14.813919+00:00",
+  "site_access_mode": "public",
+  "direct_site_https_status_from_workspace": 403,
+  "edge_error_code": "1010",
+  "model_repository_commit": "0115c9a7501ac982ef26c3dbe48dc7f0c470e944",
+  "model_source_sha256": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47",
+  "analysis_script_sha256": "afd19f3ce0918654eea517550a64cccac4eb893df107287405e57ff6da7f8341",
+  "original_encrypted_feed_untouched": true,
+  "authored_a_b_display_keeps_original_private_records": true,
+  "odds_read_is_snapshot": true
+}

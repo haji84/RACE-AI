@@ -343,11 +343,12 @@ def resolve_lines(row, riders):
     return None, 'UNAVAILABLE', [], ['並び未取得のためBの6局面は未生成。']
 
 
-def check_tickets(tickets, cars, length):
+def check_tickets(tickets, cars, length, *, selection=None):
     physical_max = 1
     for offset in range(length):
         physical_max *= len(cars) - offset
-    need(isinstance(tickets, list) and 1 <= len(tickets) <= physical_max and
+    abstained = (selection or {}).get('recommendation') == 'ABSTAIN_INSUFFICIENT_SEPARATION'
+    need(isinstance(tickets, list) and len(tickets) <= physical_max and bool(tickets) != abstained and
          all(isinstance(ticket, list) and len(ticket) == length and
              len(set(ticket)) == length and all(car in cars for car in ticket) for ticket in tickets)
          and len({tuple(ticket) for ticket in tickets}) == len(tickets), 'INVALID_ANALYSIS_TICKETS')
@@ -406,8 +407,9 @@ def analyze(row, model, generated_at, observations=None):
     A, B = revised['A'], revised['B']
     for arm in (A, B):
         if arm.get('state') == 'GENERATED_RESEARCH_ONLY':
-            check_tickets(arm['ranked_tickets'], cars, 3)
-            check_tickets(arm['ranked_2ren_tan'], cars, 2)
+            markets = arm.get('selection') or {}
+            check_tickets(arm['ranked_tickets'], cars, 3, selection=markets.get('3t'))
+            check_tickets(arm['ranked_2ren_tan'], cars, 2, selection=markets.get('2t'))
         for scenario in arm.get('six_phase_scenarios', []):
             need([phase['phase'] for phase in scenario['six_phases']] == list(model.PHASES),
                  'SIX_PHASES_MISSING')

@@ -15,6 +15,14 @@ g=module('unread_current',ROOT/'scripts/keirin_generate_result_unread_analysis.p
 c=module('stability_current',ROOT/'race_ai/keirin_research_stability.py')
 
 class CurrentMethodEvidenceTests(unittest.TestCase):
+    def test_declared_abstention_retains_the_race_with_zero_adopted_tickets(self):
+        cars = [1, 2, 3, 4, 5, 6, 7]
+        g.check_tickets([], cars, 3, selection={'recommendation': 'ABSTAIN_INSUFFICIENT_SEPARATION'})
+        with self.assertRaisesRegex(ValueError, 'INVALID_ANALYSIS_TICKETS'):
+            g.check_tickets([], cars, 3, selection={'recommendation': 'CONDITIONAL_CANDIDATES'})
+        with self.assertRaisesRegex(ValueError, 'INVALID_ANALYSIS_TICKETS'):
+            g.check_tickets([[1, 2, 3]], cars, 3, selection={'recommendation': 'ABSTAIN_INSUFFICIENT_SEPARATION'})
+
     def test_results_are_rejected_at_any_input_depth(self):
         for field in ('official_result','results','payout','current_meeting_results'):
             with self.assertRaisesRegex(ValueError,'RESULT_FIELD_PRESENT'):
