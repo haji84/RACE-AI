@@ -1,0 +1,16 @@
+{
+  "schema": "KEIRIN_RIDER_CONTEXT_PUBLIC_COMMITMENT_V1",
+  "date": "2026-11-23",
+  "sealed_at": "2026-11-23T11:44:25.360898+00:00",
+  "candidate_method": "forward-phase-rider-position-context-20261123-v2",
+  "candidate_source_sha256": "68141d2380c76e84896e7e60476dc310dee1155c9f887a5542dfc0a2c200f465",
+  "baseline_source_sha256": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47",
+  "pair_count": 1,
+  "earliest_cutoff_at": "2026-11-23T14:25:00+00:00",
+  "latest_cutoff_at": "2026-11-23T14:25:00+00:00",
+  "windows": {
+    "2t": 4,
+    "3t": 4
+  },
+  "data_sha256": "ca957de3b0626051fc4d6697287c6c518dd48e928d3ad6b66d28bee5037a5a3c"
+}
