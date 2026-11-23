@@ -165,6 +165,16 @@ def rankings(cars, columns, weights, mode):
             '3t': (three, dict(zip(three, map(float, triple.ravel()[triple_order[:len(three)]]))))}
 
 
+def study_rankings(snapshot, cars, columns, weights, mode):
+    rank = rankings(cars, columns, weights, mode)
+    if mode != 'static':
+        return rank
+    base = core.generate_evidence_analysis(snapshot)['A']
+    existing = adjustment.adjust(snapshot, base, 'A', weights, 1.0)
+    return {market: ([tuple(ticket) for ticket in existing['candidate_tickets'][market]], values)
+            for market, (_, values) in rank.items()}
+
+
 def limited(ordered, masses, spread):
     plans = {
         n: spread_heads(ordered, n, n//2) if spread and n > 1 else ordered[:n]
@@ -176,7 +186,7 @@ def limited(ordered, masses, spread):
 
 def choices(snapshot, coefficients, mode, spread):
     cars, columns = rider_evidence(snapshot)
-    candidate = rankings(cars, columns, coefficients[mode], mode)
+    candidate = study_rankings(snapshot, cars, columns, coefficients[mode], mode)
     return {market: limited(*value, spread) for market, value in candidate.items()}
 
 
@@ -242,8 +252,10 @@ def checked_dataset(path, start, end):
     records = fitter.read(path)
     ids = [record['input']['race_id'] for record in records]
     if (not ids or len(ids) != len(set(ids)) or
-        any(not start <= key[:8] <= end for key in ids)):
-        raise ValueError('Study races must be unique and in their declared time partition.')
+        any(not start <= key[:8] <= end for key in ids) or
+        any(record['cohort'] != 'annual' or record['input']['line_groups'] is not None
+            for record in records)):
+        raise ValueError('Expected unique ability-only races within their declared time partition.')
     return records
 
 
@@ -253,7 +265,7 @@ def train(fit, tune, calibrate):
     for record in tune:
         cars, columns = rider_evidence(record['input'])
         for mode in MODES:
-            prediction = rankings(cars, columns, coefficients[mode], mode)
+            prediction = study_rankings(record['input'], cars, columns, coefficients[mode], mode)
             for spread in (False, True):
                 for market, value in prediction.items():
                     plan, _ = limited(*value, spread)
@@ -272,13 +284,11 @@ def train(fit, tune, calibrate):
     policies, policy_stats, confidence = {}, {}, {}
     for market, rows in samples.items():
         gates = confidence_gates(rows)
-        one_masses = [row[0][0] for row in rows]
-        one_choices = [None, *np.unique(np.quantile(one_masses, [.55, .65, .75, .8, .85, .9, .95, .99]))]
+        one_choices = [None] if gates[1] is None else [None, gates[1]['threshold']]
         policies[market] = {
             'equal_average_four': learn_budget(rows, mean_limit=4, one_choices=one_choices, eight_limit=1),
             'four_or_eight': learn_budget(
-                rows, mean_limit=5, one_choices=[None] if gates[1] is None else [None, gates[1]['threshold']],
-                eight_limit=.25),
+                rows, mean_limit=5, one_choices=one_choices, eight_limit=.25),
         }
         policy_stats[market] = {name: calibrated_summary(rows, policy)
                                 for name, policy in policies[market].items()}

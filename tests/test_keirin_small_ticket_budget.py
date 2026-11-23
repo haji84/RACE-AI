@@ -23,6 +23,13 @@ class SmallTicketBudgetTests(unittest.TestCase):
         self.assertEqual(result, [ordered[i] for i in (0, 1, 4, 5)])
         self.assertEqual(budget.spread_heads(ordered[:4], 4, 2), ordered[:4])
 
+    def test_market_rank_keeps_only_supported_numeric_odds(self):
+        supported = {(1, 2): .2, (1, 3): .5, (2, 1): .3, (2, 3): .4}
+        quotes = {(1, 2): 3.0, (1, 3): 13.0, (2, 1): 9999.9,
+                  (2, 3): float('nan'), (5, 8): 1.2}
+        self.assertEqual(budget.market_order(supported, quotes, 0.0), [(1, 3), (1, 2)])
+        self.assertEqual(budget.market_order(supported, quotes, 0.75), [(1, 2), (1, 3)])
+
 
 if __name__ == '__main__':
     unittest.main()

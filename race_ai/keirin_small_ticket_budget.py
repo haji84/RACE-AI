@@ -1,7 +1,7 @@
 """Research ticket budgets with separately measured coverage."""
 
 from collections import Counter
-from math import sqrt
+from math import isfinite, log, sqrt
 
 
 def pick_budget(mass, policy):
@@ -40,3 +40,16 @@ def wilson_lower(hits, observations):
     center = rate + penalty/2
     width = z * sqrt(rate*(1-rate)/observations + penalty/(4*observations))
     return (center-width) / (1+penalty)
+
+
+def market_order(probabilities, verified_odds, market_weight):
+    """Rank existing combinations using accepted pre-cutoff numeric quotes."""
+    if not 0 <= market_weight <= 1:
+        raise ValueError('Market weight must lie between zero and one.')
+    support = {}
+    for ticket, odds in verified_odds.items():
+        strength = probabilities.get(ticket, 0)
+        if (type(odds) in (int, float) and isfinite(odds) and 0 < odds < 9999.9
+                and isfinite(strength) and strength > 0):
+            support[ticket] = (1-market_weight)*log(strength) - market_weight*log(odds)
+    return sorted(support, key=lambda ticket: (-support[ticket], ticket))

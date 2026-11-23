@@ -1,0 +1,31 @@
+{
+  "schema": "KEIRIN_SMALL_TICKET_ODDS_REPLICATION_COMMITMENT_V1",
+  "fixture_date_jst": "2026-11-20",
+  "sealed_at": "2026-11-23T14:35:42.935030+00:00",
+  "salted_forecast_sha256": "a0ae0a7ad0a06ca9ee2e45715e5209751dfb3be6173fcb3296b243305fede5ed",
+  "selected_races": 7,
+  "skipped": {
+    "regular_quote_unavailable": 50
+  },
+  "source_site_commits": {
+    "quote": "d0dd9eb45f4aa2cc1d7641d1dd3bad1335d7be86",
+    "entries": "a1b7aac04a9b41f2b4b9d1cac5e6486e00b7d65e"
+  },
+  "source_site_committed_at": {
+    "quote": "2026-11-19T23:35:41+00:00",
+    "entries": "2026-11-19T22:00:26+00:00"
+  },
+  "preserved_source_file_sha256": {
+    "quote": "94d8b9c48715bf4baebb205cdb9acc1acbd8d29b9b3e4acfc7a6730e792aa587",
+    "entries": "ca53366f2b456a96d12a1fb81e2becd5f9dab600c819c5d2bddff516604ca357"
+  },
+  "quote_age_min_median_max_minutes": [
+    31.0,
+    93.0,
+    156.0
+  ],
+  "weight_config_sha256": "421747a5e8cf38158e98005dfd127626d57465bd1aadf16acbddb674de4d5ecd",
+  "odds_rank_code_sha256": "8b165ce66785861a15400c4cb234d88fdbb87618962acccca1582aa4212735ec",
+  "odds_weight": 0.75,
+  "capture_provenance": "Earlier local Site commits and embedded capture metadata. Raw remote reply bodies not restored."
+}
