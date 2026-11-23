@@ -1,0 +1,64 @@
+{
+  "schema": "KEIRIN_SMALL_TICKET_FORECAST_COMMITMENT_V1",
+  "sealed_at": "2026-11-23T14:26:03.442713+00:00",
+  "salted_forecast_sha256": "b39d4762a4b9ee942c39b66c7b2b2840c7f022cfa9084067bcc5a1bc8c7a8358",
+  "weight_config_sha256": "421747a5e8cf38158e98005dfd127626d57465bd1aadf16acbddb674de4d5ecd",
+  "source_blobs_sha256": "8d7f712221de4fbd1a93df772eedb6aa755aeebacbd3a5828ec43442af9783a5",
+  "study_source_digests": {
+    "race_ai/keirin_nationwide_auto_generator.py": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47",
+    "race_ai/keirin_ranking_adjustment.py": "29d01a9c43a7d2c72175f78f016652ad968cde71e6a3ce1a197524d15a123270",
+    "race_ai/keirin_small_ticket_budget.py": "a06719fbd5eee72d1f442f1f6058ba26adf11cbb2afb42806738915fa7a919b0",
+    "scripts/keirin_small_ticket_study.py": "8c06aa79ec651cfb3eb37d8d5234d11ea23979a321a632ec293e87c654351636",
+    "scripts/keirin_fit_ranking_weights.py": "a98f07ed226151524ef5b2950054d2a7371a1c74161871207a4c3bfbff4922d4"
+  },
+  "private_source_digest": {
+    "archive_projection": "46f9efcbc5d5b05e9ff2900eda5e38324a376e747afcf80e59b7533971568150",
+    "freezer": "06187518fe3efa5697ba93b337547bfc6c453d67394dbf9d175a07d52330e4ac"
+  },
+  "partitions": {
+    "fit": {
+      "date_range": [
+        "20250101",
+        "20250731"
+      ],
+      "projected_input_sha256": "dbfbc77f6892fa3a7bca613d488b18251ff6aab5e8628df168847aae5a86f26f"
+    },
+    "tune": {
+      "date_range": [
+        "20250801",
+        "20250831"
+      ],
+      "projected_input_sha256": "4d2bc04b06608a544309c1a7990b75d656adf27c98e85825d5c1403302bd0efc"
+    },
+    "calibrate": {
+      "date_range": [
+        "20250901",
+        "20250930"
+      ],
+      "projected_input_sha256": "0d19aa6bc90738a64ae9e7a579fc8cc522bfbe87ae0e4001cd015210889aedb5"
+    },
+    "test": {
+      "date_range": [
+        "20251001",
+        "20251122"
+      ],
+      "projected_input_sha256": "8056c193ea35ed05b43944768c7eb131afe7f752df032039889a8dd7dab38d7b"
+    }
+  },
+  "historical_races": 3953,
+  "odds_scope": {
+    "date": "2026-11-23",
+    "capture_quotes_sha256": "e78f8c3ff26cc463cfa1b73bfe4f42984f110748063b8f71c86ef684b848bfbe",
+    "capture_cards_sha256": "fac31353f4ebcbeeb9f57e780281b93821cbb1ef391d5cbed7adf19dd8ebdfeb",
+    "selected_races": 83,
+    "exclusions": {
+      "cutoff_or_quote_status_unverified": 5,
+      "numeric_quote_coverage_unavailable": 1
+    },
+    "blend_odds_weights": [
+      0.5,
+      0.75
+    ],
+    "purpose": "Comparison on timestamped odds snapshots; some outcomes were previously known."
+  }
+}

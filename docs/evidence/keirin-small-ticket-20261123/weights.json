@@ -1,0 +1,390 @@
+{
+  "schema": "KEIRIN_SMALL_TICKET_STUDY_V1",
+  "fit_unique_results": 15826,
+  "tuning_races": 2302,
+  "calibration_races": 2345,
+  "coefficients": {
+    "static": [
+      {
+        "relative_points": 2.2449145476,
+        "relative_points_known": 0.0003636292,
+        "mark_first": 1.0094642015,
+        "mark_second": 0.6547213737,
+        "mark_third": -0.0186632412,
+        "mark_other": 0.2045030276,
+        "mark_known": 0.0,
+        "win_rate": 0.0,
+        "win_known": 0.0
+      },
+      {
+        "relative_points": 1.8055261014,
+        "relative_points_known": 0.1852523993,
+        "mark_first": 0.6832651959,
+        "mark_second": 0.8937143451,
+        "mark_third": 0.0869623273,
+        "mark_other": 0.1827781724,
+        "mark_known": 0.0,
+        "win_rate": 0.0,
+        "win_known": 0.0,
+        "second_only_rate": 0.0,
+        "second_only_known": 0.0
+      },
+      {
+        "relative_points": 1.4374213729,
+        "relative_points_known": 0.2102057916,
+        "mark_first": 0.2551439378,
+        "mark_second": 0.4075961081,
+        "mark_third": 0.192930651,
+        "mark_other": 0.2785405723,
+        "mark_known": 0.0,
+        "win_rate": 0.0,
+        "win_known": 0.0,
+        "second_only_rate": 0.0,
+        "second_only_known": 0.0,
+        "third_only_rate": 0.0,
+        "third_only_known": 0.0
+      }
+    ],
+    "rider_signals": [
+      {
+        "relative_points": 1.7509226134,
+        "relative_points_known": -0.1115054162,
+        "mark_first": 0.6546382259,
+        "mark_second": 0.5095760094,
+        "mark_third": -0.0442011284,
+        "mark_other": 0.1037879616,
+        "mark_known": 0.0,
+        "win_rate": 0.0,
+        "win_known": 0.0,
+        "front_style": 0.3462365682,
+        "flexible_style": 0.0375703159,
+        "follower_style": -0.3838068841,
+        "points_percentile": 0.541246121,
+        "points_squared": 0.2631389348,
+        "grade_known": 0.0,
+        "grade_s": 0.0072790081,
+        "grade_a1": -0.0288561378,
+        "grade_a2": 0.0215771297,
+        "grade_l": 0.0,
+        "mark_head_points": 0.0753075445,
+        "mark_head_gap": 0.1896566774
+      },
+      {
+        "relative_points": 1.408403651,
+        "relative_points_known": 0.1076535922,
+        "mark_first": 0.5635050161,
+        "mark_second": 0.8401002686,
+        "mark_third": 0.0714549421,
+        "mark_other": 0.1291665421,
+        "mark_known": 0.0,
+        "win_rate": 0.0,
+        "win_known": 0.0,
+        "second_only_rate": 0.0,
+        "second_only_known": 0.0,
+        "front_style": 0.1644205186,
+        "flexible_style": -0.0474116131,
+        "follower_style": -0.1170089055,
+        "points_percentile": 0.446923129,
+        "points_squared": -0.512357372,
+        "grade_known": 0.0,
+        "grade_s": 0.0152296261,
+        "grade_a1": 0.0378699732,
+        "grade_a2": -0.0530995993,
+        "grade_l": 0.0,
+        "mark_head_points": 0.3229047512,
+        "mark_head_gap": -0.204991763
+      },
+      {
+        "relative_points": 1.054138724,
+        "relative_points_known": 0.1340207827,
+        "mark_first": 0.2578935049,
+        "mark_second": 0.4276785314,
+        "mark_third": 0.199456014,
+        "mark_other": 0.2900334008,
+        "mark_known": 0.0,
+        "win_rate": 0.0,
+        "win_known": 0.0,
+        "second_only_rate": 0.0,
+        "second_only_known": 0.0,
+        "third_only_rate": 0.0,
+        "third_only_known": 0.0,
+        "front_style": -0.0576638098,
+        "flexible_style": -0.0313167769,
+        "follower_style": 0.0889805868,
+        "points_percentile": 0.3928159894,
+        "points_squared": -0.6930898521,
+        "grade_known": 0.0,
+        "grade_s": 0.0,
+        "grade_a1": 0.002680199,
+        "grade_a2": -0.002680199,
+        "grade_l": 0.0,
+        "mark_head_points": 0.311214077,
+        "mark_head_gap": 0.0954901119
+      }
+    ],
+    "prior_finishers": [
+      {
+        "relative_points": 1.7509226134,
+        "relative_points_known": -0.1115054162,
+        "mark_first": 0.6546382259,
+        "mark_second": 0.5095760094,
+        "mark_third": -0.0442011284,
+        "mark_other": 0.1037879616,
+        "mark_known": 0.0,
+        "win_rate": 0.0,
+        "win_known": 0.0,
+        "front_style": 0.3462365682,
+        "flexible_style": 0.0375703159,
+        "follower_style": -0.3838068841,
+        "points_percentile": 0.541246121,
+        "points_squared": 0.2631389348,
+        "grade_known": 0.0,
+        "grade_s": 0.0072790081,
+        "grade_a1": -0.0288561378,
+        "grade_a2": 0.0215771297,
+        "grade_l": 0.0,
+        "mark_head_points": 0.0753075445,
+        "mark_head_gap": 0.1896566774
+      },
+      {
+        "relative_points": 1.0507684481,
+        "relative_points_known": 0.1909373279,
+        "mark_first": -0.1648787055,
+        "mark_second": 0.0327297141,
+        "mark_third": -0.6740777429,
+        "mark_other": -0.6279843593,
+        "mark_known": 0.0,
+        "win_rate": 0.0,
+        "win_known": 0.0,
+        "second_only_rate": 0.0,
+        "second_only_known": 0.0,
+        "front_style": 0.2385811074,
+        "flexible_style": -0.0739325403,
+        "follower_style": -0.164648567,
+        "points_percentile": 0.2059038793,
+        "points_squared": 0.1431583106,
+        "grade_known": 0.0,
+        "grade_s": 0.0120617445,
+        "grade_a1": 0.0366890027,
+        "grade_a2": -0.0487507472,
+        "grade_l": 0.0,
+        "mark_head_points": 0.4470107456,
+        "mark_head_gap": -0.0623338101,
+        "place_1_points_proximity": 0.6951282518,
+        "place_1_marked_proximity": 0.6909591183,
+        "place_1_same_front_style": -0.308436717,
+        "place_1_follow_front": 0.0395589221,
+        "place_1_prior_favorite_own_marked": 0.5816629674,
+        "place_1_prior_unmarked_own_favorite": -0.3168543523,
+        "place_1_prior_points_rank_own_rank": 0.3393069423
+      },
+      {
+        "relative_points": 0.8172658513,
+        "relative_points_known": 0.2157713916,
+        "mark_first": -0.3354678407,
+        "mark_second": -0.2277674958,
+        "mark_third": -0.4538694185,
+        "mark_other": -0.3785875293,
+        "mark_known": 0.0,
+        "win_rate": 0.0,
+        "win_known": 0.0,
+        "second_only_rate": 0.0,
+        "second_only_known": 0.0,
+        "third_only_rate": 0.0,
+        "third_only_known": 0.0,
+        "front_style": 0.0372115727,
+        "flexible_style": -0.0612421601,
+        "follower_style": 0.0240305874,
+        "points_percentile": 0.1467145067,
+        "points_squared": -0.042383921,
+        "grade_known": 0.0,
+        "grade_s": 0.0,
+        "grade_a1": -0.001381376,
+        "grade_a2": 0.001381376,
+        "grade_l": 0.0,
+        "mark_head_points": 0.404345254,
+        "mark_head_gap": 0.1237446287,
+        "place_1_points_proximity": 0.3605650742,
+        "place_1_marked_proximity": 0.2436677697,
+        "place_1_same_front_style": -0.2124227324,
+        "place_1_follow_front": -0.023005237,
+        "place_1_prior_favorite_own_marked": 0.3853277776,
+        "place_1_prior_unmarked_own_favorite": -0.103104291,
+        "place_1_prior_points_rank_own_rank": 0.2530252624,
+        "place_2_points_proximity": 0.2438308459,
+        "place_2_marked_proximity": 0.3012484907,
+        "place_2_same_front_style": -0.1622737905,
+        "place_2_follow_front": 0.1509042378,
+        "place_2_prior_favorite_own_marked": 0.2029043138,
+        "place_2_prior_unmarked_own_favorite": -0.0182927928,
+        "place_2_prior_points_rank_own_rank": 0.1085128285
+      }
+    ]
+  },
+  "tuning_fixed_counts": {
+    "static:rank": {
+      "2t_1": 445,
+      "2t_4": 994,
+      "2t_8": 1338,
+      "3t_1": 163,
+      "3t_4": 425,
+      "3t_8": 662
+    },
+    "static:spread": {
+      "2t_1": 445,
+      "2t_4": 971,
+      "2t_8": 1331,
+      "3t_1": 163,
+      "3t_4": 405,
+      "3t_8": 649
+    },
+    "rider_signals:rank": {
+      "2t_1": 462,
+      "2t_4": 1013,
+      "2t_8": 1384,
+      "3t_1": 155,
+      "3t_4": 447,
+      "3t_8": 705
+    },
+    "rider_signals:spread": {
+      "2t_1": 462,
+      "2t_4": 1006,
+      "2t_8": 1385,
+      "3t_1": 155,
+      "3t_4": 416,
+      "3t_8": 686
+    },
+    "prior_finishers:rank": {
+      "2t_1": 451,
+      "2t_4": 1003,
+      "2t_8": 1401,
+      "3t_1": 160,
+      "3t_4": 451,
+      "3t_8": 699
+    },
+    "prior_finishers:spread": {
+      "2t_1": 451,
+      "2t_4": 1000,
+      "2t_8": 1402,
+      "3t_1": 160,
+      "3t_4": 421,
+      "3t_8": 691
+    }
+  },
+  "selected": {
+    "mode": "prior_finishers",
+    "spread": false
+  },
+  "policies": {
+    "2t": {
+      "equal_average_four": {
+        "one_min": null,
+        "four_max_for_eight": null,
+        "extra_gain_min": 0.09171544617502503
+      },
+      "four_or_eight": {
+        "one_min": null,
+        "four_max_for_eight": 0.583124526417475,
+        "extra_gain_min": 0.19764232604497148
+      }
+    },
+    "3t": {
+      "equal_average_four": {
+        "one_min": null,
+        "four_max_for_eight": null,
+        "extra_gain_min": 0.025822684365822877
+      },
+      "four_or_eight": {
+        "one_min": null,
+        "four_max_for_eight": 0.571570519411333,
+        "extra_gain_min": 0.1321929343590659
+      }
+    }
+  },
+  "calibration_policies": {
+    "2t": {
+      "equal_average_four": {
+        "1": {
+          "races": 0,
+          "hits": 0,
+          "points": 0
+        },
+        "4": {
+          "races": 2345,
+          "hits": 1037,
+          "points": 9380
+        },
+        "8": {
+          "races": 0,
+          "hits": 0,
+          "points": 0
+        }
+      },
+      "four_or_eight": {
+        "1": {
+          "races": 0,
+          "hits": 0,
+          "points": 0
+        },
+        "4": {
+          "races": 1879,
+          "hits": 850,
+          "points": 7516
+        },
+        "8": {
+          "races": 466,
+          "hits": 277,
+          "points": 3728
+        }
+      }
+    },
+    "3t": {
+      "equal_average_four": {
+        "1": {
+          "races": 0,
+          "hits": 0,
+          "points": 0
+        },
+        "4": {
+          "races": 2345,
+          "hits": 455,
+          "points": 9380
+        },
+        "8": {
+          "races": 0,
+          "hits": 0,
+          "points": 0
+        }
+      },
+      "four_or_eight": {
+        "1": {
+          "races": 0,
+          "hits": 0,
+          "points": 0
+        },
+        "4": {
+          "races": 1876,
+          "hits": 316,
+          "points": 7504
+        },
+        "8": {
+          "races": 469,
+          "hits": 199,
+          "points": 3752
+        }
+      }
+    }
+  },
+  "calibration_confirmed_90pct": {
+    "2t": {
+      "1": null,
+      "4": null,
+      "8": null
+    },
+    "3t": {
+      "1": null,
+      "4": null,
+      "8": null
+    }
+  }
+}

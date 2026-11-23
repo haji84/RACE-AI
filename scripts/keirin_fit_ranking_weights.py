@@ -66,35 +66,42 @@ def fit_records(rows, end):
     return x,mask,outcomes
 
 
-def fit_weights(training, variant, omit=None):
+def fit_choice(data, available, expected):
     import numpy as np
     from scipy.optimize import minimize
     from scipy.special import logsumexp
 
-    x,available,outcomes = training
+    rows = np.arange(len(data))
+
+    def objective(weights):
+        logits = np.einsum('rnf,f->rn', data, weights)
+        masked = np.where(available, logits, -np.inf)
+        denominator = logsumexp(masked, axis=1)
+        chosen = logits[rows, expected]
+        error = np.exp(masked - denominator[:, None])
+        error[rows, expected] -= 1
+        gradient = np.einsum('rn,rnf->f', error, data) / len(data)
+        return (float(np.mean(denominator-chosen) + .001*np.dot(weights, weights)),
+                gradient + .002*weights)
+
+    best = minimize(objective, np.zeros(data.shape[-1]), jac=True, method='L-BFGS-B',
+                    bounds=[(-12, 12)]*data.shape[-1], options={'ftol': 1e-12, 'maxiter': 180})
+    if not best.success:
+        raise RuntimeError('Conditional finish score fit did not converge.')
+    return [round(float(value), 10) for value in best.x]
+
+
+def fit_weights(training, variant, omit=None):
+    import numpy as np
+
+    x, available, outcomes = training
     available = available.copy()
     rows = np.arange(len(x))
     result = []
-    for position,names in enumerate(fields(variant,omit)):
-        data = x[:,:,[adjustment.FEATURES.index(name) for name in names]]
-        expected = outcomes[:,position]
-
-        def objective(weights):
-            logits = np.einsum('rnf,f->rn',data,weights)
-            masked = np.where(available,logits,-np.inf)
-            denominator = logsumexp(masked,axis=1)
-            chosen = logits[rows,expected]
-            error = np.exp(masked-denominator[:,None])
-            error[rows,expected] -= 1
-            gradient = np.einsum('rn,rnf->f',error,data)/len(x)
-            return (float(np.mean(denominator-chosen)+.001*np.dot(weights,weights)),
-                    gradient+.002*weights)
-
-        best = minimize(objective,np.zeros(len(names)),jac=True,method='L-BFGS-B',
-                        bounds=[(-12,12)]*len(names), options={'ftol':1e-12,'maxiter':180})
-        if not best.success:
-            raise RuntimeError(f'Conditional fit failed for slot {position+1}.')
-        result.append(dict(zip(names,[round(float(x),10) for x in best.x])))
+    for position, names in enumerate(fields(variant, omit)):
+        data = x[:, :, [adjustment.FEATURES.index(name) for name in names]]
+        expected = outcomes[:, position]
+        result.append(dict(zip(names, fit_choice(data, available, expected))))
         available[rows,expected] = False
     return result
 
