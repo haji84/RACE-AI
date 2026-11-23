@@ -36,6 +36,10 @@
 
 追加調査で、公式名簿の「福岡県」などの表記が「福岡」などの過去走表記と一致せず、同じ氏名・期別の履歴が落ちていた。公開情報で確認できる府県の末尾を揃え、氏名・期別・登録番号の照合条件は保った。外国招待選手は短縮名と一致候補があっても、個別レースの登録番号を確認できる資料を要する。この再計算は同じ評価期間と同じ係数選び・採点手順を使った表記補正の確認。[府県表記の調査](archive-overlap-aggregate.json) · [外国招待選手の表記調査](foreign-alias-aggregate.json)
 
+全2,416件中2,404人（99.5%）で3走以上を確認できた。府県表記の補正で33人を追加し、登録番号付きの採用結果は延べ511,888走になった。残る12人は公式プロフィールの脚質と通算出走を確認済みで、過去走と各レースの入力の照合が不足している。実際の評価に用いた出走表とプロフィール入力は初回とバイト単位で一致し、学習履歴と係数が更新された。初回の採点後に行った同じ標本での再計算。[補正後の現役選手集計](prefecture-normalized/current-census.json) · [再計算の固定記録](prefecture-normalized/forecast-commitment.json) · [GitHub Actions](https://github.com/haji84/RACE-AI/actions/runs/45226157211)
+
+締切前の保存版557件では、既存Bに選手特徴を足したときの的中数は初回と同じ。3連単4点が106件から111件、最大8点が151件から157件、2車単2点が181件から175件。後日保存の出走表を含む3,582件では、最大4点が628件（17.53%）から645件（18.01%）、最大8点が896件（25.01%）から904件（25.24%）、2車単最大2点は1,020件（28.48%）から1,013件（28.28%）。共通の学習条件で並びに選手特徴を足したときは、締切前557件の3連単最大8点が206件から203件。既存Bの補正で確認できた改善は今回の比較標本・券種・点数での結果で、前向きの検証は未実施。[補正後の採点結果](prefecture-normalized/results.json) · [候補到達と着順別の原因](prefecture-normalized/miss-diagnosis.json) · [着順の補正を分けた試験](prefecture-normalized/finish-stage-diagnosis.json)
+
 ## 検証を再実行する方法
 
 Python 3.12、NumPy、SciPyを使用。アーカイブから照合した過去走を `Ride` として `HistoryBook` に渡し、対象の登録番号・レースID・予定位置・級別で `features()` を取得する。出走表の各選手にその値を `profile` として添え、学習・調整用ファイルは各行が `input` と `outcomes` を持つgzip形式のJSON配列にする。入力や予想の個票は本人用作業領域に保存する。
@@ -45,4 +49,4 @@ python -m scripts.keirin_rider_profile_study \
   --fit fit.json.gz --calibrate calibrate.json.gz --output weights.json
 ```
 
-関連121テストとGitHub Actionsの新しい検査が通過した。ローカルで競輪テストを全探索すると、変更前にも同じ7モジュールが未収録の依存で読み込めなかった。環境にあったChromiumを指定し、権限テストを標準のumaskで走らせると、最初に失敗した環境依存の2箇所を含む24テストが通過した。[GitHub Actions](https://github.com/haji84/RACE-AI/actions/runs/45223522991)
+府県表記の補正を含む関連122テストとGitHub Actionsの新しい検査が通過した。ローカルで競輪テストを全探索すると、変更前にも同じ7モジュールが未収録の依存で読み込めなかった。環境にあったChromiumを指定し、権限テストを標準のumaskで走らせると、最初に失敗した環境依存の2箇所を含む24テストが通過した。[GitHub Actions](https://github.com/haji84/RACE-AI/actions/runs/45226157211)

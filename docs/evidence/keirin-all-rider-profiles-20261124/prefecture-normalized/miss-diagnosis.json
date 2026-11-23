@@ -1,0 +1,36 @@
+{
+  "unchanged_current_b_paths": true,
+  "all": {
+    "races": 3582,
+    "2t:reachable": 1960,
+    "2t:unreachable": 1622,
+    "2t:2:new_hits": 32,
+    "2t:2:lost_hits": 39,
+    "2t:2:can_reorder_miss": 940,
+    "3t:reachable": 1203,
+    "3t:unreachable": 2379,
+    "3t:4:new_hits": 35,
+    "3t:4:lost_hits": 18,
+    "3t:4:can_reorder_miss": 575,
+    "3t:8:new_hits": 18,
+    "3t:8:lost_hits": 10,
+    "3t:8:can_reorder_miss": 307
+  },
+  "dated_pre_cutoff_program": {
+    "races": 557,
+    "2t:reachable": 386,
+    "2t:unreachable": 171,
+    "2t:2:new_hits": 4,
+    "2t:2:lost_hits": 10,
+    "2t:2:can_reorder_miss": 205,
+    "3t:reachable": 248,
+    "3t:unreachable": 309,
+    "3t:4:new_hits": 9,
+    "3t:4:lost_hits": 4,
+    "3t:4:can_reorder_miss": 142,
+    "3t:8:new_hits": 7,
+    "3t:8:lost_hits": 1,
+    "3t:8:can_reorder_miss": 97
+  },
+  "result_snapshot_commit": "37bda18979e902650c139e24e13dcfbf764cf1b3"
+}
