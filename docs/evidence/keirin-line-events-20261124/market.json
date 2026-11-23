@@ -1,0 +1,851 @@
+{
+  "catalogue_scope": "Canonical date/venue/R union of the pinned monthly CSV and both pinned SQLite snapshots.",
+  "csv_identity_audit": {
+    "invalid_identity_rows": 447,
+    "outside_requested_date_rows": 12405
+  },
+  "date_range_jst": [
+    "20231124",
+    "20261123"
+  ],
+  "method": "Minimum validated published rank among the actual paid trifecta orders per race.",
+  "monthly_blobs_sha1_and_sha256_verified": 37,
+  "monthly_manifest_sha256": "49e71ec8441bdf181ae7b02c79a05cdd41d2c7c66da1c6e2b71bf0cf49c676d7",
+  "monthly_repository": "Kenseimk/keirin-data",
+  "monthly_revision": "8ba8316329c145aea55b5ada529b0af7b0d94c48",
+  "source_checks": {
+    "keirin.db vs keirin_2026q4.db": {
+      "agree_all_awards_amounts_ranks": 0,
+      "both_valid": 0,
+      "disagree_order_or_amount": 0,
+      "disagree_paid_orders": 0,
+      "shared_keys": 0
+    },
+    "monthly_csv vs keirin.db": {
+      "agree_all_awards_amounts_ranks": 19623,
+      "both_valid": 19623,
+      "disagree_order_or_amount": 0,
+      "disagree_paid_orders": 0,
+      "shared_keys": 25555
+    },
+    "monthly_csv vs keirin_2026q4.db": {
+      "agree_all_awards_amounts_ranks": 0,
+      "both_valid": 0,
+      "disagree_order_or_amount": 0,
+      "disagree_paid_orders": 0,
+      "shared_keys": 3140
+    }
+  },
+  "sqlite_blobs_sha1_and_sha256_verified": [
+    {
+      "git_sha": "b1bbbe2ec27ccd3fdc676700e26e783a3ff0d2f6",
+      "path": "data/keirin.db",
+      "sha256": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "size": 104706048
+    },
+    {
+      "git_sha": "3d28f8ab2eb451f0b7c40cec3759374950bb409e",
+      "path": "data/keirin_2026q4.db",
+      "sha256": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d",
+      "size": 45436928
+    }
+  ],
+  "sqlite_manifest_sha256": "c797a32a4203bc36e6f467f41f53e71b60677d45818e788e750f38247628b2f7",
+  "sqlite_repository": "sumidatadayoshi/keirin-data",
+  "sqlite_revision": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+  "sqlite_table_audit": {
+    "keirin.db": {
+      "odds_types": {
+        "2車単": 41268,
+        "2車複": 20634,
+        "ワイド": 20634
+      },
+      "race_table_keys": 27081
+    },
+    "keirin_2026q4.db": {
+      "odds_types": {
+        "2車単": 148152,
+        "2車複": 74076,
+        "ワイド": 74076
+      },
+      "race_table_keys": 3632
+    }
+  },
+  "combined": {
+    "all_award_max_rank": 504,
+    "catalogue_races": 82406,
+    "days_with_inventory": 1092,
+    "days_with_ranks": 1089,
+    "hit_counts": {
+      "1": 11148,
+      "4": 26715,
+      "8": 37204,
+      "16": 49111,
+      "32": 61186,
+      "50": 68193,
+      "64": 71616,
+      "100": 76810,
+      "128": 78968,
+      "210": 81485,
+      "504": 81967
+    },
+    "hits_at_k95": 77924,
+    "hits_one_rank_below_k95": 77852,
+    "inventory_dates": [
+      "20231124",
+      "20261123"
+    ],
+    "k95_minimum": 113,
+    "k95_target_hit_count": 77869,
+    "multiple_paid_race_count": 599,
+    "multiple_paid_rows_histogram": {
+      "2": 597,
+      "4": 2
+    },
+    "paid_order_rows": 82570,
+    "races_with_usable_ranks": 81967,
+    "ranked_dates": [
+      "20231124",
+      "20261122"
+    ],
+    "status_counts": {
+      "missing_payout_field": 420,
+      "missing_payout_row": 9,
+      "nonstandard_payout_field": 10,
+      "observed": 81967
+    },
+    "unknown": 439,
+    "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+      "1": 11587,
+      "4": 27154,
+      "8": 37643,
+      "16": 49550,
+      "32": 61625,
+      "50": 68632,
+      "64": 72055,
+      "100": 77249,
+      "128": 79407,
+      "210": 81924,
+      "504": 82406
+    },
+    "winner_min_max_rank": [
+      1,
+      504
+    ]
+  },
+  "periods": {
+    "2023 partial": {
+      "all_award_max_rank": 445,
+      "catalogue_races": 2834,
+      "days_with_inventory": 38,
+      "days_with_ranks": 38,
+      "hit_counts": {
+        "1": 414,
+        "4": 922,
+        "8": 1284,
+        "16": 1689,
+        "32": 2123,
+        "50": 2351,
+        "64": 2476,
+        "100": 2665,
+        "128": 2747,
+        "210": 2821,
+        "504": 2834
+      },
+      "hits_at_k95": 2697,
+      "hits_one_rank_below_k95": 2692,
+      "inventory_dates": [
+        "20231124",
+        "20231231"
+      ],
+      "k95_minimum": 110,
+      "k95_target_hit_count": 2693,
+      "multiple_paid_race_count": 20,
+      "multiple_paid_rows_histogram": {
+        "2": 20
+      },
+      "paid_order_rows": 2854,
+      "races_with_usable_ranks": 2834,
+      "ranked_dates": [
+        "20231124",
+        "20231231"
+      ],
+      "status_counts": {
+        "observed": 2834
+      },
+      "unknown": 0,
+      "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+        "1": 414,
+        "4": 922,
+        "8": 1284,
+        "16": 1689,
+        "32": 2123,
+        "50": 2351,
+        "64": 2476,
+        "100": 2665,
+        "128": 2747,
+        "210": 2821,
+        "504": 2834
+      },
+      "winner_min_max_rank": [
+        1,
+        445
+      ]
+    },
+    "2024": {
+      "all_award_max_rank": 495,
+      "catalogue_races": 27771,
+      "days_with_inventory": 366,
+      "days_with_ranks": 366,
+      "hit_counts": {
+        "1": 3798,
+        "4": 9121,
+        "8": 12707,
+        "16": 16774,
+        "32": 20866,
+        "50": 23146,
+        "64": 24298,
+        "100": 26013,
+        "128": 26699,
+        "210": 27528,
+        "504": 27699
+      },
+      "hits_at_k95": 26336,
+      "hits_one_rank_below_k95": 26314,
+      "inventory_dates": [
+        "20240101",
+        "20241231"
+      ],
+      "k95_minimum": 112,
+      "k95_target_hit_count": 26315,
+      "multiple_paid_race_count": 184,
+      "multiple_paid_rows_histogram": {
+        "2": 184
+      },
+      "paid_order_rows": 27883,
+      "races_with_usable_ranks": 27699,
+      "ranked_dates": [
+        "20240101",
+        "20241231"
+      ],
+      "status_counts": {
+        "missing_payout_field": 66,
+        "nonstandard_payout_field": 6,
+        "observed": 27699
+      },
+      "unknown": 72,
+      "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+        "1": 3870,
+        "4": 9193,
+        "8": 12779,
+        "16": 16846,
+        "32": 20938,
+        "50": 23218,
+        "64": 24370,
+        "100": 26085,
+        "128": 26771,
+        "210": 27600,
+        "504": 27771
+      },
+      "winner_min_max_rank": [
+        1,
+        495
+      ]
+    },
+    "2025": {
+      "all_award_max_rank": 504,
+      "catalogue_races": 27432,
+      "days_with_inventory": 365,
+      "days_with_ranks": 365,
+      "hit_counts": {
+        "1": 3697,
+        "4": 8949,
+        "8": 12474,
+        "16": 16419,
+        "32": 20348,
+        "50": 22703,
+        "64": 23877,
+        "100": 25614,
+        "128": 26356,
+        "210": 27208,
+        "504": 27372
+      },
+      "hits_at_k95": 26023,
+      "hits_one_rank_below_k95": 25992,
+      "inventory_dates": [
+        "20250101",
+        "20251231"
+      ],
+      "k95_minimum": 114,
+      "k95_target_hit_count": 26004,
+      "multiple_paid_race_count": 209,
+      "multiple_paid_rows_histogram": {
+        "2": 208,
+        "4": 1
+      },
+      "paid_order_rows": 27583,
+      "races_with_usable_ranks": 27372,
+      "ranked_dates": [
+        "20250101",
+        "20251231"
+      ],
+      "status_counts": {
+        "missing_payout_field": 56,
+        "nonstandard_payout_field": 4,
+        "observed": 27372
+      },
+      "unknown": 60,
+      "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+        "1": 3757,
+        "4": 9009,
+        "8": 12534,
+        "16": 16479,
+        "32": 20408,
+        "50": 22763,
+        "64": 23937,
+        "100": 25674,
+        "128": 26416,
+        "210": 27268,
+        "504": 27432
+      },
+      "winner_min_max_rank": [
+        1,
+        504
+      ]
+    },
+    "2026 through Nov 23": {
+      "all_award_max_rank": 490,
+      "catalogue_races": 24369,
+      "days_with_inventory": 323,
+      "days_with_ranks": 320,
+      "hit_counts": {
+        "1": 3239,
+        "4": 7723,
+        "8": 10739,
+        "16": 14229,
+        "32": 17849,
+        "50": 19993,
+        "64": 20965,
+        "100": 22518,
+        "128": 23166,
+        "210": 23928,
+        "504": 24062
+      },
+      "hits_at_k95": 22868,
+      "hits_one_rank_below_k95": 22848,
+      "inventory_dates": [
+        "20260101",
+        "20261123"
+      ],
+      "k95_minimum": 113,
+      "k95_target_hit_count": 22859,
+      "multiple_paid_race_count": 186,
+      "multiple_paid_rows_histogram": {
+        "2": 185,
+        "4": 1
+      },
+      "paid_order_rows": 24250,
+      "races_with_usable_ranks": 24062,
+      "ranked_dates": [
+        "20260101",
+        "20261122"
+      ],
+      "status_counts": {
+        "missing_payout_field": 298,
+        "missing_payout_row": 9,
+        "observed": 24062
+      },
+      "unknown": 307,
+      "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+        "1": 3546,
+        "4": 8030,
+        "8": 11046,
+        "16": 14536,
+        "32": 18156,
+        "50": 20300,
+        "64": 21272,
+        "100": 22825,
+        "128": 23473,
+        "210": 24235,
+        "504": 24369
+      },
+      "winner_min_max_rank": [
+        1,
+        490
+      ]
+    },
+    "archive with closing awards for nearly all recorded rows": {
+      "all_award_max_rank": 504,
+      "catalogue_races": 82317,
+      "days_with_inventory": 1091,
+      "days_with_ranks": 1089,
+      "hit_counts": {
+        "1": 11148,
+        "4": 26715,
+        "8": 37204,
+        "16": 49111,
+        "32": 61186,
+        "50": 68193,
+        "64": 71616,
+        "100": 76810,
+        "128": 78968,
+        "210": 81485,
+        "504": 81967
+      },
+      "hits_at_k95": 77924,
+      "hits_one_rank_below_k95": 77852,
+      "inventory_dates": [
+        "20231124",
+        "20261122"
+      ],
+      "k95_minimum": 113,
+      "k95_target_hit_count": 77869,
+      "multiple_paid_race_count": 599,
+      "multiple_paid_rows_histogram": {
+        "2": 597,
+        "4": 2
+      },
+      "paid_order_rows": 82570,
+      "races_with_usable_ranks": 81967,
+      "ranked_dates": [
+        "20231124",
+        "20261122"
+      ],
+      "status_counts": {
+        "missing_payout_field": 331,
+        "missing_payout_row": 9,
+        "nonstandard_payout_field": 10,
+        "observed": 81967
+      },
+      "unknown": 350,
+      "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+        "1": 11498,
+        "4": 27065,
+        "8": 37554,
+        "16": 49461,
+        "32": 61536,
+        "50": 68543,
+        "64": 71966,
+        "100": 77160,
+        "128": 79318,
+        "210": 81835,
+        "504": 82317
+      },
+      "winner_min_max_rank": [
+        1,
+        504
+      ]
+    }
+  },
+  "by_effective_field_size": {
+    "3": {
+      "all_award_max_rank": null,
+      "catalogue_races": 0,
+      "days_with_inventory": 0,
+      "days_with_ranks": 0,
+      "hit_counts": {
+        "1": 0,
+        "4": 0,
+        "8": 0,
+        "16": 0,
+        "32": 0,
+        "50": 0,
+        "64": 0,
+        "100": 0,
+        "128": 0,
+        "210": 0,
+        "504": 0
+      },
+      "hits_at_k95": null,
+      "hits_one_rank_below_k95": null,
+      "inventory_dates": [],
+      "k95_minimum": null,
+      "k95_target_hit_count": 0,
+      "multiple_paid_race_count": 0,
+      "multiple_paid_rows_histogram": {},
+      "paid_order_rows": 0,
+      "races_with_usable_ranks": 0,
+      "ranked_dates": [],
+      "status_counts": {},
+      "unknown": 0,
+      "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+        "1": 0,
+        "4": 0,
+        "8": 0,
+        "16": 0,
+        "32": 0,
+        "50": 0,
+        "64": 0,
+        "100": 0,
+        "128": 0,
+        "210": 0,
+        "504": 0
+      },
+      "winner_min_max_rank": []
+    },
+    "4": {
+      "all_award_max_rank": null,
+      "catalogue_races": 0,
+      "days_with_inventory": 0,
+      "days_with_ranks": 0,
+      "hit_counts": {
+        "1": 0,
+        "4": 0,
+        "8": 0,
+        "16": 0,
+        "32": 0,
+        "50": 0,
+        "64": 0,
+        "100": 0,
+        "128": 0,
+        "210": 0,
+        "504": 0
+      },
+      "hits_at_k95": null,
+      "hits_one_rank_below_k95": null,
+      "inventory_dates": [],
+      "k95_minimum": null,
+      "k95_target_hit_count": 0,
+      "multiple_paid_race_count": 0,
+      "multiple_paid_rows_histogram": {},
+      "paid_order_rows": 0,
+      "races_with_usable_ranks": 0,
+      "ranked_dates": [],
+      "status_counts": {},
+      "unknown": 0,
+      "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+        "1": 0,
+        "4": 0,
+        "8": 0,
+        "16": 0,
+        "32": 0,
+        "50": 0,
+        "64": 0,
+        "100": 0,
+        "128": 0,
+        "210": 0,
+        "504": 0
+      },
+      "winner_min_max_rank": []
+    },
+    "5": {
+      "all_award_max_rank": 60,
+      "catalogue_races": 952,
+      "days_with_inventory": 482,
+      "days_with_ranks": 482,
+      "hit_counts": {
+        "1": 236,
+        "4": 473,
+        "8": 628,
+        "16": 762,
+        "32": 887,
+        "50": 945,
+        "64": 952,
+        "100": 952,
+        "128": 952,
+        "210": 952,
+        "504": 952
+      },
+      "hits_at_k95": 910,
+      "hits_one_rank_below_k95": 901,
+      "inventory_dates": [
+        "20231129",
+        "20261113"
+      ],
+      "k95_minimum": 36,
+      "k95_target_hit_count": 905,
+      "multiple_paid_race_count": 1,
+      "multiple_paid_rows_histogram": {
+        "2": 1
+      },
+      "paid_order_rows": 953,
+      "races_with_usable_ranks": 952,
+      "ranked_dates": [
+        "20231129",
+        "20261113"
+      ],
+      "status_counts": {
+        "observed": 952
+      },
+      "unknown": 0,
+      "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+        "1": 236,
+        "4": 473,
+        "8": 628,
+        "16": 762,
+        "32": 887,
+        "50": 945,
+        "64": 952,
+        "100": 952,
+        "128": 952,
+        "210": 952,
+        "504": 952
+      },
+      "winner_min_max_rank": [
+        1,
+        60
+      ]
+    },
+    "6": {
+      "all_award_max_rank": 119,
+      "catalogue_races": 4575,
+      "days_with_inventory": 1037,
+      "days_with_ranks": 1037,
+      "hit_counts": {
+        "1": 701,
+        "4": 1692,
+        "8": 2331,
+        "16": 3051,
+        "32": 3803,
+        "50": 4164,
+        "64": 4333,
+        "100": 4533,
+        "128": 4575,
+        "210": 4575,
+        "504": 4575
+      },
+      "hits_at_k95": 4354,
+      "hits_one_rank_below_k95": 4343,
+      "inventory_dates": [
+        "20231124",
+        "20261122"
+      ],
+      "k95_minimum": 66,
+      "k95_target_hit_count": 4347,
+      "multiple_paid_race_count": 29,
+      "multiple_paid_rows_histogram": {
+        "2": 29
+      },
+      "paid_order_rows": 4604,
+      "races_with_usable_ranks": 4575,
+      "ranked_dates": [
+        "20231124",
+        "20261122"
+      ],
+      "status_counts": {
+        "observed": 4575
+      },
+      "unknown": 0,
+      "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+        "1": 701,
+        "4": 1692,
+        "8": 2331,
+        "16": 3051,
+        "32": 3803,
+        "50": 4164,
+        "64": 4333,
+        "100": 4533,
+        "128": 4575,
+        "210": 4575,
+        "504": 4575
+      },
+      "winner_min_max_rank": [
+        1,
+        119
+      ]
+    },
+    "7": {
+      "all_award_max_rank": 210,
+      "catalogue_races": 69183,
+      "days_with_inventory": 1089,
+      "days_with_ranks": 1089,
+      "hit_counts": {
+        "1": 9525,
+        "4": 22911,
+        "8": 31910,
+        "16": 42040,
+        "32": 52251,
+        "50": 58138,
+        "64": 61027,
+        "100": 65367,
+        "128": 67169,
+        "210": 69183,
+        "504": 69183
+      },
+      "hits_at_k95": 65753,
+      "hits_one_rank_below_k95": 65677,
+      "inventory_dates": [
+        "20231124",
+        "20261122"
+      ],
+      "k95_minimum": 105,
+      "k95_target_hit_count": 65724,
+      "multiple_paid_race_count": 509,
+      "multiple_paid_rows_histogram": {
+        "2": 507,
+        "4": 2
+      },
+      "paid_order_rows": 69696,
+      "races_with_usable_ranks": 69183,
+      "ranked_dates": [
+        "20231124",
+        "20261122"
+      ],
+      "status_counts": {
+        "observed": 69183
+      },
+      "unknown": 0,
+      "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+        "1": 9525,
+        "4": 22911,
+        "8": 31910,
+        "16": 42040,
+        "32": 52251,
+        "50": 58138,
+        "64": 61027,
+        "100": 65367,
+        "128": 67169,
+        "210": 69183,
+        "504": 69183
+      },
+      "winner_min_max_rank": [
+        1,
+        210
+      ]
+    },
+    "8": {
+      "all_award_max_rank": 323,
+      "catalogue_races": 442,
+      "days_with_inventory": 228,
+      "days_with_ranks": 228,
+      "hit_counts": {
+        "1": 42,
+        "4": 102,
+        "8": 146,
+        "16": 208,
+        "32": 259,
+        "50": 318,
+        "64": 336,
+        "100": 373,
+        "128": 401,
+        "210": 425,
+        "504": 442
+      },
+      "hits_at_k95": 420,
+      "hits_one_rank_below_k95": 419,
+      "inventory_dates": [
+        "20231203",
+        "20261119"
+      ],
+      "k95_minimum": 178,
+      "k95_target_hit_count": 420,
+      "multiple_paid_race_count": 3,
+      "multiple_paid_rows_histogram": {
+        "2": 3
+      },
+      "paid_order_rows": 445,
+      "races_with_usable_ranks": 442,
+      "ranked_dates": [
+        "20231203",
+        "20261119"
+      ],
+      "status_counts": {
+        "observed": 442
+      },
+      "unknown": 0,
+      "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+        "1": 42,
+        "4": 102,
+        "8": 146,
+        "16": 208,
+        "32": 259,
+        "50": 318,
+        "64": 336,
+        "100": 373,
+        "128": 401,
+        "210": 425,
+        "504": 442
+      },
+      "winner_min_max_rank": [
+        1,
+        323
+      ]
+    },
+    "9": {
+      "all_award_max_rank": 504,
+      "catalogue_races": 6815,
+      "days_with_inventory": 627,
+      "days_with_ranks": 627,
+      "hit_counts": {
+        "1": 644,
+        "4": 1537,
+        "8": 2189,
+        "16": 3050,
+        "32": 3986,
+        "50": 4628,
+        "64": 4968,
+        "100": 5585,
+        "128": 5871,
+        "210": 6350,
+        "504": 6815
+      },
+      "hits_at_k95": 6477,
+      "hits_one_rank_below_k95": 6472,
+      "inventory_dates": [
+        "20231124",
+        "20261122"
+      ],
+      "k95_minimum": 239,
+      "k95_target_hit_count": 6475,
+      "multiple_paid_race_count": 57,
+      "multiple_paid_rows_histogram": {
+        "2": 57
+      },
+      "paid_order_rows": 6872,
+      "races_with_usable_ranks": 6815,
+      "ranked_dates": [
+        "20231124",
+        "20261122"
+      ],
+      "status_counts": {
+        "observed": 6815
+      },
+      "unknown": 0,
+      "upper_bound_hit_counts_if_every_unknown_is_a_hit": {
+        "1": 644,
+        "4": 1537,
+        "8": 2189,
+        "16": 3050,
+        "32": 3986,
+        "50": 4628,
+        "64": 4968,
+        "100": 5585,
+        "128": 5871,
+        "210": 6350,
+        "504": 6815
+      },
+      "winner_min_max_rank": [
+        1,
+        504
+      ]
+    }
+  },
+  "verification_summary": {
+    "aggregate_sha256": "3bfe05dc8a0c85804b9b9571f0229136ad5c750ccbddbcc0b093fdea11678343",
+    "additional_source_validation_sha256": "947988848bf9beac7c527c5cc13525695c1e8bdee14b567464e4cd668b73d4ef",
+    "raw_result_page_counts": {
+      "confirmed_pages_with_distinct_consecutive_rank_numbers": 23,
+      "confirmed_pages_with_equal_displayed_odds_at_ranks_8_and_9": 1,
+      "kdreams_detail_matches_monthly_order_yen_rank": 23,
+      "matching_confirmed_popularity_rank": 15,
+      "matching_confirmed_quote_x100_to_payout": 15,
+      "netkeirin_matches_kdreams_detail_order_yen_rank": 23,
+      "netkeirin_matches_monthly_order_yen_rank": 23,
+      "pages_label_odds_as_confirmed_and_show_3t_popularity": 23,
+      "paid_awards_inside_confirmed_popularity_table": 15,
+      "verified_kdreams_detail_payout_pages": 23,
+      "verified_netkeirin_payout_pages": 23
+    },
+    "daily_payout_verified_agreement": 6078,
+    "broader_racecard_catalogue": {
+      "additional_app_racecards_without_popularity": 325,
+      "all_unknown_sensitivity_top_8_hits": 37968,
+      "app_archive_revision": "a8c7851a062e36da1e10101dcbbe1aad278fe168",
+      "benchmark_top_8_known_hits": 37204,
+      "prior_three_year_coverage_sha256": "09f8c95868e2ee0006e73e9b4baa7082ec6568c07a0c8cd7559e8d406ab9d258",
+      "total_inventory": 82731,
+      "unknown": 764,
+      "usable_primary_closing_ranks": 81967
+    }
+  }
+}

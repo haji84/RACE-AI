@@ -1,0 +1,137 @@
+{
+  "frozen_at": "2026-11-23T22:45:45.643251+00:00",
+  "methods": {
+    "earlier": {
+      "selected_before_score": "saved",
+      "totals": {
+        "with_known_split": 4657,
+        "actual_cross": 2271,
+        "mass_sum": 2311.1411395669775,
+        "corrected_mass_sum": 2310.229108056045,
+        "all_scored": 4665
+      },
+      "arms": {
+        "saved": {
+          "hit_1": 508,
+          "hit_4": 1281,
+          "hit_8": 1829,
+          "average_cross_ticket_sum": 9877,
+          "hit8_cross": 407,
+          "hit8_same_line": 1420,
+          "eight_contains_actual_pair": 2488
+        },
+        "calibrated_cross": {
+          "hit_1": 508,
+          "hit_4": 1281,
+          "hit_8": 1831,
+          "average_cross_ticket_sum": 9866,
+          "hit8_cross": 407,
+          "hit8_same_line": 1422,
+          "eight_contains_actual_pair": 2489
+        },
+        "reserve_1": {
+          "hit_1": 508,
+          "hit_4": 1230,
+          "hit_8": 1821,
+          "average_cross_ticket_sum": 11186,
+          "hit8_cross": 430,
+          "hit8_same_line": 1390,
+          "eight_contains_actual_pair": 2526
+        },
+        "reserve_2": {
+          "hit_1": 508,
+          "hit_4": 1080,
+          "hit_8": 1782,
+          "average_cross_ticket_sum": 13529,
+          "hit8_cross": 453,
+          "hit8_same_line": 1329,
+          "eight_contains_actual_pair": 2563
+        },
+        "reserve_3": {
+          "hit_1": 508,
+          "hit_4": 1080,
+          "hit_8": 1753,
+          "average_cross_ticket_sum": 16848,
+          "hit8_cross": 523,
+          "hit8_same_line": 1229,
+          "eight_contains_actual_pair": 2589
+        },
+        "reserve_4": {
+          "hit_1": 508,
+          "hit_4": 1080,
+          "hit_8": 1686,
+          "average_cross_ticket_sum": 20694,
+          "hit8_cross": 575,
+          "hit8_same_line": 1110,
+          "eight_contains_actual_pair": 2559
+        }
+      }
+    },
+    "recent": {
+      "selected_before_score": "saved",
+      "totals": {
+        "with_known_split": 3572,
+        "actual_cross": 1699,
+        "mass_sum": 1759.5855671375045,
+        "corrected_mass_sum": 1751.2302429477757,
+        "all_scored": 3576
+      },
+      "arms": {
+        "saved": {
+          "hit_1": 429,
+          "hit_4": 1002,
+          "hit_8": 1403,
+          "average_cross_ticket_sum": 7600,
+          "hit8_cross": 288,
+          "hit8_same_line": 1114,
+          "eight_contains_actual_pair": 1909
+        },
+        "calibrated_cross": {
+          "hit_1": 427,
+          "hit_4": 1000,
+          "hit_8": 1406,
+          "average_cross_ticket_sum": 7503,
+          "hit8_cross": 287,
+          "hit8_same_line": 1118,
+          "eight_contains_actual_pair": 1909
+        },
+        "reserve_1": {
+          "hit_1": 429,
+          "hit_4": 965,
+          "hit_8": 1397,
+          "average_cross_ticket_sum": 8603,
+          "hit8_cross": 307,
+          "hit8_same_line": 1089,
+          "eight_contains_actual_pair": 1939
+        },
+        "reserve_2": {
+          "hit_1": 429,
+          "hit_4": 874,
+          "hit_8": 1378,
+          "average_cross_ticket_sum": 10382,
+          "hit8_cross": 329,
+          "hit8_same_line": 1048,
+          "eight_contains_actual_pair": 1962
+        },
+        "reserve_3": {
+          "hit_1": 429,
+          "hit_4": 874,
+          "hit_8": 1350,
+          "average_cross_ticket_sum": 12864,
+          "hit8_cross": 367,
+          "hit8_same_line": 982,
+          "eight_contains_actual_pair": 1993
+        },
+        "reserve_4": {
+          "hit_1": 429,
+          "hit_4": 874,
+          "hit_8": 1295,
+          "average_cross_ticket_sum": 15793,
+          "hit8_cross": 416,
+          "hit8_same_line": 878,
+          "eight_contains_actual_pair": 1971
+        }
+      }
+    }
+  }
+}
