@@ -1,0 +1,2917 @@
+{
+  "snapshot_utc": "2026-11-24T15:53:31.356504+00:00",
+  "learn_cut_JST": "2026-11-20",
+  "original_archive": 78,
+  "previously_ineligible_originals": 24,
+  "continuous_one_and_stills": 1,
+  "reread_records": [
+    {
+      "race": "202312053701",
+      "race_date_jst": "20231205",
+      "fold": "training",
+      "original_frame_times_count": 35,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/ito/racedetail/3720231202040001/?pageType=showResult",
+      "reread": {
+        "back_car": 3,
+        "back_second_car": 7,
+        "back_seconds": 57.2,
+        "corner_car": 3,
+        "corner_second_car": 7,
+        "corner_seconds": 66.2
+      },
+      "evidence": "最終向正面の直線区間。赤3が数メートル先行。橙7は外の青4より前輪が先。 走路内側の白い4標識付近で赤3が離して先頭。橙7が青4より明瞭に先。 Bは区間、4角は4標識。",
+      "back_registration": "015093",
+      "source_confirmation": [
+        {
+          "source": "楽天Kドリームス",
+          "back": 3,
+          "url": "https://keirin.kdreams.jp/ito/racedetail/3720231202040001/?pageType=showResult"
+        },
+        {
+          "source": "netkeirin",
+          "back": 3,
+          "url": "https://keirin.netkeiba.com/race/result/?race_id=202312053701"
+        }
+      ],
+      "back_result_record": 3,
+      "accepted_phase": {
+        "back": 3,
+        "back_second": 7,
+        "corner": 3,
+        "corner_second": 7
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    },
+    {
+      "race": "202405041301",
+      "race_date_jst": "20240504",
+      "fold": "training",
+      "original_frame_times_count": 22,
+      "continuous_media_retained": true,
+      "source_url": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320240430050001/?pageType=showResult",
+      "reread": {
+        "back_car": 3,
+        "back_second_car": null,
+        "back_seconds": 42.2,
+        "corner_car": 3,
+        "corner_second_car": 2,
+        "corner_seconds": 51.2
+      },
+      "evidence": "走路内側のB標識付近で赤3が先頭。黒2と青4が重なり、直後は断定できない。 最終曲線出口で赤3に外の黒2が続き、紫9が追走。 B標識あり。4角はカーブ出口付近。",
+      "back_registration": "013880",
+      "source_confirmation": [
+        {
+          "source": "楽天Kドリームス",
+          "back": 3,
+          "url": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320240430050001/?pageType=showResult"
+        },
+        {
+          "source": "netkeirin",
+          "back": 3,
+          "url": "https://keirin.netkeiba.com/race/result/?race_id=202405041301"
+        },
+        {
+          "method": "continuous_recording_rechecked",
+          "corner_seconds": [
+            51.9,
+            52.0
+          ],
+          "corner_order": [
+            3,
+            2
+          ]
+        }
+      ],
+      "back_result_record": 3,
+      "accepted_phase": {
+        "back": 3,
+        "back_second": null,
+        "corner": 3,
+        "corner_second": 2
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    },
+    {
+      "race": "202411192501",
+      "race_date_jst": "20241119",
+      "fold": "training",
+      "original_frame_times_count": 25,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/omiya/racedetail/2520241119010001/?pageType=showResult",
+      "reread": {
+        "back_car": 4,
+        "back_second_car": 3,
+        "back_seconds": 45.2,
+        "corner_car": null,
+        "corner_second_car": null,
+        "corner_seconds": 60.2
+      },
+      "evidence": "最終向正面で青4→赤3→黄5が間隔をあけて並ぶ。 白い4角標識付近で内の青4と外の赤3がほぼ並ぶ。黄5が外から接近。3秒間隔の画像では正確な先後を確定できない。 Bは直線区間、4標識は視認。",
+      "back_registration": "015275",
+      "source_confirmation": [
+        {
+          "source": "楽天Kドリームス",
+          "back": 4,
+          "url": "https://keirin.kdreams.jp/omiya/racedetail/2520241119010001/?pageType=showResult"
+        },
+        {
+          "source": "netkeirin",
+          "back": 4,
+          "url": "https://keirin.netkeiba.com/race/result/?race_id=202411192501"
+        }
+      ],
+      "back_result_record": 4,
+      "accepted_phase": {
+        "back": 4,
+        "back_second": 3,
+        "corner": null,
+        "corner_second": null
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": false
+    },
+    {
+      "race": "202503166306",
+      "race_date_jst": "20250316",
+      "fold": "training",
+      "original_frame_times_count": 26,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6320250316/63202503160100/6/",
+      "reread": {
+        "back_car": 5,
+        "back_second_car": null,
+        "back_seconds": 67.7,
+        "corner_car": null,
+        "corner_second_car": null,
+        "corner_seconds": null
+      },
+      "evidence": "防府。64.70〜70.70秒の向正面で黄5が先頭。75.20〜75.80秒の4角で内の黄5と外の青4が並び、76.20秒で青4が前。交代点と標識の通過順は判別できない。",
+      "back_registration": "014561",
+      "source_confirmation": [
+        {
+          "method": "separate_review",
+          "corner_seconds": [
+            75.2,
+            76.2
+          ],
+          "near_corner_cars": [
+            5,
+            4
+          ],
+          "verified_checkpoint_order": null
+        }
+      ],
+      "back_result_record": 5,
+      "accepted_phase": {
+        "back": 5,
+        "back_second": null,
+        "corner": null,
+        "corner_second": null
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": false
+    },
+    {
+      "race": "202505201101",
+      "race_date_jst": "20250520",
+      "fold": "training",
+      "original_frame_times_count": 32,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/hakodate/racedetail/1120250519020001/?pageType=showResult",
+      "reread": {
+        "back_car": 6,
+        "back_second_car": 1,
+        "back_seconds": 66.2,
+        "corner_car": 6,
+        "corner_second_car": 1,
+        "corner_seconds": 75.2
+      },
+      "evidence": "最終向正面で緑6→白1。次に黄5と青4。 最終曲線から直線への移行付近で緑6、その直後に白1。72.2秒から順序を維持。 Bは向正面区間。4角は出口付近で厳密な4角線通過時刻は未確定。",
+      "back_registration": "014713",
+      "source_confirmation": [
+        {
+          "source": "楽天Kドリームス",
+          "back": 6,
+          "url": "https://keirin.kdreams.jp/hakodate/racedetail/1120250519020001/?pageType=showResult"
+        },
+        {
+          "source": "netkeirin",
+          "back": 6,
+          "url": "https://keirin.netkeiba.com/race/result/?race_id=202505201101"
+        }
+      ],
+      "back_result_record": 6,
+      "accepted_phase": {
+        "back": 6,
+        "back_second": 1,
+        "corner": 6,
+        "corner_second": 1
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    },
+    {
+      "race": "202511193101",
+      "race_date_jst": "20251119",
+      "fold": "training",
+      "original_frame_times_count": 28,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/matsudo/racedetail/3120251119010001/?pageType=showResult",
+      "reread": {
+        "back_car": 6,
+        "back_second_car": 3,
+        "back_seconds": 60.2,
+        "corner_car": null,
+        "corner_second_car": null,
+        "corner_seconds": 66.2
+      },
+      "evidence": "内側のB標識付近、緑6が差を開けて先頭。外の赤3が内の橙7より前。 最終曲線で赤3が緑6の外まで上昇。異なるレーンで同体に近く4角での先後は確定できない。 B標識あり。4角2車の先後は未確定。",
+      "back_registration": "014988",
+      "source_confirmation": [
+        {
+          "source": "楽天Kドリームス",
+          "back": 6,
+          "url": "https://keirin.kdreams.jp/matsudo/racedetail/3120251119010001/?pageType=showResult"
+        },
+        {
+          "source": "netkeirin",
+          "back": 6,
+          "url": "https://keirin.netkeiba.com/race/result/?race_id=202511193101"
+        }
+      ],
+      "back_result_record": 6,
+      "accepted_phase": {
+        "back": 6,
+        "back_second": 3,
+        "corner": null,
+        "corner_second": null
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": false
+    },
+    {
+      "race": "202608078501",
+      "race_date_jst": "20260807",
+      "fold": "training",
+      "original_frame_times_count": 26,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8520260807/85202608070100/1/",
+      "reread": {
+        "back_car": 1,
+        "back_second_car": null,
+        "back_seconds": 49.234,
+        "corner_car": null,
+        "corner_second_car": null,
+        "corner_seconds": null
+      },
+      "evidence": "佐世保。46.23秒と49.23秒に白1が先頭、後ろで青4と赤3が争う。路面の4が映る54.20秒に内の白1と外の赤3の前輪が並び、55.30・56.10秒には外の赤3が前に出る。4角通過時の順序は判別できない。",
+      "back_registration": "015982",
+      "source_confirmation": [],
+      "back_result_record": 1,
+      "accepted_phase": {
+        "back": 1,
+        "back_second": null,
+        "corner": null,
+        "corner_second": null
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": false
+    },
+    {
+      "race": "202610283607",
+      "race_date_jst": "20261028",
+      "fold": "training",
+      "original_frame_times_count": 26,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261026/36202610260300/7/",
+      "reread": {
+        "back_car": 5,
+        "back_second_car": 4,
+        "back_seconds": 60.712,
+        "corner_car": null,
+        "corner_second_car": null,
+        "corner_seconds": null
+      },
+      "evidence": "小田原。60.71秒の最終向正面で黄5の後ろに青4、赤3。62.50〜64.70秒も5・4・3。66.30〜66.71秒のカーブで内の赤3が黄5と並び、次の69.71秒は直線。正確な4角通過順は判別できない。",
+      "back_registration": "015613",
+      "source_confirmation": [],
+      "back_result_record": 5,
+      "accepted_phase": {
+        "back": 5,
+        "back_second": 4,
+        "corner": null,
+        "corner_second": null
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": false
+    },
+    {
+      "race": "202611164606",
+      "race_date_jst": "20261116",
+      "fold": "training",
+      "original_frame_times_count": 20,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4620261115/46202611150200/6/",
+      "reread": {
+        "back_car": 5,
+        "back_second_car": 6,
+        "back_seconds": 52.143,
+        "corner_car": 5,
+        "corner_second_car": 1,
+        "corner_seconds": 58.143
+      },
+      "evidence": "49.143～52.143秒の左進の向正面で黄5が緑6に明瞭に先着。52.143秒には内側の青帯右に白いBが見え、その時点では先頭が標識を通過済み。 58.143秒は最終直線に出る前の弧。内の黄5のすぐ後ろが白1、緑6はその背後。 先頭の後位が向正面の緑6から最終コーナーで白1に替わった。交替の正確な場所・時刻は標本間で不明。 秒は保存済み静止コマのプレーヤー時刻。B線の厳密な通過、仕掛け開始点、4角の厳密な通過線は採点しない。",
+      "back_registration": "015713",
+      "source_confirmation": [],
+      "back_result_record": 5,
+      "accepted_phase": {
+        "back": 5,
+        "back_second": 6,
+        "corner": 5,
+        "corner_second": 1
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    },
+    {
+      "race": "202611172401",
+      "race_date_jst": "20261117",
+      "fold": "training",
+      "original_frame_times_count": 22,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/utsunomiya/racedetail/2420261117010001/?pageType=showResult",
+      "reread": {
+        "back_car": 1,
+        "back_second_car": 4,
+        "back_seconds": 39.2,
+        "corner_car": 1,
+        "corner_second_car": null,
+        "corner_seconds": 54.2
+      },
+      "evidence": "雨の最終向正面の直線で白1・青4・橙7の順。42.2秒には先頭側に柱が重なる。 直線に移る曲線出口で白1が明らかに先。後ろの青4と内側の橙7が並び、2番手は不明。 Bは直線区間、4角は出口付近。",
+      "back_registration": "015886",
+      "source_confirmation": [
+        {
+          "source": "楽天Kドリームス",
+          "back": 1,
+          "url": "https://keirin.kdreams.jp/utsunomiya/racedetail/2420261117010001/?pageType=showResult"
+        },
+        {
+          "source": "netkeirin",
+          "back": 1,
+          "url": "https://keirin.netkeiba.com/race/result/?race_id=202611172401"
+        }
+      ],
+      "back_result_record": 1,
+      "accepted_phase": {
+        "back": 1,
+        "back_second": 4,
+        "corner": 1,
+        "corner_second": null
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    },
+    {
+      "race": "202611177305",
+      "race_date_jst": "20261117",
+      "fold": "training",
+      "original_frame_times_count": 20,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/5/",
+      "reread": {
+        "back_car": 1,
+        "back_second_car": null,
+        "back_seconds": 53.831999,
+        "corner_car": null,
+        "corner_second_car": null,
+        "corner_seconds": null
+      },
+      "evidence": "最終向正面の53.832秒で白1が一車身余り前。直後の青4と緑6は重なり、そこでの厳密な先着は判定困難。 59.832秒では白1先行。62.832秒は最終カーブで白1・緑6・橙7が内外に開き、カメラの角度から同じ横断線での順を分解できない。65.832秒は既に直線で、コーナー判定に使わない。 4角付近で後続の複数車が内外に広がった。 秒は保存済み静止コマのプレーヤー時刻。B線の厳密な通過、仕掛け開始点、4角の厳密な通過線は採点しない。",
+      "back_registration": "016004",
+      "source_confirmation": [],
+      "back_result_record": 1,
+      "accepted_phase": {
+        "back": 1,
+        "back_second": null,
+        "corner": null,
+        "corner_second": null
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": false
+    },
+    {
+      "race": "202611182603",
+      "race_date_jst": "20261118",
+      "fold": "training",
+      "original_frame_times_count": 15,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261118/26202611180100/3/",
+      "reread": {
+        "back_car": 5,
+        "back_second_car": 4,
+        "back_seconds": 52.683,
+        "corner_car": 5,
+        "corner_second_car": 4,
+        "corner_seconds": 56.683
+      },
+      "evidence": "48.683～52.683秒最終向正面、黄5単独。その後ろは青4、赤3の順にはっきり間隔がある。 56.683秒は最終直線に入る手前のカーブ。黄5のすぐ背後に青4、その後ろに赤3。 前の曲がりから向正面入口で落車が写る。先頭黄5と青4の差は4角で縮まる。事故車、発生秒、原因は特定しない。 秒は保存済み静止コマのプレーヤー時刻。B線の厳密な通過、仕掛け開始点、4角の厳密な通過線は採点しない。",
+      "back_registration": "015795",
+      "source_confirmation": [],
+      "back_result_record": 5,
+      "accepted_phase": {
+        "back": 5,
+        "back_second": 4,
+        "corner": 5,
+        "corner_second": 4
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    },
+    {
+      "race": "202611184406",
+      "race_date_jst": "20261118",
+      "fold": "training",
+      "original_frame_times_count": 15,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4420261118/44202611180100/6/",
+      "reread": {
+        "back_car": 3,
+        "back_second_car": 6,
+        "back_seconds": 49.131,
+        "corner_car": null,
+        "corner_second_car": null,
+        "corner_seconds": null
+      },
+      "evidence": "49.131秒の最終向正面（直線の反対側）で赤3、緑6、黄5の順に間隔あり。53.131秒には後位の黄5が外から緑6に並ぶ。 57.131秒最終コーナー付近は内赤3・外黄5の接近。前輪位置は互いに斜めで、同じ横断線での厳密な順を保証できない。61.131秒の直線はこの判定に使用しない。 黄5が向正面3番手から外を上がり、4角付近で赤3に接近。捲りの開始点自体は不明。 秒は保存済み静止コマのプレーヤー時刻。B線の厳密な通過、仕掛け開始点、4角の厳密な通過線は採点しない。",
+      "back_registration": "015784",
+      "source_confirmation": [],
+      "back_result_record": 3,
+      "accepted_phase": {
+        "back": 3,
+        "back_second": 6,
+        "corner": null,
+        "corner_second": null
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": false
+    },
+    {
+      "race": "202611188104",
+      "race_date_jst": "20261118",
+      "fold": "training",
+      "original_frame_times_count": 15,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/4/",
+      "reread": {
+        "back_car": 2,
+        "back_second_car": 3,
+        "back_seconds": 59.215,
+        "corner_car": 2,
+        "corner_second_car": 3,
+        "corner_seconds": 67.215
+      },
+      "evidence": "59.215秒の最終向正面で黒2が単独先頭、その次は赤3。並走の青4より前輪が前。63.215秒も黒2・赤3・青4の順に間隔が見える。 67.215秒の終盤の弧、直線へ切り替わる前に内黒2、赤3、青4の順。71.215秒の次のコマは直線。 51.215秒には水色4が先頭、55.215秒の曲がりで黒2が外から進み、59.215秒には黒2単独。仕掛け開始位置の正確な計測はできない。 秒は保存済み静止コマのプレーヤー時刻。B線の厳密な通過、仕掛け開始点、4角の厳密な通過線は採点しない。",
+      "back_registration": "015218",
+      "source_confirmation": [],
+      "back_result_record": 2,
+      "accepted_phase": {
+        "back": 2,
+        "back_second": 3,
+        "corner": 2,
+        "corner_second": 3
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    },
+    {
+      "race": "202611188108",
+      "race_date_jst": "20261118",
+      "fold": "training",
+      "original_frame_times_count": 15,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/8/",
+      "reread": {
+        "back_car": 1,
+        "back_second_car": 3,
+        "back_seconds": 57.914,
+        "corner_car": 1,
+        "corner_second_car": 3,
+        "corner_seconds": 65.914
+      },
+      "evidence": "57.914秒最終向正面の左進の映像。白1が前、赤3は距離を空けた2番手。61.914秒の後半まで同じ組み合わせ。 65.914秒は走路の弧が最終直線に向かって緩むところで白1、赤3がそれぞれ明瞭に前。69.914秒は既に直線。 向正面から最終コーナーにかけ、白1が先行し赤3が追走。後方の追い上げはこの区間の先頭2車を変えていない。 秒は保存済み静止コマのプレーヤー時刻。B線の厳密な通過、仕掛け開始点、4角の厳密な通過線は採点しない。",
+      "back_registration": "015306",
+      "source_confirmation": [],
+      "back_result_record": 1,
+      "accepted_phase": {
+        "back": 1,
+        "back_second": 3,
+        "corner": 1,
+        "corner_second": 3
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    },
+    {
+      "race": "202611188111",
+      "race_date_jst": "20261118",
+      "fold": "training",
+      "original_frame_times_count": 24,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/11/",
+      "reread": {
+        "back_car": null,
+        "back_second_car": null,
+        "back_seconds": null,
+        "corner_car": null,
+        "corner_second_car": null,
+        "corner_seconds": null
+      },
+      "evidence": "最終バックで黄5内と橙7外が重なり、先頭の入れ替わりとB通過の前後関係が固定できない。 57.366秒の内側は3C標示。60.866秒には赤3と橙7が並ぶ。両カメラの間の4角における順序は不明。 採録フレームの秒（厳密な計測線通過時刻は標示と車輪が同時に映らない限り未測定）。角は最終カーブ4角付近。",
+      "back_registration": "015061",
+      "source_confirmation": [],
+      "back_result_record": 7,
+      "accepted_phase": {
+        "back": 7,
+        "back_second": 5,
+        "corner": null,
+        "corner_second": null
+      },
+      "previous_review_retained": true,
+      "issues": [],
+      "accepted_for_back_to_corner": false
+    },
+    {
+      "race": "202611188112",
+      "race_date_jst": "20261118",
+      "fold": "training",
+      "original_frame_times_count": 28,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/12/",
+      "reread": {
+        "back_car": 2,
+        "back_second_car": null,
+        "back_seconds": 49.171,
+        "corner_car": null,
+        "corner_second_car": null,
+        "corner_seconds": null
+      },
+      "evidence": "最終バックの49.171秒から52.671秒まで黒2の先頭は一貫。2番手はこの間に橙7から紫9へ。 56.171秒（3C）で内の黒2と外の紫9が接近、59.671秒の直線では紫9が黒2の前。4角付近の追い越し時点は2画像の間で特定できない。 採録フレームの秒（厳密な計測線通過時刻は標示と車輪が同時に映らない限り未測定）。角は最終カーブ4角付近。",
+      "back_registration": "015779",
+      "source_confirmation": [],
+      "back_result_record": 2,
+      "accepted_phase": {
+        "back": 2,
+        "back_second": 7,
+        "corner": null,
+        "corner_second": null
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": false
+    },
+    {
+      "race": "202611192603",
+      "race_date_jst": "20261119",
+      "fold": "training",
+      "original_frame_times_count": 15,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261118/26202611180200/3/",
+      "reread": {
+        "back_car": 2,
+        "back_second_car": null,
+        "back_seconds": 48.843,
+        "corner_car": 3,
+        "corner_second_car": null,
+        "corner_seconds": 56.843
+      },
+      "evidence": "あと1周のホーム後、44.843秒の向こう正面では黒2→黄5→赤3。48.843秒も黒2が先頭。黄5と外を進む赤3が柱で一部重なりBの2番手不明。 52.843秒に外の赤3が内の黒2の横に出て、56.843秒の最終カーブ出口で赤3の前輪が先行。黄5・黒2が続くが2番手は固定しない。 採録フレームの秒（厳密な計測線通過時刻は標示と車輪が同時に映らない限り未測定）。角は最終カーブ4角付近。",
+      "back_registration": "015795",
+      "source_confirmation": [],
+      "back_result_record": 2,
+      "accepted_phase": {
+        "back": 2,
+        "back_second": 5,
+        "corner": 3,
+        "corner_second": null
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    },
+    {
+      "race": "202611208104",
+      "race_date_jst": "20261120",
+      "fold": "training",
+      "original_frame_times_count": 15,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/4/",
+      "reread": {
+        "back_car": 7,
+        "back_second_car": 1,
+        "back_seconds": 49.37,
+        "corner_car": 7,
+        "corner_second_car": null,
+        "corner_seconds": 57.37
+      },
+      "evidence": "あと1周の表示の次の向こう正面。45.370～49.370秒は橙7→白1。53.370秒でも橙7が先頭、外の紫9が白1に接近。 最終カーブの57.370秒、内側の橙7が独立して先頭。直後は白1と黒2が重なりやすく2番手は不明。 採録フレームの秒（厳密な計測線通過時刻は標示と車輪が同時に映らない限り未測定）。角は最終カーブ4角付近。",
+      "back_registration": "015213",
+      "source_confirmation": [],
+      "back_result_record": 7,
+      "accepted_phase": {
+        "back": 7,
+        "back_second": 1,
+        "corner": 7,
+        "corner_second": null
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    },
+    {
+      "race": "202611223605",
+      "race_date_jst": "20261122",
+      "fold": "later_test_only",
+      "original_frame_times_count": 20,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261121/36202611210200/5/",
+      "reread": {
+        "back_car": 7,
+        "back_second_car": null,
+        "back_seconds": 56.624,
+        "corner_car": 1,
+        "corner_second_car": null,
+        "corner_seconds": 62.624
+      },
+      "evidence": "最終ホーム後、53.624秒は向こう正面の橙7が先頭、赤3と黒2が追う。56.624秒も橙7が先頭、直後の複数人が重なる。 59.624秒に落車が映る。62.624秒にバンクの内縁が大きく曲がる最終カーブで白1が赤3・青4の前。赤と青の順は採らず、落車の細部・原因も推定しない。 採録フレームの秒（厳密な計測線通過時刻は標示と車輪が同時に映らない限り未測定）。角は最終カーブ4角付近。",
+      "back_registration": null,
+      "source_confirmation": [],
+      "back_result_record": 3,
+      "accepted_phase": {
+        "back": null,
+        "back_second": null,
+        "corner": 1,
+        "corner_second": null
+      },
+      "previous_review_retained": false,
+      "issues": [
+        "visual_back_vs_result_conflict"
+      ],
+      "accepted_for_back_to_corner": false
+    },
+    {
+      "race": "202611224206",
+      "race_date_jst": "20261122",
+      "fold": "later_test_only",
+      "original_frame_times_count": 19,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200300/6/",
+      "reread": {
+        "back_car": 1,
+        "back_second_car": 2,
+        "back_seconds": 48.0,
+        "corner_car": 1,
+        "corner_second_car": 5,
+        "corner_seconds": 66.64
+      },
+      "evidence": "向こう正面の46.640～50.000秒は白1→黒2。50.640秒で黄5が外から黒2に接近。 54.640秒の最終カーブで内の白1に外の黄5が追走。66.640秒のREPLAYは最終カーブ出口を正面から再掲し、白1、黄5、後方に黒2・青4の順を確認。角の秒数は再掲映像のプレーヤー位置。 採録フレームの秒（厳密な計測線通過時刻は標示と車輪が同時に映らない限り未測定）。角は最終カーブ4角付近。",
+      "back_registration": "014674",
+      "source_confirmation": [],
+      "back_result_record": 1,
+      "accepted_phase": {
+        "back": 1,
+        "back_second": 2,
+        "corner": 1,
+        "corner_second": 5
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    },
+    {
+      "race": "202611228105",
+      "race_date_jst": "20261122",
+      "fold": "later_test_only",
+      "original_frame_times_count": 20,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/5/",
+      "reread": {
+        "back_car": 6,
+        "back_second_car": 9,
+        "back_seconds": 50.034,
+        "corner_car": 9,
+        "corner_second_car": 7,
+        "corner_seconds": 59.034
+      },
+      "evidence": "最終周回表示38.034秒。47.034秒の向正面で緑6が紫9より明瞭に先。50.034秒には内圏のB表示直後で6の前輪が外から迫る9より前。53.034秒には9が先行。56.034秒に3角付近を紫9→橙7、59.034秒に内圏4角標示横を同順で通過。Bの瞬間は写っておらず、標示直後の車順と直前の流れから判定。",
+      "back_registration": null,
+      "source_confirmation": [],
+      "back_result_record": 9,
+      "accepted_phase": {
+        "back": null,
+        "back_second": null,
+        "corner": 9,
+        "corner_second": 7
+      },
+      "previous_review_retained": false,
+      "issues": [
+        "visual_back_vs_result_conflict"
+      ],
+      "accepted_for_back_to_corner": false
+    },
+    {
+      "race": "202611228108",
+      "race_date_jst": "20261122",
+      "fold": "later_test_only",
+      "original_frame_times_count": 20,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/8/",
+      "reread": {
+        "back_car": null,
+        "back_second_car": null,
+        "back_seconds": 49.5,
+        "corner_car": 5,
+        "corner_second_car": 2,
+        "corner_seconds": 58.266
+      },
+      "evidence": "最終周回表示38.266秒。48.50秒は内の紫9が先で外の黄5が迫り、B標示が見える49.50秒には前輪がほぼ並ぶ。50.266秒は5が先。B線通過の上下を分離できずBの車番は両方保留。58.266秒の内圏4角標示を黄5が先頭、黒2が2番手、白1がその直後。",
+      "back_registration": "014396",
+      "source_confirmation": [],
+      "back_result_record": 5,
+      "accepted_phase": {
+        "back": 5,
+        "back_second": 9,
+        "corner": 5,
+        "corner_second": 2
+      },
+      "previous_review_retained": true,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    },
+    {
+      "race": "202611232607",
+      "race_date_jst": "20261123",
+      "fold": "later_test_only",
+      "original_frame_times_count": 20,
+      "continuous_media_retained": false,
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230100/7/",
+      "reread": {
+        "back_car": 3,
+        "back_second_car": 7,
+        "back_seconds": 47.956999,
+        "corner_car": 3,
+        "corner_second_car": 7,
+        "corner_seconds": 56.956999
+      },
+      "evidence": "38.957秒に最終周回表示、41.957秒は第1・2コーナーを赤3→橙7。44.957・47.957・50.957・53.957秒の向正面で赤3、橙7、黒2が間隔を保つ。56.957秒に最終コーナーを回り内側から赤3、橙7、黒2の順、59.957秒の直線入口でも赤3、橙7。向正面の秒は代表点。",
+      "back_registration": "015904",
+      "source_confirmation": [],
+      "back_result_record": 3,
+      "accepted_phase": {
+        "back": 3,
+        "back_second": 7,
+        "corner": 3,
+        "corner_second": 7
+      },
+      "previous_review_retained": false,
+      "issues": [],
+      "accepted_for_back_to_corner": true
+    }
+  ],
+  "fit": {
+    "45": 45,
+    "78": 78,
+    "now": 88,
+    "both_pairs_prev": 18,
+    "both_pairs_now": 20,
+    "now_pairs_new_to_16": [
+      "202611164606",
+      "202611177302",
+      "202611177306",
+      "202611182603"
+    ],
+    "paired_without_original_anchor": [
+      "202311241301",
+      "202311241302",
+      "202311241303",
+      "202311241305",
+      "202311241306",
+      "202311241307",
+      "202312053701",
+      "202406115602",
+      "202406115603",
+      "202406115604",
+      "202406115605",
+      "202406115606",
+      "202406115607",
+      "202406115608",
+      "202406115609",
+      "202406115610",
+      "202505201101",
+      "202509161101",
+      "202509161102",
+      "202509161103",
+      "202509161104",
+      "202509161106",
+      "202509161107",
+      "202509161108",
+      "202509161109",
+      "202609207511",
+      "202609284310",
+      "202611105309",
+      "202611115105",
+      "202611188104",
+      "202611188108"
+    ],
+    "issues": {
+      "202611223605": [
+        "visual_back_vs_result_conflict"
+      ],
+      "202611228105": [
+        "visual_back_vs_result_conflict"
+      ]
+    }
+  },
+  "conditional": {
+    "same_previous_17": {
+      "races": [
+        "202611212205",
+        "202611213605",
+        "202611214204",
+        "202611214507",
+        "202611218104",
+        "202611218108",
+        "202611224504",
+        "202611225304",
+        "202611226207",
+        "202611228109",
+        "202611228111",
+        "202611232603",
+        "202611235308",
+        "202611236106",
+        "202611236205",
+        "202611238104",
+        "202611238108"
+      ],
+      "arms": {
+        "previous45": {
+          "n": 17,
+          "held": 12,
+          "brier": 0.19040504929903151,
+          "logloss": 0.556260383939136
+        },
+        "previous78": {
+          "n": 17,
+          "held": 12,
+          "brier": 0.1972729891956783,
+          "logloss": 0.5726424620079815
+        },
+        "all_eligible": {
+          "n": 17,
+          "held": 12,
+          "brier": 0.19884943870552335,
+          "logloss": 0.5766867488452617
+        }
+      }
+    },
+    "newly_scoreable_late_cases": {
+      "races": [
+        "202611224206",
+        "202611228108",
+        "202611232607"
+      ],
+      "arms": {
+        "previous45": {
+          "n": 3,
+          "held": 3,
+          "brier": 0.0482028066998642,
+          "logloss": 0.24685647086847542
+        },
+        "previous78": {
+          "n": 3,
+          "held": 3,
+          "brier": 0.035199999999999974,
+          "logloss": 0.20688016325773237
+        },
+        "all_eligible": {
+          "n": 3,
+          "held": 3,
+          "brier": 0.031397530864197526,
+          "logloss": 0.19417581084051272
+        }
+      }
+    },
+    "all_late_unique": {
+      "races": [
+        "202611212205",
+        "202611213605",
+        "202611214204",
+        "202611214507",
+        "202611218104",
+        "202611218108",
+        "202611224206",
+        "202611224504",
+        "202611225304",
+        "202611226207",
+        "202611228108",
+        "202611228109",
+        "202611228111",
+        "202611232603",
+        "202611232607",
+        "202611235308",
+        "202611236106",
+        "202611236205",
+        "202611238104",
+        "202611238108"
+      ],
+      "arms": {
+        "previous45": {
+          "n": 20,
+          "held": 15,
+          "brier": 0.16907471290915643,
+          "logloss": 0.5098497969785369
+        },
+        "previous78": {
+          "n": 20,
+          "held": 15,
+          "brier": 0.17296204081632655,
+          "logloss": 0.5177781171954442
+        },
+        "all_eligible": {
+          "n": 20,
+          "held": 15,
+          "brier": 0.1737316525293245,
+          "logloss": 0.5193101081445494
+        }
+      }
+    }
+  },
+  "all_groups_scores": {
+    "previous_13": {
+      "previous45": {
+        "races": 13,
+        "held": 10,
+        "mean_brier": 0.15233243765870036,
+        "logloss": 0.46812578221078643
+      },
+      "all_eligible": {
+        "races": 13,
+        "held": 10,
+        "mean_brier": 0.15877177699823203,
+        "logloss": 0.4809819325209924
+      },
+      "excluding_named_outcome_selected": {
+        "races": 13,
+        "held": 10,
+        "mean_brier": 0.15793335758907584,
+        "logloss": 0.4807307926472773
+      },
+      "previous78": {
+        "races": 13,
+        "held": 10,
+        "mean_brier": 0.15827252747252749,
+        "logloss": 0.4806540509296259
+      }
+    },
+    "previous_separate_3": {
+      "previous45": {
+        "races": 3,
+        "held": 1,
+        "mean_brier": 0.4005960772720134,
+        "logloss": 1.0347208983237135
+      },
+      "all_eligible": {
+        "races": 3,
+        "held": 1,
+        "mean_brier": 0.43119092970521544,
+        "logloss": 1.1290275444795859
+      },
+      "excluding_named_outcome_selected": {
+        "races": 3,
+        "held": 1,
+        "mean_brier": 0.4163107015659449,
+        "logloss": 1.0814881431723657
+      },
+      "previous78": {
+        "races": 3,
+        "held": 1,
+        "mean_brier": 0.4234993197278912,
+        "logloss": 1.1040219349685907
+      }
+    },
+    "additional_archived": {
+      "previous45": {
+        "races": 4,
+        "held": 4,
+        "mean_brier": 0.049846084200995934,
+        "logloss": 0.2517995189648437
+      },
+      "all_eligible": {
+        "races": 4,
+        "held": 4,
+        "mean_brier": 0.029256790123456784,
+        "logloss": 0.1865886016698321
+      },
+      "excluding_named_outcome_selected": {
+        "races": 4,
+        "held": 4,
+        "mean_brier": 0.04033240997229916,
+        "logloss": 0.22339884333155263
+      },
+      "previous78": {
+        "races": 4,
+        "held": 4,
+        "mean_brier": 0.032799999999999975,
+        "logloss": 0.19874846922949368
+      }
+    },
+    "all_distinct": {
+      "previous45": {
+        "races": 20,
+        "held": 15,
+        "mean_brier": 0.16907471290915643,
+        "logloss": 0.5098497969785369
+      },
+      "all_eligible": {
+        "races": 20,
+        "held": 15,
+        "mean_brier": 0.1737316525293245,
+        "logloss": 0.5193101081445494
+      },
+      "excluding_named_outcome_selected": {
+        "races": 20,
+        "held": 15,
+        "mean_brier": 0.17316976966225087,
+        "logloss": 0.5193780053628957
+      },
+      "previous78": {
+        "races": 20,
+        "held": 15,
+        "mean_brier": 0.17296204081632655,
+        "logloss": 0.5177781171954442
+      }
+    }
+  },
+  "trifecta": {
+    "forecasts": 211,
+    "scored": 207,
+    "label_missing": 4,
+    "rows": {
+      "pair_16": {
+        "1": 26,
+        "4": 69,
+        "8": 93
+      },
+      "previous_pair_18": {
+        "1": 26,
+        "4": 69,
+        "8": 93
+      },
+      "current_pair": {
+        "1": 26,
+        "4": 69,
+        "8": 93
+      },
+      "transfer_45": {
+        "1": 25,
+        "4": 70,
+        "8": 92
+      },
+      "transfer_78": {
+        "1": 25,
+        "4": 69,
+        "8": 92
+      },
+      "transfer_latest": {
+        "1": 25,
+        "4": 69,
+        "8": 92
+      }
+    },
+    "changed_on_scored_panel_vs_16": {
+      "unchanged_16": {
+        "1": 0,
+        "4": 0,
+        "8": 0
+      },
+      "all_observed_pairs": {
+        "1": 1,
+        "4": 2,
+        "8": 3
+      },
+      "transfer_45": {
+        "1": 3,
+        "4": 9,
+        "8": 23
+      },
+      "transfer_all": {
+        "1": 3,
+        "4": 11,
+        "8": 27
+      }
+    },
+    "gained_lost_vs_16": {
+      "unchanged_16": {
+        "1_gained": 0,
+        "1_lost": 0,
+        "4_gained": 0,
+        "4_lost": 0,
+        "8_gained": 0,
+        "8_lost": 0
+      },
+      "all_observed_pairs": {
+        "1_gained": 0,
+        "1_lost": 0,
+        "4_gained": 0,
+        "4_lost": 0,
+        "8_gained": 0,
+        "8_lost": 0
+      },
+      "transfer_45": {
+        "1_gained": 0,
+        "1_lost": 1,
+        "4_gained": 1,
+        "4_lost": 0,
+        "8_gained": 0,
+        "8_lost": 1
+      },
+      "transfer_all": {
+        "1_gained": 0,
+        "1_lost": 1,
+        "4_gained": 1,
+        "4_lost": 1,
+        "8_gained": 0,
+        "8_lost": 1
+      }
+    },
+    "settlement_checks": {
+      "202611212201": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611212202": {
+        "pair_16": 4,
+        "previous_pair_18": 4,
+        "current_pair": 4,
+        "transfer_45": 4,
+        "transfer_78": 4,
+        "transfer_latest": 4
+      },
+      "202611212203": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611212204": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611212205": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611212206": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611212207": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611212208": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611212209": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611213601": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611213602": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611213603": {
+        "pair_16": 4,
+        "previous_pair_18": 4,
+        "current_pair": 4,
+        "transfer_45": 4,
+        "transfer_78": 4,
+        "transfer_latest": 4
+      },
+      "202611213604": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611213605": {
+        "pair_16": 5,
+        "previous_pair_18": 5,
+        "current_pair": 5,
+        "transfer_45": 5,
+        "transfer_78": 5,
+        "transfer_latest": 5
+      },
+      "202611213606": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611213607": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611213608": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611213609": {
+        "pair_16": 4,
+        "previous_pair_18": 4,
+        "current_pair": 4,
+        "transfer_45": 4,
+        "transfer_78": 4,
+        "transfer_latest": 4
+      },
+      "202611213610": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611214201": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611214203": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611214204": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611214205": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611214206": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611214207": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611214208": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611214209": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611214501": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611214502": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611214503": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611214504": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611214505": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611214506": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611214507": {
+        "pair_16": 4,
+        "previous_pair_18": 4,
+        "current_pair": 4,
+        "transfer_45": 4,
+        "transfer_78": 4,
+        "transfer_latest": 4
+      },
+      "202611214508": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611214509": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611214510": {
+        "pair_16": 5,
+        "previous_pair_18": 5,
+        "current_pair": 5,
+        "transfer_45": 4,
+        "transfer_78": 4,
+        "transfer_latest": 4
+      },
+      "202611215101": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611215102": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611215103": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611215104": null,
+      "202611215105": null,
+      "202611215106": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611215107": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611218101": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611218102": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611218103": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611218104": {
+        "pair_16": 6,
+        "previous_pair_18": 6,
+        "current_pair": 6,
+        "transfer_45": 6,
+        "transfer_78": 6,
+        "transfer_latest": 6
+      },
+      "202611218105": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611218106": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611218107": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611218108": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611218109": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611218110": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611218111": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611218112": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611222201": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611222202": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611222203": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611222204": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611222205": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611222206": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611222207": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611222208": {
+        "pair_16": 8,
+        "previous_pair_18": 8,
+        "current_pair": 8,
+        "transfer_45": 8,
+        "transfer_78": 8,
+        "transfer_latest": 8
+      },
+      "202611222209": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611223601": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611223602": {
+        "pair_16": 5,
+        "previous_pair_18": 5,
+        "current_pair": 5,
+        "transfer_45": 5,
+        "transfer_78": 5,
+        "transfer_latest": 5
+      },
+      "202611223603": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611223604": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611223605": {
+        "pair_16": 5,
+        "previous_pair_18": 5,
+        "current_pair": 5,
+        "transfer_45": 5,
+        "transfer_78": 5,
+        "transfer_latest": 5
+      },
+      "202611223606": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611223607": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611223608": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611223609": {
+        "pair_16": 4,
+        "previous_pair_18": 4,
+        "current_pair": 4,
+        "transfer_45": 4,
+        "transfer_78": 5,
+        "transfer_latest": 5
+      },
+      "202611223610": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611224201": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611224202": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611224203": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611224204": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611224205": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611224206": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611224207": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611224208": {
+        "pair_16": 8,
+        "previous_pair_18": 8,
+        "current_pair": 8,
+        "transfer_45": 8,
+        "transfer_78": 8,
+        "transfer_latest": 8
+      },
+      "202611224209": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611224501": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611224502": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611224503": {
+        "pair_16": 6,
+        "previous_pair_18": 6,
+        "current_pair": 6,
+        "transfer_45": 5,
+        "transfer_78": 5,
+        "transfer_latest": 5
+      },
+      "202611224504": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611224505": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611224506": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611224507": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611224508": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611224509": {
+        "pair_16": 4,
+        "previous_pair_18": 4,
+        "current_pair": 4,
+        "transfer_45": 4,
+        "transfer_78": 4,
+        "transfer_latest": 4
+      },
+      "202611224510": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611225301": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611225302": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611225303": {
+        "pair_16": 8,
+        "previous_pair_18": 8,
+        "current_pair": 8,
+        "transfer_45": 8,
+        "transfer_78": 8,
+        "transfer_latest": 8
+      },
+      "202611225304": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611225305": {
+        "pair_16": 7,
+        "previous_pair_18": 7,
+        "current_pair": 7,
+        "transfer_45": 7,
+        "transfer_78": 7,
+        "transfer_latest": 7
+      },
+      "202611225306": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611225307": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611225308": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611225309": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611225310": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611225311": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611226201": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611226202": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611226203": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611226204": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611226206": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611226207": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611228101": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611228102": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611228103": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611228104": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611228105": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611228106": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611228107": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611228108": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611228109": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611228110": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611228111": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611228112": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611232601": {
+        "pair_16": 5,
+        "previous_pair_18": 5,
+        "current_pair": 5,
+        "transfer_45": 5,
+        "transfer_78": 5,
+        "transfer_latest": 5
+      },
+      "202611232602": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611232603": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611232604": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611232605": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611232606": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611232607": {
+        "pair_16": 5,
+        "previous_pair_18": 5,
+        "current_pair": 5,
+        "transfer_45": 5,
+        "transfer_78": 5,
+        "transfer_latest": 5
+      },
+      "202611232608": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611232609": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611232610": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611232611": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611233401": {
+        "pair_16": 8,
+        "previous_pair_18": 8,
+        "current_pair": 8,
+        "transfer_45": 8,
+        "transfer_78": 8,
+        "transfer_latest": 8
+      },
+      "202611233402": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611233403": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611233404": {
+        "pair_16": 8,
+        "previous_pair_18": 8,
+        "current_pair": 8,
+        "transfer_45": 8,
+        "transfer_78": 8,
+        "transfer_latest": 8
+      },
+      "202611233405": {
+        "pair_16": 8,
+        "previous_pair_18": 8,
+        "current_pair": 8,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611233406": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611233407": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611233601": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611233602": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611233603": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611233604": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611233605": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611233606": {
+        "pair_16": 5,
+        "previous_pair_18": 5,
+        "current_pair": 5,
+        "transfer_45": 5,
+        "transfer_78": 5,
+        "transfer_latest": 5
+      },
+      "202611233607": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611233608": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611233609": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611233610": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611234501": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611234502": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611234503": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611234504": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611234505": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611234506": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611234507": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611234508": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611234509": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611234510": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611234801": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611234802": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611234803": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611234804": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611234806": null,
+      "202611234807": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611235301": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611235302": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611235303": {
+        "pair_16": 6,
+        "previous_pair_18": 6,
+        "current_pair": 6,
+        "transfer_45": 6,
+        "transfer_78": 6,
+        "transfer_latest": 6
+      },
+      "202611235304": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611235305": {
+        "pair_16": 5,
+        "previous_pair_18": 5,
+        "current_pair": 5,
+        "transfer_45": 5,
+        "transfer_78": 5,
+        "transfer_latest": 5
+      },
+      "202611235306": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611235307": {
+        "pair_16": 6,
+        "previous_pair_18": 6,
+        "current_pair": 6,
+        "transfer_45": 6,
+        "transfer_78": 6,
+        "transfer_latest": 6
+      },
+      "202611235308": {
+        "pair_16": 6,
+        "previous_pair_18": 6,
+        "current_pair": 6,
+        "transfer_45": 6,
+        "transfer_78": 6,
+        "transfer_latest": 6
+      },
+      "202611235309": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611235310": {
+        "pair_16": 4,
+        "previous_pair_18": 4,
+        "current_pair": 4,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611235311": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611236101": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611236102": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611236103": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611236104": {
+        "pair_16": 4,
+        "previous_pair_18": 4,
+        "current_pair": 4,
+        "transfer_45": 4,
+        "transfer_78": 4,
+        "transfer_latest": 4
+      },
+      "202611236105": {
+        "pair_16": 2,
+        "previous_pair_18": 2,
+        "current_pair": 2,
+        "transfer_45": 2,
+        "transfer_78": 2,
+        "transfer_latest": 2
+      },
+      "202611236106": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611236107": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611236201": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611236202": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611236203": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611236204": {
+        "pair_16": 4,
+        "previous_pair_18": 4,
+        "current_pair": 4,
+        "transfer_45": 4,
+        "transfer_78": 4,
+        "transfer_latest": 4
+      },
+      "202611236205": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611236206": {
+        "pair_16": 7,
+        "previous_pair_18": 7,
+        "current_pair": 7,
+        "transfer_45": 7,
+        "transfer_78": 7,
+        "transfer_latest": 7
+      },
+      "202611236207": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238101": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238102": {
+        "pair_16": 7,
+        "previous_pair_18": 8,
+        "current_pair": 8,
+        "transfer_45": 8,
+        "transfer_78": 8,
+        "transfer_latest": 8
+      },
+      "202611238103": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238104": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238105": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238106": {
+        "pair_16": 1,
+        "previous_pair_18": 1,
+        "current_pair": 1,
+        "transfer_45": 1,
+        "transfer_78": 1,
+        "transfer_latest": 1
+      },
+      "202611238107": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238108": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238109": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238110": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238111": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238112": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238401": null,
+      "202611238402": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238403": {
+        "pair_16": 7,
+        "previous_pair_18": 7,
+        "current_pair": 7,
+        "transfer_45": 7,
+        "transfer_78": 7,
+        "transfer_latest": 7
+      },
+      "202611238404": {
+        "pair_16": 6,
+        "previous_pair_18": 6,
+        "current_pair": 6,
+        "transfer_45": 6,
+        "transfer_78": 6,
+        "transfer_latest": 6
+      },
+      "202611238405": {
+        "pair_16": 3,
+        "previous_pair_18": 3,
+        "current_pair": 3,
+        "transfer_45": 3,
+        "transfer_78": 3,
+        "transfer_latest": 3
+      },
+      "202611238406": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      },
+      "202611238407": {
+        "pair_16": null,
+        "previous_pair_18": null,
+        "current_pair": null,
+        "transfer_45": null,
+        "transfer_78": null,
+        "transfer_latest": null
+      }
+    }
+  },
+  "walk_forward": {
+    "model": "same Beta(1,1) pooled and four pseudo-observations per rider",
+    "rule": "all races from the same date predicted together using only the previous dates; outcomes are added after scoring the entire day; conditional on identity of actual B leader",
+    "dates": 42,
+    "observations": 108,
+    "metrics": {
+      "all": {
+        "races": 108,
+        "held": 87,
+        "population": {
+          "brier": 0.16694498794939208,
+          "logloss": 0.5195050414145265
+        },
+        "rider": {
+          "brier": 0.16684272597694816,
+          "logloss": 0.5177659509514599
+        }
+      },
+      "first_rider_observation": {
+        "races": 78,
+        "held": 63,
+        "population": {
+          "brier": 0.16822282316276585,
+          "logloss": 0.5224460884723435
+        },
+        "rider": {
+          "brier": 0.16822282316276585,
+          "logloss": 0.5224460884723435
+        }
+      },
+      "current_venue_reviews": {
+        "races": 29,
+        "held": 24,
+        "population": {
+          "brier": 0.16877064654623197,
+          "logloss": 0.5199573486630186
+        },
+        "rider": {
+          "brier": 0.16877064654623197,
+          "logloss": 0.5199573486630186
+        }
+      },
+      "previous_studies": {
+        "races": 79,
+        "held": 63,
+        "population": {
+          "brier": 0.16627480947713438,
+          "logloss": 0.5193390045764723
+        },
+        "rider": {
+          "brier": 0.1661350082996161,
+          "logloss": 0.5169615138168372
+        }
+      },
+      "earlier_rider_observed": {
+        "races": 30,
+        "held": 24,
+        "population": {
+          "brier": 0.16362261639462022,
+          "logloss": 0.5118583190642021
+        },
+        "rider": {
+          "brier": 0.16325447329382212,
+          "logloss": 0.5055975933971627
+        }
+      }
+    },
+    "predictions_sha256": "cf5177f1395ca979f06e421542cf0ce67a0e47ea77126733e05adc51ff265a8c"
+  },
+  "prediction_sha256": {
+    "ticket-predictions.owner.json": "57c10f1980f818833ac384336d875f33930656723df44859b5e358502d91af67",
+    "phase-predictions.json": "c2c5b3e7704b3215ff677af130196aed647343e6c2daca69c715a978a23a55e5",
+    "registry.owner.json": "090008ceeb240f6192dc0c5f050d2622906496496bf6c1ae03b11a18abe17af0"
+  },
+  "previous_78_forecast_sha256": {
+    "ticket-predictions.owner.json": "00d91d7b1760c12844243f40a0face6bbd344c169121709356219b72b99029fc",
+    "phase-predictions.json": "c2df94acd66f77112da5fb8480028e30266a20a6b7a9476524513e04b0f424d6",
+    "registry.owner.json": "02338b3bc2b5c98e50821d7f3afeaecb1a028e85b2fb5a9c4eaa9f4959498373"
+  },
+  "design_sha256": "66e9f090ad9e0e6ca85666cd45ee95b6afe233b0d2301f925b3c258eb6bc6ccc",
+  "source_procedure_sha256": "1cb90db51f0fea73c926ab86ac24db8204f6edc98cd3bf0c9a9bc8b18630c72e",
+  "merged_research_sources_sha256": {
+    "catalog.py": "4ad208cc53c90eeccf2f9c598bb3d073c80b4ce8bfb2c3ba95f5ec4ef3a80960",
+    "contexts.py": "8c9b5a73ce139daa929af088370b337a159737d6cec0009f135352ad297590c4",
+    "run_models.py": "9f6d63f7d40e644f1c9234f134e73f830ddddcf2d5d2b830394e6c560e025810",
+    "run_models_recovered.py": "f60126576da49699db1051670085dce3cbad77ece9b80c55163e96014dc70f02",
+    "recover_models.py": "1cb90db51f0fea73c926ab86ac24db8204f6edc98cd3bf0c9a9bc8b18630c72e",
+    "verify-local-frame-recovery.py": "554b5cfb927ce2d3cda2a15a6bcf3335de5584216dc996d98ad11c6fce11ee63"
+  }
+}

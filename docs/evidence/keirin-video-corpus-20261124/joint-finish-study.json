@@ -1,0 +1,150 @@
+{
+  "study": "Historical, fixed-date replay of ordered pairs at the final back, fourth corner and official finish.",
+  "public_inputs": {
+    "earlier_and_later_observation_table": {
+      "file": "public-race-observations.json",
+      "sha256": "5b94663ed835818baf26dd532f1ac92ecef74f1dbbd3e078e3634cc054863f07"
+    },
+    "reread_of_24_races": {
+      "file": "local-frame-recovery.json",
+      "sha256": "e3b97f8eb23b1cd500a457272cfe83c08b8bcec435776a1973247a463f40469b"
+    },
+    "prior_pair_evaluation": {
+      "file": "public-aggregate.json",
+      "sha256": "4b42fde0cc047f0aaefd51cd83901dfa94c3e0ec24f4294fb84b533ebc461da7"
+    }
+  },
+  "training": {
+    "through_JST": "2026-11-20",
+    "original_corner_to_finish": 14,
+    "added_to_14": [
+      "202611177302",
+      "202611177303",
+      "202611177306",
+      "202611187304",
+      "202611198102",
+      "202611198103"
+    ],
+    "added_to_20": [
+      "202611164606",
+      "202611182603"
+    ],
+    "eligibility_for_reread": "Earlier race, registered B leader independently confirmed, readable ordered corner pair, original pre-deadline context and a unique settled finish pair. Deduplicate each transition separately.",
+    "reread_all": 24,
+    "reread_later_not_trained": 5,
+    "reread_earlier_disposition": {
+      "no_original_timed_context": 5,
+      "unconfirmed_B_or_corner": 9,
+      "added": 2,
+      "no_corner_second": 3
+    },
+    "unchanged": {
+      "quadratic_regularization_scale": 8,
+      "phase_mixture_fraction": 0.25,
+      "third_given_first_two": "original research model",
+      "current_race_video_or_outcome_as_input": false
+    }
+  },
+  "evaluation": {
+    "dates_JST": [
+      "2026-11-21",
+      "2026-11-23"
+    ],
+    "archived_pre_deadline_forecasts": 211,
+    "with_required_context": 197,
+    "original_tickets_fallback": 14,
+    "unsettled_or_missing_settlement": 4,
+    "confirmed_trifecta_races": 207,
+    "caps": [
+      1,
+      4,
+      8
+    ],
+    "prospective": false,
+    "arm_definition": "Name indicates training counts for back-to-corner and corner-to-finish, in that order.",
+    "hits_by_arm": {
+      "18_14": {
+        "1": 26,
+        "4": 69,
+        "8": 93
+      },
+      "20_14": {
+        "1": 26,
+        "4": 69,
+        "8": 93
+      },
+      "18_20": {
+        "1": 26,
+        "4": 71,
+        "8": 92
+      },
+      "20_22": {
+        "1": 26,
+        "4": 70,
+        "8": 93
+      }
+    },
+    "final_arm_compared_to_each_reference": {
+      "18_14": {
+        "new_hit": {
+          "1": 0,
+          "4": 1,
+          "8": 0
+        },
+        "new_miss": {
+          "1": 0,
+          "4": 0,
+          "8": 0
+        },
+        "different_set": {
+          "1": 7,
+          "4": 21,
+          "8": 42
+        }
+      },
+      "20_14": {
+        "new_hit": {
+          "1": 0,
+          "4": 1,
+          "8": 0
+        },
+        "new_miss": {
+          "1": 0,
+          "4": 0,
+          "8": 0
+        },
+        "different_set": {
+          "1": 7,
+          "4": 21,
+          "8": 42
+        }
+      },
+      "18_20": {
+        "new_hit": {
+          "1": 0,
+          "4": 0,
+          "8": 1
+        },
+        "new_miss": {
+          "1": 0,
+          "4": 1,
+          "8": 0
+        },
+        "different_set": {
+          "1": 4,
+          "4": 8,
+          "8": 12
+        }
+      }
+    }
+  },
+  "freeze": {
+    "first_18_and_20_utc": "2026-11-24T15:51:24.857926+00:00",
+    "first_18_and_20_prediction_sha256": "68cfe46e03ea300a8fbaca5a82bb38aa1a6588394a94429c49148711f888fd3b",
+    "joint_utc": "2026-11-24T15:53:31.455359+00:00",
+    "joint_plan_sha256": "c18d12486c9da5184fadd314f9cf9a76f1b637bf2bfd10791f28ef52905a1040",
+    "joint_code_sha256": "dda659f2330c5e2e70ae32ce8688b87e0f8c43385e9274a542d66c973227e956",
+    "joint_prediction_sha256": "7f8c6f56524f798bd3914724274103b050b370929586f474c78dcf376f4fa6a3",
+    "joint_freeze_record_sha256": "8dfe274dd096d764448eb109c53ab50f9fbfb923c9ff9d833d2db8643c699621"
+  }
+}

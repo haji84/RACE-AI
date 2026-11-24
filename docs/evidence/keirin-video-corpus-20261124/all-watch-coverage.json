@@ -360,5 +360,27 @@
         }
       ]
     }
-  ]
+  ],
+  "current_after_local_reread": {
+    "reread_existing_races": 24,
+    "first_concrete_position_or_rider_event_race_ids": [
+      "20231205-37-01",
+      "20241119-25-01",
+      "20250520-11-01",
+      "20261117-24-01",
+      "20261117-73-05",
+      "20261118-26-03",
+      "20261118-81-04",
+      "20261118-81-08",
+      "20261122-36-05",
+      "20261122-42-06",
+      "20261122-81-05",
+      "20261123-26-07"
+    ],
+    "eligible_rows": 82767,
+    "visual_inspection_or_original_verified_source": 123,
+    "any_position_or_known_rider_event": 123,
+    "unreviewed_including_provider_only": 82644,
+    "three_year_replay_calendar_csv_sha256": "49a90fd7a1826c011283e05ea1df030b80b177bbd5e929b7c9f3650c5e62a7d1"
+  }
 }
