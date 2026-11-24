@@ -1,0 +1,691 @@
+{
+  "schema": "race-ai-keirin-all-registered-rider-phase-evaluation-v1",
+  "before_this_revision": "d4a437dba1e8248f3aaead2a9a3c2775a9537905",
+  "archive_assembly": {
+    "roster_version_jst": "2026-11-18T02:37:00+09:00",
+    "roster_sha256": "f48693892ff6dd2b30d1b16806b991c04925fbb0c064cb92e61180c378031edb",
+    "registered_riders": 2416,
+    "archive_window_jst": [
+      "20231124",
+      "20261123"
+    ],
+    "last_start": "202611228111",
+    "recent_start_jst": "20251124",
+    "observations": {
+      "eligible_prior_races": 75923,
+      "eligible_csv_races": 47543,
+      "eligible_rider_rows": 538450,
+      "used_rider_rows": 511888,
+      "speed_rows": 509526,
+      "role_rows": 188280,
+      "actual_s_rows": 187080,
+      "actual_b_rows": 198114,
+      "incomplete_earlier_fields": 6483,
+      "unbound_rider_rows": 26562,
+      "eligible_sql_races": 28380
+    },
+    "confirmed_official_H": {
+      "verified_join_races": 236
+    },
+    "days_mode": "Strictly posted dates with verified identities",
+    "columns": [
+      "race",
+      "registration",
+      "rank",
+      "role",
+      "grade",
+      "s",
+      "h",
+      "b",
+      "method"
+    ],
+    "three_years": {
+      "thresholds": {
+        "starts": {
+          "1": 2404,
+          "3": 2404,
+          "10": 2403
+        },
+        "grade_known": {
+          "1": 2404,
+          "3": 2404,
+          "10": 2403
+        },
+        "role_known": {
+          "1": 2393,
+          "3": 2392,
+          "10": 2392
+        },
+        "s_observed": {
+          "1": 2393,
+          "3": 2392,
+          "10": 2392
+        },
+        "h_observed": {
+          "1": 1018,
+          "3": 205,
+          "10": 0
+        },
+        "h_leads": {
+          "1": 188,
+          "3": 9,
+          "10": 0
+        },
+        "b_observed": {
+          "1": 2393,
+          "3": 2392,
+          "10": 2392
+        },
+        "b_leads": {
+          "1": 1458,
+          "3": 1121,
+          "10": 877
+        },
+        "b_leads_win": {
+          "1": 1137,
+          "3": 801,
+          "10": 327
+        },
+        "b_leads_second": {
+          "1": 1111,
+          "3": 783,
+          "10": 210
+        },
+        "b_leads_third": {
+          "1": 983,
+          "3": 563,
+          "10": 43
+        },
+        "non_b_wins": {
+          "1": 2277,
+          "3": 1973,
+          "10": 807
+        },
+        "method_observed": {
+          "1": 2400,
+          "3": 2379,
+          "10": 2308
+        },
+        "escape": {
+          "1": 1366,
+          "3": 1114,
+          "10": 843
+        },
+        "makuri": {
+          "1": 1902,
+          "3": 1463,
+          "10": 990
+        },
+        "sashi": {
+          "1": 2323,
+          "3": 2152,
+          "10": 1668
+        },
+        "mark": {
+          "1": 2198,
+          "3": 1837,
+          "10": 1201
+        },
+        "h_to_b_takeover": {
+          "1": 49,
+          "3": 0,
+          "10": 0
+        }
+      },
+      "counts": {
+        "starts": 511638,
+        "grade_known": 511638,
+        "role_known": 188186,
+        "s_observed": 186985,
+        "h_observed": 1851,
+        "h_leads": 236,
+        "b_observed": 198014,
+        "b_leads": 28161,
+        "b_leads_win": 8950,
+        "b_leads_second": 6473,
+        "b_leads_third": 3727,
+        "non_b_wins": 19169,
+        "method_observed": 137504,
+        "escape": 30911,
+        "makuri": 31260,
+        "sashi": 49442,
+        "mark": 25891,
+        "h_to_b_takeover": 53
+      },
+      "without_B_observations_despite_dated_starts": 11,
+      "per_gender": {
+        "female": {
+          "starts": 222,
+          "b_observed": 214,
+          "b_leads": 172,
+          "h_observed": 7,
+          "method_observed": 219
+        },
+        "male": {
+          "starts": 2182,
+          "b_observed": 2179,
+          "b_leads": 1286,
+          "h_observed": 1011,
+          "method_observed": 2181
+        }
+      }
+    },
+    "last365": {
+      "thresholds": {
+        "starts": {
+          "1": 2392,
+          "3": 2391,
+          "10": 2388
+        },
+        "grade_known": {
+          "1": 2392,
+          "3": 2391,
+          "10": 2388
+        },
+        "role_known": {
+          "1": 2392,
+          "3": 2391,
+          "10": 2388
+        },
+        "s_observed": {
+          "1": 2392,
+          "3": 2390,
+          "10": 2388
+        },
+        "h_observed": {
+          "1": 953,
+          "3": 162,
+          "10": 0
+        },
+        "h_leads": {
+          "1": 172,
+          "3": 6,
+          "10": 0
+        },
+        "b_observed": {
+          "1": 2392,
+          "3": 2391,
+          "10": 2388
+        },
+        "b_leads": {
+          "1": 1424,
+          "3": 1096,
+          "10": 840
+        },
+        "b_leads_win": {
+          "1": 1103,
+          "3": 758,
+          "10": 270
+        },
+        "b_leads_second": {
+          "1": 1075,
+          "3": 741,
+          "10": 160
+        },
+        "b_leads_third": {
+          "1": 950,
+          "3": 514,
+          "10": 26
+        },
+        "non_b_wins": {
+          "1": 2252,
+          "3": 1877,
+          "10": 656
+        },
+        "method_observed": {
+          "1": 2360,
+          "3": 2262,
+          "10": 1736
+        },
+        "escape": {
+          "1": 1074,
+          "3": 799,
+          "10": 346
+        },
+        "makuri": {
+          "1": 1473,
+          "3": 988,
+          "10": 352
+        },
+        "sashi": {
+          "1": 2147,
+          "3": 1652,
+          "10": 575
+        },
+        "mark": {
+          "1": 1757,
+          "3": 938,
+          "10": 26
+        },
+        "h_to_b_takeover": {
+          "1": 43,
+          "3": 0,
+          "10": 0
+        }
+      },
+      "counts": {
+        "starts": 173565,
+        "grade_known": 173565,
+        "role_known": 163723,
+        "s_observed": 164069,
+        "h_observed": 1634,
+        "h_leads": 208,
+        "b_observed": 173551,
+        "b_leads": 24652,
+        "b_leads_win": 7852,
+        "b_leads_second": 5718,
+        "b_leads_third": 3262,
+        "non_b_wins": 16747,
+        "method_observed": 39019,
+        "escape": 8905,
+        "makuri": 9541,
+        "sashi": 14829,
+        "mark": 5744,
+        "h_to_b_takeover": 47
+      },
+      "without_B_observations_despite_dated_starts": 0,
+      "per_gender": {
+        "female": {
+          "starts": 213,
+          "b_observed": 213,
+          "b_leads": 171,
+          "h_observed": 7,
+          "method_observed": 200
+        },
+        "male": {
+          "starts": 2179,
+          "b_observed": 2179,
+          "b_leads": 1253,
+          "h_observed": 946,
+          "method_observed": 2160
+        }
+      }
+    },
+    "profile_sha256": "846cb53e0ae46c3f9b24a0ec8d1cc0c4ce58846ce2326cf720f270ea94ef5753",
+    "historical_rows_sha256": "fe16fe064f0895ad28c3ba05cff771b8fb2816c10894cbd5848295a1cb83e422"
+  },
+  "official_result_supplement": {
+    "older_registry_roster_scope": "2026-11-18T02:37:00+09:00",
+    "cutoff_jst": "20261123",
+    "official_people_checked": 24,
+    "addition_provenance": {
+      "same_dated_start": 274,
+      "new_B_for_old_start": 272,
+      "new_unique_starts": 171
+    },
+    "sections": {
+      "three_years": {
+        "starts": {
+          "athletes_at_least_one": 2411,
+          "athletes_at_least_three": 2411,
+          "observations": 511809
+        },
+        "s_observed": {
+          "athletes_at_least_one": 2393,
+          "athletes_at_least_three": 2392,
+          "observations": 186985
+        },
+        "h_observed": {
+          "athletes_at_least_one": 1018,
+          "athletes_at_least_three": 205,
+          "observations": 1851
+        },
+        "h_leads": {
+          "athletes_at_least_one": 188,
+          "athletes_at_least_three": 9,
+          "observations": 236
+        },
+        "b_observed": {
+          "athletes_at_least_one": 2411,
+          "athletes_at_least_three": 2411,
+          "observations": 198457
+        },
+        "b_leads": {
+          "athletes_at_least_one": 1468,
+          "athletes_at_least_three": 1129,
+          "observations": 28221
+        },
+        "b_leads_win": {
+          "athletes_at_least_one": 1144,
+          "athletes_at_least_three": 806,
+          "observations": 8991
+        },
+        "non_b_wins": {
+          "athletes_at_least_one": 2291,
+          "athletes_at_least_three": 1980,
+          "observations": 19232
+        },
+        "method_observed": {
+          "athletes_at_least_one": 2400,
+          "athletes_at_least_three": 2379,
+          "observations": 137504
+        },
+        "escape": {
+          "athletes_at_least_one": 1366,
+          "athletes_at_least_three": 1114,
+          "observations": 30911
+        },
+        "makuri": {
+          "athletes_at_least_one": 1902,
+          "athletes_at_least_three": 1463,
+          "observations": 31260
+        },
+        "sashi": {
+          "athletes_at_least_one": 2323,
+          "athletes_at_least_three": 2152,
+          "observations": 49442
+        },
+        "mark": {
+          "athletes_at_least_one": 2198,
+          "athletes_at_least_three": 1837,
+          "observations": 25891
+        }
+      },
+      "last365": {
+        "starts": {
+          "athletes_at_least_one": 2398,
+          "athletes_at_least_three": 2397,
+          "observations": 173673
+        },
+        "s_observed": {
+          "athletes_at_least_one": 2392,
+          "athletes_at_least_three": 2390,
+          "observations": 164069
+        },
+        "h_observed": {
+          "athletes_at_least_one": 953,
+          "athletes_at_least_three": 162,
+          "observations": 1634
+        },
+        "h_leads": {
+          "athletes_at_least_one": 172,
+          "athletes_at_least_three": 6,
+          "observations": 208
+        },
+        "b_observed": {
+          "athletes_at_least_one": 2398,
+          "athletes_at_least_three": 2397,
+          "observations": 173659
+        },
+        "b_leads": {
+          "athletes_at_least_one": 1430,
+          "athletes_at_least_three": 1102,
+          "observations": 24703
+        },
+        "b_leads_win": {
+          "athletes_at_least_one": 1109,
+          "athletes_at_least_three": 763,
+          "observations": 7892
+        },
+        "non_b_wins": {
+          "athletes_at_least_one": 2258,
+          "athletes_at_least_three": 1881,
+          "observations": 16783
+        },
+        "method_observed": {
+          "athletes_at_least_one": 2360,
+          "athletes_at_least_three": 2262,
+          "observations": 39019
+        },
+        "escape": {
+          "athletes_at_least_one": 1074,
+          "athletes_at_least_three": 799,
+          "observations": 8905
+        },
+        "makuri": {
+          "athletes_at_least_one": 1473,
+          "athletes_at_least_three": 988,
+          "observations": 9541
+        },
+        "sashi": {
+          "athletes_at_least_one": 2147,
+          "athletes_at_least_three": 1652,
+          "observations": 14829
+        },
+        "mark": {
+          "athletes_at_least_one": 1757,
+          "athletes_at_least_three": 938,
+          "observations": 5744
+        }
+      }
+    },
+    "profile_archive_sha256": "915ccdc018eb652f00215a74aae67035afb334df22bc4d4dc14a868a3e4278ca",
+    "confirmed_record_audit": {
+      "requested": 24,
+      "official_tables": 24,
+      "backup_confirmed_riders": 19,
+      "riders_with_verified_recent_B_history": 6,
+      "confirmed_supplemental_results": 445,
+      "riders_still_without_dated_history_from_two_sources": 5
+    },
+    "registry_entries_without_dated_starts_in_scope": 5,
+    "undated_entries_with_public_secondary_start_before_scope": 4,
+    "undated_entries_without_visible_secondary_results": 1,
+    "current_registry_sample_rechecked_updated_at_jst": "2026-11-18T02:37:00+09:00"
+  },
+  "verified_public_replay_coverage": {
+    "distinct_races_with_video_evidence": 52,
+    "source_counts_before_deduplication": {
+      "prior_replays": 34,
+      "repeated_rider_replays": 12,
+      "named_rider_cases": 6
+    },
+    "official_roster_entries_observed_as_front_or_next_in_one_of_the_three_phases": 92,
+    "observed_phase_leaders": {
+      "home": {
+        "race_count": 29,
+        "registered_leaders_with_film": 29,
+        "registered_leaders_with_at_least_two_races": 0,
+        "riders_identified_in_next_position": 29,
+        "observed_next_position_pairs": 29
+      },
+      "back": {
+        "race_count": 52,
+        "registered_leaders_with_film": 37,
+        "registered_leaders_with_at_least_two_races": 9,
+        "riders_identified_in_next_position": 34,
+        "observed_next_position_pairs": 34
+      },
+      "corner": {
+        "race_count": 43,
+        "registered_leaders_with_film": 33,
+        "registered_leaders_with_at_least_two_races": 7,
+        "riders_identified_in_next_position": 27,
+        "observed_next_position_pairs": 27
+      }
+    }
+  },
+  "historical_ranker_comparison": {
+    "freeze_proof": {
+      "script_sha256": "ebfb4c4fa74a665ec16e4990825dae9e3a47437b2eecb0829ec1e3d713d57ee7",
+      "fit_ends_jst": "20260930",
+      "evaluation_begins_jst": "20261001",
+      "half_life_days": 180,
+      "stage_residual_weight": 0.5,
+      "published_ranking_reference_blend": 0.25,
+      "minimum_pair_history": 4,
+      "evidence_counts": {
+        "positioned_rider_starts_with_known_B": 175015,
+        "races_with_bound_B_and_finishing_order": 23750,
+        "riders_with_B_mark_coverage": 2394,
+        "profiles_by_exact_class_role_B_situation": 17069,
+        "interactions_with_at_least_four_meetings": 799
+      },
+      "source_training_archive_sha256": "fe16fe064f0895ad28c3ba05cff771b8fb2816c10894cbd5848295a1cb83e422",
+      "forecasts_sha256": "cf8d463674ede4df1d73673dc3127983793a9954c1d5d54c499ce519adfbef08",
+      "fixed_at_utc": "2026-11-24T11:20:23.226977+00:00"
+    },
+    "fixed_predictions_count": 4002,
+    "confirmed_trifecta_count": 3989,
+    "evaluation_last_jst": "20261123",
+    "profiled_registered_entries_with_B_history_by_fit_cutoff": 2393,
+    "profiled_registered_entries_with_B_lead_by_fit_cutoff": 1437,
+    "official_supplement_used_in_fixed_comparison": false,
+    "frozen_extension_input": "Only earlier dated rows up to September 30. The prior reference form features use at most the previous day.",
+    "trifecta": {
+      "all": {
+        "existing": {
+          "scored": 3989,
+          "hit_1": 493,
+          "hit_4": 1153,
+          "hit_8": 1616,
+          "pair_in_8": 2167
+        },
+        "rider_back": {
+          "scored": 3989,
+          "hit_1": 495,
+          "hit_4": 1152,
+          "hit_8": 1616,
+          "pair_in_8": 2168
+        },
+        "rider_back_and_finish": {
+          "scored": 3989,
+          "hit_1": 492,
+          "hit_4": 1152,
+          "hit_8": 1620,
+          "pair_in_8": 2177
+        },
+        "rider_back_finish_and_match": {
+          "scored": 3989,
+          "hit_1": 492,
+          "hit_4": 1152,
+          "hit_8": 1620,
+          "pair_in_8": 2177
+        }
+      },
+      "pre_cutoff": {
+        "existing": {
+          "scored": 557,
+          "hit_1": 70,
+          "hit_4": 166,
+          "hit_8": 223,
+          "pair_in_8": 309
+        },
+        "rider_back": {
+          "scored": 557,
+          "hit_1": 69,
+          "hit_4": 165,
+          "hit_8": 224,
+          "pair_in_8": 311
+        },
+        "rider_back_and_finish": {
+          "scored": 557,
+          "hit_1": 71,
+          "hit_4": 165,
+          "hit_8": 227,
+          "pair_in_8": 316
+        },
+        "rider_back_finish_and_match": {
+          "scored": 557,
+          "hit_1": 71,
+          "hit_4": 165,
+          "hit_8": 227,
+          "pair_in_8": 316
+        }
+      }
+    },
+    "back_diagnostics": {
+      "all": {
+        "races": 3244,
+        "prior_B_logloss": 0.9003856536787068,
+        "prior_B_top_pick": 2049,
+        "rider_B_logloss": 0.9074226174007749,
+        "rider_B_top_pick": 2028,
+        "prior_B_win_brier": 0.16640842224738506,
+        "rider_B_win_brier": 0.1644566983712964,
+        "match_B_win_brier": 0.16445220830614135
+      },
+      "pre_cutoff": {
+        "races": 434,
+        "prior_B_logloss": 0.8722772093895007,
+        "prior_B_top_pick": 302,
+        "rider_B_logloss": 0.87814147707453,
+        "rider_B_top_pick": 294,
+        "prior_B_win_brier": 0.17397225690138907,
+        "rider_B_win_brier": 0.17183365237573306,
+        "match_B_win_brier": 0.17182208554942927
+      }
+    },
+    "feature_coverage": {
+      "all": {
+        "races": 3984,
+        "riders_with_past_back_history": 25580,
+        "pre_race_entries": 28422,
+        "named_match_evidence": 297
+      },
+      "pre_cutoff": {
+        "races": 561,
+        "riders_with_past_back_history": 4026,
+        "pre_race_entries": 4028,
+        "named_match_evidence": 69
+      }
+    },
+    "paired_hit_changes": {
+      "all": {
+        "existing_new_at_8": 0,
+        "existing_lost_at_8": 0,
+        "rider_back_new_at_8": 4,
+        "rider_back_lost_at_8": 4,
+        "rider_back_and_finish_new_at_8": 18,
+        "rider_back_and_finish_lost_at_8": 14,
+        "rider_back_finish_and_match_new_at_8": 18,
+        "rider_back_finish_and_match_lost_at_8": 14
+      },
+      "pre_cutoff": {
+        "existing_new_at_8": 0,
+        "existing_lost_at_8": 0,
+        "rider_back_new_at_8": 1,
+        "rider_back_lost_at_8": 0,
+        "rider_back_and_finish_new_at_8": 6,
+        "rider_back_and_finish_lost_at_8": 2,
+        "rider_back_finish_and_match_new_at_8": 6,
+        "rider_back_finish_and_match_lost_at_8": 2
+      }
+    },
+    "paired_day_95_percentage_points_at_8": {
+      "existing": [
+        0.0,
+        0.0
+      ],
+      "rider_back": [
+        -0.148,
+        0.129
+      ],
+      "rider_back_and_finish": [
+        -0.149,
+        0.35
+      ],
+      "rider_back_finish_and_match": [
+        -0.149,
+        0.35
+      ]
+    },
+    "commitment_sha256": "0075a7eeaa62724d63145951c5b5a5429f15effa44a7d1050f63eb4c8f8cae14",
+    "paired_day_95_percentage_points_before_cutoff_at_8": {
+      "rider_back": [
+        0.0,
+        0.55
+      ],
+      "rider_back_and_finish": [
+        -0.192,
+        1.701
+      ],
+      "rider_back_finish_and_match": [
+        -0.192,
+        1.701
+      ]
+    }
+  },
+  "private_local_archive": {
+    "algorithm": "AES-256-GCM",
+    "local_owner_cipher_bytes": 4758285,
+    "ciphertext_sha256": "53c44481a0df02041c4ed3816586ad98eacb7dbf6f5175b5433042928ff992b5",
+    "authenticated_round_trip_files": 10,
+    "verified_at_utc": "2026-11-24T11:24:34.232187+00:00"
+  },
+  "verification": {
+    "existing_pytest_tests_passed": 44,
+    "subtests_passed": 6,
+    "frozen_comparison_scores_reproduced": true
+  }
+}
