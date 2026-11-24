@@ -1,0 +1,250 @@
+{
+  "scope": "Historical rerun on 2026-11-21 to 2026-11-23 JST. The actual test-race B/corner, odds payouts and finish were not forecast inputs.",
+  "original_venue_data": "Archived pre-cutoff cards, original forecasts, planned lines and past-only rider records; last video training date 2026-11-20 JST.",
+  "baseline_phase_fit": [
+    20,
+    22
+  ],
+  "new_phase_fit": [
+    27,
+    30
+  ],
+  "unique_additions_to_previous_fit": {
+    "back_to_corner": [
+      "202611177307",
+      "202611177310",
+      "202611187301",
+      "202611187303",
+      "202611187305",
+      "202611187307",
+      "202611198101"
+    ],
+    "corner_to_finish": [
+      "202611177307",
+      "202611177310",
+      "202611187301",
+      "202611187302",
+      "202611187303",
+      "202611187305",
+      "202611187307",
+      "202611198101"
+    ]
+  },
+  "new_or_changed_training_race_disposition_for_corner_to_finish": {
+    "202311241308": "missing_predeadline_context",
+    "202311241309": "missing_predeadline_context",
+    "202311241310": "unresolved_observed_B_or_corner_pair",
+    "202506033101": "unresolved_observed_B_or_corner_pair",
+    "202506033103": "missing_predeadline_context",
+    "202506033106": "missing_predeadline_context",
+    "202506033107": "missing_predeadline_context",
+    "202611177307": "added",
+    "202611177308": "unresolved_observed_B_or_corner_pair",
+    "202611177310": "added",
+    "202611187301": "added",
+    "202611187302": "added",
+    "202611187303": "added",
+    "202611187305": "added",
+    "202611187306": "unresolved_observed_B_or_corner_pair",
+    "202611187307": "added",
+    "202611198101": "added",
+    "202611198106": "unresolved_observed_B_or_corner_pair",
+    "202611198107": "unresolved_observed_B_or_corner_pair",
+    "202611198111": "missing_predeadline_context"
+  },
+  "fixed_rule": {
+    "regularization": 8,
+    "share": 0.25,
+    "points_per_race": [
+      1,
+      4,
+      8
+    ],
+    "retain_original_third_given_first_two": true,
+    "prospective": false
+  },
+  "race_counts": {
+    "predicted": 211,
+    "all_scenario_contexts": 197,
+    "no_context_original_picks": 14,
+    "scored": 207,
+    "unsettled": 4
+  },
+  "conditions": {
+    "previous_both": {
+      "training_pairs_B_to_corner": 20,
+      "training_pairs_corner_to_finish": 22,
+      "hit_counts": {
+        "1": 26,
+        "4": 70,
+        "8": 93
+      }
+    },
+    "more_B_to_corner": {
+      "training_pairs_B_to_corner": 27,
+      "training_pairs_corner_to_finish": 22,
+      "hit_counts": {
+        "1": 26,
+        "4": 70,
+        "8": 93
+      }
+    },
+    "more_corner_to_finish": {
+      "training_pairs_B_to_corner": 20,
+      "training_pairs_corner_to_finish": 30,
+      "hit_counts": {
+        "1": 27,
+        "4": 70,
+        "8": 93
+      }
+    },
+    "both_updates": {
+      "training_pairs_B_to_corner": 27,
+      "training_pairs_corner_to_finish": 30,
+      "hit_counts": {
+        "1": 27,
+        "4": 70,
+        "8": 93
+      }
+    }
+  },
+  "final_vs": {
+    "previous_both": {
+      "gained": {
+        "1": 1,
+        "4": 1,
+        "8": 0
+      },
+      "lost": {
+        "1": 0,
+        "4": 1,
+        "8": 0
+      },
+      "different": {
+        "1": 6,
+        "4": 19,
+        "8": 17
+      }
+    },
+    "more_B_to_corner": {
+      "gained": {
+        "1": 1,
+        "4": 1,
+        "8": 0
+      },
+      "lost": {
+        "1": 0,
+        "4": 1,
+        "8": 0
+      },
+      "different": {
+        "1": 6,
+        "4": 19,
+        "8": 15
+      }
+    },
+    "more_corner_to_finish": {
+      "gained": {
+        "1": 0,
+        "4": 0,
+        "8": 0
+      },
+      "lost": {
+        "1": 0,
+        "4": 0,
+        "8": 0
+      },
+      "different": {
+        "1": 0,
+        "4": 2,
+        "8": 1
+      }
+    }
+  },
+  "races_and_hits_by_day": {
+    "20261121": {
+      "n": 54,
+      "hits": {
+        "previous_both": {
+          "1": 4,
+          "4": 19,
+          "8": 21
+        },
+        "more_B_to_corner": {
+          "1": 4,
+          "4": 19,
+          "8": 21
+        },
+        "more_corner_to_finish": {
+          "1": 4,
+          "4": 18,
+          "8": 21
+        },
+        "both_updates": {
+          "1": 4,
+          "4": 18,
+          "8": 21
+        }
+      }
+    },
+    "20261122": {
+      "n": 67,
+      "hits": {
+        "previous_both": {
+          "1": 8,
+          "4": 19,
+          "8": 26
+        },
+        "more_B_to_corner": {
+          "1": 8,
+          "4": 19,
+          "8": 26
+        },
+        "more_corner_to_finish": {
+          "1": 8,
+          "4": 19,
+          "8": 26
+        },
+        "both_updates": {
+          "1": 8,
+          "4": 19,
+          "8": 26
+        }
+      }
+    },
+    "20261123": {
+      "n": 86,
+      "hits": {
+        "previous_both": {
+          "1": 14,
+          "4": 32,
+          "8": 46
+        },
+        "more_B_to_corner": {
+          "1": 14,
+          "4": 32,
+          "8": 46
+        },
+        "more_corner_to_finish": {
+          "1": 15,
+          "4": 33,
+          "8": 46
+        },
+        "both_updates": {
+          "1": 15,
+          "4": 33,
+          "8": 46
+        }
+      }
+    }
+  },
+  "commitments": {
+    "fixed_utc": "2026-11-24T16:07:59.545079+00:00",
+    "plan_sha256": "0fe34b7fe4965d1f7261b07aae4cdf75f7340161749a3818044fdc4c43b05722",
+    "code_sha256": "4814cd0b2e24d8b86f574004c421093905b8c7fb8a0fca40e97d9a23f7ea29e4",
+    "incoming_registry_sha256": "329cf5adce2489043d776abc1982c369e77b2fd52637872e29d44922ca2709cb",
+    "previous_20_and_22_freeze_sha256": "8dfe274dd096d764448eb109c53ab50f9fbfb923c9ff9d833d2db8643c699621",
+    "predictions_sha256": "e1823f711aa94d263e42cca5f00eb5d0298aa9c80bbe274f5167b9f448f424c3",
+    "freeze_sha256": "9b21a93d0e3f587bba930d6d7754804590d0262e740be9271bb00e93fe7cab8e"
+  }
+}

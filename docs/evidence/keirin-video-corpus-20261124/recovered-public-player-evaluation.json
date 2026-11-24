@@ -1,0 +1,1808 @@
+{
+  "note": "後日20件は既知の標本。締切前の三連単の予測には評価対象の実B・4角・結果を渡さない。",
+  "visual_new": [
+    {
+      "race": "202311241308",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=13&kaisaiDate=20231124&gradeCd=2&raceNo=8&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010008/?pageType=showResult",
+      "back_result": 6,
+      "visual": {
+        "back_car": 6,
+        "back_second_car": null,
+        "back_seconds": 41.0,
+        "corner_car": 5,
+        "corner_second_car": 1,
+        "corner_seconds": 49.5
+      },
+      "observed": "30秒に最終周回のホーム。39.4秒は緑6の先、内圏のB表示が来た41.0秒も緑6が先行し、外に上がる黄色5と赤3が並走。Bでのこの2車の前後は保留。最終曲線48.6、49.5、50.4秒は黄色5、白1の順で通過した。",
+      "accepted_back_registration": "015457",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "2f91ab5691efce4a80d208d5d22f1936e659adcc60251c6ece9f8e07e1b12704"
+    },
+    {
+      "race": "202311241309",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=13&kaisaiDate=20231124&gradeCd=2&raceNo=9&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010009/?pageType=showResult",
+      "back_result": 2,
+      "visual": {
+        "back_car": 2,
+        "back_second_car": 5,
+        "back_seconds": 46.5,
+        "corner_car": 2,
+        "corner_second_car": 5,
+        "corner_seconds": 54.0
+      },
+      "observed": "36秒の最終周回表示のあと42秒に黒2が黄色5の外、45.0秒までに2が前に出た。45.8〜46.5秒の最終向正面は2、5、青4の順。最終4角53〜55秒は黒2が数車身をリード、黄色5が次。",
+      "accepted_back_registration": "015289",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "05e98aa6feee6e39723be14dd43f1f48bbf375467210e5ab7e4fc567cf3a400b"
+    },
+    {
+      "race": "202311241310",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=13&kaisaiDate=20231124&gradeCd=2&raceNo=10&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010010/?pageType=showResult",
+      "back_result": 1,
+      "visual": {
+        "back_car": 1,
+        "back_second_car": 7,
+        "back_seconds": 44.0,
+        "corner_car": null,
+        "corner_second_car": null,
+        "corner_seconds": 53.25
+      },
+      "observed": "最終周回表示の33秒以降も白1が橙7を連れて走る。44秒の内圏Bの表示では白1、橙7、黒2の順。最終4角52.9〜53.65秒に1、7、2が内外に広がり接近、進行方向が変わる画角で車輪の前後を決められず4角は保留。",
+      "accepted_back_registration": "014935",
+      "accepted_for_B_to_corner": false,
+      "issues": [],
+      "note_sha256": "d8395a31865c2c6dc46b0ec942c64e58b37322a58c42dd8072035a8df93fc4b2"
+    },
+    {
+      "race": "202506033101",
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3120250601/31202506010300/1/",
+      "back_result_source": "https://keirin.kdreams.jp/matsudo/racedetail/3120250601030001/?pageType=showResult",
+      "back_result": 4,
+      "visual": {
+        "back_car": 7,
+        "back_second_car": 4,
+        "back_seconds": 68.61,
+        "corner_car": 4,
+        "corner_second_car": 1,
+        "corner_seconds": 76.2
+      },
+      "observed": "68.51・68.56・68.61・68.66秒の4コマで、内縁の白いB表示が画面左から右へ横切る。橙7の前輪が最初に標識に重なり、外側を並走する青4の前輪はやや後ろ。 69.4～70.0秒には外の青4が橙7を越える。73.6秒に青4・白1が後続を離し、75.0～76.2秒の4角のカーブでも順は青4・白1。 向正面の途中で先頭交替。Bと後の向正面の先頭が異なるため区別した。正確な捲り開始時刻は測っていない。",
+      "accepted_back_registration": null,
+      "accepted_for_B_to_corner": false,
+      "issues": [
+        "visual_back_vs_result_conflict"
+      ],
+      "note_sha256": "ac3cc7f3131a074b47e9ed24db891f4cd1a9eb0d38a5bf0ce68482500042a3e6"
+    },
+    {
+      "race": "202506033103",
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3120250601/31202506010300/3/",
+      "back_result_source": "https://keirin.kdreams.jp/matsudo/racedetail/3120250601030003/?pageType=showResult",
+      "back_result": 2,
+      "visual": {
+        "back_car": 2,
+        "back_second_car": 1,
+        "back_seconds": 60.0,
+        "corner_car": 2,
+        "corner_second_car": 1,
+        "corner_seconds": 68.0
+      },
+      "observed": "終盤の59.04～62.04秒の向正面。60.0秒は場内から見た照明柱付近を通過中で、黒2、白1、緑6の一列が継続。先頭・後位の前輪に間隔。 67.4・68.0秒、左へ強く曲がる最終コーナー。内に沿う黒2・白1が先行、緑6がその外後方。 白線の厳密な通過秒や仕掛け開始地点は未計測。55.04秒のカーブから68.0秒の最終4角まで先頭2車の順が保たれた。",
+      "accepted_back_registration": "014985",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "06bac5ff6a8cc5f41577b831f2597f6f9aedf228c95e9dceb433325a3910a562"
+    },
+    {
+      "race": "202506033106",
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3120250601/31202506010300/6/",
+      "back_result_source": "https://keirin.kdreams.jp/matsudo/racedetail/3120250601030006/?pageType=showResult",
+      "back_result": 1,
+      "visual": {
+        "back_car": 1,
+        "back_second_car": 3,
+        "back_seconds": 68.6,
+        "corner_car": 1,
+        "corner_second_car": 3,
+        "corner_seconds": 76.5
+      },
+      "observed": "最終Bの路面表示が映る68.1〜68.6秒で白1、赤3、緑6の順。75.5秒から4角標示が入る76.5秒、直線入口77.2秒まで白1・赤3が続く。後ろを青4が詰めてくる。",
+      "accepted_back_registration": "015041",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "b5814db35e1d4d7fe01a129c4c9162a76f5b6143bd721e89241d72278f7a6d60"
+    },
+    {
+      "race": "202506033107",
+      "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3120250601/31202506010300/7/",
+      "back_result_source": "https://keirin.kdreams.jp/matsudo/racedetail/3120250601030007/?pageType=showResult",
+      "back_result": 1,
+      "visual": {
+        "back_car": 1,
+        "back_second_car": 5,
+        "back_seconds": 57.1,
+        "corner_car": 1,
+        "corner_second_car": 5,
+        "corner_seconds": 65.4
+      },
+      "observed": "最終B標示を白1が通る57.1秒、黄5、赤3の順。64.6〜65.7秒に4角を抜ける白1に黄5が続き、赤3が内寄りで接近。65.4秒は車輪の前後と4角標示を確認。",
+      "accepted_back_registration": "015784",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "340fd01eba04af3946443a662b822efc00c891cbff3a6c7fb9667a0da6bae229"
+    },
+    {
+      "race": "202611177307",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261117&gradeCd=1&raceNo=7&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/komatsushima/racedetail/7320261116020007/?pageType=showResult",
+      "back_result": 6,
+      "visual": {
+        "back_car": 6,
+        "back_second_car": 2,
+        "back_seconds": 60.4,
+        "corner_car": 6,
+        "corner_second_car": 2,
+        "corner_seconds": 68.7
+      },
+      "observed": "最終向正面60.4秒は緑6、黒2、白1。最終曲線内側の6を2が追い、67.8から69.3秒の出口まで6・2の順で、外から白1と青4が詰める。",
+      "accepted_back_registration": "015563",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "a147805bbb5e830019f9d801c259e334b954699bc25f07251215c1aca2d5baa0"
+    },
+    {
+      "race": "202611177308",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261117&gradeCd=1&raceNo=8&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/komatsushima/racedetail/7320261116020008/?pageType=showResult",
+      "back_result": 5,
+      "visual": {
+        "back_car": 5,
+        "back_second_car": 1,
+        "back_seconds": 63.0,
+        "corner_car": 5,
+        "corner_second_car": null,
+        "corner_seconds": 68.7
+      },
+      "observed": "向正面の60.48〜63秒は黄5が先頭、白1、橙7。最終曲線68.0〜69.8秒に5が内側で先頭。1と7は並走と重なりがあり4角での2番手は保留。",
+      "accepted_back_registration": "015838",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "7ebf52535a068fe4f60881cf90b5972521f37db781bcb4c035fd79ad1d1acb83"
+    },
+    {
+      "race": "202611177310",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261117&gradeCd=1&raceNo=10&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/komatsushima/racedetail/7320261116020010/?pageType=showResult",
+      "back_result": 1,
+      "visual": {
+        "back_car": 1,
+        "back_second_car": 5,
+        "back_seconds": 58.5,
+        "corner_car": 1,
+        "corner_second_car": 5,
+        "corner_seconds": 64.8
+      },
+      "observed": "47.5秒に転倒した車が映る。残った選手の隊列は最終向正面58.5秒が白1・黄5・赤3。最終曲線64.8秒でも1・5、出口65.7秒までこの順。転倒した選手の追走成否は判定しない。",
+      "accepted_back_registration": "015975",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "96704d324e65bdd2ac087e524e2d9f94388aaf9f2516fb915f7ee9d034f35913"
+    },
+    {
+      "race": "202611187301",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261118&gradeCd=1&raceNo=1&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/komatsushima/racedetail/7320261116030001/?pageType=showResult",
+      "back_result": 7,
+      "visual": {
+        "back_car": 7,
+        "back_second_car": 1,
+        "back_seconds": 63.2,
+        "corner_car": 7,
+        "corner_second_car": 1,
+        "corner_seconds": 71.8
+      },
+      "observed": "最終向正面で橙7を白1が追い、黒2以下とは間隔。4角から直線に向きを変える71.8〜72.4秒も7→1で明瞭。",
+      "accepted_back_registration": "016010",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "74b062c2a2513bd68dd0226530f9f8a1404ad99cc92b9cc46aff5daf17c5126e"
+    },
+    {
+      "race": "202611187302",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261118&gradeCd=1&raceNo=2&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/komatsushima/racedetail/7320261116030002/?pageType=showResult",
+      "back_result": 4,
+      "visual": {
+        "back_car": 4,
+        "back_second_car": null,
+        "back_seconds": 63.7,
+        "corner_car": 4,
+        "corner_second_car": 2,
+        "corner_seconds": 71.5
+      },
+      "observed": "向正面で青4が赤3の外から前に出る。赤3に黒2が迫り、撮影時刻前後で順番が替わるためBの直後は保留。4角出口では青4のすぐ後ろに黒2。",
+      "accepted_back_registration": "014987",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "e5208726d823d57ebbb50769dd8a087f1a0559cf6bbe06d9f707f73a6e1546c0"
+    },
+    {
+      "race": "202611187303",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261118&gradeCd=1&raceNo=3&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/komatsushima/racedetail/7320261116030003/?pageType=showResult",
+      "back_result": 5,
+      "visual": {
+        "back_car": 5,
+        "back_second_car": 1,
+        "back_seconds": 59.24,
+        "corner_car": 5,
+        "corner_second_car": 1,
+        "corner_seconds": 69.24
+      },
+      "observed": "最終向正面で黄5の後ろに白1、次いで緑6。4角出口でも黄5が先頭で、後方に白1、さらに緑6。",
+      "accepted_back_registration": "014257",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "1dc51464b63b0c9e459ea5608ab0d052234b084b7c598adbf45ac74b9c736b74"
+    },
+    {
+      "race": "202611187305",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261118&gradeCd=1&raceNo=5&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/komatsushima/racedetail/7320261116030005/?pageType=showResult",
+      "back_result": 5,
+      "visual": {
+        "back_car": 5,
+        "back_second_car": 1,
+        "back_seconds": 58.9,
+        "corner_car": 5,
+        "corner_second_car": 1,
+        "corner_seconds": 65.9
+      },
+      "observed": "黄5が早くから主導し白1が間隔をあけて追走、向正面から最終曲線出口まで同順。赤3らの追い上げはその後ろ。",
+      "accepted_back_registration": "015642",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "c0ca3464360711d8692a8bd0297f3856c0a15c33d3c3e4ad6fcde9dafd6aeb54"
+    },
+    {
+      "race": "202611187306",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261118&gradeCd=1&raceNo=6&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/komatsushima/racedetail/7320261116030006/?pageType=showResult",
+      "back_result": 1,
+      "visual": {
+        "back_car": 1,
+        "back_second_car": 4,
+        "back_seconds": 63.87,
+        "corner_car": 1,
+        "corner_second_car": null,
+        "corner_seconds": 70.5
+      },
+      "observed": "最終向正面で白1が青4を引く。最終曲線出口でも白1先頭。外の青4と内寄りの黒2が並び、出口における2番手は確定できない。",
+      "accepted_back_registration": "014205",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "cc8e5f032156ce0c98c5a7b85067a596c1540eee6e94030d548a9e20462997ae"
+    },
+    {
+      "race": "202611187307",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261118&gradeCd=1&raceNo=7&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/komatsushima/racedetail/7320261116030007/?pageType=showResult",
+      "back_result": 1,
+      "visual": {
+        "back_car": 1,
+        "back_second_car": 4,
+        "back_seconds": 56.74,
+        "corner_car": 1,
+        "corner_second_car": 2,
+        "corner_seconds": 64.74
+      },
+      "observed": "向正面の白1の外に青4が並びかけるが、白1の前輪が先。4角付近では白1が先頭で、青4をかわして内を上がった黒2が追走。64.74秒と66.74秒で同順。",
+      "accepted_back_registration": "015838",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "29a49d9653e7ff469a0fe64bcb18f87e86e8283ac4fe5e9995d4b4e1514ecfd9"
+    },
+    {
+      "race": "202611198101",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=81&kaisaiDate=20261119&gradeCd=5&raceNo=1&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/1/",
+      "back_result": 9,
+      "visual": {
+        "back_car": 9,
+        "back_second_car": 1,
+        "back_seconds": 50,
+        "corner_car": 9,
+        "corner_second_car": 1,
+        "corner_seconds": 57
+      },
+      "observed": "紫9が先頭、白1が2番手で、47～53秒の向こう正面では後方まで車間がある。57秒の最終カーブでも同じ2人が縦に並び、直線でも独立して見える。",
+      "accepted_back_registration": "015553",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "1c345d1daf74816644ba40c76126fb9f1bede7ce2e7407ca83279c979a85a14f"
+    },
+    {
+      "race": "202611198106",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=81&kaisaiDate=20261119&gradeCd=5&raceNo=6&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/6/",
+      "back_result": 6,
+      "visual": {
+        "back_car": 6,
+        "back_second_car": null,
+        "back_seconds": 59.5,
+        "corner_car": 6,
+        "corner_second_car": null,
+        "corner_seconds": 68
+      },
+      "observed": "58.5～60.5秒の向こう正面で黄緑6が先頭。内側の赤3、外の黒2の順序が入れ替わるためB2番手は不明。最終カーブの67.5～69秒で6が先頭、すぐ後ろの黒2・橙7は斜めに重なる。",
+      "accepted_back_registration": "015939",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "e533b0d03a3b505119aedbab2374e322834510265972d98e06fd3ac173843010"
+    },
+    {
+      "race": "202611198107",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=81&kaisaiDate=20261119&gradeCd=5&raceNo=7&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/7/",
+      "back_result": 4,
+      "visual": {
+        "back_car": 5,
+        "back_second_car": 4,
+        "back_seconds": 51.27,
+        "corner_car": 4,
+        "corner_second_car": 1,
+        "corner_seconds": 59
+      },
+      "observed": "51.22～51.36秒のB標示の横。内の黄5が外の青4よりわずかに先行、通過後に青4が前に出る。57.5秒から59秒のカーブ出口は青4→白1、黄5が後ろに見える。Bは小差。",
+      "accepted_back_registration": null,
+      "accepted_for_B_to_corner": false,
+      "issues": [
+        "visual_back_vs_result_conflict"
+      ],
+      "note_sha256": "c3e3af4b98dd21b0baefb6c6b8130a377f777d93523240da7a0c7ccc75103027"
+    },
+    {
+      "race": "202611198111",
+      "source_url": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=81&kaisaiDate=20261119&gradeCd=5&raceNo=11&l-id=Highlightreel",
+      "back_result_source": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/11/",
+      "back_result": 1,
+      "visual": {
+        "back_car": 1,
+        "back_second_car": 3,
+        "back_seconds": 57.5,
+        "corner_car": 1,
+        "corner_second_car": 2,
+        "corner_seconds": 67.0
+      },
+      "observed": "55.5～57.5秒の向こう正面に白1が単独先頭、赤3が2番手、他の車が外側から接近。最終カーブから4角標示横の66.8～67.2秒は内の白1がごく小差で前、外の黒2が追走する。",
+      "accepted_back_registration": "015080",
+      "accepted_for_B_to_corner": true,
+      "issues": [],
+      "note_sha256": "f110389d42a211bd5a5fa955e27a0e6b266dd571bb7f8768ad4ff065fd6458bf"
+    }
+  ],
+  "train_sizes": {
+    "before": 88,
+    "after": 105,
+    "B_corner_pair_before": 20,
+    "B_corner_pair_after": 27,
+    "B_corner_new_keys_since_16": [
+      "202611164606",
+      "202611177302",
+      "202611177306",
+      "202611177307",
+      "202611177310",
+      "202611182603",
+      "202611187301",
+      "202611187303",
+      "202611187305",
+      "202611187307",
+      "202611198101"
+    ]
+  },
+  "conditional": {
+    "previous45": {
+      "n": 20,
+      "held": 15,
+      "brier": 0.16907471290915643,
+      "logloss": 0.5098497969785369
+    },
+    "previous78": {
+      "n": 20,
+      "held": 15,
+      "brier": 0.17296204081632655,
+      "logloss": 0.5177781171954442
+    },
+    "previous88": {
+      "n": 20,
+      "held": 15,
+      "brier": 0.1737316525293245,
+      "logloss": 0.5193101081445494
+    },
+    "all_eligible": {
+      "n": 20,
+      "held": 15,
+      "brier": 0.17556386540408225,
+      "logloss": 0.5236072180884067
+    },
+    "same_sample_races": [
+      "202611212205",
+      "202611213605",
+      "202611214204",
+      "202611214507",
+      "202611218104",
+      "202611218108",
+      "202611224206",
+      "202611224504",
+      "202611225304",
+      "202611226207",
+      "202611228108",
+      "202611228109",
+      "202611228111",
+      "202611232603",
+      "202611232607",
+      "202611235308",
+      "202611236106",
+      "202611236205",
+      "202611238104",
+      "202611238108"
+    ]
+  },
+  "walk_forward": {
+    "model": "same Beta(1,1) pooled and four pseudo-observations per rider",
+    "rule": "all races from the same date predicted together using only the previous dates; outcomes are added after scoring the entire day; conditional on identity of actual B leader",
+    "dates": 43,
+    "observations": 125,
+    "metrics": {
+      "all": {
+        "races": 125,
+        "held": 103,
+        "population": {
+          "brier": 0.15356482313290304,
+          "logloss": 0.48779892081805143
+        },
+        "rider": {
+          "brier": 0.1529364168554213,
+          "logloss": 0.4840825240159301
+        }
+      },
+      "first_rider_observation": {
+        "races": 90,
+        "held": 74,
+        "population": {
+          "brier": 0.15673499072641778,
+          "logloss": 0.4950272376565515
+        },
+        "rider": {
+          "brier": 0.15673499072641778,
+          "logloss": 0.4950272376565515
+        }
+      },
+      "current_venue_reviews": {
+        "races": 29,
+        "held": 24,
+        "population": {
+          "brier": 0.1717664718365455,
+          "logloss": 0.5281358889086066
+        },
+        "rider": {
+          "brier": 0.1717664718365455,
+          "logloss": 0.5281358889086066
+        }
+      },
+      "previous_studies": {
+        "races": 96,
+        "held": 79,
+        "population": {
+          "brier": 0.14806640842034435,
+          "logloss": 0.47561379504069623
+        },
+        "rider": {
+          "brier": 0.14724817107987337,
+          "logloss": 0.47077473670460074
+        }
+      },
+      "earlier_rider_observed": {
+        "races": 35,
+        "held": 29,
+        "population": {
+          "brier": 0.14541296360672223,
+          "logloss": 0.4692118203761942
+        },
+        "rider": {
+          "brier": 0.14316865547285892,
+          "logloss": 0.45593897465433236
+        }
+      }
+    },
+    "predictions_sha256": "172bca1ebb4ee71042b4f3d6155e4860a63e7a3e9f5f2fac19288a985479f455"
+  },
+  "trifecta": {
+    "n": 207,
+    "forecasts": 211,
+    "previous_pair_20": {
+      "1": 26,
+      "4": 69,
+      "8": 93
+    },
+    "new_pair": {
+      "1": 26,
+      "4": 69,
+      "8": 93
+    },
+    "previous_direct_88": {
+      "1": 25,
+      "4": 69,
+      "8": 92
+    },
+    "new_direct": {
+      "1": 25,
+      "4": 69,
+      "8": 92
+    },
+    "first_hitting_rank_within_eight": {
+      "202611212201": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611212202": {
+        "previous_pair_20": 4,
+        "new_pair": 4,
+        "previous_direct_88": 4,
+        "new_direct": 4
+      },
+      "202611212203": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611212204": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611212205": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611212206": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611212207": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611212208": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611212209": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611213601": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611213602": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611213603": {
+        "previous_pair_20": 4,
+        "new_pair": 4,
+        "previous_direct_88": 4,
+        "new_direct": 4
+      },
+      "202611213604": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611213605": {
+        "previous_pair_20": 5,
+        "new_pair": 5,
+        "previous_direct_88": 5,
+        "new_direct": 5
+      },
+      "202611213606": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611213607": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611213608": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611213609": {
+        "previous_pair_20": 4,
+        "new_pair": 4,
+        "previous_direct_88": 4,
+        "new_direct": 4
+      },
+      "202611213610": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611214201": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611214203": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611214204": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611214205": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611214206": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611214207": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611214208": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611214209": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611214501": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611214502": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611214503": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611214504": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611214505": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611214506": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611214507": {
+        "previous_pair_20": 4,
+        "new_pair": 4,
+        "previous_direct_88": 4,
+        "new_direct": 4
+      },
+      "202611214508": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611214509": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611214510": {
+        "previous_pair_20": 5,
+        "new_pair": 5,
+        "previous_direct_88": 4,
+        "new_direct": 4
+      },
+      "202611215101": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611215102": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611215103": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611215104": null,
+      "202611215105": null,
+      "202611215106": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611215107": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611218101": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611218102": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611218103": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611218104": {
+        "previous_pair_20": 6,
+        "new_pair": 6,
+        "previous_direct_88": 6,
+        "new_direct": 6
+      },
+      "202611218105": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611218106": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611218107": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611218108": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611218109": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611218110": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611218111": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611218112": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611222201": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611222202": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611222203": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611222204": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611222205": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611222206": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611222207": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611222208": {
+        "previous_pair_20": 8,
+        "new_pair": 8,
+        "previous_direct_88": 8,
+        "new_direct": 8
+      },
+      "202611222209": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611223601": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611223602": {
+        "previous_pair_20": 5,
+        "new_pair": 5,
+        "previous_direct_88": 5,
+        "new_direct": 5
+      },
+      "202611223603": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611223604": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611223605": {
+        "previous_pair_20": 5,
+        "new_pair": 5,
+        "previous_direct_88": 5,
+        "new_direct": 5
+      },
+      "202611223606": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611223607": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611223608": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611223609": {
+        "previous_pair_20": 4,
+        "new_pair": 4,
+        "previous_direct_88": 5,
+        "new_direct": 5
+      },
+      "202611223610": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611224201": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611224202": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611224203": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611224204": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611224205": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611224206": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611224207": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611224208": {
+        "previous_pair_20": 8,
+        "new_pair": 8,
+        "previous_direct_88": 8,
+        "new_direct": 8
+      },
+      "202611224209": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611224501": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611224502": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611224503": {
+        "previous_pair_20": 6,
+        "new_pair": 6,
+        "previous_direct_88": 5,
+        "new_direct": 5
+      },
+      "202611224504": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611224505": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611224506": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611224507": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611224508": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611224509": {
+        "previous_pair_20": 4,
+        "new_pair": 4,
+        "previous_direct_88": 4,
+        "new_direct": 4
+      },
+      "202611224510": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611225301": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611225302": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611225303": {
+        "previous_pair_20": 8,
+        "new_pair": 8,
+        "previous_direct_88": 8,
+        "new_direct": 8
+      },
+      "202611225304": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611225305": {
+        "previous_pair_20": 7,
+        "new_pair": 7,
+        "previous_direct_88": 7,
+        "new_direct": 7
+      },
+      "202611225306": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611225307": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611225308": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611225309": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611225310": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611225311": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611226201": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611226202": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611226203": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611226204": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611226206": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611226207": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611228101": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611228102": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611228103": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611228104": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611228105": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611228106": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611228107": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611228108": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611228109": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611228110": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611228111": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611228112": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611232601": {
+        "previous_pair_20": 5,
+        "new_pair": 5,
+        "previous_direct_88": 5,
+        "new_direct": 5
+      },
+      "202611232602": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611232603": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611232604": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611232605": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611232606": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611232607": {
+        "previous_pair_20": 5,
+        "new_pair": 5,
+        "previous_direct_88": 5,
+        "new_direct": 5
+      },
+      "202611232608": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611232609": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611232610": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611232611": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611233401": {
+        "previous_pair_20": 8,
+        "new_pair": 8,
+        "previous_direct_88": 8,
+        "new_direct": 8
+      },
+      "202611233402": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611233403": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611233404": {
+        "previous_pair_20": 8,
+        "new_pair": 8,
+        "previous_direct_88": 8,
+        "new_direct": 8
+      },
+      "202611233405": {
+        "previous_pair_20": 8,
+        "new_pair": 8,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611233406": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611233407": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611233601": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611233602": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611233603": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611233604": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611233605": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611233606": {
+        "previous_pair_20": 5,
+        "new_pair": 5,
+        "previous_direct_88": 5,
+        "new_direct": 5
+      },
+      "202611233607": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611233608": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611233609": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611233610": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611234501": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611234502": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611234503": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611234504": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611234505": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611234506": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611234507": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611234508": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611234509": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611234510": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611234801": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611234802": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611234803": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611234804": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611234806": null,
+      "202611234807": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611235301": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611235302": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611235303": {
+        "previous_pair_20": 6,
+        "new_pair": 6,
+        "previous_direct_88": 6,
+        "new_direct": 6
+      },
+      "202611235304": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611235305": {
+        "previous_pair_20": 5,
+        "new_pair": 5,
+        "previous_direct_88": 5,
+        "new_direct": 5
+      },
+      "202611235306": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611235307": {
+        "previous_pair_20": 6,
+        "new_pair": 6,
+        "previous_direct_88": 6,
+        "new_direct": 6
+      },
+      "202611235308": {
+        "previous_pair_20": 6,
+        "new_pair": 6,
+        "previous_direct_88": 6,
+        "new_direct": 6
+      },
+      "202611235309": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611235310": {
+        "previous_pair_20": 4,
+        "new_pair": 4,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611235311": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611236101": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611236102": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611236103": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611236104": {
+        "previous_pair_20": 4,
+        "new_pair": 4,
+        "previous_direct_88": 4,
+        "new_direct": 4
+      },
+      "202611236105": {
+        "previous_pair_20": 2,
+        "new_pair": 2,
+        "previous_direct_88": 2,
+        "new_direct": 2
+      },
+      "202611236106": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611236107": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611236201": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611236202": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611236203": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611236204": {
+        "previous_pair_20": 4,
+        "new_pair": 4,
+        "previous_direct_88": 4,
+        "new_direct": 4
+      },
+      "202611236205": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611236206": {
+        "previous_pair_20": 7,
+        "new_pair": 7,
+        "previous_direct_88": 7,
+        "new_direct": 7
+      },
+      "202611236207": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238101": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238102": {
+        "previous_pair_20": 8,
+        "new_pair": 8,
+        "previous_direct_88": 8,
+        "new_direct": 8
+      },
+      "202611238103": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238104": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238105": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238106": {
+        "previous_pair_20": 1,
+        "new_pair": 1,
+        "previous_direct_88": 1,
+        "new_direct": 1
+      },
+      "202611238107": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238108": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238109": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238110": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238111": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238112": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238401": null,
+      "202611238402": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238403": {
+        "previous_pair_20": 7,
+        "new_pair": 7,
+        "previous_direct_88": 7,
+        "new_direct": 7
+      },
+      "202611238404": {
+        "previous_pair_20": 6,
+        "new_pair": 6,
+        "previous_direct_88": 6,
+        "new_direct": 6
+      },
+      "202611238405": {
+        "previous_pair_20": 3,
+        "new_pair": 3,
+        "previous_direct_88": 3,
+        "new_direct": 3
+      },
+      "202611238406": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      },
+      "202611238407": {
+        "previous_pair_20": null,
+        "new_pair": null,
+        "previous_direct_88": null,
+        "new_direct": null
+      }
+    }
+  },
+  "prediction_hashes": {
+    "ticket-predictions.owner.json": "e569445eb5c7c7537b0c314b9dc3a058df62f2a4b95627d9b17cbb81a2b6a9b9",
+    "phase-predictions.json": "53b6a1c22b9bfcf7dbe9d53a1b5d7fcb2354d53fa83c023de4fefbacca8ca1ba",
+    "registry.owner.json": "329cf5adce2489043d776abc1982c369e77b2fd52637872e29d44922ca2709cb"
+  },
+  "source_hash": "fb79e9bc1d486f005046f42ab90c91a9c0b2e3907ed6284518e8761cae840563",
+  "visual_new_count": 20,
+  "review_limitations": [
+    "掲載画面の再生が復旧した競走を選んだ回顧調査。締切前に予測を固定した前向き検証は別途必要。",
+    "松戸7Rのダイジェスト内の着順表示が映像位置を記録する前の再生中に視界に入った。このレースは11月20日以前の学習側。"
+  ]
+}

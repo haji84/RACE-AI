@@ -382,5 +382,199 @@
     "any_position_or_known_rider_event": 123,
     "unreviewed_including_provider_only": 82644,
     "three_year_replay_calendar_csv_sha256": "49a90fd7a1826c011283e05ea1df030b80b177bbd5e929b7c9f3650c5e62a7d1"
+  },
+  "current_after_public_player_recovery": {
+    "baseline_commit": "442049c9a",
+    "baseline_csv_sha256": "49a90fd7a1826c011283e05ea1df030b80b177bbd5e929b7c9f3650c5e62a7d1",
+    "attempted_unique": 40,
+    "retries_of_first_27_unreadable": 27,
+    "first_attempts_beyond_initial_59": 13,
+    "new_races_with_visual_positions": 20,
+    "of_initial_failures_now_with_visual_positions": 17,
+    "of_first_attempts_now_with_visual_positions": 3,
+    "across_initial_and_recovery_attempts": {
+      "unique_races_attempted": 72,
+      "unique_new_visual_position_races": 52,
+      "awaiting_observation": 20
+    },
+    "per_venue_day": {
+      "20231124-13": {
+        "attempted": 3,
+        "observed": 3,
+        "playback_but_no_readable_phases": 0,
+        "playback_failed": 0
+      },
+      "20231124-22": {
+        "attempted": 7,
+        "observed": 0,
+        "playback_but_no_readable_phases": 0,
+        "playback_failed": 7
+      },
+      "20250603-31": {
+        "attempted": 7,
+        "observed": 4,
+        "playback_but_no_readable_phases": 3,
+        "playback_failed": 0
+      },
+      "20261117-73": {
+        "attempted": 5,
+        "observed": 3,
+        "playback_but_no_readable_phases": 1,
+        "playback_failed": 1
+      },
+      "20261118-73": {
+        "attempted": 10,
+        "observed": 6,
+        "playback_but_no_readable_phases": 1,
+        "playback_failed": 3
+      },
+      "20261119-81": {
+        "attempted": 8,
+        "observed": 4,
+        "playback_but_no_readable_phases": 1,
+        "playback_failed": 3
+      }
+    },
+    "newly_observed_race_ids": [
+      "20231124-13-08",
+      "20231124-13-09",
+      "20231124-13-10",
+      "20250603-31-01",
+      "20250603-31-03",
+      "20250603-31-06",
+      "20250603-31-07",
+      "20261117-73-07",
+      "20261117-73-08",
+      "20261117-73-10",
+      "20261118-73-01",
+      "20261118-73-02",
+      "20261118-73-03",
+      "20261118-73-05",
+      "20261118-73-06",
+      "20261118-73-07",
+      "20261119-81-01",
+      "20261119-81-06",
+      "20261119-81-07",
+      "20261119-81-11"
+    ],
+    "without_new_observation": [
+      {
+        "race_id": "20231124-22-01",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20231124-22-02",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20231124-22-03",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20231124-22-04",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20231124-22-05",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20231124-22-06",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20231124-22-07",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20250603-31-02",
+        "state": "playback_but_no_readable_phases",
+        "reason": "冒頭の再生は確認。最終周へのシーク時に配信HTTP 503、別の通常再生でも終盤に到達せず。"
+      },
+      {
+        "race_id": "20250603-31-04",
+        "state": "playback_but_no_readable_phases",
+        "reason": "冒頭の再生は確認。最終周へのシーク時に配信HTTP 503、別の通常再生でも終盤に到達せず。"
+      },
+      {
+        "race_id": "20250603-31-05",
+        "state": "playback_but_no_readable_phases",
+        "reason": "冒頭の再生は確認。最終周へのシーク時に配信HTTP 503、別の通常再生でも終盤に到達せず。"
+      },
+      {
+        "race_id": "20261117-73-09",
+        "state": "playback_failed",
+        "reason": "配信HTTP 503で0秒に停止。"
+      },
+      {
+        "race_id": "20261117-73-11",
+        "state": "playback_but_no_readable_phases",
+        "reason": "冒頭0.75秒が再生。最終周のシーク時に配信HTTP 503、再訪時は0秒に停止。"
+      },
+      {
+        "race_id": "20261118-73-08",
+        "state": "playback_failed",
+        "reason": "場内プレーヤーを2回開いたが配信HTTP 503。"
+      },
+      {
+        "race_id": "20261118-73-09",
+        "state": "playback_failed",
+        "reason": "場内プレーヤーを2回開いたが配信HTTP 503。"
+      },
+      {
+        "race_id": "20261118-73-10",
+        "state": "playback_failed",
+        "reason": "場内プレーヤーを2回開いたが配信HTTP 503。"
+      },
+      {
+        "race_id": "20261118-73-11",
+        "state": "playback_but_no_readable_phases",
+        "reason": "冒頭だけデコードし、終盤シークに2回失敗。再訪時は配信HTTP 503。"
+      },
+      {
+        "race_id": "20261119-81-05",
+        "state": "playback_failed",
+        "reason": "場内プレーヤーは配信HTTP 503。再生時間が進まなかった。"
+      },
+      {
+        "race_id": "20261119-81-09",
+        "state": "playback_failed",
+        "reason": "場内プレーヤーは配信HTTP 503。再生時間が進まなかった。"
+      },
+      {
+        "race_id": "20261119-81-10",
+        "state": "playback_failed",
+        "reason": "場内プレーヤーは配信HTTP 503。再生時間が進まなかった。"
+      },
+      {
+        "race_id": "20261119-81-12",
+        "state": "playback_but_no_readable_phases",
+        "reason": "冒頭約0.08秒で配信エラー、最終周には到達できず。"
+      }
+    ],
+    "eligible_rows": 82767,
+    "visual_inspection_or_original_verified_source": 143,
+    "any_position_or_known_rider_event": 143,
+    "unreviewed_including_provider_only": 82624,
+    "unreviewed_direct_ref": 12791,
+    "unreviewed_calendar_only": 69833,
+    "historical_index_button_count_among_current_unreviewed": 12785,
+    "additional_linked_players_among_current_unreviewed": {
+      "20231124-22-03": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=22&kaisaiDate=20231124&gradeCd=1&raceNo=3&l-id=Highlightreel",
+      "20231124-22-07": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=22&kaisaiDate=20231124&gradeCd=1&raceNo=7&l-id=Highlightreel",
+      "20250603-31-02": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=31&kaisaiDate=20250603&gradeCd=1&raceNo=2&l-id=Highlightreel",
+      "20250603-31-04": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=31&kaisaiDate=20250603&gradeCd=1&raceNo=4&l-id=Highlightreel",
+      "20250603-31-05": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=31&kaisaiDate=20250603&gradeCd=1&raceNo=5&l-id=Highlightreel",
+      "20261118-73-11": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261118&gradeCd=1&raceNo=11&l-id=Highlightreel"
+    },
+    "race_receipt_hash_list_sha256": "ea88a8da0403ab811f6c96ba47e0db4f58b5fc87e89706c0702aa096454e067b",
+    "three_year_replay_calendar_csv_sha256": "4a52d4a9f1f0086ec0192e49b7044677e230c65bcfd68ab3bb197db0426e877c"
   }
 }
