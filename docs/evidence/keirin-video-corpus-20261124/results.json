@@ -1,0 +1,1198 @@
+{
+  "calendar_days": 1096,
+  "census": {
+    "ambiguous_witness_tuples": 0,
+    "by_month": {
+      "2023-11": {
+        "daily_result_link": 527
+      },
+      "2023-12": {
+        "daily_result_link": 2307
+      },
+      "2024-01": {
+        "daily_result_link": 2283
+      },
+      "2024-02": {
+        "daily_result_link": 2200
+      },
+      "2024-03": {
+        "daily_result_link": 2298
+      },
+      "2024-04": {
+        "daily_result_link": 2288
+      },
+      "2024-05": {
+        "daily_result_link": 2374
+      },
+      "2024-06": {
+        "daily_result_link": 2317
+      },
+      "2024-07": {
+        "daily_result_link": 2442
+      },
+      "2024-08": {
+        "daily_result_link": 2387
+      },
+      "2024-09": {
+        "daily_result_link": 2331
+      },
+      "2024-10": {
+        "daily_result_link": 2336
+      },
+      "2024-11": {
+        "daily_result_link": 2268
+      },
+      "2024-12": {
+        "daily_result_link": 2259
+      },
+      "2025-01": {
+        "daily_result_link": 2360
+      },
+      "2025-02": {
+        "daily_result_link": 2140
+      },
+      "2025-03": {
+        "daily_result_link": 2311
+      },
+      "2025-04": {
+        "daily_result_link": 2177
+      },
+      "2025-05": {
+        "daily_result_link": 2330
+      },
+      "2025-06": {
+        "daily_result_link": 2294
+      },
+      "2025-07": {
+        "daily_result_link": 2430
+      },
+      "2025-08": {
+        "daily_result_link": 2302
+      },
+      "2025-09": {
+        "daily_result_link": 2348
+      },
+      "2025-10": {
+        "daily_result_link": 2297
+      },
+      "2025-11": {
+        "daily_result_link": 2222
+      },
+      "2025-12": {
+        "daily_result_link": 2247
+      },
+      "2026-01": {
+        "daily_result_link": 2305
+      },
+      "2026-02": {
+        "daily_result_link": 2158
+      },
+      "2026-03": {
+        "daily_result_link": 2274
+      },
+      "2026-04": {
+        "daily_result_link": 2341
+      },
+      "2026-05": {
+        "daily_result_link": 2312
+      },
+      "2026-06": {
+        "daily_result_link": 2274
+      },
+      "2026-07": {
+        "daily_result_link": 2416
+      },
+      "2026-08": {
+        "daily_result_link": 2352
+      },
+      "2026-09": {
+        "daily_result_link": 2265
+      },
+      "2026-10": {
+        "daily_result_link": 2270
+      },
+      "2026-11": {
+        "daily_result_link": 1732
+      }
+    },
+    "calendar_receipts_sha256": "e001a6692af78e7b1caf906b15f17f13d4d95a63c97af95326138cbf7018da44",
+    "counts": {
+      "complete_registered_fields": 78015,
+      "daily_result_link": 82774,
+      "event_cancelled_reported": 7,
+      "event_finish_verified": 76005,
+      "event_unknown": 6762,
+      "races": 82774,
+      "registered_roster_rows": 586679,
+      "roster_archived_entries": 4454,
+      "roster_programme": 76005,
+      "roster_public_starters": 42,
+      "roster_rows": 587009,
+      "roster_unavailable": 7,
+      "roster_verified_starters": 2266
+    },
+    "daily_indices_valid": 1096,
+    "days_requested": 1096,
+    "distinct_registered_ids": 2636,
+    "failed_dates": {},
+    "from": "2023-11-24",
+    "input_exclusions": {},
+    "public_roster_receipts_sha256": "badf438d2931fda36c2e36f82b3ec09417ba40d024d2dca9fec2779d9a4372e3",
+    "public_roster_verification": {
+      "Public programme and result registrants disagree": 3,
+      "two_source_cancelled": 7,
+      "two_source_starter_fields": 154
+    },
+    "sha256": "450dbdb52d2617516f0d865ed59690396c1f8c75578cfbb4c8074345e94c74fd",
+    "source_races": {
+      "dated_entries": 6716,
+      "monthly": 80453,
+      "programme": 76005,
+      "public_cancelled": 7,
+      "public_starters": 154,
+      "sqlite": 30713,
+      "verified_starters": 2268
+    },
+    "through": "2026-11-23",
+    "two_source_identity_tuples": 783
+  },
+  "coverage": {
+    "by_month": [
+      {
+        "month": "2023-11",
+        "races": 527,
+        "races_with_readable_starter": 1,
+        "races_with_visual_evidence": 1,
+        "readable_starter_starts": 1
+      },
+      {
+        "month": "2023-12",
+        "races": 2307,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 1,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2024-01",
+        "races": 2283,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 1,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2024-02",
+        "races": 2200,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2024-03",
+        "races": 2298,
+        "races_with_readable_starter": 1,
+        "races_with_visual_evidence": 1,
+        "readable_starter_starts": 1
+      },
+      {
+        "month": "2024-04",
+        "races": 2288,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2024-05",
+        "races": 2374,
+        "races_with_readable_starter": 1,
+        "races_with_visual_evidence": 2,
+        "readable_starter_starts": 4
+      },
+      {
+        "month": "2024-06",
+        "races": 2317,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2024-07",
+        "races": 2442,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 1,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2024-08",
+        "races": 2387,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2024-09",
+        "races": 2331,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 1,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2024-10",
+        "races": 2336,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2024-11",
+        "races": 2268,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 2,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2024-12",
+        "races": 2259,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2025-01",
+        "races": 2360,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 1,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2025-02",
+        "races": 2140,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2025-03",
+        "races": 2311,
+        "races_with_readable_starter": 1,
+        "races_with_visual_evidence": 1,
+        "readable_starter_starts": 1
+      },
+      {
+        "month": "2025-04",
+        "races": 2177,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2025-05",
+        "races": 2330,
+        "races_with_readable_starter": 1,
+        "races_with_visual_evidence": 2,
+        "readable_starter_starts": 1
+      },
+      {
+        "month": "2025-06",
+        "races": 2294,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2025-07",
+        "races": 2430,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 1,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2025-08",
+        "races": 2302,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2025-09",
+        "races": 2348,
+        "races_with_readable_starter": 1,
+        "races_with_visual_evidence": 1,
+        "readable_starter_starts": 7
+      },
+      {
+        "month": "2025-10",
+        "races": 2297,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2025-11",
+        "races": 2222,
+        "races_with_readable_starter": 1,
+        "races_with_visual_evidence": 1,
+        "readable_starter_starts": 1
+      },
+      {
+        "month": "2025-12",
+        "races": 2247,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2026-01",
+        "races": 2305,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2026-02",
+        "races": 2158,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2026-03",
+        "races": 2274,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2026-04",
+        "races": 2341,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2026-05",
+        "races": 2312,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2026-06",
+        "races": 2274,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2026-07",
+        "races": 2416,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 0,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2026-08",
+        "races": 2352,
+        "races_with_readable_starter": 0,
+        "races_with_visual_evidence": 3,
+        "readable_starter_starts": 0
+      },
+      {
+        "month": "2026-09",
+        "races": 2265,
+        "races_with_readable_starter": 1,
+        "races_with_visual_evidence": 2,
+        "readable_starter_starts": 1
+      },
+      {
+        "month": "2026-10",
+        "races": 2270,
+        "races_with_readable_starter": 1,
+        "races_with_visual_evidence": 2,
+        "readable_starter_starts": 1
+      },
+      {
+        "month": "2026-11",
+        "races": 1732,
+        "races_with_readable_starter": 6,
+        "races_with_visual_evidence": 54,
+        "readable_starter_starts": 16
+      }
+    ],
+    "continuous_media_races": 3,
+    "first_race_date": "2023-11-24",
+    "full_field_final_lap_races": 0,
+    "full_races": 0,
+    "known_reviews_awaiting_valid_evidence": 0,
+    "last_race_date": "2026-11-23",
+    "observations": {
+      "attack": 14,
+      "follow": 29
+    },
+    "outcomes": {
+      "cancelled_reported": 7,
+      "finish_verified": 76005,
+      "unknown": 6762
+    },
+    "owner_declared_full_replay_races": 0,
+    "races": 82774,
+    "races_with_readable_starter": 15,
+    "races_with_verified_visual_evidence": 78,
+    "readable_rider_ids": 29,
+    "readable_starter_starts": 34,
+    "rider_ids": 2636,
+    "roster_rows": 587009,
+    "roster_rows_with_id": 586679,
+    "unresolved_reviews": 45,
+    "verified_rosters": 78313,
+    "whole_window_bounds": 15
+  },
+  "evidence": {
+    "distinct_starts_with_both_full_final_lap_tasks": 2,
+    "labels_by_value": {
+      "4C": 1,
+      "HB": 5,
+      "held": 19,
+      "lost": 3,
+      "no_attack": 7,
+      "no_target": 2,
+      "passed_target": 5,
+      "straight": 1,
+      "unknown": 45
+    },
+    "race_car_window_bounds": 15,
+    "reviewed_races_including_unknown": 15,
+    "reviewed_tasks": 88
+  },
+  "media": {
+    "continuous_decoded_frames": 5533,
+    "continuous_digests": 3,
+    "continuous_duration_ms": 221320,
+    "decoded_frame_images": 1636
+  },
+  "movement_scores": {
+    "before_jst_exclusive": null,
+    "census_through_jst": "2026-11-23",
+    "eligible_riders": 2636,
+    "last_training_race_date_jst": "2026-11-21",
+    "observed_races": 15,
+    "observed_riders": 29,
+    "prior_strength": 4,
+    "reviewed_races": 15,
+    "strata": [
+      {
+        "any_attack_in_observed_window": {
+          "all": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          },
+          "cold_rider": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          },
+          "prior_rider": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          }
+        },
+        "bootstrap_observations": 1,
+        "observed_counts": {
+          "4C": 1
+        },
+        "population_probabilities": {
+          "4C": 0.6666666666666666,
+          "no_attack": 0.3333333333333333
+        },
+        "scope": "4C",
+        "scores": {
+          "all": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          },
+          "cold_rider": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          },
+          "prior_rider": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          }
+        },
+        "task": "attack",
+        "window_level": "clip"
+      },
+      {
+        "any_attack_in_observed_window": {
+          "all": {
+            "n": 9,
+            "population": {
+              "brier": 0.8184104938271608,
+              "log_loss": 1.0450093831965215,
+              "top_one_hits": 2
+            },
+            "rider": {
+              "brier": 0.8391512345679015,
+              "log_loss": 1.0698031111203228,
+              "top_one_hits": 2
+            }
+          },
+          "cold_rider": {
+            "n": 8,
+            "population": {
+              "brier": 0.8096006944444447,
+              "log_loss": 1.038309020012573,
+              "top_one_hits": 2
+            },
+            "rider": {
+              "brier": 0.8096006944444447,
+              "log_loss": 1.038309020012573,
+              "top_one_hits": 2
+            }
+          },
+          "prior_rider": {
+            "n": 1,
+            "population": {
+              "brier": 0.8888888888888891,
+              "log_loss": 1.0986122886681098,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": 1.0755555555555558,
+              "log_loss": 1.3217558399823195,
+              "top_one_hits": 0
+            }
+          }
+        },
+        "bootstrap_observations": 1,
+        "observed_counts": {
+          "HB": 3,
+          "no_attack": 7
+        },
+        "population_probabilities": {
+          "B": 0.07142857142857142,
+          "H": 0.07142857142857142,
+          "HB": 0.2857142857142857,
+          "no_attack": 0.5714285714285714
+        },
+        "scope": "HB",
+        "scores": {
+          "all": {
+            "n": 9,
+            "population": {
+              "brier": 0.6817592592592594,
+              "log_loss": 1.1787841392327367,
+              "top_one_hits": 2
+            },
+            "rider": {
+              "brier": 0.7034876543209878,
+              "log_loss": 1.2035778671565376,
+              "top_one_hits": 2
+            }
+          },
+          "cold_rider": {
+            "n": 8,
+            "population": {
+              "brier": 0.6836458333333335,
+              "log_loss": 1.188805620553315,
+              "top_one_hits": 2
+            },
+            "rider": {
+              "brier": 0.6836458333333335,
+              "log_loss": 1.188805620553315,
+              "top_one_hits": 2
+            }
+          },
+          "prior_rider": {
+            "n": 1,
+            "population": {
+              "brier": 0.6666666666666667,
+              "log_loss": 1.0986122886681098,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": 0.8622222222222224,
+              "log_loss": 1.3217558399823195,
+              "top_one_hits": 0
+            }
+          }
+        },
+        "task": "attack",
+        "window_level": "clip"
+      },
+      {
+        "any_attack_in_observed_window": {
+          "all": {
+            "n": 2,
+            "population": {
+              "brier": 0.027970679012345685,
+              "log_loss": 0.12565721414045306,
+              "top_one_hits": 2
+            },
+            "rider": {
+              "brier": 0.027970679012345685,
+              "log_loss": 0.12565721414045306,
+              "top_one_hits": 2
+            }
+          },
+          "cold_rider": {
+            "n": 2,
+            "population": {
+              "brier": 0.027970679012345685,
+              "log_loss": 0.12565721414045306,
+              "top_one_hits": 2
+            },
+            "rider": {
+              "brier": 0.027970679012345685,
+              "log_loss": 0.12565721414045306,
+              "top_one_hits": 2
+            }
+          },
+          "prior_rider": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          }
+        },
+        "bootstrap_observations": 1,
+        "first_location_given_attack": {
+          "all": {
+            "n": 2,
+            "population": {
+              "brier": 0.7904974489795918,
+              "log_loss": 1.666102255087602,
+              "top_one_hits": 1
+            },
+            "rider": {
+              "brier": 0.7904974489795918,
+              "log_loss": 1.666102255087602,
+              "top_one_hits": 1
+            }
+          },
+          "cold_rider": {
+            "n": 2,
+            "population": {
+              "brier": 0.7904974489795918,
+              "log_loss": 1.666102255087602,
+              "top_one_hits": 1
+            },
+            "rider": {
+              "brier": 0.7904974489795918,
+              "log_loss": 1.666102255087602,
+              "top_one_hits": 1
+            }
+          },
+          "prior_rider": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          }
+        },
+        "observed_counts": {
+          "HB": 2,
+          "straight": 1
+        },
+        "population_probabilities": {
+          "4C": 0.1,
+          "B": 0.1,
+          "B4C": 0.1,
+          "H": 0.1,
+          "HB": 0.3,
+          "no_attack": 0.1,
+          "straight": 0.2
+        },
+        "scope": "whole_final_lap",
+        "scores": {
+          "all": {
+            "n": 2,
+            "population": {
+              "brier": 0.8096064814814814,
+              "log_loss": 1.791759469228055,
+              "top_one_hits": 1
+            },
+            "rider": {
+              "brier": 0.8096064814814814,
+              "log_loss": 1.791759469228055,
+              "top_one_hits": 1
+            }
+          },
+          "cold_rider": {
+            "n": 2,
+            "population": {
+              "brier": 0.8096064814814814,
+              "log_loss": 1.791759469228055,
+              "top_one_hits": 1
+            },
+            "rider": {
+              "brier": 0.8096064814814814,
+              "log_loss": 1.791759469228055,
+              "top_one_hits": 1
+            }
+          },
+          "prior_rider": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          }
+        },
+        "task": "attack",
+        "window_level": "whole_final_lap"
+      },
+      {
+        "bootstrap_observations": 1,
+        "observed_counts": {
+          "held": 5,
+          "lost": 1
+        },
+        "population_probabilities": {
+          "held": 0.5454545454545454,
+          "lost": 0.18181818181818182,
+          "no_target": 0.09090909090909091,
+          "passed_target": 0.09090909090909091,
+          "rejoined": 0.09090909090909091
+        },
+        "scope": "4C",
+        "scores": {
+          "all": {
+            "n": 5,
+            "population": {
+              "brier": 0.5302437641723357,
+              "log_loss": 1.082329210371008,
+              "top_one_hits": 4
+            },
+            "rider": {
+              "brier": 0.5302437641723357,
+              "log_loss": 1.082329210371008,
+              "top_one_hits": 4
+            }
+          },
+          "cold_rider": {
+            "n": 5,
+            "population": {
+              "brier": 0.5302437641723357,
+              "log_loss": 1.082329210371008,
+              "top_one_hits": 4
+            },
+            "rider": {
+              "brier": 0.5302437641723357,
+              "log_loss": 1.082329210371008,
+              "top_one_hits": 4
+            }
+          },
+          "prior_rider": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          }
+        },
+        "task": "follow",
+        "window_level": "clip"
+      },
+      {
+        "bootstrap_observations": 2,
+        "observed_counts": {
+          "held": 3
+        },
+        "population_probabilities": {
+          "held": 0.5,
+          "lost": 0.125,
+          "no_target": 0.125,
+          "passed_target": 0.125,
+          "rejoined": 0.125
+        },
+        "scope": "B",
+        "scores": {
+          "all": {
+            "n": 1,
+            "population": {
+              "brier": 0.4081632653061224,
+              "log_loss": 0.8472978603872037,
+              "top_one_hits": 1
+            },
+            "rider": {
+              "brier": 0.2612244897959183,
+              "log_loss": 0.6109090823229731,
+              "top_one_hits": 1
+            }
+          },
+          "cold_rider": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          },
+          "prior_rider": {
+            "n": 1,
+            "population": {
+              "brier": 0.4081632653061224,
+              "log_loss": 0.8472978603872037,
+              "top_one_hits": 1
+            },
+            "rider": {
+              "brier": 0.2612244897959183,
+              "log_loss": 0.6109090823229731,
+              "top_one_hits": 1
+            }
+          }
+        },
+        "task": "follow",
+        "window_level": "clip"
+      },
+      {
+        "bootstrap_observations": 1,
+        "observed_counts": {
+          "held": 5
+        },
+        "population_probabilities": {
+          "held": 0.6,
+          "lost": 0.1,
+          "no_target": 0.1,
+          "passed_target": 0.1,
+          "rejoined": 0.1
+        },
+        "scope": "B4C",
+        "scores": {
+          "all": {
+            "n": 4,
+            "population": {
+              "brier": 0.3807831002771479,
+              "log_loss": 0.8067109986293445,
+              "top_one_hits": 4
+            },
+            "rider": {
+              "brier": 0.3304358780549257,
+              "log_loss": 0.7240256081512874,
+              "top_one_hits": 4
+            }
+          },
+          "cold_rider": {
+            "n": 2,
+            "population": {
+              "brier": 0.481859410430839,
+              "log_loss": 0.9729550745276567,
+              "top_one_hits": 2
+            },
+            "rider": {
+              "brier": 0.481859410430839,
+              "log_loss": 0.9729550745276567,
+              "top_one_hits": 2
+            }
+          },
+          "prior_rider": {
+            "n": 2,
+            "population": {
+              "brier": 0.2797067901234568,
+              "log_loss": 0.6404669227310321,
+              "top_one_hits": 2
+            },
+            "rider": {
+              "brier": 0.17901234567901236,
+              "log_loss": 0.4750961417749182,
+              "top_one_hits": 2
+            }
+          }
+        },
+        "task": "follow",
+        "window_level": "clip"
+      },
+      {
+        "bootstrap_observations": 4,
+        "observed_counts": {
+          "held": 6,
+          "lost": 1,
+          "no_target": 2
+        },
+        "population_probabilities": {
+          "held": 0.5,
+          "lost": 0.14285714285714285,
+          "no_target": 0.21428571428571427,
+          "passed_target": 0.07142857142857142,
+          "rejoined": 0.07142857142857142
+        },
+        "scope": "HB",
+        "scores": {
+          "all": {
+            "n": 5,
+            "population": {
+              "brier": 0.6123456790123457,
+              "log_loss": 1.1797053102897428,
+              "top_one_hits": 4
+            },
+            "rider": {
+              "brier": 0.6123456790123457,
+              "log_loss": 1.1797053102897428,
+              "top_one_hits": 4
+            }
+          },
+          "cold_rider": {
+            "n": 5,
+            "population": {
+              "brier": 0.6123456790123457,
+              "log_loss": 1.1797053102897428,
+              "top_one_hits": 4
+            },
+            "rider": {
+              "brier": 0.6123456790123457,
+              "log_loss": 1.1797053102897428,
+              "top_one_hits": 4
+            }
+          },
+          "prior_rider": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          }
+        },
+        "task": "follow",
+        "window_level": "clip"
+      },
+      {
+        "bootstrap_observations": 3,
+        "observed_counts": {
+          "lost": 1,
+          "passed_target": 5
+        },
+        "population_probabilities": {
+          "held": 0.09090909090909091,
+          "lost": 0.18181818181818182,
+          "no_target": 0.09090909090909091,
+          "passed_target": 0.5454545454545454,
+          "rejoined": 0.09090909090909091
+        },
+        "scope": "whole_final_lap",
+        "scores": {
+          "all": {
+            "n": 3,
+            "population": {
+              "brier": 0.5625,
+              "log_loss": 1.1552453009332422,
+              "top_one_hits": 2
+            },
+            "rider": {
+              "brier": 0.5625,
+              "log_loss": 1.1552453009332422,
+              "top_one_hits": 2
+            }
+          },
+          "cold_rider": {
+            "n": 3,
+            "population": {
+              "brier": 0.5625,
+              "log_loss": 1.1552453009332422,
+              "top_one_hits": 2
+            },
+            "rider": {
+              "brier": 0.5625,
+              "log_loss": 1.1552453009332422,
+              "top_one_hits": 2
+            }
+          },
+          "prior_rider": {
+            "n": 0,
+            "population": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            },
+            "rider": {
+              "brier": null,
+              "log_loss": null,
+              "top_one_hits": 0
+            }
+          }
+        },
+        "task": "follow",
+        "window_level": "whole_final_lap"
+      }
+    ],
+    "unknown_observations": 45
+  },
+  "private_artifacts": {
+    "authenticated_metadata_files": 22,
+    "envelope_sha256": "7790a8db9f5383fd55d1bb9052eb5c8e6b575fab7f4eb2422c50a8be425637c6",
+    "normalized_labels_sha256": "8964168caaf2d2a3fb14a21d48a744217a4a92a94cfea6fd294dc7c593223749",
+    "profiles_sha256": "3aff0a87549b7d9bf816f87f8dbcd18fb7cdafb311136fe7c06602ed4f4d3eac",
+    "queue_sha256": "a9bc541c55cf5529ab5d256b2f76ff032991f16c8a09444f4cc454ff13d93782",
+    "scores_sha256": "1b0425a69199737dd28c5a70faa9634d82af2f29b8eb5823c032568380338f57"
+  },
+  "queue": {
+    "by_stage": {
+      "review": 78,
+      "source": 82689
+    },
+    "distinct_pending_races": 82767
+  },
+  "registration_audit": {
+    "annual": {
+      "2023": {
+        "all_starter_ids_and_roster": 2623,
+        "listed": 2834,
+        "unresolved_registered_rows": 6,
+        "verified_cancelled": 0
+      },
+      "2024": {
+        "all_starter_ids_and_roster": 25542,
+        "listed": 27783,
+        "unresolved_registered_rows": 95,
+        "verified_cancelled": 0
+      },
+      "2025": {
+        "all_starter_ids_and_roster": 25816,
+        "listed": 27458,
+        "unresolved_registered_rows": 96,
+        "verified_cancelled": 7
+      },
+      "2026": {
+        "all_starter_ids_and_roster": 24034,
+        "listed": 24699,
+        "unresolved_registered_rows": 133,
+        "verified_cancelled": 0
+      }
+    },
+    "incomplete_or_partial_roster_states_including_cancellations": {
+      "archived_entries": 4454,
+      "programme": 290,
+      "unavailable": 7,
+      "verified_starters": 8
+    },
+    "population_changes": {
+      "registered_new": 28759
+    },
+    "population_sha256": "450dbdb52d2617516f0d865ed59690396c1f8c75578cfbb4c8074345e94c74fd",
+    "six_new_checked_films": {
+      "identified": 44,
+      "races": 6,
+      "stars": 44
+    }
+  },
+  "replay_source_guidance": [
+    "https://kdreams.faq.rakuten.net/detail/000033266",
+    "https://keirin.jp/pc/dfw/portal/guest/guide/question/nyumon.html"
+  ],
+  "retrospective_selected_clip": {
+    "date_exclusive": "2026-11-20",
+    "last_training": "2026-11-18",
+    "personal": {
+      "B": 0.11428571428571428,
+      "H": 0.11428571428571428,
+      "HB": 0.6571428571428571,
+      "no_attack": 0.11428571428571428
+    },
+    "population": {
+      "B": 0.14285714285714285,
+      "H": 0.14285714285714285,
+      "HB": 0.5714285714285714,
+      "no_attack": 0.14285714285714285
+    },
+    "selection": "retrospective rider with earlier attack; interval defined after consulting preliminary 0.5s overview, before uninterrupted interval review"
+  },
+  "scope_jst": [
+    "2023-11-24",
+    "2026-11-23"
+  ],
+  "trifecta_accuracy_studied_in_this_experiment": false,
+  "validation": {
+    "independent_chronological_scores_match": true,
+    "local_tests": "102 passed, 1 warning, 24 subtests passed in 1.78s",
+    "reingestion_preserved_observations": true
+  }
+}
